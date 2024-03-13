@@ -9,6 +9,7 @@
 #include "../ABC_alembic.h"
 #include "IO_types.hh"
 
+#include <Alembic/AbcGeom/ILight.h>
 #include <Alembic/AbcMaterial/IMaterial.h>
 
 #include "abc_axis_conversion.h"
@@ -25,20 +26,15 @@
 
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_cachefile.hh"
 #include "BKE_context.hh"
-#include "BKE_curve.hh"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.hh"
-#include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -46,8 +42,6 @@
 #include "ED_undo.hh"
 
 #include "BLI_compiler_compat.h"
-#include "BLI_fileops.h"
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_path_util.h"

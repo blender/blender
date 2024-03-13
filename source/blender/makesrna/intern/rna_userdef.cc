@@ -544,9 +544,11 @@ static bUserExtensionRepo *rna_userdef_extension_repo_new(const char *name,
 
   if (remote_path) {
     STRNCPY(repo->remote_path, remote_path);
-    repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH;
   }
 
+  if (repo->remote_path[0]) {
+    repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH;
+  }
   if (repo->custom_dirpath[0]) {
     repo->flag |= USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY;
   }

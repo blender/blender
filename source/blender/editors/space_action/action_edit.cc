@@ -37,6 +37,7 @@
 #include "BKE_nla.h"
 #include "BKE_report.hh"
 
+#include "UI_interface_icons.hh"
 #include "UI_view2d.hh"
 
 #include "ANIM_animdata.hh"
@@ -1147,6 +1148,20 @@ static int actkeys_delete_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
+static int actkeys_delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Delete selected keyframes?"),
+                                  nullptr,
+                                  IFACE_("Delete"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return actkeys_delete_exec(C, op);
+}
+
 void ACTION_OT_delete(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1155,7 +1170,7 @@ void ACTION_OT_delete(wmOperatorType *ot)
   ot->description = "Remove all selected keyframes";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = actkeys_delete_invoke;
   ot->exec = actkeys_delete_exec;
   ot->poll = ED_operator_action_active;
 

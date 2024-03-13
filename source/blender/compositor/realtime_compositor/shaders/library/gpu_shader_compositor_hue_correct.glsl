@@ -7,7 +7,7 @@
 /* Curve maps are stored in texture samplers, so ensure that the parameters evaluate the sampler at
  * the center of the pixels, because samplers are evaluated using linear interpolation. Given the
  * parameter in the [0, 1] range. */
-vec3 compute_curve_map_coordinates(vec3 parameters)
+vec3 compute_hue_curve_map_coordinates(vec3 parameters)
 {
   const float sampler_resolution = 257.0;
   float sampler_offset = 0.5 / sampler_resolution;
@@ -34,7 +34,7 @@ void node_composite_hue_correct(float factor,
    * adjust the value to get an identity at 0.5. Since the identity of multiplication is 1, we
    * multiply by 2 (0.5 * 2 = 1). */
   vec3 parameters = (hsv.xxx - minimums) * range_dividers;
-  vec3 coordinates = compute_curve_map_coordinates(parameters);
+  vec3 coordinates = compute_hue_curve_map_coordinates(parameters);
   hsv.x += texture(curve_map, vec2(coordinates.x, layer)).x - 0.5;
   hsv.y *= texture(curve_map, vec2(coordinates.y, layer)).y * 2.0;
   hsv.z *= texture(curve_map, vec2(coordinates.z, layer)).z * 2.0;

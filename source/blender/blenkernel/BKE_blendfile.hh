@@ -93,8 +93,8 @@ BlendFileData *BKE_blendfile_read(const char *filepath,
  * \return Blend file data, this must be passed to
  * #BKE_blendfile_read_setup_readfile/#BKE_blendfile_read_setup_undo when non-NULL.
  */
-BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
-                                              int filelength,
+BlendFileData *BKE_blendfile_read_from_memory(const void *file_buf,
+                                              int file_buf_size,
                                               const BlendFileReadParams *params,
                                               ReportList *reports);
 
@@ -118,8 +118,8 @@ void BKE_blendfile_read_make_empty(bContext *C);
  * Only read the #UserDef from a .blend.
  */
 UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports);
-UserDef *BKE_blendfile_userdef_read_from_memory(const void *filebuf,
-                                                int filelength,
+UserDef *BKE_blendfile_userdef_read_from_memory(const void *file_buf,
+                                                int file_buf_size,
                                                 ReportList *reports);
 UserDef *BKE_blendfile_userdef_from_defaults();
 
@@ -140,8 +140,8 @@ bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *
 bool BKE_blendfile_userdef_write_all(ReportList *reports);
 
 WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath,
-                                                             const void *filebuf,
-                                                             int filelength,
+                                                             const void *file_buf,
+                                                             int file_buf_size,
                                                              ReportList *reports);
 bool BKE_blendfile_workspace_config_write(Main *bmain, const char *filepath, ReportList *reports);
 void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace_config);

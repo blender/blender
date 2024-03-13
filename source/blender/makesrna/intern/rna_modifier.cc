@@ -1492,21 +1492,21 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
         *r_free = true;
         return item;
       }
-      const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-      if (!me_eval) {
+      const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      if (!mesh_eval) {
         RNA_enum_item_end(&item, &totitem);
         *r_free = true;
         return item;
       }
 
-      num_data = CustomData_number_of_layers(&me_eval->corner_data, CD_PROP_FLOAT2);
+      num_data = CustomData_number_of_layers(&mesh_eval->corner_data, CD_PROP_FLOAT2);
 
       RNA_enum_item_add_separator(&item, &totitem);
 
       for (i = 0; i < num_data; i++) {
         tmp_item.value = i;
         tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-            &me_eval->corner_data, CD_PROP_FLOAT2, i);
+            &mesh_eval->corner_data, CD_PROP_FLOAT2, i);
         RNA_enum_item_add(&item, &totitem, &tmp_item);
       }
     }

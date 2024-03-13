@@ -16,7 +16,6 @@
 #include "DNA_object_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_curve.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_object.hh"

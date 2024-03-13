@@ -632,7 +632,7 @@ static MultiValueMap<bke::AttrDomain, OutputAttributeInfo> find_output_attribute
 
     const int index = socket->index();
     bke::SocketValueVariant &value_variant = *output_values[index].get<bke::SocketValueVariant>();
-    const fn::GField field = value_variant.extract<fn::GField>();
+    const fn::GField field = value_variant.get<fn::GField>();
 
     const bNodeTreeInterfaceSocket *interface_socket = tree.interface_outputs()[index];
     const bke::AttrDomain domain = bke::AttrDomain(interface_socket->attribute_domain);
@@ -650,7 +650,8 @@ static MultiValueMap<bke::AttrDomain, OutputAttributeInfo> find_output_attribute
  */
 static Vector<OutputAttributeToStore> compute_attributes_to_store(
     const bke::GeometrySet &geometry,
-    const MultiValueMap<bke::AttrDomain, OutputAttributeInfo> &outputs_by_domain)
+    const MultiValueMap<bke::AttrDomain, OutputAttributeInfo> &outputs_by_domain,
+    const bool do_instances)
 {
   Vector<OutputAttributeToStore> attributes_to_store;
   for (const auto component_type : {bke::GeometryComponent::Type::Mesh,
@@ -659,6 +660,9 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
                                     bke::GeometryComponent::Type::Instance})
   {
     if (!geometry.has(component_type)) {
+      continue;
+    }
+    if (!do_instances && component_type == bke::GeometryComponent::Type::Instance) {
       continue;
     }
     const bke::GeometryComponent &component = *geometry.get_component(component_type);
@@ -745,9 +749,16 @@ static void store_output_attributes(bke::GeometrySet &geometry,
    * necessary because some fields might depend on attributes that are overwritten. */
   MultiValueMap<bke::AttrDomain, OutputAttributeInfo> outputs_by_domain =
       find_output_attributes_to_store(tree, properties, output_values);
-  Vector<OutputAttributeToStore> attributes_to_store = compute_attributes_to_store(
-      geometry, outputs_by_domain);
-  store_computed_output_attributes(geometry, attributes_to_store);
+  if (outputs_by_domain.size() == 0) {
+    return;
+  }
+  geometry.modify_geometry_sets([&](bke::GeometrySet &instance_geometry) {
+    /* Instance attributes should only be created for the top-level geometry. */
+    const bool do_instances = &geometry == &instance_geometry;
+    Vector<OutputAttributeToStore> attributes_to_store = compute_attributes_to_store(
+        instance_geometry, outputs_by_domain, do_instances);
+    store_computed_output_attributes(instance_geometry, attributes_to_store);
+  });
 }
 
 bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
@@ -857,7 +868,6 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
 
 void update_input_properties_from_node_tree(const bNodeTree &tree,
                                             const IDProperty *old_properties,
-                                            const bool use_bool_for_use_attribute,
                                             IDProperty &properties)
 {
   tree.ensure_interface_cache();
@@ -911,8 +921,7 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
       const std::string attribute_name_id = socket_identifier + input_attribute_name_suffix();
 
       IDPropertyTemplate idprop = {0};
-      IDProperty *use_attribute_prop = IDP_New(
-          use_bool_for_use_attribute ? IDP_BOOLEAN : IDP_INT, &idprop, use_attribute_id.c_str());
+      IDProperty *use_attribute_prop = IDP_New(IDP_BOOLEAN, &idprop, use_attribute_id.c_str());
       IDP_AddToGroup(&properties, use_attribute_prop);
 
       IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_id.c_str());

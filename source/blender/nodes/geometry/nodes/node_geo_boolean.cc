@@ -4,7 +4,6 @@
 
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
-#include "BKE_mesh_boolean_convert.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -14,6 +13,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "GEO_mesh_boolean.hh"
 #include "GEO_randomize.hh"
 
 #include "node_geometry_util.hh"

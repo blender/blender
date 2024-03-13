@@ -20,6 +20,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_deform.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -412,6 +413,8 @@ static bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &cu
   const int total_curves = dst_to_src_curve.size();
 
   bke::CurvesGeometry dst_curves(total_points, total_curves);
+
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &curves.vertex_group_names);
 
   MutableSpan<int> new_curve_offsets = dst_curves.offsets_for_write();
   array_utils::copy(dst_curve_counts.as_span(), new_curve_offsets.drop_back(1));

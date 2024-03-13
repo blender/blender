@@ -38,7 +38,7 @@ static void applyBakeTime(TransInfo *t)
   float fac = 0.1f;
 
 /* XXX, disable precision for now,
- * this isn't even accessible by the user */
+ * this isn't even accessible by the user. */
 #if 0
   if (t->mouse.precision) {
     /* Calculate ratio for shift-key position, and for total, and blend these for precision. */
@@ -55,7 +55,7 @@ static void applyBakeTime(TransInfo *t)
 
   applyNumInput(&t->num, &time);
 
-  /* header print for NumInput */
+  /* Header print for NumInput. */
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
 
@@ -69,7 +69,7 @@ static void applyBakeTime(TransInfo *t)
     }
   }
   else {
-    /* default header print */
+    /* Default header print. */
     if (time >= 0.0f) {
       SNPRINTF(str, IFACE_("Time: +%.3f %s"), time, t->proptext);
     }

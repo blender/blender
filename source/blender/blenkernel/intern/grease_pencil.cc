@@ -266,6 +266,9 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
                                             const T default_value = T())
 {
   const int num = domain_num(curves, domain);
+  if (num <= 0) {
+    return {};
+  }
   const eCustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
   CustomData &custom_data = domain_custom_data(curves, domain);
 
@@ -275,7 +278,7 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
   }
   data = (T *)CustomData_add_layer_named(&custom_data, type, CD_SET_DEFAULT, num, name);
   MutableSpan<T> span = {data, num};
-  if (num > 0 && span.first() != default_value) {
+  if (span.first() != default_value) {
     span.fill(default_value);
   }
   return span;
@@ -2042,30 +2045,37 @@ void GreasePencil::move_duplicate_frames(
   Map<int, GreasePencilFrame> layer_frames_copy = layer.frames();
 
   /* Copy frames durations. */
-  Map<int, int> layer_frames_durations;
+  Map<int, int> src_layer_frames_durations;
   for (const auto [frame_number, frame] : layer.frames().items()) {
     if (!frame.is_implicit_hold()) {
-      layer_frames_durations.add(frame_number, layer.get_frame_duration_at(frame_number));
+      src_layer_frames_durations.add(frame_number, layer.get_frame_duration_at(frame_number));
     }
   }
 
-  for (const auto [src_frame_number, dst_frame_number] : frame_number_destinations.items()) {
-    const bool use_duplicate = duplicate_frames.contains(src_frame_number);
-
-    const Map<int, GreasePencilFrame> &frame_map = use_duplicate ? duplicate_frames :
-                                                                   layer_frames_copy;
-
-    if (!frame_map.contains(src_frame_number)) {
-      continue;
-    }
-
-    const GreasePencilFrame src_frame = frame_map.lookup(src_frame_number);
-    const int drawing_index = src_frame.drawing_index;
-    const int duration = layer_frames_durations.lookup_default(src_frame_number, 0);
-
-    if (!use_duplicate) {
+  /* Remove original frames for duplicates before inserting any frames.
+   * This has to be done early to avoid removing frames that may be inserted
+   * in place of the source frames. */
+  for (const auto src_frame_number : frame_number_destinations.keys()) {
+    if (!duplicate_frames.contains(src_frame_number)) {
+      /* User count not decremented here, the same frame is inserted again later. */
       layer.remove_frame(src_frame_number);
     }
+  }
+
+  auto get_source_frame = [&](const int frame_number) -> const GreasePencilFrame * {
+    if (const GreasePencilFrame *ptr = duplicate_frames.lookup_ptr(frame_number)) {
+      return ptr;
+    }
+    return layer_frames_copy.lookup_ptr(frame_number);
+  };
+
+  for (const auto [src_frame_number, dst_frame_number] : frame_number_destinations.items()) {
+    const GreasePencilFrame *src_frame = get_source_frame(src_frame_number);
+    if (!src_frame) {
+      continue;
+    }
+    const int drawing_index = src_frame->drawing_index;
+    const int duration = src_layer_frames_durations.lookup_default(src_frame_number, 0);
 
     /* Add and overwrite the frame at the destination number. */
     if (layer.frames().contains(dst_frame_number)) {
@@ -2077,7 +2087,7 @@ void GreasePencil::move_duplicate_frames(
       layer.remove_frame(dst_frame_number);
     }
     GreasePencilFrame *frame = layer.add_frame(dst_frame_number, drawing_index, duration);
-    *frame = src_frame;
+    *frame = *src_frame;
   }
 
   /* Remove drawings if they no longer have users. */

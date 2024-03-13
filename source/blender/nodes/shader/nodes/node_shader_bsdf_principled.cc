@@ -52,7 +52,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           " (0.0 is a perfect mirror reflection, 1.0 is completely rough)");
 #define SOCK_ROUGHNESS_ID 2
   b.add_input<decl::Float>("IOR").default_value(1.5f).min(1.0f).max(1000.0f).description(
-      "Index of refraction for specular reflection and transmission. "
+      "Index of Refraction (IOR) for specular reflection and transmission. "
       "For most materials, the IOR is between 1.0 (vacuum and air) and 4.0 (germanium). "
       "The default value of 1.5 is a good approximation for glass");
 #define SOCK_IOR_ID 3
@@ -106,7 +106,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(3.8f)
       .subtype(PROP_FACTOR)
       .short_label("IOR")
-      .description("Index of refraction used for rays that enter the subsurface component");
+      .description("Index of Refraction (IOR) used for rays that enter the subsurface component");
 #define SOCK_SUBSURFACE_IOR_ID 10
   sss.add_input<decl::Float>("Subsurface Anisotropy")
       .default_value(0.0f)
@@ -115,9 +115,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .short_label("Anisotropy")
       .description(
-          "Directionanltiy of volume scattering within the subsurface medium. "
+          "Directionality of volume scattering within the subsurface medium. "
           "Zero scatters uniformly in all directions, with higher values "
-          "scattering more strongly forward. For example skin has been measured "
+          "scattering more strongly forward. For example, skin has been measured "
           "to have an anisotropy of 0.8");
 #define SOCK_SUBSURFACE_ANISOTROPY_ID 11
 
@@ -135,7 +135,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .short_label("IOR Level")
       .description(
-          "Adjustment to the IOR to increase or decrease specular intensity "
+          "Adjustment to the Index of Refraction (IOR) to increase or decrease specular intensity "
           "(0.5 means no adjustment, 0 removes all reflections, 1 doubles them at normal "
           "incidence)");
 #define SOCK_SPECULAR_ID 12
@@ -165,7 +165,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Rotates the direction of anisotropy, with 1.0 going full circle");
 #define SOCK_ANISOTROPIC_ROTATION_ID 15
   spec.add_input<decl::Vector>("Tangent").hide_value().description(
-      "Controls the tangent line for the Anisotropic layer");
+      "Controls the tangent direction for anisotropy");
 #define SOCK_TANGENT_ID 16
 
   /* Panel for Transmission settings. */
@@ -205,7 +205,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(4.0f)
       .short_label("IOR")
       .description(
-          "The index of refraction of the coat layer "
+          "The Index of Refraction (IOR) of the coat layer "
           "(affects its reflectivity as well as the falloff of coat tinting)");
 #define SOCK_COAT_IOR_ID 20
   coat.add_input<decl::Color>("Coat Tint")
@@ -255,7 +255,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(1000000.0f)
       .short_label("Strength")
       .description(
-          "Strength of the emitted light. A value of 1.0 will ensure "
+          "Strength of the emitted light. A value of 1.0 ensures "
           "that the object in the image has the exact same color as the Emission Color");
 #define SOCK_EMISSION_STRENGTH_ID 27
 }

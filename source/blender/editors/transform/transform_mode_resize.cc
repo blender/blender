@@ -106,7 +106,7 @@ static void constrain_scale_to_boundary(const float numerator,
    * "catastrophic cancellation". See #102923 for an example. We use epsilon tests here to
    * distinguish between genuine negative coordinates versus coordinates that should be rounded off
    * to zero. */
-  const float epsilon = 0.25f / 65536.0f; /* i.e. Quarter of a texel on a 65536 x 65536 texture. */
+  const float epsilon = 0.25f / 65536.0f; /* A quarter of a texel on a 65536 x 65536 texture. */
   if (fabsf(denominator) < epsilon) {
     /* The origin of the scale is very near the edge of the boundary. */
     if (numerator < -epsilon) {
@@ -169,7 +169,7 @@ static bool clip_uv_transform_resize(TransInfo *t, float vec[2])
         constrain_scale_to_boundary(
             scale_origin[0] - base_offset[0], scale_origin[0] - min[0], &scale);
 
-        /* Now the right border, negated, because `-1.0 / -1.0 = 1.0` */
+        /* Now the right border, negated, because `-1.0 / -1.0 = 1.0`. */
         constrain_scale_to_boundary(
             base_offset[0] + t->aspect[0] - scale_origin[0], max[0] - scale_origin[0], &scale);
       }
@@ -234,7 +234,7 @@ static void applyResize(TransInfo *t)
     headerResize(t, t->values_final, str, sizeof(str));
   }
 
-  copy_m3_m3(t->mat, mat); /* used in gizmo */
+  copy_m3_m3(t->mat, mat); /* Used in gizmo. */
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 

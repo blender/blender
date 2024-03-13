@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -13826,10 +13826,6 @@ msgstr "Az alapértelmezett könyvtár hangok keresésére"
 
 msgid "Temporary Directory"
 msgstr "Átmeneti könyvtár"
-
-
-msgid "The directory for storing temporary save files"
-msgstr "Az ideiglenes mentési fájlok tárolására használt könyvtár"
 
 
 msgid "The default directory to search for textures"

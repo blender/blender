@@ -11,6 +11,8 @@
 #include "IO_ply.hh"
 #include "ply_data.hh"
 
+struct Mesh;
+
 namespace blender::io::ply {
 
 /**

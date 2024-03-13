@@ -123,7 +123,7 @@ void BKE_lib_libblock_session_uid_renew(ID *id);
  * \note: By default, IDs created in a Main database will get the current library of the Main,
  * i.e. usually (besides in readfile case), they will have a `nullptr` `lib` pointer and be local
  * data. IDs created outside of a Main database will always get a `nullptr` `lib` pointer.
-
+ *
  * \param name: can be NULL, in which case we get default name for this ID type.
  */
 void *BKE_id_new(Main *bmain, short type, const char *name);

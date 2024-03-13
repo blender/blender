@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-03-01 16:12+0000\n"
 "Last-Translator: Marina Veselkova <m.ves.cg@gmail.com>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
@@ -45054,22 +45054,6 @@ msgid "Apply sampling to all animations"
 msgstr "Всегда выполнять сэмплирование для всех анимаций"
 
 
-msgid "glTF Binary (.glb)"
-msgstr "Бинарный glTF (.glb)"
-
-
-msgid "Exports a single file, with all data packed in binary form. Most efficient and portable, but more difficult to edit later"
-msgstr "Экспортировать в одиночный файл со всеми данными, упакованными в двоичном виде. Наиболее эффективный и переносимый, но более сложный для редактирования"
-
-
-msgid "glTF Separate (.gltf + .bin + textures)"
-msgstr "Разделённый glTF (.gltf + .bin + текстуры)"
-
-
-msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
-msgstr "Экспортировать несколько файлов с разделёнными JSON, двоичными и текстурными данными. Самый простой вариант для последующего изменения"
-
-
 msgid "Limit to Playback Range"
 msgstr "Ограничить диапазоном воспроизведения"
 
@@ -67571,10 +67555,6 @@ msgid "Temporary Directory"
 msgstr "Папка для временных файлов"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "Папка для хранения временных файлов сохранения"
-
-
 msgid "The default directory to search for textures"
 msgstr "Папка поиска по умолчанию для текстур"
 
@@ -86437,10 +86417,6 @@ msgid "Can't edit this property from a linked data-block"
 msgstr "Невозможно отредактировать свойство из связанного датаблока"
 
 
-msgid "Nothing selected"
-msgstr "Ничего не выбрано"
-
-
 msgid "<invalid>"
 msgstr "<неверно>"
 
@@ -87041,6 +87017,10 @@ msgstr "Нет активных кадров для удаления"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "Невозможно отделить объект только с одним слоем"
+
+
+msgid "Nothing selected"
+msgstr "Ничего не выбрано"
 
 
 msgid "No active area"

@@ -472,6 +472,12 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
 
   /* Project the offset position into the surface */
 
+#ifdef GPU_NVIDIA
+  /* Workaround for a bug in the Nvidia shader compiler.
+   * If we don't compute L here again, it breaks shadows on reflection probes. */
+  L = light_vector_get(light, is_directional, P).L;
+#endif
+
   if (abs(dot(Ng, L)) > 0.999) {
     return ws_offset;
   }

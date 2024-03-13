@@ -120,6 +120,11 @@ class Film {
     return display_extent;
   }
 
+  int scaling_factor_get() const
+  {
+    return data_.scaling_factor;
+  }
+
   float2 pixel_jitter_get() const;
 
   float background_opacity_get() const

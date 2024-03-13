@@ -61,3 +61,5 @@ mark_as_advanced(
   ZSTD_INCLUDE_DIR
   ZSTD_LIBRARY
 )
+
+unset(_zstd_SEARCH_DIRS)

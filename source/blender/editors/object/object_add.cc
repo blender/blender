@@ -222,7 +222,7 @@ static void object_add_drop_xy_props(wmOperatorType *ot)
                      "X-coordinate (screen space) to place the new object under",
                      INT_MIN,
                      INT_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
   prop = RNA_def_int(ot->srna,
                      "drop_y",
                      0,
@@ -232,7 +232,7 @@ static void object_add_drop_xy_props(wmOperatorType *ot)
                      "Y-coordinate (screen space) to place the new object under",
                      INT_MIN,
                      INT_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 static bool object_add_drop_xy_is_set(const wmOperator *op)
@@ -418,7 +418,7 @@ void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode)
                            false,
                            "Enter Edit Mode",
                            "Enter edit mode when adding this object");
-    RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+    RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
   }
   /* NOTE: this property gets hidden for add-camera operator. */
   prop = RNA_def_enum(
@@ -458,7 +458,7 @@ void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode)
                                   "Scale for the newly added object",
                                   -1000.0f,
                                   1000.0f);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 void ED_object_add_mesh_props(wmOperatorType *ot)
@@ -1234,10 +1234,82 @@ void OBJECT_OT_empty_add(wmOperatorType *ot)
   ED_object_add_generic_props(ot, false);
 }
 
-static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int object_image_add_exec(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
+  Image *ima = nullptr;
 
+  ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+  if (!ima) {
+    return OPERATOR_CANCELLED;
+  }
+
+  /* add new empty */
+  ushort local_view_bits;
+  float loc[3], rot[3];
+
+  if (!ED_object_add_generic_get_opts(
+          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr))
+  {
+    return OPERATOR_CANCELLED;
+  }
+  Object *ob = ED_object_add_type(C, OB_EMPTY, nullptr, loc, rot, false, local_view_bits);
+  ob->empty_drawsize = 5.0f;
+
+  if (RNA_boolean_get(op->ptr, "background")) {
+    /* "background" has been set to "true", set image to render in the background. */
+    ob->empty_image_depth = OB_EMPTY_IMAGE_DEPTH_BACK;
+    ob->empty_image_visibility_flag = OB_EMPTY_IMAGE_HIDE_BACK;
+
+    RegionView3D *rv3d = CTX_wm_region_view3d(C);
+    if (rv3d->persp != RV3D_PERSP) {
+      ob->empty_image_visibility_flag |= OB_EMPTY_IMAGE_HIDE_PERSPECTIVE;
+    }
+  }
+
+  BKE_object_empty_draw_type_set(ob, OB_EMPTY_IMAGE);
+
+  ob->data = ima;
+
+  return OPERATOR_FINISHED;
+}
+
+static int object_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (!RNA_struct_property_is_set(op->ptr, "align")) {
+    /* Default to Aligned unless something else was explicitly passed */
+    RNA_enum_set(op->ptr, "align", ALIGN_VIEW);
+  }
+
+  /* Check if the user has not specified the image to load.
+   * If they have not, assume this is a drag an drop operation.
+   */
+  if (!RNA_struct_property_is_set(op->ptr, "filepath") &&
+      !WM_operator_properties_id_lookup_is_set(op->ptr))
+  {
+    WM_event_add_fileselect(C, op);
+    return OPERATOR_RUNNING_MODAL;
+  }
+
+  if (!RNA_struct_property_is_set(op->ptr, "background")) {
+    /* Check if we should switch to "background" mode. */
+    RegionView3D *rv3d = CTX_wm_region_view3d(C);
+    if (rv3d->persp != RV3D_PERSP) {
+      RNA_boolean_set(op->ptr, "background", true);
+    }
+  }
+
+  float loc[3];
+  ED_object_location_from_view(C, loc);
+  ED_view3d_cursor3d_position(C, event->mval, false, loc);
+  RNA_float_set_array(op->ptr, "location", loc);
+
+  Object *ob_cursor = ED_view3d_give_object_under_cursor(C, event->mval);
+
+  /* Either change empty under cursor or create a new empty */
+  if (!ob_cursor || ob_cursor->type != OB_EMPTY) {
+    return object_image_add_exec(C, op);
+  }
+  /* User dropped an image on an existing image */
   Image *ima = nullptr;
 
   ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
@@ -1247,71 +1319,56 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEv
   /* handled below */
   id_us_min(&ima->id);
 
-  Object *ob = nullptr;
-  Object *ob_cursor = ED_view3d_give_object_under_cursor(C, event->mval);
+  Scene *scene = CTX_data_scene(C);
+  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+  DEG_id_tag_update((ID *)ob_cursor, ID_RECALC_TRANSFORM);
 
-  /* either change empty under cursor or create a new empty */
-  if (ob_cursor && ob_cursor->type == OB_EMPTY) {
-    WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
-    DEG_id_tag_update((ID *)ob_cursor, ID_RECALC_TRANSFORM);
-    ob = ob_cursor;
-  }
-  else {
-    /* add new empty */
-    ushort local_view_bits;
-    float rot[3];
+  BKE_object_empty_draw_type_set(ob_cursor, OB_EMPTY_IMAGE);
 
-    if (!ED_object_add_generic_get_opts(
-            C, op, 'Z', nullptr, rot, nullptr, nullptr, &local_view_bits, nullptr))
-    {
-      return OPERATOR_CANCELLED;
-    }
-    ob = ED_object_add_type(C, OB_EMPTY, nullptr, nullptr, rot, false, local_view_bits);
-
-    ED_object_location_from_view(C, ob->loc);
-    ED_view3d_cursor3d_position(C, event->mval, false, ob->loc);
-    ED_object_rotation_from_view(C, ob->rot, 'Z');
-    ob->empty_drawsize = 5.0f;
-  }
-
-  BKE_object_empty_draw_type_set(ob, OB_EMPTY_IMAGE);
-
-  id_us_min(static_cast<ID *>(ob->data));
-  ob->data = ima;
-  id_us_plus(static_cast<ID *>(ob->data));
-
+  id_us_min(static_cast<ID *>(ob_cursor->data));
+  ob_cursor->data = ima;
+  id_us_plus(static_cast<ID *>(ob_cursor->data));
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_drop_named_image(wmOperatorType *ot)
+void OBJECT_OT_empty_image_add(wmOperatorType *ot)
 {
-  PropertyRNA *prop;
-
   /* identifiers */
   ot->name = "Add Empty Image/Drop Image to Empty";
   ot->description = "Add an empty image type to scene with data";
-  ot->idname = "OBJECT_OT_drop_named_image";
+  ot->idname = "OBJECT_OT_empty_image_add";
 
   /* api callbacks */
-  ot->invoke = empty_drop_named_image_invoke;
+  ot->invoke = object_image_add_invoke;
+  ot->exec = object_image_add_exec;
   ot->poll = ED_operator_objectmode;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  prop = RNA_def_string(ot->srna, "filepath", nullptr, FILE_MAX, "Filepath", "Path to image file");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
-  RNA_def_boolean(ot->srna,
-                  "relative_path",
-                  true,
-                  "Relative Path",
-                  "Select the file relative to the blend file");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE,
+                                 FILE_SPECIAL,
+                                 FILE_OPENFILE,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
 
   WM_operator_properties_id_lookup(ot, true);
-
   ED_object_add_generic_props(ot, false);
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna,
+                         "background",
+                         false,
+                         "Put in Background",
+                         "Make the image render behind all objects");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE));
+  /* Hide the filepath and relative path prop */
+  prop = RNA_struct_type_find_property(ot->srna, "filepath");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_PRESET));
+  prop = RNA_struct_type_find_property(ot->srna, "relative_path");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN));
 }
 
 /** \} */
@@ -2112,8 +2169,7 @@ void OBJECT_OT_collection_external_asset_drop(wmOperatorType *ot)
 
   prop = RNA_def_enum(ot->srna, "collection", rna_enum_dummy_NULL_items, 0, "Collection", "");
   RNA_def_enum_funcs(prop, RNA_collection_itemf);
-  RNA_def_property_flag(prop,
-                        (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE));
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE));
   ot->prop = prop;
 }
 
@@ -2556,6 +2612,20 @@ static int object_delete_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int object_delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Delete selected objects?"),
+                                  nullptr,
+                                  IFACE_("Delete"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return object_delete_exec(C, op);
+}
+
 void OBJECT_OT_delete(wmOperatorType *ot)
 {
   /* identifiers */
@@ -2564,7 +2634,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_delete";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = object_delete_invoke;
   ot->exec = object_delete_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -2574,7 +2644,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_boolean(
       ot->srna, "use_global", false, "Delete Globally", "Remove object from all scenes");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
   WM_operator_properties_confirm_or_exec(ot);
 }
 
@@ -4218,7 +4288,7 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
 
   prop = RNA_def_float_matrix(
       ot->srna, "matrix", 4, 4, nullptr, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 
   object_add_drop_xy_props(ot);
 }
@@ -4325,7 +4395,7 @@ void OBJECT_OT_transform_to_mouse(wmOperatorType *ot)
       MAX_ID_NAME - 2,
       "Name",
       "Object name to place (uses the active object when this and 'session_uid' are unset)");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
   prop = RNA_def_int(ot->srna,
                      "session_uid",
                      0,
@@ -4336,11 +4406,11 @@ void OBJECT_OT_transform_to_mouse(wmOperatorType *ot)
                      "'name' are unset)",
                      INT32_MIN,
                      INT32_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
 
   prop = RNA_def_float_matrix(
       ot->srna, "matrix", 4, 4, nullptr, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 
   object_add_drop_xy_props(ot);
 }

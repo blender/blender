@@ -58,7 +58,7 @@ ccl_device_forceinline bool osl_closure_skip(KernelGlobals kg,
     if (reflect_caustics_disabled && has_reflect && !has_transmit) {
       return true;
     }
-    /* Refractive Caustics*/
+    /* Refractive Caustics */
     if (refract_caustics_disabled && has_transmit && !has_reflect) {
       return true;
     }

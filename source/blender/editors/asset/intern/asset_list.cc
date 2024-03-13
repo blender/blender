@@ -328,72 +328,39 @@ void AssetList::remap_id(ID * /*id_old*/, ID * /*id_new*/) const
  * \{ */
 
 /**
- * Class managing a global asset list map, each entry being a list for a specific asset library.
+ * A global asset list map, each entry being a list for a specific asset library.
  */
-class AssetListStorage {
-  using AssetListMap = Map<AssetLibraryReference, AssetList>;
+using AssetListMap = Map<AssetLibraryReference, AssetList>;
 
- public:
-  /* Purely static class, can't instantiate this. */
-  AssetListStorage() = delete;
-
-  static void fetch_library(const AssetLibraryReference &library_reference, const bContext &C);
-  static void destruct();
-  static AssetList *lookup_list(const AssetLibraryReference &library_ref);
-  static void tag_main_data_dirty();
-  static void remap_id(ID *id_new, ID *id_old);
-
- private:
-  static std::optional<eFileSelectType> asset_library_reference_to_fileselect_type(
-      const AssetLibraryReference &library_reference);
-
-  using is_new_t = bool;
-  static std::tuple<AssetList &, is_new_t> ensure_list_storage(
-      const AssetLibraryReference &library_reference, eFileSelectType filesel_type);
-
-  static AssetListMap &global_storage();
-};
-
-void AssetListStorage::fetch_library(const AssetLibraryReference &library_reference,
-                                     const bContext &C)
+/**
+ * Wrapper for Construct on First Use idiom, to avoid the Static Initialization Fiasco.
+ */
+static AssetListMap &global_storage()
 {
-  std::optional filesel_type = asset_library_reference_to_fileselect_type(library_reference);
-  if (!filesel_type) {
-    return;
-  }
-
-  auto [list, is_new] = ensure_list_storage(library_reference, *filesel_type);
-  if (is_new || list.needs_refetch()) {
-    list.setup();
-    list.fetch(C);
-  }
+  static AssetListMap global_storage;
+  return global_storage;
 }
 
-void AssetListStorage::destruct()
-{
-  global_storage().clear();
-}
-
-AssetList *AssetListStorage::lookup_list(const AssetLibraryReference &library_ref)
+static AssetList *lookup_list(const AssetLibraryReference &library_ref)
 {
   return global_storage().lookup_ptr(library_ref);
 }
 
-void AssetListStorage::tag_main_data_dirty()
+void storage_tag_main_data_dirty()
 {
   for (AssetList &list : global_storage().values()) {
     list.tag_main_data_dirty();
   }
 }
 
-void AssetListStorage::remap_id(ID *id_new, ID *id_old)
+void storage_id_remap(ID *id_new, ID *id_old)
 {
   for (AssetList &list : global_storage().values()) {
     list.remap_id(id_new, id_old);
   }
 }
 
-std::optional<eFileSelectType> AssetListStorage::asset_library_reference_to_fileselect_type(
+static std::optional<eFileSelectType> asset_library_reference_to_fileselect_type(
     const AssetLibraryReference &library_reference)
 {
   switch (eAssetLibraryType(library_reference.type)) {
@@ -409,7 +376,8 @@ std::optional<eFileSelectType> AssetListStorage::asset_library_reference_to_file
   return std::nullopt;
 }
 
-std::tuple<AssetList &, AssetListStorage::is_new_t> AssetListStorage::ensure_list_storage(
+using is_new_t = bool;
+static std::tuple<AssetList &, is_new_t> ensure_list_storage(
     const AssetLibraryReference &library_reference, eFileSelectType filesel_type)
 {
   AssetListMap &storage = global_storage();
@@ -419,15 +387,6 @@ std::tuple<AssetList &, AssetListStorage::is_new_t> AssetListStorage::ensure_lis
   }
   storage.add(library_reference, AssetList(filesel_type, library_reference));
   return {storage.lookup(library_reference), true};
-}
-
-/**
- * Wrapper for Construct on First Use idiom, to avoid the Static Initialization Fiasco.
- */
-AssetListStorage::AssetListMap &AssetListStorage::global_storage()
-{
-  static AssetListMap global_storage_;
-  return global_storage_;
 }
 
 /** \} */
@@ -452,12 +411,21 @@ void asset_reading_region_listen_fn(const wmRegionListenerParams *params)
 
 void storage_fetch(const AssetLibraryReference *library_reference, const bContext *C)
 {
-  AssetListStorage::fetch_library(*library_reference, *C);
+  std::optional filesel_type = asset_library_reference_to_fileselect_type(*library_reference);
+  if (!filesel_type) {
+    return;
+  }
+
+  auto [list, is_new] = ensure_list_storage(*library_reference, *filesel_type);
+  if (is_new || list.needs_refetch()) {
+    list.setup();
+    list.fetch(*C);
+  }
 }
 
 bool is_loaded(const AssetLibraryReference *library_reference)
 {
-  AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  AssetList *list = lookup_list(*library_reference);
   if (!list) {
     return false;
   }
@@ -469,8 +437,7 @@ bool is_loaded(const AssetLibraryReference *library_reference)
 
 void ensure_previews_job(const AssetLibraryReference *library_reference, const bContext *C)
 {
-
-  AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  AssetList *list = lookup_list(*library_reference);
   if (list) {
     list->ensure_previews_job(C);
   }
@@ -478,7 +445,7 @@ void ensure_previews_job(const AssetLibraryReference *library_reference, const b
 
 void clear(const AssetLibraryReference *library_reference, const bContext *C)
 {
-  AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  AssetList *list = lookup_list(*library_reference);
   if (list) {
     list->clear(C);
   }
@@ -486,12 +453,12 @@ void clear(const AssetLibraryReference *library_reference, const bContext *C)
 
 bool storage_has_list_for_library(const AssetLibraryReference *library_reference)
 {
-  return AssetListStorage::lookup_list(*library_reference) != nullptr;
+  return lookup_list(*library_reference) != nullptr;
 }
 
 void iterate(const AssetLibraryReference &library_reference, AssetListHandleIterFn fn)
 {
-  AssetList *list = AssetListStorage::lookup_list(library_reference);
+  AssetList *list = lookup_list(library_reference);
   if (list) {
     list->iterate(fn);
   }
@@ -499,7 +466,7 @@ void iterate(const AssetLibraryReference &library_reference, AssetListHandleIter
 
 void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
 {
-  AssetList *list = AssetListStorage::lookup_list(library_reference);
+  AssetList *list = lookup_list(library_reference);
   if (list) {
     list->iterate(fn);
   }
@@ -508,7 +475,7 @@ void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
 asset_system::AssetLibrary *library_get_once_available(
     const AssetLibraryReference &library_reference)
 {
-  const AssetList *list = AssetListStorage::lookup_list(library_reference);
+  const AssetList *list = lookup_list(library_reference);
   if (!list) {
     return nullptr;
   }
@@ -518,7 +485,7 @@ asset_system::AssetLibrary *library_get_once_available(
 AssetHandle asset_handle_get_by_index(const AssetLibraryReference *library_reference,
                                       int asset_index)
 {
-  const AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  const AssetList *list = lookup_list(*library_reference);
   return list->asset_get_by_index(asset_index);
 }
 
@@ -532,7 +499,7 @@ asset_system::AssetRepresentation *asset_get_by_index(
 bool asset_image_is_loading(const AssetLibraryReference *library_reference,
                             const AssetHandle *asset_handle)
 {
-  const AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  const AssetList *list = lookup_list(*library_reference);
   return list->is_asset_preview_loading(*asset_handle);
 }
 
@@ -553,26 +520,16 @@ bool listen(const wmNotifier *notifier)
 
 int size(const AssetLibraryReference *library_reference)
 {
-  AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  AssetList *list = lookup_list(*library_reference);
   if (list) {
     return list->size();
   }
   return -1;
 }
 
-void storage_tag_main_data_dirty()
-{
-  AssetListStorage::tag_main_data_dirty();
-}
-
-void storage_id_remap(ID *id_old, ID *id_new)
-{
-  AssetListStorage::remap_id(id_old, id_new);
-}
-
 void storage_exit()
 {
-  AssetListStorage::destruct();
+  global_storage().clear_and_shrink();
 }
 
 /** \} */

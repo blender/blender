@@ -11,7 +11,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_boolean_convert.hh"
 
 #include "BLI_alloca.h"
 #include "BLI_array.hh"
@@ -25,6 +24,8 @@
 #include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
+
+#include "GEO_mesh_boolean.hh"
 
 namespace blender::meshintersect {
 

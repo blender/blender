@@ -145,7 +145,7 @@ static void mesh_customdata_free_fn(TransInfo * /*t*/,
  * \{ */
 
 struct TransCustomDataMergeGroup {
-  /** map {BMVert: TransCustomDataLayerVert} */
+  /** Map {#BMVert: #TransCustomDataLayerVert}. */
   LinkNode **cd_loop_groups;
 };
 
@@ -161,12 +161,12 @@ struct TransCustomDataLayer {
 
   /* Optionally merge custom-data groups (this keeps UVs connected for example). */
   struct {
-    /** map {BMVert: TransDataBasic} */
+    /** Map {#BMVert: #TransDataBasic}. */
     GHash *origverts;
     TransCustomDataMergeGroup *data;
     int data_len;
     /** Array size of 'layer_math_map_len'
-     * maps #TransCustomDataLayerVert.cd_group index to absolute #CustomData layer index */
+     * maps #TransCustomDataLayerVert.cd_group index to absolute #CustomData layer index. */
     int *customdatalayer_map;
     /** Number of math BMLoop layers. */
     int customdatalayer_map_len;
@@ -382,8 +382,8 @@ static TransCustomDataLayer *mesh_customdatacorrect_create_impl(TransDataContain
 
   if (bm->shapenr > 1) {
     /* Don't do this at all for non-basis shape keys, too easy to
-     * accidentally break uv maps or vertex colors then */
-    /* create copies of faces for custom-data projection. */
+     * accidentally break uv maps or vertex colors then. */
+    /* Create copies of faces for custom-data projection. */
     return nullptr;
   }
   if (!CustomData_has_math(&bm->ldata) && !CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
@@ -539,7 +539,7 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
   const bool is_moved = (len_squared_v3v3(v->co, co_orig_3d) > FLT_EPSILON);
   const bool do_loop_weight = is_moved && tcld->merge_group.customdatalayer_map_len;
   const float *v_proj_axis = v->no;
-  /* original (l->prev, l, l->next) projections for each loop ('l' remains unchanged) */
+  /* Original (`l->prev`, `l`, `l->next`) projections for each loop ('l' remains unchanged). */
   float v_proj[3][3];
 
   if (do_loop_weight) {
@@ -552,7 +552,7 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
   loop_weights = do_loop_weight ? static_cast<float *>(BLI_array_alloca(loop_weights, l_num)) :
                                   nullptr;
   for (j = 0; j < l_num; j++) {
-    BMFace *f_copy; /* the copy of 'f' */
+    BMFace *f_copy; /* The copy of 'f'. */
     BMLoop *l = static_cast<BMLoop *>(BM_iter_step(&liter));
 
     f_copy = static_cast<BMFace *>(BLI_ghash_lookup(tcld->origfaces, l->f));
@@ -565,11 +565,11 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
     }
 #endif
 
-    /* only loop data, no vertex data since that contains shape keys,
-     * and we do not want to mess up other shape keys */
+    /* Only loop data, no vertex data since that contains shape keys,
+     * and we do not want to mess up other shape keys. */
     BM_loop_interp_from_face(bm, l, f_copy, false, false);
 
-    /* weight the loop */
+    /* Weight the loop. */
     if (do_loop_weight) {
       const float eps = 1.0e-8f;
       const BMLoop *l_prev = l->prev;
@@ -754,7 +754,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
   char itype;
   int i;
 
-  /* group vars */
+  /* Group variables. */
   int *groups_array = nullptr;
   int(*group_index)[2] = nullptr;
 
@@ -765,7 +765,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
   data.island_vert_map = static_cast<int *>(
       MEM_mallocN(sizeof(*data.island_vert_map) * bm->totvert, __func__));
-  /* we shouldn't need this, but with incorrect selection flushing
+  /* We shouldn't need this, but with incorrect selection flushing
    * its possible we have a selected vertex that's not in a face,
    * for now best not crash in that case. */
   copy_vn_i(data.island_vert_map, bm->totvert, -1);
@@ -780,7 +780,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
       htype = BM_EDGE;
       itype = BM_VERTS_OF_EDGE;
     }
-    else { /* (bm->selectmode & SCE_SELECT_FACE) */
+    else { /* `bm->selectmode & SCE_SELECT_FACE`. */
       groups_array = static_cast<int *>(
           MEM_mallocN(sizeof(*groups_array) * bm->totfacesel, __func__));
       data.island_tot = BM_mesh_calc_face_groups(
@@ -808,7 +808,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
     BM_mesh_elem_index_ensure(bm, BM_VERT);
 
-    /* may be an edge OR a face array */
+    /* May be an edge OR a face array. */
     for (i = 0; i < data.island_tot; i++) {
       BMEditSelection ese = {nullptr};
 
@@ -823,9 +823,9 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
       ese.htype = htype;
 
-      /* loop on each face or edge in this group:
-       * - assign r_vert_map
-       * - calculate (co, no)
+      /* Loop on each face or edge in this group:
+       * - Assign `r_vert_map`.
+       * - Calculate (`co`, `no`).
        */
       for (j = 0; j < fg_len; j++) {
         ese.ele = static_cast<BMElem *>(ele_array[groups_array[fg_sta + j]]);
@@ -845,11 +845,11 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
         }
 
         {
-          /* setup vertex map */
+          /* Setup vertex map. */
           BMIter iter;
           BMVert *v;
 
-          /* connected edge-verts */
+          /* Connected edge-verts. */
           BM_ITER_ELEM (v, &iter, ese.ele, itype) {
             data.island_vert_map[BM_elem_index_get(v)] = i;
           }
@@ -862,7 +862,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
       if (data.axismtx) {
         if (createSpaceNormalTangent(data.axismtx[i], no, tangent)) {
-          /* pass */
+          /* Pass. */
         }
         else {
           if (normalize_v3(no) != 0.0f) {
@@ -880,8 +880,8 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
     MEM_freeN(group_index);
   }
 
-  /* for proportional editing we need islands of 1 so connected vertices can use it with
-   * V3D_AROUND_LOCAL_ORIGINS */
+  /* For proportional editing we need islands of 1 so connected vertices can use it with
+   * #V3D_AROUND_LOCAL_ORIGINS. */
   if (calc_single_islands) {
     BMIter viter;
     BMVert *v;
@@ -951,7 +951,7 @@ void transform_convert_mesh_islanddata_free(TransIslandData *island_data)
 static bool bmesh_test_dist_add(BMVert *v0,
                                 BMVert *v1,
                                 BMVert *v2,
-                                float *dists, /* optionally track original index */
+                                float *dists, /* Optionally track original index. */
                                 int *index,
                                 const float mtx[3][3])
 {
@@ -1028,7 +1028,7 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
 {
   BLI_LINKSTACK_DECLARE(queue, BMEdge *);
 
-  /* any BM_ELEM_TAG'd edge is in 'queue_next', so we don't add in twice */
+  /* Any BM_ELEM_TAG'd edge is in 'queue_next', so we don't add in twice. */
   const int tag_queued = BM_ELEM_TAG;
   const int tag_loose = BM_ELEM_TAG_ALT;
 
@@ -1348,8 +1348,8 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
       Scene *scene_eval = (Scene *)DEG_get_evaluated_id(t->depsgraph, &t->scene->id);
       Object *obedit_eval = (Object *)DEG_get_evaluated_id(t->depsgraph, &tc->obedit->id);
       BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
-      /* check if we can use deform matrices for modifier from the
-       * start up to stack, they are more accurate than quats */
+      /* Check if we can use deform matrices for modifier from the
+       * start up to stack, they are more accurate than quats. */
       totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(
           t->depsgraph, scene_eval, obedit_eval, em_eval, r_crazyspace_data->defmats, defcos);
     }
@@ -1380,7 +1380,7 @@ void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      const float quat[4],
                                                      TransData *r_td)
 {
-  /* CrazySpace */
+  /* CrazySpace. */
   if (quat || defmat) {
     float mat[3][3], qmat[3][3], imat[3][3];
 
@@ -1436,7 +1436,7 @@ static void mesh_transdata_center_copy(const TransIslandData *island_data,
   }
 }
 
-/* way to overwrite what data is edited with transform */
+/* Way to overwrite what data is edited with transform. */
 static void VertsToTransData(TransInfo *t,
                              TransData *td,
                              TransDataExtension *tx,
@@ -1473,7 +1473,7 @@ static void VertsToTransData(TransInfo *t,
     createSpaceNormal(td->axismtx, no);
   }
   else {
-    /* Setting normals */
+    /* Setting normals. */
     copy_v3_v3(td->axismtx[2], no);
     td->axismtx[0][0] = td->axismtx[0][1] = td->axismtx[0][2] = td->axismtx[1][0] =
         td->axismtx[1][1] = td->axismtx[1][2] = 0.0f;
@@ -1570,8 +1570,8 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     }
 
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
-    /* we use a pseudo-inverse so that when one of the axes is scaled to 0,
-     * matrix inversion still works and we can still moving along the other */
+    /* We use a pseudo-inverse so that when one of the axes is scaled to 0,
+     * matrix inversion still works and we can still moving along the other. */
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     /* Original index of our connected vertex when connected distances are calculated.
@@ -1619,10 +1619,10 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     tc->data = static_cast<TransData *>(
         MEM_callocN(data_len * sizeof(TransData), "TransObData(Mesh EditMode)"));
     if (t->mode == TFM_SHRINKFATTEN) {
-      /* warning, this is overkill, we only need 2 extra floats,
+      /* Warning: this is overkill, we only need 2 extra floats,
        * but this stores loads of extra stuff, for TFM_SHRINKFATTEN its even more overkill
        * since we may not use the 'alt' transform mode to maintain shell thickness,
-       * but with generic transform code its hard to lazy init vars */
+       * but with generic transform code its hard to lazy init variables. */
       tx = tc->data_ext = static_cast<TransDataExtension *>(
           MEM_callocN(tc->data_len * sizeof(TransDataExtension), "TransObData ext"));
     }
@@ -1665,7 +1665,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
           tx++;
         }
 
-        /* selected */
+        /* Selected. */
         if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
           tob->flag |= TD_SELECTED;
         }
@@ -1679,7 +1679,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
           }
         }
 
-        /* CrazySpace */
+        /* CrazySpace. */
         transform_convert_mesh_crazyspace_transdata_set(
             mtx,
             smtx,
@@ -1713,6 +1713,15 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     }
     if (dists_index) {
       MEM_freeN(dists_index);
+    }
+
+    /* WORKAROUND: The transform operators rely on looptris being up-to-date.
+     * However, this is not always the case, especially when called from scripts.
+     * If this happens, to prevent update issues, make sure the size of #BMEditMesh::looptris
+     * arrays aligns with the number looptris to update. */
+    const bool looptri_is_dirty = em->tottri != poly_to_tri_count(bm->totface, bm->totloop);
+    if (looptri_is_dirty) {
+      BKE_editmesh_looptris_calc(em);
     }
   }
 }
@@ -2152,7 +2161,7 @@ static void special_aftertrans_update__mesh(bContext * /*C*/, TransInfo *t)
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    /* table needs to be created for each edit command, since vertices can move etc */
+    /* Table needs to be created for each edit command, since vertices can move etc. */
     ED_mesh_mirror_spatial_table_end(tc->obedit);
     /* TODO(@ideasman42): xform: We need support for many mirror objects at once! */
     break;
@@ -2242,11 +2251,11 @@ static bool mesh_vert_is_inner(BMVert *v)
  */
 static bool bm_loop_calc_opposite_co(const BMLoop *l_tmp, const float plane_no[3], float r_co[3])
 {
-  /* skip adjacent edges */
+  /* Skip adjacent edges. */
   BMLoop *l_first = l_tmp->next;
   BMLoop *l_last = l_tmp->prev;
   BMLoop *l_iter;
-  float dist = FLT_MAX;
+  float dist_sq_best = FLT_MAX;
   bool found = false;
 
   l_iter = l_first;
@@ -2254,15 +2263,15 @@ static bool bm_loop_calc_opposite_co(const BMLoop *l_tmp, const float plane_no[3
     float tvec[3];
     if (isect_line_plane_v3(tvec, l_iter->v->co, l_iter->next->v->co, l_tmp->v->co, plane_no)) {
       const float fac = line_point_factor_v3(tvec, l_iter->v->co, l_iter->next->v->co);
-      /* allow some overlap to avoid missing the intersection because of float precision */
+      /* Allow some overlap to avoid missing the intersection because of float precision. */
       if ((fac > -FLT_EPSILON) && (fac < 1.0f + FLT_EPSILON)) {
-        /* likelihood of multiple intersections per ngon is quite low,
+        /* Likelihood of multiple intersections per ngon is quite low,
          * it would have to loop back on itself, but better support it
-         * so check for the closest opposite edge */
-        const float tdist = len_v3v3(l_tmp->v->co, tvec);
-        if (tdist < dist) {
+         * so check for the closest opposite edge. */
+        const float dist_sq_test = len_squared_v3v3(l_tmp->v->co, tvec);
+        if (dist_sq_test < dist_sq_best) {
           copy_v3_v3(r_co, tvec);
-          dist = tdist;
+          dist_sq_best = dist_sq_test;
           found = true;
         }
       }
@@ -2277,8 +2286,8 @@ static float3 isect_face_dst(const BMLoop *l)
   BMFace *f = l->f;
   BMLoop *l_next = l->next;
   if (f->len == 4) {
-    /* we could use code below, but in this case
-     * sliding diagonally across the quad works well */
+    /* We could use code below, but in this case
+     * sliding diagonally across the quad works well. */
     return l_next->next->v->co;
   }
 
@@ -2347,6 +2356,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
     }
     sv->td = td;
     sv->loop_nr = -1;
+    sv->dir_side[0] = float3(0);
     sv->dir_side[1] = float3(0);
 
     /* Identify the #TransDataEdgeSlideVert by the vertex index. */
@@ -2400,7 +2410,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
      *  |   prev.e   |   curr.e   |   next.e   |
      * prev.v ---- curr.v ---- next.v ---- next_next.v
      */
-    struct {
+    struct SlideTempDataMesh {
       int i; /* The #TransDataEdgeSlideVert index. */
       TransDataEdgeSlideVert *sv;
       BMVert *v;
@@ -2411,7 +2421,88 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
         float3 dst;
       } fdata[2];
       bool vert_is_edge_pair;
-    } prev = {}, curr = {}, next = {}, next_next = {};
+      /**
+       * Find the best direction to slide among the ones already computed.
+       *
+       * \param curr_side_other: previous state of the #SlideTempDataMesh where the faces are
+                                 linked to the previous edge.
+       * \param l_src: the source corner in the edge to slide.
+       * \param l_dst: the current destination corner.
+       */
+      int find_best_dir(const SlideTempDataMesh *curr_side_other,
+                        const BMFace *f_curr,
+                        const BMLoop *l_src,
+                        const BMVert *v_dst,
+                        bool *r_do_isect_curr_dirs) const
+      {
+        *r_do_isect_curr_dirs = false;
+
+        if (f_curr == curr_side_other->fdata[0].f || v_dst == curr_side_other->fdata[0].v_dst) {
+          return 0;
+        }
+
+        if (f_curr == curr_side_other->fdata[1].f || v_dst == curr_side_other->fdata[1].v_dst) {
+          return 1;
+        }
+
+        if (curr_side_other->fdata[0].f || curr_side_other->fdata[1].f) {
+          /* Find the best direction checking the edges that share faces between them. */
+          int best_dir = -1;
+          const BMLoop *l_edge = l_src->next->v == v_dst ? l_src : l_src->prev;
+          const BMLoop *l_other = l_edge->radial_next;
+          while (l_other != l_edge) {
+            if (l_other->f == curr_side_other->fdata[0].f) {
+              best_dir = 0;
+              break;
+            }
+            if (l_other->f == curr_side_other->fdata[1].f) {
+              best_dir = 1;
+              break;
+            }
+            l_other = (l_other->v == this->v ? l_other->prev : l_other->next)->radial_next;
+          }
+
+          if (best_dir != -1) {
+            *r_do_isect_curr_dirs = true;
+            return best_dir;
+          }
+        }
+
+        if (ELEM(nullptr, this->fdata[0].f, this->fdata[1].f)) {
+          return int(this->fdata[0].f != nullptr);
+        }
+
+        /* Find the best direction among those already computed.
+         * Prioritizing in order:
+         * - Boundary edge that points to the closest direction.
+         * - Any edge that points to the closest direction. */
+
+        *r_do_isect_curr_dirs = true;
+        BMEdge *e0 = this->fdata[0].v_dst ? BM_edge_exists(this->v, this->fdata[0].v_dst) :
+                                            nullptr;
+        BMEdge *e1 = this->fdata[1].v_dst ? BM_edge_exists(this->v, this->fdata[1].v_dst) :
+                                            nullptr;
+        const bool is_boundary_0 = e0 && BM_edge_is_boundary(e0);
+        const bool is_boundary_1 = e1 && BM_edge_is_boundary(e1);
+        if (is_boundary_0 && !is_boundary_1) {
+          return 0;
+        }
+
+        if (is_boundary_1 && !is_boundary_0) {
+          return 1;
+        }
+
+        /* Find the closest direction. */
+        float3 src = this->v->co;
+        float3 dst = v_dst->co;
+        float3 dir_curr = dst - src;
+        float3 dir0 = math::normalize(this->fdata[0].dst - src);
+        float3 dir1 = math::normalize(this->fdata[1].dst - src);
+        float dot0 = math::dot(dir_curr, dir0);
+        float dot1 = math::dot(dir_curr, dir1);
+        return int(dot0 < dot1);
+      }
+    } prev = {}, curr = {}, next = {}, next_next = {}, tmp = {};
 
     next.i = td_connected[i_curr][0] != i_prev ? td_connected[i_curr][0] : td_connected[i_curr][1];
     next.sv = &r_sv[next.i];
@@ -2438,26 +2529,27 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
           next.e = BM_edge_exists(next.v, next_next.v);
         }
 
+        tmp = curr;
+
         BMLoop *l;
         BM_ITER_ELEM (l, &iter, curr.e, BM_LOOPS_OF_EDGE) {
           BMFace *f_curr = l->f;
 
           BMVert *v1_dst, *v2_dst;
           BMEdge *l_edge_next;
-          BMLoop *l1_slide, *l1, *l2;
+          BMLoop *l1, *l2;
           if (l->v == curr.v) {
             l1 = l;
-            l1_slide = l->prev;
             l2 = l->next;
             l_edge_next = l2->e;
-            v1_dst = l1_slide->v;
+            v1_dst = l1->prev->v;
             v2_dst = l2->next->v;
           }
           else {
-            l1_slide = l1 = l->next;
+            l1 = l->next;
             l2 = l;
             l_edge_next = l2->prev->e;
-            v1_dst = l1_slide->next->v;
+            v1_dst = l1->next->v;
             v2_dst = l2->prev->v;
           }
 
@@ -2468,93 +2560,46 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
           bool isect_curr_dirs = false;
 
           /* Identify the slot to slide according to the directions already computed in `curr`. */
-          int best_slide = -1;
-          if (f_curr == curr.fdata[0].f || v1_dst == curr.fdata[0].v_dst) {
-            best_slide = 0;
-          }
-          else if (f_curr == curr.fdata[1].f || v1_dst == curr.fdata[1].v_dst) {
-            best_slide = 1;
-          }
-          else if (ELEM(nullptr, curr.fdata[0].f, curr.fdata[1].f)) {
-            best_slide = int(curr.fdata[0].f != nullptr);
-            curr.fdata[best_slide].f = f_curr;
+          int best_dir = curr.find_best_dir(&tmp, f_curr, l1, v1_dst, &isect_curr_dirs);
+
+          if (curr.fdata[best_dir].f == nullptr) {
+            curr.fdata[best_dir].f = f_curr;
             if (curr.vert_is_edge_pair) {
-              curr.fdata[best_slide].dst = isect_face_dst(l1);
+              curr.fdata[best_dir].dst = isect_face_dst(l1);
             }
             else {
-              curr.fdata[best_slide].v_dst = v1_dst;
-              curr.fdata[best_slide].dst = v1_dst->co;
-            }
-          }
-          else {
-            isect_curr_dirs = true;
-
-            /* Find the best direction among those already computed.
-             * Prioritizing in order:
-             * - Edge that share faces between them.
-             * - Boundary edge that points to the closest direction.
-             * - Any edge that points to the closest direction. */
-            BMLoop *l_other = l1_slide->radial_next;
-            while (l_other != l1_slide) {
-              if (l_other->f == curr.fdata[0].f) {
-                best_slide = 0;
-                break;
-              }
-              if (l_other->f == curr.fdata[1].f) {
-                best_slide = 1;
-                break;
-              }
-              l_other = (l_other->v == curr.v ? l_other->prev : l_other->next)->radial_next;
-            }
-
-            if (best_slide == -1) {
-              BMEdge *e0 = curr.fdata[0].v_dst ? BM_edge_exists(curr.v, curr.fdata[0].v_dst) :
-                                                 nullptr;
-              BMEdge *e1 = curr.fdata[1].v_dst ? BM_edge_exists(curr.v, curr.fdata[1].v_dst) :
-                                                 nullptr;
-              const bool is_boundary_0 = e0 && BM_edge_is_boundary(e0);
-              const bool is_boundary_1 = e1 && BM_edge_is_boundary(e1);
-              if (is_boundary_0 && !is_boundary_1) {
-                best_slide = 0;
-              }
-              else if (is_boundary_1 && !is_boundary_0) {
-                best_slide = 1;
-              }
-              else {
-                /* Find the closest direction. */
-                float3 src = curr.v->co;
-                float3 dir_curr = dst - src;
-                float3 dir0 = math::normalize(curr.fdata[0].dst - src);
-                float3 dir1 = math::normalize(curr.fdata[1].dst - src);
-                float dot0 = math::dot(dir_curr, dir0);
-                float dot1 = math::dot(dir_curr, dir1);
-                best_slide = int(dot0 < dot1);
-              }
+              curr.fdata[best_dir].v_dst = v1_dst;
+              curr.fdata[best_dir].dst = v1_dst->co;
             }
           }
 
           /* Compute `next`. */
-          next.fdata[best_slide].f = f_curr;
+          next.fdata[best_dir].f = f_curr;
           if (l_edge_next == next.e || next.vert_is_edge_pair) {
             /* Case where the vertex slides over the face. */
-            next.fdata[best_slide].v_dst = nullptr;
-            next.fdata[best_slide].dst = isect_face_dst(l2);
+            next.fdata[best_dir].v_dst = nullptr;
+            next.fdata[best_dir].dst = isect_face_dst(l2);
           }
           else {
             /* Case where the vertex slides over an edge. */
-            next.fdata[best_slide].v_dst = v2_dst;
-            next.fdata[best_slide].dst = v2_dst->co;
+            next.fdata[best_dir].v_dst = v2_dst;
+            next.fdata[best_dir].dst = v2_dst->co;
           }
 
           if (isect_curr_dirs) {
-            /* The `best_slide` can only have one direction. */
-            float3 &dst0 = prev.fdata[best_slide].dst;
-            float3 &dst1 = curr.fdata[best_slide].dst;
+            /* The `best_dir` can only have one direction. */
+            float3 &dst0 = prev.fdata[best_dir].dst;
+            float3 &dst1 = curr.fdata[best_dir].dst;
             float3 &dst2 = dst;
-            float3 &dst3 = next.fdata[best_slide].dst;
+            float3 &dst3 = next.fdata[best_dir].dst;
             float3 isect0, isect1;
-            if (isect_line_line_epsilon_v3(dst0, dst1, dst2, dst3, isect0, isect1, FLT_EPSILON)) {
-              curr.fdata[best_slide].dst = math::midpoint(isect0, isect1);
+            if (isect_line_line_epsilon_v3(dst0, dst1, dst2, dst3, isect0, isect1, FLT_EPSILON) ==
+                2)
+            {
+              curr.fdata[best_dir].dst = math::midpoint(isect0, isect1);
+            }
+            else {
+              curr.fdata[best_dir].dst = math::midpoint(dst1, dst2);
             }
           }
         }

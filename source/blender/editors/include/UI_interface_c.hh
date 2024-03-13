@@ -70,6 +70,10 @@ struct wmWindow;
 namespace blender::ed::asset {
 struct AssetFilterSettings;
 }
+namespace blender::ui {
+class AbstractView;
+class AbstractViewItem;
+}  // namespace blender::ui
 
 struct uiBlock;
 struct uiBut;
@@ -77,10 +81,6 @@ struct uiButExtraOpIcon;
 struct uiLayout;
 struct uiPopupBlockHandle;
 struct uiTooltipData;
-/* C handle for C++ #ui::AbstractView type. */
-struct uiViewHandle;
-/* C handle for C++ #ui::AbstractViewItem type. */
-struct uiViewItemHandle;
 
 /* Defines */
 
@@ -763,7 +763,7 @@ uiLayout *UI_pie_menu_layout(uiPieMenu *pie);
 /* Popup Blocks
  *
  * Functions used to create popup blocks. These are like popup menus
- * but allow using all button types and creating an own layout. */
+ * but allow using all button types and creating their own layout. */
 using uiBlockCreateFunc = uiBlock *(*)(bContext *C, ARegion *region, void *arg1);
 using uiBlockCancelFunc = void (*)(bContext *C, void *arg1);
 
@@ -3311,45 +3311,33 @@ void UI_interface_tag_script_reload();
 /** Support click-drag motion which presses the button and closes a popover (like a menu). */
 #define USE_UI_POPOVER_ONCE
 
+bool UI_view_item_matches(const blender::ui::AbstractViewItem &a,
+                          const blender::ui::AbstractViewItem &b);
 /**
- * Call the #ui::AbstractView::begin_filtering() function of the view to enable filtering.
- * Typically used to enable a filter text button. Triggered on Ctrl+F by default.
- * \return True when filtering was enabled successfully.
- */
-bool UI_view_begin_filtering(const bContext *C, const uiViewHandle *view_handle);
-
-bool UI_view_item_is_interactive(const uiViewItemHandle *item_handle);
-bool UI_view_item_is_active(const uiViewItemHandle *item_handle);
-bool UI_view_item_matches(const uiViewItemHandle *a_handle, const uiViewItemHandle *b_handle);
-/**
- * Can \a item_handle be renamed right now? Note that this isn't just a mere wrapper around
+ * Can \a item be renamed right now? Note that this isn't just a mere wrapper around
  * #AbstractViewItem::supports_renaming(). This also checks if there is another item being renamed,
  * and returns false if so.
  */
-bool UI_view_item_can_rename(const uiViewItemHandle *item_handle);
-void UI_view_item_begin_rename(uiViewItemHandle *item_handle);
+bool UI_view_item_can_rename(const blender::ui::AbstractViewItem &item);
+void UI_view_item_begin_rename(blender::ui::AbstractViewItem &item);
 
-void UI_view_item_context_menu_build(bContext *C,
-                                     const uiViewItemHandle *item_handle,
-                                     uiLayout *column);
-
-bool UI_view_item_supports_drag(const uiViewItemHandle *item_);
+bool UI_view_item_supports_drag(const blender::ui::AbstractViewItem &item);
 /**
  * Attempt to start dragging \a item_. This will not work if the view item doesn't
  * support dragging, i.e. if it won't create a drag-controller upon request.
  * \return True if dragging started successfully, otherwise false.
  */
-bool UI_view_item_drag_start(bContext *C, const uiViewItemHandle *item_);
+bool UI_view_item_drag_start(bContext &C, const blender::ui::AbstractViewItem &item);
 
 /**
  * \param xy: Coordinate to find a view item at, in window space.
  * \param pad: Extra padding added to the bounding box of the view.
  */
-uiViewHandle *UI_region_view_find_at(const ARegion *region, const int xy[2], int pad);
+blender::ui::AbstractView *UI_region_view_find_at(const ARegion *region, const int xy[2], int pad);
 /**
  * \param xy: Coordinate to find a view item at, in window space.
  */
-uiViewItemHandle *UI_region_views_find_item_at(const ARegion *region, const int xy[2])
-    ATTR_NONNULL();
-uiViewItemHandle *UI_region_views_find_active_item(const ARegion *region);
+blender::ui::AbstractViewItem *UI_region_views_find_item_at(const ARegion &region,
+                                                            const int xy[2]);
+blender::ui::AbstractViewItem *UI_region_views_find_active_item(const ARegion *region);
 uiBut *UI_region_views_find_mouse_over_but(const wmWindow *win, const ARegion *region);

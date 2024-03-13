@@ -121,8 +121,8 @@ static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Object *
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   BKE_object_eval_reset(ob_eval);
   if (ob->type == OB_MESH) {
-    Mesh *me_eval = mesh_create_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_DERIVEDMESH);
-    BKE_mesh_eval_delete(me_eval);
+    Mesh *mesh_eval = mesh_create_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_DERIVEDMESH);
+    BKE_mesh_eval_delete(mesh_eval);
   }
   else if (ob->type == OB_LATTICE) {
     BKE_lattice_modifiers_calc(depsgraph, scene_eval, ob_eval);
@@ -3795,7 +3795,7 @@ static int dash_modifier_segment_add_exec(bContext *C, wmOperator *op)
   MEM_SAFE_FREE(dmd->segments_array);
   dmd->segments_array = new_segments;
   dmd->segments_num++;
-  dmd->segment_active_index++;
+  dmd->segment_active_index = new_active_index;
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);

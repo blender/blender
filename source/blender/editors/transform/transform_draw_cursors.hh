@@ -8,7 +8,7 @@
 
 #pragma once
 
-/* Callbacks for #WM_paint_cursor_activate */
+/* Callbacks for #WM_paint_cursor_activate. */
 
 /**
  * Poll callback for cursor drawing:

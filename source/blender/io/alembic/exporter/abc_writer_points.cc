@@ -14,7 +14,6 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_lattice.hh"
 #include "BKE_particle.h"
 
 #include "DEG_depsgraph_query.hh"

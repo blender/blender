@@ -77,6 +77,8 @@ void EDBM_mesh_clear(BMEditMesh *em);
 
 void EDBM_selectmode_to_scene(bContext *C);
 void EDBM_mesh_make(Object *ob, int select_mode, bool add_key_index);
+/** Replaces the edit-mesh in the object with a new one based on the given mesh. */
+void EDBM_mesh_make_from_mesh(Object *ob, Mesh *src_mesh, int select_mode, bool add_key_index);
 /**
  * Should only be called on the active edit-mesh, otherwise call #BKE_editmesh_free_data.
  */
@@ -591,11 +593,11 @@ int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op);
 /* mirror lookup api */
 
 /* Spatial Mirror */
-void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *me_eval);
+void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *mesh_eval);
 void ED_mesh_mirror_spatial_table_end(Object *ob);
 int ED_mesh_mirror_spatial_table_lookup(Object *ob,
                                         BMEditMesh *em,
-                                        Mesh *me_eval,
+                                        Mesh *mesh_eval,
                                         const float co[3]);
 
 /* Topology Mirror */
@@ -605,20 +607,20 @@ int ED_mesh_mirror_spatial_table_lookup(Object *ob,
  * \note This is supposed return -1 on error,
  * which callers are currently checking for, but is not used so far.
  */
-void ED_mesh_mirror_topo_table_begin(Object *ob, Mesh *me_eval);
+void ED_mesh_mirror_topo_table_begin(Object *ob, Mesh *mesh_eval);
 void ED_mesh_mirror_topo_table_end(Object *ob);
 
 /**
  * Retrieves mirrored cache vert, or NULL if there isn't one.
  * \note calling this without ensuring the mirror cache state is bad.
  */
-int mesh_get_x_mirror_vert(Object *ob, Mesh *me_eval, int index, bool use_topology);
+int mesh_get_x_mirror_vert(Object *ob, Mesh *mesh_eval, int index, bool use_topology);
 BMVert *editbmesh_get_x_mirror_vert(
     Object *ob, BMEditMesh *em, BMVert *eve, const float co[3], int index, bool use_topology);
 /**
  * This is a Mesh-based copy of #mesh_get_x_mirror_faces().
  */
-int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval);
+int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *mesh_eval);
 
 /**
  * Wrapper for object-mode/edit-mode.

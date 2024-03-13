@@ -597,6 +597,10 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
       switch (obact->mode) {
         case OB_MODE_SCULPT:
           return PaintMode::Sculpt;
+        case OB_MODE_SCULPT_GPENCIL_LEGACY:
+          return PaintMode::SculptGPencil;
+        case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+          return PaintMode::WeightGPencil;
         case OB_MODE_VERTEX_PAINT:
           return PaintMode::Vertex;
         case OB_MODE_WEIGHT_PAINT:
@@ -1727,15 +1731,15 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   Sculpt *sd = scene->toolsettings->sculpt;
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
   MultiresModifierData *mmd = sculpt_multires_modifier_get(scene, ob, true);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
 
-  BLI_assert(me_eval != nullptr);
+  BLI_assert(mesh_eval != nullptr);
 
   /* This is for handling a newly opened file with no object visible,
-   * causing `me_eval == nullptr`. */
-  if (me_eval == nullptr) {
+   * causing `mesh_eval == nullptr`. */
+  if (mesh_eval == nullptr) {
     return;
   }
 
@@ -1755,8 +1759,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.active = true;
     ss->multires.modifier = mmd;
     ss->multires.level = mmd->sculptlvl;
-    ss->totvert = me_eval->verts_num;
-    ss->faces_num = me_eval->faces_num;
+    ss->totvert = mesh_eval->verts_num;
+    ss->faces_num = mesh_eval->faces_num;
     ss->totfaces = mesh->faces_num;
 
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
@@ -1809,7 +1813,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   ss->hide_poly = (bool *)CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, ".hide_poly");
 
-  ss->subdiv_ccg = me_eval->runtime->subdiv_ccg.get();
+  ss->subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get();
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   BLI_assert(pbvh == ss->pbvh);
@@ -1838,15 +1842,15 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
        * This matters because crazyspace evaluation is very restrictive and excludes even modifiers
        * that simply recompute vertex weights (which can even include Geometry Nodes). */
-      if (me_eval_deform->faces_num == me_eval->faces_num &&
-          me_eval_deform->corners_num == me_eval->corners_num &&
-          me_eval_deform->verts_num == me_eval->verts_num)
+      if (me_eval_deform->faces_num == mesh_eval->faces_num &&
+          me_eval_deform->corners_num == mesh_eval->corners_num &&
+          me_eval_deform->verts_num == mesh_eval->verts_num)
       {
         BKE_sculptsession_free_deformMats(ss);
 
         BLI_assert(me_eval_deform->verts_num == mesh->verts_num);
 
-        ss->deform_cos = me_eval->vert_positions();
+        ss->deform_cos = mesh_eval->vert_positions();
         BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos);
 
         used_me_eval = true;

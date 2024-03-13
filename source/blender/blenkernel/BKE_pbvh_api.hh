@@ -301,7 +301,7 @@ blender::Span<int> BKE_pbvh_node_get_grid_indices(const PBVHNode &node);
 int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node);
 blender::Span<int> BKE_pbvh_node_get_vert_indices(const PBVHNode *node);
 blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node);
-blender::Span<int> BKE_pbvh_node_get_loops(const PBVHNode *node);
+blender::Span<int> BKE_pbvh_node_get_corner_indices(const PBVHNode *node);
 
 namespace blender::bke::pbvh {
 
@@ -318,8 +318,6 @@ Span<int> node_face_indices_calc_mesh(const PBVH &pbvh, const PBVHNode &node, Ve
 Span<int> node_face_indices_calc_grids(const PBVH &pbvh, const PBVHNode &node, Vector<int> &faces);
 
 }  // namespace blender::bke::pbvh
-
-blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node);
 
 blender::Bounds<blender::float3> BKE_pbvh_node_get_BB(const PBVHNode *node);
 blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node);

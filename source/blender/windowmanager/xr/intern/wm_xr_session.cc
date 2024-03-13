@@ -113,8 +113,8 @@ static void wm_xr_session_begin_info_create(wmXrData *xr_data,
    * after the session is created but before it is started. */
   r_begin_info->create_fn = wm_xr_session_create_cb;
 
-  /* WM-XR exit function, does some own stuff and calls callback passed to wm_xr_session_toggle(),
-   * to allow external code to execute its own session-exit logic. */
+  /* WM-XR exit function, does some of its own stuff and calls callback passed to
+   * wm_xr_session_toggle(), to allow external code to execute its own session-exit logic. */
   r_begin_info->exit_fn = wm_xr_session_exit_cb;
   r_begin_info->exit_customdata = xr_data;
 }
@@ -231,7 +231,7 @@ wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
  * started from) if still available. If it's not available, use some fallback window.
  *
  * It's important that the VR session follows some existing window, otherwise it would need to have
- * an own depsgraph, which is an expense we should avoid.
+ * its own depsgraph, which is an expense we should avoid.
  */
 static void wm_xr_session_scene_and_depsgraph_get(const wmWindowManager *wm,
                                                   Scene **r_scene,
@@ -1303,7 +1303,7 @@ void wm_xr_session_controller_data_clear(wmXrSessionState *state)
   }
 }
 
-/** \} */ /* XR-Session Actions */
+/** \} */ /* XR-Session Actions. */
 
 /* -------------------------------------------------------------------- */
 /** \name XR-Session Surface
@@ -1501,7 +1501,7 @@ void *wm_xr_session_gpu_binding_context_create()
 
 void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle /*context*/)
 {
-  if (g_xr_surface) { /* Might have been freed already */
+  if (g_xr_surface) { /* Might have been freed already. */
     wm_surface_remove(g_xr_surface);
   }
 
@@ -1522,4 +1522,4 @@ ARegionType *WM_xr_surface_controller_region_type_get()
   return nullptr;
 }
 
-/** \} */ /* XR-Session Surface */
+/** \} */ /* XR-Session Surface. */

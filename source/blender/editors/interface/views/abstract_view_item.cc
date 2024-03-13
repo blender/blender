@@ -316,18 +316,6 @@ bool AbstractViewItem::is_active() const
 
 /** \} */
 
-/* ---------------------------------------------------------------------- */
-/** \name General API functions
- * \{ */
-
-std::unique_ptr<DropTargetInterface> view_item_drop_target(uiViewItemHandle *item_handle)
-{
-  AbstractViewItem &item = reinterpret_cast<AbstractViewItem &>(*item_handle);
-  return item.create_item_drop_target();
-}
-
-/** \} */
-
 }  // namespace blender::ui
 
 /* ---------------------------------------------------------------------- */
@@ -355,100 +343,54 @@ class ViewItemAPIWrapper {
   {
     std::swap(a.view_item_but_, b.view_item_but_);
   }
-
-  static bool can_rename(const AbstractViewItem &item)
-  {
-    const AbstractView &view = item.get_view();
-    return !view.is_renaming() && item.supports_renaming();
-  }
-
-  static bool supports_drag(const AbstractViewItem &item)
-  {
-    return item.create_drag_controller() != nullptr;
-  }
-
-  static bool drag_start(bContext &C, const AbstractViewItem &item)
-  {
-    const std::unique_ptr<AbstractViewItemDragController> drag_controller =
-        item.create_drag_controller();
-    if (!drag_controller) {
-      return false;
-    }
-
-    WM_event_start_drag(&C,
-                        ICON_NONE,
-                        drag_controller->get_drag_type(),
-                        drag_controller->create_drag_data(),
-                        WM_DRAG_FREE_DATA);
-    drag_controller->on_drag_start();
-
-    return true;
-  }
 };
 
 }  // namespace blender::ui
 
 using namespace blender::ui;
 
-bool UI_view_item_is_interactive(const uiViewItemHandle *item_handle)
+bool UI_view_item_matches(const AbstractViewItem &a, const AbstractViewItem &b)
 {
-  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
-  return item.is_interactive();
-}
-
-bool UI_view_item_is_active(const uiViewItemHandle *item_handle)
-{
-  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
-  return item.is_active();
-}
-
-bool UI_view_item_matches(const uiViewItemHandle *a_handle, const uiViewItemHandle *b_handle)
-{
-  const AbstractViewItem &a = reinterpret_cast<const AbstractViewItem &>(*a_handle);
-  const AbstractViewItem &b = reinterpret_cast<const AbstractViewItem &>(*b_handle);
   return ViewItemAPIWrapper::matches(a, b);
 }
 
-void ui_view_item_swap_button_pointers(uiViewItemHandle *a_handle, uiViewItemHandle *b_handle)
+void ui_view_item_swap_button_pointers(AbstractViewItem &a, AbstractViewItem &b)
 {
-  if (!a_handle || !b_handle) {
-    return;
-  }
-  AbstractViewItem &a = reinterpret_cast<AbstractViewItem &>(*a_handle);
-  AbstractViewItem &b = reinterpret_cast<AbstractViewItem &>(*b_handle);
   ViewItemAPIWrapper::swap_button_pointers(a, b);
 }
 
-bool UI_view_item_can_rename(const uiViewItemHandle *item_handle)
+bool UI_view_item_can_rename(const AbstractViewItem &item)
 {
-  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
-  return ViewItemAPIWrapper::can_rename(item);
+  const AbstractView &view = item.get_view();
+  return !view.is_renaming() && item.supports_renaming();
 }
 
-void UI_view_item_begin_rename(uiViewItemHandle *item_handle)
+void UI_view_item_begin_rename(AbstractViewItem &item)
 {
-  AbstractViewItem &item = reinterpret_cast<AbstractViewItem &>(*item_handle);
   item.begin_renaming();
 }
 
-void UI_view_item_context_menu_build(bContext *C,
-                                     const uiViewItemHandle *item_handle,
-                                     uiLayout *column)
+bool UI_view_item_supports_drag(const AbstractViewItem &item)
 {
-  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
-  item.build_context_menu(*C, *column);
+  return item.create_drag_controller() != nullptr;
 }
 
-bool UI_view_item_supports_drag(const uiViewItemHandle *item_)
+bool UI_view_item_drag_start(bContext &C, const AbstractViewItem &item)
 {
-  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_);
-  return ViewItemAPIWrapper::supports_drag(item);
-}
+  const std::unique_ptr<AbstractViewItemDragController> drag_controller =
+      item.create_drag_controller();
+  if (!drag_controller) {
+    return false;
+  }
 
-bool UI_view_item_drag_start(bContext *C, const uiViewItemHandle *item_)
-{
-  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_);
-  return ViewItemAPIWrapper::drag_start(*C, item);
+  WM_event_start_drag(&C,
+                      ICON_NONE,
+                      drag_controller->get_drag_type(),
+                      drag_controller->create_drag_data(),
+                      WM_DRAG_FREE_DATA);
+  drag_controller->on_drag_start();
+
+  return true;
 }
 
 /** \} */

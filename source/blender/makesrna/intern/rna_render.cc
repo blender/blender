@@ -987,7 +987,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Use Custom Shading Nodes",
                            "Don't expose Cycles and EEVEE shading nodes in the node editor user "
-                           "interface, so own nodes can be used instead");
+                           "interface, so separate nodes can be used instead");
 
   prop = RNA_def_property(srna, "bl_use_spherical_stereo", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "type->flag", RE_USE_SPHERICAL_STEREO);

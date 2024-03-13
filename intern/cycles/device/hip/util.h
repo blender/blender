@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <cstring>
+#include <string>
+
 #ifdef WITH_HIP
 
 #  ifdef WITH_HIP_DYNLOAD
@@ -46,6 +49,14 @@ const char *hipewCompilerPath();
 int hipewCompilerVersion();
 #  endif /* WITH_HIP_DYNLOAD */
 
+static std::string hipDeviceArch(const int hipDevId)
+{
+  hipDeviceProp_t props;
+  hipGetDeviceProperties(&props, hipDevId);
+  const char *arch = strtok(props.gcnArchName, ":");
+  return (arch == nullptr) ? props.gcnArchName : arch;
+}
+
 static inline bool hipSupportsDevice(const int hipDevId)
 {
   int major, minor;
@@ -53,6 +64,13 @@ static inline bool hipSupportsDevice(const int hipDevId)
   hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, hipDevId);
 
   return (major >= 9);
+}
+
+static inline bool hipSupportsDeviceOIDN(const int hipDevId)
+{
+  /* Matches HIPDevice::getArch in HIP. */
+  const std::string arch = hipDeviceArch(hipDevId);
+  return (arch == "gfx1030" || arch == "gfx1100" || arch == "gfx1101" || arch == "gfx1102");
 }
 
 CCL_NAMESPACE_END

@@ -9,7 +9,6 @@
 #include <string>
 
 #include "BLI_map.hh"
-#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
 #include "BLI_string.h"
@@ -17,7 +16,6 @@
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_build.hh"
 

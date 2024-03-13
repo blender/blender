@@ -25,6 +25,8 @@ class FlipOperation : public MultiThreadedOperation {
     flip_y_ = flipY;
   }
 
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;

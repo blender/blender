@@ -31,7 +31,6 @@
 #include "BKE_lib_query.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_boolean_convert.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 
@@ -45,6 +44,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "GEO_mesh_boolean.hh"
 #include "GEO_randomize.hh"
 
 #include "bmesh.hh"

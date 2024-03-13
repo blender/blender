@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -31341,10 +31341,6 @@ msgid "Temporary Directory"
 msgstr "ﺖﻗﺆﻤﻟﺍ ﺪﻠﺠﻤﻟﺍ"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "ﺔﺘﻗﺆﻤﻟﺍ ﻆﻔﺤﻟﺍ ﺕﺎﻔﻠﻣ ﻦﻳﺰﺨﺘﻟ ﺪﻠﺠﻤﻟﺍ"
-
-
 msgid "The default directory to search for textures"
 msgstr "ﺔﺠﺴﻧﻷ﻿ﺍ ﻦﻋ ﺚﺤﺒﻠﻟ ﻲﺿﺍﺮﺘﻓﻹ﻿ﺍ ﺪﻠﺠﻤﻟﺍ"
 
@@ -37747,10 +37743,6 @@ msgid "Could not connect vertices"
 msgstr "ﺔﻠﺼﺘﻤﻟﺍ UV ـﻟﺍ ﻂﻘﻧ ﻦﻣ ﻞﺴﻠﺴﺗ ﺮﺘﺧﺇ"
 
 
-msgid "Nothing selected"
-msgstr "ﺭﺎﺘﺨﻣ ءﻲﺷ ﻻ﻿"
-
-
 msgid "<invalid>"
 msgstr "<ﺢﻟﺎﺻ ﺮﻴﻏ>"
 
@@ -37920,6 +37912,10 @@ msgstr "ﺕﺎﻈﺣﻼ﻿ﻣ ﻢﻠﻗ ﺕﺎﻧﺎﻴﺑ"
 
 msgid "No active frame to delete"
 msgstr "ﻲﻧﺎﻴﺒﻟﺍ ﻰﻨﺤﻨﻤﻟﺍ ﻰﻠﻋ ﻝﺎﻌﻓ ﺭﺎﻃﺇ ﺪﺟﻮﻳ ﻻ﻿"
+
+
+msgid "Nothing selected"
+msgstr "ﺭﺎﺘﺨﻣ ءﻲﺷ ﻻ﻿"
 
 
 msgid "No active area"

@@ -10,7 +10,6 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 
-#include "BLI_map.hh"
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -22,7 +21,6 @@
 
 #include "obj_export_mtl.hh"
 #include "obj_import_mtl.hh"
-#include "obj_import_string_utils.hh"
 
 #include <iostream>
 

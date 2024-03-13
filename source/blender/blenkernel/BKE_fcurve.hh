@@ -21,7 +21,6 @@ struct AnimData;
 struct AnimationEvalContext;
 struct BezTriple;
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct LibraryForeachIDData;
 struct PathResolvedRNA;

@@ -8,6 +8,8 @@
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 
+#define filmScalingFactor float(uniform_buf.film.scaling_factor)
+
 vec3 g_emission;
 vec3 g_transmittance;
 float g_holdout;
@@ -685,6 +687,20 @@ vec3 coordinate_incoming(vec3 P)
 #else
   return drw_world_incident_vector(P);
 #endif
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mixed render resolution
+ *
+ * Callbacks image texture sampling.
+ *
+ * \{ */
+
+float film_scaling_factor_get()
+{
+  return float(uniform_buf.film.scaling_factor);
 }
 
 /** \} */

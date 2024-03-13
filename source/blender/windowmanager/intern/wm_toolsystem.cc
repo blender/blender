@@ -39,7 +39,7 @@
 
 #include "WM_api.hh"
 #include "WM_message.hh"
-#include "WM_toolsystem.hh" /* own include */
+#include "WM_toolsystem.hh" /* Own include. */
 #include "WM_types.hh"
 
 static void toolsystem_reinit_with_toolref(bContext *C, WorkSpace * /*workspace*/, bToolRef *tref);
@@ -145,7 +145,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
       if ((gzgt->flag & WM_GIZMOGROUPTYPE_TOOL_INIT) == 0) {
         if (!WM_gizmo_group_type_ensure_ptr(gzgt)) {
           /* Even if the group-type was has been linked, it's possible the space types
-           * were not previously using it. (happens with multiple windows.) */
+           * were not previously using it. (happens with multiple windows). */
           wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
           WM_gizmoconfig_update_tag_group_type_init(gzmap_type, gzgt);
         }
@@ -182,7 +182,7 @@ static void toolsystem_refresh_ref(bContext *C, WorkSpace *workspace, bToolRef *
   if (tref->runtime == nullptr) {
     return;
   }
-  /* currently same operation. */
+  /* Currently same operation. */
   toolsystem_ref_link(C, workspace, tref);
 }
 void WM_toolsystem_refresh(bContext *C, WorkSpace *workspace, const bToolKey *tkey)
@@ -333,7 +333,7 @@ void WM_toolsystem_ref_sync_from_context(Main *bmain, WorkSpace *workspace, bToo
     BKE_view_layer_synced_ensure(scene, view_layer);
     const Object *ob = BKE_view_layer_active_object_get(view_layer);
     if (ob == nullptr) {
-      /* pass */
+      /* Pass. */
     }
     if ((tref->space_type == SPACE_VIEW3D) && (tref->mode == CTX_MODE_PARTICLE)) {
       if (ob->mode & OB_MODE_PARTICLE_EDIT) {
@@ -551,7 +551,7 @@ void WM_toolsystem_refresh_screen_window(wmWindow *win)
 
 void WM_toolsystem_refresh_screen_all(Main *bmain)
 {
-  /* Update all ScrArea's tools */
+  /* Update all ScrArea's tools. */
   for (wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first); wm;
        wm = static_cast<wmWindowManager *>(wm->id.next))
   {
@@ -565,7 +565,7 @@ static void toolsystem_refresh_screen_from_active_tool(Main *bmain,
                                                        WorkSpace *workspace,
                                                        bToolRef *tref)
 {
-  /* Update all ScrArea's tools */
+  /* Update all ScrArea's tools. */
   for (wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first); wm;
        wm = static_cast<wmWindowManager *>(wm->id.next))
   {
@@ -672,7 +672,7 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
           return "builtin_brush.Draw";
         case CTX_MODE_SCULPT_CURVES:
           return "builtin.brush";
-          /* end temporary hack. */
+          /* End temporary hack. */
 
         case CTX_MODE_PARTICLE:
           return "builtin_brush.Comb";

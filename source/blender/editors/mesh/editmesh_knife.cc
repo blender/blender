@@ -3148,7 +3148,9 @@ static bool knife_find_closest_face(KnifeTool_OpData *kcd, const float2 &mval, K
       vc.mval[0] = int(mval[0]);
       vc.mval[1] = int(mval[1]);
 
-      f = EDBM_face_find_nearest(&vc, &dist);
+      if (BKE_object_is_visible_in_viewport(vc.v3d, vc.obact)) {
+        f = EDBM_face_find_nearest(&vc, &dist);
+      }
 
       if (f) {
         /* Cheat for now; just put in the origin instead

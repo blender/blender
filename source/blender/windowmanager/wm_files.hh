@@ -20,7 +20,7 @@ struct wmOperatorType;
 struct wmWindow;
 struct wmWindowManager;
 
-/* wm_files.cc */
+/* `wm_files.cc`. */
 
 void wm_history_file_read();
 

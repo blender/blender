@@ -7,10 +7,14 @@
  * \ingroup balembic
  */
 
-#include <Alembic/Abc/All.h>
-#include <Alembic/AbcGeom/All.h>
+#include <Alembic/Abc/IObject.h>
+#include <Alembic/Abc/ISampleSelector.h>
+#include <Alembic/AbcCoreAbstract/Foundation.h>
+#include <Alembic/AbcCoreAbstract/ObjectHeader.h>
+#include <Alembic/AbcGeom/IXform.h>
 
-#include "DNA_ID.h"
+#include <string>
+#include <vector>
 
 struct CacheFile;
 struct Main;

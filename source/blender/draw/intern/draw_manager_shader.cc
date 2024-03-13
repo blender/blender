@@ -85,8 +85,6 @@ static void drw_deferred_shader_compilation_exec(void *custom_data,
 
   while (true) {
     if (worker_status->stop != 0) {
-      /* We don't want user to be able to cancel the compilation
-       * but wm can kill the task if we are closing blender. */
       break;
     }
 
@@ -151,6 +149,13 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
   DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
 
   BLI_spin_lock(&comp->list_lock);
+  LISTBASE_FOREACH (LinkData *, link, &comp->queue) {
+    GPU_material_status_set(static_cast<GPUMaterial *>(link->data), GPU_MAT_CREATED);
+  }
+  LISTBASE_FOREACH (LinkData *, link, &comp->optimize_queue) {
+    GPU_material_optimization_status_set(static_cast<GPUMaterial *>(link->data),
+                                         GPU_MAT_OPTIMIZATION_READY);
+  }
   BLI_freelistN(&comp->queue);
   BLI_freelistN(&comp->optimize_queue);
   BLI_spin_unlock(&comp->list_lock);

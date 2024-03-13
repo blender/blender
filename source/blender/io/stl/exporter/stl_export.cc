@@ -11,7 +11,6 @@
 #include <string>
 
 #include "BKE_context.hh"
-#include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 
@@ -19,11 +18,11 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -108,7 +107,7 @@ void export_frame(Depsgraph *depsgraph,
     mul_m4_m3m4(xform, axes_transform, obj_eval->object_to_world().ptr());
     /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
     mul_v3_m3v3(xform[3], axes_transform, obj_eval->object_to_world().location());
-    xform[3][3] = obj_eval->object_to_world().location()[3];
+    xform[3][3] = obj_eval->object_to_world()[3][3];
 
     /* Write triangles. */
     const Span<float3> positions = mesh->vert_positions();

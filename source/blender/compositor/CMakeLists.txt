@@ -520,6 +520,8 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_DilateErodeOperation.h
     operations/COM_GlareBaseOperation.cc
     operations/COM_GlareBaseOperation.h
+    operations/COM_GlareBloomOperation.cc
+    operations/COM_GlareBloomOperation.h
     operations/COM_GlareFogGlowOperation.cc
     operations/COM_GlareFogGlowOperation.h
     operations/COM_GlareGhostOperation.cc

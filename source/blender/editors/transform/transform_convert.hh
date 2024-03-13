@@ -26,7 +26,7 @@ struct TransInfo;
 struct bContext;
 
 struct TransConvertTypeInfo {
-  int flags; /* eTFlag */
+  int flags; /* #eTFlag. */
 
   /**
    * Allocate and initialize `t->data`.
@@ -46,6 +46,7 @@ struct TransConvertTypeInfo {
 
 /**
  * Structure used for Edge Slide operation.
+ * The data is filled based on the 'transform_convert_' type.
  */
 struct TransDataEdgeSlideVert {
   TransData *td;
@@ -61,6 +62,7 @@ struct TransDataEdgeSlideVert {
 
 /**
  * Structure used for Vert Slide operation.
+ * The data is filled based on the 'transform_convert_' type.
  */
 struct TransDataVertSlideVert {
   TransData *td;
@@ -292,6 +294,14 @@ extern TransConvertTypeInfo TransConvertType_MeshSkin;
 
 extern TransConvertTypeInfo TransConvertType_MeshUV;
 
+blender::Array<TransDataVertSlideVert> transform_mesh_uv_vert_slide_data_create(
+    const TransInfo *t,
+    TransDataContainer *tc,
+    blender::Vector<blender::float3> &r_loc_dst_buffer);
+
+blender::Array<TransDataEdgeSlideVert> transform_mesh_uv_edge_slide_data_create(
+    const TransInfo *t, TransDataContainer *tc, int *r_group_len);
+
 /* `transform_convert_mesh_vert_cdata.cc` */
 
 extern TransConvertTypeInfo TransConvertType_MeshVertCData;
@@ -300,7 +310,7 @@ extern TransConvertTypeInfo TransConvertType_MeshVertCData;
 
 extern TransConvertTypeInfo TransConvertType_NLA;
 
-/* transform_convert_node.cc */
+/* `transform_convert_node.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Node;
 
@@ -320,7 +330,7 @@ extern TransConvertTypeInfo TransConvertType_PaintCurve;
 
 extern TransConvertTypeInfo TransConvertType_Particle;
 
-/* transform_convert_sculpt.cc */
+/* `transform_convert_sculpt.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Sculpt;
 

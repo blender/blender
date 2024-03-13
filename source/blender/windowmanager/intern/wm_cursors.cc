@@ -130,7 +130,7 @@ static void window_set_custom_cursor_ex(wmWindow *win, BCursor *cursor)
 void WM_cursor_set(wmWindow *win, int curs)
 {
   if (win == nullptr || G.background) {
-    return; /* Can't set custom cursor before Window init */
+    return; /* Can't set custom cursor before Window init. */
   }
 
   if (curs == WM_CURSOR_DEFAULT && win->modalcursor) {
@@ -145,7 +145,7 @@ void WM_cursor_set(wmWindow *win, int curs)
   GHOST_SetCursorVisibility(static_cast<GHOST_WindowHandle>(win->ghostwin), true);
 
   if (win->cursor == curs) {
-    return; /* Cursor is already set */
+    return; /* Cursor is already set. */
   }
 
   win->cursor = curs;
@@ -318,7 +318,7 @@ static void wm_cursor_warp_relative(wmWindow *win, int x, int y)
 
 bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
 {
-  /* TODO: give it a modal keymap? Hard coded for now */
+  /* TODO: give it a modal keymap? Hard coded for now. */
 
   if (win && event->val == KM_PRESS) {
     /* Must move at least this much to avoid rounding in WM_cursor_warp. */
@@ -346,7 +346,7 @@ bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
 
 void WM_cursor_time(wmWindow *win, int nr)
 {
-  /* 10 8x8 digits */
+  /* 10 8x8 digits. */
   const char number_bitmaps[10][8] = {
       {0, 56, 68, 68, 68, 68, 68, 56},
       {0, 24, 16, 16, 16, 16, 16, 56},
@@ -368,7 +368,7 @@ void WM_cursor_time(wmWindow *win, int nr)
 
   memset(&mask, 0xFF, sizeof(mask));
 
-  /* print number bottom right justified */
+  /* Print number bottom right justified. */
   for (int idx = 3; nr && idx >= 0; idx--) {
     const char *digit = number_bitmaps[nr % 10];
     int x = idx % 2;
@@ -413,8 +413,8 @@ void WM_cursor_time(wmWindow *win, int nr)
  * Because defining a cursor mixes declarations and executable code
  * each cursor needs its own scoping block or it would be split up
  * over several hundred lines of code. To enforce/document this better
- * I define 2 pretty brain-dead macros so it's obvious what the extra "[]"
- * are for */
+ * I define 2 pretty brain-dead macros so it's obvious what the extra "[]" are for.
+ */
 
 #define BEGIN_CURSOR_BLOCK \
   { \

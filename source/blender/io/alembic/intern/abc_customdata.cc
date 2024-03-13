@@ -9,16 +9,22 @@
 #include "abc_customdata.h"
 #include "abc_axis_conversion.h"
 
-#include <Alembic/AbcGeom/All.h>
-#include <algorithm>
-#include <unordered_map>
+#include <Alembic/Abc/ICompoundProperty.h>
+#include <Alembic/Abc/ISampleSelector.h>
+#include <Alembic/Abc/OCompoundProperty.h>
+#include <Alembic/Abc/TypedArraySample.h>
+#include <Alembic/AbcCoreAbstract/PropertyHeader.h>
+#include <Alembic/AbcGeom/GeometryScope.h>
+#include <Alembic/AbcGeom/IGeomParam.h>
+#include <Alembic/AbcGeom/OGeomParam.h>
 
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math_base.h"
-#include "BLI_math_geom.h"
+#include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"

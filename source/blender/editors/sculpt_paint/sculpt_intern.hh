@@ -56,8 +56,6 @@ struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 
-/* Updates */
-
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Types
  * \{ */
@@ -133,8 +131,6 @@ enum eBoundaryAutomaskMode {
   AUTOMASK_INIT_BOUNDARY_EDGES = 1,
   AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
 };
-
-/* Undo */
 
 namespace blender::ed::sculpt_paint::undo {
 
@@ -755,8 +751,6 @@ void SCULPT_tag_update_overlays(bContext *C);
 /* -------------------------------------------------------------------- */
 /** \name Stroke Functions
  * \{ */
-
-/* Stroke */
 
 /**
  * Do a ray-cast in the tree to find the 3d brush location
@@ -1748,49 +1742,46 @@ struct GestureData {
 
   /* Task Callback Data. */
   Vector<PBVHNode *> nodes;
+
+  ~GestureData();
 };
 
 /* Common abstraction structure for gesture operations. */
 struct Operation {
   /* Initial setup (data updates, special undo push...). */
-  void (*begin)(bContext *, GestureData *);
+  void (*begin)(bContext &, GestureData &);
 
   /* Apply the gesture action for each symmetry pass. */
-  void (*apply_for_symmetry_pass)(bContext *, GestureData *);
+  void (*apply_for_symmetry_pass)(bContext &, GestureData &);
 
   /* Remaining actions after finishing the symmetry passes iterations
    * (updating data-layers, tagging PBVH updates...). */
-  void (*end)(bContext *, GestureData *);
+  void (*end)(bContext &, GestureData &);
 };
 
 /* Determines whether or not a gesture action should be applied. */
-bool is_affected(GestureData *sgcontext, const float3 &co, const float3 &vertex_normal);
+bool is_affected(GestureData &gesture_data, const float3 &co, const float3 &vertex_normal);
 
 /* Initialization functions. */
-GestureData *init_from_box(bContext *C, wmOperator *op);
-GestureData *init_from_lasso(bContext *C, wmOperator *op);
-GestureData *init_from_line(bContext *C, wmOperator *op);
+std::unique_ptr<GestureData> init_from_box(bContext *C, wmOperator *op);
+std::unique_ptr<GestureData> init_from_lasso(bContext *C, wmOperator *op);
+std::unique_ptr<GestureData> init_from_line(bContext *C, wmOperator *op);
 
 /* Common gesture operator properties. */
 void operator_properties(wmOperatorType *ot);
 
 /* Apply the gesture action to the selected nodes. */
-void apply(bContext *C, GestureData *sgcontext, wmOperator *op);
+void apply(bContext &C, GestureData &gesture_data, wmOperator &op);
 
-/* Free the relevant allocated resources. */
-void free_data(GestureData *sgcontext);
 }
 
-namespace blender::ed::sculpt_paint::mask {
+namespace blender::ed::sculpt_paint::project {
+void SCULPT_OT_project_line_gesture(wmOperatorType *ot);
+}
 
-void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot);
-void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot);
-
+namespace blender::ed::sculpt_paint::trim {
 void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot);
 void SCULPT_OT_trim_box_gesture(wmOperatorType *ot);
-
-void SCULPT_OT_project_line_gesture(wmOperatorType *ot);
-
 }
 
 /** \} */
@@ -1807,6 +1798,8 @@ void SCULPT_OT_face_sets_init(wmOperatorType *ot);
 void SCULPT_OT_face_sets_create(wmOperatorType *ot);
 void SCULPT_OT_face_sets_edit(wmOperatorType *ot);
 
+void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot);
+void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot);
 }
 /** \} */
 
@@ -1821,8 +1814,6 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot);
 /** \name Filter Operators
  * \{ */
 
-/* Mesh Filter. */
-
 namespace blender::ed::sculpt_paint::filter {
 
 void SCULPT_OT_mesh_filter(wmOperatorType *ot);
@@ -1833,8 +1824,6 @@ wmKeyMap *modal_keymap(wmKeyConfig *keyconf);
 namespace blender::ed::sculpt_paint::cloth {
 void SCULPT_OT_cloth_filter(wmOperatorType *ot);
 }
-
-/* Color Filter. */
 
 namespace blender::ed::sculpt_paint::color {
 void SCULPT_OT_color_filter(wmOperatorType *ot);
@@ -1878,8 +1867,6 @@ void SCULPT_OT_dynamic_topology_toggle(wmOperatorType *ot);
 /** \name Brushes
  * \{ */
 
-/* Pose Brush. */
-
 namespace blender::ed::sculpt_paint::pose {
 
 /**
@@ -1906,8 +1893,6 @@ SculptPoseIKChain *ik_chain_init(
 void ik_chain_free(SculptPoseIKChain *ik_chain);
 
 }
-
-/* Boundary Brush. */
 
 namespace blender::ed::sculpt_paint::boundary {
 

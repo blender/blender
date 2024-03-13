@@ -31,6 +31,7 @@
 #include "ED_keyframing.hh"
 #include "ED_screen.hh"
 
+#include "UI_abstract_view.hh"
 #include "UI_interface.hh"
 
 #include "interface_intern.hh"
@@ -1029,7 +1030,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       /* Sub-layout for context override. */
       uiLayout *sub = uiLayoutColumn(layout, false);
       set_layout_context_from_button(C, sub, view_item_but);
-      UI_view_item_context_menu_build(C, view_item_but->view_item, sub);
+      view_item_but->view_item->build_context_menu(*C, *sub);
 
       /* Reset context. */
       CTX_store_set(C, prev_ctx);

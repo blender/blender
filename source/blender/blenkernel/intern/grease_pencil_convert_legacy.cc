@@ -717,6 +717,13 @@ static ModifierData &legacy_object_modifier_common(Object &object,
   /* Convert animation data if needed. */
   AnimData *anim_data = BKE_animdata_from_id(&object.id);
   if (anim_data) {
+    char legacy_name_esc[MAX_NAME * 2];
+    BLI_str_escape(legacy_name_esc, legacy_md.name, sizeof(legacy_name_esc));
+    const std::string legacy_root_path = fmt::format("grease_pencil_modifiers[\"{}\"]",
+                                                     legacy_name_esc);
+    char new_name_esc[MAX_NAME * 2];
+    BLI_str_escape(new_name_esc, new_md.name, sizeof(new_name_esc));
+
     auto modifier_path_update = [&](FCurve *fcurve) -> bool {
       /* NOTE: This logic will likely need to be re-used in other similar conditions for other
        * areas, should be put into its own util then. */
@@ -724,15 +731,9 @@ static ModifierData &legacy_object_modifier_common(Object &object,
         return false;
       }
       StringRefNull rna_path = fcurve->rna_path;
-      char legacy_name_esc[MAX_NAME * 2];
-      BLI_str_escape(legacy_name_esc, legacy_md.name, sizeof(legacy_name_esc));
-      const std::string legacy_root_path = fmt::format("grease_pencil_modifiers[\"{}\"]",
-                                                       legacy_name_esc);
       if (!rna_path.startswith(legacy_root_path)) {
         return false;
       }
-      char new_name_esc[MAX_NAME * 2];
-      BLI_str_escape(new_name_esc, new_md.name, sizeof(new_name_esc));
       const std::string new_rna_path = fmt::format(
           "modifiers[\"{}\"]{}", new_name_esc, rna_path.substr(int64_t(legacy_root_path.size())));
       MEM_freeN(fcurve->rna_path);

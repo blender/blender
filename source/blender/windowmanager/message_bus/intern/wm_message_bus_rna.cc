@@ -294,10 +294,10 @@ void WM_msg_subscribe_rna_params(wmMsgBus *mbus,
 {
   wmMsgSubscribeKey_RNA msg_key_test = {{nullptr}};
 
-  /* use when added */
+  /* Use when added. */
   msg_key_test.msg.head.id = id_repr;
   msg_key_test.msg.head.type = WM_MSG_TYPE_RNA;
-  /* for lookup */
+  /* For lookup. */
   msg_key_test.msg.params = *msg_key_params;
 
   const char *none = "<none>";

@@ -19,9 +19,6 @@
 
 #include "BLI_assert.h"
 
-#include "DEG_depsgraph_query.hh"
-
-#include "DNA_ID.h"
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 

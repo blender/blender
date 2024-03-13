@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-03-01 16:11+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -46339,10 +46339,6 @@ msgid "Temporary Directory"
 msgstr "Cartella Temporanea"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "Cartella di salvataggio per i file temporanei"
-
-
 msgid "The default directory to search for textures"
 msgstr "La cartella predefinita per cercare le texture"
 
@@ -57377,10 +57373,6 @@ msgid "Display action without any time remapping (when unpinned)"
 msgstr "Mostra l'azione senza nessuna rimappatura tempo (quando disappuntato)"
 
 
-msgid "Nothing selected"
-msgstr "Nessuna selezione"
-
-
 msgid "<invalid>"
 msgstr "<non valido>"
 
@@ -57665,6 +57657,10 @@ msgstr "Nessun fotogramma da cancellare"
 
 msgid "No active frame(s) to delete"
 msgstr "Nessun fotogramma da cancellare"
+
+
+msgid "Nothing selected"
+msgstr "Nessuna selezione"
 
 
 msgid "No active area"

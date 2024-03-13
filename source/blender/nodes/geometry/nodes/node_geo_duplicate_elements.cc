@@ -1061,7 +1061,9 @@ static void node_rna(StructRNA *srna)
                     "Which domain to duplicate",
                     domain_items,
                     NOD_storage_enum_accessors(domain),
-                    int(AttrDomain::Point));
+                    int(AttrDomain::Point),
+                    nullptr,
+                    true);
 }
 
 static void node_register()

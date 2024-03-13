@@ -758,7 +758,7 @@ void multires_reshape_object_grids_to_tangent_displacement(
  * \{ */
 
 /* TODO(sergey): Make foreach_grid_coordinate more accessible and move this functionality to
- * own file. */
+ * its own file. */
 
 static void assign_final_coords_from_mdisps(const MultiresReshapeContext *reshape_context,
                                             const GridCoord *grid_coord,

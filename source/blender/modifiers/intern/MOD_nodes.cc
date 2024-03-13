@@ -336,8 +336,7 @@ static void update_id_properties_from_node_group(NodesModifierData *nmd)
   }
   IDProperty *new_properties = nmd->settings.properties;
 
-  nodes::update_input_properties_from_node_tree(
-      *nmd->node_group, old_properties, false, *new_properties);
+  nodes::update_input_properties_from_node_tree(*nmd->node_group, old_properties, *new_properties);
   nodes::update_output_properties_from_node_tree(
       *nmd->node_group, old_properties, *new_properties);
 
@@ -2236,7 +2235,7 @@ static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd
   std::sort(sorted_used_attribute.begin(),
             sorted_used_attribute.end(),
             [](const NameWithUsage &a, const NameWithUsage &b) {
-              return BLI_strcasecmp_natural(a.name.c_str(), b.name.c_str()) <= 0;
+              return BLI_strcasecmp_natural(a.name.c_str(), b.name.c_str()) < 0;
             });
 
   for (const NameWithUsage &attribute : sorted_used_attribute) {

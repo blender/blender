@@ -29,7 +29,6 @@
 #define MAX_SOCKET 512
 
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct FreestyleLineStyle;
 struct GPUMaterial;

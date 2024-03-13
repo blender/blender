@@ -268,8 +268,7 @@ static void *md5_read_ctx(const md5_ctx *ctx, void *resbuf)
   return resbuf;
 }
 
-/*
-Top level public functions. */
+/* Top level public functions. */
 
 int BLI_hash_md5_stream(FILE *stream, void *resblock)
 {

@@ -758,7 +758,7 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
       (ID *)PyLong_AsVoidPtr(pyscene), &RNA_ViewLayer, PyLong_AsVoidPtr(pyviewlayer));
   BL::ViewLayer b_view_layer(viewlayerptr);
 
-  DenoiseParams params = BlenderSync::get_denoise_params(b_scene, b_view_layer, true);
+  DenoiseParams params = BlenderSync::get_denoise_params(b_scene, b_view_layer, true, device);
   params.use = true;
 
   /* Parse file paths list. */

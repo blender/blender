@@ -16,6 +16,13 @@
 
 struct Main;
 
+/**
+ * Global data, typically accessed from #G.
+ * See: #BKE_blender_globals_init & #BKE_blender_globals_clear.
+ *
+ * \note This is run-time only but some global data is written
+ * to #FileGlobal which is used to initialize members of #Global.
+ */
 struct Global {
 
   /**
@@ -57,6 +64,14 @@ struct Global {
    * (which use background mode by definition).
    */
   bool background;
+
+  /**
+   * When true, suppress any non-error print messages such as files saves, loaded, quitting etc.
+   * This is used so command line tools can control output without unnecessary noise.
+   *
+   * \note This should only be used to suppress printing (not reports or other kinds of logging).
+   */
+  bool quiet;
 
   /**
    * Skip reading the startup file and user preferences.

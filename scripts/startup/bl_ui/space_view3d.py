@@ -209,7 +209,6 @@ class VIEW3D_HT_tool_header(Header):
 
             layout.label(text="Layer:")
             sub = layout.row()
-            sub.ui_units_x = 8
             sub.popover(
                 panel="TOPBAR_PT_gpencil_layers",
                 text=text,
@@ -638,7 +637,6 @@ class VIEW3D_HT_header(Header):
             row = layout.row(align=True)
 
             sub = row.row()
-            sub.ui_units_x = 4
             sub.prop_with_popover(
                 orient_slot,
                 "type",
@@ -751,7 +749,6 @@ class VIEW3D_HT_header(Header):
         act_mode_i18n_context = bpy.types.Object.bl_rna.properties["mode"].translation_context
 
         sub = row.row(align=True)
-        sub.ui_units_x = 5.5
         sub.operator_menu_enum(
             "object.mode_set", "mode",
             text=iface_(act_mode_item.name, act_mode_i18n_context),
@@ -946,7 +943,6 @@ class VIEW3D_HT_header(Header):
             color_type = shading.color_type
 
             row = layout.row()
-            row.ui_units_x = 6
             row.active = is_paint_tool and color_type == 'VERTEX'
 
             if context.preferences.experimental.use_sculpt_texture_paint:
@@ -964,12 +960,10 @@ class VIEW3D_HT_header(Header):
 
         elif object_mode == 'VERTEX_PAINT':
             row = layout.row()
-            row.ui_units_x = 6
             row.popover(panel="VIEW3D_PT_slots_color_attributes", icon='GROUP_VCOL')
 
         elif object_mode == 'WEIGHT_PAINT':
             row = layout.row()
-            row.ui_units_x = 6
             row.popover(panel="VIEW3D_PT_slots_vertex_groups", icon='GROUP_VERTEX')
 
         elif object_mode == 'TEXTURE_PAINT':
@@ -977,9 +971,12 @@ class VIEW3D_HT_header(Header):
             icon = 'MATERIAL' if tool_mode == 'MATERIAL' else 'IMAGE_DATA'
 
             row = layout.row()
-            row.ui_units_x = 9
             row.popover(panel="VIEW3D_PT_slots_projectpaint", icon=icon)
-            row.popover(panel="VIEW3D_PT_mask", icon='MOD_MASK', text="")
+            row.popover(
+                panel="VIEW3D_PT_mask",
+                icon=VIEW3D_HT_header._texture_mask_icon(
+                    tool_settings.image_paint),
+                text="")
         else:
             # Transform settings depending on tool header visibility
             VIEW3D_HT_header.draw_xform_template(layout, context)
@@ -1086,6 +1083,11 @@ class VIEW3D_HT_header(Header):
                             gpencil_sculpt.use_automasking_layer_active)
 
         return "CLIPUV_DEHLT" if automask_enabled else "CLIPUV_HLT"
+
+    @staticmethod
+    def _texture_mask_icon(ipaint):
+        mask_enabled = ipaint.use_stencil_layer or ipaint.use_cavity
+        return "CLIPUV_DEHLT" if mask_enabled else "CLIPUV_HLT"
 
 
 class VIEW3D_MT_editor_menus(Menu):
@@ -2678,8 +2680,10 @@ class VIEW3D_MT_image_add(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        layout.operator("object.load_reference_image", text="Reference", icon='IMAGE_REFERENCE')
-        layout.operator("object.load_background_image", text="Background", icon='IMAGE_BACKGROUND')
+        # Expliclitly set background mode on/off as operator will try to
+        # auto detect which mode to use otherwise.
+        layout.operator("object.empty_image_add", text="Reference", icon='IMAGE_REFERENCE').background = False
+        layout.operator("object.empty_image_add", text="Background", icon='IMAGE_BACKGROUND').background = True
 
 
 class VIEW3D_MT_object_relations(Menu):
@@ -3559,6 +3563,12 @@ class VIEW3D_MT_sculpt(Menu):
         props.action = 'HIDE'
 
         props = layout.operator("paint.hide_show", text="Box Show")
+        props.action = 'SHOW'
+
+        props = layout.operator("paint.hide_show_lasso_gesture", text="Lasso Hide")
+        props.action = 'HIDE'
+
+        props = layout.operator("paint.hide_show_lasso_gesture", text="Lasso Show")
         props.action = 'SHOW'
 
         layout.separator()
@@ -7581,6 +7591,10 @@ class VIEW3D_PT_snapping(Panel):
         row.prop(tool_settings, "use_snap_translate", text="Move", toggle=True)
         row.prop(tool_settings, "use_snap_rotate", text="Rotate", toggle=True)
         row.prop(tool_settings, "use_snap_scale", text="Scale", toggle=True)
+        col.label(text="Rotation Increment")
+        row = col.row(align=True)
+        row.prop(tool_settings, "snap_angle_increment_3d", text="")
+        row.prop(tool_settings, "snap_angle_increment_3d_precision", text="")
 
 
 class VIEW3D_PT_proportional_edit(Panel):

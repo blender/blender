@@ -754,6 +754,12 @@ typedef struct bUserAssetShelfSettings {
   ListBase enabled_catalog_paths; /* #LinkData */
 } bUserAssetShelfSettings;
 
+/**
+ * Main user preferences data, typically accessed from #U.
+ * See: #BKE_blendfile_userdef_from_defaults & #BKE_blendfile_userdef_read.
+ *
+ * \note This is either loaded from the file #BLENDER_USERPREF_FILE or from memory, see #U_default.
+ */
 typedef struct UserDef {
   DNA_DEFINE_CXX_METHODS(UserDef)
 

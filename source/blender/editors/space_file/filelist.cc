@@ -193,7 +193,7 @@ struct FileListFilter {
   char filter_search[66]; /* + 2 for heading/trailing implicit '*' wildcards. */
   short flags;
 
-  FileAssetCatalogFilterSettingsHandle *asset_catalog_filter;
+  blender::ed::asset_browser::AssetCatalogFilterSettings *asset_catalog_filter;
 };
 
 /** #FileListFilter.flags */
@@ -1084,7 +1084,8 @@ void filelist_set_asset_catalog_filter_options(
 {
   if (!filelist->filter_data.asset_catalog_filter) {
     /* There's no filter data yet. */
-    filelist->filter_data.asset_catalog_filter = file_create_asset_catalog_filter_settings();
+    filelist->filter_data.asset_catalog_filter =
+        blender::ed::asset_browser::file_create_asset_catalog_filter_settings();
   }
 
   const bool needs_update = file_set_asset_catalog_filter_settings(

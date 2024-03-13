@@ -1341,7 +1341,7 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
       /* These values are cleared after use & will practically always be zero.
        * Read them because it's possible multiple configure calls run before they can be handled.
        */
-      GWL_LibDecor_Window &decor = *win->libdecor;
+      const GWL_LibDecor_Window &decor = *win->libdecor;
       size_next[0] = decor.pending.size[0];
       size_next[1] = decor.pending.size[1];
     }
@@ -1374,16 +1374,18 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
     decor.pending.configuration = configuration;
     decor.pending.ack_configure = true;
 
+#  ifdef USE_EVENT_BACKGROUND_THREAD
     if (!is_main_thread) {
-#  ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
+#    ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
       decor.pending.configuration = ghost_wl_libdecor_configuration_copy(configuration);
       decor.pending.configuration_needs_free = true;
-#  else
+#    else
       /* Without a way to copy the configuration,
        * the configuration will be ignored as it can't be postponed. */
       decor.pending.configuration = nullptr;
-#  endif /* !USE_LIBDECOR_CONFIG_COPY_WORKAROUND */
+#    endif /* !USE_LIBDECOR_CONFIG_COPY_WORKAROUND */
     }
+#  endif
 
 #  ifdef USE_LIBDECOR_CONFIG_COPY_QUEUE
     if (!(size_next[0] && size_next[1])) {

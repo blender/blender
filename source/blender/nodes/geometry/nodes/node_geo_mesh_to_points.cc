@@ -233,7 +233,9 @@ static void node_rna(StructRNA *srna)
                     "",
                     mode_items,
                     NOD_storage_enum_accessors(mode),
-                    GEO_NODE_MESH_TO_POINTS_VERTICES);
+                    GEO_NODE_MESH_TO_POINTS_VERTICES,
+                    nullptr,
+                    true);
 }
 
 static void node_register()

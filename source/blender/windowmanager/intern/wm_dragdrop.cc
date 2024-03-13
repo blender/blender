@@ -74,9 +74,9 @@ static void wm_drop_item_clear_runtime(wmDropBox *drop);
 wmDragActiveDropState::wmDragActiveDropState() = default;
 wmDragActiveDropState::~wmDragActiveDropState() = default;
 
-/* drop box maps are stored global for now */
-/* these are part of blender's UI/space specs, and not like keymaps */
-/* when editors become configurable, they can add own dropbox definitions */
+/* Drop box maps are stored global for now. */
+/* These are part of blender's UI/space specs, and not like keymaps. */
+/* When editors become configurable, they can add their own dropbox definitions. */
 
 struct wmDropBoxMap {
   wmDropBoxMap *next, *prev;
@@ -263,7 +263,7 @@ wmDrag *WM_drag_data_create(bContext *C, int icon, eWM_DragDataType type, void *
   wmDrag *drag = MEM_new<wmDrag>(__func__);
 
   /* Keep track of future multi-touch drag too, add a mouse-pointer id or so. */
-  /* if multiple drags are added, they're drawn as list */
+  /* If multiple drags are added, they're drawn as list. */
 
   drag->flags = static_cast<eWM_DragFlags>(flags);
   drag->icon = icon;
@@ -478,7 +478,7 @@ static wmDropBox *dropbox_active(bContext *C,
   return nullptr;
 }
 
-/* return active operator tooltip/name when mouse is in box */
+/* Return active operator tooltip/name when mouse is in box. */
 static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -1024,7 +1024,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
     x = xy[0] - (wm_drag_imbuf_icon_width_get(drag) / 2);
     y = xy[1] - (wm_drag_imbuf_icon_height_get(drag) / 2);
 
-    const float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* this blends texture */
+    const float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* This blends texture. */
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
     immDrawPixelsTexTiled_scaling(&state,
                                   x,

@@ -732,8 +732,7 @@ typedef enum eFCurve_Smoothing {
 /* 'Action' Datatypes */
 
 /* NOTE: Although these are part of the Animation System,
- * they are not stored here... see DNA_action_types.h instead
- */
+ * they are not stored here, see `DNA_action_types.h` instead. */
 
 /* ************************************************ */
 /* NLA - Non-Linear Animation */
@@ -1177,7 +1176,7 @@ typedef struct AnimData {
    * Binding name, primarily used for mapping to the right binding when assigning
    * another Animation data-block. Should be the same type as #AnimationBinding::name.
    *
-   * \see AnimationBinding::name
+   * \see #AnimationBinding::name
    */
   char binding_name[66];
   uint8_t _pad0[6];
@@ -1260,7 +1259,7 @@ class Strip;
 /**
  * Container of layered animation data.
  *
- * \see blender::animrig::Animation
+ * \see #blender::animrig::Animation
  */
 typedef struct Animation {
   ID id;
@@ -1280,7 +1279,7 @@ typedef struct Animation {
 } Animation;
 
 /**
- * \see blender::animrig::Layer
+ * \see #blender::animrig::Layer
  */
 typedef struct AnimationLayer {
   /** User-Visible identifier, unique within the Animation. */
@@ -1288,10 +1287,10 @@ typedef struct AnimationLayer {
 
   float influence; /* [0-1] */
 
-  /** \see blender::animrig::Layer::flags() */
+  /** \see #blender::animrig::Layer::flags() */
   uint8_t layer_flags;
 
-  /** \see blender::animrig::Layer::mixmode() */
+  /** \see #blender::animrig::Layer::mixmode() */
   int8_t layer_mix_mode;
 
   uint8_t _pad0[2];
@@ -1312,14 +1311,14 @@ typedef struct AnimationLayer {
 } AnimationLayer;
 
 /**
- * \see blender::animrig::Binding
+ * \see #blender::animrig::Binding
  */
 typedef struct AnimationBinding {
   /**
    * Typically the ID name this binding was created for, including the two
    * letters indicating the ID type.
    *
-   * \see AnimData::binding_name
+   * \see #AnimData::binding_name
    */
   char name[66]; /* MAX_ID_NAME */
   uint8_t _pad0[2];
@@ -1333,13 +1332,13 @@ typedef struct AnimationBinding {
   /**
    * Identifier of this Binding within the Animation data-block.
    *
-   * This number allows reorganisation of the Animation::bindings_array without
+   * This number allows reorganization of the #Animation::bindings_array without
    * invalidating references. Also these remain valid when copy-on-evaluate
    * copies are made.
    *
    * Only valid within the Animation data-block that owns this Binding.
    *
-   * \see blender::animrig::Animation::binding_for_handle()
+   * \see #blender::animrig::Animation::binding_for_handle()
    */
   int32_t handle;
 
@@ -1350,11 +1349,11 @@ typedef struct AnimationBinding {
 } AnimationBinding;
 
 /**
- * \see blender::animrig::Strip
+ * \see #blender::animrig::Strip
  */
 typedef struct AnimationStrip {
   /**
-   * \see blender::animrig::Strip::type()
+   * \see #blender::animrig::Strip::type()
    */
   int8_t strip_type;
   uint8_t _pad0[3];
@@ -1378,9 +1377,9 @@ typedef struct AnimationStrip {
 } AnimationStrip;
 
 /**
- * AnimationStrip::type = Strip::Type::Keyframe.
+ * #AnimationStrip::type = #Strip::Type::Keyframe.
  *
- * \see blender::animrig::KeyframeStrip
+ * \see #blender::animrig::KeyframeStrip
  */
 typedef struct KeyframeAnimationStrip {
   AnimationStrip strip;
@@ -1397,7 +1396,7 @@ typedef struct KeyframeAnimationStrip {
 } KeyframeAnimationStrip;
 
 /**
- * \see blender::animrig::ChannelBag
+ * \see #blender::animrig::ChannelBag
  */
 typedef struct AnimationChannelBag {
   int32_t binding_handle;

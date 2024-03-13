@@ -318,7 +318,7 @@ static bool clip_uv_transform_rotate(const TransInfo *t, float *vec, float *vec_
     /* Binary search. */
     const float angle_mid = (angle_inside_bounds + angle) / 2.0f;
     if (ELEM(angle_mid, angle_inside_bounds, angle)) {
-      break; /* float precision reached. */
+      break; /* Float precision reached. */
     }
     if (uv_rotation_in_clip_bounds_test(t, angle_mid)) {
       angle_inside_bounds = angle_mid;
@@ -412,8 +412,7 @@ static void initRotation(TransInfo *t, wmOperator * /*op*/)
 
   t->idx_max = 0;
   t->num.idx_max = 0;
-  t->snap[0] = DEG2RAD(5.0);
-  t->snap[1] = DEG2RAD(1.0);
+  initSnapAngleIncrements(t);
 
   copy_v3_fl(t->num.val_inc, t->snap[1]);
   t->num.unit_sys = t->scene->unit.system;

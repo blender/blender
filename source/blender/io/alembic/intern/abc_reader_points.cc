@@ -8,20 +8,14 @@
 
 #include "abc_reader_points.h"
 #include "abc_axis_conversion.h"
-#include "abc_reader_mesh.h"
-#include "abc_reader_transform.h"
 #include "abc_util.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
 #include "BLT_translation.hh"
 
-#include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
 

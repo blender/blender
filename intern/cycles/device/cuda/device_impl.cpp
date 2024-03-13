@@ -135,7 +135,9 @@ CUDADevice::CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
 CUDADevice::~CUDADevice()
 {
   texture_info.free();
-
+  if (cuModule) {
+    cuda_assert(cuModuleUnload(cuModule));
+  }
   cuda_assert(cuDevicePrimaryCtxRelease(cuDevice));
 }
 

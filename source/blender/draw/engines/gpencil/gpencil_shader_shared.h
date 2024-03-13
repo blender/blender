@@ -134,9 +134,9 @@ BLI_STATIC_ASSERT_ALIGN(gpLight, 16)
 
 struct gpObject {
   /** Weather or not to apply lighting to the GPencil object. */
-  bool1 is_shadeless;
+  bool32_t is_shadeless;
   /** Switch between 2d and 3D stroke order. */
-  bool1 stroke_order3d;
+  bool32_t stroke_order3d;
   /** Offset inside the layer buffer to the first layer data of this object. */
   uint layer_offset;
   /** Offset inside the material buffer to the first material data of this object. */

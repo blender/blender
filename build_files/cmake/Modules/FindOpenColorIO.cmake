@@ -72,6 +72,7 @@ if(EXISTS "${OPENCOLORIO_INCLUDE_DIR}/OpenColorIO/OpenColorABI.h")
       REGEX "^#define OCIO_VERSION[ \t].*$")
   endif()
   string(REGEX MATCHALL "[0-9]+[.0-9]+" OPENCOLORIO_VERSION ${_opencolorio_version})
+  unset(_opencolorio_version)
 endif()
 
 # handle the QUIETLY and REQUIRED arguments and set OPENCOLORIO_FOUND to TRUE if

@@ -250,3 +250,8 @@ vec3 coordinate_incoming(vec3 P)
   return cameraVec(P);
 #endif
 }
+
+float film_scaling_factor_get()
+{
+  return 1.0;
+}

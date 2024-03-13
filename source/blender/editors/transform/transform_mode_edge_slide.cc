@@ -82,7 +82,7 @@ struct EdgeSlideData {
 struct EdgeSlideParams {
   float perc;
 
-  /** when un-clamped - use this index: #TransDataEdgeSlideVert.dir_side */
+  /** When un-clamped - use this index: #TransDataEdgeSlideVert.dir_side. */
   int curr_side_unclamp;
 
   bool use_even;
@@ -118,9 +118,9 @@ static void calcEdgeSlideCustomPoints(TransInfo *t)
 
   setCustomPoints(t, &t->mouse, sld->mval_end, sld->mval_start);
 
-  /* setCustomPoints isn't normally changing as the mouse moves,
+  /* #setCustomPoints isn't normally changing as the mouse moves,
    * in this case apply mouse input immediately so we don't refresh
-   * with the value from the previous points */
+   * with the value from the previous points. */
   applyMouseInput(t, &t->mouse, t->mval, t->values);
 }
 
@@ -130,7 +130,7 @@ static void interp_line_v3_v3v3v3(
 {
   float t_mid, t_delta;
 
-  /* could be pre-calculated */
+  /* Could be pre-calculated. */
   t_mid = line_point_factor_v3(v2, v1, v3);
 
   t_delta = t - t_mid;
@@ -168,7 +168,7 @@ static void edge_slide_data_init_mval(MouseInput *mi, EdgeSlideData *sld, float 
   /* Zero out Start. */
   zero_v2(mval_start);
 
-  /* dir holds a vector along edge loop */
+  /* `mval_dir` holds a vector along edge loop. */
   copy_v2_v2(mval_end, mval_dir);
   mul_v2_fl(mval_end, 0.5f);
 
@@ -245,7 +245,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
                                      const float2 &mval,
                                      const bool use_calc_direction)
 {
-  /* use for visibility checks */
+  /* Use for visibility checks. */
   SnapObjectContext *snap_context = nullptr;
   bool use_occlude_geometry = false;
   float4 plane_near;
@@ -257,12 +257,12 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
     snap_context = ED_transform_snap_object_context_create(t->scene, 0);
   }
 
-  /* find mouse vectors, the global one, and one per loop in case we have
-   * multiple loops selected, in case they are oriented different */
+  /* Find mouse vectors, the global one, and one per loop in case we have
+   * multiple loops selected, in case they are oriented different. */
   float2 mval_dir = float2(0);
   float dist_best_sq = FLT_MAX;
 
-  /* only for use_calc_direction */
+  /* Only for use_calc_direction. */
   float2 *loop_dir = nullptr;
   float *loop_maxdist = nullptr;
 
@@ -284,11 +284,11 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 
     /* Search cross edges for visible edge to the mouse cursor,
      * then use the shared vertex to calculate screen vector. */
-    /* screen-space coords */
+    /* Screen-space coords. */
     float2 sco_a, sco_b;
     sld->project(sv, sco_a, sco_b);
 
-    /* global direction */
+    /* Global direction. */
     float dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
     if (is_visible) {
       if (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f)) {
@@ -299,7 +299,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
     }
 
     if (use_calc_direction) {
-      /* per loop direction */
+      /* Per loop direction. */
       int l_nr = sv->loop_nr;
       if (dist_sq < loop_maxdist[l_nr]) {
         loop_maxdist[l_nr] = dist_sq;
@@ -310,7 +310,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 
   if (use_calc_direction) {
     for (TransDataEdgeSlideVert &sv : sld->sv) {
-      /* switch a/b if loop direction is different from global direction */
+      /* Switch a/b if loop direction is different from global direction. */
       int l_nr = sv.loop_nr;
       if (math::dot(loop_dir[l_nr], mval_dir) < 0.0f) {
         swap_v3_v3(sv.dir_side[0], sv.dir_side[1]);
@@ -334,7 +334,12 @@ static EdgeSlideData *createEdgeSlideVerts(TransInfo *t,
 {
   int group_len;
   EdgeSlideData *sld = MEM_new<EdgeSlideData>("sld");
-  sld->sv = transform_mesh_edge_slide_data_create(tc, &group_len);
+  if (t->data_type == &TransConvertType_MeshUV) {
+    sld->sv = transform_mesh_uv_edge_slide_data_create(t, tc, &group_len);
+  }
+  else {
+    sld->sv = transform_mesh_edge_slide_data_create(tc, &group_len);
+  }
 
   if (sld->sv.is_empty()) {
     MEM_delete(sld);
@@ -414,7 +419,7 @@ static eRedrawFlag handleEventEdgeSlide(TransInfo *t, const wmEvent *event)
         }
         break;
       case EVT_CKEY:
-        /* use like a modifier key */
+        /* Use like a modifier key. */
         if (event->val == KM_PRESS) {
           t->flag ^= T_ALT_TRANSFORM;
           calcEdgeSlideCustomPoints(t);
@@ -460,7 +465,7 @@ static void drawEdgeSlide(TransInfo *t)
   const float3 &curr_sv_co_orig = curr_sv->v_co_orig();
 
   if (slp->use_even == true) {
-    /* Even mode */
+    /* Even mode. */
     float co_a[3], co_b[3], co_mark[3];
     const float fac = (slp->perc + 1.0f) / 2.0f;
     const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
@@ -761,7 +766,7 @@ static void applyEdgeSlide(TransInfo *t)
     transform_snap_increment(t, &final);
   }
 
-  /* only do this so out of range values are not displayed */
+  /* Only do this so out of range values are not displayed. */
   if (is_constrained) {
     CLAMP(final, -1.0f, 1.0f);
   }
@@ -770,7 +775,7 @@ static void applyEdgeSlide(TransInfo *t)
 
   t->values_final[0] = final;
 
-  /* header string */
+  /* Header string. */
   ofs += BLI_strncpy_rlen(str + ofs, RPT_("Edge Slide: "), sizeof(str) - ofs);
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
@@ -788,9 +793,9 @@ static void applyEdgeSlide(TransInfo *t)
   }
   ofs += BLI_snprintf_rlen(
       str + ofs, sizeof(str) - ofs, RPT_("Alt or (C)lamp: %s"), WM_bool_as_string(is_clamp));
-  /* done with header string */
+  /* Done with header string. */
 
-  /* do stuff here */
+  /* Do stuff here. */
   doEdgeSlide(t, final);
 
   recalc_data(t);
@@ -845,7 +850,7 @@ static void initEdgeSlide_ex(
     EdgeSlideParams *slp = static_cast<EdgeSlideParams *>(MEM_callocN(sizeof(*slp), __func__));
     slp->use_even = use_even;
     slp->flipped = flipped;
-    /* happens to be best for single-sided */
+    /* Happens to be best for single-sided. */
     if (use_double_side == false) {
       slp->flipped = !flipped;
     }
@@ -873,7 +878,7 @@ static void initEdgeSlide_ex(
     return;
   }
 
-  /* set custom point first if you want value to be initialized by init */
+  /* Set custom point first if you want value to be initialized by init. */
   calcEdgeSlideCustomPoints(t);
   initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO_FLIP);
 

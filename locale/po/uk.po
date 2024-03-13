@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -44901,22 +44901,6 @@ msgid "Apply sampling to all animations"
 msgstr "Застосовувати відбір для всіх анімацій"
 
 
-msgid "glTF Binary (.glb)"
-msgstr "glTF Двійково (.glb)"
-
-
-msgid "Exports a single file, with all data packed in binary form. Most efficient and portable, but more difficult to edit later"
-msgstr "Експортує єдиний файл, з усіма даними, запакованими у двійковій формі. Більш ефективно та портативно, але більш важко для подальшого редагування"
-
-
-msgid "glTF Separate (.gltf + .bin + textures)"
-msgstr "glTF Відокремлено (.gltf + .bin + текстури)"
-
-
-msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
-msgstr "Експортує багато файлів, окремо JSON, двійкові дані та текстури. Найлегше для подальшого редагування"
-
-
 msgid "Limit to Playback Range"
 msgstr "Лімітувати Діапазоном Програвання"
 
@@ -70959,10 +70943,6 @@ msgid "Temporary Directory"
 msgstr "Тимчасова тека"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "Тека для збереження тимчасових файлів"
-
-
 msgid "The default directory to search for textures"
 msgstr "Стандартна тека для пошуку текстур"
 
@@ -92579,10 +92559,6 @@ msgid "Can't edit this property from a linked data-block"
 msgstr "Неможливо редагувати цю властивістю з пов'язаного блоку даних"
 
 
-msgid "Nothing selected"
-msgstr "Нічого не вибрано"
-
-
 msgid "<invalid>"
 msgstr "<неправильний>"
 
@@ -93239,6 +93215,10 @@ msgstr "Нема активних кадру(ів) для видалення"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "Неможливо відокремити об'єкт з одним лише шаром"
+
+
+msgid "Nothing selected"
+msgstr "Нічого не вибрано"
 
 
 msgid "No active area"

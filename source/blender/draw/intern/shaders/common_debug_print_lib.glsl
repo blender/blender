@@ -100,22 +100,22 @@ void drw_print_char4(uint data)
  * was observed on both MESA & AMDGPU-PRO.
  */
 /* Using ascii char code. Expect char1 to be less or equal to 0xFF. Appends chars to the right. */
-void drw_print_append_char(uint char1, inout uint char4)
+void drw_print_append_char(uint char_1, inout uint char_4)
 {
-  char4 = (char4 << 8u) | char1;
+  char_4 = (char_4 << 8u) | char_1;
 }
 
-void drw_print_append_digit(uint digit, inout uint char4)
+void drw_print_append_digit(uint digit, inout uint char_4)
 {
   const uint char_A = 0x41u;
   const uint char_0 = 0x30u;
   bool is_hexadecimal = digit > 9u;
-  char4 = (char4 << 8u) | (is_hexadecimal ? (char_A + digit - 10u) : (char_0 + digit));
+  char_4 = (char_4 << 8u) | (is_hexadecimal ? (char_A + digit - 10u) : (char_0 + digit));
 }
 
-void drw_print_append_space(inout uint char4)
+void drw_print_append_space(inout uint char_4)
 {
-  char4 = (char4 << 8u) | 0x20u;
+  char_4 = (char_4 << 8u) | 0x20u;
 }
 
 void drw_print_value_binary(uint value)

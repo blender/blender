@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -39586,22 +39586,6 @@ msgid "Apply sampling to all animations"
 msgstr "모든 애니메이션에 샘플링을 적용"
 
 
-msgid "glTF Binary (.glb)"
-msgstr "glTF Binary (.glb)"
-
-
-msgid "Exports a single file, with all data packed in binary form. Most efficient and portable, but more difficult to edit later"
-msgstr "모든 데이터가 바이너리 형식으로 포장된 단일 파일을 내보냅니다. 가장 효율적이고 이식성이 뛰어나지 만 나중에 편집하기가 더 어렵습니다"
-
-
-msgid "glTF Separate (.gltf + .bin + textures)"
-msgstr "glTF 분리 (.gltf + .bin + textures)"
-
-
-msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
-msgstr "별도의 JSON, 바이너리 및 텍스처 데이터로 여러 파일을 내보냅니다. 나중에 쉽게 편집 할 수 있습니다"
-
-
 msgid "Limit to Playback Range"
 msgstr "재생 범위로 제한"
 
@@ -61768,10 +61752,6 @@ msgid "Temporary Directory"
 msgstr "임시 디렉토리"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "임시 저장 파일에 대한 디렉토리"
-
-
 msgid "The default directory to search for textures"
 msgstr "텍스처를 찾기에 대한 기본 디렉토리"
 
@@ -79754,10 +79734,6 @@ msgid "Can't edit this property from a linked data-block"
 msgstr "재정의 데이터 블록에서 이 속성을 편집할 수 없습니다"
 
 
-msgid "Nothing selected"
-msgstr "아무 것도 선택되지 않음"
-
-
 msgid "<invalid>"
 msgstr "<invalid>"
 
@@ -80350,6 +80326,10 @@ msgstr "삭제하는 활성 프레임(들)이 없음"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "한 레이어 만 오브젝트를 분리 할 수 없습니다"
+
+
+msgid "Nothing selected"
+msgstr "아무 것도 선택되지 않음"
 
 
 msgid "No active area"

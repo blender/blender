@@ -34,6 +34,7 @@
 
 #include "bpy.h"
 #include "bpy_app.h"
+#include "bpy_cli_command.h"
 #include "bpy_driver.h"
 #include "bpy_library.h"
 #include "bpy_operator.h"
@@ -733,6 +734,10 @@ void BPy_init_modules(bContext *C)
 
   PYMODULE_ADD_METHOD(mod, &meth_bpy_owner_id_get);
   PYMODULE_ADD_METHOD(mod, &meth_bpy_owner_id_set);
+
+  /* Register command functions. */
+  PYMODULE_ADD_METHOD(mod, &BPY_cli_command_register_def);
+  PYMODULE_ADD_METHOD(mod, &BPY_cli_command_unregister_def);
 
 #undef PYMODULE_ADD_METHOD
 

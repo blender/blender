@@ -125,6 +125,10 @@ static void modify_curves(ModifierData &md, const ModifierEvalContext &ctx, Draw
   const MutableSpan<float3> positions = curves.positions_for_write();
   const Span<MDeformVert> dverts = curves.deform_verts();
 
+  if (dverts.is_empty()) {
+    return;
+  }
+
   curves_mask.foreach_index(blender::GrainSize(128), [&](const int curve_i) {
     const IndexRange points = points_by_curve[curve_i];
 

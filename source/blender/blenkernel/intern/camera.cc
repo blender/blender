@@ -78,7 +78,7 @@ static void camera_copy_data(Main * /*bmain*/,
   Camera *cam_dst = (Camera *)id_dst;
   const Camera *cam_src = (const Camera *)id_src;
 
-  /* We never handle user-count here for own data. */
+  /* We never handle user-count here for owned data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
   BLI_listbase_clear(&cam_dst->bg_images);
@@ -278,7 +278,7 @@ void *BKE_camera_add(Main *bmain, const char *name)
 
 float BKE_camera_object_dof_distance(const Object *ob)
 {
-  Camera *cam = (Camera *)ob->data;
+  const Camera *cam = (const Camera *)ob->data;
   if (ob->type != OB_CAMERA) {
     return 0.0f;
   }
@@ -355,7 +355,7 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *cam_ob)
 
   if (cam_ob->type == OB_CAMERA) {
     /* camera object */
-    Camera *cam = static_cast<Camera *>(cam_ob->data);
+    const Camera *cam = static_cast<const Camera *>(cam_ob->data);
 
     if (cam->type == CAM_ORTHO) {
       params->is_ortho = true;
@@ -899,7 +899,7 @@ static void camera_stereo3d_model_matrix(const Object *camera,
                                          const bool is_left,
                                          float r_modelmat[4][4])
 {
-  Camera *data = (Camera *)camera->data;
+  const Camera *data = (const Camera *)camera->data;
   float interocular_distance, convergence_distance;
   short convergence_mode, pivot;
   float sizemat[4][4];
@@ -1060,7 +1060,6 @@ void BKE_camera_multiview_window_matrix(const RenderData *rd,
 
 bool BKE_camera_multiview_spherical_stereo(const RenderData *rd, const Object *camera)
 {
-  Camera *cam;
   const bool is_multiview = (rd && rd->scemode & R_MULTIVIEW) != 0;
 
   if (!is_multiview) {
@@ -1071,7 +1070,7 @@ bool BKE_camera_multiview_spherical_stereo(const RenderData *rd, const Object *c
     return false;
   }
 
-  cam = static_cast<Camera *>(camera->data);
+  const Camera *cam = static_cast<const Camera *>(camera->data);
 
   if ((rd->views_format == SCE_VIEWS_FORMAT_STEREO_3D) && ELEM(cam->type, CAM_PANO, CAM_PERSP) &&
       ((cam->stereo.flag & CAM_S3D_SPHERICAL) != 0))
@@ -1132,7 +1131,7 @@ Object *BKE_camera_multiview_render(const Scene *scene, Object *camera, const ch
 
 static float camera_stereo3d_shift_x(const Object *camera, const char *viewname)
 {
-  Camera *data = static_cast<Camera *>(camera->data);
+  const Camera *data = static_cast<const Camera *>(camera->data);
   float shift = data->shiftx;
   float interocular_distance, convergence_distance;
   short convergence_mode, pivot;
@@ -1174,7 +1173,7 @@ float BKE_camera_multiview_shift_x(const RenderData *rd,
                                    const char *viewname)
 {
   const bool is_multiview = (rd && rd->scemode & R_MULTIVIEW) != 0;
-  Camera *data = static_cast<Camera *>(camera->data);
+  const Camera *data = static_cast<const Camera *>(camera->data);
 
   BLI_assert(camera->type == OB_CAMERA);
 
@@ -1222,7 +1221,7 @@ CameraBGImage *BKE_camera_background_image_new(Camera *cam)
   return bgpic;
 }
 
-CameraBGImage *BKE_camera_background_image_copy(CameraBGImage *bgpic_src, const int flag)
+CameraBGImage *BKE_camera_background_image_copy(const CameraBGImage *bgpic_src, const int flag)
 {
   CameraBGImage *bgpic_dst = static_cast<CameraBGImage *>(MEM_dupallocN(bgpic_src));
 

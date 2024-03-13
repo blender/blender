@@ -896,7 +896,9 @@ static void image_render_print_save_message(ReportList *reports,
 {
   if (ok) {
     /* no need to report, just some helpful console info */
-    printf("Saved: '%s'\n", filepath);
+    if (!G.quiet) {
+      printf("Saved: '%s'\n", filepath);
+    }
   }
   else {
     /* report on error since users will want to know what failed */

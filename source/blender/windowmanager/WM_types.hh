@@ -122,12 +122,12 @@ struct wmWindowManager;
 
 #include "RNA_types.hh"
 
-/* exported types for WM */
+/* Exported types for WM. */
 #include "gizmo/WM_gizmo_types.hh"
 #include "wm_cursors.hh"
 #include "wm_event_types.hh"
 
-/* Include external gizmo API's */
+/* Include external gizmo API's. */
 #include "gizmo/WM_gizmo_api.hh"
 
 namespace blender::asset_system {
@@ -211,14 +211,14 @@ enum eWM_CursorWrapAxis {
  * rna_ui.cc contains EnumPropertyItem's of these, keep in sync.
  */
 enum wmOperatorCallContext {
-  /* if there's invoke, call it, otherwise exec */
+  /* If there's invoke, call it, otherwise exec. */
   WM_OP_INVOKE_DEFAULT,
   WM_OP_INVOKE_REGION_WIN,
   WM_OP_INVOKE_REGION_CHANNELS,
   WM_OP_INVOKE_REGION_PREVIEW,
   WM_OP_INVOKE_AREA,
   WM_OP_INVOKE_SCREEN,
-  /* only call exec */
+  /* Only call exec. */
   WM_OP_EXEC_DEFAULT,
   WM_OP_EXEC_REGION_WIN,
   WM_OP_EXEC_REGION_CHANNELS,
@@ -233,7 +233,7 @@ enum wmOperatorCallContext {
 #define WM_OP_CONTEXT_HAS_REGION(type) \
   (WM_OP_CONTEXT_HAS_AREA(type) && !ELEM(type, WM_OP_INVOKE_AREA, WM_OP_EXEC_AREA))
 
-/* property tags for RNA_OperatorProperties */
+/** Property tags for #RNA_OperatorProperties. */
 enum eOperatorPropTags {
   OP_PROP_TAG_ADVANCED = (1 << 0),
 };
@@ -332,7 +332,7 @@ struct wmNotifier {
  * 0x000000FF; action
  */
 
-/* category */
+/* Category. */
 #define NOTE_CATEGORY 0xFF000000
 #define NOTE_CATEGORY_TAG_CLEARED NOTE_CATEGORY
 #define NC_WM (1 << 24)
@@ -369,7 +369,7 @@ struct wmNotifier {
 /* Changes to the active viewer path. */
 #define NC_VIEWER_PATH (28 << 24)
 
-/* data type, 256 entries is enough, it can overlap */
+/* Data type, 256 entries is enough, it can overlap. */
 #define NOTE_DATA 0x00FF0000
 
 /* NC_WM (window-manager). */
@@ -382,7 +382,7 @@ struct wmNotifier {
 #define ND_XR_DATA_CHANGED (7 << 16)
 #define ND_LIB_OVERRIDE_CHANGED (8 << 16)
 
-/* NC_SCREEN */
+/* NC_SCREEN. */
 #define ND_LAYOUTBROWSE (1 << 16)
 #define ND_LAYOUTDELETE (2 << 16)
 #define ND_ANIMPLAY (4 << 16)
@@ -392,7 +392,7 @@ struct wmNotifier {
 #define ND_WORKSPACE_SET (8 << 16)
 #define ND_WORKSPACE_DELETE (9 << 16)
 
-/* NC_SCENE Scene */
+/* NC_SCENE Scene. */
 #define ND_SCENEBROWSE (1 << 16)
 #define ND_MARKERS (2 << 16)
 #define ND_FRAME (3 << 16)
@@ -417,7 +417,7 @@ struct wmNotifier {
 #define ND_WORLD (92 << 16)
 #define ND_LAYER_CONTENT (101 << 16)
 
-/* NC_OBJECT Object */
+/* NC_OBJECT Object. */
 #define ND_TRANSFORM (18 << 16)
 #define ND_OB_SHADING (19 << 16)
 #define ND_POSE (20 << 16)
@@ -438,24 +438,24 @@ struct wmNotifier {
 #define ND_DRAW_ANIMVIZ (33 << 16)
 #define ND_BONE_COLLECTION (34 << 16)
 
-/* NC_MATERIAL Material */
+/* NC_MATERIAL Material. */
 #define ND_SHADING (30 << 16)
 #define ND_SHADING_DRAW (31 << 16)
 #define ND_SHADING_LINKS (32 << 16)
 #define ND_SHADING_PREVIEW (33 << 16)
 
-/* NC_LAMP Light */
+/* NC_LAMP Light. */
 #define ND_LIGHTING (40 << 16)
 #define ND_LIGHTING_DRAW (41 << 16)
 
-/* NC_WORLD World */
+/* NC_WORLD World. */
 #define ND_WORLD_DRAW (45 << 16)
 
-/* NC_TEXT Text */
+/* NC_TEXT Text. */
 #define ND_CURSOR (50 << 16)
 #define ND_DISPLAY (51 << 16)
 
-/* NC_ANIMATION Animato */
+/* NC_ANIMATION Animato. */
 #define ND_KEYFRAME (70 << 16)
 #define ND_KEYFRAME_PROP (71 << 16)
 #define ND_ANIMCHAN (72 << 16)
@@ -464,23 +464,23 @@ struct wmNotifier {
 #define ND_FCURVES_ORDER (75 << 16)
 #define ND_NLA_ORDER (76 << 16)
 
-/* NC_GPENCIL */
+/* NC_GPENCIL. */
 #define ND_GPENCIL_EDITMODE (85 << 16)
 
-/* NC_GEOM Geometry */
+/* NC_GEOM Geometry. */
 /* Mesh, Curve, MetaBall, Armature, etc. */
 #define ND_SELECT (90 << 16)
 #define ND_DATA (91 << 16)
 #define ND_VERTEX_GROUP (92 << 16)
 
-/* NC_NODE Nodes */
+/* NC_NODE Nodes. */
 
 /* Influences which menus node assets are included in. */
 #define ND_NODE_ASSET_DATA (1 << 16)
 
-/* NC_SPACE */
-#define ND_SPACE_CONSOLE (1 << 16)     /* general redraw */
-#define ND_SPACE_INFO_REPORT (2 << 16) /* update for reports, could specify type */
+/* NC_SPACE. */
+#define ND_SPACE_CONSOLE (1 << 16)     /* General redraw. */
+#define ND_SPACE_INFO_REPORT (2 << 16) /* Update for reports, could specify type. */
 #define ND_SPACE_INFO (3 << 16)
 #define ND_SPACE_IMAGE (4 << 16)
 #define ND_SPACE_FILE_PARAMS (5 << 16)
@@ -505,7 +505,7 @@ struct wmNotifier {
 /* Not a space itself, but a part of another space. */
 #define ND_REGIONS_ASSET_SHELF (23 << 16)
 
-/* NC_ASSET */
+/* NC_ASSET. */
 /* Denotes that the AssetList is done reading some previews. NOT that the preview generation of
  * assets is done. */
 #define ND_ASSET_LIST (1 << 16)
@@ -516,10 +516,10 @@ struct wmNotifier {
  * action. */
 #define ND_ASSET_CATALOGS (4 << 16)
 
-/* subtype, 256 entries too */
+/* Subtype, 256 entries too. */
 #define NOTE_SUBTYPE 0x0000FF00
 
-/* subtype scene mode */
+/* Subtype scene mode. */
 #define NS_MODE_OBJECT (1 << 8)
 
 #define NS_EDITMODE_MESH (2 << 8)
@@ -535,14 +535,14 @@ struct wmNotifier {
 #define NS_EDITMODE_GREASE_PENCIL (12 << 8)
 #define NS_EDITMODE_POINT_CLOUD (13 << 8)
 
-/* subtype 3d view editing */
+/* Subtype 3d view editing. */
 #define NS_VIEW3D_GPU (16 << 8)
 #define NS_VIEW3D_SHADING (17 << 8)
 
-/* subtype layer editing */
+/* Subtype layer editing. */
 #define NS_LAYER_COLLECTION (24 << 8)
 
-/* action classification */
+/* Action classification. */
 #define NOTE_ACTION (0x000000FF)
 #define NA_EDITED 1
 #define NA_EVALUATED 2
@@ -556,7 +556,7 @@ struct wmNotifier {
 
 /* ************** Gesture Manager data ************** */
 
-/* wmGesture->type */
+/** #wmGesture::type */
 #define WM_GESTURE_LINES 1
 #define WM_GESTURE_RECT 2
 #define WM_GESTURE_CROSS_RECT 3
@@ -569,19 +569,19 @@ struct wmNotifier {
  */
 struct wmGesture {
   wmGesture *next, *prev;
-  /** #wmEvent.type */
+  /** #wmEvent.type. */
   int event_type;
-  /** #wmEvent.modifier */
+  /** #wmEvent.modifier. */
   uint8_t event_modifier;
-  /** #wmEvent.keymodifier */
+  /** #wmEvent.keymodifier. */
   short event_keymodifier;
   /** Gesture type define. */
   int type;
-  /** bounds of region to draw gesture within. */
+  /** Bounds of region to draw gesture within. */
   rcti winrct;
-  /** optional, amount of points stored. */
+  /** Optional, amount of points stored. */
   int points;
-  /** optional, maximum amount of points stored. */
+  /** Optional, maximum amount of points stored. */
   int points_alloc;
   int modal_state;
   /** Optional, draw the active side of the straight-line gesture. */
@@ -597,7 +597,7 @@ struct wmGesture {
   uint is_active_prev : 1;
   /** Use for gestures that support both immediate or delayed activation. */
   uint wait_for_input : 1;
-  /** Use for gestures that can be moved, like box selection */
+  /** Use for gestures that can be moved, like box selection. */
   uint move : 1;
   /** For gestures that support snapping, stores if snapping is enabled using the modal keymap
    * toggle. */
@@ -654,11 +654,11 @@ ENUM_OPERATORS(eWM_EventFlag, WM_EVENT_FORCE_DRAG_THRESHOLD);
 struct wmTabletData {
   /** 0=EVT_TABLET_NONE, 1=EVT_TABLET_STYLUS, 2=EVT_TABLET_ERASER. */
   int active;
-  /** range 0.0 (not touching) to 1.0 (full pressure). */
+  /** Range 0.0 (not touching) to 1.0 (full pressure). */
   float pressure;
-  /** range 0.0 (upright) to 1.0 (tilted fully against the tablet surface). */
+  /** Range 0.0 (upright) to 1.0 (tilted fully against the tablet surface). */
   float x_tilt;
-  /** as above. */
+  /** As above. */
   float y_tilt;
   /** Interpret mouse motion as absolute as typical for tablets. */
   char is_motion_absolute;
@@ -806,7 +806,7 @@ enum wmProgress {
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData {
-  /* awfully similar to GHOST_TEventNDOFMotionData... */
+  /* Awfully similar to #GHOST_TEventNDOFMotionData. */
   /**
    * Each component normally ranges from -1 to +1, but can exceed that.
    * These use blender standard view coordinates,
@@ -832,7 +832,7 @@ struct wmNDOFMotionData {
 /* Similar to GHOST_XrPose. */
 struct wmXrPose {
   float position[3];
-  /* Blender convention (w, x, y, z) */
+  /* Blender convention (w, x, y, z). */
   float orientation_quat[4];
 };
 
@@ -843,7 +843,7 @@ struct wmXrActionState {
     float state_vector2f[2];
     wmXrPose state_pose;
   };
-  int type; /* eXrActionType */
+  int type; /* #eXrActionType. */
 };
 
 struct wmXrActionData {
@@ -851,9 +851,9 @@ struct wmXrActionData {
   char action_set[64];
   /** Action name. */
   char action[64];
-  /** User path. E.g. "/user/hand/left" */
+  /** User path. E.g. "/user/hand/left". */
   char user_path[64];
-  /** Other user path, for bimanual actions. E.g. "/user/hand/right" */
+  /** Other user path, for bimanual actions. E.g. "/user/hand/right". */
   char user_path_other[64];
   /** Type. */
   eXrActionType type;
@@ -977,7 +977,7 @@ struct wmOperatorType {
   const char *name;
   /** Unique identifier (must not exceed #OP_MAX_TYPENAME). */
   const char *idname;
-  /** Translation context (must not exceed #BKE_ST_MAXNAME) */
+  /** Translation context (must not exceed #BKE_ST_MAXNAME). */
   const char *translation_context;
   /** Use for tooltips and Python docs. */
   const char *description;
@@ -1060,7 +1060,10 @@ struct wmOperatorType {
    */
   std::string (*get_description)(bContext *C, wmOperatorType *ot, PointerRNA *ptr);
 
-  /** RNA for properties */
+  /** A dynamic version of #OPTYPE_DEPENDS_ON_CURSOR which can depend on operator properties. */
+  bool (*depends_on_cursor)(bContext &C, wmOperatorType &ot, PointerRNA *ptr);
+
+  /** RNA for properties. */
   StructRNA *srna;
 
   /** Previous settings - for initializing on re-use. */
@@ -1075,7 +1078,7 @@ struct wmOperatorType {
    */
   PropertyRNA *prop;
 
-  /** wmOperatorTypeMacro */
+  /** #wmOperatorTypeMacro. */
   ListBase macro;
 
   /** Pointer to modal keymap. Do not free! */
@@ -1084,13 +1087,13 @@ struct wmOperatorType {
   /** Python needs the operator type as well. */
   bool (*pyop_poll)(bContext *C, wmOperatorType *ot) ATTR_WARN_UNUSED_RESULT;
 
-  /** RNA integration */
+  /** RNA integration. */
   ExtensionRNA rna_ext;
 
   /** Cursor to use when waiting for cursor input, see: #OPTYPE_DEPENDS_ON_CURSOR. */
   int cursor_pending;
 
-  /** Flag last for padding */
+  /** Flag last for padding. */
   short flag;
 };
 
@@ -1113,9 +1116,9 @@ struct wmOperatorCallParams {
 struct wmIMEData {
   size_t result_len, composite_len;
 
-  /** utf8 encoding */
+  /** UTF8 encoding. */
   char *str_result;
-  /** utf8 encoding */
+  /** UTF8 encoding. */
   char *str_composite;
 
   /** Cursor position in the IME composition. */
@@ -1174,7 +1177,7 @@ struct wmDragID {
 };
 
 struct wmDragAsset {
-  int import_method; /* eAssetImportMethod */
+  int import_method; /* #eAssetImportMethod. */
   const AssetRepresentationHandle *asset;
 };
 
@@ -1204,9 +1207,9 @@ struct wmDragAssetListItem {
 struct wmDragPath {
   blender::Vector<std::string> paths;
   /* File type of each path in #paths. */
-  blender::Vector<int> file_types; /* eFileSel_File_Types */
+  blender::Vector<int> file_types; /* #eFileSel_File_Types. */
   /* Bit flag of file types in #paths. */
-  int file_types_bit_flag; /* eFileSel_File_Types */
+  int file_types_bit_flag; /* #eFileSel_File_Types. */
   std::string tooltip;
 };
 
@@ -1380,9 +1383,9 @@ struct RecentFile {
   char *filepath;
 };
 
-/* Logging */
+/* Logging. */
 struct CLG_LogRef;
-/* wm_init_exit.cc */
+/* `wm_init_exit.cc`. */
 
 extern CLG_LogRef *WM_LOG_OPERATORS;
 extern CLG_LogRef *WM_LOG_HANDLERS;

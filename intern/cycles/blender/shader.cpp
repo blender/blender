@@ -1064,7 +1064,7 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_a(&RNA_ShaderNodeOutputAOV)) {
     BL::ShaderNodeOutputAOV b_aov_node(b_node);
     OutputAOVNode *aov = graph->create_node<OutputAOVNode>();
-    aov->set_name(ustring(b_aov_node.name()));
+    aov->set_name(ustring(b_aov_node.aov_name()));
     node = aov;
   }
 

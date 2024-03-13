@@ -450,7 +450,7 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
  * This function populates an array of verts for the triangles of a mesh
  * Tangent and Normals are also stored
  */
-static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *me_eval)
+static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *mesh_eval)
 {
   using namespace blender;
   int i;
@@ -490,12 +490,13 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *me_ev
   const TSpace *tspace = nullptr;
   blender::Span<blender::float3> corner_normals;
   if (tangent) {
-    BKE_mesh_calc_loop_tangents(me_eval, true, nullptr, 0);
+    BKE_mesh_calc_loop_tangents(mesh_eval, true, nullptr, 0);
 
-    tspace = static_cast<const TSpace *>(CustomData_get_layer(&me_eval->corner_data, CD_TANGENT));
+    tspace = static_cast<const TSpace *>(
+        CustomData_get_layer(&mesh_eval->corner_data, CD_TANGENT));
     BLI_assert(tspace);
 
-    corner_normals = me_eval->corner_normals();
+    corner_normals = mesh_eval->corner_normals();
   }
 
   const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
@@ -861,9 +862,9 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
 
   TriTessFace *triangles;
 
-  Mesh *me_eval = BKE_mesh_copy_for_eval(mesh);
+  Mesh *mesh_eval = BKE_mesh_copy_for_eval(mesh);
 
-  triangles = mesh_calc_tri_tessface(mesh, true, me_eval);
+  triangles = mesh_calc_tri_tessface(mesh, true, mesh_eval);
 
   BLI_assert(pixels_num >= 3);
 
@@ -969,8 +970,8 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
   /* garbage collection */
   MEM_freeN(triangles);
 
-  if (me_eval) {
-    BKE_id_free(nullptr, me_eval);
+  if (mesh_eval) {
+    BKE_id_free(nullptr, mesh_eval);
   }
 }
 

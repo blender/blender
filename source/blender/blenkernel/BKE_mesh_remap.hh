@@ -15,8 +15,6 @@
 
 #include "BKE_mesh_mapping.hh"
 
-struct CustomData;
-struct CustomData_MeshMasks;
 struct MemArena;
 struct Mesh;
 

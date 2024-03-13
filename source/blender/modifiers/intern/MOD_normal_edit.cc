@@ -63,7 +63,7 @@ static void generate_vert_coordinates(Mesh *mesh,
   }
 
   /* Get size (i.e. deformation of the spheroid generating normals),
-   * either from target object, or own geometry. */
+   * either from target object, or geometry. */
   if (r_size != nullptr) {
     if (ob_center != nullptr) {
       /* Using 'scale' as 'size' here. The input object is typically an empty

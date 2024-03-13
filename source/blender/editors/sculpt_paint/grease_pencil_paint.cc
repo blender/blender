@@ -16,6 +16,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
 
@@ -129,7 +130,7 @@ class PaintOperation : public GreasePencilStrokeOperation {
 
  private:
   void simplify_stroke(bke::greasepencil::Drawing &drawing, float epsilon_px);
-  void process_stroke_end(bke::greasepencil::Drawing &drawing);
+  void process_stroke_end(const bContext &C, bke::greasepencil::Drawing &drawing);
 };
 
 /**
@@ -553,8 +554,9 @@ void PaintOperation::simplify_stroke(bke::greasepencil::Drawing &drawing, const 
   }
 }
 
-void PaintOperation::process_stroke_end(bke::greasepencil::Drawing &drawing)
+void PaintOperation::process_stroke_end(const bContext &C, bke::greasepencil::Drawing &drawing)
 {
+  Scene *scene = CTX_data_scene(&C);
   const int stroke_index = drawing.strokes().curves_range().last();
   const IndexRange points = drawing.strokes().points_by_curve()[stroke_index];
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
@@ -574,6 +576,21 @@ void PaintOperation::process_stroke_end(bke::greasepencil::Drawing &drawing)
     curves.resize(curves.points_num() - points_to_remove, curves.curves_num());
     curves.offsets_for_write().last() = curves.points_num();
   }
+
+  const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
+      scene->toolsettings);
+
+  bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+      curves, selection_domain, CD_PROP_BOOL);
+
+  if (selection_domain == bke::AttrDomain::Curve) {
+    ed::curves::fill_selection_false(selection.span.slice(IndexRange(stroke_index, 1)));
+  }
+  else if (selection_domain == bke::AttrDomain::Point) {
+    ed::curves::fill_selection_false(selection.span.slice(points));
+  }
+
+  selection.finish();
 }
 
 void PaintOperation::on_stroke_done(const bContext &C)
@@ -595,7 +612,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
 
   const float simplifiy_threshold_px = 0.5f;
   this->simplify_stroke(drawing, simplifiy_threshold_px);
-  this->process_stroke_end(drawing);
+  this->process_stroke_end(C, drawing);
   drawing.tag_topology_changed();
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);

@@ -3508,7 +3508,7 @@ Jonathan Shewchuk and Leonidas Guibas. All rights reserved.
 Copyright (c) 2017 Thibaut Goetghebuer-Planchon <tessil@gmx.com>
 ** sse2neon; version 1.6.0 -- https://github.com/DLTcollab/sse2neon
 Copyright sse2neon contributors
-** TinyGLTF; version 2.5.0 -- https://github.com/syoyo/tinygltf
+** TinyGLTF; version 2.8.21 -- https://github.com/syoyo/tinygltf
 Copyright (c) 2017 Syoyo Fujita, Aurélien Chatelain and many contributors
 ** Wayland protocols; version 1.31 --
 https://gitlab.freedesktop.org/wayland/wayland-protocols

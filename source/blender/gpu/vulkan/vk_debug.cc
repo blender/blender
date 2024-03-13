@@ -257,12 +257,12 @@ void VKDebuggingTools::print_labels(const VkDebugUtilsMessengerCallbackDataEXT *
 
 VKAPI_ATTR VkBool32 VKAPI_CALL
 messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
-                   VkDebugUtilsMessageTypeFlagsEXT /* message_type*/,
+                   VkDebugUtilsMessageTypeFlagsEXT /*message_type*/,
                    const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
                    void *user_data);
 VKAPI_ATTR VkBool32 VKAPI_CALL
 messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
-                   VkDebugUtilsMessageTypeFlagsEXT /* message_type*/,
+                   VkDebugUtilsMessageTypeFlagsEXT /*message_type*/,
                    const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
                    void *user_data)
 {

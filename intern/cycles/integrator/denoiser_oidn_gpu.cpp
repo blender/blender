@@ -57,6 +57,16 @@ static const char *oidn_device_type_to_string(const OIDNDeviceType type)
 
 bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 {
+  if (device.type == DEVICE_MULTI) {
+    for (const DeviceInfo &multi_device : device.multi_devices) {
+      if (multi_device.type != DEVICE_CPU && is_device_supported(multi_device)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   VLOG_DEBUG << "Checking device " << device.description << " (" << device.id
              << ") for OIDN GPU support";
 

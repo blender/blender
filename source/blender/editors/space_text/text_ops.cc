@@ -540,6 +540,17 @@ static int text_reload_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int text_reload_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  return WM_operator_confirm_ex(C,
+                                op,
+                                IFACE_("Reload active text file?"),
+                                nullptr,
+                                IFACE_("Reload"),
+                                ALERT_ICON_NONE,
+                                false);
+}
+
 void TEXT_OT_reload(wmOperatorType *ot)
 {
   /* identifiers */
@@ -549,7 +560,7 @@ void TEXT_OT_reload(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = text_reload_exec;
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = text_reload_invoke;
   ot->poll = text_edit_poll;
 }
 
@@ -591,6 +602,17 @@ static int text_unlink_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
+static int text_unlink_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  return WM_operator_confirm_ex(C,
+                                op,
+                                IFACE_("Delete active text file?"),
+                                nullptr,
+                                IFACE_("Delete"),
+                                ALERT_ICON_NONE,
+                                false);
+}
+
 void TEXT_OT_unlink(wmOperatorType *ot)
 {
   /* identifiers */
@@ -600,7 +622,7 @@ void TEXT_OT_unlink(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = text_unlink_exec;
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = text_unlink_invoke;
   ot->poll = text_unlink_poll;
 
   /* flags */

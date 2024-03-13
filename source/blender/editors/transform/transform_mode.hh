@@ -19,7 +19,7 @@ struct wmOperator;
 struct wmEvent;
 
 struct TransModeInfo {
-  int flags; /* eTFlag */
+  int flags; /* #eTFlag. */
 
   void (*init_fn)(TransInfo *, wmOperator *);
 
@@ -49,7 +49,7 @@ struct TransModeInfo {
   void (*draw_fn)(TransInfo *);
 };
 
-/* header of TransDataEdgeSlideVert, TransDataEdgeSlideEdge */
+/* Header of #TransDataEdgeSlideVert, #TransDataEdgeSlideEdge. */
 struct TransDataGenericSlideVert {
   BMVert *v;
   LinkNode **cd_loop_groups;

@@ -1504,7 +1504,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
           /* Standard object relation. */
           /* TODO: loc vs rot vs scale? */
           if (&ct->tar->id == id) {
-            /* Constraint targeting own object:
+            /* Constraint targeting its own object:
              * - This case is fine IF we're dealing with a bone
              *   constraint pointing to its own armature. In that
              *   case, it's just transform -> bone.
@@ -1686,7 +1686,7 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
     /* create the driver's relations to targets */
     build_driver(id, fcu);
 
-    /* prevent driver from occurring before own animation... */
+    /* prevent driver from occurring before its own animation... */
     if (adt->action || adt->nla_tracks.first) {
       add_relation(adt_key, driver_key, "AnimData Before Drivers");
     }

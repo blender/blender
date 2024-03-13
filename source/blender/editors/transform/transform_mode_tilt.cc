@@ -86,8 +86,7 @@ static void initTilt(TransInfo *t, wmOperator * /*op*/)
 
   t->idx_max = 0;
   t->num.idx_max = 0;
-  t->snap[0] = DEG2RAD(5.0);
-  t->snap[1] = DEG2RAD(1.0);
+  initSnapAngleIncrements(t);
 
   copy_v3_fl(t->num.val_inc, t->snap[1]);
   t->num.unit_sys = t->scene->unit.system;

@@ -457,7 +457,7 @@ static void deg_debug_graphviz_node_relations(DotExportContext &ctx, const Node 
     deg_debug_graphviz_relation_arrowhead(rel, edge);
     edge.attributes.set("penwidth", penwidth);
 
-    /* NOTE: edge from node to own cluster is not possible and gives graphviz
+    /* NOTE: edge from node to our own cluster is not possible and gives graphviz
      * warning, avoid this here by just linking directly to the invisible
      * placeholder node. */
     dot::Cluster *tail_cluster = ctx.clusters_map.lookup_default(tail, nullptr);
