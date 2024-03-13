@@ -449,7 +449,7 @@ static void colormanage_cache_handle_release(void *cache_handle)
 /** \name Initialization / De-initialization
  * \{ */
 
-static void colormanage_role_color_space_name_get(OCIO_ConstConfigRcPtr *config,
+static bool colormanage_role_color_space_name_get(OCIO_ConstConfigRcPtr *config,
                                                   char *colorspace_name,
                                                   const char *role,
                                                   const char *backup_role)
@@ -463,8 +463,13 @@ static void colormanage_role_color_space_name_get(OCIO_ConstConfigRcPtr *config,
   }
 
   if (ociocs == nullptr) {
+    /* Overall fallback role. */
+    ociocs = OCIO_configGetColorSpace(config, "default");
+  }
+
+  if (ociocs == nullptr) {
     printf("Color management: Error, could not find role \"%s\"\n", role);
-    return;
+    return false;
   }
 
   const char *name = OCIO_colorSpaceGetName(ociocs);
@@ -472,23 +477,26 @@ static void colormanage_role_color_space_name_get(OCIO_ConstConfigRcPtr *config,
   /* assume function was called with buffer properly allocated to MAX_COLORSPACE_NAME chars */
   BLI_strncpy(colorspace_name, name, MAX_COLORSPACE_NAME);
   OCIO_colorSpaceRelease(ociocs);
+  return true;
 }
 
-static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
+static bool colormanage_load_config(OCIO_ConstConfigRcPtr *config)
 {
+  bool ok = true;
+
   /* get roles */
-  colormanage_role_color_space_name_get(config, global_role_data, OCIO_ROLE_DATA, nullptr);
-  colormanage_role_color_space_name_get(
+  ok &= colormanage_role_color_space_name_get(config, global_role_data, OCIO_ROLE_DATA, nullptr);
+  ok &= colormanage_role_color_space_name_get(
       config, global_role_scene_linear, OCIO_ROLE_SCENE_LINEAR, nullptr);
-  colormanage_role_color_space_name_get(
+  ok &= colormanage_role_color_space_name_get(
       config, global_role_color_picking, OCIO_ROLE_COLOR_PICKING, nullptr);
-  colormanage_role_color_space_name_get(
+  ok &= colormanage_role_color_space_name_get(
       config, global_role_texture_painting, OCIO_ROLE_TEXTURE_PAINT, nullptr);
-  colormanage_role_color_space_name_get(
+  ok &= colormanage_role_color_space_name_get(
       config, global_role_default_sequencer, OCIO_ROLE_DEFAULT_SEQUENCER, OCIO_ROLE_SCENE_LINEAR);
-  colormanage_role_color_space_name_get(
+  ok &= colormanage_role_color_space_name_get(
       config, global_role_default_byte, OCIO_ROLE_DEFAULT_BYTE, OCIO_ROLE_TEXTURE_PAINT);
-  colormanage_role_color_space_name_get(
+  ok &= colormanage_role_color_space_name_get(
       config, global_role_default_float, OCIO_ROLE_DEFAULT_FLOAT, OCIO_ROLE_SCENE_LINEAR);
 
   /* load colorspaces */
@@ -545,6 +553,14 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
   }
 
   global_tot_display = tot_display;
+  if (global_tot_display == 0) {
+    printf("Color management: Error, could not find any displays\n");
+    ok = false;
+  }
+  else if (global_tot_view == 0) {
+    printf("Color management: Error, could not find any views\n");
+    ok = false;
+  }
 
   /* load looks */
   const int tot_looks = OCIO_configGetNumLooks(config);
@@ -570,6 +586,8 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
 
   mul_m3_m3m3(imbuf_aces_to_scene_linear, imbuf_xyz_to_scene_linear, OCIO_ACES_TO_XYZ);
   invert_m3_m3(imbuf_scene_linear_to_aces, imbuf_aces_to_scene_linear);
+
+  return ok;
 }
 
 static void colormanage_free_config()
@@ -628,8 +646,6 @@ static void colormanage_free_config()
   /* free looks */
   BLI_freelistN(&global_looks);
   global_tot_looks = 0;
-
-  OCIO_exit();
 }
 
 void colormanagement_init()
@@ -645,6 +661,16 @@ void colormanagement_init()
     config = OCIO_configCreateFromEnv();
     if (config != nullptr) {
       printf("Color management: Using %s as a configuration file\n", ocio_env);
+
+      OCIO_setCurrentConfig(config);
+      const bool ok = colormanage_load_config(config);
+      OCIO_configRelease(config);
+
+      if (!ok) {
+        printf("Color management: Failed to load config from environment\n");
+        colormanage_free_config();
+        config = nullptr;
+      }
     }
   }
 
@@ -652,38 +678,29 @@ void colormanagement_init()
   if (config == nullptr) {
     const std::optional<std::string> configdir = BKE_appdir_folder_id(BLENDER_DATAFILES,
                                                                       "colormanagement");
-
     if (configdir.has_value()) {
       char configfile[FILE_MAX];
       BLI_path_join(configfile, sizeof(configfile), configdir->c_str(), BCM_CONFIG_FILE);
 
       config = OCIO_configCreateFromFile(configfile);
+
+      if (config != nullptr) {
+        OCIO_setCurrentConfig(config);
+        const bool ok = colormanage_load_config(config);
+        OCIO_configRelease(config);
+
+        if (!ok) {
+          printf("Color management: Failed to load bundled config\n");
+          colormanage_free_config();
+          config = nullptr;
+        }
+      }
     }
   }
 
   /* Then use fallback. */
   if (config == nullptr) {
     printf("Color management: Using fallback mode for management\n");
-
-    config = OCIO_configCreateFallback();
-  }
-
-  if (config) {
-    OCIO_setCurrentConfig(config);
-
-    colormanage_load_config(config);
-
-    OCIO_configRelease(config);
-  }
-
-  /* If there are no valid display/views, use fallback mode. */
-  if (global_tot_display == 0 || global_tot_view == 0) {
-    printf("Color management: No displays/views in the config, using fallback mode instead\n");
-
-    /* Free old config. */
-    colormanage_free_config();
-
-    /* Initialize fallback config. */
     config = OCIO_configCreateFallback();
     colormanage_load_config(config);
   }
@@ -715,6 +732,7 @@ void colormanagement_exit()
   memset(&global_color_picking_state, 0, sizeof(global_color_picking_state));
 
   colormanage_free_config();
+  OCIO_exit();
 }
 
 /** \} */
