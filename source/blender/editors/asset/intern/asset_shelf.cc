@@ -688,7 +688,7 @@ static void add_catalog_tabs(AssetShelfSettings &shelf_settings, uiLayout &layou
 
   /* Regular catalog tabs. */
   settings_foreach_enabled_catalog_path(
-      shelf_settings, [&shelf_settings, block](const asset_system::AssetCatalogPath &path) {
+      shelf_settings, [&](const asset_system::AssetCatalogPath &path) {
         uiBut *but = add_tab_button(*block, path.name());
 
         UI_but_func_set(but, [&shelf_settings, path](bContext &C) {
