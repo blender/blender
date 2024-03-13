@@ -98,12 +98,12 @@ class AbstractFile {
 
   bool exists() const
   {
-    return BLI_exists(get_file_path());
+    return BLI_exists(this->get_file_path());
   }
 
   size_t get_file_size() const
   {
-    return BLI_file_size(get_file_path());
+    return BLI_file_size(this->get_file_path());
   }
 };
 
@@ -125,7 +125,7 @@ class BlendFile : public AbstractFile {
   std::string get_filename() const
   {
     char filename[FILE_MAX];
-    BLI_path_split_file_part(get_file_path(), filename, sizeof(filename));
+    BLI_path_split_file_part(this->get_file_path(), filename, sizeof(filename));
     return std::string(filename);
   }
 
@@ -483,21 +483,19 @@ struct AssetLibraryIndex {
 
   std::string library_path;
 
- public:
   AssetLibraryIndex(const StringRef library_path) : library_path(library_path)
   {
-    init_indices_base_path();
+    this->init_indices_base_path();
   }
 
   uint64_t hash() const
   {
-    DefaultHash<StringRefNull> hasher;
-    return hasher(get_library_file_path());
+    return get_default_hash(this->library_path);
   }
 
   StringRefNull get_library_file_path() const
   {
-    return library_path;
+    return this->library_path;
   }
 
   /**
@@ -516,7 +514,7 @@ struct AssetLibraryIndex {
     ss << std::setfill('0') << std::setw(16) << std::hex << hash() << SEP_STR;
     BLI_path_append(index_path, sizeof(index_path), ss.str().c_str());
 
-    indices_base_path = std::string(index_path);
+    this->indices_base_path = std::string(index_path);
   }
 
   /**
@@ -527,7 +525,7 @@ struct AssetLibraryIndex {
   std::string index_file_path(const BlendFile &asset_file) const
   {
     std::stringstream ss;
-    ss << indices_base_path;
+    ss << this->indices_base_path;
     ss << std::setfill('0') << std::setw(16) << std::hex << asset_file.hash() << "_"
        << asset_file.get_filename() << ".index.json";
     return ss.str();
@@ -539,7 +537,7 @@ struct AssetLibraryIndex {
    */
   void collect_preexisting_file_indices()
   {
-    const char *index_path = indices_base_path.c_str();
+    const char *index_path = this->indices_base_path.c_str();
     if (!BLI_is_dir(index_path)) {
       return;
     }
@@ -548,7 +546,7 @@ struct AssetLibraryIndex {
     for (int i = 0; i < dir_entries_num; i++) {
       direntry *entry = &dir_entries[i];
       if (BLI_str_endswith(entry->relname, ".index.json")) {
-        preexisting_file_indices.add_as(std::string(entry->path));
+        this->preexisting_file_indices.add_as(std::string(entry->path));
       }
     }
 
@@ -557,7 +555,7 @@ struct AssetLibraryIndex {
 
   void mark_as_used(const std::string &filename)
   {
-    PreexistingFileIndexInfo *preexisting = preexisting_file_indices.lookup_ptr(filename);
+    PreexistingFileIndexInfo *preexisting = this->preexisting_file_indices.lookup_ptr(filename);
     if (preexisting) {
       preexisting->is_used = true;
     }
@@ -571,7 +569,7 @@ struct AssetLibraryIndex {
   bool delete_file_index(const std::string &filename)
   {
     if (BLI_delete(filename.c_str(), false, false) == 0) {
-      preexisting_file_indices.remove(filename);
+      this->preexisting_file_indices.remove(filename);
       return true;
     }
     return false;
@@ -590,7 +588,7 @@ struct AssetLibraryIndex {
 
     Set<StringRef> files_to_remove;
 
-    for (auto preexisting_index : preexisting_file_indices.items()) {
+    for (auto preexisting_index : this->preexisting_file_indices.items()) {
       if (preexisting_index.value.is_used) {
         continue;
       }
@@ -654,7 +652,7 @@ struct AssetIndex {
     root->append_int(ATTRIBUTE_VERSION, CURRENT_VERSION);
     init_value_from_file_indexer_entries(*root, indexer_entries);
 
-    contents = std::move(root);
+    this->contents = std::move(root);
   }
 
   /**
@@ -665,7 +663,7 @@ struct AssetIndex {
 
   int get_version() const
   {
-    const DictionaryValue *root = contents->as_dictionary_value();
+    const DictionaryValue *root = this->contents->as_dictionary_value();
     if (root == nullptr) {
       return UNKNOWN_VERSION;
     }
@@ -689,7 +687,7 @@ struct AssetIndex {
    */
   int extract_into(FileIndexerEntries &indexer_entries) const
   {
-    const DictionaryValue *root = contents->as_dictionary_value();
+    const DictionaryValue *root = this->contents->as_dictionary_value();
     const int num_entries_read = init_indexer_entries_from_value(indexer_entries, *root);
     return num_entries_read;
   }
@@ -717,7 +715,7 @@ class AssetIndexFile : public AbstractFile {
 
   void mark_as_used()
   {
-    library_index.mark_as_used(filename);
+    this->library_index.mark_as_used(this->filename);
   }
 
   const char *get_file_path() const override
@@ -730,7 +728,7 @@ class AssetIndexFile : public AbstractFile {
    */
   bool is_older_than(BlendFile &asset_file) const
   {
-    return BLI_file_older(get_file_path(), asset_file.get_file_path());
+    return BLI_file_older(this->get_file_path(), asset_file.get_file_path());
   }
 
   /**
@@ -746,7 +744,7 @@ class AssetIndexFile : public AbstractFile {
   {
     JsonFormatter formatter;
     std::ifstream is;
-    is.open(filename);
+    is.open(this->filename);
     std::unique_ptr<Value> read_data = formatter.deserialize(is);
     is.close();
 
@@ -755,19 +753,19 @@ class AssetIndexFile : public AbstractFile {
 
   bool ensure_parent_path_exists() const
   {
-    return BLI_file_ensure_parent_dir_exists(get_file_path());
+    return BLI_file_ensure_parent_dir_exists(this->get_file_path());
   }
 
   void write_contents(AssetIndex &content)
   {
     JsonFormatter formatter;
     if (!ensure_parent_path_exists()) {
-      CLOG_ERROR(&LOG, "Index not created: couldn't create folder [%s].", get_file_path());
+      CLOG_ERROR(&LOG, "Index not created: couldn't create folder [%s].", this->get_file_path());
       return;
     }
 
     std::ofstream os;
-    os.open(filename, std::ios::out | std::ios::trunc);
+    os.open(this->filename, std::ios::out | std::ios::trunc);
     formatter.serialize(os, *content.contents);
     os.close();
   }
@@ -779,39 +777,38 @@ int AssetLibraryIndex::remove_broken_index_files()
 {
   Set<StringRef> files_to_remove;
 
-  preexisting_file_indices.foreach_item(
-      [&](const std::string &index_path, const PreexistingFileIndexInfo &) {
-        AssetIndexFile index_file(*this, index_path);
+  for (const std::string &index_path : this->preexisting_file_indices.keys()) {
+    AssetIndexFile index_file(*this, index_path);
 
-        /* Bug was causing empty index files, so non-empty ones can be skipped. */
-        if (index_file.constains_entries()) {
-          return;
-        }
+    /* Bug was causing empty index files, so non-empty ones can be skipped. */
+    if (index_file.constains_entries()) {
+      continue;
+    }
 
-        /* Use the file modification time stamp to attempt to remove empty index files from a
-         * certain period (when the bug was in there). Starting from a day before the bug was
-         * introduced until a day after the fix should be enough to mitigate possible local time
-         * zone issues. */
+    /* Use the file modification time stamp to attempt to remove empty index files from a
+     * certain period (when the bug was in there). Starting from a day before the bug was
+     * introduced until a day after the fix should be enough to mitigate possible local time
+     * zone issues. */
 
-        std::tm tm_from{};
-        tm_from.tm_year = 2022 - 1900; /* 2022 */
-        tm_from.tm_mon = 11 - 1;       /* November */
-        tm_from.tm_mday = 8;           /* Day before bug was introduced. */
-        std::tm tm_to{};
-        tm_from.tm_year = 2022 - 1900; /* 2022 */
-        tm_from.tm_mon = 12 - 1;       /* December */
-        tm_from.tm_mday = 3;           /* Day after fix. */
-        std::time_t timestamp_from = std::mktime(&tm_from);
-        std::time_t timestamp_to = std::mktime(&tm_to);
-        BLI_stat_t stat = {};
-        if (BLI_stat(index_file.get_file_path(), &stat) == -1) {
-          return;
-        }
-        if (IN_RANGE(stat.st_mtime, timestamp_from, timestamp_to)) {
-          CLOG_INFO(&LOG, 2, "Remove potentially broken index file [%s].", index_path.c_str());
-          files_to_remove.add(index_path);
-        }
-      });
+    std::tm tm_from{};
+    tm_from.tm_year = 2022 - 1900; /* 2022 */
+    tm_from.tm_mon = 11 - 1;       /* November */
+    tm_from.tm_mday = 8;           /* Day before bug was introduced. */
+    std::tm tm_to{};
+    tm_from.tm_year = 2022 - 1900; /* 2022 */
+    tm_from.tm_mon = 12 - 1;       /* December */
+    tm_from.tm_mday = 3;           /* Day after fix. */
+    std::time_t timestamp_from = std::mktime(&tm_from);
+    std::time_t timestamp_to = std::mktime(&tm_to);
+    BLI_stat_t stat = {};
+    if (BLI_stat(index_file.get_file_path(), &stat) == -1) {
+      continue;
+    }
+    if (IN_RANGE(stat.st_mtime, timestamp_from, timestamp_to)) {
+      CLOG_INFO(&LOG, 2, "Remove potentially broken index file [%s].", index_path.c_str());
+      files_to_remove.add(index_path);
+    }
+  }
 
   int num_files_deleted = 0;
   for (StringRef files_to_remove : files_to_remove) {
