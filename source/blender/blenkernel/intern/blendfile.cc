@@ -1306,8 +1306,9 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
   if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, nullptr))) {
     bool ok_write;
     BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_USERPREF_FILE);
-
-    printf("Writing userprefs: \"%s\" ", filepath);
+    if (!G.quiet) {
+      printf("Writing userprefs: \"%s\" ", filepath);
+    }
     if (use_template_userpref) {
       ok_write = BKE_blendfile_userdef_write_app_template(filepath, reports);
     }
@@ -1316,11 +1317,15 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
     }
 
     if (ok_write) {
-      printf("ok\n");
+      if (!G.quiet) {
+        printf("ok\n");
+      }
       BKE_report(reports, RPT_INFO, "Preferences saved");
     }
     else {
-      printf("fail\n");
+      if (!G.quiet) {
+        printf("fail\n");
+      }
       ok = false;
       BKE_report(reports, RPT_ERROR, "Saving preferences failed");
     }
