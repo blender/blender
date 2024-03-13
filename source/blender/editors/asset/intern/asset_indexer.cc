@@ -136,225 +136,68 @@ class BlendFile : public AbstractFile {
 };
 
 /**
- * \brief Single entry inside a #AssetIndexFile for reading.
+ * \brief add id + name to the attributes.
+ *
+ * NOTE: id and name are encoded like #ID.name
  */
-struct AssetEntryReader {
- private:
-  /**
-   * \brief Lookup table containing the elements of the entry.
-   */
-  DictionaryValue::Lookup lookup;
+static void add_id_name(DictionaryValue::Items &result,
+                        const short idcode,
+                        const StringRefNull name)
+{
+  char idcode_prefix[2];
+  /* Similar to `BKE_libblock_alloc`. */
+  *((short *)idcode_prefix) = idcode;
+  std::string name_with_idcode = std::string(idcode_prefix, sizeof(idcode_prefix)) + name;
 
-  StringRef get_name_with_idcode() const
-  {
-    return lookup.lookup(ATTRIBUTE_ENTRIES_NAME)->as_string_value()->value();
+  result.append_as(std::pair(ATTRIBUTE_ENTRIES_NAME, new StringValue(name_with_idcode)));
+}
+
+static void add_tags(DictionaryValue::Items &result, const ListBase /* AssetTag */ *asset_tags)
+{
+  ArrayValue *tags = new ArrayValue();
+  result.append_as(std::pair(ATTRIBUTE_ENTRIES_TAGS, tags));
+  ArrayValue::Items &tag_items = tags->elements();
+
+  LISTBASE_FOREACH (AssetTag *, tag, asset_tags) {
+    tag_items.append_as(new StringValue(tag->name));
   }
+}
 
- public:
-  AssetEntryReader(const DictionaryValue &entry) : lookup(entry.create_lookup()) {}
-
-  ID_Type get_idcode() const
-  {
-    const StringRef name_with_idcode = get_name_with_idcode();
-    return GS(name_with_idcode.data());
-  }
-
-  StringRef get_name() const
-  {
-    const StringRef name_with_idcode = get_name_with_idcode();
-    return name_with_idcode.substr(2);
-  }
-
-  bool has_description() const
-  {
-    return lookup.contains(ATTRIBUTE_ENTRIES_DESCRIPTION);
-  }
-
-  StringRef get_description() const
-  {
-    return lookup.lookup(ATTRIBUTE_ENTRIES_DESCRIPTION)->as_string_value()->value();
-  }
-
-  bool has_author() const
-  {
-    return lookup.contains(ATTRIBUTE_ENTRIES_AUTHOR);
-  }
-
-  StringRef get_author() const
-  {
-    return lookup.lookup(ATTRIBUTE_ENTRIES_AUTHOR)->as_string_value()->value();
-  }
-
-  bool has_copyright() const
-  {
-    return lookup.contains(ATTRIBUTE_ENTRIES_COPYRIGHT);
-  }
-
-  StringRef get_copyright() const
-  {
-    return lookup.lookup(ATTRIBUTE_ENTRIES_COPYRIGHT)->as_string_value()->value();
-  }
-
-  bool has_license() const
-  {
-    return lookup.contains(ATTRIBUTE_ENTRIES_LICENSE);
-  }
-
-  StringRef get_license() const
-  {
-    return lookup.lookup(ATTRIBUTE_ENTRIES_LICENSE)->as_string_value()->value();
-  }
-
-  StringRefNull get_catalog_name() const
-  {
-    return lookup.lookup(ATTRIBUTE_ENTRIES_CATALOG_NAME)->as_string_value()->value();
-  }
-
-  CatalogID get_catalog_id() const
-  {
-    const StringRefNull catalog_id =
-        lookup.lookup(ATTRIBUTE_ENTRIES_CATALOG_ID)->as_string_value()->value();
-    CatalogID catalog_uuid(catalog_id);
-    return catalog_uuid;
-  }
-
-  void add_tags_to_meta_data(AssetMetaData *asset_data) const
-  {
-    const DictionaryValue::LookupValue *value_ptr = lookup.lookup_ptr(ATTRIBUTE_ENTRIES_TAGS);
-    if (value_ptr == nullptr) {
-      return;
-    }
-
-    const ArrayValue *array_value = (*value_ptr)->as_array_value();
-    const ArrayValue::Items &elements = array_value->elements();
-    for (const ArrayValue::Item &item : elements) {
-      const StringRefNull tag_name = item->as_string_value()->value();
-      BKE_asset_metadata_tag_add(asset_data, tag_name.c_str());
-    }
-  }
-
-  void add_properties_to_meta_data(AssetMetaData *asset_data) const
-  {
-    BLI_assert(asset_data->properties == nullptr);
-    const DictionaryValue::LookupValue *value_ptr = lookup.lookup_ptr(
-        ATTRIBUTE_ENTRIES_PROPERTIES);
-    if (value_ptr == nullptr) {
-      return;
-    }
-
-    const Value &value = *(value_ptr->get());
-    IDProperty *properties = convert_from_serialize_value(value);
-    asset_data->properties = properties;
-  }
-};
-
-struct AssetEntryWriter {
- private:
-  DictionaryValue::Items &attributes;
-
- public:
-  AssetEntryWriter(DictionaryValue &entry) : attributes(entry.elements()) {}
-
-  /**
-   * \brief add id + name to the attributes.
-   *
-   * NOTE: id and name are encoded like #ID.name
-   */
-  void add_id_name(const short idcode, const StringRefNull name)
-  {
-    char idcode_prefix[2];
-    /* Similar to `BKE_libblock_alloc`. */
-    *((short *)idcode_prefix) = idcode;
-    std::string name_with_idcode = std::string(idcode_prefix, sizeof(idcode_prefix)) + name;
-
-    attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_NAME, new StringValue(name_with_idcode)));
-  }
-
-  void add_catalog_id(const CatalogID &catalog_id)
-  {
-    attributes.append_as(
-        std::pair(ATTRIBUTE_ENTRIES_CATALOG_ID, new StringValue(catalog_id.str())));
-  }
-
-  void add_catalog_name(const StringRefNull catalog_name)
-  {
-    attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_CATALOG_NAME, new StringValue(catalog_name)));
-  }
-
-  void add_description(const StringRefNull description)
-  {
-    attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_DESCRIPTION, new StringValue(description)));
-  }
-
-  void add_author(const StringRefNull author)
-  {
-    attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_AUTHOR, new StringValue(author)));
-  }
-
-  void add_copyright(const StringRefNull copyright)
-  {
-    attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_COPYRIGHT, new StringValue(copyright)));
-  }
-
-  void add_license(const StringRefNull license)
-  {
-    attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_LICENSE, new StringValue(license)));
-  }
-
-  void add_tags(const ListBase /* AssetTag */ *asset_tags)
-  {
-    ArrayValue *tags = new ArrayValue();
-    attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_TAGS, tags));
-    ArrayValue::Items &tag_items = tags->elements();
-
-    LISTBASE_FOREACH (AssetTag *, tag, asset_tags) {
-      tag_items.append_as(new StringValue(tag->name));
-    }
-  }
-
-  void add_properties(const IDProperty *properties)
-  {
-    std::unique_ptr<Value> value = convert_to_serialize_values(properties);
-    if (value == nullptr) {
-      return;
-    }
-    attributes.append_as(std::pair(ATTRIBUTE_ENTRIES_PROPERTIES, value.release()));
-  }
-};
-
-static void init_value_from_file_indexer_entry(AssetEntryWriter &result,
+static void init_value_from_file_indexer_entry(DictionaryValue::Items &result,
                                                const FileIndexerEntry *indexer_entry)
 {
   const BLODataBlockInfo &datablock_info = indexer_entry->datablock_info;
 
-  result.add_id_name(indexer_entry->idcode, datablock_info.name);
+  add_id_name(result, indexer_entry->idcode, datablock_info.name);
 
   const AssetMetaData &asset_data = *datablock_info.asset_data;
-  result.add_catalog_id(asset_data.catalog_id);
-  result.add_catalog_name(asset_data.catalog_simple_name);
+  result.append_as(std::pair(ATTRIBUTE_ENTRIES_CATALOG_ID,
+                             new StringValue(CatalogID(asset_data.catalog_id).str())));
+  result.append_as(
+      std::pair(ATTRIBUTE_ENTRIES_CATALOG_NAME, new StringValue(asset_data.catalog_simple_name)));
 
-  if (asset_data.description != nullptr) {
-    result.add_description(asset_data.description);
+  if (const char *description = asset_data.description) {
+    result.append_as(std::pair(ATTRIBUTE_ENTRIES_DESCRIPTION, new StringValue(description)));
   }
-  if (asset_data.author != nullptr) {
-    result.add_author(asset_data.author);
+  if (const char *author = asset_data.author) {
+    result.append_as(std::pair(ATTRIBUTE_ENTRIES_AUTHOR, new StringValue(author)));
   }
-  if (asset_data.copyright != nullptr) {
-    result.add_copyright(asset_data.copyright);
+  if (const char *copyright = asset_data.copyright) {
+    result.append_as(std::pair(ATTRIBUTE_ENTRIES_COPYRIGHT, new StringValue(copyright)));
   }
-  if (asset_data.license != nullptr) {
-    result.add_license(asset_data.license);
+  if (const char *license = asset_data.license) {
+    result.append_as(std::pair(ATTRIBUTE_ENTRIES_LICENSE, new StringValue(license)));
   }
 
   if (!BLI_listbase_is_empty(&asset_data.tags)) {
-    result.add_tags(&asset_data.tags);
+    add_tags(result, &asset_data.tags);
   }
 
-  if (asset_data.properties != nullptr) {
-    result.add_properties(asset_data.properties);
+  if (const IDProperty *properties = asset_data.properties) {
+    if (std::unique_ptr<Value> value = convert_to_serialize_values(properties)) {
+      result.append_as(std::pair(ATTRIBUTE_ENTRIES_PROPERTIES, value.release()));
+    }
   }
-
-  /* TODO: asset_data.IDProperties */
 }
 
 static void init_value_from_file_indexer_entries(DictionaryValue &result,
@@ -370,10 +213,9 @@ static void init_value_from_file_indexer_entries(DictionaryValue &result,
     if (indexer_entry->datablock_info.asset_data == nullptr) {
       continue;
     }
-    DictionaryValue *entry_value = new DictionaryValue();
-    AssetEntryWriter entry(*entry_value);
-    init_value_from_file_indexer_entry(entry, indexer_entry);
-    items.append_as(entry_value);
+    DictionaryValue *entry = new DictionaryValue();
+    init_value_from_file_indexer_entry(entry->elements(), indexer_entry);
+    items.append_as(entry);
   }
 
   /* When no entries to index, we should not store the entries attribute as this would make the
@@ -388,41 +230,53 @@ static void init_value_from_file_indexer_entries(DictionaryValue &result,
 }
 
 static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
-                                          const AssetEntryReader &entry)
+                                          const DictionaryValue::Lookup &entry)
 {
-  indexer_entry.idcode = entry.get_idcode();
+  const StringRef idcode_name = entry.lookup(ATTRIBUTE_ENTRIES_NAME)->as_string_value()->value();
 
-  const std::string name = entry.get_name();
-  STRNCPY(indexer_entry.datablock_info.name, name.c_str());
+  indexer_entry.idcode = GS(idcode_name.data());
+
+  idcode_name.substr(2).copy(indexer_entry.datablock_info.name);
 
   AssetMetaData *asset_data = BKE_asset_metadata_create();
   indexer_entry.datablock_info.asset_data = asset_data;
   indexer_entry.datablock_info.free_asset_data = true;
 
-  if (entry.has_description()) {
-    const StringRef description = entry.get_description();
+  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_DESCRIPTION)) {
+    const StringRef description = value->get()->as_string_value()->value();
     asset_data->description = BLI_strdupn(description.data(), description.size());
   }
-  if (entry.has_author()) {
-    const StringRef author = entry.get_author();
+  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_AUTHOR)) {
+    const StringRef author = value->get()->as_string_value()->value();
     asset_data->author = BLI_strdupn(author.data(), author.size());
   }
-  if (entry.has_copyright()) {
-    const StringRef copyright = entry.get_copyright();
+  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_COPYRIGHT)) {
+    const StringRef copyright = value->get()->as_string_value()->value();
     asset_data->copyright = BLI_strdupn(copyright.data(), copyright.size());
   }
-  if (entry.has_license()) {
-    const StringRef license = entry.get_license();
+  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_LICENSE)) {
+    const StringRef license = value->get()->as_string_value()->value();
     asset_data->license = BLI_strdupn(license.data(), license.size());
   }
 
-  const StringRefNull catalog_name = entry.get_catalog_name();
+  const StringRefNull catalog_name =
+      entry.lookup(ATTRIBUTE_ENTRIES_CATALOG_NAME)->as_string_value()->value();
   STRNCPY_UTF8(asset_data->catalog_simple_name, catalog_name.c_str());
 
-  asset_data->catalog_id = entry.get_catalog_id();
+  const StringRefNull catalog_id =
+      entry.lookup(ATTRIBUTE_ENTRIES_CATALOG_ID)->as_string_value()->value();
+  asset_data->catalog_id = CatalogID(catalog_id);
 
-  entry.add_tags_to_meta_data(asset_data);
-  entry.add_properties_to_meta_data(asset_data);
+  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_TAGS)) {
+    const ArrayValue *array_value = value->get()->as_array_value();
+    for (const ArrayValue::Item &item : array_value->elements()) {
+      BKE_asset_metadata_tag_add(asset_data, item->as_string_value()->value().c_str());
+    }
+  }
+
+  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_PROPERTIES)) {
+    asset_data->properties = convert_from_serialize_value(*value->get());
+  }
 }
 
 static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
@@ -439,11 +293,9 @@ static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
   int num_entries_read = 0;
   const ArrayValue::Items elements = (*entries_value)->as_array_value()->elements();
   for (ArrayValue::Item element : elements) {
-    const AssetEntryReader asset_entry(*element->as_dictionary_value());
-
     FileIndexerEntry *entry = static_cast<FileIndexerEntry *>(
         MEM_callocN(sizeof(FileIndexerEntry), __func__));
-    init_indexer_entry_from_value(*entry, asset_entry);
+    init_indexer_entry_from_value(*entry, element->as_dictionary_value()->create_lookup());
 
     BLI_linklist_prepend(&indexer_entries.entries, entry);
     num_entries_read += 1;
