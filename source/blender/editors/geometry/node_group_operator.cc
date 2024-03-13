@@ -319,19 +319,38 @@ static Vector<Object *> gather_supported_objects(const bContext &C,
 {
   Vector<Object *> objects;
   Set<const ID *> unique_object_data;
-  CTX_DATA_BEGIN (&C, Object *, object, selected_objects) {
+
+  auto handle_object = [&](Object *object) {
     if (object->mode != mode) {
-      continue;
+      return;
     }
     if (!unique_object_data.add(static_cast<const ID *>(object->data))) {
-      continue;
+      return;
     }
     if (!object_has_editable_data(bmain, *object)) {
-      continue;
+      return;
     }
     objects.append(object);
+  };
+
+  if (mode == OB_MODE_OBJECT) {
+    CTX_DATA_BEGIN (&C, Object *, object, selected_objects) {
+      handle_object(object);
+    }
+    CTX_DATA_END;
   }
-  CTX_DATA_END;
+  else {
+    Scene *scene = CTX_data_scene(&C);
+    ViewLayer *view_layer = CTX_data_view_layer(&C);
+    View3D *v3d = CTX_wm_view3d(&C);
+    Object *active_object = CTX_data_active_object(&C);
+    if (v3d && active_object) {
+      FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, active_object->type, mode, ob) {
+        handle_object(ob);
+      }
+      FOREACH_OBJECT_IN_MODE_END;
+    }
+  }
   return objects;
 }
 
