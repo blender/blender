@@ -180,7 +180,7 @@ class CLIP_HT_header(Header):
                 row = layout.row(align=True)
                 icon = 'LOCKED' if sc.lock_selection else 'UNLOCKED'
                 row.operator("clip.lock_selection_toggle", icon=icon, text="", depress=sc.lock_selection)
-                row.popover(panel='CLIP_PT_display')
+                row.popover(panel="CLIP_PT_display")
 
             elif sc.view == 'GRAPH':
                 row = layout.row(align=True)
@@ -243,11 +243,11 @@ class CLIP_HT_header(Header):
 
             row = layout.row()
             row.template_ID(sc, "mask", new="mask.new")
-            row.popover(panel='CLIP_PT_mask_display')
+            row.popover(panel="CLIP_PT_mask_display")
             row = layout.row(align=True)
             icon = 'LOCKED' if sc.lock_selection else 'UNLOCKED'
             row.operator("clip.lock_selection_toggle", icon=icon, text="", depress=sc.lock_selection)
-            row.popover(panel='CLIP_PT_display')
+            row.popover(panel="CLIP_PT_display")
 
     def draw(self, context):
         layout = self.layout
@@ -1054,8 +1054,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
             sub.operator("clip.stabilize_2d_add", icon='ADD', text="")
             sub.operator("clip.stabilize_2d_remove", icon='REMOVE', text="")
 
-            sub.menu('CLIP_MT_stabilize_2d_context_menu', text="",
-                     icon='DOWNARROW_HLT')
+            sub.menu("CLIP_MT_stabilize_2d_context_menu", text="", icon='DOWNARROW_HLT')
 
             # Usually we don't hide things from interface, but here every pixel of
             # vertical space is precious.
@@ -1071,8 +1070,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
                 sub.operator("clip.stabilize_2d_rotation_add", icon='ADD', text="")
                 sub.operator("clip.stabilize_2d_rotation_remove", icon='REMOVE', text="")
 
-                sub.menu('CLIP_MT_stabilize_2d_rotation_context_menu', text="",
-                         icon='DOWNARROW_HLT')
+                sub.menu("CLIP_MT_stabilize_2d_rotation_context_menu", text="", icon='DOWNARROW_HLT')
 
         col = layout.column()
         col.prop(stab, "use_autoscale")

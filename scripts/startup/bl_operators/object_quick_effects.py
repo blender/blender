@@ -301,7 +301,7 @@ class QuickExplode(ObjectModeOperator, Operator):
             settings.normal_factor = self.velocity
             settings.render_type = 'NONE'
 
-            explode = obj.modifiers.new(name='Explode', type='EXPLODE')
+            explode = obj.modifiers.new(name="Explode", type='EXPLODE')
             explode.use_edge_cut = True
 
             if self.fade:
