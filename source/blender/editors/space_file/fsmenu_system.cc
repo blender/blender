@@ -370,7 +370,7 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
                                 FS_CATEGORY_SYSTEM_BOOKMARKS,
                                 FOLDERID_SkyDrive,
                                 N_("OneDrive"),
-                                ICON_URL,
+                                ICON_INTERNET,
                                 FS_INSERT_LAST);
 
       /* These items are just put in path cache for thumbnail views and if bookmarked. */

@@ -687,7 +687,7 @@ static void file_draw_preview(const FileList *files,
     float icon_x, icon_y;
     icon_x = xco + (2.0f * UI_SCALE_FAC);
     icon_y = yco + (2.0f * UI_SCALE_FAC);
-    const int arrow = is_link ? ICON_LOOP_FORWARDS : ICON_URL;
+    const int arrow = is_link ? ICON_LOOP_FORWARDS : ICON_INTERNET;
     if (!is_icon) {
       /* At very bottom-left if preview style. */
       const uchar dark[4] = {0, 0, 0, 255};
