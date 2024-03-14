@@ -805,8 +805,6 @@ static Mesh *imesh_to_mesh(meshintersect::IMesh *im, MeshesToIMeshInfo &mim)
   return result;
 }
 
-#endif  // WITH_GMP
-
 static meshintersect::BoolOpType operation_to_mesh_arr_mode(const Operation operation)
 {
   switch (operation) {
@@ -830,7 +828,6 @@ static Mesh *mesh_boolean_mesh_arr(Span<const Mesh *> meshes,
                                    const meshintersect::BoolOpType boolean_mode,
                                    Vector<int> *r_intersecting_edges)
 {
-#ifdef WITH_GMP
   BLI_assert(transforms.is_empty() || meshes.size() == transforms.size());
   BLI_assert(material_remaps.is_empty() || material_remaps.size() == meshes.size());
   if (meshes.size() <= 0) {
@@ -879,18 +876,9 @@ static Mesh *mesh_boolean_mesh_arr(Span<const Mesh *> meshes,
   }
 
   return result;
-#else   // WITH_GMP
-  UNUSED_VARS(meshes,
-              transforms,
-              material_remaps,
-              target_transform,
-              use_self,
-              hole_tolerant,
-              boolean_mode,
-              r_intersecting_edges);
-  return BKE_mesh_new_nomain(0, 0, 0, 0);
-#endif  // WITH_GMP
 }
+
+#endif  // WITH_GMP
 
 /** \} */
 
@@ -1184,6 +1172,7 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
                                 operation_to_float_mode(op_params.boolean_mode),
                                 r_intersecting_edges);
     case Solver::MeshArr:
+#ifdef WITH_GMP
       return mesh_boolean_mesh_arr(meshes,
                                    transforms,
                                    target_transform,
@@ -1192,6 +1181,9 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
                                    !op_params.watertight,
                                    operation_to_mesh_arr_mode(op_params.boolean_mode),
                                    r_intersecting_edges);
+#else
+      return nullptr;
+#endif
     default:
       BLI_assert_unreachable();
   }
