@@ -63,7 +63,7 @@
     .collection = NULL, \
     .double_threshold = 1e-6f, \
     .operation = eBooleanModifierOp_Difference, \
-    .solver = eBooleanModifierSolver_Exact, \
+    .solver = eBooleanModifierSolver_Mesh_Arr, \
     .flag = eBooleanModifierFlag_Object, \
     .bm_flag = 0, \
   }

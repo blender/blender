@@ -30,12 +30,15 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>("Self Intersection");
   b.add_input<decl::Bool>("Hole Tolerant");
   b.add_output<decl::Geometry>("Mesh").propagate_all();
-  b.add_output<decl::Bool>("Intersecting Edges").field_on_all();
+  b.add_output<decl::Bool>("Intersecting Edges").field_on_all().make_available([](bNode &node) {
+    node.custom2 = int16_t(geometry::boolean::Solver::MeshArr);
+  });
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemR(layout, ptr, "solver", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 struct AttributeOutputs {
@@ -45,9 +48,12 @@ struct AttributeOutputs {
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   GeometryNodeBooleanOperation operation = (GeometryNodeBooleanOperation)node->custom1;
+  geometry::boolean::Solver solver = geometry::boolean::Solver(node->custom2);
 
   bNodeSocket *geometry_1_socket = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *geometry_2_socket = geometry_1_socket->next;
+
+  bNodeSocket *intersecting_edges_socket = static_cast<bNodeSocket *>(node->outputs.last);
 
   switch (operation) {
     case GEO_NODE_BOOLEAN_INTERSECT:
@@ -60,11 +66,15 @@ static void node_update(bNodeTree *ntree, bNode *node)
       node_sock_label(geometry_2_socket, "Mesh 2");
       break;
   }
+
+  bke::nodeSetSocketAvailability(
+      ntree, intersecting_edges_socket, solver == geometry::boolean::Solver::MeshArr);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   node->custom1 = GEO_NODE_BOOLEAN_DIFFERENCE;
+  node->custom2 = int16_t(geometry::boolean::Solver::Float);
 }
 
 #ifdef WITH_GMP
@@ -83,6 +93,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_GMP
   GeometryNodeBooleanOperation operation = (GeometryNodeBooleanOperation)params.node().custom1;
+  geometry::boolean::Solver solver = geometry::boolean::Solver(params.node().custom2);
   const bool use_self = params.get_input<bool>("Self Intersection");
   const bool hole_tolerant = params.get_input<bool>("Hole Tolerant");
 
@@ -153,18 +164,24 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   AttributeOutputs attribute_outputs;
-  attribute_outputs.intersecting_edges_id = params.get_output_anonymous_attribute_id_if_needed(
-      "Intersecting Edges");
+  if (solver == geometry::boolean::Solver::MeshArr) {
+    attribute_outputs.intersecting_edges_id = params.get_output_anonymous_attribute_id_if_needed(
+        "Intersecting Edges");
+  }
 
   Vector<int> intersecting_edges;
-  Mesh *result = blender::meshintersect::direct_mesh_boolean(
+  geometry::boolean::BooleanOpParameters op_params;
+  op_params.boolean_mode = operation;
+  op_params.no_self_intersections = !use_self;
+  op_params.watertight = !hole_tolerant;
+  op_params.no_nested_components = true; /* TODO: make this configurable. */
+  Mesh *result = geometry::boolean::mesh_boolean(
       meshes,
       transforms,
       float4x4::identity(),
       material_remaps,
-      use_self,
-      hole_tolerant,
-      operation,
+      op_params,
+      solver,
       attribute_outputs.intersecting_edges_id ? &intersecting_edges : nullptr);
   if (!result) {
     params.set_default_remaining_outputs();
@@ -216,6 +233,19 @@ static void node_rna(StructRNA *srna)
        "Combine meshes in a subtractive way"},
       {0, nullptr, 0, nullptr, nullptr},
   };
+  static const EnumPropertyItem rna_geometry_boolean_solver_items[] = {
+      {int(geometry::boolean::Solver::MeshArr),
+       "EXACT",
+       0,
+       "Exact",
+       "Exact solver for the best results"},
+      {int(geometry::boolean::Solver::Float),
+       "FLOAT",
+       0,
+       "Float",
+       "Simple solver for the best performance, without support for overlapping geometry"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
 
   RNA_def_node_enum(srna,
                     "operation",
@@ -224,6 +254,14 @@ static void node_rna(StructRNA *srna)
                     rna_node_geometry_boolean_method_items,
                     NOD_inline_enum_accessors(custom1),
                     GEO_NODE_BOOLEAN_INTERSECT);
+
+  RNA_def_node_enum(srna,
+                    "solver",
+                    "Solver",
+                    "",
+                    rna_geometry_boolean_solver_items,
+                    NOD_inline_enum_accessors(custom2),
+                    int(geometry::boolean::Solver::Float));
 }
 
 static void node_register()

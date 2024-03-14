@@ -6,6 +6,7 @@ set(INC
   .
   ../blenkernel
   ../blentranslation
+  ../bmesh
   ../functions
   ../makesrna
   ../../../intern/eigen
@@ -123,6 +124,10 @@ if(WITH_GMP)
 
   list(APPEND INC_SYS
     ${GMP_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${GMP_LIBRARIES}
   )
 endif()
 
