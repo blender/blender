@@ -807,13 +807,27 @@ static Mesh *imesh_to_mesh(meshintersect::IMesh *im, MeshesToIMeshInfo &mim)
 
 #endif  // WITH_GMP
 
+static meshintersect::BoolOpType operation_to_mesh_arr_mode(const Operation operation)
+{
+  switch (operation) {
+    case Operation::Intersect:
+      return meshintersect::BoolOpType::Intersect;
+    case Operation::Union:
+      return meshintersect::BoolOpType::Union;
+    case Operation::Difference:
+      return meshintersect::BoolOpType::Difference;
+  }
+  BLI_assert_unreachable();
+  return meshintersect::BoolOpType::None;
+}
+
 static Mesh *mesh_boolean_mesh_arr(Span<const Mesh *> meshes,
                                    Span<float4x4> transforms,
                                    const float4x4 &target_transform,
                                    Span<Array<short>> material_remaps,
                                    const bool use_self,
                                    const bool hole_tolerant,
-                                   const int boolean_mode,
+                                   const meshintersect::BoolOpType boolean_mode,
                                    Vector<int> *r_intersecting_edges)
 {
 #ifdef WITH_GMP
@@ -839,14 +853,8 @@ static Mesh *mesh_boolean_mesh_arr(Span<const Mesh *> meshes,
     }
     return int(mim.mesh_face_offset.size()) - 1;
   };
-  meshintersect::IMesh m_out = boolean_mesh(m_in,
-                                            static_cast<meshintersect::BoolOpType>(boolean_mode),
-                                            meshes.size(),
-                                            shape_fn,
-                                            use_self,
-                                            hole_tolerant,
-                                            nullptr,
-                                            &arena);
+  meshintersect::IMesh m_out = boolean_mesh(
+      m_in, boolean_mode, meshes.size(), shape_fn, use_self, hole_tolerant, nullptr, &arena);
   if (dbg_level > 0) {
     std::cout << m_out;
     write_obj_mesh(m_out, "m_out");
@@ -1052,11 +1060,25 @@ static BMesh *mesh_bm_concat(Span<const Mesh *> meshes,
   return bm;
 }
 
+static int operation_to_float_mode(const Operation operation)
+{
+  switch (operation) {
+    case Operation::Intersect:
+      return BMESH_ISECT_BOOLEAN_ISECT;
+    case Operation::Union:
+      return BMESH_ISECT_BOOLEAN_UNION;
+    case Operation::Difference:
+      return BMESH_ISECT_BOOLEAN_DIFFERENCE;
+  }
+  BLI_assert_unreachable();
+  return BMESH_ISECT_BOOLEAN_NONE;
+}
+
 static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
                                 Span<float4x4> transforms,
                                 const float4x4 &target_transform,
                                 Span<Array<short>> material_remaps,
-                                int boolean_mode,
+                                const int boolean_mode,
                                 Vector<int> * /*r_intersecting_edges*/)
 {
   BLI_assert(meshes.size() == transforms.size() || transforms.size() == 0);
@@ -1159,7 +1181,7 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
                                 transforms,
                                 target_transform,
                                 material_remaps,
-                                op_params.boolean_mode,
+                                operation_to_float_mode(op_params.boolean_mode),
                                 r_intersecting_edges);
     case Solver::MeshArr:
       return mesh_boolean_mesh_arr(meshes,
@@ -1168,7 +1190,7 @@ Mesh *mesh_boolean(Span<const Mesh *> meshes,
                                    material_remaps,
                                    !op_params.no_self_intersections,
                                    !op_params.watertight,
-                                   op_params.boolean_mode,
+                                   operation_to_mesh_arr_mode(op_params.boolean_mode),
                                    r_intersecting_edges);
     default:
       BLI_assert_unreachable();

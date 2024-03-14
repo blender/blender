@@ -47,8 +47,8 @@ struct AttributeOutputs {
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  GeometryNodeBooleanOperation operation = (GeometryNodeBooleanOperation)node->custom1;
-  geometry::boolean::Solver solver = geometry::boolean::Solver(node->custom2);
+  const geometry::boolean::Operation operation = geometry::boolean::Operation(node->custom1);
+  const geometry::boolean::Solver solver = geometry::boolean::Solver(node->custom2);
 
   bNodeSocket *geometry_1_socket = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *geometry_2_socket = geometry_1_socket->next;
@@ -56,12 +56,12 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *intersecting_edges_socket = static_cast<bNodeSocket *>(node->outputs.last);
 
   switch (operation) {
-    case GEO_NODE_BOOLEAN_INTERSECT:
-    case GEO_NODE_BOOLEAN_UNION:
+    case geometry::boolean::Operation::Intersect:
+    case geometry::boolean::Operation::Union:
       bke::nodeSetSocketAvailability(ntree, geometry_1_socket, false);
       node_sock_label(geometry_2_socket, "Mesh");
       break;
-    case GEO_NODE_BOOLEAN_DIFFERENCE:
+    case geometry::boolean::Operation::Difference:
       bke::nodeSetSocketAvailability(ntree, geometry_1_socket, true);
       node_sock_label(geometry_2_socket, "Mesh 2");
       break;
@@ -73,7 +73,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  node->custom1 = GEO_NODE_BOOLEAN_DIFFERENCE;
+  node->custom1 = int16_t(geometry::boolean::Operation::Difference);
   node->custom2 = int16_t(geometry::boolean::Solver::Float);
 }
 
@@ -92,7 +92,7 @@ static Array<short> calc_mesh_material_map(const Mesh &mesh, VectorSet<Material 
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_GMP
-  GeometryNodeBooleanOperation operation = (GeometryNodeBooleanOperation)params.node().custom1;
+  geometry::boolean::Operation operation = geometry::boolean::Operation(params.node().custom1);
   geometry::boolean::Solver solver = geometry::boolean::Solver(params.node().custom2);
   const bool use_self = params.get_input<bool>("Self Intersection");
   const bool hole_tolerant = params.get_input<bool>("Hole Tolerant");
@@ -103,7 +103,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   Vector<Array<short>> material_remaps;
 
   GeometrySet set_a;
-  if (operation == GEO_NODE_BOOLEAN_DIFFERENCE) {
+  if (operation == geometry::boolean::Operation::Difference) {
     set_a = params.extract_input<GeometrySet>("Mesh 1");
     /* Note that it technically wouldn't be necessary to realize the instances for the first
      * geometry input, but the boolean code expects the first shape for the difference operation
@@ -220,13 +220,17 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_rna(StructRNA *srna)
 {
   static const EnumPropertyItem rna_node_geometry_boolean_method_items[] = {
-      {GEO_NODE_BOOLEAN_INTERSECT,
+      {int(geometry::boolean::Operation::Intersect),
        "INTERSECT",
        0,
        "Intersect",
        "Keep the part of the mesh that is common between all operands"},
-      {GEO_NODE_BOOLEAN_UNION, "UNION", 0, "Union", "Combine meshes in an additive way"},
-      {GEO_NODE_BOOLEAN_DIFFERENCE,
+      {int(geometry::boolean::Operation::Union),
+       "UNION",
+       0,
+       "Union",
+       "Combine meshes in an additive way"},
+      {int(geometry::boolean::Operation::Difference),
        "DIFFERENCE",
        0,
        "Difference",
@@ -253,7 +257,7 @@ static void node_rna(StructRNA *srna)
                     "",
                     rna_node_geometry_boolean_method_items,
                     NOD_inline_enum_accessors(custom1),
-                    GEO_NODE_BOOLEAN_INTERSECT);
+                    int(geometry::boolean::Operation::Intersect));
 
   RNA_def_node_enum(srna,
                     "solver",

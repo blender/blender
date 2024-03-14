@@ -478,10 +478,8 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 
   const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
   const bool hole_tolerant = (bmd->flag & eBooleanModifierFlag_HoleTolerant) != 0;
-  const GeometryNodeBooleanOperation op = static_cast<GeometryNodeBooleanOperation>(
-      bmd->operation);
   blender::geometry::boolean::BooleanOpParameters op_params;
-  op_params.boolean_mode = op;
+  op_params.boolean_mode = blender::geometry::boolean::Operation(bmd->operation);
   op_params.no_self_intersections = !use_self;
   op_params.watertight = !hole_tolerant;
   op_params.no_nested_components = false;

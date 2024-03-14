@@ -8,8 +8,6 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 
-#include "DNA_node_types.h"
-
 struct Mesh;
 
 namespace blender::geometry::boolean {
@@ -25,6 +23,12 @@ enum class Solver {
   Float = 1,
 };
 
+enum class Operation {
+  Intersect = 0,
+  Union = 1,
+  Difference = 2,
+};
+
 /**
  * BooleanOpParameters bundles together the global parameters for the boolean operation.
  * As well as saying which particular operation (intersect, difference, union) is desired,
@@ -32,7 +36,7 @@ enum class Solver {
  * (e.g., whether or not there are any self intersections).
  */
 struct BooleanOpParameters {
-  GeometryNodeBooleanOperation boolean_mode;
+  Operation boolean_mode;
   /** Can we assume there are no self-intersections in any of the operands? */
   bool no_self_intersections = true;
   /** Can we assume there are no nested components (e.g., a box inside a box) in any of the

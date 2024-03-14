@@ -2655,12 +2655,6 @@ typedef enum GeometryNodeProximityTargetType {
   GEO_NODE_PROX_TARGET_FACES = 2,
 } GeometryNodeProximityTargetType;
 
-typedef enum GeometryNodeBooleanOperation {
-  GEO_NODE_BOOLEAN_INTERSECT = 0,
-  GEO_NODE_BOOLEAN_UNION = 1,
-  GEO_NODE_BOOLEAN_DIFFERENCE = 2,
-} GeometryNodeBooleanOperation;
-
 typedef enum GeometryNodeCurvePrimitiveCircleMode {
   GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS = 0,
   GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS = 1
