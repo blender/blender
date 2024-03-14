@@ -61,6 +61,8 @@ void cryptomatte_store_samples(ivec2 texel, int layer, vec2 samples[CRYPTOMATTE_
     pass_sample.zw = samples[p * 2 + 1];
     imageStore(cryptomatte_img, ivec3(texel, p + layer_id), pass_sample);
   }
+  /* Ensure stores are visible to later reads. */
+  imageFence(cryptomatte_img);
 }
 
 void main()

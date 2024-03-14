@@ -142,17 +142,10 @@ void film_sample_accum_combined(FilmSample samp, inout vec4 accum, inout float w
   weight_accum += weight;
 }
 
-#ifdef GPU_METAL
-void film_sample_cryptomatte_accum(FilmSample samp,
-                                   int layer,
-                                   sampler2D tex,
-                                   thread vec2 *crypto_samples)
-#else
 void film_sample_cryptomatte_accum(FilmSample samp,
                                    int layer,
                                    sampler2D tex,
                                    inout vec2 crypto_samples[4])
-#endif
 {
   float hash = texelFetch(tex, samp.texel, 0)[layer];
   /* Find existing entry. */
@@ -247,11 +240,7 @@ vec2 film_pixel_history_motion_vector(ivec2 texel_sample)
 /* \a t is inter-pixel position. 0 means perfectly on a pixel center.
  * Returns weights in both dimensions.
  * Multiply each dimension weights to get final pixel weights. */
-#ifdef GPU_METAL
-void film_get_catmull_rom_weights(vec2 t, thread vec2 *weights)
-#else
 void film_get_catmull_rom_weights(vec2 t, out vec2 weights[4])
-#endif
 {
   vec2 t2 = t * t;
   vec2 t3 = t2 * t;

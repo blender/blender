@@ -366,6 +366,9 @@ struct SStruct {
 #define imageStore(_tex, _coord, _value) _texture_write_internal(_tex, _coord, _value)
 #define imageStoreFast(_tex, _coord, _value) _texture_write_internal_fast(_tex, _coord, _value)
 
+/* Texture synchronization functions. */
+#define imageFence(image) image.texture->fence()
+
 /* Singular return values from texture functions of type DEPTH are often indexed with either .r or
  * .x. This is a lightweight wrapper type for handling this syntax. */
 union _msl_return_float {
