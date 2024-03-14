@@ -64,6 +64,60 @@ static void rna_grease_pencil_dependency_update(Main *bmain, Scene * /*scene*/, 
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, rna_grease_pencil(ptr));
 }
 
+static void rna_grease_pencil_layer_mask_name_get(PointerRNA *ptr, char *dst)
+{
+  using namespace blender;
+  GreasePencilLayerMask *mask = static_cast<GreasePencilLayerMask *>(ptr->data);
+  if (mask->layer_name != nullptr) {
+    strcpy(dst, mask->layer_name);
+  }
+  else {
+    dst[0] = '\0';
+  }
+}
+
+static int rna_grease_pencil_layer_mask_name_length(PointerRNA *ptr)
+{
+  using namespace blender;
+  GreasePencilLayerMask *mask = static_cast<GreasePencilLayerMask *>(ptr->data);
+  if (mask->layer_name != nullptr) {
+    return strlen(mask->layer_name);
+  }
+  return 0;
+}
+
+static void rna_grease_pencil_layer_mask_name_set(PointerRNA *ptr, const char *value)
+{
+  using namespace blender;
+  GreasePencil *grease_pencil = rna_grease_pencil(ptr);
+  GreasePencilLayerMask *mask = static_cast<GreasePencilLayerMask *>(ptr->data);
+
+  const std::string oldname(mask->layer_name);
+  if (bke::greasepencil::TreeNode *node = grease_pencil->find_node_by_name(oldname)) {
+    grease_pencil->rename_node(*node, value);
+  }
+}
+
+static int rna_grease_pencil_active_mask_index_get(PointerRNA *ptr)
+{
+  GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ptr->data);
+  return layer->active_mask_index;
+}
+
+static void rna_grease_pencil_active_mask_index_set(PointerRNA *ptr, int value)
+{
+  GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ptr->data);
+  layer->active_mask_index = value;
+}
+
+static void rna_grease_pencil_active_mask_index_range(
+    PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
+{
+  GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ptr->data);
+  *min = 0;
+  *max = max_ii(0, BLI_listbase_count(&layer->masks) - 1);
+}
+
 static void rna_iterator_grease_pencil_layers_begin(CollectionPropertyIterator *iter,
                                                     PointerRNA *ptr)
 {
@@ -229,6 +283,60 @@ static int rna_iterator_grease_pencil_layer_groups_length(PointerRNA *ptr)
 
 #else
 
+static void rna_def_grease_pencil_layers_mask_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  RNA_def_property_srna(cprop, "GreasePencilLayerMasks");
+  srna = RNA_def_struct(brna, "GreasePencilLayerMasks", nullptr);
+  RNA_def_struct_sdna(srna, "GreasePencilLayer");
+  RNA_def_struct_ui_text(
+      srna, "Grease Pencil Mask Layers", "Collection of grease pencil masking layers");
+
+  prop = RNA_def_property(srna, "active_mask_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_int_funcs(prop,
+                             "rna_grease_pencil_active_mask_index_get",
+                             "rna_grease_pencil_active_mask_index_set",
+                             "rna_grease_pencil_active_mask_index_range");
+  RNA_def_property_ui_text(prop, "Active Layer Mask Index", "Active index in layer mask array");
+}
+
+static void rna_def_grease_pencil_layer_mask(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "GreasePencilLayerMask", nullptr);
+  RNA_def_struct_sdna(srna, "GreasePencilLayerMask");
+  RNA_def_struct_ui_text(srna, "Grease Pencil Masking Layers", "List of Mask Layers");
+  // RNA_def_struct_path_func(srna, "rna_GreasePencilLayerMask_path");
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Layer", "Mask layer name");
+  RNA_def_property_string_sdna(prop, nullptr, "layer_name");
+  RNA_def_property_string_funcs(prop,
+                                "rna_grease_pencil_layer_mask_name_get",
+                                "rna_grease_pencil_layer_mask_name_length",
+                                "rna_grease_pencil_layer_mask_name_set");
+  RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_RENAME, nullptr);
+
+  prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_LAYER_MASK_HIDE);
+  RNA_def_property_ui_icon(prop, ICON_HIDE_OFF, -1);
+  RNA_def_property_ui_text(prop, "Hide", "Set mask Visibility");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_LAYER_MASK_INVERT);
+  RNA_def_property_ui_icon(prop, ICON_SELECT_INTERSECT, 1);
+  RNA_def_property_ui_text(prop, "Invert", "Invert mask");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+}
+
 static void rna_def_grease_pencil_layer(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -260,6 +368,13 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_RENAME, "rna_grease_pencil_update");
 
+  /* Mask Layers */
+  prop = RNA_def_property(srna, "mask_layers", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "masks", nullptr);
+  RNA_def_property_struct_type(prop, "GreasePencilLayerMask");
+  RNA_def_property_ui_text(prop, "Masks", "List of Masking Layers");
+  rna_def_grease_pencil_layers_mask_api(brna, prop);
+
   /* Visibility */
   prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
@@ -289,6 +404,16 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
       prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_USE_ONION_SKINNING);
   RNA_def_property_ui_text(
       prop, "Onion Skinning", "Display onion skins before and after the current frame");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  /* Use Masks. */
+  prop = RNA_def_property(srna, "use_masks", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_USE_MASKS);
+  RNA_def_property_ui_text(
+      prop,
+      "Use Masks",
+      "The visibility of drawings on this layer is affected by the layers in its masks list");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 
   /* pass index for compositing and modifiers */
@@ -407,6 +532,16 @@ static void rna_def_grease_pencil_layer_group(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Locked", "Protect group from further editing and/or frame changes");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  /* Use Masks. */
+  prop = RNA_def_property(srna, "use_masks", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_USE_MASKS);
+  RNA_def_property_ui_text(prop,
+                           "Use Masks",
+                           "The visibility of drawings in the layers in this group is affected by "
+                           "the layers in the masks lists");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 }
 
 static void rna_def_grease_pencil_data(BlenderRNA *brna)
@@ -483,6 +618,7 @@ void RNA_def_grease_pencil(BlenderRNA *brna)
 {
   rna_def_grease_pencil_data(brna);
   rna_def_grease_pencil_layer(brna);
+  rna_def_grease_pencil_layer_mask(brna);
   rna_def_grease_pencil_layer_group(brna);
 }
 

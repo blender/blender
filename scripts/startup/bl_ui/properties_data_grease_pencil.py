@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 import bpy
-from bpy.types import Panel, Menu
+from bpy.types import Panel, Menu, UIList
 from rna_prop_ui import PropertyPanel
 
 
@@ -25,6 +25,39 @@ class LayerDataButtonsPanel:
     def poll(cls, context):
         grease_pencil = context.grease_pencil
         return grease_pencil and grease_pencil.layers.active
+
+
+class GREASE_PENCIL_UL_masks(UIList):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+        mask = item
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            row = layout.row(align=True)
+            row.prop(mask, "name", text="", emboss=False, icon_value=icon)
+            row.prop(mask, "invert", text="", emboss=False)
+            row.prop(mask, "hide", text="", emboss=False)
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.prop(mask, "name", text="", emboss=False, icon_value=icon)
+
+
+class GREASE_PENCIL_MT_layer_mask_add(Menu):
+    bl_label = "Add Mask"
+
+    def draw(self, context):
+        layout = self.layout
+
+        grease_pencil = context.grease_pencil
+        active_layer = grease_pencil.layers.active
+        found = False
+        for layer in grease_pencil.layers:
+            if layer == active_layer or layer.name in active_layer.mask_layers:
+                continue
+
+            found = True
+            layout.operator("grease_pencil.layer_mask_add", text=layer.name).name = layer.name
+
+        if not found:
+            layout.label(text="No layers to add")
 
 
 class DATA_PT_context_grease_pencil(DataButtonsPanel, Panel):
@@ -106,6 +139,45 @@ class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
         row.prop(layer, "opacity", text="Opacity", slider=True)
 
 
+class DATA_PT_grease_pencil_layer_masks(LayerDataButtonsPanel, Panel):
+    bl_label = "Masks"
+    bl_parent_id = "DATA_PT_grease_pencil_layers"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        grease_pencil = context.grease_pencil
+        layer = grease_pencil.layers.active
+
+        self.layout.prop(layer, "use_masks", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        grease_pencil = context.grease_pencil
+        layer = grease_pencil.layers.active
+
+        layout = self.layout
+        layout.enabled = layer.use_masks
+
+        if not layer:
+            return
+
+        rows = 4
+        row = layout.row()
+        col = row.column()
+        col.template_list("GREASE_PENCIL_UL_masks", "", layer, "mask_layers", layer.mask_layers,
+                          "active_mask_index", rows=rows, sort_lock=True)
+
+        col = row.column(align=True)
+        col.menu("GREASE_PENCIL_MT_layer_mask_add", icon='ADD', text="")
+        col.operator("grease_pencil.layer_mask_remove", icon='REMOVE', text="")
+
+        col.separator()
+
+        sub = col.column(align=True)
+        sub.operator("grease_pencil.layer_mask_reorder", icon='TRIA_UP', text="").direction = 'UP'
+        sub.operator("grease_pencil.layer_mask_reorder", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+
 class DATA_PT_grease_pencil_layer_transform(LayerDataButtonsPanel, Panel):
     bl_label = "Transform"
     bl_parent_id = "DATA_PT_grease_pencil_layers"
@@ -164,8 +236,11 @@ class DATA_PT_grease_pencil_custom_props(DataButtonsPanel, PropertyPanel, Panel)
 
 
 classes = (
+    GREASE_PENCIL_UL_masks,
+    GREASE_PENCIL_MT_layer_mask_add,
     DATA_PT_context_grease_pencil,
     DATA_PT_grease_pencil_layers,
+    DATA_PT_grease_pencil_layer_masks,
     DATA_PT_grease_pencil_layer_transform,
     DATA_PT_grease_pencil_layer_relations,
     DATA_PT_grease_pencil_custom_props,
