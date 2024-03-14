@@ -2993,8 +2993,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 9)) {
-    const float default_snap_angle_increment = DEG2RADF(15.0f);
-    const float default_snap_angle_increment_precision = DEG2RADF(5.0f);
+    const float default_snap_angle_increment = DEG2RADF(5.0f);
+    const float default_snap_angle_increment_precision = DEG2RADF(1.0f);
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       scene->toolsettings->snap_angle_increment_2d = default_snap_angle_increment;
       scene->toolsettings->snap_angle_increment_3d = default_snap_angle_increment;
