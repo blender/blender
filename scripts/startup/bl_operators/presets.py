@@ -563,11 +563,38 @@ class AddPresetNodeColor(AddPresetBase, Operator):
 
 
 class AddPresetInterfaceTheme(AddPresetBase, Operator):
-    """Add or remove a theme preset"""
+    """Add a custom theme to the preset list"""
     bl_idname = "wm.interface_theme_preset_add"
-    bl_label = "Add Theme Preset"
+    bl_label = "Add Theme"
     preset_menu = "USERPREF_MT_interface_theme_presets"
     preset_subdir = "interface_theme"
+
+
+class RemovePresetInterfaceTheme(AddPresetBase, Operator):
+    """Remove a custom theme from the preset list"""
+    bl_idname = "wm.interface_theme_preset_remove"
+    bl_label = "Remove Theme"
+    preset_menu = "USERPREF_MT_interface_theme_presets"
+    preset_subdir = "interface_theme"
+
+    remove_active: BoolProperty(
+        default=True,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
+
+    @classmethod
+    def poll(cls, context):
+        from bpy.utils import is_path_builtin
+        preset_menu_class = getattr(bpy.types, cls.preset_menu)
+        name = preset_menu_class.bl_label
+        filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext = ".xml")
+        if not bool(filepath) or is_path_builtin(filepath):
+            cls.poll_message_set("Built-in themes cannot be removed")
+            return False
+        return True
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(self, event, title="Remove Custom Theme", confirm_text="Delete")
 
 
 class AddPresetKeyconfig(AddPresetBase, Operator):
@@ -811,6 +838,7 @@ classes = (
     AddPresetFluid,
     AddPresetHairDynamics,
     AddPresetInterfaceTheme,
+    RemovePresetInterfaceTheme,
     AddPresetKeyconfig,
     AddPresetNodeColor,
     AddPresetOperator,
