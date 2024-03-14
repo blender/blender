@@ -1311,15 +1311,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         else if (event->prev_val == KM_PRESS) {
           t->modifiers |= MOD_PRECISION;
-          /* If we are already in a snapping mode, we don't want to add mouse precision,
-           * it makes things like rotate snap really tedious. */
-          if (t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) {
-            t->mouse.precision = false;
-          }
-          else {
-            /* Shift is modifier for higher precision transform. */
-            t->mouse.precision = true;
-          }
+          t->mouse.precision = true;
 
           t->redraw |= TREDRAW_HARD;
         }
