@@ -208,6 +208,27 @@ vector<DeviceType> Device::available_types()
   return types;
 }
 
+static void device_oidn_init_once()
+{
+  static bool initialized = false;
+
+  if (initialized == false) {
+    /* Disable OIDN for HIP until it has been tested to be stable on more systems.
+     *
+     * In older drivers with an integrated GPU, this may crash with message:
+     * "hipErrorNoBinaryForGpu: Unable to find code object for all current devices".
+     *
+     * This also affects systems which have for example an NVIDIA GPU as OIDN
+     * initializes all device types together. */
+#ifdef _WIN32
+    _putenv_s("OIDN_DEVICE_HIP", "0");
+#else
+    setenv("OIDN_DEVICE_HIP", "0", true);
+#endif
+    initialized = true;
+  }
+}
+
 vector<DeviceInfo> Device::available_devices(uint mask)
 {
   /* Lazy initialize devices. On some platforms OpenCL or CUDA drivers can
@@ -215,6 +236,8 @@ vector<DeviceInfo> Device::available_devices(uint mask)
    * we don't want to do any initialization until the user chooses to. */
   thread_scoped_lock lock(device_mutex);
   vector<DeviceInfo> devices;
+
+  device_oidn_init_once();
 
 #if defined(WITH_CUDA) || defined(WITH_OPTIX)
   if (mask & (DEVICE_MASK_CUDA | DEVICE_MASK_OPTIX)) {
@@ -313,6 +336,8 @@ string Device::device_capabilities(uint mask)
 {
   thread_scoped_lock lock(device_mutex);
   string capabilities = "";
+
+  device_oidn_init_once();
 
   if (mask & DEVICE_MASK_CPU) {
     capabilities += "\nCPU device capabilities: ";
