@@ -549,6 +549,16 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static EnumPropertyItem prop_stroke_depth_order_items[] = {
+      {0, "2D", 0, "2D Layers", "Display strokes using grease pencil layers to define order"},
+      {GREASE_PENCIL_STROKE_ORDER_3D,
+       "3D",
+       0,
+       "3D Location",
+       "Display strokes using real 3D position in 3D space"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   srna = RNA_def_struct(brna, "GreasePencilv3", "ID");
   RNA_def_struct_sdna(srna, "GreasePencil");
   RNA_def_struct_ui_text(srna, "Grease Pencil", "Grease Pencil data-block");
@@ -612,6 +622,16 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
       "Auto-Lock Layers",
       "Automatically lock all layers except the active one to avoid accidental changes");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_autolock");
+
+  /* Uses a single flag, because the depth order can only be 2D or 3D. */
+  prop = RNA_def_property(srna, "stroke_depth_order", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag");
+  RNA_def_property_enum_items(prop, prop_stroke_depth_order_items);
+  RNA_def_property_ui_text(
+      prop,
+      "Stroke Depth Order",
+      "Defines how the strokes are ordered in 3D space (for objects not displayed 'In Front')");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 }
 
 void RNA_def_grease_pencil(BlenderRNA *brna)

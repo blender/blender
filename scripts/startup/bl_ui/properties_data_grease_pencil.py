@@ -230,6 +230,19 @@ class DATA_PT_grease_pencil_layer_relations(LayerDataButtonsPanel, Panel):
         col.prop_search(layer, "viewlayer_render", context.scene, "view_layers", text="View Layer")
 
 
+class DATA_PT_grease_pencil_settings(DataButtonsPanel, Panel):
+    bl_label = "Settings"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        grease_pencil = context.grease_pencil
+        col = layout.column(align=True)
+        col.prop(grease_pencil, "stroke_depth_order", text="Stroke Depth Order")
+
+
 class DATA_PT_grease_pencil_custom_props(DataButtonsPanel, PropertyPanel, Panel):
     _context_path = "object.data"
     _property_type = bpy.types.GreasePencilv3
@@ -243,6 +256,7 @@ classes = (
     DATA_PT_grease_pencil_layer_masks,
     DATA_PT_grease_pencil_layer_transform,
     DATA_PT_grease_pencil_layer_relations,
+    DATA_PT_grease_pencil_settings,
     DATA_PT_grease_pencil_custom_props,
     GREASE_PENCIL_MT_grease_pencil_add_layer_extra,
 )
