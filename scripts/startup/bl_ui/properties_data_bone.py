@@ -289,15 +289,12 @@ class BONE_PT_collections(BoneButtonsPanel, Panel):
             # Sub-layout that's dimmed when the bone collection's own visibility flag doesn't matter.
             sub_visible = row.row(align=True)
             sub_visible.active = (not is_solo_active) and bcoll.is_visible_ancestors
-            sub_visible.prop(bcoll, "is_visible", text="",
-                             icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
+            sub_visible.prop(bcoll, "is_visible", text="", icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
 
-            row.prop(bcoll, "is_solo", text="",
-                     icon='SOLO_ON' if bcoll.is_solo else 'SOLO_OFF')
+            row.prop(bcoll, "is_solo", text="", icon='SOLO_ON' if bcoll.is_solo else 'SOLO_OFF')
 
             # Unassignment operator, less safe so with a bit of spacing.
-            props = bcoll_row.operator("armature.collection_unassign_named",
-                                       text="", icon='X')
+            props = bcoll_row.operator("armature.collection_unassign_named", text="", icon='X')
             props.name = bcoll.name
             props.bone_name = bone.name
 
@@ -410,8 +407,7 @@ class BONE_PT_display_custom_shape(BoneButtonsPanel, Panel):
             sub.prop(pchan, "custom_shape_translation", text="Translation")
             sub.prop(pchan, "custom_shape_rotation_euler", text="Rotation")
 
-            sub.prop_search(pchan, "custom_shape_transform",
-                            ob.pose, "bones", text="Override Transform")
+            sub.prop_search(pchan, "custom_shape_transform", ob.pose, "bones", text="Override Transform")
             sub.prop(pchan, "use_custom_shape_bone_size")
 
             sub.separator()
@@ -559,8 +555,7 @@ class BONE_PT_custom_props(BoneButtonsPanel, rna_prop_ui.PropertyPanel, Panel):
     @classmethod
     def _poll(cls, context):
         context_path = cls._get_context_path(context)
-        rna_item, _context_member = rna_prop_ui.rna_idprop_context_value(
-            context, context_path, cls._property_type)
+        rna_item, _context_member = rna_prop_ui.rna_idprop_context_value(context, context_path, cls._property_type)
         return bool(rna_item)
 
     def draw(self, context):

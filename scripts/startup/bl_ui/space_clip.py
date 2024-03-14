@@ -17,8 +17,7 @@ from bl_ui.properties_grease_pencil_common import (
 
 
 class CLIP_UL_tracking_objects(UIList):
-    def draw_item(self, _context, layout, _data, item, _icon,
-                  _active_data, _active_propname, _index):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         # assert(isinstance(item, bpy.types.MovieTrackingObject)
         tobj = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -142,8 +141,7 @@ class CLIP_HT_header(Header):
             props = row.operator("clip.track_markers", text="", icon='TRACKING_BACKWARDS_SINGLE')
             props.backwards = True
             props.sequence = False
-            props = row.operator("clip.track_markers", text="",
-                                 icon='TRACKING_BACKWARDS')
+            props = row.operator("clip.track_markers", text="", icon='TRACKING_BACKWARDS')
             props.backwards = True
             props.sequence = True
             props = row.operator("clip.track_markers", text="", icon='TRACKING_FORWARDS')
@@ -171,9 +169,7 @@ class CLIP_HT_header(Header):
                 r = active_object.reconstruction
 
                 if r.is_valid and sc.view == 'CLIP':
-                    layout.label(text=rpt_("Solve error: %.2f px") %
-                                 (r.average_error),
-                                 translate=False)
+                    layout.label(text=rpt_("Solve error: %.2f px") % (r.average_error), translate=False)
 
                 row = layout.row()
                 row.prop(sc, "pivot_point", text="", icon_only=True)
@@ -433,16 +429,12 @@ class CLIP_PT_tracking_settings(CLIP_PT_tracking_panel, Panel):
 
         row = col.row(align=True)
         row.use_property_split = False
-        row.prop(settings, "use_default_red_channel",
-                 text="R", toggle=True)
-        row.prop(settings, "use_default_green_channel",
-                 text="G", toggle=True)
-        row.prop(settings, "use_default_blue_channel",
-                 text="B", toggle=True)
+        row.prop(settings, "use_default_red_channel", text="R", toggle=True)
+        row.prop(settings, "use_default_green_channel", text="G", toggle=True)
+        row.prop(settings, "use_default_blue_channel", text="B", toggle=True)
 
         col.separator()
-        col.operator("clip.track_settings_as_default",
-                     text="Copy from Active Track")
+        col.operator("clip.track_settings_as_default", text="Copy from Active Track")
 
 
 class CLIP_PT_tracking_settings_extras(CLIP_PT_tracking_panel, Panel):
@@ -486,8 +478,7 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         props = row.operator("clip.track_markers", text="", icon='TRACKING_BACKWARDS_SINGLE')
         props.backwards = True
         props.sequence = False
-        props = row.operator("clip.track_markers", text="",
-                             icon='TRACKING_BACKWARDS')
+        props = row.operator("clip.track_markers", text="", icon='TRACKING_BACKWARDS')
         props.backwards = True
         props.sequence = True
         props = row.operator("clip.track_markers", text="", icon='TRACKING_FORWARDS')
@@ -712,8 +703,7 @@ class CLIP_PT_objects(CLIP_PT_clip_view_panel, Panel):
         tracking = sc.clip.tracking
 
         row = layout.row()
-        row.template_list("CLIP_UL_tracking_objects", "", tracking, "objects",
-                          tracking, "active_object_index", rows=1)
+        row.template_list("CLIP_UL_tracking_objects", "", tracking, "objects", tracking, "active_object_index", rows=1)
 
         sub = row.column(align=True)
 
@@ -765,8 +755,7 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
         row.prop(act_track, "use_grayscale_preview", text="B/W", toggle=True)
 
         row.separator()
-        row.prop(act_track, "use_alpha_preview",
-                 text="", toggle=True, icon='IMAGE_ALPHA')
+        row.prop(act_track, "use_alpha_preview", text="", toggle=True, icon='IMAGE_ALPHA')
 
         layout.prop(act_track, "weight")
         layout.prop(act_track, "weight_stab")
@@ -810,8 +799,7 @@ class CLIP_PT_plane_track(CLIP_PT_tracking_panel, Panel):
         layout.prop(active_track, "name")
         layout.prop(active_track, "use_auto_keying")
         row = layout.row()
-        row.template_ID(
-            active_track, "image", new="image.new", open="image.open")
+        row.template_ID(active_track, "image", new="image.new", open="image.open")
         row.menu("CLIP_MT_plane_track_image_context_menu", icon='DOWNARROW_HLT', text="")
 
         row = layout.row()
@@ -1642,10 +1630,8 @@ class CLIP_MT_tracking_context_menu(Menu):
 
             layout.separator()
 
-            layout.operator("clip.disable_markers",
-                            text="Disable Markers").action = 'DISABLE'
-            layout.operator("clip.disable_markers",
-                            text="Enable Markers").action = 'ENABLE'
+            layout.operator("clip.disable_markers", text="Disable Markers").action = 'DISABLE'
+            layout.operator("clip.disable_markers", text="Enable Markers").action = 'ENABLE'
 
             layout.separator()
 
@@ -1655,8 +1641,7 @@ class CLIP_MT_tracking_context_menu(Menu):
             layout.separator()
 
             layout.operator("clip.lock_tracks", text="Lock Tracks").action = 'LOCK'
-            layout.operator("clip.lock_tracks",
-                            text="Unlock Tracks").action = 'UNLOCK'
+            layout.operator("clip.lock_tracks", text="Unlock Tracks").action = 'UNLOCK'
 
             layout.separator()
 

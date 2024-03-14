@@ -226,8 +226,7 @@ class ToolSelectPanelHelper:
     @staticmethod
     def _tool_class_from_space_type(space_type):
         return next(
-            (cls for cls in ToolSelectPanelHelper.__subclasses__()
-             if cls.bl_space_type == space_type),
+            (cls for cls in ToolSelectPanelHelper.__subclasses__() if cls.bl_space_type == space_type),
             None,
         )
 
