@@ -627,7 +627,7 @@ class RemovePresetKeyconfig(AddPresetBase, Operator):
         keyconfigs = bpy.context.window_manager.keyconfigs
         preset_menu_class = getattr(bpy.types, cls.preset_menu)
         name = keyconfigs.active.name
-        filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext = ".py")
+        filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".py")
         if not bool(filepath) or is_path_builtin(filepath):
             cls.poll_message_set("Built-in keymap configurations cannot be removed")
             return False
@@ -643,7 +643,8 @@ class RemovePresetKeyconfig(AddPresetBase, Operator):
         keyconfigs.remove(keyconfigs.active)
 
     def invoke(self, context, event):
-        return context.window_manager.invoke_confirm(self, event, title="Remove Keymap Configuration", confirm_text="Delete")
+        return context.window_manager.invoke_confirm(
+            self, event, title="Remove Keymap Configuration", confirm_text="Delete")
 
 
 class AddPresetOperator(AddPresetBase, Operator):
