@@ -91,14 +91,19 @@ class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
 
         col.operator("grease_pencil.layer_remove", icon='REMOVE', text="")
 
-        # Layer main properties
-        if layer:
-            layout.use_property_split = True
-            layout.use_property_decorate = True
-            col = layout.column(align=True)
+        if not layer:
+            return
 
-            row = layout.row(align=True)
-            row.prop(layer, "opacity", text="Opacity", slider=True)
+        layout.use_property_split = True
+        layout.use_property_decorate = True
+        col = layout.column(align=True)
+
+        # Layer main properties
+        row = layout.row(align=True)
+        row.prop(layer, "blend_mode", text="Blend Mode")
+
+        row = layout.row(align=True)
+        row.prop(layer, "opacity", text="Opacity", slider=True)
 
 
 class DATA_PT_grease_pencil_layer_transform(LayerDataButtonsPanel, Panel):

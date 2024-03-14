@@ -236,6 +236,15 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
 
   static const float scale_defaults[3] = {1.0f, 1.0f, 1.0f};
 
+  static const EnumPropertyItem rna_enum_layer_blend_modes_items[] = {
+      {GP_LAYER_BLEND_NONE, "REGULAR", 0, "Regular", ""},
+      {GP_LAYER_BLEND_HARDLIGHT, "HARDLIGHT", 0, "Hard Light", ""},
+      {GP_LAYER_BLEND_ADD, "ADD", 0, "Add", ""},
+      {GP_LAYER_BLEND_SUBTRACT, "SUBTRACT", 0, "Subtract", ""},
+      {GP_LAYER_BLEND_MULTIPLY, "MULTIPLY", 0, "Multiply", ""},
+      {GP_LAYER_BLEND_DIVIDE, "DIVIDE", 0, "Divide", ""},
+      {0, nullptr, 0, nullptr, nullptr}};
+
   srna = RNA_def_struct(brna, "GreasePencilLayer", nullptr);
   RNA_def_struct_sdna(srna, "GreasePencilLayer");
   RNA_def_struct_ui_text(srna, "Grease Pencil Layer", "Collection of related drawings");
@@ -332,6 +341,12 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
       prop,
       "ViewLayer",
       "Only include Layer in this View Layer render output (leave blank to include always)");
+
+  prop = RNA_def_property(srna, "blend_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "blend_mode");
+  RNA_def_property_enum_items(prop, rna_enum_layer_blend_modes_items);
+  RNA_def_property_ui_text(prop, "Blend Mode", "Blend mode");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 }
 
 static void rna_def_grease_pencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
