@@ -228,7 +228,7 @@ class TimelinePanelButtons:
 class TIME_PT_playback(TimelinePanelButtons, Panel):
     bl_label = "Playback"
     bl_region_type = 'HEADER'
-    bl_ui_units_x = 11
+    bl_ui_units_x = 13
 
     def draw(self, context):
         layout = self.layout
