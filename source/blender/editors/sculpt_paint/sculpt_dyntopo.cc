@@ -99,7 +99,7 @@ void enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
   BM_mesh_bm_from_me(ss->bm, mesh, &convert_params);
   triangulate(ss->bm);
 
-  BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+  BM_data_layer_ensure_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
   /* Make sure the data for existing faces are initialized. */
   if (mesh->faces_num != ss->bm->totface) {
