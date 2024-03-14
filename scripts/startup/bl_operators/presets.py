@@ -587,7 +587,7 @@ class RemovePresetInterfaceTheme(AddPresetBase, Operator):
         from bpy.utils import is_path_builtin
         preset_menu_class = getattr(bpy.types, cls.preset_menu)
         name = preset_menu_class.bl_label
-        filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext = ".xml")
+        filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".xml")
         if not bool(filepath) or is_path_builtin(filepath):
             cls.poll_message_set("Built-in themes cannot be removed")
             return False
