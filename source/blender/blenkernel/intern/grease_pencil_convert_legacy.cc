@@ -400,6 +400,15 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
     grease_pencil.id.properties = IDP_CopyProperty(gpd.id.properties);
   }
 
+  /** Convert Grease Pencil data flag. */
+  SET_FLAG_FROM_TEST(
+      grease_pencil.flag, (gpd.flag & GP_DATA_EXPAND) != 0, GREASE_PENCIL_ANIM_CHANNEL_EXPANDED);
+  SET_FLAG_FROM_TEST(grease_pencil.flag,
+                     (gpd.flag & GP_DATA_AUTOLOCK_LAYERS) != 0,
+                     GREASE_PENCIL_AUTOLOCK_LAYERS);
+  SET_FLAG_FROM_TEST(
+      grease_pencil.flag, (gpd.draw_mode == GP_DRAWMODE_3D), GREASE_PENCIL_STROKE_ORDER_3D);
+
   int num_drawings = 0;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd.layers) {
     num_drawings += BLI_listbase_count(&gpl->frames);
