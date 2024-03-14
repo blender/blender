@@ -207,14 +207,14 @@ AssetRepresentation &AssetLibrary::add_external_asset(StringRef relative_asset_p
                                                       const int id_type,
                                                       std::unique_ptr<AssetMetaData> metadata)
 {
-  AssetIdentifier identifier = asset_identifier_from_library(relative_asset_path);
+  AssetIdentifier identifier = this->asset_identifier_from_library(relative_asset_path);
   return asset_storage_->add_external_asset(
       std::move(identifier), name, id_type, std::move(metadata), *this);
 }
 
 AssetRepresentation &AssetLibrary::add_local_id_asset(StringRef relative_asset_path, ID &id)
 {
-  AssetIdentifier identifier = asset_identifier_from_library(relative_asset_path);
+  AssetIdentifier identifier = this->asset_identifier_from_library(relative_asset_path);
   return asset_storage_->add_local_id_asset(std::move(identifier), id, *this);
 }
 
