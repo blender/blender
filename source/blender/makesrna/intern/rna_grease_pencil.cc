@@ -325,6 +325,13 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
   RNA_def_property_ui_text(prop, "Scale", "Scale of the layer");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "viewlayer_render", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "viewlayername");
+  RNA_def_property_ui_text(
+      prop,
+      "ViewLayer",
+      "Only include Layer in this View Layer render output (leave blank to include always)");
 }
 
 static void rna_def_grease_pencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)

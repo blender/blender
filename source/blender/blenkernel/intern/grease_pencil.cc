@@ -672,6 +672,8 @@ Layer::Layer()
   zero_v3(this->rotation);
   copy_v3_fl(this->scale, 1.0f);
 
+  this->viewlayername = nullptr;
+
   BLI_listbase_clear(&this->masks);
 
   this->runtime = MEM_new<LayerRuntime>(__func__);
@@ -698,6 +700,8 @@ Layer::Layer(const Layer &other) : Layer()
   copy_v3_v3(this->rotation, other.rotation);
   copy_v3_v3(this->scale, other.scale);
 
+  this->set_view_layer_name(other.viewlayername);
+
   /* Note: We do not duplicate the frame storage since it is only needed for writing to file. */
   this->runtime->frames_ = other.runtime->frames_;
   this->runtime->sorted_keys_cache_ = other.runtime->sorted_keys_cache_;
@@ -720,6 +724,7 @@ Layer::~Layer()
   }
 
   MEM_SAFE_FREE(this->parsubstr);
+  MEM_SAFE_FREE(this->viewlayername);
 
   MEM_delete(this->runtime);
   this->runtime = nullptr;
@@ -1013,6 +1018,19 @@ float4x4 Layer::local_transform() const
 {
   return math::from_loc_rot_scale<float4x4, math::EulerXYZ>(
       float3(this->translation), float3(this->rotation), float3(this->scale));
+}
+
+StringRefNull Layer::view_layer_name() const
+{
+  return (this->viewlayername != nullptr) ? StringRefNull(this->viewlayername) : StringRefNull();
+}
+
+void Layer::set_view_layer_name(const char *new_name)
+{
+  if (this->viewlayername != nullptr) {
+    MEM_freeN(this->viewlayername);
+  }
+  this->viewlayername = BLI_strdup_null(new_name);
 }
 
 LayerGroup::LayerGroup()
@@ -2680,6 +2698,7 @@ static void read_layer(BlendDataReader *reader,
   BLO_read_data_address(reader, &node->base.name);
   node->base.parent = parent;
   BLO_read_data_address(reader, &node->parsubstr);
+  BLO_read_data_address(reader, &node->viewlayername);
 
   /* Read frames storage. */
   BLO_read_int32_array(reader, node->frames_storage.num, &node->frames_storage.keys);
@@ -2748,6 +2767,7 @@ static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
   BLO_write_struct(writer, GreasePencilLayer, node);
   BLO_write_string(writer, node->base.name);
   BLO_write_string(writer, node->parsubstr);
+  BLO_write_string(writer, node->viewlayername);
 
   BLO_write_int32_array(writer, node->frames_storage.num, node->frames_storage.keys);
   BLO_write_struct_array(

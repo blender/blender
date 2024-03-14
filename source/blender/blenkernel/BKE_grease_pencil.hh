@@ -456,6 +456,13 @@ class Layer : public ::GreasePencilLayer {
   StringRefNull parent_bone_name() const;
   void set_parent_bone_name(const char *new_name);
 
+  /**
+   * Returns the view layer name that this layer should be rendered in or an empty
+   * `StringRefNull` if no such name is set.
+   */
+  StringRefNull view_layer_name() const;
+  void set_view_layer_name(const char *new_name);
+
  private:
   using SortedKeysIterator = const int *;
 

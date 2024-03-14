@@ -149,6 +149,9 @@ class DATA_PT_grease_pencil_layer_relations(LayerDataButtonsPanel, Panel):
         col = layout.row(align=True)
         col.prop(layer, "pass_index")
 
+        col = layout.row(align=True)
+        col.prop_search(layer, "viewlayer_render", context.scene, "view_layers", text="View Layer")
+
 
 class DATA_PT_grease_pencil_custom_props(DataButtonsPanel, PropertyPanel, Panel):
     _context_path = "object.data"
