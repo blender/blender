@@ -2263,7 +2263,7 @@ static ModifierData *create_auto_smooth_modifier(Object &object,
 
 }  // namespace blender::bke
 
-void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain, const bool new_ids_only)
+void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
 {
   using namespace blender::bke;
 
@@ -2277,9 +2277,6 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain, const bool new_ids_on
 
   LISTBASE_FOREACH (Object *, object, &bmain.objects) {
     if (object->type != OB_MESH) {
-      continue;
-    }
-    if (new_ids_only && (object->id.tag & LIB_TAG_NEW) == 0) {
       continue;
     }
     Mesh *mesh = static_cast<Mesh *>(object->data);
