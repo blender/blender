@@ -1375,10 +1375,10 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   instantiate_context.active_collection = nullptr;
   loose_data_instantiate(&instantiate_context);
 
-  BKE_main_mesh_legacy_convert_auto_smooth(*bmain, true);
   BKE_main_id_newptr_and_tag_clear(bmain);
 
   blendfile_link_append_proxies_convert(bmain, reports);
+  BKE_main_mesh_legacy_convert_auto_smooth(*bmain);
 }
 
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
