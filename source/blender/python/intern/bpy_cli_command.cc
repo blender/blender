@@ -195,7 +195,7 @@ PyDoc_STRVAR(
     "   :arg id: The command identifier (must pass an ``str.isidentifier`` check).\n"
     "\n"
     "      If the ``id`` is already registered, a warning is printed and "
-    "the command is inaccessible to prevent accidents invoking the wrong command."
+    "the command is inaccessible to prevent accidents invoking the wrong command.\n"
     "   :type id: str\n"
     "   :arg execute: Callback, taking a single list of strings and returns an int.\n"
     "      The arguments are built from all command-line arguments following the command id.\n"
