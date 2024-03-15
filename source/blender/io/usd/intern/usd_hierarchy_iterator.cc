@@ -42,6 +42,20 @@
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 
+static const Material** get_materials_from_data(const Object* object)
+{
+  Material ***mat_ar_p = BKE_object_material_array_p(const_cast<Object*>(object));
+  return mat_ar_p ? const_cast<const Material**>(*mat_ar_p) : nullptr;
+}
+
+static short get_materials_count_from_data(const Object* object)
+{
+  short *len_p = BKE_object_material_len_p(const_cast<Object*>(object));
+  return len_p ? *len_p : 0;
+}
+
+
+
 namespace blender::io::usd {
 
 USDHierarchyIterator::USDHierarchyIterator(Main *bmain,
@@ -420,50 +434,5 @@ std::string USDHierarchyIterator::get_object_data_computed_name(const Object *ob
   ID* object_data = static_cast<ID*>(object->data);
   return find_name(object_data);
 }
-
-const Material** USDHierarchyIterator::get_materials_from_data(const Object* object) const
-{
-  switch (object->type) {
-  case OB_MESH: {
-    const Mesh* mesh = reinterpret_cast<const Mesh*>(object->data);
-    return const_cast<const Material**>(mesh->mat);
-  }
-
-  case OB_CURVES:
-  case OB_CURVES_LEGACY: {
-    const Curves* curves = reinterpret_cast<const Curves*>(object->data);
-    return const_cast<const Material**>(curves->mat);
-  }
-
-                       /*
-                        * !TODO: Additional supported object types
-                        */
-
-  default: {
-    return nullptr;
-  }
-  }
-}
-
-size_t USDHierarchyIterator::get_materials_count_from_data(const Object* object) const
-{
-  switch (object->type) {
-  case OB_MESH: {
-    const Mesh* mesh = reinterpret_cast<const Mesh*>(object->data);
-    return mesh->totcol;
-  }
-
-  case OB_CURVES:
-  case OB_CURVES_LEGACY: {
-    const Curves* curves = reinterpret_cast<const Curves*>(object->data);
-    return curves->totcol;
-  }
-
-  default: {
-    return 0;
-  }
-  }
-}
-
 
 }  // namespace blender::io::usd

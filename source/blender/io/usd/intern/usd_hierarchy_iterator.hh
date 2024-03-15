@@ -87,10 +87,7 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   void store_name(const ID *id, const std::string name);
   void process_names_for_object(const Object *object);
 
-  void process_materials(const Material **materials, const size_t count);
-
-  const Material **get_materials_from_data(const Object *object) const;
-  size_t get_materials_count_from_data(const Object *object) const;
+  void process_materials(const Material **materials, size_t count);
 };
 
 }  // namespace blender::io::usd
