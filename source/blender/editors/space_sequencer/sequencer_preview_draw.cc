@@ -529,10 +529,6 @@ static void draw_histogram(ARegion *region,
     return;
   }
 
-  /* Background. */
-  uchar col_bg[4] = {0, 0, 0, 255};
-  quads.add_quad(area.xmin, area.ymin, area.xmax, area.ymax, col_bg);
-
   /* Grid lines and labels. */
   uchar col_grid[4] = {128, 128, 128, 128};
   float grid_x_0 = area.xmin;
@@ -815,8 +811,25 @@ static void sequencer_draw_scopes(Scene *scene, ARegion *region, SpaceSeq *sseq)
   SeqQuadsBatch quads;
   SeqScopes *scopes = &sseq->runtime->scopes;
 
-  /* Draw scope image if there is one. */
   bool use_blend = sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA;
+
+  /* Draw opaque black rectangle over whole preview area. The scope texture
+   * with clamp to border extend mode should be enough, but results in
+   * garbage pixels around the actual scope on some GPUs/drivers (#119505).
+   * To fix that, background must be drawn, and then the scopes texture be
+   * blended on top. */
+  if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
+    GPU_blend(GPU_BLEND_NONE);
+    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    uchar black[4] = {0, 0, 0, 255};
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+    immUniformColor4ubv(black);
+    immRectf(pos, preview.xmin, preview.ymin, preview.xmax, preview.ymax);
+    immUnbindProgram();
+    use_blend = true;
+  }
+
+  /* Draw scope image if there is one. */
   ImBuf *scope_image = nullptr;
   if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
     scope_image = scopes->zebra_ibuf;
@@ -827,9 +840,6 @@ static void sequencer_draw_scopes(Scene *scene, ARegion *region, SpaceSeq *sseq)
   }
   else if (sseq->mainb == SEQ_DRAW_IMG_VECTORSCOPE) {
     scope_image = scopes->vector_ibuf;
-  }
-  else if (sseq->mainb == SEQ_DRAW_IMG_HISTOGRAM) {
-    use_blend = true;
   }
 
   if (use_blend) {
