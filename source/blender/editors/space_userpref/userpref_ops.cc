@@ -406,7 +406,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
   static const EnumPropertyItem repo_type_items[] = {
       {int(bUserExtensionRepoAddType::Remote),
        "REMOTE",
-       ICON_NETWORK_DRIVE,
+       ICON_INTERNET,
        "Add Remote Repository",
        "Add a repository referencing an remote repository "
        "with support for listing and updating extensions"},
