@@ -9,11 +9,13 @@
 CCL_NAMESPACE_BEGIN
 
 /* Transform vector to spot light's local coordinate system. */
-ccl_device float3 spot_light_to_local(const ccl_global KernelSpotLight *spot, const float3 ray)
+ccl_device float3 spot_light_to_local(const ccl_global KernelLight *klight, const float3 ray)
 {
-  return safe_normalize(make_float3(dot(ray, spot->scaled_axis_u),
-                                    dot(ray, spot->scaled_axis_v),
-                                    dot(ray, spot->dir * spot->inv_len_z)));
+  const Transform itfm = klight->itfm;
+  float3 transformed_ray = safe_normalize(transform_direction(&itfm, ray));
+  transformed_ray.z = -transformed_ray.z;
+
+  return transformed_ray;
 }
 
 /* Compute spot light attenuation of a ray given in local coordinate system. */
@@ -92,7 +94,7 @@ ccl_device_inline bool spot_light_sample(const ccl_global KernelLight *klight,
     }
 
     /* Attenuation. */
-    const float3 local_ray = spot_light_to_local(&klight->spot, -ls->D);
+    const float3 local_ray = spot_light_to_local(klight, -ls->D);
     if (d_sq > r_sq) {
       ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
     }
@@ -128,7 +130,7 @@ ccl_device_inline bool spot_light_sample(const ccl_global KernelLight *klight,
     ls->Ng = -ls->D;
 
     /* Attenuation. */
-    const float3 local_ray = spot_light_to_local(&klight->spot, -ls->D);
+    const float3 local_ray = spot_light_to_local(klight, -ls->D);
     ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
     if (!in_volume_segment && ls->eval_fac == 0.0f) {
       return false;
@@ -196,7 +198,7 @@ ccl_device_forceinline void spot_light_mnee_sample_update(const ccl_global Kerne
   }
 
   /* Attenuation. */
-  const float3 local_ray = spot_light_to_local(&klight->spot, -ls->D);
+  const float3 local_ray = spot_light_to_local(klight, -ls->D);
   if (use_attenuation) {
     ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
   }
@@ -248,7 +250,7 @@ ccl_device_inline bool spot_light_sample_from_intersection(
   }
 
   /* Attenuation. */
-  const float3 local_ray = spot_light_to_local(&klight->spot, -ray_D);
+  const float3 local_ray = spot_light_to_local(klight, -ray_D);
   if (!klight->spot.is_sphere || d_sq > r_sq) {
     ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
   }
