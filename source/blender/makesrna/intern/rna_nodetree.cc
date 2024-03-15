@@ -2391,6 +2391,7 @@ static void rna_Node_inputs_move(
     }
   }
 
+  BKE_ntree_update_tag_node_property(ntree, node);
   ED_node_tree_propagate_change(nullptr, bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
@@ -2429,6 +2430,7 @@ static void rna_Node_outputs_move(
     }
   }
 
+  BKE_ntree_update_tag_node_property(ntree, node);
   ED_node_tree_propagate_change(nullptr, bmain, ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
