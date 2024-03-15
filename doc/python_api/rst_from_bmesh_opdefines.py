@@ -252,8 +252,7 @@ def main():
                     name, tp = arg
                     tp_sub = None
                 else:
-                    print(arg)
-                    assert 0
+                    assert False, "unreachable, unsupported 'arg' length found %d" % len(arg)
 
                 tp_str = ""
 
@@ -322,8 +321,7 @@ def main():
                         #     but think the idea is that that pointer is for any type?
                         tp_str = ":class:`bpy.types.bpy_struct`"
                     else:
-                        print("Can't find", vars_dict_reverse[tp_sub])
-                        assert 0
+                        assert False, "unreachable, unknown type %r" % vars_dict_reverse[tp_sub]
 
                 elif tp == BMO_OP_SLOT_ELEMENT_BUF:
                     assert tp_sub is not None
@@ -362,11 +360,9 @@ def main():
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
                             tp_str += "unknown internal data, not compatible with python"
                         else:
-                            print("Can't find", vars_dict_reverse[tp_sub])
-                            assert 0
+                            assert False, "unreachable, unknown type %r" % vars_dict_reverse[tp_sub]
                 else:
-                    print("Can't find", vars_dict_reverse[tp])
-                    assert 0
+                    assert False, "unreachable, unknown type %r" % vars_dict_reverse[tp]
 
                 args_wash.append((name, default_value, tp_str, comment))
             return args_wash

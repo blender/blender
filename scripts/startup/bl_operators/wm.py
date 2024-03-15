@@ -2959,7 +2959,7 @@ class WM_OT_batch_rename(Operator):
                 elif method == 'SUFFIX':
                     name = name + text
                 else:
-                    assert 0
+                    assert False, "unreachable"
 
             elif ty == 'STRIP':
                 chars = action.strip_chars
@@ -3004,9 +3004,9 @@ class WM_OT_batch_rename(Operator):
                 elif method == 'TITLE':
                     name = name.title()
                 else:
-                    assert 0
+                    assert False, "unreachable"
             else:
-                assert 0
+                assert False, "unreachable"
         return name
 
     def _data_update(self, context):
