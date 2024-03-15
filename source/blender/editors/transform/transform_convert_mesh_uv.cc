@@ -978,6 +978,12 @@ Array<TransDataEdgeSlideVert> transform_mesh_uv_edge_slide_data_create(const Tra
           const BMLoop *l_edge_dst = l_src->prev == l_dst ? l_src->prev : l_src;
           const BMLoop *l_other = l_edge_dst->radial_next;
           while (l_other != l_edge_dst) {
+            const BMLoop *l_other_dst = l_other->v == l_src->v ? l_other->next : l_other;
+            if (BM_elem_index_get(l_other_dst) != -1) {
+              /* This is a sliding edge corner. */
+              break;
+            }
+
             if (l_other->f == curr_side_other->fdata[0].f) {
               best_dir = 0;
               break;
