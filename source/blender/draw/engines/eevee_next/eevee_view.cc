@@ -226,12 +226,18 @@ void ShadingView::update_view()
     float top;
     float near;
     float far;
+    const bool is_perspective = main_view_.is_persp();
     projmat_dimensions(winmat.ptr(), &left, &right, &bottom, &top, &near, &far);
     float2 scale = (float2(rescaled_render_extent) / float2(display_extent));
     right = left + ((right - left) * scale.x);
     top = bottom + ((top - bottom) * scale.y);
 
-    winmat = math::projection::perspective(left, right, bottom, top, near, far);
+    if (is_perspective) {
+      winmat = math::projection::perspective(left, right, bottom, top, near, far);
+    }
+    else {
+      winmat = math::projection::orthographic(left, right, bottom, top, near, far);
+    }
   }
 
   /* Anti-Aliasing / Super-Sampling jitter. */
