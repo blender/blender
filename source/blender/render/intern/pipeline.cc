@@ -1327,6 +1327,23 @@ static void do_render_compositor(Render *re)
   }
 }
 
+static void renderresult_set_passes_metadata(Render *re)
+{
+  RenderResult *render_result = re->result;
+
+  BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+
+  LISTBASE_FOREACH (RenderLayer *, render_layer, &render_result->layers) {
+    LISTBASE_FOREACH_BACKWARD (RenderPass *, render_pass, &render_layer->passes) {
+      if (render_pass->ibuf) {
+        BKE_imbuf_stamp_info(render_result, render_pass->ibuf);
+      }
+    }
+  }
+
+  BLI_rw_mutex_unlock(&re->resultmutex);
+}
+
 static void renderresult_stampinfo(Render *re)
 {
   RenderResult rres;
@@ -1523,6 +1540,8 @@ static void do_render_full_pipeline(Render *re)
       Object *ob_camera_eval = DEG_get_evaluated_object(re->pipeline_depsgraph, RE_GetCamera(re));
       BKE_render_result_stamp_info(re->scene, ob_camera_eval, re->result, false);
     }
+
+    renderresult_set_passes_metadata(re);
 
     /* stamp image info here */
     if ((re->r.stamp & R_STAMP_ALL) && (re->r.stamp & R_STAMP_DRAW)) {
