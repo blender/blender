@@ -311,7 +311,7 @@ ccl_device_inline bool area_light_eval(const ccl_global KernelLight *klight,
     ls->pdf *= light_pdf_area_to_solid_angle(Ng, -ls->D, ls->t);
   }
 
-  return ls->eval_fac > 0;
+  return in_volume_segment || ls->eval_fac > 0;
 }
 
 template<bool in_volume_segment>
