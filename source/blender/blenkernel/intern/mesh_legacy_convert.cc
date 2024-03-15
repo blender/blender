@@ -2289,7 +2289,8 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
     /* Auto-smooth disabled sharp edge tagging when the evaluated mesh had custom normals.
      * When the original mesh has custom normals, that's a good sign the evaluated mesh will
      * have custom normals as well. */
-    if (CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL)) {
+    bool has_custom_normals = CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL);
+    if (has_custom_normals) {
       continue;
     }
 
@@ -2297,6 +2298,9 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
      * edge tags based on the mesh's smoothing angle. To keep the same behavior, a new modifier has
      * to be added before that modifier when the option is on. */
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+      if (ELEM(md->type, eModifierType_WeightedNormal, eModifierType_NormalEdit)) {
+        has_custom_normals = true;
+      }
       if (md->type == eModifierType_WeightedNormal) {
         WeightedNormalModifierData *nmd = reinterpret_cast<WeightedNormalModifierData *>(md);
         if ((nmd->flag & MOD_WEIGHTEDNORMAL_KEEP_SHARP) != 0) {
@@ -2317,10 +2321,12 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
     }
 
     ModifierData *new_md = create_auto_smooth_modifier(*object, add_node_group, angle);
-    if (last_md && last_md->type == eModifierType_Subsurf) {
+    if (last_md && last_md->type == eModifierType_Subsurf && has_custom_normals &&
+        (reinterpret_cast<SubsurfModifierData *>(last_md)->flags &
+         eSubsurfModifierFlag_UseCustomNormals) != 0)
+    {
       /* Add the auto smooth node group before the last subdivision surface modifier if possible.
-       * Subdivision surface modifiers have special handling for interpolating face corner normals,
-       * and recalculating them afterwards isn't usually helpful and can be much slower. */
+       * Subdivision surface modifiers have special handling for interpolating custom normals. */
       BLI_insertlinkbefore(&object->modifiers, object->modifiers.last, new_md);
     }
     else {
