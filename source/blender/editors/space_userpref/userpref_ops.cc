@@ -489,12 +489,14 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 /** \name Generic Extension Repository Utilities
  * \{ */
 
-static bool preferences_extension_repo_active_enabled_poll(bContext *C)
+static bool preferences_extension_repo_remote_active_enabled_poll(bContext *C)
 {
   const bUserExtensionRepo *repo = BKE_preferences_extension_repo_find_index(
       &U, U.active_extension_repo);
-  if (repo == nullptr || (repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED)) {
-    CTX_wm_operator_poll_msg_set(C, "An enabled repository must be selected");
+  if (repo == nullptr || (repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED) ||
+      !(repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH))
+  {
+    CTX_wm_operator_poll_msg_set(C, "An enabled remote repository must be selected");
     return false;
   }
   return true;
@@ -649,7 +651,7 @@ static void PREFERENCES_OT_extension_repo_sync(wmOperatorType *ot)
   ot->description = "Synchronize the active extension repository with its remote URL";
 
   ot->exec = preferences_extension_repo_sync_exec;
-  ot->poll = preferences_extension_repo_active_enabled_poll;
+  ot->poll = preferences_extension_repo_remote_active_enabled_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -675,7 +677,7 @@ static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
   ot->description = "Update any outdated extensions for the active extension repository";
 
   ot->exec = preferences_extension_repo_upgrade_exec;
-  ot->poll = preferences_extension_repo_active_enabled_poll;
+  ot->poll = preferences_extension_repo_remote_active_enabled_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 }
