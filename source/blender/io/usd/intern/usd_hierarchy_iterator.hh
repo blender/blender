@@ -39,7 +39,8 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   ObjExportMap skinned_mesh_export_map_;
   ObjExportMap shape_key_mesh_export_map_;
 
-  Map<const ID*, const std::string> prim_names_map_;
+  /* Map an ID name to a prim name. */
+  Map<const std::string, const std::string> prim_names_map_;
   Set<const std::string> prim_names_;
 
  public:

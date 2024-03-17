@@ -365,13 +365,13 @@ std::string USDHierarchyIterator::generate_unique_name(const std::string token)
 
 void USDHierarchyIterator::store_name(const ID *id, const std::string name)
 {
-  prim_names_map_.add(id, name);
+  prim_names_map_.add(id->name, name);
   prim_names_.add(name);
 }
 
 std::string USDHierarchyIterator::find_name(const ID *id) const
 {
-  return prim_names_map_.lookup_default(id, std::string());
+  return prim_names_map_.lookup_default(id->name, std::string());
 }
 
 void USDHierarchyIterator::process_names_for_object(const Object *object)
