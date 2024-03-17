@@ -38,6 +38,7 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
+#include "NOD_socket_declarations_geometry.hh"
 
 using namespace blender;
 using blender::bke::SocketValueVariant;
@@ -323,6 +324,9 @@ static std::optional<eNodeSocketDatatype> decl_to_data_type(const SocketDeclarat
   }
   else if (dynamic_cast<const decl::Object *>(&socket_decl)) {
     return SOCK_OBJECT;
+  }
+  else if (dynamic_cast<const decl::Geometry *>(&socket_decl)) {
+    return SOCK_GEOMETRY;
   }
   return std::nullopt;
 }
