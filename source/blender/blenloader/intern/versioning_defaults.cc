@@ -329,6 +329,14 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Enable Soft Shadows by default. */
   scene->eevee.flag |= SCE_EEVEE_SHADOW_SOFT;
 
+  /* Default Rotate Increment. */
+  const float default_snap_angle_increment = DEG2RADF(5.0f);
+  scene->toolsettings->snap_angle_increment_2d = default_snap_angle_increment;
+  scene->toolsettings->snap_angle_increment_3d = default_snap_angle_increment;
+  const float default_snap_angle_increment_precision = DEG2RADF(1.0f);
+  scene->toolsettings->snap_angle_increment_2d_precision = default_snap_angle_increment_precision;
+  scene->toolsettings->snap_angle_increment_3d_precision = default_snap_angle_increment_precision;
+
   /* Be sure `curfalloff` and primitive are initialized. */
   ToolSettings *ts = scene->toolsettings;
   if (ts->gp_sculpt.cur_falloff == nullptr) {
@@ -848,6 +856,14 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
       brush->automasking_view_normal_limit = default_brush->automasking_view_normal_limit;
       brush->automasking_view_normal_falloff = default_brush->automasking_view_normal_falloff;
+    }
+  }
+
+  {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (!brush->automasking_cavity_curve) {
+        brush->automasking_cavity_curve = BKE_sculpt_default_cavity_curve();
+      }
     }
   }
 }

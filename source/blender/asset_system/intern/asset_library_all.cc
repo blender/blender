@@ -9,6 +9,8 @@
 #include <memory>
 
 #include "AS_asset_catalog_tree.hh"
+#include "asset_catalog_collection.hh"
+#include "asset_catalog_definition_file.hh"
 
 #include "asset_library_all.hh"
 
@@ -30,11 +32,11 @@ void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_cata
   AssetLibrary::foreach_loaded(
       [&](AssetLibrary &nested) {
         if (reload_nested_catalogs) {
-          nested.catalog_service->reload_catalogs();
+          nested.catalog_service().reload_catalogs();
         }
 
         new_catalog_service->add_from_existing(
-            *nested.catalog_service,
+            nested.catalog_service(),
             /*on_duplicate_items=*/[](const AssetCatalog &existing,
                                       const AssetCatalog &to_be_ignored) {
               if (existing.path == to_be_ignored.path) {
@@ -56,9 +58,8 @@ void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_cata
       },
       false);
 
-  new_catalog_service->rebuild_tree();
-
-  this->catalog_service = std::move(new_catalog_service);
+  std::lock_guard lock{catalog_service_mutex_};
+  catalog_service_ = std::move(new_catalog_service);
   catalogs_dirty_ = false;
 }
 
@@ -74,7 +75,7 @@ bool AllAssetLibrary::is_catalogs_dirty() const
 
 void AllAssetLibrary::refresh_catalogs()
 {
-  rebuild_catalogs_from_nested(/*reload_nested_catalogs=*/true);
+  this->rebuild_catalogs_from_nested(/*reload_nested_catalogs=*/true);
 }
 
 }  // namespace blender::asset_system

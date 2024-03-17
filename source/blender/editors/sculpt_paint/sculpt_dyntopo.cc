@@ -134,7 +134,7 @@ void SCULPT_pbvh_clear(Object *ob)
 }
 
 namespace blender::ed::sculpt_paint::dyntopo {
-//XXX is this needed?
+// XXX is this needed?
 static void customdata_strip_templayers(CustomData *cdata, int totelem)
 {
   for (int i = 0; i < cdata->totlayer; i++) {
@@ -194,6 +194,13 @@ void enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
 
     BM_mesh_bm_from_me(ss->bm, mesh, &params);
     tag_update = true;
+
+    BM_data_layer_ensure_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+  }
+
+  /* Make sure the data for existing faces are initialized. */
+  if (mesh->faces_num != ss->bm->totface) {
+    BM_mesh_normals_update(ss->bm);
   }
 
 #ifndef DYNTOPO_DYNAMIC_TESS

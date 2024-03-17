@@ -90,9 +90,8 @@ class IDPropertySerializer {
   std::shared_ptr<DictionaryValue> create_dictionary(const IDProperty *id_property) const
   {
     std::shared_ptr<DictionaryValue> result = std::make_shared<DictionaryValue>();
-    DictionaryValue::Items &attributes = result->elements();
-    attributes.append_as(std::pair(IDP_KEY_NAME, new StringValue(id_property->name)));
-    attributes.append_as(std::pair(IDP_KEY_TYPE, new StringValue(type_name())));
+    result->append_str(IDP_KEY_NAME, id_property->name);
+    result->append_str(IDP_KEY_TYPE, this->type_name());
     return result;
   }
 };
@@ -101,7 +100,7 @@ class IDPropertySerializer {
  * \brief Helper class for parsing DictionaryValues.
  */
 struct DictionaryEntryParser {
-  const DictionaryValue::Lookup lookup;
+  DictionaryValue::Lookup lookup;
 
  public:
   explicit DictionaryEntryParser(const DictionaryValue &value) : lookup(value.create_lookup()) {}
@@ -174,92 +173,74 @@ struct DictionaryEntryParser {
  private:
   std::optional<std::string> get_string(StringRef key) const
   {
-    const DictionaryValue::LookupValue *value_ptr = lookup.lookup_ptr(key);
-    if (value_ptr == nullptr) {
+    const std::shared_ptr<Value> *value = lookup.lookup_ptr(key);
+    if (value == nullptr) {
       return std::nullopt;
     }
-    const DictionaryValue::LookupValue &value = *value_ptr;
-
-    if (value->type() != eValueType::String) {
+    if (value->get()->type() != eValueType::String) {
       return std::nullopt;
     }
-
-    return value->as_string_value()->value();
+    return value->get()->as_string_value()->value();
   }
 
   const ArrayValue *get_array(StringRef key) const
   {
-    const DictionaryValue::LookupValue *value_ptr = lookup.lookup_ptr(key);
-    if (value_ptr == nullptr) {
+    const std::shared_ptr<Value> *value = lookup.lookup_ptr(key);
+    if (value == nullptr) {
       return nullptr;
     }
-    const DictionaryValue::LookupValue &value = *value_ptr;
-
-    if (value->type() != eValueType::Array) {
+    if (value->get()->type() != eValueType::Array) {
       return nullptr;
     }
-
-    return value->as_array_value();
+    return value->get()->as_array_value();
   }
 
   std::optional<bool> get_bool(StringRef key) const
   {
-    const DictionaryValue::LookupValue *value_ptr = lookup.lookup_ptr(key);
-    if (value_ptr == nullptr) {
+    const std::shared_ptr<Value> *value = lookup.lookup_ptr(key);
+    if (value == nullptr) {
       return std::nullopt;
     }
-    const DictionaryValue::LookupValue &value = *value_ptr;
-
-    if (value->type() != eValueType::Boolean) {
+    if (value->get()->type() != eValueType::Boolean) {
       return std::nullopt;
     }
-
-    return value->as_boolean_value()->value();
+    return value->get()->as_boolean_value()->value();
   }
 
   std::optional<int32_t> get_int(StringRef key) const
   {
-    const DictionaryValue::LookupValue *value_ptr = lookup.lookup_ptr(key);
-    if (value_ptr == nullptr) {
+    const std::shared_ptr<Value> *value = lookup.lookup_ptr(key);
+    if (value == nullptr) {
       return std::nullopt;
     }
-    const DictionaryValue::LookupValue &value = *value_ptr;
-
-    if (value->type() != eValueType::Int) {
+    if (value->get()->type() != eValueType::Int) {
       return std::nullopt;
     }
-
-    return value->as_int_value()->value();
+    return value->get()->as_int_value()->value();
   }
 
   std::optional<int32_t> get_enum(StringRef key) const
   {
-    const DictionaryValue::LookupValue *value_ptr = lookup.lookup_ptr(key);
-    if (value_ptr == nullptr) {
+    const std::shared_ptr<Value> *value = lookup.lookup_ptr(key);
+    if (value == nullptr) {
       return std::nullopt;
     }
-    const DictionaryValue::LookupValue &value = *value_ptr;
-
-    if (value->type() != eValueType::Int) {
+    if (value->get()->type() != eValueType::Int) {
       return std::nullopt;
     }
-
-    return value->as_int_value()->value();
+    return value->get()->as_int_value()->value();
   }
 
   std::optional<double> get_double(StringRef key) const
   {
-    const DictionaryValue::LookupValue *value_ptr = lookup.lookup_ptr(key);
-    if (value_ptr == nullptr) {
+    const std::shared_ptr<Value> *value = lookup.lookup_ptr(key);
+    if (value == nullptr) {
       return std::nullopt;
     }
-    const DictionaryValue::LookupValue &value = *value_ptr;
-
-    if (value->type() != eValueType::Double) {
+    if (value->get()->type() != eValueType::Double) {
       return std::nullopt;
     }
-
-    return value->as_double_value()->value();
+    return value->get()->as_double_value()->value();
   }
 
   std::optional<float> get_float(StringRef key) const
@@ -270,19 +251,16 @@ struct DictionaryEntryParser {
   template<typename PrimitiveType, typename ValueType>
   std::optional<Vector<PrimitiveType>> get_array_primitive(StringRef key) const
   {
-    const DictionaryValue::LookupValue *value_ptr = lookup.lookup_ptr(key);
-    if (value_ptr == nullptr) {
+    const std::shared_ptr<Value> *value = lookup.lookup_ptr(key);
+    if (value == nullptr) {
       return std::nullopt;
     }
-    const DictionaryValue::LookupValue &value = *value_ptr;
-
-    if (value->type() != eValueType::Array) {
+    if (value->get()->type() != eValueType::Array) {
       return std::nullopt;
     }
 
     Vector<PrimitiveType> result;
-    const ArrayValue::Items &elements = value->as_array_value()->elements();
-    for (const ArrayValue::Item &element : elements) {
+    for (const std::shared_ptr<Value> &element : value->get()->as_array_value()->elements()) {
       const ValueType *value_type = static_cast<const ValueType *>(element.get());
       PrimitiveType primitive_value = value_type->value();
       result.append_as(primitive_value);
@@ -321,8 +299,7 @@ class IDPStringSerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    DictionaryValue::Items &attributes = result->elements();
-    attributes.append_as(std::pair(IDP_KEY_VALUE, new StringValue(IDP_String(id_property))));
+    result->append_str(IDP_KEY_VALUE, IDP_String(id_property));
     return result;
   }
 
@@ -361,8 +338,7 @@ class IDPBoolSerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    DictionaryValue::Items &attributes = result->elements();
-    attributes.append_as(std::pair(IDP_KEY_VALUE, new BooleanValue(IDP_Bool(id_property) != 0)));
+    result->append(IDP_KEY_VALUE, std::make_shared<BooleanValue>(IDP_Bool(id_property) != 0));
     return result;
   }
 
@@ -401,8 +377,7 @@ class IDPIntSerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    DictionaryValue::Items &attributes = result->elements();
-    attributes.append_as(std::pair(IDP_KEY_VALUE, new IntValue(IDP_Int(id_property))));
+    result->append_int(IDP_KEY_VALUE, IDP_Int(id_property));
     return result;
   }
 
@@ -441,8 +416,7 @@ class IDPFloatSerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    DictionaryValue::Items &attributes = result->elements();
-    attributes.append_as(std::pair(IDP_KEY_VALUE, new DoubleValue(IDP_Float(id_property))));
+    result->append_double(IDP_KEY_VALUE, IDP_Float(id_property));
     return result;
   }
 
@@ -481,8 +455,7 @@ class IDPDoubleSerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    DictionaryValue::Items &attributes = result->elements();
-    attributes.append_as(std::pair(IDP_KEY_VALUE, new DoubleValue(IDP_Double(id_property))));
+    result->append_double(IDP_KEY_VALUE, IDP_Double(id_property));
     return result;
   }
 
@@ -521,45 +494,38 @@ class IDPArraySerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    DictionaryValue::Items &attributes = result->elements();
     const IDPropertySerializer &subtype_serializer = serializer_for(
         static_cast<eIDPropertyType>(id_property->subtype));
-    attributes.append_as(
-        std::pair(IDP_KEY_SUBTYPE, new StringValue(subtype_serializer.type_name())));
+    result->append_str(IDP_KEY_SUBTYPE, subtype_serializer.type_name());
 
-    std::shared_ptr<ArrayValue> array = std::make_shared<ArrayValue>();
+    ArrayValue &array = *result->append_array(IDP_KEY_VALUE);
     switch (static_cast<eIDPropertyType>(id_property->subtype)) {
       case IDP_INT: {
         int32_t *values = static_cast<int32_t *>(IDP_Array(id_property));
-        add_values<int32_t, IntValue>(array.get(), Span<int32_t>(values, id_property->len));
+        add_values<int32_t, IntValue>(array, Span<int32_t>(values, id_property->len));
         break;
       }
-
       case IDP_FLOAT: {
         float *values = static_cast<float *>(IDP_Array(id_property));
-        add_values<float, DoubleValue>(array.get(), Span<float>(values, id_property->len));
+        add_values<float, DoubleValue>(array, Span<float>(values, id_property->len));
         break;
       }
-
       case IDP_DOUBLE: {
         double *values = static_cast<double *>(IDP_Array(id_property));
-        add_values<double, DoubleValue>(array.get(), Span<double>(values, id_property->len));
+        add_values<double, DoubleValue>(array, Span<double>(values, id_property->len));
         break;
       }
-
       case IDP_GROUP: {
         IDProperty *values = static_cast<IDProperty *>(IDP_Array(id_property));
-        add_values(array.get(), Span<IDProperty>(values, id_property->len));
+        add_values(array, Span<IDProperty>(values, id_property->len));
         break;
       }
-
       default: {
         /* IDP_ARRAY only supports IDP_INT, IDP_FLOAT, IDP_DOUBLE and IDP_GROUP. */
         BLI_assert_unreachable();
         break;
       }
     }
-    attributes.append_as(std::pair(IDP_KEY_VALUE, std::move(array)));
 
     return result;
   }
@@ -576,17 +542,13 @@ class IDPArraySerializer : public IDPropertySerializer {
     switch (*property_subtype) {
       case IDP_INT:
         return idprop_array_int_from_value(entry_reader);
-
       case IDP_FLOAT:
         return idprop_array_float_from_value(entry_reader);
-
       case IDP_DOUBLE:
         return idprop_array_double_from_value(entry_reader);
-
       default:
-        break;
+        return nullptr;
     }
-    return nullptr;
   }
 
  private:
@@ -596,25 +558,22 @@ class IDPArraySerializer : public IDPropertySerializer {
            typename PrimitiveType,
            /* Type of value that can store the PrimitiveType in the Array. */
            typename ValueType>
-  void add_values(ArrayValue *array, Span<PrimitiveType> values) const
+  void add_values(ArrayValue &array, Span<PrimitiveType> values) const
   {
-    ArrayValue::Items &items = array->elements();
     for (PrimitiveType value : values) {
-      items.append_as(std::make_shared<ValueType>(value));
+      array.append(std::make_shared<ValueType>(value));
     }
   }
 
-  void add_values(ArrayValue *array, Span<IDProperty> values) const
+  void add_values(ArrayValue &array, Span<IDProperty> values) const
   {
-    ArrayValue::Items &items = array->elements();
     for (const IDProperty &id_property : values) {
       const IDPropertySerializer &value_serializer = serializer_for(
           static_cast<eIDPropertyType>(id_property.type));
       if (!value_serializer.supports_serializing()) {
         continue;
       }
-      std::shared_ptr<DictionaryValue> value = value_serializer.idprop_to_dictionary(&id_property);
-      items.append_as(value);
+      array.append(value_serializer.idprop_to_dictionary(&id_property));
     }
   }
 
@@ -686,18 +645,15 @@ class IDPGroupSerializer : public IDPropertySerializer {
       const IDProperty *id_property) const override
   {
     std::shared_ptr<DictionaryValue> result = create_dictionary(id_property);
-    DictionaryValue::Items &attributes = result->elements();
+
     std::shared_ptr<ArrayValue> array = std::make_shared<ArrayValue>();
-    ArrayValue::Items &elements = array->elements();
-
     LISTBASE_FOREACH (IDProperty *, sub_property, &id_property->data.group) {
-
       const IDPropertySerializer &sub_property_serializer = serializer_for(
           static_cast<eIDPropertyType>(sub_property->type));
-      elements.append_as(sub_property_serializer.idprop_to_dictionary(sub_property));
+      array->append(sub_property_serializer.idprop_to_dictionary(sub_property));
     }
 
-    attributes.append_as(std::pair(IDP_KEY_VALUE, array));
+    result->append(IDP_KEY_VALUE, std::move(array));
     return result;
   }
 
@@ -716,7 +672,7 @@ class IDPGroupSerializer : public IDPropertySerializer {
     }
 
     std::unique_ptr<IDProperty, IDPropertyDeleter> result = create_group(name->c_str());
-    for (const ArrayValue::Item &element : array->elements()) {
+    for (const std::shared_ptr<Value> &element : array->elements()) {
       if (element->type() != eValueType::Dictionary) {
         continue;
       }
@@ -840,13 +796,12 @@ std::unique_ptr<ArrayValue> convert_to_serialize_values(const IDProperty *proper
 {
   BLI_assert(properties != nullptr);
   std::unique_ptr<ArrayValue> result = std::make_unique<ArrayValue>();
-  ArrayValue::Items &elements = result->elements();
   const IDProperty *current_property = properties;
   while (current_property != nullptr) {
     const IDPropertySerializer &serializer = serializer_for(
         static_cast<eIDPropertyType>(current_property->type));
     if (serializer.supports_serializing()) {
-      elements.append_as(serializer.idprop_to_dictionary(current_property));
+      result->append(serializer.idprop_to_dictionary(current_property));
     }
     current_property = current_property->next;
   }
@@ -877,8 +832,7 @@ static IDProperty *idprop_from_value(const ArrayValue &value)
   IDProperty *result = nullptr;
   IDProperty *previous_added = nullptr;
 
-  const ArrayValue::Items &elements = value.elements();
-  for (const ArrayValue::Item &element : elements) {
+  for (const std::shared_ptr<Value> &element : value.elements()) {
     if (element->type() != eValueType::Dictionary) {
       continue;
     }

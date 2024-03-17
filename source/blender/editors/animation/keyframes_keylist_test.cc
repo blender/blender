@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 
 #include <functional>
 #include <optional>

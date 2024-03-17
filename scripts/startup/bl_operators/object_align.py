@@ -101,13 +101,7 @@ def worldspace_bounds_from_object_data(depsgraph, obj):
     return Vector((left, front, up)), Vector((right, back, down))
 
 
-def align_objects(context,
-                  align_x,
-                  align_y,
-                  align_z,
-                  align_mode,
-                  relative_to,
-                  bb_quality):
+def align_objects(context, align_x, align_y, align_z, align_mode, relative_to, bb_quality):
 
     depsgraph = context.evaluated_depsgraph_get()
     scene = context.scene
@@ -115,8 +109,7 @@ def align_objects(context,
     cursor = scene.cursor.location
 
     # We are accessing runtime data such as evaluated bounding box, so we need to
-    # be sure it is properly updated and valid (bounding box might be lost on operator
-    # redo).
+    # be sure it is properly updated and valid (bounding box might be lost on operator redo).
     context.view_layer.update()
 
     Left_Front_Up_SEL = [0.0, 0.0, 0.0]

@@ -215,7 +215,7 @@ void IMB_ffmpeg_init()
     av_log_set_level(AV_LOG_DEBUG);
   }
 
-  /* set own callback which could store last error to report to UI */
+  /* set separate callback which could store last error to report to UI */
   av_log_set_callback(ffmpeg_log_callback);
 }
 

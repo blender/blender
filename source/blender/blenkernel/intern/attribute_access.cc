@@ -923,6 +923,9 @@ void gather_attributes(const AttributeAccessor src_attributes,
     if (meta_data.domain != domain) {
       return true;
     }
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
     if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
       return true;
     }
@@ -962,6 +965,9 @@ void gather_attributes(const AttributeAccessor src_attributes,
       if (meta_data.domain != domain) {
         return true;
       }
+      if (meta_data.data_type == CD_PROP_STRING) {
+        return true;
+      }
       if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
         return true;
       }
@@ -994,6 +1000,9 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
     if (meta_data.domain != domain) {
       return true;
     }
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
     if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
       return true;
     }
@@ -1022,6 +1031,9 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
 {
   src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     if (meta_data.domain != domain) {
+      return true;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
     if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
@@ -1073,6 +1085,9 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
     if (meta_data.domain != domain) {
       return true;
     }
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
     if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
       return true;
     }
@@ -1101,6 +1116,9 @@ void fill_attribute_range_default(MutableAttributeAccessor attributes,
       return true;
     }
     if (skip.contains(id.name())) {
+      return true;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);

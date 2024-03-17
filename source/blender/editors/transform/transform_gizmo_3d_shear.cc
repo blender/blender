@@ -25,7 +25,7 @@
 
 #include "RNA_access.hh"
 
-/* local module include */
+/* Local module include. */
 #include "transform.hh"
 #include "transform_gizmo.hh"
 

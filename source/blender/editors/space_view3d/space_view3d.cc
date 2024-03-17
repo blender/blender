@@ -797,6 +797,11 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   ED_outliner_select_sync_from_object_tag(C);
 
+  /* Make sure the depsgraph is evaluated so the new object's transforms are up-to-date.
+   * The evaluated #Object::object_to_world() will be copied back to the original object
+   * and used below. */
+  CTX_data_ensure_evaluated_depsgraph(C);
+
   V3DSnapCursorState *snap_state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (snap_state) {
     float obmat_final[4][4];
@@ -964,13 +969,13 @@ static void view3d_dropboxes()
                  WM_drag_free_imported_drag_ID,
                  view3d_geometry_nodes_drop_tooltip);
   WM_dropbox_add(lb,
-                 "VIEW3D_OT_background_image_add",
+                 "VIEW3D_OT_camera_background_image_add",
                  view3d_ima_bg_drop_poll,
                  view3d_id_path_drop_copy,
                  WM_drag_free_imported_drag_ID,
                  nullptr);
   WM_dropbox_add(lb,
-                 "OBJECT_OT_drop_named_image",
+                 "OBJECT_OT_empty_image_add",
                  view3d_ima_empty_drop_poll,
                  view3d_id_path_drop_copy,
                  WM_drag_free_imported_drag_ID,
@@ -1709,6 +1714,9 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
     case CTX_MODE_EDIT_GREASE_PENCIL:
       ARRAY_SET_ITEMS(contexts, ".grease_pencil_edit");
       break;
+    case CTX_MODE_PAINT_GREASE_PENCIL:
+      ARRAY_SET_ITEMS(contexts, ".grease_pencil_paint");
+      break;
     case CTX_MODE_EDIT_POINT_CLOUD:
       ARRAY_SET_ITEMS(contexts, ".point_cloud_edit");
       break;
@@ -1994,7 +2002,7 @@ static void space_view3d_refresh(const bContext *C, ScrArea *area)
 static void view3d_id_remap_v3d_ob_centers(View3D *v3d,
                                            const blender::bke::id::IDRemapper &mappings)
 {
-  if (mappings.apply((ID **)&v3d->ob_center, ID_REMAP_APPLY_DEFAULT) ==
+  if (mappings.apply(reinterpret_cast<ID **>(&v3d->ob_center), ID_REMAP_APPLY_DEFAULT) ==
       ID_REMAP_RESULT_SOURCE_UNASSIGNED)
   {
     /* Otherwise, bone-name may remain valid...
@@ -2009,7 +2017,7 @@ static void view3d_id_remap_v3d(ScrArea *area,
                                 const blender::bke::id::IDRemapper &mappings,
                                 const bool is_local)
 {
-  if (mappings.apply((ID **)&v3d->camera, ID_REMAP_APPLY_DEFAULT) ==
+  if (mappings.apply(reinterpret_cast<ID **>(&v3d->camera), ID_REMAP_APPLY_DEFAULT) ==
       ID_REMAP_RESULT_SOURCE_UNASSIGNED)
   {
     /* 3D view might be inactive, in that case needs to use slink->regionbase */
@@ -2031,7 +2039,6 @@ static void view3d_id_remap(ScrArea *area,
                             SpaceLink *slink,
                             const blender::bke::id::IDRemapper &mappings)
 {
-
   if (!mappings.contains_mappings_for_any(FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_IM |
                                           FILTER_ID_MC))
   {

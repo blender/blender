@@ -401,6 +401,7 @@ bool BKE_main_namemap_get_name(Main *bmain, ID *id, char *name, const bool do_un
      * truncated name again. */
     is_name_changed = true;
   }
+
   return is_name_changed;
 }
 

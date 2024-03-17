@@ -1381,12 +1381,32 @@ class _defs_sculpt:
 
     @ToolDef.from_fn
     def hide_border():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("paint.hide_show")
+            layout.prop(props, "area", expand=False)
+
         return dict(
             idname="builtin.box_hide",
             label="Box Hide",
             icon="ops.sculpt.border_hide",
             widget=None,
             keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def hide_lasso():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("paint.hide_show_lasso_gesture")
+            layout.prop(props, "area", expand=False)
+
+        return dict(
+            idname="builtin.lasso_hide",
+            label="Lasso Hide",
+            icon="ops.sculpt.lasso_hide",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
@@ -1676,7 +1696,7 @@ class _defs_weight_paint:
              ob.data.use_paint_mask_vertex)):
             return VIEW3D_PT_tools_active._tools_select
         elif context.pose_object:
-            return (_defs_view3d_select.select,)
+            return VIEW3D_PT_tools_active._tools_select
         return ()
 
     @staticmethod
@@ -3081,7 +3101,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_sculpt.mask_lasso,
                 _defs_sculpt.mask_line,
             ),
-            _defs_sculpt.hide_border,
+            (
+                _defs_sculpt.hide_border,
+                _defs_sculpt.hide_lasso
+            ),
             (
                 _defs_sculpt.face_set_box,
                 _defs_sculpt.face_set_lasso,

@@ -17,11 +17,10 @@ CCL_NAMESPACE_BEGIN
 template<typename FunctionType> class CPUKernelFunction {
  public:
   CPUKernelFunction(FunctionType kernel_default,
-                    FunctionType kernel_sse2,
                     FunctionType kernel_sse42,
                     FunctionType kernel_avx2)
   {
-    kernel_info_ = get_best_kernel_info(kernel_default, kernel_sse2, kernel_sse42, kernel_avx2);
+    kernel_info_ = get_best_kernel_info(kernel_default, kernel_sse42, kernel_avx2);
   }
 
   template<typename... Args> inline auto operator()(Args... args) const
@@ -55,12 +54,10 @@ template<typename FunctionType> class CPUKernelFunction {
   };
 
   KernelInfo get_best_kernel_info(FunctionType kernel_default,
-                                  FunctionType kernel_sse2,
                                   FunctionType kernel_sse42,
                                   FunctionType kernel_avx2)
   {
     /* Silence warnings about unused variables when compiling without some architectures. */
-    (void)kernel_sse2;
     (void)kernel_sse42;
     (void)kernel_avx2;
 
@@ -73,12 +70,6 @@ template<typename FunctionType> class CPUKernelFunction {
 #ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE42
     if (DebugFlags().cpu.has_sse42() && system_cpu_support_sse42()) {
       return KernelInfo("SSE4.2", kernel_sse42);
-    }
-#endif
-
-#ifdef WITH_CYCLES_OPTIMIZED_KERNEL_SSE2
-    if (DebugFlags().cpu.has_sse2() && system_cpu_support_sse2()) {
-      return KernelInfo("SSE2", kernel_sse2);
     }
 #endif
 

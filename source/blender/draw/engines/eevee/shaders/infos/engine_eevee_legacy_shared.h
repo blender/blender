@@ -39,21 +39,21 @@ struct CommonUniformBlock {
   vec4 _volCoordScale; /* To convert volume uvs to screen uvs */
   float _volHistoryAlpha;
   float _volShadowSteps;
-  bool _volUseLights;
-  bool _volUseSoftShadows;
+  bool32_t _volUseLights;
+  bool32_t _volUseSoftShadows;
   /* Screen Space Reflections */
   vec4 _ssrParameters;
   float _ssrBorderFac;
   float _ssrMaxRoughness;
   float _ssrFireflyFac;
   float _ssrBrdfBias;
-  bool _ssrToggle;
-  bool _ssrefractToggle;
+  bool32_t _ssrToggle;
+  bool32_t _ssrefractToggle;
   /* SubSurface Scattering */
   float _sssJitterThreshold;
-  bool _sssToggle;
+  bool32_t _sssToggle;
   /* Specular */
-  bool _specToggle;
+  bool32_t _specToggle;
   /* Lights */
   int _laNumLight;
   /* Probes */
@@ -166,14 +166,14 @@ struct LightBlock {
 BLI_STATIC_ASSERT_ALIGN(LightBlock, 16)
 
 struct RenderpassBlock {
-  bool _renderPassDiffuse;
-  bool _renderPassDiffuseLight;
-  bool _renderPassGlossy;
-  bool _renderPassGlossyLight;
-  bool _renderPassEmit;
-  bool _renderPassSSSColor;
-  bool _renderPassEnvironment;
-  bool _renderPassAOV;
+  bool32_t _renderPassDiffuse;
+  bool32_t _renderPassDiffuseLight;
+  bool32_t _renderPassGlossy;
+  bool32_t _renderPassGlossyLight;
+  bool32_t _renderPassEmit;
+  bool32_t _renderPassSSSColor;
+  bool32_t _renderPassEnvironment;
+  bool32_t _renderPassAOV;
   uint _renderPassAOVActive;
 };
 BLI_STATIC_ASSERT_ALIGN(RenderpassBlock, 16)

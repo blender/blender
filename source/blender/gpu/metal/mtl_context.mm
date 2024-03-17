@@ -25,7 +25,7 @@
 #include "GPU_shader.h"
 #include "GPU_storage_buffer.h"
 #include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 #include "GPU_vertex_buffer.h"
 #include "intern/gpu_matrix_private.h"
 

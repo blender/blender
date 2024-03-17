@@ -1163,7 +1163,7 @@ void uiTemplateMenuSearch(uiLayout *layout)
   UI_block_layout_set_current(block, layout);
 
   but = uiDefSearchBut(
-      block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, 0, 0, "");
+      block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, "");
   UI_but_func_menu_search(but);
 }
 

@@ -20,35 +20,20 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Points").propagate_all();
 }
 
-static void set_radius_in_component(PointCloud &pointcloud,
-                                    const Field<bool> &selection_field,
-                                    const Field<float> &radius_field)
-{
-  if (pointcloud.totpoint == 0) {
-    return;
-  }
-  MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
-  AttributeWriter<float> radii = attributes.lookup_or_add_for_write<float>("radius",
-                                                                           AttrDomain::Point);
-
-  const bke::PointCloudFieldContext field_context{pointcloud};
-  fn::FieldEvaluator evaluator{field_context, pointcloud.totpoint};
-  evaluator.set_selection(selection_field);
-  evaluator.add_with_destination(radius_field, radii.varray);
-  evaluator.evaluate();
-
-  radii.finish();
-}
-
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
-  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
-  Field<float> radii_field = params.extract_input<Field<float>>("Radius");
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
+  const Field<float> radius = params.extract_input<Field<float>>("Radius");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (PointCloud *pointcloud = geometry_set.get_pointcloud_for_write()) {
-      set_radius_in_component(*pointcloud, selection_field, radii_field);
+      bke::try_capture_field_on_geometry(pointcloud->attributes_for_write(),
+                                         bke::PointCloudFieldContext(*pointcloud),
+                                         "radius",
+                                         bke::AttrDomain::Point,
+                                         selection,
+                                         radius);
     }
   });
 

@@ -85,3 +85,10 @@ foreach(COMPONENT ${_opensubdiv_FIND_COMPONENTS})
   string(TOUPPER ${COMPONENT} UPPERCOMPONENT)
   mark_as_advanced(OPENSUBDIV_${UPPERCOMPONENT}_LIBRARY)
 endforeach()
+
+unset(COMPONENT)
+unset(UPPERCOMPONENT)
+
+unset(_opensubdiv_FIND_COMPONENTS)
+unset(_opensubdiv_SEARCH_DIRS)
+unset(_opensubdiv_LIBRARIES)

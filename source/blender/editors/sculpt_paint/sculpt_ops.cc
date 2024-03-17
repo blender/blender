@@ -104,6 +104,11 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
   if (!ss) {
     return OPERATOR_FINISHED;
   }
@@ -208,6 +213,12 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
   const float dist = RNA_float_get(op->ptr, "merge_tolerance");
 
   if (!pbvh) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1706,11 +1717,11 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(face_set::SCULPT_OT_face_sets_init);
   WM_operatortype_append(face_set::SCULPT_OT_face_sets_edit);
   WM_operatortype_append(cloth::SCULPT_OT_cloth_filter);
-  WM_operatortype_append(mask::SCULPT_OT_face_set_lasso_gesture);
-  WM_operatortype_append(mask::SCULPT_OT_face_set_box_gesture);
-  WM_operatortype_append(mask::SCULPT_OT_trim_box_gesture);
-  WM_operatortype_append(mask::SCULPT_OT_trim_lasso_gesture);
-  WM_operatortype_append(mask::SCULPT_OT_project_line_gesture);
+  WM_operatortype_append(face_set::SCULPT_OT_face_set_lasso_gesture);
+  WM_operatortype_append(face_set::SCULPT_OT_face_set_box_gesture);
+  WM_operatortype_append(trim::SCULPT_OT_trim_box_gesture);
+  WM_operatortype_append(trim::SCULPT_OT_trim_lasso_gesture);
+  WM_operatortype_append(project::SCULPT_OT_project_line_gesture);
 
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(color::SCULPT_OT_color_filter);

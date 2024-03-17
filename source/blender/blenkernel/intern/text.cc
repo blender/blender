@@ -9,6 +9,7 @@
 #include <cstdlib> /* abort */
 #include <cstring> /* strstr */
 #include <cwctype>
+#include <optional>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -101,7 +102,11 @@ static void text_init_data(ID *id)
  *
  * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
-static void text_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
+static void text_copy_data(Main * /*bmain*/,
+                           std::optional<Library *> /*owner_library*/,
+                           ID *id_dst,
+                           const ID *id_src,
+                           const int /*flag*/)
 {
   Text *text_dst = (Text *)id_dst;
   const Text *text_src = (Text *)id_src;

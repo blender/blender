@@ -25,15 +25,19 @@
  *
  * IMPORTANT: Do not forget to align mat4, vec3 and vec4 to 16 bytes, and vec2 to 8 bytes.
  *
- * NOTE: You can use bool type using bool1 a int boolean type matching the GLSL type.
+ * NOTE: You can use bool type using bool32_t a int boolean type matching the GLSL type.
  */
 
 #ifdef GPU_SHADER
+/* Silence macros when compiling for shaders. */
 #  define BLI_STATIC_ASSERT(cond, msg)
 #  define BLI_STATIC_ASSERT_ALIGN(type_, align_)
 #  define BLI_STATIC_ASSERT_SIZE(type_, size_)
+#  define ENUM_OPERATORS(a, b)
+/* Incompatible keywords. */
 #  define static
 #  define inline
+/* Math function renaming. */
 #  define cosf cos
 #  define sinf sin
 #  define tanf tan
@@ -45,71 +49,43 @@
 #  define sqrtf sqrt
 #  define expf exp
 
-#  define bool1 bool
-/* Type name collision with Metal shading language - These type-names are already defined. */
-#  ifndef GPU_METAL
-#    define float2 vec2
-#    define float3 vec3
-#    define float3x4 mat3x4
-#    define float4 vec4
-#    define float4x4 mat4
-#    define int2 ivec2
-#    define int3 ivec3
-#    define int4 ivec4
-#    define uint2 uvec2
-#    define uint3 uvec3
-#    define uint4 uvec4
-#    define bool2 bvec2
-#    define bool3 bvec3
-#    define bool4 bvec4
-#    define packed_float3 vec3
-#    define packed_int3 int3
-#  endif
-
 #else /* C / C++ */
 #  pragma once
 
 #  include "BLI_assert.h"
 
-#  ifdef __cplusplus
-#    include "BLI_math_matrix_types.hh"
-#    include "BLI_math_vector_types.hh"
+#  include "BLI_math_matrix_types.hh"
+#  include "BLI_math_vector_types.hh"
+
+using bool32_t = int32_t;
+// using bool2 = blender::int2; /* Size is not consistent across backend. */
+// using bool3 = blender::int3; /* Size is not consistent across backend. */
+// using bool4 = blender::int4; /* Size is not consistent across backend. */
+
 using blender::float2;
-using blender::float3;
-using blender::float3x4;
 using blender::float4;
-using blender::float4x4;
 using blender::int2;
-using blender::int3;
 using blender::int4;
 using blender::uint2;
-using blender::uint3;
 using blender::uint4;
-using bool1 = int;
-using bool2 = blender::int2;
-using bool3 = blender::int3;
-using bool4 = blender::int4;
+/** IMPORTANT: Do not use in shared struct. Use packed_(float/int/uint)3 instead.
+ * Here for static functions usage only. */
+using blender::float3;
+using blender::int3;
+using blender::uint3;
+/** Packed types are needed for MSL which have different alignment rules for float3. */
 using packed_float3 = blender::float3;
 using packed_int3 = blender::int3;
+using packed_uint3 = blender::uint3;
 
-#  else /* C */
-typedef float float2[2];
-typedef float float3[3];
-typedef float float4[4];
-typedef float float4x4[4][4];
-typedef float float3x4[3][4];
-typedef int int2[2];
-typedef int int3[2];
-typedef int int4[4];
-typedef uint uint2[2];
-typedef uint uint3[3];
-typedef uint uint4[4];
-typedef int bool1;
-typedef int bool2[2];
-typedef int bool3[2];
-typedef int bool4[4];
-typedef float3 packed_float3;
-typedef int3 packed_int3;
-#  endif
+using blender::float2x2;
+// using blender::float3x2; /* Does not follow alignment rules of GPU. */
+using blender::float4x2;
+// using blender::float2x3; /* Does not follow alignment rules of GPU. */
+// using blender::float3x3; /* Does not follow alignment rules of GPU. */
+// using blender::float4x3; /* Does not follow alignment rules of GPU. */
+using blender::float2x4;
+using blender::float3x4;
+using blender::float4x4;
 
 #endif

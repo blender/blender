@@ -63,14 +63,7 @@ void main()
     vec3 closure_light = load_radiance_direct(texel, layer_index);
 
     if (!use_combined_lightprobe_eval) {
-      vec3 closure_indirect = load_radiance_indirect(texel, layer_index);
-      if (cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) {
-        /* TODO(fclem): Add instead of replacing when we support correct refracted light. */
-        closure_light = closure_indirect;
-      }
-      else {
-        closure_light += closure_indirect;
-      }
+      closure_light += load_radiance_indirect(texel, layer_index);
     }
 
     switch (cl.type) {

@@ -6,15 +6,10 @@
 #include "usd_skel_convert.hh"
 
 #include "BKE_armature.hh"
-#include "BKE_idprop.h"
 #include "BKE_object.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "WM_api.hh"
 
 namespace blender::io::usd {
 

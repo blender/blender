@@ -1118,16 +1118,9 @@ void BKE_appdir_app_templates(ListBase *templates)
  */
 static void where_is_temp(char *tempdir, const size_t tempdir_maxncpy, const char *userdir)
 {
-
-  tempdir[0] = '\0';
-
-  if (userdir && userdir[0] != '\0' && BLI_is_dir(userdir)) {
-    BLI_strncpy(tempdir, userdir, tempdir_maxncpy);
-    /* Add a trailing slash if needed. */
-    BLI_path_slash_ensure(tempdir, tempdir_maxncpy);
+  if (userdir && BLI_temp_directory_path_copy_if_valid(tempdir, tempdir_maxncpy, userdir)) {
     return;
   }
-
   BLI_temp_directory_path_get(tempdir, tempdir_maxncpy);
 }
 
@@ -1173,7 +1166,7 @@ static void tempdir_session_create(char *tempdir_session,
 
 void BKE_tempdir_init(const char *userdir)
 {
-  /* Sets #g_app.temp_dirname_base to \a userdir if specified and is a valid directory,
+  /* Sets #g_app.temp_dirname_base to `userdir` if specified and is a valid directory,
    * otherwise chooses a suitable OS-specific temporary directory.
    * Sets #g_app.temp_dirname_session to a #mkdtemp
    * generated sub-dir of #g_app.temp_dirname_base. */

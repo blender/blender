@@ -24,7 +24,7 @@
 #include "GPU_drawlist.h"
 #include "GPU_framebuffer.h"
 #include "GPU_shader.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 #include "GPU_viewport.h"
 
 #include "draw_instance_data.h"
@@ -649,6 +649,9 @@ typedef struct DRWManager {
   struct DRWTextStore **text_store_p;
 
   bool buffer_finish_called; /* Avoid bad usage of DRW_render_instance_buffer_finish */
+
+  /** True, when drawing is in progress, see #DRW_draw_in_progress. */
+  bool in_progress;
 
   DRWView *view_default;
   DRWView *view_active;

@@ -139,6 +139,7 @@ struct TreeElementIcon {
         ID_GR, \
         ID_AR, \
         ID_AC, \
+        ID_AN, \
         ID_BR, \
         ID_PA, \
         ID_GD_LEGACY, \
@@ -507,6 +508,7 @@ void OUTLINER_OT_drivers_add_selected(wmOperatorType *ot);
 void OUTLINER_OT_drivers_delete_selected(wmOperatorType *ot);
 
 void OUTLINER_OT_orphans_purge(wmOperatorType *ot);
+void OUTLINER_OT_orphans_manage(wmOperatorType *ot);
 
 /* `outliner_query.cc` */
 

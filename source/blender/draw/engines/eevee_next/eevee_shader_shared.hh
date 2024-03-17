@@ -30,7 +30,6 @@ using namespace draw;
 
 constexpr GPUSamplerState no_filter = GPUSamplerState::default_sampler();
 constexpr GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
-
 #endif
 
 #define UBO_MIN_MAX_SUPPORTED_SIZE 1 << 14
@@ -212,7 +211,7 @@ struct CameraData {
   float _pad1;
   float _pad2;
 
-  bool1 initialized;
+  bool32_t initialized;
 
 #ifdef __cplusplus
   /* Small constructor to allow detecting new buffers. */
@@ -239,6 +238,16 @@ enum ePassStorageType : uint32_t {
   PASS_STORAGE_VALUE = 1u,
   PASS_STORAGE_CRYPTOMATTE = 2u,
 };
+
+enum PassCategory : uint32_t {
+  PASS_CATEGORY_DATA = 1u << 0,
+  PASS_CATEGORY_COLOR_1 = 1u << 1,
+  PASS_CATEGORY_COLOR_2 = 1u << 2,
+  PASS_CATEGORY_COLOR_3 = 1u << 3,
+  PASS_CATEGORY_AOV = 1u << 4,
+  PASS_CATEGORY_CRYPTOMATTE = 1u << 5,
+};
+ENUM_OPERATORS(PassCategory, PASS_CATEGORY_CRYPTOMATTE)
 
 struct FilmSample {
   int2 texel;
@@ -268,15 +277,7 @@ struct FilmData {
   /** Scaling factor to convert texel to uvs. */
   float2 extent_inv;
   /** Is true if history is valid and can be sampled. Bypass history to resets accumulation. */
-  bool1 use_history;
-  /** Is true if combined buffer is valid and can be re-projected to reduce variance. */
-  bool1 use_reprojection;
-  /** Is true if accumulation of non-filtered passes is needed. */
-  bool1 has_data;
-  /** Is true if accumulation of filtered passes is needed. */
-  bool1 any_render_pass_1;
-  bool1 any_render_pass_2;
-  bool1 any_render_pass_3;
+  bool32_t use_history;
   /** Controlled by user in lookdev mode or by render settings. */
   float background_opacity;
   /** Output counts per type. */
@@ -304,7 +305,7 @@ struct FilmData {
   /** Storage type of the render-pass to be displayed. */
   ePassStorageType display_storage_type;
   /** True if we bypass the accumulation and directly output the accumulation buffer. */
-  bool1 display_only;
+  bool32_t display_only;
   /** Start of AOVs and number of aov. */
   int aov_color_id, aov_color_len;
   int aov_value_id, aov_value_len;
@@ -326,6 +327,7 @@ struct FilmData {
   int samples_len;
   /** Sum of the weights of all samples in the sample table. */
   float samples_weight_total;
+  int _pad1;
   FilmSample samples[FILM_PRECOMP_SAMPLE_MAX];
 };
 BLI_STATIC_ASSERT_ALIGN(FilmData, 16)
@@ -368,7 +370,7 @@ struct AOVsInfoData {
   /** Id of the AOV to be displayed (from the start of the AOV array). -1 for combined. */
   int display_id;
   /** True if the AOV to be displayed is from the value accumulation buffer. */
-  bool1 display_is_value;
+  bool32_t display_is_value;
 };
 BLI_STATIC_ASSERT_ALIGN(AOVsInfoData, 16)
 
@@ -424,7 +426,7 @@ struct VelocityGeometryIndex {
   /** Offset inside #VelocityGeometryBuf for each time-step. Indexed using eVelocityStep. */
   packed_int3 ofs;
   /** If true, compute deformation motion blur. */
-  bool1 do_deform;
+  bool32_t do_deform;
   /**
    * Length of data inside #VelocityGeometryBuf for each time-step.
    * Indexed using eVelocityStep.
@@ -805,8 +807,6 @@ struct LightData {
   int tilemap_index;
   /** Directional : Offset of the LOD min in LOD min tile units. */
   int2 clipmap_base_offset;
-  /** Number of step for shadow map tracing. */
-  int shadow_ray_step_count;
   /** Punctual: Other parts of the perspective matrix. */
   float clip_side;
   /** Punctual: Shift to apply to the light origin to get the shadow projection origin. */
@@ -815,7 +815,9 @@ struct LightData {
   float shadow_shape_scale_or_angle;
   /** Trace distance for directional lights. */
   float shadow_trace_distance;
-  float _pad2;
+  /* Radius in pixels for shadow filtering. */
+  float pcf_radius;
+  int _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(LightData, 16)
 
@@ -1022,7 +1024,7 @@ struct ShadowSceneData {
   int step_count;
   /* Bias the shading point by using the normal to avoid self intersection. */
   float normal_bias;
-  int _pad2;
+  int _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(ShadowSceneData, 16)
 
@@ -1135,7 +1137,7 @@ struct Surfel {
   /** Cluster this surfel is assigned to. */
   int cluster_id;
   /** True if the light can bounce or be emitted by the surfel back face. */
-  bool1 double_sided;
+  bool32_t double_sided;
   int _pad0;
   int _pad1;
   int _pad2;
@@ -1150,9 +1152,9 @@ struct CaptureInfoData {
   /** Number of surfels inside the surfel buffer or the needed len. */
   packed_int3 irradiance_grid_size;
   /** True if the surface shader needs to write the surfel data. */
-  bool1 do_surfel_output;
+  bool32_t do_surfel_output;
   /** True if the surface shader needs to increment the surfel_len. */
-  bool1 do_surfel_count;
+  bool32_t do_surfel_count;
   /** Number of surfels inside the surfel buffer or the needed len. */
   uint surfel_len;
   /** Total number of a ray for light transportation. */
@@ -1185,12 +1187,12 @@ struct CaptureInfoData {
   /** Radius of surfels. */
   float surfel_radius;
   /** Capture options. */
-  bool1 capture_world_direct;
-  bool1 capture_world_indirect;
-  bool1 capture_visibility_direct;
-  bool1 capture_visibility_indirect;
-  bool1 capture_indirect;
-  bool1 capture_emission;
+  bool32_t capture_world_direct;
+  bool32_t capture_world_indirect;
+  bool32_t capture_visibility_direct;
+  bool32_t capture_visibility_indirect;
+  bool32_t capture_indirect;
+  bool32_t capture_emission;
   int _pad0;
   /* World light probe atlas coordinate. */
   SphereProbeUvArea world_atlas_coord;
@@ -1325,9 +1327,9 @@ struct RayTraceData {
   float roughness_mask_scale;
   float roughness_mask_bias;
   /** If set to true will bypass spatial denoising. */
-  bool1 skip_denoise;
+  bool32_t skip_denoise;
   /** If set to false will bypass tracing for refractive closures. */
-  bool1 trace_refraction;
+  bool32_t trace_refraction;
   /** Closure being ray-traced. */
   int closure_index;
   int _pad0;
@@ -1454,8 +1456,8 @@ BLI_STATIC_ASSERT_ALIGN(PlanarProbeDisplayData, 16)
 
 struct PipelineInfoData {
   float alpha_hash_scale;
-  bool1 is_probe_reflection;
-  bool1 use_combined_lightprobe_eval;
+  bool32_t is_probe_reflection;
+  bool32_t use_combined_lightprobe_eval;
   float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(PipelineInfoData, 16)

@@ -706,10 +706,10 @@ bool get_effector_data(EffectorCache *eff,
   }
   else if (eff->pd && eff->pd->shape == PFIELD_SHAPE_POINTS) {
     /* TODO: hair and points object support */
-    const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
-    const blender::Span<blender::float3> positions = me_eval->vert_positions();
-    const blender::Span<blender::float3> vert_normals = me_eval->vert_normals();
-    if (me_eval != nullptr) {
+    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(eff->ob);
+    const blender::Span<blender::float3> positions = mesh_eval->vert_positions();
+    const blender::Span<blender::float3> vert_normals = mesh_eval->vert_normals();
+    if (mesh_eval != nullptr) {
       copy_v3_v3(efd->loc, positions[*efd->index]);
       copy_v3_v3(efd->nor, vert_normals[*efd->index]);
 
@@ -822,8 +822,8 @@ static void get_effector_tot(
 
   if (eff->pd->shape == PFIELD_SHAPE_POINTS) {
     /* TODO: hair and points object support */
-    const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
-    *tot = me_eval != nullptr ? me_eval->verts_num : 1;
+    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(eff->ob);
+    *tot = mesh_eval != nullptr ? mesh_eval->verts_num : 1;
 
     if (*tot && eff->pd->forcefield == PFIELD_HARMONIC && point->index >= 0) {
       *p = point->index % *tot;

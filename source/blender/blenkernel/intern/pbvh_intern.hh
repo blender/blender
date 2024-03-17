@@ -100,7 +100,7 @@ struct PBVHNode {
   /* Array of indices into the Mesh's corner array.
    * PBVH_FACES only.
    */
-  blender::Array<int, 0> loop_indices;
+  blender::Array<int, 0> corner_indices;
 
   /* An array mapping face corners into the vert_indices
    * array. The array is sized to match 'totprim', and each of
@@ -189,7 +189,6 @@ struct PBVH {
   blender::MutableSpan<blender::float3> vert_positions;
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> face_normals;
-  blender::Span<int> looptri_faces;
   blender::Span<blender::int2> edges;
 
   bool *hide_vert;

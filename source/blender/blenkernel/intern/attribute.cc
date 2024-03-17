@@ -165,6 +165,36 @@ static bool bke_id_attribute_rename_if_exists(ID *id,
   return BKE_id_attribute_rename(id, old_name, new_name, reports);
 }
 
+static bool mesh_edit_mode_attribute_valid(const blender::StringRef name,
+                                           const AttrDomain domain,
+                                           const eCustomDataType data_type,
+                                           ReportList *reports)
+{
+  if (ELEM(name,
+           "position",
+           ".edge_verts",
+           ".corner_vert",
+           ".corner_edge",
+           "sharp_edge",
+           "sharp_face",
+           "material_index"))
+  {
+    BKE_report(reports, RPT_ERROR, "Unable to create builtin attribute in edit mode");
+    return false;
+  }
+  if (name == "id") {
+    if (domain != AttrDomain::Point) {
+      BKE_report(reports, RPT_ERROR, "Domain unsupported for \"id\" attribute");
+      return false;
+    }
+    if (data_type != CD_PROP_INT32) {
+      BKE_report(reports, RPT_ERROR, "Type unsupported for \"id\" attribute");
+      return false;
+    }
+  }
+  return true;
+}
+
 bool BKE_id_attribute_rename(ID *id,
                              const char *old_name,
                              const char *new_name,
@@ -198,6 +228,17 @@ bool BKE_id_attribute_rename(ID *id,
   if (layer == nullptr) {
     BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
     return false;
+  }
+
+  if (GS(id->name) == ID_ME) {
+    Mesh *mesh = reinterpret_cast<Mesh *>(id);
+    if (mesh->edit_mesh) {
+      if (!mesh_edit_mode_attribute_valid(
+              new_name, BKE_id_attribute_domain(id, layer), eCustomDataType(layer->type), reports))
+      {
+        return false;
+      }
+    }
   }
 
   std::string result_name = BKE_id_attribute_calc_unique_name(*id, new_name);
@@ -286,6 +327,9 @@ CustomDataLayer *BKE_id_attribute_new(ID *id,
   if (GS(id->name) == ID_ME) {
     Mesh *mesh = reinterpret_cast<Mesh *>(id);
     if (BMEditMesh *em = mesh->edit_mesh) {
+      if (!mesh_edit_mode_attribute_valid(name, domain, type, reports)) {
+        return nullptr;
+      }
       BM_data_layer_add_named(em->bm, customdata, type, uniquename.c_str());
       const int index = CustomData_get_named_layer_index(customdata, type, uniquename);
       return (index == -1) ? nullptr : &(customdata->layers[index]);

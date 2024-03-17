@@ -54,7 +54,7 @@ public:
 	 * \return The reader that reads the file.
 	 * \exception Exception Thrown if the file specified cannot be read.
 	 */
-	virtual std::shared_ptr<IReader> createReader(std::string filename, int stream = 0)=0;
+	virtual std::shared_ptr<IReader> createReader(const std::string &filename, int stream = 0)=0;
 
 	/**
 	 * Creates a reader for a file to be read from memory.
@@ -71,7 +71,7 @@ public:
 	 * \return A vector with as many streams as there are in the file.
 	 * \exception Exception Thrown if the file specified cannot be read.
 	 */
-	virtual std::vector<StreamInfo> queryStreams(std::string filename)=0;
+	virtual std::vector<StreamInfo> queryStreams(const std::string &filename)=0;
 
 	/**
 	 * Queries the streams of a sound file.

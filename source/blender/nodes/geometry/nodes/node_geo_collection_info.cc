@@ -160,7 +160,7 @@ static void node_rna(StructRNA *srna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  RNA_def_node_enum(
+  PropertyRNA *prop = RNA_def_node_enum(
       srna,
       "transform_space",
       "Transform Space",
@@ -168,6 +168,7 @@ static void node_rna(StructRNA *srna)
       rna_node_geometry_collection_info_transform_space_items,
       NOD_storage_enum_accessors(transform_space),
       GEO_NODE_TRANSFORM_SPACE_ORIGINAL);
+  RNA_def_property_update_runtime(prop, rna_Node_update_relations);
 }
 
 static void node_register()

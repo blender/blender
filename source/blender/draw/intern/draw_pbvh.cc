@@ -320,6 +320,21 @@ static const CustomData *get_cdata(bke::AttrDomain domain, const PBVH_GPU_Args &
   }
 }
 
+template<typename T> T fallback_value_for_fill()
+{
+  return T();
+}
+
+template<> ColorGeometry4f fallback_value_for_fill()
+{
+  return ColorGeometry4f(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
+template<> ColorGeometry4b fallback_value_for_fill()
+{
+  return fallback_value_for_fill<ColorGeometry4f>().encode();
+}
+
 struct PBVHBatches {
   Vector<PBVHVbo> vbos;
   Map<std::string, PBVHBatch> batches;
@@ -587,7 +602,7 @@ struct PBVHBatches {
         if constexpr (!std::is_void_v<VBOType>) {
           std::fill_n(static_cast<VBOType *>(GPU_vertbuf_get_data(vbo.vert_buf)),
                       GPU_vertbuf_get_vertex_len(vbo.vert_buf),
-                      VBOType());
+                      Converter::convert(fallback_value_for_fill<T>()));
         }
       });
     }

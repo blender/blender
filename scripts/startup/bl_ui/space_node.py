@@ -407,7 +407,7 @@ class NODE_PT_material_slots(Panel):
             iface_("Slot")
         )
 
-    # Duplicate part of 'EEVEE_MATERIAL_PT_context_material'.
+    # Duplicate part of `EEVEE_MATERIAL_PT_context_material`.
     def draw(self, context):
         layout = self.layout
         row = layout.row()
@@ -933,7 +933,7 @@ class NODE_PT_node_tree_interface(Panel):
                         if 'OUTPUT' in active_item.in_out:
                             layout.prop(active_item, "attribute_domain")
                         layout.prop(active_item, "default_attribute_name")
-                if hasattr(active_item, 'draw'):
+                if hasattr(active_item, "draw"):
                     active_item.draw(context, layout)
 
             if active_item.item_type == 'PANEL':
@@ -1086,7 +1086,7 @@ class NODE_PT_repeat_zone_items(Panel):
         if snode is None:
             return False
         node = context.active_node
-        if node is None or node.bl_idname not in (cls.input_node_type, cls.output_node_type):
+        if node is None or node.bl_idname not in {cls.input_node_type, cls.output_node_type}:
             return False
         if cls.get_output_node(context) is None:
             return False

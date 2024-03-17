@@ -17,7 +17,6 @@ int system_console_width();
 
 std::string system_cpu_brand_string();
 int system_cpu_bits();
-bool system_cpu_support_sse2();
 bool system_cpu_support_sse42();
 bool system_cpu_support_avx2();
 

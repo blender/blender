@@ -128,6 +128,12 @@ class IndexMaskSegment : public OffsetSpan<int64_t, int16_t> {
 
   IndexMaskSegment slice(const IndexRange &range) const;
   IndexMaskSegment slice(const int64_t start, const int64_t size) const;
+
+  /**
+   * Get a new segment where each index is modified by the given amount. This works in constant
+   * time, because only the offset value is changed.
+   */
+  IndexMaskSegment shift(const int64_t shift) const;
 };
 
 /**
@@ -423,7 +429,7 @@ class IndexMask : private IndexMaskData {
   /**
    * Set the bits at indices in the mask to 1 and all other bits to 0.
    */
-  void to_bits(MutableBitSpan r_bits) const;
+  void to_bits(MutableBitSpan r_bits, int64_t offset = 0) const;
   /**
    * Set the bools at indices in the mask to true and all others to false.
    */
@@ -534,6 +540,16 @@ inline void masked_fill(MutableSpan<T> data, const T &value, const IndexMask &ma
  */
 template<typename T> void build_reverse_map(const IndexMask &mask, MutableSpan<T> r_map);
 
+/**
+ * Joins segments together based on heuristics. Generally, one wants as few segments as possible,
+ * but one also wants full-range-segments if possible and we don't want to copy too many indices
+ * around to reduce the number of segments.
+ *
+ * \return Number of consolidated segments. Those are ordered to the beginning of the span.
+ */
+int64_t consolidate_index_mask_segments(MutableSpan<IndexMaskSegment> segments,
+                                        IndexMaskMemory &memory);
+
 /* -------------------------------------------------------------------- */
 /** \name #RawMaskIterator Inline Methods
  * \{ */
@@ -566,6 +582,12 @@ inline IndexMaskSegment IndexMaskSegment::slice(const int64_t start, const int64
 {
   return IndexMaskSegment(
       static_cast<const OffsetSpan<int64_t, int16_t> *>(this)->slice(start, size));
+}
+
+inline IndexMaskSegment IndexMaskSegment::shift(const int64_t shift) const
+{
+  BLI_assert(this->is_empty() || (*this)[0] + shift >= 0);
+  return IndexMaskSegment(this->offset() + shift, this->base_span());
 }
 
 /* -------------------------------------------------------------------- */

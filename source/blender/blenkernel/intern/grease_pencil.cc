@@ -7,9 +7,11 @@
  */
 
 #include <iostream>
+#include <optional>
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
+#include "BKE_animsys.h"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
@@ -49,6 +51,7 @@
 #include "DNA_ID.h"
 #include "DNA_ID_enums.h"
 #include "DNA_brush_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
@@ -87,6 +90,7 @@ static void grease_pencil_init_data(ID *id)
 }
 
 static void grease_pencil_copy_data(Main * /*bmain*/,
+                                    std::optional<Library *> /*owner_library*/,
                                     ID *id_dst,
                                     const ID *id_src,
                                     const int /*flag*/)
@@ -263,6 +267,9 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
                                             const T default_value = T())
 {
   const int num = domain_num(curves, domain);
+  if (num <= 0) {
+    return {};
+  }
   const eCustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
   CustomData &custom_data = domain_custom_data(curves, domain);
 
@@ -272,7 +279,7 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
   }
   data = (T *)CustomData_add_layer_named(&custom_data, type, CD_SET_DEFAULT, num, name);
   MutableSpan<T> span = {data, num};
-  if (num > 0 && span.first() != default_value) {
+  if (span.first() != default_value) {
     span.fill(default_value);
   }
   return span;
@@ -622,14 +629,12 @@ LayerMask::LayerMask()
 
 LayerMask::LayerMask(StringRefNull name) : LayerMask()
 {
-  this->layer_name = BLI_strdup(name.c_str());
+  this->layer_name = BLI_strdup_null(name.c_str());
 }
 
 LayerMask::LayerMask(const LayerMask &other) : LayerMask()
 {
-  if (other.layer_name) {
-    this->layer_name = BLI_strdup(other.layer_name);
-  }
+  this->layer_name = BLI_strdup_null(other.layer_name);
   this->flag = other.flag;
 }
 
@@ -666,7 +671,10 @@ Layer::Layer()
   zero_v3(this->rotation);
   copy_v3_fl(this->scale, 1.0f);
 
+  this->viewlayername = nullptr;
+
   BLI_listbase_clear(&this->masks);
+  this->active_mask_index = 0;
 
   this->runtime = MEM_new<LayerRuntime>(__func__);
 }
@@ -680,9 +688,11 @@ Layer::Layer(const Layer &other) : Layer()
 {
   new (&this->base) TreeNode(other.base.wrap());
 
-  /* TODO: duplicate masks. */
-
-  /* Note: We do not duplicate the frame storage since it is only needed for writing to file. */
+  LISTBASE_FOREACH (GreasePencilLayerMask *, other_mask, &other.masks) {
+    LayerMask *new_mask = MEM_new<LayerMask>(__func__, *reinterpret_cast<LayerMask *>(other_mask));
+    BLI_addtail(&this->masks, reinterpret_cast<GreasePencilLayerMask *>(new_mask));
+  }
+  this->active_mask_index = other.active_mask_index;
 
   this->blend_mode = other.blend_mode;
   this->opacity = other.opacity;
@@ -694,8 +704,14 @@ Layer::Layer(const Layer &other) : Layer()
   copy_v3_v3(this->rotation, other.rotation);
   copy_v3_v3(this->scale, other.scale);
 
+  this->set_view_layer_name(other.viewlayername);
+
+  /* Note: We do not duplicate the frame storage since it is only needed for writing to file. */
   this->runtime->frames_ = other.runtime->frames_;
   this->runtime->sorted_keys_cache_ = other.runtime->sorted_keys_cache_;
+  /* Tag the frames map, so the frame storage is recreated once the DNA is saved.*/
+  this->tag_frames_map_changed();
+
   /* TODO: what about masks cache? */
 }
 
@@ -707,11 +723,12 @@ Layer::~Layer()
   MEM_SAFE_FREE(this->frames_storage.values);
 
   LISTBASE_FOREACH_MUTABLE (GreasePencilLayerMask *, mask, &this->masks) {
-    MEM_SAFE_FREE(mask->layer_name);
-    MEM_freeN(mask);
+    MEM_delete(reinterpret_cast<LayerMask *>(mask));
   }
+  BLI_listbase_clear(&this->masks);
 
   MEM_SAFE_FREE(this->parsubstr);
+  MEM_SAFE_FREE(this->viewlayername);
 
   MEM_delete(this->runtime);
   this->runtime = nullptr;
@@ -1005,6 +1022,19 @@ float4x4 Layer::local_transform() const
 {
   return math::from_loc_rot_scale<float4x4, math::EulerXYZ>(
       float3(this->translation), float3(this->rotation), float3(this->scale));
+}
+
+StringRefNull Layer::view_layer_name() const
+{
+  return (this->viewlayername != nullptr) ? StringRefNull(this->viewlayername) : StringRefNull();
+}
+
+void Layer::set_view_layer_name(const char *new_name)
+{
+  if (this->viewlayername != nullptr) {
+    MEM_freeN(this->viewlayername);
+  }
+  this->viewlayername = BLI_strdup_null(new_name);
 }
 
 LayerGroup::LayerGroup()
@@ -1368,11 +1398,32 @@ static void grease_pencil_evaluate_modifiers(Depsgraph *depsgraph,
   VirtualModifierData virtualModifierData;
   ModifierData *md = BKE_modifiers_get_virtual_modifierlist(object, &virtualModifierData);
 
-  /* Evaluate modifiers. */
+  /* Evaluate time modifiers.
+   * The time offset modifier can change what drawings are shown on the current frame. But it
+   * doesn't affect the drawings data. Modifiers that modify the drawings data are only evaluated
+   * for the current frame, so we run the time offset modifiers before all the other ones. */
+  ModifierData *tmd = md;
+  for (; tmd; tmd = tmd->next) {
+    const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(tmd->type));
+
+    if (!BKE_modifier_is_enabled(scene, tmd, required_mode) ||
+        ModifierType(tmd->type) != eModifierType_GreasePencilTime)
+    {
+      continue;
+    }
+
+    if (mti->modify_geometry_set != nullptr) {
+      mti->modify_geometry_set(tmd, &mectx, &geometry_set);
+    }
+  }
+
+  /* Evaluate drawing modifiers. */
   for (; md; md = md->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
 
-    if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
+    if (!BKE_modifier_is_enabled(scene, md, required_mode) ||
+        ModifierType(md->type) == eModifierType_GreasePencilTime)
+    {
       continue;
     }
 
@@ -2016,30 +2067,37 @@ void GreasePencil::move_duplicate_frames(
   Map<int, GreasePencilFrame> layer_frames_copy = layer.frames();
 
   /* Copy frames durations. */
-  Map<int, int> layer_frames_durations;
+  Map<int, int> src_layer_frames_durations;
   for (const auto [frame_number, frame] : layer.frames().items()) {
     if (!frame.is_implicit_hold()) {
-      layer_frames_durations.add(frame_number, layer.get_frame_duration_at(frame_number));
+      src_layer_frames_durations.add(frame_number, layer.get_frame_duration_at(frame_number));
     }
   }
 
-  for (const auto [src_frame_number, dst_frame_number] : frame_number_destinations.items()) {
-    const bool use_duplicate = duplicate_frames.contains(src_frame_number);
-
-    const Map<int, GreasePencilFrame> &frame_map = use_duplicate ? duplicate_frames :
-                                                                   layer_frames_copy;
-
-    if (!frame_map.contains(src_frame_number)) {
-      continue;
-    }
-
-    const GreasePencilFrame src_frame = frame_map.lookup(src_frame_number);
-    const int drawing_index = src_frame.drawing_index;
-    const int duration = layer_frames_durations.lookup_default(src_frame_number, 0);
-
-    if (!use_duplicate) {
+  /* Remove original frames for duplicates before inserting any frames.
+   * This has to be done early to avoid removing frames that may be inserted
+   * in place of the source frames. */
+  for (const auto src_frame_number : frame_number_destinations.keys()) {
+    if (!duplicate_frames.contains(src_frame_number)) {
+      /* User count not decremented here, the same frame is inserted again later. */
       layer.remove_frame(src_frame_number);
     }
+  }
+
+  auto get_source_frame = [&](const int frame_number) -> const GreasePencilFrame * {
+    if (const GreasePencilFrame *ptr = duplicate_frames.lookup_ptr(frame_number)) {
+      return ptr;
+    }
+    return layer_frames_copy.lookup_ptr(frame_number);
+  };
+
+  for (const auto [src_frame_number, dst_frame_number] : frame_number_destinations.items()) {
+    const GreasePencilFrame *src_frame = get_source_frame(src_frame_number);
+    if (!src_frame) {
+      continue;
+    }
+    const int drawing_index = src_frame->drawing_index;
+    const int duration = src_layer_frames_durations.lookup_default(src_frame_number, 0);
 
     /* Add and overwrite the frame at the destination number. */
     if (layer.frames().contains(dst_frame_number)) {
@@ -2051,7 +2109,7 @@ void GreasePencil::move_duplicate_frames(
       layer.remove_frame(dst_frame_number);
     }
     GreasePencilFrame *frame = layer.add_frame(dst_frame_number, drawing_index, duration);
-    *frame = src_frame;
+    *frame = *src_frame;
   }
 
   /* Remove drawings if they no longer have users. */
@@ -2471,8 +2529,21 @@ void GreasePencil::rename_node(blender::bke::greasepencil::TreeNode &node,
   if (node.name() == new_name) {
     return;
   }
-  node.set_name(node.is_layer() ? unique_layer_name(*this, new_name) :
-                                  unique_layer_group_name(*this, new_name));
+  std::string old_name = node.name();
+  if (node.is_layer()) {
+    node.set_name(unique_layer_name(*this, new_name));
+    BKE_animdata_fix_paths_rename_all(&this->id, "layers", old_name.c_str(), node.name().c_str());
+    for (bke::greasepencil::Layer *layer : this->layers_for_write()) {
+      LISTBASE_FOREACH (GreasePencilLayerMask *, mask, &layer->masks) {
+        if (STREQ(mask->layer_name, old_name.c_str())) {
+          mask->layer_name = BLI_strdup(node.name().c_str());
+        }
+      }
+    }
+  }
+  else if (node.is_group()) {
+    node.set_name(unique_layer_group_name(*this, new_name));
+  }
 }
 
 static void shrink_customdata(CustomData &data, const int index_to_remove, const int size)
@@ -2644,6 +2715,7 @@ static void read_layer(BlendDataReader *reader,
   BLO_read_data_address(reader, &node->base.name);
   node->base.parent = parent;
   BLO_read_data_address(reader, &node->parsubstr);
+  BLO_read_data_address(reader, &node->viewlayername);
 
   /* Read frames storage. */
   BLO_read_int32_array(reader, node->frames_storage.num, &node->frames_storage.keys);
@@ -2712,6 +2784,7 @@ static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
   BLO_write_struct(writer, GreasePencilLayer, node);
   BLO_write_string(writer, node->base.name);
   BLO_write_string(writer, node->parsubstr);
+  BLO_write_string(writer, node->viewlayername);
 
   BLO_write_int32_array(writer, node->frames_storage.num, node->frames_storage.keys);
   BLO_write_struct_array(
@@ -2748,5 +2821,3 @@ static void write_layer_tree(GreasePencil &grease_pencil, BlendWriter *writer)
   grease_pencil.root_group_ptr->wrap().prepare_for_dna_write();
   write_layer_tree_group(writer, grease_pencil.root_group_ptr);
 }
-
-/** \} */

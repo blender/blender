@@ -82,7 +82,7 @@ class StepDrawingGeometryBase {
    * Mismatch in drawing types can happen when some drawings have been deleted between the undo
    * step storage, and the current state of the GreasePencil data.
    */
-  void decode_valid_drawingtype_at_index_ensure(MutableSpan<GreasePencilDrawingBase *> &drawings,
+  void decode_valid_drawingtype_at_index_ensure(MutableSpan<GreasePencilDrawingBase *> drawings,
                                                 const GreasePencilDrawingType drawing_type) const
   {
     /* TODO: Maybe that code should rather be part of GreasePencil:: API, together with
@@ -290,6 +290,11 @@ class StepObject {
   }
 
  public:
+  ~StepObject()
+  {
+    CustomData_free(&layers_data_, layers_num_);
+  }
+
   void encode(Object *ob, StepEncodeStatus &encode_status)
   {
     const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);

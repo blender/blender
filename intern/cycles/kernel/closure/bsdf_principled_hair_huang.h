@@ -1,8 +1,8 @@
 /* SPDX-FileCopyrightText: 2023 Blender Foundation
  *
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: Apache-2.0 */
 
- * This code implements the paper [A Microfacet-based Hair Scattering
+/* This code implements the paper [A Microfacet-based Hair Scattering
  * Model](https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.14588) by Weizhen Huang, Matthias B.
  * Hullin and Johannes Hanika. */
 
@@ -205,8 +205,8 @@ ccl_device int bsdf_hair_huang_setup(ccl_private ShaderData *sd,
   bsdf->tilt = -bsdf->tilt;
 
   /* Compute local frame. The Y axis is aligned with the curve tangent; the X axis is perpendicular
-   to the ray direction for circular cross-sections, or aligned with the major axis for elliptical
-   cross-sections. */
+   * to the ray direction for circular cross-sections, or aligned with the major axis for
+   * elliptical cross-sections. */
   bsdf->extra->Y = safe_normalize(sd->dPdu);
   const float3 X = safe_normalize(cross(sd->dPdu, sd->wi));
 

@@ -10,7 +10,6 @@
 
 #include <string>
 
-#include <Alembic/Abc/OArchive.h>
 #include <Alembic/Abc/OObject.h>
 
 struct Depsgraph;

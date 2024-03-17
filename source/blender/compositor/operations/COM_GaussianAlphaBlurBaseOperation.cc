@@ -18,20 +18,16 @@ GaussianAlphaBlurBaseOperation::GaussianAlphaBlurBaseOperation(eDimension dim)
 void GaussianAlphaBlurBaseOperation::init_data()
 {
   BlurBaseOperation::init_data();
-  if (execution_model_ == eExecutionModel::FullFrame) {
-    rad_ = max_ff(size_ * this->get_blur_size(dimension_), 0.0f);
-    rad_ = min_ff(rad_, MAX_GAUSSTAB_RADIUS);
-    filtersize_ = min_ii(ceil(rad_), MAX_GAUSSTAB_RADIUS);
-  }
+  rad_ = max_ff(size_ * this->get_blur_size(dimension_), 0.0f);
+  rad_ = min_ff(rad_, MAX_GAUSSTAB_RADIUS);
+  filtersize_ = min_ii(ceil(rad_), MAX_GAUSSTAB_RADIUS);
 }
 
 void GaussianAlphaBlurBaseOperation::init_execution()
 {
   BlurBaseOperation::init_execution();
-  if (execution_model_ == eExecutionModel::FullFrame) {
-    gausstab_ = BlurBaseOperation::make_gausstab(rad_, filtersize_);
-    distbuf_inv_ = BlurBaseOperation::make_dist_fac_inverse(rad_, filtersize_, falloff_);
-  }
+  gausstab_ = BlurBaseOperation::make_gausstab(rad_, filtersize_);
+  distbuf_inv_ = BlurBaseOperation::make_dist_fac_inverse(rad_, filtersize_, falloff_);
 }
 
 void GaussianAlphaBlurBaseOperation::deinit_execution()

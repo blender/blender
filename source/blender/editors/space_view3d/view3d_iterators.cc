@@ -284,7 +284,7 @@ static void meshobject_foreachScreenVert__mapFunc(void *user_data,
   data->func(data->user_data, screen_co, index);
 }
 
-void meshobject_foreachScreenVert(ViewContext *vc,
+void meshobject_foreachScreenVert(const ViewContext *vc,
                                   void (*func)(void *user_data,
                                                const float screen_co[2],
                                                int index),
@@ -337,7 +337,7 @@ static void mesh_foreachScreenVert__mapFunc(void *user_data,
 }
 
 void mesh_foreachScreenVert(
-    ViewContext *vc,
+    const ViewContext *vc,
     void (*func)(void *user_data, BMVert *eve, const float screen_co[2], int index),
     void *user_data,
     eV3DProjTest clip_flag)
@@ -398,7 +398,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *user_data,
   data->func(data->user_data, eed, screen_co_a, screen_co_b, index);
 }
 
-void mesh_foreachScreenEdge(ViewContext *vc,
+void mesh_foreachScreenEdge(const ViewContext *vc,
                             void (*func)(void *user_data,
                                          BMEdge *eed,
                                          const float screen_co_a[2],
@@ -488,7 +488,7 @@ static void mesh_foreachScreenEdge_clip_bb_segment__mapFunc(void *user_data,
   data->func(data->user_data, eed, screen_co_a, screen_co_b, index);
 }
 
-void mesh_foreachScreenEdge_clip_bb_segment(ViewContext *vc,
+void mesh_foreachScreenEdge_clip_bb_segment(const ViewContext *vc,
                                             void (*func)(void *user_data,
                                                          BMEdge *eed,
                                                          const float screen_co_a[2],
@@ -566,7 +566,7 @@ static void mesh_foreachScreenFace__mapFunc(void *user_data,
 }
 
 void mesh_foreachScreenFace(
-    ViewContext *vc,
+    const ViewContext *vc,
     void (*func)(void *user_data, BMFace *efa, const float screen_co_b[2], int index),
     void *user_data,
     const eV3DProjTest clip_flag)
@@ -603,7 +603,7 @@ void mesh_foreachScreenFace(
 /** \name Edit-Nurbs: For Each Screen Vertex
  * \{ */
 
-void nurbs_foreachScreenVert(ViewContext *vc,
+void nurbs_foreachScreenVert(const ViewContext *vc,
                              void (*func)(void *user_data,
                                           Nurb *nu,
                                           BPoint *bp,
@@ -702,7 +702,7 @@ void nurbs_foreachScreenVert(ViewContext *vc,
 /** \name Edit-Meta: For Each Screen Meta-Element
  * \{ */
 
-void mball_foreachScreenElem(ViewContext *vc,
+void mball_foreachScreenElem(const ViewContext *vc,
                              void (*func)(void *user_data,
                                           MetaElem *ml,
                                           const float screen_co_b[2]),
@@ -729,7 +729,7 @@ void mball_foreachScreenElem(ViewContext *vc,
 /** \name Edit-Lattice: For Each Screen Vertex
  * \{ */
 
-void lattice_foreachScreenVert(ViewContext *vc,
+void lattice_foreachScreenVert(const ViewContext *vc,
                                void (*func)(void *user_data, BPoint *bp, const float screen_co[2]),
                                void *user_data,
                                const eV3DProjTest clip_flag)
@@ -768,7 +768,7 @@ void lattice_foreachScreenVert(ViewContext *vc,
 /** \name Edit-Armature: For Each Screen Bone
  * \{ */
 
-void armature_foreachScreenBone(ViewContext *vc,
+void armature_foreachScreenBone(const ViewContext *vc,
                                 void (*func)(void *user_data,
                                              EditBone *ebone,
                                              const float screen_co_a[2],
@@ -836,7 +836,7 @@ void armature_foreachScreenBone(ViewContext *vc,
 /** \name Pose: For Each Screen Bone
  * \{ */
 
-void pose_foreachScreenBone(ViewContext *vc,
+void pose_foreachScreenBone(const ViewContext *vc,
                             void (*func)(void *user_data,
                                          bPoseChannel *pchan,
                                          const float screen_co_a[2],

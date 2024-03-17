@@ -644,7 +644,7 @@ typedef struct bNestedNodeRef {
  * The basis for a Node tree, all links and nodes reside internal here.
  *
  * Only re-usable node trees are in the library though,
- * materials and textures allocate own tree struct.
+ * materials and textures allocate their own tree struct.
  */
 typedef struct bNodeTree {
   ID id;
@@ -661,7 +661,7 @@ typedef struct bNodeTree {
 
   /** Grease pencil data. */
   struct bGPdata *gpd;
-  /** Node tree stores own offset for consistent editor view. */
+  /** Node tree stores its own offset for consistent editor view. */
   float view_center[2];
 
   ListBase nodes, links;
@@ -2546,6 +2546,7 @@ typedef enum CMPNodeGlareType {
   CMP_NODE_GLARE_FOG_GLOW = 1,
   CMP_NODE_GLARE_STREAKS = 2,
   CMP_NODE_GLARE_GHOST = 3,
+  CMP_NODE_GLARE_BLOOM = 4,
 } CMPNodeGlareType;
 
 /* Kuwahara Node. Stored in variation */
@@ -2653,12 +2654,6 @@ typedef enum GeometryNodeProximityTargetType {
   GEO_NODE_PROX_TARGET_EDGES = 1,
   GEO_NODE_PROX_TARGET_FACES = 2,
 } GeometryNodeProximityTargetType;
-
-typedef enum GeometryNodeBooleanOperation {
-  GEO_NODE_BOOLEAN_INTERSECT = 0,
-  GEO_NODE_BOOLEAN_UNION = 1,
-  GEO_NODE_BOOLEAN_DIFFERENCE = 2,
-} GeometryNodeBooleanOperation;
 
 typedef enum GeometryNodeCurvePrimitiveCircleMode {
   GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS = 0,

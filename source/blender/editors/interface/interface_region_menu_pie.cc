@@ -154,26 +154,12 @@ uiPieMenu *UI_pie_menu_begin(bContext *C, const char *title, int icon, const wmE
                              nullptr,
                              0.0,
                              0.0,
-                             0,
-                             0,
                              "");
     }
     else {
       w = ui_pie_menu_title_width(title, 0);
-      but = uiDefBut(pie->block_radial,
-                     UI_BTYPE_LABEL,
-                     0,
-                     title,
-                     0,
-                     0,
-                     w,
-                     UI_UNIT_Y,
-                     nullptr,
-                     0.0,
-                     0.0,
-                     0,
-                     0,
-                     "");
+      but = uiDefBut(
+          pie->block_radial, UI_BTYPE_LABEL, 0, title, 0, 0, w, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
     }
     /* do not align left */
     but->drawflag &= ~UI_BUT_TEXT_LEFT;
@@ -391,8 +377,6 @@ void ui_pie_menu_level_create(uiBlock *block,
                                 UI_UNIT_X * 3,
                                 UI_UNIT_Y,
                                 nullptr,
-                                0.0f,
-                                0.0f,
                                 0.0f,
                                 0.0f,
                                 "Show more items of this menu");

@@ -550,13 +550,11 @@ void COM_convert_canvas(NodeOperationBuilder &builder,
     builder.add_operation(syop);
 
     rcti scale_canvas = from_operation->get_canvas();
-    if (builder.context().get_execution_model() == eExecutionModel::FullFrame) {
-      ScaleOperation::scale_area(scale_canvas, scaleX, scaleY);
-      scale_canvas.xmax = scale_canvas.xmin + to_operation->get_width();
-      scale_canvas.ymax = scale_canvas.ymin + to_operation->get_height();
-      addX = 0;
-      addY = 0;
-    }
+    ScaleOperation::scale_area(scale_canvas, scaleX, scaleY);
+    scale_canvas.xmax = scale_canvas.xmin + to_operation->get_width();
+    scale_canvas.ymax = scale_canvas.ymin + to_operation->get_height();
+    addX = 0;
+    addY = 0;
     scale_operation->set_canvas(scale_canvas);
     sxop->set_canvas(scale_canvas);
     syop->set_canvas(scale_canvas);

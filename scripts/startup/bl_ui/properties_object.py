@@ -402,7 +402,7 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
                 col.prop(ob, "hide_probe_sphere", text="Sphere", toggle=False, invert_checkbox=True)
                 col.prop(ob, "hide_probe_plane", text="Plane", toggle=False, invert_checkbox=True)
 
-        if ob.type == 'GPENCIL':
+        if ob.type in {'GPENCIL', 'GREASEPENCIL'}:
             col = layout.column(heading="Grease Pencil")
             col.prop(ob, "use_grease_pencil_lights", toggle=False)
 

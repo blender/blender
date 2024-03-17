@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -99,6 +100,7 @@ static void particle_settings_init(ID *id)
 }
 
 static void particle_settings_copy_data(Main * /*bmain*/,
+                                        std::optional<Library *> /*owner_library*/,
                                         ID *id_dst,
                                         const ID *id_src,
                                         const int /*flag*/)

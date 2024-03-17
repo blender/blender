@@ -803,12 +803,12 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 static blender::float3 paint_init_pivot_mesh(Object *ob)
 {
   using namespace blender;
-  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
-  if (!me_eval) {
-    me_eval = (const Mesh *)ob->data;
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
+  if (!mesh_eval) {
+    mesh_eval = (const Mesh *)ob->data;
   }
 
-  const std::optional<Bounds<float3>> bounds = me_eval->bounds_min_max();
+  const std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max();
   if (!bounds) {
     return float3(0.0f);
   }

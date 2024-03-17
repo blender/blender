@@ -38,23 +38,20 @@ void AbstractView::update_from_old(uiBlock &new_block)
     return;
   }
 
-  uiViewHandle *old_view_handle = ui_block_view_find_matching_in_old_block(
-      &new_block, reinterpret_cast<uiViewHandle *>(this));
-  if (old_view_handle == nullptr) {
+  AbstractView *old_view = ui_block_view_find_matching_in_old_block(new_block, *this);
+  if (old_view == nullptr) {
     /* Initial construction, nothing to update. */
     is_reconstructed_ = true;
     return;
   }
 
-  AbstractView &old_view = reinterpret_cast<AbstractView &>(*old_view_handle);
-
   /* Update own persistent data. */
   /* Keep the rename buffer persistent while renaming! The rename button uses the buffer's
    * pointer to identify itself over redraws. */
-  rename_buffer_ = std::move(old_view.rename_buffer_);
-  old_view.rename_buffer_ = nullptr;
+  rename_buffer_ = std::move(old_view->rename_buffer_);
+  old_view->rename_buffer_ = nullptr;
 
-  update_children_from_old(old_view);
+  this->update_children_from_old(*old_view);
 
   /* Finished (re-)constructing the tree. */
   is_reconstructed_ = true;
@@ -69,7 +66,7 @@ void AbstractView::update_from_old(uiBlock &new_block)
 void AbstractView::change_state_delayed()
 {
   BLI_assert_msg(
-      is_reconstructed(),
+      this->is_reconstructed(),
       "These state changes are supposed to be delayed until reconstruction is completed");
 
 /* Debug-only sanity check: Ensure only one item requests to be active. */
@@ -85,7 +82,7 @@ void AbstractView::change_state_delayed()
   });
 #endif
 
-  foreach_view_item([](AbstractViewItem &item) { item.change_state_delayed(); });
+  this->foreach_view_item([](AbstractViewItem &item) { item.change_state_delayed(); });
 }
 
 /** \} */
@@ -129,7 +126,7 @@ bool AbstractView::is_renaming() const
 
 bool AbstractView::begin_renaming()
 {
-  if (is_renaming()) {
+  if (this->is_renaming()) {
     return false;
   }
 
@@ -160,25 +157,3 @@ std::optional<rcti> AbstractView::get_bounds() const
 /** \} */
 
 }  // namespace blender::ui
-
-/* ---------------------------------------------------------------------- */
-/** \name General API functions
- * \{ */
-
-namespace blender::ui {
-
-std::unique_ptr<DropTargetInterface> view_drop_target(uiViewHandle *view_handle)
-{
-  AbstractView &view = reinterpret_cast<AbstractView &>(*view_handle);
-  return view.create_drop_target();
-}
-
-}  // namespace blender::ui
-
-bool UI_view_begin_filtering(const bContext *C, const uiViewHandle *view_handle)
-{
-  const ui::AbstractView &view = reinterpret_cast<const ui::AbstractView &>(*view_handle);
-  return view.begin_filtering(*C);
-}
-
-/** \} */

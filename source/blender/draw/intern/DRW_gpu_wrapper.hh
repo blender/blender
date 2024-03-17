@@ -75,7 +75,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_storage_buffer.h"
 #include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 
 namespace blender::draw {
 
@@ -462,7 +462,7 @@ class StorageVectorBuffer : public StorageArrayBuffer<T, len, false> {
     new (ptr) T(std::forward<ForwardT>(value)...);
   }
 
-  void extend(const Span<T> &values)
+  void extend(const Span<T> values)
   {
     /* TODO(fclem): Optimize to a single memcpy. */
     for (auto v : values) {

@@ -317,8 +317,7 @@ void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  PropertyRNA *prop = RNA_def_boolean(ot->srna, "select", true, "Select", "");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
 static int object_hide_view_set_exec(bContext *C, wmOperator *op)
@@ -1299,7 +1298,8 @@ static int object_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEv
 
   /* show popup dialog to allow editing of range... */
   /* FIXME: hard-coded dimensions here are just arbitrary. */
-  return WM_operator_props_dialog_popup(C, op, 270);
+  return WM_operator_props_dialog_popup(
+      C, op, 270, IFACE_("Calculate Object Motion Paths"), IFACE_("Calculate"));
 }
 
 /* Calculate/recalculate whole paths (avs.path_sf to avs.path_ef) */
@@ -1613,6 +1613,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
         const float angle = RNA_float_get(op->ptr, "angle");
         bke::mesh_sharp_edges_set_from_angle(mesh, angle, keep_sharp_edges);
       }
+      mesh.tag_sharpness_changed();
       BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
     }
@@ -1858,6 +1859,13 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
           }
         }
       }
+    }
+  }
+
+  wmWindowManager *wm = CTX_wm_manager(C);
+  if (wm) {
+    if (WM_autosave_is_scheduled(wm)) {
+      WM_autosave_write(wm, CTX_data_main(C));
     }
   }
 
@@ -2158,7 +2166,8 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
         BKE_collection_new_name_get(collection, name);
 
         RNA_property_string_set(op->ptr, prop, name);
-        return WM_operator_props_dialog_popup(C, op, 200);
+        return WM_operator_props_dialog_popup(
+            C, op, 200, IFACE_("Move to New Collection"), IFACE_("Create"));
       }
     }
     return move_to_collection_exec(C, op);

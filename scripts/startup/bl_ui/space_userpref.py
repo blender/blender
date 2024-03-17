@@ -247,7 +247,7 @@ class USERPREF_PT_interface_text(InterfacePanel, CenterAlignMixIn, Panel):
 
 
 class USERPREF_PT_interface_translation(InterfacePanel, CenterAlignMixIn, Panel):
-    bl_label = "Translation"
+    bl_label = "Language"
     bl_translation_context = i18n_contexts.id_windowmanager
 
     @classmethod
@@ -260,7 +260,7 @@ class USERPREF_PT_interface_translation(InterfacePanel, CenterAlignMixIn, Panel)
 
         layout.prop(view, "language")
 
-        col = layout.column(heading="Affect")
+        col = layout.column(heading="Translate")
         col.active = (bpy.app.translations.locale != "en_US")
         col.prop(view, "use_translate_tooltips", text="Tooltips")
         col.prop(view, "use_translate_interface", text="Interface")
@@ -876,7 +876,7 @@ class USERPREF_PT_theme(ThemePanel, Panel):
         row = split.row(align=True)
         row.menu("USERPREF_MT_interface_theme_presets", text=USERPREF_MT_interface_theme_presets.bl_label)
         row.operator("wm.interface_theme_preset_add", text="", icon='ADD')
-        row.operator("wm.interface_theme_preset_add", text="", icon='REMOVE').remove_active = True
+        row.operator("wm.interface_theme_preset_remove", text="", icon='REMOVE')
 
         row = split.row(align=True)
         row.operator("preferences.theme_install", text="Install...", icon='IMPORT')
@@ -1021,8 +1021,7 @@ class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMix
         theme = context.preferences.themes[0]
         ui = theme.user_interface
 
-        flow = layout.grid_flow(
-            row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column(align=True)
         col.prop(ui, "transparent_checker_primary")
@@ -1597,7 +1596,7 @@ class USERPREF_UL_asset_libraries(UIList):
 class USERPREF_UL_extension_repos(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         repo = item
-        icon = 'NETWORK_DRIVE' if repo.use_remote_path else 'DISK_DRIVE'
+        icon = 'INTERNET' if repo.use_remote_path else 'DISK_DRIVE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(repo, "name", text="", icon=icon, emboss=False)
         elif self.layout_type == 'GRID':
@@ -2074,6 +2073,8 @@ class USERPREF_PT_extensions_repos(Panel):
 
         paths = context.preferences.filepaths
         active_repo_index = paths.active_extension_repo
+
+        layout.label(text="Repositories")
 
         row = layout.row()
 
@@ -2694,6 +2695,7 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_new_matrix_socket"}, ("blender/blender/issues/116067", "Matrix Socket")),
                 ({"property": "enable_overlay_next"}, ("blender/blender/issues/102179", "#102179")),
                 ({"property": "use_extension_repos"}, ("/blender/blender/issues/117286", "#117286")),
+                ({"property": "use_extension_utils"}, ("/blender/blender/issues/117286", "#117286")),
             ),
         )
 

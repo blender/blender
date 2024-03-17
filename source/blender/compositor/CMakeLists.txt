@@ -22,7 +22,6 @@ if(WITH_COMPOSITOR_CPU)
     ../nodes/intern
     ../render
     ../render/intern
-    ../../../extern/clew/include
 
     # RNA_prototypes.h
     ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -38,16 +37,10 @@ if(WITH_COMPOSITOR_CPU)
     COM_profile.hh
 
     intern/COM_BufferArea.h
-    intern/COM_BufferOperation.cc
-    intern/COM_BufferOperation.h
     intern/COM_BufferRange.h
     intern/COM_BuffersIterator.h
     intern/COM_CPUDevice.cc
     intern/COM_CPUDevice.h
-    intern/COM_ChunkOrder.cc
-    intern/COM_ChunkOrder.h
-    intern/COM_ChunkOrderHotspot.cc
-    intern/COM_ChunkOrderHotspot.h
     intern/COM_CompositorContext.cc
     intern/COM_CompositorContext.h
     intern/COM_ConstantFolder.cc
@@ -60,8 +53,6 @@ if(WITH_COMPOSITOR_CPU)
     intern/COM_Device.h
     intern/COM_Enums.cc
     intern/COM_Enums.h
-    intern/COM_ExecutionGroup.cc
-    intern/COM_ExecutionGroup.h
     intern/COM_ExecutionModel.cc
     intern/COM_ExecutionModel.h
     intern/COM_ExecutionSystem.cc
@@ -70,8 +61,6 @@ if(WITH_COMPOSITOR_CPU)
     intern/COM_FullFrameExecutionModel.h
     intern/COM_MemoryBuffer.cc
     intern/COM_MemoryBuffer.h
-    intern/COM_MemoryProxy.cc
-    intern/COM_MemoryProxy.h
     intern/COM_MetaData.cc
     intern/COM_MetaData.h
     intern/COM_MultiThreadedOperation.cc
@@ -88,15 +77,8 @@ if(WITH_COMPOSITOR_CPU)
     intern/COM_NodeOperation.h
     intern/COM_NodeOperationBuilder.cc
     intern/COM_NodeOperationBuilder.h
-    intern/COM_OpenCLDevice.cc
-    intern/COM_OpenCLDevice.h
     intern/COM_SharedOperationBuffers.cc
     intern/COM_SharedOperationBuffers.h
-    intern/COM_SingleThreadedOperation.cc
-    intern/COM_SingleThreadedOperation.h
-    intern/COM_TiledExecutionModel.cc
-    intern/COM_TiledExecutionModel.h
-    intern/COM_WorkPackage.cc
     intern/COM_WorkPackage.h
     intern/COM_WorkScheduler.cc
     intern/COM_WorkScheduler.h
@@ -335,18 +317,10 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_GammaCorrectOperation.h
     operations/COM_GaussianAlphaBlurBaseOperation.cc
     operations/COM_GaussianAlphaBlurBaseOperation.h
-    operations/COM_GaussianAlphaXBlurOperation.cc
-    operations/COM_GaussianAlphaXBlurOperation.h
-    operations/COM_GaussianAlphaYBlurOperation.cc
-    operations/COM_GaussianAlphaYBlurOperation.h
     operations/COM_GaussianBlurBaseOperation.cc
     operations/COM_GaussianBlurBaseOperation.h
     operations/COM_GaussianBokehBlurOperation.cc
     operations/COM_GaussianBokehBlurOperation.h
-    operations/COM_GaussianXBlurOperation.cc
-    operations/COM_GaussianXBlurOperation.h
-    operations/COM_GaussianYBlurOperation.cc
-    operations/COM_GaussianYBlurOperation.h
     operations/COM_KuwaharaAnisotropicOperation.cc
     operations/COM_KuwaharaAnisotropicOperation.h
     operations/COM_KuwaharaAnisotropicStructureTensorOperation.cc
@@ -473,16 +447,12 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_GammaOperation.h
     operations/COM_MixOperation.cc
     operations/COM_MixOperation.h
-    operations/COM_ReadBufferOperation.cc
-    operations/COM_ReadBufferOperation.h
     operations/COM_SetColorOperation.cc
     operations/COM_SetColorOperation.h
     operations/COM_SetValueOperation.cc
     operations/COM_SetValueOperation.h
     operations/COM_SetVectorOperation.cc
     operations/COM_SetVectorOperation.h
-    operations/COM_WriteBufferOperation.cc
-    operations/COM_WriteBufferOperation.h
 
     operations/COM_MathBaseOperation.cc
     operations/COM_MathBaseOperation.h
@@ -536,8 +506,6 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_TransformOperation.h
     operations/COM_TranslateOperation.cc
     operations/COM_TranslateOperation.h
-    operations/COM_WrapOperation.cc
-    operations/COM_WrapOperation.h
 
     # Filter operations
     operations/COM_ConvolutionEdgeFilterOperation.cc
@@ -552,6 +520,8 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_DilateErodeOperation.h
     operations/COM_GlareBaseOperation.cc
     operations/COM_GlareBaseOperation.h
+    operations/COM_GlareBloomOperation.cc
+    operations/COM_GlareBloomOperation.h
     operations/COM_GlareFogGlowOperation.cc
     operations/COM_GlareFogGlowOperation.h
     operations/COM_GlareGhostOperation.cc
@@ -607,22 +577,12 @@ if(WITH_COMPOSITOR_CPU)
     PRIVATE bf::intern::clog
     PRIVATE bf::intern::guardedalloc
     bf_realtime_compositor
-    extern_clew
     PRIVATE bf::intern::atomic
   )
 
   list(APPEND INC
     ${CMAKE_CURRENT_BINARY_DIR}/operations
   )
-
-  data_to_c(
-    ${CMAKE_CURRENT_SOURCE_DIR}/operations/COM_OpenCLKernels.cl
-    ${CMAKE_CURRENT_BINARY_DIR}/operations/COM_OpenCLKernels.cl.h
-    SRC
-    STRIP_LEADING_C_COMMENTS
-  )
-
-  add_definitions(-DCL_USE_DEPRECATED_OPENCL_1_1_APIS)
 
   set(GENSRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/operations)
   set(GENSRC ${GENSRC_DIR}/COM_SMAAAreaTexture.h)

@@ -36,6 +36,8 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "UI_interface_icons.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -1263,6 +1265,20 @@ static int armature_delete_selected_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
+static int armature_delete_selected_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Delete selected bones?"),
+                                  nullptr,
+                                  IFACE_("Delete"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return armature_delete_selected_exec(C, op);
+}
+
 void ARMATURE_OT_delete(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1271,7 +1287,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
   ot->description = "Remove selected bones from the armature";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = armature_delete_selected_invoke;
   ot->exec = armature_delete_selected_exec;
   ot->poll = ED_operator_editarmature;
 

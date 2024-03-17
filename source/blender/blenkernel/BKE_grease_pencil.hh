@@ -148,6 +148,7 @@ class Layer;
   bool is_selected() const; \
   void set_selected(bool selected); \
   bool use_onion_skinning() const; \
+  bool use_masks() const; \
   bool is_child_of(const LayerGroup &group) const;
 
 /* Implements the forwarding of the methods defined by #TREENODE_COMMON_METHODS. */
@@ -191,6 +192,10 @@ class Layer;
   inline bool class_name::use_onion_skinning() const \
   { \
     return this->as_node().use_onion_skinning(); \
+  } \
+  inline bool class_name::use_masks() const \
+  { \
+    return this->as_node().use_masks(); \
   } \
   inline bool class_name::is_child_of(const LayerGroup &group) const \
   { \
@@ -456,6 +461,13 @@ class Layer : public ::GreasePencilLayer {
   StringRefNull parent_bone_name() const;
   void set_parent_bone_name(const char *new_name);
 
+  /**
+   * Returns the view layer name that this layer should be rendered in or an empty
+   * `StringRefNull` if no such name is set.
+   */
+  StringRefNull view_layer_name() const;
+  void set_view_layer_name(const char *new_name);
+
  private:
   using SortedKeysIterator = const int *;
 
@@ -677,6 +689,11 @@ inline void TreeNode::set_selected(const bool selected)
 inline bool TreeNode::use_onion_skinning() const
 {
   return ((this->flag & GP_LAYER_TREE_NODE_USE_ONION_SKINNING) != 0);
+}
+inline bool TreeNode::use_masks() const
+{
+  return ((this->flag & GP_LAYER_TREE_NODE_HIDE_MASKS) == 0) &&
+         (!this->parent_group() || this->parent_group()->as_node().use_masks());
 }
 inline bool TreeNode::is_child_of(const LayerGroup &group) const
 {

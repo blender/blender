@@ -23,6 +23,7 @@ struct Main;
 struct Object;
 struct KeyframeEditData;
 struct wmKeyConfig;
+struct wmOperator;
 struct ToolSettings;
 struct Scene;
 struct UndoType;
@@ -157,6 +158,13 @@ void select_frames_range(bke::greasepencil::TreeNode &node,
  */
 bool has_any_frame_selected(const bke::greasepencil::Layer &layer);
 
+/**
+ * Check for an active keyframe at the current scene time. When there is not,
+ * create one when auto-key is on (taking additive drawing setting into account).
+ * \return false when no keyframe could be found or created.
+ */
+bool ensure_active_keyframe(const Scene &scene, GreasePencil &grease_pencil);
+
 void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
                                                     const bke::greasepencil::Layer &layer);
 
@@ -217,8 +225,8 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
                                                   IndexMaskMemory &memory);
 
 void create_blank(Main &bmain, Object &object, int frame_number);
-void create_stroke(Main &bmain, Object &object, float4x4 matrix, int frame_number);
-void create_suzanne(Main &bmain, Object &object, float4x4 matrix, int frame_number);
+void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, int frame_number);
+void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, int frame_number);
 
 int64_t ramer_douglas_peucker_simplify(IndexRange range,
                                        float epsilon,

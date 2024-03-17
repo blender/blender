@@ -59,3 +59,5 @@ mark_as_advanced(
   LZO_INCLUDE_DIR
   LZO_LIBRARY
 )
+
+unset(_lzo_SEARCH_DIRS)

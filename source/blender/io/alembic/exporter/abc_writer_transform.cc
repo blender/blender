@@ -16,8 +16,6 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 
-#include "DNA_layer_types.h"
-
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.alembic"};
 

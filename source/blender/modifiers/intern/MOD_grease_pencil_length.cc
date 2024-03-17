@@ -128,11 +128,14 @@ static void deform_drawing(const ModifierData &md,
   VArray<float> use_starts = VArray<float>::ForSingle(mmd.start_fac, curves_num);
   VArray<float> use_ends = VArray<float>::ForSingle(mmd.end_fac, curves_num);
 
+  Array<float> modified_starts;
+  Array<float> modified_ends;
   if (mmd.rand_start_fac != 0.0 || mmd.rand_end_fac != 0.0) {
+    modified_starts = Array<float>(curves.curves_num(), mmd.start_fac);
+    modified_ends = Array<float>(curves.curves_num(), mmd.end_fac);
+
     /* Use random to modify start/end factors. Put the modified values outside the
      * branch so it could be accessed in later stretching/shrinking stages. */
-    Array<float> modified_starts(curves.curves_num(), mmd.start_fac);
-    Array<float> modified_ends(curves.curves_num(), mmd.end_fac);
     use_starts = VArray<float>::ForSpan(modified_starts.as_mutable_span());
     use_ends = VArray<float>::ForSpan(modified_ends.as_mutable_span());
 

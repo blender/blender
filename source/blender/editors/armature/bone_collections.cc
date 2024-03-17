@@ -1166,8 +1166,9 @@ static int move_to_collection_regular_invoke(bContext *C, wmOperator *op)
 
 static int move_to_new_collection_invoke(bContext *C, wmOperator *op)
 {
+  RNA_string_set(op->ptr, "new_collection_name", IFACE_("Bones"));
   return WM_operator_props_dialog_popup(
-      C, op, 200, IFACE_("Move to New Collection"), IFACE_("Move"));
+      C, op, 200, IFACE_("Move to New Bone Collection"), IFACE_("Move"));
 }
 
 static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)

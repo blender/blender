@@ -9,6 +9,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
+
 #include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"
@@ -50,7 +52,11 @@ static void linestyle_init_data(ID *id)
   BKE_linestyle_geometry_modifier_add(linestyle, nullptr, LS_MODIFIER_SAMPLING);
 }
 
-static void linestyle_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+static void linestyle_copy_data(Main *bmain,
+                                std::optional<Library *> owner_library,
+                                ID *id_dst,
+                                const ID *id_src,
+                                const int flag)
 {
   FreestyleLineStyle *linestyle_dst = (FreestyleLineStyle *)id_dst;
   const FreestyleLineStyle *linestyle_src = (const FreestyleLineStyle *)id_src;
@@ -68,10 +74,11 @@ static void linestyle_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const
   }
 
   if (linestyle_src->nodetree) {
-    BKE_id_copy_ex(bmain,
-                   (ID *)linestyle_src->nodetree,
-                   (ID **)&linestyle_dst->nodetree,
-                   flag_private_id_data);
+    BKE_id_copy_in_lib(bmain,
+                       owner_library,
+                       (ID *)linestyle_src->nodetree,
+                       (ID **)&linestyle_dst->nodetree,
+                       flag_private_id_data);
     linestyle_dst->nodetree->owner_id = &linestyle_dst->id;
   }
 

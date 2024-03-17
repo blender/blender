@@ -32,9 +32,9 @@ void PLY_export(bContext *C, const PLYExportParams *export_params)
   report_duration("export", start_time, export_params->filepath);
 }
 
-void PLY_import(bContext *C, const PLYImportParams *import_params, wmOperator *op)
+void PLY_import(bContext *C, const PLYImportParams *import_params)
 {
   TimePoint start_time = Clock::now();
-  blender::io::ply::importer_main(C, *import_params, op);
+  blender::io::ply::importer_main(C, *import_params);
   report_duration("import", start_time, import_params->filepath);
 }

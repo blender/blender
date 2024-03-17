@@ -227,7 +227,7 @@ GpencilLineartLimitInfo BKE_gpencil_get_lineart_modifier_limits(const Object *ob
   LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
     if (md->type == eGpencilModifierType_Lineart) {
       LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
-      if (is_first || (lmd->flags & LRT_GPENCIL_USE_CACHE)) {
+      if (is_first || (lmd->flags & MOD_LINEART_USE_CACHE)) {
         info.min_level = std::min<char>(info.min_level, lmd->level_start);
         info.max_level = std::max<char>(
             info.max_level, (lmd->use_multiple_levels ? lmd->level_end : lmd->level_start));
@@ -248,7 +248,7 @@ void BKE_gpencil_set_lineart_modifier_limits(GpencilModifierData *md,
 {
   BLI_assert(md->type == eGpencilModifierType_Lineart);
   LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
-  if (is_first_lineart || lmd->flags & LRT_GPENCIL_USE_CACHE) {
+  if (is_first_lineart || lmd->flags & MOD_LINEART_USE_CACHE) {
     lmd->level_start_override = info->min_level;
     lmd->level_end_override = info->max_level;
     lmd->edge_types_override = info->edge_types;

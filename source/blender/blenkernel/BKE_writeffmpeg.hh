@@ -68,7 +68,7 @@ void BKE_ffmpeg_preset_set(RenderData *rd, int preset);
 void BKE_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf);
 bool BKE_ffmpeg_alpha_channel_is_supported(const RenderData *rd);
 
-void *BKE_ffmpeg_context_create(void);
+void *BKE_ffmpeg_context_create();
 void BKE_ffmpeg_context_free(void *context_v);
 
 void BKE_ffmpeg_exit();

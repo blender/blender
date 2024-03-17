@@ -72,7 +72,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
     }
   }
 
-  /* Reuse the variable `layer_offset` */
+  /* Reuse the variable `layer_offset`. */
   layer_offset = 0;
 
   /* Populate TransData structs. */

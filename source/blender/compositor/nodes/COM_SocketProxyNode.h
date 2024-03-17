@@ -35,11 +35,4 @@ class SocketProxyNode : public Node {
   bool use_conversion_;
 };
 
-class SocketBufferNode : public Node {
- public:
-  SocketBufferNode(bNode *editor_node, bNodeSocket *editor_input, bNodeSocket *editor_output);
-  void convert_to_operations(NodeConverter &converter,
-                             const CompositorContext &context) const override;
-};
-
 }  // namespace blender::compositor

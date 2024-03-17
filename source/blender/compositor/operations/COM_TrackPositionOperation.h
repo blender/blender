@@ -79,8 +79,6 @@ class TrackPositionOperation : public ConstantOperation {
 
   void init_execution() override;
 
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
-
   const float *get_constant_elem() override;
 
  private:

@@ -17,7 +17,7 @@
 #include "GPU_material.hh"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 
 #include "gpu_shader_create_info.hh"
 
@@ -38,8 +38,10 @@ namespace blender::realtime_compositor {
 
 using namespace nodes::derived_node_tree_types;
 
-ShaderOperation::ShaderOperation(Context &context, ShaderCompileUnit &compile_unit)
-    : Operation(context), compile_unit_(compile_unit)
+ShaderOperation::ShaderOperation(Context &context,
+                                 ShaderCompileUnit &compile_unit,
+                                 const Schedule &schedule)
+    : Operation(context), schedule_(schedule), compile_unit_(compile_unit)
 {
   material_ = GPU_material_from_callbacks(
       GPU_MAT_COMPOSITOR, &construct_material, &generate_code, this);
@@ -268,21 +270,6 @@ void ShaderOperation::declare_operation_input(DInputSocket input_socket,
   inputs_to_linked_outputs_map_.add_new(input_identifier, output_socket);
 }
 
-static DOutputSocket find_preview_output_socket(const DNode &node)
-{
-  if (!is_node_preview_needed(node)) {
-    return DOutputSocket();
-  }
-
-  for (const bNodeSocket *output : node->output_sockets()) {
-    if (output->is_logically_linked()) {
-      return DOutputSocket(node.context(), output);
-    }
-  }
-
-  return DOutputSocket();
-}
-
 void ShaderOperation::populate_results_for_node(DNode node, GPUMaterial *material)
 {
   const DOutputSocket preview_output = find_preview_output_socket(node);
@@ -290,10 +277,11 @@ void ShaderOperation::populate_results_for_node(DNode node, GPUMaterial *materia
   for (const bNodeSocket *output : node->output_sockets()) {
     const DOutputSocket doutput{node.context(), output};
 
-    /* If any of the nodes linked to the output are not part of the shader operation, then an
-     * output result needs to be populated for it. */
+    /* If any of the nodes linked to the output are not part of the shader operation but are part
+     * of the execution schedule, then an output result needs to be populated for it. */
     const bool is_operation_output = is_output_linked_to_node_conditioned(
-        doutput, [&](DNode node) { return !compile_unit_.contains(node); });
+        doutput,
+        [&](DNode node) { return schedule_.contains(node) && !compile_unit_.contains(node); });
 
     /* If the output is used as the node preview, then an output result needs to be populated for
      * it, and we additionally keep track of that output to later compute the previews from. */

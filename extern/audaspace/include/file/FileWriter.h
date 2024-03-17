@@ -54,7 +54,7 @@ public:
 	 * \param bitrate The bitrate for encoding.
 	 * \return The writer to write data to.
 	 */
-	static std::shared_ptr<IWriter> createWriter(std::string filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate);
+	static std::shared_ptr<IWriter> createWriter(const std::string &filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate);
 
 	/**
 	 * Writes a reader to a writer.

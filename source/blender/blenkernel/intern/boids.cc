@@ -282,7 +282,7 @@ static bool rule_avoid_collision(BoidRule *rule,
     }
   }
 
-  /* Check boids in own system. */
+  /* Check boids in their own system. */
   if (acbr->options & BRULE_ACOLL_WITH_BOIDS) {
     neighbors = BLI_kdtree_3d_range_search_with_len_squared_cb(bbd->sim->psys->tree,
                                                                pa->prev_state.co,
@@ -690,7 +690,7 @@ static bool rule_fight(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Part
   int n;
   bool ret = false;
 
-  /* calculate own group strength */
+  /* calculate its own group strength */
   int neighbors = BLI_kdtree_3d_range_search(
       bbd->sim->psys->tree, pa->prev_state.co, &ptn, fbr->distance);
   for (n = 0; n < neighbors; n++) {

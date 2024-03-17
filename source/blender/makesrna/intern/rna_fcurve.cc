@@ -219,8 +219,8 @@ static StructRNA *rna_FModifierType_refine(PointerRNA *ptr)
 
 /* ****************************** */
 
-#  include "BKE_anim_data.h"
-#  include "BKE_fcurve.h"
+#  include "BKE_anim_data.hh"
+#  include "BKE_fcurve.hh"
 #  include "BKE_fcurve_driver.h"
 
 #  include "DEG_depsgraph.hh"
@@ -368,13 +368,13 @@ static StructRNA *rna_DriverTarget_id_typef(PointerRNA *ptr)
   return ID_code_to_RNA_type(dtar->idtype);
 }
 
-static int rna_DriverTarget_id_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_DriverTarget_id_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   DriverTarget *dtar = (DriverTarget *)ptr->data;
   return (dtar->idtype) ? PROP_EDITABLE : PropertyFlag(0);
 }
 
-static int rna_DriverTarget_id_type_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_DriverTarget_id_type_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   DriverTarget *dtar = (DriverTarget *)ptr->data;
 

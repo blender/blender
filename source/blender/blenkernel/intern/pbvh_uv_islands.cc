@@ -670,7 +670,7 @@ struct Fan {
 
 #endif
 
-  static bool is_path_valid(const Span<FanSegment *> &path,
+  static bool is_path_valid(const Span<FanSegment *> path,
                             const MeshData &mesh_data,
                             const int from_vertex,
                             const int to_vertex)

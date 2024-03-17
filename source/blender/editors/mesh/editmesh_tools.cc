@@ -3442,8 +3442,8 @@ static const EnumPropertyItem *merge_type_itemf(bContext *C,
 
     /* Only active object supported:
      * In practice it doesn't make sense to run this operation on non-active meshes
-     * since selecting will activate - we could have own code-path for these but it's a hassle
-     * for now just apply to the active (first) object. */
+     * since selecting will activate - we could have a separate code-path for these but it's a
+     * hassle for now just apply to the active (first) object. */
     if (em->selectmode & SCE_SELECT_VERTEX) {
       if (em->bm->selected.first && em->bm->selected.last &&
           ((BMEditSelection *)em->bm->selected.first)->htype == BM_VERT &&

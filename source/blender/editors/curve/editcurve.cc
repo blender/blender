@@ -24,11 +24,11 @@
 #include "BLT_translation.hh"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_displist.h"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
@@ -1455,6 +1455,20 @@ static int separate_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int separate_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Move selected points to a new object?"),
+                                  nullptr,
+                                  IFACE_("Separate"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return separate_exec(C, op);
+}
+
 void CURVE_OT_separate(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1463,7 +1477,7 @@ void CURVE_OT_separate(wmOperatorType *ot)
   ot->description = "Separate selected points from connected unselected points into a new object";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = separate_invoke;
   ot->exec = separate_exec;
   ot->poll = ED_operator_editsurfcurve;
 

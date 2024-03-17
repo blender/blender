@@ -214,6 +214,38 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   }
 
   /**
+   * Some algorithms can be implemented more efficiently by over-allocating the destination memory
+   * a bit. This allows the algorithm not to worry about having enough memory. Generally, this can
+   * be a useful strategy if the actual required memory is not known in advance, but an upper bound
+   * can be found. Ideally, one can free the over-allocated memory in the end again to reduce
+   * memory consumption.
+   *
+   * A linear allocator generally does allow freeing any memory. However, there is one exception.
+   * One can free the end of the last allocation (but not any previous allocation). While uses of
+   * this approach are quite limited, it's still the best option in some situations.
+   */
+  void free_end_of_previous_allocation(const int64_t original_allocation_size,
+                                       const void *free_after)
+  {
+    /* If the original allocation size was large, it might have been separately allocated. In this
+     * case, we can't free the end of it anymore. */
+    if (original_allocation_size <= large_buffer_threshold) {
+      const int64_t new_begin = uintptr_t(free_after);
+      BLI_assert(new_begin <= current_begin_);
+#ifndef NDEBUG
+      /* This condition is not really necessary but it helps finding the cases where memory was
+       * freed. */
+      const int64_t freed_bytes_num = current_begin_ - new_begin;
+      if (freed_bytes_num > 0) {
+        current_begin_ = new_begin;
+      }
+#else
+      current_begin_ = new_begin;
+#endif
+    }
+  }
+
+  /**
    * This allocator takes ownership of the buffers owned by `other`. Therefor, when `other` is
    * destructed, memory allocated using it is not freed.
    *

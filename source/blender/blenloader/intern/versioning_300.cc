@@ -56,7 +56,7 @@
 #undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_asset.hh"
@@ -70,7 +70,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
@@ -2661,7 +2661,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
           LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
             if (md->type == eGpencilModifierType_Lineart) {
               LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
-              lmd->flags |= LRT_GPENCIL_USE_CACHE;
+              lmd->flags |= MOD_LINEART_USE_CACHE;
               lmd->chain_smooth_tolerance = 0.2f;
             }
           }
@@ -2900,7 +2900,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
           LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
             if (md->type == eGpencilModifierType_Lineart) {
               LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
-              lmd->calculation_flags |= LRT_USE_CREASE_ON_SMOOTH_SURFACES;
+              lmd->calculation_flags |= MOD_LINEART_USE_CREASE_ON_SMOOTH_SURFACES;
             }
           }
         }

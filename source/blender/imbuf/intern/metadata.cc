@@ -40,18 +40,16 @@ void IMB_metadata_free(IDProperty *metadata)
   IDP_FreeProperty(metadata);
 }
 
-bool IMB_metadata_get_field(IDProperty *metadata,
+bool IMB_metadata_get_field(const IDProperty *metadata,
                             const char *key,
                             char *value,
                             const size_t value_maxncpy)
 {
-  IDProperty *prop;
-
   if (metadata == nullptr) {
     return false;
   }
 
-  prop = IDP_GetPropertyFromGroup(metadata, key);
+  IDProperty *prop = IDP_GetPropertyFromGroup(metadata, key);
 
   if (prop && prop->type == IDP_STRING) {
     BLI_strncpy(value, IDP_String(prop), value_maxncpy);
@@ -60,12 +58,12 @@ bool IMB_metadata_get_field(IDProperty *metadata,
   return false;
 }
 
-void IMB_metadata_copy(ImBuf *dimb, ImBuf *simb)
+void IMB_metadata_copy(ImBuf *ibuf_dst, const ImBuf *ibuf_src)
 {
-  BLI_assert(dimb != simb);
-  if (simb->metadata) {
-    IMB_metadata_free(dimb->metadata);
-    dimb->metadata = IDP_CopyProperty(simb->metadata);
+  BLI_assert(ibuf_dst != ibuf_src);
+  if (ibuf_src->metadata) {
+    IMB_metadata_free(ibuf_dst->metadata);
+    ibuf_dst->metadata = IDP_CopyProperty(ibuf_src->metadata);
   }
 }
 
@@ -82,7 +80,7 @@ void IMB_metadata_set_field(IDProperty *metadata, const char *key, const char *v
   if (prop) {
     IDP_AssignString(prop, value);
   }
-  else if (prop == nullptr) {
+  else {
     prop = IDP_NewString(value, key);
     IDP_AddToGroup(metadata, prop);
   }

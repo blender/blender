@@ -28,12 +28,12 @@ AUD_NAMESPACE_BEGIN
 std::unordered_map<std::string, std::shared_ptr<IDeviceFactory>> DeviceManager::m_factories;
 std::shared_ptr<IDevice> DeviceManager::m_device;
 
-void DeviceManager::registerDevice(std::string name, std::shared_ptr<IDeviceFactory> factory)
+void DeviceManager::registerDevice(const std::string &name, std::shared_ptr<IDeviceFactory> factory)
 {
 	m_factories[name] = factory;
 }
 
-std::shared_ptr<IDeviceFactory> DeviceManager::getDeviceFactory(std::string name)
+std::shared_ptr<IDeviceFactory> DeviceManager::getDeviceFactory(const std::string &name)
 {
 	auto it = m_factories.find(name);
 
@@ -66,7 +66,7 @@ void DeviceManager::setDevice(std::shared_ptr<IDevice> device)
 	m_device = device;
 }
 
-void DeviceManager::openDevice(std::string name)
+void DeviceManager::openDevice(const std::string &name)
 {
 	setDevice(getDeviceFactory(name)->openDevice());
 }

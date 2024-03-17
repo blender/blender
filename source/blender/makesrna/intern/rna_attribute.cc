@@ -228,7 +228,7 @@ static void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
   BKE_id_attribute_rename(ptr->owner_id, layer->name, value, nullptr);
 }
 
-static int rna_Attribute_name_editable(PointerRNA *ptr, const char **r_info)
+static int rna_Attribute_name_editable(const PointerRNA *ptr, const char **r_info)
 {
   CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
   if (BKE_id_attribute_required(ptr->owner_id, layer->name)) {

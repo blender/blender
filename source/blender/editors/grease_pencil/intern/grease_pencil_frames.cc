@@ -12,10 +12,13 @@
 
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 
 #include "DNA_scene_types.h"
+
+#include "ANIM_keyframing.hh"
 
 #include "ED_grease_pencil.hh"
 #include "ED_keyframes_edit.hh"
@@ -328,6 +331,44 @@ void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
       append_frame_to_key_edit_data(ked, frame_number, frame);
     }
   }
+}
+
+bool ensure_active_keyframe(const Scene &scene, GreasePencil &grease_pencil)
+{
+  const int current_frame = scene.r.cfra;
+  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
+
+  if (!active_layer.has_drawing_at(current_frame) && !blender::animrig::is_autokey_on(&scene)) {
+    return false;
+  }
+
+  /* If auto-key is on and the drawing at the current frame starts before the current frame a new
+   * keyframe needs to be inserted. */
+  const bool is_first = active_layer.sorted_keys().is_empty() ||
+                        (active_layer.sorted_keys().first() > current_frame);
+  const bool needs_new_drawing = is_first ||
+                                 (*active_layer.frame_key_at(current_frame) < current_frame);
+
+  if (blender::animrig::is_autokey_on(&scene) && needs_new_drawing) {
+    const Brush *brush = scene.toolsettings->gp_paint->paint.brush;
+    if (((scene.toolsettings->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) != 0) ||
+        (brush->gpencil_tool == GPAINT_TOOL_ERASE))
+    {
+      /* For additive drawing, we duplicate the frame that's currently visible and insert it at the
+       * current frame. Also duplicate the frame when erasing, Otherwise empty drawing is added,
+       * see !119051 */
+      grease_pencil.insert_duplicate_frame(
+          active_layer, *active_layer.frame_key_at(current_frame), current_frame, false);
+    }
+    else {
+      /* Otherwise we just insert a blank keyframe at the current frame. */
+      grease_pencil.insert_blank_frame(active_layer, current_frame, 0, BEZT_KEYTYPE_KEYFRAME);
+    }
+  }
+  /* There should now always be a drawing at the current frame. */
+  BLI_assert(active_layer.has_drawing_at(current_frame));
+
+  return true;
 }
 
 static int insert_blank_frame_exec(bContext *C, wmOperator *op)

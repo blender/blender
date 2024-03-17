@@ -11,7 +11,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 
 #include "../outliner_intern.hh"
 #include "common.hh"
@@ -88,6 +88,7 @@ std::unique_ptr<TreeElementID> TreeElementID::create_from_id(TreeElement &legacy
     case ID_TXT:
     case ID_SO:
     case ID_AC:
+    case ID_AN:
     case ID_PAL:
     case ID_PC:
     case ID_CF:

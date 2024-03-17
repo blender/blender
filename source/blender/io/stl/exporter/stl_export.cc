@@ -10,18 +10,19 @@
 #include <memory>
 #include <string>
 
-#include "BKE_mesh.hh"
+#include "BKE_context.hh"
 #include "BKE_object.hh"
+#include "BKE_report.hh"
 
 #include "BLI_string.h"
 
 #include "DEG_depsgraph_query.hh"
 
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -40,7 +41,17 @@ void export_frame(Depsgraph *depsgraph,
 
   /* If not exporting in batch, create single writer for all objects. */
   if (!export_params.use_batch) {
-    writer = std::make_unique<FileWriter>(export_params.filepath, export_params.ascii_format);
+    try {
+      writer = std::make_unique<FileWriter>(export_params.filepath, export_params.ascii_format);
+    }
+    catch (const std::runtime_error &ex) {
+      fprintf(stderr, "%s\n", ex.what());
+      BKE_reportf(export_params.reports,
+                  RPT_ERROR,
+                  "STL Export: Cannot open file '%s'",
+                  export_params.filepath);
+      return;
+    }
   }
 
   DEGObjectIterSettings deg_iter_settings{};
@@ -70,7 +81,15 @@ void export_frame(Depsgraph *depsgraph,
       char filepath[FILE_MAX];
       STRNCPY(filepath, export_params.filepath);
       BLI_path_extension_replace(filepath, FILE_MAX, suffix.c_str());
-      writer = std::make_unique<FileWriter>(filepath, export_params.ascii_format);
+      try {
+        writer = std::make_unique<FileWriter>(filepath, export_params.ascii_format);
+      }
+      catch (const std::runtime_error &ex) {
+        fprintf(stderr, "%s\n", ex.what());
+        BKE_reportf(
+            export_params.reports, RPT_ERROR, "STL Export: Cannot open file '%s'", filepath);
+        return;
+      }
     }
 
     Object *obj_eval = DEG_get_evaluated_object(depsgraph, object);
@@ -88,7 +107,7 @@ void export_frame(Depsgraph *depsgraph,
     mul_m4_m3m4(xform, axes_transform, obj_eval->object_to_world().ptr());
     /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
     mul_v3_m3v3(xform[3], axes_transform, obj_eval->object_to_world().location());
-    xform[3][3] = obj_eval->object_to_world().location()[3];
+    xform[3][3] = obj_eval->object_to_world()[3][3];
 
     /* Write triangles. */
     const Span<float3> positions = mesh->vert_positions();

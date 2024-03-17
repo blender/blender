@@ -49,7 +49,7 @@
 
 using namespace blender;
 
-/* use half of flt-max so we can scale up without an exception */
+/* Use half of flt-max so we can scale up without an exception. */
 
 /* -------------------------------------------------------------------- */
 /** \name Prototypes
@@ -82,7 +82,7 @@ int BIF_snappingSupported(Object *obedit)
 {
   int status = 0;
 
-  /* only support object mesh, armature, curves */
+  /* Only support object mesh, armature, curves. */
   if (obedit == nullptr ||
       ELEM(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL))
   {
@@ -367,7 +367,7 @@ eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event)
 {
   eRedrawFlag status = TREDRAW_NOTHING;
 
-#if 0 /* XXX need a proper selector for all snap mode */
+#if 0 /* XXX: need a proper selector for all snap mode. */
   if (BIF_snappingSupported(t->obedit) && (event->type == EVT_TABKEY) &&
       (event->modifier & KM_SHIFT))
   {
@@ -434,7 +434,7 @@ static bool applyFaceProject(TransInfo *t, TransDataContainer *tc, TransData *td
   add_v3_v3(td->loc, tvec);
 
   if ((t->tsnap.flag & SCE_SNAP_ROTATE) && (t->options & CTX_OBJECT)) {
-    /* handle alignment as well */
+    /* Handle alignment as well. */
     const float *original_normal;
     float mat[3][3];
 
@@ -515,7 +515,7 @@ void transform_snap_project_individual_apply(TransInfo *t)
     return;
   }
 
-  /* XXX FLICKER IN OBJECT MODE */
+  /* XXX: flickers in object mode. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     for (int i = 0; i < tc->data_len; i++, td++) {
@@ -739,11 +739,11 @@ static eSnapTargetOP snap_target_select_from_spacetype(TransInfo *t)
 
     const int obedit_type = t->obedit_type;
     if (obedit_type != -1) {
-      /* Edit mode */
+      /* Edit mode. */
       if (obedit_type == OB_MESH) {
-        /* Editing a mesh */
+        /* Editing a mesh. */
         if ((t->flag & T_PROP_EDIT) != 0) {
-          /* Exclude editmesh when using proportional edit */
+          /* Exclude editmesh when using proportional edit. */
           ret |= SCE_SNAP_TARGET_NOT_EDITED;
         }
         /* UV editing must never snap to the selection as this is what is transformed. */
@@ -837,7 +837,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
   t->tsnap.target_operation = snap_target_select_from_spacetype(t);
   t->tsnap.face_nearest_steps = max_ii(ts->snap_face_nearest_steps, 1);
 
-  /* if snap property exists */
+  /* If snap property exists. */
   PropertyRNA *prop;
   if (op && (prop = RNA_struct_find_property(op->ptr, "snap")) &&
       RNA_property_is_set(op->ptr, prop))
@@ -868,7 +868,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
         t->tsnap.status |= SNAP_TARGET_FOUND;
       }
 
-      /* snap align only defined in specific cases */
+      /* Snap align only defined in specific cases. */
       if ((prop = RNA_struct_find_property(op->ptr, "snap_align")) &&
           RNA_property_is_set(op->ptr, prop))
       {
@@ -886,7 +886,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
             t->tsnap.mode, RNA_property_boolean_get(op->ptr, prop), SCE_SNAP_INDIVIDUAL_PROJECT);
       }
 
-      /* use_snap_self is misnamed and should be use_snap_active */
+      /* Use_snap_self is misnamed and should be use_snap_active. */
       if ((prop = RNA_struct_find_property(op->ptr, "use_snap_self")) &&
           RNA_property_is_set(op->ptr, prop))
       {
@@ -920,7 +920,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
       }
     }
   }
-  /* use scene defaults only when transform is modal */
+  /* Use scene defaults only when transform is modal. */
   else if (t->flag & T_MODAL) {
     if (t->tsnap.flag & SCE_SNAP) {
       t->modifiers |= MOD_SNAP;
@@ -958,6 +958,18 @@ void freeSnapping(TransInfo *t)
     t->tsnap.object_context = nullptr;
 
     ED_transform_snap_object_time_average_print();
+  }
+}
+
+void initSnapAngleIncrements(TransInfo *t)
+{
+  if (t->spacetype == SPACE_VIEW3D) {
+    t->snap[0] = t->settings->snap_angle_increment_3d;
+    t->snap[1] = t->settings->snap_angle_increment_3d_precision;
+  }
+  else {
+    t->snap[0] = t->settings->snap_angle_increment_2d;
+    t->snap[1] = t->settings->snap_angle_increment_2d_precision;
   }
 }
 
@@ -1144,7 +1156,7 @@ static void snap_target_view3d_fn(TransInfo *t, float * /*vec*/)
   float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
 
   if (t->tsnap.mode & SCE_SNAP_TO_GEOM) {
-    zero_v3(no); /* objects won't set this */
+    zero_v3(no); /* Objects won't set this. */
     snap_elem = snapObjectsTransform(t, t->mval, &dist_px, loc, no);
     found = (snap_elem != SCE_SNAP_TO_NONE);
   }
@@ -1305,7 +1317,7 @@ static void TargetSnapOffset(TransInfo *t, TransData *td)
 
 static void snap_source_center_fn(TransInfo *t)
 {
-  /* Only need to calculate once */
+  /* Only need to calculate once. */
   if ((t->tsnap.status & SNAP_SOURCE_FOUND) == 0) {
     copy_v3_v3(t->tsnap.snap_source, t->center_global);
     TargetSnapOffset(t, nullptr);
@@ -1317,7 +1329,7 @@ static void snap_source_center_fn(TransInfo *t)
 
 static void snap_source_active_fn(TransInfo *t)
 {
-  /* Only need to calculate once */
+  /* Only need to calculate once. */
   if ((t->tsnap.status & SNAP_SOURCE_FOUND) == 0) {
     if (calculateCenterActive(t, true, t->tsnap.snap_source)) {
       TargetSnapOffset(t, nullptr);
@@ -1350,7 +1362,7 @@ static void snap_source_closest_fn(TransInfo *t)
     float dist_closest = 0.0f;
     TransData *closest = nullptr;
 
-    /* Object mode */
+    /* Object mode. */
     if (t->options & CTX_OBJECT) {
       int i;
       FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -1362,7 +1374,7 @@ static void snap_source_closest_fn(TransInfo *t)
             bounds = BKE_object_boundbox_get(td->ob);
           }
 
-          /* use boundbox if possible */
+          /* Use bound-box if possible. */
           if (bounds) {
             BoundBox bb;
             BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
@@ -1386,7 +1398,7 @@ static void snap_source_closest_fn(TransInfo *t)
               }
             }
           }
-          /* use element center otherwise */
+          /* Use element center otherwise. */
           else {
             float loc[3];
             float dist;
@@ -1479,7 +1491,7 @@ eSnapMode snapObjectsTransform(
 bool peelObjectsTransform(TransInfo *t,
                           const float mval[2],
                           const bool use_peel_object,
-                          /* return args */
+                          /* Return args. */
                           float r_loc[3],
                           float r_no[3],
                           float *r_thickness)
@@ -1500,7 +1512,7 @@ bool peelObjectsTransform(TransInfo *t,
                                                  &depths_peel);
 
   if (!BLI_listbase_is_empty(&depths_peel)) {
-    /* At the moment we only use the hits of the first object */
+    /* At the moment we only use the hits of the first object. */
     SnapObjectHitDepth *hit_min = static_cast<SnapObjectHitDepth *>(depths_peel.first);
     for (SnapObjectHitDepth *iter = hit_min->next; iter; iter = iter->next) {
       if (iter->depth < hit_min->depth) {
@@ -1510,7 +1522,7 @@ bool peelObjectsTransform(TransInfo *t,
     SnapObjectHitDepth *hit_max = nullptr;
 
     if (use_peel_object) {
-      /* if peeling objects, take the first and last from each object */
+      /* If peeling objects, take the first and last from each object. */
       hit_max = hit_min;
       LISTBASE_FOREACH (SnapObjectHitDepth *, iter, &depths_peel) {
         if ((iter->depth > hit_max->depth) && (iter->ob_uuid == hit_min->ob_uuid)) {
@@ -1519,7 +1531,7 @@ bool peelObjectsTransform(TransInfo *t,
       }
     }
     else {
-      /* otherwise, pair first with second and so on */
+      /* Otherwise, pair first with second and so on. */
       LISTBASE_FOREACH (SnapObjectHitDepth *, iter, &depths_peel) {
         if ((iter != hit_min) && (iter->ob_uuid == hit_min->ob_uuid)) {
           if (hit_max == nullptr) {
@@ -1542,7 +1554,7 @@ bool peelObjectsTransform(TransInfo *t,
       *r_thickness = hit_max->depth - hit_min->depth;
     }
 
-    /* XXX, is there a correct normal in this case ???, for now just z up */
+    /* XXX, is there a correct normal in this case ???, for now just z up. */
     r_no[0] = 0.0;
     r_no[1] = 0.0;
     r_no[2] = 1.0;
@@ -1561,7 +1573,7 @@ bool peelObjectsTransform(TransInfo *t,
 
 static bool snapNodeTest(View2D *v2d, bNode *node, eSnapTargetOP snap_target_select)
 {
-  /* node is use for snapping only if a) snap mode matches and b) node is inside the view */
+  /* Node is use for snapping only if a) snap mode matches and b) node is inside the view. */
   return (((snap_target_select & SCE_SNAP_TARGET_NOT_SELECTED) && !(node->flag & NODE_SELECT)) ||
           (snap_target_select == SCE_SNAP_TARGET_ALL && !(node->flag & NODE_ACTIVE))) &&
          (node->runtime->totr.xmin < v2d->cur.xmax && node->runtime->totr.xmax > v2d->cur.xmin &&
@@ -1689,7 +1701,7 @@ static void snap_increment_apply_ex(const TransInfo * /*t*/,
                                     const float loc[3],
                                     float r_out[3])
 {
-  /* relative snapping in fixed increments */
+  /* Relative snapping in fixed increments. */
   for (int i = 0; i <= max_index; i++) {
     const float iter_fac = increment_val * aspect[i];
     r_out[i] = iter_fac * roundf(loc[i] / iter_fac);
@@ -1704,7 +1716,7 @@ static void snap_increment_apply(const TransInfo *t,
   BLI_assert(t->tsnap.mode & SCE_SNAP_TO_INCREMENT);
   BLI_assert(max_index <= 2);
 
-  /* Early bailing out if no need to snap */
+  /* Early bailing out if no need to snap. */
   if (increment_dist == 0.0f) {
     return;
   }
@@ -1714,7 +1726,7 @@ static void snap_increment_apply(const TransInfo *t,
   const float *asp = use_aspect ? t->aspect : asp_local;
 
   if (use_aspect) {
-    /* custom aspect for fcurve */
+    /* Custom aspect for fcurve. */
     if (t->spacetype == SPACE_GRAPH) {
       View2D *v2d = &t->region->v2d;
       Scene *scene = t->scene;
@@ -1746,7 +1758,6 @@ bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float
   }
 
   if (use_local_space) {
-    BLI_assert(t->idx_max == 2);
     mul_m3_v3(t->spacemtx_inv, r_val);
   }
 
@@ -1777,7 +1788,9 @@ float transform_snap_increment_get(const TransInfo *t)
 
 void tranform_snap_source_restore_context(TransInfo *t)
 {
-  snap_object_context_init(t);
+  if (t->spacetype == SPACE_VIEW3D) {
+    snap_object_context_init(t);
+  }
   snap_multipoints_free(t);
 }
 

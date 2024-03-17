@@ -9,6 +9,9 @@
 
 #include "abc_writer_abstract.h"
 #include "abc_writer_mesh.h"
+
+#include <Alembic/AbcGeom/ONuPatch.h>
+
 #include <vector>
 
 namespace blender::io::alembic {

@@ -742,9 +742,8 @@ class TestLibraryOverridesComplex(TestHelper, unittest.TestCase):
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
         assert len(bpy.data.collections) == 3 * 3 + 3
         assert all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.collections[:3 * 3])
-        # Note that the 'missing' renamed objects from the library are still here as empty placeholders,
-        # hence the 8 linked ones instead of 6.
-        assert len(bpy.data.objects) == 3 * 6 + 8
+        # Note that the 'missing' renamed objects from the library are now cleared as part of the resync process.
+        assert len(bpy.data.objects) == 3 * 6 + 6
         assert all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:3 * 6])
         assert len(bpy.data.meshes) == 0 + 1
         assert len(bpy.data.armatures) == 0 + 1
@@ -774,9 +773,8 @@ class TestLibraryOverridesComplex(TestHelper, unittest.TestCase):
         assert len(bpy.data.collections) == 3 + 6
         assert all((id_.override_library is not None)
                    for id_ in bpy.data.collections if id_.library == test_output_path_lib)
-        # Note that the 'missing' renamed objects from the library are still here as empty placeholders,
-        # hence the 8 + 6 linked ones instead of 6 + 6.
-        assert len(bpy.data.objects) == 6 + 14
+        # Note that the 'missing' renamed objects from the library are now cleared as part of the resync process.
+        assert len(bpy.data.objects) == 6 + 12
         assert all((id_.override_library is not None)
                    for id_ in bpy.data.objects if id_.library == test_output_path_lib)
         assert len(bpy.data.meshes) == 0 + 1

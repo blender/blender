@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
-"PO-Revision-Date: 2023-11-16 03:55+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-02-27 14:48+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
 "Language: sw\n"
@@ -13,6 +13,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 5.0.1"
+
+
+msgid "Shader AOV"
+msgstr "Shader AOV"
 
 
 msgid "Valid"
@@ -55,6 +59,14 @@ msgid "Collection of AOVs"
 msgstr "Makusanyo wa AOV"
 
 
+msgid "Action F-Curves"
+msgstr "F-Curves vya vitendo"
+
+
+msgid "Collection of action F-Curves"
+msgstr "Mkusanyiko wa F-Curves vya vitendo"
+
+
 msgid "Action Group"
 msgstr "Kikundi cha vitendo"
 
@@ -65,6 +77,10 @@ msgstr "Kikundi cha F-Curves"
 
 msgid "Channels"
 msgstr "Vituo"
+
+
+msgid "F-Curves in this group"
+msgstr "F-Curves ndani ya hii Kikundi"
 
 
 msgid "Color Set"
@@ -299,6 +315,18 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "Boresha kernels zote. Utoaji wa haraka zaidi, unaweza kusababisha matumizi ya ziada ya chinichini ya CPU"
 
 
+msgid "MetalRT"
+msgstr "MetalRT"
+
+
+msgid "Auto"
+msgstr "Otomatiki"
+
+
+msgid "Automatically pick the fastest intersection method"
+msgstr "Chagua kiotomatiki njia ya kasi ya makutano"
+
+
 msgid "Distribute memory across devices"
 msgstr "Sambaza kumbukumbu kwenye vifaa"
 
@@ -391,12 +419,28 @@ msgid "Persistent Data Path"
 msgstr "Njia ya Data Inayoendelea"
 
 
+msgid "The name of a json file storing those settings (unfortunately, Blender's system does not work here)"
+msgstr "Jina la faili ya json inayohifadhi mipangilio hiyo (kwa bahati mbaya, mfumo wa Blender haufanyi kazi hapa)"
+
+
+msgid "User Add-ons"
+msgstr "Viongezi vya Mtumiaji"
+
+
+msgid "Collection of add-ons"
+msgstr "Mkusanyiko wa Viongezi"
+
+
 msgid "Animation Data"
 msgstr "Data ya Uhuishaji"
 
 
 msgid "Action"
 msgstr "Kitendo"
+
+
+msgid "Replace"
+msgstr "badilisha"
 
 
 msgid "Combine"

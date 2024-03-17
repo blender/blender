@@ -39,7 +39,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_armature.hh"
 #include "BKE_collection.hh"
 #include "BKE_constraint.h"
@@ -47,7 +47,7 @@
 #include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_editmesh.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -254,7 +254,6 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
         BKE_report(op->reports, RPT_ERROR, "Loop in parents");
       }
       else {
-        Object workob;
         BKE_view_layer_synced_ensure(scene, view_layer);
         ob->parent = BKE_view_layer_active_object_get(view_layer);
         if (par3 != INDEX_UNSET) {
@@ -264,16 +263,14 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
           ob->par3 = par3;
 
           /* inverse parent matrix */
-          BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
-          invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
+          invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
         }
         else {
           ob->partype = PARVERT1;
           ob->par1 = par1;
 
           /* inverse parent matrix */
-          BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
-          invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
+          invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
         }
       }
     }
@@ -289,6 +286,20 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 #undef INDEX_UNSET
 }
 
+static int vertex_parent_set_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Parent selected objects to the selected vertices?"),
+                                  nullptr,
+                                  IFACE_("Parent"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return vertex_parent_set_exec(C, op);
+}
+
 void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 {
   /* identifiers */
@@ -297,7 +308,7 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_vertex_parent_set";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = vertex_parent_set_invoke;
   ot->poll = vertex_parent_set_poll;
   ot->exec = vertex_parent_set_exec;
 
@@ -575,8 +586,6 @@ bool ED_object_parent_set(ReportList *reports,
       }
   }
 
-  Object workob;
-
   /* Apply transformation of previous parenting. */
   if (keep_transform) {
     /* Was removed because of bug #23577,      * but this can be handy in some cases too #32616, so
@@ -727,9 +736,8 @@ bool ED_object_parent_set(ReportList *reports,
     }
     /* get corrected inverse */
     ob->partype = PAROBJECT;
-    BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
+    invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
   }
   else if (is_armature_parent && (ob->type == OB_GPENCIL_LEGACY) && (par->type == OB_ARMATURE)) {
     if (partype == PAR_ARMATURE) {
@@ -745,9 +753,8 @@ bool ED_object_parent_set(ReportList *reports,
     }
     /* get corrected inverse */
     ob->partype = PAROBJECT;
-    BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
+    invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
   }
   else if ((ob->type == OB_GPENCIL_LEGACY) && (par->type == OB_LATTICE)) {
     /* Add Lattice modifier */
@@ -756,14 +763,12 @@ bool ED_object_parent_set(ReportList *reports,
     }
     /* get corrected inverse */
     ob->partype = PAROBJECT;
-    BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
+    invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
   }
   else {
     /* calculate inverse parent matrix */
-    BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
-    invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
+    invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
@@ -1116,6 +1121,20 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int parent_noinv_set_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Make Parent without inverse correction?"),
+                                  nullptr,
+                                  IFACE_("Parent"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return parent_noinv_set_exec(C, op);
+}
+
 void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1124,7 +1143,7 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_parent_no_inverse_set";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = parent_noinv_set_invoke;
   ot->exec = parent_noinv_set_exec;
   ot->poll = ED_operator_object_active_editable;
 

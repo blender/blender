@@ -950,7 +950,7 @@ char *BLF_display_name_from_file(const char *filepath)
 {
   /* While listing font directories this function can be called simultaneously from a greater
    * number of threads than we want the FreeType cache to keep open at a time. Therefore open
-   * with own FT_Library object and use FreeType calls directly to avoid any contention. */
+   * with a separate FT_Library object and use FreeType calls directly to avoid any contention. */
   char *name = nullptr;
   FT_Library ft_library;
   if (FT_Init_FreeType(&ft_library) == FT_Err_Ok) {

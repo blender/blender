@@ -974,6 +974,18 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  /* gpencil sculpt */
+  static const EnumPropertyItem prop_pinch_items[] = {
+      {0, "ADD", ICON_ADD, "Pinch", "Add effect of brush"},
+      {BRUSH_DIR_IN, "SUBTRACT", ICON_REMOVE, "Inflate", "Subtract effect of brush"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  static const EnumPropertyItem prop_twist_items[] = {
+      {0, "ADD", ICON_ADD, "Counter-Clockwise", "Add effect of brush"},
+      {BRUSH_DIR_IN, "SUBTRACT", ICON_REMOVE, "Clockwise", "Subtract effect of brush"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   Brush *me = (Brush *)(ptr->data);
 
   switch (mode) {
@@ -1034,6 +1046,25 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
         case CURVES_SCULPT_TOOL_GROW_SHRINK:
         case CURVES_SCULPT_TOOL_SELECTION_PAINT:
         case CURVES_SCULPT_TOOL_PINCH:
+          return prop_direction_items;
+        default:
+          return rna_enum_dummy_DEFAULT_items;
+      }
+    case PaintMode::SculptGPencil:
+      switch (me->gpencil_sculpt_tool) {
+        case GPSCULPT_TOOL_THICKNESS:
+        case GPSCULPT_TOOL_STRENGTH:
+          return prop_direction_items;
+        case GPSCULPT_TOOL_TWIST:
+          return prop_twist_items;
+        case GPSCULPT_TOOL_PINCH:
+          return prop_pinch_items;
+        default:
+          return rna_enum_dummy_DEFAULT_items;
+      }
+    case PaintMode::WeightGPencil:
+      switch (me->gpencil_weight_tool) {
+        case GPWEIGHT_TOOL_DRAW:
           return prop_direction_items;
         default:
           return rna_enum_dummy_DEFAULT_items;
@@ -2184,13 +2215,6 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Outline", "Convert stroke to perimeter");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
-  prop = RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "sculpt_flag");
-  RNA_def_property_enum_items(prop, prop_direction_items);
-  RNA_def_property_ui_text(prop, "Direction", "");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
-
   prop = RNA_def_property(srna, "use_edit_position", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
       prop, nullptr, "sculpt_mode_flag", GP_SCULPT_FLAGMODE_APPLY_POSITION);
@@ -2364,7 +2388,7 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Points per Curve", "Number of control points in a newly added curve");
 
-  prop = RNA_def_property(srna, "scale_uniform", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_uniform_scale", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_CURVES_SCULPT_FLAG_SCALE_UNIFORM);
   RNA_def_property_ui_text(prop,
                            "Scale Uniform",
@@ -2376,20 +2400,27 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Minimum Length", "Avoid shrinking curves shorter than this length");
 
-  prop = RNA_def_property(srna, "interpolate_length", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_length_interpolate", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
       prop, nullptr, "flag", BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH);
   RNA_def_property_ui_text(
       prop, "Interpolate Length", "Use length of the curves in close proximity");
 
-  prop = RNA_def_property(srna, "interpolate_point_count", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_radius_interpolate", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "flag", BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_RADIUS);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_ui_text(
+      prop, "Interpolate Radius", "Use radius of the curves in close proximity");
+
+  prop = RNA_def_property(srna, "use_point_count_interpolate", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
       prop, nullptr, "flag", BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_POINT_COUNT);
   RNA_def_property_ui_text(prop,
                            "Interpolate Point Count",
                            "Use the number of points from the curves in close proximity");
 
-  prop = RNA_def_property(srna, "interpolate_shape", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_shape_interpolate", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE);
   RNA_def_property_ui_text(
       prop, "Interpolate Shape", "Use shape of the curves in close proximity");
@@ -2406,6 +2437,15 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0, 1000.0f, 0.001, 2);
   RNA_def_property_ui_text(
       prop, "Minimum Distance", "Goal distance between curve roots for the Density brush");
+
+  prop = RNA_def_property(srna, "curve_radius", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_float_default(prop, 0.01f);
+  RNA_def_property_ui_range(prop, 0.0, 1000.0f, 0.001, 2);
+  RNA_def_property_ui_text(
+      prop,
+      "Curve Radius",
+      "Radius of newly added curves when it is not interpolated from other curves");
 
   prop = RNA_def_property(srna, "density_add_attempts", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 0, INT32_MAX);

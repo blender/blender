@@ -141,6 +141,8 @@ void ED_region_toggle_hidden(bContext *C, ARegion *region);
 /**
  * For use after changing visibility of regions.
  */
+void ED_region_visibility_change_update_ex(
+    bContext *C, ScrArea *area, ARegion *region, bool is_hidden, bool do_init);
 void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *region);
 /* `screen_ops.cc` */
 

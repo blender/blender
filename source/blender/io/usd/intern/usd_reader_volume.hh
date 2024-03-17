@@ -6,7 +6,7 @@
 #include "usd.hh"
 #include "usd_reader_xform.hh"
 
-#include "pxr/usd/usdVol/volume.h"
+#include <pxr/usd/usdVol/volume.h>
 
 namespace blender::io::usd {
 

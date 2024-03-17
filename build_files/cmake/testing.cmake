@@ -27,8 +27,8 @@ function(blender_test_set_envvars testname envvars_list)
   if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
     if(WITH_COMPILER_ASAN)
       set(_lsan_options "LSAN_OPTIONS=print_suppressions=false:suppressions=${CMAKE_SOURCE_DIR}/tools/config/analysis/lsan.supp")
-      # FIXME That `allocator_may_return_null=true` ASAN option is only needed for the `guardedalloc` test,
-      #       would be nice to allow tests definition to pass extra envvars better.
+      # FIXME: That `allocator_may_return_null=true` ASAN option is only needed for the
+      # `guardedalloc` test, would be nice to allow tests definition to pass extra envvars better.
       set(_asan_options "ASAN_OPTIONS=allocator_may_return_null=true")
       if(DEFINED ENV{LSAN_OPTIONS})
         set(_lsan_options "${_lsan_options}:$ENV{LSAN_OPTIONS}")

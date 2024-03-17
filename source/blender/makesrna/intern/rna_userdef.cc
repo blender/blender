@@ -532,9 +532,11 @@ static bUserExtensionRepo *rna_userdef_extension_repo_new(const char *name,
 
   if (remote_path) {
     STRNCPY(repo->remote_path, remote_path);
-    repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH;
   }
 
+  if (repo->remote_path[0]) {
+    repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH;
+  }
   if (repo->custom_dirpath[0]) {
     repo->flag |= USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY;
   }
@@ -1281,7 +1283,7 @@ static void rna_UserDef_studiolight_light_ambient_get(PointerRNA *ptr, float *va
   copy_v3_v3(values, sl->light_ambient);
 }
 
-int rna_show_statusbar_vram_editable(PointerRNA * /*ptr*/, const char ** /*r_info*/)
+int rna_show_statusbar_vram_editable(const PointerRNA * /*ptr*/, const char ** /*r_info*/)
 {
   return GPU_mem_stats_supported() ? PROP_EDITABLE : PropertyFlag(0);
 }
@@ -6662,7 +6664,8 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_remote_path", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH);
-  RNA_def_property_ui_text(prop, "Use Remote", "Synchonize the repository with a remote URL/path");
+  RNA_def_property_ui_text(
+      prop, "Use Remote", "Synchronize the repository with a remote URL/path");
   RNA_def_property_boolean_funcs(prop, nullptr, "rna_userdef_extension_repo_use_remote_path_set");
 }
 
@@ -6914,8 +6917,10 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "temporary_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, nullptr, "tempdir");
-  RNA_def_property_ui_text(
-      prop, "Temporary Directory", "The directory for storing temporary save files");
+  RNA_def_property_ui_text(prop,
+                           "Temporary Directory",
+                           "The directory for storing temporary save files. "
+                           "The path must reference an existing directory or it will be ignored");
   RNA_def_property_update(prop, 0, "rna_userdef_temp_update");
 
   prop = RNA_def_property(srna, "render_cache_directory", PROP_STRING, PROP_DIRPATH);
@@ -7184,6 +7189,11 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "section of the preferences");
   RNA_def_property_boolean_funcs(
       prop, nullptr, "rna_PreferencesExperimental_use_extension_repos_set");
+
+  prop = RNA_def_property(srna, "use_extension_utils", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Extensions Development Utilities", "Developer support utilities for extensions");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

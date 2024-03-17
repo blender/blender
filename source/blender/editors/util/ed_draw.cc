@@ -375,6 +375,10 @@ static void slider_update_factor(tSlider *slider, const wmEvent *event)
   slider->factor = slider->raw_factor;
   copy_v2fl_v2i(slider->last_cursor, event->xy);
 
+  if (slider->increments) {
+    slider->factor = round(slider->factor * 10) / 10;
+  }
+
   if (!slider->overshoot) {
     slider->factor = clamp_f(slider->factor, slider->factor_bounds[0], slider->factor_bounds[1]);
   }
@@ -385,10 +389,6 @@ static void slider_update_factor(tSlider *slider, const wmEvent *event)
     if (!slider->allow_overshoot_upper) {
       slider->factor = min_ff(slider->factor, slider->factor_bounds[1]);
     }
-  }
-
-  if (slider->increments) {
-    slider->factor = round(slider->factor * 10) / 10;
   }
 }
 
@@ -868,7 +868,7 @@ void ED_region_image_metadata_draw(
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_blend(GPU_BLEND_ALPHA);
-    immUniformThemeColor(TH_METADATA_BG);
+    immUniformThemeColorAlpha(TH_METADATA_BG, 1.0f);
     immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     immUnbindProgram();
 
@@ -895,7 +895,7 @@ void ED_region_image_metadata_draw(
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_blend(GPU_BLEND_ALPHA);
-    immUniformThemeColor(TH_METADATA_BG);
+    immUniformThemeColorAlpha(TH_METADATA_BG, 1.0f);
     immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     immUnbindProgram();
 

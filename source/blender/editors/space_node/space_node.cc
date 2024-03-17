@@ -1150,10 +1150,8 @@ static void node_widgets()
   WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_corner_pin);
 }
 
-static void node_id_remap_cb(ID *old_id, ID *new_id, void *user_data)
+static void node_id_remap(ID *old_id, ID *new_id, SpaceNode *snode)
 {
-  SpaceNode *snode = static_cast<SpaceNode *>(user_data);
-
   if (snode->id == old_id) {
     /* nasty DNA logic for SpaceNode:
      * ideally should be handled by editor code, but would be bad level call
@@ -1183,8 +1181,10 @@ static void node_id_remap_cb(ID *old_id, ID *new_id, void *user_data)
   }
   else if (GS(old_id->name) == ID_NT) {
 
-    if (&snode->geometry_nodes_tool_tree->id == old_id) {
-      snode->geometry_nodes_tool_tree = reinterpret_cast<bNodeTree *>(new_id);
+    if (snode->geometry_nodes_tool_tree) {
+      if (&snode->geometry_nodes_tool_tree->id == old_id) {
+        snode->geometry_nodes_tool_tree = reinterpret_cast<bNodeTree *>(new_id);
+      }
     }
 
     bNodeTreePath *path, *path_next;
@@ -1238,7 +1238,9 @@ static void node_id_remap(ScrArea * /*area*/,
    * We could also move a remap address at a time to use the IDRemapper as that should get closer
    * to cleaner code. See {D13615} for more information about this topic.
    */
-  mappings.iter(node_id_remap_cb, slink);
+  mappings.iter([&](ID *old_id, ID *new_id) {
+    node_id_remap(old_id, new_id, reinterpret_cast<SpaceNode *>(slink));
+  });
 }
 
 static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

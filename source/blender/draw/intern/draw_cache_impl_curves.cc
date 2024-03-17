@@ -454,11 +454,14 @@ static void curves_batch_cache_ensure_procedural_indices(const bke::CurvesGeomet
   GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, 1);
 
-  GPUIndexBuf *ibo = GPU_indexbuf_build_curves_on_device(
-      prim_type, curves.curves_num(), verts_per_curve);
-
+  GPUIndexBuf *ibo = nullptr;
+  eGPUBatchFlag owns_flag = GPU_BATCH_OWNS_VBO;
+  if (curves.curves_num()) {
+    ibo = GPU_indexbuf_build_curves_on_device(prim_type, curves.curves_num(), verts_per_curve);
+    owns_flag |= GPU_BATCH_OWNS_INDEX;
+  }
   cache.final[subdiv].proc_hairs[thickness_res - 1] = GPU_batch_create_ex(
-      prim_type, vbo, ibo, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
+      prim_type, vbo, ibo, owns_flag);
 }
 
 static bool curves_ensure_attributes(const Curves &curves,
@@ -508,7 +511,7 @@ static bool curves_ensure_attributes(const Curves &curves,
   for (const int i : IndexRange(final_cache.attr_used.num_requests)) {
     const DRW_AttributeRequest &request = final_cache.attr_used.requests[i];
 
-    if (cache.curves_cache.proc_attributes_buf[i] != nullptr) {
+    if (cache.curves_cache.final[subdiv].attributes_buf[i] != nullptr) {
       continue;
     }
 

@@ -62,7 +62,7 @@ class AssetLibraryServiceTest : public testing::Test {
    * The returned path ends in a slash. */
   CatalogFilePath use_temp_path()
   {
-    BKE_tempdir_init("");
+    BKE_tempdir_init(nullptr);
     const CatalogFilePath tempdir = BKE_tempdir_session();
     temp_library_path_ = tempdir + "test-temporary-path" + SEP_STR;
     return temp_library_path_;
@@ -173,10 +173,10 @@ TEST_F(AssetLibraryServiceTest, catalogs_loaded)
   AssetLibraryService *const service = AssetLibraryService::get();
   AssetLibrary *const lib = service->get_asset_library_on_disk_custom(__func__,
                                                                       asset_library_root_);
-  AssetCatalogService *const cat_service = lib->catalog_service.get();
+  AssetCatalogService &cat_service = lib->catalog_service();
 
   const bUUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
-  EXPECT_NE(nullptr, cat_service->find_catalog(UUID_POSES_ELLIE))
+  EXPECT_NE(nullptr, cat_service.find_catalog(UUID_POSES_ELLIE))
       << "Catalogs should be loaded after getting an asset library from disk.";
 }
 
@@ -188,21 +188,21 @@ TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs)
 
   AssetLibrary *const lib = service->get_asset_library_on_disk_custom(__func__,
                                                                       asset_library_root_);
-  AssetCatalogService *const cat_service = lib->catalog_service.get();
+  AssetCatalogService &cat_service = lib->catalog_service();
   EXPECT_FALSE(service->has_any_unsaved_catalogs())
       << "Unchanged AssetLibrary should have no unsaved catalogs";
 
   const bUUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
-  cat_service->prune_catalogs_by_id(UUID_POSES_ELLIE);
+  cat_service.prune_catalogs_by_id(UUID_POSES_ELLIE);
   EXPECT_FALSE(service->has_any_unsaved_catalogs())
       << "Deletion of catalogs via AssetCatalogService should not automatically tag as 'unsaved "
          "changes'.";
 
   const bUUID UUID_POSES_RUZENA("79a4f887-ab60-4bd4-94da-d572e27d6aed");
-  AssetCatalog *cat = cat_service->find_catalog(UUID_POSES_RUZENA);
+  AssetCatalog *cat = cat_service.find_catalog(UUID_POSES_RUZENA);
   ASSERT_NE(nullptr, cat) << "Catalog " << UUID_POSES_RUZENA << " should be known";
 
-  cat_service->tag_has_unsaved_changes(cat);
+  cat_service.tag_has_unsaved_changes(cat);
   EXPECT_TRUE(service->has_any_unsaved_catalogs())
       << "Tagging as having unsaved changes of a single catalog service should result in unsaved "
          "changes being reported.";
@@ -224,17 +224,17 @@ TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs_after_write)
   EXPECT_FALSE(service->has_any_unsaved_catalogs())
       << "Unchanged AssetLibrary should have no unsaved catalogs";
 
-  AssetCatalogService *const cat_service = lib->catalog_service.get();
-  AssetCatalog *cat = cat_service->find_catalog(UUID_POSES_ELLIE);
+  AssetCatalogService &cat_service = lib->catalog_service();
+  AssetCatalog *cat = cat_service.find_catalog(UUID_POSES_ELLIE);
 
-  cat_service->tag_has_unsaved_changes(cat);
+  cat_service.tag_has_unsaved_changes(cat);
 
   EXPECT_TRUE(service->has_any_unsaved_catalogs())
       << "Tagging as having unsaved changes of a single catalog service should result in unsaved "
          "changes being reported.";
   EXPECT_TRUE(cat->flags.has_unsaved_changes);
 
-  cat_service->write_to_disk(writable_dir + "dummy_path.blend");
+  cat_service.write_to_disk(writable_dir + "dummy_path.blend");
   EXPECT_FALSE(service->has_any_unsaved_catalogs())
       << "Written AssetCatalogService should have no unsaved catalogs";
   EXPECT_FALSE(cat->flags.has_unsaved_changes);

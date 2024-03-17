@@ -251,7 +251,8 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
 
   uiItemS(col);
 
-  file_create_asset_catalog_tree_view_in_layout(asset_library, col, sfile, params);
+  blender::ed::asset_browser::file_create_asset_catalog_tree_view_in_layout(
+      asset_library, col, sfile, params);
 }
 
 void file_tools_region_panels_register(ARegionType *art)

@@ -77,7 +77,7 @@ string system_cpu_brand_string()
   if (sysctlbyname("machdep.cpu.brand_string", &modelname, &bufferlen, NULL, 0) == 0) {
     return modelname;
   }
-#elif defined(WIN32) || defined(__x86_64__) || defined(__i386__)
+#elif (defined(WIN32) || defined(__x86_64__) || defined(__i386__)) && !defined(_M_ARM64)
   /* Get from intrinsics on Windows and x86. */
   char buf[49] = {0};
   int result[4] = {0};
@@ -95,6 +95,19 @@ string system_cpu_brand_string()
     brand = string_remove_trademark(brand);
 
     return brand;
+  }
+#elif defined(_M_ARM64)
+  DWORD vendorIdentifierLength = 255;
+  char vendorIdentifier[255];
+  if (RegGetValueA(HKEY_LOCAL_MACHINE,
+                   "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+                   "VendorIdentifier",
+                   RRF_RT_REG_SZ,
+                   nullptr,
+                   &vendorIdentifier,
+                   &vendorIdentifierLength) == ERROR_SUCCESS)
+  {
+    return vendorIdentifier;
   }
 #else
   /* Get from /proc/cpuinfo on Unix systems. */
@@ -129,7 +142,6 @@ int system_cpu_bits()
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
 
 struct CPUCapabilities {
-  bool sse2;
   bool sse42;
   bool avx2;
 };
@@ -160,7 +172,6 @@ static CPUCapabilities &system_cpu_capabilities()
       const bool cpu_avx_support = (result[2] & ((int)1 << 28)) != 0;
 
       /* Simplify to combined capabilities for which we specialize kernels. */
-      caps.sse2 = sse && sse2;
       caps.sse42 = sse && sse2 && sse3 && ssse3 && sse41 && sse42;
 
       if (os_uses_xsave_xrestore && cpu_avx_support) {
@@ -195,12 +206,6 @@ static CPUCapabilities &system_cpu_capabilities()
   return caps;
 }
 
-bool system_cpu_support_sse2()
-{
-  CPUCapabilities &caps = system_cpu_capabilities();
-  return caps.sse2;
-}
-
 bool system_cpu_support_sse42()
 {
   CPUCapabilities &caps = system_cpu_capabilities();
@@ -213,11 +218,6 @@ bool system_cpu_support_avx2()
   return caps.avx2;
 }
 #else
-
-bool system_cpu_support_sse2()
-{
-  return false;
-}
 
 bool system_cpu_support_sse42()
 {

@@ -79,11 +79,11 @@ static void vpaint_proj_dm_map_cosnos_init(Depsgraph *depsgraph,
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
   memset(vp_handle->vcosnos, 0, sizeof(*vp_handle->vcosnos) * mesh->verts_num);
   BKE_mesh_foreach_mapped_vert(
-      me_eval, vpaint_proj_dm_map_cosnos_init__map_cb, vp_handle, MESH_FOREACH_USE_NORMAL);
+      mesh_eval, vpaint_proj_dm_map_cosnos_init__map_cb, vp_handle, MESH_FOREACH_USE_NORMAL);
 }
 
 /* -------------------------------------------------------------------- */
@@ -140,14 +140,14 @@ static void vpaint_proj_dm_map_cosnos_update(Depsgraph *depsgraph,
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
   /* quick sanity check - we shouldn't have to run this if there are no modifiers */
   BLI_assert(BLI_listbase_is_empty(&ob->modifiers) == false);
 
   copy_vn_fl(vp_handle->dists_sq, mesh->verts_num, FLT_MAX);
   BKE_mesh_foreach_mapped_vert(
-      me_eval, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, MESH_FOREACH_USE_NORMAL);
+      mesh_eval, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, MESH_FOREACH_USE_NORMAL);
 }
 
 /* -------------------------------------------------------------------- */

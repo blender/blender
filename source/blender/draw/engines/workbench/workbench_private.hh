@@ -158,7 +158,7 @@ struct SceneState {
   bool xray_mode = false;
 
   DRWState cull_state = DRW_STATE_NO_DRAW;
-  Vector<float4> clip_planes = {};
+  Vector<float4> clip_planes;
 
   float4 background_color = float4(0);
 
@@ -293,7 +293,7 @@ class MeshPass : public PassMain {
  private:
   using TextureSubPassKey = std::pair<GPUTexture *, eGeometryType>;
 
-  Map<TextureSubPassKey, PassMain::Sub *> texture_subpass_map_ = {};
+  Map<TextureSubPassKey, PassMain::Sub *> texture_subpass_map_;
 
   PassMain::Sub *passes_[geometry_type_len][shader_type_len] = {{nullptr}};
 

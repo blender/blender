@@ -18,6 +18,7 @@
 #include "CLG_log.h"
 
 #include "BLI_array_utils.hh"
+#include "BLI_bit_span_ops.hh"
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
 #include "BLI_ghash.h"
@@ -104,6 +105,7 @@ using blender::Span;
 using blender::Vector;
 
 using namespace blender::bke::paint;
+using namespace blender::ed::sculpt_paint;
 
 namespace blender::bke::pbvh {
 void split_bmesh_nodes(PBVH *pbvh);
@@ -4222,6 +4224,7 @@ static void do_brush_action(Sculpt *sd,
           BKE_pbvh_node_mark_update(node);
           break;
         case undo::Type::HideVert:
+        case undo::Type::HideFace:
         case undo::Type::DyntopoBegin:
         case undo::Type::DyntopoEnd:
         case undo::Type::DyntopoSymmetrize:
@@ -6753,7 +6756,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
   ot->cancel = sculpt_brush_stroke_cancel;
   ot->ui = sculpt_redo_empty_ui;
 
-  /* Flags (sculpt does own undo? (ton)). */
+  /* Flags (sculpt does its own undo? (ton)). */
   ot->flag = OPTYPE_BLOCKING;
 
   /* Properties. */

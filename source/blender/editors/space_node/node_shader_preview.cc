@@ -448,7 +448,7 @@ static void connect_node_to_surface_output(const Span<bNodeTreePath *> treepath,
 /* Connect the nodes to some aov nodes located in the first nodetree from `treepath`. Last element
  * of `treepath` should be the path to the nodes nodetree. */
 static void connect_nodes_to_aovs(const Span<bNodeTreePath *> treepath,
-                                  const Span<NodeSocketPair> &nodesocket_span)
+                                  const Span<NodeSocketPair> nodesocket_span)
 {
   if (nodesocket_span.is_empty()) {
     return;

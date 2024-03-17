@@ -9,7 +9,6 @@
  */
 
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct Depsgraph;
 struct ID;

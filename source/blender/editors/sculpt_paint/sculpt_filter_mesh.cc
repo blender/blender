@@ -742,7 +742,7 @@ static void sculpt_mesh_filter_apply(bContext *C, wmOperator *op)
            MESH_FILTER_ENHANCE_DETAILS,
            MESH_FILTER_SHARPEN))
   {
-    BKE_pbvh_face_areas_begin(ss->pbvh);
+    BKE_pbvh_face_areas_begin(ob, ss->pbvh);
     threading::parallel_for(
         ss->filter_cache->nodes.index_range(), 1, [&](const IndexRange &range) {
           for (const int i : range) {

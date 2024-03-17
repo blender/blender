@@ -455,7 +455,7 @@ ccl_device_inline float reduce_add(const float3 a)
 {
 #if defined(__KERNEL_SSE__) && defined(__KERNEL_NEON__)
   __m128 t = a.m128;
-  t[3] = 0.0f;
+  t = vsetq_lane_f32(0.0f, t, 3);
   return vaddvq_f32(t);
 #else
   return (a.x + a.y + a.z);

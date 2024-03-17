@@ -40,7 +40,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_armature.hh"
 #include "BKE_asset.hh"
 #include "BKE_bpath.hh"
@@ -626,19 +626,28 @@ bool BKE_id_copy_is_allowed(const ID *id)
 #undef LIB_ID_TYPES_NOCOPY
 }
 
-ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
+ID *BKE_id_copy_in_lib(Main *bmain,
+                       std::optional<Library *> owner_library,
+                       const ID *id,
+                       ID **r_newid,
+                       const int flag)
 {
   ID *newid = (r_newid != nullptr) ? *r_newid : nullptr;
+  BLI_assert_msg(newid || (flag & LIB_ID_CREATE_NO_ALLOCATE) == 0,
+                 "Copying with 'no allocate' behavior should always get a non-null new ID buffer");
+
   /* Make sure destination pointer is all good. */
   if ((flag & LIB_ID_CREATE_NO_ALLOCATE) == 0) {
     newid = nullptr;
   }
   else {
-    if (newid != nullptr) {
-      /* Allow some garbage non-initialized memory to go in, and clean it up here. */
-      const size_t size = BKE_libblock_get_alloc_info(GS(id->name), nullptr);
-      memset(newid, 0, size);
+    if (!newid) {
+      /* Invalid case, already caught by the assert above. */
+      return nullptr;
     }
+    /* Allow some garbage non-initialized memory to go in, and clean it up here. */
+    const size_t size = BKE_libblock_get_alloc_info(GS(id->name), nullptr);
+    memset(newid, 0, size);
   }
 
   /* Early output if source is nullptr. */
@@ -653,14 +662,19 @@ ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
       return nullptr;
     }
 
-    BKE_libblock_copy_ex(bmain, id, &newid, flag);
+    BKE_libblock_copy_in_lib(bmain, owner_library, id, &newid, flag);
 
     if (idtype_info->copy_data != nullptr) {
-      idtype_info->copy_data(bmain, newid, id, flag);
+      idtype_info->copy_data(bmain, owner_library, newid, id, flag);
     }
   }
   else {
     BLI_assert_msg(0, "IDType Missing IDTypeInfo");
+  }
+
+  BLI_assert_msg(newid, "Could not get an allocated new ID to copy into");
+  if (!newid) {
+    return nullptr;
   }
 
   /* Update ID refcount, remap pointers to self in new ID. */
@@ -671,13 +685,22 @@ ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
   BKE_library_foreach_ID_link(bmain, newid, id_copy_libmanagement_cb, &data, IDWALK_NOP);
 
   /* Do not make new copy local in case we are copying outside of main...
-   * XXX TODO: is this behavior OK, or should we need own flag to control that? */
+   * XXX TODO: is this behavior OK, or should we need a separate flag to control that? */
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-    BLI_assert((flag & LIB_ID_COPY_KEEP_LIB) == 0);
-    lib_id_copy_ensure_local(bmain, id, newid, 0);
+    BLI_assert(!owner_library || newid->lib == *owner_library);
+    if (!ID_IS_LINKED(newid)) {
+      lib_id_copy_ensure_local(bmain, id, newid, 0);
+    }
   }
   else {
-    newid->lib = id->lib;
+    /* NOTE: Do not call `ensure_local` for IDs copied outside of Main, even if they do become
+     * local.
+     *
+     * Most of the time, this would not be the desired behavior currently.
+     *
+     * In the few cases where this is actually needed (e.g. from liboverride resync code, see
+     * #lib_override_library_create_from), calling code is responsible for this. */
+    newid->lib = owner_library ? *owner_library : id->lib;
   }
 
   if (r_newid != nullptr) {
@@ -687,9 +710,14 @@ ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
   return newid;
 }
 
+ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
+{
+  return BKE_id_copy_in_lib(bmain, std::nullopt, id, r_newid, flag);
+}
+
 ID *BKE_id_copy(Main *bmain, const ID *id)
 {
-  return BKE_id_copy_ex(bmain, id, nullptr, LIB_ID_COPY_DEFAULT);
+  return BKE_id_copy_in_lib(bmain, std::nullopt, id, nullptr, LIB_ID_COPY_DEFAULT);
 }
 
 ID *BKE_id_copy_for_duplicate(Main *bmain,
@@ -1220,7 +1248,11 @@ void *BKE_libblock_alloc_notest(short type)
   return nullptr;
 }
 
-void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int flag)
+void *BKE_libblock_alloc_in_lib(Main *bmain,
+                                std::optional<Library *> owner_library,
+                                short type,
+                                const char *name,
+                                const int flag)
 {
   BLI_assert((flag & LIB_ID_CREATE_NO_ALLOCATE) == 0);
   BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || bmain != nullptr);
@@ -1250,20 +1282,44 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
       BLI_assert(bmain->is_locked_for_linking == false || ELEM(type, ID_WS, ID_GR, ID_NT));
       ListBase *lb = which_libbase(bmain, type);
 
+      /* This is important in 'readfile doversion after liblink' context mainly, but is a good
+       * behavior for consistency in general: ID created for a Main should get that main's current
+       * library pointer.
+       *
+       * NOTE: A bit convoluted.
+       *   - When Main has a defined `curlib`, it is assumed to be a split main containing only IDs
+       *     from that library. In that case, the library can be set later, and it avoids
+       *     synchronization issues in the namemap between the one of that temp 'library' Main and
+       *     the library ID runtime namemap itself. In a way, the ID can be assumed local to the
+       *     current Main, for its assignment to this Main.
+       *   - In all other cases, the Main is assumed 'complete', i.e. containing all local and
+       *     linked IDs, In that case, it is critical that the ID gets the correct library assigned
+       *     now, to ensure that the call to #BKE_id_new_name_validate gives a fully valid result
+       *     once it has been assigned to the current Main.
+       */
+      if (bmain->curlib) {
+        id->lib = nullptr;
+      }
+      else {
+        id->lib = owner_library ? *owner_library : nullptr;
+      }
+
       BKE_main_lock(bmain);
       BLI_addtail(lb, id);
-      BKE_id_new_name_validate(bmain, lb, id, name, false);
+      BKE_id_new_name_validate(bmain, lb, id, name, true);
       bmain->is_memfile_undo_written = false;
       /* alphabetic insertion: is in new_id */
       BKE_main_unlock(bmain);
 
+      /* Split Main case, now the ID should get the Main's #curlib. */
+      if (bmain->curlib) {
+        BLI_assert(!owner_library || *owner_library == bmain->curlib);
+        id->lib = bmain->curlib;
+      }
+
       /* This assert avoids having to keep name_map consistency when changing the library of an ID,
        * if this check is not true anymore it will have to be done here too. */
       BLI_assert(bmain->curlib == nullptr || bmain->curlib->runtime.name_map == nullptr);
-      /* This is important in 'readfile doversion after liblink' context mainly, but is a good
-       * consistency change in general: ID created for a Main should get that main's current
-       * library pointer. */
-      id->lib = bmain->curlib;
 
       /* TODO: to be removed from here! */
       if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0) {
@@ -1272,6 +1328,7 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
     }
     else {
       BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
+      id->lib = owner_library ? *owner_library : nullptr;
     }
 
     /* We also need to ensure a valid `session_uid` for some non-main data (like embedded IDs).
@@ -1283,6 +1340,11 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
   }
 
   return id;
+}
+
+void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int flag)
+{
+  return BKE_libblock_alloc_in_lib(bmain, std::nullopt, type, name, flag);
 }
 
 void BKE_libblock_init_empty(ID *id)
@@ -1329,7 +1391,11 @@ void BKE_lib_libblock_session_uid_renew(ID *id)
   BKE_lib_libblock_session_uid_ensure(id);
 }
 
-void *BKE_id_new(Main *bmain, const short type, const char *name)
+void *BKE_id_new_in_lib(Main *bmain,
+                        std::optional<Library *> owner_library,
+                        const short type,
+                        const char *name)
+
 {
   BLI_assert(bmain != nullptr);
 
@@ -1337,10 +1403,15 @@ void *BKE_id_new(Main *bmain, const short type, const char *name)
     name = DATA_(BKE_idtype_idcode_to_name(type));
   }
 
-  ID *id = static_cast<ID *>(BKE_libblock_alloc(bmain, type, name, 0));
+  ID *id = static_cast<ID *>(BKE_libblock_alloc_in_lib(bmain, owner_library, type, name, 0));
   BKE_libblock_init_empty(id);
 
   return id;
+}
+
+void *BKE_id_new(Main *bmain, const short type, const char *name)
+{
+  return BKE_id_new_in_lib(bmain, std::nullopt, type, name);
 }
 
 void *BKE_id_new_nomain(const short type, const char *name)
@@ -1359,7 +1430,11 @@ void *BKE_id_new_nomain(const short type, const char *name)
   return id;
 }
 
-void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int orig_flag)
+void BKE_libblock_copy_in_lib(Main *bmain,
+                              std::optional<Library *> owner_library,
+                              const ID *id,
+                              ID **r_newid,
+                              const int orig_flag)
 {
   ID *new_id = *r_newid;
   int flag = orig_flag;
@@ -1388,10 +1463,12 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
     STRNCPY(new_id->name, id->name);
     new_id->us = 0;
     new_id->tag |= LIB_TAG_NOT_ALLOCATED | LIB_TAG_NO_MAIN | LIB_TAG_NO_USER_REFCOUNT;
+    new_id->lib = owner_library ? *owner_library : id->lib;
     /* TODO: Do we want/need to copy more from ID struct itself? */
   }
   else {
-    new_id = static_cast<ID *>(BKE_libblock_alloc(bmain, GS(id->name), id->name + 2, flag));
+    new_id = static_cast<ID *>(
+        BKE_libblock_alloc_in_lib(bmain, owner_library, GS(id->name), id->name + 2, flag));
   }
   BLI_assert(new_id != nullptr);
 
@@ -1451,7 +1528,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
        * in their anim data *are* in bmain... super-mega-hooray. */
       BLI_assert((copy_data_flag & LIB_ID_COPY_ACTIONS) == 0 ||
                  (copy_data_flag & LIB_ID_CREATE_NO_MAIN) == 0);
-      iat->adt = BKE_animdata_copy(bmain, iat->adt, copy_data_flag);
+      iat->adt = BKE_animdata_copy_in_lib(bmain, owner_library, iat->adt, copy_data_flag);
     }
     else {
       iat->adt = nullptr;
@@ -1465,11 +1542,16 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   *r_newid = new_id;
 }
 
+void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int orig_flag)
+{
+  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, r_newid, orig_flag);
+}
+
 void *BKE_libblock_copy(Main *bmain, const ID *id)
 {
   ID *idn;
 
-  BKE_libblock_copy_ex(bmain, id, &idn, 0);
+  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, &idn, 0);
 
   return idn;
 }

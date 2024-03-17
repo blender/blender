@@ -78,14 +78,17 @@ set(SRC
   sculpt_filter_mask.cc
   sculpt_filter_mesh.cc
   sculpt_geodesic.cc
+  sculpt_gesture.cc
   sculpt_mask_init.cc
   sculpt_multiplane_scrape.cc
   sculpt_ops.cc
   sculpt_paint_color.cc
   sculpt_paint_image.cc
   sculpt_pose.cc
+  sculpt_project.cc
   sculpt_smooth.cc
   sculpt_transform.cc
+  sculpt_trim.cc
   sculpt_undo.cc
   sculpt_uv.cc
   curves_sculpt_intern.hh
@@ -115,6 +118,19 @@ endif()
 
 if(WIN32)
   add_definitions(-DNOMINMAX)
+endif()
+
+if(WITH_GTESTS)
+  set(TEST_SRC
+    sculpt_detail_test.cc
+  )
+  set(TEST_INC
+  )
+  set(TEST_LIB
+    ${LIB}
+    bf_rna  # RNA_prototypes.h
+  )
+  blender_add_test_suite_lib(editor_sculpt_paint "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${TEST_LIB}")
 endif()
 
 blender_add_lib(bf_editor_sculpt_paint "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

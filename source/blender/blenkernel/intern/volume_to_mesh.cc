@@ -184,6 +184,13 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
   return mesh;
 }
 
+Mesh *volume_grid_to_mesh(const openvdb::GridBase &grid,
+                          const float threshold,
+                          const float adaptivity)
+{
+  return volume_to_mesh(grid, {VOLUME_TO_MESH_RESOLUTION_MODE_GRID}, threshold, adaptivity);
+}
+
 #endif /* WITH_OPENVDB */
 
 }  // namespace blender::bke

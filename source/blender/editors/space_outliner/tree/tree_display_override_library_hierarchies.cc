@@ -100,10 +100,10 @@ class OverrideIDHierarchyBuilder {
     const ID &override_root_id_;
     /* The ancestor IDs leading to the current ID, to avoid IDs recursing into themselves. Changes
      * with every level of recursion. */
-    Set<const ID *> parent_ids{};
+    Set<const ID *> parent_ids;
     /* The IDs that were already added to #parent_te, to avoid duplicates. Entirely new set with
      * every level of recursion. */
-    Set<const ID *> sibling_ids{};
+    Set<const ID *> sibling_ids;
   };
 
  public:

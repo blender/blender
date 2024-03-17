@@ -8,6 +8,7 @@
 #include "usd_reader_nurbs.hh"
 
 #include "BKE_curve.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 
@@ -18,10 +19,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <pxr/base/vt/array.h>
 #include <pxr/base/vt/types.h>
-#include <pxr/base/vt/value.h>
-#include <pxr/usd/sdf/types.h>
 
 #include <pxr/usd/usdGeom/curves.h>
 
@@ -166,6 +164,15 @@ void USDNurbsReader::read_curve_sample(Curve *cu, const double motionSampleTime)
 
     BLI_addtail(BKE_curve_nurbs_get(cu), nu);
   }
+}
+
+void USDNurbsReader::read_geometry(bke::GeometrySet &geometry_set,
+                                   const USDMeshReadParams params,
+                                   const char **err_str)
+{
+  BLI_assert(geometry_set.has_mesh());
+  Mesh *new_mesh = read_mesh(nullptr, params, err_str);
+  geometry_set.replace_mesh(new_mesh);
 }
 
 Mesh *USDNurbsReader::read_mesh(Mesh * /*existing_mesh*/,

@@ -10,28 +10,21 @@
 #include "abc_hierarchy_iterator.h"
 #include "intern/abc_axis_conversion.h"
 
-#include "BLI_array_utils.hh"
-#include "BLI_assert.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_customdata.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
 
-#include "DEG_depsgraph.hh"
-
-#include "DNA_layer_types.h"
+#include "DNA_customdata_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_fluidsim_types.h"
-#include "DNA_particle_types.h"
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.alembic"};

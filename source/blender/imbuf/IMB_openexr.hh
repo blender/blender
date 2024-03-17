@@ -20,7 +20,7 @@
 
 struct StampData;
 
-void *IMB_exr_get_handle(void);
+void *IMB_exr_get_handle();
 void *IMB_exr_get_handle_name(const char *name);
 
 /**

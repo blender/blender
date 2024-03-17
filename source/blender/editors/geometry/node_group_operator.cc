@@ -208,6 +208,8 @@ static void store_result_geometry(
     case OB_MESH: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
 
+      const bool has_shape_keys = mesh.key != nullptr;
+
       if (object.mode == OB_MODE_SCULPT) {
         sculpt_paint::undo::geometry_begin(&object, &op);
       }
@@ -221,14 +223,21 @@ static void store_result_geometry(
         new_mesh->attributes_for_write().remove_anonymous();
 
         BKE_object_material_from_eval_data(&bmain, &object, &new_mesh->id);
-        BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object);
+        if (object.mode == OB_MODE_EDIT) {
+          EDBM_mesh_make_from_mesh(&object, new_mesh, scene.toolsettings->selectmode, true);
+          BKE_editmesh_looptris_and_normals_calc(mesh.edit_mesh);
+          BKE_id_free(nullptr, new_mesh);
+        }
+        else {
+          BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object);
+        }
       }
 
-      if (object.mode == OB_MODE_EDIT) {
-        EDBM_mesh_make(&object, scene.toolsettings->selectmode, true);
-        BKE_editmesh_looptris_and_normals_calc(mesh.edit_mesh);
+      if (has_shape_keys && !mesh.key) {
+        BKE_report(op.reports, RPT_WARNING, "Mesh shape key data removed");
       }
-      else if (object.mode == OB_MODE_SCULPT) {
+
+      if (object.mode == OB_MODE_SCULPT) {
         sculpt_paint::undo::geometry_end(&object);
       }
       break;
@@ -310,19 +319,38 @@ static Vector<Object *> gather_supported_objects(const bContext &C,
 {
   Vector<Object *> objects;
   Set<const ID *> unique_object_data;
-  CTX_DATA_BEGIN (&C, Object *, object, selected_objects) {
+
+  auto handle_object = [&](Object *object) {
     if (object->mode != mode) {
-      continue;
+      return;
     }
     if (!unique_object_data.add(static_cast<const ID *>(object->data))) {
-      continue;
+      return;
     }
     if (!object_has_editable_data(bmain, *object)) {
-      continue;
+      return;
     }
     objects.append(object);
+  };
+
+  if (mode == OB_MODE_OBJECT) {
+    CTX_DATA_BEGIN (&C, Object *, object, selected_objects) {
+      handle_object(object);
+    }
+    CTX_DATA_END;
   }
-  CTX_DATA_END;
+  else {
+    Scene *scene = CTX_data_scene(&C);
+    ViewLayer *view_layer = CTX_data_view_layer(&C);
+    View3D *v3d = CTX_wm_view3d(&C);
+    Object *active_object = CTX_data_active_object(&C);
+    if (v3d && active_object) {
+      FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, active_object->type, mode, ob) {
+        handle_object(ob);
+      }
+      FOREACH_OBJECT_IN_MODE_END;
+    }
+  }
   return objects;
 }
 
@@ -425,7 +453,7 @@ static int run_node_group_invoke(bContext *C, wmOperator *op, const wmEvent * /*
     return OPERATOR_CANCELLED;
   }
 
-  nodes::update_input_properties_from_node_tree(*node_tree, op->properties, true, *op->properties);
+  nodes::update_input_properties_from_node_tree(*node_tree, op->properties, *op->properties);
   nodes::update_output_properties_from_node_tree(*node_tree, op->properties, *op->properties);
 
   return run_node_group_exec(C, op);

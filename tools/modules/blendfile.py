@@ -772,7 +772,7 @@ class BlendFileHeader:
         elif pointer_size_id == b'_':
             self.pointer_size = 4
         else:
-            assert 0
+            assert False, "unreachable"
         endian_id = values[2]
         if endian_id == b'v':
             self.is_little_endian = True
@@ -783,7 +783,7 @@ class BlendFileHeader:
             self.endian_index = 1
             self.endian_str = b'>'
         else:
-            assert 0
+            assert False, "unreachable"
 
         version_id = values[3]
         self.version = int(version_id)

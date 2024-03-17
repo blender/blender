@@ -102,17 +102,30 @@ static PyObject *pyrna_unregister_class(PyObject *self, PyObject *py_class);
   "      Only the :class:`bpy.types.ID`, :class:`bpy.types.Bone` and\n" \
   "      :class:`bpy.types.PoseBone` classes support custom properties.\n"
 
-int pyrna_struct_validity_check(BPy_StructRNA *pysrna)
+int pyrna_struct_validity_check_only(const BPy_StructRNA *pysrna)
 {
   if (pysrna->ptr.type) {
     return 0;
   }
-  PyErr_Format(
-      PyExc_ReferenceError, "StructRNA of type %.200s has been removed", Py_TYPE(pysrna)->tp_name);
   return -1;
 }
 
-int pyrna_prop_validity_check(BPy_PropertyRNA *self)
+void pyrna_struct_validity_exception_only(const BPy_StructRNA *pysrna)
+{
+  PyErr_Format(
+      PyExc_ReferenceError, "StructRNA of type %.200s has been removed", Py_TYPE(pysrna)->tp_name);
+}
+
+int pyrna_struct_validity_check(const BPy_StructRNA *pysrna)
+{
+  if (pysrna->ptr.type) {
+    return 0;
+  }
+  pyrna_struct_validity_exception_only(pysrna);
+  return -1;
+}
+
+int pyrna_prop_validity_check(const BPy_PropertyRNA *self)
 {
   if (self->ptr.type) {
     return 0;
@@ -1159,6 +1172,14 @@ static void pyrna_struct_dealloc(BPy_StructRNA *self)
   if (self->reference) {
     PyObject_GC_UnTrack(self);
     pyrna_struct_clear(self);
+  }
+  else {
+    PyTypeObject *base = Py_TYPE(self)->tp_base;
+    /* Python temporarily tracks these types when freeing, see Python bug 26617. */
+    if (base && PyType_IS_GC(base)) {
+      PyObject_GC_UnTrack(self);
+    }
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
   }
 #endif /* !USE_PYRNA_STRUCT_REFERENCE */
 
@@ -4382,7 +4403,8 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
   PropertyRNA *prop;
   FunctionRNA *func;
 
-  PYRNA_STRUCT_CHECK_OBJ(self);
+  /* Allow `__class__` so `isinstance(ob, cls)` can be used without raising an exception. */
+  PYRNA_STRUCT_CHECK_OBJ_UNLESS(self, name && STREQ(name, "__class__"));
 
   if (name == nullptr) {
     PyErr_SetString(PyExc_AttributeError, "bpy_struct: __getattr__ must be a string");
@@ -7638,6 +7660,12 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
       pyrna = (BPy_StructRNA *)PyObject_GC_New(BPy_StructRNA, &pyrna_struct_Type);
 #else
       pyrna = (BPy_StructRNA *)PyObject_New(BPy_StructRNA, &pyrna_struct_Type);
+#endif
+
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+      /* #PyType_GenericAlloc will have set tracking.
+       * We only want tracking when `StructRNA.reference` has been set. */
+      PyObject_GC_UnTrack(pyrna);
 #endif
 
 #ifdef USE_WEAKREFS

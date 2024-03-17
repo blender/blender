@@ -449,7 +449,7 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
 {
   /* Gather mesh info. */
   BMEditMesh *em = BKE_editmesh_from_object(ob);
-  const Mesh *me_eval;
+  const Mesh *mesh_eval;
 
   *r_em = nullptr;
   *r_vert_coords = nullptr;
@@ -464,13 +464,13 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
   if (em != nullptr) {
     /* Note that this will only show deformation if #eModifierMode_OnCage is enabled.
      * We could change this but it matches 2.7x behavior. */
-    me_eval = BKE_object_get_editmesh_eval_cage(ob);
-    if ((me_eval == nullptr) || (me_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
-      blender::bke::EditMeshData *emd = me_eval ? me_eval->runtime->edit_data.get() : nullptr;
+    mesh_eval = BKE_object_get_editmesh_eval_cage(ob);
+    if ((mesh_eval == nullptr) || (mesh_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH)) {
+      blender::bke::EditMeshData *emd = mesh_eval ? mesh_eval->runtime->edit_data.get() : nullptr;
 
-      /* Only assign edit-mesh in the case we can't use `me_eval`. */
+      /* Only assign edit-mesh in the case we can't use `mesh_eval`. */
       *r_em = em;
-      me_eval = nullptr;
+      mesh_eval = nullptr;
 
       if ((emd != nullptr) && !emd->vertexCos.is_empty()) {
         *r_vert_coords = reinterpret_cast<const float(*)[3]>(emd->vertexCos.data());
@@ -482,9 +482,9 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
     }
   }
   else {
-    me_eval = BKE_object_get_evaluated_mesh(ob);
+    mesh_eval = BKE_object_get_evaluated_mesh(ob);
   }
-  return me_eval;
+  return mesh_eval;
 }
 
 /** \} */
@@ -711,9 +711,9 @@ static void make_duplis_verts(const DupliContext *ctx)
   BMEditMesh *em = nullptr;
   const float(*vert_positions_deform)[3] = nullptr;
   const float(*vert_normals_deform)[3] = nullptr;
-  const Mesh *me_eval = mesh_data_from_duplicator_object(
+  const Mesh *mesh_eval = mesh_data_from_duplicator_object(
       parent, &em, &vert_positions_deform, use_rotation ? &vert_normals_deform : nullptr);
-  if (em == nullptr && me_eval == nullptr) {
+  if (em == nullptr && mesh_eval == nullptr) {
     return;
   }
 
@@ -732,10 +732,10 @@ static void make_duplis_verts(const DupliContext *ctx)
   else {
     VertexDupliData_Mesh vdd{};
     vdd.params = vdd_params;
-    vdd.totvert = me_eval->verts_num;
-    vdd.vert_positions = me_eval->vert_positions();
-    vdd.vert_normals = me_eval->vert_normals();
-    vdd.orco = (const float(*)[3])CustomData_get_layer(&me_eval->vert_data, CD_ORCO);
+    vdd.totvert = mesh_eval->verts_num;
+    vdd.vert_positions = mesh_eval->vert_positions();
+    vdd.vert_normals = mesh_eval->vert_normals();
+    vdd.orco = (const float(*)[3])CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO);
 
     make_child_duplis(ctx, &vdd, make_child_duplis_verts_from_mesh);
   }
@@ -1297,9 +1297,9 @@ static void make_duplis_faces(const DupliContext *ctx)
   /* Gather mesh info. */
   BMEditMesh *em = nullptr;
   const float(*vert_positions_deform)[3] = nullptr;
-  const Mesh *me_eval = mesh_data_from_duplicator_object(
+  const Mesh *mesh_eval = mesh_data_from_duplicator_object(
       parent, &em, &vert_positions_deform, nullptr);
-  if (em == nullptr && me_eval == nullptr) {
+  if (em == nullptr && mesh_eval == nullptr) {
     return;
   }
 
@@ -1319,17 +1319,17 @@ static void make_duplis_faces(const DupliContext *ctx)
     make_child_duplis(ctx, &fdd, make_child_duplis_faces_from_editmesh);
   }
   else {
-    const int uv_idx = CustomData_get_render_layer(&me_eval->corner_data, CD_PROP_FLOAT2);
+    const int uv_idx = CustomData_get_render_layer(&mesh_eval->corner_data, CD_PROP_FLOAT2);
     FaceDupliData_Mesh fdd{};
     fdd.params = fdd_params;
-    fdd.totface = me_eval->faces_num;
-    fdd.faces = me_eval->faces();
-    fdd.corner_verts = me_eval->corner_verts();
-    fdd.vert_positions = me_eval->vert_positions();
+    fdd.totface = mesh_eval->faces_num;
+    fdd.faces = mesh_eval->faces();
+    fdd.corner_verts = mesh_eval->corner_verts();
+    fdd.vert_positions = mesh_eval->vert_positions();
     fdd.mloopuv = (uv_idx != -1) ? (const float2 *)CustomData_get_layer_n(
-                                       &me_eval->corner_data, CD_PROP_FLOAT2, uv_idx) :
+                                       &mesh_eval->corner_data, CD_PROP_FLOAT2, uv_idx) :
                                    nullptr;
-    fdd.orco = (const float(*)[3])CustomData_get_layer(&me_eval->vert_data, CD_ORCO);
+    fdd.orco = (const float(*)[3])CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO);
 
     make_child_duplis(ctx, &fdd, make_child_duplis_faces_from_mesh);
   }

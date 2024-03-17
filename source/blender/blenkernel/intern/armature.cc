@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <limits>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -38,7 +39,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
@@ -130,7 +131,11 @@ static void copy_bone_collection(bArmature *armature_dst,
  *
  * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
-static void armature_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
+static void armature_copy_data(Main * /*bmain*/,
+                               std::optional<Library *> /*owner_library*/,
+                               ID *id_dst,
+                               const ID *id_src,
+                               const int flag)
 {
   bArmature *armature_dst = (bArmature *)id_dst;
   const bArmature *armature_src = (const bArmature *)id_src;

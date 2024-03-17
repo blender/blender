@@ -14,13 +14,14 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_set.hh"
 
 #include "DNA_object_types.h"
 
 #include "IO_wavefront_obj.hh"
 
 #include "importer_mesh_utils.hh"
+
+#include <numeric>
 
 namespace blender::io::obj {
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2008-03-23 12:20+0200\n"
 "Last-Translator: Kostas Karvouniaris <neogen556@yahoo.gr>\n"
 "Language-Team: \n"
@@ -985,10 +985,6 @@ msgstr "Ο προκαθορισμένος φάκελος για αναζήτησ
 
 msgid "The default directory to search for sounds"
 msgstr "Ο προκαθορισμένος φάκελος για αναζήτηση ήχων"
-
-
-msgid "The directory for storing temporary save files"
-msgstr "Ο προκαθορισμένος φάκελος για αποθήκευση προσωρινών αρχείων"
 
 
 msgid "The default directory to search for textures"

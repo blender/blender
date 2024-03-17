@@ -13,16 +13,11 @@ namespace blender::compositor {
  */
 class KeyingDespillOperation : public MultiThreadedOperation {
  protected:
-  SocketReader *pixel_reader_;
-  SocketReader *screen_reader_;
   float despill_factor_;
   float color_balance_;
 
  public:
   KeyingDespillOperation();
-
-  void init_execution() override;
-  void deinit_execution() override;
 
   void set_despill_factor(float value)
   {
@@ -32,8 +27,6 @@ class KeyingDespillOperation : public MultiThreadedOperation {
   {
     color_balance_ = value;
   }
-
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

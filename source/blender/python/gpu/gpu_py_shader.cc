@@ -15,7 +15,7 @@
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"

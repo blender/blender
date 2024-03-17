@@ -60,6 +60,11 @@ private:
 	 */
 	volatile bool m_playback;
 
+	/**
+	 * Set when playback is paused in order to later clear the ring buffer when the playback starts again.
+	 */
+	volatile bool m_clear;
+
 	pa_threaded_mainloop* m_mainloop;
 	pa_context* m_context;
 	pa_stream* m_stream;
@@ -128,7 +133,7 @@ public:
 	 * \note The specification really used for opening the device may differ.
 	 * \exception Exception Thrown if the audio device cannot be opened.
 	 */
-	PulseAudioDevice(std::string name, DeviceSpecs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
+	PulseAudioDevice(const std::string &name, DeviceSpecs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
 
 	/**
 	 * Closes the PulseAudio audio device.

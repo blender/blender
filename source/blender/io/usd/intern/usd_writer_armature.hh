@@ -8,7 +8,6 @@
 #include "BLI_map.hh"
 
 struct Bone;
-struct Object;
 
 namespace blender::io::usd {
 

@@ -79,14 +79,16 @@ blender::Vector<FileHandlerType *> file_handlers_poll_file_drop(
   for (const std::unique_ptr<FileHandlerType> &file_handler_ptr : file_handlers()) {
     FileHandlerType &file_handler = *file_handler_ptr;
     const auto &file_extensions = file_handler.file_extensions;
-
-    const bool support_any_extension = std::any_of(
-        file_extensions.begin(),
-        file_extensions.end(),
-        [&path_extensions](const std::string &test_extension) {
-          return path_extensions.contains(test_extension);
-        });
-
+    bool support_any_extension = false;
+    for (const std::string &extension : path_extensions) {
+      auto test_fn = [&extension](const std::string &test_extension) {
+        return BLI_strcaseeq(extension.c_str(), test_extension.c_str()) == 1;
+      };
+      support_any_extension = std::any_of(file_extensions.begin(), file_extensions.end(), test_fn);
+      if (support_any_extension) {
+        break;
+      }
+    }
     if (!support_any_extension) {
       continue;
     }
@@ -110,7 +112,11 @@ blender::Vector<int64_t> FileHandlerType::filter_supported_paths(
     if (!extension) {
       continue;
     }
-    if (file_extensions.contains(extension)) {
+    auto test_fn = [extension](const std::string &test_extension) {
+      return BLI_strcaseeq(extension, test_extension.c_str()) == 1;
+    };
+
+    if (std::any_of(file_extensions.begin(), file_extensions.end(), test_fn)) {
       indices.append(idx);
     }
   }

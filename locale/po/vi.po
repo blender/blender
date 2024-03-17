@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -45209,18 +45209,6 @@ msgid "Rotate Euler"
 msgstr "Xoay Chiều Euler"
 
 
-msgid "Base orientation for rotation"
-msgstr "Định hướng cơ sở cho xoay chiều"
-
-
-msgid "Rotate the input rotation in the local space of the object"
-msgstr "Thực hiện xoay chiều ở đầu vào trong không gian địa phương của đối tượng"
-
-
-msgid "Rotate the input rotation in its local space"
-msgstr "Thực hiện xoay chiều ở đầu vào trong không gian địa phương của nó"
-
-
 msgid "Method used to describe the rotation"
 msgstr "Phương pháp sử dụng để mô tả sự xoay chiều"
 
@@ -45231,6 +45219,18 @@ msgstr "Xoay chung quanh trục một góc độ"
 
 msgid "Rotate around the X, Y, and Z axes"
 msgstr "Xoay quanh các trục X, Y, và Z"
+
+
+msgid "Base orientation for rotation"
+msgstr "Định hướng cơ sở cho xoay chiều"
+
+
+msgid "Rotate the input rotation in the local space of the object"
+msgstr "Thực hiện xoay chiều ở đầu vào trong không gian địa phương của đối tượng"
+
+
+msgid "Rotate the input rotation in its local space"
+msgstr "Thực hiện xoay chiều ở đầu vào trong không gian địa phương của nó"
 
 
 msgid "Rotate Vector"
@@ -56288,22 +56288,6 @@ msgstr "Áp dụng quá trình lấy mẫu vật vào toàn bộ các hoạt h�
 
 msgid "Output format. Binary is most efficient, but JSON may be easier to edit later"
 msgstr "Định dạng đầu ra. Nhị phân là hiệu quả nhất, song JSON có thể dễ chỉnh sửa hơn sau này"
-
-
-msgid "glTF Binary (.glb)"
-msgstr "glTF Nhị Phân (.glb)"
-
-
-msgid "Exports a single file, with all data packed in binary form. Most efficient and portable, but more difficult to edit later"
-msgstr "Xuất Khẩu ra thành một tập tin đơn, với toàn bộ dữ liệu được đóng gói trong dạng nhị phân. Hiệu suất và di động nhất, song sau này khó biên soạn hơn"
-
-
-msgid "glTF Separate (.gltf + .bin + textures)"
-msgstr "glTF Tách Phân (.gltf + .bin + chất liệu)"
-
-
-msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
-msgstr "Xuất Khẩu thành nhiều tập tin, với nhị phân, JSON và dữ liệu chất liệu tách biệt. Sau này dễ biên soạn nhất"
 
 
 msgid "Limit to Playback Range"
@@ -89524,10 +89508,6 @@ msgid "Temporary Directory"
 msgstr "Thư Mục Tạm Thời"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "Thư mục mặc định để lưu trữ các tập tin tạm thời"
-
-
 msgid ""
 "Command to launch the text editor, either a full path or a command in $PATH.\n"
 "Use the internal editor when left blank"
@@ -120538,10 +120518,6 @@ msgid "No keyframes to focus on"
 msgstr "Không có khung khóa nào để tập trung vào cả"
 
 
-msgid "Nothing selected"
-msgstr "Chưa chọn cái gì cả"
-
-
 msgid "No open Graph Editor window found"
 msgstr "Không tìm thấy cửa sổ của Trình Biên Soạn Đồ Thị nào đang mở cả"
 
@@ -121631,6 +121607,10 @@ msgstr "Chế độ Biên Soạn Đường Cong chưa được hỗ trợ"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "Không thể phân tách một đối tượng chỉ có một tầng lớp mà thôi"
+
+
+msgid "Nothing selected"
+msgstr "Chưa chọn cái gì cả"
 
 
 msgid "No active area"

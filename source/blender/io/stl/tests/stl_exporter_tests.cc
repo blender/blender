@@ -14,6 +14,8 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "MEM_guardedalloc.h"
+
 #include "IO_stl.hh"
 #include "stl_export.hh"
 
@@ -58,7 +60,7 @@ class STLExportTest : public BlendfileLoadingBaseTest {
   void SetUp() override
   {
     BlendfileLoadingBaseTest::SetUp();
-    BKE_tempdir_init("");
+    BKE_tempdir_init(nullptr);
   }
 
   void TearDown() override

@@ -47,13 +47,13 @@ float3 compute_surface_point_normal(const int3 &corner_tri,
   return math::normalize(value);
 }
 
-static void initialize_straight_curve_positions(const float3 &p1,
-                                                const float3 &p2,
-                                                MutableSpan<float3> r_positions)
+template<typename T>
+static inline void linear_interpolation(const T &a, const T &b, MutableSpan<T> dst)
 {
-  const float step = 1.0f / float(r_positions.size() - 1);
-  for (const int i : r_positions.index_range()) {
-    r_positions[i] = math::interpolate(p1, p2, i * step);
+  dst.first() = a;
+  const float step = 1.0f / dst.size();
+  for (const int i : dst.index_range().drop_front(1)) {
+    dst[i] = bke::attribute_math::mix2(i * step, a, b);
   }
 }
 
@@ -85,10 +85,10 @@ static Array<NeighborCurves> find_curve_neighbors(const Span<float3> root_positi
 }
 
 template<typename T, typename GetValueF>
-void interpolate_from_neighbors(const Span<NeighborCurves> neighbors_per_curve,
-                                const T &fallback,
-                                const GetValueF &get_value_from_neighbor,
-                                MutableSpan<T> r_interpolated_values)
+void interpolate_from_neighbor_curves(const Span<NeighborCurves> neighbors_per_curve,
+                                      const T &fallback,
+                                      const GetValueF &get_value_from_neighbor,
+                                      MutableSpan<T> r_interpolated_values)
 {
   bke::attribute_math::DefaultMixer<T> mixer{r_interpolated_values};
   threading::parallel_for(r_interpolated_values.index_range(), 512, [&](const IndexRange range) {
@@ -108,13 +108,12 @@ void interpolate_from_neighbors(const Span<NeighborCurves> neighbors_per_curve,
   });
 }
 
-static void interpolate_position_without_interpolation(
-    CurvesGeometry &curves,
-    const int old_curves_num,
-    const Span<float3> root_positions_cu,
-    const Span<float> new_lengths_cu,
-    const Span<float3> new_normals_su,
-    const float4x4 &surface_to_curves_normal_mat)
+static void calc_position_without_interpolation(CurvesGeometry &curves,
+                                                const int old_curves_num,
+                                                const Span<float3> root_positions_cu,
+                                                const Span<float> new_lengths_cu,
+                                                const Span<float3> new_normals_su,
+                                                const float4x4 &surface_to_curves_normal_mat)
 {
   const int added_curves_num = root_positions_cu.size();
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -130,21 +129,21 @@ static void interpolate_position_without_interpolation(
           math::transform_direction(surface_to_curves_normal_mat, normal_su));
       const float3 tip_cu = root_cu + length * normal_cu;
 
-      initialize_straight_curve_positions(root_cu, tip_cu, positions_cu.slice(points));
+      linear_interpolation(root_cu, tip_cu, positions_cu.slice(points));
     }
   });
 }
 
-static void interpolate_position_with_interpolation(CurvesGeometry &curves,
-                                                    const Span<float3> root_positions_cu,
-                                                    const Span<NeighborCurves> neighbors_per_curve,
-                                                    const int old_curves_num,
-                                                    const Span<float> new_lengths_cu,
-                                                    const Span<float3> new_normals_su,
-                                                    const bke::CurvesSurfaceTransforms &transforms,
-                                                    const Span<int3> corner_tris,
-                                                    const ReverseUVSampler &reverse_uv_sampler,
-                                                    const Span<float3> corner_normals_su)
+static void calc_position_with_interpolation(CurvesGeometry &curves,
+                                             const Span<float3> root_positions_cu,
+                                             const Span<NeighborCurves> neighbors_per_curve,
+                                             const int old_curves_num,
+                                             const Span<float> new_lengths_cu,
+                                             const Span<float3> new_normals_su,
+                                             const bke::CurvesSurfaceTransforms &transforms,
+                                             const Span<int3> corner_tris,
+                                             const ReverseUVSampler &reverse_uv_sampler,
+                                             const Span<float3> corner_normals_su)
 {
   MutableSpan<float3> positions_cu = curves.positions_for_write();
   const int added_curves_num = root_positions_cu.size();
@@ -168,7 +167,7 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
       if (neighbors.is_empty()) {
         /* If there are no neighbors, just make a straight line. */
         const float3 tip_cu = root_cu + length_cu * normal_cu;
-        initialize_straight_curve_positions(root_cu, tip_cu, positions_cu.slice(points));
+        linear_interpolation(root_cu, tip_cu, positions_cu.slice(points));
         continue;
       }
 
@@ -236,13 +235,91 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
   });
 }
 
+static void calc_radius_without_interpolation(CurvesGeometry &curves,
+                                              const IndexRange new_points_range,
+                                              const float radius)
+{
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  bke::SpanAttributeWriter radius_attr = attributes.lookup_or_add_for_write_span<float>(
+      "radius", bke::AttrDomain::Point);
+  radius_attr.span.slice(new_points_range).fill(radius);
+  radius_attr.finish();
+}
+
+static void calc_radius_with_interpolation(CurvesGeometry &curves,
+                                           const int old_curves_num,
+                                           const float radius,
+                                           const Span<float> new_lengths_cu,
+                                           const Span<NeighborCurves> neighbors_per_curve)
+{
+  const int added_curves_num = new_lengths_cu.size();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  bke::SpanAttributeWriter radius_attr = attributes.lookup_for_write_span<float>("radius");
+  if (!radius_attr) {
+    return;
+  }
+
+  MutableSpan<float3> positions_cu = curves.positions_for_write();
+  MutableSpan<float> radii_cu = radius_attr.span;
+
+  threading::parallel_for(IndexRange(added_curves_num), 256, [&](const IndexRange range) {
+    for (const int i : range) {
+      const NeighborCurves &neighbors = neighbors_per_curve[i];
+      const float length_cu = new_lengths_cu[i];
+      const int curve_i = old_curves_num + i;
+      const IndexRange points = points_by_curve[curve_i];
+
+      if (neighbors.is_empty()) {
+        /* If there are no neighbors, just using uniform radius. */
+        radii_cu.slice(points).fill(radius);
+        continue;
+      }
+
+      radii_cu.slice(points).fill(0.0f);
+
+      for (const NeighborCurve &neighbor : neighbors) {
+        const int neighbor_curve_i = neighbor.index;
+        const IndexRange neighbor_points = points_by_curve[neighbor_curve_i];
+        const Span<float3> neighbor_positions_cu = positions_cu.slice(neighbor_points);
+        const Span<float> neighbor_radii_cu = radius_attr.span.slice(neighbor_points);
+
+        Array<float, 32> lengths(length_parameterize::segments_num(neighbor_points.size(), false));
+        length_parameterize::accumulate_lengths<float3>(neighbor_positions_cu, false, lengths);
+
+        const float neighbor_length_cu = lengths.last();
+
+        Array<float, 32> sample_lengths(points.size());
+        const float length_factor = std::min(1.0f, length_cu / neighbor_length_cu);
+        const float resample_factor = (1.0f / (points.size() - 1.0f)) * length_factor;
+        for (const int i : sample_lengths.index_range()) {
+          sample_lengths[i] = i * resample_factor * neighbor_length_cu;
+        }
+
+        Array<int, 32> indices(points.size());
+        Array<float, 32> factors(points.size());
+        length_parameterize::sample_at_lengths(lengths, sample_lengths, indices, factors);
+
+        for (const int i : IndexRange(points.size())) {
+          const float sample_cu = math::interpolate(
+              neighbor_radii_cu[indices[i]], neighbor_radii_cu[indices[i] + 1], factors[i]);
+
+          radii_cu[points[i]] += neighbor.weight * sample_cu;
+        }
+      }
+    }
+  });
+  radius_attr.finish();
+}
+
 AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
                                           const AddCurvesOnMeshInputs &inputs)
 {
   AddCurvesOnMeshOutputs outputs;
 
   const bool use_interpolation = inputs.interpolate_length || inputs.interpolate_point_count ||
-                                 inputs.interpolate_shape || inputs.interpolate_resolution;
+                                 inputs.interpolate_radius || inputs.interpolate_shape ||
+                                 inputs.interpolate_resolution;
 
   Vector<float3> root_positions_cu;
   Vector<float3> bary_coords;
@@ -288,14 +365,13 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   if (new_curves_num == 0) {
     return outputs;
   }
-  const IndexRange new_curves_range = curves.curves_range().drop_front(old_curves_num);
 
   /* Compute new curve offsets. */
   MutableSpan<int> curve_offsets = curves.offsets_for_write();
   Array<int> new_point_counts_per_curve(added_curves_num);
   if (inputs.interpolate_point_count && old_curves_num > 0) {
     const OffsetIndices<int> old_points_by_curve{curve_offsets.take_front(old_curves_num + 1)};
-    interpolate_from_neighbors<int>(
+    interpolate_from_neighbor_curves<int>(
         neighbors_per_curve,
         inputs.fallback_point_count,
         [&](const int curve_i) { return old_points_by_curve[curve_i].size(); },
@@ -314,7 +390,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   const int new_points_num = curves.offsets().last();
   curves.resize(new_points_num, new_curves_num);
-  MutableSpan<float3> positions_cu = curves.positions_for_write();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
 
   /* The new elements are added at the end of the arrays. */
   outputs.new_points_range = curves.points_range().drop_front(old_points_num);
@@ -325,10 +401,10 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   surface_uv_coords.take_back(added_curves_num).copy_from(used_uvs);
 
   /* Determine length of new curves. */
+  Span<float3> positions_cu = curves.positions();
   Array<float> new_lengths_cu(added_curves_num);
   if (inputs.interpolate_length) {
-    const OffsetIndices points_by_curve = curves.points_by_curve();
-    interpolate_from_neighbors<float>(
+    interpolate_from_neighbor_curves<float>(
         neighbors_per_curve,
         inputs.fallback_curve_length,
         [&](const int curve_i) {
@@ -358,27 +434,37 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Initialize position attribute. */
   if (inputs.interpolate_shape) {
-    interpolate_position_with_interpolation(curves,
-                                            root_positions_cu,
-                                            neighbors_per_curve,
-                                            old_curves_num,
-                                            new_lengths_cu,
-                                            new_normals_su,
-                                            *inputs.transforms,
-                                            inputs.surface_corner_tris,
-                                            *inputs.reverse_uv_sampler,
-                                            inputs.corner_normals_su);
+    calc_position_with_interpolation(curves,
+                                     root_positions_cu,
+                                     neighbors_per_curve,
+                                     old_curves_num,
+                                     new_lengths_cu,
+                                     new_normals_su,
+                                     *inputs.transforms,
+                                     inputs.surface_corner_tris,
+                                     *inputs.reverse_uv_sampler,
+                                     inputs.corner_normals_su);
   }
   else {
-    interpolate_position_without_interpolation(curves,
-                                               old_curves_num,
-                                               root_positions_cu,
-                                               new_lengths_cu,
-                                               new_normals_su,
-                                               inputs.transforms->surface_to_curves_normal);
+    calc_position_without_interpolation(curves,
+                                        old_curves_num,
+                                        root_positions_cu,
+                                        new_lengths_cu,
+                                        new_normals_su,
+                                        inputs.transforms->surface_to_curves_normal);
   }
 
-  curves.fill_curve_types(new_curves_range, CURVE_TYPE_CATMULL_ROM);
+  /* Initialize radius attribute */
+  if (inputs.interpolate_radius) {
+    calc_radius_with_interpolation(
+        curves, old_curves_num, inputs.fallback_curve_radius, new_lengths_cu, neighbors_per_curve);
+  }
+  else {
+    calc_radius_without_interpolation(
+        curves, outputs.new_points_range, inputs.fallback_curve_radius);
+  }
+
+  curves.fill_curve_types(outputs.new_curves_range, CURVE_TYPE_CATMULL_ROM);
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
@@ -386,7 +472,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
           "resolution"))
   {
     if (inputs.interpolate_resolution) {
-      interpolate_from_neighbors(
+      interpolate_from_neighbor_curves(
           neighbors_per_curve,
           12,
           [&](const int curve_i) { return resolution.span[curve_i]; },
@@ -400,7 +486,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Explicitly set all other attributes besides those processed above to default values. */
   bke::fill_attribute_range_default(
-      attributes, bke::AttrDomain::Point, {"position"}, outputs.new_points_range);
+      attributes, bke::AttrDomain::Point, {"position", "radius"}, outputs.new_points_range);
   bke::fill_attribute_range_default(attributes,
                                     bke::AttrDomain::Curve,
                                     {"curve_type", "surface_uv_coordinate", "resolution"},

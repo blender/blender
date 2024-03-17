@@ -62,6 +62,11 @@ vec3 coordinate_incoming(vec3 P)
 {
   return cameraVec(P);
 }
+
+float film_scaling_factor_get()
+{
+  return 1.0;
+}
 #endif
 
 void main()

@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -49,8 +50,8 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
-#include "BKE_global.hh"
 #include "BKE_deform.hh"
+#include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idtype.hh"
 #include "BKE_image.h"
@@ -68,8 +69,8 @@
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_sculpt.hh"
 #include "BKE_scene.hh"
+#include "BKE_sculpt.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 #include "BKE_undo_system.hh"
@@ -123,7 +124,11 @@ static void palette_init_data(ID *id)
   id_fake_user_set(&palette->id);
 }
 
-static void palette_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
+static void palette_copy_data(Main * /*bmain*/,
+                              std::optional<Library *> /*owner_library*/,
+                              ID *id_dst,
+                              const ID *id_src,
+                              const int /*flag*/)
 {
   Palette *palette_dst = (Palette *)id_dst;
   const Palette *palette_src = (const Palette *)id_src;
@@ -195,6 +200,7 @@ IDTypeInfo IDType_ID_PAL = {
 };
 
 static void paint_curve_copy_data(Main * /*bmain*/,
+                                  std::optional<Library *> /*owner_library*/,
                                   ID *id_dst,
                                   const ID *id_src,
                                   const int /*flag*/)
@@ -612,6 +618,10 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
       switch (obact->mode) {
         case OB_MODE_SCULPT:
           return PaintMode::Sculpt;
+        case OB_MODE_SCULPT_GPENCIL_LEGACY:
+          return PaintMode::SculptGPencil;
+        case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+          return PaintMode::WeightGPencil;
         case OB_MODE_VERTEX_PAINT:
           return PaintMode::Vertex;
         case OB_MODE_WEIGHT_PAINT:
@@ -1880,15 +1890,15 @@ static void sculpt_update_object(
   UnifiedPaintSettings &ups = scene->toolsettings->unified_paint_settings;
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
   MultiresModifierData *mmd = sculpt_multires_modifier_get(scene, ob, true);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
 
-  BLI_assert(me_eval != nullptr);
+  BLI_assert(mesh_eval != nullptr);
 
   /* This is for handling a newly opened file with no object visible,
-   * causing `me_eval == nullptr`. */
-  if (me_eval == nullptr) {
+   * causing `mesh_eval == nullptr`. */
+  if (mesh_eval == nullptr) {
     return;
   }
 
@@ -1919,10 +1929,10 @@ static void sculpt_update_object(
     ss->multires.active = true;
     ss->multires.modifier = mmd;
     ss->multires.level = mmd->sculptlvl;
-    ss->totvert = me_eval->verts_num;
+    ss->totvert = mesh->verts_num;
     ss->totloops = mesh->corners_num;
     ss->totedges = mesh->edges_num;
-    ss->faces_num = me_eval->faces_num;
+    ss->faces_num = mesh->faces_num;
     ss->totfaces = mesh->faces_num;
 
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets
@@ -2005,7 +2015,7 @@ static void sculpt_update_object(
   ss->hide_poly = (bool *)CustomData_get_layer_named_for_write(
       &mesh->face_data, CD_PROP_BOOL, ".hide_poly", mesh->faces_num);
 
-  ss->subdiv_ccg = me_eval->runtime->subdiv_ccg.get();
+  ss->subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get();
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   sculpt_check_face_areas(ob, pbvh);
@@ -2046,6 +2056,8 @@ static void sculpt_update_object(
     ss->poly_normals = {};
   }
 
+  ss->subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get();
+
   BLI_assert(pbvh == ss->pbvh);
   UNUSED_VARS_NDEBUG(pbvh);
 
@@ -2077,15 +2089,15 @@ static void sculpt_update_object(
        * This matters because crazyspace evaluation is very restrictive and excludes even
        * modifiers
        * that simply recompute vertex weights (which can even include Geometry Nodes). */
-      if (me_eval_deform->faces_num == me_eval->faces_num &&
-          me_eval_deform->corners_num == me_eval->corners_num &&
-          me_eval_deform->verts_num == me_eval->verts_num)
+      if (me_eval_deform->faces_num == mesh_eval->faces_num &&
+          me_eval_deform->corners_num == mesh_eval->corners_num &&
+          me_eval_deform->verts_num == mesh_eval->verts_num)
       {
         BKE_sculptsession_free_deformMats(ss);
 
         BLI_assert(me_eval_deform->totvert == mesh->verts_num);
 
-        ss->deform_cos = me_eval->vert_positions();
+        ss->deform_cos = mesh_eval->vert_positions();
         BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos);
 
         used_me_eval = true;
@@ -2166,7 +2178,8 @@ static void sculpt_update_object(
   BKE_sculpt_init_flags_valence(ob, pbvh, totvert, false);
 
   if (ss->bm && mesh->key && ob->shapenr != ss->bm->shapenr) {
-    KeyBlock *actkey = static_cast<KeyBlock *>(BLI_findlink(&mesh->key->block, ss->bm->shapenr - 1));
+    KeyBlock *actkey = static_cast<KeyBlock *>(
+        BLI_findlink(&mesh->key->block, ss->bm->shapenr - 1));
     KeyBlock *newkey = static_cast<KeyBlock *>(BLI_findlink(&mesh->key->block, ob->shapenr - 1));
 
     bool updatePBVH = false;
@@ -2287,7 +2300,8 @@ static void sculpt_update_object(
     if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
       char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
       if (ss->last_paint_canvas_key == nullptr ||
-          !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
+          !STREQ(paint_canvas_key, ss->last_paint_canvas_key))
+      {
         MEM_SAFE_FREE(ss->last_paint_canvas_key);
         ss->last_paint_canvas_key = paint_canvas_key;
         BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
@@ -2450,6 +2464,13 @@ bool *BKE_sculpt_hide_poly_ensure(Object *ob)
   ob->sculpt->hide_poly = hide_poly;
 
   return hide_poly;
+}
+
+void BKE_sculpt_hide_poly_pointer_update(Object &object)
+{
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  object.sculpt->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
+      &mesh.face_data, CD_PROP_BOOL, ".hide_poly", mesh.faces_num));
 }
 
 void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
@@ -3502,7 +3523,8 @@ static SculptAttribute *sculpt_get_cached_layer(SculptSession *ss,
     SculptAttribute *attr = ss->temp_attributes + i;
 
     if (attr->used && STREQ(attr->name, name) && attr->proptype == proptype &&
-        attr->domain == domain) {
+        attr->domain == domain)
+    {
 
       return attr;
     }
@@ -4856,7 +4878,8 @@ void interp_face_corners(PBVH *pbvh,
     CustomDataLayer *layer = cdata->layers + layer_i;
 
     if (layer->type != CD_PROP_FLOAT2 ||
-        (layer->flag & (CD_FLAG_ELEM_NOINTERP | CD_FLAG_TEMPORARY))) {
+        (layer->flag & (CD_FLAG_ELEM_NOINTERP | CD_FLAG_TEMPORARY)))
+    {
       continue;
     }
 

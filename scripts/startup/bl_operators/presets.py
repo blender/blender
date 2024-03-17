@@ -120,9 +120,7 @@ class AddPresetBase:
 
                 if is_xml:
                     import rna_xml
-                    rna_xml.xml_file_write(context,
-                                           filepath,
-                                           preset_menu_class.preset_xml_map)
+                    rna_xml.xml_file_write(context, filepath, preset_menu_class.preset_xml_map)
                 else:
 
                     def rna_recursive_attr_expand(value, rna_path_step, level):
@@ -169,15 +167,10 @@ class AddPresetBase:
                 name = preset_menu_class.bl_label
 
             # fairly sloppy but convenient.
-            filepath = bpy.utils.preset_find(name,
-                                             self.preset_subdir,
-                                             ext=ext)
+            filepath = bpy.utils.preset_find(name, self.preset_subdir, ext=ext)
 
             if not filepath:
-                filepath = bpy.utils.preset_find(name,
-                                                 self.preset_subdir,
-                                                 display_name=True,
-                                                 ext=ext)
+                filepath = bpy.utils.preset_find(name, self.preset_subdir, display_name=True, ext=ext)
 
             if not filepath:
                 return {'CANCELLED'}
@@ -257,9 +250,7 @@ class ExecutePreset(Operator):
 
         elif ext == ".xml":
             import rna_xml
-            rna_xml.xml_file_run(context,
-                                 filepath,
-                                 preset_class.preset_xml_map)
+            rna_xml.xml_file_run(context, filepath, preset_class.preset_xml_map)
 
         if hasattr(preset_class, "post_cb"):
             preset_class.post_cb(context)
@@ -563,17 +554,44 @@ class AddPresetNodeColor(AddPresetBase, Operator):
 
 
 class AddPresetInterfaceTheme(AddPresetBase, Operator):
-    """Add or remove a theme preset"""
+    """Add a custom theme to the preset list"""
     bl_idname = "wm.interface_theme_preset_add"
-    bl_label = "Add Theme Preset"
+    bl_label = "Add Theme"
     preset_menu = "USERPREF_MT_interface_theme_presets"
     preset_subdir = "interface_theme"
 
 
+class RemovePresetInterfaceTheme(AddPresetBase, Operator):
+    """Remove a custom theme from the preset list"""
+    bl_idname = "wm.interface_theme_preset_remove"
+    bl_label = "Remove Theme"
+    preset_menu = "USERPREF_MT_interface_theme_presets"
+    preset_subdir = "interface_theme"
+
+    remove_active: BoolProperty(
+        default=True,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
+
+    @classmethod
+    def poll(cls, context):
+        from bpy.utils import is_path_builtin
+        preset_menu_class = getattr(bpy.types, cls.preset_menu)
+        name = preset_menu_class.bl_label
+        filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".xml")
+        if not bool(filepath) or is_path_builtin(filepath):
+            cls.poll_message_set("Built-in themes cannot be removed")
+            return False
+        return True
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(self, event, title="Remove Custom Theme", confirm_text="Delete")
+
+
 class AddPresetKeyconfig(AddPresetBase, Operator):
-    """Add or remove a Key-config Preset"""
+    """Add a custom keymap configuration to the preset list"""
     bl_idname = "wm.keyconfig_preset_add"
-    bl_label = "Add Keyconfig Preset"
+    bl_label = "Add Custom Keymap Configuration"
     preset_menu = "USERPREF_MT_keyconfigs"
     preset_subdir = "keyconfig"
 
@@ -581,16 +599,43 @@ class AddPresetKeyconfig(AddPresetBase, Operator):
         bpy.ops.preferences.keyconfig_export(filepath=filepath)
         bpy.utils.keyconfig_set(filepath)
 
+
+class RemovePresetKeyconfig(AddPresetBase, Operator):
+    """Remove a custom keymap configuration from the preset list"""
+    bl_idname = "wm.keyconfig_preset_remove"
+    bl_label = "Remove Keymap Configuration"
+    preset_menu = "USERPREF_MT_keyconfigs"
+    preset_subdir = "keyconfig"
+
+    remove_active: BoolProperty(
+        default=True,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
+
+    @classmethod
+    def poll(cls, context):
+        from bpy.utils import is_path_builtin
+        keyconfigs = bpy.context.window_manager.keyconfigs
+        preset_menu_class = getattr(bpy.types, cls.preset_menu)
+        name = keyconfigs.active.name
+        filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".py")
+        if not bool(filepath) or is_path_builtin(filepath):
+            cls.poll_message_set("Built-in keymap configurations cannot be removed")
+            return False
+        return True
+
     def pre_cb(self, context):
         keyconfigs = bpy.context.window_manager.keyconfigs
-        if self.remove_active:
-            preset_menu_class = getattr(bpy.types, self.preset_menu)
-            preset_menu_class.bl_label = keyconfigs.active.name
+        preset_menu_class = getattr(bpy.types, self.preset_menu)
+        preset_menu_class.bl_label = keyconfigs.active.name
 
     def post_cb(self, context):
         keyconfigs = bpy.context.window_manager.keyconfigs
-        if self.remove_active:
-            keyconfigs.remove(keyconfigs.active)
+        keyconfigs.remove(keyconfigs.active)
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(
+            self, event, title="Remove Keymap Configuration", confirm_text="Delete")
 
 
 class AddPresetOperator(AddPresetBase, Operator):
@@ -658,70 +703,77 @@ class WM_MT_operator_presets(Menu):
 
 
 class WM_OT_operator_presets_cleanup(Operator):
+    """Remove outdated operator properties from presets that may cause problems"""
+
     bl_idname = "wm.operator_presets_cleanup"
     bl_label = "Clean Up Operator Presets"
-    bl_description = "Remove outdated operator properties from presets that may cause problems"
 
     operator: StringProperty(name="operator")
     properties: CollectionProperty(name="properties", type=OperatorFileListElement)
 
-    def cleanup_preset(self, filepath, properties):
-        from pathlib import Path
-        file = Path(filepath)
-        if not (file.is_file() and filepath.suffix == ".py"):
+    def _cleanup_preset(self, filepath, properties_exclude):
+        import os
+        import re
+        if not (os.path.isfile(filepath) and os.path.splitext(filepath)[1].lower() == ".py"):
             return
-        lines = file.read_text().splitlines(True)
-        if len(lines) == 0:
+        with open(filepath, "r", encoding="utf-8") as fh:
+            lines = fh.read().splitlines(True)
+        if not lines:
             return
-        new_lines = []
-        for line in lines:
-            if not any(line.startswith(("op.%s" % prop)) for prop in properties):
-                new_lines.append(line)
-        file.write_text("".join(new_lines))
+        regex_exclude = re.compile("(" + "|".join([re.escape("op." + prop) for prop in properties_exclude]) + ")\\b")
+        lines = [line for line in lines if not regex_exclude.match(line)]
+        with open(filepath, "w", encoding="utf-8") as fh:
+            fh.write("".join(lines))
 
-    def cleanup_operators_presets(self, operators, properties):
-        base_preset_directory = bpy.utils.user_resource(
-            'SCRIPTS', path="presets", create=False)
+    def _cleanup_operators_presets(self, operators, properties_exclude):
+        import os
+        base_preset_directory = bpy.utils.user_resource('SCRIPTS', path="presets", create=False)
+        if not base_preset_directory:
+            return
         for operator in operators:
-            from pathlib import Path
             operator_path = AddPresetOperator.operator_path(operator)
-            directory = Path(base_preset_directory, operator_path)
+            directory = os.path.join(base_preset_directory, operator_path)
 
-            if not directory.is_dir():
+            if not os.path.isdir(directory):
                 continue
-
-            for filepath in directory.iterdir():
-                self.cleanup_preset(filepath, properties)
+            for filename in os.listdir(directory):
+                self._cleanup_preset(os.path.join(directory, filename), properties_exclude)
 
     def execute(self, context):
-        properties = []
+        properties_exclude = []
         operators = []
         if self.operator:
             operators.append(self.operator)
             for prop in self.properties:
-                properties.append(prop.name)
+                properties_exclude.append(prop.name)
         else:
             # Cleanup by default I/O Operators Presets
-            operators = ['WM_OT_alembic_export',
-                         'WM_OT_alembic_import',
-                         'WM_OT_collada_export',
-                         'WM_OT_collada_import',
-                         'WM_OT_gpencil_export_svg',
-                         'WM_OT_gpencil_export_pdf',
-                         'WM_OT_gpencil_export_svg',
-                         'WM_OT_gpencil_import_svg',
-                         'WM_OT_obj_export',
-                         'WM_OT_obj_import',
-                         'WM_OT_ply_export',
-                         'WM_OT_ply_import',
-                         'WM_OT_stl_export',
-                         'WM_OT_stl_import',
-                         'WM_OT_usd_export',
-                         'WM_OT_usd_import',
-                         ]
-            properties = ["filepath", "directory", "files", "filename"]
+            operators = [
+                "WM_OT_alembic_export",
+                "WM_OT_alembic_import",
+                "WM_OT_collada_export",
+                "WM_OT_collada_import",
+                "WM_OT_gpencil_export_svg",
+                "WM_OT_gpencil_export_pdf",
+                "WM_OT_gpencil_export_svg",
+                "WM_OT_gpencil_import_svg",
+                "WM_OT_obj_export",
+                "WM_OT_obj_import",
+                "WM_OT_ply_export",
+                "WM_OT_ply_import",
+                "WM_OT_stl_export",
+                "WM_OT_stl_import",
+                "WM_OT_usd_export",
+                "WM_OT_usd_import",
+            ]
+            properties_exclude = [
+                "filepath",
+                "directory",
+                "files",
+                "filename"
+            ]
 
-        self.cleanup_operators_presets(operators, properties)
+        self._cleanup_operators_presets(operators, properties_exclude)
         return {'FINISHED'}
 
 
@@ -804,7 +856,9 @@ classes = (
     AddPresetFluid,
     AddPresetHairDynamics,
     AddPresetInterfaceTheme,
+    RemovePresetInterfaceTheme,
     AddPresetKeyconfig,
+    RemovePresetKeyconfig,
     AddPresetNodeColor,
     AddPresetOperator,
     AddPresetRender,

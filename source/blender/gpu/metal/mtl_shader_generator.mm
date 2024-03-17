@@ -303,7 +303,7 @@ static void replace_outvars(std::string &str)
             /* Generate out-variable pattern for arrays, of form
              * `OUT(vec2,samples,CRYPTOMATTE_LEVELS_MAX)`
              * replacing original `out vec2 samples[SAMPLE_LEN]`
-             * using 'OUT' macro declared in mtl_shader_defines.msl*/
+             * using 'OUT' macro declared in `mtl_shader_defines.msl`. */
             char *array_end = strchr(word_base2 + len2, ']');
             if (array_end != nullptr) {
               *start = 'O';
@@ -1355,7 +1355,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
       ss_fragment << "float2 gl_PointCoord;" << std::endl;
     }
     if (msl_iface.uses_gl_FrontFacing) {
-      ss_fragment << "MTLBOOL gl_FrontFacing;" << std::endl;
+      ss_fragment << "bool gl_FrontFacing;" << std::endl;
     }
     if (msl_iface.uses_gl_PrimitiveID) {
       ss_fragment << "uint gl_PrimitiveID;" << std::endl;
@@ -2616,7 +2616,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_inputs_string()
   }
   if (this->uses_gl_FrontFacing) {
     out << parameter_delimiter(is_first_parameter)
-        << "\n\tconst MTLBOOL gl_FrontFacing [[front_facing]]";
+        << "\n\tconst bool gl_FrontFacing [[front_facing]]";
   }
   if (this->uses_gl_PrimitiveID) {
     out << parameter_delimiter(is_first_parameter)

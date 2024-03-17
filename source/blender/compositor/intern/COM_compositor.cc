@@ -89,7 +89,7 @@ void COM_execute(Render *render,
     /* CPU compositor. */
 
     /* Initialize workscheduler. */
-    blender::compositor::WorkScheduler::initialize(false, BKE_render_num_threads(render_data));
+    blender::compositor::WorkScheduler::initialize(BKE_render_num_threads(render_data));
 
     /* Execute. */
     const bool twopass = (node_tree->flag & NTREE_TWO_PASS) && !rendering;

@@ -266,7 +266,7 @@ static void imapaint_tri_weights(float matrix[4][4],
 }
 
 /* compute uv coordinates of mouse in face */
-static void imapaint_pick_uv(const Mesh *me_eval,
+static void imapaint_pick_uv(const Mesh *mesh_eval,
                              Scene *scene,
                              Object *ob_eval,
                              uint faceindex,
@@ -278,13 +278,13 @@ static void imapaint_pick_uv(const Mesh *me_eval,
   int view[4];
   const ePaintCanvasSource mode = ePaintCanvasSource(scene->toolsettings->imapaint.mode);
 
-  const blender::Span<blender::int3> tris = me_eval->corner_tris();
-  const blender::Span<int> tri_faces = me_eval->corner_tri_faces();
+  const blender::Span<blender::int3> tris = mesh_eval->corner_tris();
+  const blender::Span<int> tri_faces = mesh_eval->corner_tri_faces();
 
-  const blender::Span<blender::float3> positions = me_eval->vert_positions();
-  const blender::Span<int> corner_verts = me_eval->corner_verts();
+  const blender::Span<blender::float3> positions = mesh_eval->vert_positions();
+  const blender::Span<int> corner_verts = mesh_eval->corner_verts();
   const int *index_mp_to_orig = static_cast<const int *>(
-      CustomData_get_layer(&me_eval->face_data, CD_ORIGINDEX));
+      CustomData_get_layer(&mesh_eval->face_data, CD_ORIGINDEX));
 
   /* get the needed opengl matrices */
   GPU_viewport_size_get_i(view);
@@ -298,7 +298,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
   uv[0] = uv[1] = 0.0;
 
   const int *material_indices = (const int *)CustomData_get_layer_named(
-      &me_eval->face_data, CD_PROP_INT32, "material_index");
+      &mesh_eval->face_data, CD_PROP_INT32, "material_index");
 
   /* test all faces in the derivedmesh with the original index of the picked face */
   /* face means poly here, not triangle, indeed */
@@ -325,15 +325,15 @@ static void imapaint_pick_uv(const Mesh *me_eval,
 
         if (!(slot && slot->uvname &&
               (mloopuv = static_cast<const float(*)[2]>(CustomData_get_layer_named(
-                   &me_eval->corner_data, CD_PROP_FLOAT2, slot->uvname)))))
+                   &mesh_eval->corner_data, CD_PROP_FLOAT2, slot->uvname)))))
         {
           mloopuv = static_cast<const float(*)[2]>(
-              CustomData_get_layer(&me_eval->corner_data, CD_PROP_FLOAT2));
+              CustomData_get_layer(&mesh_eval->corner_data, CD_PROP_FLOAT2));
         }
       }
       else {
         mloopuv = static_cast<const float(*)[2]>(
-            CustomData_get_layer(&me_eval->corner_data, CD_PROP_FLOAT2));
+            CustomData_get_layer(&mesh_eval->corner_data, CD_PROP_FLOAT2));
       }
 
       tri_uv[0] = mloopuv[tris[i][0]];
@@ -414,15 +414,15 @@ void paint_sample_color(
       CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
       cddata_masks.pmask |= CD_MASK_ORIGINDEX;
       Mesh *mesh = (Mesh *)ob->data;
-      const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
       const int *material_indices = (const int *)CustomData_get_layer_named(
-          &me_eval->face_data, CD_PROP_INT32, "material_index");
+          &mesh_eval->face_data, CD_PROP_INT32, "material_index");
 
       const int mval[2] = {x, y};
       uint faceindex;
       uint faces_num = mesh->faces_num;
 
-      if (CustomData_has_layer(&me_eval->corner_data, CD_PROP_FLOAT2)) {
+      if (CustomData_has_layer(&mesh_eval->corner_data, CD_PROP_FLOAT2)) {
         ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
         view3d_operator_needs_opengl(C);
@@ -457,7 +457,7 @@ void paint_sample_color(
             iuser.framenr = image->lastframe;
 
             float uv[2];
-            imapaint_pick_uv(me_eval, scene, ob_eval, faceindex, mval, uv);
+            imapaint_pick_uv(mesh_eval, scene, ob_eval, faceindex, mval, uv);
 
             if (image->source == IMA_SRC_TILED) {
               float new_uv[2];

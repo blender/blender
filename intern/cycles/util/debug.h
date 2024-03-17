@@ -27,7 +27,6 @@ class DebugFlags {
     /* Flags describing which instructions sets are allowed for use. */
     bool avx2 = true;
     bool sse42 = true;
-    bool sse2 = true;
 
     /* Check functions to see whether instructions up to the given one
      * are allowed for use.
@@ -38,11 +37,7 @@ class DebugFlags {
     }
     bool has_sse42()
     {
-      return has_sse2() && sse42;
-    }
-    bool has_sse2()
-    {
-      return sse2;
+      return sse42;
     }
 
     /* Requested BVH layout.

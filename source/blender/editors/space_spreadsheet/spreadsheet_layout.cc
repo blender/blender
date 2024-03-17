@@ -55,8 +55,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   nullptr,
                                   0,
                                   0,
-                                  0,
-                                  0,
                                   nullptr);
     /* Center-align column headers. */
     UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -77,8 +75,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   params.width,
                                   params.height,
                                   nullptr,
-                                  0,
-                                  0,
                                   0,
                                   0,
                                   nullptr);
@@ -112,8 +108,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    0,
-                                    0,
                                     nullptr);
       /* Right-align Integers. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -132,8 +126,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     0,
                                     0,
                                     nullptr);
@@ -162,8 +154,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    0,
-                                    0,
                                     nullptr);
       /* Right-align Floats. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -182,8 +172,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     0,
                                     0,
                                     nullptr);
@@ -229,8 +217,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                            nullptr,
                            0,
                            0,
-                           0,
-                           0,
                            nullptr);
           break;
         }
@@ -248,8 +234,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                            nullptr,
                            0,
                            0,
-                           0,
-                           0,
                            nullptr);
           break;
         }
@@ -264,8 +248,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                            params.width,
                            params.height,
                            nullptr,
-                           0,
-                           0,
                            0,
                            0,
                            nullptr);
@@ -287,8 +269,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                        params.width,
                        params.height,
                        nullptr,
-                       0,
-                       0,
                        0,
                        0,
                        nullptr);
@@ -314,8 +294,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     segment_width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     0,
                                     0,
                                     nullptr);
@@ -346,8 +324,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    0,
-                                    0,
                                     nullptr);
       /* Right-align Floats. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -375,8 +351,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     segment_width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     0,
                                     0,
                                     nullptr);
@@ -413,8 +387,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   params.width,
                                   params.height,
                                   nullptr,
-                                  0,
-                                  0,
                                   0,
                                   0,
                                   nullptr);

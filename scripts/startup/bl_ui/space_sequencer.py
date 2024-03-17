@@ -2669,7 +2669,7 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
                             col.prop(mod, "gamma")
                 else:
                     if mod.type == 'SOUND_EQUALIZER':
-                        eq_row = box.row()
+                        # eq_row = box.row()
                         # eq_graphs = eq_row.operator_menu_enum("sequencer.strip_modifier_equalizer_redefine", "graphs")
                         # eq_graphs.name = mod.name
                         flow = box.grid_flow(

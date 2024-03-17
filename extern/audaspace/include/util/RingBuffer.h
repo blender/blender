@@ -74,6 +74,8 @@ public:
 
 	size_t write(data_t* source, size_t size);
 
+	void clear();
+
 	/**
 	 * Resets the ring buffer to a state where nothing has been written or read.
 	 */

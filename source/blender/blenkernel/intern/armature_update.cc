@@ -24,7 +24,7 @@
 #include "BKE_anim_path.h"
 #include "BKE_armature.hh"
 #include "BKE_curve.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_object_types.hh"
 #include "BKE_scene.hh"
 

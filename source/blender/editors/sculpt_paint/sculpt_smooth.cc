@@ -792,14 +792,14 @@ float neighbor_mask_average(SculptSession *ss,
     case PBVH_GRIDS:
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         avg += SCULPT_mask_get_at_grids_vert_index(
-            *ss->subdiv_ccg, *BKE_pbvh_get_grid_key(ss->pbvh), vertex.i);
+            *ss->subdiv_ccg, *BKE_pbvh_get_grid_key(ss->pbvh), ni.vertex.i);
         total++;
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
       break;
     case PBVH_BMESH:
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-        BMVert *vert = reinterpret_cast<BMVert *>(vertex.i);
+        BMVert *vert = reinterpret_cast<BMVert *>(ni.vertex.i);
         avg += BM_ELEM_CD_GET_FLOAT(vert, write_info.bm_offset);
         total++;
       }
@@ -1086,13 +1086,17 @@ void do_smooth_brush(
     const float strength = (iteration != count) ? 1.0f : last;
 
     if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
+      BKE_pbvh_flush_tri_areas(ob, ss->pbvh);
+      /* Preload face areas all at once into back buffer. */
+      BKE_pbvh_face_areas_begin(ob, ss->pbvh);
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
           BKE_pbvh_check_tri_areas(ss->pbvh, nodes[i]);
         }
       });
 
-      BKE_pbvh_face_areas_begin(ss->pbvh);
+      /* Swap into front buffer. */
+      BKE_pbvh_face_areas_swap_buffers(ob, ss->pbvh);
     }
 
     bool smooth_origco = SCULPT_tool_needs_smooth_origco(brush->sculpt_tool);

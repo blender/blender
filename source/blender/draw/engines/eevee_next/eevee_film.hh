@@ -79,6 +79,8 @@ class Film {
   int2 display_extent;
 
   eViewLayerEEVEEPassType enabled_passes_ = eViewLayerEEVEEPassType(0);
+  PassCategory enabled_categories_ = PassCategory(0);
+  bool use_reprojection_ = false;
 
  public:
   Film(Instance &inst, FilmData &data) : inst_(inst), data_(data){};
@@ -116,6 +118,11 @@ class Film {
   int2 display_extent_get() const
   {
     return display_extent;
+  }
+
+  int scaling_factor_get() const
+  {
+    return data_.scaling_factor;
   }
 
   float2 pixel_jitter_get() const;

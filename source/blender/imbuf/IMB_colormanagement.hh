@@ -83,7 +83,7 @@ BLI_INLINE void IMB_colormanagement_aces_to_scene_linear(float scene_linear[3],
                                                          const float aces[3]);
 BLI_INLINE void IMB_colormanagement_scene_linear_to_aces(float aces[3],
                                                          const float scene_linear[3]);
-const float *IMB_colormanagement_get_xyz_to_scene_linear(void);
+const float *IMB_colormanagement_get_xyz_to_scene_linear();
 
 /** \} */
 
@@ -300,12 +300,12 @@ void IMB_display_buffer_release(void *cache_handle);
 
 int IMB_colormanagement_display_get_named_index(const char *name);
 const char *IMB_colormanagement_display_get_indexed_name(int index);
-const char *IMB_colormanagement_display_get_default_name(void);
+const char *IMB_colormanagement_display_get_default_name();
 /**
  * Used by performance-critical pixel processing areas, such as color widgets.
  */
 ColorManagedDisplay *IMB_colormanagement_display_get_named(const char *name);
-const char *IMB_colormanagement_display_get_none_name(void);
+const char *IMB_colormanagement_display_get_none_name();
 const char *IMB_colormanagement_display_get_default_view_transform_name(
     ColorManagedDisplay *display);
 
@@ -326,7 +326,7 @@ const char *IMB_colormanagement_view_get_indexed_name(int index);
 
 int IMB_colormanagement_look_get_named_index(const char *name);
 const char *IMB_colormanagement_look_get_indexed_name(int index);
-const char *IMB_colormanagement_look_get_default_name(void);
+const char *IMB_colormanagement_look_get_default_name();
 const char *IMB_colormanagement_look_validate_for_view(const char *view_name,
                                                        const char *look_name);
 
@@ -483,7 +483,7 @@ bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const bContext *C,
 /**
  * Finish GLSL-based display space conversion.
  */
-void IMB_colormanagement_finish_glsl_draw(void);
+void IMB_colormanagement_finish_glsl_draw();
 
 /** \} */
 

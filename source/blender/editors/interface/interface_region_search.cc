@@ -891,10 +891,10 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
     data->noback = true;
   }
 
-  if (but->a1 > 0 && but->a2 > 0) {
+  if (but->preview_rows > 0 && but->preview_cols > 0) {
     data->preview = true;
-    data->prv_rows = but->a1;
-    data->prv_cols = but->a2;
+    data->prv_rows = but->preview_rows;
+    data->prv_cols = but->preview_cols;
   }
 
   if (but->optype != nullptr || use_shortcut_sep) {

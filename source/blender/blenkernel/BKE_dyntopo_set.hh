@@ -29,12 +29,12 @@ template<typename T> class DyntopoSet {
   DyntopoSet() {}
   DyntopoSet(const DyntopoSet &) = delete;
 
-  struct iterator {
-    iterator() : set_(nullptr), i_(-1) {}
-    iterator(DyntopoSet *set, int i) : set_(set), i_(i) {}
-    iterator(const iterator &b) : set_(b.set_), i_(b.i_) {}
+  template<typename DS = DyntopoSet<T>, typename RT = T> struct iterator_base {
+    iterator_base() : set_(nullptr), i_(-1) {}
+    iterator_base(DS *set, int i) : set_(set), i_(i) {}
+    iterator_base(const iterator_base &b) : set_(b.set_), i_(b.i_) {}
 
-    iterator &operator=(const iterator &b)
+    iterator_base &operator=(const iterator_base &b)
     {
       set_ = b.set_;
       i_ = b.i_;
@@ -42,12 +42,12 @@ template<typename T> class DyntopoSet {
       return *this;
     }
 
-    inline T *operator*()
+    inline RT *operator*()
     {
       return set_->index_to_elem_[i_];
     }
 
-    inline iterator &operator++()
+    inline iterator_base &operator++()
     {
       i_++;
 
@@ -58,20 +58,23 @@ template<typename T> class DyntopoSet {
       return *this;
     }
 
-    inline bool operator==(const iterator &b)
+    inline bool operator==(const iterator_base &b)
     {
       return b.i_ == i_;
     }
 
-    inline bool operator!=(const iterator &b)
+    inline bool operator!=(const iterator_base &b)
     {
       return b.i_ != i_;
     }
 
    private:
-    DyntopoSet *set_;
+    DS *set_;
     int i_;
   };
+
+  using iterator = iterator_base<DyntopoSet<T>, T>;
+  using const_iterator = iterator_base<const DyntopoSet<T>, const T>;
 
   bool contains(T *key)
   {
@@ -132,6 +135,21 @@ template<typename T> class DyntopoSet {
   iterator end()
   {
     return iterator(this, index_to_elem_.size());
+  }
+
+  const_iterator begin() const
+  {
+    int i = 0;
+    while (i < index_to_elem_.size() && index_to_elem_[i] == nullptr) {
+      i++;
+    }
+
+    return const_iterator(this, i);
+  }
+
+  const_iterator end() const
+  {
+    return const_iterator(this, index_to_elem_.size());
   }
 
  private:

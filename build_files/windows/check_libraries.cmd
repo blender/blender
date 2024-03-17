@@ -1,4 +1,8 @@
-set BUILD_VS_LIBDIR=lib/windows_x64
+if "%BUILD_ARCH%" == "arm64" (
+	set BUILD_VS_LIBDIR=lib/windows_arm64
+) else (
+	set BUILD_VS_LIBDIR=lib/windows_x64
+)
 
 if NOT "%verbose%" == "" (
 	echo Library Directory = "%BUILD_VS_LIBDIR%"
@@ -26,7 +30,10 @@ if NOT EXIST "%BUILD_VS_LIBDIR%\.git" (
 			echo *********************************************************
 :RETRY
 			"%GIT%" -C "%BLENDER_DIR%\" config --local "submodule.%BUILD_VS_LIBDIR%.update" "checkout"
+			set GIT_LFS_SKIP_SMUDGE=1
 			"%GIT%" -C "%BLENDER_DIR%\" submodule update --progress --init "%BUILD_VS_LIBDIR%"
+			set GIT_LFS_SKIP_SMUDGE=
+			"%GIT%" -C "./%BUILD_VS_LIBDIR%" lfs pull
 			if errorlevel 1 (
 				set /p LibRetry= "Error during download, retry? y/n"
 				if /I "!LibRetry!"=="Y" (

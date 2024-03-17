@@ -56,7 +56,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_armature.hh"
 #include "BKE_collection.hh"
 #include "BKE_collision.h"
@@ -223,8 +223,9 @@ OperationCode bone_target_opcode(ID *target,
                                  const char *component_subdata,
                                  RootPChanMap *root_map)
 {
-  /* Same armature. */
-  if (target == id) {
+  /* Same armature. root_map will be nullptr when building object-level constraints, and in that
+   * case we don't need to check for the common chains. */
+  if (target == id && root_map != nullptr) {
     /* Using "done" here breaks in-chain deps, while using
      * "ready" here breaks most production rigs instead.
      * So, we do a compromise here, and only do this when an
@@ -523,6 +524,10 @@ void DepsgraphRelationBuilder::build_id(ID *id)
   switch (id_type) {
     case ID_AC:
       build_action((bAction *)id);
+      break;
+    case ID_AN:
+      /* TODO: actually handle this ID type properly, will be done in a followup commit. */
+      build_generic_id(id);
       break;
     case ID_AR:
       build_armature((bArmature *)id);
@@ -1499,7 +1504,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
           /* Standard object relation. */
           /* TODO: loc vs rot vs scale? */
           if (&ct->tar->id == id) {
-            /* Constraint targeting own object:
+            /* Constraint targeting its own object:
              * - This case is fine IF we're dealing with a bone
              *   constraint pointing to its own armature. In that
              *   case, it's just transform -> bone.
@@ -1681,7 +1686,7 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
     /* create the driver's relations to targets */
     build_driver(id, fcu);
 
-    /* prevent driver from occurring before own animation... */
+    /* prevent driver from occurring before its own animation... */
     if (adt->action || adt->nla_tracks.first) {
       add_relation(adt_key, driver_key, "AnimData Before Drivers");
     }

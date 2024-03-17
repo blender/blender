@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -52,7 +53,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_bpath.hh"
 #include "BKE_collection.hh"
@@ -61,7 +62,7 @@
 #include "BKE_duplilist.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_effect.h"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_image.h"
@@ -251,7 +252,11 @@ static void scene_copy_markers(Scene *scene_dst, const Scene *scene_src, const i
   }
 }
 
-static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+static void scene_copy_data(Main *bmain,
+                            std::optional<Library *> owner_library,
+                            ID *id_dst,
+                            const ID *id_src,
+                            const int flag)
 {
   Scene *scene_dst = (Scene *)id_dst;
   const Scene *scene_src = (const Scene *)id_src;
@@ -266,10 +271,11 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
 
   /* Master Collection */
   if (scene_src->master_collection) {
-    BKE_id_copy_ex(bmain,
-                   (ID *)scene_src->master_collection,
-                   (ID **)&scene_dst->master_collection,
-                   flag_private_id_data);
+    BKE_id_copy_in_lib(bmain,
+                       owner_library,
+                       reinterpret_cast<ID *>(scene_src->master_collection),
+                       reinterpret_cast<ID **>(&scene_dst->master_collection),
+                       flag_private_id_data);
     scene_dst->master_collection->owner_id = &scene_dst->id;
   }
 
@@ -293,8 +299,11 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   BKE_keyingsets_copy(&(scene_dst->keyingsets), &(scene_src->keyingsets));
 
   if (scene_src->nodetree) {
-    BKE_id_copy_ex(
-        bmain, (ID *)scene_src->nodetree, (ID **)&scene_dst->nodetree, flag_private_id_data);
+    BKE_id_copy_in_lib(bmain,
+                       owner_library,
+                       (ID *)scene_src->nodetree,
+                       (ID **)&scene_dst->nodetree,
+                       flag_private_id_data);
     BKE_libblock_relink_ex(bmain,
                            scene_dst->nodetree,
                            (void *)(&scene_src->id),

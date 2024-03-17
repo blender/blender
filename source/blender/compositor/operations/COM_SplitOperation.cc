@@ -11,39 +11,8 @@ SplitOperation::SplitOperation()
   this->add_input_socket(DataType::Color);
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
-  image1Input_ = nullptr;
-  image2Input_ = nullptr;
 
   flags_.can_be_constant = true;
-}
-
-void SplitOperation::init_execution()
-{
-  /* When initializing the tree during initial load the width and height can be zero. */
-  image1Input_ = get_input_socket_reader(0);
-  image2Input_ = get_input_socket_reader(1);
-}
-
-void SplitOperation::deinit_execution()
-{
-  image1Input_ = nullptr;
-  image2Input_ = nullptr;
-}
-
-void SplitOperation::execute_pixel_sampled(float output[4],
-                                           float x,
-                                           float y,
-                                           PixelSampler /*sampler*/)
-{
-  int perc = x_split_ ? split_percentage_ * this->get_width() / 100.0f :
-                        split_percentage_ * this->get_height() / 100.0f;
-  bool image1 = x_split_ ? x >= perc : y >= perc;
-  if (image1) {
-    image1Input_->read_sampled(output, x, y, PixelSampler::Nearest);
-  }
-  else {
-    image2Input_->read_sampled(output, x, y, PixelSampler::Nearest);
-  }
 }
 
 void SplitOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)

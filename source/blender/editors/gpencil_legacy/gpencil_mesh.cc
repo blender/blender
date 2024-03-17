@@ -12,12 +12,14 @@
 #include "BLI_ghash.h"
 #include "BLI_math_rotation.h"
 
+#include "BLT_translation.hh"
+
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_duplilist.hh"
 #include "BKE_gpencil_geom_legacy.h"
@@ -381,7 +383,8 @@ static int gpencil_bake_mesh_animation_invoke(bContext *C,
 {
   /* Show popup dialog to allow editing. */
   /* FIXME: hard-coded dimensions here are just arbitrary. */
-  return WM_operator_props_dialog_popup(C, op, 250);
+  return WM_operator_props_dialog_popup(
+      C, op, 250, IFACE_("Bake Mesh Animation to Grease Pencil"), IFACE_("Bake"));
 }
 
 void GPENCIL_OT_bake_mesh_animation(wmOperatorType *ot)

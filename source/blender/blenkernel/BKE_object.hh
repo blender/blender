@@ -13,6 +13,7 @@
 
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 #include "BLI_vector.hh"
@@ -54,8 +55,10 @@ void BKE_object_workob_clear(Object *workob);
  * Otherwise, after changing ob->parent you need to call:
  * - #DEG_relations_tag_update(bmain);
  * - #BKE_scene_graph_update_tagged(depsgraph, bmain);
+ *
+ * \return calculated object_to_world.
  */
-void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *ob, Object *workob);
+blender::float4x4 BKE_object_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *ob);
 
 void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src);
 void BKE_object_copy_softbody(Object *ob_dst, const Object *ob_src, int flag);
@@ -333,7 +336,7 @@ void BKE_object_where_is_calc_time(Depsgraph *depsgraph, Scene *scene, Object *o
  */
 void BKE_object_where_is_calc_mat4(Object *ob, float r_obmat[4][4]);
 
-/* Possibly belong in own module? */
+/* Possibly belong in its own module? */
 
 void BKE_boundbox_init_from_minmax(BoundBox *bb, const float min[3], const float max[3]);
 void BKE_boundbox_minmax(const BoundBox *bb,

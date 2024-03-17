@@ -20,7 +20,7 @@ struct ProjCameraInfo;
  * \param rotmat: can be `obedit->object_to_world().ptr()` when uv project is used.
  * \param winx, winy: can be from `scene->r.xsch / ysch`.
  */
-struct ProjCameraInfo *BLI_uvproject_camera_info(struct Object *ob,
+struct ProjCameraInfo *BLI_uvproject_camera_info(const struct Object *ob,
                                                  const float rotmat[4][4],
                                                  float winx,
                                                  float winy);

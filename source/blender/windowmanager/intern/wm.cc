@@ -120,7 +120,7 @@ static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *
   write_wm_xr_data(writer, &wm->xr);
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    /* update deprecated screen member (for so loading in 2.7x uses the correct screen) */
+    /* Update deprecated screen member (for so loading in 2.7x uses the correct screen). */
     win->screen = BKE_workspace_active_screen_get(win->workspace_hook);
 
     BLO_write_struct(writer, wmWindow, win);
@@ -129,7 +129,7 @@ static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *
 
     BKE_screen_area_map_blend_write(writer, &win->global_areas);
 
-    /* data is written, clear deprecated data again */
+    /* Data is written, clear deprecated data again. */
     win->screen = nullptr;
   }
 }
@@ -388,14 +388,30 @@ void WM_operator_stack_clear(wmWindowManager *wm)
 void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
 {
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    bScreen *screen = WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      switch (area->spacetype) {
+        case SPACE_FILE: {
+          SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+          if (sfile->op && sfile->op->type == ot) {
+            /* Freed as part of the handler. */
+            sfile->op = nullptr;
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     ListBase *lb[2] = {&win->handlers, &win->modalhandlers};
     for (int i = 0; i < ARRAY_SIZE(lb); i++) {
       LISTBASE_FOREACH (wmEventHandler *, handler_base, lb[i]) {
         if (handler_base->type == WM_HANDLER_TYPE_OP) {
           wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
           if (handler->op && handler->op->type == ot) {
-            /* don't run op->cancel because it needs the context,
-             * assume whoever unregisters the operator will cleanup */
+            /* Don't run op->cancel because it needs the context,
+             * assume whoever unregisters the operator will cleanup. */
             handler->head.flag |= WM_HANDLER_DO_FREE;
             WM_operator_free(handler->op);
             handler->op = nullptr;
@@ -436,8 +452,8 @@ void WM_keyconfig_init(bContext *C)
 
   /* Initialize only after python init is done, for keymaps that use python operators. */
   if (CTX_py_init_get(C) && (wm->init_flag & WM_INIT_FLAG_KEYCONFIG) == 0) {
-    /* create default key config, only initialize once,
-     * it's persistent across sessions */
+    /* Create default key config, only initialize once,
+     * it's persistent across sessions. */
     if (!(wm->defaultconf->flag & KEYCONF_INIT_DEFAULT)) {
       wm_window_keymap(wm->defaultconf);
       ED_spacetypes_keymap(wm->defaultconf);
@@ -523,7 +539,7 @@ void wm_add_default(Main *bmain, bContext *C)
   wmWindowManager *wm = static_cast<wmWindowManager *>(
       BKE_libblock_alloc(bmain, ID_WM, "WinMan", 0));
   wmWindow *win;
-  bScreen *screen = CTX_wm_screen(C); /* XXX from file read hrmf */
+  bScreen *screen = CTX_wm_screen(C); /* XXX: from file read hrmf. */
   WorkSpace *workspace;
   WorkSpaceLayout *layout = BKE_workspace_layout_find_global(bmain, screen, &workspace);
 

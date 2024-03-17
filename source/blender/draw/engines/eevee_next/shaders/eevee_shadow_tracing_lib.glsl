@@ -12,6 +12,8 @@
 #pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_view_lib.glsl)
+#pragma BLENDER_REQUIRE(draw_math_geom_lib.glsl)
 
 float shadow_read_depth_at_tilemap_uv(int tilemap_index, vec2 tilemap_uv)
 {
@@ -363,7 +365,9 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
   vec3 local_ray_start = lP + projection_origin;
   vec3 local_ray_end = local_ray_start + direction;
 
-  int face_id = shadow_punctual_face_index_get(local_ray_start);
+  /* Use an offset in the ray direction to jitter which face is traced.
+   * This helps hiding some harsh discontinuity. */
+  int face_id = shadow_punctual_face_index_get(local_ray_start + direction * 0.5);
   /* Local Light Space > Face Local (View) Space. */
   vec3 view_ray_start = shadow_punctual_local_position_to_face_local(face_id, local_ray_start);
   vec3 view_ray_end = shadow_punctual_local_position_to_face_local(face_id, local_ray_end);
@@ -406,6 +410,94 @@ SHADOW_MAP_TRACE_FN(ShadowRayPunctual)
 /** \name Shadow Evaluation
  * \{ */
 
+/* Compute the world space offset of the shading position required for
+ * stochastic percentage closer filtering of shadow-maps. */
+vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 Ng)
+{
+  if (light.pcf_radius <= 0.001) {
+    /* Early return. */
+    return vec3(0.0);
+  }
+
+  vec3 L = light_vector_get(light, is_directional, P).L;
+  if (dot(L, Ng) < 0.001) {
+    /* Don't apply PCF to almost perpendicular,
+     * since we can't project the offset to the surface. */
+    return vec3(0.0);
+  }
+
+  ShadowSampleParams params;
+  if (is_directional) {
+    params = shadow_directional_sample_params_get(shadow_tilemaps_tx, light, P);
+  }
+  else {
+    params = shadow_punctual_sample_params_get(light, P);
+  }
+  ShadowTileData tile = shadow_tile_data_get(shadow_tilemaps_tx, params);
+  if (!tile.is_allocated) {
+    return vec3(0.0);
+  }
+
+  /* Compute the shadow-map tangent-bitangent matrix. */
+
+  float uv_offset = 1.0 / float(SHADOW_MAP_MAX_RES);
+  vec3 TP, BP;
+  if (is_directional) {
+    TP = shadow_directional_reconstruct_position(
+        params, light, params.uv + vec3(uv_offset, 0.0, 0.0));
+    BP = shadow_directional_reconstruct_position(
+        params, light, params.uv + vec3(0.0, uv_offset, 0.0));
+  }
+  else {
+    mat4 wininv = shadow_punctual_projection_perspective_inverse(light);
+    TP = shadow_punctual_reconstruct_position(
+        params, wininv, light, params.uv + vec3(uv_offset, 0.0, 0.0));
+    BP = shadow_punctual_reconstruct_position(
+        params, wininv, light, params.uv + vec3(0.0, uv_offset, 0.0));
+  }
+
+  /* TODO: Use a mat2x3 (Currently not supported by the Metal backend). */
+  mat3 TBN = mat3(TP - P, BP - P, Ng);
+
+  /* Compute the actual offset. */
+
+  vec2 rand = vec2(0.0);
+#ifdef EEVEE_SAMPLING_DATA
+  rand = sampling_rng_2D_get(SAMPLING_SHADOW_V);
+#endif
+  vec2 pcf_offset = interlieved_gradient_noise(UTIL_TEXEL, vec2(0.0), rand);
+  pcf_offset = pcf_offset * 2.0 - 1.0;
+  pcf_offset *= light.pcf_radius;
+
+  vec3 ws_offset = TBN * vec3(pcf_offset, 0.0);
+  vec3 offset_P = P + ws_offset;
+
+  /* Project the offset position into the surface */
+
+#ifdef GPU_NVIDIA
+  /* Workaround for a bug in the Nvidia shader compiler.
+   * If we don't compute L here again, it breaks shadows on reflection probes. */
+  L = light_vector_get(light, is_directional, P).L;
+#endif
+
+  if (abs(dot(Ng, L)) > 0.999) {
+    return ws_offset;
+  }
+
+  offset_P = line_plane_intersect(offset_P, L, P, Ng);
+  ws_offset = offset_P - P;
+
+  if (dot(ws_offset, L) < 0.0) {
+    /* Project the offset position into the perpendicular plane, since it's closer to the light
+     * (avoids overshadowing at geometry angles). */
+    vec3 perpendicular_plane_normal = cross(Ng, normalize(cross(Ng, L)));
+    offset_P = line_plane_intersect(offset_P, L, P, perpendicular_plane_normal);
+    ws_offset = offset_P - P;
+  }
+
+  return ws_offset;
+}
+
 /**
  * Evaluate shadowing by casting rays toward the light direction.
  */
@@ -432,6 +524,8 @@ ShadowEvalResult shadow_eval(LightData light,
   /* TODO(fclem): Parameter on irradiance volumes? */
   float normal_offset = 0.02;
 #endif
+
+  P += shadow_pcf_offset(light, is_directional, P, Ng);
 
   /* Avoid self intersection. */
   P = offset_ray(P, Ng);

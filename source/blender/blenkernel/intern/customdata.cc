@@ -5784,6 +5784,45 @@ static void write_grid_paint_mask(BlendWriter *writer,
   }
 }
 
+static void blend_write_layer_data(BlendWriter *writer,
+                                   const CustomDataLayer &layer,
+                                   const int count)
+{
+  switch (layer.type) {
+    case CD_MDEFORMVERT:
+      BKE_defvert_blend_write(writer, count, static_cast<const MDeformVert *>(layer.data));
+      break;
+    case CD_MDISPS:
+      write_mdisps(
+          writer, count, static_cast<const MDisps *>(layer.data), layer.flag & CD_FLAG_EXTERNAL);
+      break;
+    case CD_PAINT_MASK:
+      BLO_write_raw(writer, sizeof(float) * count, static_cast<const float *>(layer.data));
+      break;
+    case CD_GRID_PAINT_MASK:
+      write_grid_paint_mask(writer, count, static_cast<const GridPaintMask *>(layer.data));
+      break;
+    case CD_PROP_BOOL:
+      BLO_write_raw(writer, sizeof(bool) * count, static_cast<const bool *>(layer.data));
+      break;
+    default: {
+      const char *structname;
+      int structnum;
+      CustomData_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
+      if (structnum) {
+        int datasize = structnum * count;
+        BLO_write_struct_array_by_name(writer, structname, datasize, layer.data);
+      }
+      else if (!BLO_write_is_undo(writer)) { /* Do not warn on undo. */
+        printf("%s error: layer '%s':%d - can't be written to file\n",
+               __func__,
+               structname,
+               layer.type);
+      }
+    }
+  }
+}
+
 void CustomData_blend_write(BlendWriter *writer,
                             CustomData *data,
                             Span<CustomDataLayer> layers_to_write,
@@ -5800,39 +5839,10 @@ void CustomData_blend_write(BlendWriter *writer,
       writer, CustomDataLayer, data->totlayer, data->layers, layers_to_write.data());
 
   for (const CustomDataLayer &layer : layers_to_write) {
-    switch (layer.type) {
-      case CD_MDEFORMVERT:
-        BKE_defvert_blend_write(writer, count, static_cast<const MDeformVert *>(layer.data));
-        break;
-      case CD_MDISPS:
-        write_mdisps(
-            writer, count, static_cast<const MDisps *>(layer.data), layer.flag & CD_FLAG_EXTERNAL);
-        break;
-      case CD_PAINT_MASK:
-        BLO_write_raw(writer, sizeof(float) * count, static_cast<const float *>(layer.data));
-        break;
-      case CD_GRID_PAINT_MASK:
-        write_grid_paint_mask(writer, count, static_cast<const GridPaintMask *>(layer.data));
-        break;
-      case CD_PROP_BOOL:
-        BLO_write_raw(writer, sizeof(bool) * count, static_cast<const bool *>(layer.data));
-        break;
-      default: {
-        const char *structname;
-        int structnum;
-        CustomData_file_write_info(eCustomDataType(layer.type), &structname, &structnum);
-        if (structnum) {
-          int datasize = structnum * count;
-          BLO_write_struct_array_by_name(writer, structname, datasize, layer.data);
-        }
-        else if (!BLO_write_is_undo(writer)) { /* Do not warn on undo. */
-          printf("%s error: layer '%s':%d - can't be written to file\n",
-                 __func__,
-                 structname,
-                 layer.type);
-        }
-      }
-    }
+    const size_t size_in_bytes = CustomData_sizeof(eCustomDataType(layer.type)) * count;
+    BLO_write_shared(writer, layer.data, size_in_bytes, layer.sharing_info, [&]() {
+      blend_write_layer_data(writer, layer, count);
+    });
   }
 
   if (data->external) {
@@ -5885,6 +5895,30 @@ static void blend_read_paint_mask(BlendDataReader *reader,
   }
 }
 
+static void blend_read_layer_data(BlendDataReader *reader, CustomDataLayer &layer, const int count)
+{
+  BLO_read_data_address(reader, &layer.data);
+  if (CustomData_layer_ensure_data_exists(&layer, count)) {
+    /* Under normal operations, this shouldn't happen, but...
+     * For a CD_PROP_BOOL example, see #84935.
+     * For a CD_MLOOPUV example, see #90620. */
+    CLOG_WARN(&LOG,
+              "Allocated custom data layer that was not saved correctly for layer.type = %d.",
+              layer.type);
+  }
+
+  if (layer.type == CD_MDISPS) {
+    blend_read_mdisps(
+        reader, count, static_cast<MDisps *>(layer.data), layer.flag & CD_FLAG_EXTERNAL);
+  }
+  else if (layer.type == CD_GRID_PAINT_MASK) {
+    blend_read_paint_mask(reader, count, static_cast<GridPaintMask *>(layer.data));
+  }
+  else if (layer.type == CD_MDEFORMVERT) {
+    BKE_defvert_blend_read(reader, count, static_cast<MDeformVert *>(layer.data));
+  }
+}
+
 void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int count)
 {
   BLO_read_data_address(reader, &data->layers);
@@ -5898,6 +5932,8 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
 
   BLO_read_data_address(reader, &data->external);
 
+  blender::Map<void *, const ImplicitSharingInfo *> sharing_info_by_data;
+
   int i = 0;
   while (i < data->totlayer) {
     CustomDataLayer *layer = &data->layers[i];
@@ -5908,31 +5944,24 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
     layer->sharing_info = nullptr;
 
     if (CustomData_verify_versions(data, i)) {
-      BLO_read_data_address(reader, &layer->data);
-      if (layer->data != nullptr) {
-        /* Make layer data shareable. */
-        layer->sharing_info = make_implicit_sharing_info_for_layer(
-            eCustomDataType(layer->type), layer->data, count);
-      }
-      if (CustomData_layer_ensure_data_exists(layer, count)) {
-        /* Under normal operations, this shouldn't happen, but...
-         * For a CD_PROP_BOOL example, see #84935.
-         * For a CD_MLOOPUV example, see #90620. */
-        CLOG_WARN(&LOG,
-                  "Allocated custom data layer that was not saved correctly for layer->type = %d.",
-                  layer->type);
-      }
-
-      if (layer->type == CD_MDISPS) {
-        blend_read_mdisps(
-            reader, count, static_cast<MDisps *>(layer->data), layer->flag & CD_FLAG_EXTERNAL);
-      }
-      else if (layer->type == CD_GRID_PAINT_MASK) {
-        blend_read_paint_mask(reader, count, static_cast<GridPaintMask *>(layer->data));
-      }
-      else if (layer->type == CD_MDEFORMVERT) {
-        BKE_defvert_blend_read(reader, count, static_cast<MDeformVert *>(layer->data));
-      }
+      layer->sharing_info = BLO_read_shared(
+          reader, &layer->data, [&]() -> const ImplicitSharingInfo * {
+            blend_read_layer_data(reader, *layer, count);
+            if (layer->data == nullptr) {
+              return nullptr;
+            }
+            const ImplicitSharingInfo *sharing_info = sharing_info_by_data.lookup_default(
+                layer->data, nullptr);
+            if (sharing_info != nullptr) {
+              sharing_info->add_user();
+            }
+            else {
+              sharing_info = make_implicit_sharing_info_for_layer(
+                  eCustomDataType(layer->type), layer->data, count);
+              sharing_info_by_data.add(layer->data, sharing_info);
+            }
+            return sharing_info;
+          });
       i++;
     }
   }

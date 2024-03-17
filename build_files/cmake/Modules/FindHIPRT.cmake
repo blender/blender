@@ -7,16 +7,18 @@
 #   HIPRT_BITCODE, bitcode file with ray-tracing functionality
 #   HIPRT_FOUND, if SDK found
 
+if(NOT (DEFINED HIPRT_ROOT_DIR))
+  set(HIPRT_ROOT_DIR "")
+endif()
+
 # If `HIPRT_ROOT_DIR` was defined in the environment, use it.
-if(DEFINED HIPRT_ROOT_DIR AND HIPRT_ROOT_DIR)
+if(HIPRT_ROOT_DIR)
   # Pass.
 elseif(DEFINED ENV{HIPRT_ROOT_DIR})
   set(HIPRT_ROOT_DIR $ENV{HIPRT_ROOT_DIR})
 elseif(DEFINED ENV{HIP_PATH})
   # Built-in environment variable from SDK.
   set(HIPRT_ROOT_DIR $ENV{HIP_PATH})
-else()
-  set(HIPRT_ROOT_DIR "")
 endif()
 
 set(_hiprt_SEARCH_DIRS
@@ -55,3 +57,5 @@ find_package_handle_standard_args(HIPRT DEFAULT_MSG
 mark_as_advanced(
   HIPRT_INCLUDE_DIR
 )
+
+unset(_hiprt_SEARCH_DIRS)

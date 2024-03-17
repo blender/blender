@@ -35,7 +35,7 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
   char tvec[NUM_STR_REP_LEN * 3];
   int ofs = 0;
 
-  /* if numeric input is active, use results from that, otherwise apply snapping to result */
+  /* If numeric input is active, use results from that, otherwise apply snapping to result. */
   if (hasNumInput(&t->num)) {
     outputNumInput(&(t->num), tvec, &t->scene->unit);
   }
@@ -99,17 +99,17 @@ static void applyTimeTranslate(TransInfo *t)
   View2D *v2d = (View2D *)t->view;
   char str[UI_MAX_DRAW_STR];
 
-  /* calculate translation amount from mouse movement - in 'time-grid space' */
+  /* Calculate translation amount from mouse movement - in 'time-grid space'. */
   if (t->flag & T_MODAL) {
     float cval[2], sval[2];
     UI_view2d_region_to_view(v2d, t->mval[0], t->mval[0], &cval[0], &cval[1]);
     UI_view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[0], &sval[0], &sval[1]);
 
-    /* we only need to calculate effect for time (applyTimeTranslate only needs that) */
+    /* We only need to calculate effect for time (#applyTimeTranslate only needs that). */
     t->values[0] = cval[0] - sval[0];
   }
 
-  /* handle numeric-input stuff */
+  /* Handle numeric-input stuff. */
   t->vec[0] = t->values[0];
   applyNumInput(&t->num, &t->vec[0]);
   t->values_final[0] = t->vec[0];
@@ -124,7 +124,7 @@ static void applyTimeTranslate(TransInfo *t)
 
 static void initTimeTranslate(TransInfo *t, wmOperator * /*op*/)
 {
-  /* this tool is only really available in the Action Editor... */
+  /* This tool is only really available in the Action Editor. */
   if (!ELEM(t->spacetype, SPACE_ACTION, SPACE_SEQ)) {
     t->state = TRANS_CANCEL;
   }

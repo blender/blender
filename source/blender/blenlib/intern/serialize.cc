@@ -68,11 +68,10 @@ const DictionaryValue *Value::as_dictionary_value() const
 static void convert_to_json(nlohmann::ordered_json &j, const Value &value);
 static void convert_to_json(nlohmann::ordered_json &j, const ArrayValue &value)
 {
-  const ArrayValue::Items &items = value.elements();
   /* Create a json array to store the elements. If this isn't done and items is empty it would
    * return use a null value, in stead of an empty array. */
   j = "[]"_json;
-  for (const ArrayValue::Item &item_value : items) {
+  for (const std::shared_ptr<Value> &item_value : value.elements()) {
     nlohmann::ordered_json json_item;
     convert_to_json(json_item, *item_value);
     j.push_back(json_item);
@@ -81,11 +80,10 @@ static void convert_to_json(nlohmann::ordered_json &j, const ArrayValue &value)
 
 static void convert_to_json(nlohmann::ordered_json &j, const DictionaryValue &value)
 {
-  const DictionaryValue::Items &attributes = value.elements();
   /* Create a json object to store the attributes. If this isn't done and attributes is empty it
    * would return use a null value, in stead of an empty object. */
   j = "{}"_json;
-  for (const DictionaryValue::Item &attribute : attributes) {
+  for (const DictionaryValue::Item &attribute : value.elements()) {
     nlohmann::ordered_json json_item;
     convert_to_json(json_item, *attribute.second);
     j[attribute.first] = json_item;
@@ -143,11 +141,8 @@ static std::unique_ptr<Value> convert_from_json(const nlohmann::ordered_json &j)
 static std::unique_ptr<ArrayValue> convert_from_json_to_array(const nlohmann::ordered_json &j)
 {
   std::unique_ptr<ArrayValue> array = std::make_unique<ArrayValue>();
-  ArrayValue::Items &elements = array->elements();
   for (auto element : j.items()) {
-    nlohmann::ordered_json element_json = element.value();
-    std::unique_ptr<Value> value = convert_from_json(element_json);
-    elements.append_as(value.release());
+    array->append(convert_from_json(element.value()));
   }
   return array;
 }
@@ -156,12 +151,8 @@ static std::unique_ptr<DictionaryValue> convert_from_json_to_object(
     const nlohmann::ordered_json &j)
 {
   std::unique_ptr<DictionaryValue> object = std::make_unique<DictionaryValue>();
-  DictionaryValue::Items &elements = object->elements();
   for (auto element : j.items()) {
-    std::string key = element.key();
-    nlohmann::ordered_json element_json = element.value();
-    std::unique_ptr<Value> value = convert_from_json(element_json);
-    elements.append_as(std::pair(key, value.release()));
+    object->append(element.key(), convert_from_json(element.value()));
   }
   return object;
 }
@@ -216,7 +207,7 @@ static std::unique_ptr<Value> convert_from_json(const nlohmann::ordered_json &j)
 
 void ArrayValue::append(std::shared_ptr<Value> value)
 {
-  this->elements().append(std::move(value));
+  values_.append(std::move(value));
 }
 
 void ArrayValue::append_bool(const bool value)
@@ -258,10 +249,10 @@ std::shared_ptr<ArrayValue> ArrayValue::append_array()
   return value;
 }
 
-const DictionaryValue::Lookup DictionaryValue::create_lookup() const
+DictionaryValue::Lookup DictionaryValue::create_lookup() const
 {
   Lookup result;
-  for (const Item &item : elements()) {
+  for (const Item &item : values_) {
     result.add_as(item.first, item.second);
   }
   return result;
@@ -269,7 +260,7 @@ const DictionaryValue::Lookup DictionaryValue::create_lookup() const
 
 const std::shared_ptr<Value> *DictionaryValue::lookup(const StringRef key) const
 {
-  for (const auto &item : this->elements()) {
+  for (const auto &item : values_) {
     if (item.first == key) {
       return &item.second;
     }
@@ -325,7 +316,7 @@ const ArrayValue *DictionaryValue::lookup_array(const StringRef key) const
 
 void DictionaryValue::append(std::string key, std::shared_ptr<Value> value)
 {
-  this->elements().append({std::move(key), std::move(value)});
+  values_.append({std::move(key), std::move(value)});
 }
 
 void DictionaryValue::append_int(std::string key, const int64_t value)
@@ -338,9 +329,9 @@ void DictionaryValue::append_double(std::string key, const double value)
   this->append(std::move(key), std::make_shared<DoubleValue>(value));
 }
 
-void DictionaryValue::append_str(std::string key, const std::string value)
+void DictionaryValue::append_str(std::string key, std::string value)
 {
-  this->append(std::move(key), std::make_shared<StringValue>(value));
+  this->append(std::move(key), std::make_shared<StringValue>(std::move(value)));
 }
 
 std::shared_ptr<DictionaryValue> DictionaryValue::append_dict(std::string key)

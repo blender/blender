@@ -77,7 +77,7 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
     });
     const eNodeSocketDatatype other_type = eNodeSocketDatatype(params.other_socket().type);
     if (params.node_tree().typeinfo->validate_link(other_type, SOCK_VECTOR)) {
-      params.add_item(IFACE_("Position"), [node_type](LinkSearchOpParams &params) {
+      params.add_item(IFACE_("Position"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeSampleGrid");
         params.update_and_connect_available_socket(node, "Position");
       });

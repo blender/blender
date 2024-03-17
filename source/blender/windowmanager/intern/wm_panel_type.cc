@@ -59,7 +59,7 @@ void WM_paneltype_remove(PanelType *pt)
 
 void WM_paneltype_init()
 {
-  /* reserve size is set based on blender default setup */
+  /* Reserve size is set based on blender default setup. */
   g_paneltypes_hash = BLI_ghash_str_new_ex("g_paneltypes_hash gh", 512);
 }
 

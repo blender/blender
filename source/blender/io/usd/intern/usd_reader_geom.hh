@@ -8,6 +8,10 @@
 
 struct Mesh;
 
+namespace blender::bke {
+struct GeometrySet;
+}
+
 namespace blender::io::usd {
 
 class USDGeomReader : public USDXformReader {
@@ -20,9 +24,9 @@ class USDGeomReader : public USDXformReader {
   {
   }
 
-  virtual Mesh *read_mesh(struct Mesh *existing_mesh,
-                          USDMeshReadParams params,
-                          const char **err_str) = 0;
+  virtual void read_geometry(bke::GeometrySet &geometry_set,
+                             USDMeshReadParams params,
+                             const char **err_str) = 0;
 
   virtual bool topology_changed(const Mesh * /*existing_mesh*/, double /*motionSampleTime*/)
   {

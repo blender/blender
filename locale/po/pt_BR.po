@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-02-19 09:39+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -54782,10 +54782,6 @@ msgid "Temporary Directory"
 msgstr "Diretório temporário"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "O diretório para armazenar arquivos temporários."
-
-
 msgid "The default directory to search for textures"
 msgstr "O diretório padrão para pesquisar por texturas."
 
@@ -68844,10 +68840,6 @@ msgid "Display action without any time remapping (when unpinned)"
 msgstr "Mostra a ação sem qualquer remapeamento de tempo (quando não afixada)."
 
 
-msgid "Nothing selected"
-msgstr "Nada selecionado."
-
-
 msgid "<invalid>"
 msgstr "<inválido>"
 
@@ -69284,6 +69276,10 @@ msgstr "Nenhum quadro ativo para apagar."
 
 msgid "No active frame(s) to delete"
 msgstr "Sem quaisquer quadros ativos para apagar."
+
+
+msgid "Nothing selected"
+msgstr "Nada selecionado."
 
 
 msgid "No active area"

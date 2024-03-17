@@ -392,7 +392,7 @@ struct RenderResult *RE_MultilayerConvert(
 /* Display and event callbacks. */
 
 /**
- * Image and movie output has to move to either imbuf or kernel.
+ * Image and movie output has to move to either #ImBuf or kernel.
  */
 void RE_display_init_cb(struct Render *re,
                         void *handle,

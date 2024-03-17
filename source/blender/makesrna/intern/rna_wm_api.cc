@@ -127,7 +127,7 @@ static bool rna_event_modal_handler_add(bContext *C, ReportList *reports, wmOper
 
 static void rna_WindowManager_autosave_write(struct wmWindowManager *wm, Main *main)
 {
-  wm_autosave_write(main, wm);
+  WM_autosave_write(wm, main);
 }
 
 /* XXX, need a way for python to know event types, 0x0110 is hard coded */
@@ -964,6 +964,7 @@ void RNA_api_wm(StructRNA *srna)
 
   parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(parm, rna_operator_popup_icon_items);
+  RNA_def_property_enum_default(parm, ALERT_ICON_NONE);
   RNA_def_property_ui_text(parm, "Icon", "Optional icon displayed in the dialog");
 
   api_ui_item_common_translation(func);

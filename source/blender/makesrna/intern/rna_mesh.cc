@@ -746,7 +746,7 @@ static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
   mlcol->a = round_fl_to_uchar_clamp(values[3] * 255.0f);
 }
 
-static int rna_Mesh_texspace_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_Mesh_texspace_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   Mesh *mesh = (Mesh *)ptr->data;
   return (mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO) ? PropertyFlag(0) : PROP_EDITABLE;
@@ -1219,13 +1219,14 @@ static void rna_MeshSkinVertexLayer_data_begin(CollectionPropertyIterator *iter,
 {
   Mesh *mesh = rna_mesh(ptr);
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  rna_iterator_array_begin(iter, layer->data, sizeof(MVertSkin), mesh->verts_num, 0, nullptr);
+  rna_iterator_array_begin(
+      iter, layer->data, sizeof(MVertSkin), (mesh->edit_mesh) ? 0 : mesh->verts_num, 0, nullptr);
 }
 
 static int rna_MeshSkinVertexLayer_data_length(PointerRNA *ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
-  return mesh->verts_num;
+  return (mesh->edit_mesh) ? 0 : mesh->verts_num;
 }
 
 /* End skin vertices */

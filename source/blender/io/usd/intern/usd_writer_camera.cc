@@ -10,6 +10,8 @@
 #include "BKE_camera.h"
 #include "BLI_assert.h"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
 
@@ -19,7 +21,7 @@ USDCameraWriter::USDCameraWriter(const USDExporterContext &ctx) : USDAbstractWri
 
 bool USDCameraWriter::is_supported(const HierarchyContext *context) const
 {
-  Camera *camera = static_cast<Camera *>(context->object->data);
+  const Camera *camera = static_cast<const Camera *>(context->object->data);
   return camera->type == CAM_PERSP;
 }
 
@@ -59,7 +61,7 @@ void USDCameraWriter::do_write(HierarchyContext &context)
   pxr::UsdGeomCamera usd_camera = pxr::UsdGeomCamera::Define(usd_export_context_.stage,
                                                              usd_export_context_.usd_path);
 
-  Camera *camera = static_cast<Camera *>(context.object->data);
+  const Camera *camera = static_cast<const Camera *>(context.object->data);
   Scene *scene = DEG_get_evaluated_scene(usd_export_context_.depsgraph);
 
   usd_camera.CreateProjectionAttr().Set(pxr::UsdGeomTokens->perspective);

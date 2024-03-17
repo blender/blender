@@ -8,11 +8,11 @@
 
 #pragma once
 
-#include "BKE_context.hh"
-
 #include "BLI_path_util.h"
-#include "DNA_windowmanager_types.h"
 #include "IO_orientation.hh"
+
+struct bContext;
+struct ReportList;
 
 enum ePLYVertexColorMode {
   PLY_VERTEX_COLOR_NONE = 0,
@@ -45,6 +45,8 @@ struct PLYExportParams {
   ePLYVertexColorMode vertex_colors;
   bool export_attributes;
   bool export_triangulated_mesh;
+
+  ReportList *reports = nullptr;
 };
 
 struct PLYImportParams {
@@ -57,6 +59,8 @@ struct PLYImportParams {
   ePLYVertexColorMode vertex_colors;
   bool import_attributes;
   bool merge_verts;
+
+  ReportList *reports = nullptr;
 };
 
 /**
@@ -64,4 +68,4 @@ struct PLYImportParams {
  */
 void PLY_export(bContext *C, const PLYExportParams *export_params);
 
-void PLY_import(bContext *C, const PLYImportParams *import_params, wmOperator *op);
+void PLY_import(bContext *C, const PLYImportParams *import_params);

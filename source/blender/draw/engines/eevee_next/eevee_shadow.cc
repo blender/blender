@@ -224,7 +224,8 @@ void ShadowPunctual::sync(eLightType light_type,
                           float cone_aperture,
                           float light_shape_radius,
                           float max_distance,
-                          float softness_factor)
+                          float softness_factor,
+                          float shadow_radius)
 {
   if (is_spot_light(light_type)) {
     tilemaps_needed_ = (cone_aperture > DEG2RADF(90.0f)) ? 5 : 1;
@@ -247,6 +248,7 @@ void ShadowPunctual::sync(eLightType light_type,
 
   position_ = float3(object_mat[3]);
   softness_factor_ = softness_factor;
+  shadow_radius_ = shadow_radius;
 }
 
 void ShadowPunctual::release_excess_tilemaps()
@@ -341,8 +343,7 @@ void ShadowPunctual::end_sync(Light &light, float lod_bias)
   ShadowTileMapPool &tilemap_pool = shadows_.tilemap_pool;
 
   float side, near, far;
-  compute_projection_boundaries(
-      light_radius_, light_radius_ * softness_factor_, max_distance_, near, far, side);
+  compute_projection_boundaries(light_radius_, shadow_radius_, max_distance_, near, far, side);
 
   /* Shift shadow map origin for area light to avoid clipping nearby geometry. */
   float shift = is_area_light(light.type) ? near : 0.0f;
@@ -1009,28 +1010,6 @@ void ShadowModule::end_sync()
     Manager &manager = *inst_.manager;
 
     {
-      /* Mark for update all shadow pages touching an updated shadow caster. */
-      PassSimple &pass = caster_update_ps_;
-      pass.init();
-      pass.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_TAG_UPDATE));
-      pass.bind_ssbo("tilemaps_buf", tilemap_pool.tilemaps_data);
-      pass.bind_ssbo("tiles_buf", tilemap_pool.tiles_data);
-      /* Past caster transforms. */
-      if (past_casters_updated_.size() > 0) {
-        pass.bind_ssbo("bounds_buf", &manager.bounds_buf.previous());
-        pass.bind_ssbo("resource_ids_buf", past_casters_updated_);
-        pass.dispatch(int3(past_casters_updated_.size(), 1, tilemap_pool.tilemaps_data.size()));
-      }
-      /* Current caster transforms. */
-      if (curr_casters_updated_.size() > 0) {
-        pass.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
-        pass.bind_ssbo("resource_ids_buf", curr_casters_updated_);
-        pass.dispatch(int3(curr_casters_updated_.size(), 1, tilemap_pool.tilemaps_data.size()));
-      }
-      pass.barrier(GPU_BARRIER_SHADER_STORAGE);
-    }
-
-    {
       PassSimple &pass = tilemap_setup_ps_;
       pass.init();
 
@@ -1077,6 +1056,28 @@ void ShadowModule::end_sync()
         }
         sub.barrier(GPU_BARRIER_SHADER_STORAGE);
       }
+    }
+
+    {
+      /* Mark for update all shadow pages touching an updated shadow caster. */
+      PassSimple &pass = caster_update_ps_;
+      pass.init();
+      pass.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_TAG_UPDATE));
+      pass.bind_ssbo("tilemaps_buf", tilemap_pool.tilemaps_data);
+      pass.bind_ssbo("tiles_buf", tilemap_pool.tiles_data);
+      /* Past caster transforms. */
+      if (past_casters_updated_.size() > 0) {
+        pass.bind_ssbo("bounds_buf", &manager.bounds_buf.previous());
+        pass.bind_ssbo("resource_ids_buf", past_casters_updated_);
+        pass.dispatch(int3(past_casters_updated_.size(), 1, tilemap_pool.tilemaps_data.size()));
+      }
+      /* Current caster transforms. */
+      if (curr_casters_updated_.size() > 0) {
+        pass.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
+        pass.bind_ssbo("resource_ids_buf", curr_casters_updated_);
+        pass.dispatch(int3(curr_casters_updated_.size(), 1, tilemap_pool.tilemaps_data.size()));
+      }
+      pass.barrier(GPU_BARRIER_SHADER_STORAGE);
     }
 
     /* Non volume usage tagging happens between these two steps.
@@ -1337,13 +1338,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
   }
 
   inst_.hiz_buffer.update();
-
-  /* Run caster update once and before the update loop.
-   * This is valid even before the view update since only the static tilemaps
-   * are concerned about this tagging. */
-  /* TODO(fclem): There is an optimization opportunity here where we can
-   * test casters only against the static tilemaps instead of all of them. */
-  inst_.manager->submit(caster_update_ps_, view);
+  bool update_casters = true;
 
   do {
     DRW_stats_group_start("Shadow");
@@ -1351,6 +1346,12 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
       GPU_uniformbuf_clear_to_zero(shadow_multi_view_.matrices_ubo_get());
 
       inst_.manager->submit(tilemap_setup_ps_, view);
+      if (assign_if_different(update_casters, false)) {
+        /* Run caster update only once. */
+        /* TODO(fclem): There is an optimization opportunity here where we can
+         * test casters only against the static tilemaps instead of all of them. */
+        inst_.manager->submit(caster_update_ps_, view);
+      }
       inst_.manager->submit(tilemap_usage_ps_, view);
       inst_.manager->submit(tilemap_update_ps_, view);
 
@@ -1358,7 +1359,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
 
       statistics_buf_.current().async_flush_to_host();
 
-      /* Isolate shadow update into own command buffer.
+      /* Isolate shadow update into its own command buffer.
        * If parameter buffer exceeds limits, then other work will not be impacted. */
       bool use_flush = (shadow_technique == ShadowTechnique::TILE_COPY) &&
                        (GPU_backend_get_type() == GPU_BACKEND_METAL);

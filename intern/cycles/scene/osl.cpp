@@ -1374,15 +1374,15 @@ void OSLCompiler::parameter_array(const char * /*name*/, const float /*f*/[], in
 
 void OSLCompiler::parameter_color_array(const char * /*name*/, const array<float3> & /*f*/) {}
 
-void OSLCompiler::parameter_texture(const char * /* name */,
-                                    ustring /* filename */,
-                                    ustring /* colorspace */)
+void OSLCompiler::parameter_texture(const char * /*name*/,
+                                    ustring /*filename*/,
+                                    ustring /*colorspace*/)
 {
 }
 
-void OSLCompiler::parameter_texture(const char * /* name */, const ImageHandle & /*handle*/) {}
+void OSLCompiler::parameter_texture(const char * /*name*/, const ImageHandle & /*handle*/) {}
 
-void OSLCompiler::parameter_texture_ies(const char * /* name */, int /* svm_slot */) {}
+void OSLCompiler::parameter_texture_ies(const char * /*name*/, int /*svm_slot*/) {}
 
 #endif /* WITH_OSL */
 

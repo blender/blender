@@ -479,10 +479,6 @@ struct uiAfterFunc {
   void *handle_func_arg;
   int retval;
 
-  uiMenuHandleFunc butm_func;
-  void *butm_func_arg;
-  int a2;
-
   wmOperator *popup_op;
   wmOperatorType *optype;
   wmOperatorCallContext opcontext;
@@ -810,9 +806,7 @@ static void popup_check(bContext *C, wmOperator *op)
 static bool ui_afterfunc_check(const uiBlock *block, const uiBut *but)
 {
   return (but->func || but->apply_func || but->funcN || but->rename_func || but->optype ||
-          but->rnaprop || block->handle_func ||
-          (but->type == UI_BTYPE_BUT_MENU && block->butm_func) ||
-          (block->handle && block->handle->popup_op));
+          but->rnaprop || block->handle_func || (block->handle && block->handle->popup_op));
 }
 
 /**
@@ -852,12 +846,6 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
   after->handle_func = block->handle_func;
   after->handle_func_arg = block->handle_func_arg;
   after->retval = but->retval;
-
-  if (but->type == UI_BTYPE_BUT_MENU) {
-    after->butm_func = block->butm_func;
-    after->butm_func_arg = block->butm_func_arg;
-    after->a2 = but->a2;
-  }
 
   if (block->handle) {
     after->popup_op = block->handle->popup_op;
@@ -1066,9 +1054,6 @@ static void ui_apply_but_funcs_after(bContext *C)
 
     if (after.handle_func) {
       after.handle_func(C, after.handle_func_arg, after.retval);
-    }
-    if (after.butm_func) {
-      after.butm_func(C, after.butm_func_arg, after.a2);
     }
 
     if (after.rename_func) {
@@ -2181,7 +2166,7 @@ static bool ui_but_drag_init(bContext *C,
     else if (but->type == UI_BTYPE_VIEW_ITEM) {
       const uiButViewItem *view_item_but = (uiButViewItem *)but;
       if (view_item_but->view_item) {
-        return UI_view_item_drag_start(C, view_item_but->view_item);
+        return UI_view_item_drag_start(*C, *view_item_but->view_item);
       }
     }
     else {
@@ -4894,7 +4879,7 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
             return WM_UI_HANDLER_BREAK;
           }
 
-          if (UI_view_item_supports_drag(view_item_but->view_item)) {
+          if (UI_view_item_supports_drag(*view_item_but->view_item)) {
             button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
             data->dragstartx = event->xy[0];
             data->dragstarty = event->xy[1];
@@ -4906,7 +4891,7 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
           return WM_UI_HANDLER_CONTINUE;
         case KM_DBL_CLICK:
           data->cancel = true;
-          UI_view_item_begin_rename(view_item_but->view_item);
+          UI_view_item_begin_rename(*view_item_but->view_item);
           ED_region_tag_redraw(CTX_wm_region(C));
           return WM_UI_HANDLER_BREAK;
       }
@@ -5454,6 +5439,11 @@ static int ui_do_but_NUM(
       }
       else if (ELEM(event->type, EVT_PADENTER, EVT_RETKEY) && event->val == KM_PRESS) {
         click = 1;
+      }
+      else if (event->type == EVT_BUT_OPEN) {
+        /* Handle UI_but_focus_on_enter_event. */
+        button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+        retval = WM_UI_HANDLER_BREAK;
       }
       else if (event->type == EVT_MINUSKEY && event->val == KM_PRESS) {
         button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);

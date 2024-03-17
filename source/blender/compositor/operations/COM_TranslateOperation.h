@@ -16,9 +16,6 @@ class TranslateOperation : public MultiThreadedOperation {
   static constexpr int Y_INPUT_INDEX = 2;
 
  private:
-  SocketReader *input_operation_;
-  SocketReader *input_xoperation_;
-  SocketReader *input_yoperation_;
   float delta_x_;
   float delta_y_;
   bool is_delta_set_;
@@ -31,13 +28,6 @@ class TranslateOperation : public MultiThreadedOperation {
  public:
   TranslateOperation();
   TranslateOperation(DataType data_type, ResizeMode mode = ResizeMode::Center);
-  bool determine_depending_area_of_interest(rcti *input,
-                                            ReadBufferOperation *read_operation,
-                                            rcti *output) override;
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
-
-  void init_execution() override;
-  void deinit_execution() override;
 
   float get_delta_x()
   {
@@ -60,30 +50,15 @@ class TranslateOperation : public MultiThreadedOperation {
   inline void ensure_delta()
   {
     if (!is_delta_set_) {
-      if (execution_model_ == eExecutionModel::Tiled) {
-        float temp_delta[4];
-        input_xoperation_->read_sampled(temp_delta, 0, 0, PixelSampler::Nearest);
-        delta_x_ = temp_delta[0];
-        input_yoperation_->read_sampled(temp_delta, 0, 0, PixelSampler::Nearest);
-        delta_y_ = temp_delta[0];
-        if (get_is_relative()) {
-          const int input_width = BLI_rcti_size_x(&input_operation_->get_canvas());
-          const int input_height = BLI_rcti_size_y(&input_operation_->get_canvas());
-          delta_x_ *= input_width;
-          delta_y_ *= input_height;
-        }
-      }
-      else {
-        delta_x_ = get_input_operation(X_INPUT_INDEX)->get_constant_value_default(0.0f);
-        delta_y_ = get_input_operation(Y_INPUT_INDEX)->get_constant_value_default(0.0f);
-        if (get_is_relative()) {
-          const int input_width = BLI_rcti_size_x(
-              &get_input_operation(IMAGE_INPUT_INDEX)->get_canvas());
-          const int input_height = BLI_rcti_size_y(
-              &get_input_operation(IMAGE_INPUT_INDEX)->get_canvas());
-          delta_x_ *= input_width;
-          delta_y_ *= input_height;
-        }
+      delta_x_ = get_input_operation(X_INPUT_INDEX)->get_constant_value_default(0.0f);
+      delta_y_ = get_input_operation(Y_INPUT_INDEX)->get_constant_value_default(0.0f);
+      if (get_is_relative()) {
+        const int input_width = BLI_rcti_size_x(
+            &get_input_operation(IMAGE_INPUT_INDEX)->get_canvas());
+        const int input_height = BLI_rcti_size_y(
+            &get_input_operation(IMAGE_INPUT_INDEX)->get_canvas());
+        delta_x_ *= input_width;
+        delta_y_ *= input_height;
       }
 
       is_delta_set_ = true;

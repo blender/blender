@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
-"PO-Revision-Date: 2023-12-11 10:35+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-02-23 23:56+0000\n"
 "Last-Translator: Aleh <zucchini.enjoyer@protonmail.com>\n"
 "Language-Team: Belarusian <https://translate.blender.org/projects/blender-ui/ui/be/>\n"
 "Language: be\n"
@@ -353,6 +353,62 @@ msgstr "MetalRT выкарыстоўвае менш памяці для трас
 
 msgid "On"
 msgstr "Уключана"
+
+
+msgid "Enable MetalRT for intersection queries"
+msgstr "Уключыць MetalRT для запытаў на перасячэнне"
+
+
+msgid "Auto"
+msgstr "Аўта"
+
+
+msgid "Distribute memory across devices"
+msgstr "Размеркаваць памяць паміж прыладамі"
+
+
+msgid "Make more room for large scenes to fit by distributing memory across interconnected devices (e.g. via NVLink) rather than duplicating it"
+msgstr "Зрабіць больш месца для вялікіх сцэн, размяркоўваючы памяць паміж узаемазлучанымі прыладамі (напрыклад, праз NVLink), а не дублюючы яе"
+
+
+msgid "HIP RT (Experimental)"
+msgstr "HIP RT (Эксперыментальна)"
+
+
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP RT забяспечвае апаратную трасіроўку прамянёў на картах з архітэктурай RDNA2 альбо вышэй і шэйдары для больш старых карт. Гэта функцыя эксперыментальная і некаторыя сцэны могуць рэндэрыцца некарэктна"
+
+
+msgid "Embree on GPU"
+msgstr "Embree на ГП"
+
+
+msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
+msgstr "Embree на ГП забяспечвае выкарыстроўванне апаратнай трасіроўкі прамянёў на ГП ад Intel, даючы больш высокую агульную прадукцыйнасць"
+
+
+msgid "Displays glTF UI to manage material variants"
+msgstr "Паказвае карыстальніцкі інтэрфейс glTF для кіравання варыянтамі матэрыялаў"
+
+
+msgid "Display glTF UI to manage animations"
+msgstr "Паказаць карыстальніцкі інтэрфейс glTF для кіравання анімацыямі"
+
+
+msgid "glTFpack file path"
+msgstr "Шлях да glTFpack файла"
+
+
+msgid "Path to gltfpack binary"
+msgstr "Шлях да бінарнага gltfpack"
+
+
+msgid "Fribidi Library"
+msgstr "Бібліятэка Fribidi"
+
+
+msgid "The bf-translation repository"
+msgstr "Рэпазіторый bf-translation"
 
 
 msgid "Import Paths"

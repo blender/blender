@@ -198,7 +198,7 @@ class StringValue : public Value {
   std::string string_;
 
  public:
-  StringValue(const StringRef string) : Value(eValueType::String), string_(string) {}
+  StringValue(std::string string) : Value(eValueType::String), string_(std::move(string)) {}
 
   const std::string &value() const
   {
@@ -206,44 +206,12 @@ class StringValue : public Value {
   }
 };
 
-/**
- * Template for arrays and objects.
- *
- * Both ArrayValue and DictionaryValue store their values in an array.
- */
-template<
-    /** The container type where the elements are stored in. */
-    typename Container,
-
-    /** ValueType representing the value (object/array). */
-    eValueType V,
-
-    /** Type of the data inside the container. */
-    typename ContainerItem = typename Container::value_type>
-class ContainerValue : public Value {
- public:
-  using Items = Container;
-  using Item = ContainerItem;
-
- private:
-  Container inner_value_;
+class ArrayValue : public Value {
+  Vector<std::shared_ptr<Value>> values_;
 
  public:
-  ContainerValue() : Value(V) {}
+  ArrayValue() : Value(eValueType::Array) {}
 
-  const Container &elements() const
-  {
-    return inner_value_;
-  }
-
-  Container &elements()
-  {
-    return inner_value_;
-  }
-};
-
-class ArrayValue : public ContainerValue<Vector<std::shared_ptr<Value>>, eValueType::Array> {
- public:
   void append(std::shared_ptr<Value> value);
   void append_bool(bool value);
   void append_int(int value);
@@ -252,32 +220,38 @@ class ArrayValue : public ContainerValue<Vector<std::shared_ptr<Value>>, eValueT
   void append_null();
   std::shared_ptr<DictionaryValue> append_dict();
   std::shared_ptr<ArrayValue> append_array();
-};
 
-/**
- * Internal storage type for DictionaryValue.
- *
- * The elements are stored as an key value pair. The value is a shared pointer so it can be shared
- * when using `DictionaryValue::create_lookup`.
- */
-using DictionaryElementType = std::pair<std::string, std::shared_ptr<Value>>;
+  Span<std::shared_ptr<Value>> elements() const
+  {
+    return values_;
+  }
+};
 
 /**
  * Object is a key-value container where the key must be a std::string.
  * Internally it is stored in a blender::Vector to ensure the order of keys.
  */
-class DictionaryValue
-    : public ContainerValue<Vector<DictionaryElementType>, eValueType::Dictionary> {
+class DictionaryValue : public Value {
  public:
-  using LookupValue = std::shared_ptr<Value>;
-  using Lookup = Map<std::string, LookupValue>;
+  /**
+   * Elements are stored as an key value pair. The value is a shared pointer so it can be
+   * shared when using `DictionaryValue::create_lookup`.
+   */
+  using Item = std::pair<std::string, std::shared_ptr<Value>>;
+  using Lookup = Map<std::string, std::shared_ptr<Value>>;
+
+ private:
+  Vector<Item> values_;
+
+ public:
+  DictionaryValue() : Value(eValueType::Dictionary) {}
 
   /**
    * Return a lookup map to quickly lookup by key.
    *
    * The lookup is owned by the caller.
    */
-  const Lookup create_lookup() const;
+  Lookup create_lookup() const;
 
   const std::shared_ptr<Value> *lookup(const StringRef key) const;
   std::optional<StringRefNull> lookup_str(const StringRef key) const;
@@ -285,6 +259,10 @@ class DictionaryValue
   std::optional<double> lookup_double(const StringRef key) const;
   const DictionaryValue *lookup_dict(const StringRef key) const;
   const ArrayValue *lookup_array(const StringRef key) const;
+  Span<Item> elements() const
+  {
+    return values_;
+  }
 
   void append(std::string key, std::shared_ptr<Value> value);
   void append_int(std::string key, int64_t value);

@@ -13,7 +13,7 @@
 
 #include "WM_types.hh"
 
-/* only for own init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
+/* only for separate init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
 
 /* own includes */
 #include "gizmo_library_intern.h"

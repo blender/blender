@@ -216,7 +216,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
 
   const IDRemapperApplyResult expected_mapping_result = id_remapper.get_mapping_result(
       *id_p, id_remapper_options, id_self);
-  /* Exit, when no modifications will be done; ensuring id->runtime counters won't changed. */
+  /* Exit when no modifications will be done, ensuring id->runtime counters won't changed. */
   if (ELEM(expected_mapping_result,
            ID_REMAP_RESULT_SOURCE_UNAVAILABLE,
            ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE))
@@ -429,9 +429,8 @@ static void libblock_remap_data_postprocess_nodetree_update(Main *bmain, ID *new
   ntreeUpdateAllUsers(bmain, new_id);
 }
 
-static void libblock_remap_data_update_tags(ID *old_id, ID *new_id, void *user_data)
+static void libblock_remap_data_update_tags(ID *old_id, ID *new_id, IDRemap *id_remap_data)
 {
-  IDRemap *id_remap_data = static_cast<IDRemap *>(user_data);
   const int remap_flags = id_remap_data->flag;
   if ((remap_flags & ID_REMAP_SKIP_USER_CLEAR) == 0) {
     /* XXX We may not want to always 'transfer' fake-user from old to new id...
@@ -454,9 +453,7 @@ static void libblock_remap_data_update_tags(ID *old_id, ID *new_id, void *user_d
   }
 }
 
-static void libblock_remap_reset_remapping_status_callback(ID *old_id,
-                                                           ID *new_id,
-                                                           void * /*user_data*/)
+static void libblock_remap_reset_remapping_status_fn(ID *old_id, ID *new_id)
 {
   BKE_libblock_runtime_reset_remapping_status(old_id);
   if (new_id != nullptr) {
@@ -511,7 +508,7 @@ static void libblock_remap_data(
                                      IDWALK_DO_LIBRARY_POINTER :
                                      IDWALK_NOP));
 
-  id_remapper.iter(libblock_remap_reset_remapping_status_callback, nullptr);
+  id_remapper.iter(libblock_remap_reset_remapping_status_fn);
 
   if (id) {
 #ifdef DEBUG_PRINT
@@ -550,23 +547,16 @@ static void libblock_remap_data(
     FOREACH_MAIN_ID_END;
   }
 
-  id_remapper.iter(libblock_remap_data_update_tags, &id_remap_data);
+  id_remapper.iter([&](ID *old_id, ID *new_id) {
+    libblock_remap_data_update_tags(old_id, new_id, &id_remap_data);
+  });
 }
 
-struct LibBlockRemapMultipleUserData {
-  Main *bmain;
-  int remap_flags;
-};
-
-static void libblock_remap_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_data)
+static void libblock_remap_foreach_idpair(ID *old_id, ID *new_id, Main *bmain, int remap_flags)
 {
   if (old_id == new_id) {
     return;
   }
-
-  LibBlockRemapMultipleUserData *data = static_cast<LibBlockRemapMultipleUserData *>(user_data);
-  Main *bmain = data->bmain;
-  const int remap_flags = data->remap_flags;
 
   BLI_assert(old_id != nullptr);
   BLI_assert((new_id == nullptr) || remap_flags & ID_REMAP_ALLOW_IDTYPE_MISMATCH ||
@@ -661,11 +651,9 @@ void BKE_libblock_remap_multiple_locked(Main *bmain, IDRemapper &mappings, const
 
   libblock_remap_data(bmain, nullptr, ID_REMAP_TYPE_REMAP, mappings, remap_flags);
 
-  LibBlockRemapMultipleUserData user_data = {nullptr};
-  user_data.bmain = bmain;
-  user_data.remap_flags = remap_flags;
-
-  mappings.iter(libblock_remap_foreach_idpair_cb, &user_data);
+  mappings.iter([&](ID *old_id, ID *new_id) {
+    libblock_remap_foreach_idpair(old_id, new_id, bmain, remap_flags);
+  });
 
   /* We assume editors do not hold references to their IDs... This is false in some cases
    * (Image is especially tricky here),
@@ -738,17 +726,11 @@ void BKE_libblock_unlink(Main *bmain, void *idv, const bool do_skip_indirect)
  *     ... sigh
  */
 
-struct LibBlockRelinkMultipleUserData {
-  Main *bmain;
-  blender::Span<ID *> ids;
-};
-
-static void libblock_relink_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_data)
+static void libblock_relink_foreach_idpair(ID *old_id,
+                                           ID *new_id,
+                                           Main *bmain,
+                                           const blender::Span<ID *> ids)
 {
-  LibBlockRelinkMultipleUserData *data = static_cast<LibBlockRelinkMultipleUserData *>(user_data);
-  Main *bmain = data->bmain;
-  const blender::Span<ID *> ids = data->ids;
-
   BLI_assert(old_id != nullptr);
   BLI_assert((new_id == nullptr) || GS(old_id->name) == GS(new_id->name));
   BLI_assert(old_id != new_id);
@@ -815,9 +797,9 @@ void BKE_libblock_relink_multiple(Main *bmain,
 
   switch (remap_type) {
     case ID_REMAP_TYPE_REMAP: {
-      LibBlockRelinkMultipleUserData user_data = {bmain, ids};
-
-      id_remapper.iter(libblock_relink_foreach_idpair_cb, &user_data);
+      id_remapper.iter([&](ID *old_id, ID *new_id) {
+        libblock_relink_foreach_idpair(old_id, new_id, bmain, ids);
+      });
       break;
     }
     case ID_REMAP_TYPE_CLEANUP: {

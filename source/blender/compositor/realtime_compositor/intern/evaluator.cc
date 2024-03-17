@@ -142,7 +142,47 @@ void Evaluator::map_node_operation_inputs_to_their_results(DNode node,
 void Evaluator::compile_and_evaluate_shader_compile_unit(CompileState &compile_state)
 {
   ShaderCompileUnit &compile_unit = compile_state.get_shader_compile_unit();
-  ShaderOperation *operation = new ShaderOperation(context_, compile_unit);
+
+  /* GPUs have hardware limitations on the number of output images shaders can have, so we might
+   * have to split the compile unit into smaller units to workaround this limitation. In practice,
+   * splitting will almost always never happen due to the scheduling strategy we use, so the base
+   * case remains fast. */
+  int number_of_outputs = 0;
+  for (int i : compile_unit.index_range()) {
+    const DNode node = compile_unit[i];
+    number_of_outputs += compile_state.compute_shader_node_operation_outputs_count(node);
+
+    /* The GPU module currently only supports up to 8 output images in shaders, but once this
+     * limitation is lifted, we can replace that with GPU_max_images(). */
+    if (number_of_outputs <= 8) {
+      continue;
+    }
+
+    /* The number of outputs surpassed the limit, so we split the compile unit into two equal parts
+     * and recursively call this method on each of them. It might seem unexpected that we split in
+     * half as opposed to split at the node that surpassed the limit, but that is because the act
+     * of splitting might actually introduce new outputs, since links that were previously internal
+     * to the compile unit might now be external. So we can't precisely split and guarantee correct
+     * units, and we just rely or recursive splitting until units are small enough. Further, half
+     * splitting helps balancing the shaders, where we don't want to have one gigantic shader and
+     * a tiny one. */
+    const int split_index = compile_unit.size() / 2;
+    const ShaderCompileUnit start_compile_unit(compile_unit.as_span().take_front(split_index));
+    const ShaderCompileUnit end_compile_unit(compile_unit.as_span().drop_front(split_index));
+
+    compile_state.get_shader_compile_unit() = start_compile_unit;
+    this->compile_and_evaluate_shader_compile_unit(compile_state);
+
+    compile_state.get_shader_compile_unit() = end_compile_unit;
+    this->compile_and_evaluate_shader_compile_unit(compile_state);
+
+    /* No need to continue, the above recursive calls will eventually exist the loop and do the
+     * actual compilation. */
+    return;
+  }
+
+  const Schedule &schedule = compile_state.get_schedule();
+  ShaderOperation *operation = new ShaderOperation(context_, compile_unit, schedule);
 
   for (DNode node : compile_unit) {
     compile_state.map_node_to_shader_operation(node, operation);

@@ -34,6 +34,7 @@
  */
 const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_AC, "ACTION", ICON_ACTION, "Action", ""},
+    {ID_AN, "ANIMATION", ICON_ACTION, "Animation", ""}, /* TODO: give Animation its own icon. */
     {ID_AR, "ARMATURE", ICON_ARMATURE_DATA, "Armature", ""},
     {ID_BR, "BRUSH", ICON_BRUSH_DATA, "Brush", ""},
     {ID_CF, "CACHEFILE", ICON_FILE, "Cache File", ""},
@@ -217,7 +218,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 
 #  include "BLO_readfile.hh"
 
-#  include "BKE_anim_data.h"
+#  include "BKE_anim_data.hh"
 #  include "BKE_global.hh" /* XXX, remove me */
 #  include "BKE_idprop.h"
 #  include "BKE_idtype.hh"
@@ -300,7 +301,7 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
   }
 }
 
-static int rna_ID_name_editable(PointerRNA *ptr, const char **r_info)
+static int rna_ID_name_editable(const PointerRNA *ptr, const char **r_info)
 {
   ID *id = (ID *)ptr->data;
 
@@ -498,6 +499,8 @@ StructRNA *ID_code_to_RNA_type(short idcode)
   switch ((ID_Type)idcode) {
     case ID_AC:
       return &RNA_Action;
+    case ID_AN:
+      break;
     case ID_AR:
       return &RNA_Armature;
     case ID_BR:
@@ -599,7 +602,7 @@ IDProperty **rna_ID_idprops(PointerRNA *ptr)
   return &id->properties;
 }
 
-int rna_ID_is_runtime_editable(PointerRNA *ptr, const char **r_info)
+int rna_ID_is_runtime_editable(const PointerRNA *ptr, const char **r_info)
 {
   ID *id = (ID *)ptr->data;
   /* TODO: This should be abstracted in a BKE function or define, somewhat related to #88555. */
@@ -1057,7 +1060,8 @@ static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag
         allow_flag = OB_RECALC_ALL | PSYS_RECALC;
         break;
 #  endif
-      case ID_AC:
+      case ID_AC: /* Fall-through. */
+      case ID_AN:
         allow_flag = ID_RECALC_ANIMATION;
         break;
       default:

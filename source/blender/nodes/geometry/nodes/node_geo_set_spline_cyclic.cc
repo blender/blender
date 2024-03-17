@@ -20,26 +20,20 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void set_curve_cyclic(bke::CurvesGeometry &curves,
                              const fn::FieldContext &field_context,
-                             const Field<bool> &selection_field,
-                             const Field<bool> &cyclic_field)
+                             const Field<bool> &selection,
+                             const Field<bool> &cyclic)
 {
-  if (curves.curves_num() == 0) {
-    return;
-  }
-  MutableAttributeAccessor attributes = curves.attributes_for_write();
-  AttributeWriter<bool> cyclics = attributes.lookup_or_add_for_write<bool>("cyclic",
-                                                                           AttrDomain::Curve);
-  fn::FieldEvaluator evaluator{field_context, curves.curves_num()};
-  evaluator.set_selection(selection_field);
-  evaluator.add_with_destination(cyclic_field, cyclics.varray);
-  evaluator.evaluate();
-
-  cyclics.finish();
+  bke::try_capture_field_on_geometry(curves.attributes_for_write(),
+                                     field_context,
+                                     "cyclic",
+                                     bke::AttrDomain::Curve,
+                                     selection,
+                                     cyclic);
 }
 
 static void set_grease_pencil_cyclic(GreasePencil &grease_pencil,
-                                     const Field<bool> &selection_field,
-                                     const Field<bool> &cyclic_field)
+                                     const Field<bool> &selection,
+                                     const Field<bool> &cyclic)
 {
   using namespace blender::bke::greasepencil;
   for (const int layer_index : grease_pencil.layers().index_range()) {
@@ -47,28 +41,28 @@ static void set_grease_pencil_cyclic(GreasePencil &grease_pencil,
     if (drawing == nullptr) {
       continue;
     }
-    bke::CurvesGeometry &curves = drawing->strokes_for_write();
-    const bke::GreasePencilLayerFieldContext field_context(
-        grease_pencil, AttrDomain::Curve, layer_index);
-    set_curve_cyclic(curves, field_context, selection_field, cyclic_field);
+    set_curve_cyclic(
+        drawing->strokes_for_write(),
+        bke::GreasePencilLayerFieldContext(grease_pencil, AttrDomain::Curve, layer_index),
+        selection,
+        cyclic);
   }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
-  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
-  Field<bool> cyclic_field = params.extract_input<Field<bool>>("Cyclic");
+  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
+  const Field<bool> cyclic = params.extract_input<Field<bool>>("Cyclic");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Curves *curves_id = geometry_set.get_curves_for_write()) {
       bke::CurvesGeometry &curves = curves_id->geometry.wrap();
       const bke::CurvesFieldContext field_context{curves, AttrDomain::Curve};
-      set_curve_cyclic(curves_id->geometry.wrap(), field_context, selection_field, cyclic_field);
+      set_curve_cyclic(curves, field_context, selection, cyclic);
     }
-    if (geometry_set.has_grease_pencil()) {
-      set_grease_pencil_cyclic(
-          *geometry_set.get_grease_pencil_for_write(), selection_field, cyclic_field);
+    if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
+      set_grease_pencil_cyclic(*grease_pencil, selection, cyclic);
     }
   });
 

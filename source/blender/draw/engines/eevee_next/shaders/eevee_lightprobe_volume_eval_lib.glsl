@@ -137,6 +137,13 @@ SphericalHarmonicL1 lightprobe_irradiance_sample(
   float random = interlieved_gradient_noise(UTIL_TEXEL, 0.0, 0.0);
   random = fract(random + sampling_rng_1D_get(SAMPLING_LIGHTPROBE));
 #endif
+#ifdef GPU_METAL
+/* NOTE: Performs a chunked unroll to avoid the compiler unrolling the entire loop, avoiding
+ * very high instruction counts and long compilation time. Full unroll results in 90k +
+ * instructions. Chunked unroll is 5.1k instructions with reduced register pressure, while
+ * retaining most of the benefits of unrolling. */
+#  pragma clang loop unroll_count(16)
+#endif
   for (; i < IRRADIANCE_GRID_MAX; i++) {
     /* Last grid is tagged as invalid to stop the iteration. */
     if (grids_infos_buf[i].grid_size.x == -1) {
@@ -150,9 +157,7 @@ SphericalHarmonicL1 lightprobe_irradiance_sample(
       index = i;
 #ifdef IRRADIANCE_GRID_SAMPLING
       float distance_to_border = reduce_min(min(lP, vec3(grids_infos_buf[i].grid_size) - lP));
-      if (distance_to_border < random) {
-        /* Remap random to the remaining interval. */
-        random = (random - distance_to_border) / (1.0 - distance_to_border);
+      if (distance_to_border < random * 0.5 /* Half cell blending. */) {
         /* Try to sample another grid to get smooth transitions at borders. */
         continue;
       }

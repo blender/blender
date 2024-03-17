@@ -679,7 +679,7 @@ static void write_render_z_output(RenderLayer *layer,
                                   const char *viewname,
                                   GPUFrameBuffer *fb,
                                   const rcti *rect,
-                                  float4x4 winmat)
+                                  const float4x4 &winmat)
 {
   RenderPass *rp = RE_pass_find_by_name(layer, RE_PASSNAME_Z, viewname);
   if (rp) {

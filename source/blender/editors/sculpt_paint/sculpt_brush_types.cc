@@ -2307,7 +2307,7 @@ void SCULPT_do_slide_relax_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
   if (ss->cache->alt_smooth) {
     SCULPT_boundary_info_ensure(ob);
     if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
-      BKE_pbvh_face_areas_begin(ss->pbvh);
+      BKE_pbvh_face_areas_begin(ob, ss->pbvh);
     }
 
     for (int i = 0; i < 4; i++) {
@@ -2689,6 +2689,8 @@ static void do_topology_rake_bmesh_task(Object *ob,
 void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength)
 {
   using namespace blender;
+  using namespace ed::sculpt_paint;
+
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
   const float strength = clamp_f(bstrength, 0.0f, 1.0f);
@@ -2713,7 +2715,7 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, 
   }
 
   for (iteration = 0; iteration <= count; iteration++) {
-    BKE_pbvh_face_areas_begin(ss->pbvh);
+    BKE_pbvh_face_areas_begin(ob, ss->pbvh);
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (const int i : range) {
         update_curvatures_task_cb_ex(ob, brush, nodes[i]);

@@ -158,8 +158,7 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
         break;
       }
       case PBVH_FACES: {
-        Span<float3> nor = {reinterpret_cast<const float3 *>(BKE_pbvh_get_vert_normals(ss->pbvh)),
-                            ss->totvert};
+        Span<float3> nor = BKE_pbvh_get_vert_normals(ss->pbvh);
         blender::bke::pbvh::update_edge_boundary_faces(
             edge.i,
             ss->vert_positions,

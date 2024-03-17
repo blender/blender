@@ -40,6 +40,7 @@
 
 #include <stdint.h>
 
+struct Object;
 struct Scene;
 struct CCGElem;
 struct CCGKey;
@@ -425,7 +426,8 @@ int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 /* Node Access */
 
 void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node);
-void BKE_pbvh_face_areas_begin(PBVH *pbvh);
+void BKE_pbvh_face_areas_begin(Object *ob, PBVH *pbvh);
+void BKE_pbvh_face_areas_swap_buffers(Object *ob, PBVH *pbvh);
 
 bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, PBVHVertRef vertex);
 void BKE_pbvh_bmesh_update_valence(PBVH *pbvh, PBVHVertRef vertex);
@@ -468,16 +470,12 @@ void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              int *maxgrid,
                              int *gridsize,
                              CCGElem ***r_griddata);
-void BKE_pbvh_node_num_verts(const PBVH *pbvh,
-                             const PBVHNode *node,
-                             int *r_uniquevert,
-                             int *r_totvert);
 int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node);
 blender::Span<int> BKE_pbvh_node_get_vert_indices(const PBVHNode *node);
 blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node);
-blender::Span<int> BKE_pbvh_node_get_loops(const PBVHNode *node);
+blender::Span<int> BKE_pbvh_node_get_corner_indices(const PBVHNode *node);
 
-    namespace blender::bke::pbvh {
+namespace blender::bke::pbvh {
 
 /**
  * Gather the indices of all faces (not triangles) used by the node.
@@ -494,11 +492,6 @@ Span<int> node_face_indices_calc_grids(const PBVH &pbvh, const PBVHNode &node, V
 }  // namespace blender::bke::pbvh
 
 blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node);
-
-/* Get number of faces in the mesh; for PBVH_GRIDS the
- * number of base mesh faces is returned.
- */
-int BKE_pbvh_num_faces(const PBVH *pbvh);
 
 blender::Bounds<blender::float3> BKE_pbvh_node_get_BB(const PBVHNode *node);
 blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node);
@@ -764,7 +757,7 @@ void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
                                       int totnode);
 
 blender::MutableSpan<blender::float3> BKE_pbvh_get_vert_positions(const PBVH *pbvh);
-const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
+blender::Span<blender::float3> BKE_pbvh_get_vert_normals(const PBVH *pbvh);
 const bool *BKE_pbvh_get_vert_hide(const PBVH *pbvh);
 bool *BKE_pbvh_get_vert_hide_for_write(PBVH *pbvh);
 
@@ -798,9 +791,6 @@ void BKE_pbvh_store_colors_vertex(PBVH *pbvh,
                                   blender::MutableSpan<blender::float4> r_colors);
 
 bool BKE_pbvh_is_drawing(const PBVH *pbvh);
-
-/* Do not call in PBVH_GRIDS mode */
-void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop);
 
 void BKE_pbvh_update_active_vcol(PBVH *pbvh, Mesh *mesh);
 
@@ -878,7 +868,7 @@ void BKE_pbvh_free_bmesh(PBVH *pbvh, BMesh *bm);
 void BKE_pbvh_show_orig_set(PBVH *pbvh, bool show_orig);
 bool BKE_pbvh_show_orig_get(PBVH *pbvh);
 
-void BKE_pbvh_flush_tri_areas(PBVH *pbvh);
+void BKE_pbvh_flush_tri_areas(Object *ob, PBVH *pbvh);
 void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh);
 
 #include "BLI_math_vector.hh"

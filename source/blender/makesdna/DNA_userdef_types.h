@@ -721,8 +721,9 @@ typedef struct UserDef_Experimental {
   char use_new_volume_nodes;
   char use_shader_node_previews;
   char use_extension_repos;
+  char use_extension_utils;
 
-  char _pad[3];
+  char _pad[2];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -740,6 +741,12 @@ typedef struct bUserScriptDirectory {
   char dir_path[768]; /* FILE_MAXDIR */
 } bUserScriptDirectory;
 
+/**
+ * Main user preferences data, typically accessed from #U.
+ * See: #BKE_blendfile_userdef_from_defaults & #BKE_blendfile_userdef_read.
+ *
+ * \note This is either loaded from the file #BLENDER_USERPREF_FILE or from memory, see #U_default.
+ */
 typedef struct UserDef {
   DNA_DEFINE_CXX_METHODS(UserDef)
 
@@ -1470,16 +1477,6 @@ typedef enum eUserpref_VirtualPixel {
   VIRTUAL_PIXEL_NATIVE = 0,
   VIRTUAL_PIXEL_DOUBLE = 1,
 } eUserpref_VirtualPixel;
-
-typedef enum eOpensubdiv_Computee_Type {
-  USER_OPENSUBDIV_COMPUTE_NONE = 0,
-  USER_OPENSUBDIV_COMPUTE_CPU = 1,
-  USER_OPENSUBDIV_COMPUTE_OPENMP = 2,
-  USER_OPENSUBDIV_COMPUTE_OPENCL = 3,
-  USER_OPENSUBDIV_COMPUTE_CUDA = 4,
-  USER_OPENSUBDIV_COMPUTE_GLSL_TRANSFORM_FEEDBACK = 5,
-  USER_OPENSUBDIV_COMPUTE_GLSL_COMPUTE = 6,
-} eOpensubdiv_Computee_Type;
 
 /** #UserDef.factor_display_type */
 typedef enum eUserpref_FactorDisplay {

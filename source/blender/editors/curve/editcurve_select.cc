@@ -21,7 +21,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_layer.hh"
 #include "BKE_report.hh"
 

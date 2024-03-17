@@ -54,7 +54,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const float4x4 object_matrix = object->object_to_world();
+  const float4x4 &object_matrix = object->object_to_world();
   const float4x4 transform = self_object->world_to_object() * object_matrix;
 
   float3 location, scale;
@@ -126,13 +126,14 @@ static void node_rna(StructRNA *srna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  RNA_def_node_enum(srna,
-                    "transform_space",
-                    "Transform Space",
-                    "The transformation of the vector and geometry outputs",
-                    rna_node_geometry_object_info_transform_space_items,
-                    NOD_storage_enum_accessors(transform_space),
-                    GEO_NODE_TRANSFORM_SPACE_ORIGINAL);
+  PropertyRNA *prop = RNA_def_node_enum(srna,
+                                        "transform_space",
+                                        "Transform Space",
+                                        "The transformation of the vector and geometry outputs",
+                                        rna_node_geometry_object_info_transform_space_items,
+                                        NOD_storage_enum_accessors(transform_space),
+                                        GEO_NODE_TRANSFORM_SPACE_ORIGINAL);
+  RNA_def_property_update_runtime(prop, rna_Node_update_relations);
 }
 
 static void node_register()

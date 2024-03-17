@@ -360,13 +360,15 @@ static MemFile *ed_undosys_step_get_memfile(UndoStep *us_p)
   return &us->data->memfile;
 }
 
-MemFile *ED_undosys_stack_memfile_get_active(UndoStack *ustack)
+MemFile *ED_undosys_stack_memfile_get_if_active(UndoStack *ustack)
 {
-  UndoStep *us = BKE_undosys_stack_active_with_type(ustack, BKE_UNDOSYS_TYPE_MEMFILE);
-  if (us) {
-    return ed_undosys_step_get_memfile(us);
+  if (!ustack->step_active) {
+    return nullptr;
   }
-  return nullptr;
+  if (ustack->step_active->type != BKE_UNDOSYS_TYPE_MEMFILE) {
+    return nullptr;
+  }
+  return ed_undosys_step_get_memfile(ustack->step_active);
 }
 
 void ED_undosys_stack_memfile_id_changed_tag(UndoStack *ustack, ID *id)

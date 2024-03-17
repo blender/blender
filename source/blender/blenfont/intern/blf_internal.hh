@@ -52,7 +52,7 @@ struct rcti;
 extern struct FontBLF *global_font[BLF_MAX_FONT];
 
 void blf_batch_draw_begin(struct FontBLF *font);
-void blf_batch_draw(void);
+void blf_batch_draw();
 
 /**
  * Some font have additional file with metrics information,
@@ -60,8 +60,8 @@ void blf_batch_draw(void);
  */
 char *blf_dir_metrics_search(const char *filepath);
 
-int blf_font_init(void);
-void blf_font_exit(void);
+int blf_font_init();
+void blf_font_exit();
 
 bool blf_font_id_is_valid(int fontid);
 
@@ -77,7 +77,7 @@ bool blf_ensure_face(struct FontBLF *font);
 void blf_ensure_size(struct FontBLF *font);
 
 void blf_draw_buffer__start(struct FontBLF *font);
-void blf_draw_buffer__end(void);
+void blf_draw_buffer__end();
 
 struct FontBLF *blf_font_new_from_filepath(const char *filepath);
 struct FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, size_t mem_size);

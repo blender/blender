@@ -3524,6 +3524,40 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       "Absolute grid alignment while translating (based on the pivot center)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
+  prop = RNA_def_property(srna, "snap_angle_increment_2d", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, nullptr, "snap_angle_increment_2d");
+  RNA_def_property_ui_text(
+      prop, "Rotation Increment", "Angle used for rotation increments in 2D editors");
+  RNA_def_property_range(prop, 0, DEG2RADF(180.0f));
+  RNA_def_property_ui_range(prop, DEG2RADF(1.0f), DEG2RADF(180.0f), 100.0f, 2);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
+
+  prop = RNA_def_property(srna, "snap_angle_increment_2d_precision", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, nullptr, "snap_angle_increment_2d_precision");
+  RNA_def_property_ui_text(prop,
+                           "Rotation Precision Increment",
+                           "Precision angle used for rotation increments in 2D editors");
+  RNA_def_property_range(prop, 0, DEG2RADF(180.0f));
+  RNA_def_property_ui_range(prop, DEG2RADF(0.1f), DEG2RADF(180.0f), 10.0f, 3);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
+
+  prop = RNA_def_property(srna, "snap_angle_increment_3d", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, nullptr, "snap_angle_increment_3d");
+  RNA_def_property_ui_text(
+      prop, "Rotation Increment", "Angle used for rotation increments in 3D editors");
+  RNA_def_property_range(prop, 0, DEG2RADF(180.0f));
+  RNA_def_property_ui_range(prop, DEG2RADF(1.0f), DEG2RADF(180.0f), 100.0f, 2);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
+
+  prop = RNA_def_property(srna, "snap_angle_increment_3d_precision", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, nullptr, "snap_angle_increment_3d_precision");
+  RNA_def_property_ui_text(prop,
+                           "Rotation Precision Increment",
+                           "Precision angle used for rotation increments in 3D editors");
+  RNA_def_property_range(prop, 0, DEG2RADF(180.0f));
+  RNA_def_property_ui_range(prop, DEG2RADF(0.1f), DEG2RADF(180.0f), 10.0f, 3);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
+
   prop = RNA_def_property(srna, "snap_elements", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_mode");
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
@@ -3541,7 +3575,8 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_enum_funcs(
       prop, "rna_ToolSettings_snap_mode_get", "rna_ToolSettings_snap_mode_set", nullptr);
   RNA_def_property_flag(prop, PROP_ENUM_FLAG);
-  RNA_def_property_ui_text(prop, "Snap Element", "Type of element for the 'Snap With' to snap to");
+  RNA_def_property_ui_text(
+      prop, "Snap Element", "Type of element for the \"Snap With\" to snap to");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   prop = RNA_def_property(srna, "snap_elements_individual", PROP_ENUM, PROP_NONE);
@@ -3570,9 +3605,9 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Snap to Same Target",
-      "Snap only to target that source was initially near (Face Nearest Only)");
+      "Snap only to target that source was initially near (\"Face Nearest\" only)");
 
-  /* node editor uses own set of snap modes */
+  /* node editor uses its own set of snap modes */
   prop = RNA_def_property(srna, "snap_node_element", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_node_mode");
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
@@ -3598,11 +3633,11 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_anim_mode");
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_enum_items(prop, rna_enum_snap_animation_element_items);
-  RNA_def_property_ui_text(prop, "Snap Anim Element", "Type of element to snap to");
+  RNA_def_property_ui_text(prop, "Snap Animation Element", "Type of element to snap to");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UNIT);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
-  /* image editor uses own set of snap modes */
+  /* image editor uses its own set of snap modes */
   prop = RNA_def_property(srna, "snap_uv_element", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_uv_mode");
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
@@ -3648,21 +3683,21 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "snap_flag", SCE_SNAP_NOT_TO_ACTIVE);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(
-      prop, "Snap onto Active", "Snap onto itself only if enabled (Edit Mode Only)");
+      prop, "Snap onto Active", "Snap onto itself only if enabled (edit mode only)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   prop = RNA_def_property(srna, "use_snap_edit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "snap_flag", SCE_SNAP_TO_INCLUDE_EDITED);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(
-      prop, "Snap onto Edited", "Snap onto non-active objects in Edit Mode (Edit Mode Only)");
+      prop, "Snap onto Edited", "Snap onto non-active objects in edit mode (edit mode only)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   prop = RNA_def_property(srna, "use_snap_nonedit", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "snap_flag", SCE_SNAP_TO_INCLUDE_NONEDITED);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(
-      prop, "Snap onto Non-edited", "Snap onto objects not in Edit Mode (Edit Mode Only)");
+      prop, "Snap onto Non-edited", "Snap onto objects not in edit mode (edit mode only)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   prop = RNA_def_property(srna, "use_snap_selectable", PROP_BOOLEAN, PROP_NONE);
@@ -3748,9 +3783,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "gpencil_flags", GP_TOOL_FLAG_PAINT_ONBACK);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(
-      prop,
-      "Draw Strokes on Back",
-      "When draw new strokes, the new stroke is drawn below of all strokes in the layer");
+      prop, "Draw Strokes on Back", "New strokes are drawn below of all strokes in the layer");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   prop = RNA_def_property(srna, "use_gpencil_thumbnail_list", PROP_BOOLEAN, PROP_NONE);
@@ -3758,7 +3791,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       prop, nullptr, "gpencil_flags", GP_TOOL_FLAG_THUMBNAIL_LIST);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(
-      prop, "Compact List", "Show compact list of color instead of thumbnails");
+      prop, "Compact List", "Show compact list of colors instead of thumbnails");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   prop = RNA_def_property(srna, "use_gpencil_weight_data_add", PROP_BOOLEAN, PROP_NONE);
@@ -3766,9 +3799,8 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(prop,
                            "Add weight data for new strokes",
-                           "When creating new strokes, the weight data is added according to the "
-                           "current vertex group and weight, "
-                           "if no vertex group selected, weight is not added");
+                           "Weight data for new strokes is added according to the current vertex "
+                           "group and weight. If no vertex group selected, weight is not added");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   prop = RNA_def_property(srna, "use_gpencil_automerge_strokes", PROP_BOOLEAN, PROP_NONE);
@@ -3779,7 +3811,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Automerge",
-      "Join by distance last drawn stroke with previous strokes in the active layer");
+      "Join the last drawn stroke with previous strokes in the active layer by distance");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
@@ -3795,7 +3827,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_struct_type(prop, "GPencilInterpolateSettings");
   RNA_def_property_ui_text(
-      prop, "Grease Pencil Interpolate", "Settings for Grease Pencil Interpolation tools");
+      prop, "Grease Pencil Interpolate", "Settings for grease pencil interpolation tools");
 
   /* Grease Pencil - 3D View Stroke Placement */
   prop = RNA_def_property(srna, "gpencil_stroke_placement_view3d", PROP_ENUM, PROP_NONE);
@@ -3822,7 +3854,8 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "gpencil_surface_offset", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, nullptr, "gpencil_surface_offset");
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
-  RNA_def_property_ui_text(prop, "Surface Offset", "Offset along normal when drawing on surfaces");
+  RNA_def_property_ui_text(
+      prop, "Surface Offset", "Offset along the normal when drawing on surfaces");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1f, 3);
   RNA_def_property_float_default(prop, 0.150f);
@@ -3852,7 +3885,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(
       prop, nullptr, "gpencil_selectmode_sculpt", GP_SCULPT_MASK_SELECTMODE_STROKE);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
-  RNA_def_property_ui_text(prop, "Selection Mask", "Only sculpt selected stroke");
+  RNA_def_property_ui_text(prop, "Selection Mask", "Only sculpt selected strokes");
   RNA_def_property_ui_icon(prop, ICON_GP_SELECT_STROKES, 0);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
@@ -3885,7 +3918,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(
       prop, nullptr, "gpencil_selectmode_vertex", GP_VERTEX_MASK_SELECTMODE_STROKE);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
-  RNA_def_property_ui_text(prop, "Selection Mask", "Only paint selected stroke");
+  RNA_def_property_ui_text(prop, "Selection Mask", "Only paint selected strokes");
   RNA_def_property_ui_icon(prop, ICON_GP_SELECT_STROKES, 0);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
@@ -3948,7 +3981,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "autokey_mode", AUTOKEY_ON);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(
-      prop, "Auto Keying", "Automatic keyframe insertion for Objects, Bones and Masks");
+      prop, "Auto Keying", "Automatic keyframe insertion for objects, bones and masks");
   RNA_def_property_ui_icon(prop, ICON_RECORD_OFF, 1);
 
   prop = RNA_def_property(srna, "auto_keying_mode", PROP_ENUM, PROP_NONE);
@@ -3957,7 +3990,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, auto_key_items);
   RNA_def_property_ui_text(prop,
                            "Auto-Keying Mode",
-                           "Mode of automatic keyframe insertion for Objects, Bones and Masks");
+                           "Mode of automatic keyframe insertion for objects, bones and masks");
 
   prop = RNA_def_property(srna, "use_record_with_nla", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "keying_flag", AUTOKEY_FLAG_LAYERED_RECORD);
@@ -4047,7 +4080,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Live Unwrap", "Changing edge seams recalculates UV unwrap");
 
   prop = RNA_def_property(srna, "normal_vector", PROP_FLOAT, PROP_XYZ);
-  RNA_def_property_ui_text(prop, "Normal Vector", "Normal Vector used to copy, add or multiply");
+  RNA_def_property_ui_text(prop, "Normal Vector", "Normal vector used to copy, add or multiply");
   RNA_def_property_ui_range(prop, -10000.0, 10000.0, 1, 3);
 
   /* Unified Paint Settings */

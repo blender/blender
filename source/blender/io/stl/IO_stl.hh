@@ -8,9 +8,11 @@
 
 #pragma once
 
-#include "BKE_context.hh"
 #include "BLI_path_util.h"
 #include "IO_orientation.hh"
+
+struct bContext;
+struct ReportList;
 
 struct STLImportParams {
   /** Full path to the source STL file to import. */
@@ -21,6 +23,8 @@ struct STLImportParams {
   bool use_scene_unit;
   float global_scale;
   bool use_mesh_validate;
+
+  ReportList *reports = nullptr;
 };
 
 struct STLExportParams {
@@ -34,6 +38,8 @@ struct STLExportParams {
   bool apply_modifiers;
   bool ascii_format;
   bool use_batch;
+
+  ReportList *reports = nullptr;
 };
 
 void STL_import(bContext *C, const STLImportParams *import_params);

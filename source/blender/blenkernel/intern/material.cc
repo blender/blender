@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstring>
+#include <optional>
 
 #include "CLG_log.h"
 
@@ -44,7 +45,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_curve.hh"
@@ -91,7 +92,11 @@ static void material_init_data(ID *id)
   *((short *)id->name) = ID_MA;
 }
 
-static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+static void material_copy_data(Main *bmain,
+                               std::optional<Library *> owner_library,
+                               ID *id_dst,
+                               const ID *id_src,
+                               const int flag)
 {
   Material *material_dst = (Material *)id_dst;
   const Material *material_src = (const Material *)id_src;
@@ -105,10 +110,11 @@ static void material_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const 
       material_dst->nodetree = ntreeLocalize(material_src->nodetree);
     }
     else {
-      BKE_id_copy_ex(bmain,
-                     (ID *)material_src->nodetree,
-                     (ID **)&material_dst->nodetree,
-                     flag_private_id_data);
+      BKE_id_copy_in_lib(bmain,
+                         owner_library,
+                         (ID *)material_src->nodetree,
+                         (ID **)&material_dst->nodetree,
+                         flag_private_id_data);
     }
     material_dst->nodetree->owner_id = &material_dst->id;
   }
@@ -1250,7 +1256,7 @@ void BKE_object_material_array_assign(
 
   /* now we have the right number of slots */
   for (int i = 0; i < totcol; i++) {
-    if (to_object_only && ob->matbits[i] == 0) {
+    if (to_object_only && ob->matbits && ob->matbits[i] == 0) {
       /* If we only assign to object, and that slot uses obdata material, do nothing. */
       continue;
     }

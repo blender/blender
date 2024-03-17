@@ -447,8 +447,6 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
                               10,
                               UI_searchbox_size_x(),
                               UI_UNIT_Y,
-                              0,
-                              0,
                               "");
   UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
   UI_but_func_search_set_listen(but, link_drag_search_listen_fn);
@@ -472,8 +470,6 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
            UI_searchbox_size_x(),
            UI_searchbox_size_y(),
            nullptr,
-           0,
-           0,
            0,
            0,
            nullptr);

@@ -29,7 +29,6 @@
 #define MAX_SOCKET 512
 
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct FreestyleLineStyle;
 struct GPUMaterial;
@@ -474,7 +473,7 @@ struct bNodeTreeType *ntreeTypeFind(const char *idname);
 void ntreeTypeAdd(struct bNodeTreeType *nt);
 void ntreeTypeFreeLink(const struct bNodeTreeType *nt);
 bool ntreeIsRegistered(const struct bNodeTree *ntree);
-struct GHashIterator *ntreeTypeGetIterator(void);
+struct GHashIterator *ntreeTypeGetIterator();
 
 /* Helper macros for iterating over tree types. */
 #define NODE_TREE_TYPES_BEGIN(ntype) \
@@ -559,7 +558,7 @@ const char *nodeTypeFindAlias(const char *idname);
 void nodeRegisterType(struct bNodeType *ntype);
 void nodeUnregisterType(struct bNodeType *ntype);
 void nodeRegisterAlias(struct bNodeType *nt, const char *alias);
-struct GHashIterator *nodeTypeGetIterator(void);
+struct GHashIterator *nodeTypeGetIterator();
 
 /* Helper macros for iterating over node types. */
 #define NODE_TYPES_BEGIN(ntype) \
@@ -579,7 +578,7 @@ struct bNodeSocketType *nodeSocketTypeFind(const char *idname);
 void nodeRegisterSocketType(struct bNodeSocketType *stype);
 void nodeUnregisterSocketType(struct bNodeSocketType *stype);
 bool nodeSocketIsRegistered(const struct bNodeSocket *sock);
-struct GHashIterator *nodeSocketTypeGetIterator(void);
+struct GHashIterator *nodeSocketTypeGetIterator();
 const char *nodeSocketTypeLabel(const bNodeSocketType *stype);
 
 const char *nodeStaticSocketType(int type, int subtype);
@@ -1330,6 +1329,11 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_SORT_ELEMENTS 2123
 #define GEO_NODE_MENU_SWITCH 2124
 #define GEO_NODE_SAMPLE_GRID 2125
+#define GEO_NODE_MESH_TO_DENSITY_GRID 2126
+#define GEO_NODE_MESH_TO_SDF_GRID 2127
+#define GEO_NODE_POINTS_TO_SDF_GRID 2128
+#define GEO_NODE_GRID_TO_MESH 2129
+#define GEO_NODE_DISTRIBUTE_POINTS_IN_GRID 2130
 
 /** \} */
 
@@ -1375,8 +1379,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 
 /** \} */
 
-void BKE_node_system_init(void);
-void BKE_node_system_exit(void);
+void BKE_node_system_init();
+void BKE_node_system_exit();
 
 namespace blender::bke {
 

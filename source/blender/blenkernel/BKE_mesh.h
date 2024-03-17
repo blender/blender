@@ -513,7 +513,7 @@ bool BKE_mesh_validate_all_customdata(struct CustomData *vert_data,
 void BKE_mesh_strip_loose_faces(struct Mesh *mesh);
 
 /* In DerivedMesh.cc */
-void BKE_mesh_wrapper_deferred_finalize_mdata(struct Mesh *me_eval);
+void BKE_mesh_wrapper_deferred_finalize_mdata(struct Mesh *mesh_eval);
 
 /* **** Depsgraph evaluation **** */
 

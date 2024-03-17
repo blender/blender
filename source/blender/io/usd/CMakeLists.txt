@@ -19,7 +19,7 @@ add_definitions(-DBOOST_ALL_NO_LIB)
 # Clang as well works around the issue.
 if(UNIX AND NOT APPLE)
   if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    if(EXISTS ${LIBDIR})
+    if(DEFINED LIBDIR)
       add_definitions(-DARCH_HAS_GNU_STL_EXTENSIONS)
     endif()
   endif()
@@ -52,6 +52,11 @@ if(WIN32)
   # warning alert.
   # Silence them by restore warn C4100 back to w4
   remove_cc_flag("/w34100")
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+    # USD currently does not support the new preprocessor,
+    # and does not use sse2neon, so we can remove it here
+    remove_cc_flag("/Zc:preprocessor")
+  endif()
 endif()
 
 set(INC
@@ -108,13 +113,13 @@ set(SRC
   intern/usd_reader_material.cc
   intern/usd_reader_mesh.cc
   intern/usd_reader_nurbs.cc
+  intern/usd_reader_pointinstancer.cc
   intern/usd_reader_prim.cc
   intern/usd_reader_shape.cc
   intern/usd_reader_skeleton.cc
   intern/usd_reader_stage.cc
   intern/usd_reader_volume.cc
   intern/usd_reader_xform.cc
-  intern/usd_reader_pointinstancer.cc
   intern/usd_skel_convert.cc
   intern/usd_skel_root_utils.cc
 
@@ -148,13 +153,13 @@ set(SRC
   intern/usd_reader_material.hh
   intern/usd_reader_mesh.hh
   intern/usd_reader_nurbs.hh
+  intern/usd_reader_pointinstancer.hh
   intern/usd_reader_prim.hh
   intern/usd_reader_shape.hh
   intern/usd_reader_skeleton.hh
   intern/usd_reader_stage.hh
   intern/usd_reader_volume.hh
   intern/usd_reader_xform.hh
-  intern/usd_reader_pointinstancer.hh
   intern/usd_skel_convert.hh
   intern/usd_skel_root_utils.hh
 )

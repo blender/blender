@@ -62,7 +62,7 @@ static void update_depsgraph(ModifierData * /*md*/, const ModifierUpdateDepsgrap
     DEG_add_forcefield_relations(
         ctx->node, ctx->object, ctx->object->soft->effector_weights, true, 0, "Softbody Field");
   }
-  /* We need own transformation as well. */
+  /* We need our own transformation as well. */
   DEG_add_depends_on_transform_relation(ctx->node, "SoftBody Modifier");
 }
 

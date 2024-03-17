@@ -97,6 +97,9 @@ static void copy_curve_domain_attributes(const AttributeAccessor curve_attribute
         if (meta_data.domain != AttrDomain::Curve) {
           return true;
         }
+        if (meta_data.data_type == CD_PROP_STRING) {
+          return true;
+        }
         point_attributes.add(
             id,
             AttrDomain::Point,

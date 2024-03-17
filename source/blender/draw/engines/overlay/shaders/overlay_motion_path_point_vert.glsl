@@ -17,7 +17,7 @@ void main()
 
   int frame = gl_VertexID + cacheStart;
   bool use_custom_color = customColor.x >= 0.0;
-  finalColor = (use_custom_color) ? vec4(customColor, 1.0) : vec4(1.0);
+  finalColor = (use_custom_color) ? vec4(customColor, 1.0) : colorVertex;
 
   /* Bias to reduce z fighting with the path */
   gl_Position.z -= 1e-4;

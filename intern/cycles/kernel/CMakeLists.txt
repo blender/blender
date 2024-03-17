@@ -14,7 +14,6 @@ set(INC_SYS
 
 set(SRC_KERNEL_DEVICE_CPU
   device/cpu/kernel.cpp
-  device/cpu/kernel_sse2.cpp
   device/cpu/kernel_sse42.cpp
   device/cpu/kernel_avx2.cpp
 )
@@ -883,7 +882,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   # Set defaults for spir64 and spir64_gen options
   if(NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64)
-    set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-ze-opt-regular-grf-kernel integrator_intersect -ze-opt-large-grf-kernel shade -ze-opt-no-local-to-generic'")
+    set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-ze-opt-large-register-file -ze-opt-regular-grf-kernel integrator_intersect -ze-opt-large-grf-kernel shade -ze-opt-no-local-to-generic'")
   endif()
   if(NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen)
     set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}" CACHE STRING "Extra build options for spir64_gen target")
@@ -1163,8 +1162,7 @@ endif()
 
 set_source_files_properties(device/cpu/kernel.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
 
-if(CXX_HAS_SSE)
-  set_source_files_properties(device/cpu/kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
+if(CXX_HAS_SSE42)
   set_source_files_properties(device/cpu/kernel_sse42.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE42_KERNEL_FLAGS}")
 endif()
 

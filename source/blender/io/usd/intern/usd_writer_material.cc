@@ -4,7 +4,6 @@
 
 #include "usd_writer_material.hh"
 
-#include "usd.hh"
 #include "usd_exporter_context.hh"
 #include "usd_hook.hh"
 
@@ -18,7 +17,6 @@
 #include "IMB_colormanagement.hh"
 
 #include "BLI_fileops.h"
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_memory_utils.hh"
@@ -27,14 +25,13 @@
 #include "BLI_string_utils.hh"
 
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include <pxr/base/tf/stringUtils.h>
-#include <pxr/pxr.h>
-#include <pxr/usd/usdGeom/scope.h>
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
@@ -80,6 +77,7 @@ static const pxr::TfToken Shader("Shader", pxr::TfToken::Immortal);
 static const pxr::TfToken black("black", pxr::TfToken::Immortal);
 static const pxr::TfToken clamp("clamp", pxr::TfToken::Immortal);
 static const pxr::TfToken repeat("repeat", pxr::TfToken::Immortal);
+static const pxr::TfToken mirror("mirror", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapS("wrapS", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapT("wrapT", pxr::TfToken::Immortal);
 static const pxr::TfToken in("in", pxr::TfToken::Immortal);
@@ -696,6 +694,9 @@ static pxr::TfToken get_node_tex_image_wrap(bNode *node)
       break;
     case SHD_IMAGE_EXTENSION_CLIP:
       wrap = usdtokens::black;
+      break;
+    case SHD_IMAGE_EXTENSION_MIRROR:
+      wrap = usdtokens::mirror;
       break;
   }
 

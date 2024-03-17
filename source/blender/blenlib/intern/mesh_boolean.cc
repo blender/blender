@@ -102,7 +102,7 @@ static std::ostream &operator<<(std::ostream &os, const Edge &e)
   return os;
 }
 
-static std::ostream &operator<<(std::ostream &os, const Span<int> &a)
+static std::ostream &operator<<(std::ostream &os, const Span<int> a)
 {
   for (int i : a.index_range()) {
     os << a[i];
@@ -1908,7 +1908,7 @@ struct ComponentContainer {
  */
 static Vector<ComponentContainer> find_component_containers(int comp,
                                                             const Span<Vector<int>> components,
-                                                            const Array<int> &ambient_cell,
+                                                            const Span<int> ambient_cell,
                                                             const IMesh &tm,
                                                             const PatchesInfo &pinfo,
                                                             const TriMeshTopology &tmtopo,

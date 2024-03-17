@@ -15,6 +15,8 @@ struct GreasePencilDrawing;
 struct ListBase;
 struct Main;
 struct Object;
+struct LineartGpencilModifierData;
+struct GreasePencilLineartModifierData;
 
 namespace blender::bke::greasepencil::convert {
 
@@ -29,5 +31,10 @@ void thickness_factor_to_modifier(const bGPdata &src_object_data, Object &dst_ob
 void layer_adjustments_to_modifiers(Main &bmain,
                                     const bGPdata &src_object_data,
                                     Object &dst_object);
+
+void lineart_wrap_v3(const LineartGpencilModifierData *lmd_legacy,
+                     GreasePencilLineartModifierData *lmd);
+void lineart_unwrap_v3(LineartGpencilModifierData *lmd_legacy,
+                       const GreasePencilLineartModifierData *lmd);
 
 }  // namespace blender::bke::greasepencil::convert

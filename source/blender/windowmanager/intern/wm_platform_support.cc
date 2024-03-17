@@ -71,7 +71,7 @@ static void wm_platform_support_create_link(char *link)
   BLI_dynstr_append(ds, "windows/");
 #elif defined(__APPLE__)
   BLI_dynstr_append(ds, "apple/");
-#else /* UNIX */
+#else /* UNIX. */
   BLI_dynstr_append(ds, "linux/");
 #endif
 
@@ -113,7 +113,7 @@ bool WM_platform_support_perform_checks()
     return result;
   }
 
-  /* update the message and link based on the found support level */
+  /* Update the message and link based on the found support level. */
   GHOST_DialogOptions dialog_options = GHOST_DialogOptions(0);
 
   switch (support_level) {

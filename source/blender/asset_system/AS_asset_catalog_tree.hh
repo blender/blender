@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "AS_asset_catalog.hh"
 
 namespace blender::asset_system {

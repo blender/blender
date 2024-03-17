@@ -30,7 +30,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "ED_anim_api.hh"

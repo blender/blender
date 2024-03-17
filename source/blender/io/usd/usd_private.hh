@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <pxr/usd/usd/stage.h>
+#include <pxr/usd/usd/common.h>
 
 #include "usd.hh"
 

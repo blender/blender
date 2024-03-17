@@ -43,23 +43,4 @@ std::ostream &operator<<(std::ostream &os, const eCompositorPriority &priority)
   return os;
 }
 
-std::ostream &operator<<(std::ostream &os, const eWorkPackageState &execution_state)
-{
-  switch (execution_state) {
-    case eWorkPackageState::NotScheduled: {
-      os << "ExecutionState::NotScheduled";
-      break;
-    }
-    case eWorkPackageState::Scheduled: {
-      os << "ExecutionState::Scheduled";
-      break;
-    }
-    case eWorkPackageState::Executed: {
-      os << "ExecutionState::Executed";
-      break;
-    }
-  }
-  return os;
-}
-
 }  // namespace blender::compositor

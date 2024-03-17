@@ -11,7 +11,7 @@
 
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BLI_math_vector_types.hh"
 #include "DNA_anim_types.h"
 #include "MEM_guardedalloc.h"

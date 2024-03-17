@@ -8,7 +8,9 @@
 
 #pragma once
 
+#include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
+
 #include "ED_anim_api.hh" /* for enum eAnimFilter_Flags */
 
 struct BezTriple;
@@ -98,8 +100,7 @@ enum eEditKeyframes_Mirror {
 struct KeyframeEdit_LassoData {
   rctf *rectf_scaled;
   const rctf *rectf_view;
-  const int (*mcoords)[2];
-  int mcoords_len;
+  blender::Array<blender::int2> mcoords;
 };
 
 /* use with BEZT_OK_REGION_CIRCLE */

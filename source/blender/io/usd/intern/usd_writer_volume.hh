@@ -5,7 +5,6 @@
 
 #include <optional>
 
-#include "BLI_math_vector_types.hh"
 #include "usd_writer_abstract.hh"
 
 struct Volume;

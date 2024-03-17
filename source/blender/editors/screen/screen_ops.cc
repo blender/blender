@@ -31,7 +31,7 @@
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_icons.h"
 #include "BKE_lib_id.hh"
@@ -5567,7 +5567,7 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARe
     ED_area_init(wm, win, area);
   }
   else {
-    WM_event_remove_handlers(C, &region->handlers);
+    ED_region_visibility_change_update_ex(C, area, region, true, false);
   }
 
   if (region->next) {

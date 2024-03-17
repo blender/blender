@@ -2092,7 +2092,7 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
                                                  const bool is_editmode,
                                                  const bool is_paint_mode,
                                                  const bool is_mode_active,
-                                                 const float obmat[4][4],
+                                                 const float4x4 &object_to_world,
                                                  const bool do_final,
                                                  const bool do_uvedit,
                                                  const bool do_cage,
@@ -2157,16 +2157,23 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
   runtime_data->stats_totloop = draw_cache.num_subdiv_loops;
 
   draw_cache.use_custom_loop_normals = (runtime_data->use_loop_normals) &&
-                                       mesh_eval->normals_domain() ==
-                                           bke::MeshNormalDomain::Corner;
+                                       CustomData_has_layer(&mesh_eval->corner_data,
+                                                            CD_CUSTOMLOOPNORMAL);
 
   if (DRW_ibo_requested(mbc.buff.ibo.tris)) {
     draw_subdiv_cache_ensure_mat_offsets(draw_cache, mesh_eval, batch_cache.mat_len);
   }
 
-  MeshRenderData *mr = mesh_render_data_create(
-      ob, mesh, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
-  mr->use_hide = use_hide;
+  MeshRenderData *mr = mesh_render_data_create(ob,
+                                               mesh,
+                                               is_editmode,
+                                               is_paint_mode,
+                                               is_mode_active,
+                                               object_to_world,
+                                               do_final,
+                                               do_uvedit,
+                                               use_hide,
+                                               ts);
   draw_cache.use_hide = use_hide;
 
   /* Used for setting loop normals flags. Mapped extraction is only used during edit mode.
@@ -2309,7 +2316,7 @@ void DRW_create_subdivision(Object *ob,
                             const bool is_editmode,
                             const bool is_paint_mode,
                             const bool is_mode_active,
-                            const float obmat[4][4],
+                            const float4x4 &object_to_world,
                             const bool do_final,
                             const bool do_uvedit,
                             const bool do_cage,
@@ -2333,7 +2340,7 @@ void DRW_create_subdivision(Object *ob,
                                             is_editmode,
                                             is_paint_mode,
                                             is_mode_active,
-                                            obmat,
+                                            object_to_world,
                                             do_final,
                                             do_uvedit,
                                             do_cage,

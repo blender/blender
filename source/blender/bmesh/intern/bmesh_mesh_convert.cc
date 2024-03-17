@@ -1333,6 +1333,7 @@ static void bm_to_mesh_verts(const BMesh &bm,
                              MutableSpan<bool> select_vert,
                              MutableSpan<bool> hide_vert)
 {
+  CustomData_free_layer_named(&mesh.vert_data, "position", mesh.verts_num);
   CustomData_add_layer_named(
       &mesh.vert_data, CD_PROP_FLOAT3, CD_CONSTRUCT, mesh.verts_num, "position");
   const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.vdata, mesh.vert_data);
@@ -1375,6 +1376,7 @@ static void bm_to_mesh_edges(const BMesh &bm,
                              MutableSpan<bool> sharp_edge,
                              MutableSpan<bool> uv_seams)
 {
+  CustomData_free_layer_named(&mesh.edge_data, ".edge_verts", mesh.edges_num);
   CustomData_add_layer_named(
       &mesh.edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh.edges_num, ".edge_verts");
   const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.edata, mesh.edge_data);
@@ -1461,10 +1463,12 @@ static void bm_to_mesh_faces(const BMesh &bm,
 
 static void bm_to_mesh_loops(const BMesh &bm, const Span<const BMLoop *> bm_loops, Mesh &mesh)
 {
+  CustomData_free_layer_named(&mesh.corner_data, ".corner_vert", mesh.corners_num);
+  CustomData_free_layer_named(&mesh.corner_data, ".corner_edge", mesh.corners_num);
   CustomData_add_layer_named(
-      &mesh.corner_data, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_vert");
+      &mesh.corner_data, CD_PROP_INT32, CD_CONSTRUCT, mesh.corners_num, ".corner_vert");
   CustomData_add_layer_named(
-      &mesh.corner_data, CD_PROP_INT32, CD_CONSTRUCT, bm.totloop, ".corner_edge");
+      &mesh.corner_data, CD_PROP_INT32, CD_CONSTRUCT, mesh.corners_num, ".corner_edge");
   const Vector<BMeshToMeshLayerInfo> info = bm_to_mesh_copy_info_calc(bm.ldata, mesh.corner_data);
   MutableSpan<int> dst_corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> dst_corner_edges = mesh.corner_edges_for_write();

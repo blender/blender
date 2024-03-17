@@ -20,7 +20,7 @@
 #include "BLI_math_vector.hh"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
@@ -213,7 +213,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
   float _proj_vec[3];
   const float *proj_vec = nullptr;
 
-  /* support for face-islands */
+  /* Support for face-islands. */
   const bool use_island = transdata_check_local_islands(t, t->around);
 
   if (t->flag & T_PROP_PROJECTED) {
@@ -306,17 +306,17 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 /** \name Pose Mode (Auto-IK)
  * \{ */
 
-/* adjust pose-channel's auto-ik chainlen */
+/** Adjust pose-channel's auto-ik chainlen. */
 static bool pchan_autoik_adjust(bPoseChannel *pchan, short chainlen)
 {
   bool changed = false;
 
-  /* don't bother to search if no valid constraints */
+  /* Don't bother to search if no valid constraints. */
   if ((pchan->constflag & (PCHAN_HAS_IK | PCHAN_HAS_NO_TARGET)) == 0) {
     return changed;
   }
 
-  /* check if pchan has ik-constraint */
+  /* Check if pchan has ik-constraint. */
   LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
     if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
       continue;
@@ -324,9 +324,9 @@ static bool pchan_autoik_adjust(bPoseChannel *pchan, short chainlen)
     if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->enforce != 0.0f)) {
       bKinematicConstraint *data = static_cast<bKinematicConstraint *>(con->data);
 
-      /* only accept if a temporary one (for auto-ik) */
+      /* Only accept if a temporary one (for auto-IK). */
       if (data->flag & CONSTRAINT_IK_TEMP) {
-        /* chainlen is new chainlen, but is limited by maximum chainlen */
+        /* `chainlen` is new `chainlen`, but is limited by maximum `chainlen`. */
         const int old_rootbone = data->rootbone;
         if ((chainlen == 0) || (chainlen > data->max_rootbone)) {
           data->rootbone = data->max_rootbone;
@@ -348,13 +348,13 @@ void transform_autoik_update(TransInfo *t, short mode)
 
   short *chainlen = &t->settings->autoik_chainlen;
 
-  /* mode determines what change to apply to chainlen */
+  /* `mode` determines what change to apply to `chainlen`. */
   if (mode == 1) {
-    /* mode=1 is from WHEELMOUSEDOWN... increases len */
+    /* `mode==1` is from WHEELMOUSEDOWN: increases len. */
     (*chainlen)++;
   }
   else if (mode == -1) {
-    /* mode==-1 is from WHEELMOUSEUP... decreases len */
+    /* `mode==-1` is from WHEELMOUSEUP: decreases len. */
     if (*chainlen > 0) {
       (*chainlen)--;
     }
@@ -364,12 +364,12 @@ void transform_autoik_update(TransInfo *t, short mode)
     }
   }
 
-  /* apply to all pose-channels */
+  /* Apply to all pose-channels. */
   bool changed = false;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-    /* sanity checks (don't assume t->poseobj is set, or that it is an armature) */
+    /* Sanity checks (don't assume `t->poseobj` is set, or that it is an armature). */
     if (ELEM(nullptr, tc->poseobj, tc->poseobj->pose)) {
       continue;
     }
@@ -461,7 +461,7 @@ TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, BezTriple *b
       MEM_mallocN(sizeof(TransDataCurveHandleFlags), "CuHandle Data"));
   hdata->ih1 = bezt->h1;
   hdata->h1 = &bezt->h1;
-  hdata->ih2 = bezt->h2; /* in case the second is not selected */
+  hdata->ih2 = bezt->h2; /* In case the second is not selected. */
   hdata->h2 = &bezt->h2;
   return hdata;
 }
@@ -524,12 +524,12 @@ char transform_convert_frame_side_dir_get(TransInfo *t, float cframe)
 
 bool FrameOnMouseSide(char side, float frame, float cframe)
 {
-  /* both sides, so it doesn't matter */
+  /* Both sides, so it doesn't matter. */
   if (side == 'B') {
     return true;
   }
 
-  /* only on the named side */
+  /* Only on the named side. */
   if (side == 'R') {
     return (frame >= cframe);
   }
@@ -544,15 +544,14 @@ bool FrameOnMouseSide(char side, float frame, float cframe)
 
 bool constraints_list_needinv(TransInfo *t, ListBase *list)
 {
-  /* loop through constraints, checking if there's one of the mentioned
-   * constraints needing special crazy-space corrections
-   */
+  /* Loop through constraints, checking if there's one of the mentioned
+   * constraints needing special crazy-space corrections. */
   if (list) {
     LISTBASE_FOREACH (bConstraint *, con, list) {
-      /* only consider constraint if it is enabled, and has influence on result */
+      /* Only consider constraint if it is enabled, and has influence on result. */
       if ((con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) == 0 && (con->enforce != 0.0f)) {
-        /* (affirmative) returns for specific constraints here... */
-        /* constraints that require this regardless. */
+        /* Affirmative: returns for specific constraints here. */
+        /* Constraints that require this regardless. */
         if (ELEM(con->type,
                  CONSTRAINT_TYPE_FOLLOWPATH,
                  CONSTRAINT_TYPE_CLAMPTO,
@@ -563,7 +562,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
           return true;
         }
 
-        /* constraints that require this only under special conditions */
+        /* Constraints that require this only under special conditions. */
         if (con->type == CONSTRAINT_TYPE_CHILDOF) {
           /* ChildOf constraint only works when using all location components, see #42256. */
           bChildOfConstraint *data = (bChildOfConstraint *)con->data;
@@ -575,7 +574,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
           }
         }
         else if (con->type == CONSTRAINT_TYPE_ROTLIKE) {
-          /* CopyRot constraint only does this when rotating, and offset is on */
+          /* CopyRot constraint only does this when rotating, and offset is on. */
           bRotateLikeConstraint *data = (bRotateLikeConstraint *)con->data;
 
           if (ELEM(data->mix_mode, ROTLIKE_MIX_OFFSET, ROTLIKE_MIX_BEFORE) &&
@@ -625,7 +624,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
     }
   }
 
-  /* no appropriate candidates found */
+  /* No appropriate candidates found. */
   return false;
 }
 
@@ -641,7 +640,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
    * with transform's order of freeing (campbell).
    * Order changed, the sequencer stuff should go back in here. */
 
-  /* early out when nothing happened */
+  /* Early out when nothing happened. */
   if (t->data_len_all == 0 || t->mode == TFM_DUMMY) {
     return;
   }
@@ -732,7 +731,7 @@ static void init_proportional_edit(TransInfo *t)
              &TransConvertType_Object) ||
         ELEM(t->data_type, &TransConvertType_Particle)))
   {
-    /* Disable proportional editing */
+    /* Disable proportional editing. */
     t->options |= CTX_NO_PET;
     t->flag &= ~T_PROP_EDIT_ALL;
     return;
@@ -842,7 +841,7 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
 
       if (object_mode & OB_MODE_EDIT) {
         tc->obedit = objects[i];
-        /* Check needed for UVs */
+        /* Check needed for UVs. */
         if ((t->flag & T_2D_EDIT) == 0) {
           tc->use_local_mat = true;
         }
@@ -862,8 +861,8 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
         BLI_assert((t->flag & T_2D_EDIT) == 0);
         copy_m4_m4(tc->mat, objects[i]->object_to_world().ptr());
         copy_m3_m4(tc->mat3, tc->mat);
-        /* for non-invertible scale matrices, invert_m4_m4_fallback()
-         * can still provide a valid pivot */
+        /* For non-invertible scale matrices, #invert_m4_m4_fallback()
+         * can still provide a valid pivot. */
         invert_m4_m4_fallback(tc->imat, tc->mat);
         invert_m3_m3(tc->imat3, tc->mat3);
         normalize_m3_m3(tc->mat3_unit, tc->mat3);
@@ -879,7 +878,7 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   BKE_view_layer_synced_ensure(t->scene, t->view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
-  /* if tests must match recalc_data for correct updates */
+  /* If tests must match recalc_data for correct updates. */
   if (t->options & CTX_CURSOR) {
     if (t->spacetype == SPACE_IMAGE) {
       return &TransConvertType_CursorImage;
@@ -1051,12 +1050,12 @@ void create_trans_data(bContext *C, TransInfo *t)
       t->options |= CTX_OBMODE_XFORM_SKIP_CHILDREN;
     }
     TransConvertType_Object.create_trans_data(C, t);
-    /* Check if we're transforming the camera from the camera */
+    /* Check if we're transforming the camera from the camera. */
     if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
       View3D *v3d = static_cast<View3D *>(t->view);
       RegionView3D *rv3d = static_cast<RegionView3D *>(t->region->regiondata);
       if ((rv3d->persp == RV3D_CAMOB) && v3d->camera) {
-        /* we could have a flag to easily check an object is being transformed */
+        /* We could have a flag to easily check an object is being transformed. */
         if (v3d->camera->id.tag & LIB_TAG_DOIT) {
           t->options |= CTX_CAMERA;
         }
@@ -1177,71 +1176,67 @@ void animrecord_check_state(TransInfo *t, ID *id)
   ScreenAnimData *sad = static_cast<ScreenAnimData *>((animtimer) ? animtimer->customdata :
                                                                     nullptr);
 
-  /* sanity checks */
+  /* Sanity checks. */
   if (ELEM(nullptr, scene, id, sad)) {
     return;
   }
 
-  /* check if we need a new strip if:
-   * - if animtimer is running
-   * - we're not only keying for available channels
-   * - the option to add new actions for each round is not enabled
+  /* Check if we need a new strip if:
+   * - If `animtimer` is running.
+   * - We're not only keying for available channels.
+   * - The option to add new actions for each round is not enabled.
    */
   if (blender::animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE) == 0 &&
       (scene->toolsettings->keying_flag & AUTOKEY_FLAG_LAYERED_RECORD))
   {
-    /* if playback has just looped around,
-     * we need to add a new NLA track+strip to allow a clean pass to occur */
+    /* If playback has just looped around,
+     * we need to add a new NLA track+strip to allow a clean pass to occur. */
     if ((sad) && (sad->flag & ANIMPLAY_FLAG_JUMPED)) {
       AnimData *adt = BKE_animdata_from_id(id);
       const bool is_first = (adt) && (adt->nla_tracks.first == nullptr);
 
-      /* perform push-down manually with some differences
-       * NOTE: BKE_nla_action_pushdown() sync warning...
-       */
+      /* Perform push-down manually with some differences
+       * NOTE: #BKE_nla_action_pushdown() sync warning. */
       if ((adt->action) && !(adt->flag & ADT_NLA_EDIT_ON)) {
         float astart, aend;
 
-        /* only push down if action is more than 1-2 frames long */
+        /* Only push down if action is more than 1-2 frames long. */
         BKE_action_frame_range_calc(adt->action, true, &astart, &aend);
         if (aend > astart + 2.0f) {
           NlaStrip *strip = BKE_nlastack_add_strip(adt, adt->action, ID_IS_OVERRIDE_LIBRARY(id));
 
-          /* clear reference to action now that we've pushed it onto the stack */
+          /* Clear reference to action now that we've pushed it onto the stack. */
           id_us_min(&adt->action->id);
           adt->action = nullptr;
 
-          /* adjust blending + extend so that they will behave correctly */
+          /* Adjust blending + extend so that they will behave correctly. */
           strip->extendmode = NLASTRIP_EXTEND_NOTHING;
           strip->flag &= ~(NLASTRIP_FLAG_AUTO_BLENDS | NLASTRIP_FLAG_SELECT |
                            NLASTRIP_FLAG_ACTIVE);
 
-          /* copy current "action blending" settings from adt to the strip,
+          /* Copy current "action blending" settings from adt to the strip,
            * as it was keyframed with these settings, so omitting them will
-           * change the effect  [#54766]
-           */
+           * change the effect, see: #54766. */
           if (is_first == false) {
             strip->blendmode = adt->act_blendmode;
             strip->influence = adt->act_influence;
 
             if (adt->act_influence < 1.0f) {
-              /* enable "user-controlled" influence (which will insert a default keyframe)
-               * so that the influence doesn't get lost on the new update
+              /* Enable "user-controlled" influence (which will insert a default keyframe)
+               * so that the influence doesn't get lost on the new update.
                *
                * NOTE: An alternative way would have been to instead hack the influence
                * to not get always get reset to full strength if NLASTRIP_FLAG_USR_INFLUENCE
                * is disabled but auto-blending isn't being used. However, that approach
                * is a bit hacky/hard to discover, and may cause backwards compatibility issues,
-               * so it's better to just do it this way.
-               */
+               * so it's better to just do it this way. */
               strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
               BKE_nlastrip_validate_fcurves(strip);
             }
           }
 
-          /* also, adjust the AnimData's action extend mode to be on
-           * 'nothing' so that previous result still play
-           */
+          /* Also, adjust the AnimData's action extend mode to be on
+           * 'nothing' so that previous result still play. */
           adt->act_extendmode = NLASTRIP_EXTEND_NOTHING;
         }
       }

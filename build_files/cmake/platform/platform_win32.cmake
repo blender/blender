@@ -119,7 +119,11 @@ remove_cc_flag("/GR")
 add_definitions(-D_WIN32_WINNT=0x603)
 
 # First generate the manifest for tests since it will not need the dependency on the CRT.
-configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/tests.exe.manifest @ONLY)
+configure_file(
+  ${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in
+  ${CMAKE_CURRENT_BINARY_DIR}/tests.exe.manifest
+  @ONLY
+)
 
 # Always detect CRT paths, but only manually install with WITH_WINDOWS_BUNDLE_CRT.
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
@@ -152,7 +156,11 @@ endif()
 if(NOT WITH_PYTHON_MODULE)
   set(BUNDLECRT "${BUNDLECRT}<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.shared\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
 endif()
-configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/blender.exe.manifest @ONLY)
+configure_file(
+  ${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in
+  ${CMAKE_CURRENT_BINARY_DIR}/blender.exe.manifest
+  @ONLY
+)
 
 remove_cc_flag(
   "/MDd"
@@ -162,10 +170,10 @@ remove_cc_flag(
 
 if(MSVC_CLANG) # Clangs version of cl doesn't support all flags
   string(APPEND CMAKE_CXX_FLAGS " ${CXX_WARN_FLAGS} /nologo /J /Gd /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference ")
-  set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference")
+  string(APPEND CMAKE_C_FLAGS   " /nologo /J /Gd -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference")
 else()
-  string(APPEND CMAKE_CXX_FLAGS " /nologo /J /Gd /MP /EHsc /bigobj /Zc:inline")
-  set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd /MP /bigobj /Zc:inline")
+  string(APPEND CMAKE_CXX_FLAGS " /nologo /J /Gd /MP /EHsc /bigobj")
+  string(APPEND CMAKE_C_FLAGS   " /nologo /J /Gd /MP /bigobj")
 endif()
 
 # X64 ASAN is available and usable on MSVC 16.9 preview 4 and up)
@@ -183,9 +191,25 @@ if(WITH_COMPILER_ASAN AND MSVC AND NOT MSVC_CLANG)
 endif()
 
 
-# C++ standards conformace (/permissive-) is available on msvc 15.5 (1912) and up
+# C++ standards conformace
+# /permissive-    : Available from MSVC 15.5 (1912) and up. Enables standards-confirming compiler
+#                   behavior. Required until the project is marked as c++20.
+# /Zc:__cplusplus : Available from MSVC 15.7 (1914) and up. Ensures correct value of the __cplusplus
+#                   preprocessor macro.
+# /Zc:inline      : Enforces C++11 requirement that all functions declared 'inline' must have a
+#                   definition available in the same translation unit if they're used.
+# /Zc:preprocessor: Available from MSVC 16.5 (1925) and up. Enables standards-conforming
+#                   preprocessor.
 if(NOT MSVC_CLANG)
-  string(APPEND CMAKE_CXX_FLAGS " /permissive-")
+  string(APPEND CMAKE_CXX_FLAGS " /permissive- /Zc:__cplusplus /Zc:inline")
+  string(APPEND CMAKE_C_FLAGS   " /Zc:inline")
+
+  # For ARM64 devices, we need to tell MSVC to use the new preprocessor
+  # This is because sse2neon requires it.
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+    string(APPEND CMAKE_CXX_FLAGS " /Zc:preprocessor")
+    string(APPEND CMAKE_C_FLAGS " /Zc:preprocessor")
+  endif()
 endif()
 
 if(WITH_WINDOWS_SCCACHE AND CMAKE_VS_MSBUILD_COMMAND)
@@ -257,7 +281,11 @@ set(PLATFORM_LINKFLAGS_RELEASE "${PLATFORM_LINKFLAGS} ${PDB_INFO_OVERRIDE_LINKER
 string(APPEND CMAKE_STATIC_LINKER_FLAGS " /ignore:4221")
 
 if(CMAKE_CL_64)
-  string(PREPEND PLATFORM_LINKFLAGS "/MACHINE:X64 ")
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+    string(PREPEND PLATFORM_LINKFLAGS "/MACHINE:ARM64 ")
+  else()
+    string(PREPEND PLATFORM_LINKFLAGS "/MACHINE:X64 ")
+  endif()
 else()
   string(PREPEND PLATFORM_LINKFLAGS "/MACHINE:IX86 /LARGEADDRESSAWARE ")
 endif()
@@ -266,7 +294,11 @@ if(NOT DEFINED LIBDIR)
   # Setup 64bit and 64bit windows systems
   if(CMAKE_CL_64)
     message(STATUS "64 bit compiler detected.")
-    set(LIBDIR_BASE "windows_x64")
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+      set(LIBDIR_BASE "windows_arm64")
+    else()
+      set(LIBDIR_BASE "windows_x64")
+    endif()
   else()
     message(FATAL_ERROR "32 bit compiler detected, blender no longer provides pre-build libraries for 32 bit windows, please set the LIBDIR cmake variable to your own library folder")
   endif()
@@ -320,7 +352,10 @@ foreach(child ${children})
 endforeach()
 
 if(WITH_PUGIXML)
-  set(PUGIXML_LIBRARIES optimized ${LIBDIR}/pugixml/lib/pugixml.lib debug ${LIBDIR}/pugixml/lib/pugixml_d.lib)
+  set(PUGIXML_LIBRARIES
+    optimized ${LIBDIR}/pugixml/lib/pugixml.lib
+    debug ${LIBDIR}/pugixml/lib/pugixml_d.lib
+  )
   set(PUGIXML_INCLUDE_DIR ${LIBDIR}/pugixml/include)
 endif()
 
@@ -378,7 +413,10 @@ if(WITH_HARFBUZZ)
   windows_find_package(Harfbuzz)
   if(NOT Harfbuzz_FOUND)
     set(LIBHARFBUZZ_INCLUDE_DIRS ${LIBDIR}/harfbuzz/include)
-    set(LIBHARFBUZZ_LIBRARIES optimized ${LIBDIR}/harfbuzz/lib/libharfbuzz.lib debug ${LIBDIR}/harfbuzz/lib/libharfbuzz_d.lib)
+    set(LIBHARFBUZZ_LIBRARIES
+      optimized ${LIBDIR}/harfbuzz/lib/libharfbuzz.lib
+      debug ${LIBDIR}/harfbuzz/lib/libharfbuzz_d.lib
+    )
     set(Harfbuzz_FOUND ON)
   endif()
 endif()
@@ -514,7 +552,11 @@ if(WITH_IMAGE_OPENEXR)
     warn_hardcoded_paths(OpenEXR)
     set(OPENEXR ${LIBDIR}/openexr)
     set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
-    set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${IMATH_INCLUDE_DIRS} ${OPENEXR_INCLUDE_DIR}/OpenEXR)
+    set(OPENEXR_INCLUDE_DIRS
+      ${OPENEXR_INCLUDE_DIR}
+      ${IMATH_INCLUDE_DIRS}
+      ${OPENEXR_INCLUDE_DIR}/OpenEXR
+    )
     set(OPENEXR_LIBPATH ${OPENEXR}/lib)
     # Check if the blender 3.3 lib static library eixts
     # if not assume this is a 3.4+ dynamic version.
@@ -550,7 +592,10 @@ if(WITH_JACK)
     ${LIBDIR}/jack/include/jack
     ${LIBDIR}/jack/include
   )
-  set(JACK_LIBRARIES optimized ${LIBDIR}/jack/lib/libjack.lib debug ${LIBDIR}/jack/lib/libjack_d.lib)
+  set(JACK_LIBRARIES
+    optimized ${LIBDIR}/jack/lib/libjack.lib
+    debug ${LIBDIR}/jack/lib/libjack_d.lib
+  )
 endif()
 
 set(_PYTHON_VERSION "3.11")
@@ -584,7 +629,10 @@ if(WITH_PYTHON)
   set(NUMPY_FOUND ON)
   # uncached vars
   set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
-  set(PYTHON_LIBRARIES debug "${PYTHON_LIBRARY_DEBUG}" optimized "${PYTHON_LIBRARY}" )
+  set(PYTHON_LIBRARIES
+    debug "${PYTHON_LIBRARY_DEBUG}"
+    optimized "${PYTHON_LIBRARY}"
+  )
 endif()
 
 if(NOT WITH_WINDOWS_FIND_MODULES)
@@ -604,9 +652,15 @@ if(NOT WITH_WINDOWS_FIND_MODULES)
   if(NOT BOOST_VERSION)
     message(FATAL_ERROR "Unable to determine Boost version")
   endif()
-  set(BOOST_POSTFIX "vc142-mt-x64-${BOOST_VERSION}")
-  set(BOOST_DEBUG_POSTFIX "vc142-mt-gyd-x64-${BOOST_VERSION}")
-  set(BOOST_PREFIX "")
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+    set(BOOST_POSTFIX "vc143-mt-a64-${BOOST_VERSION}")
+    set(BOOST_DEBUG_POSTFIX "vc143-mt-gyd-a64-${BOOST_VERSION}")
+    set(BOOST_PREFIX "")
+  else()
+    set(BOOST_POSTFIX "vc142-mt-x64-${BOOST_VERSION}")
+    set(BOOST_DEBUG_POSTFIX "vc142-mt-gyd-x64-${BOOST_VERSION}")
+    set(BOOST_PREFIX "")
+  endif()
 endif()
 
 if(WITH_BOOST)
@@ -625,8 +679,9 @@ if(WITH_BOOST)
   if(NOT Boost_FOUND)
     warn_hardcoded_paths(BOOST)
     # This is file new in 3.4 if it does not exist, assume we are building against 3.3 libs
+    # Note, as ARM64 was introduced in 4.x, this check is not needed
     set(BOOST_34_TRIGGER_FILE ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python${_PYTHON_VERSION_NO_DOTS}-${BOOST_DEBUG_POSTFIX}.lib)
-    if(NOT EXISTS ${BOOST_34_TRIGGER_FILE})
+    if (NOT EXISTS ${BOOST_34_TRIGGER_FILE})
       set(BOOST_DEBUG_POSTFIX "vc142-mt-gd-x64-${BOOST_VERSION}")
       set(BOOST_PREFIX "lib")
     endif()
@@ -681,8 +736,14 @@ if(NOT OpenImageIO_FOUND)
   set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
   set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO}/include)
   set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO_INCLUDE_DIR})
-  set(OIIO_OPTIMIZED optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib)
-  set(OIIO_DEBUG debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib)
+  set(OIIO_OPTIMIZED
+    optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib
+    optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib
+  )
+  set(OIIO_DEBUG
+    debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib
+    debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib
+  )
   set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
   set(OPENIMAGEIO_TOOL "${OPENIMAGEIO}/bin/oiiotool.exe")
 endif()
@@ -746,7 +807,10 @@ if(WITH_OPENVDB)
     set(OPENVDB ${LIBDIR}/openVDB)
     set(OPENVDB_LIBPATH ${OPENVDB}/lib)
     set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include)
-    set(OPENVDB_LIBRARIES optimized ${OPENVDB_LIBPATH}/openvdb.lib debug ${OPENVDB_LIBPATH}/openvdb_d.lib )
+    set(OPENVDB_LIBRARIES
+      optimized ${OPENVDB_LIBPATH}/openvdb.lib
+      debug ${OPENVDB_LIBPATH}/openvdb_d.lib
+    )
   endif()
   set(OPENVDB_DEFINITIONS -DNOMINMAX -D_USE_MATH_DEFINES)
 endif()
@@ -770,7 +834,10 @@ if(WITH_OPENIMAGEDENOISE)
       get_target_property(OPENIMAGEDENOISE_LIBRARIES_RELEASE OpenImageDenoise IMPORTED_IMPLIB_RELEASE)
       get_target_property(OPENIMAGEDENOISE_LIBRARIES_DEBUG OpenImageDenoise IMPORTED_IMPLIB_DEBUG)
       if(EXISTS ${OPENIMAGEDENOISE_LIBRARIES_DEBUG})
-        set(OPENIMAGEDENOISE_LIBRARIES optimized ${OPENIMAGEDENOISE_LIBRARIES_RELEASE} debug ${OPENIMAGEDENOISE_LIBRARIES_DEBUG})
+        set(OPENIMAGEDENOISE_LIBRARIES
+          optimized ${OPENIMAGEDENOISE_LIBRARIES_RELEASE}
+          debug ${OPENIMAGEDENOISE_LIBRARIES_DEBUG}
+        )
       else()
         if(EXISTS ${OPENIMAGEDENOISE_LIBRARIES_RELEASE})
           set(OPENIMAGEDENOISE_LIBRARIES ${OPENIMAGEDENOISE_LIBRARIES_RELEASE})
@@ -805,7 +872,10 @@ if(WITH_ALEMBIC)
   set(ALEMBIC_INCLUDE_DIR ${ALEMBIC}/include)
   set(ALEMBIC_INCLUDE_DIRS ${ALEMBIC_INCLUDE_DIR})
   set(ALEMBIC_LIBPATH ${ALEMBIC}/lib)
-  set(ALEMBIC_LIBRARIES optimized ${ALEMBIC}/lib/Alembic.lib debug ${ALEMBIC}/lib/Alembic_d.lib)
+  set(ALEMBIC_LIBRARIES
+    optimized ${ALEMBIC}/lib/Alembic.lib
+    debug ${ALEMBIC}/lib/Alembic_d.lib
+  )
   set(ALEMBIC_FOUND 1)
 endif()
 
@@ -855,11 +925,17 @@ endif()
 if(WITH_TBB)
   windows_find_package(TBB)
   if(NOT TBB_FOUND)
-    set(TBB_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbb.lib debug ${LIBDIR}/tbb/lib/tbb_debug.lib)
+    set(TBB_LIBRARIES
+      optimized ${LIBDIR}/tbb/lib/tbb.lib
+      debug ${LIBDIR}/tbb/lib/tbb_debug.lib
+    )
     set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
     set(TBB_INCLUDE_DIRS ${TBB_INCLUDE_DIR})
     if(WITH_TBB_MALLOC_PROXY)
-      set(TBB_MALLOC_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbbmalloc.lib debug ${LIBDIR}/tbb/lib/tbbmalloc_debug.lib)
+      set(TBB_MALLOC_LIBRARIES
+        optimized ${LIBDIR}/tbb/lib/tbbmalloc.lib
+        debug ${LIBDIR}/tbb/lib/tbbmalloc_debug.lib
+      )
       add_definitions(-DWITH_TBB_MALLOC)
     endif()
   endif()
@@ -890,6 +966,15 @@ if(WITH_CODEC_SNDFILE)
     set(LIBSNDFILE_LIBRARIES ${LIBSNDFILE_LIBPATH}/sndfile.lib)
   else()
     set(LIBSNDFILE_LIBRARIES ${LIBSNDFILE_LIBPATH}/libsndfile-1.lib)
+  endif()
+endif()
+
+if(WITH_CPU_SIMD AND SUPPORT_NEON_BUILD)
+  windows_find_package(sse2neon)
+  if(NOT SSE2NEON_FOUND)
+    set(SSE2NEON_ROOT_DIR ${LIBDIR}/sse2neon)
+    set(SSE2NEON_INCLUDE_DIRS ${LIBDIR}/sse2neon)
+    set(SSE2NEON_FOUND True)
   endif()
 endif()
 
@@ -1102,9 +1187,15 @@ if(WITH_XR_OPENXR)
   # support the transition between the old and new lib versions
   # this can be removed after the next lib update.
   if(EXISTS ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib)
-    set(XR_OPENXR_SDK_LIBRARIES optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib)
+    set(XR_OPENXR_SDK_LIBRARIES
+      optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib
+      debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib
+    )
   else()
-    set(XR_OPENXR_SDK_LIBRARIES optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loaderd.lib)
+    set(XR_OPENXR_SDK_LIBRARIES
+      optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib
+      debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loaderd.lib
+    )
   endif()
 endif()
 
@@ -1115,7 +1206,10 @@ if(WITH_GMP)
   else()
     set(GMP_DLL_LIB_NAME libgmp-10.lib)
   endif()
-  set(GMP_LIBRARIES ${LIBDIR}/gmp/lib/${GMP_DLL_LIB_NAME} optimized ${LIBDIR}/gmp/lib/libgmpxx.lib debug ${LIBDIR}/gmp/lib/libgmpxx_d.lib)
+  set(GMP_LIBRARIES ${LIBDIR}/gmp/lib/${GMP_DLL_LIB_NAME}
+    optimized ${LIBDIR}/gmp/lib/libgmpxx.lib
+    debug ${LIBDIR}/gmp/lib/libgmpxx_d.lib
+  )
   set(GMP_ROOT_DIR ${LIBDIR}/gmp)
   set(GMP_FOUND ON)
 endif()
@@ -1169,7 +1263,10 @@ if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   if(openpgl_FOUND)
     get_target_property(OPENPGL_LIBRARIES_RELEASE openpgl::openpgl LOCATION_RELEASE)
     get_target_property(OPENPGL_LIBRARIES_DEBUG openpgl::openpgl LOCATION_DEBUG)
-    set(OPENPGL_LIBRARIES optimized ${OPENPGL_LIBRARIES_RELEASE} debug ${OPENPGL_LIBRARIES_DEBUG})
+    set(OPENPGL_LIBRARIES
+      optimized ${OPENPGL_LIBRARIES_RELEASE}
+      debug ${OPENPGL_LIBRARIES_DEBUG}
+    )
     get_target_property(OPENPGL_INCLUDE_DIR openpgl::openpgl INTERFACE_INCLUDE_DIRECTORIES)
   else()
     set(WITH_CYCLES_PATH_GUIDING OFF)
@@ -1208,7 +1305,10 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 
-  set(SYCL_LIBRARIES optimized ${SYCL_LIBRARY} debug ${SYCL_LIBRARY_DEBUG})
+  set(SYCL_LIBRARIES
+    optimized ${SYCL_LIBRARY}
+    debug ${SYCL_LIBRARY_DEBUG}
+  )
 endif()
 
 
@@ -1216,6 +1316,7 @@ endif()
 list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ";" _library_paths)
 set(PLATFORM_ENV_BUILD_DIRS "${LIBDIR}/epoxy/bin\;${LIBDIR}/tbb/bin\;${LIBDIR}/OpenImageIO/bin\;${LIBDIR}/boost/lib\;${LIBDIR}/openexr/bin\;${LIBDIR}/imath/bin\;${LIBDIR}/shaderc/bin\;${PATH}")
 set(PLATFORM_ENV_BUILD "PATH=${PLATFORM_ENV_BUILD_DIRS}")
-# Install needs the additional folders from PLATFORM_ENV_BUILD_DIRS as well, as tools like idiff and abcls use the release mode dlls
+# Install needs the additional folders from PLATFORM_ENV_BUILD_DIRS as well, as tools like:
+# `idiff` and `abcls` use the release mode dlls.
 set(PLATFORM_ENV_INSTALL "PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/blender.shared/\;${PLATFORM_ENV_BUILD_DIRS}\;$ENV{PATH}")
 unset(_library_paths)

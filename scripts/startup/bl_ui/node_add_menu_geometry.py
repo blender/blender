@@ -410,7 +410,11 @@ class NODE_MT_geometry_node_GEO_MESH_OPERATIONS(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeFlipFaces")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshBoolean")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToCurve")
+        if context.preferences.experimental.use_new_volume_nodes:
+            node_add_menu.add_node_type(layout, "GeometryNodeMeshToDensityGrid")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToPoints")
+        if context.preferences.experimental.use_new_volume_nodes:
+            node_add_menu.add_node_type(layout, "GeometryNodeMeshToSDFGrid")
         node_add_menu.add_node_type(layout, "GeometryNodeMeshToVolume")
         node_add_menu.add_node_type(layout, "GeometryNodeScaleElements")
         node_add_menu.add_node_type(layout, "GeometryNodeSplitEdges")
@@ -472,10 +476,14 @@ class NODE_MT_category_GEO_POINT(Menu):
     def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeDistributePointsInVolume")
+        if context.preferences.experimental.use_new_volume_nodes:
+            node_add_menu.add_node_type(layout, "GeometryNodeDistributePointsInGrid")
         node_add_menu.add_node_type(layout, "GeometryNodeDistributePointsOnFaces")
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodePoints")
         node_add_menu.add_node_type(layout, "GeometryNodePointsToCurves")
+        if context.preferences.experimental.use_new_volume_nodes:
+            node_add_menu.add_node_type(layout, "GeometryNodePointsToSDFGrid")
         node_add_menu.add_node_type(layout, "GeometryNodePointsToVertices")
         node_add_menu.add_node_type(layout, "GeometryNodePointsToVolume")
         layout.separator()
@@ -711,6 +719,8 @@ class NODE_MT_geometry_node_GEO_VOLUME_OPERATIONS(Menu):
     def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeVolumeToMesh")
+        if context.preferences.experimental.use_new_volume_nodes:
+            node_add_menu.add_node_type(layout, "GeometryNodeGridToMesh")
         node_add_menu.draw_assets_for_catalog(layout, "Volume/Operations")
 
 

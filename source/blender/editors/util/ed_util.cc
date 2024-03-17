@@ -253,6 +253,14 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
   ED_mesh_mirror_topo_table_end(nullptr);
 }
 
+/* NotForPR: In order to make testing less painful,
+ * flush the sculpt mesh prior to autosave.  Since this comes with a
+ * performance cost it must be removed prior to the final merge.
+ */
+namespace blender::ed::sculpt_paint::undo {
+void fast_save_bmesh(Object *ob);
+}
+
 bool ED_editors_flush_edits_for_object_ex(Main *bmain,
                                           Object *ob,
                                           bool for_render,
@@ -274,15 +282,7 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain,
       multires_flush_sculpt_updates(ob);
       has_edited = true;
 
-      if (for_render) {
-        /* flush changes from dynamic topology sculpt */
-        BKE_sculptsession_bm_to_me_for_render(ob);
-      }
-      else {
-        /* Set reorder=false so that saving the file doesn't reorder
-         * the BMesh's elements */
-        BKE_sculptsession_bm_to_me(ob, false);
-      }
+      blender::ed::sculpt_paint::undo::fast_save_bmesh(ob);
     }
   }
   else if (ob->mode & OB_MODE_EDIT) {

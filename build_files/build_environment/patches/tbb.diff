@@ -1,16 +1,191 @@
-diff --git a/include/tbb/tbb_config.h b/include/tbb/tbb_config.h
-index 7a8d06a0..886699d8 100644
---- a/include/tbb/tbb_config.h
-+++ b/include/tbb/tbb_config.h
-@@ -620,7 +620,7 @@ There are four cases that are supported:
- // instantiation site, which is too late for suppression of the corresponding messages for internal
- // stuff.
- #if !defined(__INTEL_COMPILER) && (!defined(TBB_SUPPRESS_DEPRECATED_MESSAGES) || (TBB_SUPPRESS_DEPRECATED_MESSAGES == 0))
--    #if (__cplusplus >= 201402L)
-+    #if (__cplusplus >= 201402L && (!defined(_MSC_VER) || _MSC_VER >= 1920))
-         #define __TBB_DEPRECATED [[deprecated]]
-         #define __TBB_DEPRECATED_MSG(msg) [[deprecated(msg)]]
-     #elif _MSC_VER
+diff --git a/include/tbb/machine/msvc_armv8.h b/include/tbb/machine/msvc_armv8.h
+new file mode 100644
+index 00000000..13d56678
+--- /dev/null
++++ b/include/tbb/machine/msvc_armv8.h
+@@ -0,0 +1,167 @@
++/*
++    Copyright (c) 2005-2020 Intel Corporation
++
++    Licensed under the Apache License, Version 2.0 (the "License");
++    you may not use this file except in compliance with the License.
++    You may obtain a copy of the License at
++
++        http://www.apache.org/licenses/LICENSE-2.0
++
++    Unless required by applicable law or agreed to in writing, software
++    distributed under the License is distributed on an "AS IS" BASIS,
++    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++    See the License for the specific language governing permissions and
++    limitations under the License.
++*/
++
++#if !defined(__TBB_machine_H) || defined(__TBB_msvc_armv8_H)
++#error Do not #include this internal file directly; use public TBB headers instead.
++#endif
++
++#define __TBB_msvc_armv8_H
++
++#include <intrin.h>
++#include <float.h>
++
++#define __TBB_WORDSIZE 8
++
++#define __TBB_ENDIANNESS __TBB_ENDIAN_UNSUPPORTED
++
++#if defined(TBB_WIN32_USE_CL_BUILTINS)
++// We can test this on _M_IX86
++#pragma intrinsic(_ReadWriteBarrier)
++#pragma intrinsic(_mm_mfence)
++#define __TBB_compiler_fence()    _ReadWriteBarrier()
++#define __TBB_full_memory_fence() _mm_mfence()
++#define __TBB_control_consistency_helper() __TBB_compiler_fence()
++#define __TBB_acquire_consistency_helper() __TBB_compiler_fence()
++#define __TBB_release_consistency_helper() __TBB_compiler_fence()
++#else
++//Now __dmb(_ARM_BARRIER_SY) is used for both compiler and memory fences
++//This might be changed later after testing
++#define __TBB_compiler_fence()    __dmb(_ARM64_BARRIER_SY)
++#define __TBB_full_memory_fence() __dmb(_ARM64_BARRIER_SY)
++#define __TBB_control_consistency_helper() __TBB_compiler_fence()
++#define __TBB_acquire_consistency_helper() __TBB_full_memory_fence()
++#define __TBB_release_consistency_helper() __TBB_full_memory_fence()
++#endif
++
++//--------------------------------------------------
++// Compare and swap
++//--------------------------------------------------
++
++/**
++ * Atomic CAS for 32 bit values, if *ptr==comparand, then *ptr=value, returns *ptr
++ * @param ptr pointer to value in memory to be swapped with value if *ptr==comparand
++ * @param value value to assign *ptr to if *ptr==comparand
++ * @param comparand value to compare with *ptr
++ * @return value originally in memory at ptr, regardless of success
++*/
++
++#define __TBB_MACHINE_DEFINE_ATOMICS_CMPSWP(S,T,F)                                               \
++inline T __TBB_machine_cmpswp##S( volatile void *ptr, T value, T comparand ) {                   \
++    return _InterlockedCompareExchange##F(reinterpret_cast<volatile T *>(ptr),value,comparand);  \
++}                                                                                                \
++
++#define __TBB_MACHINE_DEFINE_ATOMICS_FETCHADD(S,T,F)                                             \
++inline T __TBB_machine_fetchadd##S( volatile void *ptr, T value ) {                              \
++    return _InterlockedExchangeAdd##F(reinterpret_cast<volatile T *>(ptr),value);                \
++}                                                                                                \
++
++__TBB_MACHINE_DEFINE_ATOMICS_CMPSWP(1,char,8)
++__TBB_MACHINE_DEFINE_ATOMICS_CMPSWP(2,short,16)
++__TBB_MACHINE_DEFINE_ATOMICS_CMPSWP(4,long,)
++__TBB_MACHINE_DEFINE_ATOMICS_CMPSWP(8,__int64,64)
++__TBB_MACHINE_DEFINE_ATOMICS_FETCHADD(4,long,)
++#if defined(TBB_WIN32_USE_CL_BUILTINS)
++// No _InterlockedExchangeAdd64 intrinsic on _M_IX86
++#define __TBB_64BIT_ATOMICS 0
++#else
++__TBB_MACHINE_DEFINE_ATOMICS_FETCHADD(8,__int64,64)
++#endif
++
++inline void __TBB_machine_pause (int32_t delay )
++{
++    while(delay>0)
++    {
++        __TBB_compiler_fence();
++        delay--;
++    }
++}
++
++// API to retrieve/update FPU control setting
++#define __TBB_CPU_CTL_ENV_PRESENT 1
++
++namespace tbb {
++namespace internal {
++
++template <typename T, size_t S>
++struct machine_load_store_relaxed {
++    static inline T load ( const volatile T& location ) {
++        const T value = location;
++
++        /*
++        * An extra memory barrier is required for errata #761319
++        * Please see http://infocenter.arm.com/help/topic/com.arm.doc.uan0004a
++        */
++        __TBB_acquire_consistency_helper();
++        return value;
++    }
++
++    static inline void store ( volatile T& location, T value ) {
++        location = value;
++    }
++};
++
++class cpu_ctl_env {
++private:
++    unsigned int my_ctl;
++public:
++    bool operator!=( const cpu_ctl_env& ctl ) const { return my_ctl != ctl.my_ctl; }
++    void get_env() { my_ctl = _control87(0, 0); }
++    void set_env() const { _control87( my_ctl, ~0U ); }
++};
++
++} // namespace internal
++} // namespaces tbb
++
++// Machine specific atomic operations
++#define __TBB_CompareAndSwap4(P,V,C) __TBB_machine_cmpswp4(P,V,C)
++#define __TBB_CompareAndSwap8(P,V,C) __TBB_machine_cmpswp8(P,V,C)
++#define __TBB_Pause(V) __TBB_machine_pause(V)
++
++// Use generics for some things
++#define __TBB_USE_FETCHSTORE_AS_FULL_FENCED_STORE               1
++#define __TBB_USE_GENERIC_HALF_FENCED_LOAD_STORE                1
++#define __TBB_USE_GENERIC_PART_WORD_FETCH_ADD                   1
++#define __TBB_USE_GENERIC_PART_WORD_FETCH_STORE                 1
++#define __TBB_USE_GENERIC_FETCH_STORE                           1
++#define __TBB_USE_GENERIC_DWORD_LOAD_STORE                      0
++#define __TBB_USE_GENERIC_SEQUENTIAL_CONSISTENCY_LOAD_STORE     1
++
++#if defined(TBB_WIN32_USE_CL_BUILTINS)
++#if !__TBB_WIN8UI_SUPPORT
++extern "C" __declspec(dllimport) int __stdcall SwitchToThread( void );
++#define __TBB_Yield()  SwitchToThread()
++#else
++#include<thread>
++#define __TBB_Yield()  std::this_thread::yield()
++#endif
++#else
++#define __TBB_Yield() __yield()
++#endif
++
++// Machine specific atomic operations
++#define __TBB_AtomicOR(P,V)     __TBB_machine_OR(P,V)
++#define __TBB_AtomicAND(P,V)    __TBB_machine_AND(P,V)
++
++template <typename T1,typename T2>
++inline void __TBB_machine_OR( T1 *operand, T2 addend ) {
++    _InterlockedOr((long volatile *)operand, (long)addend);
++}
++
++template <typename T1,typename T2>
++inline void __TBB_machine_AND( T1 *operand, T2 addend ) {
++    _InterlockedAnd((long volatile *)operand, (long)addend);
++}
++
+diff --git a/include/tbb/tbb_machine.h b/include/tbb/tbb_machine.h
+index 9752be58..ebb98ec2 100644
+--- a/include/tbb/tbb_machine.h
++++ b/include/tbb/tbb_machine.h
+@@ -208,6 +208,8 @@ template<> struct atomic_selector<8> {
+         #include "machine/windows_intel64.h"
+     #elif defined(_M_ARM) || defined(__TBB_WIN32_USE_CL_BUILTINS)
+         #include "machine/msvc_armv7.h"
++    #elif defined(_M_ARM64)
++	    #include "machine/msvc_armv8.h"
+     #endif
+ 
+ #ifdef _MANAGED
+diff --git a/src/tbb/tools_api/ittnotify_config.h b/src/tbb/tools_api/ittnotify_config.h
+index bdb4ec29..7c363f4f 100644
 --- a/src/tbb/tools_api/ittnotify_config.h
 +++ b/src/tbb/tools_api/ittnotify_config.h
 @@ -162,7 +162,7 @@
@@ -18,7 +193,428 @@ index 7a8d06a0..886699d8 100644
  #  elif defined _M_IA64 || defined __ia64__
  #    define ITT_ARCH ITT_ARCH_IA64
 -#  elif defined _M_ARM || defined __arm__
-+#  elif defined _M_ARM || defined __arm__ || defined __aarch64__
++#  elif defined _M_ARM || defined _M_ARM64 || defined __arm__ || defined __arm64__
  #    define ITT_ARCH ITT_ARCH_ARM
  #  elif defined __powerpc64__
  #    define ITT_ARCH ITT_ARCH_PPC64
+diff --git a/src/tbb/winarm64-tbb-export.def b/src/tbb/winarm64-tbb-export.def
+new file mode 100644
+index 00000000..813eb002
+--- /dev/null
++++ b/src/tbb/winarm64-tbb-export.def
+@@ -0,0 +1,21 @@
++; Copyright (c) 2005-2020 Intel Corporation
++; Copyright (c) 2022 Linaro Ltd.
++;
++; Licensed under the Apache License, Version 2.0 (the "License");
++; you may not use this file except in compliance with the License.
++; You may obtain a copy of the License at
++;
++;     http://www.apache.org/licenses/LICENSE-2.0
++;
++; Unless required by applicable law or agreed to in writing, software
++; distributed under the License is distributed on an "AS IS" BASIS,
++; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++; See the License for the specific language governing permissions and
++; limitations under the License.
++
++EXPORTS
++
++#define __TBB_SYMBOL( sym ) sym
++#include "winarm64-tbb-export.lst"
++
++
+diff --git a/src/tbb/winarm64-tbb-export.lst b/src/tbb/winarm64-tbb-export.lst
+new file mode 100644
+index 00000000..a25d545e
+--- /dev/null
++++ b/src/tbb/winarm64-tbb-export.lst
+@@ -0,0 +1,310 @@
++; Copyright (c) 2005-2020 Intel Corporation
++;
++; Licensed under the Apache License, Version 2.0 (the "License");
++; you may not use this file except in compliance with the License.
++; You may obtain a copy of the License at
++;
++;     http://www.apache.org/licenses/LICENSE-2.0
++;
++; Unless required by applicable law or agreed to in writing, software
++; distributed under the License is distributed on an "AS IS" BASIS,
++; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++; See the License for the specific language governing permissions and
++; limitations under the License.
++
++#include "tbb/tbb_config.h"
++
++// cache_aligned_allocator.cpp
++__TBB_SYMBOL( ?NFS_Allocate@internal@tbb@@YAPEAX_K0PEAX@Z )
++__TBB_SYMBOL( ?NFS_GetLineSize@internal@tbb@@YA_KXZ )
++__TBB_SYMBOL( ?NFS_Free@internal@tbb@@YAXPEAX@Z )
++__TBB_SYMBOL( ?allocate_via_handler_v3@internal@tbb@@YAPEAX_K@Z )
++__TBB_SYMBOL( ?deallocate_via_handler_v3@internal@tbb@@YAXPEAX@Z )
++__TBB_SYMBOL( ?is_malloc_used_v3@internal@tbb@@YA_NXZ )
++
++// task.cpp v3
++__TBB_SYMBOL( ?allocate@allocate_additional_child_of_proxy@internal@tbb@@QEBAAEAVtask@3@_K@Z )
++__TBB_SYMBOL( ?allocate@allocate_child_proxy@internal@tbb@@QEBAAEAVtask@3@_K@Z )
++__TBB_SYMBOL( ?allocate@allocate_continuation_proxy@internal@tbb@@QEBAAEAVtask@3@_K@Z )
++__TBB_SYMBOL( ?allocate@allocate_root_proxy@internal@tbb@@SAAEAVtask@3@_K@Z )
++__TBB_SYMBOL( ?destroy@task_base@internal@interface5@tbb@@SAXAEAVtask@4@@Z )
++__TBB_SYMBOL( ?free@allocate_additional_child_of_proxy@internal@tbb@@QEBAXAEAVtask@3@@Z )
++__TBB_SYMBOL( ?free@allocate_child_proxy@internal@tbb@@QEBAXAEAVtask@3@@Z )
++__TBB_SYMBOL( ?free@allocate_continuation_proxy@internal@tbb@@QEBAXAEAVtask@3@@Z )
++__TBB_SYMBOL( ?free@allocate_root_proxy@internal@tbb@@SAXAEAVtask@3@@Z )
++__TBB_SYMBOL( ?internal_set_ref_count@task@tbb@@AEAAXH@Z )
++__TBB_SYMBOL( ?internal_decrement_ref_count@task@tbb@@AEAA_JXZ )
++__TBB_SYMBOL( ?is_owned_by_current_thread@task@tbb@@QEBA_NXZ )
++__TBB_SYMBOL( ?note_affinity@task@tbb@@UEAAXG@Z )
++__TBB_SYMBOL( ?resize@affinity_partitioner_base_v3@internal@tbb@@AEAAXI@Z )
++__TBB_SYMBOL( ?self@task@tbb@@SAAEAV12@XZ )
++__TBB_SYMBOL( ?spawn_and_wait_for_all@task@tbb@@QEAAXAEAVtask_list@2@@Z )
++__TBB_SYMBOL( ?default_num_threads@task_scheduler_init@tbb@@SAHXZ )
++__TBB_SYMBOL( ?initialize@task_scheduler_init@tbb@@QEAAXH_K@Z )
++__TBB_SYMBOL( ?initialize@task_scheduler_init@tbb@@QEAAXH@Z )
++__TBB_SYMBOL( ?terminate@task_scheduler_init@tbb@@QEAAXXZ )
++#if __TBB_SCHEDULER_OBSERVER
++__TBB_SYMBOL( ?observe@task_scheduler_observer_v3@internal@tbb@@QEAAX_N@Z )
++#endif /* __TBB_SCHEDULER_OBSERVER */
++
++/* arena.cpp */
++__TBB_SYMBOL( ?internal_max_concurrency@task_arena_base@internal@interface7@tbb@@KAHPEBVtask_arena@34@@Z )
++__TBB_SYMBOL( ?internal_current_slot@task_arena_base@internal@interface7@tbb@@KAHXZ )
++__TBB_SYMBOL( ?internal_initialize@task_arena_base@internal@interface7@tbb@@IEAAXXZ )
++__TBB_SYMBOL( ?internal_terminate@task_arena_base@internal@interface7@tbb@@IEAAXXZ )
++__TBB_SYMBOL( ?internal_attach@task_arena_base@internal@interface7@tbb@@IEAAXXZ )
++__TBB_SYMBOL( ?internal_enqueue@task_arena_base@internal@interface7@tbb@@IEBAXAEAVtask@4@_J@Z )
++__TBB_SYMBOL( ?internal_execute@task_arena_base@internal@interface7@tbb@@IEBAXAEAVdelegate_base@234@@Z )
++__TBB_SYMBOL( ?internal_wait@task_arena_base@internal@interface7@tbb@@IEBAXXZ )
++#if __TBB_TASK_ISOLATION
++__TBB_SYMBOL( ?isolate_within_arena@internal@interface7@tbb@@YAXAEAVdelegate_base@123@_J@Z )
++#endif /* __TBB_TASK_ISOLATION */
++
++#if !TBB_NO_LEGACY
++// task_v2.cpp
++__TBB_SYMBOL( ?destroy@task@tbb@@QEAAXAEAV12@@Z )
++#endif
++
++// exception handling support
++#if __TBB_TASK_GROUP_CONTEXT
++__TBB_SYMBOL( ?allocate@allocate_root_with_context_proxy@internal@tbb@@QEBAAEAVtask@3@_K@Z )
++__TBB_SYMBOL( ?free@allocate_root_with_context_proxy@internal@tbb@@QEBAXAEAVtask@3@@Z )
++__TBB_SYMBOL( ?change_group@task@tbb@@QEAAXAEAVtask_group_context@2@@Z )
++__TBB_SYMBOL( ?is_group_execution_cancelled@task_group_context@tbb@@QEBA_NXZ )
++__TBB_SYMBOL( ?cancel_group_execution@task_group_context@tbb@@QEAA_NXZ )
++__TBB_SYMBOL( ?reset@task_group_context@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?capture_fp_settings@task_group_context@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?init@task_group_context@tbb@@IEAAXXZ )
++__TBB_SYMBOL( ?register_pending_exception@task_group_context@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ??1task_group_context@tbb@@QEAA@XZ )
++#if __TBB_TASK_PRIORITY
++__TBB_SYMBOL( ?set_priority@task_group_context@tbb@@QEAAXW4priority_t@2@@Z )
++__TBB_SYMBOL( ?priority@task_group_context@tbb@@QEBA?AW4priority_t@2@XZ )
++#endif /* __TBB_TASK_PRIORITY */
++__TBB_SYMBOL( ?name@captured_exception@tbb@@UEBAPEBDXZ )
++__TBB_SYMBOL( ?what@captured_exception@tbb@@UEBAPEBDXZ )
++__TBB_SYMBOL( ??1captured_exception@tbb@@UEAA@XZ )
++__TBB_SYMBOL( ?move@captured_exception@tbb@@UEAAPEAV12@XZ )
++__TBB_SYMBOL( ?destroy@captured_exception@tbb@@UEAAXXZ )
++__TBB_SYMBOL( ?set@captured_exception@tbb@@QEAAXPEBD0@Z )
++__TBB_SYMBOL( ?clear@captured_exception@tbb@@QEAAXXZ )
++#endif /* __TBB_TASK_GROUP_CONTEXT */
++
++// Symbols for exceptions thrown from TBB
++__TBB_SYMBOL( ?throw_bad_last_alloc_exception_v4@internal@tbb@@YAXXZ )
++__TBB_SYMBOL( ?throw_exception_v4@internal@tbb@@YAXW4exception_id@12@@Z )
++__TBB_SYMBOL( ?what@bad_last_alloc@tbb@@UEBAPEBDXZ )
++__TBB_SYMBOL( ?what@missing_wait@tbb@@UEBAPEBDXZ )
++__TBB_SYMBOL( ?what@invalid_multiple_scheduling@tbb@@UEBAPEBDXZ )
++__TBB_SYMBOL( ?what@improper_lock@tbb@@UEBAPEBDXZ )
++__TBB_SYMBOL( ?what@user_abort@tbb@@UEBAPEBDXZ )
++
++// tbb_misc.cpp
++__TBB_SYMBOL( ?assertion_failure@tbb@@YAXPEBDH00@Z )
++__TBB_SYMBOL( ?get_initial_auto_partitioner_divisor@internal@tbb@@YA_KXZ )
++__TBB_SYMBOL( ?handle_perror@internal@tbb@@YAXHPEBD@Z )
++__TBB_SYMBOL( ?set_assertion_handler@tbb@@YAP6AXPEBDH00@ZP6AX0H00@Z@Z )
++__TBB_SYMBOL( ?runtime_warning@internal@tbb@@YAXPEBDZZ )
++__TBB_SYMBOL( TBB_runtime_interface_version )
++
++// tbb_main.cpp
++__TBB_SYMBOL( ?itt_load_pointer_with_acquire_v3@internal@tbb@@YAPEAXPEBX@Z )
++__TBB_SYMBOL( ?itt_store_pointer_with_release_v3@internal@tbb@@YAXPEAX0@Z )
++__TBB_SYMBOL( ?call_itt_notify_v5@internal@tbb@@YAXHPEAX@Z )
++__TBB_SYMBOL( ?itt_set_sync_name_v3@internal@tbb@@YAXPEAXPEB_W@Z )
++__TBB_SYMBOL( ?itt_load_pointer_v3@internal@tbb@@YAPEAXPEBX@Z )
++__TBB_SYMBOL( ?itt_make_task_group_v7@internal@tbb@@YAXW4itt_domain_enum@12@PEAX_K12W4string_index@12@@Z )
++__TBB_SYMBOL( ?itt_metadata_str_add_v7@internal@tbb@@YAXW4itt_domain_enum@12@PEAX_KW4string_index@12@PEBD@Z )
++__TBB_SYMBOL( ?itt_relation_add_v7@internal@tbb@@YAXW4itt_domain_enum@12@PEAX_KW4itt_relation@12@12@Z )
++__TBB_SYMBOL( ?itt_task_begin_v7@internal@tbb@@YAXW4itt_domain_enum@12@PEAX_K12W4string_index@12@@Z )
++__TBB_SYMBOL( ?itt_task_end_v7@internal@tbb@@YAXW4itt_domain_enum@12@@Z )
++__TBB_SYMBOL( ?itt_region_begin_v9@internal@tbb@@YAXW4itt_domain_enum@12@PEAX_K12W4string_index@12@@Z )
++__TBB_SYMBOL( ?itt_region_end_v9@internal@tbb@@YAXW4itt_domain_enum@12@PEAX_K@Z )
++
++
++// pipeline.cpp
++__TBB_SYMBOL( ??0pipeline@tbb@@QEAA@XZ )
++__TBB_SYMBOL( ??1filter@tbb@@UEAA@XZ )
++__TBB_SYMBOL( ??1pipeline@tbb@@UEAA@XZ )
++__TBB_SYMBOL( ??_7pipeline@tbb@@6B@ )
++__TBB_SYMBOL( ?add_filter@pipeline@tbb@@QEAAXAEAVfilter@2@@Z )
++__TBB_SYMBOL( ?clear@pipeline@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?inject_token@pipeline@tbb@@AEAAXAEAVtask@2@@Z )
++__TBB_SYMBOL( ?run@pipeline@tbb@@QEAAX_K@Z )
++#if __TBB_TASK_GROUP_CONTEXT
++__TBB_SYMBOL( ?run@pipeline@tbb@@QEAAX_KAEAVtask_group_context@2@@Z )
++#endif
++__TBB_SYMBOL( ?process_item@thread_bound_filter@tbb@@QEAA?AW4result_type@12@XZ )
++__TBB_SYMBOL( ?try_process_item@thread_bound_filter@tbb@@QEAA?AW4result_type@12@XZ )
++__TBB_SYMBOL( ?set_end_of_input@filter@tbb@@IEAAXXZ )
++
++// queuing_rw_mutex.cpp
++__TBB_SYMBOL( ?internal_construct@queuing_rw_mutex@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?acquire@scoped_lock@queuing_rw_mutex@tbb@@QEAAXAEAV23@_N@Z )
++__TBB_SYMBOL( ?downgrade_to_reader@scoped_lock@queuing_rw_mutex@tbb@@QEAA_NXZ )
++__TBB_SYMBOL( ?release@scoped_lock@queuing_rw_mutex@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?upgrade_to_writer@scoped_lock@queuing_rw_mutex@tbb@@QEAA_NXZ )
++__TBB_SYMBOL( ?try_acquire@scoped_lock@queuing_rw_mutex@tbb@@QEAA_NAEAV23@_N@Z )
++
++// reader_writer_lock.cpp
++__TBB_SYMBOL( ?try_lock_read@reader_writer_lock@interface5@tbb@@QEAA_NXZ )
++__TBB_SYMBOL( ?try_lock@reader_writer_lock@interface5@tbb@@QEAA_NXZ )
++__TBB_SYMBOL( ?unlock@reader_writer_lock@interface5@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?lock_read@reader_writer_lock@interface5@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?lock@reader_writer_lock@interface5@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?internal_construct@reader_writer_lock@interface5@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_destroy@reader_writer_lock@interface5@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_construct@scoped_lock@reader_writer_lock@interface5@tbb@@AEAAXAEAV234@@Z )
++__TBB_SYMBOL( ?internal_destroy@scoped_lock@reader_writer_lock@interface5@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_construct@scoped_lock_read@reader_writer_lock@interface5@tbb@@AEAAXAEAV234@@Z )
++__TBB_SYMBOL( ?internal_destroy@scoped_lock_read@reader_writer_lock@interface5@tbb@@AEAAXXZ )
++
++#if !TBB_NO_LEGACY
++// spin_rw_mutex.cpp v2
++__TBB_SYMBOL( ?internal_acquire_reader@spin_rw_mutex@tbb@@CAXPEAV12@@Z )
++__TBB_SYMBOL( ?internal_acquire_writer@spin_rw_mutex@tbb@@CA_NPEAV12@@Z )
++__TBB_SYMBOL( ?internal_downgrade@spin_rw_mutex@tbb@@CAXPEAV12@@Z )
++__TBB_SYMBOL( ?internal_itt_releasing@spin_rw_mutex@tbb@@CAXPEAV12@@Z )
++__TBB_SYMBOL( ?internal_release_reader@spin_rw_mutex@tbb@@CAXPEAV12@@Z )
++__TBB_SYMBOL( ?internal_release_writer@spin_rw_mutex@tbb@@CAXPEAV12@@Z )
++__TBB_SYMBOL( ?internal_upgrade@spin_rw_mutex@tbb@@CA_NPEAV12@@Z )
++__TBB_SYMBOL( ?internal_try_acquire_writer@spin_rw_mutex@tbb@@CA_NPEAV12@@Z )
++__TBB_SYMBOL( ?internal_try_acquire_reader@spin_rw_mutex@tbb@@CA_NPEAV12@@Z )
++#endif
++
++// spin_rw_mutex v3
++__TBB_SYMBOL( ?internal_construct@spin_rw_mutex_v3@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_upgrade@spin_rw_mutex_v3@tbb@@AEAA_NXZ )
++__TBB_SYMBOL( ?internal_downgrade@spin_rw_mutex_v3@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_acquire_reader@spin_rw_mutex_v3@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_acquire_writer@spin_rw_mutex_v3@tbb@@AEAA_NXZ )
++__TBB_SYMBOL( ?internal_release_reader@spin_rw_mutex_v3@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_release_writer@spin_rw_mutex_v3@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_try_acquire_reader@spin_rw_mutex_v3@tbb@@AEAA_NXZ )
++__TBB_SYMBOL( ?internal_try_acquire_writer@spin_rw_mutex_v3@tbb@@AEAA_NXZ )
++
++// spin_mutex.cpp
++__TBB_SYMBOL( ?internal_construct@spin_mutex@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?internal_acquire@scoped_lock@spin_mutex@tbb@@AEAAXAEAV23@@Z )
++__TBB_SYMBOL( ?internal_release@scoped_lock@spin_mutex@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_try_acquire@scoped_lock@spin_mutex@tbb@@AEAA_NAEAV23@@Z )
++
++// mutex.cpp
++__TBB_SYMBOL( ?internal_acquire@scoped_lock@mutex@tbb@@AEAAXAEAV23@@Z )
++__TBB_SYMBOL( ?internal_release@scoped_lock@mutex@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_try_acquire@scoped_lock@mutex@tbb@@AEAA_NAEAV23@@Z )
++__TBB_SYMBOL( ?internal_construct@mutex@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_destroy@mutex@tbb@@AEAAXXZ )
++
++// recursive_mutex.cpp
++__TBB_SYMBOL( ?internal_acquire@scoped_lock@recursive_mutex@tbb@@AEAAXAEAV23@@Z )
++__TBB_SYMBOL( ?internal_release@scoped_lock@recursive_mutex@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_try_acquire@scoped_lock@recursive_mutex@tbb@@AEAA_NAEAV23@@Z )
++__TBB_SYMBOL( ?internal_construct@recursive_mutex@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_destroy@recursive_mutex@tbb@@AEAAXXZ )
++
++// queuing_mutex.cpp
++__TBB_SYMBOL( ?internal_construct@queuing_mutex@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?acquire@scoped_lock@queuing_mutex@tbb@@QEAAXAEAV23@@Z )
++__TBB_SYMBOL( ?release@scoped_lock@queuing_mutex@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?try_acquire@scoped_lock@queuing_mutex@tbb@@QEAA_NAEAV23@@Z )
++
++// critical_section.cpp
++__TBB_SYMBOL( ?internal_construct@critical_section_v4@internal@tbb@@QEAAXXZ )
++
++#if !TBB_NO_LEGACY
++// concurrent_hash_map.cpp
++__TBB_SYMBOL( ?internal_grow_predicate@hash_map_segment_base@internal@tbb@@QEBA_NXZ )
++
++// concurrent_queue.cpp v2
++__TBB_SYMBOL( ?advance@concurrent_queue_iterator_base@internal@tbb@@IEAAXXZ )
++__TBB_SYMBOL( ?assign@concurrent_queue_iterator_base@internal@tbb@@IEAAXAEBV123@@Z )
++__TBB_SYMBOL( ?internal_size@concurrent_queue_base@internal@tbb@@IEBA_JXZ )
++__TBB_SYMBOL( ??0concurrent_queue_base@internal@tbb@@IEAA@_K@Z )
++__TBB_SYMBOL( ??0concurrent_queue_iterator_base@internal@tbb@@IEAA@AEBVconcurrent_queue_base@12@@Z )
++__TBB_SYMBOL( ??1concurrent_queue_base@internal@tbb@@MEAA@XZ )
++__TBB_SYMBOL( ??1concurrent_queue_iterator_base@internal@tbb@@IEAA@XZ )
++__TBB_SYMBOL( ?internal_pop@concurrent_queue_base@internal@tbb@@IEAAXPEAX@Z )
++__TBB_SYMBOL( ?internal_pop_if_present@concurrent_queue_base@internal@tbb@@IEAA_NPEAX@Z )
++__TBB_SYMBOL( ?internal_push@concurrent_queue_base@internal@tbb@@IEAAXPEBX@Z )
++__TBB_SYMBOL( ?internal_push_if_not_full@concurrent_queue_base@internal@tbb@@IEAA_NPEBX@Z )
++__TBB_SYMBOL( ?internal_set_capacity@concurrent_queue_base@internal@tbb@@IEAAX_J_K@Z )
++#endif
++
++// concurrent_queue v3
++__TBB_SYMBOL( ??1concurrent_queue_iterator_base_v3@internal@tbb@@IEAA@XZ )
++__TBB_SYMBOL( ??0concurrent_queue_iterator_base_v3@internal@tbb@@IEAA@AEBVconcurrent_queue_base_v3@12@@Z )
++__TBB_SYMBOL( ??0concurrent_queue_iterator_base_v3@internal@tbb@@IEAA@AEBVconcurrent_queue_base_v3@12@_K@Z )
++__TBB_SYMBOL( ?advance@concurrent_queue_iterator_base_v3@internal@tbb@@IEAAXXZ )
++__TBB_SYMBOL( ?assign@concurrent_queue_iterator_base_v3@internal@tbb@@IEAAXAEBV123@@Z )
++__TBB_SYMBOL( ??0concurrent_queue_base_v3@internal@tbb@@IEAA@_K@Z )
++__TBB_SYMBOL( ??1concurrent_queue_base_v3@internal@tbb@@MEAA@XZ )
++__TBB_SYMBOL( ?internal_pop@concurrent_queue_base_v3@internal@tbb@@IEAAXPEAX@Z )
++__TBB_SYMBOL( ?internal_pop_if_present@concurrent_queue_base_v3@internal@tbb@@IEAA_NPEAX@Z )
++__TBB_SYMBOL( ?internal_abort@concurrent_queue_base_v3@internal@tbb@@IEAAXXZ )
++__TBB_SYMBOL( ?internal_push@concurrent_queue_base_v3@internal@tbb@@IEAAXPEBX@Z )
++__TBB_SYMBOL( ?internal_push_move@concurrent_queue_base_v8@internal@tbb@@IEAAXPEBX@Z )
++__TBB_SYMBOL( ?internal_push_if_not_full@concurrent_queue_base_v3@internal@tbb@@IEAA_NPEBX@Z )
++__TBB_SYMBOL( ?internal_push_move_if_not_full@concurrent_queue_base_v8@internal@tbb@@IEAA_NPEBX@Z )
++__TBB_SYMBOL( ?internal_size@concurrent_queue_base_v3@internal@tbb@@IEBA_JXZ )
++__TBB_SYMBOL( ?internal_empty@concurrent_queue_base_v3@internal@tbb@@IEBA_NXZ )
++__TBB_SYMBOL( ?internal_set_capacity@concurrent_queue_base_v3@internal@tbb@@IEAAX_J_K@Z )
++__TBB_SYMBOL( ?internal_finish_clear@concurrent_queue_base_v3@internal@tbb@@IEAAXXZ )
++__TBB_SYMBOL( ?internal_throw_exception@concurrent_queue_base_v3@internal@tbb@@IEBAXXZ )
++__TBB_SYMBOL( ?assign@concurrent_queue_base_v3@internal@tbb@@IEAAXAEBV123@@Z )
++__TBB_SYMBOL( ?move_content@concurrent_queue_base_v8@internal@tbb@@IEAAXAEAV123@@Z )
++
++#if !TBB_NO_LEGACY
++// concurrent_vector.cpp v2
++__TBB_SYMBOL( ?internal_assign@concurrent_vector_base@internal@tbb@@IEAAXAEBV123@_KP6AXPEAX1@ZP6AX2PEBX1@Z5@Z )
++__TBB_SYMBOL( ?internal_capacity@concurrent_vector_base@internal@tbb@@IEBA_KXZ )
++__TBB_SYMBOL( ?internal_clear@concurrent_vector_base@internal@tbb@@IEAAXP6AXPEAX_K@Z_N@Z )
++__TBB_SYMBOL( ?internal_copy@concurrent_vector_base@internal@tbb@@IEAAXAEBV123@_KP6AXPEAXPEBX1@Z@Z )
++__TBB_SYMBOL( ?internal_grow_by@concurrent_vector_base@internal@tbb@@IEAA_K_K0P6AXPEAX0@Z@Z )
++__TBB_SYMBOL( ?internal_grow_to_at_least@concurrent_vector_base@internal@tbb@@IEAAX_K0P6AXPEAX0@Z@Z )
++__TBB_SYMBOL( ?internal_push_back@concurrent_vector_base@internal@tbb@@IEAAPEAX_KAEA_K@Z )
++__TBB_SYMBOL( ?internal_reserve@concurrent_vector_base@internal@tbb@@IEAAX_K00@Z )
++#endif
++
++// concurrent_vector v3
++__TBB_SYMBOL( ??1concurrent_vector_base_v3@internal@tbb@@IEAA@XZ )
++__TBB_SYMBOL( ?internal_assign@concurrent_vector_base_v3@internal@tbb@@IEAAXAEBV123@_KP6AXPEAX1@ZP6AX2PEBX1@Z5@Z )
++__TBB_SYMBOL( ?internal_capacity@concurrent_vector_base_v3@internal@tbb@@IEBA_KXZ )
++__TBB_SYMBOL( ?internal_clear@concurrent_vector_base_v3@internal@tbb@@IEAA_KP6AXPEAX_K@Z@Z )
++__TBB_SYMBOL( ?internal_copy@concurrent_vector_base_v3@internal@tbb@@IEAAXAEBV123@_KP6AXPEAXPEBX1@Z@Z )
++__TBB_SYMBOL( ?internal_grow_by@concurrent_vector_base_v3@internal@tbb@@IEAA_K_K0P6AXPEAXPEBX0@Z2@Z )
++__TBB_SYMBOL( ?internal_grow_to_at_least@concurrent_vector_base_v3@internal@tbb@@IEAAX_K0P6AXPEAXPEBX0@Z2@Z )
++__TBB_SYMBOL( ?internal_push_back@concurrent_vector_base_v3@internal@tbb@@IEAAPEAX_KAEA_K@Z )
++__TBB_SYMBOL( ?internal_reserve@concurrent_vector_base_v3@internal@tbb@@IEAAX_K00@Z )
++__TBB_SYMBOL( ?internal_compact@concurrent_vector_base_v3@internal@tbb@@IEAAPEAX_KPEAXP6AX10@ZP6AX1PEBX0@Z@Z )
++__TBB_SYMBOL( ?internal_swap@concurrent_vector_base_v3@internal@tbb@@IEAAXAEAV123@@Z )
++__TBB_SYMBOL( ?internal_throw_exception@concurrent_vector_base_v3@internal@tbb@@IEBAX_K@Z )
++__TBB_SYMBOL( ?internal_resize@concurrent_vector_base_v3@internal@tbb@@IEAAX_K00PEBXP6AXPEAX0@ZP6AX210@Z@Z )
++__TBB_SYMBOL( ?internal_grow_to_at_least_with_result@concurrent_vector_base_v3@internal@tbb@@IEAA_K_K0P6AXPEAXPEBX0@Z2@Z )
++
++// tbb_thread
++__TBB_SYMBOL( ?join@tbb_thread_v3@internal@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?detach@tbb_thread_v3@internal@tbb@@QEAAXXZ )
++__TBB_SYMBOL( ?internal_start@tbb_thread_v3@internal@tbb@@AEAAXP6AIPEAX@Z0@Z )
++__TBB_SYMBOL( ?allocate_closure_v3@internal@tbb@@YAPEAX_K@Z )
++__TBB_SYMBOL( ?free_closure_v3@internal@tbb@@YAXPEAX@Z )
++__TBB_SYMBOL( ?hardware_concurrency@tbb_thread_v3@internal@tbb@@SAIXZ )
++__TBB_SYMBOL( ?thread_yield_v3@internal@tbb@@YAXXZ )
++__TBB_SYMBOL( ?thread_sleep_v3@internal@tbb@@YAXAEBVinterval_t@tick_count@2@@Z )
++__TBB_SYMBOL( ?move_v3@internal@tbb@@YAXAEAVtbb_thread_v3@12@0@Z )
++__TBB_SYMBOL( ?thread_get_id_v3@internal@tbb@@YA?AVid@tbb_thread_v3@12@XZ )
++
++// condition_variable
++__TBB_SYMBOL( ?internal_initialize_condition_variable@internal@interface5@tbb@@YAXAEATcondvar_impl_t@123@@Z )
++__TBB_SYMBOL( ?internal_condition_variable_wait@internal@interface5@tbb@@YA_NAEATcondvar_impl_t@123@PEAVmutex@3@PEBVinterval_t@tick_count@3@@Z )
++__TBB_SYMBOL( ?internal_condition_variable_notify_one@internal@interface5@tbb@@YAXAEATcondvar_impl_t@123@@Z )
++__TBB_SYMBOL( ?internal_condition_variable_notify_all@internal@interface5@tbb@@YAXAEATcondvar_impl_t@123@@Z )
++__TBB_SYMBOL( ?internal_destroy_condition_variable@internal@interface5@tbb@@YAXAEATcondvar_impl_t@123@@Z )
++
++
++// global parameter
++__TBB_SYMBOL( ?active_value@global_control@interface9@tbb@@CA_KH@Z )
++__TBB_SYMBOL( ?internal_create@global_control@interface9@tbb@@AEAAXXZ )
++__TBB_SYMBOL( ?internal_destroy@global_control@interface9@tbb@@AEAAXXZ )
++
++#undef __TBB_SYMBOL
+diff --git a/src/tbbmalloc/TypeDefinitions.h b/src/tbbmalloc/TypeDefinitions.h
+index aa6763b0..fffef73d 100644
+--- a/src/tbbmalloc/TypeDefinitions.h
++++ b/src/tbbmalloc/TypeDefinitions.h
+@@ -25,7 +25,7 @@
+ #       define __ARCH_ipf 1
+ #   elif defined(_M_IX86)||defined(__i386__) // the latter for MinGW support
+ #       define __ARCH_x86_32 1
+-#   elif defined(_M_ARM)
++#   elif defined(_M_ARM)||defined(_M_ARM64)
+ #       define __ARCH_other 1
+ #   else
+ #       error Unknown processor architecture for Windows
+diff --git a/src/tbbmalloc/winarm64-tbbmalloc-export.def b/src/tbbmalloc/winarm64-tbbmalloc-export.def
+new file mode 100644
+index 00000000..ec64b015
+--- /dev/null
++++ b/src/tbbmalloc/winarm64-tbbmalloc-export.def
+@@ -0,0 +1,46 @@
++; Copyright (c) 2005-2020 Intel Corporation
++; Copyright (c) 2022 Linaro Ltd
++;
++; Licensed under the Apache License, Version 2.0 (the "License");
++; you may not use this file except in compliance with the License.
++; You may obtain a copy of the License at
++;
++;     http://www.apache.org/licenses/LICENSE-2.0
++;
++; Unless required by applicable law or agreed to in writing, software
++; distributed under the License is distributed on an "AS IS" BASIS,
++; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++; See the License for the specific language governing permissions and
++; limitations under the License.
++
++EXPORTS
++
++; frontend.cpp
++scalable_calloc
++scalable_free
++scalable_malloc
++scalable_realloc
++scalable_posix_memalign
++scalable_aligned_malloc
++scalable_aligned_realloc
++scalable_aligned_free
++scalable_msize
++scalable_allocation_mode
++scalable_allocation_command
++__TBB_malloc_safer_free
++__TBB_malloc_safer_realloc
++__TBB_malloc_safer_msize
++__TBB_malloc_safer_aligned_msize
++__TBB_malloc_safer_aligned_realloc
++?pool_create@rml@@YAPEAVMemoryPool@1@_JPEBUMemPoolPolicy@1@@Z
++?pool_create_v1@rml@@YA?AW4MemPoolError@1@_JPEBUMemPoolPolicy@1@PEAPEAVMemoryPool@1@@Z
++?pool_destroy@rml@@YA_NPEAVMemoryPool@1@@Z
++?pool_malloc@rml@@YAPEAXPEAVMemoryPool@1@_K@Z
++?pool_free@rml@@YA_NPEAVMemoryPool@1@PEAX@Z
++?pool_reset@rml@@YA_NPEAVMemoryPool@1@@Z
++?pool_realloc@rml@@YAPEAXPEAVMemoryPool@1@PEAX_K@Z
++?pool_aligned_realloc@rml@@YAPEAXPEAVMemoryPool@1@PEAX_K2@Z
++?pool_aligned_malloc@rml@@YAPEAXPEAVMemoryPool@1@_K1@Z
++?pool_identify@rml@@YAPEAVMemoryPool@1@PEAX@Z
++?pool_msize@rml@@YA_KPEAVMemoryPool@1@PEAX@Z
++
+diff --git a/src/test/harness_fp.h b/src/test/harness_fp.h
+index b007e2b8..f6d0066e 100644
+--- a/src/test/harness_fp.h
++++ b/src/test/harness_fp.h
+@@ -84,7 +84,7 @@ inline void SetSseMode ( int mode ) {
+     ctl.set_env();
+ }
+ 
+-#elif defined(_M_ARM) || defined(__TBB_WIN32_USE_CL_BUILTINS)
++#elif defined(_M_ARM) || defined(_M_ARM64) || defined(__TBB_WIN32_USE_CL_BUILTINS)
+ const int NumSseModes = 1;
+ const int SseModes[NumSseModes] = { 0 };
+ 

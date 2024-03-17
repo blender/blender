@@ -13,7 +13,6 @@
 #include "DNA_scene_enums.h"
 #include "DNA_view3d_defaults.h"
 
-/* Struct members on own line. */
 /* clang-format off */
 
 /* -------------------------------------------------------------------- */
@@ -385,6 +384,10 @@
     .snap_flag_anim = SCE_SNAP, \
     .snap_transform_mode_flag = SCE_SNAP_TRANSFORM_MODE_TRANSLATE, \
     .snap_face_nearest_steps = 1, \
+    .snap_angle_increment_3d = DEG2RADF(5.0f), \
+    .snap_angle_increment_2d = DEG2RADF(5.0f), \
+    .snap_angle_increment_3d_precision = DEG2RADF(1.0f), \
+    .snap_angle_increment_2d_precision = DEG2RADF(1.0f), \
  \
     .curve_paint_settings = _DNA_DEFAULTS_CurvePaintSettings, \
  \

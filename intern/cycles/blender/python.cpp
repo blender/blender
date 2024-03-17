@@ -66,7 +66,6 @@ static void debug_flags_sync_from_scene(BL::Scene b_scene)
   /* Synchronize CPU flags. */
   flags.cpu.avx2 = get_boolean(cscene, "debug_use_cpu_avx2");
   flags.cpu.sse42 = get_boolean(cscene, "debug_use_cpu_sse42");
-  flags.cpu.sse2 = get_boolean(cscene, "debug_use_cpu_sse2");
   flags.cpu.bvh_layout = (BVHLayout)get_enum(cscene, "debug_bvh_layout");
   /* Synchronize CUDA flags. */
   flags.cuda.adaptive_compile = get_boolean(cscene, "debug_use_cuda_adaptive_compile");
@@ -759,7 +758,7 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
       (ID *)PyLong_AsVoidPtr(pyscene), &RNA_ViewLayer, PyLong_AsVoidPtr(pyviewlayer));
   BL::ViewLayer b_view_layer(viewlayerptr);
 
-  DenoiseParams params = BlenderSync::get_denoise_params(b_scene, b_view_layer, true);
+  DenoiseParams params = BlenderSync::get_denoise_params(b_scene, b_view_layer, true, device);
   params.use = true;
 
   /* Parse file paths list. */

@@ -23,7 +23,7 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 

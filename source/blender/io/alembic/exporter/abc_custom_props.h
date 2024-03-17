@@ -13,7 +13,7 @@
 
 #include "BLI_map.hh"
 
-#include <memory>
+#include <string>
 
 struct IDProperty;
 

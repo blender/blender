@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -25,7 +26,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
@@ -61,7 +62,11 @@ static void curves_init_data(ID *id)
   new (&curves->geometry) blender::bke::CurvesGeometry();
 }
 
-static void curves_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
+static void curves_copy_data(Main * /*bmain*/,
+                             std::optional<Library *> /*owner_library*/,
+                             ID *id_dst,
+                             const ID *id_src,
+                             const int /*flag*/)
 {
   Curves *curves_dst = (Curves *)id_dst;
   const Curves *curves_src = (const Curves *)id_src;

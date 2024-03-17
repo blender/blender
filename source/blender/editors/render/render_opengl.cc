@@ -27,11 +27,11 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_camera.h"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
@@ -616,6 +616,7 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
     case ID_SCR: /* Screen */
     case ID_GR:  /* Group */
     case ID_AC:  /* bAction */
+    case ID_AN:  /* Animation */
     case ID_BR:  /* Brush */
     case ID_WM:  /* WindowManager */
     case ID_LS:  /* FreestyleLineStyle */
@@ -791,8 +792,12 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   oglrender->prevar = prevar;
 
   if (is_view_context) {
-    /* so quad view renders camera */
-    ED_view3d_context_user_region(C, &oglrender->v3d, &oglrender->region);
+    /* Prefer rendering camera in quad view if possible. */
+    if (!ED_view3d_context_user_region(C, &oglrender->v3d, &oglrender->region)) {
+      /* If not get region activated by ED_view3d_context_activate earlier. */
+      oglrender->v3d = CTX_wm_view3d(C);
+      oglrender->region = CTX_wm_region(C);
+    }
 
     oglrender->rv3d = static_cast<RegionView3D *>(oglrender->region->regiondata);
 

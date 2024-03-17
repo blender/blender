@@ -8,18 +8,19 @@
 
 #include <cstdio>
 
-#include "BKE_customdata.hh"
+#include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BKE_report.hh"
 
 #include "DNA_collection_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_fileops.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_memory_utils.hh"
 #include "BLI_string.h"
 
@@ -61,6 +62,10 @@ void importer_main(Main *bmain,
   FILE *file = BLI_fopen(import_params.filepath, "rb");
   if (!file) {
     fprintf(stderr, "Failed to open STL file:'%s'.\n", import_params.filepath);
+    BKE_reportf(import_params.reports,
+                RPT_ERROR,
+                "STL Import: Cannot open file '%s'",
+                import_params.filepath);
     return;
   }
   BLI_SCOPED_DEFER([&]() { fclose(file); });
@@ -74,6 +79,10 @@ void importer_main(Main *bmain,
   fseek(file, BINARY_HEADER_SIZE, SEEK_SET);
   if (fread(&num_tri, sizeof(uint32_t), 1, file) != 1) {
     stl_import_report_error(file);
+    BKE_reportf(import_params.reports,
+                RPT_ERROR,
+                "STL Import: Failed to read file '%s'",
+                import_params.filepath);
     return;
   }
   bool is_ascii_stl = (file_size != (BINARY_HEADER_SIZE + 4 + BINARY_STRIDE * num_tri));
@@ -89,6 +98,10 @@ void importer_main(Main *bmain,
 
   if (mesh == nullptr) {
     fprintf(stderr, "STL Importer: Failed to import mesh '%s'\n", import_params.filepath);
+    BKE_reportf(import_params.reports,
+                RPT_ERROR,
+                "STL Import: Failed to import mesh from file '%s'",
+                import_params.filepath);
     return;
   }
 

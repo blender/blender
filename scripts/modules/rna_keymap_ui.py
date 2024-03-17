@@ -375,7 +375,7 @@ def draw_keymaps(context, layout):
 
     rowsub.menu("USERPREF_MT_keyconfigs", text=text)
     rowsub.operator("wm.keyconfig_preset_add", text="", icon='ADD')
-    rowsub.operator("wm.keyconfig_preset_add", text="", icon='REMOVE').remove_active = True
+    rowsub.operator("wm.keyconfig_preset_remove", text="", icon='REMOVE')
 
     rowsub = split.row(align=True)
     rowsub.operator("preferences.keyconfig_import", text="Import...", icon='IMPORT')

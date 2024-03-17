@@ -13,32 +13,13 @@ namespace blender::compositor {
 
 class BilateralBlurOperation : public MultiThreadedOperation, public QualityStepHelper {
  private:
-  SocketReader *input_color_program_;
-  SocketReader *input_determinator_program_;
   NodeBilateralBlurData *data_;
   int radius_;
 
  public:
   BilateralBlurOperation();
 
-  /**
-   * The inner loop of this operation.
-   */
-  void execute_pixel(float output[4], int x, int y, void *data) override;
-
-  /**
-   * Initialize the execution
-   */
   void init_execution() override;
-
-  /**
-   * Deinitialize the execution
-   */
-  void deinit_execution() override;
-
-  bool determine_depending_area_of_interest(rcti *input,
-                                            ReadBufferOperation *read_operation,
-                                            rcti *output) override;
 
   void set_data(NodeBilateralBlurData *data)
   {

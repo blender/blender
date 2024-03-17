@@ -23,8 +23,26 @@ if EXIST %PYTHON% (
 	goto detect_python_done
 )
 
+rem Additionally check for the ARM64 version
+set PYTHON=%BLENDER_DIR%\lib\windows_arm64\python\310\bin\python.exe
+if EXIST %PYTHON% (
+	goto detect_python_done
+)
+set PYTHON=%BLENDER_DIR%\lib\windows_arm64\python\311\bin\python.exe
+if EXIST %PYTHON% (
+	goto detect_python_done
+)
+set PYTHON=%BLENDER_DIR%\lib\windows_arm64\python\312\bin\python.exe
+if EXIST %PYTHON% (
+	goto detect_python_done
+)
+set PYTHON=%BLENDER_DIR%\lib\windows_arm64\python\39\bin\python.exe
+if EXIST %PYTHON% (
+	goto detect_python_done
+)
+
 if NOT EXIST %PYTHON% (
-    if EXIST %BLENDER_DIR%\lib\windows_x64\ (
+    if EXIST %BLENDER_DIR%\lib\windows_x64\.git (
       echo Warning: Python not found, there is likely an issue with the library folder
     )
     set PYTHON=""

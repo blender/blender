@@ -1312,6 +1312,7 @@ int armature_bonecoll_move_to_parent(bArmature *armature,
   BoneCollection armature_root;
   armature_root.child_count = armature->collection_root_count;
   armature_root.child_index = 0;
+  armature_root.flags = default_flags;
 
   BoneCollection *from_parent = from_parent_index >= 0 ?
                                     armature->collection_array[from_parent_index] :

@@ -9,10 +9,9 @@
 #include "abc_writer_camera.h"
 #include "abc_hierarchy_iterator.h"
 
-#include "BKE_camera.h"
 #include "BKE_scene.hh"
 
-#include "BLI_assert.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
@@ -30,7 +29,7 @@ ABCCameraWriter::ABCCameraWriter(const ABCWriterConstructorArgs &args) : ABCAbst
 
 bool ABCCameraWriter::is_supported(const HierarchyContext *context) const
 {
-  Camera *camera = static_cast<Camera *>(context->object->data);
+  const Camera *camera = static_cast<const Camera *>(context->object->data);
   return camera->type == CAM_PERSP;
 }
 
@@ -69,7 +68,7 @@ Alembic::Abc::OCompoundProperty ABCCameraWriter::abc_prop_for_custom_props()
 
 void ABCCameraWriter::do_write(HierarchyContext &context)
 {
-  Camera *cam = static_cast<Camera *>(context.object->data);
+  const Camera *cam = static_cast<const Camera *>(context.object->data);
 
   abc_stereo_distance_.set(cam->stereo.convergence_distance);
   abc_eye_separation_.set(cam->stereo.interocular_distance);

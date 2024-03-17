@@ -541,7 +541,7 @@ static bool drw_select_filter_object_mode_lock_for_weight_paint(Object *ob, void
   return ob_pose_list && (BLI_linklist_index(ob_pose_list, DEG_get_original_object(ob)) != -1);
 }
 
-int view3d_opengl_select_ex(ViewContext *vc,
+int view3d_opengl_select_ex(const ViewContext *vc,
                             GPUSelectBuffer *buffer,
                             const rcti *input,
                             eV3DSelectMode select_mode,
@@ -753,7 +753,7 @@ finally:
   return hits;
 }
 
-int view3d_opengl_select(ViewContext *vc,
+int view3d_opengl_select(const ViewContext *vc,
                          GPUSelectBuffer *buffer,
                          const rcti *input,
                          eV3DSelectMode select_mode,
@@ -762,7 +762,7 @@ int view3d_opengl_select(ViewContext *vc,
   return view3d_opengl_select_ex(vc, buffer, input, select_mode, select_filter, false);
 }
 
-int view3d_opengl_select_with_id_filter(ViewContext *vc,
+int view3d_opengl_select_with_id_filter(const ViewContext *vc,
                                         GPUSelectBuffer *buffer,
                                         const rcti *input,
                                         eV3DSelectMode select_mode,

@@ -71,6 +71,8 @@
 #include "tree/tree_element_rna.hh"
 #include "tree/tree_iterator.hh"
 
+#include "wm_window.hh"
+
 using namespace blender::ed::outliner;
 
 namespace blender::ed::outliner {
@@ -103,7 +105,7 @@ static int outliner_highlight_update_invoke(bContext *C, wmOperator * /*op*/, co
     return OPERATOR_PASS_THROUGH;
   }
 
-  /* Drag and drop does own highlighting. */
+  /* Drag and drop does its own highlighting. */
   wmWindowManager *wm = CTX_wm_manager(C);
   if (wm->drags.first) {
     return OPERATOR_PASS_THROUGH;
@@ -691,7 +693,7 @@ static int outliner_id_remap_invoke(bContext *C, wmOperator *op, const wmEvent *
     outliner_id_remap_find_tree_element(C, op, &space_outliner->tree, fmval[1]);
   }
 
-  return WM_operator_props_dialog_popup(C, op, 400);
+  return WM_operator_props_dialog_popup(C, op, 400, IFACE_("Remap Data ID"), IFACE_("Remap"));
 }
 
 static const EnumPropertyItem *outliner_id_itemf(bContext *C,
@@ -1794,7 +1796,7 @@ static void do_outliner_drivers_editop(SpaceOutliner *space_outliner,
     PropertyRNA *prop = te_rna ? te_rna->get_property_rna() : nullptr;
 
     /* check if RNA-property described by this selected element is an animatable prop */
-    if (prop && RNA_property_animateable(&ptr, prop)) {
+    if (prop && RNA_property_anim_editable(&ptr, prop)) {
       /* get id + path + index info from the selected element */
       tree_element_to_path(te, tselem, &id, &path, &array_index, &flag, &groupmode);
     }
@@ -1985,7 +1987,7 @@ static void do_outliner_keyingset_editop(SpaceOutliner *space_outliner,
     const TreeElementRNACommon *te_rna = tree_element_cast<TreeElementRNACommon>(te);
     PointerRNA ptr = te_rna->get_pointer_rna();
     if (te_rna && te_rna->get_property_rna() &&
-        RNA_property_animateable(&ptr, te_rna->get_property_rna()))
+        RNA_property_anim_editable(&ptr, te_rna->get_property_rna()))
     {
       /* get id + path + index info from the selected element */
       tree_element_to_path(te, tselem, &id, &path, &array_index, &flag, &groupmode);
@@ -2340,6 +2342,55 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
                   "Recursive Delete",
                   "Recursively check for indirectly unused data-blocks, ensuring that no orphaned "
                   "data-blocks remain after execution");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Manage Orphan Data-Blocks Operator
+ * \{ */
+
+static int outliner_orphans_manage_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
+{
+  const int sizex = int(450.0f * UI_SCALE_FAC);
+  const int sizey = int(450.0f * UI_SCALE_FAC);
+  const rcti window_rect = {
+      /*xmin*/ event->xy[0],
+      /*xmax*/ event->xy[0] + sizex,
+      /*ymin*/ event->xy[1],
+      /*ymax*/ event->xy[1] + sizey,
+  };
+
+  if (WM_window_open(C,
+                     IFACE_("Manage Unused Data"),
+                     &window_rect,
+                     SPACE_OUTLINER,
+                     false,
+                     false,
+                     true,
+                     WIN_ALIGN_LOCATION_CENTER,
+                     nullptr,
+                     nullptr) != nullptr)
+  {
+    SpaceOutliner *soutline = CTX_wm_space_outliner(C);
+    soutline->outlinevis = SO_ID_ORPHANS;
+    return OPERATOR_FINISHED;
+  }
+  return OPERATOR_CANCELLED;
+}
+
+void OUTLINER_OT_orphans_manage(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->idname = "OUTLINER_OT_orphans_manage";
+  ot->name = "Manage Unused Data";
+  ot->description = "Open a window to manage unused data";
+
+  /* callbacks */
+  ot->invoke = outliner_orphans_manage_invoke;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
 }
 
 /** \} */
