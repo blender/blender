@@ -140,6 +140,8 @@ class MetalDevice : public Device {
 
   virtual void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
 
+  virtual void release_bvh(BVH *bvh) override;
+
   virtual void optimize_for_scene(Scene *scene) override;
 
   static void compile_and_load(int device_id, MetalPipelineType pso_type);

@@ -1443,6 +1443,13 @@ void MetalDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
   }
 }
 
+void MetalDevice::release_bvh(BVH *bvh)
+{
+  if (bvhMetalRT == bvh) {
+    bvhMetalRT = nullptr;
+  }
+}
+
 CCL_NAMESPACE_END
 
 #endif

@@ -29,7 +29,7 @@ BVHOptiX::~BVHOptiX()
 {
   /* Acceleration structure memory is delayed freed on device, since deleting the
    * BVH may happen while still being used for rendering. */
-  device->release_optix_bvh(this);
+  device->release_bvh(this);
 }
 
 CCL_NAMESPACE_END
