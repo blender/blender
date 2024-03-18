@@ -16,7 +16,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(0.01f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .field_source()
       .supports_field()
       .description(
           "The distance a point can be from the surface before the face is no longer "

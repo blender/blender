@@ -319,45 +319,25 @@ class Custom : public SocketDeclaration {
 
 inline FloatBuilder &FloatBuilder::min(const float value)
 {
-  if (decl_in_) {
-    decl_in_->soft_min_value = value;
-  }
-  if (decl_out_) {
-    decl_out_->soft_min_value = value;
-  }
+  decl_->soft_min_value = value;
   return *this;
 }
 
 inline FloatBuilder &FloatBuilder::max(const float value)
 {
-  if (decl_in_) {
-    decl_in_->soft_max_value = value;
-  }
-  if (decl_out_) {
-    decl_out_->soft_max_value = value;
-  }
+  decl_->soft_max_value = value;
   return *this;
 }
 
 inline FloatBuilder &FloatBuilder::default_value(const float value)
 {
-  if (decl_in_) {
-    decl_in_->default_value = value;
-  }
-  if (decl_out_) {
-    decl_out_->default_value = value;
-  }
+  decl_->default_value = value;
   return *this;
 }
 
 inline FloatBuilder &FloatBuilder::subtype(PropertySubType subtype)
 {
-  if (decl_in_) {
-    decl_in_->subtype = subtype;
-  }
-  if (decl_out_) {
-    decl_out_->subtype = subtype;
-  }
+  decl_->subtype = subtype;
   return *this;
 }
 
@@ -369,45 +349,25 @@ inline FloatBuilder &FloatBuilder::subtype(PropertySubType subtype)
 
 inline IntBuilder &IntBuilder::min(const int value)
 {
-  if (decl_in_) {
-    decl_in_->soft_min_value = value;
-  }
-  if (decl_out_) {
-    decl_out_->soft_min_value = value;
-  }
+  decl_->soft_min_value = value;
   return *this;
 }
 
 inline IntBuilder &IntBuilder::max(const int value)
 {
-  if (decl_in_) {
-    decl_in_->soft_max_value = value;
-  }
-  if (decl_out_) {
-    decl_out_->soft_max_value = value;
-  }
+  decl_->soft_max_value = value;
   return *this;
 }
 
 inline IntBuilder &IntBuilder::default_value(const int value)
 {
-  if (decl_in_) {
-    decl_in_->default_value = value;
-  }
-  if (decl_out_) {
-    decl_out_->default_value = value;
-  }
+  decl_->default_value = value;
   return *this;
 }
 
 inline IntBuilder &IntBuilder::subtype(PropertySubType subtype)
 {
-  if (decl_in_) {
-    decl_in_->subtype = subtype;
-  }
-  if (decl_out_) {
-    decl_out_->subtype = subtype;
-  }
+  decl_->subtype = subtype;
   return *this;
 }
 
@@ -419,56 +379,31 @@ inline IntBuilder &IntBuilder::subtype(PropertySubType subtype)
 
 inline VectorBuilder &VectorBuilder::default_value(const float3 value)
 {
-  if (decl_in_) {
-    decl_in_->default_value = value;
-  }
-  if (decl_out_) {
-    decl_out_->default_value = value;
-  }
+  decl_->default_value = value;
   return *this;
 }
 
 inline VectorBuilder &VectorBuilder::subtype(PropertySubType subtype)
 {
-  if (decl_in_) {
-    decl_in_->subtype = subtype;
-  }
-  if (decl_out_) {
-    decl_out_->subtype = subtype;
-  }
+  decl_->subtype = subtype;
   return *this;
 }
 
 inline VectorBuilder &VectorBuilder::min(const float min)
 {
-  if (decl_in_) {
-    decl_in_->soft_min_value = min;
-  }
-  if (decl_out_) {
-    decl_out_->soft_min_value = min;
-  }
+  decl_->soft_min_value = min;
   return *this;
 }
 
 inline VectorBuilder &VectorBuilder::max(const float max)
 {
-  if (decl_in_) {
-    decl_in_->soft_max_value = max;
-  }
-  if (decl_out_) {
-    decl_out_->soft_max_value = max;
-  }
+  decl_->soft_max_value = max;
   return *this;
 }
 
 inline VectorBuilder &VectorBuilder::compact()
 {
-  if (decl_in_) {
-    decl_in_->compact = true;
-  }
-  if (decl_out_) {
-    decl_out_->compact = true;
-  }
+  decl_->compact = true;
   return *this;
 }
 
@@ -480,12 +415,7 @@ inline VectorBuilder &VectorBuilder::compact()
 
 inline BoolBuilder &BoolBuilder::default_value(const bool value)
 {
-  if (decl_in_) {
-    decl_in_->default_value = value;
-  }
-  if (decl_out_) {
-    decl_out_->default_value = value;
-  }
+  decl_->default_value = value;
   return *this;
 }
 
@@ -497,12 +427,7 @@ inline BoolBuilder &BoolBuilder::default_value(const bool value)
 
 inline ColorBuilder &ColorBuilder::default_value(const ColorGeometry4f value)
 {
-  if (decl_in_) {
-    decl_in_->default_value = value;
-  }
-  if (decl_out_) {
-    decl_out_->default_value = value;
-  }
+  decl_->default_value = value;
   return *this;
 }
 
@@ -514,12 +439,7 @@ inline ColorBuilder &ColorBuilder::default_value(const ColorGeometry4f value)
 
 inline StringBuilder &StringBuilder::default_value(std::string value)
 {
-  if (decl_in_) {
-    decl_in_->default_value = std::move(value);
-  }
-  if (decl_out_) {
-    decl_out_->default_value = std::move(value);
-  }
+  decl_->default_value = std::move(value);
   return *this;
 }
 
@@ -531,12 +451,7 @@ inline StringBuilder &StringBuilder::default_value(std::string value)
 
 inline MenuBuilder &MenuBuilder::default_value(const int32_t value)
 {
-  if (decl_in_) {
-    decl_in_->default_value = value;
-  }
-  if (decl_out_) {
-    decl_out_->default_value = value;
-  }
+  decl_->default_value = value;
   return *this;
 }
 
@@ -548,12 +463,7 @@ inline MenuBuilder &MenuBuilder::default_value(const int32_t value)
 
 inline RotationBuilder &RotationBuilder::default_value(const math::EulerXYZ &value)
 {
-  if (decl_in_) {
-    decl_in_->default_value = value;
-  }
-  if (decl_out_) {
-    decl_out_->default_value = value;
-  }
+  decl_->default_value = value;
   return *this;
 }
 

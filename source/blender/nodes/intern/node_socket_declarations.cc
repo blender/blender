@@ -676,46 +676,26 @@ bool Geometry::only_instances() const
 
 GeometryBuilder &GeometryBuilder::supported_type(bke::GeometryComponent::Type supported_type)
 {
-  if (decl_in_) {
-    decl_in_->supported_types_ = {supported_type};
-  }
-  if (decl_out_) {
-    decl_out_->supported_types_ = {supported_type};
-  }
+  decl_->supported_types_ = {supported_type};
   return *this;
 }
 
 GeometryBuilder &GeometryBuilder::supported_type(
     blender::Vector<bke::GeometryComponent::Type> supported_types)
 {
-  if (decl_in_) {
-    decl_in_->supported_types_ = supported_types;
-  }
-  if (decl_out_) {
-    decl_out_->supported_types_ = supported_types;
-  }
+  decl_->supported_types_ = supported_types;
   return *this;
 }
 
 GeometryBuilder &GeometryBuilder::only_realized_data(bool value)
 {
-  if (decl_in_) {
-    decl_in_->only_realized_data_ = value;
-  }
-  if (decl_out_) {
-    decl_out_->only_realized_data_ = value;
-  }
+  decl_->only_realized_data_ = value;
   return *this;
 }
 
 GeometryBuilder &GeometryBuilder::only_instances(bool value)
 {
-  if (decl_in_) {
-    decl_in_->only_instances_ = value;
-  }
-  if (decl_out_) {
-    decl_out_->only_instances_ = value;
-  }
+  decl_->only_instances_ = value;
   return *this;
 }
 

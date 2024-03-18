@@ -242,16 +242,13 @@ class NodeDeclarationBuilder;
 
 class BaseSocketDeclarationBuilder {
  protected:
-  /* Socket builder can hold both an input and an output declaration.
-   * Each socket declaration has its own index for dependencies. */
-  int index_in_ = -1;
-  int index_out_ = -1;
+  /* Index of the socket in the list of inputs or outputs. */
+  int index_ = -1;
   bool reference_pass_all_ = false;
   bool field_on_all_ = false;
   bool propagate_from_all_ = false;
   NodeDeclarationBuilder *node_decl_builder_ = nullptr;
-  SocketDeclaration *decl_in_base_ = nullptr;
-  SocketDeclaration *decl_out_base_ = nullptr;
+  SocketDeclaration *decl_base_ = nullptr;
 
   friend class NodeDeclarationBuilder;
 
@@ -364,17 +361,11 @@ class BaseSocketDeclarationBuilder {
    */
   BaseSocketDeclarationBuilder &align_with_previous(bool value = true);
 
-  int input_index() const
-  {
-    BLI_assert(decl_in_base_ != nullptr);
-    return index_in_;
-  }
+  /** Index in the list of inputs or outputs. */
+  int index() const;
 
-  int output_index() const
-  {
-    BLI_assert(decl_out_base_ != nullptr);
-    return index_out_;
-  }
+  bool is_input() const;
+  bool is_output() const;
 };
 
 /**
@@ -387,8 +378,7 @@ class SocketDeclarationBuilder : public BaseSocketDeclarationBuilder {
  protected:
   using Self = typename SocketDecl::Builder;
   static_assert(std::is_base_of_v<SocketDeclaration, SocketDecl>);
-  SocketDecl *decl_in_;
-  SocketDecl *decl_out_;
+  SocketDecl *decl_;
 
   friend class NodeDeclarationBuilder;
 };
@@ -498,6 +488,8 @@ class NodeDeclarationBuilder {
   const bNodeTree *ntree_ = nullptr;
   const bNode *node_ = nullptr;
   Vector<std::unique_ptr<BaseSocketDeclarationBuilder>> socket_builders_;
+  Vector<BaseSocketDeclarationBuilder *> input_socket_builders_;
+  Vector<BaseSocketDeclarationBuilder *> output_socket_builders_;
   Vector<std::unique_ptr<PanelDeclarationBuilder>> panel_builders_;
   bool is_function_node_ = false;
 
@@ -568,8 +560,6 @@ class NodeDeclarationBuilder {
   }
 
  private:
-  /* Note: in_out can be a combination of SOCK_IN and SOCK_OUT.
-   * The generated socket declarations only have a single flag set. */
   template<typename DeclType>
   typename DeclType::Builder &add_socket(StringRef name,
                                          StringRef identifier_in,
@@ -629,6 +619,27 @@ typename DeclType::Builder &PanelDeclarationBuilder::add_output(StringRef name,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name #BaseSocketDeclarationBuilder Inline Methods
+ * \{ */
+
+inline int BaseSocketDeclarationBuilder::index() const
+{
+  return index_;
+}
+
+inline bool BaseSocketDeclarationBuilder::is_input() const
+{
+  return decl_base_->in_out == SOCK_IN;
+}
+
+inline bool BaseSocketDeclarationBuilder::is_output() const
+{
+  return decl_base_->in_out == SOCK_OUT;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name #NodeDeclarationBuilder Inline Methods
  * \{ */
 
@@ -657,28 +668,32 @@ inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(StringRef 
   static_assert(std::is_base_of_v<SocketDeclaration, DeclType>);
   using Builder = typename DeclType::Builder;
 
+  BLI_assert(ELEM(in_out, SOCK_IN, SOCK_OUT));
+
   std::unique_ptr<Builder> socket_decl_builder = std::make_unique<Builder>();
   socket_decl_builder->node_decl_builder_ = this;
 
   if (in_out & SOCK_IN) {
     std::unique_ptr<DeclType> socket_decl = std::make_unique<DeclType>();
-    socket_decl_builder->decl_in_ = &*socket_decl;
-    socket_decl_builder->decl_in_base_ = &*socket_decl;
+    socket_decl_builder->decl_ = &*socket_decl;
+    socket_decl_builder->decl_base_ = &*socket_decl;
     socket_decl->name = name;
     socket_decl->identifier = identifier_in.is_empty() ? name : identifier_in;
     socket_decl->in_out = SOCK_IN;
-    socket_decl_builder->index_in_ = declaration_.inputs.append_and_get_index(socket_decl.get());
+    socket_decl_builder->index_ = declaration_.inputs.append_and_get_index(socket_decl.get());
     declaration_.items.append(std::move(socket_decl));
+    input_socket_builders_.append(&*socket_decl_builder);
   }
   if (in_out & SOCK_OUT) {
     std::unique_ptr<DeclType> socket_decl = std::make_unique<DeclType>();
-    socket_decl_builder->decl_out_ = &*socket_decl;
-    socket_decl_builder->decl_out_base_ = &*socket_decl;
+    socket_decl_builder->decl_ = &*socket_decl;
+    socket_decl_builder->decl_base_ = &*socket_decl;
     socket_decl->name = name;
     socket_decl->identifier = identifier_out.is_empty() ? name : identifier_out;
     socket_decl->in_out = SOCK_OUT;
-    socket_decl_builder->index_out_ = declaration_.outputs.append_and_get_index(socket_decl.get());
+    socket_decl_builder->index_ = declaration_.outputs.append_and_get_index(socket_decl.get());
     declaration_.items.append(std::move(socket_decl));
+    output_socket_builders_.append(&*socket_decl_builder);
   }
 
   Builder &socket_decl_builder_ref = *socket_decl_builder;
