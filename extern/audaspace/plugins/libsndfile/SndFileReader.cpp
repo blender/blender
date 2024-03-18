@@ -71,7 +71,7 @@ sf_count_t SndFileReader::vio_tell(void* user_data)
 	return reader->m_memoffset;
 }
 
-SndFileReader::SndFileReader(const std::string &filename) :
+SndFileReader::SndFileReader(std::string filename) :
 	m_position(0)
 {
 	SF_INFO sfinfo;

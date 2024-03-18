@@ -13,8 +13,6 @@ set(INC_SYS
 
 set(SRC
   intern/asset_catalog.cc
-  intern/asset_catalog_collection.cc
-  intern/asset_catalog_definition_file.cc
   intern/asset_catalog_path.cc
   intern/asset_catalog_tree.cc
   intern/asset_identifier.cc
@@ -36,8 +34,6 @@ set(SRC
   AS_asset_library.hh
   AS_asset_representation.hh
   AS_essentials_library.hh
-  intern/asset_catalog_collection.hh
-  intern/asset_catalog_definition_file.hh
   intern/asset_library_all.hh
   intern/asset_library_essentials.hh
   intern/asset_library_from_preferences.hh

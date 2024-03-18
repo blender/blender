@@ -7,25 +7,10 @@ ExternalProject_Add(external_nasm
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${NASM_HASH_TYPE}=${NASM_HASH}
   PREFIX ${BUILD_DIR}/nasm
-
-  PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d
-    ${BUILD_DIR}/nasm/src/external_nasm <
-    ${PATCH_DIR}/nasm.diff
-
-  CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
-    cd ${BUILD_DIR}/nasm/src/external_nasm/ &&
-    ./autogen.sh &&
-    ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/nasm
-
-  BUILD_COMMAND ${CONFIGURE_ENV} &&
-    cd ${BUILD_DIR}/nasm/src/external_nasm/ &&
-    make -j${MAKE_THREADS} &&
-    make manpages
-
-  INSTALL_COMMAND ${CONFIGURE_ENV} &&
-    cd ${BUILD_DIR}/nasm/src/external_nasm/ &&
-    make install
-
+  PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/nasm/src/external_nasm < ${PATCH_DIR}/nasm.diff
+  CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/nasm/src/external_nasm/ && ./autogen.sh && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/nasm
+  BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/nasm/src/external_nasm/ && make -j${MAKE_THREADS} && make manpages
+  INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/nasm/src/external_nasm/ && make install
   INSTALL_DIR ${LIBDIR}/nasm
 )
 

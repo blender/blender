@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BLI_vector_set.hh"
+#include <BLI_vector_set.hh>
 
 /** \file
  * \ingroup sequencer

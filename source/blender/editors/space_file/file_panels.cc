@@ -12,7 +12,7 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -35,6 +35,7 @@
 
 #include "file_intern.hh"
 #include "filelist.hh"
+#include "fsmenu.h"
 
 #include <cstring>
 
@@ -251,8 +252,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
 
   uiItemS(col);
 
-  blender::ed::asset_browser::file_create_asset_catalog_tree_view_in_layout(
-      asset_library, col, sfile, params);
+  file_create_asset_catalog_tree_view_in_layout(asset_library, col, sfile, params);
 }
 
 void file_tools_region_panels_register(ARegionType *art)

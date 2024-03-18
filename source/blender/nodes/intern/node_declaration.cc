@@ -123,12 +123,6 @@ void NodeDeclarationBuilder::use_custom_socket_order(bool enable)
   declaration_.use_custom_socket_order = enable;
 }
 
-void NodeDeclarationBuilder::allow_any_socket_order(bool enable)
-{
-  BLI_assert(declaration_.use_custom_socket_order);
-  declaration_.allow_any_socket_order = enable;
-}
-
 Span<SocketDeclaration *> NodeDeclaration::sockets(eNodeSocketInOut in_out) const
 {
   if (in_out == SOCK_IN) {
@@ -209,7 +203,7 @@ bool NodeDeclaration::is_valid() const
     if (const SocketDeclaration *socket_decl = dynamic_cast<const SocketDeclaration *>(
             item_decl.get()))
     {
-      if (state.item_type != NODE_INTERFACE_SOCKET && !this->allow_any_socket_order) {
+      if (state.item_type != NODE_INTERFACE_SOCKET) {
         std::cout << "Socket added after panel" << std::endl;
         return false;
       }
@@ -219,7 +213,7 @@ bool NodeDeclaration::is_valid() const
         /* Start of input sockets. */
         state.socket_in_out = SOCK_IN;
       }
-      if (socket_decl->in_out != state.socket_in_out && !this->allow_any_socket_order) {
+      if (socket_decl->in_out != state.socket_in_out) {
         std::cout << "Output socket added after input socket" << std::endl;
         return false;
       }
@@ -420,8 +414,6 @@ std::unique_ptr<SocketDeclaration> make_declaration_for_socket_type(
       return std::make_unique<decl::Bool>();
     case SOCK_ROTATION:
       return std::make_unique<decl::Rotation>();
-    case SOCK_MATRIX:
-      return std::make_unique<decl::Matrix>();
     case SOCK_INT:
       return std::make_unique<decl::Int>();
     case SOCK_STRING:
@@ -457,8 +449,6 @@ BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_input(
       return this->add_input<decl::Bool>(name, identifier);
     case SOCK_ROTATION:
       return this->add_input<decl::Rotation>(name, identifier);
-    case SOCK_MATRIX:
-      return this->add_input<decl::Matrix>(name, identifier);
     case SOCK_INT:
       return this->add_input<decl::Int>(name, identifier);
     case SOCK_STRING:
@@ -502,8 +492,6 @@ BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_output(
       return this->add_output<decl::Bool>(name, identifier);
     case SOCK_ROTATION:
       return this->add_output<decl::Rotation>(name, identifier);
-    case SOCK_MATRIX:
-      return this->add_output<decl::Matrix>(name, identifier);
     case SOCK_INT:
       return this->add_output<decl::Int>(name, identifier);
     case SOCK_STRING:
@@ -814,17 +802,6 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::make_available(
   }
   if (decl_out_base_) {
     decl_out_base_->make_available_fn_ = std::move(fn);
-  }
-  return *this;
-}
-
-BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::align_with_previous(const bool value)
-{
-  if (decl_in_base_) {
-    decl_in_base_->align_with_previous_socket = value;
-  }
-  if (decl_out_base_) {
-    decl_out_base_->align_with_previous_socket = value;
   }
   return *this;
 }

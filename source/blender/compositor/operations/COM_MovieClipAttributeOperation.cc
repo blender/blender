@@ -75,6 +75,14 @@ void MovieClipAttributeOperation::calc_value()
   }
 }
 
+void MovieClipAttributeOperation::execute_pixel_sampled(float output[4],
+                                                        float /*x*/,
+                                                        float /*y*/,
+                                                        PixelSampler /*sampler*/)
+{
+  output[0] = value_;
+}
+
 void MovieClipAttributeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   r_area = preferred_area;

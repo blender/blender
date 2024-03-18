@@ -8,7 +8,7 @@
 
 #include "GEO_uv_pack.hh"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "BLI_array.hh"
 #include "BLI_bounds.hh"
@@ -1998,7 +1998,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
  * Find the optimal scale to pack islands into the unit square.
  * returns largest scale that will pack `islands` into the unit square.
  */
-static float pack_islands_margin_fraction(const Span<PackIsland *> islands,
+static float pack_islands_margin_fraction(const Span<PackIsland *> &islands,
                                           const float margin_fraction,
                                           const bool rescale_margin,
                                           const UVPackIsland_Params &params)
@@ -2112,7 +2112,7 @@ static float pack_islands_margin_fraction(const Span<PackIsland *> islands,
   return scale_low;
 }
 
-static float calc_margin_from_aabb_length_sum(const Span<PackIsland *> island_vector,
+static float calc_margin_from_aabb_length_sum(const Span<PackIsland *> &island_vector,
                                               const UVPackIsland_Params &params)
 {
   /* Logic matches previous behavior from #geometry::uv_parametrizer_pack.
@@ -2201,7 +2201,7 @@ class OverlapMerger {
     return result;
   }
 
-  static float pack_islands_overlap(const Span<PackIsland *> islands,
+  static float pack_islands_overlap(const Span<PackIsland *> &islands,
                                     const UVPackIsland_Params &params)
   {
 
@@ -2261,7 +2261,7 @@ class OverlapMerger {
   }
 };
 
-static void finalize_geometry(const Span<PackIsland *> islands, const UVPackIsland_Params &params)
+static void finalize_geometry(const Span<PackIsland *> &islands, const UVPackIsland_Params &params)
 {
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
   Heap *heap = BLI_heap_new();

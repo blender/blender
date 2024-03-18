@@ -20,7 +20,7 @@
 #ifdef UNIT_TEST
 #  define RNA_MAX_ARRAY_LENGTH 64
 #else
-#  define RNA_MAX_ARRAY_LENGTH 64
+#  define RNA_MAX_ARRAY_LENGTH 32
 #endif
 
 #define RNA_MAX_ARRAY_DIMENSION 3
@@ -451,10 +451,10 @@ void RNA_def_property_override_funcs(PropertyRNA *prop,
                                      const char *store,
                                      const char *apply);
 
-using RNAPropertyUpdateFunc = void (*)(Main *, Scene *, PointerRNA *);
-using RNAPropertyUpdateFuncWithContextAndProperty = void (*)(bContext *C,
-                                                             PointerRNA *ptr,
-                                                             PropertyRNA *prop);
+typedef void (*RNAPropertyUpdateFunc)(Main *, Scene *, PointerRNA *);
+typedef void (*RNAPropertyUpdateFuncWithContextAndProperty)(bContext *C,
+                                                            PointerRNA *ptr,
+                                                            PropertyRNA *prop);
 
 void RNA_def_property_update_runtime(PropertyRNA *prop, RNAPropertyUpdateFunc func);
 void RNA_def_property_update_runtime_with_context_and_property(

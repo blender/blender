@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 Blender Foundation
+# SPDX-FileCopyrightText: 2006 Blender Foundation
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -19,28 +19,18 @@ set(INC_SYS
 
 set(SRC
   Alloc.c
-  CpuArch.c
   LzFind.c
-  LzFindMt.c
-  LzFindOpt.c
   LzmaDec.c
   LzmaEnc.c
   LzmaLib.c
-  Threads.c
 
-  7zTypes.h
-  7zWindows.h
   Alloc.h
-  Compiler.h
-  CpuArch.h
   LzFind.h
-  LzFindMt.h
   LzHash.h
   LzmaDec.h
   LzmaEnc.h
   LzmaLib.h
-  Precomp.h
-  Threads.h
+  Types.h
 )
 
 set(LIB

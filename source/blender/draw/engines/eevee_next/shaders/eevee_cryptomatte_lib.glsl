@@ -34,8 +34,6 @@ void cryptomatte_clear_samples(FilmSample dst)
   int layer_len = imageSize(cryptomatte_img).z;
   for (int i = 0; i < layer_len; i++) {
     imageStore(cryptomatte_img, ivec3(dst.texel, i), vec4(0.0));
-    /* Ensure stores are visible to later reads. */
-    imageFence(cryptomatte_img);
   }
 }
 
@@ -73,6 +71,4 @@ void cryptomatte_store_film_sample(FilmSample dst,
     imageStore(cryptomatte_img, img_co, sample_pair);
     break;
   }
-  /* Ensure stores are visible to later reads. */
-  imageFence(cryptomatte_img);
 }

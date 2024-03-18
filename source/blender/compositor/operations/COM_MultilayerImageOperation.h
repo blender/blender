@@ -36,6 +36,7 @@ class MultilayerColorOperation : public MultilayerBaseOperation {
   {
     this->add_output_socket(DataType::Color);
   }
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
   std::unique_ptr<MetaData> get_meta_data() override;
 };
 
@@ -46,6 +47,7 @@ class MultilayerValueOperation : public MultilayerBaseOperation {
   {
     this->add_output_socket(DataType::Value);
   }
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 class MultilayerVectorOperation : public MultilayerBaseOperation {
@@ -55,6 +57,7 @@ class MultilayerVectorOperation : public MultilayerBaseOperation {
   {
     this->add_output_socket(DataType::Vector);
   }
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 };
 
 }  // namespace blender::compositor

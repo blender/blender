@@ -17,15 +17,23 @@ namespace blender::compositor {
  */
 class KeyingOperation : public MultiThreadedOperation {
  protected:
+  SocketReader *pixel_reader_;
+  SocketReader *screen_reader_;
+
   float screen_balance_;
 
  public:
   KeyingOperation();
 
+  void init_execution() override;
+  void deinit_execution() override;
+
   void set_screen_balance(float value)
   {
     screen_balance_ = value;
   }
+
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

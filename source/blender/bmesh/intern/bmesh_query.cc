@@ -2086,7 +2086,7 @@ static double bm_mesh_calc_volume_face(const BMFace *f)
 }
 double BM_mesh_calc_volume(BMesh *bm, bool is_signed)
 {
-  /* warning, calls its own tessellation function, may be slow */
+  /* warning, calls own tessellation function, may be slow */
   double vol = 0.0;
   BMFace *f;
   BMIter fiter;

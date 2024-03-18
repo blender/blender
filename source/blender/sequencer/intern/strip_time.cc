@@ -16,15 +16,21 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 
+#include "BKE_fcurve.h"
 #include "BKE_movieclip.h"
+#include "BKE_scene.h"
 #include "BKE_sound.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_sound_types.h"
 
 #include "IMB_imbuf.hh"
 
+#include "RNA_prototypes.h"
+
 #include "SEQ_channels.hh"
 #include "SEQ_iterator.hh"
+#include "SEQ_relations.hh"
 #include "SEQ_render.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
@@ -230,8 +236,7 @@ void seq_time_effect_range_set(const Scene *scene, Sequence *seq)
   seq->len = seq->enddisp - seq->startdisp;
 }
 
-void seq_time_update_effects_strip_range(const Scene *scene,
-                                         const blender::Span<Sequence *> effects)
+void seq_time_update_effects_strip_range(const Scene *scene, blender::Span<Sequence *> &effects)
 {
   /* First pass: Update length of immediate effects. */
   for (Sequence *seq : effects) {

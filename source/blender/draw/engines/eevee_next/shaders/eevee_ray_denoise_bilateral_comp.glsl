@@ -71,13 +71,16 @@ void main()
   float center_depth = texelFetch(depth_tx, texel_fullres, 0).r;
   vec3 center_P = drw_point_screen_to_world(vec3(center_uv, center_depth));
 
-  ClosureUndetermined center_closure = gbuffer_read_bin(
-      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
+  GBufferReader gbuf = gbuffer_read(
+      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
-  if (center_closure.type == CLOSURE_NONE_ID) {
+  bool has_valid_closure = closure_index < gbuf.closure_count;
+  if (!has_valid_closure) {
     /* Output nothing. This shouldn't even be loaded. */
     return;
   }
+
+  ClosureUndetermined center_closure = gbuffer_closure_get(gbuf, closure_index);
 
   float roughness = closure_apparent_roughness_get(center_closure);
   float variance = imageLoad(in_variance_img, texel_fullres).r;
@@ -134,12 +137,14 @@ void main()
       continue;
     }
 
-    ClosureUndetermined sample_closure = gbuffer_read_bin(
-        gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, sample_texel, closure_index);
+    GBufferReader sample_gbuf = gbuffer_read(
+        gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, sample_texel);
 
-    if (sample_closure.type == CLOSURE_NONE_ID) {
+    if (closure_index >= sample_gbuf.closure_count) {
       continue;
     }
+
+    ClosureUndetermined sample_closure = gbuffer_closure_get(sample_gbuf, closure_index);
 
     float depth_weight = bilateral_depth_weight(center_closure.N, center_P, sample_P);
     float spatial_weight = bilateral_spatial_weight(filter_size, vec2(offset));

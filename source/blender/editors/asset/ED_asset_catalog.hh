@@ -34,7 +34,7 @@ void catalogs_save_from_main_path(asset_system::AssetLibrary *library, const Mai
  * and as such ignores the per asset library #catalogs_read_only().
  */
 void catalogs_set_save_catalogs_when_file_is_saved(bool should_save);
-bool catalogs_get_save_catalogs_when_file_is_saved();
+bool catalogs_get_save_catalogs_when_file_is_saved(void);
 
 /**
  * Returns if the catalogs of \a library are allowed to be editable, or if the UI should forbid

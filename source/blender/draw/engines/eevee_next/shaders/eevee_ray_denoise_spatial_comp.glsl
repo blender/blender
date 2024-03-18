@@ -109,10 +109,11 @@ void main()
     return;
   }
 
-  ClosureUndetermined closure = gbuffer_read_bin(
-      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
+  GBufferReader gbuf = gbuffer_read(
+      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
-  if (closure.type == CLOSURE_NONE_ID) {
+  bool has_valid_closure = closure_index < gbuf.closure_count;
+  if (!has_valid_closure) {
     invalid_pixel_write(texel_fullres);
     return;
   }
@@ -120,6 +121,8 @@ void main()
   vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
   vec3 P = drw_point_screen_to_world(vec3(uv, 0.5));
   vec3 V = drw_world_incident_vector(P);
+
+  ClosureUndetermined closure = gbuffer_closure_get(gbuf, closure_index);
 
   /* Compute filter size and needed sample count */
   float apparent_roughness = closure_apparent_roughness_get(closure);

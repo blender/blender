@@ -2,12 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "testing/testing.h"
-
 #include "BLI_linear_allocator.hh"
 #include "BLI_rand.hh"
-
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
+#include "testing/testing.h"
 
 namespace blender::tests {
 

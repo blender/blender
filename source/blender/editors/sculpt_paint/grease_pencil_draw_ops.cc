@@ -4,7 +4,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -19,6 +19,8 @@
 #include "ANIM_keyframing.hh"
 
 #include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -149,6 +151,7 @@ static int grease_pencil_brush_stroke_invoke(bContext *C, wmOperator *op, const 
     return OPERATOR_CANCELLED;
   }
 
+  const int current_frame = scene->r.cfra;
   bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
 
   if (!active_layer.is_editable()) {
@@ -156,11 +159,31 @@ static int grease_pencil_brush_stroke_invoke(bContext *C, wmOperator *op, const 
     return OPERATOR_CANCELLED;
   }
 
-  /* Ensure a drawing at the current keyframe. */
-  if (!ed::greasepencil::ensure_active_keyframe(*scene, grease_pencil)) {
+  /* If there is no drawing at the current frame and auto-key is off, then */
+  if (!active_layer.has_drawing_at(current_frame) && !blender::animrig::is_autokey_on(scene)) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }
+
+  /* If auto-key is on and the drawing at the current frame starts before the current frame a new
+   * keyframe needs to be inserted. */
+  if (blender::animrig::is_autokey_on(scene) && active_layer.frame_key_at(current_frame) &&
+      *active_layer.frame_key_at(current_frame) < current_frame)
+  {
+    const ToolSettings *ts = CTX_data_tool_settings(C);
+    if ((ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) != 0) {
+      /* For additive drawing, we duplicate the frame that's currently visible and insert it at the
+       * current frame. */
+      grease_pencil.insert_duplicate_frame(
+          active_layer, *active_layer.frame_key_at(current_frame), current_frame, false);
+    }
+    else {
+      /* Otherwise we just insert a blank keyframe at the current frame. */
+      grease_pencil.insert_blank_frame(active_layer, current_frame, 0, BEZT_KEYTYPE_KEYFRAME);
+    }
+  }
+  /* There should now always be a drawing at the current frame. */
+  BLI_assert(active_layer.has_drawing_at(current_frame));
 
   op->customdata = paint_stroke_new(C,
                                     op,
@@ -239,7 +262,7 @@ static void grease_pencil_draw_mode_enter(bContext *C)
   paint_init_pivot(ob, scene);
 
   /* Necessary to change the object mode on the evaluated object. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
   WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
 }
@@ -273,7 +296,7 @@ static int grease_pencil_draw_mode_toggle_exec(bContext *C, wmOperator *op)
   WM_toolsystem_update_from_context_view3d(C);
 
   /* Necessary to change the object mode on the evaluated object. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
   WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
   return OPERATOR_FINISHED;

@@ -21,10 +21,10 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
@@ -33,7 +33,7 @@
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -104,13 +104,13 @@ static void joined_armature_fix_links_constraints(Main *bmain,
         BKE_action_fix_paths_rename(
             &tarArm->id, data->act, "pose.bones[", pchan->name, curbone->name, 0, 0, false);
 
-        DEG_id_tag_update_ex(bmain, &data->act->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_id_tag_update_ex(bmain, &data->act->id, ID_RECALC_COPY_ON_WRITE);
       }
     }
   }
 
   if (changed) {
-    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_COPY_ON_WRITE);
   }
 }
 
@@ -212,7 +212,7 @@ static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data
   }
 
   if (changed) {
-    DEG_id_tag_update_ex(afd->bmain, id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update_ex(afd->bmain, id, ID_RECALC_COPY_ON_WRITE);
   }
 }
 
@@ -255,7 +255,7 @@ static void joined_armature_fix_links(
       /* make tar armature be new parent */
       ob->parent = tarArm;
 
-      DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
 }
@@ -340,7 +340,7 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
 
   /* Inverse transform for all selected armatures in this object,
    * See #object_join_exec for detailed comment on why the safe version is used. */
-  invert_m4_m4_safe_ortho(oimat, ob_active->object_to_world().ptr());
+  invert_m4_m4_safe_ortho(oimat, ob_active->object_to_world);
 
   /* Index bone collections by name.  This is also used later to keep track
    * of collections added from other armatures. */
@@ -391,7 +391,7 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
       // BASACT->flag &= ~OB_MODE_POSE;
 
       /* Find the difference matrix */
-      mul_m4_m4m4(mat, oimat, ob_iter->object_to_world().ptr());
+      mul_m4_m4m4(mat, oimat, ob_iter->object_to_world);
 
       /* Copy bones and posechannels from the object to the edit armature */
       for (pchan = static_cast<bPoseChannel *>(opose->chanbase.first); pchan; pchan = pchann) {
@@ -774,20 +774,6 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int separate_armature_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Move selected bones to a separate armature?"),
-                                  nullptr,
-                                  IFACE_("Separate"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return separate_armature_exec(C, op);
-}
-
 void ARMATURE_OT_separate(wmOperatorType *ot)
 {
   /* identifiers */
@@ -796,7 +782,7 @@ void ARMATURE_OT_separate(wmOperatorType *ot)
   ot->description = "Isolate selected bones into a separate armature";
 
   /* callbacks */
-  ot->invoke = separate_armature_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = separate_armature_exec;
   ot->poll = ED_operator_editarmature;
 

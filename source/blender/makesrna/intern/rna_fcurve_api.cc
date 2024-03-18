@@ -24,7 +24,7 @@
 
 #  include <stddef.h>
 
-#  include "BKE_fcurve.hh"
+#  include "BKE_fcurve.h"
 
 static void rna_FCurve_convert_to_samples(FCurve *fcu, ReportList *reports, int start, int end)
 {

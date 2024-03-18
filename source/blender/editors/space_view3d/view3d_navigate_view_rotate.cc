@@ -14,6 +14,8 @@
 
 #include "WM_api.hh"
 
+#include "RNA_access.hh"
+
 #include "ED_screen.hh"
 
 #include "view3d_intern.h"

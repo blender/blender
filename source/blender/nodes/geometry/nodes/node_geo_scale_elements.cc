@@ -165,35 +165,30 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
 
-  threading::parallel_for_weighted(
-      islands.index_range(),
-      512,
-      [&](const IndexRange range) {
-        for (const int island_index : range) {
-          const ElementIsland &island = islands[island_index];
+  threading::parallel_for(islands.index_range(), 256, [&](const IndexRange range) {
+    for (const int island_index : range) {
+      const ElementIsland &island = islands[island_index];
 
-          float scale = 0.0f;
-          float3 center = {0.0f, 0.0f, 0.0f};
+      float scale = 0.0f;
+      float3 center = {0.0f, 0.0f, 0.0f};
 
-          VectorSet<int> vertex_indices;
-          for (const int face_index : island.element_indices) {
-            get_vertex_indices(edges, faces, corner_verts, face_index, vertex_indices);
-            center += params.centers[face_index];
-            scale += params.scales[face_index];
-          }
+      VectorSet<int> vertex_indices;
+      for (const int face_index : island.element_indices) {
+        get_vertex_indices(edges, faces, corner_verts, face_index, vertex_indices);
+        center += params.centers[face_index];
+        scale += params.scales[face_index];
+      }
 
-          /* Divide by number of elements to get the average. */
-          const float f = 1.0f / island.element_indices.size();
-          scale *= f;
-          center *= f;
+      /* Divide by number of elements to get the average. */
+      const float f = 1.0f / island.element_indices.size();
+      scale *= f;
+      center *= f;
 
-          for (const int vert_index : vertex_indices) {
-            positions[vert_index] = transform_with_uniform_scale(
-                positions[vert_index], center, scale);
-          }
-        }
-      },
-      [&](const int64_t i) { return islands[i].element_indices.size(); });
+      for (const int vert_index : vertex_indices) {
+        positions[vert_index] = transform_with_uniform_scale(positions[vert_index], center, scale);
+      }
+    }
+  });
 
   mesh.tag_positions_changed();
 }

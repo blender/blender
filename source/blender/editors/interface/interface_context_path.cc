@@ -8,12 +8,18 @@
 
 #include "BLI_vector.hh"
 
+#include "BKE_screen.hh"
+
 #include "RNA_access.hh"
+
+#include "ED_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "RNA_prototypes.h"
+
+#include "WM_api.hh"
 
 namespace blender::ui {
 

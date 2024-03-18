@@ -1000,7 +1000,7 @@ ccl_device_inline uint32_t reverse_integer_bits(uint32_t x)
   return __brev(x);
 #elif defined(__KERNEL_METAL__)
   return reverse_bits(x);
-#elif defined(__aarch64__) || (defined(_M_ARM64) && !defined(_MSC_VER))
+#elif defined(__aarch64__) || defined(_M_ARM64)
   /* Assume the rbit is always available on 64bit ARM architecture. */
   __asm__("rbit %w0, %w1" : "=r"(x) : "r"(x));
   return x;

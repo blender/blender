@@ -15,7 +15,7 @@ struct wmKeyConfig;
 #include "wm_gizmo_fn.hh"
 
 /* -------------------------------------------------------------------- */
-/* #wmGizmo. */
+/* wmGizmo */
 
 /**
  * Add/Remove \a gizmo to selection.
@@ -37,7 +37,7 @@ enum {
 };
 
 /* -------------------------------------------------------------------- */
-/* #wmGizmoGroup. */
+/* wmGizmoGroup */
 
 enum {
   TWEAK_MODAL_CANCEL = 1,
@@ -80,7 +80,7 @@ void wm_gizmogrouptype_setup_keymap(wmGizmoGroupType *gzgt, wmKeyConfig *keyconf
 wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf);
 
 /* -------------------------------------------------------------------- */
-/* #wmGizmoMap. */
+/* wmGizmoMap */
 
 struct wmGizmoMapSelectState {
   struct wmGizmo **items;
@@ -89,9 +89,9 @@ struct wmGizmoMapSelectState {
 
 struct wmGizmoMap {
   wmGizmoMapType *type;
-  ListBase groups; /* #wmGizmoGroup. */
+  ListBase groups; /* wmGizmoGroup */
 
-  /* Private, update tagging (enum defined in C source). */
+  /* private, update tagging (enum defined in C source). */
   char update_flag[WM_GIZMOMAP_DRAWSTEP_MAX];
 
   /** Private, true when not yet used. */
@@ -107,16 +107,16 @@ struct wmGizmoMap {
    * highlighted gizmo, currently selected gizmos, ...
    */
   struct {
-    /** We redraw the gizmo-map when this changes. */
+    /* we redraw the gizmo-map when this changes */
     wmGizmo *highlight;
-    /** User has clicked this gizmo and it gets all input. */
+    /* User has clicked this gizmo and it gets all input. */
     wmGizmo *modal;
-    /** Array for all selected gizmos. */
+    /* array for all selected gizmos */
     wmGizmoMapSelectState select;
-    /** Cursor location at point of entering modal (see: #WM_GIZMO_MOVE_CURSOR). */
+    /* cursor location at point of entering modal (see: WM_GIZMO_MOVE_CURSOR) */
     int event_xy[2];
     short event_grabcursor;
-    /** Until we have nice cursor push/pop API. */
+    /* until we have nice cursor push/pop API. */
     int last_cursor;
   } gzmap_context;
 };
@@ -130,10 +130,10 @@ struct wmGizmoMap {
 struct wmGizmoMapType {
   wmGizmoMapType *next, *prev;
   short spaceid, regionid;
-  /* Types of gizmo-groups for this gizmo-map type. */
+  /* types of gizmo-groups for this gizmo-map type */
   ListBase grouptype_refs;
 
-  /* #eGizmoMapTypeUpdateFlags. */
+  /* eGizmoMapTypeUpdateFlags */
   eWM_GizmoFlagMapTypeUpdateFlag type_update_flag;
 };
 

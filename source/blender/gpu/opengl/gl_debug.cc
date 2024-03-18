@@ -13,7 +13,7 @@
 #include "BLI_system.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "GPU_debug.h"
 #include "GPU_platform.h"
@@ -386,23 +386,18 @@ void GLContext::debug_group_end()
   }
 }
 
-bool GLContext::debug_capture_begin(const char *title)
+bool GLContext::debug_capture_begin()
 {
-  return GLBackend::get()->debug_capture_begin(title);
+  return GLBackend::get()->debug_capture_begin();
 }
 
-bool GLBackend::debug_capture_begin(const char *title)
+bool GLBackend::debug_capture_begin()
 {
 #ifdef WITH_RENDERDOC
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
-    bool result = renderdoc_.start_frame_capture(nullptr, nullptr);
-    if (result && title) {
-      renderdoc_.set_frame_capture_title(title);
-    }
-    return result;
+    return renderdoc_.start_frame_capture(nullptr, nullptr);
   }
 #endif
-  UNUSED_VARS(title);
   return false;
 }
 

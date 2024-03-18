@@ -47,9 +47,8 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
-#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -351,7 +350,7 @@ void mode_enter_generic(
   vwpaint::init_session(depsgraph, scene, ob, mode_flag);
 
   /* Flush object mode. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 void mode_exit_generic(Object *ob, const eObjectMode mode_flag)
@@ -399,13 +398,13 @@ void mode_exit_generic(Object *ob, const eObjectMode mode_flag)
   BKE_object_free_derived_caches(ob);
 
   /* Flush object mode. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 bool mode_toggle_poll_test(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob == nullptr || !ELEM(ob->type, OB_MESH, OB_GREASE_PENCIL)) {
+  if (ob == nullptr || ob->type != OB_MESH) {
     return false;
   }
   if (!ob->data || ID_IS_LINKED(ob->data)) {
@@ -487,10 +486,10 @@ void update_cache_invariants(
   /* cache projection matrix */
   cache->projection_mat = ED_view3d_ob_project_mat_get(cache->vc->rv3d, ob);
 
-  invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
   copy_m3_m4(mat, cache->vc->rv3d->viewinv);
   mul_m3_v3(mat, view_dir);
-  copy_m3_m4(mat, ob->world_to_object().ptr());
+  copy_m3_m4(mat, ob->world_to_object);
   mul_m3_v3(mat, view_dir);
   normalize_v3_v3(cache->true_view_normal, view_dir);
 
@@ -1922,7 +1921,7 @@ static void vpaint_stroke_update_step(bContext *C,
   ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
   /* load projection matrix */
-  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world().ptr());
+  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world);
 
   swap_m4m4(vc->rv3d->persmat, mat);
 
@@ -1939,7 +1938,7 @@ static void vpaint_stroke_update_step(bContext *C,
   /* Calculate pivot for rotation around selection if needed.
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
-  mul_v3_m4v3(loc_world, ob->object_to_world().ptr(), ss->cache->true_location);
+  mul_v3_m4v3(loc_world, ob->object_to_world, ss->cache->true_location);
   vwpaint::last_stroke_update(scene, loc_world);
 
   ED_region_tag_redraw(vc->region);
@@ -2197,7 +2196,7 @@ static bool paint_object_attributes_active_color_fill_ex(Object *ob,
   fill_mesh_color(
       *mesh, fill_color, mesh->active_color_attribute, use_vert_sel, use_face_sel, affect_alpha);
 
-  DEG_id_tag_update(&mesh->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_COPY_ON_WRITE);
 
   /* NOTE: Original mesh is used for display, so tag it directly here. */
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);

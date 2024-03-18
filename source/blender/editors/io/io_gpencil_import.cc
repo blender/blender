@@ -13,11 +13,15 @@
 
 #  include "MEM_guardedalloc.h"
 
+#  include "DNA_gpencil_legacy_types.h"
 #  include "DNA_space_types.h"
 
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
-#  include "BKE_report.hh"
+#  include "BKE_gpencil_legacy.h"
+#  include "BKE_report.h"
+
+#  include "BLT_translation.h"
 
 #  include "RNA_access.hh"
 #  include "RNA_define.hh"
@@ -27,6 +31,11 @@
 
 #  include "WM_api.hh"
 #  include "WM_types.hh"
+
+#  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_query.hh"
+
+#  include "ED_gpencil_legacy.hh"
 
 #  include "io_gpencil.hh"
 #  include "io_utils.hh"

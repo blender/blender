@@ -9,15 +9,23 @@
 namespace blender::compositor {
 
 class KuwaharaClassicOperation : public MultiThreadedOperation {
-  bool high_precision_;
+  const NodeKuwaharaData *data_;
+  SocketReader *image_reader_;
+  SocketReader *size_reader_;
+  SocketReader *sat_reader_;
+  SocketReader *sat_squared_reader_;
 
  public:
   KuwaharaClassicOperation();
 
-  void set_high_precision(bool high_precision)
+  void set_data(const NodeKuwaharaData *data)
   {
-    high_precision_ = high_precision;
+    data_ = data;
   }
+
+  void init_execution() override;
+  void deinit_execution() override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

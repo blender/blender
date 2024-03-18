@@ -81,7 +81,18 @@ void PlaneTrackCommon::determine_canvas(const rcti &preferred_area, rcti &r_area
 void PlaneTrackMaskOperation::init_data()
 {
   PlaneDistortMaskOperation::init_data();
-  PlaneTrackCommon::read_and_calculate_corners(this);
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    PlaneTrackCommon::read_and_calculate_corners(this);
+  }
+}
+
+/* TODO(manzanilla): to be removed with tiled implementation. */
+void PlaneTrackMaskOperation::init_execution()
+{
+  PlaneDistortMaskOperation::init_execution();
+  if (execution_model_ == eExecutionModel::Tiled) {
+    PlaneTrackCommon::read_and_calculate_corners(this);
+  }
 }
 
 /* ******** PlaneTrackWarpImageOperation ******** */
@@ -89,7 +100,18 @@ void PlaneTrackMaskOperation::init_data()
 void PlaneTrackWarpImageOperation::init_data()
 {
   PlaneDistortWarpImageOperation::init_data();
-  PlaneTrackCommon::read_and_calculate_corners(this);
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    PlaneTrackCommon::read_and_calculate_corners(this);
+  }
+}
+
+/* TODO(manzanilla): to be removed with tiled implementation. */
+void PlaneTrackWarpImageOperation::init_execution()
+{
+  PlaneDistortWarpImageOperation::init_execution();
+  if (execution_model_ == eExecutionModel::Tiled) {
+    PlaneTrackCommon::read_and_calculate_corners(this);
+  }
 }
 
 }  // namespace blender::compositor

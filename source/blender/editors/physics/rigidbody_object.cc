@@ -10,14 +10,18 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLT_translation.hh"
+#include "BLI_blenlib.h"
+
+#include "BLT_translation.h"
 
 #include "BKE_context.hh"
-#include "BKE_report.hh"
+#include "BKE_main.hh"
+#include "BKE_report.h"
 #include "BKE_rigidbody.h"
 
 #include "DEG_depsgraph.hh"

@@ -23,7 +23,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -31,8 +31,8 @@
 #include "DNA_speaker_types.h"
 
 #include "BKE_action.h"
-#include "BKE_fcurve.hh"
-#include "BKE_global.hh"
+#include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
@@ -2367,7 +2367,7 @@ static void blend_write_nla_strips(BlendWriter *writer, ListBase *strips)
   BLO_write_struct_list(writer, NlaStrip, strips);
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* write the strip's F-Curves and modifiers */
-    BKE_fcurve_blend_write_listbase(writer, &strip->fcurves);
+    BKE_fcurve_blend_write(writer, &strip->fcurves);
     BKE_fmodifiers_blend_write(writer, &strip->modifiers);
 
     /* write the strip's children */
@@ -2384,7 +2384,7 @@ static void blend_data_read_nla_strips(BlendDataReader *reader, ListBase *strips
 
     /* strip's F-Curves */
     BLO_read_list(reader, &strip->fcurves);
-    BKE_fcurve_blend_read_data_listbase(reader, &strip->fcurves);
+    BKE_fcurve_blend_read_data(reader, &strip->fcurves);
 
     /* strip's F-Modifiers */
     BLO_read_list(reader, &strip->modifiers);

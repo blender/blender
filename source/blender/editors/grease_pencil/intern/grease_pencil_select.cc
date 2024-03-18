@@ -19,6 +19,7 @@
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_screen.hh"
+#include "ED_view3d.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -36,7 +37,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
 
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask selectable_elements = retrieve_editable_elements(
@@ -76,7 +77,7 @@ static int select_more_exec(bContext *C, wmOperator * /*op*/)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
@@ -114,7 +115,7 @@ static int select_less_exec(bContext *C, wmOperator * /*op*/)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
@@ -152,7 +153,7 @@ static int select_linked_exec(bContext *C, wmOperator * /*op*/)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask selectable_strokes = ed::greasepencil::retrieve_editable_strokes(
@@ -193,7 +194,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(scene->toolsettings);
 
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
@@ -253,7 +254,7 @@ static int select_alternate_exec(bContext *C, wmOperator *op)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     blender::ed::curves::select_alternate(info.drawing.strokes_for_write(), deselect_ends);
   });
@@ -292,7 +293,7 @@ static int select_ends_exec(bContext *C, wmOperator *op)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
 
@@ -459,59 +460,6 @@ static void GREASE_PENCIL_OT_set_selection_mode(wmOperatorType *ot)
   RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
-static int grease_pencil_material_select_exec(bContext *C, wmOperator *op)
-{
-  const Scene *scene = CTX_data_scene(C);
-  Object *object = CTX_data_active_object(C);
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  const bool select = !RNA_boolean_get(op->ptr, "deselect");
-  const int material_index = object->actcol - 1;
-
-  if (material_index == -1) {
-    return OPERATOR_CANCELLED;
-  }
-
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
-  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
-
-    IndexMaskMemory memory;
-    const IndexMask strokes = retrieve_editable_strokes_by_material(
-        *object, info.drawing, material_index, memory);
-    if (strokes.is_empty()) {
-      return;
-    }
-    bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-        curves, bke::AttrDomain::Curve, CD_PROP_BOOL);
-    index_mask::masked_fill(selection.span.typed<bool>(), select, strokes);
-    selection.finish();
-  });
-
-  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA | NA_EDITED, &grease_pencil);
-
-  return OPERATOR_FINISHED;
-}
-
-static void GREASE_PENCIL_OT_material_select(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Select Material";
-  ot->idname = "GREASE_PENCIL_OT_material_select";
-  ot->description = "Select/Deselect all Grease Pencil strokes using current material";
-
-  /* callbacks. */
-  ot->exec = grease_pencil_material_select_exec;
-  ot->poll = editable_grease_pencil_poll;
-
-  /* flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  /* props */
-  ot->prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Unselect strokes");
-  RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
-}
-
 }  // namespace blender::ed::greasepencil
 
 blender::bke::AttrDomain ED_grease_pencil_selection_domain_get(const ToolSettings *tool_settings)
@@ -538,5 +486,4 @@ void ED_operatortypes_grease_pencil_select()
   WM_operatortype_append(GREASE_PENCIL_OT_select_alternate);
   WM_operatortype_append(GREASE_PENCIL_OT_select_ends);
   WM_operatortype_append(GREASE_PENCIL_OT_set_selection_mode);
-  WM_operatortype_append(GREASE_PENCIL_OT_material_select);
 }

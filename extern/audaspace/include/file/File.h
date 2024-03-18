@@ -69,7 +69,7 @@ public:
 	 * \param filename The sound file path.
 	 * \param stream The index of the audio stream within the file if it contains multiple audio streams.
 	 */
-	File(const std::string &filename, int stream = 0);
+	File(std::string filename, int stream = 0);
 
 	/**
 	 * Creates a new sound.

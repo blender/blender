@@ -8,13 +8,14 @@
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
+#include "BLI_timeit.hh"
 #include "BLI_vector_set.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_image.h"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
@@ -29,6 +30,8 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 #include "NOD_texture.h"
+
+#include "DEG_depsgraph_query.hh"
 
 using namespace blender::nodes;
 
@@ -1162,7 +1165,7 @@ class NodeTreeMainUpdater {
        * be used without causing updates all the time currently. In the future we could try to
        * handle other drivers better as well.
        * Note that this optimization only works in practice when the depsgraph didn't also get a
-       * copy-on-evaluation tag for the node tree (which happens when changing node properties). It
+       * copy-on-write tag for the node tree (which happens when changing node properties). It
        * does work in a few situations like adding reroutes and duplicating nodes though. */
       LISTBASE_FOREACH (const FCurve *, fcurve, &adt->drivers) {
         const ChannelDriver *driver = fcurve->driver;

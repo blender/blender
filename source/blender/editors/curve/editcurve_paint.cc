@@ -11,15 +11,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_mempool.h"
 
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_fcurve.hh"
-#include "BKE_object_types.hh"
-#include "BKE_report.hh"
+#include "BKE_fcurve.h"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -153,8 +153,7 @@ static void stroke_elem_pressure_set(const CurveDrawData *cdd, StrokeElem *selem
     const float adjust = stroke_elem_radius_from_pressure(cdd, pressure) -
                          stroke_elem_radius_from_pressure(cdd, selem->pressure);
     madd_v3_v3fl(selem->location_local, selem->normal_local, adjust);
-    mul_v3_m4v3(
-        selem->location_world, cdd->vc.obedit->object_to_world().ptr(), selem->location_local);
+    mul_v3_m4v3(selem->location_world, cdd->vc.obedit->object_to_world, selem->location_local);
   }
   selem->pressure = pressure;
 }
@@ -251,11 +250,11 @@ static bool stroke_elem_project_fallback(const CurveDrawData *cdd,
         cdd->vc.v3d, cdd->vc.region, location_fallback_depth, mval_fl, r_location_world);
     zero_v3(r_normal_local);
   }
-  mul_v3_m4v3(r_location_local, cdd->vc.obedit->world_to_object().ptr(), r_location_world);
+  mul_v3_m4v3(r_location_local, cdd->vc.obedit->world_to_object, r_location_world);
 
   if (!is_zero_v3(r_normal_world)) {
     copy_v3_v3(r_normal_local, r_normal_world);
-    mul_transposed_mat3_m4_v3(cdd->vc.obedit->object_to_world().ptr(), r_normal_local);
+    mul_transposed_mat3_m4_v3(cdd->vc.obedit->object_to_world, r_normal_local);
     normalize_v3(r_normal_local);
   }
   else {
@@ -310,8 +309,7 @@ static void curve_draw_stroke_from_operator_elem(wmOperator *op, PointerRNA *ite
 
   RNA_float_get_array(itemptr, "mouse", selem->mval);
   RNA_float_get_array(itemptr, "location", selem->location_world);
-  mul_v3_m4v3(
-      selem->location_local, cdd->vc.obedit->world_to_object().ptr(), selem->location_world);
+  mul_v3_m4v3(selem->location_local, cdd->vc.obedit->world_to_object, selem->location_world);
   selem->pressure = RNA_float_get(itemptr, "pressure");
 }
 
@@ -374,7 +372,7 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
 
     /* scale to edit-mode space */
     GPU_matrix_push();
-    GPU_matrix_mul(obedit->object_to_world().ptr());
+    GPU_matrix_mul(obedit->object_to_world);
 
     BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
     for (selem = static_cast<const StrokeElem *>(BLI_mempool_iterstep(&iter)); selem;
@@ -456,7 +454,7 @@ static void curve_draw_event_add(wmOperator *op, const wmEvent *event)
   CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
   Object *obedit = cdd->vc.obedit;
 
-  invert_m4_m4(obedit->runtime->world_to_object.ptr(), obedit->object_to_world().ptr());
+  invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
 
   StrokeElem *selem = static_cast<StrokeElem *>(BLI_mempool_calloc(cdd->stroke_elem_pool));
 
@@ -779,7 +777,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
   int stroke_len = BLI_mempool_len(cdd->stroke_elem_pool);
 
   const bool is_3d = (cu->flag & CU_3D) != 0;
-  invert_m4_m4(obedit->runtime->world_to_object.ptr(), obedit->object_to_world().ptr());
+  invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
 
   if (BLI_mempool_len(cdd->stroke_elem_pool) == 0) {
     curve_draw_stroke_from_operator(op);
@@ -1098,8 +1096,8 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     if (CU_IS_2D(cu)) {
       /* 2D overrides other options */
-      plane_co = obedit->object_to_world().location();
-      plane_no = obedit->object_to_world().ptr()[2];
+      plane_co = obedit->object_to_world[3];
+      plane_no = obedit->object_to_world[2];
       cdd->project.use_plane = true;
     }
     else {

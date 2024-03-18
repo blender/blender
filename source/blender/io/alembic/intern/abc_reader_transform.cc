@@ -11,7 +11,9 @@
 
 #include "DNA_object_types.h"
 
-#include "BLT_translation.hh"
+#include "BLI_utildefines.h"
+
+#include "BLT_translation.h"
 
 #include "BKE_object.hh"
 

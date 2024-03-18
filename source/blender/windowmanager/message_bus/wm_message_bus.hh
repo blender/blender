@@ -47,7 +47,7 @@ struct wmMsgTypeInfo {
   void (*remove_by_id)(wmMsgBus *mbus, const ID *id);
   void (*repr)(FILE *stream, const wmMsgSubscribeKey *msg_key);
 
-  /* `sizeof(wmMsgSubscribeKey_*)`. */
+  /* sizeof(wmMsgSubscribeKey_*) */
   uint msg_key_size;
 };
 
@@ -63,11 +63,11 @@ struct wmMsgSubscribeKey {
   /** Linked list for predictable ordering, otherwise we would depend on #GHash bucketing. */
   wmMsgSubscribeKey *next, *prev;
   ListBase values;
-  /* Over-allocate, eg: #wmMsgSubscribeKey_RNA. */
-  /* Last member will be `wmMsg_*`. */
+  /* Over-allocate, eg: #wmMsgSubscribeKey_RNA */
+  /* Last member will be 'wmMsg_*' */
 };
 
-/** One of many in #wmMsgSubscribeKey.values. */
+/** One of many in #wmMsgSubscribeKey.values */
 struct wmMsgSubscribeValue {
   wmMsgSubscribeValue *next, *prev;
 
@@ -76,19 +76,19 @@ struct wmMsgSubscribeValue {
   /** User data, can be whatever we like, free using the 'free_data' callback if it's owned. */
   void *user_data;
 
-  /** Callbacks. */
+  /** Callbacks */
   wmMsgNotifyFn notify;
   wmMsgSubscribeValueUpdateIdFn update_id;
   wmMsgSubscribeValueFreeDataFn free_data;
 
   /** Keep this subscriber if possible. */
   uint is_persistent : 1;
-  /* Tag to run when handling events,
+  /* tag to run when handling events,
    * we may want option for immediate execution. */
   uint tag : 1;
 };
 
-/** One of many in #wmMsgSubscribeKey.values. */
+/** One of many in #wmMsgSubscribeKey.values */
 struct wmMsgSubscribeValueLink {
   wmMsgSubscribeValueLink *next, *prev;
   wmMsgSubscribeValue params;
@@ -126,7 +126,7 @@ void WM_msg_id_remove(wmMsgBus *mbus, const ID *id);
 /* `wm_message_bus_static.cc` */
 
 enum {
-  /* Generic window redraw. */
+  /* generic window redraw */
   WM_MSG_STATICTYPE_WINDOW_DRAW = 0,
   WM_MSG_STATICTYPE_SCREEN_EDIT = 1,
   WM_MSG_STATICTYPE_FILE_READ = 2,
@@ -137,7 +137,7 @@ struct wmMsgParams_Static {
 };
 
 struct wmMsg_Static {
-  wmMsg head; /* Keep first. */
+  wmMsg head; /* keep first */
   wmMsgParams_Static params;
 };
 
@@ -152,7 +152,7 @@ wmMsgSubscribeKey_Static *WM_msg_lookup_static(wmMsgBus *mbus,
                                                const wmMsgParams_Static *msg_key_params);
 void WM_msg_publish_static_params(wmMsgBus *mbus, const wmMsgParams_Static *msg_key_params);
 void WM_msg_publish_static(wmMsgBus *mbus,
-                           /* #wmMsgParams_Static (expanded). */
+                           /* wmMsgParams_Static (expanded) */
                            int event);
 void WM_msg_subscribe_static_params(wmMsgBus *mbus,
                                     const wmMsgParams_Static *msg_key_params,
@@ -167,9 +167,9 @@ void WM_msg_subscribe_static(wmMsgBus *mbus,
 /* `wm_message_bus_rna.cc` */
 
 struct wmMsgParams_RNA {
-  /** When #PointerRNA.data & owner_id are NULL. match against all. */
+  /** when #PointerRNA.data & owner_id are NULL. match against all. */
   PointerRNA ptr;
-  /** When NULL, match against any property. */
+  /** when NULL, match against any property. */
   const PropertyRNA *prop;
 
   /**
@@ -180,7 +180,7 @@ struct wmMsgParams_RNA {
 };
 
 struct wmMsg_RNA {
-  wmMsg head; /* Keep first. */
+  wmMsg head; /* keep first */
   wmMsgParams_RNA params;
 };
 
@@ -194,7 +194,7 @@ void WM_msgtypeinfo_init_rna(wmMsgTypeInfo *msgtype_info);
 wmMsgSubscribeKey_RNA *WM_msg_lookup_rna(wmMsgBus *mbus, const wmMsgParams_RNA *msg_key_params);
 void WM_msg_publish_rna_params(wmMsgBus *mbus, const wmMsgParams_RNA *msg_key_params);
 void WM_msg_publish_rna(wmMsgBus *mbus,
-                        /* #wmMsgParams_RNA (expanded). */
+                        /* wmMsgParams_RNA (expanded) */
                         PointerRNA *ptr,
                         PropertyRNA *prop);
 void WM_msg_subscribe_rna_params(wmMsgBus *mbus,
@@ -207,7 +207,7 @@ void WM_msg_subscribe_rna(wmMsgBus *mbus,
                           const wmMsgSubscribeValue *msg_val_params,
                           const char *id_repr);
 
-/* ID variants. */
+/* ID variants */
 void WM_msg_subscribe_ID(wmMsgBus *mbus,
                          ID *id,
                          const wmMsgSubscribeValue *msg_val_params,
@@ -231,7 +231,7 @@ void WM_msg_publish_ID(wmMsgBus *mbus, ID *id);
   } \
   ((void)0)
 
-/* Anonymous variants (for convenience). */
+/* Anonymous variants (for convenience) */
 #define WM_msg_subscribe_rna_anon_type(mbus, type_, value) \
   { \
     PointerRNA msg_ptr_ = {0, &RNA_##type_}; \

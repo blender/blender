@@ -8,7 +8,6 @@
 
 #include <cstddef>
 #include <cstring>
-#include <optional>
 
 #include "CLG_log.h"
 
@@ -24,7 +23,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_defaults.h"
 #include "DNA_mask_types.h"
@@ -33,7 +32,7 @@
 #include "BKE_curve.hh"
 #include "BKE_idtype.hh"
 
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -50,11 +49,7 @@
 
 static CLG_LogRef LOG = {"bke.mask"};
 
-static void mask_copy_data(Main * /*bmain*/,
-                           std::optional<Library *> /*owner_library*/,
-                           ID *id_dst,
-                           const ID *id_src,
-                           const int /*flag*/)
+static void mask_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
 {
   Mask *mask_dst = (Mask *)id_dst;
   const Mask *mask_src = (const Mask *)id_src;
@@ -189,7 +184,6 @@ static void mask_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_MSK = {
     /*id_code*/ ID_MSK,
     /*id_filter*/ FILTER_ID_MSK,
-    /*dependencies_id_types*/ FILTER_ID_MC, /* WARNING! mask->parent.id, not typed. */
     /*main_listbase_index*/ INDEX_ID_MSK,
     /*struct_size*/ sizeof(Mask),
     /*name*/ "Mask",
@@ -1509,7 +1503,7 @@ void BKE_mask_parent_init(MaskParent *parent)
   parent->id_type = ID_MC;
 }
 
-/* *** animation/shape-key implementation ***
+/* *** own animation/shape-key implementation ***
  * BKE_mask_layer_shape_XXX */
 
 int BKE_mask_layer_shape_totvert(MaskLayer *masklay)

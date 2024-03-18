@@ -14,7 +14,7 @@
 
 #include "BLI_string_cursor_utf8.h" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /**
  * The category of character as returned by #cursor_delim_type_unicode.

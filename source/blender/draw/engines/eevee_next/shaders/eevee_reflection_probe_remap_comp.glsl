@@ -4,14 +4,45 @@
 
 /* Shader to convert cube-map to octahedral projection. */
 
-#pragma BLENDER_REQUIRE(eevee_reflection_probe_mapping_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_octahedron_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
+
+ReflectionProbeCoordinate reinterpret_as_atlas_coord(ivec4 packed_coord)
+{
+  ReflectionProbeCoordinate unpacked;
+  unpacked.offset = intBitsToFloat(packed_coord.xy);
+  unpacked.scale = intBitsToFloat(packed_coord.z);
+  unpacked.layer = intBitsToFloat(packed_coord.w);
+  return unpacked;
+}
+
+ReflectionProbeWriteCoordinate reinterpret_as_write_coord(ivec4 packed_coord)
+{
+  ReflectionProbeWriteCoordinate unpacked;
+  unpacked.offset = packed_coord.xy;
+  unpacked.extent = packed_coord.z;
+  unpacked.layer = packed_coord.w;
+  return unpacked;
+}
+
+/* Mirror the UV if they are not on the diagonal or unit UV squares.
+ * Doesn't extend outside of [-1..2] range. But this is fine since we use it only for borders. */
+vec2 mirror_repeat_uv(vec2 uv)
+{
+  vec2 m = abs(uv - 0.5) + 0.5;
+  vec2 f = floor(m);
+  float x = f.x - f.y;
+  if (x != 0.0) {
+    uv.xy = 1.0 - uv.xy;
+  }
+  return fract(uv);
+}
 
 void main()
 {
-  SphereProbeUvArea world_coord = reinterpret_as_atlas_coord(world_coord_packed);
-  SphereProbeUvArea sample_coord = reinterpret_as_atlas_coord(probe_coord_packed);
-  SphereProbePixelArea write_coord = reinterpret_as_write_coord(write_coord_packed);
+  ReflectionProbeCoordinate world_coord = reinterpret_as_atlas_coord(world_coord_packed);
+  ReflectionProbeCoordinate sample_coord = reinterpret_as_atlas_coord(probe_coord_packed);
+  ReflectionProbeWriteCoordinate write_coord = reinterpret_as_write_coord(write_coord_packed);
 
   /* Texel in probe. */
   ivec2 local_texel = ivec2(gl_GlobalInvocationID.xy);
@@ -21,10 +52,16 @@ void main()
     return;
   }
 
-  vec2 wrapped_uv;
-  vec3 direction = sphere_probe_texel_to_direction(
-      local_texel, write_coord, sample_coord, wrapped_uv);
-  vec4 radiance_and_transmittance = texture(cubemap_tx, direction);
+  /* Texel in probe atlas. */
+  ivec2 texel = local_texel + write_coord.offset;
+  /* UV in probe atlas. */
+  vec2 atlas_uv = (vec2(texel) + 0.5) / vec2(imageSize(atlas_img).xy);
+  /* UV in sampling area. */
+  vec2 sampling_uv = (atlas_uv - sample_coord.offset) / sample_coord.scale;
+  vec2 wrapped_uv = mirror_repeat_uv(sampling_uv);
+  /* Direction in world space. */
+  vec3 direction = octahedral_uv_to_direction(wrapped_uv);
+  vec4 radiance_and_transmittance = textureLod(cubemap_tx, direction, float(mip_level));
   vec3 radiance = radiance_and_transmittance.xyz;
 
   float opacity = 1.0 - radiance_and_transmittance.a;
@@ -39,6 +76,5 @@ void main()
 
   radiance = colorspace_brightness_clamp_max(radiance, probe_brightness_clamp);
 
-  ivec3 texel = ivec3(local_texel + write_coord.offset, write_coord.layer);
-  imageStore(atlas_img, texel, vec4(radiance, 1.0));
+  imageStore(atlas_img, ivec3(texel, write_coord.layer), vec4(radiance, 1.0));
 }

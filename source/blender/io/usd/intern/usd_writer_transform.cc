@@ -4,13 +4,14 @@
 #include "usd_writer_transform.hh"
 #include "usd_hierarchy_iterator.hh"
 
-#include <pxr/base/gf/matrix4d.h>
 #include <pxr/base/gf/matrix4f.h>
 #include <pxr/usd/usdGeom/xform.h>
 
 #include "BKE_object.hh"
 
 #include "BLI_math_matrix.h"
+
+#include "DNA_layer_types.h"
 
 namespace blender::io::usd {
 

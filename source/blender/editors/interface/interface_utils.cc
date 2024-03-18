@@ -10,7 +10,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <fmt/format.h>
 
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -21,12 +20,13 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.hh"
+#include "BKE_report.h"
 #include "BKE_screen.hh"
 
 #include "MEM_guardedalloc.h"
@@ -245,7 +245,8 @@ uiBut *uiDefAutoButR(uiBlock *block,
     case PROP_COLLECTION: {
       char text[256];
       SNPRINTF(text, IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
-      but = uiDefBut(block, UI_BTYPE_LABEL, 0, text, x, y, width, height, nullptr, 0, 0, nullptr);
+      but = uiDefBut(
+          block, UI_BTYPE_LABEL, 0, text, x, y, width, height, nullptr, 0, 0, 0, 0, nullptr);
       UI_but_flag_enable(but, UI_BUT_DISABLED);
       break;
     }
@@ -365,46 +366,51 @@ void UI_but_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_f
 /* *** RNA collection search menu *** */
 
 struct CollItemSearch {
+  CollItemSearch *next, *prev;
   void *data;
-  std::string name;
+  char *name;
   int index;
   int iconid;
-  int name_prefix_offset;
   bool is_id;
-  bool has_sep_char;
+  int name_prefix_offset;
+  uint has_sep_char : 1;
 };
 
-static bool add_collection_search_item(CollItemSearch &cis,
+static bool add_collection_search_item(CollItemSearch *cis,
                                        const bool requires_exact_data_name,
                                        const bool has_id_icon,
                                        uiSearchItems *items)
 {
+  char name_buf[UI_MAX_DRAW_STR];
 
-  /* If no item has its own icon to display, libraries can use the library icons rather than the
+  /* If no item has an own icon to display, libraries can use the library icons rather than the
    * name prefix for showing the library status. */
-  int name_prefix_offset = cis.name_prefix_offset;
-  if (!has_id_icon && cis.is_id && !requires_exact_data_name) {
-    cis.iconid = UI_icon_from_library(static_cast<const ID *>(cis.data));
-    char name_buf[UI_MAX_DRAW_STR];
+  int name_prefix_offset = cis->name_prefix_offset;
+  if (!has_id_icon && cis->is_id && !requires_exact_data_name) {
+    cis->iconid = UI_icon_from_library(static_cast<const ID *>(cis->data));
+    /* No need to re-allocate, string should be shorter than before (lib status prefix is
+     * removed). */
     BKE_id_full_name_ui_prefix_get(
-        name_buf, static_cast<const ID *>(cis.data), false, UI_SEP_CHAR, &name_prefix_offset);
-    cis.name = name_buf;
+        name_buf, static_cast<const ID *>(cis->data), false, UI_SEP_CHAR, &name_prefix_offset);
+    const int name_buf_len = strlen(name_buf);
+    BLI_assert(name_buf_len <= strlen(cis->name));
+    memcpy(cis->name, name_buf, name_buf_len + 1);
   }
 
   return UI_search_item_add(items,
-                            cis.name.c_str(),
-                            cis.data,
-                            cis.iconid,
-                            cis.has_sep_char ? int(UI_BUT_HAS_SEP_CHAR) : 0,
+                            cis->name,
+                            cis->data,
+                            cis->iconid,
+                            cis->has_sep_char ? int(UI_BUT_HAS_SEP_CHAR) : 0,
                             name_prefix_offset);
 }
 
 void ui_rna_collection_search_update_fn(
     const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
 {
-  using namespace blender;
   uiRNACollectionSearch *data = static_cast<uiRNACollectionSearch *>(arg);
   const int flag = RNA_property_flag(data->target_prop);
+  ListBase *items_list = MEM_cnew<ListBase>("items_list");
   const bool is_ptr_target = (RNA_property_type(data->target_prop) == PROP_POINTER);
   /* For non-pointer properties, UI code acts entirely based on the item's name. So the name has to
    * match the RNA name exactly. So only for pointer properties, the name can be modified to add
@@ -412,14 +418,16 @@ void ui_rna_collection_search_update_fn(
   const bool requires_exact_data_name = !is_ptr_target;
   const bool skip_filter = is_first;
   char name_buf[UI_MAX_DRAW_STR];
+  char *name;
   bool has_id_icon = false;
 
-  /* The string search API requires pointer stability. */
-  Vector<std::unique_ptr<CollItemSearch>> items_list;
+  blender::ui::string_search::StringSearch<CollItemSearch> search;
 
   if (data->search_prop != nullptr) {
     /* build a temporary list of relevant items first */
+    int item_index = 0;
     RNA_PROP_BEGIN (&data->search_ptr, itemptr, data->search_prop) {
+
       if (flag & PROP_ID_SELF_CHECK) {
         if (itemptr.data == data->target_ptr.owner_id) {
           continue;
@@ -438,7 +446,6 @@ void ui_rna_collection_search_update_fn(
       bool has_sep_char = false;
       const bool is_id = itemptr.type && RNA_struct_is_ID(itemptr.type);
 
-      char *name;
       if (is_id) {
         iconid = ui_id_icon_get(C, static_cast<ID *>(itemptr.data), false);
         if (!ELEM(iconid, 0, ICON_BLANK1)) {
@@ -462,19 +469,24 @@ void ui_rna_collection_search_update_fn(
       }
 
       if (name) {
-        auto cis = std::make_unique<CollItemSearch>();
+        CollItemSearch *cis = MEM_cnew<CollItemSearch>(__func__);
         cis->data = itemptr.data;
-        cis->name = name;
-        cis->index = items_list.size();
+        cis->name = BLI_strdup(name);
+        cis->index = item_index;
         cis->iconid = iconid;
         cis->is_id = is_id;
         cis->name_prefix_offset = name_prefix_offset;
         cis->has_sep_char = has_sep_char;
-        items_list.append(std::move(cis));
+        if (!skip_filter) {
+          search.add(name, cis);
+        }
+        BLI_addtail(items_list, cis);
         if (name != name_buf) {
           MEM_freeN(name);
         }
       }
+
+      item_index++;
     }
     RNA_PROP_END;
   }
@@ -484,66 +496,85 @@ void ui_rna_collection_search_update_fn(
         data->target_prop);
     BLI_assert(search_flag & PROP_STRING_SEARCH_SUPPORTED);
 
-    const bool show_extra_info = (G.debug_value == 102);
+    struct SearchVisitUserData {
+      blender::string_search::StringSearch<CollItemSearch> *search;
+      bool skip_filter;
+      int item_index;
+      ListBase *items_list;
+      const char *func_id;
+    } user_data = {nullptr};
 
-    RNA_property_string_search(C,
-                               &data->target_ptr,
-                               data->target_prop,
-                               str,
-                               [&](StringPropertySearchVisitParams visit_params) {
-                                 auto cis = std::make_unique<CollItemSearch>();
+    user_data.search = &search;
+    user_data.skip_filter = skip_filter;
+    user_data.items_list = items_list;
+    user_data.func_id = __func__;
 
-                                 cis->data = nullptr;
-                                 if (visit_params.info && show_extra_info) {
-                                   cis->name = fmt::format("{}" UI_SEP_CHAR_S "{}",
-                                                           visit_params.text,
-                                                           *visit_params.info);
-                                 }
-                                 else {
-                                   cis->name = std::move(visit_params.text);
-                                 }
+    RNA_property_string_search(
+        C,
+        &data->target_ptr,
+        data->target_prop,
+        str,
+        [](void *user_data, const StringPropertySearchVisitParams *visit_params) {
+          const bool show_extra_info = (G.debug_value == 102);
 
-                                 cis->index = items_list.size();
-                                 cis->iconid = ICON_NONE;
-                                 cis->is_id = false;
-                                 cis->name_prefix_offset = 0;
-                                 cis->has_sep_char = visit_params.info.has_value();
-                                 items_list.append(std::move(cis));
-                               });
+          SearchVisitUserData *search_data = (SearchVisitUserData *)user_data;
+          CollItemSearch *cis = MEM_cnew<CollItemSearch>(search_data->func_id);
+          cis->data = nullptr;
+          if (visit_params->info && show_extra_info) {
+            cis->name = BLI_sprintfN(
+                "%s" UI_SEP_CHAR_S "%s", visit_params->text, visit_params->info);
+          }
+          else {
+            cis->name = BLI_strdup(visit_params->text);
+          }
+          cis->index = search_data->item_index;
+          cis->iconid = ICON_NONE;
+          cis->is_id = false;
+          cis->name_prefix_offset = 0;
+          cis->has_sep_char = visit_params->info != nullptr;
+          if (!search_data->skip_filter) {
+            search_data->search->add(visit_params->text, cis);
+          }
+          BLI_addtail(search_data->items_list, cis);
+          search_data->item_index++;
+        },
+        (void *)&user_data);
 
     if (search_flag & PROP_STRING_SEARCH_SORT) {
-      std::sort(
-          items_list.begin(),
-          items_list.end(),
-          [](const std::unique_ptr<CollItemSearch> &a, const std::unique_ptr<CollItemSearch> &b) {
-            return BLI_strcasecmp_natural(a->name.c_str(), b->name.c_str()) < 0;
-          });
-      for (const int i : items_list.index_range()) {
-        items_list[i]->index = i;
+      BLI_listbase_sort(items_list, [](const void *a_, const void *b_) -> int {
+        const CollItemSearch *cis_a = (const CollItemSearch *)a_;
+        const CollItemSearch *cis_b = (const CollItemSearch *)b_;
+        return BLI_strcasecmp_natural(cis_a->name, cis_b->name);
+      });
+      int i = 0;
+      LISTBASE_FOREACH (CollItemSearch *, cis, items_list) {
+        cis->index = i;
+        i++;
       }
     }
   }
 
   if (skip_filter) {
-    for (std::unique_ptr<CollItemSearch> &cis : items_list) {
-      if (!add_collection_search_item(*cis, requires_exact_data_name, has_id_icon, items)) {
+    LISTBASE_FOREACH (CollItemSearch *, cis, items_list) {
+      if (!add_collection_search_item(cis, requires_exact_data_name, has_id_icon, items)) {
         break;
       }
     }
   }
   else {
-    ui::string_search::StringSearch<CollItemSearch> search;
-    for (std::unique_ptr<CollItemSearch> &cis : items_list) {
-      search.add(cis->name, cis.get());
-    }
-
-    const Vector<CollItemSearch *> filtered_items = search.query(str);
+    const blender::Vector<CollItemSearch *> filtered_items = search.query(str);
     for (CollItemSearch *cis : filtered_items) {
-      if (!add_collection_search_item(*cis, requires_exact_data_name, has_id_icon, items)) {
+      if (!add_collection_search_item(cis, requires_exact_data_name, has_id_icon, items)) {
         break;
       }
     }
   }
+
+  LISTBASE_FOREACH (CollItemSearch *, cis, items_list) {
+    MEM_freeN(cis->name);
+  }
+  BLI_freelistN(items_list);
+  MEM_freeN(items_list);
 }
 
 int UI_icon_from_id(const ID *id)
@@ -692,27 +723,35 @@ int UI_calc_float_precision(int prec, double value)
   return prec;
 }
 
-std::optional<std::string> UI_but_online_manual_id(const uiBut *but)
+bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t str_maxncpy)
 {
   if (but->rnapoin.data && but->rnaprop) {
-    return fmt::format(
-        "{}.{}", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+    BLI_snprintf(r_str,
+                 str_maxncpy,
+                 "%s.%s",
+                 RNA_struct_identifier(but->rnapoin.type),
+                 RNA_property_identifier(but->rnaprop));
+    return true;
   }
   if (but->optype) {
-    char idname[OP_MAX_TYPENAME];
-    const size_t idname_len = WM_operator_py_idname(idname, but->optype->idname);
-    return std::string(idname, idname_len);
+    WM_operator_py_idname(r_str, but->optype->idname);
+    return true;
   }
 
-  return std::nullopt;
+  *r_str = '\0';
+  return false;
 }
 
-std::optional<std::string> UI_but_online_manual_id_from_active(const bContext *C)
+bool UI_but_online_manual_id_from_active(const bContext *C, char *r_str, size_t str_maxncpy)
 {
-  if (uiBut *but = UI_context_active_but_get(C)) {
-    return UI_but_online_manual_id(but);
+  uiBut *but = UI_context_active_but_get(C);
+
+  if (but) {
+    return UI_but_online_manual_id(but, r_str, str_maxncpy);
   }
-  return std::nullopt;
+
+  *r_str = '\0';
+  return false;
 }
 
 /* -------------------------------------------------------------------- */
@@ -985,31 +1024,33 @@ static bool ui_key_event_property_match(const char *opname,
   return match;
 }
 
-std::optional<std::string> UI_key_event_operator_string(const bContext *C,
-                                                        const char *opname,
-                                                        IDProperty *properties,
-                                                        const bool is_strict)
+const char *UI_key_event_operator_string(const bContext *C,
+                                         const char *opname,
+                                         IDProperty *properties,
+                                         const bool is_strict,
+                                         char *result,
+                                         const int result_maxncpy)
 {
   /* NOTE: currently only actions on UI Lists are supported (for the asset manager).
    * Other kinds of events can be supported as needed. */
 
   ARegion *region = CTX_wm_region(C);
   if (region == nullptr) {
-    return std::nullopt;
+    return nullptr;
   }
 
   /* Early exit regions which don't have UI-Lists. */
   if ((region->type->keymapflag & ED_KEYMAP_UI) == 0) {
-    return std::nullopt;
+    return nullptr;
   }
 
   uiBut *but = UI_region_active_but_get(region);
   if (but == nullptr) {
-    return std::nullopt;
+    return nullptr;
   }
 
   if (but->type != UI_BTYPE_PREVIEW_TILE) {
-    return std::nullopt;
+    return nullptr;
   }
 
   short event_val = KM_NOTHING;
@@ -1049,11 +1090,12 @@ std::optional<std::string> UI_key_event_operator_string(const bContext *C,
   }
 
   if ((event_val != KM_NOTHING) && (event_type != KM_NOTHING)) {
-    return WM_keymap_item_raw_to_string(
-        false, false, false, false, 0, event_val, event_type, false);
+    WM_keymap_item_raw_to_string(
+        false, false, false, false, 0, event_val, event_type, false, result, result_maxncpy);
+    return result;
   }
 
-  return std::nullopt;
+  return nullptr;
 }
 
 /** \} */

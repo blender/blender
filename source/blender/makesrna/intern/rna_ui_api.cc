@@ -11,7 +11,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -37,7 +37,6 @@ const EnumPropertyItem rna_enum_icon_items[] = {
 
 #  include "DNA_asset_types.h"
 
-#  include "ED_asset_filter.hh"
 #  include "ED_geometry.hh"
 #  include "ED_node.hh"
 #  include "ED_object.hh"
@@ -517,11 +516,6 @@ static void rna_uiItemProgress(uiLayout *layout,
   uiItemProgressIndicator(layout, text, factor, eButProgressType(progress_type));
 }
 
-static void rna_uiItemSeparator(uiLayout *layout, float factor, int type)
-{
-  uiItemS_ex(layout, factor, LayoutSeparatorType(type));
-}
-
 static void rna_uiTemplateID(uiLayout *layout,
                              bContext *C,
                              PointerRNA *ptr,
@@ -721,7 +715,7 @@ static void rna_uiTemplateAssetView(uiLayout *layout,
                                     const char *drag_opname,
                                     PointerRNA *r_drag_op_properties)
 {
-  blender::ed::asset::AssetFilterSettings filter_settings{};
+  AssetFilterSettings filter_settings{};
   filter_settings.id_types = filter_id_types ? filter_id_types : FILTER_ID_ALL;
 
   uiTemplateAssetView(layout,
@@ -1074,25 +1068,6 @@ void RNA_api_ui_layout(StructRNA *srna)
        0,
        "",
        "Do not display buttons to choose or refresh an asset library"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  static const EnumPropertyItem rna_enum_separator_type_items[] = {
-      {int(LayoutSeparatorType::Auto),
-       "AUTO",
-       0,
-       "Auto",
-       "Best guess at what type of separator is needed."},
-      {int(LayoutSeparatorType::Space),
-       "SPACE",
-       0,
-       "Empty space",
-       "Horizontal or Vertical empty space, depending on layout direction."},
-      {int(LayoutSeparatorType::Line),
-       "LINE",
-       0,
-       "Line",
-       "Horizontal or Vertical line, depending on layout direction."},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -1508,7 +1483,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   parm = RNA_def_string(func, "category", nullptr, 0, "", "panel type category");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
-  func = RNA_def_function(srna, "separator", "rna_uiItemSeparator");
+  func = RNA_def_function(srna, "separator", "uiItemS_ex");
   RNA_def_function_ui_description(func, "Item. Inserts empty space into the layout between items");
   RNA_def_float(func,
                 "factor",
@@ -1519,12 +1494,6 @@ void RNA_api_ui_layout(StructRNA *srna)
                 "Percentage of width to space (leave unset for default space)",
                 0.0f,
                 FLT_MAX);
-  RNA_def_enum(func,
-               "type",
-               rna_enum_separator_type_items,
-               int(LayoutSeparatorType::Auto),
-               "Type",
-               "The type of the separator");
 
   func = RNA_def_function(srna, "separator_spacer", "uiItemSpacer");
   RNA_def_function_ui_description(

@@ -12,7 +12,6 @@
 #include <cstring>
 #include <ctime>
 #include <fcntl.h>
-#include <optional>
 #ifndef WIN32
 #  include <unistd.h>
 #else
@@ -61,11 +60,11 @@
 #include "BLI_timecode.h" /* For stamp time-code format. */
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
-#include "BKE_bpath.hh"
+#include "BKE_bpath.h"
 #include "BKE_colortools.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.hh"
 #include "BKE_image.h"
@@ -77,8 +76,8 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_packedFile.h"
 #include "BKE_preview_image.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_workspace.h"
 
 #include "BLF_api.hh"
@@ -157,11 +156,7 @@ static void image_init_data(ID *id)
   }
 }
 
-static void image_copy_data(Main * /*bmain*/,
-                            std::optional<Library *> /*owner_library*/,
-                            ID *id_dst,
-                            const ID *id_src,
-                            const int flag)
+static void image_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
   Image *image_dst = (Image *)id_dst;
   const Image *image_src = (const Image *)id_src;
@@ -445,7 +440,6 @@ constexpr IDTypeInfo get_type_info()
   IDTypeInfo info{};
   info.id_code = ID_IM;
   info.id_filter = FILTER_ID_IM;
-  info.dependencies_id_types = 0;
   info.main_listbase_index = INDEX_ID_IM;
   info.struct_size = sizeof(Image);
   info.name = "Image";
@@ -1500,7 +1494,7 @@ void BKE_image_packfiles_from_mem(ReportList *reports,
 
 void BKE_image_tag_time(Image *ima)
 {
-  ima->lastused = BLI_time_now_seconds_i();
+  ima->lastused = BLI_check_seconds_timer_i();
 }
 
 static uintptr_t image_mem_size(Image *image)
@@ -3001,8 +2995,8 @@ static void image_tag_frame_recalc(Image *ima, ID *iuser_id, ImageUser *iuser, v
     iuser->flag |= IMA_NEED_FRAME_RECALC;
 
     if (iuser_id) {
-      /* Must copy image user changes to evaluated data-block. */
-      DEG_id_tag_update(iuser_id, ID_RECALC_SYNC_TO_EVAL);
+      /* Must copy image user changes to CoW data-block. */
+      DEG_id_tag_update(iuser_id, ID_RECALC_COPY_ON_WRITE);
     }
   }
 }
@@ -3016,8 +3010,8 @@ static void image_tag_reload(Image *ima, ID *iuser_id, ImageUser *iuser, void *c
       image_update_views_format(ima, iuser);
     }
     if (iuser_id) {
-      /* Must copy image user changes to evaluated data-block. */
-      DEG_id_tag_update(iuser_id, ID_RECALC_SYNC_TO_EVAL);
+      /* Must copy image user changes to CoW data-block. */
+      DEG_id_tag_update(iuser_id, ID_RECALC_COPY_ON_WRITE);
     }
     BKE_image_partial_update_mark_full_update(ima);
   }

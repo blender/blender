@@ -15,9 +15,10 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"

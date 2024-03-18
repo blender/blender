@@ -25,7 +25,7 @@
 #include "util/log.h"
 #include "util/task.h"
 
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
 
 CCL_NAMESPACE_BEGIN
 

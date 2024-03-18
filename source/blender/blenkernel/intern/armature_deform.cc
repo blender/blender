@@ -34,7 +34,6 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
-#include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
@@ -487,17 +486,18 @@ static void armature_deform_coords_impl(const Object *ob_arm,
                                         const int deformflag,
                                         float (*vert_coords_prev)[3],
                                         const char *defgrp_name,
-                                        blender::Span<MDeformVert> dverts,
                                         const Mesh *me_target,
                                         BMEditMesh *em_target,
                                         bGPDstroke *gps_target)
 {
   const bArmature *arm = static_cast<const bArmature *>(ob_arm->data);
   bPoseChannel **pchan_from_defbase = nullptr;
+  const MDeformVert *dverts = nullptr;
   const bool use_envelope = (deformflag & ARM_DEF_ENVELOPE) != 0;
   const bool use_quaternion = (deformflag & ARM_DEF_QUATERNION) != 0;
   const bool invert_vgroup = (deformflag & ARM_DEF_INVERT_VGROUP) != 0;
   int defbase_len = 0; /* safety for vertexgroup index overflow */
+  int dverts_len = 0;  /* safety for vertexgroup overflow */
   bool use_dverts = false;
   int armature_def_nr = -1;
   int cd_dvert_offset = -1;
@@ -520,21 +520,26 @@ static void armature_deform_coords_impl(const Object *ob_arm,
       target_data_id = me_target == nullptr ? (const ID *)ob_target->data : &me_target->id;
       if (em_target == nullptr) {
         const Mesh *mesh = (const Mesh *)target_data_id;
-        dverts = mesh->deform_verts();
+        dverts = mesh->deform_verts().data();
+        if (dverts) {
+          dverts_len = mesh->verts_num;
+        }
       }
     }
     else if (ob_target->type == OB_LATTICE) {
       const Lattice *lt = static_cast<const Lattice *>(ob_target->data);
       target_data_id = (const ID *)ob_target->data;
-      dverts = blender::Span<MDeformVert>(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
+      dverts = lt->dvert;
+      if (dverts) {
+        dverts_len = lt->pntsu * lt->pntsv * lt->pntsw;
+      }
     }
     else if (ob_target->type == OB_GPENCIL_LEGACY) {
       target_data_id = (const ID *)ob_target->data;
-      dverts = blender::Span<MDeformVert>(gps_target->dvert, gps_target->totpoints);
-    }
-    else if (ob_target->type == OB_GREASE_PENCIL) {
-      target_data_id = (const ID *)ob_target->data;
-      BLI_assert(dverts.size() == vert_coords_len);
+      dverts = gps_target->dvert;
+      if (dverts) {
+        dverts_len = gps_target->totpoints;
+      }
     }
 
     /* Collect the vertex group names from the evaluated data. */
@@ -552,7 +557,7 @@ static void armature_deform_coords_impl(const Object *ob_arm,
       else if (me_target) {
         use_dverts = !me_target->deform_verts().is_empty();
       }
-      else if (dverts.size() == vert_coords_len) {
+      else if (dverts) {
         use_dverts = true;
       }
 
@@ -588,16 +593,16 @@ static void armature_deform_coords_impl(const Object *ob_arm,
   data.invert_vgroup = invert_vgroup;
   data.use_dverts = use_dverts;
   data.armature_def_nr = armature_def_nr;
-  data.dverts = dverts.data();
-  data.dverts_len = dverts.size();
+  data.dverts = dverts;
+  data.dverts_len = dverts_len;
   data.pchan_from_defbase = pchan_from_defbase;
   data.defbase_len = defbase_len;
   data.bmesh.cd_dvert_offset = cd_dvert_offset;
 
   float obinv[4][4];
-  invert_m4_m4(obinv, ob_target->object_to_world().ptr());
+  invert_m4_m4(obinv, ob_target->object_to_world);
 
-  mul_m4_m4m4(data.postmat, obinv, ob_arm->object_to_world().ptr());
+  mul_m4_m4m4(data.postmat, obinv, ob_arm->object_to_world);
   invert_m4_m4(data.premat, data.postmat);
 
   if (em_target != nullptr) {
@@ -647,35 +652,9 @@ void BKE_armature_deform_coords_with_gpencil_stroke(const Object *ob_arm,
                               deformflag,
                               vert_coords_prev,
                               defgrp_name,
-                              {},
                               nullptr,
                               nullptr,
                               gps_target);
-}
-
-void BKE_armature_deform_coords_with_curves(
-    const Object &ob_arm,
-    const Object &ob_target,
-    blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::MutableSpan<blender::float3>> vert_coords_prev,
-    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
-    blender::Span<MDeformVert> dverts,
-    int deformflag,
-    blender::StringRefNull defgrp_name)
-{
-  armature_deform_coords_impl(
-      &ob_arm,
-      &ob_target,
-      reinterpret_cast<float(*)[3]>(vert_coords.data()),
-      vert_deform_mats ? reinterpret_cast<float(*)[3][3]>(vert_deform_mats->data()) : nullptr,
-      vert_coords.size(),
-      deformflag,
-      vert_coords_prev ? reinterpret_cast<float(*)[3]>(vert_coords_prev->data()) : nullptr,
-      defgrp_name.c_str(),
-      dverts,
-      nullptr,
-      nullptr,
-      nullptr);
 }
 
 void BKE_armature_deform_coords_with_mesh(const Object *ob_arm,
@@ -696,7 +675,6 @@ void BKE_armature_deform_coords_with_mesh(const Object *ob_arm,
                               deformflag,
                               vert_coords_prev,
                               defgrp_name,
-                              {},
                               me_target,
                               nullptr,
                               nullptr);
@@ -720,7 +698,6 @@ void BKE_armature_deform_coords_with_editmesh(const Object *ob_arm,
                               deformflag,
                               vert_coords_prev,
                               defgrp_name,
-                              {},
                               nullptr,
                               em_target,
                               nullptr);

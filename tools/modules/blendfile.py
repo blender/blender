@@ -25,6 +25,54 @@ class BlendFileError(Exception):
     """Raised when there was an error reading/parsing a blend file."""
 
 
+# -----------------------------------------------------------------------------
+# module global routines
+#
+# read routines
+# open a filename
+# determine if the file is compressed
+# and returns a handle
+def open_blend(filename, access="rb"):
+    """Opens a blend file for reading or writing pending on the access
+    supports 2 kind of blend files. Uncompressed and compressed.
+    Known issue: does not support packaged blend files
+    """
+    handle = open(filename, access)
+    magic_test = b"BLENDER"
+    magic = handle.read(len(magic_test))
+    if magic == magic_test:
+        log.debug("normal blendfile detected")
+        handle.seek(0, os.SEEK_SET)
+        bfile = BlendFile(handle)
+        bfile.is_compressed = False
+        bfile.filepath_orig = filename
+        return bfile
+    elif magic[:2] == b'\x1f\x8b':
+        log.debug("gzip blendfile detected")
+        handle.close()
+        log.debug("decompressing started")
+        fs = gzip.open(filename, "rb")
+        data = fs.read(FILE_BUFFER_SIZE)
+        magic = data[:len(magic_test)]
+        if magic == magic_test:
+            handle = tempfile.TemporaryFile()
+            while data:
+                handle.write(data)
+                data = fs.read(FILE_BUFFER_SIZE)
+            log.debug("decompressing finished")
+            fs.close()
+            log.debug("resetting decompressed file")
+            handle.seek(os.SEEK_SET, 0)
+            bfile = BlendFile(handle)
+            bfile.is_compressed = True
+            bfile.filepath_orig = filename
+            return bfile
+        else:
+            raise BlendFileError("filetype inside gzip not a blend")
+    else:
+        raise BlendFileError("filetype not a blend or a gzip blend")
+
+
 def pad_up_4(offset):
     return (offset + 3) & ~3
 
@@ -445,7 +493,7 @@ class BlendFileBlock:
         for k in self.keys():
             yield from self.get_recursive_iter(k, use_nil=use_nil, use_str=False)
 
-    def get_data_hash(self, seed=1):
+    def get_data_hash(self):
         """
         Generates a 'hash' that can be used instead of addr_old as block id, and that should be 'stable' across .blend
         file load & save (i.e. it does not changes due to pointer addresses variations).
@@ -458,7 +506,7 @@ class BlendFileBlock:
             return self.file.structs[self.sdna_index].field_from_path(
                 self.file.header, self.file.handle, k).dna_name.is_pointer
 
-        hsh = seed
+        hsh = 1
         for k, v in self.items_recursive_iter():
             if not _is_pointer(self, k):
                 hsh = zlib.adler32(str(v).encode(), hsh)
@@ -538,199 +586,6 @@ class BlendFileBlock:
                 yield (k, "<%s>" % dna_type.dna_type_id.decode('ascii'))
 
 
-########################################################################################################################
-# Way more basic access to blend-file data, without any DNA handling.
-
-class BlendFileRaw:
-    """
-    Blend file, at a very low-level (only a collection of blocks).
-    Can survive opening e.g. blend-files without DNA info.
-    """
-    __slots__ = (
-        # file (result of open())
-        "handle",
-        # str (original name of the file path)
-        "filepath_orig",
-        # BlendFileHeader
-        "header",
-        # struct.Struct
-        "block_header_struct",
-        # BlendFileBlock
-        "blocks",
-        # dict {addr_old: block}
-        "block_from_offset",
-        # int
-        "code_index",
-        # bool (did we make a change)
-        "is_modified",
-        # bool (is file gzipped)
-        "is_compressed",
-    )
-
-    def __init__(self, handle):
-        log.debug("initializing reading blend-file")
-        self.handle = handle
-        self.header = BlendFileHeader(handle)
-        self.block_header_struct = self.header.create_block_header_struct()
-        self.blocks = []
-        self.code_index = {}
-
-        block = BlendFileBlockRaw(handle, self)
-        while block.code != b'ENDB':
-            handle.seek(block.size, os.SEEK_CUR)
-            self.blocks.append(block)
-            self.code_index.setdefault(block.code, []).append(block)
-
-            block = BlendFileBlockRaw(handle, self)
-        self.is_modified = False
-        self.blocks.append(block)
-
-        # Cache (could lazy init, in case we never use?).
-        self.block_from_offset = {block.addr_old: block for block in self.blocks if block.code != b'ENDB'}
-
-    def __repr__(self):
-        return '<%s %r>' % (self.__class__.__qualname__, self.handle)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.close()
-
-    def find_blocks_from_code(self, code):
-        assert type(code) == bytes
-        if code not in self.code_index:
-            return []
-        return self.code_index[code]
-
-    def find_block_from_offset(self, offset):
-        # same as looking looping over all blocks,
-        # then checking `block.addr_old == offset`.
-        assert type(offset) is int
-        return self.block_from_offset.get(offset)
-
-    def close(self):
-        """
-        Close the blend file
-        writes the blend file to disk if changes has happened
-        """
-        handle = self.handle
-
-        if self.is_modified:
-            if self.is_compressed:
-                log.debug("close compressed blend file")
-                handle.seek(os.SEEK_SET, 0)
-                log.debug("compressing started")
-                fs = gzip.open(self.filepath_orig, "wb")
-                data = handle.read(FILE_BUFFER_SIZE)
-                while data:
-                    fs.write(data)
-                    data = handle.read(FILE_BUFFER_SIZE)
-                fs.close()
-                log.debug("compressing finished")
-
-        handle.close()
-
-    def ensure_subtype_smaller(self, sdna_index_curr, sdna_index_next):
-        # never refine to a smaller type
-        if (self.structs[sdna_index_curr].size >
-                self.structs[sdna_index_next].size):
-
-            raise RuntimeError("cant refine to smaller type (%s -> %s)" %
-                               (self.structs[sdna_index_curr].dna_type_id.decode('ascii'),
-                                self.structs[sdna_index_next].dna_type_id.decode('ascii')))
-
-
-class BlendFileBlockRaw:
-    """
-    Instance of a raw blend-file block (only contains its header currently).
-    """
-    __slots__ = (
-        # BlendFile
-        "file",
-        "code",
-        "size",
-        "addr_old",
-        "sdna_index",
-        "count",
-        "file_offset",
-        "user_data",
-    )
-
-    def __str__(self):
-        return ("<%s.%s (%s), size=%d at %s>" %
-                # fields=[%s]
-                (self.__class__.__name__,
-                 self.dna_type_name,
-                 self.code.decode(),
-                 self.size,
-                 # b", ".join(f.dna_name.name_only for f in self.dna_type.fields).decode('ascii'),
-                 hex(self.addr_old),
-                 ))
-
-    def __init__(self, handle, bfile):
-        OLDBLOCK = struct.Struct(b'4sI')
-
-        self.file = bfile
-        self.user_data = None
-
-        data = handle.read(bfile.block_header_struct.size)
-
-        if len(data) != bfile.block_header_struct.size:
-            print("WARNING! Blend file seems to be badly truncated!")
-            self.code = b'ENDB'
-            self.size = 0
-            self.addr_old = 0
-            self.sdna_index = 0
-            self.count = 0
-            self.file_offset = 0
-            return
-        # header size can be 8, 20, or 24 bytes long
-        # 8: old blend files ENDB block (exception)
-        # 20: normal headers 32 bit platform
-        # 24: normal headers 64 bit platform
-        if len(data) > 15:
-            blockheader = bfile.block_header_struct.unpack(data)
-            self.code = blockheader[0].partition(b'\0')[0]
-            if self.code != b'ENDB':
-                self.size = blockheader[1]
-                self.addr_old = blockheader[2]
-                self.sdna_index = blockheader[3]
-                self.count = blockheader[4]
-                self.file_offset = handle.tell()
-            else:
-                self.size = 0
-                self.addr_old = 0
-                self.sdna_index = 0
-                self.count = 0
-                self.file_offset = 0
-        else:
-            blockheader = OLDBLOCK.unpack(data)
-            self.code = blockheader[0].partition(b'\0')[0]
-            self.code = DNA_IO.read_data0(blockheader[0])
-            self.size = 0
-            self.addr_old = 0
-            self.sdna_index = 0
-            self.count = 0
-            self.file_offset = 0
-
-    def get_data_hash(self, seed=1):
-        """
-        Generates a 'hash' that can be used instead of addr_old as block id, and that should be 'stable' across .blend
-        file load & save (i.e. it does not changes due to pointer addresses variations).
-        """
-        # TODO This implementation is most likely far from optimal... and CRC32 is not renown as the best hashing
-        #      algorithm either. But for now does the job!
-        import zlib
-
-        hsh = seed
-        hsh = zlib.adler32(str(self.code).encode(), hsh)
-        hsh = zlib.adler32(str(self.size).encode(), hsh)
-        hsh = zlib.adler32(str(self.sdna_index).encode(), hsh)
-        hsh = zlib.adler32(str(self.count).encode(), hsh)
-        return hsh
-
-
 # -----------------------------------------------------------------------------
 # Read Magic
 #
@@ -772,7 +627,7 @@ class BlendFileHeader:
         elif pointer_size_id == b'_':
             self.pointer_size = 4
         else:
-            assert False, "unreachable"
+            assert 0
         endian_id = values[2]
         if endian_id == b'v':
             self.is_little_endian = True
@@ -783,7 +638,7 @@ class BlendFileHeader:
             self.endian_index = 1
             self.endian_str = b'>'
         else:
-            assert False, "unreachable"
+            assert 0
 
         version_id = values[3]
         self.version = int(version_id)
@@ -1167,51 +1022,3 @@ class DNA_IO:
         if header.pointer_size == 8:
             st = DNA_IO.ULONG[header.endian_index]
             return st.unpack(handle.read(st.size))[0]
-
-
-# -----------------------------------------------------------------------------
-# module global routines
-#
-# read routines
-# open a filename
-# determine if the file is compressed
-# and returns a handle
-def open_blend(filename, access="rb", wrapper_type=BlendFile):
-    """Opens a blend file for reading or writing pending on the access
-    supports 2 kind of blend files. Uncompressed and compressed.
-    Known issue: does not support packaged blend files
-    """
-    handle = open(filename, access)
-    magic_test = b"BLENDER"
-    magic = handle.read(len(magic_test))
-    if magic == magic_test:
-        log.debug("normal blendfile detected")
-        handle.seek(0, os.SEEK_SET)
-        bfile = wrapper_type(handle)
-        bfile.is_compressed = False
-        bfile.filepath_orig = filename
-        return bfile
-    elif magic[:2] == b'\x1f\x8b':
-        log.debug("gzip blendfile detected")
-        handle.close()
-        log.debug("decompressing started")
-        fs = gzip.open(filename, "rb")
-        data = fs.read(FILE_BUFFER_SIZE)
-        magic = data[:len(magic_test)]
-        if magic == magic_test:
-            handle = tempfile.TemporaryFile()
-            while data:
-                handle.write(data)
-                data = fs.read(FILE_BUFFER_SIZE)
-            log.debug("decompressing finished")
-            fs.close()
-            log.debug("resetting decompressed file")
-            handle.seek(os.SEEK_SET, 0)
-            bfile = wrapper_type(handle)
-            bfile.is_compressed = True
-            bfile.filepath_orig = filename
-            return bfile
-        else:
-            raise BlendFileError("filetype inside gzip not a blend")
-    else:
-        raise BlendFileError("filetype not a blend or a gzip blend")

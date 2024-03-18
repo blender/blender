@@ -473,8 +473,6 @@ endfunction()
 # Ninja only: assign 'heavy pool' to some targets that are especially RAM-consuming to build.
 function(setup_heavy_lib_pool)
   if(WITH_NINJA_POOL_JOBS AND NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
-    set(_HEAVY_LIBS)
-    set(_TARGET)
     if(WITH_CYCLES)
       list(APPEND _HEAVY_LIBS "cycles_device" "cycles_kernel")
     endif()
@@ -485,13 +483,11 @@ function(setup_heavy_lib_pool)
       list(APPEND _HEAVY_LIBS "bf_intern_openvdb")
     endif()
 
-    foreach(_TARGET ${_HEAVY_LIBS})
-      if(TARGET ${_TARGET})
-        set_property(TARGET ${_TARGET} PROPERTY JOB_POOL_COMPILE compile_heavy_job_pool)
+    foreach(TARGET ${_HEAVY_LIBS})
+      if(TARGET ${TARGET})
+        set_property(TARGET ${TARGET} PROPERTY JOB_POOL_COMPILE compile_heavy_job_pool)
       endif()
     endforeach()
-    unset(_TARGET)
-    unset(_HEAVY_LIBS)
   endif()
 endfunction()
 
@@ -558,7 +554,7 @@ macro(TEST_SSE_SUPPORT
       set(${_sse_flags} "/arch:SSE")
       set(${_sse2_flags} "/arch:SSE2")
     endif()
-  elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
+  elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
     set(${_sse_flags} "")  # icc defaults to -msse
     set(${_sse2_flags} "")  # icc defaults to -msse2
   else()
@@ -770,7 +766,7 @@ endmacro()
 macro(remove_cc_flag_unsigned_char)
   if(CMAKE_COMPILER_IS_GNUCC OR
      (CMAKE_C_COMPILER_ID MATCHES "Clang") OR
-     (CMAKE_C_COMPILER_ID STREQUAL "Intel"))
+     (CMAKE_C_COMPILER_ID MATCHES "Intel"))
     remove_cc_flag("-funsigned-char")
   elseif(MSVC)
     remove_cc_flag("/J")
@@ -853,7 +849,7 @@ function(get_blender_version)
   # - BLENDER_VERSION_PATCH
   # - BLENDER_VERSION_CYCLE (alpha, beta, rc, release)
 
-  # So CMAKE depends on `BKE_blender_version.h`, beware of infinite-loops!
+  # So CMAKE depends on `BKE_blender.h`, beware of infinite-loops!
   configure_file(
     ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender_version.h
     ${CMAKE_BINARY_DIR}/source/blender/blenkernel/BKE_blender_version.h.done

@@ -9,17 +9,25 @@
 #include "BLI_math_matrix.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_context.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_editmesh_cache.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_mesh.hh"
+#include "BKE_mesh_wrapper.hh"
+#include "BKE_scene.h"
+#include "BKE_screen.hh"
 #include "BKE_texture.h"
 
 #include "UI_interface.hh"
@@ -144,8 +152,8 @@ static void waveModifier_do(WaveModifierData *md,
   if (wmd->objectcenter != nullptr) {
     float mat[4][4];
     /* get the control object's location in local coordinates */
-    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
-    mul_m4_m4m4(mat, ob->world_to_object().ptr(), wmd->objectcenter->object_to_world().ptr());
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    mul_m4_m4m4(mat, ob->world_to_object, wmd->objectcenter->object_to_world);
 
     wmd->startx = mat[3][0];
     wmd->starty = mat[3][1];

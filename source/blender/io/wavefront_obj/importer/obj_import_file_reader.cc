@@ -6,12 +6,11 @@
  * \ingroup obj
  */
 
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
-#include "BLI_fileops.hh"
 #include "BLI_map.hh"
+#include "BLI_math_color.h"
 #include "BLI_math_vector.h"
-#include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -487,7 +486,7 @@ static bool parse_keyword(const char *&p, const char *end, StringRef keyword)
 /* Special case: if there were no faces/edges in any geometries,
  * treat all the vertices as a point cloud. */
 static void use_all_vertices_if_no_faces(Geometry *geom,
-                                         const Span<std::unique_ptr<Geometry>> all_geometries,
+                                         const Vector<std::unique_ptr<Geometry>> &all_geometries,
                                          const GlobalVertices &global_vertices)
 {
   if (!global_vertices.vertices.is_empty() && geom && geom->geom_type_ == GEOM_MESH) {

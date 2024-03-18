@@ -291,17 +291,6 @@ inline int face_triangles_num(const int face_size)
 }
 
 /**
- * Return the range of triangles that belong to the given face.
- */
-inline IndexRange face_triangles_range(OffsetIndices<int> faces, int face_i)
-{
-  const IndexRange face = faces[face_i];
-  /* This is the same as #poly_to_tri_count which is not included here. */
-  const int start_triangle = face.start() - face_i * 2;
-  return IndexRange(start_triangle, face_triangles_num(face.size()));
-}
-
-/**
  * Return the index of the edge's vertex that is not the \a vert.
  */
 inline int edge_other_vert(const int2 edge, const int vert)
@@ -316,9 +305,6 @@ inline int edge_other_vert(const int2 edge, const int vert)
 /** \} */
 
 }  // namespace mesh
-
-/** Create a mesh with no built-in attributes. */
-Mesh *mesh_new_no_attributes(int verts_num, int edges_num, int faces_num, int corners_num);
 
 /** Calculate edges from faces. */
 void mesh_calc_edges(Mesh &mesh, bool keep_existing_edges, bool select_new_edges);

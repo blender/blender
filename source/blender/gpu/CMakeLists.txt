@@ -108,7 +108,7 @@ set(SRC
   GPU_state.h
   GPU_storage_buffer.h
   GPU_texture.h
-  GPU_uniform_buffer.hh
+  GPU_uniform_buffer.h
   GPU_vertex_buffer.h
   GPU_vertex_format.h
   GPU_viewport.h
@@ -590,9 +590,6 @@ set(GLSL_SRC
   shaders/gpu_shader_cfg_world_clip_lib.glsl
   shaders/gpu_shader_colorspace_lib.glsl
 
-  shaders/gpu_shader_index_2d_array_points.glsl
-  shaders/gpu_shader_index_2d_array_lines.glsl
-  shaders/gpu_shader_index_2d_array_tris.glsl
 
   GPU_shader_shared_utils.h
 )
@@ -760,7 +757,6 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/gpu_shader_3D_uniform_color_info.hh
   shaders/infos/gpu_shader_gpencil_stroke_info.hh
   shaders/infos/gpu_shader_icon_info.hh
-  shaders/infos/gpu_shader_index_info.hh
   shaders/infos/gpu_shader_instance_varying_color_varying_size_info.hh
   shaders/infos/gpu_shader_keyframe_shape_info.hh
   shaders/infos/gpu_shader_line_dashed_uniform_color_info.hh

@@ -81,17 +81,18 @@ static void node_geo_exec(GeoNodeExecParams params)
           bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);
           geometry.replace_curves(dst_curves_id);
         }
-        if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
+        if (geometry_set.has_grease_pencil()) {
           using namespace blender::bke::greasepencil;
-          for (const int layer_index : grease_pencil->layers().index_range()) {
-            Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(*grease_pencil,
+          GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
+          for (const int layer_index : grease_pencil.layers().index_range()) {
+            Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
                                                                               layer_index);
             if (drawing == nullptr) {
               continue;
             }
             const bke::CurvesGeometry &src_curves = drawing->strokes();
             const bke::GreasePencilLayerFieldContext field_context(
-                *grease_pencil, AttrDomain::Curve, layer_index);
+                grease_pencil, AttrDomain::Curve, layer_index);
             bke::CurvesGeometry dst_curves = geometry::resample_to_count(
                 src_curves, field_context, selection, count);
             drawing->strokes_for_write() = std::move(dst_curves);
@@ -113,17 +114,18 @@ static void node_geo_exec(GeoNodeExecParams params)
           bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);
           geometry.replace_curves(dst_curves_id);
         }
-        if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
+        if (geometry_set.has_grease_pencil()) {
           using namespace blender::bke::greasepencil;
-          for (const int layer_index : grease_pencil->layers().index_range()) {
-            Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(*grease_pencil,
+          GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
+          for (const int layer_index : grease_pencil.layers().index_range()) {
+            Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
                                                                               layer_index);
             if (drawing == nullptr) {
               continue;
             }
             const bke::CurvesGeometry &src_curves = drawing->strokes();
             const bke::GreasePencilLayerFieldContext field_context(
-                *grease_pencil, AttrDomain::Curve, layer_index);
+                grease_pencil, AttrDomain::Curve, layer_index);
             bke::CurvesGeometry dst_curves = geometry::resample_to_length(
                 src_curves, field_context, selection, length);
             drawing->strokes_for_write() = std::move(dst_curves);
@@ -144,17 +146,18 @@ static void node_geo_exec(GeoNodeExecParams params)
           bke::curves_copy_parameters(*src_curves_id, *dst_curves_id);
           geometry.replace_curves(dst_curves_id);
         }
-        if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
+        if (geometry_set.has_grease_pencil()) {
           using namespace blender::bke::greasepencil;
-          for (const int layer_index : grease_pencil->layers().index_range()) {
-            Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(*grease_pencil,
+          GreasePencil &grease_pencil = *geometry_set.get_grease_pencil_for_write();
+          for (const int layer_index : grease_pencil.layers().index_range()) {
+            Drawing *drawing = get_eval_grease_pencil_layer_drawing_for_write(grease_pencil,
                                                                               layer_index);
             if (drawing == nullptr) {
               continue;
             }
             const bke::CurvesGeometry &src_curves = drawing->strokes();
             const bke::GreasePencilLayerFieldContext field_context(
-                *grease_pencil, AttrDomain::Curve, layer_index);
+                grease_pencil, AttrDomain::Curve, layer_index);
             bke::CurvesGeometry dst_curves = geometry::resample_to_evaluated(
                 src_curves, field_context, selection);
             drawing->strokes_for_write() = std::move(dst_curves);

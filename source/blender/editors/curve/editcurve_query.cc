@@ -15,8 +15,11 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_curve.hh"
-#include "BKE_fcurve.hh"
+#include "BKE_fcurve.h"
 #include "BKE_layer.hh"
+
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "ED_curve.hh"
 #include "ED_view3d.hh"

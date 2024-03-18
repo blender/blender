@@ -20,9 +20,10 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -46,28 +47,28 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ARegion *region = CTX_wm_region(C);
-  const Mesh *mesh_eval;
-  bool mesh_eval_needs_free;
+  const Mesh *me_eval;
+  bool me_eval_needs_free;
 
   if (ob->type == OB_MESH || ob->runtime->data_eval) {
     const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-    mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
-    mesh_eval_needs_free = false;
+    me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+    me_eval_needs_free = false;
   }
   else if (ELEM(ob->type, OB_FONT, OB_CURVES_LEGACY, OB_SURF)) {
     const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-    mesh_eval = BKE_mesh_new_nomain_from_curve(ob_eval);
-    mesh_eval_needs_free = true;
+    me_eval = BKE_mesh_new_nomain_from_curve(ob_eval);
+    me_eval_needs_free = true;
   }
   else {
-    mesh_eval = nullptr;
+    me_eval = nullptr;
   }
 
-  if (mesh_eval) {
+  if (me_eval) {
     ListBase nurbslist = {nullptr, nullptr};
 
-    BKE_mesh_to_curve_nurblist(mesh_eval, &nurbslist, 0); /* wire */
-    BKE_mesh_to_curve_nurblist(mesh_eval, &nurbslist, 1); /* boundary */
+    BKE_mesh_to_curve_nurblist(me_eval, &nurbslist, 0); /* wire */
+    BKE_mesh_to_curve_nurblist(me_eval, &nurbslist, 1); /* boundary */
 
     const blender::float4x4 projmat = ED_view3d_ob_project_mat_get(
         static_cast<RegionView3D *>(region->regiondata), ob);
@@ -95,8 +96,8 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
 
     BKE_nurbList_free(&nurbslist);
 
-    if (mesh_eval_needs_free) {
-      BKE_id_free(nullptr, (ID *)mesh_eval);
+    if (me_eval_needs_free) {
+      BKE_id_free(nullptr, (ID *)me_eval);
     }
   }
 

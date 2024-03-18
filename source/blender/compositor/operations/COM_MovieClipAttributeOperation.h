@@ -38,6 +38,10 @@ class MovieClipAttributeOperation : public ConstantOperation {
 
   void init_execution() override;
 
+  /**
+   * The inner loop of this operation.
+   */
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
   const float *get_constant_elem() override;

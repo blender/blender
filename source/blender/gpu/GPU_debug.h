@@ -16,7 +16,7 @@
  * #include "GPU_debug.h"
  * static void do_render_engine(Render *re)
  * {
- *   GPU_debug_capture_begin(__func__);
+ *   GPU_debug_capture_begin();
  *   RE_engine_render(re, false);
  *   GPU_debug_capture_end();
  * }
@@ -68,10 +68,8 @@ bool GPU_debug_group_match(const char *ref);
  * GPU Frame capture support.
  *
  * Allows instantaneous frame capture of GPU calls between begin/end.
- *
- * \param title: Optional title to set for the frame capture.
  */
-void GPU_debug_capture_begin(const char *title);
+void GPU_debug_capture_begin(void);
 void GPU_debug_capture_end(void);
 
 /**

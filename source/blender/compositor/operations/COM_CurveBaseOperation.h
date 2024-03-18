@@ -12,12 +12,18 @@ namespace blender::compositor {
 
 class CurveBaseOperation : public MultiThreadedOperation {
  protected:
+  /**
+   * Cached reference to the input_program
+   */
   CurveMapping *curve_mapping_;
 
  public:
   CurveBaseOperation();
   ~CurveBaseOperation();
 
+  /**
+   * Initialize the execution
+   */
   void init_execution() override;
   void deinit_execution() override;
 

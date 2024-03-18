@@ -11,13 +11,14 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
+#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -38,7 +39,7 @@ static void applyBakeTime(TransInfo *t)
   float fac = 0.1f;
 
 /* XXX, disable precision for now,
- * this isn't even accessible by the user. */
+ * this isn't even accessible by the user */
 #if 0
   if (t->mouse.precision) {
     /* Calculate ratio for shift-key position, and for total, and blend these for precision. */
@@ -55,7 +56,7 @@ static void applyBakeTime(TransInfo *t)
 
   applyNumInput(&t->num, &time);
 
-  /* Header print for NumInput. */
+  /* header print for NumInput */
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
 
@@ -69,7 +70,7 @@ static void applyBakeTime(TransInfo *t)
     }
   }
   else {
-    /* Default header print. */
+    /* default header print */
     if (time >= 0.0f) {
       SNPRINTF(str, IFACE_("Time: +%.3f %s"), time, t->proptext);
     }

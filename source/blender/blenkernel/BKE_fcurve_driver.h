@@ -181,7 +181,7 @@ void BKE_driver_invalidate_expression(struct ChannelDriver *driver,
  *
  * - `anim_eval_context->eval_time` is the frame at which F-Curve is being evaluated.
  * - Has to return a float value.
- * - \a driver_orig is where we cache Python expressions, in case of copy-on-eval
+ * - \a driver_orig is where we cache Python expressions, in case of COW
  */
 float evaluate_driver(struct PathResolvedRNA *anim_rna,
                       struct ChannelDriver *driver,

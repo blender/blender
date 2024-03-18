@@ -2,14 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
+#include "DNA_cachefile_types.h"
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
+
+#include "WM_api.hh"
 
 #include "usd_reader_shape.hh"
 
@@ -156,18 +159,6 @@ Mesh *USDShapeReader::read_mesh(Mesh *existing_mesh,
 
   bke::mesh_calc_edges(*active_mesh, false, false);
   return active_mesh;
-}
-
-void USDShapeReader::read_geometry(bke::GeometrySet &geometry_set,
-                                   USDMeshReadParams params,
-                                   const char **err_str)
-{
-  Mesh *existing_mesh = geometry_set.get_mesh_for_write();
-  Mesh *new_mesh = read_mesh(existing_mesh, params, err_str);
-
-  if (new_mesh != existing_mesh) {
-    geometry_set.replace_mesh(new_mesh);
-  }
 }
 
 Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,

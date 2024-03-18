@@ -105,8 +105,6 @@ class StringRefBase {
 
 /**
  * References a null-terminated const char array.
- *
- * StringRefNull can be compared with StringRef and StringRefNull.
  */
 class StringRefNull : public StringRefBase {
 
@@ -122,8 +120,6 @@ class StringRefNull : public StringRefBase {
 
 /**
  * References a const char array. It might not be null terminated.
- *
- * StringRef can be compared with StringRef and StringRefNull.
  */
 class StringRef : public StringRefBase {
  public:
@@ -592,10 +588,7 @@ inline std::string operator+(StringRef a, StringRef b)
 /* This does not compare StringRef and std::string_view, because of ambiguous overloads. This is
  * not a problem when std::string_view is only used at api boundaries. To compare a StringRef and a
  * std::string_view, one should convert the std::string_view to StringRef (which is very cheap).
- * Ideally, we only use StringRef in our code to avoid this problem altogether.
- *
- * NOTE: these functions are also suitable for StringRefNull comparisons, as these are
- * implicitly converted to StringRef by the compiler. */
+ * Ideally, we only use StringRef in our code to avoid this problem altogether. */
 constexpr bool operator==(StringRef a, StringRef b)
 {
   return std::string_view(a) == std::string_view(b);

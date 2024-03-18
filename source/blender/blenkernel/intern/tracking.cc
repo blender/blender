@@ -36,14 +36,14 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
-#include "BKE_fcurve.hh"
+#include "BKE_fcurve.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_movieclip.h"
 #include "BKE_object.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_tracking.h"
 
 #include "IMB_imbuf.hh"
@@ -54,9 +54,6 @@
 
 #include "libmv-capi.h"
 #include "tracking_private.h"
-
-using blender::Array;
-using blender::int2;
 
 struct MovieDistortion {
   libmv_CameraIntrinsics *intrinsics;
@@ -1118,14 +1115,23 @@ static void track_mask_gpencil_layer_rasterize(const int frame_width,
     while (stroke) {
       const bGPDspoint *stroke_points = stroke->points;
       if (stroke->flag & GP_STROKE_2DSPACE) {
-        Array<int2> mask_points(stroke->totpoints);
-        for (const int i : mask_points.index_range()) {
-          mask_points[i][0] = stroke_points[i].x * frame_width - region_min[0];
-          mask_points[i][1] = stroke_points[i].y * frame_height - region_min[1];
+        int *mask_points, *point;
+        point = mask_points = MEM_cnew_array<int>(2 * stroke->totpoints,
+                                                  "track mask rasterization points");
+        for (int i = 0; i < stroke->totpoints; i++, point += 2) {
+          point[0] = stroke_points[i].x * frame_width - region_min[0];
+          point[1] = stroke_points[i].y * frame_height - region_min[1];
         }
         /* TODO: add an option to control whether AA is enabled or not */
-        BLI_bitmap_draw_2d_poly_v2i_n(
-            0, 0, mask_width, mask_height, mask_points, track_mask_set_pixel_cb, &data);
+        BLI_bitmap_draw_2d_poly_v2i_n(0,
+                                      0,
+                                      mask_width,
+                                      mask_height,
+                                      (const int(*)[2])mask_points,
+                                      stroke->totpoints,
+                                      track_mask_set_pixel_cb,
+                                      &data);
+        MEM_freeN(mask_points);
       }
       stroke = stroke->next;
     }

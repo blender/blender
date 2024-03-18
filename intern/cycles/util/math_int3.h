@@ -14,7 +14,7 @@ CCL_NAMESPACE_BEGIN
 #if !defined(__KERNEL_METAL__)
 ccl_device_inline int3 min(int3 a, int3 b)
 {
-#  if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE42__)
+#  if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE41__)
   return int3(_mm_min_epi32(a.m128, b.m128));
 #  else
   return make_int3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
@@ -23,7 +23,7 @@ ccl_device_inline int3 min(int3 a, int3 b)
 
 ccl_device_inline int3 max(int3 a, int3 b)
 {
-#  if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE42__)
+#  if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE41__)
   return int3(_mm_max_epi32(a.m128, b.m128));
 #  else
   return make_int3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));

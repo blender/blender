@@ -255,21 +255,6 @@ TEST(math_matrix_types, MatrixMultiplyOperator)
   EXPECT_EQ(result4[0][1], expect4[0][1]);
   EXPECT_EQ(result4[1][0], expect4[1][0]);
   EXPECT_EQ(result4[1][1], expect4[1][1]);
-
-  float3x4 a5(float4(1), float4(3), float4(5));
-  float2x3 b5(float3(11, 7, 5), float3(13, 11, 17));
-
-  float2x4 expect5(float4(57), float4(131));
-
-  float2x4 result5 = a5 * b5;
-  EXPECT_EQ(result5[0][0], expect5[0][0]);
-  EXPECT_EQ(result5[0][1], expect5[0][1]);
-  EXPECT_EQ(result5[0][2], expect5[0][2]);
-  EXPECT_EQ(result5[0][3], expect5[0][3]);
-  EXPECT_EQ(result5[1][0], expect5[1][0]);
-  EXPECT_EQ(result5[1][1], expect5[1][1]);
-  EXPECT_EQ(result5[1][2], expect5[1][2]);
-  EXPECT_EQ(result5[1][3], expect5[1][3]);
 }
 
 TEST(math_matrix_types, VectorMultiplyOperator)

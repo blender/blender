@@ -10,6 +10,7 @@
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
+#include "AS_asset_library.hh"
 
 #include "BLI_string.h"
 
@@ -18,7 +19,7 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "ED_asset_filter.hh"
 #include "ED_asset_list.hh"
@@ -63,23 +64,21 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
       return;
     }
 
-    catalog_tree_.foreach_root_item(
-        [this](const asset_system::AssetCatalogTreeItem &catalog_item) {
-          Item &item = build_catalog_items_recursive(*this, catalog_item);
-          /* Uncollapse root items by default (user edits will override this just fine). */
-          item.set_collapsed(false);
-        });
+    catalog_tree_.foreach_root_item([this](asset_system::AssetCatalogTreeItem &catalog_item) {
+      Item &item = build_catalog_items_recursive(*this, catalog_item);
+      /* Uncollapse root items by default (user edits will override this just fine). */
+      item.set_collapsed(false);
+    });
   }
 
   Item &build_catalog_items_recursive(ui::TreeViewOrItem &parent_view_item,
-                                      const asset_system::AssetCatalogTreeItem &catalog_item) const
+                                      asset_system::AssetCatalogTreeItem &catalog_item) const
   {
     Item &view_item = parent_view_item.add_tree_item<Item>(catalog_item, shelf_settings_);
 
-    catalog_item.foreach_child(
-        [&view_item, this](const asset_system::AssetCatalogTreeItem &child) {
-          build_catalog_items_recursive(view_item, child);
-        });
+    catalog_item.foreach_child([&view_item, this](asset_system::AssetCatalogTreeItem &child) {
+      build_catalog_items_recursive(view_item, child);
+    });
 
     return view_item;
   }
@@ -87,14 +86,13 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
   void update_shelf_settings_from_enabled_catalogs();
 
   class Item : public ui::BasicTreeViewItem {
-    const asset_system::AssetCatalogTreeItem &catalog_item_;
+    asset_system::AssetCatalogTreeItem catalog_item_;
     /* Is the catalog path enabled in this redraw? Set on construction, updated by the UI (which
      * gets a pointer to it). The UI needs it as char. */
     char catalog_path_enabled_ = false;
 
    public:
-    Item(const asset_system::AssetCatalogTreeItem &catalog_item,
-         AssetShelfSettings &shelf_settings)
+    Item(asset_system::AssetCatalogTreeItem &catalog_item, AssetShelfSettings &shelf_settings)
         : ui::BasicTreeViewItem(catalog_item.get_name()),
           catalog_item_(catalog_item),
           catalog_path_enabled_(
@@ -135,6 +133,10 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
       uiBlock *block = uiLayoutGetBlock(&row);
 
       uiLayoutSetEmboss(&row, UI_EMBOSS);
+
+      if (!is_collapsible()) {
+        uiItemL(&row, nullptr, ICON_BLANK1);
+      }
 
       uiLayout *subrow = uiLayoutRow(&row, false);
       uiLayoutSetActive(subrow, catalog_path_enabled_);

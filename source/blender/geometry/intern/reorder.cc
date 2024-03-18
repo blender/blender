@@ -53,9 +53,6 @@ static void reorder_attributes_group_to_group(const bke::AttributeAccessor src_a
         if (meta_data.domain != domain) {
           return true;
         }
-        if (meta_data.data_type == CD_PROP_STRING) {
-          return true;
-        }
         const GVArray src = *src_attributes.lookup(id, domain);
         bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
             id, domain, meta_data.data_type);
@@ -212,25 +209,27 @@ static void reorder_instaces_exec(const bke::Instances &src_instances,
                          {},
                          old_by_new_map,
                          dst_instances.attributes_for_write());
+
+  const Span<float4x4> old_transforms = src_instances.transforms();
+  MutableSpan<float4x4> new_transforms = dst_instances.transforms();
+  array_utils::gather(old_transforms, old_by_new_map, new_transforms);
 }
 
 static void clean_unused_attributes(const bke::AnonymousAttributePropagationInfo &propagation_info,
                                     bke::MutableAttributeAccessor attributes)
 {
   Vector<std::string> unused_ids;
-  attributes.for_all([&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-    if (!id.is_anonymous()) {
-      return true;
-    }
-    if (meta_data.data_type == CD_PROP_STRING) {
-      return true;
-    }
-    if (propagation_info.propagate(id.anonymous_id())) {
-      return true;
-    }
-    unused_ids.append(id.name());
-    return true;
-  });
+  attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
+        if (!id.is_anonymous()) {
+          return true;
+        }
+        if (propagation_info.propagate(id.anonymous_id())) {
+          return true;
+        }
+        unused_ids.append(id.name());
+        return true;
+      });
 
   for (const std::string &unused_id : unused_ids) {
     attributes.remove(unused_id);

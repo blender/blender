@@ -28,6 +28,21 @@ static bool is_nurbs_to_bezier_one_to_one(const KnotsMode knots_mode)
   return false;
 }
 
+/**
+ * As an optimization, just change the types on a mutable curves data-block when the conversion is
+ * simple. This could be expanded to more cases where the number of points doesn't change in the
+ * future, though that might require properly initializing some attributes, or removing others.
+ */
+static bool conversion_can_change_point_num(const CurveType dst_type)
+{
+  if (ELEM(dst_type, CURVE_TYPE_CATMULL_ROM, CURVE_TYPE_POLY)) {
+    /* The conversion to Catmull Rom or Poly should never change the number of points, no matter
+     * the source type (Bezier to Catmull Rom conversion cannot maintain the same shape anyway). */
+    return false;
+  }
+  return true;
+}
+
 template<typename T>
 static void scale_input_assign(const Span<T> src,
                                const int scale,
@@ -645,6 +660,19 @@ bke::CurvesGeometry convert_curves(const bke::CurvesGeometry &src_curves,
   }
   BLI_assert_unreachable();
   return {};
+}
+
+bool try_curves_conversion_in_place(const IndexMask &selection,
+                                    const CurveType dst_type,
+                                    FunctionRef<bke::CurvesGeometry &()> get_writable_curves_fn)
+{
+  if (conversion_can_change_point_num(dst_type)) {
+    return false;
+  }
+  bke::CurvesGeometry &curves = get_writable_curves_fn();
+  curves.fill_curve_types(selection, dst_type);
+  curves.remove_attributes_based_on_types();
+  return true;
 }
 
 }  // namespace blender::geometry

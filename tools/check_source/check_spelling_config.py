@@ -109,8 +109,6 @@ dict_custom = {
     "deinitializes",
     "deletable",
     "deleter",
-    "demangle",
-    "demangled",
     "denoised",
     "denoiser",
     "denoising",

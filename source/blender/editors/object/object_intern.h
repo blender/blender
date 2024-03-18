@@ -118,7 +118,7 @@ void OBJECT_OT_text_add(struct wmOperatorType *ot);
 void OBJECT_OT_armature_add(struct wmOperatorType *ot);
 void OBJECT_OT_empty_add(struct wmOperatorType *ot);
 void OBJECT_OT_lightprobe_add(struct wmOperatorType *ot);
-void OBJECT_OT_empty_image_add(struct wmOperatorType *ot);
+void OBJECT_OT_drop_named_image(struct wmOperatorType *ot);
 void OBJECT_OT_gpencil_add(struct wmOperatorType *ot);
 void OBJECT_OT_grease_pencil_add(struct wmOperatorType *ot);
 void OBJECT_OT_light_add(struct wmOperatorType *ot);
@@ -225,12 +225,6 @@ void OBJECT_OT_laplaciandeform_bind(struct wmOperatorType *ot);
 void OBJECT_OT_surfacedeform_bind(struct wmOperatorType *ot);
 void OBJECT_OT_geometry_nodes_input_attribute_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_geometry_node_tree_copy_assign(struct wmOperatorType *ot);
-void OBJECT_OT_grease_pencil_dash_modifier_segment_add(struct wmOperatorType *ot);
-void OBJECT_OT_grease_pencil_dash_modifier_segment_remove(struct wmOperatorType *ot);
-void OBJECT_OT_grease_pencil_dash_modifier_segment_move(struct wmOperatorType *ot);
-void OBJECT_OT_grease_pencil_time_modifier_segment_add(struct wmOperatorType *ot);
-void OBJECT_OT_grease_pencil_time_modifier_segment_remove(struct wmOperatorType *ot);
-void OBJECT_OT_grease_pencil_time_modifier_segment_move(struct wmOperatorType *ot);
 
 /* object_gpencil_modifiers.c */
 

@@ -7,12 +7,13 @@
  */
 
 #include <cstdlib>
-#include <fmt/format.h>
 
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_task.h"
 
-#include "BKE_report.hh"
+#include "BKE_context.hh"
+#include "BKE_report.h"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
@@ -20,7 +21,9 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "BLT_translation.hh"
+#include "UI_interface.hh"
+
+#include "BLT_translation.h"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -49,7 +52,7 @@ static void transdata_elem_shrink_fatten(const TransInfo *t,
   /* Get the final offset. */
   float tdistance = distance * td->factor;
   if (td->ext && (t->flag & T_ALT_TRANSFORM) != 0) {
-    tdistance *= td->ext->isize[0]; /* Shell factor. */
+    tdistance *= td->ext->isize[0]; /* shell factor */
   }
 
   madd_v3_v3v3fl(td->loc, td->iloc, td->axismtx[2], tdistance);
@@ -89,7 +92,8 @@ static void applyShrinkFatten(TransInfo *t)
 {
   float distance;
   int i;
-  fmt::memory_buffer str;
+  char str[UI_MAX_DRAW_STR];
+  size_t ofs = 0;
   UnitSettings *unit = &t->scene->unit;
 
   distance = t->values[0] + t->values_modal_offset[0];
@@ -100,40 +104,44 @@ static void applyShrinkFatten(TransInfo *t)
 
   t->values_final[0] = distance;
 
-  /* Header print for NumInput. */
-  fmt::format_to(fmt::appender(str), IFACE_("Shrink/Fatten: "));
+  /* header print for NumInput */
+  ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Shrink/Fatten: "), sizeof(str) - ofs);
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
     outputNumInput(&(t->num), c, unit);
-    fmt::format_to(fmt::appender(str), c);
+    ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, "%s", c);
   }
   else {
-    /* Default header print. */
+    /* default header print */
     if (unit != nullptr) {
-      char unit_str[64];
-      BKE_unit_value_as_string(
-          unit_str, sizeof(unit_str), distance * unit->scale_length, 4, B_UNIT_LENGTH, unit, true);
-      fmt::format_to(fmt::appender(str), unit_str);
+      ofs += BKE_unit_value_as_string(str + ofs,
+                                      sizeof(str) - ofs,
+                                      distance * unit->scale_length,
+                                      4,
+                                      B_UNIT_LENGTH,
+                                      unit,
+                                      true);
     }
     else {
-      fmt::format_to(fmt::appender(str), "{:.4f}", distance);
+      ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, "%.4f", distance);
     }
   }
 
   if (t->proptext[0]) {
-    fmt::format_to(fmt::appender(str), " {}", t->proptext);
+    ofs += BLI_snprintf_rlen(str + ofs, sizeof(str) - ofs, " %s", t->proptext);
   }
-  fmt::format_to(fmt::appender(str), ", (");
+  ofs += BLI_strncpy_rlen(str + ofs, ", (", sizeof(str) - ofs);
 
   const wmKeyMapItem *kmi = static_cast<const wmKeyMapItem *>(t->custom.mode.data);
   if (kmi) {
-    str.append(WM_keymap_item_to_string(kmi, false).value_or(""));
+    ofs += WM_keymap_item_to_string(kmi, false, str + ofs, sizeof(str) - ofs);
   }
 
-  fmt::format_to(fmt::appender(str),
-                 IFACE_(" or Alt) Even Thickness {}"),
-                 WM_bool_as_string((t->flag & T_ALT_TRANSFORM) != 0));
-  /* Done with header string. */
+  BLI_snprintf(str + ofs,
+               sizeof(str) - ofs,
+               IFACE_(" or Alt) Even Thickness %s"),
+               WM_bool_as_string((t->flag & T_ALT_TRANSFORM) != 0));
+  /* done with header string */
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->data_len < TRANSDATA_THREAD_LIMIT) {
@@ -158,7 +166,7 @@ static void applyShrinkFatten(TransInfo *t)
 
   recalc_data(t);
 
-  ED_area_status_text(t->area, fmt::to_string(str).c_str());
+  ED_area_status_text(t->area, str);
 }
 
 static void initShrinkFatten(TransInfo *t, wmOperator * /*op*/)

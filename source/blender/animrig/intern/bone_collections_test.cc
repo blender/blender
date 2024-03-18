@@ -4,7 +4,7 @@
 
 #include "BLI_string.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"

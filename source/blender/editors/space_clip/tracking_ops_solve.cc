@@ -17,10 +17,10 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_lib_id.hh"
 #include "BKE_movieclip.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph.hh"
@@ -157,7 +157,7 @@ static void solve_camera_freejob(void *scv)
     int width, height;
     BKE_movieclip_get_size(clip, &scj->user, &width, &height);
     BKE_tracking_camera_to_blender(tracking, scene, camera, width, height);
-    DEG_id_tag_update(&camera->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&camera->id, ID_RECALC_COPY_ON_WRITE);
     WM_main_add_notifier(NC_OBJECT, camera);
   }
 

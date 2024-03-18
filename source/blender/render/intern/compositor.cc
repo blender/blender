@@ -13,10 +13,10 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_node.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
@@ -32,10 +32,6 @@
 
 #include "RE_compositor.hh"
 #include "RE_pipeline.h"
-
-#include "WM_api.hh"
-
-#include "GPU_context.h"
 
 #include "render_types.h"
 
@@ -210,7 +206,7 @@ class Context : public realtime_compositor::Context {
   int2 get_render_size() const override
   {
     int width, height;
-    BKE_render_resolution(input_data_.render_data, true, &width, &height);
+    BKE_render_resolution(input_data_.render_data, false, &width, &height);
     return int2(width, height);
   }
 
@@ -508,21 +504,7 @@ class RealtimeCompositor {
      * to avoid them blocking each other. */
     BLI_assert(!BLI_thread_is_main() || G.background);
 
-    if (G.background) {
-      /* In the background mode the system context of the render engine might be nullptr, which
-       * forces some code paths which more tightly couple it with the draw manager.
-       * For the compositor we want to have the least amount of coupling with the draw manager, so
-       * ensure that the render engine has its own system GPU context. */
-      RE_system_gpu_context_ensure(&render_);
-    }
-
-    void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
-    void *re_blender_gpu_context = RE_blender_gpu_context_ensure(&render_);
-
-    GPU_render_begin();
-    WM_system_gpu_context_activate(re_system_gpu_context);
-    GPU_context_active_set(static_cast<GPUContext *>(re_blender_gpu_context));
-
+    DRW_render_context_enable(&render_);
     context_->update_input_data(input_data);
 
     /* Always recreate the evaluator, as this only runs on compositing node changes and
@@ -535,11 +517,7 @@ class RealtimeCompositor {
     context_->output_to_render_result();
     context_->viewer_output_to_viewer_image();
     texture_pool_->free_unused_and_reset();
-
-    GPU_flush();
-    GPU_render_end();
-    GPU_context_active_set(nullptr);
-    WM_system_gpu_context_release(re_system_gpu_context);
+    DRW_render_context_disable(&render_);
   }
 };
 

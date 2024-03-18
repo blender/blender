@@ -158,7 +158,7 @@ struct SelectMap {
 #endif
   }
 
-  /** IMPORTANT: Changes the draw state. Need to be called after the pass's own state_set. */
+  /** IMPORTANT: Changes the draw state. Need to be called after the pass own state_set. */
   void select_bind(PassSimple &pass)
   {
     if (selection_type == SelectionType::DISABLED) {
@@ -173,7 +173,7 @@ struct SelectMap {
     pass.bind_ssbo(SELECT_ID_OUT, &select_output_buf);
   }
 
-  /** IMPORTANT: Changes the draw state. Need to be called after the pass's own state_set. */
+  /** IMPORTANT: Changes the draw state. Need to be called after the pass own state_set. */
   void select_bind(PassMain &pass)
   {
     if (selection_type == SelectionType::DISABLED) {

@@ -13,7 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_lasso_2d.hh"
+#include "BLI_blenlib.h"
+#include "BLI_lasso_2d.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
@@ -25,7 +26,8 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "BKE_fcurve.hh"
+#include "BKE_context.hh"
+#include "BKE_fcurve.h"
 #include "BKE_nla.h"
 
 #include "UI_interface_c.hh"
@@ -571,7 +573,7 @@ static void initialize_box_select_key_editing_data(const bool incl_handles,
     r_ked->iterflags |= KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE;
   }
 
-  /* Enable handles selection. (used in keyframes_edit.cc > keyframe_ok_checks function) */
+  /* Enable handles selection. (used in keyframes_edit.cc > KEYFRAME_OK_CHECKS macro) */
   if (incl_handles) {
     r_ked->iterflags |= KEYFRAME_ITER_INCL_HANDLES;
     *r_mapping_flag = 0;
@@ -954,7 +956,7 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
-  KeyframeEdit_LassoData data_lasso{};
+  KeyframeEdit_LassoData data_lasso = {nullptr};
   rcti rect;
   rctf rect_fl;
 
@@ -966,8 +968,8 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
   }
 
   data_lasso.rectf_view = &rect_fl;
-  data_lasso.mcoords = WM_gesture_lasso_path_to_array(C, op);
-  if (data_lasso.mcoords.is_empty()) {
+  data_lasso.mcoords = WM_gesture_lasso_path_to_array(C, op, &data_lasso.mcoords_len);
+  if (data_lasso.mcoords == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -988,7 +990,7 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
   }
 
   /* Get settings from operator. */
-  BLI_lasso_boundbox(&rect, data_lasso.mcoords);
+  BLI_lasso_boundbox(&rect, data_lasso.mcoords, data_lasso.mcoords_len);
   BLI_rctf_rcti_copy(&rect_fl, &rect);
 
   /* Apply box_select action. */
@@ -999,6 +1001,8 @@ static int graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
     box_select_graphcurves(
         &ac, &rect_fl, BEZT_OK_REGION_LASSO, selectmode, incl_handles, &data_lasso);
   }
+
+  MEM_freeN((void *)data_lasso.mcoords);
 
   /* Send notifier that keyframe selection has changed. */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);

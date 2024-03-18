@@ -15,11 +15,12 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -32,12 +33,13 @@
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.hh"
+#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -331,7 +333,7 @@ void ensure_valid_pivot(const Object *ob, Scene *scene)
   if (ups->average_stroke_counter == 0 || !ups->last_stroke_valid) {
     const Bounds<float3> bounds = BKE_pbvh_bounding_box(ob->sculpt->pbvh);
     const float3 center = math::midpoint(bounds.min, bounds.max);
-    const float3 location = math::transform_point(ob->object_to_world(), center);
+    const float3 location = math::transform_point(float4x4(ob->object_to_world), center);
 
     copy_v3_v3(ups->average_stroke_accum, location);
     ups->average_stroke_counter = 1;
@@ -364,7 +366,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
     BKE_report(
         reports, RPT_WARNING, "Object has non-uniform scale, sculpting may be unpredictable");
   }
-  else if (is_negative_m4(ob->object_to_world().ptr())) {
+  else if (is_negative_m4(ob->object_to_world)) {
     BKE_report(reports, RPT_WARNING, "Object has negative scale, sculpting may be unpredictable");
   }
 
@@ -431,7 +433,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
   ensure_valid_pivot(ob, scene);
 
   /* Flush object mode. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 void ED_object_sculptmode_enter(bContext *C, Depsgraph *depsgraph, ReportList *reports)
@@ -485,7 +487,7 @@ void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scen
   BKE_object_free_derived_caches(ob);
 
   /* Flush object mode. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 void ED_object_sculptmode_exit(bContext *C, Depsgraph *depsgraph)
@@ -1306,6 +1308,7 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(SCULPT_OT_symmetrize);
   WM_operatortype_append(dyntopo::SCULPT_OT_detail_flood_fill);
   WM_operatortype_append(dyntopo::SCULPT_OT_sample_detail_size);
+  WM_operatortype_append(dyntopo::SCULPT_OT_set_detail_size);
   WM_operatortype_append(filter::SCULPT_OT_mesh_filter);
   WM_operatortype_append(mask::SCULPT_OT_mask_filter);
   WM_operatortype_append(SCULPT_OT_set_pivot_position);
@@ -1315,11 +1318,11 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(face_set::SCULPT_OT_face_sets_init);
   WM_operatortype_append(face_set::SCULPT_OT_face_sets_edit);
   WM_operatortype_append(cloth::SCULPT_OT_cloth_filter);
-  WM_operatortype_append(face_set::SCULPT_OT_face_set_lasso_gesture);
-  WM_operatortype_append(face_set::SCULPT_OT_face_set_box_gesture);
-  WM_operatortype_append(trim::SCULPT_OT_trim_box_gesture);
-  WM_operatortype_append(trim::SCULPT_OT_trim_lasso_gesture);
-  WM_operatortype_append(project::SCULPT_OT_project_line_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_face_set_lasso_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_face_set_box_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_trim_box_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_trim_lasso_gesture);
+  WM_operatortype_append(mask::SCULPT_OT_project_line_gesture);
 
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(color::SCULPT_OT_color_filter);

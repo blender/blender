@@ -16,7 +16,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "ED_sculpt.hh"
 
@@ -57,7 +57,7 @@ static void createTransSculpt(bContext *C, TransInfo *t)
 
   td->flag = TD_SELECTED;
   copy_v3_v3(td->center, ss->pivot_pos);
-  mul_m4_v3(ob->object_to_world().ptr(), td->center);
+  mul_m4_v3(ob->object_to_world, td->center);
   td->ob = ob;
 
   td->loc = ss->pivot_pos;
@@ -68,16 +68,16 @@ static void createTransSculpt(bContext *C, TransInfo *t)
   }
 
   float obmat_inv[3][3];
-  copy_m3_m4(obmat_inv, ob->object_to_world().ptr());
+  copy_m3_m4(obmat_inv, ob->object_to_world);
   invert_m3(obmat_inv);
 
   td->ext->rot = nullptr;
   td->ext->rotAxis = nullptr;
   td->ext->rotAngle = nullptr;
   td->ext->quat = ss->pivot_rot;
-  copy_m4_m4(td->ext->obmat, ob->object_to_world().ptr());
+  copy_m4_m4(td->ext->obmat, ob->object_to_world);
   copy_m3_m3(td->ext->l_smtx, obmat_inv);
-  copy_m3_m4(td->ext->r_mtx, ob->object_to_world().ptr());
+  copy_m3_m4(td->ext->r_mtx, ob->object_to_world);
   copy_m3_m3(td->ext->r_smtx, obmat_inv);
 
   copy_qt_qt(td->ext->iquat, ss->pivot_rot);
@@ -91,8 +91,8 @@ static void createTransSculpt(bContext *C, TransInfo *t)
   copy_v3_v3(td->ext->isize, ss->init_pivot_scale);
 
   copy_m3_m3(td->smtx, obmat_inv);
-  copy_m3_m4(td->mtx, ob->object_to_world().ptr());
-  copy_m3_m4(td->axismtx, ob->object_to_world().ptr());
+  copy_m3_m4(td->mtx, ob->object_to_world);
+  copy_m3_m4(td->axismtx, ob->object_to_world);
 
   BLI_assert(!(t->options & CTX_PAINT_CURVE));
   ED_sculpt_init_transform(C, ob, t->mval, t->undo_name);

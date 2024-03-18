@@ -6,7 +6,6 @@
 
 #include "BLI_fileops.h"
 
-#include <cstdio>
 #include <cstring>
 #include <stdexcept>
 

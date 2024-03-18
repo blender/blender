@@ -247,18 +247,18 @@ vec4 gpencil_vertex(vec4 viewport_size,
     out_hardness = gpencil_decode_hardness(use_curr ? hardness1 : hardness2);
 
     if (is_dot) {
-      uint alignment_mode = material_flags & GP_STROKE_ALIGNMENT;
+      uint alignement_mode = material_flags & GP_STROKE_ALIGNMENT;
 
       /* For one point strokes use object alignment. */
-      if (alignment_mode == GP_STROKE_ALIGNMENT_STROKE && ma.x == -1 && ma2.x == -1) {
-        alignment_mode = GP_STROKE_ALIGNMENT_OBJECT;
+      if (alignement_mode == GP_STROKE_ALIGNMENT_STROKE && ma.x == -1 && ma2.x == -1) {
+        alignement_mode = GP_STROKE_ALIGNMENT_OBJECT;
       }
 
       vec2 x_axis;
-      if (alignment_mode == GP_STROKE_ALIGNMENT_STROKE) {
+      if (alignement_mode == GP_STROKE_ALIGNMENT_STROKE) {
         x_axis = (ma2.x == -1) ? line_adj : line;
       }
-      else if (alignment_mode == GP_STROKE_ALIGNMENT_FIXED) {
+      else if (alignement_mode == GP_STROKE_ALIGNMENT_FIXED) {
         /* Default for no-material drawing. */
         x_axis = vec2(1.0, 0.0);
       }

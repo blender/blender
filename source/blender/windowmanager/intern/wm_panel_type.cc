@@ -59,7 +59,7 @@ void WM_paneltype_remove(PanelType *pt)
 
 void WM_paneltype_init()
 {
-  /* Reserve size is set based on blender default setup. */
+  /* reserve size is set based on blender default setup */
   g_paneltypes_hash = BLI_ghash_str_new_ex("g_paneltypes_hash gh", 512);
 }
 
@@ -68,20 +68,20 @@ void WM_paneltype_clear()
   BLI_ghash_free(g_paneltypes_hash, nullptr, nullptr);
 }
 
-void WM_paneltype_idname_visit_for_search(
-    const bContext * /*C*/,
-    PointerRNA * /*ptr*/,
-    PropertyRNA * /*prop*/,
-    const char * /*edit_text*/,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+void WM_paneltype_idname_visit_for_search(const bContext * /*C*/,
+                                          PointerRNA * /*ptr*/,
+                                          PropertyRNA * /*prop*/,
+                                          const char * /*edit_text*/,
+                                          StringPropertySearchVisitFunc visit_fn,
+                                          void *visit_user_data)
 {
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, g_paneltypes_hash) {
     PanelType *pt = static_cast<PanelType *>(BLI_ghashIterator_getValue(&gh_iter));
 
-    StringPropertySearchVisitParams visit_params{};
+    StringPropertySearchVisitParams visit_params = {nullptr};
     visit_params.text = pt->idname;
     visit_params.info = pt->label;
-    visit_fn(visit_params);
+    visit_fn(visit_user_data, &visit_params);
   }
 }

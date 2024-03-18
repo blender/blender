@@ -22,7 +22,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.hh"
 
@@ -32,7 +32,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /* IDPropertyTemplate is a union in DNA_ID.h */
 

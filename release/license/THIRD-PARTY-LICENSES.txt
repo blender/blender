@@ -19,19 +19,20 @@ PERFORMANCE OF THIS SOFTWARE.
 
 ------
 
-** Audaspace; version 1.4+ (ae29ce2) -- https://audaspace.github.io/
+** Audaspace; version 1.3.0 -- https://audaspace.github.io/
 ** Cuda Wrangler; version cbf465b -- https://github.com/CudaWrangler/cuew
 ** Draco; version 1.3.6 -- https://google.github.io/draco/
 ** Embree; version 4.1.0 -- https://github.com/embree/embree
 ** Intel(R) oneAPI DPC++ compiler; version 2022-12 --
 https://github.com/intel/llvm#oneapi-dpc-compiler
-** Intel® Open Path Guiding Library; version 0.6.0 -- http://www.openpgl.org/
+** Intel® Open Path Guiding Library; version 0.5.0 -- http://www.openpgl.org/
 ** Mantaflow; version 0.13 -- http://mantaflow.com/
 ** materialX; version 1.38.6 --
 https://github.com/AcademySoftwareFoundation/MaterialX
 ** meson; version 0.63 -- https://github.com/mesonbuild/meson
 ** oneAPI Threading Building Block; version 2020_U3 --
 https://software.intel.com/en-us/oneapi/onetbb
+** OpenCL Wrangler; version 27a6867 -- https://github.com/OpenCLWrangler/clew
 ** OpenImageDenoise; version 1.4.3 -- https://www.openimagedenoise.org/
 ** OpenImageIO; version 2.4.15.0 -- http://www.openimageio.org
 ** OpenSSL; version 3.1.2 -- https://www.openssl.org/
@@ -244,7 +245,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 * For Audaspace see also this required NOTICE:
-    Copyright © 2009-2023 Jörg Müller. All rights reserved.
+    Copyright © 2009-2020 Jörg Müller. All rights reserved.
 * For Cuda Wrangler see also this required NOTICE:
     Copyright 2011-2014 Blender Foundation
 * For Draco see also this required NOTICE:
@@ -449,7 +450,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ** AutoPackage; version 1.0 -- http://autopackage.org
 BinReloc - a library for creating relocatable executables
 Written by: Hongli Lai <h.lai@chello.nl>
-** LZMA SDK; version 23.01 -- https://www.7-zip.org/sdk.html
+** LZMA SDK; version 5.2.5 -- https://www.7-zip.org/sdk.html
 LZMA SDK: Public Domain
 
 Creative Commons Legal Code
@@ -3461,7 +3462,7 @@ SOFTWARE.
 
 ------
 
-** {fmt}; version 10.1.1 -- https://github.com/fmtlib/fmt
+** {fmt}; version 10.0.0 -- https://github.com/fmtlib/fmt
 Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 ** Brotli; version 1.0.9 -- https://github.com/google/brotli
 Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
@@ -3508,7 +3509,7 @@ Jonathan Shewchuk and Leonidas Guibas. All rights reserved.
 Copyright (c) 2017 Thibaut Goetghebuer-Planchon <tessil@gmx.com>
 ** sse2neon; version 1.6.0 -- https://github.com/DLTcollab/sse2neon
 Copyright sse2neon contributors
-** TinyGLTF; version 2.8.21 -- https://github.com/syoyo/tinygltf
+** TinyGLTF; version 2.5.0 -- https://github.com/syoyo/tinygltf
 Copyright (c) 2017 Syoyo Fujita, Aurélien Chatelain and many contributors
 ** Wayland protocols; version 1.31 --
 https://gitlab.freedesktop.org/wayland/wayland-protocols

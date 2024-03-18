@@ -12,8 +12,10 @@
 
 #include "BLI_assert.h"
 #include "BLI_math_rotation.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_light_types.h"
+#include "DNA_object_types.h"
 
 namespace blender::io::usd {
 

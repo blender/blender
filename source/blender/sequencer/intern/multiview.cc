@@ -12,7 +12,7 @@
 
 #include "BLI_string.h"
 
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "IMB_imbuf.hh"
 

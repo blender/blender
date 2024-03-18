@@ -15,6 +15,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "RNA_access.hh"
+#include "RNA_types.hh"
+
 #include "WM_message.hh"
 
 #include "ED_screen.hh"

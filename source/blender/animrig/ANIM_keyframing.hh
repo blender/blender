@@ -12,7 +12,7 @@
 
 #include <string>
 
-#include "BLI_bit_span.hh"
+#include "BLI_bitmap.h"
 #include "BLI_vector.hh"
 #include "DNA_anim_types.h"
 #include "ED_transform.hh"
@@ -206,7 +206,7 @@ int insert_key_action(Main *bmain,
                       Span<float> values,
                       eInsertKeyFlags insert_key_flag,
                       eBezTriple_KeyframeType key_type,
-                      BitSpan keying_mask);
+                      const BLI_bitmap *keying_mask);
 
 /**
  * Insert keys to the ID of the given PointerRNA for the given RNA paths. Tries to create an

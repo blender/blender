@@ -15,25 +15,19 @@ Example usage:
 
 import argparse
 import datetime
-from gitea_utils import (
-    git_username_detect,
-    gitea_json_issue_events_filter,
-    gitea_json_issues_search,
-)
+from gitea_utils import gitea_json_issues_search, gitea_json_issue_events_filter, git_username_detect
 
 
-def print_needing_info_urls(username: str, before: str) -> None:
+def print_needing_info_urls(username, before):
 
     print(f"Needs information from user before {before}:")
 
     label = "Status/Needs Information from User"
-    issues_json = gitea_json_issues_search(
-        type="issues",
-        state="open",
-        before=before,
-        labels=label,
-        verbose=True,
-    )
+    issues_json = gitea_json_issues_search(type="issues",
+                                           state="open",
+                                           before=before,
+                                           labels=label,
+                                           verbose=True)
 
     for issue in issues_json:
         fullname = issue["repository"]["full_name"]

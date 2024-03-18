@@ -20,6 +20,8 @@
 #include "ED_clip.hh"
 #include "ED_screen.hh"
 
+#include "UI_interface.hh"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 

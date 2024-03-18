@@ -13,7 +13,7 @@
 #include "DNA_node_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_lasso_2d.hh"
+#include "BLI_lasso_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -530,7 +530,7 @@ void node_select_single(bContext &C, bNode &node)
 
   tree_draw_order_update(node_tree);
   if (active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) {
-    DEG_id_tag_update(&node_tree.id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&node_tree.id, ID_RECALC_COPY_ON_WRITE);
   }
 
   WM_event_add_notifier(&C, NC_NODE | NA_SELECTED, nullptr);
@@ -690,7 +690,7 @@ static bool node_mouse_select(bContext *C,
   if ((active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) ||
       viewer_node_changed)
   {
-    DEG_id_tag_update(&snode.edittree->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&snode.edittree->id, ID_RECALC_COPY_ON_WRITE);
   }
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
@@ -964,7 +964,10 @@ static int node_lasso_select_invoke(bContext *C, wmOperator *op, const wmEvent *
   return WM_gesture_lasso_invoke(C, op, event);
 }
 
-static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectOp sel_op)
+static bool do_lasso_select_node(bContext *C,
+                                 const int mcoords[][2],
+                                 const int mcoords_len,
+                                 eSelectOp sel_op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode->edittree;
@@ -981,7 +984,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
   }
 
   /* Get rectangle from operator. */
-  BLI_lasso_boundbox(&rect, mcoords);
+  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
   for (bNode *node : node_tree.all_nodes()) {
     if (select && (node->flag & NODE_SELECT)) {
@@ -1013,7 +1016,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
         if (UI_view2d_view_to_region_clip(
                 &region->v2d, center.x, center.y, &screen_co.x, &screen_co.y) &&
             BLI_rcti_isect_pt(&rect, screen_co.x, screen_co.y) &&
-            BLI_lasso_is_point_inside(mcoords, screen_co.x, screen_co.y, INT_MAX))
+            BLI_lasso_is_point_inside(mcoords, mcoords_len, screen_co.x, screen_co.y, INT_MAX))
         {
           nodeSetSelected(node, select);
           changed = true;
@@ -1032,17 +1035,19 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
 
 static int node_lasso_select_exec(bContext *C, wmOperator *op)
 {
-  const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
+  int mcoords_len;
+  const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
-  if (mcoords.is_empty()) {
-    return OPERATOR_PASS_THROUGH;
+  if (mcoords) {
+    const eSelectOp sel_op = (eSelectOp)RNA_enum_get(op->ptr, "mode");
+
+    do_lasso_select_node(C, mcoords, mcoords_len, sel_op);
+
+    MEM_freeN((void *)mcoords);
+
+    return OPERATOR_FINISHED;
   }
-
-  const eSelectOp sel_op = (eSelectOp)RNA_enum_get(op->ptr, "mode");
-
-  do_lasso_select_node(C, mcoords, sel_op);
-
-  return OPERATOR_FINISHED;
+  return OPERATOR_PASS_THROUGH;
 }
 
 void NODE_OT_select_lasso(wmOperatorType *ot)
@@ -1394,6 +1399,8 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_op)
                        10,
                        UI_searchbox_size_x(),
                        UI_UNIT_Y,
+                       0,
+                       0,
                        "");
   UI_but_func_search_set(
       but, nullptr, node_find_update_fn, op->type, false, nullptr, node_find_exec_fn, nullptr);
@@ -1409,6 +1416,8 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_op)
            UI_searchbox_size_x(),
            UI_searchbox_size_y(),
            nullptr,
+           0,
+           0,
            0,
            0,
            nullptr);

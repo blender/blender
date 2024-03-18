@@ -22,12 +22,10 @@ struct AddCurvesOnMeshInputs {
 
   /** Determines shape of new curves. */
   bool interpolate_length = false;
-  bool interpolate_radius = false;
   bool interpolate_shape = false;
   bool interpolate_point_count = false;
   bool interpolate_resolution = false;
   float fallback_curve_length = 0.0f;
-  float fallback_curve_radius = 0.0f;
   int fallback_point_count = 0;
 
   /** Information about the surface that the new curves are attached to. */

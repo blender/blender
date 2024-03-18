@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "GHOST_C-api.h"
 

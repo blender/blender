@@ -15,9 +15,10 @@
 
 #include "BLI_math_matrix.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_material_types.h"
+#include "DNA_scene_types.h"
 
 #include "ED_grease_pencil.hh"
 
@@ -1185,7 +1186,7 @@ void create_blank(Main &bmain, Object &object, const int frame_number)
   grease_pencil.insert_blank_frame(new_layer, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
 }
 
-void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, const int frame_number)
+void create_stroke(Main &bmain, Object &object, float4x4 matrix, const int frame_number)
 {
   using namespace blender::bke::greasepencil;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
@@ -1213,7 +1214,7 @@ void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, const in
   drawing_lines.tag_topology_changed();
 }
 
-void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, const int frame_number)
+void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int frame_number)
 {
   /* Original model created by Matias Mendiola. */
   using namespace blender::bke::greasepencil;

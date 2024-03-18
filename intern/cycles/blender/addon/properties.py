@@ -888,6 +888,17 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         unit='LENGTH'
     )
 
+    motion_blur_position: EnumProperty(
+        name="Motion Blur Position",
+        default='CENTER',
+        description="Offset for the shutter's time interval, allows to change the motion blur trails",
+        items=(
+            ('START', "Start on Frame", "The shutter opens at the current frame"),
+            ('CENTER', "Center on Frame", "The shutter is open during the current frame"),
+            ('END', "End on Frame", "The shutter closes at the current frame"),
+        ),
+    )
+
     rolling_shutter_type: EnumProperty(
         name="Shutter Type",
         default='NONE',
@@ -969,7 +980,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         return _cycles.debug_flags_update(scene)
 
     debug_use_cpu_avx2: BoolProperty(name="AVX2", default=True)
-    debug_use_cpu_sse42: BoolProperty(name="SSE42", default=True)
+    debug_use_cpu_sse41: BoolProperty(name="SSE41", default=True)
+    debug_use_cpu_sse2: BoolProperty(name="SSE2", default=True)
     debug_bvh_layout: EnumProperty(
         name="BVH Layout",
         items=enum_bvh_layouts,

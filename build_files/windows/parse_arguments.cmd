@@ -50,8 +50,6 @@ if NOT "%1" == "" (
 		goto ERR
 	) else if "%1" == "x64" (
 		set BUILD_ARCH=x64
-	) else if "%1" == "arm64" (
-		set BUILD_ARCH=arm64
 	) else if "%1" == "2019" (
 		set BUILD_VS_YEAR=2019
 	) else if "%1" == "2019pre" (

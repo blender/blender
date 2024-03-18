@@ -11,7 +11,7 @@
 #include "BLI_assert.h"
 #include "BLI_span.hh"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "GPU_common.h"
 #include "gpu_batch_private.hh"

@@ -135,7 +135,8 @@ static void initRawInput()
 
 typedef BOOL(API *GHOST_WIN32_EnableNonClientDpiScaling)(HWND);
 
-GHOST_SystemWin32::GHOST_SystemWin32() : m_hasPerformanceCounter(false), m_freq(0)
+GHOST_SystemWin32::GHOST_SystemWin32()
+    : m_hasPerformanceCounter(false), m_freq(0), m_start(0), m_lfstart(0)
 {
   m_displayManager = new GHOST_DisplayManagerWin32();
   GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
@@ -177,17 +178,22 @@ GHOST_SystemWin32::~GHOST_SystemWin32()
 uint64_t GHOST_SystemWin32::performanceCounterToMillis(__int64 perf_ticks) const
 {
   /* Calculate the time passed since system initialization. */
-  __int64 delta = perf_ticks * 1000;
+  __int64 delta = (perf_ticks - m_start) * 1000;
 
   uint64_t t = uint64_t(delta / m_freq);
   return t;
+}
+
+uint64_t GHOST_SystemWin32::tickCountToMillis(__int64 ticks) const
+{
+  return ticks - m_lfstart;
 }
 
 uint64_t GHOST_SystemWin32::getMilliSeconds() const
 {
   /* Hardware does not support high resolution timers. We will use GetTickCount instead then. */
   if (!m_hasPerformanceCounter) {
-    return ::GetTickCount64();
+    return tickCountToMillis(::GetTickCount());
   }
 
   /* Retrieve current count */
@@ -198,9 +204,10 @@ uint64_t GHOST_SystemWin32::getMilliSeconds() const
 }
 
 /**
- * Returns the message time, compatible with the time value from #getMilliSeconds.
- * This should be used instead of #getMilliSeconds when you need the time a message was delivered
- * versus collected, so for all event creation that are in response to receiving a Windows message.
+ * Returns the number of milliseconds since the start of the Blender process to the time of the
+ * last message, using the high frequency timer if available. This should be used instead of
+ * getMilliSeconds when you need the time a message was delivered versus collected, so for all
+ * event creation that are in response to receiving a Windows message.
  */
 static uint64_t getMessageTime(GHOST_SystemWin32 *system)
 {
@@ -212,7 +219,7 @@ static uint64_t getMessageTime(GHOST_SystemWin32 *system)
     t_delta -= int64_t(UINT32_MAX) + 1;
   }
 
-  /* Return message time as 64-bit milliseconds with the delta applied. */
+  /* Return message time as 64-bit milliseconds since Blender start. */
   return system->getMilliSeconds() + t_delta;
 }
 
@@ -568,8 +575,16 @@ GHOST_TSuccess GHOST_SystemWin32::init()
   SetProcessDPIAware();
   initRawInput();
 
+  m_lfstart = ::GetTickCount();
   /* Determine whether this system has a high frequency performance counter. */
   m_hasPerformanceCounter = ::QueryPerformanceFrequency((LARGE_INTEGER *)&m_freq) == TRUE;
+  if (m_hasPerformanceCounter) {
+    GHOST_PRINT("GHOST_SystemWin32::init: High Frequency Performance Timer available\n");
+    ::QueryPerformanceCounter((LARGE_INTEGER *)&m_start);
+  }
+  else {
+    GHOST_PRINT("GHOST_SystemWin32::init: High Frequency Performance Timer not available\n");
+  }
 
   if (success) {
     WNDCLASSW wc = {0};

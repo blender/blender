@@ -15,6 +15,7 @@
 #include "BKE_camera.h"
 #include "BKE_object.hh"
 
+#include <pxr/pxr.h>
 #include <pxr/usd/usdGeom/camera.h>
 
 namespace blender::io::usd {

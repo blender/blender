@@ -8,10 +8,16 @@
 
 #include <iostream>
 
+#include "BKE_customdata.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 
+#include "BLI_array.hh"
 #include "BLI_array_utils.hh"
-#include "BLI_math_vector_types.hh"
+#include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
+#include "BLI_task.hh"
 
 #include "stl_import_mesh.hh"
 

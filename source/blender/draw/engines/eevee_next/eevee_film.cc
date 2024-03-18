@@ -66,7 +66,7 @@ void Film::init_aovs()
   }
 
   if (aovs.size() > AOV_MAX) {
-    inst_.info += "Error: Too many AOVs\n";
+    inst_.info = "Error: Too many AOVs";
     return;
   }
 
@@ -76,10 +76,6 @@ void Film::init_aovs()
     uint &hash = is_value ? aovs_info.hash_value[index].x : aovs_info.hash_color[index].x;
     hash = BLI_hash_string(aov->name);
     index++;
-  }
-
-  if (!aovs.is_empty()) {
-    enabled_categories_ |= PASS_CATEGORY_AOV;
   }
 }
 
@@ -213,7 +209,6 @@ void Film::init(const int2 &extent, const rcti *output_rect)
   Scene &scene = *inst_.scene;
   SceneEEVEE &scene_eevee = scene.eevee;
 
-  enabled_categories_ = PassCategory(0);
   init_aovs();
 
   {
@@ -236,20 +231,9 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     /* Filter obsolete passes. */
     enabled_passes_ &= ~(EEVEE_RENDER_PASS_UNUSED_8 | EEVEE_RENDER_PASS_BLOOM);
 
-    if (scene.r.mode & R_MBLUR) {
+    if (scene_eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED) {
       /* Disable motion vector pass if motion blur is enabled. */
       enabled_passes_ &= ~EEVEE_RENDER_PASS_VECTOR;
-    }
-  }
-  {
-    data_.scaling_factor = 1;
-    if (inst_.is_viewport()) {
-      if (!bool(enabled_passes_ &
-                (EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET | EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL |
-                 EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT | EEVEE_RENDER_PASS_NORMAL)))
-      {
-        data_.scaling_factor = BKE_render_preview_pixel_size(&inst_.scene->r);
-      }
     }
   }
   {
@@ -264,6 +248,9 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.extent = int2(BLI_rcti_size_x(output_rect), BLI_rcti_size_y(output_rect));
     data_.offset = int2(output_rect->xmin, output_rect->ymin);
     data_.extent_inv = 1.0f / float2(data_.extent);
+    /* TODO(fclem): parameter hidden in experimental.
+     * We need to figure out LOD bias first in order to preserve texture crispiness. */
+    data_.scaling_factor = 1;
     data_.render_extent = math::divide_ceil(extent, int2(data_.scaling_factor));
     data_.render_offset = data_.offset;
 
@@ -298,18 +285,10 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     const eViewLayerEEVEEPassType color_passes_3 = EEVEE_RENDER_PASS_TRANSPARENT;
 
     data_.exposure_scale = pow2f(scene.view_settings.exposure);
-    if (enabled_passes_ & data_passes) {
-      enabled_categories_ |= PASS_CATEGORY_DATA;
-    }
-    if (enabled_passes_ & color_passes_1) {
-      enabled_categories_ |= PASS_CATEGORY_COLOR_1;
-    }
-    if (enabled_passes_ & color_passes_2) {
-      enabled_categories_ |= PASS_CATEGORY_COLOR_2;
-    }
-    if (enabled_passes_ & color_passes_3) {
-      enabled_categories_ |= PASS_CATEGORY_COLOR_3;
-    }
+    data_.has_data = (enabled_passes_ & data_passes) != 0;
+    data_.any_render_pass_1 = (enabled_passes_ & color_passes_1) != 0;
+    data_.any_render_pass_2 = (enabled_passes_ & color_passes_2) != 0;
+    data_.any_render_pass_3 = (enabled_passes_ & color_passes_3) != 0;
   }
   {
     /* Set pass offsets. */
@@ -379,18 +358,9 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.cryptomatte_object_id = cryptomatte_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT);
     data_.cryptomatte_asset_id = cryptomatte_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET);
     data_.cryptomatte_material_id = cryptomatte_index_get(EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL);
-
-    if ((enabled_passes_ &
-         (EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET | EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL |
-          EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT)) != 0)
-    {
-      enabled_categories_ |= PASS_CATEGORY_CRYPTOMATTE;
-    }
   }
   {
-    int2 weight_extent = (inst_.camera.is_panoramic() || (data_.scaling_factor > 1)) ?
-                             data_.extent :
-                             int2(1);
+    int2 weight_extent = inst_.camera.is_panoramic() ? data_.extent : int2(data_.scaling_factor);
 
     eGPUTextureFormat color_format = GPU_RGBA16F;
     eGPUTextureFormat float_format = GPU_R16F;
@@ -420,7 +390,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
 
     if (reset > 0) {
       data_.use_history = 0;
-      use_reprojection_ = false;
+      data_.use_reprojection = 0;
 
       /* Avoid NaN in uninitialized texture memory making history blending dangerous. */
       color_accum_tx_.clear(float4(0.0f));
@@ -453,14 +423,9 @@ void Film::sync()
    * Still bind previous step to avoid undefined behavior. */
   eVelocityStep step_next = inst_.is_viewport() ? STEP_PREVIOUS : STEP_NEXT;
 
-  GPUShader *sh = inst_.shaders.static_shader_get(shader);
   accumulate_ps_.init();
-  accumulate_ps_.specialize_constant(sh, "enabled_categories", uint(enabled_categories_));
-  accumulate_ps_.specialize_constant(sh, "samples_len", &data_.samples_len);
-  accumulate_ps_.specialize_constant(sh, "use_reprojection", &use_reprojection_);
-  accumulate_ps_.specialize_constant(sh, "scaling_factor", data_.scaling_factor);
   accumulate_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
-  accumulate_ps_.shader_set(sh);
+  accumulate_ps_.shader_set(inst_.shaders.static_shader_get(shader));
   accumulate_ps_.bind_resources(inst_.uniform_data);
   accumulate_ps_.bind_ubo("camera_prev", &(*velocity.camera_steps[STEP_PREVIOUS]));
   accumulate_ps_.bind_ubo("camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
@@ -510,11 +475,11 @@ void Film::sync()
 
 void Film::end_sync()
 {
-  use_reprojection_ = inst_.sampling.interactive_mode();
+  data_.use_reprojection = inst_.sampling.interactive_mode();
 
   /* Just bypass the reprojection and reset the accumulation. */
   if (inst_.is_viewport() && force_disable_reprojection_ && inst_.sampling.is_reset()) {
-    use_reprojection_ = false;
+    data_.use_reprojection = false;
     data_.use_history = false;
   }
 
@@ -546,7 +511,7 @@ float2 Film::pixel_jitter_get() const
 
 eViewLayerEEVEEPassType Film::enabled_passes_get() const
 {
-  if (inst_.is_viewport() && use_reprojection_) {
+  if (inst_.is_viewport() && data_.use_reprojection) {
     /* Enable motion vector rendering but not the accumulation buffer. */
     return enabled_passes_ | EEVEE_RENDER_PASS_VECTOR;
   }

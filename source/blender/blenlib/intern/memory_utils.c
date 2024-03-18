@@ -16,7 +16,7 @@
 
 #include "BLI_memory_utils.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 bool BLI_memory_is_zero(const void *arr, const size_t arr_size)
 {

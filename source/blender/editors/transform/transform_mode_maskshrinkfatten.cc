@@ -11,13 +11,14 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
+#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -44,7 +45,7 @@ static void applyMaskShrinkFatten(TransInfo *t)
 
   t->values_final[0] = ratio;
 
-  /* Header print for NumInput. */
+  /* header print for NumInput */
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
 
@@ -55,7 +56,7 @@ static void applyMaskShrinkFatten(TransInfo *t)
     SNPRINTF(str, IFACE_("Feather Shrink/Fatten: %3f"), ratio);
   }
 
-  /* Detect if no points have feather yet. */
+  /* detect if no points have feather yet */
   if (ratio > 1.0f) {
     initial_feather = true;
 
@@ -73,7 +74,7 @@ static void applyMaskShrinkFatten(TransInfo *t)
     }
   }
 
-  /* Apply shrink/fatten. */
+  /* apply shrink/fatten */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td;
     for (td = tc->data, i = 0; i < tc->data_len; i++, td++) {

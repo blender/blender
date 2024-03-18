@@ -8,9 +8,6 @@
 
 #pragma once
 
-#include <string>
-#include <utility>
-
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"

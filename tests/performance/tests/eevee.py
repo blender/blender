@@ -114,9 +114,6 @@ else:
         def category(self):
             return "eevee"
 
-        def use_background(self):
-            return False
-
         def run(self, env, device_id):
             args = {}
             _, log = env.run_in_blender(_run, args, [self.filepath], foreground=True)

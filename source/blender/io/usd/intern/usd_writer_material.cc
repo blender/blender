@@ -4,6 +4,7 @@
 
 #include "usd_writer_material.hh"
 
+#include "usd.hh"
 #include "usd_exporter_context.hh"
 #include "usd_hook.hh"
 
@@ -12,11 +13,12 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "IMB_colormanagement.hh"
 
 #include "BLI_fileops.h"
+#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_memory_utils.hh"
@@ -25,13 +27,14 @@
 #include "BLI_string_utils.hh"
 
 #include "DNA_material_types.h"
-#include "DNA_node_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_types.hh"
+#include "WM_api.hh"
 
 #include <pxr/base/tf/stringUtils.h>
+#include <pxr/pxr.h>
+#include <pxr/usd/usdGeom/scope.h>
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};

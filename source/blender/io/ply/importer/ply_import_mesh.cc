@@ -7,15 +7,15 @@
  */
 
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 
 #include "GEO_mesh_merge_by_distance.hh"
 
-#include "BLI_color.hh"
+#include "BLI_math_color.hh"
 #include "BLI_math_vector.h"
-#include "BLI_span.hh"
 
 #include "ply_import_mesh.hh"
 

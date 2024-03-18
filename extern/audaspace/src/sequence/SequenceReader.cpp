@@ -25,7 +25,7 @@
 
 AUD_NAMESPACE_BEGIN
 
-SequenceReader::SequenceReader(std::shared_ptr<SequenceData> sequence, ResampleQuality quality) :
+SequenceReader::SequenceReader(std::shared_ptr<SequenceData> sequence, bool quality) :
 	m_position(0), m_device(sequence->m_specs), m_sequence(sequence), m_status(0), m_entry_status(0)
 {
 	m_device.setQuality(quality);

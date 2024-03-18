@@ -6,6 +6,8 @@
  * \ingroup edtransform
  */
 
+#include "DNA_mesh_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
@@ -14,6 +16,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_mesh.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -62,10 +65,10 @@ static void createTransEdge(bContext * /*C*/, TransInfo *t)
     td = tc->data = static_cast<TransData *>(
         MEM_callocN(tc->data_len * sizeof(TransData), "TransCrease"));
 
-    copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
+    copy_m3_m4(mtx, tc->obedit->object_to_world);
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
-    /* Create data we need. */
+    /* create data we need */
     if (t->mode == TFM_BWEIGHT) {
       if (!CustomData_has_layer_named(&em->bm->edata, CD_PROP_FLOAT, "bevel_weight_edge")) {
         BM_data_layer_add_named(em->bm, &em->bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
@@ -73,7 +76,7 @@ static void createTransEdge(bContext * /*C*/, TransInfo *t)
       cd_edge_float_offset = CustomData_get_offset_named(
           &em->bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
     }
-    else { /* `if (t->mode == TFM_EDGE_CREASE) {`. */
+    else { /* if (t->mode == TFM_EDGE_CREASE) { */
       BLI_assert(t->mode == TFM_EDGE_CREASE);
       if (!CustomData_has_layer_named(&em->bm->edata, CD_PROP_FLOAT, "crease_edge")) {
         BM_data_layer_add_named(em->bm, &em->bm->edata, CD_PROP_FLOAT, "crease_edge");
@@ -89,7 +92,7 @@ static void createTransEdge(bContext * /*C*/, TransInfo *t)
           (BM_elem_flag_test(eed, BM_ELEM_SELECT) || is_prop_edit))
       {
         float *fl_ptr;
-        /* Need to set center for center calculations. */
+        /* need to set center for center calculations */
         mid_v3_v3v3(td->center, eed->v1->co, eed->v2->co);
 
         td->loc = nullptr;

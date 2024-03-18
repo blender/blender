@@ -8,9 +8,14 @@
 
 #include <cstdio>
 
-#include "BKE_context.hh"
-#include "BKE_report.hh"
+#include "BKE_layer.hh"
+#include "BKE_report.h"
 
+#include "DNA_collection_types.h"
+#include "DNA_scene_types.h"
+
+#include "BKE_context.hh"
+#include "BLI_memory_utils.hh"
 #include "IO_ply.hh"
 
 #include "ply_data.hh"

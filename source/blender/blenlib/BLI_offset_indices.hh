@@ -66,14 +66,16 @@ template<typename T> class OffsetIndices {
     BLI_assert(index < offsets_.size() - 1);
     const int64_t begin = offsets_[index];
     const int64_t end = offsets_[index + 1];
-    return IndexRange::from_begin_end(begin, end);
+    const int64_t size = end - begin;
+    return IndexRange(begin, size);
   }
 
   IndexRange operator[](const IndexRange indices) const
   {
     const int64_t begin = offsets_[indices.start()];
     const int64_t end = offsets_[indices.one_after_last()];
-    return IndexRange::from_begin_end(begin, end);
+    const int64_t size = end - begin;
+    return IndexRange(begin, size);
   }
 
   /**

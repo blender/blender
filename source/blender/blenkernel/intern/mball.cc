@@ -15,7 +15,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -29,26 +28,33 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_main.hh"
 
+#include "BKE_anim_data.h"
+#include "BKE_curve.hh"
+#include "BKE_displist.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_material.h"
 #include "BKE_mball.hh"
 #include "BKE_mball_tessellate.hh"
+#include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -65,11 +71,7 @@ static void metaball_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(metaball, DNA_struct_default_get(MetaBall), id);
 }
 
-static void metaball_copy_data(Main * /*bmain*/,
-                               std::optional<Library *> /*owner_library*/,
-                               ID *id_dst,
-                               const ID *id_src,
-                               const int /*flag*/)
+static void metaball_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
 {
   MetaBall *metaball_dst = (MetaBall *)id_dst;
   const MetaBall *metaball_src = (const MetaBall *)id_src;
@@ -145,7 +147,6 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_MB = {
     /*id_code*/ ID_MB,
     /*id_filter*/ FILTER_ID_MB,
-    /*dependencies_id_types*/ FILTER_ID_MA,
     /*main_listbase_index*/ INDEX_ID_MB,
     /*struct_size*/ sizeof(MetaBall),
     /*name*/ "Metaball",

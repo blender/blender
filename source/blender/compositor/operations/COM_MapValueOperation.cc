@@ -10,7 +10,41 @@ MapValueOperation::MapValueOperation()
 {
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Value);
+  input_operation_ = nullptr;
   flags_.can_be_constant = true;
+}
+
+void MapValueOperation::init_execution()
+{
+  input_operation_ = this->get_input_socket_reader(0);
+}
+
+void MapValueOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
+{
+  float src[4];
+  input_operation_->read_sampled(src, x, y, sampler);
+  const TexMapping *texmap = settings_;
+  float value = (src[0] + texmap->loc[0]) * texmap->size[0];
+  if (texmap->flag & TEXMAP_CLIP_MIN) {
+    if (value < texmap->min[0]) {
+      value = texmap->min[0];
+    }
+  }
+  if (texmap->flag & TEXMAP_CLIP_MAX) {
+    if (value > texmap->max[0]) {
+      value = texmap->max[0];
+    }
+  }
+
+  output[0] = value;
+}
+
+void MapValueOperation::deinit_execution()
+{
+  input_operation_ = nullptr;
 }
 
 void MapValueOperation::update_memory_buffer_partial(MemoryBuffer *output,

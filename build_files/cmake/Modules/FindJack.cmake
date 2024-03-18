@@ -61,5 +61,3 @@ mark_as_advanced(
   JACK_INCLUDE_DIR
   JACK_LIBRARY
 )
-
-unset(_jack_SEARCH_DIRS)

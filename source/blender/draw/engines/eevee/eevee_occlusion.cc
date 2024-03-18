@@ -14,7 +14,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "BKE_global.hh" /* for G.debug_value */
+#include "BKE_global.h" /* for G.debug_value */
 
 #include "eevee_private.h"
 

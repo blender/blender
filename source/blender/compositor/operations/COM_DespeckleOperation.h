@@ -19,8 +19,16 @@ class DespeckleOperation : public MultiThreadedOperation {
   // int filter_width_;
   // int filter_height_;
 
+ protected:
+  SocketReader *input_operation_;
+  SocketReader *input_value_operation_;
+
  public:
   DespeckleOperation();
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   void set_threshold(float threshold)
   {
@@ -30,6 +38,9 @@ class DespeckleOperation : public MultiThreadedOperation {
   {
     threshold_neighbor_ = threshold;
   }
+
+  void init_execution() override;
+  void deinit_execution() override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,

@@ -22,9 +22,6 @@ struct Main;
 struct SpaceFile;
 struct View2D;
 struct uiLayout;
-namespace blender::asset_system {
-class AssetLibrary;
-}
 
 bool file_main_region_needs_refresh_before_draw(SpaceFile *sfile);
 
@@ -227,29 +224,33 @@ void file_path_to_ui_path(const char *path, char *r_pathi, int max_size);
 
 /* asset_catalog_tree_view.cc */
 
-namespace blender::ed::asset_browser {
+/* C-handle for #ed::asset_browser::AssetCatalogFilterSettings. */
+struct FileAssetCatalogFilterSettingsHandle;
 
-void file_create_asset_catalog_tree_view_in_layout(asset_system::AssetLibrary *asset_library,
-                                                   uiLayout *layout,
-                                                   SpaceFile *space_file,
-                                                   FileAssetSelectParams *params);
+void file_create_asset_catalog_tree_view_in_layout(
+    blender::asset_system::AssetLibrary *asset_library,
+    uiLayout *layout,
+    SpaceFile *space_file,
+    FileAssetSelectParams *params);
 
-class AssetCatalogFilterSettings;
+namespace blender::asset_system {
+class AssetLibrary;
+}
 
-AssetCatalogFilterSettings *file_create_asset_catalog_filter_settings();
+FileAssetCatalogFilterSettingsHandle *file_create_asset_catalog_filter_settings();
 void file_delete_asset_catalog_filter_settings(
-    AssetCatalogFilterSettings **filter_settings_handle);
+    FileAssetCatalogFilterSettingsHandle **filter_settings_handle);
 /**
  * \return True if the file list should update its filtered results
  * (e.g. because filtering parameters changed).
  */
 bool file_set_asset_catalog_filter_settings(
-    AssetCatalogFilterSettings *filter_settings_handle,
+    FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,
-    const ::bUUID &catalog_id);
-void file_ensure_updated_catalog_filter_data(AssetCatalogFilterSettings *filter_settings_handle,
-                                             const asset_system::AssetLibrary *asset_library);
+    ::bUUID catalog_id);
+void file_ensure_updated_catalog_filter_data(
+    FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
+    const blender::asset_system::AssetLibrary *asset_library);
 bool file_is_asset_visible_in_catalog_filter_settings(
-    const AssetCatalogFilterSettings *filter_settings_handle, const AssetMetaData *asset_data);
-
-}  // namespace blender::ed::asset_browser
+    const FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
+    const AssetMetaData *asset_data);

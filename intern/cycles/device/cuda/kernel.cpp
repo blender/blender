@@ -54,4 +54,4 @@ bool CUDADeviceKernels::available(DeviceKernel kernel) const
 
 CCL_NAMESPACE_END
 
-#endif /* WITH_CUDA */
+#endif /* WITH_CUDA*/

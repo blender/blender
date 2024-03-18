@@ -20,7 +20,7 @@ else()
   set(LEVEL_ZERO_ROOT_DIR "")
 endif()
 
-set(_level_zero_SEARCH_DIRS
+set(_level_zero_search_dirs
   ${LEVEL_ZERO_ROOT_DIR}
   /usr/lib
   /usr/local/lib
@@ -30,7 +30,7 @@ find_library(LEVEL_ZERO_LIBRARY
   NAMES
     ze_loader
   HINTS
-    ${_level_zero_SEARCH_DIRS}
+    ${_level_zero_search_dirs}
   PATH_SUFFIXES
     lib64 lib
 )
@@ -39,7 +39,7 @@ find_path(LEVEL_ZERO_INCLUDE_DIR
   NAMES
     level_zero/ze_api.h
   HINTS
-    ${_level_zero_SEARCH_DIRS}
+    ${_level_zero_search_dirs}
   PATH_SUFFIXES
     include
 )
@@ -60,5 +60,3 @@ mark_as_advanced(
   LEVEL_ZERO_LIBRARY
   LEVEL_ZERO_INCLUDE_DIR
 )
-
-unset(_level_zero_SEARCH_DIRS)

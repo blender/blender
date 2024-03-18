@@ -21,7 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_lib_id.hh"
 
 #include "RNA_prototypes.h"
@@ -196,9 +196,9 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
     if (id_node->customdata_masks != id_node->previous_customdata_masks) {
       flag |= ID_RECALC_GEOMETRY;
     }
-    const bool is_expanded = deg_eval_copy_is_expanded(id_node->id_cow);
+    const bool is_expanded = deg_copy_on_write_is_expanded(id_node->id_cow);
     if (!is_expanded) {
-      flag |= ID_RECALC_SYNC_TO_EVAL;
+      flag |= ID_RECALC_COPY_ON_WRITE;
       /* This means ID is being added to the dependency graph first
        * time, which is similar to "ob-visible-change" */
       if (id_type == ID_OB) {

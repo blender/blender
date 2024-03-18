@@ -21,7 +21,7 @@
 
 AUD_NAMESPACE_BEGIN
 
-SndFileWriter::SndFileWriter(const std::string &filename, DeviceSpecs specs,
+SndFileWriter::SndFileWriter(std::string filename, DeviceSpecs specs,
 									 Container format, Codec codec, unsigned int bitrate) :
 	m_position(0), m_specs(specs)
 {

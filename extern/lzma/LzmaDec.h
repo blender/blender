@@ -1,36 +1,29 @@
 /* LzmaDec.h -- LZMA Decoder
-2023-04-02 : Igor Pavlov : Public domain */
+2008-10-04 : Igor Pavlov : Public domain */
 
-#ifndef ZIP7_INC_LZMA_DEC_H
-#define ZIP7_INC_LZMA_DEC_H
+#ifndef __LZMADEC_H
+#define __LZMADEC_H
 
-#include "7zTypes.h"
+#include "Types.h"
 
-EXTERN_C_BEGIN
-
-/* #define Z7_LZMA_PROB32 */
-/* Z7_LZMA_PROB32 can increase the speed on some CPUs,
+/* #define _LZMA_PROB32 */
+/* _LZMA_PROB32 can increase the speed on some CPUs,
    but memory usage for CLzmaDec::probs will be doubled in that case */
 
-typedef
-#ifdef Z7_LZMA_PROB32
-  UInt32
+#ifdef _LZMA_PROB32
+#define CLzmaProb UInt32
 #else
-  UInt16
+#define CLzmaProb UInt16
 #endif
-  CLzmaProb;
 
 
 /* ---------- LZMA Properties ---------- */
 
 #define LZMA_PROPS_SIZE 5
 
-typedef struct
+typedef struct _CLzmaProps
 {
-  Byte lc;
-  Byte lp;
-  Byte pb;
-  Byte _pad_;
+  unsigned lc, lp, pb;
   UInt32 dicSize;
 } CLzmaProps;
 
@@ -52,35 +45,32 @@ SRes LzmaProps_Decode(CLzmaProps *p, const Byte *data, unsigned size);
 
 typedef struct
 {
-  /* Don't change this structure. ASM code can use it. */
   CLzmaProps prop;
   CLzmaProb *probs;
-  CLzmaProb *probs_1664;
   Byte *dic;
-  SizeT dicBufSize;
-  SizeT dicPos;
   const Byte *buf;
-  UInt32 range;
-  UInt32 code;
+  UInt32 range, code;
+  SizeT dicPos;
+  SizeT dicBufSize;
   UInt32 processedPos;
   UInt32 checkDicSize;
+  unsigned state;
   UInt32 reps[4];
-  UInt32 state;
-  UInt32 remainLen;
-
+  unsigned remainLen;
+  int needFlush;
+  int needInitState;
   UInt32 numProbs;
   unsigned tempBufSize;
   Byte tempBuf[LZMA_REQUIRED_INPUT_MAX];
 } CLzmaDec;
 
-#define LzmaDec_CONSTRUCT(p) { (p)->dic = NULL; (p)->probs = NULL; }
-#define LzmaDec_Construct(p) LzmaDec_CONSTRUCT(p)
+#define LzmaDec_Construct(p) { (p)->dic = 0; (p)->probs = 0; }
 
 void LzmaDec_Init(CLzmaDec *p);
 
 /* There are two types of LZMA streams:
-     - Stream with end mark. That end mark adds about 6 bytes to compressed size.
-     - Stream without end mark. You must know exact uncompressed size to decompress such stream. */
+     0) Stream with end mark. That end mark adds about 6 bytes to compressed size.
+     1) Stream without end mark. You must know exact uncompressed size to decompress such stream. */
 
 typedef enum
 {
@@ -137,11 +127,11 @@ LzmaDec_Allocate* can return:
   SZ_ERROR_UNSUPPORTED - Unsupported properties
 */
    
-SRes LzmaDec_AllocateProbs(CLzmaDec *p, const Byte *props, unsigned propsSize, ISzAllocPtr alloc);
-void LzmaDec_FreeProbs(CLzmaDec *p, ISzAllocPtr alloc);
+SRes LzmaDec_AllocateProbs(CLzmaDec *p, const Byte *props, unsigned propsSize, ISzAlloc *alloc);
+void LzmaDec_FreeProbs(CLzmaDec *p, ISzAlloc *alloc);
 
-SRes LzmaDec_Allocate(CLzmaDec *p, const Byte *props, unsigned propsSize, ISzAllocPtr alloc);
-void LzmaDec_Free(CLzmaDec *p, ISzAllocPtr alloc);
+SRes LzmaDec_Allocate(CLzmaDec *state, const Byte *prop, unsigned propsSize, ISzAlloc *alloc);
+void LzmaDec_Free(CLzmaDec *state, ISzAlloc *alloc);
 
 /* ---------- Dictionary Interface ---------- */
 
@@ -150,7 +140,7 @@ void LzmaDec_Free(CLzmaDec *p, ISzAllocPtr alloc);
    You must work with CLzmaDec variables directly in this interface.
 
    STEPS:
-     LzmaDec_Construct()
+     LzmaDec_Constr()
      LzmaDec_Allocate()
      for (each new stream)
      {
@@ -182,7 +172,6 @@ Returns:
       LZMA_STATUS_NEEDS_MORE_INPUT
       LZMA_STATUS_MAYBE_FINISHED_WITHOUT_MARK
   SZ_ERROR_DATA - Data error
-  SZ_ERROR_FAIL - Some unexpected error: internal error of code, memory corruption or hardware failure
 */
 
 SRes LzmaDec_DecodeToDic(CLzmaDec *p, SizeT dicLimit,
@@ -225,13 +214,10 @@ Returns:
   SZ_ERROR_MEM  - Memory allocation error
   SZ_ERROR_UNSUPPORTED - Unsupported properties
   SZ_ERROR_INPUT_EOF - It needs more bytes in input buffer (src).
-  SZ_ERROR_FAIL - Some unexpected error: internal error of code, memory corruption or hardware failure
 */
 
 SRes LzmaDecode(Byte *dest, SizeT *destLen, const Byte *src, SizeT *srcLen,
     const Byte *propData, unsigned propSize, ELzmaFinishMode finishMode,
-    ELzmaStatus *status, ISzAllocPtr alloc);
-
-EXTERN_C_END
+    ELzmaStatus *status, ISzAlloc *alloc);
 
 #endif

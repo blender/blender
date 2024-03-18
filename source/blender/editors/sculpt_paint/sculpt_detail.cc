@@ -14,12 +14,11 @@
 #include "BLI_math_vector.hh"
 #include "BLI_time.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 
-#include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_paint.hh"
@@ -43,9 +42,6 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_prototypes.h"
-
-#include "UI_interface.hh"
 
 #include "CLG_log.h"
 
@@ -119,14 +115,14 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   const float size = math::reduce_max(dim);
 
   /* Update topology size. */
-  float object_space_constant_detail = 1.0f / (sd->constant_detail *
-                                               mat4_to_scale(ob->object_to_world().ptr()));
+  float object_space_constant_detail = 1.0f /
+                                       (sd->constant_detail * mat4_to_scale(ob->object_to_world));
   BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
 
   undo::push_begin(ob, op);
   undo::push_node(ob, nullptr, undo::Type::Position);
 
-  const double start_time = BLI_time_now_seconds();
+  const double start_time = BLI_check_seconds_timer();
 
   while (bke::pbvh::bmesh_update_topology(
       ss->pbvh, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false))
@@ -136,7 +132,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
     }
   }
 
-  CLOG_INFO(&LOG, 2, "Detail flood fill took %f seconds.", BLI_time_now_seconds() - start_time);
+  CLOG_INFO(&LOG, 2, "Detail flood fill took %f seconds.", BLI_check_seconds_timer() - start_time);
 
   undo::push_end(ob);
 
@@ -250,7 +246,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
 
   if (srd.hit && srd.edge_length > 0.0f) {
     /* Convert edge length to world space detail resolution. */
-    sd->constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob->object_to_world().ptr()));
+    sd->constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob->object_to_world));
   }
 }
 
@@ -401,6 +397,75 @@ void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Dynamic-topology detail size
+ *
+ * Currently, there are two operators editing the detail size:
+ * - #SCULPT_OT_set_detail_size uses radial control for all methods
+ * - #SCULPT_OT_dyntopo_detail_size_edit shows a triangle grid representation of the detail
+ *   resolution (for constant detail method,
+ *   falls back to radial control for the remaining methods).
+ * \{ */
+
+static void set_brush_rc_props(PointerRNA *ptr, const char *prop)
+{
+  char *path = BLI_sprintfN("tool_settings.sculpt.brush.%s", prop);
+  RNA_string_set(ptr, "data_path_primary", path);
+  MEM_freeN(path);
+}
+
+static void sculpt_detail_size_set_radial_control(bContext *C)
+{
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+  PointerRNA props_ptr;
+  wmOperatorType *ot = WM_operatortype_find("WM_OT_radial_control", true);
+
+  WM_operator_properties_create_ptr(&props_ptr, ot);
+
+  if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
+    set_brush_rc_props(&props_ptr, "constant_detail_resolution");
+    RNA_string_set(
+        &props_ptr, "data_path_primary", "tool_settings.sculpt.constant_detail_resolution");
+  }
+  else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
+    set_brush_rc_props(&props_ptr, "constant_detail_resolution");
+    RNA_string_set(&props_ptr, "data_path_primary", "tool_settings.sculpt.detail_percent");
+  }
+  else {
+    set_brush_rc_props(&props_ptr, "detail_size");
+    RNA_string_set(&props_ptr, "data_path_primary", "tool_settings.sculpt.detail_size");
+  }
+
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
+
+  WM_operator_properties_free(&props_ptr);
+}
+
+static int sculpt_set_detail_size_exec(bContext *C, wmOperator * /*op*/)
+{
+  sculpt_detail_size_set_radial_control(C);
+
+  return OPERATOR_FINISHED;
+}
+
+void SCULPT_OT_set_detail_size(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Set Detail Size";
+  ot->idname = "SCULPT_OT_set_detail_size";
+  ot->description =
+      "Set the mesh detail (either relative or constant one, depending on current dyntopo mode)";
+
+  /* API callbacks. */
+  ot->exec = sculpt_set_detail_size_exec;
+  ot->poll = sculpt_and_dynamic_topology_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Dyntopo Detail Size Edit Operator
  * \{ */
 
@@ -408,17 +473,9 @@ void SCULPT_OT_sample_detail_size(wmOperatorType *ot)
 #define DETAIL_SIZE_DELTA_SPEED 0.08f
 #define DETAIL_SIZE_DELTA_ACCURATE_SPEED 0.004f
 
-enum eDyntopoDetailingMode {
-  DETAILING_MODE_RESOLUTION = 0,
-  DETAILING_MODE_BRUSH_PERCENT = 1,
-  DETAILING_MODE_DETAIL_SIZE = 2
-};
-
 struct DyntopoDetailSizeEditCustomData {
   void *draw_handle;
   Object *active_object;
-
-  eDyntopoDetailingMode mode;
 
   float init_mval[2];
   float accurate_mval[2];
@@ -428,18 +485,10 @@ struct DyntopoDetailSizeEditCustomData {
   bool accurate_mode;
   bool sample_mode;
 
-  /* The values stored here vary based on the detailing mode. */
-  float init_value;
-  float accurate_value;
-  float current_value;
-
+  float init_detail_size;
+  float accurate_detail_size;
+  float detail_size;
   float radius;
-
-  float brush_radius;
-  float pixel_radius;
-
-  float min_value;
-  float max_value;
 
   float preview_tri[3][3];
   float gizmo_mat[4][4];
@@ -452,19 +501,8 @@ static void dyntopo_detail_size_parallel_lines_draw(uint pos3d,
                                                     bool flip,
                                                     const float angle)
 {
-  float object_space_constant_detail;
-  if (cd->mode == DETAILING_MODE_RESOLUTION) {
-    object_space_constant_detail = detail_size::constant_to_detail_size(cd->current_value,
-                                                                        cd->active_object);
-  }
-  else if (cd->mode == DETAILING_MODE_BRUSH_PERCENT) {
-    object_space_constant_detail = detail_size::brush_to_detail_size(cd->current_value,
-                                                                     cd->brush_radius);
-  }
-  else {
-    object_space_constant_detail = detail_size::relative_to_detail_size(
-        cd->current_value, cd->brush_radius, cd->pixel_radius, U.pixelsize);
-  }
+  float object_space_constant_detail = 1.0f / (cd->detail_size *
+                                               mat4_to_scale(cd->active_object->object_to_world));
 
   /* The constant detail represents the maximum edge length allowed before subdividing it. If the
    * triangle grid preview is created with this value it will represent an ideal mesh density where
@@ -560,26 +598,6 @@ static void dyntopo_detail_size_edit_cancel(bContext *C, wmOperator *op)
   ss->draw_faded_cursor = false;
   MEM_freeN(op->customdata);
   ED_workspace_status_text(C, nullptr);
-
-  ScrArea *area = CTX_wm_area(C);
-  ED_area_status_text(area, nullptr);
-}
-
-static void dyntopo_detail_size_bounds(DyntopoDetailSizeEditCustomData *cd)
-{
-  /* TODO: Get range from RNA for these values? */
-  if (cd->mode == DETAILING_MODE_RESOLUTION) {
-    cd->min_value = 1.0f;
-    cd->max_value = 500.0f;
-  }
-  else if (cd->mode == DETAILING_MODE_BRUSH_PERCENT) {
-    cd->min_value = 0.5f;
-    cd->max_value = 100.0f;
-  }
-  else {
-    cd->min_value = 0.5f;
-    cd->max_value = 40.0f;
-  }
 }
 
 static void dyntopo_detail_size_sample_from_surface(Object *ob,
@@ -601,21 +619,9 @@ static void dyntopo_detail_size_sample_from_surface(Object *ob,
   if (num_neighbors > 0) {
     const float avg_edge_len = len_accum / num_neighbors;
     /* Use 0.7 as the average of min and max dyntopo edge length. */
-    const float detail_size = 0.7f / (avg_edge_len *
-                                      mat4_to_scale(cd->active_object->object_to_world().ptr()));
-    float sampled_value;
-    if (cd->mode == DETAILING_MODE_RESOLUTION) {
-      sampled_value = detail_size;
-    }
-    else if (cd->mode == DETAILING_MODE_BRUSH_PERCENT) {
-      sampled_value = detail_size::constant_to_brush_detail(
-          detail_size, cd->brush_radius, cd->active_object);
-    }
-    else {
-      sampled_value = detail_size::constant_to_relative_detail(
-          detail_size, cd->brush_radius, cd->pixel_radius, U.pixelsize, cd->active_object);
-    }
-    cd->current_value = clamp_f(sampled_value, cd->min_value, cd->max_value);
+    const float detail_size = 0.7f /
+                              (avg_edge_len * mat4_to_scale(cd->active_object->object_to_world));
+    cd->detail_size = clamp_f(detail_size, 1.0f, 500.0f);
   }
 }
 
@@ -625,58 +631,27 @@ static void dyntopo_detail_size_update_from_mouse_delta(DyntopoDetailSizeEditCus
   const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
 
   float detail_size_delta;
-  float invert = cd->mode == DETAILING_MODE_RESOLUTION ? 1.0f : -1.0f;
   if (cd->accurate_mode) {
     detail_size_delta = mval[0] - cd->accurate_mval[0];
-    cd->current_value = cd->accurate_value +
-                        detail_size_delta * DETAIL_SIZE_DELTA_ACCURATE_SPEED * invert;
+    cd->detail_size = cd->accurate_detail_size +
+                      detail_size_delta * DETAIL_SIZE_DELTA_ACCURATE_SPEED;
   }
   else {
     detail_size_delta = mval[0] - cd->init_mval[0];
-    cd->current_value = cd->init_value + detail_size_delta * DETAIL_SIZE_DELTA_SPEED * invert;
+    cd->detail_size = cd->init_detail_size + detail_size_delta * DETAIL_SIZE_DELTA_SPEED;
   }
 
   if (event->type == EVT_LEFTSHIFTKEY && event->val == KM_PRESS) {
     cd->accurate_mode = true;
     copy_v2_v2(cd->accurate_mval, mval);
-    cd->accurate_value = cd->current_value;
+    cd->accurate_detail_size = cd->detail_size;
   }
   if (event->type == EVT_LEFTSHIFTKEY && event->val == KM_RELEASE) {
     cd->accurate_mode = false;
-    cd->accurate_value = 0.0f;
+    cd->accurate_detail_size = 0.0f;
   }
 
-  cd->current_value = clamp_f(cd->current_value, cd->min_value, cd->max_value);
-}
-
-static void dyntopo_detail_size_update_header(bContext *C,
-                                              const DyntopoDetailSizeEditCustomData *cd)
-{
-  Scene *scene = CTX_data_scene(C);
-
-  Sculpt *sd = scene->toolsettings->sculpt;
-  PointerRNA sculpt_ptr = RNA_pointer_create(&scene->id, &RNA_Sculpt, sd);
-
-  char msg[UI_MAX_DRAW_STR];
-  const char *format_string;
-  const char *property_name;
-  if (cd->mode == DETAILING_MODE_RESOLUTION) {
-    property_name = "constant_detail_resolution";
-    format_string = "%s: %0.4f";
-  }
-  else if (cd->mode == DETAILING_MODE_BRUSH_PERCENT) {
-    property_name = "detail_percent";
-    format_string = "%s: %3.1f%%";
-  }
-  else {
-    property_name = "detail_size";
-    format_string = "%s: %0.4f";
-  }
-  const PropertyRNA *prop = RNA_struct_find_property(&sculpt_ptr, property_name);
-  const char *ui_name = RNA_property_ui_name(prop);
-  SNPRINTF(msg, format_string, ui_name, cd->current_value);
-  ScrArea *area = CTX_wm_area(C);
-  ED_area_status_text(area, msg);
+  cd->detail_size = clamp_f(cd->detail_size, 1.0f, 500.0f);
 }
 
 static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -703,23 +678,11 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
       (event->type == EVT_PADENTER && event->val == KM_PRESS))
   {
     ED_region_draw_cb_exit(region->type, cd->draw_handle);
-    if (cd->mode == DETAILING_MODE_RESOLUTION) {
-      sd->constant_detail = cd->current_value;
-    }
-    else if (cd->mode == DETAILING_MODE_BRUSH_PERCENT) {
-      sd->detail_percent = cd->current_value;
-    }
-    else {
-      sd->detail_size = cd->current_value;
-    }
-
+    sd->constant_detail = cd->detail_size;
     ss->draw_faded_cursor = false;
     MEM_freeN(op->customdata);
     ED_region_tag_redraw(region);
     ED_workspace_status_text(C, nullptr);
-
-    ScrArea *area = CTX_wm_area(C);
-    ED_area_status_text(area, nullptr);
     return OPERATOR_FINISHED;
   }
 
@@ -741,29 +704,23 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
   }
   /* Regular mode, changes the detail size by moving the cursor. */
   dyntopo_detail_size_update_from_mouse_delta(cd, event);
-  dyntopo_detail_size_update_header(C, cd);
 
   return OPERATOR_RUNNING_MODAL;
 }
 
-static float dyntopo_detail_size_initial_value(const Sculpt *sd, const eDyntopoDetailingMode mode)
-{
-  if (mode == DETAILING_MODE_RESOLUTION) {
-    return sd->constant_detail;
-  }
-  else if (mode == DETAILING_MODE_BRUSH_PERCENT) {
-    return sd->detail_percent;
-  }
-  else {
-    return sd->detail_size;
-  }
-}
-
 static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const ToolSettings *tool_settings = CTX_data_tool_settings(C);
-  Sculpt *sd = tool_settings->sculpt;
+  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
+  /* Fallback to radial control for modes other than SCULPT_DYNTOPO_DETAIL_CONSTANT [same as in
+   * SCULPT_OT_set_detail_size]. */
+  if (!(sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL))) {
+    sculpt_detail_size_set_radial_control(C);
+
+    return OPERATOR_FINISHED;
+  }
+
+  /* Special method for SCULPT_DYNTOPO_DETAIL_CONSTANT. */
   ARegion *region = CTX_wm_region(C);
   Object *active_object = CTX_data_active_object(C);
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -776,40 +733,20 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   cd->active_object = active_object;
   cd->init_mval[0] = event->mval[0];
   cd->init_mval[1] = event->mval[1];
-  if (sd->flags & (SCULPT_DYNTOPO_DETAIL_CONSTANT | SCULPT_DYNTOPO_DETAIL_MANUAL)) {
-    cd->mode = DETAILING_MODE_RESOLUTION;
-  }
-  else if (sd->flags & SCULPT_DYNTOPO_DETAIL_BRUSH) {
-    cd->mode = DETAILING_MODE_BRUSH_PERCENT;
-  }
-  else {
-    cd->mode = DETAILING_MODE_DETAIL_SIZE;
-  }
-
-  const float initial_detail_size = dyntopo_detail_size_initial_value(sd, cd->mode);
-  cd->current_value = initial_detail_size;
-  cd->init_value = initial_detail_size;
+  cd->detail_size = sd->constant_detail;
+  cd->init_detail_size = sd->constant_detail;
   copy_v4_v4(cd->outline_col, brush->add_col);
   op->customdata = cd;
 
   SculptSession *ss = active_object->sculpt;
-  dyntopo_detail_size_bounds(cd);
   cd->radius = ss->cursor_radius;
 
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
-
-  const Scene *scene = CTX_data_scene(C);
-  cd->brush_radius = blender::ed::sculpt_paint::sculpt_calc_radius(
-      &vc, brush, scene, ss->cursor_location);
-  cd->pixel_radius = BKE_brush_size_get(scene, brush);
-
-  /* Generates the matrix to position the gizmo in the surface of the mesh using the same
-   * location and orientation as the brush cursor. */
+  /* Generates the matrix to position the gizmo in the surface of the mesh using the same location
+   * and orientation as the brush cursor. */
   float cursor_trans[4][4], cursor_rot[4][4];
   const float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
   float quat[4];
-  copy_m4_m4(cursor_trans, active_object->object_to_world().ptr());
+  copy_m4_m4(cursor_trans, active_object->object_to_world);
   translate_m4(
       cursor_trans, ss->cursor_location[0], ss->cursor_location[1], ss->cursor_location[2]);
 
@@ -843,9 +780,7 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   const char *status_str = IFACE_(
       "Move the mouse to change the dyntopo detail size. LMB: confirm size, ESC/RMB: cancel, "
       "SHIFT: precision mode, CTRL: sample detail size");
-
   ED_workspace_status_text(C, status_str);
-  dyntopo_detail_size_update_header(C, cd);
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -867,46 +802,5 @@ void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
 }
 
 }  // namespace blender::ed::sculpt_paint::dyntopo
-
-namespace blender::ed::sculpt_paint::dyntopo::detail_size {
-float constant_to_detail_size(const float constant_detail, const Object *ob)
-{
-  return 1.0f / (constant_detail * mat4_to_scale(ob->object_to_world().ptr()));
-}
-
-float brush_to_detail_size(const float brush_percent, const float brush_radius)
-{
-  return brush_radius * brush_percent / 100.0f;
-}
-
-float relative_to_detail_size(const float relative_detail,
-                              const float brush_radius,
-                              const float pixel_radius,
-                              const float pixel_size)
-{
-  return (brush_radius / pixel_radius) * (relative_detail * pixel_size) / RELATIVE_SCALE_FACTOR;
-}
-
-float constant_to_brush_detail(const float constant_detail,
-                               const float brush_radius,
-                               const Object *ob)
-{
-  const float object_scale = mat4_to_scale(ob->object_to_world().ptr());
-
-  return 100.0f / (constant_detail * brush_radius * object_scale);
-}
-
-float constant_to_relative_detail(const float constant_detail,
-                                  const float brush_radius,
-                                  const float pixel_radius,
-                                  const float pixel_size,
-                                  const Object *ob)
-{
-  const float object_scale = mat4_to_scale(ob->object_to_world().ptr());
-
-  return (pixel_radius / brush_radius) * (RELATIVE_SCALE_FACTOR / pixel_size) *
-         (1.0f / (constant_detail * object_scale));
-}
-}  // namespace blender::ed::sculpt_paint::dyntopo::detail_size
 
 /** \} */

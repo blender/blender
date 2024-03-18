@@ -19,10 +19,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
-#include "BKE_report.hh"
-
-#include "BLT_translation.hh"
+#include "BKE_global.h"
+#include "BKE_report.h"
 
 #include "GHOST_C-api.h"
 
@@ -36,6 +34,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 #include "wm.hh"
+#include "wm_draw.hh"
 #include "wm_window.hh"
 
 #include "UI_interface.hh"
@@ -57,7 +56,7 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
       soffx = 0;
     }
   }
-  else { /* #RIGHT_LEFT_ID. */
+  else { /* #RIGHT_LEFT_ID */
     if (cross_eyed) {
       soffx = 0;
     }
@@ -66,7 +65,7 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
   const int sizex = WM_window_pixels_x(win);
   const int sizey = WM_window_pixels_y(win);
 
-  /* `wmOrtho` for the screen has this same offset. */
+  /* wmOrtho for the screen has this same offset */
   const float halfx = GLA_PIXEL_OFS / sizex;
   const float halfy = GLA_PIXEL_OFS / sizex;
 
@@ -103,14 +102,14 @@ void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
   if (view == STEREO_LEFT_ID) {
     soffy = WM_window_pixels_y(win) * 0.5f;
   }
-  else { /* #STEREO_RIGHT_ID. */
+  else { /* STEREO_RIGHT_ID */
     soffy = 0;
   }
 
   const int sizex = WM_window_pixels_x(win);
   const int sizey = WM_window_pixels_y(win);
 
-  /* `wmOrtho` for the screen has this same offset. */
+  /* wmOrtho for the screen has this same offset */
   const float halfx = GLA_PIXEL_OFS / sizex;
   const float halfy = GLA_PIXEL_OFS / sizex;
 
@@ -145,8 +144,8 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
   const bScreen *screen = WM_window_get_active_screen(win);
   const Scene *scene = WM_window_get_active_scene(win);
 
-  /* Some 3d methods change the window arrangement, thus they shouldn't
-   * toggle on/off just because there is no 3d elements being drawn. */
+  /* some 3d methods change the window arrangement, thus they shouldn't
+   * toggle on/off just because there is no 3d elements being drawn */
   if (wm_stereo3d_is_fullscreen_required(eStereoDisplayMode(win->stereo3d_format->display_mode))) {
     return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->ghostwin)) ==
            GHOST_kWindowStateFullScreen;
@@ -156,8 +155,8 @@ bool WM_stereo3d_enabled(wmWindow *win, bool skip_stereo3d_check)
     return false;
   }
 
-  /* Some 3d methods change the window arrangement, thus they shouldn't
-   * toggle on/off just because there is no 3d elements being drawn. */
+  /* some 3d methods change the window arrangement, thus they shouldn't
+   * toggle on/off just because there is no 3d elements being drawn */
   if (wm_stereo3d_is_fullscreen_required(eStereoDisplayMode(win->stereo3d_format->display_mode))) {
     return GHOST_GetWindowState(static_cast<GHOST_WindowHandle>(win->ghostwin)) ==
            GHOST_kWindowStateFullScreen;
@@ -174,7 +173,7 @@ void wm_stereo3d_mouse_offset_apply(wmWindow *win, int r_mouse_xy[2])
 
   if (win->stereo3d_format->display_mode == S3D_DISPLAY_SIDEBYSIDE) {
     const int half_x = WM_window_pixels_x(win) / 2;
-    /* Right half of the screen. */
+    /* right half of the screen */
     if (r_mouse_xy[0] > half_x) {
       r_mouse_xy[0] -= half_x;
     }
@@ -182,7 +181,7 @@ void wm_stereo3d_mouse_offset_apply(wmWindow *win, int r_mouse_xy[2])
   }
   else if (win->stereo3d_format->display_mode == S3D_DISPLAY_TOPBOTTOM) {
     const int half_y = WM_window_pixels_y(win) / 2;
-    /* Upper half of the screen. */
+    /* upper half of the screen */
     if (r_mouse_xy[1] > half_y) {
       r_mouse_xy[1] -= half_y;
     }
@@ -252,7 +251,7 @@ static void wm_stereo3d_set_init(bContext *C, wmOperator *op)
   Stereo3dData *s3dd = static_cast<Stereo3dData *>(MEM_callocN(sizeof(Stereo3dData), __func__));
   op->customdata = s3dd;
 
-  /* Store the original win stereo 3d settings in case of cancel. */
+  /* store the original win stereo 3d settings in case of cancel */
   s3dd->stereo3d_format = *win->stereo3d_format;
 }
 
@@ -270,7 +269,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
   }
 
   if (op->customdata == nullptr) {
-    /* No invoke means we need to set the operator properties here. */
+    /* no invoke means we need to set the operator properties here */
     wm_stereo3d_set_init(C, op);
     wm_stereo3d_set_properties(C, op);
   }
@@ -283,7 +282,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
   {
     /* In case the hardware supports page-flip but not the display. */
     if ((win_dst = wm_window_copy_test(C, win_src, false, false))) {
-      /* Pass. */
+      /* pass */
     }
     else {
       BKE_report(
@@ -352,7 +351,7 @@ int wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*
   if (wm_stereo3d_set_properties(C, op)) {
     return wm_stereo3d_set_exec(C, op);
   }
-  return WM_operator_props_dialog_popup(C, op, 300, IFACE_("Set Stereo 3D"), IFACE_("Set"));
+  return WM_operator_props_dialog_popup(C, op, 300);
 }
 
 void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)
@@ -383,7 +382,7 @@ void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)
     case S3D_DISPLAY_SIDEBYSIDE: {
       uiItemR(
           col, &stereo3d_format_ptr, "use_sidebyside_crosseyed", UI_ITEM_NONE, nullptr, ICON_NONE);
-      /* Fall-through. */
+      /* fall-through */
     }
     case S3D_DISPLAY_PAGEFLIP:
     case S3D_DISPLAY_TOPBOTTOM:
@@ -395,9 +394,9 @@ void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)
 
 bool wm_stereo3d_set_check(bContext * /*C*/, wmOperator * /*op*/)
 {
-  /* The check function guarantees that the menu is updated to show the
+  /* the check function guarantees that the menu is updated to show the
    * sub-options when an enum change (e.g., it shows the anaglyph options
-   * when anaglyph is on, and the interlace options when this is on. */
+   * when anaglyph is on, and the interlace options when this is on */
   return true;
 }
 

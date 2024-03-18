@@ -11,6 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_modifier_types.h"
@@ -18,12 +19,13 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_shader_fx_types.h"
+#include "DNA_text_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_armature.hh"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
@@ -36,7 +38,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_shader_fx.h"
 
 #include "DEG_depsgraph.hh"
@@ -68,6 +70,7 @@
 #include "ANIM_bone_collections.hh"
 
 #include "outliner_intern.hh"
+#include "tree/tree_display.hh"
 #include "tree/tree_element_grease_pencil_node.hh"
 #include "tree/tree_element_seq.hh"
 #include "tree/tree_iterator.hh"
@@ -81,7 +84,7 @@ namespace blender::ed::outliner {
 /**
  * \note changes to selection are by convention and not essential.
  *
- * \note Handles its own undo push.
+ * \note Handles own undo push.
  */
 static void do_outliner_item_editmode_toggle(bContext *C, Scene *scene, Base *base)
 {
@@ -114,7 +117,7 @@ static void do_outliner_item_editmode_toggle(bContext *C, Scene *scene, Base *ba
 /**
  * \note changes to selection are by convention and not essential.
  *
- * \note Handles its own undo push.
+ * \note Handles own undo push.
  */
 static void do_outliner_item_posemode_toggle(bContext *C, Scene *scene, Base *base)
 {
@@ -158,7 +161,7 @@ static void do_outliner_item_posemode_toggle(bContext *C, Scene *scene, Base *ba
  * If we didn't want to touch selection we could add an option to the operators
  * not to do multi-object editing.
  *
- * \note Handles its own undo push.
+ * \note Handles own undo push.
  */
 static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *tvc, Base *base)
 {
@@ -444,7 +447,7 @@ static void tree_element_camera_activate(bContext *C, Scene *scene, TreeElement 
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
 
   WM_windows_scene_data_sync(&wm->windows, scene);
-  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_SCENE | NA_EDITED, nullptr);
 }

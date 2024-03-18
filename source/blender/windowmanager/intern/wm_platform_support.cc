@@ -15,13 +15,16 @@
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_sys_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_appdir.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "GPU_platform.h"
+
+#include "GHOST_C-api.h"
 
 #define WM_PLATFORM_SUPPORT_TEXT_SIZE 1024
 
@@ -71,7 +74,7 @@ static void wm_platform_support_create_link(char *link)
   BLI_dynstr_append(ds, "windows/");
 #elif defined(__APPLE__)
   BLI_dynstr_append(ds, "apple/");
-#else /* UNIX. */
+#else /* UNIX */
   BLI_dynstr_append(ds, "linux/");
 #endif
 
@@ -113,7 +116,7 @@ bool WM_platform_support_perform_checks()
     return result;
   }
 
-  /* Update the message and link based on the found support level. */
+  /* update the message and link based on the found support level */
   GHOST_DialogOptions dialog_options = GHOST_DialogOptions(0);
 
   switch (support_level) {

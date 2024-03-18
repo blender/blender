@@ -10,6 +10,7 @@ ConstantOperation::ConstantOperation()
 {
   needs_canvas_to_get_constant_ = false;
   flags_.is_constant_operation = true;
+  flags_.is_fullframe_operation = true;
 }
 
 bool ConstantOperation::can_get_constant_elem() const

@@ -15,8 +15,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_shader_fx_types.h"
 #include "DNA_texture_types.h"
 
 #include "BLI_dynstr.h"
@@ -28,12 +31,13 @@
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
+#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_screen.hh"
 
 #include "ED_screen.hh"
@@ -861,8 +865,9 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
       wmKeyMapItem *kmi = menu_to_kmi.lookup_default(item->mt, nullptr);
       if (kmi != nullptr) {
-        std::string kmi_str = WM_keymap_item_to_string(kmi, false).value_or("");
-        BLI_dynstr_appendf(dyn_str, " (%s)", kmi_str.c_str());
+        char kmi_str[128];
+        WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
+        BLI_dynstr_appendf(dyn_str, " (%s)", kmi_str);
       }
 
       BLI_dynstr_append(dyn_str, " " UI_MENU_ARROW_SEP " ");
@@ -1163,7 +1168,7 @@ void uiTemplateMenuSearch(uiLayout *layout)
   UI_block_layout_set_current(block, layout);
 
   but = uiDefSearchBut(
-      block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, "");
+      block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, 0, 0, "");
   UI_but_func_menu_search(but);
 }
 

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# ./blender.bin --background --python tests/python/bl_pyapi_mathutils.py -- --verbose
+# ./blender.bin --background -noaudio --python tests/python/bl_pyapi_mathutils.py -- --verbose
 import unittest
 from mathutils import Matrix, Vector, Quaternion, Euler
 from mathutils import kdtree, geometry

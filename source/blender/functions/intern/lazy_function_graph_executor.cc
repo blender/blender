@@ -727,7 +727,7 @@ class Executor {
               }
               else {
                 /* Schedule as priority node. This allows freeing up memory earlier which results
-                 * in better memory reuse and fewer implicit sharing copies. */
+                 * in better memory reuse and less copy-on-write copies caused by shared data. */
                 this->schedule_node(locked_node, current_task, true);
               }
             }

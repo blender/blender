@@ -94,10 +94,6 @@ void DefocusNode::convert_to_operations(NodeConverter &converter,
   bokeh->delete_data_on_finish();
   converter.add_operation(bokeh);
 
-  SetValueOperation *bounding_box_operation = new SetValueOperation();
-  bounding_box_operation->set_value(1.0f);
-  converter.add_operation(bounding_box_operation);
-
   VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
   operation->set_quality(eCompositorQuality::High);
   operation->set_max_blur(data->maxblur);
@@ -106,7 +102,6 @@ void DefocusNode::convert_to_operations(NodeConverter &converter,
 
   converter.add_link(bokeh->get_output_socket(), operation->get_input_socket(1));
   converter.add_link(radius_operation->get_output_socket(), operation->get_input_socket(2));
-  converter.add_link(bounding_box_operation->get_output_socket(), operation->get_input_socket(3));
 
   if (data->gamco) {
     GammaCorrectOperation *correct = new GammaCorrectOperation();

@@ -28,9 +28,8 @@
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
-#include "GPU_uniform_buffer.hh"
+#include "GPU_uniform_buffer.h"
 
-#include "COM_algorithm_smaa.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
@@ -145,87 +144,40 @@ class PlaneTrackDeformOperation : public NodeOperation {
     }
 
     const Array<float4x4> homography_matrices = compute_homography_matrices(plane_track);
-    GPUUniformBuf *homography_matrices_buffer = GPU_uniformbuf_create_ex(
-        homography_matrices.size() * sizeof(float4x4),
-        homography_matrices.data(),
-        "Plane Track Deform Homography Matrices");
 
-    Result plane_mask = compute_plane_mask(homography_matrices, homography_matrices_buffer);
-    Result anti_aliased_plane_mask = context().create_temporary_result(ResultType::Float);
-    smaa(context(), plane_mask, anti_aliased_plane_mask);
-    plane_mask.release();
-
-    if (output_image.should_compute()) {
-      compute_plane(homography_matrices, homography_matrices_buffer, anti_aliased_plane_mask);
-    }
-
-    if (output_mask.should_compute()) {
-      output_mask.steal_data(anti_aliased_plane_mask);
-    }
-    else {
-      anti_aliased_plane_mask.release();
-    }
-
-    GPU_uniformbuf_free(homography_matrices_buffer);
-  }
-
-  void compute_plane(const Array<float4x4> &homography_matrices,
-                     GPUUniformBuf *homography_matrices_buffer,
-                     Result &plane_mask)
-  {
     GPUShader *shader = context().get_shader("compositor_plane_deform_motion_blur");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "number_of_motion_blur_samples", homography_matrices.size());
 
+    GPUUniformBuf *matrices_buffer = GPU_uniformbuf_create_ex(
+        homography_matrices.size() * sizeof(float4x4),
+        homography_matrices.data(),
+        "Plane Track Deform Homography Matrices");
     const int ubo_location = GPU_shader_get_ubo_binding(shader, "homography_matrices");
-    GPU_uniformbuf_bind(homography_matrices_buffer, ubo_location);
+    GPU_uniformbuf_bind(matrices_buffer, ubo_location);
 
-    Result &input_image = get_input("Image");
     GPU_texture_mipmap_mode(input_image.texture(), true, true);
     GPU_texture_anisotropic_filter(input_image.texture(), true);
-    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_EXTEND);
+    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
     input_image.bind_as_texture(shader, "input_tx");
 
-    plane_mask.bind_as_texture(shader, "mask_tx");
-
     const Domain domain = compute_domain();
-    Result &output_image = get_result("Image");
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
+
+    output_mask.allocate_texture(domain);
+    output_mask.bind_as_image(shader, "mask_img");
 
     compute_dispatch_threads_at_least(shader, domain.size);
 
     input_image.unbind_as_texture();
-    plane_mask.unbind_as_texture();
     output_image.unbind_as_image();
-    GPU_uniformbuf_unbind(homography_matrices_buffer);
-    GPU_shader_unbind();
-  }
-
-  Result compute_plane_mask(const Array<float4x4> &homography_matrices,
-                            GPUUniformBuf *homography_matrices_buffer)
-  {
-    GPUShader *shader = context().get_shader("compositor_plane_deform_motion_blur_mask");
-    GPU_shader_bind(shader);
-
-    GPU_shader_uniform_1i(shader, "number_of_motion_blur_samples", homography_matrices.size());
-
-    const int ubo_location = GPU_shader_get_ubo_binding(shader, "homography_matrices");
-    GPU_uniformbuf_bind(homography_matrices_buffer, ubo_location);
-
-    const Domain domain = compute_domain();
-    Result plane_mask = context().create_temporary_result(ResultType::Float);
-    plane_mask.allocate_texture(domain);
-    plane_mask.bind_as_image(shader, "mask_img");
-
-    compute_dispatch_threads_at_least(shader, domain.size);
-
-    plane_mask.unbind_as_image();
-    GPU_uniformbuf_unbind(homography_matrices_buffer);
+    output_mask.unbind_as_image();
     GPU_shader_unbind();
 
-    return plane_mask;
+    GPU_uniformbuf_unbind(matrices_buffer);
+    GPU_uniformbuf_free(matrices_buffer);
   }
 
   Domain compute_domain() override

@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "CLG_log.h"
+
 /* Define macros in `DNA_genfile.h`. */
 #define DNA_GENFILE_VERSIONING_MACROS
 
@@ -38,16 +40,16 @@
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
-#include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
+#include "BKE_collection.h"
 #include "BKE_curve.hh"
 #include "BKE_effect.h"
 #include "BKE_grease_pencil.hh"
@@ -55,19 +57,24 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh_legacy_convert.hh"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_tracking.h"
 
 #include "SEQ_iterator.hh"
+#include "SEQ_retiming.hh"
+#include "SEQ_sequencer.hh"
 
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
 
-#include "BLT_translation.hh"
+#include "ED_armature.hh"
+
+#include "BLT_translation.h"
 
 #include "BLO_read_write.hh"
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
 #include "readfile.hh"
 
@@ -1595,7 +1602,7 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
       }
     }
     else if (base_color_sock->link) {
-      /* Metallic Mix is a no-op and equivalent to Base Color. */
+      /* Metallic Mix is a no-op and equivalent to Base Color*/
       metallic_mix_out = base_color_sock->link->fromsock;
       metallic_mix_node = base_color_sock->link->fromnode;
     }
@@ -1938,13 +1945,6 @@ static bool seq_filter_bilinear_to_auto(Sequence *seq, void * /*user_data*/)
     transform->filter = SEQ_TRANSFORM_FILTER_AUTO;
   }
   return true;
-}
-
-static void image_settings_avi_to_ffmpeg(Scene *scene)
-{
-  if (ELEM(scene->r.im_format.imtype, R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG)) {
-    scene->r.im_format.imtype = R_IMF_IMTYPE_FFMPEG;
-  }
 }
 
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
@@ -2887,6 +2887,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  /* Keep point/spot light soft falloff for files created before 4.0. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 0)) {
+    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+      if (light->type == LA_LOCAL || light->type == LA_SPOT) {
+        light->mode |= LA_USE_SOFT_FALLOFF;
+      }
+    }
+  }
+
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 21)) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       /* The `sculpt_flag` was used to store the `BRUSH_DIR_IN`
@@ -2894,114 +2903,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       if (brush->gpencil_settings && (brush->gpencil_settings->sculpt_flag & BRUSH_DIR_IN) != 0) {
         brush->flag |= BRUSH_DIR_IN;
       }
-    }
-  }
-
-  /* Keep point/spot light soft falloff for files created before 4.0. */
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 0)) {
-    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-      if (ELEM(light->type, LA_LOCAL, LA_SPOT)) {
-        light->mode |= LA_USE_SOFT_FALLOFF;
-      }
-    }
-  }
-
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 1)) {
-    using namespace blender::bke::greasepencil;
-    /* Initialize newly added scale layer transform to one. */
-    LISTBASE_FOREACH (GreasePencil *, grease_pencil, &bmain->grease_pencils) {
-      for (Layer *layer : grease_pencil->layers_for_write()) {
-        copy_v3_fl(layer->scale, 1.0f);
-      }
-    }
-  }
-
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 2)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      bool is_cycles = scene && STREQ(scene->r.engine, RE_engine_id_CYCLES);
-      if (is_cycles) {
-        if (IDProperty *cscene = version_cycles_properties_from_ID(&scene->id)) {
-          int cposition = version_cycles_property_int(cscene, "motion_blur_position", 1);
-          BLI_assert(cposition >= 0 && cposition < 3);
-          int order_conversion[3] = {SCE_MB_START, SCE_MB_CENTER, SCE_MB_END};
-          scene->r.motion_blur_position = order_conversion[std::clamp(cposition, 0, 2)];
-        }
-      }
-      else {
-        SET_FLAG_FROM_TEST(
-            scene->r.mode, scene->eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED_DEPRECATED, R_MBLUR);
-        scene->r.motion_blur_position = scene->eevee.motion_blur_position_deprecated;
-        scene->r.motion_blur_shutter = scene->eevee.motion_blur_shutter_deprecated;
-      }
-    }
-  }
-
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 3)) {
-    constexpr int NTREE_EXECUTION_MODE_FULL_FRAME = 1;
-
-    constexpr int NTREE_COM_GROUPNODE_BUFFER = 1 << 3;
-    constexpr int NTREE_COM_OPENCL = 1 << 1;
-
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type != NTREE_COMPOSIT) {
-        continue;
-      }
-
-      ntree->flag &= ~(NTREE_COM_GROUPNODE_BUFFER | NTREE_COM_OPENCL);
-
-      if (ntree->execution_mode == NTREE_EXECUTION_MODE_FULL_FRAME) {
-        ntree->execution_mode = NTREE_EXECUTION_MODE_CPU;
-      }
-    }
-    FOREACH_NODETREE_END;
-  }
-
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 4)) {
-    if (!DNA_struct_member_exists(fd->filesdna, "SpaceImage", "float", "stretch_opacity")) {
-      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
-        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-            if (sl->spacetype == SPACE_IMAGE) {
-              SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
-              sima->stretch_opacity = 0.9f;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 5)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      image_settings_avi_to_ffmpeg(scene);
-    }
-  }
-
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 6)) {
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (BrushCurvesSculptSettings *settings = brush->curves_sculpt_settings) {
-        settings->flag |= BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_RADIUS;
-        settings->curve_radius = 0.01f;
-      }
-    }
-  }
-
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 8)) {
-    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-      light->shadow_filter_radius = 3.0f;
-    }
-  }
-
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 9)) {
-    const float default_snap_angle_increment = DEG2RADF(5.0f);
-    const float default_snap_angle_increment_precision = DEG2RADF(1.0f);
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      scene->toolsettings->snap_angle_increment_2d = default_snap_angle_increment;
-      scene->toolsettings->snap_angle_increment_3d = default_snap_angle_increment;
-      scene->toolsettings->snap_angle_increment_2d_precision =
-          default_snap_angle_increment_precision;
-      scene->toolsettings->snap_angle_increment_3d_precision =
-          default_snap_angle_increment_precision;
     }
   }
 

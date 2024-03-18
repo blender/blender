@@ -12,7 +12,7 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "BLF_api.hh"
 

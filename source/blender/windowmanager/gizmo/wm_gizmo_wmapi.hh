@@ -24,7 +24,7 @@ struct wmOperatorType;
 /** \name #wmGizmo
  * \{ */
 
-/* `wm_gizmo_type.cc`, for init/exit. */
+/* `wm_gizmo_type.cc`, for init/exit */
 
 void wm_gizmotype_free();
 /**
@@ -32,7 +32,7 @@ void wm_gizmotype_free();
  */
 void wm_gizmotype_init();
 
-/* `wm_gizmogroup_type.cc`, for init/exit. */
+/* wm_gizmogroup_type.c, for init/exit */
 
 void wm_gizmogrouptype_free();
 /**

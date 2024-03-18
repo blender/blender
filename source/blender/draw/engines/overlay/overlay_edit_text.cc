@@ -123,7 +123,7 @@ static void edit_text_cache_populate_select(OVERLAY_Data *vedata, Object *ob)
       add_v2_v2(box[3], &sb->x);
     }
     v2_quad_corners_to_mat4(box, final_mat);
-    mul_m4_m4m4(final_mat, ob->object_to_world().ptr(), final_mat);
+    mul_m4_m4m4(final_mat, ob->object_to_world, final_mat);
 
     DRW_shgroup_call_obmat(pd->edit_text_selection_grp, geom, final_mat);
   }
@@ -138,7 +138,7 @@ static void edit_text_cache_populate_cursor(OVERLAY_Data *vedata, Object *ob)
   float mat[4][4];
 
   v2_quad_corners_to_mat4(cursor, mat);
-  mul_m4_m4m4(mat, ob->object_to_world().ptr(), mat);
+  mul_m4_m4m4(mat, ob->object_to_world, mat);
 
   GPUBatch *geom = DRW_cache_quad_get();
   DRW_shgroup_call_obmat(pd->edit_text_cursor_grp, geom, mat);
@@ -166,7 +166,7 @@ static void edit_text_cache_populate_boxes(OVERLAY_Data *vedata, Object *ob)
       vecs[3][1] -= tb->h;
 
       for (int j = 0; j < 4; j++) {
-        mul_v3_m4v3(vecs[j], ob->object_to_world().ptr(), vecs[j]);
+        mul_v3_m4v3(vecs[j], ob->object_to_world, vecs[j]);
       }
       for (int j = 0; j < 4; j++) {
         OVERLAY_extra_line_dashed(cb, vecs[j], vecs[(j + 1) % 4], color);

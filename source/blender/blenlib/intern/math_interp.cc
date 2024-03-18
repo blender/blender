@@ -15,8 +15,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_simd.h"
-
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 namespace blender::math {
 
@@ -298,7 +297,7 @@ BLI_INLINE void bilinear_fl_impl(const float *buffer,
       x2 = 0;
     }
   }
-  else if (border && (x2 < 0 || x1 >= width)) {
+  else if (x2 < 0 || x1 >= width) {
     copy_vn_fl(output, components, 0.0f);
     return;
   }
@@ -307,7 +306,7 @@ BLI_INLINE void bilinear_fl_impl(const float *buffer,
       y2 = 0;
     }
   }
-  else if (border && (y2 < 0 || y1 >= height)) {
+  else if (y2 < 0 || y1 >= height) {
     copy_vn_fl(output, components, 0.0f);
     return;
   }
@@ -406,9 +405,17 @@ BLI_INLINE uchar4 bilinear_byte_impl(const uchar *buffer, int width, int height,
     y1234 = _mm_andnot_si128(invalid_1234, y1234);
   }
   else {
-    /* Clamp samples to image edges. */
+    /* Clamp samples to image edges, unless all four of them are outside
+     * in which case return black. */
     __m128i xy12_clamped = max_i_simd(xy12, _mm_setzero_si128());
     xy12_clamped = min_i_simd(xy12_clamped, size_minus_1);
+    __m128i valid_xy12 = _mm_cmpeq_epi32(xy12, xy12_clamped);
+    __m128i valid_pairs = _mm_and_si128(valid_xy12,
+                                        _mm_shuffle_epi32(valid_xy12, _MM_SHUFFLE(0, 3, 2, 1)));
+    if (_mm_movemask_ps(_mm_castsi128_ps(valid_pairs)) == 0) {
+      return uchar4(0);
+    }
+
     x1234 = _mm_shuffle_epi32(xy12_clamped, _MM_SHUFFLE(2, 2, 0, 0));
     y1234 = _mm_shuffle_epi32(xy12_clamped, _MM_SHUFFLE(3, 1, 3, 1));
   }
@@ -472,8 +479,8 @@ BLI_INLINE uchar4 bilinear_byte_impl(const uchar *buffer, int width, int height,
   int y1 = int(vf);
   int y2 = y1 + 1;
 
-  /* Completely outside of the image in bordered mode? */
-  if (border && (x2 < 0 || x1 >= width || y2 < 0 || y1 >= height)) {
+  /* Completely outside of the image? */
+  if (x2 < 0 || x1 >= width || y2 < 0 || y1 >= height) {
     return uchar4(0);
   }
 

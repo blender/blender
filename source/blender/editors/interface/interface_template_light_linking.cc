@@ -13,7 +13,7 @@
 
 #include <fmt/format.h>
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"

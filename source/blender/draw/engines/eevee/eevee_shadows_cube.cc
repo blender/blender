@@ -189,13 +189,13 @@ void EEVEE_shadows_draw_cubemap(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
   for (int j = 0; j < 6; j++) {
     /* Optimization: Only render the needed faces. */
     /* Skip all but -Z face. */
-    if ((ELEM(evli->light_type, LA_SPOT, LAMPTYPE_SPOT_DISK)) && j != 5 &&
+    if ((evli->light_type == LA_SPOT || evli->light_type == LAMPTYPE_SPOT_DISK) && j != 5 &&
         spot_angle_fit_single_face(evli))
     {
       continue;
     }
     /* Skip +Z face. */
-    if (!(ELEM(evli->light_type, LA_LOCAL, LAMPTYPE_OMNI_DISK)) && j == 4) {
+    if (!(evli->light_type == LA_LOCAL || evli->light_type == LAMPTYPE_OMNI_DISK) && j == 4) {
       continue;
     }
     /* TODO(fclem): some cube sides can be invisible in the main views. Cull them. */

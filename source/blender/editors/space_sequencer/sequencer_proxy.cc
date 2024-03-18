@@ -8,16 +8,17 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 
 #include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
-#include "BKE_report.hh"
+#include "BKE_global.h"
+#include "BKE_main.hh"
+#include "BKE_report.h"
 
-#include "BLT_translation.hh"
-
+#include "SEQ_iterator.hh"
 #include "SEQ_proxy.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
@@ -156,8 +157,7 @@ void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
 
 static int sequencer_enable_proxies_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  return WM_operator_props_dialog_popup(
-      C, op, 200, IFACE_("Set Selected Strip Proxies"), IFACE_("Set"));
+  return WM_operator_props_dialog_popup(C, op, 200);
 }
 
 static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)

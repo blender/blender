@@ -1073,6 +1073,51 @@ typedef enum eGpencilModifierSpace {
   GP_SPACE_WORLD = 1,
 } eGpencilModifierSpace;
 
+typedef enum eLineartGpencilModifierSource {
+  LRT_SOURCE_COLLECTION = 0,
+  LRT_SOURCE_OBJECT = 1,
+  LRT_SOURCE_SCENE = 2,
+} eLineartGpencilModifierSource;
+
+typedef enum eLineartGpencilModifierShadowFilter {
+  /* These options need to be ordered in this way because those latter options requires line art to
+   * run a few extra stages. Having those values set up this way will allow
+   * #BKE_gpencil_get_lineart_modifier_limits() to find out maximum stages needed in multiple
+   * cached line art modifiers. */
+  LRT_SHADOW_FILTER_NONE = 0,
+  LRT_SHADOW_FILTER_ILLUMINATED = 1,
+  LRT_SHADOW_FILTER_SHADED = 2,
+  LRT_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES = 3,
+} eLineartGpencilModifierShadowFilter;
+
+typedef enum eLineartGpencilModifierSilhouetteFilter {
+  LRT_SILHOUETTE_FILTER_NONE = 0,
+  LRT_SILHOUETTE_FILTER_GROUP = (1 << 0),
+  LRT_SILHOUETTE_FILTER_INDIVIDUAL = (1 << 1),
+} eLineartGpencilModifierSilhouetteFilter;
+
+/* This enum is for modifier internal state only. */
+typedef enum eLineArtGPencilModifierFlags {
+  /* These two moved to #eLineartMainFlags to keep consistent with flag variable purpose. */
+  /* LRT_GPENCIL_INVERT_SOURCE_VGROUP = (1 << 0), */
+  /* LRT_GPENCIL_MATCH_OUTPUT_VGROUP = (1 << 1), */
+  LRT_GPENCIL_BINARY_WEIGHTS = (1 << 2) /* Deprecated, this is removed for lack of use case. */,
+  LRT_GPENCIL_IS_BAKED = (1 << 3),
+  LRT_GPENCIL_USE_CACHE = (1 << 4),
+  LRT_GPENCIL_OFFSET_TOWARDS_CUSTOM_CAMERA = (1 << 5),
+  LRT_GPENCIL_INVERT_COLLECTION = (1 << 6),
+  LRT_GPENCIL_INVERT_SILHOUETTE_FILTER = (1 << 7),
+} eLineArtGPencilModifierFlags;
+
+typedef enum eLineartGpencilMaskSwitches {
+  LRT_GPENCIL_MATERIAL_MASK_ENABLE = (1 << 0),
+  /** When set, material mask bit comparisons are done with bit wise "AND" instead of "OR". */
+  LRT_GPENCIL_MATERIAL_MASK_MATCH = (1 << 1),
+  LRT_GPENCIL_INTERSECTION_MATCH = (1 << 2),
+} eLineartGpencilMaskSwitches;
+
+struct LineartCache;
+
 struct LineartCache;
 
 typedef struct LineartGpencilModifierData {
@@ -1080,7 +1125,7 @@ typedef struct LineartGpencilModifierData {
 
   uint16_t edge_types; /* line type enable flags, bits in eLineartEdgeFlag */
 
-  /** Object or Collection, from #GreasePencilLineartModifierSource. */
+  /** Object or Collection, from #eLineartGpencilModifierSource. */
   char source_type;
 
   char use_multiple_levels;
@@ -1119,7 +1164,7 @@ typedef struct LineartGpencilModifierData {
   float opacity;
   short thickness;
 
-  unsigned char mask_switches; /* #GreasePencilLineartMaskSwitches */
+  unsigned char mask_switches; /* #eLineartGpencilMaskSwitches */
   unsigned char material_mask_bits;
   unsigned char intersection_mask;
 

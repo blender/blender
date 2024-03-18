@@ -14,7 +14,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "ED_gizmo_library.hh"
 #include "ED_gizmo_utils.hh"
@@ -25,7 +25,7 @@
 
 #include "RNA_access.hh"
 
-/* Local module include. */
+/* local module include */
 #include "transform.hh"
 #include "transform_gizmo.hh"
 

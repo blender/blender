@@ -8,7 +8,6 @@
 
 #include <cstddef>
 #include <cstdlib>
-#include <optional>
 
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
@@ -30,16 +29,19 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
+#include "BKE_anim_data.h"
 #include "BKE_camera.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -69,16 +71,12 @@ static void camera_init_data(ID *id)
  *
  * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
-static void camera_copy_data(Main * /*bmain*/,
-                             std::optional<Library *> /*owner_library*/,
-                             ID *id_dst,
-                             const ID *id_src,
-                             const int flag)
+static void camera_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
   Camera *cam_dst = (Camera *)id_dst;
   const Camera *cam_src = (const Camera *)id_src;
 
-  /* We never handle user-count here for owned data. */
+  /* We never handle user-count here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
   BLI_listbase_clear(&cam_dst->bg_images);
@@ -234,7 +232,6 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_CA = {
     /*id_code*/ ID_CA,
     /*id_filter*/ FILTER_ID_CA,
-    /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_IM,
     /*main_listbase_index*/ INDEX_ID_CA,
     /*struct_size*/ sizeof(Camera),
     /*name*/ "Camera",
@@ -278,24 +275,22 @@ void *BKE_camera_add(Main *bmain, const char *name)
 
 float BKE_camera_object_dof_distance(const Object *ob)
 {
-  const Camera *cam = (const Camera *)ob->data;
+  Camera *cam = (Camera *)ob->data;
   if (ob->type != OB_CAMERA) {
     return 0.0f;
   }
   if (cam->dof.focus_object) {
     float view_dir[3], dof_dir[3];
-    normalize_v3_v3(view_dir, ob->object_to_world().ptr()[2]);
+    normalize_v3_v3(view_dir, ob->object_to_world[2]);
     bPoseChannel *pchan = BKE_pose_channel_find_name(cam->dof.focus_object->pose,
                                                      cam->dof.focus_subtarget);
     if (pchan) {
       float posemat[4][4];
-      mul_m4_m4m4(posemat, cam->dof.focus_object->object_to_world().ptr(), pchan->pose_mat);
-      sub_v3_v3v3(dof_dir, ob->object_to_world().location(), posemat[3]);
+      mul_m4_m4m4(posemat, cam->dof.focus_object->object_to_world, pchan->pose_mat);
+      sub_v3_v3v3(dof_dir, ob->object_to_world[3], posemat[3]);
     }
     else {
-      sub_v3_v3v3(dof_dir,
-                  ob->object_to_world().location(),
-                  cam->dof.focus_object->object_to_world().location());
+      sub_v3_v3v3(dof_dir, ob->object_to_world[3], cam->dof.focus_object->object_to_world[3]);
     }
     return fabsf(dot_v3v3(view_dir, dof_dir));
   }
@@ -355,7 +350,7 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *cam_ob)
 
   if (cam_ob->type == OB_CAMERA) {
     /* camera object */
-    const Camera *cam = static_cast<const Camera *>(cam_ob->data);
+    Camera *cam = static_cast<Camera *>(cam_ob->data);
 
     if (cam->type == CAM_ORTHO) {
       params->is_ortho = true;
@@ -690,7 +685,7 @@ static void camera_frame_fit_data_init(const Scene *scene,
   BKE_camera_params_compute_matrix(params);
 
   /* initialize callback data */
-  copy_m3_m4(data->camera_rotmat, (float(*)[4])ob->object_to_world().ptr());
+  copy_m3_m4(data->camera_rotmat, (float(*)[4])ob->object_to_world);
   normalize_m3(data->camera_rotmat);
   /* To transform a plane which is in its homogeneous representation (4d vector),
    * we need the inverse of the transpose of the transform matrix... */
@@ -892,14 +887,14 @@ bool BKE_camera_view_frame_fit_to_coords(const Depsgraph *depsgraph,
 
 static void camera_model_matrix(const Object *camera, float r_modelmat[4][4])
 {
-  copy_m4_m4(r_modelmat, camera->object_to_world().ptr());
+  copy_m4_m4(r_modelmat, camera->object_to_world);
 }
 
 static void camera_stereo3d_model_matrix(const Object *camera,
                                          const bool is_left,
                                          float r_modelmat[4][4])
 {
-  const Camera *data = (const Camera *)camera->data;
+  Camera *data = (Camera *)camera->data;
   float interocular_distance, convergence_distance;
   short convergence_mode, pivot;
   float sizemat[4][4];
@@ -918,7 +913,7 @@ static void camera_stereo3d_model_matrix(const Object *camera,
   }
 
   float size[3];
-  mat4_to_size(size, camera->object_to_world().ptr());
+  mat4_to_size(size, camera->object_to_world);
   size_to_mat4(sizemat, size);
 
   if (pivot == CAM_S3D_PIVOT_CENTER) {
@@ -958,7 +953,7 @@ static void camera_stereo3d_model_matrix(const Object *camera,
       toeinmat[3][0] = interocular_distance * fac_signed;
 
       /* transform */
-      normalize_m4_m4(r_modelmat, camera->object_to_world().ptr());
+      normalize_m4_m4(r_modelmat, camera->object_to_world);
       mul_m4_m4m4(r_modelmat, r_modelmat, toeinmat);
 
       /* scale back to the original size */
@@ -966,7 +961,7 @@ static void camera_stereo3d_model_matrix(const Object *camera,
     }
     else { /* CAM_S3D_PIVOT_LEFT, CAM_S3D_PIVOT_RIGHT */
       /* rotate perpendicular to the interocular line */
-      normalize_m4_m4(r_modelmat, camera->object_to_world().ptr());
+      normalize_m4_m4(r_modelmat, camera->object_to_world);
       mul_m4_m4m4(r_modelmat, r_modelmat, rotmat);
 
       /* translate along the interocular line */
@@ -982,7 +977,7 @@ static void camera_stereo3d_model_matrix(const Object *camera,
     }
   }
   else {
-    normalize_m4_m4(r_modelmat, camera->object_to_world().ptr());
+    normalize_m4_m4(r_modelmat, camera->object_to_world);
 
     /* translate - no rotation in CAM_S3D_OFFAXIS, CAM_S3D_PARALLEL */
     translate_m4(r_modelmat, -interocular_distance * fac_signed, 0.0f, 0.0f);
@@ -1060,6 +1055,7 @@ void BKE_camera_multiview_window_matrix(const RenderData *rd,
 
 bool BKE_camera_multiview_spherical_stereo(const RenderData *rd, const Object *camera)
 {
+  Camera *cam;
   const bool is_multiview = (rd && rd->scemode & R_MULTIVIEW) != 0;
 
   if (!is_multiview) {
@@ -1070,7 +1066,7 @@ bool BKE_camera_multiview_spherical_stereo(const RenderData *rd, const Object *c
     return false;
   }
 
-  const Camera *cam = static_cast<const Camera *>(camera->data);
+  cam = static_cast<Camera *>(camera->data);
 
   if ((rd->views_format == SCE_VIEWS_FORMAT_STEREO_3D) && ELEM(cam->type, CAM_PANO, CAM_PERSP) &&
       ((cam->stereo.flag & CAM_S3D_SPHERICAL) != 0))
@@ -1131,7 +1127,7 @@ Object *BKE_camera_multiview_render(const Scene *scene, Object *camera, const ch
 
 static float camera_stereo3d_shift_x(const Object *camera, const char *viewname)
 {
-  const Camera *data = static_cast<const Camera *>(camera->data);
+  Camera *data = static_cast<Camera *>(camera->data);
   float shift = data->shiftx;
   float interocular_distance, convergence_distance;
   short convergence_mode, pivot;
@@ -1173,7 +1169,7 @@ float BKE_camera_multiview_shift_x(const RenderData *rd,
                                    const char *viewname)
 {
   const bool is_multiview = (rd && rd->scemode & R_MULTIVIEW) != 0;
-  const Camera *data = static_cast<const Camera *>(camera->data);
+  Camera *data = static_cast<Camera *>(camera->data);
 
   BLI_assert(camera->type == OB_CAMERA);
 
@@ -1221,7 +1217,7 @@ CameraBGImage *BKE_camera_background_image_new(Camera *cam)
   return bgpic;
 }
 
-CameraBGImage *BKE_camera_background_image_copy(const CameraBGImage *bgpic_src, const int flag)
+CameraBGImage *BKE_camera_background_image_copy(CameraBGImage *bgpic_src, const int flag)
 {
   CameraBGImage *bgpic_dst = static_cast<CameraBGImage *>(MEM_dupallocN(bgpic_src));
 

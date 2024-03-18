@@ -1,7 +1,6 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 7e27816..bd34055 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
+diff -Naur external_levelzero_org/CMakeLists.txt external_levelzero/CMakeLists.txt
+--- external_levelzero_org/CMakeLists.txt       2022-03-07 13:22:11 -0700
++++ external_levelzero/CMakeLists.txt   2022-03-29 13:22:15 -0600
 @@ -81,13 +81,6 @@ if(MSVC)
      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /DYNAMICBASE")
      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DYNAMICBASE")
@@ -14,16 +13,5 @@ index 7e27816..bd34055 100644
 -        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Qspectre")
 -    endif()
  endif()
- 
+
  #CXX compiler support
-@@ -128,7 +121,9 @@ if(MSVC)
-     set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
- 		
-     # enable CET shadow stack
--    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /CETCOMPAT")
-+    if(NOT CMAKE_SYSTEM_PROCESSOR MATCHES ARM64)
-+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /CETCOMPAT")
-+    endif()
- 
-     #Use of sccache with MSVC requires workaround of replacing /Zi with /Z7
-     #https://github.com/mozilla/sccache

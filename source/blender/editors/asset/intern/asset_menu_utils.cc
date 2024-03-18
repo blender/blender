@@ -14,9 +14,11 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_asset.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
+
+#include "WM_api.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -51,10 +53,11 @@ void operator_asset_reference_props_register(StructRNA &srna)
 void operator_asset_reference_props_set(const asset_system::AssetRepresentation &asset,
                                         PointerRNA &ptr)
 {
-  const AssetWeakReference weak_ref = asset.make_weak_reference();
-  RNA_enum_set(&ptr, "asset_library_type", weak_ref.asset_library_type);
-  RNA_string_set(&ptr, "asset_library_identifier", weak_ref.asset_library_identifier);
-  RNA_string_set(&ptr, "relative_asset_identifier", weak_ref.relative_asset_identifier);
+  AssetWeakReference *weak_ref = asset.make_weak_reference();
+  RNA_enum_set(&ptr, "asset_library_type", weak_ref->asset_library_type);
+  RNA_string_set(&ptr, "asset_library_identifier", weak_ref->asset_library_identifier);
+  RNA_string_set(&ptr, "relative_asset_identifier", weak_ref->relative_asset_identifier);
+  BKE_asset_weak_reference_free(&weak_ref);
 }
 
 /**
@@ -140,7 +143,7 @@ PointerRNA persistent_catalog_path_rna_pointer(const bScreen &owner_screen,
                                                const asset_system::AssetLibrary &library,
                                                const asset_system::AssetCatalogTreeItem &item)
 {
-  const asset_system::AssetCatalog *catalog = library.catalog_service().find_catalog_by_path(
+  const asset_system::AssetCatalog *catalog = library.catalog_service->find_catalog_by_path(
       item.catalog_path());
   if (!catalog) {
     return PointerRNA_NULL;

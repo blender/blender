@@ -6,11 +6,13 @@
  * \ingroup spview3d
  */
 
+#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
+#include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
@@ -18,7 +20,9 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
+#include "ED_armature.hh"
 #include "ED_gizmo_library.hh"
+#include "ED_screen.hh"
 
 #include "UI_resources.hh"
 
@@ -26,6 +30,7 @@
 
 #include "RNA_access.hh"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "view3d_intern.h" /* own include */
@@ -184,8 +189,7 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup 
     bspline_group->handles[i].index = i;
 
     float mat[4][4];
-    mul_m4_m4m4(
-        mat, ob->object_to_world().ptr(), (i == 0) ? pchan->disp_mat : pchan->disp_tail_mat);
+    mul_m4_m4m4(mat, ob->object_to_world, (i == 0) ? pchan->disp_mat : pchan->disp_tail_mat);
     copy_m4_m4(gz->matrix_space, mat);
 
     /* need to set property here for undo. TODO: would prefer to do this in _init. */

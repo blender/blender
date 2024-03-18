@@ -35,7 +35,7 @@ static CLG_LogRef LOG = {"pbvh.bmesh"};
 /* Avoid skinny faces */
 #define USE_EDGEQUEUE_EVEN_SUBDIV
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-#  include "BKE_global.hh"
+#  include "BKE_global.h"
 #endif
 
 namespace blender::bke::pbvh {
@@ -1224,7 +1224,7 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx, PBVH *pbvh, BMEdge *
 
 static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh)
 {
-  const double start_time = BLI_time_now_seconds();
+  const double start_time = BLI_check_seconds_timer();
 
   bool any_subdivided = false;
 
@@ -1267,7 +1267,7 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh
 #endif
 
   CLOG_INFO(
-      &LOG, 2, "Long edge subdivision took %f seconds.", BLI_time_now_seconds() - start_time);
+      &LOG, 2, "Long edge subdivision took %f seconds.", BLI_check_seconds_timer() - start_time);
 
   return any_subdivided;
 }
@@ -1701,7 +1701,7 @@ static void pbvh_bmesh_collapse_edge(
 
 static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh)
 {
-  const double start_time = BLI_time_now_seconds();
+  const double start_time = BLI_check_seconds_timer();
 
   const float min_len_squared = pbvh->bm_min_edge_len * pbvh->bm_min_edge_len;
   bool any_collapsed = false;
@@ -1751,7 +1751,8 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx, PBVH *pbvh
 
   BLI_ghash_free(deleted_verts, nullptr, nullptr);
 
-  CLOG_INFO(&LOG, 2, "Short edge collapse took %f seconds.", BLI_time_now_seconds() - start_time);
+  CLOG_INFO(
+      &LOG, 2, "Short edge collapse took %f seconds.", BLI_check_seconds_timer() - start_time);
 
   return any_collapsed;
 }
@@ -2302,29 +2303,6 @@ bool bmesh_update_topology(PBVH *pbvh,
 
 }  // namespace blender::bke::pbvh
 
-/* Updates a given PBVH Node with the original coordinates of the corresponding BMesh vertex.
- * Attempts to retrieve the value from the BMLog, falls back to the vertex's current coordinates
- * if it is either not found in the log or not requested. */
-static void BKE_pbvh_bmesh_node_copy_original_co(
-    BMLog *log, PBVHNode *node, BMVert *v, int i, bool use_original)
-{
-  if (!use_original) {
-    copy_v3_v3(node->bm_orco[i], v->co);
-  }
-  else {
-    const float *origco = BM_log_find_original_vert_co(log, v);
-    if (origco) {
-      copy_v3_v3(node->bm_orco[i], origco);
-    }
-    else {
-      copy_v3_v3(node->bm_orco[i], v->co);
-    }
-  }
-
-  node->bm_orvert[i] = v;
-  BM_elem_index_set(v, i); /* set_dirty! */
-}
-
 void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, BMLog *log, PBVHNode *node, bool use_original)
 {
   /* Skip if original coords/triangles are already saved. */
@@ -2345,11 +2323,31 @@ void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, BMLog *log, PBVHNode *node, bool u
   /* Copy out the vertices and assign a temporary index. */
   int i = 0;
   for (BMVert *v : node->bm_unique_verts) {
-    BKE_pbvh_bmesh_node_copy_original_co(log, node, v, i, use_original);
+    const float *origco = BM_log_original_vert_co(log, v);
+
+    if (use_original && origco) {
+      copy_v3_v3(node->bm_orco[i], origco);
+    }
+    else {
+      copy_v3_v3(node->bm_orco[i], v->co);
+    }
+
+    node->bm_orvert[i] = v;
+    BM_elem_index_set(v, i); /* set_dirty! */
     i++;
   }
   for (BMVert *v : node->bm_other_verts) {
-    BKE_pbvh_bmesh_node_copy_original_co(log, node, v, i, use_original);
+    const float *origco = BM_log_original_vert_co(log, v);
+
+    if (use_original && origco) {
+      copy_v3_v3(node->bm_orco[i], BM_log_original_vert_co(log, v));
+    }
+    else {
+      copy_v3_v3(node->bm_orco[i], v->co);
+    }
+
+    node->bm_orvert[i] = v;
+    BM_elem_index_set(v, i); /* set_dirty! */
     i++;
   }
   /* Likely this is already dirty. */

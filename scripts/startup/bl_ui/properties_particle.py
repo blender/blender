@@ -87,7 +87,9 @@ class PARTICLE_MT_context_menu(Menu):
         props.remove_target_particles = True
 
         if psys is not None and psys.settings.type == 'HAIR':
-            layout.operator("curves.convert_from_particle_system", text="Convert to Curves")
+            layout.operator(
+                "curves.convert_from_particle_system",
+                text="Convert to Curves")
 
         layout.separator()
 

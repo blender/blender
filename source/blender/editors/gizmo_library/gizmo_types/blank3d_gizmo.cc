@@ -10,6 +10,8 @@
  * \brief Gizmo to use as a fallback (catch events).
  */
 
+#include "BKE_context.hh"
+
 #include "ED_gizmo_library.hh"
 
 #include "WM_api.hh"

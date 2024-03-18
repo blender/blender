@@ -38,11 +38,15 @@
 #include "WM_types.hh"
 
 #include "ED_gizmo_library.hh"
+#include "ED_screen.hh"
 #include "ED_view3d.hh"
 
+#include "UI_interface.hh"
 #include "UI_interface_icons.hh"
+#include "UI_resources.hh"
 
 /* own includes */
+#include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
 
 /* -------------------------------------------------------------------- */

@@ -17,7 +17,9 @@
 #include "BLI_string_utils.hh"
 
 #include "BKE_armature.hh"
-#include "BKE_global.hh"
+#include "BKE_context.hh"
+#include "BKE_deform.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -25,6 +27,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "ED_armature.hh"
+#include "ED_util.hh"
 
 #include "ANIM_bone_collections.hh"
 

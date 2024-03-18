@@ -18,7 +18,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
@@ -55,7 +55,7 @@ wmOperatorType *WM_operatortype_find(const char *idname, bool quiet)
   if (idname[0]) {
     wmOperatorType *ot;
 
-    /* Needed to support python style names without the `_OT_` syntax. */
+    /* needed to support python style names without the _OT_ syntax */
     char idname_bl[OP_MAX_TYPENAME];
     WM_operator_bl_idname(idname_bl, idname);
 
@@ -175,7 +175,7 @@ bool WM_operatortype_remove(const char *idname)
 
 void wm_operatortype_init()
 {
-  /* Reserve size is set based on blender default setup. */
+  /* reserve size is set based on blender default setup */
   global_ops_hash = BLI_ghash_str_new_ex("wm_operatortype_init gh", 2048);
 }
 
@@ -249,12 +249,12 @@ void WM_operatortype_last_properties_clear_all()
   }
 }
 
-void WM_operatortype_idname_visit_for_search(
-    const bContext * /*C*/,
-    PointerRNA * /*ptr*/,
-    PropertyRNA * /*prop*/,
-    const char * /*edit_text*/,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+void WM_operatortype_idname_visit_for_search(const bContext * /*C*/,
+                                             PointerRNA * /*ptr*/,
+                                             PropertyRNA * /*prop*/,
+                                             const char * /*edit_text*/,
+                                             StringPropertySearchVisitFunc visit_fn,
+                                             void *visit_user_data)
 {
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, global_ops_hash) {
@@ -263,10 +263,10 @@ void WM_operatortype_idname_visit_for_search(
     char idname_py[OP_MAX_TYPENAME];
     WM_operator_py_idname(idname_py, ot->idname);
 
-    StringPropertySearchVisitParams visit_params{};
+    StringPropertySearchVisitParams visit_params = {nullptr};
     visit_params.text = idname_py;
     visit_params.info = ot->name;
-    visit_fn(visit_params);
+    visit_fn(visit_user_data, &visit_params);
   }
 }
 
@@ -298,7 +298,7 @@ static int wm_macro_end(wmOperator *op, int retval)
     }
   }
 
-  /* If modal is ending, free custom data. */
+  /* if modal is ending, free custom data */
   if (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
     if (op->customdata) {
       MEM_freeN(op->customdata);
@@ -309,7 +309,7 @@ static int wm_macro_end(wmOperator *op, int retval)
   return retval;
 }
 
-/* Macro exec only runs exec calls. */
+/* macro exec only runs exec calls */
 static int wm_macro_exec(bContext *C, wmOperator *op)
 {
   int retval = OPERATOR_FINISHED;
@@ -328,10 +328,10 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
 
       if (retval & OPERATOR_FINISHED) {
         MacroData *md = static_cast<MacroData *>(op->customdata);
-        md->retval = OPERATOR_FINISHED; /* Keep in mind that at least one operator finished. */
+        md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
       }
       else {
-        break; /* Operator didn't finish, end macro. */
+        break; /* operator didn't finish, end macro */
       }
     }
     else {
@@ -350,7 +350,7 @@ static int wm_macro_invoke_internal(bContext *C,
   int retval = OPERATOR_FINISHED;
   const int op_inherited_flag = op->flag & (OP_IS_REPEAT | OP_IS_REPEAT_LAST);
 
-  /* Start from operator received as argument. */
+  /* start from operator received as argument */
   for (; opm; opm = opm->next) {
 
     opm->flag |= op_inherited_flag;
@@ -368,10 +368,10 @@ static int wm_macro_invoke_internal(bContext *C,
 
     if (retval & OPERATOR_FINISHED) {
       MacroData *md = static_cast<MacroData *>(op->customdata);
-      md->retval = OPERATOR_FINISHED; /* Keep in mind that at least one operator finished. */
+      md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
     }
     else {
-      break; /* Operator didn't finish, end macro. */
+      break; /* operator didn't finish, end macro */
     }
   }
 
@@ -396,20 +396,20 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
     retval = opm->type->modal(C, opm, event);
     OPERATOR_RETVAL_CHECK(retval);
 
-    /* If we're halfway through using a tool and cancel it, clear the options, see: #37149. */
+    /* if we're halfway through using a tool and cancel it, clear the options #37149. */
     if (retval & OPERATOR_CANCELLED) {
       WM_operator_properties_clear(opm->ptr);
     }
 
-    /* If this one is done but it's not the last operator in the macro. */
+    /* if this one is done but it's not the last operator in the macro */
     if ((retval & OPERATOR_FINISHED) && opm->next) {
       MacroData *md = static_cast<MacroData *>(op->customdata);
 
-      md->retval = OPERATOR_FINISHED; /* Keep in mind that at least one operator finished. */
+      md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
 
       retval = wm_macro_invoke_internal(C, op, event, opm->next);
 
-      /* If new operator is modal and also added its own handler. */
+      /* if new operator is modal and also added its own handler */
       if (retval & OPERATOR_RUNNING_MODAL && op->opm != opm) {
         wmWindow *win = CTX_wm_window(C);
         wmEventHandler_Op *handler;
@@ -457,7 +457,7 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void wm_macro_cancel(bContext *C, wmOperator *op)
 {
-  /* Call cancel on the current modal operator, if any. */
+  /* call cancel on the current modal operator, if any */
   if (op->opm && op->opm->type->cancel) {
     op->opm->type->cancel(C, op->opm);
   }
@@ -509,8 +509,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
   return ot;
 }
 
-void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *userdata),
-                                      void *userdata)
+void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *, void *), void *userdata)
 {
   wmOperatorType *ot;
 
@@ -546,14 +545,14 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 
   STRNCPY(otmacro->idname, idname);
 
-  /* Do this on first use, since operator definitions might have been not done yet. */
+  /* do this on first use, since operatordefinitions might have been not done yet */
   WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);
   WM_operator_properties_sanitize(otmacro->ptr, true);
 
   BLI_addtail(&ot->macro, otmacro);
 
   {
-    /* Operator should always be found but in the event its not. don't segfault. */
+    /* operator should always be found but in the event its not. don't segfault */
     wmOperatorType *otsub = WM_operatortype_find(idname, false);
     if (otsub) {
       RNA_def_pointer_runtime(
@@ -613,17 +612,6 @@ std::string WM_operatortype_description_or_name(bContext *C,
     }
   }
   return text;
-}
-
-bool WM_operator_depends_on_cursor(bContext &C, wmOperatorType &ot, PointerRNA *properties)
-{
-  if (ot.flag & OPTYPE_DEPENDS_ON_CURSOR) {
-    return true;
-  }
-  if (ot.depends_on_cursor) {
-    return ot.depends_on_cursor(C, ot, properties);
-  }
-  return false;
 }
 
 /** \} */

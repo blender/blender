@@ -9,8 +9,6 @@
 
 #include "abc_reader_object.h"
 
-#include <Alembic/AbcGeom/ICamera.h>
-
 namespace blender::io::alembic {
 
 class AbcCameraReader final : public AbcObjectReader {

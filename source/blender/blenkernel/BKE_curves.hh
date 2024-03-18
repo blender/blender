@@ -727,7 +727,7 @@ void interpolate_to_evaluated(const GSpan src,
                               const OffsetIndices<int> evaluated_offsets,
                               GMutableSpan dst);
 
-float4 calculate_basis(const float parameter);
+void calculate_basis(const float parameter, float4 &r_weights);
 
 /**
  * Interpolate the control point values for the given parameter on the piecewise segment.
@@ -739,13 +739,14 @@ template<typename T>
 T interpolate(const T &a, const T &b, const T &c, const T &d, const float parameter)
 {
   BLI_assert(0.0f <= parameter && parameter <= 1.0f);
-  const float4 weights = calculate_basis(parameter);
+  float4 n;
+  calculate_basis(parameter, n);
   if constexpr (is_same_any_v<T, float, float2, float3>) {
     /* Save multiplications by adjusting weights after mix. */
-    return 0.5f * attribute_math::mix4<T>(weights, a, b, c, d);
+    return 0.5f * attribute_math::mix4<T>(n, a, b, c, d);
   }
   else {
-    return attribute_math::mix4<T>(weights * 0.5f, a, b, c, d);
+    return attribute_math::mix4<T>(n * 0.5f, a, b, c, d);
   }
 }
 

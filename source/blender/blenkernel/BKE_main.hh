@@ -210,7 +210,6 @@ struct Main {
   ListBase collections;
   ListBase armatures;
   ListBase actions;
-  ListBase animations;
   ListBase nodetrees;
   ListBase brushes;
   ListBase particles;
@@ -258,7 +257,7 @@ struct Main {
  * \note Always generate a non-global Main, use #BKE_blender_globals_main_replace to put a newly
  * created one in `G_MAIN`.
  */
-Main *BKE_main_new();
+Main *BKE_main_new(void);
 void BKE_main_free(Main *mainvar);
 
 /** Struct packaging log/report info about a Main merge result. */

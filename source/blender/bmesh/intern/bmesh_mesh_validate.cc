@@ -28,13 +28,6 @@
         errtot++; \
       } \
       (void)0
-#  elif defined(_MSVC_TRADITIONAL) && !_MSVC_TRADITIONAL
-#    define ERRMSG(format, ...) \
-      { \
-        fprintf(stderr, "%s: " format ", " AT "\n", __func__, ##__VA_ARGS__); \
-        errtot++; \
-      } \
-      (void)0
 #  else
 #    define ERRMSG(format, ...) \
       { \

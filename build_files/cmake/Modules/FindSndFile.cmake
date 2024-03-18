@@ -59,5 +59,3 @@ mark_as_advanced(
   LIBSNDFILE_INCLUDE_DIR
   LIBSNDFILE_LIBRARY
 )
-
-unset(_sndfile_SEARCH_DIRS)

@@ -12,12 +12,14 @@
 #include <pxr/base/tf/token.h>
 #include <pxr/usd/usdSkel/animation.h>
 
-#include <string>
+#include <functional>
 
 struct Bone;
 struct Depsgraph;
 struct ModifierData;
 struct Object;
+struct Scene;
+struct USDExportParams;
 
 namespace blender::io::usd {
 
@@ -46,7 +48,7 @@ void get_armature_bone_names(const Object *ob_arm, bool use_deform, Vector<std::
  * in the hierarchy.
  *
  * \param bone: The bone whose path will be queried.
- * \return The path to the joint.
+ * \return: The path to the joint
  */
 pxr::TfToken build_usd_joint_path(const Bone *bone);
 
@@ -72,7 +74,7 @@ void create_pose_joints(pxr::UsdSkelAnimation &skel_anim,
  *
  * \param obj: Object to query for the modifier
  * \param depsgraph: The dependency graph where the object was evaluated
- * \return The modifier.
+ * \return: The modifier
  */
 const ModifierData *get_enabled_modifier(const Object &obj,
                                          ModifierType type,
@@ -84,7 +86,7 @@ const ModifierData *get_enabled_modifier(const Object &obj,
  *
  * \param: Object to check for the modifier
  * \param depsgraph: The dependency graph where the object was evaluated
- * \return The armature object.
+ * \return: The armature object
  */
 const Object *get_armature_modifier_obj(const Object &obj, const Depsgraph *depsgraph);
 
@@ -95,8 +97,8 @@ const Object *get_armature_modifier_obj(const Object &obj, const Depsgraph *deps
  * \param obj: Object to query for the modifier
  * \param name: Name to check
  * \param depsgraph: The dependency graph where the object was evaluated
- * \return True if the name matches a bone name.  Return false if no matching
- *         bone name is found or if the object does not have an armature modifier
+ * \return: True if the name matches a bone name.  Return false if no matching
+ *          bone name is found or if the object does not have an armature modifier
  */
 bool is_armature_modifier_bone_name(const Object &obj,
                                     const StringRefNull name,
@@ -109,7 +111,7 @@ bool is_armature_modifier_bone_name(const Object &obj,
  *
  * \param obj: Object to query
  * \param depsgraph: The dependency graph where the object was evaluated
- * \return True if skinned mesh export is supported, false otherwise.
+ * \return: True if skinned mesh export is supported, false otherwise
  */
 bool can_export_skinned_mesh(const Object &obj, const Depsgraph *depsgraph);
 

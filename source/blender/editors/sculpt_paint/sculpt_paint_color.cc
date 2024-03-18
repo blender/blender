@@ -19,6 +19,7 @@
 #include "BKE_brush.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
+#include "BKE_context.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -190,8 +191,7 @@ static void do_paint_brush_task(Object *ob,
      * at this point to avoid washing out non-binary masking modes like cavity masking. */
     float automasking = auto_mask::factor_get(
         ss->cache->automasking.get(), ss, vd.vertex, &automask_data);
-    const float alpha = BKE_brush_alpha_get(ss->scene, brush);
-    mul_v4_v4fl(buffer_color, color_buffer->color[vd.i], alpha * automasking);
+    mul_v4_v4fl(buffer_color, color_buffer->color[vd.i], brush->alpha * automasking);
 
     float4 col;
     SCULPT_vertex_color_get(ss, vd.vertex, col);
@@ -374,6 +374,8 @@ static void do_smear_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
 
     float current_disp[3];
     float current_disp_norm[3];
+    float interp_color[4];
+    copy_v4_v4(interp_color, ss->cache->prev_colors[vd.index]);
 
     float no[3];
     SCULPT_vertex_normal_get(ss, vd.vertex, no);
@@ -466,9 +468,11 @@ static void do_smear_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
       mul_v4_fl(accum, 1.0f / totw);
     }
 
+    blend_color_mix_float(interp_color, interp_color, accum);
+
     float col[4];
     SCULPT_vertex_color_get(ss, vd.vertex, col);
-    blend_color_interpolate_float(col, ss->cache->prev_colors[vd.index], accum, fade);
+    blend_color_interpolate_float(col, ss->cache->prev_colors[vd.index], interp_color, fade);
     SCULPT_vertex_color_set(ss, vd.vertex, col);
   }
   BKE_pbvh_vertex_iter_end;

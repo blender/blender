@@ -20,10 +20,10 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "RNA_access.hh"
 
@@ -50,7 +50,7 @@ static bool all_loading_finished()
 
 static asset::AssetItemTree build_catalog_tree(const bContext &C)
 {
-  asset::AssetFilterSettings type_filter{};
+  AssetFilterSettings type_filter{};
   type_filter.id_types = FILTER_ID_NT;
   auto meta_data_filter = [&](const AssetMetaData &meta_data) {
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
@@ -65,7 +65,6 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C)
     return true;
   };
   const AssetLibraryReference library = asset_system::all_library_reference();
-  asset_system::all_library_reload_catalogs_if_dirty();
   return asset::build_filtered_all_catalog_tree(library, C, type_filter, meta_data_filter);
 }
 
@@ -88,7 +87,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
       *static_cast<const asset_system::AssetCatalogPath *>(menu_path_ptr.data);
 
   const Span<asset_system::AssetRepresentation *> assets = tree.assets_per_path.lookup(menu_path);
-  const asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(menu_path);
+  asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(menu_path);
   BLI_assert(catalog_item != nullptr);
 
   if (assets.is_empty() && !catalog_item->has_children()) {
@@ -118,7 +117,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  catalog_item->foreach_child([&](const asset_system::AssetCatalogTreeItem &item) {
+  catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &item) {
     asset::draw_menu_for_catalog(
         screen, *all_library, item, "OBJECT_MT_add_modifier_catalog_assets", *layout);
   });
@@ -241,7 +240,7 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  tree.catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
+  tree.catalogs.foreach_root_item([&](asset_system::AssetCatalogTreeItem &item) {
     if (!all_builtin_menus.contains(item.get_name())) {
       asset::draw_menu_for_catalog(
           screen, *all_library, item, "OBJECT_MT_add_modifier_catalog_assets", *layout);

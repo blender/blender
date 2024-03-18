@@ -26,11 +26,10 @@
 
 struct BlendWriter;
 struct BlendDataReader;
+struct BlendLibReader;
 struct LibraryForeachIDData;
-
-namespace blender::bke::id {
-class IDRemapper;
-}
+struct Library;
+struct IDRemapper;
 
 enum ViewerPathEqualFlag {
   VIEWER_PATH_EQUAL_FLAG_IGNORE_REPEAT_ITERATION = (1 << 0),
@@ -45,8 +44,7 @@ bool BKE_viewer_path_equal(const ViewerPath *a,
 void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_path);
 void BKE_viewer_path_blend_read_data(BlendDataReader *reader, ViewerPath *viewer_path);
 void BKE_viewer_path_foreach_id(LibraryForeachIDData *data, ViewerPath *viewer_path);
-void BKE_viewer_path_id_remap(ViewerPath *viewer_path,
-                              const blender::bke::id::IDRemapper &mappings);
+void BKE_viewer_path_id_remap(ViewerPath *viewer_path, const IDRemapper *mappings);
 
 ViewerPathElem *BKE_viewer_path_elem_new(ViewerPathElemType type);
 IDViewerPathElem *BKE_viewer_path_elem_new_id();

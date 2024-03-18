@@ -28,6 +28,8 @@
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
+#include "BKE_object.hh"
+
 #include "curve_intern.h"
 
 #include "RNA_access.hh"
@@ -151,17 +153,17 @@ static void update_location_for_2d_curve(const ViewContext *vc, float location[3
     ED_view3d_global_to_vector(vc->rv3d, location, view_dir);
 
     /* Get the plane. */
-    const float *plane_co = vc->obedit->object_to_world().location();
-    float plane_no[3];
+    float plane[4];
     /* Only normalize to avoid precision errors. */
-    normalize_v3_v3(plane_no, vc->obedit->object_to_world()[2]);
+    normalize_v3_v3(plane, vc->obedit->object_to_world[2]);
+    plane[3] = -dot_v3v3(plane, vc->obedit->object_to_world[3]);
 
-    if (fabsf(dot_v3v3(view_dir, plane_no)) < eps) {
+    if (fabsf(dot_v3v3(view_dir, plane)) < eps) {
       /* Can't project on an aligned plane. */
     }
     else {
       float lambda;
-      if (isect_ray_plane_v3_factor(location, view_dir, plane_co, plane_no, &lambda)) {
+      if (isect_ray_plane_v3(location, view_dir, plane, &lambda, false)) {
         /* Check if we're behind the viewport */
         float location_test[3];
         madd_v3_v3v3fl(location_test, location, view_dir, lambda);
@@ -175,7 +177,7 @@ static void update_location_for_2d_curve(const ViewContext *vc, float location[3
   }
 
   float imat[4][4];
-  invert_m4_m4(imat, vc->obedit->object_to_world().ptr());
+  invert_m4_m4(imat, vc->obedit->object_to_world);
   mul_m4_v3(imat, location);
 
   if (CU_IS_2D(cu)) {
@@ -188,7 +190,7 @@ static void screenspace_to_worldspace(const ViewContext *vc,
                                       const float depth[3],
                                       float r_pos_3d[3])
 {
-  mul_v3_m4v3(r_pos_3d, vc->obedit->object_to_world().ptr(), depth);
+  mul_v3_m4v3(r_pos_3d, vc->obedit->object_to_world, depth);
   ED_view3d_win_to_3d(vc->v3d, vc->region, r_pos_3d, pos_2d, r_pos_3d);
   update_location_for_2d_curve(vc, r_pos_3d);
 }
@@ -1102,7 +1104,7 @@ static void extrude_points_from_selected_vertices(const ViewContext *vc,
 
   float location[3];
   if (sel_exists) {
-    mul_v3_m4v3(location, vc->obedit->object_to_world().ptr(), center);
+    mul_v3_m4v3(location, vc->obedit->object_to_world, center);
   }
   else {
     copy_v3_v3(location, vc->scene->cursor.location);

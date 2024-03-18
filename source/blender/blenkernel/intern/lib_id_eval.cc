@@ -20,7 +20,7 @@
 void BKE_id_eval_properties_copy(ID *id_cow, ID *id)
 {
   const ID_Type id_type = GS(id->name);
-  BLI_assert((id_cow->tag & LIB_TAG_COPIED_ON_EVAL) && !(id->tag & LIB_TAG_COPIED_ON_EVAL));
+  BLI_assert((id_cow->tag & LIB_TAG_COPIED_ON_WRITE) && !(id->tag & LIB_TAG_COPIED_ON_WRITE));
   BLI_assert(ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW(id_type));
   if (id_type == ID_ME) {
     BKE_mesh_copy_parameters((Mesh *)id_cow, (const Mesh *)id);

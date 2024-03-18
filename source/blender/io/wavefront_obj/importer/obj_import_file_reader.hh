@@ -8,16 +8,12 @@
 
 #pragma once
 
+#include "BLI_fileops.hh"
 #include "IO_wavefront_obj.hh"
-
-#include "BLI_map.hh"
-#include "BLI_vector.hh"
-
+#include "obj_import_mtl.hh"
 #include "obj_import_objects.hh"
 
 namespace blender::io::obj {
-
-struct MTLMaterial;
 
 /* NOTE: the OBJ parser implementation is planned to get fairly large changes "soon",
  * so don't read too much into current implementation... */

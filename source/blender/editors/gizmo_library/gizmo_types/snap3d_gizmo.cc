@@ -14,14 +14,20 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
+#include "BKE_global.h"
+#include "BKE_main.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
+#include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
+
+#include "UI_resources.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -35,7 +41,6 @@
 struct SnapGizmo3D {
   wmGizmo gizmo;
   V3DSnapCursorState *snap_state;
-  V3DSnapCursorState snap_state_stored;
 };
 
 /* -------------------------------------------------------------------- */
@@ -189,7 +194,6 @@ static void gizmo_snap_rna_snap_srouce_type_set_fn(PointerRNA * /*ptr*/,
 static void snap_cursor_free(SnapGizmo3D *snap_gizmo)
 {
   if (snap_gizmo->snap_state) {
-    snap_gizmo->snap_state_stored = *snap_gizmo->snap_state;
     ED_view3d_cursor_snap_state_free(snap_gizmo->snap_state);
     snap_gizmo->snap_state = nullptr;
   }
@@ -218,6 +222,18 @@ static bool snap_cursor_poll(ARegion *region, void *data)
   return true;
 }
 
+static void snap_cursor_init(SnapGizmo3D *snap_gizmo)
+{
+  snap_gizmo->snap_state = ED_view3d_cursor_snap_state_create();
+  snap_gizmo->snap_state->draw_point = true;
+  snap_gizmo->snap_state->draw_plane = false;
+
+  rgba_float_to_uchar(snap_gizmo->snap_state->target_color, snap_gizmo->gizmo.color);
+
+  snap_gizmo->snap_state->poll = snap_cursor_poll;
+  snap_gizmo->snap_state->poll_data = snap_gizmo;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -227,23 +243,14 @@ static bool snap_cursor_poll(ARegion *region, void *data)
 static void snap_gizmo_setup(wmGizmo *gz)
 {
   gz->flag |= WM_GIZMO_NO_TOOLTIP;
-
-  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-  snap_gizmo->snap_state = ED_view3d_cursor_snap_state_create();
-  snap_gizmo->snap_state->draw_point = true;
-  snap_gizmo->snap_state->draw_plane = false;
-  snap_gizmo->snap_state->poll = snap_cursor_poll;
-  snap_gizmo->snap_state->poll_data = snap_gizmo;
-
-  snap_gizmo->snap_state_stored = *snap_gizmo->snap_state;
+  snap_cursor_init((SnapGizmo3D *)gz);
 }
 
 static void snap_gizmo_draw(const bContext * /*C*/, wmGizmo *gz)
 {
   SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
   if (snap_gizmo->snap_state == nullptr) {
-    snap_gizmo->snap_state = ED_view3d_cursor_snap_state_create();
-    *snap_gizmo->snap_state = snap_gizmo->snap_state_stored;
+    snap_cursor_init(snap_gizmo);
   }
 
   /* All drawing is handled at the paint cursor.

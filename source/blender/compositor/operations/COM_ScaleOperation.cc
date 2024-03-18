@@ -32,6 +32,9 @@ ScaleOperation::ScaleOperation(DataType data_type) : BaseScaleOperation()
   this->add_input_socket(DataType::Value);
   this->add_input_socket(DataType::Value);
   this->add_output_socket(data_type);
+  input_operation_ = nullptr;
+  input_xoperation_ = nullptr;
+  input_yoperation_ = nullptr;
   flags_.can_be_constant = true;
 }
 
@@ -92,6 +95,20 @@ void ScaleOperation::init_data()
 {
   canvas_center_x_ = canvas_.xmin + get_width() / 2.0f;
   canvas_center_y_ = canvas_.ymin + get_height() / 2.0f;
+}
+
+void ScaleOperation::init_execution()
+{
+  input_operation_ = this->get_input_socket_reader(0);
+  input_xoperation_ = this->get_input_socket_reader(1);
+  input_yoperation_ = this->get_input_socket_reader(2);
+}
+
+void ScaleOperation::deinit_execution()
+{
+  input_operation_ = nullptr;
+  input_xoperation_ = nullptr;
+  input_yoperation_ = nullptr;
 }
 
 void ScaleOperation::get_scale_offset(const rcti &input_canvas,
@@ -177,6 +194,11 @@ void ScaleOperation::update_memory_buffer_partial(MemoryBuffer *output,
 
 void ScaleOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
+  if (execution_model_ == eExecutionModel::Tiled) {
+    NodeOperation::determine_canvas(preferred_area, r_area);
+    return;
+  }
+
   const bool image_determined =
       get_input_socket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
   if (image_determined) {
@@ -210,11 +232,127 @@ ScaleRelativeOperation::ScaleRelativeOperation() : ScaleOperation() {}
 
 ScaleRelativeOperation::ScaleRelativeOperation(DataType data_type) : ScaleOperation(data_type) {}
 
+void ScaleRelativeOperation::execute_pixel_sampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
+{
+  PixelSampler effective_sampler = get_effective_sampler(sampler);
+
+  float scaleX[4];
+  float scaleY[4];
+
+  input_xoperation_->read_sampled(scaleX, x, y, effective_sampler);
+  input_yoperation_->read_sampled(scaleY, x, y, effective_sampler);
+
+  const float scx = scaleX[0];
+  const float scy = scaleY[0];
+
+  float nx = this->canvas_center_x_ + (x - this->canvas_center_x_) / scx;
+  float ny = this->canvas_center_y_ + (y - this->canvas_center_y_) / scy;
+  input_operation_->read_sampled(output, nx, ny, effective_sampler);
+}
+
+bool ScaleRelativeOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
+{
+  rcti new_input;
+  if (!variable_size_) {
+    float scaleX[4];
+    float scaleY[4];
+
+    input_xoperation_->read_sampled(scaleX, 0, 0, PixelSampler::Nearest);
+    input_yoperation_->read_sampled(scaleY, 0, 0, PixelSampler::Nearest);
+
+    const float scx = scaleX[0];
+    const float scy = scaleY[0];
+
+    new_input.xmax = this->canvas_center_x_ + (input->xmax - this->canvas_center_x_) / scx + 1;
+    new_input.xmin = this->canvas_center_x_ + (input->xmin - this->canvas_center_x_) / scx - 1;
+    new_input.ymax = this->canvas_center_y_ + (input->ymax - this->canvas_center_y_) / scy + 1;
+    new_input.ymin = this->canvas_center_y_ + (input->ymin - this->canvas_center_y_) / scy - 1;
+  }
+  else {
+    new_input.xmax = this->get_width();
+    new_input.xmin = 0;
+    new_input.ymax = this->get_height();
+    new_input.ymin = 0;
+  }
+  return BaseScaleOperation::determine_depending_area_of_interest(
+      &new_input, read_operation, output);
+}
+
+void ScaleAbsoluteOperation::execute_pixel_sampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
+{
+  PixelSampler effective_sampler = get_effective_sampler(sampler);
+
+  float scaleX[4];
+  float scaleY[4];
+
+  input_xoperation_->read_sampled(scaleX, x, y, effective_sampler);
+  input_yoperation_->read_sampled(scaleY, x, y, effective_sampler);
+
+  const float scx = scaleX[0]; /* Target absolute scale. */
+  const float scy = scaleY[0]; /* Target absolute scale. */
+
+  const float width = this->get_width();
+  const float height = this->get_height();
+  /* Divide. */
+  float relative_xscale = scx / width;
+  float relative_yscale = scy / height;
+
+  float nx = this->canvas_center_x_ + (x - this->canvas_center_x_) / relative_xscale;
+  float ny = this->canvas_center_y_ + (y - this->canvas_center_y_) / relative_yscale;
+
+  input_operation_->read_sampled(output, nx, ny, effective_sampler);
+}
+
+bool ScaleAbsoluteOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
+{
+  rcti new_input;
+  if (!variable_size_) {
+    float scaleX[4];
+    float scaleY[4];
+
+    input_xoperation_->read_sampled(scaleX, 0, 0, PixelSampler::Nearest);
+    input_yoperation_->read_sampled(scaleY, 0, 0, PixelSampler::Nearest);
+
+    const float scx = scaleX[0];
+    const float scy = scaleY[0];
+    const float width = this->get_width();
+    const float height = this->get_height();
+    /* Divide. */
+    float relateve_xscale = scx / width;
+    float relateve_yscale = scy / height;
+
+    new_input.xmax = this->canvas_center_x_ +
+                     (input->xmax - this->canvas_center_x_) / relateve_xscale;
+    new_input.xmin = this->canvas_center_x_ +
+                     (input->xmin - this->canvas_center_x_) / relateve_xscale;
+    new_input.ymax = this->canvas_center_y_ +
+                     (input->ymax - this->canvas_center_y_) / relateve_yscale;
+    new_input.ymin = this->canvas_center_y_ +
+                     (input->ymin - this->canvas_center_y_) / relateve_yscale;
+  }
+  else {
+    new_input.xmax = this->get_width();
+    new_input.xmin = 0;
+    new_input.ymax = this->get_height();
+    new_input.ymin = 0;
+  }
+  return ScaleOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
+}
+
 ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
 {
   this->add_input_socket(DataType::Color, ResizeMode::None);
   this->add_output_socket(DataType::Color);
   this->set_canvas_input_index(0);
+  input_operation_ = nullptr;
   is_offset_ = false;
 }
 
@@ -257,7 +395,7 @@ void ScaleFixedSizeOperation::init_data(const rcti &input_canvas)
         const float div = asp_src / asp_dst;
         rel_x_ /= div;
         offset_x_ += ((w_src - (w_src * div)) / (w_src / w_dst)) / 2.0f;
-        if (is_crop_) {
+        if (is_crop_ && execution_model_ == eExecutionModel::FullFrame) {
           int fit_width = new_width_ * div;
 
           const int added_width = fit_width - new_width_;
@@ -270,7 +408,7 @@ void ScaleFixedSizeOperation::init_data(const rcti &input_canvas)
         const float div = asp_dst / asp_src;
         rel_y_ /= div;
         offset_y_ += ((h_src - (h_src * div)) / (h_src / h_dst)) / 2.0f;
-        if (is_crop_) {
+        if (is_crop_ && execution_model_ == eExecutionModel::FullFrame) {
           int fit_height = new_height_ * div;
 
           const int added_height = fit_height - new_height_;
@@ -285,6 +423,47 @@ void ScaleFixedSizeOperation::init_data(const rcti &input_canvas)
   /* *** end framing options *** */
 }
 
+void ScaleFixedSizeOperation::init_execution()
+{
+  input_operation_ = this->get_input_socket_reader(0);
+}
+
+void ScaleFixedSizeOperation::deinit_execution()
+{
+  input_operation_ = nullptr;
+}
+
+void ScaleFixedSizeOperation::execute_pixel_sampled(float output[4],
+                                                    float x,
+                                                    float y,
+                                                    PixelSampler sampler)
+{
+  PixelSampler effective_sampler = get_effective_sampler(sampler);
+
+  if (is_offset_) {
+    float nx = ((x - offset_x_) * rel_x_);
+    float ny = ((y - offset_y_) * rel_y_);
+    input_operation_->read_sampled(output, nx, ny, effective_sampler);
+  }
+  else {
+    input_operation_->read_sampled(output, x * rel_x_, y * rel_y_, effective_sampler);
+  }
+}
+
+bool ScaleFixedSizeOperation::determine_depending_area_of_interest(
+    rcti *input, ReadBufferOperation *read_operation, rcti *output)
+{
+  rcti new_input;
+
+  new_input.xmax = (input->xmax - offset_x_) * rel_x_ + 1;
+  new_input.xmin = (input->xmin - offset_x_) * rel_x_;
+  new_input.ymax = (input->ymax - offset_y_) * rel_y_ + 1;
+  new_input.ymin = (input->ymin - offset_y_) * rel_y_;
+
+  return BaseScaleOperation::determine_depending_area_of_interest(
+      &new_input, read_operation, output);
+}
+
 void ScaleFixedSizeOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   rcti local_preferred = preferred_area;
@@ -296,10 +475,12 @@ void ScaleFixedSizeOperation::determine_canvas(const rcti &preferred_area, rcti 
   if (input_determined) {
     init_data(input_canvas);
     r_area = input_canvas;
-    r_area.xmin /= rel_x_;
-    r_area.ymin /= rel_y_;
-    r_area.xmin += offset_x_;
-    r_area.ymin += offset_y_;
+    if (execution_model_ == eExecutionModel::FullFrame) {
+      r_area.xmin /= rel_x_;
+      r_area.ymin /= rel_y_;
+      r_area.xmin += offset_x_;
+      r_area.ymin += offset_y_;
+    }
 
     r_area.xmax = r_area.xmin + new_width_;
     r_area.ymax = r_area.ymin + new_height_;

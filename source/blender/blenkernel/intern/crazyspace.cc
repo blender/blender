@@ -11,7 +11,9 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_linklist.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -28,8 +30,9 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
+#include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -342,7 +345,7 @@ int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
                                          blender::Array<blender::float3, 0> &deformcos)
 {
   ModifierData *md;
-  Mesh *mesh_eval = nullptr;
+  Mesh *me_eval = nullptr;
   int modifiers_left_num = 0;
   VirtualModifierData virtual_modifier_data;
   Object object_eval;
@@ -371,14 +374,14 @@ int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
       if (deformmats.is_empty()) {
         /* NOTE: Evaluated object is re-set to its original un-deformed state. */
         Mesh *mesh = static_cast<Mesh *>(object_eval.data);
-        mesh_eval = BKE_mesh_copy_for_eval(mesh);
+        me_eval = BKE_mesh_copy_for_eval(mesh);
         deformcos = mesh->vert_positions();
         deformmats.reinitialize(mesh->verts_num);
         deformmats.fill(blender::float3x3::identity());
       }
 
       if (mti->deform_matrices) {
-        mti->deform_matrices(md, &mectx, mesh_eval, deformcos, deformmats);
+        mti->deform_matrices(md, &mectx, me_eval, deformcos, deformmats);
       }
       else {
         /* More complex handling will continue in BKE_crazyspace_build_sculpt.
@@ -399,8 +402,8 @@ int BKE_sculpt_get_first_deform_matrices(Depsgraph *depsgraph,
     }
   }
 
-  if (mesh_eval != nullptr) {
-    BKE_id_free(nullptr, mesh_eval);
+  if (me_eval != nullptr) {
+    BKE_id_free(nullptr, me_eval);
   }
 
   return modifiers_left_num;

@@ -8,7 +8,7 @@
  * Mimics old style opengl immediate mode drawing.
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "GPU_vertex_format.h"
 #include "gpu_context_private.hh"

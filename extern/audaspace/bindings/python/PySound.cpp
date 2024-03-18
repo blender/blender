@@ -1269,12 +1269,12 @@ Sound_rechannel(Sound* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_Sound_resample_doc,
-			 ".. method:: resample(rate, quality)\n\n"
+			 ".. method:: resample(rate, high_quality)\n\n"
 			 "   Resamples the sound.\n\n"
 			 "   :arg rate: The new sample rate.\n"
 			 "   :type rate: double\n"
-			 "   :arg quality: Resampler performance vs quality choice (0=fastest, 3=slowest).\n"
-			 "   :type quality: int\n"
+			 "   :arg high_quality: When true use a higher quality but slower resampler.\n"
+			 "   :type high_quality: bool\n"
 			 "   :return: The created :class:`Sound` object.\n"
 			 "   :rtype: :class:`Sound`");
 
@@ -1282,10 +1282,19 @@ static PyObject *
 Sound_resample(Sound* self, PyObject* args)
 {
 	double rate;
-	int quality = 0;
+	PyObject* high_qualityo;
+	bool high_quality = false;
 
-	if(!PyArg_ParseTuple(args, "d|i:resample", &rate, &quality))
+	if(!PyArg_ParseTuple(args, "d|O:resample", &rate, &high_qualityo))
 		return nullptr;
+
+	if(!PyBool_Check(high_qualityo))
+	{
+		PyErr_SetString(PyExc_TypeError, "high_quality is not a boolean!");
+		return nullptr;
+	}
+
+	high_quality = high_qualityo == Py_True;
 
 	PyTypeObject* type = Py_TYPE(self);
 	Sound* parent = (Sound*)type->tp_alloc(type, 0);
@@ -1298,10 +1307,10 @@ Sound_resample(Sound* self, PyObject* args)
 			specs.channels = CHANNELS_INVALID;
 			specs.rate = rate;
 			specs.format = FORMAT_INVALID;
-			if (quality == int(ResampleQuality::FASTEST))
-				parent->sound = new std::shared_ptr<ISound>(new LinearResample(*reinterpret_cast<std::shared_ptr<ISound>*>(self->sound), specs));
+			if(high_quality)
+				parent->sound = new std::shared_ptr<ISound>(new JOSResample(*reinterpret_cast<std::shared_ptr<ISound>*>(self->sound), specs));
 			else
-				parent->sound = new std::shared_ptr<ISound>(new JOSResample(*reinterpret_cast<std::shared_ptr<ISound>*>(self->sound), specs, static_cast<ResampleQuality>(quality)));
+				parent->sound = new std::shared_ptr<ISound>(new LinearResample(*reinterpret_cast<std::shared_ptr<ISound>*>(self->sound), specs));
 		}
 		catch(Exception& e)
 		{

@@ -13,10 +13,65 @@ PixelateOperation::PixelateOperation()
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
   this->set_canvas_input_index(0);
+  input_operation_ = nullptr;
 
   flags_.can_be_constant = true;
 
   pixel_size_ = 1;
+}
+
+void PixelateOperation::init_execution()
+{
+  input_operation_ = this->get_input_socket_reader(0);
+}
+
+void PixelateOperation::deinit_execution()
+{
+  input_operation_ = nullptr;
+}
+
+bool PixelateOperation::determine_depending_area_of_interest(rcti *input,
+                                                             ReadBufferOperation *read_operation,
+                                                             rcti *output)
+{
+  rcti new_input;
+
+  new_input.xmin = input->xmin;
+  new_input.xmax = input->xmax + pixel_size_ - 1;
+  new_input.ymax = input->ymax;
+  new_input.ymax = input->ymax + pixel_size_ - 1;
+
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
+}
+
+void PixelateOperation::execute_pixel_sampled(float output[4],
+                                              const float x,
+                                              const float y,
+                                              const PixelSampler sampler)
+{
+  const int width = this->get_width();
+  const int height = this->get_height();
+
+  const int x_start = (int(x) / pixel_size_) * pixel_size_;
+  const int y_start = (int(y) / pixel_size_) * pixel_size_;
+
+  const int x_end = std::min(x_start + pixel_size_, width);
+  const int y_end = std::min(y_start + pixel_size_, height);
+
+  float4 color_accum(0, 0, 0, 0);
+
+  for (int iy = y_start; iy < y_end; ++iy) {
+    for (int ix = x_start; ix < x_end; ++ix) {
+      float4 color;
+      input_operation_->read_sampled(color, ix, iy, sampler);
+
+      color_accum += color;
+    }
+  }
+
+  const int scale = (x_end - x_start) * (y_end - y_start);
+
+  copy_v4_v4(output, color_accum / float(scale));
 }
 
 void PixelateOperation::get_area_of_interest(const int /*input_idx*/,

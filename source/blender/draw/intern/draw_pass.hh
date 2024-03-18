@@ -340,7 +340,7 @@ class PassBase {
    * IMPORTANT: Will keep a reference to the data and dereference it upon drawing. Make sure data
    * still alive until pass submission.
    *
-   * \note bool reference version is expected to take bool32_t reference which is aliased to int.
+   * \note bool reference version is expected to take bool1 reference which is aliased to int.
    */
   void push_constant(const char *name, const float &data);
   void push_constant(const char *name, const float2 &data);

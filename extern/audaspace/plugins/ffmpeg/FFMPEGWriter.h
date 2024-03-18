@@ -135,7 +135,7 @@ public:
 	 * \exception Exception Thrown if the file specified does not exist or
 	 *            cannot be read with ffmpeg.
 	 */
-	FFMPEGWriter(const std::string &filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate);
+	FFMPEGWriter(std::string filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate);
 
 	/**
 	 * Destroys the writer and closes the file.

@@ -21,7 +21,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
@@ -41,14 +41,14 @@
 
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_editlattice.h"
 #include "BKE_editmesh.hh"
 #include "BKE_effect.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
@@ -62,8 +62,8 @@
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_softbody.h"
 #include "BKE_workspace.h"
 
@@ -1263,13 +1263,13 @@ void ED_objects_recalculate_paths(bContext *C,
   BLI_freelistN(&targets);
 
   if (range != OBJECT_PATH_CALC_RANGE_CURRENT_FRAME) {
-    /* Tag objects for copy-on-eval - so paths will draw/redraw
+    /* Tag objects for copy on write - so paths will draw/redraw
      * For currently frame only we update evaluated object directly. */
     LISTBASE_FOREACH (LinkData *, link, ld_objects) {
       Object *ob = static_cast<Object *>(link->data);
 
       if (has_object_motion_paths(ob) || has_pose_motion_paths(ob)) {
-        DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
       }
     }
   }
@@ -1298,8 +1298,7 @@ static int object_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEv
 
   /* show popup dialog to allow editing of range... */
   /* FIXME: hard-coded dimensions here are just arbitrary. */
-  return WM_operator_props_dialog_popup(
-      C, op, 270, IFACE_("Calculate Object Motion Paths"), IFACE_("Calculate"));
+  return WM_operator_props_dialog_popup(C, op, 270);
 }
 
 /* Calculate/recalculate whole paths (avs.path_sf to avs.path_ef) */
@@ -1476,8 +1475,8 @@ static void object_clear_mpath(Object *ob)
     ob->mpath = nullptr;
     ob->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
 
-    /* tag object for copy-on-eval - so removed paths don't still show */
-    DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+    /* tag object for copy on write - so removed paths don't still show */
+    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
   }
 }
 
@@ -1862,13 +1861,6 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
     }
   }
 
-  wmWindowManager *wm = CTX_wm_manager(C);
-  if (wm) {
-    if (WM_autosave_is_scheduled(wm)) {
-      WM_autosave_write(wm, CTX_data_main(C));
-    }
-  }
-
   return OPERATOR_FINISHED;
 }
 
@@ -2034,7 +2026,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
   }
 
   DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
 
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
@@ -2166,8 +2158,7 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
         BKE_collection_new_name_get(collection, name);
 
         RNA_property_string_set(op->ptr, prop, name);
-        return WM_operator_props_dialog_popup(
-            C, op, 200, IFACE_("Move to New Collection"), IFACE_("Create"));
+        return WM_operator_props_dialog_popup(C, op, 200);
       }
     }
     return move_to_collection_exec(C, op);

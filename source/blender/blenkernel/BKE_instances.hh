@@ -27,7 +27,6 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_vector.hh"
-#include "BLI_virtual_array_fwd.hh"
 
 #include "DNA_customdata_types.h"
 
@@ -100,7 +99,8 @@ class Instances {
    */
   Vector<InstanceReference> references_;
 
-  int instances_num_ = 0;
+  /** Transformation of the instances. */
+  Vector<float4x4> transforms_;
 
   CustomData attributes_;
 
@@ -159,8 +159,8 @@ class Instances {
 
   Span<int> reference_handles() const;
   MutableSpan<int> reference_handles_for_write();
+  MutableSpan<float4x4> transforms();
   Span<float4x4> transforms() const;
-  MutableSpan<float4x4> transforms_for_write();
 
   int instances_num() const;
   int references_num() const;
@@ -192,9 +192,6 @@ class Instances {
     almost_unique_ids_cache_.tag_dirty();
   }
 };
-
-VArray<float3> instance_position_varray(const Instances &instances);
-VMutableArray<float3> instance_position_varray_for_write(Instances &instances);
 
 /* -------------------------------------------------------------------- */
 /** \name #InstanceReference Inline Methods

@@ -13,6 +13,10 @@ namespace blender::compositor {
 
 class ScreenLensDistortionOperation : public MultiThreadedOperation {
  private:
+  /**
+   * Cached reference to the input_program
+   */
+  SocketReader *input_program_;
   struct RNG *rng_;
 
   bool fit_;
@@ -34,7 +38,20 @@ class ScreenLensDistortionOperation : public MultiThreadedOperation {
 
   void init_data() override;
 
+  /**
+   * The inner loop of this operation.
+   */
+  void execute_pixel(float output[4], int x, int y, void *data) override;
+
+  /**
+   * Initialize the execution
+   */
   void init_execution() override;
+
+  void *initialize_tile_data(rcti *rect) override;
+  /**
+   * Deinitialize the execution
+   */
   void deinit_execution() override;
 
   void set_fit(bool fit)
@@ -50,6 +67,10 @@ class ScreenLensDistortionOperation : public MultiThreadedOperation {
   void set_distortion(float distortion);
   /** Set constant dispersion value */
   void set_dispersion(float dispersion);
+
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

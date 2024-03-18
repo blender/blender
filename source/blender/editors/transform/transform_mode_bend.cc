@@ -19,6 +19,7 @@
 #include "BLI_string.h"
 #include "BLI_task.h"
 
+#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
@@ -28,7 +29,7 @@
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -51,7 +52,7 @@ struct BendCustomData {
   float warp_nor[3];
   float warp_tan[3];
 
-  /* For applying the mouse distance. */
+  /* for applying the mouse distance */
   float warp_init_dist;
 };
 
@@ -126,7 +127,7 @@ static void transdata_elem_bend(const TransInfo *t,
   interp_v3_v3v3(delta, warp_sta_local, warp_end_radius_local, fac_scaled);
   sub_v3_v3(delta, warp_sta_local);
 
-  /* Delta is subtracted, rotation adds back this offset. */
+  /* delta is subtracted, rotation adds back this offset */
   sub_v3_v3(vec, delta);
 
   sub_v3_v3(vec, pivot_local);
@@ -135,12 +136,12 @@ static void transdata_elem_bend(const TransInfo *t,
 
   mul_m3_v3(td->smtx, vec);
 
-  /* Rotation. */
+  /* rotation */
   if ((t->flag & T_POINTS) == 0) {
     ElementRotation(t, tc, td, mat, V3D_AROUND_LOCAL_ORIGINS);
   }
 
-  /* Location. */
+  /* location */
   copy_v3_v3(td->loc, vec);
 }
 
@@ -198,13 +199,13 @@ static void Bend(TransInfo *t)
     float vector[2];
   } values;
 
-  /* Amount of radians for bend. */
+  /* amount of radians for bend */
   copy_v2_v2(values.vector, t->values);
 
 #if 0
   snapGrid(t, angle_rad);
 #else
-  /* Hrmf, snapping radius is using 'angle' steps, need to convert to something else
+  /* hrmf, snapping radius is using 'angle' steps, need to convert to something else
    * this isn't essential but nicer to give reasonable snapping values for radius. */
   if (t->tsnap.mode & SCE_SNAP_TO_INCREMENT) {
     const float radius_snap = 0.1f;
@@ -221,7 +222,7 @@ static void Bend(TransInfo *t)
 
   copy_v2_v2(t->values_final, values.vector);
 
-  /* Header print for NumInput. */
+  /* header print for NumInput */
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN * 2];
 
@@ -234,7 +235,7 @@ static void Bend(TransInfo *t)
              WM_bool_as_string(is_clamp));
   }
   else {
-    /* Default header print. */
+    /* default header print */
     SNPRINTF(str,
              IFACE_("Bend Angle: %.3f, Radius: %.4f, Alt: Clamp %s"),
              RAD2DEGF(values.angle),
@@ -245,12 +246,12 @@ static void Bend(TransInfo *t)
   values.angle *= -1.0f;
   values.scale *= bend_data->warp_init_dist;
 
-  /* Calculate `data->warp_end` from `data->warp_end_init`. */
+  /* calc 'data->warp_end' from 'data->warp_end_init' */
   copy_v3_v3(warp_end_radius_global, bend_data->warp_end);
   dist_ensure_v3_v3fl(warp_end_radius_global, bend_data->warp_sta, values.scale);
-  /* Done. */
+  /* done */
 
-  /* Calculate pivot. */
+  /* calculate pivot */
   copy_v3_v3(pivot_global, bend_data->warp_sta);
   if (values.angle > 0.0f) {
     madd_v3_v3fl(pivot_global,
@@ -337,7 +338,8 @@ static void initBend(TransInfo *t, wmOperator * /*op*/)
 
   t->idx_max = 1;
   t->num.idx_max = 1;
-  initSnapAngleIncrements(t);
+  t->snap[0] = SNAP_INCREMENTAL_ANGLE;
+  t->snap[1] = t->snap[0] * 0.2;
 
   copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;
@@ -361,7 +363,7 @@ static void initBend(TransInfo *t, wmOperator * /*op*/)
   copy_v3_v3(data->warp_nor, t->viewinv[2]);
   normalize_v3(data->warp_nor);
 
-  /* Tangent. */
+  /* tangent */
   sub_v3_v3v3(tvec, data->warp_end, data->warp_sta);
   cross_v3_v3v3(data->warp_tan, tvec, data->warp_nor);
   normalize_v3(data->warp_tan);

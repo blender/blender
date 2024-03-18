@@ -100,7 +100,7 @@ class VIEWLAYER_PT_eevee_next_layer_passes_data(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_normal")
         col.prop(view_layer, "use_pass_position")
         sub = col.column()
-        sub.active = not scene.render.use_motion_blur
+        sub.active = not scene.eevee.use_motion_blur
         sub.prop(view_layer, "use_pass_vector")
 
 
@@ -151,7 +151,8 @@ class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_emit", text="Emission")
         col.prop(view_layer, "use_pass_environment")
         col.prop(view_layer, "use_pass_shadow")
-        col.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
+        col.prop(view_layer, "use_pass_ambient_occlusion",
+                 text="Ambient Occlusion")
 
 
 class VIEWLAYER_PT_eevee_next_layer_passes_light(ViewLayerButtonsPanel, Panel):
@@ -183,7 +184,8 @@ class VIEWLAYER_PT_eevee_next_layer_passes_light(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_emit", text="Emission")
         col.prop(view_layer, "use_pass_environment")
         col.prop(view_layer, "use_pass_shadow")
-        col.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
+        col.prop(view_layer, "use_pass_ambient_occlusion",
+                 text="Ambient Occlusion")
 
         col = layout.column()
         col.active = view_layer.use_pass_ambient_occlusion
@@ -228,7 +230,8 @@ class ViewLayerAOVPanel(ViewLayerButtonsPanel, Panel):
 
         row = layout.row()
         col = row.column()
-        col.template_list("VIEWLAYER_UL_aov", "aovs", view_layer, "aovs", view_layer, "active_aov_index", rows=3)
+        col.template_list("VIEWLAYER_UL_aov", "aovs", view_layer,
+                          "aovs", view_layer, "active_aov_index", rows=3)
 
         col = row.column()
         sub = col.column(align=True)
@@ -237,7 +240,8 @@ class ViewLayerAOVPanel(ViewLayerButtonsPanel, Panel):
 
         aov = view_layer.active_aov
         if aov and not aov.is_valid:
-            layout.label(text="Conflicts with another render pass with the same name", icon='ERROR')
+            layout.label(
+                text="Conflicts with another render pass with the same name", icon='ERROR')
 
 
 class VIEWLAYER_PT_layer_passes_aov(ViewLayerAOVPanel):
@@ -267,7 +271,8 @@ class ViewLayerCryptomattePanel(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "pass_cryptomatte_depth", text="Levels")
 
         if context.engine == 'BLENDER_EEVEE':
-            col.prop(view_layer, "use_pass_cryptomatte_accurate", text="Accurate Mode")
+            col.prop(view_layer, "use_pass_cryptomatte_accurate",
+                     text="Accurate Mode")
 
 
 class VIEWLAYER_PT_layer_passes_cryptomatte(ViewLayerCryptomattePanel, Panel):
@@ -325,6 +330,7 @@ class VIEWLAYER_PT_filter(ViewLayerButtonsPanel, Panel):
         layout.use_property_decorate = False
 
         scene = context.scene
+        rd = scene.render
         view_layer = context.view_layer
 
         col = layout.column(heading="Include")
@@ -336,7 +342,7 @@ class VIEWLAYER_PT_filter(ViewLayerButtonsPanel, Panel):
         col = layout.column(heading="Use")
         sub = col.row()
         sub.prop(view_layer, "use_motion_blur", text="Motion Blur")
-        sub.active = scene.render.use_motion_blur
+        sub.active = scene.eevee.use_motion_blur
 
 
 class VIEWLAYER_PT_layer_custom_props(PropertyPanel, Panel):

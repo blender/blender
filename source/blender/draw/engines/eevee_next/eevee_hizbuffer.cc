@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "eevee_instance.hh"
 
@@ -18,8 +18,8 @@ namespace blender::eevee {
 void HiZBuffer::sync()
 {
   int2 render_extent = inst_.film.render_extent_get();
-  int2 probe_extent = int2(inst_.sphere_probes.probe_render_extent());
   /* Padding to avoid complexity during down-sampling and screen tracing. */
+  int2 probe_extent = int2(inst_.reflection_probes.probe_render_extent());
   int2 hiz_extent = math::ceil_to_multiple(math::max(render_extent, probe_extent),
                                            int2(1u << (HIZ_MIP_COUNT - 1)));
   int2 dispatch_size = math::divide_ceil(hiz_extent, int2(HIZ_GROUP_SIZE));
@@ -111,10 +111,10 @@ void HiZBuffer::update()
 void HiZBuffer::debug_draw(View &view, GPUFrameBuffer *view_fb)
 {
   if (inst_.debug_mode == eDebugMode::DEBUG_HIZ_VALIDATION) {
-    inst_.info +=
+    inst_.info =
         "Debug Mode: HiZ Validation\n"
         " - Red: pixel in front of HiZ tile value.\n"
-        " - Blue: No error.\n";
+        " - Blue: No error.";
     inst_.hiz_buffer.update();
     GPU_framebuffer_bind(view_fb);
     inst_.manager->submit(debug_draw_ps_, view);

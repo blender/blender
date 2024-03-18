@@ -16,6 +16,7 @@
 #include "BLI_task.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_attribute.hh"
@@ -26,10 +27,14 @@
 #include "BKE_image.h"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_subdiv_ccg.hh"
+
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

@@ -58,6 +58,8 @@ struct CCGElem;
 struct CCGKey;
 struct CustomData_MeshMasks;
 struct Depsgraph;
+struct vec2i;
+struct MFace;
 struct Mesh;
 struct ModifierData;
 struct Object;
@@ -95,7 +97,7 @@ struct DerivedMesh {
    * \warning The real return type is `float(*)[3]`.
    */
   float *(*getVertArray)(DerivedMesh *dm);
-  blender::int2 *(*getEdgeArray)(DerivedMesh *dm);
+  vec2i *(*getEdgeArray)(DerivedMesh *dm);
   int *(*getCornerVertArray)(DerivedMesh *dm);
   int *(*getCornerEdgeArray)(DerivedMesh *dm);
   int *(*getPolyArray)(DerivedMesh *dm);
@@ -104,7 +106,7 @@ struct DerivedMesh {
    * *{vert/edge/face}_r (must point to a buffer large enough)
    */
   void (*copyVertArray)(DerivedMesh *dm, float (*r_positions)[3]);
-  void (*copyEdgeArray)(DerivedMesh *dm, blender::int2 *r_edge);
+  void (*copyEdgeArray)(DerivedMesh *dm, vec2i *r_edge);
   void (*copyCornerVertArray)(DerivedMesh *dm, int *r_corner_verts);
   void (*copyCornerEdgeArray)(DerivedMesh *dm, int *r_corner_edges);
   void (*copyPolyArray)(DerivedMesh *dm, int *r_face_offsets);
@@ -124,6 +126,7 @@ struct DerivedMesh {
   CCGElem **(*getGridData)(DerivedMesh *dm);
   int *(*getGridOffset)(DerivedMesh *dm);
   void (*getGridKey)(DerivedMesh *dm, CCGKey *key);
+  unsigned int **(*getGridHidden)(DerivedMesh *dm);
 
   /* Direct Access Operations
    * - Can be undefined
@@ -210,7 +213,7 @@ void DM_interp_vert_data(const DerivedMesh *source,
                          int count,
                          int dest_index);
 
-void mesh_get_mapped_verts_coords(Mesh *mesh_eval, blender::MutableSpan<blender::float3> r_cos);
+void mesh_get_mapped_verts_coords(Mesh *me_eval, blender::MutableSpan<blender::float3> r_cos);
 
 /**
  * Same as above but won't use render settings.

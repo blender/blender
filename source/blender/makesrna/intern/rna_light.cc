@@ -12,7 +12,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_sys_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -294,14 +294,6 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
       prop, "Shadow Softness Factor", "Scale light shape for smaller penumbra");
-  RNA_def_property_update(prop, 0, "rna_Light_update");
-
-  prop = RNA_def_property(srna, "shadow_filter_radius", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_range(prop, 0.0f, 5.0f, 1.0f, 2);
-  RNA_def_property_ui_text(
-      prop, "Shadow Filter Radius", "Blur shadow aliasing using Percentage Closer Filtering");
-  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, 0, "rna_Light_update");
 
   if (sun) {

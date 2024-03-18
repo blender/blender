@@ -146,7 +146,7 @@ void DebugDraw::draw_polygon(Span<float3> face_verts, float4 color)
   }
 }
 
-void DebugDraw::draw_matrix(const float4x4 &m4)
+void DebugDraw::draw_matrix(const float4x4 m4)
 {
   float3 v0 = float3(0.0f, 0.0f, 0.0f);
   float3 v1 = float3(1.0f, 0.0f, 0.0f);
@@ -182,7 +182,7 @@ void DebugDraw::draw_bbox(const BoundBox &bbox, const float4 color)
   draw_line(bbox.vec[3], bbox.vec[7], col);
 }
 
-void DebugDraw::draw_matrix_as_bbox(const float4x4 &mat, const float4 color)
+void DebugDraw::draw_matrix_as_bbox(float4x4 mat, const float4 color)
 {
   BoundBox bb;
   const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};

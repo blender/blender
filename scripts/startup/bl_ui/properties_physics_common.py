@@ -106,7 +106,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
         )
 
 
-# cache-type can be 'PSYS' 'HAIR' etc. ('FLUID' uses its own cache)
+# cache-type can be 'PSYS' 'HAIR' 'FLUID' etc.
 
 def point_cache_ui(self, cache, enabled, cachetype):
     layout = self.layout
@@ -130,8 +130,12 @@ def point_cache_ui(self, cache, enabled, cachetype):
         col.operator("ptcache.add", icon='ADD', text="")
         col.operator("ptcache.remove", icon='REMOVE', text="")
 
-    if cachetype in {'PSYS', 'HAIR'}:
+    if cachetype in {'PSYS', 'HAIR', 'FLUID'}:
         col = layout.column()
+
+        if cachetype == 'FLUID':
+            col.prop(cache, "use_library_path", text="Use Library Path")
+
         col.prop(cache, "use_external")
 
     if cache.use_external:
@@ -145,14 +149,14 @@ def point_cache_ui(self, cache, enabled, cachetype):
             col.alignment = 'RIGHT'
             col.label(text=cache_info)
     else:
-        if cachetype == 'DYNAMIC_PAINT':
+        if cachetype in {'FLUID', 'DYNAMIC_PAINT'}:
             if not is_saved:
                 col = layout.column(align=True)
                 col.alignment = 'RIGHT'
                 col.label(text="Cache is disabled until the file is saved")
                 layout.enabled = False
 
-    if not cache.use_external:
+    if not cache.use_external or cachetype == 'FLUID':
         col = layout.column(align=True)
 
         if cachetype not in {'PSYS', 'DYNAMIC_PAINT'}:
@@ -160,18 +164,18 @@ def point_cache_ui(self, cache, enabled, cachetype):
             col.prop(cache, "frame_start", text="Simulation Start")
             col.prop(cache, "frame_end")
 
-        if cachetype not in {'CLOTH', 'DYNAMIC_PAINT', 'RIGID_BODY'}:
+        if cachetype not in {'FLUID', 'CLOTH', 'DYNAMIC_PAINT', 'RIGID_BODY'}:
             col.prop(cache, "frame_step")
 
         cache_info = cache.info
-        if cache_info:  # avoid empty space.
+        if cachetype != 'FLUID' and cache_info:  # avoid empty space.
             col = layout.column(align=True)
             col.alignment = 'RIGHT'
             col.label(text=cache_info)
 
         can_bake = True
 
-        if cachetype not in {'DYNAMIC_PAINT', 'RIGID_BODY'}:
+        if cachetype not in {'FLUID', 'DYNAMIC_PAINT', 'RIGID_BODY'}:
             if not is_saved:
                 col = layout.column(align=True)
                 col.alignment = 'RIGHT'

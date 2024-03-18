@@ -16,7 +16,7 @@
 #include "BLI_rand.h"
 #include "BLI_string_utils.hh"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 
@@ -909,7 +909,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
 
         if (G.debug_value == 889 && ob->sculpt && BKE_object_sculpt_pbvh_get(ob)) {
           int debug_node_nr = 0;
-          DRW_debug_modelmat(ob->object_to_world().ptr());
+          DRW_debug_modelmat(ob->object_to_world);
           BKE_pbvh_draw_debug_cb(
               BKE_object_sculpt_pbvh_get(ob), DRW_sculpt_debug_cb, &debug_node_nr);
         }

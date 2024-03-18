@@ -69,6 +69,29 @@ static void mix(GMutableSpan a, const GVArray &b, const float factor)
   });
 }
 
+static void mix(MutableSpan<float4x4> a, const Span<float4x4> b, const float factor)
+{
+  threading::parallel_for(a.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      a[i] = math::interpolate(a[i], b[i], factor);
+    }
+  });
+}
+
+static void mix_with_indices(MutableSpan<float4x4> a,
+                             const Span<float4x4> b,
+                             const Span<int> index_map,
+                             const float factor)
+{
+  threading::parallel_for(a.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      if (index_map[i] != -1) {
+        a[i] = math::interpolate(a[i], b[index_map[i]], factor);
+      }
+    }
+  });
+}
+
 static void mix_attributes(bke::MutableAttributeAccessor attributes_a,
                            const bke::AttributeAccessor b_attributes,
                            const Span<int> index_map,
@@ -193,7 +216,13 @@ bke::GeometrySet mix_geometries(bke::GeometrySet a, const bke::GeometrySet &b, c
                      index_map,
                      bke::AttrDomain::Instance,
                      factor,
-                     {});
+                     {"position"});
+      if (index_map.is_empty()) {
+        mix(instances_a->transforms(), instances_b->transforms(), factor);
+      }
+      else {
+        mix_with_indices(instances_a->transforms(), instances_b->transforms(), index_map, factor);
+      }
     }
   }
   return a;

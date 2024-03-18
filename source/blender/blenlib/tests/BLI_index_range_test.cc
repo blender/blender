@@ -2,12 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "testing/testing.h"
-
 #include "BLI_index_range.hh"
+#include "BLI_strict_flags.h"
 #include "BLI_vector.hh"
-
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "testing/testing.h"
 
 namespace blender::tests {
 
@@ -21,86 +19,6 @@ TEST(index_range, DefaultConstructor)
     vector.append(value);
   }
   EXPECT_EQ(vector.size(), 0);
-}
-
-TEST(index_range, FromBeginSize)
-{
-  {
-    const IndexRange range = IndexRange::from_begin_size(0, 0);
-    EXPECT_TRUE(range.is_empty());
-  }
-  {
-    const IndexRange range = IndexRange::from_begin_size(0, 10);
-    EXPECT_EQ(range.size(), 10);
-    EXPECT_EQ(range.first(), 0);
-  }
-  {
-    const IndexRange range = IndexRange::from_begin_size(4, 10);
-    EXPECT_EQ(range.size(), 10);
-    EXPECT_EQ(range.first(), 4);
-    EXPECT_EQ(range.last(), 13);
-  }
-}
-
-TEST(index_range, FromBeginEnd)
-{
-  {
-    const IndexRange range = IndexRange::from_begin_end(0, 0);
-    EXPECT_TRUE(range.is_empty());
-  }
-  {
-    const IndexRange range = IndexRange::from_begin_end(0, 10);
-    EXPECT_EQ(range.size(), 10);
-    EXPECT_EQ(range.first(), 0);
-  }
-  {
-    const IndexRange range = IndexRange::from_begin_end(4, 10);
-    EXPECT_EQ(range.size(), 6);
-    EXPECT_EQ(range.first(), 4);
-    EXPECT_EQ(range.last(), 9);
-  }
-}
-
-TEST(index_range, FromBeginEndInclusive)
-{
-  {
-    const IndexRange range = IndexRange::from_begin_end_inclusive(0, 0);
-    EXPECT_EQ(range.size(), 1);
-    EXPECT_EQ(range.first(), 0);
-  }
-  {
-    const IndexRange range = IndexRange::from_begin_end_inclusive(100, 200);
-    EXPECT_EQ(range.size(), 101);
-    EXPECT_EQ(range.first(), 100);
-    EXPECT_EQ(range.last(), 200);
-  }
-}
-
-TEST(index_range, FromEndSize)
-{
-  {
-    const IndexRange range = IndexRange::from_end_size(0, 0);
-    EXPECT_TRUE(range.is_empty());
-  }
-  {
-    const IndexRange range = IndexRange::from_end_size(100, 20);
-    EXPECT_EQ(range.first(), 80);
-    EXPECT_EQ(range.last(), 99);
-  }
-}
-
-TEST(index_range, FromSingle)
-{
-  {
-    const IndexRange range = IndexRange::from_single(0);
-    EXPECT_EQ(range.size(), 1);
-    EXPECT_EQ(range.first(), 0);
-  }
-  {
-    const IndexRange range = IndexRange::from_single(100);
-    EXPECT_EQ(range.size(), 1);
-    EXPECT_EQ(range.first(), 100);
-  }
 }
 
 TEST(index_range, SingleElementRange)

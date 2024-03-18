@@ -144,27 +144,15 @@ static bool BLI_windows_system_backtrace_run_trace(FILE *fp, HANDLE hThread, PCO
   symbolinfo->SizeOfStruct = sizeof(SYMBOL_INFO);
 
   STACKFRAME frame = {0};
-  DWORD machineType = 0;
-#if defined(_M_AMD64)
   frame.AddrPC.Offset = context->Rip;
   frame.AddrPC.Mode = AddrModeFlat;
   frame.AddrFrame.Offset = context->Rsp;
   frame.AddrFrame.Mode = AddrModeFlat;
   frame.AddrStack.Offset = context->Rsp;
   frame.AddrStack.Mode = AddrModeFlat;
-  machineType = IMAGE_FILE_MACHINE_AMD64;
-#elif defined(_M_ARM64)
-  frame.AddrPC.Offset = context->Pc;
-  frame.AddrPC.Mode = AddrModeFlat;
-  frame.AddrFrame.Offset = context->Fp;
-  frame.AddrFrame.Mode = AddrModeFlat;
-  frame.AddrStack.Offset = context->Sp;
-  frame.AddrStack.Mode = AddrModeFlat;
-  machineType = IMAGE_FILE_MACHINE_ARM64;
-#endif
 
   while (true) {
-    if (StackWalk64(machineType,
+    if (StackWalk64(IMAGE_FILE_MACHINE_AMD64,
                     GetCurrentProcess(),
                     hThread,
                     &frame,

@@ -11,6 +11,7 @@ namespace blender::compositor::tests {
 struct SatParams {
   /* Input parameters. */
   SummedAreaTableOperation::eMode mode;
+  eExecutionModel execution_model;
   rcti area;
   float4 fill_value;
 
@@ -26,6 +27,7 @@ TEST_P(SummedAreaTableTestP, Values)
 
   SummedAreaTableOperation sat = SummedAreaTableOperation();
 
+  sat.set_execution_model(params.execution_model);
   sat.set_mode(params.mode);
   const rcti area = params.area;
   MemoryBuffer output(DataType::Color, area);
@@ -50,6 +52,7 @@ INSTANTIATE_TEST_SUITE_P(FullFrame5x2_IdentityOnes,
                          SummedAreaTableTestP,
                          testing::Values(SatParams{
                              SummedAreaTableOperation::eMode::Identity,
+                             eExecutionModel::FullFrame,
                              rcti{0, 5, 0, 2},         /* Area. */
                              {1.0f, 1.0f, 1.0f, 1.0f}, /* Fill value. */
 
@@ -63,6 +66,7 @@ INSTANTIATE_TEST_SUITE_P(
     SummedAreaTableTestP,
     testing::Values(SatParams{
         SummedAreaTableOperation::eMode::Squared,
+        eExecutionModel::FullFrame,
         rcti{0, 5, 0, 2},         /* Area. */
         {1.0f, 1.0f, 1.0f, 1.0f}, /* Fill value. */
 
@@ -74,6 +78,7 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(FullFrame3x2_Squared,
                          SummedAreaTableTestP,
                          testing::Values(SatParams{SummedAreaTableOperation::eMode::Squared,
+                                                   eExecutionModel::FullFrame,
                                                    rcti{0, 3, 0, 2},        /* Area. */
                                                    {2.0f, 2.0f, 1.5f, .1f}, /* Fill value. */
 
@@ -93,6 +98,7 @@ class SummedAreaTableSumTest : public ::testing::Test {
  protected:
   void SetUp() override
   {
+    operation_->set_execution_model(eExecutionModel::FullFrame);
     operation_->set_mode(SummedAreaTableOperation::eMode::Squared);
 
     area_ = rcti{0, 5, 0, 4};

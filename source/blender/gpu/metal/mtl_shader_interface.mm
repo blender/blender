@@ -191,7 +191,7 @@ void MTLShaderInterface::add_uniform(uint32_t name_offset, eMTLDataType type, in
   /* Determine size and offset alignment -- C++ struct alignment rules: Base address of value must
    * match alignment of type. GLSL follows minimum type alignment of 4. */
   int data_type_size = mtl_get_data_type_size(type) * array_len;
-  int data_type_alignment = mtl_get_data_type_alignment(type);
+  int data_type_alignment = max_ii(mtl_get_data_type_alignment(type), 4);
   int current_offset = push_constant_block_.current_offset;
   if ((current_offset % data_type_alignment) != 0) {
     current_offset += data_type_alignment - (current_offset % data_type_alignment);

@@ -19,7 +19,95 @@ KeyingClipOperation::KeyingClipOperation()
 
   is_edge_matte_ = false;
 
+  flags_.complex = true;
   flags_.can_be_constant = true;
+}
+
+void *KeyingClipOperation::initialize_tile_data(rcti *rect)
+{
+  void *buffer = get_input_operation(0)->initialize_tile_data(rect);
+
+  return buffer;
+}
+
+void KeyingClipOperation::execute_pixel(float output[4], int x, int y, void *data)
+{
+  const int delta = kernel_radius_;
+  const float tolerance = kernel_tolerance_;
+
+  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
+  float *buffer = input_buffer->get_buffer();
+
+  int buffer_width = input_buffer->get_width();
+  int buffer_height = input_buffer->get_height();
+
+  float value = buffer[(y * buffer_width + x)];
+
+  bool ok = false;
+
+  const int start_x = max_ff(0, x - delta);
+  const int start_y = max_ff(0, y - delta);
+  const int end_x = min_ff(x + delta, buffer_width - 1);
+  const int end_y = min_ff(y + delta, buffer_height - 1);
+
+  int count = 0, total_count = (end_x - start_x + 1) * (end_y - start_y + 1);
+  int threshold_count = ceil(float(total_count) * 0.9f);
+
+  if (delta == 0) {
+    ok = true;
+  }
+
+  for (int cx = start_x; ok == false && cx <= end_x; cx++) {
+    for (int cy = start_y; ok == false && cy <= end_y; cy++) {
+      int buffer_index = (cy * buffer_width + cx);
+      float current_value = buffer[buffer_index];
+
+      if (fabsf(current_value - value) < tolerance) {
+        count++;
+        if (count >= threshold_count) {
+          ok = true;
+        }
+      }
+    }
+  }
+
+  if (is_edge_matte_) {
+    if (ok) {
+      output[0] = 0.0f;
+    }
+    else {
+      output[0] = 1.0f;
+    }
+  }
+  else {
+    output[0] = value;
+
+    if (ok) {
+      if (output[0] < clip_black_) {
+        output[0] = 0.0f;
+      }
+      else if (output[0] >= clip_white_) {
+        output[0] = 1.0f;
+      }
+      else {
+        output[0] = (output[0] - clip_black_) / (clip_white_ - clip_black_);
+      }
+    }
+  }
+}
+
+bool KeyingClipOperation::determine_depending_area_of_interest(rcti *input,
+                                                               ReadBufferOperation *read_operation,
+                                                               rcti *output)
+{
+  rcti new_input;
+
+  new_input.xmin = input->xmin - kernel_radius_;
+  new_input.ymin = input->ymin - kernel_radius_;
+  new_input.xmax = input->xmax + kernel_radius_;
+  new_input.ymax = input->ymax + kernel_radius_;
+
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void KeyingClipOperation::get_area_of_interest(const int input_idx,

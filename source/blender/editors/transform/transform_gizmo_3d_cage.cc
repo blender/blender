@@ -14,8 +14,8 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
-#include "BKE_scene.hh"
+#include "BKE_global.h"
+#include "BKE_scene.h"
 
 #include "ED_gizmo_library.hh"
 #include "ED_gizmo_utils.hh"
@@ -24,7 +24,7 @@
 
 #include "RNA_access.hh"
 
-/* Local module include. */
+/* local module include */
 #include "transform.hh"
 #include "transform_gizmo.hh"
 
@@ -75,7 +75,7 @@ static void WIDGETGROUP_xform_cage_setup(const bContext * /*C*/, wmGizmoGroup *g
     wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_resize", true);
     PointerRNA *ptr;
 
-    /* Assign operator. */
+    /* assign operator */
     PropertyRNA *prop_release_confirm = nullptr;
     PropertyRNA *prop_constraint_axis = nullptr;
 

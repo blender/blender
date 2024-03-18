@@ -539,7 +539,7 @@ static void clear_face_sets(Object &object, const Span<PBVHNode *> nodes)
     Vector<int> &face_indices = all_face_indices.local();
     for (PBVHNode *node : nodes.slice(range)) {
       const Span<int> faces =
-          BKE_pbvh_type(&pbvh) == PBVH_FACES ?
+          (BKE_pbvh_type(&pbvh) == PBVH_FACES) ?
               bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, face_indices) :
               bke::pbvh::node_face_indices_calc_grids(pbvh, *node, face_indices);
       if (std::any_of(faces.begin(), faces.end(), [&](const int face) {
@@ -1000,7 +1000,7 @@ static void face_hide_update(Object &object,
     TLS &tls = all_tls.local();
     for (PBVHNode *node : nodes.slice(range)) {
       const Span<int> faces =
-          BKE_pbvh_type(&pbvh) == PBVH_FACES ?
+          (BKE_pbvh_type(&pbvh) == PBVH_FACES) ?
               bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, tls.face_indices) :
               bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
 
@@ -1119,7 +1119,7 @@ static int sculpt_face_set_change_visibility_exec(bContext *C, wmOperator *op)
     UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
     float location[3];
     copy_v3_v3(location, SCULPT_active_vertex_co_get(ss));
-    mul_m4_v3(object.object_to_world().ptr(), location);
+    mul_m4_v3(object.object_to_world, location);
     copy_v3_v3(ups->average_stroke_accum, location);
     ups->average_stroke_counter = 1;
     ups->last_stroke_valid = true;
@@ -1651,226 +1651,5 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
                              "Modify Hidden",
                              "Apply the edit operation to hidden geometry");
 }
-
-/* -------------------------------------------------------------------- */
-/** \name Gesture Operators
- * \{ */
-
-struct SculptGestureFaceSetOperation {
-  gesture::Operation op;
-
-  int new_face_set_id;
-};
-
-static void sculpt_gesture_face_set_begin(bContext &C, gesture::GestureData &gesture_data)
-{
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
-  BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
-}
-
-static void face_set_gesture_apply_mesh(gesture::GestureData &gesture_data,
-                                        const Span<PBVHNode *> nodes)
-{
-  SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
-                                                          gesture_data.operation;
-  const int new_face_set = face_set_operation->new_face_set_id;
-  Object &object = *gesture_data.vc.obact;
-  Mesh &mesh = *static_cast<Mesh *>(object.data);
-  bke::AttributeAccessor attributes = mesh.attributes();
-  SculptSession &ss = *gesture_data.ss;
-  const PBVH &pbvh = *gesture_data.ss->pbvh;
-
-  const Span<float3> positions = ss.vert_positions;
-  const OffsetIndices<int> faces = mesh.faces();
-  const Span<int> corner_verts = mesh.corner_verts();
-  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
-  bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
-
-  struct TLS {
-    Vector<int> face_indices;
-  };
-
-  threading::EnumerableThreadSpecific<TLS> all_tls;
-  threading::parallel_for(gesture_data.nodes.index_range(), 1, [&](const IndexRange range) {
-    TLS &tls = all_tls.local();
-    for (PBVHNode *node : nodes.slice(range)) {
-      undo::push_node(gesture_data.vc.obact, node, undo::Type::FaceSet);
-      const Span<int> node_faces =
-          BKE_pbvh_type(&pbvh) == PBVH_FACES ?
-              bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, tls.face_indices) :
-              bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
-
-      bool any_updated = false;
-      for (const int face : node_faces) {
-        if (!hide_poly.is_empty() && hide_poly[face]) {
-          continue;
-        }
-        const Span<int> face_verts = corner_verts.slice(faces[face]);
-        const float3 face_center = bke::mesh::face_center_calc(positions, face_verts);
-        const float3 face_normal = bke::mesh::face_normal_calc(positions, face_verts);
-        if (!gesture::is_affected(gesture_data, face_center, face_normal)) {
-          continue;
-        }
-        face_sets.span[face] = new_face_set;
-        any_updated = true;
-      }
-      if (any_updated) {
-        BKE_pbvh_node_mark_update_face_sets(node);
-      }
-    }
-  });
-
-  face_sets.finish();
-}
-
-static void face_set_gesture_apply_bmesh(gesture::GestureData &gesture_data,
-                                         const Span<PBVHNode *> nodes)
-{
-  SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
-                                                          gesture_data.operation;
-  const int new_face_set = face_set_operation->new_face_set_id;
-  SculptSession &ss = *gesture_data.ss;
-  BMesh *bm = ss.bm;
-  const int offset = CustomData_get_offset_named(&bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
-
-  threading::parallel_for(gesture_data.nodes.index_range(), 1, [&](const IndexRange range) {
-    for (PBVHNode *node : nodes.slice(range)) {
-      undo::push_node(gesture_data.vc.obact, node, undo::Type::FaceSet);
-
-      bool any_updated = false;
-      for (BMFace *face : BKE_pbvh_bmesh_node_faces(node)) {
-        if (BM_elem_flag_test(face, BM_ELEM_HIDDEN)) {
-          continue;
-        }
-        float3 center;
-        BM_face_calc_center_median(face, center);
-        if (!gesture::is_affected(gesture_data, center, face->no)) {
-          continue;
-        }
-        BM_ELEM_CD_SET_INT(face, offset, new_face_set);
-        any_updated = true;
-      }
-
-      if (any_updated) {
-        BKE_pbvh_node_mark_update_visibility(node);
-      }
-    }
-  });
-}
-
-static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext & /*C*/,
-                                                            gesture::GestureData &gesture_data)
-{
-  switch (BKE_pbvh_type(gesture_data.ss->pbvh)) {
-    case PBVH_GRIDS:
-    case PBVH_FACES:
-      face_set_gesture_apply_mesh(gesture_data, gesture_data.nodes);
-      break;
-    case PBVH_BMESH:
-      face_set_gesture_apply_bmesh(gesture_data, gesture_data.nodes);
-  }
-}
-
-static void sculpt_gesture_face_set_end(bContext & /*C*/, gesture::GestureData & /*gesture_data*/)
-{
-}
-
-static void sculpt_gesture_init_face_set_properties(gesture::GestureData &gesture_data,
-                                                    wmOperator & /*op*/)
-{
-  Object &object = *gesture_data.vc.obact;
-  gesture_data.operation = reinterpret_cast<gesture::Operation *>(
-      MEM_cnew<SculptGestureFaceSetOperation>(__func__));
-
-  SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
-                                                          gesture_data.operation;
-
-  face_set_operation->op.begin = sculpt_gesture_face_set_begin;
-  face_set_operation->op.apply_for_symmetry_pass = sculpt_gesture_face_set_apply_for_symmetry_pass;
-  face_set_operation->op.end = sculpt_gesture_face_set_end;
-
-  face_set_operation->new_face_set_id = face_set::find_next_available_id(object);
-}
-
-static int face_set_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  const View3D *v3d = CTX_wm_view3d(C);
-  const Base *base = CTX_data_active_base(C);
-  if (!BKE_base_is_visible(v3d, base)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  return WM_gesture_box_invoke(C, op, event);
-}
-
-static int face_set_gesture_box_exec(bContext *C, wmOperator *op)
-{
-  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_box(C, op);
-  if (!gesture_data) {
-    return OPERATOR_CANCELLED;
-  }
-  sculpt_gesture_init_face_set_properties(*gesture_data, *op);
-  gesture::apply(*C, *gesture_data, *op);
-  return OPERATOR_FINISHED;
-}
-
-static int face_set_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  const View3D *v3d = CTX_wm_view3d(C);
-  const Base *base = CTX_data_active_base(C);
-  if (!BKE_base_is_visible(v3d, base)) {
-    return OPERATOR_CANCELLED;
-  }
-
-  return WM_gesture_lasso_invoke(C, op, event);
-}
-
-static int face_set_gesture_lasso_exec(bContext *C, wmOperator *op)
-{
-  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_lasso(C, op);
-  if (!gesture_data) {
-    return OPERATOR_CANCELLED;
-  }
-  sculpt_gesture_init_face_set_properties(*gesture_data, *op);
-  gesture::apply(*C, *gesture_data, *op);
-  return OPERATOR_FINISHED;
-}
-
-void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
-{
-  ot->name = "Face Set Lasso Gesture";
-  ot->idname = "SCULPT_OT_face_set_lasso_gesture";
-  ot->description = "Add face set within the lasso as you move the brush";
-
-  ot->invoke = face_set_gesture_lasso_invoke;
-  ot->modal = WM_gesture_lasso_modal;
-  ot->exec = face_set_gesture_lasso_exec;
-
-  ot->poll = SCULPT_mode_poll_view3d;
-
-  ot->flag = OPTYPE_DEPENDS_ON_CURSOR;
-
-  WM_operator_properties_gesture_lasso(ot);
-  gesture::operator_properties(ot);
-}
-
-void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot)
-{
-  ot->name = "Face Set Box Gesture";
-  ot->idname = "SCULPT_OT_face_set_box_gesture";
-  ot->description = "Add face set within the box as you move the brush";
-
-  ot->invoke = face_set_gesture_box_invoke;
-  ot->modal = WM_gesture_box_modal;
-  ot->exec = face_set_gesture_box_exec;
-
-  ot->poll = SCULPT_mode_poll_view3d;
-
-  ot->flag = OPTYPE_REGISTER;
-
-  WM_operator_properties_border(ot);
-  gesture::operator_properties(ot);
-}
-/** \} */
 
 }  // namespace blender::ed::sculpt_paint::face_set

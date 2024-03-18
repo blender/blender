@@ -10,12 +10,13 @@
 
 #include "DNA_gpencil_legacy_types.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
@@ -143,7 +144,7 @@ static bool gpencil_uv_transform_init(bContext *C, wmOperator *op)
   opdata->array_loc = nullptr;
   opdata->array_rot = nullptr;
   opdata->array_scale = nullptr;
-  opdata->ob_scale = mat4_to_scale(opdata->ob->object_to_world().ptr());
+  opdata->ob_scale = mat4_to_scale(opdata->ob->object_to_world);
 
   opdata->vinit_rotation[0] = 1.0f;
   opdata->vinit_rotation[1] = 0.0f;
@@ -163,7 +164,7 @@ static bool gpencil_uv_transform_init(bContext *C, wmOperator *op)
       float r_center[3];
       gpencil_stroke_center(gps, r_center);
       /* Add object location. */
-      add_v3_v3(r_center, opdata->ob->object_to_world().location());
+      add_v3_v3(r_center, opdata->ob->object_to_world[3]);
       add_v3_v3(center, r_center);
       i++;
     }

@@ -9,7 +9,7 @@
 #include "BLI_hash.h"
 #include "BLI_math_vector.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BLO_read_write.hh"
 
@@ -25,6 +25,7 @@
 #include "UI_resources.hh"
 
 #include "MOD_grease_pencil_util.hh"
+#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 #include "RNA_access.hh"
@@ -117,6 +118,8 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
     return;
   }
 
+  const OffsetIndices<int> points_by_curve = strokes.points_by_curve();
+
   int seed = mmd.seed;
   /* Make sure different modifiers get different seeds. */
   seed += BLI_hash_string(ob.id.name + 2);
@@ -131,20 +134,15 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
     }
   }
 
-  const OffsetIndices<int> points_by_curve = strokes.points_by_curve();
-  const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
-      strokes, mmd.influence);
-
   auto get_weight = [&](const IndexRange points, const int point_i) {
-    const float vertex_weight = vgroup_weights[points[point_i]];
     if (!use_curve) {
-      return vertex_weight;
+      return 1.0f;
     }
     const float value = float(point_i) / float(points.size() - 1);
-    return vertex_weight * BKE_curvemapping_evaluateF(mmd.influence.custom_curve, 0, value);
+    return BKE_curvemapping_evaluateF(mmd.influence.custom_curve, 0, value);
   };
 
-  auto get_noise = [](const Span<float> noise_table, const float value) {
+  auto get_noise = [](const Array<float> &noise_table, const float value) {
     return math::interpolate(noise_table[int(math::ceil(value))],
                              noise_table[int(math::floor(value))],
                              math::fract(value));
@@ -159,7 +157,7 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
       const IndexRange points = points_by_curve[stroke_i];
       const int noise_len = math::ceil(points.size() * noise_scale) + 2;
       const Array<float> table = noise_table(
-          noise_len, int(math::floor(mmd.noise_offset)), seed + 2 + stroke_i);
+          noise_len, int(math::floor(mmd.noise_offset)), seed + 2);
       for (const int i : points.index_range()) {
         const int point = points[i];
         float weight = get_weight(points, i);
@@ -179,8 +177,7 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
     filtered_strokes.foreach_index(GrainSize(512), [&](const int stroke_i) {
       const IndexRange points = points_by_curve[stroke_i];
       const int noise_len = math::ceil(points.size() * noise_scale) + 2;
-      const Array<float> table = noise_table(
-          noise_len, int(math::floor(mmd.noise_offset)), seed + stroke_i);
+      const Array<float> table = noise_table(noise_len, int(math::floor(mmd.noise_offset)), seed);
       for (const int i : points.index_range()) {
         const int point = points[i];
         const float weight = get_weight(points, i);
@@ -198,7 +195,7 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
       const IndexRange points = points_by_curve[stroke_i];
       const int noise_len = math::ceil(points.size() * noise_scale) + 2;
       const Array<float> table = noise_table(
-          noise_len, int(math::floor(mmd.noise_offset)), seed + 3 + stroke_i);
+          noise_len, int(math::floor(mmd.noise_offset)), seed + 3);
       for (const int i : points.index_range()) {
         const int point = points[i];
         const float weight = get_weight(points, i);

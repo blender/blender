@@ -754,7 +754,8 @@ class VIEWLAYER_PT_freestyle_linestyle_color(ViewLayerFreestyleLineStyle, Panel)
 
             elif modifier.type == 'MATERIAL':
                 row = box.row()
-                row.prop(modifier, "material_attribute", text="Material Attribute")
+                row.prop(modifier, "material_attribute",
+                         text="Material Attribute")
                 sub = box.column()
                 sub.prop(modifier, "use_ramp")
                 if modifier.material_attribute in {'LINE', 'DIFF', 'SPEC'}:

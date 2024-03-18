@@ -1785,9 +1785,9 @@ bool BKE_pbvh_node_fully_unmasked_get(const PBVHNode *node)
   return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyUnmasked);
 }
 
-blender::Span<int> BKE_pbvh_node_get_corner_indices(const PBVHNode *node)
+blender::Span<int> BKE_pbvh_node_get_loops(const PBVHNode *node)
 {
-  return node->corner_indices;
+  return node->loop_indices;
 }
 
 blender::Span<int> BKE_pbvh_node_get_vert_indices(const PBVHNode *node)
@@ -1833,6 +1833,26 @@ Span<int> node_face_indices_calc_grids(const PBVH &pbvh, const PBVHNode &node, V
 }
 
 }  // namespace blender::bke::pbvh
+
+blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node)
+{
+  using namespace blender::bke::pbvh;
+  Vector<int> faces;
+  switch (pbvh.header.type) {
+    case PBVH_FACES: {
+      node_face_indices_calc_mesh(pbvh, node, faces);
+      break;
+    }
+    case PBVH_GRIDS: {
+      node_face_indices_calc_grids(pbvh, node, faces);
+      break;
+    }
+    case PBVH_BMESH:
+      BLI_assert_unreachable();
+      break;
+  }
+  return faces;
+}
 
 int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node)
 {
@@ -3078,7 +3098,7 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
       continue;
     }
 
-    if (!node.corner_indices.is_empty()) {
+    if (!node.loop_indices.is_empty()) {
       return;
     }
 
@@ -3088,26 +3108,27 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
   BLI_bitmap *visit = BLI_BITMAP_NEW(totloop, __func__);
 
   /* Create loop indices from node loop triangles. */
-  Vector<int> corner_indices;
+  Vector<int> loop_indices;
   for (PBVHNode &node : pbvh->nodes) {
     if (!(node.flag & PBVH_Leaf)) {
       continue;
     }
 
-    corner_indices.clear();
+    loop_indices.clear();
 
     for (const int i : node.prim_indices) {
       const int3 &tri = pbvh->corner_tris[i];
 
       for (int k = 0; k < 3; k++) {
         if (!BLI_BITMAP_TEST(visit, tri[k])) {
-          corner_indices.append(tri[k]);
+          loop_indices.append(tri[k]);
           BLI_BITMAP_ENABLE(visit, tri[k]);
         }
       }
     }
 
-    node.corner_indices = corner_indices.as_span();
+    node.loop_indices.reinitialize(loop_indices.size());
+    node.loop_indices.as_mutable_span().copy_from(loop_indices);
   }
 
   MEM_SAFE_FREE(visit);

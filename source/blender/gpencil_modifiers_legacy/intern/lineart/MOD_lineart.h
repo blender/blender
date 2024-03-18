@@ -10,7 +10,6 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
@@ -423,18 +422,7 @@ typedef struct LineartData {
 
 } LineartData;
 
-/* Stores the maximum calculation range in the whole modifier stack for line art so the cache can
- * cover everything that will be visible. */
-struct GreasePencilLineartLimitInfo {
-  int16_t edge_types;
-  uint8_t min_level;
-  uint8_t max_level;
-  uint8_t shadow_selection;
-  uint8_t silhouette_selection;
-};
-
 typedef struct LineartCache {
-  GreasePencilLineartLimitInfo LimitInfo;
   /** Separate memory pool for chain data and shadow, this goes to the cache, so when we free the
    * main pool, chains and shadows will still be available. */
   LineartStaticMemPool chain_data_pool;
@@ -875,12 +863,10 @@ struct bGPDframe;
 struct bGPDlayer;
 struct Depsgraph;
 struct LineartGpencilModifierData;
-struct GreasePencilLineartModifierData;
 struct LineartData;
 struct Scene;
 
-void MOD_lineart_destroy_render_data(struct LineartGpencilModifierData *lmd_legacy);
-void MOD_lineart_destroy_render_data_v3(struct GreasePencilLineartModifierData *lmd);
+void MOD_lineart_destroy_render_data(struct LineartGpencilModifierData *lmd);
 
 void MOD_lineart_chain_feature_lines(LineartData *ld);
 void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld);
@@ -911,13 +897,9 @@ void MOD_lineart_finalize_chains(LineartData *ld);
  * \return True when a change is made.
  */
 bool MOD_lineart_compute_feature_lines(struct Depsgraph *depsgraph,
-                                       struct LineartGpencilModifierData *lmd_legacy,
+                                       struct LineartGpencilModifierData *lmd,
                                        struct LineartCache **cached_result,
                                        bool enable_stroke_depth_offset);
-bool MOD_lineart_compute_feature_lines_v3(struct Depsgraph *depsgraph,
-                                          struct GreasePencilLineartModifierData &lmd,
-                                          struct LineartCache **cached_result,
-                                          bool enable_stroke_depth_offset);
 
 /**
  * This only gets initial "biggest" tile.
@@ -954,32 +936,6 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   const char *vgname,
                                   int modifier_flags,
                                   int modifier_calculation_flags);
-
-namespace blender::bke::greasepencil {
-class Drawing;
-}
-void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
-                                     const blender::float4x4 &mat,
-                                     Depsgraph *depsgraph,
-                                     blender::bke::greasepencil::Drawing &drawing,
-                                     int8_t source_type,
-                                     Object *source_object,
-                                     struct Collection *source_collection,
-                                     int level_start,
-                                     int level_end,
-                                     int mat_nr,
-                                     int16_t edge_types,
-                                     uchar mask_switches,
-                                     uchar material_mask_bits,
-                                     uchar intersection_mask,
-                                     float thickness,
-                                     float opacity,
-                                     uchar shadow_selection,
-                                     uchar silhouette_mode,
-                                     const char *source_vgname,
-                                     const char *vgname,
-                                     int modifier_flags,
-                                     int modifier_calculation_flags);
 
 /**
  * Length is in image space.

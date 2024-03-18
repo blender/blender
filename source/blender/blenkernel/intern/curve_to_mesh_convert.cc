@@ -376,27 +376,12 @@ static GSpan evaluate_attribute(const GVArray &src,
                                 const CurvesGeometry &curves,
                                 Vector<std::byte> &buffer)
 {
-  /* Poly curves evaluated points match the curve points, no need to interpolate. */
-  if (curves.is_single_type(CURVE_TYPE_POLY)) {
-    if (src.is_span()) {
-      return src.get_internal_span();
-    }
-    buffer.reinitialize(curves.points_num() * src.type().size());
-    src.materialize(buffer.data());
-    GMutableSpan eval{src.type(), buffer.data(), curves.points_num()};
-    return eval;
+  if (curves.is_single_type(CURVE_TYPE_POLY) && src.is_span()) {
+    return src.get_internal_span();
   }
-
-  if (src.is_span()) {
-    buffer.reinitialize(curves.evaluated_points_num() * src.type().size());
-    GMutableSpan eval{src.type(), buffer.data(), curves.evaluated_points_num()};
-    curves.interpolate_to_evaluated(src.get_internal_span(), eval);
-    return eval;
-  }
-  GVArraySpan src_buffer(src);
   buffer.reinitialize(curves.evaluated_points_num() * src.type().size());
   GMutableSpan eval{src.type(), buffer.data(), curves.evaluated_points_num()};
-  curves.interpolate_to_evaluated(src_buffer, eval);
+  curves.interpolate_to_evaluated(src.get_internal_span(), eval);
   return eval;
 }
 
@@ -489,7 +474,7 @@ static void build_mesh_positions(const CurvesInfo &curves_info,
   }
   const Span<float3> tangents = curves_info.main.evaluated_tangents();
   const Span<float3> normals = curves_info.main.evaluated_normals();
-  Span<float> radii_eval;
+  Span<float> radii_eval = {};
   if (const GVArray radii = *curves_info.main.attributes().lookup("radius", AttrDomain::Point)) {
     radii_eval = evaluate_attribute(radii, curves_info.main, eval_buffer).typed<float>();
   }
@@ -726,7 +711,7 @@ static void copy_indices_to_offset_ranges(const VArray<T> &src,
   /* This unnecessarily instantiates the "is single" case (which should be handled elsewhere if
    * it's ever used for attributes), but the alternative is duplicating the function for spans and
    * other virtual arrays. */
-  devirtualize_varray(src, [&](const auto src) {
+  devirtualize_varray(src, [&](const auto &src) {
     threading::parallel_for(curve_indices.index_range(), 512, [&](IndexRange range) {
       for (const int i : range) {
         dst.slice(mesh_offsets[i]).fill(src[curve_indices[i]]);
@@ -858,9 +843,6 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
   Vector<std::byte> eval_buffer;
 
-  /* Make sure curve attributes can be interpolated. */
-  main.ensure_can_interpolate_to_evaluated();
-
   build_mesh_positions(curves_info, offsets, eval_buffer, *mesh);
 
   mesh->tag_overlapping_none();
@@ -926,9 +908,6 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
     return true;
   });
-
-  /* Make sure profile attributes can be interpolated. */
-  profile.ensure_can_interpolate_to_evaluated();
 
   const AttributeAccessor profile_attributes = profile.attributes();
   profile_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {

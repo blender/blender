@@ -17,7 +17,7 @@
 
 #include "UI_interface.hh"
 
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 
@@ -444,7 +444,9 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
         OVERLAY_edit_curves_cache_populate(data, ob);
         break;
       case OB_GREASE_PENCIL:
-        OVERLAY_edit_grease_pencil_cache_populate(data, ob);
+        if (U.experimental.use_grease_pencil_version3) {
+          OVERLAY_edit_grease_pencil_cache_populate(data, ob);
+        }
         break;
     }
   }

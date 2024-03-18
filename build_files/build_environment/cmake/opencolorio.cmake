@@ -68,12 +68,7 @@ ExternalProject_Add(external_opencolorio
   URL_HASH ${OPENCOLORIO_HASH_TYPE}=${OPENCOLORIO_HASH}
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/opencolorio
-
-  CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opencolorio
-    ${DEFAULT_CMAKE_FLAGS}
-    ${OPENCOLORIO_EXTRA_ARGS}
-
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opencolorio ${DEFAULT_CMAKE_FLAGS} ${OPENCOLORIO_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/opencolorio
 )
 
@@ -92,46 +87,25 @@ add_dependencies(
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_opencolorio after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/opencolorio/include
-        ${HARVEST_TARGET}/opencolorio/include
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/opencolorio/bin/OpenColorIO_2_3.dll
-        ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_2_3.dll
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/opencolorio/lib
-        ${HARVEST_TARGET}/opencolorio/lib
-
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencolorio/include ${HARVEST_TARGET}/opencolorio/include
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencolorio/bin/OpenColorIO_2_3.dll ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_2_3.dll
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencolorio/lib ${HARVEST_TARGET}/opencolorio/lib
       DEPENDEES install
     )
   endif()
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_opencolorio after_install
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/opencolorio/bin/OpenColorIO_d_2_3.dll
-        ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_d_2_3.dll
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/opencolorio/lib/Opencolorio_d.lib
-        ${HARVEST_TARGET}/opencolorio/lib/OpenColorIO_d.lib
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/opencolorio/lib/site-packages
-        ${HARVEST_TARGET}/opencolorio/lib/site-packages-debug
-
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencolorio/bin/OpenColorIO_d_2_3.dll ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO_d_2_3.dll
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencolorio/lib/Opencolorio_d.lib ${HARVEST_TARGET}/opencolorio/lib/OpenColorIO_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencolorio/lib/site-packages ${HARVEST_TARGET}/opencolorio/lib/site-packages-debug
       DEPENDEES install
     )
   endif()
 else()
   ExternalProject_Add_Step(external_opencolorio after_install
-    COMMAND cp
-      ${LIBDIR}/yamlcpp/lib/libyaml-cpp.a
-      ${LIBDIR}/opencolorio/lib/
-    COMMAND cp
-      ${LIBDIR}/expat/lib/libexpat.a
-      ${LIBDIR}/opencolorio/lib/
-    COMMAND cp
-      ${LIBDIR}/pystring/lib/libpystring.a
-      ${LIBDIR}/opencolorio/lib/
-
+    COMMAND cp ${LIBDIR}/yamlcpp/lib/libyaml-cpp.a ${LIBDIR}/opencolorio/lib/
+    COMMAND cp ${LIBDIR}/expat/lib/libexpat.a ${LIBDIR}/opencolorio/lib/
+    COMMAND cp ${LIBDIR}/pystring/lib/libpystring.a ${LIBDIR}/opencolorio/lib/
     DEPENDEES install
   )
 endif()

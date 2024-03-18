@@ -190,6 +190,25 @@ struct uiBut {
   char *poin = nullptr;
   float hardmin = 0, hardmax = 0, softmin = 0, softmax = 0;
 
+  /* both these values use depends on the button type
+   * (polymorphic struct or union would be nicer for this stuff) */
+
+  /**
+   * For #uiBut.type:
+   * - UI_BTYPE_LABEL:        Use `(a1 == 1.0f)` to use a2 as a blending factor (imaginative!).
+   * - UI_BTYPE_SCROLL:       Use as scroll size.
+   * - UI_BTYPE_SEARCH_MENU:  Use as number or rows.
+   */
+  float a1 = 0;
+
+  /**
+   * For #uiBut.type:
+   * - UI_BTYPE_HSVCIRCLE:    Use to store the luminosity.
+   * - UI_BTYPE_LABEL:        If `(a1 == 1.0f)` use a2 as a blending factor.
+   * - UI_BTYPE_SEARCH_MENU:  Use as number or columns.
+   */
+  float a2 = 0;
+
   uchar col[4] = {0};
 
   /** See \ref UI_but_func_identity_compare_set(). */
@@ -343,9 +362,6 @@ struct uiButSearch : public uiBut {
   PointerRNA rnasearchpoin = {};
   PropertyRNA *rnasearchprop = nullptr;
 
-  int preview_rows = 0;
-  int preview_cols = 0;
-
   /**
    * The search box only provides suggestions, it does not force
    * the string to match one of the search items when applying.
@@ -355,7 +371,7 @@ struct uiButSearch : public uiBut {
 
 /**
  * Derived struct for #UI_BTYPE_DECORATOR
- * Decorators have their own RNA data, using the normal #uiBut RNA members has many side-effects.
+ * Decorators have own RNA data, using the normal #uiBut RNA members has many side-effects.
  */
 struct uiButDecorator : public uiBut {
   struct PointerRNA decorated_rnapoin = {};
@@ -371,25 +387,9 @@ struct uiButProgress : public uiBut {
   eButProgressType progress_type = UI_BUT_PROGRESS_TYPE_BAR;
 };
 
-/** Derived struct for #UI_BTYPE_SEPR_LINE. */
-struct uiButSeparatorLine : public uiBut {
-  bool is_vertical;
-};
-
-/** Derived struct for #UI_BTYPE_LABEL. */
-struct uiButLabel : public uiBut {
-  float alpha_factor = 1.0f;
-};
-
-/** Derived struct for #UI_BTYPE_SCROLL. */
-struct uiButScrollBar : public uiBut {
-  /** Actual visual height of UI list (in rows). */
-  float visual_height = -1.0f;
-};
-
 struct uiButViewItem : public uiBut {
-  /* The view item this button was created for. */
-  blender::ui::AbstractViewItem *view_item = nullptr;
+  /* C-Handle to the view item this button was created for. */
+  uiViewItemHandle *view_item = nullptr;
   /* Some items want to have a fixed size for drawing, differing from the interaction rectangle
    * (e.g. so highlights are drawn smaller). */
   int draw_width = 0;
@@ -553,6 +553,9 @@ struct uiBlock {
 
   uiButHandleNFunc funcN;
   void *func_argN;
+
+  uiMenuHandleFunc butm_func;
+  void *butm_func_arg;
 
   uiBlockHandleFunc handle_func;
   void *handle_func_arg;
@@ -1538,16 +1541,15 @@ void ui_block_free_views(uiBlock *block);
 void ui_block_views_bounds_calc(const uiBlock *block);
 void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *listener_params);
 void ui_block_views_draw_overlays(const ARegion *region, const uiBlock *block);
-blender::ui::AbstractView *ui_block_view_find_matching_in_old_block(
-    const uiBlock &new_block, const blender::ui::AbstractView &new_view);
+uiViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
+                                                       const uiViewHandle *new_view);
 
 uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
-    const uiBlock &new_block, const blender::ui::AbstractViewItem &new_item);
+    const uiBlock *new_block, const uiViewItemHandle *new_item_handle);
 
 /* abstract_view_item.cc */
 
-void ui_view_item_swap_button_pointers(blender::ui::AbstractViewItem &a,
-                                       blender::ui::AbstractViewItem &b);
+void ui_view_item_swap_button_pointers(uiViewItemHandle *a_handle, uiViewItemHandle *b_handle);
 
 /* interface_templates.cc */
 

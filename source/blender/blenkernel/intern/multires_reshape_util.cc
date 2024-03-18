@@ -14,17 +14,21 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_task.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_multires.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_eval.hh"
+#include "BKE_subdiv_foreach.hh"
+#include "BKE_subdiv_mesh.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -758,7 +762,7 @@ void multires_reshape_object_grids_to_tangent_displacement(
  * \{ */
 
 /* TODO(sergey): Make foreach_grid_coordinate more accessible and move this functionality to
- * its own file. */
+ * own file. */
 
 static void assign_final_coords_from_mdisps(const MultiresReshapeContext *reshape_context,
                                             const GridCoord *grid_coord,

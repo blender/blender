@@ -13,17 +13,52 @@ DisplaceOperation::DisplaceOperation()
   this->add_input_socket(DataType::Value);
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Color);
+  flags_.complex = true;
   flags_.can_be_constant = true;
+
+  input_color_program_ = nullptr;
 }
 
 void DisplaceOperation::init_execution()
 {
+  input_color_program_ = this->get_input_socket_reader(0);
   NodeOperation *vector = this->get_input_socket_reader(1);
+  NodeOperation *scale_x = this->get_input_socket_reader(2);
+  NodeOperation *scale_y = this->get_input_socket_reader(3);
+  if (execution_model_ == eExecutionModel::Tiled) {
+    vector_read_fn_ = [=](float x, float y, float *out) {
+      vector->read_sampled(out, x, y, PixelSampler::Bilinear);
+    };
+    scale_x_read_fn_ = [=](float x, float y, float *out) {
+      scale_x->read_sampled(out, x, y, PixelSampler::Nearest);
+    };
+    scale_y_read_fn_ = [=](float x, float y, float *out) {
+      scale_y->read_sampled(out, x, y, PixelSampler::Nearest);
+    };
+  }
 
   width_x4_ = this->get_width() * 4;
   height_x4_ = this->get_height() * 4;
   input_vector_width_ = vector->get_width();
   input_vector_height_ = vector->get_height();
+}
+
+void DisplaceOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler /*sampler*/)
+{
+  float xy[2] = {x, y};
+  float uv[2], deriv[2][2];
+
+  pixel_transform(xy, uv, deriv);
+  if (is_zero_v2(deriv[0]) && is_zero_v2(deriv[1])) {
+    input_color_program_->read_sampled(output, uv[0], uv[1], PixelSampler::Bilinear);
+  }
+  else {
+    /* EWA filtering (without nearest it gets blurry with NO distortion) */
+    input_color_program_->read_filtered(output, uv[0], uv[1], deriv[0], deriv[1]);
+  }
 }
 
 bool DisplaceOperation::read_displacement(
@@ -103,6 +138,58 @@ void DisplaceOperation::pixel_transform(const float xy[2], float r_uv[2], float 
   }
 }
 
+void DisplaceOperation::deinit_execution()
+{
+  input_color_program_ = nullptr;
+  vector_read_fn_ = nullptr;
+  scale_x_read_fn_ = nullptr;
+  scale_y_read_fn_ = nullptr;
+}
+
+bool DisplaceOperation::determine_depending_area_of_interest(rcti *input,
+                                                             ReadBufferOperation *read_operation,
+                                                             rcti *output)
+{
+  rcti color_input;
+  rcti vector_input;
+  NodeOperation *operation = nullptr;
+
+  /* the vector buffer only needs a 2x2 buffer. The image needs whole buffer */
+  /* image */
+  operation = get_input_operation(0);
+  color_input.xmax = operation->get_width();
+  color_input.xmin = 0;
+  color_input.ymax = operation->get_height();
+  color_input.ymin = 0;
+  if (operation->determine_depending_area_of_interest(&color_input, read_operation, output)) {
+    return true;
+  }
+
+  /* vector */
+  operation = get_input_operation(1);
+  vector_input.xmax = input->xmax + 1;
+  vector_input.xmin = input->xmin - 1;
+  vector_input.ymax = input->ymax + 1;
+  vector_input.ymin = input->ymin - 1;
+  if (operation->determine_depending_area_of_interest(&vector_input, read_operation, output)) {
+    return true;
+  }
+
+  /* scale x */
+  operation = get_input_operation(2);
+  if (operation->determine_depending_area_of_interest(input, read_operation, output)) {
+    return true;
+  }
+
+  /* scale y */
+  operation = get_input_operation(3);
+  if (operation->determine_depending_area_of_interest(input, read_operation, output)) {
+    return true;
+  }
+
+  return false;
+}
+
 void DisplaceOperation::get_area_of_interest(const int input_idx,
                                              const rcti &output_area,
                                              rcti &r_input_area)
@@ -152,7 +239,7 @@ void DisplaceOperation::update_memory_buffer_partial(MemoryBuffer *output,
     }
     else {
       /* EWA filtering (without nearest it gets blurry with NO distortion). */
-      input_color->read_elem_filtered(uv[0], uv[1], deriv[0], deriv[1], false, it.out);
+      input_color->read_elem_filtered(uv[0], uv[1], deriv[0], deriv[1], it.out);
     }
   }
 }

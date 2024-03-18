@@ -10,7 +10,6 @@
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
-#include "BKE_instances.hh"
 #include "BKE_mesh.hh"
 #include "BKE_type_conversions.hh"
 
@@ -120,21 +119,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_instances()) {
       GeometryComponent &component = geometry_set.get_component_for_write(
           GeometryComponent::Type::Instance);
-
-      if (name == "position" && data_type == CD_PROP_FLOAT3) {
-        /* Special case for "position" which is no longer an attribute on instances. */
-        bke::Instances &instances = *geometry_set.get_instances_for_write();
-        bke::InstancesFieldContext context(instances);
-        fn::FieldEvaluator evaluator{context, instances.instances_num()};
-        evaluator.set_selection(selection);
-        evaluator.add_with_destination(field, bke::instance_position_varray_for_write(instances));
-        evaluator.evaluate();
-      }
-      else {
-        if (!bke::try_capture_field_on_geometry(component, name, domain, selection, field)) {
-          if (component.attribute_domain_size(domain) != 0) {
-            failure.store(true);
-          }
+      if (!bke::try_capture_field_on_geometry(component, name, domain, selection, field)) {
+        if (component.attribute_domain_size(domain) != 0) {
+          failure.store(true);
         }
       }
     }

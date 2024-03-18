@@ -108,8 +108,8 @@ ID *DEG_get_original_id(ID *id);
 /**
  * Check whether given ID is an original.
  *
- * Original IDs are considered all the IDs which are not covered by copy-on-evaluation system and
- * are not out-of-main localized data-blocks.
+ * Original IDs are considered all the IDs which are not covered by copy-on-write system and are
+ * not out-of-main localized data-blocks.
  */
 bool DEG_is_original_id(const ID *id);
 bool DEG_is_original_object(const Object *object);

@@ -16,12 +16,13 @@
 #include "BKE_material.h"
 #include "BKE_screen.hh"
 
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "ED_object.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

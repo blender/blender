@@ -12,6 +12,8 @@
 
 #include "BLI_color.hh"
 
+#include "FN_multi_function_builder.hh"
+
 #include "NOD_multi_function.hh"
 
 #include "node_shader_util.hh"
@@ -22,14 +24,7 @@ namespace blender::nodes::node_shader_color_ramp_cc {
 static void sh_node_valtorgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("Fac")
-      .default_value(0.5f)
-      .min(0.0f)
-      .max(1.0f)
-      .subtype(PROP_FACTOR)
-      .description(
-          "The value used to map onto the color gradient. 0.0 results in the leftmost color, "
-          "while 1.0 results in the rightmost");
+  b.add_input<decl::Float>("Fac").default_value(0.5f).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Color>("Color");
   b.add_output<decl::Float>("Alpha");
 }

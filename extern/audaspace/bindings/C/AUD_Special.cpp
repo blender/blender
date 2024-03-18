@@ -270,14 +270,14 @@ AUD_API int AUD_readSound(AUD_Sound* sound, float* buffer, int length, int sampl
 	return length;
 }
 
-AUD_API int AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate, AUD_ResampleQuality quality, void(*callback)(float, void*), void* data, char* error, size_t errorsize)
+AUD_API int AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate, void(*callback)(float, void*), void* data, char* error, size_t errorsize)
 {
 	try
 	{
 		Sequence* f = dynamic_cast<Sequence *>(sound->get());
 
 		f->setSpecs(convCToSpec(specs.specs));
-		std::shared_ptr<IReader> reader = f->createQualityReader(static_cast<ResampleQuality>(quality));
+		std::shared_ptr<IReader> reader = f->createQualityReader();
 		reader->seek(start);
 		std::shared_ptr<IWriter> writer = FileWriter::createWriter(filename, convCToDSpec(specs), static_cast<Container>(format), static_cast<Codec>(codec), bitrate);
 		FileWriter::writeReader(reader, writer, length, buffersize, callback, data);
@@ -295,7 +295,7 @@ AUD_API int AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int lengt
 	}
 }
 
-AUD_API int AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate, AUD_ResampleQuality quality, void(*callback)(float, void*), void* data, char* error, size_t errorsize)
+AUD_API int AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate, void(*callback)(float, void*), void* data, char* error, size_t errorsize)
 {
 	try
 	{
@@ -329,7 +329,7 @@ AUD_API int AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsign
 			writers.push_back(FileWriter::createWriter(stream.str(), convCToDSpec(specs), static_cast<Container>(format), static_cast<Codec>(codec), bitrate));
 		}
 
-		std::shared_ptr<IReader> reader = f->createQualityReader(static_cast<ResampleQuality>(quality));
+		std::shared_ptr<IReader> reader = f->createQualityReader();
 		reader->seek(start);
 		FileWriter::writeReader(reader, writers, length, buffersize, callback, data);
 
@@ -346,19 +346,19 @@ AUD_API int AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsign
 	}
 }
 
-AUD_API AUD_Device* AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound* sequencer, float volume, AUD_ResampleQuality quality, double start)
+AUD_API AUD_Device* AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound* sequencer, float volume, double start)
 {
 	try
 	{
 		ReadDevice* device = new ReadDevice(convCToDSpec(specs));
-		device->setQuality(static_cast<ResampleQuality>(quality));
+		device->setQuality(true);
 		device->setVolume(volume);
 
 		Sequence* f = dynamic_cast<Sequence*>(sequencer->get());
 
 		f->setSpecs(convCToSpec(specs.specs));
 
-		AUD_Handle handle = device->play(f->createQualityReader(static_cast<ResampleQuality>(quality)));
+		AUD_Handle handle = device->play(f->createQualityReader());
 		if(handle.get())
 		{
 			handle->seek(start);

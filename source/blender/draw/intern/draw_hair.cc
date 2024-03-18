@@ -18,7 +18,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
 
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"
@@ -161,12 +161,12 @@ void DRW_hair_duplimat_get(Object *object,
       if (collection != nullptr) {
         sub_v3_v3(dupli_mat[3], collection->instance_offset);
       }
-      mul_m4_m4m4(dupli_mat, dupli_parent->object_to_world().ptr(), dupli_mat);
+      mul_m4_m4m4(dupli_mat, dupli_parent->object_to_world, dupli_mat);
     }
     else {
-      copy_m4_m4(dupli_mat, dupli_object->ob->object_to_world().ptr());
+      copy_m4_m4(dupli_mat, dupli_object->ob->object_to_world);
       invert_m4(dupli_mat);
-      mul_m4_m4m4(dupli_mat, object->object_to_world().ptr(), dupli_mat);
+      mul_m4_m4m4(dupli_mat, object->object_to_world, dupli_mat);
     }
   }
   else {

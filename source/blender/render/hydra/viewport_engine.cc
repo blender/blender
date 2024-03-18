@@ -9,6 +9,7 @@
 #include <pxr/imaging/glf/drawTarget.h>
 #include <pxr/usd/usdGeom/camera.h>
 
+#include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_vec_types.h" /* This include must be before `BKE_camera.h` due to `rctf` type. */
@@ -21,6 +22,9 @@
 #include "BKE_camera.h"
 #include "BKE_context.hh"
 
+#include "DEG_depsgraph_query.hh"
+
+#include "GPU_context.h"
 #include "GPU_matrix.h"
 
 #include "RE_engine.h"
@@ -65,7 +69,7 @@ ViewSettings::ViewSettings(bContext *context)
       for (int i = 0; i < 4; i++) {
         float world_location[] = {
             camera_points[i][0], camera_points[i][1], camera_points[i][2], 1.0f};
-        mul_m4_v4(camera_obj->object_to_world().ptr(), world_location);
+        mul_m4_v4(camera_obj->object_to_world, world_location);
         mul_m4_v4(region_data->persmat, world_location);
 
         if (world_location[3] > 0.0) {
@@ -247,13 +251,13 @@ void ViewportEngine::render()
   GPU_shader_unbind();
 
   if (renderer_percent_done() == 0.0f) {
-    time_begin_ = BLI_time_now_seconds();
+    time_begin_ = BLI_check_seconds_timer();
   }
 
   char elapsed_time[32];
 
   BLI_timecode_string_from_time_simple(
-      elapsed_time, sizeof(elapsed_time), BLI_time_now_seconds() - time_begin_);
+      elapsed_time, sizeof(elapsed_time), BLI_check_seconds_timer() - time_begin_);
 
   float percent_done = renderer_percent_done();
   if (!render_task_delegate_->is_converged()) {

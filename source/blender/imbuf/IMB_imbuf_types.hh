@@ -22,7 +22,7 @@ struct IDProperty;
  *
  * Types needed for using the image buffer.
  *
- * ImBuf is external code, slightly adapted to live in the Blender
+ * Imbuf is external code, slightly adapted to live in the Blender
  * context. It requires an external JPEG module, and the AVI-module
  * (also external code) in order to function correctly.
  *
@@ -94,7 +94,7 @@ struct ImbFormatOptions {
 };
 
 /* -------------------------------------------------------------------- */
-/** \name ImBuf Component flags
+/** \name Imbuf Component flags
  * \brief These flags determine the components of an ImBuf struct.
  * \{ */
 
@@ -106,11 +106,6 @@ enum eImBufFlags {
   IB_multilayer = 1 << 7,
   IB_metadata = 1 << 8,
   IB_animdeinterlace = 1 << 9,
-  /** Do not clear image pixel buffer to zero. Without this flag, allocating
-   * a new ImBuf does clear the pixel data to zero (transparent black). If
-   * whole pixel data is overwritten after allocation, then this flag can be
-   * faster since it avoids a memory clear. */
-  IB_uninitialized_pixels = 1 << 10,
 
   /** indicates whether image on disk have premul alpha */
   IB_alphamode_premul = 1 << 12,
@@ -128,7 +123,7 @@ enum eImBufFlags {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name ImBuf buffer storage
+/** \name Imbuf buffer storage
  * \{ */
 
 /* Specialization of an ownership whenever a bare pointer is provided to the ImBuf buffers
@@ -292,7 +287,7 @@ enum {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name ImBuf Preset Profile Tags
+/** \name Imbuf Preset Profile Tags
  *
  * \brief Some predefined color space profiles that 8 bit imbufs can represent.
  * \{ */
@@ -328,7 +323,7 @@ extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
 
 /* -------------------------------------------------------------------- */
-/** \name ImBuf Color Management Flag
+/** \name Imbuf Color Management Flag
  *
  * \brief Used with #ImBuf.colormanage_flag
  * \{ */

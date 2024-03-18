@@ -246,7 +246,7 @@ class GHOST_System : public GHOST_ISystem {
    * \param api: Enum indicating which API to use.
    */
   virtual void setTabletAPI(GHOST_TTabletAPI api);
-  GHOST_TTabletAPI getTabletAPI();
+  GHOST_TTabletAPI getTabletAPI(void);
 
   /**
    * Get the color of the pixel at the current mouse cursor location
@@ -332,7 +332,7 @@ class GHOST_System : public GHOST_ISystem {
   /**
    * Returns GHOST_kSuccess if the clipboard contains an image.
    */
-  GHOST_TSuccess hasClipboardImage() const;
+  GHOST_TSuccess hasClipboardImage(void) const;
 
   /**
    * Get image data from the Clipboard

@@ -21,16 +21,6 @@ using std_mutex_type = std::mutex;
 #  define std_mutex_type void
 #endif
 
-/** Workaround to forward-declare C++ type in C header. */
-#ifdef __cplusplus
-namespace blender::bke {
-class WindowManagerRuntime;
-}
-using WindowManagerRuntimeHandle = blender::bke::WindowManagerRuntime;
-#else   // __cplusplus
-typedef struct WindowManagerRuntimeHandle WindowManagerRuntimeHandle;
-#endif  // __cplusplus
-
 /* Defined here: */
 
 struct wmWindow;
@@ -184,6 +174,9 @@ typedef struct wmWindowManager {
   struct GSet *notifier_queue_set;
   void *_pad1;
 
+  /** Information and error reports. */
+  struct ReportList reports;
+
   /** Threaded jobs manager. */
   ListBase jobs;
 
@@ -210,20 +203,19 @@ typedef struct wmWindowManager {
   ListBase timers;
   /** Timer for auto save. */
   struct wmTimer *autosavetimer;
-  /** Auto-save timer was up, but it wasn't possible to auto-save in the current mode. */
-  char autosave_scheduled;
-  char _pad2[7];
 
   /** All undo history (runtime only). */
   struct UndoStack *undo_stack;
+
+  /** Indicates whether interface is locked for user interaction. */
+  char is_interface_locked;
+  char _pad[7];
 
   struct wmMsgBus *message_bus;
 
   // #ifdef WITH_XR_OPENXR
   wmXrData xr;
   // #endif
-
-  WindowManagerRuntimeHandle *runtime;
 } wmWindowManager;
 
 #define WM_KEYCONFIG_ARRAY_P(wm) &(wm)->defaultconf, &(wm)->addonconf, &(wm)->userconf

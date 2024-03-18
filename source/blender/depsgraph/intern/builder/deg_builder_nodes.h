@@ -68,7 +68,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph, DepsgraphBuilderCache *cache);
   ~DepsgraphNodeBuilder();
 
-  /* For given original ID get ID which is created by copy-on-evaluation system. */
+  /* For given original ID get ID which is created by CoW system. */
   ID *get_cow_id(const ID *id_orig) const;
   /* Similar to above, but for the cases when there is no ID node we create
    * one. */
@@ -80,7 +80,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
     return (T *)get_cow_id(&orig->id);
   }
 
-  /* For a given evaluated datablock get corresponding original one. */
+  /* For a given COW datablock get corresponding original one. */
   template<typename T> T *get_orig_datablock(const T *cow) const
   {
     return (T *)cow->id.orig_id;
@@ -194,7 +194,6 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_object_data_light(Object *object);
   virtual void build_object_data_lightprobe(Object *object);
   virtual void build_object_data_speaker(Object *object);
-  virtual void build_object_data_grease_pencil(Object *object);
   virtual void build_object_transform(Object *object);
   virtual void build_object_constraints(Object *object);
   virtual void build_object_pointcache(Object *object);
@@ -307,7 +306,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
 
   void tag_previously_tagged_nodes();
   /**
-   * Check for IDs that need to be flushed (copy-on-eval-updated)
+   * Check for IDs that need to be flushed (COW-updated)
    * because the depsgraph itself created or removed some of their evaluated dependencies.
    */
   void update_invalid_cow_pointers();

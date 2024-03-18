@@ -8,26 +8,30 @@
 
 #include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_modifier.hh"
+#include "BKE_screen.hh"
 
 #include "BLO_read_write.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "MOD_grease_pencil_util.hh"
+#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 namespace blender {
@@ -157,10 +161,10 @@ static void modify_hardness(const GreasePencilOpacityModifierData &omd,
                             const IndexMask &curves_mask)
 {
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-  bke::SpanAttributeWriter<float> hardnesses = attributes.lookup_or_add_for_write_span<float>(
-      "hardness",
-      bke::AttrDomain::Curve,
-      bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curve_num)));
+  bke::SpanAttributeWriter<float> hardnesses = attributes.lookup_for_write_span<float>("hardness");
+  if (!hardnesses) {
+    return;
+  }
 
   curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
     hardnesses.span[curve_i] = std::clamp(

@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "MEM_guardedalloc.h"
 

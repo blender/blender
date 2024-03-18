@@ -9,15 +9,26 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_sequence_types.h"
+#include "DNA_space_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
+#include "BKE_report.h"
 
 #include "SEQ_relations.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
+#include "SEQ_time.hh"
+
+#include "ED_keyframing.hh"
+
+#include "UI_view2d.hh"
+
+#include "RNA_access.hh"
+#include "RNA_prototypes.h"
 
 #include "transform.hh"
 #include "transform_convert.hh"

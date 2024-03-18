@@ -8,7 +8,11 @@
 
 #pragma once
 
-struct Mesh;
+#include <cstdio>
+
+#include "BKE_mesh.h"
+
+#include "stl_import.hh"
 
 /**
  * ASCII STL spec:

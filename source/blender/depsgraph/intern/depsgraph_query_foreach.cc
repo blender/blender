@@ -203,7 +203,7 @@ void deg_foreach_ancestor_ID(const Depsgraph *graph, const ID *id, DEGForeachIDC
       ComponentNode *comp_node = op_node->owner;
       IDNode *id_node = comp_node->owner;
       if (!visited.contains(id_node)) {
-        /* TODO(sergey): Is it orig or evaluated? */
+        /* TODO(sergey): Is it orig or CoW? */
         callback(id_node->id_orig);
         visited.add_new(id_node);
       }

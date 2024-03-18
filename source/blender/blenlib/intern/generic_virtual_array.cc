@@ -265,33 +265,21 @@ template<int BufferSize> class GVArrayImpl_For_SmallTrivialSingleValue : public 
   }
 
  private:
-  void get(const int64_t index, void *r_value) const final
+  void get(const int64_t /*index*/, void *r_value) const override
   {
-    this->get_to_uninitialized(index, r_value);
+    this->copy_value_to(r_value);
   }
-  void get_to_uninitialized(const int64_t /*index*/, void *r_value) const final
+  void get_to_uninitialized(const int64_t /*index*/, void *r_value) const override
   {
-    memcpy(r_value, &buffer_, type_->size());
-  }
-
-  void materialize(const IndexMask &mask, void *dst) const final
-  {
-    this->materialize_to_uninitialized(mask, dst);
-  }
-  void materialize_to_uninitialized(const IndexMask &mask, void *dst) const final
-  {
-    type_->fill_construct_indices(buffer_, dst, mask);
-  }
-  void materialize_compressed(const IndexMask &mask, void *dst) const final
-  {
-    this->materialize_compressed_to_uninitialized(mask, dst);
-  }
-  void materialize_compressed_to_uninitialized(const IndexMask &mask, void *dst) const final
-  {
-    type_->fill_construct_n(buffer_, dst, mask.size());
+    this->copy_value_to(r_value);
   }
 
-  CommonVArrayInfo common_info() const final
+  void copy_value_to(void *dst) const
+  {
+    memcpy(dst, &buffer_, type_->size());
+  }
+
+  CommonVArrayInfo common_info() const override
   {
     return CommonVArrayInfo{CommonVArrayInfo::Type::Single, true, &buffer_};
   }
@@ -511,29 +499,15 @@ class GVArrayImpl_For_SlicedGVArray : public GVArrayImpl {
     return {};
   }
 
-  void materialize(const IndexMask &mask, void *dst) const final
-  {
-    IndexMaskMemory memory;
-    const IndexMask shifted_mask = mask.shift(offset_, memory);
-    varray_.materialize(shifted_mask, dst);
-  }
-  void materialize_to_uninitialized(const IndexMask &mask, void *dst) const final
-  {
-    IndexMaskMemory memory;
-    const IndexMask shifted_mask = mask.shift(offset_, memory);
-    varray_.materialize_to_uninitialized(shifted_mask, dst);
-  }
-  void materialize_compressed(const IndexMask &mask, void *dst) const final
-  {
-    IndexMaskMemory memory;
-    const IndexMask shifted_mask = mask.shift(offset_, memory);
-    varray_.materialize_compressed(shifted_mask, dst);
-  }
   void materialize_compressed_to_uninitialized(const IndexMask &mask, void *dst) const override
   {
-    IndexMaskMemory memory;
-    const IndexMask shifted_mask = mask.shift(offset_, memory);
-    varray_.materialize_compressed_to_uninitialized(shifted_mask, dst);
+    IndexMaskFromSegment mask_from_segment;
+    mask.foreach_segment([&](const IndexMaskSegment segment, const int64_t start) {
+      const IndexMask &segment_mask = mask_from_segment.update(
+          {segment.offset() + offset_, segment.base_span()});
+      varray_.materialize_compressed_to_uninitialized(segment_mask,
+                                                      POINTER_OFFSET(dst, type_->size() * start));
+    });
   }
 };
 

@@ -21,6 +21,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -31,19 +32,19 @@
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_fcurve.hh"
-#include "BKE_global.hh"
+#include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_nla.h"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph_build.hh"
 
-#include "UI_interface_icons.hh"
+#include "UI_interface.hh"
 #include "UI_view2d.hh"
 
 #include "ANIM_animdata.hh"
@@ -802,20 +803,6 @@ static int graphkeys_delete_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int graphkeys_delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Delete selected keyframes?"),
-                                  nullptr,
-                                  IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return graphkeys_delete_exec(C, op);
-}
-
 void GRAPH_OT_delete(wmOperatorType *ot)
 {
   /* Identifiers */
@@ -824,7 +811,7 @@ void GRAPH_OT_delete(wmOperatorType *ot)
   ot->description = "Remove all selected keyframes";
 
   /* API callbacks */
-  ot->invoke = graphkeys_delete_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = graphkeys_delete_exec;
   ot->poll = graphop_editable_keyframes_poll;
 
@@ -982,20 +969,6 @@ static int graphkeys_keys_to_samples_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int graphkeys_keys_to_samples_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Convert selected keys to samples?"),
-                                  nullptr,
-                                  IFACE_("Convert"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return graphkeys_keys_to_samples_exec(C, op);
-}
-
 void GRAPH_OT_keys_to_samples(wmOperatorType *ot)
 {
   /* Identifiers */
@@ -1005,7 +978,7 @@ void GRAPH_OT_keys_to_samples(wmOperatorType *ot)
       "Convert selected channels to an uneditable set of samples to save storage space";
 
   /* API callbacks */
-  ot->invoke = graphkeys_keys_to_samples_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = graphkeys_keys_to_samples_exec;
   ot->poll = graphop_selected_fcurve_poll;
 

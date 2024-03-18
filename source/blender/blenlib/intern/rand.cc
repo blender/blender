@@ -19,10 +19,10 @@
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_rand.hh"
-#include "BLI_sys_types.h"
 #include "BLI_threads.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
+#include "BLI_sys_types.h"
 
 extern "C" uchar BLI_noise_hash_uchar_512[512]; /* `noise.cc` */
 #define hash BLI_noise_hash_uchar_512

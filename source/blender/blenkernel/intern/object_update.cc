@@ -6,7 +6,12 @@
  * \ingroup bke
  */
 
+#include "DNA_anim_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_gpencil_legacy_types.h"
+#include "DNA_key_types.h"
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
@@ -14,21 +19,28 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.hh"
+#include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_curve.hh"
 #include "BKE_curves.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.hh"
+#include "BKE_effect.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
+#include "BKE_image.h"
+#include "BKE_key.hh"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
+#include "BKE_light.h"
+#include "BKE_material.h"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
@@ -36,7 +48,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_volume.hh"
 
 #include "MEM_guardedalloc.h"
@@ -57,7 +69,7 @@ void BKE_object_eval_local_transform(Depsgraph *depsgraph, Object *ob)
   DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 
   /* calculate local matrix */
-  BKE_object_to_mat4(ob, ob->runtime->object_to_world.ptr());
+  BKE_object_to_mat4(ob, ob->object_to_world);
 }
 
 void BKE_object_eval_parent(Depsgraph *depsgraph, Object *ob)
@@ -74,18 +86,18 @@ void BKE_object_eval_parent(Depsgraph *depsgraph, Object *ob)
 
   /* get local matrix (but don't calculate it, as that was done already!) */
   /* XXX: redundant? */
-  copy_m4_m4(locmat, ob->object_to_world().ptr());
+  copy_m4_m4(locmat, ob->object_to_world);
 
   /* get parent effect matrix */
   BKE_object_get_parent_matrix(ob, par, totmat);
 
   /* total */
   mul_m4_m4m4(tmat, totmat, ob->parentinv);
-  mul_m4_m4m4(ob->runtime->object_to_world.ptr(), tmat, locmat);
+  mul_m4_m4m4(ob->object_to_world, tmat, locmat);
 
   /* origin, for help line */
   if ((ob->partype & PARTYPE) == PARSKEL) {
-    copy_v3_v3(ob->runtime->parent_display_origin, par->object_to_world().location());
+    copy_v3_v3(ob->runtime->parent_display_origin, par->object_to_world[3]);
   }
   else {
     copy_v3_v3(ob->runtime->parent_display_origin, totmat[3]);
@@ -117,9 +129,9 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob)
   DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
   /* Make sure inverse matrix is always up to date. This way users of it
    * do not need to worry about recalculating it. */
-  invert_m4_m4_safe(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+  invert_m4_m4_safe(ob->world_to_object, ob->object_to_world);
   /* Set negative scale flag in object. */
-  if (is_negative_m4(ob->object_to_world().ptr())) {
+  if (is_negative_m4(ob->object_to_world)) {
     ob->transflag |= OB_NEG_SCALE;
   }
   else {
@@ -139,25 +151,25 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       CustomData_MeshMasks cddata_masks = scene->customdata_mask;
       CustomData_MeshMasks_update(&cddata_masks, &CD_MASK_BAREMESH);
       /* Custom attributes should not be removed automatically. They might be used by the render
-       * engine or scripts. They can still be removed explicitly using geometry nodes.
-       * Vertex groups can be used in arbitrary situations with geometry nodes as well. */
+       * engine or scripts. They can still be removed explicitly using geometry nodes. Crease and
+       * vertex groups can be used in arbitrary situations with geometry nodes as well. */
       cddata_masks.vmask |= CD_MASK_PROP_ALL | CD_MASK_MDEFORMVERT;
       cddata_masks.emask |= CD_MASK_PROP_ALL;
       cddata_masks.fmask |= CD_MASK_PROP_ALL;
       cddata_masks.pmask |= CD_MASK_PROP_ALL;
       cddata_masks.lmask |= CD_MASK_PROP_ALL;
 
-      /* Make sure Freestyle edge/face marks appear in evaluated mesh (see #40315).
+      /* Make sure Freestyle edge/face marks appear in DM for render (see #40315).
        * Due to Line Art implementation, edge marks should also be shown in viewport. */
 #ifdef WITH_FREESTYLE
       cddata_masks.emask |= CD_MASK_FREESTYLE_EDGE;
       cddata_masks.pmask |= CD_MASK_FREESTYLE_FACE;
 #endif
       if (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER) {
-        /* Always compute orcos for render. */
+        /* Always compute UVs, vertex colors as orcos for render. */
         cddata_masks.vmask |= CD_MASK_ORCO;
       }
-      makeDerivedMesh(depsgraph, scene, ob, &cddata_masks);
+      makeDerivedMesh(depsgraph, scene, ob, &cddata_masks); /* was CD_MASK_BAREMESH */
       break;
     }
     case OB_ARMATURE:
@@ -240,8 +252,8 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   /* Base flags. */
   object_orig->base_flag = object->base_flag;
   /* Transformation flags. */
-  copy_m4_m4(object_orig->runtime->object_to_world.ptr(), object->object_to_world().ptr());
-  copy_m4_m4(object_orig->runtime->world_to_object.ptr(), object->world_to_object().ptr());
+  copy_m4_m4(object_orig->object_to_world, object->object_to_world);
+  copy_m4_m4(object_orig->world_to_object, object->world_to_object);
   copy_m4_m4(object_orig->constinv, object->constinv);
   object_orig->transflag = object->transflag;
   object_orig->flag = object->flag;

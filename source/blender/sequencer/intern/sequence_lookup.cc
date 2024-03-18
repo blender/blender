@@ -13,9 +13,12 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
+#include "SEQ_iterator.hh"
+
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_string.h"
 #include "BLI_sys_types.h"
 #include "BLI_threads.h"
 #include "BLI_vector_set.hh"

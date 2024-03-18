@@ -18,26 +18,50 @@
 #include "BLI_sys_types.h"
 
 #include "BLI_math_matrix.h"
+#include "BLI_polyfill_2d.h"
 #include "BLI_utildefines.h"
+
+#include "BLF_api.hh"
+#include "BLT_translation.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_brush.hh"
+#include "BKE_context.hh"
+#include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_image.h"
 #include "BKE_material.h"
+#include "BKE_paint.hh"
+
+#include "DEG_depsgraph.hh"
+
+#include "WM_api.hh"
 
 #include "GPU_batch.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_shader_shared.h"
 #include "GPU_state.h"
-#include "GPU_uniform_buffer.hh"
+#include "GPU_uniform_buffer.h"
 
 #include "ED_gpencil_legacy.hh"
+#include "ED_screen.hh"
+#include "ED_space_api.hh"
+#include "ED_view3d.hh"
+
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
+
+#include "IMB_imbuf_types.hh"
 
 #include "gpencil_intern.h"
 

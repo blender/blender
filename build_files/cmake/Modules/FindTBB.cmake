@@ -64,5 +64,3 @@ mark_as_advanced(
   TBB_INCLUDE_DIR
   TBB_LIBRARY
 )
-
-unset(_tbb_SEARCH_DIRS)

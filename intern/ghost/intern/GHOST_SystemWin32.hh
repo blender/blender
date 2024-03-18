@@ -61,6 +61,13 @@ class GHOST_SystemWin32 : public GHOST_System {
   uint64_t performanceCounterToMillis(__int64 perf_ticks) const;
 
   /**
+   * This method converts system ticks into milliseconds since the start of the
+   * Blender process.
+   * \return The number of milliseconds since the start of the Blender process.
+   */
+  uint64_t tickCountToMillis(__int64 ticks) const;
+
+  /**
    * Returns the system time.
    * Returns the number of milliseconds since the start of the Blender process.
    * This overloaded method uses the high frequency timer if available.
@@ -229,7 +236,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   /**
    * Returns GHOST_kSuccess if the clipboard contains an image.
    */
-  GHOST_TSuccess hasClipboardImage() const;
+  GHOST_TSuccess hasClipboardImage(void) const;
 
   /**
    * Get image data from the Clipboard
@@ -451,7 +458,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   /**
    * Check current key layout for AltGr
    */
-  inline void handleKeyboardChange();
+  inline void handleKeyboardChange(void);
 
   /**
    * Windows call back routine for our window class.
@@ -469,6 +476,10 @@ class GHOST_SystemWin32 : public GHOST_System {
   bool m_hasPerformanceCounter;
   /** High frequency timer variable. */
   __int64 m_freq;
+  /** High frequency timer variable. */
+  __int64 m_start;
+  /** Low frequency timer variable. */
+  __int64 m_lfstart;
   /** AltGr on current keyboard layout. */
   bool m_hasAltGr;
   /** Language identifier. */
@@ -483,7 +494,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   int m_wheelDeltaAccum;
 };
 
-inline void GHOST_SystemWin32::handleKeyboardChange()
+inline void GHOST_SystemWin32::handleKeyboardChange(void)
 {
   m_keylayout = GetKeyboardLayout(0); /* Get keylayout for current thread. */
   int i;

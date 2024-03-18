@@ -12,6 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
@@ -32,13 +33,15 @@
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_blender_version.h"
+#include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
+#include "BKE_displist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
@@ -48,8 +51,9 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
+#include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_modifier.hh"
 
@@ -93,17 +97,17 @@ struct SceneStatsFmt {
       totgppoint[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
 };
 
-static bool stats_mesheval(const Mesh *mesh_eval, bool is_selected, SceneStats *stats)
+static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *stats)
 {
-  if (mesh_eval == nullptr) {
+  if (me_eval == nullptr) {
     return false;
   }
 
   int totvert, totedge, totface, totloop;
 
-  const SubsurfRuntimeData *subsurf_runtime_data = mesh_eval->runtime->subsurf_runtime_data;
+  const SubsurfRuntimeData *subsurf_runtime_data = me_eval->runtime->subsurf_runtime_data;
 
-  if (const std::unique_ptr<SubdivCCG> &subdiv_ccg = mesh_eval->runtime->subdiv_ccg) {
+  if (const std::unique_ptr<SubdivCCG> &subdiv_ccg = me_eval->runtime->subdiv_ccg) {
     BKE_subdiv_ccg_topology_counters(*subdiv_ccg, totvert, totedge, totface, totloop);
   }
   else if (subsurf_runtime_data && subsurf_runtime_data->resolution != 0) {
@@ -113,10 +117,10 @@ static bool stats_mesheval(const Mesh *mesh_eval, bool is_selected, SceneStats *
     totloop = subsurf_runtime_data->stats_totloop;
   }
   else {
-    totvert = mesh_eval->verts_num;
-    totedge = mesh_eval->edges_num;
-    totface = mesh_eval->faces_num;
-    totloop = mesh_eval->corners_num;
+    totvert = me_eval->verts_num;
+    totedge = me_eval->edges_num;
+    totface = me_eval->faces_num;
+    totloop = me_eval->corners_num;
   }
 
   stats->totvert += totvert;
@@ -158,11 +162,11 @@ static void stats_object(Object *ob,
   switch (ob->type) {
     case OB_MESH: {
       /* we assume evaluated mesh is already built, this strictly does stats now. */
-      const Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
-      if (!BLI_gset_add(objects_gset, (void *)mesh_eval)) {
+      const Mesh *me_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob);
+      if (!BLI_gset_add(objects_gset, (void *)me_eval)) {
         break;
       }
-      stats_mesheval(mesh_eval, is_selected, stats);
+      stats_mesheval(me_eval, is_selected, stats);
       break;
     }
     case OB_LAMP:
@@ -484,7 +488,7 @@ static bool format_stats(
   if (*stats_p == nullptr) {
     /* Don't access dependency graph if interface is marked as locked. */
     wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-    if (wm->runtime->is_interface_locked) {
+    if (wm->is_interface_locked) {
       return false;
     }
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
@@ -394,8 +394,6 @@ struct OVERLAY_PrivateData {
     bool do_face_dots;
 
     float uv_opacity;
-
-    float stretch_opacity;
 
     int image_size[2];
     float image_aspect[2];

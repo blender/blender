@@ -33,8 +33,6 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 
-#include "BLT_translation.hh"
-
 #include "DEG_depsgraph.hh"
 
 #include "GPU_select.hh"
@@ -47,8 +45,6 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include "UI_interface_icons.hh"
 
 #include "mball_intern.h"
 
@@ -613,20 +609,6 @@ static int delete_metaelems_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int delete_metaelems_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Delete selected metaball elements?"),
-                                  nullptr,
-                                  IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return delete_metaelems_exec(C, op);
-}
-
 void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 {
   /* identifiers */
@@ -635,7 +617,7 @@ void MBALL_OT_delete_metaelems(wmOperatorType *ot)
   ot->idname = "MBALL_OT_delete_metaelems";
 
   /* callback functions */
-  ot->invoke = delete_metaelems_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = delete_metaelems_exec;
   ot->poll = ED_operator_editmball;
 

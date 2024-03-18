@@ -15,19 +15,9 @@ if(NOT WIN32)
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${SNDFILE_HASH_TYPE}=${SNDFILE_HASH}
     PREFIX ${BUILD_DIR}/sndfile
-
-    CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
-      cd ${BUILD_DIR}/sndfile/src/external_sndfile/ &&
-      ${SNDFILE_ENV} ${CONFIGURE_COMMAND} ${SNDFILE_OPTIONS} --prefix=${mingw_LIBDIR}/sndfile
-
-    BUILD_COMMAND ${CONFIGURE_ENV} &&
-      cd ${BUILD_DIR}/sndfile/src/external_sndfile/ &&
-      make -j${MAKE_THREADS}
-
-    INSTALL_COMMAND ${CONFIGURE_ENV} &&
-      cd ${BUILD_DIR}/sndfile/src/external_sndfile/ &&
-      make install
-
+    CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && ${SNDFILE_ENV} ${CONFIGURE_COMMAND} ${SNDFILE_OPTIONS} --prefix=${mingw_LIBDIR}/sndfile
+    BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && make -j${MAKE_THREADS}
+    INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sndfile/src/external_sndfile/ && make install
     INSTALL_DIR ${LIBDIR}/sndfile
   )
 else()
@@ -55,31 +45,17 @@ else()
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${SNDFILE_HASH_TYPE}=${SNDFILE_HASH}
     PREFIX ${BUILD_DIR}/sndfile
-
-    PATCH_COMMAND ${CMAKE_COMMAND} -E copy
-      ${PATCH_DIR}/cmake/modules/FindLame.cmake
-      ${BUILD_DIR}/sndfile/src/external_sndfile/cmake/FindLame.cmake
-
-    CMAKE_ARGS
-      -DCMAKE_INSTALL_PREFIX=${LIBDIR}/sndfile
-      ${DEFAULT_CMAKE_FLAGS}
-      ${SNDFILE_EXTRA_ARGS}
-
+    PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${PATCH_DIR}/cmake/modules/FindLame.cmake ${BUILD_DIR}/sndfile/src/external_sndfile/cmake/FindLame.cmake
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/sndfile ${DEFAULT_CMAKE_FLAGS} ${SNDFILE_EXTRA_ARGS}
     INSTALL_DIR ${LIBDIR}/sndfile
   )
 endif()
 
 if(BUILD_MODE STREQUAL Release AND WIN32)
   ExternalProject_Add_Step(external_sndfile after_install
-    COMMAND ${CMAKE_COMMAND} -E copy
-      ${LIBDIR}/sndfile/bin/sndfile.dll
-      ${HARVEST_TARGET}/sndfile/lib/sndfile.dll
-    COMMAND ${CMAKE_COMMAND} -E copy
-      ${LIBDIR}/sndfile/lib/sndfile.lib
-      ${HARVEST_TARGET}/sndfile/lib/sndfile.lib
-    COMMAND ${CMAKE_COMMAND} -E copy
-      ${LIBDIR}/sndfile/include/sndfile.h
-      ${HARVEST_TARGET}/sndfile/include/sndfile.h
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/bin/sndfile.dll ${HARVEST_TARGET}/sndfile/lib/sndfile.dll
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/lib/sndfile.lib ${HARVEST_TARGET}/sndfile/lib/sndfile.lib
+    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/sndfile/include/sndfile.h ${HARVEST_TARGET}/sndfile/include/sndfile.h
 
     DEPENDEES install
   )

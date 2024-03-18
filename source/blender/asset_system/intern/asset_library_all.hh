@@ -8,31 +8,17 @@
 
 #pragma once
 
-#include <atomic>
-
 #include "AS_asset_library.hh"
 
 namespace blender::asset_system {
 
 class AllAssetLibrary : public AssetLibrary {
-  std::atomic<bool> catalogs_dirty_ = true;
-
  public:
   AllAssetLibrary();
 
   void refresh_catalogs() override;
 
-  /**
-   * Update the available catalogs and catalog tree from the nested asset libraries. Completely
-   * recreates the catalog service (invalidating pointers to the previous one).
-   *
-   * \param reload_nested_catalogs: Re-read catalog definitions of nested libraries from disk and
-   * merge them into the in-memory representations.
-   */
-  void rebuild_catalogs_from_nested(bool reload_nested_catalogs);
-
-  void tag_catalogs_dirty();
-  bool is_catalogs_dirty() const;
+  void rebuild(const bool reload_catalogs);
 };
 
 }  // namespace blender::asset_system

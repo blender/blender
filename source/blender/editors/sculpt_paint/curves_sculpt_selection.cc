@@ -6,6 +6,8 @@
 
 #include "curves_sculpt_intern.hh"
 
+#include "ED_curves_sculpt.hh"
+
 namespace blender::ed::sculpt_paint {
 
 bke::SpanAttributeWriter<float> float_selection_ensure(Curves &curves_id)

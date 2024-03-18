@@ -6,14 +6,25 @@
  * \ingroup edgizmolib
  */
 
+#include "BLI_listbase.h"
+
+#include "BKE_context.hh"
+
+#include "ED_screen.hh"
+#include "ED_view3d.hh"
+
 #include "GPU_batch.h"
 #include "GPU_immediate.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "RNA_access.hh"
+
+#include "WM_api.hh"
 #include "WM_types.hh"
 
-/* only for separate init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
+/* only for own init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
+#include "wm.hh"
 
 /* own includes */
 #include "gizmo_library_intern.h"

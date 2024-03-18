@@ -75,7 +75,7 @@ struct PBVHNode {
   /* Array of indices into the Mesh's corner array.
    * PBVH_FACES only.
    */
-  blender::Array<int, 0> corner_indices;
+  blender::Array<int, 0> loop_indices;
 
   /* An array mapping face corners into the vert_indices
    * array. The array is sized to match 'totprim', and each of

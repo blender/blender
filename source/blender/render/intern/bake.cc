@@ -450,7 +450,7 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
  * This function populates an array of verts for the triangles of a mesh
  * Tangent and Normals are also stored
  */
-static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *mesh_eval)
+static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *me_eval)
 {
   using namespace blender;
   int i;
@@ -490,13 +490,12 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *mesh, bool tangent, Mesh *mesh_
   const TSpace *tspace = nullptr;
   blender::Span<blender::float3> corner_normals;
   if (tangent) {
-    BKE_mesh_calc_loop_tangents(mesh_eval, true, nullptr, 0);
+    BKE_mesh_calc_loop_tangents(me_eval, true, nullptr, 0);
 
-    tspace = static_cast<const TSpace *>(
-        CustomData_get_layer(&mesh_eval->corner_data, CD_TANGENT));
+    tspace = static_cast<const TSpace *>(CustomData_get_layer(&me_eval->corner_data, CD_TANGENT));
     BLI_assert(tspace);
 
-    corner_normals = mesh_eval->corner_normals();
+    corner_normals = me_eval->corner_normals();
   }
 
   const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
@@ -551,8 +550,8 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
                                           const bool is_custom_cage,
                                           const float cage_extrusion,
                                           const float max_ray_distance,
-                                          const float mat_low[4][4],
-                                          const float mat_cage[4][4],
+                                          float mat_low[4][4],
+                                          float mat_cage[4][4],
                                           Mesh *me_cage)
 {
   size_t i;
@@ -856,15 +855,15 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
                                      float result[],
                                      Mesh *mesh,
                                      const eBakeNormalSwizzle normal_swizzle[3],
-                                     const float mat[4][4])
+                                     float mat[4][4])
 {
   size_t i;
 
   TriTessFace *triangles;
 
-  Mesh *mesh_eval = BKE_mesh_copy_for_eval(mesh);
+  Mesh *me_eval = BKE_mesh_copy_for_eval(mesh);
 
-  triangles = mesh_calc_tri_tessface(mesh, true, mesh_eval);
+  triangles = mesh_calc_tri_tessface(mesh, true, me_eval);
 
   BLI_assert(pixels_num >= 3);
 
@@ -970,8 +969,8 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
   /* garbage collection */
   MEM_freeN(triangles);
 
-  if (mesh_eval) {
-    BKE_id_free(nullptr, mesh_eval);
+  if (me_eval) {
+    BKE_id_free(nullptr, me_eval);
   }
 }
 
@@ -985,7 +984,7 @@ void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
   size_t i;
   float iobmat[4][4];
 
-  invert_m4_m4(iobmat, ob->object_to_world().ptr());
+  invert_m4_m4(iobmat, ob->object_to_world);
 
   for (i = 0; i < pixels_num; i++) {
     size_t offset;

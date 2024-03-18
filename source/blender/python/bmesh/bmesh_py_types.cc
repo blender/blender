@@ -18,7 +18,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_customdata.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -1266,7 +1266,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
   Object *ob, *ob_eval;
   Depsgraph *depsgraph;
   Scene *scene_eval;
-  const Mesh *mesh_eval;
+  const Mesh *me_eval;
   BMesh *bm;
   bool use_cage = false;
   bool use_fnorm = true;
@@ -1313,19 +1313,19 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
       return nullptr;
     }
 
-    mesh_eval = BKE_mesh_new_from_object(depsgraph, ob_eval, true, false);
+    me_eval = BKE_mesh_new_from_object(depsgraph, ob_eval, true, false);
     need_free = true;
   }
   else {
     if (use_cage) {
-      mesh_eval = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &data_masks);
+      me_eval = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &data_masks);
     }
     else {
-      mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      me_eval = BKE_object_get_evaluated_mesh(ob_eval);
     }
   }
 
-  if (mesh_eval == nullptr) {
+  if (me_eval == nullptr) {
     PyErr_Format(PyExc_ValueError,
                  "from_object(...): Object '%s' has no usable mesh data",
                  ob->id.name + 2);
@@ -1337,10 +1337,10 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
   BMeshFromMeshParams params{};
   params.calc_face_normal = use_fnorm;
   params.calc_vert_normal = use_vert_normal;
-  BM_mesh_bm_from_me(bm, mesh_eval, &params);
+  BM_mesh_bm_from_me(bm, me_eval, &params);
 
   if (need_free) {
-    BKE_id_free(nullptr, (Mesh *)mesh_eval);
+    BKE_id_free(nullptr, (Mesh *)me_eval);
   }
 
   Py_RETURN_NONE;

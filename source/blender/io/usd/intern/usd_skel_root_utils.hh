@@ -5,7 +5,7 @@
 
 #include "usd.hh"
 
-#include <pxr/usd/usd/common.h>
+#include <pxr/usd/usd/stage.h>
 
 namespace blender::io::usd {
 

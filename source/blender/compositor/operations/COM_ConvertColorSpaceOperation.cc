@@ -12,6 +12,7 @@ ConvertColorSpaceOperation::ConvertColorSpaceOperation()
 {
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
+  this->input_program_ = nullptr;
   color_processor_ = nullptr;
 }
 
@@ -37,8 +38,21 @@ void ConvertColorSpaceOperation::init_execution()
     return;
   }
 
+  this->input_program_ = this->get_input_socket_reader(0);
+
   color_processor_ = IMB_colormanagement_colorspace_processor_new(settings_->from_color_space,
                                                                   settings_->to_color_space);
+}
+
+void ConvertColorSpaceOperation::execute_pixel_sampled(float output[4],
+                                                       float x,
+                                                       float y,
+                                                       PixelSampler sampler)
+{
+  this->input_program_->read_sampled(output, x, y, sampler);
+  if (color_processor_ != nullptr) {
+    IMB_colormanagement_processor_apply_pixel(color_processor_, output, 3);
+  }
 }
 
 void ConvertColorSpaceOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -59,6 +73,7 @@ void ConvertColorSpaceOperation::deinit_execution()
   if (color_processor_ != nullptr) {
     IMB_colormanagement_processor_free(color_processor_);
   }
+  this->input_program_ = nullptr;
   this->color_processor_ = nullptr;
 }
 

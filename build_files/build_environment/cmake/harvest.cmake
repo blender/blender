@@ -16,20 +16,12 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     add_custom_target(Harvest_Release_Results
       COMMAND # JPEG rename lib-file + copy include.
-      ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/jpeg/lib/jpeg-static.lib
-        ${HARVEST_TARGET}/jpeg/lib/libjpeg.lib &&
-      ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/jpeg/include/
-        ${HARVEST_TARGET}/jpeg/include/ &&
-
+      ${CMAKE_COMMAND} -E copy ${LIBDIR}/jpeg/lib/jpeg-static.lib ${HARVEST_TARGET}/jpeg/lib/libjpeg.lib &&
+      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/jpeg/include/ ${HARVEST_TARGET}/jpeg/include/ &&
       # PNG.
-      ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/png/lib/libpng16_static.lib
-        ${HARVEST_TARGET}/png/lib/libpng.lib &&
-      ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/png/include/
-        ${HARVEST_TARGET}/png/include/
+      ${CMAKE_COMMAND} -E copy ${LIBDIR}/png/lib/libpng16_static.lib ${HARVEST_TARGET}/png/lib/libpng.lib &&
+      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/png/include/ ${HARVEST_TARGET}/png/include/ &&
+      DEPENDS
     )
   endif()
 

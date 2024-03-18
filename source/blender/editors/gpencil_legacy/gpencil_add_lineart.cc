@@ -11,16 +11,23 @@
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
+#include "BKE_brush.hh"
 #include "BKE_context.hh"
+#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_lib_id.hh"
+#include "BKE_main.hh"
+#include "BKE_material.h"
 
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "ED_gpencil_legacy.hh"
 

@@ -11,13 +11,14 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
+#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -43,7 +44,7 @@ static void applyBoneEnvelope(TransInfo *t)
 
   t->values_final[0] = ratio;
 
-  /* Header print for NumInput. */
+  /* header print for NumInput */
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
 
@@ -62,7 +63,7 @@ static void applyBoneEnvelope(TransInfo *t)
       }
 
       if (td->val) {
-        /* If the old/original value was 0.0f, then just use ratio. */
+        /* if the old/original value was 0.0f, then just use ratio */
         if (td->ival) {
           *td->val = td->ival * ratio;
         }

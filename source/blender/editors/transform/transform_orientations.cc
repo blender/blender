@@ -37,10 +37,10 @@
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "ED_armature.hh"
 
@@ -63,7 +63,7 @@ void BIF_clearTransformOrientation(bContext *C)
   for (int i = 0; i < ARRAY_SIZE(scene->orientation_slots); i++) {
     TransformOrientationSlot *orient_slot = &scene->orientation_slots[i];
     if (orient_slot->type == V3D_ORIENT_CUSTOM) {
-      orient_slot->type = V3D_ORIENT_GLOBAL; /* Fallback to global. */
+      orient_slot->type = V3D_ORIENT_GLOBAL; /* fallback to global */
       orient_slot->index_custom = -1;
     }
   }
@@ -134,10 +134,10 @@ static TransformOrientation *createObjectSpace(bContext *C,
 
   ob = base->object;
 
-  copy_m3_m4(mat, ob->object_to_world().ptr());
+  copy_m3_m4(mat, ob->object_to_world);
   normalize_m3(mat);
 
-  /* Use object name if no name is given. */
+  /* use object name if no name is given */
   if (name[0] == 0) {
     name = ob->id.name + 2;
   }
@@ -243,9 +243,7 @@ static bool test_rotmode_euler(short rotmode)
   return ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT) ? false : true;
 }
 
-/**
- * Could move into BLI_math_rotation.h however this is only useful for display/editing purposes.
- */
+/* could move into BLI_math_rotation.h however this is only useful for display/editing purposes */
 static void axis_angle_to_gimbal_axis(float gmat[3][3], const float axis[3], const float angle)
 {
   /* X/Y are arbitrary axes, most importantly Z is the axis of rotation. */
@@ -253,23 +251,24 @@ static void axis_angle_to_gimbal_axis(float gmat[3][3], const float axis[3], con
   float cross_vec[3];
   float quat[4];
 
-  /* This is an un-scientific method to get a vector to cross with XYZ intentionally YZX. */
+  /* this is an un-scientific method to get a vector to cross with
+   * XYZ intentionally YZX */
   cross_vec[0] = axis[1];
   cross_vec[1] = axis[2];
   cross_vec[2] = axis[0];
 
-  /* X-axis. */
+  /* X-axis */
   cross_v3_v3v3(gmat[0], cross_vec, axis);
   normalize_v3(gmat[0]);
   axis_angle_to_quat(quat, axis, angle);
   mul_qt_v3(quat, gmat[0]);
 
-  /* Y-axis. */
+  /* Y-axis */
   axis_angle_to_quat(quat, axis, M_PI_2);
   copy_v3_v3(gmat[1], gmat[0]);
   mul_qt_v3(quat, gmat[1]);
 
-  /* Z-axis. */
+  /* Z-axis */
   copy_v3_v3(gmat[2], axis);
 
   normalize_m3(gmat);
@@ -284,11 +283,11 @@ bool gimbal_axis_pose(Object *ob, const bPoseChannel *pchan, float gmat[3][3])
   else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
     axis_angle_to_gimbal_axis(mat, pchan->rotAxis, pchan->rotAngle);
   }
-  else { /* Quaternion. */
+  else { /* quat */
     return false;
   }
 
-  /* Apply bone transformation. */
+  /* apply bone transformation */
   mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
 
   if (pchan->parent) {
@@ -299,13 +298,13 @@ bool gimbal_axis_pose(Object *ob, const bPoseChannel *pchan, float gmat[3][3])
                                                   pchan->parent->pose_mat);
     mul_m3_m3m3(mat, parent_mat, tmat);
 
-    /* Needed if object transformation isn't identity. */
-    copy_m3_m4(obmat, ob->object_to_world().ptr());
+    /* needed if object transformation isn't identity */
+    copy_m3_m4(obmat, ob->object_to_world);
     mul_m3_m3m3(gmat, obmat, mat);
   }
   else {
-    /* Needed if object transformation isn't identity. */
-    copy_m3_m4(obmat, ob->object_to_world().ptr());
+    /* needed if object transformation isn't identity */
+    copy_m3_m4(obmat, ob->object_to_world);
     mul_m3_m3m3(gmat, obmat, tmat);
   }
 
@@ -321,13 +320,13 @@ bool gimbal_axis_object(Object *ob, float gmat[3][3])
   else if (ob->rotmode == ROT_MODE_AXISANGLE) {
     axis_angle_to_gimbal_axis(gmat, ob->rotAxis, ob->rotAngle);
   }
-  else { /* Quaternion. */
+  else { /* quat */
     return false;
   }
 
   if (ob->parent) {
     float parent_mat[3][3];
-    copy_m3_m4(parent_mat, ob->parent->object_to_world().ptr());
+    copy_m3_m4(parent_mat, ob->parent->object_to_world);
     normalize_m3(parent_mat);
     mul_m3_m3m3(gmat, parent_mat, gmat);
   }
@@ -388,7 +387,7 @@ bool createSpaceNormal(float mat[3][3], const float normal[3])
 
   copy_v3_v3(mat[2], normal);
   if (normalize_v3(mat[2]) == 0.0f) {
-    return false; /* Error return. */
+    return false; /* error return */
   }
 
   cross_v3_v3v3(mat[0], mat[2], tangent);
@@ -408,25 +407,25 @@ bool createSpaceNormal(float mat[3][3], const float normal[3])
 bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const float tangent[3])
 {
   if (normalize_v3_v3(mat[2], normal) == 0.0f) {
-    return false; /* Error return. */
+    return false; /* error return */
   }
 
-  /* Negate so we can use values from the matrix as input. */
+  /* negate so we can use values from the matrix as input */
   negate_v3_v3(mat[1], tangent);
-  /* Preempt zero length tangent from causing trouble. */
+  /* preempt zero length tangent from causing trouble */
   if (is_zero_v3(mat[1])) {
     mat[1][2] = 1.0f;
   }
 
   cross_v3_v3v3(mat[0], mat[2], mat[1]);
   if (normalize_v3(mat[0]) == 0.0f) {
-    return false; /* Error return. */
+    return false; /* error return */
   }
 
   cross_v3_v3v3(mat[1], mat[2], mat[0]);
   normalize_v3(mat[1]);
 
-  /* Final matrix must be normalized, do inline. */
+  /* final matrix must be normalized, do inline */
   // normalize_m3(mat);
 
   return true;
@@ -491,7 +490,7 @@ TransformOrientation *addMatrixSpace(bContext *C,
     name = name_unique;
   }
 
-  /* If not, create a new one. */
+  /* if not, create a new one */
   if (ts == nullptr) {
     ts = static_cast<TransformOrientation *>(
         MEM_callocN(sizeof(TransformOrientation), "UserTransSpace from matrix"));
@@ -499,7 +498,7 @@ TransformOrientation *addMatrixSpace(bContext *C,
     STRNCPY(ts->name, name);
   }
 
-  /* Copy matrix into transform space. */
+  /* copy matrix into transform space */
   copy_m3_m3(ts->mat, mat);
 
   return ts;
@@ -561,7 +560,7 @@ static int armature_bone_transflags_update_recursive(bArmature *arm,
           bone->flag |= BONE_TRANSFORM;
           total++;
 
-          /* No transform on children if one parent bone is selected. */
+          /* no transform on children if one parent bone is selected */
           do_next = false;
         }
       }
@@ -598,21 +597,20 @@ static void handle_armature_parent_orientation(Object *ob, float r_mat[3][3])
     /* For child, show parent local regardless if "local location" is set for parent bone. */
     transform_orientations_create_from_axis(r_mat, UNPACK3(active_pchan->parent->pose_mat));
     float ob_orientations_mat[3][3];
-    transform_orientations_create_from_axis(ob_orientations_mat,
-                                            UNPACK3(ob->object_to_world().ptr()));
+    transform_orientations_create_from_axis(ob_orientations_mat, UNPACK3(ob->object_to_world));
     mul_m3_m3_pre(r_mat, ob_orientations_mat);
     return;
   }
 
   /* For root, use local transform of armature object. */
-  transform_orientations_create_from_axis(r_mat, UNPACK3(ob->object_to_world().ptr()));
+  transform_orientations_create_from_axis(r_mat, UNPACK3(ob->object_to_world));
 }
 
 static void handle_object_parent_orientation(Object *ob, float r_mat[3][3])
 {
   /* If object has parent, then orient to parent. */
   if (ob->parent) {
-    transform_orientations_create_from_axis(r_mat, UNPACK3(ob->parent->object_to_world().ptr()));
+    transform_orientations_create_from_axis(r_mat, UNPACK3(ob->parent->object_to_world));
   }
   else {
     /* If object doesn't have parent, then orient to world. */
@@ -679,7 +677,7 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
           ED_getTransformOrientationMatrix(scene, view_layer, v3d, ob, obedit, pivot_point, r_mat);
         }
         else {
-          transform_orientations_create_from_axis(r_mat, UNPACK3(ob->object_to_world().ptr()));
+          transform_orientations_create_from_axis(r_mat, UNPACK3(ob->object_to_world));
         }
         break;
       }
@@ -818,7 +816,7 @@ void transform_orientations_current_set(TransInfo *t, const short orient_index)
 }
 
 /**
- * Utility function - get first n, selected vert/edge/faces.
+ * utility function - get first n, selected vert/edge/faces
  */
 static uint bm_mesh_elems_select_get_n__internal(
     BMesh *bm, BMElem **elems, const uint n, const BMIterType itype, const char htype)
@@ -831,13 +829,13 @@ static uint bm_mesh_elems_select_get_n__internal(
   BLI_assert(ELEM(itype, BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH));
 
   if (!BLI_listbase_is_empty(&bm->selected)) {
-    /* Quick check. */
+    /* quick check */
     i = 0;
     LISTBASE_FOREACH_BACKWARD (BMEditSelection *, ese, &bm->selected) {
-      /* Shouldn't need this check. */
+      /* shouldn't need this check */
       if (BM_elem_flag_test(ese->ele, BM_ELEM_SELECT)) {
 
-        /* Only use contiguous selection. */
+        /* only use contiguous selection */
         if (ese->htype != htype) {
           i = 0;
           break;
@@ -854,7 +852,7 @@ static uint bm_mesh_elems_select_get_n__internal(
     }
 
     if (i == 0) {
-      /* Pass. */
+      /* pass */
     }
     else if (i == n) {
       return i;
@@ -911,8 +909,8 @@ int getTransformOrientation_ex(const Scene *scene,
   if (obedit) {
     float imat[3][3], mat[3][3];
 
-    /* We need the transpose of the inverse for a normal... */
-    copy_m3_m4(imat, ob->object_to_world().ptr());
+    /* we need the transpose of the inverse for a normal... */
+    copy_m3_m4(imat, ob->object_to_world);
 
     invert_m3_m3(mat, imat);
     transpose_m3(mat);
@@ -924,7 +922,7 @@ int getTransformOrientation_ex(const Scene *scene,
       BMEditSelection ese;
       float vec[3] = {0, 0, 0};
 
-      /* Use last selected with active. */
+      /* USE LAST SELECTED WITH ACTIVE */
       if (activeOnly && BM_select_history_active_get(em->bm, &ese)) {
         BM_editselection_normal(&ese, normal);
         BM_editselection_plane(&ese, plane);
@@ -965,7 +963,7 @@ int getTransformOrientation_ex(const Scene *scene,
 
             normal_tri_v3(normal, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co);
 
-            /* Check if the normal is pointing opposite to vert normals. */
+            /* check if the normal is pointing opposite to vert normals */
             no_test[0] = v_tri[0]->no[0] + v_tri[1]->no[0] + v_tri[2]->no[0];
             no_test[1] = v_tri[0]->no[1] + v_tri[1]->no[1] + v_tri[2]->no[1];
             no_test[2] = v_tri[0]->no[2] + v_tri[1]->no[2] + v_tri[2]->no[2];
@@ -974,7 +972,7 @@ int getTransformOrientation_ex(const Scene *scene,
             }
 
             if (em->bm->totedgesel >= 1) {
-              /* Find an edge that's a part of v_tri (no need to search all edges). */
+              /* find an edge that's a part of v_tri (no need to search all edges) */
               float e_length;
               int j;
 
@@ -1026,7 +1024,7 @@ int getTransformOrientation_ex(const Scene *scene,
             bm_mesh_verts_select_get_n(em->bm, v_pair, 2);
           }
 
-          /* Should never fail. */
+          /* should never fail */
           if (LIKELY(v_pair[0] && v_pair[1])) {
             bool v_pair_swap = false;
             /**
@@ -1040,12 +1038,12 @@ int getTransformOrientation_ex(const Scene *scene,
              * take care making changes here, see: #38592, #43708
              */
 
-            /* Be deterministic where possible and ensure `v_pair[0]` is active. */
+            /* be deterministic where possible and ensure v_pair[0] is active */
             if (BM_mesh_active_vert_get(em->bm) == v_pair[1]) {
               v_pair_swap = true;
             }
             else if (eed && BM_edge_is_boundary(eed)) {
-              /* Predictable direction for boundary edges. */
+              /* predictable direction for boundary edges */
               if (eed->l->v != v_pair[0]) {
                 v_pair_swap = true;
               }
@@ -1063,7 +1061,7 @@ int getTransformOrientation_ex(const Scene *scene,
                * project onto the plane so we can use a fallback value. */
               project_plane_normalized_v3_v3v3(normal, normal, plane);
               if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
-                /* In the case the normal and plane are aligned,
+                /* in the case the normal and plane are aligned,
                  * use a fallback normal which is orthogonal to the plane. */
                 ortho_v3_v3(normal, plane);
               }
@@ -1131,10 +1129,10 @@ int getTransformOrientation_ex(const Scene *scene,
         }
       }
 
-      /* Not needed but this matches 2.68 and older behavior. */
+      /* not needed but this matches 2.68 and older behavior */
       negate_v3(plane);
 
-    } /* End edit-mesh. */
+    } /* end editmesh */
     else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
       Curve *cu = static_cast<Curve *>(obedit->data);
       Nurb *nu = nullptr;
@@ -1158,7 +1156,7 @@ int getTransformOrientation_ex(const Scene *scene,
         const bool use_handle = v3d->overlay.handle_display != CURVE_HANDLE_NONE;
 
         for (nu = static_cast<Nurb *>(nurbs->first); nu; nu = nu->next) {
-          /* Only bezier has a normal. */
+          /* only bezier has a normal */
           if (nu->type == CU_BEZIER) {
             BezTriple *bezt = nu->bezt;
             a = nu->pntsu;
@@ -1184,7 +1182,7 @@ int getTransformOrientation_ex(const Scene *scene,
                 flag = (bezt->f2 & SELECT) ? (SEL_F1 | SEL_F2 | SEL_F3) : 0;
               }
 
-              /* Exception. */
+              /* exception */
               if (flag) {
                 float tvec[3];
                 if ((around == V3D_AROUND_LOCAL_ORIGINS) ||
@@ -1194,7 +1192,7 @@ int getTransformOrientation_ex(const Scene *scene,
                   add_v3_v3(normal, tvec);
                 }
                 else {
-                  /* Ignore `bezt->f2` in this case. */
+                  /* ignore bezt->f2 in this case */
                   if (flag & SEL_F1) {
                     sub_v3_v3v3(tvec, bezt->vec[0], bezt->vec[1]);
                     normalize_v3(tvec);
@@ -1231,12 +1229,12 @@ int getTransformOrientation_ex(const Scene *scene,
                 const bool is_prev_sel = bp_prev && (bp_prev->f1 & SELECT);
                 const bool is_next_sel = bp_next && (bp_next->f1 & SELECT);
                 if (is_prev_sel == false && is_next_sel == false) {
-                  /* Isolated, add based on surrounding. */
+                  /* Isolated, add based on surrounding */
                   BKE_nurb_bpoint_calc_normal(nu, bp, tvec);
                   add_v3_v3(normal, tvec);
                 }
                 else if (is_next_sel) {
-                  /* A segment, add the edge normal. */
+                  /* A segment, add the edge normal */
                   sub_v3_v3v3(tvec, bp->vec, bp_next->vec);
                   normalize_v3(tvec);
                   add_v3_v3(normal, tvec);
@@ -1338,14 +1336,14 @@ int getTransformOrientation_ex(const Scene *scene,
       }
     }
 
-    /* Vectors from edges don't need the special transpose inverse multiplication. */
+    /* Vectors from edges don't need the special transpose inverse multiplication */
     if (result == ORIENTATION_EDGE) {
       float tvec[3];
 
-      mul_mat3_m4_v3(ob->object_to_world().ptr(), normal);
-      mul_mat3_m4_v3(ob->object_to_world().ptr(), plane);
+      mul_mat3_m4_v3(ob->object_to_world, normal);
+      mul_mat3_m4_v3(ob->object_to_world, plane);
 
-      /* Align normal to edge direction (so normal is perpendicular to the plane).
+      /* align normal to edge direction (so normal is perpendicular to the plane).
        * 'ORIENTATION_EDGE' will do the other way around.
        * This has to be done **after** applying obmat, see #45775! */
       project_v3_v3v3(tvec, normal, plane);
@@ -1371,7 +1369,7 @@ int getTransformOrientation_ex(const Scene *scene,
       int transformed_len;
       transformed_len = armature_bone_transflags_update_recursive(arm, &arm->bonebase, true);
       if (transformed_len) {
-        /* Use channels to get stats. */
+        /* use channels to get stats */
         LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
           if (pchan->bone && pchan->bone->flag & BONE_TRANSFORM) {
             add_v3_v3(normal, pchan->pose_mat[2]);
@@ -1382,10 +1380,10 @@ int getTransformOrientation_ex(const Scene *scene,
       }
     }
 
-    /* Use for both active & all. */
+    /* use for both active & all */
     if (ok) {
-      /* We need the transpose of the inverse for a normal. */
-      copy_m3_m4(imat, ob->object_to_world().ptr());
+      /* we need the transpose of the inverse for a normal... */
+      copy_m3_m4(imat, ob->object_to_world);
 
       invert_m3_m3(mat, imat);
       transpose_m3(mat);
@@ -1396,7 +1394,7 @@ int getTransformOrientation_ex(const Scene *scene,
     }
   }
   else {
-    /* We need the one selected object, if its not active. */
+    /* we need the one selected object, if its not active */
     if (ob != nullptr) {
       bool ok = false;
       if (activeOnly || (ob->mode & (OB_MODE_ALL_PAINT | OB_MODE_PARTICLE_EDIT))) {
@@ -1417,8 +1415,8 @@ int getTransformOrientation_ex(const Scene *scene,
       }
 
       if (ok) {
-        copy_v3_v3(normal, ob->object_to_world().ptr()[2]);
-        copy_v3_v3(plane, ob->object_to_world().ptr()[1]);
+        copy_v3_v3(normal, ob->object_to_world[2]);
+        copy_v3_v3(plane, ob->object_to_world[1]);
       }
     }
     result = ORIENTATION_NORMAL;
@@ -1432,7 +1430,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3])
   Object *obact = CTX_data_active_object(C);
   Object *obedit = CTX_data_edit_object(C);
 
-  /* Dummy value, not #V3D_AROUND_ACTIVE and not #V3D_AROUND_LOCAL_ORIGINS. */
+  /* dummy value, not V3D_AROUND_ACTIVE and not V3D_AROUND_LOCAL_ORIGINS */
   short around = V3D_AROUND_CENTER_BOUNDS;
 
   const Scene *scene = CTX_data_scene(C);

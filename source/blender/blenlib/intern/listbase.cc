@@ -19,7 +19,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 void BLI_movelisttolist(ListBase *dst, ListBase *src)
 {

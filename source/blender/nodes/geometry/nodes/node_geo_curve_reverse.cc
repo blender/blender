@@ -62,8 +62,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       const bke::CurvesFieldContext field_context{curves, AttrDomain::Curve};
       reverse_curve(curves, field_context, selection_field);
     }
-    if (GreasePencil *grease_pencil = geometry_set.get_grease_pencil_for_write()) {
-      reverse_grease_pencil(*grease_pencil, selection_field);
+    if (geometry_set.has_grease_pencil()) {
+      reverse_grease_pencil(*geometry_set.get_grease_pencil_for_write(), selection_field);
     }
   });
 

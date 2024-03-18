@@ -14,6 +14,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_space_types.h" /* for FILE_MAX. */
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -24,17 +25,25 @@
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_mempool.h"
 #include "BLI_path_util.h"
 #include "BLI_threads.h"
 
 #include "BKE_main.hh"
+#include "BKE_scene.h"
 
+#include "SEQ_prefetch.hh"
+#include "SEQ_relations.hh"
 #include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 
 #include "disk_cache.hh"
 #include "image_cache.hh"
+#include "prefetch.hh"
+#include "strip_time.hh"
 
 /**
  * Disk Cache Design Notes
@@ -632,14 +641,12 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
 
   if (header.entry[entry_index].size_raw == size_char) {
     expected_size = size_char;
-    ibuf = IMB_allocImBuf(
-        key->context.rectx, key->context.recty, 32, IB_rect | IB_uninitialized_pixels);
+    ibuf = IMB_allocImBuf(key->context.rectx, key->context.recty, 32, IB_rect);
     IMB_colormanagement_assign_byte_colorspace(ibuf, header.entry[entry_index].colorspace_name);
   }
   else if (header.entry[entry_index].size_raw == size_float) {
     expected_size = size_float;
-    ibuf = IMB_allocImBuf(
-        key->context.rectx, key->context.recty, 32, IB_rectfloat | IB_uninitialized_pixels);
+    ibuf = IMB_allocImBuf(key->context.rectx, key->context.recty, 32, IB_rectfloat);
     IMB_colormanagement_assign_float_colorspace(ibuf, header.entry[entry_index].colorspace_name);
   }
   else {

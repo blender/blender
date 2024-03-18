@@ -7,14 +7,9 @@ if(WIN32)
     -DFLEX_EXECUTABLE=${LIBDIR}/flexbison/win_flex.exe
     -DBISON_EXECUTABLE=${LIBDIR}/flexbison/win_bison.exe
     -DM4_EXECUTABLE=${DOWNLOAD_DIR}/msys2/msys64/usr/bin/m4.exe
+    -DARM_ENABLED=Off
     -DPython3_FIND_REGISTRY=NEVER
   )
-
-  if(BLENDER_PLATFORM_ARM)
-    set(ISPC_EXTRA_ARGS_WIN ${ISPC_EXTRA_ARGS_WIN} -DARM_ENABLED=On)
-  else()
-    set(ISPC_EXTRA_ARGS_WIN ${ISPC_EXTRA_ARGS_WIN} -DARM_ENABLED=Off)
-  endif()
 elseif(APPLE)
   # Use bison and flex installed via Homebrew.
   # The ones that come with Xcode toolset are too old.
@@ -65,18 +60,8 @@ ExternalProject_Add(external_ispc
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${ISPC_HASH_TYPE}=${ISPC_HASH}
   PREFIX ${BUILD_DIR}/ispc
-
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/ispc/src/external_ispc <
-    ${PATCH_DIR}/ispc.diff
-
-  CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ispc
-    -Wno-dev
-    ${DEFAULT_CMAKE_FLAGS}
-    ${ISPC_EXTRA_ARGS}
-    ${BUILD_DIR}/ispc/src/external_ispc
-
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/ispc/src/external_ispc < ${PATCH_DIR}/ispc.diff
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ispc -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${ISPC_EXTRA_ARGS} ${BUILD_DIR}/ispc/src/external_ispc
   INSTALL_DIR ${LIBDIR}/ispc
 )
 

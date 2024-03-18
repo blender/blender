@@ -6,6 +6,7 @@
  * \ingroup spoutliner
  */
 
+#include "BLI_listbase.h"
 #include "BLI_mempool.h"
 
 #include "DNA_space_types.h"
@@ -14,6 +15,7 @@
 
 #include "../outliner_intern.hh"
 #include "tree_display.hh"
+#include "tree_element.hh"
 
 namespace blender::ed::outliner {
 

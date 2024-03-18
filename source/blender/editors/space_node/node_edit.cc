@@ -10,29 +10,32 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_text_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_callbacks.hh"
+#include "BKE_callbacks.h"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
-#include "BKE_scene_runtime.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
+#include "BKE_workspace.h"
 
+#include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -46,10 +49,12 @@
 #include "ED_node.hh" /* own include */
 #include "ED_render.hh"
 #include "ED_screen.hh"
+#include "ED_select_utils.hh"
 #include "ED_viewer_path.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "WM_api.hh"
@@ -68,8 +73,6 @@
 #include "NOD_socket.hh"
 #include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
-
-#include "COM_profile.hh"
 
 namespace blender::ed::space_node {
 
@@ -101,8 +104,6 @@ struct CompoJob {
   bool *do_update;
   float *progress;
   bool cancelled;
-
-  blender::compositor::ProfilerData profiler_data;
 };
 
 float node_socket_calculate_height(const bNodeSocket &socket)
@@ -222,8 +223,7 @@ static void compo_freejob(void *cjv)
   if (cj->compositor_depsgraph != nullptr) {
     DEG_graph_free(cj->compositor_depsgraph);
   }
-
-  MEM_delete(cj);
+  MEM_freeN(cj);
 }
 
 /* Only now we copy the nodetree, so adding many jobs while
@@ -296,23 +296,15 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   BKE_callback_exec_id(cj->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
   if ((cj->scene->r.scemode & R_MULTIVIEW) == 0) {
-    ntreeCompositExecTree(
-        cj->re, cj->scene, ntree, &cj->scene->r, false, true, "", nullptr, cj->profiler_data);
+    ntreeCompositExecTree(cj->re, cj->scene, ntree, &cj->scene->r, false, true, "", nullptr);
   }
   else {
     LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) {
         continue;
       }
-      ntreeCompositExecTree(cj->re,
-                            cj->scene,
-                            ntree,
-                            &cj->scene->r,
-                            false,
-                            true,
-                            srv->name,
-                            nullptr,
-                            cj->profiler_data);
+      ntreeCompositExecTree(
+          cj->re, cj->scene, ntree, &cj->scene->r, false, true, srv->name, nullptr);
     }
   }
 
@@ -328,8 +320,6 @@ static void compo_canceljob(void *cjv)
   Scene *scene = cj->scene;
   BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_COMPOSITE_CANCEL);
   cj->cancelled = true;
-
-  scene->runtime->compositor.per_node_execution_time = cj->profiler_data.per_node_execution_time;
 }
 
 static void compo_completejob(void *cjv)
@@ -338,8 +328,6 @@ static void compo_completejob(void *cjv)
   Main *bmain = cj->bmain;
   Scene *scene = cj->scene;
   BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_COMPOSITE_POST);
-
-  scene->runtime->compositor.per_node_execution_time = cj->profiler_data.per_node_execution_time;
 }
 
 /** \} */
@@ -357,7 +345,7 @@ static bool is_compositing_possible(const bContext *C)
   Scene *scene = CTX_data_scene(C);
   /* CPU compositor can always run. */
   if (!U.experimental.use_full_frame_compositor ||
-      scene->nodetree->execution_mode != NTREE_EXECUTION_MODE_GPU)
+      scene->nodetree->execution_mode != NTREE_EXECUTION_MODE_REALTIME)
   {
     return true;
   }
@@ -407,7 +395,7 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
                               "Compositing",
                               WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS,
                               WM_JOB_TYPE_COMPOSITE);
-  CompoJob *cj = MEM_new<CompoJob>("compo job");
+  CompoJob *cj = MEM_cnew<CompoJob>("compo job");
 
   /* Custom data for preview thread. */
   cj->bmain = bmain;
@@ -506,7 +494,7 @@ void ED_node_tree_propagate_change(const bContext *C, Main *bmain, bNodeTree *ro
   NodeTreeUpdateExtraParams params = {nullptr};
   params.tree_changed_fn = [](ID *id, bNodeTree *ntree, void * /*user_data*/) {
     blender::ed::space_node::send_notifiers_after_tree_change(id, ntree);
-    DEG_id_tag_update(&ntree->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&ntree->id, ID_RECALC_COPY_ON_WRITE);
   };
   params.tree_output_changed_fn = [](ID * /*id*/, bNodeTree *ntree, void * /*user_data*/) {
     DEG_id_tag_update(&ntree->id, ID_RECALC_NTREE_OUTPUT);
@@ -633,6 +621,7 @@ void ED_node_composit_default(const bContext *C, Scene *sce)
   sce->nodetree = blender::bke::ntreeAddTreeEmbedded(
       nullptr, &sce->id, "Compositing Nodetree", ntreeType_Composite->idname);
 
+  sce->nodetree->chunksize = 256;
   sce->nodetree->edit_quality = NTREE_QUALITY_HIGH;
   sce->nodetree->render_quality = NTREE_QUALITY_HIGH;
 

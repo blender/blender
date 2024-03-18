@@ -42,13 +42,13 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_armature.hh"
 #include "BKE_camera.h"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
@@ -56,7 +56,7 @@
 #include "BKE_curves.h"
 #include "BKE_customdata.hh"
 #include "BKE_displist.h"
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
 #include "BKE_effect.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
@@ -65,7 +65,6 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_key.hh"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
@@ -80,15 +79,14 @@
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.hh"
 #include "BKE_nla.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcloud.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_speaker.h"
 #include "BKE_vfont.hh"
 #include "BKE_volume.hh"
@@ -222,7 +220,7 @@ static void object_add_drop_xy_props(wmOperatorType *ot)
                      "X-coordinate (screen space) to place the new object under",
                      INT_MIN,
                      INT_MAX);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
   prop = RNA_def_int(ot->srna,
                      "drop_y",
                      0,
@@ -232,7 +230,7 @@ static void object_add_drop_xy_props(wmOperatorType *ot)
                      "Y-coordinate (screen space) to place the new object under",
                      INT_MIN,
                      INT_MAX);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 static bool object_add_drop_xy_is_set(const wmOperator *op)
@@ -336,7 +334,7 @@ void ED_object_base_init_transform_on_add(Object *object, const float loc[3], co
     copy_v3_v3(object->rot, rot);
   }
 
-  BKE_object_to_mat4(object, object->runtime->object_to_world.ptr());
+  BKE_object_to_mat4(object, object->object_to_world);
 }
 
 float ED_object_new_primitive_matrix(bContext *C,
@@ -356,14 +354,14 @@ float ED_object_new_primitive_matrix(bContext *C,
   invert_m3(rmat);
 
   /* inverse transform for initial rotation and object */
-  copy_m3_m4(mat, obedit->object_to_world().ptr());
+  copy_m3_m4(mat, obedit->object_to_world);
   mul_m3_m3m3(cmat, rmat, mat);
   invert_m3_m3(imat, cmat);
   copy_m4_m3(r_primmat, imat);
 
   /* center */
   copy_v3_v3(r_primmat[3], loc);
-  sub_v3_v3v3(r_primmat[3], r_primmat[3], obedit->object_to_world().location());
+  sub_v3_v3v3(r_primmat[3], r_primmat[3], obedit->object_to_world[3]);
   invert_m3_m3(imat, mat);
   mul_m3_v3(imat, r_primmat[3]);
 
@@ -418,7 +416,7 @@ void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode)
                            false,
                            "Enter Edit Mode",
                            "Enter edit mode when adding this object");
-    RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+    RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
   }
   /* NOTE: this property gets hidden for add-camera operator. */
   prop = RNA_def_enum(
@@ -458,7 +456,7 @@ void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode)
                                   "Scale for the newly added object",
                                   -1000.0f,
                                   1000.0f);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 void ED_object_add_mesh_props(wmOperatorType *ot)
@@ -1234,82 +1232,10 @@ void OBJECT_OT_empty_add(wmOperatorType *ot)
   ED_object_add_generic_props(ot, false);
 }
 
-static int object_image_add_exec(bContext *C, wmOperator *op)
+static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Image *ima = nullptr;
+  Scene *scene = CTX_data_scene(C);
 
-  ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
-  if (!ima) {
-    return OPERATOR_CANCELLED;
-  }
-
-  /* add new empty */
-  ushort local_view_bits;
-  float loc[3], rot[3];
-
-  if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr))
-  {
-    return OPERATOR_CANCELLED;
-  }
-  Object *ob = ED_object_add_type(C, OB_EMPTY, nullptr, loc, rot, false, local_view_bits);
-  ob->empty_drawsize = 5.0f;
-
-  if (RNA_boolean_get(op->ptr, "background")) {
-    /* "background" has been set to "true", set image to render in the background. */
-    ob->empty_image_depth = OB_EMPTY_IMAGE_DEPTH_BACK;
-    ob->empty_image_visibility_flag = OB_EMPTY_IMAGE_HIDE_BACK;
-
-    RegionView3D *rv3d = CTX_wm_region_view3d(C);
-    if (rv3d->persp != RV3D_PERSP) {
-      ob->empty_image_visibility_flag |= OB_EMPTY_IMAGE_HIDE_PERSPECTIVE;
-    }
-  }
-
-  BKE_object_empty_draw_type_set(ob, OB_EMPTY_IMAGE);
-
-  ob->data = ima;
-
-  return OPERATOR_FINISHED;
-}
-
-static int object_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  if (!RNA_struct_property_is_set(op->ptr, "align")) {
-    /* Default to Aligned unless something else was explicitly passed */
-    RNA_enum_set(op->ptr, "align", ALIGN_VIEW);
-  }
-
-  /* Check if the user has not specified the image to load.
-   * If they have not, assume this is a drag an drop operation.
-   */
-  if (!RNA_struct_property_is_set(op->ptr, "filepath") &&
-      !WM_operator_properties_id_lookup_is_set(op->ptr))
-  {
-    WM_event_add_fileselect(C, op);
-    return OPERATOR_RUNNING_MODAL;
-  }
-
-  if (!RNA_struct_property_is_set(op->ptr, "background")) {
-    /* Check if we should switch to "background" mode. */
-    RegionView3D *rv3d = CTX_wm_region_view3d(C);
-    if (rv3d->persp != RV3D_PERSP) {
-      RNA_boolean_set(op->ptr, "background", true);
-    }
-  }
-
-  float loc[3];
-  ED_object_location_from_view(C, loc);
-  ED_view3d_cursor3d_position(C, event->mval, false, loc);
-  RNA_float_set_array(op->ptr, "location", loc);
-
-  Object *ob_cursor = ED_view3d_give_object_under_cursor(C, event->mval);
-
-  /* Either change empty under cursor or create a new empty */
-  if (!ob_cursor || ob_cursor->type != OB_EMPTY) {
-    return object_image_add_exec(C, op);
-  }
-  /* User dropped an image on an existing image */
   Image *ima = nullptr;
 
   ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
@@ -1319,56 +1245,71 @@ static int object_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
   /* handled below */
   id_us_min(&ima->id);
 
-  Scene *scene = CTX_data_scene(C);
-  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
-  DEG_id_tag_update((ID *)ob_cursor, ID_RECALC_TRANSFORM);
+  Object *ob = nullptr;
+  Object *ob_cursor = ED_view3d_give_object_under_cursor(C, event->mval);
 
-  BKE_object_empty_draw_type_set(ob_cursor, OB_EMPTY_IMAGE);
+  /* either change empty under cursor or create a new empty */
+  if (ob_cursor && ob_cursor->type == OB_EMPTY) {
+    WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+    DEG_id_tag_update((ID *)ob_cursor, ID_RECALC_TRANSFORM);
+    ob = ob_cursor;
+  }
+  else {
+    /* add new empty */
+    ushort local_view_bits;
+    float rot[3];
 
-  id_us_min(static_cast<ID *>(ob_cursor->data));
-  ob_cursor->data = ima;
-  id_us_plus(static_cast<ID *>(ob_cursor->data));
+    if (!ED_object_add_generic_get_opts(
+            C, op, 'Z', nullptr, rot, nullptr, nullptr, &local_view_bits, nullptr))
+    {
+      return OPERATOR_CANCELLED;
+    }
+    ob = ED_object_add_type(C, OB_EMPTY, nullptr, nullptr, rot, false, local_view_bits);
+
+    ED_object_location_from_view(C, ob->loc);
+    ED_view3d_cursor3d_position(C, event->mval, false, ob->loc);
+    ED_object_rotation_from_view(C, ob->rot, 'Z');
+    ob->empty_drawsize = 5.0f;
+  }
+
+  BKE_object_empty_draw_type_set(ob, OB_EMPTY_IMAGE);
+
+  id_us_min(static_cast<ID *>(ob->data));
+  ob->data = ima;
+  id_us_plus(static_cast<ID *>(ob->data));
+
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_empty_image_add(wmOperatorType *ot)
+void OBJECT_OT_drop_named_image(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Add Empty Image/Drop Image to Empty";
   ot->description = "Add an empty image type to scene with data";
-  ot->idname = "OBJECT_OT_empty_image_add";
+  ot->idname = "OBJECT_OT_drop_named_image";
 
   /* api callbacks */
-  ot->invoke = object_image_add_invoke;
-  ot->exec = object_image_add_exec;
+  ot->invoke = empty_drop_named_image_invoke;
   ot->poll = ED_operator_objectmode;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE,
-                                 FILE_SPECIAL,
-                                 FILE_OPENFILE,
-                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
-                                 FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_DEFAULT);
+  prop = RNA_def_string(ot->srna, "filepath", nullptr, FILE_MAX, "Filepath", "Path to image file");
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_boolean(ot->srna,
+                  "relative_path",
+                  true,
+                  "Relative Path",
+                  "Select the file relative to the blend file");
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 
   WM_operator_properties_id_lookup(ot, true);
+
   ED_object_add_generic_props(ot, false);
-  PropertyRNA *prop;
-  prop = RNA_def_boolean(ot->srna,
-                         "background",
-                         false,
-                         "Put in Background",
-                         "Make the image render behind all objects");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE));
-  /* Hide the filepath and relative path prop */
-  prop = RNA_struct_type_find_property(ot->srna, "filepath");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_PRESET));
-  prop = RNA_struct_type_find_property(ot->srna, "relative_path");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN));
 }
 
 /** \} */
@@ -1434,9 +1375,9 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
         ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "Stroke");
         break;
       }
-      case GREASE_PENCIL_LINEART_OBJECT:
-      case GREASE_PENCIL_LINEART_SCENE:
-      case GREASE_PENCIL_LINEART_COLLECTION: {
+      case GP_LRT_OBJECT:
+      case GP_LRT_SCENE:
+      case GP_LRT_COLLECTION: {
         ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "LineArt");
         break;
       }
@@ -1485,9 +1426,9 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       ED_gpencil_create_monkey(C, ob, mat);
       break;
     }
-    case GREASE_PENCIL_LINEART_SCENE:
-    case GREASE_PENCIL_LINEART_COLLECTION:
-    case GREASE_PENCIL_LINEART_OBJECT: {
+    case GP_LRT_SCENE:
+    case GP_LRT_COLLECTION:
+    case GP_LRT_OBJECT: {
       float radius = RNA_float_get(op->ptr, "radius");
       float scale[3];
       copy_v3_fl(scale, radius);
@@ -1505,17 +1446,17 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       BLI_addtail(&ob->greasepencil_modifiers, md);
       BKE_gpencil_modifier_unique_name(&ob->greasepencil_modifiers, (GpencilModifierData *)md);
 
-      if (type == GREASE_PENCIL_LINEART_COLLECTION) {
-        md->source_type = LINEART_SOURCE_COLLECTION;
+      if (type == GP_LRT_COLLECTION) {
+        md->source_type = LRT_SOURCE_COLLECTION;
         md->source_collection = CTX_data_collection(C);
       }
-      else if (type == GREASE_PENCIL_LINEART_OBJECT) {
-        md->source_type = LINEART_SOURCE_OBJECT;
+      else if (type == GP_LRT_OBJECT) {
+        md->source_type = LRT_SOURCE_OBJECT;
         md->source_object = ob_orig;
       }
       else {
         /* Whole scene. */
-        md->source_type = LINEART_SOURCE_SCENE;
+        md->source_type = LRT_SOURCE_SCENE;
       }
       /* Only created one layer and one material. */
       STRNCPY(md->target_layer, ((bGPDlayer *)gpd->layers.first)->info);
@@ -1573,11 +1514,7 @@ static void object_add_ui(bContext * /*C*/, wmOperator *op)
   uiItemR(layout, op->ptr, "type", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   int type = RNA_enum_get(op->ptr, "type");
-  if (ELEM(type,
-           GREASE_PENCIL_LINEART_COLLECTION,
-           GREASE_PENCIL_LINEART_OBJECT,
-           GREASE_PENCIL_LINEART_SCENE))
-  {
+  if (ELEM(type, GP_LRT_COLLECTION, GP_LRT_OBJECT, GP_LRT_SCENE)) {
     uiItemR(layout, op->ptr, "use_lights", UI_ITEM_NONE, nullptr, ICON_NONE);
     uiItemR(layout, op->ptr, "use_in_front", UI_ITEM_NONE, nullptr, ICON_NONE);
     bool in_front = RNA_boolean_get(op->ptr, "use_in_front");
@@ -1685,9 +1622,9 @@ static int object_grease_pencil_add_exec(bContext *C, wmOperator *op)
       ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "Suzanne");
       break;
     }
-    case GREASE_PENCIL_LINEART_OBJECT:
-    case GREASE_PENCIL_LINEART_SCENE:
-    case GREASE_PENCIL_LINEART_COLLECTION: {
+    case GP_LRT_OBJECT:
+    case GP_LRT_SCENE:
+    case GP_LRT_COLLECTION: {
       ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "LineArt");
       break;
     }
@@ -1724,65 +1661,10 @@ static int object_grease_pencil_add_exec(bContext *C, wmOperator *op)
       greasepencil::create_suzanne(*bmain, *object, mat, scene->r.cfra);
       break;
     }
-    case GREASE_PENCIL_LINEART_OBJECT:
-    case GREASE_PENCIL_LINEART_SCENE:
-    case GREASE_PENCIL_LINEART_COLLECTION: {
-      Object *original_active_object = CTX_data_active_object(C);
-
-      const int type = RNA_enum_get(op->ptr, "type");
-      const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
-      const bool use_lights = RNA_boolean_get(op->ptr, "use_lights");
-      const int stroke_depth_order = RNA_enum_get(op->ptr, "stroke_depth_order");
-      const float stroke_depth_offset = RNA_float_get(op->ptr, "stroke_depth_offset");
-
-      greasepencil::create_blank(*bmain, *object, scene->r.cfra);
-
-      auto *grease_pencil = reinterpret_cast<GreasePencil *>(object->data);
-      auto *new_md = reinterpret_cast<ModifierData *>(
-          BKE_modifier_new(eModifierType_GreasePencilLineart));
-      auto *md = reinterpret_cast<GreasePencilLineartModifierData *>(new_md);
-
-      BLI_addtail(&object->modifiers, md);
-      BKE_modifier_unique_name(&object->modifiers, new_md);
-      BKE_modifiers_persistent_uid_init(*object, *new_md);
-
-      if (type == GREASE_PENCIL_LINEART_COLLECTION) {
-        md->source_type = LINEART_SOURCE_COLLECTION;
-        md->source_collection = CTX_data_collection(C);
-      }
-      else if (type == GREASE_PENCIL_LINEART_OBJECT) {
-        md->source_type = LINEART_SOURCE_OBJECT;
-        md->source_object = original_active_object;
-      }
-      else {
-        /* Whole scene. */
-        md->source_type = LINEART_SOURCE_SCENE;
-      }
-      /* Only created one layer and one material. */
-      STRNCPY(md->target_layer, grease_pencil->get_active_layer()->name().c_str());
-      md->target_material = BKE_object_material_get(object, 0);
-      if (md->target_material) {
-        id_us_plus(&md->target_material->id);
-      }
-
-      if (use_lights) {
-        object->dtx |= OB_USE_GPENCIL_LIGHTS;
-      }
-      else {
-        object->dtx &= ~OB_USE_GPENCIL_LIGHTS;
-      }
-
-      /* Stroke object is drawn in front of meshes by default. */
-      if (use_in_front) {
-        object->dtx |= OB_DRAW_IN_FRONT;
-      }
-      else {
-        if (stroke_depth_order == GP_DRAWMODE_3D) {
-          grease_pencil->flag |= GREASE_PENCIL_STROKE_ORDER_3D;
-        }
-        md->stroke_depth_offset = stroke_depth_offset;
-      }
-
+    case GP_LRT_OBJECT:
+    case GP_LRT_SCENE:
+    case GP_LRT_COLLECTION: {
+      /* TODO. */
       break;
     }
   }
@@ -1808,29 +1690,6 @@ void OBJECT_OT_grease_pencil_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_object_gpencil_type_items, 0, "Type", "");
-  RNA_def_boolean(ot->srna,
-                  "use_in_front",
-                  true,
-                  "Show In Front",
-                  "Show line art grease pencil in front of everything");
-  RNA_def_float(ot->srna,
-                "stroke_depth_offset",
-                0.05f,
-                0.0f,
-                FLT_MAX,
-                "Stroke Offset",
-                "Stroke offset for the line art modifier",
-                0.0f,
-                0.5f);
-  RNA_def_boolean(
-      ot->srna, "use_lights", false, "Use Lights", "Use lights for this grease pencil object");
-  RNA_def_enum(
-      ot->srna,
-      "stroke_depth_order",
-      rna_enum_gpencil_add_stroke_depth_order_items,
-      GP_DRAWMODE_3D,
-      "Stroke Depth Order",
-      "Defines how the strokes are ordered in 3D space (for objects not displayed 'In Front')");
 
   ED_object_add_unit_props_radius(ot);
   ED_object_add_generic_props(ot, false);
@@ -2096,7 +1955,7 @@ static int collection_drop_exec(bContext *C, wmOperator *op)
 
   if (RNA_boolean_get(op->ptr, "use_instance")) {
     BKE_collection_child_remove(bmain, active_collection->collection, add_info->collection);
-    DEG_id_tag_update(&active_collection->collection->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&active_collection->collection->id, ID_RECALC_COPY_ON_WRITE);
     DEG_relations_tag_update(bmain);
 
     Object *ob = ED_object_add_type(C,
@@ -2169,7 +2028,8 @@ void OBJECT_OT_collection_external_asset_drop(wmOperatorType *ot)
 
   prop = RNA_def_enum(ot->srna, "collection", rna_enum_dummy_NULL_items, 0, "Collection", "");
   RNA_def_enum_funcs(prop, RNA_collection_itemf);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE));
+  RNA_def_property_flag(prop,
+                        (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN | PROP_ENUM_NO_TRANSLATE));
   ot->prop = prop;
 }
 
@@ -2367,7 +2227,7 @@ static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
 
   Object *curves_ob = ED_object_add_type(
       C, OB_CURVES, nullptr, nullptr, nullptr, false, local_view_bits);
-  BKE_object_apply_mat4(curves_ob, surface_ob->object_to_world().ptr(), false, false);
+  BKE_object_apply_mat4(curves_ob, surface_ob->object_to_world, false, false);
 
   /* Set surface object. */
   Curves *curves_id = static_cast<Curves *>(curves_ob->data);
@@ -2612,20 +2472,6 @@ static int object_delete_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int object_delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Delete selected objects?"),
-                                  nullptr,
-                                  IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return object_delete_exec(C, op);
-}
-
 void OBJECT_OT_delete(wmOperatorType *ot)
 {
   /* identifiers */
@@ -2634,7 +2480,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_delete";
 
   /* api callbacks */
-  ot->invoke = object_delete_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = object_delete_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -2644,7 +2490,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
   PropertyRNA *prop;
   prop = RNA_def_boolean(
       ot->srna, "use_global", false, "Delete Globally", "Remove object from all scenes");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
   WM_operator_properties_confirm_or_exec(ot);
 }
 
@@ -2865,8 +2711,8 @@ static void make_object_duplilist_real(bContext *C,
     id_us_min((ID *)ob_dst->instance_collection);
     ob_dst->instance_collection = nullptr;
 
-    copy_m4_m4(ob_dst->runtime->object_to_world.ptr(), dob->mat);
-    BKE_object_apply_mat4(ob_dst, ob_dst->object_to_world().ptr(), false, false);
+    copy_m4_m4(ob_dst->object_to_world, dob->mat);
+    BKE_object_apply_mat4(ob_dst, ob_dst->object_to_world, false, false);
 
     BLI_ghash_insert(dupli_gh, dob, ob_dst);
     if (parent_gh) {
@@ -2988,7 +2834,7 @@ static void make_object_duplilist_real(bContext *C,
   BKE_main_id_newptr_and_tag_clear(bmain);
 
   base->object->transflag &= ~OB_DUPLI;
-  DEG_id_tag_update(&base->object->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&base->object->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
@@ -3331,7 +3177,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uid : 0;
       float loc[3], size[3], rot[3][3], eul[3];
       float matrix[4][4];
-      mat4_to_loc_rot_size(loc, rot, size, ob->object_to_world().ptr());
+      mat4_to_loc_rot_size(loc, rot, size, ob->object_to_world);
       mat3_to_eul(eul, rot);
 
       Object *ob_gpencil = ED_gpencil_add_object(C, loc, local_view_bits);
@@ -3376,6 +3222,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     {
       ob->flag |= OB_DONE;
 
+      bGPdata *gpd = static_cast<bGPdata *>(ob->data);
+
       if (keep_original) {
         BLI_assert_unreachable();
       }
@@ -3383,7 +3231,16 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         newob = ob;
       }
 
-      bke::greasepencil::convert::legacy_gpencil_object(*bmain, *newob);
+      GreasePencil *new_grease_pencil = static_cast<GreasePencil *>(
+          BKE_id_new(bmain, ID_GP, newob->id.name + 2));
+      newob->data = new_grease_pencil;
+      newob->type = OB_GREASE_PENCIL;
+
+      bke::greasepencil::convert::legacy_gpencil_to_grease_pencil(
+          *bmain, *new_grease_pencil, *gpd);
+
+      BKE_object_free_derived_caches(newob);
+      BKE_object_free_modifiers(newob, 0);
     }
     else if (target == OB_CURVES) {
       ob->flag |= OB_DONE;
@@ -4138,7 +3995,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   ED_outliner_select_sync_from_object_tag(C);
 
   DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
 
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
@@ -4245,9 +4102,8 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
   if (RNA_property_is_set(op->ptr, prop_matrix)) {
     Object *ob_add = basen->object;
-    RNA_property_float_get_array(
-        op->ptr, prop_matrix, ob_add->runtime->object_to_world.base_ptr());
-    BKE_object_apply_mat4(ob_add, ob_add->object_to_world().ptr(), true, true);
+    RNA_property_float_get_array(op->ptr, prop_matrix, &ob_add->object_to_world[0][0]);
+    BKE_object_apply_mat4(ob_add, ob_add->object_to_world, true, true);
 
     DEG_id_tag_update(&ob_add->id, ID_RECALC_TRANSFORM);
   }
@@ -4288,7 +4144,7 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
 
   prop = RNA_def_float_matrix(
       ot->srna, "matrix", 4, 4, nullptr, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 
   object_add_drop_xy_props(ot);
 }
@@ -4343,7 +4199,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
     float mat_dst_unit[4][4];
     float final_delta[4][4];
 
-    normalize_m4_m4(mat_src_unit, ob->object_to_world().ptr());
+    normalize_m4_m4(mat_src_unit, ob->object_to_world);
     normalize_m4_m4(mat_dst_unit, matrix);
     invert_m4(mat_src_unit);
     mul_m4_m4m4(final_delta, mat_dst_unit, mat_src_unit);
@@ -4395,7 +4251,7 @@ void OBJECT_OT_transform_to_mouse(wmOperatorType *ot)
       MAX_ID_NAME - 2,
       "Name",
       "Object name to place (uses the active object when this and 'session_uid' are unset)");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
   prop = RNA_def_int(ot->srna,
                      "session_uid",
                      0,
@@ -4406,11 +4262,11 @@ void OBJECT_OT_transform_to_mouse(wmOperatorType *ot)
                      "'name' are unset)",
                      INT32_MIN,
                      INT32_MAX);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
 
   prop = RNA_def_float_matrix(
       ot->srna, "matrix", 4, 4, nullptr, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
 
   object_add_drop_xy_props(ot);
 }
@@ -4497,7 +4353,7 @@ static int object_join_exec(bContext *C, wmOperator *op)
      * If the zero scale is removed, the data on this axis remains un-scaled
      * (something that wouldn't work for #invert_m4_m4_safe). */
     float imat_test[4][4];
-    if (!invert_m4_m4(imat_test, ob->object_to_world().ptr())) {
+    if (!invert_m4_m4(imat_test, ob->object_to_world)) {
       BKE_report(op->reports,
                  RPT_WARNING,
                  "Active object final transform has one or more zero scaled axes");

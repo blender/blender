@@ -21,18 +21,22 @@ GaussianBlurBaseOperation::GaussianBlurBaseOperation(eDimension dim)
 void GaussianBlurBaseOperation::init_data()
 {
   BlurBaseOperation::init_data();
-  rad_ = max_ff(size_ * this->get_blur_size(dimension_), 0.0f);
-  rad_ = min_ff(rad_, MAX_GAUSSTAB_RADIUS);
-  filtersize_ = min_ii(ceil(rad_), MAX_GAUSSTAB_RADIUS);
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    rad_ = max_ff(size_ * this->get_blur_size(dimension_), 0.0f);
+    rad_ = min_ff(rad_, MAX_GAUSSTAB_RADIUS);
+    filtersize_ = min_ii(ceil(rad_), MAX_GAUSSTAB_RADIUS);
+  }
 }
 
 void GaussianBlurBaseOperation::init_execution()
 {
   BlurBaseOperation::init_execution();
-  gausstab_ = BlurBaseOperation::make_gausstab(rad_, filtersize_);
+  if (execution_model_ == eExecutionModel::FullFrame) {
+    gausstab_ = BlurBaseOperation::make_gausstab(rad_, filtersize_);
 #if BLI_HAVE_SSE2
-  gausstab_sse_ = BlurBaseOperation::convert_gausstab_sse(gausstab_, filtersize_);
+    gausstab_sse_ = BlurBaseOperation::convert_gausstab_sse(gausstab_, filtersize_);
 #endif
+  }
 }
 
 void GaussianBlurBaseOperation::deinit_execution()
@@ -77,29 +81,59 @@ void GaussianBlurBaseOperation::update_memory_buffer_partial(MemoryBuffer *outpu
                                                              const rcti &area,
                                                              Span<MemoryBuffer *> inputs)
 {
-  const int2 unit_offset = dimension_ == eDimension::X ? int2(1, 0) : int2(0, 1);
   MemoryBuffer *input = inputs[IMAGE_INPUT_INDEX];
-  for (BuffersIterator<float> it = output->iterate_with({input}, area); !it.is_end(); ++it) {
-    alignas(16) float4 accumulated_color = float4(0.0f);
+  const rcti &input_rect = input->get_rect();
+  BuffersIterator<float> it = output->iterate_with({input}, area);
+
+  int min_input_coord = -1;
+  int max_input_coord = -1;
+  int elem_stride = -1;
+  std::function<int()> get_current_coord;
+  switch (dimension_) {
+    case eDimension::X:
+      min_input_coord = input_rect.xmin;
+      max_input_coord = input_rect.xmax;
+      elem_stride = input->elem_stride;
+      get_current_coord = [&] { return it.x; };
+      break;
+    case eDimension::Y:
+      min_input_coord = input_rect.ymin;
+      max_input_coord = input_rect.ymax;
+      elem_stride = input->row_stride;
+      get_current_coord = [&] { return it.y; };
+      break;
+  }
+
+  for (; !it.is_end(); ++it) {
+    const int coord = get_current_coord();
+    const int coord_min = max_ii(coord - filtersize_, min_input_coord);
+    const int coord_max = min_ii(coord + filtersize_ + 1, max_input_coord);
+
+    float ATTR_ALIGN(16) color_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float multiplier_accum = 0.0f;
+
+    const int step = QualityStepHelper::get_step();
+    const float *in = it.in(0) + (intptr_t(coord_min) - coord) * elem_stride;
+    const int in_stride = elem_stride * step;
+    int gauss_idx = (coord_min - coord) + filtersize_;
+    const int gauss_end = gauss_idx + (coord_max - coord_min);
 #if BLI_HAVE_SSE2
-    __m128 accumulated_color_sse = _mm_setzero_ps();
-    for (int i = -filtersize_; i <= filtersize_; i++) {
-      const int2 offset = unit_offset * i;
-      __m128 weight = gausstab_sse_[i + filtersize_];
-      __m128 color = _mm_load_ps(input->get_elem_clamped(it.x + offset.x, it.y + offset.y));
-      __m128 weighted_color = _mm_mul_ps(color, weight);
-      accumulated_color_sse = _mm_add_ps(accumulated_color_sse, weighted_color);
+    __m128 accum_r = _mm_load_ps(color_accum);
+    for (; gauss_idx < gauss_end; in += in_stride, gauss_idx += step) {
+      __m128 reg_a = _mm_load_ps(in);
+      reg_a = _mm_mul_ps(reg_a, gausstab_sse_[gauss_idx]);
+      accum_r = _mm_add_ps(accum_r, reg_a);
+      multiplier_accum += gausstab_[gauss_idx];
     }
-    _mm_store_ps(accumulated_color, accumulated_color_sse);
+    _mm_store_ps(color_accum, accum_r);
 #else
-    for (int i = -filtersize_; i <= filtersize_; i++) {
-      const int2 offset = unit_offset * i;
-      const float weight = gausstab_[i + filtersize_];
-      const float4 color = input->get_elem_clamped(it.x + offset.x, it.y + offset.y);
-      accumulated_color += color * weight;
+    for (; gauss_idx < gauss_end; in += in_stride, gauss_idx += step) {
+      const float multiplier = gausstab_[gauss_idx];
+      madd_v4_v4fl(color_accum, in, multiplier);
+      multiplier_accum += multiplier;
     }
 #endif
-    copy_v4_v4(it.out, accumulated_color);
+    mul_v4_v4fl(it.out, color_accum, 1.0f / multiplier_accum);
   }
 }
 

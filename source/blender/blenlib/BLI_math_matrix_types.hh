@@ -364,6 +364,24 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
     return *this;
   }
 
+  /** Multiply two matrices using matrix multiplication. */
+  MatBase<T, NumRow, NumRow> operator*(const MatBase<T, NumRow, NumCol> &b) const
+  {
+    const MatBase &a = *this;
+    /* This is the reference implementation.
+     * Might be overloaded with vectorized / optimized code. */
+    /* TODO(fclem): It should be possible to return non-square matrices when multiplying against
+     * MatBase<T, NumRow, OtherNumRow>. */
+    MatBase<T, NumRow, NumRow> result{};
+    unroll<NumRow>([&](auto j) {
+      unroll<NumRow>([&](auto i) {
+        /* Same as dot product, but avoid dependency on vector math. */
+        unroll<NumCol>([&](auto k) { result[j][i] += a[k][i] * b[j][k]; });
+      });
+    });
+    return result;
+  }
+
   /** Multiply each component by a scalar. */
   friend MatBase operator*(const MatBase &a, T b)
   {
@@ -470,17 +488,17 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
   friend std::ostream &operator<<(std::ostream &stream, const MatBase &mat)
   {
     stream << "(\n";
-    unroll<NumRow>([&](auto i) {
+    unroll<NumCol>([&](auto i) {
       stream << "(";
-      unroll<NumCol>([&](auto j) {
+      unroll<NumRow>([&](auto j) {
         /** NOTE: j and i are swapped to follow mathematical convention. */
         stream << mat[j][i];
-        if (j < NumCol - 1) {
+        if (j < NumRow - 1) {
           stream << ", ";
         }
       });
       stream << ")";
-      if (i < NumRow - 1) {
+      if (i < NumCol - 1) {
         stream << ",";
       }
       stream << "\n";
@@ -626,6 +644,34 @@ struct MatView : NonCopyable, NonMovable {
   {
     MatView result;
     unroll<NumCol>([&](auto i) { result[i] = a - b[i]; });
+    return result;
+  }
+
+  /** Multiply two matrices using matrix multiplication. */
+  template<int OtherSrcNumCol,
+           int OtherSrcNumRow,
+           int OtherSrcStartCol,
+           int OtherSrcStartRow,
+           int OtherSrcAlignment>
+  MatBase<T, NumRow, NumRow> operator*(const MatView<T,
+                                                     NumRow,
+                                                     NumCol,
+                                                     OtherSrcNumCol,
+                                                     OtherSrcNumRow,
+                                                     OtherSrcStartCol,
+                                                     OtherSrcStartRow,
+                                                     OtherSrcAlignment> &b) const
+  {
+    const MatView &a = *this;
+    /* This is the reference implementation.
+     * Might be overloaded with vectorized / optimized code. */
+    MatBase<T, NumRow, NumRow> result{};
+    unroll<NumRow>([&](auto j) {
+      unroll<NumRow>([&](auto i) {
+        /* Same as dot product, but avoid dependency on vector math. */
+        unroll<NumCol>([&](auto k) { result[j][i] += a[k][i] * b[j][k]; });
+      });
+    });
     return result;
   }
 
@@ -886,120 +932,6 @@ struct MutableMatView
   }
 };
 
-namespace detail {
-
-/** Multiply two matrices using matrix multiplication. */
-template<typename T,
-         int A_NumCol,
-         int A_NumRow,
-         int B_NumCol,
-         int B_NumRow,
-         typename MatA,
-         typename MatB>
-MatBase<T, B_NumCol, A_NumRow> matrix_mul_impl(const MatA &a, const MatB &b)
-{
-  static_assert(A_NumCol == B_NumRow);
-  /* This is the reference implementation.
-   * Might be overloaded with vectorized / optimized code. */
-  MatBase<T, B_NumCol, A_NumRow> result{};
-  unroll<B_NumCol>([&](auto j) {
-    unroll<A_NumRow>([&](auto i) {
-      /* Same as dot product, but avoid dependency on vector math. */
-      unroll<A_NumCol>([&](auto k) { result[j][i] += a[k][i] * b[j][k]; });
-    });
-  });
-  return result;
-}
-
-}  // namespace detail
-
-template<typename T, int A_NumCol, int A_NumRow, int B_NumCol, int B_NumRow>
-MatBase<T, B_NumCol, A_NumRow> operator*(const MatBase<T, A_NumCol, A_NumRow> &a,
-                                         const MatBase<T, B_NumCol, B_NumRow> &b)
-{
-  return detail::matrix_mul_impl<T, A_NumCol, A_NumRow, B_NumCol, B_NumRow>(a, b);
-}
-
-template<typename T,
-         int A_NumCol,
-         int A_NumRow,
-         int A_SrcNumCol,
-         int A_SrcNumRow,
-         int A_SrcStartCol,
-         int A_SrcStartRow,
-         int A_SrcAlignment,
-         int B_NumCol,
-         int B_NumRow,
-         int B_SrcNumCol,
-         int B_SrcNumRow,
-         int B_SrcStartCol,
-         int B_SrcStartRow,
-         int B_SrcAlignment>
-MatBase<T, B_NumCol, A_NumRow> operator*(const MatView<T,
-                                                       A_NumCol,
-                                                       A_NumRow,
-                                                       A_SrcNumCol,
-                                                       A_SrcNumRow,
-                                                       A_SrcStartCol,
-                                                       A_SrcStartRow,
-                                                       A_SrcAlignment> &a,
-                                         const MatView<T,
-                                                       B_NumCol,
-                                                       B_NumRow,
-                                                       B_SrcNumCol,
-                                                       B_SrcNumRow,
-                                                       B_SrcStartCol,
-                                                       B_SrcStartRow,
-                                                       B_SrcAlignment> &b)
-{
-  return detail::matrix_mul_impl<T, A_NumCol, A_NumRow, B_NumCol, B_NumRow>(a, b);
-}
-template<typename T,
-         int A_NumCol,
-         int A_NumRow,
-         int A_SrcNumCol,
-         int A_SrcNumRow,
-         int A_SrcStartCol,
-         int A_SrcStartRow,
-         int A_SrcAlignment,
-         int B_NumCol,
-         int B_NumRow>
-MatBase<T, B_NumCol, A_NumRow> operator*(const MatView<T,
-                                                       A_NumCol,
-                                                       A_NumRow,
-                                                       A_SrcNumCol,
-                                                       A_SrcNumRow,
-                                                       A_SrcStartCol,
-                                                       A_SrcStartRow,
-                                                       A_SrcAlignment> &a,
-                                         const MatBase<T, B_NumCol, B_NumRow> &b)
-{
-  return detail::matrix_mul_impl<T, A_NumCol, A_NumRow, B_NumCol, B_NumRow>(a, b);
-}
-
-template<typename T,
-         int A_NumCol,
-         int A_NumRow,
-         int B_NumCol,
-         int B_NumRow,
-         int B_SrcNumCol,
-         int B_SrcNumRow,
-         int B_SrcStartCol,
-         int B_SrcStartRow,
-         int B_SrcAlignment>
-MatBase<T, B_NumCol, A_NumRow> operator*(const MatBase<T, A_NumCol, A_NumRow> &a,
-                                         const MatView<T,
-                                                       B_NumCol,
-                                                       B_NumRow,
-                                                       B_SrcNumCol,
-                                                       B_SrcNumRow,
-                                                       B_SrcStartCol,
-                                                       B_SrcStartRow,
-                                                       B_SrcAlignment> &b)
-{
-  return detail::matrix_mul_impl<T, A_NumCol, A_NumRow, B_NumCol, B_NumRow>(a, b);
-}
-
 using float2x2 = MatBase<float, 2, 2>;
 using float2x3 = MatBase<float, 2, 3>;
 using float2x4 = MatBase<float, 2, 4>;
@@ -1026,12 +958,12 @@ using double4x3 = MatBase<double, 4, 3>;
 using double4x4 = MatBase<double, 4, 4>;
 
 /* Specialization for SSE optimization. */
-template<> float4x4 operator*(const float4x4 &a, const float4x4 &b);
-template<> float3x3 operator*(const float3x3 &a, const float3x3 &b);
+template<> float4x4 float4x4::operator*(const float4x4 &b) const;
+template<> float3x3 float3x3::operator*(const float3x3 &b) const;
 
-extern template float2x2 operator*(const float2x2 &a, const float2x2 &b);
-extern template double2x2 operator*(const double2x2 &a, const double2x2 &b);
-extern template double3x3 operator*(const double3x3 &a, const double3x3 &b);
-extern template double4x4 operator*(const double4x4 &a, const double4x4 &b);
+extern template float2x2 float2x2::operator*(const float2x2 &b) const;
+extern template double2x2 double2x2::operator*(const double2x2 &b) const;
+extern template double3x3 double3x3::operator*(const double3x3 &b) const;
+extern template double4x4 double4x4::operator*(const double4x4 &b) const;
 
 }  // namespace blender

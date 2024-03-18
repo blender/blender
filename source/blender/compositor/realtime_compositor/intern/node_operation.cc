@@ -20,7 +20,7 @@
 #include "NOD_derived_node_tree.hh"
 #include "NOD_node_declaration.hh"
 
-#include "BKE_node.hh"
+#include "BKE_node.h"
 
 #include "COM_context.hh"
 #include "COM_input_descriptor.hh"

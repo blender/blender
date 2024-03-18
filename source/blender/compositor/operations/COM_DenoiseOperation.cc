@@ -19,7 +19,7 @@ bool COM_is_denoise_supported()
 #  ifdef __APPLE__
   return true;
 #  else
-  return BLI_cpu_support_sse42();
+  return BLI_cpu_support_sse41();
 #  endif
 
 #else
@@ -113,8 +113,23 @@ class DenoiseFilter {
 
 DenoiseBaseOperation::DenoiseBaseOperation()
 {
-  flags_.can_be_constant = true;
+  flags_.is_fullframe_operation = true;
   output_rendered_ = false;
+}
+
+bool DenoiseBaseOperation::determine_depending_area_of_interest(
+    rcti * /*input*/, ReadBufferOperation *read_operation, rcti *output)
+{
+  if (is_cached()) {
+    return false;
+  }
+
+  rcti new_input;
+  new_input.xmax = this->get_width();
+  new_input.xmin = 0;
+  new_input.ymax = this->get_height();
+  new_input.ymin = 0;
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void DenoiseBaseOperation::get_area_of_interest(const int /*input_idx*/,
@@ -131,6 +146,21 @@ DenoiseOperation::DenoiseOperation()
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
   settings_ = nullptr;
+}
+void DenoiseOperation::init_execution()
+{
+  SingleThreadedOperation::init_execution();
+  input_program_color_ = get_input_socket_reader(0);
+  input_program_normal_ = get_input_socket_reader(1);
+  input_program_albedo_ = get_input_socket_reader(2);
+}
+
+void DenoiseOperation::deinit_execution()
+{
+  input_program_color_ = nullptr;
+  input_program_normal_ = nullptr;
+  input_program_albedo_ = nullptr;
+  SingleThreadedOperation::deinit_execution();
 }
 
 static bool are_guiding_passes_noise_free(const NodeDenoise *settings)
@@ -152,29 +182,48 @@ void DenoiseOperation::hash_output_params()
   }
 }
 
+MemoryBuffer *DenoiseOperation::create_memory_buffer(rcti *rect2)
+{
+  MemoryBuffer *tile_color = (MemoryBuffer *)input_program_color_->initialize_tile_data(rect2);
+  MemoryBuffer *tile_normal = (MemoryBuffer *)input_program_normal_->initialize_tile_data(rect2);
+  MemoryBuffer *tile_albedo = (MemoryBuffer *)input_program_albedo_->initialize_tile_data(rect2);
+  rcti rect;
+  rect.xmin = 0;
+  rect.ymin = 0;
+  rect.xmax = get_width();
+  rect.ymax = get_height();
+  MemoryBuffer *result = new MemoryBuffer(DataType::Color, rect);
+  this->generate_denoise(result, tile_color, tile_normal, tile_albedo, settings_);
+  return result;
+}
+
 void DenoiseOperation::generate_denoise(MemoryBuffer *output,
                                         MemoryBuffer *input_color,
                                         MemoryBuffer *input_normal,
                                         MemoryBuffer *input_albedo,
                                         const NodeDenoise *settings)
 {
-  if (input_color->is_a_single_elem()) {
-    output->fill(output->get_rect(), input_color->get_elem(0, 0));
+  BLI_assert(input_color->get_buffer());
+  if (!input_color->get_buffer()) {
     return;
   }
 
   BLI_assert(COM_is_denoise_supported());
+  /* OpenImageDenoise needs full buffers. */
+  MemoryBuffer *buf_color = input_color->is_a_single_elem() ? input_color->inflate() : input_color;
+  MemoryBuffer *buf_normal = input_normal && input_normal->is_a_single_elem() ?
+                                 input_normal->inflate() :
+                                 input_normal;
+  MemoryBuffer *buf_albedo = input_albedo && input_albedo->is_a_single_elem() ?
+                                 input_albedo->inflate() :
+                                 input_albedo;
 
   DenoiseFilter filter;
   filter.init_and_lock_denoiser(this, output);
 
-  filter.set_image("color", input_color);
-  if (!input_albedo->is_a_single_elem()) {
-    filter.set_image("albedo", input_albedo);
-    if (!input_normal->is_a_single_elem()) {
-      filter.set_image("normal", input_normal);
-    }
-  }
+  filter.set_image("color", buf_color);
+  filter.set_image("normal", buf_normal);
+  filter.set_image("albedo", buf_albedo);
 
   BLI_assert(settings);
   if (settings) {
@@ -188,6 +237,17 @@ void DenoiseOperation::generate_denoise(MemoryBuffer *output,
 
   /* Copy the alpha channel, OpenImageDenoise currently only supports RGB. */
   output->copy_from(input_color, input_color->get_rect(), 3, COM_DATA_TYPE_VALUE_CHANNELS, 3);
+
+  /* Delete inflated buffers. */
+  if (input_color->is_a_single_elem()) {
+    delete buf_color;
+  }
+  if (input_normal && input_normal->is_a_single_elem()) {
+    delete buf_normal;
+  }
+  if (input_albedo && input_albedo->is_a_single_elem()) {
+    delete buf_albedo;
+  }
 }
 
 void DenoiseOperation::update_memory_buffer(MemoryBuffer *output,
@@ -212,20 +272,35 @@ void DenoisePrefilterOperation::hash_output_params()
   hash_param(image_name_);
 }
 
+MemoryBuffer *DenoisePrefilterOperation::create_memory_buffer(rcti *rect2)
+{
+  MemoryBuffer *input = (MemoryBuffer *)this->get_input_operation(0)->initialize_tile_data(rect2);
+  rcti rect;
+  BLI_rcti_init(&rect, 0, get_width(), 0, get_height());
+
+  MemoryBuffer *result = new MemoryBuffer(get_output_socket()->get_data_type(), rect);
+  generate_denoise(result, input);
+
+  return result;
+}
+
 void DenoisePrefilterOperation::generate_denoise(MemoryBuffer *output, MemoryBuffer *input)
 {
-  if (input->is_a_single_elem()) {
-    copy_v4_v4(output->get_elem(0, 0), input->get_elem(0, 0));
-    return;
-  }
-
   BLI_assert(COM_is_denoise_supported());
+
+  /* Denoising needs full buffers. */
+  MemoryBuffer *input_buf = input->is_a_single_elem() ? input->inflate() : input;
 
   DenoiseFilter filter;
   filter.init_and_lock_denoiser(this, output);
-  filter.set_image(image_name_, input);
+  filter.set_image(image_name_, input_buf);
   filter.execute();
   filter.deinit_and_unlock_denoiser();
+
+  /* Delete inflated buffers. */
+  if (input->is_a_single_elem()) {
+    delete input_buf;
+  }
 }
 
 void DenoisePrefilterOperation::update_memory_buffer(MemoryBuffer *output,

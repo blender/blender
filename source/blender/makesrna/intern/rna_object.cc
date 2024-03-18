@@ -29,10 +29,10 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_camera.h"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_editlattice.h"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
@@ -157,18 +157,18 @@ const EnumPropertyItem rna_enum_object_gpencil_type_items[] = {
     {GP_STROKE, "STROKE", ICON_STROKE, "Stroke", "Create a simple stroke with basic colors"},
     {GP_MONKEY, "MONKEY", ICON_MONKEY, "Monkey", "Construct a Suzanne grease pencil object"},
     RNA_ENUM_ITEM_SEPR,
-    {GREASE_PENCIL_LINEART_SCENE,
-     "LINEART_SCENE",
+    {GP_LRT_SCENE,
+     "LRT_SCENE",
      ICON_SCENE_DATA,
      "Scene Line Art",
      "Quickly set up line art for the entire scene"},
-    {GREASE_PENCIL_LINEART_COLLECTION,
-     "LINEART_COLLECTION",
+    {GP_LRT_COLLECTION,
+     "LRT_COLLECTION",
      ICON_OUTLINER_COLLECTION,
      "Collection Line Art",
      "Quickly set up line art for the active collection"},
-    {GREASE_PENCIL_LINEART_OBJECT,
-     "LINEART_OBJECT",
+    {GP_LRT_OBJECT,
+     "LRT_OBJECT",
      ICON_OBJECT_DATA,
      "Object Line Art",
      "Quickly set up line art for the active object"},
@@ -332,7 +332,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_curve.hh"
 #  include "BKE_deform.hh"
 #  include "BKE_effect.h"
-#  include "BKE_global.hh"
+#  include "BKE_global.h"
 #  include "BKE_gpencil_modifier_legacy.h"
 #  include "BKE_key.hh"
 #  include "BKE_light_linking.h"
@@ -342,7 +342,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_modifier.hh"
 #  include "BKE_object.hh"
 #  include "BKE_particle.h"
-#  include "BKE_scene.hh"
+#  include "BKE_scene.h"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -367,7 +367,7 @@ static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA
 {
   /* Don't use compatibility so we get predictable rotation. */
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  BKE_object_apply_mat4(ob, ob->object_to_world().ptr(), false, true);
+  BKE_object_apply_mat4(ob, ob->object_to_world, false, true);
   rna_Object_internal_update(bmain, scene, ptr);
 }
 
@@ -375,7 +375,7 @@ static void rna_Object_hide_update(Main *bmain, Scene * /*scene*/, PointerRNA *p
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   BKE_main_collection_sync_remap(bmain);
-  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, &ob->id);
 }
@@ -405,18 +405,6 @@ static void rna_GPencil_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
   }
-}
-
-static void rna_Object_matrix_world_get(PointerRNA *ptr, float *values)
-{
-  Object *ob = static_cast<Object *>(ptr->data);
-  std::copy_n(ob->object_to_world().base_ptr(), 16, values);
-}
-
-static void rna_Object_matrix_world_set(PointerRNA *ptr, const float *values)
-{
-  Object *ob = static_cast<Object *>(ptr->data);
-  ob->runtime->object_to_world = blender::float4x4(values);
 }
 
 static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
@@ -3351,12 +3339,11 @@ static void rna_def_object(BlenderRNA *brna)
 
   /* matrix */
   prop = RNA_def_property(srna, "matrix_world", PROP_FLOAT, PROP_MATRIX);
+  RNA_def_property_float_sdna(prop, nullptr, "object_to_world");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_float_funcs(
-      prop, "rna_Object_matrix_world_get", "rna_Object_matrix_world_set", nullptr);
   RNA_def_property_ui_text(prop, "Matrix World", "Worldspace transformation matrix");
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_matrix_world_update");
 

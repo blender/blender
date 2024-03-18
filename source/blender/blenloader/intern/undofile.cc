@@ -25,16 +25,16 @@
 #include "DNA_listBase.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_implicit_sharing.hh"
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 #include "BLO_undofile.hh"
 
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_undo_system.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+/* keep last */
+#include "BLI_strict_flags.h"
 
 /* **************** support for memory-write, for undo buffers *************** */
 
@@ -46,17 +46,7 @@ void BLO_memfile_free(MemFile *memfile)
     }
     MEM_freeN(chunk);
   }
-  MEM_delete(memfile->shared_storage);
-  memfile->shared_storage = nullptr;
   memfile->size = 0;
-}
-
-MemFileSharedStorage::~MemFileSharedStorage()
-{
-  for (const blender::ImplicitSharingInfo *sharing_info : map.values()) {
-    /* Removing the user makes sure shared data is freed when the undo step was its last owner. */
-    sharing_info->remove_user_and_delete_if_last();
-  }
 }
 
 void BLO_memfile_merge(MemFile *first, MemFile *second)
@@ -184,6 +174,61 @@ Main *BLO_memfile_main_get(MemFile *memfile, Main *bmain, Scene **r_scene)
   }
 
   return bmain_undo;
+}
+
+bool BLO_memfile_write_file(MemFile *memfile, const char *filepath)
+{
+  MemFileChunk *chunk;
+  int file, oflags;
+
+  /* NOTE: This is currently used for auto-save and `quit.blend`,
+   * where _not_ following symbolic-links is OK,
+   * however if this is ever executed explicitly by the user,
+   * we may want to allow writing to symbolic-links. */
+
+  oflags = O_BINARY | O_WRONLY | O_CREAT | O_TRUNC;
+#ifdef O_NOFOLLOW
+  /* use O_NOFOLLOW to avoid writing to a symlink - use 'O_EXCL' (CVE-2008-1103) */
+  oflags |= O_NOFOLLOW;
+#else
+  /* TODO(sergey): How to deal with symlinks on windows? */
+#  ifndef _MSC_VER
+#    warning "Symbolic links will be followed on undo save, possibly causing CVE-2008-1103"
+#  endif
+#endif
+  file = BLI_open(filepath, oflags, 0666);
+
+  if (file == -1) {
+    fprintf(stderr,
+            "Unable to save '%s': %s\n",
+            filepath,
+            errno ? strerror(errno) : "Unknown error opening file");
+    return false;
+  }
+
+  for (chunk = static_cast<MemFileChunk *>(memfile->chunks.first); chunk;
+       chunk = static_cast<MemFileChunk *>(chunk->next))
+  {
+#ifdef _WIN32
+    if (size_t(write(file, chunk->buf, uint(chunk->size))) != chunk->size)
+#else
+    if (size_t(write(file, chunk->buf, chunk->size)) != chunk->size)
+#endif
+    {
+      break;
+    }
+  }
+
+  close(file);
+
+  if (chunk) {
+    fprintf(stderr,
+            "Unable to save '%s': %s\n",
+            filepath,
+            errno ? strerror(errno) : "Unknown error writing file");
+    return false;
+  }
+  return true;
 }
 
 static int64_t undo_read(FileReader *reader, void *buffer, size_t size)

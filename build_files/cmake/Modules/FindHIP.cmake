@@ -101,5 +101,3 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(HIP
     REQUIRED_VARS HIP_HIPCC_EXECUTABLE
     VERSION_VAR HIP_VERSION)
-
-unset(_hip_SEARCH_DIRS)

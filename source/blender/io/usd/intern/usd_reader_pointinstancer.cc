@@ -5,17 +5,16 @@
 #include "usd_reader_pointinstancer.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
-#include "BLI_math_quaternion_types.hh"
+#include "BLI_math_quaternion.hh"
 #include "BLI_string.h"
 
 #include "DNA_collection_types.h"
-#include "DNA_node_types.h"
 
 #include <pxr/usd/usdGeom/pointInstancer.h>
 

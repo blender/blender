@@ -114,12 +114,12 @@ ccl_device_forceinline float ray_triangle_rcp(const float x)
 {
 #ifdef __KERNEL_NEON__
   /* Move scalar to vector register and do rcp. */
-  __m128 a = {0};
-  a = vsetq_lane_f32(x, a, 0);
+  __m128 a;
+  a[0] = x;
   float32x4_t reciprocal = vrecpeq_f32(a);
   reciprocal = vmulq_f32(vrecpsq_f32(a, reciprocal), reciprocal);
   reciprocal = vmulq_f32(vrecpsq_f32(a, reciprocal), reciprocal);
-  return vgetq_lane_f32(reciprocal, 0);
+  return reciprocal[0];
 #elif defined(__KERNEL_SSE__)
   const __m128 a = _mm_set_ss(x);
   const __m128 r = _mm_rcp_ss(a);
@@ -136,7 +136,7 @@ ccl_device_forceinline float ray_triangle_rcp(const float x)
 
 ccl_device_inline float ray_triangle_dot(const float3 a, const float3 b)
 {
-#if defined(__KERNEL_SSE42__) && defined(__KERNEL_SSE__)
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
   return madd(make_float4(a.x),
               make_float4(b.x),
               madd(make_float4(a.y), make_float4(b.y), make_float4(a.z) * make_float4(b.z)))[0];
@@ -147,7 +147,7 @@ ccl_device_inline float ray_triangle_dot(const float3 a, const float3 b)
 
 ccl_device_inline float3 ray_triangle_cross(const float3 a, const float3 b)
 {
-#if defined(__KERNEL_SSE42__) && defined(__KERNEL_SSE__)
+#if defined(__KERNEL_SSE41__) && defined(__KERNEL_SSE__)
   return make_float3(
       msub(make_float4(a.y), make_float4(b.z), make_float4(a.z) * make_float4(b.y))[0],
       msub(make_float4(a.z), make_float4(b.x), make_float4(a.x) * make_float4(b.z))[0],

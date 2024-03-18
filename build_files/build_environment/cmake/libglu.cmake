@@ -17,18 +17,10 @@ ExternalProject_Add(external_libglu
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${LIBGLU_HASH_TYPE}=${LIBGLU_HASH}
   PREFIX ${BUILD_DIR}/libglu
-
   CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
     cd ${BUILD_DIR}/libglu/src/external_libglu/ &&
     ${CONFIGURE_COMMAND_NO_TARGET} --prefix=${LIBDIR}/libglu ${LIBGLU_EXTRA_FLAGS}
-
-  BUILD_COMMAND ${CONFIGURE_ENV} &&
-    cd ${BUILD_DIR}/libglu/src/external_libglu/ &&
-    make -j${MAKE_THREADS}
-
-  INSTALL_COMMAND ${CONFIGURE_ENV} &&
-    cd ${BUILD_DIR}/libglu/src/external_libglu/ &&
-    make install
-
+  BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/libglu/src/external_libglu/ && make -j${MAKE_THREADS}
+  INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/libglu/src/external_libglu/ && make install
   INSTALL_DIR ${LIBDIR}/libglu
 )

@@ -10,7 +10,7 @@
  * 3D Gizmo
  *
  * \brief Gizmo with primitive drawing type (plane, cube, etc.).
- * Currently only plane primitive supported without its own handling, use with operator only.
+ * Currently only plane primitive supported without own handling, use with operator only.
  */
 
 #include "MEM_guardedalloc.h"
@@ -19,11 +19,14 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_context.hh"
+
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_select.hh"
 #include "GPU_state.h"
 
+#include "RNA_access.hh"
 #include "RNA_define.hh"
 
 #include "WM_api.hh"

@@ -124,18 +124,12 @@ typedef struct ABCReadParams {
   float velocity_scale;
 } ABCReadParams;
 
-#ifdef __cplusplus
-namespace blender::bke {
-struct GeometrySet;
-}
-
-/* Either modifies the existing geometry component, or create a new one. */
-void ABC_read_geometry(CacheReader *reader,
-                       Object *ob,
-                       blender::bke::GeometrySet &geometry_set,
-                       const ABCReadParams *params,
-                       const char **err_str);
-#endif
+/* Either modifies existing_mesh in-place or constructs a new mesh. */
+struct Mesh *ABC_read_mesh(struct CacheReader *reader,
+                           struct Object *ob,
+                           struct Mesh *existing_mesh,
+                           const ABCReadParams *params,
+                           const char **err_str);
 
 bool ABC_mesh_topology_changed(struct CacheReader *reader,
                                struct Object *ob,

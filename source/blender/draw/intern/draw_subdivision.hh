@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
@@ -200,7 +199,7 @@ void DRW_create_subdivision(Object *ob,
                             bool is_editmode,
                             bool is_paint_mode,
                             bool is_mode_active,
-                            const float4x4 &object_to_world,
+                            const float obmat[4][4],
                             bool do_final,
                             bool do_uvedit,
                             bool do_cage,

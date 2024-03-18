@@ -5,8 +5,6 @@
 #include "BLI_bounds.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector_types.hh"
-#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_modifier_types.h"
@@ -49,26 +47,15 @@ float volume_compute_voxel_size(const Depsgraph *depsgraph,
  */
 bke::VolumeGridData *fog_volume_grid_add_from_mesh(Volume *volume,
                                                    StringRefNull name,
-                                                   Span<float3> positions,
-                                                   Span<int> corner_verts,
-                                                   Span<int3> corner_tris,
+                                                   const Mesh *mesh,
                                                    const float4x4 &mesh_to_volume_space_transform,
                                                    float voxel_size,
                                                    float interior_band_width,
                                                    float density);
-
-bke::VolumeGrid<float> mesh_to_density_grid(const Span<float3> positions,
-                                            const Span<int> corner_verts,
-                                            const Span<int3> corner_tris,
-                                            const float voxel_size,
-                                            const float interior_band_width,
-                                            const float density);
-
-bke::VolumeGrid<float> mesh_to_sdf_grid(Span<float3> positions,
-                                        Span<int> corner_verts,
-                                        Span<int3> corner_tris,
-                                        float voxel_size,
-                                        float half_band_width);
-
+/**
+ * Add a new SDF VolumeGrid to the Volume by converting the supplied mesh.
+ */
+bke::VolumeGridData *sdf_volume_grid_add_from_mesh(
+    Volume *volume, StringRefNull name, const Mesh &mesh, float voxel_size, float half_band_width);
 #endif
 }  // namespace blender::geometry

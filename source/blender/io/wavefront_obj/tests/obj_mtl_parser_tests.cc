@@ -4,8 +4,6 @@
 
 #include <gtest/gtest.h>
 
-#include "BLI_fileops.h"
-
 #include "BKE_appdir.hh"
 
 #include "testing/testing.h"

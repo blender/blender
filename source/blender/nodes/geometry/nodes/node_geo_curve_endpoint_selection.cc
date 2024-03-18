@@ -6,6 +6,7 @@
 
 #include "BKE_curves.hh"
 
+#include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
@@ -64,7 +65,7 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
     Array<bool> selection(curves.points_num(), false);
     MutableSpan<bool> selection_span = selection.as_mutable_span();
     const OffsetIndices points_by_curve = curves.points_by_curve();
-    devirtualize_varray2(start_size, end_size, [&](const auto start_size, const auto end_size) {
+    devirtualize_varray2(start_size, end_size, [&](const auto &start_size, const auto &end_size) {
       threading::parallel_for(curves.curves_range(), 1024, [&](IndexRange curves_range) {
         for (const int i : curves_range) {
           const IndexRange points = points_by_curve[i];
@@ -80,18 +81,18 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
     return VArray<bool>::ForContainer(std::move(selection));
   };
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const final
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     start_size_.node().for_each_field_input_recursive(fn);
     end_size_.node().for_each_field_input_recursive(fn);
   }
 
-  uint64_t hash() const final
+  uint64_t hash() const override
   {
     return get_default_hash(start_size_, end_size_);
   }
 
-  bool is_equal_to(const fn::FieldNode &other) const final
+  bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const EndpointFieldInput *other_endpoint = dynamic_cast<const EndpointFieldInput *>(
             &other))
@@ -101,7 +102,7 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
     return false;
   }
 
-  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
   {
     return AttrDomain::Point;
   }

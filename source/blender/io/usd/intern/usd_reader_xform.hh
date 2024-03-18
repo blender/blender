@@ -62,10 +62,10 @@ class USDXformReader : public USDPrimReader {
    *
    * \param time: Time code for evaluating the transform.
    *
-   * \return Optional tuple with the following elements:
-   *         - The transform matrix.
-   *         - A boolean flag indicating whether the matrix
-   *           is constant over time.
+   * \return: Optional tuple with the following elements:
+   *          - The transform matrix.
+   *          - A boolean flag indicating whether the matrix
+   *            is constant over time.
    */
   virtual std::optional<XformResult> get_local_usd_xform(float time) const;
 };

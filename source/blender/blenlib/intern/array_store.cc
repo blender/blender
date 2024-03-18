@@ -6,7 +6,7 @@
  * \ingroup bli
  * \brief Array storage to minimize duplication.
  *
- * This is done by splitting arrays into chunks and using copy-on-evaluation,
+ * This is done by splitting arrays into chunks and using copy-on-write (COW),
  * to de-duplicate chunks, from the users perspective this is an implementation detail.
  *
  * Overview
@@ -96,10 +96,12 @@
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
 
-#include "BLI_array_store.h" /* Own include. */
-#include "BLI_ghash.h"       /* Only for #BLI_array_store_is_valid. */
+#include "BLI_strict_flags.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_array_store.h" /* Own include. */
+
+/* Only for #BLI_array_store_is_valid. */
+#include "BLI_ghash.h"
 
 struct BChunkList;
 

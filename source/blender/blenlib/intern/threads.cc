@@ -63,7 +63,7 @@
  *       // tag job 'processed
  *       BLI_threadpool_insert(&lb, job);
  *     }
- *     else BLI_time_sleep_ms(50);
+ *     else BLI_sleep_ms(50);
  *
  *     // Find if a job is ready, this the do_something_func() should write in job somewhere.
  *     cont = 0;
@@ -410,13 +410,7 @@ void BLI_spin_lock(SpinLock *spin)
 #elif defined(__APPLE__)
   BLI_mutex_lock(spin);
 #elif defined(_MSC_VER)
-#  if defined(_M_ARM64)
-  // InterlockedExchangeAcquire takes a long arg on MSVC ARM64
-  static_assert(sizeof(long) == sizeof(SpinLock));
-  while (InterlockedExchangeAcquire((volatile long *)spin, 1)) {
-#  else
   while (InterlockedExchangeAcquire(spin, 1)) {
-#  endif
     while (*spin) {
       /* Spin-lock hint for processors with hyper-threading. */
       YieldProcessor();
@@ -693,7 +687,7 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
   void *work = nullptr;
   timespec timeout;
 
-  t = BLI_time_now_seconds();
+  t = BLI_check_seconds_timer();
   wait_timeout(&timeout, ms);
 
   /* wait until there is work */
@@ -702,7 +696,7 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
     if (pthread_cond_timedwait(&queue->push_cond, &queue->mutex, &timeout) == ETIMEDOUT) {
       break;
     }
-    if (BLI_time_now_seconds() - t >= ms * 0.001) {
+    if (BLI_check_seconds_timer() - t >= ms * 0.001) {
       break;
     }
   }

@@ -22,12 +22,12 @@
 #include "BLI_string_utf8.h"
 #include "BLI_time.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_text.h"
 
 #include "WM_api.hh"
@@ -540,17 +540,6 @@ static int text_reload_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int text_reload_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  return WM_operator_confirm_ex(C,
-                                op,
-                                IFACE_("Reload active text file?"),
-                                nullptr,
-                                IFACE_("Reload"),
-                                ALERT_ICON_NONE,
-                                false);
-}
-
 void TEXT_OT_reload(wmOperatorType *ot)
 {
   /* identifiers */
@@ -560,7 +549,7 @@ void TEXT_OT_reload(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = text_reload_exec;
-  ot->invoke = text_reload_invoke;
+  ot->invoke = WM_operator_confirm;
   ot->poll = text_edit_poll;
 }
 
@@ -602,17 +591,6 @@ static int text_unlink_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int text_unlink_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  return WM_operator_confirm_ex(C,
-                                op,
-                                IFACE_("Delete active text file?"),
-                                nullptr,
-                                IFACE_("Delete"),
-                                ALERT_ICON_NONE,
-                                false);
-}
-
 void TEXT_OT_unlink(wmOperatorType *ot)
 {
   /* identifiers */
@@ -622,7 +600,7 @@ void TEXT_OT_unlink(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = text_unlink_exec;
-  ot->invoke = text_unlink_invoke;
+  ot->invoke = WM_operator_confirm;
   ot->poll = text_unlink_poll;
 
   /* flags */
@@ -2482,6 +2460,8 @@ static int text_jump_invoke(bContext *C, wmOperator *op, const wmEvent * /*event
 
 void TEXT_OT_jump(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Jump";
   ot->idname = "TEXT_OT_jump";
@@ -2493,9 +2473,8 @@ void TEXT_OT_jump(wmOperatorType *ot)
   ot->poll = text_edit_poll;
 
   /* properties */
-  ot->prop = RNA_def_int(
-      ot->srna, "line", 1, 1, INT_MAX, "Line", "Line number to jump to", 1, 10000);
-  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_TEXT);
+  prop = RNA_def_int(ot->srna, "line", 1, 1, INT_MAX, "Line", "Line number to jump to", 1, 10000);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_TEXT);
 }
 
 /** \} */
@@ -3541,7 +3520,7 @@ static int text_line_number_invoke(bContext *C, wmOperator * /*op*/, const wmEve
     return OPERATOR_PASS_THROUGH;
   }
 
-  time = BLI_time_now_seconds();
+  time = BLI_check_seconds_timer();
   if (last_jump < time - 1) {
     jump_to = 0;
   }

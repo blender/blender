@@ -20,17 +20,20 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
 #include "RNA_access.hh"
+#include "RNA_types.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
+#include "ED_asset.hh"
 #include "ED_asset_shelf.hh"
 #include "ED_buttons.hh"
 #include "ED_screen.hh"
@@ -46,6 +49,7 @@
 
 #include "BLF_api.hh"
 
+#include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
 
 #include "UI_interface.hh"

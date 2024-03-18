@@ -11,11 +11,6 @@
 #include "IO_ply.hh"
 #include "ply_data.hh"
 
-struct bContext;
-struct Main;
-struct Scene;
-struct ViewLayer;
-
 namespace blender::io::ply {
 
 class PlyReadBuffer;

@@ -155,7 +155,8 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
         return {'FINISHED'}
 
     def execute(self, context):
-        return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(self, context, False, self.dissolve_and_intersect)
+        return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(
+            self, context, False, self.dissolve_and_intersect)
 
     def invoke(self, context, _event):
         return self.execute(context)

@@ -1,21 +1,19 @@
 /*  LzmaEnc.h -- LZMA Encoder
-2023-04-13 : Igor Pavlov : Public domain */
+2008-10-04 : Igor Pavlov : Public domain */
 
-#ifndef ZIP7_INC_LZMA_ENC_H
-#define ZIP7_INC_LZMA_ENC_H
+#ifndef __LZMAENC_H
+#define __LZMAENC_H
 
-#include "7zTypes.h"
-
-EXTERN_C_BEGIN
+#include "Types.h"
 
 #define LZMA_PROPS_SIZE 5
 
-typedef struct
+typedef struct _CLzmaEncProps
 {
-  int level;       /* 0 <= level <= 9 */
+  int level;       /*  0 <= level <= 9 */
   UInt32 dictSize; /* (1 << 12) <= dictSize <= (1 << 27) for 32-bit version
-                      (1 << 12) <= dictSize <= (3 << 29) for 64-bit version
-                      default = (1 << 24) */
+                      (1 << 12) <= dictSize <= (1 << 30) for 64-bit version
+                       default = (1 << 24) */
   int lc;          /* 0 <= lc <= 8, default = 3 */
   int lp;          /* 0 <= lp <= 4, default = 0 */
   int pb;          /* 0 <= pb <= 4, default = 2 */
@@ -23,17 +21,9 @@ typedef struct
   int fb;          /* 5 <= fb <= 273, default = 32 */
   int btMode;      /* 0 - hashChain Mode, 1 - binTree mode - normal, default = 1 */
   int numHashBytes; /* 2, 3 or 4, default = 4 */
-  unsigned numHashOutBits;  /* default = ? */
-  UInt32 mc;       /* 1 <= mc <= (1 << 30), default = 32 */
+  UInt32 mc;        /* 1 <= mc <= (1 << 30), default = 32 */
   unsigned writeEndMark;  /* 0 - do not write EOPM, 1 - write EOPM, default = 0 */
   int numThreads;  /* 1 or 2, default = 2 */
-
-  // int _pad;
-
-  UInt64 reduceSize; /* estimated size of data that will be compressed. default = (UInt64)(Int64)-1.
-                        Encoder uses this value to reduce dictionary size */
-
-  UInt64 affinity;
 } CLzmaEncProps;
 
 void LzmaEncProps_Init(CLzmaEncProps *p);
@@ -43,41 +33,40 @@ UInt32 LzmaEncProps_GetDictSize(const CLzmaEncProps *props2);
 
 /* ---------- CLzmaEncHandle Interface ---------- */
 
-/* LzmaEnc* functions can return the following exit codes:
-SRes:
+/* LzmaEnc_* functions can return the following exit codes:
+Returns:
   SZ_OK           - OK
   SZ_ERROR_MEM    - Memory allocation error
   SZ_ERROR_PARAM  - Incorrect paramater in props
-  SZ_ERROR_WRITE  - ISeqOutStream write callback error
-  SZ_ERROR_OUTPUT_EOF - output buffer overflow - version with (Byte *) output
+  SZ_ERROR_WRITE  - Write callback error.
   SZ_ERROR_PROGRESS - some break from progress callback
-  SZ_ERROR_THREAD - error in multithreading functions (only for Mt version)
+  SZ_ERROR_THREAD - errors in multithreading functions (only for Mt version)
 */
 
-typedef struct CLzmaEnc CLzmaEnc;
-typedef CLzmaEnc * CLzmaEncHandle;
-// Z7_DECLARE_HANDLE(CLzmaEncHandle)
+typedef void * CLzmaEncHandle;
 
-CLzmaEncHandle LzmaEnc_Create(ISzAllocPtr alloc);
-void LzmaEnc_Destroy(CLzmaEncHandle p, ISzAllocPtr alloc, ISzAllocPtr allocBig);
-
+CLzmaEncHandle LzmaEnc_Create(ISzAlloc *alloc);
+void LzmaEnc_Destroy(CLzmaEncHandle p, ISzAlloc *alloc, ISzAlloc *allocBig);
 SRes LzmaEnc_SetProps(CLzmaEncHandle p, const CLzmaEncProps *props);
-void LzmaEnc_SetDataSize(CLzmaEncHandle p, UInt64 expectedDataSiize);
 SRes LzmaEnc_WriteProperties(CLzmaEncHandle p, Byte *properties, SizeT *size);
-unsigned LzmaEnc_IsWriteEndMark(CLzmaEncHandle p);
-
-SRes LzmaEnc_Encode(CLzmaEncHandle p, ISeqOutStreamPtr outStream, ISeqInStreamPtr inStream,
-    ICompressProgressPtr progress, ISzAllocPtr alloc, ISzAllocPtr allocBig);
+SRes LzmaEnc_Encode(CLzmaEncHandle p, ISeqOutStream *outStream, ISeqInStream *inStream,
+    ICompressProgress *progress, ISzAlloc *alloc, ISzAlloc *allocBig);
 SRes LzmaEnc_MemEncode(CLzmaEncHandle p, Byte *dest, SizeT *destLen, const Byte *src, SizeT srcLen,
-    int writeEndMark, ICompressProgressPtr progress, ISzAllocPtr alloc, ISzAllocPtr allocBig);
-
+    int writeEndMark, ICompressProgress *progress, ISzAlloc *alloc, ISzAlloc *allocBig);
 
 /* ---------- One Call Interface ---------- */
 
+/* LzmaEncode
+Return code:
+  SZ_OK               - OK
+  SZ_ERROR_MEM        - Memory allocation error
+  SZ_ERROR_PARAM      - Incorrect paramater
+  SZ_ERROR_OUTPUT_EOF - output buffer overflow
+  SZ_ERROR_THREAD     - errors in multithreading functions (only for Mt version)
+*/
+
 SRes LzmaEncode(Byte *dest, SizeT *destLen, const Byte *src, SizeT srcLen,
     const CLzmaEncProps *props, Byte *propsEncoded, SizeT *propsSize, int writeEndMark,
-    ICompressProgressPtr progress, ISzAllocPtr alloc, ISzAllocPtr allocBig);
-
-EXTERN_C_END
+    ICompressProgress *progress, ISzAlloc *alloc, ISzAlloc *allocBig);
 
 #endif

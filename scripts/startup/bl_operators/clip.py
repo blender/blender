@@ -760,7 +760,8 @@ class CLIP_OT_setup_tracking_scene(Operator):
         def setup_space(space):
             space.show_backdrop = True
 
-        CLIP_spaces_walk(context, True, 'NODE_EDITOR', 'NODE_EDITOR', setup_space)
+        CLIP_spaces_walk(context, True, 'NODE_EDITOR', 'NODE_EDITOR',
+                         setup_space)
 
         sc = context.space_data
         scene = context.scene
@@ -811,7 +812,8 @@ class CLIP_OT_setup_tracking_scene(Operator):
         tree.links.new(movieclip.outputs["Image"], distortion.inputs["Image"])
 
         if need_stabilization:
-            tree.links.new(distortion.outputs["Image"], stabilize.inputs["Image"])
+            tree.links.new(distortion.outputs["Image"],
+                           stabilize.inputs["Image"])
             tree.links.new(stabilize.outputs["Image"], scale.inputs["Image"])
         else:
             tree.links.new(distortion.outputs["Image"], scale.inputs["Image"])

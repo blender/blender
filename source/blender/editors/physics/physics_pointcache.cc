@@ -11,10 +11,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_scene_types.h"
+
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_layer.hh"
 #include "BKE_pointcache.h"
 
@@ -425,7 +428,7 @@ static int ptcache_remove_exec(bContext *C, wmOperator * /*op*/)
     BKE_ptcache_free(pid.cache);
     *(pid.cache_ptr) = static_cast<PointCache *>(pid.ptcaches->first);
 
-    DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
     WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, ob);
   }
 

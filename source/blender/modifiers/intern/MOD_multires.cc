@@ -12,19 +12,22 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_cdderivedmesh.h"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
+#include "BKE_screen.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_deform.hh"
@@ -41,6 +44,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 struct MultiresRuntimeData {

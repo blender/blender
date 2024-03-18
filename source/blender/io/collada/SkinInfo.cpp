@@ -209,17 +209,17 @@ void SkinInfo::link_armature(bContext *C,
     bc_set_parent(ob, ob_arm, C);
   }
 #else
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-
+  Object workob;
   ob->parent = ob_arm;
   ob->partype = PAROBJECT;
 
-  invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
+  BKE_object_workob_calc_parent(scene, ob, &workob);
+  invert_m4_m4(ob->parentinv, workob.object_to_world);
 
   DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 #endif
-  copy_m4_m4(ob->runtime->object_to_world.ptr(), bind_shape_matrix);
-  BKE_object_apply_mat4(ob, ob->object_to_world().ptr(), false, false);
+  copy_m4_m4(ob->object_to_world, bind_shape_matrix);
+  BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
 
   amd->deformflag = ARM_DEF_VGROUP;
 

@@ -19,7 +19,7 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_global.hh"
+#  include "BKE_global.h"
 #  include "BKE_main.hh"
 #  include "BKE_mesh.hh"
 

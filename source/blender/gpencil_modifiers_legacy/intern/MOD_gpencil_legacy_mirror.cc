@@ -14,7 +14,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -23,16 +23,20 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_query.hh"
+#include "BKE_main.hh"
 #include "BKE_modifier.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "MOD_gpencil_legacy_modifiertypes.h"
 #include "MOD_gpencil_legacy_ui_common.h"
 #include "MOD_gpencil_legacy_util.h"
 
@@ -79,8 +83,8 @@ static void update_mirror_object(Object *ob,
 
   float tmp[4][4];
   float itmp[4][4];
-  invert_m4_m4(tmp, mmd->object->object_to_world().ptr());
-  mul_m4_m4m4(tmp, tmp, ob->object_to_world().ptr());
+  invert_m4_m4(tmp, mmd->object->object_to_world);
+  mul_m4_m4m4(tmp, tmp, ob->object_to_world);
   invert_m4_m4(itmp, tmp);
   mul_m4_series(mtx, itmp, mtx, tmp);
 

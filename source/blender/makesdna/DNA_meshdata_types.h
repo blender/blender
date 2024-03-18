@@ -82,7 +82,9 @@ enum {
  * };
  *
  * // Access all triangles in a given face.
- * const Span<int3> corner_tris = corner_tris.slice(face_triangles_range(faces, i));
+ * const IndexRange face = faces[i];
+ * const Span<int3> corner_tris = corner_tris.slice(poly_to_tri_count(i, face.start()),
+ *                                                bke::mesh::face_triangles_num(face.size()));
  * \endcode
  *
  * It may also be useful to check whether or not two vertices of a triangle form an edge in the

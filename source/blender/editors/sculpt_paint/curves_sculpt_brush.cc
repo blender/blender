@@ -13,7 +13,7 @@
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "ED_view3d.hh"
 
@@ -23,6 +23,8 @@
 #include "BLI_task.hh"
 
 #include "DEG_depsgraph_query.hh"
+
+#include "BLT_translation.h"
 
 #include "GEO_curve_constraints.hh"
 
@@ -186,7 +188,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
 
   /* Shorten ray when the surface object is hit. */
   if (surface_object_eval != nullptr) {
-    const float4x4 surface_to_world_mat(surface_object->object_to_world().ptr());
+    const float4x4 surface_to_world_mat(surface_object->object_to_world);
     const float4x4 world_to_surface_mat = math::invert(surface_to_world_mat);
 
     Mesh *surface_eval = BKE_object_get_evaluated_mesh(surface_object_eval);
@@ -221,7 +223,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
     }
   }
 
-  const float4x4 &curves_to_world_mat = curves_object.object_to_world();
+  const float4x4 curves_to_world_mat(curves_object.object_to_world);
   const float4x4 world_to_curves_mat = math::invert(curves_to_world_mat);
 
   const float3 center_ray_start_cu = math::transform_point(world_to_curves_mat,

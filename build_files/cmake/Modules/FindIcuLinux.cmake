@@ -137,5 +137,3 @@ mark_as_advanced(
   ICU_LIBRARY_TU
   ICU_LIBRARY_UC
 )
-
-unset(_icu_SEARCH_DIRS)

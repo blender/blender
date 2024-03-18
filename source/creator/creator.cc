@@ -12,9 +12,6 @@
 #ifdef WIN32
 #  include "utfconv.hh"
 #  include <windows.h>
-#  ifdef WITH_CPU_CHECK
-#    pragma comment(linker, "/include:cpu_check_win32")
-#  endif
 #endif
 
 #if defined(WITH_TBB_MALLOC) && defined(_MSC_VER) && defined(NDEBUG)
@@ -36,19 +33,18 @@
 
 /* Mostly initialization functions. */
 #include "BKE_appdir.hh"
-#include "BKE_blender.hh"
-#include "BKE_blender_cli_command.hh"
+#include "BKE_blender.h"
 #include "BKE_brush.hh"
-#include "BKE_cachefile.hh"
-#include "BKE_callbacks.hh"
+#include "BKE_cachefile.h"
+#include "BKE_callbacks.h"
 #include "BKE_context.hh"
 #include "BKE_cpp_types.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idtype.hh"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
-#include "BKE_node.hh"
+#include "BKE_node.h"
 #include "BKE_particle.h"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
@@ -69,6 +65,7 @@
 #include "ED_datafiles.h"
 
 #include "WM_api.hh"
+#include "WM_toolsystem.hh"
 
 #include "RNA_define.hh"
 
@@ -281,6 +278,7 @@ int main(int argc,
 )
 {
   bContext *C;
+
 #ifndef WITH_PYTHON_MODULE
   bArgs *ba;
 #endif
@@ -567,23 +565,8 @@ int main(int argc,
 
 #ifndef WITH_PYTHON_MODULE
   if (G.background) {
-    int exit_code;
-    if (app_state.command.argv) {
-      const char *id = app_state.command.argv[0];
-      if (STREQ(id, "help")) {
-        BKE_blender_cli_command_print_help();
-        exit_code = EXIT_SUCCESS;
-      }
-      else {
-        exit_code = BKE_blender_cli_command_exec(
-            C, id, app_state.command.argc - 1, app_state.command.argv + 1);
-      }
-    }
-    else {
-      exit_code = G.is_break ? EXIT_FAILURE : EXIT_SUCCESS;
-    }
     /* Using window-manager API in background-mode is a bit odd, but works fine. */
-    WM_exit(C, exit_code);
+    WM_exit(C, G.is_break ? EXIT_FAILURE : EXIT_SUCCESS);
   }
   else {
     /* Shows the splash as needed. */

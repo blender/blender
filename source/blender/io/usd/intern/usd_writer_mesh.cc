@@ -5,33 +5,50 @@
 
 #include "usd_armature_utils.hh"
 #include "usd_blend_shape_utils.hh"
+#include "usd_hierarchy_iterator.hh"
 #include "usd_skel_convert.hh"
+#include "usd_writer_armature.hh"
 
+#include <pxr/usd/usdGeom/bboxCache.h>
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
+#include <pxr/usd/usdSkel/animation.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
+#include <pxr/usd/usdSkel/blendShape.h>
 
 #include "BLI_array_utils.hh"
 #include "BLI_assert.h"
-#include "BLI_color.hh"
+#include "BLI_math_color.hh"
 #include "BLI_math_quaternion_types.hh"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
+#include "BKE_armature.hh"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
+#include "BKE_deform.hh"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 
+#include "DNA_armature_types.h"
 #include "DNA_key_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_fluidsim_types.h"
+#include "DNA_particle_types.h"
+
+#include "WM_api.hh"
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};

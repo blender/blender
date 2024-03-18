@@ -8,7 +8,6 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -36,7 +35,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
@@ -62,7 +61,7 @@
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 
@@ -101,11 +100,7 @@ static void palette_init_data(ID *id)
   id_fake_user_set(&palette->id);
 }
 
-static void palette_copy_data(Main * /*bmain*/,
-                              std::optional<Library *> /*owner_library*/,
-                              ID *id_dst,
-                              const ID *id_src,
-                              const int /*flag*/)
+static void palette_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
 {
   Palette *palette_dst = (Palette *)id_dst;
   const Palette *palette_src = (const Palette *)id_src;
@@ -149,7 +144,6 @@ static void palette_undo_preserve(BlendLibReader * /*reader*/, ID *id_new, ID *i
 IDTypeInfo IDType_ID_PAL = {
     /*id_code*/ ID_PAL,
     /*id_filter*/ FILTER_ID_PAL,
-    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_PAL,
     /*struct_size*/ sizeof(Palette),
     /*name*/ "Palette",
@@ -177,7 +171,6 @@ IDTypeInfo IDType_ID_PAL = {
 };
 
 static void paint_curve_copy_data(Main * /*bmain*/,
-                                  std::optional<Library *> /*owner_library*/,
                                   ID *id_dst,
                                   const ID *id_src,
                                   const int /*flag*/)
@@ -218,7 +211,6 @@ static void paint_curve_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_PC = {
     /*id_code*/ ID_PC,
     /*id_filter*/ FILTER_ID_PC,
-    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_PC,
     /*struct_size*/ sizeof(PaintCurve),
     /*name*/ "PaintCurve",
@@ -1246,7 +1238,7 @@ void BKE_paint_stroke_get_average(const Scene *scene, const Object *ob, float st
     mul_v3_v3fl(stroke, ups->average_stroke_accum, fac);
   }
   else {
-    copy_v3_v3(stroke, ob->object_to_world().location());
+    copy_v3_v3(stroke, ob->object_to_world[3]);
   }
 }
 
@@ -1663,15 +1655,15 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   Sculpt *sd = scene->toolsettings->sculpt;
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
-  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
   MultiresModifierData *mmd = sculpt_multires_modifier_get(scene, ob, true);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
 
-  BLI_assert(mesh_eval != nullptr);
+  BLI_assert(me_eval != nullptr);
 
   /* This is for handling a newly opened file with no object visible,
-   * causing `mesh_eval == nullptr`. */
-  if (mesh_eval == nullptr) {
+   * causing `me_eval == nullptr`. */
+  if (me_eval == nullptr) {
     return;
   }
 
@@ -1691,8 +1683,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.active = true;
     ss->multires.modifier = mmd;
     ss->multires.level = mmd->sculptlvl;
-    ss->totvert = mesh_eval->verts_num;
-    ss->faces_num = mesh_eval->faces_num;
+    ss->totvert = me_eval->verts_num;
+    ss->faces_num = me_eval->faces_num;
     ss->totfaces = mesh->faces_num;
 
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
@@ -1745,7 +1737,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
   ss->hide_poly = (bool *)CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, ".hide_poly");
 
-  ss->subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get();
+  ss->subdiv_ccg = me_eval->runtime->subdiv_ccg.get();
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
   BLI_assert(pbvh == ss->pbvh);
@@ -1774,15 +1766,15 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
        * This matters because crazyspace evaluation is very restrictive and excludes even modifiers
        * that simply recompute vertex weights (which can even include Geometry Nodes). */
-      if (me_eval_deform->faces_num == mesh_eval->faces_num &&
-          me_eval_deform->corners_num == mesh_eval->corners_num &&
-          me_eval_deform->verts_num == mesh_eval->verts_num)
+      if (me_eval_deform->faces_num == me_eval->faces_num &&
+          me_eval_deform->corners_num == me_eval->corners_num &&
+          me_eval_deform->verts_num == me_eval->verts_num)
       {
         BKE_sculptsession_free_deformMats(ss);
 
         BLI_assert(me_eval_deform->verts_num == mesh->verts_num);
 
-        ss->deform_cos = mesh_eval->vert_positions();
+        ss->deform_cos = me_eval->vert_positions();
         BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos);
 
         used_me_eval = true;

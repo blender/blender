@@ -272,7 +272,7 @@ def words_from_text(text: str, check_type: str) -> List[Tuple[str, int]]:
             w_prev = w_lower
             w_prev_start = w_start
     else:
-        assert False, "unreachable"
+        assert False
 
     return words
 
@@ -551,7 +551,7 @@ def spell_check_file(
                 # print(filepath + ":" + str(slineno + 1) + ":" + str(scol), w, "(duplicates)")
                 yield (w, slineno, scol)
     else:
-        assert False, "unreachable"
+        assert False
 
 
 def spell_check_file_recursive(

@@ -9,7 +9,6 @@
 #include <cmath> /* floor */
 #include <cstdlib>
 #include <cstring>
-#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -26,7 +25,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
@@ -41,17 +40,23 @@
 #include "DNA_object_types.h"
 #include "DNA_vfont_types.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_curve.hh"
 #include "BKE_curveprofile.h"
+#include "BKE_displist.h"
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_main.hh"
+#include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_vfont.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
+
+#include "CLG_log.h"
 
 #include "BLO_read_write.hh"
 
@@ -80,11 +85,7 @@ static void curve_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(curve, DNA_struct_default_get(Curve), id);
 }
 
-static void curve_copy_data(Main *bmain,
-                            std::optional<Library *> owner_library,
-                            ID *id_dst,
-                            const ID *id_src,
-                            const int flag)
+static void curve_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
 {
   Curve *curve_dst = (Curve *)id_dst;
   const Curve *curve_src = (const Curve *)id_src;
@@ -102,7 +103,7 @@ static void curve_copy_data(Main *bmain,
   curve_dst->bevel_profile = BKE_curveprofile_copy(curve_src->bevel_profile);
 
   if (curve_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
-    BKE_id_copy_in_lib(bmain, owner_library, &curve_src->key->id, (ID **)&curve_dst->key, flag);
+    BKE_id_copy_ex(bmain, &curve_src->key->id, (ID **)&curve_dst->key, flag);
     /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
     curve_dst->key->from = &curve_dst->id;
   }
@@ -276,7 +277,6 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_CU_LEGACY = {
     /*id_code*/ ID_CU_LEGACY,
     /*id_filter*/ FILTER_ID_CU_LEGACY,
-    /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_VF | FILTER_ID_KE,
     /*main_listbase_index*/ INDEX_ID_CU_LEGACY,
     /*struct_size*/ sizeof(Curve),
     /*name*/ "Curve",

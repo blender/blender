@@ -104,5 +104,3 @@ ${CLANG_TIDY_VERSION_PATCH}")
 else()
   set(CLANG_TIDY_FOUND FALSE)
 endif()
-
-unset(_clang_tidy_SEARCH_DIRS)

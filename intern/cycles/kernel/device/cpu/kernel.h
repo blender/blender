@@ -33,7 +33,10 @@ void kernel_global_memory_copy(KernelGlobalsCPU *kg, const char *name, void *mem
 #define KERNEL_ARCH cpu
 #include "kernel/device/cpu/kernel_arch.h"
 
-#define KERNEL_ARCH cpu_sse42
+#define KERNEL_ARCH cpu_sse2
+#include "kernel/device/cpu/kernel_arch.h"
+
+#define KERNEL_ARCH cpu_sse41
 #include "kernel/device/cpu/kernel_arch.h"
 
 #define KERNEL_ARCH cpu_avx2

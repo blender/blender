@@ -14,6 +14,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -22,7 +23,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -36,19 +37,24 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
+#include "BKE_global.h"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_update_cache_legacy.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_screen.hh"
+#include "BKE_tracking.h"
 
 #include "UI_view2d.hh"
 
+#include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
+#include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
@@ -937,7 +943,7 @@ static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
   /* Apply layer thickness change. */
   gps_duplicate->thickness += gpl->line_change;
   /* Apply object scale to thickness. */
-  gps_duplicate->thickness *= mat4_to_scale(p->ob->object_to_world().ptr());
+  gps_duplicate->thickness *= mat4_to_scale(p->ob->object_to_world);
   CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
   /* Stroke. */
@@ -2022,7 +2028,7 @@ static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
 
   /* Need this update to synchronize brush with draw manager. */
   if (changed) {
-    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   }
 }
 
@@ -2159,7 +2165,7 @@ static tGPsdata *gpencil_session_initpaint(bContext *C, wmOperator *op)
   }
 
   /* Random generator, only init once. */
-  uint rng_seed = uint(BLI_time_now_seconds_i() & UINT_MAX);
+  uint rng_seed = uint(BLI_check_seconds_timer_i() & UINT_MAX);
   rng_seed ^= POINTER_AS_UINT(p);
   p->rng = BLI_rng_new(rng_seed);
 
@@ -2188,7 +2194,7 @@ static void gpencil_session_cleanup(tGPsdata *p)
   gpd->runtime.sbuffer_size = 0;
   gpd->runtime.sbuffer_sflag = 0;
   /* This update is required for update-on-write because the sbuffer data is not longer overwritten
-   * by a copy-on-evaluation. */
+   * by a copy-on-write. */
   ED_gpencil_sbuffer_update_eval(gpd, p->ob_eval);
   p->inittime = 0.0;
 }
@@ -2961,7 +2967,7 @@ static void gpencil_draw_apply_event(bContext *C,
     }
   }
 
-  p->curtime = BLI_time_now_seconds();
+  p->curtime = BLI_check_seconds_timer();
 
   /* handle pressure sensitivity (which is supplied by tablets or otherwise 1.0) */
   p->pressure = event->tablet.pressure;
@@ -3719,7 +3725,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
       p->paintmode = GP_PAINTMODE_DRAW;
       WM_cursor_modal_restore(p->win);
       ED_gpencil_toggle_brush_cursor(C, true, nullptr);
-      DEG_id_tag_update(&p->scene->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&p->scene->id, ID_RECALC_COPY_ON_WRITE);
     }
     else {
       return OPERATOR_RUNNING_MODAL;

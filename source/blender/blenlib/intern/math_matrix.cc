@@ -21,9 +21,10 @@
 
 namespace blender {
 
-template<> float4x4 operator*(const float4x4 &a, const float4x4 &b)
+template<> float4x4 float4x4::operator*(const float4x4 &b) const
 {
   using namespace math;
+  const float4x4 &a = *this;
   float4x4 result;
 
 #if BLI_HAVE_SSE2
@@ -68,9 +69,10 @@ template<> float4x4 operator*(const float4x4 &a, const float4x4 &b)
   return result;
 }
 
-template<> float3x3 operator*(const float3x3 &a, const float3x3 &b)
+template<> float3x3 float3x3::operator*(const float3x3 &b) const
 {
   using namespace math;
+  const float3x3 &a = *this;
   float3x3 result;
 
 #if 0 /* 1.2 times slower. Could be used as reference for aligned version. */
@@ -112,10 +114,10 @@ template<> float3x3 operator*(const float3x3 &a, const float3x3 &b)
   return result;
 }
 
-template float2x2 operator*(const float2x2 &a, const float2x2 &b);
-template double2x2 operator*(const double2x2 &a, const double2x2 &b);
-template double3x3 operator*(const double3x3 &a, const double3x3 &b);
-template double4x4 operator*(const double4x4 &a, const double4x4 &b);
+template float2x2 float2x2::operator*(const float2x2 &b) const;
+template double2x2 double2x2::operator*(const double2x2 &b) const;
+template double3x3 double3x3::operator*(const double3x3 &b) const;
+template double4x4 double4x4::operator*(const double4x4 &b) const;
 
 }  // namespace blender
 

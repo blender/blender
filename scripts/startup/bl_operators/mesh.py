@@ -171,7 +171,9 @@ class MeshMirrorUV(Operator):
             self.report({'WARNING'},
                         rpt_("%d mesh(es) with no active UV layer, "
                              "%d duplicates found in %d mesh(es), mirror may be incomplete")
-                        % (total_no_active_UV, total_duplicates, meshes_with_duplicates))
+                        % (total_no_active_UV,
+                           total_duplicates,
+                           meshes_with_duplicates))
         elif total_no_active_UV:
             self.report({'WARNING'},
                         rpt_("%d mesh(es) with no active UV layer")

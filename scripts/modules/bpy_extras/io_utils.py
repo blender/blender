@@ -297,7 +297,7 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
     for i, axis_lut in enumerate(_axis_convert_lut):
         if value in axis_lut:
             return Matrix(_axis_convert_matrix[i])
-    assert False, "unreachable"
+    assert 0
 
 
 def axis_conversion_ensure(operator, forward_attr, up_attr):

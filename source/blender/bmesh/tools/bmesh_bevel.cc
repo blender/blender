@@ -13,6 +13,7 @@
 #include "DNA_curveprofile_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_math_geom.h"
@@ -7763,7 +7764,7 @@ void BM_mesh_bevel(BMesh *bm,
   }
 
 #ifdef BEVEL_DEBUG_TIME
-  double start_time = BLI_time_now_seconds();
+  double start_time = BLI_check_seconds_timer();
 #endif
 
   /* Disable the miters with the cutoff vertex mesh method, the combination isn't useful anyway. */
@@ -7931,7 +7932,7 @@ void BM_mesh_bevel(BMesh *bm,
   BLI_memarena_free(bp.mem_arena);
 
 #ifdef BEVEL_DEBUG_TIME
-  double end_time = BLI_time_now_seconds();
+  double end_time = BLI_check_seconds_timer();
   printf("BMESH BEVEL TIME = %.3f\n", end_time - start_time);
 #endif
 }

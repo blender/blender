@@ -43,24 +43,20 @@ class RuntimeAssetLibrary;
 class AssetLibraryService {
   static std::unique_ptr<AssetLibraryService> instance_;
 
-  /**
-   * Identify libraries with the library type, and the absolute path of the library's root path
+  /** Identify libraries with the library type, and the absolute path of the library's root path
    * (normalize with #normalize_directory_path()!). The type is relevant since the current file
-   * library may point to the same path as a custom library.
-   */
+   * library may point to the same path as a custom library. */
   using OnDiskLibraryIdentifier = std::pair<eAssetLibraryType, std::string>;
-  /** Mapping of a (type, root path) pair to the AssetLibrary instance. */
+  /* Mapping of a (type, root path) pair to the AssetLibrary instance. */
   Map<OnDiskLibraryIdentifier, std::unique_ptr<OnDiskAssetLibrary>> on_disk_libraries_;
-  /**
-   * Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
+  /** Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
    * the file was saved, a valid path for the library can be determined and #on_disk_libraries_
-   * above should be used.
-   */
+   * above should be used. */
   std::unique_ptr<RuntimeAssetLibrary> current_file_library_;
   /** The "all" asset library, merging all other libraries into one. */
   std::unique_ptr<AllAssetLibrary> all_library_;
 
-  /** Handlers for managing the life cycle of the AssetLibraryService instance. */
+  /* Handlers for managing the life cycle of the AssetLibraryService instance. */
   bCallbackFuncStore on_load_callback_store_;
   static bool atexit_handler_registered_;
 
@@ -92,13 +88,7 @@ class AssetLibraryService {
   AssetLibrary *get_asset_library_current_file();
   /** Get the "All" asset library, which loads all others and merges them into one. */
   AssetLibrary *get_asset_library_all(const Main *bmain);
-  /**
-   * Tag the "All" asset library as needing to reload catalogs. This should be called when catalog
-   * data of other asset libraries changes. Note that changes to the catalog definition file on
-   * disk don't ever affect this "dirty" flag. It only reflects changes from this Blender session.
-   */
-  void tag_all_library_catalogs_dirty();
-  void reload_all_library_catalogs_if_dirty();
+  void rebuild_all_library();
 
   /**
    * Return the start position of the last blend-file extension in given path,

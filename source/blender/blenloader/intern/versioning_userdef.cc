@@ -19,6 +19,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -33,10 +34,9 @@
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 
-#include "BLO_readfile.hh"
-#include "BLO_userdef_default.h"
+#include "BLO_readfile.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "GPU_platform.h"
 
@@ -52,7 +52,7 @@
  * If this is important we can set the translations as part of versioning preferences,
  * however that should only be done if there are important use-cases. */
 #if 0
-#  include "BLT_translation.hh"
+#  include "BLT_translation.h"
 #else
 #  define N_(msgid) msgid
 #endif
@@ -923,13 +923,6 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
-  if (!USER_VERSION_ATLEAST(402, 6)) {
-    if (BLI_listbase_is_empty(&userdef->extension_repos)) {
-      BKE_preferences_extension_repo_add_default(userdef);
-      BKE_preferences_extension_repo_add_default_user(userdef);
-    }
-  }
-
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
@@ -953,11 +946,10 @@ void BLO_sanitize_experimental_features_userpref_blend(UserDef *userdef)
    *
    * At that time master already has its version bumped so its user preferences
    * are not touched by these settings. */
-#ifdef WITH_EXPERIMENTAL_FEATURES
+
   if (BKE_blender_version_is_alpha()) {
     return;
   }
-#endif
 
   MEMSET_STRUCT_AFTER(&userdef->experimental, 0, SANITIZE_AFTER_HERE);
 }

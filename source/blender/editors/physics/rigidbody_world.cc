@@ -19,7 +19,8 @@
 #endif
 
 #include "BKE_context.hh"
-#include "BKE_report.hh"
+#include "BKE_main.hh"
+#include "BKE_report.h"
 #include "BKE_rigidbody.h"
 
 #include "DEG_depsgraph.hh"
@@ -177,8 +178,7 @@ void RIGIDBODY_OT_world_export(wmOperatorType *ot)
   ot->idname = "RIGIDBODY_OT_world_export";
   ot->name = "Export Rigid Body World";
   ot->description =
-      "Export Rigid Body world to the simulator's own fileformat (i.e. '.bullet' for Bullet "
-      "Physics)";
+      "Export Rigid Body world to simulator's own fileformat (i.e. '.bullet' for Bullet Physics)";
 
   /* callbacks */
   ot->invoke = rigidbody_world_export_invoke;

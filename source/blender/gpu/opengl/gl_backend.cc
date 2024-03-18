@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #if defined(WIN32)
 #  include "BLI_winstuff.h"
 #endif
@@ -431,15 +431,11 @@ static void detect_workarounds()
     }
   }
 
-  /* Draw shader parameters are broken on Qualcomm Windows ARM64 devices
-   * on Mesa version < 24.0.0 */
+  /* Right now draw shader parameters are broken on Qualcomm devices
+   * regardless of driver version */
   if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
-    if (strstr(version, "Mesa 20.") || strstr(version, "Mesa 21.") ||
-        strstr(version, "Mesa 22.") || strstr(version, "Mesa 23."))
-    {
-      GCaps.shader_draw_parameters_support = false;
-      GLContext::shader_draw_parameters_support = false;
-    }
+    GCaps.shader_draw_parameters_support = false;
+    GLContext::shader_draw_parameters_support = false;
   }
 
   /* Some Intel drivers have issues with using mips as frame-buffer targets if
@@ -517,7 +513,6 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, &GCaps.max_batch_vertices);
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &GCaps.max_vertex_attribs);
   glGetIntegerv(GL_MAX_VARYING_FLOATS, &GCaps.max_varying_floats);
-  glGetIntegerv(GL_MAX_IMAGE_UNITS, &GCaps.max_images);
 
   glGetIntegerv(GL_NUM_EXTENSIONS, &GCaps.extensions_len);
   GCaps.extension_get = gl_extension_get;

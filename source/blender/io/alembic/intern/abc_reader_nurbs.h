@@ -9,8 +9,6 @@
 
 #include "abc_reader_object.h"
 
-#include <Alembic/AbcGeom/INuPatch.h>
-
 namespace blender::io::alembic {
 
 class AbcNurbsReader final : public AbcObjectReader {

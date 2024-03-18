@@ -125,11 +125,6 @@ class ImplicitSharingInfo : NonCopyable, NonMovable {
     return version_.load(std::memory_order_acquire);
   }
 
-  int strong_users() const
-  {
-    return strong_users_.load(std::memory_order_acquire);
-  }
-
   /**
    * Call when the data is no longer needed. This might just decrement the user count, or it might
    * also delete the data if this was the last user.

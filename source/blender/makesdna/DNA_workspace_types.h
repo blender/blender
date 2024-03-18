@@ -61,7 +61,7 @@ typedef struct bToolRef {
   /** #bToolKey (space-type, mode), used in 'WM_api.hh' */
   short space_type;
   /**
-   * Value depends on the 'space_type', object mode for 3D view, image editor has its own mode too.
+   * Value depends on the 'space_type', object mode for 3D view, image editor has own mode too.
    * RNA needs to handle using item function.
    */
   int mode;

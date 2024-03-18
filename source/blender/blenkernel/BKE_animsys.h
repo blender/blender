@@ -8,7 +8,7 @@
  * \ingroup bke
  */
 
-#include "BLI_bit_vector.hh"
+#include "BLI_bitmap.h"
 #include "BLI_span.hh"
 #include "BLI_sys_types.h" /* for bool */
 
@@ -18,6 +18,7 @@ extern "C" {
 
 struct AnimData;
 struct BlendDataReader;
+struct BlendLibReader;
 struct BlendWriter;
 struct Depsgraph;
 struct FCurve;
@@ -264,7 +265,7 @@ void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
                                            int index,
                                            const struct AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
-                                           blender::BitVector<> &r_successful_remaps);
+                                           BLI_bitmap *r_successful_remaps);
 
 /**
  * Free all cached contexts from the list.

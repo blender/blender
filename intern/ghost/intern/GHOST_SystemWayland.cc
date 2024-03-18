@@ -108,9 +108,6 @@ static bool has_libdecor = true;
 #  endif
 #endif
 
-#include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
-
 /* -------------------------------------------------------------------- */
 /** \name Forward Declarations
  * \{ */
@@ -2975,9 +2972,6 @@ static char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
     }
     close(pipefd[0]);
   }
-  else {
-    *r_len = 0;
-  }
   return buf;
 }
 
@@ -3311,19 +3305,20 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
 
   CLOG_INFO(LOG, 2, "drop mime_recieve=%s", mime_receive);
 
-  auto read_drop_data_fn = [](GWL_Seat *const seat,
-                              GWL_DataOffer *data_offer,
-                              wl_surface *wl_surface_window,
-                              const char *mime_receive) {
+  auto read_uris_fn = [](GWL_Seat *const seat,
+                         GWL_DataOffer *data_offer,
+                         wl_surface *wl_surface_window,
+                         const char *mime_receive) {
     const uint64_t event_ms = seat->system->getMilliSeconds();
     const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
-    const bool nil_terminate = (mime_receive != ghost_wl_mime_text_uri);
     size_t data_buf_len = 0;
     const char *data_buf = read_buffer_from_data_offer(
-        data_offer, mime_receive, nullptr, nil_terminate, &data_buf_len);
+        data_offer, mime_receive, nullptr, false, &data_buf_len);
+    std::string data = data_buf ? std::string(data_buf, data_buf_len) : "";
+    free(const_cast<char *>(data_buf));
 
-    CLOG_INFO(LOG, 2, "read_drop_data mime_receive=%s, data_len=%zu", mime_receive, data_buf_len);
+    CLOG_INFO(LOG, 2, "drop_read_uris mime_receive=%s, data=%s", mime_receive, data.c_str());
 
     wl_data_offer_finish(data_offer->wl.id);
     wl_data_offer_destroy(data_offer->wl.id);
@@ -3334,97 +3329,69 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
     delete data_offer;
     data_offer = nullptr;
 
-    /* Don't generate a drop event if the data could not be read,
-     * an error will have been logged. */
-    if (data_buf != nullptr) {
-      GHOST_TDragnDropTypes ghost_dnd_type = GHOST_kDragnDropTypeUnknown;
-      void *ghost_dnd_data = nullptr;
+    GHOST_SystemWayland *const system = seat->system;
 
-      /* Failure to receive drop data . */
-      if (mime_receive == ghost_wl_mime_text_uri) {
-        const char file_proto[] = "file://";
-        /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
-         * So support both, once `\n` is found, strip the preceding `\r` if found. */
-        const char lf = '\n';
+    if (mime_receive == ghost_wl_mime_text_uri) {
+      const char file_proto[] = "file://";
+      /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
+       * So support both, once `\n` is found, strip the preceding `\r` if found. */
+      const char lf = '\n';
 
-        const std::string_view data = std::string_view(data_buf, data_buf_len);
-        std::vector<std::string_view> uris;
+      GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_window);
+      std::vector<std::string> uris;
 
-        size_t pos = 0;
-        while (pos != std::string::npos) {
-          pos = data.find(file_proto, pos);
-          if (pos == std::string::npos) {
-            break;
-          }
-          const size_t start = pos + sizeof(file_proto) - 1;
-          pos = data.find(lf, pos);
-
-          size_t end = pos;
-          if (UNLIKELY(end == std::string::npos)) {
-            /* Note that most well behaved file managers will add a trailing newline,
-             * Gnome's web browser (44.3) doesn't, so support reading up until the last byte. */
-            end = data.size();
-          }
-          /* Account for 'CRLF' case. */
-          if (data[end - 1] == '\r') {
-            end -= 1;
-          }
-
-          std::string_view data_substr = data.substr(start, end - start);
-          uris.push_back(data_substr);
-          CLOG_INFO(LOG,
-                    2,
-                    "read_drop_data pos=%zu, text_uri=\"%.*s\"",
-                    start,
-                    int(data_substr.size()),
-                    data_substr.data());
+      size_t pos = 0;
+      while (pos != std::string::npos) {
+        pos = data.find(file_proto, pos);
+        if (pos == std::string::npos) {
+          break;
         }
+        const size_t start = pos + sizeof(file_proto) - 1;
+        pos = data.find(lf, pos);
 
-        GHOST_TStringArray *flist = static_cast<GHOST_TStringArray *>(
-            malloc(sizeof(GHOST_TStringArray)));
-        flist->count = int(uris.size());
-        flist->strings = static_cast<uint8_t **>(malloc(uris.size() * sizeof(uint8_t *)));
-        for (size_t i = 0; i < uris.size(); i++) {
-          flist->strings[i] = reinterpret_cast<uint8_t *>(
-              GHOST_URL_decode_alloc(uris[i].data(), uris[i].size()));
+        size_t end = pos;
+        if (UNLIKELY(end == std::string::npos)) {
+          /* Note that most well behaved file managers will add a trailing newline,
+           * Gnome's web browser (44.3) doesn't, so support reading up until the last byte. */
+          end = data.size();
         }
-
-        CLOG_INFO(LOG, 2, "read_drop_data file_count=%d", flist->count);
-        ghost_dnd_type = GHOST_kDragnDropTypeFilenames;
-        ghost_dnd_data = flist;
-      }
-      else if (ELEM(mime_receive, ghost_wl_mime_text_plain, ghost_wl_mime_text_utf8)) {
-        ghost_dnd_type = GHOST_kDragnDropTypeString;
-        ghost_dnd_data = (void *)data_buf; /* Move ownership to the event. */
-        data_buf = nullptr;
+        /* Account for 'CRLF' case. */
+        if (data[end - 1] == '\r') {
+          end -= 1;
+        }
+        uris.push_back(data.substr(start, end - start));
+        CLOG_INFO(LOG, 2, "drop_read_uris pos=%zu, text_uri=\"%s\"", start, uris.back().c_str());
       }
 
-      if (ghost_dnd_type != GHOST_kDragnDropTypeUnknown) {
-        GHOST_SystemWayland *const system = seat->system;
-        GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_window);
-        const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, xy)};
-
-        system->pushEvent_maybe_pending(new GHOST_EventDragnDrop(event_ms,
-                                                                 GHOST_kEventDraggingDropDone,
-                                                                 ghost_dnd_type,
-                                                                 win,
-                                                                 UNPACK2(event_xy),
-                                                                 ghost_dnd_data));
-
-        wl_display_roundtrip(system->wl_display_get());
-      }
-      else {
-        CLOG_INFO(LOG, 2, "read_drop_data, unhandled!");
+      GHOST_TStringArray *flist = static_cast<GHOST_TStringArray *>(
+          malloc(sizeof(GHOST_TStringArray)));
+      flist->count = int(uris.size());
+      flist->strings = static_cast<uint8_t **>(malloc(uris.size() * sizeof(uint8_t *)));
+      for (size_t i = 0; i < uris.size(); i++) {
+        flist->strings[i] = reinterpret_cast<uint8_t *>(GHOST_URL_decode_alloc(uris[i].c_str()));
       }
 
-      free(const_cast<char *>(data_buf));
+      CLOG_INFO(LOG, 2, "drop_read_uris_fn file_count=%d", flist->count);
+      const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, xy)};
+      system->pushEvent_maybe_pending(new GHOST_EventDragnDrop(event_ms,
+                                                               GHOST_kEventDraggingDropDone,
+                                                               GHOST_kDragnDropTypeFilenames,
+                                                               win,
+                                                               UNPACK2(event_xy),
+                                                               flist));
     }
+    else if (ELEM(mime_receive, ghost_wl_mime_text_plain, ghost_wl_mime_text_utf8)) {
+      /* TODO: enable use of internal functions 'txt_insert_buf' and
+       * 'text_update_edited' to behave like dropped text was pasted. */
+      CLOG_INFO(LOG, 2, "drop_read_uris_fn (text_plain, text_utf8), unhandled!");
+    }
+    wl_display_roundtrip(system->wl_display_get());
   };
 
   /* Pass in `seat->wl_surface_window_focus_dnd` instead of accessing it from `seat` since the
    * leave callback (#data_device_handle_leave) will clear the value once this function starts. */
   std::thread read_thread(
-      read_drop_data_fn, seat, data_offer, seat->wl.surface_window_focus_dnd, mime_receive);
+      read_uris_fn, seat, data_offer, seat->wl.surface_window_focus_dnd, mime_receive);
   read_thread.detach();
 }
 
@@ -5546,7 +5513,7 @@ static CLG_LogRef LOG_WL_SEAT = {"ghost.wl.handle.seat"};
 
 static bool gwl_seat_capability_pointer_multitouch_check(const GWL_Seat *seat, const bool fallback)
 {
-  const zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
+  zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
   if (pointer_gestures == nullptr) {
     return fallback;
   }
@@ -7476,148 +7443,6 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool selection) const
   }
 }
 
-static constexpr const char *ghost_wl_mime_img_png = "image/png";
-
-GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage(void) const
-{
-  GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
-    return GHOST_kFailure;
-  }
-
-  GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
-  if (data_offer) {
-    if (data_offer->types.count(ghost_wl_mime_img_png)) {
-      return GHOST_kSuccess;
-    }
-  }
-
-  return GHOST_kFailure;
-}
-
-uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
-{
-#ifdef USE_EVENT_BACKGROUND_THREAD
-  std::lock_guard lock_server_guard{*server_mutex};
-#endif
-
-  GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
-    return nullptr;
-  }
-
-  std::mutex &mutex = seat->data_offer_copy_paste_mutex;
-  mutex.lock();
-  bool mutex_locked = true;
-
-  uint *rgba = nullptr;
-
-  GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
-  if (data_offer) {
-    /* Check if the source offers a supported mime type.
-     * This check could be skipped, because the paste option is not supposed to be enabled
-     * otherwise. */
-    if (data_offer->types.count(ghost_wl_mime_img_png)) {
-      /* Receive the clipboard in a thread, performing round-trips while waiting,
-       * so pasting content from own `primary->data_source` doesn't hang. */
-      struct ThreadResult {
-        char *data = nullptr;
-        size_t data_len = 0;
-        std::atomic<bool> done = false;
-      } thread_result;
-
-      auto read_clipboard_fn = [](GWL_DataOffer *data_offer,
-                                  const char *mime_receive,
-                                  std::mutex *mutex,
-                                  ThreadResult *thread_result) {
-        thread_result->data = read_buffer_from_data_offer(
-            data_offer, mime_receive, mutex, false, &thread_result->data_len);
-        thread_result->done = true;
-      };
-      std::thread read_thread(
-          read_clipboard_fn, data_offer, ghost_wl_mime_img_png, &mutex, &thread_result);
-      read_thread.detach();
-
-      while (!thread_result.done) {
-        wl_display_roundtrip(display_->wl.display);
-      }
-
-      if (thread_result.data) {
-        /* Generate the image buffer with the received data. */
-        ImBuf *ibuf = IMB_ibImageFromMemory((uint8_t *)thread_result.data,
-                                            thread_result.data_len,
-                                            IB_rect,
-                                            nullptr,
-                                            "<clipboard>");
-        if (ibuf) {
-          *r_width = ibuf->x;
-          *r_height = ibuf->y;
-          const size_t byte_count = size_t(ibuf->x) * size_t(ibuf->y) * 4;
-          rgba = (uint *)malloc(byte_count);
-          std::memcpy(rgba, ibuf->byte_buffer.data, byte_count);
-          IMB_freeImBuf(ibuf);
-        }
-      }
-
-      /* After reading the data offer, the mutex gets unlocked. */
-      mutex_locked = false;
-    }
-  }
-
-  if (mutex_locked) {
-    mutex.unlock();
-  }
-  return rgba;
-}
-
-GHOST_TSuccess GHOST_SystemWayland::putClipboardImage(uint *rgba, int width, int height) const
-{
-#ifdef USE_EVENT_BACKGROUND_THREAD
-  std::lock_guard lock_server_guard{*server_mutex};
-#endif
-
-  /* Create a #wl_data_source object. */
-  GWL_Seat *seat = gwl_display_seat_active_get(display_);
-  if (UNLIKELY(!seat)) {
-    return GHOST_kFailure;
-  }
-  std::lock_guard lock(seat->data_source_mutex);
-
-  GWL_DataSource *data_source = seat->data_source;
-
-  /* Load buffer into an #ImBuf and convert to PNG. */
-  ImBuf *ibuf = IMB_allocFromBuffer(reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
-  ibuf->ftype = IMB_FTYPE_PNG;
-  ibuf->foptions.quality = 15;
-  if (!IMB_saveiff(ibuf, "<memory>", IB_rect | IB_mem)) {
-    IMB_freeImBuf(ibuf);
-    return GHOST_kFailure;
-  }
-
-  /* Copy #ImBuf encoded_buffer to data source. */
-  GWL_SimpleBuffer *imgbuffer = &data_source->buffer_out;
-  gwl_simple_buffer_free_data(imgbuffer);
-  imgbuffer->data_size = ibuf->encoded_buffer_size;
-  char *data = static_cast<char *>(malloc(imgbuffer->data_size));
-  std::memcpy(data, ibuf->encoded_buffer.data, ibuf->encoded_buffer_size);
-  imgbuffer->data = data;
-
-  data_source->wl.source = wl_data_device_manager_create_data_source(
-      display_->wl.data_device_manager);
-  wl_data_source_add_listener(data_source->wl.source, &data_source_listener, seat);
-
-  /* Advertise the mime types supported. */
-  wl_data_source_offer(data_source->wl.source, ghost_wl_mime_img_png);
-
-  if (seat->wl.data_device) {
-    wl_data_device_set_selection(
-        seat->wl.data_device, data_source->wl.source, seat->data_source_serial);
-  }
-
-  IMB_freeImBuf(ibuf);
-  return GHOST_kSuccess;
-}
-
 uint8_t GHOST_SystemWayland::getNumDisplays() const
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
@@ -8193,7 +8018,9 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
            * is negligible. */
           GHOST_kCapabilityGPUReadFrontBuffer |
           /* This WAYLAND back-end has not yet implemented desktop color sample. */
-          GHOST_kCapabilityDesktopSample));
+          GHOST_kCapabilityDesktopSample |
+          /* This WAYLAND back-end has not yet implemented image copy/paste. */
+          GHOST_kCapabilityClipboardImages));
 }
 
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)

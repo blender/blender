@@ -295,7 +295,7 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const View3D *v3d = draw_ctx->v3d;
   const Scene *scene = draw_ctx->scene;
-  const Camera *cam = static_cast<Camera *>(ob->data);
+  Camera *cam = static_cast<Camera *>(ob->data);
 
   const bool show_frame = BKE_object_empty_image_frame_is_visible_in_view3d(ob, draw_ctx->rv3d);
 
@@ -386,7 +386,7 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
     float image_aspect[2];
     overlay_image_calc_aspect(ima, size, image_aspect);
 
-    copy_m4_m4(mat, ob->object_to_world().ptr());
+    copy_m4_m4(mat, ob->object_to_world);
     mul_v3_fl(mat[0], image_aspect[0] * 0.5f * ob->empty_drawsize);
     mul_v3_fl(mat[1], image_aspect[1] * 0.5f * ob->empty_drawsize);
     madd_v3_v3fl(mat[3], mat[0], ob->ima_ofs[0] * 2.0f + 1.0f);

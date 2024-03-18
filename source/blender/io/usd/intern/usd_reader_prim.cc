@@ -7,7 +7,7 @@
 
 #include "usd_reader_prim.hh"
 
-#include "BLI_assert.h"
+#include "BLI_utildefines.h"
 
 namespace blender::io::usd {
 

@@ -20,6 +20,9 @@ class QualityStepHelper {
   int offsetadd_;
 
  protected:
+  /**
+   * Initialize the execution
+   */
   void init_execution(QualityHelper helper);
 
   inline int get_step() const

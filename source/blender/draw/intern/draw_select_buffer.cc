@@ -29,9 +29,6 @@
 
 #include "../engines/select/select_engine.hh"
 
-using blender::int2;
-using blender::Span;
-
 bool SELECTID_Context::is_dirty(RegionView3D *rv3d)
 {
   /* Check if the viewport has changed. */
@@ -232,7 +229,8 @@ static void drw_select_mask_px_cb(int x, int x_end, int y, void *user_data)
 uint *DRW_select_buffer_bitmap_from_poly(Depsgraph *depsgraph,
                                          ARegion *region,
                                          View3D *v3d,
-                                         const Span<int2> poly,
+                                         const int poly[][2],
+                                         const int face_len,
                                          const rcti *rect,
                                          uint *r_bitmap_len)
 {
@@ -259,6 +257,7 @@ uint *DRW_select_buffer_bitmap_from_poly(Depsgraph *depsgraph,
                                 rect_px.xmax,
                                 rect_px.ymax,
                                 poly,
+                                face_len,
                                 drw_select_mask_px_cb,
                                 &poly_mask_data);
 

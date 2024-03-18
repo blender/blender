@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
 
 /* Return the apparent roughness of a closure compared to a GGX lobe. */
 float closure_apparent_roughness_get(ClosureUndetermined cl)
@@ -17,8 +16,8 @@ float closure_apparent_roughness_get(ClosureUndetermined cl)
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
       return to_closure_reflection(cl).roughness;
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      return refraction_roughness_remapping(to_closure_refraction(cl).roughness,
-                                            to_closure_refraction(cl).ior);
+      /* TODO: This is incorrect. Depends on IOR. */
+      return to_closure_refraction(cl).roughness;
     case CLOSURE_NONE_ID:
     default:
       return 0.0;

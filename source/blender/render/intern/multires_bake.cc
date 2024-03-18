@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
@@ -21,9 +22,10 @@
 #include "BKE_DerivedMesh.hh"
 #include "BKE_ccg.h"
 #include "BKE_customdata.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.hh"
+#include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_tangent.hh"
 #include "BKE_modifier.hh"
@@ -34,6 +36,7 @@
 
 #include "RE_multires_bake.h"
 #include "RE_pipeline.h"
+#include "RE_texture.h"
 #include "RE_texture_margin.h"
 
 #include "IMB_imbuf.hh"

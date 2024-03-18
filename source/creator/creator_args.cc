@@ -24,30 +24,32 @@
 #  include "BLI_dynstr.h"
 #  include "BLI_fileops.h"
 #  include "BLI_listbase.h"
+#  include "BLI_mempool.h"
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_string_utf8.h"
 #  include "BLI_system.h"
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
-#  ifndef NDEBUG
-#    include "BLI_mempool.h"
-#  endif
 
 #  include "BKE_appdir.hh"
 #  include "BKE_blender_version.h"
 #  include "BKE_blendfile.hh"
 #  include "BKE_context.hh"
 
-#  include "BKE_global.hh"
+#  include "BKE_global.h"
 #  include "BKE_image_format.h"
 #  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.hh"
-#  include "BKE_scene.hh"
+#  include "BKE_report.h"
+#  include "BKE_scene.h"
 #  include "BKE_sound.h"
 
 #  include "GPU_context.h"
+
+#  ifdef WITH_FFMPEG
+#    include "IMB_imbuf.hh"
+#  endif
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern_python.h"
@@ -56,6 +58,8 @@
 
 #  include "RE_engine.h"
 #  include "RE_pipeline.h"
+
+#  include "ED_datafiles.h"
 
 #  include "WM_api.hh"
 
@@ -68,6 +72,8 @@
 #  endif
 
 #  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
+#  include "DEG_depsgraph_debug.hh"
 
 #  include "WM_types.hh"
 
@@ -698,8 +704,6 @@ static void print_help(bArgs *ba, bool all)
   PRINT("\n");
   BLI_args_print_arg_doc(ba, "-noaudio");
   BLI_args_print_arg_doc(ba, "-setaudio");
-  PRINT("\n");
-  BLI_args_print_arg_doc(ba, "--command");
 
   PRINT("\n");
 
@@ -896,67 +900,14 @@ static int arg_handle_debug_exit_on_error(int /*argc*/, const char ** /*argv*/, 
   return 0;
 }
 
-/** Shared by `--background` & `--command`. */
-static void background_mode_set()
-{
-  G.background = true;
-
-  /* Background Mode Defaults:
-   *
-   * In general background mode should strive to match the behavior of running
-   * Blender inside a graphical session, any exception to this should have a well
-   * justified reason and be noted in the doc-string. */
-
-  /* NOTE(@ideasman42): While there is no requirement for sound to be disabled in background-mode,
-   * the use case for playing audio in background mode is enough of a special-case
-   * that users who wish to do this can explicitly enable audio in background mode.
-   * While the down sides for connecting to an audio device aren't terrible they include:
-   * - Listing Blender as an active application which may output audio.
-   * - Unnecessary overhead running an operation in background mode or ...
-   * - Having to remember to include `-noaudio` with batch operations.
-   * - A quiet but audible click when Blender starts & configures its audio device.
-   */
-  BKE_sound_force_device("None");
-}
-
 static const char arg_handle_background_mode_set_doc[] =
-    "\n"
-    "\tRun in background (often used for UI-less rendering).\n"
-    "\n"
-    "\tThe audio device is disabled in background-mode by default\n"
-    "\tand can be re-enabled by passing in '-setaudo Default' afterwards.";
+    "\n\t"
+    "Run in background (often used for UI-less rendering).";
 static int arg_handle_background_mode_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
   print_version_short();
-  background_mode_set();
+  G.background = true;
   return 0;
-}
-
-static const char arg_handle_command_set_doc[] =
-    "<command>\n"
-    "\tRun a command which consumes all remaining arguments.\n"
-    "\tUse '-c help' to list all other commands.\n"
-    "\tPass '--help' after the command to see its help text.\n"
-    "\n"
-    "\tThis implies '--background' mode.";
-static int arg_handle_command_set(int argc, const char **argv, void * /*data*/)
-{
-  if (argc < 2) {
-    fprintf(stderr, "%s requires at least one argument\n", argv[0]);
-    exit(EXIT_FAILURE);
-    BLI_assert_unreachable();
-  }
-
-  /* Application "info" messages get in the way of command line output, suppress them. */
-  G.quiet = true;
-
-  background_mode_set();
-
-  app_state.command.argc = argc - 1;
-  app_state.command.argv = argv + 1;
-
-  /* Consume remaining arguments. */
-  return argc - 1;
 }
 
 static const char arg_handle_log_level_set_doc[] =
@@ -1610,8 +1561,9 @@ static int arg_handle_audio_disable(int /*argc*/, const char ** /*argv*/, void *
 
 static const char arg_handle_audio_set_doc[] =
     "\n\t"
-    "Force sound system to a specific device.\n"
-    "\t'None' 'Default' 'SDL' 'OpenAL' 'CoreAudio' 'JACK' 'PulseAudio' 'WASAPI'.";
+    "Force sound system to a specific device."
+    "\n\t"
+    "'None' 'SDL' 'OpenAL' 'CoreAudio' 'JACK' 'PulseAudio' 'WASAPI'.";
 static int arg_handle_audio_set(int argc, const char **argv, void * /*data*/)
 {
   if (argc < 1) {
@@ -1619,13 +1571,7 @@ static int arg_handle_audio_set(int argc, const char **argv, void * /*data*/)
     exit(1);
   }
 
-  const char *device = argv[1];
-  if (STREQ(device, "Default")) {
-    /* Unset any forced device. */
-    device = nullptr;
-  }
-
-  BKE_sound_force_device(device);
+  BKE_sound_force_device(argv[1]);
   return 1;
 }
 
@@ -1651,7 +1597,7 @@ static int arg_handle_output_set(int argc, const char **argv, void *data)
     Scene *scene = CTX_data_scene(C);
     if (scene) {
       STRNCPY(scene->r.pic, argv[1]);
-      DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
     }
     else {
       fprintf(stderr, "\nError: no blend loaded. cannot use '-o / --render-output'.\n");
@@ -1682,7 +1628,7 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
       if (scene) {
         if (BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
           STRNCPY_UTF8(scene->r.engine, argv[1]);
-          DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+          DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
         }
         else {
           fprintf(stderr, "\nError: engine not found '%s'\n", argv[1]);
@@ -1726,7 +1672,7 @@ static int arg_handle_image_type_set(int argc, const char **argv, void *data)
       }
       else {
         scene->r.im_format.imtype = imtype_new;
-        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
       }
     }
     else {
@@ -1811,11 +1757,11 @@ static int arg_handle_extension_set(int argc, const char **argv, void *data)
     if (scene) {
       if (argv[1][0] == '0') {
         scene->r.scemode &= ~R_EXTENSION;
-        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
       }
       else if (argv[1][0] == '1') {
         scene->r.scemode |= R_EXTENSION;
-        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
       }
       else {
         fprintf(stderr,
@@ -1967,7 +1913,7 @@ static int arg_handle_frame_start_set(int argc, const char **argv, void *data)
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
       else {
-        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
       }
       return 1;
     }
@@ -2001,7 +1947,7 @@ static int arg_handle_frame_end_set(int argc, const char **argv, void *data)
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
       else {
-        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
       }
       return 1;
     }
@@ -2027,7 +1973,7 @@ static int arg_handle_frame_skip_set(int argc, const char **argv, void *data)
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
       else {
-        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
       }
       return 1;
     }
@@ -2409,8 +2355,6 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
       ba, nullptr, "--disable-abort-handler", CB(arg_handle_abort_handler_disable), nullptr);
 
   BLI_args_add(ba, "-b", "--background", CB(arg_handle_background_mode_set), nullptr);
-  /* Command implies background mode. */
-  BLI_args_add(ba, "-c", "--command", CB(arg_handle_command_set), nullptr);
 
   BLI_args_add(ba, "-a", nullptr, CB(arg_handle_playback_mode), nullptr);
 

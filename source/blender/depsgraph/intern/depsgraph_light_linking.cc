@@ -16,7 +16,7 @@
 #include "BLI_map.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"

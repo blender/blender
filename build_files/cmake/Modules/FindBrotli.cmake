@@ -21,7 +21,7 @@ else()
   set(BROTLI_ROOT_DIR "")
 endif()
 
-set(_brotli_SEARCH_DIRS
+set(_BROTLI_SEARCH_DIRS
   ${BROTLI_ROOT_DIR}
 )
 
@@ -29,7 +29,7 @@ find_path(BROTLI_INCLUDE_DIR
   NAMES
     brotli/decode.h
   HINTS
-    ${_brotli_SEARCH_DIRS}
+    ${_BROTLI_SEARCH_DIRS}
   PATH_SUFFIXES
     include
   DOC "Brotli header files"
@@ -41,7 +41,7 @@ find_library(BROTLI_LIBRARY_COMMON
     brotlicommon-static
     brotlicommon
   HINTS
-    ${_brotli_SEARCH_DIRS}
+    ${_BROTLI_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib lib/static
   DOC "Brotli static common library"
@@ -52,7 +52,7 @@ find_library(BROTLI_LIBRARY_DEC
     brotlidec-static
     brotlidec
   HINTS
-    ${_brotli_SEARCH_DIRS}
+    ${_BROTLI_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib lib/static
   DOC "Brotli static decode library"
@@ -81,4 +81,4 @@ mark_as_advanced(
   BROTLI_LIBRARY_DIR
 )
 
-unset(_brotli_SEARCH_DIRS)
+unset(_BROTLI_SEARCH_DIRS)

@@ -20,7 +20,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_addon.h"
 #include "BKE_context.hh"
@@ -31,7 +31,6 @@
 #include "ED_keyframing.hh"
 #include "ED_screen.hh"
 
-#include "UI_abstract_view.hh"
 #include "UI_interface.hh"
 
 #include "interface_intern.hh"
@@ -137,6 +136,7 @@ static void shortcut_free_operator_property(IDProperty *prop)
 static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
 {
   uiBut *but = (uiBut *)arg1;
+  char shortcut_str[128];
 
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
@@ -145,10 +145,10 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
   }
 
   /* complex code to change name of button */
-  if (std::optional<std::string> shortcut_str = WM_key_event_operator_string(
-          C, idname, but->opcontext, prop, true))
+  if (WM_key_event_operator_string(
+          C, idname, but->opcontext, prop, true, shortcut_str, sizeof(shortcut_str)))
   {
-    ui_but_add_shortcut(but, shortcut_str->c_str(), true);
+    ui_but_add_shortcut(but, shortcut_str, true);
   }
   else {
     /* simply strip the shortcut */
@@ -1026,7 +1026,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       /* Sub-layout for context override. */
       uiLayout *sub = uiLayoutColumn(layout, false);
       set_layout_context_from_button(C, sub, view_item_but);
-      view_item_but->view_item->build_context_menu(*C, *sub);
+      UI_view_item_context_menu_build(C, view_item_but->view_item, sub);
 
       /* Reset context. */
       CTX_store_set(C, prev_ctx);
@@ -1108,6 +1108,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             nullptr,
             0,
             0,
+            0,
+            0,
             "");
         item_found = true;
         UI_but_func_set(but2, [um, umi](bContext &) {
@@ -1132,6 +1134,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           w,
           UI_UNIT_Y,
           nullptr,
+          0,
+          0,
           0,
           0,
           "Add to a user defined context menu (stored in the user preferences)");
@@ -1185,6 +1189,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             nullptr,
             0,
             0,
+            0,
+            0,
             "");
         UI_but_func_set(but2, [but](bContext &C) {
           UI_popup_block_invoke(&C, menu_change_shortcut, but, nullptr);
@@ -1201,6 +1207,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                                        w,
                                        UI_UNIT_Y,
                                        nullptr,
+                                       0,
+                                       0,
                                        0,
                                        0,
                                        TIP_("Only keyboard shortcuts can be edited that way, "
@@ -1221,6 +1229,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           nullptr,
           0,
           0,
+          0,
+          0,
           "");
       UI_but_func_set(but2, [but](bContext &C) { remove_shortcut_func(&C, but); });
     }
@@ -1239,6 +1249,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           nullptr,
           0,
           0,
+          0,
+          0,
           "");
       UI_but_func_set(but2, [but](bContext &C) {
         UI_popup_block_ex(&C, menu_add_shortcut, nullptr, menu_add_shortcut_cancel, but, nullptr);
@@ -1254,7 +1266,9 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   { /* Docs */
-    if (std::optional<std::string> manual_id = UI_but_online_manual_id(but)) {
+    char buf[512];
+
+    if (UI_but_online_manual_id(but, buf, sizeof(buf))) {
       PointerRNA ptr_props;
       uiItemO(layout,
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Manual"),
@@ -1270,7 +1284,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                     WM_OP_EXEC_DEFAULT,
                     UI_ITEM_NONE,
                     &ptr_props);
-        RNA_string_set(&ptr_props, "doc_id", manual_id.value().c_str());
+        RNA_string_set(&ptr_props, "doc_id", buf);
       }
     }
   }

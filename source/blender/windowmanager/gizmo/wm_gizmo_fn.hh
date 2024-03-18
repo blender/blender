@@ -15,7 +15,7 @@
 struct wmKeyMap;
 struct wmMsgBus;
 
-/* #wmGizmoGroup. */
+/* wmGizmoGroup */
 using wmGizmoGroupFnPoll = bool (*)(const bContext *, wmGizmoGroupType *);
 using wmGizmoGroupFnInit = void (*)(const bContext *, wmGizmoGroup *);
 using wmGizmoGroupFnRefresh = void (*)(const bContext *, wmGizmoGroup *);
@@ -27,7 +27,7 @@ using wmGizmoGroupFnInvokePrepare = void (*)(const bContext *,
 using wmGizmoGroupFnSetupKeymap = wmKeyMap *(*)(const wmGizmoGroupType *, wmKeyConfig *);
 using wmGizmoGroupFnMsgBusSubscribe = void (*)(const bContext *, wmGizmoGroup *, wmMsgBus *);
 
-/* #wmGizmo. */
+/* wmGizmo */
 /* See: wmGizmoType for docs on each type. */
 
 using wmGizmoFnSetup = void (*)(wmGizmo *);
@@ -44,18 +44,18 @@ using wmGizmoFnScreenBoundsGet = bool (*)(bContext *, wmGizmo *, rcti *r_boundin
 using wmGizmoFnSelectRefresh = void (*)(wmGizmo *);
 using wmGizmoFnFree = void (*)(wmGizmo *);
 
-/* #wmGizmoProperty ('value' type defined by 'wmGizmoProperty.data_type'). */
+/* wmGizmoProperty ('value' type defined by 'wmGizmoProperty.data_type') */
 using wmGizmoPropertyFnGet = void (*)(const wmGizmo *,
                                       wmGizmoProperty *,
-                                      /* Typically `float *`. */
+                                      /* typically 'float *' */
                                       void *value);
 using wmGizmoPropertyFnSet = void (*)(const wmGizmo *,
                                       wmGizmoProperty *,
-                                      /* Typically `const float *`. */
+                                      /* typically 'const float *' */
                                       const void *value);
 using wmGizmoPropertyFnRangeGet = void (*)(const wmGizmo *,
                                            wmGizmoProperty *,
-                                           /* Typically `float[2]`. */
+                                           /* typically 'float[2]' */
                                            void *range);
 using wmGizmoPropertyFnFree = void (*)(const wmGizmo *, wmGizmoProperty *);
 

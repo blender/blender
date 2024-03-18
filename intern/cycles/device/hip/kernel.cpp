@@ -54,4 +54,4 @@ bool HIPDeviceKernels::available(DeviceKernel kernel) const
 
 CCL_NAMESPACE_END
 
-#endif /* WITH_HIP */
+#endif /* WITH_HIP*/

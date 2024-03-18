@@ -15,7 +15,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_layer.hh"
 
 #include "RNA_access.hh"
@@ -138,7 +138,7 @@ static bool interactive_value_update(ValueInteraction *inter,
 
   const bool changed = value_final != inter->prev.prop_value;
   if (changed) {
-    /* Set the property for the operator and call its modal function. */
+    /* set the property for the operator and call its modal function */
     char str[64];
     SNPRINTF(str, "%.4f", value_final);
     ED_area_status_text(inter->context_vars.area, str);

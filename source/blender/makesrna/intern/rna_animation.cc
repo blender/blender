@@ -14,7 +14,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -91,9 +91,9 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 
 #  include "BLI_math_base.h"
 
-#  include "BKE_anim_data.hh"
+#  include "BKE_anim_data.h"
 #  include "BKE_animsys.h"
-#  include "BKE_fcurve.hh"
+#  include "BKE_fcurve.h"
 #  include "BKE_nla.h"
 
 #  include "DEG_depsgraph.hh"
@@ -625,7 +625,7 @@ static NlaTrack *rna_NlaTrack_new(ID *id, AnimData *adt, Main *bmain, bContext *
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, nullptr);
 
   DEG_relations_tag_update(bmain);
-  DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION | ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
 
   return new_track;
 }
@@ -646,7 +646,7 @@ static void rna_NlaTrack_remove(
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, nullptr);
 
   DEG_relations_tag_update(bmain);
-  DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION | ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
 }
 
 static PointerRNA rna_NlaTrack_active_get(PointerRNA *ptr)

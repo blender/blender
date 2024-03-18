@@ -19,13 +19,18 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_gpencil_legacy_types.h"
+#include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_kdtree.h"
 #include "BLI_linklist.h"
@@ -36,34 +41,48 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
+#include "BKE_DerivedMesh.hh"
 #include "BKE_action.h"
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_armature.hh"
-#include "BKE_collection.hh"
+#include "BKE_camera.h"
+#include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
+#include "BKE_curves.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.hh"
-#include "BKE_fcurve.hh"
+#include "BKE_fcurve.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_idprop.h"
 #include "BKE_idtype.hh"
+#include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_light.h"
+#include "BKE_lightprobe.h"
 #include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_mball.hh"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
-#include "BKE_node.hh"
+#include "BKE_node.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_interface.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_pointcloud.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
+#include "BKE_speaker.h"
+#include "BKE_texture.h"
+#include "BKE_volume.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -82,6 +101,7 @@
 #include "ED_armature.hh"
 #include "ED_curve.hh"
 #include "ED_gpencil_legacy.hh"
+#include "ED_keyframing.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
@@ -135,7 +155,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
     /* Make sure the evaluated mesh is updated.
      *
      * Most reliable way is to update the tagged objects, which will ensure
-     * proper copy-on-evaluation update, but also will make sure all dependent
+     * proper copy-on-write update, but also will make sure all dependent
      * objects are also up to date. */
     BKE_scene_graph_update_tagged(depsgraph, bmain);
 
@@ -254,6 +274,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
         BKE_report(op->reports, RPT_ERROR, "Loop in parents");
       }
       else {
+        Object workob;
         BKE_view_layer_synced_ensure(scene, view_layer);
         ob->parent = BKE_view_layer_active_object_get(view_layer);
         if (par3 != INDEX_UNSET) {
@@ -263,14 +284,16 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
           ob->par3 = par3;
 
           /* inverse parent matrix */
-          invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
+          BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
+          invert_m4_m4(ob->parentinv, workob.object_to_world);
         }
         else {
           ob->partype = PARVERT1;
           ob->par1 = par1;
 
           /* inverse parent matrix */
-          invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
+          BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
+          invert_m4_m4(ob->parentinv, workob.object_to_world);
         }
       }
     }
@@ -286,20 +309,6 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 #undef INDEX_UNSET
 }
 
-static int vertex_parent_set_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Parent selected objects to the selected vertices?"),
-                                  nullptr,
-                                  IFACE_("Parent"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return vertex_parent_set_exec(C, op);
-}
-
 void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 {
   /* identifiers */
@@ -308,7 +317,7 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_vertex_parent_set";
 
   /* api callbacks */
-  ot->invoke = vertex_parent_set_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->poll = vertex_parent_set_poll;
   ot->exec = vertex_parent_set_exec;
 
@@ -406,7 +415,7 @@ void ED_object_parent_clear(Object *ob, const int type)
       /* remove parent, and apply the parented transform
        * result as object's local transforms */
       ob->parent = nullptr;
-      BKE_object_apply_mat4(ob, ob->object_to_world().ptr(), true, false);
+      BKE_object_apply_mat4(ob, ob->object_to_world, true, false);
       /* Don't recalculate the animation because it would change the transform
        * instead of keeping it. */
       flags &= ~ID_RECALC_ANIMATION;
@@ -586,11 +595,13 @@ bool ED_object_parent_set(ReportList *reports,
       }
   }
 
+  Object workob;
+
   /* Apply transformation of previous parenting. */
   if (keep_transform) {
     /* Was removed because of bug #23577,      * but this can be handy in some cases too #32616, so
      * make optional. */
-    BKE_object_apply_mat4(ob, ob->object_to_world().ptr(), false, false);
+    BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
   }
 
   /* Set the parent (except for follow-path constraint option). */
@@ -715,7 +726,7 @@ bool ED_object_parent_set(ReportList *reports,
 
     BKE_constraint_target_matrix_get(
         depsgraph, scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, nullptr, cmat, scene->r.cfra);
-    sub_v3_v3v3(vec, ob->object_to_world().location(), cmat[3]);
+    sub_v3_v3v3(vec, ob->object_to_world[3], cmat[3]);
 
     copy_v3_v3(ob->loc, vec);
   }
@@ -736,8 +747,9 @@ bool ED_object_parent_set(ReportList *reports,
     }
     /* get corrected inverse */
     ob->partype = PAROBJECT;
+    BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
+    invert_m4_m4(ob->parentinv, workob.object_to_world);
   }
   else if (is_armature_parent && (ob->type == OB_GPENCIL_LEGACY) && (par->type == OB_ARMATURE)) {
     if (partype == PAR_ARMATURE) {
@@ -753,8 +765,9 @@ bool ED_object_parent_set(ReportList *reports,
     }
     /* get corrected inverse */
     ob->partype = PAROBJECT;
+    BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
+    invert_m4_m4(ob->parentinv, workob.object_to_world);
   }
   else if ((ob->type == OB_GPENCIL_LEGACY) && (par->type == OB_LATTICE)) {
     /* Add Lattice modifier */
@@ -763,12 +776,14 @@ bool ED_object_parent_set(ReportList *reports,
     }
     /* get corrected inverse */
     ob->partype = PAROBJECT;
+    BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
+    invert_m4_m4(ob->parentinv, workob.object_to_world);
   }
   else {
     /* calculate inverse parent matrix */
-    invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
+    BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
+    invert_m4_m4(ob->parentinv, workob.object_to_world);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
@@ -777,7 +792,7 @@ bool ED_object_parent_set(ReportList *reports,
 
 static void parent_set_vert_find(KDTree_3d *tree, Object *child, int vert_par[3], bool is_tri)
 {
-  const float *co_find = child->object_to_world().location();
+  const float *co_find = child->object_to_world[3];
   if (is_tri) {
     KDTreeNearest_3d nearest[3];
     int tot;
@@ -1121,20 +1136,6 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int parent_noinv_set_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Make Parent without inverse correction?"),
-                                  nullptr,
-                                  IFACE_("Parent"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return parent_noinv_set_exec(C, op);
-}
-
 void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1143,7 +1144,7 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_parent_no_inverse_set";
 
   /* api callbacks */
-  ot->invoke = parent_noinv_set_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = parent_noinv_set_exec;
   ot->poll = ED_operator_object_active_editable;
 
@@ -1209,7 +1210,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
     }
 
     if (type == CLEAR_TRACK_KEEP_TRANSFORM) {
-      BKE_object_apply_mat4(ob, ob->object_to_world().ptr(), true, true);
+      BKE_object_apply_mat4(ob, ob->object_to_world, true, true);
     }
   }
   CTX_DATA_END;
@@ -1578,7 +1579,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
               id_us_plus(&ob_dst->instance_collection->id);
               ob_dst->transflag |= OB_DUPLICOLLECTION;
             }
-            DEG_id_tag_update(&ob_dst->id, ID_RECALC_SYNC_TO_EVAL);
+            DEG_id_tag_update(&ob_dst->id, ID_RECALC_COPY_ON_WRITE);
             break;
           case MAKE_LINKS_MODIFIERS:
             BKE_object_link_modifiers(ob_dst, ob_src);
@@ -2413,7 +2414,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     if (ID_IS_OVERRIDE_LIBRARY_REAL(ob_iter) && !ID_IS_LINKED(ob_iter)) {
       ob_iter->id.override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
       is_active_override = is_active_override || (&ob_iter->id == id_root);
-      DEG_id_tag_update(&ob_iter->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&ob_iter->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
   FOREACH_SELECTED_OBJECT_END;
@@ -2542,7 +2543,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     }
   }
 
-  DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS | ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
   WM_event_add_notifier(C, NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
@@ -2788,7 +2789,7 @@ static int clear_override_library_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS | ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
   WM_event_add_notifier(C, NC_WM | ND_LIB_OVERRIDE_CHANGED, nullptr);
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);

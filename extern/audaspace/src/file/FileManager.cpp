@@ -43,7 +43,7 @@ void FileManager::registerOutput(std::shared_ptr<aud::IFileOutput> output)
 	outputs().push_back(output);
 }
 
-std::shared_ptr<IReader> FileManager::createReader(const std::string &filename, int stream)
+std::shared_ptr<IReader> FileManager::createReader(std::string filename, int stream)
 {
 	for(std::shared_ptr<IFileInput> input : inputs())
 	{
@@ -71,7 +71,7 @@ std::shared_ptr<IReader> FileManager::createReader(std::shared_ptr<Buffer> buffe
 	AUD_THROW(FileException, "The file couldn't be read with any installed file reader.");
 }
 
-std::vector<StreamInfo> FileManager::queryStreams(const std::string &filename)
+std::vector<StreamInfo> FileManager::queryStreams(std::string filename)
 {
 	for(std::shared_ptr<IFileInput> input : inputs())
 	{
@@ -99,7 +99,7 @@ std::vector<StreamInfo> FileManager::queryStreams(std::shared_ptr<Buffer> buffer
 	AUD_THROW(FileException, "The file couldn't be read with any installed file reader.");
 }
 
-std::shared_ptr<IWriter> FileManager::createWriter(const std::string &filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate)
+std::shared_ptr<IWriter> FileManager::createWriter(std::string filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate)
 {
 	for(std::shared_ptr<IFileOutput> output : outputs())
 	{

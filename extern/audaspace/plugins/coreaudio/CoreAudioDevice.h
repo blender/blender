@@ -26,20 +26,19 @@
  * The CoreAudioDevice class.
  */
 
+#include "CoreAudioSynchronizer.h"
+#include "devices/SoftwareDevice.h"
+
 #include <memory>
 
 #include <AudioUnit/AudioUnit.h>
-
-#include "CoreAudioSynchronizer.h"
-
-#include "devices/OpenCloseDevice.h"
 
 AUD_NAMESPACE_BEGIN
 
 /**
  * This device plays back through CoreAudio, the Apple audio API.
  */
-class AUD_PLUGIN_API CoreAudioDevice : public OpenCloseDevice
+class AUD_PLUGIN_API CoreAudioDevice : public SoftwareDevice
 {
 private:
 	/**
@@ -68,14 +67,12 @@ private:
 	 */
 	AUD_LOCAL static OSStatus CoreAudio_mix(void* data, AudioUnitRenderActionFlags* flags, const AudioTimeStamp* time_stamp, UInt32 bus_number, UInt32 number_frames, AudioBufferList* buffer_list);
 
-	AUD_LOCAL void start();
-	AUD_LOCAL void stop();
-	AUD_LOCAL void open();
-	AUD_LOCAL void close();
-
 	// delete copy constructor and operator=
 	CoreAudioDevice(const CoreAudioDevice&) = delete;
 	CoreAudioDevice& operator=(const CoreAudioDevice&) = delete;
+
+protected:
+	virtual void playing(bool playing);
 
 public:
 	/**

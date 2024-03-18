@@ -37,7 +37,8 @@ void main()
                         uniform_buf.raytrace.resolution_bias;
 
   uint gbuf_header = texelFetch(gbuf_header_tx, texel_fullres, 0).r;
-  ClosureType closure_type = gbuffer_closure_type_get_by_bin(gbuf_header, closure_index);
+  GBufferReader gbuf = gbuffer_read_header_closure_types(gbuf_header);
+  ClosureType closure_type = gbuffer_closure_get(gbuf, closure_index).type;
 
   if ((closure_type == CLOSURE_BSDF_TRANSLUCENT_ID) ||
       (closure_type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID))
@@ -57,7 +58,7 @@ void main()
     return;
   }
 
-  PlanarProbeData planar = probe_planar_buf[planar_id];
+  ProbePlanarData planar = probe_planar_buf[planar_id];
 
   /* Tag the ray data so that screen trace will not try to evaluate it and override the result. */
   imageStore(ray_data_img, texel, vec4(ray_data.xyz, -ray_data.w));

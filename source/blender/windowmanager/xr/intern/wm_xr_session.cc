@@ -6,12 +6,12 @@
  * \ingroup wm
  */
 
-#include "BKE_callbacks.hh"
+#include "BKE_callbacks.h"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_screen.hh"
 
 #include "BLI_listbase.h"
@@ -113,8 +113,8 @@ static void wm_xr_session_begin_info_create(wmXrData *xr_data,
    * after the session is created but before it is started. */
   r_begin_info->create_fn = wm_xr_session_create_cb;
 
-  /* WM-XR exit function, does some of its own stuff and calls callback passed to
-   * wm_xr_session_toggle(), to allow external code to execute its own session-exit logic. */
+  /* WM-XR exit function, does some own stuff and calls callback passed to wm_xr_session_toggle(),
+   * to allow external code to execute its own session-exit logic. */
   r_begin_info->exit_fn = wm_xr_session_exit_cb;
   r_begin_info->exit_customdata = xr_data;
 }
@@ -180,7 +180,7 @@ static void wm_xr_session_base_pose_calc(const Scene *scene,
     float tmp_quat[4];
     float tmp_eul[3];
 
-    mat4_to_loc_quat(r_base_pose->position, tmp_quat, base_pose_object->object_to_world().ptr());
+    mat4_to_loc_quat(r_base_pose->position, tmp_quat, base_pose_object->object_to_world);
 
     /* Only use rotation around Z-axis to align view with floor. */
     quat_to_eul(tmp_eul, tmp_quat);
@@ -231,7 +231,7 @@ wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
  * started from) if still available. If it's not available, use some fallback window.
  *
  * It's important that the VR session follows some existing window, otherwise it would need to have
- * its own depsgraph, which is an expense we should avoid.
+ * an own depsgraph, which is an expense we should avoid.
  */
 static void wm_xr_session_scene_and_depsgraph_get(const wmWindowManager *wm,
                                                   Scene **r_scene,
@@ -1114,7 +1114,7 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
     return;
   }
 
-  const int64_t time_now = int64_t(BLI_time_now_seconds() * 1000);
+  const int64_t time_now = int64_t(BLI_check_seconds_timer() * 1000);
 
   ListBase *active_modal_actions = &action_set->active_modal_actions;
   ListBase *active_haptic_actions = &action_set->active_haptic_actions;
@@ -1303,7 +1303,7 @@ void wm_xr_session_controller_data_clear(wmXrSessionState *state)
   }
 }
 
-/** \} */ /* XR-Session Actions. */
+/** \} */ /* XR-Session Actions */
 
 /* -------------------------------------------------------------------- */
 /** \name XR-Session Surface
@@ -1501,7 +1501,7 @@ void *wm_xr_session_gpu_binding_context_create()
 
 void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle /*context*/)
 {
-  if (g_xr_surface) { /* Might have been freed already. */
+  if (g_xr_surface) { /* Might have been freed already */
     wm_surface_remove(g_xr_surface);
   }
 
@@ -1522,4 +1522,4 @@ ARegionType *WM_xr_surface_controller_region_type_get()
   return nullptr;
 }
 
-/** \} */ /* XR-Session Surface. */
+/** \} */ /* XR-Session Surface */

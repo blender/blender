@@ -47,5 +47,3 @@ endif()
 mark_as_advanced(
   EIGEN3_INCLUDE_DIR
 )
-
-unset(_eigen3_SEARCH_DIRS)

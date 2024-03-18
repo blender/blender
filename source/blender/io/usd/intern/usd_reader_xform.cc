@@ -9,19 +9,25 @@
 
 #include "BKE_constraint.h"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_space_types.h" /* for FILE_MAX */
 
+#include <pxr/base/gf/math.h>
 #include <pxr/base/gf/matrix4f.h>
-#include <pxr/usd/usdGeom/xformable.h>
 
-#include <string>
+#include <pxr/usd/usdGeom/xform.h>
 
 namespace blender::io::usd {
 

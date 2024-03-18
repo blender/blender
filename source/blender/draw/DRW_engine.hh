@@ -57,12 +57,12 @@ struct DRWUpdateContext {
 };
 void DRW_notify_view_update(const DRWUpdateContext *update_ctx);
 
-enum eDRWSelectStage {
+typedef enum eDRWSelectStage {
   DRW_SELECT_PASS_PRE = 1,
   DRW_SELECT_PASS_POST,
-};
-using DRW_SelectPassFn = bool (*)(eDRWSelectStage stage, void *user_data);
-using DRW_ObjectFilterFn = bool (*)(Object *ob, void *user_data);
+} eDRWSelectStage;
+typedef bool (*DRW_SelectPassFn)(eDRWSelectStage stage, void *user_data);
+typedef bool (*DRW_ObjectFilterFn)(Object *ob, void *user_data);
 
 /**
  * Everything starts here.

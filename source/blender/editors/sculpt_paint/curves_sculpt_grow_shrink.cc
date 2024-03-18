@@ -6,6 +6,7 @@
 
 #include "BLI_math_vector.hh"
 
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix_types.hh"

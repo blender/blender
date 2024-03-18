@@ -18,10 +18,12 @@
 #include "usd_reader_xform.hh"
 
 #include <pxr/pxr.h>
+#include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usdGeom/camera.h>
 #include <pxr/usd/usdGeom/capsule.h>
 #include <pxr/usd/usdGeom/cone.h>
 #include <pxr/usd/usdGeom/cube.h>
+#include <pxr/usd/usdGeom/curves.h>
 #include <pxr/usd/usdGeom/cylinder.h>
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/nurbsCurves.h>
@@ -43,10 +45,10 @@
 #include "BLI_sort.hh"
 #include "BLI_string.h"
 
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "CLG_log.h"
 

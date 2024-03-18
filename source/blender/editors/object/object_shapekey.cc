@@ -17,10 +17,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -28,13 +29,16 @@
 #include "DNA_object_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_crazyspace.hh"
 #include "BKE_key.hh"
 #include "BKE_lattice.hh"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 

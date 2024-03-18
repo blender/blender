@@ -15,6 +15,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_context.hh"
 #include "BKE_curve.hh"
 
 #include "ED_object.hh"
@@ -94,7 +95,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
       continue;
     }
 
-    /* Count total of vertices, check identical as in 2nd loop for making transdata! */
+    /* count total of vertices, check identical as in 2nd loop for making transdata! */
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
     LISTBASE_FOREACH (Nurb *, nu, nurbs) {
       if (nu->type == CU_BEZIER) {
@@ -177,7 +178,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
                                                 transform_mode_use_local_origins(t));
     float mtx[3][3], smtx[3][3];
 
-    copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
+    copy_m3_m4(mtx, tc->obedit->object_to_world);
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     TransData *td = tc->data;
@@ -199,7 +200,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
               BKE_nurb_bezt_calc_plane(nu, bezt, plane);
 
               if (createSpaceNormalTangent(axismtx, normal, plane)) {
-                /* Pass. */
+                /* pass */
               }
               else {
                 normalize_v3(normal);
@@ -251,7 +252,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
               tail++;
             }
 
-            /* This is the Curve Point, the other two are handles. */
+            /* This is the Curve Point, the other two are handles */
             if (is_prop_edit || bezt_tx & SEL_F2) {
               copy_v3_v3(td->iloc, bezt->vec[1]);
               td->loc = bezt->vec[1];
@@ -286,7 +287,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
               if ((bezt_tx & SEL_F1) == 0 && (bezt_tx & SEL_F3) == 0) {
                 /* If the middle is selected but the sides aren't, this is needed. */
                 if (hdata == nullptr) {
-                  /* If the handle was not saved by the previous handle. */
+                  /* if the handle was not saved by the previous handle */
                   hdata = initTransDataCurveHandles(td, bezt);
                 }
               }
@@ -322,7 +323,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
               td->val = nullptr;
 
               if (hdata == nullptr) {
-                /* If the handle was not saved by the previous handle. */
+                /* if the handle was not saved by the previous handle */
                 hdata = initTransDataCurveHandles(td, bezt);
               }
 
@@ -336,7 +337,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
               tail++;
             }
 
-            (void)hdata; /* Quiet warning. */
+            (void)hdata; /* quiet warning */
           }
         }
       }
@@ -376,7 +377,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
                   BKE_nurb_bpoint_calc_plane(nu, bp, plane);
 
                   if (createSpaceNormalTangent(td->axismtx, normal, plane)) {
-                    /* Pass. */
+                    /* pass */
                   }
                   else {
                     normalize_v3(normal);
@@ -406,12 +407,12 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
       }
 
       /* TODO: in the case of tilt and radius we can also avoid allocating the
-       * #initTransDataCurveHandles but for now just don't change handle types. */
+       * initTransDataCurveHandles but for now just don't change handle types */
       if ((nu->type == CU_BEZIER) &&
           ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT, TFM_DUMMY) == 0)
       {
-        /* Sets the handles based on their selection,
-         * do this after the data is copied to the #TransData. */
+        /* sets the handles based on their selection,
+         * do this after the data is copied to the TransData */
         BKE_nurb_handles_test(nu, handle_mode, use_around_origins_for_handles_test);
       }
     }
@@ -436,7 +437,7 @@ static void recalcData_curve(TransInfo *t)
 
     if (t->state == TRANS_CANCEL) {
       while (nu) {
-        /* Can't do testhandlesNurb here, it messes up the h1 and h2 flags. */
+        /* Can't do testhandlesNurb here, it messes up the h1 and h2 flags */
         BKE_nurb_handles_calc(nu);
         nu = nu->next;
       }

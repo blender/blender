@@ -12,8 +12,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /******************************** Quaternions ********************************/
 
@@ -1034,7 +1033,7 @@ void sin_cos_from_fraction(int numerator, int denominator, float *r_sin, float *
 
   BLI_assert(-denominator / 4 <= numerator); /* Numerator may be negative. */
   BLI_assert(numerator <= denominator / 4);
-  BLI_assert(ELEM(cos_sign, -1.0f, 1.0f));
+  BLI_assert(cos_sign == -1.0f || cos_sign == 1.0f);
 
   const float angle = (float)(2.0 * M_PI) * ((float)numerator / (float)denominator);
   *r_sin = sinf(angle);

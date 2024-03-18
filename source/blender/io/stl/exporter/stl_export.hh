@@ -10,9 +10,6 @@
 
 #include "IO_stl.hh"
 
-struct bContext;
-struct Depsgraph;
-
 namespace blender::io::stl {
 
 void exporter_main(bContext *C, const STLExportParams &export_params);

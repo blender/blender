@@ -80,7 +80,7 @@ enum eTContext {
   CTX_OBMODE_XFORM_OBDATA = (1 << 13),
   /** Transform object parents without moving their children. */
   CTX_OBMODE_XFORM_SKIP_CHILDREN = (1 << 14),
-  /** Enable edge scrolling in 2D views. */
+  /** Enable edge scrolling in 2D views */
   CTX_VIEW2D_EDGE_PAN = (1 << 15),
 };
 ENUM_OPERATORS(eTContext, CTX_VIEW2D_EDGE_PAN)
@@ -91,7 +91,7 @@ enum eTFlag {
   T_EDIT = 1 << 0,
   /** Transform points, having no rotation/scale. */
   T_POINTS = 1 << 1,
-  /** Restrictions flags. */
+  /** restrictions flags */
   T_NO_CONSTRAINT = 1 << 2,
   T_NULL_ONE = 1 << 3,
 
@@ -140,7 +140,7 @@ enum eTFlag {
   /** Use drag-start position of the event, otherwise use the cursor coordinates (unmodified). */
   T_EVENT_DRAG_START = 1 << 22,
 
-  /** No cursor wrapping on region bounds. */
+  /** No cursor wrapping on region bounds */
   T_NO_CURSOR_WRAP = 1 << 23,
 
   /** Do not display Xform gizmo even though it is available. */
@@ -299,22 +299,22 @@ struct TransSnapPoint {
 };
 
 struct TransSnap {
-  /* Snapping options stored as flags. */
+  /* Snapping options stored as flags */
   eSnapFlag flag;
-  /* Method(s) used for snapping source to target. */
+  /* Method(s) used for snapping source to target */
   eSnapMode mode;
-  /* Part of source to snap to target. */
+  /* Part of source to snap to target */
   eSnapSourceOP source_operation;
-  /* Determines which objects are possible target. */
+  /* Determines which objects are possible target */
   eSnapTargetOP target_operation;
   short face_nearest_steps;
   eTSnap status;
   /* Snapped Element Type (currently for objects only). */
   eSnapMode source_type;
   eSnapMode target_type;
-  /** Snapping from this point (in global-space). */
+  /** snapping from this point (in global-space). */
   float snap_source[3];
-  /** To this point (in global-space). */
+  /** to this point (in global-space). */
   float snap_target[3];
   float snap_target_grid[3];
   float snapNormal[3];
@@ -359,7 +359,7 @@ struct TransCon {
                     const TransDataContainer *tc,
                     const TransData *td,
                     float r_smat[3][3]);
-  /** Apply function pointer for rotation transformation. */
+  /** Apply function pointer for rotation transformation */
   void (*applyRot)(const TransInfo *t,
                    const TransDataContainer *tc,
                    const TransData *td,
@@ -457,10 +457,10 @@ struct TransDataContainer {
   float mat3[3][3];
   float imat3[3][3];
 
-  /** Normalized #mat3. */
+  /** Normalized 'mat3' */
   float mat3_unit[3][3];
 
-  /** If `t->flag & T_POSE`, this denotes pose object. */
+  /** if 't->flag & T_POSE', this denotes pose object */
   Object *poseobj;
 
   /** Center of transformation (in local-space), Calculated from #TransInfo.center_global. */
@@ -474,8 +474,8 @@ struct TransDataContainer {
 
   /**
    * Store matrix, this avoids having to have duplicate check all over
-   * Typically: 'obedit->object_to_world().ptr()' or 'poseobj->object_to_world().ptr()', but may be
-   * used elsewhere too.
+   * Typically: 'obedit->object_to_world' or 'poseobj->object_to_world', but may be used elsewhere
+   * too.
    */
   bool use_local_mat;
 
@@ -534,20 +534,20 @@ struct TransInfo {
   /** Mouse input. */
   MouseInput mouse;
 
-  /** Proportional circle radius. */
+  /** proportional circle radius. */
   float prop_size;
-  /** Proportional falloff text. */
+  /** proportional falloff text. */
   char proptext[20];
   /**
    * Spaces using non 1:1 aspect, (UV's, F-curve, movie-clip... etc).
    * use for conversion and snapping.
    */
   float aspect[3];
-  /** Center of transformation (in global-space). */
+  /** center of transformation (in global-space) */
   float center_global[3];
-  /** Center in screen coordinates. */
+  /** center in screen coordinates. */
   float center2d[2];
-  /** Maximum index on the input vector. */
+  /** maximum index on the input vector. */
   short idx_max;
   /** Snapping Gears. */
   float snap[2];
@@ -558,36 +558,36 @@ struct TransInfo {
    * modifier is enabled for snap to grid or incremental snap.
    */
   float snap_spatial_precision;
-  /** Mouse side of the current frame, 'L', 'R' or 'B'. */
+  /** Mouse side of the current frame, 'L', 'R' or 'B' */
   char frame_side;
 
-  /** Copy from #RegionView3D, prevents feedback. */
+  /** copy from #RegionView3D, prevents feedback. */
   float viewmat[4][4];
-  /** And to make sure we don't have to. */
+  /** and to make sure we don't have to. */
   float viewinv[4][4];
   /** Access #RegionView3D from other space types. */
   float persmat[4][4];
   float persinv[4][4];
   short persp;
   short around;
-  /** Space-type where transforming is. */
+  /** space-type where transforming is. */
   char spacetype;
   /** Type of active object being edited. */
   short obedit_type;
 
-  /** Translation, to show for widget. */
+  /** translation, to show for widget. */
   float vec[3];
   /** Rotate/re-scale, to show for widget. */
   float mat[3][3];
 
-  /** Orientation matrix of the current space. */
+  /** orientation matrix of the current space. */
   float spacemtx[3][3];
   float spacemtx_inv[3][3];
-  /** Name of the current space, MAX_NAME. */
+  /** name of the current space, MAX_NAME. */
   char spacename[64];
 
   /*************** NEW STUFF *********************/
-  /** Event type used to launch transform. */
+  /** event type used to launch transform. */
   short launch_event;
   /**
    * Is the actual launch event a drag event?
@@ -633,7 +633,7 @@ struct TransInfo {
   /** Secondary axis, shear uses this. */
   int orient_axis_ortho;
 
-  /** Remove elements if operator is canceled. */
+  /** remove elements if operator is canceled. */
   bool remove_on_cancel;
 
   void *view;
@@ -649,11 +649,11 @@ struct TransInfo {
   wmTimer *animtimer;
   /** Needed so we can perform a look up for header text. */
   wmKeyMap *keymap;
-  /** Assign from the operator, or can be NULL. */
+  /** assign from the operator, or can be NULL. */
   ReportList *reports;
-  /** Current mouse position. */
+  /** current mouse position. */
   blender::float2 mval;
-  /** Use for 3d view. */
+  /** use for 3d view. */
   float zfac;
   void *draw_handle_view;
   void *draw_handle_pixel;
@@ -716,10 +716,9 @@ void transform_final_value_get(const TransInfo *t, float *value, int value_num);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name General Utils
+/** \name TransData Creation and General Handling
  * \{ */
 
-void transform_view_vector_calc(const TransInfo *t, const float focus[3], float r_vec[3]);
 bool transdata_check_local_islands(TransInfo *t, short around);
 
 /** \} */
@@ -779,8 +778,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
  */
 void freeTransCustomDataForMode(TransInfo *t);
 /**
- * Here I would suggest only #TransInfo related issues, like free data & reset variables.
- * Not redraws.
+ * Here I would suggest only #TransInfo related issues, like free data & reset vars. Not redraws.
  */
 void postTrans(bContext *C, TransInfo *t);
 /**
@@ -789,7 +787,7 @@ void postTrans(bContext *C, TransInfo *t);
 void resetTransModal(TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 
-/* DRAWLINE options flags. */
+/* DRAWLINE options flags */
 #define DRAWLIGHT 1
 
 void applyTransObjects(TransInfo *t);
@@ -805,7 +803,7 @@ void calculateCenter(TransInfo *t);
  */
 void tranformViewUpdate(TransInfo *t);
 
-/* API functions for getting center points. */
+/* API functions for getting center points */
 void calculateCenterBound(TransInfo *t, float r_center[3]);
 void calculateCenterMedian(TransInfo *t, float r_center[3]);
 void calculateCenterCursor(TransInfo *t, float r_center[3]);

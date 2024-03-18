@@ -200,8 +200,7 @@ struct DeferredLayerBase {
     /* SSS require an additional layer compared to diffuse. */
     count += count_bits_i(closure_bits_ & CLOSURE_SSS);
     /* Reflection and refraction can have at most two layers. */
-    count += 2 * count_bits_i(closure_bits_ &
-                              (CLOSURE_REFRACTION | CLOSURE_REFLECTION | CLOSURE_CLEARCOAT));
+    count += 2 * count_bits_i(closure_bits_ & (CLOSURE_REFRACTION | CLOSURE_REFLECTION));
     return count;
   }
 
@@ -211,9 +210,8 @@ struct DeferredLayerBase {
     /* TODO(fclem): We could count the number of different tangent frame in the shader and use
      * min(tangent_frame_count, closure_count) once we have the normal reuse optimization.
      * For now, allocate a split normal layer for each Closure. */
-    int count = count_bits_i(closure_bits_ &
-                             (CLOSURE_REFRACTION | CLOSURE_REFLECTION | CLOSURE_CLEARCOAT |
-                              CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
+    int count = count_bits_i(closure_bits_ & (CLOSURE_REFRACTION | CLOSURE_REFLECTION |
+                                              CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT));
     /* Count the additional infos layer needed by some closures. */
     count += count_bits_i(closure_bits_ & (CLOSURE_SSS | CLOSURE_TRANSLUCENT));
     return count;
@@ -487,16 +485,38 @@ class VolumePipeline {
 /** \name Deferred Probe Capture.
  * \{ */
 
-class DeferredProbePipeline {
+class DeferredProbePipeline;
+
+class DeferredProbeLayer : DeferredLayerBase {
+  friend DeferredProbePipeline;
+
  private:
   Instance &inst_;
-
-  DeferredLayerBase opaque_layer_;
 
   PassSimple eval_light_ps_ = {"EvalLights"};
 
  public:
-  DeferredProbePipeline(Instance &inst) : inst_(inst){};
+  DeferredProbeLayer(Instance &inst) : inst_(inst){};
+
+  void begin_sync();
+  void end_sync();
+
+  PassMain::Sub *prepass_add(::Material *blender_mat, GPUMaterial *gpumat);
+  PassMain::Sub *material_add(::Material *blender_mat, GPUMaterial *gpumat);
+
+  void render(View &view,
+              Framebuffer &prepass_fb,
+              Framebuffer &combined_fb,
+              Framebuffer &gbuffer_fb,
+              int2 extent);
+};
+
+class DeferredProbePipeline {
+ private:
+  DeferredProbeLayer opaque_layer_;
+
+ public:
+  DeferredProbePipeline(Instance &inst) : opaque_layer_(inst){};
 
   void begin_sync();
   void end_sync();

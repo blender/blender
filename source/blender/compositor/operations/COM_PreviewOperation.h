@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BLI_rect.h"
 #include "COM_MultiThreadedOperation.h"
 #include "DNA_color_types.h"
@@ -20,6 +20,7 @@ class PreviewOperation : public MultiThreadedOperation {
    * \brief holds reference to the SDNA bNode, where this nodes will render the preview image for
    */
   bNodePreview *preview_;
+  SocketReader *input_;
   float divider_;
   unsigned int default_width_;
   unsigned int default_height_;
@@ -42,7 +43,11 @@ class PreviewOperation : public MultiThreadedOperation {
   void deinit_execution() override;
   eCompositorPriority get_render_priority() const override;
 
+  void execute_region(rcti *rect, unsigned int tile_number) override;
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,

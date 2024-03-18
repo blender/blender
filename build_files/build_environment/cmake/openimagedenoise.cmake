@@ -17,22 +17,15 @@ if(APPLE)
 else()
   set(OIDN_EXTRA_ARGS
     ${OIDN_EXTRA_ARGS}
-    -DOIDN_DEVICE_CPU=ON
+    -DOIDN_DEVICE_SYCL=ON
+    -DOIDN_DEVICE_SYCL_AOT=OFF
+    -DOIDN_DEVICE_CUDA=ON
+    -DOIDN_DEVICE_HIP=ON
     -DLEVEL_ZERO_ROOT=${LIBDIR}/level-zero
   )
-
-  # x64 platforms support SyCL, ARM64 don't
-  if(NOT BLENDER_PLATFORM_WINDOWS_ARM)
-    set(OIDN_EXTRA_ARGS
-      ${OIDN_EXTRA_ARGS}
-      -DOIDN_DEVICE_SYCL=ON
-      -DOIDN_DEVICE_SYCL_AOT=OFF
-      -DOIDN_DEVICE_CUDA=ON
-      -DOIDN_DEVICE_HIP=ON)
-  endif()
 endif()
 
-if(WIN32 AND NOT BLENDER_PLATFORM_WINDOWS_ARM)
+if(WIN32)
   set(OIDN_EXTRA_ARGS
     ${OIDN_EXTRA_ARGS}
     -DTBB_DEBUG_LIBRARY=${LIBDIR}/tbb/lib/tbb.lib
@@ -48,7 +41,7 @@ if(WIN32 AND NOT BLENDER_PLATFORM_WINDOWS_ARM)
     -DCMAKE_EXE_LINKER_FLAGS=-L"${LIBDIR}/dpcpp/lib"
   )
 else()
-  if(NOT (APPLE OR BLENDER_PLATFORM_WINDOWS_ARM))
+  if(NOT APPLE)
     set(OIDN_EXTRA_ARGS
       ${OIDN_EXTRA_ARGS}
       -DCMAKE_CXX_COMPILER=${LIBDIR}/dpcpp/bin/clang++
@@ -80,12 +73,7 @@ ExternalProject_Add(external_openimagedenoise
   URL_HASH ${OIDN_HASH_TYPE}=${OIDN_HASH}
   PREFIX ${BUILD_DIR}/openimagedenoise
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
-
-  CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimagedenoise
-    ${OIDN_CMAKE_FLAGS}
-    ${OIDN_EXTRA_ARGS}
-
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimagedenoise ${OIDN_CMAKE_FLAGS} ${OIDN_EXTRA_ARGS}
   PATCH_COMMAND ${ODIN_PATCH_COMMAND}
   INSTALL_DIR ${LIBDIR}/openimagedenoise
 )
@@ -116,16 +104,9 @@ endif()
 
 if(BUILD_MODE STREQUAL Release AND WIN32)
     ExternalProject_Add_Step(external_openimagedenoise after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/openimagedenoise/bin
-        ${HARVEST_TARGET}/openimagedenoise/bin
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/openimagedenoise/lib
-        ${HARVEST_TARGET}/openimagedenoise/lib
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/openimagedenoise/include
-        ${HARVEST_TARGET}/openimagedenoise/include
-
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openimagedenoise/bin ${HARVEST_TARGET}/openimagedenoise/bin
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openimagedenoise/lib ${HARVEST_TARGET}/openimagedenoise/lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openimagedenoise/include ${HARVEST_TARGET}/openimagedenoise/include
       DEPENDEES install
     )
 endif()

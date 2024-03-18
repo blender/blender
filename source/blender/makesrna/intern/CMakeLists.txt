@@ -195,7 +195,7 @@ unset(GENSRC_CXXFLAGS)
 
 
 # NOTE: Disable clang-tidy because generated files are stored outside of the source,
-# so the clang-tidy can not find our .clang-tidy and fall-backs to its own set of rules
+# so the clang-tidy can not find our .clang-tidy and fall-backs to own set of rules
 # which are too noisy for Blender.
 #
 # In the future clang-tidy would either need to be inlined checks and passed via the

@@ -11,15 +11,21 @@
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_context.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
-/* Own includes. */
+/* only for own init/exit calls (wm_gizmogrouptype_init/wm_gizmogrouptype_free) */
+#include "wm.hh"
+
+/* own includes */
 #include "wm_gizmo_intern.hh"
 #include "wm_gizmo_wmapi.hh"
 
@@ -80,7 +86,7 @@ static void wm_gizmogrouptype_append__end(wmGizmoGroupType *gzgt)
 
   gzgt->type_update_flag |= WM_GIZMOMAPTYPE_KEYMAP_INIT;
 
-  /* If not set, use default. */
+  /* if not set, use default */
   if (gzgt->setup_keymap == nullptr) {
     if (gzgt->flag & WM_GIZMOGROUPTYPE_SELECT) {
       gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_select;
@@ -173,7 +179,7 @@ void wm_gizmogrouptype_free()
 
 void wm_gizmogrouptype_init()
 {
-  /* Reserve size is set based on blender default setup. */
+  /* reserve size is set based on blender default setup */
   global_gizmogrouptype_hash = BLI_ghash_str_new_ex("wm_gizmogrouptype_init gh", 128);
 }
 

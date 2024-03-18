@@ -2,10 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_collection_types.h"
+
 #include "BLI_array_utils.hh"
+#include "BLI_hash.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
@@ -81,8 +87,7 @@ static void add_instances_from_component(
 
   MutableSpan<int> dst_handles = dst_component.reference_handles_for_write().slice(start_len,
                                                                                    select_len);
-  MutableSpan<float4x4> dst_transforms = dst_component.transforms_for_write().slice(start_len,
-                                                                                    select_len);
+  MutableSpan<float4x4> dst_transforms = dst_component.transforms().slice(start_len, select_len);
 
   const VArraySpan positions = *src_attributes.lookup<float3>("position");
 

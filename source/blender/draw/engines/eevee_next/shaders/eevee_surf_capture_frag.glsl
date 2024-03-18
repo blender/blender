@@ -27,23 +27,15 @@ void main()
   init_globals();
 
   /* TODO(fclem): Remove random sampling for capture and accumulate color. */
-  float closure_rand = 0.5;
+  g_closure_rand = 0.5;
 
-  nodetree_surface(closure_rand);
+  nodetree_surface();
 
-  vec3 albedo = vec3(0.0);
+  g_diffuse_data.color *= g_diffuse_data.weight;
+  g_reflection_data.color *= g_reflection_data.weight;
+  g_refraction_data.color *= g_refraction_data.weight;
 
-  for (int i = 0; i < CLOSURE_BIN_COUNT; i++) {
-    ClosureUndetermined cl = g_closure_get_resolved(i, 1.0);
-    if (cl.weight <= 1e-5) {
-      continue;
-    }
-    if (cl.type != CLOSURE_BSDF_TRANSLUCENT_ID &&
-        cl.type != CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID)
-    {
-      albedo += cl.color;
-    }
-  }
+  vec3 albedo = g_diffuse_data.color + g_reflection_data.color;
 
   /* ----- Surfel output ----- */
 

@@ -7,6 +7,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "BKE_attribute_math.hh"
+
 #include "NOD_socket_search_link.hh"
 
 #include "RNA_enum_types.hh"

@@ -15,15 +15,23 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_context.hh"
 #include "BKE_deform.hh"
+#include "BKE_editmesh.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
+#include "BKE_mesh_runtime.hh"
+#include "BKE_mesh_wrapper.hh"
+#include "BKE_particle.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

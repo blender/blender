@@ -261,7 +261,7 @@ template<typename T> inline Vector<IndexRange> find_all_ranges(const Span<T> spa
   int64_t length = (span.first() == value) ? 1 : 0;
   for (const int64_t i : span.index_range().drop_front(1)) {
     if (span[i - 1] == value && span[i] != value) {
-      ranges.append(IndexRange::from_end_size(i, length));
+      ranges.append(IndexRange(i - length, length));
       length = 0;
     }
     else if (span[i] == value) {
@@ -269,7 +269,7 @@ template<typename T> inline Vector<IndexRange> find_all_ranges(const Span<T> spa
     }
   }
   if (length > 0) {
-    ranges.append(IndexRange::from_end_size(span.size(), length));
+    ranges.append(IndexRange(span.size() - length, length));
   }
   return ranges;
 }

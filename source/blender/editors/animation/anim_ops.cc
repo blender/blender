@@ -17,9 +17,9 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_global.h"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "UI_view2d.hh"
 

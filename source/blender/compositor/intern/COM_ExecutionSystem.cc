@@ -5,9 +5,11 @@
 #include "COM_ExecutionSystem.h"
 
 #include "COM_Debug.h"
+#include "COM_ExecutionGroup.h"
 #include "COM_FullFrameExecutionModel.h"
 #include "COM_NodeOperation.h"
 #include "COM_NodeOperationBuilder.h"
+#include "COM_TiledExecutionModel.h"
 #include "COM_WorkPackage.h"
 #include "COM_WorkScheduler.h"
 
@@ -23,9 +25,7 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
                                  bool rendering,
                                  bool fastcalculation,
                                  const char *view_name,
-                                 realtime_compositor::RenderContext *render_context,
-                                 ProfilerData &profiler_data)
-    : profiler_data_(profiler_data)
+                                 realtime_compositor::RenderContext *render_context)
 {
   num_work_threads_ = WorkScheduler::get_num_cpu_threads();
   context_.set_render_context(render_context);
@@ -42,6 +42,8 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
     context_.set_quality((eCompositorQuality)editingtree->edit_quality);
   }
   context_.set_rendering(rendering);
+  context_.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
+                                     (editingtree->flag & NTREE_COM_OPENCL));
 
   context_.set_render_data(rd);
 
@@ -53,7 +55,17 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
     builder.convert_to_operations(this);
   }
 
-  execution_model_ = new FullFrameExecutionModel(context_, active_buffers_, operations_);
+  switch (context_.get_execution_model()) {
+    case eExecutionModel::Tiled:
+      execution_model_ = new TiledExecutionModel(context_, operations_, groups_);
+      break;
+    case eExecutionModel::FullFrame:
+      execution_model_ = new FullFrameExecutionModel(context_, active_buffers_, operations_);
+      break;
+    default:
+      BLI_assert_msg(0, "Non implemented execution model");
+      break;
+  }
 }
 
 ExecutionSystem::~ExecutionSystem()
@@ -67,22 +79,27 @@ ExecutionSystem::~ExecutionSystem()
     delete operation;
   }
   operations_.clear();
+
+  for (ExecutionGroup *group : groups_) {
+    delete group;
+  }
+  groups_.clear();
 }
 
-void ExecutionSystem::set_operations(const Span<NodeOperation *> operations)
+void ExecutionSystem::set_operations(const Vector<NodeOperation *> &operations,
+                                     const Vector<ExecutionGroup *> &groups)
 {
   operations_ = operations;
+  groups_ = groups;
 }
 
 void ExecutionSystem::execute()
 {
-  DebugInfo::execute_started();
+  DebugInfo::execute_started(this);
   for (NodeOperation *op : operations_) {
     op->init_data();
   }
   execution_model_->execute(*this);
-
-  profiler_data_ = execution_model_->get_profiler_data();
 }
 
 void ExecutionSystem::execute_work(const rcti &work_rect,
@@ -111,6 +128,7 @@ void ExecutionSystem::execute_work(const rcti &work_rect,
     }
 
     WorkPackage &sub_work = sub_works[i];
+    sub_work.type = eWorkPackageType::CustomFunction;
     sub_work.execute_fn = [=, &work_func, &work_rect]() {
       if (is_breaked()) {
         return;

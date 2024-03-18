@@ -18,11 +18,13 @@ class NodeInput;
 class NodeOutput;
 
 class ExecutionSystem;
+class ExecutionGroup;
 class NodeOperation;
 class NodeOperationInput;
 class NodeOperationOutput;
 
 class PreviewOperation;
+class WriteBufferOperation;
 class ViewerOperation;
 class ConstantOperation;
 
@@ -53,6 +55,7 @@ class NodeOperationBuilder {
 
   Vector<NodeOperation *> operations_;
   Vector<Link> links_;
+  Vector<ExecutionGroup *> groups_;
 
   /** Maps operation inputs to node inputs */
   Map<NodeOperationInput *, NodeInput *> input_map_;
@@ -104,12 +107,12 @@ class NodeOperationBuilder {
     return active_viewer_;
   }
 
-  Span<NodeOperation *> get_operations() const
+  const Vector<NodeOperation *> &get_operations() const
   {
     return operations_;
   }
 
-  Span<Link> get_links() const
+  const Vector<Link> &get_links() const
   {
     return links_;
   }
@@ -130,12 +133,22 @@ class NodeOperationBuilder {
 
   /** Helper function to store connected inputs for replacement */
   Vector<NodeOperationInput *> cache_output_links(NodeOperationOutput *output) const;
+  /** Find a connected write buffer operation to an OpOutput */
+  WriteBufferOperation *find_attached_write_buffer_operation(NodeOperationOutput *output) const;
+  /** Add read/write buffer operations around complex operations */
+  void add_complex_operation_buffers();
+  void add_input_buffers(NodeOperation *operation, NodeOperationInput *input);
+  void add_output_buffers(NodeOperation *operation, NodeOperationOutput *output);
 
   /** Remove unreachable operations */
   void prune_operations();
 
   /** Sort operations by link dependencies */
   void sort_operations();
+
+  /** Create execution groups */
+  void group_operations();
+  ExecutionGroup *make_group(NodeOperation *op);
 
  private:
   PreviewOperation *make_preview_operation() const;

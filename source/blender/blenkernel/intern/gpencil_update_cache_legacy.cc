@@ -13,7 +13,10 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
 
+#include "BKE_gpencil_legacy.h"
+
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
 

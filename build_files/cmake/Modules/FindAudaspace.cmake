@@ -111,5 +111,3 @@ mark_as_advanced(
   AUDASPACE_PY_INCLUDE_DIR
   AUDASPACE_PY_INCLUDE_DIRS
 )
-
-unset(_audaspace_SEARCH_DIRS)

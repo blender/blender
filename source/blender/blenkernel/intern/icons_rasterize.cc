@@ -5,6 +5,7 @@
 /** \file
  * \ingroup bke
  */
+#include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_math_color.h"
@@ -16,7 +17,7 @@
 
 #include "BKE_icons.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 struct UserRasterInfo {
   int pt[3][2];

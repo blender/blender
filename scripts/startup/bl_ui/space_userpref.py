@@ -247,7 +247,7 @@ class USERPREF_PT_interface_text(InterfacePanel, CenterAlignMixIn, Panel):
 
 
 class USERPREF_PT_interface_translation(InterfacePanel, CenterAlignMixIn, Panel):
-    bl_label = "Language"
+    bl_label = "Translation"
     bl_translation_context = i18n_contexts.id_windowmanager
 
     @classmethod
@@ -260,7 +260,7 @@ class USERPREF_PT_interface_translation(InterfacePanel, CenterAlignMixIn, Panel)
 
         layout.prop(view, "language")
 
-        col = layout.column(heading="Translate")
+        col = layout.column(heading="Affect")
         col.active = (bpy.app.translations.locale != "en_US")
         col.prop(view, "use_translate_tooltips", text="Tooltips")
         col.prop(view, "use_translate_interface", text="Interface")
@@ -876,7 +876,7 @@ class USERPREF_PT_theme(ThemePanel, Panel):
         row = split.row(align=True)
         row.menu("USERPREF_MT_interface_theme_presets", text=USERPREF_MT_interface_theme_presets.bl_label)
         row.operator("wm.interface_theme_preset_add", text="", icon='ADD')
-        row.operator("wm.interface_theme_preset_remove", text="", icon='REMOVE')
+        row.operator("wm.interface_theme_preset_add", text="", icon='REMOVE').remove_active = True
 
         row = split.row(align=True)
         row.operator("preferences.theme_install", text="Install...", icon='IMPORT')
@@ -1021,7 +1021,8 @@ class USERPREF_PT_theme_interface_transparent_checker(ThemePanel, CenterAlignMix
         theme = context.preferences.themes[0]
         ui = theme.user_interface
 
-        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(
+            row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column(align=True)
         col.prop(ui, "transparent_checker_primary")
@@ -1596,7 +1597,7 @@ class USERPREF_UL_asset_libraries(UIList):
 class USERPREF_UL_extension_repos(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         repo = item
-        icon = 'INTERNET' if repo.use_remote_path else 'DISK_DRIVE'
+        icon = 'WORLD' if repo.use_remote_path else 'DISK_DRIVE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(repo, "name", text="", icon=icon, emboss=False)
         elif self.layout_type == 'GRID':
@@ -1612,24 +1613,6 @@ class USERPREF_UL_extension_repos(UIList):
                 layout.label(text="", icon='ERROR')
 
         layout.prop(repo, "enabled", text="", emboss=False, icon='CHECKBOX_HLT' if repo.enabled else 'CHECKBOX_DEHLT')
-
-    def filter_items(self, _context, data, propname):
-        # Repositories has no index, converting to a list.
-        items = list(getattr(data, propname))
-
-        flags = [self.bitflag_filter_item] * len(items)
-
-        indices = [None] * len(items)
-        for index, orig_index in enumerate(sorted(
-            range(len(items)),
-            key=lambda i: (
-                items[i].use_remote_path is False,
-                items[i].name.lower(),
-            )
-        )):
-            indices[orig_index] = index
-
-        return flags, indices
 
 
 # -----------------------------------------------------------------------------
@@ -2042,7 +2025,7 @@ class USERPREF_PT_extensions_repos(Panel):
     bl_region_type = 'HEADER'
 
     # Show wider than most panels so the URL & directory aren't overly clipped.
-    bl_ui_units_x = 16
+    bl_ui_units_x = 24
 
     # NOTE: ideally `if panel := layout.panel("extensions_repo_advanced", default_closed=True):`
     # would be used but it isn't supported here, use a kludge to achieve a similar UI.
@@ -2074,8 +2057,6 @@ class USERPREF_PT_extensions_repos(Panel):
         paths = context.preferences.filepaths
         active_repo_index = paths.active_extension_repo
 
-        layout.label(text="Repositories")
-
         row = layout.row()
 
         row.template_list(
@@ -2101,6 +2082,8 @@ class USERPREF_PT_extensions_repos(Panel):
         if active_repo is None:
             return
 
+        layout.separator()
+
         # NOTE: changing repositories from remote to local & vice versa could be supported but is obscure enough
         # that it can be hidden entirely. If there is a some justification to show this, it can be exposed.
         # For now it can be accessed from Python if someone is.
@@ -2108,11 +2091,9 @@ class USERPREF_PT_extensions_repos(Panel):
 
         if active_repo.use_remote_path:
             row = layout.row()
-            split = row.split(factor=0.936)
             if active_repo.remote_path == "":
-                split.alert = True
-            split.prop(active_repo, "remote_path", text="URL")
-            split = row.split()
+                row.alert = True
+            row.prop(active_repo, "remote_path", text="URL")
 
         if layout_panel := self._panel_layout_kludge(layout, text="Advanced"):
 
@@ -2122,13 +2103,9 @@ class USERPREF_PT_extensions_repos(Panel):
             if active_repo.use_custom_directory:
                 if active_repo.custom_directory == "":
                     row.alert = True
-                row.prop(active_repo, "custom_directory", text="")
             else:
-                # Show the read-only directory property.
-                # Apart from being consistent with the custom directory UI,
-                # prefer a read-only property over a label because this is not necessarily
-                # valid UTF-8 which will raise a Python exception when passed in as text.
-                row.prop(active_repo, "directory", text="")
+                row.active = False
+            row.prop(active_repo, "custom_directory", text="")
 
             layout_panel.separator()
 
@@ -2692,10 +2669,8 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_sculpt_texture_paint"}, ("blender/blender/issues/96225", "#96225")),
                 ({"property": "use_experimental_compositors"}, ("blender/blender/issues/88150", "#88150")),
                 ({"property": "use_grease_pencil_version3"}, ("blender/blender/projects/6", "Grease Pencil 3.0")),
-                ({"property": "use_new_matrix_socket"}, ("blender/blender/issues/116067", "Matrix Socket")),
                 ({"property": "enable_overlay_next"}, ("blender/blender/issues/102179", "#102179")),
-                ({"property": "use_extension_repos"}, ("/blender/blender/issues/117286", "#117286")),
-                ({"property": "use_extension_utils"}, ("/blender/blender/issues/117286", "#117286")),
+                ({"property": "use_extension_repos"}, ("/blender/blender/issues/106254", "#106254")),
             ),
         )
 

@@ -26,7 +26,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_node_types.h"
@@ -36,23 +36,27 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_image_save.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.h"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
+
+#include "GPU_state.h"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_moviecache.hh"
+#include "IMB_openexr.hh"
 
 #include "RE_pipeline.h"
 
@@ -66,6 +70,7 @@
 #include "ED_paint.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
+#include "ED_space_api.hh"
 #include "ED_undo.hh"
 #include "ED_util.hh"
 #include "ED_util_imbuf.hh"
@@ -536,7 +541,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
     vpd->timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-    vpd->timer_lastdraw = BLI_time_now_seconds();
+    vpd->timer_lastdraw = BLI_check_seconds_timer();
   }
 
   vpd->sima = sima;
@@ -646,7 +651,7 @@ static void image_zoom_apply(ViewZoomData *vpd,
   }
 
   if (viewzoom == USER_ZOOM_CONTINUE) {
-    double time = BLI_time_now_seconds();
+    double time = BLI_check_seconds_timer();
     float time_step = float(time - vpd->timer_lastdraw);
     float zfac;
     zfac = 1.0f + ((delta / 20.0f) * time_step);
@@ -2683,8 +2688,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_string(
-      ot->srna, "name", IMA_DEF_NAME, MAX_ID_NAME - 2, "Name", "Image data-block name");
+  RNA_def_string(ot->srna, "name", IMA_DEF_NAME, MAX_ID_NAME - 2, "Name", "Image data-block name");
   prop = RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width", 1, 16384);
   RNA_def_property_subtype(prop, PROP_PIXEL);
   prop = RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height", 1, 16384);
@@ -3173,8 +3177,7 @@ static int image_scale_invoke(bContext *C, wmOperator *op, const wmEvent * /*eve
     RNA_property_int_set_array(op->ptr, prop, size);
     BKE_image_release_ibuf(ima, ibuf, nullptr);
   }
-  return WM_operator_props_dialog_popup(
-      C, op, 200, IFACE_("Scale Image to New Size"), IFACE_("Resize"));
+  return WM_operator_props_dialog_popup(C, op, 200);
 }
 
 static int image_scale_exec(bContext *C, wmOperator *op)
@@ -3999,7 +4002,7 @@ static int render_border_exec(bContext *C, wmOperator *op)
     scene->r.mode |= R_BORDER;
   }
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   return OPERATOR_FINISHED;
@@ -4213,7 +4216,7 @@ static int tile_add_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*
   RNA_int_set(op->ptr, "count", 1);
   RNA_string_set(op->ptr, "label", "");
 
-  return WM_operator_props_dialog_popup(C, op, 300, IFACE_("Add Tile to Image"), IFACE_("Add"));
+  return WM_operator_props_dialog_popup(C, op, 300);
 }
 
 static void tile_add_draw(bContext * /*C*/, wmOperator *op)
@@ -4346,8 +4349,7 @@ static int tile_fill_invoke(bContext *C, wmOperator *op, const wmEvent * /*event
 {
   tile_fill_init(op->ptr, CTX_data_edit_image(C), nullptr);
 
-  return WM_operator_props_dialog_popup(
-      C, op, 300, IFACE_("Fill Tile With Generated Image"), IFACE_("Fill"));
+  return WM_operator_props_dialog_popup(C, op, 300);
 }
 
 static void tile_fill_draw(bContext * /*C*/, wmOperator *op)

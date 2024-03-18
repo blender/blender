@@ -13,29 +13,33 @@
 
 #include "BLI_blenlib.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_ID.h"
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_key_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
-#include "BKE_fcurve.hh"
-#include "BKE_global.hh"
+#include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_nla.h"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
@@ -47,6 +51,7 @@
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_rna.hh"
+#include "ANIM_visualkey.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -713,20 +718,6 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int clear_anim_v3d_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Remove animation from selected objects?"),
-                                  nullptr,
-                                  IFACE_("Remove"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return clear_anim_v3d_exec(C, op);
-}
-
 void ANIM_OT_keyframe_clear_v3d(wmOperatorType *ot)
 {
   /* identifiers */
@@ -735,7 +726,7 @@ void ANIM_OT_keyframe_clear_v3d(wmOperatorType *ot)
   ot->idname = "ANIM_OT_keyframe_clear_v3d";
 
   /* callbacks */
-  ot->invoke = clear_anim_v3d_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = clear_anim_v3d_exec;
 
   ot->poll = ED_operator_areaactive;
@@ -869,20 +860,6 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
   return delete_key_using_keying_set(C, op, ks);
 }
 
-static int delete_key_v3d_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Delete keyframes from selected objects?"),
-                                  nullptr,
-                                  IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return delete_key_v3d_exec(C, op);
-}
-
 void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot)
 {
   /* identifiers */
@@ -891,7 +868,7 @@ void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot)
   ot->idname = "ANIM_OT_keyframe_delete_v3d";
 
   /* callbacks */
-  ot->invoke = delete_key_v3d_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = delete_key_v3d_exec;
 
   ot->poll = ED_operator_areaactive;
@@ -1342,7 +1319,7 @@ static bool object_frame_has_keyframe(Object *ob, float frame)
     return false;
   }
 
-  /* check its own animation data - specifically, the action it contains */
+  /* check own animation data - specifically, the action it contains */
   if ((ob->adt) && (ob->adt->action)) {
     /* #41525 - When the active action is a NLA strip being edited,
      * we need to correct the frame number to "look inside" the

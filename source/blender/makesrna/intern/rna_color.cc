@@ -55,7 +55,7 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 #  include "BKE_image.h"
 #  include "BKE_linestyle.h"
 #  include "BKE_movieclip.h"
-#  include "BKE_node.hh"
+#  include "BKE_node.h"
 
 #  include "DEG_depsgraph.hh"
 
@@ -441,7 +441,7 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
     for (Material *ma = static_cast<Material *>(bmain->materials.first); ma;
          ma = static_cast<Material *>(ma->id.next))
     {
-      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
 }

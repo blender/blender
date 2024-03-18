@@ -11,6 +11,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_context.hh"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
@@ -24,6 +25,7 @@
 
 #include "WM_types.hh"
 
+#include "UI_interface.hh"
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 

@@ -72,17 +72,17 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
         VArray<float3>::ForContainer(std::move(output)), AttrDomain::Point, domain);
   }
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const final
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
   {
     relative_.node().for_each_field_input_recursive(fn);
   }
 
-  uint64_t hash() const final
+  uint64_t hash() const override
   {
     return get_default_hash(relative_, left_);
   }
 
-  bool is_equal_to(const fn::FieldNode &other) const final
+  bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const HandlePositionFieldInput *other_handle =
             dynamic_cast<const HandlePositionFieldInput *>(&other))
@@ -92,7 +92,7 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
     return false;
   }
 
-  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
   {
     return AttrDomain::Point;
   }

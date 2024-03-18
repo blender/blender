@@ -19,7 +19,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
@@ -28,7 +28,7 @@
 #include "BIF_glutil.hh"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
@@ -37,7 +37,7 @@
 
 #include "GHOST_C-api.h"
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
 #include "ED_asset.hh"
 #include "ED_fileselect.hh"
@@ -74,9 +74,9 @@ static void wm_drop_item_clear_runtime(wmDropBox *drop);
 wmDragActiveDropState::wmDragActiveDropState() = default;
 wmDragActiveDropState::~wmDragActiveDropState() = default;
 
-/* Drop box maps are stored global for now. */
-/* These are part of blender's UI/space specs, and not like keymaps. */
-/* When editors become configurable, they can add their own dropbox definitions. */
+/* drop box maps are stored global for now */
+/* these are part of blender's UI/space specs, and not like keymaps */
+/* when editors become configurable, they can add own dropbox definitions */
 
 struct wmDropBoxMap {
   wmDropBoxMap *next, *prev;
@@ -107,9 +107,9 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 
 wmDropBox *WM_dropbox_add(ListBase *lb,
                           const char *idname,
-                          bool (*poll)(bContext *C, wmDrag *drag, const wmEvent *event),
-                          void (*copy)(bContext *C, wmDrag *drag, wmDropBox *drop),
-                          void (*cancel)(Main *bmain, wmDrag *drag, wmDropBox *drop),
+                          bool (*poll)(bContext *, wmDrag *, const wmEvent *),
+                          void (*copy)(bContext *, wmDrag *, wmDropBox *),
+                          void (*cancel)(Main *, wmDrag *, wmDropBox *),
                           WMDropboxTooltipFunc tooltip)
 {
   wmOperatorType *ot = WM_operatortype_find(idname, true);
@@ -258,12 +258,13 @@ static void wm_dropbox_invoke(bContext *C, wmDrag *drag)
   }
 }
 
-wmDrag *WM_drag_data_create(bContext *C, int icon, eWM_DragDataType type, void *poin, uint flags)
+wmDrag *WM_drag_data_create(
+    bContext *C, int icon, eWM_DragDataType type, void *poin, double value, uint flags)
 {
   wmDrag *drag = MEM_new<wmDrag>(__func__);
 
   /* Keep track of future multi-touch drag too, add a mouse-pointer id or so. */
-  /* If multiple drags are added, they're drawn as list. */
+  /* if multiple drags are added, they're drawn as list */
 
   drag->flags = static_cast<eWM_DragFlags>(flags);
   drag->icon = icon;
@@ -301,6 +302,7 @@ wmDrag *WM_drag_data_create(bContext *C, int icon, eWM_DragDataType type, void *
       drag->poin = poin;
       break;
   }
+  drag->value = value;
 
   return drag;
 }
@@ -313,9 +315,10 @@ void WM_event_start_prepared_drag(bContext *C, wmDrag *drag)
   wm_dropbox_invoke(C, drag);
 }
 
-void WM_event_start_drag(bContext *C, int icon, eWM_DragDataType type, void *poin, uint flags)
+void WM_event_start_drag(
+    bContext *C, int icon, eWM_DragDataType type, void *poin, double value, uint flags)
 {
-  wmDrag *drag = WM_drag_data_create(C, icon, type, poin, flags);
+  wmDrag *drag = WM_drag_data_create(C, icon, type, poin, value, flags);
   WM_event_start_prepared_drag(C, drag);
 }
 
@@ -377,11 +380,6 @@ void WM_drag_data_free(eWM_DragDataType dragtype, void *poin)
     case WM_DRAG_PATH: {
       wmDragPath *path_data = static_cast<wmDragPath *>(poin);
       wm_drag_free_path_data(&path_data);
-      break;
-    }
-    case WM_DRAG_STRING: {
-      std::string *str = static_cast<std::string *>(poin);
-      MEM_delete(str);
       break;
     }
     default:
@@ -478,7 +476,7 @@ static wmDropBox *dropbox_active(bContext *C,
   return nullptr;
 }
 
-/* Return active operator tooltip/name when mouse is in box. */
+/* return active operator tooltip/name when mouse is in box */
 static wmDropBox *wm_dropbox_active(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -922,24 +920,6 @@ int WM_drag_get_path_file_type(const wmDrag *drag)
   return path_data->file_types[0];
 }
 
-const std::string &WM_drag_get_string(const wmDrag *drag)
-{
-  BLI_assert(drag->type == WM_DRAG_STRING);
-  const std::string *str = static_cast<const std::string *>(drag->poin);
-  return *str;
-}
-
-std::string WM_drag_get_string_firstline(const wmDrag *drag)
-{
-  BLI_assert(drag->type == WM_DRAG_STRING);
-  const std::string *str = static_cast<const std::string *>(drag->poin);
-  const size_t str_eol = str->find('\n');
-  if (str_eol != std::string::npos) {
-    return str->substr(0, str_eol);
-  }
-  return *str;
-}
-
 /* ************** draw ***************** */
 
 static void wm_drop_operator_draw(const blender::StringRef name, int x, int y)
@@ -1024,7 +1004,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
     x = xy[0] - (wm_drag_imbuf_icon_width_get(drag) / 2);
     y = xy[1] - (wm_drag_imbuf_icon_height_get(drag) / 2);
 
-    const float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* This blends texture. */
+    const float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* this blends texture */
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
     immDrawPixelsTexTiled_scaling(&state,
                                   x,

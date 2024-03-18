@@ -23,10 +23,8 @@ struct Main;
 struct Object;
 struct KeyframeEditData;
 struct wmKeyConfig;
-struct wmOperator;
 struct ToolSettings;
 struct Scene;
-struct UndoType;
 struct ViewDepths;
 struct View3D;
 namespace blender {
@@ -53,8 +51,6 @@ void ED_operatortypes_grease_pencil_edit();
 void ED_operatortypes_grease_pencil_material();
 void ED_operatormacros_grease_pencil();
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
-
-void ED_undosys_type_grease_pencil(UndoType *undo_type);
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
  */
@@ -74,6 +70,7 @@ class DrawingPlacement {
 
   DrawingPlacementDepth depth_;
   DrawingPlacementPlane plane_;
+  bke::greasepencil::DrawingTransforms transforms_;
   ViewDepths *depth_cache_ = nullptr;
   float surface_offset_;
 
@@ -81,16 +78,12 @@ class DrawingPlacement {
   float3 placement_normal_;
   float4 placement_plane_;
 
-  float4x4 layer_space_to_world_space_;
-  float4x4 world_space_to_layer_space_;
-
  public:
   DrawingPlacement() = default;
   DrawingPlacement(const Scene &scene,
                    const ARegion &region,
                    const View3D &view3d,
-                   const Object &eval_object,
-                   const bke::greasepencil::Layer &layer);
+                   const Object &object);
   ~DrawingPlacement();
 
  public:
@@ -158,19 +151,11 @@ void select_frames_range(bke::greasepencil::TreeNode &node,
  */
 bool has_any_frame_selected(const bke::greasepencil::Layer &layer);
 
-/**
- * Check for an active keyframe at the current scene time. When there is not,
- * create one when auto-key is on (taking additive drawing setting into account).
- * \return false when no keyframe could be found or created.
- */
-bool ensure_active_keyframe(const Scene &scene, GreasePencil &grease_pencil);
-
 void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
                                                     const bke::greasepencil::Layer &layer);
 
 bool active_grease_pencil_poll(bContext *C);
 bool editable_grease_pencil_poll(bContext *C);
-bool active_grease_pencil_layer_poll(bContext *C);
 bool editable_grease_pencil_point_selection_poll(bContext *C);
 bool grease_pencil_painting_poll(bContext *C);
 
@@ -183,16 +168,13 @@ struct MutableDrawingInfo {
   bke::greasepencil::Drawing &drawing;
   const int layer_index;
   const int frame_number;
-  const float multi_frame_falloff;
 };
-Vector<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
-                                                      GreasePencil &grease_pencil);
-Vector<MutableDrawingInfo> retrieve_editable_drawings_with_falloff(const Scene &scene,
-                                                                   GreasePencil &grease_pencil);
-Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
+Array<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
+                                                     GreasePencil &grease_pencil);
+Array<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
     const Scene &scene, GreasePencil &grease_pencil, const bke::greasepencil::Layer &layer);
-Vector<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
-                                              const GreasePencil &grease_pencil);
+Array<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
+                                             const GreasePencil &grease_pencil);
 
 IndexMask retrieve_editable_strokes(Object &grease_pencil_object,
                                     const bke::greasepencil::Drawing &drawing,
@@ -225,8 +207,8 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
                                                   IndexMaskMemory &memory);
 
 void create_blank(Main &bmain, Object &object, int frame_number);
-void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, int frame_number);
-void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, int frame_number);
+void create_stroke(Main &bmain, Object &object, float4x4 matrix, int frame_number);
+void create_suzanne(Main &bmain, Object &object, float4x4 matrix, int frame_number);
 
 int64_t ramer_douglas_peucker_simplify(IndexRange range,
                                        float epsilon,

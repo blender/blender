@@ -20,7 +20,7 @@
 
 #include "intern/bmesh_operators_private.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 #define EDGE_MARK 4
 #define FACE_OUT 16

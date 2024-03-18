@@ -20,9 +20,9 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_main.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -52,7 +52,7 @@ struct MPathTarget {
   Object *ob;          /* source object */
   bPoseChannel *pchan; /* source posechannel (if applicable) */
 
-  /* "Evaluated" Copies (these come from the background evaluated copy
+  /* "Evaluated" Copies (these come from the background COW copy
    * that provide all the coordinates we want to save off). */
   Object *ob_eval; /* evaluated object */
 };
@@ -168,17 +168,18 @@ static void motionpaths_calc_bake_targets(ListBase *targets,
       }
 
       /* Result must be in world-space. */
-      mul_m4_v3(ob_eval->object_to_world().ptr(), mpv->co);
+      mul_m4_v3(ob_eval->object_to_world, mpv->co);
     }
     else {
       /* World-space object location. */
-      copy_v3_v3(mpv->co, ob_eval->object_to_world().location());
+      copy_v3_v3(mpv->co, ob_eval->object_to_world[3]);
     }
 
     if (mpath->flag & MOTIONPATH_FLAG_BAKE_CAMERA && camera) {
       Object *cam_eval = DEG_get_evaluated_object(depsgraph, camera);
       /* Convert point to camera space. */
-      float3 co_camera_space = math::transform_point(cam_eval->world_to_object(), float3(mpv->co));
+      float3 co_camera_space = math::transform_point(float4x4(cam_eval->world_to_object),
+                                                     float3(mpv->co));
       copy_v3_v3(mpv->co, co_camera_space);
     }
 
@@ -435,7 +436,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
   }
 
   /* get copies of objects/bones to get the calculated results from
-   * (for copy-on-evaluation), so that we actually get some results
+   * (for copy-on-write evaluation), so that we actually get some results
    */
 
   /* TODO: Create a copy of background depsgraph that only contain these entities,

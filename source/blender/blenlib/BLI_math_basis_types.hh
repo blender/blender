@@ -61,11 +61,9 @@ class Axis {
   constexpr Axis(const Value axis) : axis_(axis){};
 
   /** Convert an uppercase axis character 'X', 'Y' or 'Z' to an enum value. */
-  constexpr static Axis from_char(char axis_char)
+  constexpr explicit Axis(char axis_char) : axis_(static_cast<Value>(axis_char - 'X'))
   {
-    const Axis axis = static_cast<Value>(axis_char - 'X');
-    BLI_assert(int(Value::X) <= axis.as_int() && axis.as_int() <= int(Value::Z));
-    return axis;
+    BLI_assert(Value::X <= axis_ && axis_ <= Value::Z);
   }
 
   /** Allow casting from DNA enums stored as short / int. */
@@ -182,12 +180,12 @@ class AxisSigned {
   friend std::ostream &operator<<(std::ostream &stream, const AxisSigned axis);
 };
 
-constexpr bool operator<=(const Axis::Value a, const Axis::Value b)
+constexpr static bool operator<=(const Axis::Value a, const Axis::Value b)
 {
   return int(a) <= int(b);
 }
 
-constexpr bool operator<=(const AxisSigned::Value a, const AxisSigned::Value b)
+constexpr static bool operator<=(const AxisSigned::Value a, const AxisSigned::Value b)
 {
   return int(a) <= int(b);
 }

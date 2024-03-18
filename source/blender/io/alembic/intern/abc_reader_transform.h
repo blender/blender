@@ -9,12 +9,7 @@
 
 #include "abc_reader_object.h"
 
-#include <Alembic/Abc/IObject.h>
-#include <Alembic/Abc/ISampleSelector.h>
-#include <Alembic/AbcCoreAbstract/ObjectHeader.h>
-#include <Alembic/AbcGeom/IXform.h>
-
-struct Object;
+#include <Alembic/AbcGeom/All.h>
 
 namespace blender::io::alembic {
 

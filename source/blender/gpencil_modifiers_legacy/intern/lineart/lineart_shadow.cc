@@ -11,19 +11,26 @@
 
 #include "lineart_intern.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_grease_pencil.hh"
-#include "BKE_grease_pencil_legacy_convert.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_material.h"
 #include "BKE_object.hh"
+#include "BKE_scene.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_task.h"
 #include "BLI_time.h"
 
+#include "DEG_depsgraph_query.hh"
+
+#include "DNA_collection_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
+#include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -54,7 +61,7 @@ LineartEdge *lineart_find_matching_edge(LineartElementLinkNode *shadow_eln,
 static bool lineart_contour_viewed_from_dark_side(LineartData *ld, LineartEdge *e)
 {
 
-  if (!(e->flags & (MOD_LINEART_EDGE_FLAG_CONTOUR | MOD_LINEART_EDGE_FLAG_CONTOUR_SECONDARY))) {
+  if (!(e->flags & (LRT_EDGE_FLAG_CONTOUR | LRT_EDGE_FLAG_CONTOUR_SECONDARY))) {
     return false;
   }
   double view_vector[3];
@@ -310,9 +317,9 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
 
   /* Count and allocate at once to save time. */
   int segment_count = 0;
-  uint16_t accept_types = (MOD_LINEART_EDGE_FLAG_CONTOUR | MOD_LINEART_EDGE_FLAG_LOOSE);
+  uint16_t accept_types = (LRT_EDGE_FLAG_CONTOUR | LRT_EDGE_FLAG_LOOSE);
   if (do_light_contour) {
-    accept_types |= MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR;
+    accept_types |= LRT_EDGE_FLAG_LIGHT_CONTOUR;
   }
   LRT_ITER_ALL_LINES_BEGIN
   {
@@ -322,11 +329,11 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
     if (!(e->flags & accept_types)) {
       continue;
     }
-    if (e->flags == MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR) {
+    if (e->flags == LRT_EDGE_FLAG_LIGHT_CONTOUR) {
       /* Check if the light contour also doubles as a view contour. */
       LineartEdge *orig_e = (LineartEdge *)e->t1;
       if (!orig_e->t2) {
-        e->flags |= MOD_LINEART_EDGE_FLAG_CONTOUR;
+        e->flags |= LRT_EDGE_FLAG_CONTOUR;
       }
       else {
         double vv[3];
@@ -346,10 +353,10 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
         if ((result = dot_1 * dot_2) <= 0 && (dot_1 + dot_2)) {
           /* If this edge is both a light contour and a view contour, mark it for the convenience
            * of generating it in the next iteration. */
-          e->flags |= MOD_LINEART_EDGE_FLAG_CONTOUR;
+          e->flags |= LRT_EDGE_FLAG_CONTOUR;
         }
       }
-      if (!(e->flags & MOD_LINEART_EDGE_FLAG_CONTOUR)) {
+      if (!(e->flags & LRT_EDGE_FLAG_CONTOUR)) {
         continue;
       }
     }
@@ -371,7 +378,7 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
   int i = 0;
   LRT_ITER_ALL_LINES_BEGIN
   {
-    if (!(e->flags & (MOD_LINEART_EDGE_FLAG_CONTOUR | MOD_LINEART_EDGE_FLAG_LOOSE))) {
+    if (!(e->flags & (LRT_EDGE_FLAG_CONTOUR | LRT_EDGE_FLAG_LOOSE))) {
       continue;
     }
     LISTBASE_FOREACH (LineartEdgeSegment *, es, &e->segments) {
@@ -406,12 +413,12 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
       BLI_addtail(&sedge[i].shadow_segments, &sseg[i * 2]);
       BLI_addtail(&sedge[i].shadow_segments, &sseg[i * 2 + 1]);
 
-      if (e->flags & MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR) {
+      if (e->flags & LRT_EDGE_FLAG_LIGHT_CONTOUR) {
         sedge[i].e_ref = (LineartEdge *)e->t1;
         sedge[i].e_ref_light_contour = e;
         /* Restore original edge flag for edges "who is both view and light contour" so we still
          * have correct edge flags. */
-        e->flags &= (~MOD_LINEART_EDGE_FLAG_CONTOUR);
+        e->flags &= (~LRT_EDGE_FLAG_CONTOUR);
       }
       else {
         sedge[i].e_ref = e;
@@ -1014,10 +1021,9 @@ static bool lineart_shadow_cast_generate_edges(LineartData *ld,
                                                                sedge->e_ref);
       e->target_reference = sseg->target_reference;
       e->edge_identifier = sedge->e_ref->edge_identifier;
-      e->flags = (MOD_LINEART_EDGE_FLAG_PROJECTED_SHADOW |
-                  ((sseg->flag & LRT_SHADOW_FACING_LIGHT) ?
-                       MOD_LINEART_EDGE_FLAG_SHADOW_FACING_LIGHT :
-                       0));
+      e->flags = (LRT_EDGE_FLAG_PROJECTED_SHADOW |
+                  ((sseg->flag & LRT_SHADOW_FACING_LIGHT) ? LRT_EDGE_FLAG_SHADOW_FACING_LIGHT :
+                                                            0));
       ei++;
     }
     if (do_original_edges) {
@@ -1036,7 +1042,7 @@ static bool lineart_shadow_cast_generate_edges(LineartData *ld,
       e->v1 = v1;
       e->v2 = v2;
       e->t1 = e->t2 = (LineartTriangle *)sedge->e_ref;
-      e->flags = MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR;
+      e->flags = LRT_EDGE_FLAG_LIGHT_CONTOUR;
       if (lineart_contour_viewed_from_dark_side(ld, sedge->e_ref)) {
         lineart_edge_cut(ld, e, 0.0f, 1.0f, 0, 0, LRT_SHADOW_MASK_SHADED);
       }
@@ -1132,15 +1138,15 @@ static void lineart_shadow_register_enclosed_shapes(LineartData *ld, LineartData
   }
 }
 
-bool lineart_main_try_generate_shadow_v3(Depsgraph *depsgraph,
-                                         Scene *scene,
-                                         LineartData *original_ld,
-                                         GreasePencilLineartModifierData *lmd,
-                                         LineartStaticMemPool *shadow_data_pool,
-                                         LineartElementLinkNode **r_veln,
-                                         LineartElementLinkNode **r_eeln,
-                                         ListBase *r_calculated_edges_eln_list,
-                                         LineartData **r_shadow_ld_if_reproject)
+bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
+                                      Scene *scene,
+                                      LineartData *original_ld,
+                                      LineartGpencilModifierData *lmd,
+                                      LineartStaticMemPool *shadow_data_pool,
+                                      LineartElementLinkNode **r_veln,
+                                      LineartElementLinkNode **r_eeln,
+                                      ListBase *r_calculated_edges_eln_list,
+                                      LineartData **r_shadow_ld_if_reproject)
 {
   if ((!original_ld->conf.use_shadow && !original_ld->conf.use_light_contour &&
        !original_ld->conf.shadow_selection) ||
@@ -1151,7 +1157,7 @@ bool lineart_main_try_generate_shadow_v3(Depsgraph *depsgraph,
 
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = BLI_time_now_seconds();
+    t_start = BLI_check_seconds_timer();
   }
 
   bool is_persp = true;
@@ -1185,7 +1191,7 @@ bool lineart_main_try_generate_shadow_v3(Depsgraph *depsgraph,
   copy_v3_v3_db(ld->conf.camera_pos_secondary, ld->conf.camera_pos);
   copy_m4_m4(ld->conf.cam_obmat_secondary, ld->conf.cam_obmat);
 
-  copy_m4_m4(ld->conf.cam_obmat, lmd->light_contour_object->object_to_world().ptr());
+  copy_m4_m4(ld->conf.cam_obmat, lmd->light_contour_object->object_to_world);
   copy_v3db_v3fl(ld->conf.camera_pos, ld->conf.cam_obmat[3]);
   ld->conf.cam_is_persp_secondary = ld->conf.cam_is_persp;
   ld->conf.cam_is_persp = is_persp;
@@ -1241,7 +1247,7 @@ bool lineart_main_try_generate_shadow_v3(Depsgraph *depsgraph,
   lineart_main_get_view_vector(ld);
 
   lineart_main_load_geometries(
-      depsgraph, scene, nullptr, ld, lmd->flags & MOD_LINEART_ALLOW_DUPLI_OBJECTS, true, nullptr);
+      depsgraph, scene, nullptr, ld, lmd->flags & LRT_ALLOW_DUPLI_OBJECTS, true, nullptr);
 
   if (!ld->geom.vertex_buffer_pointers.first) {
     /* No geometry loaded, return early. */
@@ -1283,37 +1289,11 @@ bool lineart_main_try_generate_shadow_v3(Depsgraph *depsgraph,
   }
 
   if (G.debug_value == 4000) {
-    double t_elapsed = BLI_time_now_seconds() - t_start;
+    double t_elapsed = BLI_check_seconds_timer() - t_start;
     printf("Line art shadow stage 1 time: %f\n", t_elapsed);
   }
 
   return any_generated;
-}
-
-bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
-                                      Scene *scene,
-                                      LineartData *original_ld,
-                                      LineartGpencilModifierData *lmd_legacy,
-                                      LineartStaticMemPool *shadow_data_pool,
-                                      LineartElementLinkNode **r_veln,
-                                      LineartElementLinkNode **r_eeln,
-                                      ListBase *r_calculated_edges_eln_list,
-                                      LineartData **r_shadow_ld_if_reproject)
-{
-  bool ret = false;
-  GreasePencilLineartModifierData lmd;
-  blender::bke::greasepencil::convert::lineart_wrap_v3(lmd_legacy, &lmd);
-  ret = lineart_main_try_generate_shadow_v3(depsgraph,
-                                            scene,
-                                            original_ld,
-                                            &lmd,
-                                            shadow_data_pool,
-                                            r_veln,
-                                            r_eeln,
-                                            r_calculated_edges_eln_list,
-                                            r_shadow_ld_if_reproject);
-  blender::bke::greasepencil::convert::lineart_unwrap_v3(lmd_legacy, &lmd);
-  return ret;
 }
 
 struct LineartShadowFinalizeData {
@@ -1340,7 +1320,7 @@ static void lineart_shadow_finalize_shadow_edges_task(void *__restrict userdata,
   LineartData *ld = data->ld;
   LineartEdge *e = data->e;
 
-  if (e[i].flags & MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR) {
+  if (e[i].flags & LRT_EDGE_FLAG_LIGHT_CONTOUR) {
     LineartElementLinkNode *eln = lineart_find_matching_eln(
         &ld->geom.vertex_buffer_pointers, e[i].edge_identifier & LRT_OBINDEX_HIGHER);
     if (eln) {
@@ -1393,7 +1373,7 @@ void lineart_main_make_enclosed_shapes(LineartData *ld, LineartData *shadow_ld)
 {
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = BLI_time_now_seconds();
+    t_start = BLI_check_seconds_timer();
   }
 
   if (shadow_ld || ld->conf.shadow_use_silhouette) {
@@ -1404,7 +1384,7 @@ void lineart_main_make_enclosed_shapes(LineartData *ld, LineartData *shadow_ld)
   }
 
   if (G.debug_value == 4000) {
-    double t_elapsed = BLI_time_now_seconds() - t_start;
+    double t_elapsed = BLI_check_seconds_timer() - t_start;
     printf("Line art shadow stage 2 cast and silhouette time: %f\n", t_elapsed);
   }
 
@@ -1453,7 +1433,7 @@ void lineart_main_make_enclosed_shapes(LineartData *ld, LineartData *shadow_ld)
   lineart_shadow_register_enclosed_shapes(ld, shadow_ld);
 
   if (G.debug_value == 4000) {
-    double t_elapsed = BLI_time_now_seconds() - t_start;
+    double t_elapsed = BLI_check_seconds_timer() - t_start;
     printf("Line art shadow stage 2 total time: %f\n", t_elapsed);
   }
 }

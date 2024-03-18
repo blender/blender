@@ -11,7 +11,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_file_handler.hh"
 #include "BKE_idprop.h"
@@ -63,7 +63,7 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 
 #  include "BKE_context.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.hh"
+#  include "BKE_report.h"
 #  include "BKE_screen.hh"
 
 #  include "ED_asset_library.hh"

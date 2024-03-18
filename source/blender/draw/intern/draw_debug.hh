@@ -92,11 +92,11 @@ class DebugDraw {
   /**
    * Draw a matrix transformation as 3 colored axes.
    */
-  void draw_matrix(const float4x4 &m4);
+  void draw_matrix(const float4x4 m4);
   /**
    * Draw a matrix as a 2 units length bounding box, centered on origin.
    */
-  void draw_matrix_as_bbox(const float4x4 &mat, const float4 color = {1, 0, 0, 1});
+  void draw_matrix_as_bbox(float4x4 mat, const float4 color = {1, 0, 0, 1});
 
   /**
    * Will draw all debug shapes and text cached up until now to the current view / frame-buffer.

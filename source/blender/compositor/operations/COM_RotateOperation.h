@@ -13,6 +13,12 @@ class RotateOperation : public MultiThreadedOperation {
   constexpr static int IMAGE_INPUT_INDEX = 0;
   constexpr static int DEGREE_INPUT_INDEX = 1;
 
+  SocketReader *image_socket_;
+  SocketReader *degree_socket_;
+  /* TODO(manzanilla): to be removed with tiled implementation. */
+  float center_x_;
+  float center_y_;
+
   float cosine_;
   float sine_;
   bool do_degree2_rad_conversion_;
@@ -51,7 +57,13 @@ class RotateOperation : public MultiThreadedOperation {
                                   float cosine,
                                   rcti &r_canvas);
 
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
   void init_data() override;
+  void init_execution() override;
+  void deinit_execution() override;
 
   void set_do_degree2_rad_conversion(bool abool)
   {

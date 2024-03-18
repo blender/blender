@@ -47,7 +47,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set_instances.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -66,7 +66,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -336,7 +336,8 @@ static void update_id_properties_from_node_group(NodesModifierData *nmd)
   }
   IDProperty *new_properties = nmd->settings.properties;
 
-  nodes::update_input_properties_from_node_tree(*nmd->node_group, old_properties, *new_properties);
+  nodes::update_input_properties_from_node_tree(
+      *nmd->node_group, old_properties, false, *new_properties);
   nodes::update_output_properties_from_node_tree(
       *nmd->node_group, old_properties, *new_properties);
 
@@ -834,7 +835,7 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
 
     IDProperty *property = IDP_GetPropertyFromGroup(nmd->settings.properties, socket->identifier);
     if (property == nullptr) {
-      if (ELEM(type, SOCK_GEOMETRY, SOCK_MATRIX)) {
+      if (type == SOCK_GEOMETRY) {
         geometry_socket_count++;
       }
       else {
@@ -920,7 +921,7 @@ struct BakeFrameIndices {
 };
 
 static BakeFrameIndices get_bake_frame_indices(
-    const Span<std::unique_ptr<bake::FrameCache>> frame_caches, const SubFrame frame)
+    const Span<std::unique_ptr<bake::FrameCache>> &frame_caches, const SubFrame frame)
 {
   BakeFrameIndices frame_indices;
   if (!frame_caches.is_empty()) {
@@ -2303,9 +2304,16 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropDecorate(layout, false);
 
   if (!(nmd->flag & NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR)) {
-    const char *newop = (nmd->node_group == nullptr) ? "node.new_geometry_node_group_assign" :
-                                                       "object.geometry_node_tree_copy_assign";
-    uiTemplateID(layout, C, ptr, "node_group", newop, nullptr, nullptr, 0, false, nullptr);
+    uiTemplateID(layout,
+                 C,
+                 ptr,
+                 "node_group",
+                 "node.new_geometry_node_group_assign",
+                 nullptr,
+                 nullptr,
+                 0,
+                 false,
+                 nullptr);
   }
 
   if (nmd->node_group != nullptr && nmd->settings.properties != nullptr) {

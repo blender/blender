@@ -75,7 +75,7 @@ struct Depsgraph {
 
   /* Copy-on-Write Functionality ........ */
 
-  /* For given original ID get ID which is created by copy-on-evaluation system. */
+  /* For given original ID get ID which is created by CoW system. */
   ID *get_cow_id(const ID *id_orig) const;
 
   /* Core Graph Functionality ........... */

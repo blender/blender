@@ -7,11 +7,6 @@
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 output_texel = texel + lower_bound;
-  if (any(greaterThan(output_texel, upper_bound))) {
-    return;
-  }
-
   vec4 input_color = texture_load(input_tx, texel);
 
 #if defined(DIRECT_OUTPUT)

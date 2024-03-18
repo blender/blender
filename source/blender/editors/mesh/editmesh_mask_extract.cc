@@ -10,14 +10,19 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_paint.hh"
+#include "BKE_report.h"
+#include "BKE_screen.hh"
 #include "BKE_shrinkwrap.hh"
 
 #include "BLI_math_vector.h"
@@ -31,10 +36,12 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_sculpt.hh"
 #include "ED_undo.hh"
+#include "ED_view3d.hh"
 
 #include "bmesh_tools.hh"
 

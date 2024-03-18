@@ -12,6 +12,7 @@
 #include "GPU_texture.h"
 
 #include "COM_context.hh"
+#include "COM_utilities.hh"
 
 #include "COM_algorithm_parallel_reduction.hh"
 
@@ -265,20 +266,6 @@ float maximum_luminance(Context &context, GPUTexture *texture, float3 luminance_
   return maximum;
 }
 
-float maximum_float(Context &context, GPUTexture *texture)
-{
-  GPUShader *shader = context.get_shader("compositor_maximum_float", ResultPrecision::Full);
-  GPU_shader_bind(shader);
-
-  float *reduced_value = parallel_reduction_dispatch(
-      context, texture, shader, Result::texture_format(ResultType::Float, ResultPrecision::Full));
-  const float maximum = *reduced_value;
-  MEM_freeN(reduced_value);
-  GPU_shader_unbind();
-
-  return maximum;
-}
-
 float maximum_float_in_range(Context &context,
                              GPUTexture *texture,
                              float lower_bound,
@@ -310,20 +297,6 @@ float minimum_luminance(Context &context, GPUTexture *texture, float3 luminance_
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_3fv(shader, "luminance_coefficients", luminance_coefficients);
-
-  float *reduced_value = parallel_reduction_dispatch(
-      context, texture, shader, Result::texture_format(ResultType::Float, ResultPrecision::Full));
-  const float minimum = *reduced_value;
-  MEM_freeN(reduced_value);
-  GPU_shader_unbind();
-
-  return minimum;
-}
-
-float minimum_float(Context &context, GPUTexture *texture)
-{
-  GPUShader *shader = context.get_shader("compositor_minimum_float", ResultPrecision::Full);
-  GPU_shader_bind(shader);
 
   float *reduced_value = parallel_reduction_dispatch(
       context, texture, shader, Result::texture_format(ResultType::Float, ResultPrecision::Full));

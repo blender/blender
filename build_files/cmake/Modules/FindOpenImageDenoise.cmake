@@ -119,10 +119,6 @@ foreach(COMPONENT ${_openimagedenoise_FIND_COMPONENTS})
   mark_as_advanced(OPENIMAGEDENOISE_${UPPERCOMPONENT}_LIBRARY)
 endforeach()
 
-unset(COMPONENT)
-unset(UPPERCOMPONENT)
-
-unset(_openimagedenoise_FIND_COMPONENTS)
-unset(_openimagedenoise_FIND_STATIC_COMPONENTS)
-unset(_openimagedenoise_LIBRARIES)
 unset(_openimagedenoise_SEARCH_DIRS)
+unset(_openimagedenoise_FIND_COMPONENTS)
+unset(_openimagedenoise_LIBRARIES)

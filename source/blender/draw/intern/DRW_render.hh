@@ -19,9 +19,9 @@
 #include "BKE_layer.hh"
 #include "BKE_material.h"
 #include "BKE_pbvh.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
@@ -35,7 +35,7 @@
 #include "GPU_shader.h"
 #include "GPU_storage_buffer.h"
 #include "GPU_texture.h"
-#include "GPU_uniform_buffer.hh"
+#include "GPU_uniform_buffer.h"
 
 #include "draw_cache.hh"
 #include "draw_common.h"

@@ -63,8 +63,9 @@ void GPU_storagebuf_sync_to_host(GPUStorageBuf *ssbo);
  * If pending GPU updates to the storage buffer are not yet visible to the host, the command will
  * stall until dependent GPU work has completed.
  *
- * Otherwise, this command is synchronized against this call and will stall the CPU until the
- * buffer content can be read by the host.
+ * Otherwise, this command is unsynchronized and will return current visible storage buffer
+ * contents immediately.
+ * Alternatively, use appropriate barrier or GPU_finish before reading.
  */
 void GPU_storagebuf_read(GPUStorageBuf *ssbo, void *data);
 

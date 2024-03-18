@@ -9,6 +9,7 @@
 
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"
+#include "BKE_mesh.hh"
 #include "BKE_pointcloud.hh"
 
 #include "NOD_rna_define.hh"
@@ -62,7 +63,7 @@ struct SplitGroups {
   VectorSet<int> group_ids;
 
   IndexMaskMemory memory;
-  Vector<IndexMask> group_masks;
+  Array<IndexMask> group_masks;
 };
 
 /**
@@ -90,8 +91,24 @@ struct SplitGroups {
     return true;
   }
 
-  r_groups.group_masks = IndexMask::from_group_ids(
-      selection, field_evaluator.get_evaluated<int>(0), r_groups.memory, r_groups.group_ids);
+  const VArray<int> group_ids_varray = field_evaluator.get_evaluated<int>(0);
+  if (selection.size() == domain_size && group_ids_varray.is_single()) {
+    const int group_id = group_ids_varray.get_internal_single();
+    ensure_group_geometries(geometry_by_group_id, {group_id});
+    geometry_by_group_id.lookup(group_id)->add(src_component);
+    return true;
+  }
+
+  const VArraySpan<int> group_ids = group_ids_varray;
+  selection.foreach_index_optimized<int>(
+      [&](const int i) { r_groups.group_ids.add(group_ids[i]); });
+
+  r_groups.group_masks.reinitialize(r_groups.group_ids.size());
+  IndexMask::from_groups<int>(
+      selection,
+      r_groups.memory,
+      [&](const int i) { return r_groups.group_ids.index_of(group_ids[i]); },
+      r_groups.group_masks);
 
   ensure_group_geometries(geometry_by_group_id, r_groups.group_ids);
   return false;
@@ -246,6 +263,7 @@ static void split_instance_groups(const InstancesComponent &component,
         group_instances->add_reference(reference);
       }
 
+      array_utils::gather(src_instances.transforms(), mask, group_instances->transforms());
       bke::gather_attributes(src_instances.attributes(),
                              AttrDomain::Instance,
                              propagation_info,
@@ -322,7 +340,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     dst_group_id.finish();
   }
 
-  dst_instances->transforms_for_write().fill(float4x4::identity());
+  dst_instances->transforms().fill(float4x4::identity());
   array_utils::fill_index_range(dst_instances->reference_handles_for_write());
 
   for (auto item : geometry_by_group_id.items()) {

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "DNA_userdef_types.h"
 

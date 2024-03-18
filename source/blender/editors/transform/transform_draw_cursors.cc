@@ -17,6 +17,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
+#include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "transform.hh"
@@ -115,7 +116,7 @@ void transform_draw_cursor_draw(bContext * /*C*/, int x, int y, void *customdata
     GPU_line_width(DASH_WIDTH);
     immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
     immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
-    immUniform1i("colors_len", 0); /* "simple" mode. */
+    immUniform1i("colors_len", 0); /* "simple" mode */
     immUniformThemeColor3(TH_VIEW_OVERLAY);
     immUniform1f("dash_width", DASH_LENGTH);
     immUniform1f("udash_factor", 0.5f);

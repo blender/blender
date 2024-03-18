@@ -147,7 +147,8 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
     )
     major_radius: FloatProperty(
         name="Major Radius",
-        description="Radius from the origin to the center of the cross sections",
+        description=("Radius from the origin to the "
+                     "center of the cross sections"),
         soft_min=0.0, soft_max=100.0,
         min=0.0, max=10_000.0,
         default=1.0,

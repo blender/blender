@@ -21,24 +21,32 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_fcurve.hh"
-#include "BKE_global.hh"
+#include "BKE_fcurve.h"
+#include "BKE_global.h"
+#include "BKE_scene.h"
 #include "BKE_sound.h"
 
+#include "IMB_imbuf.hh"
+
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
+#include "GPU_vertex_buffer.h"
 #include "GPU_viewport.h"
 
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"
 #include "ED_mask.hh"
+#include "ED_screen.hh"
 #include "ED_sequencer.hh"
 #include "ED_space_api.hh"
 #include "ED_time_scrub_ui.hh"
+#include "ED_util.hh"
 
 #include "RNA_prototypes.h"
 
 #include "SEQ_channels.hh"
 #include "SEQ_effects.hh"
+#include "SEQ_iterator.hh"
 #include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
@@ -48,6 +56,7 @@
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
+#include "UI_interface.hh"
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
@@ -1572,13 +1581,32 @@ struct CacheDrawData {
   float stripe_ofs_y;
   float stripe_ht;
   int cache_flag;
-  SeqQuadsBatch *quads;
+  GPUVertBuf *raw_vbo;
+  GPUVertBuf *preprocessed_vbo;
+  GPUVertBuf *composite_vbo;
+  GPUVertBuf *final_out_vbo;
+  size_t raw_vert_count;
+  size_t preprocessed_vert_count;
+  size_t composite_vert_count;
+  size_t final_out_vert_count;
 };
 
 /* Called as a callback. */
-static bool draw_cache_view_init_fn(void * /*userdata*/, size_t item_count)
+static bool draw_cache_view_init_fn(void *userdata, size_t item_count)
 {
-  return item_count == 0;
+  if (item_count == 0) {
+    return true;
+  }
+
+  CacheDrawData *drawdata = static_cast<CacheDrawData *>(userdata);
+  /* We can not get item count per cache type, so using total item count is safe. */
+  size_t max_vert_count = item_count * 6;
+  GPU_vertbuf_data_alloc(drawdata->raw_vbo, max_vert_count);
+  GPU_vertbuf_data_alloc(drawdata->preprocessed_vbo, max_vert_count);
+  GPU_vertbuf_data_alloc(drawdata->composite_vbo, max_vert_count);
+  GPU_vertbuf_data_alloc(drawdata->final_out_vbo, max_vert_count);
+
+  return false;
 }
 
 /* Called as a callback */
@@ -1587,106 +1615,133 @@ static bool draw_cache_view_iter_fn(void *userdata,
                                     int timeline_frame,
                                     int cache_type)
 {
-  using blender::uchar4;
   CacheDrawData *drawdata = static_cast<CacheDrawData *>(userdata);
-  const View2D *v2d = drawdata->v2d;
+  View2D *v2d = drawdata->v2d;
   float stripe_bot;
-
-  const uchar4 col_final{255, 102, 51, 100};
-  const uchar4 col_raw{255, 25, 5, 100};
-  const uchar4 col_preproc{25, 25, 191, 100};
-  const uchar4 col_composite{255, 153, 0, 100};
-
-  uchar4 col{0, 0, 0, 0};
+  GPUVertBuf *vbo;
+  size_t *vert_count;
 
   if ((cache_type & SEQ_CACHE_STORE_FINAL_OUT) &&
       (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT))
   {
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
-    col = col_final;
+    vbo = drawdata->final_out_vbo;
+    vert_count = &drawdata->final_out_vert_count;
   }
   else if ((cache_type & SEQ_CACHE_STORE_RAW) && (drawdata->cache_flag & SEQ_CACHE_VIEW_RAW)) {
     stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + drawdata->stripe_ofs_y;
-    col = col_raw;
+    vbo = drawdata->raw_vbo;
+    vert_count = &drawdata->raw_vert_count;
   }
   else if ((cache_type & SEQ_CACHE_STORE_PREPROCESSED) &&
            (drawdata->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED))
   {
     stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + drawdata->stripe_ht +
                  drawdata->stripe_ofs_y * 2;
-    col = col_preproc;
+    vbo = drawdata->preprocessed_vbo;
+    vert_count = &drawdata->preprocessed_vert_count;
   }
   else if ((cache_type & SEQ_CACHE_STORE_COMPOSITE) &&
            (drawdata->cache_flag & SEQ_CACHE_VIEW_COMPOSITE))
   {
     stripe_bot = seq->machine + SEQ_STRIP_OFSTOP - drawdata->stripe_ofs_y - drawdata->stripe_ht;
-    col = col_composite;
+    vbo = drawdata->composite_vbo;
+    vert_count = &drawdata->composite_vert_count;
   }
   else {
     return false;
   }
 
   float stripe_top = stripe_bot + drawdata->stripe_ht;
-  drawdata->quads->add_quad(timeline_frame, stripe_bot, timeline_frame + 1, stripe_top, col);
 
+  float vert_pos[6][2];
+  copy_v2_fl2(vert_pos[0], timeline_frame, stripe_bot);
+  copy_v2_fl2(vert_pos[1], timeline_frame, stripe_top);
+  copy_v2_fl2(vert_pos[2], timeline_frame + 1, stripe_top);
+  copy_v2_v2(vert_pos[3], vert_pos[2]);
+  copy_v2_v2(vert_pos[4], vert_pos[0]);
+  copy_v2_fl2(vert_pos[5], timeline_frame + 1, stripe_bot);
+
+  for (int i = 0; i < 6; i++) {
+    GPU_vertbuf_vert_set(vbo, *vert_count + i, vert_pos[i]);
+  }
+
+  *vert_count += 6;
   return false;
+}
+
+static void draw_cache_view_batch(
+    GPUVertBuf *vbo, size_t vert_count, float col_r, float col_g, float col_b, float col_a)
+{
+  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
+  if (vert_count > 0) {
+    GPU_vertbuf_data_len_set(vbo, vert_count);
+    GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+    GPU_batch_uniform_4f(batch, "color", col_r, col_g, col_b, col_a);
+    GPU_batch_draw(batch);
+  }
+  GPU_batch_discard(batch);
 }
 
 static void draw_cache_stripe(const Scene *scene,
                               const Sequence *seq,
-                              SeqQuadsBatch &quads,
+                              uint pos,
                               const float stripe_bot,
                               const float stripe_ht,
-                              const uchar color[4])
+                              const float bg_color[4])
 {
-  quads.add_quad(SEQ_time_left_handle_frame_get(scene, seq),
-                 stripe_bot,
-                 SEQ_time_right_handle_frame_get(scene, seq),
-                 stripe_bot + stripe_ht,
-                 color);
+  immUniformColor4fv(bg_color);
+  immRectf(pos,
+           SEQ_time_left_handle_frame_get(scene, seq),
+           stripe_bot,
+           SEQ_time_right_handle_frame_get(scene, seq),
+           stripe_bot + stripe_ht);
 }
 
 static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
 {
-  using blender::uchar4;
   Scene *scene = CTX_data_scene(C);
   View2D *v2d = UI_view2d_fromcontext(C);
+  float bg_colors[4][4];
+  copy_v4_fl4(bg_colors[0], 1.0f, 0.4f, 0.2f, 0.1f);
+  copy_v4_fl4(bg_colors[1], 1.0f, 0.1f, 0.02f, 0.1f);
+  copy_v4_fl4(bg_colors[2], 0.1f, 0.1f, 0.75f, 0.1f);
+  copy_v4_fl4(bg_colors[3], 1.0f, 0.6f, 0.0f, 0.1f);
 
-  const uchar4 bg_final{255, 102, 51, 25};
-  const uchar4 bg_raw{255, 25, 5, 25};
-  const uchar4 bg_preproc{25, 25, 191, 25};
-  const uchar4 bg_composite{255, 153, 0, 25};
+  GPU_blend(GPU_BLEND_ALPHA);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   float stripe_bot;
   if (scene->ed->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT) {
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
 
-    draw_data->quads->add_quad(
-        scene->r.sfra, stripe_bot, scene->r.efra, stripe_bot + draw_data->stripe_ht, bg_final);
+    immUniformColor4fv(bg_colors[0]);
+    immRectf(pos, scene->r.sfra, stripe_bot, scene->r.efra, stripe_bot + draw_data->stripe_ht);
   }
 
   blender::Vector<Sequence *> strips = sequencer_visible_strips_get(C);
   strips.remove_if([&](Sequence *seq) { return seq->type == SEQ_TYPE_SOUND_RAM; });
 
-  for (const Sequence *seq : strips) {
+  for (Sequence *seq : strips) {
     stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + draw_data->stripe_ofs_y;
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_RAW) {
-      draw_cache_stripe(scene, seq, *draw_data->quads, stripe_bot, draw_data->stripe_ht, bg_raw);
+      draw_cache_stripe(scene, seq, pos, stripe_bot, draw_data->stripe_ht, bg_colors[1]);
     }
 
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED) {
       stripe_bot += draw_data->stripe_ht + draw_data->stripe_ofs_y;
-      draw_cache_stripe(
-          scene, seq, *draw_data->quads, stripe_bot, draw_data->stripe_ht, bg_preproc);
+      draw_cache_stripe(scene, seq, pos, stripe_bot, draw_data->stripe_ht, bg_colors[2]);
     }
 
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_COMPOSITE) {
       stripe_bot = seq->machine + SEQ_STRIP_OFSTOP - draw_data->stripe_ofs_y -
                    draw_data->stripe_ht;
-      draw_cache_stripe(
-          scene, seq, *draw_data->quads, stripe_bot, draw_data->stripe_ht, bg_composite);
+      draw_cache_stripe(scene, seq, pos, stripe_bot, draw_data->stripe_ht, bg_colors[3]);
     }
   }
+
+  immUnbindProgram();
 }
 
 static void draw_cache_view(const bContext *C)
@@ -1705,20 +1760,34 @@ static void draw_cache_view(const bContext *C)
   CLAMP_MAX(stripe_ht, 0.2f);
   CLAMP_MIN(stripe_ofs_y, stripe_ht / 2);
 
-  SeqQuadsBatch quads;
+  GPUVertFormat format = {0};
+  GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
   CacheDrawData userdata;
   userdata.v2d = v2d;
   userdata.stripe_ofs_y = stripe_ofs_y;
   userdata.stripe_ht = stripe_ht;
   userdata.cache_flag = scene->ed->cache_flag;
-  userdata.quads = &quads;
+  userdata.raw_vert_count = 0;
+  userdata.preprocessed_vert_count = 0;
+  userdata.composite_vert_count = 0;
+  userdata.final_out_vert_count = 0;
+  userdata.raw_vbo = GPU_vertbuf_create_with_format(&format);
+  userdata.preprocessed_vbo = GPU_vertbuf_create_with_format(&format);
+  userdata.composite_vbo = GPU_vertbuf_create_with_format(&format);
+  userdata.final_out_vbo = GPU_vertbuf_create_with_format(&format);
 
-  GPU_blend(GPU_BLEND_ALPHA);
-
-  draw_cache_background(C, &userdata);
   SEQ_cache_iterate(scene, &userdata, draw_cache_view_init_fn, draw_cache_view_iter_fn);
 
-  quads.draw();
+  draw_cache_background(C, &userdata);
+  draw_cache_view_batch(userdata.raw_vbo, userdata.raw_vert_count, 1.0f, 0.1f, 0.02f, 0.4f);
+  draw_cache_view_batch(
+      userdata.preprocessed_vbo, userdata.preprocessed_vert_count, 0.1f, 0.1f, 0.75f, 0.4f);
+  draw_cache_view_batch(
+      userdata.composite_vbo, userdata.composite_vert_count, 1.0f, 0.6f, 0.0f, 0.4f);
+  draw_cache_view_batch(
+      userdata.final_out_vbo, userdata.final_out_vert_count, 1.0f, 0.4f, 0.2f, 0.4f);
+
   GPU_blend(GPU_BLEND_NONE);
 }
 

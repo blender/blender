@@ -4,6 +4,8 @@
 
 #include "node_shader_util.hh"
 
+#include "RE_texture.h"
+
 namespace blender::nodes::node_shader_particle_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)

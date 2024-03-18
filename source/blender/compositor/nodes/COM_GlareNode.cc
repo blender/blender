@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_GlareNode.h"
-#include "COM_GlareBloomOperation.h"
 #include "COM_GlareFogGlowOperation.h"
 #include "COM_GlareGhostOperation.h"
 #include "COM_GlareSimpleStarOperation.h"
@@ -28,20 +27,17 @@ void GlareNode::convert_to_operations(NodeConverter &converter,
   GlareBaseOperation *glareoperation = nullptr;
   switch (glare->type) {
     default:
-    case CMP_NODE_GLARE_GHOST:
+    case 3:
       glareoperation = new GlareGhostOperation();
       break;
-    case CMP_NODE_GLARE_STREAKS:
+    case 2: /* Streaks. */
       glareoperation = new GlareStreaksOperation();
       break;
-    case CMP_NODE_GLARE_FOG_GLOW:
+    case 1: /* Fog glow. */
       glareoperation = new GlareFogGlowOperation();
       break;
-    case CMP_NODE_GLARE_SIMPLE_STAR:
+    case 0: /* Simple star. */
       glareoperation = new GlareSimpleStarOperation();
-      break;
-    case CMP_NODE_GLARE_BLOOM:
-      glareoperation = new GlareBloomOperation();
       break;
   }
   BLI_assert(glareoperation);

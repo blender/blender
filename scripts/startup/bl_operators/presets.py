@@ -120,7 +120,9 @@ class AddPresetBase:
 
                 if is_xml:
                     import rna_xml
-                    rna_xml.xml_file_write(context, filepath, preset_menu_class.preset_xml_map)
+                    rna_xml.xml_file_write(context,
+                                           filepath,
+                                           preset_menu_class.preset_xml_map)
                 else:
 
                     def rna_recursive_attr_expand(value, rna_path_step, level):
@@ -167,10 +169,15 @@ class AddPresetBase:
                 name = preset_menu_class.bl_label
 
             # fairly sloppy but convenient.
-            filepath = bpy.utils.preset_find(name, self.preset_subdir, ext=ext)
+            filepath = bpy.utils.preset_find(name,
+                                             self.preset_subdir,
+                                             ext=ext)
 
             if not filepath:
-                filepath = bpy.utils.preset_find(name, self.preset_subdir, display_name=True, ext=ext)
+                filepath = bpy.utils.preset_find(name,
+                                                 self.preset_subdir,
+                                                 display_name=True,
+                                                 ext=ext)
 
             if not filepath:
                 return {'CANCELLED'}
@@ -250,7 +257,9 @@ class ExecutePreset(Operator):
 
         elif ext == ".xml":
             import rna_xml
-            rna_xml.xml_file_run(context, filepath, preset_class.preset_xml_map)
+            rna_xml.xml_file_run(context,
+                                 filepath,
+                                 preset_class.preset_xml_map)
 
         if hasattr(preset_class, "post_cb"):
             preset_class.post_cb(context)
@@ -554,44 +563,17 @@ class AddPresetNodeColor(AddPresetBase, Operator):
 
 
 class AddPresetInterfaceTheme(AddPresetBase, Operator):
-    """Add a custom theme to the preset list"""
+    """Add or remove a theme preset"""
     bl_idname = "wm.interface_theme_preset_add"
-    bl_label = "Add Theme"
+    bl_label = "Add Theme Preset"
     preset_menu = "USERPREF_MT_interface_theme_presets"
     preset_subdir = "interface_theme"
-
-
-class RemovePresetInterfaceTheme(AddPresetBase, Operator):
-    """Remove a custom theme from the preset list"""
-    bl_idname = "wm.interface_theme_preset_remove"
-    bl_label = "Remove Theme"
-    preset_menu = "USERPREF_MT_interface_theme_presets"
-    preset_subdir = "interface_theme"
-
-    remove_active: BoolProperty(
-        default=True,
-        options={'HIDDEN', 'SKIP_SAVE'},
-    )
-
-    @classmethod
-    def poll(cls, context):
-        from bpy.utils import is_path_builtin
-        preset_menu_class = getattr(bpy.types, cls.preset_menu)
-        name = preset_menu_class.bl_label
-        filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".xml")
-        if not bool(filepath) or is_path_builtin(filepath):
-            cls.poll_message_set("Built-in themes cannot be removed")
-            return False
-        return True
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_confirm(self, event, title="Remove Custom Theme", confirm_text="Delete")
 
 
 class AddPresetKeyconfig(AddPresetBase, Operator):
-    """Add a custom keymap configuration to the preset list"""
+    """Add or remove a Key-config Preset"""
     bl_idname = "wm.keyconfig_preset_add"
-    bl_label = "Add Custom Keymap Configuration"
+    bl_label = "Add Keyconfig Preset"
     preset_menu = "USERPREF_MT_keyconfigs"
     preset_subdir = "keyconfig"
 
@@ -599,43 +581,16 @@ class AddPresetKeyconfig(AddPresetBase, Operator):
         bpy.ops.preferences.keyconfig_export(filepath=filepath)
         bpy.utils.keyconfig_set(filepath)
 
-
-class RemovePresetKeyconfig(AddPresetBase, Operator):
-    """Remove a custom keymap configuration from the preset list"""
-    bl_idname = "wm.keyconfig_preset_remove"
-    bl_label = "Remove Keymap Configuration"
-    preset_menu = "USERPREF_MT_keyconfigs"
-    preset_subdir = "keyconfig"
-
-    remove_active: BoolProperty(
-        default=True,
-        options={'HIDDEN', 'SKIP_SAVE'},
-    )
-
-    @classmethod
-    def poll(cls, context):
-        from bpy.utils import is_path_builtin
-        keyconfigs = bpy.context.window_manager.keyconfigs
-        preset_menu_class = getattr(bpy.types, cls.preset_menu)
-        name = keyconfigs.active.name
-        filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".py")
-        if not bool(filepath) or is_path_builtin(filepath):
-            cls.poll_message_set("Built-in keymap configurations cannot be removed")
-            return False
-        return True
-
     def pre_cb(self, context):
         keyconfigs = bpy.context.window_manager.keyconfigs
-        preset_menu_class = getattr(bpy.types, self.preset_menu)
-        preset_menu_class.bl_label = keyconfigs.active.name
+        if self.remove_active:
+            preset_menu_class = getattr(bpy.types, self.preset_menu)
+            preset_menu_class.bl_label = keyconfigs.active.name
 
     def post_cb(self, context):
         keyconfigs = bpy.context.window_manager.keyconfigs
-        keyconfigs.remove(keyconfigs.active)
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_confirm(
-            self, event, title="Remove Keymap Configuration", confirm_text="Delete")
+        if self.remove_active:
+            keyconfigs.remove(keyconfigs.active)
 
 
 class AddPresetOperator(AddPresetBase, Operator):
@@ -856,9 +811,7 @@ classes = (
     AddPresetFluid,
     AddPresetHairDynamics,
     AddPresetInterfaceTheme,
-    RemovePresetInterfaceTheme,
     AddPresetKeyconfig,
-    RemovePresetKeyconfig,
     AddPresetNodeColor,
     AddPresetOperator,
     AddPresetRender,

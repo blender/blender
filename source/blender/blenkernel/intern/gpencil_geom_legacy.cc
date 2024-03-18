@@ -13,6 +13,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.h"
@@ -36,13 +38,19 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+
+#include "BLT_translation.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_context.hh"
 #include "BKE_deform.hh"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 
@@ -2660,21 +2668,21 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
 
   /* Use evaluated data to get mesh with all modifiers on top. */
   Object *ob_eval = (Object *)DEG_get_evaluated_object(depsgraph, ob_mesh);
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  const Span<float3> positions = mesh_eval->vert_positions();
-  const OffsetIndices faces = mesh_eval->faces();
-  const Span<int> corner_verts = mesh_eval->corner_verts();
-  int faces_len = mesh_eval->faces_num;
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  const Span<float3> positions = me_eval->vert_positions();
+  const OffsetIndices faces = me_eval->faces();
+  const Span<int> corner_verts = me_eval->corner_verts();
+  int faces_len = me_eval->faces_num;
   char element_name[200];
 
   /* Need at least an edge. */
-  if (mesh_eval->edges_num < 1) {
+  if (me_eval->edges_num < 1) {
     return false;
   }
 
   /* Create matching vertex groups. */
-  BKE_defgroup_copy_list(&gpd->vertex_group_names, &mesh_eval->vertex_group_names);
-  gpd->vertex_group_active_index = mesh_eval->vertex_group_active_index;
+  BKE_defgroup_copy_list(&gpd->vertex_group_names, &me_eval->vertex_group_names);
+  gpd->vertex_group_active_index = me_eval->vertex_group_active_index;
 
   const float default_colors[2][4] = {{0.0f, 0.0f, 0.0f, 1.0f}, {0.7f, 0.7f, 0.7f, 1.0f}};
   /* Lookup existing stroke material on gp object. */
@@ -2700,7 +2708,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         gpl_fill, scene->r.cfra + frame_offset, GP_GETFRAME_ADD_NEW);
     int i;
 
-    const VArray<int> mesh_material_indices = *mesh_eval->attributes().lookup_or_default<int>(
+    const VArray<int> mesh_material_indices = *me_eval->attributes().lookup_or_default<int>(
         "material_index", AttrDomain::Face, 0);
     for (i = 0; i < faces_len; i++) {
       const IndexRange face = faces[i];
@@ -2727,7 +2735,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
       gps_fill->flag |= GP_STROKE_CYCLIC;
 
       /* Create dvert data. */
-      const Span<MDeformVert> dverts = mesh_eval->deform_verts();
+      const Span<MDeformVert> dverts = me_eval->deform_verts();
       if (use_vgroups && !dverts.is_empty()) {
         gps_fill->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * face.size(),
                                                      "gp_fill_dverts");
@@ -2788,7 +2796,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
                              use_vgroups);
 
   /* Tag for recalculation */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 
   return true;
 }
@@ -3972,7 +3980,7 @@ static int generate_perimeter_cap(const float point[4],
 /**
  * Calculate the perimeter (outline) of a stroke as list of tPerimeterPoint.
  * \param subdivisions: Number of subdivisions for the start and end caps
- * \return list of tPerimeterPoint.
+ * \return: list of tPerimeterPoint
  */
 static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
                                              const bGPDlayer *gpl,

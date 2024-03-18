@@ -53,7 +53,7 @@ void OVERLAY_lattice_cache_populate(OVERLAY_Data *vedata, Object *ob)
   DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
   GPUBatch *geom = DRW_cache_lattice_wire_get(ob, false);
-  OVERLAY_extra_wire(cb, geom, ob->object_to_world().ptr(), color);
+  OVERLAY_extra_wire(cb, geom, ob->object_to_world, color);
 }
 
 void OVERLAY_edit_lattice_draw(OVERLAY_Data *vedata)

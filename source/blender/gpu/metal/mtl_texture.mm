@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "DNA_userdef_types.h"
 
@@ -1122,8 +1122,6 @@ void gpu::MTLTexture::update_sub(
     /* Decrement texture reference counts. This ensures temporary texture views are released. */
     [texture_handle release];
 
-    ctx->main_command_buffer.submit(false);
-
     /* Release temporary staging buffer allocation.
      * NOTE: Allocation will be tracked with command submission and released once no longer in use.
      */
@@ -1689,16 +1687,11 @@ void gpu::MTLTexture::read_internal(int mip,
      * happen after work with associated texture is finished. */
     GPU_finish();
 
-    /** Determine source read texture handle. */
+    /* Texture View for SRGB special case. */
     id<MTLTexture> read_texture = texture_;
-    /* Use textureview handle if reading from a GPU texture view. */
-    if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW) {
-      read_texture = this->get_metal_handle();
-    }
-    /* Create Texture View for SRGB special case to bypass internal type conversion. */
     if (format_ == GPU_SRGB8_A8) {
       BLI_assert(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_FORMAT_VIEW);
-      read_texture = [read_texture newTextureViewWithPixelFormat:MTLPixelFormatRGBA8Unorm];
+      read_texture = [texture_ newTextureViewWithPixelFormat:MTLPixelFormatRGBA8Unorm];
     }
 
     /* Perform per-texture type read. */

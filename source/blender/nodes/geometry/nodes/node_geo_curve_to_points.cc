@@ -5,6 +5,7 @@
 #include "BLI_array.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
+#include "BLI_timeit.hh"
 
 #include "DNA_pointcloud_types.h"
 
@@ -95,9 +96,6 @@ static void copy_curve_domain_attributes(const AttributeAccessor curve_attribute
           return true;
         }
         if (meta_data.domain != AttrDomain::Curve) {
-          return true;
-        }
-        if (meta_data.data_type == CD_PROP_STRING) {
           return true;
         }
         point_attributes.add(

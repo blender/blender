@@ -74,7 +74,7 @@ typedef struct Mesh {
   int verts_num;
   /** The number of edges in the mesh, and the size of #edge_data. */
   int edges_num;
-  /** The number of faces in the mesh, and the size of #face_data. */
+  /** The number of polygons/faces in the mesh, and the size of #face_data. */
   int faces_num;
   /** The number of face corners in the mesh, and the size of #corner_data. */
   int corners_num;
@@ -82,7 +82,7 @@ typedef struct Mesh {
   /**
    * Array owned by mesh. See #Mesh::faces() and #OffsetIndices.
    *
-   * This array is shared based on the bke::MeshRuntime::face_offsets_sharing_info.
+   * This array is shared based on the bke::MeshRuntime::poly_offsets_sharing_info.
    * Avoid accessing directly when possible.
    */
   int *face_offset_indices;
@@ -232,43 +232,43 @@ typedef struct Mesh {
   MeshRuntimeHandle *runtime;
 #ifdef __cplusplus
   /**
-   * Array of vertex positions. Edges and face corners are defined by indices into this array.
+   * Array of vertex positions. Edges and faces are defined by indices into this array.
    */
   blender::Span<blender::float3> vert_positions() const;
   /** Write access to vertex data. */
   blender::MutableSpan<blender::float3> vert_positions_for_write();
   /**
-   * Array of edges, containing vertex indices, stored in the ".edge_verts" attribute. For simple
-   * triangle or quad meshes, edges could be calculated from the face and #corner_edge arrays.
-   * However, edges need to be stored explicitly for edge domain attributes and to support loose
+   * Array of edges, containing vertex indices, stored in the ".edge_verts" attributes. For simple
+   * triangle or quad meshes, edges could be calculated from the face and "corner edge" arrays,
+   * however, edges need to be stored explicitly to edge domain attributes and to support loose
    * edges that aren't connected to faces.
    */
   blender::Span<blender::int2> edges() const;
   /** Write access to edge data. */
   blender::MutableSpan<blender::int2> edges_for_write();
   /**
-   * Face topology information (using the same internal data as #face_offsets()). Each face is a
-   * contiguous chunk of face corners represented as an #IndexRange. Each face can be used to slice
-   * the #corner_verts or #corner_edges arrays to find the vertices or edges that each face uses.
+   * Face topology storage of the offset of each face's section of the face corners. The size of
+   * each face is encoded using the next offset value. Can be used to slice the #corner_verts or
+   * #corner_edges arrays to find the vertices or edges that make up each face.
    */
   blender::OffsetIndices<int> faces() const;
   /**
-   * Return an array containing the first corner of each face. and the size of the face encoded as
-   * the next offset. The total number of corners is the final value, and the first value is always
-   * zero. May be empty if there are no faces.
+   * Index of the first corner of each face, and the size of the face encoded as the next
+   * offset. The total number of corners is the final value, and the first value is always zero.
+   * May be empty if there are no polygons.
    */
   blender::Span<int> face_offsets() const;
-  /** Write access to #face_offsets data. */
+  /** Write access to #poly_offsets data. */
   blender::MutableSpan<int> face_offsets_for_write();
 
   /**
    * Array of vertices for every face corner,  stored in the ".corner_vert" integer attribute.
    * For example, the vertices in a face can be retrieved with the #slice method:
    * \code{.cc}
-   * const Span<int> face_verts = corner_verts.slice(face);
+   * const Span<int> poly_verts = corner_verts.slice(face);
    * \endcode
-   * This span can often be passed as an argument in lieu of a face and the entire corner verts
-   * array.
+   * Such a span can often be passed as an argument in lieu of a polygon or the entire corner
+   * verts array.
    */
   blender::Span<int> corner_verts() const;
   /** Write access to the #corner_verts data. */
@@ -385,7 +385,7 @@ typedef struct Mesh {
    */
   blender::bke::MeshNormalDomain normals_domain(const bool support_sharp_face = false) const;
   /**
-   * Normal direction of faces, defined by positions and the winding direction of face corners.
+   * Normal direction of polygons, defined by positions and the winding direction of face corners.
    */
   blender::Span<blender::float3> face_normals() const;
   /**

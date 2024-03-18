@@ -11,15 +11,21 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_report.hh"
+#include "BKE_main.hh"
+#include "BKE_report.h"
 
 #include "BKE_layer.hh"
-#include "BKE_scene.hh"
+#include "BKE_material.h"
+#include "BKE_object.hh"
+#include "BKE_scene.h"
 #include "BKE_unit.hh"
 
 #include "DNA_gpencil_legacy_types.h"
@@ -28,6 +34,7 @@
 
 #include "ED_gizmo_library.hh"
 #include "ED_gizmo_utils.hh"
+#include "ED_gpencil_legacy.hh"
 #include "ED_screen.hh"
 #include "ED_transform.hh"
 #include "ED_transform_snap_object_context.hh"
@@ -518,7 +525,7 @@ static void view3d_ruler_gpencil_ensure(bContext *C)
   Scene *scene = CTX_data_scene(C);
   if (scene->gpd == nullptr) {
     scene->gpd = BKE_gpencil_data_addnew(bmain, "Annotations");
-    DEG_id_tag_update_ex(bmain, &scene->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update_ex(bmain, &scene->id, ID_RECALC_COPY_ON_WRITE);
     DEG_relations_tag_update(bmain);
   }
 }

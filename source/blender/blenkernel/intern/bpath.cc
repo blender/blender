@@ -61,18 +61,18 @@
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
-#include "BKE_node.hh"
-#include "BKE_report.hh"
+#include "BKE_node.h"
+#include "BKE_report.h"
 #include "BKE_vfont.hh"
 
-#include "BKE_bpath.hh" /* own include */
+#include "BKE_bpath.h" /* own include */
 
 #include "CLG_log.h"
 
 #include "SEQ_iterator.hh"
 
 #ifndef _MSC_VER
-#  include "BLI_strict_flags.h" /* Keep last. */
+#  include "BLI_strict_flags.h"
 #endif
 
 static CLG_LogRef LOG = {"bke.bpath"};
@@ -118,7 +118,7 @@ void BKE_bpath_foreach_path_id(BPathForeachPathData *bpath_data, ID *id)
   id_type->foreach_path(id, bpath_data);
 
   if (bpath_data->is_path_modified) {
-    DEG_id_tag_update(id, ID_RECALC_SOURCE | ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(id, ID_RECALC_SOURCE | ID_RECALC_COPY_ON_WRITE);
   }
 }
 

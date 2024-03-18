@@ -19,7 +19,7 @@
  * Since we can't avoid including <windows.h>, better only include that */
 #if defined(FREE_WINDOWS64)
 #  include "util/windows.h"
-#elif defined(_MSC_VER) && !defined(__KERNEL_NEON__)
+#elif defined(_MSC_VER)
 #  include <intrin.h>
 #elif (defined(__x86_64__) || defined(__i386__))
 #  include <x86intrin.h>
@@ -40,16 +40,10 @@
 #    define SIMD_SET_FLUSH_TO_ZERO \
       _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); \
       _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-#  elif !defined(_M_ARM64)
+#  else
 #    define _MM_FLUSH_ZERO_ON 24
 #    define __get_fpcr(__fpcr) __asm__ __volatile__("mrs %0,fpcr" : "=r"(__fpcr))
 #    define __set_fpcr(__fpcr) __asm__ __volatile__("msr fpcr,%0" : : "ri"(__fpcr))
-#    define SIMD_SET_FLUSH_TO_ZERO set_fz(_MM_FLUSH_ZERO_ON);
-#    define SIMD_GET_FLUSH_TO_ZERO get_fz(_MM_FLUSH_ZERO_ON)
-#  else
-#    define _MM_FLUSH_ZERO_ON 24
-#    define __get_fpcr(__fpcr) _ReadStatusReg(__fpcr)
-#    define __set_fpcr(__fpcr) _WriteStatusReg(0x5A20, __fpcr)
 #    define SIMD_SET_FLUSH_TO_ZERO set_fz(_MM_FLUSH_ZERO_ON);
 #    define SIMD_GET_FLUSH_TO_ZERO get_fz(_MM_FLUSH_ZERO_ON)
 #  endif
@@ -213,11 +207,7 @@ type shuffle_neon(const type &a, const type &b)
                                     (i3 * 4) + 2 + 16,
                                     (i3 * 4) + 3 + 16};
 
-    // Note: This cannot all be put in a single line due to how MSVC ARM64
-    // implements the function calls as several layers of macros.
-    int8x16x2_t t = {int8x16_t(a), int8x16_t(b)};
-    uint8x16_t idx = *(uint8x16_t *)tbl;
-    return type(vqtbl2q_s8(t, idx));
+    return type(vqtbl2q_s8((int8x16x2_t){int8x16_t(a), int8x16_t(b)}, *(uint8x16_t *)tbl));
   }
 }
 #endif /* __KERNEL_NEON */
@@ -467,16 +457,136 @@ __forceinline uint64_t bitscan(uint64_t value)
 
 #endif /* Intrinsics */
 
+/* SSE compatibility.
+ *
+ * Various utilities to smooth over differences between SSE versions and
+ * implementations. */
+#ifdef __KERNEL_SSE2__
+
+/* Test __KERNEL_SSE41__ for MSVC which does not define __SSE4_1__, and test
+ * __SSE4_1__ to avoid OpenImageIO conflicts with our emulation macros on other
+ * platforms when compiling code outside the kernel. */
+#  if !(defined(__KERNEL_SSE41__) || defined(__SSE4_1__) || defined(__SSE4_2__))
+
+/* Emulation of SSE4 functions with SSE2 */
+
+#    define _MM_FROUND_TO_NEAREST_INT 0x00
+#    define _MM_FROUND_TO_NEG_INF 0x01
+#    define _MM_FROUND_TO_POS_INF 0x02
+#    define _MM_FROUND_TO_ZERO 0x03
+#    define _MM_FROUND_CUR_DIRECTION 0x04
+
+#    undef _mm_blendv_ps
+#    define _mm_blendv_ps _mm_blendv_ps_emu
+__forceinline __m128 _mm_blendv_ps_emu(__m128 value, __m128 input, __m128 mask)
+{
+  __m128i isignmask = _mm_set1_epi32(0x80000000);
+  __m128 signmask = _mm_castsi128_ps(isignmask);
+  __m128i iandsign = _mm_castps_si128(_mm_and_ps(mask, signmask));
+  __m128i icmpmask = _mm_cmpeq_epi32(iandsign, isignmask);
+  __m128 cmpmask = _mm_castsi128_ps(icmpmask);
+  return _mm_or_ps(_mm_and_ps(cmpmask, input), _mm_andnot_ps(cmpmask, value));
+}
+
+#    undef _mm_blend_ps
+#    define _mm_blend_ps _mm_blend_ps_emu
+__forceinline __m128 _mm_blend_ps_emu(__m128 value, __m128 input, const int mask)
+{
+  assert(mask < 0x10);
+  return _mm_blendv_ps(value, input, _mm_lookupmask_ps[mask]);
+}
+
+#    undef _mm_blendv_epi8
+#    define _mm_blendv_epi8 _mm_blendv_epi8_emu
+__forceinline __m128i _mm_blendv_epi8_emu(__m128i value, __m128i input, __m128i mask)
+{
+  return _mm_or_si128(_mm_and_si128(mask, input), _mm_andnot_si128(mask, value));
+}
+
+#    undef _mm_min_epi32
+#    define _mm_min_epi32 _mm_min_epi32_emu
+__forceinline __m128i _mm_min_epi32_emu(__m128i value, __m128i input)
+{
+  return _mm_blendv_epi8(input, value, _mm_cmplt_epi32(value, input));
+}
+
+#    undef _mm_max_epi32
+#    define _mm_max_epi32 _mm_max_epi32_emu
+__forceinline __m128i _mm_max_epi32_emu(__m128i value, __m128i input)
+{
+  return _mm_blendv_epi8(value, input, _mm_cmplt_epi32(value, input));
+}
+
+#    ifndef __KERNEL_NEON__
+#      undef _mm_extract_epi32
+#      define _mm_extract_epi32 _mm_extract_epi32_emu
+__forceinline int _mm_extract_epi32_emu(__m128i input, const int index)
+{
+  switch (index) {
+    case 0:
+      return _mm_cvtsi128_si32(input);
+    case 1:
+      return _mm_cvtsi128_si32(_mm_shuffle_epi32(input, _MM_SHUFFLE(1, 1, 1, 1)));
+    case 2:
+      return _mm_cvtsi128_si32(_mm_shuffle_epi32(input, _MM_SHUFFLE(2, 2, 2, 2)));
+    case 3:
+      return _mm_cvtsi128_si32(_mm_shuffle_epi32(input, _MM_SHUFFLE(3, 3, 3, 3)));
+    default:
+      assert(false);
+      return 0;
+  }
+}
+#    endif
+
+#    undef _mm_insert_epi32
+#    define _mm_insert_epi32 _mm_insert_epi32_emu
+__forceinline __m128i _mm_insert_epi32_emu(__m128i value, int input, const int index)
+{
+  assert(index >= 0 && index < 4);
+  ((int *)&value)[index] = input;
+  return value;
+}
+
+#    undef _mm_insert_ps
+#    define _mm_insert_ps _mm_insert_ps_emu
+__forceinline __m128 _mm_insert_ps_emu(__m128 value, __m128 input, const int index)
+{
+  assert(index < 0x100);
+  ((float *)&value)[(index >> 4) & 0x3] = ((float *)&input)[index >> 6];
+  return _mm_andnot_ps(_mm_lookupmask_ps[index & 0xf], value);
+}
+
+#    undef _mm_round_ps
+#    define _mm_round_ps _mm_round_ps_emu
+__forceinline __m128 _mm_round_ps_emu(__m128 value, const int flags)
+{
+  switch (flags) {
+    case _MM_FROUND_TO_NEAREST_INT:
+      return _mm_cvtepi32_ps(_mm_cvtps_epi32(value));
+    case _MM_FROUND_TO_NEG_INF:
+      return _mm_cvtepi32_ps(_mm_cvtps_epi32(_mm_add_ps(value, _mm_set1_ps(-0.5f))));
+    case _MM_FROUND_TO_POS_INF:
+      return _mm_cvtepi32_ps(_mm_cvtps_epi32(_mm_add_ps(value, _mm_set1_ps(0.5f))));
+    case _MM_FROUND_TO_ZERO:
+      return _mm_cvtepi32_ps(_mm_cvttps_epi32(value));
+  }
+  return value;
+}
+
+#  endif /* !(defined(__KERNEL_SSE41__) || defined(__SSE4_1__) || defined(__SSE4_2__)) */
+
 /* Older GCC versions do not have _mm256_cvtss_f32 yet, so define it ourselves.
  * _mm256_castps256_ps128 generates no instructions so this is just as efficient. */
-#if defined(__KERNEL_AVX__) || defined(__KERNEL_AVX2__)
-#  undef _mm256_cvtss_f32
-#  define _mm256_cvtss_f32(a) (_mm_cvtss_f32(_mm256_castps256_ps128(a)))
-#endif
+#  if defined(__KERNEL_AVX__) || defined(__KERNEL_AVX2__)
+#    undef _mm256_cvtss_f32
+#    define _mm256_cvtss_f32(a) (_mm_cvtss_f32(_mm256_castps256_ps128(a)))
+#  endif
+
+#endif /* __KERNEL_SSE2__ */
 
 /* quiet unused define warnings */
 #if defined(__KERNEL_SSE2__) || defined(__KERNEL_SSE3__) || defined(__KERNEL_SSSE3__) || \
-    defined(__KERNEL_SSE42__) || defined(__KERNEL_AVX__) || defined(__KERNEL_AVX2__)
+    defined(__KERNEL_SSE41__) || defined(__KERNEL_AVX__) || defined(__KERNEL_AVX2__)
 /* do nothing */
 #endif
 

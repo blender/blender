@@ -280,16 +280,6 @@ ccl_device
 
   kernel_assert(ls.pdf != 0.0f);
 
-  const bool is_transmission = dot(ls.D, sd->N) < 0.0f;
-
-  if (ls.prim != PRIM_NONE && ls.prim == sd->prim && ls.object == sd->object) {
-    /* Skip self intersection if light direction lies in the same hemisphere as the geometric
-     * normal. */
-    if (dot(ls.D, is_transmission ? -sd->Ng : sd->Ng) > 0.0f) {
-      return;
-    }
-  }
-
   /* Evaluate light shader.
    *
    * TODO: can we reuse sd memory? In theory we can move this after
@@ -301,6 +291,8 @@ ccl_device
 
   Ray ray ccl_optional_struct_init;
   BsdfEval bsdf_eval ccl_optional_struct_init;
+
+  const bool is_transmission = dot(ls.D, sd->N) < 0.0f;
 
   int mnee_vertex_count = 0;
 #ifdef __MNEE__

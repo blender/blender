@@ -1341,7 +1341,7 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
       /* These values are cleared after use & will practically always be zero.
        * Read them because it's possible multiple configure calls run before they can be handled.
        */
-      const GWL_LibDecor_Window &decor = *win->libdecor;
+      GWL_LibDecor_Window &decor = *win->libdecor;
       size_next[0] = decor.pending.size[0];
       size_next[1] = decor.pending.size[1];
     }

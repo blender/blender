@@ -35,19 +35,73 @@ VectorBlurOperation::VectorBlurOperation()
   this->add_output_socket(DataType::Color);
   settings_ = nullptr;
   cached_instance_ = nullptr;
+  input_image_program_ = nullptr;
+  input_speed_program_ = nullptr;
+  input_zprogram_ = nullptr;
+  flags_.complex = true;
+  flags_.is_fullframe_operation = true;
 }
 void VectorBlurOperation::init_execution()
 {
+  init_mutex();
+  input_image_program_ = get_input_socket_reader(0);
+  input_zprogram_ = get_input_socket_reader(1);
+  input_speed_program_ = get_input_socket_reader(2);
   cached_instance_ = nullptr;
   QualityStepHelper::init_execution(COM_QH_INCREASE);
 }
 
+void VectorBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
+{
+  float *buffer = (float *)data;
+  int index = (y * this->get_width() + x) * COM_DATA_TYPE_COLOR_CHANNELS;
+  copy_v4_v4(output, &buffer[index]);
+}
+
 void VectorBlurOperation::deinit_execution()
 {
+  deinit_mutex();
+  input_image_program_ = nullptr;
+  input_speed_program_ = nullptr;
+  input_zprogram_ = nullptr;
   if (cached_instance_) {
     MEM_freeN(cached_instance_);
     cached_instance_ = nullptr;
   }
+}
+void *VectorBlurOperation::initialize_tile_data(rcti *rect)
+{
+  if (cached_instance_) {
+    return cached_instance_;
+  }
+
+  lock_mutex();
+  if (cached_instance_ == nullptr) {
+    MemoryBuffer *tile = (MemoryBuffer *)input_image_program_->initialize_tile_data(rect);
+    MemoryBuffer *speed = (MemoryBuffer *)input_speed_program_->initialize_tile_data(rect);
+    MemoryBuffer *z = (MemoryBuffer *)input_zprogram_->initialize_tile_data(rect);
+    float *data = (float *)MEM_dupallocN(tile->get_buffer());
+    this->generate_vector_blur(data, tile, speed, z);
+    cached_instance_ = data;
+  }
+  unlock_mutex();
+  return cached_instance_;
+}
+
+bool VectorBlurOperation::determine_depending_area_of_interest(rcti * /*input*/,
+                                                               ReadBufferOperation *read_operation,
+                                                               rcti *output)
+{
+  if (cached_instance_ == nullptr) {
+    rcti new_input;
+    new_input.xmax = this->get_width();
+    new_input.xmin = 0;
+    new_input.ymax = this->get_height();
+    new_input.ymin = 0;
+    return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
+  }
+
+  return false;
 }
 
 void VectorBlurOperation::get_area_of_interest(const int /*input_idx*/,

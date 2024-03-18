@@ -40,7 +40,7 @@
 
 #include "BLI_polyfill_2d.h" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /* avoid fan-fill topology */
 #define USE_CLIP_EVEN

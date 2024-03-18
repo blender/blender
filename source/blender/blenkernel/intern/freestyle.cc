@@ -15,7 +15,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_freestyle.h"
 #include "BKE_lib_id.hh"

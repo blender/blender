@@ -19,6 +19,7 @@
 #include "BKE_DerivedMesh.hh"
 
 struct CCGElem;
+struct CCGFace;
 struct CCGKey;
 struct Mesh;
 struct Subdiv;

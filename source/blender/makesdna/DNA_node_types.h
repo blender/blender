@@ -263,7 +263,6 @@ typedef enum eNodeSocketDatatype {
   SOCK_MATERIAL = 13,
   SOCK_ROTATION = 14,
   SOCK_MENU = 15,
-  SOCK_MATRIX = 16,
 } eNodeSocketDatatype;
 
 /** Socket shape. */
@@ -540,22 +539,6 @@ enum {
  */
 typedef struct bNodeInstanceKey {
   unsigned int value;
-
-#ifdef __cplusplus
-  inline bool operator==(const bNodeInstanceKey &other) const
-  {
-    return value == other.value;
-  }
-  inline bool operator!=(const bNodeInstanceKey &other) const
-  {
-    return !(*this == other);
-  }
-
-  inline uint64_t hash() const
-  {
-    return value;
-  }
-#endif
 } bNodeInstanceKey;
 
 /**
@@ -619,6 +602,16 @@ enum {
   NTREE_QUALITY_LOW = 2,
 };
 
+/** #bNodeTree::chunksize */
+enum {
+  NTREE_CHUNKSIZE_32 = 32,
+  NTREE_CHUNKSIZE_64 = 64,
+  NTREE_CHUNKSIZE_128 = 128,
+  NTREE_CHUNKSIZE_256 = 256,
+  NTREE_CHUNKSIZE_512 = 512,
+  NTREE_CHUNKSIZE_1024 = 1024,
+};
+
 typedef struct bNestedNodePath {
   /** ID of the node that is or contains the nested node. */
   int32_t node_id;
@@ -644,7 +637,7 @@ typedef struct bNestedNodeRef {
  * The basis for a Node tree, all links and nodes reside internal here.
  *
  * Only re-usable node trees are in the library though,
- * materials and textures allocate their own tree struct.
+ * materials and textures allocate own tree struct.
  */
 typedef struct bNodeTree {
   ID id;
@@ -661,7 +654,7 @@ typedef struct bNodeTree {
 
   /** Grease pencil data. */
   struct bGPdata *gpd;
-  /** Node tree stores its own offset for consistent editor view. */
+  /** Node tree stores own offset for consistent editor view. */
   float view_center[2];
 
   ListBase nodes, links;
@@ -679,10 +672,14 @@ typedef struct bNodeTree {
   short edit_quality;
   /** Quality setting when rendering. */
   short render_quality;
+  /** Tile size for compositor engine. */
+  int chunksize;
   /** Execution mode to use for compositor engine. */
   int execution_mode;
   /** Execution mode to use for compositor engine. */
   int precision;
+
+  char _pad[4];
 
   rctf viewer_border;
 
@@ -829,8 +826,12 @@ enum {
 enum {
   /** For animation editors. */
   NTREE_DS_EXPAND = 1 << 0,
+  /** Use OPENCL. */
+  NTREE_COM_OPENCL = 1 << 1,
   /** Two pass. */
   NTREE_TWO_PASS = 1 << 2,
+  /** Use group-node buffers. */
+  NTREE_COM_GROUPNODE_BUFFER = 1 << 3,
   /** Use a border for viewer nodes. */
   NTREE_VIEWER_BORDER = 1 << 4,
   /**
@@ -842,8 +843,9 @@ enum {
 
 /* tree->execution_mode */
 typedef enum eNodeTreeExecutionMode {
-  NTREE_EXECUTION_MODE_CPU = 0,
-  NTREE_EXECUTION_MODE_GPU = 2,
+  NTREE_EXECUTION_MODE_TILED = 0,
+  NTREE_EXECUTION_MODE_FULL_FRAME = 1,
+  NTREE_EXECUTION_MODE_REALTIME = 2,
 } eNodeTreeExecutionMode;
 
 /* tree->precision */
@@ -2546,7 +2548,6 @@ typedef enum CMPNodeGlareType {
   CMP_NODE_GLARE_FOG_GLOW = 1,
   CMP_NODE_GLARE_STREAKS = 2,
   CMP_NODE_GLARE_GHOST = 3,
-  CMP_NODE_GLARE_BLOOM = 4,
 } CMPNodeGlareType;
 
 /* Kuwahara Node. Stored in variation */
@@ -2654,6 +2655,12 @@ typedef enum GeometryNodeProximityTargetType {
   GEO_NODE_PROX_TARGET_EDGES = 1,
   GEO_NODE_PROX_TARGET_FACES = 2,
 } GeometryNodeProximityTargetType;
+
+typedef enum GeometryNodeBooleanOperation {
+  GEO_NODE_BOOLEAN_INTERSECT = 0,
+  GEO_NODE_BOOLEAN_UNION = 1,
+  GEO_NODE_BOOLEAN_DIFFERENCE = 2,
+} GeometryNodeBooleanOperation;
 
 typedef enum GeometryNodeCurvePrimitiveCircleMode {
   GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS = 0,

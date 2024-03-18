@@ -152,11 +152,6 @@ set(SRC
   creator_intern.h
 )
 
-if(CMAKE_GENERATOR MATCHES "^Visual Studio.+")
-  # This helps visual studio find the debugger visualizers
-  list(APPEND SRC ${CMAKE_SOURCE_DIR}/tools/utils_ide/natvis/Blender.natvis)
-endif()
-
 # MSVC 2010 gives linking errors with the manifest.
 if(WIN32 AND NOT UNIX)
   add_definitions(
@@ -332,31 +327,6 @@ if(WITH_PYTHON_MODULE)
 
 else()
   add_executable(blender ${EXETYPE} ${SRC})
-  if(WITH_CPU_CHECK)
-    target_compile_definitions(blender PRIVATE WITH_CPU_CHECK)
-    # we cannot directly link against any blender libraries for the cpu_check module
-    # as they may have been build for an ISA that is unsupported by the CPU
-    # running this code.
-    add_library(blender_cpu_check SHARED
-      creator_cpu_check.cc
-    )
-    target_link_libraries(blender_cpu_check
-      PRIVATE ${PLATFORM_LINKLIBS}
-    )
-    # blender_cpu_check *NEEDS* to be linked first, there can be no exceptions
-    # to this, this is to ensure this will be the first code to run once the
-    # blender binary has been loaded by the OS.
-    target_link_libraries(blender PRIVATE blender_cpu_check)
-    if(NOT WIN32)
-      set(_LIB_SUB_FOLDER "lib/")
-    endif()
-    set_target_properties(blender_cpu_check
-      PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${_LIB_SUB_FOLDER}"
-      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${_LIB_SUB_FOLDER}"
-    )
-    unset(_LIB_SUB_FOLDER)
-  endif()
   if(WIN32)
     add_executable(blender-launcher WIN32
       blender_launcher_win32.c
@@ -619,11 +589,6 @@ if(WIN32)
         ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise.dll
         ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_core.dll
         ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_cpu.dll
-    )
-  endif()
-  if(EXISTS ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_sycl.dll) # Platforms that have SyCL support
-    windows_install_shared_manifest(
-      FILES
         ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_sycl.dll
     )
   endif()
@@ -725,13 +690,6 @@ if(UNIX AND NOT APPLE)
       DESTINATION "."
     )
 
-    if(WITH_CPU_CHECK)
-      install(
-        TARGETS blender_cpu_check
-        DESTINATION "./lib"
-      )
-    endif()
-
     install(
       FILES
         ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
@@ -787,6 +745,7 @@ file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
       TARGETS blender
       DESTINATION "./bin"
     )
+
     # Misc files.
     install(
       FILES ${CMAKE_SOURCE_DIR}/release/freedesktop/blender.desktop
@@ -1350,20 +1309,14 @@ elseif(WIN32)
       endif()
 
       # this will exist for 4.1 lib folders
-      if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
-        set(_openvdb_arch arm64)
-      else()
-        set(_openvdb_arch amd64)
-      endif()
-
-      if(EXISTS ${LIBDIR}/openvdb/python/pyopenvdb_d.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openvdb_arch}.pyd)
+      if(EXISTS ${LIBDIR}/openvdb/python/pyopenvdb_d.cp${_PYTHON_VERSION_NO_DOTS}-win_amd64.pyd)
         install(
-          FILES ${LIBDIR}/openvdb/python/pyopenvdb_d.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openvdb_arch}.pyd
+          FILES ${LIBDIR}/openvdb/python/pyopenvdb_d.cp${_PYTHON_VERSION_NO_DOTS}-win_amd64.pyd
           DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
           CONFIGURATIONS Debug
         )
         install(
-          FILES ${LIBDIR}/openvdb/python/pyopenvdb.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openvdb_arch}.pyd
+          FILES ${LIBDIR}/openvdb/python/pyopenvdb.cp${_PYTHON_VERSION_NO_DOTS}-win_amd64.pyd
           DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
           CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
         )
@@ -1895,13 +1848,6 @@ if(WIN32 AND NOT WITH_PYTHON_MODULE)
     COMPONENT Blender
     DESTINATION "."
   )
-  if(WITH_CPU_CHECK)
-    install(
-      TARGETS blender_cpu_check
-      COMPONENT Blender
-      DESTINATION "."
-    )
-  endif()
   set_target_properties(
     blender
     PROPERTIES

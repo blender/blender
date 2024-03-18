@@ -31,8 +31,9 @@
 #include "BKE_icons.h"
 #include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_node.hh"
 #include "BKE_paint.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "NOD_composite.hh"
 
@@ -207,7 +208,7 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
      * We do not use #BKE_cachefile_uses_render_procedural here as we need to update regardless of
      * the current engine or its settings. */
     if (cachefile->use_render_procedural) {
-      DEG_id_tag_update(&cachefile->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&cachefile->id, ID_RECALC_COPY_ON_WRITE);
       /* Rebuild relations so that modifiers are reconnected to or disconnected from the
        * cache-file. */
       DEG_relations_tag_update(bmain);

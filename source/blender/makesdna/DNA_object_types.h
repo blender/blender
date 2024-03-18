@@ -25,10 +25,6 @@
 #include "DNA_listBase.h"
 
 #ifdef __cplusplus
-#  include "BLI_math_matrix_types.hh"
-#endif
-
-#ifdef __cplusplus
 namespace blender::bke {
 struct ObjectRuntime;
 }
@@ -278,6 +274,9 @@ typedef struct Object {
   float rotAxis[3], drotAxis[3];
   /** Axis angle rotation - angle part. */
   float rotAngle, drotAngle;
+  /** Final transformation matrices with constraints & animsys applied. */
+  float object_to_world[4][4];
+  float world_to_object[4][4];
   /** Inverse result of parent, so that object doesn't 'stick' to parent. */
   float parentinv[4][4];
   /** Inverse result of constraints.
@@ -400,11 +399,6 @@ typedef struct Object {
   struct LightProbeObjectCache *lightprobe_cache;
 
   ObjectRuntimeHandle *runtime;
-
-#ifdef __cplusplus
-  const blender::float4x4 &object_to_world() const;
-  const blender::float4x4 &world_to_object() const;
-#endif
 } Object;
 
 /** DEPRECATED: this is not used anymore because hooks are now modifiers. */
@@ -634,9 +628,9 @@ enum {
   GP_EMPTY = 0,
   GP_STROKE = 1,
   GP_MONKEY = 2,
-  GREASE_PENCIL_LINEART_SCENE = 3,
-  GREASE_PENCIL_LINEART_OBJECT = 4,
-  GREASE_PENCIL_LINEART_COLLECTION = 5,
+  GP_LRT_SCENE = 3,
+  GP_LRT_OBJECT = 4,
+  GP_LRT_COLLECTION = 5,
 };
 
 /** #Object.boundtype */

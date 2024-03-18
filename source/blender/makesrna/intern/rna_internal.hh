@@ -347,7 +347,7 @@ void rna_Scene_use_view_map_cache_update(Main *bmain, Scene *scene, PointerRNA *
 void rna_Scene_render_update(Main *bmain, Scene *scene, PointerRNA *ptr);
 void rna_Scene_freestyle_update(Main *bmain, Scene *scene, PointerRNA *ptr);
 void rna_ViewLayer_name_set(PointerRNA *ptr, const char *value);
-void rna_ViewLayer_override_update(Main *bmain, Scene *activescene, PointerRNA *ptr);
+void rna_ViewLayer_material_override_update(Main *bmain, Scene *activescene, PointerRNA *ptr);
 void rna_ViewLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr);
 void rna_ViewLayer_active_aov_index_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax);

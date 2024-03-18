@@ -12,6 +12,7 @@ CropBaseOperation::CropBaseOperation()
 {
   this->add_input_socket(DataType::Color, ResizeMode::Align);
   this->add_output_socket(DataType::Color);
+  input_operation_ = nullptr;
   settings_ = nullptr;
   flags_.can_be_constant = true;
 }
@@ -46,12 +47,28 @@ void CropBaseOperation::update_area()
 
 void CropBaseOperation::init_execution()
 {
+  input_operation_ = this->get_input_socket_reader(0);
   update_area();
+}
+
+void CropBaseOperation::deinit_execution()
+{
+  input_operation_ = nullptr;
 }
 
 CropOperation::CropOperation() : CropBaseOperation()
 {
   /* pass */
+}
+
+void CropOperation::execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler)
+{
+  if ((x < xmax_ && x >= xmin_) && (y < ymax_ && y >= ymin_)) {
+    input_operation_->read_sampled(output, x, y, sampler);
+  }
+  else {
+    zero_v4(output);
+  }
 }
 
 void CropOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -73,6 +90,20 @@ CropImageOperation::CropImageOperation() : CropBaseOperation()
   /* pass */
 }
 
+bool CropImageOperation::determine_depending_area_of_interest(rcti *input,
+                                                              ReadBufferOperation *read_operation,
+                                                              rcti *output)
+{
+  rcti new_input;
+
+  new_input.xmax = input->xmax + xmin_;
+  new_input.xmin = input->xmin + xmin_;
+  new_input.ymax = input->ymax + ymin_;
+  new_input.ymin = input->ymin + ymin_;
+
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
+}
+
 void CropImageOperation::get_area_of_interest(const int input_idx,
                                               const rcti &output_area,
                                               rcti &r_input_area)
@@ -91,6 +122,19 @@ void CropImageOperation::determine_canvas(const rcti &preferred_area, rcti &r_ar
   update_area();
   r_area.xmax = r_area.xmin + (xmax_ - xmin_);
   r_area.ymax = r_area.ymin + (ymax_ - ymin_);
+}
+
+void CropImageOperation::execute_pixel_sampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler sampler)
+{
+  if (x >= 0 && x < get_width() && y >= 0 && y < get_height()) {
+    input_operation_->read_sampled(output, (x + xmin_), (y + ymin_), sampler);
+  }
+  else {
+    zero_v4(output);
+  }
 }
 
 void CropImageOperation::update_memory_buffer_partial(MemoryBuffer *output,

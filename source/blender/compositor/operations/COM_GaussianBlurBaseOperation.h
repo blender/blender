@@ -31,14 +31,4 @@ class GaussianBlurBaseOperation : public BlurBaseOperation {
                                             Span<MemoryBuffer *> inputs) override;
 };
 
-class GaussianXBlurOperation : public GaussianBlurBaseOperation {
- public:
-  GaussianXBlurOperation() : GaussianBlurBaseOperation(eDimension::X) {}
-};
-
-class GaussianYBlurOperation : public GaussianBlurBaseOperation {
- public:
-  GaussianYBlurOperation() : GaussianBlurBaseOperation(eDimension::Y) {}
-};
-
 }  // namespace blender::compositor

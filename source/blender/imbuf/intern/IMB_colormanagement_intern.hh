@@ -77,13 +77,13 @@ struct ColorManagedLook {
 
 /* ** Initialization / De-initialization ** */
 
-void colormanagement_init();
-void colormanagement_exit();
+void colormanagement_init(void);
+void colormanagement_exit(void);
 
 void colormanage_cache_free(ImBuf *ibuf);
 
-const char *colormanage_display_get_default_name();
-ColorManagedDisplay *colormanage_display_get_default();
+const char *colormanage_display_get_default_name(void);
+ColorManagedDisplay *colormanage_display_get_default(void);
 ColorManagedDisplay *colormanage_display_add(const char *name);
 ColorManagedDisplay *colormanage_display_get_named(const char *name);
 ColorManagedDisplay *colormanage_display_get_indexed(int index);

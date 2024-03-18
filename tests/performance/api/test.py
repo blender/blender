@@ -26,12 +26,6 @@ class Test:
         """
         return False
 
-    def use_background(self) -> bool:
-        """
-        Test runs in background mode and requires no display.
-        """
-        return True
-
     @abc.abstractmethod
     def run(self, env, device_id: str) -> Dict:
         """
@@ -40,7 +34,7 @@ class Test:
 
 
 class TestCollection:
-    def __init__(self, env, names_filter: List = ['*'], categories_filter: List = ['*'], background: bool = False):
+    def __init__(self, env, names_filter: List = ['*'], categories_filter: List = ['*']):
         import importlib
         import pkgutil
         import tests
@@ -54,9 +48,6 @@ class TestCollection:
             tests = module.generate(env)
 
             for test in tests:
-                if background and not test.use_background():
-                    continue
-
                 test_category = test.category()
                 found = False
                 for category_filter in categories_filter:

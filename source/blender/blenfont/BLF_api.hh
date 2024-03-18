@@ -9,9 +9,7 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
-#include "BLI_vector.hh"
 
 /* Name of sub-directory inside #BLENDER_DATAFILES that contains font files. */
 #define BLF_DATAFILES_FONTS_DIR "fonts"
@@ -29,21 +27,21 @@ struct ColorManagedDisplay;
 struct ResultBLF;
 struct rcti;
 
-int BLF_init();
-void BLF_exit();
+int BLF_init(void);
+void BLF_exit(void);
 
 /**
  * Close any user-loaded fonts that are not used by the Interface. Call when
  * loading new blend files so that the old fonts are not still taking resources.
  */
-void BLF_reset_fonts();
+void BLF_reset_fonts(void);
 
-void BLF_cache_clear();
+void BLF_cache_clear(void);
 
 /**
  * Optional cache flushing function, called before #blf_batch_draw.
  */
-void BLF_cache_flush_set_fn(void (*cache_flush_fn)());
+void BLF_cache_flush_set_fn(void (*cache_flush_fn)(void));
 
 /**
  * Loads a font, or returns an already loaded font and increments its reference count.
@@ -65,7 +63,7 @@ void BLF_unload_mem(const char *name) ATTR_NONNULL(1);
 #endif
 
 void BLF_unload_id(int fontid);
-void BLF_unload_all();
+void BLF_unload_all(void);
 
 char *BLF_display_name_from_file(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
@@ -136,9 +134,9 @@ void BLF_matrix(int fontid, const float m[16]);
  * Batch draw-calls together as long as
  * the model-view matrix and the font remain unchanged.
  */
-void BLF_batch_draw_begin();
-void BLF_batch_draw_flush();
-void BLF_batch_draw_end();
+void BLF_batch_draw_begin(void);
+void BLF_batch_draw_flush(void);
+void BLF_batch_draw_end(void);
 
 /**
  * Draw the string using the current font.
@@ -256,10 +254,6 @@ void BLF_rotation(int fontid, float angle);
 void BLF_clipping(int fontid, int xmin, int ymin, int xmax, int ymax);
 void BLF_wordwrap(int fontid, int wrap_width);
 
-blender::Vector<blender::StringRef> BLF_string_wrap(int fontid,
-                                                    blender::StringRef str,
-                                                    const int max_pixel_width);
-
 #if BLF_BLUR_ENABLE
 void BLF_blur(int fontid, int size);
 #endif
@@ -331,7 +325,7 @@ void BLF_default_set(int fontid);
 /**
  * Get default font ID so we can pass it to other functions.
  */
-int BLF_default();
+int BLF_default(void);
 /**
  * Draw the string using the default font, size and DPI.
  */
@@ -344,13 +338,13 @@ void BLF_draw_default_shadowed(float x, float y, float z, const char *str, size_
 /**
  * Set size and DPI, and return default font ID.
  */
-int BLF_set_default();
+int BLF_set_default(void);
 
 /* `blf_font_default.cc` */
 
 int BLF_load_default(bool unique);
 int BLF_load_mono_default(bool unique);
-void BLF_load_font_stack();
+void BLF_load_font_stack(void);
 
 #ifndef NDEBUG
 void BLF_state_print(int fontid);

@@ -13,13 +13,14 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_context.hh"
 #include "BKE_paint.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
 
 struct TransDataPaintCurve {
-  PaintCurvePoint *pcp; /* Initial curve point. */
+  PaintCurvePoint *pcp; /* initial curve point */
   char id;
 };
 

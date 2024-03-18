@@ -16,11 +16,13 @@ extern "C" {
 #endif
 
 struct BlendDataReader;
+struct BlendLibReader;
 struct BlendWriter;
 struct ID;
 struct IDProperty;
 struct IDPropertyUIData;
 struct IDPropertyUIDataEnumItem;
+struct Library;
 
 typedef union IDPropertyTemplate {
   int i;

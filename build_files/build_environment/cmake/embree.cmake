@@ -86,16 +86,8 @@ ExternalProject_Add(external_embree
   URL_HASH ${EMBREE_HASH_TYPE}=${EMBREE_HASH}
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/embree
-
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/embree/src/external_embree <
-    ${PATCH_DIR}/embree.diff
-
-  CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree
-    ${EMBREE_CMAKE_FLAGS}
-    ${EMBREE_EXTRA_ARGS}
-
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/embree/src/external_embree < ${PATCH_DIR}/embree.diff
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/embree ${EMBREE_CMAKE_FLAGS} ${EMBREE_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/embree
 )
 
@@ -115,33 +107,17 @@ endif()
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_embree after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/embree/include
-        ${HARVEST_TARGET}/embree/include
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/embree/lib
-        ${HARVEST_TARGET}/embree/lib
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/embree/share
-        ${HARVEST_TARGET}/embree/share
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/embree/bin/embree4.dll
-        ${HARVEST_TARGET}/embree/bin/embree4.dll
-
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/embree/include ${HARVEST_TARGET}/embree/include
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/embree/lib ${HARVEST_TARGET}/embree/lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/embree/share ${HARVEST_TARGET}/embree/share
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/bin/embree4.dll ${HARVEST_TARGET}/embree/bin/embree4.dll
       DEPENDEES install
     )
   else()
     ExternalProject_Add_Step(external_embree after_install
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/embree/bin/embree4_d.dll
-        ${HARVEST_TARGET}/embree/bin/embree4_d.dll
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/embree/lib/embree4_d.lib
-        ${HARVEST_TARGET}/embree/lib/embree4_d.lib
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/embree/lib/embree4_sycl_d.lib
-        ${HARVEST_TARGET}/embree/lib/embree4_sycl_d.lib
-
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/bin/embree4_d.dll ${HARVEST_TARGET}/embree/bin/embree4_d.dll
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/embree4_d.lib ${HARVEST_TARGET}/embree/lib/embree4_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/embree4_sycl_d.lib ${HARVEST_TARGET}/embree/lib/embree4_sycl_d.lib
       DEPENDEES install
     )
   endif()

@@ -16,18 +16,20 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_main.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "ED_screen.hh"
+#include "UI_interface.hh"
 
 #include "wm_window.hh"
 

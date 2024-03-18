@@ -14,8 +14,8 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_object_types.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
@@ -98,7 +98,7 @@ static void createTransParticleVerts(bContext * /*C*/, TransInfo *t)
 
     unit_m4(mat);
 
-    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
     for (i = 0, point = edit->points; i < edit->totpoint; i++, point++) {
       TransData *head, *tail;
@@ -137,7 +137,7 @@ static void createTransParticleVerts(bContext * /*C*/, TransInfo *t)
         unit_m3(td->mtx);
         unit_m3(td->smtx);
 
-        /* Don't allow moving roots. */
+        /* don't allow moving roots */
         if (k == 0 && pset->flag & PE_LOCK_FIRST && (!psys || !(psys->flag & PSYS_GLOBAL_HAIR))) {
           td->protectflag |= OB_LOCK_LOC;
         }
@@ -147,7 +147,7 @@ static void createTransParticleVerts(bContext * /*C*/, TransInfo *t)
         if (t->mode == TFM_BAKE_TIME) {
           td->val = key->time;
           td->ival = *(key->time);
-          /* Abuse size and quat for min/max values. */
+          /* abuse size and quat for min/max values */
           td->flag |= TD_NO_EXT;
           if (k == 0) {
             tx->size = nullptr;
@@ -199,8 +199,8 @@ static void flushTransParticles(TransInfo *t)
     int i, k;
     const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 
-    /* We do transform in world space, so flush world space position
-     * back to particle local space (only for hair particles). */
+    /* we do transform in world space, so flush world space position
+     * back to particle local space (only for hair particles) */
     td = tc->data;
     for (i = 0, point = edit->points; i < edit->totpoint; i++, point++, td++) {
       if (!(point->flag & PEP_TRANSFORM)) {
@@ -217,7 +217,7 @@ static void flushTransParticles(TransInfo *t)
           copy_v3_v3(co, key->world_co);
           mul_m4_v3(imat, co);
 
-          /* Optimization for proportional edit. */
+          /* optimization for proportional edit */
           if (!is_prop_edit || !compare_v3v3(key->co, co, 0.0001f)) {
             copy_v3_v3(key->co, co);
             point->flag |= PEP_EDIT_RECALC;

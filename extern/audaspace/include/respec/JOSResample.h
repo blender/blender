@@ -36,15 +36,13 @@ private:
 	JOSResample(const JOSResample&) = delete;
 	JOSResample& operator=(const JOSResample&) = delete;
 
-	ResampleQuality m_quality;
-
 public:
 	/**
 	 * Creates a new sound.
 	 * \param sound The input sound.
 	 * \param specs The target specifications.
 	 */
-	JOSResample(std::shared_ptr<ISound> sound, DeviceSpecs specs, ResampleQuality quality = ResampleQuality::HIGH);
+	JOSResample(std::shared_ptr<ISound> sound, DeviceSpecs specs);
 
 	virtual std::shared_ptr<IReader> createReader();
 };

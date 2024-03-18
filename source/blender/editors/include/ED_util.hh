@@ -11,12 +11,9 @@
 #include "BLI_compiler_attrs.h"
 #include "WM_types.hh"
 
+struct IDRemapper;
 struct Main;
 struct bContext;
-
-namespace blender::bke::id {
-class IDRemapper;
-}
 
 /* ed_util.cc */
 
@@ -45,9 +42,7 @@ bool ED_editors_flush_edits(Main *bmain);
  * \param new_id: may be NULL to unlink \a old_id.
  */
 void ED_spacedata_id_remap_single(ScrArea *area, SpaceLink *sl, ID *old_id, ID *new_id);
-void ED_spacedata_id_remap(ScrArea *area,
-                           SpaceLink *sl,
-                           const blender::bke::id::IDRemapper &mappings);
+void ED_spacedata_id_remap(ScrArea *area, SpaceLink *sl, const IDRemapper *mappings);
 
 void ED_operatortypes_edutils();
 

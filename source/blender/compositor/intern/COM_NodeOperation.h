@@ -19,13 +19,16 @@
 #include "COM_MemoryBuffer.h"
 #include "COM_MetaData.h"
 
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+
+#include "clew.h"
 
 #include "DNA_node_types.h"
 
 namespace blender::compositor {
 
+class OpenCLDevice;
+class ReadBufferOperation;
 class ExecutionSystem;
 class NodeOperation;
 class NodeOperationOutput;
@@ -162,6 +165,28 @@ class NodeOperationOutput {
 
 struct NodeOperationFlags {
   /**
+   * Is this an complex operation.
+   *
+   * The input and output buffers of Complex operations are stored in buffers. It allows
+   * sequential and read/write.
+   *
+   * Complex operations are typically doing many reads to calculate the output of a single pixel.
+   * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
+   */
+  bool complex : 1;
+
+  /**
+   * Does this operation support OpenCL.
+   */
+  bool open_cl : 1;
+
+  /**
+   * TODO: Remove this flag and #SingleThreadedOperation if tiled implementation is removed.
+   * Full-frame implementation doesn't need it.
+   */
+  bool single_threaded : 1;
+
+  /**
    * Does the operation needs a viewer border.
    * Basically, setting border need to happen for only operations
    * which operates in render resolution buffers (like compositor
@@ -188,6 +213,8 @@ struct NodeOperationFlags {
    * TODO: To be replaced by is_constant_operation flag once tiled implementation is removed.
    */
   bool is_set_operation : 1;
+  bool is_write_buffer_operation : 1;
+  bool is_read_buffer_operation : 1;
   bool is_proxy_operation : 1;
   bool is_viewer_operation : 1;
   bool is_preview_operation : 1;
@@ -199,6 +226,11 @@ struct NodeOperationFlags {
    * By default data conversions are enabled.
    */
   bool use_datatype_conversion : 1;
+
+  /**
+   * Has this operation fullframe implementation.
+   */
+  bool is_fullframe_operation : 1;
 
   /**
    * Whether operation is a primitive constant operation (Color/Vector/Value).
@@ -213,14 +245,20 @@ struct NodeOperationFlags {
 
   NodeOperationFlags()
   {
+    complex = false;
+    single_threaded = false;
+    open_cl = false;
     use_render_border = false;
     use_viewer_border = false;
     is_canvas_set = false;
     is_set_operation = false;
+    is_read_buffer_operation = false;
+    is_write_buffer_operation = false;
     is_proxy_operation = false;
     is_viewer_operation = false;
     is_preview_operation = false;
     use_datatype_conversion = true;
+    is_fullframe_operation = false;
     is_constant_operation = false;
     can_be_constant = false;
   }
@@ -272,8 +310,6 @@ class NodeOperation {
  private:
   int id_;
   std::string name_;
-  bNodeInstanceKey node_instance_key_{NODE_INSTANCE_KEY_NONE};
-
   Vector<NodeOperationInput> inputs_;
   Vector<NodeOperationOutput> outputs_;
 
@@ -288,11 +324,27 @@ class NodeOperation {
   std::function<void(rcti &canvas)> modify_determined_canvas_fn_;
 
   /**
+   * \brief mutex reference for very special node initializations
+   * \note only use when you really know what you are doing.
+   * this mutex is used to share data among chunks in the same operation
+   * \see TonemapOperation for an example of usage
+   * \see NodeOperation.init_mutex initializes this mutex
+   * \see NodeOperation.deinit_mutex deinitializes this mutex
+   * \see NodeOperation.get_mutex retrieve a pointer to this mutex.
+   */
+  ThreadMutex mutex_;
+
+  /**
    * \brief reference to the editing bNodeTree, used for break and update callback
    */
   const bNodeTree *btree_;
 
  protected:
+  /**
+   * Compositor execution model.
+   */
+  eExecutionModel execution_model_;
+
   rcti canvas_ = COM_AREA_NONE;
 
   /**
@@ -323,15 +375,6 @@ class NodeOperation {
   const int get_id() const
   {
     return id_;
-  }
-
-  const void set_node_instance_key(const bNodeInstanceKey &node_instance_key)
-  {
-    node_instance_key_ = node_instance_key;
-  }
-  const bNodeInstanceKey get_node_instance_key() const
-  {
-    return node_instance_key_;
   }
 
   /** Get constant value when operation is constant, otherwise return default_value. */
@@ -386,6 +429,11 @@ class NodeOperation {
     return false;
   }
 
+  void set_execution_model(const eExecutionModel model)
+  {
+    execution_model_ = model;
+  }
+
   void set_bnodetree(const bNodeTree *tree)
   {
     btree_ = tree;
@@ -404,6 +452,58 @@ class NodeOperation {
 
   virtual void init_execution();
 
+  /**
+   * \brief when a chunk is executed by a CPUDevice, this method is called
+   * \ingroup execution
+   * \param rect: the rectangle of the chunk (location and size)
+   * \param chunk_number: the chunk_number to be calculated
+   * \param memory_buffers: all input MemoryBuffer's needed
+   */
+  virtual void execute_region(rcti * /*rect*/, unsigned int /*chunk_number*/) {}
+
+  /**
+   * \brief when a chunk is executed by an OpenCLDevice, this method is called
+   * \ingroup execution
+   * \note this method is only implemented in WriteBufferOperation
+   * \param context: the OpenCL context
+   * \param program: the OpenCL program containing all compositor kernels
+   * \param queue: the OpenCL command queue of the device the chunk is executed on
+   * \param rect: the rectangle of the chunk (location and size)
+   * \param chunk_number: the chunk_number to be calculated
+   * \param memory_buffers: all input MemoryBuffer's needed
+   * \param output_buffer: the output-buffer to write to
+   */
+  virtual void execute_opencl_region(OpenCLDevice * /*device*/,
+                                     rcti * /*rect*/,
+                                     unsigned int /*chunk_number*/,
+                                     MemoryBuffer ** /*memory_buffers*/,
+                                     MemoryBuffer * /*output_buffer*/)
+  {
+  }
+
+  /**
+   * \brief custom handle to add new tasks to the OpenCL command queue
+   * in order to execute a chunk on an GPUDevice.
+   * \ingroup execution
+   * \param context: the OpenCL context
+   * \param program: the OpenCL program containing all compositor kernels
+   * \param queue: the OpenCL command queue of the device the chunk is executed on
+   * \param output_memory_buffer: the allocated memory buffer in main CPU memory
+   * \param cl_output_buffer: the allocated memory buffer in OpenCLDevice memory
+   * \param input_memory_buffers: all input MemoryBuffer's needed
+   * \param cl_mem_to_clean_up: all created cl_mem references must be added to this list.
+   * Framework will clean this after execution
+   * \param cl_kernels_to_clean_up: all created cl_kernel references must be added to this list.
+   * Framework will clean this after execution
+   */
+  virtual void execute_opencl(OpenCLDevice * /*device*/,
+                              MemoryBuffer * /*output_memory_buffer*/,
+                              cl_mem /*cl_output_buffer*/,
+                              MemoryBuffer ** /*input_memory_buffers*/,
+                              std::list<cl_mem> * /*cl_mem_to_clean_up*/,
+                              std::list<cl_kernel> * /*cl_kernels_to_clean_up*/)
+  {
+  }
   virtual void deinit_execution();
 
   void set_canvas(const rcti &canvas_area);
@@ -425,6 +525,10 @@ class NodeOperation {
   {
     return false;
   }
+
+  virtual bool determine_depending_area_of_interest(rcti *input,
+                                                    ReadBufferOperation *read_operation,
+                                                    rcti *output);
 
   /**
    * \brief set the index of the input socket that will determine the canvas of this
@@ -472,6 +576,36 @@ class NodeOperation {
   {
     return BLI_rcti_size_y(&get_canvas());
   }
+
+  inline void read_sampled(float result[4], float x, float y, PixelSampler sampler)
+  {
+    execute_pixel_sampled(result, x, y, sampler);
+  }
+
+  inline void read_filtered(float result[4], float x, float y, float dx[2], float dy[2])
+  {
+    execute_pixel_filtered(result, x, y, dx, dy);
+  }
+
+  inline void read(float result[4], int x, int y, void *chunk_data)
+  {
+    execute_pixel(result, x, y, chunk_data);
+  }
+
+  inline void read_clamped(float result[4], int x, int y, void *chunk_data)
+  {
+    execute_pixel(result,
+                  math::clamp(x, 0, int(this->get_width()) - 1),
+                  math::clamp(y, 0, int(this->get_height()) - 1),
+                  chunk_data);
+  }
+
+  virtual void *initialize_tile_data(rcti * /*rect*/)
+  {
+    return 0;
+  }
+
+  virtual void deinitialize_tile_data(rcti * /*rect*/, void * /*data*/) {}
 
   virtual MemoryBuffer *get_input_memory_buffer(MemoryBuffer ** /*memory_buffers*/)
   {
@@ -558,15 +692,107 @@ class NodeOperation {
   void add_input_socket(DataType datatype, ResizeMode resize_mode = ResizeMode::Center);
   void add_output_socket(DataType datatype);
 
+  /* TODO(manzanilla): to be removed with tiled implementation. */
+  void set_width(unsigned int width)
+  {
+    canvas_.xmax = canvas_.xmin + width;
+    flags_.is_canvas_set = true;
+  }
+  void set_height(unsigned int height)
+  {
+    canvas_.ymax = canvas_.ymin + height;
+    flags_.is_canvas_set = true;
+  }
+
   SocketReader *get_input_socket_reader(unsigned int index);
 
+  void deinit_mutex();
+  void init_mutex();
+  void lock_mutex();
+  void unlock_mutex();
+
+  /**
+   * \brief set whether this operation is complex
+   *
+   * Complex operations are typically doing many reads to calculate the output of a single pixel.
+   * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
+   */
+  void set_complex(bool complex)
+  {
+    flags_.complex = complex;
+  }
+
+  /**
+   * \brief calculate a single pixel
+   * \note this method is called for non-complex
+   * \param result: is a float[4] array to store the result
+   * \param x: the x-coordinate of the pixel to calculate in image space
+   * \param y: the y-coordinate of the pixel to calculate in image space
+   * \param input_buffers: chunks that can be read by their ReadBufferOperation.
+   */
+  virtual void execute_pixel_sampled(float /*output*/[4],
+                                     float /*x*/,
+                                     float /*y*/,
+                                     PixelSampler /*sampler*/)
+  {
+  }
+
+  /**
+   * \brief calculate a single pixel
+   * \note this method is called for complex
+   * \param result: is a float[4] array to store the result
+   * \param x: the x-coordinate of the pixel to calculate in image space
+   * \param y: the y-coordinate of the pixel to calculate in image space
+   * \param input_buffers: chunks that can be read by their ReadBufferOperation.
+   * \param chunk_data: chunk specific data a during execution time.
+   */
+  virtual void execute_pixel(float output[4], int x, int y, void * /*chunk_data*/)
+  {
+    execute_pixel_sampled(output, x, y, PixelSampler::Nearest);
+  }
+
+  /**
+   * \brief calculate a single pixel using an EWA filter
+   * \note this method is called for complex
+   * \param result: is a float[4] array to store the result
+   * \param x: the x-coordinate of the pixel to calculate in image space
+   * \param y: the y-coordinate of the pixel to calculate in image space
+   * \param dx:
+   * \param dy:
+   * \param input_buffers: chunks that can be read by their ReadBufferOperation.
+   */
+  virtual void execute_pixel_filtered(
+      float /*output*/[4], float /*x*/, float /*y*/, float /*dx*/[2], float /*dy*/[2])
+  {
+  }
+
  private:
+  /* -------------------------------------------------------------------- */
+  /** \name Full Frame Methods
+   * \{ */
+
   /**
    * Renders given areas using operations full frame implementation.
    */
   void render_full_frame(MemoryBuffer *output_buf,
                          Span<rcti> areas,
                          Span<MemoryBuffer *> inputs_bufs);
+
+  /**
+   * Renders given areas using operations tiled implementation.
+   */
+  void render_full_frame_fallback(MemoryBuffer *output_buf,
+                                  Span<rcti> areas,
+                                  Span<MemoryBuffer *> inputs);
+  void render_tile(MemoryBuffer *output_buf, rcti *tile_rect);
+  /**
+   * \return Replaced inputs links.
+   */
+  Vector<NodeOperationOutput *> replace_inputs_with_buffers(Span<MemoryBuffer *> inputs_bufs);
+  void remove_buffers_and_restore_original_inputs(
+      Span<NodeOperationOutput *> original_inputs_links);
+
+  /** \} */
 
   /* allow the DebugInfo class to look at internals */
   friend class DebugInfo;

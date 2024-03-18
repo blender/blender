@@ -64,5 +64,3 @@ mark_as_advanced(
   BLOSC_INCLUDE_DIR
   BLOSC_LIBRARY
 )
-
-unset(_blosc_SEARCH_DIRS)

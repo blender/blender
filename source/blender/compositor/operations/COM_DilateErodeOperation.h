@@ -13,6 +13,11 @@ class DilateErodeThresholdOperation : public MultiThreadedOperation {
   struct PixelData;
 
  private:
+  /**
+   * Cached reference to the input_program
+   */
+  SocketReader *input_program_;
+
   float distance_;
   float switch_;
   float inset_;
@@ -27,7 +32,22 @@ class DilateErodeThresholdOperation : public MultiThreadedOperation {
   /* DilateErode Distance Threshold */
   DilateErodeThresholdOperation();
 
+  /**
+   * The inner loop of this operation.
+   */
+  void execute_pixel(float output[4], int x, int y, void *data) override;
+
   void init_data() override;
+  /**
+   * Initialize the execution
+   */
+  void init_execution() override;
+
+  void *initialize_tile_data(rcti *rect) override;
+  /**
+   * Deinitialize the execution
+   */
+  void deinit_execution() override;
 
   void set_distance(float distance)
   {
@@ -42,6 +62,10 @@ class DilateErodeThresholdOperation : public MultiThreadedOperation {
     inset_ = inset;
   }
 
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
@@ -53,6 +77,10 @@ class DilateDistanceOperation : public MultiThreadedOperation {
   struct PixelData;
 
  protected:
+  /**
+   * Cached reference to the input_program
+   */
+  SocketReader *input_program_;
   float distance_;
   int scope_;
 
@@ -60,12 +88,38 @@ class DilateDistanceOperation : public MultiThreadedOperation {
   /* Dilate Distance. */
   DilateDistanceOperation();
 
+  /**
+   * The inner loop of this operation.
+   */
+  void execute_pixel(float output[4], int x, int y, void *data) override;
+
   void init_data() override;
+  /**
+   * Initialize the execution
+   */
+  void init_execution() override;
+
+  void *initialize_tile_data(rcti *rect) override;
+  /**
+   * Deinitialize the execution
+   */
+  void deinit_execution() override;
 
   void set_distance(float distance)
   {
     distance_ = distance;
   }
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+
+  void execute_opencl(OpenCLDevice *device,
+                      MemoryBuffer *output_memory_buffer,
+                      cl_mem cl_output_buffer,
+                      MemoryBuffer **input_memory_buffers,
+                      std::list<cl_mem> *cl_mem_to_clean_up,
+                      std::list<cl_kernel> *cl_kernels_to_clean_up) override;
+
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) final;
   virtual void update_memory_buffer_partial(MemoryBuffer *output,
                                             const rcti &area,
@@ -77,6 +131,18 @@ class ErodeDistanceOperation : public DilateDistanceOperation {
   /* Erode Distance */
   ErodeDistanceOperation();
 
+  /**
+   * The inner loop of this operation.
+   */
+  void execute_pixel(float output[4], int x, int y, void *data) override;
+
+  void execute_opencl(OpenCLDevice *device,
+                      MemoryBuffer *output_memory_buffer,
+                      cl_mem cl_output_buffer,
+                      MemoryBuffer **input_memory_buffers,
+                      std::list<cl_mem> *cl_mem_to_clean_up,
+                      std::list<cl_kernel> *cl_kernels_to_clean_up) override;
+
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
@@ -84,16 +150,42 @@ class ErodeDistanceOperation : public DilateDistanceOperation {
 
 class DilateStepOperation : public MultiThreadedOperation {
  protected:
+  /**
+   * Cached reference to the input_program
+   */
+  SocketReader *input_program_;
+
   int iterations_;
 
  public:
   /* Dilate step */
   DilateStepOperation();
 
+  /**
+   * The inner loop of this operation.
+   */
+  void execute_pixel(float output[4], int x, int y, void *data) override;
+
+  /**
+   * Initialize the execution
+   */
+  void init_execution() override;
+
+  void *initialize_tile_data(rcti *rect) override;
+  /**
+   * Deinitialize the execution
+   */
+  void deinit_execution() override;
+  void deinitialize_tile_data(rcti *rect, void *data) override;
+
   void set_iterations(int iterations)
   {
     iterations_ = iterations;
   }
+
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) final;
   virtual void update_memory_buffer_partial(MemoryBuffer *output,
@@ -106,6 +198,7 @@ class ErodeStepOperation : public DilateStepOperation {
   /** Erode step. */
   ErodeStepOperation();
 
+  void *initialize_tile_data(rcti *rect) override;
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;

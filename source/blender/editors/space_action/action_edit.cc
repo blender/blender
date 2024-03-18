@@ -15,29 +15,32 @@
 #include "BLI_map.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DEG_depsgraph.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_key_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
+#include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_fcurve.hh"
-#include "BKE_global.hh"
+#include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
+#include "BKE_key.hh"
 #include "BKE_nla.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
-#include "UI_interface_icons.hh"
 #include "UI_view2d.hh"
 
 #include "ANIM_animdata.hh"
@@ -54,6 +57,8 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
+
+#include "UI_interface.hh"
 
 #include "action_intern.hh"
 
@@ -1148,20 +1153,6 @@ static int actkeys_delete_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int actkeys_delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Delete selected keyframes?"),
-                                  nullptr,
-                                  IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return actkeys_delete_exec(C, op);
-}
-
 void ACTION_OT_delete(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1170,7 +1161,7 @@ void ACTION_OT_delete(wmOperatorType *ot)
   ot->description = "Remove all selected keyframes";
 
   /* api callbacks */
-  ot->invoke = actkeys_delete_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = actkeys_delete_exec;
   ot->poll = ED_operator_action_active;
 

@@ -21,7 +21,7 @@
 
 #include "BLF_api.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_curves_types.h"
 #include "DNA_material_types.h"
@@ -38,7 +38,7 @@
 #include "BKE_cryptomatte.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_image.h"
-#include "BKE_node.hh"
+#include "BKE_node.h"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_texture.h"
@@ -79,7 +79,6 @@ const EnumPropertyItem rna_enum_node_socket_data_type_items[] = {
     {SOCK_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
     {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
     {SOCK_ROTATION, "ROTATION", 0, "Rotation", ""},
-    {SOCK_MATRIX, "MATRIX", 0, "Matrix", ""},
     {SOCK_STRING, "STRING", 0, "String", ""},
     {SOCK_MENU, "MENU", 0, "Menu", ""},
     {SOCK_RGBA, "RGBA", 0, "Color", ""},
@@ -99,11 +98,58 @@ static const EnumPropertyItem node_quality_items[] = {
     {NTREE_QUALITY_LOW, "LOW", 0, "Low", "Low quality"},
     {0, nullptr, 0, nullptr, nullptr},
 };
+
+static const EnumPropertyItem node_chunksize_items[] = {
+    {NTREE_CHUNKSIZE_32,
+     "32",
+     0,
+     "32" BLI_STR_UTF8_MULTIPLICATION_SIGN "32",
+     "Chunksize of 32" BLI_STR_UTF8_MULTIPLICATION_SIGN "32"},
+    {NTREE_CHUNKSIZE_64,
+     "64",
+     0,
+     "64" BLI_STR_UTF8_MULTIPLICATION_SIGN "64",
+     "Chunksize of 64" BLI_STR_UTF8_MULTIPLICATION_SIGN "64"},
+    {NTREE_CHUNKSIZE_128,
+     "128",
+     0,
+     "128" BLI_STR_UTF8_MULTIPLICATION_SIGN "128",
+     "Chunksize of 128" BLI_STR_UTF8_MULTIPLICATION_SIGN "128"},
+    {NTREE_CHUNKSIZE_256,
+     "256",
+     0,
+     "256" BLI_STR_UTF8_MULTIPLICATION_SIGN "256",
+     "Chunksize of 256" BLI_STR_UTF8_MULTIPLICATION_SIGN "256"},
+    {NTREE_CHUNKSIZE_512,
+     "512",
+     0,
+     "512" BLI_STR_UTF8_MULTIPLICATION_SIGN "512",
+     "Chunksize of 512" BLI_STR_UTF8_MULTIPLICATION_SIGN "512"},
+    {NTREE_CHUNKSIZE_1024,
+     "1024",
+     0,
+     "1024" BLI_STR_UTF8_MULTIPLICATION_SIGN "1024",
+     "Chunksize of 1024" BLI_STR_UTF8_MULTIPLICATION_SIGN "1024"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
 #endif
 
 static const EnumPropertyItem rna_enum_execution_mode_items[] = {
-    {NTREE_EXECUTION_MODE_CPU, "CPU", 0, "CPU", ""},
-    {NTREE_EXECUTION_MODE_GPU, "GPU", 0, "GPU", ""},
+    {NTREE_EXECUTION_MODE_TILED,
+     "TILED",
+     0,
+     "Tiled",
+     "Compositing is tiled, having as priority to display first tiles as fast as possible"},
+    {NTREE_EXECUTION_MODE_FULL_FRAME,
+     "FULL_FRAME",
+     0,
+     "Full Frame",
+     "Composites full image result as fast as possible"},
+    {NTREE_EXECUTION_MODE_REALTIME,
+     "REALTIME",
+     0,
+     "GPU",
+     "Use GPU accelerated compositing with more limited functionality"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -551,7 +597,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "BKE_context.hh"
 #  include "BKE_idprop.h"
 
-#  include "BKE_global.hh"
+#  include "BKE_global.h"
 
 #  include "ED_node.hh"
 #  include "ED_render.hh"
@@ -1866,8 +1912,7 @@ static bool generic_attribute_type_supported(const EnumPropertyItem *item)
               CD_PROP_BOOL,
               CD_PROP_INT32,
               CD_PROP_BYTE_COLOR,
-              CD_PROP_QUATERNION,
-              CD_PROP_FLOAT4X4);
+              CD_PROP_QUATERNION);
 }
 
 static bool generic_attribute_type_supported_with_socket(const EnumPropertyItem *item)
@@ -2205,8 +2250,7 @@ static bNodeSocket *rna_Node_inputs_new(ID *id,
                                         ReportList *reports,
                                         const char *type,
                                         const char *name,
-                                        const char *identifier,
-                                        const bool use_multi_input)
+                                        const char *identifier)
 {
   if (!allow_changing_sockets(node)) {
     BKE_report(reports, RPT_ERROR, "Cannot add socket to built-in node");
@@ -2220,9 +2264,6 @@ static bNodeSocket *rna_Node_inputs_new(ID *id,
     BKE_report(reports, RPT_ERROR, "Unable to create socket");
   }
   else {
-    if (use_multi_input) {
-      sock->flag |= SOCK_MULTI_INPUT;
-    }
     ED_node_tree_propagate_change(nullptr, bmain, ntree);
     WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
   }
@@ -2236,16 +2277,10 @@ static bNodeSocket *rna_Node_outputs_new(ID *id,
                                          ReportList *reports,
                                          const char *type,
                                          const char *name,
-                                         const char *identifier,
-                                         const bool use_multi_input)
+                                         const char *identifier)
 {
   if (!allow_changing_sockets(node)) {
     BKE_report(reports, RPT_ERROR, "Cannot add socket to built-in node");
-    return nullptr;
-  }
-
-  if (use_multi_input) {
-    BKE_report(reports, RPT_ERROR, "Output sockets cannot be multi-input");
     return nullptr;
   }
 
@@ -4140,9 +4175,9 @@ static const EnumPropertyItem node_principled_hair_model_items[] = {
      "HUANG",
      0,
      "Huang",
-     "Multi-scale hair scattering model by Huang et al. 2022, suitable for viewing both up close "
-     "and from a distance, supports elliptical cross-sections and has more precise highlight in "
-     "forward scattering directions"},
+     "Far-field hair scattering model by Huang et al. 2022, suitable for viewing from a distance, "
+     "supports elliptical cross-sections and has more precise highlight in forward scattering "
+     "directions"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -4547,7 +4582,7 @@ static void def_fn_input_color(StructRNA *srna)
 
   RNA_def_struct_sdna_from(srna, "NodeInputColor", "storage");
 
-  prop = RNA_def_property(srna, "value", PROP_FLOAT, PROP_COLOR);
+  prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_array(prop, 4);
   RNA_def_property_float_sdna(prop, nullptr, "color");
   RNA_def_property_ui_text(prop, "Color", "");
@@ -5857,8 +5892,7 @@ static void def_sh_output_aov(StructRNA *srna)
 
   RNA_def_struct_sdna_from(srna, "NodeShaderOutputAOV", "storage");
 
-  prop = RNA_def_property(srna, "aov_name", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "name");
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Name", "Name of the AOV that this output writes to");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -7336,11 +7370,10 @@ static void def_cmp_glare(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem type_items[] = {
-      {CMP_NODE_GLARE_BLOOM, "BLOOM", 0, "Bloom", ""},
-      {CMP_NODE_GLARE_GHOST, "GHOSTS", 0, "Ghosts", ""},
-      {CMP_NODE_GLARE_STREAKS, "STREAKS", 0, "Streaks", ""},
-      {CMP_NODE_GLARE_FOG_GLOW, "FOG_GLOW", 0, "Fog Glow", ""},
-      {CMP_NODE_GLARE_SIMPLE_STAR, "SIMPLE_STAR", 0, "Simple Star", ""},
+      {3, "GHOSTS", 0, "Ghosts", ""},
+      {2, "STREAKS", 0, "Streaks", ""},
+      {1, "FOG_GLOW", 0, "Fog Glow", ""},
+      {0, "SIMPLE_STAR", 0, "Simple Star", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -7857,14 +7890,14 @@ static void def_cmp_boxmask(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Y", "Y position of the middle of the box");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  prop = RNA_def_property(srna, "mask_width", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "width");
   RNA_def_property_float_default(prop, 0.3f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
   RNA_def_property_ui_text(prop, "Width", "Width of the box");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  prop = RNA_def_property(srna, "mask_height", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "height");
   RNA_def_property_float_default(prop, 0.2f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
@@ -7904,14 +7937,14 @@ static void def_cmp_ellipsemask(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Y", "Y position of the middle of the ellipse");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  prop = RNA_def_property(srna, "mask_width", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "width");
   RNA_def_property_float_default(prop, 0.3f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
   RNA_def_property_ui_text(prop, "Width", "Width of the ellipse");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  prop = RNA_def_property(srna, "mask_height", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "height");
   RNA_def_property_float_default(prop, 0.2f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
@@ -9925,8 +9958,6 @@ static void rna_def_node_sockets_api(BlenderRNA *brna, PropertyRNA *cprop, int i
   parm = RNA_def_string(func, "name", nullptr, MAX_NAME, "Name", "");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_string(func, "identifier", nullptr, MAX_NAME, "Identifier", "Unique socket identifier");
-  RNA_def_boolean(
-      func, "use_multi_input", false, "", "Make the socket a multi-input. Only valid for inputs");
   /* return value */
   parm = RNA_def_pointer(func, "socket", "NodeSocket", "", "New socket");
   RNA_def_function_return(func, parm);
@@ -10629,6 +10660,22 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "edit_quality");
   RNA_def_property_enum_items(prop, node_quality_items);
   RNA_def_property_ui_text(prop, "Edit Quality", "Quality when editing");
+
+  prop = RNA_def_property(srna, "chunk_size", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "chunksize");
+  RNA_def_property_enum_items(prop, node_chunksize_items);
+  RNA_def_property_ui_text(prop,
+                           "Chunksize",
+                           "Max size of a tile (smaller values gives better distribution "
+                           "of multiple threads, but more overhead)");
+
+  prop = RNA_def_property(srna, "use_opencl", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NTREE_COM_OPENCL);
+  RNA_def_property_ui_text(prop, "OpenCL", "Enable GPU calculations");
+
+  prop = RNA_def_property(srna, "use_groupnode_buffer", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NTREE_COM_GROUPNODE_BUFFER);
+  RNA_def_property_ui_text(prop, "Buffer Groups", "Enable buffering of group nodes");
 
   prop = RNA_def_property(srna, "use_two_pass", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", NTREE_TWO_PASS);

@@ -13,8 +13,12 @@
 
 #include "BKE_context.hh"
 #include "BKE_material.h"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 
+#include "BKE_screen.hh"
+
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "ED_screen.hh"

@@ -51,6 +51,40 @@ void ConvertDepthToRadiusOperation::init_execution()
  *
  *   Potmesil, Michael, and Indranil Chakravarty. "A lens and aperture camera model for synthetic
  *   image generation." ACM SIGGRAPH Computer Graphics 15.3 (1981): 297-305. */
+void ConvertDepthToRadiusOperation::execute_pixel_sampled(float output[4],
+                                                          float x,
+                                                          float y,
+                                                          PixelSampler sampler)
+{
+  float input_value[4];
+  depth_input_operation_->read_sampled(input_value, x, y, sampler);
+  const float depth = input_value[0];
+
+  /* Compute `Vu` in equation (7). */
+  const float distance_to_image_of_object = (focal_length * depth) / (depth - focal_length);
+
+  /* Compute C in equation (8). Notice that the last multiplier was included in the absolute since
+   * it is negative when the object distance is less than the focal length, as noted in equation
+   * (7). */
+  float diameter = abs((distance_to_image_of_object - distance_to_image_of_focus) *
+                       (focal_length / (f_stop * distance_to_image_of_object)));
+
+  /* The diameter is in meters, so multiply by the pixels per meter. */
+  float radius = (diameter / 2.0f) * pixels_per_meter;
+
+  output[0] = math::min(max_radius, radius);
+}
+
+void ConvertDepthToRadiusOperation::deinit_execution()
+{
+  depth_input_operation_ = nullptr;
+}
+
+/* Given a depth texture, compute the radius of the circle of confusion in pixels based on equation
+ * (8) of the paper:
+ *
+ *   Potmesil, Michael, and Indranil Chakravarty. "A lens and aperture camera model for synthetic
+ *   image generation." ACM SIGGRAPH Computer Graphics 15.3 (1981): 297-305. */
 void ConvertDepthToRadiusOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                                  const rcti &area,
                                                                  Span<MemoryBuffer *> inputs)

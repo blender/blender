@@ -61,5 +61,3 @@ mark_as_advanced(
   SPACENAV_INCLUDE_DIR
   SPACENAV_LIBRARY
 )
-
-unset(_spacenav_SEARCH_DIRS)

@@ -133,7 +133,7 @@ Vector<ConstantOperation *> ConstantFolder::try_fold_operations(Span<NodeOperati
 
 int ConstantFolder::fold_operations()
 {
-  WorkScheduler::start();
+  WorkScheduler::start(operations_builder_.context());
   Vector<ConstantOperation *> last_folds = try_fold_operations(
       operations_builder_.get_operations());
   int folds_count = last_folds.size();

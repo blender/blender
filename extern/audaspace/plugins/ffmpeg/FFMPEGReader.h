@@ -154,7 +154,7 @@ public:
 	 * \exception Exception Thrown if the file specified does not exist or
 	 *            cannot be read with ffmpeg.
 	 */
-	FFMPEGReader(const std::string &filename, int stream = 0);
+	FFMPEGReader(std::string filename, int stream = 0);
 
 	/**
 	 * Creates a new reader.

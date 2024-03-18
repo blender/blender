@@ -17,8 +17,6 @@
 
 #include "gpu_index_buffer_private.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_compute.h"
 #include "GPU_platform.h"
 
 #include <algorithm> /* For `min/max`. */
@@ -241,54 +239,6 @@ void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem)
   builder->data[idx++] = builder->restart_index_value;
   builder->index_len = std::max(builder->index_len, idx);
   builder->uses_restart_indices = true;
-}
-
-GPUIndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
-                                                 uint curves_num,
-                                                 uint verts_per_curve)
-{
-  uint64_t dispatch_x_dim = verts_per_curve;
-  if (ELEM(prim_type, GPU_PRIM_LINE_STRIP, GPU_PRIM_TRI_STRIP)) {
-    dispatch_x_dim += 1;
-  }
-  uint64_t grid_x, grid_y, grid_z;
-  uint64_t max_grid_x = GPU_max_work_group_count(0), max_grid_y = GPU_max_work_group_count(1),
-           max_grid_z = GPU_max_work_group_count(2);
-  grid_x = min_uu(max_grid_x, (dispatch_x_dim + 15) / 16);
-  grid_y = (curves_num + 15) / 16;
-  if (grid_y <= max_grid_y) {
-    grid_z = 1;
-  }
-  else {
-    grid_y = grid_z = uint64_t(ceil(sqrt(double(grid_y))));
-    grid_y = min_uu(grid_y, max_grid_y);
-    grid_z = min_uu(grid_z, max_grid_z);
-  }
-  bool tris = (prim_type == GPU_PRIM_TRIS);
-  bool lines = (prim_type == GPU_PRIM_LINES);
-  GPUShader *shader = GPU_shader_get_builtin_shader(
-      tris ? GPU_SHADER_INDEXBUF_TRIS :
-             (lines ? GPU_SHADER_INDEXBUF_LINES : GPU_SHADER_INDEXBUF_POINTS));
-  GPU_shader_bind(shader);
-  GPUIndexBuf *ibo = GPU_indexbuf_build_on_device(curves_num * dispatch_x_dim);
-  int resolution;
-  if (tris) {
-    resolution = 6;
-  }
-  else if (lines) {
-    resolution = 2;
-  }
-  else {
-    resolution = 1;
-  }
-  GPU_shader_uniform_1i(shader, "elements_per_curve", dispatch_x_dim / resolution);
-  GPU_shader_uniform_1i(shader, "ncurves", curves_num);
-  GPU_indexbuf_bind_as_ssbo(ibo, GPU_shader_get_ssbo_binding(shader, "out_indices"));
-  GPU_compute_dispatch(shader, grid_x, grid_y, grid_z);
-
-  GPU_memory_barrier(GPU_BARRIER_ELEMENT_ARRAY);
-  GPU_shader_unbind();
-  return ibo;
 }
 
 /** \} */

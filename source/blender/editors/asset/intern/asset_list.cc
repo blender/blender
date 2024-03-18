@@ -26,6 +26,8 @@
 
 #include "DNA_space_types.h"
 
+#include "BKE_preferences.h"
+
 #include "WM_api.hh"
 
 /* XXX uses private header of file-space. */
@@ -81,7 +83,7 @@ class PreviewTimer {
   wmTimer *timer_ = nullptr;
 
  public:
-  void ensure_running(const bContext *C)
+  void ensureRunning(const bContext *C)
   {
     if (!timer_) {
       timer_ = WM_event_timer_add_notifier(
@@ -113,20 +115,20 @@ class AssetList : NonCopyable {
 
   void setup();
   void fetch(const bContext &C);
-  void ensure_previews_job(const bContext *C);
+  void ensurePreviewsJob(const bContext *C);
   void clear(const bContext *C);
 
   AssetHandle asset_get_by_index(int index) const;
 
-  bool needs_refetch() const;
-  bool is_loaded() const;
-  bool is_asset_preview_loading(const AssetHandle &asset) const;
+  bool needsRefetch() const;
+  bool isLoaded() const;
+  bool isAssetPreviewLoading(const AssetHandle &asset) const;
   asset_system::AssetLibrary *asset_library() const;
   void iterate(AssetListHandleIterFn fn) const;
   void iterate(AssetListIterFn fn) const;
   int size() const;
-  void tag_main_data_dirty() const;
-  void remap_id(ID *id_old, ID *id_new) const;
+  void tagMainDataDirty() const;
+  void remapID(ID *id_old, ID *id_new) const;
 };
 
 AssetList::AssetList(eFileSelectType filesel_type, const AssetLibraryReference &asset_library_ref)
@@ -183,17 +185,17 @@ void AssetList::fetch(const bContext &C)
   filelist_filter(files);
 }
 
-bool AssetList::needs_refetch() const
+bool AssetList::needsRefetch() const
 {
   return filelist_needs_force_reset(filelist_) || filelist_needs_reading(filelist_);
 }
 
-bool AssetList::is_loaded() const
+bool AssetList::isLoaded() const
 {
   return filelist_is_ready(filelist_);
 }
 
-bool AssetList::is_asset_preview_loading(const AssetHandle &asset) const
+bool AssetList::isAssetPreviewLoading(const AssetHandle &asset) const
 {
   return filelist_file_is_preview_pending(filelist_, asset.file_data);
 }
@@ -224,13 +226,13 @@ void AssetList::iterate(AssetListHandleIterFn fn) const
 
 void AssetList::iterate(AssetListIterFn fn) const
 {
-  this->iterate([&fn](AssetHandle handle) {
+  iterate([&fn](AssetHandle handle) {
     auto &asset = reinterpret_cast<asset_system::AssetRepresentation &>(*handle.file_data->asset);
     return fn(asset);
   });
 }
 
-void AssetList::ensure_previews_job(const bContext *C)
+void AssetList::ensurePreviewsJob(const bContext *C)
 {
   FileList *files = filelist_;
   int numfiles = filelist_files_ensure(files);
@@ -246,7 +248,7 @@ void AssetList::ensure_previews_job(const bContext *C)
     const bool previews_running = filelist_cache_previews_running(files) &&
                                   !filelist_cache_previews_done(files);
     if (previews_running) {
-      previews_timer_.ensure_running(C);
+      previews_timer_.ensureRunning(C);
     }
     else {
       /* Preview is not running, no need to keep generating update events! */
@@ -305,19 +307,19 @@ int AssetList::size() const
   return filelist_files_ensure(filelist_);
 }
 
-void AssetList::tag_main_data_dirty() const
+void AssetList::tagMainDataDirty() const
 {
   if (filelist_needs_reset_on_main_changes(filelist_)) {
     filelist_tag_force_reset_mainfiles(filelist_);
   }
 }
 
-void AssetList::remap_id(ID * /*id_old*/, ID * /*id_new*/) const
+void AssetList::remapID(ID * /*id_old*/, ID * /*id_new*/) const
 {
   /* Trigger full re-fetch of the file list if main data was changed, don't even attempt remap
    * pointers. We could give file list types a id-remap callback, but it's probably not worth it.
    * Refreshing local file lists is relatively cheap. */
-  this->tag_main_data_dirty();
+  tagMainDataDirty();
 }
 
 /** \} */
@@ -327,39 +329,72 @@ void AssetList::remap_id(ID * /*id_old*/, ID * /*id_new*/) const
  * \{ */
 
 /**
- * A global asset list map, each entry being a list for a specific asset library.
+ * Class managing a global asset list map, each entry being a list for a specific asset library.
  */
-using AssetListMap = Map<AssetLibraryReference, AssetList>;
+class AssetListStorage {
+  using AssetListMap = Map<AssetLibraryReferenceWrapper, AssetList>;
 
-/**
- * Wrapper for Construct on First Use idiom, to avoid the Static Initialization Fiasco.
- */
-static AssetListMap &global_storage()
+ public:
+  /* Purely static class, can't instantiate this. */
+  AssetListStorage() = delete;
+
+  static void fetch_library(const AssetLibraryReference &library_reference, const bContext &C);
+  static void destruct();
+  static AssetList *lookup_list(const AssetLibraryReference &library_ref);
+  static void tagMainDataDirty();
+  static void remapID(ID *id_new, ID *id_old);
+
+ private:
+  static std::optional<eFileSelectType> asset_library_reference_to_fileselect_type(
+      const AssetLibraryReference &library_reference);
+
+  using is_new_t = bool;
+  static std::tuple<AssetList &, is_new_t> ensure_list_storage(
+      const AssetLibraryReference &library_reference, eFileSelectType filesel_type);
+
+  static AssetListMap &global_storage();
+};
+
+void AssetListStorage::fetch_library(const AssetLibraryReference &library_reference,
+                                     const bContext &C)
 {
-  static AssetListMap global_storage;
-  return global_storage;
+  std::optional filesel_type = asset_library_reference_to_fileselect_type(library_reference);
+  if (!filesel_type) {
+    return;
+  }
+
+  auto [list, is_new] = ensure_list_storage(library_reference, *filesel_type);
+  if (is_new || list.needsRefetch()) {
+    list.setup();
+    list.fetch(C);
+  }
 }
 
-static AssetList *lookup_list(const AssetLibraryReference &library_ref)
+void AssetListStorage::destruct()
+{
+  global_storage().clear();
+}
+
+AssetList *AssetListStorage::lookup_list(const AssetLibraryReference &library_ref)
 {
   return global_storage().lookup_ptr(library_ref);
 }
 
-void storage_tag_main_data_dirty()
+void AssetListStorage::tagMainDataDirty()
 {
   for (AssetList &list : global_storage().values()) {
-    list.tag_main_data_dirty();
+    list.tagMainDataDirty();
   }
 }
 
-void storage_id_remap(ID *id_new, ID *id_old)
+void AssetListStorage::remapID(ID *id_new, ID *id_old)
 {
   for (AssetList &list : global_storage().values()) {
-    list.remap_id(id_new, id_old);
+    list.remapID(id_new, id_old);
   }
 }
 
-static std::optional<eFileSelectType> asset_library_reference_to_fileselect_type(
+std::optional<eFileSelectType> AssetListStorage::asset_library_reference_to_fileselect_type(
     const AssetLibraryReference &library_reference)
 {
   switch (eAssetLibraryType(library_reference.type)) {
@@ -375,8 +410,7 @@ static std::optional<eFileSelectType> asset_library_reference_to_fileselect_type
   return std::nullopt;
 }
 
-using is_new_t = bool;
-static std::tuple<AssetList &, is_new_t> ensure_list_storage(
+std::tuple<AssetList &, AssetListStorage::is_new_t> AssetListStorage::ensure_list_storage(
     const AssetLibraryReference &library_reference, eFileSelectType filesel_type)
 {
   AssetListMap &storage = global_storage();
@@ -386,6 +420,15 @@ static std::tuple<AssetList &, is_new_t> ensure_list_storage(
   }
   storage.add(library_reference, AssetList(filesel_type, library_reference));
   return {storage.lookup(library_reference), true};
+}
+
+/**
+ * Wrapper for Construct on First Use idiom, to avoid the Static Initialization Fiasco.
+ */
+AssetListStorage::AssetListMap &AssetListStorage::global_storage()
+{
+  static AssetListMap global_storage_;
+  return global_storage_;
 }
 
 /** \} */
@@ -410,41 +453,33 @@ void asset_reading_region_listen_fn(const wmRegionListenerParams *params)
 
 void storage_fetch(const AssetLibraryReference *library_reference, const bContext *C)
 {
-  std::optional filesel_type = asset_library_reference_to_fileselect_type(*library_reference);
-  if (!filesel_type) {
-    return;
-  }
-
-  auto [list, is_new] = ensure_list_storage(*library_reference, *filesel_type);
-  if (is_new || list.needs_refetch()) {
-    list.setup();
-    list.fetch(*C);
-  }
+  AssetListStorage::fetch_library(*library_reference, *C);
 }
 
 bool is_loaded(const AssetLibraryReference *library_reference)
 {
-  AssetList *list = lookup_list(*library_reference);
+  AssetList *list = AssetListStorage::lookup_list(*library_reference);
   if (!list) {
     return false;
   }
-  if (list->needs_refetch()) {
+  if (list->needsRefetch()) {
     return false;
   }
-  return list->is_loaded();
+  return list->isLoaded();
 }
 
 void ensure_previews_job(const AssetLibraryReference *library_reference, const bContext *C)
 {
-  AssetList *list = lookup_list(*library_reference);
+
+  AssetList *list = AssetListStorage::lookup_list(*library_reference);
   if (list) {
-    list->ensure_previews_job(C);
+    list->ensurePreviewsJob(C);
   }
 }
 
 void clear(const AssetLibraryReference *library_reference, const bContext *C)
 {
-  AssetList *list = lookup_list(*library_reference);
+  AssetList *list = AssetListStorage::lookup_list(*library_reference);
   if (list) {
     list->clear(C);
   }
@@ -452,12 +487,12 @@ void clear(const AssetLibraryReference *library_reference, const bContext *C)
 
 bool storage_has_list_for_library(const AssetLibraryReference *library_reference)
 {
-  return lookup_list(*library_reference) != nullptr;
+  return AssetListStorage::lookup_list(*library_reference) != nullptr;
 }
 
 void iterate(const AssetLibraryReference &library_reference, AssetListHandleIterFn fn)
 {
-  AssetList *list = lookup_list(library_reference);
+  AssetList *list = AssetListStorage::lookup_list(library_reference);
   if (list) {
     list->iterate(fn);
   }
@@ -465,7 +500,7 @@ void iterate(const AssetLibraryReference &library_reference, AssetListHandleIter
 
 void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
 {
-  AssetList *list = lookup_list(library_reference);
+  AssetList *list = AssetListStorage::lookup_list(library_reference);
   if (list) {
     list->iterate(fn);
   }
@@ -474,7 +509,7 @@ void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
 asset_system::AssetLibrary *library_get_once_available(
     const AssetLibraryReference &library_reference)
 {
-  const AssetList *list = lookup_list(library_reference);
+  const AssetList *list = AssetListStorage::lookup_list(library_reference);
   if (!list) {
     return nullptr;
   }
@@ -484,7 +519,7 @@ asset_system::AssetLibrary *library_get_once_available(
 AssetHandle asset_handle_get_by_index(const AssetLibraryReference *library_reference,
                                       int asset_index)
 {
-  const AssetList *list = lookup_list(*library_reference);
+  const AssetList *list = AssetListStorage::lookup_list(*library_reference);
   return list->asset_get_by_index(asset_index);
 }
 
@@ -498,8 +533,8 @@ asset_system::AssetRepresentation *asset_get_by_index(
 bool asset_image_is_loading(const AssetLibraryReference *library_reference,
                             const AssetHandle *asset_handle)
 {
-  const AssetList *list = lookup_list(*library_reference);
-  return list->is_asset_preview_loading(*asset_handle);
+  const AssetList *list = AssetListStorage::lookup_list(*library_reference);
+  return list->isAssetPreviewLoading(*asset_handle);
 }
 
 ImBuf *asset_image_get(const AssetHandle *asset_handle)
@@ -519,16 +554,26 @@ bool listen(const wmNotifier *notifier)
 
 int size(const AssetLibraryReference *library_reference)
 {
-  AssetList *list = lookup_list(*library_reference);
+  AssetList *list = AssetListStorage::lookup_list(*library_reference);
   if (list) {
     return list->size();
   }
   return -1;
 }
 
+void storage_tag_main_data_dirty()
+{
+  AssetListStorage::tagMainDataDirty();
+}
+
+void storage_id_remap(ID *id_old, ID *id_new)
+{
+  AssetListStorage::remapID(id_old, id_new);
+}
+
 void storage_exit()
 {
-  global_storage().clear_and_shrink();
+  AssetListStorage::destruct();
 }
 
 /** \} */

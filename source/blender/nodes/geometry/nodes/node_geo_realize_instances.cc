@@ -6,6 +6,7 @@
 
 #include "GEO_realize_instances.hh"
 
+#include "UI_interface.hh"
 #include "UI_resources.hh"
 
 namespace blender::nodes::node_geo_realize_instances_cc {

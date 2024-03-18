@@ -149,9 +149,7 @@ void ui_block_views_draw_overlays(const ARegion *region, const uiBlock *block)
   }
 }
 
-blender::ui::AbstractView *UI_region_view_find_at(const ARegion *region,
-                                                  const int xy[2],
-                                                  const int pad)
+uiViewHandle *UI_region_view_find_at(const ARegion *region, const int xy[2], const int pad)
 {
   /* NOTE: Similar to #ui_but_find_mouse_over_ex(). */
 
@@ -173,7 +171,7 @@ blender::ui::AbstractView *UI_region_view_find_at(const ARegion *region,
         BLI_rcti_pad(&padded_bounds, pad, pad);
       }
       if (BLI_rcti_isect_pt(&padded_bounds, mx, my)) {
-        return view_link->view.get();
+        return reinterpret_cast<uiViewHandle *>(view_link->view.get());
       }
     }
   }
@@ -181,9 +179,9 @@ blender::ui::AbstractView *UI_region_view_find_at(const ARegion *region,
   return nullptr;
 }
 
-ui::AbstractViewItem *UI_region_views_find_item_at(const ARegion &region, const int xy[2])
+uiViewItemHandle *UI_region_views_find_item_at(const ARegion *region, const int xy[2])
 {
-  uiButViewItem *item_but = (uiButViewItem *)ui_view_item_find_mouse_over(&region, xy);
+  uiButViewItem *item_but = (uiButViewItem *)ui_view_item_find_mouse_over(region, xy);
   if (!item_but) {
     return nullptr;
   }
@@ -191,7 +189,7 @@ ui::AbstractViewItem *UI_region_views_find_item_at(const ARegion &region, const 
   return item_but->view_item;
 }
 
-ui::AbstractViewItem *UI_region_views_find_active_item(const ARegion *region)
+uiViewItemHandle *UI_region_views_find_active_item(const ARegion *region)
 {
   uiButViewItem *item_but = (uiButViewItem *)ui_view_item_find_active(region);
   if (!item_but) {
@@ -211,17 +209,21 @@ namespace blender::ui {
 std::unique_ptr<DropTargetInterface> region_views_find_drop_target_at(const ARegion *region,
                                                                       const int xy[2])
 {
-  if (ui::AbstractViewItem *item = UI_region_views_find_item_at(*region, xy)) {
-    if (std::unique_ptr<DropTargetInterface> target = item->create_item_drop_target()) {
-      return target;
+  uiViewItemHandle *hovered_view_item = UI_region_views_find_item_at(region, xy);
+  if (hovered_view_item) {
+    std::unique_ptr<DropTargetInterface> drop_target = view_item_drop_target(hovered_view_item);
+    if (drop_target) {
+      return drop_target;
     }
   }
 
   /* Get style for some sensible padding around the view items. */
   const uiStyle *style = UI_style_get_dpi();
-  if (AbstractView *view = UI_region_view_find_at(region, xy, style->buttonspacex)) {
-    if (std::unique_ptr<DropTargetInterface> target = view->create_drop_target()) {
-      return target;
+  uiViewHandle *hovered_view = UI_region_view_find_at(region, xy, style->buttonspacex);
+  if (hovered_view) {
+    std::unique_ptr<DropTargetInterface> drop_target = view_drop_target(hovered_view);
+    if (drop_target) {
+      return drop_target;
     }
   }
 
@@ -265,22 +267,27 @@ static T *ui_block_view_find_matching_in_old_block_impl(const uiBlock &new_block
   return nullptr;
 }
 
-blender::ui::AbstractView *ui_block_view_find_matching_in_old_block(
-    const uiBlock &new_block, const blender::ui::AbstractView &new_view)
+uiViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
+                                                       const uiViewHandle *new_view_handle)
 {
-  return ui_block_view_find_matching_in_old_block_impl(new_block, new_view);
+  BLI_assert(new_block && new_view_handle);
+  const AbstractView &new_view = reinterpret_cast<const AbstractView &>(*new_view_handle);
+
+  AbstractView *old_view = ui_block_view_find_matching_in_old_block_impl(*new_block, new_view);
+  return reinterpret_cast<uiViewHandle *>(old_view);
 }
 
 uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
-    const uiBlock &new_block, const ui::AbstractViewItem &new_item)
+    const uiBlock *new_block, const uiViewItemHandle *new_item_handle)
 {
-  uiBlock *old_block = new_block.oldblock;
+  uiBlock *old_block = new_block->oldblock;
   if (!old_block) {
     return nullptr;
   }
 
+  const AbstractViewItem &new_item = *reinterpret_cast<const AbstractViewItem *>(new_item_handle);
   const AbstractView *old_view = ui_block_view_find_matching_in_old_block_impl(
-      new_block, new_item.get_view());
+      *new_block, new_item.get_view());
   if (!old_view) {
     return nullptr;
   }
@@ -299,7 +306,9 @@ uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
       continue;
     }
 
-    if (UI_view_item_matches(new_item, old_item)) {
+    if (UI_view_item_matches(reinterpret_cast<const uiViewItemHandle *>(&new_item),
+                             reinterpret_cast<const uiViewItemHandle *>(&old_item)))
+    {
       return old_item_but;
     }
   }

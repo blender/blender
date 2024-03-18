@@ -24,7 +24,7 @@
 #include "GPU_drawlist.h"
 #include "GPU_framebuffer.h"
 #include "GPU_shader.h"
-#include "GPU_uniform_buffer.hh"
+#include "GPU_uniform_buffer.h"
 #include "GPU_viewport.h"
 
 #include "draw_instance_data.h"
@@ -58,19 +58,19 @@ struct CurvesUniformBufPool;
 #  define PROFILE_TIMER_FALLOFF 0.04
 
 #  define PROFILE_START(time_start) \
-    double time_start = BLI_time_now_seconds(); \
+    double time_start = BLI_check_seconds_timer(); \
     ((void)0)
 
 #  define PROFILE_END_ACCUM(time_accum, time_start) \
     { \
-      time_accum += (BLI_time_now_seconds() - time_start) * 1e3; \
+      time_accum += (BLI_check_seconds_timer() - time_start) * 1e3; \
     } \
     ((void)0)
 
 /* exp average */
 #  define PROFILE_END_UPDATE(time_update, time_start) \
     { \
-      double _time_delta = (BLI_time_now_seconds() - time_start) * 1e3; \
+      double _time_delta = (BLI_check_seconds_timer() - time_start) * 1e3; \
       time_update = (time_update * (1.0 - PROFILE_TIMER_FALLOFF)) + \
                     (_time_delta * PROFILE_TIMER_FALLOFF); \
     } \

@@ -23,7 +23,7 @@ class GHOST_DisplayManagerWin32 : public GHOST_DisplayManager {
   /**
    * Constructor.
    */
-  GHOST_DisplayManagerWin32();
+  GHOST_DisplayManagerWin32(void);
 
   /**
    * Returns the number of display devices on this system.

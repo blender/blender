@@ -134,9 +134,6 @@ static inline eClosureBits shader_closure_bits_from_flag(const GPUMaterial *gpum
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_GLOSSY)) {
     closure_bits |= CLOSURE_REFLECTION;
   }
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_COAT)) {
-    closure_bits |= CLOSURE_CLEARCOAT;
-  }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE)) {
     closure_bits |= CLOSURE_SSS;
   }

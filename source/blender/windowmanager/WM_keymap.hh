@@ -8,16 +8,13 @@
  * \ingroup wm
  */
 
-#include <optional>
-#include <string>
-
 #include "BLI_utildefines.h"
 #include "DNA_windowmanager_types.h"
 #include "WM_types.hh"
 
 struct EnumPropertyItem;
 
-/* Key Configuration. */
+/* Key Configuration */
 
 void WM_keyconfig_init(bContext *C);
 void WM_keyconfig_reload(bContext *C);
@@ -46,19 +43,19 @@ void WM_keyconfig_update_suppress_end();
 void WM_keyconfig_update_postpone_begin();
 void WM_keyconfig_update_postpone_end();
 
-/** Keymap. */
+/* Keymap */
 
 /** Parameters for matching events, passed into functions that create key-map items. */
 struct KeyMapItem_Params {
-  /** #wmKeyMapItem.type. */
+  /** #wmKeyMapItem.type */
   int16_t type;
-  /** #wmKeyMapItem.val. */
+  /** #wmKeyMapItem.val */
   int8_t value;
-  /** #wmKeyMapItem `ctrl, shift, alt, oskey`. */
+  /** #wmKeyMapItem `ctrl, shift, alt, oskey` */
   int8_t modifier;
-  /** #wmKeyMapItem.keymodifier. */
+  /** #wmKeyMapItem.keymodifier */
   int16_t keymodifier;
-  /** #wmKeyMapItem.direction. */
+  /** #wmKeyMapItem.direction */
   int8_t direction;
 };
 
@@ -73,7 +70,10 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap,
 wmKeyMapItem *WM_keymap_add_item_copy(wmKeyMap *keymap, wmKeyMapItem *kmi_src);
 
 void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi);
-std::optional<std::string> WM_keymap_item_to_string(const wmKeyMapItem *kmi, bool compact);
+int WM_keymap_item_to_string(const wmKeyMapItem *kmi,
+                             bool compact,
+                             char *result,
+                             int result_maxncpy);
 
 wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid);
 wmKeyMap *WM_keymap_list_find_spaceid_or_empty(ListBase *lb,
@@ -93,9 +93,9 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap);
 wmKeyMapItem *WM_keymap_item_find_id(wmKeyMap *keymap, int id);
 bool WM_keymap_item_compare(const wmKeyMapItem *k1, const wmKeyMapItem *k2);
 
-/* `wm_keymap_utils.cc`. */
+/* keymap_utils.c */
 
-/* Wrappers for #WM_keymap_add_item. */
+/* Wrappers for #WM_keymap_add_item */
 
 /**
  * Menu wrapper for #WM_keymap_add_item.
@@ -135,14 +135,18 @@ bool WM_keymap_uses_event_modifier(const wmKeyMap *keymap, int event_modifier);
 
 void WM_keymap_fix_linking();
 
-/* Modal Keymap. */
+/* Modal Keymap */
 
-std::optional<std::string> WM_modalkeymap_items_to_string(const wmKeyMap *km,
-                                                          int propvalue,
-                                                          bool compact);
-std::optional<std::string> WM_modalkeymap_operator_items_to_string(wmOperatorType *ot,
-                                                                   int propvalue,
-                                                                   bool compact);
+int WM_modalkeymap_items_to_string(
+    const wmKeyMap *km, int propvalue, bool compact, char *result, int result_maxncpy);
+int WM_modalkeymap_operator_items_to_string(
+    wmOperatorType *ot, int propvalue, bool compact, char *result, int result_maxncpy);
+char *WM_modalkeymap_operator_items_to_string_buf(wmOperatorType *ot,
+                                                  int propvalue,
+                                                  bool compact,
+                                                  int result_maxncpy,
+                                                  int *r_available_len,
+                                                  char **r_result);
 
 wmKeyMap *WM_modalkeymap_ensure(wmKeyConfig *keyconf,
                                 const char *idname,
@@ -155,7 +159,7 @@ wmKeyMapItem *WM_modalkeymap_add_item_str(wmKeyMap *km,
 const wmKeyMapItem *WM_modalkeymap_find_propvalue(const wmKeyMap *km, int propvalue);
 void WM_modalkeymap_assign(wmKeyMap *km, const char *opname);
 
-/* Keymap Editor. */
+/* Keymap Editor */
 
 void WM_keymap_restore_to_default(wmKeyMap *keymap, wmWindowManager *wm);
 /**
@@ -165,17 +169,19 @@ void WM_keymap_item_properties_reset(wmKeyMapItem *kmi, IDProperty *properties);
 void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wmKeyMapItem *kmi);
 int WM_keymap_item_map_type_get(const wmKeyMapItem *kmi);
 
-/* Key Event. */
+/* Key Event */
 
 const char *WM_key_event_string(short type, bool compact);
-std::optional<std::string> WM_keymap_item_raw_to_string(short shift,
-                                                        short ctrl,
-                                                        short alt,
-                                                        short oskey,
-                                                        short keymodifier,
-                                                        short val,
-                                                        short type,
-                                                        bool compact);
+int WM_keymap_item_raw_to_string(short shift,
+                                 short ctrl,
+                                 short alt,
+                                 short oskey,
+                                 short keymodifier,
+                                 short val,
+                                 short type,
+                                 bool compact,
+                                 char *result,
+                                 int result_maxncpy);
 /**
  * \param include_mask, exclude_mask:
  * Event types to include/exclude when looking up keys (#eEventType_Mask).
@@ -187,11 +193,13 @@ wmKeyMapItem *WM_key_event_operator(const bContext *C,
                                     short include_mask,
                                     short exclude_mask,
                                     wmKeyMap **r_keymap);
-std::optional<std::string> WM_key_event_operator_string(const bContext *C,
-                                                        const char *opname,
-                                                        wmOperatorCallContext opcontext,
-                                                        IDProperty *properties,
-                                                        bool is_strict);
+char *WM_key_event_operator_string(const bContext *C,
+                                   const char *opname,
+                                   wmOperatorCallContext opcontext,
+                                   IDProperty *properties,
+                                   bool is_strict,
+                                   char *result,
+                                   int result_maxncpy);
 
 wmKeyMapItem *WM_key_event_operator_from_keymap(wmKeyMap *keymap,
                                                 const char *opname,

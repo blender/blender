@@ -17,7 +17,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include <fmt/format.h>
 
@@ -396,14 +396,9 @@ GVArray AttributeFieldInput::get_varray_for_context(const GeometryFieldContext &
       }
     }
   }
-  else if (context.domain() == bke::AttrDomain::Instance && name_ == "position") {
-    /* Special case for "position" which is no longer an attribute on instances. */
-    return bke::instance_position_varray(*context.instances());
-  }
   else if (auto attributes = context.attributes()) {
     return *attributes->lookup(name_, domain, data_type);
   }
-
   return {};
 }
 

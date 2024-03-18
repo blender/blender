@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "BLI_string.h"
 
@@ -303,7 +303,7 @@ static void replace_outvars(std::string &str)
             /* Generate out-variable pattern for arrays, of form
              * `OUT(vec2,samples,CRYPTOMATTE_LEVELS_MAX)`
              * replacing original `out vec2 samples[SAMPLE_LEN]`
-             * using 'OUT' macro declared in `mtl_shader_defines.msl`. */
+             * using 'OUT' macro declared in mtl_shader_defines.msl*/
             char *array_end = strchr(word_base2 + len2, ']');
             if (array_end != nullptr) {
               *start = 'O';
@@ -1355,7 +1355,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
       ss_fragment << "float2 gl_PointCoord;" << std::endl;
     }
     if (msl_iface.uses_gl_FrontFacing) {
-      ss_fragment << "bool gl_FrontFacing;" << std::endl;
+      ss_fragment << "MTLBOOL gl_FrontFacing;" << std::endl;
     }
     if (msl_iface.uses_gl_PrimitiveID) {
       ss_fragment << "uint gl_PrimitiveID;" << std::endl;
@@ -1535,7 +1535,6 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
 
   /** Generate Compute shader stage. **/
   std::stringstream ss_compute;
-  ss_compute << "#line 1 \"msl_wrapper_code\"\n";
 
   ss_compute << "#define GPU_ARB_shader_draw_parameters 1\n";
   if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC) &&
@@ -2616,7 +2615,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_inputs_string()
   }
   if (this->uses_gl_FrontFacing) {
     out << parameter_delimiter(is_first_parameter)
-        << "\n\tconst bool gl_FrontFacing [[front_facing]]";
+        << "\n\tconst MTLBOOL gl_FrontFacing [[front_facing]]";
   }
   if (this->uses_gl_PrimitiveID) {
     out << parameter_delimiter(is_first_parameter)
@@ -3166,11 +3165,10 @@ std::string MSLGeneratorInterface::generate_msl_vertex_attribute_input_populatio
           &do_attribute_conversion_on_read, this->vertex_input_attributes[attribute].type);
 
       if (do_attribute_conversion_on_read) {
-        BLI_assert(this->vertex_input_attributes[attribute].layout_location >= 0);
-        out << "\t" << attribute_conversion_func_name << "(MTL_AttributeConvert"
-            << this->vertex_input_attributes[attribute].layout_location << ", v_in."
-            << this->vertex_input_attributes[attribute].name << ", " << shader_stage_inst_name
-            << "." << this->vertex_input_attributes[attribute].name << ");" << std::endl;
+        out << "\t" << attribute_conversion_func_name << "(MTL_AttributeConvert" << attribute
+            << ", v_in." << this->vertex_input_attributes[attribute].name << ", "
+            << shader_stage_inst_name << "." << this->vertex_input_attributes[attribute].name
+            << ");" << std::endl;
       }
       else {
         out << "\t" << shader_stage_inst_name << "."

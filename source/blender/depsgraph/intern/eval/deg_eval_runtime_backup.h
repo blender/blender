@@ -34,13 +34,13 @@ class RuntimeBackup {
 
   /* Denotes whether init_from_id did put anything into the backup storage.
    * This will not be the case when init_from_id() is called for an ID which has never been
-   * copied-on-eval. In this case there is no need to backup or restore anything.
+   * copied-on-write. In this case there is no need to backup or restore anything.
    *
    * It also allows to have restore() logic to be symmetrical to init() without need to worry
    * that init() might not have happened.
    *
    * In practice this is used by audio system to lock audio while scene is going through
-   * copy-on-evaluation mechanism. */
+   * copy-on-write mechanism. */
   bool have_backup;
 
   /* Struct members of the ID pointer. */

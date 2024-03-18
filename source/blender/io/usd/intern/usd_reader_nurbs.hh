@@ -10,7 +10,7 @@
 #include "usd.hh"
 #include "usd_reader_geom.hh"
 
-#include <pxr/usd/usdGeom/nurbsCurves.h>
+#include "pxr/usd/usdGeom/nurbsCurves.h"
 
 struct Curve;
 
@@ -39,12 +39,9 @@ class USDNurbsReader : public USDGeomReader {
 
   void read_curve_sample(Curve *cu, double motionSampleTime);
 
-  void read_geometry(bke::GeometrySet &geometry_set,
-                     USDMeshReadParams params,
-                     const char **err_str) override;
-
- private:
-  Mesh *read_mesh(struct Mesh *existing_mesh, USDMeshReadParams params, const char **err_str);
+  Mesh *read_mesh(struct Mesh *existing_mesh,
+                  USDMeshReadParams params,
+                  const char **err_str) override;
 };
 
 }  // namespace blender::io::usd

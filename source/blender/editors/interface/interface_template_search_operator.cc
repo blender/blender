@@ -10,9 +10,9 @@
  */
 
 #include <cstring>
-#include <fmt/format.h>
 
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
 #include "BLI_array.hh"
@@ -21,9 +21,10 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
-#include "BKE_global.hh"
+#include "BKE_context.hh"
+#include "BKE_global.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -70,15 +71,27 @@ static void operator_search_update_fn(const bContext *C,
 
     if (BLI_string_all_words_matched(ot_ui_name, str, (int(*)[2])words.data(), words_len)) {
       if (WM_operator_poll((bContext *)C, ot)) {
-        std::string name = ot_ui_name;
-        if (const std::optional<std::string> kmi_str = WM_key_event_operator_string(
-                C, ot->idname, WM_OP_EXEC_DEFAULT, nullptr, true))
-        {
-          name += UI_SEP_CHAR;
-          name += *kmi_str;
+        char name[256];
+        const int len = strlen(ot_ui_name);
+
+        /* display name for menu, can hold hotkey */
+        STRNCPY(name, ot_ui_name);
+
+        /* check for hotkey */
+        if (len < sizeof(name) - 6) {
+          if (WM_key_event_operator_string(C,
+                                           ot->idname,
+                                           WM_OP_EXEC_DEFAULT,
+                                           nullptr,
+                                           true,
+                                           &name[len + 1],
+                                           sizeof(name) - len - 1))
+          {
+            name[len] = UI_SEP_CHAR;
+          }
         }
 
-        if (!UI_search_item_add(items, name.c_str(), ot, ICON_NONE, 0, 0)) {
+        if (!UI_search_item_add(items, name, ot, ICON_NONE, 0, 0)) {
           break;
         }
       }
@@ -114,7 +127,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
   UI_block_layout_set_current(block, layout);
 
   but = uiDefSearchBut(
-      block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, "");
+      block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, 0, 0, "");
   UI_but_func_operator_search(but);
 }
 

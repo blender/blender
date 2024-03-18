@@ -28,7 +28,7 @@ class ConstantOperation : public NodeOperation {
 
   void update_memory_buffer(MemoryBuffer *output,
                             const rcti &area,
-                            Span<MemoryBuffer *> inputs) override;
+                            Span<MemoryBuffer *> inputs) final;
 };
 
 }  // namespace blender::compositor

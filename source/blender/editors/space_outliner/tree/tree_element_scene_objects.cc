@@ -6,11 +6,11 @@
  * \ingroup spoutliner
  */
 
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_outliner_types.h"
 

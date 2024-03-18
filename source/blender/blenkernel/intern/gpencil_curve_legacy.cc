@@ -12,12 +12,15 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -25,12 +28,15 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
+#include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_object.hh"
 
 extern "C" {
 #include "curve_fit_nd.h"
@@ -534,7 +540,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
   ob_gp->actcol = actcol;
 
   /* Tag for recalculation */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
   DEG_id_tag_update(&ob_gp->id, ID_RECALC_GEOMETRY);
 }
 

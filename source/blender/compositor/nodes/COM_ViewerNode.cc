@@ -29,6 +29,7 @@ void ViewerNode::convert_to_operations(NodeConverter &converter,
   viewer_operation->set_bnodetree(context.get_bnodetree());
   viewer_operation->set_image(image);
   viewer_operation->set_image_user(image_user);
+  viewer_operation->set_chunk_order((ChunkOrdering)editor_node->custom1);
   viewer_operation->setCenterX(editor_node->custom3);
   viewer_operation->setCenterY(editor_node->custom4);
   /* alpha socket gives either 1 or a custom alpha value if "use alpha" is enabled */

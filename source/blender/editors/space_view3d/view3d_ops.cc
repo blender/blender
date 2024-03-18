@@ -20,7 +20,8 @@
 #include "BKE_appdir.hh"
 #include "BKE_blender_copybuffer.hh"
 #include "BKE_context.hh"
-#include "BKE_report.hh"
+#include "BKE_main.hh"
+#include "BKE_report.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -174,8 +175,8 @@ void view3d_operatortypes()
   WM_operatortype_append(VIEW3D_OT_view_roll);
   WM_operatortype_append(VIEW3D_OT_view_pan);
   WM_operatortype_append(VIEW3D_OT_view_persportho);
-  WM_operatortype_append(VIEW3D_OT_camera_background_image_add);
-  WM_operatortype_append(VIEW3D_OT_camera_background_image_remove);
+  WM_operatortype_append(VIEW3D_OT_background_image_add);
+  WM_operatortype_append(VIEW3D_OT_background_image_remove);
   WM_operatortype_append(VIEW3D_OT_drop_world);
   WM_operatortype_append(VIEW3D_OT_view_selected);
   WM_operatortype_append(VIEW3D_OT_view_lock_clear);

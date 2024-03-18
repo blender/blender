@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "IO_abstract_hierarchy_iterator.h"
 
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
+
+extern "C" {
+#include <climits> /* For INT_MAX. */
+}
+#include <cstring>
+#include <sstream>
 
 namespace blender::io {
 

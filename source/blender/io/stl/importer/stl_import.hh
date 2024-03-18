@@ -10,11 +10,6 @@
 
 #include "IO_stl.hh"
 
-struct bContext;
-struct Main;
-struct Scene;
-struct ViewLayer;
-
 namespace blender::io::stl {
 
 void stl_import_report_error(FILE *file);

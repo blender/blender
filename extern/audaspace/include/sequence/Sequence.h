@@ -160,11 +160,10 @@ public:
 	void remove(std::shared_ptr<SequenceEntry> entry);
 
 	/**
-	 * Creates a new reader with indicated resampling quality.
-	 * \param quality The resampling quality.
+	 * Creates a new reader with high quality resampling.
 	 * \return The new reader.
 	 */
-	std::shared_ptr<IReader> createQualityReader(ResampleQuality quality);
+	std::shared_ptr<IReader> createQualityReader();
 
 	virtual std::shared_ptr<IReader> createReader();
 };

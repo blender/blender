@@ -240,7 +240,6 @@ typedef enum GreasePencilLayerTreeNodeFlag {
   GP_LAYER_TREE_NODE_USE_LIGHTS = (1 << 4),
   GP_LAYER_TREE_NODE_USE_ONION_SKINNING = (1 << 5),
   GP_LAYER_TREE_NODE_EXPANDED = (1 << 6),
-  GP_LAYER_TREE_NODE_HIDE_MASKS = (1 << 7),
 } GreasePencilLayerTreeNodeFlag;
 
 struct GreasePencilLayerTreeGroup;
@@ -293,21 +292,6 @@ typedef struct GreasePencilLayer {
    * List of `GreasePencilLayerMask`.
    */
   ListBase masks;
-  int active_mask_index;
-  char _pad2[4];
-  /**
-   * Layer parent object. Can be an armature in which case the `parsubstr` is the bone name.
-   */
-  struct Object *parent;
-  char *parsubstr;
-  /**
-   * Layer transform UI settings. These should *not* be used to do any computation.
-   * Use the functions is the `bke::greasepencil::Layer` class instead.
-   */
-  float translation[3], rotation[3], scale[3];
-  char _pad3[4];
-  /** Name of the view layer used to filter render output. */
-  char *viewlayername;
   /**
    * Runtime struct pointer.
    */
@@ -339,8 +323,6 @@ typedef struct GreasePencilLayerTreeGroup {
  */
 typedef enum GreasePencilFlag {
   GREASE_PENCIL_ANIM_CHANNEL_EXPANDED = (1 << 0),
-  GREASE_PENCIL_AUTOLOCK_LAYERS = (1 << 1),
-  GREASE_PENCIL_STROKE_ORDER_3D = (1 << 2),
 } GreasePencilFlag;
 
 /**
@@ -495,7 +477,6 @@ typedef struct GreasePencil {
   blender::bke::greasepencil::Layer *get_active_layer();
   void set_active_layer(const blender::bke::greasepencil::Layer *layer);
   bool is_layer_active(const blender::bke::greasepencil::Layer *layer) const;
-  void autolock_inactive_layers();
 
   /* Adding layers and layer groups. */
   /** Adds a new layer with the given name to the top of root group. */
@@ -537,13 +518,6 @@ typedef struct GreasePencil {
   void remove_layer(blender::bke::greasepencil::Layer &layer);
 
   /* Drawing API functions. */
-
-  /**
-   * Low-level resizing of drawings array. Only allocates new entries in the array, no drawings are
-   * created in case of size increase. In case of size decrease, the removed drawings are deleted.
-   */
-  void resize_drawings(const int new_num);
-  /** Add `add_num` new empty geometry drawings. */
   void add_empty_drawings(int add_num);
   void add_duplicate_drawings(int duplicate_num,
                               const blender::bke::greasepencil::Drawing &drawing);

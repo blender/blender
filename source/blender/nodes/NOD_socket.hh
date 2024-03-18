@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_node.hh"
+#include "BKE_node.h"
 
 struct bNode;
 struct bNodeTree;

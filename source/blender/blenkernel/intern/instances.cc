@@ -6,6 +6,7 @@
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
@@ -50,7 +51,7 @@ Instances::Instances()
 
 Instances::Instances(Instances &&other)
     : references_(std::move(other.references_)),
-      instances_num_(other.instances_num_),
+      transforms_(std::move(other.transforms_)),
       attributes_(other.attributes_),
       almost_unique_ids_cache_(std::move(other.almost_unique_ids_cache_))
 {
@@ -59,15 +60,15 @@ Instances::Instances(Instances &&other)
 
 Instances::Instances(const Instances &other)
     : references_(other.references_),
-      instances_num_(other.instances_num_),
+      transforms_(other.transforms_),
       almost_unique_ids_cache_(other.almost_unique_ids_cache_)
 {
-  CustomData_copy(&other.attributes_, &attributes_, CD_MASK_ALL, other.instances_num_);
+  CustomData_copy(&other.attributes_, &attributes_, CD_MASK_ALL, other.instances_num());
 }
 
 Instances::~Instances()
 {
-  CustomData_free(&attributes_, instances_num_);
+  CustomData_free(&attributes_, this->instances_num());
 }
 
 Instances &Instances::operator=(const Instances &other)
@@ -92,55 +93,46 @@ Instances &Instances::operator=(Instances &&other)
 
 void Instances::resize(int capacity)
 {
-  CustomData_realloc(&attributes_, instances_num_, capacity, CD_SET_DEFAULT);
-  instances_num_ = capacity;
+  const int old_size = this->instances_num();
+  transforms_.resize(capacity);
+  CustomData_realloc(&attributes_, old_size, capacity, CD_SET_DEFAULT);
 }
 
 void Instances::add_instance(const int instance_handle, const float4x4 &transform)
 {
   BLI_assert(instance_handle >= 0);
   BLI_assert(instance_handle < references_.size());
-  const int old_size = instances_num_;
-  instances_num_++;
-  CustomData_realloc(&attributes_, old_size, instances_num_);
+  const int old_size = this->instances_num();
+  transforms_.append(transform);
+  CustomData_realloc(&attributes_, old_size, transforms_.size());
   this->reference_handles_for_write().last() = instance_handle;
-  this->transforms_for_write().last() = transform;
 }
 
 Span<int> Instances::reference_handles() const
 {
   return {static_cast<const int *>(
               CustomData_get_layer_named(&attributes_, CD_PROP_INT32, ".reference_index")),
-          instances_num_};
+          this->instances_num()};
 }
 
 MutableSpan<int> Instances::reference_handles_for_write()
 {
   int *data = static_cast<int *>(CustomData_get_layer_named_for_write(
-      &attributes_, CD_PROP_INT32, ".reference_index", instances_num_));
+      &attributes_, CD_PROP_INT32, ".reference_index", this->instances_num()));
   if (!data) {
     data = static_cast<int *>(CustomData_add_layer_named(
-        &attributes_, CD_PROP_INT32, CD_SET_DEFAULT, instances_num_, ".reference_index"));
+        &attributes_, CD_PROP_INT32, CD_SET_DEFAULT, this->instances_num(), ".reference_index"));
   }
-  return {data, instances_num_};
+  return {data, this->instances_num()};
 }
 
+MutableSpan<float4x4> Instances::transforms()
+{
+  return transforms_;
+}
 Span<float4x4> Instances::transforms() const
 {
-  return {static_cast<const float4x4 *>(
-              CustomData_get_layer_named(&attributes_, CD_PROP_FLOAT4X4, "instance_transform")),
-          instances_num_};
-}
-
-MutableSpan<float4x4> Instances::transforms_for_write()
-{
-  float4x4 *data = static_cast<float4x4 *>(CustomData_get_layer_named_for_write(
-      &attributes_, CD_PROP_FLOAT4X4, "instance_transform", instances_num_));
-  if (!data) {
-    data = static_cast<float4x4 *>(CustomData_add_layer_named(
-        &attributes_, CD_PROP_FLOAT4X4, CD_SET_DEFAULT, instances_num_, "instance_transform"));
-  }
-  return {data, instances_num_};
+  return transforms_;
 }
 
 GeometrySet &Instances::geometry_set_from_reference(const int reference_index)
@@ -187,14 +179,17 @@ void Instances::remove(const IndexMask &mask,
     return;
   }
 
+  const int new_size = mask.size();
+
   Instances new_instances;
   new_instances.references_ = std::move(references_);
-  new_instances.instances_num_ = mask.size();
+  new_instances.transforms_.resize(new_size);
+  array_utils::gather(transforms_.as_span(), mask, new_instances.transforms_.as_mutable_span());
 
   gather_attributes(this->attributes(),
                     AttrDomain::Instance,
                     propagation_info,
-                    {},
+                    {"position"},
                     mask,
                     new_instances.attributes_for_write());
 
@@ -205,7 +200,7 @@ void Instances::remove(const IndexMask &mask,
 
 void Instances::remove_unused_references()
 {
-  const int tot_instances = instances_num_;
+  const int tot_instances = this->instances_num();
   const int tot_references_before = references_.size();
 
   if (tot_instances == 0) {
@@ -287,7 +282,7 @@ void Instances::remove_unused_references()
 
 int Instances::instances_num() const
 {
-  return this->instances_num_;
+  return transforms_.size();
 }
 
 int Instances::references_num() const
@@ -378,33 +373,11 @@ Span<int> Instances::almost_unique_ids() const
       }
     }
     else {
-      r_data.reinitialize(instances_num_);
+      r_data.reinitialize(this->instances_num());
       array_utils::fill_index_range(r_data.as_mutable_span());
     }
   });
   return almost_unique_ids_cache_.data();
-}
-
-static float3 get_transform_position(const float4x4 &transform)
-{
-  return transform.location();
-}
-
-static void set_transform_position(float4x4 &transform, const float3 position)
-{
-  transform.location() = position;
-}
-
-VArray<float3> instance_position_varray(const Instances &instances)
-{
-  return VArray<float3>::ForDerivedSpan<float4x4, get_transform_position>(instances.transforms());
-}
-
-VMutableArray<float3> instance_position_varray_for_write(Instances &instances)
-{
-  MutableSpan<float4x4> transforms = instances.transforms_for_write();
-  return VMutableArray<float3>::
-      ForDerivedSpan<float4x4, get_transform_position, set_transform_position>(transforms);
 }
 
 }  // namespace blender::bke

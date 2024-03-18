@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "COM_GaussianBlurBaseOperation.h"
+#include "COM_GaussianXBlurOperation.h"
+#include "COM_GaussianYBlurOperation.h"
 #include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
@@ -29,7 +30,11 @@ class ConvertDepthToRadiusOperation : public MultiThreadedOperation {
  public:
   ConvertDepthToRadiusOperation();
 
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
+
   void init_execution() override;
+
+  void deinit_execution() override;
 
   void set_data(const NodeDefocus *data)
   {

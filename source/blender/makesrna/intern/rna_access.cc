@@ -31,19 +31,19 @@
 #include "BLI_utildefines.h"
 
 #include "BLF_api.hh"
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
-#include "BKE_anim_data.hh"
-#include "BKE_collection.hh"
+#include "BKE_anim_data.h"
+#include "BKE_collection.h"
 #include "BKE_context.hh"
-#include "BKE_fcurve.hh"
-#include "BKE_global.hh"
+#include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "CLG_log.h"
 
@@ -2115,12 +2115,7 @@ static bool rna_property_editable_do(const PointerRNA *ptr,
   }
 
   /* Early return if the property itself is not editable. */
-  if ((flag & PROP_EDITABLE) == 0) {
-    return false;
-  }
-  /* Only considered registerable properties "internal"
-   * because regular properties may not be editable and still be displayed. */
-  if (flag & PROP_REGISTER) {
+  if ((flag & PROP_EDITABLE) == 0 || (flag & PROP_REGISTER) != 0) {
     if (r_info != nullptr && (*r_info)[0] == '\0') {
       *r_info = N_("This property is for internal use only and can't be edited");
     }
@@ -2314,8 +2309,7 @@ static void rna_property_update(
 
 #if 1
     /* TODO(@ideasman42): Should eventually be replaced entirely by message bus (below)
-     * for now keep since copy-on-eval, bugs are hard to track when we have other missing updates.
-     */
+     * for now keep since COW, bugs are hard to track when we have other missing updates. */
     if (prop->noteflag) {
       WM_main_add_notifier(prop->noteflag, ptr->owner_id);
     }
@@ -2330,12 +2324,12 @@ static void rna_property_update(
     }
     if (ptr->owner_id != nullptr && ((prop->flag & PROP_NO_DEG_UPDATE) == 0)) {
       const short id_type = GS(ptr->owner_id->name);
-      if (ID_TYPE_USE_COPY_ON_EVAL(id_type)) {
+      if (ID_TYPE_IS_COW(id_type)) {
         if (prop->flag & PROP_DEG_SYNC_ONLY) {
-          DEG_id_tag_update(ptr->owner_id, ID_RECALC_SYNC_TO_EVAL);
+          DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE);
         }
         else {
-          DEG_id_tag_update(ptr->owner_id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_PARAMETERS);
+          DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_PARAMETERS);
         }
       }
     }
@@ -3749,16 +3743,16 @@ eStringPropertySearchFlag RNA_property_string_search_flag(PropertyRNA *prop)
   return sprop->search_flag;
 }
 
-void RNA_property_string_search(
-    const bContext *C,
-    PointerRNA *ptr,
-    PropertyRNA *prop,
-    const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+void RNA_property_string_search(const bContext *C,
+                                PointerRNA *ptr,
+                                PropertyRNA *prop,
+                                const char *edit_text,
+                                StringPropertySearchVisitFunc visit_fn,
+                                void *visit_user_data)
 {
   BLI_assert(RNA_property_string_search_flag(prop) & PROP_STRING_SEARCH_SUPPORTED);
   StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
-  sprop->search(C, ptr, prop, edit_text, visit_fn);
+  sprop->search(C, ptr, prop, edit_text, visit_fn, visit_user_data);
 }
 
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)

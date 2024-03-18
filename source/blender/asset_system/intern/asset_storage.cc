@@ -43,16 +43,16 @@ bool AssetStorage::remove_asset(AssetRepresentation &asset)
   return external_assets_.remove_as(&asset);
 }
 
-void AssetStorage::remap_ids_and_remove_invalid(const bke::id::IDRemapper &mappings)
+void AssetStorage::remap_ids_and_remove_invalid(const IDRemapper &mappings)
 {
-  Set<AssetRepresentation *> removed_assets;
+  Set<AssetRepresentation *> removed_assets{};
 
   for (auto &asset_ptr : local_id_assets_) {
     AssetRepresentation &asset = *asset_ptr;
     BLI_assert(asset.is_local_id());
 
-    const IDRemapperApplyResult result = mappings.apply(&asset.local_asset_id_,
-                                                        ID_REMAP_APPLY_DEFAULT);
+    const IDRemapperApplyResult result = BKE_id_remapper_apply(
+        &mappings, &asset.local_asset_id_, ID_REMAP_APPLY_DEFAULT);
 
     /* Entirely remove assets whose ID is unset. We don't want assets with a null ID pointer. */
     if (result == ID_REMAP_RESULT_SOURCE_UNASSIGNED) {
@@ -61,7 +61,7 @@ void AssetStorage::remap_ids_and_remove_invalid(const bke::id::IDRemapper &mappi
   }
 
   for (AssetRepresentation *asset : removed_assets) {
-    this->remove_asset(*asset);
+    remove_asset(*asset);
   }
 }
 

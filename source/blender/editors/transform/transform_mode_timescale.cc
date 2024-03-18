@@ -8,9 +8,12 @@
 
 #include <cstdlib>
 
+#include "DNA_anim_types.h"
+
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
+#include "BKE_context.hh"
 #include "BKE_nla.h"
 #include "BKE_unit.hh"
 
@@ -18,7 +21,7 @@
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -61,22 +64,23 @@ static void applyTimeScaleValue(TransInfo *t, float value)
     TransData *td = tc->data;
     TransData2D *td2d = tc->data_2d;
     for (int i = 0; i < tc->data_len; i++, td++, td2d++) {
-      /* It is assumed that td->extra is a pointer to the AnimData,
+      /* it is assumed that td->extra is a pointer to the AnimData,
        * whose active action is where this keyframe comes from
-       * (this is only valid when not in NLA). */
+       * (this is only valid when not in NLA)
+       */
       AnimData *adt = static_cast<AnimData *>((t->spacetype != SPACE_NLA) ? td->extra : nullptr);
       float startx = scene->r.cfra;
       float fac = value;
 
-      /* Take proportional editing into account. */
+      /* take proportional editing into account */
       fac = ((fac - 1.0f) * td->factor) + 1;
 
-      /* Check if any need to apply nla-mapping. */
+      /* check if any need to apply nla-mapping */
       if (adt) {
         startx = BKE_nla_tweakedit_remap(adt, startx, NLATIME_CONVERT_UNMAP);
       }
 
-      /* Now, calculate the new value. */
+      /* now, calculate the new value */
       td->loc[0] = ((td->iloc[0] - startx) * fac) + startx;
     }
   }
@@ -86,7 +90,7 @@ static void applyTimeScale(TransInfo *t)
 {
   char str[UI_MAX_DRAW_STR];
 
-  /* Handle numeric-input stuff. */
+  /* handle numeric-input stuff */
   t->vec[0] = t->values[0];
   applyNumInput(&t->num, &t->vec[0]);
 
@@ -115,23 +119,24 @@ static void initTimeScale(TransInfo *t, wmOperator * /*op*/)
 {
   float center[2];
 
-  /* This tool is only really available in the Action Editor
-   * AND NLA Editor (for strip scaling). */
+  /* this tool is only really available in the Action Editor
+   * AND NLA Editor (for strip scaling)
+   */
   if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA) == 0) {
     t->state = TRANS_CANCEL;
   }
 
   t->mode = TFM_TIME_SCALE;
 
-  /* Recalculate center2d to use scene->r.cfra and mouse Y, since that's
-   * what is used in time scale. */
+  /* recalculate center2d to use scene->r.cfra and mouse Y, since that's
+   * what is used in time scale */
   if ((t->flag & T_OVERRIDE_CENTER) == 0) {
     t->center_global[0] = t->scene->r.cfra;
     projectFloatView(t, t->center_global, center);
     center[1] = t->mouse.imval[1];
   }
 
-  /* Force a reinitialize with the center2d used here. */
+  /* force a reinit with the center2d used here */
   initMouseInput(t, &t->mouse, center, t->mouse.imval, false);
 
   initMouseInputMode(t, &t->mouse, INPUT_SPRING_FLIP);

@@ -33,8 +33,6 @@ void main()
                                                    surfel.albedo_front;
   }
 
-  V = -surfel.normal;
-  Ng = -surfel.normal;
   stack.cl[0].N = -surfel.normal;
   light_eval(stack, P, Ng, V);
 

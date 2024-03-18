@@ -18,7 +18,7 @@
 
 #include "../geometry/BBox.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"

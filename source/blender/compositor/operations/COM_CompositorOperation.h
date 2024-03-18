@@ -32,6 +32,16 @@ class CompositorOperation : public MultiThreadedOperation {
   float *output_buffer_;
 
   /**
+   * \brief local reference to the input image operation
+   */
+  SocketReader *image_input_;
+
+  /**
+   * \brief local reference to the input alpha operation
+   */
+  SocketReader *alpha_input_;
+
+  /**
    * \brief Ignore any alpha input
    */
   bool use_alpha_input_;
@@ -52,6 +62,7 @@ class CompositorOperation : public MultiThreadedOperation {
   {
     return active_;
   }
+  void execute_region(rcti *rect, unsigned int tile_number) override;
   void set_scene(const struct Scene *scene)
   {
     scene_ = scene;

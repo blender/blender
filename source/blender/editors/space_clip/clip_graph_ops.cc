@@ -13,14 +13,10 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
-
 #include "BKE_context.hh"
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph.hh"
-
-#include "UI_interface_icons.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -530,20 +526,6 @@ static int delete_curve_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int delete_curve_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Delete track corresponding to the selected curve?"),
-                                  nullptr,
-                                  IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return delete_curve_exec(C, op);
-}
-
 void CLIP_OT_graph_delete_curve(wmOperatorType *ot)
 {
   /* identifiers */
@@ -552,7 +534,7 @@ void CLIP_OT_graph_delete_curve(wmOperatorType *ot)
   ot->idname = "CLIP_OT_graph_delete_curve";
 
   /* api callbacks */
-  ot->invoke = delete_curve_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = delete_curve_exec;
   ot->poll = clip_graph_knots_poll;
 

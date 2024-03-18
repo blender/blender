@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# ./blender.bin --background --python tests/python/bl_pyapi_text.py -- --verbose
+# ./blender.bin --background -noaudio --python tests/python/bl_pyapi_text.py -- --verbose
 import bpy
 import unittest
 

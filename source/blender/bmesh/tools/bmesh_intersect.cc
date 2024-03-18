@@ -41,7 +41,7 @@
 
 #include "tools/bmesh_edgesplit.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /*
  * Some of these depend on each other:

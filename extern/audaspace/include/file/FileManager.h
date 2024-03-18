@@ -72,7 +72,7 @@ public:
 	 * @return The reader created.
 	 * @exception Exception If no file input can read the file an exception is thrown.
 	 */
-	static std::shared_ptr<IReader> createReader(const std::string &filename, int stream = 0);
+	static std::shared_ptr<IReader> createReader(std::string filename, int stream = 0);
 
 	/**
 	 * Creates a file reader for the given buffer if a registed IFileInput is able to read it.
@@ -89,7 +89,7 @@ public:
 	 * \return A vector with as many streams as there are in the file.
 	 * \exception Exception Thrown if the file specified cannot be read.
 	 */
-	static std::vector<StreamInfo> queryStreams(const std::string &filename);
+	static std::vector<StreamInfo> queryStreams(std::string filename);
 
 	/**
 	 * Queries the streams of a sound file.
@@ -110,7 +110,7 @@ public:
 	 * @return A writer that creates the file.
 	 * @exception Exception If no file output can write the file with the given specification an exception is thrown.
 	 */
-	static std::shared_ptr<IWriter> createWriter(const std::string &filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate);
+	static std::shared_ptr<IWriter> createWriter(std::string filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate);
 };
 
 AUD_NAMESPACE_END

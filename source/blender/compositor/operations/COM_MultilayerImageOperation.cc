@@ -76,4 +76,82 @@ std::unique_ptr<MetaData> MultilayerColorOperation::get_meta_data()
   return std::move(callback_data.meta_data);
 }
 
+void MultilayerColorOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
+{
+  if (image_float_buffer_ == nullptr) {
+    zero_v4(output);
+  }
+  else {
+    if (number_of_channels_ == 4) {
+      switch (sampler) {
+        case PixelSampler::Nearest:
+          imbuf::interpolate_nearest_fl(buffer_, output, x, y);
+          break;
+        case PixelSampler::Bilinear:
+          imbuf::interpolate_bilinear_border_fl(buffer_, output, x, y);
+          break;
+        case PixelSampler::Bicubic:
+          imbuf::interpolate_cubic_bspline_fl(buffer_, output, x, y);
+          break;
+      }
+    }
+    else {
+      int yi = y;
+      int xi = x;
+      if (xi < 0 || yi < 0 || uint(xi) >= this->get_width() || uint(yi) >= this->get_height()) {
+        zero_v4(output);
+      }
+      else {
+        int offset = (yi * this->get_width() + xi) * 3;
+        copy_v3_v3(output, &image_float_buffer_[offset]);
+      }
+    }
+  }
+}
+
+void MultilayerValueOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler /*sampler*/)
+{
+  if (image_float_buffer_ == nullptr) {
+    output[0] = 0.0f;
+  }
+  else {
+    int yi = y;
+    int xi = x;
+    if (xi < 0 || yi < 0 || uint(xi) >= this->get_width() || uint(yi) >= this->get_height()) {
+      output[0] = 0.0f;
+    }
+    else {
+      float result = image_float_buffer_[yi * this->get_width() + xi];
+      output[0] = result;
+    }
+  }
+}
+
+void MultilayerVectorOperation::execute_pixel_sampled(float output[4],
+                                                      float x,
+                                                      float y,
+                                                      PixelSampler /*sampler*/)
+{
+  if (image_float_buffer_ == nullptr) {
+    output[0] = 0.0f;
+  }
+  else {
+    int yi = y;
+    int xi = x;
+    if (xi < 0 || yi < 0 || uint(xi) >= this->get_width() || uint(yi) >= this->get_height()) {
+      output[0] = 0.0f;
+    }
+    else {
+      int offset = (yi * this->get_width() + xi) * 3;
+      copy_v3_v3(output, &image_float_buffer_[offset]);
+    }
+  }
+}
+
 }  // namespace blender::compositor

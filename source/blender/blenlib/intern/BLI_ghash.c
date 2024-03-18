@@ -24,7 +24,8 @@
 #define GHASH_INTERNAL_API
 #include "BLI_ghash.h" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+/* keep last */
+#include "BLI_strict_flags.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Structs & Constants

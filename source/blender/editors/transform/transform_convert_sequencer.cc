@@ -15,17 +15,23 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_report.hh"
+#include "BKE_context.hh"
+#include "BKE_main.hh"
+#include "BKE_report.h"
 
 #include "ED_markers.hh"
+#include "ED_time_scrub_ui.hh"
 
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
+#include "SEQ_edit.hh"
+#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
+#include "SEQ_utils.hh"
 
 #include "UI_view2d.hh"
 
@@ -47,7 +53,7 @@ struct TransDataSeq {
   /** Use this so we can have transform data at the strips start,
    * but apply correctly to the start frame. */
   int start_offset;
-  /** One of #SELECT, #SEQ_LEFTSEL and #SEQ_RIGHTSEL. */
+  /** one of #SELECT, #SEQ_LEFTSEL and #SEQ_RIGHTSEL. */
   short sel_flag;
 };
 
@@ -59,7 +65,7 @@ struct TransSeq {
   int selection_channel_range_min;
   int selection_channel_range_max;
 
-  /* Initial rect of the view2d, used for computing offset during edge panning. */
+  /* Initial rect of the view2d, used for computing offset during edge panning */
   rctf initial_v2d_cur;
   View2DEdgePanData edge_pan;
 
@@ -82,7 +88,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
   Editing *ed = SEQ_editing_get(t->scene);
   ListBase *channels = SEQ_channels_displayed_get(ed);
 
-  /* For extend we need to do some tricks. */
+  /* for extend we need to do some tricks */
   if (t->mode == TFM_TIME_EXTEND) {
 
     /* *** Extend Transform *** */
@@ -95,15 +101,15 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
       *r_flag = 0;
     }
     else {
-      *r_count = 1; /* Unless its set to 0, extend will never set 2 handles at once. */
+      *r_count = 1; /* unless its set to 0, extend will never set 2 handles at once */
       *r_flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
 
       if (t->frame_side == 'R') {
         if (right <= cfra) {
           *r_count = *r_flag = 0;
-        } /* Ignore. */
+        } /* ignore */
         else if (left > cfra) {
-        } /* Keep the selection. */
+        } /* keep the selection */
         else {
           *r_flag |= SEQ_RIGHTSEL;
         }
@@ -111,9 +117,9 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
       else {
         if (left >= cfra) {
           *r_count = *r_flag = 0;
-        } /* Ignore. */
+        } /* ignore */
         else if (right < cfra) {
-        } /* Keep the selection. */
+        } /* keep the selection */
         else {
           *r_flag |= SEQ_LEFTSEL;
         }
@@ -126,7 +132,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
 
     /* *** Normal Transform *** */
 
-    /* Count. */
+    /* Count */
 
     /* Non nested strips (reset selection and handles). */
     if ((seq->flag & SELECT) == 0 || SEQ_transform_is_locked(channels, seq)) {
@@ -136,11 +142,11 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
     else {
       if ((seq->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) == (SEQ_LEFTSEL | SEQ_RIGHTSEL)) {
         *r_flag = seq->flag;
-        *r_count = 2; /* We need 2 transdata's. */
+        *r_count = 2; /* we need 2 transdata's */
       }
       else {
         *r_flag = seq->flag;
-        *r_count = 1; /* Selected or with a handle selected. */
+        *r_count = 1; /* selected or with a handle selected */
       }
     }
   }
@@ -151,7 +157,7 @@ static int SeqTransCount(TransInfo *t, ListBase *seqbase)
   int tot = 0, count, flag;
 
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    SeqTransInfo(t, seq, &count, &flag); /* Ignore the flag. */
+    SeqTransInfo(t, seq, &count, &flag); /* ignore the flag */
     tot += count;
   }
 
@@ -172,10 +178,10 @@ static TransData *SeqToTransData(Scene *scene,
     case SELECT:
       /* Use seq_tx_get_final_left() and an offset here
        * so transform has the left hand location of the strip.
-       * `tdsq->start_offset` is used when flushing the tx data back. */
+       * tdsq->start_offset is used when flushing the tx data back */
       start_left = SEQ_time_left_handle_frame_get(scene, seq);
       td2d->loc[0] = start_left;
-      tdsq->start_offset = start_left - seq->start; /* Use to apply the original location. */
+      tdsq->start_offset = start_left - seq->start; /* use to apply the original location */
       break;
     case SEQ_LEFTSEL:
       start_left = SEQ_time_left_handle_frame_get(scene, seq);
@@ -186,18 +192,18 @@ static TransData *SeqToTransData(Scene *scene,
       break;
   }
 
-  td2d->loc[1] = seq->machine; /* Channel - Y location. */
+  td2d->loc[1] = seq->machine; /* channel - Y location */
   td2d->loc[2] = 0.0f;
   td2d->loc2d = nullptr;
 
   tdsq->seq = seq;
 
   /* Use instead of seq->flag for nested strips and other
-   * cases where the selection may need to be modified. */
+   * cases where the selection may need to be modified */
   tdsq->flag = flag;
   tdsq->sel_flag = sel_flag;
 
-  td->extra = (void *)tdsq; /* Allow us to update the strip from here. */
+  td->extra = (void *)tdsq; /* allow us to update the strip from here */
 
   td->flag = 0;
   td->loc = td2d->loc;
@@ -216,7 +222,7 @@ static TransData *SeqToTransData(Scene *scene,
   unit_m3(td->mtx);
   unit_m3(td->smtx);
 
-  /* Time Transform (extend). */
+  /* Time Transform (extend) */
   td->val = td2d->loc;
   td->ival = td2d->loc[0];
 
@@ -234,7 +240,7 @@ static int SeqToTransData_build(
 
     SeqTransInfo(t, seq, &count, &flag);
 
-    /* Use 'flag' which is derived from seq->flag but modified for special cases. */
+    /* use 'flag' which is derived from seq->flag but modified for special cases */
     if (flag & SELECT) {
       if (flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) {
         if (flag & SEQ_LEFTSEL) {
@@ -474,10 +480,10 @@ static void createTransSeqData(bContext * /*C*/, TransInfo *t)
 
   count = SeqTransCount(t, ed->seqbasep);
 
-  /* Allocate memory for data. */
+  /* allocate memory for data */
   tc->data_len = count;
 
-  /* Stop if trying to build list if nothing selected. */
+  /* stop if trying to build list if nothing selected */
   if (count == 0) {
     return;
   }
@@ -503,7 +509,7 @@ static void createTransSeqData(bContext * /*C*/, TransInfo *t)
   UI_view2d_edge_pan_set_limits(&ts->edge_pan, -FLT_MAX, FLT_MAX, 1, MAXSEQ + 1);
   ts->initial_v2d_cur = t->region->v2d.cur;
 
-  /* Loop 2: build transdata array. */
+  /* loop 2: build transdata array */
   SeqToTransData_build(t, ed->seqbasep, td, td2d, tdsq);
 
   ts->selection_channel_range_min = MAXSEQ + 1;
@@ -527,7 +533,7 @@ static void view2d_edge_pan_loc_compensate(TransInfo *t, float loc_in[2], float 
 {
   TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
 
-  /* Initial and current view2D rects for additional transform due to view panning and zooming. */
+  /* Initial and current view2D rects for additional transform due to view panning and zooming */
   const rctf *rect_src = &ts->initial_v2d_cur;
   const rctf *rect_dst = &t->region->v2d.cur;
 
@@ -536,7 +542,7 @@ static void view2d_edge_pan_loc_compensate(TransInfo *t, float loc_in[2], float 
       UI_view2d_edge_pan_cancel(t->context, &ts->edge_pan);
     }
     else {
-      /* Edge panning functions expect window coordinates, mval is relative to region. */
+      /* Edge panning functions expect window coordinates, mval is relative to region */
       const int xy[2] = {
           t->region->winrct.xmin + int(t->mval[0]),
           t->region->winrct.ymin + int(t->mval[1]),
@@ -552,7 +558,7 @@ static void view2d_edge_pan_loc_compensate(TransInfo *t, float loc_in[2], float 
 
 static void flushTransSeq(TransInfo *t)
 {
-  /* Editing null check already done. */
+  /* Editing null check already done */
   ListBase *seqbasep = seqbase_active_get(t);
 
   int a, new_frame, offset;
@@ -624,14 +630,14 @@ static void flushTransSeq(TransInfo *t)
     SEQ_offset_animdata(t->scene, seq, max_offset);
   }
 
-  /* Need to do the overlap check in a new loop otherwise adjacent strips
-   * will not be updated and we'll get false positives. */
+  /* need to do the overlap check in a new loop otherwise adjacent strips
+   * will not be updated and we'll get false positives */
   blender::VectorSet transformed_strips = seq_transform_collection_from_transdata(tc);
   SEQ_iterator_set_expand(
       t->scene, seqbase_active_get(t), transformed_strips, SEQ_query_strip_effect_chain);
 
   for (Sequence *seq : transformed_strips) {
-    /* Test overlap, displays red outline. */
+    /* test overlap, displays red outline */
     seq->flag &= ~SEQ_OVERLAP;
     if (SEQ_transform_test_overlap(scene, seqbasep, seq)) {
       seq->flag |= SEQ_OVERLAP;
@@ -674,16 +680,16 @@ static void special_aftertrans_update__sequencer(bContext * /*C*/, TransInfo *t)
   if (t->state == TRANS_CANCEL) {
     return;
   }
-  /* #freeSeqData in `transform_conversions.cc` does this
-   * keep here so the else at the end won't run. */
+  /* freeSeqData in transform_conversions.c does this
+   * keep here so the else at the end won't run... */
 
   SpaceSeq *sseq = (SpaceSeq *)t->area->spacedata.first;
 
   /* Marker transform, not especially nice but we may want to move markers
    * at the same time as strips in the Video Sequencer. */
   if (sseq->flag & SEQ_MARKER_TRANS) {
-    /* Can't use #TFM_TIME_EXTEND
-     * for some reason EXTEND is changed into TRANSLATE, so use frame_side instead. */
+    /* can't use TFM_TIME_EXTEND
+     * for some reason EXTEND is changed into TRANSLATE, so use frame_side instead */
 
     if (t->mode == TFM_SEQ_SLIDE) {
       if (t->frame_side == 'B') {

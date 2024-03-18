@@ -23,11 +23,11 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
-#include "BKE_fcurve.hh"
+#include "BKE_fcurve.h"
 #include "BKE_object.hh"
 
 #include "MEM_guardedalloc.h"
@@ -339,8 +339,8 @@ void AnimationImporter::read_node_transform(COLLADAFW::Node *node, Object *ob)
   float mat[4][4];
   TransformReader::get_node_mat(mat, node, &uid_animated_map, ob);
   if (ob) {
-    copy_m4_m4(ob->runtime->object_to_world.ptr(), mat);
-    BKE_object_apply_mat4(ob, ob->object_to_world().ptr(), false, false);
+    copy_m4_m4(ob->object_to_world, mat);
+    BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
   }
 }
 
@@ -2107,7 +2107,7 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root,
 
     if (par_job) {
       float temp[4][4], ipar[4][4];
-      invert_m4_m4(ipar, par_job->object_to_world().ptr());
+      invert_m4_m4(ipar, par_job->object_to_world);
       copy_m4_m4(temp, mat);
       mul_m4_m4m4(mat, ipar, temp);
     }

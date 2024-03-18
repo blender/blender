@@ -52,12 +52,6 @@ struct ApplicationState {
   struct {
     unsigned char python;
   } exit_code_on_error;
-
-  /** Storage for commands (see `--command` argument). */
-  struct {
-    int argc;
-    const char **argv;
-  } command;
 };
 extern struct ApplicationState app_state; /* creator.c */
 

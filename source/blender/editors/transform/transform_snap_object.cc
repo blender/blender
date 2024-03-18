@@ -13,7 +13,8 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_bvhutils.hh"
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
+#include "BKE_editmesh.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
@@ -28,7 +29,6 @@
 
 #ifdef DEBUG_SNAP_TIME
 #  include "BLI_timeit.hh"
-#  include <iostream>
 
 #  if WIN32 and NDEBUG
 #    pragma optimize("t", on)
@@ -368,30 +368,34 @@ static ID *data_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bool *r_
 
   switch (ob_eval->type) {
     case OB_MESH: {
-      Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
       if (BKE_object_is_in_editmode(ob_eval)) {
         if (edit_mode_type == SNAP_GEOM_EDIT) {
           return nullptr;
         }
 
-        Mesh *editmesh_eval = (edit_mode_type == SNAP_GEOM_FINAL) ?
-                                  BKE_object_get_editmesh_eval_final(ob_eval) :
-                              (edit_mode_type == SNAP_GEOM_CAGE) ?
-                                  BKE_object_get_editmesh_eval_cage(ob_eval) :
-                                  nullptr;
+        Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob_eval);
+        Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob_eval);
 
-        if (editmesh_eval) {
-          if (editmesh_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+        if ((edit_mode_type == SNAP_GEOM_FINAL) && editmesh_eval_final) {
+          if (editmesh_eval_final->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
             return nullptr;
           }
-          mesh_eval = editmesh_eval;
+          me_eval = editmesh_eval_final;
+          use_hide = true;
+        }
+        else if ((edit_mode_type == SNAP_GEOM_CAGE) && editmesh_eval_cage) {
+          if (editmesh_eval_cage->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
+            return nullptr;
+          }
+          me_eval = editmesh_eval_cage;
           use_hide = true;
         }
       }
       if (r_use_hide) {
         *r_use_hide = use_hide;
       }
-      return (ID *)mesh_eval;
+      return (ID *)me_eval;
     }
     default:
       break;
@@ -513,9 +517,12 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
 
     bool use_hide = false;
     ID *ob_data = data_for_snap(obj_eval, sctx->runtime.params.edit_mode_type, &use_hide);
-    if ((tmp = sob_callback(
-             sctx, obj_eval, ob_data, obj_eval->object_to_world(), is_object_active, use_hide)) !=
-        SCE_SNAP_TO_NONE)
+    if ((tmp = sob_callback(sctx,
+                            obj_eval,
+                            ob_data,
+                            float4x4(obj_eval->object_to_world),
+                            is_object_active,
+                            use_hide)) != SCE_SNAP_TO_NONE)
     {
       ret = tmp;
     }
@@ -585,7 +592,7 @@ bool raycast_tri_backface_culling_test(
 }
 
 /**
- * \note Duplicate args here are documented at #snapObjectsRay.
+ * \note Duplicate args here are documented at #snapObjectsRay
  */
 static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
                                 Object *ob_eval,
@@ -829,21 +836,39 @@ void cb_snap_edge(void *userdata,
 
 static eSnapMode snap_polygon(SnapObjectContext *sctx, eSnapMode snap_to_flag)
 {
-  if (sctx->ret.ob->type != OB_MESH || !sctx->ret.data || GS(sctx->ret.data->name) != ID_ME) {
+  if (sctx->ret.ob->type != OB_MESH) {
     return SCE_SNAP_TO_NONE;
   }
 
-  return snap_polygon_mesh(
+  if (sctx->ret.data && GS(sctx->ret.data->name) != ID_ME) {
+    return SCE_SNAP_TO_NONE;
+  }
+
+  if (sctx->ret.data) {
+    return snap_polygon_mesh(
+        sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, snap_to_flag, sctx->ret.index);
+  }
+  return snap_polygon_editmesh(
       sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, snap_to_flag, sctx->ret.index);
 }
 
 static eSnapMode snap_edge_points(SnapObjectContext *sctx, const float dist_px_sq_orig)
 {
-  if (sctx->ret.ob->type != OB_MESH || !sctx->ret.data || GS(sctx->ret.data->name) != ID_ME) {
-    return SCE_SNAP_TO_EDGE;
+  eSnapMode elem = SCE_SNAP_TO_EDGE;
+
+  if (sctx->ret.ob->type != OB_MESH) {
+    return elem;
   }
 
-  return snap_edge_points_mesh(
+  if (sctx->ret.data && GS(sctx->ret.data->name) != ID_ME) {
+    return elem;
+  }
+
+  if (sctx->ret.data) {
+    return snap_edge_points_mesh(
+        sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, dist_px_sq_orig, sctx->ret.index);
+  }
+  return snap_edge_points_editmesh(
       sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, dist_px_sq_orig, sctx->ret.index);
 }
 
@@ -875,7 +900,7 @@ eSnapMode snap_object_center(SnapObjectContext *sctx,
 }
 
 /**
- * \note Duplicate args here are documented at #snapObjectsRay.
+ * \note Duplicate args here are documented at #snapObjectsRay
  */
 static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
                              Object *ob_eval,
@@ -894,7 +919,7 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
   }
 
   if (ob_eval->dt == OB_BOUNDBOX) {
-    /* Do not snap to objects that are in bounding box display mode. */
+    /* Do not snap to objects that are in bounding box display mode */
     return SCE_SNAP_TO_NONE;
   }
 
@@ -1185,7 +1210,7 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
     if (sort) {
       BLI_listbase_sort(r_hit_list, hit_depth_cmp);
     }
-    /* Meant to be read-only for 'all' hits, ensure it is. */
+    /* meant to be readonly for 'all' hits, ensure it is */
 #ifndef NDEBUG
     BLI_assert(ray_depth_prev == sctx->ret.ray_depth_max);
 #endif

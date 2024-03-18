@@ -4,8 +4,6 @@
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
-#include "asset_catalog_collection.hh"
-#include "asset_catalog_definition_file.hh"
 
 #include "BKE_preferences.h"
 
@@ -46,12 +44,12 @@ class TestableAssetCatalogService : public AssetCatalogService {
   {
   }
 
-  const AssetCatalogDefinitionFile *get_catalog_definition_file()
+  AssetCatalogDefinitionFile *get_catalog_definition_file()
   {
     return AssetCatalogService::get_catalog_definition_file();
   }
 
-  const OwningAssetCatalogMap &get_deleted_catalogs() const
+  OwningAssetCatalogMap &get_deleted_catalogs()
   {
     return AssetCatalogService::get_deleted_catalogs();
   }
@@ -69,7 +67,7 @@ class TestableAssetCatalogService : public AssetCatalogService {
   int64_t count_catalogs_with_path(const CatalogFilePath &path)
   {
     int64_t count = 0;
-    for (const auto &catalog_uptr : get_catalogs().values()) {
+    for (auto &catalog_uptr : get_catalogs().values()) {
       if (catalog_uptr->path == path) {
         count++;
       }
@@ -126,10 +124,9 @@ class AssetCatalogTest : public AssetLibraryTestBase {
         << "Overwritten CDF should have been backed up.";
 
     /* Test that the in-memory CDF has the expected file path. */
-    const AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
-    std::string native_cdf_path = cdf->file_path;
-    BLI_path_slash_native(native_cdf_path.data());
-    EXPECT_EQ(cdf_toplevel, native_cdf_path);
+    AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+    BLI_path_slash_native(cdf->file_path.data());
+    EXPECT_EQ(cdf_toplevel, cdf->file_path);
 
     /* Test that the in-memory catalogs have been merged with the on-disk one. */
     AssetCatalogService loaded_service(cdf_toplevel);
@@ -268,7 +265,7 @@ TEST_F(AssetCatalogTest, write_single_file)
 
   const CatalogFilePath save_to_path = use_temp_path() +
                                        AssetCatalogService::DEFAULT_CATALOG_FILENAME;
-  const AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+  AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
   cdf->write_to_disk(save_to_path);
 
   AssetCatalogService loaded_service(save_to_path);
@@ -296,7 +293,7 @@ TEST_F(AssetCatalogTest, read_write_unicode_filepath)
   service.load_from_disk(load_from_path);
 
   const CatalogFilePath save_to_path = use_temp_path() + "новый.cats.txt";
-  const AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+  AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
   ASSERT_NE(nullptr, cdf) << "unable to load " << load_from_path;
   EXPECT_TRUE(cdf->write_to_disk(save_to_path));
 
@@ -378,7 +375,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_empty_directory)
   EXPECT_TRUE(BLI_exists(expected_cdf_path.c_str()));
 
   /* Test that the in-memory CDF has been created, and contains the expected catalog. */
-  const AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+  AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
   ASSERT_NE(nullptr, cdf);
   EXPECT_TRUE(cdf->contains(cat->catalog_id));
 
@@ -413,7 +410,7 @@ TEST_F(AssetCatalogTest, on_blendfile_save__from_memory_into_existing_cdf_and_me
       << "Overwritten CDF should have been backed up.";
 
   /* Test that the in-memory CDF has the expected file path. */
-  const AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+  AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
   ASSERT_NE(nullptr, cdf);
   EXPECT_EQ(writable_cdf_file, cdf->file_path);
 
@@ -569,7 +566,7 @@ TEST_F(AssetCatalogTest, delete_catalog_leaf)
       "path/without/simplename",
   };
 
-  const AssetCatalogTree &tree = service.catalog_tree();
+  AssetCatalogTree *tree = service.get_catalog_tree();
   AssetCatalogTreeTestFunctions::expect_tree_items(tree, expected_paths);
 }
 
@@ -623,7 +620,7 @@ TEST_F(AssetCatalogTest, delete_catalog_parent_by_path)
       "path/without/simplename",
   };
 
-  const AssetCatalogTree &tree = service.catalog_tree();
+  AssetCatalogTree *tree = service.get_catalog_tree();
   AssetCatalogTreeTestFunctions::expect_tree_items(tree, expected_paths);
 }
 
@@ -636,7 +633,7 @@ TEST_F(AssetCatalogTest, delete_catalog_write_to_disk)
   service.delete_catalog_by_id_soft(UUID_POSES_ELLIE);
 
   const CatalogFilePath save_to_path = use_temp_path();
-  const AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
+  AssetCatalogDefinitionFile *cdf = service.get_catalog_definition_file();
   cdf->write_to_disk(save_to_path + SEP_STR + AssetCatalogService::DEFAULT_CATALOG_FILENAME);
 
   AssetCatalogService loaded_service(save_to_path);
@@ -1025,7 +1022,7 @@ TEST_F(AssetCatalogTest, create_missing_catalogs_after_loading)
   EXPECT_TRUE(cat_ruzena->flags.has_unsaved_changes)
       << "Missing parents should be marked as having changes.";
 
-  const AssetCatalogDefinitionFile *cdf = loaded_service.get_catalog_definition_file();
+  AssetCatalogDefinitionFile *cdf = loaded_service.get_catalog_definition_file();
   ASSERT_NE(nullptr, cdf);
   EXPECT_TRUE(cdf->contains(cat_char->catalog_id)) << "Missing parents should be saved to a CDF.";
   EXPECT_TRUE(cdf->contains(cat_ellie->catalog_id)) << "Missing parents should be saved to a CDF.";
@@ -1116,9 +1113,9 @@ class TestableAssetCatalogCollection : public AssetCatalogCollection {
   {
     return catalog_definition_file_.get();
   }
-  AssetCatalogDefinitionFile *allocate_catalog_definition_file(StringRef file_path)
+  AssetCatalogDefinitionFile *allocate_catalog_definition_file()
   {
-    catalog_definition_file_ = std::make_unique<AssetCatalogDefinitionFile>(file_path);
+    catalog_definition_file_ = std::make_unique<AssetCatalogDefinitionFile>();
     return get_catalog_definition_file();
   }
 };
@@ -1185,8 +1182,8 @@ TEST_F(AssetCatalogTest, cat_collection_deep_copy__nonempty_cdf)
   catcoll.get_catalogs().add_new(cat2->catalog_id, std::move(cat2));
   catcoll.get_deleted_catalogs().add_new(cat3->catalog_id, std::move(cat3));
 
-  AssetCatalogDefinitionFile *cdf = catcoll.allocate_catalog_definition_file(
-      "path/to/somewhere.cats.txt");
+  AssetCatalogDefinitionFile *cdf = catcoll.allocate_catalog_definition_file();
+  cdf->file_path = "path/to/somewhere.cats.txt";
   cdf->add_new(cat1_ptr);
   cdf->add_new(cat2_ptr);
   cdf->add_new(cat3_ptr);

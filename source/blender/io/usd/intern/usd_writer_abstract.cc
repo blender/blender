@@ -9,7 +9,7 @@
 #include <pxr/usd/usdGeom/scope.h>
 
 #include "BKE_customdata.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "BLI_assert.h"
 

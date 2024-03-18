@@ -49,7 +49,7 @@ static blender::Vector<uint8_t> filtered_rows_from_thumb(const Thumbnail *thumb)
   /* In the image data sent to the compression step, each scan-line is preceded by a filter type
    * byte containing the numeric code of the filter algorithm used for that scan-line. */
   const size_t line_size = thumb->width * 4;
-  blender::Vector<uint8_t> filtered;
+  blender::Vector<uint8_t> filtered{};
   size_t final_size = thumb->height * (line_size + 1);
   filtered.reserve(final_size);
   for (int i = 0; i < thumb->height; i++) {
@@ -88,7 +88,7 @@ std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
   }
 
   /* Create `IDAT` chunk data. */
-  blender::Vector<uint8_t> image_data;
+  blender::Vector<uint8_t> image_data{};
   {
     auto image_data_opt = zlib_compress(filtered_rows_from_thumb(thumb));
     if (image_data_opt == std::nullopt) {
@@ -98,7 +98,7 @@ std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
   }
 
   /* Create the IHDR chunk data. */
-  blender::Vector<uint8_t> ihdr_data;
+  blender::Vector<uint8_t> ihdr_data{};
   {
     const size_t ihdr_data_final_size = 4 + 4 + 5;
     ihdr_data.reserve(ihdr_data_final_size);
@@ -115,7 +115,7 @@ std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
   }
 
   /* Join it all together to create a PNG image. */
-  blender::Vector<uint8_t> png_buf;
+  blender::Vector<uint8_t> png_buf{};
   {
     const size_t png_buf_final_size = (
         /* Header. */

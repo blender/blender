@@ -9,7 +9,7 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -27,7 +27,7 @@ const EnumPropertyItem rna_enum_velocity_unit_items[] = {
 
 #  include "BLI_string.h"
 
-#  include "BKE_cachefile.hh"
+#  include "BKE_cachefile.h"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -43,7 +43,7 @@ static void rna_CacheFile_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA
 {
   CacheFile *cache_file = (CacheFile *)ptr->data;
 
-  DEG_id_tag_update(&cache_file->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&cache_file->id, ID_RECALC_COPY_ON_WRITE);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
 }
 
@@ -51,7 +51,7 @@ static void rna_CacheFileLayer_update(Main * /*bmain*/, Scene * /*scene*/, Point
 {
   CacheFile *cache_file = (CacheFile *)ptr->owner_id;
 
-  DEG_id_tag_update(&cache_file->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&cache_file->id, ID_RECALC_COPY_ON_WRITE);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
 }
 

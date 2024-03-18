@@ -33,11 +33,13 @@
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_pointcache_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
@@ -46,7 +48,7 @@
 
 #undef DNA_GENFILE_VERSIONING_MACROS
 
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_colortools.hh"
 #include "BKE_customdata.hh"
@@ -54,9 +56,10 @@
 #include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_modifier.hh"
-#include "BKE_node.hh"
-#include "BKE_scene.hh"
+#include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_screen.hh"
+#include "BKE_tracking.h"
 #include "DNA_material_types.h"
 
 #include "SEQ_effects.hh"
@@ -69,10 +72,11 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
+#include "NOD_common.h"
 #include "NOD_composite.hh"
 #include "NOD_socket.hh"
 
@@ -1464,10 +1468,10 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
             if (node->type == CMP_NODE_GLARE) {
               NodeGlare *ndg = static_cast<NodeGlare *>(node->storage);
               switch (ndg->type) {
-                case CMP_NODE_GLARE_STREAKS:
+                case 2: /* Grrrr! magic numbers :( */
                   ndg->streaks = ndg->angle;
                   break;
-                case CMP_NODE_GLARE_SIMPLE_STAR:
+                case 0:
                   ndg->star_45 = ndg->angle != 0;
                   break;
                 default:

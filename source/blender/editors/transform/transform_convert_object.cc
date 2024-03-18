@@ -13,16 +13,20 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcache.h"
+#include "BKE_report.h"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "ANIM_keyframing.hh"
 #include "ANIM_rna.hh"
+#include "ED_keyframing.hh"
 #include "ED_object.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -129,9 +133,7 @@ static void trans_obchild_in_obmode_update_all(TransInfo *t)
 
 /* *********************** Object Transform data ******************* */
 
-/**
- * Transcribe given object into TransData for Transforming.
- */
+/* transcribe given object into TransData for Transforming */
 static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 {
   Scene *scene = t->scene;
@@ -142,11 +144,11 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
     float rot[3][3], scale[3];
     float ctime = BKE_scene_ctime_get(scene);
 
-    /* Only use rigid body transform if simulation is running,
-     * avoids problems with initial setup of rigid bodies. */
+    /* only use rigid body transform if simulation is running,
+     * avoids problems with initial setup of rigid bodies */
     if (BKE_rigidbody_check_sim_running(scene->rigidbody_world, ctime)) {
 
-      /* Save original object transform. */
+      /* save original object transform */
       copy_v3_v3(td->ext->oloc, ob->loc);
 
       if (ob->rotmode > 0) {
@@ -159,15 +161,15 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
       else {
         copy_qt_qt(td->ext->oquat, ob->quat);
       }
-      /* Update object's loc/rot to get current rigid body transform. */
-      mat4_to_loc_rot_size(ob->loc, rot, scale, ob->object_to_world().ptr());
+      /* update object's loc/rot to get current rigid body transform */
+      mat4_to_loc_rot_size(ob->loc, rot, scale, ob->object_to_world);
       sub_v3_v3(ob->loc, ob->dloc);
-      BKE_object_mat3_to_rot(ob, rot, false); /* `drot` is already corrected here. */
+      BKE_object_mat3_to_rot(ob, rot, false); /* drot is already corrected here */
     }
   }
 
-  /* `axismtx` has the real orientation. */
-  transform_orientations_create_from_axis(td->axismtx, UNPACK3(ob->object_to_world().ptr()));
+  /* axismtx has the real orientation */
+  transform_orientations_create_from_axis(td->axismtx, UNPACK3(ob->object_to_world));
   if (t->orient_type_mask & (1 << V3D_ORIENT_GIMBAL)) {
     if (!gimbal_axis_object(ob, td->ext->axismtx_gimbal)) {
       copy_m3_m3(td->ext->axismtx_gimbal, td->axismtx);
@@ -176,27 +178,28 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
   td->con = static_cast<bConstraint *>(ob->constraints.first);
 
-  /* HACK: temporarily disable tracking and/or constraints when getting
+  /* hack: temporarily disable tracking and/or constraints when getting
    * object matrix, if tracking is on, or if constraints don't need
    * inverse correction to stop it from screwing up space conversion
-   * matrix later. */
+   * matrix later
+   */
   constinv = constraints_list_needinv(t, &ob->constraints);
 
-  /* Disable constraints inversion for dummy pass. */
+  /* disable constraints inversion for dummy pass */
   if (t->mode == TFM_DUMMY) {
     skip_invert = true;
   }
 
-  /* NOTE: This is not really following copy-on-evaluation design and we should not
+  /* NOTE: This is not really following copy-on-write design and we should not
    * be re-evaluating the evaluated object. But as the comment above mentioned
    * this is part of a hack.
    * More proper solution would be to make a shallow copy of the object and
    * evaluate that, and access matrix of that evaluated copy of the object.
    * Might be more tricky than it sounds, if some logic later on accesses the
-   * object matrix via td->ob->object_to_world().ptr(). */
+   * object matrix via td->ob->object_to_world. */
   Object *object_eval = DEG_get_evaluated_object(t->depsgraph, ob);
   if (skip_invert == false && constinv == false) {
-    object_eval->transflag |= OB_NO_CONSTRAINTS; /* #BKE_object_where_is_calc checks this. */
+    object_eval->transflag |= OB_NO_CONSTRAINTS; /* BKE_object_where_is_calc checks this */
     /* It is possible to have transform data initialization prior to a
      * complete dependency graph evaluated. Happens, for example, when
      * changing transformation mode. */
@@ -209,7 +212,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   }
   /* Copy newly evaluated fields to the original object, similar to how
    * active dependency graph will do it. */
-  copy_m4_m4(ob->runtime->object_to_world.ptr(), object_eval->object_to_world().ptr());
+  copy_m4_m4(ob->object_to_world, object_eval->object_to_world);
   /* Only copy negative scale flag, this is the only flag which is modified by
    * the BKE_object_where_is_calc(). The rest of the flags we need to keep,
    * otherwise we might lose dupli flags  (see #61787). */
@@ -259,11 +262,11 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   copy_v3_v3(td->ext->isize, ob->scale);
   copy_v3_v3(td->ext->dscale, ob->dscale);
 
-  copy_v3_v3(td->center, ob->object_to_world().location());
+  copy_v3_v3(td->center, ob->object_to_world[3]);
 
-  copy_m4_m4(td->ext->obmat, ob->object_to_world().ptr());
+  copy_m4_m4(td->ext->obmat, ob->object_to_world);
 
-  /* Is there a need to set the global<->data space conversion matrices? */
+  /* is there a need to set the global<->data space conversion matrices? */
   if (ob->parent || constinv) {
     float obmtx[3][3], totmat[3][3], obinv[3][3];
 
@@ -272,7 +275,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
      *       done, as it doesn't work well.
      */
     BKE_object_to_mat3(ob, obmtx);
-    copy_m3_m4(totmat, ob->object_to_world().ptr());
+    copy_m3_m4(totmat, ob->object_to_world);
 
     /* If the object scale is zero on any axis, this might result in a zero matrix.
      * In this case, the transformation would not do anything, see: #50103. */
@@ -337,10 +340,8 @@ static void trans_object_base_deps_flag_finish(const TransInfo *t,
   }
 }
 
-/**
- * Sets flags in Bases to define whether they take part in transform.
- * It deselects Bases, so we have to call the clear function always after.
- */
+/* sets flags in Bases to define whether they take part in transform */
+/* it deselects Bases, so we have to call the clear function always after */
 static void set_trans_object_base_flags(TransInfo *t)
 {
   Main *bmain = CTX_data_main(t->context);
@@ -372,7 +373,7 @@ static void set_trans_object_base_flags(TransInfo *t)
       while (parsel != nullptr) {
         if (parsel->base_flag & BASE_SELECTED) {
           Base *parbase = BKE_view_layer_base_find(view_layer, parsel);
-          if (parbase != nullptr) { /* In rare cases this can fail. */
+          if (parbase != nullptr) { /* in rare cases this can fail */
             if (BASE_SELECTED_EDITABLE(v3d, parbase)) {
               break;
             }
@@ -432,7 +433,7 @@ static int count_proportional_objects(TransInfo *t)
     LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       if (BASE_SELECTED_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {
         Object *parent = base->object->parent;
-        /* Flag all parents. */
+        /* flag all parents */
         while (parent != nullptr) {
           parent->flag |= BA_TRANSFORM_PARENT;
           parent = parent->parent;
@@ -441,7 +442,7 @@ static int count_proportional_objects(TransInfo *t)
     }
     /* Mark all children. */
     LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-      /* All base not already selected or marked that is editable. */
+      /* all base not already selected or marked that is editable */
       if ((base->object->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
           (base->flag & BASE_SELECTED) == 0 &&
           (BASE_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base)))
@@ -499,11 +500,11 @@ static void createTransObject(bContext *C, TransInfo *t)
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
-  /* Count. */
+  /* count */
   tc->data_len = CTX_DATA_COUNT(C, selected_bases);
 
   if (!tc->data_len) {
-    /* Clear here, main transform function escapes too. */
+    /* clear here, main transform function escapes too */
     clear_trans_object_base_flags(t);
     return;
   }
@@ -538,7 +539,7 @@ static void createTransObject(bContext *C, TransInfo *t)
       td->flag |= TD_NO_LOC;
     }
 
-    /* Select linked objects, but skip them later. */
+    /* select linked objects, but skip them later */
     if (!BKE_id_is_editable(bmain, &ob->id)) {
       td->flag |= TD_SKIP;
     }
@@ -577,8 +578,8 @@ static void createTransObject(bContext *C, TransInfo *t)
     LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       Object *ob = base->object;
 
-      /* If base is not selected, not a parent of selection
-       * or not a child of selection and it is editable and selectable. */
+      /* if base is not selected, not a parent of selection
+       * or not a child of selection and it is editable and selectable */
       if ((ob->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
           (base->flag & BASE_SELECTED) == 0 && BASE_EDITABLE(v3d, base) &&
           BASE_SELECTABLE(v3d, base))
@@ -612,8 +613,8 @@ static void createTransObject(bContext *C, TransInfo *t)
     LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
       Object *ob = base->object;
 
-      /* If base is not selected, not a parent of selection
-       * or not a child of selection and it is editable and selectable. */
+      /* if base is not selected, not a parent of selection
+       * or not a child of selection and it is editable and selectable */
       if ((base->flag_legacy & BA_WAS_SEL) && (base->flag & BASE_SELECTED) == 0 &&
           BASE_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base))
       {
@@ -695,7 +696,7 @@ static void createTransObject(bContext *C, TransInfo *t)
       Object *ob = base->object;
 
       if (BASE_XFORM_INDIRECT(base) || BLI_gset_haskey(objects_in_transdata, ob)) {
-        /* Pass. */
+        /* pass. */
       }
       else if (ob->parent != nullptr) {
         Base *base_parent = BKE_view_layer_base_find(view_layer, ob->parent);
@@ -844,11 +845,11 @@ static void recalcData_objects(TransInfo *t)
         continue;
       }
 
-      /* If animtimer is running, and the object already has animation data,
+      /* if animtimer is running, and the object already has animation data,
        * check if the auto-record feature means that we should record 'samples'
-       * (i.e. uneditable animation values). */
-
-      /* TODO: auto-keyframe calls need some setting to specify to add samples
+       * (i.e. uneditable animation values)
+       */
+      /* TODO: autokeyframe calls need some setting to specify to add samples
        * (FPoints) instead of keyframes? */
       if ((t->animtimer) && blender::animrig::is_autokey_on(t->scene)) {
         animrecord_check_state(t, &ob->id);
@@ -857,8 +858,9 @@ static void recalcData_objects(TransInfo *t)
 
       motionpath_update |= motionpath_need_update_object(t->scene, ob);
 
-      /* Sets recalc flags fully, instead of flushing existing ones
-       * otherwise proxies don't function correctly. */
+      /* sets recalc flags fully, instead of flushing existing ones
+       * otherwise proxies don't function correctly
+       */
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
     }
   }
@@ -903,11 +905,11 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
       continue;
     }
 
-    /* Flag object caches as outdated. */
+    /* flag object caches as outdated */
     BKE_ptcache_ids_from_object(&pidlist, ob, t->scene, MAX_DUPLI_RECUR);
     LISTBASE_FOREACH (PTCacheID *, pid, &pidlist) {
       if (pid->type != PTCACHE_TYPE_PARTICLES) {
-        /* Particles don't need reset on geometry change. */
+        /* particles don't need reset on geometry change */
         pid->cache->flag |= PTCACHE_OUTDATED;
       }
     }

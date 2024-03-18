@@ -13,9 +13,8 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
+#include "BKE_main.hh"
 #include "BKE_mask.h"
-
-#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -30,11 +29,10 @@
 #include "ED_clip.hh"
 #include "ED_image.hh"
 #include "ED_mask.hh"
+#include "ED_screen.hh"
 #include "ED_select_utils.hh"
 
 #include "ANIM_keyframing.hh"
-
-#include "UI_interface_icons.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -137,7 +135,7 @@ static int mask_layer_new_exec(bContext *C, wmOperator *op)
   mask->masklay_act = mask->masklay_tot - 1;
 
   WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
-  DEG_id_tag_update(&mask->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&mask->id, ID_RECALC_COPY_ON_WRITE);
 
   return OPERATOR_FINISHED;
 }
@@ -171,7 +169,7 @@ static int mask_layer_remove_exec(bContext *C, wmOperator * /*op*/)
     BKE_mask_layer_remove(mask, mask_layer);
 
     WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
-    DEG_id_tag_update(&mask->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&mask->id, ID_RECALC_COPY_ON_WRITE);
   }
 
   return OPERATOR_FINISHED;
@@ -1502,20 +1500,6 @@ static int delete_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Delete selected control points and splines?"),
-                                  nullptr,
-                                  IFACE_("Delete"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return delete_exec(C, op);
-}
-
 void MASK_OT_delete(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1524,7 +1508,7 @@ void MASK_OT_delete(wmOperatorType *ot)
   ot->idname = "MASK_OT_delete";
 
   /* api callbacks */
-  ot->invoke = delete_invoke;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = delete_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
 
@@ -1938,7 +1922,7 @@ static int mask_layer_move_exec(bContext *C, wmOperator *op)
   }
 
   WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
-  DEG_id_tag_update(&mask->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&mask->id, ID_RECALC_COPY_ON_WRITE);
 
   return OPERATOR_FINISHED;
 }

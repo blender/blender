@@ -10,8 +10,10 @@
 
 #include <climits>
 
+#include "DNA_anim_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "BLI_ghash.h"
@@ -23,7 +25,7 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_fcurve.hh"
+#include "BKE_fcurve.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 

@@ -21,18 +21,12 @@
  */
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_function_ref.hh"
-#include "BLI_map.hh"
-#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 struct ID;
+struct IDRemapper;
 struct Main;
-
-namespace blender::bke::id {
-class IDRemapper;
-}
 
 /* BKE_libblock_free, delete are declared in BKE_lib_id.hh for convenience. */
 
@@ -50,13 +44,12 @@ enum {
    */
   ID_REMAP_SKIP_NEVER_NULL_USAGE = 1 << 1,
   /**
-   * Store in the #IDRemapper all IDs using target one with a 'never NULL' pointer (like e.g.
-   * #Object.data), when such ID usage has (or should have) been remapped to `nullptr`. See also
-   * #ID_REMAP_FORCE_NEVER_NULL_USAGE and #ID_REMAP_SKIP_NEVER_NULL_USAGE.
+   * This tells the callback func to flag with #LIB_DOIT all IDs
+   * using target one with a 'never NULL' pointer (like e.g. #Object.data).
    */
-  ID_REMAP_STORE_NEVER_NULL_USAGE = 1 << 2,
+  ID_REMAP_FLAG_NEVER_NULL_USAGE = 1 << 2,
   /**
-   * This tells the callback function to force setting IDs
+   * This tells the callback func to force setting IDs
    * using target one with a 'never NULL' pointer to NULL.
    * \warning Use with extreme care, this will leave database in broken state
    * and can cause crashes very easily!
@@ -86,13 +79,6 @@ enum {
    * the calling code takes care of the rest of the required changes (ID tags & flags updates,
    * etc.). */
   ID_REMAP_DO_LIBRARY_POINTERS = 1 << 8,
-
-  /**
-   * Allow remapping of an ID pointer of a certain to another one of a different type.
-   *
-   * WARNING: Use with caution. Should only be needed in a very small amount of cases, e.g. when
-   * converting an ID type to another. */
-  ID_REMAP_ALLOW_IDTYPE_MISMATCH = 1 << 9,
 
   /**
    * Don't touch the special user counts (use when the 'old' remapped ID remains in use):
@@ -138,13 +124,9 @@ enum eIDRemapType {
  *
  * \note Is preferred over BKE_libblock_remap_locked due to performance.
  */
-void BKE_libblock_remap_multiple_locked(Main *bmain,
-                                        blender::bke::id::IDRemapper &mappings,
-                                        const int remap_flags);
+void BKE_libblock_remap_multiple_locked(Main *bmain, IDRemapper *mappings, const int remap_flags);
 
-void BKE_libblock_remap_multiple(Main *bmain,
-                                 blender::bke::id::IDRemapper &mappings,
-                                 const int remap_flags);
+void BKE_libblock_remap_multiple(Main *bmain, IDRemapper *mappings, const int remap_flags);
 
 /**
  * Bare raw remapping of IDs, with no other processing than actually updating the ID pointers.
@@ -155,9 +137,7 @@ void BKE_libblock_remap_multiple(Main *bmain,
  * case e.g. in read-file process.
  *
  * WARNING: This call will likely leave the given BMain in invalid state in many aspects. */
-void BKE_libblock_remap_multiple_raw(Main *bmain,
-                                     blender::bke::id::IDRemapper &mappings,
-                                     const int remap_flags);
+void BKE_libblock_remap_multiple_raw(Main *bmain, IDRemapper *mappings, const int remap_flags);
 /**
  * Replace all references in given Main to \a old_id by \a new_id
  * (if \a new_id is NULL, it unlinks \a old_id).
@@ -173,8 +153,12 @@ void BKE_libblock_remap(Main *bmain, void *old_idv, void *new_idv, int remap_fla
 /**
  * Unlink given \a id from given \a bmain
  * (does not touch to indirect, i.e. library, usages of the ID).
+ *
+ * \param do_flag_never_null: If true, all IDs using \a idv in a 'non-NULL' way are flagged by
+ * #LIB_TAG_DOIT flag (quite obviously, 'non-NULL' usages can never be unlinked by this function).
  */
-void BKE_libblock_unlink(Main *bmain, void *idv, bool do_skip_indirect) ATTR_NONNULL();
+void BKE_libblock_unlink(Main *bmain, void *idv, bool do_flag_never_null, bool do_skip_indirect)
+    ATTR_NONNULL();
 
 /**
  * Similar to libblock_remap, but only affects IDs used by given \a idv ID.
@@ -194,7 +178,7 @@ void BKE_libblock_relink_ex(Main *bmain, void *idv, void *old_idv, void *new_idv
 void BKE_libblock_relink_multiple(Main *bmain,
                                   const blender::Span<ID *> ids,
                                   eIDRemapType remap_type,
-                                  blender::bke::id::IDRemapper &id_remapper,
+                                  IDRemapper *id_remapper,
                                   int remap_flags);
 
 /**
@@ -209,8 +193,7 @@ void BKE_libblock_relink_multiple(Main *bmain,
 void BKE_libblock_relink_to_newid(Main *bmain, ID *id, int remap_flag) ATTR_NONNULL();
 
 using BKE_library_free_notifier_reference_cb = void (*)(const void *);
-using BKE_library_remap_editor_id_reference_cb =
-    void (*)(const blender::bke::id::IDRemapper &mappings);
+using BKE_library_remap_editor_id_reference_cb = void (*)(const IDRemapper *mappings);
 
 void BKE_library_callback_free_notifier_reference_set(BKE_library_free_notifier_reference_cb func);
 void BKE_library_callback_remap_editor_id_reference_set(
@@ -237,7 +220,7 @@ enum IDRemapperApplyOptions {
    *
    * NOTE: Currently unused by main remapping code, since user-count is handled by
    * `foreach_libblock_remap_callback_apply` there, depending on whether the remapped pointer does
-   * use it or not. Needed for rare cases in UI handling though (see e.g. `image_id_remap` in
+   * use it or not. Need for rare cases in UI handling though (see e.g. `image_id_remap` in
    * `space_image.cc`).
    */
   ID_REMAP_APPLY_UPDATE_REFCOUNT = (1 << 0),
@@ -250,9 +233,9 @@ enum IDRemapperApplyOptions {
   ID_REMAP_APPLY_ENSURE_REAL = (1 << 1),
 
   /**
-   * Unassign instead of remap when the new ID pointer would point to itself.
+   * Unassign in stead of remap when the new ID data-block would become id_self.
    *
-   * To use this option #IDRemapper::apply must be used with a non-null id_self parameter.
+   * To use this option 'BKE_id_remapper_apply_ex' must be used with a not-null id_self parameter.
    */
   ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF = (1 << 2),
 
@@ -261,90 +244,58 @@ enum IDRemapperApplyOptions {
 ENUM_OPERATORS(IDRemapperApplyOptions, ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF)
 
 using IDRemapperIterFunction = void (*)(ID *old_id, ID *new_id, void *user_data);
-using IDTypeFilter = uint64_t;
 
-namespace blender::bke::id {
+/**
+ * Create a new ID Remapper.
+ *
+ * An ID remapper stores multiple remapping rules.
+ */
+IDRemapper *BKE_id_remapper_create();
 
-class IDRemapper {
-  Map<ID *, ID *> mappings_;
-  IDTypeFilter source_types_ = 0;
+void BKE_id_remapper_clear(IDRemapper *id_remapper);
+bool BKE_id_remapper_is_empty(const IDRemapper *id_remapper);
+/** Free the given ID Remapper. */
+void BKE_id_remapper_free(IDRemapper *id_remapper);
+/** Add a new remapping. Does not replace an existing mapping for `old_id`, if any. */
+void BKE_id_remapper_add(IDRemapper *id_remapper, ID *old_id, ID *new_id);
+/** Add a new remapping, replacing a potential already existing mapping of `old_id`. */
+void BKE_id_remapper_add_overwrite(IDRemapper *id_remapper, ID *old_id, ID *new_id);
 
-  /**
-   * Store all IDs using another ID with the 'NEVER_NULL' flag, which have (or
-   * should have been) remapped to `nullptr`.
-   */
-  Set<ID *> never_null_users_;
+/**
+ * Apply a remapping.
+ *
+ * Update the id pointer stored in the given r_id_ptr if a remapping rule exists.
+ */
+IDRemapperApplyResult BKE_id_remapper_apply(const IDRemapper *id_remapper,
+                                            ID **r_id_ptr,
+                                            IDRemapperApplyOptions options);
+/**
+ * Apply a remapping.
+ *
+ * Use this function when `ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF`. In this case
+ * the #id_self parameter is required. Otherwise the #BKE_id_remapper_apply can be used.
+ *
+ * \param id_self: required for ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF.
+ *     When remapping to id_self it will then be remapped to NULL.
+ */
+IDRemapperApplyResult BKE_id_remapper_apply_ex(const IDRemapper *id_remapper,
+                                               ID **r_id_ptr,
+                                               IDRemapperApplyOptions options,
+                                               ID *id_self);
+bool BKE_id_remapper_has_mapping_for(const IDRemapper *id_remapper, uint64_t type_filter);
 
- public:
-  /**
-   * In almost all cases, the original pointer and its new replacement should be of the same type.
-   * however, there are some rare exceptions, e.g. when converting from one ID type to another.
-   */
-  bool allow_idtype_mismatch = false;
+/**
+ * Determine the mapping result, without applying the mapping.
+ */
+IDRemapperApplyResult BKE_id_remapper_get_mapping_result(const IDRemapper *id_remapper,
+                                                         ID *id,
+                                                         IDRemapperApplyOptions options,
+                                                         const ID *id_self);
+void BKE_id_remapper_iter(const IDRemapper *id_remapper,
+                          IDRemapperIterFunction func,
+                          void *user_data);
 
- public:
-  void clear()
-  {
-    mappings_.clear();
-    never_null_users_.clear();
-    source_types_ = 0;
-  }
-
-  bool is_empty() const
-  {
-    return mappings_.is_empty();
-  }
-
-  bool contains_mappings_for_any(IDTypeFilter filter) const
-  {
-    return (source_types_ & filter) != 0;
-  }
-
-  /** Add a new remapping. Does not replace an existing mapping for `old_id`, if any. */
-  void add(ID *old_id, ID *new_id);
-  /** Add a new remapping, replacing a potential already existing mapping of `old_id`. */
-  void add_overwrite(ID *old_id, ID *new_id);
-
-  /** Determine the mapping result, without applying the mapping. */
-  IDRemapperApplyResult get_mapping_result(ID *id,
-                                           IDRemapperApplyOptions options,
-                                           const ID *id_self) const;
-
-  /**
-   * Apply a remapping.
-   *
-   * Update the id pointer stored in the given r_id_ptr if a remapping rule exists.
-   *
-   * \param id_self: Only for ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF.
-   *     When remapping to `id_self` it will then be remapped to `nullptr` instead.
-   */
-  IDRemapperApplyResult apply(ID **r_id_ptr,
-                              IDRemapperApplyOptions options,
-                              ID *id_self = nullptr) const;
-
-  void never_null_users_add(ID *id)
-  {
-    never_null_users_.add(id);
-  }
-
-  const Set<ID *> &never_null_users() const
-  {
-    return never_null_users_;
-  }
-
-  /** Iterate over all remapping pairs in the remapper, and call the callback function on them. */
-  void iter(FunctionRef<void(ID *old_id, ID *new_id)> func) const
-  {
-    for (auto item : mappings_.items()) {
-      func(item.key, item.value);
-    }
-  }
-
-  /** Return a readable string for the given result. Can be used for debugging purposes. */
-  static const StringRefNull result_to_string(const IDRemapperApplyResult result);
-
-  /** Print out the rules inside the given id_remapper. Can be used for debugging purposes. */
-  void print() const;
-};
-
-}  // namespace blender::bke::id
+/** Returns a readable string for the given result. Can be used for debugging purposes. */
+const char *BKE_id_remapper_result_string(const IDRemapperApplyResult result);
+/** Prints out the rules inside the given id_remapper. Can be used for debugging purposes. */
+void BKE_id_remapper_print(const IDRemapper *id_remapper);

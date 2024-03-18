@@ -6,7 +6,8 @@ from bpy.types import Operator
 from mathutils import Vector
 
 
-def randomize_selected(context, seed, delta, loc, rot, scale, scale_even, _scale_min):
+def randomize_selected(context, seed, delta,
+                       loc, rot, scale, scale_even, _scale_min):
 
     import random
     from random import uniform
@@ -99,7 +100,8 @@ class RandomizeLocRotSize(Operator):
     )
     use_delta: BoolProperty(
         name="Transform Delta",
-        description="Randomize delta transform values instead of regular transform",
+        description=("Randomize delta transform values "
+                     "instead of regular transform"),
         default=False,
     )
     use_loc: BoolProperty(
@@ -109,7 +111,8 @@ class RandomizeLocRotSize(Operator):
     )
     loc: FloatVectorProperty(
         name="Location",
-        description="Maximum distance the objects can spread over each axis",
+        description=("Maximum distance the objects "
+                     "can spread over each axis"),
         min=-100.0,
         max=100.0,
         default=(0.0, 0.0, 0.0),
@@ -171,7 +174,8 @@ class RandomizeLocRotSize(Operator):
         # scale_min = self.scale_min
         scale_min = 0
 
-        randomize_selected(context, seed, delta, loc, rot, scale, scale_even, scale_min)
+        randomize_selected(context, seed, delta,
+                           loc, rot, scale, scale_even, scale_min)
 
         return {'FINISHED'}
 

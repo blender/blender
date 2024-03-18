@@ -12,16 +12,31 @@
 #include <mutex>
 
 #include "BLI_bit_span.hh"
-#include "BLI_index_mask_fwd.hh"
 #include "BLI_kdopbvh.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+struct BMEditMesh;
 struct BVHCache;
 struct BVHTree;
 struct MFace;
 struct Mesh;
 struct PointCloud;
+struct vec2i;
+
+/**
+ * Struct that stores basic information about a BVHTree built from a edit-mesh.
+ */
+struct BVHTreeFromEditMesh {
+  BVHTree *tree;
+
+  /** Default callbacks to BVH nearest and ray-cast. */
+  BVHTree_NearestPointCallback nearest_callback;
+  BVHTree_RayCastCallback raycast_callback;
+
+  /* Private data */
+  bool cached;
+};
 
 /**
  * Struct that stores basic information about a #BVHTree built from a mesh.
@@ -55,9 +70,38 @@ enum BVHCacheType {
   BVHTREE_FROM_LOOSEVERTS,
   BVHTREE_FROM_LOOSEEDGES,
 
+  BVHTREE_FROM_EM_LOOSEVERTS,
+  BVHTREE_FROM_EM_EDGES,
+  BVHTREE_FROM_EM_LOOPTRIS,
+
   /* Keep `BVHTREE_MAX_ITEM` as last item. */
   BVHTREE_MAX_ITEM,
 };
+
+/**
+ * Builds a BVH tree where nodes are the relevant elements of the given mesh.
+ * Configures #BVHTreeFromMesh.
+ *
+ * The tree is build in mesh space coordinates, this means special care must be made on queries
+ * so that the coordinates and rays are first translated on the mesh local coordinates.
+ * Reason for this is that bvh_from_mesh_* can use a cache in some cases and so it
+ * becomes possible to reuse a #BVHTree.
+ *
+ * #free_bvhtree_from_mesh should be called when the tree is no longer needed.
+ */
+BVHTree *bvhtree_from_editmesh_verts(
+    BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis);
+
+/**
+ * Builds a BVH-tree where nodes are the vertices of the given `em`.
+ */
+BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
+                                        BMEditMesh *em,
+                                        blender::BitSpan verts_mask,
+                                        int verts_num_active,
+                                        float epsilon,
+                                        int tree_type,
+                                        int axis);
 
 /**
  * Builds a BVH-tree where nodes are the given vertices (NOTE: does not copy given `vert`!).
@@ -73,6 +117,20 @@ BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
                                     float epsilon,
                                     int tree_type,
                                     int axis);
+
+BVHTree *bvhtree_from_editmesh_edges(
+    BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis);
+
+/**
+ * Builds a BVH-tree where nodes are the edges of the given `em`.
+ */
+BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
+                                        BMEditMesh *em,
+                                        blender::BitSpan edges_mask,
+                                        int edges_num_active,
+                                        float epsilon,
+                                        int tree_type,
+                                        int axis);
 
 /**
  * Builds a BVH-tree where nodes are the given edges.
@@ -90,6 +148,20 @@ BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     float epsilon,
                                     int tree_type,
                                     int axis);
+
+BVHTree *bvhtree_from_editmesh_corner_tris(
+    BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis);
+
+/**
+ * Builds a BVH-tree where nodes are triangles faces (#MLoopTri) of the given `bm`.
+ */
+BVHTree *bvhtree_from_editmesh_looptris_ex(BVHTreeFromEditMesh *data,
+                                           BMEditMesh *em,
+                                           blender::BitSpan corner_tris_mask,
+                                           int corner_tris_num_active,
+                                           float epsilon,
+                                           int tree_type,
+                                           int axis);
 
 /**
  * Builds a BVH-tree where nodes are the triangle faces (#MLoopTri) of the given mesh.
@@ -116,26 +188,19 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
                                    int tree_type);
 
 /**
- * Build a bvh tree from the triangles in the mesh that correspond to the faces in the given mask.
+ * Builds or queries a BVH-cache for the cache BVH-tree of the request type.
  */
-void BKE_bvhtree_from_mesh_tris_init(const Mesh &mesh,
-                                     const blender::IndexMask &faces_mask,
-                                     BVHTreeFromMesh &r_data);
+BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
+                                       BMEditMesh *em,
+                                       int tree_type,
+                                       BVHCacheType bvh_cache_type,
+                                       BVHCache **bvh_cache_p,
+                                       std::mutex *mesh_eval_mutex);
 
 /**
- * Build a bvh tree containing the given edges.
+ * Frees data allocated by a call to `bvhtree_from_editmesh_*`.
  */
-void BKE_bvhtree_from_mesh_edges_init(const Mesh &mesh,
-                                      const blender::IndexMask &edges_mask,
-                                      BVHTreeFromMesh &r_data);
-
-/**
- * Build a bvh tree containing the given vertices.
- */
-void BKE_bvhtree_from_mesh_verts_init(const Mesh &mesh,
-                                      const blender::IndexMask &verts_mask,
-                                      BVHTreeFromMesh &r_data);
-
+void free_bvhtree_from_editmesh(BVHTreeFromEditMesh *data);
 /**
  * Frees data allocated by a call to `bvhtree_from_mesh_*`.
  */
@@ -161,9 +226,9 @@ struct BVHTreeFromPointCloud {
   const float (*coords)[3];
 };
 
-void BKE_bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
-                                     const blender::IndexMask &points_mask,
-                                     BVHTreeFromPointCloud &r_data);
+[[nodiscard]] BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
+                                                       const PointCloud *pointcloud,
+                                                       int tree_type);
 
 void free_bvhtree_from_pointcloud(BVHTreeFromPointCloud *data);
 

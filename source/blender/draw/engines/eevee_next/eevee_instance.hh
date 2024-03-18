@@ -86,6 +86,8 @@ class Instance {
   LightModule lights;
   AmbientOcclusion ambient_occlusion;
   RayTraceModule raytracing;
+  ReflectionProbeModule reflection_probes;
+  PlanarProbeModule planar_probes;
   VelocityModule velocity;
   MotionBlurModule motion_blur;
   DepthOfField depth_of_field;
@@ -101,10 +103,8 @@ class Instance {
   World world;
   LookdevView lookdev_view;
   LookdevModule lookdev;
-  SphereProbeModule sphere_probes;
-  PlanarProbeModule planar_probes;
-  VolumeProbeModule volume_probes;
   LightProbeModule light_probes;
+  IrradianceCache irradiance_cache;
   VolumeModule volume;
 
   /** Input data. */
@@ -149,6 +149,8 @@ class Instance {
         lights(*this),
         ambient_occlusion(*this, uniform_data.data.ao),
         raytracing(*this, uniform_data.data.raytrace),
+        reflection_probes(*this),
+        planar_probes(*this),
         velocity(*this),
         motion_blur(*this),
         depth_of_field(*this),
@@ -163,11 +165,12 @@ class Instance {
         world(*this),
         lookdev_view(*this),
         lookdev(*this),
-        sphere_probes(*this),
-        planar_probes(*this),
-        volume_probes(*this),
         light_probes(*this),
-        volume(*this, uniform_data.data.volumes){};
+        irradiance_cache(*this),
+        volume(*this, uniform_data.data.volumes)
+  {
+    BLI_assert_unreachable();
+  };
   ~Instance(){};
 
   /* Render & Viewport. */

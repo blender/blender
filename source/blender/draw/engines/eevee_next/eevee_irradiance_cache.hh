@@ -24,7 +24,7 @@ class Instance;
 class CapturePipeline;
 class ShadowModule;
 class Camera;
-class SphereProbeModule;
+class ReflectionProbeModule;
 
 /**
  * Baking related pass and data. Not used at runtime.
@@ -146,9 +146,7 @@ class IrradianceBake {
   }
 
   /** Create the views used to rasterize the scene into surfel representation. */
-  void surfel_raster_views_sync(const float3 &scene_min,
-                                const float3 &scene_max,
-                                const float4x4 &probe_to_world);
+  void surfel_raster_views_sync(float3 scene_min, float3 scene_max, float4x4 probe_to_world);
   /** Create a surfel representation of the scene from the probe using the capture pipeline. */
   void surfels_create(const Object &probe_object);
   /** Evaluate direct lighting (and also clear the surfels radiance). */
@@ -188,7 +186,7 @@ class IrradianceBake {
  * Runtime container of diffuse indirect lighting.
  * Also have debug and baking components.
  */
-class VolumeProbeModule {
+class IrradianceCache {
  public:
   IrradianceBake bake;
 
@@ -204,27 +202,27 @@ class VolumeProbeModule {
   /** Reserved atlas brick for world irradiance. */
   int world_brick_index_ = 0;
   /** Data structure used to index irradiance cache pages inside the atlas. */
-  VolumeProbeDataBuf grids_infos_buf_ = {"grids_infos_buf_"};
+  IrradianceGridDataBuf grids_infos_buf_ = {"grids_infos_buf_"};
   IrradianceBrickBuf bricks_infos_buf_ = {"bricks_infos_buf_"};
   /** Pool of atlas regions to allocate to different grids. */
   Vector<IrradianceBrickPacked> brick_pool_;
   /** Stream data into the irradiance atlas texture. */
-  PassSimple grid_upload_ps_ = {"VolumeProbeModule.Upload"};
+  PassSimple grid_upload_ps_ = {"IrradianceCache.Upload"};
   /** If true, will trigger the reupload of all grid data instead of just streaming new ones. */
   bool do_full_update_ = true;
 
   /** Display debug data. */
-  PassSimple debug_ps_ = {"VolumeProbeModule.Debug"};
+  PassSimple debug_ps_ = {"IrradianceCache.Debug"};
   /** Debug surfel elements copied from the light cache. */
   draw::StorageArrayBuffer<Surfel> debug_surfels_buf_;
 
   /** Display grid cache data. */
   bool display_grids_enabled_ = false;
-  PassSimple display_grids_ps_ = {"VolumeProbeModule.Display Grids"};
+  PassSimple display_grids_ps_ = {"IrradianceCache.Display Grids"};
 
  public:
-  VolumeProbeModule(Instance &inst) : bake(inst), inst_(inst){};
-  ~VolumeProbeModule(){};
+  IrradianceCache(Instance &inst) : bake(inst), inst_(inst){};
+  ~IrradianceCache(){};
 
   void init();
   void sync();
@@ -238,14 +236,14 @@ class VolumeProbeModule {
   {
     pass.bind_ubo(IRRADIANCE_GRID_BUF_SLOT, &grids_infos_buf_);
     pass.bind_ssbo(IRRADIANCE_BRICK_BUF_SLOT, &bricks_infos_buf_);
-    pass.bind_texture(VOLUME_PROBE_TEX_SLOT, &irradiance_atlas_tx_);
+    pass.bind_texture(IRRADIANCE_ATLAS_TEX_SLOT, &irradiance_atlas_tx_);
   }
 
  private:
   void debug_pass_draw(View &view, GPUFrameBuffer *view_fb);
   void display_pass_draw(View &view, GPUFrameBuffer *view_fb);
 
-  friend class SphereProbeModule;
+  friend class ReflectionProbeModule;
 };
 
 }  // namespace blender::eevee

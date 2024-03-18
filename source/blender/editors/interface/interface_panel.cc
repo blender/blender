@@ -20,7 +20,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
@@ -1342,6 +1342,8 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   /* Intentionally don't scale by 'px'. */
   const int rct_xmin = is_left ? v2d->mask.xmin + 3 : (v2d->mask.xmax - category_tabs_width);
   const int rct_xmax = is_left ? v2d->mask.xmin + category_tabs_width : (v2d->mask.xmax - 3);
+  const int text_v_ofs = (rct_xmax - rct_xmin) * 0.3f;
+
   int y_ofs = tab_v_pad;
 
   /* Primary theme colors. */
@@ -1502,14 +1504,8 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
     /* Tab titles. */
 
-    /* Offset toward the middle of the rect. */
-    const int text_v_ofs = (rct_xmax - rct_xmin) * 0.5f;
-    /* Offset down as the font size increases. */
-    const int text_size_offset = int(fstyle_points * UI_SCALE_FAC * 0.35f);
-
     BLF_position(fontid,
-                 is_left ? rct->xmax - text_v_ofs + text_size_offset :
-                           rct->xmin + text_v_ofs - text_size_offset,
+                 is_left ? rct->xmax - text_v_ofs : rct->xmin + text_v_ofs,
                  is_left ? rct->ymin + tab_v_pad_text : rct->ymax - tab_v_pad_text,
                  0.0f);
     BLF_color3ubv(fontid, is_active ? theme_col_text_hi : theme_col_text);
@@ -1801,7 +1797,7 @@ static void ui_do_animate(bContext *C, Panel *panel)
   uiHandlePanelData *data = static_cast<uiHandlePanelData *>(panel->activedata);
   ARegion *region = CTX_wm_region(C);
 
-  float fac = (BLI_time_now_seconds() - data->starttime) / ANIMATION_TIME;
+  float fac = (BLI_check_seconds_timer() - data->starttime) / ANIMATION_TIME;
   fac = min_ff(sqrtf(fac), 1.0f);
 
   if (uiAlignPanelStep(region, fac, false)) {
@@ -2659,7 +2655,7 @@ static void panel_handle_data_ensure(const bContext *C,
   data->startofsy = panel->ofsy;
   data->start_cur_xmin = region->v2d.cur.xmin;
   data->start_cur_ymin = region->v2d.cur.ymin;
-  data->starttime = BLI_time_now_seconds();
+  data->starttime = BLI_check_seconds_timer();
 }
 
 /**

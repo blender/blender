@@ -74,6 +74,8 @@ struct Icon_Geom {
 
 typedef struct Icon Icon;
 
+struct BlendDataReader;
+struct BlendWriter;
 struct ID;
 struct ImBuf;
 struct PreviewImage;

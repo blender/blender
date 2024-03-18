@@ -5,12 +5,9 @@
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 
-#include "DNA_node_types.h"
 #include "DNA_vec_types.h"
 
 #include "GPU_shader.h"
-
-#include "BKE_node_runtime.hh"
 
 #include "COM_context.hh"
 #include "COM_render_context.hh"
@@ -24,14 +21,6 @@ Context::Context(TexturePool &texture_pool) : texture_pool_(texture_pool) {}
 RenderContext *Context::render_context() const
 {
   return nullptr;
-}
-
-bool Context::is_canceled() const
-{
-  if (!this->get_node_tree().runtime->test_break) {
-    return false;
-  }
-  return this->get_node_tree().runtime->test_break(get_node_tree().runtime->tbh);
 }
 
 int2 Context::get_compositing_region_size() const

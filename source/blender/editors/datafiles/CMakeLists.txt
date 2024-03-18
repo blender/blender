@@ -613,7 +613,6 @@ set(ICON_NAMES
   outliner_data_volume
   volume_data
   pointcloud_point
-  internet
   current_file
   home
   documents
@@ -875,7 +874,6 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.color_filter
   ops.sculpt.face_set_edit
   ops.sculpt.lasso_face_set
-  ops.sculpt.lasso_hide
   ops.sculpt.lasso_mask
   ops.sculpt.lasso_trim
   ops.sculpt.line_mask

@@ -9,14 +9,19 @@
 #include "abc_writer_hair.h"
 #include "intern/abc_axis_conversion.h"
 
+#include <cstdio>
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_customdata.hh"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
@@ -122,7 +127,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
 {
   /* Get untransformed vertices, there's a xform under the hair. */
   float inv_mat[4][4];
-  invert_m4_m4_safe(inv_mat, context.object->object_to_world().ptr());
+  invert_m4_m4_safe(inv_mat, context.object->object_to_world);
 
   MTFace *mtface = (MTFace *)CustomData_get_layer_for_write(
       &mesh->fdata_legacy, CD_MTFACE, mesh->totface_legacy);
@@ -247,7 +252,7 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
 {
   /* Get untransformed vertices, there's a xform under the hair. */
   float inv_mat[4][4];
-  invert_m4_m4_safe(inv_mat, context.object->object_to_world().ptr());
+  invert_m4_m4_safe(inv_mat, context.object->object_to_world);
 
   const MFace *mface = (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE);
   MTFace *mtface = (MTFace *)CustomData_get_layer_for_write(

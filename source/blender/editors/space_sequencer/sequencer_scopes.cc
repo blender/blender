@@ -10,6 +10,7 @@
 #include <cstring>
 
 #include "BLI_math_vector.hh"
+#include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
@@ -222,7 +223,7 @@ ImBuf *make_zebra_view_from_ibuf(const ImBuf *ibuf, float perc)
 #ifdef DEBUG_TIME
   SCOPED_TIMER(__func__);
 #endif
-  ImBuf *res = IMB_allocImBuf(ibuf->x, ibuf->y, 32, IB_rect | IB_uninitialized_pixels);
+  ImBuf *res = IMB_allocImBuf(ibuf->x, ibuf->y, 32, IB_rect);
 
   threading::parallel_for(IndexRange(ibuf->y), 16, [&](IndexRange y_range) {
     if (ibuf->float_buffer.data) {

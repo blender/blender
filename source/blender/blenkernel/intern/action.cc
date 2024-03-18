@@ -10,7 +10,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -33,17 +32,17 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_anim_visualization.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_asset.hh"
 #include "BKE_constraint.h"
 #include "BKE_deform.hh"
-#include "BKE_fcurve.hh"
+#include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
@@ -98,11 +97,7 @@ static CLG_LogRef LOG = {"bke.action"};
  *
  * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
-static void action_copy_data(Main * /*bmain*/,
-                             std::optional<Library *> /*owner_library*/,
-                             ID *id_dst,
-                             const ID *id_src,
-                             const int flag)
+static void action_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
   bAction *action_dst = (bAction *)id_dst;
   const bAction *action_src = (const bAction *)id_src;
@@ -204,7 +199,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BLO_write_id_struct(writer, bAction, id_address, &act->id);
   BKE_id_blend_write(writer, &act->id);
 
-  BKE_fcurve_blend_write_listbase(writer, &act->curves);
+  BKE_fcurve_blend_write(writer, &act->curves);
 
   LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
     BLO_write_struct(writer, bActionGroup, grp);
@@ -234,7 +229,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   }
   /* >>> XXX deprecated - old animation system */
 
-  BKE_fcurve_blend_read_data_listbase(reader, &act->curves);
+  BKE_fcurve_blend_read_data(reader, &act->curves);
 
   LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
     BLO_read_data_address(reader, &agrp->channels.first);
@@ -273,7 +268,6 @@ static AssetTypeInfo AssetType_AC = {
 IDTypeInfo IDType_ID_AC = {
     /*id_code*/ ID_AC,
     /*id_filter*/ FILTER_ID_AC,
-    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_AC,
     /*struct_size*/ sizeof(bAction),
     /*name*/ "Action",
@@ -1723,7 +1717,7 @@ void what_does_obaction(Object *ob,
   workob->runtime = &workob_runtime;
 
   /* init workob */
-  copy_m4_m4(workob->runtime->object_to_world.ptr(), ob->object_to_world().ptr());
+  copy_m4_m4(workob->object_to_world, ob->object_to_world);
   copy_m4_m4(workob->parentinv, ob->parentinv);
   copy_m4_m4(workob->constinv, ob->constinv);
   workob->parent = ob->parent;
@@ -1784,8 +1778,6 @@ void what_does_obaction(Object *ob,
     /* execute effects of Action on to workob (or its PoseChannels) */
     BKE_animsys_evaluate_animdata(&workob->id, &adt, anim_eval_context, ADT_RECALC_ANIM, false);
   }
-  /* Ensure stack memory set here isn't accessed later, see !118847. */
-  workob->runtime = nullptr;
 }
 
 void BKE_pose_check_uids_unique_and_report(const bPose *pose)

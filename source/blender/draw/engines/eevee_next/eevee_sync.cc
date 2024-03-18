@@ -571,6 +571,19 @@ void SyncModule::sync_curves(Object *ob,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Light Probes
+ * \{ */
+
+void SyncModule::sync_light_probe(Object *ob, ObjectHandle &ob_handle)
+{
+  inst_.light_probes.sync_probe(ob, ob_handle);
+  inst_.reflection_probes.sync_object(ob, ob_handle);
+  inst_.planar_probes.sync_object(ob, ob_handle);
+}
+
+/** \} */
+
 void foreach_hair_particle_handle(Object *ob, ObjectHandle ob_handle, HairHandleCallback callback)
 {
   int sub_key = 1;

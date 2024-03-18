@@ -253,7 +253,6 @@ class BlenderSync {
   struct RenderLayerInfo {
     RenderLayerInfo()
         : material_override(PointerRNA_NULL),
-          world_override(PointerRNA_NULL),
           use_background_shader(true),
           use_surfaces(true),
           use_hair(true),
@@ -266,7 +265,6 @@ class BlenderSync {
 
     string name;
     BL::Material material_override;
-    BL::World world_override;
     bool use_background_shader;
     bool use_surfaces;
     bool use_hair;

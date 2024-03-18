@@ -718,7 +718,7 @@ void SoftwareDevice::create()
 	m_doppler_factor = 1.0f;
 	m_distance_model = DISTANCE_MODEL_INVERSE_CLAMPED;
 	m_flags = 0;
-	m_quality = ResampleQuality::FASTEST;
+	m_quality = false;
 }
 
 void SoftwareDevice::destroy()
@@ -829,7 +829,7 @@ void SoftwareDevice::setPanning(IHandle* handle, float pan)
 	h->m_user_pan = pan;
 }
 
-void SoftwareDevice::setQuality(ResampleQuality quality)
+void SoftwareDevice::setQuality(bool quality)
 {
 	m_quality = quality;
 }
@@ -886,14 +886,10 @@ std::shared_ptr<IHandle> SoftwareDevice::play(std::shared_ptr<IReader> reader, b
 	std::shared_ptr<ResampleReader> resampler;
 
 	// resample
-	if (m_quality == ResampleQuality::FASTEST)
-	{
-		resampler = std::shared_ptr<ResampleReader>(new LinearResampleReader(reader, m_specs.rate));
-	}
+	if(m_quality)
+		resampler = std::shared_ptr<ResampleReader>(new JOSResampleReader(reader, m_specs.rate));
 	else
-	{
-		resampler = std::shared_ptr<ResampleReader>(new JOSResampleReader(reader, m_specs.rate, m_quality));
-	}
+		resampler = std::shared_ptr<ResampleReader>(new LinearResampleReader(reader, m_specs.rate));
 	reader = std::shared_ptr<IReader>(resampler);
 
 	// rechannel

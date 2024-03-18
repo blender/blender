@@ -13,7 +13,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <limits>
-#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -28,7 +27,7 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_defaults.h"
 
@@ -39,7 +38,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
@@ -51,7 +50,7 @@
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "ANIM_bone_collections.hh"
 
@@ -131,11 +130,7 @@ static void copy_bone_collection(bArmature *armature_dst,
  *
  * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
-static void armature_copy_data(Main * /*bmain*/,
-                               std::optional<Library *> /*owner_library*/,
-                               ID *id_dst,
-                               const ID *id_src,
-                               const int flag)
+static void armature_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
 {
   bArmature *armature_dst = (bArmature *)id_dst;
   const bArmature *armature_src = (const bArmature *)id_src;
@@ -480,8 +475,6 @@ static void armature_undo_preserve(BlendLibReader * /*reader*/, ID *id_new, ID *
 IDTypeInfo IDType_ID_AR = {
     /*id_code*/ ID_AR,
     /*id_filter*/ FILTER_ID_AR,
-    /* IDProps of armature bones can use any type of ID. */
-    /*dependencies_id_types*/ FILTER_ID_ALL,
     /*main_listbase_index*/ INDEX_ID_AR,
     /*struct_size*/ sizeof(bArmature),
     /*name*/ "Armature",
@@ -1999,7 +1992,7 @@ void BKE_armature_mat_world_to_pose(Object *ob, const float inmat[4][4], float o
   }
 
   /* Get inverse of (armature) object's matrix. */
-  invert_m4_m4(obmat, ob->object_to_world().ptr());
+  invert_m4_m4(obmat, ob->object_to_world);
 
   /* multiply given matrix by object's-inverse to find pose-space matrix */
   mul_m4_m4m4(outmat, inmat, obmat);
@@ -2974,7 +2967,7 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
     }
   }
   else {
-    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+    invert_m4_m4(ob->world_to_object, ob->object_to_world); /* world_to_object is needed */
 
     /* 1. clear flags */
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
@@ -3075,16 +3068,16 @@ void BKE_pchan_minmax(const Object *ob,
                  pchan->custom_translation[0],
                  pchan->custom_translation[1],
                  pchan->custom_translation[2]);
-    mul_m4_series(mat, ob->object_to_world().ptr(), tmp, rmat, smat);
+    mul_m4_series(mat, ob->object_to_world, tmp, rmat, smat);
     BoundBox bb;
     BKE_boundbox_init_from_minmax(&bb, bb_custom->min, bb_custom->max);
     BKE_boundbox_minmax(&bb, mat, r_min, r_max);
   }
   else {
     float vec[3];
-    mul_v3_m4v3(vec, ob->object_to_world().ptr(), pchan_tx->pose_head);
+    mul_v3_m4v3(vec, ob->object_to_world, pchan_tx->pose_head);
     minmax_v3v3_v3(r_min, r_max, vec);
-    mul_v3_m4v3(vec, ob->object_to_world().ptr(), pchan_tx->pose_tail);
+    mul_v3_m4v3(vec, ob->object_to_world, pchan_tx->pose_tail);
     minmax_v3v3_v3(r_min, r_max, vec);
   }
 }

@@ -6,7 +6,6 @@ set(INC
   .
   ../blenkernel
   ../blentranslation
-  ../bmesh
   ../functions
   ../makesrna
   ../../../intern/eigen
@@ -18,10 +17,8 @@ set(INC_SYS
 set(SRC
   intern/add_curves_on_mesh.cc
   intern/curve_constraints.cc
-  intern/extend_curves.cc
   intern/fillet_curves.cc
   intern/join_geometries.cc
-  intern/mesh_boolean.cc
   intern/mesh_copy_selection.cc
   intern/mesh_merge_by_distance.cc
   intern/mesh_primitive_cuboid.cc
@@ -52,10 +49,8 @@ set(SRC
 
   GEO_add_curves_on_mesh.hh
   GEO_curve_constraints.hh
-  GEO_extend_curves.hh
   GEO_fillet_curves.hh
   GEO_join_geometries.hh
-  GEO_mesh_boolean.hh
   GEO_mesh_copy_selection.hh
   GEO_mesh_merge_by_distance.hh
   GEO_mesh_primitive_cuboid.hh
@@ -90,7 +85,6 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::extern::fmtlib
 )
 
 if(WITH_OPENVDB)
@@ -116,18 +110,6 @@ if(WITH_TBB)
 
   list(APPEND LIB
     ${TBB_LIBRARIES}
-  )
-endif()
-
-if(WITH_GMP)
-  add_definitions(-DWITH_GMP)
-
-  list(APPEND INC_SYS
-    ${GMP_INCLUDE_DIRS}
-  )
-
-  list(APPEND LIB
-    ${GMP_LIBRARIES}
   )
 endif()
 

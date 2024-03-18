@@ -24,7 +24,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_utf8_symbols.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "UI_resources.hh"
 
@@ -74,7 +74,7 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #  include "BKE_constraint.h"
 #  include "BKE_context.hh"
-#  include "BKE_global.hh"
+#  include "BKE_global.h"
 #  include "BKE_idprop.h"
 
 #  include "DEG_depsgraph.hh"

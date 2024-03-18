@@ -51,12 +51,12 @@ set(SRC
   intern/bit_ref.cc
   intern/bit_span.cc
   intern/bitmap.c
-  intern/bitmap_draw_2d.cc
+  intern/bitmap_draw_2d.c
   intern/boxpack_2d.c
   intern/buffer.c
   intern/cache_mutex.cc
   intern/compute_context.cc
-  intern/convexhull_2d.cc
+  intern/convexhull_2d.c
   intern/cpp_type.cc
   intern/cpp_types.cc
   intern/delaunay_2d.cc
@@ -82,14 +82,13 @@ set(SRC
   intern/hash_tables.cc
   intern/implicit_sharing.cc
   intern/index_mask.cc
-  intern/index_mask_expression.cc
   intern/index_range.cc
   intern/jitter_2d.c
   intern/kdtree_1d.c
   intern/kdtree_2d.c
   intern/kdtree_3d.c
   intern/kdtree_4d.c
-  intern/lasso_2d.cc
+  intern/lasso_2d.c
   intern/lazy_threading.cc
   intern/length_parameterize.cc
   intern/listbase.cc
@@ -156,7 +155,7 @@ set(SRC
   intern/timecode.c
   intern/timeit.cc
   intern/uuid.cc
-  intern/uvproject.cc
+  intern/uvproject.c
   intern/vector.cc
   intern/virtual_array.cc
   intern/voxel.c
@@ -253,7 +252,6 @@ set(SRC
   BLI_implicit_sharing_ptr.hh
   BLI_index_mask.hh
   BLI_index_mask_fwd.hh
-  BLI_index_mask_expression.hh
   BLI_index_range.hh
   BLI_inplace_priority_queue.hh
   BLI_iterator.h
@@ -261,11 +259,10 @@ set(SRC
   BLI_kdopbvh.h
   BLI_kdtree.h
   BLI_kdtree_impl.h
-  BLI_lasso_2d.hh
+  BLI_lasso_2d.h
   BLI_lazy_threading.hh
   BLI_length_parameterize.hh
   BLI_linear_allocator.hh
-  BLI_linear_allocator_chunked_list.hh
   BLI_link_utils.h
   BLI_linklist.h
   BLI_linklist_lockfree.h
@@ -333,7 +330,6 @@ set(SRC
   BLI_quadric.h
   BLI_rand.h
   BLI_rand.hh
-  BLI_random_access_iterator_mixin.hh
   BLI_range.h
   BLI_rect.h
   BLI_resource_scope.hh
@@ -502,7 +498,6 @@ if(WITH_GTESTS)
     tests/BLI_bitmap_test.cc
     tests/BLI_bounds_test.cc
     tests/BLI_color_test.cc
-    tests/BLI_convexhull_2d_test.cc
     tests/BLI_cpp_type_test.cc
     tests/BLI_delaunay_2d_test.cc
     tests/BLI_disjoint_set_test.cc
@@ -518,13 +513,11 @@ if(WITH_GTESTS)
     tests/BLI_heap_test.cc
     tests/BLI_implicit_sharing_test.cc
     tests/BLI_index_mask_test.cc
-    tests/BLI_index_mask_expression_test.cc
     tests/BLI_index_range_test.cc
     tests/BLI_inplace_priority_queue_test.cc
     tests/BLI_kdopbvh_test.cc
     tests/BLI_kdtree_test.cc
     tests/BLI_length_parameterize_test.cc
-    tests/BLI_linear_allocator_chunked_list_test.cc
     tests/BLI_linear_allocator_test.cc
     tests/BLI_linklist_lockfree_test.cc
     tests/BLI_listbase_test.cc
@@ -551,7 +544,6 @@ if(WITH_GTESTS)
     tests/BLI_path_util_test.cc
     tests/BLI_polyfill_2d_test.cc
     tests/BLI_pool_test.cc
-    tests/BLI_random_access_iterator_mixin_test.cc
     tests/BLI_ressource_strings.h
     tests/BLI_serialize_test.cc
     tests/BLI_session_uid_test.cc

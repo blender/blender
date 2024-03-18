@@ -14,7 +14,10 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_context.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh_iterators.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
 
 #include "BLI_math_vector.h"
@@ -22,6 +25,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
+#include "ED_screen.hh"
 #include "ED_view3d.hh"
 
 #include "paint_intern.hh" /* own include */
@@ -79,11 +83,11 @@ static void vpaint_proj_dm_map_cosnos_init(Depsgraph *depsgraph,
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
   memset(vp_handle->vcosnos, 0, sizeof(*vp_handle->vcosnos) * mesh->verts_num);
   BKE_mesh_foreach_mapped_vert(
-      mesh_eval, vpaint_proj_dm_map_cosnos_init__map_cb, vp_handle, MESH_FOREACH_USE_NORMAL);
+      me_eval, vpaint_proj_dm_map_cosnos_init__map_cb, vp_handle, MESH_FOREACH_USE_NORMAL);
 }
 
 /* -------------------------------------------------------------------- */
@@ -140,14 +144,14 @@ static void vpaint_proj_dm_map_cosnos_update(Depsgraph *depsgraph,
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
   /* quick sanity check - we shouldn't have to run this if there are no modifiers */
   BLI_assert(BLI_listbase_is_empty(&ob->modifiers) == false);
 
   copy_vn_fl(vp_handle->dists_sq, mesh->verts_num, FLT_MAX);
   BKE_mesh_foreach_mapped_vert(
-      mesh_eval, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, MESH_FOREACH_USE_NORMAL);
+      me_eval, vpaint_proj_dm_map_cosnos_update__map_cb, &vp_update, MESH_FOREACH_USE_NORMAL);
 }
 
 /* -------------------------------------------------------------------- */

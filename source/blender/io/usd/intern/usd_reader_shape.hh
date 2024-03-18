@@ -6,6 +6,8 @@
 
 #include "usd.hh"
 #include "usd_reader_geom.hh"
+#include "usd_reader_xform.hh"
+#include <pxr/usd/usdGeom/gprim.h>
 
 struct Mesh;
 
@@ -39,8 +41,6 @@ class USDShapeReader : public USDGeomReader {
                        pxr::VtIntArray &face_indices,
                        pxr::VtIntArray &face_counts) const;
 
-  Mesh *read_mesh(Mesh *existing_mesh, USDMeshReadParams params, const char ** /*err_str*/);
-
  public:
   USDShapeReader(const pxr::UsdPrim &prim,
                  const USDImportParams &import_params,
@@ -48,10 +48,9 @@ class USDShapeReader : public USDGeomReader {
 
   void create_object(Main *bmain, double /*motionSampleTime*/) override;
   void read_object_data(Main *bmain, double motionSampleTime) override;
-  void read_geometry(bke::GeometrySet & /*geometry_set*/,
-                     USDMeshReadParams /*params*/,
-                     const char ** /*err_str*/) override;
-
+  Mesh *read_mesh(Mesh *existing_mesh,
+                  USDMeshReadParams params,
+                  const char ** /*err_str*/) override;
   bool is_time_varying();
 
   virtual bool topology_changed(const Mesh * /*existing_mesh*/,

@@ -13,7 +13,7 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_tree_update.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "BLI_fileops.h"
 #include "BLI_map.hh"
@@ -23,6 +23,8 @@
 #include "BLI_vector.hh"
 
 #include "DNA_material_types.h"
+
+#include "WM_api.hh"
 
 #include <pxr/base/gf/vec3f.h>
 #include <pxr/usd/ar/packageUtils.h>

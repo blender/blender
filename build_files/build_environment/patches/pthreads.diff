@@ -1,6 +1,6 @@
-diff -Naur pthreads4w-clean/Makefile pthreads4w-dirty/Makefile
---- pthreads4w-clean/Makefile	2022-11-18 10:08:27.266563200 +0000
-+++ pthreads4w-dirty/Makefile	2022-11-18 10:16:59.465704400 +0000
+diff -Naur orig/Makefile external_pthreads/Makefile
+--- orig/Makefile	2018-08-08 04:47:40 -0600
++++ external_pthreads/Makefile	2020-05-09 11:20:28 -0600
 @@ -185,7 +185,7 @@
  	@ $(MAKE) /E /nologo XCFLAGS="/MTd" EHFLAGS="$(VSEFLAGSD) /D__PTW32_STATIC_LIB /D__PTW32_BUILD_INLINED" CLEANUP=__PTW32_CLEANUP_SEH pthreadVSE$(PTW32_VER_DEBUG).inlined_static_stamp
  
@@ -10,36 +10,3 @@ diff -Naur pthreads4w-clean/Makefile pthreads4w-dirty/Makefile
  
  VC-static-debug:
  	@ $(MAKE) /E /nologo XCFLAGS="/MTd" EHFLAGS="$(VCFLAGSD) /D__PTW32_STATIC_LIB /D__PTW32_BUILD_INLINED" CLEANUP=__PTW32_CLEANUP_C pthreadVC$(PTW32_VER_DEBUG).inlined_static_stamp
-diff -Naur pthreads4w-clean/context.h pthreads4w-dirty/context.h
---- pthreads4w-clean/context.h	2022-11-18 10:08:27.564507100 +0000
-+++ pthreads4w-dirty/context.h	2022-11-18 10:13:50.209986300 +0000
-@@ -62,7 +62,7 @@
- #endif
- 
- #if defined(_ARM_) || defined(ARM) || defined(_M_ARM) || defined(_M_ARM64)
--#define PTW32_PROGCTR(Context)  ((Context).Pc)
-+#define __PTW32_PROGCTR(Context)  ((Context).Pc)
- #endif
- 
- #if !defined (__PTW32_PROGCTR)
-diff -Naur pthreads4w-clean/version.rc pthreads4w-dirty/version.rc
---- pthreads4w-clean/version.rc	2022-11-18 10:08:30.101359500 +0000
-+++ pthreads4w-dirty/version.rc	2022-11-18 10:14:44.651478200 +0000
-@@ -63,6 +63,17 @@
- #      define  __PTW32_VERSIONINFO_NAME "pthreadVSE2.DLL\0"
- #      define  __PTW32_VERSIONINFO_DESCRIPTION "MS C SEH x86\0"
- #    endif
-+#  elif defined (__PTW32_ARCHARM64)
-+#    if defined(__PTW32_CLEANUP_C)
-+#      define  __PTW32_VERSIONINFO_NAME "pthreadVC2.DLL\0"
-+#      define  __PTW32_VERSIONINFO_DESCRIPTION "MS C arm64\0"
-+#    elif defined(__PTW32_CLEANUP_CXX)
-+#      define  __PTW32_VERSIONINFO_NAME "pthreadVCE2.DLL\0"
-+#      define  __PTW32_VERSIONINFO_DESCRIPTION "MS C++ arm64\0"
-+#    elif defined(__PTW32_CLEANUP_SEH)
-+#      define  __PTW32_VERSIONINFO_NAME "pthreadVSE2.DLL\0"
-+#      define  __PTW32_VERSIONINFO_DESCRIPTION "MS C SEH arm64\0"
-+#    endif
- #  endif
- #elif defined(__GNUC__)
- #  if defined(_M_X64)

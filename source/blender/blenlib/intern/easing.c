@@ -10,7 +10,7 @@
 
 #include "BLI_easing.h" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /* blend if (amplitude < fabsf(change) */
 #define USE_ELASTIC_BLEND

@@ -4,7 +4,7 @@
 
 #include "COM_ViewerOperation.h"
 #include "BKE_image.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "COM_ExecutionSystem.h"
 
 #include "IMB_colormanagement.hh"
@@ -26,6 +26,8 @@ ViewerOperation::ViewerOperation()
   this->add_input_socket(DataType::Color);
   this->add_input_socket(DataType::Value);
 
+  image_input_ = nullptr;
+  alpha_input_ = nullptr;
   rd_ = nullptr;
   view_name_ = nullptr;
   flags_.use_viewer_border = true;
@@ -34,6 +36,10 @@ ViewerOperation::ViewerOperation()
 
 void ViewerOperation::init_execution()
 {
+  /* When initializing the tree during initial load the width and height can be zero. */
+  image_input_ = get_input_socket_reader(0);
+  alpha_input_ = get_input_socket_reader(1);
+
   if (is_active_viewer_output() && !exec_system_->is_breaked()) {
     init_image();
   }
@@ -41,7 +47,48 @@ void ViewerOperation::init_execution()
 
 void ViewerOperation::deinit_execution()
 {
+  image_input_ = nullptr;
+  alpha_input_ = nullptr;
   output_buffer_ = nullptr;
+}
+
+void ViewerOperation::execute_region(rcti *rect, uint /*tile_number*/)
+{
+  float *buffer = output_buffer_;
+  if (!buffer) {
+    return;
+  }
+  const int x1 = rect->xmin;
+  const int y1 = rect->ymin;
+  const int x2 = rect->xmax;
+  const int y2 = rect->ymax;
+  const int offsetadd = (this->get_width() - (x2 - x1));
+  const int offsetadd4 = offsetadd * 4;
+  int offset = (y1 * this->get_width() + x1);
+  int offset4 = offset * 4;
+  float alpha[4];
+  int x;
+  int y;
+  bool breaked = false;
+
+  for (y = y1; y < y2 && (!breaked); y++) {
+    for (x = x1; x < x2; x++) {
+      image_input_->read_sampled(&(buffer[offset4]), x, y, PixelSampler::Nearest);
+      if (use_alpha_input_) {
+        alpha_input_->read_sampled(alpha, x, y, PixelSampler::Nearest);
+        buffer[offset4 + 3] = alpha[0];
+      }
+
+      offset++;
+      offset4 += 4;
+    }
+    if (is_braked()) {
+      breaked = true;
+    }
+    offset += offsetadd;
+    offset4 += offsetadd4;
+  }
+  update_image(rect);
 }
 
 void ViewerOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)

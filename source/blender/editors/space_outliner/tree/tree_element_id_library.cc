@@ -6,7 +6,7 @@
  * \ingroup spoutliner
  */
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_ID.h"
 #include "DNA_listBase.h"

@@ -186,7 +186,6 @@ class VKDevice : public NonCopyable {
    */
   void init_dummy_buffer(VKContext &context);
   void init_dummy_color_attachment();
-  void reinit();
   void deinit();
 
   eGPUDeviceType device_type() const;
@@ -208,7 +207,7 @@ class VKDevice : public NonCopyable {
 
   void context_register(VKContext &context);
   void context_unregister(VKContext &context);
-  Span<std::reference_wrapper<VKContext>> contexts_get() const;
+  const Vector<std::reference_wrapper<VKContext>> &contexts_get() const;
 
   const VKBuffer &dummy_buffer_get() const
   {

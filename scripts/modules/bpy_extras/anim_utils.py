@@ -233,7 +233,7 @@ def bake_action_iter(
             return {}
 
         # Be careful about which properties to actually consider for baking, as
-        # keeping references to complex Blender data-structures around for too long
+        # keeping references to complex Blender datastructures around for too long
         # can cause crashes. See #117988.
         clean_props = {
             key: rna_idprop_value_to_python(value)

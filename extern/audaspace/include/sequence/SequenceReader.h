@@ -74,9 +74,9 @@ public:
 	/**
 	 * Creates a resampling reader.
 	 * \param sequence The sequence data.
-	 * \param quality Resampling quality vs performance option.
+	 * \param quality Whether a high quality resample should be used for resampling.
 	 */
-	SequenceReader(std::shared_ptr<SequenceData> sequence, ResampleQuality quality = ResampleQuality::FASTEST);
+	SequenceReader(std::shared_ptr<SequenceData> sequence, bool quality = false);
 
 	/**
 	 * Destroys the reader.

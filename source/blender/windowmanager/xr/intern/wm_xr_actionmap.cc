@@ -13,10 +13,13 @@
 #include <cmath>
 #include <cstring>
 
+#include "BKE_context.hh"
 #include "BKE_idprop.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+
+#include "GHOST_Types.h"
 
 #include "MEM_guardedalloc.h"
 

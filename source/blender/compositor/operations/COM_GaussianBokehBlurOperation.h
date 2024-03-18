@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <memory>
-
 #include "COM_BlurBaseOperation.h"
 #include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
@@ -24,7 +22,20 @@ class GaussianBokehBlurOperation : public BlurBaseOperation {
   GaussianBokehBlurOperation();
   void init_data() override;
   void init_execution() override;
+  void *initialize_tile_data(rcti *rect) override;
+  /**
+   * The inner loop of this operation.
+   */
+  void execute_pixel(float output[4], int x, int y, void *data) override;
+
+  /**
+   * Deinitialize the execution
+   */
   void deinit_execution() override;
+
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -34,7 +45,7 @@ class GaussianBokehBlurOperation : public BlurBaseOperation {
 
 class GaussianBlurReferenceOperation : public BlurBaseOperation {
  private:
-  std::unique_ptr<MemoryBuffer> weights_;
+  float **maintabs_;
 
   void update_gauss();
   int filtersizex_;
@@ -46,6 +57,20 @@ class GaussianBlurReferenceOperation : public BlurBaseOperation {
   GaussianBlurReferenceOperation();
   void init_data() override;
   void init_execution() override;
+  void *initialize_tile_data(rcti *rect) override;
+  /**
+   * The inner loop of this operation.
+   */
+  void execute_pixel(float output[4], int x, int y, void *data) override;
+
+  /**
+   * Deinitialize the execution
+   */
+  void deinit_execution() override;
+
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,

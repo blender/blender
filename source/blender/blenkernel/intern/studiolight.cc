@@ -17,9 +17,11 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.hh"
 
 #include "DNA_listBase.h"
 
@@ -504,7 +506,7 @@ BLI_INLINE float area_element(float x, float y)
 
 static float brdf_approx(float spec_color, float roughness, float NV)
 {
-  /* Very rough approximation. We don't need it to be correct, just fast.
+  /* Very rough own approx. We don't need it to be correct, just fast.
    * Just simulate fresnel effect with roughness attenuation. */
   float fresnel = exp2(-8.35f * NV) * (1.0f - roughness);
   return spec_color * (1.0f - fresnel) + fresnel;

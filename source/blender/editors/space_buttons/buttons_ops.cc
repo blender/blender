@@ -18,12 +18,12 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_appdir.hh"
 #include "BKE_context.hh"
 #include "BKE_main.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_screen.hh"
 
 #include "WM_api.hh"
@@ -299,20 +299,6 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     MEM_freeN(path);
     return OPERATOR_CANCELLED;
-  }
-
-  {
-    const char *info;
-    if (!RNA_property_editable_info(&ptr, prop, &info)) {
-      if (info[0]) {
-        BKE_reportf(op->reports, RPT_ERROR, "Property is not editable: %s", info);
-      }
-      else {
-        BKE_report(op->reports, RPT_ERROR, "Property is not editable");
-      }
-      MEM_freeN(path);
-      return OPERATOR_CANCELLED;
-    }
   }
 
   PropertyRNA *prop_relpath;

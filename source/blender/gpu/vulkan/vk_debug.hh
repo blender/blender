@@ -7,7 +7,7 @@
  */
 #pragma once
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BLI_compiler_attrs.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"

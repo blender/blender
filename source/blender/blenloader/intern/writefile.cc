@@ -91,7 +91,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
-#include "BLI_implicit_sharing.hh"
 #include "BLI_link_utils.h"
 #include "BLI_linklist.h"
 #include "BLI_math_base.h"
@@ -101,8 +100,8 @@
 #include "MEM_guardedalloc.h" /* MEM_freeN */
 
 #include "BKE_blender_version.h"
-#include "BKE_bpath.hh"
-#include "BKE_global.hh" /* For #Global `G`. */
+#include "BKE_bpath.h"
+#include "BKE_global.h" /* For #Global `G`. */
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"
@@ -113,13 +112,13 @@
 #include "BKE_main_namemap.hh"
 #include "BKE_node.hh"
 #include "BKE_packedFile.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_workspace.h"
 
 #include "BLO_blend_defs.hh"
 #include "BLO_blend_validate.hh"
 #include "BLO_read_write.hh"
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 #include "BLO_undofile.hh"
 #include "BLO_writefile.hh"
 
@@ -1823,33 +1822,6 @@ void BLO_write_string(BlendWriter *writer, const char *data_ptr)
   if (data_ptr != nullptr) {
     BLO_write_raw(writer, strlen(data_ptr) + 1, data_ptr);
   }
-}
-
-void BLO_write_shared(BlendWriter *writer,
-                      const void *data,
-                      const size_t approximate_size_in_bytes,
-                      const blender::ImplicitSharingInfo *sharing_info,
-                      const blender::FunctionRef<void()> write_fn)
-{
-  if (data == nullptr) {
-    return;
-  }
-  if (BLO_write_is_undo(writer)) {
-    MemFile &memfile = *writer->wd->mem.written_memfile;
-    if (sharing_info != nullptr) {
-      if (memfile.shared_storage == nullptr) {
-        memfile.shared_storage = MEM_new<MemFileSharedStorage>(__func__);
-      }
-      if (memfile.shared_storage->map.add(data, sharing_info)) {
-        /* The undo-step takes (shared) ownership of the data, which also makes it immutable. */
-        sharing_info->add_user();
-        /* This size is an estimate, but good enough to count data with many users less. */
-        memfile.size += approximate_size_in_bytes / sharing_info->strong_users();
-        return;
-      }
-    }
-  }
-  write_fn();
 }
 
 bool BLO_write_is_undo(BlendWriter *writer)

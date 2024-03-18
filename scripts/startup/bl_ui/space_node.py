@@ -407,7 +407,7 @@ class NODE_PT_material_slots(Panel):
             iface_("Slot")
         )
 
-    # Duplicate part of `EEVEE_MATERIAL_PT_context_material`.
+    # Duplicate part of 'EEVEE_MATERIAL_PT_context_material'.
     def draw(self, context):
         layout = self.layout
         row = layout.row()
@@ -818,9 +818,12 @@ class NODE_PT_quality(bpy.types.Panel):
         col.active = not use_realtime
         col.prop(tree, "render_quality", text="Render")
         col.prop(tree, "edit_quality", text="Edit")
+        col.prop(tree, "chunk_size")
 
         col = layout.column()
         col.active = not use_realtime
+        col.prop(tree, "use_opencl")
+        col.prop(tree, "use_groupnode_buffer")
         col.prop(tree, "use_two_pass")
         col.prop(tree, "use_viewer_border")
 
@@ -863,9 +866,6 @@ class NODE_PT_overlay(Panel):
             col.separator()
             col.prop(overlay, "show_timing", text="Timings")
             col.prop(overlay, "show_named_attributes", text="Named Attributes")
-
-        if snode.tree_type == 'CompositorNodeTree':
-            col.prop(overlay, "show_timing", text="Timings")
 
 
 class NODE_MT_node_tree_interface_context_menu(Menu):
@@ -933,7 +933,7 @@ class NODE_PT_node_tree_interface(Panel):
                         if 'OUTPUT' in active_item.in_out:
                             layout.prop(active_item, "attribute_domain")
                         layout.prop(active_item, "default_attribute_name")
-                if hasattr(active_item, "draw"):
+                if hasattr(active_item, 'draw'):
                     active_item.draw(context, layout)
 
             if active_item.item_type == 'PANEL':
@@ -1086,7 +1086,7 @@ class NODE_PT_repeat_zone_items(Panel):
         if snode is None:
             return False
         node = context.active_node
-        if node is None or node.bl_idname not in {cls.input_node_type, cls.output_node_type}:
+        if node is None or node.bl_idname not in (cls.input_node_type, cls.output_node_type):
             return False
         if cls.get_output_node(context) is None:
             return False

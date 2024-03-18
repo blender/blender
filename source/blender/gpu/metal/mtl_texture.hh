@@ -291,14 +291,6 @@ class MTLTexture : public Texture {
     return name_;
   }
 
-  bool has_custom_swizzle()
-  {
-    return (mtl_swizzle_mask_.red != MTLTextureSwizzleRed ||
-            mtl_swizzle_mask_.green != MTLTextureSwizzleGreen ||
-            mtl_swizzle_mask_.blue != MTLTextureSwizzleBlue ||
-            mtl_swizzle_mask_.alpha != MTLTextureSwizzleAlpha);
-  }
-
   id<MTLBuffer> get_vertex_buffer() const
   {
     if (resource_mode_ == MTL_TEXTURE_MODE_VBO) {

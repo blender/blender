@@ -25,6 +25,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
@@ -32,7 +33,9 @@
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_key.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
@@ -40,7 +43,7 @@
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -137,7 +140,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       float cmat[4][4];
 
       /* Watch this: switch matrix multiplication order really goes wrong. */
-      mul_m4_m4m4(cmat, imat, ob_src->object_to_world().ptr());
+      mul_m4_m4m4(cmat, imat, ob_src->object_to_world);
 
       /* transform vertex coordinates into new space */
       for (a = 0; a < mesh->verts_num; a++) {
@@ -147,7 +150,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       /* For each shape-key in destination mesh:
        * - if there's a matching one, copy it across
        *   (will need to transform vertices into new space...).
-       * - otherwise, just copy its own coordinates of mesh
+       * - otherwise, just copy own coordinates of mesh
        *   (no need to transform vertex coordinates into new space).
        */
       if (key) {
@@ -374,7 +377,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
    * NOTE: This doesn't apply recursive parenting. */
   if (join_parent) {
     ob->parent = nullptr;
-    BKE_object_apply_mat4_ex(ob, ob->object_to_world().ptr(), ob->parent, ob->parentinv, false);
+    BKE_object_apply_mat4_ex(ob, ob->object_to_world, ob->parent, ob->parentinv, false);
   }
 
   /* that way the active object is always selected */
@@ -567,7 +570,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   /* Inverse transform for all selected meshes in this object,
    * See #object_join_exec for detailed comment on why the safe version is used. */
-  invert_m4_m4_safe_ortho(imat, ob->object_to_world().ptr());
+  invert_m4_m4_safe_ortho(imat, ob->object_to_world);
 
   /* Add back active mesh first.
    * This allows to keep things similar as they were, as much as possible
@@ -821,35 +824,35 @@ int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
 static MirrTopoStore_t mesh_topo_store = {nullptr, -1, -1, false};
 
 BLI_INLINE void mesh_mirror_topo_table_get_meshes(Object *ob,
-                                                  Mesh *mesh_eval,
-                                                  Mesh **r_mesh_mirror,
+                                                  Mesh *me_eval,
+                                                  Mesh **r_me_mirror,
                                                   BMEditMesh **r_em_mirror)
 {
-  Mesh *mesh_mirror = nullptr;
+  Mesh *me_mirror = nullptr;
   BMEditMesh *em_mirror = nullptr;
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  if (mesh_eval != nullptr) {
-    mesh_mirror = mesh_eval;
+  if (me_eval != nullptr) {
+    me_mirror = me_eval;
   }
   else if (mesh->edit_mesh != nullptr) {
     em_mirror = mesh->edit_mesh;
   }
   else {
-    mesh_mirror = mesh;
+    me_mirror = mesh;
   }
 
-  *r_mesh_mirror = mesh_mirror;
+  *r_me_mirror = me_mirror;
   *r_em_mirror = em_mirror;
 }
 
-void ED_mesh_mirror_topo_table_begin(Object *ob, Mesh *mesh_eval)
+void ED_mesh_mirror_topo_table_begin(Object *ob, Mesh *me_eval)
 {
-  Mesh *mesh_mirror;
+  Mesh *me_mirror;
   BMEditMesh *em_mirror;
-  mesh_mirror_topo_table_get_meshes(ob, mesh_eval, &mesh_mirror, &em_mirror);
+  mesh_mirror_topo_table_get_meshes(ob, me_eval, &me_mirror, &em_mirror);
 
-  ED_mesh_mirrtopo_init(em_mirror, mesh_mirror, &mesh_topo_store, false);
+  ED_mesh_mirrtopo_init(em_mirror, me_mirror, &mesh_topo_store, false);
 }
 
 void ED_mesh_mirror_topo_table_end(Object * /*ob*/)
@@ -859,24 +862,24 @@ void ED_mesh_mirror_topo_table_end(Object * /*ob*/)
 }
 
 /* Returns true on success. */
-static bool ed_mesh_mirror_topo_table_update(Object *ob, Mesh *mesh_eval)
+static bool ed_mesh_mirror_topo_table_update(Object *ob, Mesh *me_eval)
 {
-  Mesh *mesh_mirror;
+  Mesh *me_mirror;
   BMEditMesh *em_mirror;
-  mesh_mirror_topo_table_get_meshes(ob, mesh_eval, &mesh_mirror, &em_mirror);
+  mesh_mirror_topo_table_get_meshes(ob, me_eval, &me_mirror, &em_mirror);
 
-  if (ED_mesh_mirrtopo_recalc_check(em_mirror, mesh_mirror, &mesh_topo_store)) {
-    ED_mesh_mirror_topo_table_begin(ob, mesh_eval);
+  if (ED_mesh_mirrtopo_recalc_check(em_mirror, me_mirror, &mesh_topo_store)) {
+    ED_mesh_mirror_topo_table_begin(ob, me_eval);
   }
   return true;
 }
 
 /** \} */
 
-static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *mesh_eval, int index)
+static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *me_eval, int index)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  const Span<float3> positions = mesh_eval ? mesh_eval->vert_positions() : mesh->vert_positions();
+  const Span<float3> positions = me_eval ? me_eval->vert_positions() : mesh->vert_positions();
 
   float vec[3];
 
@@ -884,7 +887,7 @@ static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *mesh_eval, int index
   vec[1] = positions[index][1];
   vec[2] = positions[index][2];
 
-  return ED_mesh_mirror_spatial_table_lookup(ob, nullptr, mesh_eval, vec);
+  return ED_mesh_mirror_spatial_table_lookup(ob, nullptr, me_eval, vec);
 }
 
 static int mesh_get_x_mirror_vert_topo(Object *ob, Mesh *mesh, int index)
@@ -896,12 +899,12 @@ static int mesh_get_x_mirror_vert_topo(Object *ob, Mesh *mesh, int index)
   return mesh_topo_store.index_lookup[index];
 }
 
-int mesh_get_x_mirror_vert(Object *ob, Mesh *mesh_eval, int index, const bool use_topology)
+int mesh_get_x_mirror_vert(Object *ob, Mesh *me_eval, int index, const bool use_topology)
 {
   if (use_topology) {
-    return mesh_get_x_mirror_vert_topo(ob, mesh_eval, index);
+    return mesh_get_x_mirror_vert_topo(ob, me_eval, index);
   }
-  return mesh_get_x_mirror_vert_spatial(ob, mesh_eval, index);
+  return mesh_get_x_mirror_vert_spatial(ob, me_eval, index);
 }
 
 static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, const float co[3])
@@ -1095,7 +1098,7 @@ static bool mirror_facecmp(const void *a, const void *b)
   return (mirror_facerotation((MFace *)a, (MFace *)b) == -1);
 }
 
-int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
+int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   MFace mirrormf;
@@ -1106,22 +1109,21 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
   BLI_assert(em == nullptr); /* Does not work otherwise, currently... */
 
   const bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
-  const int totvert = mesh_eval ? mesh_eval->verts_num : mesh->verts_num;
-  const int totface = mesh_eval ? mesh_eval->totface_legacy : mesh->totface_legacy;
+  const int totvert = me_eval ? me_eval->verts_num : mesh->verts_num;
+  const int totface = me_eval ? me_eval->totface_legacy : mesh->totface_legacy;
   int a;
 
   mirrorverts = static_cast<int *>(MEM_callocN(sizeof(int) * totvert, "MirrorVerts"));
   mirrorfaces = static_cast<int *>(MEM_callocN(sizeof(int[2]) * totface, "MirrorFaces"));
 
-  const Span<float3> vert_positions = mesh_eval ? mesh_eval->vert_positions() :
-                                                  mesh->vert_positions();
+  const Span<float3> vert_positions = me_eval ? me_eval->vert_positions() : mesh->vert_positions();
   const MFace *mface = (const MFace *)CustomData_get_layer(
-      &(mesh_eval ? mesh_eval : mesh)->fdata_legacy, CD_MFACE);
+      &(me_eval ? me_eval : mesh)->fdata_legacy, CD_MFACE);
 
-  ED_mesh_mirror_spatial_table_begin(ob, em, mesh_eval);
+  ED_mesh_mirror_spatial_table_begin(ob, em, me_eval);
 
   for (const int i : vert_positions.index_range()) {
-    mirrorverts[i] = mesh_get_x_mirror_vert(ob, mesh_eval, i, use_topology);
+    mirrorverts[i] = mesh_get_x_mirror_vert(ob, me_eval, i, use_topology);
   }
 
   ED_mesh_mirror_spatial_table_end(ob);
@@ -1233,8 +1235,8 @@ bool ED_mesh_pick_face_vert(
 
   if (ED_mesh_pick_face(C, ob, mval, dist_px, &face_index)) {
     const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
-    if (!mesh_eval) {
+    const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+    if (!me_eval) {
       return false;
     }
     ARegion *region = CTX_wm_region(C);
@@ -1245,11 +1247,11 @@ bool ED_mesh_pick_face_vert(
     const float mval_f[2] = {float(mval[0]), float(mval[1])};
     float len_best = FLT_MAX;
 
-    const Span<float3> vert_positions = mesh_eval->vert_positions();
-    const blender::OffsetIndices faces = mesh_eval->faces();
-    const Span<int> corner_verts = mesh_eval->corner_verts();
+    const Span<float3> vert_positions = me_eval->vert_positions();
+    const blender::OffsetIndices faces = me_eval->faces();
+    const Span<int> corner_verts = me_eval->corner_verts();
 
-    const int *index_mp_to_orig = (const int *)CustomData_get_layer(&mesh_eval->face_data,
+    const int *index_mp_to_orig = (const int *)CustomData_get_layer(&me_eval->face_data,
                                                                     CD_ORIGINDEX);
 
     /* tag all verts using this face */
@@ -1280,7 +1282,7 @@ bool ED_mesh_pick_face_vert(
 
     /* map 'dm -> mesh' r_index if possible */
     if (v_idx_best != ORIGINDEX_NONE) {
-      const int *index_mv_to_orig = (const int *)CustomData_get_layer(&mesh_eval->vert_data,
+      const int *index_mv_to_orig = (const int *)CustomData_get_layer(&me_eval->vert_data,
                                                                       CD_ORIGINDEX);
       if (index_mv_to_orig) {
         v_idx_best = index_mv_to_orig[v_idx_best];
@@ -1368,7 +1370,7 @@ bool ED_mesh_pick_vert(
   }
   else {
     const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
-    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+    const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
     ARegion *region = vc.region;
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
@@ -1379,7 +1381,7 @@ bool ED_mesh_pick_vert(
 
     ED_view3d_init_mats_rv3d(ob, rv3d);
 
-    if (mesh_eval == nullptr) {
+    if (me_eval == nullptr) {
       return false;
     }
 
@@ -1392,7 +1394,7 @@ bool ED_mesh_pick_vert(
     data.v_idx_best = -1;
     data.hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
 
-    BKE_mesh_foreach_mapped_vert(mesh_eval, ed_mesh_pick_vert__mapFunc, &data, MESH_FOREACH_NOP);
+    BKE_mesh_foreach_mapped_vert(me_eval, ed_mesh_pick_vert__mapFunc, &data, MESH_FOREACH_NOP);
 
     if (data.v_idx_best == -1) {
       return false;

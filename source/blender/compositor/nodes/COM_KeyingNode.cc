@@ -18,7 +18,8 @@
 
 #include "COM_SetAlphaMultiplyOperation.h"
 
-#include "COM_GaussianAlphaBlurBaseOperation.h"
+#include "COM_GaussianAlphaXBlurOperation.h"
+#include "COM_GaussianAlphaYBlurOperation.h"
 
 #include "BLI_math_color.h"
 

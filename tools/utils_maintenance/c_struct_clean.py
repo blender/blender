@@ -62,12 +62,12 @@ def clean_structs(fn: str, data_src: str) -> Optional[str]:
             if ty in Token.Comment:  # type: ignore
                 continue
 
-    for w_match in re_words.finditer(data_src):
-        w = w_match.group(0)
-        try:
-            word_occurance[w] += 1
-        except KeyError:
-            word_occurance[w] = 1
+        for w_match in re_words.finditer(data_src):
+            w = w_match.group(0)
+            try:
+                word_occurance[w] += 1
+            except KeyError:
+                word_occurance[w] = 1
 
     lines = data_src.splitlines(keepends=True)
 

@@ -18,7 +18,7 @@
 #include "BLI_time.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
@@ -48,7 +48,7 @@
 /** \name Operator Conditions
  * \{ */
 
-/* `op->poll`. */
+/* op->poll */
 static bool wm_xr_operator_sessionactive(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -141,14 +141,14 @@ static int wm_xr_session_toggle_exec(bContext *C, wmOperator * /*op*/)
 
 static void WM_OT_xr_session_toggle(wmOperatorType *ot)
 {
-  /* Identifiers. */
+  /* identifiers */
   ot->name = "Toggle VR Session";
   ot->idname = "WM_OT_xr_session_toggle";
   ot->description =
       "Open a view for use with virtual reality headsets, or close it if already "
       "opened";
 
-  /* Callbacks. */
+  /* callbacks */
   ot->exec = wm_xr_session_toggle_exec;
   ot->poll = ED_operator_view3d_active;
 
@@ -327,15 +327,15 @@ static void wm_xr_grab_compute_bimanual(const wmXrActionData *actiondata,
     quat_to_mat3(m0, actiondata->controller_rot);
     quat_to_mat3(m1, actiondata->controller_rot_other);
 
-    /* X-axis is the base line between the two controllers. */
+    /* x-axis is the base line between the two controllers. */
     sub_v3_v3v3(x_axis_prev, data->mat_prev[3], data->mat_other_prev[3]);
     sub_v3_v3v3(x_axis_curr, actiondata->controller_loc, actiondata->controller_loc_other);
-    /* Y-axis is the average of the controllers' y-axes. */
+    /* y-axis is the average of the controllers' y-axes. */
     add_v3_v3v3(y_axis_prev, data->mat_prev[1], data->mat_other_prev[1]);
     mul_v3_fl(y_axis_prev, 0.5f);
     add_v3_v3v3(y_axis_curr, m0[1], m1[1]);
     mul_v3_fl(y_axis_curr, 0.5f);
-    /* Z-axis is the cross product of the two. */
+    /* z-axis is the cross product of the two. */
     cross_v3_v3v3(z_axis_prev, x_axis_prev, y_axis_prev);
     cross_v3_v3v3(z_axis_curr, x_axis_curr, y_axis_curr);
     /* Fix the y-axis to be orthogonal. */
@@ -571,18 +571,18 @@ static int wm_xr_navigation_grab_modal(bContext *C, wmOperator *op, const wmEven
 
 static void WM_OT_xr_navigation_grab(wmOperatorType *ot)
 {
-  /* Identifiers. */
+  /* identifiers */
   ot->name = "XR Navigation Grab";
   ot->idname = "WM_OT_xr_navigation_grab";
   ot->description = "Navigate the VR scene by grabbing with controllers";
 
-  /* Callbacks. */
+  /* callbacks */
   ot->invoke = wm_xr_navigation_grab_invoke;
   ot->exec = wm_xr_navigation_grab_exec;
   ot->modal = wm_xr_navigation_grab_modal;
   ot->poll = wm_xr_operator_sessionactive;
 
-  /* Properties. */
+  /* properties */
   RNA_def_boolean(
       ot->srna, "lock_location", false, "Lock Location", "Prevent changes to viewer location");
   RNA_def_boolean(
@@ -798,7 +798,7 @@ static void wm_xr_fly_init(wmOperator *op, const wmXrData *xr)
       op->customdata = MEM_callocN(sizeof(XrFlyData), __func__));
 
   WM_xr_session_state_viewer_pose_rotation_get(xr, data->viewer_rot);
-  data->time_prev = BLI_time_now_seconds();
+  data->time_prev = BLI_check_seconds_timer();
 }
 
 static void wm_xr_fly_uninit(wmOperator *op)
@@ -952,7 +952,7 @@ static int wm_xr_navigation_fly_modal(bContext *C, wmOperator *op, const wmEvent
   GHOST_XrPose nav_pose;
   float nav_mat[4][4], delta[4][4], out[4][4];
 
-  const double time_now = BLI_time_now_seconds();
+  const double time_now = BLI_check_seconds_timer();
 
   mode = (eXrFlyMode)RNA_enum_get(op->ptr, "mode");
   turn = ELEM(mode, XR_FLY_TURNLEFT, XR_FLY_TURNRIGHT);
@@ -1112,18 +1112,18 @@ static int wm_xr_navigation_fly_modal(bContext *C, wmOperator *op, const wmEvent
 
 static void WM_OT_xr_navigation_fly(wmOperatorType *ot)
 {
-  /* Identifiers. */
+  /* identifiers */
   ot->name = "XR Navigation Fly";
   ot->idname = "WM_OT_xr_navigation_fly";
   ot->description = "Move/turn relative to the VR viewer or controller";
 
-  /* Callbacks. */
+  /* callbacks */
   ot->invoke = wm_xr_navigation_fly_invoke;
   ot->exec = wm_xr_navigation_fly_exec;
   ot->modal = wm_xr_navigation_fly_modal;
   ot->poll = wm_xr_operator_sessionactive;
 
-  /* Properties. */
+  /* properties */
   static const EnumPropertyItem fly_modes[] = {
       {XR_FLY_FORWARD, "FORWARD", 0, "Forward", "Move along navigation forward axis"},
       {XR_FLY_BACK, "BACK", 0, "Back", "Move along navigation back axis"},
@@ -1353,18 +1353,18 @@ static int wm_xr_navigation_teleport_modal(bContext *C, wmOperator *op, const wm
 
 static void WM_OT_xr_navigation_teleport(wmOperatorType *ot)
 {
-  /* Identifiers. */
+  /* identifiers */
   ot->name = "XR Navigation Teleport";
   ot->idname = "WM_OT_xr_navigation_teleport";
   ot->description = "Set VR viewer location to controller raycast hit location";
 
-  /* Callbacks. */
+  /* callbacks */
   ot->invoke = wm_xr_navigation_teleport_invoke;
   ot->exec = wm_xr_navigation_teleport_exec;
   ot->modal = wm_xr_navigation_teleport_modal;
   ot->poll = wm_xr_operator_sessionactive;
 
-  /* Properties. */
+  /* properties */
   static bool default_teleport_axes[3] = {true, true, true};
 
   RNA_def_boolean_vector(ot->srna,
@@ -1503,16 +1503,16 @@ static int wm_xr_navigation_reset_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_xr_navigation_reset(wmOperatorType *ot)
 {
-  /* Identifiers. */
+  /* identifiers */
   ot->name = "XR Navigation Reset";
   ot->idname = "WM_OT_xr_navigation_reset";
   ot->description = "Reset VR navigation deltas relative to session base pose";
 
-  /* Callbacks. */
+  /* callbacks */
   ot->exec = wm_xr_navigation_reset_exec;
   ot->poll = wm_xr_operator_sessionactive;
 
-  /* Properties. */
+  /* properties */
   RNA_def_boolean(ot->srna, "location", true, "Location", "Reset location deltas");
   RNA_def_boolean(ot->srna, "rotation", true, "Rotation", "Reset rotation deltas");
   RNA_def_boolean(ot->srna, "scale", true, "Scale", "Reset scale deltas");

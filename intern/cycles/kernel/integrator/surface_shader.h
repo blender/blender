@@ -955,6 +955,22 @@ ccl_device Spectrum surface_shader_transparency(KernelGlobals kg, ccl_private co
   }
 }
 
+ccl_device void surface_shader_disable_transparency(KernelGlobals kg, ccl_private ShaderData *sd)
+{
+  if (sd->flag & SD_TRANSPARENT) {
+    for (int i = 0; i < sd->num_closure; i++) {
+      ccl_private ShaderClosure *sc = &sd->closure[i];
+
+      if (sc->type == CLOSURE_BSDF_TRANSPARENT_ID) {
+        sc->sample_weight = 0.0f;
+        sc->weight = zero_spectrum();
+      }
+    }
+
+    sd->flag &= ~SD_TRANSPARENT;
+  }
+}
+
 ccl_device Spectrum surface_shader_alpha(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
   Spectrum alpha = one_spectrum() - surface_shader_transparency(kg, sd);

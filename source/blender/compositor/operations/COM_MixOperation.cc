@@ -16,9 +16,43 @@ MixBaseOperation::MixBaseOperation()
   this->add_input_socket(DataType::Color);
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
+  input_value_operation_ = nullptr;
+  input_color1_operation_ = nullptr;
+  input_color2_operation_ = nullptr;
   this->set_use_value_alpha_multiply(false);
   this->set_use_clamp(false);
   flags_.can_be_constant = true;
+}
+
+void MixBaseOperation::init_execution()
+{
+  input_value_operation_ = this->get_input_socket_reader(0);
+  input_color1_operation_ = this->get_input_socket_reader(1);
+  input_color2_operation_ = this->get_input_socket_reader(2);
+}
+
+void MixBaseOperation::execute_pixel_sampled(float output[4],
+                                             float x,
+                                             float y,
+                                             PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+  output[0] = valuem * (input_color1[0]) + value * (input_color2[0]);
+  output[1] = valuem * (input_color1[1]) + value * (input_color2[1]);
+  output[2] = valuem * (input_color1[2]) + value * (input_color2[2]);
+  output[3] = input_color1[3];
 }
 
 void MixBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
@@ -42,6 +76,13 @@ void MixBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_area
     }
   }
   NodeOperation::determine_canvas(preferred_area, r_area);
+}
+
+void MixBaseOperation::deinit_execution()
+{
+  input_value_operation_ = nullptr;
+  input_color1_operation_ = nullptr;
+  input_color2_operation_ = nullptr;
 }
 
 void MixBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
@@ -85,6 +126,31 @@ void MixBaseOperation::update_memory_buffer_row(PixelCursor &p)
 
 /* ******** Mix Add Operation ******** */
 
+void MixAddOperation::execute_pixel_sampled(float output[4],
+                                            float x,
+                                            float y,
+                                            PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  output[0] = input_color1[0] + value * input_color2[0];
+  output[1] = input_color1[1] + value * input_color2[1];
+  output[2] = input_color1[2] + value * input_color2[2];
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
+
 void MixAddOperation::update_memory_buffer_row(PixelCursor &p)
 {
   while (p.out < p.row_end) {
@@ -103,6 +169,33 @@ void MixAddOperation::update_memory_buffer_row(PixelCursor &p)
 }
 
 /* ******** Mix Blend Operation ******** */
+
+void MixBlendOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+  float value;
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+  value = input_value[0];
+
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+  output[0] = valuem * (input_color1[0]) + value * (input_color2[0]);
+  output[1] = valuem * (input_color1[1]) + value * (input_color2[1]);
+  output[2] = valuem * (input_color1[2]) + value * (input_color2[2]);
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
 
 void MixBlendOperation::update_memory_buffer_row(PixelCursor &p)
 {
@@ -123,6 +216,82 @@ void MixBlendOperation::update_memory_buffer_row(PixelCursor &p)
 }
 
 /* ******** Mix Burn Operation ******** */
+
+void MixColorBurnOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+  float tmp;
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+
+  tmp = valuem + value * input_color2[0];
+  if (tmp <= 0.0f) {
+    output[0] = 0.0f;
+  }
+  else {
+    tmp = 1.0f - (1.0f - input_color1[0]) / tmp;
+    if (tmp < 0.0f) {
+      output[0] = 0.0f;
+    }
+    else if (tmp > 1.0f) {
+      output[0] = 1.0f;
+    }
+    else {
+      output[0] = tmp;
+    }
+  }
+
+  tmp = valuem + value * input_color2[1];
+  if (tmp <= 0.0f) {
+    output[1] = 0.0f;
+  }
+  else {
+    tmp = 1.0f - (1.0f - input_color1[1]) / tmp;
+    if (tmp < 0.0f) {
+      output[1] = 0.0f;
+    }
+    else if (tmp > 1.0f) {
+      output[1] = 1.0f;
+    }
+    else {
+      output[1] = tmp;
+    }
+  }
+
+  tmp = valuem + value * input_color2[2];
+  if (tmp <= 0.0f) {
+    output[2] = 0.0f;
+  }
+  else {
+    tmp = 1.0f - (1.0f - input_color1[2]) / tmp;
+    if (tmp < 0.0f) {
+      output[2] = 0.0f;
+    }
+    else if (tmp > 1.0f) {
+      output[2] = 1.0f;
+    }
+    else {
+      output[2] = tmp;
+    }
+  }
+
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
 
 void MixColorBurnOperation::update_memory_buffer_row(PixelCursor &p)
 {
@@ -168,6 +337,44 @@ void MixColorBurnOperation::update_memory_buffer_row(PixelCursor &p)
 
 /* ******** Mix Color Operation ******** */
 
+void MixColorOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+
+  float colH, colS, colV;
+  rgb_to_hsv(input_color2[0], input_color2[1], input_color2[2], &colH, &colS, &colV);
+  if (colS != 0.0f) {
+    float rH, rS, rV;
+    float tmpr, tmpg, tmpb;
+    rgb_to_hsv(input_color1[0], input_color1[1], input_color1[2], &rH, &rS, &rV);
+    hsv_to_rgb(colH, colS, rV, &tmpr, &tmpg, &tmpb);
+    output[0] = (valuem * input_color1[0]) + (value * tmpr);
+    output[1] = (valuem * input_color1[1]) + (value * tmpg);
+    output[2] = (valuem * input_color1[2]) + (value * tmpb);
+  }
+  else {
+    copy_v3_v3(output, input_color1);
+  }
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
+
 void MixColorOperation::update_memory_buffer_row(PixelCursor &p)
 {
   while (p.out < p.row_end) {
@@ -200,6 +407,32 @@ void MixColorOperation::update_memory_buffer_row(PixelCursor &p)
 
 /* ******** Mix Darken Operation ******** */
 
+void MixDarkenOperation::execute_pixel_sampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+  output[0] = min_ff(input_color1[0], input_color2[0]) * value + input_color1[0] * valuem;
+  output[1] = min_ff(input_color1[1], input_color2[1]) * value + input_color1[1] * valuem;
+  output[2] = min_ff(input_color1[2], input_color2[2]) * value + input_color1[2] * valuem;
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
+
 void MixDarkenOperation::update_memory_buffer_row(PixelCursor &p)
 {
   while (p.out < p.row_end) {
@@ -220,6 +453,32 @@ void MixDarkenOperation::update_memory_buffer_row(PixelCursor &p)
 
 /* ******** Mix Difference Operation ******** */
 
+void MixDifferenceOperation::execute_pixel_sampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+  output[0] = valuem * input_color1[0] + value * fabsf(input_color1[0] - input_color2[0]);
+  output[1] = valuem * input_color1[1] + value * fabsf(input_color1[1] - input_color2[1]);
+  output[2] = valuem * input_color1[2] + value * fabsf(input_color1[2] - input_color2[2]);
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
+
 void MixDifferenceOperation::update_memory_buffer_row(PixelCursor &p)
 {
   while (p.out < p.row_end) {
@@ -239,6 +498,38 @@ void MixDifferenceOperation::update_memory_buffer_row(PixelCursor &p)
 }
 
 /* ******** Mix Exclusion Operation ******** */
+
+void MixExclusionOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+  output[0] = max_ff(valuem * input_color1[0] + value * (input_color1[0] + input_color2[0] -
+                                                         2.0f * input_color1[0] * input_color2[0]),
+                     0.0f);
+  output[1] = max_ff(valuem * input_color1[1] + value * (input_color1[1] + input_color2[1] -
+                                                         2.0f * input_color1[1] * input_color2[1]),
+                     0.0f);
+  output[2] = max_ff(valuem * input_color1[2] + value * (input_color1[2] + input_color2[2] -
+                                                         2.0f * input_color1[2] * input_color2[2]),
+                     0.0f);
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
 
 void MixExclusionOperation::update_memory_buffer_row(PixelCursor &p)
 {
@@ -265,6 +556,49 @@ void MixExclusionOperation::update_memory_buffer_row(PixelCursor &p)
 }
 
 /* ******** Mix Divide Operation ******** */
+
+void MixDivideOperation::execute_pixel_sampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+
+  if (input_color2[0] != 0.0f) {
+    output[0] = valuem * (input_color1[0]) + value * (input_color1[0]) / input_color2[0];
+  }
+  else {
+    output[0] = 0.0f;
+  }
+  if (input_color2[1] != 0.0f) {
+    output[1] = valuem * (input_color1[1]) + value * (input_color1[1]) / input_color2[1];
+  }
+  else {
+    output[1] = 0.0f;
+  }
+  if (input_color2[2] != 0.0f) {
+    output[2] = valuem * (input_color1[2]) + value * (input_color1[2]) / input_color2[2];
+  }
+  else {
+    output[2] = 0.0f;
+  }
+
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
 
 void MixDivideOperation::update_memory_buffer_row(PixelCursor &p)
 {
@@ -302,6 +636,87 @@ void MixDivideOperation::update_memory_buffer_row(PixelCursor &p)
 }
 
 /* ******** Mix Dodge Operation ******** */
+
+void MixDodgeOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+  float tmp;
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+
+  if (input_color1[0] != 0.0f) {
+    tmp = 1.0f - value * input_color2[0];
+    if (tmp <= 0.0f) {
+      output[0] = 1.0f;
+    }
+    else {
+      tmp = input_color1[0] / tmp;
+      if (tmp > 1.0f) {
+        output[0] = 1.0f;
+      }
+      else {
+        output[0] = tmp;
+      }
+    }
+  }
+  else {
+    output[0] = 0.0f;
+  }
+
+  if (input_color1[1] != 0.0f) {
+    tmp = 1.0f - value * input_color2[1];
+    if (tmp <= 0.0f) {
+      output[1] = 1.0f;
+    }
+    else {
+      tmp = input_color1[1] / tmp;
+      if (tmp > 1.0f) {
+        output[1] = 1.0f;
+      }
+      else {
+        output[1] = tmp;
+      }
+    }
+  }
+  else {
+    output[1] = 0.0f;
+  }
+
+  if (input_color1[2] != 0.0f) {
+    tmp = 1.0f - value * input_color2[2];
+    if (tmp <= 0.0f) {
+      output[2] = 1.0f;
+    }
+    else {
+      tmp = input_color1[2] / tmp;
+      if (tmp > 1.0f) {
+        output[2] = 1.0f;
+      }
+      else {
+        output[2] = tmp;
+      }
+    }
+  }
+  else {
+    output[2] = 0.0f;
+  }
+
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
 
 void MixDodgeOperation::update_memory_buffer_row(PixelCursor &p)
 {
@@ -363,6 +778,39 @@ void MixDodgeOperation::update_memory_buffer_row(PixelCursor &p)
 
 /* ******** Mix Glare Operation ******** */
 
+void MixGlareOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+  float value, input_weight, glare_weight;
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+  value = input_value[0];
+  /* Linear interpolation between 3 cases:
+   *  value=-1:output=input    value=0:output=input+glare   value=1:output=glare
+   */
+  if (value < 0.0f) {
+    input_weight = 1.0f;
+    glare_weight = 1.0f + value;
+  }
+  else {
+    input_weight = 1.0f - value;
+    glare_weight = 1.0f;
+  }
+  output[0] = input_weight * std::max(input_color1[0], 0.0f) + glare_weight * input_color2[0];
+  output[1] = input_weight * std::max(input_color1[1], 0.0f) + glare_weight * input_color2[1];
+  output[2] = input_weight * std::max(input_color1[2], 0.0f) + glare_weight * input_color2[2];
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
+
 void MixGlareOperation::update_memory_buffer_row(PixelCursor &p)
 {
   while (p.out < p.row_end) {
@@ -391,6 +839,44 @@ void MixGlareOperation::update_memory_buffer_row(PixelCursor &p)
 }
 
 /* ******** Mix Hue Operation ******** */
+
+void MixHueOperation::execute_pixel_sampled(float output[4],
+                                            float x,
+                                            float y,
+                                            PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+
+  float colH, colS, colV;
+  rgb_to_hsv(input_color2[0], input_color2[1], input_color2[2], &colH, &colS, &colV);
+  if (colS != 0.0f) {
+    float rH, rS, rV;
+    float tmpr, tmpg, tmpb;
+    rgb_to_hsv(input_color1[0], input_color1[1], input_color1[2], &rH, &rS, &rV);
+    hsv_to_rgb(colH, rS, rV, &tmpr, &tmpg, &tmpb);
+    output[0] = valuem * (input_color1[0]) + value * tmpr;
+    output[1] = valuem * (input_color1[1]) + value * tmpg;
+    output[2] = valuem * (input_color1[2]) + value * tmpb;
+  }
+  else {
+    copy_v3_v3(output, input_color1);
+  }
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
 
 void MixHueOperation::update_memory_buffer_row(PixelCursor &p)
 {
@@ -424,6 +910,32 @@ void MixHueOperation::update_memory_buffer_row(PixelCursor &p)
 
 /* ******** Mix Lighten Operation ******** */
 
+void MixLightenOperation::execute_pixel_sampled(float output[4],
+                                                float x,
+                                                float y,
+                                                PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+  output[0] = max_ff(input_color1[0], input_color2[0]) * value + input_color1[0] * valuem;
+  output[1] = max_ff(input_color1[1], input_color2[1]) * value + input_color1[1] * valuem;
+  output[2] = max_ff(input_color1[2], input_color2[2]) * value + input_color1[2] * valuem;
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
+
 void MixLightenOperation::update_memory_buffer_row(PixelCursor &p)
 {
   while (p.out < p.row_end) {
@@ -443,6 +955,47 @@ void MixLightenOperation::update_memory_buffer_row(PixelCursor &p)
 }
 
 /* ******** Mix Linear Light Operation ******** */
+
+void MixLinearLightOperation::execute_pixel_sampled(float output[4],
+                                                    float x,
+                                                    float y,
+                                                    PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  if (input_color2[0] > 0.5f) {
+    output[0] = input_color1[0] + value * (2.0f * (input_color2[0] - 0.5f));
+  }
+  else {
+    output[0] = input_color1[0] + value * (2.0f * (input_color2[0]) - 1.0f);
+  }
+  if (input_color2[1] > 0.5f) {
+    output[1] = input_color1[1] + value * (2.0f * (input_color2[1] - 0.5f));
+  }
+  else {
+    output[1] = input_color1[1] + value * (2.0f * (input_color2[1]) - 1.0f);
+  }
+  if (input_color2[2] > 0.5f) {
+    output[2] = input_color1[2] + value * (2.0f * (input_color2[2] - 0.5f));
+  }
+  else {
+    output[2] = input_color1[2] + value * (2.0f * (input_color2[2]) - 1.0f);
+  }
+
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
 
 void MixLinearLightOperation::update_memory_buffer_row(PixelCursor &p)
 {
@@ -479,6 +1032,32 @@ void MixLinearLightOperation::update_memory_buffer_row(PixelCursor &p)
 
 /* ******** Mix Multiply Operation ******** */
 
+void MixMultiplyOperation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+  output[0] = input_color1[0] * (valuem + value * input_color2[0]);
+  output[1] = input_color1[1] * (valuem + value * input_color2[1]);
+  output[2] = input_color1[2] * (valuem + value * input_color2[2]);
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
+
 void MixMultiplyOperation::update_memory_buffer_row(PixelCursor &p)
 {
   while (p.out < p.row_end) {
@@ -499,6 +1078,52 @@ void MixMultiplyOperation::update_memory_buffer_row(PixelCursor &p)
 }
 
 /* ******** Mix Overlay Operation ******** */
+
+void MixOverlayOperation::execute_pixel_sampled(float output[4],
+                                                float x,
+                                                float y,
+                                                PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+
+  float valuem = 1.0f - value;
+
+  if (input_color1[0] < 0.5f) {
+    output[0] = input_color1[0] * (valuem + 2.0f * value * input_color2[0]);
+  }
+  else {
+    output[0] = 1.0f -
+                (valuem + 2.0f * value * (1.0f - input_color2[0])) * (1.0f - input_color1[0]);
+  }
+  if (input_color1[1] < 0.5f) {
+    output[1] = input_color1[1] * (valuem + 2.0f * value * input_color2[1]);
+  }
+  else {
+    output[1] = 1.0f -
+                (valuem + 2.0f * value * (1.0f - input_color2[1])) * (1.0f - input_color1[1]);
+  }
+  if (input_color1[2] < 0.5f) {
+    output[2] = input_color1[2] * (valuem + 2.0f * value * input_color2[2]);
+  }
+  else {
+    output[2] = 1.0f -
+                (valuem + 2.0f * value * (1.0f - input_color2[2])) * (1.0f - input_color1[2]);
+  }
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
 
 void MixOverlayOperation::update_memory_buffer_row(PixelCursor &p)
 {
@@ -536,6 +1161,41 @@ void MixOverlayOperation::update_memory_buffer_row(PixelCursor &p)
 
 /* ******** Mix Saturation Operation ******** */
 
+void MixSaturationOperation::execute_pixel_sampled(float output[4],
+                                                   float x,
+                                                   float y,
+                                                   PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+
+  float rH, rS, rV;
+  rgb_to_hsv(input_color1[0], input_color1[1], input_color1[2], &rH, &rS, &rV);
+  if (rS != 0.0f) {
+    float colH, colS, colV;
+    rgb_to_hsv(input_color2[0], input_color2[1], input_color2[2], &colH, &colS, &colV);
+    hsv_to_rgb(rH, (valuem * rS + value * colS), rV, &output[0], &output[1], &output[2]);
+  }
+  else {
+    copy_v3_v3(output, input_color1);
+  }
+
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
+
 void MixSaturationOperation::update_memory_buffer_row(PixelCursor &p)
 {
   while (p.out < p.row_end) {
@@ -565,6 +1225,33 @@ void MixSaturationOperation::update_memory_buffer_row(PixelCursor &p)
 
 /* ******** Mix Screen Operation ******** */
 
+void MixScreenOperation::execute_pixel_sampled(float output[4],
+                                               float x,
+                                               float y,
+                                               PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+
+  output[0] = 1.0f - (valuem + value * (1.0f - input_color2[0])) * (1.0f - input_color1[0]);
+  output[1] = 1.0f - (valuem + value * (1.0f - input_color2[1])) * (1.0f - input_color1[1]);
+  output[2] = 1.0f - (valuem + value * (1.0f - input_color2[2])) * (1.0f - input_color1[2]);
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
+
 void MixScreenOperation::update_memory_buffer_row(PixelCursor &p)
 {
   while (p.out < p.row_end) {
@@ -585,6 +1272,45 @@ void MixScreenOperation::update_memory_buffer_row(PixelCursor &p)
 }
 
 /* ******** Mix Soft Light Operation ******** */
+
+void MixSoftLightOperation::execute_pixel_sampled(float output[4],
+                                                  float x,
+                                                  float y,
+                                                  PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+  float scr, scg, scb;
+
+  /* first calculate non-fac based Screen mix */
+  scr = 1.0f - (1.0f - input_color2[0]) * (1.0f - input_color1[0]);
+  scg = 1.0f - (1.0f - input_color2[1]) * (1.0f - input_color1[1]);
+  scb = 1.0f - (1.0f - input_color2[2]) * (1.0f - input_color1[2]);
+
+  output[0] = valuem * (input_color1[0]) +
+              value * (((1.0f - input_color1[0]) * input_color2[0] * (input_color1[0])) +
+                       (input_color1[0] * scr));
+  output[1] = valuem * (input_color1[1]) +
+              value * (((1.0f - input_color1[1]) * input_color2[1] * (input_color1[1])) +
+                       (input_color1[1] * scg));
+  output[2] = valuem * (input_color1[2]) +
+              value * (((1.0f - input_color1[2]) * input_color2[2] * (input_color1[2])) +
+                       (input_color1[2] * scb));
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
 
 void MixSoftLightOperation::update_memory_buffer_row(PixelCursor &p)
 {
@@ -616,6 +1342,31 @@ void MixSoftLightOperation::update_memory_buffer_row(PixelCursor &p)
 
 /* ******** Mix Subtract Operation ******** */
 
+void MixSubtractOperation::execute_pixel_sampled(float output[4],
+                                                 float x,
+                                                 float y,
+                                                 PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  output[0] = input_color1[0] - value * (input_color2[0]);
+  output[1] = input_color1[1] - value * (input_color2[1]);
+  output[2] = input_color1[2] - value * (input_color2[2]);
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
+
 void MixSubtractOperation::update_memory_buffer_row(PixelCursor &p)
 {
   while (p.out < p.row_end) {
@@ -634,6 +1385,35 @@ void MixSubtractOperation::update_memory_buffer_row(PixelCursor &p)
 }
 
 /* ******** Mix Value Operation ******** */
+
+void MixValueOperation::execute_pixel_sampled(float output[4],
+                                              float x,
+                                              float y,
+                                              PixelSampler sampler)
+{
+  float input_color1[4];
+  float input_color2[4];
+  float input_value[4];
+
+  input_value_operation_->read_sampled(input_value, x, y, sampler);
+  input_color1_operation_->read_sampled(input_color1, x, y, sampler);
+  input_color2_operation_->read_sampled(input_color2, x, y, sampler);
+
+  float value = input_value[0];
+  if (this->use_value_alpha_multiply()) {
+    value *= input_color2[3];
+  }
+  float valuem = 1.0f - value;
+
+  float rH, rS, rV;
+  float colH, colS, colV;
+  rgb_to_hsv(input_color1[0], input_color1[1], input_color1[2], &rH, &rS, &rV);
+  rgb_to_hsv(input_color2[0], input_color2[1], input_color2[2], &colH, &colS, &colV);
+  hsv_to_rgb(rH, rS, (valuem * rV + value * colV), &output[0], &output[1], &output[2]);
+  output[3] = input_color1[3];
+
+  clamp_if_needed(output);
+}
 
 void MixValueOperation::update_memory_buffer_row(PixelCursor &p)
 {

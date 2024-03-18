@@ -21,9 +21,10 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "WM_api.hh"
+#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "RNA_define.hh"
@@ -36,6 +37,7 @@
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
+#include "SEQ_utils.hh"
 
 /* For menu, popup, icons, etc. */
 

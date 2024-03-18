@@ -25,19 +25,21 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
@@ -48,8 +50,11 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -66,6 +71,7 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "gpencil_intern.h"
 
@@ -241,7 +247,8 @@ static int gpencil_layer_add_exec(bContext *C, wmOperator *op)
 
   /* notifiers */
   if (gpd) {
-    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&gpd->id,
+                      ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
   }
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
@@ -619,8 +626,8 @@ static int gpencil_layer_duplicate_object_exec(bContext *C, wmOperator *op)
     }
     /* notifiers */
     DEG_id_tag_update(&gpd_dst->id,
-                      ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
-    DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+                      ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
   }
   CTX_DATA_END;
 
@@ -1893,7 +1900,7 @@ static int gpencil_material_lock_unsused_exec(bContext *C, wmOperator * /*op*/)
     Material *tmp_ma = BKE_object_material_get(ob, i + 1);
     if (tmp_ma) {
       tmp_ma->gp_style->flag |= GP_MATERIAL_LOCKED;
-      DEG_id_tag_update(&tmp_ma->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&tmp_ma->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
 
@@ -1913,7 +1920,7 @@ static int gpencil_material_lock_unsused_exec(bContext *C, wmOperator * /*op*/)
           Material *tmp_ma = BKE_object_material_get(ob, gps->mat_nr + 1);
           if (tmp_ma) {
             tmp_ma->gp_style->flag &= ~GP_MATERIAL_LOCKED;
-            DEG_id_tag_update(&tmp_ma->id, ID_RECALC_SYNC_TO_EVAL);
+            DEG_id_tag_update(&tmp_ma->id, ID_RECALC_COPY_ON_WRITE);
           }
 
           changed = true;
@@ -1926,8 +1933,8 @@ static int gpencil_material_lock_unsused_exec(bContext *C, wmOperator * /*op*/)
     /* updates */
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-    /* Copy-on-eval tag is needed, or else no refresh happens */
-    DEG_id_tag_update(&gpd->id, ID_RECALC_SYNC_TO_EVAL);
+    /* copy on write tag is needed, or else no refresh happens */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
     /* notifiers */
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
@@ -2971,8 +2978,8 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         float offset_global[3];
         float offset_local[3];
 
-        sub_v3_v3v3(offset_global, ob_active->loc, ob_iter->object_to_world().location());
-        copy_m3_m4(bmat, ob_active->object_to_world().ptr());
+        sub_v3_v3v3(offset_global, ob_active->loc, ob_iter->object_to_world[3]);
+        copy_m3_m4(bmat, ob_active->object_to_world);
 
         /* Inverse transform for all selected curves in this object,
          * See #object_join_exec for detailed comment on why the safe version is used. */
@@ -3053,7 +3060,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
           }
         }
         DEG_id_tag_update(&gpd_src->id,
-                          ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+                          ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
       }
 
       /* Free the old object */
@@ -3063,7 +3070,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
   CTX_DATA_END;
 
   DEG_id_tag_update(&gpd_dst->id,
-                    ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+                    ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
   DEG_relations_tag_update(bmain); /* because we removed object(s) */
 
   WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
@@ -3109,7 +3116,7 @@ static int gpencil_lock_layer_exec(bContext *C, wmOperator * /*op*/)
       gp_style = ma->gp_style;
       gp_style->flag |= GP_MATERIAL_LOCKED;
       gp_style->flag |= GP_MATERIAL_HIDE;
-      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
 
@@ -3126,7 +3133,7 @@ static int gpencil_lock_layer_exec(bContext *C, wmOperator * /*op*/)
         }
 
         ma = BKE_gpencil_material(ob, gps->mat_nr + 1);
-        DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+        DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
 
         gp_style = ma->gp_style;
         /* unlock/unhide color if not unlocked before */
@@ -3140,8 +3147,8 @@ static int gpencil_lock_layer_exec(bContext *C, wmOperator * /*op*/)
   /* updates */
   DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-  /* Copy-on-eval tag is needed, or else no refresh happens */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_SYNC_TO_EVAL);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
   /* notifiers */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
@@ -3217,7 +3224,7 @@ static int gpencil_material_isolate_exec(bContext *C, wmOperator *op)
         continue;
       }
       gp_style->flag |= flags;
-      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
   else {
@@ -3229,15 +3236,15 @@ static int gpencil_material_isolate_exec(bContext *C, wmOperator *op)
       }
       gp_style = ma->gp_style;
       gp_style->flag &= ~flags;
-      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
 
   /* notifiers */
   DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-  /* Copy-on-eval tag is needed, or else no refresh happens */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_SYNC_TO_EVAL);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 
@@ -3293,7 +3300,7 @@ static int gpencil_material_hide_exec(bContext *C, wmOperator *op)
         color = ma->gp_style;
         if (active_color != color) {
           color->flag |= GP_MATERIAL_HIDE;
-          DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+          DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
         }
       }
     }
@@ -3306,8 +3313,8 @@ static int gpencil_material_hide_exec(bContext *C, wmOperator *op)
   /* updates */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
-  /* Copy-on-eval tag is needed, or else no refresh happens */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_SYNC_TO_EVAL);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
   /* notifiers */
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
@@ -3355,15 +3362,15 @@ static int gpencil_material_reveal_exec(bContext *C, wmOperator * /*op*/)
     if (ma) {
       gp_style = ma->gp_style;
       gp_style->flag &= ~GP_MATERIAL_HIDE;
-      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
 
   /* updates */
   DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-  /* Copy-on-eval tag is needed, or else no refresh happens */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_SYNC_TO_EVAL);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
   /* notifiers */
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
@@ -3408,15 +3415,15 @@ static int gpencil_material_lock_all_exec(bContext *C, wmOperator * /*op*/)
     if (ma) {
       gp_style = ma->gp_style;
       gp_style->flag |= GP_MATERIAL_LOCKED;
-      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
 
   /* updates */
   DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-  /* Copy-on-eval tag is needed, or else no refresh happens */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_SYNC_TO_EVAL);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
   /* notifiers */
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
@@ -3461,15 +3468,15 @@ static int gpencil_material_unlock_all_exec(bContext *C, wmOperator * /*op*/)
     if (ma) {
       gp_style = ma->gp_style;
       gp_style->flag &= ~GP_MATERIAL_LOCKED;
-      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
 
   /* updates */
   DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
 
-  /* Copy-on-eval tag is needed, or else no refresh happens */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_SYNC_TO_EVAL);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
 
   /* notifiers */
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
@@ -3558,8 +3565,8 @@ static int gpencil_material_select_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  /* Copy-on-eval tag is needed, or else no refresh happens */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+  /* copy on write tag is needed, or else no refresh happens */
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 
   /* notifiers */
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
@@ -3715,7 +3722,7 @@ static int gpencil_materials_copy_to_object_exec(bContext *C, wmOperator *op)
     }
 
     /* notifiers */
-    DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
   }
   CTX_DATA_END;
 
@@ -3835,7 +3842,8 @@ static int gpencil_layer_mask_add_exec(bContext *C, wmOperator *op)
 
   /* notifiers */
   if (gpd) {
-    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&gpd->id,
+                      ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
   }
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 

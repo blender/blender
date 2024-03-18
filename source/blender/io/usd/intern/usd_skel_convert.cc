@@ -4,10 +4,12 @@
 
 #include "usd_skel_convert.hh"
 
+#include "usd.hh"
 #include "usd_armature_utils.hh"
 #include "usd_blend_shape_utils.hh"
 #include "usd_hash_types.hh"
 
+#include <pxr/usd/sdf/namespaceEdit.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdSkel/animation.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
@@ -20,16 +22,22 @@
 #include "DNA_armature_types.h"
 #include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
+#include "BKE_attribute.hh"
 #include "BKE_deform.hh"
-#include "BKE_fcurve.hh"
+#include "BKE_fcurve.h"
 #include "BKE_key.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_object_deform.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "BLI_map.hh"
 #include "BLI_math_vector.h"
@@ -39,6 +47,7 @@
 #include "BLI_vector.hh"
 
 #include "ED_armature.hh"
+#include "ED_keyframing.hh"
 #include "ED_mesh.hh"
 
 #include "ANIM_animdata.hh"
@@ -1238,7 +1247,7 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
 
 void export_deform_verts(const Mesh *mesh,
                          const pxr::UsdSkelBindingAPI &skel_api,
-                         const Span<std::string> bone_names)
+                         const Vector<std::string> &bone_names)
 {
   BLI_assert(mesh);
   BLI_assert(skel_api);
@@ -1302,7 +1311,7 @@ void export_deform_verts(const Mesh *mesh,
         continue;
       }
 
-      int def_nr = int(vert.dw[j].def_nr);
+      int def_nr = static_cast<int>(vert.dw[j].def_nr);
 
       if (def_nr >= joint_index.size()) {
         BLI_assert_unreachable();

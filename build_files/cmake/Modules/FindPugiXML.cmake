@@ -64,5 +64,3 @@ mark_as_advanced(
   PUGIXML_INCLUDE_DIR
   PUGIXML_LIBRARY
 )
-
-unset(_pugixml_SEARCH_DIRS)

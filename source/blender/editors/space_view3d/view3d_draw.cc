@@ -8,9 +8,11 @@
 
 #include <cmath>
 
+#include "BLI_jitter_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
@@ -18,26 +20,29 @@
 
 #include "BKE_armature.hh"
 #include "BKE_camera.h"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
+#include "BKE_studiolight.h"
 #include "BKE_unit.hh"
 
 #include "BLF_api.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_key_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
@@ -50,6 +55,8 @@
 #include "ED_keyframing.hh"
 #include "ED_scene.hh"
 #include "ED_screen.hh"
+#include "ED_screen_types.hh"
+#include "ED_transform.hh"
 #include "ED_view3d_offscreen.hh"
 #include "ED_viewer_path.hh"
 
@@ -58,6 +65,8 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "GPU_batch.h"
+#include "GPU_batch_presets.h"
+#include "GPU_capabilities.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -75,6 +84,8 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
+
+#include "RNA_access.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
@@ -1219,7 +1230,8 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
     default:
       if (rv3d->persp == RV3D_CAMOB) {
         if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
-          const Camera *cam = static_cast<const Camera *>(v3d->camera->data);
+          Camera *cam;
+          cam = static_cast<Camera *>(v3d->camera->data);
           if (cam->type == CAM_PERSP) {
             name = IFACE_("Camera Perspective");
           }
@@ -2103,7 +2115,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
 
   rv3d.persp = RV3D_CAMOB;
 
-  copy_m4_m4(rv3d.viewinv, v3d.camera->object_to_world().ptr());
+  copy_m4_m4(rv3d.viewinv, v3d.camera->object_to_world);
   normalize_m4(rv3d.viewinv);
   invert_m4_m4(rv3d.viewmat, rv3d.viewinv);
 
@@ -2248,7 +2260,7 @@ static void view3d_opengl_read_Z_pixels(GPUViewport *viewport, rcti *rect, void 
   GPU_framebuffer_free(depth_read_fb);
 }
 
-void ED_view3d_select_id_validate(const ViewContext *vc)
+void ED_view3d_select_id_validate(ViewContext *vc)
 {
   validate_object_select_id(
       vc->depsgraph, vc->scene, vc->view_layer, vc->region, vc->v3d, vc->obact);
@@ -2437,39 +2449,6 @@ void ED_view3d_depths_free(ViewDepths *depths)
     MEM_freeN(depths->depths);
   }
   MEM_freeN(depths);
-}
-
-bool ED_view3d_has_depth_buffer_updated(const Depsgraph *depsgraph, const View3D *v3d)
-{
-#ifdef REUSE_DEPTH_BUFFER
-  /* Check if the depth buffer was drawn by any engine and thus can be reused.
-   *
-   * The idea is good, but it is too error prone.
-   * Even when updated by an engine, the depth buffer can still be cleared by drawing callbacks and
-   * by the GPU_select API used by gizmos.
-   * Check #GPU_clear_depth to track when the depth buffer is cleared. */
-  const char *engine_name = DEG_get_evaluated_scene(depsgraph)->r.engine;
-  RenderEngineType *engine_type = RE_engines_find(engine_name);
-
-  bool is_viewport_wire_no_xray = v3d->shading.type < OB_SOLID && !XRAY_ENABLED(v3d);
-  bool is_viewport_preview_solid = v3d->shading.type == OB_SOLID;
-  bool is_viewport_preview_material = v3d->shading.type == OB_MATERIAL;
-  bool is_viewport_render_eevee = v3d->shading.type == OB_RENDER &&
-                                  (STREQ(engine_name, RE_engine_id_BLENDER_EEVEE) ||
-                                   STREQ(engine_name, RE_engine_id_BLENDER_EEVEE_NEXT));
-  bool is_viewport_render_workbench = v3d->shading.type == OB_RENDER &&
-                                      STREQ(engine_name, RE_engine_id_BLENDER_WORKBENCH);
-  bool is_viewport_render_external_with_overlay = v3d->shading.type == OB_RENDER &&
-                                                  !(engine_type->flag & RE_INTERNAL) &&
-                                                  !(v3d->flag2 & V3D_HIDE_OVERLAYS);
-
-  return is_viewport_preview_solid || is_viewport_preview_material || is_viewport_wire_no_xray ||
-         is_viewport_render_eevee || is_viewport_render_workbench ||
-         is_viewport_render_external_with_overlay;
-#else
-  UNUSED_VARS(depsgraph, v3d);
-  return false;
-#endif
 }
 
 /** \} */

@@ -18,10 +18,10 @@
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_fcurve.hh"
+#include "BKE_fcurve.h"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"

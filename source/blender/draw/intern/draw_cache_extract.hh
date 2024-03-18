@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BLI_math_matrix_types.hh"
 #include "BLI_utildefines.h"
 
 #include "GPU_shader.h"
@@ -75,8 +74,8 @@ struct MeshBufferList {
    * (except fdots and skin roots). For some VBOs, it extends to (in this exact order) :
    * loops + loose_edges * 2 + loose_verts */
   struct {
-    GPUVertBuf *pos;      /* extend */
-    GPUVertBuf *nor;      /* extend */
+    GPUVertBuf *pos_nor;  /* extend */
+    GPUVertBuf *lnor;     /* extend */
     GPUVertBuf *edge_fac; /* extend */
     GPUVertBuf *weights;  /* extend */
     GPUVertBuf *uv;
@@ -102,7 +101,6 @@ struct MeshBufferList {
     GPUVertBuf *fdot_idx;
     GPUVertBuf *attr[GPU_MAX_ATTR];
     GPUVertBuf *attr_viewer;
-    GPUVertBuf *vnor;
   } vbo;
   /* Index Buffers:
    * Only need to be updated when topology changes. */
@@ -119,7 +117,7 @@ struct MeshBufferList {
     /* no loose edges. */
     GPUIndexBuf *lines_paint_mask;
     GPUIndexBuf *lines_adjacency;
-    /** UV overlays. (visibility can differ from 3D view). */
+    /* Uv overlays. (visibility can differ from 3D view) */
     GPUIndexBuf *edituv_tris;
     GPUIndexBuf *edituv_lines;
     GPUIndexBuf *edituv_points;
@@ -306,7 +304,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
                                         bool is_editmode,
                                         bool is_paint_mode,
                                         bool is_mode_active,
-                                        const float4x4 &object_to_world,
+                                        const float obmat[4][4],
                                         bool do_final,
                                         bool do_uvedit,
                                         const Scene *scene,

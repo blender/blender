@@ -22,7 +22,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "BKE_image.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -88,7 +88,7 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 
 #  include "BKE_appdir.hh"
 #  include "BKE_context.hh"
-#  include "BKE_report.hh"
+#  include "BKE_report.h"
 
 #  include "GPU_capabilities.h"
 #  include "GPU_shader.h"
@@ -987,7 +987,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Use Custom Shading Nodes",
                            "Don't expose Cycles and EEVEE shading nodes in the node editor user "
-                           "interface, so separate nodes can be used instead");
+                           "interface, so own nodes can be used instead");
 
   prop = RNA_def_property(srna, "bl_use_spherical_stereo", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "type->flag", RE_USE_SPHERICAL_STEREO);

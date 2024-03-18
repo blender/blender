@@ -4,6 +4,7 @@
 
 #include "node_geometry_util.hh"
 
+#include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "DNA_curves_types.h"

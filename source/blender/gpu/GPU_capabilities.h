@@ -25,7 +25,6 @@ int GPU_max_textures(void);
 int GPU_max_textures_vert(void);
 int GPU_max_textures_geom(void);
 int GPU_max_textures_frag(void);
-int GPU_max_images(void);
 int GPU_max_work_group_count(int index);
 int GPU_max_work_group_size(int index);
 int GPU_max_uniforms_vert(void);

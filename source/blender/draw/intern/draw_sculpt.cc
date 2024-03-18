@@ -68,7 +68,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
   /* Transform clipping planes to object space. Transforming a plane with a
    * 4x4 matrix is done by multiplying with the transpose inverse.
    * The inverse cancels out here since we transform by inverse(obmat). */
-  float4x4 tmat = math::transpose(ob->object_to_world());
+  float4x4 tmat = math::transpose(float4x4(ob->object_to_world));
   for (int i : IndexRange(6)) {
     draw_planes[i] = tmat * draw_planes[i];
     update_planes[i] = draw_planes[i];

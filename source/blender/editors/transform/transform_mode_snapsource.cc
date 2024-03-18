@@ -172,7 +172,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
   }
 
   if (ELEM(t->mode, TFM_INIT, TFM_DUMMY)) {
-    /* Fallback. */
+    /* Fallback */
     transform_mode_init(t, nullptr, TFM_TRANSLATION);
   }
 
@@ -194,12 +194,9 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
   }
 
   t->mode_info = &TransMode_snapsource;
+  t->flag |= T_DRAW_SNAP_SOURCE;
   t->tsnap.target_operation = SCE_SNAP_TARGET_ALL;
   t->tsnap.status &= ~SNAP_SOURCE_FOUND;
-
-  if (t->spacetype == SPACE_VIEW3D) {
-    t->flag |= T_DRAW_SNAP_SOURCE;
-  }
 
   customdata->snap_mode_confirm = t->tsnap.mode;
   t->tsnap.mode &= ~(SCE_SNAP_TO_EDGE_PERPENDICULAR | SCE_SNAP_INDIVIDUAL_PROJECT |

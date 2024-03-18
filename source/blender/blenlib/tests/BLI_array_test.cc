@@ -2,13 +2,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "testing/testing.h"
-
 #include "BLI_array.hh"
 #include "BLI_exception_safety_test_utils.hh"
+#include "BLI_strict_flags.h"
 #include "BLI_vector.hh"
-
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "testing/testing.h"
 
 namespace blender::tests {
 

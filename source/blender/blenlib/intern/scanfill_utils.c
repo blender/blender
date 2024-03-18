@@ -22,7 +22,7 @@
 
 #include "BLI_scanfill.h" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 typedef struct PolyInfo {
   ScanFillEdge *edge_first, *edge_last;
@@ -425,7 +425,7 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
     return false;
   }
 
-  /* move free edges into their own list */
+  /* move free edges into own list */
   {
     ScanFillEdge *eed;
     ScanFillEdge *eed_next;
@@ -438,7 +438,7 @@ bool BLI_scanfill_calc_self_isect(ScanFillContext *sf_ctx,
     }
   }
 
-  /* move free vertices into their own list */
+  /* move free vertices into own list */
   {
     ScanFillEdge *eed;
     ScanFillVert *eve;

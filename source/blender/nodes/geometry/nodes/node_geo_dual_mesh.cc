@@ -522,12 +522,12 @@ static void add_edge(const int old_edge_i,
                      const int v2,
                      Vector<int> &new_to_old_edges_map,
                      Vector<int2> &new_edges,
-                     Vector<int> &corner_edges)
+                     Vector<int> &loop_edges)
 {
   const int new_edge_i = new_edges.size();
   new_to_old_edges_map.append(old_edge_i);
   new_edges.append({v1, v2});
-  corner_edges.append(new_edge_i);
+  loop_edges.append(new_edge_i);
 }
 
 /* Returns true if the vertex is connected only to the two faces and is not on the boundary. */
@@ -642,12 +642,12 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
         /* Bad vertex that we can't work with. */
         continue;
       }
-      MutableSpan<int> corner_indices = vert_to_face_indices.as_mutable_span().slice(
+      MutableSpan<int> loop_indices = vert_to_face_indices.as_mutable_span().slice(
           vert_to_face_offsets[i]);
-      Array<int> sorted_corners(corner_indices.size());
+      Array<int> sorted_corners(loop_indices.size());
       bool vertex_ok = true;
       if (vertex_types[i] == VertexType::Normal) {
-        Array<int> shared_edges(corner_indices.size());
+        Array<int> shared_edges(loop_indices.size());
         vertex_ok = sort_vertex_faces(src_edges,
                                       src_faces,
                                       src_corner_verts,
@@ -655,13 +655,13 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
                                       i,
                                       false,
                                       edge_types,
-                                      corner_indices,
+                                      loop_indices,
                                       shared_edges,
                                       sorted_corners);
         vertex_shared_edges[i] = std::move(shared_edges);
       }
       else {
-        Array<int> shared_edges(corner_indices.size() - 1);
+        Array<int> shared_edges(loop_indices.size() - 1);
         vertex_ok = sort_vertex_faces(src_edges,
                                       src_faces,
                                       src_corner_verts,
@@ -669,7 +669,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
                                       i,
                                       true,
                                       edge_types,
-                                      corner_indices,
+                                      loop_indices,
                                       shared_edges,
                                       sorted_corners);
         vertex_shared_edges[i] = std::move(shared_edges);
@@ -707,9 +707,9 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
     }
   }
 
-  Vector<int> face_sizes;
-  Vector<int> corner_verts;
-  Vector<int> corner_edges;
+  Vector<int> loop_lengths;
+  Vector<int> loops;
+  Vector<int> loop_edges;
   Vector<int2> new_edges;
   /* These are used to transfer attributes. */
   Vector<int> new_to_old_face_corners_map;
@@ -743,11 +743,11 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
       continue;
     }
 
-    Vector<int> corner_indices = vert_to_face_map[i];
+    Vector<int> loop_indices = vert_to_face_map[i];
     Span<int> shared_edges = vertex_shared_edges[i];
     Span<int> sorted_corners = vertex_corners[i];
     if (vertex_types[i] == VertexType::Normal) {
-      if (corner_indices.size() <= 2) {
+      if (loop_indices.size() <= 2) {
         /* We can't make a face from 2 vertices. */
         continue;
       }
@@ -759,9 +759,9 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
           /* This edge has not been created yet. */
           new_to_old_edges_map.append(old_edge_i);
           old_to_new_edges_map[old_edge_i] = new_edges.size();
-          new_edges.append({corner_indices[i], corner_indices[(i + 1) % corner_indices.size()]});
+          new_edges.append({loop_indices[i], loop_indices[(i + 1) % loop_indices.size()]});
         }
-        corner_edges.append(old_to_new_edges_map[old_edge_i]);
+        loop_edges.append(old_to_new_edges_map[old_edge_i]);
       }
 
       new_to_old_face_corners_map.extend(sorted_corners);
@@ -770,7 +770,7 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
       /**
        * The code handles boundary vertices like the vertex marked "V" in the diagram below.
        * The first thing that happens is ordering the faces f1,f2 and f3 (stored in
-       * corner_indices), together with their shared edges e3 and e4 (which get stored in
+       * loop_indices), together with their shared edges e3 and e4 (which get stored in
        * shared_edges). The ordering could end up being clockwise or counterclockwise, for this
        * we'll assume that the ordering f1->f2->f3 is chosen. After that we add the edges in
        * between the faces, in this case the edges f1--f2, and f2--f3. Now we need to merge
@@ -798,9 +798,9 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
           /* This edge has not been created yet. */
           new_to_old_edges_map.append(old_edge_i);
           old_to_new_edges_map[old_edge_i] = new_edges.size();
-          new_edges.append({corner_indices[i], corner_indices[i + 1]});
+          new_edges.append({loop_indices[i], loop_indices[i + 1]});
         }
-        corner_edges.append(old_to_new_edges_map[old_edge_i]);
+        loop_edges.append(old_to_new_edges_map[old_edge_i]);
       }
 
       new_to_old_face_corners_map.extend(sorted_corners);
@@ -810,22 +810,22 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
       /* Get the boundary edges. */
       int edge1;
       int edge2;
-      if (corner_indices.size() >= 2) {
+      if (loop_indices.size() >= 2) {
         /* The first boundary edge is at the end of the chain of faces. */
         boundary_edge_on_face(src_edges,
-                              src_corner_edges.slice(src_faces[corner_indices.last()]),
+                              src_corner_edges.slice(src_faces[loop_indices.last()]),
                               i,
                               edge_types,
                               edge1);
         boundary_edge_on_face(src_edges,
-                              src_corner_edges.slice(src_faces[corner_indices.first()]),
+                              src_corner_edges.slice(src_faces[loop_indices.first()]),
                               i,
                               edge_types,
                               edge2);
       }
       else {
         /* If there is only one face both edges are in that face. */
-        boundary_edges_on_face(src_faces[corner_indices[0]],
+        boundary_edges_on_face(src_faces[loop_indices[0]],
                                src_edges,
                                src_corner_verts,
                                src_corner_edges,
@@ -835,62 +835,58 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
                                edge2);
       }
 
-      const int last_face_center = corner_indices.last();
-      corner_indices.append(boundary_edge_midpoint_index[edge1]);
+      const int last_face_center = loop_indices.last();
+      loop_indices.append(boundary_edge_midpoint_index[edge1]);
       new_to_old_face_corners_map.append(sorted_corners.last());
-      const int first_midpoint = corner_indices.last();
+      const int first_midpoint = loop_indices.last();
       if (old_to_new_edges_map[edge1] == -1) {
-        add_edge(edge1,
-                 last_face_center,
-                 first_midpoint,
-                 new_to_old_edges_map,
-                 new_edges,
-                 corner_edges);
+        add_edge(
+            edge1, last_face_center, first_midpoint, new_to_old_edges_map, new_edges, loop_edges);
         old_to_new_edges_map[edge1] = new_edges.size() - 1;
         boundary_vertex_to_relevant_face_map.append(std::pair(first_midpoint, last_face_center));
       }
       else {
-        corner_edges.append(old_to_new_edges_map[edge1]);
+        loop_edges.append(old_to_new_edges_map[edge1]);
       }
-      corner_indices.append(vert_positions.size());
+      loop_indices.append(vert_positions.size());
       /* This is sort of arbitrary, but interpolating would be a lot harder to do. */
       new_to_old_face_corners_map.append(sorted_corners.first());
       boundary_vertex_to_relevant_face_map.append(
-          std::pair(corner_indices.last(), last_face_center));
+          std::pair(loop_indices.last(), last_face_center));
       vert_positions.append(src_positions[i]);
-      const int boundary_vertex = corner_indices.last();
+      const int boundary_vertex = loop_indices.last();
       add_edge(
-          edge1, first_midpoint, boundary_vertex, new_to_old_edges_map, new_edges, corner_edges);
+          edge1, first_midpoint, boundary_vertex, new_to_old_edges_map, new_edges, loop_edges);
 
-      corner_indices.append(boundary_edge_midpoint_index[edge2]);
+      loop_indices.append(boundary_edge_midpoint_index[edge2]);
       new_to_old_face_corners_map.append(sorted_corners.first());
-      const int second_midpoint = corner_indices.last();
+      const int second_midpoint = loop_indices.last();
       add_edge(
-          edge2, boundary_vertex, second_midpoint, new_to_old_edges_map, new_edges, corner_edges);
+          edge2, boundary_vertex, second_midpoint, new_to_old_edges_map, new_edges, loop_edges);
 
       if (old_to_new_edges_map[edge2] == -1) {
-        const int first_face_center = corner_indices.first();
+        const int first_face_center = loop_indices.first();
         add_edge(edge2,
                  second_midpoint,
                  first_face_center,
                  new_to_old_edges_map,
                  new_edges,
-                 corner_edges);
+                 loop_edges);
         old_to_new_edges_map[edge2] = new_edges.size() - 1;
         boundary_vertex_to_relevant_face_map.append(std::pair(second_midpoint, first_face_center));
       }
       else {
-        corner_edges.append(old_to_new_edges_map[edge2]);
+        loop_edges.append(old_to_new_edges_map[edge2]);
       }
     }
 
-    face_sizes.append(corner_indices.size());
-    for (const int j : corner_indices) {
-      corner_verts.append(j);
+    loop_lengths.append(loop_indices.size());
+    for (const int j : loop_indices) {
+      loops.append(j);
     }
   }
   Mesh *mesh_out = BKE_mesh_new_nomain(
-      vert_positions.size(), new_edges.size(), face_sizes.size(), corner_verts.size());
+      vert_positions.size(), new_edges.size(), loop_lengths.size(), loops.size());
   bke::mesh_smooth_set(*mesh_out, false);
 
   transfer_attributes(vertex_types,
@@ -907,11 +903,11 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
 
   if (mesh_out->faces_num > 0) {
     MutableSpan<int> dst_face_offsets = mesh_out->face_offsets_for_write();
-    dst_face_offsets.drop_back(1).copy_from(face_sizes);
+    dst_face_offsets.drop_back(1).copy_from(loop_lengths);
     offset_indices::accumulate_counts_to_offsets(dst_face_offsets);
   }
-  mesh_out->corner_verts_for_write().copy_from(corner_verts);
-  mesh_out->corner_edges_for_write().copy_from(corner_edges);
+  mesh_out->corner_verts_for_write().copy_from(loops);
+  mesh_out->corner_edges_for_write().copy_from(loop_edges);
 
   return mesh_out;
 }

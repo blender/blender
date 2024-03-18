@@ -51,7 +51,6 @@ vec3 coordinate_camera(vec3 P);
 vec3 coordinate_screen(vec3 P);
 vec3 coordinate_reflect(vec3 P, vec3 N);
 vec3 coordinate_incoming(vec3 P);
-float film_scaling_factor_get();
 
 /* Single BSDFs. */
 Closure closure_eval(ClosureDiffuse diffuse);

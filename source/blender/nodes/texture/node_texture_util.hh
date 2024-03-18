@@ -12,7 +12,7 @@
 
 #include "node_texture_register.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "RE_texture.h"
 

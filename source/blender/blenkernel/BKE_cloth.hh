@@ -62,7 +62,7 @@ struct ClothSolverResult {
  *
  * The m and n members of this structure represent the assumed
  * rectangular ordered grid for which the original paper is written.
- * At some point they need to disappear and we need to determine our
+ * At some point they need to disappear and we need to determine out
  * own connectivity of the mesh based on the actual edges in the mesh.
  */
 struct Cloth {

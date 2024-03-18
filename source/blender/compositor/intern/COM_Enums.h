@@ -31,9 +31,46 @@ enum class eCompositorQuality {
  * \ingroup Execution
  */
 enum class eCompositorPriority {
+  /** \brief High quality setting */
   High = 2,
+  /** \brief Medium quality setting */
   Medium = 1,
+  /** \brief Low quality setting */
   Low = 0,
+};
+
+/**
+ * \brief the execution state of a chunk in an ExecutionGroup
+ * \ingroup Execution
+ */
+enum class eWorkPackageState {
+  /**
+   * \brief chunk is not yet scheduled
+   */
+  NotScheduled = 0,
+  /**
+   * \brief chunk is scheduled, but not yet executed
+   */
+  Scheduled = 1,
+  /**
+   * \brief chunk is executed.
+   */
+  Executed = 2,
+};
+
+/**
+ * \brief Work type to execute.
+ * \ingroup Execution
+ */
+enum class eWorkPackageType {
+  /**
+   * \brief Executes an execution group tile.
+   */
+  Tile = 0,
+  /**
+   * \brief Executes a custom function.
+   */
+  CustomFunction = 1
 };
 
 enum class PixelSampler {
@@ -44,5 +81,6 @@ enum class PixelSampler {
 void expand_area_for_sampler(rcti &area, PixelSampler sampler);
 
 std::ostream &operator<<(std::ostream &os, const eCompositorPriority &priority);
+std::ostream &operator<<(std::ostream &os, const eWorkPackageState &execution_state);
 
 }  // namespace blender::compositor

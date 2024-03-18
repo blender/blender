@@ -40,16 +40,18 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
  */
 static bool try_removing_sharp_attribute(Mesh &mesh,
                                          const StringRef name,
-                                         const Field<bool> &selection,
-                                         const Field<bool> &sharpness)
+                                         const Field<bool> &selection_field,
+                                         const Field<bool> &sharp_field)
 {
-  if (selection.node().depends_on_input() || sharpness.node().depends_on_input()) {
+  if (selection_field.node().depends_on_input() || sharp_field.node().depends_on_input()) {
     return false;
   }
-  if (!fn::evaluate_constant_field(selection)) {
+  const bool selection = fn::evaluate_constant_field(selection_field);
+  if (!selection) {
     return true;
   }
-  if (fn::evaluate_constant_field(sharpness)) {
+  const bool sharp = fn::evaluate_constant_field(sharp_field);
+  if (sharp) {
     return false;
   }
   mesh.attributes_for_write().remove(name);
@@ -59,37 +61,42 @@ static bool try_removing_sharp_attribute(Mesh &mesh,
 static void set_sharp(Mesh &mesh,
                       const AttrDomain domain,
                       const StringRef name,
-                      const Field<bool> &selection,
-                      const Field<bool> &sharpness)
+                      const Field<bool> &selection_field,
+                      const Field<bool> &sharp_field)
 {
   const int domain_size = mesh.attributes().domain_size(domain);
-  if (domain_size == 0) {
+  if (mesh.attributes().domain_size(domain) == 0) {
     return;
   }
-  if (try_removing_sharp_attribute(mesh, name, selection, sharpness)) {
+  if (try_removing_sharp_attribute(mesh, name, selection_field, sharp_field)) {
     return;
   }
-  bke::try_capture_field_on_geometry(mesh.attributes_for_write(),
-                                     bke::MeshFieldContext(mesh, domain),
-                                     name,
-                                     domain,
-                                     selection,
-                                     sharpness);
+
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  AttributeWriter<bool> sharp = attributes.lookup_or_add_for_write<bool>(name, domain);
+
+  const bke::MeshFieldContext field_context{mesh, domain};
+  fn::FieldEvaluator evaluator{field_context, domain_size};
+  evaluator.set_selection(selection_field);
+  evaluator.add_with_destination(sharp_field, sharp.varray);
+  evaluator.evaluate();
+
+  sharp.finish();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
   const AttrDomain domain = AttrDomain(params.node().custom1);
-  const Field<bool> selection = params.extract_input<Field<bool>>("Selection");
-  const Field<bool> smooth_field = params.extract_input<Field<bool>>("Shade Smooth");
+  Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  Field<bool> smooth_field = params.extract_input<Field<bool>>("Shade Smooth");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
       set_sharp(*mesh,
                 domain,
                 domain == AttrDomain::Face ? "sharp_face" : "sharp_edge",
-                selection,
+                selection_field,
                 fn::invert_boolean_field(smooth_field));
     }
   });

@@ -23,6 +23,8 @@ set(SRC
   intern/blf_font_default.cc
   intern/blf_glyph.cc
   intern/blf_thumbs.cc
+  intern/blf_util.cc
+
   BLF_api.hh
   intern/blf_internal.hh
   intern/blf_internal_types.hh

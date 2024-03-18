@@ -13,6 +13,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
+#include "BKE_main.hh"
 #include "BKE_movieclip.h"
 #include "BKE_node_tree_update.hh"
 #include "BKE_tracking.h"
@@ -28,7 +29,7 @@
 struct TransDataTrackingCurves {
   int flag;
 
-  /* Marker transformation from curves editor. */
+  /* marker transformation from curves editor */
   float *prev_pos;
   float scale;
   short coord;
@@ -59,12 +60,12 @@ static void markerToTransCurveDataInit(TransData *td,
   tdt->prev_pos = prev_marker->pos;
   tdt->track = track;
 
-  /* Calculate values depending on marker's speed. */
+  /* calculate values depending on marker's speed */
   td2d->loc[0] = marker->framenr;
   td2d->loc[1] = (marker->pos[coord] - prev_marker->pos[coord]) * size / frames_delta;
   td2d->loc[2] = 0.0f;
 
-  td2d->loc2d = marker->pos; /* Current location. */
+  td2d->loc2d = marker->pos; /* current location */
 
   td->flag = 0;
   td->loc = td2d->loc;
@@ -98,7 +99,7 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
-  /* Count. */
+  /* count */
   tc->data_len = 0;
 
   if ((sc->flag & SC_SHOW_GRAPH_TRACKS_MOTION) == 0) {
@@ -138,7 +139,7 @@ static void createTransTrackingCurvesData(bContext *C, TransInfo *t)
       tc->data_len * sizeof(TransDataTrackingCurves), "TransTracking TransDataTracking"));
   tc->custom.type.free_cb = nullptr;
 
-  /* Create actual data. */
+  /* create actual data */
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
     if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
       for (int i = 1; i < track->markersnr; i++) {
@@ -190,7 +191,7 @@ static void createTransTrackingCurves(bContext *C, TransInfo *t)
     return;
   }
 
-  /* Transformation was called from graph editor. */
+  /* transformation was called from graph editor */
   BLI_assert(CTX_wm_region(C)->regiontype == RGN_TYPE_PREVIEW);
   createTransTrackingCurvesData(C, t);
 }
@@ -247,7 +248,7 @@ static void flushTransTrackingCurves(TransInfo *t)
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
-  /* Flush to 2d vector from internally used 3d vector. */
+  /* flush to 2d vector from internally used 3d vector */
   for (td_index = 0,
       td = tc->data,
       td2d = tc->data_2d,

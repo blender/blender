@@ -60,6 +60,7 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
         command = [
             self.blender,
             '--background',
+            '-noaudio',
             '--factory-startup',
             '--enable-autoexec',
             '--debug-memory',

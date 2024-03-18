@@ -33,7 +33,7 @@ class OBJCurve : NonCopyable {
   int total_splines() const;
   /**
    * \param spline_index: Zero-based index of spline of interest.
-   * \return Total vertices in a spline.
+   * \return: Total vertices in a spline.
    */
   int total_spline_vertices(int spline_index) const;
   /**

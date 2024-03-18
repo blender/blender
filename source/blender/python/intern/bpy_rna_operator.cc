@@ -19,7 +19,7 @@
 #include "BPY_extern.h"
 #include "bpy_capi_utils.h"
 
-#include "bpy_rna_operator.h" /* Own include, #BPY_rna_operator_poll_message_set_method_def. */
+#include "bpy_rna_operator.h" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name Operator `poll_message_set` Method

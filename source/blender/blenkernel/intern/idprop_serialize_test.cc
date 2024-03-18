@@ -18,11 +18,11 @@ static void check_container_value(ArrayValue *value)
 {
   ASSERT_NE(value, nullptr);
   ASSERT_EQ(value->type(), eValueType::Array);
-  const Span<std::shared_ptr<Value>> elements = value->elements();
+  const ArrayValue::Items elements = value->elements();
   EXPECT_FALSE(elements.is_empty());
   EXPECT_EQ(elements.size(), 1);
 
-  const std::shared_ptr<Value> &item = value->elements()[0];
+  const ArrayValue::Item &item = value->elements()[0];
   ASSERT_EQ(item->type(), eValueType::Dictionary);
 }
 
@@ -72,7 +72,7 @@ static void test_string_to_value(const StringRefNull prop_name, const StringRefN
 
   std::unique_ptr<ArrayValue> value = convert_to_serialize_values(property.get());
   check_container_value(value.get());
-  const std::shared_ptr<Value> &item = value->elements()[0];
+  const ArrayValue::Item &item = value->elements()[0];
   const DictionaryValue *object = item->as_dictionary_value();
   const DictionaryValue::Lookup lookup = object->create_lookup();
 
@@ -93,7 +93,7 @@ static void test_int_to_value(const StringRefNull prop_name, int32_t prop_conten
 
   std::unique_ptr<ArrayValue> value = convert_to_serialize_values(property.get());
   check_container_value(value.get());
-  const std::shared_ptr<Value> &item = value->elements()[0];
+  const ArrayValue::Item &item = value->elements()[0];
   const DictionaryValue *object = item->as_dictionary_value();
   const DictionaryValue::Lookup lookup = object->create_lookup();
 
@@ -114,7 +114,7 @@ static void test_float_to_value(const StringRefNull prop_name, float prop_conten
 
   std::unique_ptr<ArrayValue> value = convert_to_serialize_values(property.get());
   check_container_value(value.get());
-  const std::shared_ptr<Value> &item = value->elements()[0];
+  const ArrayValue::Item &item = value->elements()[0];
   const DictionaryValue *object = item->as_dictionary_value();
   const DictionaryValue::Lookup lookup = object->create_lookup();
 
@@ -135,7 +135,7 @@ static void test_double_to_value(const StringRefNull prop_name, double prop_cont
 
   std::unique_ptr<ArrayValue> value = convert_to_serialize_values(property.get());
   check_container_value(value.get());
-  const std::shared_ptr<Value> &item = value->elements()[0];
+  const ArrayValue::Item &item = value->elements()[0];
   const DictionaryValue *object = item->as_dictionary_value();
   const DictionaryValue::Lookup lookup = object->create_lookup();
 
@@ -157,7 +157,7 @@ static void test_array_to_value(const StringRefNull prop_name, Vector<PrimitiveT
   std::unique_ptr<ArrayValue> value = convert_to_serialize_values(property.get());
 
   check_container_value(value.get());
-  const std::shared_ptr<Value> &item = value->elements()[0];
+  const ArrayValue::Item &item = value->elements()[0];
   const DictionaryValue *object = item->as_dictionary_value();
   const DictionaryValue::Lookup lookup = object->create_lookup();
 
@@ -168,7 +168,7 @@ static void test_array_to_value(const StringRefNull prop_name, Vector<PrimitiveT
   const std::shared_ptr<Value> &element = *lookup.lookup_ptr("value");
   const ArrayValue *subvalues = element->as_array_value();
   ASSERT_NE(subvalues, nullptr);
-  const Span<std::shared_ptr<Value>> subitems = subvalues->elements();
+  const ArrayValue::Items &subitems = subvalues->elements();
   ASSERT_EQ(subitems.size(), prop_content.size());
 
   for (size_t i = 0; i < prop_content.size(); i++) {
@@ -252,7 +252,7 @@ static void test_idprop(const IDProperty *id_property,
 
 static void test_idprop(const IDProperty *id_property,
                         StringRef expected_name,
-                        const Span<int32_t> values)
+                        const Vector<int32_t> &values)
 {
   ASSERT_NE(id_property, nullptr);
   EXPECT_EQ(id_property->type, IDP_ARRAY);
@@ -267,7 +267,7 @@ static void test_idprop(const IDProperty *id_property,
 
 static void test_idprop(const IDProperty *id_property,
                         StringRef expected_name,
-                        const Span<float> values)
+                        const Vector<float> &values)
 {
   ASSERT_NE(id_property, nullptr);
   EXPECT_EQ(id_property->type, IDP_ARRAY);
@@ -282,7 +282,7 @@ static void test_idprop(const IDProperty *id_property,
 
 static void test_idprop(const IDProperty *id_property,
                         StringRef expected_name,
-                        const Span<double> values)
+                        const Vector<double> &values)
 {
   ASSERT_NE(id_property, nullptr);
   EXPECT_EQ(id_property->type, IDP_ARRAY);

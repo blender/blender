@@ -7,9 +7,10 @@
  */
 
 #include <cstring>
-#include <optional>
 
+#include "DNA_anim_types.h"
 #include "DNA_cachefile_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -21,14 +22,16 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
-#include "BKE_bpath.hh"
-#include "BKE_cachefile.hh"
+#include "BKE_anim_data.h"
+#include "BKE_bpath.h"
+#include "BKE_cachefile.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_scene.hh"
+#include "BKE_modifier.hh"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -60,7 +63,6 @@ static void cache_file_init_data(ID *id)
 }
 
 static void cache_file_copy_data(Main * /*bmain*/,
-                                 std::optional<Library *> /*owner_library*/,
                                  ID *id_dst,
                                  const ID *id_src,
                                  const int /*flag*/)
@@ -123,7 +125,6 @@ static void cache_file_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_CF = {
     /*id_code*/ ID_CF,
     /*id_filter*/ FILTER_ID_CF,
-    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_CF,
     /*struct_size*/ sizeof(CacheFile),
     /*name*/ "CacheFile",
@@ -170,7 +171,7 @@ void BKE_cachefile_reader_open(CacheFile *cache_file,
 {
 #if defined(WITH_ALEMBIC) || defined(WITH_USD)
 
-  BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_EVAL);
+  BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE);
 
   if (cache_file->handle == nullptr) {
     return;
@@ -222,7 +223,7 @@ void BKE_cachefile_reader_free(CacheFile *cache_file, CacheReader **reader)
   BLI_spin_lock(&spin);
   if (*reader != nullptr) {
     if (cache_file) {
-      BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_EVAL);
+      BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE);
 
       switch (cache_file->type) {
         case CACHEFILE_TYPE_ALEMBIC:
@@ -330,12 +331,12 @@ void BKE_cachefile_reload(Depsgraph *depsgraph, CacheFile *cache_file)
     cachefile_handle_free(cache_file_eval);
   }
 
-  DEG_id_tag_update(&cache_file->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&cache_file->id, ID_RECALC_COPY_ON_WRITE);
 }
 
 void BKE_cachefile_eval(Main *bmain, Depsgraph *depsgraph, CacheFile *cache_file)
 {
-  BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_EVAL);
+  BLI_assert(cache_file->id.tag & LIB_TAG_COPIED_ON_WRITE);
 
   /* Compute filepath. */
   char filepath[FILE_MAX];

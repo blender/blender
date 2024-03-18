@@ -41,10 +41,6 @@ message("PATCH_DIR = ${PATCH_DIR}")
 message("BUILD_DIR = ${BUILD_DIR}")
 
 if(WIN32)
-  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
-    set(BLENDER_PLATFORM_ARM ON)
-    set(BLENDER_PLATFORM_WINDOWS_ARM ON)
-  endif()
   set(PATCH_CMD ${DOWNLOAD_DIR}/msys2/msys64/usr/bin/patch.exe)
   set(LIBEXT ".lib")
   set(SHAREDLIBEXT ".lib")
@@ -116,25 +112,7 @@ if(WIN32)
 
   set(PLATFORM_FLAGS)
   set(PLATFORM_CXX_FLAGS)
-
-  if(BLENDER_PLATFORM_ARM)
-    # In some cases on ARM64 (unsure why), dep builds using the "Ninja" generator appear to use
-    # the x86 host tools (ie, x86 cl.exe producing ARM64 binaries). This is problematic when
-    # building things like LLVM, as memory is limited to 3GB, giving internal compiler errors.
-    # Here, we set CMAKE_C_COMPILER et al via PLATFORM_CMAKE_FLAGS to point to the ARM64 native
-    # binary, which doesn't have this issue.
-    # We make an assumption that the tools (ie, right now in the code) are the ones we want
-    set(PLATFORM_CMAKE_FLAGS
-      -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-      -DCMAKE_AR=${CMAKE_AR}
-      -DCMAKE_LINKER=${CMAKE_LINKER}
-      -DCMAKE_MT=${CMAKE_MT}
-      -DCMAKE_RC_COMPILER=${CMAKE_RC_COMPILER}
-    )
-  else()
-    set(PLATFORM_CMAKE_FLAGS)
-  endif()
+  set(PLATFORM_CMAKE_FLAGS)
 
   set(MINGW_PATH ${DOWNLOAD_DIR}/msys2/msys64/)
   set(MINGW_SHELL ming64sh.cmd)

@@ -33,7 +33,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -49,7 +49,7 @@
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -1076,15 +1076,15 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
       float imat3[3][3];
 
       ED_view3d_viewcontext_init_object(vc, obedit);
-      copy_m3_m4(imat3, obedit->object_to_world().ptr());
+      copy_m3_m4(imat3, obedit->object_to_world);
       invert_m3(imat3);
 
       const float(*coords)[3] = nullptr;
       {
         Object *obedit_eval = DEG_get_evaluated_object(vc->depsgraph, obedit);
-        Mesh *mesh_eval = BKE_object_get_editmesh_eval_cage(obedit_eval);
-        if (BKE_mesh_wrapper_vert_len(mesh_eval) == bm->totvert) {
-          coords = BKE_mesh_wrapper_vert_coords(mesh_eval);
+        Mesh *me_eval = BKE_object_get_editmesh_eval_cage(obedit_eval);
+        if (BKE_mesh_wrapper_vert_len(me_eval) == bm->totvert) {
+          coords = BKE_mesh_wrapper_vert_coords(me_eval);
         }
       }
 
@@ -1101,9 +1101,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
               for (uint j = 0; j < 2; j++) {
                 BMVert *v = *((&e->v1) + j);
                 float point[3];
-                mul_v3_m4v3(point,
-                            obedit->object_to_world().ptr(),
-                            coords ? coords[BM_elem_index_get(v)] : v->co);
+                mul_v3_m4v3(
+                    point, obedit->object_to_world, coords ? coords[BM_elem_index_get(v)] : v->co);
                 const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                     ray_origin, ray_direction, point);
                 if (dist_sq_test < dist_sq_best_vert) {
@@ -1132,7 +1131,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
               else {
                 mid_v3_v3v3(point, e->v1->co, e->v2->co);
               }
-              mul_m4_v3(obedit->object_to_world().ptr(), point);
+              mul_m4_v3(obedit->object_to_world, point);
               const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                   ray_origin, ray_direction, point);
               if (dist_sq_test < dist_sq_best_edge) {
@@ -1157,9 +1156,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
         BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
           if (BM_elem_flag_test(v, BM_ELEM_HIDDEN) == false) {
             float point[3];
-            mul_v3_m4v3(point,
-                        obedit->object_to_world().ptr(),
-                        coords ? coords[BM_elem_index_get(v)] : v->co);
+            mul_v3_m4v3(
+                point, obedit->object_to_world, coords ? coords[BM_elem_index_get(v)] : v->co);
             const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                 ray_origin, ray_direction, point);
             if (dist_sq_test < dist_sq_best_vert) {
@@ -1189,7 +1187,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
             else {
               mid_v3_v3v3(point, e->v1->co, e->v2->co);
             }
-            mul_m4_v3(obedit->object_to_world().ptr(), point);
+            mul_m4_v3(obedit->object_to_world, point);
             const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                 ray_origin, ray_direction, point);
             if (dist_sq_test < dist_sq_best_edge) {
@@ -1218,7 +1216,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
             else {
               BM_face_calc_center_median(f, point);
             }
-            mul_m4_v3(obedit->object_to_world().ptr(), point);
+            mul_m4_v3(obedit->object_to_world, point);
             const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                 ray_origin, ray_direction, point);
             if (dist_sq_test < dist_sq_best_face) {
@@ -2539,11 +2537,11 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
       em_iter->selectmode = ts->selectmode;
       EDBM_selectmode_set(em_iter);
       DEG_id_tag_update(static_cast<ID *>(ob_iter->data),
-                        ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+                        ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
     }
     WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
-    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   }
 
   return ret;
@@ -2583,7 +2581,7 @@ bool EDBM_selectmode_set_multi(bContext *C, const short selectmode)
       em_iter->selectmode = ts->selectmode;
       EDBM_selectmode_set(em_iter);
       DEG_id_tag_update(static_cast<ID *>(ob_iter->data),
-                        ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+                        ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
       changed = true;
     }
@@ -2591,7 +2589,7 @@ bool EDBM_selectmode_set_multi(bContext *C, const short selectmode)
 
   if (changed) {
     WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
-    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   }
   return changed;
 }
@@ -4871,7 +4869,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 
   {
     float vertex_world[3];
-    mul_v3_m4v3(vertex_world, obedit->object_to_world().ptr(), v_act->co);
+    mul_v3_m4v3(vertex_world, obedit->object_to_world, v_act->co);
     value = dot_v3v3(axis_vector, vertex_world);
   }
 
@@ -4899,7 +4897,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
       if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN | BM_ELEM_SELECT)) {
         float v_iter_world[3];
-        mul_v3_m4v3(v_iter_world, obedit_iter->object_to_world().ptr(), v->co);
+        mul_v3_m4v3(v_iter_world, obedit_iter->object_to_world, v->co);
         const float value_iter = dot_v3v3(axis_vector, v_iter_world);
         switch (sign) {
           case SELECT_AXIS_ALIGN:

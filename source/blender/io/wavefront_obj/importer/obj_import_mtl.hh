@@ -4,7 +4,8 @@
 
 #pragma once
 
-struct bNodeTree;
+#include "DNA_node_types.h"
+
 struct Main;
 struct Material;
 

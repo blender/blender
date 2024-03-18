@@ -118,39 +118,6 @@ void shrinkwrapGpencilModifier_deform(ShrinkwrapGpencilModifierData *mmd,
                                       float (*vertexCos)[3],
                                       int numVerts);
 
-struct ShrinkwrapParams {
-  /** Shrink target. */
-  Object *target = nullptr;
-  /** Additional shrink target. */
-  Object *aux_target = nullptr;
-  /* Use inverse vertex group weights. */
-  bool invert_vertex_weights = false;
-  /** Distance offset to keep from mesh/projection point. */
-  float keep_distance = 0.05f;
-  /** Shrink type projection. */
-  short shrink_type = 0 /*MOD_SHRINKWRAP_NEAREST_SURFACE*/;
-  /** Shrink options. */
-  char shrink_options = 0 /*MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR*/;
-  /** Shrink to surface mode. */
-  char shrink_mode = 0 /*MOD_SHRINKWRAP_ON_SURFACE*/;
-  /** Limit the projection ray cast. */
-  float projection_limit = 0.0f;
-  /** Axis to project over. */
-  char projection_axis = 0 /*MOD_SHRINKWRAP_PROJECT_OVER_NORMAL*/;
-  /**
-   * If using projection over vertex normal this controls the level of subsurface that must be
-   * done before getting the vertex coordinates and normal.
-   */
-  char subsurf_levels = 0;
-};
-
-void shrinkwrapParams_deform(const ShrinkwrapParams &params,
-                             Object &object,
-                             ShrinkwrapTreeData &tree,
-                             blender::Span<MDeformVert> dvert,
-                             int defgrp_index,
-                             blender::MutableSpan<blender::float3> positions);
-
 /**
  * Used in `editmesh_mask_extract.cc` to shrink-wrap the extracted mesh to the sculpt.
  */

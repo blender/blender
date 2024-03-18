@@ -1323,8 +1323,9 @@ static void widget_draw_icon(
   }
   else if (but->type == UI_BTYPE_LABEL) {
     /* extra feature allows more alpha blending */
-    const uiButLabel *but_label = reinterpret_cast<const uiButLabel *>(but);
-    alpha *= but_label->alpha_factor;
+    if (but->a1 == 1.0f) {
+      alpha *= but->a2;
+    }
   }
   else if (ELEM(but->type, UI_BTYPE_BUT, UI_BTYPE_DECORATOR)) {
     uiWidgetStateInfo state = {0};
@@ -3385,12 +3386,10 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
   UI_draw_roundbox_4fv_ex(&rectf, col2, nullptr, 0.0f, inner1, U.pixelsize, 0.0f);
 }
 
-/** Separator line. */
-static void ui_draw_separator(const uiWidgetColors *wcol, uiBut *but, const rcti *rect)
+/** Separator for menus. */
+static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 {
-  const uiButSeparatorLine *but_line = static_cast<uiButSeparatorLine *>(but);
-  const bool vertical = but_line->is_vertical;
-  const int mid = vertical ? BLI_rcti_cent_x(rect) : BLI_rcti_cent_y(rect);
+  const int y = rect->ymin + BLI_rcti_size_y(rect) / 2;
   const uchar col[4] = {
       wcol->text[0],
       wcol->text[1],
@@ -3407,16 +3406,8 @@ static void ui_draw_separator(const uiWidgetColors *wcol, uiBut *but, const rcti
   GPU_line_width(1.0f);
 
   immBegin(GPU_PRIM_LINES, 2);
-
-  if (vertical) {
-    immVertex2f(pos, mid, rect->ymin);
-    immVertex2f(pos, mid, rect->ymax);
-  }
-  else {
-    immVertex2f(pos, rect->xmin, mid);
-    immVertex2f(pos, rect->xmax, mid);
-  }
-
+  immVertex2f(pos, rect->xmin, y);
+  immVertex2f(pos, rect->xmax, y);
   immEnd();
 
   GPU_blend(GPU_BLEND_NONE);
@@ -3692,13 +3683,10 @@ static void widget_scroll(uiBut *but,
                           int /*roundboxalign*/,
                           const float /*zoom*/)
 {
-  const uiButScrollBar *but_scroll = reinterpret_cast<const uiButScrollBar *>(but);
-  const float height = but_scroll->visual_height;
-
   /* calculate slider part */
   const float value = float(ui_but_value_get(but));
 
-  const float size = max_ff((but->softmax + height - but->softmin), 2.0f);
+  const float size = max_ff((but->softmax + but->a1 - but->softmin), 2.0f);
 
   /* position */
   rcti rect1 = *rect;
@@ -3709,7 +3697,7 @@ static void widget_scroll(uiBut *but,
   if (horizontal) {
     const float fac = BLI_rcti_size_x(rect) / size;
     rect1.xmin = rect1.xmin + ceilf(fac * (value - but->softmin));
-    rect1.xmax = rect1.xmin + ceilf(fac * (height - but->softmin));
+    rect1.xmax = rect1.xmin + ceilf(fac * (but->a1 - but->softmin));
 
     /* Ensure minimum size. */
     const float min = BLI_rcti_size_y(rect);
@@ -3726,7 +3714,7 @@ static void widget_scroll(uiBut *but,
   else {
     const float fac = BLI_rcti_size_y(rect) / size;
     rect1.ymax = rect1.ymax - ceilf(fac * (value - but->softmin));
-    rect1.ymin = rect1.ymax - ceilf(fac * (height - but->softmin));
+    rect1.ymin = rect1.ymax - ceilf(fac * (but->a1 - but->softmin));
 
     /* Ensure minimum size. */
     const float min = BLI_rcti_size_x(rect);
@@ -4881,9 +4869,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
       case UI_BTYPE_SEPR:
         break;
       case UI_BTYPE_SEPR_LINE:
-        /* Add horizontal padding between the line and menu sides. */
-        BLI_rcti_pad(rect, int(-7.0f * UI_SCALE_FAC), 0);
-        ui_draw_separator(&tui->wcol_menu_item, but, rect);
+        ui_draw_separator(rect, &tui->wcol_menu_item);
         break;
       default: {
         const bool use_unpadded = (but->flag & UI_BUT_ICON_PREVIEW) ||
@@ -4935,10 +4921,8 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         break;
 
       case UI_BTYPE_SEPR:
-      case UI_BTYPE_SEPR_SPACER:
-        break;
       case UI_BTYPE_SEPR_LINE:
-        ui_draw_separator(&tui->wcol_menu_item, but, rect);
+      case UI_BTYPE_SEPR_SPACER:
         break;
 
       case UI_BTYPE_BUT:
@@ -5336,10 +5320,17 @@ void ui_draw_popover_back(ARegion *region, uiStyle * /*style*/, uiBlock *block, 
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
 
-  float mval_origin[2] = {float(block->bounds_offset[0]), float(block->bounds_offset[1])};
-  ui_window_to_block_fl(region, block, &mval_origin[0], &mval_origin[1]);
-  ui_draw_popover_back_impl(
-      wt->wcol_theme, rect, block->direction, U.widget_unit / block->aspect, mval_origin);
+  if (block) {
+    float mval_origin[2] = {float(block->bounds_offset[0]), float(block->bounds_offset[1])};
+    ui_window_to_block_fl(region, block, &mval_origin[0], &mval_origin[1]);
+    ui_draw_popover_back_impl(
+        wt->wcol_theme, rect, block->direction, U.widget_unit / block->aspect, mval_origin);
+  }
+  else {
+    const float zoom = 1.0f / block->aspect;
+    wt->state(wt, &STATE_INFO_NULL, UI_EMBOSS_UNDEFINED);
+    wt->draw_block(&wt->wcol, rect, 0, 0, zoom);
+  }
 
   ui_draw_clip_tri(block, rect, wt);
 }

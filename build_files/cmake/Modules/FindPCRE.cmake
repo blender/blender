@@ -64,5 +64,3 @@ mark_as_advanced(
   PCRE_INCLUDE_DIR
   PCRE_LIBRARY
 )
-
-unset(_pcre_SEARCH_DIRS)

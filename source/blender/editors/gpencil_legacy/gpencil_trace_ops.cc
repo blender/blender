@@ -11,20 +11,21 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -276,7 +277,7 @@ static void trace_end_job(void *customdata)
     DEG_relations_tag_update(trace_job->bmain);
 
     DEG_id_tag_update(&trace_job->scene->id, ID_RECALC_SELECT);
-    DEG_id_tag_update(&trace_job->gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&trace_job->gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
 
     WM_main_add_notifier(NC_OBJECT | NA_ADDED, nullptr);
     WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, trace_job->scene);

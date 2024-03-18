@@ -28,8 +28,8 @@ struct ListBase;
  * Without this any callers to this module that run early on,
  * will miss out on changes from parsing arguments.
  */
-void BKE_appdir_init();
-void BKE_appdir_exit();
+void BKE_appdir_init(void);
+void BKE_appdir_exit(void);
 
 /**
  * Get the folder that's the "natural" starting point for browsing files on an OS.
@@ -39,15 +39,15 @@ void BKE_appdir_exit();
  * \note On Windows `Users/{MyUserName}/Documents` is used as it's the default location to save
  * documents.
  */
-const char *BKE_appdir_folder_default() ATTR_WARN_UNUSED_RESULT;
-const char *BKE_appdir_folder_root() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
-const char *BKE_appdir_folder_default_or_root() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+const char *BKE_appdir_folder_default(void) ATTR_WARN_UNUSED_RESULT;
+const char *BKE_appdir_folder_root(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+const char *BKE_appdir_folder_default_or_root(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
  * Get the user's home directory, i.e.
  * - Unix: `$HOME`
  * - Windows: `%userprofile%`
  */
-const char *BKE_appdir_folder_home();
+const char *BKE_appdir_folder_home(void);
 /**
  * Get the user's document directory, i.e.
  * - Linux: `$HOME/Documents`
@@ -104,11 +104,11 @@ std::optional<std::string> BKE_appdir_resource_path_id(int folder_id, bool check
  * Check if this is an install with user files kept together
  * with the Blender executable and its installation files.
  */
-bool BKE_appdir_app_is_portable_install();
+bool BKE_appdir_app_is_portable_install(void);
 /**
  * Return true if templates exist
  */
-bool BKE_appdir_app_template_any();
+bool BKE_appdir_app_template_any(void);
 bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_maxncpy)
     ATTR_NONNULL(1);
 bool BKE_appdir_app_template_has_userpref(const char *app_template) ATTR_NONNULL(1);
@@ -122,11 +122,11 @@ void BKE_appdir_program_path_init(const char *argv0) ATTR_NONNULL(1);
 /**
  * Path to executable
  */
-const char *BKE_appdir_program_path() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+const char *BKE_appdir_program_path(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
  * Path to directory of executable
  */
-const char *BKE_appdir_program_dir() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+const char *BKE_appdir_program_dir(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 
 /**
  * Gets a good default directory for fonts.
@@ -149,15 +149,15 @@ void BKE_tempdir_init(const char *userdir);
 /**
  * Path to persistent temporary directory (with trailing slash)
  */
-const char *BKE_tempdir_base() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+const char *BKE_tempdir_base(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
  * Path to temporary directory (with trailing slash)
  */
-const char *BKE_tempdir_session() ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
+const char *BKE_tempdir_session(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NONNULL;
 /**
  * Delete content of this instance's temp dir.
  */
-void BKE_tempdir_session_purge();
+void BKE_tempdir_session_purge(void);
 
 /* folder_id */
 enum {
@@ -176,7 +176,7 @@ enum {
   BLENDER_SYSTEM_PYTHON = 54,
 };
 
-/** For #BKE_appdir_folder_id_version only. */
+/* for BKE_appdir_folder_id_version only */
 enum {
   BLENDER_RESOURCE_PATH_USER = 0,
   BLENDER_RESOURCE_PATH_LOCAL = 1,

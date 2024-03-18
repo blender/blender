@@ -8,11 +8,11 @@
 
 #pragma once
 
-#include "BLI_path_util.h"
-#include "IO_orientation.hh"
+#include "BKE_context.hh"
 
-struct bContext;
-struct ReportList;
+#include "BLI_path_util.h"
+#include "DNA_windowmanager_types.h"
+#include "IO_orientation.hh"
 
 enum ePLYVertexColorMode {
   PLY_VERTEX_COLOR_NONE = 0,

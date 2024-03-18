@@ -15,8 +15,7 @@ foreach(_variableName ${_variableNames})
     # First see if DEP_HOMEPAGE is set, if it is use that.
     set(DEP_HOMEPAGE ${${DEP_NAME}_HOMEPAGE})
     if(NOT DEP_HOMEPAGE)
-      # If the xxx_HOMEPAGE is not set but the URI for the archive is a known github format
-      # extract the repository/project from the URI.
+      # If the xxx_HOMEPAGE is not set but the URI for the archive is a known github format extract the reprository/project from the URI
       string(REGEX MATCH "https:\/\/(.*)github\.com\/(.+)\/(archive|releases|release|tar.gz)\/(.*)" DEP_PROJECT "${${_variableName}}")
       if(CMAKE_MATCH_2)
         set(DEP_HOMEPAGE "https://www.github.com/${CMAKE_MATCH_2}")

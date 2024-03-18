@@ -236,7 +236,7 @@ class BitVector {
 
   IndexRange index_range() const
   {
-    return IndexRange(size_in_bits_);
+    return {0, size_in_bits_};
   }
 
   /**
@@ -283,7 +283,7 @@ class BitVector {
     }
     size_in_bits_ = new_size_in_bits;
     if (old_size_in_bits < new_size_in_bits) {
-      MutableBitSpan(data_, IndexRange::from_begin_end(old_size_in_bits, new_size_in_bits))
+      MutableBitSpan(data_, IndexRange(old_size_in_bits, new_size_in_bits - old_size_in_bits))
           .set_all(value);
     }
   }

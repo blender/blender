@@ -28,23 +28,13 @@
 #define PACKETMODE 0
 #include <pktdef.h>
 
-#if !defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL
-#  define WINTAB_PRINTF(x, ...) \
-    { \
-      if (GHOST_Wintab::getDebug()) { \
-        printf(x, __VA_ARGS__); \
-      } \
+#define WINTAB_PRINTF(x, ...) \
+  { \
+    if (GHOST_Wintab::getDebug()) { \
+      printf(x, __VA_ARGS__); \
     } \
-    (void)0
-#else
-#  define WINTAB_PRINTF(x, ...) \
-    { \
-      if (GHOST_Wintab::getDebug()) { \
-        printf(x, ##__VA_ARGS__); \
-      } \
-    } \
-    (void)0
-#endif
+  } \
+  (void)0
 
 /* Typedefs for Wintab functions to allow dynamic loading. */
 typedef UINT(API *GHOST_WIN32_WTInfo)(UINT, UINT, LPVOID);

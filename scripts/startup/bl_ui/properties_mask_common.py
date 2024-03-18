@@ -36,7 +36,8 @@ def draw_mask_context_menu(layout, _context):
 
 
 class MASK_UL_layers(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+    def draw_item(self, _context, layout, _data, item, icon,
+                  _active_data, _active_propname, _index):
         # assert(isinstance(item, bpy.types.MaskLayer)
         mask = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -203,7 +204,8 @@ class MASK_PT_point:
             row = col.row()
             row.prop(parent, "type", expand=True)
 
-            col.prop_search(parent, "parent", tracking, "objects", icon='OBJECT_DATA', text="Object")
+            col.prop_search(parent, "parent", tracking,
+                            "objects", icon='OBJECT_DATA', text="Object")
 
             tracks_list = "tracks" if parent.type == 'POINT_TRACK' else "plane_tracks"
 

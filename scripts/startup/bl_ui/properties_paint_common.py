@@ -391,7 +391,8 @@ class SmoothStrokePanel(BrushPanel):
         brush = settings.brush
 
         self.layout.use_property_split = False
-        self.layout.prop(brush, "use_smooth_stroke", text=self.bl_label if self.is_popover else "")
+        self.layout.prop(brush, "use_smooth_stroke",
+                         text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -799,25 +800,19 @@ def brush_settings(layout, context, brush, popover=False):
         if brush.curves_sculpt_tool == 'ADD':
             layout.prop(brush.curves_sculpt_settings, "add_amount")
             col = layout.column(heading="Interpolate", align=True)
-            col.prop(brush.curves_sculpt_settings, "use_length_interpolate", text="Length")
-            col.prop(brush.curves_sculpt_settings, "use_radius_interpolate", text="Radius")
-            col.prop(brush.curves_sculpt_settings, "use_shape_interpolate", text="Shape")
-            col.prop(brush.curves_sculpt_settings, "use_point_count_interpolate", text="Point Count")
+            col.prop(brush.curves_sculpt_settings, "interpolate_length", text="Length")
+            col.prop(brush.curves_sculpt_settings, "interpolate_shape", text="Shape")
+            col.prop(brush.curves_sculpt_settings, "interpolate_point_count", text="Point Count")
 
             col = layout.column()
-            col.active = not brush.curves_sculpt_settings.use_length_interpolate
-            col.prop(brush.curves_sculpt_settings, "curve_length", text="Length")
+            col.active = not brush.curves_sculpt_settings.interpolate_length
+            col.prop(brush.curves_sculpt_settings, "curve_length")
 
             col = layout.column()
-            col.active = not brush.curves_sculpt_settings.use_radius_interpolate
-            col.prop(brush.curves_sculpt_settings, "curve_radius", text="Radius")
-
-            col = layout.column()
-            col.active = not brush.curves_sculpt_settings.use_point_count_interpolate
-            col.prop(brush.curves_sculpt_settings, "points_per_curve", text="Points")
-
+            col.active = not brush.curves_sculpt_settings.interpolate_point_count
+            col.prop(brush.curves_sculpt_settings, "points_per_curve")
         elif brush.curves_sculpt_tool == 'GROW_SHRINK':
-            layout.prop(brush.curves_sculpt_settings, "use_uniform_scale")
+            layout.prop(brush.curves_sculpt_settings, "scale_uniform")
             layout.prop(brush.curves_sculpt_settings, "minimum_length")
 
 
@@ -1343,7 +1338,8 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
 
         if gp_settings.use_pressure and not compact:
             col = layout.column()
-            col.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True, use_negative_slope=True)
+            col.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True,
+                                       use_negative_slope=True)
 
         row = layout.row(align=True)
         row.prop(gp_settings, "pen_strength", slider=True)
@@ -1351,7 +1347,8 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
 
         if gp_settings.use_strength_pressure and not compact:
             col = layout.column()
-            col.template_curve_mapping(gp_settings, "curve_strength", brush=True, use_negative_slope=True)
+            col.template_curve_mapping(gp_settings, "curve_strength", brush=True,
+                                       use_negative_slope=True)
 
         if brush.gpencil_tool == 'TINT':
             row = layout.row(align=True)
@@ -1389,58 +1386,6 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
             if settings.use_thickness_curve:
                 # Curve
                 layout.template_curve_mapping(settings, "thickness_primitive_curve", brush=True)
-
-
-def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=False):
-    gp_settings = brush.gpencil_settings
-    if gp_settings is None:
-        return
-
-    grease_pencil_tool = brush.gpencil_tool
-
-    UnifiedPaintPanel.prop_unified(
-        layout,
-        context,
-        brush,
-        "size",
-        unified_name="use_unified_size",
-        pressure_name="use_pressure_size",
-        text="Radius",
-        slider=True,
-        header=compact,
-    )
-
-    if brush.use_pressure_size and not compact:
-        col = layout.column()
-        col.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True, use_negative_slope=True)
-
-    UnifiedPaintPanel.prop_unified(
-        layout,
-        context,
-        brush,
-        "strength",
-        unified_name="use_unified_strength",
-        pressure_name="use_pressure_strength",
-        slider=True,
-        header=compact,
-    )
-
-    if brush.use_pressure_strength and not compact:
-        col = layout.column()
-        col.template_curve_mapping(gp_settings, "curve_strength", brush=True, use_negative_slope=True)
-
-    if grease_pencil_tool == 'DRAW':
-        layout.prop(gp_settings, "active_smooth_factor")
-        row = layout.row(align=True)
-        if compact:
-            row.prop(gp_settings, "caps_type", text="", expand=True)
-        else:
-            row.prop(gp_settings, "caps_type", text="Caps Type")
-    elif grease_pencil_tool == 'ERASE':
-        layout.prop(gp_settings, "eraser_mode", expand=True)
-        if gp_settings.eraser_mode == "HARD":
-            layout.prop(gp_settings, "use_keep_caps_eraser")
-        layout.prop(gp_settings, "use_active_layer_only")
 
 
 def brush_basic_gpencil_sculpt_settings(layout, _context, brush, *, compact=False):

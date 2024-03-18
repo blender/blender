@@ -7,8 +7,7 @@
  */
 
 #include "BLI_math_base.h"
-
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 int pow_i(int base, int exp)
 {

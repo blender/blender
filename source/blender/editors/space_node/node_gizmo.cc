@@ -15,6 +15,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_image.h"
+#include "BKE_main.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
@@ -26,6 +27,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "node_intern.hh"
@@ -50,16 +52,13 @@ static void node_gizmo_calc_matrix_space(const SpaceNode *snode,
 static void node_gizmo_calc_matrix_space_with_image_dims(const SpaceNode *snode,
                                                          const ARegion *region,
                                                          const float2 &image_dims,
-                                                         const float2 &image_offset,
                                                          float matrix_space[4][4])
 {
   unit_m4(matrix_space);
   mul_v3_fl(matrix_space[0], snode->zoom * image_dims.x);
   mul_v3_fl(matrix_space[1], snode->zoom * image_dims.y);
-  matrix_space[3][0] = ((region->winx / 2) + snode->xof) -
-                       ((image_dims.x / 2.0f - image_offset.x) * snode->zoom);
-  matrix_space[3][1] = ((region->winy / 2) + snode->yof) -
-                       ((image_dims.y / 2.0f - image_offset.y) * snode->zoom);
+  matrix_space[3][0] = ((region->winx / 2) + snode->xof) - ((image_dims.x / 2.0f) * snode->zoom);
+  matrix_space[3][1] = ((region->winy / 2) + snode->yof) - ((image_dims.y / 2.0f) * snode->zoom);
 }
 
 /** \} */
@@ -405,7 +404,6 @@ struct NodeSunBeamsWidgetGroup {
 
   struct {
     float2 dims;
-    float2 offset;
   } state;
 };
 
@@ -452,7 +450,7 @@ static void WIDGETGROUP_node_sbeam_draw_prepare(const bContext *C, wmGizmoGroup 
   SpaceNode *snode = CTX_wm_space_node(C);
 
   node_gizmo_calc_matrix_space_with_image_dims(
-      snode, region, sbeam_group->state.dims, sbeam_group->state.offset, gz->matrix_space);
+      snode, region, sbeam_group->state.dims, gz->matrix_space);
 }
 
 static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgroup)
@@ -468,7 +466,6 @@ static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgr
   if (ibuf) {
     sbeam_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
     sbeam_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    sbeam_group->state.offset = {float(ima->offset_x), float(ima->offset_y)};
 
     SpaceNode *snode = CTX_wm_space_node(C);
     bNode *node = nodeGetActive(snode->edittree);
@@ -512,7 +509,6 @@ struct NodeCornerPinWidgetGroup {
 
   struct {
     float2 dims;
-    float2 offset;
   } state;
 };
 
@@ -547,7 +543,7 @@ static void WIDGETGROUP_node_corner_pin_setup(const bContext * /*C*/, wmGizmoGro
 
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_CROSS_2D);
 
-    gz->scale_basis = 0.05f / 75.0;
+    gz->scale_basis = 0.01f / 75.0;
   }
 
   gzgroup->customdata = cpin_group;
@@ -562,7 +558,7 @@ static void WIDGETGROUP_node_corner_pin_draw_prepare(const bContext *C, wmGizmoG
 
   float matrix_space[4][4];
   node_gizmo_calc_matrix_space_with_image_dims(
-      snode, region, cpin_group->state.dims, cpin_group->state.offset, matrix_space);
+      snode, region, cpin_group->state.dims, matrix_space);
 
   for (int i = 0; i < 4; i++) {
     wmGizmo *gz = cpin_group->gizmos[i];
@@ -582,7 +578,6 @@ static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmGizmoGroup 
   if (ibuf) {
     cpin_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
     cpin_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    cpin_group->state.offset = {float(ima->offset_x), float(ima->offset_y)};
 
     SpaceNode *snode = CTX_wm_space_node(C);
     bNode *node = nodeGetActive(snode->edittree);

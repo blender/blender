@@ -9,7 +9,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_voxel.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 BLI_INLINE float D(const float *data, const int res[3], int x, int y, int z)
 {

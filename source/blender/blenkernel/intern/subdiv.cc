@@ -13,6 +13,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_modifier.hh"
 #include "BKE_subdiv_modifier.hh"
 
 #include "MEM_guardedalloc.h"

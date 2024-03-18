@@ -19,10 +19,6 @@ struct Object;
 struct ReportList;
 struct wmJobWorkerStatus;
 
-namespace blender::bke {
-struct GeometrySet;
-}
-
 namespace blender::io::usd {
 
 /**
@@ -165,7 +161,7 @@ bool USD_import(bContext *C,
                 bool as_background_job,
                 ReportList *reports);
 
-int USD_get_version();
+int USD_get_version(void);
 
 /* USD Import and Mesh Cache interface. */
 
@@ -176,11 +172,11 @@ void USD_free_handle(CacheArchiveHandle *handle);
 void USD_get_transform(CacheReader *reader, float r_mat[4][4], float time, float scale);
 
 /** Either modifies current_mesh in-place or constructs a new mesh. */
-void USD_read_geometry(CacheReader *reader,
-                       Object *ob,
-                       blender::bke::GeometrySet &geometry_set,
-                       USDMeshReadParams params,
-                       const char **err_str);
+Mesh *USD_read_mesh(CacheReader *reader,
+                    Object *ob,
+                    Mesh *existing_mesh,
+                    USDMeshReadParams params,
+                    const char **err_str);
 
 bool USD_mesh_topology_changed(CacheReader *reader,
                                const Object *ob,

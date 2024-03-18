@@ -8,7 +8,7 @@
  * Debug features of OpenGL.
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "BLI_string.h"
 
@@ -75,7 +75,7 @@ bool GPU_debug_group_match(const char *ref)
   return false;
 }
 
-void GPU_debug_capture_begin(const char *title)
+void GPU_debug_capture_begin()
 {
   /* GPU Frame capture is only enabled when --debug-gpu is specified. */
   if (!(G.debug & G_DEBUG_GPU)) {
@@ -84,7 +84,7 @@ void GPU_debug_capture_begin(const char *title)
 
   Context *ctx = Context::get();
   if (ctx && !ctx->debug_is_capturing) {
-    ctx->debug_is_capturing = ctx->debug_capture_begin(title);
+    ctx->debug_is_capturing = ctx->debug_capture_begin();
     if (!ctx->debug_is_capturing) {
       printf("Failed to start GPU frame capture!\n");
     }

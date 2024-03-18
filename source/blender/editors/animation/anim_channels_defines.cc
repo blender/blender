@@ -18,7 +18,7 @@
 #include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -51,13 +51,15 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "BKE_anim_data.hh"
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 #include "BKE_nla.h"
 
 #include "GPU_immediate.h"
@@ -5348,6 +5350,8 @@ static void draw_setting_widget(bAnimContext *ac,
                              static_cast<int *>(ptr),
                              0,
                              0,
+                             0,
+                             0,
                              tooltip);
       break;
 
@@ -5364,6 +5368,8 @@ static void draw_setting_widget(bAnimContext *ac,
                              static_cast<short *>(ptr),
                              0,
                              0,
+                             0,
+                             0,
                              tooltip);
       break;
 
@@ -5378,6 +5384,8 @@ static void draw_setting_widget(bAnimContext *ac,
                              ICON_WIDTH,
                              ICON_WIDTH,
                              static_cast<char *>(ptr),
+                             0,
+                             0,
                              0,
                              0,
                              tooltip);

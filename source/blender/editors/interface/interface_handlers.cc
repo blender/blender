@@ -42,7 +42,7 @@
 #include "BKE_curveprofile.h"
 #include "BKE_movieclip.h"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_screen.hh"
 #include "BKE_tracking.h"
 #include "BKE_unit.hh"
@@ -56,6 +56,7 @@
 
 #include "UI_interface.hh"
 #include "UI_string_search.hh"
+#include "UI_view2d.hh"
 
 #include "BLF_api.hh"
 
@@ -69,6 +70,8 @@
 #include "wm_event_system.hh"
 
 #ifdef WITH_INPUT_IME
+#  include "BLT_lang.h"
+#  include "BLT_translation.h"
 #  include "wm_window.hh"
 #endif
 
@@ -414,6 +417,8 @@ struct uiHandleButtonData {
   /* coords are Window/uiBlock relative (depends on the button) */
   int draglastx, draglasty;
   int dragstartx, dragstarty;
+  int draglastvalue;
+  int dragstartvalue;
   bool dragchange, draglock;
   int dragsel;
   float dragf, dragfstart;
@@ -433,6 +438,7 @@ struct uiHandleButtonData {
 
   /* Menu open, see: #UI_screen_free_active_but_highlight. */
   uiPopupBlockHandle *menu;
+  int menuretval;
 
   /* Search box see: #UI_screen_free_active_but_highlight. */
   ARegion *searchbox;
@@ -478,6 +484,10 @@ struct uiAfterFunc {
   uiBlockHandleFunc handle_func;
   void *handle_func_arg;
   int retval;
+
+  uiMenuHandleFunc butm_func;
+  void *butm_func_arg;
+  int a2;
 
   wmOperator *popup_op;
   wmOperatorType *optype;
@@ -806,7 +816,9 @@ static void popup_check(bContext *C, wmOperator *op)
 static bool ui_afterfunc_check(const uiBlock *block, const uiBut *but)
 {
   return (but->func || but->apply_func || but->funcN || but->rename_func || but->optype ||
-          but->rnaprop || block->handle_func || (block->handle && block->handle->popup_op));
+          but->rnaprop || block->handle_func ||
+          (but->type == UI_BTYPE_BUT_MENU && block->butm_func) ||
+          (block->handle && block->handle->popup_op));
 }
 
 /**
@@ -846,6 +858,12 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
   after->handle_func = block->handle_func;
   after->handle_func_arg = block->handle_func_arg;
   after->retval = but->retval;
+
+  if (but->type == UI_BTYPE_BUT_MENU) {
+    after->butm_func = block->butm_func;
+    after->butm_func_arg = block->butm_func_arg;
+    after->a2 = but->a2;
+  }
 
   if (block->handle) {
     after->popup_op = block->handle->popup_op;
@@ -1054,6 +1072,9 @@ static void ui_apply_but_funcs_after(bContext *C)
 
     if (after.handle_func) {
       after.handle_func(C, after.handle_func_arg, after.retval);
+    }
+    if (after.butm_func) {
+      after.butm_func(C, after.butm_func_arg, after.a2);
     }
 
     if (after.rename_func) {
@@ -2156,7 +2177,7 @@ static bool ui_but_drag_init(bContext *C,
       }
 
       if (valid) {
-        WM_event_start_drag(C, ICON_COLOR, WM_DRAG_COLOR, drag_info, WM_DRAG_FREE_DATA);
+        WM_event_start_drag(C, ICON_COLOR, WM_DRAG_COLOR, drag_info, 0.0, WM_DRAG_FREE_DATA);
       }
       else {
         MEM_freeN(drag_info);
@@ -2166,7 +2187,7 @@ static bool ui_but_drag_init(bContext *C,
     else if (but->type == UI_BTYPE_VIEW_ITEM) {
       const uiButViewItem *view_item_but = (uiButViewItem *)but;
       if (view_item_but->view_item) {
-        return UI_view_item_drag_start(*C, *view_item_but->view_item);
+        return UI_view_item_drag_start(C, view_item_but->view_item);
       }
     }
     else {
@@ -4379,7 +4400,7 @@ static void ui_block_open_end(bContext *C, uiBut *but, uiHandleButtonData *data)
     but->editval = nullptr;
     but->editvec = nullptr;
 
-    but->block->auto_open_last = BLI_time_now_seconds();
+    but->block->auto_open_last = BLI_check_seconds_timer();
   }
 
   if (data->menu) {
@@ -4879,7 +4900,7 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
             return WM_UI_HANDLER_BREAK;
           }
 
-          if (UI_view_item_supports_drag(*view_item_but->view_item)) {
+          if (UI_view_item_supports_drag(view_item_but->view_item)) {
             button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
             data->dragstartx = event->xy[0];
             data->dragstarty = event->xy[1];
@@ -4891,7 +4912,7 @@ static int ui_do_but_VIEW_ITEM(bContext *C,
           return WM_UI_HANDLER_CONTINUE;
         case KM_DBL_CLICK:
           data->cancel = true;
-          UI_view_item_begin_rename(*view_item_but->view_item);
+          UI_view_item_begin_rename(view_item_but->view_item);
           ED_region_tag_redraw(CTX_wm_region(C));
           return WM_UI_HANDLER_BREAK;
       }
@@ -5439,11 +5460,6 @@ static int ui_do_but_NUM(
       }
       else if (ELEM(event->type, EVT_PADENTER, EVT_RETKEY) && event->val == KM_PRESS) {
         click = 1;
-      }
-      else if (event->type == EVT_BUT_OPEN) {
-        /* Handle UI_but_focus_on_enter_event. */
-        button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-        retval = WM_UI_HANDLER_BREAK;
       }
       else if (event->type == EVT_MINUSKEY && event->val == KM_PRESS) {
         button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
@@ -8636,7 +8652,7 @@ static void button_activate_init(bContext *C,
    * want to allow auto opening adjacent menus even if no button is activated
    * in between going over to the other button, but only for a short while */
   if (type == BUTTON_ACTIVATE_OVER && but->block->auto_open == true) {
-    if (but->block->auto_open_last + BUTTON_AUTO_OPEN_THRESH < BLI_time_now_seconds()) {
+    if (but->block->auto_open_last + BUTTON_AUTO_OPEN_THRESH < BLI_check_seconds_timer()) {
       but->block->auto_open = false;
     }
   }
@@ -8682,7 +8698,7 @@ static void button_activate_init(bContext *C,
   if (UI_but_has_tooltip_label(but)) {
     /* Show a label for this button. */
     bScreen *screen = WM_window_get_active_screen(data->window);
-    if ((BLI_time_now_seconds() - WM_tooltip_time_closed()) < 0.1) {
+    if ((BLI_check_seconds_timer() - WM_tooltip_time_closed()) < 0.1) {
       WM_tooltip_immediate_init(C, CTX_wm_window(C), data->area, region, ui_but_tooltip_init);
       if (screen->tool_tip) {
         screen->tool_tip->pass = 1;
@@ -9963,7 +9979,7 @@ static void ui_mouse_motion_towards_init_ex(uiPopupBlockHandle *menu,
       menu->towardstime = DBL_MAX; /* unlimited time */
     }
     else {
-      menu->towardstime = BLI_time_now_seconds();
+      menu->towardstime = BLI_check_seconds_timer();
     }
   }
 }
@@ -10043,7 +10059,7 @@ static bool ui_mouse_motion_towards_check(uiBlock *block,
   }
 
   /* 1 second timer */
-  if (BLI_time_now_seconds() - menu->towardstime > BUTTON_MOUSE_TOWARDS_THRESH) {
+  if (BLI_check_seconds_timer() - menu->towardstime > BUTTON_MOUSE_TOWARDS_THRESH) {
     menu->dotowards = false;
   }
 

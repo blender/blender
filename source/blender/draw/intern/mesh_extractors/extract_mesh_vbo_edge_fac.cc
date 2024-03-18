@@ -291,7 +291,7 @@ static void extract_edge_fac_init_subdiv(const DRWSubdivCache &subdiv_cache,
   GPU_vertbuf_init_build_on_device(
       vbo, get_subdiv_edge_fac_format(), subdiv_cache.num_subdiv_loops + loose_geom.loop_len);
 
-  GPUVertBuf *pos_nor = cache.final.buff.vbo.pos;
+  GPUVertBuf *pos_nor = cache.final.buff.vbo.pos_nor;
   GPUVertBuf *poly_other_map = build_poly_other_map_vbo(subdiv_cache);
 
   draw_subdiv_build_edge_fac_buffer(

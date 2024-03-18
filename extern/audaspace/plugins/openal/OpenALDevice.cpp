@@ -1131,7 +1131,7 @@ void OpenALDevice::updateStreams()
 /**************************** IDevice Code ************************************/
 /******************************************************************************/
 
-OpenALDevice::OpenALDevice(DeviceSpecs specs, int buffersize, const std::string &name) :
+OpenALDevice::OpenALDevice(DeviceSpecs specs, int buffersize, std::string name) :
 	m_name(name), m_playing(false), m_buffersize(buffersize)
 {
 	// cannot determine how many channels or which format OpenAL uses, but
@@ -1561,7 +1561,7 @@ private:
 	std::string m_name;
 
 public:
-	OpenALDeviceFactory(const std::string &name = "") :
+	OpenALDeviceFactory(std::string name = "") :
 		m_buffersize(AUD_DEFAULT_BUFFER_SIZE),
 		m_name(name)
 	{
@@ -1590,7 +1590,7 @@ public:
 		m_buffersize = buffersize;
 	}
 
-	virtual void setName(const std::string &name)
+	virtual void setName(std::string name)
 	{
 	}
 };
@@ -1599,7 +1599,7 @@ void OpenALDevice::registerPlugin()
 {
 	auto names = OpenALDevice::getDeviceNames();
 	DeviceManager::registerDevice("OpenAL", std::shared_ptr<IDeviceFactory>(new OpenALDeviceFactory));
-	for(const std::string &name : names)
+	for(std::string &name : names)
 	{
 		DeviceManager::registerDevice("OpenAL - " + name, std::shared_ptr<IDeviceFactory>(new OpenALDeviceFactory(name)));
 	}

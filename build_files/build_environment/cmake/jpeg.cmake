@@ -30,10 +30,7 @@ if(WIN32)
 
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_jpeg after_install
-      COMMAND ${CMAKE_COMMAND} -E copy
-        ${LIBDIR}/jpeg/lib/${JPEG_LIBRARY}
-        ${LIBDIR}/jpeg/lib/jpeg${LIBEXT}
-
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/jpeg/lib/${JPEG_LIBRARY}  ${LIBDIR}/jpeg/lib/jpeg${LIBEXT}
       DEPENDEES install
     )
   endif()
@@ -51,12 +48,7 @@ else()
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${JPEG_HASH_TYPE}=${JPEG_HASH}
     PREFIX ${BUILD_DIR}/jpeg
-
-    CMAKE_ARGS
-      -DCMAKE_INSTALL_PREFIX=${LIBDIR}/jpeg
-      ${DEFAULT_CMAKE_FLAGS}
-      ${JPEG_EXTRA_ARGS}
-
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/jpeg ${DEFAULT_CMAKE_FLAGS} ${JPEG_EXTRA_ARGS}
     INSTALL_DIR ${LIBDIR}/jpeg
   )
 

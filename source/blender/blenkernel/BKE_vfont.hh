@@ -121,7 +121,7 @@ void BKE_vfont_build_char(Curve *cu,
 int BKE_vfont_select_get(Object *ob, int *r_start, int *r_end);
 void BKE_vfont_select_clamp(Object *ob);
 
-void BKE_vfont_clipboard_free();
+void BKE_vfont_clipboard_free(void);
 void BKE_vfont_clipboard_set(const char32_t *text_buf, const CharInfo *info_buf, size_t len);
 void BKE_vfont_clipboard_get(char32_t **r_text_buf,
                              CharInfo **r_info_buf,

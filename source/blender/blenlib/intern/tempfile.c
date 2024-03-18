@@ -8,19 +8,13 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-bool BLI_temp_directory_path_copy_if_valid(char *tempdir,
-                                           const size_t tempdir_maxncpy,
+bool BLI_temp_directory_path_copy_if_valid(char *temp_directory,
+                                           const size_t buffer_size,
                                            const char *dirpath)
 {
-  /* NOTE(@ideasman42): it is *not* the purpose of this function to check that
-   * `dirpath` is writable under all circumstances.
-   * Only check `dirpath` doesn't resolve to an empty string & points to a directory.
-   *
-   * While other checks could be added to avoid problems writing temporary files:
-   * (read-only, permission failure, out-of-I-nodes, disk-full... etc)
-   * it's out of scope for this function as these characteristics can change at run-time.
-   * In general temporary file IO should handle failure properly with sufficient user feedback,
-   * without attempting to *solve* the problem by anticipating file-system issues ahead of time. */
+  if (dirpath == NULL) {
+    return false;
+  }
 
   /* Disallow paths starting with two forward slashes. While they are valid paths,
    * Blender interprets them as relative in situations relative paths aren't supported,
@@ -35,24 +29,24 @@ bool BLI_temp_directory_path_copy_if_valid(char *tempdir,
     return false;
   }
 
-  BLI_strncpy(tempdir, dirpath, tempdir_maxncpy);
+  BLI_strncpy(temp_directory, dirpath, buffer_size);
 
   /* Add a trailing slash if needed. */
-  BLI_path_slash_ensure(tempdir, tempdir_maxncpy);
+  BLI_path_slash_ensure(temp_directory, buffer_size);
 
   /* There's nothing preventing an environment variable (even preferences) from being CWD relative.
    * This causes:
    * - Asserts in code-paths which expect absolute paths (blend-file IO).
    * - The temporary directory to change if the CWD changes.
    * Avoid issues by ensuring the temporary directory is *never* CWD relative. */
-  BLI_path_abs_from_cwd(tempdir, tempdir_maxncpy);
+  BLI_path_abs_from_cwd(temp_directory, buffer_size);
 
   return true;
 }
 
-void BLI_temp_directory_path_get(char *tempdir, const size_t tempdir_maxncpy)
+void BLI_temp_directory_path_get(char *temp_directory, const size_t buffer_size)
 {
-  tempdir[0] = '\0';
+  temp_directory[0] = '\0';
 
   const char *env_vars[] = {
 #ifdef WIN32
@@ -66,16 +60,16 @@ void BLI_temp_directory_path_get(char *tempdir, const size_t tempdir_maxncpy)
   };
 
   for (int i = 0; i < ARRAY_SIZE(env_vars); i++) {
-    const char *tempdir_test = BLI_getenv(env_vars[i]);
-    if (tempdir_test == NULL) {
-      continue;
-    }
-    if (BLI_temp_directory_path_copy_if_valid(tempdir, tempdir_maxncpy, tempdir_test)) {
+    if (BLI_temp_directory_path_copy_if_valid(
+            temp_directory, buffer_size, BLI_getenv(env_vars[i])))
+    {
       break;
     }
   }
 
-  if (tempdir[0] == '\0') {
-    BLI_strncpy(tempdir, "/tmp/", tempdir_maxncpy);
+  if (temp_directory[0] == '\0') {
+    BLI_strncpy(temp_directory, "/tmp/", buffer_size);
   }
+
+  BLI_dir_create_recursive(temp_directory);
 }

@@ -14,11 +14,11 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_strict_flags.h"
+
 #include "eigen_capi.h"
 
 #include <string.h>
-
-#include "BLI_strict_flags.h" /* Keep last. */
 
 /********************************** Eigen Solvers *********************************/
 

@@ -23,7 +23,7 @@
 #include "util/string.h"
 #include "util/task.h"
 
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -1064,7 +1064,7 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_a(&RNA_ShaderNodeOutputAOV)) {
     BL::ShaderNodeOutputAOV b_aov_node(b_node);
     OutputAOVNode *aov = graph->create_node<OutputAOVNode>();
-    aov->set_name(ustring(b_aov_node.aov_name()));
+    aov->set_name(ustring(b_aov_node.name()));
     node = aov;
   }
 
@@ -1592,7 +1592,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
   Integrator *integrator = scene->integrator;
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
-  BL::World b_world = view_layer.world_override ? view_layer.world_override : b_scene.world();
+  BL::World b_world = b_scene.world();
 
   BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
 

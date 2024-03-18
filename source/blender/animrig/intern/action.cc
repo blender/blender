@@ -8,7 +8,7 @@
 
 #include "ANIM_action.hh"
 #include "BKE_action.h"
-#include "BKE_fcurve.hh"
+#include "BKE_fcurve.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "DEG_depsgraph_build.hh"

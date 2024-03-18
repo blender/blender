@@ -10,7 +10,7 @@
 #include "BLI_set.hh"
 
 #include "BKE_idprop.hh"
-#include "BKE_node.hh"
+#include "BKE_node.h"
 
 struct bNodeTree;
 struct bNodeSocket;
@@ -66,6 +66,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
 
 void update_input_properties_from_node_tree(const bNodeTree &tree,
                                             const IDProperty *old_properties,
+                                            bool use_bool_for_use_attribute,
                                             IDProperty &properties);
 
 void update_output_properties_from_node_tree(const bNodeTree &tree,

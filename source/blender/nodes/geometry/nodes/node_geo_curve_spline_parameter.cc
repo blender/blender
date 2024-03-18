@@ -264,17 +264,17 @@ class IndexOnSplineFieldInput final : public bke::CurvesFieldInput {
     return VArray<int>::ForContainer(std::move(result));
   }
 
-  uint64_t hash() const final
+  uint64_t hash() const override
   {
     return 4536246522;
   }
 
-  bool is_equal_to(const fn::FieldNode &other) const final
+  bool is_equal_to(const fn::FieldNode &other) const override
   {
     return dynamic_cast<const IndexOnSplineFieldInput *>(&other) != nullptr;
   }
 
-  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
+  std::optional<AttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
   {
     return AttrDomain::Point;
   }

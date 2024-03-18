@@ -15,6 +15,11 @@ namespace blender::compositor {
 class ConvertColorProfileOperation : public NodeOperation {
  private:
   /**
+   * Cached reference to the input_program
+   */
+  SocketReader *input_operation_;
+
+  /**
    * \brief color profile where to convert from
    */
   int from_profile_;
@@ -34,6 +39,21 @@ class ConvertColorProfileOperation : public NodeOperation {
    * Default constructor
    */
   ConvertColorProfileOperation();
+
+  /**
+   * The inner loop of this operation.
+   */
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+  /**
+   * Initialize the execution
+   */
+  void init_execution() override;
+
+  /**
+   * Deinitialize the execution
+   */
+  void deinit_execution() override;
 
   void set_from_color_profile(int color_profile)
   {

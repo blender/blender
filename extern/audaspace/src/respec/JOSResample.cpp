@@ -19,14 +19,15 @@
 
 AUD_NAMESPACE_BEGIN
 
-JOSResample::JOSResample(std::shared_ptr<ISound> sound, DeviceSpecs specs, ResampleQuality quality) :
-		SpecsChanger(sound, specs), m_quality(quality)
+JOSResample::JOSResample(std::shared_ptr<ISound> sound,
+													 DeviceSpecs specs) :
+		SpecsChanger(sound, specs)
 {
 }
 
 std::shared_ptr<IReader> JOSResample::createReader()
 {
-	return std::shared_ptr<IReader>(new JOSResampleReader(getReader(), m_specs.rate, m_quality));
+	return std::shared_ptr<IReader>(new JOSResampleReader(getReader(), m_specs.rate));
 }
 
 AUD_NAMESPACE_END

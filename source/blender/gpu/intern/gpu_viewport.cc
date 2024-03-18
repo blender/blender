@@ -24,7 +24,7 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_texture.h"
-#include "GPU_uniform_buffer.hh"
+#include "GPU_uniform_buffer.h"
 #include "GPU_viewport.h"
 
 #include "DRW_engine.hh"

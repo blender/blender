@@ -21,7 +21,7 @@ vec4 closure_to_rgba(Closure cl)
   out_color.a = saturate(1.0 - average(g_transmittance));
 
   /* Reset for the next closure tree. */
-  closure_weights_reset(0.0);
+  closure_weights_reset();
 
   return out_color;
 }
@@ -31,7 +31,7 @@ void main()
 #ifdef MAT_TRANSPARENT
   init_globals();
 
-  nodetree_surface(0.0);
+  nodetree_surface();
 
 #  ifdef MAT_FORWARD
   /* Pre-pass only allows fully opaque areas to cut through all transparent layers. */

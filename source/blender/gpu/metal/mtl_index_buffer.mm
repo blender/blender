@@ -55,9 +55,7 @@ void MTLIndexBuf::bind_as_ssbo(uint32_t binding)
 
   /* Create MTLStorageBuffer to wrap this resource and use conventional binding. */
   if (ssbo_wrapper_ == nullptr) {
-    /* Buffer's size in bytes is required to be multiple of 16. */
-    int multiple_of_16 = ceil_to_multiple_u(alloc_size_, 16);
-    ssbo_wrapper_ = new MTLStorageBuf(this, multiple_of_16);
+    ssbo_wrapper_ = new MTLStorageBuf(this, alloc_size_);
   }
   ssbo_wrapper_->bind(binding);
 }

@@ -31,7 +31,7 @@
 #include "bmesh_log.hh"
 #include "range_tree.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 struct BMLogEntry {
   BMLogEntry *next, *prev;
@@ -916,17 +916,6 @@ void BM_log_before_all_removed(BMesh *bm, BMLog *log)
   BM_ITER_MESH (v, &bm_iter, bm, BM_VERTS_OF_MESH) {
     BM_log_vert_removed(log, v, cd_vert_mask_offset);
   }
-}
-
-const float *BM_log_find_original_vert_co(BMLog *log, BMVert *v)
-{
-  BMLogEntry *entry = log->current_entry;
-  const BMLogVert *lv;
-  uint v_id = bm_log_vert_id_get(log, v);
-  void *key = POINTER_FROM_UINT(v_id);
-
-  lv = static_cast<const BMLogVert *>(BLI_ghash_lookup(entry->modified_verts, key));
-  return lv == nullptr ? nullptr : lv->co;
 }
 
 const float *BM_log_original_vert_co(BMLog *log, BMVert *v)

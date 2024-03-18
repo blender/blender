@@ -80,7 +80,7 @@ pxr::GfCamera gf_camera(const Object *camera_obj,
   BKE_camera_params_from_object(&params, camera_obj);
 
   pxr::GfCamera camera = gf_camera(params, res, border);
-  camera.SetTransform(io::hydra::gf_matrix_from_transform(camera_obj->object_to_world().ptr()));
+  camera.SetTransform(io::hydra::gf_matrix_from_transform(camera_obj->object_to_world));
 
   return camera;
 }

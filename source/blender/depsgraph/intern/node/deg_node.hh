@@ -72,9 +72,9 @@ enum class NodeType {
   /* Component which contains all operations needed for layer collections
    * evaluation. */
   LAYER_COLLECTIONS,
-  /* Entry component of majority of ID nodes: prepares evaluated pointers for
+  /* Entry component of majority of ID nodes: prepares CoW pointers for
    * execution. */
-  COPY_ON_EVAL,
+  COPY_ON_WRITE,
   /* Used by all operations which are updating object when something is
    * changed in view layer. */
   OBJECT_FROM_LAYER,

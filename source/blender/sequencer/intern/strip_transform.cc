@@ -17,6 +17,10 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
+#include "BKE_main.hh"
+#include "BKE_scene.h"
+#include "BKE_sound.h"
+
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
 #include "SEQ_edit.hh"
@@ -29,6 +33,8 @@
 
 #include "sequencer.hh"
 #include "strip_time.hh"
+
+#include "CLG_log.h"
 
 bool SEQ_transform_single_image_check(Sequence *seq)
 {
@@ -676,7 +682,7 @@ static void seq_image_transform_quad_get_ex(const Scene *scene,
 
   float quad_temp[4][3];
   for (int i = 0; i < 4; i++) {
-    zero_v3(quad_temp[i]);
+    zero_v2(quad_temp[i]);
   }
 
   quad_temp[0][0] = (image_size[0] / 2) - crop->right;

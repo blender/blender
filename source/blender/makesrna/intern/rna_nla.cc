@@ -76,8 +76,8 @@ const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
 #  include <stdio.h>
 
 /* needed for some of the validation stuff... */
-#  include "BKE_anim_data.hh"
-#  include "BKE_fcurve.hh"
+#  include "BKE_anim_data.h"
+#  include "BKE_fcurve.h"
 #  include "BKE_nla.h"
 
 #  include "DNA_object_types.h"
@@ -581,7 +581,7 @@ static NlaStrip *rna_NlaStrip_new(ID *id,
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, nullptr);
 
   DEG_relations_tag_update(bmain);
-  DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION | ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
 
   return strip;
 }
@@ -602,7 +602,7 @@ static void rna_NlaStrip_remove(
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, nullptr);
 
   DEG_relations_tag_update(bmain);
-  DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION | ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
 }
 
 /* Set the 'solo' setting for the given NLA-track, making sure that it is the only one

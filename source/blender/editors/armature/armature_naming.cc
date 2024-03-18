@@ -25,7 +25,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
@@ -33,7 +33,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
-#include "BKE_grease_pencil.hh"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
@@ -186,8 +186,8 @@ void ED_armature_bone_rename(Main *bmain,
       }
     }
 
-    /* force evaluation copy to update database */
-    DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
+    /* force copy on write to update database */
+    DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
 
     /* do entire dbase - objects */
     for (ob = static_cast<Object *>(bmain->objects.first); ob;
@@ -292,7 +292,7 @@ void ED_armature_bone_rename(Main *bmain,
         if ((cam->dof.focus_object != nullptr) && (cam->dof.focus_object->data == arm)) {
           if (STREQ(cam->dof.focus_subtarget, oldname)) {
             STRNCPY(cam->dof.focus_subtarget, newname);
-            DEG_id_tag_update(&cam->id, ID_RECALC_SYNC_TO_EVAL);
+            DEG_id_tag_update(&cam->id, ID_RECALC_COPY_ON_WRITE);
           }
         }
       }
@@ -336,23 +336,7 @@ void ED_armature_bone_rename(Main *bmain,
           }
         }
       }
-
-      if (ob->type == OB_GREASE_PENCIL) {
-        using namespace blender;
-        GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
-        for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
-          Object *parent = layer->parent;
-          if (parent == nullptr) {
-            continue;
-          }
-          StringRefNull bone_name = layer->parent_bone_name();
-          if (!bone_name.is_empty() && bone_name == StringRef(oldname)) {
-            layer->set_parent_bone_name(newname);
-          }
-        }
-      }
-
-      DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
+      DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
     }
 
     /* Fix all animdata that may refer to this bone -

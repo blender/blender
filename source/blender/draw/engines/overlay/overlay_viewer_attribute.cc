@@ -19,7 +19,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
 #include "BKE_geometry_set.hh"
 
 #include "draw_cache_extract.hh"
@@ -93,7 +93,7 @@ static void populate_cache_for_instance(Object &object,
       DRWShadingGroup *sub_grp = DRW_shgroup_create_sub(pd.viewer_attribute_instance_grp);
       DRW_shgroup_uniform_vec4_copy(sub_grp, "ucolor", color);
       GPUBatch *batch = DRW_cache_curve_edge_wire_get(&object);
-      DRW_shgroup_call_obmat(sub_grp, batch, object.object_to_world().ptr());
+      DRW_shgroup_call_obmat(sub_grp, batch, object.object_to_world);
       break;
     }
     case OB_CURVES: {
@@ -156,8 +156,7 @@ static void populate_cache_for_geometry(Object &object,
           if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
             GPUBatch *batch = DRW_cache_curve_edge_wire_viewer_attribute_get(&object);
             DRW_shgroup_uniform_float_copy(pd.viewer_attribute_curve_grp, "opacity", opacity);
-            DRW_shgroup_call_obmat(
-                pd.viewer_attribute_curve_grp, batch, object.object_to_world().ptr());
+            DRW_shgroup_call_obmat(pd.viewer_attribute_curve_grp, batch, object.object_to_world);
           }
         }
       }

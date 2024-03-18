@@ -14,21 +14,19 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
-#include "BLI_color.hh"
 #include "BLI_hash.hh"
+#include "BLI_math_color.hh"
 #include "BLI_math_matrix.h"
-#include "BLI_math_quaternion_types.hh"
+#include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_vector.hh"
-
 #include "DEG_depsgraph_query.hh"
-
-#include "DNA_customdata_types.h"
 #include "DNA_layer_types.h"
 
 #include "bmesh.hh"
-#include "tools/bmesh_triangulate.hh"
+#include "bmesh_tools.hh"
+#include <tools/bmesh_triangulate.hh>
 
 namespace blender::io::ply {
 
@@ -57,10 +55,10 @@ static void set_world_axes_transform(const Object &object,
   unit_m3(axes_transform);
   /* +Y-forward and +Z-up are the default Blender axis settings. */
   mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform);
-  mul_m4_m3m4(r_world_and_axes_transform, axes_transform, object.object_to_world().ptr());
+  mul_m4_m3m4(r_world_and_axes_transform, axes_transform, object.object_to_world);
   /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
-  mul_v3_m3v3(r_world_and_axes_transform[3], axes_transform, object.object_to_world().location());
-  r_world_and_axes_transform[3][3] = object.object_to_world()[3][3];
+  mul_v3_m3v3(r_world_and_axes_transform[3], axes_transform, object.object_to_world[3]);
+  r_world_and_axes_transform[3][3] = object.object_to_world[3][3];
 
   /* Normals need inverse transpose of the regular matrix to handle non-uniform scale. */
   float normal_matrix[3][3];
@@ -169,7 +167,7 @@ static float *find_or_add_attribute(const StringRef name,
 }
 
 static void load_custom_attributes(const Mesh *mesh,
-                                   const Span<int> ply_to_vertex,
+                                   const Vector<int> &ply_to_vertex,
                                    uint32_t vertex_offset,
                                    Vector<PlyCustomAttribute> &r_attributes)
 {

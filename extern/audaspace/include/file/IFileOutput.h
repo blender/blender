@@ -46,7 +46,7 @@ public:
 	 * \param bitrate The bitrate for encoding.
 	 * \exception Exception Thrown if the file specified cannot be written.
 	 */
-	virtual std::shared_ptr<IWriter> createWriter(const std::string &filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate)=0;
+	virtual std::shared_ptr<IWriter> createWriter(std::string filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate)=0;
 };
 
 AUD_NAMESPACE_END

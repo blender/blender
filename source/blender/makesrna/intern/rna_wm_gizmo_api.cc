@@ -11,9 +11,9 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"

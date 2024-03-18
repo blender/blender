@@ -102,8 +102,8 @@ else()
 endif()
 
 # Keep until APPLE/ARM libraries are updated.
-if(APPLE OR WIN32)
-  if(CMAKE_OSX_ARCHITECTURES MATCHES arm64 OR CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+if(APPLE)
+  if(CMAKE_OSX_ARCHITECTURES MATCHES arm64)
     list(APPEND INC_SYS
       ${IMATH_INCLUDE_DIRS}
     )
@@ -122,6 +122,16 @@ if(WITH_IMAGE_OPENJPEG)
   )
 
   add_definitions(-DWITH_OPENJPEG ${OPENJPEG_DEFINES})
+endif()
+
+if(WITH_CODEC_AVI)
+  list(APPEND INC
+    ../io/avi
+  )
+  list(APPEND LIB
+    bf_avi
+  )
+  add_definitions(-DWITH_AVI)
 endif()
 
 if(WITH_CODEC_FFMPEG)

@@ -10,9 +10,13 @@
 
 #include "abc_writer_abstract.h"
 
+#include <functional>
+#include <iostream>
+#include <memory>
 #include <string>
 
 #include <Alembic/Abc/OTypedArrayProperty.h>
+#include <Alembic/Abc/OTypedScalarProperty.h>
 
 #include "BLI_listbase.h"
 

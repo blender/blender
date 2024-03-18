@@ -11,21 +11,27 @@ FlipOperation::FlipOperation()
   this->add_input_socket(DataType::Color, ResizeMode::None);
   this->add_output_socket(DataType::Color);
   this->set_canvas_input_index(0);
+  input_operation_ = nullptr;
   flip_x_ = true;
   flip_y_ = false;
   flags_.can_be_constant = true;
 }
-
-void FlipOperation::get_area_of_interest(const int input_idx,
-                                         const rcti & /*output_area*/,
-                                         rcti &r_input_area)
+void FlipOperation::init_execution()
 {
-  BLI_assert(input_idx == 0);
-  UNUSED_VARS_NDEBUG(input_idx);
+  input_operation_ = this->get_input_socket_reader(0);
+}
 
-  /* The full input image should be flipped to avoid cropping effects caused by previous scaling or
-   * translating, or a smaller output area. */
-  r_input_area = get_canvas();
+void FlipOperation::deinit_execution()
+{
+  input_operation_ = nullptr;
+}
+
+void FlipOperation::execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler)
+{
+  float nx = flip_x_ ? (int(this->get_width()) - 1) - x : x;
+  float ny = flip_y_ ? (int(this->get_height()) - 1) - y : y;
+
+  input_operation_->read_sampled(output, nx, ny, sampler);
 }
 
 void FlipOperation::update_memory_buffer_partial(MemoryBuffer *output,

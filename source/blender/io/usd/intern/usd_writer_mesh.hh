@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include "DNA_modifier_types.h"
 #include "usd_writer_abstract.hh"
 
 #include "BLI_map.hh"
@@ -10,7 +11,6 @@
 #include <pxr/usd/usdGeom/mesh.h>
 
 struct Key;
-struct SubsurfModifierData;
 
 namespace blender::bke {
 class AttributeIDRef;

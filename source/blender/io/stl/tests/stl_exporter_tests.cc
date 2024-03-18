@@ -10,7 +10,7 @@
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -60,7 +60,7 @@ class STLExportTest : public BlendfileLoadingBaseTest {
   void SetUp() override
   {
     BlendfileLoadingBaseTest::SetUp();
-    BKE_tempdir_init(nullptr);
+    BKE_tempdir_init("");
   }
 
   void TearDown() override

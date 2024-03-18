@@ -9,12 +9,12 @@
 
 #pragma once
 
-#include "BLI_time.h"        /* for BLI_time_now_seconds */
+#include "BLI_time.h"        /* for BLI_check_seconds_timer */
 #include "BLI_utildefines.h" /* for AT */
 
 #define TIMEIT_START(var) \
   { \
-    double _timeit_##var = BLI_time_now_seconds(); \
+    double _timeit_##var = BLI_check_seconds_timer(); \
     printf("time start (" #var "):  " AT "\n"); \
     fflush(stdout); \
     { \
@@ -23,7 +23,7 @@
 /**
  * \return the time since TIMEIT_START was called.
  */
-#define TIMEIT_VALUE(var) (float)(BLI_time_now_seconds() - _timeit_##var)
+#define TIMEIT_VALUE(var) (float)(BLI_check_seconds_timer() - _timeit_##var)
 
 #define TIMEIT_VALUE_PRINT(var) \
   { \
@@ -54,7 +54,7 @@
   { \
     static float _sum_##var = 0.0f; \
     static float _num_##var = 0.0f; \
-    double _timeit_##var = BLI_time_now_seconds(); \
+    double _timeit_##var = BLI_check_seconds_timer(); \
     printf("time start    (" #var "):  " AT "\n"); \
     fflush(stdout); \
     { \
@@ -95,13 +95,13 @@
 
 #define TIMEIT_BLOCK_START(id) \
   { \
-    double _timeit_block_start_##id = BLI_time_now_seconds(); \
+    double _timeit_block_start_##id = BLI_check_seconds_timer(); \
     { \
       (void)0
 
 #define TIMEIT_BLOCK_END(id) \
   } \
-  _timeit_var_##id += (BLI_time_now_seconds() - _timeit_block_start_##id); \
+  _timeit_var_##id += (BLI_check_seconds_timer() - _timeit_block_start_##id); \
   } \
   (void)0
 

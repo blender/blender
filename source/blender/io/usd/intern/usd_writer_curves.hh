@@ -3,9 +3,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include <memory>
+
+#include "DNA_curves_types.h"
 #include "usd_writer_abstract.hh"
 
-#include <pxr/usd/usdGeom/curves.h>
+#include <pxr/usd/usdGeom/basisCurves.h>
 
 namespace blender::io::usd {
 

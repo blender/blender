@@ -19,10 +19,13 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 
+#include "RNA_access.hh"
+
 #include "UI_interface.hh"
 
 #include "BLO_read_write.hh"
 
+#include "WM_api.hh"
 #include "WM_message.hh"
 #include "WM_types.hh"
 

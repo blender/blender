@@ -656,7 +656,6 @@ typedef enum eBrushCurvesSculptFlag {
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH = (1 << 2),
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE = (1 << 3),
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_POINT_COUNT = (1 << 4),
-  BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_RADIUS = (1 << 5),
 } eBrushCurvesSculptFlag;
 
 typedef enum eBrushCurvesSculptDensityMode {

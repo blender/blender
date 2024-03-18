@@ -10,6 +10,7 @@
 #include "BKE_node_enum.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
+#include "BKE_viewer_path.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
@@ -167,8 +168,7 @@ void GeoTreeLogger::log_value(const bNode &node, const bNodeSocket &socket, cons
   auto store_logged_value = [&](destruct_ptr<ValueLog> value_log) {
     auto &socket_values = socket.in_out == SOCK_IN ? this->input_socket_values :
                                                      this->output_socket_values;
-    socket_values.append(*this->allocator,
-                         {node.identifier, socket.index(), std::move(value_log)});
+    socket_values.append({node.identifier, socket.index(), std::move(value_log)});
   };
 
   auto log_generic_value = [&](const CPPType &type, const void *value) {
@@ -226,7 +226,7 @@ void GeoTreeLogger::log_viewer_node(const bNode &viewer_node, bke::GeometrySet g
   destruct_ptr<ViewerNodeLog> log = this->allocator->construct<ViewerNodeLog>();
   log->geometry = std::move(geometry);
   log->geometry.ensure_owns_direct_data();
-  this->viewer_node_logs.append(*this->allocator, {viewer_node.identifier, std::move(log)});
+  this->viewer_node_logs.append({viewer_node.identifier, std::move(log)});
 }
 
 void GeoTreeLog::ensure_node_warnings()

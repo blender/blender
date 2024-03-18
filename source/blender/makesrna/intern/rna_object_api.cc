@@ -56,7 +56,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_context.hh"
 #  include "BKE_crazyspace.hh"
 #  include "BKE_customdata.hh"
-#  include "BKE_global.hh"
+#  include "BKE_global.h"
 #  include "BKE_layer.hh"
 #  include "BKE_main.hh"
 #  include "BKE_mball.hh"
@@ -65,7 +65,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_modifier.hh"
 #  include "BKE_object.hh"
 #  include "BKE_object_types.hh"
-#  include "BKE_report.hh"
+#  include "BKE_report.h"
 #  include "BKE_vfont.hh"
 
 #  include "ED_object.hh"
@@ -551,13 +551,13 @@ static void rna_Mesh_assign_verts_to_group(
 #  endif
 
 /* don't call inside a loop */
-static int mesh_corner_tri_to_face_index(Mesh *mesh_eval, const int tri_index)
+static int mesh_corner_tri_to_face_index(Mesh *me_eval, const int tri_index)
 {
-  const blender::Span<int> tri_faces = mesh_eval->corner_tri_faces();
+  const blender::Span<int> tri_faces = me_eval->corner_tri_faces();
   const int face_i = tri_faces[tri_index];
-  const int *index_face_to_orig = static_cast<const int *>(
-      CustomData_get_layer(&mesh_eval->face_data, CD_ORIGINDEX));
-  return index_face_to_orig ? index_face_to_orig[face_i] : face_i;
+  const int *index_mp_to_orig = static_cast<const int *>(
+      CustomData_get_layer(&me_eval->face_data, CD_ORIGINDEX));
+  return index_mp_to_orig ? index_mp_to_orig[face_i] : face_i;
 }
 
 /* TODO(sergey): Make the Python API more clear that evaluation might happen, or require
@@ -741,7 +741,7 @@ static bool rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings
 void rna_Object_me_eval_info(
     Object *ob, bContext *C, int type, PointerRNA *rnaptr_depsgraph, char *result)
 {
-  Mesh *mesh_eval = nullptr;
+  Mesh *me_eval = nullptr;
   char *ret = nullptr;
 
   result[0] = '\0';
@@ -757,19 +757,19 @@ void rna_Object_me_eval_info(
   switch (type) {
     case 0:
       if (ob->type == OB_MESH) {
-        mesh_eval = static_cast<Mesh *>(ob->data);
+        me_eval = static_cast<Mesh *>(ob->data);
       }
       break;
     case 1:
-      mesh_eval = ob->runtime->mesh_deform_eval;
+      me_eval = ob->runtime->mesh_deform_eval;
       break;
     case 2:
-      mesh_eval = BKE_object_get_evaluated_mesh(ob);
+      me_eval = BKE_object_get_evaluated_mesh(ob);
       break;
   }
 
-  if (mesh_eval) {
-    ret = BKE_mesh_debug_info(mesh_eval);
+  if (me_eval) {
+    ret = BKE_mesh_debug_info(me_eval);
     if (ret) {
       BLI_strncpy(result, ret, MESH_DM_INFO_STR_MAX);
       MEM_freeN(ret);

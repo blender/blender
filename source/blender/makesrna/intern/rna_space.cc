@@ -11,7 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
@@ -19,7 +19,7 @@
 #include "BKE_image.h"
 #include "BKE_key.hh"
 #include "BKE_movieclip.h"
-#include "BKE_node.hh"
+#include "BKE_node.h"
 #include "BKE_studiolight.h"
 #include "BKE_viewer_path.hh"
 
@@ -551,17 +551,17 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 
-#  include "BKE_anim_data.hh"
+#  include "BKE_anim_data.h"
 #  include "BKE_brush.hh"
 #  include "BKE_context.hh"
-#  include "BKE_global.hh"
+#  include "BKE_global.h"
 #  include "BKE_icons.h"
 #  include "BKE_idprop.h"
 #  include "BKE_layer.hh"
 #  include "BKE_nla.h"
 #  include "BKE_paint.hh"
 #  include "BKE_preferences.h"
-#  include "BKE_scene.hh"
+#  include "BKE_scene.h"
 #  include "BKE_screen.hh"
 #  include "BKE_workspace.h"
 
@@ -3732,12 +3732,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "UV Opacity", "Opacity of UV overlays");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
 
-  prop = RNA_def_property(srna, "stretch_opacity", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "stretch_opacity");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Stretch Opacity", "Opacity of the UV Stretch overlay");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
-
   prop = RNA_def_property(srna, "pixel_round_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, pixel_round_mode_items);
   RNA_def_property_ui_text(prop, "Round to Pixels", "Round UVs to pixels while editing");
@@ -3798,8 +3792,8 @@ static void rna_def_space_outliner(BlenderRNA *brna)
       {SO_ID_ORPHANS,
        "ORPHAN_DATA",
        ICON_ORPHAN_DATA,
-       "Unused Data",
-       "Display data that is unused and/or will be lost when the file is reloaded"},
+       "Orphan Data",
+       "Display data-blocks which are unused and/or will be lost when the file is reloaded"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -6440,7 +6434,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Handles", "Show handles of Bézier control points");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, nullptr);
 
-  prop = RNA_def_property(srna, "use_auto_lock_translation_axis", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "autolock_translation_axis", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SIPO_AUTOLOCK_AXIS);
   RNA_def_property_ui_text(prop,
                            "Auto-Lock Key Axis",

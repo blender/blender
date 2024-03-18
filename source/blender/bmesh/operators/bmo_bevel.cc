@@ -10,6 +10,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_curveprofile.h"
 #include "DNA_curveprofile_types.h"
 #include "bmesh.hh"
 #include "bmesh_tools.hh"

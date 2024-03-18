@@ -6,6 +6,8 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
+#include "RNA_enum_types.hh"
+
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
@@ -41,7 +43,7 @@ static void align_rotations_auto_pivot(const IndexMask &mask,
 {
   mask.foreach_index([&](const int64_t i) {
     const float3 vector = vectors[i];
-    if (math::is_zero(vector)) {
+    if (is_zero_v3(vector)) {
       output_rotations[i] = input_rotations[i];
       return;
     }
@@ -53,10 +55,10 @@ static void align_rotations_auto_pivot(const IndexMask &mask,
 
     const float3 new_axis = math::normalize(vector);
     float3 rotation_axis = math::cross_high_precision(old_axis, new_axis);
-    if (math::is_zero(rotation_axis)) {
+    if (is_zero_v3(rotation_axis)) {
       /* The vectors are linearly dependent, so we fall back to another axis. */
       rotation_axis = math::cross_high_precision(old_axis, float3(1, 0, 0));
-      if (math::is_zero(rotation_axis)) {
+      if (is_zero_v3(rotation_axis)) {
         /* This is now guaranteed to not be zero. */
         rotation_axis = math::cross_high_precision(old_axis, float3(0, 1, 0));
       }
@@ -94,7 +96,7 @@ static void align_rotations_fixed_pivot(const IndexMask &mask,
     }
 
     const float3 vector = vectors[i];
-    if (math::is_zero(vector)) {
+    if (is_zero_v3(vector)) {
       output_rotations[i] = input_rotations[i];
       return;
     }

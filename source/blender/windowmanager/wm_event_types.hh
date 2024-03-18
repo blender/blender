@@ -13,7 +13,7 @@
 
 #pragma once
 
-/** #wmEvent.customdata type. */
+/** #wmEvent.customdata type */
 enum {
   EVT_DATA_TIMER = 2,
   EVT_DATA_DRAGDROP = 3,
@@ -39,7 +39,7 @@ enum {
  * do not change the values of existing values which can be used in key-maps.
  */
 enum {
-  /* Non-event, for example disabled timer. */
+  /* non-event, for example disabled timer */
   EVENT_NONE = 0x0000,
 
 /* ********** Start of Input devices. ********** */
@@ -47,15 +47,15 @@ enum {
 /* Minimum mouse value (inclusive). */
 #define _EVT_MOUSE_MIN 0x0001
 
-  /* MOUSE: 0x000x, 0x001x. */
+  /* MOUSE: 0x000x, 0x001x */
   LEFTMOUSE = 0x0001,
   MIDDLEMOUSE = 0x0002,
   RIGHTMOUSE = 0x0003,
   MOUSEMOVE = 0x0004,
-  /* Extra mouse buttons. */
+  /* Extra mouse buttons */
   BUTTON4MOUSE = 0x0007,
   BUTTON5MOUSE = 0x0008,
-  /* More mouse buttons - can't use 9 and 10 here (wheel). */
+  /* More mouse buttons - can't use 9 and 10 here (wheel) */
   BUTTON6MOUSE = 0x0012,
   BUTTON7MOUSE = 0x0013,
   /* Extra trackpad gestures (check #WM_EVENT_IS_CONSECUTIVE to detect motion events). */
@@ -64,10 +64,10 @@ enum {
   MOUSEROTATE = 0x0010,
   MOUSESMARTZOOM = 0x0017,
 
-  /* Defaults from ghost. */
+  /* defaults from ghost */
   WHEELUPMOUSE = 0x000a,
   WHEELDOWNMOUSE = 0x000b,
-  /* Mapped with userdef. */
+  /* mapped with userdef */
   WHEELINMOUSE = 0x000c,
   WHEELOUTMOUSE = 0x000d,
   /* Successive MOUSEMOVE's are converted to this, so we can easily
@@ -78,14 +78,14 @@ enum {
 /* Maximum keyboard value (inclusive). */
 #define _EVT_MOUSE_MAX 0x0011 /* 17 */
 
-  /* IME event, GHOST_kEventImeCompositionStart in ghost. */
+  /* IME event, GHOST_kEventImeCompositionStart in ghost */
   WM_IME_COMPOSITE_START = 0x0014,
-  /* IME event, GHOST_kEventImeComposition in ghost. */
+  /* IME event, GHOST_kEventImeComposition in ghost */
   WM_IME_COMPOSITE_EVENT = 0x0015,
-  /* IME event, GHOST_kEventImeCompositionEnd in ghost. */
+  /* IME event, GHOST_kEventImeCompositionEnd in ghost */
   WM_IME_COMPOSITE_END = 0x0016,
 
-  /* Tablet/Pen Specific Events. */
+  /* Tablet/Pen Specific Events */
   TABLET_STYLUS = 0x001a,
   TABLET_ERASER = 0x001b,
 
@@ -254,28 +254,28 @@ enum {
 #define _NDOF_MIN NDOF_MOTION
 #define _NDOF_BUTTON_MIN NDOF_BUTTON_MENU
 
-  /* These two are available from any 3Dconnexion device. */
+  /* these two are available from any 3Dconnexion device */
 
   NDOF_BUTTON_MENU = 0x0191, /* 401 */
   NDOF_BUTTON_FIT = 0x0192,  /* 402 */
-  /* Standard views. */
+  /* standard views */
   NDOF_BUTTON_TOP = 0x0193,    /* 403 */
   NDOF_BUTTON_BOTTOM = 0x0194, /* 404 */
   NDOF_BUTTON_LEFT = 0x0195,   /* 405 */
   NDOF_BUTTON_RIGHT = 0x0196,  /* 406 */
   NDOF_BUTTON_FRONT = 0x0197,  /* 407 */
   NDOF_BUTTON_BACK = 0x0198,   /* 408 */
-  /* More views. */
+  /* more views */
   NDOF_BUTTON_ISO1 = 0x0199, /* 409 */
   NDOF_BUTTON_ISO2 = 0x019a, /* 410 */
-  /* 90 degree rotations. */
+  /* 90 degree rotations */
   NDOF_BUTTON_ROLL_CW = 0x019b,  /* 411 */
   NDOF_BUTTON_ROLL_CCW = 0x019c, /* 412 */
   NDOF_BUTTON_SPIN_CW = 0x019d,  /* 413 */
   NDOF_BUTTON_SPIN_CCW = 0x019e, /* 414 */
   NDOF_BUTTON_TILT_CW = 0x019f,  /* 415 */
   NDOF_BUTTON_TILT_CCW = 0x01a0, /* 416 */
-  /* Device control. */
+  /* device control */
   NDOF_BUTTON_ROTATE = 0x01a1,   /* 417 */
   NDOF_BUTTON_PANZOOM = 0x01a2,  /* 418 */
   NDOF_BUTTON_DOMINANT = 0x01a3, /* 419 */
@@ -296,7 +296,7 @@ enum {
   NDOF_BUTTON_8 = 0x01b1,  /* 433 */
   NDOF_BUTTON_9 = 0x01b2,  /* 434 */
   NDOF_BUTTON_10 = 0x01b3, /* 435 */
-  /* More general-purpose buttons. */
+  /* more general-purpose buttons */
   NDOF_BUTTON_A = 0x01b4, /* 436 */
   NDOF_BUTTON_B = 0x01b5, /* 437 */
   NDOF_BUTTON_C = 0x01b6, /* 438 */
@@ -304,7 +304,7 @@ enum {
 /* Disabled as GHOST converts these to keyboard events
  * which use regular keyboard event handling logic. */
 #if 0
-  /* Keyboard emulation. */
+  /* keyboard emulation */
   NDOF_BUTTON_ESC = 0x01b6,    /* 438 */
   NDOF_BUTTON_ENTER = 0x01b7,  /* 439 */
   NDOF_BUTTON_DELETE = 0x01b8, /* 440 */
@@ -323,10 +323,10 @@ enum {
   /* ********** Start of Blender internal events. ********** */
 
   /* XXX Those are mixed inside keyboard 'area'! */
-  /* System: 0x010x. */
+  /* System: 0x010x */
   // INPUTCHANGE = 0x0103,   /* Input connected or disconnected, (259). */ /* UNUSED. */
   WINDEACTIVATE = 0x0104, /* Window is deactivated, focus lost, (260). */
-  /* Timer: 0x011x. */
+  /* Timer: 0x011x */
   TIMER = 0x0110,         /* Timer event, passed on to all queues (272). */
   TIMER0 = 0x0111,        /* Timer event, slot for internal use (273). */
   TIMER1 = 0x0112,        /* Timer event, slot for internal use (274). */
@@ -347,9 +347,9 @@ enum {
 
   /* NOTE: these values are saved in key-map files, do not change them but just add new ones. */
 
-  /* 0x5011 is taken, see #EVT_ACTIONZONE_FULLSCREEN. */
+  /* 0x5011 is taken, see EVT_ACTIONZONE_FULLSCREEN */
 
-  /* Misc Blender internals: 0x502x. */
+  /* Misc Blender internals: 0x502x */
   EVT_FILESELECT = 0x5020, /* 20512 */
   EVT_BUT_OPEN = 0x5021,   /* 20513 */
   EVT_MODAL_MAP = 0x5022,  /* 20514 */
@@ -357,10 +357,10 @@ enum {
   /* When value is 0, re-activate, when 1, don't re-activate the button under the cursor. */
   EVT_BUT_CANCEL = 0x5024, /* 20516 */
 
-  /* Could become gizmo callback. */
+  /* could become gizmo callback */
   EVT_GIZMO_UPDATE = 0x5025, /* 20517 */
 
-  /* XR events: 0x503x. */
+  /* XR events: 0x503x */
   EVT_XR_ACTION = 0x5030, /* 20528 */
   /* ********** End of Blender internal events. ********** */
 };
@@ -433,21 +433,21 @@ enum {
    (ISKEYMODIFIER(event_type) == false))
 
 enum eEventType_Mask {
-  /** #ISKEYMODIFIER. */
+  /** #ISKEYMODIFIER */
   EVT_TYPE_MASK_KEYBOARD_MODIFIER = (1 << 0),
-  /** #ISKEYBOARD. */
+  /** #ISKEYBOARD */
   EVT_TYPE_MASK_KEYBOARD = (1 << 1),
-  /** #ISMOUSE_WHEEL. */
+  /** #ISMOUSE_WHEEL */
   EVT_TYPE_MASK_MOUSE_WHEEL = (1 << 2),
-  /** #ISMOUSE_BUTTON. */
+  /** #ISMOUSE_BUTTON */
   EVT_TYPE_MASK_MOUSE_GESTURE = (1 << 3),
-  /** #ISMOUSE_GESTURE. */
+  /** #ISMOUSE_GESTURE */
   EVT_TYPE_MASK_MOUSE_BUTTON = (1 << 4),
-  /** #ISMOUSE. */
+  /** #ISMOUSE */
   EVT_TYPE_MASK_MOUSE = (1 << 5),
-  /** #ISNDOF. */
+  /** #ISNDOF */
   EVT_TYPE_MASK_NDOF = (1 << 6),
-  /** #IS_EVENT_ACTIONZONE. */
+  /** #IS_EVENT_ACTIONZONE */
   EVT_TYPE_MASK_ACTIONZONE = (1 << 7),
 };
 #define EVT_TYPE_MASK_ALL \
@@ -467,9 +467,9 @@ bool WM_event_type_mask_test(int event_type, enum eEventType_Mask mask);
 /** \name #wmEvent.val Values
  * \{ */
 
-/* Gestures. */
+/* Gestures */
 
-/* File select. */
+/* File select */
 enum {
   EVT_FILESELECT_FULL_OPEN = 1,
   EVT_FILESELECT_EXEC = 2,
@@ -492,7 +492,7 @@ enum {
   GESTURE_MODAL_SELECT = 3,
   GESTURE_MODAL_DESELECT = 4,
 
-  /** Circle select: when no mouse button is pressed. */
+  /** Circle select: when no mouse button is pressed */
   GESTURE_MODAL_NOP = 5,
 
   /** Circle select: larger brush. */
@@ -507,7 +507,7 @@ enum {
   GESTURE_MODAL_IN = 9,
   GESTURE_MODAL_OUT = 10,
 
-  /** Circle select: size brush (for trackpad event). */
+  /** circle select: size brush (for trackpad event). */
   GESTURE_MODAL_CIRCLE_SIZE = 11,
 
   /** Move selection area. */

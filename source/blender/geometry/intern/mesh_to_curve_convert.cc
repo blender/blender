@@ -10,6 +10,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_mesh.hh"
 
 #include "GEO_mesh_to_curve.hh"
@@ -53,9 +54,6 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
   mesh_attributes.for_all(
       [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
         if (meta_data.domain == bke::AttrDomain::Point) {
-          return true;
-        }
-        if (meta_data.data_type == CD_PROP_STRING) {
           return true;
         }
         if (skip.contains(id.name())) {

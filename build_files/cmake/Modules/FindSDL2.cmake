@@ -60,5 +60,3 @@ mark_as_advanced(
   SDL2_INCLUDE_DIR
   SDL2_LIBRARY
 )
-
-unset(_sdl2_SEARCH_DIRS)

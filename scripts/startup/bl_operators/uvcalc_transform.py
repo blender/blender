@@ -434,7 +434,8 @@ class RandomizeUVTransform(Operator):
     )
     loc: FloatVectorProperty(
         name="Location",
-        description="Maximum distance the objects can spread over each axis",
+        description=("Maximum distance the objects "
+                     "can spread over each axis"),
         min=-100.0,
         max=100.0,
         size=2,

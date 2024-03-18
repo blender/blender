@@ -12,7 +12,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 #include "BKE_mesh.hh"
@@ -122,7 +122,7 @@ void OVERLAY_viewer_attribute_text(const Object &object)
 {
   using namespace blender;
   using namespace blender::draw::overlay;
-  const float4x4 &object_to_world = object.object_to_world();
+  const float4x4 object_to_world = float4x4(object.object_to_world);
   DupliObject *dupli_object = DRW_object_get_dupli(&object);
 
   if (dupli_object->preview_instance_index >= 0) {

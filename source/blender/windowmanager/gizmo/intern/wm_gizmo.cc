@@ -19,7 +19,7 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.hh"
 
@@ -30,11 +30,16 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
+#include "UI_interface.hh"
+
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
 
-/* Own includes. */
+/* only for own init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
+#include "wm.hh"
+
+/* own includes */
 #include "wm_gizmo_intern.hh"
 #include "wm_gizmo_wmapi.hh"
 
@@ -52,7 +57,7 @@ static wmGizmo *wm_gizmo_create(const wmGizmoType *gzt, PointerRNA *properties)
       gzt->struct_size + (sizeof(wmGizmoProperty) * gzt->target_property_defs_len), __func__));
   gz->type = gzt;
 
-  /* Initialize properties, either copy or create. */
+  /* initialize properties, either copy or create */
   gz->ptr = static_cast<PointerRNA *>(MEM_callocN(sizeof(PointerRNA), "wmGizmoPtrRNA"));
   if (properties && properties->data) {
     gz->properties = IDP_CopyProperty(static_cast<const IDProperty *>(properties->data));
@@ -103,7 +108,7 @@ static void gizmo_init(wmGizmo *gz)
   gz->scale_basis = 1.0f;
   gz->line_width = 1.0f;
 
-  /* Defaults. */
+  /* defaults */
   copy_v4_v4(gz->color, color_default);
   copy_v4_v4(gz->color_hi, color_default);
 }
@@ -127,8 +132,8 @@ void WM_gizmo_free(wmGizmo *gz)
 
 #ifdef WITH_PYTHON
   if (gz->py_instance) {
-    /* Do this first in case there are any `__del__` functions or
-     * similar that use properties. */
+    /* do this first in case there are any __del__ functions or
+     * similar that use properties */
     BPY_DECREF_RNA_INVALIDATE(gz->py_instance);
   }
 #endif
@@ -245,7 +250,7 @@ int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop, cons
 static void wm_gizmo_set_matrix_rotation_from_z_axis__internal(float matrix[4][4],
                                                                const float z_axis[3])
 {
-/* Old code, seems we can use simpler method. */
+/* old code, seems we can use simpler method */
 #if 0
   const float z_global[3] = {0.0f, 0.0f, 1.0f};
   float rot[3][3];
@@ -378,7 +383,7 @@ bool wm_gizmo_select_set_ex(
   }
 
   /* In the case of unlinking we only want to remove from the array
-   * and not write to the external state. */
+   * and not write to the external state */
   if (use_callback && changed) {
     if (gz->type->select_refresh) {
       gz->type->select_refresh(gz);
@@ -475,7 +480,7 @@ void wm_gizmo_calculate_scale(wmGizmo *gz, const bContext *C)
 
 static void gizmo_update_prop_data(wmGizmo *gz)
 {
-  /* Gizmo property might have been changed, so update gizmo. */
+  /* gizmo property might have been changed, so update gizmo */
   if (gz->type->property_update) {
     wmGizmoProperty *gz_prop_array = WM_gizmo_target_property_array(gz);
     for (int i = 0; i < gz->type->target_property_defs_len; i++) {
@@ -503,13 +508,13 @@ int wm_gizmo_is_visible(wmGizmo *gz)
   if ((gz->state & WM_GIZMO_STATE_MODAL) &&
       !(gz->flag & (WM_GIZMO_DRAW_MODAL | WM_GIZMO_DRAW_VALUE)))
   {
-    /* Don't draw while modal (dragging). */
+    /* don't draw while modal (dragging) */
     return 0;
   }
   if ((gz->flag & WM_GIZMO_DRAW_HOVER) && !(gz->state & WM_GIZMO_STATE_HIGHLIGHT) &&
-      !(gz->state & WM_GIZMO_STATE_SELECT)) /* Still draw selected gizmos. */
+      !(gz->state & WM_GIZMO_STATE_SELECT)) /* still draw selected gizmos */
   {
-    /* Update but don't draw. */
+    /* update but don't draw */
     return WM_GIZMO_IS_VISIBLE_UPDATE;
   }
 
@@ -630,7 +635,7 @@ void WM_gizmo_properties_sanitize(PointerRNA *ptr, const bool no_context)
       case PROP_POINTER: {
         StructRNA *ptype = RNA_property_pointer_type(ptr, prop);
 
-        /* Recurse into gizmo properties. */
+        /* recurse into gizmo properties */
         if (RNA_struct_is_a(ptype, &RNA_GizmoProperties)) {
           PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
           WM_gizmo_properties_sanitize(&opptr, no_context);
@@ -704,7 +709,7 @@ void WM_gizmo_properties_free(PointerRNA *ptr)
 
   if (properties) {
     IDP_FreeProperty(properties);
-    ptr->data = nullptr; /* Just in case. */
+    ptr->data = nullptr; /* just in case */
   }
 }
 

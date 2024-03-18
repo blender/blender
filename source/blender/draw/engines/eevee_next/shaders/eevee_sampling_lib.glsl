@@ -103,13 +103,6 @@ vec2 hammersley_2d(int i, int sample_count)
   return hammersley_2d(uint(i), uint(sample_count));
 }
 
-/* Not random but still useful. sample_count should be an even. */
-vec2 regular_grid_2d(int i, int sample_count)
-{
-  int sample_per_dim = int(sqrt(float(sample_count)));
-  return (vec2(i % sample_per_dim, i / sample_per_dim) + 0.5) / float(sample_per_dim);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -156,19 +149,6 @@ vec3 sample_sphere(vec2 rand)
 vec3 sample_hemisphere(vec2 rand)
 {
   float cos_theta = rand.x;
-  float sin_theta = safe_sqrt(1.0 - square(cos_theta));
-  return vec3(sin_theta * sample_circle(rand.y), cos_theta);
-}
-
-/**
- * Uniform cone distribution.
- * \a rand is 2 random float in the [0..1] range.
- * \a cos_angle is the cosine of the half angle.
- * Returns point on a Z positive hemisphere of radius 1 and centered on the origin.
- */
-vec3 sample_uniform_cone(vec2 rand, float cos_angle)
-{
-  float cos_theta = mix(cos_angle, 1.0, rand.x);
   float sin_theta = safe_sqrt(1.0 - square(cos_theta));
   return vec3(sin_theta * sample_circle(rand.y), cos_theta);
 }

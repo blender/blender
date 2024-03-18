@@ -10,16 +10,23 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_context.hh"
+#include "BKE_layer.hh"
+#include "BKE_particle.h"
+#include "BKE_screen.hh"
 #include "BKE_softbody.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.hh"
@@ -62,7 +69,7 @@ static void update_depsgraph(ModifierData * /*md*/, const ModifierUpdateDepsgrap
     DEG_add_forcefield_relations(
         ctx->node, ctx->object, ctx->object->soft->effector_weights, true, 0, "Softbody Field");
   }
-  /* We need our own transformation as well. */
+  /* We need own transformation as well. */
   DEG_add_depends_on_transform_relation(ctx->node, "SoftBody Modifier");
 }
 

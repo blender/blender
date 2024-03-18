@@ -245,21 +245,19 @@ void Shader::print_log(Span<const char *> sources,
     log_line = line_end + 1;
     previous_location = log_item.cursor;
   }
+  // printf("%s", sources_combined);
+  MEM_freeN(sources_combined);
 
   CLG_Severity severity = error ? CLG_SEVERITY_ERROR : CLG_SEVERITY_WARN;
 
   if (((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= 0)) ||
       (severity >= CLG_SEVERITY_WARN))
   {
-    if (DEBUG_LOG_SHADER_SRC_ON_ERROR && error) {
-      CLG_log_str(LOG.type, severity, this->name, stage, sources_combined);
-    }
     const char *_str = BLI_dynstr_get_cstring(dynstr);
     CLG_log_str(LOG.type, severity, this->name, stage, _str);
     MEM_freeN((void *)_str);
   }
 
-  MEM_freeN(sources_combined);
   BLI_dynstr_free(dynstr);
 }
 

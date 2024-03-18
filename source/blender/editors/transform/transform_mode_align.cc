@@ -8,12 +8,14 @@
 
 #include <cstdlib>
 
+#include "BKE_context.hh"
+
 #include "ED_screen.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -30,7 +32,7 @@ static void applyAlign(TransInfo *t)
   int i;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    /* Saving original center. */
+    /* saving original center */
     copy_v3_v3(center, tc->center_local);
     TransData *td = tc->data;
     for (i = 0; i < tc->data_len; i++, td++) {
@@ -40,7 +42,7 @@ static void applyAlign(TransInfo *t)
         continue;
       }
 
-      /* Around local centers. */
+      /* around local centers */
       if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
         copy_v3_v3(tc->center_local, td->center);
       }
@@ -56,7 +58,7 @@ static void applyAlign(TransInfo *t)
 
       ElementRotation(t, tc, td, mat, t->around);
     }
-    /* Restoring original center. */
+    /* restoring original center */
     copy_v3_v3(tc->center_local, center);
   }
 

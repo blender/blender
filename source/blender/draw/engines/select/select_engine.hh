@@ -19,9 +19,9 @@ extern RenderEngineType DRW_engine_viewport_select_type;
 extern DrawEngineType draw_engine_debug_select_type;
 #endif
 
-struct SELECTID_Context *DRW_select_engine_context_get();
-struct GPUFrameBuffer *DRW_engine_select_framebuffer_get();
-struct GPUTexture *DRW_engine_select_texture_get();
+struct SELECTID_Context *DRW_select_engine_context_get(void);
+struct GPUFrameBuffer *DRW_engine_select_framebuffer_get(void);
+struct GPUTexture *DRW_engine_select_texture_get(void);
 
 /* select_instance.cc */
 

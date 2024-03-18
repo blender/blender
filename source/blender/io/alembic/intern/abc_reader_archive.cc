@@ -9,7 +9,6 @@
 #include "abc_reader_archive.h"
 
 #include "Alembic/AbcCoreLayer/Read.h"
-#include "Alembic/AbcCoreOgawa/ReadWrite.h"
 
 #include "BKE_main.hh"
 
@@ -21,7 +20,6 @@
 #endif
 
 #include <fstream>
-#include <vector>
 
 using Alembic::Abc::ErrorHandler;
 using Alembic::Abc::Exception;

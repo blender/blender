@@ -8,6 +8,8 @@
 
 #include "DNA_node_types.h"
 
+#include "BKE_context.hh"
+
 #include "ED_node.hh" /* own include */
 #include "ED_screen.hh"
 

@@ -71,5 +71,3 @@ mark_as_advanced(
   JEMALLOC_INCLUDE_DIR
   JEMALLOC_LIBRARY
 )
-
-unset(_jemalloc_SEARCH_DIRS)

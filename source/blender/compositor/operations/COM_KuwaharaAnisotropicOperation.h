@@ -11,19 +11,23 @@
 namespace blender::compositor {
 
 class KuwaharaAnisotropicOperation : public MultiThreadedOperation {
+  SocketReader *image_reader_;
+  SocketReader *size_reader_;
+  SocketReader *structure_tensor_reader_;
+
  public:
-  float sharpness_;
-  float eccentricity_;
+  NodeKuwaharaData data;
 
   KuwaharaAnisotropicOperation();
 
+  void init_execution() override;
+  void deinit_execution() override;
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
   float get_sharpness();
   float get_eccentricity();
-  void set_sharpness(float sharpness);
-  void set_eccentricity(float eccentricity);
 };
 
 }  // namespace blender::compositor

@@ -225,19 +225,19 @@ int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *ks);
  */
 KeyingSet *ANIM_get_keyingset_for_autokeying(const Scene *scene, const char *transformKSName);
 
-void ANIM_keyingset_visit_for_search(
-    const bContext *C,
-    PointerRNA *ptr,
-    PropertyRNA *prop,
-    const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+void ANIM_keyingset_visit_for_search(const bContext *C,
+                                     PointerRNA *ptr,
+                                     PropertyRNA *prop,
+                                     const char *edit_text,
+                                     StringPropertySearchVisitFunc visit_fn,
+                                     void *visit_user_data);
 
-void ANIM_keyingset_visit_for_search_no_poll(
-    const bContext *C,
-    PointerRNA *ptr,
-    PropertyRNA *prop,
-    const char *edit_text,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
+void ANIM_keyingset_visit_for_search_no_poll(const bContext *C,
+                                             PointerRNA *ptr,
+                                             PropertyRNA *prop,
+                                             const char *edit_text,
+                                             StringPropertySearchVisitFunc visit_fn,
+                                             void *visit_user_data);
 /**
  * Dynamically populate an enum of Keying Sets.
  */

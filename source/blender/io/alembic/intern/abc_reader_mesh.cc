@@ -8,33 +8,37 @@
 
 #include "abc_reader_mesh.h"
 #include "abc_axis_conversion.h"
-#include "abc_customdata.h"
+#include "abc_reader_transform.h"
 #include "abc_util.h"
+
+#include <algorithm>
+
+#include "MEM_guardedalloc.h"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
-#include "DNA_modifier_types.h"
-
 #include "DNA_object_types.h"
 
 #include "BLI_compiler_compat.h"
+#include "BLI_index_range.hh"
 #include "BLI_listbase.h"
-#include "BLI_map.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_geom.h"
 #include "BLI_ordered_edge.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 
 using Alembic::Abc::FloatArraySamplePtr;
 using Alembic::Abc::Int32ArraySamplePtr;
+using Alembic::Abc::IV3fArrayProperty;
 using Alembic::Abc::P3fArraySamplePtr;
 using Alembic::Abc::PropertyHeader;
 using Alembic::Abc::V3fArraySamplePtr;
@@ -485,7 +489,7 @@ static void read_mesh_sample(const std::string &iobject_full_name,
   }
 }
 
-static CDStreamConfig get_config(Mesh *mesh)
+CDStreamConfig get_config(Mesh *mesh)
 {
   CDStreamConfig config;
   config.mesh = mesh;
@@ -681,24 +685,6 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
   }
 
   return false;
-}
-
-void AbcMeshReader::read_geometry(bke::GeometrySet &geometry_set,
-                                  const Alembic::Abc::ISampleSelector &sample_sel,
-                                  const int read_flag,
-                                  const char *velocity_name,
-                                  const float velocity_scale,
-                                  const char **err_str)
-{
-  Mesh *mesh = geometry_set.get_mesh_for_write();
-
-  if (mesh == nullptr) {
-    return;
-  }
-
-  Mesh *new_mesh = read_mesh(mesh, sample_sel, read_flag, velocity_name, velocity_scale, err_str);
-
-  geometry_set.replace_mesh(new_mesh);
 }
 
 Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
@@ -1111,24 +1097,6 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
   read_subd_sample(m_iobject.getFullName(), &settings, m_schema, sample_sel, config);
 
   return mesh_to_export;
-}
-
-void AbcSubDReader::read_geometry(bke::GeometrySet &geometry_set,
-                                  const Alembic::Abc::ISampleSelector &sample_sel,
-                                  const int read_flag,
-                                  const char *velocity_name,
-                                  const float velocity_scale,
-                                  const char **err_str)
-{
-  Mesh *mesh = geometry_set.get_mesh_for_write();
-
-  if (mesh == nullptr) {
-    return;
-  }
-
-  Mesh *new_mesh = read_mesh(mesh, sample_sel, read_flag, velocity_name, velocity_scale, err_str);
-
-  geometry_set.replace_mesh(new_mesh);
 }
 
 }  // namespace blender::io::alembic

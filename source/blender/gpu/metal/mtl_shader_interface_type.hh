@@ -189,6 +189,7 @@ inline uint mtl_get_data_type_alignment(eMTLDataType type)
     case MTL_DATATYPE_CHAR3:
     case MTL_DATATYPE_UCHAR3:
     case MTL_DATATYPE_BOOL3:
+      return 3;
     case MTL_DATATYPE_CHAR4:
     case MTL_DATATYPE_UCHAR4:
     case MTL_DATATYPE_INT:

@@ -18,7 +18,7 @@
 #include "GPU_context.h"
 #include "GPU_material.hh"
 
-#include "GPU_uniform_buffer.hh"
+#include "GPU_uniform_buffer.h"
 #include "gpu_uniform_buffer_private.hh"
 
 /* -------------------------------------------------------------------- */

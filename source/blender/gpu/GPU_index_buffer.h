@@ -72,10 +72,6 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *, GPUIndexBuf *);
 
 void GPU_indexbuf_bind_as_ssbo(GPUIndexBuf *elem, int binding);
 
-GPUIndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
-                                                 uint curves_num,
-                                                 uint verts_per_curve);
-
 /* Upload data to the GPU (if not built on the device) and bind the buffer to its default target.
  */
 void GPU_indexbuf_use(GPUIndexBuf *elem);

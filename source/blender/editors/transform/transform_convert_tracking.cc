@@ -14,6 +14,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
+#include "BKE_main.hh"
 #include "BKE_movieclip.h"
 #include "BKE_node_tree_update.hh"
 #include "BKE_tracking.h"
@@ -29,7 +30,7 @@ struct TransDataTracking {
   int mode;
   int flag;
 
-  /* Tracks transformation from main window. */
+  /* tracks transformation from main window */
   int area;
   const float *relative, *loc;
   float soffset[2], srelative[2];
@@ -96,17 +97,17 @@ static void markerToTransDataInit(TransformInitContext *init_context,
   tdt->mode = transDataTracking_ModeTracks;
 
   if (anchor) {
-    td2d->loc[0] = rel[0] * aspect[0]; /* Hold original location. */
+    td2d->loc[0] = rel[0] * aspect[0]; /* hold original location */
     td2d->loc[1] = rel[1] * aspect[1];
 
     tdt->loc = loc;
-    td2d->loc2d = loc; /* Current location. */
+    td2d->loc2d = loc; /* current location */
   }
   else {
-    td2d->loc[0] = loc[0] * aspect[0]; /* Hold original location. */
+    td2d->loc[0] = loc[0] * aspect[0]; /* hold original location */
     td2d->loc[1] = loc[1] * aspect[1];
 
-    td2d->loc2d = loc; /* Current location. */
+    td2d->loc2d = loc; /* current location */
   }
   td2d->loc[2] = 0.0f;
 
@@ -251,10 +252,10 @@ static void planeMarkerToTransDataInit(TransformInitContext *init_context,
   tdt->mode = transDataTracking_ModePlaneTracks;
   tdt->plane_track = plane_track;
 
-  td2d->loc[0] = corner[0] * aspect[0]; /* Hold original location. */
+  td2d->loc[0] = corner[0] * aspect[0]; /* hold original location */
   td2d->loc[1] = corner[1] * aspect[1];
 
-  td2d->loc2d = corner; /* Current location. */
+  td2d->loc2d = corner; /* current location */
   td2d->loc[2] = 0.0f;
 
   td->flag = 0;
@@ -461,7 +462,7 @@ static void flushTransTracking(TransInfo *t)
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
-  /* Flush to 2d vector from internally used 3d vector. */
+  /* flush to 2d vector from internally used 3d vector */
   for (td_index = 0,
       td = tc->data,
       td2d = tc->data_2d,

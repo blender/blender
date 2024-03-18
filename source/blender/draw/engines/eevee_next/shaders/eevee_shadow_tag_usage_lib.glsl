@@ -89,7 +89,7 @@ void shadow_tag_usage_tilemap_punctual(
   }
 
   vec3 lP = light_world_to_local(light, P - light._position);
-  float dist_to_light = max(length(lP) - radius, 1e-5);
+  float dist_to_light = length(lP) - radius;
   if (dist_to_light > light.influence_radius_max) {
     return;
   }
@@ -132,7 +132,7 @@ void shadow_tag_usage_tilemap_punctual(
     lP = shadow_punctual_local_position_to_face_local(face_id, lP);
     ShadowCoordinates coord = shadow_punctual_coordinates(light, lP, face_id);
 
-    int lod = int(floor(-log2(footprint_ratio) + tilemaps_buf[coord.tilemap_index].lod_bias));
+    int lod = int(ceil(-log2(footprint_ratio) + tilemaps_buf[coord.tilemap_index].lod_bias));
     lod += lod_bias;
     lod = clamp(lod, 0, SHADOW_TILEMAP_LOD);
 

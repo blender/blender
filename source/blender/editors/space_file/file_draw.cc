@@ -30,11 +30,11 @@
 
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BLF_api.hh"
 
@@ -392,9 +392,12 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
   const int x = tile_draw_rect->xmin;
   const int y = tile_draw_rect->ymax - sfile->layout->tile_border_y - height;
 
+  /* For #uiDefIconBut(): if `a1==1.0` then a2 is alpha `0.0 - 1.0`. */
+  const float a1 = dimmed ? 1.0f : 0.0f;
+  const float a2 = dimmed ? 0.3f : 0.0f;
   but = uiDefIconBut(
-      block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, nullptr);
-  UI_but_label_alpha_factor_set(but, dimmed ? 0.3f : 1.0f);
+      block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, a1, a2, nullptr);
+
   if (file->asset) {
     UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);
   }
@@ -531,6 +534,8 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                         nullptr,
                         0.0,
                         0.0,
+                        0,
+                        0,
                         nullptr);
   file_but_enable_drag(but, sfile, file, path, preview_image, icon, scale);
 
@@ -687,7 +692,7 @@ static void file_draw_preview(const FileList *files,
     float icon_x, icon_y;
     icon_x = xco + (2.0f * UI_SCALE_FAC);
     icon_y = yco + (2.0f * UI_SCALE_FAC);
-    const int arrow = is_link ? ICON_LOOP_FORWARDS : ICON_INTERNET;
+    const int arrow = is_link ? ICON_LOOP_FORWARDS : ICON_URL;
     if (!is_icon) {
       /* At very bottom-left if preview style. */
       const uchar dark[4] = {0, 0, 0, 255};
@@ -1290,13 +1295,11 @@ void file_draw_list(const bContext *C, ARegion *region)
                                      nullptr,
                                      0,
                                      0,
+                                     0,
+                                     0,
                                      nullptr);
           UI_but_dragflag_enable(drag_but, UI_BUT_DRAG_FULL_BUT);
           file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
-          UI_but_func_tooltip_custom_set(drag_but,
-                                         file_draw_tooltip_custom_func,
-                                         file_tooltip_data_create(sfile, file),
-                                         MEM_freeN);
         }
       }
 
@@ -1334,6 +1337,8 @@ void file_draw_list(const bContext *C, ARegion *region)
                             params->renamefile,
                             1.0f,
                             float(sizeof(params->renamefile)),
+                            0,
+                            0,
                             "");
       UI_but_func_rename_set(but, renamebutton_cb, file);
       UI_but_flag_enable(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
@@ -1418,7 +1423,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
                                                  ARegion *region,
                                                  FileAssetSelectParams *asset_params)
 {
-  char library_ui_path[FILE_MAX_LIBEXTRA];
+  char library_ui_path[PATH_MAX];
   file_path_to_ui_path(asset_params->base_params.dir, library_ui_path, sizeof(library_ui_path));
 
   uchar text_col[4];

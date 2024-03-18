@@ -11,7 +11,6 @@
 #include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
-#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 
@@ -34,7 +33,6 @@ struct bConstraint;
 struct bGPDstroke;
 struct bPose;
 struct bPoseChannel;
-struct MDeformVert;
 
 struct EditBone {
   EditBone *next, *prev;
@@ -652,16 +650,6 @@ void BKE_armature_deform_coords_with_gpencil_stroke(const Object *ob_arm,
                                                     float (*vert_coords_prev)[3],
                                                     const char *defgrp_name,
                                                     bGPDstroke *gps_target);
-
-void BKE_armature_deform_coords_with_curves(
-    const Object &ob_arm,
-    const Object &ob_target,
-    blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::MutableSpan<blender::float3>> vert_coords_prev,
-    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
-    blender::Span<MDeformVert> dverts,
-    int deformflag,
-    blender::StringRefNull defgrp_name);
 
 void BKE_armature_deform_coords_with_mesh(const Object *ob_arm,
                                           const Object *ob_target,

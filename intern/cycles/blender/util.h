@@ -70,7 +70,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
                                       bool /*calc_undeformed*/,
                                       Mesh::SubdivisionType subdivision_type)
 {
-  /* TODO: make this work with copy-on-evaluation, modifiers are already evaluated. */
+  /* TODO: make this work with copy-on-write, modifiers are already evaluated. */
 #if 0
   bool subsurf_mod_show_render = false;
   bool subsurf_mod_show_viewport = false;

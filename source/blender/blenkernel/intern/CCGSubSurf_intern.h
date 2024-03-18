@@ -82,6 +82,9 @@ CCGAllocatorIFC *ccg_getStandardAllocatorIFC(void);
  * Catmull-Clark Gridding Subdivision Surface.
  */
 
+/* TODO(sergey): Get rid of this, it's more or less a bad level call. */
+struct DerivedMesh;
+
 /* ** Data structures, constants. enums ** */
 
 enum {
@@ -252,6 +255,8 @@ void ccgSubSurf__effectedFaceNeighbors(CCGSubSurf *ss,
 /* `CCGSubSurf_legacy.cc` */
 
 void ccgSubSurf__sync_legacy(CCGSubSurf *ss);
+
+struct OpenSubdiv_Converter;
 
 /* `CCGSubSurf_util.cc` */
 

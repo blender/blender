@@ -10,8 +10,6 @@
 
 #include <memory>
 
-#include "BLI_function_ref.hh"
-
 #include "RNA_types.hh"
 
 /* Needed for `tree_element_cast()`. */
@@ -139,7 +137,6 @@ struct TreeElementIcon {
         ID_GR, \
         ID_AR, \
         ID_AC, \
-        ID_AN, \
         ID_BR, \
         ID_PA, \
         ID_GD_LEGACY, \
@@ -385,12 +382,13 @@ bool outliner_is_co_within_mode_column(SpaceOutliner *space_outliner, const floa
 void outliner_item_mode_toggle(bContext *C, TreeViewContext *tvc, TreeElement *te, bool do_extend);
 
 /* `outliner_edit.cc` */
-using outliner_operation_fn = blender::FunctionRef<void(bContext *C,
-                                                        ReportList *reports,
-                                                        Scene *scene,
-                                                        TreeElement *te,
-                                                        TreeStoreElem *tsep,
-                                                        TreeStoreElem *tselem)>;
+using outliner_operation_fn = void (*)(bContext *C,
+                                       ReportList *,
+                                       Scene *scene,
+                                       TreeElement *,
+                                       TreeStoreElem *,
+                                       TreeStoreElem *,
+                                       void *);
 
 /**
  * \param recurse_selected: Set to false for operations which are already
@@ -402,6 +400,7 @@ void outliner_do_object_operation_ex(bContext *C,
                                      SpaceOutliner *space_outliner,
                                      ListBase *lb,
                                      outliner_operation_fn operation_fn,
+                                     void *user_data,
                                      bool recurse_selected);
 void outliner_do_object_operation(bContext *C,
                                   ReportList *reports,
@@ -425,32 +424,37 @@ void item_rename_fn(bContext *C,
                     Scene *scene,
                     TreeElement *te,
                     TreeStoreElem *tsep,
-                    TreeStoreElem *tselem);
+                    TreeStoreElem *tselem,
+                    void *user_data);
 void lib_relocate_fn(bContext *C,
                      ReportList *reports,
                      Scene *scene,
                      TreeElement *te,
                      TreeStoreElem *tsep,
-                     TreeStoreElem *tselem);
+                     TreeStoreElem *tselem,
+                     void *user_data);
 void lib_reload_fn(bContext *C,
                    ReportList *reports,
                    Scene *scene,
                    TreeElement *te,
                    TreeStoreElem *tsep,
-                   TreeStoreElem *tselem);
+                   TreeStoreElem *tselem,
+                   void *user_data);
 
 void id_delete_tag_fn(bContext *C,
                       ReportList *reports,
                       Scene *scene,
                       TreeElement *te,
                       TreeStoreElem *tsep,
-                      TreeStoreElem *tselem);
+                      TreeStoreElem *tselem,
+                      void *user_data);
 void id_remap_fn(bContext *C,
                  ReportList *reports,
                  Scene *scene,
                  TreeElement *te,
                  TreeStoreElem *tsep,
-                 TreeStoreElem *tselem);
+                 TreeStoreElem *tselem,
+                 void *user_data);
 
 /**
  * To retrieve coordinates with redrawing the entire tree.
@@ -508,7 +512,6 @@ void OUTLINER_OT_drivers_add_selected(wmOperatorType *ot);
 void OUTLINER_OT_drivers_delete_selected(wmOperatorType *ot);
 
 void OUTLINER_OT_orphans_purge(wmOperatorType *ot);
-void OUTLINER_OT_orphans_manage(wmOperatorType *ot);
 
 /* `outliner_query.cc` */
 

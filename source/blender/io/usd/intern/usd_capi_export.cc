@@ -10,14 +10,15 @@
 #include "usd_hook.hh"
 #include "usd_private.hh"
 
+#include <pxr/base/plug/registry.h>
 #include <pxr/base/tf/token.h>
 #include <pxr/pxr.h>
-#include <pxr/usd/sdf/assetPath.h>
+#include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xform.h>
-#include <pxr/usd/usdUtils/usdzPackage.h>
+#include <pxr/usd/usdUtils/dependencies.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -30,9 +31,9 @@
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_global.h"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"

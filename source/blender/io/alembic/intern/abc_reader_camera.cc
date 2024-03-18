@@ -7,6 +7,7 @@
  */
 
 #include "abc_reader_camera.h"
+#include "abc_reader_transform.h"
 #include "abc_util.h"
 
 #include "DNA_camera_types.h"
@@ -17,7 +18,7 @@
 #include "BKE_camera.h"
 #include "BKE_object.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 using Alembic::AbcGeom::CameraSample;
 using Alembic::AbcGeom::ICamera;

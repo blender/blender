@@ -54,6 +54,41 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry)
     .depth_write(DepthWrite::ANY)
     .additional_info("draw_gpencil");
 
+GPU_SHADER_CREATE_INFO(gpencil_geometry_next)
+    .do_static_compilation(true)
+    .define("GP_LIGHT")
+    .typedef_source("gpencil_defines.h")
+    .sampler(GPENCIL_SCENE_DEPTH_TEX_SLOT, ImageType::DEPTH_2D, "gpSceneDepthTexture")
+    .sampler(GPENCIL_MASK_TEX_SLOT, ImageType::FLOAT_2D, "gpMaskTexture")
+    .sampler(GPENCIL_FILL_TEX_SLOT, ImageType::FLOAT_2D, "gpFillTexture")
+    .sampler(GPENCIL_STROKE_TEX_SLOT, ImageType::FLOAT_2D, "gpStrokeTexture")
+    .storage_buf(GPENCIL_OBJECT_SLOT, Qualifier::READ, "gpObject", "gp_object[]")
+    .storage_buf(GPENCIL_LAYER_SLOT, Qualifier::READ, "gpLayer", "gp_layer[]")
+    .storage_buf(GPENCIL_MATERIAL_SLOT, Qualifier::READ, "gpMaterial", "gp_materials[]")
+    .storage_buf(GPENCIL_LIGHT_SLOT, Qualifier::READ, "gpLight", "gp_lights[]")
+    .uniform_buf(GPENCIL_SCENE_SLOT, "gpScene", "gp_scene")
+    /* Per Scene */
+    .define("viewportSize", "gp_scene.render_size")
+    /* Per Object */
+    .define("gpNormal", "gp_object[resource_id].normal")
+    .define("gpStrokeOrder3d", "gp_object[resource_id].stroke_order3d")
+    .define("gpMaterialOffset", "gp_object[resource_id].material_offset")
+    /* Per Layer */
+    .define("layer_id", "gp_object[resource_id].layer_offset") /* TODO */
+    .define("gpVertexColorOpacity", "gp_layer[layer_id].vertex_color_opacity")
+    .define("gpLayerTint", "gp_layer[layer_id].tint")
+    .define("gpLayerOpacity", "gp_layer[layer_id].opacity")
+    .define("gpStrokeIndexOffset", "gp_layer[layer_id].stroke_index_offset")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .fragment_out(1, Type::VEC4, "revealColor")
+    .vertex_out(gpencil_geometry_iface)
+    .vertex_out(gpencil_geometry_flat_iface)
+    .vertex_out(gpencil_geometry_noperspective_iface)
+    .vertex_source("grease_pencil_vert.glsl")
+    .fragment_source("grease_pencil_frag.glsl")
+    .additional_info("draw_gpencil_new")
+    .depth_write(DepthWrite::ANY);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -90,6 +125,16 @@ GPU_SHADER_CREATE_INFO(gpencil_depth_merge)
     .fragment_source("gpencil_depth_merge_frag.glsl")
     .depth_write(DepthWrite::ANY)
     .additional_info("draw_view");
+
+GPU_SHADER_CREATE_INFO(grease_pencil_depth_merge)
+    .do_static_compilation(true)
+    .define("strokeOrder3d", "false")
+    .sampler(0, ImageType::DEPTH_2D, "depthBuf")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_source("grease_pencil_depth_merge_vert.glsl")
+    .fragment_source("gpencil_depth_merge_frag.glsl")
+    .depth_write(DepthWrite::ANY)
+    .additional_info("draw_modelmat_new", "draw_view");
 
 /** \} */
 

@@ -25,7 +25,7 @@
 
 #include "DNA_particle_types.h"
 
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"

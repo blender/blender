@@ -17,8 +17,13 @@ class FastGaussianBlurOperation : public BlurBaseOperation {
 
  public:
   FastGaussianBlurOperation();
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   static void IIR_gauss(MemoryBuffer *src, float sigma, unsigned int channel, unsigned int xy);
+  void *initialize_tile_data(rcti *rect) override;
   void init_data() override;
   void deinit_execution() override;
   void init_execution() override;
@@ -46,6 +51,7 @@ class FastGaussianBlurValueOperation : public MultiThreadedOperation {
  private:
   float sigma_;
   MemoryBuffer *iirgaus_;
+  SocketReader *inputprogram_;
 
   /**
    * -1: re-mix with darker
@@ -56,7 +62,12 @@ class FastGaussianBlurValueOperation : public MultiThreadedOperation {
 
  public:
   FastGaussianBlurValueOperation();
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+  void execute_pixel(float output[4], int x, int y, void *data) override;
 
+  void *initialize_tile_data(rcti *rect) override;
   void deinit_execution() override;
   void init_execution() override;
   void set_sigma(float sigma)

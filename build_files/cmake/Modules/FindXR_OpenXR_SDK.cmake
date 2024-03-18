@@ -70,5 +70,3 @@ mark_as_advanced(
   XR_OPENXR_SDK_INCLUDE_DIR
   XR_OPENXR_SDK_LOADER_LIBRARY
 )
-
-unset(_xr_openxr_sdk_SEARCH_DIRS)

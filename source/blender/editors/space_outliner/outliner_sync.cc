@@ -250,7 +250,7 @@ static void outliner_select_sync_to_edit_bone(const Scene *scene,
     else if (!is_edit_bone_selected(selected_ebones, ebone)) {
       /* Don't flush to parent bone tip, synced selection is iterating the whole tree so
        * deselecting potential children with `ED_armature_ebone_select_set(ebone, false)`
-       * would leave its own tip deselected. */
+       * would leave own tip deselected. */
       ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
     }
   }

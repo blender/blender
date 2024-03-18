@@ -8,7 +8,7 @@
 
 #include <cstdlib>
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -364,7 +364,7 @@ void rna_AssetMetaData_catalog_id_update(bContext *C, PointerRNA *ptr)
   }
 
   AssetMetaData *asset_data = static_cast<AssetMetaData *>(ptr->data);
-  asset_library->refresh_catalog_simplename(asset_data);
+  AS_asset_library_refresh_catalog_simplename(asset_library, asset_data);
 }
 
 static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)

@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "GPU_compute.h"
 
 #include "draw_debug.hh"
@@ -47,9 +47,7 @@ void Manager::begin_sync()
   acquired_textures.clear();
   layer_attributes.clear();
 
-// For some reason, if this uninitialised data pattern was enabled (ie release asserts enabled),
-// The viewport just gives up rendering objects on ARM64 devices. Possibly Mesa GLOn12-related.
-#if !defined(NDEBUG) && !defined(_M_ARM64)
+#ifndef NDEBUG
   /* Detect uninitialized data. */
   memset(matrix_buf.current().data(),
          0xF0,

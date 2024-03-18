@@ -25,7 +25,6 @@ void WM_operatortypes_lineart(void);
 
 struct LineartCache;
 
-LineartCache *MOD_lineart_init_cache();
 void MOD_lineart_clear_cache(struct LineartCache **lc);
 
 #ifdef __cplusplus

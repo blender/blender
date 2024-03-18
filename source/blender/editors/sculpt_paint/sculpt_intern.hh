@@ -56,6 +56,8 @@ struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 
+/* Updates */
+
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Types
  * \{ */
@@ -131,6 +133,8 @@ enum eBoundaryAutomaskMode {
   AUTOMASK_INIT_BOUNDARY_EDGES = 1,
   AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
 };
+
+/* Undo */
 
 namespace blender::ed::sculpt_paint::undo {
 
@@ -752,6 +756,8 @@ void SCULPT_tag_update_overlays(bContext *C);
 /** \name Stroke Functions
  * \{ */
 
+/* Stroke */
+
 /**
  * Do a ray-cast in the tree to find the 3d brush location
  * (This allows us to ignore the GL depth buffer)
@@ -1223,51 +1229,6 @@ void triangulate(BMesh *bm);
 
 WarnFlag check_attribute_warning(Scene *scene, Object *ob);
 
-namespace detail_size {
-
-/**
- * Scaling factor to match the displayed size to the actual sculpted size
- */
-constexpr float RELATIVE_SCALE_FACTOR = 0.4f;
-
-/**
- * Converts from Sculpt#constant_detail to the PBVH max edge length.
- */
-float constant_to_detail_size(const float constant_detail, const Object *ob);
-
-/**
- * Converts from Sculpt#detail_percent to the PBVH max edge length.
- */
-float brush_to_detail_size(const float brush_percent, const float brush_radius);
-
-/**
- * Converts from Sculpt#detail_size to the PBVH max edge length.
- */
-float relative_to_detail_size(const float relative_detail,
-                              const float brush_radius,
-                              const float pixel_radius,
-                              const float pixel_size);
-
-/**
- * Converts from Sculpt#constant_detail to equivalent Sculpt#detail_percent value.
- *
- * Corresponds to a change from Constant & Manual Detailing to Brush Detailing.
- */
-float constant_to_brush_detail(const float constant_detail,
-                               const float brush_radius,
-                               const Object *ob);
-
-/**
- * Converts from Sculpt#constant_detail to equivalent Sculpt#detail_size value.
- *
- * Corresponds to a change from Constant & Manual Detailing to Relative Detailing.
- */
-float constant_to_relative_detail(const float constant_detail,
-                                  const float brush_radius,
-                                  const float pixel_radius,
-                                  const float pixel_size,
-                                  const Object *ob);
-}
 }
 
 /** \} */
@@ -1658,130 +1619,16 @@ void modal_keymap(wmKeyConfig *keyconf);
 /** \name Gesture Operators
  * \{ */
 
-namespace blender::ed::sculpt_paint::gesture {
-enum ShapeType {
-  Box = 0,
-  Lasso = 1,
-  Line = 2,
-};
+namespace blender::ed::sculpt_paint::mask {
 
-enum class SelectionType {
-  Inside = 0,
-  Outside = 1,
-};
+void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot);
+void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot);
 
-struct LassoData {
-  float4x4 projviewobjmat;
-
-  rcti boundbox;
-  int width;
-
-  /* 2D bitmap to test if a vertex is affected by the lasso shape. */
-  blender::BitVector<> mask_px;
-};
-
-struct LineData {
-  /* Plane aligned to the gesture line. */
-  float true_plane[4];
-  float plane[4];
-
-  /* Planes to limit the action to the length of the gesture segment at both sides of the affected
-   * area. */
-  float side_plane[2][4];
-  float true_side_plane[2][4];
-  bool use_side_planes;
-
-  bool flip;
-};
-
-struct Operation;
-
-/* Common data used for executing a gesture operation. */
-struct GestureData {
-  SculptSession *ss;
-  ViewContext vc;
-
-  /* Enabled and currently active symmetry. */
-  ePaintSymmetryFlags symm;
-  ePaintSymmetryFlags symmpass;
-
-  /* Operation parameters. */
-  ShapeType shape_type;
-  bool front_faces_only;
-  SelectionType selection_type;
-
-  Operation *operation;
-
-  /* Gesture data. */
-  /* Screen space points that represent the gesture shape. */
-  Array<float2> gesture_points;
-
-  /* View parameters. */
-  float3 true_view_normal;
-  float3 view_normal;
-
-  float3 true_view_origin;
-  float3 view_origin;
-
-  float true_clip_planes[4][4];
-  float clip_planes[4][4];
-
-  /* These store the view origin and normal in world space, which is used in some gestures to
-   * generate geometry aligned from the view directly in world space. */
-  /* World space view origin and normal are not affected by object symmetry when doing symmetry
-   * passes, so there is no separate variables with the `true_` prefix to store their original
-   * values without symmetry modifications. */
-  float3 world_space_view_origin;
-  float3 world_space_view_normal;
-
-  /* Lasso Gesture. */
-  LassoData lasso;
-
-  /* Line Gesture. */
-  LineData line;
-
-  /* Task Callback Data. */
-  Vector<PBVHNode *> nodes;
-
-  ~GestureData();
-};
-
-/* Common abstraction structure for gesture operations. */
-struct Operation {
-  /* Initial setup (data updates, special undo push...). */
-  void (*begin)(bContext &, GestureData &);
-
-  /* Apply the gesture action for each symmetry pass. */
-  void (*apply_for_symmetry_pass)(bContext &, GestureData &);
-
-  /* Remaining actions after finishing the symmetry passes iterations
-   * (updating data-layers, tagging PBVH updates...). */
-  void (*end)(bContext &, GestureData &);
-};
-
-/* Determines whether or not a gesture action should be applied. */
-bool is_affected(GestureData &gesture_data, const float3 &co, const float3 &vertex_normal);
-
-/* Initialization functions. */
-std::unique_ptr<GestureData> init_from_box(bContext *C, wmOperator *op);
-std::unique_ptr<GestureData> init_from_lasso(bContext *C, wmOperator *op);
-std::unique_ptr<GestureData> init_from_line(bContext *C, wmOperator *op);
-
-/* Common gesture operator properties. */
-void operator_properties(wmOperatorType *ot);
-
-/* Apply the gesture action to the selected nodes. */
-void apply(bContext &C, GestureData &gesture_data, wmOperator &op);
-
-}
-
-namespace blender::ed::sculpt_paint::project {
-void SCULPT_OT_project_line_gesture(wmOperatorType *ot);
-}
-
-namespace blender::ed::sculpt_paint::trim {
 void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot);
 void SCULPT_OT_trim_box_gesture(wmOperatorType *ot);
+
+void SCULPT_OT_project_line_gesture(wmOperatorType *ot);
+
 }
 
 /** \} */
@@ -1798,8 +1645,6 @@ void SCULPT_OT_face_sets_init(wmOperatorType *ot);
 void SCULPT_OT_face_sets_create(wmOperatorType *ot);
 void SCULPT_OT_face_sets_edit(wmOperatorType *ot);
 
-void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot);
-void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot);
 }
 /** \} */
 
@@ -1814,6 +1659,8 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot);
 /** \name Filter Operators
  * \{ */
 
+/* Mesh Filter. */
+
 namespace blender::ed::sculpt_paint::filter {
 
 void SCULPT_OT_mesh_filter(wmOperatorType *ot);
@@ -1824,6 +1671,8 @@ wmKeyMap *modal_keymap(wmKeyConfig *keyconf);
 namespace blender::ed::sculpt_paint::cloth {
 void SCULPT_OT_cloth_filter(wmOperatorType *ot);
 }
+
+/* Color Filter. */
 
 namespace blender::ed::sculpt_paint::color {
 void SCULPT_OT_color_filter(wmOperatorType *ot);
@@ -1854,6 +1703,7 @@ namespace blender::ed::sculpt_paint::dyntopo {
 
 void SCULPT_OT_detail_flood_fill(wmOperatorType *ot);
 void SCULPT_OT_sample_detail_size(wmOperatorType *ot);
+void SCULPT_OT_set_detail_size(wmOperatorType *ot);
 void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot);
 void SCULPT_OT_dynamic_topology_toggle(wmOperatorType *ot);
 
@@ -1866,6 +1716,8 @@ void SCULPT_OT_dynamic_topology_toggle(wmOperatorType *ot);
 /* -------------------------------------------------------------------- */
 /** \name Brushes
  * \{ */
+
+/* Pose Brush. */
 
 namespace blender::ed::sculpt_paint::pose {
 
@@ -1893,6 +1745,8 @@ SculptPoseIKChain *ik_chain_init(
 void ik_chain_free(SculptPoseIKChain *ik_chain);
 
 }
+
+/* Boundary Brush. */
 
 namespace blender::ed::sculpt_paint::boundary {
 
@@ -2046,13 +1900,6 @@ void SCULPT_topology_islands_invalidate(SculptSession *ss);
 int SCULPT_vertex_island_get(const SculptSession *ss, PBVHVertRef vertex);
 
 /** \} */
-
-namespace blender::ed::sculpt_paint {
-float sculpt_calc_radius(ViewContext *vc,
-                         const Brush *brush,
-                         const Scene *scene,
-                         const float3 location);
-}
 
 inline void *SCULPT_vertex_attr_get(const PBVHVertRef vertex, const SculptAttribute *attr)
 {

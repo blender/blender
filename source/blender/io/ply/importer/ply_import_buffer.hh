@@ -8,7 +8,8 @@
 
 #pragma once
 
-#include <cstdio>
+#include <stddef.h>
+#include <stdio.h>
 
 #include "BLI_array.hh"
 #include "BLI_span.hh"

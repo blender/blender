@@ -4,9 +4,6 @@
 
 /** \file
  * \ingroup sptext
- *
- * Note that this formatter shares core logic with `text_format_glsl.cc`,
- * improvements here may apply there too.
  */
 
 #include <cstring>

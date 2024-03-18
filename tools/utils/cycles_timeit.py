@@ -136,6 +136,7 @@ def benchmarkFile(blender, blendfile, stats):
     # Configure command for the current file.
     command = (blender,
                "--background",
+               "-noaudio",
                "--factory-startup",
                blendfile,
                "--engine", "CYCLES",

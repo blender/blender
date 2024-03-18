@@ -18,7 +18,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "ED_curves.hh"
 #include "ED_object.hh"
@@ -43,7 +43,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -396,7 +396,7 @@ static void try_convert_single_object(Object &curves_ob,
   particle_system->recalc |= ID_RECALC_PSYS_RESET;
 
   DEG_id_tag_update(&surface_ob.id, ID_RECALC_GEOMETRY);
-  DEG_id_tag_update(&settings.id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&settings.id, ID_RECALC_COPY_ON_WRITE);
 }
 
 static int curves_convert_to_particle_system_exec(bContext *C, wmOperator *op)
@@ -485,7 +485,7 @@ static bke::CurvesGeometry particles_to_curves(Object &object, ParticleSystem &p
   bke::CurvesGeometry curves(points_num, curves_num);
   curves.offsets_for_write().copy_from(curve_offsets);
 
-  const float4x4 &object_to_world_mat = object.object_to_world();
+  const float4x4 object_to_world_mat(object.object_to_world);
   const float4x4 world_to_object_mat = math::invert(object_to_world_mat);
 
   MutableSpan<float3> positions = curves.positions_for_write();
@@ -548,7 +548,7 @@ static int curves_convert_from_particle_system_exec(bContext *C, wmOperator * /*
 
   Object *ob_new = BKE_object_add(&bmain, &scene, &view_layer, OB_CURVES, psys_eval->name);
   Curves *curves_id = static_cast<Curves *>(ob_new->data);
-  BKE_object_apply_mat4(ob_new, ob_from_orig->object_to_world().ptr(), true, false);
+  BKE_object_apply_mat4(ob_new, ob_from_orig->object_to_world, true, false);
   curves_id->geometry.wrap() = particles_to_curves(*ob_from_eval, *psys_eval);
 
   DEG_relations_tag_update(&bmain);

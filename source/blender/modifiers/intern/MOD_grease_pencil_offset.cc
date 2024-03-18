@@ -25,7 +25,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "WM_types.hh"
 
@@ -386,13 +386,10 @@ static void panel_draw(const bContext *C, Panel *panel)
   const auto offset_mode = GreasePencilOffsetModifierMode(RNA_enum_get(ptr, "offset_mode"));
 
   uiLayoutSetPropSep(layout, true);
-  if (uiLayout *general_panel = uiLayoutPanelProp(C, layout, ptr, "open_general_panel", "General"))
-  {
-    uiLayoutSetPropSep(general_panel, true);
-    uiItemR(general_panel, ptr, "location", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(general_panel, ptr, "rotation", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(general_panel, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-  }
+
+  uiItemR(layout, ptr, "location", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rotation", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   LayoutPanelState *advanced_panel_state = BKE_panel_layout_panel_state_ensure(
       panel, "advanced", true);

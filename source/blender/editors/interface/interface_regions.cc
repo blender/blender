@@ -17,6 +17,7 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
+#include "WM_api.hh"
 #include "wm_draw.hh"
 
 #include "ED_screen.hh"

@@ -34,13 +34,13 @@
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
 #include "BKE_armature.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_blendfile_link_append.hh"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -50,9 +50,9 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "BKE_idtype.hh"
 
@@ -81,10 +81,10 @@ static CLG_LogRef LOG = {"wm.files_link"};
 static bool wm_link_append_poll(bContext *C)
 {
   if (WM_operator_winactive(C)) {
-    /* NOTE(@sergey): Linking changes active object which is pretty useful in general,
+    /* linking changes active object which is pretty useful in general,
      * but which totally confuses edit mode (i.e. it becoming not so obvious
      * to leave from edit mode and invalid tools in toolbar might be displayed)
-     * so disable link/append when in edit mode. */
+     * so disable link/append when in edit mode (sergey) */
     if (CTX_data_edit_object(C)) {
       return false;
     }
@@ -218,7 +218,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
   BLI_path_join(filepath, sizeof(filepath), root, relname);
 
-  /* Test if we have a valid data. */
+  /* test if we have a valid data */
   const bool is_librarypath_valid = BKE_blendfile_library_path_explode(
       filepath, libname, &group, &name);
 
@@ -239,7 +239,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* Check if something is indicated for append/link. */
+  /* check if something is indicated for append/link */
   prop = RNA_struct_find_property(op->ptr, "files");
   if (prop) {
     totfiles = RNA_property_collection_length(op->ptr, prop);
@@ -258,13 +258,13 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   int flag = wm_link_append_flag(op);
   const bool do_append = (flag & FILE_LINK) == 0;
 
-  /* From here down, no error returns. */
+  /* from here down, no error returns */
 
   if (view_layer && RNA_boolean_get(op->ptr, "autoselect")) {
     BKE_view_layer_base_deselect_all(scene, view_layer);
   }
 
-  /* Sanity checks for flag. */
+  /* sanity checks for flag */
   if (scene && scene->id.lib) {
     BKE_reportf(op->reports,
                 RPT_WARNING,
@@ -274,10 +274,10 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     scene = nullptr;
   }
 
-  /* Tag everything, all untagged data can be made local
-   * its also generally useful to know what is new.
+  /* tag everything, all untagged data can be made local
+   * its also generally useful to know what is new
    *
-   * Take extra care `BKE_main_id_flag_all(bmain, LIB_TAG_PRE_EXISTING, false)` is called after! */
+   * take extra care BKE_main_id_flag_all(bmain, LIB_TAG_PRE_EXISTING, false) is called after! */
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
   /* We define our working data...
@@ -360,19 +360,19 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
   // BKE_main_unlock(bmain);
 
-  /* Mark all library linked objects to be updated. */
+  /* mark all library linked objects to be updated */
   BKE_main_lib_objects_recalc_all(bmain);
   IMB_colormanagement_check_file_config(bmain);
 
-  /* Append, rather than linking. */
+  /* append, rather than linking */
   if (do_append) {
     BKE_blendfile_append(lapp_context, op->reports);
   }
 
   BKE_blendfile_link_append_context_free(lapp_context);
 
-  /* Important we unset, otherwise these object won't
-   * link into other scenes from this blend file. */
+  /* important we unset, otherwise these object won't
+   * link into other scenes from this blend file */
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, false);
 
   /* TODO(sergey): Use proper flag for tagging here. */
@@ -387,7 +387,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&scene->id, 0);
   }
 
-  /* Recreate dependency graph to include new objects. */
+  /* recreate dependency graph to include new objects */
   DEG_relations_tag_update(bmain);
 
   /* TODO: align `G.filepath_last_library` with other directory storage
@@ -403,9 +403,8 @@ static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
 {
   PropertyRNA *prop;
 
-  /* Better not save _any_ settings for this operator. */
-
-  /* Properties. */
+  /* better not save _any_ settings for this operator */
+  /* properties */
   prop = RNA_def_boolean(
       ot->srna, "link", is_link, "Link", "Link the objects or data-blocks rather than appending");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);

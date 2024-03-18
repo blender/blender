@@ -4,7 +4,8 @@
 
 #include "COM_DilateErodeNode.h"
 #include "COM_DilateErodeOperation.h"
-#include "COM_GaussianAlphaBlurBaseOperation.h"
+#include "COM_GaussianAlphaXBlurOperation.h"
+#include "COM_GaussianAlphaYBlurOperation.h"
 #include "COM_SMAAOperation.h"
 
 namespace blender::compositor {

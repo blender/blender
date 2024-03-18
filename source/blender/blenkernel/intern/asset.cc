@@ -52,10 +52,18 @@ AssetMetaData *BKE_asset_metadata_copy(const AssetMetaData *source)
 
   BKE_asset_metadata_catalog_id_set(copy, source->catalog_id, source->catalog_simple_name);
 
-  copy->author = BLI_strdup_null(source->author);
-  copy->description = BLI_strdup_null(source->description);
-  copy->copyright = BLI_strdup_null(source->copyright);
-  copy->license = BLI_strdup_null(source->license);
+  if (source->author) {
+    copy->author = BLI_strdup(source->author);
+  }
+  if (source->description) {
+    copy->description = BLI_strdup(source->description);
+  }
+  if (source->copyright) {
+    copy->copyright = BLI_strdup(source->copyright);
+  }
+  if (source->license) {
+    copy->license = BLI_strdup(source->license);
+  }
 
   BLI_duplicatelist(&copy->tags, &source->tags);
   copy->active_tag = source->active_tag;

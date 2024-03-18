@@ -13,7 +13,7 @@
 
 #ifndef NDEBUG
 
-#  include <cstdio>
+#  include <stdio.h>
 
 #  include "MEM_guardedalloc.h"
 

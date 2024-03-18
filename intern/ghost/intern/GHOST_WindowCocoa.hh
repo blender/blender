@@ -217,7 +217,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
    */
   GHOST_TSuccess endProgressBar();
 
-  void setNativePixelSize();
+  void setNativePixelSize(void);
 
   GHOST_TSuccess beginFullScreen() const
   {
@@ -240,7 +240,7 @@ class GHOST_WindowCocoa : public GHOST_Window {
   {
     m_immediateDraw = value;
   }
-  bool getImmediateDraw() const
+  bool getImmediateDraw(void) const
   {
     return m_immediateDraw;
   }

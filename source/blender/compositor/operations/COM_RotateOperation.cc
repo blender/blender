@@ -14,6 +14,8 @@ RotateOperation::RotateOperation()
   this->add_input_socket(DataType::Value, ResizeMode::None);
   this->add_output_socket(DataType::Color);
   this->set_canvas_input_index(0);
+  image_socket_ = nullptr;
+  degree_socket_ = nullptr;
   do_degree2_rad_conversion_ = false;
   is_degree_set_ = false;
   sampler_ = PixelSampler::Bilinear;
@@ -111,19 +113,44 @@ void RotateOperation::get_rotation_canvas(const rcti &input_canvas,
   BLI_rcti_translate(&r_canvas, -offset_x, -offset_y);
 }
 
-void RotateOperation::init_data() {}
+void RotateOperation::init_data()
+{
+  if (execution_model_ == eExecutionModel::Tiled) {
+    get_rotation_center(get_canvas(), center_x_, center_y_);
+  }
+}
+
+void RotateOperation::init_execution()
+{
+  image_socket_ = this->get_input_socket_reader(0);
+  degree_socket_ = this->get_input_socket_reader(1);
+}
+
+void RotateOperation::deinit_execution()
+{
+  image_socket_ = nullptr;
+  degree_socket_ = nullptr;
+}
 
 inline void RotateOperation::ensure_degree()
 {
   if (!is_degree_set_) {
-    float degree = get_input_operation(DEGREE_INPUT_INDEX)->get_constant_value_default(0.0f);
+    float degree[4];
+    switch (execution_model_) {
+      case eExecutionModel::Tiled:
+        degree_socket_->read_sampled(degree, 0, 0, PixelSampler::Nearest);
+        break;
+      case eExecutionModel::FullFrame:
+        degree[0] = get_input_operation(DEGREE_INPUT_INDEX)->get_constant_value_default(0.0f);
+        break;
+    }
 
     double rad;
     if (do_degree2_rad_conversion_) {
-      rad = DEG2RAD(double(degree));
+      rad = DEG2RAD(double(degree[0]));
     }
     else {
-      rad = degree;
+      rad = degree[0];
     }
     cosine_ = cos(rad);
     sine_ = sin(rad);
@@ -132,8 +159,59 @@ inline void RotateOperation::ensure_degree()
   }
 }
 
+void RotateOperation::execute_pixel_sampled(float output[4],
+                                            float x,
+                                            float y,
+                                            PixelSampler sampler)
+{
+  ensure_degree();
+  const float dy = y - center_y_;
+  const float dx = x - center_x_;
+  const float nx = center_x_ + (cosine_ * dx + sine_ * dy);
+  const float ny = center_y_ + (-sine_ * dx + cosine_ * dy);
+  image_socket_->read_sampled(output, nx, ny, sampler);
+}
+
+bool RotateOperation::determine_depending_area_of_interest(rcti *input,
+                                                           ReadBufferOperation *read_operation,
+                                                           rcti *output)
+{
+  ensure_degree();
+  rcti new_input;
+
+  const float dxmin = input->xmin - center_x_;
+  const float dymin = input->ymin - center_y_;
+  const float dxmax = input->xmax - center_x_;
+  const float dymax = input->ymax - center_y_;
+
+  const float x1 = center_x_ + (cosine_ * dxmin + sine_ * dymin);
+  const float x2 = center_x_ + (cosine_ * dxmax + sine_ * dymin);
+  const float x3 = center_x_ + (cosine_ * dxmin + sine_ * dymax);
+  const float x4 = center_x_ + (cosine_ * dxmax + sine_ * dymax);
+  const float y1 = center_y_ + (-sine_ * dxmin + cosine_ * dymin);
+  const float y2 = center_y_ + (-sine_ * dxmax + cosine_ * dymin);
+  const float y3 = center_y_ + (-sine_ * dxmin + cosine_ * dymax);
+  const float y4 = center_y_ + (-sine_ * dxmax + cosine_ * dymax);
+  const float minx = std::min(x1, std::min(x2, std::min(x3, x4)));
+  const float maxx = std::max(x1, std::max(x2, std::max(x3, x4)));
+  const float miny = std::min(y1, std::min(y2, std::min(y3, y4)));
+  const float maxy = std::max(y1, std::max(y2, std::max(y3, y4)));
+
+  new_input.xmax = ceil(maxx) + 1;
+  new_input.xmin = floor(minx) - 1;
+  new_input.ymax = ceil(maxy) + 1;
+  new_input.ymin = floor(miny) - 1;
+
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
+}
+
 void RotateOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
+  if (execution_model_ == eExecutionModel::Tiled) {
+    NodeOperation::determine_canvas(preferred_area, r_area);
+    return;
+  }
+
   const bool image_determined =
       get_input_socket(IMAGE_INPUT_INDEX)->determine_canvas(preferred_area, r_area);
   if (image_determined) {

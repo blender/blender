@@ -118,34 +118,24 @@ float light_attenuation_common(LightData light, const bool is_directional, vec3 
 
 /**
  * Fade light influence when surface is not facing the light.
- * This is needed because LTC leaks light at roughness not 0 or 1
- * when the light is below the horizon.
  * L is normalized vector to light shape center.
  * Ng is ideally the geometric normal.
  */
-vec2 light_attenuation_facing(LightData light, vec3 L, float distance_to_light, vec3 Ng)
+float light_attenuation_facing(LightData light, vec3 L, vec3 Ng, bool use_subsurface)
 {
-  float radius;
-  if (is_area_light(light.type)) {
-    radius = length(vec2(light._area_size_x, light._area_size_y));
+  if (use_subsurface) {
+    return 1.0;
   }
-  else {
-    radius = light._radius;
-  }
-  /* Sine of angle between light center and light edge. */
-  float sin_solid_angle = radius / distance_to_light;
-  /* Sine of angle between light center and shading plane. */
-  float sin_light_angle = dot(L, Ng);
-  /* Do attenuation after the horizon line to avoid harsh cut
-   * or biasing of surfaces without light bleeding. */
-  /* Compute for both front facing and back-facing. */
-  return saturate((vec2(sin_light_angle, -sin_light_angle) + sin_solid_angle + 0.1) * 10.0);
+  /* TODO(fclem): Take into consideration the light radius. */
+  return float(dot(L, Ng) > 0.0);
 }
 
-vec2 light_attenuation_surface(LightData light, const bool is_directional, vec3 Ng, LightVector lv)
+float light_attenuation_surface(
+    LightData light, const bool is_directional, vec3 Ng, bool use_subsurface, LightVector lv)
 {
+  /* TODO(fclem): add cutoff attenuation when back-facing. For now do nothing with Ng. */
   return light_attenuation_common(light, is_directional, lv.L) *
-         light_attenuation_facing(light, lv.L, lv.dist, Ng) *
+         light_attenuation_facing(light, lv.L, Ng, use_subsurface) *
          light_influence_attenuation(lv.dist, light.influence_radius_invsqr_surface);
 }
 

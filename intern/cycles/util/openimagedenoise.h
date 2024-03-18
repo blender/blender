@@ -16,14 +16,11 @@ CCL_NAMESPACE_BEGIN
 static inline bool openimagedenoise_supported()
 {
 #ifdef WITH_OPENIMAGEDENOISE
-#  if defined(__APPLE__)
+#  ifdef __APPLE__
   /* Always supported through Accelerate framework BNNS. */
   return true;
-#  elif defined(_M_ARM64)
-  /* OIDN supports NEON natively, and all Windows ARM64 platforms support NEON */
-  return true;
 #  else
-  return system_cpu_support_sse42();
+  return system_cpu_support_sse41();
 #  endif
 #else
   return false;

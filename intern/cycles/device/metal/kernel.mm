@@ -903,4 +903,4 @@ bool MetalDeviceKernels::is_benchmark_warmup()
 
 CCL_NAMESPACE_END
 
-#endif /* WITH_METAL */
+#endif /* WITH_METAL*/

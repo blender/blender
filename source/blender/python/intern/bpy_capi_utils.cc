@@ -11,6 +11,7 @@
 
 #include <Python.h>
 
+#include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
@@ -18,7 +19,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_report.hh"
+#include "BKE_context.hh"
+#include "BKE_report.h"
+
+#include "BLT_translation.h"
 
 #include "../generic/py_capi_utils.h"
 

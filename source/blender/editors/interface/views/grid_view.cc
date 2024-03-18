@@ -79,7 +79,7 @@ void AbstractGridView::update_children_from_old(const AbstractView &old_view)
 {
   const AbstractGridView &old_grid_view = dynamic_cast<const AbstractGridView &>(old_view);
 
-  this->foreach_item([this, &old_grid_view](AbstractGridViewItem &new_item) {
+  foreach_item([this, &old_grid_view](AbstractGridViewItem &new_item) {
     const AbstractGridViewItem *matching_old_item = find_matching_item(new_item, old_grid_view);
     if (!matching_old_item) {
       return;
@@ -154,9 +154,11 @@ void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
                                              nullptr,
                                              0,
                                              0,
+                                             0,
+                                             0,
                                              "");
 
-  view_item_but_->view_item = this;
+  view_item_but_->view_item = reinterpret_cast<uiViewItemHandle *>(this);
   UI_but_func_set(view_item_but_, grid_tile_click_fn, view_item_but_, nullptr);
 }
 
@@ -298,6 +300,8 @@ void BuildOnlyVisibleButtonsHelper::add_spacer_button(uiBlock &block, const int 
              nullptr,
              0,
              0,
+             0,
+             0,
              "");
     remaining_rows -= row_count_this_iter;
   }
@@ -413,12 +417,14 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
   uiBut *but = uiDefBut(block,
                         UI_BTYPE_PREVIEW_TILE,
                         0,
-                        hide_label_ ? "" : label,
+                        hide_label_ ? "" : label.c_str(),
                         0,
                         0,
                         style.tile_width,
                         style.tile_height,
                         nullptr,
+                        0,
+                        0,
                         0,
                         0,
                         "");

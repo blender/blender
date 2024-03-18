@@ -7,11 +7,10 @@
  * \ingroup balembic
  */
 
-#include <Alembic/Abc/IArchive.h>
-#include <Alembic/Abc/IObject.h>
+#include <Alembic/Abc/All.h>
+#include <Alembic/AbcCoreOgawa/All.h>
 
 #include <fstream>
-#include <vector>
 
 struct Main;
 

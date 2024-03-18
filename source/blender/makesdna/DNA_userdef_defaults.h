@@ -10,6 +10,7 @@
 
 #include "DNA_asset_types.h"
 
+/* Struct members on own line. */
 /* clang-format off */
 
 /* -------------------------------------------------------------------- */

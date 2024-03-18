@@ -31,12 +31,14 @@ class TEXT_HT_header(Header):
             row.operator("text.resolve_conflict", text="", icon='QUESTION')
 
         row = layout.row(align=True)
-        row.template_ID(st, "text", new="text.new", unlink="text.unlink", open="text.open")
+        row.template_ID(st, "text", new="text.new",
+                        unlink="text.unlink", open="text.open")
 
         if text:
             is_osl = text.name.endswith((".osl", ".osl"))
             if is_osl:
-                row.operator("node.shader_script_update", text="", icon='FILE_REFRESH')
+                row.operator("node.shader_script_update",
+                             text="", icon='FILE_REFRESH')
             else:
                 row = layout.row()
                 row.active = is_syntax_highlight_supported
@@ -172,8 +174,10 @@ class TEXT_PT_find(Panel):
         row = layout.row(align=True)
         if not st.text:
             row.active = False
-        row.prop(st, "use_match_case", text="Case", text_ctxt=i18n_contexts.id_text, toggle=True)
-        row.prop(st, "use_find_wrap", text="Wrap", text_ctxt=i18n_contexts.id_text, toggle=True)
+        row.prop(st, "use_match_case", text="Case",
+                 text_ctxt=i18n_contexts.id_text, toggle=True)
+        row.prop(st, "use_find_wrap", text="Wrap",
+                 text_ctxt=i18n_contexts.id_text, toggle=True)
         row.prop(st, "use_find_all", text="All", toggle=True)
 
 
@@ -249,7 +253,8 @@ class TEXT_MT_text(Menu):
         st = context.space_data
         text = st.text
 
-        layout.operator("text.new", text="New", text_ctxt=i18n_contexts.id_text, icon='FILE_NEW')
+        layout.operator("text.new", text="New",
+                        text_ctxt=i18n_contexts.id_text, icon='FILE_NEW')
         layout.operator("text.open", text="Open...", icon='FILE_FOLDER')
 
         if text:

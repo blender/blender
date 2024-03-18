@@ -22,9 +22,9 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_main.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -33,7 +33,6 @@
 #include "builder/deg_builder_relations.h"
 #include "builder/pipeline_all_objects.h"
 #include "builder/pipeline_compositor.h"
-#include "builder/pipeline_from_collection.h"
 #include "builder/pipeline_from_ids.h"
 #include "builder/pipeline_render.h"
 #include "builder/pipeline_view_layer.h"
@@ -274,12 +273,6 @@ void DEG_graph_build_for_compositor_preview(Depsgraph *graph, bNodeTree *nodetre
 void DEG_graph_build_from_ids(Depsgraph *graph, ID **ids, const int num_ids)
 {
   deg::FromIDsBuilderPipeline builder(graph, blender::Span(ids, num_ids));
-  builder.build();
-}
-
-void DEG_graph_build_from_collection(Depsgraph *graph, Collection *collection)
-{
-  deg::FromCollectionBuilderPipeline builder(graph, collection);
   builder.build();
 }
 

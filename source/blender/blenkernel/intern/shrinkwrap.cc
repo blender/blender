@@ -15,6 +15,7 @@
 
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
@@ -26,13 +27,17 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.hh"
+#include "BKE_attribute.hh"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_lattice.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
 #include "BKE_shrinkwrap.hh"
 
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh" /* for OMP limits. */
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_subsurf.hh"
 
@@ -40,7 +45,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /* for timing... */
 #if 0
@@ -1503,56 +1508,6 @@ void shrinkwrapGpencilModifier_deform(ShrinkwrapGpencilModifierData *mmd,
   calc.tree = mmd->cache_data;
 
   switch (mmd->shrink_type) {
-    case MOD_SHRINKWRAP_NEAREST_SURFACE:
-    case MOD_SHRINKWRAP_TARGET_PROJECT:
-      TIMEIT_BENCH(shrinkwrap_calc_nearest_surface_point(&calc), gpdeform_surface);
-      break;
-
-    case MOD_SHRINKWRAP_PROJECT:
-      TIMEIT_BENCH(shrinkwrap_calc_normal_projection(&calc), gpdeform_project);
-      break;
-
-    case MOD_SHRINKWRAP_NEAREST_VERTEX:
-      TIMEIT_BENCH(shrinkwrap_calc_nearest_vertex(&calc), gpdeform_vertex);
-      break;
-  }
-}
-
-void shrinkwrapParams_deform(const ShrinkwrapParams &params,
-                             Object &object,
-                             ShrinkwrapTreeData &tree,
-                             const blender::Span<MDeformVert> dvert,
-                             const int defgrp_index,
-                             const blender::MutableSpan<blender::float3> positions)
-{
-  using namespace blender::bke;
-
-  ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
-  /* Convert params struct to use the same struct and function used with meshes. */
-  ShrinkwrapModifierData smd;
-  smd.target = params.target;
-  smd.auxTarget = params.aux_target;
-  smd.keepDist = params.keep_distance;
-  smd.shrinkType = params.shrink_type;
-  smd.shrinkOpts = params.shrink_options;
-  smd.shrinkMode = params.shrink_mode;
-  smd.projLimit = params.projection_limit;
-  smd.projAxis = params.projection_axis;
-
-  /* Configure Shrinkwrap calc data. */
-  calc.smd = &smd;
-  calc.ob = &object;
-  calc.numVerts = int(positions.size());
-  calc.vertexCos = reinterpret_cast<float(*)[3]>(positions.data());
-  calc.dvert = dvert.is_empty() ? nullptr : dvert.data();
-  calc.vgroup = defgrp_index;
-  calc.invert_vgroup = params.invert_vertex_weights;
-
-  BLI_SPACE_TRANSFORM_SETUP(&calc.local2target, &object, params.target);
-  calc.keepDist = params.keep_distance;
-  calc.tree = &tree;
-
-  switch (params.shrink_type) {
     case MOD_SHRINKWRAP_NEAREST_SURFACE:
     case MOD_SHRINKWRAP_TARGET_PROJECT:
       TIMEIT_BENCH(shrinkwrap_calc_nearest_surface_point(&calc), gpdeform_surface);

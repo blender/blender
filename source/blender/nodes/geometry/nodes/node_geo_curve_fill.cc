@@ -132,16 +132,26 @@ static Array<meshintersect::CDT_result<double>> do_group_aware_cdt(
     return {do_cdt(curves, output_type)};
   }
 
-  VectorSet<int> group_indexing;
+  const VArraySpan<int> group_ids_span(curve_group_ids);
+  const int domain_size = group_ids_span.size();
+
+  VectorSet<int> group_indexing(group_ids_span);
+  const int groups_num = group_indexing.size();
+
   IndexMaskMemory mask_memory;
-  const Vector<IndexMask> group_masks = IndexMask::from_group_ids(
-      curve_group_ids, mask_memory, group_indexing);
-  const int groups_num = group_masks.size();
+  Array<IndexMask> group_masks(groups_num);
+  IndexMask::from_groups<int>(
+      IndexMask(domain_size),
+      mask_memory,
+      [&](const int i) {
+        const int group_id = group_ids_span[i];
+        return group_indexing.index_of(group_id);
+      },
+      group_masks);
 
   Array<meshintersect::CDT_result<double>> cdt_results(groups_num);
 
   /* The grain size should be larger as each group gets smaller. */
-  const int domain_size = curve_group_ids.size();
   const int avg_group_size = domain_size / groups_num;
   const int grain_size = std::max(8192 / avg_group_size, 1);
   threading::parallel_for(IndexRange(groups_num), grain_size, [&](const IndexRange range) {

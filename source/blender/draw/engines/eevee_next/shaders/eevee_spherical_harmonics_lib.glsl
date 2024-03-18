@@ -368,17 +368,20 @@ SphericalHarmonicL1 spherical_harmonics_triple_product(SphericalHarmonicL1 a,
   /* Adapted from:
    * "Code Generation and Factoring for Fast Evaluation of Low-order Spherical Harmonic Products
    * and Squares" Function "SH_product_3". */
-  const float L0_M0_coef = 0.282094792;
   SphericalHarmonicL1 sh;
-  sh.L0.M0 = a.L0.M0 * b.L0.M0;
-  sh.L0.M0 += a.L1.Mn1 * b.L1.Mn1;
-  sh.L0.M0 += a.L1.M0 * b.L1.M0;
-  sh.L0.M0 += a.L1.Mp1 * b.L1.Mp1;
-  sh.L0.M0 *= L0_M0_coef;
+  sh.L0.M0 = 0.282094792 * a.L0.M0 * b.L0.M0;
 
-  sh.L1.Mn1 = L0_M0_coef * (a.L0.M0 * b.L1.Mn1 + b.L0.M0 * a.L1.Mn1);
-  sh.L1.M0 = L0_M0_coef * (a.L0.M0 * b.L1.M0 + b.L0.M0 * a.L1.M0);
-  sh.L1.Mp1 = L0_M0_coef * (a.L0.M0 * b.L1.Mp1 + b.L0.M0 * a.L1.Mp1);
+  vec4 ta = 0.282094791 * a.L0.M0;
+  vec4 tb = 0.282094791 * b.L0.M0;
+
+  sh.L1.Mn1 = ta * b.L1.Mn1 + tb * a.L1.Mn1;
+  sh.L0.M0 += 0.282094791 * (a.L1.Mn1 * b.L1.Mn1);
+
+  sh.L1.M0 += ta * b.L1.M0 + tb * a.L1.M0;
+  sh.L0.M0 += 0.282094795 * (a.L1.M0 * b.L1.M0);
+
+  sh.L1.Mp1 += ta * b.L1.Mp1 + tb * a.L1.Mp1;
+  sh.L0.M0 += 0.282094791 * (a.L1.Mp1 * b.L1.Mp1);
   return sh;
 }
 

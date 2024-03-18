@@ -24,8 +24,6 @@
 
 #include "interface_intern.hh"
 
-#include "UI_abstract_view.hh"
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -98,7 +96,7 @@ bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool
   }
   if (but->type == UI_BTYPE_VIEW_ITEM) {
     const uiButViewItem *but_item = static_cast<const uiButViewItem *>(but);
-    return but_item->view_item->is_interactive();
+    return UI_view_item_is_interactive(but_item->view_item);
   }
 
   return true;
@@ -501,7 +499,7 @@ static bool ui_but_is_active_view_item(const uiBut *but, const void * /*customda
   }
 
   const uiButViewItem *view_item_but = (const uiButViewItem *)but;
-  return view_item_but->view_item->is_active();
+  return UI_view_item_is_active(view_item_but->view_item);
 }
 
 uiBut *ui_view_item_find_active(const ARegion *region)

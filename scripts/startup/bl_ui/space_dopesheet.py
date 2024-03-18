@@ -179,7 +179,8 @@ class DOPESHEET_PT_filters(DopesheetFilterPopoverBase, Panel):
         if ds_mode in {'DOPESHEET', 'ACTION', 'GPENCIL'}:
             layout.separator()
             generic_filters_only = ds_mode != 'DOPESHEET'
-            DopesheetFilterPopoverBase.draw_search_filters(context, layout, generic_filters_only=generic_filters_only)
+            DopesheetFilterPopoverBase.draw_search_filters(context, layout,
+                                                           generic_filters_only=generic_filters_only)
 
         if ds_mode == 'DOPESHEET':
             layout.separator()
