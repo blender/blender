@@ -1374,6 +1374,8 @@ typedef struct KernelSpotLight {
   float half_cot_half_spot_angle;
   float spot_smooth;
   int is_sphere;
+  /* For non-uniform object scaling, the actual spread might be different. */
+  float cos_half_larger_spread;
 } KernelSpotLight;
 
 /* PointLight is SpotLight with only radius and invarea being used. */

@@ -1346,13 +1346,22 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       klights[light_index].area.normalize_spread = normalize_spread;
     }
     if (light->light_type == LIGHT_SPOT) {
-      float cos_half_spot_angle = cosf(light->spot_angle * 0.5f);
-      float spot_smooth = 1.0f / ((1.0f - cos_half_spot_angle) * light->spot_smooth);
+      const float cos_half_spot_angle = cosf(light->spot_angle * 0.5f);
+      const float spot_smooth = 1.0f / ((1.0f - cos_half_spot_angle) * light->spot_smooth);
+      const float tan_half_spot_angle = tanf(light->spot_angle * 0.5f);
+
+      const float len_w_sq = len_squared(light->get_dir());
+      const float len_u_sq = len_squared(light->get_axisu());
+      const float len_v_sq = len_squared(light->get_axisv());
+      const float tan_sq = sqr(tan_half_spot_angle);
 
       klights[light_index].spot.dir = safe_normalize(light->get_dir());
       klights[light_index].spot.cos_half_spot_angle = cos_half_spot_angle;
-      klights[light_index].spot.half_cot_half_spot_angle = 0.5f / tanf(light->spot_angle * 0.5f);
+      klights[light_index].spot.half_cot_half_spot_angle = 0.5f / tan_half_spot_angle;
       klights[light_index].spot.spot_smooth = spot_smooth;
+      /* Choose the angle which spans a larger cone. */
+      klights[light_index].spot.cos_half_larger_spread = inversesqrtf(
+          1.0f + tan_sq * fmaxf(len_u_sq, len_v_sq) / len_w_sq);
     }
 
     klights[light_index].shader_id = shader_id;
