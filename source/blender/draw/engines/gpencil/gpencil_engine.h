@@ -13,6 +13,9 @@
 #include "DRW_render.hh"
 
 #include "BLI_bitmap.h"
+#include "BLI_bounds.hh"
+
+#include "BKE_grease_pencil.hh"
 
 #include "GPU_batch.h"
 
@@ -26,7 +29,6 @@ extern "C" {
 #include "gpencil_shader_shared.h"
 
 extern DrawEngineType draw_engine_gpencil_type;
-extern DrawEngineType draw_engine_gpencil_next_type;
 
 struct GPENCIL_Data;
 struct GPENCIL_StorageList;
@@ -322,7 +324,10 @@ typedef struct GPENCIL_PrivateData {
 /* geometry batch cache functions */
 struct GpencilBatchCache *gpencil_batch_cache_get(struct Object *ob, int cfra);
 
-GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob);
+GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
+                                          Object *ob,
+                                          bool is_stroke_order_3d,
+                                          std::optional<blender::Bounds<float3>> bounds);
 void gpencil_object_cache_sort(GPENCIL_PrivateData *pd);
 
 GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
@@ -332,12 +337,20 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
                                         GPENCIL_tObject *tgp_ob);
 GPENCIL_tLayer *gpencil_layer_cache_get(GPENCIL_tObject *tgp_ob, int number);
 
+GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
+                                              const Object *ob,
+                                              const blender::bke::greasepencil::Layer &layer,
+                                              std::optional<int> onion_id,
+                                              GPENCIL_tObject *tgp_ob);
 /**
  * Creates a linked list of material pool containing all materials assigned for a given object.
  * We merge the material pools together if object does not contain a huge amount of materials.
  * Also return an offset to the first material of the object in the UBO.
  */
-GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Object *ob, int *ofs);
+GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd,
+                                                   Object *ob,
+                                                   int *ofs,
+                                                   bool is_vertex_mode);
 void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
                                     int mat_id,
                                     struct GPUTexture **r_tex_stroke,
@@ -353,7 +366,10 @@ GPENCIL_LightPool *gpencil_light_pool_add(GPENCIL_PrivateData *pd);
 GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_PrivateData *pd, Object *ob);
 
 /* effects */
-void gpencil_vfx_cache_populate(GPENCIL_Data *vedata, Object *ob, GPENCIL_tObject *tgp_ob);
+void gpencil_vfx_cache_populate(GPENCIL_Data *vedata,
+                                Object *ob,
+                                GPENCIL_tObject *tgp_ob,
+                                const bool is_edit_mode);
 
 /* Shaders */
 struct GPUShader *GPENCIL_shader_antialiasing(int stage);

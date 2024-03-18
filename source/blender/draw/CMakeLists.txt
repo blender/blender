@@ -182,10 +182,8 @@ set(SRC
   engines/gpencil/gpencil_antialiasing.cc
   engines/gpencil/gpencil_cache_utils.cc
   engines/gpencil/gpencil_draw_data.cc
-  engines/gpencil/gpencil_engine.cc
   engines/gpencil/gpencil_engine_c.cc
   engines/gpencil/gpencil_render.cc
-  engines/gpencil/gpencil_shader.cc
   engines/gpencil/gpencil_shader_c.cc
   engines/gpencil/gpencil_shader_fx.cc
   engines/select/select_draw_utils.cc
@@ -306,14 +304,7 @@ set(SRC
   engines/eevee_next/eevee_volume.hh
   engines/eevee_next/eevee_world.hh
   engines/external/external_engine.h
-  engines/gpencil/gpencil_antialiasing.hh
   engines/gpencil/gpencil_engine.h
-  engines/gpencil/gpencil_layer.hh
-  engines/gpencil/gpencil_light.hh
-  engines/gpencil/gpencil_material.hh
-  engines/gpencil/gpencil_object.hh
-  engines/gpencil/gpencil_shader.hh
-  engines/gpencil/gpencil_vfx.hh
   engines/image/image_batches.hh
   engines/image/image_buffer_cache.hh
   engines/image/image_drawing_mode.hh
@@ -717,9 +708,7 @@ set(GLSL_SRC
   intern/draw_shader_shared.h
 
   engines/gpencil/shaders/gpencil_frag.glsl
-  engines/gpencil/shaders/grease_pencil_frag.glsl
   engines/gpencil/shaders/gpencil_vert.glsl
-  engines/gpencil/shaders/grease_pencil_vert.glsl
   engines/gpencil/shaders/gpencil_antialiasing_frag.glsl
   engines/gpencil/shaders/gpencil_antialiasing_vert.glsl
   engines/gpencil/shaders/gpencil_common_lib.glsl
@@ -727,7 +716,6 @@ set(GLSL_SRC
   engines/gpencil/shaders/gpencil_mask_invert_frag.glsl
   engines/gpencil/shaders/gpencil_depth_merge_frag.glsl
   engines/gpencil/shaders/gpencil_depth_merge_vert.glsl
-  engines/gpencil/shaders/grease_pencil_depth_merge_vert.glsl
   engines/gpencil/shaders/gpencil_vfx_frag.glsl
 
   engines/gpencil/gpencil_defines.h

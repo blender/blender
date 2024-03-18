@@ -1271,8 +1271,7 @@ static void drw_engines_enable(ViewLayer * /*view_layer*/,
 
   drw_engines_enable_from_engine(engine_type, drawtype);
   if (gpencil_engine_needed && ((drawtype >= OB_SOLID) || !use_xray)) {
-    use_drw_engine(U.experimental.use_grease_pencil_version3 ? &draw_engine_gpencil_next_type :
-                                                               &draw_engine_gpencil_type);
+    use_drw_engine(&draw_engine_gpencil_type);
   }
 
   if (is_compositor_enabled()) {
@@ -1302,16 +1301,12 @@ static void drw_engines_data_validate()
  * For slow exact check use `DRW_render_check_grease_pencil` */
 static bool drw_gpencil_engine_needed(Depsgraph *depsgraph, View3D *v3d)
 {
-  if (U.experimental.use_grease_pencil_version3) {
-    const bool exclude_gpencil_rendering = v3d ? (v3d->object_type_exclude_viewport &
-                                                  (1 << OB_GREASE_PENCIL)) != 0 :
-                                                 false;
-    return (!exclude_gpencil_rendering) && DEG_id_type_any_exists(depsgraph, ID_GP);
-  }
-  const bool exclude_gpencil_rendering = v3d ? (v3d->object_type_exclude_viewport &
-                                                (1 << OB_GPENCIL_LEGACY)) != 0 :
-                                               false;
-  return (!exclude_gpencil_rendering) && DEG_id_type_any_exists(depsgraph, ID_GD_LEGACY);
+  const bool exclude_gpencil_rendering =
+      v3d ? ((v3d->object_type_exclude_viewport & (1 << OB_GPENCIL_LEGACY)) != 0) ||
+                ((v3d->object_type_exclude_viewport & (1 << OB_GREASE_PENCIL)) != 0) :
+            false;
+  return (!exclude_gpencil_rendering) && (DEG_id_type_any_exists(depsgraph, ID_GD_LEGACY) ||
+                                          DEG_id_type_any_exists(depsgraph, ID_GP));
 }
 
 /* -------------------------------------------------------------------- */
@@ -1870,9 +1865,7 @@ bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
   deg_iter_settings.depsgraph = depsgraph;
   deg_iter_settings.flags = DEG_OBJECT_ITER_FOR_RENDER_ENGINE_FLAGS;
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, ob) {
-    if (ob->type == OB_GPENCIL_LEGACY ||
-        (U.experimental.use_grease_pencil_version3 && ob->type == OB_GREASE_PENCIL))
-    {
+    if (ob->type == OB_GPENCIL_LEGACY || ob->type == OB_GREASE_PENCIL) {
       if (DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF) {
         return true;
       }
@@ -1887,9 +1880,7 @@ static void DRW_render_gpencil_to_image(RenderEngine *engine,
                                         RenderLayer *render_layer,
                                         const rcti *rect)
 {
-  DrawEngineType *draw_engine = U.experimental.use_grease_pencil_version3 ?
-                                    &draw_engine_gpencil_next_type :
-                                    &draw_engine_gpencil_type;
+  DrawEngineType *draw_engine = &draw_engine_gpencil_type;
   if (draw_engine->render_to_image) {
     ViewportEngineData *gpdata = DRW_view_data_engine_data_get_ensure(DST.view_data_active,
                                                                       draw_engine);
@@ -2486,8 +2477,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
   else if (!draw_surface) {
     /* grease pencil selection */
     if (drw_gpencil_engine_needed(depsgraph, v3d)) {
-      use_drw_engine(U.experimental.use_grease_pencil_version3 ? &draw_engine_gpencil_next_type :
-                                                                 &draw_engine_gpencil_type);
+      use_drw_engine(&draw_engine_gpencil_type);
     }
 
     drw_engines_enable_overlays();
@@ -2497,8 +2487,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
     drw_engines_enable_basic();
     /* grease pencil selection */
     if (drw_gpencil_engine_needed(depsgraph, v3d)) {
-      use_drw_engine(U.experimental.use_grease_pencil_version3 ? &draw_engine_gpencil_next_type :
-                                                                 &draw_engine_gpencil_type);
+      use_drw_engine(&draw_engine_gpencil_type);
     }
 
     drw_engines_enable_overlays();
@@ -2671,8 +2660,7 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
   drw_manager_init(&DST, viewport, nullptr);
 
   if (use_gpencil) {
-    use_drw_engine(U.experimental.use_grease_pencil_version3 ? &draw_engine_gpencil_next_type :
-                                                               &draw_engine_gpencil_type);
+    use_drw_engine(&draw_engine_gpencil_type);
   }
   if (use_basic) {
     drw_engines_enable_basic();
@@ -3062,7 +3050,6 @@ void DRW_engines_register()
   RE_engines_register(&DRW_engine_viewport_workbench_type);
 
   DRW_engine_register(&draw_engine_gpencil_type);
-  DRW_engine_register(&draw_engine_gpencil_next_type);
 
   DRW_engine_register(&draw_engine_overlay_type);
   DRW_engine_register(&draw_engine_overlay_next_type);
