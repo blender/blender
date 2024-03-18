@@ -106,7 +106,7 @@ class OptiXDevice : public CUDADevice {
 
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
 
-  void release_optix_bvh(BVH *bvh) override;
+  void release_bvh(BVH *bvh) override;
   void free_bvh_memory_delayed();
 
   void const_copy_to(const char *name, void *host, size_t size) override;
