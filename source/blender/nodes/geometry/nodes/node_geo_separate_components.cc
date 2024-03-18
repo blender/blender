@@ -11,14 +11,22 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Geometry");
   b.add_output<decl::Geometry>("Mesh").propagate_all();
   b.add_output<decl::Geometry>("Curve").propagate_all();
-  if (U.experimental.use_grease_pencil_version3) {
-    b.add_output<decl::Geometry>("Grease Pencil").propagate_all();
-  }
+  b.add_output<decl::Geometry>("Grease Pencil").propagate_all();
   b.add_output<decl::Geometry>("Point Cloud").propagate_all();
   b.add_output<decl::Geometry>("Volume")
       .translation_context(BLT_I18NCONTEXT_ID_ID)
       .propagate_all();
   b.add_output<decl::Geometry>("Instances").propagate_all();
+}
+
+static void node_update(bNodeTree *ntree, bNode *node)
+{
+  LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+    if (STREQ(socket->identifier, "Grease Pencil")) {
+      bke::nodeSetSocketAvailability(ntree, socket, U.experimental.use_grease_pencil_version3);
+      break;
+    }
+  }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -69,6 +77,7 @@ static void node_register()
       &ntype, GEO_NODE_SEPARATE_COMPONENTS, "Separate Components", NODE_CLASS_GEOMETRY);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
+  ntype.updatefunc = node_update;
   nodeRegisterType(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
