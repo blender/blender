@@ -604,11 +604,16 @@ static float dvar_eval_transChan(const AnimationEvalContext * /*anim_eval_contex
     return 0.0f;
   }
 
-  /* Target should be valid now. */
-  dtar->flag &= ~DTAR_FLAG_INVALID;
-
   /* Try to get pose-channel. */
   pchan = BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
+  if (dtar->pchan_name[0] != '\0' && !pchan) {
+    driver->flag |= DRIVER_FLAG_INVALID;
+    dtar->flag |= DTAR_FLAG_INVALID;
+    return 0.0f;
+  }
+
+  /* Target should be valid now. */
+  dtar->flag &= ~DTAR_FLAG_INVALID;
 
   /* Check if object or bone, and get transform matrix accordingly:
    * - "use_eulers" code is used to prevent the problems associated with non-uniqueness
