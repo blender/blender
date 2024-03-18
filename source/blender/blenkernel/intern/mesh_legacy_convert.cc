@@ -2418,6 +2418,12 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
       if (ELEM(md->type, eModifierType_WeightedNormal, eModifierType_NormalEdit)) {
         has_custom_normals = true;
       }
+      if (md->type == eModifierType_Bevel) {
+        BevelModifierData *bmd = reinterpret_cast<BevelModifierData *>(md);
+        if (bmd->flags & MOD_BEVEL_HARDEN_NORMALS) {
+          has_custom_normals = true;
+        }
+      }
       if (md->type == eModifierType_WeightedNormal) {
         WeightedNormalModifierData *nmd = reinterpret_cast<WeightedNormalModifierData *>(md);
         if ((nmd->flag & MOD_WEIGHTEDNORMAL_KEEP_SHARP) != 0) {
@@ -2430,13 +2436,11 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
     /* Some modifiers always generate custom normals which disabled sharp edge tagging, making
      * adding a modifier at the end unnecessary. Conceptually this is similar to checking if the
      * evaluated mesh had custom normals. */
-    ModifierData *last_md = static_cast<ModifierData *>(object->modifiers.last);
-    if (last_md) {
-      if (ELEM(last_md->type, eModifierType_WeightedNormal, eModifierType_NormalEdit)) {
-        continue;
-      }
+    if (has_custom_normals) {
+      continue;
     }
 
+    ModifierData *last_md = static_cast<ModifierData *>(object->modifiers.last);
     ModifierData *new_md = create_auto_smooth_modifier(*object, add_node_group, angle);
     if (last_md && last_md->type == eModifierType_Subsurf && has_custom_normals &&
         (reinterpret_cast<SubsurfModifierData *>(last_md)->flags &
