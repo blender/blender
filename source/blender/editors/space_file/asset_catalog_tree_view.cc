@@ -191,7 +191,7 @@ AssetCatalogTreeView::AssetCatalogTreeView(asset_system::AssetLibrary *library,
 void AssetCatalogTreeView::build_tree()
 {
   AssetCatalogTreeViewAllItem &all_item = add_all_item();
-  all_item.set_collapsed(false);
+  all_item.uncollapse_by_default();
 
   if (catalog_tree_) {
     /* Pass the "All" item on as parent of the actual catalog items. */

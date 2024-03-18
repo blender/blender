@@ -66,8 +66,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
 
     catalog_tree_.foreach_root_item([this](asset_system::AssetCatalogTreeItem &catalog_item) {
       Item &item = build_catalog_items_recursive(*this, catalog_item);
-      /* Uncollapse root items by default (user edits will override this just fine). */
-      item.set_collapsed(false);
+      item.uncollapse_by_default();
     });
   }
 

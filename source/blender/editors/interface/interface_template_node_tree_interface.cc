@@ -266,7 +266,7 @@ class NodeTreeInterfaceView : public AbstractTreeView {
               item);
           NodeSocketViewItem &socket_item = parent_item.add_tree_item<NodeSocketViewItem>(
               nodetree_, interface_, *socket);
-          socket_item.set_collapsed(false);
+          socket_item.uncollapse_by_default();
           break;
         }
         case NODE_INTERFACE_PANEL: {
@@ -274,7 +274,7 @@ class NodeTreeInterfaceView : public AbstractTreeView {
               item);
           NodePanelViewItem &panel_item = parent_item.add_tree_item<NodePanelViewItem>(
               nodetree_, interface_, *panel);
-          panel_item.set_collapsed(false);
+          panel_item.uncollapse_by_default();
           add_items_for_panel_recursive(*panel, panel_item);
           break;
         }
