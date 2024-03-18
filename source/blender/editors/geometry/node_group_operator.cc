@@ -403,6 +403,12 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
   }
+  if (node_tree->interface_outputs().is_empty() ||
+      !STREQ(node_tree->interface_outputs()[0]->socket_type, "NodeSocketGeometry"))
+  {
+    BKE_report(op->reports, RPT_ERROR, "Node group's first output must be a geometry");
+    return OPERATOR_CANCELLED;
+  }
 
   IDProperty *properties = replace_inputs_evaluated_data_blocks(*op->properties, *depsgraph);
   BLI_SCOPED_DEFER([&]() { IDP_FreeProperty_ex(properties, false); });
