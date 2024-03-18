@@ -216,7 +216,7 @@ void ShadingView::update_view()
    */
   int2 scaling_factor = int2(inst_.film.scaling_factor_get());
   int2 display_extent = inst_.film.display_extent_get();
-  int2 overscan = inst_.film.get_data().render_offset - inst_.film.get_data().offset;
+  int overscan = inst_.film.get_data().overscan;
   int2 rescaled_render_extent = (extent_ - 2 * overscan) * scaling_factor;
 
   if (rescaled_render_extent != display_extent) {
