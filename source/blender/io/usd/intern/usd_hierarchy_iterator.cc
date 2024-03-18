@@ -54,7 +54,12 @@ static short get_materials_count_from_data(const Object* object)
   return len_p ? *len_p : 0;
 }
 
-
+static bool has_unicode_chars(const char* name)
+{
+  size_t length_in_bytes = 0;
+  const size_t length_in_characters = BLI_strlen_utf8_ex(name, &length_in_bytes);
+  return length_in_bytes != length_in_characters;
+}
 
 namespace blender::io::usd {
 
@@ -68,6 +73,14 @@ USDHierarchyIterator::USDHierarchyIterator(Main *bmain,
   deg_iter_settings.depsgraph = depsgraph_;
   deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+
+  /* First, cache existing names to help avoid name collisions
+   * when computing USD prim names. */
+  DEG_OBJECT_ITER_BEGIN(&deg_iter_settings, object) {
+    cache_names_for_object(object);
+  }
+  DEG_OBJECT_ITER_END;
+
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
     process_names_for_object(object);
   }
@@ -319,20 +332,7 @@ void USDHierarchyIterator::add_usd_skel_export_mapping(const Object *obj, const 
 
 bool USDHierarchyIterator::id_needs_display_name(const ID *id) const
 {
-  size_t length_in_bytes = 0;
-  const std::string id_name(id->name + 2);
-  const size_t length_in_characters = BLI_strlen_utf8_ex(id_name.c_str(), &length_in_bytes);
-  if (length_in_bytes != length_in_characters) {
-    /* Length is shorter likely due to unicode characters. */
-    return true;
-  }
-
-  if (id_name != pxr::TfMakeValidIdentifier(id_name)) {
-    /* Something invalid was converted into an underscore. */
-    return true;
-  }
-
-  return false;
+  return has_unicode_chars(id->name + 2);
 }
 
 bool USDHierarchyIterator::object_needs_display_name(const Object *object) const
@@ -374,6 +374,27 @@ std::string USDHierarchyIterator::find_name(const ID *id) const
   return prim_names_map_.lookup_default(id->name, std::string());
 }
 
+void USDHierarchyIterator::cache_names_for_object(const Object* object)
+{
+  const char *name = object->id.name + 2;
+  if (!has_unicode_chars(name)) {
+    prim_names_.add(make_valid_name(name));
+  }
+  cache_material_names(const_cast<const Material**>(object->mat), object->totcol);
+
+  if (object->data) {
+    ID* id = static_cast<ID*>(object->data);
+    name = id->name + 2;
+    if (!has_unicode_chars(name)) {
+      prim_names_.add(make_valid_name(name));
+    }
+
+    const Material** data_mats = get_materials_from_data(object);
+    size_t data_count = get_materials_count_from_data(object);
+    cache_material_names(data_mats, data_count);
+  }
+}
+
 void USDHierarchyIterator::process_names_for_object(const Object *object)
 {
   const short id_code = (object->data ? GS(reinterpret_cast<const ID *>(object->data)->name) :
@@ -399,6 +420,20 @@ void USDHierarchyIterator::process_names_for_object(const Object *object)
     const Material **data_mats = get_materials_from_data(object);
     size_t data_count = get_materials_count_from_data(object);
     process_materials(data_mats, data_count);
+  }
+}
+
+void USDHierarchyIterator::cache_material_names(const Material** materials, size_t count)
+{
+  for (int m = 0; m < count; m++) {
+    const Material* mat = materials[m];
+    if (!mat) {
+      continue;
+    }
+    const char* name = mat->id.name + 2;
+    if (!has_unicode_chars(name)) {
+      prim_names_.add(make_valid_name(name));
+    }
   }
 }
 
