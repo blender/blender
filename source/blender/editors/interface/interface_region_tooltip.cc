@@ -90,8 +90,7 @@ struct uiTooltipField {
     uint lines;
   } geom;
   uiTooltipFormat format;
-  ImBuf *image;
-  short image_size[2];
+  std::optional<uiTooltipImage> image;
 };
 
 struct uiTooltipData {
@@ -124,13 +123,12 @@ void UI_tooltip_text_field_add(uiTooltipData *data,
   data->fields.append(std::move(field));
 }
 
-void UI_tooltip_image_field_add(uiTooltipData *data, const ImBuf *image, const short image_size[2])
+void UI_tooltip_image_field_add(uiTooltipData *data, const uiTooltipImage &image_data)
 {
   uiTooltipField field{};
   field.format.style = UI_TIP_STYLE_IMAGE;
-  field.image = IMB_dupImBuf(image);
-  field.image_size[0] = std::min(image_size[0], short(UI_TIP_MAXIMAGEWIDTH * UI_SCALE_FAC));
-  field.image_size[1] = std::min(image_size[1], short(UI_TIP_MAXIMAGEHEIGHT * UI_SCALE_FAC));
+  field.image = image_data;
+  field.image->ibuf = IMB_dupImBuf(image_data.ibuf);
   data->fields.append(std::move(field));
 }
 
@@ -255,55 +253,69 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
       UI_fontstyle_draw(
           &fstyle_mono, &bbox, field->text.c_str(), field->text.size(), drawcol, &fs_params);
     }
-    else if (field->format.style == UI_TIP_STYLE_IMAGE) {
+    else if (field->format.style == UI_TIP_STYLE_IMAGE && field->image.has_value()) {
 
-      bbox.ymax -= field->image_size[1];
+      bbox.ymax -= field->image->height;
 
-      /* Draw checker pattern behind the image in case is has transparency. */
-      imm_draw_box_checker_2d(float(bbox.xmin),
-                              float(bbox.ymax),
-                              float(bbox.xmin + field->image_size[0]),
-                              float(bbox.ymax + field->image_size[1]));
+      if (field->image->background == uiTooltipImageBackground::Checkerboard_Themed) {
+        imm_draw_box_checker_2d(float(bbox.xmin),
+                                float(bbox.ymax),
+                                float(bbox.xmin + field->image->width),
+                                float(bbox.ymax + field->image->height));
+      }
+      else if (field->image->background == uiTooltipImageBackground::Checkerboard_Fixed) {
+        const float checker_dark = UI_ALPHA_CHECKER_DARK / 255.0f;
+        const float checker_light = UI_ALPHA_CHECKER_LIGHT / 255.0f;
+        const float color1[4] = {checker_dark, checker_dark, checker_dark, 1.0f};
+        const float color2[4] = {checker_light, checker_light, checker_light, 1.0f};
+        imm_draw_box_checker_2d_ex(float(bbox.xmin + U.pixelsize),
+                                   float(bbox.ymax + U.pixelsize),
+                                   float(bbox.xmin + field->image->width),
+                                   float(bbox.ymax + field->image->height),
+                                   color1,
+                                   color2,
+                                   8);
+      }
 
-      GPU_blend(GPU_BLEND_ALPHA_PREMULT);
+      GPU_blend((field->image->premultiplied) ? GPU_BLEND_ALPHA_PREMULT : GPU_BLEND_ALPHA);
 
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
       immDrawPixelsTexScaledFullSize(&state,
                                      bbox.xmin,
                                      bbox.ymax,
-                                     field->image->x,
-                                     field->image->y,
+                                     field->image->ibuf->x,
+                                     field->image->ibuf->y,
                                      GPU_RGBA8,
                                      true,
-                                     field->image->byte_buffer.data,
+                                     field->image->ibuf->byte_buffer.data,
                                      1.0f,
                                      1.0f,
-                                     float(field->image_size[0]) / float(field->image->x),
-                                     float(field->image_size[1]) / float(field->image->y),
-                                     nullptr);
-      GPU_blend(GPU_BLEND_ALPHA);
+                                     float(field->image->width) / float(field->image->ibuf->x),
+                                     float(field->image->height) / float(field->image->ibuf->y),
+                                     (field->image->text_color) ? main_color : nullptr);
 
-      /* Draw border around it. */
-      GPUVertFormat *format = immVertexFormat();
-      uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-      float border_color[4] = {1.0f, 1.0f, 1.0f, 0.15f};
-      float bgcolor[4];
-      UI_GetThemeColor4fv(TH_BACK, bgcolor);
-      if (rgb_to_grayscale(bgcolor) > 0.5f) {
-        border_color[0] = 0.0f;
-        border_color[1] = 0.0f;
-        border_color[2] = 0.0f;
+      if (field->image->border) {
+        GPU_blend(GPU_BLEND_ALPHA);
+        GPUVertFormat *format = immVertexFormat();
+        uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+        float border_color[4] = {1.0f, 1.0f, 1.0f, 0.15f};
+        float bgcolor[4];
+        UI_GetThemeColor4fv(TH_BACK, bgcolor);
+        if (rgb_to_grayscale(bgcolor) > 0.5f) {
+          border_color[0] = 0.0f;
+          border_color[1] = 0.0f;
+          border_color[2] = 0.0f;
+        }
+        immUniformColor4fv(border_color);
+        imm_draw_box_wire_2d(pos,
+                             float(bbox.xmin),
+                             float(bbox.ymax),
+                             float(bbox.xmin + field->image->width),
+                             float(bbox.ymax + field->image->height));
+        immUnbindProgram();
+        GPU_blend(GPU_BLEND_NONE);
       }
-      immUniformColor4fv(border_color);
-      imm_draw_box_wire_2d(pos,
-                           float(bbox.xmin),
-                           float(bbox.ymax),
-                           float(bbox.xmin + field->image_size[0]),
-                           float(bbox.ymax + field->image_size[1]));
-      immUnbindProgram();
-
-      GPU_blend(GPU_BLEND_NONE);
     }
     else if (field->format.style == UI_TIP_STYLE_SPACER) {
       bbox.ymax -= data->lineh * UI_TIP_SPACER;
@@ -332,8 +344,8 @@ static void ui_tooltip_region_free_cb(ARegion *region)
 {
   uiTooltipData *data = static_cast<uiTooltipData *>(region->regiondata);
   for (uiTooltipField &field : data->fields) {
-    if (field.image) {
-      IMB_freeImBuf(field.image);
+    if (field.image && field.image->ibuf) {
+      IMB_freeImBuf(field.image->ibuf);
     }
   }
   MEM_delete(data);
@@ -1212,9 +1224,9 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
       fonth += h * UI_TIP_SPACER;
     }
 
-    if (field->format.style == UI_TIP_STYLE_IMAGE) {
-      fonth += field->image_size[1];
-      w = max_ii(w, field->image_size[0]);
+    if (field->format.style == UI_TIP_STYLE_IMAGE && field->image) {
+      fonth += field->image->height;
+      w = max_ii(w, field->image->width);
     }
 
     fontw = max_ii(fontw, w);
