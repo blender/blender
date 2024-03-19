@@ -27,6 +27,7 @@
 #include "BKE_object_types.hh"
 
 #include "BLI_bounds.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_map.hh"
 #include "BLI_math_euler_types.hh"
 #include "BLI_math_geom.h"
@@ -319,8 +320,6 @@ Span<uint3> Drawing::triangles() const
 {
   const char *func = __func__;
   this->runtime->triangles_cache.ensure([&](Vector<uint3> &r_data) {
-    MemArena *pf_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, func);
-
     const CurvesGeometry &curves = this->strokes();
     const Span<float3> positions = curves.positions();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
@@ -335,37 +334,50 @@ Span<uint3> Drawing::triangles() const
       }
     }
 
+    struct LocalMemArena {
+      MemArena *pf_arena = nullptr;
+      LocalMemArena() : pf_arena(BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, func)) {}
+
+      ~LocalMemArena()
+      {
+        if (pf_arena != nullptr) {
+          BLI_memarena_free(pf_arena);
+        }
+      }
+    };
+    threading::EnumerableThreadSpecific<LocalMemArena> all_local_mem_arenas;
+
     r_data.resize(total_triangles);
+    MutableSpan<uint3> triangles = r_data.as_mutable_span();
+    threading::parallel_for(curves.curves_range(), 32, [&](const IndexRange range) {
+      MemArena *pf_arena = all_local_mem_arenas.local().pf_arena;
+      for (const int curve_i : range) {
+        const IndexRange points = points_by_curve[curve_i];
+        if (points.size() < 3) {
+          continue;
+        }
 
-    /* TODO: use threading. */
-    for (const int curve_i : curves.curves_range()) {
-      const IndexRange points = points_by_curve[curve_i];
+        const int num_triangles = points.size() - 2;
+        MutableSpan<uint3> r_tris = triangles.slice(tris_offests[curve_i], num_triangles);
 
-      if (points.size() < 3) {
-        continue;
+        float(*projverts)[2] = static_cast<float(*)[2]>(
+            BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(points.size())));
+
+        float3x3 axis_mat;
+        axis_dominant_v3_to_m3(axis_mat.ptr(), float3(0.0f, -1.0f, 0.0f));
+
+        for (const int i : IndexRange(points.size())) {
+          mul_v2_m3v3(projverts[i], axis_mat.ptr(), positions[points[i]]);
+        }
+
+        BLI_polyfill_calc_arena(projverts,
+                                points.size(),
+                                0,
+                                reinterpret_cast<uint32_t(*)[3]>(r_tris.data()),
+                                pf_arena);
+        BLI_memarena_clear(pf_arena);
       }
-
-      const int num_triangles = points.size() - 2;
-      MutableSpan<uint3> r_tris = r_data.as_mutable_span().slice(tris_offests[curve_i],
-                                                                 num_triangles);
-
-      float(*projverts)[2] = static_cast<float(*)[2]>(
-          BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(points.size())));
-
-      /* TODO: calculate axis_mat properly. */
-      float3x3 axis_mat;
-      axis_dominant_v3_to_m3(axis_mat.ptr(), float3(0.0f, -1.0f, 0.0f));
-
-      for (const int i : IndexRange(points.size())) {
-        mul_v2_m3v3(projverts[i], axis_mat.ptr(), positions[points[i]]);
-      }
-
-      BLI_polyfill_calc_arena(
-          projverts, points.size(), 0, reinterpret_cast<uint32_t(*)[3]>(r_tris.data()), pf_arena);
-      BLI_memarena_clear(pf_arena);
-    }
-
-    BLI_memarena_free(pf_arena);
+    });
   });
 
   return this->runtime->triangles_cache.data().as_span();
