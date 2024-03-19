@@ -746,7 +746,7 @@ void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot)
 
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
-  gesture::operator_properties(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Lasso);
 
   sculpt_trim_gesture_operator_properties(ot);
 }
@@ -767,7 +767,7 @@ void SCULPT_OT_trim_box_gesture(wmOperatorType *ot)
 
   /* Properties. */
   WM_operator_properties_border(ot);
-  gesture::operator_properties(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Box);
 
   sculpt_trim_gesture_operator_properties(ot);
 }

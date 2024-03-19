@@ -149,7 +149,7 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 
   WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
-  gesture::operator_properties(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Line);
 }
 
 }  // namespace blender::ed::sculpt_paint::project

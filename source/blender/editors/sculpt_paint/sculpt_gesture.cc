@@ -36,7 +36,7 @@
 
 namespace blender::ed::sculpt_paint::gesture {
 
-void operator_properties(wmOperatorType *ot)
+void operator_properties(wmOperatorType *ot, ShapeType shapeType)
 {
   RNA_def_boolean(ot->srna,
                   "use_front_faces_only",
@@ -44,12 +44,14 @@ void operator_properties(wmOperatorType *ot)
                   "Front Faces Only",
                   "Affect only faces facing towards the view");
 
-  RNA_def_boolean(ot->srna,
-                  "use_limit_to_segment",
-                  false,
-                  "Limit to Segment",
-                  "Apply the gesture action only to the area that is contained within the "
-                  "segment without extending its effect to the entire line");
+  if (shapeType == ShapeType::Line) {
+    RNA_def_boolean(ot->srna,
+                    "use_limit_to_segment",
+                    false,
+                    "Limit to Segment",
+                    "Apply the gesture action only to the area that is contained within the "
+                    "segment without extending its effect to the entire line");
+  }
 }
 
 static void init_common(bContext *C, wmOperator *op, GestureData &gesture_data)
@@ -60,7 +62,6 @@ static void init_common(bContext *C, wmOperator *op, GestureData &gesture_data)
 
   /* Operator properties. */
   gesture_data.front_faces_only = RNA_boolean_get(op->ptr, "use_front_faces_only");
-  gesture_data.line.use_side_planes = RNA_boolean_get(op->ptr, "use_limit_to_segment");
   gesture_data.selection_type = SelectionType::Inside;
 
   /* SculptSession */
@@ -219,6 +220,7 @@ std::unique_ptr<GestureData> init_from_line(bContext *C, wmOperator *op)
 {
   std::unique_ptr<GestureData> gesture_data = std::make_unique<GestureData>();
   gesture_data->shape_type = ShapeType::Line;
+  gesture_data->line.use_side_planes = RNA_boolean_get(op->ptr, "use_limit_to_segment");
 
   init_common(C, op, *gesture_data);
 
