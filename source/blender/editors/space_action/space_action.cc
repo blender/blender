@@ -283,14 +283,19 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   bAnimContext ac;
-  if (!ANIM_animdata_get_context(C, &ac)) {
+  const bool has_valid_animcontext = ANIM_animdata_get_context(C, &ac);
+
+  /* clear and setup matrix */
+  UI_ThemeClearColor(TH_BACK);
+
+  /* channel filter next to scrubbing area */
+  ED_time_scrub_channel_search_draw(C, region, ac.ads);
+
+  if (!has_valid_animcontext) {
     return;
   }
 
   View2D *v2d = &region->v2d;
-
-  /* clear and setup matrix */
-  UI_ThemeClearColor(TH_BACK);
 
   ListBase anim_data = {nullptr, nullptr};
   /* Build list of channels to draw. */
@@ -304,9 +309,6 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
 
   UI_view2d_view_ortho(v2d);
   draw_channel_names((bContext *)C, &ac, region, anim_data);
-
-  /* channel filter next to scrubbing area */
-  ED_time_scrub_channel_search_draw(C, region, ac.ads);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
