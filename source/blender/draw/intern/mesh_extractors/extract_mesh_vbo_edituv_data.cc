@@ -51,7 +51,7 @@ static void extract_edituv_data_init(const MeshRenderData &mr,
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   MeshExtract_EditUVData_Data *data = static_cast<MeshExtract_EditUVData_Data *>(tls_data);
-  extract_edituv_data_init_common(mr, vbo, data, mr.loop_len);
+  extract_edituv_data_init_common(mr, vbo, data, mr.corners_num);
 }
 
 static void extract_edituv_data_iter_face_bm(const MeshRenderData &mr,

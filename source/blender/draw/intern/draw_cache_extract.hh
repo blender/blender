@@ -222,7 +222,7 @@ struct SortedFaceData {
   /** The number of visible triangles assigned to each material. */
   Array<int> mat_tri_len;
   /* The total number of visible triangles (a sum of the values in #mat_tri_len). */
-  int visible_tri_len;
+  int visible_tris_num;
 };
 
 /**

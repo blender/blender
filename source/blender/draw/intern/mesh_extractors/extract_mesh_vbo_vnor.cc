@@ -27,10 +27,11 @@ static void extract_vnor_init(const MeshRenderData &mr,
     GPU_vertformat_attr_add(&format, "vnor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
   }
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.loop_len);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
-    MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(vbo)), mr.loop_len);
+    MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(vbo)),
+                         mr.corners_num);
     extract_vert_normals(mr, vbo_data);
   }
   else {

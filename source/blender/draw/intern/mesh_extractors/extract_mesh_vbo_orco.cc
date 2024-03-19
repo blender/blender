@@ -35,7 +35,7 @@ static void extract_orco_init(const MeshRenderData &mr,
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.loop_len);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
 
   CustomData *cd_vdata = &mr.mesh->vert_data;
 

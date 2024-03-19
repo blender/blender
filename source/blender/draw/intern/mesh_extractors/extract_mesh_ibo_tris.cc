@@ -33,7 +33,7 @@ static void extract_tris_init(const MeshRenderData &mr,
                               void *tls_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
-  GPU_indexbuf_init(elb, GPU_PRIM_TRIS, mr.face_sorted->visible_tri_len, mr.loop_len);
+  GPU_indexbuf_init(elb, GPU_PRIM_TRIS, mr.face_sorted->visible_tris_num, mr.corners_num);
 }
 
 static void extract_tris_iter_face_bm(const MeshRenderData &mr,
@@ -97,7 +97,7 @@ static void extract_tris_finish(const MeshRenderData &mr,
    * is created before the surfaces-per-material. */
   if (mr.use_final_mesh && cache.tris_per_mat) {
     int mat_start = 0;
-    for (int i = 0; i < mr.mat_len; i++) {
+    for (int i = 0; i < mr.materials_num; i++) {
       /* These IBOs have not been queried yet but we create them just in case they are needed
        * later since they are not tracked by mesh_buffer_cache_create_requested(). */
       if (cache.tris_per_mat[i] == nullptr) {
@@ -166,7 +166,7 @@ static void extract_tris_single_mat_init(const MeshRenderData &mr,
                                          void *tls_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
-  GPU_indexbuf_init(elb, GPU_PRIM_TRIS, mr.tri_len, mr.loop_len);
+  GPU_indexbuf_init(elb, GPU_PRIM_TRIS, mr.corner_tris_num, mr.corners_num);
 }
 
 static void extract_tris_single_mat_iter_looptri_bm(const MeshRenderData & /*mr*/,
@@ -215,14 +215,14 @@ static void extract_tris_single_mat_finish(const MeshRenderData &mr,
   /* Create ibo sub-ranges. Always do this to avoid error when the standard surface batch
    * is created before the surfaces-per-material. */
   if (mr.use_final_mesh && cache.tris_per_mat) {
-    for (int i = 0; i < mr.mat_len; i++) {
+    for (int i = 0; i < mr.materials_num; i++) {
       /* These IBOs have not been queried yet but we create them just in case they are needed
        * later since they are not tracked by mesh_buffer_cache_create_requested(). */
       if (cache.tris_per_mat[i] == nullptr) {
         cache.tris_per_mat[i] = GPU_indexbuf_calloc();
       }
       /* Multiply by 3 because these are triangle indices. */
-      const int len = mr.tri_len * 3;
+      const int len = mr.corner_tris_num * 3;
       GPU_indexbuf_create_subrange_in_place(cache.tris_per_mat[i], ibo, 0, len);
     }
   }

@@ -254,7 +254,7 @@ static void extract_attr_init(
 {
   const DRW_AttributeRequest &request = cache.attr_used.requests[index];
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
-  init_vbo_for_attribute(mr, vbo, request, false, uint32_t(mr.loop_len));
+  init_vbo_for_attribute(mr, vbo, request, false, uint32_t(mr.corners_num));
   extract_attribute(mr, request, *vbo);
 }
 
@@ -357,9 +357,9 @@ static void extract_mesh_attr_viewer_init(const MeshRenderData &mr,
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.loop_len);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
   MutableSpan<ColorGeometry4f> attr{static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(vbo)),
-                                    mr.loop_len};
+                                    mr.corners_num};
 
   const StringRefNull attr_name = ".viewer";
   const bke::AttributeAccessor attributes = mr.mesh->attributes();

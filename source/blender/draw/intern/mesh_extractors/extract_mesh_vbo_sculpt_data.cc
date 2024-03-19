@@ -42,7 +42,7 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
   GPUVertFormat *format = get_sculpt_data_format();
 
   GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, mr.loop_len);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
 
   struct gpuSculptData {
     uint8_t face_set_color[4];
@@ -85,7 +85,7 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
     const VArray<int> face_set = *attributes.lookup<int>(".sculpt_face_set",
                                                          bke::AttrDomain::Face);
 
-    for (int face_index = 0; face_index < mr.face_len; face_index++) {
+    for (int face_index = 0; face_index < mr.faces_num; face_index++) {
       for (const int corner : mr.faces[face_index]) {
         float v_mask = 0.0f;
         if (mask) {

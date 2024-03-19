@@ -33,8 +33,8 @@ static void extract_lines_paint_mask_init(const MeshRenderData &mr,
                                           void *tls_data)
 {
   MeshExtract_LinePaintMask_Data *data = static_cast<MeshExtract_LinePaintMask_Data *>(tls_data);
-  data->select_map = BLI_BITMAP_NEW(mr.edge_len, __func__);
-  GPU_indexbuf_init(&data->elb, GPU_PRIM_LINES, mr.edge_len, mr.loop_len);
+  data->select_map = BLI_BITMAP_NEW(mr.edges_num, __func__);
+  GPU_indexbuf_init(&data->elb, GPU_PRIM_LINES, mr.edges_num, mr.corners_num);
 }
 
 static void extract_lines_paint_mask_iter_face_mesh(const MeshRenderData &mr,
@@ -93,7 +93,7 @@ static void extract_lines_paint_mask_init_subdiv(const DRWSubdivCache &subdiv_ca
                                                  void *tls_data)
 {
   MeshExtract_LinePaintMask_Data *data = static_cast<MeshExtract_LinePaintMask_Data *>(tls_data);
-  data->select_map = BLI_BITMAP_NEW(mr.edge_len, __func__);
+  data->select_map = BLI_BITMAP_NEW(mr.edges_num, __func__);
   GPU_indexbuf_init(&data->elb,
                     GPU_PRIM_LINES,
                     subdiv_cache.num_subdiv_edges,

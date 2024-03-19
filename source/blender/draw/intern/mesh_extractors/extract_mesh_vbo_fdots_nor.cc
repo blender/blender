@@ -31,7 +31,7 @@ static void extract_fdots_nor_init(const MeshRenderData &mr,
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.face_len);
+  GPU_vertbuf_data_alloc(vbo, mr.faces_num);
 }
 
 static void extract_fdots_nor_finish(const MeshRenderData &mr,
@@ -46,7 +46,7 @@ static void extract_fdots_nor_finish(const MeshRenderData &mr,
 
   /* Quicker than doing it for each loop. */
   if (mr.extract_type == MR_EXTRACT_BMESH) {
-    for (int f = 0; f < mr.face_len; f++) {
+    for (int f = 0; f < mr.faces_num; f++) {
       efa = BM_face_at_index(mr.bm, f);
       const bool is_face_hidden = BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
       if (is_face_hidden || (mr.p_origindex && mr.p_origindex[f] == ORIGINDEX_NONE)) {
@@ -63,7 +63,7 @@ static void extract_fdots_nor_finish(const MeshRenderData &mr,
     }
   }
   else {
-    for (int f = 0; f < mr.face_len; f++) {
+    for (int f = 0; f < mr.faces_num; f++) {
       efa = bm_original_face_get(mr, f);
       const bool is_face_hidden = efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
       if (is_face_hidden || (mr.p_origindex && mr.p_origindex[f] == ORIGINDEX_NONE)) {
@@ -111,7 +111,7 @@ static void extract_fdots_nor_hq_init(const MeshRenderData &mr,
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.face_len);
+  GPU_vertbuf_data_alloc(vbo, mr.faces_num);
 }
 
 static void extract_fdots_nor_hq_finish(const MeshRenderData &mr,
@@ -126,7 +126,7 @@ static void extract_fdots_nor_hq_finish(const MeshRenderData &mr,
 
   /* Quicker than doing it for each loop. */
   if (mr.extract_type == MR_EXTRACT_BMESH) {
-    for (int f = 0; f < mr.face_len; f++) {
+    for (int f = 0; f < mr.faces_num; f++) {
       efa = BM_face_at_index(mr.bm, f);
       const bool is_face_hidden = BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
       if (is_face_hidden || (mr.p_origindex && mr.p_origindex[f] == ORIGINDEX_NONE)) {
@@ -143,7 +143,7 @@ static void extract_fdots_nor_hq_finish(const MeshRenderData &mr,
     }
   }
   else {
-    for (int f = 0; f < mr.face_len; f++) {
+    for (int f = 0; f < mr.faces_num; f++) {
       efa = bm_original_face_get(mr, f);
       const bool is_face_hidden = efa && BM_elem_flag_test(efa, BM_ELEM_HIDDEN);
       if (is_face_hidden || (mr.p_origindex && mr.p_origindex[f] == ORIGINDEX_NONE)) {
