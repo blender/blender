@@ -57,11 +57,12 @@ class SeparateTransformFunction : public mf::MultiFunction {
     }
 
     if (rotation.is_empty() && !scale.is_empty()) {
-      mask.foreach_index([&](const int64_t i) { location[i] = math::to_scale(transforms[i]); });
+      mask.foreach_index([&](const int64_t i) { scale[i] = math::to_scale(transforms[i]); });
     }
     else if (!rotation.is_empty() && scale.is_empty()) {
-      mask.foreach_index(
-          [&](const int64_t i) { rotation[i] = math::to_quaternion(transforms[i]); });
+      mask.foreach_index([&](const int64_t i) {
+        rotation[i] = math::to_quaternion(math::normalize(float3x3(transforms[i])));
+      });
     }
     else if (!rotation.is_empty() && !scale.is_empty()) {
       mask.foreach_index([&](const int64_t i) {
