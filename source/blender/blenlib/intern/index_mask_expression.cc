@@ -240,7 +240,7 @@ static void evaluate_coarse_union(const Span<CourseBoundary> boundaries, CoarseR
             break;
           }
           case CoarseSegment::Type::Copy: {
-            if (copy_from_mask != nullptr && copy_from_mask != active_segment->mask) {
+            if (!ELEM(copy_from_mask, nullptr, active_segment->mask)) {
               copy_from_single_mask = false;
             }
             copy_from_mask = active_segment->mask;
@@ -312,7 +312,7 @@ static void evaluate_coarse_intersection(const Span<CourseBoundary> boundaries,
             }
             case CoarseSegment::Type::Copy: {
               copy_count++;
-              if (copy_from_mask != nullptr && copy_from_mask != active_segment->mask) {
+              if (!ELEM(copy_from_mask, nullptr, active_segment->mask)) {
                 copy_from_single_mask = false;
               }
               copy_from_mask = active_segment->mask;
