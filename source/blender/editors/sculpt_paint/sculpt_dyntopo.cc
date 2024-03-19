@@ -293,11 +293,12 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum WarnFlag 
 
 static bool dyntopo_supports_layer(const CustomDataLayer &layer)
 {
+  if (layer.type == CD_PROP_FLOAT && STREQ(layer.name, ".sculpt_mask")) {
+    return true;
+  }
   if (CD_TYPE_AS_MASK(layer.type) & CD_MASK_PROP_ALL) {
-    /* Some data is stored as generic attributes on #Mesh but in flags or fields on #BMesh. */
     return BM_attribute_stored_in_bmesh_builtin(layer.name);
   }
-  /* Some layers just encode #Mesh topology or are handled as special cases for dyntopo. */
   return ELEM(layer.type, CD_ORIGINDEX);
 }
 
