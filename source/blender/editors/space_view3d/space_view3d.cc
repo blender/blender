@@ -1587,6 +1587,11 @@ static void view3d_header_region_listener(const wmRegionListenerParams *params)
     case NC_BRUSH:
       ED_region_tag_redraw(region);
       break;
+    case NC_GEOM:
+      if (wmn->data == ND_DATA) {
+        ED_region_tag_redraw(region);
+      }
+      break;
   }
 
     /* From top-bar, which ones are needed? split per header? */
