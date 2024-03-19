@@ -16,6 +16,7 @@
 /* Define macros in `DNA_genfile.h`. */
 #define DNA_GENFILE_VERSIONING_MACROS
 
+#include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
@@ -57,6 +58,7 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh_legacy_convert.hh"
+#include "BKE_nla.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_scene.h"
@@ -356,6 +358,51 @@ static void versioning_replace_splitviewer(bNodeTree *ntree)
   }
 }
 
+/**
+ * Exit NLA tweakmode when the AnimData struct has insufficient information.
+ *
+ * When NLA tweakmode is enabled, Blender expects certain pointers to be set up
+ * correctly, and if that fails, can crash. This function ensures that
+ * everything is consistent, by exiting tweakmode everywhere there's missing
+ * pointers.
+ *
+ * This shouldn't happen, but the example blend file attached to #119615 needs
+ * this.
+ */
+static void version_nla_tweakmode_incomplete(Main *bmain)
+{
+  bool any_valid_tweakmode_left = false;
+
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    AnimData *adt = BKE_animdata_from_id(id);
+    if (!adt || !(adt->flag & ADT_NLA_EDIT_ON)) {
+      continue;
+    }
+
+    if (adt->act_track && adt->actstrip) {
+      /* Expected case. */
+      any_valid_tweakmode_left = true;
+      continue;
+    }
+
+    /* Not enough info in the blend file to reliably stay in tweak mode. This is the most important
+     * part of this versioning code, as it prevents future nullptr access. */
+    BKE_nla_tweakmode_exit(adt);
+  }
+  FOREACH_MAIN_ID_END;
+
+  if (any_valid_tweakmode_left) {
+    /* There are still NLA strips correctly in tweak mode. */
+    return;
+  }
+
+  /* Nothing is in a valid tweakmode, so just disable the corresponding flags on all scenes. */
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    scene->flag &= ~SCE_NLA_EDIT_ON;
+  }
+}
+
 void do_versions_after_linking_400(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 9)) {
@@ -448,6 +495,10 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
         versioning_eevee_shadow_settings(object);
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 23)) {
+    version_nla_tweakmode_incomplete(bmain);
   }
 
   /**

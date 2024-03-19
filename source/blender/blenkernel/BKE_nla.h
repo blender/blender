@@ -395,6 +395,12 @@ struct NlaStrip *BKE_nlastrip_find_active(struct NlaTrack *nlt);
  * Make the given NLA-Strip the active one within the given block.
  */
 void BKE_nlastrip_set_active(struct AnimData *adt, struct NlaStrip *strip);
+/**
+ * Find the NLA-strip with the given name within the given track.
+ *
+ * \return pointer to the strip, or nullptr when not found.
+ */
+struct NlaStrip *BKE_nlastrip_find_by_name(struct NlaTrack *nlt, const char *name);
 
 /**
  * Does the given NLA-strip fall within the given bounds (times)?.
