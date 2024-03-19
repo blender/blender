@@ -51,6 +51,12 @@ const EnumPropertyItem rna_enum_keying_flag_items[] = {
      0,
      "Visual Keying",
      "Insert keyframes based on 'visual transforms'"},
+    {0,
+     "INSERTKEY_XYZ_TO_RGB",
+     0,
+     "XYZ=RGB Colors (ignored)",
+     "This flag is no longer in use, and is here so that code that uses it doesn't break. The "
+     "XYZ=RGB coloring is determined by the animation preferences"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -66,6 +72,12 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
      0,
      "Visual Keying",
      "Insert keyframes based on 'visual transforms'"},
+    {0,
+     "INSERTKEY_XYZ_TO_RGB",
+     0,
+     "XYZ=RGB Colors (ignored)",
+     "This flag is no longer in use, and is here so that code that uses it doesn't break. The "
+     "XYZ=RGB coloring is determined by the animation preferences"},
     {INSERTKEY_REPLACE,
      "INSERTKEY_REPLACE",
      0,
