@@ -648,7 +648,9 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add UV Sphere";
-  ot->description = "Construct a spherical mesh with quad faces, except for triangle faces at the top and bottom";
+  ot->description =
+      "Construct a spherical mesh with quad faces, except for triangle faces at the top and "
+      "bottom";
   ot->idname = "MESH_OT_primitive_uv_sphere_add";
 
   /* api callbacks */
