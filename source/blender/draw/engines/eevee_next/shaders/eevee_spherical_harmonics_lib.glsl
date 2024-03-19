@@ -562,3 +562,22 @@ SphericalHarmonicL2 spherical_harmonics_add(SphericalHarmonicL2 a, SphericalHarm
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dot
+ * \{ */
+
+vec4 spherical_harmonics_dot(SphericalHarmonicL1 a, SphericalHarmonicL1 b)
+{
+  /* Convert coefficients to per channel column. */
+  mat4x4 a_mat = transpose(mat4x4(a.L0.M0, a.L1.Mn1, a.L1.M0, a.L1.Mp1));
+  mat4x4 b_mat = transpose(mat4x4(b.L0.M0, b.L1.Mn1, b.L1.M0, b.L1.Mp1));
+  vec4 result;
+  result[0] = dot(a_mat[0], b_mat[0]);
+  result[1] = dot(a_mat[1], b_mat[1]);
+  result[2] = dot(a_mat[2], b_mat[2]);
+  result[3] = dot(a_mat[3], b_mat[3]);
+  return result;
+}
+
+/** \} */

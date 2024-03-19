@@ -78,10 +78,13 @@ void main()
   float s_anisotropy = phase.x / max(1.0, phase.y);
 
 #ifdef VOLUME_LIGHTING
-  scattering += volume_irradiance(P) * s_scattering * volume_phase_function_isotropic();
+  SphericalHarmonicL1 phase_sh = volume_phase_function_as_sh_L1(V, s_anisotropy);
+  SphericalHarmonicL1 volume_radiance_sh = lightprobe_irradiance_sample(P);
+
+  vec3 light_scattering = spherical_harmonics_dot(volume_radiance_sh, phase_sh).xyz;
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    scattering += volume_scatter_light_eval(true, P, V, l_idx, s_anisotropy) * s_scattering;
+    light_scattering += volume_scatter_light_eval(true, P, V, l_idx, s_anisotropy);
   }
   LIGHT_FOREACH_END
 
@@ -89,10 +92,11 @@ void main()
                uniform_buf.volumes.viewport_size_inv;
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vP.z, l_idx) {
-    scattering += volume_scatter_light_eval(false, P, V, l_idx, s_anisotropy) * s_scattering;
+    light_scattering += volume_scatter_light_eval(false, P, V, l_idx, s_anisotropy);
   }
   LIGHT_FOREACH_END
 
+  scattering += light_scattering * s_scattering;
 #endif
 
   /* Catch NaNs. */
