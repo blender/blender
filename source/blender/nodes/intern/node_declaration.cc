@@ -33,21 +33,8 @@ void build_node_declaration(const bNodeType &typeinfo,
   node_decl_builder.finalize();
 }
 
-void NodeDeclarationBuilder::finalize()
+void NodeDeclarationBuilder::build_remaining_anonymous_attribute_relations()
 {
-  if (is_function_node_) {
-    for (BaseSocketDeclarationBuilder *socket_builder : input_socket_builders_) {
-      if (socket_builder->decl_base_->input_field_type != InputSocketFieldType::Implicit) {
-        socket_builder->decl_base_->input_field_type = InputSocketFieldType::IsSupported;
-      }
-    }
-    for (BaseSocketDeclarationBuilder *socket_builder : output_socket_builders_) {
-      socket_builder->decl_base_->output_field_dependency =
-          OutputFieldDependency::ForDependentField();
-      socket_builder->reference_pass_all_ = true;
-    }
-  }
-
   Vector<int> geometry_inputs;
   for (const int i : declaration_.inputs.index_range()) {
     if (dynamic_cast<decl::Geometry *>(declaration_.inputs[i])) {
@@ -96,7 +83,11 @@ void NodeDeclarationBuilder::finalize()
       }
     }
   }
+}
 
+void NodeDeclarationBuilder::finalize()
+{
+  this->build_remaining_anonymous_attribute_relations();
   BLI_assert(declaration_.is_valid());
 }
 
