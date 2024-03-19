@@ -84,8 +84,8 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
 
   void add_usd_skel_export_mapping(const Object *obj, const pxr::SdfPath &usd_path);
 
-  std::string generate_unique_name(const std::string token);
-  void store_name(const ID *id, const std::string name);
+  std::string generate_unique_name(const std::string &token);
+  void store_name(const ID *id, const std::string &name);
   void cache_names_for_object(const Object* object);
   void process_names_for_object(const Object *object);
 

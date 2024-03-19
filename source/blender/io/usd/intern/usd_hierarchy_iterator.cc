@@ -349,7 +349,7 @@ bool USDHierarchyIterator::object_data_needs_display_name(const Object *object) 
   return id_needs_display_name(reinterpret_cast<const ID *>(object->data));
 }
 
-std::string USDHierarchyIterator::generate_unique_name(const std::string token)
+std::string USDHierarchyIterator::generate_unique_name(const std::string &token)
 {
   char name[64];
   int count = 0;
@@ -363,7 +363,7 @@ std::string USDHierarchyIterator::generate_unique_name(const std::string token)
   return std::string(name);
 }
 
-void USDHierarchyIterator::store_name(const ID *id, const std::string name)
+void USDHierarchyIterator::store_name(const ID *id, const std::string &name)
 {
   prim_names_map_.add(id->name, name);
   prim_names_.add(name);
