@@ -198,6 +198,7 @@ class RENDER_PT_eevee_next_horizon_scan(RenderButtonsPanel, Panel):
         col.prop(props, "horizon_quality", text="Precision")
         col.prop(props, "horizon_thickness", text="Thickness")
         col.prop(props, "horizon_bias", text="Bias")
+        col.prop(props, "horizon_resolution", text="Resolution")
 
 
 class RENDER_PT_eevee_motion_blur(RenderButtonsPanel, Panel):

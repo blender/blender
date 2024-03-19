@@ -102,6 +102,102 @@ struct SphericalHarmonicL2 {
   SphericalHarmonicBandL2 L2;
 };
 
+SphericalHarmonicBandL0 spherical_harmonics_band_L0_new()
+{
+  SphericalHarmonicBandL0 L0;
+  L0.M0 = vec4(0.0);
+  return L0;
+}
+
+SphericalHarmonicBandL1 spherical_harmonics_band_L1_new()
+{
+  SphericalHarmonicBandL1 L1;
+  L1.Mn1 = vec4(0.0);
+  L1.M0 = vec4(0.0);
+  L1.Mp1 = vec4(0.0);
+  return L1;
+}
+
+SphericalHarmonicBandL2 spherical_harmonics_band_L2_new()
+{
+  SphericalHarmonicBandL2 L2;
+  L2.Mn2 = vec4(0.0);
+  L2.Mn1 = vec4(0.0);
+  L2.M0 = vec4(0.0);
+  L2.Mp1 = vec4(0.0);
+  L2.Mp2 = vec4(0.0);
+  return L2;
+}
+
+SphericalHarmonicL0 spherical_harmonics_L0_new()
+{
+  SphericalHarmonicL0 sh;
+  sh.L0 = spherical_harmonics_band_L0_new();
+  return sh;
+}
+
+SphericalHarmonicL1 spherical_harmonics_L1_new()
+{
+  SphericalHarmonicL1 sh;
+  sh.L0 = spherical_harmonics_band_L0_new();
+  sh.L1 = spherical_harmonics_band_L1_new();
+  return sh;
+}
+
+SphericalHarmonicL2 spherical_harmonics_L2_new()
+{
+  SphericalHarmonicL2 sh;
+  sh.L0 = spherical_harmonics_band_L0_new();
+  sh.L1 = spherical_harmonics_band_L1_new();
+  sh.L2 = spherical_harmonics_band_L2_new();
+  return sh;
+}
+
+SphericalHarmonicBandL0 spherical_harmonics_band_L0_swizzle_wwww(SphericalHarmonicBandL0 L0)
+{
+  L0.M0 = L0.M0.wwww;
+  return L0;
+}
+
+SphericalHarmonicBandL1 spherical_harmonics_band_L1_swizzle_wwww(SphericalHarmonicBandL1 L1)
+{
+  L1.Mn1 = L1.Mn1.wwww;
+  L1.M0 = L1.M0.wwww;
+  L1.Mp1 = L1.Mp1.wwww;
+  return L1;
+}
+
+SphericalHarmonicBandL2 spherical_harmonics_band_L2_swizzle_wwww(SphericalHarmonicBandL2 L2)
+{
+  L2.Mn2 = L2.Mn2.wwww;
+  L2.Mn1 = L2.Mn1.wwww;
+  L2.M0 = L2.M0.wwww;
+  L2.Mp1 = L2.Mp1.wwww;
+  L2.Mp2 = L2.Mp2.wwww;
+  return L2;
+}
+
+SphericalHarmonicL0 spherical_harmonics_swizzle_wwww(SphericalHarmonicL0 sh)
+{
+  sh.L0 = spherical_harmonics_band_L0_swizzle_wwww(sh.L0);
+  return sh;
+}
+
+SphericalHarmonicL1 spherical_harmonics_swizzle_wwww(SphericalHarmonicL1 sh)
+{
+  sh.L0 = spherical_harmonics_band_L0_swizzle_wwww(sh.L0);
+  sh.L1 = spherical_harmonics_band_L1_swizzle_wwww(sh.L1);
+  return sh;
+}
+
+SphericalHarmonicL2 spherical_harmonics_swizzle_wwww(SphericalHarmonicL2 sh)
+{
+  sh.L0 = spherical_harmonics_band_L0_swizzle_wwww(sh.L0);
+  sh.L1 = spherical_harmonics_band_L1_swizzle_wwww(sh.L1);
+  sh.L2 = spherical_harmonics_band_L2_swizzle_wwww(sh.L2);
+  return sh;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -578,6 +674,36 @@ vec4 spherical_harmonics_dot(SphericalHarmonicL1 a, SphericalHarmonicL1 b)
   result[2] = dot(a_mat[2], b_mat[2]);
   result[3] = dot(a_mat[3], b_mat[3]);
   return result;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Compression
+ *
+ * Described by Josh Hobson in "The indirect Lighting Pipeline of God of War" p. 120
+ * \{ */
+
+SphericalHarmonicL1 spherical_harmonics_compress(SphericalHarmonicL1 in_sh)
+{
+  SphericalHarmonicL1 out_sh;
+  out_sh.L0 = in_sh.L0;
+  vec4 fac = safe_rcp(in_sh.L0.M0 * M_SQRT3);
+  out_sh.L1.Mn1 = (in_sh.L1.Mn1 * fac) * 0.5 + 0.5;
+  out_sh.L1.M0 = (in_sh.L1.M0 * fac) * 0.5 + 0.5;
+  out_sh.L1.Mp1 = (in_sh.L1.Mp1 * fac) * 0.5 + 0.5;
+  return out_sh;
+}
+
+SphericalHarmonicL1 spherical_harmonics_decompress(SphericalHarmonicL1 in_sh)
+{
+  SphericalHarmonicL1 out_sh;
+  out_sh.L0 = in_sh.L0;
+  vec4 fac = in_sh.L0.M0 * M_SQRT3;
+  out_sh.L1.Mn1 = (in_sh.L1.Mn1 * 2.0 - 1.0) * fac;
+  out_sh.L1.M0 = (in_sh.L1.M0 * 2.0 - 1.0) * fac;
+  out_sh.L1.Mp1 = (in_sh.L1.Mp1 * 2.0 - 1.0) * fac;
+  return out_sh;
 }
 
 /** \} */

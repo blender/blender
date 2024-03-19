@@ -212,6 +212,7 @@
     .gtao_quality = 0.25f, \
     .gtao_thickness = 0.5f, \
     .gtao_focus = 0.05f, \
+    .gtao_resolution = 2, \
  \
     .bokeh_overblur = 5.0f, \
     .bokeh_max_size = 100.0f, \

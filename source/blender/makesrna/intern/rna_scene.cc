@@ -7818,6 +7818,13 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem eevee_horizon_pixel_rate_items[] = {
+      {1, "1", 0, "1 px", ""},
+      {2, "2", 0, "4 px", ""},
+      {4, "4", 0, "16 px", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   static const EnumPropertyItem ray_tracing_method_items[] = {
       {RAYTRACE_EEVEE_METHOD_NONE, "NONE", 0, "None", "No intersection with scene geometry"},
       {RAYTRACE_EEVEE_METHOD_SCREEN,
@@ -8170,6 +8177,16 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Bias", "Bias the horizon angles to reduce self intersection artifacts");
   RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
+
+  prop = RNA_def_property(srna, "horizon_resolution", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "gtao_resolution");
+  RNA_def_property_enum_items(prop, eevee_horizon_pixel_rate_items);
+  RNA_def_property_ui_text(prop,
+                           "Resolution",
+                           "Control the quality of the horizon scan lighting "
+                           "(lower size increase vram usage and quality)");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 

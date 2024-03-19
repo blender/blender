@@ -1895,6 +1895,7 @@ typedef struct SceneEEVEE {
   float gtao_quality;
   float gtao_thickness;
   float gtao_focus;
+  int gtao_resolution;
 
   float bokeh_overblur;
   float bokeh_max_size;
@@ -1923,7 +1924,6 @@ typedef struct SceneEEVEE {
   int shadow_ray_count;
   int shadow_step_count;
   float shadow_normal_bias;
-  float _pad0;
 
   int ray_tracing_method;
 

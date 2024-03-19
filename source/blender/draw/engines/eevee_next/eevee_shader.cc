@@ -119,6 +119,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_hiz_update_layer";
     case HORIZON_DENOISE:
       return "eevee_horizon_denoise";
+    case HORIZON_RESOLVE:
+      return "eevee_horizon_resolve";
     case HORIZON_SCAN:
       return "eevee_horizon_scan";
     case HORIZON_SETUP:
