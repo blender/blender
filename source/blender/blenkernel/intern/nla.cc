@@ -1457,6 +1457,31 @@ void BKE_nlastrip_set_active(AnimData *adt, NlaStrip *strip)
   }
 }
 
+static NlaStrip *nlastrip_find_by_name(ListBase /* NlaStrip */ *strips, const char *name)
+{
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
+    if (STREQ(strip->name, name)) {
+      return strip;
+    }
+
+    if (strip->type != NLASTRIP_TYPE_META) {
+      continue;
+    }
+
+    NlaStrip *inner_strip = nlastrip_find_by_name(&strip->strips, name);
+    if (inner_strip != nullptr) {
+      return inner_strip;
+    }
+  }
+
+  return nullptr;
+}
+
+NlaStrip *BKE_nlastrip_find_by_name(NlaTrack *nlt, const char *name)
+{
+  return nlastrip_find_by_name(&nlt->strips, name);
+}
+
 bool BKE_nlastrip_within_bounds(NlaStrip *strip, float min, float max)
 {
   const float stripLen = (strip) ? strip->end - strip->start : 0.0f;
