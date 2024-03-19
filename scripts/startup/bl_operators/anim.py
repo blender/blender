@@ -529,6 +529,15 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
         return {'FINISHED'}
 
 
+def _armature_from_context(context):
+    pin_armature = getattr(context, 'armature', None)
+    if pin_armature:
+        return pin_armature
+    if context.object and context.object.type == 'ARMATURE':
+        return context.object.data
+    return None
+
+
 class ARMATURE_OT_collection_show_all(Operator):
     """Show all bone collections"""
     bl_idname = "armature.collection_show_all"
@@ -537,10 +546,10 @@ class ARMATURE_OT_collection_show_all(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.object and context.object.type == 'ARMATURE' and context.object.data
+        return _armature_from_context(context) is not None
 
     def execute(self, context):
-        arm = context.object.data
+        arm = _armature_from_context(context)
         for bcoll in arm.collections_all:
             bcoll.is_visible = True
         return {'FINISHED'}
@@ -554,15 +563,16 @@ class ARMATURE_OT_collection_unsolo_all(Operator):
 
     @classmethod
     def poll(cls, context):
-        if not (context.object and context.object.type == 'ARMATURE' and context.object.data):
+        armature = _armature_from_context(context)
+        if not armature:
             return False
-        if not context.object.data.collections.is_solo_active:
+        if not armature.collections.is_solo_active:
             cls.poll_message_set("None of the bone collections is marked 'solo'")
             return False
         return True
 
     def execute(self, context):
-        arm = context.object.data
+        arm = _armature_from_context(context)
         for bcoll in arm.collections_all:
             bcoll.is_solo = False
         return {'FINISHED'}
@@ -578,16 +588,16 @@ class ARMATURE_OT_collection_remove_unused(Operator):
 
     @classmethod
     def poll(cls, context):
-        if not context.object or context.object.type != 'ARMATURE':
+        armature = _armature_from_context(context)
+        if not armature:
             return False
-        arm = context.object.data
-        return len(arm.collections) > 0
+        return len(armature.collections) > 0
 
     def execute(self, context):
-        if context.object.mode == 'EDIT':
+        if context.mode == 'EDIT_ARMATURE':
             return self.execute_edit_mode(context)
 
-        armature = context.object.data
+        armature = _armature_from_context(context)
 
         # Build a set of bone collections that don't contain any bones, and
         # whose children also don't contain any bones.
@@ -608,7 +618,7 @@ class ARMATURE_OT_collection_remove_unused(Operator):
         # edit mode, because that has a completely separate list of edit bones.
         # This is why edit mode needs separate handling.
 
-        armature = context.object.data
+        armature = _armature_from_context(context)
         bcolls_with_bones = {
             bcoll
             for ebone in armature.edit_bones

@@ -34,11 +34,13 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_prototypes.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "ED_armature.hh"
+#include "ED_object.hh"
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
@@ -54,6 +56,21 @@ using blender::Vector;
 /* -------------------------------------------------------------------- */
 /** \name Object Tools Public API
  * \{ */
+
+bArmature *ED_armature_context(const bContext *C)
+{
+  bArmature *armature = static_cast<bArmature *>(
+      CTX_data_pointer_get_type(C, "armature", &RNA_Armature).data);
+
+  if (armature == nullptr) {
+    Object *object = ED_object_active_context(C);
+    if (object && object->type == OB_ARMATURE) {
+      armature = static_cast<bArmature *>(object->data);
+    }
+  }
+
+  return armature;
+}
 
 /* NOTE: these functions are exported to the Object module to be called from the tools there */
 
