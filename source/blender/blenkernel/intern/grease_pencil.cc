@@ -318,6 +318,17 @@ Drawing::~Drawing()
 
 Span<uint3> Drawing::triangles() const
 {
+  struct LocalMemArena {
+    MemArena *pf_arena = nullptr;
+    LocalMemArena() : pf_arena(BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "Drawing::triangles")) {}
+
+    ~LocalMemArena()
+    {
+      if (pf_arena != nullptr) {
+        BLI_memarena_free(pf_arena);
+      }
+    }
+  };
   this->runtime->triangles_cache.ensure([&](Vector<uint3> &r_data) {
     const CurvesGeometry &curves = this->strokes();
     const Span<float3> positions = curves.positions();
@@ -333,23 +344,9 @@ Span<uint3> Drawing::triangles() const
       }
     }
 
-    struct LocalMemArena {
-      MemArena *pf_arena = nullptr;
-      LocalMemArena() : pf_arena(BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "Drawing::triangles"))
-      {
-      }
-
-      ~LocalMemArena()
-      {
-        if (pf_arena != nullptr) {
-          BLI_memarena_free(pf_arena);
-        }
-      }
-    };
-    threading::EnumerableThreadSpecific<LocalMemArena> all_local_mem_arenas;
-
     r_data.resize(total_triangles);
     MutableSpan<uint3> triangles = r_data.as_mutable_span();
+    threading::EnumerableThreadSpecific<LocalMemArena> all_local_mem_arenas;
     threading::parallel_for(curves.curves_range(), 32, [&](const IndexRange range) {
       MemArena *pf_arena = all_local_mem_arenas.local().pf_arena;
       for (const int curve_i : range) {
