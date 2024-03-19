@@ -318,7 +318,6 @@ Drawing::~Drawing()
 
 Span<uint3> Drawing::triangles() const
 {
-  const char *func = __func__;
   this->runtime->triangles_cache.ensure([&](Vector<uint3> &r_data) {
     const CurvesGeometry &curves = this->strokes();
     const Span<float3> positions = curves.positions();
@@ -336,7 +335,9 @@ Span<uint3> Drawing::triangles() const
 
     struct LocalMemArena {
       MemArena *pf_arena = nullptr;
-      LocalMemArena() : pf_arena(BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, func)) {}
+      LocalMemArena() : pf_arena(BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "Drawing::triangles"))
+      {
+      }
 
       ~LocalMemArena()
       {
