@@ -29,6 +29,7 @@
 #include "DNA_vec_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_bits.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_matrix.h"
 #include "BLI_path_util.h"
@@ -344,6 +345,12 @@ void blf_batch_draw()
 
   GPU_batch_program_set_builtin(g_batch.batch, GPU_SHADER_TEXT);
   GPU_batch_texture_bind(g_batch.batch, "glyph", texture);
+  /* Setup texture width mask and shift, so that shader can avoid costly divisions. */
+  int tex_width = GPU_texture_width(texture);
+  BLI_assert_msg(is_power_of_2_i(tex_width), "Font texture width must be power of two");
+  int width_shift = 31 - bitscan_reverse_i(tex_width);
+  GPU_batch_uniform_1i(g_batch.batch, "glyph_tex_width_mask", tex_width - 1);
+  GPU_batch_uniform_1i(g_batch.batch, "glyph_tex_width_shift", width_shift);
   GPU_batch_draw(g_batch.batch);
 
   GPU_blend(GPU_BLEND_NONE);
