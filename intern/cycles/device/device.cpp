@@ -220,11 +220,13 @@ static void device_oidn_init_once()
      *
      * This also affects systems which have for example an NVIDIA GPU as OIDN
      * initializes all device types together. */
+    if (getenv("OIDN_DEVICE_HIP") == nullptr) {
 #ifdef _WIN32
-    _putenv_s("OIDN_DEVICE_HIP", "0");
+      _putenv_s("OIDN_DEVICE_HIP", "0");
 #else
-    setenv("OIDN_DEVICE_HIP", "0", true);
+      setenv("OIDN_DEVICE_HIP", "0", true);
 #endif
+    }
     initialized = true;
   }
 }
