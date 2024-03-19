@@ -51,26 +51,27 @@ static bool lineart_mod_is_disabled(GpencilModifierData *md)
   return disabled;
 }
 
-static void clear_strokes(Object *ob, GpencilModifierData *md, int frame)
+static bool clear_strokes(Object *ob, GpencilModifierData *md, int frame)
 {
   if (md->type != eGpencilModifierType_Lineart) {
-    return;
+    return false;
   }
   LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
 
   bGPDlayer *gpl = BKE_gpencil_layer_get_by_name(gpd, lmd->target_layer, 1);
   if (!gpl) {
-    return;
+    return false;
   }
   bGPDframe *gpf = BKE_gpencil_layer_frame_find(gpl, frame);
 
   if (!gpf) {
     /* No greasepencil frame found. */
-    return;
+    return false;
   }
 
   BKE_gpencil_layer_frame_delete(gpl, gpf);
+  return true;
 }
 
 static bool bake_strokes(Object *ob,
@@ -182,7 +183,9 @@ static bool lineart_gpencil_bake_single_target(LineartBakeJob *bj, Object *ob, i
   if (bj->overwrite_frames) {
     LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
       if (md->type == eGpencilModifierType_Lineart) {
-        clear_strokes(ob, md, frame);
+        if (clear_strokes(ob, md, frame)) {
+          touched = true;
+        }
       }
     }
   }
