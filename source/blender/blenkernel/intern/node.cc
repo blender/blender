@@ -703,17 +703,29 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
 }
 
-static void direct_link_node_socket_list(BlendDataReader *reader, ListBase *socket_list)
+static void remove_unsupported_sockets(ListBase *sockets, ListBase *links)
 {
-  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, socket_list) {
+  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, sockets) {
     if (is_node_socket_supported(sock)) {
-      direct_link_node_socket(reader, sock);
+      continue;
     }
-    else {
-      /* Remove unsupported sockets. */
-      BLI_remlink(socket_list, sock);
-      MEM_SAFE_FREE(sock);
+
+    /* First remove any link pointing to the socket. */
+    if (links) {
+      LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, links) {
+        if (link->fromsock == sock || link->tosock == sock) {
+          BLI_remlink(links, link);
+          if (link->tosock) {
+            link->tosock->link = nullptr;
+          }
+          MEM_freeN(link);
+        }
+      }
     }
+
+    BLI_remlink(sockets, sock);
+    MEM_delete(sock->runtime);
+    MEM_freeN(sock);
   }
 }
 
@@ -872,8 +884,12 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     BLO_read_data_address(reader, &node->parent);
 
-    direct_link_node_socket_list(reader, &node->inputs);
-    direct_link_node_socket_list(reader, &node->outputs);
+    LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
+      direct_link_node_socket(reader, sock);
+    }
+    LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->outputs) {
+      direct_link_node_socket(reader, sock);
+    }
 
     /* Socket storage. */
     if (node->type == CMP_NODE_OUTPUT_FILE) {
@@ -888,8 +904,12 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   /* interface socket lists */
   BLO_read_list(reader, &ntree->inputs);
   BLO_read_list(reader, &ntree->outputs);
-  direct_link_node_socket_list(reader, &ntree->inputs);
-  direct_link_node_socket_list(reader, &ntree->outputs);
+  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &ntree->inputs) {
+    direct_link_node_socket(reader, sock);
+  }
+  LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &ntree->outputs) {
+    direct_link_node_socket(reader, sock);
+  }
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     BLO_read_data_address(reader, &link->fromnode);
@@ -897,6 +917,13 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
     BLO_read_data_address(reader, &link->fromsock);
     BLO_read_data_address(reader, &link->tosock);
   }
+
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    remove_unsupported_sockets(&node->inputs, &ntree->links);
+    remove_unsupported_sockets(&node->outputs, &ntree->links);
+  }
+  remove_unsupported_sockets(&ntree->inputs, nullptr);
+  remove_unsupported_sockets(&ntree->outputs, nullptr);
 
   /* TODO: should be dealt by new generic cache handling of IDs... */
   ntree->previews = nullptr;
