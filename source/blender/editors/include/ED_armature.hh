@@ -65,7 +65,10 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm, float length, bool
 
 void ED_armature_ebone_copy(EditBone *dest, const EditBone *source);
 
-/* `armature_edit.cc` */
+/**
+ * Get current armature from the context, including properties editor pinning.
+ **/
+bArmature *ED_armature_context(const bContext *C);
 
 /**
  * Adjust bone roll to align Z axis with vector `align_axis` is in local space and is normalized.
