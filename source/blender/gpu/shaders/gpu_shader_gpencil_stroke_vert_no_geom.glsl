@@ -94,13 +94,13 @@ bool is_equal(vec4 p1, vec4 p2)
   geometry_out.mTexCoord = vec2(0, 0); \
   geometry_out.mColor = finalColor[1]; \
   gl_Position = vec4( \
-      (sp1 + finalThickness[2] * n0) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
+      (sp1 + finalThickness[1] * n0) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
 
 #define V1_a \
   geometry_out.mTexCoord = vec2(0, 0); \
   geometry_out.mColor = finalColor[1]; \
   gl_Position = vec4( \
-      (sp1 + finalThickness[2] * n1) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
+      (sp1 + finalThickness[1] * n1) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
 
 #define V2_a \
   geometry_out.mTexCoord = vec2(0, 0.5); \
@@ -111,12 +111,12 @@ bool is_equal(vec4 p1, vec4 p2)
   geometry_out.mTexCoord = vec2(0, 1); \
   geometry_out.mColor = finalColor[1]; \
   gl_Position = vec4( \
-      (sp1 - finalThickness[2] * n1) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
+      (sp1 - finalThickness[1] * n1) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
 #define V1_b \
   geometry_out.mTexCoord = vec2(0, 1); \
   geometry_out.mColor = finalColor[1]; \
   gl_Position = vec4( \
-      (sp1 - finalThickness[2] * n0) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
+      (sp1 - finalThickness[1] * n0) / gpencil_stroke_data.viewport, getZdepth(P1), 1.0);
 
 #define V2_b \
   geometry_out.mTexCoord = vec2(0, 0.5); \
@@ -194,6 +194,11 @@ bool is_equal(vec4 p1, vec4 p2)
   vec2 svn2 = normalize(sp2 - sp1) * length_b * 4.0 * extend; \
   gl_Position = vec4((sp2 + svn2) / gpencil_stroke_data.viewport, getZdepth(P2), 1.0);
 
+vec4 uchar4_to_normalized_vec4(uchar4 udata)
+{
+  return vec4(udata) / vec4(255.0f);
+}
+
 void main(void)
 {
   /* Determine output geometry IDs. */
@@ -212,7 +217,9 @@ void main(void)
   for (int i = 0; i < 4; i++) {
     finalPos[i] = ModelViewProjectionMatrix *
                   vec4(vertex_fetch_attribute(input_prim_id + i, pos, vec3).xyz, 1.0);
-    finalColor[i] = vertex_fetch_attribute(input_prim_id + i, color, vec4);
+    /* Color attribute uses GPU_FETCH_INT_TO_FLOAT_UNIT with GPU_COMP_U8. */
+    finalColor[i] = uchar4_to_normalized_vec4(
+        vertex_fetch_attribute(input_prim_id + i, color, uchar4));
     float in_thickness = vertex_fetch_attribute(input_prim_id + i, thickness, float);
 
     if (gpencil_stroke_data.keep_size) {
@@ -220,7 +227,7 @@ void main(void)
     }
     else {
       float size = (ProjectionMatrix[3][3] == 0.0) ?
-                       (in_thickness / (gl_Position.z * defaultpixsize)) :
+                       (in_thickness / (finalPos[i].z * defaultpixsize)) :
                        (in_thickness / defaultpixsize);
       finalThickness[i] = max(size * gpencil_stroke_data.objscale, 1.0);
     }
@@ -293,8 +300,14 @@ void main(void)
   }
 
   /** Geometry output. */
-  /* First triangle (T0). prevent excessively long miters at sharp
-   * corners */
+
+  /* prevent excessively long miters at sharp corners */
+  if (dot(v0, v1) < -MiterLimit) {
+    miter_a = n1;
+    length_a = finalThickness[1];
+  }
+
+  /* First triangle (T0). */
   if (output_prim_triangle_id == 0) {
     if (dot(v0, v1) < -MiterLimit) {
       if (dot(v0, n1) > 0) {

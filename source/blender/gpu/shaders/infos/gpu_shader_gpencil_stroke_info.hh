@@ -38,6 +38,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke)
 
 GPU_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke_no_geom)
     .metal_backend_only(true)
+    .define("USE_GEOMETRY_IFACE_COLOR")
     .additional_info("gpu_shader_gpencil_stroke_base")
     .vertex_out(gpencil_stroke_geom_iface)
     .vertex_source("gpu_shader_gpencil_stroke_vert_no_geom.glsl")
