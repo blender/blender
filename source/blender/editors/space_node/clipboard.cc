@@ -156,7 +156,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
       new_link.tosock = socket_map.lookup(link->tosock);
       new_link.fromnode = node_map.lookup(link->fromnode);
       new_link.fromsock = socket_map.lookup(link->fromsock);
-      new_link.multi_input_socket_index = link->multi_input_socket_index;
+      new_link.multi_input_sort_id = link->multi_input_sort_id;
       clipboard.links.append(new_link);
     }
   }
@@ -290,7 +290,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
                                         socket_map.lookup(link.fromsock),
                                         node_map.lookup(tonode),
                                         socket_map.lookup(link.tosock));
-      new_link->multi_input_socket_index = link.multi_input_socket_index;
+      new_link->multi_input_sort_id = link.multi_input_sort_id;
     }
   }
 

@@ -1295,7 +1295,7 @@ static void rna_NodeLink_swap_multi_input_sort_id(
     return;
   }
 
-  std::swap(self->multi_input_socket_index, other->multi_input_socket_index);
+  std::swap(self->multi_input_sort_id, other->multi_input_sort_id);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   BKE_ntree_update_tag_link_changed(ntree);
@@ -10332,7 +10332,6 @@ static void rna_def_node_link(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Is Hidden", "Link is hidden due to invisible sockets");
 
   prop = RNA_def_property(srna, "multi_input_sort_id", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, nullptr, "multi_input_socket_index");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
       prop,

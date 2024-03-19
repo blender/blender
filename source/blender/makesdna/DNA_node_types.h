@@ -589,7 +589,13 @@ typedef struct bNodeLink {
   bNodeSocket *fromsock, *tosock;
 
   int flag;
-  int multi_input_socket_index;
+  /**
+   * Determines the order in which links are connected to a multi-input socket.
+   * For historical reasons, larger ids come before lower ids.
+   * Usually, this should not be accessed directly. One can instead use e.g.
+   * `socket.directly_linked_links()` to get the links in the correct order.
+   */
+  int multi_input_sort_id;
 
 #ifdef __cplusplus
   bool is_muted() const;
