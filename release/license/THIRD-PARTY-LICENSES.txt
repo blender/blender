@@ -19,7 +19,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 ------
 
-** Audaspace; version 1.3.0 -- https://audaspace.github.io/
+** Audaspace; version 0d18fe7 -- https://audaspace.github.io/
 ** Cuda Wrangler; version cbf465b -- https://github.com/CudaWrangler/cuew
 ** Draco; version 1.3.6 -- https://google.github.io/draco/
 ** Embree; version 4.1.0 -- https://github.com/embree/embree
@@ -27,15 +27,16 @@ PERFORMANCE OF THIS SOFTWARE.
 https://github.com/intel/llvm#oneapi-dpc-compiler
 ** Intel® Open Path Guiding Library; version 0.5.0 -- http://www.openpgl.org/
 ** Mantaflow; version 0.13 -- http://mantaflow.com/
-** materialX; version 1.38.6 --
+** materialX; version 1.38.8 --
 https://github.com/AcademySoftwareFoundation/MaterialX
 ** meson; version 0.63 -- https://github.com/mesonbuild/meson
 ** oneAPI Threading Building Block; version 2020_U3 --
 https://software.intel.com/en-us/oneapi/onetbb
 ** OpenCL Wrangler; version 27a6867 -- https://github.com/OpenCLWrangler/clew
-** OpenImageDenoise; version 1.4.3 -- https://www.openimagedenoise.org/
-** OpenImageIO; version 2.4.15.0 -- http://www.openimageio.org
-** OpenSSL; version 3.1.2 -- https://www.openssl.org/
+** OpenImageDenoise; version 2.2.2 -- https://www.openimagedenoise.org/
+** OpenImageIO; version 2.5.6.0 --
+https://github.com/AcademySoftwareFoundation/OpenImageIO
+** OpenSSL; version 3.1.5 -- https://www.openssl.org/
 ** OpenXR SDK; version 1.0.17 -- https://khronos.org/openxr
 ** RangeTree; version 40ebed8aa209 -- https://github.com/ideasman42/rangetree-c
 ** SDL Extension Wrangler; version 15edf8e --
@@ -43,7 +44,9 @@ https://github.com/SDLWrangler/sdlew
 ** ShaderC; version 2022.3 -- https://github.com/google/shaderc
 ** SYCL Unified Runtime ; version fd711c920acc4434cb52ff18b078c082d9d7f44d --
 https://github.com/oneapi-src/unified-runtime
-** Vulkan Loader; version 1.2.198 --
+** Vulkan Headers; version 1.3.270 --
+https://github.com/KhronosGroup/Vulkan-Headers
+** Vulkan Loader; version 1.3.270 --
 https://github.com/KhronosGroup/Vulkan-Loader
 
 Apache License
@@ -291,6 +294,8 @@ limitations under the License.
     Copyright 2015 The Shaderc Authors. All rights reserved.
 * For SYCL Unified Runtime  see also this required NOTICE:
     Copyright (C) 2022-2023 Intel Corporation
+* For Vulkan Headers see also this required NOTICE:
+    Copyright 2015-2023 The Khronos Group Inc.
 * For Vulkan Loader see also this required NOTICE:
     Copyright (c) 2019 The Khronos Group Inc.
     Copyright (c) 2019 Valve Corporation
@@ -392,22 +397,21 @@ Copyright (c) 2006, Google Inc.
 All rights reserved.
 ** Imath; version 3.1.7 -- https://github.com/AcademySoftwareFoundation/Imath
 Copyright Contributors to the OpenEXR Project. All rights reserved.
-** ISPC; version 1.17.0 -- https://github.com/ispc/ispc
+** ISPC; version 1.21.1 -- https://github.com/ispc/ispc
 Copyright Intel Corporation
 All rights reserved.
-** NumPy; version 1.23.5 -- https://numpy.org/
+** NumPy; version 1.24.3 -- https://numpy.org/
 Copyright (c) 2005-2022, NumPy Developers.
 All rights reserved.
 ** Ogg; version 1.3.5 -- https://www.xiph.org/ogg/
 COPYRIGHT (C) 1994-2019 by the Xiph.Org Foundation https://www.xiph.org/
-** Open Shading Language; version
-1.13-dev-1a7670600c8b08c2443a78d03c8c27e9a1149140 --
-https://github.com/imageworks/OpenShadingLanguage
+** Open Shading Language; version 1.13.7.0 --
+https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/
 Copyright Contributors to the Open Shading Language project.
-** OpenColorIO; version 2.2.0 --
+** OpenColorIO; version 2.3.2 --
 https://github.com/AcademySoftwareFoundation/OpenColorIO
 Copyright Contributors to the OpenColorIO Project.
-** OpenEXR; version 3.1.7 --
+** OpenEXR; version 3.2.1 --
 https://github.com/AcademySoftwareFoundation/openexr
 Copyright Contributors to the OpenEXR Project. All rights reserved.
 ** Pystring; version 1.1.3 -- https://github.com/imageworks/pystring
@@ -415,7 +419,7 @@ Copyright (c) 2008-2010, Sony Pictures Imageworks Inc
 All rights reserved.
 ** Vorbis; version 1.3.7 -- https://xiph.org/vorbis/
 Copyright (c) 2002-2020 Xiph.org Foundation
-** VPX; version 1.11.0 -- https://github.com/webmproject/libvpx
+** VPX; version 1.14.0 -- https://github.com/webmproject/libvpx
 Copyright (c) 2010, The WebM Project authors. All rights reserved.
 ** WebP; version 1.3.2 -- https://github.com/webmproject/libwebp
 Copyright (c) 2010, Google Inc. All rights reserved.
@@ -450,7 +454,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ** AutoPackage; version 1.0 -- http://autopackage.org
 BinReloc - a library for creating relocatable executables
 Written by: Hongli Lai <h.lai@chello.nl>
-** LZMA SDK; version 5.2.5 -- https://www.7-zip.org/sdk.html
+** LZMA SDK; version 23.01 -- https://www.7-zip.org/sdk.html
 LZMA SDK: Public Domain
 
 Creative Commons Legal Code
@@ -914,7 +918,7 @@ Copyright (c) 2003, 2007-14 Matteo Frigo
 Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
 ** GMP; version 6.2.1 -- https://gmplib.org/
 Copyright 1996-2020 Free Software Foundation, Inc.
-** OpenAL; version 1.21.1 -- http://openal-soft.org
+** OpenAL; version 1.23.1 -- http://openal-soft.org
 Copyright (c) 2015, Archontis Politis
 Copyright (c) 2019, Christopher Robinson
 
@@ -2805,7 +2809,7 @@ That's all there is to it!
 
 ------
 
-** FFmpeg; version 6.0 -- http://ffmpeg.org/
+** FFmpeg; version 6.1.1 -- http://ffmpeg.org/
 Copyright: The FFmpeg contributors
 https://github.com/FFmpeg/FFmpeg/blob/master/CREDITS
 ** Libsndfile; version 1.2.2 -- http://libsndfile.github.io/libsndfile/
@@ -3434,6 +3438,33 @@ December 9, 2010
 
 ------
 
+** libdeflate; version 1.18 -- https://github.com/ebiggers/libdeflate
+Copyright 2016 Eric Biggers
+
+Copyright 2016 Eric Biggers
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation files
+(the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software,
+and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+------
+
 ** vcintrinsics; version 782fbf7301dc73acaa049a4324c976ad94f587f7 --
 https://github.com/intel/vc-intrinsics
 Copyright (c) 2019 Intel Corporation
@@ -3462,7 +3493,7 @@ SOFTWARE.
 
 ------
 
-** {fmt}; version 10.0.0 -- https://github.com/fmtlib/fmt
+** {fmt}; version 10.1.1 -- https://github.com/fmtlib/fmt
 Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 ** Brotli; version 1.0.9 -- https://github.com/google/brotli
 Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
@@ -3472,7 +3503,7 @@ Copyright © 2013 The Khronos Group Inc.
 ** Expat; version 2.5.0 -- https://github.com/libexpat/libexpat/
 Copyright (c) 1998-2000 Thai Open Source Software Center Ltd and Clark Cooper
 Copyright (c) 2001-2019 Expat maintainers
-** Intel(R) Graphics Compute Runtime; version 22.38.24278 --
+** Intel(R) Graphics Compute Runtime; version 23.43.27642.40 --
 https://github.com/intel/compute-runtime
 Copyright (C) 2021 Intel Corporation
 ** Intel(R) Graphics Memory Management Library; version 22.1.8 --
@@ -3491,11 +3522,11 @@ Copyright (c) 2006, 2008 Junio C Hamano
 Copyright © 2017-2018 Red Hat Inc.
 Copyright © 2012 Collabora, Ltd.
 Copyright © 2008 Kristian Høgsberg
-** Libxml2; version 2.10.4 -- http://xmlsoft.org/
+** Libxml2; version 2.12.3 -- http://xmlsoft.org/
 Copyright (C) 1998-2012 Daniel Veillard.  All Rights Reserved.
-** Mesa 3D; version 21.1.5 -- https://www.mesa3d.org/
+** Mesa 3D; version 23.3.0 -- https://www.mesa3d.org/
 Copyright (C) 1999-2007  Brian Paul   All Rights Reserved.
-** oneAPI Level Zero; version v1.8.8 --
+** oneAPI Level Zero; version v1.15.8 --
 https://github.com/oneapi-src/level-zero
 Copyright (C) 2019-2021 Intel Corporation
 ** OPENCollada; version 1.6.68 -- https://github.com/KhronosGroup/OpenCOLLADA
@@ -3507,11 +3538,12 @@ Copyright (c) 2018 Jingwei Huang, Yichao Zhou, Matthias Niessner,
 Jonathan Shewchuk and Leonidas Guibas. All rights reserved.
 ** robin-map; version 0.6.2 -- https://github.com/Tessil/robin-map
 Copyright (c) 2017 Thibaut Goetghebuer-Planchon <tessil@gmx.com>
-** sse2neon; version 1.6.0 -- https://github.com/DLTcollab/sse2neon
+** sse2neon; version cfaa59fc04fecb117c0a0f3fe9c82dece6f359ad --
+https://github.com/DLTcollab/sse2neon
 Copyright sse2neon contributors
 ** TinyGLTF; version 2.5.0 -- https://github.com/syoyo/tinygltf
 Copyright (c) 2017 Syoyo Fujita, Aurélien Chatelain and many contributors
-** Wayland protocols; version 1.31 --
+** Wayland protocols; version 1.32 --
 https://gitlab.freedesktop.org/wayland/wayland-protocols
 Copyright © 2008-2013 Kristian Høgsberg
 Copyright © 2010-2013 Intel Corporation
@@ -3606,7 +3638,7 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 ------
 
-** OpenVDB; version 10.0.0 -- http://www.openvdb.org/
+** OpenVDB; version 11.0.0 -- http://www.openvdb.org/
 Copyright Contributors to the OpenVDB Project
 
 Mozilla Public License Version 2.0
@@ -4038,7 +4070,7 @@ IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ------
 
-** The LLVM Compiler Infrastructure; version 12.0.0 --
+** The LLVM Compiler Infrastructure; version 17.0.6 --
 https://github.com/llvm/llvm-project/
 University of Illinois/NCSA
 Open Source License
@@ -4064,9 +4096,9 @@ Software.
 
 ------
 
-** OpenSubdiv; version 3.5.0 -- http://graphics.pixar.com/opensubdiv
+** OpenSubdiv; version 3.6.0 -- http://graphics.pixar.com/opensubdiv
 Copyright 2013 Pixar
-** Universal Scene Description; version 23.05 -- http://www.openusd.org/
+** Universal Scene Description; version 23.11 -- http://www.openusd.org/
 Copyright 2016 Pixar
 
 Licensed under the Apache License, Version 2.0 (the "Apache License") with the
@@ -4111,7 +4143,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ------
 
-** Boost C++ Libraries; version 1.80.0 -- https://www.boost.org/
+** Boost C++ Libraries; version 1.82.0 -- https://www.boost.org/
 The Boost license encourages both commercial and non-commercial use and does
 not require attribution for binary use.
 
@@ -4277,7 +4309,7 @@ MIT Expat
 
 ------
 
-** Python; version 3.10.13 -- https://www.python.org
+** Python; version 3.11.7 -- https://www.python.org
 Copyright (c) 2001-2021 Python Software Foundation. All rights reserved.
 
 A. HISTORY OF THE SOFTWARE
@@ -4561,6 +4593,33 @@ INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
 LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
+
+------
+
+** libffi; version 3.4.4 -- https://github.com/libffi/libffi/
+libffi - Copyright (c) 1996-2024  Anthony Green, Red Hat, Inc and others.
+
+libffi - Copyright (c) 1996-2024  Anthony Green, Red Hat, Inc and others.
+See source files for details.
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+``Software''), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ------
 
