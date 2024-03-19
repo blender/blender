@@ -405,6 +405,7 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
     MEM_freeN(op->customdata);
     ED_region_tag_redraw(region);
     ED_workspace_status_text(C, nullptr);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);
     return OPERATOR_FINISHED;
   }
 
