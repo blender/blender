@@ -11,6 +11,7 @@
 struct GPUBatch;
 struct GPUMaterial;
 struct GPUVertBuf;
+struct GPUUniformBuf;
 struct ModifierData;
 struct PTCacheEdit;
 struct ParticleSystem;
@@ -135,8 +136,10 @@ GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
                                                         const char *name,
                                                         bool *r_is_point_domain);
 
+GPUUniformBuf *DRW_curves_batch_cache_ubo_storage(Curves *curves);
 GPUBatch *DRW_curves_batch_cache_get_edit_points(Curves *curves);
-GPUBatch *DRW_curves_batch_cache_get_edit_lines(Curves *curves);
+GPUBatch *DRW_curves_batch_cache_get_edit_curves_handles(Curves *curves);
+GPUBatch *DRW_curves_batch_cache_get_edit_curves_lines(Curves *curves);
 
 void DRW_curves_batch_cache_create_requested(Object *ob);
 
