@@ -684,26 +684,26 @@ vec4 spherical_harmonics_dot(SphericalHarmonicL1 a, SphericalHarmonicL1 b)
  * Described by Josh Hobson in "The indirect Lighting Pipeline of God of War" p. 120
  * \{ */
 
-SphericalHarmonicL1 spherical_harmonics_compress(SphericalHarmonicL1 in_sh)
+SphericalHarmonicL1 spherical_harmonics_compress(SphericalHarmonicL1 sh)
 {
-  SphericalHarmonicL1 out_sh;
-  out_sh.L0 = in_sh.L0;
-  vec4 fac = safe_rcp(in_sh.L0.M0 * M_SQRT3);
-  out_sh.L1.Mn1 = (in_sh.L1.Mn1 * fac) * 0.5 + 0.5;
-  out_sh.L1.M0 = (in_sh.L1.M0 * fac) * 0.5 + 0.5;
-  out_sh.L1.Mp1 = (in_sh.L1.Mp1 * fac) * 0.5 + 0.5;
-  return out_sh;
+  SphericalHarmonicL1 result;
+  result.L0 = sh.L0;
+  vec4 fac = safe_rcp(sh.L0.M0 * M_SQRT3);
+  result.L1.Mn1 = (sh.L1.Mn1 * fac) * 0.5 + 0.5;
+  result.L1.M0 = (sh.L1.M0 * fac) * 0.5 + 0.5;
+  result.L1.Mp1 = (sh.L1.Mp1 * fac) * 0.5 + 0.5;
+  return result;
 }
 
-SphericalHarmonicL1 spherical_harmonics_decompress(SphericalHarmonicL1 in_sh)
+SphericalHarmonicL1 spherical_harmonics_decompress(SphericalHarmonicL1 sh)
 {
-  SphericalHarmonicL1 out_sh;
-  out_sh.L0 = in_sh.L0;
-  vec4 fac = in_sh.L0.M0 * M_SQRT3;
-  out_sh.L1.Mn1 = (in_sh.L1.Mn1 * 2.0 - 1.0) * fac;
-  out_sh.L1.M0 = (in_sh.L1.M0 * 2.0 - 1.0) * fac;
-  out_sh.L1.Mp1 = (in_sh.L1.Mp1 * 2.0 - 1.0) * fac;
-  return out_sh;
+  SphericalHarmonicL1 result;
+  result.L0 = sh.L0;
+  vec4 fac = sh.L0.M0 * M_SQRT3;
+  result.L1.Mn1 = (sh.L1.Mn1 * 2.0 - 1.0) * fac;
+  result.L1.M0 = (sh.L1.M0 * 2.0 - 1.0) * fac;
+  result.L1.Mp1 = (sh.L1.Mp1 * 2.0 - 1.0) * fac;
+  return result;
 }
 
 /** \} */
