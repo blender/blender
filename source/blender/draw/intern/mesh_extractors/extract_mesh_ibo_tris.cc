@@ -41,8 +41,8 @@ static void extract_tris_iter_face_bm(const MeshRenderData &mr,
                                       const int f_index,
                                       void *_data)
 {
-  int tri_first_index = mr.face_sorted->tri_first_index[f_index];
-  if (tri_first_index == -1) {
+  int tri_offset = mr.face_sorted->face_tri_offsets[f_index];
+  if (tri_offset == -1) {
     return;
   }
 
@@ -53,7 +53,7 @@ static void extract_tris_iter_face_bm(const MeshRenderData &mr,
   int tri_len = f->len - 2;
   for (int offs = 0; offs < tri_len; offs++) {
     BMLoop **elt = looptris[tri_first_index_real + offs];
-    int tri_index = tri_first_index + offs;
+    int tri_index = tri_offset + offs;
     GPU_indexbuf_set_tri_verts(elb,
                                tri_index,
                                BM_elem_index_get(elt[0]),
@@ -66,8 +66,8 @@ static void extract_tris_iter_face_mesh(const MeshRenderData &mr,
                                         const int face_index,
                                         void *_data)
 {
-  int tri_first_index = mr.face_sorted->tri_first_index[face_index];
-  if (tri_first_index == -1) {
+  int tri_offset = mr.face_sorted->face_tri_offsets[face_index];
+  if (tri_offset == -1) {
     return;
   }
 
@@ -79,7 +79,7 @@ static void extract_tris_iter_face_mesh(const MeshRenderData &mr,
   int tri_len = face.size() - 2;
   for (int offs = 0; offs < tri_len; offs++) {
     const int3 &tri = mr.corner_tris[tri_first_index_real + offs];
-    int tri_index = tri_first_index + offs;
+    int tri_index = tri_offset + offs;
     GPU_indexbuf_set_tri_verts(elb, tri_index, tri[0], tri[1], tri[2]);
   }
 }
@@ -103,7 +103,7 @@ static void extract_tris_finish(const MeshRenderData &mr,
       if (cache.tris_per_mat[i] == nullptr) {
         cache.tris_per_mat[i] = GPU_indexbuf_calloc();
       }
-      const int mat_tri_len = mr.face_sorted->mat_tri_len[i];
+      const int mat_tri_len = mr.face_sorted->tris_num_by_material[i];
       /* Multiply by 3 because these are triangle indices. */
       const int start = mat_start * 3;
       const int len = mat_tri_len * 3;

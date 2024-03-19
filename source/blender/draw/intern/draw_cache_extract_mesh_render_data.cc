@@ -246,21 +246,21 @@ static Array<int> mesh_render_data_mat_tri_len_build(const MeshRenderData &mr)
     accumululate_material_counts_mesh(mr, all_tri_counts);
   }
 
-  Array<int> &mat_tri_len = all_tri_counts.local();
+  Array<int> &tris_num_by_material = all_tri_counts.local();
   for (const Array<int> &counts : all_tri_counts) {
-    if (&counts != &mat_tri_len) {
-      for (const int i : mat_tri_len.index_range()) {
-        mat_tri_len[i] += counts[i];
+    if (&counts != &tris_num_by_material) {
+      for (const int i : tris_num_by_material.index_range()) {
+        tris_num_by_material[i] += counts[i];
       }
     }
   }
-  return std::move(mat_tri_len);
+  return std::move(tris_num_by_material);
 }
 
 static void mesh_render_data_faces_sorted_build(MeshRenderData &mr, MeshBufferCache &cache)
 {
-  cache.face_sorted.mat_tri_len = mesh_render_data_mat_tri_len_build(mr);
-  const Span<int> mat_tri_len = cache.face_sorted.mat_tri_len;
+  cache.face_sorted.tris_num_by_material = mesh_render_data_mat_tri_len_build(mr);
+  const Span<int> tris_num_by_material = cache.face_sorted.tris_num_by_material;
 
   /* Apply offset. */
   int visible_tris_num = 0;
@@ -268,13 +268,13 @@ static void mesh_render_data_faces_sorted_build(MeshRenderData &mr, MeshBufferCa
   {
     for (int i = 0; i < mr.materials_num; i++) {
       mat_tri_offs[i] = visible_tris_num;
-      visible_tris_num += mat_tri_len[i];
+      visible_tris_num += tris_num_by_material[i];
     }
   }
   cache.face_sorted.visible_tris_num = visible_tris_num;
 
-  cache.face_sorted.tri_first_index.reinitialize(mr.faces_num);
-  MutableSpan<int> tri_first_index = cache.face_sorted.tri_first_index;
+  cache.face_sorted.face_tri_offsets.reinitialize(mr.faces_num);
+  MutableSpan<int> face_tri_offsets = cache.face_sorted.face_tri_offsets;
 
   /* Sort per material. */
   int mat_last = mr.materials_num - 1;
@@ -285,11 +285,11 @@ static void mesh_render_data_faces_sorted_build(MeshRenderData &mr, MeshBufferCa
     BM_ITER_MESH_INDEX (f, &iter, mr.bm, BM_FACES_OF_MESH, i) {
       if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
         const int mat = clamp_i(f->mat_nr, 0, mat_last);
-        tri_first_index[i] = mat_tri_offs[mat];
+        face_tri_offsets[i] = mat_tri_offs[mat];
         mat_tri_offs[mat] += f->len - 2;
       }
       else {
-        tri_first_index[i] = -1;
+        face_tri_offsets[i] = -1;
       }
     }
   }
@@ -299,11 +299,11 @@ static void mesh_render_data_faces_sorted_build(MeshRenderData &mr, MeshBufferCa
         const int mat = mr.material_indices.is_empty() ?
                             0 :
                             clamp_i(mr.material_indices[i], 0, mat_last);
-        tri_first_index[i] = mat_tri_offs[mat];
+        face_tri_offsets[i] = mat_tri_offs[mat];
         mat_tri_offs[mat] += mr.faces[i].size() - 2;
       }
       else {
-        tri_first_index[i] = -1;
+        face_tri_offsets[i] = -1;
       }
     }
   }
@@ -311,7 +311,7 @@ static void mesh_render_data_faces_sorted_build(MeshRenderData &mr, MeshBufferCa
 
 static void mesh_render_data_faces_sorted_ensure(MeshRenderData &mr, MeshBufferCache &cache)
 {
-  if (!cache.face_sorted.tri_first_index.is_empty()) {
+  if (!cache.face_sorted.face_tri_offsets.is_empty()) {
     return;
   }
   mesh_render_data_faces_sorted_build(mr, cache);
