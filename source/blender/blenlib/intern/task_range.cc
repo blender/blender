@@ -223,4 +223,32 @@ void parallel_for_weighted_impl(
   });
 }
 
+void memory_bandwidth_bound_task_impl(const FunctionRef<void()> function)
+{
+#ifdef WITH_TBB
+  /* This is the maximum number of threads that may perform these memory bandwidth bound tasks at
+   * the same time. Often fewer threads are already enough to use up the full bandwidth capacity.
+   * Additional threads usually have a negilible benefit and can even make performance worse.
+   *
+   * It's better to use fewer threads here so that the CPU cores can do other tasks at the same
+   * time which may be more compute intensive. */
+  const int num_threads = 8;
+  if (num_threads >= BLI_task_scheduler_num_threads()) {
+    /* Avoid overhead of using a task arena when it would not have any effect anyway. */
+    function();
+    return;
+  }
+  static tbb::task_arena arena{num_threads};
+
+  /* Make sure the lazy threading hints are send now, because they shouldn't be send out of an
+   * isolated region. */
+  lazy_threading::send_hint();
+  lazy_threading::ReceiverIsolation isolation;
+
+  arena.execute(function);
+#else
+  function();
+#endif
+}
+
 }  // namespace blender::threading::detail
