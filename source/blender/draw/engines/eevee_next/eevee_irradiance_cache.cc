@@ -70,8 +70,6 @@ void VolumeProbeModule::init()
       /* Clear the pool to avoid any interpolation to undefined values. */
       irradiance_atlas_tx_.clear(float4(0.0f));
     }
-
-    inst_.sphere_probes.tag_world_irradiance_for_update();
   }
 
   if (irradiance_atlas_tx_.is_valid() == false) {
@@ -188,6 +186,7 @@ void VolumeProbeModule::set_view(View & /*view*/)
   }
 
   /* Then create brick & grid infos UBOs content. */
+  int world_grid_index = 0;
   {
     /* Stable sorting of grids. */
     std::sort(
@@ -226,6 +225,8 @@ void VolumeProbeModule::set_view(View & /*view*/)
     }
 
     /* Insert world grid last. */
+    world_grid_index = grids_len++;
+
     VolumeProbeData grid;
     grid.world_to_grid_transposed = float3x4::identity();
     grid.grid_size = int3(1);
@@ -233,7 +234,8 @@ void VolumeProbeModule::set_view(View & /*view*/)
     grid.normal_bias = 0.0f;
     grid.view_bias = 0.0f;
     grid.facing_bias = 0.0f;
-    grids_infos_buf_[grids_len++] = grid;
+    grids_infos_buf_[world_grid_index] = grid;
+
     bricks_infos_buf_.append(world_brick_index_);
 
     if (grids_len < IRRADIANCE_GRID_MAX) {
@@ -243,6 +245,25 @@ void VolumeProbeModule::set_view(View & /*view*/)
 
     bricks_infos_buf_.push_update();
     grids_infos_buf_.push_update();
+  }
+
+  /* Upload data for world. */
+  if (do_update_world_) {
+    grid_upload_ps_.init();
+    grid_upload_ps_.shader_set(inst_.shaders.static_shader_get(LIGHTPROBE_IRRADIANCE_WORLD));
+    grid_upload_ps_.bind_ssbo("harmonic_buf", &inst_.sphere_probes.spherical_harmonics_buf());
+    grid_upload_ps_.bind_ubo("grids_infos_buf", &grids_infos_buf_);
+    grid_upload_ps_.bind_ssbo("bricks_infos_buf", &bricks_infos_buf_);
+    grid_upload_ps_.push_constant("grid_index", world_grid_index);
+    grid_upload_ps_.bind_image("irradiance_atlas_img", &irradiance_atlas_tx_);
+    /* Sync with extraction. */
+    grid_upload_ps_.barrier(GPU_BARRIER_SHADER_STORAGE);
+    /* Only upload one brick. */
+    grid_upload_ps_.dispatch(int3(1));
+    /* Sync with next load. */
+    grid_upload_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH);
+
+    inst_.manager->submit(grid_upload_ps_);
   }
 
   /* Upload data for each grid that need to be inserted in the atlas.

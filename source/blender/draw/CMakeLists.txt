@@ -529,6 +529,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_lightprobe_irradiance_ray_comp.glsl
   engines/eevee_next/shaders/eevee_lightprobe_irradiance_offset_comp.glsl
   engines/eevee_next/shaders/eevee_lightprobe_irradiance_load_comp.glsl
+  engines/eevee_next/shaders/eevee_lightprobe_irradiance_world_comp.glsl
   engines/eevee_next/shaders/eevee_lightprobe_lib.glsl
   engines/eevee_next/shaders/eevee_lightprobe_volume_eval_lib.glsl
   engines/eevee_next/shaders/eevee_lookdev_display_frag.glsl
@@ -558,11 +559,11 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_ray_types_lib.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_convolve_comp.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_eval_lib.glsl
+  engines/eevee_next/shaders/eevee_reflection_probe_irradiance_comp.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_lib.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_mapping_lib.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_remap_comp.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_select_comp.glsl
-  engines/eevee_next/shaders/eevee_reflection_probe_update_irradiance_comp.glsl
   engines/eevee_next/shaders/eevee_renderpass_lib.glsl
   engines/eevee_next/shaders/eevee_sampling_lib.glsl
   engines/eevee_next/shaders/eevee_shadow_debug_frag.glsl

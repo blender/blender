@@ -287,11 +287,7 @@ void CaptureView::render_world()
       inst_.pipelines.world.render(view);
     }
 
-    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord);
-  }
-
-  if (update_info->do_world_irradiance_update) {
-    inst_.sphere_probes.update_world_irradiance();
+    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, true);
   }
 
   GPU_debug_group_end();
@@ -349,7 +345,7 @@ void CaptureView::render_probes()
     inst_.render_buffers.release();
     inst_.gbuffer.release();
     GPU_debug_group_end();
-    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord);
+    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, false);
   }
 
   if (inst_.pipelines.data.is_probe_reflection) {
