@@ -37,23 +37,23 @@
 #include "sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint::trim {
-enum eSculptTrimOperationType {
-  SCULPT_GESTURE_TRIM_INTERSECT,
-  SCULPT_GESTURE_TRIM_DIFFERENCE,
-  SCULPT_GESTURE_TRIM_UNION,
-  SCULPT_GESTURE_TRIM_JOIN,
+enum class OperationType {
+  Intersect = 0,
+  Difference = 1,
+  Union = 2,
+  Join = 3,
 };
 
 /* Intersect is not exposed in the UI because it does not work correctly with symmetry (it deletes
  * the symmetrical part of the mesh in the first symmetry pass). */
 static EnumPropertyItem prop_trim_operation_types[] = {
-    {SCULPT_GESTURE_TRIM_DIFFERENCE,
+    {int(OperationType::Difference),
      "DIFFERENCE",
      0,
      "Difference",
      "Use a difference boolean operation"},
-    {SCULPT_GESTURE_TRIM_UNION, "UNION", 0, "Union", "Use a union boolean operation"},
-    {SCULPT_GESTURE_TRIM_JOIN,
+    {int(OperationType::Union), "UNION", 0, "Union", "Use a union boolean operation"},
+    {int(OperationType::Join),
      "JOIN",
      0,
      "Join",
@@ -61,17 +61,17 @@ static EnumPropertyItem prop_trim_operation_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-enum eSculptTrimOrientationType {
-  SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
-  SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE,
+enum class OrientationType {
+  View = 0,
+  Surface = 1,
 };
 static EnumPropertyItem prop_trim_orientation_types[] = {
-    {SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
+    {int(OrientationType::View),
      "VIEW",
      0,
      "View",
      "Use the view to orientate the trimming shape"},
-    {SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE,
+    {int(OrientationType::Surface),
      "SURFACE",
      0,
      "Surface",
@@ -79,18 +79,14 @@ static EnumPropertyItem prop_trim_orientation_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-enum eSculptTrimExtrudeMode {
-  SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT,
-  SCULPT_GESTURE_TRIM_EXTRUDE_FIXED
+enum class ExtrudeMode {
+  Project = 0,
+  Fixed = 1,
 };
 
 static EnumPropertyItem prop_trim_extrude_modes[] = {
-    {SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT,
-     "PROJECT",
-     0,
-     "Project",
-     "Project back faces when extruding"},
-    {SCULPT_GESTURE_TRIM_EXTRUDE_FIXED, "FIXED", 0, "Fixed", "Extrude back faces by fixed amount"},
+    {int(ExtrudeMode::Project), "PROJECT", 0, "Project", "Project back faces when extruding"},
+    {int(ExtrudeMode::Fixed), "FIXED", 0, "Fixed", "Extrude back faces by fixed amount"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -105,9 +101,9 @@ struct SculptGestureTrimOperation {
 
   bool use_cursor_depth;
 
-  eSculptTrimOperationType mode;
-  eSculptTrimOrientationType orientation;
-  eSculptTrimExtrudeMode extrude_mode;
+  OperationType mode;
+  OrientationType orientation;
+  ExtrudeMode extrude_mode;
 };
 
 static void sculpt_gesture_trim_normals_update(gesture::GestureData &gesture_data)
@@ -156,14 +152,14 @@ static void sculpt_gesture_trim_shape_origin_normal_get(gesture::GestureData &ge
    * store them in the final trimming mesh which is going to be used in the boolean operation.
    */
   switch (trim_operation->orientation) {
-    case SCULPT_GESTURE_TRIM_ORIENTATION_VIEW:
+    case OrientationType::View:
       mul_v3_m4v3(r_origin,
                   gesture_data.vc.obact->object_to_world().ptr(),
                   gesture_data.ss->gesture_initial_location);
       copy_v3_v3(r_normal, gesture_data.world_space_view_normal);
       negate_v3(r_normal);
       break;
-    case SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE:
+    case OrientationType::Surface:
       mul_v3_m4v3(r_origin,
                   gesture_data.vc.obact->object_to_world().ptr(),
                   gesture_data.ss->gesture_initial_location);
@@ -215,7 +211,7 @@ static void sculpt_gesture_trim_calculate_depth(gesture::GestureData &gesture_da
                 ss->gesture_initial_location);
 
     float mid_point_depth;
-    if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
+    if (trim_operation->orientation == OrientationType::View) {
       mid_point_depth = ss->gesture_initial_hit ?
                             dist_signed_to_plane_v3(world_space_gesture_initial_location,
                                                     shape_plane) :
@@ -298,16 +294,16 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData &gesture_
 
   const float(*ob_imat)[4] = vc->obact->world_to_object().ptr();
 
-  /* Write vertices coordinatesSCULPT_GESTURE_TRIM_DIFFERENCE for the front face. */
+  /* Write vertices coordinates OperationType::Difference for the front face. */
   MutableSpan<float3> positions = trim_operation->mesh->vert_positions_for_write();
 
   float depth_point[3];
 
-  /* Get origin point for SCULPT_GESTURE_TRIM_ORIENTATION_VIEW.
+  /* Get origin point for OrientationType::View.
    * Note: for projection extrusion we add depth_front here
    * instead of in the loop.
    */
-  if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_FIXED) {
+  if (trim_operation->extrude_mode == ExtrudeMode::Fixed) {
     copy_v3_v3(depth_point, shape_origin);
   }
   else {
@@ -316,11 +312,11 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData &gesture_
 
   for (const int i : screen_points.index_range()) {
     float new_point[3];
-    if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
+    if (trim_operation->orientation == OrientationType::View) {
       ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
 
       /* For fixed mode we add the shape normal here to avoid projection errors. */
-      if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_FIXED) {
+      if (trim_operation->extrude_mode == ExtrudeMode::Fixed) {
         madd_v3_v3fl(new_point, shape_normal, depth_front);
       }
     }
@@ -337,8 +333,8 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData &gesture_
   for (const int i : screen_points.index_range()) {
     float new_point[3];
 
-    if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT) {
-      if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
+    if (trim_operation->extrude_mode == ExtrudeMode::Project) {
+      if (trim_operation->orientation == OrientationType::View) {
         ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
       }
       else {
@@ -497,19 +493,19 @@ static void sculpt_gesture_apply_trim(gesture::GestureData &gesture_data)
   }
 
   /* Join does not do a boolean operation, it just adds the geometry. */
-  if (trim_operation->mode != SCULPT_GESTURE_TRIM_JOIN) {
+  if (trim_operation->mode != OperationType::Join) {
     int boolean_mode = 0;
     switch (trim_operation->mode) {
-      case SCULPT_GESTURE_TRIM_INTERSECT:
+      case OperationType::Intersect:
         boolean_mode = eBooleanModifierOp_Intersect;
         break;
-      case SCULPT_GESTURE_TRIM_DIFFERENCE:
+      case OperationType::Difference:
         boolean_mode = eBooleanModifierOp_Difference;
         break;
-      case SCULPT_GESTURE_TRIM_UNION:
+      case OperationType::Union:
         boolean_mode = eBooleanModifierOp_Union;
         break;
-      case SCULPT_GESTURE_TRIM_JOIN:
+      case OperationType::Join:
         BLI_assert(false);
         break;
     }
@@ -593,15 +589,14 @@ static void sculpt_gesture_init_trim_properties(gesture::GestureData &gesture_da
   trim_operation->op.apply_for_symmetry_pass = sculpt_gesture_trim_apply_for_symmetry_pass;
   trim_operation->op.end = sculpt_gesture_trim_end;
 
-  trim_operation->mode = eSculptTrimOperationType(RNA_enum_get(op.ptr, "trim_mode"));
+  trim_operation->mode = OperationType(RNA_enum_get(op.ptr, "trim_mode"));
   trim_operation->use_cursor_depth = RNA_boolean_get(op.ptr, "use_cursor_depth");
-  trim_operation->orientation = eSculptTrimOrientationType(
-      RNA_enum_get(op.ptr, "trim_orientation"));
-  trim_operation->extrude_mode = eSculptTrimExtrudeMode(RNA_enum_get(op.ptr, "trim_extrude_mode"));
+  trim_operation->orientation = OrientationType(RNA_enum_get(op.ptr, "trim_orientation"));
+  trim_operation->extrude_mode = ExtrudeMode(RNA_enum_get(op.ptr, "trim_extrude_mode"));
 
   /* If the cursor was not over the mesh, force the orientation to view. */
   if (!gesture_data.ss->gesture_initial_hit) {
-    trim_operation->orientation = SCULPT_GESTURE_TRIM_ORIENTATION_VIEW;
+    trim_operation->orientation = OrientationType::View;
   }
 }
 
@@ -610,7 +605,7 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "trim_mode",
                prop_trim_operation_types,
-               SCULPT_GESTURE_TRIM_DIFFERENCE,
+               int(OperationType::Difference),
                "Trim Mode",
                nullptr);
   RNA_def_boolean(
@@ -622,13 +617,13 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
   RNA_def_enum(ot->srna,
                "trim_orientation",
                prop_trim_orientation_types,
-               SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
+               int(OrientationType::View),
                "Shape Orientation",
                nullptr);
   RNA_def_enum(ot->srna,
                "trim_extrude_mode",
                prop_trim_extrude_modes,
-               SCULPT_GESTURE_TRIM_EXTRUDE_FIXED,
+               int(ExtrudeMode::Fixed),
                "Extrude Mode",
                nullptr);
 }
