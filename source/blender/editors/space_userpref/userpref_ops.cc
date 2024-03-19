@@ -688,12 +688,33 @@ static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
 /** \name Drop Extension Operator
  * \{ */
 
-static int preferences_extension_url_drop_exec(bContext *C, wmOperator *op)
+static int preferences_extension_url_drop_invoke(bContext *C,
+                                                 wmOperator *op,
+                                                 const wmEvent * /*event*/)
 {
   char *url = RNA_string_get_alloc(op->ptr, "url", nullptr, 0, nullptr);
-  BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_EXTENSION_DROP_URL, url);
+  const bool url_is_remote = STRPREFIX(url, "http://") || STRPREFIX(url, "https://") ||
+                             STRPREFIX(url, "file://");
+
+  /* NOTE: searching for hard-coded add-on name isn't great.
+   * Needed since #WM_dropbox_add expects the operator to exist on startup. */
+  const char *idname_external = url_is_remote ? "bl_pkg.pkg_install" : "bl_pkg.pkg_install_files";
+  wmOperatorType *ot = WM_operatortype_find(idname_external, true);
+  int retval;
+  if (ot) {
+    PointerRNA props_ptr;
+    WM_operator_properties_create_ptr(&props_ptr, ot);
+    RNA_string_set(&props_ptr, "url", url);
+    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
+    WM_operator_properties_free(&props_ptr);
+    retval = OPERATOR_FINISHED;
+  }
+  else {
+    BKE_reportf(op->reports, RPT_ERROR, "Extension operator not found \"%s\"", idname_external);
+    retval = OPERATOR_CANCELLED;
+  }
   MEM_freeN(url);
-  return OPERATOR_FINISHED;
+  return retval;
 }
 
 static void PREFERENCES_OT_extension_url_drop(wmOperatorType *ot)
@@ -704,7 +725,7 @@ static void PREFERENCES_OT_extension_url_drop(wmOperatorType *ot)
   ot->idname = "PREFERENCES_OT_extension_url_drop";
 
   /* api callbacks */
-  ot->exec = preferences_extension_url_drop_exec;
+  ot->invoke = preferences_extension_url_drop_invoke;
 
   RNA_def_string(ot->srna, "url", nullptr, 0, "URL", "Location of the extension to install");
 }

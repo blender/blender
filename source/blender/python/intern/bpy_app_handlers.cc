@@ -96,7 +96,6 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"_extension_repos_update_post", "on changes to extension repos (after)"},
     {"_extension_repos_sync", "on creating or synchronizing the active repository"},
     {"_extension_repos_upgrade", "on upgrading the active repository"},
-    {"_extension_drop_url", "on dropping a URL"},
 
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1
