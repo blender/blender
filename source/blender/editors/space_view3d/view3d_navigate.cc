@@ -791,6 +791,7 @@ void viewrotate_apply_dyn_ofs(ViewOpsData *vod, const float viewquat_new[4])
 
 bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 {
+  using namespace blender;
   static float lastofs[3] = {0, 0, 0};
   bool is_set = false;
 
@@ -830,14 +831,13 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     float select_center[3];
 
     zero_v3(select_center);
-    LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
+    LISTBASE_FOREACH (const Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
       if (BASE_SELECTED(v3d, base_eval)) {
         /* Use the bounding-box if we can. */
-        Object *ob_eval = base_eval->object;
+        const Object *ob_eval = base_eval->object;
 
-        if (ob_eval->runtime->bounds_eval) {
-          blender::float3 cent = blender::math::midpoint(ob_eval->runtime->bounds_eval->min,
-                                                         ob_eval->runtime->bounds_eval->max);
+        if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob_eval)) {
+          const float3 cent = math::midpoint(bounds->min, bounds->max);
           mul_m4_v3(ob_eval->object_to_world, cent);
           add_v3_v3(select_center, cent);
         }
