@@ -10,3 +10,4 @@ requests==2.31.0
 # Only needed to match the theme used for the official documentation.
 # Without this theme, the default theme will be used.
 furo==2024.1.29
+sphinx-basic-ng==1.0.0b2
