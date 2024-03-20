@@ -22,34 +22,7 @@
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_closure_lib.glsl)
-
-float bilateral_depth_weight(vec3 center_N, vec3 center_P, vec3 sample_P)
-{
-  vec4 center_plane_eq = vec4(center_N, -dot(center_N, center_P));
-  /* Only compare distance to the center plane formed by the normal. */
-  float depth_delta = dot(center_plane_eq, vec4(sample_P, 1.0));
-  /* TODO(fclem): Scene parameter. This is dependent on scene scale. */
-  const float scale = 10000.0;
-  float weight = exp2(-scale * square(depth_delta));
-  return weight;
-}
-
-float bilateral_spatial_weight(float sigma, vec2 offset_from_center)
-{
-  /* From https://github.com/tranvansang/bilateral-filter/blob/master/fshader.frag */
-  float fac = -1.0 / square(sigma);
-  /* Take two standard deviation. */
-  fac *= 2.0;
-  float weight = exp2(fac * length_squared(offset_from_center));
-  return weight;
-}
-
-float bilateral_normal_weight(vec3 center_N, vec3 sample_N)
-{
-  float facing_ratio = dot(center_N, sample_N);
-  float weight = saturate(pow8f(facing_ratio));
-  return weight;
-}
+#pragma BLENDER_REQUIRE(eevee_filter_lib.glsl)
 
 /* In order to remove some more fireflies, "tone-map" the color samples during the accumulation. */
 vec3 to_accumulation_space(vec3 color)
@@ -141,9 +114,12 @@ void main()
       continue;
     }
 
-    float depth_weight = bilateral_depth_weight(center_closure.N, center_P, sample_P);
-    float spatial_weight = bilateral_spatial_weight(filter_size, vec2(offset));
-    float normal_weight = bilateral_normal_weight(center_closure.N, sample_closure.N);
+    float gauss = filter_gaussian_factor(filter_size, 1.5);
+
+    /* TODO(fclem): Scene parameter. 10000.0 is dependent on scene scale. */
+    float depth_weight = filter_planar_weight(center_closure.N, center_P, sample_P, 10000.0);
+    float spatial_weight = filter_gaussian_weight(gauss, length_squared(vec2(offset)));
+    float normal_weight = filter_angle_weight(center_closure.N, sample_closure.N);
     float weight = depth_weight * spatial_weight * normal_weight;
 
     accum_radiance += to_accumulation_space(radiance) * weight;

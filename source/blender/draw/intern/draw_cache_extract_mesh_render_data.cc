@@ -82,14 +82,14 @@ static void mesh_render_data_loose_verts_bm(const MeshRenderData &mr,
   BMIter iter;
   BMVert *vert;
   int count = 0;
-  Array<int> loose_verts(mr.vert_len);
+  Array<int> loose_verts(mr.verts_num);
   BM_ITER_MESH_INDEX (vert, &iter, &bm, BM_VERTS_OF_MESH, i) {
     if (vert->e == nullptr) {
       loose_verts[count] = i;
       count++;
     }
   }
-  if (count < mr.vert_len) {
+  if (count < mr.verts_num) {
     cache.loose_geom.verts = loose_verts.as_span().take_front(count);
   }
   else {
@@ -105,14 +105,14 @@ static void mesh_render_data_loose_edges_bm(const MeshRenderData &mr,
   BMIter iter;
   BMEdge *edge;
   int count = 0;
-  Array<int> loose_edges(mr.edge_len);
+  Array<int> loose_edges(mr.edges_num);
   BM_ITER_MESH_INDEX (edge, &iter, &bm, BM_EDGES_OF_MESH, i) {
     if (edge->l == nullptr) {
       loose_edges[count] = i;
       count++;
     }
   }
-  if (count < mr.edge_len) {
+  if (count < mr.edges_num) {
     cache.loose_geom.edges = loose_edges.as_span().take_front(count);
   }
   else {
@@ -154,10 +154,10 @@ void mesh_render_data_update_loose_geom(MeshRenderData &mr,
     mesh_render_data_loose_geom_ensure(mr, cache);
     mr.loose_edges = cache.loose_geom.edges;
     mr.loose_verts = cache.loose_geom.verts;
-    mr.vert_loose_len = cache.loose_geom.verts.size();
-    mr.edge_loose_len = cache.loose_geom.edges.size();
+    mr.loose_verts_num = cache.loose_geom.verts.size();
+    mr.loose_edges_num = cache.loose_geom.edges.size();
 
-    mr.loop_loose_len = mr.vert_loose_len + (mr.edge_loose_len * 2);
+    mr.loose_indices_num = mr.loose_verts_num + (mr.loose_edges_num * 2);
   }
 }
 
@@ -207,7 +207,7 @@ static void accumululate_material_counts_mesh(
           std::plus<int>());
     }
     else {
-      all_tri_counts.local().first() = poly_to_tri_count(mr.face_len, mr.loop_len);
+      all_tri_counts.local().first() = poly_to_tri_count(mr.faces_num, mr.corners_num);
     }
     return;
   }
@@ -237,7 +237,7 @@ static void accumululate_material_counts_mesh(
 static Array<int> mesh_render_data_mat_tri_len_build(const MeshRenderData &mr)
 {
   threading::EnumerableThreadSpecific<Array<int>> all_tri_counts(
-      [&]() { return Array<int>(mr.mat_len, 0); });
+      [&]() { return Array<int>(mr.materials_num, 0); });
 
   if (mr.extract_type == MR_EXTRACT_BMESH) {
     accumululate_material_counts_bm(*mr.bm, all_tri_counts);
@@ -246,38 +246,38 @@ static Array<int> mesh_render_data_mat_tri_len_build(const MeshRenderData &mr)
     accumululate_material_counts_mesh(mr, all_tri_counts);
   }
 
-  Array<int> &mat_tri_len = all_tri_counts.local();
+  Array<int> &tris_num_by_material = all_tri_counts.local();
   for (const Array<int> &counts : all_tri_counts) {
-    if (&counts != &mat_tri_len) {
-      for (const int i : mat_tri_len.index_range()) {
-        mat_tri_len[i] += counts[i];
+    if (&counts != &tris_num_by_material) {
+      for (const int i : tris_num_by_material.index_range()) {
+        tris_num_by_material[i] += counts[i];
       }
     }
   }
-  return std::move(mat_tri_len);
+  return std::move(tris_num_by_material);
 }
 
 static void mesh_render_data_faces_sorted_build(MeshRenderData &mr, MeshBufferCache &cache)
 {
-  cache.face_sorted.mat_tri_len = mesh_render_data_mat_tri_len_build(mr);
-  const Span<int> mat_tri_len = cache.face_sorted.mat_tri_len;
+  cache.face_sorted.tris_num_by_material = mesh_render_data_mat_tri_len_build(mr);
+  const Span<int> tris_num_by_material = cache.face_sorted.tris_num_by_material;
 
   /* Apply offset. */
-  int visible_tri_len = 0;
-  Array<int, 32> mat_tri_offs(mr.mat_len);
+  int visible_tris_num = 0;
+  Array<int, 32> mat_tri_offs(mr.materials_num);
   {
-    for (int i = 0; i < mr.mat_len; i++) {
-      mat_tri_offs[i] = visible_tri_len;
-      visible_tri_len += mat_tri_len[i];
+    for (int i = 0; i < mr.materials_num; i++) {
+      mat_tri_offs[i] = visible_tris_num;
+      visible_tris_num += tris_num_by_material[i];
     }
   }
-  cache.face_sorted.visible_tri_len = visible_tri_len;
+  cache.face_sorted.visible_tris_num = visible_tris_num;
 
-  cache.face_sorted.tri_first_index.reinitialize(mr.face_len);
-  MutableSpan<int> tri_first_index = cache.face_sorted.tri_first_index;
+  cache.face_sorted.face_tri_offsets.reinitialize(mr.faces_num);
+  MutableSpan<int> face_tri_offsets = cache.face_sorted.face_tri_offsets;
 
   /* Sort per material. */
-  int mat_last = mr.mat_len - 1;
+  int mat_last = mr.materials_num - 1;
   if (mr.extract_type == MR_EXTRACT_BMESH) {
     BMIter iter;
     BMFace *f;
@@ -285,25 +285,25 @@ static void mesh_render_data_faces_sorted_build(MeshRenderData &mr, MeshBufferCa
     BM_ITER_MESH_INDEX (f, &iter, mr.bm, BM_FACES_OF_MESH, i) {
       if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
         const int mat = clamp_i(f->mat_nr, 0, mat_last);
-        tri_first_index[i] = mat_tri_offs[mat];
+        face_tri_offsets[i] = mat_tri_offs[mat];
         mat_tri_offs[mat] += f->len - 2;
       }
       else {
-        tri_first_index[i] = -1;
+        face_tri_offsets[i] = -1;
       }
     }
   }
   else {
-    for (int i = 0; i < mr.face_len; i++) {
+    for (int i = 0; i < mr.faces_num; i++) {
       if (!(mr.use_hide && !mr.hide_poly.is_empty() && mr.hide_poly[i])) {
         const int mat = mr.material_indices.is_empty() ?
                             0 :
                             clamp_i(mr.material_indices[i], 0, mat_last);
-        tri_first_index[i] = mat_tri_offs[mat];
+        face_tri_offsets[i] = mat_tri_offs[mat];
         mat_tri_offs[mat] += mr.faces[i].size() - 2;
       }
       else {
-        tri_first_index[i] = -1;
+        face_tri_offsets[i] = -1;
       }
     }
   }
@@ -311,7 +311,7 @@ static void mesh_render_data_faces_sorted_build(MeshRenderData &mr, MeshBufferCa
 
 static void mesh_render_data_faces_sorted_ensure(MeshRenderData &mr, MeshBufferCache &cache)
 {
-  if (!cache.face_sorted.tri_first_index.is_empty()) {
+  if (!cache.face_sorted.face_tri_offsets.is_empty()) {
     return;
   }
   mesh_render_data_faces_sorted_build(mr, cache);
@@ -513,7 +513,7 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
         face_normals = reinterpret_cast<const float(*)[3]>(mr.bm_face_normals.data());
       }
 
-      mr.bm_loop_normals.reinitialize(mr.loop_len);
+      mr.bm_loop_normals.reinitialize(mr.corners_num);
       const int clnors_offset = CustomData_get_offset(&mr.bm->ldata, CD_CUSTOMLOOPNORMAL);
       BM_loops_calc_normal_vcos(mr.bm,
                                 vert_coords,
@@ -552,7 +552,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
 {
   MeshRenderData *mr = MEM_new<MeshRenderData>(__func__);
   mr->toolsettings = ts;
-  mr->mat_len = mesh_render_mat_len_get(object, mesh);
+  mr->materials_num = mesh_render_mat_len_get(object, mesh);
 
   mr->object_to_world = object_to_world;
 
@@ -656,11 +656,11 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
   if (mr->extract_type != MR_EXTRACT_BMESH) {
     /* Mesh */
-    mr->vert_len = mr->mesh->verts_num;
-    mr->edge_len = mr->mesh->edges_num;
-    mr->loop_len = mr->mesh->corners_num;
-    mr->face_len = mr->mesh->faces_num;
-    mr->tri_len = poly_to_tri_count(mr->face_len, mr->loop_len);
+    mr->verts_num = mr->mesh->verts_num;
+    mr->edges_num = mr->mesh->edges_num;
+    mr->faces_num = mr->mesh->faces_num;
+    mr->corners_num = mr->mesh->corners_num;
+    mr->corner_tris_num = poly_to_tri_count(mr->faces_num, mr->corners_num);
 
     mr->vert_positions = mr->mesh->vert_positions();
     mr->edges = mr->mesh->edges();
@@ -699,11 +699,11 @@ MeshRenderData *mesh_render_data_create(Object *object,
     /* #BMesh */
     BMesh *bm = mr->bm;
 
-    mr->vert_len = bm->totvert;
-    mr->edge_len = bm->totedge;
-    mr->loop_len = bm->totloop;
-    mr->face_len = bm->totface;
-    mr->tri_len = poly_to_tri_count(mr->face_len, mr->loop_len);
+    mr->verts_num = bm->totvert;
+    mr->edges_num = bm->totedge;
+    mr->faces_num = bm->totface;
+    mr->corners_num = bm->totloop;
+    mr->corner_tris_num = poly_to_tri_count(mr->faces_num, mr->corners_num);
 
     mr->normals_domain = bmesh_normals_domain(bm);
   }

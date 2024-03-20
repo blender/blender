@@ -648,6 +648,10 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   tbuf.display_buffer_flags = nullptr;
   tbuf.colormanage_cache = nullptr;
 
+  /* GPU textures can not be easily copied, as it is not guaranteed that this function is called
+   * from within an active GPU context. */
+  tbuf.gpu.texture = nullptr;
+
   *ibuf2 = tbuf;
 
   return ibuf2;

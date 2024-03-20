@@ -213,6 +213,11 @@ class ShadowModule {
   /** Map of shadow casters to track deletion & update of intersected shadows. */
   Map<ObjectKey, ShadowObject> objects_;
 
+  /* Used to call caster_update_ps_ only once per sync (Initialized on begin_sync). */
+  bool update_casters_ = false;
+
+  bool jittered_transparency_ = false;
+
   /* -------------------------------------------------------------------- */
   /** \name Tile-map Management
    * \{ */
@@ -229,9 +234,11 @@ class ShadowModule {
   Framebuffer usage_tag_fb;
 
   PassSimple caster_update_ps_ = {"CasterUpdate"};
+  PassSimple jittered_transparent_caster_update_ps_ = {"TransparentCasterUpdate"};
   /** List of Resource IDs (to get bounds) for tagging passes. */
   StorageVectorBuffer<uint, 128> past_casters_updated_ = {"PastCastersUpdated"};
   StorageVectorBuffer<uint, 128> curr_casters_updated_ = {"CurrCastersUpdated"};
+  StorageVectorBuffer<uint, 128> jittered_transparent_casters_ = {"JitteredTransparentCasters"};
   /** List of Resource IDs (to get bounds) for getting minimum clip-maps bounds. */
   StorageVectorBuffer<uint, 128> curr_casters_ = {"CurrCasters"};
 
@@ -249,8 +256,6 @@ class ShadowModule {
   StorageArrayBuffer<uint, SHADOW_VIEW_MAX, true> viewport_index_buf_ = {"viewport_index_buf"};
 
   int3 dispatch_depth_scan_size_;
-  /* Ratio between tile-map pixel world "radius" and film pixel world "radius". */
-  float tilemap_projection_ratio_;
   float pixel_world_radius_;
   int2 usage_tag_fb_resolution_;
   int usage_tag_fb_lod_ = 5;
@@ -334,7 +339,8 @@ class ShadowModule {
   void sync_object(const Object *ob,
                    const ObjectHandle &handle,
                    const ResourceHandle &resource_handle,
-                   bool is_alpha_blend);
+                   bool is_alpha_blend,
+                   bool has_transparent_shadows);
   void end_sync();
 
   void set_lights_data();
@@ -357,6 +363,11 @@ class ShadowModule {
   const ShadowSceneData &get_data()
   {
     return data_;
+  }
+
+  float get_global_lod_bias()
+  {
+    return lod_bias_;
   }
 
  private:

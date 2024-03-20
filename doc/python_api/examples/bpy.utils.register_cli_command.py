@@ -1,6 +1,5 @@
 """
-Custom Commands
----------------
+**Custom Commands**
 
 Registering commands makes it possible to conveniently expose command line
 functionality via commands passed to (``-c`` / ``--command``).

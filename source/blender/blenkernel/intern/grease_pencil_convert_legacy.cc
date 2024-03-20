@@ -400,6 +400,15 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
     grease_pencil.id.properties = IDP_CopyProperty(gpd.id.properties);
   }
 
+  /** Convert Grease Pencil data flag. */
+  SET_FLAG_FROM_TEST(
+      grease_pencil.flag, (gpd.flag & GP_DATA_EXPAND) != 0, GREASE_PENCIL_ANIM_CHANNEL_EXPANDED);
+  SET_FLAG_FROM_TEST(grease_pencil.flag,
+                     (gpd.flag & GP_DATA_AUTOLOCK_LAYERS) != 0,
+                     GREASE_PENCIL_AUTOLOCK_LAYERS);
+  SET_FLAG_FROM_TEST(
+      grease_pencil.flag, (gpd.draw_mode == GP_DRAWMODE_3D), GREASE_PENCIL_STROKE_ORDER_3D);
+
   int num_drawings = 0;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd.layers) {
     num_drawings += BLI_listbase_count(&gpl->frames);
@@ -426,6 +435,8 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
     SET_FLAG_FROM_TEST(new_layer.base.flag,
                        (gpl->onion_flag & GP_LAYER_ONIONSKIN),
                        GP_LAYER_TREE_NODE_USE_ONION_SKINNING);
+    SET_FLAG_FROM_TEST(
+        new_layer.base.flag, (gpl->flag & GP_LAYER_USE_MASK) == 0, GP_LAYER_TREE_NODE_HIDE_MASKS);
 
     new_layer.blend_mode = int8_t(gpl->blend_mode);
 
@@ -436,9 +447,11 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
     copy_v3_v3(new_layer.rotation, gpl->rotation);
     copy_v3_v3(new_layer.scale, gpl->scale);
 
+    new_layer.set_view_layer_name(gpl->viewlayername);
+
     /* Convert the layer masks. */
     LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl->mask_layers) {
-      LayerMask *new_mask = MEM_new<LayerMask>(mask->name);
+      LayerMask *new_mask = MEM_new<LayerMask>(__func__, mask->name);
       new_mask->flag = mask->flag;
       BLI_addtail(&new_layer.masks, new_mask);
     }
@@ -1724,6 +1737,97 @@ static void legacy_object_modifier_weight_lineart(Object &object, GpencilModifie
   greasepencil::convert::lineart_wrap_v3(&legacy_md_lineart, &md_lineart);
 }
 
+static void legacy_object_modifier_build(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilBuild, legacy_md);
+  auto &md_build = reinterpret_cast<GreasePencilBuildModifierData &>(md);
+  auto &legacy_md_build = reinterpret_cast<BuildGpencilModifierData &>(legacy_md);
+
+  md_build.flag = 0;
+  if (legacy_md_build.flag & GP_BUILD_RESTRICT_TIME) {
+    md_build.flag |= MOD_GREASE_PENCIL_BUILD_RESTRICT_TIME;
+  }
+  if (legacy_md_build.flag & GP_BUILD_USE_FADING) {
+    md_build.flag |= MOD_GREASE_PENCIL_BUILD_USE_FADING;
+  }
+
+  switch (legacy_md_build.mode) {
+    case GP_BUILD_MODE_ADDITIVE:
+      md_build.mode = MOD_GREASE_PENCIL_BUILD_MODE_ADDITIVE;
+      break;
+    case GP_BUILD_MODE_CONCURRENT:
+      md_build.mode = MOD_GREASE_PENCIL_BUILD_MODE_CONCURRENT;
+      break;
+    case GP_BUILD_MODE_SEQUENTIAL:
+    default:
+      md_build.mode = MOD_GREASE_PENCIL_BUILD_MODE_SEQUENTIAL;
+      break;
+  }
+
+  switch (legacy_md_build.time_alignment) {
+    default:
+    case GP_BUILD_TIMEALIGN_START:
+      md_build.mode = MOD_GREASE_PENCIL_BUILD_TIMEALIGN_START;
+      break;
+    case GP_BUILD_TIMEALIGN_END:
+      md_build.mode = MOD_GREASE_PENCIL_BUILD_TIMEALIGN_END;
+      break;
+  }
+
+  switch (legacy_md_build.time_mode) {
+    default:
+    case GP_BUILD_TIMEMODE_FRAMES:
+      md_build.mode = MOD_GREASE_PENCIL_BUILD_TIMEMODE_FRAMES;
+      break;
+    case GP_BUILD_TIMEMODE_PERCENTAGE:
+      md_build.mode = MOD_GREASE_PENCIL_BUILD_TIMEMODE_PERCENTAGE;
+      break;
+    case GP_BUILD_TIMEMODE_DRAWSPEED:
+      md_build.mode = MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED;
+      break;
+  }
+
+  switch (legacy_md_build.transition) {
+    default:
+    case GP_BUILD_TRANSITION_GROW:
+      md_build.mode = MOD_GREASE_PENCIL_BUILD_TRANSITION_GROW;
+      break;
+    case GP_BUILD_TRANSITION_SHRINK:
+      md_build.mode = MOD_GREASE_PENCIL_BUILD_TRANSITION_SHRINK;
+      break;
+    case GP_BUILD_TRANSITION_VANISH:
+      md_build.mode = MOD_GREASE_PENCIL_BUILD_TRANSITION_VANISH;
+      break;
+  }
+
+  md_build.start_frame = legacy_md_build.start_frame;
+  md_build.end_frame = legacy_md_build.end_frame;
+  md_build.start_delay = legacy_md_build.start_delay;
+  md_build.length = legacy_md_build.length;
+  md_build.fade_fac = legacy_md_build.fade_fac;
+  md_build.fade_opacity_strength = legacy_md_build.fade_opacity_strength;
+  md_build.fade_thickness_strength = legacy_md_build.fade_thickness_strength;
+  md_build.percentage_fac = legacy_md_build.percentage_fac;
+  md_build.speed_fac = legacy_md_build.speed_fac;
+  md_build.speed_maxgap = legacy_md_build.speed_maxgap;
+  STRNCPY(md_build.target_vgname, legacy_md_build.target_vgname);
+
+  legacy_object_modifier_influence(md_build.influence,
+                                   legacy_md_build.layername,
+                                   legacy_md_build.layer_pass,
+                                   legacy_md_build.flag & GP_WEIGHT_INVERT_LAYER,
+                                   legacy_md_build.flag & GP_WEIGHT_INVERT_LAYERPASS,
+                                   &legacy_md_build.material,
+                                   legacy_md_build.pass_index,
+                                   legacy_md_build.flag & GP_WEIGHT_INVERT_MATERIAL,
+                                   legacy_md_build.flag & GP_WEIGHT_INVERT_PASS,
+                                   legacy_md_build.target_vgname,
+                                   legacy_md_build.flag & GP_WEIGHT_INVERT_VGROUP,
+                                   nullptr,
+                                   false);
+}
+
 static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
 {
   BLI_assert(BLI_listbase_is_empty(&object.modifiers));
@@ -1805,6 +1909,8 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
         legacy_object_modifier_weight_lineart(object, *gpd_md);
         break;
       case eGpencilModifierType_Build:
+        legacy_object_modifier_build(object, *gpd_md);
+        break;
       case eGpencilModifierType_Simplify:
       case eGpencilModifierType_Texture:
         break;

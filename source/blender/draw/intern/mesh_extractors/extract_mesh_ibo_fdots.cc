@@ -21,7 +21,7 @@ static void extract_fdots_init(const MeshRenderData &mr,
                                void *tls_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
-  GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr.face_len, mr.face_len);
+  GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr.faces_num, mr.faces_num);
 }
 
 static void extract_fdots_iter_face_bm(const MeshRenderData & /*mr*/,

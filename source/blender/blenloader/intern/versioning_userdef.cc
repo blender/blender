@@ -481,7 +481,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(275, 2)) {
-    userdef->ndof_deadzone = 0.1;
+    userdef->ndof_deadzone = 0.0;
   }
 
   if (!USER_VERSION_ATLEAST(275, 4)) {

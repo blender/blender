@@ -157,7 +157,10 @@ static MaterialGPencilStyle *gpencil_viewport_material_overrides(
   return gp_style;
 }
 
-GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Object *ob, int *ofs)
+GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd,
+                                                   Object *ob,
+                                                   int *ofs,
+                                                   const bool is_vertex_mode)
 {
   GPENCIL_MaterialPool *matpool = pd->last_material_pool;
 
@@ -175,10 +178,8 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
   }
 
   /* Force vertex color in solid mode with vertex paint mode. Same behavior as meshes. */
-  bGPdata *gpd = (bGPdata *)ob->data;
-  int color_type = (pd->v3d_color_type != -1 && GPENCIL_VERTEX_MODE(gpd)) ?
-                       V3D_SHADING_VERTEX_COLOR :
-                       pd->v3d_color_type;
+  int color_type = (pd->v3d_color_type != -1 && is_vertex_mode) ? V3D_SHADING_VERTEX_COLOR :
+                                                                  pd->v3d_color_type;
   const eV3DShadingLightingMode lighting_mode = eV3DShadingLightingMode(
       (pd->v3d != nullptr) ? eV3DShadingLightingMode(pd->v3d->shading.light) :
                              V3D_LIGHTING_STUDIO);

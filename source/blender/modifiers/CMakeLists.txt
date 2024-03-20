@@ -51,6 +51,7 @@ set(SRC
   intern/MOD_fluid.cc
   intern/MOD_grease_pencil_armature.cc
   intern/MOD_grease_pencil_array.cc
+  intern/MOD_grease_pencil_build.cc
   intern/MOD_grease_pencil_color.cc
   intern/MOD_grease_pencil_dash.cc
   intern/MOD_grease_pencil_envelope.cc

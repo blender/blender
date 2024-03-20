@@ -139,7 +139,7 @@ static void extract_paint_overlay_flags(const MeshRenderData &mr, MutableSpan<GP
     }
     if (mr.edit_bmesh && mr.v_origindex) {
       const Span<int> corner_verts = mr.corner_verts;
-      const Span<int> orig_indices(mr.v_origindex, mr.vert_len);
+      const Span<int> orig_indices(mr.v_origindex, mr.verts_num);
       for (const int face : range) {
         for (const int corner : faces[face]) {
           if (orig_indices[corner_verts[corner]] == ORIGINDEX_NONE) {
@@ -163,10 +163,11 @@ static void extract_lnor_init(const MeshRenderData &mr,
     GPU_vertformat_alias_add(&format, "lnor");
   }
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.loop_len);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
-    MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(vbo)), mr.loop_len);
+    MutableSpan vbo_data(static_cast<GPUPackedNormal *>(GPU_vertbuf_get_data(vbo)),
+                         mr.corners_num);
     extract_normals_mesh(mr, vbo_data);
     extract_paint_overlay_flags(mr, vbo_data);
   }
@@ -258,10 +259,10 @@ static void extract_lnor_hq_init(const MeshRenderData &mr,
     GPU_vertformat_alias_add(&format, "lnor");
   }
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.loop_len);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
-    MutableSpan vbo_data(static_cast<short4 *>(GPU_vertbuf_get_data(vbo)), mr.loop_len);
+    MutableSpan vbo_data(static_cast<short4 *>(GPU_vertbuf_get_data(vbo)), mr.corners_num);
     extract_normals_mesh(mr, vbo_data);
     extract_paint_overlay_flags(mr, vbo_data);
   }

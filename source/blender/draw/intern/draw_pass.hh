@@ -276,6 +276,7 @@ class PassBase {
   /**
    * Record a compute dispatch call.
    */
+  void dispatch(int group_len);
   void dispatch(int2 group_len);
   void dispatch(int3 group_len);
   void dispatch(int3 *group_len);
@@ -801,6 +802,12 @@ inline void PassBase<T>::draw_procedural_indirect(
 /* -------------------------------------------------------------------- */
 /** \name Compute Dispatch Implementation
  * \{ */
+
+template<class T> inline void PassBase<T>::dispatch(int group_len)
+{
+  BLI_assert(shader_);
+  create_command(Type::Dispatch).dispatch = {int3(group_len, 1, 1)};
+}
 
 template<class T> inline void PassBase<T>::dispatch(int2 group_len)
 {

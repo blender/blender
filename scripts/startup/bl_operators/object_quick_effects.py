@@ -277,9 +277,7 @@ class QuickExplode(ObjectModeOperator, Operator):
 
         for obj in mesh_objects:
             if obj.particle_systems:
-                self.report({'ERROR'},
-                            rpt_("Object %r already has a "
-                                 "particle system") % obj.name)
+                self.report({'ERROR'}, rpt_("Object %r already has a " "particle system") % obj.name)
 
                 return {'CANCELLED'}
 
@@ -301,7 +299,7 @@ class QuickExplode(ObjectModeOperator, Operator):
             settings.normal_factor = self.velocity
             settings.render_type = 'NONE'
 
-            explode = obj.modifiers.new(name='Explode', type='EXPLODE')
+            explode = obj.modifiers.new(name="Explode", type='EXPLODE')
             explode.use_edge_cut = True
 
             if self.fade:
@@ -518,8 +516,7 @@ class QuickSmoke(ObjectModeOperator, Operator):
         # Add Principled Volume
         node_principled = nodes.new(type='ShaderNodeVolumePrincipled')
         node_principled.location = grid_location(4, 1)
-        links.new(node_principled.outputs["Volume"],
-                  node_out.inputs["Volume"])
+        links.new(node_principled.outputs["Volume"], node_out.inputs["Volume"])
 
         node_principled.inputs["Density"].default_value = 5.0
 

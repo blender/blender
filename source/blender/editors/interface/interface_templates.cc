@@ -3147,7 +3147,7 @@ void uiTemplatePreview(uiLayout *layout,
   Tex *tex = (Tex *)id;
   short *pr_texture = nullptr;
 
-  char _preview_id[UI_MAX_NAME_STR];
+  char _preview_id[sizeof(uiPreview::preview_id)];
 
   if (id && !ELEM(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA, ID_LS)) {
     RNA_warning("Expected ID of type material, texture, light, world or line style");
@@ -6937,11 +6937,18 @@ static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/, uiTooltipData *
   }
 
   if (thumb) {
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+
+    uiTooltipImage image_data;
     float scale = (72.0f * UI_SCALE_FAC) / float(std::max(thumb->x, thumb->y));
-    short size[2] = {short(float(thumb->x) * scale), short(float(thumb->y) * scale)};
-    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
-    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
-    UI_tooltip_image_field_add(tip, thumb, size);
+    image_data.ibuf = thumb;
+    image_data.width = short(float(thumb->x) * scale);
+    image_data.height = short(float(thumb->y) * scale);
+    image_data.border = true;
+    image_data.background = uiTooltipImageBackground::Checkerboard_Themed;
+    image_data.premultiplied = true;
+    UI_tooltip_image_field_add(tip, image_data);
     IMB_freeImBuf(thumb);
   }
 }

@@ -119,6 +119,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_hiz_update_layer";
     case HORIZON_DENOISE:
       return "eevee_horizon_denoise";
+    case HORIZON_RESOLVE:
+      return "eevee_horizon_resolve";
     case HORIZON_SCAN:
       return "eevee_horizon_scan";
     case HORIZON_SETUP:
@@ -215,12 +217,14 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_lightprobe_irradiance_ray";
     case LIGHTPROBE_IRRADIANCE_LOAD:
       return "eevee_lightprobe_irradiance_load";
+    case LIGHTPROBE_IRRADIANCE_WORLD:
+      return "eevee_lightprobe_irradiance_world";
     case SPHERE_PROBE_CONVOLVE:
       return "eevee_reflection_probe_convolve";
     case SPHERE_PROBE_REMAP:
       return "eevee_reflection_probe_remap";
-    case SPHERE_PROBE_UPDATE_IRRADIANCE:
-      return "eevee_reflection_probe_update_irradiance";
+    case SPHERE_PROBE_IRRADIANCE:
+      return "eevee_reflection_probe_irradiance";
     case SPHERE_PROBE_SELECT:
       return "eevee_reflection_probe_select";
     case SHADOW_CLIPMAP_CLEAR:

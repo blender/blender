@@ -67,8 +67,7 @@ const EnumPropertyItem *domain_without_corner_experimental_grease_pencil_version
 
 }  // namespace enums
 
-bool grid_type_supported(eCustomDataType data_type);
-bool grid_type_supported(eNodeSocketDatatype socket_type);
+bool custom_data_type_supports_grids(eCustomDataType data_type);
 const EnumPropertyItem *grid_custom_data_type_items_filter_fn(bContext *C,
                                                               PointerRNA *ptr,
                                                               PropertyRNA *prop,

@@ -54,10 +54,10 @@ static void extract_lines_adjacency_init(const MeshRenderData &mr,
   /* Similar to poly_to_tri_count().
    * There is always (loop + triangle - 1) edges inside a face.
    * Accumulate for all faces and you get : */
-  uint tess_edge_len = mr.loop_len + mr.tri_len - mr.face_len;
+  uint tess_edge_len = mr.corners_num + mr.corner_tris_num - mr.faces_num;
 
   MeshExtract_LineAdjacency_Data *data = static_cast<MeshExtract_LineAdjacency_Data *>(tls_data);
-  line_adjacency_data_init(data, mr.vert_len, mr.loop_len, tess_edge_len);
+  line_adjacency_data_init(data, mr.verts_num, mr.corners_num, tess_edge_len);
 }
 
 BLI_INLINE void lines_adjacency_triangle(

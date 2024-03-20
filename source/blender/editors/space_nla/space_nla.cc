@@ -197,7 +197,7 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
    * `UI_view2d_view_ortho`.*/
   int height = NLATRACK_TOT_HEIGHT(&ac, item_count);
   if (!BLI_listbase_is_empty(ED_context_get_markers(C))) {
-    height -= (UI_MARKER_MARGIN_Y - NLATRACK_STEP(snla));
+    height += (UI_MARKER_MARGIN_Y - NLATRACK_STEP(snla));
   }
   v2d->tot.ymin = -height;
   UI_view2d_curRect_clamp_y(v2d);

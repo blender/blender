@@ -6,7 +6,6 @@
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_horizon_scan_eval_lib.glsl)
 
 void main()
@@ -15,48 +14,52 @@ void main()
   uvec2 tile_coord = unpackUvec2x16(tiles_coord_buf[gl_WorkGroupID.x]);
   ivec2 texel = ivec2(gl_LocalInvocationID.xy + tile_coord * tile_size);
 
-  ivec2 texel_fullres = texel * uniform_buf.raytrace.resolution_scale +
-                        uniform_buf.raytrace.resolution_bias;
+  ivec2 texel_fullres = texel * uniform_buf.raytrace.horizon_resolution_scale +
+                        uniform_buf.raytrace.horizon_resolution_bias;
 
+  /* Avoid tracing the outside border if dispatch is too big. */
   ivec2 extent = textureSize(gbuf_header_tx, 0).xy;
-  if (any(greaterThanEqual(texel_fullres, extent))) {
+  if (any(greaterThanEqual(texel * uniform_buf.raytrace.horizon_resolution_scale, extent))) {
+    return;
+  }
+
+  /* Avoid loading texels outside texture range.
+   * This can happen even after the check above in non-power-of-2 textures. */
+  texel_fullres = min(texel_fullres, extent - 1);
+
+  /* Do not trace where nothing was rendered. */
+  if (texelFetch(gbuf_header_tx, texel_fullres, 0).r == 0u) {
+#if 0 /* This is not needed as the next stage doesn't do bilinear filtering. */
+    imageStore(horizon_radiance_0_img, texel, vec4(0.0));
+    imageStore(horizon_radiance_1_img, texel, vec4(0.0));
+    imageStore(horizon_radiance_2_img, texel, vec4(0.0));
+    imageStore(horizon_radiance_3_img, texel, vec4(0.0));
+#endif
     return;
   }
 
   vec2 uv = (vec2(texel_fullres) + 0.5) * uniform_buf.raytrace.full_resolution_inv;
   float depth = texelFetch(hiz_tx, texel_fullres, 0).r;
-
-  if (depth == 1.0) {
-    /* Do not trace for background */
-    imageStore(horizon_radiance_img, texel, vec4(FLT_11_11_10_MAX, 0.0));
-    return;
-  }
-
-  HorizonScanContext ctx;
-  ctx.closure = gbuffer_read_bin(
-      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
-  ctx.closure.N = drw_normal_world_to_view(ctx.closure.N);
-
-  if (ctx.closure.type == CLOSURE_NONE_ID) {
-    imageStore(horizon_radiance_img, texel, vec4(FLT_11_11_10_MAX, 0.0));
-    return;
-  }
-
   vec3 vP = drw_point_screen_to_view(vec3(uv, depth));
+  vec3 vN = horizon_scan_sample_normal(uv);
 
   vec2 noise = utility_tx_fetch(utility_tx, vec2(texel), UTIL_BLUE_NOISE_LAYER).rg;
   noise = fract(noise + sampling_rng_2D_get(SAMPLING_AO_U));
 
-  horizon_scan_eval(vP,
-                    ctx,
-                    noise,
-                    uniform_buf.ao.pixel_size,
-                    1.0e16,
-                    uniform_buf.ao.thickness,
-                    uniform_buf.ao.angle_bias,
-                    8,
-                    false);
+  HorizonScanResult scan = horizon_scan_eval(vP,
+                                             vN,
+                                             noise,
+                                             uniform_buf.ao.pixel_size,
+                                             1.0e16,
+                                             uniform_buf.ao.thickness,
+                                             uniform_buf.ao.angle_bias,
+                                             8,
+                                             false);
 
-  imageStore(horizon_radiance_img, texel, ctx.closure_result);
-  imageStore(horizon_occlusion_img, texel, ctx.closure_result.wwww);
+  scan.result = spherical_harmonics_compress(scan.result);
+
+  imageStore(horizon_radiance_0_img, texel, scan.result.L0.M0);
+  imageStore(horizon_radiance_1_img, texel, scan.result.L1.Mn1);
+  imageStore(horizon_radiance_2_img, texel, scan.result.L1.M0);
+  imageStore(horizon_radiance_3_img, texel, scan.result.L1.Mp1);
 }

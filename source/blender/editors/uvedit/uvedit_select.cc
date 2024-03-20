@@ -195,7 +195,14 @@ void ED_uvedit_select_sync_flush(const ToolSettings *ts, BMEditMesh *em, const b
         EDBM_deselect_flush(em);
       }
       else {
-        EDBM_select_flush(em);
+        if (ts->selectmode & SCE_SELECT_VERTEX) {
+          EDBM_select_flush(em);
+        }
+        else {
+          /* Use instead of #EDBM_select_flush so selecting edges doesn't
+           * flush vertex to face selection, see: #117320. */
+          EDBM_selectmode_flush(em);
+        }
       }
     }
 

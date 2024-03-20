@@ -365,7 +365,9 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
   vec3 local_ray_start = lP + projection_origin;
   vec3 local_ray_end = local_ray_start + direction;
 
-  int face_id = shadow_punctual_face_index_get(local_ray_start);
+  /* Use an offset in the ray direction to jitter which face is traced.
+   * This helps hiding some harsh discontinuity. */
+  int face_id = shadow_punctual_face_index_get(local_ray_start + direction * 0.5);
   /* Local Light Space > Face Local (View) Space. */
   vec3 view_ray_start = shadow_punctual_local_position_to_face_local(face_id, local_ray_start);
   vec3 view_ray_end = shadow_punctual_local_position_to_face_local(face_id, local_ray_end);
@@ -410,7 +412,7 @@ SHADOW_MAP_TRACE_FN(ShadowRayPunctual)
 
 /* Compute the world space offset of the shading position required for
  * stochastic percentage closer filtering of shadow-maps. */
-vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 Ng)
+vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 Ng, vec2 random)
 {
   if (light.pcf_radius <= 0.001) {
     /* Early return. */
@@ -459,13 +461,26 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
 
   /* Compute the actual offset. */
 
-  vec2 rand = vec2(0.0);
-#ifdef EEVEE_SAMPLING_DATA
-  rand = sampling_rng_2D_get(SAMPLING_SHADOW_V);
-#endif
-  vec2 pcf_offset = interlieved_gradient_noise(UTIL_TEXEL, vec2(0.0), rand);
-  pcf_offset = pcf_offset * 2.0 - 1.0;
+  vec2 pcf_offset = random * 2.0 - 1.0;
   pcf_offset *= light.pcf_radius;
+
+  /* Scale the offset based on shadow LOD. */
+  if (is_directional) {
+    vec3 lP = light_world_to_local(light, P);
+    float level = shadow_directional_level_fractional(light, lP - light._position);
+    float pcf_scale = mix(0.5, 1.0, fract(level));
+    pcf_offset *= pcf_scale;
+  }
+  else {
+    bool is_perspective = drw_view_is_perspective();
+    float dist_to_cam = distance(P, drw_view_position());
+    float footprint_ratio = shadow_punctual_footprint_ratio(
+        light, P, is_perspective, dist_to_cam, uniform_buf.shadow.tilemap_projection_ratio);
+    float lod = -log2(footprint_ratio) + light.lod_bias;
+    lod = clamp(lod, 0.0, float(SHADOW_TILEMAP_LOD));
+    float pcf_scale = exp2(lod);
+    pcf_offset *= pcf_scale;
+  }
 
   vec3 ws_offset = TBN * vec3(pcf_offset, 0.0);
   vec3 offset_P = P + ws_offset;
@@ -513,17 +528,19 @@ ShadowEvalResult shadow_eval(LightData light,
 #  elif defined(GPU_COMPUTE_SHADER)
   vec2 pixel = vec2(gl_GlobalInvocationID.xy);
 #  endif
-  vec3 random_shadow_3d = utility_tx_fetch(utility_tx, pixel, UTIL_BLUE_NOISE_LAYER).rgb;
-  random_shadow_3d += sampling_rng_3D_get(SAMPLING_SHADOW_U);
+  vec3 blue_noise_3d = utility_tx_fetch(utility_tx, pixel, UTIL_BLUE_NOISE_LAYER).rgb;
+  vec3 random_shadow_3d = blue_noise_3d + sampling_rng_3D_get(SAMPLING_SHADOW_U);
+  vec2 random_pcf_2d = fract(blue_noise_3d.xy + sampling_rng_2D_get(SAMPLING_SHADOW_X));
   float normal_offset = uniform_buf.shadow.normal_bias;
 #else
   /* Case of surfel light eval. */
   vec3 random_shadow_3d = vec3(0.5);
+  vec2 random_pcf_2d = vec2(0.0);
   /* TODO(fclem): Parameter on irradiance volumes? */
   float normal_offset = 0.02;
 #endif
 
-  P += shadow_pcf_offset(light, is_directional, P, Ng);
+  P += shadow_pcf_offset(light, is_directional, P, Ng, random_pcf_2d);
 
   /* Avoid self intersection. */
   P = offset_ray(P, Ng);

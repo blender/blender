@@ -616,9 +616,9 @@ class NodeTreeMainUpdater {
   struct InternalLink {
     bNodeSocket *from;
     bNodeSocket *to;
-    int multi_input_socket_index = 0;
+    int multi_input_sort_id = 0;
 
-    BLI_STRUCT_EQUALITY_OPERATORS_3(InternalLink, from, to, multi_input_socket_index);
+    BLI_STRUCT_EQUALITY_OPERATORS_3(InternalLink, from, to, multi_input_sort_id);
   };
 
   const bNodeLink *first_non_dangling_link(const bNodeTree &ntree,
@@ -660,7 +660,7 @@ class NodeTreeMainUpdater {
         const Span<const bNodeLink *> connected_links = input_socket->directly_linked_links();
         const bNodeLink *connected_link = first_non_dangling_link(ntree, connected_links);
 
-        const int index = connected_link ? connected_link->multi_input_socket_index :
+        const int index = connected_link ? connected_link->multi_input_sort_id :
                                            std::max<int>(0, connected_links.size() - 1);
         expected_internal_links.append(InternalLink{const_cast<bNodeSocket *>(input_socket),
                                                     const_cast<bNodeSocket *>(output_socket),
@@ -677,8 +677,7 @@ class NodeTreeMainUpdater {
           node->runtime->internal_links.begin(),
           node->runtime->internal_links.end(),
           [&](const bNodeLink &link) {
-            const InternalLink internal_link{
-                link.fromsock, link.tosock, link.multi_input_socket_index};
+            const InternalLink internal_link{link.fromsock, link.tosock, link.multi_input_sort_id};
             return expected_internal_links.as_span().contains(internal_link);
           });
 
@@ -736,7 +735,7 @@ class NodeTreeMainUpdater {
       link.fromsock = internal_link.from;
       link.tonode = &node;
       link.tosock = internal_link.to;
-      link.multi_input_socket_index = internal_link.multi_input_socket_index;
+      link.multi_input_sort_id = internal_link.multi_input_sort_id;
       link.flag |= NODE_LINK_VALID;
       node.runtime->internal_links.append(link);
     }

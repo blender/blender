@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#ifdef USE_GEOMETRY_SHADER
+#if defined(USE_GEOMETRY_SHADER) || defined(USE_GEOMETRY_IFACE_COLOR)
 vec4 fragment_in_color()
 {
   return geometry_out.mColor;

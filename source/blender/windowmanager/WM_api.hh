@@ -1215,8 +1215,8 @@ void WM_uilisttype_free();
 /**
  * The "full" list-ID is an internal name used for storing and identifying a list. It is built like
  * this:
- * "{uiListType.idname}_{list_id}", whereby "list_id" is an optional parameter passed to
- * `UILayout.template_list()`. If it is not set, the full list-ID is just "{uiListType.idname}_".
+ * `{uiListType.idname}_{list_id}`, whereby `list_id` is an optional parameter passed to
+ * `UILayout.template_list()`. If it is not set, the full list-ID is just `{uiListType.idname}_`.
  *
  * Note that whenever the Python API refers to the list-ID, it's the short, "non-full" one it
  * passed to `UILayout.template_list()`. C code can query that through

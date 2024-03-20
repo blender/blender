@@ -51,7 +51,7 @@ static void search_link_ops(GatherLinkSearchOpParams &params)
     if (const std::optional<eCustomDataType> data_type = bke::socket_type_to_custom_data_type(
             eNodeSocketDatatype(params.other_socket().type)))
     {
-      if (grid_type_supported(*data_type)) {
+      if (custom_data_type_supports_grids(*data_type)) {
         params.add_item(IFACE_("Grid"), [data_type](LinkSearchOpParams &params) {
           bNode &node = params.add_node("GeometryNodeStoreNamedGrid");
           node.custom1 = *data_type;

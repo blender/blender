@@ -45,23 +45,18 @@ struct wmOperator;
 
 static bool bone_collection_add_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
-  if (ob == nullptr) {
+  bArmature *armature = ED_armature_context(C);
+  if (armature == nullptr) {
     return false;
   }
 
-  if (ob->type != OB_ARMATURE) {
-    CTX_wm_operator_poll_msg_set(C, "Bone collections can only be added to an Armature");
-    return false;
-  }
-
-  if (ID_IS_LINKED(ob->data)) {
+  if (ID_IS_LINKED(&armature->id)) {
     CTX_wm_operator_poll_msg_set(
         C, "Cannot add bone collections to a linked Armature without an override");
     return false;
   }
 
-  if (BKE_lib_override_library_is_system_defined(nullptr, reinterpret_cast<ID *>(ob->data))) {
+  if (BKE_lib_override_library_is_system_defined(nullptr, &armature->id)) {
     CTX_wm_operator_poll_msg_set(C,
                                  "Cannot add bone collections to a linked Armature with a system "
                                  "override; explicitly create an override on the Armature");
@@ -74,17 +69,11 @@ static bool bone_collection_add_poll(bContext *C)
 /** Allow edits of local bone collection only (full local or local override). */
 static bool active_bone_collection_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
-  if (ob == nullptr) {
+  bArmature *armature = ED_armature_context(C);
+  if (armature == nullptr) {
     return false;
   }
 
-  if (ob->type != OB_ARMATURE) {
-    CTX_wm_operator_poll_msg_set(C, "Bone collections can only be edited on an Armature");
-    return false;
-  }
-
-  bArmature *armature = static_cast<bArmature *>(ob->data);
   if (BKE_lib_override_library_is_system_defined(nullptr, &armature->id)) {
     CTX_wm_operator_poll_msg_set(C,
                                  "Cannot update a linked Armature with a system override; "
@@ -110,12 +99,7 @@ static int bone_collection_add_exec(bContext *C, wmOperator * /*op*/)
 {
   using namespace blender::animrig;
 
-  Object *ob = ED_object_context(C);
-  if (ob == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
-
-  bArmature *armature = static_cast<bArmature *>(ob->data);
+  bArmature *armature = ED_armature_context(C);
 
   /* If there is an active bone collection, create the new one as a sibling. */
   const int parent_index = armature_bonecoll_find_parent_index(
@@ -132,7 +116,7 @@ static int bone_collection_add_exec(bContext *C, wmOperator * /*op*/)
   ANIM_armature_bonecoll_active_set(armature, bcoll);
   /* TODO: ensure the ancestors of the new bone collection are all expanded. */
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -153,17 +137,12 @@ void ARMATURE_OT_collection_add(wmOperatorType *ot)
 
 static int bone_collection_remove_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = ED_object_context(C);
-  if (ob == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
-
   /* The poll function ensures armature->active_collection is not NULL. */
-  bArmature *armature = static_cast<bArmature *>(ob->data);
+  bArmature *armature = ED_armature_context(C);
   ANIM_armature_bonecoll_remove(armature, armature->runtime.active_collection);
 
   /* notifiers for updates */
-  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
   DEG_id_tag_update(&armature->id, ID_RECALC_SELECT);
 
   return OPERATOR_FINISHED;
@@ -186,14 +165,10 @@ void ARMATURE_OT_collection_remove(wmOperatorType *ot)
 
 static int bone_collection_move_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
-  if (ob == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
   const int direction = RNA_enum_get(op->ptr, "direction");
 
   /* Poll function makes sure this is valid. */
-  bArmature *armature = static_cast<bArmature *>(ob->data);
+  bArmature *armature = ED_armature_context(C);
 
   const bool ok = ANIM_armature_bonecoll_move(
       armature, armature->runtime.active_collection, direction);
@@ -203,7 +178,7 @@ static int bone_collection_move_exec(bContext *C, wmOperator *op)
 
   ANIM_armature_bonecoll_active_runtime_refresh(armature);
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
   return OPERATOR_FINISHED;
 }
 

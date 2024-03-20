@@ -223,6 +223,11 @@ class Instance {
     return render == nullptr && !is_baking();
   }
 
+  bool is_image_render() const
+  {
+    return DRW_state_is_image_render();
+  }
+
   bool is_viewport_image_render() const
   {
     return DRW_state_is_viewport_image_render();
@@ -236,6 +241,11 @@ class Instance {
   bool overlays_enabled() const
   {
     return overlays_enabled_;
+  }
+
+  bool is_playback() const
+  {
+    return DRW_state_is_playback();
   }
 
   bool use_scene_lights() const

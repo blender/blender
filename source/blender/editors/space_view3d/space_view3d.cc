@@ -1600,7 +1600,7 @@ static void view3d_header_region_listener(const wmRegionListenerParams *params)
       ED_region_tag_redraw(region);
       break;
     case NC_GEOM:
-      if (wmn->data == ND_VERTEX_GROUP) {
+      if (wmn->data == ND_VERTEX_GROUP || wmn->data == ND_DATA) {
         ED_region_tag_redraw(region);
       }
       break;

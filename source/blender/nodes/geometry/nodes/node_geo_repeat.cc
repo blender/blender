@@ -41,7 +41,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
         if (socket_type_supports_fields(socket_type)) {
           input_decl.supports_field();
-          output_decl.dependent_field({input_decl.input_index()});
+          output_decl.dependent_field({input_decl.index()});
         }
       }
     }
@@ -114,7 +114,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
       if (socket_type_supports_fields(socket_type)) {
         input_decl.supports_field();
-        output_decl.dependent_field({input_decl.input_index()});
+        output_decl.dependent_field({input_decl.index()});
       }
     }
   }

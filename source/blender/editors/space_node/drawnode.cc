@@ -1726,7 +1726,7 @@ static float2 socket_link_connection_location(const bNode &node,
   const float2 socket_location = socket.runtime->location;
   if (socket.is_multi_input() && socket.is_input() && !(node.flag & NODE_HIDDEN)) {
     return node_link_calculate_multi_input_position(
-        socket_location, link.multi_input_socket_index, socket.runtime->total_inputs);
+        socket_location, link.multi_input_sort_id, socket.runtime->total_inputs);
   }
   return socket_location;
 }

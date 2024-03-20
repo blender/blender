@@ -169,6 +169,20 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_offset)
 /** \name Runtime
  * \{ */
 
+GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_world)
+    .local_group_size(IRRADIANCE_GRID_BRICK_SIZE,
+                      IRRADIANCE_GRID_BRICK_SIZE,
+                      IRRADIANCE_GRID_BRICK_SIZE)
+    .define("IRRADIANCE_GRID_UPLOAD")
+    .additional_info("eevee_shared")
+    .push_constant(Type::INT, "grid_index")
+    .storage_buf(0, Qualifier::READ, "uint", "bricks_infos_buf[]")
+    .storage_buf(1, Qualifier::READ, "SphereProbeHarmonic", "harmonic_buf")
+    .uniform_buf(0, "VolumeProbeData", "grids_infos_buf[IRRADIANCE_GRID_MAX]")
+    .image(0, GPU_RGBA16F, Qualifier::READ_WRITE, ImageType::FLOAT_3D, "irradiance_atlas_img")
+    .compute_source("eevee_lightprobe_irradiance_world_comp.glsl")
+    .do_static_compilation(true);
+
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_load)
     .local_group_size(IRRADIANCE_GRID_BRICK_SIZE,
                       IRRADIANCE_GRID_BRICK_SIZE,

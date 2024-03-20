@@ -1190,7 +1190,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
         if (md->type == eModifierType_Boolean) {
           BooleanModifierData *bmd = (BooleanModifierData *)md;
-          bmd->solver = eBooleanModifierSolver_Fast;
+          bmd->solver = eBooleanModifierSolver_Float;
           bmd->flag = eBooleanModifierFlag_Object;
         }
       }

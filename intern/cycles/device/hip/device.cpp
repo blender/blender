@@ -211,7 +211,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
     VLOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
 
     if (info.denoisers & DENOISER_OPENIMAGEDENOISE)
-      VLOG_INFO << "Device with id \"" << info.id << "\" is supporting "
+      VLOG_INFO << "Device with id \"" << info.id << "\" supports "
                 << denoiserTypeToHumanReadable(DENOISER_OPENIMAGEDENOISE) << ".";
   }
 

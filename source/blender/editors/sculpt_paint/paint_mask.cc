@@ -711,7 +711,7 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 
   WM_operator_properties_gesture_lasso(ot);
-  gesture::operator_properties(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Lasso);
 
   paint_mask_gesture_operator_properties(ot);
 }
@@ -731,7 +731,7 @@ void PAINT_OT_mask_box_gesture(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 
   WM_operator_properties_border(ot);
-  gesture::operator_properties(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Box);
 
   paint_mask_gesture_operator_properties(ot);
 }
@@ -751,7 +751,7 @@ void PAINT_OT_mask_line_gesture(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 
   WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
-  gesture::operator_properties(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Line);
 
   paint_mask_gesture_operator_properties(ot);
 }

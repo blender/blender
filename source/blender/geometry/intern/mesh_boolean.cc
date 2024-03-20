@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/** \file
- * \ingroup bke
- */
-
 #include <iostream>
 
 #include "BKE_attribute.hh"
@@ -25,9 +21,20 @@
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
+#include "DNA_node_types.h"
+
 #include "GEO_mesh_boolean.hh"
 
-namespace blender::meshintersect {
+#include "bmesh.hh"
+#include "bmesh_tools.hh"
+#include "tools/bmesh_boolean.hh"
+#include "tools/bmesh_intersect.hh"
+
+namespace blender::geometry::boolean {
+
+/* -------------------------------------------------------------------- */
+/** \name Mesh Arrangements (Old Exact Boolean)
+ * \{ */
 
 #ifdef WITH_GMP
 
@@ -78,9 +85,9 @@ class MeshesToIMeshInfo {
   Array<int> mesh_face_offset;
   /* For each Mesh vertex in all the meshes (with concatenated indexing),
    * what is the IMesh Vert* allocated for it in the input IMesh? */
-  Array<const Vert *> mesh_to_imesh_vert;
+  Array<const meshintersect::Vert *> mesh_to_imesh_vert;
   /* Similarly for each Mesh face. */
-  Array<Face *> mesh_to_imesh_face;
+  Array<meshintersect::Face *> mesh_to_imesh_face;
   /* Transformation matrix to transform a coordinate in the corresponding
    * Mesh to the local space of the first Mesh. */
   Array<float4x4> to_target_transform;
@@ -230,12 +237,12 @@ void MeshesToIMeshInfo::input_medge_for_orig_index(int orig_index,
  * correspondence between the Mesh MVerts/MPolys and the IMesh Verts/Faces.
  * All allocation of memory for the IMesh comes from `arena`.
  */
-static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
-                             Span<float4x4> obmats,
-                             Span<Array<short>> material_remaps,
-                             const float4x4 &target_transform,
-                             IMeshArena &arena,
-                             MeshesToIMeshInfo *r_info)
+static meshintersect::IMesh meshes_to_imesh(Span<const Mesh *> meshes,
+                                            Span<float4x4> obmats,
+                                            Span<Array<short>> material_remaps,
+                                            const float4x4 &target_transform,
+                                            meshintersect::IMeshArena &arena,
+                                            MeshesToIMeshInfo *r_info)
 {
   int nmeshes = meshes.size();
   BLI_assert(nmeshes > 0);
@@ -272,7 +279,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
   /* Put these Vectors here, with a size unlikely to need resizing,
    * so that the loop to make new Faces will likely not need to allocate
    * over and over. */
-  Vector<const Vert *, estimated_max_facelen> face_vert;
+  Vector<const meshintersect::Vert *, estimated_max_facelen> face_vert;
   Vector<int, estimated_max_facelen> face_edge_orig;
 
   /* To convert the coordinates of meshes 1, 2, etc. into the local space
@@ -303,7 +310,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
      * that would have a negative transform if you do that. */
     bool need_face_flip = r_info->has_negative_transform[mi] != r_info->has_negative_transform[0];
 
-    Vector<Vert *> verts(mesh->verts_num);
+    Vector<meshintersect::Vert *> verts(mesh->verts_num);
     const Span<float3> vert_positions = mesh->vert_positions();
     const OffsetIndices faces = mesh->faces();
     const Span<int> corner_verts = mesh->corner_verts();
@@ -319,7 +326,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
           float3 co = vert_positions[i];
           mpq3 mco = mpq3(co.x, co.y, co.z);
           double3 dco(mco[0].get_d(), mco[1].get_d(), mco[2].get_d());
-          verts[i] = new Vert(mco, dco, NO_INDEX, i);
+          verts[i] = new meshintersect::Vert(mco, dco, meshintersect::NO_INDEX, i);
         }
       });
     }
@@ -329,7 +336,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
           float3 co = math::transform_point(r_info->to_target_transform[mi], vert_positions[i]);
           mpq3 mco = mpq3(co.x, co.y, co.z);
           double3 dco(mco[0].get_d(), mco[1].get_d(), mco[2].get_d());
-          verts[i] = new Vert(mco, dco, NO_INDEX, i);
+          verts[i] = new meshintersect::Vert(mco, dco, meshintersect::NO_INDEX, i);
         }
       });
     }
@@ -346,7 +353,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
       for (int i = 0; i < flen; ++i) {
         const int corner_i = face[i];
         int mverti = r_info->mesh_vert_offset[mi] + corner_verts[corner_i];
-        const Vert *fv = r_info->mesh_to_imesh_vert[mverti];
+        const meshintersect::Vert *fv = r_info->mesh_to_imesh_vert[mverti];
         if (need_face_flip) {
           face_vert[flen - i - 1] = fv;
           int iedge = i < flen - 1 ? flen - i - 2 : flen - 1;
@@ -362,7 +369,7 @@ static IMesh meshes_to_imesh(Span<const Mesh *> meshes,
     }
     e += mesh->edges_num;
   }
-  return IMesh(r_info->mesh_to_imesh_face);
+  return meshintersect::IMesh(r_info->mesh_to_imesh_face);
 }
 
 /* Copy vertex attributes, including customdata, from `orig_mv` to `mv`.
@@ -460,7 +467,7 @@ static void copy_edge_attributes(Mesh *dest_mesh,
  * For now, we only try to do this if `face` and `orig_face` have the same size.
  * Return the number of non-null MLoops filled in.
  */
-static int fill_orig_loops(const Face *f,
+static int fill_orig_loops(const meshintersect::Face *f,
                            const IndexRange orig_face,
                            const Mesh *orig_me,
                            int orig_me_index,
@@ -482,7 +489,7 @@ static int fill_orig_loops(const Face *f,
    * aligned loops is only an optimization to avoid some re-interpolation.
    */
   int first_orig_v = f->vert[0]->orig;
-  if (first_orig_v == NO_INDEX) {
+  if (first_orig_v == meshintersect::NO_INDEX) {
     return 0;
   }
   /* It is possible that the original vert was merged with another in another mesh. */
@@ -509,20 +516,20 @@ static int fill_orig_loops(const Face *f,
     int orig_mp_loop_index = (mp_loop_index + offset) % orig_mplen;
     const int vert_i = orig_corner_verts[orig_face.start() + orig_mp_loop_index];
     int fv_orig = f->vert[mp_loop_index]->orig;
-    if (fv_orig != NO_INDEX) {
+    if (fv_orig != meshintersect::NO_INDEX) {
       fv_orig -= orig_me_vert_offset;
       if (fv_orig < 0 || fv_orig >= orig_me->verts_num) {
-        fv_orig = NO_INDEX;
+        fv_orig = meshintersect::NO_INDEX;
       }
     }
     if (vert_i == fv_orig) {
       const int vert_next =
           orig_corner_verts[orig_face.start() + ((orig_mp_loop_index + 1) % orig_mplen)];
       int fvnext_orig = f->vert[(mp_loop_index + 1) % orig_mplen]->orig;
-      if (fvnext_orig != NO_INDEX) {
+      if (fvnext_orig != meshintersect::NO_INDEX) {
         fvnext_orig -= orig_me_vert_offset;
         if (fvnext_orig < 0 || fvnext_orig >= orig_me->verts_num) {
-          fvnext_orig = NO_INDEX;
+          fvnext_orig = meshintersect::NO_INDEX;
         }
       }
       if (vert_next == fvnext_orig) {
@@ -562,7 +569,7 @@ static void get_poly2d_cos(const Mesh *mesh,
  * copy the Loop attributes from corresponding loops to corresponding loops.
  * Otherwise, interpolate the Loop attributes in the face `orig_face`. */
 static void copy_or_interp_loop_attributes(Mesh *dest_mesh,
-                                           const Face *f,
+                                           const meshintersect::Face *f,
                                            const IndexRange face,
                                            const IndexRange orig_face,
                                            const Mesh *orig_me,
@@ -701,7 +708,7 @@ static void merge_edge_customdata_layers(Mesh *target, MeshesToIMeshInfo &mim)
  * Convert the output IMesh im to a Blender Mesh,
  * using the information in mim to get all the attributes right.
  */
-static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
+static Mesh *imesh_to_mesh(meshintersect::IMesh *im, MeshesToIMeshInfo &mim)
 {
   constexpr int dbg_level = 0;
 
@@ -709,7 +716,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
   int out_totvert = im->vert_size();
   int out_faces_num = im->face_size();
   int out_totloop = 0;
-  for (const Face *f : im->faces()) {
+  for (const meshintersect::Face *f : im->faces()) {
     out_totloop += f->size();
   }
   /* Will calculate edges later. */
@@ -720,8 +727,8 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
   /* Set the vertex coordinate values and other data. */
   MutableSpan<float3> positions = result->vert_positions_for_write();
   for (int vi : im->vert_index_range()) {
-    const Vert *v = im->vert(vi);
-    if (v->orig != NO_INDEX) {
+    const meshintersect::Vert *v = im->vert(vi);
+    if (v->orig != meshintersect::NO_INDEX) {
       const Mesh *orig_me;
       int index_in_orig_me;
       mim.input_mvert_for_orig_index(v->orig, &orig_me, &index_in_orig_me);
@@ -739,7 +746,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
   MutableSpan<int> dst_corner_verts = result->corner_verts_for_write();
   MutableSpan<int> dst_face_offsets = result->face_offsets_for_write();
   for (int fi : im->face_index_range()) {
-    const Face *f = im->face(fi);
+    const meshintersect::Face *f = im->face(fi);
     const Mesh *orig_me;
     int index_in_orig_me;
     int orig_me_index;
@@ -747,7 +754,7 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
         f->orig, &orig_me, &orig_me_index, &index_in_orig_me);
     dst_face_offsets[fi] = cur_loop_index;
     for (int j : f->index_range()) {
-      const Vert *vf = f->vert[j];
+      const meshintersect::Vert *vf = f->vert[j];
       const int vfi = im->lookup_vert(vf);
       dst_corner_verts[cur_loop_index] = vfi;
       ++cur_loop_index;
@@ -779,10 +786,10 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
   const OffsetIndices dst_polys = result->faces();
   const Span<int> dst_corner_edges = result->corner_edges();
   for (int fi : im->face_index_range()) {
-    const Face *f = im->face(fi);
+    const meshintersect::Face *f = im->face(fi);
     const IndexRange face = dst_polys[fi];
     for (int j : f->index_range()) {
-      if (f->edge_orig[j] != NO_INDEX) {
+      if (f->edge_orig[j] != meshintersect::NO_INDEX) {
         const Mesh *orig_me;
         int index_in_orig_me;
         mim.input_medge_for_orig_index(f->edge_orig[j], &orig_me, &index_in_orig_me);
@@ -798,18 +805,29 @@ static Mesh *imesh_to_mesh(IMesh *im, MeshesToIMeshInfo &mim)
   return result;
 }
 
-#endif  // WITH_GMP
-
-Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
-                          Span<float4x4> transforms,
-                          const float4x4 &target_transform,
-                          Span<Array<short>> material_remaps,
-                          const bool use_self,
-                          const bool hole_tolerant,
-                          const int boolean_mode,
-                          Vector<int> *r_intersecting_edges)
+static meshintersect::BoolOpType operation_to_mesh_arr_mode(const Operation operation)
 {
-#ifdef WITH_GMP
+  switch (operation) {
+    case Operation::Intersect:
+      return meshintersect::BoolOpType::Intersect;
+    case Operation::Union:
+      return meshintersect::BoolOpType::Union;
+    case Operation::Difference:
+      return meshintersect::BoolOpType::Difference;
+  }
+  BLI_assert_unreachable();
+  return meshintersect::BoolOpType::None;
+}
+
+static Mesh *mesh_boolean_mesh_arr(Span<const Mesh *> meshes,
+                                   Span<float4x4> transforms,
+                                   const float4x4 &target_transform,
+                                   Span<Array<short>> material_remaps,
+                                   const bool use_self,
+                                   const bool hole_tolerant,
+                                   const meshintersect::BoolOpType boolean_mode,
+                                   Vector<int> *r_intersecting_edges)
+{
   BLI_assert(transforms.is_empty() || meshes.size() == transforms.size());
   BLI_assert(material_remaps.is_empty() || material_remaps.size() == meshes.size());
   if (meshes.size() <= 0) {
@@ -818,11 +836,12 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
 
   const int dbg_level = 0;
   if (dbg_level > 0) {
-    std::cout << "\nDIRECT_MESH_INTERSECT, nmeshes = " << meshes.size() << "\n";
+    std::cout << "\nOLD_MESH_INTERSECT, nmeshes = " << meshes.size() << "\n";
   }
   MeshesToIMeshInfo mim;
-  IMeshArena arena;
-  IMesh m_in = meshes_to_imesh(meshes, transforms, material_remaps, target_transform, arena, &mim);
+  meshintersect::IMeshArena arena;
+  meshintersect::IMesh m_in = meshes_to_imesh(
+      meshes, transforms, material_remaps, target_transform, arena, &mim);
   std::function<int(int)> shape_fn = [&mim](int f) {
     for (int mi = 0; mi < mim.mesh_face_offset.size() - 1; ++mi) {
       if (f < mim.mesh_face_offset[mi + 1]) {
@@ -831,14 +850,8 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
     }
     return int(mim.mesh_face_offset.size()) - 1;
   };
-  IMesh m_out = boolean_mesh(m_in,
-                             static_cast<BoolOpType>(boolean_mode),
-                             meshes.size(),
-                             shape_fn,
-                             use_self,
-                             hole_tolerant,
-                             nullptr,
-                             &arena);
+  meshintersect::IMesh m_out = boolean_mesh(
+      m_in, boolean_mode, meshes.size(), shape_fn, use_self, hole_tolerant, nullptr, &arena);
   if (dbg_level > 0) {
     std::cout << m_out;
     write_obj_mesh(m_out, "m_out");
@@ -851,7 +864,7 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
     const OffsetIndices faces = result->faces();
     const Span<int> corner_edges = result->corner_edges();
     for (int fi : m_out.face_index_range()) {
-      const Face &face = *m_out.face(fi);
+      const meshintersect::Face &face = *m_out.face(fi);
       const IndexRange mesh_face = faces[fi];
       for (int i : face.index_range()) {
         if (face.is_intersect[i]) {
@@ -863,17 +876,318 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
   }
 
   return result;
-#else   // WITH_GMP
-  UNUSED_VARS(meshes,
-              transforms,
-              material_remaps,
-              target_transform,
-              use_self,
-              hole_tolerant,
-              boolean_mode,
-              r_intersecting_edges);
-  return nullptr;
-#endif  // WITH_GMP
 }
 
-}  // namespace blender::meshintersect
+#endif  // WITH_GMP
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Float Boolean
+ * \{ */
+
+/* has no meaning for faces, do this so we can tell which face is which */
+#define BM_FACE_TAG BM_ELEM_DRAW
+
+/**
+ *  Function use to say what operand a face is part of, based on the `BM_FACE_TAG`,`
+ *  which is set in `bm_mesh_create`.
+ */
+static int face_boolean_operand(BMFace *f, void * /*user_data*/)
+{
+  return BM_elem_flag_test(f, BM_FACE_TAG) ? 0 : 1;
+}
+
+/* Create a BMesh that is the concatenation of the given meshes.
+ * The corresponding mesh-to-world transformations are also given,
+ * as well as a target_tranform.
+ * A triangulation is also calculated and returned in the last two
+ * parameters.
+ * The faces of the first mesh are tagged with BM_FACE_TAG so that the
+ * face_boolean_operand() function can distinguish those faces from the
+ * rest.
+ * The caller is responsible for using `BM_mesh_free` on the returned
+ * BMesh, and calling `MEM_freeN` on the returned looptris.
+ *
+ * TODO: maybe figure out how to use the join_geometries() function
+ * to join all the meshes into one mesh first, and then convert
+ * that single mesh to BMesh. Issues with that include needing
+ * to apply the transforms and material remaps.
+ */
+static BMesh *mesh_bm_concat(Span<const Mesh *> meshes,
+                             Span<float4x4> transforms,
+                             const float4x4 &target_transform,
+                             Span<Array<short>> material_remaps,
+                             BMLoop *(**r_looptris)[3],
+                             int *r_looptris_tot)
+{
+  const int meshes_num = meshes.size();
+  BLI_assert(meshes_num >= 1);
+  bool ok;
+  float4x4 inv_target_mat = math::invert(target_transform, ok);
+  if (!ok) {
+    BLI_assert_unreachable();
+    inv_target_mat = float4x4::identity();
+  }
+  Array<float4x4> to_target(meshes_num);
+  Array<bool> is_negative_transform(meshes_num);
+  Array<bool> is_flip(meshes_num);
+  const int tsize = transforms.size();
+  for (const int i : IndexRange(meshes_num)) {
+    if (tsize > i) {
+      to_target[i] = inv_target_mat * transforms[i];
+      is_negative_transform[i] = math::is_negative(transforms[i]);
+      is_flip[i] = is_negative_transform[i] != is_negative_transform[0];
+    }
+    else {
+      to_target[i] = inv_target_mat;
+      is_negative_transform[i] = false;
+      is_flip[i] = false;
+    }
+  }
+
+  /* Make a BMesh that will be a concatenation of the elements of all the meshes */
+  BMAllocTemplate allocsize;
+  allocsize.totvert = 0;
+  allocsize.totedge = 0;
+  allocsize.totloop = 0;
+  allocsize.totface = 0;
+  for (const int i : meshes.index_range()) {
+    allocsize.totvert += meshes[i]->verts_num;
+    allocsize.totedge += meshes[i]->edges_num;
+    allocsize.totloop += meshes[i]->corners_num;
+    allocsize.totface += meshes[i]->faces_num;
+  }
+
+  BMeshCreateParams bmesh_create_params{};
+  BMesh *bm = BM_mesh_create(&allocsize, &bmesh_create_params);
+
+  BM_mesh_copy_init_customdata_from_mesh_array(
+      bm, const_cast<const Mesh **>(meshes.begin()), meshes_num, &allocsize);
+
+  BMeshFromMeshParams bmesh_from_mesh_params{};
+  bmesh_from_mesh_params.calc_face_normal = true;
+  bmesh_from_mesh_params.calc_vert_normal = true;
+
+  Array<int> verts_end(meshes_num);
+  Array<int> faces_end(meshes_num);
+  verts_end[0] = meshes[0]->verts_num;
+  faces_end[0] = meshes[0]->faces_num;
+  for (const int i : meshes.index_range()) {
+    /* Append meshes[i] elements and data to bm. */
+    BM_mesh_bm_from_me(bm, meshes[i], &bmesh_from_mesh_params);
+    if (i > 0) {
+      verts_end[i] = verts_end[i - 1] + meshes[i]->verts_num;
+      faces_end[i] = faces_end[i - 1] + meshes[i]->faces_num;
+      if (is_flip[i]) {
+        /* Need to flip face normals to match that of mesh[0]. */
+        const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+        BM_mesh_elem_table_ensure(bm, BM_FACE);
+        for (int j = faces_end[i - 1]; j < faces_end[i]; j++) {
+          BMFace *efa = bm->ftable[j];
+          BM_face_normal_flip_ex(bm, efa, cd_loop_mdisp_offset, true);
+        }
+      }
+    }
+  }
+
+  /* Make a triangulation of all polys before transforming vertices
+   * so we can use the original normals. */
+  const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
+  BMLoop *(*looptris)[3] = (BMLoop * (*)[3])
+      MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
+  BM_mesh_calc_tessellation_beauty(bm, looptris);
+  *r_looptris = looptris;
+  *r_looptris_tot = looptris_tot;
+
+  /* Tranform the vertices that into the desired target_transform space. */
+  BMIter iter;
+  BMVert *eve;
+  int i = 0;
+  int mesh_index = 0;
+  BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+    copy_v3_v3(eve->co, math::transform_point(to_target[mesh_index], float3(eve->co)));
+    ++i;
+    if (i == verts_end[mesh_index]) {
+      mesh_index++;
+    }
+  }
+
+  /* Transform face normals and tag the first-operand faces.
+   * Also, apply material remaps. */
+  BMFace *efa;
+  i = 0;
+  mesh_index = 0;
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+    copy_v3_v3(efa->no, math::transform_direction(to_target[mesh_index], float3(efa->no)));
+    if (is_negative_transform[mesh_index]) {
+      negate_v3(efa->no);
+    }
+    normalize_v3(efa->no);
+
+    /* Temp tag used in `face_boolean_operand()` to test for operand 0. */
+    if (i < faces_end[0]) {
+      BM_elem_flag_enable(efa, BM_FACE_TAG);
+    }
+
+    /* Remap material. */
+    int cur_mat = efa->mat_nr;
+    if (cur_mat < material_remaps[mesh_index].size()) {
+      int new_mat = material_remaps[mesh_index][cur_mat];
+      if (new_mat >= 0) {
+        efa->mat_nr = material_remaps[mesh_index][cur_mat];
+      }
+    }
+
+    ++i;
+    if (i == faces_end[mesh_index]) {
+      mesh_index++;
+    }
+  }
+
+  return bm;
+}
+
+static int operation_to_float_mode(const Operation operation)
+{
+  switch (operation) {
+    case Operation::Intersect:
+      return BMESH_ISECT_BOOLEAN_ISECT;
+    case Operation::Union:
+      return BMESH_ISECT_BOOLEAN_UNION;
+    case Operation::Difference:
+      return BMESH_ISECT_BOOLEAN_DIFFERENCE;
+  }
+  BLI_assert_unreachable();
+  return BMESH_ISECT_BOOLEAN_NONE;
+}
+
+static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
+                                Span<float4x4> transforms,
+                                const float4x4 &target_transform,
+                                Span<Array<short>> material_remaps,
+                                const int boolean_mode,
+                                Vector<int> * /*r_intersecting_edges*/)
+{
+  BLI_assert(meshes.size() == transforms.size() || transforms.size() == 0);
+  BLI_assert(material_remaps.size() == 0 || material_remaps.size() == meshes.size());
+  if (meshes.is_empty()) {
+    return nullptr;
+  }
+
+  if (meshes.size() == 1) {
+    /* The float solver doesn't do self union. Just return nullptr, which will
+     * cause geometry nodes to leave the input as is. */
+    return BKE_mesh_copy_for_eval(meshes[0]);
+  }
+
+  BMLoop *(*looptris)[3];
+  int looptris_tot;
+  if (meshes.size() == 2) {
+    BMesh *bm = mesh_bm_concat(
+        meshes, transforms, target_transform, material_remaps, &looptris, &looptris_tot);
+    BM_mesh_intersect(bm,
+                      looptris,
+                      looptris_tot,
+                      face_boolean_operand,
+                      nullptr,
+                      false,
+                      false,
+                      true,
+                      true,
+                      false,
+                      false,
+                      boolean_mode,
+                      1e-6f);
+    MEM_freeN(looptris);
+    Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, meshes[0]);
+    BM_mesh_free(bm);
+    return result;
+  }
+
+  /* Iteratively operate with each operand. */
+  Array<const Mesh *> two_meshes = {meshes[0], meshes[1]};
+  Array<float4x4> two_transforms = {transforms[0], transforms[1]};
+  Array<Array<short>> two_remaps = {material_remaps[0], material_remaps[1]};
+  Mesh *prev_result_mesh = nullptr;
+  for (const int i : meshes.index_range().drop_back(1)) {
+    BMesh *bm = mesh_bm_concat(
+        two_meshes, two_transforms, float4x4::identity(), two_remaps, &looptris, &looptris_tot);
+    BM_mesh_intersect(bm,
+                      looptris,
+                      looptris_tot,
+                      face_boolean_operand,
+                      nullptr,
+                      false,
+                      false,
+                      true,
+                      true,
+                      false,
+                      false,
+                      boolean_mode,
+                      1e-6f);
+    MEM_freeN(looptris);
+    Mesh *result_i_mesh = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, meshes[0]);
+    BM_mesh_free(bm);
+    if (prev_result_mesh != nullptr) {
+      /* Except in the first iteration, two_meshes[0] holds the intermediate
+       * mesh result from the previous iteraiton. */
+      BKE_mesh_eval_delete(prev_result_mesh);
+    }
+    if (i < meshes.size() - 2) {
+      two_meshes[0] = result_i_mesh;
+      two_meshes[1] = meshes[i + 2];
+      two_transforms[0] = float4x4::identity();
+      two_transforms[1] = transforms[i + 2];
+      two_remaps[0] = {};
+      two_remaps[1] = material_remaps[i + 2];
+      prev_result_mesh = result_i_mesh;
+    }
+    else {
+      return result_i_mesh;
+    }
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
+/** \} */
+
+Mesh *mesh_boolean(Span<const Mesh *> meshes,
+                   Span<float4x4> transforms,
+                   const float4x4 &target_transform,
+                   Span<Array<short>> material_remaps,
+                   BooleanOpParameters op_params,
+                   Solver solver,
+                   Vector<int> *r_intersecting_edges)
+{
+
+  switch (solver) {
+    case Solver::Float:
+      return mesh_boolean_float(meshes,
+                                transforms,
+                                target_transform,
+                                material_remaps,
+                                operation_to_float_mode(op_params.boolean_mode),
+                                r_intersecting_edges);
+    case Solver::MeshArr:
+#ifdef WITH_GMP
+      return mesh_boolean_mesh_arr(meshes,
+                                   transforms,
+                                   target_transform,
+                                   material_remaps,
+                                   !op_params.no_self_intersections,
+                                   !op_params.watertight,
+                                   operation_to_mesh_arr_mode(op_params.boolean_mode),
+                                   r_intersecting_edges);
+#else
+      return nullptr;
+#endif
+    default:
+      BLI_assert_unreachable();
+  }
+  return nullptr;
+}
+
+}  // namespace blender::geometry::boolean

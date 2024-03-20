@@ -341,7 +341,7 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
   }
 
 #  ifdef WITH_CYCLES_DEBUG
-  global_defines += "#define __KERNEL_DEBUG__\n";
+  global_defines += "#define WITH_CYCLES_DEBUG\n";
 #  endif
 
   switch (device_vendor) {
@@ -1440,6 +1440,13 @@ void MetalDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
     if (max_working_set_exceeded()) {
       set_error("System is out of GPU memory");
     }
+  }
+}
+
+void MetalDevice::release_bvh(BVH *bvh)
+{
+  if (bvhMetalRT == bvh) {
+    bvhMetalRT = nullptr;
   }
 }
 

@@ -1768,7 +1768,7 @@ std::unique_ptr<GestureData> init_from_lasso(bContext *C, wmOperator *op);
 std::unique_ptr<GestureData> init_from_line(bContext *C, wmOperator *op);
 
 /* Common gesture operator properties. */
-void operator_properties(wmOperatorType *ot);
+void operator_properties(wmOperatorType *ot, ShapeType shapeType);
 
 /* Apply the gesture action to the selected nodes. */
 void apply(bContext &C, GestureData &gesture_data, wmOperator &op);

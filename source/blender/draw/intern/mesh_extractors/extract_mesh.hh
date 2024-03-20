@@ -48,12 +48,17 @@ enum eMRExtractType {
 struct MeshRenderData {
   eMRExtractType extract_type;
 
-  int face_len, edge_len, vert_len, loop_len;
-  int edge_loose_len;
-  int vert_loose_len;
-  int loop_loose_len;
-  int tri_len;
-  int mat_len;
+  int verts_num;
+  int edges_num;
+  int faces_num;
+  int corners_num;
+
+  int loose_edges_num;
+  int loose_verts_num;
+  int loose_indices_num;
+
+  int corner_tris_num;
+  int materials_num;
 
   bool use_hide;
   bool use_subsurf_fdots;
@@ -91,6 +96,7 @@ struct MeshRenderData {
   OffsetIndices<int> faces;
   Span<int> corner_verts;
   Span<int> corner_edges;
+
   BMVert *eve_act;
   BMEdge *eed_act;
   BMFace *efa_act;

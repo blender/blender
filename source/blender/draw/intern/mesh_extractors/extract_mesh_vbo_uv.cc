@@ -91,7 +91,7 @@ static void extract_uv_init(const MeshRenderData &mr,
 
   CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->ldata :
                                                                  &mr.mesh->corner_data;
-  int v_len = mr.loop_len;
+  int v_len = mr.corners_num;
   uint32_t uv_layers = cache.cd_used.uv;
   if (!mesh_extract_uv_format_init(&format, cache, cd_ldata, mr.extract_type, uv_layers)) {
     /* VBO will not be used, only allocate minimum of memory. */
@@ -122,9 +122,9 @@ static void extract_uv_init(const MeshRenderData &mr,
       else {
         const Span<float2> uv_map(
             static_cast<const float2 *>(CustomData_get_layer_n(cd_ldata, CD_PROP_FLOAT2, i)),
-            mr.loop_len);
-        array_utils::copy(uv_map, uv_data.slice(vbo_index, mr.loop_len));
-        vbo_index += mr.loop_len;
+            mr.corners_num);
+        array_utils::copy(uv_map, uv_data.slice(vbo_index, mr.corners_num));
+        vbo_index += mr.corners_num;
       }
     }
   }

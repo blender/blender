@@ -488,11 +488,11 @@ static void libblock_remap_data(
     Main *bmain, ID *id, eIDRemapType remap_type, IDRemapper &id_remapper, const int remap_flags)
 {
   IDRemap id_remap_data = {
-      /*.type=*/remap_type,
-      /*.bmain=*/bmain,
-      /*.id_remapper=*/id_remapper,
-      /*.id_owner=*/nullptr,
-      /*.flag=*/remap_flags,
+      /*type*/ remap_type,
+      /*bmain*/ bmain,
+      /*id_remapper*/ id_remapper,
+      /*id_owner*/ nullptr,
+      /*flag*/ remap_flags,
   };
 
   const bool include_ui = (remap_flags & ID_REMAP_FORCE_UI_POINTERS) != 0;

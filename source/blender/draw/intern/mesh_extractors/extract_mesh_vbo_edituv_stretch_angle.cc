@@ -100,7 +100,7 @@ static void extract_edituv_stretch_angle_init(const MeshRenderData &mr,
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.loop_len);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
 
   MeshExtract_StretchAngle_Data *data = static_cast<MeshExtract_StretchAngle_Data *>(tls_data);
   data->vbo_data = (UVStretchAngle *)GPU_vertbuf_get_data(vbo);

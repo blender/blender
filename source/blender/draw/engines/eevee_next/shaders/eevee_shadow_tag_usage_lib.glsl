@@ -110,22 +110,8 @@ void shadow_tag_usage_tilemap_punctual(
   /* TODO(fclem): 3D shift for jittered soft shadows. */
   lP += vec3(0.0, 0.0, -light.shadow_projection_shift);
 
-  /* How much a shadow map pixel covers a final image pixel.
-   * We project a shadow map pixel (as a sphere for simplicity) to the receiver plane.
-   * We then reproject this sphere onto the camera screen and compare it to the film pixel size.
-   * This gives a good approximation of what LOD to select to get a somewhat uniform shadow map
-   * resolution in screen space. */
-  float footprint_ratio = dist_to_light;
-  /* Project the radius to the screen. 1 unit away from the camera the same way
-   * pixel_world_radius_inv was computed. Not needed in orthographic mode. */
-  bool is_persp = (ProjectionMatrix[3][3] == 0.0);
-  if (is_persp) {
-    footprint_ratio /= dist_to_cam;
-  }
-  /* Apply resolution ratio. */
-  footprint_ratio *= tilemap_projection_ratio;
-  /* Take the frustum padding into account. */
-  footprint_ratio *= light.clip_side / orderedIntBitsToFloat(light.clip_near);
+  float footprint_ratio = shadow_punctual_footprint_ratio(
+      light, P, drw_view_is_perspective(), dist_to_cam, tilemap_projection_ratio);
 
   if (radius == 0) {
     int face_id = shadow_punctual_face_index_get(lP);

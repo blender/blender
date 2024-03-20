@@ -10,6 +10,7 @@
 #include "BKE_node.hh"
 
 #include "NOD_rna_define.hh"
+#include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "RNA_enum_types.hh"
@@ -100,17 +101,12 @@ const EnumPropertyItem *domain_without_corner_experimental_grease_pencil_version
 
 }  // namespace enums
 
-bool grid_type_supported(const eCustomDataType data_type)
+bool custom_data_type_supports_grids(const eCustomDataType data_type)
 {
-  return ELEM(data_type, CD_PROP_FLOAT, CD_PROP_FLOAT3);
-}
-
-bool grid_type_supported(eNodeSocketDatatype socket_type)
-{
-  if (const std::optional<eCustomDataType> data_type = bke::socket_type_to_custom_data_type(
-          socket_type))
+  if (const std::optional<eNodeSocketDatatype> socket_type = bke::custom_data_type_to_socket_type(
+          data_type))
   {
-    return grid_type_supported(*data_type);
+    return socket_type_supports_grids(*socket_type);
   }
   return false;
 }
@@ -123,7 +119,7 @@ const EnumPropertyItem *grid_custom_data_type_items_filter_fn(bContext * /*C*/,
   *r_free = true;
   return enum_items_filter(rna_enum_attribute_type_items,
                            [](const EnumPropertyItem &item) -> bool {
-                             return grid_type_supported(eCustomDataType(item.value));
+                             return custom_data_type_supports_grids(eCustomDataType(item.value));
                            });
 }
 
@@ -135,7 +131,7 @@ const EnumPropertyItem *grid_socket_type_items_filter_fn(bContext * /*C*/,
   *r_free = true;
   return enum_items_filter(rna_enum_node_socket_data_type_items,
                            [](const EnumPropertyItem &item) -> bool {
-                             return grid_type_supported(eNodeSocketDatatype(item.value));
+                             return socket_type_supports_grids(eNodeSocketDatatype(item.value));
                            });
 }
 

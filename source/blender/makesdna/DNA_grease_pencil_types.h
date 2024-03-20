@@ -240,6 +240,7 @@ typedef enum GreasePencilLayerTreeNodeFlag {
   GP_LAYER_TREE_NODE_USE_LIGHTS = (1 << 4),
   GP_LAYER_TREE_NODE_USE_ONION_SKINNING = (1 << 5),
   GP_LAYER_TREE_NODE_EXPANDED = (1 << 6),
+  GP_LAYER_TREE_NODE_HIDE_MASKS = (1 << 7),
 } GreasePencilLayerTreeNodeFlag;
 
 struct GreasePencilLayerTreeGroup;
@@ -292,6 +293,8 @@ typedef struct GreasePencilLayer {
    * List of `GreasePencilLayerMask`.
    */
   ListBase masks;
+  int active_mask_index;
+  char _pad2[4];
   /**
    * Layer parent object. Can be an armature in which case the `parsubstr` is the bone name.
    */
@@ -302,7 +305,9 @@ typedef struct GreasePencilLayer {
    * Use the functions is the `bke::greasepencil::Layer` class instead.
    */
   float translation[3], rotation[3], scale[3];
-  char _pad2[4];
+  char _pad3[4];
+  /** Name of the view layer used to filter render output. */
+  char *viewlayername;
   /**
    * Runtime struct pointer.
    */

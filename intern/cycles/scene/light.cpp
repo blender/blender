@@ -1346,23 +1346,22 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       klights[light_index].area.normalize_spread = normalize_spread;
     }
     if (light->light_type == LIGHT_SPOT) {
-      /* Scale axes to accommodate non-uniform scaling. */
-      float3 scaled_axis_u = light->get_axisu() / len_squared(light->get_axisu());
-      float3 scaled_axis_v = light->get_axisv() / len_squared(light->get_axisv());
-      float len_z;
-      /* Keep direction normalized. */
-      float3 dir = safe_normalize_len(light->get_dir(), &len_z);
+      const float cos_half_spot_angle = cosf(light->spot_angle * 0.5f);
+      const float spot_smooth = 1.0f / ((1.0f - cos_half_spot_angle) * light->spot_smooth);
+      const float tan_half_spot_angle = tanf(light->spot_angle * 0.5f);
 
-      float cos_half_spot_angle = cosf(light->spot_angle * 0.5f);
-      float spot_smooth = 1.0f / ((1.0f - cos_half_spot_angle) * light->spot_smooth);
+      const float len_w_sq = len_squared(light->get_dir());
+      const float len_u_sq = len_squared(light->get_axisu());
+      const float len_v_sq = len_squared(light->get_axisv());
+      const float tan_sq = sqr(tan_half_spot_angle);
 
-      klights[light_index].spot.scaled_axis_u = scaled_axis_u;
-      klights[light_index].spot.scaled_axis_v = scaled_axis_v;
-      klights[light_index].spot.dir = dir;
+      klights[light_index].spot.dir = safe_normalize(light->get_dir());
       klights[light_index].spot.cos_half_spot_angle = cos_half_spot_angle;
-      klights[light_index].spot.half_cot_half_spot_angle = 0.5f / tanf(light->spot_angle * 0.5f);
-      klights[light_index].spot.inv_len_z = 1.0f / len_z;
+      klights[light_index].spot.half_cot_half_spot_angle = 0.5f / tan_half_spot_angle;
       klights[light_index].spot.spot_smooth = spot_smooth;
+      /* Choose the angle which spans a larger cone. */
+      klights[light_index].spot.cos_half_larger_spread = inversesqrtf(
+          1.0f + tan_sq * fmaxf(len_u_sq, len_v_sq) / len_w_sq);
     }
 
     klights[light_index].shader_id = shader_id;

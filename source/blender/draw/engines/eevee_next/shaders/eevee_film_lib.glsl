@@ -55,7 +55,8 @@ FilmSample film_sample_get(int sample_n, ivec2 texel_film)
 #else
 
   FilmSample film_sample = uniform_buf.film.samples[sample_n];
-  film_sample.texel += (texel_film / scaling_factor) + uniform_buf.film.render_offset;
+  film_sample.texel += (texel_film + uniform_buf.film.offset) / scaling_factor +
+                       uniform_buf.film.overscan;
   /* Use extend on borders. */
   film_sample.texel = clamp(film_sample.texel, ivec2(0, 0), uniform_buf.film.render_extent - 1);
 
@@ -64,9 +65,10 @@ FilmSample film_sample_get(int sample_n, ivec2 texel_film)
   if (scaling_factor > 1) {
     /* We need to compute the real distance and weight since a sample
      * can be used by many final pixel. */
-    vec2 offset = (vec2(film_sample.texel) + 0.5 - uniform_buf.film.subpixel_offset) *
+    vec2 offset = (vec2(film_sample.texel - uniform_buf.film.overscan) + 0.5 -
+                   uniform_buf.film.subpixel_offset) *
                       scaling_factor -
-                  (vec2(texel_film) + 0.5);
+                  (vec2(texel_film + uniform_buf.film.offset) + 0.5);
     film_sample.weight = film_filter_weight(uniform_buf.film.filter_radius,
                                             length_squared(offset));
   }
@@ -142,17 +144,10 @@ void film_sample_accum_combined(FilmSample samp, inout vec4 accum, inout float w
   weight_accum += weight;
 }
 
-#ifdef GPU_METAL
-void film_sample_cryptomatte_accum(FilmSample samp,
-                                   int layer,
-                                   sampler2D tex,
-                                   thread vec2 *crypto_samples)
-#else
 void film_sample_cryptomatte_accum(FilmSample samp,
                                    int layer,
                                    sampler2D tex,
                                    inout vec2 crypto_samples[4])
-#endif
 {
   float hash = texelFetch(tex, samp.texel, 0)[layer];
   /* Find existing entry. */
@@ -247,11 +242,7 @@ vec2 film_pixel_history_motion_vector(ivec2 texel_sample)
 /* \a t is inter-pixel position. 0 means perfectly on a pixel center.
  * Returns weights in both dimensions.
  * Multiply each dimension weights to get final pixel weights. */
-#ifdef GPU_METAL
-void film_get_catmull_rom_weights(vec2 t, thread vec2 *weights)
-#else
 void film_get_catmull_rom_weights(vec2 t, out vec2 weights[4])
-#endif
 {
   vec2 t2 = t * t;
   vec2 t3 = t2 * t;

@@ -77,7 +77,7 @@ class AntiAliasingOperation : public NodeOperation {
    * algorithm expects it in the [0, 10] range. */
   float get_local_contrast_adaptation_factor()
   {
-    return node_storage(bnode()).threshold * 10.0f;
+    return node_storage(bnode()).contrast_limit * 10.0f;
   }
 
   /* Blender encodes the corner rounding factor in the float [0, 1] range, while the SMAA algorithm

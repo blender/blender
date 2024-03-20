@@ -178,6 +178,8 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   bool supports_collapsing() const override
   {
+    /* This is a bit redundant since `LayerViewItem` can't have children. But being expplicit might
+     * catch errors. */
     return false;
   }
 
@@ -255,6 +257,27 @@ class LayerViewItem : public AbstractTreeViewItem {
     PointerRNA layer_ptr = RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
 
     uiBlock *block = uiLayoutGetBlock(&row);
+
+    const int icon = (layer_.base.flag & GP_LAYER_TREE_NODE_HIDE_MASKS) == 0 ? ICON_CLIPUV_DEHLT :
+                                                                               ICON_CLIPUV_HLT;
+    but = uiDefIconButR(block,
+                        UI_BTYPE_ICON_TOGGLE,
+                        0,
+                        icon,
+                        0,
+                        0,
+                        UI_UNIT_X,
+                        UI_UNIT_Y,
+                        &layer_ptr,
+                        "use_masks",
+                        0,
+                        0.0f,
+                        0.0f,
+                        nullptr);
+    if (layer_.parent_group().use_masks()) {
+      UI_but_flag_enable(but, UI_BUT_INACTIVE);
+    }
+
     but = uiDefIconButR(block,
                         UI_BTYPE_ICON_TOGGLE,
                         0,
@@ -359,6 +382,9 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     PointerRNA group_ptr = RNA_pointer_create(
         &grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_);
 
+    const int icon = (group_.base.flag & GP_LAYER_TREE_NODE_HIDE_MASKS) == 0 ? ICON_CLIPUV_DEHLT :
+                                                                               ICON_CLIPUV_HLT;
+    uiItemR(&row, &group_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, nullptr, icon);
     uiItemR(&row, &group_ptr, "hide", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
     uiItemR(&row, &group_ptr, "lock", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
   }
@@ -368,14 +394,12 @@ void LayerTreeView::build_tree_node_recursive(TreeViewOrItem &parent, TreeNode &
 {
   using namespace blender::bke::greasepencil;
   if (node.is_layer()) {
-    LayerViewItem &item = parent.add_tree_item<LayerViewItem>(this->grease_pencil_,
-                                                              node.as_layer());
-    item.set_collapsed(false);
+    parent.add_tree_item<LayerViewItem>(this->grease_pencil_, node.as_layer());
   }
   else if (node.is_group()) {
     LayerGroupViewItem &group_item = parent.add_tree_item<LayerGroupViewItem>(this->grease_pencil_,
                                                                               node.as_group());
-    group_item.set_collapsed(false);
+    group_item.uncollapse_by_default();
     LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &node.as_group().children) {
       build_tree_node_recursive(group_item, node_->wrap());
     }

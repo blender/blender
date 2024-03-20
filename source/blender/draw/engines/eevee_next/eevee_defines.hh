@@ -13,6 +13,10 @@
 #  pragma once
 #endif
 
+#ifndef SQUARE
+#  define SQUARE(x) ((x) * (x))
+#endif
+
 /* Look Up Tables. */
 #define LUT_WORKGROUP_SIZE 16
 
@@ -30,14 +34,17 @@
 #define CULLING_TILE_GROUP_SIZE 256
 
 /* Reflection Probes. */
+#define SPHERE_PROBE_REMAP_GROUP_SIZE 32
 #define SPHERE_PROBE_GROUP_SIZE 16
 #define SPHERE_PROBE_SELECT_GROUP_SIZE 64
 #define SPHERE_PROBE_MIPMAP_LEVELS 5
-#define SPHERE_PROBE_SH_GROUP_SIZE 512
+#define SPHERE_PROBE_SH_GROUP_SIZE 256
 #define SPHERE_PROBE_SH_SAMPLES_PER_GROUP 64
 /* Must be power of two for correct partitioning. */
 #define SPHERE_PROBE_ATLAS_MAX_SUBDIV 10
 #define SPHERE_PROBE_ATLAS_RES (1 << SPHERE_PROBE_ATLAS_MAX_SUBDIV)
+/* Maximum number of thread-groups dispatched for remapping a probe to octahedral mapping. */
+#define SPHERE_PROBE_MAX_HARMONIC SQUARE(SPHERE_PROBE_ATLAS_RES / SPHERE_PROBE_REMAP_GROUP_SIZE)
 /* Start and end value for mixing sphere probe and volume probes. */
 #define SPHERE_PROBE_MIX_START_ROUGHNESS 0.7
 #define SPHERE_PROBE_MIX_END_ROUGHNESS 0.9

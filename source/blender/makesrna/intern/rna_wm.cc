@@ -827,6 +827,7 @@ static void rna_Window_workspace_update(bContext *C, PointerRNA *ptr)
   if (new_workspace) {
     wmWindowManager *wm = CTX_wm_manager(C);
     WM_event_add_notifier_ex(wm, win, NC_SCREEN | ND_WORKSPACE_SET, new_workspace);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, nullptr);
     win->workspace_hook->temp_workspace_store = nullptr;
   }
 }

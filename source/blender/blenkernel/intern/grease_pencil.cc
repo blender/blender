@@ -11,6 +11,7 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.hh"
+#include "BKE_animsys.h"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
@@ -26,6 +27,7 @@
 #include "BKE_object_types.hh"
 
 #include "BLI_bounds.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_map.hh"
 #include "BLI_math_euler_types.hh"
 #include "BLI_math_geom.h"
@@ -316,10 +318,18 @@ Drawing::~Drawing()
 
 Span<uint3> Drawing::triangles() const
 {
-  const char *func = __func__;
-  this->runtime->triangles_cache.ensure([&](Vector<uint3> &r_data) {
-    MemArena *pf_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, func);
+  struct LocalMemArena {
+    MemArena *pf_arena = nullptr;
+    LocalMemArena() : pf_arena(BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "Drawing::triangles")) {}
 
+    ~LocalMemArena()
+    {
+      if (pf_arena != nullptr) {
+        BLI_memarena_free(pf_arena);
+      }
+    }
+  };
+  this->runtime->triangles_cache.ensure([&](Vector<uint3> &r_data) {
     const CurvesGeometry &curves = this->strokes();
     const Span<float3> positions = curves.positions();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
@@ -335,36 +345,37 @@ Span<uint3> Drawing::triangles() const
     }
 
     r_data.resize(total_triangles);
+    MutableSpan<uint3> triangles = r_data.as_mutable_span();
+    threading::EnumerableThreadSpecific<LocalMemArena> all_local_mem_arenas;
+    threading::parallel_for(curves.curves_range(), 32, [&](const IndexRange range) {
+      MemArena *pf_arena = all_local_mem_arenas.local().pf_arena;
+      for (const int curve_i : range) {
+        const IndexRange points = points_by_curve[curve_i];
+        if (points.size() < 3) {
+          continue;
+        }
 
-    /* TODO: use threading. */
-    for (const int curve_i : curves.curves_range()) {
-      const IndexRange points = points_by_curve[curve_i];
+        const int num_triangles = points.size() - 2;
+        MutableSpan<uint3> r_tris = triangles.slice(tris_offests[curve_i], num_triangles);
 
-      if (points.size() < 3) {
-        continue;
+        float(*projverts)[2] = static_cast<float(*)[2]>(
+            BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(points.size())));
+
+        float3x3 axis_mat;
+        axis_dominant_v3_to_m3(axis_mat.ptr(), float3(0.0f, -1.0f, 0.0f));
+
+        for (const int i : IndexRange(points.size())) {
+          mul_v2_m3v3(projverts[i], axis_mat.ptr(), positions[points[i]]);
+        }
+
+        BLI_polyfill_calc_arena(projverts,
+                                points.size(),
+                                0,
+                                reinterpret_cast<uint32_t(*)[3]>(r_tris.data()),
+                                pf_arena);
+        BLI_memarena_clear(pf_arena);
       }
-
-      const int num_triangles = points.size() - 2;
-      MutableSpan<uint3> r_tris = r_data.as_mutable_span().slice(tris_offests[curve_i],
-                                                                 num_triangles);
-
-      float(*projverts)[2] = static_cast<float(*)[2]>(
-          BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(points.size())));
-
-      /* TODO: calculate axis_mat properly. */
-      float3x3 axis_mat;
-      axis_dominant_v3_to_m3(axis_mat.ptr(), float3(0.0f, -1.0f, 0.0f));
-
-      for (const int i : IndexRange(points.size())) {
-        mul_v2_m3v3(projverts[i], axis_mat.ptr(), positions[points[i]]);
-      }
-
-      BLI_polyfill_calc_arena(
-          projverts, points.size(), 0, reinterpret_cast<uint32_t(*)[3]>(r_tris.data()), pf_arena);
-      BLI_memarena_clear(pf_arena);
-    }
-
-    BLI_memarena_free(pf_arena);
+    });
   });
 
   return this->runtime->triangles_cache.data().as_span();
@@ -628,14 +639,12 @@ LayerMask::LayerMask()
 
 LayerMask::LayerMask(StringRefNull name) : LayerMask()
 {
-  this->layer_name = BLI_strdup(name.c_str());
+  this->layer_name = BLI_strdup_null(name.c_str());
 }
 
 LayerMask::LayerMask(const LayerMask &other) : LayerMask()
 {
-  if (other.layer_name) {
-    this->layer_name = BLI_strdup(other.layer_name);
-  }
+  this->layer_name = BLI_strdup_null(other.layer_name);
   this->flag = other.flag;
 }
 
@@ -672,7 +681,10 @@ Layer::Layer()
   zero_v3(this->rotation);
   copy_v3_fl(this->scale, 1.0f);
 
+  this->viewlayername = nullptr;
+
   BLI_listbase_clear(&this->masks);
+  this->active_mask_index = 0;
 
   this->runtime = MEM_new<LayerRuntime>(__func__);
 }
@@ -686,7 +698,11 @@ Layer::Layer(const Layer &other) : Layer()
 {
   new (&this->base) TreeNode(other.base.wrap());
 
-  /* TODO: duplicate masks. */
+  LISTBASE_FOREACH (GreasePencilLayerMask *, other_mask, &other.masks) {
+    LayerMask *new_mask = MEM_new<LayerMask>(__func__, *reinterpret_cast<LayerMask *>(other_mask));
+    BLI_addtail(&this->masks, reinterpret_cast<GreasePencilLayerMask *>(new_mask));
+  }
+  this->active_mask_index = other.active_mask_index;
 
   this->blend_mode = other.blend_mode;
   this->opacity = other.opacity;
@@ -697,6 +713,8 @@ Layer::Layer(const Layer &other) : Layer()
   copy_v3_v3(this->translation, other.translation);
   copy_v3_v3(this->rotation, other.rotation);
   copy_v3_v3(this->scale, other.scale);
+
+  this->set_view_layer_name(other.viewlayername);
 
   /* Note: We do not duplicate the frame storage since it is only needed for writing to file. */
   this->runtime->frames_ = other.runtime->frames_;
@@ -715,11 +733,12 @@ Layer::~Layer()
   MEM_SAFE_FREE(this->frames_storage.values);
 
   LISTBASE_FOREACH_MUTABLE (GreasePencilLayerMask *, mask, &this->masks) {
-    MEM_SAFE_FREE(mask->layer_name);
-    MEM_freeN(mask);
+    MEM_delete(reinterpret_cast<LayerMask *>(mask));
   }
+  BLI_listbase_clear(&this->masks);
 
   MEM_SAFE_FREE(this->parsubstr);
+  MEM_SAFE_FREE(this->viewlayername);
 
   MEM_delete(this->runtime);
   this->runtime = nullptr;
@@ -1013,6 +1032,19 @@ float4x4 Layer::local_transform() const
 {
   return math::from_loc_rot_scale<float4x4, math::EulerXYZ>(
       float3(this->translation), float3(this->rotation), float3(this->scale));
+}
+
+StringRefNull Layer::view_layer_name() const
+{
+  return (this->viewlayername != nullptr) ? StringRefNull(this->viewlayername) : StringRefNull();
+}
+
+void Layer::set_view_layer_name(const char *new_name)
+{
+  if (this->viewlayername != nullptr) {
+    MEM_freeN(this->viewlayername);
+  }
+  this->viewlayername = BLI_strdup_null(new_name);
 }
 
 LayerGroup::LayerGroup()
@@ -2507,8 +2539,21 @@ void GreasePencil::rename_node(blender::bke::greasepencil::TreeNode &node,
   if (node.name() == new_name) {
     return;
   }
-  node.set_name(node.is_layer() ? unique_layer_name(*this, new_name) :
-                                  unique_layer_group_name(*this, new_name));
+  std::string old_name = node.name();
+  if (node.is_layer()) {
+    node.set_name(unique_layer_name(*this, new_name));
+    BKE_animdata_fix_paths_rename_all(&this->id, "layers", old_name.c_str(), node.name().c_str());
+    for (bke::greasepencil::Layer *layer : this->layers_for_write()) {
+      LISTBASE_FOREACH (GreasePencilLayerMask *, mask, &layer->masks) {
+        if (STREQ(mask->layer_name, old_name.c_str())) {
+          mask->layer_name = BLI_strdup(node.name().c_str());
+        }
+      }
+    }
+  }
+  else if (node.is_group()) {
+    node.set_name(unique_layer_group_name(*this, new_name));
+  }
 }
 
 static void shrink_customdata(CustomData &data, const int index_to_remove, const int size)
@@ -2680,6 +2725,7 @@ static void read_layer(BlendDataReader *reader,
   BLO_read_data_address(reader, &node->base.name);
   node->base.parent = parent;
   BLO_read_data_address(reader, &node->parsubstr);
+  BLO_read_data_address(reader, &node->viewlayername);
 
   /* Read frames storage. */
   BLO_read_int32_array(reader, node->frames_storage.num, &node->frames_storage.keys);
@@ -2748,6 +2794,7 @@ static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
   BLO_write_struct(writer, GreasePencilLayer, node);
   BLO_write_string(writer, node->base.name);
   BLO_write_string(writer, node->parsubstr);
+  BLO_write_string(writer, node->viewlayername);
 
   BLO_write_int32_array(writer, node->frames_storage.num, node->frames_storage.keys);
   BLO_write_struct_array(

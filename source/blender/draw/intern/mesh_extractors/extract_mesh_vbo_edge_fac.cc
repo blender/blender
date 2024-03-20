@@ -69,15 +69,15 @@ static void extract_edge_fac_init(const MeshRenderData &mr,
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.loop_len + mr.loop_loose_len);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
 
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(tls_data);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
     data->use_edge_render = !mr.mesh->runtime->subsurf_optimal_display_edges.is_empty();
-    data->edge_loop_count = MEM_cnew_array<uint8_t>(mr.edge_len, __func__);
+    data->edge_loop_count = MEM_cnew_array<uint8_t>(mr.edges_num, __func__);
     data->edge_pdata = (MEdgeDataPrev *)MEM_malloc_arrayN(
-        mr.edge_len, sizeof(MEdgeDataPrev), __func__);
+        mr.edges_num, sizeof(MEdgeDataPrev), __func__);
   }
   else {
     /* HACK to bypass non-manifold check in mesh_edge_fac_finish(). */
@@ -166,8 +166,8 @@ static void extract_edge_fac_iter_loose_edge_bm(const MeshRenderData &mr,
                                                 void *_data)
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
-  data->vbo_data[mr.loop_len + (loose_edge_i * 2) + 0] = 0;
-  data->vbo_data[mr.loop_len + (loose_edge_i * 2) + 1] = 0;
+  data->vbo_data[mr.corners_num + (loose_edge_i * 2) + 0] = 0;
+  data->vbo_data[mr.corners_num + (loose_edge_i * 2) + 1] = 0;
 }
 
 static void extract_edge_fac_iter_loose_edge_mesh(const MeshRenderData &mr,
@@ -177,8 +177,8 @@ static void extract_edge_fac_iter_loose_edge_mesh(const MeshRenderData &mr,
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
 
-  data->vbo_data[mr.loop_len + loose_edge_i * 2 + 0] = 0;
-  data->vbo_data[mr.loop_len + loose_edge_i * 2 + 1] = 0;
+  data->vbo_data[mr.corners_num + loose_edge_i * 2 + 0] = 0;
+  data->vbo_data[mr.corners_num + loose_edge_i * 2 + 1] = 0;
 }
 
 static void extract_edge_fac_finish(const MeshRenderData &mr,
@@ -201,7 +201,7 @@ static void extract_edge_fac_finish(const MeshRenderData &mr,
     data->vbo_data = static_cast<uchar *>(GPU_vertbuf_steal_data(vbo));
     GPU_vertbuf_clear(vbo);
 
-    int buf_len = mr.loop_len + mr.loop_loose_len;
+    int buf_len = mr.corners_num + mr.loose_indices_num;
     GPU_vertbuf_init_with_format(vbo, &format);
     GPU_vertbuf_data_alloc(vbo, buf_len);
 

@@ -37,23 +37,23 @@
 #include "sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint::trim {
-enum eSculptTrimOperationType {
-  SCULPT_GESTURE_TRIM_INTERSECT,
-  SCULPT_GESTURE_TRIM_DIFFERENCE,
-  SCULPT_GESTURE_TRIM_UNION,
-  SCULPT_GESTURE_TRIM_JOIN,
+enum class OperationType {
+  Intersect = 0,
+  Difference = 1,
+  Union = 2,
+  Join = 3,
 };
 
 /* Intersect is not exposed in the UI because it does not work correctly with symmetry (it deletes
  * the symmetrical part of the mesh in the first symmetry pass). */
-static EnumPropertyItem prop_trim_operation_types[] = {
-    {SCULPT_GESTURE_TRIM_DIFFERENCE,
+static EnumPropertyItem operation_types[] = {
+    {int(OperationType::Difference),
      "DIFFERENCE",
      0,
      "Difference",
      "Use a difference boolean operation"},
-    {SCULPT_GESTURE_TRIM_UNION, "UNION", 0, "Union", "Use a union boolean operation"},
-    {SCULPT_GESTURE_TRIM_JOIN,
+    {int(OperationType::Union), "UNION", 0, "Union", "Use a union boolean operation"},
+    {int(OperationType::Join),
      "JOIN",
      0,
      "Join",
@@ -61,17 +61,17 @@ static EnumPropertyItem prop_trim_operation_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-enum eSculptTrimOrientationType {
-  SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
-  SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE,
+enum class OrientationType {
+  View = 0,
+  Surface = 1,
 };
-static EnumPropertyItem prop_trim_orientation_types[] = {
-    {SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
+static EnumPropertyItem orientation_types[] = {
+    {int(OrientationType::View),
      "VIEW",
      0,
      "View",
      "Use the view to orientate the trimming shape"},
-    {SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE,
+    {int(OrientationType::Surface),
      "SURFACE",
      0,
      "Surface",
@@ -79,22 +79,18 @@ static EnumPropertyItem prop_trim_orientation_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-enum eSculptTrimExtrudeMode {
-  SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT,
-  SCULPT_GESTURE_TRIM_EXTRUDE_FIXED
+enum class ExtrudeMode {
+  Project = 0,
+  Fixed = 1,
 };
 
-static EnumPropertyItem prop_trim_extrude_modes[] = {
-    {SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT,
-     "PROJECT",
-     0,
-     "Project",
-     "Project back faces when extruding"},
-    {SCULPT_GESTURE_TRIM_EXTRUDE_FIXED, "FIXED", 0, "Fixed", "Extrude back faces by fixed amount"},
+static EnumPropertyItem extrude_modes[] = {
+    {int(ExtrudeMode::Project), "PROJECT", 0, "Project", "Project back faces when extruding"},
+    {int(ExtrudeMode::Fixed), "FIXED", 0, "Fixed", "Extrude back faces by fixed amount"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-struct SculptGestureTrimOperation {
+struct TrimOperation {
   gesture::Operation op;
 
   Mesh *mesh;
@@ -105,15 +101,14 @@ struct SculptGestureTrimOperation {
 
   bool use_cursor_depth;
 
-  eSculptTrimOperationType mode;
-  eSculptTrimOrientationType orientation;
-  eSculptTrimExtrudeMode extrude_mode;
+  OperationType mode;
+  OrientationType orientation;
+  ExtrudeMode extrude_mode;
 };
 
-static void sculpt_gesture_trim_normals_update(gesture::GestureData &gesture_data)
+static void update_normals(gesture::GestureData &gesture_data)
 {
-  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data.operation;
+  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
   Mesh *trim_mesh = trim_operation->mesh;
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(trim_mesh);
@@ -145,25 +140,24 @@ static void sculpt_gesture_trim_normals_update(gesture::GestureData &gesture_dat
 
 /* Get the origin and normal that are going to be used for calculating the depth and position the
  * trimming geometry. */
-static void sculpt_gesture_trim_shape_origin_normal_get(gesture::GestureData &gesture_data,
-                                                        float *r_origin,
-                                                        float *r_normal)
+static void get_origin_and_normal(gesture::GestureData &gesture_data,
+                                  float *r_origin,
+                                  float *r_normal)
 {
-  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data.operation;
+  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
   /* Use the view origin and normal in world space. The trimming mesh coordinates are
    * calculated in world space, aligned to the view, and then converted to object space to
    * store them in the final trimming mesh which is going to be used in the boolean operation.
    */
   switch (trim_operation->orientation) {
-    case SCULPT_GESTURE_TRIM_ORIENTATION_VIEW:
+    case OrientationType::View:
       mul_v3_m4v3(r_origin,
                   gesture_data.vc.obact->object_to_world().ptr(),
                   gesture_data.ss->gesture_initial_location);
       copy_v3_v3(r_normal, gesture_data.world_space_view_normal);
       negate_v3(r_normal);
       break;
-    case SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE:
+    case OrientationType::Surface:
       mul_v3_m4v3(r_origin,
                   gesture_data.vc.obact->object_to_world().ptr(),
                   gesture_data.ss->gesture_initial_location);
@@ -175,10 +169,9 @@ static void sculpt_gesture_trim_shape_origin_normal_get(gesture::GestureData &ge
   }
 }
 
-static void sculpt_gesture_trim_calculate_depth(gesture::GestureData &gesture_data)
+static void calculate_depth(gesture::GestureData &gesture_data)
 {
-  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data.operation;
+  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
 
   SculptSession *ss = gesture_data.ss;
   ViewContext *vc = &gesture_data.vc;
@@ -188,7 +181,7 @@ static void sculpt_gesture_trim_calculate_depth(gesture::GestureData &gesture_da
   float shape_plane[4];
   float shape_origin[3];
   float shape_normal[3];
-  sculpt_gesture_trim_shape_origin_normal_get(gesture_data, shape_origin, shape_normal);
+  get_origin_and_normal(gesture_data, shape_origin, shape_normal);
   plane_from_point_normal_v3(shape_plane, shape_origin, shape_normal);
 
   trim_operation->depth_front = FLT_MAX;
@@ -215,7 +208,7 @@ static void sculpt_gesture_trim_calculate_depth(gesture::GestureData &gesture_da
                 ss->gesture_initial_location);
 
     float mid_point_depth;
-    if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
+    if (trim_operation->orientation == OrientationType::View) {
       mid_point_depth = ss->gesture_initial_hit ?
                             dist_signed_to_plane_v3(world_space_gesture_initial_location,
                                                     shape_plane) :
@@ -259,10 +252,9 @@ static void sculpt_gesture_trim_calculate_depth(gesture::GestureData &gesture_da
   }
 }
 
-static void sculpt_gesture_trim_geometry_generate(gesture::GestureData &gesture_data)
+static void generate_geometry(gesture::GestureData &gesture_data)
 {
-  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data.operation;
+  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
   ViewContext *vc = &gesture_data.vc;
   ARegion *region = vc->region;
 
@@ -293,21 +285,21 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData &gesture_
   float shape_origin[3];
   float shape_normal[3];
   float shape_plane[4];
-  sculpt_gesture_trim_shape_origin_normal_get(gesture_data, shape_origin, shape_normal);
+  get_origin_and_normal(gesture_data, shape_origin, shape_normal);
   plane_from_point_normal_v3(shape_plane, shape_origin, shape_normal);
 
   const float(*ob_imat)[4] = vc->obact->world_to_object().ptr();
 
-  /* Write vertices coordinatesSCULPT_GESTURE_TRIM_DIFFERENCE for the front face. */
+  /* Write vertices coordinates OperationType::Difference for the front face. */
   MutableSpan<float3> positions = trim_operation->mesh->vert_positions_for_write();
 
   float depth_point[3];
 
-  /* Get origin point for SCULPT_GESTURE_TRIM_ORIENTATION_VIEW.
+  /* Get origin point for OrientationType::View.
    * Note: for projection extrusion we add depth_front here
    * instead of in the loop.
    */
-  if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_FIXED) {
+  if (trim_operation->extrude_mode == ExtrudeMode::Fixed) {
     copy_v3_v3(depth_point, shape_origin);
   }
   else {
@@ -316,11 +308,11 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData &gesture_
 
   for (const int i : screen_points.index_range()) {
     float new_point[3];
-    if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
+    if (trim_operation->orientation == OrientationType::View) {
       ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
 
       /* For fixed mode we add the shape normal here to avoid projection errors. */
-      if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_FIXED) {
+      if (trim_operation->extrude_mode == ExtrudeMode::Fixed) {
         madd_v3_v3fl(new_point, shape_normal, depth_front);
       }
     }
@@ -337,8 +329,8 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData &gesture_
   for (const int i : screen_points.index_range()) {
     float new_point[3];
 
-    if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT) {
-      if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
+    if (trim_operation->extrude_mode == ExtrudeMode::Project) {
+      if (trim_operation->orientation == OrientationType::View) {
         ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
       }
       else {
@@ -428,13 +420,12 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData &gesture_
 
   bke::mesh_smooth_set(*trim_operation->mesh, false);
   bke::mesh_calc_edges(*trim_operation->mesh, false, false);
-  sculpt_gesture_trim_normals_update(gesture_data);
+  update_normals(gesture_data);
 }
 
-static void sculpt_gesture_trim_geometry_free(gesture::GestureData &gesture_data)
+static void free_geometry(gesture::GestureData &gesture_data)
 {
-  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data.operation;
+  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
   BKE_id_free(nullptr, trim_operation->mesh);
   MEM_freeN(trim_operation->true_mesh_co);
 }
@@ -444,10 +435,9 @@ static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
   return BM_elem_flag_test(f, BM_ELEM_DRAW) ? 1 : 0;
 }
 
-static void sculpt_gesture_apply_trim(gesture::GestureData &gesture_data)
+static void apply_trim(gesture::GestureData &gesture_data)
 {
-  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data.operation;
+  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
   Mesh *sculpt_mesh = BKE_mesh_from_object(gesture_data.vc.obact);
   Mesh *trim_mesh = trim_operation->mesh;
 
@@ -497,19 +487,19 @@ static void sculpt_gesture_apply_trim(gesture::GestureData &gesture_data)
   }
 
   /* Join does not do a boolean operation, it just adds the geometry. */
-  if (trim_operation->mode != SCULPT_GESTURE_TRIM_JOIN) {
+  if (trim_operation->mode != OperationType::Join) {
     int boolean_mode = 0;
     switch (trim_operation->mode) {
-      case SCULPT_GESTURE_TRIM_INTERSECT:
+      case OperationType::Intersect:
         boolean_mode = eBooleanModifierOp_Intersect;
         break;
-      case SCULPT_GESTURE_TRIM_DIFFERENCE:
+      case OperationType::Difference:
         boolean_mode = eBooleanModifierOp_Difference;
         break;
-      case SCULPT_GESTURE_TRIM_UNION:
+      case OperationType::Union:
         boolean_mode = eBooleanModifierOp_Union;
         break;
-      case SCULPT_GESTURE_TRIM_JOIN:
+      case OperationType::Join:
         BLI_assert(false);
         break;
     }
@@ -536,34 +526,32 @@ static void sculpt_gesture_apply_trim(gesture::GestureData &gesture_data)
       result, static_cast<Mesh *>(gesture_data.vc.obact->data), gesture_data.vc.obact);
 }
 
-static void sculpt_gesture_trim_begin(bContext &C, gesture::GestureData &gesture_data)
+static void gesture_begin(bContext &C, gesture::GestureData &gesture_data)
 {
   Object *object = gesture_data.vc.obact;
   SculptSession *ss = object->sculpt;
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
-  sculpt_gesture_trim_calculate_depth(gesture_data);
-  sculpt_gesture_trim_geometry_generate(gesture_data);
+  calculate_depth(gesture_data);
+  generate_geometry(gesture_data);
   SCULPT_topology_islands_invalidate(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
   undo::push_node(gesture_data.vc.obact, nullptr, undo::Type::Geometry);
 }
 
-static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext & /*C*/,
-                                                        gesture::GestureData &gesture_data)
+static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureData &gesture_data)
 {
-  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data.operation;
+  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
   Mesh *trim_mesh = trim_operation->mesh;
   MutableSpan<float3> positions = trim_mesh->vert_positions_for_write();
   for (int i = 0; i < trim_mesh->verts_num; i++) {
     flip_v3_v3(positions[i], trim_operation->true_mesh_co[i], gesture_data.symmpass);
   }
-  sculpt_gesture_trim_normals_update(gesture_data);
-  sculpt_gesture_apply_trim(gesture_data);
+  update_normals(gesture_data);
+  apply_trim(gesture_data);
 }
 
-static void sculpt_gesture_trim_end(bContext & /*C*/, gesture::GestureData &gesture_data)
+static void gesture_end(bContext & /*C*/, gesture::GestureData &gesture_data)
 {
   Object *object = gesture_data.vc.obact;
   Mesh *mesh = (Mesh *)object->data;
@@ -574,43 +562,41 @@ static void sculpt_gesture_trim_end(bContext & /*C*/, gesture::GestureData &gest
     face_set::initialize_none_to_id(mesh, next_face_set_id);
   }
 
-  sculpt_gesture_trim_geometry_free(gesture_data);
+  free_geometry(gesture_data);
 
   undo::push_node(gesture_data.vc.obact, nullptr, undo::Type::Geometry);
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
   DEG_id_tag_update(&gesture_data.vc.obact->id, ID_RECALC_GEOMETRY);
 }
 
-static void sculpt_gesture_init_trim_properties(gesture::GestureData &gesture_data, wmOperator &op)
+static void init_operation(gesture::GestureData &gesture_data, wmOperator &op)
 {
   gesture_data.operation = reinterpret_cast<gesture::Operation *>(
-      MEM_cnew<SculptGestureTrimOperation>(__func__));
+      MEM_cnew<TrimOperation>(__func__));
 
-  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data.operation;
+  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
 
-  trim_operation->op.begin = sculpt_gesture_trim_begin;
-  trim_operation->op.apply_for_symmetry_pass = sculpt_gesture_trim_apply_for_symmetry_pass;
-  trim_operation->op.end = sculpt_gesture_trim_end;
+  trim_operation->op.begin = gesture_begin;
+  trim_operation->op.apply_for_symmetry_pass = gesture_apply_for_symmetry_pass;
+  trim_operation->op.end = gesture_end;
 
-  trim_operation->mode = eSculptTrimOperationType(RNA_enum_get(op.ptr, "trim_mode"));
+  trim_operation->mode = OperationType(RNA_enum_get(op.ptr, "trim_mode"));
   trim_operation->use_cursor_depth = RNA_boolean_get(op.ptr, "use_cursor_depth");
-  trim_operation->orientation = eSculptTrimOrientationType(
-      RNA_enum_get(op.ptr, "trim_orientation"));
-  trim_operation->extrude_mode = eSculptTrimExtrudeMode(RNA_enum_get(op.ptr, "trim_extrude_mode"));
+  trim_operation->orientation = OrientationType(RNA_enum_get(op.ptr, "trim_orientation"));
+  trim_operation->extrude_mode = ExtrudeMode(RNA_enum_get(op.ptr, "trim_extrude_mode"));
 
   /* If the cursor was not over the mesh, force the orientation to view. */
   if (!gesture_data.ss->gesture_initial_hit) {
-    trim_operation->orientation = SCULPT_GESTURE_TRIM_ORIENTATION_VIEW;
+    trim_operation->orientation = OrientationType::View;
   }
 }
 
-static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
+static void operator_properties(wmOperatorType *ot)
 {
   RNA_def_enum(ot->srna,
                "trim_mode",
-               prop_trim_operation_types,
-               SCULPT_GESTURE_TRIM_DIFFERENCE,
+               operation_types,
+               int(OperationType::Difference),
                "Trim Mode",
                nullptr);
   RNA_def_boolean(
@@ -621,19 +607,19 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
       "Use cursor location and radius for the dimensions and position of the trimming shape");
   RNA_def_enum(ot->srna,
                "trim_orientation",
-               prop_trim_orientation_types,
-               SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
+               orientation_types,
+               int(OrientationType::View),
                "Shape Orientation",
                nullptr);
   RNA_def_enum(ot->srna,
                "trim_extrude_mode",
-               prop_trim_extrude_modes,
-               SCULPT_GESTURE_TRIM_EXTRUDE_FIXED,
+               extrude_modes,
+               int(ExtrudeMode::Fixed),
                "Extrude Mode",
                nullptr);
 }
 
-static int sculpt_trim_gesture_box_exec(bContext *C, wmOperator *op)
+static int gesture_box_exec(bContext *C, wmOperator *op)
 {
   Object *object = CTX_data_active_object(C);
   SculptSession *ss = object->sculpt;
@@ -652,12 +638,12 @@ static int sculpt_trim_gesture_box_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  sculpt_gesture_init_trim_properties(*gesture_data, *op);
+  init_operation(*gesture_data, *op);
   gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 
-static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -680,7 +666,7 @@ static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmE
   return WM_gesture_box_invoke(C, op, event);
 }
 
-static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
+static int gesture_lasso_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *object = CTX_data_active_object(C);
@@ -702,12 +688,12 @@ static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_trim_properties(*gesture_data, *op);
+  init_operation(*gesture_data, *op);
   gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 
-static int sculpt_trim_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -736,9 +722,9 @@ void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_trim_lasso_gesture";
   ot->description = "Trims the mesh within the lasso as you move the brush";
 
-  ot->invoke = sculpt_trim_gesture_lasso_invoke;
+  ot->invoke = gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
-  ot->exec = sculpt_trim_gesture_lasso_exec;
+  ot->exec = gesture_lasso_exec;
 
   ot->poll = SCULPT_mode_poll_view3d;
 
@@ -746,9 +732,9 @@ void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot)
 
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
-  gesture::operator_properties(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Lasso);
 
-  sculpt_trim_gesture_operator_properties(ot);
+  operator_properties(ot);
 }
 
 void SCULPT_OT_trim_box_gesture(wmOperatorType *ot)
@@ -757,9 +743,9 @@ void SCULPT_OT_trim_box_gesture(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_trim_box_gesture";
   ot->description = "Trims the mesh within the box as you move the brush";
 
-  ot->invoke = sculpt_trim_gesture_box_invoke;
+  ot->invoke = gesture_box_invoke;
   ot->modal = WM_gesture_box_modal;
-  ot->exec = sculpt_trim_gesture_box_exec;
+  ot->exec = gesture_box_exec;
 
   ot->poll = SCULPT_mode_poll_view3d;
 
@@ -767,8 +753,8 @@ void SCULPT_OT_trim_box_gesture(wmOperatorType *ot)
 
   /* Properties. */
   WM_operator_properties_border(ot);
-  gesture::operator_properties(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Box);
 
-  sculpt_trim_gesture_operator_properties(ot);
+  operator_properties(ot);
 }
 }  // namespace blender::ed::sculpt_paint::trim

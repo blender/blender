@@ -194,8 +194,7 @@ class IMAGE_MT_image(Menu):
         ima = sima.image
         show_render = sima.show_render
 
-        layout.operator("image.new", text="New",
-                        text_ctxt=i18n_contexts.id_image)
+        layout.operator("image.new", text="New", text_ctxt=i18n_contexts.id_image)
         layout.operator("image.open", text="Open...", icon='FILE_FOLDER')
 
         layout.operator("image.read_viewlayers")
@@ -906,7 +905,7 @@ class IMAGE_HT_header(Header):
                 row.prop(sima, "show_stereo_3d", text="")
             if show_maskedit:
                 row = layout.row()
-                row.popover(panel='IMAGE_PT_mask_display')
+                row.popover(panel="IMAGE_PT_mask_display")
 
             # layers.
             layout.template_image_layers(ima, iuser)

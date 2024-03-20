@@ -786,7 +786,7 @@ void WM_operator_properties_reset(wmOperator *op)
     RNA_PROP_BEGIN (op->ptr, itemptr, iterprop) {
       PropertyRNA *prop = static_cast<PropertyRNA *>(itemptr.data);
 
-      if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
+      if ((RNA_property_flag(prop) & (PROP_SKIP_SAVE | PROP_SKIP_PRESET)) == 0) {
         const char *identifier = RNA_property_identifier(prop);
         RNA_struct_idprops_unset(op->ptr, identifier);
       }
@@ -1486,6 +1486,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
 
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NUMSELECT);
 
+  UI_fontstyle_set(&style->widget);
   /* Width based on the text lengths. */
   int text_width = std::max(
       120 * UI_SCALE_FAC,
@@ -1604,8 +1605,8 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   const int padding = (small ? 7 : 14) * UI_SCALE_FAC;
 
   if (data->position == WM_POPUP_POSITION_MOUSE) {
-    const float button_center_x = windows_layout ? -0.33f : -0.66f;
-    const float button_center_y = small ? 1.9f : 3.1f;
+    const float button_center_x = windows_layout ? -0.4f : -0.90f;
+    const float button_center_y = small ? 2.0f : 3.1f;
     const int bounds_offset[2] = {int(button_center_x * uiLayoutGetWidth(layout)),
                                   int(button_center_y * UI_UNIT_X)};
     UI_block_bounds_set_popup(block, padding, bounds_offset);

@@ -500,6 +500,8 @@ def main() -> None:
                 "./scripts/addons_contrib",
                 "./scripts/templates_osl",
                 "./tools",
+                # Exclude library sources (GIT-LFS).
+                "./lib",
                 # Needs manual handling as it mixes two licenses.
                 "./intern/atomic",
                 # Practically an "extern" within an "intern" module, leave as-is.
@@ -524,6 +526,8 @@ def main() -> None:
                 # This is an exception, it has its own CMake files we do not maintain.
                 "./extern/audaspace",
                 "./extern/quadriflow/3rd/lemon-1.3.1",
+                # Exclude library sources (GIT-LFS).
+                "./lib",
             ),
         ),
         Pass(
@@ -533,12 +537,16 @@ def main() -> None:
                 # Directories:
                 # This is an exception, it has its own CMake files we do not maintain.
                 "./extern",
-                "./scripts/addons_contrib",
+                # Exclude library sources (GIT-LFS).
+                "./lib",
                 # Just data.
                 "./doc/python_api/examples",
                 "./scripts/addons/presets",
+                "./scripts/addons_contrib",
                 "./scripts/presets",
                 "./scripts/templates_py",
+
+
             ),
         ),
     )

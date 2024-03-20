@@ -151,7 +151,7 @@ void Film::sync_mist()
 inline bool operator==(const FilmData &a, const FilmData &b)
 {
   return (a.extent == b.extent) && (a.offset == b.offset) &&
-         (a.render_extent == b.render_extent) && (a.render_offset == b.render_offset) &&
+         (a.render_extent == b.render_extent) && (a.overscan == b.overscan) &&
          (a.filter_radius == b.filter_radius) && (a.scaling_factor == b.scaling_factor) &&
          (a.background_opacity == b.background_opacity);
 }
@@ -265,12 +265,11 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.offset = int2(output_rect->xmin, output_rect->ymin);
     data_.extent_inv = 1.0f / float2(data_.extent);
     data_.render_extent = math::divide_ceil(extent, int2(data_.scaling_factor));
-    data_.render_offset = data_.offset;
+    data_.overscan = 0;
 
     if (inst_.camera.overscan() != 0.0f) {
-      int2 overscan = int2(inst_.camera.overscan() * math::max(UNPACK2(data_.render_extent)));
-      data_.render_extent += overscan * 2;
-      data_.render_offset += overscan;
+      data_.overscan = inst_.camera.overscan() * math::max(UNPACK2(data_.render_extent));
+      data_.render_extent += data_.overscan * 2;
     }
 
     /* Disable filtering if sample count is 1. */

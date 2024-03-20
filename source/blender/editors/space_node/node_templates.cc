@@ -373,54 +373,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
       const SocketDeclaration &socket_decl = *socket_decl_ptr;
       NodeLinkItem item;
       item.socket_index = index++;
-      if (dynamic_cast<const decl::Float *>(&socket_decl)) {
-        item.socket_type = SOCK_FLOAT;
-      }
-      else if (dynamic_cast<const decl::Int *>(&socket_decl)) {
-        item.socket_type = SOCK_INT;
-      }
-      else if (dynamic_cast<const decl::Bool *>(&socket_decl)) {
-        item.socket_type = SOCK_BOOLEAN;
-      }
-      else if (dynamic_cast<const decl::Vector *>(&socket_decl)) {
-        item.socket_type = SOCK_VECTOR;
-      }
-      else if (dynamic_cast<const decl::Color *>(&socket_decl)) {
-        item.socket_type = SOCK_RGBA;
-      }
-      else if (dynamic_cast<const decl::Rotation *>(&socket_decl)) {
-        item.socket_type = SOCK_ROTATION;
-      }
-      else if (dynamic_cast<const decl::Matrix *>(&socket_decl)) {
-        item.socket_type = SOCK_MATRIX;
-      }
-      else if (dynamic_cast<const decl::String *>(&socket_decl)) {
-        item.socket_type = SOCK_STRING;
-      }
-      else if (dynamic_cast<const decl::Menu *>(&socket_decl)) {
-        item.socket_type = SOCK_MENU;
-      }
-      else if (dynamic_cast<const decl::Image *>(&socket_decl)) {
-        item.socket_type = SOCK_IMAGE;
-      }
-      else if (dynamic_cast<const decl::Texture *>(&socket_decl)) {
-        item.socket_type = SOCK_TEXTURE;
-      }
-      else if (dynamic_cast<const decl::Material *>(&socket_decl)) {
-        item.socket_type = SOCK_MATERIAL;
-      }
-      else if (dynamic_cast<const decl::Shader *>(&socket_decl)) {
-        item.socket_type = SOCK_SHADER;
-      }
-      else if (dynamic_cast<const decl::Collection *>(&socket_decl)) {
-        item.socket_type = SOCK_COLLECTION;
-      }
-      else if (dynamic_cast<const decl::Object *>(&socket_decl)) {
-        item.socket_type = SOCK_OBJECT;
-      }
-      else {
-        item.socket_type = SOCK_CUSTOM;
-      }
+      item.socket_type = socket_decl.socket_type;
       item.socket_name = socket_decl.name.c_str();
       item.node_name = arg->node_type->ui_name;
       items.append(item);

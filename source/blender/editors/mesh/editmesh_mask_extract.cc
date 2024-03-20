@@ -457,10 +457,16 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_mask_layers_ensure(nullptr, nullptr, ob, nullptr);
 
+  bool create_new_object = RNA_boolean_get(op->ptr, "new_object");
+  bool fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
+  float mask_threshold = RNA_float_get(op->ptr, "mask_threshold");
+
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   Mesh *new_mesh = (Mesh *)BKE_id_copy(bmain, &mesh->id);
 
-  if (ob->mode == OB_MODE_SCULPT) {
+  /* Fix for #87243 */
+  /* Undo crashes when new object is created in the middle of a sculpt */
+  if (ob->mode == OB_MODE_SCULPT && !create_new_object) {
     sculpt_paint::undo::geometry_begin(ob, op);
   }
 
@@ -473,15 +479,14 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   mesh_to_bm_params.calc_face_normal = true;
   BM_mesh_bm_from_me(bm, new_mesh, &mesh_to_bm_params);
 
-  slice_paint_mask(
-      bm, false, RNA_boolean_get(op->ptr, "fill_holes"), RNA_float_get(op->ptr, "mask_threshold"));
+  slice_paint_mask(bm, false, fill_holes, mask_threshold);
   BKE_id_free(bmain, new_mesh);
   BMeshToMeshParams bm_to_mesh_params{};
   bm_to_mesh_params.calc_object_remap = false;
   new_mesh = BKE_mesh_from_bmesh_nomain(bm, &bm_to_mesh_params, mesh);
   BM_mesh_free(bm);
 
-  if (RNA_boolean_get(op->ptr, "new_object")) {
+  if (create_new_object) {
     ushort local_view_bits = 0;
     if (v3d && v3d->localvd) {
       local_view_bits = v3d->local_view_uid;
@@ -495,10 +500,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 
     BM_mesh_bm_from_me(bm, new_ob_mesh, &mesh_to_bm_params);
 
-    slice_paint_mask(bm,
-                     true,
-                     RNA_boolean_get(op->ptr, "fill_holes"),
-                     RNA_float_get(op->ptr, "mask_threshold"));
+    slice_paint_mask(bm, true, fill_holes, mask_threshold);
     BKE_id_free(bmain, new_ob_mesh);
     new_ob_mesh = BKE_mesh_from_bmesh_nomain(bm, &bm_to_mesh_params, mesh);
     BM_mesh_free(bm);
@@ -524,7 +526,9 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
       const int next_face_set_id = sculpt_paint::face_set::find_next_available_id(*ob);
       sculpt_paint::face_set::initialize_none_to_id(mesh, next_face_set_id);
     }
-    sculpt_paint::undo::geometry_end(ob);
+    if (!create_new_object) {
+      sculpt_paint::undo::geometry_end(ob);
+    }
   }
 
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);

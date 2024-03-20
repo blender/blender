@@ -425,10 +425,13 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             if bl_info is not None:
                 # Use `_init` to detect when `bl_info` was generated from the manifest, see: `_bl_info_from_extension`.
                 if type(bl_info) is dict and "_init" not in bl_info:
-                    print(
-                        "Add-on \"%s\" has a \"bl_info\" which will be ignored in favor of \"%s\"" %
-                        (module_name, _ext_manifest_filename_toml)
-                    )
+                    # This print is noisy, hide behind a debug flag.
+                    # Once `bl_info` is fully deprecated this should be changed to always print a warning.
+                    if _bpy.app.debug_python:
+                        print(
+                            "Add-on \"%s\" has a \"bl_info\" which will be ignored in favor of \"%s\"" %
+                            (module_name, _ext_manifest_filename_toml)
+                        )
                 # Always remove as this is not expected to exist and will be lazily initialized.
                 del mod.bl_info
 
@@ -490,7 +493,7 @@ def disable(module_name, *, default_set=False, handle_error=None):
     # the add-on in the user preferences.
     if mod and getattr(mod, "__addon_enabled__", False) is not False:
         mod.__addon_enabled__ = False
-        mod.__addon_persistent = False
+        mod.__addon_persistent__ = False
 
         try:
             mod.unregister()
@@ -503,7 +506,7 @@ def disable(module_name, *, default_set=False, handle_error=None):
         print(
             "addon_utils.disable: %s not %s" % (
                 module_name,
-                "disabled" if mod is None else "loaded")
+                "loaded" if mod is None else "enabled")
         )
 
     # could be in more than once, unlikely but better do this just in case.

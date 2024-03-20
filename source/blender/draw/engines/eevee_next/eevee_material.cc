@@ -356,6 +356,10 @@ Material &MaterialModule::material_sync(Object *ob,
     mat.is_alpha_blend_transparent = use_forward_pipeline &&
                                      GPU_material_flag_get(mat.shading.gpumat,
                                                            GPU_MATFLAG_TRANSPARENT);
+    mat.has_transparent_shadows = blender_mat->blend_flag & MA_BL_TRANSPARENT_SHADOW &&
+                                  GPU_material_flag_get(mat.shading.gpumat,
+                                                        GPU_MATFLAG_TRANSPARENT);
+
     return mat;
   });
 

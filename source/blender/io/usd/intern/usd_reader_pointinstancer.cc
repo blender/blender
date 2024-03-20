@@ -158,16 +158,17 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const double motionS
 
   ModifierData *md = BKE_modifier_new(eModifierType_Nodes);
   BLI_addtail(&object_->modifiers, md);
+  BKE_modifiers_persistent_uid_init(*object_, *md);
+
   NodesModifierData &nmd = *reinterpret_cast<NodesModifierData *>(md);
   nmd.node_group = ntreeAddTree(bmain, "Instances", "GeometryNodeTree");
 
   bNodeTree *ntree = nmd.node_group;
 
-  ntree->tree_interface.add_socket("Geometry",
-                                   "",
-                                   "NodeSocketGeometry",
-                                   NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT,
-                                   nullptr);
+  ntree->tree_interface.add_socket(
+      "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
+  ntree->tree_interface.add_socket(
+      "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_INPUT, nullptr);
   bNode *group_input = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_INPUT);
   group_input->locx = -400.0f;
   bNode *group_output = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_OUTPUT);

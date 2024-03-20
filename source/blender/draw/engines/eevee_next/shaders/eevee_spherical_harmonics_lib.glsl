@@ -102,6 +102,102 @@ struct SphericalHarmonicL2 {
   SphericalHarmonicBandL2 L2;
 };
 
+SphericalHarmonicBandL0 spherical_harmonics_band_L0_new()
+{
+  SphericalHarmonicBandL0 L0;
+  L0.M0 = vec4(0.0);
+  return L0;
+}
+
+SphericalHarmonicBandL1 spherical_harmonics_band_L1_new()
+{
+  SphericalHarmonicBandL1 L1;
+  L1.Mn1 = vec4(0.0);
+  L1.M0 = vec4(0.0);
+  L1.Mp1 = vec4(0.0);
+  return L1;
+}
+
+SphericalHarmonicBandL2 spherical_harmonics_band_L2_new()
+{
+  SphericalHarmonicBandL2 L2;
+  L2.Mn2 = vec4(0.0);
+  L2.Mn1 = vec4(0.0);
+  L2.M0 = vec4(0.0);
+  L2.Mp1 = vec4(0.0);
+  L2.Mp2 = vec4(0.0);
+  return L2;
+}
+
+SphericalHarmonicL0 spherical_harmonics_L0_new()
+{
+  SphericalHarmonicL0 sh;
+  sh.L0 = spherical_harmonics_band_L0_new();
+  return sh;
+}
+
+SphericalHarmonicL1 spherical_harmonics_L1_new()
+{
+  SphericalHarmonicL1 sh;
+  sh.L0 = spherical_harmonics_band_L0_new();
+  sh.L1 = spherical_harmonics_band_L1_new();
+  return sh;
+}
+
+SphericalHarmonicL2 spherical_harmonics_L2_new()
+{
+  SphericalHarmonicL2 sh;
+  sh.L0 = spherical_harmonics_band_L0_new();
+  sh.L1 = spherical_harmonics_band_L1_new();
+  sh.L2 = spherical_harmonics_band_L2_new();
+  return sh;
+}
+
+SphericalHarmonicBandL0 spherical_harmonics_band_L0_swizzle_wwww(SphericalHarmonicBandL0 L0)
+{
+  L0.M0 = L0.M0.wwww;
+  return L0;
+}
+
+SphericalHarmonicBandL1 spherical_harmonics_band_L1_swizzle_wwww(SphericalHarmonicBandL1 L1)
+{
+  L1.Mn1 = L1.Mn1.wwww;
+  L1.M0 = L1.M0.wwww;
+  L1.Mp1 = L1.Mp1.wwww;
+  return L1;
+}
+
+SphericalHarmonicBandL2 spherical_harmonics_band_L2_swizzle_wwww(SphericalHarmonicBandL2 L2)
+{
+  L2.Mn2 = L2.Mn2.wwww;
+  L2.Mn1 = L2.Mn1.wwww;
+  L2.M0 = L2.M0.wwww;
+  L2.Mp1 = L2.Mp1.wwww;
+  L2.Mp2 = L2.Mp2.wwww;
+  return L2;
+}
+
+SphericalHarmonicL0 spherical_harmonics_swizzle_wwww(SphericalHarmonicL0 sh)
+{
+  sh.L0 = spherical_harmonics_band_L0_swizzle_wwww(sh.L0);
+  return sh;
+}
+
+SphericalHarmonicL1 spherical_harmonics_swizzle_wwww(SphericalHarmonicL1 sh)
+{
+  sh.L0 = spherical_harmonics_band_L0_swizzle_wwww(sh.L0);
+  sh.L1 = spherical_harmonics_band_L1_swizzle_wwww(sh.L1);
+  return sh;
+}
+
+SphericalHarmonicL2 spherical_harmonics_swizzle_wwww(SphericalHarmonicL2 sh)
+{
+  sh.L0 = spherical_harmonics_band_L0_swizzle_wwww(sh.L0);
+  sh.L1 = spherical_harmonics_band_L1_swizzle_wwww(sh.L1);
+  sh.L2 = spherical_harmonics_band_L2_swizzle_wwww(sh.L2);
+  return sh;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -558,6 +654,55 @@ SphericalHarmonicL2 spherical_harmonics_add(SphericalHarmonicL2 a, SphericalHarm
   result.L0 = spherical_harmonics_L0_add(a.L0, b.L0);
   result.L1 = spherical_harmonics_L1_add(a.L1, b.L1);
   result.L2 = spherical_harmonics_L2_add(a.L2, b.L2);
+  return result;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dot
+ * \{ */
+
+vec4 spherical_harmonics_dot(SphericalHarmonicL1 a, SphericalHarmonicL1 b)
+{
+  /* Convert coefficients to per channel column. */
+  mat4x4 a_mat = transpose(mat4x4(a.L0.M0, a.L1.Mn1, a.L1.M0, a.L1.Mp1));
+  mat4x4 b_mat = transpose(mat4x4(b.L0.M0, b.L1.Mn1, b.L1.M0, b.L1.Mp1));
+  vec4 result;
+  result[0] = dot(a_mat[0], b_mat[0]);
+  result[1] = dot(a_mat[1], b_mat[1]);
+  result[2] = dot(a_mat[2], b_mat[2]);
+  result[3] = dot(a_mat[3], b_mat[3]);
+  return result;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Compression
+ *
+ * Described by Josh Hobson in "The indirect Lighting Pipeline of God of War" p. 120
+ * \{ */
+
+SphericalHarmonicL1 spherical_harmonics_compress(SphericalHarmonicL1 sh)
+{
+  SphericalHarmonicL1 result;
+  result.L0 = sh.L0;
+  vec4 fac = safe_rcp(sh.L0.M0 * M_SQRT3);
+  result.L1.Mn1 = (sh.L1.Mn1 * fac) * 0.5 + 0.5;
+  result.L1.M0 = (sh.L1.M0 * fac) * 0.5 + 0.5;
+  result.L1.Mp1 = (sh.L1.Mp1 * fac) * 0.5 + 0.5;
+  return result;
+}
+
+SphericalHarmonicL1 spherical_harmonics_decompress(SphericalHarmonicL1 sh)
+{
+  SphericalHarmonicL1 result;
+  result.L0 = sh.L0;
+  vec4 fac = sh.L0.M0 * M_SQRT3;
+  result.L1.Mn1 = (sh.L1.Mn1 * 2.0 - 1.0) * fac;
+  result.L1.M0 = (sh.L1.M0 * 2.0 - 1.0) * fac;
+  result.L1.Mp1 = (sh.L1.Mp1 * 2.0 - 1.0) * fac;
   return result;
 }
 

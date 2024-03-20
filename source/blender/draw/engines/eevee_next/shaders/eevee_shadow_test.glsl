@@ -23,7 +23,7 @@ void main()
     light.type = LIGHT_SUN;
     light.clipmap_lod_min = -5;
     light.clipmap_lod_max = 8;
-    light._clipmap_lod_bias = 0.0;
+    light.lod_bias = 0.0;
     float fac = float(SHADOW_TILEMAP_RES - 1) / float(SHADOW_TILEMAP_RES);
     EXPECT_EQ(shadow_directional_level(light, vec3(fac * 0.0)), light.clipmap_lod_min);
     EXPECT_EQ(shadow_directional_level(light, vec3(fac * 0.49)), 1);
@@ -51,7 +51,7 @@ void main()
     light._clipmap_origin_x = 0.0;
     light._clipmap_origin_y = 0.0;
     float half_size = exp2(float(light.clipmap_lod_min - 1));
-    light._clipmap_lod_bias = light.clipmap_lod_min - 1;
+    light.lod_bias = light.clipmap_lod_min - 1;
     float fac = float(SHADOW_TILEMAP_RES - 1) / float(SHADOW_TILEMAP_RES);
     EXPECT_EQ(shadow_directional_level(light, vec3(fac * half_size * 0.0, 0.0, 0.0)), 2);
     EXPECT_EQ(shadow_directional_level(light, vec3(fac * half_size * 0.5, 0.0, 0.0)), 2);
@@ -76,7 +76,7 @@ void main()
     light._position = vec3(0.0);
     light._clipmap_origin_x = 0.0;
     light._clipmap_origin_y = 0.0;
-    light._clipmap_lod_bias = 0;
+    light.lod_bias = 0;
 
     float lod_min_tile_size = exp2(float(light.clipmap_lod_min)) / float(SHADOW_TILEMAP_RES);
     float lod_max_half_size = exp2(float(light.clipmap_lod_max)) / 2.0;
@@ -189,7 +189,7 @@ void main()
     light.clipmap_lod_max = 2; /* 3 tile-maps. */
     light.tilemap_index = 1;
     light._position = vec3(0.0);
-    light._clipmap_lod_bias = light.clipmap_lod_min - 1;
+    light.lod_bias = light.clipmap_lod_min - 1;
     light._clipmap_origin_x = 0.0;
     light._clipmap_origin_y = 0.0;
     float lod_tile_size = exp2(float(light.clipmap_lod_min)) / float(SHADOW_TILEMAP_RES);

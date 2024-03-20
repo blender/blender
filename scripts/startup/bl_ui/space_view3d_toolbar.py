@@ -742,8 +742,7 @@ class VIEW3D_PT_stencil_projectpaint(Panel):
 
     def draw_header(self, context):
         ipaint = context.tool_settings.image_paint
-        self.layout.prop(ipaint, "use_stencil_layer",
-                         text=self.bl_label if self.is_popover else "")
+        self.layout.prop(ipaint, "use_stencil_layer", text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -925,8 +924,7 @@ class VIEW3D_PT_tools_brush_falloff_frontface(View3DPaintPanel, Panel):
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        self.layout.prop(brush, "use_frontface_falloff",
-                         text=self.bl_label if self.is_popover else "")
+        self.layout.prop(brush, "use_frontface_falloff", text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         settings = self.paint_settings(context)
@@ -955,8 +953,7 @@ class VIEW3D_PT_tools_brush_falloff_normal(View3DPaintPanel, Panel):
         tool_settings = context.tool_settings
         ipaint = tool_settings.image_paint
 
-        self.layout.prop(ipaint, "use_normal_falloff",
-                         text=self.bl_label if self.is_popover else "")
+        self.layout.prop(ipaint, "use_normal_falloff", text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         tool_settings = context.tool_settings
@@ -1405,8 +1402,7 @@ class VIEW3D_PT_tools_imagepaint_options_cavity(Panel):
         tool_settings = context.tool_settings
         ipaint = tool_settings.image_paint
 
-        self.layout.prop(ipaint, "use_cavity",
-                         text=self.bl_label if self.is_popover else "")
+        self.layout.prop(ipaint, "use_cavity", text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -1416,8 +1412,7 @@ class VIEW3D_PT_tools_imagepaint_options_cavity(Panel):
 
         layout.active = ipaint.use_cavity
 
-        layout.template_curve_mapping(ipaint, "cavity_curve", brush=True,
-                                      use_negative_slope=True)
+        layout.template_curve_mapping(ipaint, "cavity_curve", brush=True, use_negative_slope=True)
 
 
 # TODO, move to space_view3d.py
@@ -1705,8 +1700,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
 
             elif brush.gpencil_tool == 'FILL':
                 row = col.row(align=True)
-                row.prop(gp_settings, "fill_draw_mode", text="Boundary",
-                         text_ctxt=i18n_contexts.id_gpencil)
+                row.prop(gp_settings, "fill_draw_mode", text="Boundary", text_ctxt=i18n_contexts.id_gpencil)
                 row.prop(
                     gp_settings,
                     "show_fill_boundary",
@@ -1770,8 +1764,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(Panel, View3DPanel):
         brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
         self.layout.use_property_split = False
-        self.layout.prop(gp_settings, "use_settings_stabilizer",
-                         text=self.bl_label if self.is_popover else "")
+        self.layout.prop(gp_settings, "use_settings_stabilizer", text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -1804,8 +1797,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_post_processing(View3DPanel, Panel):
         brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
         self.layout.use_property_split = False
-        self.layout.prop(gp_settings, "use_settings_postprocess",
-                         text=self.bl_label if self.is_popover else "")
+        self.layout.prop(gp_settings, "use_settings_postprocess", text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -1860,8 +1852,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
         brush = context.tool_settings.gpencil_paint.brush
         gp_settings = brush.gpencil_settings
         self.layout.use_property_split = False
-        self.layout.prop(gp_settings, "use_settings_random",
-                         text=self.bl_label if self.is_popover else "")
+        self.layout.prop(gp_settings, "use_settings_random", text=self.bl_label if self.is_popover else "")
 
     def draw(self, context):
         layout = self.layout
@@ -1881,24 +1872,21 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
         row.prop(gp_settings, "use_stroke_random_radius", text="", icon='GP_SELECT_STROKES')
         row.prop(gp_settings, "use_random_press_radius", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_random_press_radius and self.is_popover is False:
-            col.template_curve_mapping(gp_settings, "curve_random_pressure", brush=True,
-                                       use_negative_slope=True)
+            col.template_curve_mapping(gp_settings, "curve_random_pressure", brush=True, use_negative_slope=True)
 
         row = col.row(align=True)
         row.prop(gp_settings, "random_strength", text="Strength", slider=True)
         row.prop(gp_settings, "use_stroke_random_strength", text="", icon='GP_SELECT_STROKES')
         row.prop(gp_settings, "use_random_press_strength", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_random_press_strength and self.is_popover is False:
-            col.template_curve_mapping(gp_settings, "curve_random_strength", brush=True,
-                                       use_negative_slope=True)
+            col.template_curve_mapping(gp_settings, "curve_random_strength", brush=True, use_negative_slope=True)
 
         row = col.row(align=True)
         row.prop(gp_settings, "uv_random", text="UV", slider=True)
         row.prop(gp_settings, "use_stroke_random_uv", text="", icon='GP_SELECT_STROKES')
         row.prop(gp_settings, "use_random_press_uv", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_random_press_uv and self.is_popover is False:
-            col.template_curve_mapping(gp_settings, "curve_random_uv", brush=True,
-                                       use_negative_slope=True)
+            col.template_curve_mapping(gp_settings, "curve_random_uv", brush=True, use_negative_slope=True)
 
         col.separator()
 
@@ -1909,24 +1897,21 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
         row.prop(gp_settings, "use_stroke_random_hue", text="", icon='GP_SELECT_STROKES')
         row.prop(gp_settings, "use_random_press_hue", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_random_press_hue and self.is_popover is False:
-            col1.template_curve_mapping(gp_settings, "curve_random_hue", brush=True,
-                                        use_negative_slope=True)
+            col1.template_curve_mapping(gp_settings, "curve_random_hue", brush=True, use_negative_slope=True)
 
         row = col1.row(align=True)
         row.prop(gp_settings, "random_saturation_factor", slider=True)
         row.prop(gp_settings, "use_stroke_random_sat", text="", icon='GP_SELECT_STROKES')
         row.prop(gp_settings, "use_random_press_sat", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_random_press_sat and self.is_popover is False:
-            col1.template_curve_mapping(gp_settings, "curve_random_saturation", brush=True,
-                                        use_negative_slope=True)
+            col1.template_curve_mapping(gp_settings, "curve_random_saturation", brush=True, use_negative_slope=True)
 
         row = col1.row(align=True)
         row.prop(gp_settings, "random_value_factor", slider=True)
         row.prop(gp_settings, "use_stroke_random_val", text="", icon='GP_SELECT_STROKES')
         row.prop(gp_settings, "use_random_press_val", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_random_press_val and self.is_popover is False:
-            col1.template_curve_mapping(gp_settings, "curve_random_value", brush=True,
-                                        use_negative_slope=True)
+            col1.template_curve_mapping(gp_settings, "curve_random_value", brush=True, use_negative_slope=True)
 
         col.separator()
 
@@ -1934,8 +1919,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
         row.prop(gp_settings, "pen_jitter", slider=True)
         row.prop(gp_settings, "use_jitter_pressure", text="", icon='STYLUS_PRESSURE')
         if gp_settings.use_jitter_pressure and self.is_popover is False:
-            col.template_curve_mapping(gp_settings, "curve_jitter", brush=True,
-                                       use_negative_slope=True)
+            col.template_curve_mapping(gp_settings, "curve_jitter", brush=True, use_negative_slope=True)
 
 
 class VIEW3D_PT_tools_grease_pencil_brush_paint_falloff(GreasePencilBrushFalloff, Panel, View3DPaintPanel):

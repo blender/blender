@@ -58,7 +58,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         output_decl.field_source();
       }
       else {
-        output_decl.dependent_field({input_decl.input_index()});
+        output_decl.dependent_field({input_decl.index()});
       }
     }
   }

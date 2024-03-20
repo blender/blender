@@ -210,7 +210,6 @@ void LightProbeModule::sync_world(const ::World *world, bool has_update)
 
   if (has_update) {
     world_sphere_.do_render = true;
-    sph_module.tag_world_irradiance_for_update();
   }
 }
 

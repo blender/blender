@@ -1421,7 +1421,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       newlink->tosock = socket_map.lookup(link->tosock);
 
       if (link->tosock->flag & SOCK_MULTI_INPUT) {
-        newlink->multi_input_socket_index = link->multi_input_socket_index;
+        newlink->multi_input_sort_id = link->multi_input_sort_id;
       }
 
       if (link->fromnode && (link->fromnode->flag & NODE_SELECT)) {

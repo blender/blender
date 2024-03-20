@@ -28,9 +28,9 @@ class BVHMetal : public BVH {
   API_AVAILABLE(macos(11.0))
   vector<id<MTLAccelerationStructure>> unique_blas_array;
 
-  bool motion_blur = false;
+  Device *device = nullptr;
 
-  Stats &stats;
+  bool motion_blur = false;
 
   bool build(Progress &progress, id<MTLDevice> device, id<MTLCommandQueue> queue, bool refit);
 

@@ -84,7 +84,7 @@ static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_re
   }
   if (bmd->flag & eBooleanModifierFlag_Collection) {
     /* The Exact solver tolerates an empty collection. */
-    return !col && bmd->solver != eBooleanModifierSolver_Exact;
+    return !col && bmd->solver != eBooleanModifierSolver_Mesh_Arr;
   }
   return false;
 }
@@ -176,7 +176,7 @@ static bool BMD_error_messages(const Object *ob, ModifierData *md)
   bool error_returns_result = false;
 
   const bool operand_collection = (bmd->flag & eBooleanModifierFlag_Collection) != 0;
-  const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
+  const bool use_exact = bmd->solver == eBooleanModifierSolver_Mesh_Arr;
   const bool operation_intersect = bmd->operation == eBooleanModifierOp_Intersect;
 
 #ifndef WITH_GMP
@@ -478,14 +478,19 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 
   const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
   const bool hole_tolerant = (bmd->flag & eBooleanModifierFlag_HoleTolerant) != 0;
-  Mesh *result = blender::meshintersect::direct_mesh_boolean(meshes,
-                                                             obmats,
-                                                             ctx->object->object_to_world(),
-                                                             material_remaps,
-                                                             use_self,
-                                                             hole_tolerant,
-                                                             bmd->operation,
-                                                             nullptr);
+  blender::geometry::boolean::BooleanOpParameters op_params;
+  op_params.boolean_mode = blender::geometry::boolean::Operation(bmd->operation);
+  op_params.no_self_intersections = !use_self;
+  op_params.watertight = !hole_tolerant;
+  op_params.no_nested_components = false;
+  Mesh *result = blender::geometry::boolean::mesh_boolean(
+      meshes,
+      obmats,
+      ctx->object->object_to_world(),
+      material_remaps,
+      op_params,
+      blender::geometry::boolean::Solver::MeshArr,
+      nullptr);
 
   if (material_mode == eBooleanModifierMaterialMode_Transfer) {
     MEM_SAFE_FREE(result->mat);
@@ -513,7 +518,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
 #ifdef WITH_GMP
-  if (bmd->solver == eBooleanModifierSolver_Exact) {
+  if (bmd->solver == eBooleanModifierSolver_Mesh_Arr) {
     return exact_boolean_mesh(bmd, ctx, mesh);
   }
 #endif
@@ -631,7 +636,7 @@ static void solver_options_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayout *layout = panel->layout;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Exact;
+  const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Mesh_Arr;
 
   uiLayoutSetPropSep(layout, true);
 

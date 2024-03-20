@@ -2084,8 +2084,7 @@ class WM_OT_properties_edit_value(Operator):
         rna_item = eval("context.%s" % self.data_path)
 
         if WM_OT_properties_edit.get_property_type(rna_item, self.property_name) == 'PYTHON':
-            self.eval_string = WM_OT_properties_edit.convert_custom_property_to_string(rna_item,
-                                                                                       self.property_name)
+            self.eval_string = WM_OT_properties_edit.convert_custom_property_to_string(rna_item, self.property_name)
         else:
             self.eval_string = ""
 
@@ -2960,7 +2959,7 @@ class WM_OT_batch_rename(Operator):
                 elif method == 'SUFFIX':
                     name = name + text
                 else:
-                    assert 0
+                    assert False, "unreachable"
 
             elif ty == 'STRIP':
                 chars = action.strip_chars
@@ -3005,9 +3004,9 @@ class WM_OT_batch_rename(Operator):
                 elif method == 'TITLE':
                     name = name.title()
                 else:
-                    assert 0
+                    assert False, "unreachable"
             else:
-                assert 0
+                assert False, "unreachable"
         return name
 
     def _data_update(self, context):

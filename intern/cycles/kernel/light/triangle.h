@@ -146,7 +146,9 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
   ls->shader = kernel_data_fetch(tri_shader, prim);
   const float distance_to_plane = dot(N0, V[0] - P) / dot(N0, N0);
   const int ls_shader_flag = kernel_data_fetch(shaders, ls->shader & SHADER_MASK).flags;
-  if (!(ls_shader_flag & (distance_to_plane > 0 ? SD_MIS_BACK : SD_MIS_FRONT))) {
+  if (!in_volume_segment &&
+      !(ls_shader_flag & (distance_to_plane > 0 ? SD_MIS_BACK : SD_MIS_FRONT)))
+  {
     return false;
   }
 

@@ -287,5 +287,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
   INIT_TYPE(GreasePencilEnvelope);
   INIT_TYPE(GreasePencilOutline);
   INIT_TYPE(GreasePencilShrinkwrap);
+  INIT_TYPE(GreasePencilBuild);
 #undef INIT_TYPE
 }

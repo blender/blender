@@ -60,7 +60,7 @@ static PyObject *py_argv_from_bytes(const int argc, const char **argv)
 /** \name Internal Implementation
  * \{ */
 
-static int bpy_cli_command_exec(struct bContext *C,
+static int bpy_cli_command_exec(bContext *C,
                                 PyObject *py_exec_fn,
                                 const int argc,
                                 const char **argv)
@@ -171,7 +171,7 @@ class BPyCommandHandler : public CommandHandler {
     bpy_cli_command_free(this->py_exec_fn);
   }
 
-  int exec(struct bContext *C, int argc, const char **argv) override
+  int exec(bContext *C, int argc, const char **argv) override
   {
     return bpy_cli_command_exec(C, this->py_exec_fn, argc, argv);
   }
@@ -195,7 +195,7 @@ PyDoc_STRVAR(
     "   :arg id: The command identifier (must pass an ``str.isidentifier`` check).\n"
     "\n"
     "      If the ``id`` is already registered, a warning is printed and "
-    "the command is inaccessible to prevent accidents invoking the wrong command."
+    "the command is inaccessible to prevent accidents invoking the wrong command.\n"
     "   :type id: str\n"
     "   :arg execute: Callback, taking a single list of strings and returns an int.\n"
     "      The arguments are built from all command-line arguments following the command id.\n"
