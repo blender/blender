@@ -293,7 +293,7 @@ typedef struct uiList { /* some list UI data need to be saved in file */
   struct uiListType *type;
 
   /** Defined as UI_MAX_NAME_STR. */
-  char list_id[64];
+  char list_id[128];
 
   /** How items are laid out in the list. */
   int layout_type;
@@ -306,7 +306,7 @@ typedef struct uiList { /* some list UI data need to be saved in file */
 
   /* Filtering data. */
   /** Defined as UI_MAX_NAME_STR. */
-  char filter_byname[64];
+  char filter_byname[128];
   int filter_flag;
   int filter_sort_flag;
 
