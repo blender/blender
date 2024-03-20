@@ -425,10 +425,13 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             if bl_info is not None:
                 # Use `_init` to detect when `bl_info` was generated from the manifest, see: `_bl_info_from_extension`.
                 if type(bl_info) is dict and "_init" not in bl_info:
-                    print(
-                        "Add-on \"%s\" has a \"bl_info\" which will be ignored in favor of \"%s\"" %
-                        (module_name, _ext_manifest_filename_toml)
-                    )
+                    # This print is noisy, hide behind a debug flag.
+                    # Once `bl_info` is fully deprecated this should be changed to always print a warning.
+                    if _bpy.app.debug_python:
+                        print(
+                            "Add-on \"%s\" has a \"bl_info\" which will be ignored in favor of \"%s\"" %
+                            (module_name, _ext_manifest_filename_toml)
+                        )
                 # Always remove as this is not expected to exist and will be lazily initialized.
                 del mod.bl_info
 
