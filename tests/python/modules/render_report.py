@@ -499,7 +499,7 @@ class Report:
                 if completed_process.returncode != 0:
                     crash = True
                 output = completed_process.stdout
-            except BaseException as e:
+            except BaseException:
                 crash = True
 
             if verbose:
