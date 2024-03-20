@@ -111,7 +111,7 @@ void shadow_tag_usage_tilemap_punctual(
   lP += vec3(0.0, 0.0, -light.shadow_projection_shift);
 
   float footprint_ratio = shadow_punctual_footprint_ratio(
-      light, P, drw_view_is_perspective(), dist_to_cam, tilemap_projection_ratio);
+      light, P, drw_view_is_perspective(), dist_to_cam, tilemap_proj_ratio);
 
   if (radius == 0) {
     int face_id = shadow_punctual_face_index_get(lP);

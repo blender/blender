@@ -64,7 +64,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_opaque)
     .sampler(0, ImageType::DEPTH_2D, "depth_tx")
     .storage_buf(5, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(6, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .push_constant(Type::FLOAT, "tilemap_projection_ratio")
+    .push_constant(Type::FLOAT, "tilemap_proj_ratio")
     .additional_info("eevee_shared", "draw_view", "draw_view_culling", "eevee_light_data")
     .compute_source("eevee_shadow_tag_usage_comp.glsl");
 
@@ -75,7 +75,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_surfels)
     /* ShadowTileDataPacked is uint. But MSL translation need the real type. */
     .storage_buf(7, Qualifier::READ_WRITE, "uint", "tiles_buf[]")
     .push_constant(Type::INT, "directional_level")
-    .push_constant(Type::FLOAT, "tilemap_projection_ratio")
+    .push_constant(Type::FLOAT, "tilemap_proj_ratio")
     .additional_info("eevee_shared",
                      "draw_view",
                      "draw_view_culling",
@@ -96,7 +96,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
     .storage_buf(4, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
     .storage_buf(5, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(6, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .push_constant(Type::FLOAT, "tilemap_projection_ratio")
+    .push_constant(Type::FLOAT, "tilemap_proj_ratio")
     .push_constant(Type::FLOAT, "pixel_world_radius")
     .push_constant(Type::IVEC2, "fb_resolution")
     .push_constant(Type::INT, "fb_lod")
@@ -117,7 +117,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_volume)
     .local_group_size(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)
     .storage_buf(4, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(5, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .push_constant(Type::FLOAT, "tilemap_projection_ratio")
+    .push_constant(Type::FLOAT, "tilemap_proj_ratio")
     .additional_info("eevee_volume_properties_data",
                      "eevee_shared",
                      "draw_view",
