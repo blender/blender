@@ -2183,19 +2183,6 @@ static int graphkeys_select_key_handles_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void graphkeys_select_key_handles_ui(bContext * /*C*/, wmOperator *op)
-{
-  uiLayout *layout = op->layout;
-  uiLayout *row;
-
-  row = uiLayoutRow(layout, false);
-  uiItemR(row, op->ptr, "left_handle_action", UI_ITEM_NONE, nullptr, ICON_NONE);
-  row = uiLayoutRow(layout, false);
-  uiItemR(row, op->ptr, "right_handle_action", UI_ITEM_NONE, nullptr, ICON_NONE);
-  row = uiLayoutRow(layout, false);
-  uiItemR(row, op->ptr, "key_action", UI_ITEM_NONE, nullptr, ICON_NONE);
-}
-
 void GRAPH_OT_select_key_handles(wmOperatorType *ot)
 {
   /* identifiers */
@@ -2207,7 +2194,6 @@ void GRAPH_OT_select_key_handles(wmOperatorType *ot)
   /* callbacks */
   ot->poll = graphop_visible_keyframes_poll;
   ot->exec = graphkeys_select_key_handles_exec;
-  ot->ui = graphkeys_select_key_handles_ui;
 
   /* flags */
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
