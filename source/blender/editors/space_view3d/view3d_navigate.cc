@@ -837,7 +837,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
         const Object *ob_eval = base_eval->object;
 
         if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob_eval)) {
-          const float3 cent = math::midpoint(bounds->min, bounds->max);
+          float3 cent = math::midpoint(bounds->min, bounds->max);
           mul_m4_v3(ob_eval->object_to_world, cent);
           add_v3_v3(select_center, cent);
         }
