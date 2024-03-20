@@ -31,23 +31,30 @@
 	cursor: pointer;
 	z-index: 400;
 }
+
 .version-btn-open::after {
 	color: gray;
 }
-.version-btn:hover, .version-btn:focus {
+
+.version-btn:hover,
+.version-btn:focus {
 	border-color: #525252;
 }
+
 .version-btn-open {
 	color: gray;
 	border: solid 1px var(--color-sidebar-background-border);
 }
+
 .version-btn.wait {
 	cursor: wait;
 }
+
 .version-btn.disabled {
 	cursor: not-allowed;
 	color: dimgray;
 }
+
 .version-dialog {
 	display: none;
 	position: absolute;
@@ -63,6 +70,7 @@
 	overflow-y: auto;
 	cursor: default;
 }
+
 .version-title {
 	padding: 5px;
 	color: var(--color-content-foreground);
@@ -72,6 +80,7 @@
 	background-color: var(--color-brand-primary);
 	border-bottom: solid 1.5px var(--color-sidebar-background-border);
 }
+
 .version-list {
 	padding-left: 0;
 	margin-top: 0;
@@ -80,7 +89,10 @@
 	border: solid 1px var(--color-sidebar-background-border);
 	border-radius: 0px 0px 3px 3px;
 }
-.version-list a, .version-list span, .version-list li {
+
+.version-list a,
+.version-list span,
+.version-list li {
 	position: relative;
 	display: block;
 	font-size: 98%;
@@ -90,6 +102,7 @@
 	padding: 4px 0px;
 	color: var(--color-sidebar-link-text);
 }
+
 .version-list li {
 	background-color: var(--color-sidebar-background);
 	color: var(--color-sidebar-link-text);
