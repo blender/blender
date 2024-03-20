@@ -1543,6 +1543,13 @@ void wm_draw_update(bContext *C)
 
   BKE_image_free_unused_gpu_textures();
 
+#ifdef WITH_METAL_BACKEND
+  /* Reset drawable to ensure GPU context activation happens at least once per frame if only a
+   * single context exists. This is required to ensure the default framebuffer is updated
+   * to be the latest backbuffer. */
+  wm_window_clear_drawable(wm);
+#endif
+
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
 #ifdef WIN32
     GHOST_TWindowState state = GHOST_GetWindowState(
