@@ -86,11 +86,11 @@ char BKE_imtype_valid_depths(char imtype);
 
 /**
  * String is from command line `--render-format` argument,
- * keep in sync with `creator_args.c` help info.
+ * keep in sync with `creator_args.cc` help info.
  */
 char BKE_imtype_from_arg(const char *imtype_arg);
 
-/* Conversion between ImBuf settings. */
+/* Conversion between #ImBuf settings. */
 
 void BKE_image_format_from_imbuf(struct ImageFormatData *im_format, const struct ImBuf *imbuf);
 void BKE_image_format_to_imbuf(struct ImBuf *ibuf, const struct ImageFormatData *imf);

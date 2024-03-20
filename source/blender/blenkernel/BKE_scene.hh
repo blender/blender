@@ -112,7 +112,7 @@ void BKE_scene_object_base_flag_sync_from_base(Base *base);
  */
 void BKE_scene_set_background(Main *bmain, Scene *sce);
 /**
- * Called from `creator_args.c`.
+ * Called from `creator_args.cc`.
  */
 Scene *BKE_scene_set_name(Main *bmain, const char *name);
 
