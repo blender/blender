@@ -171,6 +171,8 @@ class SocketDeclaration : public ItemDeclaration {
   /** Defined by whether the socket is part of the node's input or
    * output socket declaration list. Included here for convenience. */
   eNodeSocketInOut in_out;
+  /** Socket type that corresponds to this socket declaration. */
+  eNodeSocketDatatype socket_type;
   bool hide_label = false;
   bool hide_value = false;
   bool compact = false;
@@ -682,6 +684,7 @@ inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(StringRef 
     socket_decl->name = name;
     socket_decl->identifier = identifier_in.is_empty() ? name : identifier_in;
     socket_decl->in_out = SOCK_IN;
+    socket_decl->socket_type = DeclType::static_socket_type;
     socket_decl_builder->index_ = declaration_.inputs.append_and_get_index(socket_decl.get());
     declaration_.items.append(std::move(socket_decl));
     input_socket_builders_.append(&*socket_decl_builder);
@@ -693,6 +696,7 @@ inline typename DeclType::Builder &NodeDeclarationBuilder::add_socket(StringRef 
     socket_decl->name = name;
     socket_decl->identifier = identifier_out.is_empty() ? name : identifier_out;
     socket_decl->in_out = SOCK_OUT;
+    socket_decl->socket_type = DeclType::static_socket_type;
     socket_decl_builder->index_ = declaration_.outputs.append_and_get_index(socket_decl.get());
     declaration_.items.append(std::move(socket_decl));
     output_socket_builders_.append(&*socket_decl_builder);

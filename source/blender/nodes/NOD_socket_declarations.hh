@@ -18,6 +18,8 @@ class FloatBuilder;
 
 class Float : public SocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_FLOAT;
+
   float default_value = 0.0f;
   float soft_min_value = -FLT_MAX;
   float soft_max_value = FLT_MAX;
@@ -45,6 +47,8 @@ class IntBuilder;
 
 class Int : public SocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_INT;
+
   int default_value = 0;
   int soft_min_value = INT32_MIN;
   int soft_max_value = INT32_MAX;
@@ -72,6 +76,8 @@ class VectorBuilder;
 
 class Vector : public SocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_VECTOR;
+
   float3 default_value = {0, 0, 0};
   float soft_min_value = -FLT_MAX;
   float soft_max_value = FLT_MAX;
@@ -100,6 +106,8 @@ class BoolBuilder;
 
 class Bool : public SocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_BOOLEAN;
+
   bool default_value = false;
   friend BoolBuilder;
 
@@ -120,6 +128,8 @@ class ColorBuilder;
 
 class Color : public SocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_RGBA;
+
   ColorGeometry4f default_value{0.8f, 0.8f, 0.8f, 1.0f};
 
   friend ColorBuilder;
@@ -141,6 +151,8 @@ class RotationBuilder;
 
 class Rotation : public SocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_ROTATION;
+
   math::EulerXYZ default_value;
 
   friend RotationBuilder;
@@ -162,6 +174,8 @@ class MatrixBuilder;
 
 class Matrix : public SocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_MATRIX;
+
   friend MatrixBuilder;
 
   using Builder = MatrixBuilder;
@@ -178,6 +192,8 @@ class StringBuilder;
 
 class String : public SocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_STRING;
+
   std::string default_value;
 
   friend StringBuilder;
@@ -199,6 +215,8 @@ class MenuBuilder;
 
 class Menu : public SocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_MENU;
+
   int32_t default_value;
 
   friend MenuBuilder;
@@ -237,6 +255,8 @@ class IDSocketDeclaration : public SocketDeclaration {
 
 class Object : public IDSocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_OBJECT;
+
   using Builder = SocketDeclarationBuilder<Object>;
 
   Object();
@@ -244,6 +264,8 @@ class Object : public IDSocketDeclaration {
 
 class Material : public IDSocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_MATERIAL;
+
   using Builder = SocketDeclarationBuilder<Material>;
 
   Material();
@@ -251,6 +273,8 @@ class Material : public IDSocketDeclaration {
 
 class Collection : public IDSocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_COLLECTION;
+
   using Builder = SocketDeclarationBuilder<Collection>;
 
   Collection();
@@ -258,6 +282,8 @@ class Collection : public IDSocketDeclaration {
 
 class Texture : public IDSocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_TEXTURE;
+
   using Builder = SocketDeclarationBuilder<Texture>;
 
   Texture();
@@ -265,6 +291,8 @@ class Texture : public IDSocketDeclaration {
 
 class Image : public IDSocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_IMAGE;
+
   using Builder = SocketDeclarationBuilder<Image>;
 
   Image();
@@ -274,6 +302,8 @@ class ShaderBuilder;
 
 class Shader : public SocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_SHADER;
+
   friend ShaderBuilder;
 
   using Builder = ShaderBuilder;
@@ -292,6 +322,8 @@ class Extend : public SocketDeclaration {
   friend ExtendBuilder;
 
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_CUSTOM;
+
   using Builder = ExtendBuilder;
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
@@ -304,6 +336,8 @@ class ExtendBuilder : public SocketDeclarationBuilder<Extend> {};
 
 class Custom : public SocketDeclaration {
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_CUSTOM;
+
   const char *idname_;
   std::function<void(bNode &node, bNodeSocket &socket, const char *data_path)> init_socket_fn;
 

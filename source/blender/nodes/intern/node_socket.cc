@@ -277,60 +277,6 @@ static void refresh_node_panel(const PanelDeclaration &panel_decl,
   }
 }
 
-/**
- * Not great to have this here, but this is only for forward compatibility, so this code shouldn't
- * in the `main` branch.
- */
-static std::optional<eNodeSocketDatatype> decl_to_data_type(const SocketDeclaration &socket_decl)
-{
-  if (dynamic_cast<const decl::Float *>(&socket_decl)) {
-    return SOCK_FLOAT;
-  }
-  else if (dynamic_cast<const decl::Int *>(&socket_decl)) {
-    return SOCK_INT;
-  }
-  else if (dynamic_cast<const decl::Bool *>(&socket_decl)) {
-    return SOCK_BOOLEAN;
-  }
-  else if (dynamic_cast<const decl::Vector *>(&socket_decl)) {
-    return SOCK_VECTOR;
-  }
-  else if (dynamic_cast<const decl::Color *>(&socket_decl)) {
-    return SOCK_RGBA;
-  }
-  else if (dynamic_cast<const decl::Rotation *>(&socket_decl)) {
-    return SOCK_ROTATION;
-  }
-  else if (dynamic_cast<const decl::Matrix *>(&socket_decl)) {
-    return SOCK_MATRIX;
-  }
-  else if (dynamic_cast<const decl::String *>(&socket_decl)) {
-    return SOCK_STRING;
-  }
-  else if (dynamic_cast<const decl::Image *>(&socket_decl)) {
-    return SOCK_IMAGE;
-  }
-  else if (dynamic_cast<const decl::Texture *>(&socket_decl)) {
-    return SOCK_TEXTURE;
-  }
-  else if (dynamic_cast<const decl::Material *>(&socket_decl)) {
-    return SOCK_MATERIAL;
-  }
-  else if (dynamic_cast<const decl::Shader *>(&socket_decl)) {
-    return SOCK_SHADER;
-  }
-  else if (dynamic_cast<const decl::Collection *>(&socket_decl)) {
-    return SOCK_COLLECTION;
-  }
-  else if (dynamic_cast<const decl::Object *>(&socket_decl)) {
-    return SOCK_OBJECT;
-  }
-  else if (dynamic_cast<const decl::Geometry *>(&socket_decl)) {
-    return SOCK_GEOMETRY;
-  }
-  return std::nullopt;
-}
-
 static const char *get_identifier_from_decl(const char *identifier_prefix,
                                             const bNodeSocket &socket,
                                             const Span<const SocketDeclaration *> socket_decls)
@@ -340,7 +286,7 @@ static const char *get_identifier_from_decl(const char *identifier_prefix,
   }
   for (const SocketDeclaration *socket_decl : socket_decls) {
     if (BLI_str_startswith(socket_decl->identifier.c_str(), identifier_prefix)) {
-      if (socket.type == decl_to_data_type(*socket_decl)) {
+      if (socket.type == socket_decl->socket_type) {
         return socket_decl->identifier.c_str();
       }
     }
