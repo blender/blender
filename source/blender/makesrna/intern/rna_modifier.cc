@@ -234,6 +234,11 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_MOD_ARRAY,
      "Array strokes",
      "Duplicate strokes into an array"},
+    {eModifierType_GreasePencilBuild,
+     "GREASE_PENCIL_BUILD",
+     ICON_MOD_BUILD,
+     "Build",
+     "Grease Pencil build modifier"},
     {eModifierType_GreasePencilLength,
      "GREASE_PENCIL_LENGTH",
      ICON_MOD_LENGTH,
@@ -784,6 +789,25 @@ const EnumPropertyItem rna_enum_subdivision_boundary_smooth_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem grease_pencil_build_time_mode_items[] = {
+    {MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED,
+     "DRAWSPEED",
+     0,
+     "Natural Drawing Speed",
+     "Use recorded speed multiplied by a factor"},
+    {MOD_GREASE_PENCIL_BUILD_TIMEMODE_FRAMES,
+     "FRAMES",
+     0,
+     "Number of Frames",
+     "Set a fixed number of frames for all build animations"},
+    {MOD_GREASE_PENCIL_BUILD_TIMEMODE_PERCENTAGE,
+     "PERCENTAGE",
+     0,
+     "Percentage Factor",
+     "Set a manual percentage to build"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
@@ -944,6 +968,7 @@ RNA_MOD_VGROUP_NAME_SET(Wireframe, defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(GreasePencilWeightAngle, target_vgname);
 RNA_MOD_VGROUP_NAME_SET(GreasePencilWeightProximity, target_vgname);
 RNA_MOD_VGROUP_NAME_SET(GreasePencilLineart, vgname);
+RNA_MOD_VGROUP_NAME_SET(GreasePencilBuild, target_vgname);
 
 static void rna_ExplodeModifier_vgroup_get(PointerRNA *ptr, char *value)
 {
@@ -1029,6 +1054,7 @@ RNA_MOD_OBJECT_SET(GreasePencilArmature, object, OB_ARMATURE);
 RNA_MOD_OBJECT_SET(GreasePencilOutline, object, OB_EMPTY);
 RNA_MOD_OBJECT_SET(GreasePencilShrinkwrap, target, OB_MESH);
 RNA_MOD_OBJECT_SET(GreasePencilShrinkwrap, aux_target, OB_MESH);
+RNA_MOD_OBJECT_SET(GreasePencilBuild, object, OB_EMPTY);
 
 static void rna_HookModifier_object_set(PointerRNA *ptr,
                                         PointerRNA value,
@@ -1969,6 +1995,7 @@ RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilHook);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilEnvelope);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilOutline);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilShrinkwrap);
+RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilBuild);
 
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilOffset);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilOpacity);
@@ -2087,6 +2114,35 @@ static void rna_GreasePencilDashModifier_segments_begin(CollectionPropertyIterat
                            dmd->segments_num,
                            false,
                            nullptr);
+}
+
+const EnumPropertyItem *grease_pencil_build_time_mode_filter(bContext * /*C*/,
+                                                             PointerRNA *ptr,
+                                                             PropertyRNA * /*prop*/,
+                                                             bool *r_free)
+{
+
+  auto *md = static_cast<ModifierData *>(ptr->data);
+  auto *mmd = reinterpret_cast<BuildGpencilModifierData *>(md);
+  const bool is_concurrent = (mmd->mode == MOD_GREASE_PENCIL_BUILD_MODE_CONCURRENT);
+
+  EnumPropertyItem *item_list = nullptr;
+  int totitem = 0;
+
+  for (const EnumPropertyItem *item = grease_pencil_build_time_mode_items;
+       item->identifier != nullptr;
+       item++)
+  {
+    if (is_concurrent && (item->value == MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED)) {
+      continue;
+    }
+    RNA_enum_item_add(&item_list, &totitem, item);
+  }
+
+  RNA_enum_item_end(&item_list, &totitem);
+  *r_free = true;
+
+  return item_list;
 }
 
 static const GreasePencilTimeModifierData *find_grease_pencil_time_modifier_of_segment(
@@ -10444,6 +10500,217 @@ static void rna_def_modifier_grease_pencil_shrinkwrap(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
+static void rna_def_modifier_grease_pencil_build(BlenderRNA *brna)
+{
+  static EnumPropertyItem prop_gpencil_build_mode_items[] = {
+      {MOD_GREASE_PENCIL_BUILD_MODE_SEQUENTIAL,
+       "SEQUENTIAL",
+       0,
+       "Sequential",
+       "Strokes appear/disappear one after the other, but only a single one changes at a time"},
+      {MOD_GREASE_PENCIL_BUILD_MODE_CONCURRENT,
+       "CONCURRENT",
+       0,
+       "Concurrent",
+       "Multiple strokes appear/disappear at once"},
+      {MOD_GREASE_PENCIL_BUILD_MODE_ADDITIVE,
+       "ADDITIVE",
+       0,
+       "Additive",
+       "Builds only new strokes (assuming 'additive' drawing)"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static EnumPropertyItem prop_gpencil_build_transition_items[] = {
+      {MOD_GREASE_PENCIL_BUILD_TRANSITION_GROW,
+       "GROW",
+       0,
+       "Grow",
+       "Show points in the order they occur in each stroke "
+       "(e.g. for animating lines being drawn)"},
+      {MOD_GREASE_PENCIL_BUILD_TRANSITION_SHRINK,
+       "SHRINK",
+       0,
+       "Shrink",
+       "Hide points from the end of each stroke to the start "
+       "(e.g. for animating lines being erased)"},
+      {MOD_GREASE_PENCIL_BUILD_TRANSITION_VANISH,
+       "FADE", /* "Fade" is the original id string kept for compatibility purpose. */
+       0,
+       "Vanish",
+       "Hide points in the order they occur in each stroke "
+       "(e.g. for animating ink fading or vanishing after getting drawn)"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static EnumPropertyItem prop_gpencil_build_time_align_items[] = {
+      {MOD_GREASE_PENCIL_BUILD_TIMEALIGN_START,
+       "START",
+       0,
+       "Align Start",
+       "All strokes start at same time (i.e. short strokes finish earlier)"},
+      {MOD_GREASE_PENCIL_BUILD_TIMEALIGN_END,
+       "END",
+       0,
+       "Align End",
+       "All strokes end at same time (i.e. short strokes start later)"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "GreasePencilBuildModifier", "Modifier");
+  RNA_def_struct_ui_text(srna, "Build Modifier", "Animate strokes appearing and disappearing");
+  RNA_def_struct_sdna(srna, "GreasePencilBuildModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_MOD_BUILD);
+
+  rna_def_modifier_grease_pencil_layer_filter(srna);
+  rna_def_modifier_grease_pencil_material_filter(
+      srna, "rna_GreasePencilBuildModifier_material_filter_set");
+
+  rna_def_modifier_panel_open_prop(srna, "open_influence_panel", 0);
+  rna_def_modifier_panel_open_prop(srna, "open_frame_range_panel", 1);
+  rna_def_modifier_panel_open_prop(srna, "open_fading_panel", 2);
+
+  RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prop_gpencil_build_mode_items);
+  RNA_def_property_ui_text(prop, "Mode", "How strokes are being built");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "transition", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prop_gpencil_build_transition_items);
+  RNA_def_property_ui_text(
+      prop, "Transition", "How are strokes animated (i.e. are they appearing or disappearing)");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "start_delay", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "start_delay");
+  RNA_def_property_ui_text(
+      prop, "Delay", "Number of frames after each GP keyframe before the modifier has any effect");
+  RNA_def_property_range(prop, 0, MAXFRAMEF);
+  RNA_def_property_ui_range(prop, 0, 200, 1, -1);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "length", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "length");
+  RNA_def_property_ui_text(prop,
+                           "Length",
+                           "Maximum number of frames that the build effect can run for "
+                           "(unless another GP keyframe occurs before this time has elapsed)");
+  RNA_def_property_range(prop, 1, MAXFRAMEF);
+  RNA_def_property_ui_range(prop, 1, 1000, 1, -1);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "concurrent_time_alignment", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "time_alignment");
+  RNA_def_property_enum_items(prop, prop_gpencil_build_time_align_items);
+  RNA_def_property_ui_text(prop, "Time Alignment", "How should strokes start to appear/disappear");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "time_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "time_mode");
+  RNA_def_property_enum_items(prop, grease_pencil_build_time_mode_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "grease_pencil_build_time_mode_filter");
+  RNA_def_property_ui_text(
+      prop,
+      "Timing",
+      "Use drawing speed, a number of frames, or a manual factor to build strokes");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  /* Speed factor for MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED. */
+  /* Todo: Does it work? */
+  prop = RNA_def_property(srna, "speed_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "speed_fac");
+  RNA_def_property_ui_text(prop, "Speed Factor", "Multiply recorded drawing speed by a factor");
+  RNA_def_property_range(prop, 0.0f, 100.0f);
+  RNA_def_property_ui_range(prop, 0, 5, 0.001, -1);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  /* Max gap in seconds between strokes for MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED. */
+  prop = RNA_def_property(srna, "speed_maxgap", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "speed_maxgap");
+  RNA_def_property_ui_text(prop, "Maximum Gap", "The maximum gap between strokes in seconds");
+  RNA_def_property_range(prop, 0.0f, 100.0f);
+  RNA_def_property_ui_range(prop, 0, 4, 0.01, -1);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_restrict_frame_range", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MOD_GREASE_PENCIL_BUILD_RESTRICT_TIME);
+  RNA_def_property_ui_text(
+      prop, "Restrict Frame Range", "Only modify strokes during the specified frame range");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  /* Use percentage bool (used by sequential & concurrent modes) */
+  prop = RNA_def_property(srna, "use_percentage", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "time_mode", MOD_GREASE_PENCIL_BUILD_TIMEMODE_PERCENTAGE);
+  RNA_def_property_ui_text(
+      prop, "Restrict Visible Points", "Use a percentage factor to determine the visible points");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+  prop = RNA_def_property(srna, "percentage_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "percentage_fac");
+  RNA_def_property_ui_text(prop, "Factor", "Defines how much of the stroke is visible");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "start_frame");
+  RNA_def_property_ui_text(
+      prop, "Start Frame", "Start Frame (when Restrict Frame Range is enabled)");
+  RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "end_frame");
+  RNA_def_property_ui_text(prop, "End Frame", "End Frame (when Restrict Frame Range is enabled)");
+  RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_fading", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MOD_GREASE_PENCIL_BUILD_USE_FADING);
+  RNA_def_property_ui_text(prop, "Use Fading", "Fade out strokes instead of directly cutting off");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "fade_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "fade_fac");
+  RNA_def_property_ui_text(prop, "Fade Factor", "Defines how much of the stroke is fading in/out");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "target_vertex_group", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "target_vgname");
+  RNA_def_property_ui_text(prop, "Vertex Group", "Output Vertex group");
+  RNA_def_property_string_funcs(
+      prop, nullptr, nullptr, "rna_GreasePencilBuildModifier_target_vgname_set");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "fade_opacity_strength", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "fade_opacity_strength");
+  RNA_def_property_ui_text(
+      prop, "Opacity Strength", "How much strength fading applies on top of stroke opacity");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "fade_thickness_strength", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "fade_thickness_strength");
+  RNA_def_property_ui_text(
+      prop, "Thickness Strength", "How much strength fading applies on top of stroke thickness");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Object", "Object used as build starting position");
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, "rna_GreasePencilBuildModifier_object_set", nullptr, nullptr);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  RNA_define_lib_overridable(false);
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -10636,6 +10903,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_envelope(brna);
   rna_def_modifier_grease_pencil_outline(brna);
   rna_def_modifier_grease_pencil_shrinkwrap(brna);
+  rna_def_modifier_grease_pencil_build(brna);
 }
 
 #endif
