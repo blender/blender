@@ -291,6 +291,7 @@ struct MaterialPass {
 
 struct Material {
   bool is_alpha_blend_transparent;
+  bool has_transparent_shadows;
   bool has_surface;
   bool has_volume;
   MaterialPass shadow;

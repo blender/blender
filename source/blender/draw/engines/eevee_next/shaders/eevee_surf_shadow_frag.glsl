@@ -31,7 +31,8 @@ void main()
   nodetree_surface(0.0);
 
   float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
-  float random_threshold = transparency_hashed_alpha_threshold(1.0, noise_offset, g_data.P);
+  float random_threshold = transparency_hashed_alpha_threshold(
+      uniform_buf.pipeline.alpha_hash_scale, noise_offset, g_data.P);
 
   float transparency = average(g_transmittance);
   if (transparency > random_threshold) {

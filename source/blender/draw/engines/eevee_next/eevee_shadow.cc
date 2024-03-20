@@ -742,6 +742,9 @@ void ShadowModule::init()
     }
   }
 
+  jittered_transparency_ = !inst_.is_viewport() ||
+                           scene.eevee.flag & SCE_EEVEE_SHADOW_JITTERED_VIEWPORT;
+
   data_.ray_count = clamp_i(inst_.scene->eevee.shadow_ray_count, 1, SHADOW_MAX_RAY);
   data_.step_count = clamp_i(inst_.scene->eevee.shadow_step_count, 1, SHADOW_MAX_STEP);
   data_.normal_bias = max_ff(inst_.scene->eevee.shadow_normal_bias, 0.0f);
@@ -824,6 +827,8 @@ void ShadowModule::begin_sync()
   past_casters_updated_.clear();
   curr_casters_updated_.clear();
   curr_casters_.clear();
+  jittered_transparent_casters_.clear();
+  update_casters_ = true;
 
   {
     Manager &manager = *inst_.manager;
@@ -897,7 +902,8 @@ void ShadowModule::begin_sync()
 void ShadowModule::sync_object(const Object *ob,
                                const ObjectHandle &handle,
                                const ResourceHandle &resource_handle,
-                               bool is_alpha_blend)
+                               bool is_alpha_blend,
+                               bool has_transparent_shadows)
 {
   bool is_shadow_caster = !(ob->visibility_flag & OB_HIDE_SHADOW);
   if (!is_shadow_caster && !is_alpha_blend) {
@@ -907,11 +913,18 @@ void ShadowModule::sync_object(const Object *ob,
   ShadowObject &shadow_ob = objects_.lookup_or_add_default(handle.object_key);
   shadow_ob.used = true;
   const bool is_initialized = shadow_ob.resource_handle.raw != 0;
-  if ((handle.recalc != 0 || !is_initialized) && is_shadow_caster) {
-    if (shadow_ob.resource_handle.raw != 0) {
+  const bool has_jittered_transparency = has_transparent_shadows && jittered_transparency_;
+  if (is_shadow_caster && (handle.recalc || !is_initialized || has_jittered_transparency)) {
+    if (handle.recalc && is_initialized) {
       past_casters_updated_.append(shadow_ob.resource_handle.raw);
     }
-    curr_casters_updated_.append(resource_handle.raw);
+
+    if (has_jittered_transparency) {
+      jittered_transparent_casters_.append(resource_handle.raw);
+    }
+    else {
+      curr_casters_updated_.append(resource_handle.raw);
+    }
   }
   shadow_ob.resource_handle = resource_handle;
 
@@ -973,6 +986,7 @@ void ShadowModule::end_sync()
   }
   past_casters_updated_.push_update();
   curr_casters_updated_.push_update();
+  jittered_transparent_casters_.push_update();
 
   curr_casters_.push_update();
 
@@ -1078,6 +1092,22 @@ void ShadowModule::end_sync()
         pass.dispatch(int3(curr_casters_updated_.size(), 1, tilemap_pool.tilemaps_data.size()));
       }
       pass.barrier(GPU_BARRIER_SHADER_STORAGE);
+    }
+
+    {
+      /* Mark for update all shadow pages touching a jittered transparency shadow caster. */
+      PassSimple &pass = jittered_transparent_caster_update_ps_;
+      pass.init();
+      if (jittered_transparent_casters_.size() > 0) {
+        pass.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_TAG_UPDATE));
+        pass.bind_ssbo("tilemaps_buf", tilemap_pool.tilemaps_data);
+        pass.bind_ssbo("tiles_buf", tilemap_pool.tiles_data);
+        pass.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
+        pass.bind_ssbo("resource_ids_buf", jittered_transparent_casters_);
+        pass.dispatch(
+            int3(jittered_transparent_casters_.size(), 1, tilemap_pool.tilemaps_data.size()));
+        pass.barrier(GPU_BARRIER_SHADER_STORAGE);
+      }
     }
 
     /* Non volume usage tagging happens between these two steps.
@@ -1339,7 +1369,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
   }
 
   inst_.hiz_buffer.update();
-  bool update_casters = true;
+  bool first_loop = true;
 
   do {
     DRW_stats_group_start("Shadow");
@@ -1347,11 +1377,14 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
       GPU_uniformbuf_clear_to_zero(shadow_multi_view_.matrices_ubo_get());
 
       inst_.manager->submit(tilemap_setup_ps_, view);
-      if (assign_if_different(update_casters, false)) {
+      if (assign_if_different(update_casters_, false)) {
         /* Run caster update only once. */
         /* TODO(fclem): There is an optimization opportunity here where we can
          * test casters only against the static tilemaps instead of all of them. */
         inst_.manager->submit(caster_update_ps_, view);
+      }
+      if (assign_if_different(first_loop, false)) {
+        inst_.manager->submit(jittered_transparent_caster_update_ps_, view);
       }
       inst_.manager->submit(tilemap_usage_ps_, view);
       inst_.manager->submit(tilemap_update_ps_, view);
