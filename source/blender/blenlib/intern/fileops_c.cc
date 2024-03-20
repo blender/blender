@@ -1089,6 +1089,9 @@ static int recursive_operation_impl(StrBuf *src_buf,
  * prefixing it with path_dst, recursively scanning subdirectories, and invoking the specified
  * callbacks for files and subdirectories found as appropriate.
  *
+ * \note Symbolic links are *not* followed, even when `path_src` links to a directory,
+ * it wont be recursed down. Support for this could be added.
+ *
  * \param path_src: Top-level source path.
  * \param path_dst: Top-level destination path.
  * \param callback_dir_pre: Optional, to be invoked before entering a subdirectory,
