@@ -74,11 +74,10 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob)
   nmd.node_group = ntreeAddTree(bmain, DATA_("Surface Deform"), "GeometryNodeTree");
 
   bNodeTree *ntree = nmd.node_group;
-  ntree->tree_interface.add_socket("Geometry",
-                                   "",
-                                   "NodeSocketGeometry",
-                                   NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT,
-                                   nullptr);
+  ntree->tree_interface.add_socket(
+      "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
+  ntree->tree_interface.add_socket(
+      "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_INPUT, nullptr);
   bNode *group_input = nodeAddStaticNode(&C, ntree, NODE_GROUP_INPUT);
   bNode *group_output = nodeAddStaticNode(&C, ntree, NODE_GROUP_OUTPUT);
   bNode *deform_node = nodeAddStaticNode(&C, ntree, GEO_NODE_DEFORM_CURVES_ON_SURFACE);

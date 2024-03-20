@@ -162,11 +162,10 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const double motionS
 
   bNodeTree *ntree = nmd.node_group;
 
-  ntree->tree_interface.add_socket("Geometry",
-                                   "",
-                                   "NodeSocketGeometry",
-                                   NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT,
-                                   nullptr);
+  ntree->tree_interface.add_socket(
+      "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
+  ntree->tree_interface.add_socket(
+      "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_INPUT, nullptr);
   bNode *group_input = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_INPUT);
   group_input->locx = -400.0f;
   bNode *group_output = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_OUTPUT);

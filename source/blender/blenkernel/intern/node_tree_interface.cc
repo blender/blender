@@ -1190,6 +1190,10 @@ bNodeTreeInterfaceSocket *bNodeTreeInterface::add_socket(const blender::StringRe
                                                          const NodeTreeInterfaceSocketFlag flag,
                                                          bNodeTreeInterfacePanel *parent)
 {
+  /* Check that each interface socket is either an input or an output. Technically, it can be both
+   * at the same time, but we don't want that for the time being. */
+  BLI_assert(((NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT) & flag) !=
+             (NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT));
   if (parent == nullptr) {
     parent = &root_panel;
   }
