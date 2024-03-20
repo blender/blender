@@ -144,7 +144,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     return false;
   }
 
-#if defined(__KERNEL_DEBUG__)
+#if defined(WITH_CYCLES_DEBUG)
   if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
     isect->t = ray->tmax;
     isect->type = PRIMITIVE_NONE;
@@ -281,7 +281,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
     return false;
   }
 
-#  if defined(__KERNEL_DEBUG__)
+#  if defined(WITH_CYCLES_DEBUG)
   if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
     if (local_isect) {
       local_isect->num_hits = 0;
@@ -383,7 +383,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
     return false;
   }
 
-#  if defined(__KERNEL_DEBUG__)
+#  if defined(WITH_CYCLES_DEBUG)
   if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
     kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
     return false;
@@ -446,7 +446,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
     return false;
   }
 
-#  if defined(__KERNEL_DEBUG__)
+#  if defined(WITH_CYCLES_DEBUG)
   if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
     kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
     return false;

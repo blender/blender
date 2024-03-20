@@ -212,7 +212,7 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
 /* BSDF */
 #ifdef WITH_CYCLES_DEBUG
 ccl_device_inline void surface_shader_validate_bsdf_sample(const KernelGlobals kg,
-                                                           const ShaderClosure *sc,
+                                                           ccl_private const ShaderClosure *sc,
                                                            const float3 wo,
                                                            const int org_label,
                                                            const float2 org_roughness,
