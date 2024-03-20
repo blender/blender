@@ -80,6 +80,15 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
 
   this->pcf_radius = la->shadow_filter_radius;
 
+  float resolution_scale = std::clamp(la->shadow_resolution_scale, 0.0f, 2.0f);
+  if (resolution_scale < 1.0) {
+    this->lod_bias = -log2(resolution_scale);
+  }
+  else {
+    this->lod_bias = -(resolution_scale - 1.0f);
+  }
+  this->lod_bias += shadows.get_global_lod_bias();
+
   eLightType new_type = to_light_type(la->type, la->area_shape, la->mode & LA_USE_SOFT_FALLOFF);
   if (assign_if_different(this->type, new_type)) {
     shadow_discard_safe(shadows);

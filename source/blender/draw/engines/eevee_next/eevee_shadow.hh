@@ -249,8 +249,6 @@ class ShadowModule {
   StorageArrayBuffer<uint, SHADOW_VIEW_MAX, true> viewport_index_buf_ = {"viewport_index_buf"};
 
   int3 dispatch_depth_scan_size_;
-  /* Ratio between tile-map pixel world "radius" and film pixel world "radius". */
-  float tilemap_projection_ratio_;
   float pixel_world_radius_;
   int2 usage_tag_fb_resolution_;
   int usage_tag_fb_lod_ = 5;
@@ -357,6 +355,11 @@ class ShadowModule {
   const ShadowSceneData &get_data()
   {
     return data_;
+  }
+
+  float get_global_lod_bias()
+  {
+    return lod_bias_;
   }
 
  private:

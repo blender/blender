@@ -797,8 +797,6 @@ struct LightData {
   float radius_squared;
   /** Spot angle tangent. */
   float spot_tan;
-  /** Reuse for directional LOD bias. */
-#define _clipmap_lod_bias spot_tan
 
   /** --- Shadow Data --- */
   /** Near clip distances. Float stored as int for atomic operations. */
@@ -821,7 +819,8 @@ struct LightData {
   float shadow_trace_distance;
   /* Radius in pixels for shadow filtering. */
   float pcf_radius;
-  int _pad0;
+  /* Shadow Map resolution bias. */
+  float lod_bias;
 };
 BLI_STATIC_ASSERT_ALIGN(LightData, 16)
 
@@ -1028,7 +1027,8 @@ struct ShadowSceneData {
   int step_count;
   /* Bias the shading point by using the normal to avoid self intersection. */
   float normal_bias;
-  int _pad0;
+  /* Ratio between tile-map pixel world "radius" and film pixel world "radius". */
+  float tilemap_projection_ratio;
 };
 BLI_STATIC_ASSERT_ALIGN(ShadowSceneData, 16)
 

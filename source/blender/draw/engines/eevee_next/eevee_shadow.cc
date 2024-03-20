@@ -531,7 +531,7 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
   /* The bias is applied in cascade_level_range().
    * Using clipmap_lod_min here simplify code in shadow_directional_level().
    * Minus 1 because of the ceil(). */
-  light._clipmap_lod_bias = light.clipmap_lod_min - 1;
+  light.lod_bias = light.clipmap_lod_min - 1;
 }
 
 /************************************************************************
@@ -621,7 +621,7 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light,
   light.clipmap_lod_min = levels_range.first();
   light.clipmap_lod_max = levels_range.last();
 
-  light._clipmap_lod_bias = lod_bias;
+  light.lod_bias = lod_bias;
 }
 
 void ShadowDirectional::sync(const float4x4 &object_mat,
@@ -757,7 +757,7 @@ void ShadowModule::init()
     simplify_shadows = inst_.is_viewport() ? scene.r.simplify_shadows :
                                              scene.r.simplify_shadows_render;
   }
-  lod_bias_ = math::interpolate(float(SHADOW_TILEMAP_LOD), 0.0f, simplify_shadows);
+  lod_bias_ = -log2(simplify_shadows);
 
   const int2 atlas_extent = shadow_page_size_ * int2(SHADOW_PAGE_PER_ROW);
   const int atlas_layers = divide_ceil_u(shadow_page_len_, SHADOW_PAGE_PER_LAYER);
@@ -864,7 +864,7 @@ void ShadowModule::begin_sync()
       sub.bind_ssbo("tilemaps_buf", &tilemap_pool.tilemaps_data);
       sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
       sub.bind_texture("depth_tx", &src_depth_tx_);
-      sub.push_constant("tilemap_projection_ratio", &tilemap_projection_ratio_);
+      sub.push_constant("tilemap_projection_ratio", &data_.tilemap_projection_ratio);
       sub.bind_resources(inst_.lights);
       sub.dispatch(&dispatch_depth_scan_size_);
     }
@@ -880,7 +880,7 @@ void ShadowModule::begin_sync()
       sub.bind_ssbo("tilemaps_buf", &tilemap_pool.tilemaps_data);
       sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
       sub.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
-      sub.push_constant("tilemap_projection_ratio", &tilemap_projection_ratio_);
+      sub.push_constant("tilemap_projection_ratio", &data_.tilemap_projection_ratio);
       sub.push_constant("pixel_world_radius", &pixel_world_radius_);
       sub.push_constant("fb_resolution", &usage_tag_fb_resolution_);
       sub.push_constant("fb_lod", &usage_tag_fb_lod_);
@@ -932,7 +932,7 @@ void ShadowModule::end_sync()
       light.shadow_discard_safe(*this);
     }
     else if (light.directional != nullptr) {
-      light.directional->release_excess_tilemaps(inst_.camera, lod_bias_);
+      light.directional->release_excess_tilemaps(inst_.camera, light.lod_bias);
     }
     else if (light.punctual != nullptr) {
       light.punctual->release_excess_tilemaps();
@@ -946,10 +946,10 @@ void ShadowModule::end_sync()
       light.tilemap_index = LIGHT_NO_SHADOW;
     }
     else if (light.directional != nullptr) {
-      light.directional->end_sync(light, inst_.camera, lod_bias_);
+      light.directional->end_sync(light, inst_.camera, light.lod_bias);
     }
     else if (light.punctual != nullptr) {
-      light.punctual->end_sync(light, lod_bias_);
+      light.punctual->end_sync(light, light.lod_bias);
     }
     else {
       light.tilemap_index = LIGHT_NO_SHADOW;
@@ -1088,7 +1088,7 @@ void ShadowModule::end_sync()
       sub.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_TAG_USAGE_VOLUME));
       sub.bind_ssbo("tilemaps_buf", &tilemap_pool.tilemaps_data);
       sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
-      sub.push_constant("tilemap_projection_ratio", &tilemap_projection_ratio_);
+      sub.push_constant("tilemap_projection_ratio", &data_.tilemap_projection_ratio);
       sub.bind_resources(inst_.uniform_data);
       sub.bind_resources(inst_.hiz_buffer.front);
       sub.bind_resources(inst_.sampling);
@@ -1310,7 +1310,8 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
   dispatch_depth_scan_size_ = math::divide_ceil(target_size, int3(SHADOW_DEPTH_SCAN_GROUP_SIZE));
 
   pixel_world_radius_ = screen_pixel_radius(view, int2(target_size));
-  tilemap_projection_ratio_ = tilemap_pixel_radius() / pixel_world_radius_;
+  data_.tilemap_projection_ratio = tilemap_pixel_radius() / pixel_world_radius_;
+  inst_.uniform_data.push_update();
 
   usage_tag_fb_resolution_ = math::divide_ceil(int2(target_size),
                                                int2(std::exp2(usage_tag_fb_lod_)));

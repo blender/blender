@@ -3064,6 +3064,12 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 11)) {
+    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+      light->shadow_resolution_scale = 1.0f;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
