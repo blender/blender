@@ -3141,7 +3141,7 @@ void uiTemplatePreview(uiLayout *layout,
   Tex *tex = (Tex *)id;
   short *pr_texture = nullptr;
 
-  char _preview_id[UI_MAX_NAME_STR];
+  char _preview_id[sizeof(uiPreview::preview_id)];
 
   if (id && !ELEM(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA, ID_LS)) {
     RNA_warning("Expected ID of type material, texture, light, world or line style");

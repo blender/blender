@@ -152,7 +152,7 @@ typedef struct Panel {
   /** Runtime for drawing. */
   struct uiLayout *layout;
 
-  /** Defined as UI_MAX_NAME_STR. */
+  /** Defined as #BKE_ST_MAXNAME. */
   char panelname[64];
   /** Panel name is identifier for restoring location. */
   char *drawname;
@@ -329,7 +329,7 @@ typedef struct TransformOrientation {
 typedef struct uiPreview {
   struct uiPreview *next, *prev;
 
-  /** Defined as #UI_MAX_NAME_STR. */
+  /** Defined as #BKE_ST_MAXNAME. */
   char preview_id[64];
   short height;
   char _pad1[6];
