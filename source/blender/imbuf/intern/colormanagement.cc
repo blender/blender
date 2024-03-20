@@ -3952,6 +3952,19 @@ bool IMB_colormanagement_processor_is_noop(ColormanageProcessor *cm_processor)
     return false;
   }
 
+  if (!cm_processor->cpu_processor) {
+    /* The CPU processor might have failed to be created, for example when the requested color
+     * space does not exist in the configuration, or if there is a missing lookup table, or the
+     * configuration is invalid due to other reasons.
+     *
+     * The actual processing checks for the cpu_processor not being null pointer, and it if is then
+     * processing does not apply it. However, processing could still apply curve mapping.
+     *
+     * Hence a null-pointer here, which happens after the curve mapping check, but before accessing
+     * cpu_processor. */
+    return true;
+  }
+
   return OCIO_cpuProcessorIsNoOp(cm_processor->cpu_processor);
 }
 
