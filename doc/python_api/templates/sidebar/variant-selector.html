@@ -7,7 +7,6 @@
         {{ release }}
       </span>
       <div class="version-dialog" aria-hidden="true">
-        <div class="version-arrow" aria-hidden="true"></div>
         <div class="version-title">Versions</div>
         <ul id="version-vsnlist" class="version-list" role="menu"
             aria-labelledby="version-popover" aria-hidden="true">
@@ -16,4 +15,13 @@
       </div>
     </li>
   </ul>
+  <template id="version-warning">
+    <div class="admonition warning">
+      <p class="first admonition-title">Note</p>
+      <p class="last">
+        You are not using the most up to date version of the documentation.
+        <a href="#"></a> is the newest version.
+      </p>
+    </div>
+  </template>
 </div>
