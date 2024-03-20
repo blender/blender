@@ -214,7 +214,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
    */
   virtual bool set_collapsed(bool collapsed);
   /**
-   * Make this item be uncollapsed on first draw (may later be overriden by
+   * Make this item be uncollapsed on first draw (may later be overridden by
    * #should_be_collapsed()). Must only be done during tree building.
    *
    * \note this does not call #on_collapse_change() or #set_collapsed() overrides.

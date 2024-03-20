@@ -174,7 +174,7 @@ void GLVaoCache::clear()
   if (context_) {
     context_->vao_cache_unregister(this);
   }
-  /* Reinit. */
+  /* Reinitialize. */
   this->init();
 }
 

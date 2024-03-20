@@ -146,7 +146,7 @@ static void sig_handle_crash(int signum)
     fclose(fp);
   }
 
-  /* Delete content of temp dir! */
+  /* Delete content of temp directory. */
   BKE_tempdir_session_purge();
 
   /* Really crash. */
@@ -186,7 +186,7 @@ extern LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 
 static void sig_handle_abort(int /*signum*/)
 {
-  /* Delete content of temp dir! */
+  /* Delete content of temp directory. */
   BKE_tempdir_session_purge();
 }
 

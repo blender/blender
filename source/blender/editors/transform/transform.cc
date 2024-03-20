@@ -1478,7 +1478,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
     }
   }
 
-  /* Aftertrans does insert keyframes, and clears base flags; doesn't read transdata. */
+  /* Does insert keyframes, and clears base flags; doesn't read `transdata`. */
   special_aftertrans_update(C, t);
 
   postTrans(C, t);
@@ -2221,7 +2221,7 @@ int transformEnd(bContext *C, TransInfo *t)
       exit_code = OPERATOR_FINISHED;
     }
 
-    /* Aftertrans does insert keyframes, and clears base flags; doesn't read transdata. */
+    /* Does insert keyframes, and clears base flags; doesn't read `transdata`. */
     special_aftertrans_update(C, t);
 
     /* Free data, also handles overlap [in freeTransCustomData()]. */

@@ -1691,7 +1691,7 @@ void gpu::MTLTexture::read_internal(int mip,
 
     /** Determine source read texture handle. */
     id<MTLTexture> read_texture = texture_;
-    /* Use textureview handle if reading from a GPU texture view. */
+    /* Use texture-view handle if reading from a GPU texture view. */
     if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW) {
       read_texture = this->get_metal_handle();
     }

@@ -2678,7 +2678,7 @@ class VIEW3D_MT_image_add(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        # Expliclitly set background mode on/off as operator will try to
+        # Explicitly set background mode on/off as operator will try to
         # auto detect which mode to use otherwise.
         layout.operator("object.empty_image_add", text="Reference", icon='IMAGE_REFERENCE').background = False
         layout.operator("object.empty_image_add", text="Background", icon='IMAGE_BACKGROUND').background = True

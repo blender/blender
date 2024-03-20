@@ -1000,7 +1000,7 @@ static BMesh *mesh_bm_concat(Span<const Mesh *> meshes,
   *r_looptris = looptris;
   *r_looptris_tot = looptris_tot;
 
-  /* Tranform the vertices that into the desired target_transform space. */
+  /* Transform the vertices that into the desired target_transform space. */
   BMIter iter;
   BMVert *eve;
   int i = 0;
@@ -1131,7 +1131,7 @@ static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
     BM_mesh_free(bm);
     if (prev_result_mesh != nullptr) {
       /* Except in the first iteration, two_meshes[0] holds the intermediate
-       * mesh result from the previous iteraiton. */
+       * mesh result from the previous iteration. */
       BKE_mesh_eval_delete(prev_result_mesh);
     }
     if (i < meshes.size() - 2) {

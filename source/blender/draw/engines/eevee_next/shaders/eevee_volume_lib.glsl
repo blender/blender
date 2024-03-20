@@ -74,7 +74,7 @@ SphericalHarmonicL1 volume_phase_function_as_sh_L1(vec3 V, float g)
   /* Compute rotated zonal harmonic.
    * From Bartlomiej Wronsky
    * "Volumetric Fog: Unified compute shader based solution to atmospheric scattering" page 55
-   * Siggraph 2014
+   * SIGGRAPH 2014
    * https://bartwronski.files.wordpress.com/2014/08/bwronski_volumetric_fog_siggraph2014.pdf
    */
   SphericalHarmonicL1 sh;

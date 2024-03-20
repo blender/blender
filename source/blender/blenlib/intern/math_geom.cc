@@ -4800,8 +4800,9 @@ void lookat_m4(
 
   i_multmatrix(mat1, mat);
 
-  mat1[1][1] = mat1[2][2] = 1.0f; /* be careful here to reinit */
-  mat1[1][2] = mat1[2][1] = 0.0f; /* those modified by the last */
+  /* Be careful here to reinitialize those modified by the last. */
+  mat1[1][1] = mat1[2][2] = 1.0f;
+  mat1[1][2] = mat1[2][1] = 0.0f;
 
   /* paragraph */
   if (hyp != 0.0f) { /* rotate Y */

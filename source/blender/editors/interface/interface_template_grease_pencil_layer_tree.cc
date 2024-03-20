@@ -178,8 +178,8 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   bool supports_collapsing() const override
   {
-    /* This is a bit redundant since `LayerViewItem` can't have children. But being expplicit might
-     * catch errors. */
+    /* This is a bit redundant since `LayerViewItem` can't have children.
+     * But being explicit might catch errors. */
     return false;
   }
 

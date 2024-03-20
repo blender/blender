@@ -673,7 +673,7 @@ void colormanagement_init()
     }
   }
 
-  /* Then try bunded config file. */
+  /* Then try bundled configuration file. */
   if (config == nullptr) {
     const std::optional<std::string> configdir = BKE_appdir_folder_id(BLENDER_DATAFILES,
                                                                       "colormanagement");

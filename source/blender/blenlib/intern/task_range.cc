@@ -228,7 +228,7 @@ void memory_bandwidth_bound_task_impl(const FunctionRef<void()> function)
 #ifdef WITH_TBB
   /* This is the maximum number of threads that may perform these memory bandwidth bound tasks at
    * the same time. Often fewer threads are already enough to use up the full bandwidth capacity.
-   * Additional threads usually have a negilible benefit and can even make performance worse.
+   * Additional threads usually have a negligible benefit and can even make performance worse.
    *
    * It's better to use fewer threads here so that the CPU cores can do other tasks at the same
    * time which may be more compute intensive. */

@@ -1610,7 +1610,7 @@ static StructRNA *rna_Operator_register(Main *bmain,
   }
 
   /* XXX, this doubles up with the operator name #29666.
-   * for now just remove from dir(bpy.types) */
+   * for now just remove from `dir(bpy.types)`. */
 
   /* create a new operator type */
   dummy_ot.rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummy_ot.idname, &RNA_Operator);
@@ -1783,7 +1783,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
   }
 
   /* XXX, this doubles up with the operator name #29666.
-   * for now just remove from dir(bpy.types) */
+   * for now just remove from `dir(bpy.types)`. */
 
   /* create a new operator type */
   dummy_ot.rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummy_ot.idname, &RNA_Operator);

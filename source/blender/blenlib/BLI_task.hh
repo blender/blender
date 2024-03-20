@@ -250,7 +250,7 @@ template<typename Function> inline void isolate_task(const Function &function)
 
 /**
  * Should surround parallel code that is highly bandwidth intensive, e.g. it just fills a buffer
- * with no or just few additional operations. If the buffers are large, it's benefitial to limit
+ * with no or just few additional operations. If the buffers are large, it's beneficial to limit
  * the number of threads doing the work because that just creates more overhead on the hardware
  * level and doesn't provide a notable performance benefit beyond a certain point.
  */
@@ -261,7 +261,7 @@ inline void memory_bandwidth_bound_task(const int64_t approximate_bytes_touched,
   /* Don't limit threading when all touched memory can stay in the CPU cache, because there a much
    * higher memory bandwidth is available compared to accessing RAM. This value is supposed to be
    * on the order of the L3 cache size. Accessing that value is not quite straight forward and even
-   * if it was, it's not clear if using the exact cache size would be benefitial because there is
+   * if it was, it's not clear if using the exact cache size would be beneficial because there is
    * often more stuff going on on the CPU at the same time. */
   if (approximate_bytes_touched <= 8 * 1024 * 1024) {
     function();
