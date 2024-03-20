@@ -35,9 +35,12 @@ int /*eContextResult*/ file_context(const bContext *C,
 
 #define ATTRIBUTE_COLUMN_PADDING (0.5f * UI_UNIT_X)
 
-#define FILE_LAYOUT_COMPACT(_layout) ((_layout->width / UI_SCALE_FAC) < 500)
-#define FILE_LAYOUT_HIDE_DATE(_layout) ((_layout->width / UI_SCALE_FAC) < 250)
-#define FILE_LAYOUT_HIDE_SIZE(_layout) ((_layout->width / UI_SCALE_FAC) < 350)
+#define FILE_LAYOUT_COMPACT(_layout) \
+  (_layout->flag & FILE_LAYOUT_VER && (_layout->width / UI_SCALE_FAC) < 500)
+#define FILE_LAYOUT_HIDE_DATE(_layout) \
+  (_layout->flag & FILE_LAYOUT_VER && (_layout->width / UI_SCALE_FAC) < 250)
+#define FILE_LAYOUT_HIDE_SIZE(_layout) \
+  (_layout->flag & FILE_LAYOUT_VER && (_layout->width / UI_SCALE_FAC) < 350)
 
 void file_calc_previews(const bContext *C, ARegion *region);
 void file_draw_list(const bContext *C, ARegion *region);
