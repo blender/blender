@@ -292,7 +292,7 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
     graph_id_tag_update(deg_graph->bmain,
                         deg_graph,
                         &deg_graph->scene->id,
-                        ID_RECALC_BASE_FLAGS,
+                        ID_RECALC_BASE_FLAGS | ID_RECALC_HIERARCHY,
                         deg::DEG_UPDATE_SOURCE_RELATIONS);
   }
 }
