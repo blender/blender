@@ -361,7 +361,7 @@ static void seq_disk_cache_handle_versioning(SeqDiskCache *disk_cache)
     }
 
     if (version != DCACHE_CURRENT_VERSION) {
-      BLI_delete(dirpath, false, true);
+      BLI_delete(dirpath, true, true);
       seq_disk_cache_create_version_file(path_version_file);
     }
   }
