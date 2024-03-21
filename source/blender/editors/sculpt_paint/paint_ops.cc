@@ -721,42 +721,6 @@ static void PALETTE_OT_join(wmOperatorType *ot)
   RNA_def_string(ot->srna, "palette", nullptr, MAX_ID_NAME - 2, "Palette", "Name of the Palette");
 }
 
-static int brush_reset_exec(bContext *C, wmOperator * /*op*/)
-{
-  Paint *paint = BKE_paint_get_active_from_context(C);
-  Brush *brush = BKE_paint_brush(paint);
-  Object *ob = CTX_data_active_object(C);
-
-  if (!ob || !brush) {
-    return OPERATOR_CANCELLED;
-  }
-
-  /* TODO: other modes */
-  if (ob->mode & OB_MODE_SCULPT) {
-    BKE_brush_sculpt_reset(brush);
-  }
-  else {
-    return OPERATOR_CANCELLED;
-  }
-  WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
-
-  return OPERATOR_FINISHED;
-}
-
-static void BRUSH_OT_reset(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Reset Brush";
-  ot->description = "Return brush to defaults based on current tool";
-  ot->idname = "BRUSH_OT_reset";
-
-  /* api callbacks */
-  ot->exec = brush_reset_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 namespace blender::ed::sculpt_paint {
 
 /**************************** Brush Assets **********************************/
@@ -1891,7 +1855,6 @@ void ED_operatortypes_paint()
   WM_operatortype_append(BRUSH_OT_scale_size);
   WM_operatortype_append(BRUSH_OT_curve_preset);
   WM_operatortype_append(BRUSH_OT_sculpt_curves_falloff_preset);
-  WM_operatortype_append(BRUSH_OT_reset);
   WM_operatortype_append(BRUSH_OT_stencil_control);
   WM_operatortype_append(BRUSH_OT_stencil_fit_image_aspect);
   WM_operatortype_append(BRUSH_OT_stencil_reset_transform);
