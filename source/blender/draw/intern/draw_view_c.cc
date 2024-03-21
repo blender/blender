@@ -75,8 +75,9 @@ static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, Vie
     /* exception: object in texture paint mode, clone brush, use_clone_layer disabled */
     else if (draw_ctx->object_mode & OB_MODE_TEXTURE_PAINT) {
       const Paint *p = BKE_paint_get_active(scene, view_layer);
+      const Brush *brush = (p) ? BKE_paint_brush_for_read(p) : nullptr;
 
-      if (p && p->brush && p->brush->imagepaint_tool == PAINT_TOOL_CLONE) {
+      if (brush && brush->imagepaint_tool == PAINT_TOOL_CLONE) {
         if ((scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE) == 0) {
           return true;
         }

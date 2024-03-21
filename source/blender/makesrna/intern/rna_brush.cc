@@ -1087,7 +1087,7 @@ static void rna_BrushGpencilSettings_default_eraser_update(Main *bmain,
 {
   ToolSettings *ts = scene->toolsettings;
   Paint *paint = &ts->gp_paint->paint;
-  Brush *brush_cur = paint->brush;
+  Brush *brush_cur = BKE_paint_brush(paint);
 
   /* disable default eraser in all brushes */
   for (Brush *brush = static_cast<Brush *>(bmain->brushes.first); brush;
@@ -1127,7 +1127,7 @@ static void rna_BrushGpencilSettings_eraser_mode_update(Main * /*bmain*/,
 {
   ToolSettings *ts = scene->toolsettings;
   Paint *paint = &ts->gp_paint->paint;
-  Brush *brush = paint->brush;
+  Brush *brush = BKE_paint_brush(paint);
 
   /* set eraser icon */
   if ((brush) && (brush->gpencil_tool == GPAINT_TOOL_ERASE)) {

@@ -43,6 +43,7 @@
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_paint.hh"
 #include "BKE_report.hh"
 
 #include "UI_interface.hh"
@@ -1202,7 +1203,7 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
   gso->region = CTX_wm_region(C);
 
   Paint *paint = &ts->gp_sculptpaint->paint;
-  Brush *brush = paint->brush;
+  Brush *brush = BKE_paint_brush(paint);
   gso->brush = brush;
   BKE_curvemapping_init(gso->brush->curve);
 

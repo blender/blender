@@ -1376,7 +1376,7 @@ void BKE_brush_gpencil_paint_presets(Main *bmain, ToolSettings *ts, const bool r
   bool is_new = false;
 
   Paint *paint = &ts->gp_paint->paint;
-  Brush *brush_prev = paint->brush;
+  Brush *brush_prev = BKE_paint_brush(paint);
   Brush *brush, *deft_draw;
   /* Airbrush brush. */
   brush = gpencil_brush_ensure(bmain, ts, "Airbrush", OB_MODE_PAINT_GPENCIL_LEGACY, &is_new);
@@ -1477,7 +1477,7 @@ void BKE_brush_gpencil_vertex_presets(Main *bmain, ToolSettings *ts, const bool 
   bool is_new = false;
 
   Paint *vertexpaint = &ts->gp_vertexpaint->paint;
-  Brush *brush_prev = vertexpaint->brush;
+  Brush *brush_prev = BKE_paint_brush(vertexpaint);
   Brush *brush, *deft_vertex;
   /* Vertex Draw brush. */
   brush = gpencil_brush_ensure(bmain, ts, "Vertex Draw", OB_MODE_VERTEX_GPENCIL_LEGACY, &is_new);
@@ -1525,7 +1525,7 @@ void BKE_brush_gpencil_sculpt_presets(Main *bmain, ToolSettings *ts, const bool 
   bool is_new = false;
 
   Paint *sculptpaint = &ts->gp_sculptpaint->paint;
-  Brush *brush_prev = sculptpaint->brush;
+  Brush *brush_prev = BKE_paint_brush(sculptpaint);
   Brush *brush, *deft_sculpt;
 
   /* Smooth brush. */
@@ -1602,7 +1602,7 @@ void BKE_brush_gpencil_weight_presets(Main *bmain, ToolSettings *ts, const bool 
   bool is_new = false;
 
   Paint *weightpaint = &ts->gp_weightpaint->paint;
-  Brush *brush_prev = weightpaint->brush;
+  Brush *brush_prev = BKE_paint_brush(weightpaint);
   Brush *brush, *deft_weight;
 
   /* Weight Draw brush. */

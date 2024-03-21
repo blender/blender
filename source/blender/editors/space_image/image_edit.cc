@@ -22,6 +22,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_paint.hh"
 #include "BKE_scene.hh"
 
 #include "IMB_imbuf_types.hh"
@@ -520,7 +521,7 @@ bool ED_space_image_paint_curve(const bContext *C)
   SpaceImage *sima = CTX_wm_space_image(C);
 
   if (sima && sima->mode == SI_MODE_PAINT) {
-    Brush *br = CTX_data_tool_settings(C)->imapaint.paint.brush;
+    Brush *br = BKE_paint_brush(&CTX_data_tool_settings(C)->imapaint.paint);
 
     if (br && (br->flag & BRUSH_CURVE)) {
       return true;
