@@ -493,8 +493,8 @@ void ED_gizmotypes_preselect_3d()
  * the information from this gizmo.
  * \{ */
 
-void ED_view3d_gizmo_mesh_preselect_get_active(bContext *C,
-                                               wmGizmo *gz,
+void ED_view3d_gizmo_mesh_preselect_get_active(const bContext *C,
+                                               const wmGizmo *gz,
                                                Base **r_base,
                                                BMElem **r_ele)
 {
