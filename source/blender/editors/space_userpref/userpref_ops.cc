@@ -703,9 +703,7 @@ static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
 /** \name Drop Extension Operator
  * \{ */
 
-static int preferences_extension_url_drop_invoke(bContext *C,
-                                                 wmOperator *op,
-                                                 const wmEvent * /*event*/)
+static int preferences_extension_url_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   char *url = RNA_string_get_alloc(op->ptr, "url", nullptr, 0, nullptr);
   const bool url_is_remote = STRPREFIX(url, "http://") || STRPREFIX(url, "https://") ||
@@ -720,7 +718,7 @@ static int preferences_extension_url_drop_invoke(bContext *C,
     PointerRNA props_ptr;
     WM_operator_properties_create_ptr(&props_ptr, ot);
     RNA_string_set(&props_ptr, "url", url);
-    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
+    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, event);
     WM_operator_properties_free(&props_ptr);
     retval = OPERATOR_FINISHED;
   }
