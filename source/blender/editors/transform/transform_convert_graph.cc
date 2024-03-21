@@ -726,12 +726,10 @@ struct BeztMap {
   BezTriple *bezt;
   /** Index of `bezt` in `fcu->bezt` array before sorting. */
   uint oldIndex;
-  /** Index of `bezt` in `fcu->bezt` array after sorting. */
-  uint newIndex;
   /** Swap order of handles (-1=clear; 0=not checked, 1=swap). */
-  short swapHs;
-  /** Interpolation of current and next segments. */
-  char pipo, cipo;
+  short swap_handles;
+  /** Interpolation of previous and next segments. */
+  char prev_ipo, current_ipo;
 };
 
 /**
@@ -756,10 +754,9 @@ static BeztMap *bezt_to_beztmaps(BezTriple *bezts, int totvert)
     bezm->bezt = bezt;
 
     bezm->oldIndex = i;
-    bezm->newIndex = i;
 
-    bezm->pipo = (prevbezt) ? prevbezt->ipo : bezt->ipo;
-    bezm->cipo = bezt->ipo;
+    bezm->prev_ipo = (prevbezt) ? prevbezt->ipo : bezt->ipo;
+    bezm->current_ipo = bezt->ipo;
   }
 
   return bezms;
@@ -781,27 +778,23 @@ static void sort_time_beztmaps(BeztMap *bezms, int totvert)
       /* Is current bezm out of order (i.e. occurs later than next)? */
       if (i > 0) {
         if (bezm->bezt->vec[1][0] > (bezm + 1)->bezt->vec[1][0]) {
-          bezm->newIndex++;
-          (bezm + 1)->newIndex--;
-
           std::swap(*bezm, *(bezm + 1));
-
           ok = 1;
         }
       }
 
       /* Do we need to check if the handles need to be swapped?
        * Optimization: this only needs to be performed in the first loop. */
-      if (bezm->swapHs == 0) {
+      if (bezm->swap_handles == 0) {
         if ((bezm->bezt->vec[0][0] > bezm->bezt->vec[1][0]) &&
             (bezm->bezt->vec[2][0] < bezm->bezt->vec[1][0]))
         {
           /* Handles need to be swapped. */
-          bezm->swapHs = 1;
+          bezm->swap_handles = 1;
         }
         else {
           /* Handles need to be cleared. */
-          bezm->swapHs = -1;
+          bezm->swap_handles = -1;
         }
       }
 
@@ -813,27 +806,23 @@ static void sort_time_beztmaps(BeztMap *bezms, int totvert)
 /* This function firstly adjusts the pointers that the transdata has to each BezTriple. */
 static void beztmap_to_data(TransInfo *t, FCurve *fcu, BeztMap *bezms, int totvert)
 {
-  BezTriple *bezts = fcu->bezt;
-  BeztMap *bezm;
   TransData2D *td2d;
   TransData *td;
-  int i, j;
-  char *adjusted;
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
   /* Dynamically allocate an array of chars to mark whether an TransData's
    * pointers have been fixed already, so that we don't override ones that are already done. */
-  adjusted = static_cast<char *>(MEM_callocN(tc->data_len, "beztmap_adjusted_map"));
+  char *adjusted = static_cast<char *>(MEM_callocN(tc->data_len, "beztmap_adjusted_map"));
 
   /* For each beztmap item, find if it is used anywhere. */
-  bezm = bezms;
-  for (i = 0; i < totvert; i++, bezm++) {
+  BeztMap *bezm = bezms;
+  for (int i = 0; i < totvert; i++, bezm++) {
     /* Loop through transdata, testing if we have a hit
      * for the handles (vec[0]/vec[2]), we must also check if they need to be swapped. */
     td2d = tc->data_2d;
     td = tc->data;
-    for (j = 0; j < tc->data_len; j++, td2d++, td++) {
+    for (int j = 0; j < tc->data_len; j++, td2d++, td++) {
       /* Skip item if already marked. */
       if (adjusted[j] != 0) {
         continue;
@@ -842,32 +831,32 @@ static void beztmap_to_data(TransInfo *t, FCurve *fcu, BeztMap *bezms, int totve
       /* Update all transdata pointers, no need to check for selections etc,
        * since only points that are really needed were created as transdata. */
       if (td2d->loc2d == bezm->bezt->vec[0]) {
-        if (bezm->swapHs == 1) {
-          td2d->loc2d = (bezts + bezm->newIndex)->vec[2];
+        if (bezm->swap_handles == 1) {
+          td2d->loc2d = fcu->bezt[i].vec[2];
         }
         else {
-          td2d->loc2d = (bezts + bezm->newIndex)->vec[0];
+          td2d->loc2d = fcu->bezt[i].vec[0];
         }
         adjusted[j] = 1;
       }
       else if (td2d->loc2d == bezm->bezt->vec[2]) {
-        if (bezm->swapHs == 1) {
-          td2d->loc2d = (bezts + bezm->newIndex)->vec[0];
+        if (bezm->swap_handles == 1) {
+          td2d->loc2d = fcu->bezt[i].vec[0];
         }
         else {
-          td2d->loc2d = (bezts + bezm->newIndex)->vec[2];
+          td2d->loc2d = fcu->bezt[i].vec[2];
         }
         adjusted[j] = 1;
       }
       else if (td2d->loc2d == bezm->bezt->vec[1]) {
-        td2d->loc2d = (bezts + bezm->newIndex)->vec[1];
+        td2d->loc2d = fcu->bezt[i].vec[1];
 
         /* If only control point is selected, the handle pointers need to be updated as well. */
         if (td2d->h1) {
-          td2d->h1 = (bezts + bezm->newIndex)->vec[0];
+          td2d->h1 = fcu->bezt[i].vec[0];
         }
         if (td2d->h2) {
-          td2d->h2 = (bezts + bezm->newIndex)->vec[2];
+          td2d->h2 = fcu->bezt[i].vec[2];
         }
 
         adjusted[j] = 1;
@@ -875,13 +864,13 @@ static void beztmap_to_data(TransInfo *t, FCurve *fcu, BeztMap *bezms, int totve
 
       /* The handle type pointer has to be updated too. */
       if (adjusted[j] && td->flag & TD_BEZTRIPLE && td->hdata) {
-        if (bezm->swapHs == 1) {
-          td->hdata->h1 = &(bezts + bezm->newIndex)->h2;
-          td->hdata->h2 = &(bezts + bezm->newIndex)->h1;
+        if (bezm->swap_handles == 1) {
+          td->hdata->h1 = &fcu->bezt[i].h2;
+          td->hdata->h2 = &fcu->bezt[i].h1;
         }
         else {
-          td->hdata->h1 = &(bezts + bezm->newIndex)->h1;
-          td->hdata->h2 = &(bezts + bezm->newIndex)->h2;
+          td->hdata->h1 = &fcu->bezt[i].h1;
+          td->hdata->h2 = &fcu->bezt[i].h2;
         }
       }
     }
