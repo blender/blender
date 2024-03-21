@@ -24,6 +24,50 @@ static constexpr float image_fl[image_height][image_width][4] = {
     {{1, 2, 3, 4}, {73, 108, 153, 251}, {128, 129, 130, 131}},
 };
 
+TEST(math_interp, NearestCharExactSamples)
+{
+  uchar4 res;
+  uchar4 exp1 = {73, 108, 153, 251};
+  res = interpolate_nearest_border_byte(image_char[0][0], image_width, image_height, 1.0f, 2.0f);
+  EXPECT_EQ(exp1, res);
+  uchar4 exp2 = {240, 160, 90, 20};
+  res = interpolate_nearest_border_byte(image_char[0][0], image_width, image_height, 2.0f, 0.0f);
+  EXPECT_EQ(exp2, res);
+}
+
+TEST(math_interp, NearestCharHalfwaySamples)
+{
+  uchar4 res;
+  uchar4 exp1 = {0, 1, 2, 3};
+  res = interpolate_nearest_border_byte(image_char[0][0], image_width, image_height, 0.5f, 1.5f);
+  EXPECT_EQ(exp1, res);
+  uchar4 exp2 = {255, 254, 217, 216};
+  res = interpolate_nearest_border_byte(image_char[0][0], image_width, image_height, 0.5f, 0.5f);
+  EXPECT_EQ(exp2, res);
+}
+
+TEST(math_interp, NearestFloatExactSamples)
+{
+  float4 res;
+  float4 exp1 = {73.0f, 108.0f, 153.0f, 251.0f};
+  res = interpolate_nearest_border_fl(image_fl[0][0], image_width, image_height, 1.0f, 2.0f);
+  EXPECT_EQ(exp1, res);
+  float4 exp2 = {240.0f, 160.0f, 90.0f, 20.0f};
+  res = interpolate_nearest_border_fl(image_fl[0][0], image_width, image_height, 2.0f, 0.0f);
+  EXPECT_EQ(exp2, res);
+}
+
+TEST(math_interp, NearestFloatHalfwaySamples)
+{
+  float4 res;
+  float4 exp1 = {0.0f, 1.0f, 2.0f, 3.0f};
+  res = interpolate_nearest_border_fl(image_fl[0][0], image_width, image_height, 0.5f, 1.5f);
+  EXPECT_EQ(exp1, res);
+  float4 exp2 = {255.0f, 254.0f, 217.0f, 216.0f};
+  res = interpolate_nearest_border_fl(image_fl[0][0], image_width, image_height, 0.5f, 0.5f);
+  EXPECT_EQ(exp2, res);
+}
+
 TEST(math_interp, BilinearCharExactSamples)
 {
   uchar4 res;

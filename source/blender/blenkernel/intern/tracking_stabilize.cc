@@ -1329,7 +1329,7 @@ static void tracking_stabilize_frame_interpolation_cb(void *__restrict userdata,
       for (int x = 0; x < tmpibuf->x; x++, dst++) {
         vec[0] = float(x);
         mul_v3_m4v3(rvec, mat, vec);
-        *dst = imbuf::interpolate_nearest_fl(ibuf, rvec[0], rvec[1]);
+        *dst = imbuf::interpolate_nearest_border_fl(ibuf, rvec[0], rvec[1]);
       }
     }
   }
@@ -1355,7 +1355,7 @@ static void tracking_stabilize_frame_interpolation_cb(void *__restrict userdata,
       for (int x = 0; x < tmpibuf->x; x++, dst++) {
         vec[0] = float(x);
         mul_v3_m4v3(rvec, mat, vec);
-        *dst = imbuf::interpolate_nearest_byte(ibuf, rvec[0], rvec[1]);
+        *dst = imbuf::interpolate_nearest_border_byte(ibuf, rvec[0], rvec[1]);
       }
     }
   }

@@ -491,7 +491,7 @@ static float4 studiolight_calculate_radiance(ImBuf *ibuf, const float direction[
 {
   float uv[2];
   direction_to_equirect(uv, direction);
-  return blender::imbuf::interpolate_nearest_fl(ibuf, uv[0] * ibuf->x, uv[1] * ibuf->y);
+  return blender::imbuf::interpolate_nearest_border_fl(ibuf, uv[0] * ibuf->x, uv[1] * ibuf->y);
 }
 
 /*
@@ -732,10 +732,10 @@ static void studiolight_matcap_preview(uint *icon_buffer, StudioLight *sl, bool 
 
     float u = dx * diffuse_buffer->x - 1.0f;
     float v = dy * diffuse_buffer->y - 1.0f;
-    float4 color = imbuf::interpolate_nearest_fl(diffuse_buffer, u, v);
+    float4 color = imbuf::interpolate_nearest_border_fl(diffuse_buffer, u, v);
 
     if (specular_buffer) {
-      float4 specular = imbuf::interpolate_nearest_fl(specular_buffer, u, v);
+      float4 specular = imbuf::interpolate_nearest_border_fl(specular_buffer, u, v);
       add_v3_v3(color, specular);
     }
 

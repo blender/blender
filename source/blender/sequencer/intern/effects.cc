@@ -1573,10 +1573,10 @@ static void transform_image(int x,
       switch (interpolation) {
         case 0:
           if (dst_fl) {
-            dst_fl[offset] = imbuf::interpolate_nearest_fl(ibuf, xt, yt);
+            dst_fl[offset] = imbuf::interpolate_nearest_border_fl(ibuf, xt, yt);
           }
           else {
-            dst_ch[offset] = imbuf::interpolate_nearest_byte(ibuf, xt, yt);
+            dst_ch[offset] = imbuf::interpolate_nearest_border_byte(ibuf, xt, yt);
           }
           break;
         case 1:

@@ -15,23 +15,25 @@
  * Any filtering done on texel values just blends them without color space or
  * gamma conversions.
  *
- * Sampling completely outside the image returns transparent black.
  */
 
 #include "BLI_math_base.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
 
 namespace blender::math {
 
 /**
- * Nearest (point) sampling.
+ * Nearest (point) sampling (with black border).
  *
- * Returns texel at floor(u,v) integer index -- note that it is not "nearest
- * to u,v coordinate", but rather with fractional part truncated (it would be
- * "nearest" if subtracting 0.5 from input u,v).
+ * Returns texel at floor(u,v) integer index. Samples outside the image are turned into transparent
+ * black.
+ *
+ * Note that it is not "nearest to u,v coordinate", but rather with fractional part truncated (it
+ * would be "nearest" if subtracting 0.5 from input u,v).
  */
 
-inline void interpolate_nearest_byte(
+inline void interpolate_nearest_border_byte(
     const uchar *buffer, uchar *output, int width, int height, float u, float v)
 {
   BLI_assert(buffer);
@@ -43,6 +45,67 @@ inline void interpolate_nearest_byte(
     output[0] = output[1] = output[2] = output[3] = 0;
     return;
   }
+
+  const uchar *data = buffer + (int64_t(width) * y + x) * 4;
+  output[0] = data[0];
+  output[1] = data[1];
+  output[2] = data[2];
+  output[3] = data[3];
+}
+
+[[nodiscard]] inline uchar4 interpolate_nearest_border_byte(
+    const uchar *buffer, int width, int height, float u, float v)
+{
+  uchar4 res;
+  interpolate_nearest_border_byte(buffer, res, width, height, u, v);
+  return res;
+}
+
+inline void interpolate_nearest_border_fl(
+    const float *buffer, float *output, int width, int height, int components, float u, float v)
+{
+  BLI_assert(buffer);
+  int x = int(u);
+  int y = int(v);
+
+  /* Outside image? */
+  if (x < 0 || x >= width || y < 0 || y >= height) {
+    for (int i = 0; i < components; i++) {
+      output[i] = 0.0f;
+    }
+    return;
+  }
+
+  const float *data = buffer + (int64_t(width) * y + x) * components;
+  for (int i = 0; i < components; i++) {
+    output[i] = data[i];
+  }
+}
+
+[[nodiscard]] inline float4 interpolate_nearest_border_fl(
+    const float *buffer, int width, int height, float u, float v)
+{
+  float4 res;
+  interpolate_nearest_border_fl(buffer, res, width, height, 4, u, v);
+  return res;
+}
+
+/**
+ * Nearest (point) sampling.
+ *
+ * Returns texel at floor(u,v) integer index. Samples outside the image are clamped to texels at
+ * image edge.
+ *
+ * Note that it is not "nearest to u,v coordinate", but rather with fractional part truncated (it
+ * would be "nearest" if subtracting 0.5 from input u,v).
+ */
+
+inline void interpolate_nearest_byte(
+    const uchar *buffer, uchar *output, int width, int height, float u, float v)
+{
+  BLI_assert(buffer);
+  const int x = math::clamp(int(u), 0, width - 1);
+  const int y = math::clamp(int(v), 0, height - 1);
 
   const uchar *data = buffer + (int64_t(width) * y + x) * 4;
   output[0] = data[0];
@@ -63,16 +126,8 @@ inline void interpolate_nearest_fl(
     const float *buffer, float *output, int width, int height, int components, float u, float v)
 {
   BLI_assert(buffer);
-  int x = int(u);
-  int y = int(v);
-
-  /* Outside image? */
-  if (x < 0 || x >= width || y < 0 || y >= height) {
-    for (int i = 0; i < components; i++) {
-      output[i] = 0.0f;
-    }
-    return;
-  }
+  const int x = math::clamp(int(u), 0, width - 1);
+  const int y = math::clamp(int(v), 0, height - 1);
 
   const float *data = buffer + (int64_t(width) * y + x) * components;
   for (int i = 0; i < components; i++) {

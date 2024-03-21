@@ -74,7 +74,8 @@ void RenderLayersProg::do_interpolation(float output[4], float x, float y, Pixel
 
   switch (sampler) {
     case PixelSampler::Nearest:
-      math::interpolate_nearest_fl(input_buffer_, output, width, height, elementsize_, x, y);
+      math::interpolate_nearest_border_fl(
+          input_buffer_, output, width, height, elementsize_, x, y);
       break;
     case PixelSampler::Bilinear:
       math::interpolate_bilinear_border_fl(

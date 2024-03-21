@@ -504,10 +504,10 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
             float xf = x / (float)texture_width;
             float u = info.clipping_uv_bounds.xmax * xf +
                       info.clipping_uv_bounds.xmin * (1.0 - xf) - tile_offset_x;
-            imbuf::interpolate_nearest_fl(tile_buffer,
-                                          &extracted_buffer.float_buffer.data[offset * 4],
-                                          u * tile_buffer->x,
-                                          v * tile_buffer->y);
+            imbuf::interpolate_nearest_border_fl(tile_buffer,
+                                                 &extracted_buffer.float_buffer.data[offset * 4],
+                                                 u * tile_buffer->x,
+                                                 v * tile_buffer->y);
             offset++;
           }
         }
