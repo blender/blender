@@ -17,6 +17,7 @@
 #include "BKE_duplilist.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_global.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
@@ -178,7 +179,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     /* TODO: Should be its own function. */
     Mesh *mesh = static_cast<Mesh *>(ob->data);
     if (is_edit_mode) {
-      BLI_assert(mesh->edit_mesh);
+      BLI_assert(mesh->runtime->edit_mesh);
       Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
       Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
       has_edit_mesh_cage = editmesh_eval_cage && (editmesh_eval_cage != editmesh_eval_final);

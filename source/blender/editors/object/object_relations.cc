@@ -56,6 +56,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_mesh_types.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -121,14 +122,13 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
   if (obedit->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(obedit->data);
-    BMEditMesh *em;
 
     EDBM_mesh_load(bmain, obedit);
     EDBM_mesh_make(obedit, scene->toolsettings->selectmode, true);
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
 
-    em = mesh->edit_mesh;
+    BMEditMesh *em = mesh->runtime->edit_mesh;
 
     BKE_editmesh_looptris_and_normals_calc(em);
 

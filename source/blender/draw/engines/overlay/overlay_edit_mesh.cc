@@ -14,6 +14,7 @@
 
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_object.hh"
 
 #include "draw_cache_impl.hh"
@@ -235,13 +236,12 @@ static void overlay_edit_mesh_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob
   bool has_skin_roots = false;
   /* TODO: Should be its own function. */
   Mesh *mesh = (Mesh *)ob->data;
-  BMEditMesh *embm = mesh->edit_mesh;
-  if (embm) {
+  if (BMEditMesh *em = mesh->runtime->edit_mesh) {
     Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
     Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
 
     has_edit_mesh_cage = editmesh_eval_cage && (editmesh_eval_cage != editmesh_eval_final);
-    has_skin_roots = CustomData_get_offset(&embm->bm->vdata, CD_MVERT_SKIN) != -1;
+    has_skin_roots = CustomData_get_offset(&em->bm->vdata, CD_MVERT_SKIN) != -1;
   }
 
   vert_shgrp = pd->edit_mesh_verts_grp[in_front];

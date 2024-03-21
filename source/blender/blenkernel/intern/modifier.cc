@@ -882,10 +882,10 @@ static void modwrap_dependsOnNormals(Mesh *mesh)
       if (!edit_data.vertexCos.is_empty()) {
         /* Note that 'ensure' is acceptable here since these values aren't modified in-place.
          * If that changes we'll need to recalculate. */
-        BKE_editmesh_cache_ensure_vert_normals(*mesh->edit_mesh, edit_data);
+        BKE_editmesh_cache_ensure_vert_normals(*mesh->runtime->edit_mesh, edit_data);
       }
       else {
-        BM_mesh_normals_update(mesh->edit_mesh->bm);
+        BM_mesh_normals_update(mesh->runtime->edit_mesh->bm);
       }
       break;
     }

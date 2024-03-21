@@ -886,7 +886,7 @@ static Object *editmesh_object_from_context(bContext *C)
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_MESH) {
     const Mesh *mesh = static_cast<Mesh *>(obedit->data);
-    if (mesh->edit_mesh != nullptr) {
+    if (mesh->runtime->edit_mesh != nullptr) {
       return obedit;
     }
   }
@@ -948,9 +948,11 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 
     elem->obedit_ref.ptr = ob;
     Mesh *mesh = static_cast<Mesh *>(elem->obedit_ref.ptr->data);
-    BMEditMesh *em = mesh->edit_mesh;
-    undomesh_from_editmesh(
-        &elem->data, mesh->edit_mesh, mesh->key, um_references ? um_references[i] : nullptr);
+    BMEditMesh *em = mesh->runtime->edit_mesh;
+    undomesh_from_editmesh(&elem->data,
+                           mesh->runtime->edit_mesh,
+                           mesh->key,
+                           um_references ? um_references[i] : nullptr);
     em->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
     elem->data.uv_selectmode = ts->uv_selectmode;
@@ -989,7 +991,7 @@ static void mesh_undosys_step_decode(
     MeshUndoStep_Elem *elem = &us->elems[i];
     Object *obedit = elem->obedit_ref.ptr;
     Mesh *mesh = static_cast<Mesh *>(obedit->data);
-    if (mesh->edit_mesh == nullptr) {
+    if (mesh->runtime->edit_mesh == nullptr) {
       /* Should never fail, may not crash but can give odd behavior. */
       CLOG_ERROR(&LOG,
                  "name='%s', failed to enter edit-mode for object '%s', undo state invalid",
@@ -997,7 +999,7 @@ static void mesh_undosys_step_decode(
                  obedit->id.name);
       continue;
     }
-    BMEditMesh *em = mesh->edit_mesh;
+    BMEditMesh *em = mesh->runtime->edit_mesh;
     undomesh_to_editmesh(&elem->data, obedit, em);
     em->needs_flush_to_id = 1;
     DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);

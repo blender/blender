@@ -21,6 +21,7 @@
 
 #include "DNA_customdata_types.h"
 
+struct BMEditMesh;
 struct BVHCache;
 struct Mesh;
 struct ShrinkwrapBoundaryData;
@@ -105,6 +106,13 @@ struct MeshRuntime {
 
   /** Implicit sharing user count for #Mesh::face_offset_indices. */
   const ImplicitSharingInfo *face_offsets_sharing_info = nullptr;
+
+  /**
+   * Storage of the edit mode mesh. If it exists, it generally has the most up-to-date
+   * information about the mesh.
+   * \note When the object is available, the preferred access method is #BKE_editmesh_from_object.
+   */
+  BMEditMesh *edit_mesh = nullptr;
 
   /**
    * A cache of bounds shared between data-blocks with unchanged positions. When changing positions

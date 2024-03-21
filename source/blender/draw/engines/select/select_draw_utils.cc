@@ -79,7 +79,7 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
 {
   using namespace blender::draw;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  BMEditMesh *em = mesh->edit_mesh;
+  BMEditMesh *em = mesh->runtime->edit_mesh;
 
   BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE | BM_FACE);
 

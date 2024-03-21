@@ -42,7 +42,7 @@ namespace blender::draw {
 
 int mesh_render_mat_len_get(const Object *object, const Mesh *mesh)
 {
-  if (mesh->edit_mesh != nullptr) {
+  if (mesh->runtime->edit_mesh != nullptr) {
     const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
     if (editmesh_eval_final != nullptr) {
       return std::max<int>(1, editmesh_eval_final->totcol);

@@ -35,8 +35,8 @@ void BKE_mesh_foreach_mapped_vert(
     void *user_data,
     MeshForeachFlag flag)
 {
-  if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
-    BMEditMesh *em = mesh->edit_mesh;
+  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
+    BMEditMesh *em = mesh->runtime->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
     BMVert *eve;
@@ -94,8 +94,8 @@ void BKE_mesh_foreach_mapped_edge(
     void (*func)(void *user_data, int index, const float v0co[3], const float v1co[3]),
     void *user_data)
 {
-  if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data) {
-    BMEditMesh *em = mesh->edit_mesh;
+  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data) {
+    BMEditMesh *em = mesh->runtime->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
     BMEdge *eed;
@@ -153,8 +153,8 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
   /* We can't use `dm->getLoopDataLayout(dm)` here,
    * we want to always access `dm->loopData`, `EditDerivedBMesh` would
    * return loop data from BMesh itself. */
-  if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data) {
-    BMEditMesh *em = mesh->edit_mesh;
+  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data) {
+    BMEditMesh *em = mesh->runtime->edit_mesh;
     BMesh *bm = em->bm;
     BMIter iter;
     BMFace *efa;
@@ -233,8 +233,8 @@ void BKE_mesh_foreach_mapped_face_center(
     MeshForeachFlag flag)
 {
   using namespace blender;
-  if (mesh->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
-    BMEditMesh *em = mesh->edit_mesh;
+  if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
+    BMEditMesh *em = mesh->runtime->edit_mesh;
     BMesh *bm = em->bm;
     blender::Span<blender::float3> face_centers;
     blender::Span<blender::float3> face_normals;

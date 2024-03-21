@@ -32,6 +32,7 @@
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_object_types.hh"
 #include "BKE_scene.hh"
 
@@ -555,10 +556,10 @@ void update_mesh_edit_mode_pointers(const ID *id_orig, ID *id_cow)
 {
   const Mesh *mesh_orig = (const Mesh *)id_orig;
   Mesh *mesh_cow = (Mesh *)id_cow;
-  if (mesh_orig->edit_mesh == nullptr) {
+  if (mesh_orig->runtime->edit_mesh == nullptr) {
     return;
   }
-  mesh_cow->edit_mesh = mesh_orig->edit_mesh;
+  mesh_cow->runtime->edit_mesh = mesh_orig->runtime->edit_mesh;
 }
 
 /* Edit data is stored and owned by original datablocks, copied ones
@@ -939,7 +940,7 @@ void discard_lattice_edit_mode_pointers(ID *id_cow)
 void discard_mesh_edit_mode_pointers(ID *id_cow)
 {
   Mesh *mesh_cow = (Mesh *)id_cow;
-  mesh_cow->edit_mesh = nullptr;
+  mesh_cow->runtime->edit_mesh = nullptr;
 }
 
 void discard_scene_pointers(ID *id_cow)

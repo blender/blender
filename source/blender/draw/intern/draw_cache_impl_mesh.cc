@@ -557,7 +557,7 @@ static bool mesh_batch_cache_valid(Object *object, Mesh *mesh)
 
   /* Note: PBVH draw data should not be checked here. */
 
-  if (cache->is_editmode != (mesh->edit_mesh != nullptr)) {
+  if (cache->is_editmode != (mesh->runtime->edit_mesh != nullptr)) {
     return false;
   }
 
@@ -582,7 +582,7 @@ static void mesh_batch_cache_init(Object *object, Mesh *mesh)
   }
   MeshBatchCache *cache = static_cast<MeshBatchCache *>(mesh->runtime->batch_cache);
 
-  cache->is_editmode = mesh->edit_mesh != nullptr;
+  cache->is_editmode = mesh->runtime->edit_mesh != nullptr;
 
   if (object->sculpt && object->sculpt->pbvh) {
     cache->pbvh_is_drawing = BKE_pbvh_is_drawing(object->sculpt->pbvh);
@@ -1374,11 +1374,11 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
 #endif
 
   /* Sanity check. */
-  if ((mesh->edit_mesh != nullptr) && (ob->mode & OB_MODE_EDIT)) {
+  if ((mesh->runtime->edit_mesh != nullptr) && (ob->mode & OB_MODE_EDIT)) {
     BLI_assert(BKE_object_get_editmesh_eval_final(ob) != nullptr);
   }
 
-  const bool is_editmode = (mesh->edit_mesh != nullptr) &&
+  const bool is_editmode = (mesh->runtime->edit_mesh != nullptr) &&
                            (BKE_object_get_editmesh_eval_final(ob) != nullptr) &&
                            DRW_object_is_in_edit_mode(ob);
 
@@ -1407,7 +1407,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
     /* Modifiers will only generate an orco layer if the mesh is deformed. */
     if (cache.cd_needed.orco != 0) {
       /* Orco is always extracted from final mesh. */
-      Mesh *me_final = (mesh->edit_mesh) ? BKE_object_get_editmesh_eval_final(ob) : mesh;
+      Mesh *me_final = (mesh->runtime->edit_mesh) ? BKE_object_get_editmesh_eval_final(ob) : mesh;
       if (CustomData_get_layer(&me_final->vert_data, CD_ORCO) == nullptr) {
         /* Skip orco calculation */
         cache.cd_needed.orco = 0;

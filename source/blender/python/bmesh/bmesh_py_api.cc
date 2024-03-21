@@ -24,6 +24,7 @@
 #include "bmesh_py_utils.h"
 
 #include "BKE_editmesh.hh"
+#include "BKE_mesh_types.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -82,12 +83,12 @@ static PyObject *bpy_bm_from_edit_mesh(PyObject * /*self*/, PyObject *value)
     return nullptr;
   }
 
-  if (mesh->edit_mesh == nullptr) {
+  if (mesh->runtime->edit_mesh == nullptr) {
     PyErr_SetString(PyExc_ValueError, "The mesh must be in editmode");
     return nullptr;
   }
 
-  bm = mesh->edit_mesh->bm;
+  bm = mesh->runtime->edit_mesh->bm;
 
   return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_IS_WRAPPED);
 }
@@ -135,7 +136,7 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject * /*self*/, PyObject *args, Py
     return nullptr;
   }
 
-  if (mesh->edit_mesh == nullptr) {
+  if (mesh->runtime->edit_mesh == nullptr) {
     PyErr_SetString(PyExc_ValueError, "The mesh must be in editmode");
     return nullptr;
   }

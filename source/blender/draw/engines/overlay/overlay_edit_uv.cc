@@ -17,6 +17,7 @@
 #include "BKE_image.h"
 #include "BKE_layer.hh"
 #include "BKE_mask.h"
+#include "BKE_mesh_types.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 
@@ -443,9 +444,9 @@ static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
   Mesh *mesh = (Mesh *)ob->data;
   const bool has_active_object_uvmap = CustomData_get_active_layer(&mesh->corner_data,
                                                                    CD_PROP_FLOAT2) != -1;
-  const bool has_active_edit_uvmap = is_edit_object &&
-                                     (CustomData_get_active_layer(&mesh->edit_mesh->bm->ldata,
-                                                                  CD_PROP_FLOAT2) != -1);
+  const bool has_active_edit_uvmap = is_edit_object && (CustomData_get_active_layer(
+                                                            &mesh->runtime->edit_mesh->bm->ldata,
+                                                            CD_PROP_FLOAT2) != -1);
   const bool draw_shadows = (draw_ctx->object_mode != OB_MODE_OBJECT) &&
                             (ob->mode == draw_ctx->object_mode);
 

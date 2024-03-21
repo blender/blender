@@ -36,7 +36,7 @@ namespace blender::bke {
 static void free_mesh_eval(MeshRuntime &mesh_runtime)
 {
   if (mesh_runtime.mesh_eval != nullptr) {
-    mesh_runtime.mesh_eval->edit_mesh = nullptr;
+    mesh_runtime.mesh_eval->runtime->edit_mesh = nullptr;
     BKE_id_free(nullptr, mesh_runtime.mesh_eval);
     mesh_runtime.mesh_eval = nullptr;
   }

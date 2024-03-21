@@ -1755,7 +1755,7 @@ bool BKE_object_is_in_editmode(const Object *ob)
 
   switch (ob->type) {
     case OB_MESH:
-      return ((Mesh *)ob->data)->edit_mesh != nullptr;
+      return ((Mesh *)ob->data)->runtime->edit_mesh != nullptr;
     case OB_ARMATURE:
       return ((bArmature *)ob->data)->edbo != nullptr;
     case OB_FONT:
@@ -1790,7 +1790,7 @@ bool BKE_object_data_is_in_editmode(const Object *ob, const ID *id)
   BLI_assert(OB_DATA_SUPPORT_EDITMODE(type));
   switch (type) {
     case ID_ME:
-      return ((const Mesh *)id)->edit_mesh != nullptr;
+      return ((const Mesh *)id)->runtime->edit_mesh != nullptr;
     case ID_CU_LEGACY:
       return ((((const Curve *)id)->editnurb != nullptr) ||
               (((const Curve *)id)->editfont != nullptr));
@@ -1818,7 +1818,7 @@ char *BKE_object_data_editmode_flush_ptr_get(ID *id)
   const short type = GS(id->name);
   switch (type) {
     case ID_ME: {
-      BMEditMesh *em = ((Mesh *)id)->edit_mesh;
+      BMEditMesh *em = ((Mesh *)id)->runtime->edit_mesh;
       if (em != nullptr) {
         return &em->needs_flush_to_id;
       }
@@ -1869,7 +1869,7 @@ bool BKE_object_is_in_wpaint_select_vert(const Object *ob)
 {
   if (ob->type == OB_MESH) {
     Mesh *mesh = (Mesh *)ob->data;
-    return ((ob->mode & OB_MODE_WEIGHT_PAINT) && (mesh->edit_mesh == nullptr) &&
+    return ((ob->mode & OB_MODE_WEIGHT_PAINT) && (mesh->runtime->edit_mesh == nullptr) &&
             (ME_EDIT_PAINT_SEL_MODE(mesh) == SCE_SELECT_VERTEX));
   }
 
@@ -3099,7 +3099,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 
   if (par->type == OB_MESH) {
     Mesh *mesh = (Mesh *)par->data;
-    BMEditMesh *em = mesh->edit_mesh;
+    BMEditMesh *em = mesh->runtime->edit_mesh;
     Mesh *mesh_eval = (em) ? BKE_object_get_editmesh_eval_final(par) :
                              BKE_object_get_evaluated_mesh(par);
 
@@ -4221,7 +4221,7 @@ Mesh *BKE_object_get_editmesh_eval_final(const Object *object)
   BLI_assert(object->type == OB_MESH);
 
   const Mesh *mesh = static_cast<const Mesh *>(object->data);
-  if (mesh->edit_mesh == nullptr) {
+  if (mesh->runtime->edit_mesh == nullptr) {
     /* Happens when requesting material of evaluated 3d font object: the evaluated object get
      * converted to mesh, and it does not have edit mesh. */
     return nullptr;
@@ -4236,7 +4236,7 @@ Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
   BLI_assert(object->type == OB_MESH);
 
   const Mesh *mesh = static_cast<const Mesh *>(object->data);
-  BLI_assert(mesh->edit_mesh != nullptr);
+  BLI_assert(mesh->runtime->edit_mesh != nullptr);
   UNUSED_VARS_NDEBUG(mesh);
 
   return object->runtime->editmesh_eval_cage;

@@ -2155,8 +2155,8 @@ static void fill_mesh_color(Mesh &mesh,
                             const bool use_face_sel,
                             const bool affect_alpha)
 {
-  if (mesh.edit_mesh) {
-    BMesh *bm = mesh.edit_mesh->bm;
+  if (BMEditMesh *em = mesh.runtime->edit_mesh) {
+    BMesh *bm = em->bm;
     const std::string name = attribute_name;
     const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh.id, name.c_str());
     const AttrDomain domain = BKE_id_attribute_domain(&mesh.id, layer);

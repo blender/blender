@@ -2109,9 +2109,9 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
 
   Mesh *mesh_eval = mesh;
   BMesh *bm = nullptr;
-  if (mesh->edit_mesh) {
+  if (mesh->runtime->edit_mesh) {
     mesh_eval = BKE_object_get_editmesh_eval_final(ob);
-    bm = mesh->edit_mesh->bm;
+    bm = mesh->runtime->edit_mesh->bm;
   }
 
   draw_subdiv_invalidate_evaluator_for_orco(runtime_data->subdiv_gpu, mesh_eval);

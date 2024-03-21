@@ -832,8 +832,8 @@ BLI_INLINE void mesh_mirror_topo_table_get_meshes(Object *ob,
   if (mesh_eval != nullptr) {
     mesh_mirror = mesh_eval;
   }
-  else if (mesh->edit_mesh != nullptr) {
-    em_mirror = mesh->edit_mesh;
+  else if (BMEditMesh *em = mesh->runtime->edit_mesh) {
+    em_mirror = em;
   }
   else {
     mesh_mirror = mesh;
@@ -969,11 +969,10 @@ BMVert *editbmesh_get_x_mirror_vert(
 int ED_mesh_mirror_get_vert(Object *ob, int index)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  BMEditMesh *em = mesh->edit_mesh;
   bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
   int index_mirr;
 
-  if (em) {
+  if (BMEditMesh *em = mesh->runtime->edit_mesh) {
     BMVert *eve, *eve_mirr;
     eve = BM_vert_at_index(em->bm, index);
     eve_mirr = editbmesh_get_x_mirror_vert(ob, em, eve, eve->co, index, use_topology);
@@ -1409,7 +1408,7 @@ MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
   if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
     if (!BLI_listbase_is_empty(&mesh->vertex_group_names)) {
-      BMesh *bm = mesh->edit_mesh->bm;
+      BMesh *bm = mesh->runtime->edit_mesh->bm;
       const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
 
       if (cd_dvert_offset != -1) {

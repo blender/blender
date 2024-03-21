@@ -72,6 +72,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_paint.hh"
 #include "BKE_pointcache.h"
@@ -2506,7 +2507,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain,
         ((obedit->id.recalc & ID_RECALC_ALL) || (mesh->id.recalc & ID_RECALC_ALL)))
     {
       if (check_rendered_viewport_visible(bmain)) {
-        BMesh *bm = mesh->edit_mesh->bm;
+        BMesh *bm = mesh->runtime->edit_mesh->bm;
         BMeshToMeshParams params{};
         params.calc_object_remap = true;
         params.update_shapekey_indices = true;

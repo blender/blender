@@ -32,7 +32,8 @@ struct Scene;
  * (mostly related to mesh evaluation).
  *
  * The entire modifier system works with this structure, and not #BMesh.
- * #Mesh.edit_bmesh stores a pointer to this structure. */
+ * #Mesh.edit_bmesh stores a pointer to this structure.
+ */
 struct BMEditMesh {
   BMesh *bm;
 

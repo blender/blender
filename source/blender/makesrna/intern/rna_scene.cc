@@ -1983,9 +1983,9 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *valu
         Object *object = BKE_view_layer_active_object_get(view_layer);
         if (object) {
           Mesh *mesh = BKE_mesh_from_object(object);
-          if (mesh && mesh->edit_mesh && mesh->edit_mesh->selectmode != flag) {
-            mesh->edit_mesh->selectmode = flag;
-            EDBM_selectmode_set(mesh->edit_mesh);
+          if (mesh && mesh->runtime->edit_mesh && mesh->runtime->edit_mesh->selectmode != flag) {
+            mesh->runtime->edit_mesh->selectmode = flag;
+            EDBM_selectmode_set(mesh->runtime->edit_mesh);
           }
         }
       }
@@ -2003,7 +2003,7 @@ static void rna_Scene_editmesh_select_mode_update(bContext *C, PointerRNA * /*pt
   Object *object = BKE_view_layer_active_object_get(view_layer);
   if (object) {
     mesh = BKE_mesh_from_object(object);
-    if (mesh && mesh->edit_mesh == nullptr) {
+    if (mesh && mesh->runtime->edit_mesh == nullptr) {
       mesh = nullptr;
     }
   }
