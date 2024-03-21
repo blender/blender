@@ -4275,7 +4275,7 @@ static uiBlock *curvemap_tools_func(
     });
   }
 
-  if (show_extend) {
+  if (show_extend && !(cumap->flag & CUMA_USE_WRAPPING)) {
     {
       uiBut *but = uiDefIconTextBut(block,
                                     UI_BTYPE_BUT_MENU,
