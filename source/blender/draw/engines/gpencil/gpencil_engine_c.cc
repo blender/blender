@@ -567,7 +567,7 @@ static void gpencil_sbuffer_cache_populate_fast(GPENCIL_Data *vedata, gpIterPopu
   GPUTexture *depth_texture = iter->pd->scene_depth_tx;
   GPENCIL_tObject *last_tgp_ob = iter->pd->tobjects.last;
   /* Create another temp object that only contain the stroke. */
-  const std::optional<blender::Bounds<float3>> bounds = BKE_gpencil_data_minmax(gpd).value_or(
+  const blender::Bounds<float3> bounds = BKE_gpencil_data_minmax(gpd).value_or(
       blender::Bounds(float3(0)));
   iter->tgp_ob = gpencil_object_cache_add(
       iter->pd, iter->ob, (gpd->draw_mode == GP_DRAWMODE_3D), bounds);
@@ -610,7 +610,8 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
   using namespace blender::bke::greasepencil;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
   const bool is_vertex_mode = (ob->mode & OB_MODE_VERTEX_PAINT) != 0;
-  const std::optional<blender::Bounds<float3>> bounds = grease_pencil.bounds_min_max_eval();
+  const blender::Bounds<float3> bounds = grease_pencil.bounds_min_max_eval().value_or(
+      blender::Bounds(float3(0)));
 
   const bool use_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
   GPENCIL_tObject *tgp_ob = gpencil_object_cache_add(pd, ob, use_stroke_order_3d, bounds);
@@ -803,7 +804,7 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
 
   if (ob->data && (ob->type == OB_GPENCIL_LEGACY) && (ob->dt >= OB_SOLID)) {
     bGPdata *gpd = (bGPdata *)ob->data;
-    const std::optional<blender::Bounds<float3>> bounds = BKE_gpencil_data_minmax(gpd).value_or(
+    const blender::Bounds<float3> bounds = BKE_gpencil_data_minmax(gpd).value_or(
         blender::Bounds(float3(0)));
     gpIterPopulateData iter = {nullptr};
     iter.ob = ob;

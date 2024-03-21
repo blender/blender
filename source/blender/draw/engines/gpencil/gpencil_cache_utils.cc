@@ -40,7 +40,7 @@
 GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
                                           Object *ob,
                                           const bool is_stroke_order_3d,
-                                          const std::optional<blender::Bounds<float3>> bounds)
+                                          const blender::Bounds<float3> bounds)
 {
   using namespace blender;
   GPENCIL_tObject *tgp_ob = static_cast<GPENCIL_tObject *>(BLI_memblock_alloc(pd->gp_object_pool));
@@ -69,8 +69,8 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
    * strokes not aligned with the object axes. Maybe we could try to
    * compute the minimum axis of all strokes. But this would be more
    * computationally heavy and should go into the GPData evaluation. */
-  float3 size = (bounds->max - bounds->min) * 0.5f;
-  float3 center = math::midpoint(bounds->min, bounds->max);
+  float3 size = (bounds.max - bounds.min) * 0.5f;
+  float3 center = math::midpoint(bounds.min, bounds.max);
   /* Convert bbox to matrix */
   float mat[4][4];
   unit_m4(mat);

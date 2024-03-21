@@ -327,7 +327,7 @@ struct GpencilBatchCache *gpencil_batch_cache_get(struct Object *ob, int cfra);
 GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
                                           Object *ob,
                                           bool is_stroke_order_3d,
-                                          std::optional<blender::Bounds<float3>> bounds);
+                                          blender::Bounds<float3> bounds);
 void gpencil_object_cache_sort(GPENCIL_PrivateData *pd);
 
 GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
