@@ -184,7 +184,7 @@ static float wpaint_blend(const VPaint *wp,
                           const float /*brush_alpha_value*/,
                           const bool do_flip)
 {
-  const Brush *brush = wp->paint.brush;
+  const Brush *brush = BKE_paint_brush_for_read(&wp->paint);
   IMB_BlendMode blend = (IMB_BlendMode)brush->blend;
 
   if (do_flip) {
@@ -932,9 +932,11 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   wpd = (WPaintData *)MEM_callocN(sizeof(WPaintData), "WPaintData");
   paint_stroke_set_mode_data(stroke, wpd);
   wpd->vc = ED_view3d_viewcontext_init(C, depsgraph);
+
+  const Brush *brush = BKE_paint_brush(&vp->paint);
   vwpaint::view_angle_limits_init(&wpd->normal_angle_precalc,
-                                  vp->paint.brush->falloff_angle,
-                                  (vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
+                                  brush->falloff_angle,
+                                  (brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 
   wpd->active.index = vgroup_index.active;
   wpd->mirror.index = vgroup_index.mirror;
@@ -1007,7 +1009,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   vwpaint::update_cache_invariants(C, vp, ss, op, mouse);
   vwpaint::init_session_data(ts, ob);
 
-  if (ELEM(vp->paint.brush->weightpaint_tool, WPAINT_TOOL_SMEAR, WPAINT_TOOL_BLUR)) {
+  if (ELEM(brush->weightpaint_tool, WPAINT_TOOL_SMEAR, WPAINT_TOOL_BLUR)) {
     wpd->precomputed_weight = (float *)MEM_mallocN(sizeof(float) * mesh->verts_num, __func__);
   }
 

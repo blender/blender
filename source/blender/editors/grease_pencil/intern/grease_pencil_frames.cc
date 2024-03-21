@@ -12,6 +12,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_paint.hh"
 #include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
@@ -350,7 +351,7 @@ bool ensure_active_keyframe(const Scene &scene, GreasePencil &grease_pencil)
                                  (*active_layer.frame_key_at(current_frame) < current_frame);
 
   if (blender::animrig::is_autokey_on(&scene) && needs_new_drawing) {
-    const Brush *brush = scene.toolsettings->gp_paint->paint.brush;
+    const Brush *brush = BKE_paint_brush_for_read(&scene.toolsettings->gp_paint->paint);
     if (((scene.toolsettings->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) != 0) ||
         (brush->gpencil_tool == GPAINT_TOOL_ERASE))
     {

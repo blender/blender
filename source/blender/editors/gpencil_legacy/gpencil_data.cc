@@ -1961,12 +1961,11 @@ static int gpencil_brush_reset_exec(bContext *C, wmOperator * /*op*/)
   Main *bmain = CTX_data_main(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   const enum eContextObjectMode mode = CTX_data_mode_enum(C);
-  Brush *brush = nullptr;
 
   switch (mode) {
     case CTX_MODE_PAINT_GPENCIL_LEGACY: {
       Paint *paint = &ts->gp_paint->paint;
-      brush = paint->brush;
+      Brush *brush = BKE_paint_brush(paint);
       if (brush && brush->gpencil_settings) {
         BKE_gpencil_brush_preset_set(bmain, brush, brush->gpencil_settings->preset_type);
       }
@@ -1974,7 +1973,7 @@ static int gpencil_brush_reset_exec(bContext *C, wmOperator * /*op*/)
     }
     case CTX_MODE_SCULPT_GPENCIL_LEGACY: {
       Paint *paint = &ts->gp_sculptpaint->paint;
-      brush = paint->brush;
+      Brush *brush = BKE_paint_brush(paint);
       if (brush && brush->gpencil_settings) {
         BKE_gpencil_brush_preset_set(bmain, brush, brush->gpencil_settings->preset_type);
       }
@@ -1982,7 +1981,7 @@ static int gpencil_brush_reset_exec(bContext *C, wmOperator * /*op*/)
     }
     case CTX_MODE_WEIGHT_GPENCIL_LEGACY: {
       Paint *paint = &ts->gp_weightpaint->paint;
-      brush = paint->brush;
+      Brush *brush = BKE_paint_brush(paint);
       if (brush && brush->gpencil_settings) {
         BKE_gpencil_brush_preset_set(bmain, brush, brush->gpencil_settings->preset_type);
       }
@@ -1990,7 +1989,7 @@ static int gpencil_brush_reset_exec(bContext *C, wmOperator * /*op*/)
     }
     case CTX_MODE_VERTEX_GPENCIL_LEGACY: {
       Paint *paint = &ts->gp_vertexpaint->paint;
-      brush = paint->brush;
+      Brush *brush = BKE_paint_brush(paint);
       if (brush && brush->gpencil_settings) {
         BKE_gpencil_brush_preset_set(bmain, brush, brush->gpencil_settings->preset_type);
       }
@@ -2057,7 +2056,7 @@ static void gpencil_brush_delete_mode_brushes(Main *bmain,
                                               Paint *paint,
                                               const enum eContextObjectMode mode)
 {
-  Brush *brush_active = paint->brush;
+  Brush *brush_active = BKE_paint_brush(paint);
   Brush *brush_next = nullptr;
   for (Brush *brush = static_cast<Brush *>(bmain->brushes.first); brush; brush = brush_next) {
     brush_next = static_cast<Brush *>(brush->id.next);
@@ -2151,8 +2150,8 @@ static int gpencil_brush_reset_all_exec(bContext *C, wmOperator * /*op*/)
 
   char tool = '0';
   if (paint) {
-    if (paint->brush) {
-      Brush *brush_active = paint->brush;
+    Brush *brush_active = BKE_paint_brush(paint);
+    if (brush_active) {
       switch (mode) {
         case CTX_MODE_PAINT_GPENCIL_LEGACY: {
           tool = brush_active->gpencil_tool;

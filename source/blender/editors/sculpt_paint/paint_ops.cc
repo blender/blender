@@ -369,8 +369,8 @@ static int palette_color_add_exec(bContext *C, wmOperator * /*op*/)
   color = BKE_palette_color_add(palette);
   palette->active_color = BLI_listbase_count(&palette->colors) - 1;
 
-  if (paint->brush) {
-    const Brush *brush = paint->brush;
+  const Brush *brush = BKE_paint_brush_for_read(paint);
+  if (brush) {
     if (ELEM(mode,
              PaintMode::Texture3D,
              PaintMode::Texture2D,

@@ -328,7 +328,7 @@ bool gpencil_active_brush_poll(bContext *C)
   ToolSettings *ts = CTX_data_tool_settings(C);
   Paint *paint = &ts->gp_paint->paint;
   if (paint) {
-    return (paint->brush != nullptr);
+    return (BKE_paint_brush(paint) != nullptr);
   }
   return false;
 }
@@ -1431,8 +1431,9 @@ void ED_gpencil_add_defaults(bContext *C, Object *ob)
 
   BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_paint);
   Paint *paint = &ts->gp_paint->paint;
+  Brush *brush = BKE_paint_brush(paint);
   /* if not exist, create a new one */
-  if ((paint->brush == nullptr) || (paint->brush->gpencil_settings == nullptr)) {
+  if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
     /* create new brushes */
     BKE_brush_gpencil_paint_presets(bmain, ts, true);
   }
@@ -1739,7 +1740,7 @@ float ED_gpencil_cursor_radius(bContext *C, int x, int y)
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   ARegion *region = CTX_wm_region(C);
-  Brush *brush = scene->toolsettings->gp_paint->paint.brush;
+  Brush *brush = BKE_paint_brush(&scene->toolsettings->gp_paint->paint);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
 
   /* Show brush size. */
@@ -1830,7 +1831,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
 
   /* for paint use paint brush size and color */
   if (gpd->flag & GP_DATA_STROKE_PAINTMODE) {
-    brush = scene->toolsettings->gp_paint->paint.brush;
+    brush = BKE_paint_brush(&scene->toolsettings->gp_paint->paint);
     if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
       return;
     }
@@ -1902,7 +1903,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
 
   /* Sculpt use sculpt brush size */
   if (GPENCIL_SCULPT_MODE(gpd)) {
-    brush = scene->toolsettings->gp_sculptpaint->paint.brush;
+    brush = BKE_paint_brush(&scene->toolsettings->gp_sculptpaint->paint);
     if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
       return;
     }
@@ -1922,7 +1923,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
 
   /* Weight Paint */
   if (GPENCIL_WEIGHT_MODE(gpd)) {
-    brush = scene->toolsettings->gp_weightpaint->paint.brush;
+    brush = BKE_paint_brush(&scene->toolsettings->gp_weightpaint->paint);
     if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
       return;
     }
@@ -1942,7 +1943,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
 
   /* For Vertex Paint use brush size. */
   if (GPENCIL_VERTEX_MODE(gpd)) {
-    brush = scene->toolsettings->gp_vertexpaint->paint.brush;
+    brush = BKE_paint_brush(&scene->toolsettings->gp_vertexpaint->paint);
     if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
       return;
     }

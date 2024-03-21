@@ -181,8 +181,8 @@ bool test_brush_angle_falloff(const Brush &brush,
 
 bool use_normal(const VPaint *vp)
 {
-  return ((vp->paint.brush->flag & BRUSH_FRONTFACE) != 0) ||
-         ((vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
+  const Brush *brush = BKE_paint_brush_for_read(&vp->paint);
+  return ((brush->flag & BRUSH_FRONTFACE) != 0) || ((brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 }
 
 bool brush_use_accumulate_ex(const Brush *brush, const int ob_mode)
@@ -194,7 +194,8 @@ bool brush_use_accumulate_ex(const Brush *brush, const int ob_mode)
 
 bool brush_use_accumulate(const VPaint *vp)
 {
-  return brush_use_accumulate_ex(vp->paint.brush, vp->paint.runtime.ob_mode);
+  const Brush *brush = BKE_paint_brush_for_read(&vp->paint);
+  return brush_use_accumulate_ex(brush, vp->paint.runtime.ob_mode);
 }
 
 void init_stroke(Depsgraph *depsgraph, Object *ob)
@@ -479,7 +480,7 @@ void update_cache_invariants(
   }
 
   copy_v2_v2(cache->mouse, cache->initial_mouse);
-  const Brush *brush = vp->paint.brush;
+  const Brush *brush = BKE_paint_brush(&vp->paint);
   /* Truly temporary data that isn't stored in properties */
   cache->vc = vc;
   cache->brush = brush;
@@ -686,7 +687,7 @@ static Color vpaint_blend(const VPaint *vp,
 {
   using Value = typename Traits::ValueType;
 
-  const Brush *brush = vp->paint.brush;
+  const Brush *brush = BKE_paint_brush_for_read(&vp->paint);
   const IMB_BlendMode blend = (IMB_BlendMode)brush->blend;
 
   const Color color_blend = BLI_mix_colors<Color, Traits>(blend, color_curr, color_paint, alpha);
@@ -963,9 +964,10 @@ static VPaintData *vpaint_init_vpaint(bContext *C,
   vpd->domain = domain;
 
   vpd->vc = ED_view3d_viewcontext_init(C, depsgraph);
+
   vwpaint::view_angle_limits_init(&vpd->normal_angle_precalc,
-                                  vp->paint.brush->falloff_angle,
-                                  (vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
+                                  brush->falloff_angle,
+                                  (brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 
   vpd->paintcol = vpaint_get_current_col(
       scene, vp, (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT));
@@ -1950,7 +1952,8 @@ static void vpaint_stroke_update_step(bContext *C,
 
   BKE_mesh_batch_cache_dirty_tag((Mesh *)ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
-  if (vp->paint.brush->vertexpaint_tool == VPAINT_TOOL_SMEAR) {
+  Brush *brush = BKE_paint_brush(&vp->paint);
+  if (brush->vertexpaint_tool == VPAINT_TOOL_SMEAR) {
     vpd->smear.color_prev = vpd->smear.color_curr;
   }
 

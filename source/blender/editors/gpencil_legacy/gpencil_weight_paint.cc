@@ -30,6 +30,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_modifier.hh"
 #include "BKE_object_deform.h"
+#include "BKE_paint.hh"
 #include "BKE_report.hh"
 #include "DNA_meshdata_types.h"
 
@@ -752,7 +753,7 @@ static bool gpencil_weightpaint_brush_init(bContext *C, wmOperator *op)
 
   gso->bmain = CTX_data_main(C);
 
-  gso->brush = paint->brush;
+  gso->brush = BKE_paint_brush(paint);
   BKE_curvemapping_init(gso->brush->curve);
 
   gso->is_painting = false;
@@ -866,7 +867,8 @@ static bool gpencil_weightpaint_brush_poll(bContext *C)
   }
 
   ToolSettings *ts = CTX_data_scene(C)->toolsettings;
-  if (!ts->gp_weightpaint->paint.brush) {
+  Brush *brush = BKE_paint_brush(&ts->gp_weightpaint->paint);
+  if (brush == nullptr) {
     CTX_wm_operator_poll_msg_set(C, "Grease Pencil has no active paint tool");
     return false;
   }
@@ -1519,9 +1521,10 @@ static int gpencil_weight_toggle_direction_invoke(bContext *C,
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
   Paint *paint = &ts->gp_weightpaint->paint;
+  Brush *brush = BKE_paint_brush(paint);
 
   /* Toggle Add/Subtract flag. */
-  paint->brush->flag ^= BRUSH_DIR_IN;
+  brush->flag ^= BRUSH_DIR_IN;
 
   /* Update tool settings. */
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
@@ -1582,7 +1585,7 @@ static int gpencil_weight_sample_invoke(bContext *C, wmOperator * /*op*/, const 
 
   /* Get brush radius. */
   ToolSettings *ts = CTX_data_tool_settings(C);
-  Brush *brush = ts->gp_weightpaint->paint.brush;
+  Brush *brush = BKE_paint_brush(&ts->gp_weightpaint->paint);
   const int radius = brush->size;
 
   /* Init closest points. */

@@ -395,8 +395,9 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
     BKE_gpencil_palette_ensure(bmain, CTX_data_scene(C));
 
     Paint *paint = &ts->gp_paint->paint;
+    Brush *brush = BKE_paint_brush(paint);
     /* if not exist, create a new one */
-    if ((paint->brush == nullptr) || (paint->brush->gpencil_settings == nullptr)) {
+    if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
       BKE_brush_gpencil_paint_presets(bmain, ts, true);
     }
     BKE_paint_toolslots_brush_validate(bmain, &ts->gp_paint->paint);
@@ -503,7 +504,7 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
     /* Be sure we have brushes. */
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_sculptpaint);
 
-    const bool reset_mode = (ts->gp_sculptpaint->paint.brush == nullptr);
+    const bool reset_mode = (BKE_paint_brush(&ts->gp_sculptpaint->paint) == nullptr);
     BKE_brush_gpencil_sculpt_presets(bmain, ts, reset_mode);
 
     BKE_paint_toolslots_brush_validate(bmain, &ts->gp_sculptpaint->paint);
@@ -617,7 +618,7 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
     /* Be sure we have brushes. */
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_weightpaint);
 
-    const bool reset_mode = (ts->gp_weightpaint->paint.brush == nullptr);
+    const bool reset_mode = (BKE_paint_brush(&ts->gp_weightpaint->paint) == nullptr);
     BKE_brush_gpencil_weight_presets(bmain, ts, reset_mode);
 
     BKE_paint_toolslots_brush_validate(bmain, &ts->gp_weightpaint->paint);
@@ -725,7 +726,7 @@ static int gpencil_vertexmode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_paint);
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_vertexpaint);
 
-    const bool reset_mode = (ts->gp_vertexpaint->paint.brush == nullptr);
+    const bool reset_mode = (BKE_paint_brush(&ts->gp_vertexpaint->paint) == nullptr);
     BKE_brush_gpencil_vertex_presets(bmain, ts, reset_mode);
 
     BKE_paint_toolslots_brush_validate(bmain, &ts->gp_vertexpaint->paint);

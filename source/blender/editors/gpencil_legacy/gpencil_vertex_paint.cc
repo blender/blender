@@ -24,6 +24,7 @@
 #include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_material.h"
+#include "BKE_paint.hh"
 #include "BKE_report.hh"
 
 #include "WM_api.hh"
@@ -714,7 +715,7 @@ static bool gpencil_vertexpaint_brush_init(bContext *C, wmOperator *op)
       MEM_callocN(sizeof(tGP_BrushVertexpaintData), "tGP_BrushVertexpaintData"));
   op->customdata = gso;
 
-  gso->brush = paint->brush;
+  gso->brush = BKE_paint_brush(paint);
   srgb_to_linearrgb_v3_v3(gso->linear_color, gso->brush->rgb);
   BKE_curvemapping_init(gso->brush->curve);
 
