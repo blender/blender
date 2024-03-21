@@ -882,20 +882,15 @@ static void beztmap_to_data(TransInfo *t, FCurve *fcu, BeztMap *bezms, int totve
 
 /* This function is called by recalc_data during the Transform loop to recalculate
  * the handles of curves and sort the keyframes so that the curves draw correctly.
- * It is only called if some keyframes have moved out of order.
- *
- * anim_data is the list of channels (F-Curves) retrieved already containing the
- * channels to work on. It should not be freed here as it may still need to be used.
+ * The Span of FCurves should only contain those that need sorting.
  */
-static void remake_graph_transdata(TransInfo *t, ListBase *anim_data)
+static void remake_graph_transdata(TransInfo *t, const blender::Span<FCurve *> fcurves)
 {
   SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 
   /* Sort and reassign verts. */
-  LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
-    FCurve *fcu = (FCurve *)ale->key_data;
-
+  for (FCurve *fcu : fcurves) {
     if (fcu->bezt) {
       BeztMap *bezm;
 
@@ -927,8 +922,6 @@ static void recalcData_graphedit(TransInfo *t)
   bAnimContext ac = {nullptr};
   int filter;
 
-  int dosort = 0;
-
   BKE_view_layer_synced_ensure(t->scene, t->view_layer);
 
   /* Initialize relevant anim-context 'context' data from TransInfo data. */
@@ -954,6 +947,7 @@ static void recalcData_graphedit(TransInfo *t)
   ANIM_animdata_filter(
       &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
+  blender::Vector<FCurve *> unsorted_fcurves;
   /* Now test if there is a need to re-sort. */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     FCurve *fcu = (FCurve *)ale->key_data;
@@ -965,7 +959,7 @@ static void recalcData_graphedit(TransInfo *t)
 
     /* Watch it: if the time is wrong: do not correct handles yet. */
     if (test_time_fcurve(fcu)) {
-      dosort++;
+      unsorted_fcurves.append(fcu);
     }
     else {
       BKE_fcurve_handles_recalc_ex(fcu, BEZT_FLAG_TEMP_TAG);
@@ -979,8 +973,8 @@ static void recalcData_graphedit(TransInfo *t)
   }
 
   /* Do resort and other updates? */
-  if (dosort) {
-    remake_graph_transdata(t, &anim_data);
+  if (!unsorted_fcurves.is_empty()) {
+    remake_graph_transdata(t, unsorted_fcurves);
   }
 
   /* Now free temp channels. */
