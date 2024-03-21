@@ -181,7 +181,7 @@ def write_sysinfo(filepath):
                 output.write("SDL: Blender was built without SDL support\n")
 
             if bpy.app.background:
-                output.write("\nOpenGL: missing, background mode\n")
+                output.write("\nGPU: missing, background mode\n")
             else:
                 output.write(title("GPU"))
                 output.write("renderer:\t%r\n" % gpu.platform.renderer_get())
