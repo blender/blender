@@ -319,7 +319,14 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
     is_extension = module_name.startswith(_ext_base_pkg_idname_with_dot)
 
     if handle_error is None:
-        def handle_error(_ex):
+        def handle_error(ex):
+            if isinstance(ex, ImportError):
+                # NOTE: checking "Add-on " prefix is rather weak,
+                # it's just a way to avoid the noise of a full trace-back when
+                # an add-on is simply missing on the file-system.
+                if (type(msg := ex.msg) is str) and msg.startswith("Add-on "):
+                    print(msg)
+                    return
             import traceback
             traceback.print_exc()
 
@@ -400,7 +407,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             # Account for `ImportError` & `ModuleNotFoundError`.
             if isinstance(ex, ImportError):
                 if ex.name == module_name:
-                    print("Add-on not loaded: \"%s\", cause: %s" % (module_name, str(ex)))
+                    ex.msg = "Add-on not loaded: \"%s\", cause: %s" % (module_name, str(ex))
 
                 # Issue with an add-on from an extension repository, report a useful message.
                 elif is_extension and module_name.startswith(ex.name + "."):
@@ -410,22 +417,20 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
                         None,
                     )
                     if repo is None:
-                        print(
+                        ex.msg = (
                             "Add-on not loaded: \"%s\", cause: extension repository \"%s\" doesn't exist" %
                             (module_name, repo_id)
                         )
                     elif not repo.enabled:
-                        print(
+                        ex.msg = (
                             "Add-on not loaded: \"%s\", cause: extension repository \"%s\" is disabled" %
                             (module_name, repo_id)
                         )
                     else:
                         # The repository exists and is enabled, it should have imported.
-                        print("Add-on not loaded: \"%s\", cause: %s" % (module_name, str(ex)))
-                else:
-                    handle_error(ex)
-            else:
-                handle_error(ex)
+                        ex.msg = "Add-on not loaded: \"%s\", cause: %s" % (module_name, str(ex))
+
+            handle_error(ex)
 
             if default_set:
                 _addon_remove(module_name)
