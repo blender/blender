@@ -1147,9 +1147,9 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
         mesh_final->edit_mesh = static_cast<BMEditMesh *>(MEM_dupallocN(mesh_cage->edit_mesh));
         mesh_final->edit_mesh->is_shallow_copy = true;
         mesh_final->runtime->is_original_bmesh = true;
-        BKE_mesh_runtime_ensure_edit_data(mesh_final);
-        if (!mesh_cage->runtime->edit_data->vertexCos.is_empty()) {
-          mesh_final->runtime->edit_data->vertexCos = mesh_cage->runtime->edit_data->vertexCos;
+        if (mesh_cage->runtime->edit_data) {
+          mesh_final->runtime->edit_data = std::make_unique<blender::bke::EditMeshData>(
+              *mesh_cage->runtime->edit_data);
         }
       }
     }
