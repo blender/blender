@@ -2096,6 +2096,15 @@ void UI_block_draw(const bContext *C, uiBlock *block)
                           UI_panel_should_show_background(region, block->panel->type),
                           region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE);
   }
+  /* Shared layout panel backdrop style between redo region and popups. */
+  if (block->panel && ELEM(region->regiontype, RGN_TYPE_HUD, RGN_TYPE_TEMPORARY)) {
+    /* TODO: Add as theme color. */
+    float subpanel_backcolor[4]{0.2f, 0.3f, 0.33f, 0.05f};
+    const bTheme *btheme = UI_GetTheme();
+    const float aspect = block->panel->runtime->block->aspect;
+    const float radius = btheme->tui.panel_roundness * U.widget_unit * 0.5f / aspect;
+    UI_draw_layout_panels_backdrop(region, block->panel, radius, subpanel_backcolor);
+  }
 
   BLF_batch_draw_begin();
   UI_icon_draw_cache_begin();

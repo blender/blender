@@ -1391,6 +1391,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
   BLI_assert(op->type->flag & OPTYPE_REGISTER);
 
   UI_block_func_handle_set(block, wm_block_redo_cb, arg_op);
+  UI_popup_dummy_panel_set(region, block);
   uiLayout *layout = UI_block_layout(
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, UI_UNIT_Y, 0, style);
 
@@ -1476,6 +1477,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_popup_dummy_panel_set(region, block);
 
   if (data->mouse_move_quit) {
     UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);

@@ -454,6 +454,9 @@ typedef struct ARegion_Runtime {
 
   /** Maps #uiBlock::name to uiBlock for faster lookups. */
   struct GHash *block_name_map;
+
+  /* Dummy panel used in popups so they can support layout panels. */
+  Panel *popup_block_panel;
 } ARegion_Runtime;
 
 typedef struct ARegion {

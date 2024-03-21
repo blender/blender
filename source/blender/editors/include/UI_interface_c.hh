@@ -713,6 +713,21 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports) A
  */
 void UI_popup_menu_retval_set(const uiBlock *block, int retval, bool enable);
 /**
+ * Set a dummy panel in the popup `block` to support using layout panels, the panel is linked
+ * to the popup `region` so layout panels state can be persistent until the popup is closed.
+ */
+void UI_popup_dummy_panel_set(ARegion *region, uiBlock *block);
+/** Toggles layout panel open state and returns the new state. */
+bool UI_layout_panel_toggle_open(const bContext *C, struct LayoutPanelHeader *header);
+void UI_panel_drag_collapse_handler_add(const bContext *C, const bool was_open);
+LayoutPanelHeader *UI_layout_panel_header_under_mouse(const Panel &panel, const int my);
+/** Apply scroll to layout panels when the main panel is used in popups. */
+void UI_layout_panel_popup_scroll_apply(Panel *panel, const float dy);
+void UI_draw_layout_panels_backdrop(const ARegion *region,
+                                    const Panel *panel,
+                                    const float radius,
+                                    float subpanel_backcolor[4]);
+/**
  * Setting the button makes the popup open from the button instead of the cursor.
  */
 void UI_popup_menu_but_set(uiPopupMenu *pup, ARegion *butregion, uiBut *but);
