@@ -2251,8 +2251,11 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
         prefs = context.preferences
 
-        use_extension_repos = prefs.experimental.use_extension_repos
-        if use_extension_repos and self.is_extended():
+        if (
+                prefs.view.show_developer_ui and
+                prefs.experimental.use_extension_repos and
+                self.is_extended()
+        ):
             # Rely on the draw function being appended to by the extensions add-on.
             return
 
