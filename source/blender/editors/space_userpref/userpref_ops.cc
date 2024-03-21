@@ -580,17 +580,18 @@ static int preferences_extension_repo_remove_exec(bContext *C, wmOperator *op)
     if (dirpath[0] && BLI_is_dir(dirpath)) {
 
       /* Removing custom directories has the potential to remove user data
-       * if users accidently point this to their home directory or similar.
+       * if users accidentally point this to their home directory or similar.
        * Even though the UI shows a warning, we better prevent any accidents
        * caused by recursive removal, see #119481.
        * Only check custom directories because the non-custom directory is always
-       * a spesific location under Blender's local extensions directory. */
+       * a specific location under Blender's local extensions directory. */
       const bool recursive = (repo->flag & USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY) == 0;
 
-      /* Perform package manager spesific clear operations,
+      /* Perform package manager specific clear operations,
        * needed when `recursive` is false so the empty directory can be removed.
        * If it's not empty there will be a warning that the directory couldn't be removed.
-       * The user will have to do this manually which is good since unknown files may user data. */
+       * The user will have to do this manually which is good since unknown files
+       * could be user data. */
       BKE_callback_exec_string(bmain, BKE_CB_EVT_EXTENSION_REPOS_FILES_CLEAR, dirpath);
 
       if (BLI_delete(dirpath, true, recursive) != 0) {
