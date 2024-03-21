@@ -326,7 +326,15 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
     # reload if the mtime changes
     mod = sys.modules.get(module_name)
     # chances of the file _not_ existing are low, but it could be removed
-    if mod and os.path.exists(mod.__file__):
+
+    # Set to `mod.__file__` or None.
+    mod_file = None
+
+    if (
+            (mod is not None) and
+            (mod_file := mod.__file__) is not None and
+            os.path.exists(mod_file)
+    ):
 
         if getattr(mod, "__addon_enabled__", False):
             # This is an unlikely situation,
@@ -336,18 +344,15 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             try:
                 mod.unregister()
             except BaseException as ex:
-                print(
-                    "Exception in module unregister():",
-                    repr(getattr(mod, "__file__", module_name)),
-                )
+                print("Exception in module unregister():", (mod_file or module_name))
                 handle_error(ex)
                 return None
 
         mod.__addon_enabled__ = False
         mtime_orig = getattr(mod, "__time__", 0)
-        mtime_new = os.path.getmtime(mod.__file__)
+        mtime_new = os.path.getmtime(mod_file)
         if mtime_orig != mtime_new:
-            print("module changed on disk:", repr(mod.__file__), "reloading...")
+            print("module changed on disk:", repr(mod_file), "reloading...")
 
             try:
                 importlib.reload(mod)
@@ -374,11 +379,11 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             # Use instead of `__import__` so that sub-modules can eventually be supported.
             # This is also documented to be the preferred way to import modules.
             mod = importlib.import_module(module_name)
-            if mod.__file__ is None:
+            if (mod_file := mod.__file__) is None:
                 # This can happen when the addon has been removed but there are
                 # residual `.pyc` files left behind.
                 raise ImportError(name=module_name)
-            mod.__time__ = os.path.getmtime(mod.__file__)
+            mod.__time__ = os.path.getmtime(mod_file)
             mod.__addon_enabled__ = False
         except BaseException as ex:
             # If the add-on doesn't exist, don't print full trace-back because the back-trace is in this case
@@ -446,10 +451,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         try:
             mod.register()
         except BaseException as ex:
-            print(
-                "Exception in module register():",
-                getattr(mod, "__file__", module_name),
-            )
+            print("Exception in module register():", (mod_file or module_name))
             handle_error(ex)
             del sys.modules[module_name]
             if default_set:
