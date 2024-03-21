@@ -91,6 +91,11 @@ class MemoryBuffer {
 
  public:
   /**
+   * \brief construct new temporarily MemoryBuffer for a width and height.
+   */
+  MemoryBuffer(DataType data_type, int width, int height);
+
+  /**
    * \brief construct new temporarily MemoryBuffer for an area
    */
   MemoryBuffer(DataType data_type, const rcti &rect, bool is_a_single_elem = false);

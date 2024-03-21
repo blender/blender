@@ -28,6 +28,19 @@ static rcti create_rect(const int width, const int height)
   return rect;
 }
 
+MemoryBuffer::MemoryBuffer(DataType data_type, int width, int height)
+{
+  BLI_rcti_init(&rect_, 0, width, 0, height);
+  is_a_single_elem_ = false;
+  num_channels_ = COM_data_type_num_channels(data_type);
+  buffer_ = (float *)MEM_mallocN_aligned(
+      sizeof(float) * buffer_len() * num_channels_, 16, "COM_MemoryBuffer");
+  owns_data_ = true;
+  datatype_ = data_type;
+
+  set_strides();
+}
+
 MemoryBuffer::MemoryBuffer(DataType data_type, const rcti &rect, bool is_a_single_elem)
 {
   rect_ = rect;
