@@ -217,6 +217,21 @@ class MemoryBuffer {
     return result;
   }
 
+  /* Equivalent to the GLSL texture() function with nearest interpolation and extended boundary
+   * conditions. The coordinates are thus expected to have half-pixels offsets. A float4 is always
+   * returned regardless of the number of channels of the buffer, the remaining channels will be
+   * initialized with the template float4(0, 0, 0, 1). */
+  float4 texture_nearest_extend(float2 coordinates) const
+  {
+    const int2 size = int2(get_width(), get_height());
+    const float2 texel_coordinates = coordinates * float2(size);
+
+    float4 result = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    math::interpolate_nearest_fl(
+        buffer_, result, size.x, size.y, num_channels_, texel_coordinates.x, texel_coordinates.y);
+    return result;
+  }
+
   void read_elem_bilinear(float x, float y, float *out) const
   {
     /* Only clear past +/-1 borders to be able to smooth edges. */
