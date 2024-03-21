@@ -380,9 +380,18 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             # This is also documented to be the preferred way to import modules.
             mod = importlib.import_module(module_name)
             if (mod_file := mod.__file__) is None:
-                # This can happen when the addon has been removed but there are
-                # residual `.pyc` files left behind.
-                raise ImportError(name=module_name)
+                # This can happen when:
+                # - The add-on has been removed but there are residual `.pyc` files left behind.
+                # - An extension is a directory that doesn't contain an `__init__.py` file.
+                #
+                # Include a message otherwise the "cause:" for failing to load the module is left blank.
+                # Include the `__path__` when available so there is a reference to the location that failed to load.
+                raise ImportError(
+                    "module loaded with no associated file, __path__=%r, aborting!" % (
+                        getattr(mod, "__path__", None)
+                    ),
+                    name=module_name
+                )
             mod.__time__ = os.path.getmtime(mod_file)
             mod.__addon_enabled__ = False
         except BaseException as ex:
