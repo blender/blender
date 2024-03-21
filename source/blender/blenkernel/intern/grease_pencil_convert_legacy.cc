@@ -156,6 +156,113 @@ static void find_used_vertex_groups(const bGPDframe &gpf,
   }
 }
 
+/*
+ * This takes the legacy uv tranforms and returns the stroke-space to texture-space matrix.
+ */
+static float3x2 get_legacy_stroke_to_texture_matrix(const float2 uv_translation,
+                                                    const float uv_rotation,
+                                                    const float2 uv_scale)
+{
+  using namespace blender;
+
+  /* Bounding box data. */
+  const float2 minv = float2(-1.0f, -1.0f);
+  const float2 maxv = float2(1.0f, 1.0f);
+  /* Center of rotation. */
+  const float2 center = float2(0.5f, 0.5f);
+
+  const float2 uv_scale_inv = math::safe_rcp(uv_scale);
+  const float2 diagonal = maxv - minv;
+  const float sin_rotation = sin(uv_rotation);
+  const float cos_rotation = cos(uv_rotation);
+  const float2x2 rotation = float2x2(float2(cos_rotation, sin_rotation),
+                                     float2(-sin_rotation, cos_rotation));
+
+  float3x2 texture_matrix = float3x2::identity();
+
+  /* Apply bounding box rescaling. */
+  texture_matrix[2] -= minv;
+  texture_matrix = math::from_scale<float2x2>(1.0f / diagonal) * texture_matrix;
+
+  /* Apply translation. */
+  texture_matrix[2] += uv_translation;
+
+  /* Apply rotation. */
+  texture_matrix[2] -= center;
+  texture_matrix = rotation * texture_matrix;
+  texture_matrix[2] += center;
+
+  /* Apply scale. */
+  texture_matrix = math::from_scale<float2x2>(uv_scale_inv) * texture_matrix;
+
+  return texture_matrix;
+}
+
+/*
+ * This gets the legacy layer-space to stroke-space matrix.
+ */
+static blender::float4x2 get_legacy_layer_to_stroke_matrix(bGPDstroke *gps)
+{
+  using namespace blender;
+  using namespace blender::math;
+
+  const bGPDspoint *points = gps->points;
+  const int totpoints = gps->totpoints;
+
+  if (totpoints < 2) {
+    return float4x2::identity();
+  }
+
+  const bGPDspoint *point0 = &points[0];
+  const bGPDspoint *point1 = &points[1];
+  const bGPDspoint *point3 = &points[int(totpoints * 0.75f)];
+
+  const float3 pt0 = float3(point0->x, point0->y, point0->z);
+  const float3 pt1 = float3(point1->x, point1->y, point1->z);
+  const float3 pt3 = float3(point3->x, point3->y, point3->z);
+
+  /* Local X axis (p0 -> p1) */
+  const float3 local_x = normalize(pt1 - pt0);
+
+  /* Point vector at 3/4 */
+  const float3 local_3 = (totpoints == 2) ? (pt3 * 0.001f) - pt0 : pt3 - pt0;
+
+  /* Vector orthogonal to polygon plane. */
+  const float3 normal = cross(local_x, local_3);
+
+  /* Local Y axis (cross to normal/x axis). */
+  const float3 local_y = normalize(cross(normal, local_x));
+
+  /* Get local space using first point as origin. */
+  const float4x2 mat = transpose(
+      float2x4(float4(local_x, -dot(pt0, local_x)), float4(local_y, -dot(pt0, local_y))));
+
+  return mat;
+}
+
+static blender::float4x2 get_legacy_texture_matrix(bGPDstroke *gps)
+{
+  const float3x2 texture_matrix = get_legacy_stroke_to_texture_matrix(
+      float2(gps->uv_translation), gps->uv_rotation, float2(gps->uv_scale));
+
+  const float4x2 strokemat = get_legacy_layer_to_stroke_matrix(gps);
+  float4x3 strokemat4x3 = float4x3(strokemat);
+  /*
+   * We need the diagonal of ones to start from the bottom right instead top left to properly apply
+   * the two matrices.
+   *
+   * i.e.
+   *          # # # #              # # # #
+   * We need  # # # #  Instead of  # # # #
+   *          0 0 0 1              0 0 1 0
+   *
+   */
+  strokemat4x3[2][2] = 0.0f;
+  strokemat4x3[3][2] = 1.0f;
+
+  return texture_matrix * strokemat4x3;
+}
+
 void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
                                                    const ListBase &vertex_group_names,
                                                    GreasePencilDrawing &r_drawing)
@@ -259,16 +366,12 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
       "hardness", AttrDomain::Curve);
   SpanAttributeWriter<float> stroke_point_aspect_ratios =
       attributes.lookup_or_add_for_write_span<float>("aspect_ratio", AttrDomain::Curve);
-  SpanAttributeWriter<float2> stroke_fill_translations =
-      attributes.lookup_or_add_for_write_span<float2>("fill_translation", AttrDomain::Curve);
-  SpanAttributeWriter<float> stroke_fill_rotations =
-      attributes.lookup_or_add_for_write_span<float>("fill_rotation", AttrDomain::Curve);
-  SpanAttributeWriter<float2> stroke_fill_scales = attributes.lookup_or_add_for_write_span<float2>(
-      "fill_scale", AttrDomain::Curve);
   SpanAttributeWriter<ColorGeometry4f> stroke_fill_colors =
       attributes.lookup_or_add_for_write_span<ColorGeometry4f>("fill_color", AttrDomain::Curve);
   SpanAttributeWriter<int> stroke_materials = attributes.lookup_or_add_for_write_span<int>(
       "material_index", AttrDomain::Curve);
+
+  Array<float4x2> legacy_texture_matrices(num_strokes);
 
   int stroke_i = 0;
   LISTBASE_FOREACH_INDEX (bGPDstroke *, gps, &gpf.strokes, stroke_i) {
@@ -280,9 +383,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     stroke_hardnesses.span[stroke_i] = gps->hardness;
     stroke_point_aspect_ratios.span[stroke_i] = gps->aspect_ratio[0] /
                                                 max_ff(gps->aspect_ratio[1], 1e-8);
-    stroke_fill_translations.span[stroke_i] = float2(gps->uv_translation);
-    stroke_fill_rotations.span[stroke_i] = gps->uv_rotation;
-    stroke_fill_scales.span[stroke_i] = float2(gps->uv_scale);
     stroke_fill_colors.span[stroke_i] = ColorGeometry4f(gps->vert_color_fill);
     stroke_materials.span[stroke_i] = gps->mat_nr;
 
@@ -367,7 +467,14 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
       /* Unknown curve type. */
       BLI_assert_unreachable();
     }
+
+    const float4x2 legacy_texture_matrix = get_legacy_texture_matrix(gps);
+    legacy_texture_matrices[stroke_i] = legacy_texture_matrix;
   }
+
+  /* Ensure that the normals are up to date. */
+  curves.tag_normals_changed();
+  drawing.set_texture_matrices(legacy_texture_matrices.as_span(), curves.curves_range());
 
   delta_times.finish();
   rotations.finish();
@@ -380,9 +487,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   stroke_end_caps.finish();
   stroke_hardnesses.finish();
   stroke_point_aspect_ratios.finish();
-  stroke_fill_translations.finish();
-  stroke_fill_rotations.finish();
-  stroke_fill_scales.finish();
   stroke_fill_colors.finish();
   stroke_materials.finish();
 }

@@ -46,6 +46,8 @@ class DrawingRuntime {
    */
   mutable SharedCache<Vector<float3>> curve_plane_normals_cache;
 
+  mutable SharedCache<Vector<float4x2>> curve_texture_matrices;
+
   /**
    * Number of users for this drawing. The users are the frames in the Grease Pencil layers.
    * Different frames can refer to the same drawing, so we need to make sure we count these users
@@ -70,8 +72,20 @@ class Drawing : public ::GreasePencilDrawing {
    * Normal vectors for a plane that fits the stroke.
    */
   Span<float3> curve_plane_normals() const;
+  void tag_texture_matrices_changed();
   void tag_positions_changed();
   void tag_topology_changed();
+
+  /*
+   * Returns the matrices that transform from a 3D point in layer-space to a 2D point in
+   * texture-space.
+   */
+  Span<float4x2> texture_matrices() const;
+  /*
+   * Sets the matrices the that transform from a 3D point in layer-space to a 2D point in
+   * texture-space
+   */
+  void set_texture_matrices(Span<float4x2> matrices, const IndexMask &selection);
 
   /**
    * Radii of the points. Values are expected to be in blender units.
