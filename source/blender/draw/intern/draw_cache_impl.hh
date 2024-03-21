@@ -138,6 +138,7 @@ GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
 
 GPUUniformBuf *DRW_curves_batch_cache_ubo_storage(Curves *curves);
 GPUBatch *DRW_curves_batch_cache_get_edit_points(Curves *curves);
+GPUBatch *DRW_curves_batch_cache_get_sculpt_curves_cage(Curves *curves);
 GPUBatch *DRW_curves_batch_cache_get_edit_curves_handles(Curves *curves);
 GPUBatch *DRW_curves_batch_cache_get_edit_curves_lines(Curves *curves);
 
