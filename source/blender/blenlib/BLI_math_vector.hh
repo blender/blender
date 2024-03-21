@@ -127,6 +127,27 @@ template<typename T, int Size>
 }
 
 template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> step(const VecBase<T, Size> &edge,
+                                           const VecBase<T, Size> &value)
+{
+  VecBase<T, Size> result = value;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::step(edge[i], result[i]);
+  }
+  return result;
+}
+
+template<typename T, int Size>
+[[nodiscard]] inline VecBase<T, Size> step(const T &edge, const VecBase<T, Size> &value)
+{
+  VecBase<T, Size> result = value;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::step(edge, result[i]);
+  }
+  return result;
+}
+
+template<typename T, int Size>
 [[nodiscard]] inline VecBase<T, Size> mod(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
   VecBase<T, Size> result;

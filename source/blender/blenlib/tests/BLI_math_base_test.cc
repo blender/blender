@@ -173,6 +173,21 @@ TEST(math_base, ClampInt)
   EXPECT_EQ(math::clamp(111, -50, 101), 101);
 }
 
+TEST(math_base, StepLessThan)
+{
+  EXPECT_EQ(math::step(0.5f, 0.3f), 0.0f);
+}
+
+TEST(math_base, StepGreaterThan)
+{
+  EXPECT_EQ(math::step(0.5f, 0.6f), 1.0f);
+}
+
+TEST(math_base, StepExact)
+{
+  EXPECT_EQ(math::step(0.5f, 0.5f), 1.0f);
+}
+
 TEST(math_base, Midpoint)
 {
   EXPECT_NEAR(math::midpoint(100.0f, 200.0f), 150.0f, 1e-4f);
