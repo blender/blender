@@ -623,7 +623,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
                        cols_slice[idx]);
       }
 
-      if (is_cyclic && points.size() >= 3) {
+      if (is_cyclic) {
         const int idx = points.size() + 1;
         const float length = points.size() > 1 ? lengths[points.size() - 1] : 0.0f;
         populate_point(verts_range,
