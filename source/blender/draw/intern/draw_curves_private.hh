@@ -36,7 +36,7 @@ struct CurvesEvalFinalCache {
   GPUBatch *proc_hairs[MAX_THICKRES];
 
   /** Points per curve, at least 2. */
-  int strands_res;
+  int resolution;
 
   /** Attributes currently being drawn or about to be drawn. */
   DRW_Attributes attr_used;
@@ -78,16 +78,16 @@ struct CurvesEvalCache {
    * For curve domain attributes, which do not need subdivision, these are the final data. */
   GPUVertBuf *proc_attributes_buf[GPU_MAX_ATTR];
 
-  int strands_len;
-  int point_len;
+  int curves_num;
+  int points_num;
 };
 
 /**
  * Ensure all necessary textures and buffers exist for GPU accelerated drawing.
  */
-bool curves_ensure_procedural_data(Curves *curves,
-                                   CurvesEvalCache **r_hair_cache,
-                                   GPUMaterial *gpu_material,
+bool curves_ensure_procedural_data(Curves *curves_id,
+                                   CurvesEvalCache **r_cache,
+                                   const GPUMaterial *gpu_material,
                                    int subdiv,
                                    int thickness_res);
 

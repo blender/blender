@@ -120,12 +120,12 @@ static void drw_curves_cache_shgrp_attach_resources(DRWShadingGroup *shgrp,
   DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", point_buf);
   DRW_shgroup_buffer_texture(shgrp, "hairStrandBuffer", cache->proc_strand_buf);
   DRW_shgroup_buffer_texture(shgrp, "hairStrandSegBuffer", cache->proc_strand_seg_buf);
-  DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &cache->final[subdiv].strands_res, 1);
+  DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &cache->final[subdiv].resolution, 1);
 }
 
 static void drw_curves_cache_update_compute(CurvesEvalCache *cache,
                                             const int subdiv,
-                                            const int strands_len,
+                                            const int curves_num,
                                             GPUVertBuf *output_buf,
                                             GPUVertBuf *input_buf)
 {
@@ -136,26 +136,25 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache,
 
   const int max_strands_per_call = GPU_max_work_group_count(0);
   int strands_start = 0;
-  while (strands_start < strands_len) {
-    int batch_strands_len = std::min(strands_len - strands_start, max_strands_per_call);
+  while (strands_start < curves_num) {
+    int batch_strands_len = std::min(curves_num - strands_start, max_strands_per_call);
     DRWShadingGroup *subgroup = DRW_shgroup_create_sub(shgrp);
     DRW_shgroup_uniform_int_copy(subgroup, "hairStrandOffset", strands_start);
-    DRW_shgroup_call_compute(subgroup, batch_strands_len, cache->final[subdiv].strands_res, 1);
+    DRW_shgroup_call_compute(subgroup, batch_strands_len, cache->final[subdiv].resolution, 1);
     strands_start += batch_strands_len;
   }
 }
 
 static void drw_curves_cache_update_compute(CurvesEvalCache *cache, const int subdiv)
 {
-  using namespace blender;
-  const int strands_len = cache->strands_len;
-  const int final_points_len = cache->final[subdiv].strands_res * strands_len;
+  const int curves_num = cache->curves_num;
+  const int final_points_len = cache->final[subdiv].resolution * curves_num;
   if (final_points_len == 0) {
     return;
   }
 
   drw_curves_cache_update_compute(
-      cache, subdiv, strands_len, cache->final[subdiv].proc_buf, cache->proc_point_buf);
+      cache, subdiv, curves_num, cache->final[subdiv].proc_buf, cache->proc_point_buf);
 
   const DRW_Attributes &attrs = cache->final[subdiv].attr_used;
   for (int i = 0; i < attrs.num_requests; i++) {
@@ -166,7 +165,7 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache, const int su
 
     drw_curves_cache_update_compute(cache,
                                     subdiv,
-                                    strands_len,
+                                    curves_num,
                                     cache->final[subdiv].attributes_buf[i],
                                     cache->proc_attributes_buf[i]);
   }
@@ -311,7 +310,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
 
   DRW_shgroup_uniform_block(shgrp, "drw_curves", curves_infos);
 
-  DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &curves_cache->final[subdiv].strands_res, 1);
+  DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &curves_cache->final[subdiv].resolution, 1);
   DRW_shgroup_uniform_int_copy(shgrp, "hairThicknessRes", thickness_res);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadShape", hair_rad_shape);
   DRW_shgroup_uniform_mat4_copy(shgrp, "hairDupliMatrix", object->object_to_world().ptr());
@@ -385,8 +384,8 @@ static CurvesEvalCache *curves_cache_get(Curves &curves,
     return cache;
   }
 
-  const int strands_len = cache->strands_len;
-  const int final_points_len = cache->final[subdiv].strands_res * strands_len;
+  const int curves_num = cache->curves_num;
+  const int final_points_len = cache->final[subdiv].resolution * curves_num;
 
   auto cache_update = [&](GPUVertBuf *output_buf, GPUVertBuf *input_buf) {
     PassSimple::Sub &ob_ps = g_pass->sub("Object Pass");
@@ -396,16 +395,16 @@ static CurvesEvalCache *curves_cache_get(Curves &curves,
     ob_ps.bind_texture("hairPointBuffer", input_buf);
     ob_ps.bind_texture("hairStrandBuffer", cache->proc_strand_buf);
     ob_ps.bind_texture("hairStrandSegBuffer", cache->proc_strand_seg_buf);
-    ob_ps.push_constant("hairStrandsRes", &cache->final[subdiv].strands_res);
+    ob_ps.push_constant("hairStrandsRes", &cache->final[subdiv].resolution);
     ob_ps.bind_ssbo("posTime", output_buf);
 
     const int max_strands_per_call = GPU_max_work_group_count(0);
     int strands_start = 0;
-    while (strands_start < strands_len) {
-      int batch_strands_len = std::min(strands_len - strands_start, max_strands_per_call);
+    while (strands_start < curves_num) {
+      int batch_strands_len = std::min(curves_num - strands_start, max_strands_per_call);
       PassSimple::Sub &sub_ps = ob_ps.sub("Sub Pass");
       sub_ps.push_constant("hairStrandOffset", strands_start);
-      sub_ps.dispatch(int3(batch_strands_len, cache->final[subdiv].strands_res, 1));
+      sub_ps.dispatch(int3(batch_strands_len, cache->final[subdiv].resolution, 1));
       strands_start += batch_strands_len;
     }
   };
@@ -537,7 +536,7 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
 
   sub_ps.bind_ubo("drw_curves", curves_infos);
 
-  sub_ps.push_constant("hairStrandsRes", &curves_cache->final[subdiv].strands_res, 1);
+  sub_ps.push_constant("hairStrandsRes", &curves_cache->final[subdiv].resolution, 1);
   sub_ps.push_constant("hairThicknessRes", thickness_res);
   sub_ps.push_constant("hairRadShape", hair_rad_shape);
   sub_ps.push_constant("hairDupliMatrix", ob->object_to_world());
