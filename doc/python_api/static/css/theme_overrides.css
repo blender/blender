@@ -67,10 +67,16 @@ dl dt {
 dl.field-list {
 	display: grid;
 	grid-template-columns: auto minmax(80%, 95%);
+}
 
-	p {
-		margin-bottom: 0;
-	}
+dl.field-list > dd > p:last-child {
+	margin-bottom: 0;
+}
+
+@media (max-width: calc(67em / 2)) {
+	dl.field-list  {
+		grid-template-columns: unset;
+    }
 }
 
 /* TABLE & FIGURE */
@@ -92,6 +98,12 @@ figcaption {
 	p {
 		margin-top: 0;
 	}
+}
+
+/* Allow horizontal lists to collapse on narrow screens */
+.hlist tr {
+	display: flex;
+	flex-flow: row wrap;
 }
 
 /* End TABLE & FIGURE. */
@@ -139,6 +151,11 @@ kbd:not(.compound) {
 
 a {
 	text-decoration: none;
+}
+
+/* Break long code references onto a second line */
+a > code.docutils {
+	overflow-wrap: anywhere;
 }
 
 /* Quotes for Fig. "link". */
