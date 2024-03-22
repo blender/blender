@@ -539,24 +539,20 @@ static void curves_batch_cache_ensure_procedural_final_attr(CurvesEvalCache &cac
                          final_cache.strands_res * cache.strands_len);
 }
 
-static void curves_batch_ensure_attribute(const Curves &curves,
-                                          CurvesEvalCache &cache,
-                                          const DRW_AttributeRequest &request,
-                                          const int subdiv,
-                                          const int index)
+static void curves_batch_ensure_proc_attribute(const Curves &curves,
+                                               CurvesEvalCache &cache,
+                                               const DRW_AttributeRequest &request,
+                                               const int index,
+                                               const GPUVertFormat *format)
 {
+  if (cache.proc_attributes_buf[index] != nullptr) {
+    return;
+  }
+
   GPU_VERTBUF_DISCARD_SAFE(cache.proc_attributes_buf[index]);
 
-  char sampler_name[32];
-  drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
-
-  GPUVertFormat format = {0};
-  GPU_vertformat_deinterleave(&format);
-  /* All attributes use vec4, see comment below. */
-  GPU_vertformat_attr_add(&format, sampler_name, GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-
   cache.proc_attributes_buf[index] = GPU_vertbuf_create_with_format_ex(
-      &format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
+      format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
   GPUVertBuf *attr_vbo = cache.proc_attributes_buf[index];
 
   GPU_vertbuf_data_alloc(attr_vbo,
@@ -578,6 +574,23 @@ static void curves_batch_ensure_attribute(const Curves &curves,
       attributes.domain_size(request.domain)};
 
   attribute.varray.materialize(vbo_span);
+}
+
+static void curves_batch_ensure_attribute(const Curves &curves,
+                                          CurvesEvalCache &cache,
+                                          const DRW_AttributeRequest &request,
+                                          const int subdiv,
+                                          const int index)
+{
+  char sampler_name[32];
+  drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
+
+  GPUVertFormat format = {0};
+  GPU_vertformat_deinterleave(&format);
+  /* All attributes use vec4, see comment below. */
+  GPU_vertformat_attr_add(&format, sampler_name, GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+
+  curves_batch_ensure_proc_attribute(curves, cache, request, index, &format);
 
   /* Existing final data may have been for a different attribute (with a different name or domain),
    * free the data. */
