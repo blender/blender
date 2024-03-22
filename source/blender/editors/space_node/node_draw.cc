@@ -911,13 +911,8 @@ static void node_update_basis_from_declaration(
 static void node_update_basis_from_socket_lists(
     const bContext &C, bNodeTree &ntree, bNode &node, uiBlock &block, const int locx, int &locy)
 {
-  const bool node_options = node.typeinfo->draw_buttons && (node.flag & NODE_OPTIONS);
-  const bool inputs_first = node.inputs.first && !(node.outputs.first || node_options);
-
-  /* Add a little bit of padding above the top socket. */
-  if (node.outputs.first || inputs_first) {
-    locy -= NODE_DYS / 2;
-  }
+  /* Space at the top. */
+  locy -= NODE_DYS / 2;
 
   /* Output sockets. */
   bool add_output_space = false;
@@ -938,7 +933,10 @@ static void node_update_basis_from_socket_lists(
     locy -= NODE_DY / 4;
   }
 
-  node_update_basis_buttons(C, ntree, node, node.typeinfo->draw_buttons, block, locy);
+  const bool add_button_space = node_update_basis_buttons(
+      C, ntree, node, node.typeinfo->draw_buttons, block, locy);
+
+  bool add_input_space = false;
 
   /* Input sockets. */
   for (bNodeSocket *socket : node.input_sockets()) {
@@ -949,11 +947,12 @@ static void node_update_basis_from_socket_lists(
       if (socket->next) {
         locy -= NODE_ITEM_SPACING_Y;
       }
+      add_input_space = true;
     }
   }
 
-  /* Little bit of space in end. */
-  if (node.inputs.first || (node.flag & NODE_OPTIONS) == 0) {
+  /* Little bit of padding at the bottom. */
+  if (add_input_space || add_button_space) {
     locy -= NODE_DYS / 2;
   }
 }
