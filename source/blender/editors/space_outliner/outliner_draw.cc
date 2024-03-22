@@ -2178,8 +2178,6 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
                               nullptr,
                               0.0,
                               0.0,
-                              0.0,
-                              0.0,
                               TIP_("Another object has this shared data in edit mode"));
     UI_but_flag_enable(but, UI_BUT_DISABLED);
     return;
