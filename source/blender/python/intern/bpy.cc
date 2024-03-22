@@ -223,7 +223,6 @@ static PyObject *bpy_user_resource(PyObject * /*self*/, PyObject *args, PyObject
       {BLENDER_USER_DATAFILES, "DATAFILES"},
       {BLENDER_USER_CONFIG, "CONFIG"},
       {BLENDER_USER_SCRIPTS, "SCRIPTS"},
-      {BLENDER_USER_AUTOSAVE, "AUTOSAVE"},
       {0, nullptr},
   };
   PyC_StringEnum type = {type_items};
