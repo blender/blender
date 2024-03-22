@@ -2044,28 +2044,6 @@ class USERPREF_PT_extensions_repos(Panel):
     # Show wider than most panels so the URL & directory aren't overly clipped.
     bl_ui_units_x = 16
 
-    # NOTE: ideally `if panel := layout.panel("extensions_repo_advanced", default_closed=True):`
-    # would be used but it isn't supported here, use a kludge to achieve a similar UI.
-    _panel_layout_kludge_state = False
-
-    @classmethod
-    def _panel_layout_kludge(cls, layout, *, text):
-        row = layout.row(align=True)
-        row.alignment = 'LEFT'
-        show_advanced = USERPREF_PT_extensions_repos._panel_layout_kludge_state
-        props = row.operator(
-            "wm.context_toggle",
-            text="Advanced",
-            icon='DOWNARROW_HLT' if show_advanced else 'RIGHTARROW',
-            emboss=False,
-        )
-        props.module = "bl_ui.space_userpref"
-        props.data_path = "USERPREF_PT_extensions_repos._panel_layout_kludge_state"
-
-        if show_advanced:
-            return layout.column()
-        return None
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = False
@@ -2114,8 +2092,9 @@ class USERPREF_PT_extensions_repos(Panel):
             split.prop(active_repo, "remote_path", text="URL")
             split = row.split()
 
-        if layout_panel := self._panel_layout_kludge(layout, text="Advanced"):
-
+        layout_header, layout_panel = layout.panel("advanced", default_closed=True)
+        layout_header.label(text="Advanced")
+        if layout_panel:
             layout_panel.prop(active_repo, "use_custom_directory")
 
             row = layout_panel.row()
