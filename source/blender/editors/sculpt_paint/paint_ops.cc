@@ -1256,10 +1256,11 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
   // TODO: delete whole asset main if empty?
 
   refresh_asset_library(C, *library);
+
+  BKE_paint_brush_set_default(bmain, paint);
+
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_REMOVED, nullptr);
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
-
-  /* TODO: activate default brush. */
 
   return OPERATOR_FINISHED;
 }

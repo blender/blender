@@ -1217,7 +1217,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   }
 
   /* Set Draw brush. */
-  Brush *brush = BKE_paint_toolslots_brush_get(paint, 0);
+  brush = BKE_paint_toolslots_brush_get(paint, 0);
 
   BKE_brush_tool_set(brush, paint, 0);
   BKE_paint_brush_set(paint, brush);

@@ -33,6 +33,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -664,6 +665,32 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
   return PaintMode::Invalid;
 }
 
+static bool paint_brush_set_from_asset_reference(Main *bmain, Paint *paint)
+{
+  /* Attempt to restore a valid active brush from brush asset information. */
+  if (paint->brush != nullptr) {
+    return false;
+  }
+  if (paint->brush_asset_reference == nullptr) {
+    return false;
+  }
+
+  Brush *brush = reinterpret_cast<Brush *>(
+      BKE_asset_weak_reference_ensure(*bmain, ID_BR, *paint->brush_asset_reference));
+  BLI_assert(brush == nullptr || (brush->id.tag & LIB_TAG_ASSET_MAIN));
+
+  /* Ensure we have a brush with appropriate mode to assign.
+   * Could happen if contents of asset blend was manually changed. */
+  if (brush == nullptr || (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+    MEM_delete(paint->brush_asset_reference);
+    paint->brush_asset_reference = nullptr;
+    return false;
+  }
+
+  paint->brush = brush;
+  return true;
+}
+
 Brush *BKE_paint_brush(Paint *p)
 {
   return (Brush *)BKE_paint_brush_for_read((const Paint *)p);
@@ -733,26 +760,107 @@ std::optional<AssetWeakReference *> BKE_paint_brush_asset_get(Paint *paint, Brus
   return {};
 }
 
-void BKE_paint_brush_asset_restore(Main *bmain, Paint *paint)
+static void paint_brush_set_essentials_reference(Paint *paint, const char *name)
 {
-  if (paint->brush != nullptr) {
-    return;
-  }
-
-  if (paint->brush_asset_reference == nullptr) {
-    return;
-  }
-
-  AssetWeakReference weak_ref = std::move(*paint->brush_asset_reference);
+  /* Set brush asset reference to a named brush in the essentials asset library. */
   MEM_delete(paint->brush_asset_reference);
-  paint->brush_asset_reference = nullptr;
 
-  Brush *brush_asset = reinterpret_cast<Brush *>(
-      BKE_asset_weak_reference_ensure(*bmain, ID_BR, weak_ref));
+  AssetWeakReference *weak_ref = MEM_new<AssetWeakReference>(__func__);
+  weak_ref->asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
+  weak_ref->relative_asset_identifier = BLI_sprintfN("brushes/essentials_brushes.blend/Brush/%s",
+                                                     name);
+  paint->brush_asset_reference = weak_ref;
+  paint->brush = nullptr;
+}
 
-  /* Will either re-assign the brush_asset_reference to `paint`, or free it if loading a brush ID
-   * from it failed. */
-  BKE_paint_brush_asset_set(paint, brush_asset, weak_ref);
+static void paint_brush_set_default_reference(Paint *paint)
+{
+  const char *name = nullptr;
+
+  switch (paint->runtime.ob_mode) {
+    case OB_MODE_SCULPT:
+      name = "Draw";
+      break;
+    case OB_MODE_VERTEX_PAINT:
+      name = "Paint Vertex";
+      break;
+    case OB_MODE_WEIGHT_PAINT:
+      name = "Paint Weight";
+      break;
+    case OB_MODE_TEXTURE_PAINT:
+      name = "Paint Texture";
+      break;
+    case OB_MODE_SCULPT_CURVES:
+      name = "Comb Curves";
+      break;
+    case OB_MODE_EDIT:
+      /* TODO: UV sculpt. */
+      break;
+    case OB_MODE_PAINT_GREASE_PENCIL:
+    case OB_MODE_PAINT_GPENCIL_LEGACY:
+      name = "Pencil";
+      break;
+    case OB_MODE_VERTEX_GPENCIL_LEGACY:
+      name = "Paint Point Color";
+      break;
+    case OB_MODE_SCULPT_GPENCIL_LEGACY:
+      name = "Smooth Stroke";
+      break;
+    case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+      name = "Paint Point Weight";
+      break;
+    default:
+      BLI_assert_unreachable();
+      return;
+  }
+
+  if (name) {
+    paint_brush_set_essentials_reference(paint, name);
+  }
+}
+
+void BKE_paint_brush_set_default_references(ToolSettings *ts)
+{
+  if (ts->sculpt) {
+    paint_brush_set_default_reference(&ts->sculpt->paint);
+  }
+  if (ts->curves_sculpt) {
+    paint_brush_set_default_reference(&ts->curves_sculpt->paint);
+  }
+  if (ts->wpaint) {
+    paint_brush_set_default_reference(&ts->wpaint->paint);
+  }
+  if (ts->vpaint) {
+    paint_brush_set_default_reference(&ts->vpaint->paint);
+  }
+  if (ts->uvsculpt) {
+    paint_brush_set_default_reference(&ts->uvsculpt->paint);
+  }
+  if (ts->gp_paint) {
+    paint_brush_set_default_reference(&ts->gp_paint->paint);
+  }
+  if (ts->gp_vertexpaint) {
+    paint_brush_set_default_reference(&ts->gp_vertexpaint->paint);
+  }
+  if (ts->gp_sculptpaint) {
+    paint_brush_set_default_reference(&ts->gp_sculptpaint->paint);
+  }
+  if (ts->gp_weightpaint) {
+    paint_brush_set_default_reference(&ts->gp_weightpaint->paint);
+  }
+  paint_brush_set_default_reference(&ts->imapaint.paint);
+}
+
+bool BKE_paint_brush_set_default(Main *bmain, Paint *paint)
+{
+  paint_brush_set_default_reference(paint);
+  return paint_brush_set_from_asset_reference(bmain, paint);
+}
+
+bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name)
+{
+  paint_brush_set_essentials_reference(paint, name);
+  return paint_brush_set_from_asset_reference(bmain, paint);
 }
 
 void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
@@ -1205,7 +1313,7 @@ bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
       BLI_assert(paint_test.runtime.tool_offset == (*r_paint)->runtime.tool_offset);
 #endif
     }
-    BKE_paint_brush_asset_restore(bmain, *r_paint);
+    paint_brush_set_from_asset_reference(bmain, *r_paint);
     return true;
   }
 
@@ -1253,7 +1361,7 @@ bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
   *r_paint = paint;
 
   BKE_paint_runtime_init(ts, paint);
-  BKE_paint_brush_asset_restore(bmain, paint);
+  BKE_paint_brush_set_default(bmain, paint);
 
   return false;
 }

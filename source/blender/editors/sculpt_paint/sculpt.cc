@@ -4125,8 +4125,9 @@ static void smooth_brush_toggle_on(const bContext *C,
                                    Paint *paint,
                                    blender::ed::sculpt_paint::StrokeCache *cache)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Brush *cur_brush = paint->brush;
+  Brush *cur_brush = BKE_paint_brush(paint);
 
   if (cur_brush->sculpt_tool == SCULPT_TOOL_MASK) {
     cache->saved_mask_brush_tool = cur_brush->mask_tool;
@@ -4145,8 +4146,11 @@ static void smooth_brush_toggle_on(const bContext *C,
   }
 
   /* Switch to the smooth brush if possible. */
-  Brush *smooth_brush = BKE_paint_toolslots_brush_get(paint, SCULPT_TOOL_SMOOTH);
+  BKE_paint_brush_set_essentials(bmain, paint, "Smooth");
+  Brush *smooth_brush = BKE_paint_brush(paint);
+
   if (!smooth_brush) {
+    BKE_paint_brush_set(paint, cur_brush);
     CLOG_WARN(&LOG, "Switching to the smooth brush not possible, corresponding brush not");
     cache->saved_active_brush_name[0] = '\0';
     return;
@@ -4156,7 +4160,6 @@ static void smooth_brush_toggle_on(const bContext *C,
 
   STRNCPY(cache->saved_active_brush_name, cur_brush->id.name + 2);
 
-  BKE_paint_brush_set(paint, smooth_brush);
   cache->saved_smooth_size = BKE_brush_size_get(scene, smooth_brush);
   BKE_brush_size_set(scene, smooth_brush, cur_brush_size);
   BKE_curvemapping_init(smooth_brush->curve);

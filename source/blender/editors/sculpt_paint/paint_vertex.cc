@@ -575,24 +575,28 @@ void last_stroke_update(Scene *scene, const float location[3])
 /* -------------------------------------------------------------------- */
 void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
+  Brush *cur_brush = BKE_paint_brush(paint);
 
   /* Switch to the blur (smooth) brush if possible. */
-  /* Note: used for both vertexpaint and weightpaint, VPAINT_TOOL_BLUR & WPAINT_TOOL_BLUR are the
-   * same, see comments for eBrushVertexPaintTool & eBrushWeightPaintTool. */
-  Brush *smooth_brush = BKE_paint_toolslots_brush_get(paint, WPAINT_TOOL_BLUR);
+  BKE_paint_brush_set_essentials(bmain,
+                                 paint,
+                                 (paint->runtime.ob_mode = OB_MODE_WEIGHT_PAINT) ? "Blur Weight" :
+                                                                                   "Blur Vertex");
+  Brush *smooth_brush = BKE_paint_brush(paint);
+
   if (!smooth_brush) {
+    BKE_paint_brush_set(paint, cur_brush);
     CLOG_WARN(&LOG, "Switching to the blur (smooth) brush not possible, corresponding brush not");
     cache->saved_active_brush_name[0] = '\0';
     return;
   }
 
-  Brush *cur_brush = paint->brush;
   int cur_brush_size = BKE_brush_size_get(scene, cur_brush);
 
   STRNCPY(cache->saved_active_brush_name, cur_brush->id.name + 2);
 
-  BKE_paint_brush_set(paint, smooth_brush);
   cache->saved_smooth_size = BKE_brush_size_get(scene, smooth_brush);
   BKE_brush_size_set(scene, smooth_brush, cur_brush_size);
   BKE_curvemapping_init(smooth_brush->curve);

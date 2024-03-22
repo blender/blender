@@ -199,9 +199,17 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer);
 Paint *BKE_paint_get_active_from_context(const bContext *C);
 PaintMode BKE_paintmode_get_active_from_context(const bContext *C);
 PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref);
+
+/* Paint brush retrieval and assignment. */
+
 Brush *BKE_paint_brush(Paint *paint);
-const Brush *BKE_paint_brush_for_read(const Paint *p);
-void BKE_paint_brush_set(Paint *paint, Brush *br);
+const Brush *BKE_paint_brush_for_read(const Paint *paint);
+
+void BKE_paint_brush_set(Paint *paint, Brush *brush);
+bool BKE_paint_brush_set_default(Main *bmain, Paint *paint);
+bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name);
+
+void BKE_paint_brush_set_default_references(ToolSettings *ts);
 
 /**
  * Check if the given brush is a valid Brush Asset.
@@ -224,11 +232,7 @@ bool BKE_paint_brush_asset_set(Paint *paint,
  */
 std::optional<AssetWeakReference *> BKE_paint_brush_asset_get(Paint *paint, Brush **r_brush);
 
-/**
- * Attempt to restore a valid active brush in `paint` from brush asset information stored in
- * `paint`.
- */
-void BKE_paint_brush_asset_restore(Main *bmain, Paint *p);
+/* Paint palette. */
 
 Palette *BKE_paint_palette(Paint *paint);
 void BKE_paint_palette_set(Paint *p, Palette *palette);

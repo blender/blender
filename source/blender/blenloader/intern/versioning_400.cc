@@ -60,6 +60,7 @@
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_nla.h"
 #include "BKE_node_runtime.hh"
+#include "BKE_paint.hh"
 #include "BKE_scene.hh"
 #include "BKE_tracking.h"
 
@@ -1997,29 +1998,7 @@ static void update_paint_modes_for_brush_assets(Main &bmain)
 {
   /* Replace paint brushes with a reference to the default brush asset for that mode. */
   LISTBASE_FOREACH (Scene *, scene, &bmain.scenes) {
-    auto set_paint_asset_ref = [&](Paint &paint, const blender::StringRef asset) {
-      AssetWeakReference *weak_ref = MEM_new<AssetWeakReference>(__func__);
-      weak_ref->asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
-      const std::string path = "brushes/essentials_brushes.blend/Brush/" + asset;
-      weak_ref->relative_asset_identifier = BLI_strdupn(path.data(), path.size());
-      paint.brush_asset_reference = weak_ref;
-      paint.brush = nullptr;
-    };
-
-    ToolSettings *ts = scene->toolsettings;
-    if (ts->sculpt) {
-      set_paint_asset_ref(ts->sculpt->paint, "Draw");
-    }
-    if (ts->curves_sculpt) {
-      set_paint_asset_ref(ts->curves_sculpt->paint, "Comb Curves");
-    }
-    if (ts->wpaint) {
-      set_paint_asset_ref(ts->wpaint->paint, "Paint Weight");
-    }
-    if (ts->vpaint) {
-      set_paint_asset_ref(ts->vpaint->paint, "Paint Vertex");
-    }
-    set_paint_asset_ref(ts->imapaint.paint, "Paint Texture");
+    BKE_paint_brush_set_default_references(scene->toolsettings);
   }
 
   /* Replace persistent tool references with the new single builtin brush tool. */
