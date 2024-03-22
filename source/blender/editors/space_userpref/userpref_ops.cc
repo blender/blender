@@ -321,6 +321,24 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
   }
 
   const char *module = custom_directory[0] ? BLI_path_basename(custom_directory) : name;
+  /* Not essential but results in more readable module names.
+   * Otherwise URL's have their '.' removed, making for quite unreadable module names. */
+  char module_buf[FILE_MAX];
+  {
+    STRNCPY(module_buf, module);
+    int i;
+    for (i = 0; module_buf[i]; i++) {
+      if (ELEM(module_buf[i], '.', '-', '/', '\\')) {
+        module_buf[i] = '_';
+      }
+    }
+    /* Strip any trailing underscores. */
+    while ((i > 0) && (module_buf[--i] == '_')) {
+      module_buf[i] = '\0';
+    }
+    module = module_buf;
+  }
+
   bUserExtensionRepo *new_repo = BKE_preferences_extension_repo_add(
       &U, name, module, custom_directory);
 
