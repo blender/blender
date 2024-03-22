@@ -1055,11 +1055,11 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   }
 
   /* Turn brush into asset if it isn't yet. */
-  if (!BKE_paint_brush_is_valid_asset(brush)) {
+  if (!ID_IS_ASSET(brush)) {
     asset::mark_id(&brush->id);
     asset::generate_preview(C, &brush->id);
   }
-  BLI_assert(BKE_paint_brush_is_valid_asset(brush));
+  BLI_assert(ID_IS_ASSET(brush));
 
   asset_system::AssetLibrary *library = AS_asset_library_load(
       CTX_data_main(C), user_library_to_library_ref(*user_library));
@@ -1082,16 +1082,16 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   Main *asset_main = BKE_main_from_id(bmain, &brush->id);
 
   std::string final_full_asset_filepath;
-  const bool sucess = brush_asset_write_in_library(asset_main,
-                                                   brush,
-                                                   name,
-                                                   filepath,
-                                                   catalog_id,
-                                                   catalog_simple_name,
-                                                   final_full_asset_filepath,
-                                                   op->reports);
+  const bool success = brush_asset_write_in_library(asset_main,
+                                                    brush,
+                                                    name,
+                                                    filepath,
+                                                    catalog_id,
+                                                    catalog_simple_name,
+                                                    final_full_asset_filepath,
+                                                    op->reports);
 
-  if (!sucess) {
+  if (!success) {
     BKE_report(op->reports, RPT_ERROR, "Failed to write to asset library");
     return OPERATOR_CANCELLED;
   }
@@ -1099,7 +1099,6 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   AssetWeakReference new_brush_weak_ref = brush_asset_create_weakref_hack(
       user_library, final_full_asset_filepath);
 
-  /* TODO: maybe not needed, even less so if there is more visual confirmation of change. */
   BKE_reportf(op->reports, RPT_INFO, "Saved \"%s\"", filepath.c_str());
 
   brush = reinterpret_cast<Brush *>(
@@ -1213,7 +1212,7 @@ static bool brush_asset_delete_poll(bContext *C)
   }
 
   /* Asset brush, check if belongs to an editable blend file. */
-  if (paint->brush_asset_reference && BKE_paint_brush_is_valid_asset(brush)) {
+  if (paint->brush_asset_reference && ID_IS_ASSET(brush)) {
     if (!asset_is_editable(*paint->brush_asset_reference)) {
       CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
       return false;
@@ -1236,7 +1235,7 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (paint->brush_asset_reference && BKE_paint_brush_is_valid_asset(brush)) {
+  if (paint->brush_asset_reference && ID_IS_ASSET(brush)) {
     /* Delete from asset library on disk. */
     char path_buffer[FILE_MAX_LIBEXTRA];
     char *filepath;
@@ -1284,7 +1283,11 @@ static bool brush_asset_update_poll(bContext *C)
     return false;
   }
 
-  if (!(paint->brush_asset_reference && BKE_paint_brush_is_valid_asset(brush))) {
+  if ((brush->id.tag & LIB_TAG_ASSET_MAIN) == 0) {
+    return false;
+  }
+
+  if (!(paint->brush_asset_reference && ID_IS_ASSET(brush))) {
     return false;
   }
 
@@ -1300,12 +1303,8 @@ static int brush_asset_update_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
-  Brush *brush = nullptr;
-  const AssetWeakReference *asset_weak_ref =
-      BKE_paint_brush_asset_get(paint, &brush).value_or(nullptr);
-  if (!asset_weak_ref) {
-    return OPERATOR_CANCELLED;
-  }
+  Brush *brush = BKE_paint_brush(paint);
+  const AssetWeakReference *asset_weak_ref = paint->brush_asset_reference;
 
   const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_by_name(
       &U, asset_weak_ref->asset_library_identifier);
@@ -1313,15 +1312,12 @@ static int brush_asset_update_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  // TODO: maybe can check directly in poll
-  BLI_assert((brush->id.tag & LIB_TAG_ASSET_MAIN) != 0);
-
   char path_buffer[FILE_MAX_LIBEXTRA];
   char *filepath;
   AS_asset_full_path_explode_from_weak_ref(
       asset_weak_ref, path_buffer, &filepath, nullptr, nullptr);
 
-  BLI_assert(BKE_paint_brush_is_valid_asset(brush));
+  BLI_assert(ID_IS_ASSET(brush));
 
   Main *asset_main = BKE_main_from_id(bmain, &brush->id);
   std::string final_full_asset_filepath;
@@ -1360,7 +1356,7 @@ static bool brush_asset_revert_poll(bContext *C)
     return false;
   }
 
-  return paint->brush_asset_reference && BKE_paint_brush_is_valid_asset(brush);
+  return paint->brush_asset_reference && ID_IS_ASSET(brush);
 }
 
 static int brush_asset_revert_exec(bContext *C, wmOperator * /*op*/)

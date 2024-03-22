@@ -636,26 +636,27 @@ static bool paint_brush_set_from_asset_reference(Main *bmain, Paint *paint)
   return true;
 }
 
-Brush *BKE_paint_brush(Paint *p)
+Brush *BKE_paint_brush(Paint *paint)
 {
-  return (Brush *)BKE_paint_brush_for_read((const Paint *)p);
+  return (Brush *)BKE_paint_brush_for_read((const Paint *)paint);
 }
 
-const Brush *BKE_paint_brush_for_read(const Paint *p)
+const Brush *BKE_paint_brush_for_read(const Paint *paint)
 {
-  return p ? p->brush : nullptr;
+  return paint ? paint->brush : nullptr;
 }
 
-void BKE_paint_brush_set(Paint *p, Brush *br)
+bool BKE_paint_brush_set(Paint *paint, Brush *brush)
 {
-  if (p) {
-    p->brush = br;
+  if (paint == nullptr || paint->brush == brush) {
+    return false;
   }
-}
+  if (brush && (paint->runtime.ob_mode & brush->ob_mode) == 0) {
+    return false;
+  }
 
-bool BKE_paint_brush_is_valid_asset(const Brush *brush)
-{
-  return brush && ID_IS_ASSET(&brush->id);
+  paint->brush = brush;
+  return true;
 }
 
 static void paint_brush_asset_update(Paint &paint,
@@ -686,21 +687,6 @@ bool BKE_paint_brush_asset_set(Paint *paint,
   BKE_paint_brush_set(paint, brush);
   paint_brush_asset_update(*paint, brush, weak_asset_reference);
   return true;
-}
-
-std::optional<AssetWeakReference *> BKE_paint_brush_asset_get(Paint *paint, Brush **r_brush)
-{
-  Brush *brush = *r_brush = BKE_paint_brush(paint);
-
-  if (!BKE_paint_brush_is_valid_asset(brush)) {
-    return {};
-  }
-
-  if (paint->brush_asset_reference) {
-    return paint->brush_asset_reference;
-  }
-
-  return {};
 }
 
 static void paint_brush_set_essentials_reference(Paint *paint, const char *name)
