@@ -64,6 +64,7 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
+#include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 
 #include "curves_sculpt_intern.hh"
@@ -1264,6 +1265,18 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int brush_asset_delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  return WM_operator_confirm_ex(
+      C,
+      op,
+      IFACE_("Delete Brush Asset"),
+      IFACE_("Permanently delete brush asset blend file. This can't be undone."),
+      IFACE_("Delete"),
+      ALERT_ICON_WARNING,
+      false);
+}
+
 static void BRUSH_OT_asset_delete(wmOperatorType *ot)
 {
   ot->name = "Delete Brush Asset";
@@ -1271,7 +1284,7 @@ static void BRUSH_OT_asset_delete(wmOperatorType *ot)
   ot->idname = "BRUSH_OT_asset_delete";
 
   ot->exec = brush_asset_delete_exec;
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = brush_asset_delete_invoke;
   ot->poll = brush_asset_delete_poll;
 }
 
