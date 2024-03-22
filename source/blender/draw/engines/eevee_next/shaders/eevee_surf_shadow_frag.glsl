@@ -16,7 +16,6 @@
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
-#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
 
 vec4 closure_to_rgba(Closure cl)
 {
