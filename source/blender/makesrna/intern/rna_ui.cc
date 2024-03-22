@@ -2083,7 +2083,7 @@ static void rna_def_uilist(BlenderRNA *brna)
                            "",
                            "An array of filter flags, one for each item in the collection (NOTE: "
                            "The upper 16 bits, including FILTER_ITEM, are reserved, only use the "
-                           "lower 16 bits for custom usages).");
+                           "lower 16 bits for custom usages)");
   RNA_def_function_output(func, prop);
   prop = RNA_def_property(func, "filter_neworder", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_flag(prop, PropertyFlag(PARM_REQUIRED | PROP_DYNAMIC));
