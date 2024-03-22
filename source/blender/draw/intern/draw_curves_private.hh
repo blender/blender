@@ -79,7 +79,6 @@ struct CurvesEvalCache {
   GPUVertBuf *proc_attributes_buf[GPU_MAX_ATTR];
 
   int strands_len;
-  int elems_len;
   int point_len;
 };
 

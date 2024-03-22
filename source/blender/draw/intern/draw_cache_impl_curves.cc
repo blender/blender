@@ -222,7 +222,6 @@ static void ensure_seg_pt_count(const Curves &curves, CurvesEvalCache &curves_ca
   }
 
   curves_cache.strands_len = curves.geometry.curve_num;
-  curves_cache.elems_len = curves.geometry.point_num + curves.geometry.curve_num;
   curves_cache.point_len = curves.geometry.point_num;
 }
 
