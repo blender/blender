@@ -363,6 +363,10 @@ void NodeOperationBuilder::add_input_constant_value(NodeOperationInput *input,
       add_link(op->get_output_socket(), input);
       break;
     }
+    case DataType::Float2:
+      /* An internal type that needn't be handled. */
+      BLI_assert_unreachable();
+      break;
   }
 }
 
