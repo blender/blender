@@ -1072,10 +1072,16 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   /* Add asset to catalog. */
   char catalog_path[MAX_NAME];
   RNA_string_get(op->ptr, "catalog_path", catalog_path);
-  const asset_system::AssetCatalog &catalog = asset_library_ensure_catalogs_in_path(*library,
-                                                                                    catalog_path);
-  const asset_system::CatalogID catalog_id = catalog.catalog_id;
-  const std::string catalog_simple_name = catalog.simple_name;
+
+  std::optional<asset_system::CatalogID> catalog_id;
+  std::optional<StringRefNull> catalog_simple_name;
+
+  if (catalog_path[0]) {
+    const asset_system::AssetCatalog &catalog = asset_library_ensure_catalogs_in_path(
+        *library, catalog_path);
+    catalog_id = catalog.catalog_id;
+    catalog_simple_name = catalog.simple_name;
+  }
 
   library->catalog_service().write_to_disk(filepath);
 
