@@ -1010,7 +1010,6 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
         changed = (blender::animrig::insert_keyframe(bmain,
                                                      op->reports,
                                                      ptr.owner_id,
-                                                     nullptr,
                                                      group,
                                                      path->c_str(),
                                                      index,

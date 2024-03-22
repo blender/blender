@@ -51,7 +51,6 @@ void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop);
 int insert_keyframe(Main *bmain,
                     ReportList *reports,
                     ID *id,
-                    bAction *act,
                     const char group[],
                     const char rna_path[],
                     int array_index,
