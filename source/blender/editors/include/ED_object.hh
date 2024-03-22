@@ -343,7 +343,7 @@ void ED_object_add_unit_props_radius_ex(wmOperatorType *ot, float default_value)
 void ED_object_add_unit_props_radius(wmOperatorType *ot);
 void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode);
 void ED_object_add_mesh_props(wmOperatorType *ot);
-bool ED_object_add_generic_get_opts(bContext *C,
+void ED_object_add_generic_get_opts(bContext *C,
                                     wmOperator *op,
                                     char view_align_axis,
                                     float r_loc[3],
