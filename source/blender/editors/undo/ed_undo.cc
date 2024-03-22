@@ -54,6 +54,9 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+using blender::Set;
+using blender::Vector;
+
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo"};
 
@@ -852,12 +855,11 @@ void ED_undo_object_editmode_restore_helper(Scene *scene,
                                             uint object_array_stride)
 {
   Main *bmain = G_MAIN;
-  uint bases_len = 0;
   /* Don't request unique data because we want to de-select objects when exiting edit-mode
    * for that to be done on all objects we can't skip ones that share data. */
-  Base **bases = ED_undo_editmode_bases_from_view_layer(scene, view_layer, &bases_len);
-  for (uint i = 0; i < bases_len; i++) {
-    ((ID *)bases[i]->object->data)->tag |= LIB_TAG_DOIT;
+  Vector<Base *> bases = ED_undo_editmode_bases_from_view_layer(scene, view_layer);
+  for (Base *base : bases) {
+    ((ID *)base->object->data)->tag |= LIB_TAG_DOIT;
   }
   Object **ob_p = object_array;
   for (uint i = 0; i < object_array_len;
@@ -867,16 +869,15 @@ void ED_undo_object_editmode_restore_helper(Scene *scene,
     ED_object_editmode_enter_ex(bmain, scene, obedit, EM_NO_CONTEXT);
     ((ID *)obedit->data)->tag &= ~LIB_TAG_DOIT;
   }
-  for (uint i = 0; i < bases_len; i++) {
-    ID *id = static_cast<ID *>(bases[i]->object->data);
+  for (Base *base : bases) {
+    ID *id = static_cast<ID *>(base->object->data);
     if (id->tag & LIB_TAG_DOIT) {
-      ED_object_editmode_exit_ex(bmain, scene, bases[i]->object, EM_FREEDATA);
+      ED_object_editmode_exit_ex(bmain, scene, base->object, EM_FREEDATA);
       /* Ideally we would know the selection state it was before entering edit-mode,
        * for now follow the convention of having them unselected when exiting the mode. */
-      ED_object_base_select(bases[i], BA_DESELECT);
+      ED_object_base_select(base, BA_DESELECT);
     }
   }
-  MEM_freeN(bases);
 }
 
 /** \} */
@@ -891,49 +892,17 @@ void ED_undo_object_editmode_restore_helper(Scene *scene,
  * and local collections may be used.
  * \{ */
 
-static int undo_editmode_objects_from_view_layer_prepare(const Scene *scene,
-                                                         ViewLayer *view_layer,
-                                                         Object *obact)
-{
-  const short object_type = obact->type;
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  ListBase *object_bases = BKE_view_layer_object_bases_get(view_layer);
-  LISTBASE_FOREACH (Base *, base, object_bases) {
-    Object *ob = base->object;
-    if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
-      ID *id = static_cast<ID *>(ob->data);
-      id->tag &= ~LIB_TAG_DOIT;
-    }
-  }
-
-  int len = 0;
-  LISTBASE_FOREACH (Base *, base, object_bases) {
-    Object *ob = base->object;
-    if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
-      ID *id = static_cast<ID *>(ob->data);
-      if ((id->tag & LIB_TAG_DOIT) == 0) {
-        len += 1;
-        id->tag |= LIB_TAG_DOIT;
-      }
-    }
-  }
-  return len;
-}
-
-Object **ED_undo_editmode_objects_from_view_layer(const Scene *scene,
-                                                  ViewLayer *view_layer,
-                                                  uint *r_len)
+Vector<Object *> ED_undo_editmode_objects_from_view_layer(const Scene *scene,
+                                                          ViewLayer *view_layer)
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *baseact = BKE_view_layer_active_base_get(view_layer);
   if ((baseact == nullptr) || (baseact->object->mode & OB_MODE_EDIT) == 0) {
-    return static_cast<Object **>(MEM_mallocN(0, __func__));
+    return {};
   }
-  const int len = undo_editmode_objects_from_view_layer_prepare(
-      scene, view_layer, baseact->object);
+  Set<const ID *> object_data;
   const short object_type = baseact->object->type;
-  int i = 0;
-  Object **objects = static_cast<Object **>(MEM_malloc_arrayN(len, sizeof(*objects), __func__));
+  Vector<Object *> objects(object_data.size());
   /* Base iteration, starting with the active-base to ensure it's the first item in the array.
    * Looping over the active-base twice is OK as the tag check prevents it being handled twice. */
   for (Base *base = baseact,
@@ -943,33 +912,26 @@ Object **ED_undo_editmode_objects_from_view_layer(const Scene *scene,
   {
     Object *ob = base->object;
     if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
-      ID *id = static_cast<ID *>(ob->data);
-      if (id->tag & LIB_TAG_DOIT) {
-        objects[i++] = ob;
-        id->tag &= ~LIB_TAG_DOIT;
+      if (object_data.add(static_cast<const ID *>(ob->data))) {
+        objects.append(ob);
       }
     }
   }
-  BLI_assert(i == len);
+  BLI_assert(object_data.is_empty());
   BLI_assert(objects[0] == baseact->object);
-  *r_len = len;
   return objects;
 }
 
-Base **ED_undo_editmode_bases_from_view_layer(const Scene *scene,
-                                              ViewLayer *view_layer,
-                                              uint *r_len)
+Vector<Base *> ED_undo_editmode_bases_from_view_layer(const Scene *scene, ViewLayer *view_layer)
 {
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *baseact = BKE_view_layer_active_base_get(view_layer);
   if ((baseact == nullptr) || (baseact->object->mode & OB_MODE_EDIT) == 0) {
-    return static_cast<Base **>(MEM_mallocN(0, __func__));
+    return {};
   }
-  const int len = undo_editmode_objects_from_view_layer_prepare(
-      scene, view_layer, baseact->object);
+  Set<const ID *> object_data;
   const short object_type = baseact->object->type;
-  int i = 0;
-  Base **base_array = static_cast<Base **>(MEM_malloc_arrayN(len, sizeof(*base_array), __func__));
+  Vector<Base *> bases;
   /* Base iteration, starting with the active-base to ensure it's the first item in the array.
    * Looping over the active-base twice is OK as the tag check prevents it being handled twice. */
   for (Base *base = BKE_view_layer_active_base_get(view_layer),
@@ -979,18 +941,15 @@ Base **ED_undo_editmode_bases_from_view_layer(const Scene *scene,
   {
     Object *ob = base->object;
     if ((ob->type == object_type) && (ob->mode & OB_MODE_EDIT)) {
-      ID *id = static_cast<ID *>(ob->data);
-      if (id->tag & LIB_TAG_DOIT) {
-        base_array[i++] = base;
-        id->tag &= ~LIB_TAG_DOIT;
+      if (object_data.add(static_cast<const ID *>(ob->data))) {
+        bases.append(base);
       }
     }
   }
 
-  BLI_assert(i == len);
-  BLI_assert(base_array[0] == baseact);
-  *r_len = len;
-  return base_array;
+  BLI_assert(object_data.is_empty());
+  BLI_assert(bases[0] == baseact);
+  return bases;
 }
 
 /** \} */

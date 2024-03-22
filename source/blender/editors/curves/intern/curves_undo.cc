@@ -54,11 +54,10 @@ static bool step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_num = 0;
-  Object **objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer, &objects_num);
+  Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
-  new (&us->objects) Array<StepObject>(objects_num);
+  new (&us->objects) Array<StepObject>(objects.size());
 
   threading::parallel_for(us->objects.index_range(), 8, [&](const IndexRange range) {
     for (const int i : range) {
@@ -70,7 +69,6 @@ static bool step_encode(bContext *C, Main *bmain, UndoStep *us_p)
       object.geometry = curves_id.geometry.wrap();
     }
   });
-  MEM_SAFE_FREE(objects);
 
   bmain->is_memfile_undo_flush_needed = true;
 

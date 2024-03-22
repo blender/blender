@@ -204,15 +204,14 @@ static bool lattice_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p
    * outside of this list will be moved out of edit-mode when reading back undo steps. */
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer, &objects_len);
+  blender::Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
   us->elems = static_cast<LatticeUndoStep_Elem *>(
-      MEM_callocN(sizeof(*us->elems) * objects_len, __func__));
-  us->elems_len = objects_len;
+      MEM_callocN(sizeof(*us->elems) * objects.size(), __func__));
+  us->elems_len = objects.size();
 
-  for (uint i = 0; i < objects_len; i++) {
+  for (uint i = 0; i < objects.size(); i++) {
     Object *ob = objects[i];
     LatticeUndoStep_Elem *elem = &us->elems[i];
 
@@ -222,7 +221,6 @@ static bool lattice_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p
     lt->editlatt->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
   }
-  MEM_freeN(objects);
 
   bmain->is_memfile_undo_flush_needed = true;
 

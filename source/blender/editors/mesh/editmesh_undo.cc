@@ -928,21 +928,20 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const ToolSettings *ts = scene->toolsettings;
-  uint objects_len = 0;
-  Object **objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer, &objects_len);
+  blender::Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
   us->elems = static_cast<MeshUndoStep_Elem *>(
-      MEM_callocN(sizeof(*us->elems) * objects_len, __func__));
-  us->elems_len = objects_len;
+      MEM_callocN(sizeof(*us->elems) * objects.size(), __func__));
+  us->elems_len = objects.size();
 
   UndoMesh **um_references = nullptr;
 
 #ifdef USE_ARRAY_STORE
-  um_references = mesh_undostep_reference_elems_from_objects(objects, objects_len);
+  um_references = mesh_undostep_reference_elems_from_objects(objects.data(), objects.size());
 #endif
 
-  for (uint i = 0; i < objects_len; i++) {
+  for (uint i = 0; i < objects.size(); i++) {
     Object *ob = objects[i];
     MeshUndoStep_Elem *elem = &us->elems[i];
 
@@ -962,7 +961,6 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
     elem->data.mesh.id.session_uid = mesh->id.session_uid;
 #endif
   }
-  MEM_freeN(objects);
 
   if (um_references != nullptr) {
     MEM_freeN(um_references);

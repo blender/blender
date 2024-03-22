@@ -10,6 +10,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
+#include "BLI_vector.hh"
 
 struct Base;
 struct CLG_LogRef;
@@ -101,12 +102,10 @@ void ED_undo_object_editmode_restore_helper(Scene *scene,
                                             uint object_array_len,
                                             uint object_array_stride);
 
-Object **ED_undo_editmode_objects_from_view_layer(const Scene *scene,
-                                                  ViewLayer *view_layer,
-                                                  uint *r_len);
-Base **ED_undo_editmode_bases_from_view_layer(const Scene *scene,
-                                              ViewLayer *view_layer,
-                                              uint *r_len);
+blender::Vector<Object *> ED_undo_editmode_objects_from_view_layer(const Scene *scene,
+                                                                   ViewLayer *view_layer);
+blender::Vector<Base *> ED_undo_editmode_bases_from_view_layer(const Scene *scene,
+                                                               ViewLayer *view_layer);
 
 /**
  * Ideally we won't access the stack directly,

@@ -337,12 +337,10 @@ static bool step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_num = 0;
-  Object **objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer, &objects_num);
-  BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(objects); })
+  Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
-  new (&us->objects) Array<StepObject>(objects_num);
+  new (&us->objects) Array<StepObject>(objects.size());
 
   threading::parallel_for(us->objects.index_range(), 8, [&](const IndexRange range) {
     for (const int64_t i : range) {
