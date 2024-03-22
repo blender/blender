@@ -333,14 +333,6 @@ static void scene_copy_data(Main *bmain,
   /* tool settings */
   scene_dst->toolsettings = BKE_toolsettings_copy(scene_dst->toolsettings, flag_subdata);
 
-  /* make a private copy of the avicodecdata */
-  if (scene_src->r.avicodecdata) {
-    scene_dst->r.avicodecdata = static_cast<AviCodecData *>(
-        MEM_dupallocN(scene_src->r.avicodecdata));
-    scene_dst->r.avicodecdata->lpFormat = MEM_dupallocN(scene_dst->r.avicodecdata->lpFormat);
-    scene_dst->r.avicodecdata->lpParms = MEM_dupallocN(scene_dst->r.avicodecdata->lpParms);
-  }
-
   if (scene_src->display.shading.prop) {
     scene_dst->display.shading.prop = IDP_CopyProperty(scene_src->display.shading.prop);
   }
@@ -409,12 +401,6 @@ static void scene_free_data(ID *id)
     scene->rigidbody_world->constraints = nullptr;
     scene->rigidbody_world->group = nullptr;
     BKE_rigidbody_free_world(scene);
-  }
-
-  if (scene->r.avicodecdata) {
-    free_avicodecdata(scene->r.avicodecdata);
-    MEM_freeN(scene->r.avicodecdata);
-    scene->r.avicodecdata = nullptr;
   }
 
   scene_free_markers(scene, do_id_user);
@@ -1130,16 +1116,6 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     }
   }
 
-  if (sce->r.avicodecdata) {
-    BLO_write_struct(writer, AviCodecData, sce->r.avicodecdata);
-    if (sce->r.avicodecdata->lpFormat) {
-      BLO_write_raw(writer, size_t(sce->r.avicodecdata->cbFormat), sce->r.avicodecdata->lpFormat);
-    }
-    if (sce->r.avicodecdata->lpParms) {
-      BLO_write_raw(writer, size_t(sce->r.avicodecdata->cbParms), sce->r.avicodecdata->lpParms);
-    }
-  }
-
   /* writing dynamic list of TimeMarkers to the blend file */
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
     BLO_write_struct(writer, TimeMarker, marker);
@@ -1450,11 +1426,6 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
   sce->r.mode &= ~R_NO_CAMERA_SWITCH;
 #endif
 
-  BLO_read_data_address(reader, &sce->r.avicodecdata);
-  if (sce->r.avicodecdata) {
-    BLO_read_data_address(reader, &sce->r.avicodecdata->lpFormat);
-    BLO_read_data_address(reader, &sce->r.avicodecdata->lpParms);
-  }
   BLO_read_list(reader, &(sce->markers));
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
     BLO_read_data_address(reader, &marker->prop);
@@ -1649,22 +1620,6 @@ const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
 const char *RE_engine_id_BLENDER_EEVEE_NEXT = "BLENDER_EEVEE_NEXT";
 const char *RE_engine_id_BLENDER_WORKBENCH = "BLENDER_WORKBENCH";
 const char *RE_engine_id_CYCLES = "CYCLES";
-
-void free_avicodecdata(AviCodecData *acd)
-{
-  if (acd) {
-    if (acd->lpFormat) {
-      MEM_freeN(acd->lpFormat);
-      acd->lpFormat = nullptr;
-      acd->cbFormat = 0;
-    }
-    if (acd->lpParms) {
-      MEM_freeN(acd->lpParms);
-      acd->lpParms = nullptr;
-      acd->cbParms = 0;
-    }
-  }
-}
 
 static void remove_sequencer_fcurves(Scene *sce)
 {
@@ -1877,13 +1832,6 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
     /* tool settings */
     BKE_toolsettings_free(sce_copy->toolsettings);
     sce_copy->toolsettings = BKE_toolsettings_copy(sce->toolsettings, 0);
-
-    /* make a private copy of the avicodecdata */
-    if (sce->r.avicodecdata) {
-      sce_copy->r.avicodecdata = static_cast<AviCodecData *>(MEM_dupallocN(sce->r.avicodecdata));
-      sce_copy->r.avicodecdata->lpFormat = MEM_dupallocN(sce_copy->r.avicodecdata->lpFormat);
-      sce_copy->r.avicodecdata->lpParms = MEM_dupallocN(sce_copy->r.avicodecdata->lpParms);
-    }
 
     BKE_sound_reset_scene_runtime(sce_copy);
 

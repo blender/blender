@@ -58,35 +58,6 @@ typedef struct SceneRuntimeHandle SceneRuntimeHandle;
 /** \name FFMPEG
  * \{ */
 
-typedef struct AviCodecData {
-  /** Save format. */
-  void *lpFormat;
-  /** Compressor options. */
-  void *lpParms;
-  /** Size of lpFormat buffer. */
-  unsigned int cbFormat;
-  /** Size of lpParms buffer. */
-  unsigned int cbParms;
-
-  /** Stream type, for consistency. */
-  unsigned int fccType;
-  /** Compressor. */
-  unsigned int fccHandler;
-  /** Keyframe rate. */
-  unsigned int dwKeyFrameEvery;
-  /** Compress quality 0-10,000. */
-  unsigned int dwQuality;
-  /** Bytes per second. */
-  unsigned int dwBytesPerSecond;
-  /** Flags... see below. */
-  unsigned int dwFlags;
-  /** For non-video streams only. */
-  unsigned int dwInterleaveEvery;
-  char _pad[4];
-
-  char avicodecname[128];
-} AviCodecData;
-
 typedef enum eFFMpegPreset {
   FFM_PRESET_NONE = 0,
 
@@ -684,7 +655,7 @@ typedef enum eBakePassFilter {
 typedef struct RenderData {
   struct ImageFormatData im_format;
 
-  struct AviCodecData *avicodecdata;
+  void *_pad;
   struct FFMpegCodecData ffcodecdata;
 
   /** Frames as in 'images'. */
