@@ -817,7 +817,7 @@ void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
 /* -------------------------------------------------------------------- */
 /** \name MFace Tessellation
  *
- * #MFace is a legacy data-structure that should be avoided, use #MLoopTri instead.
+ * #MFace is a legacy data-structure that should be avoided, use #Mesh::corner_tris() instead.
  * \{ */
 
 #define MESH_MLOOPCOL_TO_MCOL(_mloopcol, _mcol) \
