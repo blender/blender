@@ -6144,7 +6144,9 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
     ui_block_add_dynamic_listener(block, pt->listener);
   }
 
+  /* This check may be paranoid, this function might run outside the context of a popup. */
   if (block->handle) {
+    /* Allow popovers to contain collapsible sections, see #uiItemPopoverPanel. */
     UI_popup_dummy_panel_set(block->handle->region, block);
   }
 

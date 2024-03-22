@@ -157,7 +157,7 @@ static void find_used_vertex_groups(const bGPDframe &gpf,
 }
 
 /*
- * This takes the legacy uv tranforms and returns the stroke-space to texture-space matrix.
+ * This takes the legacy UV transforms and returns the stroke-space to texture-space matrix.
  */
 static float3x2 get_legacy_stroke_to_texture_matrix(const float2 uv_translation,
                                                     const float uv_rotation,

@@ -483,7 +483,7 @@ bool ED_object_add_generic_get_opts(bContext *C,
       r_enter_editmode = &_enter_editmode;
     }
     /* Only to ensure the value is _always_ set.
-     * Typically the property will exist when the argument is non-nullptr. */
+     * Typically the property will exist when the argument is non-null. */
     *r_enter_editmode = false;
 
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "enter_editmode");
@@ -1243,7 +1243,7 @@ static int object_image_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* add new empty */
+  /* Add new empty. */
   ushort local_view_bits;
   float loc[3], rot[3];
 
@@ -1256,7 +1256,7 @@ static int object_image_add_exec(bContext *C, wmOperator *op)
   ob->empty_drawsize = 5.0f;
 
   if (RNA_boolean_get(op->ptr, "background")) {
-    /* "background" has been set to "true", set image to render in the background. */
+    /* When "background" has been set to "true", set image to render in the background. */
     ob->empty_image_depth = OB_EMPTY_IMAGE_DEPTH_BACK;
     ob->empty_image_visibility_flag = OB_EMPTY_IMAGE_HIDE_BACK;
 
@@ -1276,13 +1276,12 @@ static int object_image_add_exec(bContext *C, wmOperator *op)
 static int object_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (!RNA_struct_property_is_set(op->ptr, "align")) {
-    /* Default to Aligned unless something else was explicitly passed */
+    /* Default to Aligned unless something else was explicitly passed. */
     RNA_enum_set(op->ptr, "align", ALIGN_VIEW);
   }
 
   /* Check if the user has not specified the image to load.
-   * If they have not, assume this is a drag an drop operation.
-   */
+   * If they have not, assume this is a drag an drop operation. */
   if (!RNA_struct_property_is_set(op->ptr, "filepath") &&
       !WM_operator_properties_id_lookup_is_set(op->ptr))
   {
@@ -1305,18 +1304,18 @@ static int object_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
   Object *ob_cursor = ED_view3d_give_object_under_cursor(C, event->mval);
 
-  /* Either change empty under cursor or create a new empty */
+  /* Either change empty under cursor or create a new empty. */
   if (!ob_cursor || ob_cursor->type != OB_EMPTY) {
     return object_image_add_exec(C, op);
   }
-  /* User dropped an image on an existing image */
+  /* User dropped an image on an existing image. */
   Image *ima = nullptr;
 
   ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
   if (!ima) {
     return OPERATOR_CANCELLED;
   }
-  /* handled below */
+  /* Handled below. */
   id_us_min(&ima->id);
 
   Scene *scene = CTX_data_scene(C);
@@ -1551,7 +1550,7 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 
   /* If this is a new object, initialize default stuff (colors, etc.) */
   if (newob) {
-    /* set default viewport color to black */
+    /* Set default viewport color to black. */
     copy_v3_fl(ob->color, 0.0f);
 
     ED_gpencil_add_defaults(C, ob);
@@ -4225,8 +4224,8 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   /* Do immediately, as #copy_object_set_idnew() below operates on visible objects. */
   BKE_base_eval_flags(basen);
 
-  /* object_add_duplicate_internal() doesn't deselect other objects, unlike object_add_common() or
-   * BKE_view_layer_base_deselect_all(). */
+  /* #object_add_duplicate_internal() doesn't deselect other objects,
+   * unlike #object_add_common() or #BKE_view_layer_base_deselect_all(). */
   ED_object_base_deselect_all(scene, view_layer, nullptr, SEL_DESELECT);
   ED_object_base_select(basen, BA_SELECT);
   ED_object_base_activate(C, basen);
