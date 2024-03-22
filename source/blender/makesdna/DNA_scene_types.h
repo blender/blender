@@ -950,15 +950,10 @@ typedef struct TimeMarker {
 
 typedef struct Paint_Runtime {
   /** Avoid having to compare with scene pointer everywhere. */
-  unsigned int tool_offset;
+  unsigned int initialized;
   unsigned short ob_mode;
   char _pad[2];
 } Paint_Runtime;
-
-/** We might want to store other things here. */
-typedef struct PaintToolSlot {
-  struct Brush *brush;
-} PaintToolSlot;
 
 /** Paint Tool Base. */
 typedef struct Paint {
@@ -975,14 +970,6 @@ typedef struct Paint {
    * file load.
    */
   struct AssetWeakReference *brush_asset_reference;
-
-  /**
-   * Each tool has its own active brush,
-   * The currently active tool is defined by the current 'brush'.
-   */
-  struct PaintToolSlot *tool_slots;
-  int tool_slots_len;
-  char _pad1[4];
 
   struct Palette *palette;
   /** Cavity curve. */

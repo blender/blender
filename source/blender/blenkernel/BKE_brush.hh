@@ -180,16 +180,5 @@ void BKE_brush_scale_size(int *r_brush_size,
  */
 bool BKE_brush_has_cube_tip(const Brush *brush, PaintMode paint_mode);
 
-/* Accessors */
-#define BKE_brush_tool_get(brush, p) \
-  (CHECK_TYPE_ANY(brush, Brush *, const Brush *), \
-   *(const char *)POINTER_OFFSET(brush, (p)->runtime.tool_offset))
-#define BKE_brush_tool_set(brush, p, tool) \
-  { \
-    CHECK_TYPE_ANY(brush, Brush *); \
-    *(char *)POINTER_OFFSET(brush, (p)->runtime.tool_offset) = tool; \
-  } \
-  ((void)0)
-
 /* debugging only */
 void BKE_brush_debug_print_state(Brush *br);

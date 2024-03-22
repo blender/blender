@@ -1674,7 +1674,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
       depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     }
     ED_object_wpaintmode_enter_ex(bmain, depsgraph, scene, ob);
-    BKE_paint_toolslots_brush_validate(bmain, &ts->wpaint->paint);
+    BKE_paint_brush_validate(bmain, &ts->wpaint->paint);
   }
 
   /* Prepare armature posemode. */

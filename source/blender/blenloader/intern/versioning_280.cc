@@ -2557,7 +2557,6 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
         brush->gpencil_tool = brush->gpencil_settings->brush_type;
       }
     }
-    BKE_paint_toolslots_init_from_main(bmain);
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 280, 38)) {

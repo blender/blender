@@ -184,16 +184,12 @@ void BKE_paint_free(Paint *p);
  */
 void BKE_paint_copy(const Paint *src, Paint *tar, int flag);
 
-void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint);
-
 void BKE_paint_cavity_curve_preset(Paint *p, int preset);
 
 eObjectMode BKE_paint_object_mode_from_paintmode(PaintMode mode);
 bool BKE_paint_ensure_from_paintmode(Main *bmain, Scene *sce, PaintMode mode);
 Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode);
 const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(PaintMode mode);
-const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(PaintMode mode);
-const char *BKE_paint_get_tool_prop_id_from_paintmode(PaintMode mode);
 uint BKE_paint_get_brush_tool_offset_from_paintmode(PaintMode mode);
 Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer);
 Paint *BKE_paint_get_active_from_context(const bContext *C);
@@ -210,6 +206,8 @@ bool BKE_paint_brush_set_default(Main *bmain, Paint *paint);
 bool BKE_paint_brush_set_essentials(Main *bmain, Paint *paint, const char *name);
 
 void BKE_paint_brush_set_default_references(ToolSettings *ts);
+
+void BKE_paint_brush_validate(Main *bmain, Paint *paint);
 
 /**
  * Check if the given brush is a valid Brush Asset.
@@ -285,19 +283,6 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
 void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation);
 
 void BKE_paint_stroke_get_average(const Scene *scene, const Object *ob, float stroke[3]);
-
-/* Tool slot API. */
-
-void BKE_paint_toolslots_init_from_main(Main *bmain);
-void BKE_paint_toolslots_len_ensure(Paint *paint, int len);
-void BKE_paint_toolslots_brush_update_ex(Paint *paint, Brush *brush);
-void BKE_paint_toolslots_brush_update(Paint *paint);
-/**
- * Run this to ensure brush types are set for each slot on entering modes
- * (for new scenes for example).
- */
-void BKE_paint_toolslots_brush_validate(Main *bmain, Paint *paint);
-Brush *BKE_paint_toolslots_brush_get(Paint *paint, int slot_index);
 
 /* .blend I/O */
 

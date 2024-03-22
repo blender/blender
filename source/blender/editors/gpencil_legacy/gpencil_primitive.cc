@@ -1216,12 +1216,8 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
     BKE_brush_gpencil_paint_presets(bmain, ts, true);
   }
 
-  /* Set Draw brush. */
-  brush = BKE_paint_toolslots_brush_get(paint, 0);
-
-  BKE_brush_tool_set(brush, paint, 0);
-  BKE_paint_brush_set(paint, brush);
-  tgpi->brush = brush;
+  /* Set brush. */
+  tgpi->brush = BKE_paint_brush(paint);
 
   /* control points */
   tgpi->gpd->runtime.cp_points = static_cast<bGPDcontrolpoint *>(

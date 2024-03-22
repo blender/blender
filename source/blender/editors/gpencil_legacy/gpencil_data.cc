@@ -2200,7 +2200,7 @@ static int gpencil_brush_reset_all_exec(bContext *C, wmOperator * /*op*/)
       }
     }
 
-    BKE_paint_toolslots_brush_validate(bmain, paint);
+    BKE_paint_brush_validate(bmain, paint);
 
     /* Set Again the first brush of the mode. */
     Brush *deft_brush = gpencil_brush_get_first_by_mode(bmain, paint, mode, tool);

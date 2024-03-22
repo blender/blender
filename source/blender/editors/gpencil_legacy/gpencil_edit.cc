@@ -400,7 +400,7 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
     if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
       BKE_brush_gpencil_paint_presets(bmain, ts, true);
     }
-    BKE_paint_toolslots_brush_validate(bmain, &ts->gp_paint->paint);
+    BKE_paint_brush_validate(bmain, &ts->gp_paint->paint);
   }
 
   /* setup other modes */
@@ -507,7 +507,7 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
     const bool reset_mode = (BKE_paint_brush(&ts->gp_sculptpaint->paint) == nullptr);
     BKE_brush_gpencil_sculpt_presets(bmain, ts, reset_mode);
 
-    BKE_paint_toolslots_brush_validate(bmain, &ts->gp_sculptpaint->paint);
+    BKE_paint_brush_validate(bmain, &ts->gp_sculptpaint->paint);
   }
 
   /* setup other modes */
@@ -621,7 +621,7 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
     const bool reset_mode = (BKE_paint_brush(&ts->gp_weightpaint->paint) == nullptr);
     BKE_brush_gpencil_weight_presets(bmain, ts, reset_mode);
 
-    BKE_paint_toolslots_brush_validate(bmain, &ts->gp_weightpaint->paint);
+    BKE_paint_brush_validate(bmain, &ts->gp_weightpaint->paint);
   }
 
   /* setup other modes */
@@ -729,7 +729,7 @@ static int gpencil_vertexmode_toggle_exec(bContext *C, wmOperator *op)
     const bool reset_mode = (BKE_paint_brush(&ts->gp_vertexpaint->paint) == nullptr);
     BKE_brush_gpencil_vertex_presets(bmain, ts, reset_mode);
 
-    BKE_paint_toolslots_brush_validate(bmain, &ts->gp_vertexpaint->paint);
+    BKE_paint_brush_validate(bmain, &ts->gp_vertexpaint->paint);
 
     /* Ensure Palette by default. */
     BKE_gpencil_palette_ensure(bmain, CTX_data_scene(C));
