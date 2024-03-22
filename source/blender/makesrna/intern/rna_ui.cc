@@ -612,7 +612,7 @@ static void uilist_filter_items(uiList *ui_list,
 
   /* We have to do some final checks and transforms... */
   {
-    int i, filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;
+    int i;
     if (filter_flags) {
       flt_data->items_filter_flags = static_cast<int *>(MEM_mallocN(sizeof(int) * len, __func__));
       memcpy(flt_data->items_filter_flags, filter_flags, sizeof(int) * len);
@@ -625,10 +625,7 @@ static void uilist_filter_items(uiList *ui_list,
         int t_idx, t_ni, prev_ni;
         flt_data->items_shown = 0;
         for (i = 0, shown_idx = 0; i < len; i++) {
-          if (filter_flags[i] & UILST_FLT_ITEM_NEVER_SHOW) {
-            BLI_assert_msg(false, "Bit reserved for internal use");
-          }
-          else if ((filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude) {
+          if (UI_list_item_index_is_filtered_visible(ui_list, i)) {
             filter_neworder[shown_idx++] = filter_neworder[i];
           }
         }
@@ -656,10 +653,7 @@ static void uilist_filter_items(uiList *ui_list,
         /* we still have to set flt_data->items_shown... */
         flt_data->items_shown = 0;
         for (i = 0; i < len; i++) {
-          if (filter_flags[i] & UILST_FLT_ITEM_NEVER_SHOW) {
-            /* Pass. */
-          }
-          else if ((filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude) {
+          if (UI_list_item_index_is_filtered_visible(ui_list, i)) {
             flt_data->items_shown++;
           }
         }

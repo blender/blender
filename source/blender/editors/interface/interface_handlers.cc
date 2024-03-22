@@ -9755,13 +9755,9 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
         const int *new_order = dyn_data->items_filter_neworder;
         int org_idx = -1, len = dyn_data->items_len;
         int current_idx = -1;
-        const int filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;
 
         for (int i = 0; i < len; i++) {
-          if (!dyn_data->items_filter_flags ||
-              (((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM_NEVER_SHOW) == 0) &&
-               (dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
-          {
+          if (UI_list_item_index_is_filtered_visible(ui_list, i)) {
             org_order[new_order ? new_order[++org_idx] : ++org_idx] = i;
             if (i == value) {
               current_idx = new_order ? new_order[org_idx] : org_idx;

@@ -2705,6 +2705,12 @@ void uiTemplateNodeTreeInterface(uiLayout *layout, PointerRNA *ptr);
 void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr);
 
 /**
+ * \return: True if the list item with unfiltered, unordered index \a item_idx is visible given the
+ *          current filter settings.
+ */
+bool UI_list_item_index_is_filtered_visible(const struct uiList *ui_list, int item_idx);
+
+/**
  * \return An RNA pointer for the operator properties.
  */
 PointerRNA *UI_list_custom_activate_operator_set(uiList *ui_list,
