@@ -656,6 +656,15 @@ bool BKE_appdir_folder_id_ex(const int folder_id,
       }
       return false;
 
+    case BLENDER_USER_EXTENSIONS:
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_USER_EXTENSIONS")) {
+        break;
+      }
+      if (get_path_user(path, path_maxncpy, "extensions", subfolder)) {
+        break;
+      }
+      return false;
+
     case BLENDER_SYSTEM_PYTHON:
       if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_SYSTEM_PYTHON")) {
         break;
@@ -717,6 +726,14 @@ std::optional<std::string> BKE_appdir_folder_id_user_notest(const int folder_id,
       }
       get_path_user_ex(path, sizeof(path), "scripts", subfolder, version, check_is_dir);
       break;
+    case BLENDER_USER_EXTENSIONS:
+      if (get_path_environment_ex(
+              path, sizeof(path), subfolder, "BLENDER_USER_EXTENSIONS", check_is_dir))
+      {
+        break;
+      }
+      get_path_user_ex(path, sizeof(path), "extensions", subfolder, version, check_is_dir);
+      break;
     default:
       BLI_assert_unreachable();
       break;
@@ -731,7 +748,12 @@ std::optional<std::string> BKE_appdir_folder_id_user_notest(const int folder_id,
 std::optional<std::string> BKE_appdir_folder_id_create(const int folder_id, const char *subfolder)
 {
   /* Only for user folders. */
-  if (!ELEM(folder_id, BLENDER_USER_DATAFILES, BLENDER_USER_CONFIG, BLENDER_USER_SCRIPTS)) {
+  if (!ELEM(folder_id,
+            BLENDER_USER_DATAFILES,
+            BLENDER_USER_CONFIG,
+            BLENDER_USER_SCRIPTS,
+            BLENDER_USER_EXTENSIONS))
+  {
     BLI_assert_unreachable();
     return std::nullopt;
   }

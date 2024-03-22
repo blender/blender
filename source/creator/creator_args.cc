@@ -755,6 +755,7 @@ static void print_help(bArgs *ba, bool all)
   PRINT("                           (other 'BLENDER_USER_*' variables override when set).\n");
   PRINT("  $BLENDER_USER_CONFIG     Directory for user configuration files.\n");
   PRINT("  $BLENDER_USER_SCRIPTS    Directory for user scripts.\n");
+  PRINT("  $BLENDER_USER_EXTENSIONS Directory for user extensions.\n");
   PRINT("  $BLENDER_USER_DATAFILES  Directory for user data files (icons, translations, ..).\n");
   PRINT("\n");
   PRINT("  $BLENDER_SYSTEM_RESOURCES  Top level directory for system files.\n");
