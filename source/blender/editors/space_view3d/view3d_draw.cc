@@ -1506,7 +1506,10 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
   if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
     int xoffset = rect->xmin + (0.5f * U.widget_unit);
     int yoffset = rect->ymax - (0.1f * U.widget_unit);
-    BLF_default_size(UI_style_get()->widgetlabel.points);
+
+    const uiFontStyle *fstyle = UI_FSTYLE_WIDGET_LABEL;
+    UI_fontstyle_set(fstyle);
+    BLF_default_size(fstyle->points);
     BLF_set_default();
 
     if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
