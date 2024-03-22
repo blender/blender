@@ -81,7 +81,7 @@ static void nla_action_draw_keyframes(
 
   /* get a list of the keyframes with NLA-scaling applied */
   AnimKeylist *keylist = ED_keylist_create();
-  action_to_keylist(adt, act, keylist, 0, {-FLT_MAX, FLT_MAX});
+  action_to_keylist(adt, act, keylist, 0, {v2d->cur.xmin, v2d->cur.xmax});
 
   if (ED_keylist_is_empty(keylist)) {
     ED_keylist_free(keylist);
