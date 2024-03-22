@@ -9679,7 +9679,8 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
 
         for (int i = 0; i < len; i++) {
           if (!dyn_data->items_filter_flags ||
-              ((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
+              (((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM_NEVER_SHOW) == 0) &&
+               (dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
           {
             org_order[new_order ? new_order[++org_idx] : ++org_idx] = i;
             if (i == value) {
