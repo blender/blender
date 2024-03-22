@@ -39,6 +39,7 @@
 #include "BKE_appdir.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_image_format.h"
 #include "BKE_main.hh"
 
@@ -467,7 +468,9 @@ static bool colormanage_role_color_space_name_get(OCIO_ConstConfigRcPtr *config,
   }
 
   if (ociocs == nullptr) {
-    printf("Color management: Error, could not find role \"%s\"\n", role);
+    if (!G.quiet) {
+      printf("Color management: Error, could not find role \"%s\"\n", role);
+    }
     return false;
   }
 
@@ -553,11 +556,15 @@ static bool colormanage_load_config(OCIO_ConstConfigRcPtr *config)
 
   global_tot_display = tot_display;
   if (global_tot_display == 0) {
-    printf("Color management: Error, could not find any displays\n");
+    if (!G.quiet) {
+      printf("Color management: Error, could not find any displays\n");
+    }
     ok = false;
   }
   else if (global_tot_view == 0) {
-    printf("Color management: Error, could not find any views\n");
+    if (!G.quiet) {
+      printf("Color management: Error, could not find any views\n");
+    }
     ok = false;
   }
 
@@ -659,14 +666,17 @@ void colormanagement_init()
   if (ocio_env && ocio_env[0] != '\0') {
     config = OCIO_configCreateFromEnv();
     if (config != nullptr) {
-      printf("Color management: Using %s as a configuration file\n", ocio_env);
-
+      if (!G.quiet) {
+        printf("Color management: Using %s as a configuration file\n", ocio_env);
+      }
       OCIO_setCurrentConfig(config);
       const bool ok = colormanage_load_config(config);
       OCIO_configRelease(config);
 
       if (!ok) {
-        printf("Color management: Failed to load config from environment\n");
+        if (!G.quiet) {
+          printf("Color management: Failed to load config from environment\n");
+        }
         colormanage_free_config();
         config = nullptr;
       }
@@ -689,7 +699,9 @@ void colormanagement_init()
         OCIO_configRelease(config);
 
         if (!ok) {
-          printf("Color management: Failed to load bundled config\n");
+          if (!G.quiet) {
+            printf("Color management: Failed to load bundled config\n");
+          }
           colormanage_free_config();
           config = nullptr;
         }
@@ -699,7 +711,9 @@ void colormanagement_init()
 
   /* Then use fallback. */
   if (config == nullptr) {
-    printf("Color management: Using fallback mode for management\n");
+    if (!G.quiet) {
+      printf("Color management: Using fallback mode for management\n");
+    }
     config = OCIO_configCreateFallback();
     colormanage_load_config(config);
   }
@@ -1120,11 +1134,14 @@ static void colormanage_check_display_settings(ColorManagedDisplaySettings *disp
     ColorManagedDisplay *display = colormanage_display_get_named(display_settings->display_device);
 
     if (!display) {
-      printf(
-          "Color management: display \"%s\" used by %s not found, setting to default (\"%s\").\n",
-          display_settings->display_device,
-          what,
-          default_display->name);
+      if (!G.quiet) {
+        printf(
+            "Color management: display \"%s\" used by %s not found, setting to default "
+            "(\"%s\").\n",
+            display_settings->display_device,
+            what,
+            default_display->name);
+      }
 
       STRNCPY(display_settings->display_device, default_display->name);
     }
@@ -1161,10 +1178,12 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
       }
 
       if (default_view) {
-        printf("Color management: %s view \"%s\" not found, setting default \"%s\".\n",
-               what,
-               view_settings->view_transform,
-               default_view->name);
+        if (!G.quiet) {
+          printf("Color management: %s view \"%s\" not found, setting default \"%s\".\n",
+                 what,
+                 view_settings->view_transform,
+                 default_view->name);
+        }
 
         STRNCPY(view_settings->view_transform, default_view->name);
       }
@@ -1177,21 +1196,25 @@ static void colormanage_check_view_settings(ColorManagedDisplaySettings *display
   else {
     ColorManagedLook *look = colormanage_look_get_named(view_settings->look);
     if (look == nullptr) {
-      printf("Color management: %s look \"%s\" not found, setting default \"%s\".\n",
-             what,
-             view_settings->look,
-             default_look_name);
+      if (!G.quiet) {
+        printf("Color management: %s look \"%s\" not found, setting default \"%s\".\n",
+               what,
+               view_settings->look,
+               default_look_name);
+      }
 
       STRNCPY(view_settings->look, default_look_name);
     }
     else if (!colormanage_compatible_look(look, view_settings->view_transform)) {
-      printf(
-          "Color management: %s look \"%s\" is not compatible with view \"%s\", setting default "
-          "\"%s\".\n",
-          what,
-          view_settings->look,
-          view_settings->view_transform,
-          default_look_name);
+      if (!G.quiet) {
+        printf(
+            "Color management: %s look \"%s\" is not compatible with view \"%s\", setting default "
+            "\"%s\".\n",
+            what,
+            view_settings->look,
+            view_settings->view_transform,
+            default_look_name);
+      }
 
       STRNCPY(view_settings->look, default_look_name);
     }
@@ -1214,9 +1237,11 @@ static void colormanage_check_colorspace_settings(
     ColorSpace *colorspace = colormanage_colorspace_get_named(colorspace_settings->name);
 
     if (!colorspace) {
-      printf("Color management: %s colorspace \"%s\" not found, will use default instead.\n",
-             what,
-             colorspace_settings->name);
+      if (!G.quiet) {
+        printf("Color management: %s colorspace \"%s\" not found, will use default instead.\n",
+               what,
+               colorspace_settings->name);
+      }
 
       STRNCPY(colorspace_settings->name, "");
     }
@@ -1312,7 +1337,9 @@ const char *IMB_colormanagement_role_colorspace_name_get(int role)
     case COLOR_ROLE_DEFAULT_BYTE:
       return global_role_default_byte;
     default:
-      printf("Unknown role was passed to %s\n", __func__);
+      if (!G.quiet) {
+        printf("Unknown role was passed to %s\n", __func__);
+      }
       BLI_assert(0);
       break;
   }
