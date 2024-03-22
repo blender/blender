@@ -2189,6 +2189,26 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
     return;
   }
 
+  if (ob->mode == OB_MODE_OBJECT && BKE_object_is_in_editmode(ob)) {
+    /* Another object has our (shared) data in edit mode, so nothing we can change. */
+    uiBut *but = uiDefIconBut(block,
+                              UI_BTYPE_BUT,
+                              0,
+                              UI_icon_from_object_mode(ob_active->mode),
+                              0,
+                              te->ys,
+                              UI_UNIT_X,
+                              UI_UNIT_Y,
+                              nullptr,
+                              0.0,
+                              0.0,
+                              0.0,
+                              0.0,
+                              TIP_("Another object has this shared data in edit mode"));
+    UI_but_flag_enable(but, UI_BUT_DISABLED);
+    return;
+  }
+
   bool draw_active_icon = ob->mode == ob_active->mode;
 
   /* When not locking object modes, objects can remain in non-object modes. For modes that do not
