@@ -635,11 +635,10 @@ static bNodeTree *add_offset_radius_node_tree(Main &bmain)
   }
   group->geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;
 
-  group->tree_interface.add_socket(DATA_("Geometry"),
-                                   "",
-                                   "NodeSocketGeometry",
-                                   NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT,
-                                   nullptr);
+  group->tree_interface.add_socket(
+      DATA_("Geometry"), "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_INPUT, nullptr);
+  group->tree_interface.add_socket(
+      DATA_("Geometry"), "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
 
   bNodeTreeInterfaceSocket *radius_offset = group->tree_interface.add_socket(
       DATA_("Offset"), "", "NodeSocketFloat", NODE_INTERFACE_SOCKET_INPUT, nullptr);
@@ -683,11 +682,11 @@ static bNodeTree *add_offset_radius_node_tree(Main &bmain)
               set_curve_radius,
               nodeFindSocket(set_curve_radius, SOCK_OUT, "Curve"),
               group_output,
-              nodeFindSocket(group_output, SOCK_IN, "Socket_0"));
+              nodeFindSocket(group_output, SOCK_IN, "Socket_1"));
 
   nodeAddLink(group,
               group_input,
-              nodeFindSocket(group_input, SOCK_OUT, "Socket_2"),
+              nodeFindSocket(group_input, SOCK_OUT, "Socket_3"),
               named_layer_selection,
               nodeFindSocket(named_layer_selection, SOCK_IN, "Name"));
   nodeAddLink(group,
@@ -698,7 +697,7 @@ static bNodeTree *add_offset_radius_node_tree(Main &bmain)
 
   nodeAddLink(group,
               group_input,
-              nodeFindSocket(group_input, SOCK_OUT, "Socket_1"),
+              nodeFindSocket(group_input, SOCK_OUT, "Socket_2"),
               add,
               nodeFindSocket(add, SOCK_IN, "Value"));
   nodeAddLink(group,
@@ -788,14 +787,14 @@ void layer_adjustments_to_modifiers(Main &bmain,
 
       md->settings.properties = bke::idprop::create_group("Nodes Modifier Settings").release();
       IDProperty *radius_offset_prop =
-          bke::idprop::create(DATA_("Socket_1"), radius_offset).release();
+          bke::idprop::create(DATA_("Socket_2"), radius_offset).release();
       auto *ui_data = reinterpret_cast<IDPropertyUIDataFloat *>(
           IDP_ui_data_ensure(radius_offset_prop));
       ui_data->soft_min = 0.0f;
       ui_data->base.rna_subtype = PROP_TRANSLATION;
       IDP_AddToGroup(md->settings.properties, radius_offset_prop);
       IDP_AddToGroup(md->settings.properties,
-                     bke::idprop::create(DATA_("Socket_2"), gpl->info).release());
+                     bke::idprop::create(DATA_("Socket_3"), gpl->info).release());
     }
   }
 
