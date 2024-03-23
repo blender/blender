@@ -7,7 +7,7 @@
 
 #  include "GPU_shader.hh"
 #  include "GPU_shader_shared_utils.hh"
-#  include "draw_defines.h"
+#  include "draw_defines.hh"
 
 typedef struct ViewCullingData ViewCullingData;
 typedef struct ViewMatrices ViewMatrices;
@@ -30,6 +30,7 @@ typedef struct FrustumPlanes FrustumPlanes;
 #  if defined(__cplusplus) && !defined(GPU_SHADER)
 /* C++ only forward declarations. */
 struct Object;
+struct Scene;
 struct ViewLayer;
 struct GPUUniformAttr;
 struct GPULayerAttr;
@@ -40,15 +41,7 @@ struct ObjectRef;
 
 }  // namespace blender::draw
 
-#  else /* __cplusplus */
-/* C only forward declarations. */
-typedef enum eObjectInfoFlag eObjectInfoFlag;
-
 #  endif
-#endif
-
-#if defined(__cplusplus) && !defined(GPU_SHADER)
-extern "C" {
 #endif
 
 #define DRW_SHADER_SHARED_H
@@ -154,7 +147,7 @@ struct ObjectMatrices {
 };
 BLI_STATIC_ASSERT_ALIGN(ObjectMatrices, 16)
 
-enum eObjectInfoFlag {
+enum eObjectInfoFlag : uint32_t {
   OBJECT_SELECTED = (1u << 0u),
   OBJECT_FROM_DUPLI = (1u << 1u),
   OBJECT_FROM_SET = (1u << 2u),
@@ -381,7 +374,3 @@ BLI_STATIC_ASSERT_ALIGN(DRWDebugPrintBuffer, 16)
 #define drw_debug_draw_offset 2
 
 /** \} */
-
-#if defined(__cplusplus) && !defined(GPU_SHADER)
-}
-#endif

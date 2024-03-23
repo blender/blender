@@ -20,7 +20,7 @@
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
 
-#include "draw_shader_shared.h"
+#include "draw_shader_shared.hh"
 
 namespace blender::draw {
 

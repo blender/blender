@@ -17,10 +17,6 @@
 
 typedef struct DRWTexturePool DRWTexturePool;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 DRWTexturePool *DRW_texture_pool_create(void);
 void DRW_texture_pool_free(DRWTexturePool *pool);
 
@@ -65,7 +61,3 @@ void DRW_texture_pool_give_texture_ownership(DRWTexturePool *pool, GPUTexture *t
  * Resets the user bits for each texture in the pool and delete unused ones.
  */
 void DRW_texture_pool_reset(DRWTexturePool *pool);
-
-#ifdef __cplusplus
-}
-#endif

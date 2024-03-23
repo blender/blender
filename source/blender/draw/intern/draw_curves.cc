@@ -30,8 +30,8 @@
 #include "draw_cache_impl.hh"
 #include "draw_common.hh"
 #include "draw_curves_private.hh"
-#include "draw_hair_private.h"
-#include "draw_manager.h"
+#include "draw_hair_private.hh"
+#include "draw_manager_c.hh"
 #include "draw_shader.hh"
 
 namespace blender::draw {

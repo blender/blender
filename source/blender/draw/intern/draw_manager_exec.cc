@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
 #include "BLI_alloca.h"
 #include "BLI_math_bits.h"

@@ -20,7 +20,7 @@
 #include "BKE_global.hh"
 #include "BKE_object.hh"
 
-#include "draw_common.h"
+#include "draw_common_c.hh"
 
 #if 0
 #  define UI_COLOR_RGB_FROM_U8(r, g, b, v4) \

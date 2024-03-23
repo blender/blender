@@ -27,8 +27,8 @@
 #include "GPU_uniform_buffer.hh"
 #include "GPU_viewport.hh"
 
-#include "draw_instance_data.h"
-#include "draw_shader_shared.h"
+#include "draw_instance_data.hh"
+#include "draw_shader_shared.hh"
 
 struct DupliObject;
 struct Object;

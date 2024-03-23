@@ -9,7 +9,7 @@
 #pragma once
 
 #include "draw_curves_private.hh"
-#include "draw_hair_private.h"
+#include "draw_hair_private.hh"
 
 struct GPUShader;
 

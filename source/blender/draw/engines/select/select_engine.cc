@@ -18,7 +18,7 @@
 #include "DRW_select_buffer.hh"
 
 #include "draw_cache_impl.hh"
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
 #include "select_engine.hh"
 #include "select_private.hh"

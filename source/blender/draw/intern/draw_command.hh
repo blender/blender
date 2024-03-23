@@ -19,7 +19,7 @@
 
 #include "draw_command_shared.hh"
 #include "draw_handle.hh"
-#include "draw_state.h"
+#include "draw_state.hh"
 #include "draw_view.hh"
 
 /* Forward declarations. */

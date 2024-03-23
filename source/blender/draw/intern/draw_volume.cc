@@ -23,8 +23,8 @@
 
 #include "GPU_material.hh"
 
-#include "draw_common.h"
-#include "draw_manager.h"
+#include "draw_common_c.hh"
+#include "draw_manager_c.hh"
 
 #include "draw_common.hh"
 

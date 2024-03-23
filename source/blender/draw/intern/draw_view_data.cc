@@ -13,13 +13,13 @@
 
 #include "DRW_render.hh"
 
-#include "draw_instance_data.h"
+#include "draw_instance_data.hh"
 
 #include "draw_manager_text.hh"
 
-#include "draw_manager.h"
 #include "draw_manager.hh"
-#include "draw_view_data.h"
+#include "draw_manager_c.hh"
+#include "draw_view_data.hh"
 
 using namespace blender;
 

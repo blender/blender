@@ -12,14 +12,6 @@
 
 #include "GPU_shader.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifdef WITH_GPU_DRAW_TESTS
 void DRW_draw_state_init_gtests(eGPUShaderConfig sh_cfg);
-#endif
-
-#ifdef __cplusplus
-}
 #endif

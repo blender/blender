@@ -61,8 +61,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "draw_manager.h"
-#include "draw_texture_pool.h"
+#include "draw_manager_c.hh"
+#include "draw_texture_pool.hh"
 
 #include "BKE_global.hh"
 

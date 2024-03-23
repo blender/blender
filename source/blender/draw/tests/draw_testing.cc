@@ -6,7 +6,7 @@
 
 #include "GPU_shader.hh"
 
-#include "draw_manager_testing.h"
+#include "draw_manager_testing.hh"
 
 namespace blender::draw {
 

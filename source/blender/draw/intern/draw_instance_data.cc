@@ -15,8 +15,8 @@
  * #DRWInstanceDatas are sorted in a list for each different data size.
  */
 
-#include "draw_instance_data.h"
-#include "draw_manager.h"
+#include "draw_instance_data.hh"
+#include "draw_manager_c.hh"
 
 #include "DRW_engine.hh"
 #include "DRW_render.hh" /* For DRW_shgroup_get_instance_count() */

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "draw_common_shader_shared.h"
+#include "draw_common_shader_shared.hh"
 
 struct DRWShadingGroup;
 struct FluidModifierData;

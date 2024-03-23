@@ -13,10 +13,6 @@
 
 #define GPU_INFO_SIZE 512 /* IMA_MAX_RENDER_TEXT_SIZE */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct DRWRegisteredDrawEngine;
 struct DrawEngineType;
 struct GPUViewport;
@@ -131,7 +127,3 @@ ViewportEngineData *DRW_view_data_enabled_engine_iter_step(DRWEngineIterator *it
   while ((data_ = DRW_view_data_enabled_engine_iter_step(&iterator), \
           engine_ = (data_ != NULL) ? (struct DrawEngineType *)data_->engine_type->draw_engine : \
                                       NULL))
-
-#ifdef __cplusplus
-}
-#endif

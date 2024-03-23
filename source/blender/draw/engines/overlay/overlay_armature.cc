@@ -42,7 +42,7 @@
 
 #include "UI_resources.hh"
 
-#include "draw_common.h"
+#include "draw_common_c.hh"
 #include "draw_manager_text.hh"
 
 #include "overlay_private.hh"

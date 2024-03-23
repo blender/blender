@@ -25,7 +25,7 @@
 #include "DRW_engine.hh"
 #include "DRW_select_buffer.hh"
 
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
 #include "../engines/select/select_engine.hh"
 

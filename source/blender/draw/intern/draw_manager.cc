@@ -10,9 +10,9 @@
 #include "GPU_compute.hh"
 
 #include "draw_debug.hh"
-#include "draw_defines.h"
-#include "draw_manager.h"
+#include "draw_defines.hh"
 #include "draw_manager.hh"
+#include "draw_manager_c.hh"
 #include "draw_pass.hh"
 #include "draw_shader.hh"
 

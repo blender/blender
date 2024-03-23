@@ -24,9 +24,9 @@
 
 #include "GPU_texture.hh"
 
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
-#include "draw_common.h" /* Own include. */
+#include "draw_common_c.hh" /* Own include. */
 
 #ifdef WITH_FLUID
 #  include "manta_fluid_API.h"

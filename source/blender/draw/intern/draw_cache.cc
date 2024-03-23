@@ -34,7 +34,7 @@
 
 #include "draw_cache.hh"
 #include "draw_cache_impl.hh"
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Defines

@@ -20,7 +20,7 @@
 
 #include "overlay_private.hh"
 
-#include "draw_common.h"
+#include "draw_common_c.hh"
 #include "draw_manager_text.hh"
 
 void OVERLAY_edit_gpencil_legacy_cache_init(OVERLAY_Data *vedata)

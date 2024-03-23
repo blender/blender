@@ -38,13 +38,13 @@
 #include "GPU_uniform_buffer.hh"
 
 #include "draw_cache.hh"
-#include "draw_common.h"
-#include "draw_view.h"
+#include "draw_common_c.hh"
+#include "draw_view_c.hh"
 
-#include "draw_debug.h"
+#include "draw_debug_c.hh"
 #include "draw_manager_profiling.hh"
-#include "draw_state.h"
-#include "draw_view_data.h"
+#include "draw_state.hh"
+#include "draw_view_data.hh"
 
 #include "MEM_guardedalloc.h"
 

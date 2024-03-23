@@ -41,7 +41,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "draw_cache_impl.hh" /* own include */
-#include "draw_hair_private.h"
+#include "draw_hair_private.hh"
 
 namespace blender::draw {
 

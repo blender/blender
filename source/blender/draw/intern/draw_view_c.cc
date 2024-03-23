@@ -35,7 +35,7 @@
 
 #include "view3d_intern.h"
 
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
 /* ******************** region info ***************** */
 

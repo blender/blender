@@ -28,7 +28,7 @@
 #include "eevee_lightcache.h"
 #include "eevee_private.h"
 
-#include "draw_common.h"
+#include "draw_common_c.hh"
 
 static void eevee_lookdev_lightcache_delete(EEVEE_Data *vedata)
 {

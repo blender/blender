@@ -4,11 +4,9 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
+#include "GPU_state.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLI_utildefines.h"
 
 /** \file
  * \ingroup draw
@@ -93,12 +91,6 @@ ENUM_OPERATORS(DRWState, DRW_STATE_PROGRAM_POINT_SIZE);
 #define DRW_STATE_WRITE_STENCIL_ENABLED \
   (DRW_STATE_WRITE_STENCIL | DRW_STATE_WRITE_STENCIL_SHADOW_PASS | \
    DRW_STATE_WRITE_STENCIL_SHADOW_FAIL)
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
 
 namespace blender::draw {
 
@@ -224,5 +216,3 @@ static inline eGPUProvokingVertex to_provoking_vertex(DRWState state)
 /** \} */
 
 };  // namespace blender::draw
-
-#endif

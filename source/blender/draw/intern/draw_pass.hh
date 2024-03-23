@@ -54,8 +54,8 @@
 #include "draw_handle.hh"
 #include "draw_manager.hh"
 #include "draw_pass.hh"
-#include "draw_shader_shared.h"
-#include "draw_state.h"
+#include "draw_shader_shared.hh"
+#include "draw_state.hh"
 
 #include "intern/gpu_codegen.hh"
 

@@ -62,7 +62,7 @@
 #include "draw_subdivision.hh"
 
 #include "draw_cache_impl.hh" /* own include */
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
 #include "mesh_extractors/extract_mesh.hh"
 

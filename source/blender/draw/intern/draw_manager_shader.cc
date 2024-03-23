@@ -31,7 +31,7 @@
 
 #include "wm_window.hh"
 
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
 #include "CLG_log.h"
 
