@@ -13,6 +13,8 @@
 
 #include <cstring> /* for #strrchr #strncmp #strstr */
 
+#include "CLG_log.h"
+
 #include "BLI_utildefines.h"
 
 #include "BLI_linklist.h"
@@ -37,6 +39,8 @@
 #include "BLO_readfile.hh"
 
 #include "readfile.hh"
+
+static CLG_LogRef LOG = {"blo.blend_validate"};
 
 bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 {
@@ -229,6 +233,40 @@ void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList * /*reports
           (scene->master_collection->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE))
       {
         scene->master_collection->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+      }
+    }
+  }
+  FOREACH_MAIN_ID_END;
+}
+
+void BLO_main_validate_embedded_flag(Main *bmain, ReportList * /*reports*/)
+{
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (id_iter->flag & LIB_EMBEDDED_DATA) {
+      CLOG_ERROR(
+          &LOG, "ID %s is flagged as embedded, while existing in Main data-base", id_iter->name);
+      id_iter->flag &= ~LIB_EMBEDDED_DATA;
+    }
+
+    bNodeTree *node_tree = ntreeFromID(id_iter);
+    if (node_tree) {
+      if ((node_tree->id.flag & LIB_EMBEDDED_DATA) == 0) {
+        CLOG_ERROR(&LOG,
+                   "ID %s has an embedded nodetree which is not flagged as embedded",
+                   id_iter->name);
+        node_tree->id.flag |= LIB_EMBEDDED_DATA;
+      }
+    }
+
+    if (GS(id_iter->name) == ID_SCE) {
+      Scene *scene = reinterpret_cast<Scene *>(id_iter);
+      if (scene->master_collection && (scene->master_collection->id.flag & LIB_EMBEDDED_DATA) == 0)
+      {
+        CLOG_ERROR(&LOG,
+                   "ID %s has an embedded Collection which is not flagged as embedded",
+                   id_iter->name);
+        scene->master_collection->id.flag |= LIB_EMBEDDED_DATA;
       }
     }
   }

@@ -3335,6 +3335,7 @@ static void after_liblink_merged_bmain_process(Main *bmain, BlendFileReadReport 
    * so simpler to just use it directly in this single call. */
   BLO_main_validate_shapekeys(bmain, reports ? reports->reports : nullptr);
 
+  BLO_main_validate_embedded_flag(bmain, reports ? reports->reports : nullptr);
   BLO_main_validate_embedded_liboverrides(bmain, reports ? reports->reports : nullptr);
 
   /* We have to rebuild that runtime information *after* all data-blocks have been properly linked.
