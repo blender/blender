@@ -17,7 +17,7 @@
 
 #include "GPU_platform.hh"
 #include "GPU_texture.hh"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {

@@ -30,7 +30,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "eevee_lightcache.h"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

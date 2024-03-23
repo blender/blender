@@ -33,7 +33,7 @@
 
 #include "IMB_imbuf_types.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, Depsgraph *depsgraph)
 {

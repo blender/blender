@@ -22,7 +22,7 @@
 #include "GPU_vertex_buffer.hh"
 
 #include "eevee_lightcache.h"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 /* Motion Blur data. */
 

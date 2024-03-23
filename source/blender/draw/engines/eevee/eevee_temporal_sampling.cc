@@ -17,7 +17,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "GPU_texture.hh"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 #define FILTER_CDF_TABLE_SIZE 512
 

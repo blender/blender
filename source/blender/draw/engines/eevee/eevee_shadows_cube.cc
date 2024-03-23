@@ -6,7 +6,7 @@
  * \ingroup EEVEE
  */
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 #include "BLI_math_rotation.h"
 

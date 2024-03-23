@@ -18,7 +18,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 enum eRenderPassPostProcessType {
   PASS_POST_UNDEFINED = 0,

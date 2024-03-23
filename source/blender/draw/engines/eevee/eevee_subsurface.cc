@@ -18,7 +18,7 @@
 #include "GPU_material.hh"
 #include "GPU_texture.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 void EEVEE_subsurface_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data * /*vedata*/) {}
 

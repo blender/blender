@@ -16,7 +16,7 @@
 
 #include "BLI_string_utils.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {

@@ -16,7 +16,7 @@
 #include "GPU_platform.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 static struct {
   /* These are just references, not actually allocated */

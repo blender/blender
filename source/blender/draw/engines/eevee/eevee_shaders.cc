@@ -26,7 +26,7 @@
 #include "NOD_shader.h"
 
 #include "eevee_engine.h"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 static struct {
   /* Lookdev */

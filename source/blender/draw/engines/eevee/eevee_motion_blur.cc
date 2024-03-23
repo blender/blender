@@ -34,7 +34,7 @@
 
 #include "GPU_batch.hh"
 #include "GPU_texture.hh"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 int EEVEE_motion_blur_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
 {

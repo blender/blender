@@ -24,7 +24,7 @@
 
 #include "IMB_imbuf.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 #include "eevee_engine.h" /* own include */
 

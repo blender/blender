@@ -34,7 +34,7 @@
 #include "GPU_context.hh"
 #include "GPU_material.hh"
 #include "GPU_texture.hh"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 static struct {
   GPUTexture *depth_src;

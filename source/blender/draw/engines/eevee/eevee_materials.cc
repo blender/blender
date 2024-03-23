@@ -31,7 +31,7 @@
 
 #include "../eevee_next/eevee_lut.hh"
 #include "eevee_engine.h"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 /* *********** STATIC *********** */
 static struct {

@@ -31,7 +31,7 @@
 
 #include "GPU_framebuffer.hh"
 #include "GPU_texture.hh"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 #define CAMERA_JITTER_RING_DENSITY 6
 

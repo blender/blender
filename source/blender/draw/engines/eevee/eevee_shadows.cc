@@ -13,7 +13,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 #define SH_CASTER_ALLOC_CHUNK 32
 

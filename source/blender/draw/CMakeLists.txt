@@ -269,7 +269,7 @@ set(SRC
   engines/compositor/compositor_engine.h
   engines/eevee/eevee_engine.h
   engines/eevee/eevee_lightcache.h
-  engines/eevee/eevee_private.h
+  engines/eevee/eevee_private.hh
   engines/eevee/engine_eevee_shared_defines.h
   engines/eevee_next/eevee_ambient_occlusion.hh
   engines/eevee_next/eevee_camera.hh

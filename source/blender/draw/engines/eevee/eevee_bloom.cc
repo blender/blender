@@ -14,7 +14,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 static const bool use_highres = true;
 
