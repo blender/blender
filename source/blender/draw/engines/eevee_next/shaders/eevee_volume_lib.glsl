@@ -89,7 +89,7 @@ vec3 volume_light(LightData light, const bool is_directional, LightVector lv)
 {
   float power = 1.0;
   if (!is_directional) {
-    float volume_radius_squared = light.radius_squared;
+    float volume_radius_squared = light_local_data_get(light).radius_squared;
     float light_clamp = uniform_buf.volumes.light_clamp;
     if (light_clamp != 0.0) {
       /* 0.0 light clamp means it's disabled. */

@@ -210,7 +210,7 @@ ShadowRayDirectional shadow_ray_generate_directional(LightData light,
   vec4 origin = vec4(lP, dist_to_near_plane / z_range);
 
   vec3 disk_direction = sample_uniform_cone(sample_cylinder(random_2d),
-                                            light.shadow_shape_scale_or_angle);
+                                            light_sun_data_get(light).shadow_angle);
   /* Light shape is 1 unit away from the shading point. */
   vec4 direction = vec4(disk_direction, -1.0 / z_range);
 
@@ -221,7 +221,8 @@ ShadowRayDirectional shadow_ray_generate_directional(LightData light,
     origin += direction * thickness;
   }
   /* It only make sense to trace where there can be occluder. Clamp by distance to near plane. */
-  direction *= min(light.shadow_trace_distance, dist_to_near_plane / disk_direction.z);
+  direction *= min(light_sun_data_get(light).shadow_trace_distance,
+                   dist_to_near_plane / disk_direction.z);
 
   ShadowRayDirectional ray;
   ray.origin = origin;
@@ -239,17 +240,19 @@ ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state,
   int level = shadow_directional_level(ray.light, ray_pos.xyz - ray.light._position);
   /* This difference needs to be less than 32 for the later shift to be valid.
    * This is ensured by ShadowDirectional::clipmap_level_range(). */
-  int level_relative = level - ray.light.clipmap_lod_min;
+  int level_relative = level - light_sun_data_get(ray.light).clipmap_lod_min;
 
-  int lod_relative = (ray.light.type == LIGHT_SUN_ORTHO) ? ray.light.clipmap_lod_min : level;
+  int lod_relative = (ray.light.type == LIGHT_SUN_ORTHO) ?
+                         light_sun_data_get(ray.light).clipmap_lod_min :
+                         level;
 
-  vec2 clipmap_origin = vec2(ray.light._clipmap_origin_x, ray.light._clipmap_origin_y);
+  vec2 clipmap_origin = light_sun_data_get(ray.light).clipmap_origin;
   vec2 clipmap_pos = ray_pos.xy - clipmap_origin;
   vec2 tilemap_uv = clipmap_pos * exp2(-float(lod_relative)) + 0.5;
 
   /* Compute offset in tile. */
   ivec2 clipmap_offset = shadow_decompress_grid_offset(
-      ray.light.type, ray.light.clipmap_base_offset, level_relative);
+      ray.light.type, light_sun_data_get(ray.light).clipmap_base_offset, level_relative);
   /* Translate tilemap UVs to its origin. */
   tilemap_uv -= vec2(clipmap_offset) / float(SHADOW_TILEMAP_RES);
   /* Clamp to avoid out of tilemap access. */
@@ -296,18 +299,18 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
 
   float clip_far = intBitsToFloat(light.clip_far);
   float clip_near = intBitsToFloat(light.clip_near);
-  float clip_side = light.clip_side;
+  float clip_side = light_local_data_get(light).clip_side;
 
   /* TODO(fclem): 3D shift for jittered soft shadows. */
-  vec3 projection_origin = vec3(0.0, 0.0, -light.shadow_projection_shift);
+  vec3 projection_origin = vec3(0.0, 0.0, -light_local_data_get(light).shadow_projection_shift);
   vec3 direction;
   if (is_area_light(light.type)) {
-    random_2d *= vec2(light._area_size_x, light._area_size_y);
+    random_2d *= light_area_data_get(light).size;
 
     vec3 point_on_light_shape = vec3(random_2d, 0.0);
     /* Progressively blend the shape back to the projection origin. */
     point_on_light_shape = mix(
-        -projection_origin, point_on_light_shape, light.shadow_shape_scale_or_angle);
+        -projection_origin, point_on_light_shape, light_local_data_get(light).shadow_scale);
 
     direction = point_on_light_shape - lP;
     r_is_above_surface = dot(direction, lNg) > 0.0;
@@ -333,15 +336,15 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
     /* Disk rotated towards light vector. */
     vec3 right, up;
     make_orthonormal_basis(L, right, up);
-    if (is_sphere_light(light.type)) {
-      /* FIXME(weizhen): this is not well-defined when `dist < light._radius`. */
-      random_2d *= light_sphere_disk_radius(light._radius, dist);
-    }
-    else {
-      random_2d *= light._radius;
-    }
 
-    random_2d *= light.shadow_shape_scale_or_angle;
+    float shape_radius = light_spot_data_get(light).radius;
+    if (is_sphere_light(light.type)) {
+      /* FIXME(weizhen): this is not well-defined when `dist < light.spot.radius`. */
+      shape_radius = light_sphere_disk_radius(shape_radius, dist);
+    }
+    random_2d *= shape_radius;
+
+    random_2d *= light_local_data_get(light).shadow_scale;
     vec3 point_on_light_shape = right * random_2d.x + up * random_2d.y;
 
     direction = point_on_light_shape - lP;
@@ -357,7 +360,7 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
 #endif
 
     /* Clip the ray to not cross the light shape. */
-    float clip_distance = light._radius;
+    float clip_distance = light_spot_data_get(light).radius;
     direction *= saturate((dist - clip_distance) / dist);
   }
 

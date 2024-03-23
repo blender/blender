@@ -394,8 +394,6 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   ShadowModule &shadows_;
   /** Tile-map for each cube-face needed (in eCubeFace order). */
   Vector<ShadowTileMap *> tilemaps_;
-  /** Area light size. */
-  float size_x_, size_y_;
   /** Shape type. */
   eLightType light_type_;
   /** Light position. */
@@ -468,7 +466,7 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   float4x4 object_mat_;
   /** Current range of clip-map / cascades levels covered by this shadow. */
   IndexRange levels_range;
-  /** Radius of the shadowed light shape. Might be scaled compared to the shading disk. */
+  /** Angle of the shadowed light shape. Might be scaled compared to the shading disk. */
   float disk_shape_angle_;
   /** Maximum distance a shadow map ray can be travel. */
   float trace_distance_;
