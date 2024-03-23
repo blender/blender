@@ -34,10 +34,10 @@
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 
-#include "GPU_batch.h"
-#include "GPU_context.h"
+#include "GPU_batch.hh"
+#include "GPU_context.hh"
 #include "GPU_material.hh"
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "DRW_render.hh"
 

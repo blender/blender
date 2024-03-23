@@ -11,7 +11,7 @@
 
 #include <Python.h>
 
-#include "GPU_vertex_buffer.h"
+#include "GPU_vertex_buffer.hh"
 
 #include "MEM_guardedalloc.h"
 

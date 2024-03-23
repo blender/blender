@@ -22,7 +22,7 @@
 #include "BKE_layer.hh"
 #include "BKE_mask.h"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"

@@ -16,7 +16,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 #include "GPU_material.hh"
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include <iostream>
 

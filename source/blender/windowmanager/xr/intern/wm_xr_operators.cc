@@ -32,7 +32,7 @@
 
 #include "GHOST_Types.h"
 
-#include "GPU_immediate.h"
+#include "GPU_immediate.hh"
 
 #include "MEM_guardedalloc.h"
 

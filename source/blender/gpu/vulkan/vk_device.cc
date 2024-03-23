@@ -17,7 +17,7 @@
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "BLI_math_matrix_types.hh"
 

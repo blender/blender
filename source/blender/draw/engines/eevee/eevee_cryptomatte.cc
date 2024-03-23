@@ -33,7 +33,7 @@
 
 #include "BKE_cryptomatte.h"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "RE_pipeline.h"
 

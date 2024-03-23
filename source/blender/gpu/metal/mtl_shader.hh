@@ -10,10 +10,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_batch.h"
-#include "GPU_capabilities.h"
-#include "GPU_shader.h"
-#include "GPU_vertex_format.h"
+#include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
+#include "GPU_shader.hh"
+#include "GPU_vertex_format.hh"
 
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>

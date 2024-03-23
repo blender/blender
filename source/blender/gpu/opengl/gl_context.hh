@@ -10,7 +10,7 @@
 
 #include "gpu_context_private.hh"
 
-#include "GPU_framebuffer.h"
+#include "GPU_framebuffer.hh"
 
 #include "BLI_set.hh"
 #include "BLI_vector.hh"

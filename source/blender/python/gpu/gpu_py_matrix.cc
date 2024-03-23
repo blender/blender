@@ -23,7 +23,7 @@
 #include "../generic/py_capi_utils.h"
 
 #define USE_GPU_PY_MATRIX_API
-#include "GPU_matrix.h"
+#include "GPU_matrix.hh"
 #undef USE_GPU_PY_MATRIX_API
 
 #include "gpu_py.h"

@@ -56,9 +56,9 @@
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_state.hh"
 
 #include "UI_resources.hh"
 

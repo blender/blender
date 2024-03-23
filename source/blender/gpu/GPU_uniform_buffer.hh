@@ -23,13 +23,13 @@ struct GPUUniformBuf;
 GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const char *name);
 /**
  * Create UBO from inputs list.
- * Return NULL if failed to create or if \param inputs: is empty.
+ * Return nullptr if failed to create or if \param inputs: is empty.
  *
  * \param inputs: ListBase of #BLI_genericNodeN(#GPUInput).
  */
 GPUUniformBuf *GPU_uniformbuf_create_from_list(ListBase *inputs, const char *name);
 
-#define GPU_uniformbuf_create(size) GPU_uniformbuf_create_ex(size, NULL, __func__);
+#define GPU_uniformbuf_create(size) GPU_uniformbuf_create_ex(size, nullptr, __func__);
 
 void GPU_uniformbuf_free(GPUUniformBuf *ubo);
 

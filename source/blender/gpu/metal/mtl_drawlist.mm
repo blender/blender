@@ -11,7 +11,7 @@
 
 #include "BLI_assert.h"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 #include "mtl_common.hh"
 #include "mtl_drawlist.hh"
 #include "mtl_primitive.hh"

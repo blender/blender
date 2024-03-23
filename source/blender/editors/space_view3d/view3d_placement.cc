@@ -31,7 +31,7 @@
 
 #include "UI_resources.hh"
 
-#include "GPU_immediate.h"
+#include "GPU_immediate.hh"
 
 #include "view3d_intern.h"
 

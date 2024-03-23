@@ -8,7 +8,7 @@
 
 #include <sstream>
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "vk_shader.hh"
 

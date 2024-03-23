@@ -109,7 +109,7 @@
 #include "GHOST_C-api.h"
 #include "GHOST_Path-api.hh"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

@@ -43,10 +43,10 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "GPU_batch_presets.h"
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_batch_presets.hh"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "interface_intern.hh"
 

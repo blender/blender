@@ -17,7 +17,7 @@
 #include "gpu_texture_private.hh"
 
 #include "BLI_map.hh"
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 #include <mutex>
 #include <thread>
 

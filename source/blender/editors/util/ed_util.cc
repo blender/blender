@@ -47,7 +47,7 @@
 #include "ED_space_api.hh"
 #include "ED_util.hh"
 
-#include "GPU_immediate.h"
+#include "GPU_immediate.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

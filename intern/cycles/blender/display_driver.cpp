@@ -2,11 +2,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "GPU_context.h"
-#include "GPU_immediate.h"
-#include "GPU_shader.h"
-#include "GPU_state.h"
-#include "GPU_texture.h"
+#include "GPU_context.hh"
+#include "GPU_immediate.hh"
+#include "GPU_shader.hh"
+#include "GPU_state.hh"
+#include "GPU_texture.hh"
 
 #include "RE_engine.h"
 

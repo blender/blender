@@ -25,8 +25,8 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
 
 #include "ED_screen.hh"
 #include "ED_transform.hh"

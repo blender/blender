@@ -10,7 +10,7 @@
 
 #include "BLI_assert.h"
 
-#include "GPU_index_buffer.h"
+#include "GPU_index_buffer.hh"
 
 #define GPU_TRACK_INDEX_RANGE 1
 

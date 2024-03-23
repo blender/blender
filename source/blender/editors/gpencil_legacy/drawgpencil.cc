@@ -30,11 +30,11 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_material.h"
 
-#include "GPU_batch.h"
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_shader_shared.h"
-#include "GPU_state.h"
+#include "GPU_batch.hh"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_shader_shared.hh"
+#include "GPU_state.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "ED_gpencil_legacy.hh"

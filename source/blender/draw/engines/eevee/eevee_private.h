@@ -14,7 +14,7 @@
 
 #include "DNA_lightprobe_types.h"
 
-#include "GPU_viewport.h"
+#include "GPU_viewport.hh"
 
 #include "BKE_camera.h"
 

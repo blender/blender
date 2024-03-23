@@ -47,7 +47,7 @@
 #  include "BKE_scene.hh"
 #  include "BKE_sound.h"
 
-#  include "GPU_context.h"
+#  include "GPU_context.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern_python.h"

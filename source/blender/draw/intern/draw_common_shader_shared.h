@@ -7,7 +7,7 @@
  */
 
 #ifndef GPU_SHADER
-#  include "GPU_shader_shared_utils.h"
+#  include "GPU_shader_shared_utils.hh"
 
 typedef struct GlobalsUboStorage GlobalsUboStorage;
 #endif

@@ -35,7 +35,7 @@
 
 #include "WM_api.hh"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 #include "render_types.h"
 

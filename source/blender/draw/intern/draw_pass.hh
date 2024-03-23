@@ -45,7 +45,7 @@
 
 #include "BKE_image.h"
 
-#include "GPU_debug.h"
+#include "GPU_debug.hh"
 #include "GPU_material.hh"
 
 #include "DRW_gpu_wrapper.hh"
@@ -57,7 +57,7 @@
 #include "draw_shader_shared.h"
 #include "draw_state.h"
 
-#include "intern/gpu_codegen.h"
+#include "intern/gpu_codegen.hh"
 
 #include <sstream>
 

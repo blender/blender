@@ -16,14 +16,14 @@
 #include "BLI_assert.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
 
 #include "gpu_backend.hh"
 #include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
-#include "gpu_matrix_private.h"
-#include "gpu_private.h"
+#include "gpu_matrix_private.hh"
+#include "gpu_private.hh"
 
 #ifdef WITH_OPENGL_BACKEND
 #  include "gl_backend.hh"

@@ -1904,7 +1904,7 @@ inline float2x2 operator-(float2x2 a)
 #  define vertex_fetch_get_input_vert_count() UNIFORM_SSBO_INPUT_VERT_COUNT_STR
 #  define vertex_fetch_get_attr_type(attr) PPCAT(UNIFORM_SSBO_TYPE_STR, attr)
 
-/* Must mirror GPU_primitive.h. */
+/* Must mirror GPU_primitive.hh. */
 #  define GPU_PRIM_POINTS 0
 #  define GPU_PRIM_LINES 1
 #  define GPU_PRIM_TRIS 2

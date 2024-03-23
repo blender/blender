@@ -14,7 +14,7 @@
 
 #include "GPU_select.hh"
 
-#include "../intern/gpu_select_private.h"
+#include "../intern/gpu_select_private.hh"
 
 #include "draw_manager.hh"
 #include "draw_pass.hh"

@@ -34,14 +34,14 @@
 
 #include "BIF_glutil.hh"
 
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_platform.h"
-#include "GPU_shader_shared.h"
-#include "GPU_state.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_platform.hh"
+#include "GPU_shader_shared.hh"
+#include "GPU_state.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "DRW_engine.hh"

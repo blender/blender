@@ -21,8 +21,8 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"

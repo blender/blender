@@ -28,10 +28,10 @@
 #include "BKE_object_types.hh"
 #include "BKE_vfont.hh"
 
-#include "GPU_batch.h"
-#include "GPU_capabilities.h"
+#include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
 #include "GPU_material.hh"
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "UI_resources.hh"
 

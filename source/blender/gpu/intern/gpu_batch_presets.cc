@@ -13,8 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h" /* Own include. */
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name Local Structures

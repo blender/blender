@@ -15,7 +15,7 @@
 
 #include "BLI_string.h"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "../generic/python_compat.h"

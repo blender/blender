@@ -8,7 +8,7 @@
 
 #include "DRW_render.hh"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "basic_private.h"
 

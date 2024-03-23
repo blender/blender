@@ -22,8 +22,8 @@
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include <cmath>
 #include <cstdlib>

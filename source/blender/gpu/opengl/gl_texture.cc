@@ -13,9 +13,9 @@
 
 #include "DNA_userdef_types.h"
 
-#include "GPU_capabilities.h"
-#include "GPU_framebuffer.h"
-#include "GPU_platform.h"
+#include "GPU_capabilities.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_platform.hh"
 
 #include "gl_backend.hh"
 #include "gl_debug.hh"

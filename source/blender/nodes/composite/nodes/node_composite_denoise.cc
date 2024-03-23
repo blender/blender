@@ -13,8 +13,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "GPU_state.h"
-#include "GPU_texture.h"
+#include "GPU_state.hh"
+#include "GPU_texture.hh"
 
 #include "DNA_node_types.h"
 

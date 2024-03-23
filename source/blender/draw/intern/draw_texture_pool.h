@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 typedef struct DRWTexturePool DRWTexturePool;
 

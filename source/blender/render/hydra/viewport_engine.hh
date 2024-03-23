@@ -6,9 +6,9 @@
 
 #include <pxr/imaging/hd/renderBuffer.h>
 
-#include "GPU_batch.h"
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_batch.hh"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "engine.hh"
 

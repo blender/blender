@@ -17,7 +17,7 @@
 #include "BLI_string_ref.hh"
 #include "DRW_render.hh"
 #include "GPU_material.hh"
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "eevee_material.hh"
 #include "eevee_sync.hh"

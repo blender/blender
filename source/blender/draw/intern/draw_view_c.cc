@@ -17,10 +17,10 @@
 #include "ED_util.hh"
 #include "ED_view3d.hh"
 
-#include "GPU_debug.h"
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_shader.h"
+#include "GPU_debug.hh"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_shader.hh"
 
 #include "UI_resources.hh"
 #include "UI_view2d.hh"

@@ -11,8 +11,8 @@
 
 #include "gpu_context_private.hh"
 
-#include "GPU_common_types.h"
-#include "GPU_context.h"
+#include "GPU_common_types.hh"
+#include "GPU_context.hh"
 
 /* Don't generate OpenGL deprecation warning. This is a known thing, and is not something easily
  * solvable in a short term. */
@@ -488,7 +488,7 @@ struct MTLContextGlobalShaderPipelineState {
   MTLTextureBinding image_bindings[MTL_MAX_TEXTURE_SLOTS];
 
   /*** --- Render Pipeline State --- ***/
-  /* Track global render pipeline state for the current context. The functions in GPU_state.h
+  /* Track global render pipeline state for the current context. The functions in GPU_state.hh
    * modify these parameters. Certain values, tagged [PSO], are parameters which are required to be
    * passed into PSO creation, rather than dynamic state functions on the RenderCommandEncoder.
    */

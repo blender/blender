@@ -88,7 +88,7 @@
 #include "SEQ_utils.hh" /* SEQ_get_topmost_sequence() */
 
 #include "GPU_material.hh"
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 

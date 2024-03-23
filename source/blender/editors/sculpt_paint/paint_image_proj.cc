@@ -89,8 +89,8 @@
 #include "ED_view3d.hh"
 #include "ED_view3d_offscreen.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_init_exit.h"
+#include "GPU_capabilities.hh"
+#include "GPU_init_exit.hh"
 
 #include "NOD_shader.h"
 

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "gpu_storage_buffer_private.hh"
 #include "gpu_vertex_buffer_private.hh"

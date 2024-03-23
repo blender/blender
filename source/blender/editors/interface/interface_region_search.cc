@@ -39,7 +39,7 @@
 
 #include "ED_screen.hh"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 

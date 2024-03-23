@@ -11,7 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "gpu_backend.hh"
-#include "gpu_vertex_format_private.h"
+#include "gpu_vertex_format_private.hh"
 
 #include "gpu_context_private.hh" /* TODO: remove. */
 

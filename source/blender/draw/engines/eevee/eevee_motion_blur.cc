@@ -32,8 +32,8 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_batch.h"
-#include "GPU_texture.h"
+#include "GPU_batch.hh"
+#include "GPU_texture.hh"
 #include "eevee_private.h"
 
 int EEVEE_motion_blur_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)

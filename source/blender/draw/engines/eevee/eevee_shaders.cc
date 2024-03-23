@@ -18,10 +18,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_capabilities.h"
-#include "GPU_context.h"
+#include "GPU_capabilities.hh"
+#include "GPU_context.hh"
 #include "GPU_material.hh"
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "NOD_shader.h"
 

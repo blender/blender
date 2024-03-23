@@ -6,7 +6,7 @@
 
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "COM_context.hh"
 

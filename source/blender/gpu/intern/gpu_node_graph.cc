@@ -20,11 +20,11 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_texture.h"
-#include "GPU_vertex_format.h"
+#include "GPU_texture.hh"
+#include "GPU_vertex_format.hh"
 
-#include "gpu_material_library.h"
-#include "gpu_node_graph.h"
+#include "gpu_material_library.hh"
+#include "gpu_node_graph.hh"
 
 /* Node Link Functions */
 

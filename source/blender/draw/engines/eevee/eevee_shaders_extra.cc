@@ -8,7 +8,7 @@
  * This file is only there to handle ShaderCreateInfos.
  */
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "BLI_string_ref.hh"
 

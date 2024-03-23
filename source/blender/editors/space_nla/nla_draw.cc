@@ -29,9 +29,9 @@
 #include "ED_keyframes_draw.hh"
 #include "ED_keyframes_keylist.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_state.hh"
 
 #include "WM_types.hh"
 

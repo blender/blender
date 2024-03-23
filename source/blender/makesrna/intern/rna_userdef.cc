@@ -39,7 +39,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "GPU_platform.h"
+#include "GPU_platform.hh"
 
 #include "UI_interface_icons.hh"
 
@@ -189,9 +189,9 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 
 #  include "DEG_depsgraph.hh"
 
-#  include "GPU_capabilities.h"
+#  include "GPU_capabilities.hh"
 #  include "GPU_select.hh"
-#  include "GPU_texture.h"
+#  include "GPU_texture.hh"
 
 #  include "BLF_api.hh"
 

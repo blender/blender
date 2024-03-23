@@ -7,9 +7,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_compute.h"
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_compute.hh"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "COM_context.hh"
 

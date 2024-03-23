@@ -10,7 +10,7 @@
 
 #include "DRW_render.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "DEG_depsgraph_query.hh"
 

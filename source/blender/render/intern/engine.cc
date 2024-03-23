@@ -30,7 +30,7 @@
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

@@ -14,9 +14,9 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 #include "GPU_material.hh"
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "eevee_private.h"
 

@@ -30,7 +30,7 @@
 
 #include "IMB_imbuf_types.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

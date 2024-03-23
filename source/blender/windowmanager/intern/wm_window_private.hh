@@ -11,7 +11,7 @@
 
 #include "GHOST_Types.h"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 struct bContext;
 

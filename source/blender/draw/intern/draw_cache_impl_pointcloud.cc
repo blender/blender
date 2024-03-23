@@ -25,7 +25,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_pointcloud.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 #include "GPU_material.hh"
 
 #include "draw_attributes.hh"

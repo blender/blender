@@ -57,7 +57,7 @@
 #include "ED_transform.hh"
 #include "ED_undo.hh"
 
-#include "GPU_matrix.h"
+#include "GPU_matrix.hh"
 
 #include "DRW_engine.hh"
 

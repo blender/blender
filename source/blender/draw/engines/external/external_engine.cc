@@ -22,12 +22,12 @@
 #include "ED_image.hh"
 #include "ED_screen.hh"
 
-#include "GPU_batch.h"
-#include "GPU_debug.h"
-#include "GPU_matrix.h"
-#include "GPU_shader.h"
-#include "GPU_state.h"
-#include "GPU_viewport.h"
+#include "GPU_batch.hh"
+#include "GPU_debug.hh"
+#include "GPU_matrix.hh"
+#include "GPU_shader.hh"
+#include "GPU_state.hh"
+#include "GPU_viewport.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"

@@ -10,7 +10,7 @@
 
 #include "BKE_attribute_math.hh"
 
-#include "GPU_vertex_buffer.h"
+#include "GPU_vertex_buffer.hh"
 
 #include "attribute_convert.hh"
 

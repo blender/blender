@@ -5,8 +5,8 @@
 #ifndef GPU_SHADER
 #  pragma once
 
-#  include "GPU_shader.h"
-#  include "GPU_shader_shared_utils.h"
+#  include "GPU_shader.hh"
+#  include "GPU_shader_shared_utils.hh"
 #  include "draw_defines.h"
 
 typedef struct ViewCullingData ViewCullingData;

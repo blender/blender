@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "vk_batch.hh"
 #include "vk_common.hh"

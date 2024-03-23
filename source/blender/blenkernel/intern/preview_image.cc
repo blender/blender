@@ -31,7 +31,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_thumbs.hh"

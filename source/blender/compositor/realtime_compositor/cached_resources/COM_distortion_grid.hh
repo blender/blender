@@ -10,8 +10,8 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "DNA_movieclip_types.h"
 

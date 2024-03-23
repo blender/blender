@@ -22,13 +22,13 @@
 
 #include "BKE_context.hh"
 
-#include "GPU_batch.h"
-#include "GPU_batch_utils.h"
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_utils.hh"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_matrix.hh"
 #include "GPU_select.hh"
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

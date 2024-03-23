@@ -10,10 +10,10 @@
 
 #include "DRW_render.hh"
 
-#include "GPU_batch.h"
-#include "GPU_framebuffer.h"
-#include "GPU_matrix.h"
-#include "GPU_texture.h"
+#include "GPU_batch.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_matrix.hh"
+#include "GPU_texture.hh"
 
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"

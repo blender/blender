@@ -6,8 +6,8 @@
  * \ingroup edgizmolib
  */
 
-#include "GPU_batch.h"
-#include "GPU_immediate.h"
+#include "GPU_batch.hh"
+#include "GPU_immediate.hh"
 
 #include "MEM_guardedalloc.h"
 

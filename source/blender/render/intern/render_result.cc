@@ -36,7 +36,7 @@
 #include "IMB_imbuf_types.hh"
 #include "IMB_openexr.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "render_result.h"
 #include "render_types.h"

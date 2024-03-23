@@ -11,9 +11,9 @@
 #include "BLI_color.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_batch.h"
-#include "GPU_index_buffer.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_batch.hh"
+#include "GPU_index_buffer.hh"
+#include "GPU_vertex_buffer.hh"
 
 struct ColorVertex {
   blender::float2 pos;

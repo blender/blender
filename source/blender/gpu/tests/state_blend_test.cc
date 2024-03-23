@@ -6,10 +6,10 @@
 
 #include "gpu_testing.hh"
 
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_framebuffer.h"
-#include "GPU_matrix.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_matrix.hh"
 
 #include "BLI_math_vector.hh"
 

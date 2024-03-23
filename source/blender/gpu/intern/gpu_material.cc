@@ -31,14 +31,14 @@
 #include "NOD_shader.h"
 
 #include "GPU_material.hh"
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "DRW_engine.hh"
 
-#include "gpu_codegen.h"
-#include "gpu_node_graph.h"
+#include "gpu_codegen.hh"
+#include "gpu_node_graph.hh"
 
 #include "atomic_ops.h"
 

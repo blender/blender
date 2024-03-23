@@ -13,7 +13,7 @@
 
 #include "BKE_context.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

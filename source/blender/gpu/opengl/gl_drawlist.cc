@@ -11,7 +11,7 @@
 
 #include "BLI_assert.h"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "gpu_context_private.hh"
 #include "gpu_drawlist_private.hh"

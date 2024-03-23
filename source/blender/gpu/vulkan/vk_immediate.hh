@@ -13,7 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "gpu_immediate_private.hh"
-#include "gpu_vertex_format_private.h"
+#include "gpu_vertex_format_private.hh"
 
 #include "vk_buffer.hh"
 #include "vk_context.hh"

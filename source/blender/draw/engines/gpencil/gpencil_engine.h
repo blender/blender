@@ -17,7 +17,7 @@
 
 #include "BKE_grease_pencil.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #ifdef __cplusplus
 extern "C" {

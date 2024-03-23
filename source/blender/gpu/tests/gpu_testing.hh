@@ -8,7 +8,7 @@
 
 #include "GHOST_C-api.h"
 
-#include "GPU_platform.h"
+#include "GPU_platform.hh"
 
 struct GPUContext;
 

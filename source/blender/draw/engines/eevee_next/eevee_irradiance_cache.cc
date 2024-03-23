@@ -6,8 +6,8 @@
 
 #include "BKE_lightprobe.h"
 
-#include "GPU_capabilities.h"
-#include "GPU_debug.h"
+#include "GPU_capabilities.hh"
+#include "GPU_debug.hh"
 
 #include "BLI_math_rotation.hh"
 

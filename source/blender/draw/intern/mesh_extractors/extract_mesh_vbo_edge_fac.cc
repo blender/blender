@@ -10,7 +10,7 @@
 
 #include "BLI_math_vector.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "draw_subdivision.hh"
 #include "extract_mesh.hh"

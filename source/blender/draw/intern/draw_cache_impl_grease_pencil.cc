@@ -23,7 +23,7 @@
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "draw_cache_impl.hh"
 

@@ -42,8 +42,8 @@
 
 #include "BLF_api.hh"
 
-#include "GPU_batch.h"
-#include "GPU_matrix.h"
+#include "GPU_batch.hh"
+#include "GPU_matrix.hh"
 
 #include "blf_internal.hh"
 #include "blf_internal_types.hh"

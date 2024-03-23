@@ -14,7 +14,7 @@
 
 #include "GPU_select.hh"
 
-#include "gpu_select_private.h"
+#include "gpu_select_private.hh"
 
 struct GPUSelectNextState {
   /** Result buffer set on initialization. */

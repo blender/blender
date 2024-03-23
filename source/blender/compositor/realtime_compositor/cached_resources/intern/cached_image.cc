@@ -12,8 +12,8 @@
 
 #include "RE_pipeline.h"
 
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

@@ -25,7 +25,7 @@
 
 #include "ED_image.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "image_drawing_mode.hh"
 #include "image_engine.h"

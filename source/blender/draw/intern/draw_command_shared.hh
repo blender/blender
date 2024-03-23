@@ -8,7 +8,7 @@
 
 #ifndef GPU_SHADER
 #  include "BLI_span.hh"
-#  include "GPU_shader_shared_utils.h"
+#  include "GPU_shader_shared_utils.hh"
 
 namespace blender::draw::command {
 

@@ -16,8 +16,8 @@
 #include "BKE_modifier.hh"
 #include "BKE_subdiv.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_context.h"
+#include "GPU_capabilities.hh"
+#include "GPU_context.hh"
 
 SubdivSettings BKE_subsurf_modifier_settings_init(const SubsurfModifierData *smd,
                                                   const bool use_render_params)

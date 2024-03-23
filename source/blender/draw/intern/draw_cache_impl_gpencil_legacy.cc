@@ -19,7 +19,7 @@
 #include "DRW_render.hh"
 
 #include "ED_gpencil_legacy.hh"
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "DEG_depsgraph_query.hh"
 

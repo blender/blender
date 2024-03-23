@@ -15,7 +15,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 
-#include "GPU_matrix.h"
+#include "GPU_matrix.hh"
 #include "GPU_select.hh"
 
 #include "WM_types.hh"

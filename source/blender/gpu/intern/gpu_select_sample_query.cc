@@ -11,10 +11,10 @@
 
 #include <cstdlib>
 
-#include "GPU_debug.h"
-#include "GPU_framebuffer.h"
+#include "GPU_debug.hh"
+#include "GPU_framebuffer.hh"
 #include "GPU_select.hh"
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -26,7 +26,7 @@
 #include "gpu_backend.hh"
 #include "gpu_query.hh"
 
-#include "gpu_select_private.h"
+#include "gpu_select_private.hh"
 
 using namespace blender;
 using namespace blender::gpu;

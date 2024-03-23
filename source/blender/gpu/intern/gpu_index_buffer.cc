@@ -17,9 +17,9 @@
 
 #include "gpu_index_buffer_private.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_compute.h"
-#include "GPU_platform.h"
+#include "GPU_capabilities.hh"
+#include "GPU_compute.hh"
+#include "GPU_platform.hh"
 
 #include <algorithm> /* For `min/max`. */
 #include <cstring>

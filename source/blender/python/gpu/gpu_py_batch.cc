@@ -16,7 +16,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"

@@ -22,7 +22,7 @@
 
 #include "IMB_colormanagement.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "draw_manager.h"
 

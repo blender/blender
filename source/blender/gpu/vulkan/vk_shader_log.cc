@@ -8,7 +8,7 @@
 
 #include "vk_shader_log.hh"
 
-#include "GPU_platform.h"
+#include "GPU_platform.hh"
 
 namespace blender::gpu {
 

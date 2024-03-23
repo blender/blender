@@ -13,7 +13,7 @@
 #include "DNA_fluid_types.h"
 #include "ED_paint.hh"
 #include "ED_view3d.hh"
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "draw_common.hh"

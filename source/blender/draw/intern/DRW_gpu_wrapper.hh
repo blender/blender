@@ -72,9 +72,9 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
-#include "GPU_framebuffer.h"
-#include "GPU_storage_buffer.h"
-#include "GPU_texture.h"
+#include "GPU_framebuffer.hh"
+#include "GPU_storage_buffer.hh"
+#include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
 namespace blender::draw {

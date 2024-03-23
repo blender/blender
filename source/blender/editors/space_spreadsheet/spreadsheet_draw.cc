@@ -6,7 +6,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "GPU_immediate.h"
+#include "GPU_immediate.hh"
 
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"

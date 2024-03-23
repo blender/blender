@@ -15,7 +15,7 @@
 #include "vk_texture.hh"
 #include "vk_vertex_buffer.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 namespace blender::gpu {
 

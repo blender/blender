@@ -14,8 +14,8 @@
 #include "BLI_sort_utils.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_batch.h"
-#include "GPU_batch_utils.h" /* own include */
+#include "GPU_batch.hh"
+#include "GPU_batch_utils.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Polygon Creation (2D)

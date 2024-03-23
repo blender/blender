@@ -21,7 +21,7 @@
 #include "BKE_deform.hh"
 #include "BKE_lattice.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "draw_cache_impl.hh" /* own include */
 

@@ -59,7 +59,7 @@
 #include "ED_util.hh"
 #include "ED_view3d.hh"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 #include "RNA_access.hh"
 

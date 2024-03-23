@@ -49,7 +49,7 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  include "GPU_state.h"
+#  include "GPU_state.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.h"

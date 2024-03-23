@@ -11,8 +11,8 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_rect.h"
 
-#include "GPU_batch.h"
-#include "GPU_texture.h"
+#include "GPU_batch.hh"
+#include "GPU_texture.hh"
 
 namespace blender::draw::image_engine {
 

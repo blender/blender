@@ -24,7 +24,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_object.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "draw_cache_extract.hh"
 #include "draw_cache_inline.hh"

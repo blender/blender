@@ -22,9 +22,9 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 #include "GPU_material.hh"
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

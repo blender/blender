@@ -8,8 +8,8 @@
 
 #include "BLI_string.h"
 
-#include "GPU_framebuffer.h"
-#include "GPU_texture.h"
+#include "GPU_framebuffer.hh"
+#include "GPU_texture.hh"
 
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"

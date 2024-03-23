@@ -26,7 +26,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 static SpinLock refcounter_spin;
 

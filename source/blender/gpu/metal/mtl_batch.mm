@@ -13,7 +13,7 @@
 
 #include "BKE_global.hh"
 
-#include "GPU_common.h"
+#include "GPU_common.hh"
 #include "gpu_batch_private.hh"
 #include "gpu_shader_private.hh"
 

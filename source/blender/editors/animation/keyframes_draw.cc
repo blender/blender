@@ -22,9 +22,9 @@
 #include "DNA_grease_pencil_types.h"
 #include "DNA_mask_types.h"
 
-#include "GPU_immediate.h"
-#include "GPU_shader_shared.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_shader_shared.hh"
+#include "GPU_state.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

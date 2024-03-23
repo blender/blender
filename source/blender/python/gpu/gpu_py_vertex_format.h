@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "GPU_vertex_format.h"
+#include "GPU_vertex_format.hh"
 
 #ifdef __cplusplus
 extern "C" {

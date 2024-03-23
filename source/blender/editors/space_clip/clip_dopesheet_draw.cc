@@ -29,8 +29,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "GPU_immediate.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "clip_intern.h" /* own include */
 

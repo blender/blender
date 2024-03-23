@@ -7,7 +7,7 @@
  */
 
 #include "BKE_global.hh"
-#include "GPU_compute.h"
+#include "GPU_compute.hh"
 
 #include "draw_debug.hh"
 #include "draw_defines.h"

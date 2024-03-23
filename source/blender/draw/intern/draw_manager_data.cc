@@ -44,11 +44,11 @@
 #  include "BLI_math_bits.h"
 #endif
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 #include "GPU_material.hh"
 #include "GPU_uniform_buffer.hh"
 
-#include "intern/gpu_codegen.h"
+#include "intern/gpu_codegen.hh"
 
 /**
  * IMPORTANT:

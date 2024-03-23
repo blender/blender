@@ -17,7 +17,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "../generic/py_capi_utils.h"
 

@@ -4,9 +4,9 @@
 
 #include "testing/testing.h"
 
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_shader.h"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_shader.hh"
 #include "gpu_testing.hh"
 
 #include "BLI_math_vector.hh"

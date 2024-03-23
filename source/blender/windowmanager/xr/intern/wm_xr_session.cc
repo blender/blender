@@ -34,8 +34,8 @@
 
 #include "GHOST_C-api.h"
 
-#include "GPU_batch.h"
-#include "GPU_viewport.h"
+#include "GPU_batch.hh"
+#include "GPU_viewport.hh"
 
 #include "MEM_guardedalloc.h"
 

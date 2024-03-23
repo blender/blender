@@ -90,8 +90,8 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 #  include "BKE_context.hh"
 #  include "BKE_report.hh"
 
-#  include "GPU_capabilities.h"
-#  include "GPU_shader.h"
+#  include "GPU_capabilities.hh"
+#  include "GPU_shader.hh"
 #  include "IMB_colormanagement.hh"
 #  include "IMB_imbuf_types.hh"
 

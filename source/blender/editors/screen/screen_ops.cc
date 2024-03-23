@@ -72,7 +72,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "screen_intern.h" /* own module include */
 

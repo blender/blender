@@ -14,9 +14,9 @@
 
 #include <Python.h>
 
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_init_exit.h"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_init_exit.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"

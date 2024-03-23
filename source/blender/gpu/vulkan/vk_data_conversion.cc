@@ -9,7 +9,7 @@
 #include "vk_data_conversion.hh"
 #include "vk_device.hh"
 
-#include "gpu_vertex_format_private.h"
+#include "gpu_vertex_format_private.hh"
 
 #include "BLI_color.hh"
 

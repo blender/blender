@@ -28,7 +28,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "WM_api.hh" /* For #WM_ghost_backend */
 

@@ -27,7 +27,7 @@
 #include "IMB_interp.hh"
 #include "IMB_openexr.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "MEM_guardedalloc.h"
 

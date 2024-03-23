@@ -6,8 +6,8 @@
  * \ingroup cmpnodes
  */
 
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

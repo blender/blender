@@ -13,7 +13,7 @@
 #include "BLI_pool.hh"
 #include "BLI_vector.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "eevee_camera.hh"
 #include "eevee_material.hh"

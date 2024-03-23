@@ -8,8 +8,8 @@
 
 #include "BLI_vector.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_viewport.h"
+#include "GPU_capabilities.hh"
+#include "GPU_viewport.hh"
 
 #include "DRW_render.hh"
 

@@ -31,8 +31,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "ED_screen.hh"
 #include "ED_view3d.hh"

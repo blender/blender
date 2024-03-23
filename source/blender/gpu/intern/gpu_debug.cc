@@ -14,7 +14,7 @@
 
 #include "gpu_context_private.hh"
 
-#include "GPU_debug.h"
+#include "GPU_debug.hh"
 
 using namespace blender;
 using namespace blender::gpu;

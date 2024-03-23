@@ -11,7 +11,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_utildefines.h"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "draw_attributes.hh"
 

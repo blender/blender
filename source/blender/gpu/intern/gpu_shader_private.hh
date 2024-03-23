@@ -11,7 +11,7 @@
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_interface.hh"
 #include "gpu_vertex_buffer_private.hh"
@@ -88,7 +88,7 @@ class Shader {
   /* Pre-warms PSOs using parent shader's cached PSO descriptors. Limit specifies maximum PSOs to
    * warm. If -1, compiles all PSO permutations in parent shader.
    *
-   * See `GPU_shader_warm_cache(..)` in `GPU_shader.h` for more information. */
+   * See `GPU_shader_warm_cache(..)` in `GPU_shader.hh` for more information. */
   virtual void warm_cache(int limit) = 0;
 
   virtual void transform_feedback_names_set(Span<const char *> name_list,

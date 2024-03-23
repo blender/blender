@@ -13,9 +13,9 @@
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_platform.h"
-#include "gpu_shader_dependency_private.h"
+#include "GPU_capabilities.hh"
+#include "GPU_platform.hh"
+#include "gpu_shader_dependency_private.hh"
 
 #include "gl_debug.hh"
 #include "gl_vertex_buffer.hh"

@@ -8,10 +8,10 @@
 
 #include "ED_screen.hh"
 
-#include "GPU_batch_presets.h"
-#include "GPU_immediate.h"
-#include "GPU_platform.h"
-#include "GPU_state.h"
+#include "GPU_batch_presets.hh"
+#include "GPU_immediate.hh"
+#include "GPU_platform.hh"
+#include "GPU_state.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.hh"

@@ -21,7 +21,7 @@
 
 #include "DNA_particle_types.h"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "basic_engine.h"
 #include "basic_private.h"

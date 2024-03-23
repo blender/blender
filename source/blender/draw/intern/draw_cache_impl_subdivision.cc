@@ -30,11 +30,11 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_compute.h"
-#include "GPU_index_buffer.h"
-#include "GPU_state.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_capabilities.hh"
+#include "GPU_compute.hh"
+#include "GPU_index_buffer.hh"
+#include "GPU_state.hh"
+#include "GPU_vertex_buffer.hh"
 
 #include "opensubdiv_capi.hh"
 #include "opensubdiv_capi_type.hh"

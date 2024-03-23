@@ -13,8 +13,8 @@
 
 #include <Python.h>
 
-#include "GPU_framebuffer.h"
-#include "GPU_state.h"
+#include "GPU_framebuffer.hh"
+#include "GPU_state.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"

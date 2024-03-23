@@ -33,7 +33,7 @@
 
 #include "ED_screen.hh"
 
-#include "GPU_framebuffer.h"
+#include "GPU_framebuffer.hh"
 #include "interface_intern.hh"
 
 /* -------------------------------------------------------------------- */

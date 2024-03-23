@@ -29,12 +29,12 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
-#include "GPU_framebuffer.h"
+#include "GPU_framebuffer.hh"
 #include "GPU_material.hh"
-#include "GPU_primitive.h"
-#include "GPU_shader.h"
-#include "GPU_storage_buffer.h"
-#include "GPU_texture.h"
+#include "GPU_primitive.hh"
+#include "GPU_shader.hh"
+#include "GPU_storage_buffer.hh"
+#include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "draw_cache.hh"

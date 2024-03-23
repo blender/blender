@@ -20,7 +20,7 @@
 
 #include "DNA_world_types.h"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 #include "IMB_imbuf.hh"
 

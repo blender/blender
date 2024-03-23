@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "gl_context.hh"
 

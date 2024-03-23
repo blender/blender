@@ -10,7 +10,7 @@
 
 #include "BLI_assert.h"
 
-#include "GPU_vertex_buffer.h"
+#include "GPU_vertex_buffer.hh"
 
 #include "gpu_framebuffer_private.hh"
 

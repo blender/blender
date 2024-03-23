@@ -15,8 +15,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "GPU_matrix.h"
-#include "GPU_viewport.h"
+#include "GPU_matrix.hh"
+#include "GPU_viewport.hh"
 
 #include "WM_api.hh"
 

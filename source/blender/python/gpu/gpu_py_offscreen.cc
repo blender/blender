@@ -23,10 +23,10 @@
 
 #include "DNA_view3d_types.h"
 
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_texture.h"
-#include "GPU_viewport.h"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_texture.hh"
+#include "GPU_viewport.hh"
 
 #include "ED_view3d_offscreen.hh"
 

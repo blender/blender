@@ -13,8 +13,8 @@
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
 
-#include "GPU_texture.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_texture.hh"
+#include "GPU_vertex_buffer.hh"
 
 struct ColorManagedDisplay;
 struct FontBLF;

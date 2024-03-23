@@ -12,10 +12,10 @@
 
 #include <optional>
 
-#include "GPU_batch.h"
-#include "GPU_primitive.h"
-#include "GPU_shader.h"
-#include "GPU_vertex_format.h"
+#include "GPU_batch.hh"
+#include "GPU_primitive.hh"
+#include "GPU_shader.hh"
+#include "GPU_vertex_format.hh"
 
 namespace blender::gpu {
 

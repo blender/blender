@@ -16,7 +16,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "UI_resources.hh"
 

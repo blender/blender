@@ -38,7 +38,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_matrix.h"
+#include "GPU_matrix.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

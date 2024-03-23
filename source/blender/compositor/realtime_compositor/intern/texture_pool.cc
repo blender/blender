@@ -9,7 +9,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "COM_texture_pool.hh"
 

@@ -13,8 +13,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "../generic/py_capi_utils.h"

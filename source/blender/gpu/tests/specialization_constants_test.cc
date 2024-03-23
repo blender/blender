@@ -4,13 +4,13 @@
 
 #include "testing/testing.h"
 
-#include "GPU_batch.h"
-#include "GPU_capabilities.h"
-#include "GPU_compute.h"
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_shader.h"
-#include "GPU_storage_buffer.h"
+#include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
+#include "GPU_compute.hh"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_shader.hh"
+#include "GPU_storage_buffer.hh"
 
 #include "BLI_math_vector.hh"
 #include "BLI_utility_mixins.hh"

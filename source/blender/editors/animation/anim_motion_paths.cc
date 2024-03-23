@@ -28,8 +28,8 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_batch.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_batch.hh"
+#include "GPU_vertex_buffer.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_keylist.hh"

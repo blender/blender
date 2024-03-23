@@ -14,7 +14,7 @@
 
 #include "DNA_customdata_types.h" /* #eCustomDataType. */
 
-#include "GPU_vertex_format.h"
+#include "GPU_vertex_format.hh"
 
 struct GPUVertBuf;
 

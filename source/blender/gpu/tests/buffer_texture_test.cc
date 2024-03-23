@@ -4,10 +4,10 @@
 
 #include "testing/testing.h"
 
-#include "GPU_capabilities.h"
-#include "GPU_compute.h"
-#include "GPU_vertex_buffer.h"
-#include "GPU_vertex_format.h"
+#include "GPU_capabilities.hh"
+#include "GPU_compute.hh"
+#include "GPU_vertex_buffer.hh"
+#include "GPU_vertex_format.hh"
 
 #include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"

@@ -27,8 +27,8 @@
 #include "eevee_lightcache.h"
 #include "eevee_private.h"
 
-#include "GPU_capabilities.h"
-#include "GPU_context.h"
+#include "GPU_capabilities.hh"
+#include "GPU_context.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

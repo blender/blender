@@ -83,8 +83,8 @@
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_context.h"
+#include "GPU_capabilities.hh"
+#include "GPU_context.hh"
 #include "WM_api.hh"
 #include "wm_window.hh"
 

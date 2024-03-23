@@ -32,7 +32,7 @@
 
 #include "DNA_curve_types.h"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "blf_internal.hh"
 #include "blf_internal_types.hh"

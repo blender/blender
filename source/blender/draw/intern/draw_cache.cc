@@ -26,9 +26,9 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 
-#include "GPU_batch.h"
-#include "GPU_batch_utils.h"
-#include "GPU_capabilities.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_utils.hh"
+#include "GPU_capabilities.hh"
 
 #include "MEM_guardedalloc.h"
 

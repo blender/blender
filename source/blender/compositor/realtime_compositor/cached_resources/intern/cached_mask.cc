@@ -11,7 +11,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "BKE_lib_id.hh"
 #include "BKE_mask.h"

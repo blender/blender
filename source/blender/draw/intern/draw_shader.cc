@@ -11,9 +11,9 @@
 #include "BLI_dynstr.h"
 #include "BLI_string_utils.hh"
 
-#include "GPU_batch.h"
-#include "GPU_index_buffer.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_batch.hh"
+#include "GPU_index_buffer.hh"
+#include "GPU_vertex_buffer.hh"
 
 #include "draw_shader.hh"
 

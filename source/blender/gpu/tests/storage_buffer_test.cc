@@ -4,7 +4,7 @@
 
 #include "testing/testing.h"
 
-#include "GPU_storage_buffer.h"
+#include "GPU_storage_buffer.hh"
 
 #include "BLI_vector.hh"
 

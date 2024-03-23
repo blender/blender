@@ -14,7 +14,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_span.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"

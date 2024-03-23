@@ -20,8 +20,8 @@
 
 #include "draw_manager.h"
 
-#include "GPU_debug.h"
-#include "GPU_texture.h"
+#include "GPU_debug.hh"
+#include "GPU_texture.hh"
 
 #include "UI_resources.hh"
 

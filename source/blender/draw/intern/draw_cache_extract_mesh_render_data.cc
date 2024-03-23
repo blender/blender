@@ -25,7 +25,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "ED_mesh.hh"
 

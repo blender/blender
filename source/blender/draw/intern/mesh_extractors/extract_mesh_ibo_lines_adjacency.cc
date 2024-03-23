@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_index_buffer.h"
+#include "GPU_index_buffer.hh"
 
 #include "draw_subdivision.hh"
 #include "extract_mesh.hh"

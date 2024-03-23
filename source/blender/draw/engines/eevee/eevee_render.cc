@@ -24,10 +24,10 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_state.h"
+#include "GPU_capabilities.hh"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_state.hh"
 
 #include "RE_pipeline.h"
 

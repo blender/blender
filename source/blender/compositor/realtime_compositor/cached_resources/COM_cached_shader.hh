@@ -10,7 +10,7 @@
 
 #include "BLI_map.hh"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"

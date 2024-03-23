@@ -8,8 +8,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_capabilities.h"
-#include "GPU_shader.h"
+#include "GPU_capabilities.hh"
+#include "GPU_shader.hh"
 
 /* Cache of built-in shaders (each is created on first use). */
 static GPUShader *builtin_shaders[GPU_SHADER_CFG_LEN][GPU_SHADER_BUILTIN_LEN] = {{nullptr}};

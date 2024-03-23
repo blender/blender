@@ -33,7 +33,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "gpencil_engine.h"

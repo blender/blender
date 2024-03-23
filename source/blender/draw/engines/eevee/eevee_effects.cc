@@ -12,10 +12,10 @@
 
 #include "BKE_global.hh" /* for G.debug_value */
 
-#include "GPU_capabilities.h"
-#include "GPU_platform.h"
-#include "GPU_state.h"
-#include "GPU_texture.h"
+#include "GPU_capabilities.hh"
+#include "GPU_platform.hh"
+#include "GPU_state.hh"
+#include "GPU_texture.hh"
 #include "eevee_private.h"
 
 static struct {

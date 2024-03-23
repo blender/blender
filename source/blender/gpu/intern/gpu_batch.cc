@@ -13,10 +13,10 @@
 
 #include "BLI_math_base.h"
 
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_platform.h"
-#include "GPU_shader.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
+#include "GPU_platform.hh"
+#include "GPU_shader.hh"
 
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"

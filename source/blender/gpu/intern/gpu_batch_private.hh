@@ -11,8 +11,8 @@
 
 #pragma once
 
-#include "GPU_batch.h"
-#include "GPU_context.h"
+#include "GPU_batch.hh"
+#include "GPU_context.hh"
 
 #include "gpu_index_buffer_private.hh"
 #include "gpu_vertex_buffer_private.hh"

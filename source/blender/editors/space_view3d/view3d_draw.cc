@@ -57,14 +57,14 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_batch.h"
-#include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
+#include "GPU_batch.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
 #include "GPU_material.hh"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
-#include "GPU_viewport.h"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
+#include "GPU_viewport.hh"
 
 #include "MEM_guardedalloc.h"
 

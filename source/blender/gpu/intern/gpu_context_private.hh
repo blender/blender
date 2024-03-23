@@ -12,7 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 #include "gpu_debug_private.hh"
 #include "gpu_framebuffer_private.hh"

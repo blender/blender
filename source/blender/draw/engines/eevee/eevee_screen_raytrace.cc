@@ -15,8 +15,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_platform.h"
-#include "GPU_texture.h"
+#include "GPU_platform.hh"
+#include "GPU_texture.hh"
 #include "eevee_private.h"
 
 int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)

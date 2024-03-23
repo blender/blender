@@ -4,7 +4,7 @@
 
 #include "draw_testing.hh"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "draw_manager_testing.h"
 

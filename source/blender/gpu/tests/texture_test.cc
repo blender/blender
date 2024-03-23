@@ -9,8 +9,8 @@
 #include "BLI_math_vector.hh"
 #include "BLI_vector.hh"
 
-#include "GPU_context.h"
-#include "GPU_texture.h"
+#include "GPU_context.hh"
+#include "GPU_texture.hh"
 
 #include "gpu_texture_private.hh"
 

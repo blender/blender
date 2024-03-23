@@ -11,7 +11,7 @@
 #pragma once
 
 #include "DRW_render.hh"
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "eevee_material.hh"
 #include "eevee_shader_shared.hh"

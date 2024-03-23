@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 #include "gl_shader_interface.hh"
 
 namespace blender {

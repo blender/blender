@@ -15,7 +15,7 @@
 
 #include "BLI_sys_types.h"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "gpu_drawlist_private.hh"
 

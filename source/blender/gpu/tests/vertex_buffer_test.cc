@@ -4,12 +4,12 @@
 
 #include "testing/testing.h"
 
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
-#include "GPU_shader.h"
-#include "GPU_vertex_buffer.h"
-#include "GPU_vertex_format.h"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_immediate.hh"
+#include "GPU_shader.hh"
+#include "GPU_vertex_buffer.hh"
+#include "GPU_vertex_format.hh"
 
 #include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"

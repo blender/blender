@@ -14,7 +14,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_vertex_buffer.h"
+#include "GPU_vertex_buffer.hh"
 #include "gpu_vertex_buffer_private.hh"
 #include "mtl_context.hh"
 

@@ -11,9 +11,9 @@
 
 #include <Python.h>
 
-#include "GPU_init_exit.h"
-#include "GPU_primitive.h"
-#include "GPU_texture.h"
+#include "GPU_init_exit.hh"
+#include "GPU_primitive.hh"
+#include "GPU_texture.hh"
 
 #include "../generic/py_capi_utils.h"
 

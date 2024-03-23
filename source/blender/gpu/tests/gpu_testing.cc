@@ -8,9 +8,9 @@
 
 #include "BLI_math_color.h"
 
-#include "GPU_context.h"
-#include "GPU_debug.h"
-#include "GPU_init_exit.h"
+#include "GPU_context.hh"
+#include "GPU_debug.hh"
+#include "GPU_init_exit.hh"
 #include "gpu_testing.hh"
 
 #include "GHOST_C-api.h"

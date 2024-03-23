@@ -25,9 +25,9 @@
 #include "BKE_volume_grid_fwd.hh"
 #include "BKE_volume_render.hh"
 
-#include "GPU_batch.h"
-#include "GPU_capabilities.h"
-#include "GPU_texture.h"
+#include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
+#include "GPU_texture.hh"
 
 #include "DEG_depsgraph_query.hh"
 

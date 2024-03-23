@@ -13,7 +13,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
-#include "gpu_shader_dependency_private.h"
+#include "gpu_shader_dependency_private.hh"
 #include "gpu_shader_private.hh"
 
 #include "CLG_log.h"

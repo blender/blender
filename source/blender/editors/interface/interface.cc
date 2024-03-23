@@ -39,8 +39,8 @@
 #include "BKE_screen.hh"
 #include "BKE_unit.hh"
 
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "BLF_api.hh"
 #include "BLT_translation.hh"

@@ -26,7 +26,7 @@
 #include "BKE_screen.hh"
 #include "BKE_sequencer_offscreen.h"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "ED_markers.hh"
 #include "ED_screen.hh"

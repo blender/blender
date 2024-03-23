@@ -10,7 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_drawlist.h"
+#include "GPU_drawlist.hh"
 
 namespace blender {
 namespace gpu {

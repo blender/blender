@@ -48,13 +48,13 @@
 
 #include "BIF_glutil.hh"
 
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_init_exit.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_init_exit.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "BLF_api.hh"
 #include "DNA_scene_types.h"

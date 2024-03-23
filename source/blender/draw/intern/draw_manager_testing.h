@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #ifdef __cplusplus
 extern "C" {

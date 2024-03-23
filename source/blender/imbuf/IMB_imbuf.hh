@@ -40,7 +40,7 @@
 
 #pragma once
 
-#include "../gpu/GPU_texture.h"
+#include "../gpu/GPU_texture.hh"
 
 #include "BLI_utildefines.h"
 

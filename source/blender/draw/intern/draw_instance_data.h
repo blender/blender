@@ -11,7 +11,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #define MAX_INSTANCE_DATA_SIZE 64 /* Can be adjusted for more */
 

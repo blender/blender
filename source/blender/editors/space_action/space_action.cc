@@ -43,7 +43,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "GPU_matrix.h"
+#include "GPU_matrix.hh"
 
 #include "action_intern.hh" /* own include */
 

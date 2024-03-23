@@ -26,20 +26,20 @@
 #include "BKE_cryptomatte.hh"
 #include "BKE_material.h"
 
-#include "GPU_capabilities.h"
-#include "GPU_context.h"
+#include "GPU_capabilities.hh"
+#include "GPU_context.hh"
 #include "GPU_material.hh"
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 #include "GPU_uniform_buffer.hh"
-#include "GPU_vertex_format.h"
+#include "GPU_vertex_format.hh"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 #include "BLI_vector.hh"
 
-#include "gpu_codegen.h"
-#include "gpu_node_graph.h"
+#include "gpu_codegen.hh"
+#include "gpu_node_graph.hh"
 #include "gpu_shader_create_info.hh"
-#include "gpu_shader_dependency_private.h"
+#include "gpu_shader_dependency_private.hh"
 
 #include <cstdarg>
 #include <cstring>

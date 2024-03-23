@@ -4,7 +4,7 @@
 
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "COM_context.hh"
 #include "COM_conversion_operation.hh"

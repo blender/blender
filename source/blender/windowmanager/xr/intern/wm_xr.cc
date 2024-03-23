@@ -23,7 +23,7 @@
 #include "GHOST_C-api.h"
 
 #ifdef WIN32
-#  include "GPU_platform.h"
+#  include "GPU_platform.hh"
 #endif
 
 #include "MEM_guardedalloc.h"

@@ -41,8 +41,8 @@
 #include "ED_space_api.hh"
 #include "ED_uvedit.hh"
 
-#include "GPU_batch.h"
-#include "GPU_state.h"
+#include "GPU_batch.hh"
+#include "GPU_state.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
