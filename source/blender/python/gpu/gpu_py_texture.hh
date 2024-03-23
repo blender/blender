@@ -10,18 +10,19 @@
 
 #include "BLI_compiler_attrs.h"
 
+struct GPUTexture;
+
 extern PyTypeObject BPyGPUTexture_Type;
 extern const struct PyC_StringEnumItems pygpu_textureformat_items[];
 
 #define BPyGPUTexture_Check(v) (Py_TYPE(v) == &BPyGPUTexture_Type)
 
-typedef struct BPyGPUTexture {
+struct BPyGPUTexture {
   PyObject_HEAD
-  struct GPUTexture *tex;
-} BPyGPUTexture;
+  GPUTexture *tex;
+};
 
 int bpygpu_ParseTexture(PyObject *o, void *p);
-PyObject *bpygpu_texture_init(void);
+PyObject *bpygpu_texture_init();
 
-PyObject *BPyGPUTexture_CreatePyObject(struct GPUTexture *tex, bool shared_reference)
-    ATTR_NONNULL(1);
+PyObject *BPyGPUTexture_CreatePyObject(GPUTexture *tex, bool shared_reference) ATTR_NONNULL(1);

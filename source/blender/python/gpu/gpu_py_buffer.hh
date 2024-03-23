@@ -17,7 +17,7 @@ extern PyTypeObject BPyGPU_BufferType;
  *
  * For Python access to GPU functions requiring a pointer.
  */
-typedef struct BPyGPUBuffer {
+struct BPyGPUBuffer {
   PyObject_VAR_HEAD
   PyObject *parent;
 
@@ -33,7 +33,7 @@ typedef struct BPyGPUBuffer {
 
     void *as_void;
   } buf;
-} BPyGPUBuffer;
+};
 
 size_t bpygpu_Buffer_size(BPyGPUBuffer *buffer);
 /**

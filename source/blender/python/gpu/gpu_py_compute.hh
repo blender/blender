@@ -8,4 +8,4 @@
 
 #pragma once
 
-PyObject *bpygpu_compute_init(void);
+PyObject *bpygpu_compute_init();

@@ -10,13 +10,15 @@
 
 #include "BLI_compiler_attrs.h"
 
+struct GPUUniformBuf;
+
 extern PyTypeObject BPyGPUUniformBuf_Type;
 
 #define BPyGPUUniformBuf_Check(v) (Py_TYPE(v) == &BPyGPUUniformBuf_Type)
 
-typedef struct BPyGPUUniformBuf {
+struct BPyGPUUniformBuf {
   PyObject_HEAD
-  struct GPUUniformBuf *ubo;
-} BPyGPUUniformBuf;
+  GPUUniformBuf *ubo;
+};
 
-PyObject *BPyGPUUniformBuf_CreatePyObject(struct GPUUniformBuf *ubo) ATTR_NONNULL(1);
+PyObject *BPyGPUUniformBuf_CreatePyObject(GPUUniformBuf *ubo) ATTR_NONNULL(1);

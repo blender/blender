@@ -10,16 +10,17 @@
 
 #include "BLI_compiler_attrs.h"
 
+struct GPUOffScreen;
+struct GPUViewport;
+
 extern PyTypeObject BPyGPUOffScreen_Type;
 
 #define BPyGPUOffScreen_Check(v) (Py_TYPE(v) == &BPyGPUOffScreen_Type)
 
-struct GPUViewport;
-
-typedef struct BPyGPUOffScreen {
+struct BPyGPUOffScreen {
   PyObject_HEAD
-  struct GPUOffScreen *ofs;
-  struct GPUViewport *viewport;
-} BPyGPUOffScreen;
+  GPUOffScreen *ofs;
+  GPUViewport *viewport;
+};
 
-PyObject *BPyGPUOffScreen_CreatePyObject(struct GPUOffScreen *ofs) ATTR_NONNULL(1);
+PyObject *BPyGPUOffScreen_CreatePyObject(GPUOffScreen *ofs) ATTR_NONNULL(1);

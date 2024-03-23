@@ -8,4 +8,4 @@
 
 #pragma once
 
-PyObject *bpygpu_select_init(void);
+PyObject *bpygpu_select_init();

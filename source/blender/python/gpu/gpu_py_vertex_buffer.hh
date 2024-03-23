@@ -10,14 +10,16 @@
 
 #include "BLI_compiler_attrs.h"
 
+struct GPUVertBuf;
+
 extern PyTypeObject BPyGPUVertBuf_Type;
 
 #define BPyGPUVertBuf_Check(v) (Py_TYPE(v) == &BPyGPUVertBuf_Type)
 
-typedef struct BPyGPUVertBuf {
+struct BPyGPUVertBuf {
   PyObject_VAR_HEAD
   /* The buf is owned, we may support thin wrapped batches later. */
-  struct GPUVertBuf *buf;
-} BPyGPUVertBuf;
+  GPUVertBuf *buf;
+};
 
-PyObject *BPyGPUVertBuf_CreatePyObject(struct GPUVertBuf *buf) ATTR_NONNULL(1);
+PyObject *BPyGPUVertBuf_CreatePyObject(GPUVertBuf *buf) ATTR_NONNULL(1);

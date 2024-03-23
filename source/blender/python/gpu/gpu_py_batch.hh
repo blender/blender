@@ -10,20 +10,22 @@
 
 #include "BLI_compiler_attrs.h"
 
+struct GPUBatch;
+
 #define USE_GPU_PY_REFERENCES
 
 extern PyTypeObject BPyGPUBatch_Type;
 
 #define BPyGPUBatch_Check(v) (Py_TYPE(v) == &BPyGPUBatch_Type)
 
-typedef struct BPyGPUBatch {
+struct BPyGPUBatch {
   PyObject_VAR_HEAD
   /* The batch is owned, we may support thin wrapped batches later. */
-  struct GPUBatch *batch;
+  GPUBatch *batch;
 #ifdef USE_GPU_PY_REFERENCES
   /* Just to keep a user to prevent freeing buf's we're using */
   PyObject *references;
 #endif
-} BPyGPUBatch;
+};
 
-PyObject *BPyGPUBatch_CreatePyObject(struct GPUBatch *batch) ATTR_NONNULL(1);
+PyObject *BPyGPUBatch_CreatePyObject(GPUBatch *batch) ATTR_NONNULL(1);

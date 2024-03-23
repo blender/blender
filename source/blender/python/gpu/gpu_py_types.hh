@@ -21,4 +21,4 @@
 #include "gpu_py_vertex_buffer.hh"
 #include "gpu_py_vertex_format.hh"
 
-PyObject *bpygpu_types_init(void);
+PyObject *bpygpu_types_init();
