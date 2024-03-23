@@ -19,9 +19,9 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
-#include "gpu_py.h"
-#include "gpu_py_framebuffer.h"
-#include "gpu_py_state.h" /* own include */
+#include "gpu_py.hh"
+#include "gpu_py_framebuffer.hh"
+#include "gpu_py_state.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Helper Functions

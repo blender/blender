@@ -19,8 +19,8 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
 
-#include "gpu_py_shader.h" /* own include */
-#include "gpu_py_texture.h"
+#include "gpu_py_shader.hh" /* own include */
+#include "gpu_py_texture.hh"
 
 #define USE_PYGPU_SHADER_INFO_IMAGE_METHOD
 

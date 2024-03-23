@@ -68,7 +68,7 @@
 #include "../generic/blf_py_api.h"
 #include "../generic/idprop_py_api.h"
 #include "../generic/imbuf_py_api.h"
-#include "../gpu/gpu_py_api.h"
+#include "../gpu/gpu_py_api.hh"
 #include "../mathutils/mathutils.h"
 
 /* Logging types to use anywhere in the Python modules. */

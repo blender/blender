@@ -24,10 +24,10 @@
 
 #include "../mathutils/mathutils.h"
 
-#include "gpu_py.h"
-#include "gpu_py_buffer.h"
-#include "gpu_py_framebuffer.h" /* own include */
-#include "gpu_py_texture.h"
+#include "gpu_py.hh"
+#include "gpu_py_buffer.hh"
+#include "gpu_py_framebuffer.hh" /* own include */
+#include "gpu_py_texture.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name GPUFrameBuffer Common Utilities

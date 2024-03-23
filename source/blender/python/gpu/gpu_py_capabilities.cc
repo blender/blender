@@ -15,8 +15,8 @@
 
 #include "GPU_capabilities.hh"
 
-#include "gpu_py.h"
-#include "gpu_py_capabilities.h" /* own include */
+#include "gpu_py.hh"
+#include "gpu_py_capabilities.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Functions

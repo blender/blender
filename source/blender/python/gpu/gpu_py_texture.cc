@@ -25,10 +25,10 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
 
-#include "gpu_py.h"
-#include "gpu_py_buffer.h"
+#include "gpu_py.hh"
+#include "gpu_py_buffer.hh"
 
-#include "gpu_py_texture.h" /* own include */
+#include "gpu_py_texture.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name GPUTexture Common Utilities

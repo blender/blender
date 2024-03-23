@@ -10,10 +10,6 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern PyTypeObject BPyGPUVertBuf_Type;
 
 #define BPyGPUVertBuf_Check(v) (Py_TYPE(v) == &BPyGPUVertBuf_Type)
@@ -25,7 +21,3 @@ typedef struct BPyGPUVertBuf {
 } BPyGPUVertBuf;
 
 PyObject *BPyGPUVertBuf_CreatePyObject(struct GPUVertBuf *buf) ATTR_NONNULL(1);
-
-#ifdef __cplusplus
-}
-#endif

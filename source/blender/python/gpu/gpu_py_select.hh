@@ -8,12 +8,4 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-PyObject *bpygpu_matrix_init(void);
-
-#ifdef __cplusplus
-}
-#endif
+PyObject *bpygpu_select_init(void);

@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern PyTypeObject BPyGPUIndexBuf_Type;
 
 #define BPyGPUIndexBuf_Check(v) (Py_TYPE(v) == &BPyGPUIndexBuf_Type)
@@ -22,7 +18,3 @@ typedef struct BPyGPUIndexBuf {
 } BPyGPUIndexBuf;
 
 PyObject *BPyGPUIndexBuf_CreatePyObject(struct GPUIndexBuf *elem);
-
-#ifdef __cplusplus
-}
-#endif

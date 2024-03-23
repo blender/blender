@@ -21,12 +21,12 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
 
-#include "gpu_py.h"
-#include "gpu_py_element.h"
-#include "gpu_py_shader.h"
-#include "gpu_py_vertex_buffer.h"
+#include "gpu_py.hh"
+#include "gpu_py_element.hh"
+#include "gpu_py_shader.hh"
+#include "gpu_py_vertex_buffer.hh"
 
-#include "gpu_py_batch.h" /* own include */
+#include "gpu_py_batch.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions

@@ -36,25 +36,25 @@ set(SRC
   gpu_py_vertex_buffer.cc
   gpu_py_vertex_format.cc
 
-  gpu_py.h
-  gpu_py_api.h
-  gpu_py_batch.h
-  gpu_py_buffer.h
-  gpu_py_capabilities.h
-  gpu_py_compute.h
-  gpu_py_element.h
-  gpu_py_framebuffer.h
-  gpu_py_matrix.h
-  gpu_py_offscreen.h
-  gpu_py_platform.h
-  gpu_py_select.h
-  gpu_py_shader.h
-  gpu_py_state.h
-  gpu_py_texture.h
-  gpu_py_types.h
-  gpu_py_uniformbuffer.h
-  gpu_py_vertex_buffer.h
-  gpu_py_vertex_format.h
+  gpu_py.hh
+  gpu_py_api.hh
+  gpu_py_batch.hh
+  gpu_py_buffer.hh
+  gpu_py_capabilities.hh
+  gpu_py_compute.hh
+  gpu_py_element.hh
+  gpu_py_framebuffer.hh
+  gpu_py_matrix.hh
+  gpu_py_offscreen.hh
+  gpu_py_platform.hh
+  gpu_py_select.hh
+  gpu_py_shader.hh
+  gpu_py_state.hh
+  gpu_py_texture.hh
+  gpu_py_types.hh
+  gpu_py_uniformbuffer.hh
+  gpu_py_vertex_buffer.hh
+  gpu_py_vertex_format.hh
 )
 
 set(LIB

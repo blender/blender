@@ -23,12 +23,12 @@
 
 #include "../mathutils/mathutils.h"
 
-#include "gpu_py.h"
-#include "gpu_py_texture.h"
-#include "gpu_py_uniformbuffer.h"
-#include "gpu_py_vertex_format.h"
+#include "gpu_py.hh"
+#include "gpu_py_texture.hh"
+#include "gpu_py_uniformbuffer.hh"
+#include "gpu_py_vertex_format.hh"
 
-#include "gpu_py_shader.h" /* own include */
+#include "gpu_py_shader.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Enum Conversion.

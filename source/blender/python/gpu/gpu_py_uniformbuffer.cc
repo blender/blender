@@ -20,7 +20,7 @@
 
 #include "../generic/python_compat.h"
 
-#include "gpu_py_uniformbuffer.h" /* own include */
+#include "gpu_py_uniformbuffer.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name GPUUniformBuf Common Utilities

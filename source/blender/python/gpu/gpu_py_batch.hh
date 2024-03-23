@@ -10,10 +10,6 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define USE_GPU_PY_REFERENCES
 
 extern PyTypeObject BPyGPUBatch_Type;
@@ -31,7 +27,3 @@ typedef struct BPyGPUBatch {
 } BPyGPUBatch;
 
 PyObject *BPyGPUBatch_CreatePyObject(struct GPUBatch *batch) ATTR_NONNULL(1);
-
-#ifdef __cplusplus
-}
-#endif

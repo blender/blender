@@ -35,9 +35,9 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
 
-#include "gpu_py_texture.h"
+#include "gpu_py_texture.hh"
 
-#include "gpu_py_offscreen.h" /* own include */
+#include "gpu_py_offscreen.hh" /* own include */
 
 /* Define the free method to avoid breakage. */
 #define BPYGPU_USE_GPUOBJ_FREE_METHOD

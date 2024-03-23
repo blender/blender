@@ -12,10 +12,6 @@
 #  include "../generic/py_capi_utils.h"
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Make sure that there is always a reference count for PyObjects of type String as the strings are
  * passed by reference in the #GPUStageInterfaceInfo and #GPUShaderCreateInfo APIs. */
 #define USE_GPU_PY_REFERENCES
@@ -69,7 +65,3 @@ typedef struct BPyGPUShaderCreateInfo {
 
 PyObject *BPyGPUStageInterfaceInfo_CreatePyObject(struct GPUStageInterfaceInfo *interface);
 PyObject *BPyGPUShaderCreateInfo_CreatePyObject(struct GPUShaderCreateInfo *info);
-
-#ifdef __cplusplus
-}
-#endif

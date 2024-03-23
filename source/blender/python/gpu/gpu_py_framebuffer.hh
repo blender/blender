@@ -10,10 +10,6 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern PyTypeObject BPyGPUFrameBuffer_Type;
 
 #define BPyGPUFrameBuffer_Check(v) (Py_TYPE(v) == &BPyGPUFrameBuffer_Type)
@@ -29,7 +25,3 @@ typedef struct BPyGPUFrameBuffer {
 
 PyObject *BPyGPUFrameBuffer_CreatePyObject(struct GPUFrameBuffer *fb, bool shared_reference)
     ATTR_NONNULL(1);
-
-#ifdef __cplusplus
-}
-#endif
