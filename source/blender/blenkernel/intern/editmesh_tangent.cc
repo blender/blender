@@ -59,7 +59,7 @@ struct SGLSLEditMeshToTangent {
   const BMLoop *GetLoop(const uint face_num, uint vert_index)
   {
     // BLI_assert(vert_index >= 0 && vert_index < 4);
-    const BMLoop **lt;
+    std::array<BMLoop *, 3> lt;
     const BMLoop *l;
 
 #ifdef USE_LOOPTRI_DETECT_QUADS
@@ -129,7 +129,7 @@ struct SGLSLEditMeshToTangent {
 
   const float (*precomputedFaceNormals)[3];
   const float (*precomputedLoopNormals)[3];
-  const BMLoop *(*looptris)[3];
+  blender::Span<std::array<BMLoop *, 3>> looptris;
   int cd_loop_uv_offset; /* texture coordinates */
   const float (*orco)[3];
   float (*tangent)[4]; /* destination */
@@ -207,13 +207,13 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
       BKE_mesh_add_loop_tangent_named_layer_for_uv(
           &bm->ldata, loopdata_out, int(loopdata_out_len), ren_uv_name);
     }
-    int totface = em->tottri;
+    int totface = em->looptris.size();
 #ifdef USE_LOOPTRI_DETECT_QUADS
     int num_face_as_quad_map;
     int *face_as_quad_map = nullptr;
 
     /* map faces to quads */
-    if (em->tottri != bm->totface) {
+    if (em->looptris.size() != bm->totface) {
       /* Over allocate, since we don't know how many ngon or quads we have. */
 
       /* map fake face index to looptri */
@@ -233,7 +233,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
     }
 #endif
     /* Calculation */
-    if (em->tottri != 0) {
+    if (em->looptris.size() != 0) {
       TaskPool *task_pool;
       task_pool = BLI_task_pool_create(nullptr, TASK_PRIORITY_HIGH);
 
@@ -248,7 +248,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         index = CustomData_get_layer_index_n(loopdata_out, CD_TANGENT, n);
         BLI_assert(n < MAX_MTFACE);
         SGLSLEditMeshToTangent *mesh2tangent = &data_array[n];
-        mesh2tangent->numTessFaces = em->tottri;
+        mesh2tangent->numTessFaces = em->looptris.size();
 #ifdef USE_LOOPTRI_DETECT_QUADS
         mesh2tangent->face_as_quad_map = face_as_quad_map;
         mesh2tangent->num_face_as_quad_map = num_face_as_quad_map;
@@ -285,7 +285,7 @@ void BKE_editmesh_loop_tangent_calc(BMEditMesh *em,
         }
         BM_mesh_elem_index_ensure(bm, htype_index);
 
-        mesh2tangent->looptris = const_cast<const BMLoop *(*)[3]>(em->looptris);
+        mesh2tangent->looptris = em->looptris;
         mesh2tangent->tangent = static_cast<float(*)[4]>(loopdata_out->layers[index].data);
 
         BLI_task_pool_push(

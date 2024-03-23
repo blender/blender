@@ -1581,7 +1581,6 @@ static PyObject *bpy_bmesh_calc_loop_triangles(BPy_BMElem *self)
   BMesh *bm;
 
   int corner_tris_tot;
-  BMLoop *(*corner_tris)[3];
 
   PyObject *ret;
   int i;
@@ -1591,16 +1590,13 @@ static PyObject *bpy_bmesh_calc_loop_triangles(BPy_BMElem *self)
   bm = self->bm;
 
   corner_tris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  corner_tris = static_cast<BMLoop *(*)[3]>(PyMem_MALLOC(sizeof(*corner_tris) * corner_tris_tot));
-
+  blender::Array<std::array<BMLoop *, 3>> corner_tris(corner_tris_tot);
   BM_mesh_calc_tessellation(bm, corner_tris);
 
   ret = PyList_New(corner_tris_tot);
   for (i = 0; i < corner_tris_tot; i++) {
-    PyList_SET_ITEM(ret, i, BPy_BMLoop_Array_As_Tuple(bm, corner_tris[i], 3));
+    PyList_SET_ITEM(ret, i, BPy_BMLoop_Array_As_Tuple(bm, corner_tris[i].data(), 3));
   }
-
-  PyMem_FREE(corner_tris);
 
   return ret;
 }
@@ -4590,7 +4586,7 @@ PyObject *BPy_BMFace_Array_As_Tuple(BMesh *bm, BMFace **elem, Py_ssize_t elem_le
 
   return ret;
 }
-PyObject *BPy_BMLoop_Array_As_Tuple(BMesh *bm, BMLoop **elem, Py_ssize_t elem_len)
+PyObject *BPy_BMLoop_Array_As_Tuple(BMesh *bm, BMLoop *const *elem, Py_ssize_t elem_len)
 {
   Py_ssize_t i;
   PyObject *ret = PyTuple_New(elem_len);

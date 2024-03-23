@@ -12,7 +12,12 @@
  * only concerned with low level operations on the #BMEditMesh structure.
  */
 
+#include <array>
+
+#include "BLI_array.hh"
+
 #include "DNA_customdata_types.h"
+
 #include "bmesh.hh"
 
 struct BMLoop;
@@ -42,8 +47,7 @@ struct BMEditMesh {
    *
    * \see #Mesh::corner_tris() as the documentation gives useful hints that apply to this data too.
    */
-  BMLoop *(*looptris)[3];
-  int tottri;
+  blender::Array<std::array<BMLoop *, 3>> looptris;
 
   /** Selection mode (#SCE_SELECT_VERTEX, #SCE_SELECT_EDGE & #SCE_SELECT_FACE). */
   short selectmode;

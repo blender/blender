@@ -29,14 +29,14 @@
 
 BMEditMesh *BKE_editmesh_create(BMesh *bm)
 {
-  BMEditMesh *em = MEM_cnew<BMEditMesh>(__func__);
+  BMEditMesh *em = MEM_new<BMEditMesh>(__func__);
   em->bm = bm;
   return em;
 }
 
 BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
 {
-  BMEditMesh *em_copy = MEM_cnew<BMEditMesh>(__func__);
+  BMEditMesh *em_copy = MEM_new<BMEditMesh>(__func__);
   *em_copy = *em;
 
   em_copy->bm = BM_mesh_copy(em->bm);
@@ -47,7 +47,7 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
    * it in the case of errors in an operation. For performance reasons,
    * in that case it makes more sense to do the
    * tessellation only when/if that copy ends up getting used. */
-  em_copy->looptris = nullptr;
+  em_copy->looptris = {};
 
   /* Copy various settings. */
   em_copy->selectmode = em->selectmode;
@@ -62,48 +62,11 @@ BMEditMesh *BKE_editmesh_from_object(Object *ob)
   return ((Mesh *)ob->data)->runtime->edit_mesh;
 }
 
-static void editmesh_tessface_calc_intern(BMEditMesh *em,
-                                          const BMeshCalcTessellation_Params *params)
-{
-  /* allocating space before calculating the tessellation */
-
-  BMesh *bm = em->bm;
-
-  /* This assumes all faces can be scan-filled, which isn't always true,
-   * worst case we over allocate a little which is acceptable. */
-  const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  const int looptris_tot_prev_alloc = em->looptris ?
-                                          (MEM_allocN_len(em->looptris) / sizeof(*em->looptris)) :
-                                          0;
-
-  BMLoop *(*looptris)[3];
-
-  /* This means no reallocations for quad dominant models. */
-  if ((em->looptris != nullptr) &&
-      // (*em->tottri >= looptris_tot))
-      /* Check against allocated size in case we over allocated a little. */
-      ((looptris_tot_prev_alloc >= looptris_tot) && (looptris_tot_prev_alloc <= looptris_tot * 2)))
-  {
-    looptris = em->looptris;
-  }
-  else {
-    if (em->looptris) {
-      MEM_freeN(em->looptris);
-    }
-    looptris = static_cast<BMLoop *(*)[3]>(
-        MEM_mallocN(sizeof(*looptris) * looptris_tot, __func__));
-  }
-
-  em->looptris = looptris;
-  em->tottri = looptris_tot;
-
-  /* after allocating the em->looptris, we're ready to tessellate */
-  BM_mesh_calc_tessellation_ex(em->bm, em->looptris, params);
-}
-
 void BKE_editmesh_looptris_calc_ex(BMEditMesh *em, const BMeshCalcTessellation_Params *params)
 {
-  editmesh_tessface_calc_intern(em, params);
+  BMesh *bm = em->bm;
+  em->looptris.reinitialize(poly_to_tri_count(bm->totface, bm->totloop));
+  BM_mesh_calc_tessellation_ex(em->bm, em->looptris, params);
 }
 
 void BKE_editmesh_looptris_calc(BMEditMesh *em)
@@ -127,8 +90,8 @@ void BKE_editmesh_looptris_calc_with_partial_ex(BMEditMesh *em,
                                                 BMPartialUpdate *bmpinfo,
                                                 const BMeshCalcTessellation_Params *params)
 {
-  BLI_assert(em->tottri == poly_to_tri_count(em->bm->totface, em->bm->totloop));
-  BLI_assert(em->looptris != nullptr);
+  BLI_assert(em->looptris.size() == poly_to_tri_count(em->bm->totface, em->bm->totloop));
+  BLI_assert(!em->looptris.is_empty());
 
   BM_mesh_calc_tessellation_with_partial_ex(em->bm, em->looptris, bmpinfo, params);
 }
@@ -152,10 +115,7 @@ void BKE_editmesh_looptris_and_normals_calc_with_partial(BMEditMesh *em, BMParti
 
 void BKE_editmesh_free_data(BMEditMesh *em)
 {
-
-  if (em->looptris) {
-    MEM_freeN(em->looptris);
-  }
+  em->looptris = {};
 
   if (em->bm) {
     BM_mesh_free(em->bm);

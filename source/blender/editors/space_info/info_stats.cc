@@ -234,7 +234,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
     stats->totface += em->bm->totface;
     stats->totfacesel += em->bm->totfacesel;
 
-    stats->tottri += em->tottri;
+    stats->tottri += em->looptris.size();
   }
   else if (obedit->type == OB_ARMATURE) {
     /* Armature Edit */

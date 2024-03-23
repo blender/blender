@@ -424,7 +424,7 @@ void mesh_render_data_update_corner_tris(MeshRenderData &mr,
     /* #BMesh */
     if ((iter_type & MR_ITER_CORNER_TRI) || (data_flag & MR_DATA_CORNER_TRI)) {
       /* Edit mode ensures this is valid, no need to calculate. */
-      BLI_assert((mr.bm->totloop == 0) || (mr.edit_bmesh->looptris != nullptr));
+      BLI_assert((mr.bm->totloop == 0) || !mr.edit_bmesh->looptris.is_empty());
     }
   }
 }

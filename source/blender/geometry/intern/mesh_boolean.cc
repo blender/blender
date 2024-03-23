@@ -918,8 +918,7 @@ static BMesh *mesh_bm_concat(Span<const Mesh *> meshes,
                              Span<float4x4> transforms,
                              const float4x4 &target_transform,
                              Span<Array<short>> material_remaps,
-                             BMLoop *(**r_looptris)[3],
-                             int *r_looptris_tot)
+                             Array<std::array<BMLoop *, 3>> &r_looptris)
 {
   const int meshes_num = meshes.size();
   BLI_assert(meshes_num >= 1);
@@ -994,11 +993,8 @@ static BMesh *mesh_bm_concat(Span<const Mesh *> meshes,
   /* Make a triangulation of all polys before transforming vertices
    * so we can use the original normals. */
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  BMLoop *(*looptris)[3] = (BMLoop * (*)[3])
-      MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
-  BM_mesh_calc_tessellation_beauty(bm, looptris);
-  *r_looptris = looptris;
-  *r_looptris_tot = looptris_tot;
+  r_looptris.reinitialize(looptris_tot);
+  BM_mesh_calc_tessellation_beauty(bm, r_looptris);
 
   /* Transform the vertices that into the desired target_transform space. */
   BMIter iter;
@@ -1081,14 +1077,11 @@ static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
     return BKE_mesh_copy_for_eval(meshes[0]);
   }
 
-  BMLoop *(*looptris)[3];
-  int looptris_tot;
+  Array<std::array<BMLoop *, 3>> looptris;
   if (meshes.size() == 2) {
-    BMesh *bm = mesh_bm_concat(
-        meshes, transforms, target_transform, material_remaps, &looptris, &looptris_tot);
+    BMesh *bm = mesh_bm_concat(meshes, transforms, target_transform, material_remaps, looptris);
     BM_mesh_intersect(bm,
                       looptris,
-                      looptris_tot,
                       face_boolean_operand,
                       nullptr,
                       false,
@@ -1099,7 +1092,6 @@ static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
                       false,
                       boolean_mode,
                       1e-6f);
-    MEM_freeN(looptris);
     Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, meshes[0]);
     BM_mesh_free(bm);
     return result;
@@ -1112,10 +1104,9 @@ static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
   Mesh *prev_result_mesh = nullptr;
   for (const int i : meshes.index_range().drop_back(1)) {
     BMesh *bm = mesh_bm_concat(
-        two_meshes, two_transforms, float4x4::identity(), two_remaps, &looptris, &looptris_tot);
+        two_meshes, two_transforms, float4x4::identity(), two_remaps, looptris);
     BM_mesh_intersect(bm,
                       looptris,
-                      looptris_tot,
                       face_boolean_operand,
                       nullptr,
                       false,
@@ -1126,7 +1117,6 @@ static Mesh *mesh_boolean_float(Span<const Mesh *> meshes,
                       false,
                       boolean_mode,
                       1e-6f);
-    MEM_freeN(looptris);
     Mesh *result_i_mesh = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, meshes[0]);
     BM_mesh_free(bm);
     if (prev_result_mesh != nullptr) {

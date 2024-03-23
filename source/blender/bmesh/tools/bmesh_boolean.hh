@@ -9,8 +9,7 @@
  */
 
 bool BM_mesh_boolean(BMesh *bm,
-                     BMLoop *(*looptris)[3],
-                     int looptris_tot,
+                     blender::Span<std::array<BMLoop *, 3>> looptris,
                      int (*test_fn)(BMFace *f, void *user_data),
                      void *user_data,
                      int nshapes,
@@ -30,8 +29,7 @@ bool BM_mesh_boolean(BMesh *bm,
  * to the intersection result faces.
  */
 bool BM_mesh_boolean_knife(BMesh *bm,
-                           BMLoop *(*looptris)[3],
-                           int looptris_tot,
+                           blender::Span<std::array<BMLoop *, 3>> looptris,
                            int (*test_fn)(BMFace *f, void *user_data),
                            void *user_data,
                            int nshapes,

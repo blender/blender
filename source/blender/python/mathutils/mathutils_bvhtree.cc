@@ -948,7 +948,6 @@ static PyObject *C_BVHTree_FromBMesh(PyObject * /*cls*/, PyObject *args, PyObjec
   float epsilon = 0.0f;
 
   BMesh *bm;
-  BMLoop *(*corner_tris)[3];
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    kwargs,
@@ -964,18 +963,15 @@ static PyObject *C_BVHTree_FromBMesh(PyObject * /*cls*/, PyObject *args, PyObjec
   bm = py_bm->bm;
 
   /* Get data for tessellation */
-  {
-    coords_len = uint(bm->totvert);
-    tris_len = uint(poly_to_tri_count(bm->totface, bm->totloop));
 
-    coords = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*coords) * size_t(coords_len), __func__));
-    tris = static_cast<uint(*)[3]>(MEM_mallocN(sizeof(*tris) * size_t(tris_len), __func__));
+  coords_len = uint(bm->totvert);
+  tris_len = uint(poly_to_tri_count(bm->totface, bm->totloop));
 
-    corner_tris = static_cast<BMLoop *(*)[3]>(
-        MEM_mallocN(sizeof(*corner_tris) * size_t(tris_len), __func__));
+  coords = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*coords) * size_t(coords_len), __func__));
+  tris = static_cast<uint(*)[3]>(MEM_mallocN(sizeof(*tris) * size_t(tris_len), __func__));
 
-    BM_mesh_calc_tessellation(bm, corner_tris);
-  }
+  blender::Array<std::array<BMLoop *, 3>> corner_tris(tris_len);
+  BM_mesh_calc_tessellation(bm, corner_tris);
 
   {
     BMIter iter;
@@ -1022,8 +1018,6 @@ static PyObject *C_BVHTree_FromBMesh(PyObject * /*cls*/, PyObject *args, PyObjec
 
       BLI_bvhtree_balance(tree);
     }
-
-    MEM_freeN(corner_tris);
 
     return bvhtree_CreatePyObject(
         tree, epsilon, coords, coords_len, tris, tris_len, orig_index, orig_normal);

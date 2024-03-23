@@ -73,7 +73,6 @@ void EDBM_verts_mirror_cache_end(BMEditMesh *em);
 
 void EDBM_mesh_normals_update_ex(BMEditMesh *em, const BMeshNormalsUpdate_Params *params);
 void EDBM_mesh_normals_update(BMEditMesh *em);
-void EDBM_mesh_clear(BMEditMesh *em);
 
 void EDBM_selectmode_to_scene(bContext *C);
 void EDBM_mesh_make(Object *ob, int select_mode, bool add_key_index);

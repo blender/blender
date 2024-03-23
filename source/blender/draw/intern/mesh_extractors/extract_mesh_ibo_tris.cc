@@ -49,10 +49,10 @@ static void extract_tris_iter_face_bm(const MeshRenderData &mr,
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
   int tri_first_index_real = poly_to_tri_count(f_index, BM_elem_index_get(f->l_first));
 
-  BMLoop *(*looptris)[3] = mr.edit_bmesh->looptris;
+  Span<std::array<BMLoop *, 3>> looptris = mr.edit_bmesh->looptris;
   int tri_len = f->len - 2;
   for (int offs = 0; offs < tri_len; offs++) {
-    BMLoop **elt = looptris[tri_first_index_real + offs];
+    const std::array<BMLoop *, 3> elt = looptris[tri_first_index_real + offs];
     int tri_index = tri_offset + offs;
     GPU_indexbuf_set_tri_verts(elb,
                                tri_index,

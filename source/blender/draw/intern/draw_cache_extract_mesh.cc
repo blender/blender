@@ -272,7 +272,7 @@ static void extract_range_iter_looptri_bm(void *__restrict userdata,
   void *extract_data = tls->userdata_chunk;
   const MeshRenderData &mr = *data->mr;
   BMLoop **elt = ((BMLoop * (*)[3]) data->elems)[iter];
-  BLI_assert(iter < mr.edit_bmesh->tottri);
+  BLI_assert(iter < mr.edit_bmesh->looptris.size());
   for (const ExtractorRunData &run_data : data->extractors) {
     run_data.extractor->iter_looptri_bm(
         mr, elt, iter, POINTER_OFFSET(extract_data, run_data.data_offset));
@@ -398,7 +398,7 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData &mr,
   int stop;
   switch (iter_type) {
     case MR_ITER_CORNER_TRI:
-      range_data.elems = is_mesh ? mr.corner_tris.data() : (void *)mr.edit_bmesh->looptris;
+      range_data.elems = is_mesh ? mr.corner_tris.data() : (void *)mr.edit_bmesh->looptris.data();
       func = is_mesh ? extract_range_iter_corner_tri_mesh : extract_range_iter_looptri_bm;
       stop = mr.corner_tris_num;
       break;

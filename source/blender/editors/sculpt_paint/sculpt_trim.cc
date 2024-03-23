@@ -454,8 +454,7 @@ static void apply_trim(gesture::GestureData &gesture_data)
   BM_mesh_bm_from_me(bm, sculpt_mesh, &bm_from_me_params);
 
   const int corner_tris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  BMLoop *(*corner_tris)[3] = static_cast<BMLoop *(*)[3]>(
-      MEM_malloc_arrayN(corner_tris_tot, sizeof(*corner_tris), __func__));
+  Array<std::array<BMLoop *, 3>> corner_tris(corner_tris_tot);
   BM_mesh_calc_tessellation_beauty(bm, corner_tris);
 
   BMIter iter;
@@ -503,19 +502,9 @@ static void apply_trim(gesture::GestureData &gesture_data)
         BLI_assert(false);
         break;
     }
-    BM_mesh_boolean(bm,
-                    corner_tris,
-                    corner_tris_tot,
-                    bm_face_isect_pair,
-                    nullptr,
-                    2,
-                    true,
-                    true,
-                    false,
-                    boolean_mode);
+    BM_mesh_boolean(
+        bm, corner_tris, bm_face_isect_pair, nullptr, 2, true, true, false, boolean_mode);
   }
-
-  MEM_freeN(corner_tris);
 
   BMeshToMeshParams convert_params{};
   convert_params.calc_object_remap = false;

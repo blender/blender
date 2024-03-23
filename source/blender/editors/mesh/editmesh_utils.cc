@@ -310,16 +310,6 @@ void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
   BM_mesh_bm_to_me(bmain, bm, mesh, &params);
 }
 
-void EDBM_mesh_clear(BMEditMesh *em)
-{
-  /* clear bmesh */
-  BM_mesh_clear(em->bm);
-
-  /* free tessellation data */
-  em->tottri = 0;
-  MEM_SAFE_FREE(em->looptris);
-}
-
 void EDBM_mesh_load(Main *bmain, Object *ob)
 {
   EDBM_mesh_load_ex(bmain, ob, true);

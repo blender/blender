@@ -276,9 +276,7 @@ static void BMD_mesh_intersection(BMesh *bm,
   /* Main BMesh intersection setup. */
   /* Create tessellation & intersect. */
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  BMLoop *(*looptris)[3] = (BMLoop * (*)[3])
-      MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
-
+  blender::Array<std::array<BMLoop *, 3>> looptris(looptris_tot);
   BM_mesh_calc_tessellation_beauty(bm, looptris);
 
   /* postpone this until after tessellating
@@ -356,7 +354,6 @@ static void BMD_mesh_intersection(BMesh *bm,
 
   BM_mesh_intersect(bm,
                     looptris,
-                    looptris_tot,
                     bm_face_isect_pair,
                     nullptr,
                     false,
@@ -367,8 +364,6 @@ static void BMD_mesh_intersection(BMesh *bm,
                     false,
                     bmd->operation,
                     bmd->double_threshold);
-
-  MEM_freeN(looptris);
 }
 
 #ifdef WITH_GMP
