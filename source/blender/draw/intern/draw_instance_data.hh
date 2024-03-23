@@ -19,10 +19,9 @@
 
 struct GHash;
 struct GPUUniformAttrList;
-
-typedef struct DRWInstanceData DRWInstanceData;
-typedef struct DRWInstanceDataList DRWInstanceDataList;
-typedef struct DRWSparseUniformBuf DRWSparseUniformBuf;
+struct DRWInstanceData;
+struct DRWInstanceDataList;
+struct DRWSparseUniformBuf;
 
 /**
  * Return a pointer to the next instance data space.
@@ -89,11 +88,11 @@ void DRW_sparse_uniform_buffer_free(DRWSparseUniformBuf *buffer);
  */
 bool DRW_sparse_uniform_buffer_is_empty(DRWSparseUniformBuf *buffer);
 /**
- * Bind the UBO for the given chunk, if present. A NULL buffer pointer is handled as empty.
+ * Bind the UBO for the given chunk, if present. A nullptr buffer pointer is handled as empty.
  */
 void DRW_sparse_uniform_buffer_bind(DRWSparseUniformBuf *buffer, int chunk, int location);
 /**
- * Unbind the UBO for the given chunk, if present. A NULL buffer pointer is handled as empty.
+ * Unbind the UBO for the given chunk, if present. A nullptr buffer pointer is handled as empty.
  */
 void DRW_sparse_uniform_buffer_unbind(DRWSparseUniformBuf *buffer, int chunk);
 /**
@@ -103,8 +102,7 @@ void *DRW_sparse_uniform_buffer_ensure_item(DRWSparseUniformBuf *buffer, int chu
 
 /* Uniform attribute UBO management. */
 
-struct GHash *DRW_uniform_attrs_pool_new(void);
-void DRW_uniform_attrs_pool_flush_all(struct GHash *table);
-void DRW_uniform_attrs_pool_clear_all(struct GHash *table);
-struct DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(struct GHash *table,
-                                                            const struct GPUUniformAttrList *key);
+GHash *DRW_uniform_attrs_pool_new();
+void DRW_uniform_attrs_pool_flush_all(GHash *table);
+void DRW_uniform_attrs_pool_clear_all(GHash *table);
+DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table, const GPUUniformAttrList *key);

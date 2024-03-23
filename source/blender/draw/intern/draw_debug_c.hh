@@ -11,11 +11,11 @@
 
 #pragma once
 
-typedef struct DRWDebugModule DRWDebugModule;
+struct DRWDebugModule;
 
 struct BoundBox;
 
-void DRW_debug_modelmat_reset(void);
+void DRW_debug_modelmat_reset();
 void DRW_debug_modelmat(const float modelmat[4][4]);
 
 /**

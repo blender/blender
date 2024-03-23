@@ -9,22 +9,22 @@
 #  include "GPU_shader_shared_utils.hh"
 #  include "draw_defines.hh"
 
-typedef struct ViewCullingData ViewCullingData;
-typedef struct ViewMatrices ViewMatrices;
-typedef struct ObjectMatrices ObjectMatrices;
-typedef struct ObjectInfos ObjectInfos;
-typedef struct ObjectBounds ObjectBounds;
-typedef struct VolumeInfos VolumeInfos;
-typedef struct CurvesInfos CurvesInfos;
-typedef struct ObjectAttribute ObjectAttribute;
-typedef struct LayerAttribute LayerAttribute;
-typedef struct DrawCommand DrawCommand;
-typedef struct DispatchCommand DispatchCommand;
-typedef struct DRWDebugPrintBuffer DRWDebugPrintBuffer;
-typedef struct DRWDebugVert DRWDebugVert;
-typedef struct DRWDebugDrawBuffer DRWDebugDrawBuffer;
-typedef struct FrustumCorners FrustumCorners;
-typedef struct FrustumPlanes FrustumPlanes;
+struct ViewCullingData;
+struct ViewMatrices;
+struct ObjectMatrices;
+struct ObjectInfos;
+struct ObjectBounds;
+struct VolumeInfos;
+struct CurvesInfos;
+struct ObjectAttribute;
+struct LayerAttribute;
+struct DrawCommand;
+struct DispatchCommand;
+struct DRWDebugPrintBuffer;
+struct DRWDebugVert;
+struct DRWDebugDrawBuffer;
+struct FrustumCorners;
+struct FrustumPlanes;
 
 /* __cplusplus is true when compiling with MSL. */
 #  if defined(__cplusplus) && !defined(GPU_SHADER)

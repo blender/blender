@@ -15,9 +15,9 @@
 
 #include "GPU_texture.hh"
 
-typedef struct DRWTexturePool DRWTexturePool;
+struct DRWTexturePool;
 
-DRWTexturePool *DRW_texture_pool_create(void);
+DRWTexturePool *DRW_texture_pool_create();
 void DRW_texture_pool_free(DRWTexturePool *pool);
 
 /**

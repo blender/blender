@@ -13,17 +13,17 @@
 #define MAX_THICKRES 2    /* see eHairType */
 #define MAX_HAIR_SUBDIV 4 /* see hair_subdiv rna */
 
-typedef enum ParticleRefineShader {
+enum ParticleRefineShader {
   PART_REFINE_CATMULL_ROM = 0,
   PART_REFINE_MAX_SHADER,
-} ParticleRefineShader;
+};
 
 struct ModifierData;
 struct Object;
 struct ParticleHairCache;
 struct ParticleSystem;
 
-typedef struct ParticleHairFinalCache {
+struct ParticleHairFinalCache {
   /* Output of the subdivision stage: vertex buff sized to subdiv level. */
   GPUVertBuf *proc_buf;
 
@@ -31,9 +31,9 @@ typedef struct ParticleHairFinalCache {
   GPUBatch *proc_hairs[MAX_THICKRES];
 
   int strands_res; /* points per hair, at least 2 */
-} ParticleHairFinalCache;
+};
 
-typedef struct ParticleHairCache {
+struct ParticleHairCache {
   GPUVertBuf *pos;
   GPUIndexBuf *indices;
   GPUBatch *hairs;
@@ -65,18 +65,18 @@ typedef struct ParticleHairCache {
   int strands_len;
   int elems_len;
   int point_len;
-} ParticleHairCache;
+};
 
 namespace blender::draw {
 
 /**
  * Ensure all textures and buffers needed for GPU accelerated drawing.
  */
-bool particles_ensure_procedural_data(struct Object *object,
-                                      struct ParticleSystem *psys,
-                                      struct ModifierData *md,
-                                      struct ParticleHairCache **r_hair_cache,
-                                      struct GPUMaterial *gpu_material,
+bool particles_ensure_procedural_data(Object *object,
+                                      ParticleSystem *psys,
+                                      ModifierData *md,
+                                      ParticleHairCache **r_hair_cache,
+                                      GPUMaterial *gpu_material,
                                       int subdiv,
                                       int thickness_res);
 

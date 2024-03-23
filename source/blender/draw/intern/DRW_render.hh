@@ -99,9 +99,10 @@ typedef char DRWViewportEmptyList;
 /* Unused members must be either pass list or 'char *' when not used. */
 #define DRW_VIEWPORT_DATA_SIZE(ty) \
   { \
-    DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->fbl)), DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->txl)), \
-        DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->psl)), \
-        DRW_VIEWPORT_LIST_SIZE(*(((ty *)NULL)->stl)), \
+    DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->fbl)), \
+        DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->txl)), \
+        DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->psl)), \
+        DRW_VIEWPORT_LIST_SIZE(*(((ty *)nullptr)->stl)), \
   }
 
 struct DrawEngineDataSize {
@@ -241,17 +242,17 @@ void DRW_texture_generate_mipmaps(GPUTexture *tex);
 void DRW_texture_free(GPUTexture *tex);
 #define DRW_TEXTURE_FREE_SAFE(tex) \
   do { \
-    if (tex != NULL) { \
+    if (tex != nullptr) { \
       DRW_texture_free(tex); \
-      tex = NULL; \
+      tex = nullptr; \
     } \
   } while (0)
 
 #define DRW_UBO_FREE_SAFE(ubo) \
   do { \
-    if (ubo != NULL) { \
+    if (ubo != nullptr) { \
       GPU_uniformbuf_free(ubo); \
-      ubo = NULL; \
+      ubo = nullptr; \
     } \
   } while (0)
 
@@ -315,9 +316,9 @@ void DRW_shader_queue_optimize_material(GPUMaterial *mat);
 void DRW_shader_free(GPUShader *shader);
 #define DRW_SHADER_FREE_SAFE(shader) \
   do { \
-    if (shader != NULL) { \
+    if (shader != nullptr) { \
       DRW_shader_free(shader); \
-      shader = NULL; \
+      shader = nullptr; \
     } \
   } while (0)
 
@@ -345,9 +346,9 @@ char *DRW_shader_library_create_shader_string(const DRWShaderLibrary *lib,
 void DRW_shader_library_free(DRWShaderLibrary *lib);
 #define DRW_SHADER_LIB_FREE_SAFE(lib) \
   do { \
-    if (lib != NULL) { \
+    if (lib != nullptr) { \
       DRW_shader_library_free(lib); \
-      lib = NULL; \
+      lib = nullptr; \
     } \
   } while (0)
 
@@ -368,7 +369,7 @@ GPUVertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttrFormat att
                                                  int arraysize);
 #define DRW_shgroup_instance_format(format, ...) \
   do { \
-    if (format == NULL) { \
+    if (format == nullptr) { \
       DRWInstanceAttrFormat drw_format[] = __VA_ARGS__; \
       format = DRW_shgroup_instance_format_array( \
           drw_format, (sizeof(drw_format) / sizeof(DRWInstanceAttrFormat))); \
@@ -397,27 +398,27 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
                          void *user_data);
 
 /**
- * If ob is NULL, unit model-matrix is assumed and culling is bypassed.
+ * If ob is nullptr, unit model-matrix is assumed and culling is bypassed.
  */
 #define DRW_shgroup_call(shgroup, geom, ob) \
-  DRW_shgroup_call_ex(shgroup, ob, NULL, geom, false, NULL)
+  DRW_shgroup_call_ex(shgroup, ob, nullptr, geom, false, nullptr)
 
 /**
  * Same as #DRW_shgroup_call but override the `obmat`. Not culled.
  */
 #define DRW_shgroup_call_obmat(shgroup, geom, obmat) \
-  DRW_shgroup_call_ex(shgroup, NULL, obmat, geom, false, NULL)
+  DRW_shgroup_call_ex(shgroup, nullptr, obmat, geom, false, nullptr)
 
 /* TODO(fclem): remove this when we have #DRWView */
 /* user_data is used by #DRWCallVisibilityFn defined in #DRWView. */
 #define DRW_shgroup_call_with_callback(shgroup, geom, ob, user_data) \
-  DRW_shgroup_call_ex(shgroup, ob, NULL, geom, false, user_data)
+  DRW_shgroup_call_ex(shgroup, ob, nullptr, geom, false, user_data)
 
 /**
- * Same as #DRW_shgroup_call but bypass culling even if ob is not NULL.
+ * Same as #DRW_shgroup_call but bypass culling even if ob is not nullptr.
  */
 #define DRW_shgroup_call_no_cull(shgroup, geom, ob) \
-  DRW_shgroup_call_ex(shgroup, ob, NULL, geom, true, NULL)
+  DRW_shgroup_call_ex(shgroup, ob, nullptr, geom, true, nullptr)
 
 void DRW_shgroup_call_range(
     DRWShadingGroup *shgroup, const Object *ob, GPUBatch *geom, uint v_sta, uint v_num);
@@ -743,7 +744,7 @@ const DRWView *DRW_view_get_active();
  */
 void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len);
 
-/* For all getters, if view is NULL, default view is assumed. */
+/* For all getters, if view is nullptr, default view is assumed. */
 
 void DRW_view_winmat_get(const DRWView *view, float mat[4][4], bool inverse);
 void DRW_view_viewmat_get(const DRWView *view, float mat[4][4], bool inverse);
@@ -861,7 +862,7 @@ DrawData *DRW_drawdata_ensure(ID *id,
                               DrawDataInitCb init_cb,
                               DrawDataFreeCb free_cb);
 /**
- * Return NULL if not a dupli or a pointer of pointer to the engine data.
+ * Return nullptr if not a dupli or a pointer of pointer to the engine data.
  */
 void **DRW_duplidata_get(void *vedata);
 
@@ -987,7 +988,7 @@ struct DRWContextState {
   eGPUShaderConfig sh_cfg;
 
   /** Last resort (some functions take this as an arg so we can't easily avoid).
-   * May be NULL when used for selection or depth buffer. */
+   * May be nullptr when used for selection or depth buffer. */
   const bContext *evil_C;
 
   /* ---- */

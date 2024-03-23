@@ -1210,7 +1210,7 @@ class Framebuffer : NonCopyable {
               GPUAttachment color7 = GPU_ATTACHMENT_NONE,
               GPUAttachment color8 = GPU_ATTACHMENT_NONE)
   {
-    if (fb_ == NULL) {
+    if (fb_ == nullptr) {
       fb_ = GPU_framebuffer_create(name_);
     }
     GPUAttachment config[] = {
@@ -1223,7 +1223,7 @@ class Framebuffer : NonCopyable {
    */
   void ensure(int2 target_size)
   {
-    if (fb_ == NULL) {
+    if (fb_ == nullptr) {
       fb_ = GPU_framebuffer_create(name_);
     }
     GPU_framebuffer_default_size(fb_, UNPACK2(target_size));

@@ -30,11 +30,16 @@
 #include "draw_instance_data.hh"
 #include "draw_shader_shared.hh"
 
+struct DRWTexturePool;
+struct DRWUniformChunk;
 struct DupliObject;
 struct Object;
 namespace blender::draw {
 struct CurvesUniformBufPool;
-}
+struct DRW_Attributes;
+struct DRW_MeshCDMask;
+}  // namespace blender::draw
+struct GPUMaterial;
 
 /** Use draw manager to call GPU_select, see: #DRW_draw_select_loop */
 #define USE_GPU_SELECT
@@ -78,9 +83,9 @@ struct CurvesUniformBufPool;
 
 #else /* USE_PROFILE */
 
-#  define PROFILE_START(time_start) ((void)0)
-#  define PROFILE_END_ACCUM(time_accum, time_start) ((void)0)
-#  define PROFILE_END_UPDATE(time_update, time_start) ((void)0)
+#  define PROFILE_START(time_start) (() 0)
+#  define PROFILE_END_ACCUM(time_accum, time_start) (() 0)
+#  define PROFILE_END_UPDATE(time_update, time_start) (() 0)
 
 #endif /* USE_PROFILE */
 
@@ -106,14 +111,14 @@ typedef struct DRWRegisteredDrawEngine {
  *                           > DRWUniform
  */
 
-typedef struct DRWCullingState {
+struct DRWCullingState {
   uint32_t mask;
   /* Culling: Using Bounding Sphere for now for faster culling.
    * Not ideal for planes. Could be extended. */
   BoundSphere bsphere;
   /* Grrr only used by EEVEE. */
   void *user_data;
-} DRWCullingState;
+};
 
 /* Minimum max UBO size is 64KiB. We take the largest
  * UBO struct and alloc the max number.
@@ -162,7 +167,7 @@ BLI_INLINE void DRW_handle_negative_scale_enable(DRWResourceHandle *handle)
   *handle |= 0x80000000;
 }
 
-BLI_INLINE void *DRW_memblock_elem_from_handle(struct BLI_memblock *memblock,
+BLI_INLINE void *DRW_memblock_elem_from_handle(BLI_memblock *memblock,
                                                const DRWResourceHandle *handle)
 {
   int elem = DRW_handle_id_get(handle);
@@ -170,19 +175,19 @@ BLI_INLINE void *DRW_memblock_elem_from_handle(struct BLI_memblock *memblock,
   return BLI_memblock_elem_get(memblock, chunk, elem);
 }
 
-typedef struct DRWObjectMatrix {
+struct DRWObjectMatrix {
   float model[4][4];
   float modelinverse[4][4];
-} DRWObjectMatrix;
+};
 
-typedef struct DRWObjectInfos {
+struct DRWObjectInfos {
   float orcotexfac[2][4];
   float ob_color[4];
   float ob_index;
   float pad; /*UNUSED*/
   float ob_random;
   float ob_flag; /* Sign is negative scaling. */
-} DRWObjectInfos;
+};
 
 BLI_STATIC_ASSERT_ALIGN(DRWObjectMatrix, 16)
 BLI_STATIC_ASSERT_ALIGN(DRWObjectInfos, 16)
@@ -212,88 +217,88 @@ typedef enum {
 
 #define DRW_MAX_DRAW_CMD_TYPE DRW_CMD_DRAW_INDIRECT
 
-typedef struct DRWCommandDraw {
+struct DRWCommandDraw {
   GPUBatch *batch;
   DRWResourceHandle handle;
-} DRWCommandDraw;
+};
 
 /* Assume DRWResourceHandle to be 0. */
-typedef struct DRWCommandDrawRange {
+struct DRWCommandDrawRange {
   GPUBatch *batch;
   DRWResourceHandle handle;
   uint vert_first;
   uint vert_count;
-} DRWCommandDrawRange;
+};
 
-typedef struct DRWCommandDrawInstance {
+struct DRWCommandDrawInstance {
   GPUBatch *batch;
   DRWResourceHandle handle;
   uint inst_count;
   uint use_attrs; /* bool */
-} DRWCommandDrawInstance;
+};
 
-typedef struct DRWCommandDrawInstanceRange {
+struct DRWCommandDrawInstanceRange {
   GPUBatch *batch;
   DRWResourceHandle handle;
   uint inst_first;
   uint inst_count;
-} DRWCommandDrawInstanceRange;
+};
 
-typedef struct DRWCommandDrawIndirect {
+struct DRWCommandDrawIndirect {
   GPUBatch *batch;
   DRWResourceHandle handle;
   GPUStorageBuf *indirect_buf;
-} DRWCommandDrawIndirect;
+};
 
-typedef struct DRWCommandCompute {
+struct DRWCommandCompute {
   int groups_x_len;
   int groups_y_len;
   int groups_z_len;
-} DRWCommandCompute;
+};
 
-typedef struct DRWCommandComputeRef {
+struct DRWCommandComputeRef {
   int *groups_ref;
-} DRWCommandComputeRef;
+};
 
-typedef struct DRWCommandComputeIndirect {
+struct DRWCommandComputeIndirect {
   GPUStorageBuf *indirect_buf;
-} DRWCommandComputeIndirect;
+};
 
-typedef struct DRWCommandBarrier {
+struct DRWCommandBarrier {
   eGPUBarrier type;
-} DRWCommandBarrier;
+};
 
-typedef struct DRWCommandDrawProcedural {
+struct DRWCommandDrawProcedural {
   GPUBatch *batch;
   DRWResourceHandle handle;
   uint vert_count;
-} DRWCommandDrawProcedural;
+};
 
-typedef struct DRWCommandSetMutableState {
+struct DRWCommandSetMutableState {
   /** State changes (or'd or and'd with the pass's state) */
   DRWState enable;
   DRWState disable;
-} DRWCommandSetMutableState;
+};
 
-typedef struct DRWCommandSetStencil {
+struct DRWCommandSetStencil {
   uint write_mask;
   uint comp_mask;
   uint ref;
-} DRWCommandSetStencil;
+};
 
-typedef struct DRWCommandSetSelectID {
+struct DRWCommandSetSelectID {
   GPUVertBuf *select_buf;
   uint select_id;
-} DRWCommandSetSelectID;
+};
 
-typedef struct DRWCommandClear {
+struct DRWCommandClear {
   eGPUFrameBufferBits clear_channels;
   uchar r, g, b, a; /* [0..1] for each channels. Normalized. */
   float depth;      /* [0..1] for depth. Normalized. */
   uchar stencil;    /* Stencil value [0..255] */
-} DRWCommandClear;
+};
 
-typedef union DRWCommand {
+union DRWCommand {
   DRWCommandDraw draw;
   DRWCommandDrawRange range;
   DRWCommandDrawInstance instance;
@@ -308,7 +313,7 @@ typedef union DRWCommand {
   DRWCommandSetStencil stencil;
   DRWCommandSetSelectID select_id;
   DRWCommandClear clear;
-} DRWCommand;
+};
 
 /** Used for aggregating calls into #GPUVertBuf's. */
 struct DRWCallBuffer {
@@ -395,8 +400,8 @@ struct DRWUniform {
 struct DRWShadingGroup {
   DRWShadingGroup *next;
 
-  GPUShader *shader;                /* Shader to bind */
-  struct DRWUniformChunk *uniforms; /* Uniforms pointers */
+  GPUShader *shader;         /* Shader to bind */
+  DRWUniformChunk *uniforms; /* Uniforms pointers */
 
   struct {
     /* Chunks of draw calls. */
@@ -456,8 +461,8 @@ struct DRWView {
   float4x4 persinv;
   ViewMatrices storage;
 
-  /** Parent view if this is a sub view. NULL otherwise. */
-  struct DRWView *parent;
+  /** Parent view if this is a sub view. nullptr otherwise. */
+  DRWView *parent;
 
   float4 clip_planes[6];
 
@@ -492,15 +497,15 @@ BLI_STATIC_ASSERT_ALIGN(DRWView, 16);
  * for each item.
  * \{ */
 
-typedef struct DRWUniformChunk {
-  struct DRWUniformChunk *next; /* single-linked list */
+struct DRWUniformChunk {
+  DRWUniformChunk *next; /* single-linked list */
   uint32_t uniform_len;
   uint32_t uniform_used;
   DRWUniform uniforms[10];
-} DRWUniformChunk;
+};
 
-typedef struct DRWCommandChunk {
-  struct DRWCommandChunk *next;
+struct DRWCommandChunk {
+  DRWCommandChunk *next;
   uint32_t command_len;
   uint32_t command_used;
   /* 4bits for each command. */
@@ -508,17 +513,17 @@ typedef struct DRWCommandChunk {
   /* -- 64 bytes aligned -- */
   DRWCommand commands[96];
   /* -- 64 bytes aligned -- */
-} DRWCommandChunk;
+};
 
-typedef struct DRWCommandSmallChunk {
-  struct DRWCommandChunk *next;
+struct DRWCommandSmallChunk {
+  DRWCommandChunk *next;
   uint32_t command_len;
   uint32_t command_used;
   /* 4bits for each command. */
   /* TODO: reduce size of command_type. */
   uint64_t command_type[6];
   DRWCommand commands[6];
-} DRWCommandSmallChunk;
+};
 
 /* Only true for 64-bit platforms. */
 #ifdef __LP64__
@@ -532,28 +537,28 @@ BLI_STATIC_ASSERT_ALIGN(DRWCommandChunk, 16);
  * \{ */
 
 /** Contains memory pools information. */
-typedef struct DRWData {
+struct DRWData {
   /** Instance data. */
   DRWInstanceDataList *idatalist;
   /** Memory-pools for draw-calls. */
-  struct BLI_memblock *commands;
-  struct BLI_memblock *commands_small;
-  struct BLI_memblock *callbuffers;
-  struct BLI_memblock *obmats;
-  struct BLI_memblock *obinfos;
-  struct BLI_memblock *cullstates;
-  struct BLI_memblock *shgroups;
-  struct BLI_memblock *uniforms;
-  struct BLI_memblock *views;
-  struct BLI_memblock *passes;
-  struct BLI_memblock *images;
-  struct GPUUniformBuf **matrices_ubo;
-  struct GPUUniformBuf **obinfos_ubo;
-  struct GHash *obattrs_ubo_pool;
-  struct GHash *vlattrs_name_cache;
-  struct ListBase vlattrs_name_list;
-  struct LayerAttribute *vlattrs_buf;
-  struct GPUUniformBuf *vlattrs_ubo;
+  BLI_memblock *commands;
+  BLI_memblock *commands_small;
+  BLI_memblock *callbuffers;
+  BLI_memblock *obmats;
+  BLI_memblock *obinfos;
+  BLI_memblock *cullstates;
+  BLI_memblock *shgroups;
+  BLI_memblock *uniforms;
+  BLI_memblock *views;
+  BLI_memblock *passes;
+  BLI_memblock *images;
+  GPUUniformBuf **matrices_ubo;
+  GPUUniformBuf **obinfos_ubo;
+  GHash *obattrs_ubo_pool;
+  GHash *vlattrs_name_cache;
+  ListBase vlattrs_name_list;
+  LayerAttribute *vlattrs_buf;
+  GPUUniformBuf *vlattrs_ubo;
   bool vlattrs_ubo_ready;
   uint ubo_len;
   /** Per draw-call volume object data. */
@@ -564,12 +569,12 @@ typedef struct DRWData {
    * Texture pool to reuse temp texture across engines.
    * TODO(@fclem): The pool could be shared even between view-ports.
    */
-  struct DRWTexturePool *texture_pool;
+  DRWTexturePool *texture_pool;
   /** Per stereo view data. Contains engine data and default frame-buffers. */
-  struct DRWViewData *view_data[2];
+  DRWViewData *view_data[2];
   /** Per draw-call curves object data. */
   blender::draw::CurvesUniformBufPool *curves_ubos;
-} DRWData;
+};
 
 /** \} */
 
@@ -577,22 +582,22 @@ typedef struct DRWData {
 /** \name Draw Manager
  * \{ */
 
-typedef struct DupliKey {
-  struct Object *ob;
-  struct ID *ob_data;
-} DupliKey;
+struct DupliKey {
+  Object *ob;
+  ID *ob_data;
+};
 
 #define DST_MAX_SLOTS 64  /* Cannot be changed without modifying RST.bound_tex_slots */
 #define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
 #define STENCIL_UNDEFINED 256
 #define DRW_DRAWLIST_LEN 256
-typedef struct DRWManager {
+struct DRWManager {
   /* TODO: clean up this struct a bit. */
   /* Cache generation */
   /* TODO(@fclem): Rename to data. */
   DRWData *vmempool;
   /** Active view data structure for one of the 2 stereo view. Not related to DRWView. */
-  struct DRWViewData *view_data_active;
+  DRWViewData *view_data_active;
   /* State of the object being evaluated if already allocated. */
   DRWResourceHandle ob_handle;
   /** True if current DST.ob_state has its matching DRWObjectInfos init. */
@@ -603,15 +608,15 @@ typedef struct DRWManager {
   DRWResourceHandle pass_handle;
 
   /** Dupli object that corresponds to the current object. */
-  struct DupliObject *dupli_source;
+  DupliObject *dupli_source;
   /** Object that created the dupli-list the current object is part of. */
-  struct Object *dupli_parent;
+  Object *dupli_parent;
   /** Object referenced by the current dupli object. */
-  struct Object *dupli_origin;
+  Object *dupli_origin;
   /** Object-data referenced by the current dupli object. */
-  struct ID *dupli_origin_data;
+  ID *dupli_origin_data;
   /** Hash-map: #DupliKey -> void pointer for each enabled engine. */
-  struct GHash *dupli_ghash;
+  GHash *dupli_ghash;
   /** TODO(@fclem): try to remove usage of this. */
   DRWInstanceData *object_instance_data[MAX_INSTANCE_DATA_SIZE];
   /* Dupli data for the current dupli for each enabled engine. */
@@ -627,7 +632,7 @@ typedef struct DRWManager {
 
   /* Per viewport */
   GPUViewport *viewport;
-  struct GPUFrameBuffer *default_framebuffer;
+  GPUFrameBuffer *default_framebuffer;
   float size[2];
   float inv_size[2];
   float pixsize;
@@ -646,7 +651,7 @@ typedef struct DRWManager {
   DRWContextState draw_ctx;
 
   /* Convenience pointer to text_store owned by the viewport */
-  struct DRWTextStore **text_store_p;
+  DRWTextStore **text_store_p;
 
   bool buffer_finish_called; /* Avoid bad usage of DRW_render_instance_buffer_finish */
 
@@ -662,9 +667,9 @@ typedef struct DRWManager {
   uint select_id;
 #endif
 
-  struct TaskGraph *task_graph;
+  TaskGraph *task_graph;
   /* Contains list of objects that needs to be extracted from other objects. */
-  struct GSet *delayed_extraction;
+  GSet *delayed_extraction;
 
   /* ---------- Nothing after this point is cleared after use ----------- */
 
@@ -679,7 +684,7 @@ typedef struct DRWManager {
   GPUDrawList *draw_list;
 
   DRWDebugModule *debug;
-} DRWManager;
+};
 
 extern DRWManager DST; /* TODO: get rid of this and allow multi-threaded rendering. */
 
@@ -695,16 +700,16 @@ void *drw_viewport_engine_data_ensure(void *engine_type);
 
 void drw_state_set(DRWState state);
 
-void drw_debug_draw(void);
-void drw_debug_init(void);
+void drw_debug_draw();
+void drw_debug_init();
 void drw_debug_module_free(DRWDebugModule *module);
-GPUStorageBuf *drw_debug_gpu_draw_buf_get(void);
-GPUStorageBuf *drw_debug_gpu_print_buf_get(void);
+GPUStorageBuf *drw_debug_gpu_draw_buf_get();
+GPUStorageBuf *drw_debug_gpu_print_buf_get();
 
 eDRWCommandType command_type_get(const uint64_t *command_type_bits, int index);
 
 void drw_batch_cache_validate(Object *ob);
-void drw_batch_cache_generate_requested(struct Object *ob);
+void drw_batch_cache_generate_requested(Object *ob);
 
 /**
  * \warning Only evaluated mesh data is handled by this delayed generation.
@@ -715,19 +720,19 @@ void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob);
 void drw_resource_buffer_finish(DRWData *vmempool);
 
 /* Procedural Drawing */
-GPUBatch *drw_cache_procedural_points_get(void);
-GPUBatch *drw_cache_procedural_lines_get(void);
-GPUBatch *drw_cache_procedural_triangles_get(void);
-GPUBatch *drw_cache_procedural_triangle_strips_get(void);
+GPUBatch *drw_cache_procedural_points_get();
+GPUBatch *drw_cache_procedural_lines_get();
+GPUBatch *drw_cache_procedural_triangles_get();
+GPUBatch *drw_cache_procedural_triangle_strips_get();
 
-void drw_uniform_attrs_pool_update(struct GHash *table,
-                                   const struct GPUUniformAttrList *key,
+void drw_uniform_attrs_pool_update(GHash *table,
+                                   const GPUUniformAttrList *key,
                                    DRWResourceHandle *handle,
-                                   const struct Object *ob,
-                                   const struct Object *dupli_parent,
-                                   const struct DupliObject *dupli_source);
+                                   const Object *ob,
+                                   const Object *dupli_parent,
+                                   const DupliObject *dupli_source);
 
-GPUUniformBuf *drw_ensure_layer_attribute_buffer(void);
+GPUUniformBuf *drw_ensure_layer_attribute_buffer();
 
 double *drw_engine_data_cache_time_get(GPUViewport *viewport);
 void *drw_engine_data_engine_data_create(GPUViewport *viewport, void *engine_type);
@@ -736,23 +741,18 @@ bool drw_engine_data_engines_data_validate(GPUViewport *viewport, void **engine_
 void drw_engine_data_cache_release(GPUViewport *viewport);
 void drw_engine_data_free(GPUViewport *viewport);
 
-struct GPUMaterial;
-
 namespace blender::draw {
 
-struct DRW_Attributes;
-struct DRW_MeshCDMask;
-
-void DRW_mesh_get_attributes(const struct Object *object,
-                             const struct Mesh *mesh,
-                             const struct GPUMaterial *const *gpumat_array,
+void DRW_mesh_get_attributes(const Object *object,
+                             const Mesh *mesh,
+                             const GPUMaterial *const *gpumat_array,
                              int gpumat_array_len,
                              DRW_Attributes *r_attrs,
                              DRW_MeshCDMask *r_cd_needed);
 
 }  // namespace blender::draw
 
-void DRW_manager_begin_sync(void);
-void DRW_manager_end_sync(void);
+void DRW_manager_begin_sync();
+void DRW_manager_end_sync();
 
 /** \} */

@@ -37,7 +37,7 @@ DRW_Global G_draw{};
 static bool weight_ramp_custom = false;
 static ColorBand weight_ramp_copy;
 
-static GPUTexture *DRW_create_weight_colorramp_texture(void);
+static GPUTexture *DRW_create_weight_colorramp_texture();
 
 void DRW_globals_update()
 {
