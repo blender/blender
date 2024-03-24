@@ -228,7 +228,8 @@ ccl_device_inline float3 camera_panorama_direction(ccl_constant KernelCamera *ca
                                                    float x,
                                                    float y)
 {
-  float3 Pcamera = transform_perspective(&cam->rastertocamera, make_float3(x, y, 0.0f));
+  const ProjectionTransform rastertocamera = cam->rastertocamera;
+  float3 Pcamera = transform_perspective(&rastertocamera, make_float3(x, y, 0.0f));
   return panorama_to_direction(cam, Pcamera.x, Pcamera.y);
 }
 
