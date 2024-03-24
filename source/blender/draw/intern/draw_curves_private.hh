@@ -29,11 +29,16 @@ enum CurvesEvalShader {
 #define CURVES_EVAL_SHADER_NUM 3
 
 struct CurvesEvalFinalCache {
+  /** The "additional subdivision" setting from the scene. See #MAX_HAIR_SUBDIV. */
+  int hair_subdiv;
+  /* The "strand or strip" setting from the scene. See #MAX_THICKRES. */
+  int thickres;
+
   /* Output of the subdivision stage: vertex buffer sized to subdiv level. */
   GPUVertBuf *proc_buf;
 
   /** Just contains a huge index buffer used to draw the final curves. */
-  GPUBatch *proc_hairs[MAX_THICKRES];
+  GPUBatch *proc_hairs;
 
   /** Points per curve, at least 2. */
   int resolution;
@@ -72,7 +77,7 @@ struct CurvesEvalCache {
 
   GPUVertBuf *proc_strand_seg_buf;
 
-  CurvesEvalFinalCache final[MAX_HAIR_SUBDIV];
+  CurvesEvalFinalCache final;
 
   /* For point attributes, which need subdivision, these buffers contain the input data.
    * For curve domain attributes, which do not need subdivision, these are the final data. */

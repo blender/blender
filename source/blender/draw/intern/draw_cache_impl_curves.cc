@@ -150,13 +150,11 @@ static void discard_attributes(CurvesEvalCache &eval_cache)
     GPU_VERTBUF_DISCARD_SAFE(eval_cache.proc_attributes_buf[i]);
   }
 
-  for (const int i : IndexRange(MAX_HAIR_SUBDIV)) {
-    for (const int j : IndexRange(GPU_MAX_ATTR)) {
-      GPU_VERTBUF_DISCARD_SAFE(eval_cache.final[i].attributes_buf[j]);
-    }
-
-    drw_attributes_clear(&eval_cache.final[i].attr_used);
+  for (const int j : IndexRange(GPU_MAX_ATTR)) {
+    GPU_VERTBUF_DISCARD_SAFE(eval_cache.final.attributes_buf[j]);
   }
+
+  drw_attributes_clear(&eval_cache.final.attr_used);
 }
 
 static void clear_edit_data(CurvesBatchCache *cache)
@@ -178,6 +176,15 @@ static void clear_edit_data(CurvesBatchCache *cache)
   GPU_BATCH_DISCARD_SAFE(cache->edit_curves_lines);
 }
 
+static void clear_final_data(CurvesEvalFinalCache &final_cache)
+{
+  GPU_VERTBUF_DISCARD_SAFE(final_cache.proc_buf);
+  GPU_BATCH_DISCARD_SAFE(final_cache.proc_hairs);
+  for (const int j : IndexRange(GPU_MAX_ATTR)) {
+    GPU_VERTBUF_DISCARD_SAFE(final_cache.attributes_buf[j]);
+  }
+}
+
 static void clear_eval_data(CurvesEvalCache &eval_cache)
 {
   /* TODO: more granular update tagging. */
@@ -186,12 +193,7 @@ static void clear_eval_data(CurvesEvalCache &eval_cache)
   GPU_VERTBUF_DISCARD_SAFE(eval_cache.proc_strand_buf);
   GPU_VERTBUF_DISCARD_SAFE(eval_cache.proc_strand_seg_buf);
 
-  for (const int i : IndexRange(MAX_HAIR_SUBDIV)) {
-    GPU_VERTBUF_DISCARD_SAFE(eval_cache.final[i].proc_buf);
-    for (const int j : IndexRange(MAX_THICKRES)) {
-      GPU_BATCH_DISCARD_SAFE(eval_cache.final[i].proc_hairs[j]);
-    }
-  }
+  clear_final_data(eval_cache.final);
 
   discard_attributes(eval_cache);
 }
@@ -504,18 +506,16 @@ static void calc_edit_handles_vbo(const bke::CurvesGeometry &curves,
 
 static void alloc_final_attribute_vbo(CurvesEvalCache &cache,
                                       const GPUVertFormat *format,
-                                      const int subdiv,
                                       const int index,
                                       const char * /*name*/)
 {
-  CurvesEvalFinalCache &final_cache = cache.final[subdiv];
-  final_cache.attributes_buf[index] = GPU_vertbuf_create_with_format_ex(
+  cache.final.attributes_buf[index] = GPU_vertbuf_create_with_format_ex(
       format, GPU_USAGE_DEVICE_ONLY | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
 
   /* Create a destination buffer for the transform feedback. Sized appropriately */
   /* Those are points! not line segments. */
-  GPU_vertbuf_data_alloc(final_cache.attributes_buf[index],
-                         final_cache.resolution * cache.curves_num);
+  GPU_vertbuf_data_alloc(cache.final.attributes_buf[index],
+                         cache.final.resolution * cache.curves_num);
 }
 
 static void ensure_control_point_attribute(const Curves &curves,
@@ -558,7 +558,6 @@ static void ensure_control_point_attribute(const Curves &curves,
 static void ensure_final_attribute(const Curves &curves,
                                    CurvesEvalCache &cache,
                                    const DRW_AttributeRequest &request,
-                                   const int subdiv,
                                    const int index)
 {
   char sampler_name[32];
@@ -573,11 +572,11 @@ static void ensure_final_attribute(const Curves &curves,
 
   /* Existing final data may have been for a different attribute (with a different name or domain),
    * free the data. */
-  GPU_VERTBUF_DISCARD_SAFE(cache.final[subdiv].attributes_buf[index]);
+  GPU_VERTBUF_DISCARD_SAFE(cache.final.attributes_buf[index]);
 
   /* Ensure final data for points. */
   if (request.domain == bke::AttrDomain::Point) {
-    alloc_final_attribute_vbo(cache, &format, subdiv, index, sampler_name);
+    alloc_final_attribute_vbo(cache, &format, index, sampler_name);
   }
 }
 
@@ -618,25 +617,23 @@ static void create_curve_offsets_vbos(const OffsetIndices<int> points_by_curve,
   fill_curve_offsets_vbos(points_by_curve, data_step, seg_step);
 }
 
-static void alloc_final_points_vbo(CurvesEvalCache &cache, int subdiv)
+static void alloc_final_points_vbo(CurvesEvalCache &cache)
 {
   /* Same format as proc_point_buf. */
   GPUVertFormat format = {0};
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
-  cache.final[subdiv].proc_buf = GPU_vertbuf_create_with_format_ex(
+  cache.final.proc_buf = GPU_vertbuf_create_with_format_ex(
       &format, GPU_USAGE_DEVICE_ONLY | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
 
   /* Create a destination buffer for the transform feedback. Sized appropriately */
   /* Those are points! not line segments. */
-  GPU_vertbuf_data_alloc(cache.final[subdiv].proc_buf,
-                         cache.final[subdiv].resolution * cache.curves_num);
+  GPU_vertbuf_data_alloc(cache.final.proc_buf, cache.final.resolution * cache.curves_num);
 }
 
 static void calc_final_indices(const bke::CurvesGeometry &curves,
                                CurvesEvalCache &cache,
-                               const int thickness_res,
-                               const int subdiv)
+                               const int thickness_res)
 {
   BLI_assert(thickness_res <= MAX_THICKRES); /* Cylinder strip not currently supported. */
   /* Determine prim type and element count.
@@ -647,14 +644,14 @@ static void calc_final_indices(const bke::CurvesGeometry &curves,
 
   if (use_strip_prims) {
     /* +1 for primitive restart */
-    verts_per_curve = cache.final[subdiv].resolution * thickness_res;
+    verts_per_curve = cache.final.resolution * thickness_res;
     prim_type = (thickness_res == 1) ? GPU_PRIM_LINE_STRIP : GPU_PRIM_TRI_STRIP;
   }
   else {
     /* Use full primitive type. */
     prim_type = (thickness_res == 1) ? GPU_PRIM_LINES : GPU_PRIM_TRIS;
     int verts_per_segment = ((prim_type == GPU_PRIM_LINES) ? 2 : 6);
-    verts_per_curve = (cache.final[subdiv].resolution - 1) * verts_per_segment;
+    verts_per_curve = (cache.final.resolution - 1) * verts_per_segment;
   }
 
   static GPUVertFormat format = {0};
@@ -672,18 +669,16 @@ static void calc_final_indices(const bke::CurvesGeometry &curves,
     ibo = GPU_indexbuf_build_curves_on_device(prim_type, curves.curves_num(), verts_per_curve);
     owns_flag |= GPU_BATCH_OWNS_INDEX;
   }
-  cache.final[subdiv].proc_hairs[thickness_res - 1] = GPU_batch_create_ex(
-      prim_type, vbo, ibo, owns_flag);
+  cache.final.proc_hairs = GPU_batch_create_ex(prim_type, vbo, ibo, owns_flag);
 }
 
 static bool ensure_attributes(const Curves &curves,
                               CurvesBatchCache &cache,
-                              const GPUMaterial *gpu_material,
-                              const int subdiv)
+                              const GPUMaterial *gpu_material)
 {
   const CustomData *cd_curve = &curves.geometry.curve_data;
   const CustomData *cd_point = &curves.geometry.point_data;
-  CurvesEvalFinalCache &final_cache = cache.eval_cache.final[subdiv];
+  CurvesEvalFinalCache &final_cache = cache.eval_cache.final;
 
   if (gpu_material) {
     DRW_Attributes attrs_needed;
@@ -723,7 +718,7 @@ static bool ensure_attributes(const Curves &curves,
   for (const int i : IndexRange(final_cache.attr_used.num_requests)) {
     const DRW_AttributeRequest &request = final_cache.attr_used.requests[i];
 
-    if (cache.eval_cache.final[subdiv].attributes_buf[i] != nullptr) {
+    if (cache.eval_cache.final.attributes_buf[i] != nullptr) {
       continue;
     }
 
@@ -731,7 +726,7 @@ static bool ensure_attributes(const Curves &curves,
       need_tf_update = true;
     }
 
-    ensure_final_attribute(curves, cache.eval_cache, request, subdiv, i);
+    ensure_final_attribute(curves, cache.eval_cache, request, i);
   }
 
   return need_tf_update;
@@ -740,10 +735,7 @@ static bool ensure_attributes(const Curves &curves,
 static void request_attribute(Curves &curves, const char *name)
 {
   CurvesBatchCache &cache = get_batch_cache(curves);
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Scene *scene = draw_ctx->scene;
-  const int subdiv = scene->r.hair_subdiv;
-  CurvesEvalFinalCache &final_cache = cache.eval_cache.final[subdiv];
+  CurvesEvalFinalCache &final_cache = cache.eval_cache.final;
 
   DRW_Attributes attributes{};
 
@@ -783,11 +775,19 @@ bool curves_ensure_procedural_data(Curves *curves_id,
 
   CurvesBatchCache &cache = get_batch_cache(*curves_id);
   CurvesEvalCache &eval_cache = cache.eval_cache;
+
+  if (eval_cache.final.hair_subdiv != subdiv || eval_cache.final.thickres != thickness_res) {
+    /* If the subdivision or indexing settings have changed, the evaluation cache is cleared. */
+    clear_final_data(eval_cache.final);
+    eval_cache.final.hair_subdiv = subdiv;
+    eval_cache.final.thickres = thickness_res;
+  }
+
   eval_cache.curves_num = curves.curves_num();
   eval_cache.points_num = curves.points_num();
 
   const int steps = 3; /* TODO: don't hard-code? */
-  eval_cache.final[subdiv].resolution = 1 << (steps + subdiv);
+  eval_cache.final.resolution = 1 << (steps + subdiv);
 
   /* Refreshed on combing and simulation. */
   if (eval_cache.proc_point_buf == nullptr || DRW_vbo_requested(eval_cache.proc_point_buf)) {
@@ -801,15 +801,17 @@ bool curves_ensure_procedural_data(Curves *curves_id,
   }
 
   /* Refreshed only on subdiv count change. */
-  if (eval_cache.final[subdiv].proc_buf == nullptr) {
-    alloc_final_points_vbo(eval_cache, subdiv);
+  if (eval_cache.final.proc_buf == nullptr) {
+    alloc_final_points_vbo(eval_cache);
     need_ft_update = true;
   }
-  if (eval_cache.final[subdiv].proc_hairs[thickness_res - 1] == nullptr) {
-    calc_final_indices(curves, eval_cache, thickness_res, subdiv);
-  }
 
-  need_ft_update |= ensure_attributes(*curves_id, cache, gpu_material, subdiv);
+  if (eval_cache.final.proc_hairs == nullptr) {
+    calc_final_indices(curves, eval_cache, thickness_res);
+  }
+  eval_cache.final.thickres = thickness_res;
+
+  need_ft_update |= ensure_attributes(*curves_id, cache, gpu_material);
 
   *r_cache = &eval_cache;
   return need_ft_update;
@@ -856,19 +858,17 @@ void DRW_curves_batch_cache_free_old(Curves *curves, int ctime)
 
   bool do_discard = false;
 
-  for (const int i : IndexRange(MAX_HAIR_SUBDIV)) {
-    CurvesEvalFinalCache &final_cache = cache->eval_cache.final[i];
+  CurvesEvalFinalCache &final_cache = cache->eval_cache.final;
 
-    if (drw_attributes_overlap(&final_cache.attr_used_over_time, &final_cache.attr_used)) {
-      final_cache.last_attr_matching_time = ctime;
-    }
-
-    if (ctime - final_cache.last_attr_matching_time > U.vbotimeout) {
-      do_discard = true;
-    }
-
-    drw_attributes_clear(&final_cache.attr_used_over_time);
+  if (drw_attributes_overlap(&final_cache.attr_used_over_time, &final_cache.attr_used)) {
+    final_cache.last_attr_matching_time = ctime;
   }
+
+  if (ctime - final_cache.last_attr_matching_time > U.vbotimeout) {
+    do_discard = true;
+  }
+
+  drw_attributes_clear(&final_cache.attr_used_over_time);
 
   if (do_discard) {
     discard_attributes(cache->eval_cache);
@@ -915,10 +915,7 @@ GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
                                                         bool *r_is_point_domain)
 {
   CurvesBatchCache &cache = get_batch_cache(*curves);
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Scene *scene = draw_ctx->scene;
-  const int subdiv = scene->r.hair_subdiv;
-  CurvesEvalFinalCache &final_cache = cache.eval_cache.final[subdiv];
+  CurvesEvalFinalCache &final_cache = cache.eval_cache.final;
 
   request_attribute(*curves, name);
 
