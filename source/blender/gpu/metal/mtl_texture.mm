@@ -258,7 +258,7 @@ id<MTLTexture> gpu::MTLTexture::get_metal_handle()
       this->reset();
 
       /* Re-initialize. */
-      this->init_internal(wrap(vert_buffer_));
+      this->init_internal(vert_buffer_);
 
       /* Update for assertion check below. */
       buf = vert_buffer_->get_metal_buffer();
