@@ -419,7 +419,7 @@ GPUTexture *GPU_texture_create_from_vertbuf(const char *name, blender::gpu::Vert
 #ifndef NDEBUG
   /* Vertex buffers used for texture buffers must be flagged with:
    * GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY. */
-  BLI_assert_msg(unwrap(vert)->extended_usage_ & GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY,
+  BLI_assert_msg(vert->extended_usage_ & GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY,
                  "Vertex Buffers used for textures should have usage flag "
                  "GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY.");
 #endif

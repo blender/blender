@@ -99,15 +99,15 @@ class MTLBatch : public Batch {
   /* Convenience getters. */
   MTLIndexBuf *elem_() const
   {
-    return static_cast<MTLIndexBuf *>(unwrap(elem));
+    return static_cast<MTLIndexBuf *>(elem);
   }
   MTLVertBuf *verts_(const int index) const
   {
-    return static_cast<MTLVertBuf *>(unwrap(verts[index]));
+    return static_cast<MTLVertBuf *>(verts[index]);
   }
   MTLVertBuf *inst_(const int index) const
   {
-    return static_cast<MTLVertBuf *>(unwrap(inst[index]));
+    return static_cast<MTLVertBuf *>(inst[index]);
   }
   MTLShader *active_shader_get() const
   {
