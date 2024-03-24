@@ -25,8 +25,8 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
   /* TODO: store the Batches inside the GizmoGeomInfo and updated it when geom changes
    * So we don't need to re-created and discard it every time */
 
-  GPUVertBuf *vbo;
-  GPUIndexBuf *el;
+  blender::gpu::VertBuf *vbo;
+  blender::gpu::IndexBuf *el;
   GPUBatch *batch;
   GPUIndexBufBuilder elb = {0};
 

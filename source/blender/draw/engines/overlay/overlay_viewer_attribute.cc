@@ -137,7 +137,7 @@ static void populate_cache_for_geometry(Object &object,
               pointcloud->attributes().lookup_meta_data(".viewer"))
       {
         if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
-          GPUVertBuf **vertbuf = DRW_pointcloud_evaluated_attribute(pointcloud, ".viewer");
+          gpu::VertBuf **vertbuf = DRW_pointcloud_evaluated_attribute(pointcloud, ".viewer");
           DRWShadingGroup *grp = DRW_shgroup_pointcloud_create_sub(
               &object, pd.viewer_attribute_pointcloud_grp, nullptr);
           DRW_shgroup_uniform_float_copy(grp, "opacity", opacity);
@@ -171,7 +171,7 @@ static void populate_cache_for_geometry(Object &object,
       {
         if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
           bool is_point_domain;
-          GPUVertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
+          gpu::VertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
               curves_id, ".viewer", &is_point_domain);
           DRWShadingGroup *grp = DRW_shgroup_curves_create_sub(
               &object, pd.viewer_attribute_curves_grp, nullptr);

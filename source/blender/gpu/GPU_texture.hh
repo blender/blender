@@ -21,7 +21,9 @@
 
 #include "GPU_state.hh"
 
-struct GPUVertBuf;
+namespace blender::gpu {
+class VertBuf;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Sampler State
@@ -638,7 +640,7 @@ GPUTexture *GPU_texture_create_compressed_2d(const char *name,
  * Create a buffer texture that allow access to a buffer \a vertex_buf through a sampler of type
  * `(FLOAT/INT/UINT)_BUFFER`.
  */
-GPUTexture *GPU_texture_create_from_vertbuf(const char *name, GPUVertBuf *vertex_buf);
+GPUTexture *GPU_texture_create_from_vertbuf(const char *name, blender::gpu::VertBuf *vertex_buf);
 
 /**
  * Create an error texture that will bind an pink texture at draw time.

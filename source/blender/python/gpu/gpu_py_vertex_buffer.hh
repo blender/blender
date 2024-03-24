@@ -10,7 +10,9 @@
 
 #include "BLI_compiler_attrs.h"
 
-struct GPUVertBuf;
+namespace blender::gpu {
+class VertBuf;
+}
 
 extern PyTypeObject BPyGPUVertBuf_Type;
 
@@ -19,7 +21,7 @@ extern PyTypeObject BPyGPUVertBuf_Type;
 struct BPyGPUVertBuf {
   PyObject_VAR_HEAD
   /* The buf is owned, we may support thin wrapped batches later. */
-  GPUVertBuf *buf;
+  blender::gpu::VertBuf *buf;
 };
 
-PyObject *BPyGPUVertBuf_CreatePyObject(GPUVertBuf *buf) ATTR_NONNULL(1);
+PyObject *BPyGPUVertBuf_CreatePyObject(blender::gpu::VertBuf *buf) ATTR_NONNULL(1);

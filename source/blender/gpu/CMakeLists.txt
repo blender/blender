@@ -122,7 +122,6 @@ set(SRC
   intern/gpu_drawlist_private.hh
   intern/gpu_framebuffer_private.hh
   intern/gpu_immediate_private.hh
-  intern/gpu_index_buffer_private.hh
   intern/gpu_material_library.hh
   intern/gpu_matrix_private.hh
   intern/gpu_node_graph.hh
@@ -139,7 +138,6 @@ set(SRC
   intern/gpu_storage_buffer_private.hh
   intern/gpu_texture_private.hh
   intern/gpu_uniform_buffer_private.hh
-  intern/gpu_vertex_buffer_private.hh
   intern/gpu_vertex_format_private.hh
 
   dummy/dummy_backend.hh

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "gpu_vertex_buffer_private.hh"
+#include "GPU_vertex_buffer.hh"
 
 #include "vk_bindable_resource.hh"
 #include "vk_buffer.hh"

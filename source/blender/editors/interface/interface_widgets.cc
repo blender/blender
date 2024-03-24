@@ -442,7 +442,7 @@ static uint32_t set_roundbox_vertex(GPUVertBufRaw *vflag_step,
 GPUBatch *ui_batch_roundbox_widget_get()
 {
   if (g_ui_batch_cache.roundbox_widget == nullptr) {
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
 
     GPU_vertbuf_data_alloc(vbo, 12);
 
@@ -470,7 +470,7 @@ GPUBatch *ui_batch_roundbox_shadow_get()
   if (g_ui_batch_cache.roundbox_shadow == nullptr) {
     uint32_t last_data;
     GPUVertBufRaw vflag_step;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
     const int vcount = (WIDGET_SIZE_MAX + 1) * 2 + 2 + WIDGET_SIZE_MAX;
     GPU_vertbuf_data_alloc(vbo, vcount);
     GPU_vertbuf_attr_get_raw_data(vbo, g_ui_batch_cache.vflag_id, &vflag_step);

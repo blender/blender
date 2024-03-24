@@ -203,8 +203,8 @@ static void gpencil_layer_cache_populate(bGPDlayer *gpl,
    * Convert to world units (by default, 1 meter = 2000 pixels). */
   float thickness_scale = (is_screenspace) ? -1.0f : (gpd->pixfactor / 2000.0f);
 
-  GPUVertBuf *position_tx = DRW_cache_gpencil_position_buffer_get(iter->ob, iter->cfra);
-  GPUVertBuf *color_tx = DRW_cache_gpencil_color_buffer_get(iter->ob, iter->cfra);
+  blender::gpu::VertBuf *position_tx = DRW_cache_gpencil_position_buffer_get(iter->ob, iter->cfra);
+  blender::gpu::VertBuf *color_tx = DRW_cache_gpencil_color_buffer_get(iter->ob, iter->cfra);
 
   DRWShadingGroup *grp = iter->stroke_grp = DRW_shgroup_create_sub(iter->stroke_grp);
   DRW_shgroup_uniform_bool_copy(grp, "gpStrokeOrder3d", is_stroke_order_3d);
@@ -303,8 +303,8 @@ static void OVERLAY_outline_grease_pencil(OVERLAY_PrivateData *pd, Scene *scene,
      * Convert to world units (by default, 1 meter = 1000 pixels). */
     float thickness_scale = (is_screenspace) ? -1.0f : 1.0f / 1000.0f;
 
-    GPUVertBuf *position_tx = draw::DRW_cache_grease_pencil_position_buffer_get(scene, ob);
-    GPUVertBuf *color_tx = draw::DRW_cache_grease_pencil_color_buffer_get(scene, ob);
+    gpu::VertBuf *position_tx = draw::DRW_cache_grease_pencil_position_buffer_get(scene, ob);
+    gpu::VertBuf *color_tx = draw::DRW_cache_grease_pencil_color_buffer_get(scene, ob);
 
     DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->outlines_gpencil_grp);
     DRW_shgroup_uniform_bool_copy(grp, "gpStrokeOrder3d", is_stroke_order_3d);

@@ -1337,13 +1337,13 @@ void GLShader::transform_feedback_names_set(Span<const char *> name_list,
   transform_feedback_type_ = geom_type;
 }
 
-bool GLShader::transform_feedback_enable(GPUVertBuf *buf_)
+bool GLShader::transform_feedback_enable(blender::gpu::VertBuf *buf_)
 {
   if (transform_feedback_type_ == GPU_SHADER_TFB_NONE) {
     return false;
   }
 
-  GLVertBuf *buf = static_cast<GLVertBuf *>(unwrap(buf_));
+  GLVertBuf *buf = static_cast<GLVertBuf *>(buf_);
 
   if (buf->vbo_id_ == 0) {
     buf->bind();

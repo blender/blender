@@ -71,7 +71,7 @@ static void populate_selection_overlay(OVERLAY_Data *vedata, Object *object)
 
   /* Retrieve the location of the texture. */
   bool is_point_domain;
-  GPUVertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
+  blender::gpu::VertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
       curves, ".selection", &is_point_domain);
   if (texture == nullptr) {
     return;

@@ -980,8 +980,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
     }
 
     /* Transform feedback buffer binding. */
-    GPUVertBuf *tf_vbo =
-        this->pipeline_state.active_shader->get_transform_feedback_active_buffer();
+    VertBuf *tf_vbo = this->pipeline_state.active_shader->get_transform_feedback_active_buffer();
     if (tf_vbo != nullptr && pipeline_state_instance->transform_feedback_buffer_index >= 0) {
 
       /* Ensure primitive type is either GPU_LINES, GPU_TRIANGLES or GPU_POINT */

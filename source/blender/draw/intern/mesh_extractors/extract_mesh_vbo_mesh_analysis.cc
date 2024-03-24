@@ -31,7 +31,7 @@ static void extract_mesh_analysis_init(const MeshRenderData &mr,
                                        void *buf,
                                        void * /*tls_data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
@@ -594,7 +594,7 @@ static void extract_analysis_iter_finish_mesh(const MeshRenderData &mr,
                                               void *buf,
                                               void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   BLI_assert(mr.edit_bmesh);
 
   float *l_weight = (float *)GPU_vertbuf_get_data(vbo);

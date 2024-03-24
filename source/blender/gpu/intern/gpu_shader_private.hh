@@ -14,7 +14,6 @@
 #include "GPU_shader.hh"
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_interface.hh"
-#include "gpu_vertex_buffer_private.hh"
 
 #include "BLI_map.hh"
 
@@ -93,7 +92,7 @@ class Shader {
 
   virtual void transform_feedback_names_set(Span<const char *> name_list,
                                             eGPUShaderTFBType geom_type) = 0;
-  virtual bool transform_feedback_enable(GPUVertBuf *) = 0;
+  virtual bool transform_feedback_enable(VertBuf *) = 0;
   virtual void transform_feedback_disable() = 0;
 
   virtual void bind() = 0;

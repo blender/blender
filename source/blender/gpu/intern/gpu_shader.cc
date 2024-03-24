@@ -547,7 +547,7 @@ void GPU_shader_warm_cache(GPUShader *shader, int limit)
  * TODO(fclem): Should be replaced by compute shaders.
  * \{ */
 
-bool GPU_shader_transform_feedback_enable(GPUShader *shader, GPUVertBuf *vertbuf)
+bool GPU_shader_transform_feedback_enable(GPUShader *shader, blender::gpu::VertBuf *vertbuf)
 {
   return unwrap(shader)->transform_feedback_enable(vertbuf);
 }

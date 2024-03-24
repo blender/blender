@@ -18,11 +18,11 @@
 #include "GPU_platform.hh"
 #include "GPU_shader.hh"
 
+#include "GPU_index_buffer.hh"
+#include "GPU_vertex_buffer.hh"
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
-#include "gpu_index_buffer_private.hh"
 #include "gpu_shader_private.hh"
-#include "gpu_vertex_buffer_private.hh"
 
 #include "gpu_batch_private.hh"
 
@@ -42,8 +42,8 @@ GPUBatch *GPU_batch_calloc()
 }
 
 GPUBatch *GPU_batch_create_ex(GPUPrimType primitive_type,
-                              GPUVertBuf *vertex_buf,
-                              GPUIndexBuf *index_buf,
+                              VertBuf *vertex_buf,
+                              IndexBuf *index_buf,
                               eGPUBatchFlag owns_flag)
 {
   GPUBatch *batch = GPU_batch_calloc();
@@ -53,8 +53,8 @@ GPUBatch *GPU_batch_create_ex(GPUPrimType primitive_type,
 
 void GPU_batch_init_ex(GPUBatch *batch,
                        GPUPrimType primitive_type,
-                       GPUVertBuf *vertex_buf,
-                       GPUIndexBuf *index_buf,
+                       VertBuf *vertex_buf,
+                       IndexBuf *index_buf,
                        eGPUBatchFlag owns_flag)
 {
   /* Do not pass any other flag */
@@ -122,7 +122,7 @@ void GPU_batch_discard(GPUBatch *batch)
 /** \name Buffers Management
  * \{ */
 
-void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo)
+void GPU_batch_instbuf_set(GPUBatch *batch, VertBuf *vertex_buf, bool own_vbo)
 {
   BLI_assert(vertex_buf);
   batch->flag |= GPU_BATCH_DIRTY;
@@ -135,7 +135,7 @@ void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo
   SET_FLAG_FROM_TEST(batch->flag, own_vbo, GPU_BATCH_OWNS_INST_VBO);
 }
 
-void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *index_buf, bool own_ibo)
+void GPU_batch_elembuf_set(GPUBatch *batch, blender::gpu::IndexBuf *index_buf, bool own_ibo)
 {
   BLI_assert(index_buf);
   batch->flag |= GPU_BATCH_DIRTY;
@@ -148,7 +148,7 @@ void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *index_buf, bool own_ibo
   SET_FLAG_FROM_TEST(batch->flag, own_ibo, GPU_BATCH_OWNS_INDEX);
 }
 
-int GPU_batch_instbuf_add(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo)
+int GPU_batch_instbuf_add(GPUBatch *batch, VertBuf *vertex_buf, bool own_vbo)
 {
   BLI_assert(vertex_buf);
   batch->flag |= GPU_BATCH_DIRTY;
@@ -166,12 +166,12 @@ int GPU_batch_instbuf_add(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo)
       return v;
     }
   }
-  /* we only make it this far if there is no room for another GPUVertBuf */
+  /* we only make it this far if there is no room for another VertBuf */
   BLI_assert_msg(0, "Not enough Instance VBO slot in batch");
   return -1;
 }
 
-int GPU_batch_vertbuf_add(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo)
+int GPU_batch_vertbuf_add(GPUBatch *batch, VertBuf *vertex_buf, bool own_vbo)
 {
   BLI_assert(vertex_buf);
   batch->flag |= GPU_BATCH_DIRTY;
@@ -188,12 +188,12 @@ int GPU_batch_vertbuf_add(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo)
       return v;
     }
   }
-  /* we only make it this far if there is no room for another GPUVertBuf */
+  /* we only make it this far if there is no room for another VertBuf */
   BLI_assert_msg(0, "Not enough VBO slot in batch");
   return -1;
 }
 
-bool GPU_batch_vertbuf_has(GPUBatch *batch, GPUVertBuf *vertex_buf)
+bool GPU_batch_vertbuf_has(GPUBatch *batch, VertBuf *vertex_buf)
 {
   for (uint v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
     if (batch->verts[v] == vertex_buf) {

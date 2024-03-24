@@ -287,7 +287,7 @@ struct DRWCommandSetStencil {
 };
 
 struct DRWCommandSetSelectID {
-  GPUVertBuf *select_buf;
+  blender::gpu::VertBuf *select_buf;
   uint select_id;
 };
 
@@ -315,10 +315,10 @@ union DRWCommand {
   DRWCommandClear clear;
 };
 
-/** Used for aggregating calls into #GPUVertBuf's. */
+/** Used for aggregating calls into #blender::gpu::VertBuf's. */
 struct DRWCallBuffer {
-  GPUVertBuf *buf;
-  GPUVertBuf *buf_select;
+  blender::gpu::VertBuf *buf;
+  blender::gpu::VertBuf *buf_select;
   int count;
 };
 
@@ -381,8 +381,8 @@ struct DRWUniform {
     };
     /* DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE */
     union {
-      GPUVertBuf *vertbuf;
-      GPUVertBuf **vertbuf_ref;
+      blender::gpu::VertBuf *vertbuf;
+      blender::gpu::VertBuf **vertbuf_ref;
     };
     /* DRW_UNIFORM_FLOAT_COPY */
     float fvalue[4];

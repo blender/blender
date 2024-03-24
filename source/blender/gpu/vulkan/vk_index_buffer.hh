@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "gpu_index_buffer_private.hh"
+#include "GPU_index_buffer.hh"
 
 #include "vk_bindable_resource.hh"
 #include "vk_buffer.hh"

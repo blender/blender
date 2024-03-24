@@ -18,7 +18,7 @@
 
 #include "vk_mem_alloc.h"
 
-#include "gpu_index_buffer_private.hh"
+#include "GPU_index_buffer.hh"
 #include "gpu_shader_create_info.hh"
 #include "gpu_texture_private.hh"
 

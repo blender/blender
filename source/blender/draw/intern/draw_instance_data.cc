@@ -55,7 +55,7 @@ struct DRWInstanceDataList {
 };
 
 struct DRWTempBufferHandle {
-  GPUVertBuf *buf;
+  blender::gpu::VertBuf *buf;
   /** Format pointer for reuse. */
   GPUVertFormat *format;
   /** Touched vertex length for resize. */
@@ -68,7 +68,7 @@ struct DRWTempInstancingHandle {
   /** Batch containing instancing attributes. */
   GPUBatch *instancer;
   /** Call-buffer to be used instead of instancer. */
-  GPUVertBuf *buf;
+  blender::gpu::VertBuf *buf;
   /** Original non-instanced batch pointer. */
   GPUBatch *geom;
 };
@@ -99,9 +99,9 @@ static void instancing_batch_references_remove(GPUBatch *batch)
 /** \name Instance Buffer Management
  * \{ */
 
-GPUVertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
-                                    GPUVertFormat *format,
-                                    int *vert_len)
+blender::gpu::VertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
+                                               GPUVertFormat *format,
+                                               int *vert_len)
 {
   BLI_assert(format != nullptr);
   BLI_assert(vert_len != nullptr);
@@ -113,7 +113,7 @@ GPUVertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
     handle->format = format;
     GPU_VERTBUF_DISCARD_SAFE(handle->buf);
 
-    GPUVertBuf *vert = GPU_vertbuf_calloc();
+    blender::gpu::VertBuf *vert = GPU_vertbuf_calloc();
     GPU_vertbuf_init_with_format_ex(vert, format, GPU_USAGE_DYNAMIC);
     GPU_vertbuf_data_alloc(vert, DRW_BUFFER_VERTS_CHUNK);
 
@@ -124,7 +124,7 @@ GPUVertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
 }
 
 GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
-                                          GPUVertBuf *buf,
+                                          blender::gpu::VertBuf *buf,
                                           GPUBatch *instancer,
                                           GPUBatch *geom)
 {
@@ -165,7 +165,7 @@ GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
 }
 
 GPUBatch *DRW_temp_batch_request(DRWInstanceDataList *idatalist,
-                                 GPUVertBuf *buf,
+                                 blender::gpu::VertBuf *buf,
                                  GPUPrimType prim_type)
 {
   GPUBatch **batch_ptr = static_cast<GPUBatch **>(BLI_memblock_alloc(idatalist->pool_batching));
@@ -223,7 +223,7 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
   while ((handle_inst = static_cast<DRWTempInstancingHandle *>(BLI_memblock_iterstep(&iter)))) {
     GPUBatch *batch = handle_inst->batch;
     if (batch && batch->flag == GPU_BATCH_BUILDING) {
-      GPUVertBuf *inst_buf = handle_inst->buf;
+      blender::gpu::VertBuf *inst_buf = handle_inst->buf;
       GPUBatch *inst_batch = handle_inst->instancer;
       GPUBatch *geom = handle_inst->geom;
       GPU_batch_copy(batch, geom);
@@ -236,7 +236,8 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
         GPU_batch_instbuf_add(batch, inst_buf, false);
       }
       /* Add reference to avoid comparing pointers (in DRW_temp_batch_request) that could
-       * potentially be the same. This will delay the freeing of the GPUVertBuf itself. */
+       * potentially be the same. This will delay the freeing of the blender::gpu::VertBuf itself.
+       */
       instancing_batch_references_add(batch);
     }
   }

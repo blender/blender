@@ -16,7 +16,9 @@
 #include "draw_attributes.hh"
 
 struct GPUBatch;
-struct GPUIndexBuf;
+namespace blender::gpu {
+class IndexBuf;
+}
 struct TaskGraph;
 
 namespace blender::draw {
@@ -75,55 +77,55 @@ struct MeshBufferList {
    * (except fdots and skin roots). For some VBOs, it extends to (in this exact order) :
    * loops + loose_edges * 2 + loose_verts */
   struct {
-    GPUVertBuf *pos;      /* extend */
-    GPUVertBuf *nor;      /* extend */
-    GPUVertBuf *edge_fac; /* extend */
-    GPUVertBuf *weights;  /* extend */
-    GPUVertBuf *uv;
-    GPUVertBuf *tan;
-    GPUVertBuf *sculpt_data;
-    GPUVertBuf *orco;
+    gpu::VertBuf *pos;      /* extend */
+    gpu::VertBuf *nor;      /* extend */
+    gpu::VertBuf *edge_fac; /* extend */
+    gpu::VertBuf *weights;  /* extend */
+    gpu::VertBuf *uv;
+    gpu::VertBuf *tan;
+    gpu::VertBuf *sculpt_data;
+    gpu::VertBuf *orco;
     /* Only for edit mode. */
-    GPUVertBuf *edit_data; /* extend */
-    GPUVertBuf *edituv_data;
-    GPUVertBuf *edituv_stretch_area;
-    GPUVertBuf *edituv_stretch_angle;
-    GPUVertBuf *mesh_analysis;
-    GPUVertBuf *fdots_pos;
-    GPUVertBuf *fdots_nor;
-    GPUVertBuf *fdots_uv;
-    // GPUVertBuf *fdots_edit_data; /* inside fdots_nor for now. */
-    GPUVertBuf *fdots_edituv_data;
-    GPUVertBuf *skin_roots;
+    gpu::VertBuf *edit_data; /* extend */
+    gpu::VertBuf *edituv_data;
+    gpu::VertBuf *edituv_stretch_area;
+    gpu::VertBuf *edituv_stretch_angle;
+    gpu::VertBuf *mesh_analysis;
+    gpu::VertBuf *fdots_pos;
+    gpu::VertBuf *fdots_nor;
+    gpu::VertBuf *fdots_uv;
+    // gpu::VertBuf *fdots_edit_data; /* inside fdots_nor for now. */
+    gpu::VertBuf *fdots_edituv_data;
+    gpu::VertBuf *skin_roots;
     /* Selection */
-    GPUVertBuf *vert_idx; /* extend */
-    GPUVertBuf *edge_idx; /* extend */
-    GPUVertBuf *face_idx;
-    GPUVertBuf *fdot_idx;
-    GPUVertBuf *attr[GPU_MAX_ATTR];
-    GPUVertBuf *attr_viewer;
-    GPUVertBuf *vnor;
+    gpu::VertBuf *vert_idx; /* extend */
+    gpu::VertBuf *edge_idx; /* extend */
+    gpu::VertBuf *face_idx;
+    gpu::VertBuf *fdot_idx;
+    gpu::VertBuf *attr[GPU_MAX_ATTR];
+    gpu::VertBuf *attr_viewer;
+    gpu::VertBuf *vnor;
   } vbo;
   /* Index Buffers:
    * Only need to be updated when topology changes. */
   struct {
     /* Indices to vloops. Ordered per material. */
-    GPUIndexBuf *tris;
+    gpu::IndexBuf *tris;
     /* Loose edges last. */
-    GPUIndexBuf *lines;
+    gpu::IndexBuf *lines;
     /* Sub buffer of `lines` only containing the loose edges. */
-    GPUIndexBuf *lines_loose;
-    GPUIndexBuf *points;
-    GPUIndexBuf *fdots;
+    gpu::IndexBuf *lines_loose;
+    gpu::IndexBuf *points;
+    gpu::IndexBuf *fdots;
     /* 3D overlays. */
     /* no loose edges. */
-    GPUIndexBuf *lines_paint_mask;
-    GPUIndexBuf *lines_adjacency;
+    gpu::IndexBuf *lines_paint_mask;
+    gpu::IndexBuf *lines_adjacency;
     /** UV overlays. (visibility can differ from 3D view). */
-    GPUIndexBuf *edituv_tris;
-    GPUIndexBuf *edituv_lines;
-    GPUIndexBuf *edituv_points;
-    GPUIndexBuf *edituv_fdots;
+    gpu::IndexBuf *edituv_tris;
+    gpu::IndexBuf *edituv_lines;
+    gpu::IndexBuf *edituv_points;
+    gpu::IndexBuf *edituv_fdots;
   } ibo;
 };
 
@@ -253,7 +255,7 @@ struct MeshBatchCache {
   MeshBatchList batch;
 
   /* Index buffer per material. These are sub-ranges of `ibo.tris`. */
-  GPUIndexBuf **tris_per_mat;
+  gpu::IndexBuf **tris_per_mat;
 
   GPUBatch **surface_per_mat;
 

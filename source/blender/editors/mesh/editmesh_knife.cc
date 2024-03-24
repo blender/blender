@@ -1032,7 +1032,7 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
 
     GPU_blend(GPU_BLEND_ALPHA);
 
-    GPUVertBuf *vert = GPU_vertbuf_create_with_format(format);
+    blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(format);
     GPU_vertbuf_data_alloc(vert, kcd->totlinehit);
 
     lh = kcd->linehits;

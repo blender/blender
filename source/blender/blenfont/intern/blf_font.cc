@@ -213,7 +213,7 @@ static void blf_batch_draw_init()
   g_batch.glyph_len = 0;
 
   /* A dummy VBO containing 4 points, attributes are not used. */
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, 4);
 
   /* We render a quad as a triangle strip and instance it for each glyph. */

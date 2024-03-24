@@ -47,14 +47,14 @@ struct PointCloudEvalCache {
   GPUBatch **surface_per_mat;
 
   /* Triangles indices to draw the points. */
-  GPUIndexBuf *geom_indices;
+  gpu::IndexBuf *geom_indices;
 
   /* Position and radius. */
-  GPUVertBuf *pos_rad;
+  gpu::VertBuf *pos_rad;
   /* Active attribute in 3D view. */
-  GPUVertBuf *attr_viewer;
+  gpu::VertBuf *attr_viewer;
   /* Requested attributes */
-  GPUVertBuf *attributes_buf[GPU_MAX_ATTR];
+  gpu::VertBuf *attributes_buf[GPU_MAX_ATTR];
 
   /** Attributes currently being drawn or about to be drawn. */
   DRW_Attributes attr_used;
@@ -291,7 +291,7 @@ static void pointcloud_extract_attribute(const PointCloud &pointcloud,
                                          const DRW_AttributeRequest &request,
                                          int index)
 {
-  GPUVertBuf *&attr_buf = cache.eval_cache.attributes_buf[index];
+  gpu::VertBuf *&attr_buf = cache.eval_cache.attributes_buf[index];
 
   const bke::AttributeAccessor attributes = pointcloud.attributes();
 
@@ -322,7 +322,7 @@ static void pointcloud_extract_attribute(const PointCloud &pointcloud,
 /** \name Private API
  * \{ */
 
-GPUVertBuf *pointcloud_position_and_radius_get(PointCloud *pointcloud)
+gpu::VertBuf *pointcloud_position_and_radius_get(PointCloud *pointcloud)
 {
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(*pointcloud);
   DRW_vbo_request(nullptr, &cache->eval_cache.pos_rad);
@@ -385,13 +385,13 @@ GPUBatch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
   return DRW_batch_request(&cache->eval_cache.dots);
 }
 
-GPUVertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob)
+gpu::VertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob)
 {
   PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
   return pointcloud_position_and_radius_get(&pointcloud);
 }
 
-GPUVertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const char *name)
+gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const char *name)
 {
   PointCloudBatchCache &cache = *pointcloud_batch_cache_get(*pointcloud);
 

@@ -371,7 +371,7 @@ static GPUVertFormat *gpu_viewport_batch_format()
 
 static GPUBatch *gpu_viewport_batch_create(const rctf *rect_pos, const rctf *rect_uv)
 {
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(gpu_viewport_batch_format());
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(gpu_viewport_batch_format());
   const uint vbo_len = 4;
   GPU_vertbuf_data_alloc(vbo, vbo_len);
 

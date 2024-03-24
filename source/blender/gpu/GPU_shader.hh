@@ -12,7 +12,9 @@
 
 #include "GPU_shader_builtin.hh"
 
-struct GPUVertBuf;
+namespace blender::gpu {
+class VertBuf;
+}
 
 /** Opaque type hiding #blender::gpu::shader::ShaderCreateInfo */
 struct GPUShaderCreateInfo;
@@ -237,7 +239,7 @@ GPUShader *GPU_shader_create_ex(const char *vertcode,
 /**
  * Returns true if transform feedback was successfully enabled.
  */
-bool GPU_shader_transform_feedback_enable(GPUShader *shader, struct GPUVertBuf *vertbuf);
+bool GPU_shader_transform_feedback_enable(GPUShader *shader, blender::gpu::VertBuf *vertbuf);
 void GPU_shader_transform_feedback_disable(GPUShader *shader);
 
 /**

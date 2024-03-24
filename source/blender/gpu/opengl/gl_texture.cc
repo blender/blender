@@ -17,10 +17,10 @@
 #include "GPU_framebuffer.hh"
 #include "GPU_platform.hh"
 
+#include "GPU_vertex_buffer.hh" /* TODO: should be `gl_vertex_buffer.hh`. */
 #include "gl_backend.hh"
 #include "gl_debug.hh"
 #include "gl_state.hh"
-#include "gpu_vertex_buffer_private.hh" /* TODO: should be `gl_vertex_buffer.hh`. */
 
 #include "gl_texture.hh"
 
@@ -98,9 +98,9 @@ bool GLTexture::init_internal()
   return true;
 }
 
-bool GLTexture::init_internal(GPUVertBuf *vbo)
+bool GLTexture::init_internal(VertBuf *vbo)
 {
-  GLVertBuf *gl_vbo = static_cast<GLVertBuf *>(unwrap(vbo));
+  GLVertBuf *gl_vbo = static_cast<GLVertBuf *>(vbo);
   target_ = to_gl_target(type_);
 
   /* We need to bind once to define the texture type. */

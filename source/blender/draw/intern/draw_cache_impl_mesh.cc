@@ -598,7 +598,7 @@ static void mesh_batch_cache_init(Object *object, Mesh *mesh)
   cache->mat_len = mesh_render_mat_len_get(object, mesh);
   cache->surface_per_mat = static_cast<GPUBatch **>(
       MEM_callocN(sizeof(*cache->surface_per_mat) * cache->mat_len, __func__));
-  cache->tris_per_mat = static_cast<GPUIndexBuf **>(
+  cache->tris_per_mat = static_cast<gpu::IndexBuf **>(
       MEM_callocN(sizeof(*cache->tris_per_mat) * cache->mat_len, __func__));
 
   cache->is_dirty = false;
@@ -781,8 +781,8 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode)
 
 static void mesh_buffer_list_clear(MeshBufferList *mbuflist)
 {
-  GPUVertBuf **vbos = (GPUVertBuf **)&mbuflist->vbo;
-  GPUIndexBuf **ibos = (GPUIndexBuf **)&mbuflist->ibo;
+  gpu::VertBuf **vbos = (gpu::VertBuf **)&mbuflist->vbo;
+  gpu::IndexBuf **ibos = (gpu::IndexBuf **)&mbuflist->ibo;
   for (int i = 0; i < sizeof(mbuflist->vbo) / sizeof(void *); i++) {
     GPU_VERTBUF_DISCARD_SAFE(vbos[i]);
   }
@@ -1066,7 +1066,7 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_viewer_attribute(Mesh *mesh)
 /** \name Edit Mode API
  * \{ */
 
-GPUVertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(Mesh *mesh)
+gpu::VertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(Mesh *mesh)
 {
   MeshBatchCache &cache = *mesh_batch_cache_get(mesh);
   /* Request surface to trigger the vbo filling. Otherwise it may do nothing. */
@@ -1312,22 +1312,22 @@ static void drw_mesh_batch_cache_check_available(TaskGraph *task_graph, Mesh *me
     BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], (GPUPrimType)0));
   }
   for (int i = 0; i < MBC_VBO_LEN; i++) {
-    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->final.buff.vbo)[i]));
+    BLI_assert(!DRW_vbo_requested(((gpu::VertBuf **)&cache->final.buff.vbo)[i]));
   }
   for (int i = 0; i < MBC_IBO_LEN; i++) {
-    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->final.buff.ibo)[i]));
+    BLI_assert(!DRW_ibo_requested(((gpu::IndexBuf **)&cache->final.buff.ibo)[i]));
   }
   for (int i = 0; i < MBC_VBO_LEN; i++) {
-    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->cage.buff.vbo)[i]));
+    BLI_assert(!DRW_vbo_requested(((gpu::VertBuf **)&cache->cage.buff.vbo)[i]));
   }
   for (int i = 0; i < MBC_IBO_LEN; i++) {
-    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->cage.buff.ibo)[i]));
+    BLI_assert(!DRW_ibo_requested(((gpu::IndexBuf **)&cache->cage.buff.ibo)[i]));
   }
   for (int i = 0; i < MBC_VBO_LEN; i++) {
-    BLI_assert(!DRW_vbo_requested(((GPUVertBuf **)&cache->uv_cage.buff.vbo)[i]));
+    BLI_assert(!DRW_vbo_requested(((gpu::VertBuf **)&cache->uv_cage.buff.vbo)[i]));
   }
   for (int i = 0; i < MBC_IBO_LEN; i++) {
-    BLI_assert(!DRW_ibo_requested(((GPUIndexBuf **)&cache->uv_cage.buff.ibo)[i]));
+    BLI_assert(!DRW_ibo_requested(((gpu::IndexBuf **)&cache->uv_cage.buff.ibo)[i]));
   }
 }
 #endif

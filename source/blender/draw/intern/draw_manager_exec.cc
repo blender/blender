@@ -54,7 +54,7 @@ struct DRWCommandsState {
   /* Uniform Attributes. */
   DRWSparseUniformBuf *obattrs_ubo;
   /* Selection ID state. */
-  GPUVertBuf *select_buf;
+  blender::gpu::VertBuf *select_buf;
   uint select_id;
   /* Drawing State */
   DRWState drw_state_enabled;
@@ -706,8 +706,8 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
           break;
         case DRW_UNIFORM_TFEEDBACK_TARGET:
           BLI_assert(uni->pvalue && (*use_tfeedback == false));
-          *use_tfeedback = GPU_shader_transform_feedback_enable(shgroup->shader,
-                                                                ((GPUVertBuf *)uni->pvalue));
+          *use_tfeedback = GPU_shader_transform_feedback_enable(
+              shgroup->shader, ((blender::gpu::VertBuf *)uni->pvalue));
           break;
         case DRW_UNIFORM_VERTEX_BUFFER_AS_TEXTURE_REF:
           GPU_vertbuf_bind_as_texture(*uni->vertbuf_ref, uni->location);

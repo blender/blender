@@ -13,7 +13,9 @@
 #include "draw_attributes.hh"
 
 struct Curves;
-struct GPUVertBuf;
+namespace blender::gpu {
+class VertBuf;
+}
 struct GPUBatch;
 struct GPUMaterial;
 
@@ -35,7 +37,7 @@ struct CurvesEvalFinalCache {
   int thickres;
 
   /* Output of the subdivision stage: vertex buffer sized to subdiv level. */
-  GPUVertBuf *proc_buf;
+  gpu::VertBuf *proc_buf;
 
   /** Just contains a huge index buffer used to draw the final curves. */
   GPUBatch *proc_hairs;
@@ -61,27 +63,27 @@ struct CurvesEvalFinalCache {
 
   /* Output of the subdivision stage: vertex buffers sized to subdiv level. This is only attributes
    * on point domain. */
-  GPUVertBuf *attributes_buf[GPU_MAX_ATTR];
+  gpu::VertBuf *attributes_buf[GPU_MAX_ATTR];
 };
 
 /* Curves procedural display: Evaluation is done on the GPU. */
 struct CurvesEvalCache {
   /* Control point positions on evaluated data-block combined with parameter data. */
-  GPUVertBuf *proc_point_buf;
+  gpu::VertBuf *proc_point_buf;
 
   /** Info of control points strands (segment count and base index) */
-  GPUVertBuf *proc_strand_buf;
+  gpu::VertBuf *proc_strand_buf;
 
   /* Curve length data. */
-  GPUVertBuf *proc_length_buf;
+  gpu::VertBuf *proc_length_buf;
 
-  GPUVertBuf *proc_strand_seg_buf;
+  gpu::VertBuf *proc_strand_seg_buf;
 
   CurvesEvalFinalCache final;
 
   /* For point attributes, which need subdivision, these buffers contain the input data.
    * For curve domain attributes, which do not need subdivision, these are the final data. */
-  GPUVertBuf *proc_attributes_buf[GPU_MAX_ATTR];
+  gpu::VertBuf *proc_attributes_buf[GPU_MAX_ATTR];
 
   int curves_num;
   int points_num;

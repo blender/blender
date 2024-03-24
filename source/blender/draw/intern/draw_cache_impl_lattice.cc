@@ -195,8 +195,8 @@ static const BPoint *lattice_render_data_vert_bpoint(const LatticeRenderData *rd
 /* Lattice GPUBatch Cache */
 
 struct LatticeBatchCache {
-  GPUVertBuf *pos;
-  GPUIndexBuf *edges;
+  gpu::VertBuf *pos;
+  gpu::IndexBuf *edges;
 
   GPUBatch *all_verts;
   GPUBatch *all_edges;
@@ -318,10 +318,10 @@ void DRW_lattice_batch_cache_free(Lattice *lt)
 }
 
 /* GPUBatch cache usage. */
-static GPUVertBuf *lattice_batch_cache_get_pos(LatticeRenderData *rdata,
-                                               LatticeBatchCache *cache,
-                                               bool use_weight,
-                                               const int actdef)
+static gpu::VertBuf *lattice_batch_cache_get_pos(LatticeRenderData *rdata,
+                                                 LatticeBatchCache *cache,
+                                                 bool use_weight,
+                                                 const int actdef)
 {
   BLI_assert(rdata->types & LR_DATATYPE_VERT);
 
@@ -356,8 +356,8 @@ static GPUVertBuf *lattice_batch_cache_get_pos(LatticeRenderData *rdata,
   return cache->pos;
 }
 
-static GPUIndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
-                                                  LatticeBatchCache *cache)
+static gpu::IndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
+                                                    LatticeBatchCache *cache)
 {
   BLI_assert(rdata->types & (LR_DATATYPE_VERT | LR_DATATYPE_EDGE));
 
@@ -434,7 +434,7 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 
     const int vert_len = lattice_render_data_verts_len_get(rdata);
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, vert_len);
     for (int i = 0; i < vert_len; i++) {
       const BPoint *bp = lattice_render_data_vert_bpoint(rdata, i);

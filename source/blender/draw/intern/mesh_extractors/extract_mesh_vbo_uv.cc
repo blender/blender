@@ -86,7 +86,7 @@ static void extract_uv_init(const MeshRenderData &mr,
                             void *buf,
                             void * /*tls_data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   GPUVertFormat format = {0};
 
   CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->ldata :
@@ -137,7 +137,7 @@ static void extract_uv_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                    void * /*data*/)
 {
   Mesh *coarse_mesh = subdiv_cache.mesh;
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
   GPUVertFormat format = {0};
 
   uint v_len = subdiv_cache.num_subdiv_loops;

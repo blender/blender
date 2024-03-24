@@ -482,7 +482,7 @@ void MTLShader::transform_feedback_names_set(Span<const char *> name_list,
   transform_feedback_type_ = geom_type;
 }
 
-bool MTLShader::transform_feedback_enable(GPUVertBuf *buf)
+bool MTLShader::transform_feedback_enable(blender::gpu::VertBuf *buf)
 {
   BLI_assert(transform_feedback_type_ != GPU_SHADER_TFB_NONE);
   BLI_assert(buf);
@@ -1788,7 +1788,7 @@ void MTLShader::ssbo_vertex_fetch_bind_attributes_end(
   }
 }
 
-GPUVertBuf *MTLShader::get_transform_feedback_active_buffer()
+blender::gpu::VertBuf *MTLShader::get_transform_feedback_active_buffer()
 {
   if (transform_feedback_type_ == GPU_SHADER_TFB_NONE || !transform_feedback_active_) {
     return nullptr;

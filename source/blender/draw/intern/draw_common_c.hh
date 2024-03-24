@@ -15,7 +15,9 @@ struct DRWView;
 struct FluidModifierData;
 struct GPUMaterial;
 struct GPUUniformBuf;
-struct GPUVertBuf;
+namespace blender::gpu {
+class VertBuf;
+}
 struct ModifierData;
 struct Object;
 struct ParticleSystem;
@@ -62,7 +64,9 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
 /**
  * \note Only valid after #DRW_hair_update().
  */
-GPUVertBuf *DRW_hair_pos_buffer_get(Object *object, ParticleSystem *psys, ModifierData *md);
+blender::gpu::VertBuf *DRW_hair_pos_buffer_get(Object *object,
+                                               ParticleSystem *psys,
+                                               ModifierData *md);
 void DRW_hair_duplimat_get(Object *object,
                            ParticleSystem *psys,
                            ModifierData *md,
@@ -79,7 +83,7 @@ namespace blender::draw {
 /**
  * \note Only valid after #DRW_curves_update().
  */
-GPUVertBuf *DRW_curves_pos_buffer_get(Object *object);
+gpu::VertBuf *DRW_curves_pos_buffer_get(Object *object);
 
 DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
                                                DRWShadingGroup *shgrp,

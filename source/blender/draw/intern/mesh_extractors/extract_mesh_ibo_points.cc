@@ -129,7 +129,7 @@ static void extract_points_finish(const MeshRenderData & /*mr*/,
                                   void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
 }
 
@@ -278,7 +278,7 @@ static void extract_points_finish_subdiv(const DRWSubdivCache & /*subdiv_cache*/
                                          void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
 }
 

@@ -41,7 +41,7 @@ class BatchUpdater {
 
   void init_batch()
   {
-    GPUVertBuf *vbo = create_vbo();
+    gpu::VertBuf *vbo = create_vbo();
     GPU_batch_init_ex(info.batch, GPU_PRIM_TRI_FAN, vbo, nullptr, GPU_BATCH_OWNS_VBO);
   }
 
@@ -58,9 +58,9 @@ class BatchUpdater {
     result[3][1] = rect.ymax;
   }
 
-  GPUVertBuf *create_vbo()
+  gpu::VertBuf *create_vbo()
   {
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 4);
     int pos[4][2];
     fill_tri_fan_from_rect<int, rcti>(pos, info.clipping_bounds);

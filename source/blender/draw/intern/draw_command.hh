@@ -172,10 +172,10 @@ struct ResourceBind {
     /** NOTE: Texture is used for both Sampler and Image binds. */
     GPUTexture *texture;
     GPUTexture **texture_ref;
-    GPUVertBuf *vertex_buf;
-    GPUVertBuf **vertex_buf_ref;
-    GPUIndexBuf *index_buf;
-    GPUIndexBuf **index_buf_ref;
+    gpu::VertBuf *vertex_buf;
+    gpu::VertBuf **vertex_buf_ref;
+    gpu::IndexBuf *index_buf;
+    gpu::IndexBuf **index_buf_ref;
   };
 
   ResourceBind() = default;
@@ -192,13 +192,13 @@ struct ResourceBind {
       : slot(slot_), is_reference(false), type(Type::UniformAsStorageBuf), uniform_buf(res){};
   ResourceBind(int slot_, GPUUniformBuf **res, Type /*type*/)
       : slot(slot_), is_reference(true), type(Type::UniformAsStorageBuf), uniform_buf_ref(res){};
-  ResourceBind(int slot_, GPUVertBuf *res, Type /*type*/)
+  ResourceBind(int slot_, gpu::VertBuf *res, Type /*type*/)
       : slot(slot_), is_reference(false), type(Type::VertexAsStorageBuf), vertex_buf(res){};
-  ResourceBind(int slot_, GPUVertBuf **res, Type /*type*/)
+  ResourceBind(int slot_, gpu::VertBuf **res, Type /*type*/)
       : slot(slot_), is_reference(true), type(Type::VertexAsStorageBuf), vertex_buf_ref(res){};
-  ResourceBind(int slot_, GPUIndexBuf *res, Type /*type*/)
+  ResourceBind(int slot_, gpu::IndexBuf *res, Type /*type*/)
       : slot(slot_), is_reference(false), type(Type::IndexAsStorageBuf), index_buf(res){};
-  ResourceBind(int slot_, GPUIndexBuf **res, Type /*type*/)
+  ResourceBind(int slot_, gpu::IndexBuf **res, Type /*type*/)
       : slot(slot_), is_reference(true), type(Type::IndexAsStorageBuf), index_buf_ref(res){};
   ResourceBind(int slot_, draw::Image *res)
       : slot(slot_), is_reference(false), type(Type::Image), texture(draw::as_texture(res)){};
@@ -208,9 +208,9 @@ struct ResourceBind {
       : sampler(state), slot(slot_), is_reference(false), type(Type::Sampler), texture(res){};
   ResourceBind(int slot_, GPUTexture **res, GPUSamplerState state)
       : sampler(state), slot(slot_), is_reference(true), type(Type::Sampler), texture_ref(res){};
-  ResourceBind(int slot_, GPUVertBuf *res)
+  ResourceBind(int slot_, gpu::VertBuf *res)
       : slot(slot_), is_reference(false), type(Type::BufferSampler), vertex_buf(res){};
-  ResourceBind(int slot_, GPUVertBuf **res)
+  ResourceBind(int slot_, gpu::VertBuf **res)
       : slot(slot_), is_reference(true), type(Type::BufferSampler), vertex_buf_ref(res){};
 
   void execute() const;

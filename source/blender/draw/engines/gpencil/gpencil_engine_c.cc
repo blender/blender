@@ -529,13 +529,14 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
   if (geom != iter->geom) {
     gpencil_drawcall_flush(iter);
 
-    GPUVertBuf *position_tx = do_sbuffer ?
-                                  DRW_cache_gpencil_sbuffer_position_buffer_get(iter->ob,
-                                                                                show_fill) :
-                                  DRW_cache_gpencil_position_buffer_get(iter->ob, iter->pd->cfra);
-    GPUVertBuf *color_tx = do_sbuffer ?
-                               DRW_cache_gpencil_sbuffer_color_buffer_get(iter->ob, show_fill) :
-                               DRW_cache_gpencil_color_buffer_get(iter->ob, iter->pd->cfra);
+    blender::gpu::VertBuf *position_tx =
+        do_sbuffer ? DRW_cache_gpencil_sbuffer_position_buffer_get(iter->ob, show_fill) :
+                     DRW_cache_gpencil_position_buffer_get(iter->ob, iter->pd->cfra);
+    blender::gpu::VertBuf *color_tx = do_sbuffer ?
+                                          DRW_cache_gpencil_sbuffer_color_buffer_get(iter->ob,
+                                                                                     show_fill) :
+                                          DRW_cache_gpencil_color_buffer_get(iter->ob,
+                                                                             iter->pd->cfra);
     DRW_shgroup_buffer_texture(iter->grp, "gp_pos_tx", position_tx);
     DRW_shgroup_buffer_texture(iter->grp, "gp_col_tx", color_tx);
   }
@@ -761,8 +762,10 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
       if (iter_geom != geom) {
         drawcall_flush();
 
-        GPUVertBuf *position_tx = draw::DRW_cache_grease_pencil_position_buffer_get(pd->scene, ob);
-        GPUVertBuf *color_tx = draw::DRW_cache_grease_pencil_color_buffer_get(pd->scene, ob);
+        blender::gpu::VertBuf *position_tx = draw::DRW_cache_grease_pencil_position_buffer_get(
+            pd->scene, ob);
+        blender::gpu::VertBuf *color_tx = draw::DRW_cache_grease_pencil_color_buffer_get(pd->scene,
+                                                                                         ob);
         DRW_shgroup_buffer_texture(grp, "gp_pos_tx", position_tx);
         DRW_shgroup_buffer_texture(grp, "gp_col_tx", color_tx);
       }

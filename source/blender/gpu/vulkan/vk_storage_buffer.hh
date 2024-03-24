@@ -10,8 +10,8 @@
 
 #include "GPU_texture.hh"
 
+#include "GPU_vertex_buffer.hh"
 #include "gpu_storage_buffer_private.hh"
-#include "gpu_vertex_buffer_private.hh"
 
 #include "vk_bindable_resource.hh"
 #include "vk_buffer.hh"

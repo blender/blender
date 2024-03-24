@@ -379,14 +379,14 @@ bool VKTexture::init_internal()
   return true;
 }
 
-bool VKTexture::init_internal(GPUVertBuf *vbo)
+bool VKTexture::init_internal(VertBuf *vbo)
 {
   device_format_ = format_;
   if (!allocate()) {
     return false;
   }
 
-  VKVertexBuffer *vertex_buffer = unwrap(unwrap(vbo));
+  VKVertexBuffer *vertex_buffer = unwrap(vbo);
 
   VkBufferImageCopy region = {};
   region.imageExtent.width = w_;

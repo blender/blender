@@ -38,12 +38,12 @@ namespace blender::draw {
 
 struct CurvesEvalCall {
   CurvesEvalCall *next;
-  GPUVertBuf *vbo;
+  gpu::VertBuf *vbo;
   DRWShadingGroup *shgrp;
   uint vert_len;
 };
 
-static GPUVertBuf *g_dummy_vbo = nullptr;
+static gpu::VertBuf *g_dummy_vbo = nullptr;
 static DRWPass *g_tf_pass; /* XXX can be a problem with multiple DRWManager in the future */
 
 using CurvesInfosBuf = UniformBuffer<CurvesInfos>;
@@ -114,7 +114,7 @@ void DRW_curves_ubos_pool_free(CurvesUniformBufPool *pool)
 
 static void drw_curves_cache_shgrp_attach_resources(DRWShadingGroup *shgrp,
                                                     CurvesEvalCache *cache,
-                                                    GPUVertBuf *point_buf)
+                                                    gpu::VertBuf *point_buf)
 {
   DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", point_buf);
   DRW_shgroup_buffer_texture(shgrp, "hairStrandBuffer", cache->proc_strand_buf);
@@ -124,8 +124,8 @@ static void drw_curves_cache_shgrp_attach_resources(DRWShadingGroup *shgrp,
 
 static void drw_curves_cache_update_compute(CurvesEvalCache *cache,
                                             const int curves_num,
-                                            GPUVertBuf *output_buf,
-                                            GPUVertBuf *input_buf)
+                                            gpu::VertBuf *output_buf,
+                                            gpu::VertBuf *input_buf)
 {
   GPUShader *shader = DRW_shader_curves_refine_get(CURVES_EVAL_CATMULL_ROM);
   DRWShadingGroup *shgrp = DRW_shgroup_create(shader, g_tf_pass);
@@ -180,7 +180,7 @@ static CurvesEvalCache *drw_curves_cache_get(Curves &curves,
   return cache;
 }
 
-GPUVertBuf *DRW_curves_pos_buffer_get(Object *object)
+gpu::VertBuf *DRW_curves_pos_buffer_get(Object *object)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene = draw_ctx->scene;
@@ -380,7 +380,7 @@ static CurvesEvalCache *curves_cache_get(Curves &curves,
   const int curves_num = cache->curves_num;
   const int final_points_len = cache->final.resolution * curves_num;
 
-  auto cache_update = [&](GPUVertBuf *output_buf, GPUVertBuf *input_buf) {
+  auto cache_update = [&](gpu::VertBuf *output_buf, gpu::VertBuf *input_buf) {
     PassSimple::Sub &ob_ps = g_pass->sub("Object Pass");
 
     ob_ps.shader_set(DRW_shader_curves_refine_get(CURVES_EVAL_CATMULL_ROM));
@@ -417,7 +417,7 @@ static CurvesEvalCache *curves_cache_get(Curves &curves,
   return cache;
 }
 
-GPUVertBuf *curves_pos_buffer_get(Scene *scene, Object *object)
+gpu::VertBuf *curves_pos_buffer_get(Scene *scene, Object *object)
 {
   const int subdiv = scene->r.hair_subdiv;
   const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;

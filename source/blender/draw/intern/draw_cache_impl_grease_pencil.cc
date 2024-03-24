@@ -34,23 +34,23 @@ namespace blender::draw {
 
 struct GreasePencilBatchCache {
   /** Instancing Data */
-  GPUVertBuf *vbo;
-  GPUVertBuf *vbo_col;
+  gpu::VertBuf *vbo;
+  gpu::VertBuf *vbo_col;
   /** Indices in material order, then stroke order with fill first. */
-  GPUIndexBuf *ibo;
+  gpu::IndexBuf *ibo;
   /** Batches */
   GPUBatch *geom_batch;
   GPUBatch *edit_points;
   GPUBatch *edit_lines;
 
   /* Crazy-space point positions for original points. */
-  GPUVertBuf *edit_points_pos;
+  gpu::VertBuf *edit_points_pos;
   /* Selection of original points. */
-  GPUVertBuf *edit_points_selection;
+  gpu::VertBuf *edit_points_selection;
   /* Indices for lines segments. */
-  GPUIndexBuf *edit_line_indices;
+  gpu::IndexBuf *edit_line_indices;
   /* Indices of visible points. */
-  GPUIndexBuf *edit_points_indices;
+  gpu::IndexBuf *edit_points_indices;
 
   /** Cache is dirty. */
   bool is_dirty;
@@ -726,7 +726,7 @@ GPUBatch *DRW_cache_grease_pencil_edit_lines_get(const Scene *scene, Object *ob)
   return cache->edit_lines;
 }
 
-GPUVertBuf *DRW_cache_grease_pencil_position_buffer_get(const Scene *scene, Object *ob)
+gpu::VertBuf *DRW_cache_grease_pencil_position_buffer_get(const Scene *scene, Object *ob)
 {
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
   GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
@@ -735,7 +735,7 @@ GPUVertBuf *DRW_cache_grease_pencil_position_buffer_get(const Scene *scene, Obje
   return cache->vbo;
 }
 
-GPUVertBuf *DRW_cache_grease_pencil_color_buffer_get(const Scene *scene, Object *ob)
+gpu::VertBuf *DRW_cache_grease_pencil_color_buffer_get(const Scene *scene, Object *ob)
 {
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
   GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);

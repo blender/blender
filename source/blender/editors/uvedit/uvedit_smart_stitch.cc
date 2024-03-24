@@ -1663,7 +1663,7 @@ static void stitch_calculate_edge_normal(const int cd_loop_uv_offset,
 
 /**
  */
-static void stitch_draw_vbo(GPUVertBuf *vbo, GPUPrimType prim_type, const float col[4])
+static void stitch_draw_vbo(blender::gpu::VertBuf *vbo, GPUPrimType prim_type, const float col[4])
 {
   GPUBatch *batch = GPU_batch_create_ex(prim_type, vbo, nullptr, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
@@ -1684,7 +1684,7 @@ static void stitch_draw(const bContext * /*C*/, ARegion * /*region*/, void *arg)
     uint num_line = 0, num_tri, tri_idx = 0, line_idx = 0;
     StitchState *state = ssc->states[ob_index];
     StitchPreviewer *stitch_preview = state->stitch_preview;
-    GPUVertBuf *vbo, *vbo_line;
+    blender::gpu::VertBuf *vbo, *vbo_line;
     float col[4];
 
     static GPUVertFormat format = {0};

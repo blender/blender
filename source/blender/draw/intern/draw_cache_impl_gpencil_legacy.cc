@@ -38,23 +38,23 @@
 
 struct GpencilBatchCache {
   /** Instancing Data */
-  GPUVertBuf *vbo;
-  GPUVertBuf *vbo_col;
+  blender::gpu::VertBuf *vbo;
+  blender::gpu::VertBuf *vbo_col;
   /** Indices in material order, then stroke order with fill first.
    * Strokes can be individually rendered using `gps->runtime.stroke_start` and
    * `gps->runtime.fill_start`. */
-  GPUIndexBuf *ibo;
+  blender::gpu::IndexBuf *ibo;
   /** Batches */
   GPUBatch *geom_batch;
   /** Stroke lines only */
   GPUBatch *lines_batch;
 
   /** Edit Mode */
-  GPUVertBuf *edit_vbo;
+  blender::gpu::VertBuf *edit_vbo;
   GPUBatch *edit_lines_batch;
   GPUBatch *edit_points_batch;
   /** Edit Curve Mode */
-  GPUVertBuf *edit_curve_vbo;
+  blender::gpu::VertBuf *edit_curve_vbo;
   GPUBatch *edit_curve_handles_batch;
   GPUBatch *edit_curve_points_batch;
 
@@ -263,7 +263,7 @@ struct gpIterData {
   int curve_len;
 };
 
-static GPUVertBuf *gpencil_dummy_buffer_get()
+static gpu::VertBuf *gpencil_dummy_buffer_get()
 {
   GPUBatch *batch = DRW_gpencil_dummy_buffer_get();
   return batch->verts[0];
@@ -490,7 +490,7 @@ GPUBatch *DRW_cache_gpencil_get(Object *ob, int cfra)
   return cache->geom_batch;
 }
 
-GPUVertBuf *DRW_cache_gpencil_position_buffer_get(Object *ob, int cfra)
+gpu::VertBuf *DRW_cache_gpencil_position_buffer_get(Object *ob, int cfra)
 {
   GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
   gpencil_batches_ensure(ob, cache, cfra);
@@ -498,7 +498,7 @@ GPUVertBuf *DRW_cache_gpencil_position_buffer_get(Object *ob, int cfra)
   return cache->vbo;
 }
 
-GPUVertBuf *DRW_cache_gpencil_color_buffer_get(Object *ob, int cfra)
+gpu::VertBuf *DRW_cache_gpencil_color_buffer_get(Object *ob, int cfra)
 {
   GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
   gpencil_batches_ensure(ob, cache, cfra);
@@ -531,7 +531,7 @@ GPUBatch *DRW_cache_gpencil_face_wireframe_get(Object *ob)
   gpencil_batches_ensure(ob, cache, cfra);
 
   if (cache->lines_batch == nullptr) {
-    GPUVertBuf *vbo = cache->vbo;
+    gpu::VertBuf *vbo = cache->vbo;
 
     gpIterData iter = {};
     iter.gpd = (bGPdata *)ob->data;
@@ -545,7 +545,7 @@ GPUBatch *DRW_cache_gpencil_face_wireframe_get(Object *ob)
     BKE_gpencil_visible_stroke_advanced_iter(
         nullptr, ob, nullptr, gpencil_lines_indices_cb, &iter, do_onion, cfra);
 
-    GPUIndexBuf *ibo = GPU_indexbuf_build(&iter.ibo);
+    blender::gpu::IndexBuf *ibo = GPU_indexbuf_build(&iter.ibo);
 
     cache->lines_batch = GPU_batch_create_ex(GPU_PRIM_LINE_STRIP, vbo, ibo, GPU_BATCH_OWNS_INDEX);
   }
@@ -630,8 +630,8 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
     GPUUsageType vbo_flag = GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
     GPUVertFormat *format = gpencil_stroke_format();
     GPUVertFormat *format_color = gpencil_color_format();
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format_ex(format, vbo_flag);
-    GPUVertBuf *vbo_col = GPU_vertbuf_create_with_format_ex(format_color, vbo_flag);
+    gpu::VertBuf *vbo = GPU_vertbuf_create_with_format_ex(format, vbo_flag);
+    gpu::VertBuf *vbo_col = GPU_vertbuf_create_with_format_ex(format_color, vbo_flag);
     /* Add extra space at the start and end the buffer because of quad load and cyclic. */
     GPU_vertbuf_data_alloc(vbo, 1 + vert_len + 1 + 2);
     GPU_vertbuf_data_alloc(vbo_col, 1 + vert_len + 1 + 2);
@@ -689,7 +689,7 @@ GPUBatch *DRW_cache_gpencil_sbuffer_get(Object *ob, bool show_fill)
   return gpd->runtime.sbuffer_batch;
 }
 
-GPUVertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(Object *ob, bool show_fill)
+gpu::VertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(Object *ob, bool show_fill)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   /* Fill batch also need stroke batch to be created (vbo is shared). */
@@ -698,7 +698,7 @@ GPUVertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(Object *ob, bool show_
   return gpd->runtime.sbuffer_position_buf;
 }
 
-GPUVertBuf *DRW_cache_gpencil_sbuffer_color_buffer_get(Object *ob, bool show_fill)
+gpu::VertBuf *DRW_cache_gpencil_sbuffer_color_buffer_get(Object *ob, bool show_fill)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   /* Fill batch also need stroke batch to be created (vbo is shared). */

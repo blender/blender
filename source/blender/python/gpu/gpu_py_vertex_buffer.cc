@@ -104,7 +104,7 @@ static void pygpu_fill_format_sequence(void *data_dst_void,
 #undef WARN_TYPE_LIMIT_PUSH
 #undef WARN_TYPE_LIMIT_POP
 
-static bool pygpu_vertbuf_fill_impl(GPUVertBuf *vbo,
+static bool pygpu_vertbuf_fill_impl(blender::gpu::VertBuf *vbo,
                                     uint data_id,
                                     PyObject *seq,
                                     const char *error_prefix)
@@ -201,7 +201,7 @@ static bool pygpu_vertbuf_fill_impl(GPUVertBuf *vbo,
   return ok;
 }
 
-static int pygpu_vertbuf_fill(GPUVertBuf *buf,
+static int pygpu_vertbuf_fill(blender::gpu::VertBuf *buf,
                               int id,
                               PyObject *py_seq_data,
                               const char *error_prefix)
@@ -241,7 +241,7 @@ static PyObject *pygpu_vertbuf__tp_new(PyTypeObject * /*type*/, PyObject *args, 
       PY_ARG_PARSER_HEAD_COMPAT()
       "O!" /* `format` */
       "I"  /* `len` */
-      ":GPUVertBuf.__new__",
+      ":blender::gpu::VertBuf.__new__",
       _keywords,
       nullptr,
   };
@@ -252,7 +252,7 @@ static PyObject *pygpu_vertbuf__tp_new(PyTypeObject * /*type*/, PyObject *args, 
   }
 
   const GPUVertFormat *fmt = &((BPyGPUVertFormat *)params.py_fmt)->fmt;
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(fmt);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(fmt);
 
   GPU_vertbuf_data_alloc(vbo, params.len);
 
@@ -307,7 +307,7 @@ static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, Py
     return nullptr;
   }
 
-  if (!pygpu_vertbuf_fill(self->buf, id, data, "GPUVertBuf.attr_fill")) {
+  if (!pygpu_vertbuf_fill(self->buf, id, data, "blender::gpu::VertBuf.attr_fill")) {
     return nullptr;
   }
 
@@ -340,7 +340,7 @@ static void pygpu_vertbuf__tp_dealloc(BPyGPUVertBuf *self)
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_vertbuf__tp_doc,
-    ".. class:: GPUVertBuf(format, len)\n"
+    ".. class:: blender::gpu::VertBuf(format, len)\n"
     "\n"
     "   Contains a VBO.\n"
     "\n"
@@ -350,7 +350,7 @@ PyDoc_STRVAR(
     "   :type len: int\n");
 PyTypeObject BPyGPUVertBuf_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
-    /*tp_name*/ "GPUVertBuf",
+    /*tp_name*/ "blender::gpu::VertBuf",
     /*tp_basicsize*/ sizeof(BPyGPUVertBuf),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ (destructor)pygpu_vertbuf__tp_dealloc,
@@ -406,7 +406,7 @@ PyTypeObject BPyGPUVertBuf_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUVertBuf_CreatePyObject(GPUVertBuf *buf)
+PyObject *BPyGPUVertBuf_CreatePyObject(blender::gpu::VertBuf *buf)
 {
   BPyGPUVertBuf *self;
 

@@ -305,12 +305,12 @@ class PassBase {
   void bind_image(int slot, GPUTexture **image);
   void bind_texture(const char *name, GPUTexture *texture, GPUSamplerState state = sampler_auto);
   void bind_texture(const char *name, GPUTexture **texture, GPUSamplerState state = sampler_auto);
-  void bind_texture(const char *name, GPUVertBuf *buffer);
-  void bind_texture(const char *name, GPUVertBuf **buffer);
+  void bind_texture(const char *name, gpu::VertBuf *buffer);
+  void bind_texture(const char *name, gpu::VertBuf **buffer);
   void bind_texture(int slot, GPUTexture *texture, GPUSamplerState state = sampler_auto);
   void bind_texture(int slot, GPUTexture **texture, GPUSamplerState state = sampler_auto);
-  void bind_texture(int slot, GPUVertBuf *buffer);
-  void bind_texture(int slot, GPUVertBuf **buffer);
+  void bind_texture(int slot, gpu::VertBuf *buffer);
+  void bind_texture(int slot, gpu::VertBuf **buffer);
   void bind_ssbo(const char *name, GPUStorageBuf *buffer);
   void bind_ssbo(const char *name, GPUStorageBuf **buffer);
   void bind_ssbo(int slot, GPUStorageBuf *buffer);
@@ -319,14 +319,14 @@ class PassBase {
   void bind_ssbo(const char *name, GPUUniformBuf **buffer);
   void bind_ssbo(int slot, GPUUniformBuf *buffer);
   void bind_ssbo(int slot, GPUUniformBuf **buffer);
-  void bind_ssbo(const char *name, GPUVertBuf *buffer);
-  void bind_ssbo(const char *name, GPUVertBuf **buffer);
-  void bind_ssbo(int slot, GPUVertBuf *buffer);
-  void bind_ssbo(int slot, GPUVertBuf **buffer);
-  void bind_ssbo(const char *name, GPUIndexBuf *buffer);
-  void bind_ssbo(const char *name, GPUIndexBuf **buffer);
-  void bind_ssbo(int slot, GPUIndexBuf *buffer);
-  void bind_ssbo(int slot, GPUIndexBuf **buffer);
+  void bind_ssbo(const char *name, gpu::VertBuf *buffer);
+  void bind_ssbo(const char *name, gpu::VertBuf **buffer);
+  void bind_ssbo(int slot, gpu::VertBuf *buffer);
+  void bind_ssbo(int slot, gpu::VertBuf **buffer);
+  void bind_ssbo(const char *name, gpu::IndexBuf *buffer);
+  void bind_ssbo(const char *name, gpu::IndexBuf **buffer);
+  void bind_ssbo(int slot, gpu::IndexBuf *buffer);
+  void bind_ssbo(int slot, gpu::IndexBuf **buffer);
   void bind_ubo(const char *name, GPUUniformBuf *buffer);
   void bind_ubo(const char *name, GPUUniformBuf **buffer);
   void bind_ubo(int slot, GPUUniformBuf *buffer);
@@ -993,22 +993,22 @@ template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUUnifor
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
-template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUVertBuf *buffer)
+template<class T> inline void PassBase<T>::bind_ssbo(const char *name, gpu::VertBuf *buffer)
 {
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
-template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUVertBuf **buffer)
+template<class T> inline void PassBase<T>::bind_ssbo(const char *name, gpu::VertBuf **buffer)
 {
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
-template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUIndexBuf *buffer)
+template<class T> inline void PassBase<T>::bind_ssbo(const char *name, gpu::IndexBuf *buffer)
 {
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
-template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUIndexBuf **buffer)
+template<class T> inline void PassBase<T>::bind_ssbo(const char *name, gpu::IndexBuf **buffer)
 {
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
@@ -1024,12 +1024,12 @@ inline void PassBase<T>::bind_texture(const char *name, GPUTexture *texture, GPU
   this->bind_texture(GPU_shader_get_sampler_binding(shader_, name), texture, state);
 }
 
-template<class T> inline void PassBase<T>::bind_texture(const char *name, GPUVertBuf *buffer)
+template<class T> inline void PassBase<T>::bind_texture(const char *name, gpu::VertBuf *buffer)
 {
   this->bind_texture(GPU_shader_get_sampler_binding(shader_, name), buffer);
 }
 
-template<class T> inline void PassBase<T>::bind_texture(const char *name, GPUVertBuf **buffer)
+template<class T> inline void PassBase<T>::bind_texture(const char *name, gpu::VertBuf **buffer)
 {
   this->bind_texture(GPU_shader_get_sampler_binding(shader_, name), buffer);
 }
@@ -1056,25 +1056,25 @@ template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUUniformBuf **b
       slot, buffer, ResourceBind::Type::UniformAsStorageBuf};
 }
 
-template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUVertBuf *buffer)
+template<class T> inline void PassBase<T>::bind_ssbo(int slot, gpu::VertBuf *buffer)
 {
   create_command(Type::ResourceBind).resource_bind = {
       slot, buffer, ResourceBind::Type::VertexAsStorageBuf};
 }
 
-template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUVertBuf **buffer)
+template<class T> inline void PassBase<T>::bind_ssbo(int slot, gpu::VertBuf **buffer)
 {
   create_command(Type::ResourceBind).resource_bind = {
       slot, buffer, ResourceBind::Type::VertexAsStorageBuf};
 }
 
-template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUIndexBuf *buffer)
+template<class T> inline void PassBase<T>::bind_ssbo(int slot, gpu::IndexBuf *buffer)
 {
   create_command(Type::ResourceBind).resource_bind = {
       slot, buffer, ResourceBind::Type::IndexAsStorageBuf};
 }
 
-template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUIndexBuf **buffer)
+template<class T> inline void PassBase<T>::bind_ssbo(int slot, gpu::IndexBuf **buffer)
 {
   create_command(Type::ResourceBind).resource_bind = {
       slot, buffer, ResourceBind::Type::IndexAsStorageBuf};
@@ -1091,12 +1091,12 @@ inline void PassBase<T>::bind_texture(int slot, GPUTexture *texture, GPUSamplerS
   create_command(Type::ResourceBind).resource_bind = {slot, texture, state};
 }
 
-template<class T> inline void PassBase<T>::bind_texture(int slot, GPUVertBuf *buffer)
+template<class T> inline void PassBase<T>::bind_texture(int slot, gpu::VertBuf *buffer)
 {
   create_command(Type::ResourceBind).resource_bind = {slot, buffer};
 }
 
-template<class T> inline void PassBase<T>::bind_texture(int slot, GPUVertBuf **buffer)
+template<class T> inline void PassBase<T>::bind_texture(int slot, gpu::VertBuf **buffer)
 {
   create_command(Type::ResourceBind).resource_bind = {slot, buffer};
 }

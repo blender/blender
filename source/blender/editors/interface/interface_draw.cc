@@ -594,7 +594,7 @@ static void waveform_draw_one(float *waveform, int waveform_num, const float col
   GPUVertFormat format = {0};
   const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, waveform_num);
 
   GPU_vertbuf_attr_fill(vbo, pos_id, waveform);
@@ -614,7 +614,7 @@ static void waveform_draw_rgb(float *waveform, int waveform_num, float *col)
   const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint col_id = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
 
   GPU_vertbuf_data_alloc(vbo, waveform_num);
   GPU_vertbuf_attr_fill(vbo, pos_id, waveform);
@@ -633,7 +633,7 @@ static void circle_draw_rgb(float *points, int tot_points, float *col, GPUPrimTy
   const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint col_id = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
 
   GPU_vertbuf_data_alloc(vbo, tot_points);
   GPU_vertbuf_attr_fill(vbo, pos_id, points);

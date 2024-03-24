@@ -143,7 +143,7 @@ static void test_shader_compute_vbo()
   /* Construct VBO. */
   GPUVertFormat format = {0};
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_DEVICE_ONLY);
+  VertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_DEVICE_ONLY);
   GPU_vertbuf_data_alloc(vbo, SIZE);
   GPU_vertbuf_bind_as_ssbo(vbo, GPU_shader_get_ssbo_binding(shader, "out_positions"));
 
@@ -188,7 +188,7 @@ static void test_shader_compute_ibo()
   GPU_shader_bind(shader);
 
   /* Construct IBO. */
-  GPUIndexBuf *ibo = GPU_indexbuf_build_on_device(SIZE);
+  IndexBuf *ibo = GPU_indexbuf_build_on_device(SIZE);
   GPU_indexbuf_bind_as_ssbo(ibo, GPU_shader_get_ssbo_binding(shader, "out_indices"));
 
   /* Dispatch compute task. */
@@ -406,7 +406,7 @@ static void gpu_shader_lib_test(const char *test_src_name, const char *additiona
   /* TODO(fclem): remove this boilerplate. */
   GPUVertFormat format{};
   GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
-  GPUVertBuf *verts = GPU_vertbuf_create_with_format(&format);
+  VertBuf *verts = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(verts, 3);
   GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
 

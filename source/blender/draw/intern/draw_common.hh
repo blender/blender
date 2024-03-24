@@ -18,10 +18,10 @@ namespace blender::draw {
 
 void hair_init();
 
-GPUVertBuf *hair_pos_buffer_get(Scene *scene,
-                                Object *object,
-                                ParticleSystem *psys,
-                                ModifierData *md);
+gpu::VertBuf *hair_pos_buffer_get(Scene *scene,
+                                  Object *object,
+                                  ParticleSystem *psys,
+                                  ModifierData *md);
 
 void hair_update(Manager &manager);
 
@@ -45,7 +45,7 @@ GPUBatch *hair_sub_pass_setup(PassSimple::Sub &sub_ps,
 
 void curves_init();
 
-GPUVertBuf *curves_pos_buffer_get(Scene *scene, Object *object);
+gpu::VertBuf *curves_pos_buffer_get(Scene *scene, Object *object);
 
 void curves_update(Manager &manager);
 

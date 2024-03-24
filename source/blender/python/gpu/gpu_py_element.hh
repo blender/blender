@@ -8,7 +8,9 @@
 
 #pragma once
 
-struct GPUIndexBuf;
+namespace blender::gpu {
+class IndexBuf;
+}
 
 extern PyTypeObject BPyGPUIndexBuf_Type;
 
@@ -16,7 +18,7 @@ extern PyTypeObject BPyGPUIndexBuf_Type;
 
 struct BPyGPUIndexBuf {
   PyObject_VAR_HEAD
-  GPUIndexBuf *elem;
+  blender::gpu::IndexBuf *elem;
 };
 
-PyObject *BPyGPUIndexBuf_CreatePyObject(GPUIndexBuf *elem);
+PyObject *BPyGPUIndexBuf_CreatePyObject(blender::gpu::IndexBuf *elem);

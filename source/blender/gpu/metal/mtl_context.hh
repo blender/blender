@@ -754,7 +754,7 @@ class MTLContext : public Context {
   /* Maximum of 32 texture types. Though most combinations invalid. */
   gpu::MTLTexture *dummy_textures_[GPU_SAMPLER_TYPE_MAX][GPU_TEXTURE_BUFFER] = {{nullptr}};
   GPUVertFormat dummy_vertformat_[GPU_SAMPLER_TYPE_MAX];
-  GPUVertBuf *dummy_verts_[GPU_SAMPLER_TYPE_MAX] = {nullptr};
+  VertBuf *dummy_verts_[GPU_SAMPLER_TYPE_MAX] = {nullptr};
 
  public:
   /* GPUContext interface. */

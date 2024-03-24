@@ -102,15 +102,15 @@ class GLBatch : public Batch {
 
   GLIndexBuf *elem_() const
   {
-    return static_cast<GLIndexBuf *>(unwrap(elem));
+    return static_cast<GLIndexBuf *>(elem);
   }
   GLVertBuf *verts_(const int index) const
   {
-    return static_cast<GLVertBuf *>(unwrap(verts[index]));
+    return static_cast<GLVertBuf *>(verts[index]);
   }
   GLVertBuf *inst_(const int index) const
   {
-    return static_cast<GLVertBuf *>(unwrap(inst[index]));
+    return static_cast<GLVertBuf *>(inst[index]);
   }
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLBatch");

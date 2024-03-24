@@ -15,7 +15,7 @@
 
 #include "gpu_backend.hh"
 
-#include "gpu_index_buffer_private.hh"
+#include "GPU_index_buffer.hh"
 
 #include "GPU_capabilities.hh"
 #include "GPU_compute.hh"
@@ -68,7 +68,7 @@ void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
   builder->restart_index_value = RESTART_INDEX;
 #endif
   builder->uses_restart_indices = false;
-  builder->data = (uint *)MEM_callocN(builder->max_index_len * sizeof(uint), "GPUIndexBuf data");
+  builder->data = (uint *)MEM_callocN(builder->max_index_len * sizeof(uint), "IndexBuf data");
 }
 
 void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
@@ -83,16 +83,16 @@ void GPU_indexbuf_init(GPUIndexBufBuilder *builder,
   GPU_indexbuf_init_ex(builder, prim_type, prim_len * uint(verts_per_prim), vertex_len);
 }
 
-GPUIndexBuf *GPU_indexbuf_build_on_device(uint index_len)
+IndexBuf *GPU_indexbuf_build_on_device(uint index_len)
 {
-  GPUIndexBuf *elem_ = GPU_indexbuf_calloc();
+  IndexBuf *elem_ = GPU_indexbuf_calloc();
   GPU_indexbuf_init_build_on_device(elem_, index_len);
   return elem_;
 }
 
-void GPU_indexbuf_init_build_on_device(GPUIndexBuf *elem, uint index_len)
+void GPU_indexbuf_init_build_on_device(IndexBuf *elem, uint index_len)
 {
-  IndexBuf *elem_ = unwrap(elem);
+  IndexBuf *elem_ = elem;
   elem_->init_build_on_device(index_len);
 }
 
@@ -243,9 +243,9 @@ void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem)
   builder->uses_restart_indices = true;
 }
 
-GPUIndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
-                                                 uint curves_num,
-                                                 uint verts_per_curve)
+IndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
+                                              uint curves_num,
+                                              uint verts_per_curve)
 {
   uint64_t dispatch_x_dim = verts_per_curve;
   if (ELEM(prim_type, GPU_PRIM_LINE_STRIP, GPU_PRIM_TRI_STRIP)) {
@@ -270,7 +270,7 @@ GPUIndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
       tris ? GPU_SHADER_INDEXBUF_TRIS :
              (lines ? GPU_SHADER_INDEXBUF_LINES : GPU_SHADER_INDEXBUF_POINTS));
   GPU_shader_bind(shader);
-  GPUIndexBuf *ibo = GPU_indexbuf_build_on_device(curves_num * dispatch_x_dim);
+  IndexBuf *ibo = GPU_indexbuf_build_on_device(curves_num * dispatch_x_dim);
   int resolution;
   if (tris) {
     resolution = 6;
@@ -459,60 +459,60 @@ void IndexBuf::squeeze_indices_short(uint min_idx,
 /** \name C-API
  * \{ */
 
-GPUIndexBuf *GPU_indexbuf_calloc()
+IndexBuf *GPU_indexbuf_calloc()
 {
-  return wrap(GPUBackend::get()->indexbuf_alloc());
+  return GPUBackend::get()->indexbuf_alloc();
 }
 
-GPUIndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *builder)
+IndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *builder)
 {
-  GPUIndexBuf *elem = GPU_indexbuf_calloc();
+  IndexBuf *elem = GPU_indexbuf_calloc();
   GPU_indexbuf_build_in_place(builder, elem);
   return elem;
 }
 
-GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *elem_src, uint start, uint length)
+IndexBuf *GPU_indexbuf_create_subrange(IndexBuf *elem_src, uint start, uint length)
 {
-  GPUIndexBuf *elem = GPU_indexbuf_calloc();
+  IndexBuf *elem = GPU_indexbuf_calloc();
   GPU_indexbuf_create_subrange_in_place(elem, elem_src, start, length);
   return elem;
 }
 
-void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
+void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, IndexBuf *elem)
 {
   BLI_assert(builder->data != nullptr);
-  /* Transfer data ownership to GPUIndexBuf.
+  /* Transfer data ownership to IndexBuf.
    * It will be uploaded upon first use. */
-  unwrap(elem)->init(builder->index_len,
-                     builder->data,
-                     builder->index_min,
-                     builder->index_max,
-                     builder->prim_type,
-                     builder->uses_restart_indices);
+  elem->init(builder->index_len,
+             builder->data,
+             builder->index_min,
+             builder->index_max,
+             builder->prim_type,
+             builder->uses_restart_indices);
   builder->data = nullptr;
 }
 
-void GPU_indexbuf_create_subrange_in_place(GPUIndexBuf *elem,
-                                           GPUIndexBuf *elem_src,
+void GPU_indexbuf_create_subrange_in_place(IndexBuf *elem,
+                                           IndexBuf *elem_src,
                                            uint start,
                                            uint length)
 {
-  unwrap(elem)->init_subrange(unwrap(elem_src), start, length);
+  elem->init_subrange(elem_src, start, length);
 }
 
-void GPU_indexbuf_read(GPUIndexBuf *elem, uint32_t *data)
+void GPU_indexbuf_read(IndexBuf *elem, uint32_t *data)
 {
-  return unwrap(elem)->read(data);
+  return elem->read(data);
 }
 
-void GPU_indexbuf_discard(GPUIndexBuf *elem)
+void GPU_indexbuf_discard(IndexBuf *elem)
 {
-  delete unwrap(elem);
+  delete elem;
 }
 
-bool GPU_indexbuf_is_init(GPUIndexBuf *elem)
+bool GPU_indexbuf_is_init(IndexBuf *elem)
 {
-  return unwrap(elem)->is_init();
+  return elem->is_init();
 }
 
 int GPU_indexbuf_primitive_len(GPUPrimType prim_type)
@@ -520,19 +520,19 @@ int GPU_indexbuf_primitive_len(GPUPrimType prim_type)
   return indices_per_primitive(prim_type);
 }
 
-void GPU_indexbuf_use(GPUIndexBuf *elem)
+void GPU_indexbuf_use(IndexBuf *elem)
 {
-  unwrap(elem)->upload_data();
+  elem->upload_data();
 }
 
-void GPU_indexbuf_bind_as_ssbo(GPUIndexBuf *elem, int binding)
+void GPU_indexbuf_bind_as_ssbo(IndexBuf *elem, int binding)
 {
-  unwrap(elem)->bind_as_ssbo(binding);
+  elem->bind_as_ssbo(binding);
 }
 
-void GPU_indexbuf_update_sub(GPUIndexBuf *elem, uint start, uint len, const void *data)
+void GPU_indexbuf_update_sub(IndexBuf *elem, uint start, uint len, const void *data)
 {
-  unwrap(elem)->update_sub(start, len, data);
+  elem->update_sub(start, len, data);
 }
 
 /** \} */

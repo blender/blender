@@ -24,6 +24,14 @@ struct Collection;
 struct GHash;
 struct Object;
 struct SpaceLink;
+#ifdef __cplusplus
+namespace blender::gpu {
+class VertBuf;
+}
+using GPUVertBufHandle = blender::gpu::VertBuf;
+#else
+typedef struct GPUVertBufHandle GPUVertBufHandle;
+#endif
 
 /* ************************************************ */
 /* Visualization */
@@ -70,7 +78,7 @@ typedef struct bMotionPath {
   int flag;
 
   /* Used for drawing. */
-  struct GPUVertBuf *points_vbo;
+  GPUVertBufHandle *points_vbo;
   struct GPUBatch *batch_line;
   struct GPUBatch *batch_points;
   void *_pad;

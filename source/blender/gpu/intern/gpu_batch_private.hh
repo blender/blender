@@ -14,8 +14,8 @@
 #include "GPU_batch.hh"
 #include "GPU_context.hh"
 
-#include "gpu_index_buffer_private.hh"
-#include "gpu_vertex_buffer_private.hh"
+#include "GPU_index_buffer.hh"
+#include "GPU_vertex_buffer.hh"
 
 namespace blender {
 namespace gpu {
@@ -39,15 +39,15 @@ class Batch : public GPUBatch {
   /* Convenience casts. */
   IndexBuf *elem_() const
   {
-    return unwrap(elem);
+    return elem;
   }
   VertBuf *verts_(const int index) const
   {
-    return unwrap(verts[index]);
+    return verts[index];
   }
   VertBuf *inst_(const int index) const
   {
-    return unwrap(inst[index]);
+    return inst[index];
   }
 };
 

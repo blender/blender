@@ -189,7 +189,7 @@ GPUBatch *drw_cache_procedural_points_get()
     /* TODO(fclem): get rid of this dummy VBO. */
     GPUVertFormat format = {0};
     GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 1);
 
     SHC.drw_procedural_verts = GPU_batch_create_ex(
@@ -204,7 +204,7 @@ GPUBatch *drw_cache_procedural_lines_get()
     /* TODO(fclem): get rid of this dummy VBO. */
     GPUVertFormat format = {0};
     GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 1);
 
     SHC.drw_procedural_lines = GPU_batch_create_ex(
@@ -219,7 +219,7 @@ GPUBatch *drw_cache_procedural_triangles_get()
     /* TODO(fclem): get rid of this dummy VBO. */
     GPUVertFormat format = {0};
     GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 1);
 
     SHC.drw_procedural_tris = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
@@ -233,7 +233,7 @@ GPUBatch *drw_cache_procedural_triangle_strips_get()
     /* TODO(fclem): get rid of this dummy VBO. */
     GPUVertFormat format = {0};
     GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 1);
 
     SHC.drw_procedural_tri_strips = GPU_batch_create_ex(
@@ -256,7 +256,7 @@ static GPUVertFormat extra_vert_format()
   return format;
 }
 
-static void UNUSED_FUNCTION(add_fancy_edge)(GPUVertBuf *vbo,
+static void UNUSED_FUNCTION(add_fancy_edge)(blender::gpu::VertBuf *vbo,
                                             uint pos_id,
                                             uint n1_id,
                                             uint n2_id,
@@ -276,7 +276,7 @@ static void UNUSED_FUNCTION(add_fancy_edge)(GPUVertBuf *vbo,
 }
 
 #if 0  /* UNUSED */
-static void add_lat_lon_vert(GPUVertBuf *vbo,
+static void add_lat_lon_vert(blender::gpu::VertBuf *vbo,
                              uint pos_id,
                              uint nor_id,
                              uint *v_idx,
@@ -294,7 +294,7 @@ static void add_lat_lon_vert(GPUVertBuf *vbo,
   GPU_vertbuf_attr_set(vbo, pos_id, (*v_idx)++, pos);
 }
 
-static GPUVertBuf *fill_arrows_vbo(const float scale)
+static blender::gpu::VertBuf *fill_arrows_vbo(const float scale)
 {
   /* Position Only 3D format */
   static GPUVertFormat format = {0};
@@ -306,7 +306,7 @@ static GPUVertBuf *fill_arrows_vbo(const float scale)
   }
 
   /* Line */
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, 6 * 3);
 
   float v1[3] = {0.0, 0.0, 0.0};
@@ -343,13 +343,13 @@ static GPUVertBuf *fill_arrows_vbo(const float scale)
 }
 #endif /* UNUSED */
 
-static GPUVertBuf *sphere_wire_vbo(const float rad, int flag)
+static blender::gpu::VertBuf *sphere_wire_vbo(const float rad, int flag)
 {
 #define NSEGMENTS 32
   /* Position Only 3D format */
   GPUVertFormat format = extra_vert_format();
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, NSEGMENTS * 2 * 3);
 
   int v = 0;
@@ -407,7 +407,7 @@ GPUBatch *DRW_cache_fullscreen_quad_get()
       GPU_vertformat_alias_add(&format, "orco"); /* Fix driver bug (see #70004) */
     }
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 3);
 
     for (int i = 0; i < 3; i++) {
@@ -425,7 +425,7 @@ GPUBatch *DRW_cache_quad_get()
   if (!SHC.drw_quad) {
     GPUVertFormat format = extra_vert_format();
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 4);
 
     int v = 0;
@@ -445,7 +445,7 @@ GPUBatch *DRW_cache_quad_wires_get()
   if (!SHC.drw_quad_wires) {
     GPUVertFormat format = extra_vert_format();
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 5);
 
     int v = 0;
@@ -473,7 +473,7 @@ GPUBatch *DRW_cache_grid_get()
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     }
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 8 * 8 * 2 * 3);
 
     uint v_idx = 0;
@@ -505,7 +505,7 @@ GPUBatch *DRW_cache_grid_get()
 }
 
 /* Sphere */
-static void sphere_lat_lon_vert(GPUVertBuf *vbo, int *v_ofs, float lat, float lon)
+static void sphere_lat_lon_vert(blender::gpu::VertBuf *vbo, int *v_ofs, float lat, float lon)
 {
   float x = sinf(lat) * cosf(lon);
   float y = cosf(lat);
@@ -542,7 +542,7 @@ GPUBatch *DRW_cache_sphere_get(const eDRWLevelOfDetail level_of_detail)
     GPUVertFormat format = extra_vert_format();
     GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     int v_len = (lat_res - 1) * lon_res * 6;
     GPU_vertbuf_data_alloc(vbo, v_len);
 
@@ -581,7 +581,7 @@ GPUBatch *DRW_cache_sphere_get(const eDRWLevelOfDetail level_of_detail)
  * \{ */
 
 static void circle_verts(
-    GPUVertBuf *vbo, int *vert_idx, int segments, float radius, float z, int flag)
+    blender::gpu::VertBuf *vbo, int *vert_idx, int segments, float radius, float z, int flag)
 {
   for (int a = 0; a < segments; a++) {
     for (int b = 0; b < 2; b++) {
@@ -596,7 +596,7 @@ static void circle_verts(
 }
 
 static void circle_dashed_verts(
-    GPUVertBuf *vbo, int *vert_idx, int segments, float radius, float z, int flag)
+    blender::gpu::VertBuf *vbo, int *vert_idx, int segments, float radius, float z, int flag)
 {
   for (int a = 0; a < segments * 2; a += 2) {
     for (int b = 0; b < 2; b++) {
@@ -735,7 +735,7 @@ GPUBatch *DRW_cache_cube_get()
     const int tri_len = ARRAY_SIZE(bone_box_solid_tris);
     const int vert_len = ARRAY_SIZE(bone_box_verts);
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, vert_len);
 
     GPUIndexBufBuilder elb;
@@ -766,7 +766,7 @@ GPUBatch *DRW_cache_circle_get()
   if (!SHC.drw_circle) {
     GPUVertFormat format = extra_vert_format();
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, CIRCLE_RESOL + 1);
 
     int v = 0;
@@ -789,7 +789,7 @@ GPUBatch *DRW_cache_normal_arrow_get()
     GPUVertFormat format = {0};
     GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 2);
 
     /* TODO: real arrow. For now, it's a line positioned in the vertex shader. */
@@ -801,7 +801,7 @@ GPUBatch *DRW_cache_normal_arrow_get()
 
 namespace blender::draw {
 
-void DRW_vertbuf_create_wiredata(GPUVertBuf *vbo, const int vert_len)
+void DRW_vertbuf_create_wiredata(blender::gpu::VertBuf *vbo, const int vert_len)
 {
   static GPUVertFormat format = {0};
   static struct {
@@ -851,7 +851,7 @@ GPUBatch *DRW_gpencil_dummy_buffer_get()
     GPUVertFormat format = {0};
     /* NOTE: Use GPU_COMP_U32 to satisfy minimum 4-byte vertex stride for Metal backend. */
     GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 4);
 
     SHC.drw_gpencil_dummy_quad = GPU_batch_create_ex(
@@ -928,7 +928,7 @@ GPUBatch *DRW_cache_object_surface_get(Object *ob)
   }
 }
 
-GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
+blender::gpu::VertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
 {
   using namespace blender::draw;
   Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf(ob);
@@ -1001,7 +1001,7 @@ GPUBatch *DRW_cache_plain_axes_get()
   if (!SHC.drw_plain_axes) {
     GPUVertFormat format = extra_vert_format();
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 6);
 
     int v = 0;
@@ -1022,7 +1022,7 @@ GPUBatch *DRW_cache_empty_cube_get()
 {
   if (!SHC.drw_empty_cube) {
     GPUVertFormat format = extra_vert_format();
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, ARRAY_SIZE(bone_box_wire));
 
     int v = 0;
@@ -1042,7 +1042,7 @@ GPUBatch *DRW_cache_single_arrow_get()
 {
   if (!SHC.drw_single_arrow) {
     GPUVertFormat format = extra_vert_format();
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 4 * 2 * 2 + 2);
 
     int v = 0;
@@ -1079,7 +1079,7 @@ GPUBatch *DRW_cache_single_arrow_get()
 GPUBatch *DRW_cache_empty_sphere_get()
 {
   if (!SHC.drw_empty_sphere) {
-    GPUVertBuf *vbo = sphere_wire_vbo(1.0f, VCLASS_EMPTY_SCALED);
+    blender::gpu::VertBuf *vbo = sphere_wire_vbo(1.0f, VCLASS_EMPTY_SCALED);
     SHC.drw_empty_sphere = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, nullptr, GPU_BATCH_OWNS_VBO);
   }
   return SHC.drw_empty_sphere;
@@ -1090,7 +1090,7 @@ GPUBatch *DRW_cache_empty_cone_get()
 #define NSEGMENTS 8
   if (!SHC.drw_empty_cone) {
     GPUVertFormat format = extra_vert_format();
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, NSEGMENTS * 4);
 
     int v = 0;
@@ -1129,7 +1129,7 @@ GPUBatch *DRW_cache_empty_cylinder_get()
 #define NSEGMENTS 12
   if (!SHC.drw_empty_cylinder) {
     GPUVertFormat format = extra_vert_format();
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, NSEGMENTS * 6);
 
     /* a single ring of vertices */
@@ -1188,7 +1188,7 @@ GPUBatch *DRW_cache_empty_capsule_body_get()
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     }
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 8);
     GPU_vertbuf_attr_fill(vbo, attr_id.pos, pos);
 
@@ -1219,7 +1219,7 @@ GPUBatch *DRW_cache_empty_capsule_cap_get()
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     }
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, (NSEGMENTS * 2) * 2);
 
     /* Base circle */
@@ -1262,7 +1262,7 @@ GPUBatch *DRW_cache_field_wind_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * (CIRCLE_RESOL * 4);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1285,7 +1285,7 @@ GPUBatch *DRW_cache_field_force_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * (CIRCLE_RESOL * 3);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1308,7 +1308,7 @@ GPUBatch *DRW_cache_field_vortex_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = SPIRAL_RESOL * 2 + 1;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1338,7 +1338,7 @@ GPUBatch *DRW_cache_field_curve_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * (CIRCLE_RESOL);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1359,7 +1359,7 @@ GPUBatch *DRW_cache_field_tube_limit_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * (CIRCLE_RESOL * 2 + 4 * SIDE_STIPPLE / 2);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1394,7 +1394,7 @@ GPUBatch *DRW_cache_field_cone_limit_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * (CIRCLE_RESOL * 2 + 4 * SIDE_STIPPLE / 2);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1428,7 +1428,7 @@ GPUBatch *DRW_cache_field_sphere_limit_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * CIRCLE_RESOL;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1478,7 +1478,7 @@ GPUBatch *DRW_cache_groundline_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * (1 + DIAMOND_NSEGMENTS);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1499,7 +1499,7 @@ GPUBatch *DRW_cache_light_icon_inner_lines_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * (DIAMOND_NSEGMENTS + INNER_NSEGMENTS);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     const float r = 9.0f;
@@ -1520,7 +1520,7 @@ GPUBatch *DRW_cache_light_icon_outer_lines_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * OUTER_NSEGMENTS;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     const float r = 9.0f;
@@ -1542,7 +1542,7 @@ GPUBatch *DRW_cache_light_icon_sun_rays_get()
     const int num_rays = 8;
     int v_len = 4 * num_rays;
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     const float r = 9.0f;
@@ -1572,7 +1572,7 @@ GPUBatch *DRW_cache_light_point_lines_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * CIRCLE_NSEGMENTS;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1593,7 +1593,7 @@ GPUBatch *DRW_cache_light_sun_lines_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1614,7 +1614,7 @@ GPUBatch *DRW_cache_light_spot_lines_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * (DIAMOND_NSEGMENTS * 2 + CIRCLE_NSEGMENTS * 4 + 1);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1656,7 +1656,7 @@ GPUBatch *DRW_cache_light_spot_volume_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = CIRCLE_NSEGMENTS + 1 + 1;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1683,7 +1683,7 @@ GPUBatch *DRW_cache_light_area_disk_lines_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * (DIAMOND_NSEGMENTS * 2 + CIRCLE_NSEGMENTS + 1);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -1709,7 +1709,7 @@ GPUBatch *DRW_cache_light_area_square_lines_get()
   if (!SHC.drw_light_area_square_lines) {
     GPUVertFormat format = extra_vert_format();
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     int v_len = 2 * (DIAMOND_NSEGMENTS * 2 + 4 + 1);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
@@ -1765,7 +1765,7 @@ GPUBatch *DRW_cache_speaker_get()
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     }
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 3 * segments * 2 + 4 * 4);
 
     for (int j = 0; j < 3; j++) {
@@ -1820,7 +1820,7 @@ GPUBatch *DRW_cache_lightprobe_cube_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = (6 + 3 + (1 + 2 * DIAMOND_NSEGMENTS) * 6) * 2;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     const float r = 14.0f;
@@ -1875,7 +1875,7 @@ GPUBatch *DRW_cache_lightprobe_grid_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = (6 * 2 + 3 + (1 + 2 * DIAMOND_NSEGMENTS) * 6) * 2;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     const float r = 14.0f;
@@ -1938,7 +1938,7 @@ GPUBatch *DRW_cache_lightprobe_planar_get()
     GPUVertFormat format = extra_vert_format();
 
     int v_len = 2 * 4;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     const float r = 20.0f;
@@ -2089,7 +2089,7 @@ GPUBatch *DRW_cache_bone_octahedral_get()
     }
 
     /* Vertices */
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 24);
 
     for (int i = 0; i < 8; i++) {
@@ -2150,7 +2150,7 @@ GPUBatch *DRW_cache_bone_box_get()
     }
 
     /* Vertices */
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, 36);
 
     for (int i = 0; i < 12; i++) {
@@ -2219,7 +2219,7 @@ GPUBatch *DRW_cache_bone_envelope_solid_get()
     }
 
     /* Vertices */
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, ((lat_res + 1) * 2) * lon_res * 1);
 
     float lon = 0.0f;
@@ -2270,7 +2270,7 @@ GPUBatch *DRW_cache_bone_envelope_outline_get()
       attr_id.pos2 = GPU_vertformat_attr_add(&format, "pos2", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     }
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, CIRCLE_RESOL + 1);
 
     v0[0] = radius * sinf((2.0f * M_PI * -2) / float(CIRCLE_RESOL));
@@ -2318,7 +2318,7 @@ GPUBatch *DRW_cache_bone_point_get()
     }
 
     /* Vertices */
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, (lat_res - 1) * lon_res * 6);
 
     float lon = 0.0f;
@@ -2356,7 +2356,7 @@ GPUBatch *DRW_cache_bone_point_get()
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     }
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, CIRCLE_RESOL);
 
     for (int a = 0; a < CIRCLE_RESOL; a++) {
@@ -2376,7 +2376,7 @@ GPUBatch *DRW_cache_bone_point_wire_outline_get()
 {
   if (!SHC.drw_bone_point_wire) {
 #if 0 /* old style geometry sphere */
-    GPUVertBuf *vbo = sphere_wire_vbo(0.05f);
+    blender::gpu::VertBuf *vbo = sphere_wire_vbo(0.05f);
     SHC.drw_bone_point_wire = GPU_batch_create_ex(
         GPU_PRIM_LINES, vbo, nullptr, GPU_BATCH_OWNS_VBO);
 #else
@@ -2392,7 +2392,7 @@ GPUBatch *DRW_cache_bone_point_wire_outline_get()
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     }
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, CIRCLE_RESOL + 1);
 
     uint v = 0;
@@ -2442,7 +2442,7 @@ GPUBatch *DRW_cache_bone_stick_get()
 
     const uint vcount = (CIRCLE_RESOL + 1) * 2 + 6;
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, vcount);
 
     GPUIndexBufBuilder elb;
@@ -2568,7 +2568,7 @@ GPUBatch *DRW_cache_bone_arrows_get()
 {
   if (!SHC.drw_bone_arrows) {
     GPUVertFormat format = extra_vert_format();
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     int v_len = (2 + MARKER_LEN * MARKER_FILL_LAYER) * 3 + (X_LEN + Y_LEN + Z_LEN);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
@@ -2645,7 +2645,7 @@ GPUBatch *DRW_cache_bone_dof_sphere_get()
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     }
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, n * n * 6 * 4);
 
     uint v = 0;
@@ -2698,7 +2698,7 @@ GPUBatch *DRW_cache_bone_dof_lines_get()
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     }
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, n * 4);
 
     uint v = 0;
@@ -2729,7 +2729,7 @@ GPUBatch *DRW_cache_camera_frame_get()
     GPUVertFormat format = extra_vert_format();
 
     const int v_len = 2 * (4 + 4);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -2761,7 +2761,7 @@ GPUBatch *DRW_cache_camera_volume_get()
     GPUVertFormat format = extra_vert_format();
 
     const int v_len = ARRAY_SIZE(bone_box_solid_tris) * 3;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -2786,7 +2786,7 @@ GPUBatch *DRW_cache_camera_volume_wire_get()
     GPUVertFormat format = extra_vert_format();
 
     const int v_len = ARRAY_SIZE(bone_box_wire);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -2810,7 +2810,7 @@ GPUBatch *DRW_cache_camera_tria_wire_get()
     GPUVertFormat format = extra_vert_format();
 
     const int v_len = 2 * 3;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -2835,7 +2835,7 @@ GPUBatch *DRW_cache_camera_tria_get()
     GPUVertFormat format = extra_vert_format();
 
     const int v_len = 3;
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -2855,7 +2855,7 @@ GPUBatch *DRW_cache_camera_distances_get()
     GPUVertFormat format = extra_vert_format();
 
     const int v_len = 2 * (1 + DIAMOND_NSEGMENTS * 2 + 2);
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, v_len);
 
     int v = 0;
@@ -3182,7 +3182,7 @@ GPUBatch *DRW_cache_particles_get_prim(int type)
     case PART_DRAW_CROSS:
       if (!SHC.drw_particle_cross) {
         GPUVertFormat format = extra_vert_format();
-        GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+        blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
         GPU_vertbuf_data_alloc(vbo, 6);
 
         int v = 0;
@@ -3202,7 +3202,7 @@ GPUBatch *DRW_cache_particles_get_prim(int type)
     case PART_DRAW_AXIS:
       if (!SHC.drw_particle_axis) {
         GPUVertFormat format = extra_vert_format();
-        GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+        blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
         GPU_vertbuf_data_alloc(vbo, 6);
 
         int v = 0;
@@ -3224,7 +3224,7 @@ GPUBatch *DRW_cache_particles_get_prim(int type)
 #define CIRCLE_RESOL 32
       if (!SHC.drw_particle_circle) {
         GPUVertFormat format = extra_vert_format();
-        GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+        blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
         GPU_vertbuf_data_alloc(vbo, CIRCLE_RESOL + 1);
 
         int v = 0;
@@ -3279,7 +3279,7 @@ GPUBatch *DRW_cache_cursor_get(bool crosshair_lines)
     GPUIndexBufBuilder elb;
     GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_STRIP, index_len, vert_len);
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, vert_len);
 
     int v = 0;
@@ -3336,7 +3336,7 @@ GPUBatch *DRW_cache_cursor_get(bool crosshair_lines)
       GPU_indexbuf_add_generic_vert(&elb, v++);
     }
 
-    GPUIndexBuf *ibo = GPU_indexbuf_build(&elb);
+    blender::gpu::IndexBuf *ibo = GPU_indexbuf_build(&elb);
 
     *drw_cursor = GPU_batch_create_ex(
         GPU_PRIM_LINE_STRIP, vbo, ibo, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);

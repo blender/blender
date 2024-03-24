@@ -49,7 +49,7 @@ struct VolumeBatchCache {
 
   /* Wireframe */
   struct {
-    GPUVertBuf *pos_nor_in_order;
+    gpu::VertBuf *pos_nor_in_order;
     GPUBatch *batch;
   } face_wire;
 
@@ -179,7 +179,7 @@ static void drw_volume_wireframe_cb(
   GPU_vertbuf_attr_fill_stride(cache->face_wire.pos_nor_in_order, nor_id, 0, &packed_normal);
 
   /* Create wiredata. */
-  GPUVertBuf *vbo_wiredata = GPU_vertbuf_calloc();
+  gpu::VertBuf *vbo_wiredata = GPU_vertbuf_calloc();
   DRW_vertbuf_create_wiredata(vbo_wiredata, totvert);
 
   if (volume->display.wireframe_type == VOLUME_WIREFRAME_POINTS) {
@@ -194,7 +194,7 @@ static void drw_volume_wireframe_cb(
     for (int i = 0; i < totedge; i++) {
       GPU_indexbuf_add_line_verts(&elb, edges[i][0], edges[i][1]);
     }
-    GPUIndexBuf *ibo = GPU_indexbuf_build(&elb);
+    gpu::IndexBuf *ibo = GPU_indexbuf_build(&elb);
 
     /* Create batch. */
     cache->face_wire.batch = GPU_batch_create_ex(
@@ -242,7 +242,7 @@ static void drw_volume_selection_surface_cb(
   }
 
   /* Create vertex buffer. */
-  GPUVertBuf *vbo_surface = GPU_vertbuf_create_with_format(&format);
+  gpu::VertBuf *vbo_surface = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo_surface, totvert);
   GPU_vertbuf_attr_fill(vbo_surface, pos_id, verts);
 
@@ -252,7 +252,7 @@ static void drw_volume_selection_surface_cb(
   for (int i = 0; i < tottris; i++) {
     GPU_indexbuf_add_tri_verts(&elb, UNPACK3(tris[i]));
   }
-  GPUIndexBuf *ibo_surface = GPU_indexbuf_build(&elb);
+  gpu::IndexBuf *ibo_surface = GPU_indexbuf_build(&elb);
 
   cache->selection_surface = GPU_batch_create_ex(
       GPU_PRIM_TRIS, vbo_surface, ibo_surface, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);

@@ -1815,7 +1815,7 @@ static float mute_expand_axis[3][2] = {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, -0.0f}
 static struct {
   GPUBatch *batch;        /* for batching line together */
   GPUBatch *batch_single; /* for single line */
-  GPUVertBuf *inst_vbo;
+  gpu::VertBuf *inst_vbo;
   uint p0_id, p1_id, p2_id, p3_id;
   uint colid_id, muted_id, start_color_id, end_color_id;
   uint dim_factor_id;
@@ -1853,7 +1853,7 @@ static void nodelink_batch_reset()
   g_batch_link.count = 0;
 }
 
-static void set_nodelink_vertex(GPUVertBuf *vbo,
+static void set_nodelink_vertex(gpu::VertBuf *vbo,
                                 uint uv_id,
                                 uint pos_id,
                                 uint exp_id,
@@ -1873,7 +1873,7 @@ static void nodelink_batch_init()
   uint uv_id = GPU_vertformat_attr_add(&format, "uv", GPU_COMP_U8, 2, GPU_FETCH_INT_TO_FLOAT_UNIT);
   uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uint expand_id = GPU_vertformat_attr_add(&format, "expand", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STATIC);
+  gpu::VertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STATIC);
   int vcount = LINK_RESOL * 2; /* curve */
   vcount += 2;                 /* restart strip */
   vcount += 3 * 2;             /* arrow */

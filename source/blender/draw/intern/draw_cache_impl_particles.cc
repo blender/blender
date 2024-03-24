@@ -51,7 +51,7 @@ static void particle_batch_cache_clear(ParticleSystem *psys);
 /* Particle GPUBatch Cache */
 
 struct ParticlePointCache {
-  GPUVertBuf *pos;
+  gpu::VertBuf *pos;
   GPUBatch *points;
   int elems_len;
   int point_len;
@@ -67,14 +67,14 @@ struct ParticleBatchCache {
   /* Control points when in edit mode. */
   ParticleHairCache edit_hair;
 
-  GPUVertBuf *edit_pos;
+  gpu::VertBuf *edit_pos;
   GPUBatch *edit_strands;
 
-  GPUVertBuf *edit_inner_pos;
+  gpu::VertBuf *edit_inner_pos;
   GPUBatch *edit_inner_points;
   int edit_inner_point_len;
 
-  GPUVertBuf *edit_tip_pos;
+  gpu::VertBuf *edit_tip_pos;
   GPUBatch *edit_tip_points;
   int edit_tip_point_len;
 
@@ -937,7 +937,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   MEM_SAFE_FREE(cache->col_tex);
   MEM_SAFE_FREE(cache->col_layer_names);
 
-  cache->proc_col_buf = static_cast<GPUVertBuf **>(
+  cache->proc_col_buf = static_cast<gpu::VertBuf **>(
       MEM_calloc_arrayN(cache->num_col_layers, sizeof(void *), "proc_col_buf"));
   cache->col_tex = static_cast<GPUTexture **>(
       MEM_calloc_arrayN(cache->num_col_layers, sizeof(void *), "col_tex"));
@@ -1095,7 +1095,7 @@ static void particle_batch_cache_ensure_procedural_indices(PTCacheEdit *edit,
    * stride requirement. */
   GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, 1);
 
   GPUIndexBufBuilder elb;

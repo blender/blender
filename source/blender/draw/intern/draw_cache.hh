@@ -12,7 +12,9 @@
 
 struct GPUBatch;
 struct GPUMaterial;
-struct GPUVertBuf;
+namespace blender::gpu {
+class VertBuf;
+}
 struct ModifierData;
 struct Object;
 struct PTCacheEdit;
@@ -74,7 +76,7 @@ int DRW_cache_object_material_count_get(const Object *ob);
 /**
  * Returns the vertbuf used by shaded surface batch.
  */
-GPUVertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob);
+blender::gpu::VertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob);
 
 /* Empties */
 GPUBatch *DRW_cache_plain_axes_get();
@@ -254,15 +256,15 @@ GPUBatch *DRW_cache_volume_selection_surface_get(Object *ob);
 /* GPencil (legacy) */
 
 GPUBatch *DRW_cache_gpencil_get(Object *ob, int cfra);
-GPUVertBuf *DRW_cache_gpencil_position_buffer_get(Object *ob, int cfra);
-GPUVertBuf *DRW_cache_gpencil_color_buffer_get(Object *ob, int cfra);
+gpu::VertBuf *DRW_cache_gpencil_position_buffer_get(Object *ob, int cfra);
+gpu::VertBuf *DRW_cache_gpencil_color_buffer_get(Object *ob, int cfra);
 GPUBatch *DRW_cache_gpencil_edit_lines_get(Object *ob, int cfra);
 GPUBatch *DRW_cache_gpencil_edit_points_get(Object *ob, int cfra);
 GPUBatch *DRW_cache_gpencil_edit_curve_handles_get(Object *ob, int cfra);
 GPUBatch *DRW_cache_gpencil_edit_curve_points_get(Object *ob, int cfra);
 GPUBatch *DRW_cache_gpencil_sbuffer_get(Object *ob, bool show_fill);
-GPUVertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(Object *ob, bool show_fill);
-GPUVertBuf *DRW_cache_gpencil_sbuffer_color_buffer_get(Object *ob, bool show_fill);
+gpu::VertBuf *DRW_cache_gpencil_sbuffer_position_buffer_get(Object *ob, bool show_fill);
+gpu::VertBuf *DRW_cache_gpencil_sbuffer_color_buffer_get(Object *ob, bool show_fill);
 int DRW_gpencil_material_count_get(const bGPdata *gpd);
 
 GPUBatch *DRW_cache_gpencil_face_wireframe_get(Object *ob);
@@ -278,6 +280,6 @@ void DRW_cache_gpencil_sbuffer_clear(Object *ob);
 GPUBatch *DRW_cache_grease_pencil_get(const Scene *scene, Object *ob);
 GPUBatch *DRW_cache_grease_pencil_edit_points_get(const Scene *scene, Object *ob);
 GPUBatch *DRW_cache_grease_pencil_edit_lines_get(const Scene *scene, Object *ob);
-GPUVertBuf *DRW_cache_grease_pencil_position_buffer_get(const Scene *scene, Object *ob);
-GPUVertBuf *DRW_cache_grease_pencil_color_buffer_get(const Scene *scene, Object *ob);
+gpu::VertBuf *DRW_cache_grease_pencil_position_buffer_get(const Scene *scene, Object *ob);
+gpu::VertBuf *DRW_cache_grease_pencil_color_buffer_get(const Scene *scene, Object *ob);
 }  // namespace blender::draw

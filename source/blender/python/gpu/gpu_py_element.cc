@@ -246,7 +246,7 @@ PyTypeObject BPyGPUIndexBuf_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUIndexBuf_CreatePyObject(GPUIndexBuf *elem)
+PyObject *BPyGPUIndexBuf_CreatePyObject(blender::gpu::IndexBuf *elem)
 {
   BPyGPUIndexBuf *self;
 

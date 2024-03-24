@@ -156,7 +156,7 @@ static void extract_lnor_init(const MeshRenderData &mr,
                               void *buf,
                               void *tls_data)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
@@ -221,8 +221,8 @@ static void extract_lnor_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                      void *buffer,
                                      void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
-  GPUVertBuf *pos_nor = cache.final.buff.vbo.pos;
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
+  gpu::VertBuf *pos_nor = cache.final.buff.vbo.pos;
   BLI_assert(pos_nor);
   GPU_vertbuf_init_build_on_device(vbo, get_subdiv_lnor_format(), subdiv_cache.num_subdiv_loops);
   draw_subdiv_build_lnor_buffer(subdiv_cache, pos_nor, vbo);
@@ -252,7 +252,7 @@ static void extract_lnor_hq_init(const MeshRenderData &mr,
                                  void *buf,
                                  void *tls_data)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);

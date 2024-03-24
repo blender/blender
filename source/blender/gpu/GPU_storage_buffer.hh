@@ -73,8 +73,11 @@ void GPU_storagebuf_read(GPUStorageBuf *ssbo, void *data);
  * \param src_offset: where to start copying from (in bytes).
  * \param copy_size: byte size of the segment to copy.
  */
-void GPU_storagebuf_copy_sub_from_vertbuf(
-    GPUStorageBuf *ssbo, GPUVertBuf *src, uint dst_offset, uint src_offset, uint copy_size);
+void GPU_storagebuf_copy_sub_from_vertbuf(GPUStorageBuf *ssbo,
+                                          blender::gpu::VertBuf *src,
+                                          uint dst_offset,
+                                          uint src_offset,
+                                          uint copy_size);
 
 /**
  * Ensure the ssbo is ready to be used as an indirect buffer in `GPU_batch_draw_indirect`.

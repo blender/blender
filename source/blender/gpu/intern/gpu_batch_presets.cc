@@ -140,7 +140,7 @@ static GPUBatch *gpu_batch_sphere(int lat_res, int lon_res)
   const float lat_inc = M_PI / lat_res;
   float lon, lat;
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(preset_3d_format());
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_3d_format());
   const uint vbo_len = (lat_res - 1) * lon_res * 6;
   GPU_vertbuf_data_alloc(vbo, vbo_len);
 
@@ -178,7 +178,7 @@ static GPUBatch *batch_sphere_wire(int lat_res, int lon_res)
   const float lat_inc = M_PI / lat_res;
   float lon, lat;
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(preset_3d_format());
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_3d_format());
   const uint vbo_len = (lat_res * lon_res * 2) + ((lat_res - 1) * lon_res * 2);
   GPU_vertbuf_data_alloc(vbo, vbo_len);
 
@@ -244,7 +244,7 @@ static GPUBatch *gpu_batch_preset_panel_drag_widget(float pixelsize,
                                                     const float col_dark[4],
                                                     const float width)
 {
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
   const uint vbo_len = 4 * 2 * (6 * 2);
   GPU_vertbuf_data_alloc(vbo, vbo_len);
 
@@ -313,7 +313,7 @@ GPUBatch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
 GPUBatch *GPU_batch_preset_quad()
 {
   if (!g_presets_2d.batch.quad) {
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
     GPU_vertbuf_data_alloc(vbo, 4);
 
     float pos_data[4][2] = {{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}};

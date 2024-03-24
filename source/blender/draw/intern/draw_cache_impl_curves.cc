@@ -66,10 +66,10 @@ struct CurvesBatchCache {
   GPUBatch *edit_handles;
 
   GPUBatch *sculpt_cage;
-  GPUIndexBuf *sculpt_cage_ibo;
+  gpu::IndexBuf *sculpt_cage_ibo;
 
   /* Crazy-space point positions for original points. */
-  GPUVertBuf *edit_points_pos;
+  gpu::VertBuf *edit_points_pos;
 
   /* Additional data needed for shader to choose color for each point in edit_points_pos.
    * If first bit is set, then point is NURBS control point. EDIT_CURVES_NURBS_CONTROL_POINT is
@@ -82,20 +82,20 @@ struct CurvesBatchCache {
    *
    * If it is left or right handle point, then same handle type is repeated in both slots.
    */
-  GPUVertBuf *edit_points_data;
+  gpu::VertBuf *edit_points_data;
 
   /* Buffer used to store CurvesUboStorage value. push_constant() could not be used for this
    * value, as it is not know in overlay_edit_curves.cc as other constants. */
   GPUUniformBuf *curves_ubo_storage;
 
   /* Selection of original points. */
-  GPUVertBuf *edit_points_selection;
+  gpu::VertBuf *edit_points_selection;
 
-  GPUIndexBuf *edit_handles_ibo;
+  gpu::IndexBuf *edit_handles_ibo;
 
   GPUBatch *edit_curves_lines;
-  GPUVertBuf *edit_curves_lines_pos;
-  GPUIndexBuf *edit_curves_lines_ibo;
+  gpu::VertBuf *edit_curves_lines_pos;
+  gpu::IndexBuf *edit_curves_lines_ibo;
 
   /* Whether the cache is invalid. */
   bool is_dirty;
@@ -532,7 +532,7 @@ static void ensure_control_point_attribute(const Curves &curves,
 
   cache.proc_attributes_buf[index] = GPU_vertbuf_create_with_format_ex(
       format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-  GPUVertBuf *attr_vbo = cache.proc_attributes_buf[index];
+  gpu::VertBuf *attr_vbo = cache.proc_attributes_buf[index];
 
   GPU_vertbuf_data_alloc(attr_vbo,
                          request.domain == bke::AttrDomain::Point ? curves.geometry.point_num :
@@ -660,10 +660,10 @@ static void calc_final_indices(const bke::CurvesGeometry &curves,
   /* initialize vertex format */
   GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, 1);
 
-  GPUIndexBuf *ibo = nullptr;
+  gpu::IndexBuf *ibo = nullptr;
   eGPUBatchFlag owns_flag = GPU_BATCH_OWNS_VBO;
   if (curves.curves_num()) {
     ibo = GPU_indexbuf_build_curves_on_device(prim_type, curves.curves_num(), verts_per_curve);
@@ -910,9 +910,9 @@ GPUBatch *DRW_curves_batch_cache_get_edit_curves_lines(Curves *curves)
   return DRW_batch_request(&cache.edit_curves_lines);
 }
 
-GPUVertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
-                                                        const char *name,
-                                                        bool *r_is_point_domain)
+gpu::VertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
+                                                          const char *name,
+                                                          bool *r_is_point_domain)
 {
   CurvesBatchCache &cache = get_batch_cache(*curves);
   CurvesEvalFinalCache &final_cache = cache.eval_cache.final;

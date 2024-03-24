@@ -1013,7 +1013,7 @@ void gpu::MTLTexture::update_sub(
 
       case GPU_TEXTURE_BUFFER: {
         /* TODO(Metal): Support Data upload to TEXTURE BUFFER
-         * Data uploads generally happen via GPUVertBuf instead. */
+         * Data uploads generally happen via VertBuf instead. */
         BLI_assert(false);
       } break;
 
@@ -2028,15 +2028,15 @@ bool gpu::MTLTexture::init_internal()
   return true;
 }
 
-bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
+bool gpu::MTLTexture::init_internal(VertBuf *vbo)
 {
   MTLPixelFormat mtl_format = gpu_texture_format_to_metal(this->format_);
   mtl_max_mips_ = 1;
   mipmaps_ = 0;
   this->mip_range_set(0, 0);
 
-  /* Create texture from GPUVertBuf's buffer. */
-  MTLVertBuf *mtl_vbo = static_cast<MTLVertBuf *>(unwrap(vbo));
+  /* Create texture from VertBuf's buffer. */
+  MTLVertBuf *mtl_vbo = static_cast<MTLVertBuf *>(vbo);
   mtl_vbo->bind();
   mtl_vbo->flag_used();
 

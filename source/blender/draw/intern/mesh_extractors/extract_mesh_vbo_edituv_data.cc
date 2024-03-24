@@ -26,7 +26,7 @@ struct MeshExtract_EditUVData_Data {
 };
 
 static void extract_edituv_data_init_common(const MeshRenderData &mr,
-                                            GPUVertBuf *vbo,
+                                            gpu::VertBuf *vbo,
                                             MeshExtract_EditUVData_Data *data,
                                             uint loop_len)
 {
@@ -49,7 +49,7 @@ static void extract_edituv_data_init(const MeshRenderData &mr,
                                      void *buf,
                                      void *tls_data)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   MeshExtract_EditUVData_Data *data = static_cast<MeshExtract_EditUVData_Data *>(tls_data);
   extract_edituv_data_init_common(mr, vbo, data, mr.corners_num);
 }
@@ -114,7 +114,7 @@ static void extract_edituv_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                             void *buf,
                                             void *tls_data)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   MeshExtract_EditUVData_Data *data = static_cast<MeshExtract_EditUVData_Data *>(tls_data);
   extract_edituv_data_init_common(mr, vbo, data, subdiv_cache.num_subdiv_loops);
 }

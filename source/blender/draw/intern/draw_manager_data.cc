@@ -546,7 +546,7 @@ void DRW_shgroup_uniform_mat4_copy(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_vertex_buffer_ex(DRWShadingGroup *shgroup,
                                   const char *name,
-                                  GPUVertBuf *vertex_buffer DRW_DEBUG_FILE_LINE_ARGS)
+                                  blender::gpu::VertBuf *vertex_buffer DRW_DEBUG_FILE_LINE_ARGS)
 {
   int location = GPU_shader_get_ssbo_binding(shgroup->shader, name);
   if (location == -1) {
@@ -571,7 +571,8 @@ void DRW_shgroup_vertex_buffer_ex(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
                                       const char *name,
-                                      GPUVertBuf **vertex_buffer DRW_DEBUG_FILE_LINE_ARGS)
+                                      blender::gpu::VertBuf **vertex_buffer
+                                          DRW_DEBUG_FILE_LINE_ARGS)
 {
   int location = GPU_shader_get_ssbo_binding(shgroup->shader, name);
   if (location == -1) {
@@ -596,7 +597,7 @@ void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_buffer_texture(DRWShadingGroup *shgroup,
                                 const char *name,
-                                GPUVertBuf *vertex_buffer)
+                                blender::gpu::VertBuf *vertex_buffer)
 {
   int location = GPU_shader_get_sampler_binding(shgroup->shader, name);
   if (location == -1) {
@@ -613,7 +614,7 @@ void DRW_shgroup_buffer_texture(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
                                     const char *name,
-                                    GPUVertBuf **vertex_buffer)
+                                    blender::gpu::VertBuf **vertex_buffer)
 {
   int location = GPU_shader_get_sampler_binding(shgroup->shader, name);
   if (location == -1) {
@@ -971,7 +972,9 @@ static void drw_command_draw_indirect(DRWShadingGroup *shgroup,
   cmd->indirect_buf = indirect_buf;
 }
 
-static void drw_command_set_select_id(DRWShadingGroup *shgroup, GPUVertBuf *buf, uint select_id)
+static void drw_command_set_select_id(DRWShadingGroup *shgroup,
+                                      blender::gpu::VertBuf *buf,
+                                      uint select_id)
 {
   /* Only one can be valid. */
   BLI_assert(buf == nullptr || select_id == -1);
@@ -1570,7 +1573,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
 
 void DRW_buffer_add_entry_struct(DRWCallBuffer *callbuf, const void *data)
 {
-  GPUVertBuf *buf = callbuf->buf;
+  blender::gpu::VertBuf *buf = callbuf->buf;
   const bool resize = (callbuf->count == GPU_vertbuf_get_vertex_alloc(buf));
 
   if (UNLIKELY(resize)) {
@@ -1591,7 +1594,7 @@ void DRW_buffer_add_entry_struct(DRWCallBuffer *callbuf, const void *data)
 
 void DRW_buffer_add_entry_array(DRWCallBuffer *callbuf, const void *attr[], uint attr_len)
 {
-  GPUVertBuf *buf = callbuf->buf;
+  blender::gpu::VertBuf *buf = callbuf->buf;
   const bool resize = (callbuf->count == GPU_vertbuf_get_vertex_alloc(buf));
 
   BLI_assert(attr_len == GPU_vertbuf_get_format(buf)->attr_len);
@@ -1888,7 +1891,7 @@ DRWShadingGroup *DRW_shgroup_create(GPUShader *shader, DRWPass *pass)
 
 DRWShadingGroup *DRW_shgroup_transform_feedback_create(GPUShader *shader,
                                                        DRWPass *pass,
-                                                       GPUVertBuf *tf_target)
+                                                       blender::gpu::VertBuf *tf_target)
 {
   BLI_assert(tf_target != nullptr);
   DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);

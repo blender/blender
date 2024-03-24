@@ -381,7 +381,7 @@ DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup);
 DRWShadingGroup *DRW_shgroup_material_create(GPUMaterial *material, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_transform_feedback_create(GPUShader *shader,
                                                        DRWPass *pass,
-                                                       GPUVertBuf *tf_target);
+                                                       blender::gpu::VertBuf *tf_target);
 
 void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, GPUMaterial *material);
 
@@ -617,16 +617,17 @@ void DRW_shgroup_uniform_mat4_copy(DRWShadingGroup *shgroup,
                                    const float (*value)[4]);
 void DRW_shgroup_vertex_buffer_ex(DRWShadingGroup *shgroup,
                                   const char *name,
-                                  GPUVertBuf *vertex_buffer DRW_DEBUG_FILE_LINE_ARGS);
+                                  blender::gpu::VertBuf *vertex_buffer DRW_DEBUG_FILE_LINE_ARGS);
 void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
                                       const char *name,
-                                      GPUVertBuf **vertex_buffer DRW_DEBUG_FILE_LINE_ARGS);
+                                      blender::gpu::VertBuf **vertex_buffer
+                                          DRW_DEBUG_FILE_LINE_ARGS);
 void DRW_shgroup_buffer_texture(DRWShadingGroup *shgroup,
                                 const char *name,
-                                GPUVertBuf *vertex_buffer);
+                                blender::gpu::VertBuf *vertex_buffer);
 void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
                                     const char *name,
-                                    GPUVertBuf **vertex_buffer);
+                                    blender::gpu::VertBuf **vertex_buffer);
 
 #ifdef DRW_UNUSED_RESOURCE_TRACKING
 #  define DRW_shgroup_vertex_buffer(shgroup, name, vert) \

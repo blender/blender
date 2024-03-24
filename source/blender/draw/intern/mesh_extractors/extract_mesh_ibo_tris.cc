@@ -89,7 +89,7 @@ static void extract_tris_finish(const MeshRenderData &mr,
                                 void *buf,
                                 void *_data)
 {
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
   GPU_indexbuf_build_in_place(elb, ibo);
 
@@ -119,7 +119,7 @@ static void extract_tris_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                      void *buffer,
                                      void * /*data*/)
 {
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buffer);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buffer);
   /* Initialize the index buffer, it was already allocated, it will be filled on the device. */
   GPU_indexbuf_init_build_on_device(ibo, subdiv_cache.num_subdiv_triangles * 3);
 
@@ -208,7 +208,7 @@ static void extract_tris_single_mat_finish(const MeshRenderData &mr,
                                            void *buf,
                                            void *_data)
 {
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
   GPU_indexbuf_build_in_place(elb, ibo);
 

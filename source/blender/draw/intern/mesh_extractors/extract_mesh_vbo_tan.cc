@@ -165,7 +165,7 @@ static void extract_tan_init_common(const MeshRenderData &mr,
 
 static void extract_tan_ex_init(const MeshRenderData &mr,
                                 MeshBatchCache &cache,
-                                GPUVertBuf *vbo,
+                                gpu::VertBuf *vbo,
                                 const bool do_hq)
 {
   GPUVertCompType comp_type = do_hq ? GPU_COMP_I16 : GPU_COMP_I10;
@@ -244,7 +244,7 @@ static void extract_tan_init(const MeshRenderData &mr,
                              void *buf,
                              void * /*tls_data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   extract_tan_ex_init(mr, cache, vbo, false);
 }
 
@@ -282,10 +282,10 @@ static void extract_tan_init_subdiv(const DRWSubdivCache &subdiv_cache,
                           tangent_names,
                           &use_orco_tan);
 
-  GPUVertBuf *dst_buffer = static_cast<GPUVertBuf *>(buffer);
+  gpu::VertBuf *dst_buffer = static_cast<gpu::VertBuf *>(buffer);
   GPU_vertbuf_init_build_on_device(dst_buffer, &format, subdiv_cache.num_subdiv_loops);
 
-  GPUVertBuf *coarse_vbo = GPU_vertbuf_calloc();
+  gpu::VertBuf *coarse_vbo = GPU_vertbuf_calloc();
   /* Dynamic as we upload and interpolate layers one at a time. */
   GPU_vertbuf_init_with_format_ex(coarse_vbo, get_coarse_tan_format(), GPU_USAGE_DYNAMIC);
   GPU_vertbuf_data_alloc(coarse_vbo, coarse_len);
@@ -356,7 +356,7 @@ static void extract_tan_hq_init(const MeshRenderData &mr,
                                 void *buf,
                                 void * /*tls_data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   extract_tan_ex_init(mr, cache, vbo, true);
 }
 

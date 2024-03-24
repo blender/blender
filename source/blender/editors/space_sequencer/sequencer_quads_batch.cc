@@ -21,7 +21,7 @@ struct ColorVertex {
 };
 static_assert(sizeof(ColorVertex) == 12);
 
-static GPUIndexBuf *create_quads_index_buffer(int quads_count)
+static blender::gpu::IndexBuf *create_quads_index_buffer(int quads_count)
 {
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, quads_count * 2, quads_count * 4);

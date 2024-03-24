@@ -17,6 +17,14 @@ struct Curve;
 struct Curve;
 struct GPencilUpdateCache;
 struct MDeformVert;
+#ifdef __cplusplus
+namespace blender::gpu {
+class VertBuf;
+}
+using GPUVertBufHandle = blender::gpu::VertBuf;
+#else
+typedef struct GPUVertBufHandle GPUVertBufHandle;
+#endif
 
 #define GP_DEFAULT_PIX_FACTOR 1.0f
 #define GP_DEFAULT_GRID_LINES 4
@@ -611,8 +619,8 @@ typedef struct bGPdata_Runtime {
   /** Stroke buffer. */
   void *sbuffer;
   /** Temp batches cleared after drawing. */
-  struct GPUVertBuf *sbuffer_position_buf;
-  struct GPUVertBuf *sbuffer_color_buf;
+  GPUVertBufHandle *sbuffer_position_buf;
+  GPUVertBufHandle *sbuffer_color_buf;
   struct GPUBatch *sbuffer_batch;
   /** Temp stroke used for drawing. */
   struct bGPDstroke *sbuffer_gps;

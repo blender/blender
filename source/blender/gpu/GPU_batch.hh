@@ -37,16 +37,16 @@ enum eGPUBatchFlag {
   /** Invalid default state. */
   GPU_BATCH_INVALID = 0,
 
-  /** GPUVertBuf ownership. (One bit per vbo) */
+  /** blender::gpu::VertBuf ownership. (One bit per vbo) */
   GPU_BATCH_OWNS_VBO = (1 << 0),
   GPU_BATCH_OWNS_VBO_MAX = (GPU_BATCH_OWNS_VBO << (GPU_BATCH_VBO_MAX_LEN - 1)),
   GPU_BATCH_OWNS_VBO_ANY = ((GPU_BATCH_OWNS_VBO << GPU_BATCH_VBO_MAX_LEN) - 1),
-  /** Instance GPUVertBuf ownership. (One bit per vbo) */
+  /** Instance blender::gpu::VertBuf ownership. (One bit per vbo) */
   GPU_BATCH_OWNS_INST_VBO = (GPU_BATCH_OWNS_VBO_MAX << 1),
   GPU_BATCH_OWNS_INST_VBO_MAX = (GPU_BATCH_OWNS_INST_VBO << (GPU_BATCH_INST_VBO_MAX_LEN - 1)),
   GPU_BATCH_OWNS_INST_VBO_ANY = ((GPU_BATCH_OWNS_INST_VBO << GPU_BATCH_INST_VBO_MAX_LEN) - 1) &
                                 ~GPU_BATCH_OWNS_VBO_ANY,
-  /** GPUIndexBuf ownership. */
+  /** blender::gpu::IndexBuf ownership. */
   GPU_BATCH_OWNS_INDEX = (GPU_BATCH_OWNS_INST_VBO_MAX << 1),
 
   /** Has been initialized. At least one VBO is set. */
@@ -72,11 +72,11 @@ ENUM_OPERATORS(eGPUBatchFlag, GPU_BATCH_DIRTY)
  */
 struct GPUBatch {
   /** verts[0] is required, others can be nullptr */
-  GPUVertBuf *verts[GPU_BATCH_VBO_MAX_LEN];
+  blender::gpu::VertBuf *verts[GPU_BATCH_VBO_MAX_LEN];
   /** Instance attributes. */
-  GPUVertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
+  blender::gpu::VertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
   /** nullptr if element list not needed */
-  GPUIndexBuf *elem;
+  blender::gpu::IndexBuf *elem;
   /** Resource ID attribute workaround. */
   GPUStorageBuf *resource_id_buf;
   /** Bookkeeping. */
@@ -101,8 +101,8 @@ GPUBatch *GPU_batch_calloc();
  * Creates a #GPUBatch with explicit buffer ownership.
  */
 GPUBatch *GPU_batch_create_ex(GPUPrimType primitive_type,
-                              GPUVertBuf *vertex_buf,
-                              GPUIndexBuf *index_buf,
+                              blender::gpu::VertBuf *vertex_buf,
+                              blender::gpu::IndexBuf *index_buf,
                               eGPUBatchFlag owns_flag);
 /**
  * Creates a #GPUBatch without buffer ownership.
@@ -117,8 +117,8 @@ GPUBatch *GPU_batch_create_ex(GPUPrimType primitive_type,
  */
 void GPU_batch_init_ex(GPUBatch *batch,
                        GPUPrimType primitive_type,
-                       GPUVertBuf *vertex_buf,
-                       GPUIndexBuf *index_buf,
+                       blender::gpu::VertBuf *vertex_buf,
+                       blender::gpu::IndexBuf *index_buf,
                        eGPUBatchFlag owns_flag);
 /**
  * Initialize a cleared #GPUBatch without buffer ownership.
@@ -179,31 +179,31 @@ void GPU_batch_discard(GPUBatch *batch);
  * Add the given \a vertex_buf as vertex buffer to a #GPUBatch.
  * \return the index of verts in the batch.
  */
-int GPU_batch_vertbuf_add(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo);
+int GPU_batch_vertbuf_add(GPUBatch *batch, blender::gpu::VertBuf *vertex_buf, bool own_vbo);
 
 /**
  * Add the given \a vertex_buf as instanced vertex buffer to a #GPUBatch.
  * \return the index of verts in the batch.
  */
-int GPU_batch_instbuf_add(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo);
+int GPU_batch_instbuf_add(GPUBatch *batch, blender::gpu::VertBuf *vertex_buf, bool own_vbo);
 
 /**
  * Set the first instanced vertex buffer of a #GPUBatch.
  * \note Override ONLY the first instance VBO (and free them if owned).
  */
-void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *vertex_buf, bool own_vbo);
+void GPU_batch_instbuf_set(GPUBatch *batch, blender::gpu::VertBuf *vertex_buf, bool own_vbo);
 
 /**
  * Set the index buffer of a #GPUBatch.
  * \note Override any previously assigned index buffer (and free it if owned).
  */
-void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *index_buf, bool own_ibo);
+void GPU_batch_elembuf_set(GPUBatch *batch, blender::gpu::IndexBuf *index_buf, bool own_ibo);
 
 /**
  * Returns true if the #GPUbatch has \a vertex_buf in its vertex buffer list.
  * \note The search is only conducted on the non-instance rate vertex buffer list.
  */
-bool GPU_batch_vertbuf_has(GPUBatch *batch, GPUVertBuf *vertex_buf);
+bool GPU_batch_vertbuf_has(GPUBatch *batch, blender::gpu::VertBuf *vertex_buf);
 
 /**
  * Set resource id buffer to bind as instance attribute to workaround the lack of gl_BaseInstance
