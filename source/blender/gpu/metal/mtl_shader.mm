@@ -488,7 +488,7 @@ bool MTLShader::transform_feedback_enable(blender::gpu::VertBuf *buf)
   BLI_assert(buf);
   transform_feedback_active_ = true;
   transform_feedback_vertbuf_ = buf;
-  BLI_assert(static_cast<MTLVertBuf *>(unwrap(transform_feedback_vertbuf_))->get_usage_type() ==
+  BLI_assert(static_cast<MTLVertBuf *>(transform_feedback_vertbuf_)->get_usage_type() ==
              GPU_USAGE_DEVICE_ONLY);
   return true;
 }
