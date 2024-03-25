@@ -3674,138 +3674,136 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
                             void *data,
                             eAnimCont_Types datatype)
 {
+  if (!data || !anim_data) {
+    return 0;
+  }
+
   size_t items = 0;
+  switch (datatype) {
+    /* Action-Editing Modes */
+    case ANIMCONT_ACTION: /* 'Action Editor' */
+    {
+      Object *obact = ac->obact;
+      SpaceAction *saction = (SpaceAction *)ac->sl;
+      bDopeSheet *ads = (saction) ? &saction->ads : nullptr;
 
-  /* only filter data if there's somewhere to put it */
-  if (data && anim_data) {
-    /* firstly filter the data */
-    switch (datatype) {
-      /* Action-Editing Modes */
-      case ANIMCONT_ACTION: /* 'Action Editor' */
-      {
-        Object *obact = ac->obact;
-        SpaceAction *saction = (SpaceAction *)ac->sl;
-        bDopeSheet *ads = (saction) ? &saction->ads : nullptr;
-
-        /* specially check for AnimData filter, see #36687. */
-        if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
-          /* all channels here are within the same AnimData block, hence this special case */
-          if (LIKELY(obact->adt)) {
-            ANIMCHANNEL_NEW_CHANNEL(obact->adt, ANIMTYPE_ANIMDATA, (ID *)obact, nullptr);
-          }
+      /* specially check for AnimData filter, see #36687. */
+      if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
+        /* all channels here are within the same AnimData block, hence this special case */
+        if (LIKELY(obact->adt)) {
+          ANIMCHANNEL_NEW_CHANNEL(obact->adt, ANIMTYPE_ANIMDATA, (ID *)obact, nullptr);
         }
-        else {
-          /* The check for the DopeSheet summary is included here
-           * since the summary works here too. */
-          if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
-            items += animfilter_action(
-                ac, anim_data, ads, static_cast<bAction *>(data), filter_mode, (ID *)obact);
-          }
-        }
-
-        break;
       }
-      case ANIMCONT_SHAPEKEY: /* 'ShapeKey Editor' */
-      {
-        Key *key = (Key *)data;
-
-        /* specially check for AnimData filter, see #36687. */
-        if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
-          /* all channels here are within the same AnimData block, hence this special case */
-          if (LIKELY(key->adt)) {
-            ANIMCHANNEL_NEW_CHANNEL(key->adt, ANIMTYPE_ANIMDATA, (ID *)key, nullptr);
-          }
-        }
-        else {
-          /* The check for the DopeSheet summary is included here
-           * since the summary works here too. */
-          if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
-            items = animdata_filter_shapekey(ac, anim_data, key, filter_mode);
-          }
-        }
-
-        break;
-      }
-
-      /* Modes for Specialty Data Types (i.e. not keyframes) */
-      case ANIMCONT_GPENCIL: {
+      else {
+        /* The check for the DopeSheet summary is included here
+         * since the summary works here too. */
         if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
-          if (U.experimental.use_grease_pencil_version3) {
-            items = animdata_filter_grease_pencil(ac, anim_data, filter_mode);
-          }
-          else {
-            items = animdata_filter_gpencil_legacy(ac, anim_data, data, filter_mode);
-          }
+          items += animfilter_action(
+              ac, anim_data, ads, static_cast<bAction *>(data), filter_mode, (ID *)obact);
         }
-        break;
       }
-      case ANIMCONT_MASK: {
+
+      break;
+    }
+    case ANIMCONT_SHAPEKEY: /* 'ShapeKey Editor' */
+    {
+      Key *key = (Key *)data;
+
+      /* specially check for AnimData filter, see #36687. */
+      if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
+        /* all channels here are within the same AnimData block, hence this special case */
+        if (LIKELY(key->adt)) {
+          ANIMCHANNEL_NEW_CHANNEL(key->adt, ANIMTYPE_ANIMDATA, (ID *)key, nullptr);
+        }
+      }
+      else {
+        /* The check for the DopeSheet summary is included here
+         * since the summary works here too. */
         if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
-          items = animdata_filter_mask(ac->bmain, anim_data, data, filter_mode);
+          items = animdata_filter_shapekey(ac, anim_data, key, filter_mode);
         }
-        break;
       }
 
-      /* DopeSheet Based Modes */
-      case ANIMCONT_DOPESHEET: /* 'DopeSheet Editor' */
-      {
-        /* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
-        if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
-          items += animdata_filter_dopesheet(
-              ac, anim_data, static_cast<bDopeSheet *>(data), filter_mode);
-        }
-        break;
-      }
-      case ANIMCONT_FCURVES: /* Graph Editor -> F-Curves/Animation Editing */
-      case ANIMCONT_DRIVERS: /* Graph Editor -> Drivers Editing */
-      case ANIMCONT_NLA:     /* NLA Editor */
-      {
-        /* all of these editors use the basic DopeSheet data for filtering options,
-         * but don't have all the same features */
-        items = animdata_filter_dopesheet(
-            ac, anim_data, static_cast<bDopeSheet *>(data), filter_mode);
-        break;
-      }
-
-      /* Timeline Mode - Basically the same as dopesheet,
-       * except we only have the summary for now */
-      case ANIMCONT_TIMELINE: {
-        /* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
-        if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
-          items += animdata_filter_dopesheet(
-              ac, anim_data, static_cast<bDopeSheet *>(data), filter_mode);
-        }
-        break;
-      }
-
-      /* Special/Internal Use */
-      case ANIMCONT_CHANNEL: /* animation channel */
-      {
-        bDopeSheet *ads = ac->ads;
-
-        /* based on the channel type, filter relevant data for this */
-        items = animdata_filter_animchan(
-            ac, anim_data, ads, static_cast<bAnimListElem *>(data), filter_mode);
-        break;
-      }
-
-      /* unhandled */
-      default: {
-        printf("ANIM_animdata_filter() - Invalid datatype argument %i\n", datatype);
-        break;
-      }
+      break;
     }
 
-    /* remove any 'weedy' entries */
-    items = animdata_filter_remove_invalid(anim_data);
+    /* Modes for Specialty Data Types (i.e. not keyframes) */
+    case ANIMCONT_GPENCIL: {
+      if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
+        if (U.experimental.use_grease_pencil_version3) {
+          items = animdata_filter_grease_pencil(ac, anim_data, filter_mode);
+        }
+        else {
+          items = animdata_filter_gpencil_legacy(ac, anim_data, data, filter_mode);
+        }
+      }
+      break;
+    }
+    case ANIMCONT_MASK: {
+      if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
+        items = animdata_filter_mask(ac->bmain, anim_data, data, filter_mode);
+      }
+      break;
+    }
 
-    /* remove duplicates (if required) */
-    if (filter_mode & ANIMFILTER_NODUPLIS) {
-      items = animdata_filter_remove_duplis(anim_data);
+    /* DopeSheet Based Modes */
+    case ANIMCONT_DOPESHEET: /* 'DopeSheet Editor' */
+    {
+      /* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
+      if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
+        items += animdata_filter_dopesheet(
+            ac, anim_data, static_cast<bDopeSheet *>(data), filter_mode);
+      }
+      break;
+    }
+    case ANIMCONT_FCURVES: /* Graph Editor -> F-Curves/Animation Editing */
+    case ANIMCONT_DRIVERS: /* Graph Editor -> Drivers Editing */
+    case ANIMCONT_NLA:     /* NLA Editor */
+    {
+      /* all of these editors use the basic DopeSheet data for filtering options,
+       * but don't have all the same features */
+      items = animdata_filter_dopesheet(
+          ac, anim_data, static_cast<bDopeSheet *>(data), filter_mode);
+      break;
+    }
+
+    /* Timeline Mode - Basically the same as dopesheet,
+     * except we only have the summary for now */
+    case ANIMCONT_TIMELINE: {
+      /* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
+      if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
+        items += animdata_filter_dopesheet(
+            ac, anim_data, static_cast<bDopeSheet *>(data), filter_mode);
+      }
+      break;
+    }
+
+    /* Special/Internal Use */
+    case ANIMCONT_CHANNEL: /* animation channel */
+    {
+      bDopeSheet *ads = ac->ads;
+
+      /* based on the channel type, filter relevant data for this */
+      items = animdata_filter_animchan(
+          ac, anim_data, ads, static_cast<bAnimListElem *>(data), filter_mode);
+      break;
+    }
+
+    /* unhandled */
+    default: {
+      printf("ANIM_animdata_filter() - Invalid datatype argument %i\n", datatype);
+      break;
     }
   }
 
-  /* return the number of items in the list */
+  /* remove any 'weedy' entries */
+  items = animdata_filter_remove_invalid(anim_data);
+
+  /* remove duplicates (if required) */
+  if (filter_mode & ANIMFILTER_NODUPLIS) {
+    items = animdata_filter_remove_duplis(anim_data);
+  }
+
   return items;
 }
 
