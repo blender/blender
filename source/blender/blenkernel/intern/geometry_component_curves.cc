@@ -564,7 +564,7 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
 
   static const auto nurbs_order_clamp = mf::build::SI1_SO<int8_t, int8_t>(
       "NURBS Order Validate",
-      [](int8_t value) { return std::max<int8_t>(value, 0); },
+      [](int8_t value) { return std::max<int8_t>(value, 1); },
       mf::build::exec_presets::AllSpanOrSingle());
   static BuiltinCustomDataLayerProvider nurbs_order("nurbs_order",
                                                     AttrDomain::Curve,
