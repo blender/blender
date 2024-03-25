@@ -241,7 +241,7 @@ static PyObject *pygpu_vertbuf__tp_new(PyTypeObject * /*type*/, PyObject *args, 
       PY_ARG_PARSER_HEAD_COMPAT()
       "O!" /* `format` */
       "I"  /* `len` */
-      ":blender::gpu::VertBuf.__new__",
+      ":GPUVertBuf.__new__",
       _keywords,
       nullptr,
   };
@@ -307,7 +307,7 @@ static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, Py
     return nullptr;
   }
 
-  if (!pygpu_vertbuf_fill(self->buf, id, data, "blender::gpu::VertBuf.attr_fill")) {
+  if (!pygpu_vertbuf_fill(self->buf, id, data, "GPUVertBuf.attr_fill")) {
     return nullptr;
   }
 
@@ -340,7 +340,7 @@ static void pygpu_vertbuf__tp_dealloc(BPyGPUVertBuf *self)
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_vertbuf__tp_doc,
-    ".. class:: blender::gpu::VertBuf(format, len)\n"
+    ".. class:: GPUVertBuf(format, len)\n"
     "\n"
     "   Contains a VBO.\n"
     "\n"
@@ -350,7 +350,7 @@ PyDoc_STRVAR(
     "   :type len: int\n");
 PyTypeObject BPyGPUVertBuf_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
-    /*tp_name*/ "blender::gpu::VertBuf",
+    /*tp_name*/ "GPUVertBuf",
     /*tp_basicsize*/ sizeof(BPyGPUVertBuf),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ (destructor)pygpu_vertbuf__tp_dealloc,
