@@ -27,27 +27,10 @@ void IDMaskNode::convert_to_operations(NodeConverter &converter,
     converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));
   }
   else {
-    SMAAEdgeDetectionOperation *operation1 = nullptr;
-
-    operation1 = new SMAAEdgeDetectionOperation();
-    converter.add_operation(operation1);
-
-    converter.add_link(operation->get_output_socket(0), operation1->get_input_socket(0));
-
-    /* Blending Weight Calculation Pixel Shader (Second Pass). */
-    SMAABlendingWeightCalculationOperation *operation2 =
-        new SMAABlendingWeightCalculationOperation();
-    converter.add_operation(operation2);
-
-    converter.add_link(operation1->get_output_socket(), operation2->get_input_socket(0));
-
-    /* Neighborhood Blending Pixel Shader (Third Pass). */
-    SMAANeighborhoodBlendingOperation *operation3 = new SMAANeighborhoodBlendingOperation();
-    converter.add_operation(operation3);
-
-    converter.add_link(operation->get_output_socket(0), operation3->get_input_socket(0));
-    converter.add_link(operation2->get_output_socket(), operation3->get_input_socket(1));
-    converter.map_output_socket(get_output_socket(0), operation3->get_output_socket());
+    SMAAOperation *smaa_operation = new SMAAOperation();
+    converter.add_operation(smaa_operation);
+    converter.add_link(operation->get_output_socket(0), smaa_operation->get_input_socket(0));
+    converter.map_output_socket(get_output_socket(0), smaa_operation->get_output_socket());
   }
 }
 
