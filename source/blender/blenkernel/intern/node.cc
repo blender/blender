@@ -4383,6 +4383,8 @@ std::optional<eNodeSocketDatatype> custom_data_type_to_socket_type(eCustomDataTy
   switch (type) {
     case CD_PROP_FLOAT:
       return SOCK_FLOAT;
+    case CD_PROP_INT8:
+      return SOCK_INT;
     case CD_PROP_INT32:
       return SOCK_INT;
     case CD_PROP_FLOAT3:
