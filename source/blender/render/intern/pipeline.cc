@@ -562,8 +562,9 @@ void RE_InitRenderCB(Render *re)
   else {
     re->stats_draw_cb = stats_nothing;
   }
+  re->draw_lock_cb = nullptr;
   /* clear callback handles */
-  re->dih = re->dch = re->duh = re->sdh = re->prh = re->tbh = nullptr;
+  re->dih = re->dch = re->duh = re->sdh = re->prh = re->tbh = re->dlh = nullptr;
 }
 
 void RE_FreeRender(Render *re)
