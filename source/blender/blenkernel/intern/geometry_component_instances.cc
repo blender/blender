@@ -133,7 +133,6 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
   static BuiltinCustomDataLayerProvider id("id",
                                            AttrDomain::Instance,
                                            CD_PROP_INT32,
-                                           BuiltinAttributeProvider::Creatable,
                                            BuiltinAttributeProvider::Deletable,
                                            instance_custom_data_access,
                                            nullptr);
@@ -141,7 +140,6 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
   static BuiltinCustomDataLayerProvider instance_transform("instance_transform",
                                                            AttrDomain::Instance,
                                                            CD_PROP_FLOAT4X4,
-                                                           BuiltinAttributeProvider::Creatable,
                                                            BuiltinAttributeProvider::NonDeletable,
                                                            instance_custom_data_access,
                                                            nullptr);
@@ -150,7 +148,6 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
   static BuiltinCustomDataLayerProvider reference_index(".reference_index",
                                                         AttrDomain::Instance,
                                                         CD_PROP_INT32,
-                                                        BuiltinAttributeProvider::Creatable,
                                                         BuiltinAttributeProvider::NonDeletable,
                                                         instance_custom_data_access,
                                                         tag_component_reference_index_changed);

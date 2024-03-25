@@ -425,9 +425,6 @@ bool BuiltinCustomDataLayerProvider::try_delete(void *owner) const
 bool BuiltinCustomDataLayerProvider::try_create(void *owner,
                                                 const AttributeInit &initializer) const
 {
-  if (createable_ != Creatable) {
-    return false;
-  }
   CustomData *custom_data = custom_data_access_.get_custom_data(owner);
   if (custom_data == nullptr) {
     return false;

@@ -476,7 +476,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider position("position",
                                                  AttrDomain::Point,
                                                  CD_PROP_FLOAT3,
-                                                 BuiltinAttributeProvider::Creatable,
                                                  BuiltinAttributeProvider::NonDeletable,
                                                  point_access,
                                                  tag_component_positions_changed);
@@ -484,7 +483,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider radius("radius",
                                                AttrDomain::Point,
                                                CD_PROP_FLOAT,
-                                               BuiltinAttributeProvider::Creatable,
                                                BuiltinAttributeProvider::Deletable,
                                                point_access,
                                                tag_component_radii_changed);
@@ -492,7 +490,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider id("id",
                                            AttrDomain::Point,
                                            CD_PROP_INT32,
-                                           BuiltinAttributeProvider::Creatable,
                                            BuiltinAttributeProvider::Deletable,
                                            point_access,
                                            nullptr);
@@ -500,7 +497,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider tilt("tilt",
                                              AttrDomain::Point,
                                              CD_PROP_FLOAT,
-                                             BuiltinAttributeProvider::Creatable,
                                              BuiltinAttributeProvider::Deletable,
                                              point_access,
                                              tag_component_normals_changed);
@@ -508,7 +504,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider handle_right("handle_right",
                                                      AttrDomain::Point,
                                                      CD_PROP_FLOAT3,
-                                                     BuiltinAttributeProvider::Creatable,
                                                      BuiltinAttributeProvider::Deletable,
                                                      point_access,
                                                      tag_component_positions_changed);
@@ -516,7 +511,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider handle_left("handle_left",
                                                     AttrDomain::Point,
                                                     CD_PROP_FLOAT3,
-                                                    BuiltinAttributeProvider::Creatable,
                                                     BuiltinAttributeProvider::Deletable,
                                                     point_access,
                                                     tag_component_positions_changed);
@@ -530,7 +524,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider handle_type_right("handle_type_right",
                                                           AttrDomain::Point,
                                                           CD_PROP_INT8,
-                                                          BuiltinAttributeProvider::Creatable,
                                                           BuiltinAttributeProvider::Deletable,
                                                           point_access,
                                                           tag_component_topology_changed,
@@ -539,7 +532,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider handle_type_left("handle_type_left",
                                                          AttrDomain::Point,
                                                          CD_PROP_INT8,
-                                                         BuiltinAttributeProvider::Creatable,
                                                          BuiltinAttributeProvider::Deletable,
                                                          point_access,
                                                          tag_component_topology_changed,
@@ -548,7 +540,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider nurbs_weight("nurbs_weight",
                                                      AttrDomain::Point,
                                                      CD_PROP_FLOAT,
-                                                     BuiltinAttributeProvider::Creatable,
                                                      BuiltinAttributeProvider::Deletable,
                                                      point_access,
                                                      tag_component_positions_changed);
@@ -560,7 +551,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider nurbs_order("nurbs_order",
                                                     AttrDomain::Curve,
                                                     CD_PROP_INT8,
-                                                    BuiltinAttributeProvider::Creatable,
                                                     BuiltinAttributeProvider::Deletable,
                                                     curve_access,
                                                     tag_component_topology_changed,
@@ -575,7 +565,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider normal_mode("normal_mode",
                                                     AttrDomain::Curve,
                                                     CD_PROP_INT8,
-                                                    BuiltinAttributeProvider::Creatable,
                                                     BuiltinAttributeProvider::Deletable,
                                                     curve_access,
                                                     tag_component_normals_changed,
@@ -584,7 +573,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider custom_normal("custom_normal",
                                                       AttrDomain::Point,
                                                       CD_PROP_FLOAT3,
-                                                      BuiltinAttributeProvider::Creatable,
                                                       BuiltinAttributeProvider::Deletable,
                                                       point_access,
                                                       tag_component_normals_changed);
@@ -598,7 +586,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider nurbs_knots_mode("knots_mode",
                                                          AttrDomain::Curve,
                                                          CD_PROP_INT8,
-                                                         BuiltinAttributeProvider::Creatable,
                                                          BuiltinAttributeProvider::Deletable,
                                                          curve_access,
                                                          tag_component_topology_changed,
@@ -613,7 +600,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider curve_type("curve_type",
                                                    AttrDomain::Curve,
                                                    CD_PROP_INT8,
-                                                   BuiltinAttributeProvider::Creatable,
                                                    BuiltinAttributeProvider::Deletable,
                                                    curve_access,
                                                    tag_component_curve_types_changed,
@@ -626,7 +612,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider resolution("resolution",
                                                    AttrDomain::Curve,
                                                    CD_PROP_INT32,
-                                                   BuiltinAttributeProvider::Creatable,
                                                    BuiltinAttributeProvider::Deletable,
                                                    curve_access,
                                                    tag_component_topology_changed,
@@ -635,7 +620,6 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
   static BuiltinCustomDataLayerProvider cyclic("cyclic",
                                                AttrDomain::Curve,
                                                CD_PROP_BOOL,
-                                               BuiltinAttributeProvider::Creatable,
                                                BuiltinAttributeProvider::Deletable,
                                                curve_access,
                                                tag_component_topology_changed);
