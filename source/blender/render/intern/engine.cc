@@ -1314,8 +1314,8 @@ bool RE_engine_gpu_context_enable(RenderEngine *engine)
     /* Activate RenderEngine System and Blender GPU Context. */
     WM_system_gpu_context_activate(engine->system_gpu_context);
     if (engine->blender_gpu_context) {
-      GPU_context_active_set(engine->blender_gpu_context);
       GPU_render_begin();
+      GPU_context_active_set(engine->blender_gpu_context);
     }
     return true;
   }
@@ -1330,8 +1330,8 @@ void RE_engine_gpu_context_disable(RenderEngine *engine)
   else {
     if (engine->system_gpu_context) {
       if (engine->blender_gpu_context) {
-        GPU_render_end();
         GPU_context_active_set(nullptr);
+        GPU_render_end();
       }
       WM_system_gpu_context_release(engine->system_gpu_context);
       /* Restore DRW state context if previously active. */
