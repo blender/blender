@@ -968,9 +968,14 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
 
     auto io_references = io_instances->append_array("references");
     for (const InstanceReference &reference : instances.references()) {
-      BLI_assert(reference.type() == InstanceReference::Type::GeometrySet);
-      io_references->append(
-          serialize_geometry_set(reference.geometry_set(), blob_writer, blob_sharing));
+      if (reference.type() == InstanceReference::Type::GeometrySet) {
+        const GeometrySet &geometry = reference.geometry_set();
+        io_references->append(serialize_geometry_set(geometry, blob_writer, blob_sharing));
+      }
+      else {
+        /* TODO: Support serializing object and collection references. */
+        io_references->append(serialize_geometry_set({}, blob_writer, blob_sharing));
+      }
     }
 
     io_instances->append(
