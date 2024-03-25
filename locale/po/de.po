@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: \n"
@@ -3603,18 +3603,6 @@ msgid "Curve used for the strength"
 msgstr "Kurve verwendet für die Stärke"
 
 
-msgid "Direction"
-msgstr "Richtung"
-
-
-msgid "Add effect of brush"
-msgstr "Hinzufügen-Effekt des Pinsels"
-
-
-msgid "Subtract effect of brush"
-msgstr "Abziehen-Effekt des Pinsels"
-
-
 msgid "Eraser Mode"
 msgstr "Radiermodus"
 
@@ -3657,6 +3645,10 @@ msgstr "Menge zum Radieren der Dicke"
 
 msgid "Strokes end extension for closing gaps, use zero to disable"
 msgstr "Striche Enderweiterung zum Schließen von Lücken, verwenden Sie Null zum deaktivieren"
+
+
+msgid "Direction"
+msgstr "Richtung"
 
 
 msgid "Direction of the fill"
@@ -12963,6 +12955,14 @@ msgstr "Gewebesimulation"
 
 msgid "Brush deforms the mesh by deforming the constraints of a cloth simulation"
 msgstr "Pinsel deformiert die Schleife indem eine Deformation, der Bedingung, einer Gewebesimulation durchgeführt wird"
+
+
+msgid "Add effect of brush"
+msgstr "Hinzufügen-Effekt des Pinsels"
+
+
+msgid "Subtract effect of brush"
+msgstr "Abziehen-Effekt des Pinsels"
 
 
 msgid "Max Element Distance"
@@ -54326,14 +54326,6 @@ msgstr "Anzahl der Punkte"
 
 msgid "Mask Value"
 msgstr "Maskiere Wert"
-
-
-msgid "CCW"
-msgstr "CCW"
-
-
-msgid "CW"
-msgstr "CW"
 
 
 msgid "Invert to Fill"

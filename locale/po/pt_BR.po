@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-02-19 09:39+0000\n"
@@ -3621,24 +3621,16 @@ msgid "Curve used for the strength"
 msgstr "A curva usada para a força."
 
 
-msgid "Direction"
-msgstr "Direção"
-
-
-msgid "Add effect of brush"
-msgstr "Adiciona o efeito do pincel"
-
-
-msgid "Subtract effect of brush"
-msgstr "Subtrai o efeito do pincel."
-
-
 msgid "Dissolve"
 msgstr "Dissolver"
 
 
 msgid "Stroke"
 msgstr "Traços"
+
+
+msgid "Direction"
+msgstr "Direção"
 
 
 msgid "Normal"
@@ -12581,6 +12573,14 @@ msgstr "Máscara de textura de sobreposição de alfa"
 
 msgid "Editable falloff curve"
 msgstr "Curva de decaimento editável."
+
+
+msgid "Add effect of brush"
+msgstr "Adiciona o efeito do pincel"
+
+
+msgid "Subtract effect of brush"
+msgstr "Subtrai o efeito do pincel."
 
 
 msgid "Falloff Angle"
@@ -65297,14 +65297,6 @@ msgstr "Mapa UV clone da fonte"
 
 msgid "Mask Value"
 msgstr "Valor de máscara"
-
-
-msgid "CCW"
-msgstr "Sentido anti-horário"
-
-
-msgid "CW"
-msgstr "Sentido horário"
 
 
 msgctxt "Operator"

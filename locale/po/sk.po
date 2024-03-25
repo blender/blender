@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-03-11 06:45+0000\n"
@@ -4464,18 +4464,6 @@ msgid "Number of pixels to expand or contract fill area"
 msgstr "Počet pixelov na rozšírenie alebo zmenšenie oblasti výplne"
 
 
-msgid "Direction"
-msgstr "Smer"
-
-
-msgid "Add effect of brush"
-msgstr "Pridá efekt štetca"
-
-
-msgid "Subtract effect of brush"
-msgstr "Odoberie efekt štetca"
-
-
 msgid "Eraser Mode"
 msgstr "Režim zmazania"
 
@@ -4522,6 +4510,10 @@ msgstr "Veľkosť uzáveru"
 
 msgid "Strokes end extension for closing gaps, use zero to disable"
 msgstr "Rozšírenie konca ťahov na uzatváranie dier, použite nulu pre zakázanie"
+
+
+msgid "Direction"
+msgstr "Smer"
 
 
 msgid "Direction of the fill"
@@ -20579,6 +20571,14 @@ msgstr "Štetec deformuje sieť tak, že deformuje vynútenia simulácie látky"
 
 msgid "Amount of random elements that are going to be affected by the brush"
 msgstr "Počet náhodných prvkov, ktoré budú ovplyvnené štetcom"
+
+
+msgid "Add effect of brush"
+msgstr "Pridá efekt štetca"
+
+
+msgid "Subtract effect of brush"
+msgstr "Odoberie efekt štetca"
 
 
 msgid "Max Element Distance"
@@ -114606,14 +114606,6 @@ msgid "Caps Type"
 msgstr "Typ uzáveru"
 
 
-msgid "CCW"
-msgstr "Proti smeru ručičiek"
-
-
-msgid "CW"
-msgstr "V smere ručičiek"
-
-
 msgid "Invert to Fill"
 msgstr "Invertovať na výplň"
 
@@ -121362,18 +121354,6 @@ msgid "Auto Smooth"
 msgstr "Automatické vyhladenie"
 
 
-msgid "Socket_1"
-msgstr "Zásuvka_1"
-
-
-msgid "Input_1_use_attribute"
-msgstr "Vstup_1_použitého_atribútu"
-
-
-msgid "Input_1_attribute_name"
-msgstr "Názov_atribútu_vstupu_1"
-
-
 msgid "Tangent space can only be computed for tris/quads, aborting"
 msgstr "Priestor dotyku možno vypočítať len pre trojice/štvorice. Prerušené"
 
@@ -122793,20 +122773,12 @@ msgid "No object found to operate on"
 msgstr "Žiadny objekt pre operáciu sa nenašiel"
 
 
-msgid "Bone collections can only be added to an Armature"
-msgstr "Kolekcie kostí je možné pridať iba do armatúry"
-
-
 msgid "Cannot add bone collections to a linked Armature without an override"
 msgstr "Nemožno pridať kolekcie kostí do prepojenej armatúry bez prepisu"
 
 
 msgid "Cannot add bone collections to a linked Armature with a system override; explicitly create an override on the Armature"
 msgstr "Nemožno pridávať kolekcie kostí do prepojenej armatúry so systémovým prepisom; explicitne vytvorte prepis na armatúre"
-
-
-msgid "Bone collections can only be edited on an Armature"
-msgstr "Kolekcie kostí možno upravovať len na armatúre"
 
 
 msgid "Cannot update a linked Armature with a system override; explicitly create an override on the Armature"
@@ -122819,6 +122791,10 @@ msgstr "Armatúra nemá aktívnu kolekciu kostí, najprv jednu vyberte"
 
 msgid "Cannot edit bone collections that are linked from another blend file"
 msgstr "Nemožno upravovať kolekcie kostí, ktoré sú prepojené z iného blend súboru"
+
+
+msgid "Bone collections can only be edited on an Armature"
+msgstr "Kolekcie kostí možno upravovať len na armatúre"
 
 
 msgid "Cannot edit bone collections on linked Armatures without override"
@@ -123396,6 +123372,10 @@ msgstr "Skupina uzlov musí mať výstupný uzol skupiny"
 
 msgid "Data-block inputs are unsupported"
 msgstr "Vstupy bloku údajov nie sú podporované"
+
+
+msgid "Node group's first output must be a geometry"
+msgstr "Prvým výstupom skupiny uzlov musí byť geometria"
 
 
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
@@ -133387,10 +133367,6 @@ msgstr "Geometrický vstup skupiny uzlov musí byť prvý"
 
 msgid "Node group must have an output socket"
 msgstr "Skupina uzlov musí mať výstupnú zásuvku"
-
-
-msgid "Node group's first output must be a geometry"
-msgstr "Prvým výstupom skupiny uzlov musí byť geometria"
 
 
 msgid "NormalEdit"

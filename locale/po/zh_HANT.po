@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
@@ -3876,18 +3876,6 @@ msgid "Number of pixels to expand or contract fill area"
 msgstr "填充區域擴張或縮減的畫素數量"
 
 
-msgid "Direction"
-msgstr "方向"
-
-
-msgid "Add effect of brush"
-msgstr "添加筆刷的效果"
-
-
-msgid "Subtract effect of brush"
-msgstr "減去筆刷的效果"
-
-
 msgid "Eraser Mode"
 msgstr "橡皮擦模式"
 
@@ -3910,6 +3898,10 @@ msgstr "閉合大小"
 
 msgid "Strokes end extension for closing gaps, use zero to disable"
 msgstr "延伸筆觸終點以蓋上形狀, 設為零來取消"
+
+
+msgid "Direction"
+msgstr "方向"
 
 
 msgid "Direction of the fill"
@@ -13378,6 +13370,14 @@ msgstr "平滑"
 
 msgid "Dash Ratio"
 msgstr "虛線比率"
+
+
+msgid "Add effect of brush"
+msgstr "添加筆刷的效果"
+
+
+msgid "Subtract effect of brush"
+msgstr "減去筆刷的效果"
 
 
 msgid "Falloff Angle"

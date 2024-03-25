@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
@@ -4400,18 +4400,6 @@ msgid "Number of pixels to expand or contract fill area"
 msgstr "Số lượng điểm ảnh để nới rộng ra hoặc co rút lại diện tích tô phủ"
 
 
-msgid "Direction"
-msgstr "Chiều Hướng"
-
-
-msgid "Add effect of brush"
-msgstr "Thêm hiệu ứng của đầu bút"
-
-
-msgid "Subtract effect of brush"
-msgstr "Khấu Trừ hiệu ứng của đầu bút"
-
-
 msgid "Eraser Mode"
 msgstr "Chế Độ Tẩy"
 
@@ -4458,6 +4446,10 @@ msgstr "Kích Thước Đóng Kín"
 
 msgid "Strokes end extension for closing gaps, use zero to disable"
 msgstr "Nới phần kết thúc của nét ra để lấp kín các khoảng trống, sử dụng giá trị 0 để tắt đi"
+
+
+msgid "Direction"
+msgstr "Chiều Hướng"
 
 
 msgid "Direction of the fill"
@@ -20419,6 +20411,14 @@ msgstr "Đầu bút sẽ biến dạng khung lưới bằng cách bóp méo các
 
 msgid "Amount of random elements that are going to be affected by the brush"
 msgstr "Số lượng phần tử ngẫu nhiên sẽ được đầu bút tác động"
+
+
+msgid "Add effect of brush"
+msgstr "Thêm hiệu ứng của đầu bút"
+
+
+msgid "Subtract effect of brush"
+msgstr "Khấu Trừ hiệu ứng của đầu bút"
 
 
 msgid "Max Element Distance"
@@ -113049,14 +113049,6 @@ msgid "Caps Type"
 msgstr "Kiểu Nắp Đầu"
 
 
-msgid "CCW"
-msgstr "Counter-Clock-Wise: Ngược Chiều Kim Đồng Hồ"
-
-
-msgid "CW"
-msgstr "Thuận Chiều KĐH"
-
-
 msgid "Invert to Fill"
 msgstr "Lật Đảo để Lấp Đầy"
 
@@ -120846,20 +120838,12 @@ msgid "No object found to operate on"
 msgstr "Không tìm thấy đối tượng nào để thao tác trên đó cả"
 
 
-msgid "Bone collections can only be added to an Armature"
-msgstr "Các bộ sưu tập xương chỉ có thể được thêm vào một Khung Rối mà thôi"
-
-
 msgid "Cannot add bone collections to a linked Armature without an override"
 msgstr "Không thể cho thêm bộ sưu tập xương vào Khung Rối liên kết mà không vượt quyền nhé"
 
 
 msgid "Cannot add bone collections to a linked Armature with a system override; explicitly create an override on the Armature"
 msgstr "Không thể cho thêm bộ sưu tập xương vào Khung Rối liên kết bằng một vượt quyền hệ thống được; hãy tạo một vượt quyền cụ thể trên Khung Rối nhé"
-
-
-msgid "Bone collections can only be edited on an Armature"
-msgstr "Các bộ sưu tập xương chỉ có thể được biên soạn trên một Khung Rối mà thôi"
 
 
 msgid "Cannot update a linked Armature with a system override; explicitly create an override on the Armature"
@@ -120872,6 +120856,10 @@ msgstr "Khung rối không có bộ sưu tập xương nào là đang hoạt đ�
 
 msgid "Cannot edit bone collections that are linked from another blend file"
 msgstr "Không thể biên soạn bộ sưu tập xương liên kết từ một tập tin blend khác đâu nhé"
+
+
+msgid "Bone collections can only be edited on an Armature"
+msgstr "Các bộ sưu tập xương chỉ có thể được biên soạn trên một Khung Rối mà thôi"
 
 
 msgid "Cannot edit bone collections on linked Armatures without override"
@@ -121411,6 +121399,10 @@ msgstr "Nhóm nút phải có nút đầu ra nhóm"
 
 msgid "Data-block inputs are unsupported"
 msgstr "Đầu vào khối dữ liệu chưa được hỗ trợ"
+
+
+msgid "Node group's first output must be a geometry"
+msgstr "Đầu ra đầu tiên của nhóm nút phải là một hình học"
 
 
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
@@ -130933,10 +130925,6 @@ msgstr "Đầu vào hình học của nhóm nút phải là đầu vào trước
 
 msgid "Node group must have an output socket"
 msgstr "Nhóm nút phải có ổ cắm đầu ra"
-
-
-msgid "Node group's first output must be a geometry"
-msgstr "Đầu ra đầu tiên của nhóm nút phải là một hình học"
 
 
 msgid "NormalEdit"
