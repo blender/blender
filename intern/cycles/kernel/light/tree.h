@@ -796,7 +796,7 @@ ccl_device float light_tree_pdf(KernelGlobals kg,
 
   ccl_global const KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
                                                                          index_emitter);
-  int root_index;
+  int subtree_root_index;
   uint bit_trail, target_emitter;
 
   if (is_triangle(kemitter)) {
@@ -805,16 +805,17 @@ ccl_device float light_tree_pdf(KernelGlobals kg,
     target_emitter = kernel_data_fetch(object_to_tree, object_emitter);
     ccl_global const KernelLightTreeEmitter *kmesh = &kernel_data_fetch(light_tree_emitters,
                                                                         target_emitter);
-    root_index = kmesh->mesh.node_id;
-    ccl_global const KernelLightTreeNode *kroot = &kernel_data_fetch(light_tree_nodes, root_index);
+    subtree_root_index = kmesh->mesh.node_id;
+    ccl_global const KernelLightTreeNode *kroot = &kernel_data_fetch(light_tree_nodes,
+                                                                     subtree_root_index);
     bit_trail = kroot->bit_trail;
 
     if (kroot->type == LIGHT_TREE_INSTANCE) {
-      root_index = kroot->instance.reference;
+      subtree_root_index = kroot->instance.reference;
     }
   }
   else {
-    root_index = 0;
+    subtree_root_index = -1;
     bit_trail = kemitter->bit_trail;
     target_emitter = index_emitter;
   }
@@ -856,13 +857,13 @@ ccl_device float light_tree_pdf(KernelGlobals kg,
         return 0.0f;
       }
 
-      if (root_index) {
+      if (subtree_root_index != -1) {
         /* Arrived at the mesh light. Continue with the subtree. */
         float unused;
         light_tree_to_local_space<false>(kg, object_emitter, P, N, unused);
 
-        node_index = root_index;
-        root_index = 0;
+        node_index = subtree_root_index;
+        subtree_root_index = -1;
         target_emitter = index_emitter;
         bit_trail = kemitter->bit_trail;
         continue;
