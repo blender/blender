@@ -64,6 +64,11 @@ typedef struct VolumeShaderCoefficients {
   Spectrum emission;
 } VolumeShaderCoefficients;
 
+typedef struct EquiangularCoefficients {
+  float3 P;
+  float2 t_range;
+} EquiangularCoefficients;
+
 /* Evaluate shader to get extinction coefficient at P. */
 ccl_device_inline bool shadow_volume_shader_sample(KernelGlobals kg,
                                                    IntegratorShadowState state,
@@ -264,18 +269,18 @@ ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
 #  define VOLUME_SAMPLE_PDF_CUTOFF 1e-8f
 
 ccl_device float volume_equiangular_sample(ccl_private const Ray *ccl_restrict ray,
-                                           const float3 light_P,
+                                           ccl_private const EquiangularCoefficients &coeffs,
                                            const float xi,
                                            ccl_private float *pdf)
 {
-  const float tmin = ray->tmin;
-  const float tmax = ray->tmax;
-  const float delta = dot((light_P - ray->P), ray->D);
-  const float D = safe_sqrtf(len_squared(light_P - ray->P) - delta * delta);
+  const float delta = dot((coeffs.P - ray->P), ray->D);
+  const float D = safe_sqrtf(len_squared(coeffs.P - ray->P) - delta * delta);
   if (UNLIKELY(D == 0.0f)) {
     *pdf = 0.0f;
     return 0.0f;
   }
+  const float tmin = coeffs.t_range.x;
+  const float tmax = coeffs.t_range.y;
   const float theta_a = atan2f(tmin - delta, D);
   const float theta_b = atan2f(tmax - delta, D);
   const float t_ = D * tanf((xi * theta_b) + (1 - xi) * theta_a);
@@ -289,17 +294,17 @@ ccl_device float volume_equiangular_sample(ccl_private const Ray *ccl_restrict r
 }
 
 ccl_device float volume_equiangular_pdf(ccl_private const Ray *ccl_restrict ray,
-                                        const float3 light_P,
+                                        ccl_private const EquiangularCoefficients &coeffs,
                                         const float sample_t)
 {
-  const float delta = dot((light_P - ray->P), ray->D);
-  const float D = safe_sqrtf(len_squared(light_P - ray->P) - delta * delta);
+  const float delta = dot((coeffs.P - ray->P), ray->D);
+  const float D = safe_sqrtf(len_squared(coeffs.P - ray->P) - delta * delta);
   if (UNLIKELY(D == 0.0f)) {
     return 0.0f;
   }
 
-  const float tmin = ray->tmin;
-  const float tmax = ray->tmax;
+  const float tmin = coeffs.t_range.x;
+  const float tmax = coeffs.t_range.y;
   const float t_ = sample_t - delta;
 
   const float theta_a = atan2f(tmin - delta, D);
@@ -311,6 +316,36 @@ ccl_device float volume_equiangular_pdf(ccl_private const Ray *ccl_restrict ray,
   const float pdf = D / ((theta_b - theta_a) * (D * D + t_ * t_));
 
   return pdf;
+}
+
+ccl_device_inline bool volume_equiangular_valid_ray_segment(KernelGlobals kg,
+                                                            const float3 ray_P,
+                                                            const float3 ray_D,
+                                                            ccl_private float2 *t_range,
+                                                            const ccl_private LightSample *ls)
+{
+#  ifdef __LIGHT_TREE__
+  /* Do not compute ray segment until #119389 is landed. */
+  if (kernel_data.integrator.use_light_tree) {
+    return true;
+  }
+#  endif
+
+  if (ls->type == LIGHT_SPOT) {
+    ccl_global const KernelLight *klight = &kernel_data_fetch(lights, ls->lamp);
+    return spot_light_valid_ray_segment(klight, ray_P, ray_D, t_range);
+  }
+  if (ls->type == LIGHT_AREA) {
+    ccl_global const KernelLight *klight = &kernel_data_fetch(lights, ls->lamp);
+    return area_light_valid_ray_segment(&klight->area, ray_P - klight->co, ray_D, t_range);
+  }
+  if (ls->type == LIGHT_TRIANGLE) {
+    return triangle_light_valid_ray_segment(kg, ray_P - ls->P, ray_D, t_range, ls);
+  }
+
+  /* Point light, the whole range of the ray is visible. */
+  kernel_assert(ls->type == LIGHT_POINT);
+  return true;
 }
 
 /* Distance sampling */
@@ -403,7 +438,7 @@ typedef struct VolumeIntegrateState {
 ccl_device_forceinline void volume_integrate_step_scattering(
     ccl_private const ShaderData *sd,
     ccl_private const Ray *ray,
-    const float3 equiangular_light_P,
+    ccl_private const EquiangularCoefficients &equiangular_coeffs,
     ccl_private const VolumeShaderCoefficients &ccl_restrict coeff,
     const Spectrum transmittance,
     ccl_private VolumeIntegrateState &ccl_restrict vstate,
@@ -474,7 +509,7 @@ ccl_device_forceinline void volume_integrate_step_scattering(
 
           /* Multiple importance sampling. */
           if (vstate.use_mis) {
-            const float equiangular_pdf = volume_equiangular_pdf(ray, equiangular_light_P, new_t);
+            const float equiangular_pdf = volume_equiangular_pdf(ray, equiangular_coeffs, new_t);
             const float mis_weight = power_heuristic(vstate.distance_pdf * distance_pdf,
                                                      equiangular_pdf);
             result.direct_throughput *= 2.0f * mis_weight;
@@ -509,7 +544,7 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
     ccl_global float *ccl_restrict render_buffer,
     const float object_step_size,
     const VolumeSampleMethod direct_sample_method,
-    const float3 equiangular_light_P,
+    ccl_private const EquiangularCoefficients &equiangular_coeffs,
     ccl_private VolumeIntegrateResult &result)
 {
   PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_INTEGRATE);
@@ -560,7 +595,7 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
   /* Equiangular sampling: compute distance and PDF in advance. */
   if (vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
     result.direct_t = volume_equiangular_sample(
-        ray, equiangular_light_P, vstate.rscatter, &vstate.equiangular_pdf);
+        ray, equiangular_coeffs, vstate.rscatter, &vstate.equiangular_pdf);
   }
 #  ifdef __PATH_GUIDING__
   result.direct_sample_method = vstate.direct_sample_method;
@@ -614,7 +649,7 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 
           /* Scattering and absorption. */
           volume_integrate_step_scattering(
-              sd, ray, equiangular_light_P, coeff, transmittance, vstate, result);
+              sd, ray, equiangular_coeffs, coeff, transmittance, vstate, result);
         }
         else {
           /* Absorption only. */
@@ -673,7 +708,7 @@ ccl_device_forceinline bool integrate_volume_equiangular_sample_light(
     ccl_private const Ray *ccl_restrict ray,
     ccl_private const ShaderData *ccl_restrict sd,
     ccl_private const RNGState *ccl_restrict rng_state,
-    ccl_private float3 *ccl_restrict P)
+    ccl_private EquiangularCoefficients *ccl_restrict equiangular_coeffs)
 {
   /* Test if there is a light or BSDF that needs direct light. */
   if (!kernel_data.integrator.use_direct_light) {
@@ -708,9 +743,10 @@ ccl_device_forceinline bool integrate_volume_equiangular_sample_light(
     return false;
   }
 
-  *P = ls.P;
+  equiangular_coeffs->P = ls.P;
 
-  return true;
+  return volume_equiangular_valid_ray_segment(
+      kg, ray->P, ray->D, &equiangular_coeffs->t_range, &ls);
 }
 
 /* Path tracing: sample point on light and evaluate light shader, then
@@ -990,10 +1026,12 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   /* Sample light ahead of volume stepping, for equiangular sampling. */
   /* TODO: distant lights are ignored now, but could instead use even distribution. */
   const bool need_light_sample = !(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_TERMINATE);
-  float3 equiangular_P = zero_float3();
+
+  EquiangularCoefficients equiangular_coeffs = {zero_float3(), make_float2(ray->tmin, ray->tmax)};
+
   const bool have_equiangular_sample = need_light_sample &&
                                        integrate_volume_equiangular_sample_light(
-                                           kg, state, ray, &sd, &rng_state, &equiangular_P);
+                                           kg, state, ray, &sd, &rng_state, &equiangular_coeffs);
 
   VolumeSampleMethod direct_sample_method = (have_equiangular_sample) ?
                                                 volume_stack_sample_method(kg, state) :
@@ -1023,7 +1061,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
                                  render_buffer,
                                  step_size,
                                  direct_sample_method,
-                                 equiangular_P,
+                                 equiangular_coeffs,
                                  result);
 
   /* Perform path termination. The intersect_closest will have already marked this path

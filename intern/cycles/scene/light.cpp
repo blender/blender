@@ -1362,6 +1362,9 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       /* Choose the angle which spans a larger cone. */
       klights[light_index].spot.cos_half_larger_spread = inversesqrtf(
           1.0f + tan_sq * fmaxf(len_u_sq, len_v_sq) / len_w_sq);
+      /* radius / sin(half_angle_small) */
+      klights[light_index].spot.ray_segment_dp =
+          light->size * sqrtf(1.0f + len_w_sq / (tan_sq * fminf(len_u_sq, len_v_sq)));
     }
 
     klights[light_index].shader_id = shader_id;
