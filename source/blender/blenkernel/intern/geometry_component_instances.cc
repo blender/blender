@@ -133,7 +133,6 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
   static BuiltinCustomDataLayerProvider id("id",
                                            AttrDomain::Instance,
                                            CD_PROP_INT32,
-                                           CD_PROP_INT32,
                                            BuiltinAttributeProvider::Creatable,
                                            BuiltinAttributeProvider::Deletable,
                                            instance_custom_data_access,
@@ -141,7 +140,6 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
 
   static BuiltinCustomDataLayerProvider instance_transform("instance_transform",
                                                            AttrDomain::Instance,
-                                                           CD_PROP_FLOAT4X4,
                                                            CD_PROP_FLOAT4X4,
                                                            BuiltinAttributeProvider::Creatable,
                                                            BuiltinAttributeProvider::NonDeletable,
@@ -151,7 +149,6 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
   /** Indices into `Instances::references_`. Determines what data is instanced. */
   static BuiltinCustomDataLayerProvider reference_index(".reference_index",
                                                         AttrDomain::Instance,
-                                                        CD_PROP_INT32,
                                                         CD_PROP_INT32,
                                                         BuiltinAttributeProvider::Creatable,
                                                         BuiltinAttributeProvider::NonDeletable,

@@ -174,27 +174,22 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
  */
 class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   using UpdateOnChange = void (*)(void *owner);
-  const eCustomDataType stored_type_;
   const CustomDataAccessInfo custom_data_access_;
   const UpdateOnChange update_on_change_;
-  bool stored_as_named_attribute_;
 
  public:
   BuiltinCustomDataLayerProvider(std::string attribute_name,
                                  const AttrDomain domain,
-                                 const eCustomDataType attribute_type,
-                                 const eCustomDataType stored_type,
+                                 const eCustomDataType data_type,
                                  const CreatableEnum creatable,
                                  const DeletableEnum deletable,
                                  const CustomDataAccessInfo custom_data_access,
-                                 const UpdateOnChange update_on_write,
+                                 const UpdateOnChange update_on_change,
                                  const AttributeValidator validator = {})
       : BuiltinAttributeProvider(
-            std::move(attribute_name), domain, attribute_type, creatable, deletable, validator),
-        stored_type_(stored_type),
+            std::move(attribute_name), domain, data_type, creatable, deletable, validator),
         custom_data_access_(custom_data_access),
-        update_on_change_(update_on_write),
-        stored_as_named_attribute_(data_type_ == stored_type_)
+        update_on_change_(update_on_change)
   {
   }
 
