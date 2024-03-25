@@ -91,7 +91,7 @@ void BKE_editmesh_looptris_calc_with_partial_ex(BMEditMesh *em,
                                                 const BMeshCalcTessellation_Params *params)
 {
   BLI_assert(em->looptris.size() == poly_to_tri_count(em->bm->totface, em->bm->totloop));
-  BLI_assert(!em->looptris.is_empty());
+  BLI_assert(!(em->bm->totface && em->looptris.is_empty()));
 
   BM_mesh_calc_tessellation_with_partial_ex(em->bm, em->looptris, bmpinfo, params);
 }
