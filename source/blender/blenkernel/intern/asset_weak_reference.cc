@@ -9,7 +9,9 @@
 #include <memory>
 #include <utility>
 
+#include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_vector.hh"
 
 #include "DNA_space_types.h"
 
@@ -20,9 +22,8 @@
 #include "BKE_blendfile_link_append.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
-
-#include "BLI_vector.hh"
 
 #include "BLO_read_write.hh"
 #include "BLO_readfile.hh"
@@ -132,12 +133,9 @@ void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *
 /* Main database for storing assets that are weak referenced.
  *
  * This avoids mixing asset datablocks in the regular main, which leads to naming conflicts and
- * confusing user interface.
- *
- * TODO: Heavily WIP code. */
+ * confusing user interface. */
 
 struct AssetWeakReferenceMain {
-  /* TODO: not sure if this is the best unique identifier. */
   std::string filepath;
   Main *main;
 
@@ -145,11 +143,21 @@ struct AssetWeakReferenceMain {
       : filepath(std::move(filepath)), main(BKE_main_new())
   {
     main->is_asset_weak_reference_main = true;
+    BLI_assert(!BLI_path_is_rel(filepath.c_str()));
   }
   AssetWeakReferenceMain(const AssetWeakReferenceMain &) = delete;
   AssetWeakReferenceMain(AssetWeakReferenceMain &&other)
       : filepath(std::exchange(other.filepath, "")), main(std::exchange(other.main, nullptr))
   {
+  }
+  AssetWeakReferenceMain &operator=(AssetWeakReferenceMain &&other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+    this->filepath = std::exchange(other.filepath, "");
+    this->main = std::exchange(other.main, nullptr);
+    return *this;
   }
 
   ~AssetWeakReferenceMain()
@@ -158,7 +166,69 @@ struct AssetWeakReferenceMain {
       BKE_main_free(main);
     }
   }
+
+  void reload(Main &global_main);
+  void clear_users(Main &global_main);
 };
+
+void AssetWeakReferenceMain::reload(Main &global_main)
+{
+  Main *old_main = this->main;
+  this->main = BKE_main_new();
+  this->main->is_asset_weak_reference_main = true;
+
+  /* Fill fresh main database with same datablock as before. */
+  LibraryLink_Params lapp_params{};
+  lapp_params.bmain = this->main;
+  BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(&lapp_params);
+  BKE_blendfile_link_append_context_flag_set(lapp_context, BLO_LIBLINK_FORCE_INDIRECT, true);
+  BKE_blendfile_link_append_context_flag_set(lapp_context, 0, true);
+
+  BKE_blendfile_link_append_context_library_add(lapp_context, this->filepath.c_str(), nullptr);
+
+  /* Requests all existing datablocks to be appended again. */
+  ID *old_id;
+  FOREACH_MAIN_ID_BEGIN (old_main, old_id) {
+    ID_Type old_id_code = GS(old_id->name);
+    if (BKE_idtype_idcode_is_linkable(old_id_code)) {
+      BlendfileLinkAppendContextItem *lapp_item = BKE_blendfile_link_append_context_item_add(
+          lapp_context, old_id->name + 2, old_id_code, nullptr);
+      BKE_blendfile_link_append_context_item_library_index_enable(lapp_context, lapp_item, 0);
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  BKE_blendfile_link(lapp_context, nullptr);
+  BKE_blendfile_append(lapp_context, nullptr);
+
+  BKE_blendfile_link_append_context_free(lapp_context);
+
+  BKE_main_id_tag_all(this->main, LIB_TAG_ASSET_MAIN, true);
+
+  /* Remap old to new. */
+  bke::id::IDRemapper mappings;
+  FOREACH_MAIN_ID_BEGIN (old_main, old_id) {
+    ID *new_id = BKE_libblock_find_name(this->main, GS(old_id->name), old_id->name + 2);
+    mappings.add(old_id, new_id);
+  }
+  FOREACH_MAIN_ID_END;
+  BKE_libblock_remap_multiple(&global_main, mappings, 0);
+
+  /* Free old database. */
+  BKE_main_free(old_main);
+}
+
+void AssetWeakReferenceMain::clear_users(Main &global_main)
+{
+  /* Remap old to null pointer. */
+  bke::id::IDRemapper mappings;
+  ID *old_id;
+  FOREACH_MAIN_ID_BEGIN (this->main, old_id) {
+    mappings.add(old_id, nullptr);
+  }
+  FOREACH_MAIN_ID_END;
+  BKE_libblock_remap_multiple(&global_main, mappings, 0);
+}
 
 static Vector<AssetWeakReferenceMain> &get_weak_reference_mains()
 {
@@ -196,7 +266,34 @@ static Main &asset_weak_reference_main_ensure(const StringRef filepath)
   return *get_weak_reference_mains().last().main;
 }
 
-void BKE_asset_weak_reference_main_free()
+void BKE_asset_weak_reference_main_reload(Main &global_main, Main &asset_main)
+{
+  for (AssetWeakReferenceMain &weak_ref_main : get_weak_reference_mains()) {
+    if (weak_ref_main.main == &asset_main) {
+      weak_ref_main.reload(global_main);
+      return;
+    }
+  }
+
+  BLI_assert_unreachable();
+}
+
+void BKE_asset_weak_reference_main_free(Main &global_main, Main &asset_main)
+{
+  int index = 0;
+  for (AssetWeakReferenceMain &weak_ref_main : get_weak_reference_mains()) {
+    if (weak_ref_main.main == &asset_main) {
+      weak_ref_main.clear_users(global_main);
+      get_weak_reference_mains().remove(index);
+      return;
+    }
+    index++;
+  }
+
+  BLI_assert_unreachable();
+}
+
+void BKE_asset_weak_reference_main_free_all()
 {
   get_weak_reference_mains().clear_and_shrink();
 }
@@ -247,7 +344,6 @@ ID *BKE_asset_weak_reference_ensure(Main &global_main,
 
   BKE_blendfile_link_append_context_free(lapp_context);
 
-  /* TODO: only do for new ones? */
   BKE_main_id_tag_all(&bmain, LIB_TAG_ASSET_MAIN, true);
 
   /* Verify that the name matches. It must for referencing the same asset again to work.  */

@@ -34,7 +34,6 @@
 #include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_override.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_paint.hh"
@@ -1255,11 +1254,8 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
   }
 
   if (asset_main != bmain) {
-    // TODO: hack: no pointer should exist, should do runtime lookup
-    BKE_libblock_remap(bmain, brush, nullptr, 0);
+    BKE_asset_weak_reference_main_free(*bmain, *asset_main);
   }
-  BKE_id_delete(asset_main, brush);
-  // TODO: delete whole asset main if empty?
 
   refresh_asset_library(C, *library);
 
@@ -1368,14 +1364,13 @@ static void BRUSH_OT_asset_update(wmOperatorType *ot)
 
 static bool brush_asset_revert_poll(bContext *C)
 {
-  /* TODO: check if there is anything to revert? */
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
   if (paint == nullptr || brush == nullptr) {
     return false;
   }
 
-  return paint->brush_asset_reference && ID_IS_ASSET(brush);
+  return paint->brush_asset_reference && (brush->id.tag & LIB_TAG_ASSET_MAIN);
 }
 
 static int brush_asset_revert_exec(bContext *C, wmOperator * /*op*/)
@@ -1385,19 +1380,12 @@ static int brush_asset_revert_exec(bContext *C, wmOperator * /*op*/)
   Brush *brush = BKE_paint_brush(paint);
   Main *asset_main = BKE_main_from_id(bmain, &brush->id);
 
-  // TODO: delete and reload dependencies too?
-  // TODO: hack to make remapping work, should not be needed
-  // if we can make brush pointer not part of ID management at all
-  BLI_remlink(&asset_main->brushes, brush);
+  /* Reload entire main, including texture dependencies. This relies on there
+   * being only a single brush asset per blend file. */
+  BKE_asset_weak_reference_main_reload(*bmain, *asset_main);
 
-  Brush *new_brush = reinterpret_cast<Brush *>(
-      BKE_asset_weak_reference_ensure(*bmain, ID_BR, *paint->brush_asset_reference));
-
-  BKE_libblock_remap(bmain, brush, new_brush, 0);
-  BLI_addtail(&asset_main->brushes, brush);
-  BKE_id_delete(asset_main, brush);
-
-  WM_main_add_notifier(NC_BRUSH | NA_EDITED, new_brush);
+  WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
+  WM_main_add_notifier(NC_TEXTURE | ND_NODES, nullptr);
 
   return OPERATOR_FINISHED;
 }
