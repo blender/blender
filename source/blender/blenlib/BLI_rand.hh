@@ -56,6 +56,11 @@ class RandomNumberGenerator {
     return int32_t(x_ >> 17);
   }
 
+  uint64_t get_uint64()
+  {
+    return (uint64_t(this->get_uint32()) << 32) | this->get_uint32();
+  }
+
   /**
    * \return Random value (0..N), but never N.
    */
