@@ -1613,7 +1613,6 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
         const float angle = RNA_float_get(op->ptr, "angle");
         bke::mesh_sharp_edges_set_from_angle(mesh, angle, keep_sharp_edges);
       }
-      mesh.tag_sharpness_changed();
       BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
     }
