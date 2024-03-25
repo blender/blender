@@ -7,6 +7,8 @@
 #include "COM_ConstantOperation.h"
 #include "COM_MultiThreadedOperation.h"
 
+#include <mutex>
+
 namespace blender::compositor {
 
 class TranslateOperation : public MultiThreadedOperation {
@@ -23,6 +25,8 @@ class TranslateOperation : public MultiThreadedOperation {
   float delta_y_;
   bool is_delta_set_;
   bool is_relative_;
+
+  std::mutex mutex_;
 
  protected:
   MemoryBufferExtend x_extend_mode_;
@@ -60,6 +64,11 @@ class TranslateOperation : public MultiThreadedOperation {
   inline void ensure_delta()
   {
     if (!is_delta_set_) {
+      std::unique_lock lock(mutex_);
+      if (is_delta_set_) {
+        return;
+      }
+
       if (execution_model_ == eExecutionModel::Tiled) {
         float temp_delta[4];
         input_xoperation_->read_sampled(temp_delta, 0, 0, PixelSampler::Nearest);
