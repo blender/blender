@@ -510,22 +510,38 @@ bool BuiltinCustomDataLayerProvider::try_create(void *owner,
     return false;
   }
 
+  auto update = [&]() {
+    if (update_on_change_ != nullptr) {
+      update_on_change_(owner);
+    }
+  };
+
   const int element_num = custom_data_access_.get_element_num(owner);
   if (stored_as_named_attribute_) {
     if (CustomData_has_layer_named(custom_data, data_type_, name_)) {
       /* Exists already. */
       return false;
     }
-    return add_custom_data_layer_from_attribute_init(
-        name_, *custom_data, stored_type_, element_num, initializer);
+    if (add_custom_data_layer_from_attribute_init(
+            name_, *custom_data, stored_type_, element_num, initializer))
+    {
+      update();
+      return true;
+    }
+    return false;
   }
 
   if (CustomData_get_layer(custom_data, stored_type_) != nullptr) {
     /* Exists already. */
     return false;
   }
-  return add_builtin_type_custom_data_layer_from_init(
-      *custom_data, stored_type_, element_num, initializer);
+  if (add_builtin_type_custom_data_layer_from_init(
+          *custom_data, stored_type_, element_num, initializer))
+  {
+    update();
+    return true;
+  }
+  return false;
 }
 
 bool BuiltinCustomDataLayerProvider::exists(const void *owner) const
