@@ -1949,7 +1949,7 @@ if html_theme == "furo":
             "sidebar/scroll-start.html",
             "sidebar/navigation.html",
             "sidebar/scroll-end.html",
-            # "sidebar/variant-selector.html",
+            "sidebar/variant-selector.html",
         ]
     }
 """)
