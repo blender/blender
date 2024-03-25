@@ -1886,6 +1886,30 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     gwl_window_state_set(window_, state);
   }
 
+  /* NOTE(@ideasman42): Round trips are important before committing.
+   * This is needed because setting the state is likely to resize the window
+   * (in the case of maximized & full-screen), "normal" windows may still be resized when
+   * they are too large or with tiling window-managers.
+   *
+   * The additional updates allow for the actual size to be configured by the window manager
+   * which is read back before committing the surface. This avoids displaying the buffer
+   * before it's resized (avoiding flickering).
+   *
+   * Without the round-trip here:
+   * - The window will be created and this function will return using the requested buffer size,
+   *   instead of the window size which ends up being used (causing a visible flicker).
+   *   This has the down side that Blender's internal window state has the outdated size
+   *   which then gets immediately resized, causing a noticeable glitch.
+   * - The window decorations will be displayed at the wrong size before refreshing
+   *   at the new size.
+   * - On GNOME-Shell 46 shows the previous buffer-size under some conditions, see #119871.
+   * - 2x updates are needed for RIVER & HYPRLAND.
+   */
+  for (int i = 0; i < 2; i++) {
+    wl_display_flush(system->wl_display_get());
+    wl_display_dispatch(system->wl_display_get());
+  }
+
   /* Commit after setting the buffer.
    * While postponing until after the buffer drawing is context is set
    * isn't essential, it reduces flickering. */
