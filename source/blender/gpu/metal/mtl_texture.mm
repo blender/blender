@@ -527,6 +527,8 @@ void gpu::MTLTexture::update_sub(
     }
   }
 
+  const bool is_compressed = (format_flag_ & GPU_FORMAT_COMPRESSED);
+
   @autoreleasepool {
     /* Determine totalsize of INPUT Data. */
     int num_channels = to_component_len(format_);
@@ -593,10 +595,12 @@ void gpu::MTLTexture::update_sub(
         false /* Not a clear. */
     };
 
-    /* Determine whether we can do direct BLIT or not. */
+    /* Determine whether we can do direct BLIT or not. For compressed textures,
+     * always assume a direct blit (input data pretends to be float, but it is
+     * not). */
     bool can_use_direct_blit = true;
-    if (expected_dst_bytes_per_pixel != input_bytes_per_pixel ||
-        num_channels != destination_num_channels)
+    if (!is_compressed && (expected_dst_bytes_per_pixel != input_bytes_per_pixel ||
+                           num_channels != destination_num_channels))
     {
       can_use_direct_blit = false;
     }
@@ -620,7 +624,7 @@ void gpu::MTLTexture::update_sub(
 
     /* Safety Checks. */
     if (type == GPU_DATA_UINT_24_8 || type == GPU_DATA_10_11_11_REV ||
-        type == GPU_DATA_2_10_10_10_REV)
+        type == GPU_DATA_2_10_10_10_REV || is_compressed)
     {
       BLI_assert(can_use_direct_blit &&
                  "Special input data type must be a 1-1 mapping with destination texture as it "
@@ -755,6 +759,12 @@ void gpu::MTLTexture::update_sub(
                                       extent[0] :
                                       ctx->pipeline_state.unpack_row_length);
           size_t bytes_per_image = bytes_per_row;
+          if (is_compressed) {
+            size_t block_size = to_block_size(format_);
+            size_t blocks_x = divide_ceil_u(extent[0], 4);
+            bytes_per_row = blocks_x * block_size;
+            bytes_per_image = bytes_per_row;
+          }
           int max_array_index = ((type_ == GPU_TEXTURE_1D_ARRAY) ? extent[1] : 1);
           for (int array_index = 0; array_index < max_array_index; array_index++) {
 
@@ -827,6 +837,13 @@ void gpu::MTLTexture::update_sub(
                                       extent[0] :
                                       ctx->pipeline_state.unpack_row_length);
           size_t bytes_per_image = bytes_per_row * extent[1];
+          if (is_compressed) {
+            size_t block_size = to_block_size(format_);
+            size_t blocks_x = divide_ceil_u(extent[0], 4);
+            size_t blocks_y = divide_ceil_u(extent[1], 4);
+            bytes_per_row = blocks_x * block_size;
+            bytes_per_image = bytes_per_row * blocks_y;
+          }
 
           size_t texture_array_relative_offset = 0;
           int base_slice = (type_ == GPU_TEXTURE_2D_ARRAY) ? offset[2] : 0;
@@ -1218,6 +1235,12 @@ void gpu::MTLTexture::ensure_mipmaps(int miplvl)
 
 void gpu::MTLTexture::generate_mipmap()
 {
+  /* Compressed textures allow users to provide their own custom mipmaps. And
+   * we can't generate them at runtime anyway. */
+  if (format_flag_ & GPU_FORMAT_COMPRESSED) {
+    return;
+  }
+
   /* Fetch Active Context. */
   MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   BLI_assert(ctx);

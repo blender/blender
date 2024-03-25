@@ -160,13 +160,17 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
       return MTLPixelFormatR8Snorm;
     /* Special formats, texture only. */
     case GPU_SRGB8_A8_DXT1:
+      return MTLPixelFormatBC1_RGBA_sRGB;
     case GPU_SRGB8_A8_DXT3:
+      return MTLPixelFormatBC2_RGBA_sRGB;
     case GPU_SRGB8_A8_DXT5:
+      return MTLPixelFormatBC3_RGBA_sRGB;
     case GPU_RGBA8_DXT1:
+      return MTLPixelFormatBC1_RGBA;
     case GPU_RGBA8_DXT3:
+      return MTLPixelFormatBC2_RGBA;
     case GPU_RGBA8_DXT5:
-      BLI_assert_msg(false, "Compressed texture not implemented yet!\n");
-      return MTLPixelFormatRGBA8Unorm;
+      return MTLPixelFormatBC3_RGBA;
     case GPU_SRGB8:
       /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA8Unorm_sRGB;
@@ -247,6 +251,14 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
       return 4;
     case MTLPixelFormatDepth16Unorm:
       return 2;
+    case MTLPixelFormatBC1_RGBA:
+    case MTLPixelFormatBC1_RGBA_sRGB:
+      return 1; /* Note: not quite correct (BC1 is 0.5 bpp). */
+    case MTLPixelFormatBC2_RGBA:
+    case MTLPixelFormatBC2_RGBA_sRGB:
+    case MTLPixelFormatBC3_RGBA:
+    case MTLPixelFormatBC3_RGBA_sRGB:
+      return 1;
 
     default:
       BLI_assert_msg(false, "Unrecognised GPU pixel format!\n");
@@ -272,6 +284,12 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
     case MTLPixelFormatRGBA8Unorm_sRGB:
     case MTLPixelFormatRGB10A2Uint:
     case MTLPixelFormatRGB10A2Unorm:
+    case MTLPixelFormatBC1_RGBA_sRGB:
+    case MTLPixelFormatBC2_RGBA_sRGB:
+    case MTLPixelFormatBC3_RGBA_sRGB:
+    case MTLPixelFormatBC1_RGBA:
+    case MTLPixelFormatBC2_RGBA:
+    case MTLPixelFormatBC3_RGBA:
       return 4;
 
     case MTLPixelFormatRG11B10Float:
