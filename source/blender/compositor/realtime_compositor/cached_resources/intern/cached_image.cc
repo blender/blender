@@ -15,6 +15,7 @@
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
@@ -55,74 +56,6 @@ bool operator==(const CachedImageKey &a, const CachedImageKey &b)
 /* --------------------------------------------------------------------
  * Cached Image.
  */
-
-/* Returns a new texture of the given format and precision preprocessed using the given shader. The
- * input texture is freed. */
-static GPUTexture *preprocess_texture(Context &context,
-                                      GPUTexture *input_texture,
-                                      eGPUTextureFormat target_format,
-                                      ResultPrecision precision,
-                                      const char *shader_name)
-{
-  const int2 size = int2(GPU_texture_width(input_texture), GPU_texture_height(input_texture));
-
-  GPUTexture *preprocessed_texture = GPU_texture_create_2d(
-      "Cached Image", size.x, size.y, 1, target_format, GPU_TEXTURE_USAGE_GENERAL, nullptr);
-
-  GPUShader *shader = context.get_shader(shader_name, precision);
-  GPU_shader_bind(shader);
-
-  const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
-  GPU_texture_bind(input_texture, input_unit);
-
-  const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
-  GPU_texture_image_bind(preprocessed_texture, image_unit);
-
-  compute_dispatch_threads_at_least(shader, size);
-
-  GPU_shader_unbind();
-  GPU_texture_unbind(input_texture);
-  GPU_texture_image_unbind(preprocessed_texture);
-  GPU_texture_free(input_texture);
-
-  return preprocessed_texture;
-}
-
-/* Compositor images are expected to be always pre-multiplied, so identify if the GPU texture
- * returned by the IMB module is straight and needs to be pre-multiplied. An exception is when
- * the image has an alpha mode of channel packed or alpha ignore, in which case, we always ignore
- * pre-multiplication. */
-static bool should_premultiply_alpha(Image *image, ImBuf *image_buffer)
-{
-  if (ELEM(image->alpha_mode, IMA_ALPHA_CHANNEL_PACKED, IMA_ALPHA_IGNORE)) {
-    return false;
-  }
-
-  return !BKE_image_has_gpu_texture_premultiplied_alpha(image, image_buffer);
-}
-
-/* Get a suitable texture format supported by the compositor given the format of the texture
- * returned by the IMB module. See imb_gpu_get_format for the formats that needs to be handled. */
-static eGPUTextureFormat get_compatible_texture_format(eGPUTextureFormat original_format)
-{
-  switch (original_format) {
-    case GPU_R16F:
-    case GPU_R32F:
-    case GPU_RGBA16F:
-    case GPU_RGBA32F:
-      return original_format;
-    case GPU_R8:
-      return GPU_R16F;
-    case GPU_RGBA8:
-    case GPU_SRGB8_A8:
-      return GPU_RGBA16F;
-    default:
-      break;
-  }
-
-  BLI_assert_unreachable();
-  return original_format;
-}
 
 /* Get the selected render layer selected assuming the image is a multilayer image. */
 static RenderLayer *get_render_layer(Image *image, ImageUser &image_user)
@@ -205,6 +138,56 @@ static ImageUser compute_image_user_for_pass(Context &context,
   return image_user_for_pass;
 }
 
+/* The image buffer might be stored as an sRGB 8-bit image, while the compositor expects linear
+ * float images, so compute a linear float buffer for the image buffer. This will also do linear
+ * space conversion and alpha pre-multiplication as needed. We could store those images in sRGB GPU
+ * textures and let the GPU do the linear space conversion, but the issues is that we don't control
+ * how the GPU does the conversion and so we get tiny differences across CPU and GPU compositing,
+ * and potentially even across GPUs/Drivers. Further, if alpha pre-multiplication is needed, we
+ * would need to do it ourself, which means alpha pre-multiplication will happen before linear
+ * space conversion, which would produce yet another difference. So we just do everything on the
+ * CPU, since this is already a cached resource.
+ *
+ * To avoid conflicts with other threads, create a new image buffer and assign all the necessary
+ * information to it, with IB_DO_NOT_TAKE_OWNERSHIP for buffers since a deep copy is not needed.
+ *
+ * The caller should free the returned image buffer. */
+static ImBuf *compute_linear_buffer(ImBuf *image_buffer)
+{
+  /* Do not pass the flags to the allocation function to avoid buffer allocation, but assign them
+   * after to retain important information like precision and alpha mode. */
+  ImBuf *linear_image_buffer = IMB_allocImBuf(
+      image_buffer->x, image_buffer->y, image_buffer->planes, 0);
+  linear_image_buffer->flags = image_buffer->flags;
+
+  /* Assign the float buffer if it exists, as well as its number of channels. */
+  IMB_assign_float_buffer(
+      linear_image_buffer, image_buffer->float_buffer, IB_DO_NOT_TAKE_OWNERSHIP);
+  linear_image_buffer->channels = image_buffer->channels;
+
+  /* If no float buffer exists, assign it then compute a float buffer from it. This is the main
+   * call of this function. */
+  if (!linear_image_buffer->float_buffer.data) {
+    IMB_assign_byte_buffer(
+        linear_image_buffer, image_buffer->byte_buffer, IB_DO_NOT_TAKE_OWNERSHIP);
+    IMB_float_from_rect(linear_image_buffer);
+  }
+
+  /* If the image buffer contained compressed data, assign them as well, but only if the color
+   * space of the buffer is linear or data, since we need linear data and can't preprocess the
+   * compressed buffer. If not, we fallback to the float buffer already assigned, which is
+   * guaranteed to exist as a fallback for compressed textures. */
+  const bool is_suitable_compressed_color_space =
+      IMB_colormanagement_space_is_data(image_buffer->byte_buffer.colorspace) ||
+      IMB_colormanagement_space_is_scene_linear(image_buffer->byte_buffer.colorspace);
+  if (image_buffer->ftype == IMB_FTYPE_DDS && is_suitable_compressed_color_space) {
+    linear_image_buffer->ftype = IMB_FTYPE_DDS;
+    IMB_assign_dds_data(linear_image_buffer, image_buffer->dds_data, IB_DO_NOT_TAKE_OWNERSHIP);
+  }
+
+  return linear_image_buffer;
+}
+
 CachedImage::CachedImage(Context &context,
                          Image *image,
                          ImageUser *image_user,
@@ -227,34 +210,12 @@ CachedImage::CachedImage(Context &context,
       context, image, image_user, pass_name);
 
   ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_pass, nullptr);
-  const bool is_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(image, image_buffer);
-  texture_ = IMB_create_gpu_texture("Image Texture", image_buffer, true, is_premultiplied);
+  ImBuf *linear_image_buffer = compute_linear_buffer(image_buffer);
+
+  texture_ = IMB_create_gpu_texture("Image Texture", linear_image_buffer, true, true);
   GPU_texture_update_mipmap_chain(texture_);
 
-  const eGPUTextureFormat original_format = GPU_texture_format(texture_);
-  const eGPUTextureFormat target_format = get_compatible_texture_format(original_format);
-  const ResultType result_type = Result::type(target_format);
-  const ResultPrecision precision = Result::precision(target_format);
-
-  /* The GPU image returned by the IMB module can be in a format not supported by the compositor,
-   * or it might need pre-multiplication, so preprocess them first. */
-  if (result_type == ResultType::Color && should_premultiply_alpha(image, image_buffer)) {
-    texture_ = preprocess_texture(
-        context, texture_, target_format, precision, "compositor_premultiply_alpha");
-  }
-  else if (original_format != target_format) {
-    const char *conversion_shader_name = result_type == ResultType::Float ?
-                                             "compositor_convert_float_to_float" :
-                                             "compositor_convert_color_to_color";
-    texture_ = preprocess_texture(
-        context, texture_, target_format, precision, conversion_shader_name);
-  }
-
-  /* Set the alpha to 1 using swizzling if alpha is ignored. */
-  if (result_type == ResultType::Color && image->alpha_mode == IMA_ALPHA_IGNORE) {
-    GPU_texture_swizzle_set(texture_, "rgb1");
-  }
-
+  IMB_freeImBuf(linear_image_buffer);
   BKE_image_release_ibuf(image, image_buffer, nullptr);
 }
 

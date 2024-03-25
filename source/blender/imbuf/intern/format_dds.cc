@@ -330,6 +330,7 @@ static void LoadDXTCImage(ImBuf *ibuf, Filesystem::IOMemReader &mem_reader)
     ibuf->dds_data.size = mem_reader.size() - dds_header_size;
     ibuf->dds_data.data = (uchar *)malloc(ibuf->dds_data.size);
     mem_reader.pread(ibuf->dds_data.data, ibuf->dds_data.size, dds_header_size);
+    ibuf->dds_data.ownership = IB_TAKE_OWNERSHIP;
 
     /* Flip compressed image data to match OpenGL convention. */
     FlipDXTCImage(ibuf);

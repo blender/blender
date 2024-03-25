@@ -119,6 +119,21 @@ void IMB_assign_byte_buffer(ImBuf *ibuf, uint8_t *buffer_data, ImBufOwnership ow
 void IMB_assign_float_buffer(ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership);
 
 /**
+ * Assign the content and the color space of the corresponding buffer the data from the given
+ * buffer.
+ *
+ * \note Does not modify the topology (width, height, number of channels)
+ * or the mipmaps in any way.
+ *
+ * \note The ownership of the data in the source buffer is ignored.
+ */
+void IMB_assign_byte_buffer(ImBuf *ibuf, const ImBufByteBuffer &buffer, ImBufOwnership ownership);
+void IMB_assign_float_buffer(ImBuf *ibuf,
+                             const ImBufFloatBuffer &buffer,
+                             ImBufOwnership ownership);
+void IMB_assign_dds_data(ImBuf *ibuf, const DDSData &data, ImBufOwnership ownership);
+
+/**
  * Make corresponding buffers available for modification.
  * Is achieved by ensuring that the given ImBuf is the only owner of the underlying buffer data.
  */
