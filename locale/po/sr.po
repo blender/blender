@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
@@ -1323,24 +1323,16 @@ msgid "Vertex Color"
 msgstr "Боја темена"
 
 
-msgid "Direction"
-msgstr "Смер"
-
-
-msgid "Add effect of brush"
-msgstr "Додај ефекат четкице"
-
-
-msgid "Subtract effect of brush"
-msgstr "Одузми ефекат четкице"
-
-
 msgid "Dissolve"
 msgstr "Растапање"
 
 
 msgid "Stroke"
 msgstr "Потез"
+
+
+msgid "Direction"
+msgstr "Смер"
 
 
 msgid "Normal"
@@ -5405,6 +5397,14 @@ msgstr "Одузимање боје"
 
 msgid "Mask Texture Overlay Alpha"
 msgstr "Маскирај провидност преклапања текстуре"
+
+
+msgid "Add effect of brush"
+msgstr "Додај ефекат четкице"
+
+
+msgid "Subtract effect of brush"
+msgstr "Одузми ефекат четкице"
 
 
 msgid "Fill Threshold"

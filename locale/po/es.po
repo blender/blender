@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-03-12 05:27+0000\n"
+"PO-Revision-Date: 2024-03-24 20:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -401,6 +401,10 @@ msgstr "KHR_interfaz_variantes_materiales"
 
 msgid "Displays glTF UI to manage material variants"
 msgstr "Muestra la interfaz de glTF para administrar variantes de materiales"
+
+
+msgid "Allow glTF Embedded format"
+msgstr "Permitir formato glTF incorporado"
 
 
 msgid "Display glTF UI to manage animations"
@@ -4464,18 +4468,6 @@ msgid "Number of pixels to expand or contract fill area"
 msgstr "Cantidad de píxeles a expandir o contraer el relleno del área"
 
 
-msgid "Direction"
-msgstr "Dirección"
-
-
-msgid "Add effect of brush"
-msgstr "Adiciona el efecto del pincel"
-
-
-msgid "Subtract effect of brush"
-msgstr "Sustrae el efecto del pincel"
-
-
 msgid "Eraser Mode"
 msgstr "Modo de borrar"
 
@@ -4522,6 +4514,10 @@ msgstr "Tamaño de oclusión"
 
 msgid "Strokes end extension for closing gaps, use zero to disable"
 msgstr "Extensión del extremo de los trazos para cerrar huecos, 0 para deshabilitar"
+
+
+msgid "Direction"
+msgstr "Dirección"
 
 
 msgid "Direction of the fill"
@@ -6465,11 +6461,11 @@ msgstr "Codificación de imagen básica de AgX para un dispositivo sRGB"
 
 
 msgid "AgX Log"
-msgstr "AgX logarítmico"
+msgstr "AgX logarítmica"
 
 
 msgid "Log Encoding with Chroma inset and rotation, and with 25 Stops of Dynamic Range"
-msgstr "Codificación logarítmica con inserción y rotación de croma, con un rango dinámico de 25 paradas"
+msgstr "Codificación logarítmica con desplazamiento y rotación de croma, con un rango dinámico de 25 paradas"
 
 
 msgid "Display P3"
@@ -6621,7 +6617,7 @@ msgstr "Transformación adicional aplicada con fines artísticos, antes de la tr
 
 
 msgid "Do not modify image in an artistic manner"
-msgstr "No modifica las imágenes"
+msgstr "No modificará las imágenes"
 
 
 msgid "Use Curves"
@@ -19717,7 +19713,7 @@ msgstr "Rango de fotogramas de curvas"
 
 
 msgid "The combined frame range of all F-Curves within this action"
-msgstr "El rango combinado de fotogramas de todas las Curvas-F en esta acción"
+msgstr "El rango combinado de fotogramas de todas las curvas-f en esta acción"
 
 
 msgid "F-Curves"
@@ -20581,6 +20577,14 @@ msgid "Amount of random elements that are going to be affected by the brush"
 msgstr "Cantidad de elementos aleatorios que serán afectados por el pincel"
 
 
+msgid "Add effect of brush"
+msgstr "Adiciona el efecto del pincel"
+
+
+msgid "Subtract effect of brush"
+msgstr "Sustrae el efecto del pincel"
+
+
 msgid "Max Element Distance"
 msgstr "Distancia máx. elementos"
 
@@ -20783,7 +20787,7 @@ msgstr "Espaciado gradiente"
 
 
 msgid "Spacing before brush gradient goes full circle"
-msgstr "Espacio antes de que el gradiente del pincel de la vuelta completa"
+msgstr "Espacio antes de que el gradiente del pincel de una revolución completa"
 
 
 msgid "Gradient Fill Mode"
@@ -28538,7 +28542,7 @@ msgstr "Torsionar"
 
 
 msgid "Number of turns around parent along the strand"
-msgstr "Cantidad de vueltas a lo largo de la hebra"
+msgstr "Cantidad de revoluciones a lo largo de la hebra"
 
 
 msgid "Twist Curve"
@@ -31381,7 +31385,7 @@ msgstr "Qué opciones de administración de color usar al guardar archivos"
 
 
 msgid "Follow Scene"
-msgstr "Igual que la escena"
+msgstr "De la escena"
 
 
 msgid "Choose BW for saving grayscale images, RGB for saving red, green and blue channels, and RGBA for saving red, green, blue and alpha channels"
@@ -31925,7 +31929,7 @@ msgstr "ID del elemento"
 
 
 msgid "Identifier of operator to call on input event"
-msgstr "Identificador del operador a invocar en un evento de entrada"
+msgstr "Identificador del operador a ser invocado por el evento de entrada"
 
 
 msgid "Is this keymap item user defined (doesn't just replace a builtin item)"
@@ -36105,7 +36109,7 @@ msgstr "Controles de puntos de referencia"
 
 
 msgid "Lightgroup Sync"
-msgstr "Sincronizar grupo de luces"
+msgstr "Sincronizar grupos de luces"
 
 
 msgid "Operator Presets"
@@ -39256,7 +39260,7 @@ msgstr "Invierte las coordenadas de texturizado V alrededor del punto de desplaz
 
 
 msgid "Mirror vertex groups (e.g. .R->.L)"
-msgstr "Simetrizar grupos de vértices (p.ej. .D -> .I)"
+msgstr "Simetrizar grupos de vértices (p.ej. .R -> .L)"
 
 
 msgid "Multires Modifier"
@@ -41585,7 +41589,7 @@ msgstr "Mostrar la previsualización usando la resolución completa o distintas 
 
 
 msgid "None, full render"
-msgstr "No reemplazar, procesar clip original"
+msgstr "No reemplazar (clip original)"
 
 
 msgid "Render Undistorted"
@@ -42478,7 +42482,7 @@ msgstr "Interpolación de píxeles de alta calidad"
 
 
 msgid "Location Influence"
-msgstr "Influencia de la posición"
+msgstr "Influencia en posición"
 
 
 msgid "Influence of stabilization algorithm on footage location"
@@ -42486,7 +42490,7 @@ msgstr "Influencia del algoritmo de estabilización sobre la posición de la ima
 
 
 msgid "Rotation Influence"
-msgstr "Influencia rotación"
+msgstr "Influencia en rotación"
 
 
 msgid "Influence of stabilization algorithm on footage rotation"
@@ -42494,7 +42498,7 @@ msgstr "Influencia del algoritmo de estabilización sobre la rotación de la pel
 
 
 msgid "Scale Influence"
-msgstr "Escalar  Influencia"
+msgstr "Influencia en escala"
 
 
 msgid "Influence of stabilization algorithm on footage scale"
@@ -43348,11 +43352,11 @@ msgstr "Algoritmo a usar para limitar canal"
 
 
 msgid "Single"
-msgstr "Único"
+msgstr "Individual"
 
 
 msgid "Limit by single channel"
-msgstr "Limitar en base a un solo canal"
+msgstr "Limitar en base a un único canal"
 
 
 msgid "Limit by maximum of other channels"
@@ -66400,7 +66404,7 @@ msgstr "Extruye los vértices seleccionados con una rotación en espiral alreded
 
 
 msgid "Turns"
-msgstr "Vueltas"
+msgstr "Revoluciones"
 
 
 msgid "(De)select all vertices, edges or faces"
@@ -68846,7 +68850,7 @@ msgstr "Qué algoritmo usar para generar el margen"
 
 
 msgid "Filter to combined, diffuse, glossy, transmission and subsurface passes"
-msgstr "Filtrar a las pasadas combinada, de difusión, reflectividad, transmisión y transluminiscencia"
+msgstr "Filtrar las pasadas combinada, de difusión, reflectividad, transmisión y transluminiscencia"
 
 
 msgid "Type of pass to bake, some of them may not be supported by the current render engine"
@@ -69766,11 +69770,11 @@ msgstr "Excluir a los bloqueadores seleccionados de la proyección sombras desde
 
 msgctxt "Operator"
 msgid "Select Light Linking Blockers"
-msgstr "Seleccionar bloqueadores vinculados"
+msgstr "Seleccionar bloqueadores de iluminación"
 
 
 msgid "Select all objects which block light from this emitter"
-msgstr "Selecciona todos los objetos que bloquean la iluminación de este emisor"
+msgstr "Selecciona todos los objetos que bloquean la luz de este emisor"
 
 
 msgctxt "Operator"
@@ -69787,20 +69791,20 @@ msgstr "Estado de la vinculación de iluminación"
 
 
 msgid "Include selected receivers to receive light from the active emitter"
-msgstr "Incluir a los receptores seleccionados para que reciban iluminación desde el emisor activo"
+msgstr "Incluir a los receptores seleccionados para la recepción de luz desde el emisor activo"
 
 
 msgid "Exclude selected receivers from receiving light from the active emitter"
-msgstr "Excluir a los receptores seleccionados de la recepción de iluminación desde el emisor activo"
+msgstr "Excluir a los receptores seleccionados de la recepción de luz desde el emisor activo"
 
 
 msgctxt "Operator"
 msgid "Select Light Linking Receivers"
-msgstr "Seleccionar receptores vinculados a iluminación"
+msgstr "Seleccionar receptores de iluminación"
 
 
 msgid "Select all objects which receive light from this emitter"
-msgstr "Seleccionar todos los objetos que reciben iluminación desde este emisor"
+msgstr "Selecciona todos los objetos que reciben luz de este emisor"
 
 
 msgctxt "Operator"
@@ -69809,7 +69813,7 @@ msgstr "Eliminar de colección de vinculación de iluminación"
 
 
 msgid "Remove this object or collection from the light linking collection"
-msgstr "Eliminar este objeto o colección de la colección de vinculación de iluminación"
+msgstr "Elimina este objeto o colección de la colección de vinculación de iluminación"
 
 
 msgctxt "Operator"
@@ -71072,7 +71076,7 @@ msgstr "Tipo de luz"
 
 
 msgid "Matching light types"
-msgstr "Tipos de luces coincidentes"
+msgstr "Luces del mismo tipo"
 
 
 msgid "Select object relative to the active object's position in the hierarchy"
@@ -71104,7 +71108,7 @@ msgstr "Biblioteca (datos de objeto)"
 
 
 msgid "Select the mirror objects of the selected object e.g. \"L.sword\" and \"R.sword\""
-msgstr "Selecciona el objeto simétrico del objeto seleccionado, p.ej: \"D.espada\" -> \"I.espada\""
+msgstr "Selecciona el objeto simétrico del objeto seleccionado, p.ej: \"L.espada\" -> \"R.espada\""
 
 
 msgid "Select connected parent/child objects"
@@ -71606,7 +71610,7 @@ msgstr "Eliminar rastreo"
 
 
 msgid "Clear and Keep Transformation (Clear Track)"
-msgstr "Eliminar y mantener transformaciones (Eliminar rastreo)"
+msgstr "Eliminar rastreo y mantener transformaciones"
 
 
 msgctxt "Operator"
@@ -74913,11 +74917,11 @@ msgstr "Exporta la configuración del teclado a un script Python"
 
 
 msgid "All Keymaps"
-msgstr "Todos los mapas de teclado"
+msgstr "Mapa de teclado completo"
 
 
 msgid "Write all keymaps (not just user modified)"
-msgstr "Guarda todos los mapas de teclado (no sólo los modificados por el usuario)"
+msgstr "Guardará el mapa de teclado completo (no sólo las teclas modificadas por el usuario)"
 
 
 msgctxt "Operator"
@@ -74926,7 +74930,7 @@ msgstr "Importar mapa de teclado..."
 
 
 msgid "Import key configuration from a Python script"
-msgstr "Importa la configuración del teclado desde un script Python"
+msgstr "Importará la configuración del teclado desde un script de Python"
 
 
 msgid "Keep Original"
@@ -74934,7 +74938,7 @@ msgstr "Mantener original"
 
 
 msgid "Keep original file after copying to configuration folder"
-msgstr "Mantiene el archivo original luego de copiar hacia la carpeta de configuración"
+msgstr "Mantendrá el archivo original luego de copiar hacia la carpeta de configuración"
 
 
 msgctxt "Operator"
@@ -74943,7 +74947,7 @@ msgstr "Eliminar configuración de teclado"
 
 
 msgid "Remove key config"
-msgstr "Elimina configuración de teclado"
+msgstr "Eliminará la configuración de teclado actual"
 
 
 msgctxt "Operator"
@@ -74952,7 +74956,7 @@ msgstr "Comprobar conflictos en teclado"
 
 
 msgid "Test key configuration for conflicts"
-msgstr "Comprobar conflictos en teclado"
+msgstr "Comprobará conflictos en el mapa de teclado"
 
 
 msgctxt "Operator"
@@ -74961,7 +74965,7 @@ msgstr "Agregar elemento a mapa de teclado"
 
 
 msgid "Add key map item"
-msgstr "Agrega un elemento al mapa de teclado"
+msgstr "Agregará un elemento al mapa de teclado actual"
 
 
 msgctxt "Operator"
@@ -74970,7 +74974,7 @@ msgstr "Eliminar elemento del mapa de teclado"
 
 
 msgid "Remove key map item"
-msgstr "Elimina un elemento del mapa de teclado"
+msgstr "Eliminará un elemento del mapa de teclado actual"
 
 
 msgid "Item Identifier"
@@ -74987,7 +74991,7 @@ msgstr "Restablecer elemento de teclado"
 
 
 msgid "Restore key map item"
-msgstr "Restablece un elemento del mapa de teclado"
+msgstr "Restablecerá un elemento del mapa de teclado"
 
 
 msgid "Identifier of the item to restore"
@@ -75000,11 +75004,11 @@ msgstr "Restablecer mapa de teclado"
 
 
 msgid "Restore key map(s)"
-msgstr "Restablece el mapa del teclado"
+msgstr "Restablecerá el mapa del teclado"
 
 
 msgid "Restore all keymaps to default"
-msgstr "Restablece todos los mapas de teclado a su estado predefinido"
+msgstr "Restablecerá todos los mapas de teclado a su estado predefinido"
 
 
 msgctxt "Operator"
@@ -75994,7 +75998,7 @@ msgstr "Agregar AOV"
 
 
 msgid "Add a Shader AOV"
-msgstr "Agregar AOV de sombreado"
+msgstr "Agrega una AOV de sombreado"
 
 
 msgctxt "Operator"
@@ -76003,7 +76007,7 @@ msgstr "Agregar grupo de luces"
 
 
 msgid "Add a Light Group"
-msgstr "Agrega un grupo de luces"
+msgstr "Agrega un nuevo grupo de luces a la capa de visualización actual"
 
 
 msgid "Name of newly created lightgroup"
@@ -76012,11 +76016,11 @@ msgstr "Nombre del grupo de luces recientemente creado"
 
 msgctxt "Operator"
 msgid "Add Used Lightgroups"
-msgstr "Agregar grupos de luces usados"
+msgstr "Agregar grupos de luces en uso"
 
 
 msgid "Add all used Light Groups"
-msgstr "Agrega todos los grupos de luces usados"
+msgstr "Agrega (a la capa de visualización actual) todos los grupos de luces que se encuentren en uso en otras capas de visualización"
 
 
 msgctxt "Operator"
@@ -76025,7 +76029,7 @@ msgstr "Eliminar capa de visualización"
 
 
 msgid "Remove the selected view layer"
-msgstr "Elimina la capa de visualización seleccionada"
+msgstr "Elimina la capa de visualización actual"
 
 
 msgctxt "Operator"
@@ -76034,7 +76038,7 @@ msgstr "Eliminar AOV"
 
 
 msgid "Remove Active AOV"
-msgstr "Eliminar AOV activa"
+msgstr "Elimina la AOV activa"
 
 
 msgctxt "Operator"
@@ -76043,7 +76047,7 @@ msgstr "Eliminar grupo de luces"
 
 
 msgid "Remove Active Lightgroup"
-msgstr "Eliminar grupo de luces activo"
+msgstr "Elimina el grupo de luces activo de la capa de visualización actual"
 
 
 msgctxt "Operator"
@@ -76052,7 +76056,7 @@ msgstr "Eliminar grupos de luces no usados"
 
 
 msgid "Remove all unused Light Groups"
-msgstr "Elimina todos los grupos de luces no usados"
+msgstr "Elimina (de la capa de visualización actual) todos los grupos de luces no usados"
 
 
 msgctxt "Operator"
@@ -84964,7 +84968,7 @@ msgstr "Abre un archivo guardado automáticamente para recuperarlo"
 
 msgctxt "Operator"
 msgid "Recover Last Session"
-msgstr "Recuperar la última sesión"
+msgstr "Recuperar última sesión"
 
 
 msgid "Open the last closed file (\"quit.blend\")"
@@ -87768,7 +87772,7 @@ msgstr "Menús"
 
 
 msgid "Open on Mouse Over"
-msgstr "Abrir al posar ratón"
+msgstr "Abrir al posar el ratón"
 
 
 msgid "Pie Menus"
@@ -88074,7 +88078,7 @@ msgstr "Máscara de esténcil"
 
 msgctxt "Operator"
 msgid "Scale Cage"
-msgstr "Escalar jaula"
+msgstr "Escalar (Jaula)"
 
 
 msgctxt "Operator"
@@ -90670,6 +90674,10 @@ msgid "Temporary Directory"
 msgstr "Directorio temporal"
 
 
+msgid "The directory for storing temporary save files. The path must reference an existing directory or it will be ignored"
+msgstr "Directorio para almacenar archivos temporales. La ruta deberá referenciar a un directorio existente, de lo contrario será ignorado"
+
+
 msgid ""
 "Command to launch the text editor, either a full path or a command in $PATH.\n"
 "Use the internal editor when left blank"
@@ -92461,7 +92469,7 @@ msgstr "Verdadero cuando no sea posible establecer este valor en Ninguno"
 
 
 msgid "Return"
-msgstr "Devuelta"
+msgstr "Resultante"
 
 
 msgid "True when this property is an output value from an RNA function"
@@ -100306,11 +100314,11 @@ msgstr "Si existieran, los marcadores serán mostrados en una fila separada en l
 
 
 msgid "Show Pose Markers"
-msgstr "Mostrar marcadores de posición"
+msgstr "Mostrar marcadores de la pose"
 
 
 msgid "Show markers belonging to the active action instead of Scene markers (Action and Shape Key Editors only)"
-msgstr "Muestra los marcadores pertenecientes a la acción activa, en vez de los de la escena (sólo en editores de acciones y Formas clave)"
+msgstr "Mostrará los marcadores pertenecientes a la acción activa, en vez de los marcadores de la escena (sólo para el Editor de acciones y el Editor de Formas clave)"
 
 
 msgid "Show Sliders"
@@ -100334,7 +100342,7 @@ msgstr "Sincronizar marcadores"
 
 
 msgid "Sync Markers with keyframe edits"
-msgstr "Sincroniza los marcadores al editar fotogramas clave"
+msgstr "Sincronizar los marcadores al editar fotogramas clave"
 
 
 msgid "Realtime Updates"
@@ -104442,7 +104450,7 @@ msgstr "Estilo de control"
 
 
 msgid "Widget Label Style"
-msgstr "Estilo etiqueta del control"
+msgstr "Estilo Control etiqueta"
 
 
 msgid "Theme Text Editor"
@@ -104622,7 +104630,7 @@ msgstr "Colores Elementos lista"
 
 
 msgid "Menu Widget Colors"
-msgstr "Colores Controles menú"
+msgstr "Colores Control menú"
 
 
 msgid "Menu Backdrop Colors"
@@ -104899,7 +104907,7 @@ msgstr "Color de la estructura en modo Edición, cuando la selección de bordes 
 
 
 msgid "Theme Widget Color Set"
-msgstr "Conjunto de colores de controles"
+msgstr "Conjunto de colores Control"
 
 
 msgid "Theme settings for widget color sets"
@@ -104931,7 +104939,7 @@ msgstr "Sombreado  Arriba"
 
 
 msgid "Theme Widget State Color"
-msgstr "Color de estado de controles"
+msgstr "Color de estado de Control"
 
 
 msgid "Theme settings for widget state colors"
@@ -105071,7 +105079,7 @@ msgstr "Esculpido de curvas"
 
 
 msgid "Curve Profile Widget"
-msgstr "Control de curva de perfil"
+msgstr "Control curva de perfil"
 
 
 msgid "Used for defining a profile's path"
@@ -108131,7 +108139,7 @@ msgstr "Nombre del elemento del mapa de acción"
 
 
 msgid "Identifier of operator to call on action event"
-msgstr "Identificador del operador a invocar en un evento de la acción"
+msgstr "Identificador del operador a ser invocado por el evento de la acción"
 
 
 msgid "Operator Mode"
@@ -111250,6 +111258,11 @@ msgid "Mesh Filter Modal Map"
 msgstr "Mapa modal - Filtro de malla"
 
 
+msgctxt "Operator"
+msgid "DEM data (.hgt) as Mesh and/or Image"
+msgstr "Datos DEM (.hgt) como malla y/o imagen"
+
+
 msgid "You have been logged out"
 msgstr "Se ha cerrado la sesión"
 
@@ -111840,6 +111853,10 @@ msgstr "Interfaz de animación"
 
 msgid "Path to gltfpack"
 msgstr "Ruta a gltfpack"
+
+
+msgid "This is the least efficient of the available forms, and should only be used when required."
+msgstr "Este es el formato menos eficiente de todos, sólo debería ser usado cuando sea necesario."
 
 
 msgid "Export only deformation bones is not possible when not sampling animation"
@@ -114606,14 +114623,6 @@ msgid "Caps Type"
 msgstr "Tipo de extremos"
 
 
-msgid "CCW"
-msgstr "Antihorario"
-
-
-msgid "CW"
-msgstr "Horario"
-
-
 msgid "Invert to Fill"
 msgstr "Invertir a Rellenar"
 
@@ -117182,7 +117191,7 @@ msgstr "Ajustar previsualización a ventana"
 
 msgctxt "Operator"
 msgid "Sequence Render Image"
-msgstr "Procesar fotograma"
+msgstr "Procesar imagen"
 
 
 msgctxt "Operator"
@@ -117926,7 +117935,7 @@ msgstr "STL (.stl)"
 
 msgctxt "Operator"
 msgid "Render Image"
-msgstr "Procesar fotograma"
+msgstr "Procesar imagen"
 
 
 msgctxt "Operator"
@@ -118060,7 +118069,7 @@ msgstr "Nivel superior"
 
 
 msgid "Sub Level"
-msgstr "Sub nivel"
+msgstr "Nivel inferior"
 
 
 msgid "Link Materials To"
@@ -118230,7 +118239,7 @@ msgstr "Título del panel"
 
 
 msgid "Widget Label"
-msgstr "Etiqueta de control"
+msgstr "Etiqueta control"
 
 
 msgid "Temporary Files"
@@ -118481,7 +118490,7 @@ msgstr "Perspectiva / Ortogonal"
 
 msgctxt "Operator"
 msgid "Viewport Render Image"
-msgstr "Procesar fotograma"
+msgstr "Procesar imagen"
 
 
 msgctxt "Operator"
@@ -120848,6 +120857,18 @@ msgid "armatures"
 msgstr "esqueletos"
 
 
+msgid "Unable to create builtin attribute in edit mode"
+msgstr "No es posible crear un atributo interno en modo Edición"
+
+
+msgid "Domain unsupported for \"id\" attribute"
+msgstr "Dominio no soportado para el atributo \"id\""
+
+
+msgid "Type unsupported for \"id\" attribute"
+msgstr "Tipo no soportado para el atributo \"id\""
+
+
 msgid "Attribute name cannot be empty"
 msgstr "El nombre del atributo no puede estar vacío"
 
@@ -121315,11 +121336,11 @@ msgstr "luces"
 
 
 msgid "Light Linking for %s"
-msgstr "Vinculación de iluminación para %s"
+msgstr "Vinculación_iluminación %s"
 
 
 msgid "Shadow Linking for %s"
-msgstr "Vinculación de sombras para %s"
+msgstr "Vinculación_sombras %s"
 
 
 msgid "Cannot unlink unsupported '%s' from light linking collection '%s'"
@@ -121360,18 +121381,6 @@ msgstr "mallas"
 
 msgid "Auto Smooth"
 msgstr "Suavizado automático"
-
-
-msgid "Socket_1"
-msgstr "Conector_1"
-
-
-msgid "Input_1_use_attribute"
-msgstr "Entrada_1_usar_atributo"
-
-
-msgid "Input_1_attribute_name"
-msgstr "Entrada_1_nombre_atributo"
 
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
@@ -122455,6 +122464,10 @@ msgid "Cannot create the Animation Context"
 msgstr "No es posible crear el contexto de animación"
 
 
+msgid "One or more F-Curves are not visible due to filter settings"
+msgstr "Una o más curvas-f no se encuentran visibles debido a las opciones de filtrado"
+
+
 msgid "F-Curves have no valid size"
 msgstr "Las curvas-f tienen un tamaño inválido"
 
@@ -122793,20 +122806,12 @@ msgid "No object found to operate on"
 msgstr "No se encontraron objetos sobre los cuales operar"
 
 
-msgid "Bone collections can only be added to an Armature"
-msgstr "Las colecciones de huesos sólo pueden ser agregadas a un esqueleto"
-
-
 msgid "Cannot add bone collections to a linked Armature without an override"
 msgstr "No es posible agregar colecciones de huesos a un esqueleto vinculado sin una redefinición"
 
 
 msgid "Cannot add bone collections to a linked Armature with a system override; explicitly create an override on the Armature"
 msgstr "No es posible agregar colecciones de huesos a un esqueleto vinculado con una redefinición del sistema; crear de forma explícita una redefinición en el esqueleto"
-
-
-msgid "Bone collections can only be edited on an Armature"
-msgstr "Las colecciones de huesos sólo pueden ser editadas en un esqueleto"
 
 
 msgid "Cannot update a linked Armature with a system override; explicitly create an override on the Armature"
@@ -122819,6 +122824,10 @@ msgstr "El esqueleto no contiene ninguna colección de huesos activa, selecciona
 
 msgid "Cannot edit bone collections that are linked from another blend file"
 msgstr "No es posible editar colecciones de huesos que se encuentren vinculadas desde otro archivo .blend"
+
+
+msgid "Bone collections can only be edited on an Armature"
+msgstr "Las colecciones de huesos sólo pueden ser editadas en un esqueleto"
 
 
 msgid "Cannot edit bone collections on linked Armatures without override"
@@ -123396,6 +123405,10 @@ msgstr "El grupo de nodos debe contener un nodo de salida"
 
 msgid "Data-block inputs are unsupported"
 msgstr "Entradas del bloque de datos no soportadas"
+
+
+msgid "Node group's first output must be a geometry"
+msgstr "La primera salida del grupo de nodos debe ser una geometría"
 
 
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
@@ -127692,7 +127705,7 @@ msgstr "Y:"
 
 
 msgid "Pattern Area:"
-msgstr "Área patrón:"
+msgstr "Área del patrón:"
 
 
 msgid "Width:"
@@ -133387,10 +133400,6 @@ msgstr "La entrada de geometría del grupo de nodos debe encontrarse en primer l
 
 msgid "Node group must have an output socket"
 msgstr "El grupo de nodos debe contener un conector de salida"
-
-
-msgid "Node group's first output must be a geometry"
-msgstr "La primera salida del grupo de nodos debe ser una geometría"
 
 
 msgid "NormalEdit"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-03-01 16:12+0000\n"
+"PO-Revision-Date: 2024-03-23 04:06+0000\n"
 "Last-Translator: Marina Veselkova <m.ves.cg@gmail.com>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
@@ -4049,12 +4049,20 @@ msgid "Active Collection Index"
 msgstr "Индекс активной коллекции"
 
 
+msgid "The index of the Armature's active bone collection; -1 when there is no active collection. Note that this is indexing the underlying array of bone collections, which may not be in the order you expect. Root collections are listed first, and siblings are always sequential. Apart from that, bone collections can be in any order, and thus incrementing or decrementing this index can make the active bone collection jump around in unexpected ways. For a more predictable interface, use `active` or `active_name`"
+msgstr "Индекс активной коллекции костей арматуры; -1, если активной коллекции нет. Обратите внимание, что это индексирование внутреннего массива коллекций костей, который может не совпадать с ожидаемым порядком. Корневые коллекции перечислены первыми, а дочерние всегда следуют последовательно. Однако порядок остальных коллекций костей может быть произвольным, поэтому увеличение или уменьшение этого индекса может привести к неожиданным переключениям между активными коллекциями. Для более предсказуемого управления используйте `active` или `active_name`"
+
+
 msgid "Active Collection Name"
 msgstr "Имя активной коллекции"
 
 
 msgid "The name of the Armature's active bone collection; empty when there is no active collection"
 msgstr "Имя активной коллекции костей скелета; пустое, если активной коллекции нет"
+
+
+msgid "Read-only flag that indicates there is at least one bone collection marked as 'solo'"
+msgstr "Флаг, только для чтения, указывает на наличие хотя бы одной коллекции костей, помеченной как \"соло\""
 
 
 msgid "Theme color or custom color of a bone"
@@ -4452,18 +4460,6 @@ msgid "Number of pixels to expand or contract fill area"
 msgstr "Количество пикселей для расширения или сокращения области заливки"
 
 
-msgid "Direction"
-msgstr "Направление"
-
-
-msgid "Add effect of brush"
-msgstr "Кисть с эффектом добавления"
-
-
-msgid "Subtract effect of brush"
-msgstr "Кисть с эффектом вычитания"
-
-
 msgid "Eraser Mode"
 msgstr "Режим ластика"
 
@@ -4510,6 +4506,10 @@ msgstr "Размер зазоров"
 
 msgid "Strokes end extension for closing gaps, use zero to disable"
 msgstr "Величина продления штрихов для замыкания контуров, используйте 0 для отключения"
+
+
+msgid "Direction"
+msgstr "Направление"
 
 
 msgid "Direction of the fill"
@@ -6166,6 +6166,10 @@ msgid "The inputs are invalid, or the algorithm has been improperly called"
 msgstr "Входные данные являются недопустимыми или алгоритм неправильно вызван"
 
 
+msgid "Child collection with its collection related settings"
+msgstr "Дочерняя коллекция со связанными с ней настройками"
+
+
 msgid "Light Linking"
 msgstr "Привязка света"
 
@@ -6400,6 +6404,42 @@ msgstr "Линейный AP1 с точкой белого ACES"
 
 msgid "AgX Base Display P3"
 msgstr "AgX Base Display P3"
+
+
+msgid "AgX Base Image Encoding for Display P3 Display"
+msgstr "Кодировка изображения на основе AgX для Display P3 экранов"
+
+
+msgid "AgX Base Rec.1886"
+msgstr "AgX Base Rec.1886"
+
+
+msgid "AgX Base Image Encoding for Rec.1886 Display"
+msgstr "Кодировка изображения на основе AgX для Rec.1886 экранов"
+
+
+msgid "AgX Base Rec.2020"
+msgstr "AgX Base Rec.2020"
+
+
+msgid "AgX Base Image Encoding for BT.2020 Display"
+msgstr "Кодировка изображения на основе AgX для BT.2020 экранов"
+
+
+msgid "AgX Base sRGB"
+msgstr "AgX base sRGB"
+
+
+msgid "AgX Base Image Encoding for sRGB Display"
+msgstr "Кодировка изображения на основе AgX для sRGB экранов"
+
+
+msgid "AgX Log"
+msgstr "AgX log"
+
+
+msgid "Display P3"
+msgstr "Display P3"
 
 
 msgid "Filmic sRGB"
@@ -18994,6 +19034,14 @@ msgstr "Число сэмплов на цикли при включении ки
 
 msgid "Length of a dash cycle measured in stroke samples"
 msgstr "Длина цикличного повторения, измеряемая в штриховых сэмплах"
+
+
+msgid "Add effect of brush"
+msgstr "Кисть с эффектом добавления"
+
+
+msgid "Subtract effect of brush"
+msgstr "Кисть с эффектом вычитания"
 
 
 msgid "Maximum distance to search for disconnected loose parts in the mesh"
@@ -81665,14 +81713,6 @@ msgstr "Значение маски"
 
 msgid "Caps Type"
 msgstr "Тип конца"
-
-
-msgid "CCW"
-msgstr "Против часовой"
-
-
-msgid "CW"
-msgstr "По часовой"
 
 
 msgctxt "Operator"

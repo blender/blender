@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2023-12-12 02:28+0000\n"
@@ -2887,18 +2887,6 @@ msgid "Curve used for the strength"
 msgstr "Křivka použitá pro pevnost"
 
 
-msgid "Direction"
-msgstr "Směr"
-
-
-msgid "Add effect of brush"
-msgstr "Přidat efekt štětce"
-
-
-msgid "Subtract effect of brush"
-msgstr "Odečtení efektu štětce"
-
-
 msgid "Eraser Mode"
 msgstr "Režim gumy"
 
@@ -2921,6 +2909,10 @@ msgstr "Množství mazání síly"
 
 msgid "Affect Stroke Thickness"
 msgstr "Ovlivnit Tloušťku Tahu"
+
+
+msgid "Direction"
+msgstr "Směr"
 
 
 msgid "Normal"
@@ -8838,6 +8830,14 @@ msgstr "Nastavit barvu pro mříže"
 
 msgid "Editable falloff curve"
 msgstr "Křivka útlumu"
+
+
+msgid "Add effect of brush"
+msgstr "Přidat efekt štětce"
+
+
+msgid "Subtract effect of brush"
+msgstr "Odečtení efektu štětce"
 
 
 msgid "Falloff Angle"
