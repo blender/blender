@@ -21,7 +21,10 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Curve").supported_type(
       {GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Vector>("Normal").default_value({0.0f, 0.0f, 1.0f}).field_on_all();
+  b.add_input<decl::Vector>("Normal")
+      .default_value({0.0f, 0.0f, 1.0f})
+      .subtype(PROP_XYZ)
+      .field_on_all();
   b.add_output<decl::Geometry>("Curve").propagate_all();
 }
 
