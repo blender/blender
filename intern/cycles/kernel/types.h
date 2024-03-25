@@ -45,6 +45,7 @@ CCL_NAMESPACE_BEGIN
 #define OBJECT_NONE (~0)
 #define PRIM_NONE (~0)
 #define LAMP_NONE (~0)
+#define EMITTER_NONE (~0)
 #define ID_NONE (0.0f)
 #define PASS_UNUSED (~0)
 #define LIGHTGROUP_NONE (~0)

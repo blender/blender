@@ -285,7 +285,8 @@ ccl_device_inline bool triangle_light_valid_ray_segment(KernelGlobals kg,
 
   /* Only one side is sampled, intersect the ray and the triangle light plane to find the visible
    * ray segment. Flip normal if Emission Sampling is set to back. */
-  return ray_plane_intersect((shader_flag & SD_MIS_BACK) ? -ls->Ng : ls->Ng, P, D, t_range);
+  const float3 N = ls->Ng;
+  return ray_plane_intersect((shader_flag & SD_MIS_BACK) ? -N : N, P, D, t_range);
 }
 
 template<bool in_volume_segment>
@@ -326,9 +327,8 @@ ccl_device_forceinline bool triangle_light_tree_parameters(
   }
 
   const bool front_facing = bcone.theta_o != 0.0f || dot(bcone.axis, point_to_centroid) < 0;
-  const bool in_volume = is_zero(N);
 
-  return (front_facing && shape_above_surface) || in_volume;
+  return front_facing && shape_above_surface;
 }
 
 CCL_NAMESPACE_END

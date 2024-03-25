@@ -518,9 +518,8 @@ ccl_device_forceinline bool area_light_tree_parameters(const ccl_global KernelLi
   const bool shape_above_surface = dot(N, centroid - P) + fabsf(dot(N, extentu)) +
                                        fabsf(dot(N, extentv)) >
                                    0;
-  const bool in_volume = is_zero(N);
 
-  return (front_facing && shape_above_surface) || in_volume;
+  return front_facing && shape_above_surface;
 }
 
 CCL_NAMESPACE_END
