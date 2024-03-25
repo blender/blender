@@ -53,8 +53,8 @@ static int cachefile_open_invoke(bContext *C, wmOperator *op, const wmEvent * /*
     char filepath[FILE_MAX];
     Main *bmain = CTX_data_main(C);
 
-    STRNCPY(filepath, BKE_main_blendfile_path(bmain));
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".abc");
+    /* Default to the same directory as the blend file. */
+    BLI_path_split_dir_part(BKE_main_blendfile_path(bmain), filepath, sizeof(filepath));
     RNA_string_set(op->ptr, "filepath", filepath);
   }
 
@@ -119,7 +119,7 @@ void CACHEFILE_OT_open(wmOperatorType *ot)
   ot->cancel = open_cancel;
 
   WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_ALEMBIC | FILE_TYPE_FOLDER,
+                                 FILE_TYPE_ALEMBIC | FILE_TYPE_USD | FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
@@ -163,8 +163,8 @@ static int cachefile_layer_open_invoke(bContext *C, wmOperator *op, const wmEven
     char filepath[FILE_MAX];
     Main *bmain = CTX_data_main(C);
 
-    STRNCPY(filepath, BKE_main_blendfile_path(bmain));
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".abc");
+    /* Default to the same directory as the blend file. */
+    BLI_path_split_dir_part(BKE_main_blendfile_path(bmain), filepath, sizeof(filepath));
     RNA_string_set(op->ptr, "filepath", filepath);
   }
 
@@ -215,7 +215,7 @@ void CACHEFILE_OT_layer_add(wmOperatorType *ot)
   ot->exec = cachefile_layer_add_exec;
 
   WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_ALEMBIC | FILE_TYPE_FOLDER,
+                                 FILE_TYPE_ALEMBIC | FILE_TYPE_USD | FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
