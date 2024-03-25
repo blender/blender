@@ -483,9 +483,12 @@ static int grease_pencil_layer_duplicate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  /* Duplicate layer. */
   Layer &active_layer = *grease_pencil.get_active_layer();
-  Layer &new_layer = grease_pencil.add_layer(active_layer.name());
+  Layer &new_layer = grease_pencil.add_layer(active_layer);
 
+  /* Clear source keyframes and recreate them with duplicated drawings. */
+  new_layer.frames_for_write().clear();
   for (auto [key, frame] : active_layer.frames().items()) {
     const int duration = frame.is_implicit_hold() ? 0 : active_layer.get_frame_duration_at(key);
     const int drawing_index = grease_pencil.drawings().size();
