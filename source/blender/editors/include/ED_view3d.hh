@@ -1273,18 +1273,6 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area);
 #define RETOPOLOGY_ENABLED(v3d) (OVERLAY_RETOPOLOGY_ENABLED((v3d)->overlay))
 #define RETOPOLOGY_OFFSET(v3d) (OVERLAY_RETOPOLOGY_OFFSET((v3d)->overlay))
 
-/* view3d_draw_legacy.c */
-
-/**
- * Try avoid using these more move out of legacy.
- */
-void ED_view3d_draw_bgpic_test(const Scene *scene,
-                               Depsgraph *depsgraph,
-                               ARegion *region,
-                               View3D *v3d,
-                               bool do_foreground,
-                               bool do_camera_frame);
-
 /* `view3d_gizmo_preselect_type.cc` */
 
 void ED_view3d_gizmo_mesh_preselect_get_active(const bContext *C,

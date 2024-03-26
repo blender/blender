@@ -70,22 +70,6 @@ void view3d_main_region_draw(const struct bContext *C, struct ARegion *region);
  */
 void view3d_draw_region_info(const struct bContext *C, struct ARegion *region);
 
-/* view3d_draw_legacy.c */
-
-void ED_view3d_draw_select_loop(struct Depsgraph *depsgraph,
-                                struct ViewContext *vc,
-                                struct Scene *scene,
-                                struct ViewLayer *view_layer,
-                                struct View3D *v3d,
-                                struct ARegion *region,
-                                bool use_obedit_skip,
-                                bool use_nearest);
-
-void ED_view3d_draw_depth_loop(struct Depsgraph *depsgraph,
-                               struct Scene *scene,
-                               struct ARegion *region,
-                               View3D *v3d);
-
 void view3d_depths_rect_create(struct ARegion *region, struct rcti *rect, struct ViewDepths *r_d);
 /**
  * Utility function to find the closest Z value, use for auto-depth.
