@@ -392,14 +392,14 @@ static bool ctx_data_collection_get(const bContext *C, const char *member, ListB
   return false;
 }
 
-static int ctx_data_base_collection_get(const bContext *C, const char *member, ListBase *list)
+static bool ctx_data_base_collection_get(const bContext *C, const char *member, ListBase *list)
 {
   ListBase ctx_object_list;
   if ((ctx_data_collection_get(C, member, &ctx_object_list) == false) ||
       BLI_listbase_is_empty(&ctx_object_list))
   {
     BLI_listbase_clear(list);
-    return 0;
+    return false;
   }
 
   bContextDataResult result;
