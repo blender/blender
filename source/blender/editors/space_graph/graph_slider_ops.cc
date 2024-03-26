@@ -920,7 +920,7 @@ void GRAPH_OT_blend_to_default(wmOperatorType *ot)
 
 static void ease_graph_keys(bAnimContext *ac, const float factor, const float width)
 {
-  ListBase anim_data = {NULL, NULL};
+  ListBase anim_data = {nullptr, nullptr};
 
   ANIM_animdata_filter(
       ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, eAnimCont_Types(ac->datatype));
@@ -951,7 +951,7 @@ static void ease_draw_status_header(bContext *C, wmOperator *op)
 
   /* Operator specific functionality that extends beyond the slider. */
   char op_slider_string[UI_MAX_DRAW_STR];
-  if (strcmp(RNA_property_identifier(gso->factor_prop), "factor") == 0) {
+  if (STREQ(RNA_property_identifier(gso->factor_prop), "factor")) {
     SNPRINTF(op_slider_string, "%s | %s", slider_string, IFACE_("[TAB] - Modify Sharpness"));
   }
   else {
@@ -984,7 +984,7 @@ static void ease_modal_update(bContext *C, wmOperator *op)
   reset_bezts(gso);
   float factor;
   float width;
-  if (strcmp(RNA_property_identifier(gso->factor_prop), "factor") == 0) {
+  if (STREQ(RNA_property_identifier(gso->factor_prop), "factor")) {
     factor = slider_factor_get_and_remember(op);
     width = RNA_float_get(op->ptr, "sharpness");
   }
@@ -994,7 +994,7 @@ static void ease_modal_update(bContext *C, wmOperator *op)
   }
 
   ease_graph_keys(&gso->ac, factor, width);
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
 static int ease_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1006,7 +1006,7 @@ static int ease_modal(bContext *C, wmOperator *op, const wmEvent *event)
   switch (event->type) {
     case EVT_TABKEY: {
       tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
-      if (strcmp(RNA_property_identifier(gso->factor_prop), "factor") == 0) {
+      if (STREQ(RNA_property_identifier(gso->factor_prop), "factor")) {
         /* Switch to sharpness. */
         ED_slider_allow_overshoot_set(gso->slider, false, true);
         ED_slider_factor_bounds_set(gso->slider, 0.001f, 10);
@@ -1066,7 +1066,7 @@ static int ease_exec(bContext *C, wmOperator *op)
 
   ease_graph_keys(&ac, factor, width);
 
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
