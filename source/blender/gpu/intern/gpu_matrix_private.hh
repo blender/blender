@@ -8,5 +8,7 @@
 
 #pragma once
 
-struct GPUMatrixState *GPU_matrix_state_create();
-void GPU_matrix_state_discard(struct GPUMatrixState *state);
+struct GPUMatrixState;
+
+GPUMatrixState *GPU_matrix_state_create();
+void GPU_matrix_state_discard(GPUMatrixState *state);
