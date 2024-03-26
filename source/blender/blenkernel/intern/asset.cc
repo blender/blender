@@ -155,9 +155,9 @@ void BKE_asset_metadata_catalog_id_set(AssetMetaData *asset_data,
 
 void BKE_asset_metadata_idprop_ensure(AssetMetaData *asset_data, IDProperty *prop)
 {
+  using namespace blender::bke;
   if (!asset_data->properties) {
-    IDPropertyTemplate val = {0};
-    asset_data->properties = IDP_New(IDP_GROUP, &val, "AssetMetaData.properties");
+    asset_data->properties = idprop::create_group("AssetMetaData.properties").release();
   }
   /* Important: The property may already exist. For now just allow always allow a newly allocated
    * property, and replace the existing one as a way of updating. */

@@ -409,26 +409,21 @@ static const char *idp_try_read_name(PyObject *name_obj)
 
 static IDProperty *idp_from_PyFloat(const char *name, PyObject *ob)
 {
-  IDPropertyTemplate val = {0};
-  val.d = PyFloat_AsDouble(ob);
-  return IDP_New(IDP_DOUBLE, &val, name);
+  return blender::bke::idprop::create(name, PyFloat_AsDouble(ob)).release();
 }
 
 static IDProperty *idp_from_PyBool(const char *name, PyObject *ob)
 {
-  IDPropertyTemplate val = {0};
-  val.i = PyC_Long_AsBool(ob);
-  return IDP_New(IDP_BOOLEAN, &val, name);
+  return blender::bke::idprop::create(name, int(PyC_Long_AsBool(ob))).release();
 }
 
 static IDProperty *idp_from_PyLong(const char *name, PyObject *ob)
 {
-  IDPropertyTemplate val = {0};
-  val.i = PyC_Long_AsI32(ob);
-  if (val.i == -1 && PyErr_Occurred()) {
+  const int value = PyC_Long_AsI32(ob);
+  if (value == -1 && PyErr_Occurred()) {
     return nullptr;
   }
-  return IDP_New(IDP_INT, &val, name);
+  return blender::bke::idprop::create(name, value).release();
 }
 
 static IDProperty *idp_from_PyUnicode(const char *name, PyObject *ob)
@@ -642,7 +637,6 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
 static IDProperty *idp_from_PyMapping(const char *name, PyObject *ob)
 {
   IDProperty *prop;
-  const IDPropertyTemplate val = {0};
 
   PyObject *keys, *vals, *key, *pval;
   int i, len;
@@ -652,7 +646,7 @@ static IDProperty *idp_from_PyMapping(const char *name, PyObject *ob)
 
   /* We allocate the group first; if we hit any invalid data,
    * we can delete it easily enough. */
-  prop = IDP_New(IDP_GROUP, &val, name);
+  prop = blender::bke::idprop::create_group(name).release();
   len = PyMapping_Length(ob);
   for (i = 0; i < len; i++) {
     key = PySequence_GetItem(keys, i);
@@ -676,9 +670,9 @@ static IDProperty *idp_from_PyMapping(const char *name, PyObject *ob)
 
 static IDProperty *idp_from_DatablockPointer(const char *name, PyObject *ob)
 {
-  IDPropertyTemplate val = {0};
-  pyrna_id_FromPyObject(ob, &val.id);
-  return IDP_New(IDP_ID, &val, name);
+  ID *id = nullptr;
+  pyrna_id_FromPyObject(ob, &id);
+  return blender::bke::idprop::create(name, id).release();
 }
 
 static IDProperty *idp_from_PyObject(PyObject *name_obj, PyObject *ob)

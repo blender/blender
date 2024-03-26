@@ -124,33 +124,26 @@ static CameraCyclesCompatibilityData camera_write_cycles_compatibility_data_crea
     if (prop) {
       return prop;
     }
-    IDPropertyTemplate val = {0};
-    prop = IDP_New(IDP_GROUP, &val, "cycles");
+    prop = blender::bke::idprop::create_group("cycles").release();
     IDP_AddToGroup(group, prop);
     return prop;
   };
 
   auto cycles_property_int_set = [](IDProperty *idprop, const char *name, int value) {
-    IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
-    if (prop) {
+    if (IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT)) {
       IDP_Int(prop) = value;
     }
     else {
-      IDPropertyTemplate val = {0};
-      val.i = value;
-      IDP_AddToGroup(idprop, IDP_New(IDP_INT, &val, name));
+      IDP_AddToGroup(idprop, blender::bke::idprop::create(name, value).release());
     }
   };
 
   auto cycles_property_float_set = [](IDProperty *idprop, const char *name, float value) {
-    IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_FLOAT);
-    if (prop) {
+    if (IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_FLOAT)) {
       IDP_Float(prop) = value;
     }
     else {
-      IDPropertyTemplate val = {0};
-      val.f = value;
-      IDP_AddToGroup(idprop, IDP_New(IDP_FLOAT, &val, name));
+      IDP_AddToGroup(idprop, blender::bke::idprop::create(name, value).release());
     }
   };
 

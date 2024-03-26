@@ -198,11 +198,8 @@ static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
   if (newlen >= prop->len) {
     /* bigger */
     IDProperty **array = static_cast<IDProperty **>(newarr);
-    IDPropertyTemplate val;
-
     for (int a = prop->len; a < newlen; a++) {
-      val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
-      array[a] = IDP_New(IDP_GROUP, &val, "IDP_ResizeArray group");
+      array[a] = blender::bke::idprop::create_group("IDP_ResizeArray group").release();
     }
   }
   else {

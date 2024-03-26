@@ -312,10 +312,7 @@ static void update_id_properties_from_node_group(NodesModifierData *nmd)
   }
 
   IDProperty *old_properties = nmd->settings.properties;
-  {
-    IDPropertyTemplate idprop = {0};
-    nmd->settings.properties = IDP_New(IDP_GROUP, &idprop, "Nodes Modifier Settings");
-  }
+  nmd->settings.properties = bke::idprop::create_group("Nodes Modifier Settings").release();
   IDProperty *new_properties = nmd->settings.properties;
 
   nodes::update_input_properties_from_node_tree(*nmd->node_group, old_properties, *new_properties);

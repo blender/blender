@@ -27,8 +27,7 @@ void IMB_metadata_ensure(IDProperty **metadata)
     return;
   }
 
-  IDPropertyTemplate val = {0};
-  *metadata = IDP_New(IDP_GROUP, &val, "metadata");
+  *metadata = blender::bke::idprop::create_group("metadata").release();
 }
 
 void IMB_metadata_free(IDProperty *metadata)
@@ -81,7 +80,7 @@ void IMB_metadata_set_field(IDProperty *metadata, const char *key, const char *v
     IDP_AssignString(prop, value);
   }
   else {
-    prop = IDP_NewString(value, key);
+    prop = blender::bke::idprop::create(key, value).release();
     IDP_AddToGroup(metadata, prop);
   }
 }

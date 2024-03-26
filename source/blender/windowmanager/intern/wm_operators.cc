@@ -710,8 +710,7 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
   }
 
   if (*properties == nullptr) {
-    IDPropertyTemplate val = {0};
-    *properties = IDP_New(IDP_GROUP, &val, "wmOpItemProp");
+    *properties = blender::bke::idprop::create_group("wmOpItemProp").release();
   }
 
   if (*ptr == nullptr) {
@@ -825,8 +824,7 @@ void WM_operator_properties_free(PointerRNA *ptr)
 static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_properties)
 {
   bool changed = false;
-  IDPropertyTemplate val = {0};
-  IDProperty *replaceprops = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+  IDProperty *replaceprops = blender::bke::idprop::create_group("wmOperatorProperties").release();
 
   PropertyRNA *iterprop = RNA_struct_iterator_property(op->type->srna);
 
@@ -894,8 +892,8 @@ bool WM_operator_last_properties_store(wmOperator *op)
     LISTBASE_FOREACH (wmOperator *, opm, &op->macro) {
       if (opm->properties) {
         if (op->type->last_properties == nullptr) {
-          IDPropertyTemplate temp{};
-          op->type->last_properties = IDP_New(IDP_GROUP, &temp, "wmOperatorProperties");
+          op->type->last_properties =
+              blender::bke::idprop::create_group("wmOperatorProperties").release();
         }
         IDProperty *idp_macro = IDP_CopyProperty(opm->properties);
         STRNCPY(idp_macro->name, opm->type->idname);
@@ -1262,8 +1260,7 @@ wmOperator *WM_operator_last_redo(const bContext *C)
 IDProperty *WM_operator_last_properties_ensure_idprops(wmOperatorType *ot)
 {
   if (ot->last_properties == nullptr) {
-    IDPropertyTemplate val = {0};
-    ot->last_properties = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+    ot->last_properties = blender::bke::idprop::create_group("wmOperatorProperties").release();
   }
   return ot->last_properties;
 }

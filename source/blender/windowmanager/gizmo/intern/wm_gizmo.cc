@@ -58,8 +58,7 @@ static wmGizmo *wm_gizmo_create(const wmGizmoType *gzt, PointerRNA *properties)
     gz->properties = IDP_CopyProperty(static_cast<const IDProperty *>(properties->data));
   }
   else {
-    IDPropertyTemplate val = {0};
-    gz->properties = IDP_New(IDP_GROUP, &val, "wmGizmoProperties");
+    gz->properties = blender::bke::idprop::create_group("wmGizmoProperties").release();
   }
   *gz->ptr = RNA_pointer_create(static_cast<ID *>(G_MAIN->wm.first), gzt->srna, gz->properties);
 
@@ -231,8 +230,7 @@ int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop, cons
     bToolRef *tref = WM_toolsystem_ref_from_context(C);
     if (tref && WM_toolsystem_ref_properties_get_from_operator(tref, gzop->type, &tref_ptr)) {
       if (gzop->ptr.data == nullptr) {
-        IDPropertyTemplate val = {0};
-        gzop->ptr.data = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+        gzop->ptr.data = blender::bke::idprop::create_group("wmOperatorProperties").release();
       }
       IDP_MergeGroup(static_cast<IDProperty *>(gzop->ptr.data),
                      static_cast<const IDProperty *>(tref_ptr.data),
@@ -603,8 +601,7 @@ void WM_gizmo_properties_create(PointerRNA *ptr, const char *gtstring)
 void WM_gizmo_properties_alloc(PointerRNA **ptr, IDProperty **properties, const char *gtstring)
 {
   if (*properties == nullptr) {
-    IDPropertyTemplate val = {0};
-    *properties = IDP_New(IDP_GROUP, &val, "wmOpItemProp");
+    *properties = blender::bke::idprop::create_group("wmOpItemProp").release();
   }
 
   if (*ptr == nullptr) {

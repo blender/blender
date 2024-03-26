@@ -920,11 +920,10 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
       const std::string use_attribute_id = socket_identifier + input_use_attribute_suffix();
       const std::string attribute_name_id = socket_identifier + input_attribute_name_suffix();
 
-      IDPropertyTemplate idprop = {0};
-      IDProperty *use_attribute_prop = IDP_New(IDP_BOOLEAN, &idprop, use_attribute_id.c_str());
+      IDProperty *use_attribute_prop = bke::idprop::create_bool(use_attribute_id, false).release();
       IDP_AddToGroup(&properties, use_attribute_prop);
 
-      IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_id.c_str());
+      IDProperty *attribute_prop = bke::idprop::create(attribute_name_id, "").release();
       IDP_AddToGroup(&properties, attribute_prop);
 
       if (old_properties == nullptr) {

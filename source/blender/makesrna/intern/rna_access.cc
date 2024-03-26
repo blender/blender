@@ -281,8 +281,7 @@ IDProperty *RNA_struct_idprops(PointerRNA *ptr, bool create)
   }
 
   if (create && *property_ptr == nullptr) {
-    IDPropertyTemplate val = {0};
-    *property_ptr = IDP_New(IDP_GROUP, &val, __func__);
+    *property_ptr = blender::bke::idprop::create_group(__func__).release();
   }
 
   return *property_ptr;
@@ -2454,17 +2453,11 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, bool value)
     bprop->set_ex(ptr, prop, value);
   }
   else if (prop->flag & PROP_EDITABLE) {
-    IDPropertyTemplate val = {0};
-    IDProperty *group;
-
-    val.i = value;
-
-    group = RNA_struct_idprops(ptr, true);
-    if (group) {
+    if (IDProperty *group = RNA_struct_idprops(ptr, true)) {
 #ifdef USE_INT_IDPROPS_FOR_BOOLEAN_RNA_PROP
-      IDP_AddToGroup(group, IDP_New(IDP_INT, &val, prop->identifier));
+      IDP_AddToGroup(group, blender::bke::idprop::create(prop->identifier, int(value)).release());
 #else
-      IDP_AddToGroup(group, IDP_New(IDP_BOOLEAN, &val, prop->identifier));
+      IDP_AddToGroup(group, blender::bke::idprop::create_bool(prop->identifier, value).release());
 #endif
     }
   }
@@ -2624,7 +2617,6 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bo
   }
   else if (prop->flag & PROP_EDITABLE) {
     IDPropertyTemplate val = {0};
-    IDProperty *group;
 
     val.array.len = prop->totarraylength;
 #ifdef USE_INT_IDPROPS_FOR_BOOLEAN_RNA_PROP
@@ -2633,8 +2625,7 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const bo
     val.array.type = IDP_BOOLEAN;
 #endif
 
-    group = RNA_struct_idprops(ptr, true);
-    if (group) {
+    if (IDProperty *group = RNA_struct_idprops(ptr, true)) {
       idprop = IDP_New(IDP_ARRAY, &val, prop->identifier);
       IDP_AddToGroup(group, idprop);
       int *values_dst = static_cast<int *>(IDP_Array(idprop));
@@ -2825,16 +2816,9 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
     iprop->set_ex(ptr, prop, value);
   }
   else if (prop->flag & PROP_EDITABLE) {
-    IDPropertyTemplate val = {0};
-    IDProperty *group;
-
     RNA_property_int_clamp(ptr, prop, &value);
-
-    val.i = value;
-
-    group = RNA_struct_idprops(ptr, true);
-    if (group) {
-      IDP_AddToGroup(group, IDP_New(IDP_INT, &val, prop->identifier));
+    if (IDProperty *group = RNA_struct_idprops(ptr, true)) {
+      IDP_AddToGroup(group, blender::bke::idprop::create(prop->identifier, value).release());
     }
   }
 }
@@ -2961,6 +2945,7 @@ int RNA_property_int_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 
 void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *values)
 {
+  using namespace blender;
   IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
   IDProperty *idprop;
 
@@ -2989,19 +2974,11 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
     iprop->setarray_ex(ptr, prop, values);
   }
   else if (prop->flag & PROP_EDITABLE) {
-    IDPropertyTemplate val = {0};
-    IDProperty *group;
-
     // RNA_property_int_clamp_array(ptr, prop, &value); /* TODO. */
-
-    val.array.len = prop->totarraylength;
-    val.array.type = IDP_INT;
-
-    group = RNA_struct_idprops(ptr, true);
-    if (group) {
-      idprop = IDP_New(IDP_ARRAY, &val, prop->identifier);
-      IDP_AddToGroup(group, idprop);
-      memcpy(IDP_Array(idprop), values, sizeof(int) * idprop->len);
+    if (IDProperty *group = RNA_struct_idprops(ptr, true)) {
+      IDP_AddToGroup(
+          group,
+          bke::idprop::create(prop->identifier, Span(values, prop->totarraylength)).release());
     }
   }
 }
@@ -3172,16 +3149,9 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
     fprop->set_ex(ptr, prop, value);
   }
   else if (prop->flag & PROP_EDITABLE) {
-    IDPropertyTemplate val = {0};
-    IDProperty *group;
-
     RNA_property_float_clamp(ptr, prop, &value);
-
-    val.f = value;
-
-    group = RNA_struct_idprops(ptr, true);
-    if (group) {
-      IDP_AddToGroup(group, IDP_New(IDP_FLOAT, &val, prop->identifier));
+    if (IDProperty *group = RNA_struct_idprops(ptr, true)) {
+      IDP_AddToGroup(group, blender::bke::idprop::create(prop->identifier, value).release());
     }
   }
 }
@@ -3373,19 +3343,12 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
     fprop->setarray_ex(ptr, prop, values);
   }
   else if (prop->flag & PROP_EDITABLE) {
-    IDPropertyTemplate val = {0};
-    IDProperty *group;
-
     // RNA_property_float_clamp_array(ptr, prop, &value); /* TODO. */
-
-    val.array.len = prop->totarraylength;
-    val.array.type = IDP_FLOAT;
-
-    group = RNA_struct_idprops(ptr, true);
-    if (group) {
-      idprop = IDP_New(IDP_ARRAY, &val, prop->identifier);
-      IDP_AddToGroup(group, idprop);
-      memcpy(IDP_Array(idprop), values, sizeof(float) * idprop->len);
+    if (IDProperty *group = RNA_struct_idprops(ptr, true)) {
+      IDP_AddToGroup(group,
+                     blender::bke::idprop::create(prop->identifier,
+                                                  blender::Span(values, prop->totarraylength))
+                         .release());
     }
   }
 }
@@ -3938,13 +3901,13 @@ void RNA_property_pointer_set(PointerRNA *ptr,
     }
     else {
       BLI_assert(idprop->type == IDP_GROUP);
-
-      IDPropertyTemplate val{};
-      val.id = static_cast<ID *>(ptr_value.data);
       IDProperty *group = RNA_struct_idprops(ptr, true);
       BLI_assert(group != nullptr);
 
-      IDP_ReplaceInGroup_ex(group, IDP_New(IDP_ID, &val, idprop->name), idprop);
+      IDP_ReplaceInGroup_ex(
+          group,
+          blender::bke::idprop::create(idprop->name, static_cast<ID *>(ptr_value.data)).release(),
+          idprop);
     }
   }
   /* RNA property. */
@@ -3957,14 +3920,11 @@ void RNA_property_pointer_set(PointerRNA *ptr,
   }
   /* IDProperty disguised as RNA property (and not yet defined in ptr). */
   else if (prop->flag & PROP_EDITABLE) {
-    IDPropertyTemplate val = {0};
-    IDProperty *group;
-
-    val.id = static_cast<ID *>(ptr_value.data);
-
-    group = RNA_struct_idprops(ptr, true);
-    if (group) {
-      IDP_ReplaceInGroup(group, IDP_New(IDP_ID, &val, prop->identifier));
+    if (IDProperty *group = RNA_struct_idprops(ptr, true)) {
+      IDP_ReplaceInGroup(
+          group,
+          blender::bke::idprop::create(prop->identifier, static_cast<ID *>(ptr_value.data))
+              .release());
     }
   }
 }
@@ -3988,14 +3948,11 @@ void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop)
     /* already exists */
   }
   else if (prop->flag & PROP_IDPROPERTY) {
-    IDPropertyTemplate val = {0};
     IDProperty *group;
-
-    val.i = 0;
 
     group = RNA_struct_idprops(ptr, true);
     if (group) {
-      IDP_AddToGroup(group, IDP_New(IDP_GROUP, &val, prop->identifier));
+      IDP_AddToGroup(group, blender::bke::idprop::create_group(prop->identifier).release());
     }
   }
   else {
@@ -4212,10 +4169,9 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
   }
 
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
-    IDPropertyTemplate val = {0};
     IDProperty *item;
 
-    item = IDP_New(IDP_GROUP, &val, "");
+    item = blender::bke::idprop::create_group("").release();
     if (is_liboverride) {
       item->flag |= IDP_FLAG_OVERRIDELIBRARY_LOCAL;
     }
@@ -4227,14 +4183,13 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
   }
   else if (prop->flag & PROP_IDPROPERTY) {
     IDProperty *group, *item;
-    IDPropertyTemplate val = {0};
 
     group = RNA_struct_idprops(ptr, true);
     if (group) {
       idprop = IDP_NewIDPArray(prop->identifier);
       IDP_AddToGroup(group, idprop);
 
-      item = IDP_New(IDP_GROUP, &val, "");
+      item = blender::bke::idprop::create_group("").release();
       if (is_liboverride) {
         item->flag |= IDP_FLAG_OVERRIDELIBRARY_LOCAL;
       }

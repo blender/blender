@@ -1561,6 +1561,7 @@ static void do_version_subsurface_methods(bNode *node)
 
 static void version_geometry_nodes_add_attribute_input_settings(NodesModifierData *nmd)
 {
+  using namespace blender;
   if (nmd->settings.properties == nullptr) {
     return;
   }
@@ -1583,14 +1584,13 @@ static void version_geometry_nodes_add_attribute_input_settings(NodesModifierDat
     char use_attribute_prop_name[MAX_IDPROP_NAME];
     SNPRINTF(use_attribute_prop_name, "%s%s", property->name, "_use_attribute");
 
-    IDPropertyTemplate idprop = {0};
-    IDProperty *use_attribute_prop = IDP_New(IDP_INT, &idprop, use_attribute_prop_name);
+    IDProperty *use_attribute_prop = bke::idprop::create(use_attribute_prop_name, 0).release();
     IDP_AddToGroup(nmd->settings.properties, use_attribute_prop);
 
     char attribute_name_prop_name[MAX_IDPROP_NAME];
     SNPRINTF(attribute_name_prop_name, "%s%s", property->name, "_attribute_name");
 
-    IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_prop_name);
+    IDProperty *attribute_prop = bke::idprop::create(attribute_name_prop_name, "").release();
     IDP_AddToGroup(nmd->settings.properties, attribute_prop);
   }
 }
