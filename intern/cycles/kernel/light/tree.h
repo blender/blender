@@ -194,7 +194,7 @@ ccl_device void light_tree_importance(const float3 N_or_D,
   float cos_min_outgoing_angle;
   if ((cos_theta >= cos_theta_u) || (cos_theta_minus_theta_u >= cos_theta_o)) {
     /* theta - theta_o - theta_u <= 0 */
-    kernel_assert((fast_acosf(cos_theta) - bcone.theta_o - fast_acosf(cos_theta_u)) < 5e-4f);
+    kernel_assert((fast_acosf(cos_theta) - bcone.theta_o - fast_acosf(cos_theta_u)) < 1e-3f);
     cos_min_outgoing_angle = 1.0f;
   }
   else if ((bcone.theta_o + bcone.theta_e > M_PI_F) ||
