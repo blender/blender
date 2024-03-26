@@ -1964,13 +1964,13 @@ if html_theme == "furo":
     fw("html_static_path = ['static']\n")
     fw("templates_path = ['templates']\n")
     fw("html_context = {'commit': '%s - %s'}\n" % (BLENDER_VERSION_HASH_HTML_LINK, BLENDER_VERSION_DATE))
-    fw("html_extra_path = ['static/favicon.ico', 'static/blender_logo.svg']\n")
+    fw("html_extra_path = ['static']\n")
     fw("html_favicon = 'static/favicon.ico'\n")
     fw("html_logo = 'static/blender_logo.svg'\n")
     # Disable default `last_updated` value, since this is the date of doc generation, not the one of the source commit.
     fw("html_last_updated_fmt = None\n\n")
     fw("if html_theme == 'furo':\n")
-    fw("    html_css_files = ['css/version_switch.css']\n")
+    fw("    html_css_files = ['css/theme_overrides.css', 'css/version_switch.css']\n")
     fw("    html_js_files = ['js/version_switch.js']\n")
 
     # needed for latex, pdf gen
@@ -1991,12 +1991,11 @@ class PatchedPythonDomain(PythonDomain):
             del node['refspecific']
         return super(PatchedPythonDomain, self).resolve_xref(
             env, fromdocname, builder, typ, target, node, contnode)
+
+def setup(app):
+    app.add_domain(PatchedPythonDomain, override=True)
 """)
     # end workaround
-
-    fw("def setup(app):\n")
-    fw("    app.add_css_file('css/theme_overrides.css')\n")
-    fw("    app.add_domain(PatchedPythonDomain, override=True)\n\n")
 
     file.close()
 
