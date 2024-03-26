@@ -1139,7 +1139,7 @@ static void rna_HookModifier_vertex_indices_set(HookModifierData *hmd,
                                                 const int *indices,
                                                 int indices_num)
 {
-  if (indices_num == 0) {
+  if (indices_num <= 0) {
     MEM_SAFE_FREE(hmd->indexar);
     hmd->indexar_num = 0;
   }
