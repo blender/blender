@@ -16,6 +16,7 @@
 #include "../blenlib/BLI_function_ref.hh"
 #include "../blenlib/BLI_sys_types.h"
 #include "../blenlib/BLI_utildefines.h"
+#include "../blenlib/BLI_vector.hh"
 
 struct BlenderRNA;
 struct FunctionRNA;
@@ -441,14 +442,8 @@ struct CollectionPropertyIterator {
   int valid;
 };
 
-struct CollectionPointerLink {
-  CollectionPointerLink *next, *prev;
-  PointerRNA ptr;
-};
-
-/** Copy of ListBase for RNA. */
-struct CollectionListBase {
-  CollectionPointerLink *first, *last;
+struct CollectionVector {
+  blender::Vector<PointerRNA> items;
 };
 
 enum RawPropertyType {

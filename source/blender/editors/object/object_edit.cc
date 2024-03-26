@@ -1560,8 +1560,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
   const bool use_smooth_by_angle = STREQ(op->idname, "OBJECT_OT_shade_smooth_by_angle");
   Main *bmain = CTX_data_main(C);
 
-  ListBase ctx_objects = {nullptr, nullptr};
-  CollectionPointerLink ctx_ob_single_active = {nullptr};
+  Vector<PointerRNA> ctx_objects;
 
   /* For modes that only use an active object, don't handle the whole selection. */
   {
@@ -1570,18 +1569,17 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
     BKE_view_layer_synced_ensure(scene, view_layer);
     Object *obact = BKE_view_layer_active_object_get(view_layer);
     if (obact && (obact->mode & OB_MODE_ALL_PAINT)) {
-      ctx_ob_single_active.ptr.data = obact;
-      BLI_addtail(&ctx_objects, &ctx_ob_single_active);
+      ctx_objects.append(RNA_id_pointer_create(&obact->id));
     }
   }
 
-  if (ctx_objects.first != &ctx_ob_single_active) {
+  if (ctx_objects.is_empty()) {
     CTX_data_selected_editable_objects(C, &ctx_objects);
   }
 
   Set<ID *> object_data;
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, &ctx_objects) {
-    Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
+  for (const PointerRNA &ptr : ctx_objects) {
+    Object *ob = static_cast<Object *>(ptr.data);
     if (ID *data = static_cast<ID *>(ob->data)) {
       object_data.add(data);
     }
@@ -1618,10 +1616,6 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
       DEG_id_tag_update(data, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, data);
     }
-  }
-
-  if (ctx_objects.first != &ctx_ob_single_active) {
-    BLI_freelistN(&ctx_objects);
   }
 
   if (has_linked_data) {

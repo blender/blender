@@ -757,12 +757,6 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
         PyObject *list_item = seq_fast_items[i];
 
         if (BPy_StructRNA_Check(list_item)) {
-#if 0
-          CollectionPointerLink *link = MEM_callocN(sizeof(CollectionPointerLink),
-                                                    "bpy_context_get");
-          link->ptr = ((BPy_StructRNA *)item)->ptr;
-          BLI_addtail(&result->list, link);
-#endif
           ptr = &(((BPy_StructRNA *)list_item)->ptr);
           CTX_data_list_add_ptr(result, ptr);
         }

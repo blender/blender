@@ -72,7 +72,7 @@ struct BakeAPIRender {
   Scene *scene;
   ViewLayer *view_layer;
   Object *ob;
-  ListBase selected_objects;
+  blender::Vector<PointerRNA> selected_objects;
 
   /* Baking settings. */
   eBakeTarget target;
@@ -640,7 +640,7 @@ static bool bake_objects_check(Main *bmain,
                                const Scene *scene,
                                ViewLayer *view_layer,
                                Object *ob,
-                               ListBase *selected_objects,
+                               blender::Span<PointerRNA> selected_objects,
                                ReportList *reports,
                                const bool is_selected_to_active,
                                const eBakeTarget target)
@@ -655,9 +655,8 @@ static bool bake_objects_check(Main *bmain,
       return false;
     }
 
-    LISTBASE_FOREACH (CollectionPointerLink *, link, selected_objects) {
-      Object *ob_iter = (Object *)link->ptr.data;
-
+    for (const PointerRNA &ptr : selected_objects) {
+      Object *ob_iter = (Object *)ptr.data;
       if (ob_iter == ob) {
         continue;
       }
@@ -679,14 +678,13 @@ static bool bake_objects_check(Main *bmain,
     }
   }
   else {
-    if (BLI_listbase_is_empty(selected_objects)) {
+    if (selected_objects.is_empty()) {
       BKE_report(reports, RPT_ERROR, "No valid selected objects");
       return false;
     }
 
-    LISTBASE_FOREACH (CollectionPointerLink *, link, selected_objects) {
-      if (!bake_object_check(
-              scene, view_layer, static_cast<Object *>(link->ptr.data), target, reports))
+    for (const PointerRNA &ptr : selected_objects) {
+      if (!bake_object_check(scene, view_layer, static_cast<Object *>(ptr.data), target, reports))
       {
         return false;
       }
@@ -1391,7 +1389,7 @@ static void bake_targets_free(BakeTargets *targets)
 
 static int bake(const BakeAPIRender *bkr,
                 Object *ob_low,
-                const ListBase *selected_objects,
+                const blender::Span<PointerRNA> selected_objects,
                 ReportList *reports)
 {
   Render *re = bkr->render;
@@ -1449,8 +1447,8 @@ static int bake(const BakeAPIRender *bkr,
   if (bkr->is_selected_to_active) {
     tot_highpoly = 0;
 
-    LISTBASE_FOREACH (CollectionPointerLink *, link, selected_objects) {
-      Object *ob_iter = static_cast<Object *>(link->ptr.data);
+    for (const PointerRNA &ptr : selected_objects) {
+      Object *ob_iter = static_cast<Object *>(ptr.data);
 
       if (ob_iter == ob_low) {
         continue;
@@ -1563,8 +1561,8 @@ static int bake(const BakeAPIRender *bkr,
         MEM_callocN(sizeof(BakeHighPolyData) * tot_highpoly, "bake high poly objects"));
 
     /* populate highpoly array */
-    LISTBASE_FOREACH (CollectionPointerLink *, link, selected_objects) {
-      Object *ob_iter = static_cast<Object *>(link->ptr.data);
+    for (const PointerRNA &ptr : selected_objects) {
+      Object *ob_iter = static_cast<Object *>(ptr.data);
 
       if (ob_iter == ob_low) {
         continue;
@@ -1877,19 +1875,21 @@ static int bake_exec(bContext *C, wmOperator *op)
   RE_test_break_cb(re, nullptr, bake_break);
 
   if (!bake_pass_filter_check(bkr.pass_type, bkr.pass_filter, bkr.reports)) {
-    goto finally;
+    G.is_rendering = false;
+    return result;
   }
 
   if (!bake_objects_check(bkr.main,
                           bkr.scene,
                           bkr.view_layer,
                           bkr.ob,
-                          &bkr.selected_objects,
+                          bkr.selected_objects,
                           bkr.reports,
                           bkr.is_selected_to_active,
                           bkr.target))
   {
-    goto finally;
+    G.is_rendering = false;
+    return result;
   }
 
   if (bkr.is_clear) {
@@ -1901,21 +1901,19 @@ static int bake_exec(bContext *C, wmOperator *op)
   RE_SetReports(re, bkr.reports);
 
   if (bkr.is_selected_to_active) {
-    result = bake(&bkr, bkr.ob, &bkr.selected_objects, bkr.reports);
+    result = bake(&bkr, bkr.ob, bkr.selected_objects, bkr.reports);
   }
   else {
-    bkr.is_clear = bkr.is_clear && BLI_listbase_is_single(&bkr.selected_objects);
-    LISTBASE_FOREACH (CollectionPointerLink *, link, &bkr.selected_objects) {
-      Object *ob_iter = static_cast<Object *>(link->ptr.data);
-      result = bake(&bkr, ob_iter, nullptr, bkr.reports);
+    bkr.is_clear = bkr.is_clear && bkr.selected_objects.size() == 1;
+    for (const PointerRNA &ptr : bkr.selected_objects) {
+      Object *ob_iter = static_cast<Object *>(ptr.data);
+      result = bake(&bkr, ob_iter, {}, bkr.reports);
     }
   }
 
   RE_SetReports(re, nullptr);
 
-finally:
   G.is_rendering = false;
-  BLI_freelistN(&bkr.selected_objects);
   return result;
 }
 
@@ -1938,7 +1936,7 @@ static void bake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
                           bkr->scene,
                           bkr->view_layer,
                           bkr->ob,
-                          &bkr->selected_objects,
+                          bkr->selected_objects,
                           bkr->reports,
                           bkr->is_selected_to_active,
                           bkr->target))
@@ -1954,13 +1952,13 @@ static void bake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
   }
 
   if (bkr->is_selected_to_active) {
-    bkr->result = bake(bkr, bkr->ob, &bkr->selected_objects, bkr->reports);
+    bkr->result = bake(bkr, bkr->ob, bkr->selected_objects, bkr->reports);
   }
   else {
-    bkr->is_clear = bkr->is_clear && BLI_listbase_is_single(&bkr->selected_objects);
-    LISTBASE_FOREACH (CollectionPointerLink *, link, &bkr->selected_objects) {
-      Object *ob_iter = static_cast<Object *>(link->ptr.data);
-      bkr->result = bake(bkr, ob_iter, nullptr, bkr->reports);
+    bkr->is_clear = bkr->is_clear && bkr->selected_objects.size() == 1;
+    for (const PointerRNA &ptr : bkr->selected_objects) {
+      Object *ob_iter = static_cast<Object *>(ptr.data);
+      bkr->result = bake(bkr, ob_iter, {}, bkr->reports);
 
       if (bkr->result == OPERATOR_CANCELLED) {
         return;
@@ -1986,8 +1984,7 @@ static void bake_freejob(void *bkv)
 {
   BakeAPIRender *bkr = (BakeAPIRender *)bkv;
 
-  BLI_freelistN(&bkr->selected_objects);
-  MEM_freeN(bkr);
+  MEM_delete(bkr);
 
   G.is_rendering = false;
 }
@@ -2112,7 +2109,7 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
     return OPERATOR_CANCELLED;
   }
 
-  BakeAPIRender *bkr = static_cast<BakeAPIRender *>(MEM_mallocN(sizeof(BakeAPIRender), __func__));
+  BakeAPIRender *bkr = MEM_new<BakeAPIRender>(__func__);
 
   /* init bake render */
   bake_init_api_data(op, C, bkr);

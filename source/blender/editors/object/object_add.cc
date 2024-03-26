@@ -3190,15 +3190,15 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     FOREACH_SCENE_OBJECT_END;
   }
 
-  ListBase selected_editable_bases;
+  blender::Vector<PointerRNA> selected_editable_bases;
   CTX_data_selected_editable_bases(C, &selected_editable_bases);
 
   /* Ensure we get all meshes calculated with a sufficient data-mask,
    * needed since re-evaluating single modifiers causes bugs if they depend
    * on other objects data masks too, see: #50950. */
   {
-    LISTBASE_FOREACH (CollectionPointerLink *, link, &selected_editable_bases) {
-      Base *base = static_cast<Base *>(link->ptr.data);
+    for (const PointerRNA &ptr : selected_editable_bases) {
+      Base *base = static_cast<Base *>(ptr.data);
       Object *ob = base->object;
 
       /* The way object type conversion works currently (enforcing conversion of *all* objects
@@ -3226,10 +3226,9 @@ static int object_convert_exec(bContext *C, wmOperator *op)
     BKE_scene_graph_update_tagged(depsgraph, bmain);
     scene->customdata_mask = customdata_mask_prev;
   }
-
-  LISTBASE_FOREACH (CollectionPointerLink *, link, &selected_editable_bases) {
+  for (const PointerRNA &ptr : selected_editable_bases) {
     Object *newob = nullptr;
-    Base *base = static_cast<Base *>(link->ptr.data);
+    Base *base = static_cast<Base *>(ptr.data);
     Object *ob = base->object;
 
     if (ob->flag & OB_DONE || !IS_TAGGED(ob->data)) {
@@ -3719,7 +3718,6 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       ((ID *)ob->data)->tag &= ~LIB_TAG_DOIT; /* flag not to convert this datablock again */
     }
   }
-  BLI_freelistN(&selected_editable_bases);
 
   if (!keep_original) {
     if (mballConverted) {

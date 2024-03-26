@@ -288,13 +288,12 @@ wmDrag *WM_drag_data_create(bContext *C, int icon, eWM_DragDataType type, void *
       /* The asset-list case is special: We get multiple assets from context and attach them to the
        * drag item. */
     case WM_DRAG_ASSET_LIST: {
-      ListBase asset_links = CTX_data_collection_get(C, "selected_assets");
-      LISTBASE_FOREACH (const CollectionPointerLink *, link, &asset_links) {
+      blender::Vector<PointerRNA> asset_links = CTX_data_collection_get(C, "selected_assets");
+      for (const PointerRNA &ptr : asset_links) {
         const AssetRepresentationHandle *asset = static_cast<const AssetRepresentationHandle *>(
-            link->ptr.data);
+            ptr.data);
         WM_drag_add_asset_list_item(drag, asset);
       }
-      BLI_freelistN(&asset_links);
       break;
     }
     default:

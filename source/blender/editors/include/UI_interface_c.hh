@@ -3054,7 +3054,7 @@ bool UI_drop_color_poll(bContext *C, wmDrag *drag, const wmEvent *event);
 bool UI_context_copy_to_selected_list(bContext *C,
                                       PointerRNA *ptr,
                                       PropertyRNA *prop,
-                                      ListBase *r_lb,
+                                      blender::Vector<PointerRNA> *r_lb,
                                       bool *r_use_path_from_id,
                                       std::optional<std::string> *r_path);
 bool UI_context_copy_to_selected_check(PointerRNA *ptr,
