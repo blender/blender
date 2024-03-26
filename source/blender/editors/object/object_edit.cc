@@ -1558,8 +1558,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
   using namespace blender;
   const bool use_smooth = STREQ(op->idname, "OBJECT_OT_shade_smooth");
   const bool use_smooth_by_angle = STREQ(op->idname, "OBJECT_OT_shade_smooth_by_angle");
-  bool changed_multi = false;
-  bool has_linked_data = false;
+  Main *bmain = CTX_data_main(C);
 
   ListBase ctx_objects = {nullptr, nullptr};
   CollectionPointerLink ctx_ob_single_active = {nullptr};
@@ -1580,52 +1579,44 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
     CTX_data_selected_editable_objects(C, &ctx_objects);
   }
 
+  Set<ID *> object_data;
   LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, &ctx_objects) {
     Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
-    ID *data = static_cast<ID *>(ob->data);
-    if (data != nullptr) {
-      data->tag |= LIB_TAG_DOIT;
+    if (ID *data = static_cast<ID *>(ob->data)) {
+      object_data.add(data);
     }
   }
 
-  Main *bmain = CTX_data_main(C);
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, &ctx_objects) {
-    /* Always un-tag all object data-blocks irrespective of our ability to operate on them. */
-    Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
-    ID *data = static_cast<ID *>(ob->data);
-    if ((data == nullptr) || ((data->tag & LIB_TAG_DOIT) == 0)) {
-      continue;
-    }
-    data->tag &= ~LIB_TAG_DOIT;
-    /* Finished un-tagging, continue with regular logic. */
-
-    if (data && !BKE_id_is_editable(bmain, data)) {
+  bool changed_multi = false;
+  bool has_linked_data = false;
+  for (ID *data : object_data) {
+    if (!BKE_id_is_editable(bmain, data)) {
       has_linked_data = true;
       continue;
     }
 
     bool changed = false;
-    if (ob->type == OB_MESH) {
-      Mesh &mesh = *static_cast<Mesh *>(ob->data);
+    if (GS(data->name) == ID_ME) {
+      Mesh &mesh = *reinterpret_cast<Mesh *>(data);
       const bool keep_sharp_edges = RNA_boolean_get(op->ptr, "keep_sharp_edges");
       bke::mesh_smooth_set(mesh, use_smooth || use_smooth_by_angle, keep_sharp_edges);
       if (use_smooth_by_angle) {
         const float angle = RNA_float_get(op->ptr, "angle");
         bke::mesh_sharp_edges_set_from_angle(mesh, angle, keep_sharp_edges);
       }
-      BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
+      BKE_mesh_batch_cache_dirty_tag(reinterpret_cast<Mesh *>(data), BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
     }
-    else if (ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY)) {
-      BKE_curve_smooth_flag_set(static_cast<Curve *>(ob->data), use_smooth);
+    else if (GS(data->name) == ID_CU_LEGACY) {
+      BKE_curve_smooth_flag_set(reinterpret_cast<Curve *>(data), use_smooth);
       changed = true;
     }
 
     if (changed) {
       changed_multi = true;
 
-      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-      WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+      DEG_id_tag_update(data, ID_RECALC_GEOMETRY);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, data);
     }
   }
 
