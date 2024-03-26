@@ -508,6 +508,7 @@ bool ED_operator_region_gizmo_active(bContext *C);
  */
 bool ED_operator_animview_active(bContext *C);
 bool ED_operator_outliner_active(bContext *C);
+bool ED_operator_region_outliner_active(bContext *C);
 bool ED_operator_outliner_active_no_editobject(bContext *C);
 /**
  * \note Will return true for file spaces in either file or asset browsing mode! See
