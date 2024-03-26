@@ -2666,6 +2666,17 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
         add_relation(textoncurve_key, obdata_geom_eval_key, "Text on Curve Transform");
         build_object(cu->textoncurve);
       }
+      /* Special relation to ensure active spline index gets properly updated.
+       *
+       * The active spline index is stored on the Curve data-block, and the curve evaluation might
+       * create a new curve data-block for the result, which does not intrinsically sharing the
+       * active spline index. Hence a special relation is added to ensure the modifier stack is
+       * evaluated when selection changes. */
+      {
+        const OperationKey object_data_select_key(
+            obdata, NodeType::BATCH_CACHE, OperationCode::GEOMETRY_SELECT_UPDATE);
+        add_relation(object_data_select_key, obdata_geom_eval_key, "Active Spline Update");
+      }
       break;
     }
     case ID_LT:
