@@ -259,6 +259,7 @@ class ShadowModule {
   float pixel_world_radius_;
   int2 usage_tag_fb_resolution_;
   int usage_tag_fb_lod_ = 5;
+  int max_view_per_tilemap_ = 1;
 
   /* Statistics that are read back to CPU after a few frame (to avoid stall). */
   SwapChain<ShadowStatisticsBuf, 5> statistics_buf_;
@@ -379,6 +380,9 @@ class ShadowModule {
   float screen_pixel_radius(const View &view, const int2 &extent);
   /** Compute approximate punctual shadow pixel world space radius, 1 unit away of the light. */
   float tilemap_pixel_radius();
+
+  /* Returns the maximum number of view per shadow projection for a single update loop. */
+  int max_view_per_tilemap();
 };
 
 /** \} */

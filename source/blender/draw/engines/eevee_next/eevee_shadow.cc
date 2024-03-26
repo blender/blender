@@ -1127,6 +1127,7 @@ void ShadowModule::end_sync()
         /* Mark tiles that are redundant in the mipmap chain as unused. */
         PassSimple::Sub &sub = pass.sub("MaskLod");
         sub.shader_set(inst_.shaders.static_shader_get(SHADOW_PAGE_MASK));
+        sub.push_constant("max_view_per_tilemap", &max_view_per_tilemap_);
         sub.bind_ssbo("tilemaps_buf", tilemap_pool.tilemaps_data);
         sub.bind_ssbo("tiles_buf", tilemap_pool.tiles_data);
         sub.dispatch(int3(1, 1, tilemap_pool.tilemaps_data.size()));
@@ -1293,7 +1294,7 @@ float ShadowModule::tilemap_pixel_radius()
 
 bool ShadowModule::shadow_update_finished()
 {
-  if (inst_.is_viewport()) {
+  if (!inst_.is_image_render()) {
     /* For viewport, only run the shadow update once per redraw.
      * This avoids the stall from the read-back and freezes from long shadow update. */
     return true;
@@ -1314,6 +1315,37 @@ bool ShadowModule::shadow_update_finished()
   return stats.page_rendered_count == stats.page_update_count;
 }
 
+int ShadowModule::max_view_per_tilemap()
+{
+  if (inst_.is_image_render()) {
+    /* No need to limit updates per lights as we ensure all lights levels will be rendered.
+     * is_image_render. */
+    return SHADOW_TILEMAP_LOD;
+  }
+  /* For now very simple heuristic. Can be improved later by taking into consideration how many
+   * tilemaps are updating, but we cannot know the ones updated by casters. */
+  int potential_view_count = 0;
+  for (auto i : IndexRange(tilemap_pool.tilemaps_data.size())) {
+    if (tilemap_pool.tilemaps_data[i].projection_type == SHADOW_PROJECTION_CUBEFACE) {
+      potential_view_count += SHADOW_TILEMAP_LOD;
+    }
+    else {
+      potential_view_count += 1;
+    }
+  }
+  int max_view_count = divide_ceil_u(SHADOW_VIEW_MAX, potential_view_count);
+  /* For viewport interactivity, have a hard maximum. This allows smoother experience. */
+  if (inst_.is_transforming() || inst_.is_navigating()) {
+    max_view_count = math::min(2, max_view_count);
+  }
+  /* For animation playback, we always want the maximum performance. */
+  if (inst_.is_playback()) {
+    max_view_count = math::min(1, max_view_count);
+  }
+
+  return max_view_count;
+}
+
 void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
 {
   if (enabled_ == false) {
@@ -1329,6 +1361,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
   GPU_texture_get_mipmap_size(depth_tx, 0, target_size);
 
   dispatch_depth_scan_size_ = math::divide_ceil(target_size, int3(SHADOW_DEPTH_SCAN_GROUP_SIZE));
+  max_view_per_tilemap_ = max_view_per_tilemap();
 
   pixel_world_radius_ = screen_pixel_radius(view, int2(target_size));
   data_.tilemap_projection_ratio = tilemap_pixel_radius() / pixel_world_radius_;
