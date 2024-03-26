@@ -63,7 +63,7 @@ template<typename T, int S> inline std::string UIntF<T, S>::to_string(const int 
 template<typename T, int S> inline std::string IntF<T, S>::to_string(const int base) const
 {
   if (is_negative(*this)) {
-    std::string str = UIntF<T, S>(-*this);
+    std::string str = UIntF<T, S>(-*this).to_string(base);
     str.insert(str.begin(), '-');
     return str;
   }

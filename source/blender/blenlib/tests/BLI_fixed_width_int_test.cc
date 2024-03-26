@@ -27,6 +27,30 @@ TEST(fixed_width_int, IsZero)
   EXPECT_FALSE(is_zero(Int256(-10)));
 }
 
+TEST(fixed_width_int, ToString)
+{
+  {
+    const std::string str = "4875677549274093345634534";
+    EXPECT_EQ(UInt256(str).to_string(), str);
+  }
+  {
+    const std::string str = "0";
+    EXPECT_EQ(UInt256(str).to_string(), str);
+  }
+  {
+    const std::string str = "4875677549274093345634534";
+    EXPECT_EQ(Int256(str).to_string(), str);
+  }
+  {
+    const std::string str = "-4875677549274093345634534";
+    EXPECT_EQ(Int256(str).to_string(), str);
+  }
+  {
+    const std::string str = "0";
+    EXPECT_EQ(Int256(str).to_string(), str);
+  }
+}
+
 TEST(fixed_width_int, Add256)
 {
   EXPECT_EQ(UInt256("290213998554153310989149424513459608072") +
