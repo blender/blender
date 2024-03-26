@@ -14,6 +14,7 @@
 struct FontBLF;
 struct GlyphBLF;
 struct GlyphCacheBLF;
+struct ListBase;
 struct ResultBLF;
 struct rcti;
 
