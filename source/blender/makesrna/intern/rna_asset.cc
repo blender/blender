@@ -49,7 +49,7 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
 
 #  include "BKE_asset.hh"
 #  include "BKE_context.hh"
-#  include "BKE_idprop.h"
+#  include "BKE_idprop.hh"
 
 #  include "BLI_listbase.h"
 #  include "BLI_uuid.h"

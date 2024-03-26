@@ -25,7 +25,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

@@ -15,10 +15,6 @@
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct BlendDataReader;
 struct BlendWriter;
 struct ID;
@@ -30,7 +26,7 @@ class ArrayValue;
 class Value;
 }  // namespace blender::io::serialize
 
-typedef union IDPropertyTemplate {
+union IDPropertyTemplate {
   int i;
   float f;
   double d;
@@ -41,13 +37,13 @@ typedef union IDPropertyTemplate {
     /** #eIDPropertySubType */
     char subtype;
   } string;
-  struct ID *id;
+  ID *id;
   struct {
     int len;
     /** #eIDPropertyType */
     char type;
   } array;
-} IDPropertyTemplate;
+};
 
 /* ----------- Property Array Type ---------- */
 
@@ -55,26 +51,25 @@ typedef union IDPropertyTemplate {
  * \note as a start to move away from the stupid #IDP_New function,
  * this type has its own allocation function.
  */
-struct IDProperty *IDP_NewIDPArray(const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-struct IDProperty *IDP_CopyIDPArray(const struct IDProperty *array,
-                                    int flag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+IDProperty *IDP_NewIDPArray(const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+IDProperty *IDP_CopyIDPArray(const IDProperty *array, int flag) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
 
 /**
  * Shallow copies item.
  */
-void IDP_SetIndexArray(struct IDProperty *prop, int index, struct IDProperty *item) ATTR_NONNULL();
-struct IDProperty *IDP_GetIndexArray(struct IDProperty *prop, int index) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
-void IDP_AppendArray(struct IDProperty *prop, struct IDProperty *item);
-void IDP_ResizeIDPArray(struct IDProperty *prop, int len);
+void IDP_SetIndexArray(IDProperty *prop, int index, IDProperty *item) ATTR_NONNULL();
+IDProperty *IDP_GetIndexArray(IDProperty *prop, int index) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+void IDP_AppendArray(IDProperty *prop, IDProperty *item);
+void IDP_ResizeIDPArray(IDProperty *prop, int len);
 
 /* ----------- Numeric Array Type ----------- */
 
 /**
  * This function works for strings too!
  */
-void IDP_ResizeArray(struct IDProperty *prop, int newlen);
-void IDP_FreeArray(struct IDProperty *prop);
+void IDP_ResizeArray(IDProperty *prop, int newlen);
+void IDP_FreeArray(IDProperty *prop);
 
 /* ---------- String Type ------------ */
 /**
@@ -85,10 +80,10 @@ void IDP_FreeArray(struct IDProperty *prop);
  * When zero, this is the equivalent of passing in `strlen(st) + 1`
  * \return The new string property.
  */
-struct IDProperty *IDP_NewStringMaxSize(const char *st,
-                                        size_t st_maxncpy,
-                                        const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(3);
-struct IDProperty *IDP_NewString(const char *st, const char *name) ATTR_WARN_UNUSED_RESULT
+IDProperty *IDP_NewStringMaxSize(const char *st,
+                                 size_t st_maxncpy,
+                                 const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(3);
+IDProperty *IDP_NewString(const char *st, const char *name) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(2);
 /**
  * \param st: The string to assign.
@@ -96,24 +91,23 @@ struct IDProperty *IDP_NewString(const char *st, const char *name) ATTR_WARN_UNU
  * \param maxncpy: The maximum size of the string (including the `\0` terminator).
  * When zero, this is the equivalent of passing in `strlen(st) + 1`
  */
-void IDP_AssignStringMaxSize(struct IDProperty *prop, const char *st, size_t st_maxncpy)
-    ATTR_NONNULL();
-void IDP_AssignString(struct IDProperty *prop, const char *st) ATTR_NONNULL();
-void IDP_FreeString(struct IDProperty *prop) ATTR_NONNULL();
+void IDP_AssignStringMaxSize(IDProperty *prop, const char *st, size_t st_maxncpy) ATTR_NONNULL();
+void IDP_AssignString(IDProperty *prop, const char *st) ATTR_NONNULL();
+void IDP_FreeString(IDProperty *prop) ATTR_NONNULL();
 
 /*-------- Enum Type -------*/
 
-const struct IDPropertyUIDataEnumItem *IDP_EnumItemFind(const struct IDProperty *prop);
+const IDPropertyUIDataEnumItem *IDP_EnumItemFind(const IDProperty *prop);
 
-bool IDP_EnumItemsValidate(const struct IDPropertyUIDataEnumItem *items,
+bool IDP_EnumItemsValidate(const IDPropertyUIDataEnumItem *items,
                            int items_num,
                            void (*error_fn)(const char *));
 
 /*-------- ID Type -------*/
 
-typedef void (*IDPWalkFunc)(void *user_data, struct IDProperty *idp);
+using IDPWalkFunc = void (*)(void *user_data, IDProperty *idp);
 
-void IDP_AssignID(struct IDProperty *prop, struct ID *id, int flag);
+void IDP_AssignID(IDProperty *prop, ID *id, int flag);
 
 /*-------- Group Functions -------*/
 
@@ -123,35 +117,29 @@ void IDP_AssignID(struct IDProperty *prop, struct ID *id, int flag);
  *
  * \note Was used for syncing proxies.
  */
-void IDP_SyncGroupValues(struct IDProperty *dest, const struct IDProperty *src) ATTR_NONNULL();
-void IDP_SyncGroupTypes(struct IDProperty *dest, const struct IDProperty *src, bool do_arraylen)
-    ATTR_NONNULL();
+void IDP_SyncGroupValues(IDProperty *dest, const IDProperty *src) ATTR_NONNULL();
+void IDP_SyncGroupTypes(IDProperty *dest, const IDProperty *src, bool do_arraylen) ATTR_NONNULL();
 /**
  * Replaces all properties with the same name in a destination group from a source group.
  */
-void IDP_ReplaceGroupInGroup(struct IDProperty *dest, const struct IDProperty *src) ATTR_NONNULL();
-void IDP_ReplaceInGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_NONNULL();
+void IDP_ReplaceGroupInGroup(IDProperty *dest, const IDProperty *src) ATTR_NONNULL();
+void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop) ATTR_NONNULL();
 /**
  * Checks if a property with the same name as prop exists, and if so replaces it.
  * Use this to preserve order!
  */
-void IDP_ReplaceInGroup_ex(struct IDProperty *group,
-                           struct IDProperty *prop,
-                           struct IDProperty *prop_exist);
+void IDP_ReplaceInGroup_ex(IDProperty *group, IDProperty *prop, IDProperty *prop_exist);
 /**
  * If a property is missing in \a dest, add it.
  * Do it recursively.
  */
-void IDP_MergeGroup(struct IDProperty *dest, const struct IDProperty *src, bool do_overwrite)
+void IDP_MergeGroup(IDProperty *dest, const IDProperty *src, bool do_overwrite) ATTR_NONNULL();
+/**
+ * If a property is missing in \a dest, add it.
+ * Do it recursively.
+ */
+void IDP_MergeGroup_ex(IDProperty *dest, const IDProperty *src, bool do_overwrite, int flag)
     ATTR_NONNULL();
-/**
- * If a property is missing in \a dest, add it.
- * Do it recursively.
- */
-void IDP_MergeGroup_ex(struct IDProperty *dest,
-                       const struct IDProperty *src,
-                       bool do_overwrite,
-                       int flag) ATTR_NONNULL();
 /**
  * This function has a sanity check to make sure ID properties with the same name don't
  * get added to the group.
@@ -162,64 +150,61 @@ void IDP_MergeGroup_ex(struct IDProperty *dest,
  * returns false if a property can't be added to the group, and true if it can)
  * and free the property.
  */
-bool IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_NONNULL();
+bool IDP_AddToGroup(IDProperty *group, IDProperty *prop) ATTR_NONNULL();
 /**
  * This is the same as IDP_AddToGroup, only you pass an item
  * in the group list to be inserted after.
  */
-bool IDP_InsertToGroup(struct IDProperty *group,
-                       struct IDProperty *previous,
-                       struct IDProperty *pnew) ATTR_NONNULL(1 /*group*/, 3 /*pnew*/);
+bool IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew)
+    ATTR_NONNULL(1 /*group*/, 3 /*pnew*/);
 /**
  * \note this does not free the property!
  *
  * To free the property, you have to do:
  * #IDP_FreeProperty(prop);
  */
-void IDP_RemoveFromGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_NONNULL();
+void IDP_RemoveFromGroup(IDProperty *group, IDProperty *prop) ATTR_NONNULL();
 /**
  * Removes the property from the group and frees it.
  */
-void IDP_FreeFromGroup(struct IDProperty *group, struct IDProperty *prop) ATTR_NONNULL();
+void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop) ATTR_NONNULL();
 
-struct IDProperty *IDP_GetPropertyFromGroup(const struct IDProperty *prop,
-                                            const char *name) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL();
+IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop,
+                                     const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**
  * Same as above but ensure type match.
  */
-struct IDProperty *IDP_GetPropertyTypeFromGroup(const struct IDProperty *prop,
-                                                const char *name,
-                                                char type) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop,
+                                         const char *name,
+                                         char type) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /*-------- Main Functions --------*/
 /**
  * Get the Group property that contains the id properties for ID `id`.
  */
-struct IDProperty *IDP_GetProperties(struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+IDProperty *IDP_GetProperties(ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 /**
  * Ensure the Group property that contains the id properties for ID `id` exists & return it.
  */
-struct IDProperty *IDP_EnsureProperties(struct ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-struct IDProperty *IDP_CopyProperty(const struct IDProperty *prop) ATTR_WARN_UNUSED_RESULT
+IDProperty *IDP_EnsureProperties(ID *id) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+IDProperty *IDP_CopyProperty(const IDProperty *prop) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+IDProperty *IDP_CopyProperty_ex(const IDProperty *prop, int flag) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-struct IDProperty *IDP_CopyProperty_ex(const struct IDProperty *prop,
-                                       int flag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 /**
  * Copy content from source #IDProperty into destination one,
  * freeing destination property's content first.
  */
-void IDP_CopyPropertyContent(struct IDProperty *dst, const struct IDProperty *src) ATTR_NONNULL();
+void IDP_CopyPropertyContent(IDProperty *dst, const IDProperty *src) ATTR_NONNULL();
 
 /**
  * \param is_strict: When false treat missing items as a match.
  */
-bool IDP_EqualsProperties_ex(const struct IDProperty *prop1,
-                             const struct IDProperty *prop2,
+bool IDP_EqualsProperties_ex(const IDProperty *prop1,
+                             const IDProperty *prop2,
                              bool is_strict) ATTR_WARN_UNUSED_RESULT;
 
-bool IDP_EqualsProperties(const struct IDProperty *prop1,
-                          const struct IDProperty *prop2) ATTR_WARN_UNUSED_RESULT;
+bool IDP_EqualsProperties(const IDProperty *prop1,
+                          const IDProperty *prop2) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Allocate a new ID.
@@ -248,22 +233,22 @@ bool IDP_EqualsProperties(const struct IDProperty *prop1,
  * IDP_AddToGroup or MEM_freeN the property, doing anything else might result in
  * a memory leak.
  */
-struct IDProperty *IDP_New(char type,
-                           const IDPropertyTemplate *val,
-                           const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+IDProperty *IDP_New(char type,
+                    const IDPropertyTemplate *val,
+                    const char *name) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /**
  * \note This will free allocated data, all child properties of arrays and groups, and unlink IDs!
  * But it does not free the actual #IDProperty struct itself.
  */
-void IDP_FreePropertyContent_ex(struct IDProperty *prop, bool do_id_user);
-void IDP_FreePropertyContent(struct IDProperty *prop);
-void IDP_FreeProperty_ex(struct IDProperty *prop, bool do_id_user);
-void IDP_FreeProperty(struct IDProperty *prop);
+void IDP_FreePropertyContent_ex(IDProperty *prop, bool do_id_user);
+void IDP_FreePropertyContent(IDProperty *prop);
+void IDP_FreeProperty_ex(IDProperty *prop, bool do_id_user);
+void IDP_FreeProperty(IDProperty *prop);
 
-void IDP_ClearProperty(struct IDProperty *prop);
+void IDP_ClearProperty(IDProperty *prop);
 
-void IDP_Reset(struct IDProperty *prop, const struct IDProperty *reference);
+void IDP_Reset(IDProperty *prop, const IDProperty *reference);
 
 #define IDP_Int(prop) ((prop)->data.val)
 #define IDP_Bool(prop) ((prop)->data.val)
@@ -272,29 +257,29 @@ void IDP_Reset(struct IDProperty *prop, const struct IDProperty *reference);
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #  define IDP_Float(prop) \
     _Generic((prop), \
-        struct IDProperty *: (*(float *)&(prop)->data.val), \
-        const struct IDProperty *: (*(const float *)&(prop)->data.val))
+        IDProperty *: (*(float *)&(prop)->data.val), \
+        const IDProperty *: (*(const float *)&(prop)->data.val))
 #  define IDP_Double(prop) \
     _Generic((prop), \
-        struct IDProperty *: (*(double *)&(prop)->data.val), \
-        const struct IDProperty *: (*(const double *)&(prop)->data.val))
+        IDProperty *: (*(double *)&(prop)->data.val), \
+        const IDProperty *: (*(const double *)&(prop)->data.val))
 #  define IDP_String(prop) \
     _Generic((prop), \
-        struct IDProperty *: ((char *)(prop)->data.pointer), \
-        const struct IDProperty *: ((const char *)(prop)->data.pointer))
+        IDProperty *: ((char *)(prop)->data.pointer), \
+        const IDProperty *: ((const char *)(prop)->data.pointer))
 #  define IDP_IDPArray(prop) \
     _Generic((prop), \
-        struct IDProperty *: ((struct IDProperty *)(prop)->data.pointer), \
-        const struct IDProperty *: ((const struct IDProperty *)(prop)->data.pointer))
+        IDProperty *: ((IDProperty *)(prop)->data.pointer), \
+        const IDProperty *: ((const IDProperty *)(prop)->data.pointer))
 #  define IDP_Id(prop) \
     _Generic((prop), \
-        struct IDProperty *: ((ID *)(prop)->data.pointer), \
-        const struct IDProperty *: ((const ID *)(prop)->data.pointer))
+        IDProperty *: ((ID *)(prop)->data.pointer), \
+        const IDProperty *: ((const ID *)(prop)->data.pointer))
 #else
 #  define IDP_Float(prop) (*(float *)&(prop)->data.val)
 #  define IDP_Double(prop) (*(double *)&(prop)->data.val)
 #  define IDP_String(prop) ((char *)(prop)->data.pointer)
-#  define IDP_IDPArray(prop) ((struct IDProperty *)(prop)->data.pointer)
+#  define IDP_IDPArray(prop) ((IDProperty *)(prop)->data.pointer)
 #  define IDP_Id(prop) ((ID *)(prop)->data.pointer)
 #endif
 
@@ -302,22 +287,22 @@ void IDP_Reset(struct IDProperty *prop, const struct IDProperty *reference);
  * Return an int from an #IDProperty with a compatible type. This should be avoided, but
  * it's sometimes necessary, for example when legacy files have incorrect property types.
  */
-int IDP_coerce_to_int_or_zero(const struct IDProperty *prop);
+int IDP_coerce_to_int_or_zero(const IDProperty *prop);
 /**
  * Return a float from an #IDProperty with a compatible type. This should be avoided, but
  * it's sometimes necessary, for example when legacy files have incorrect property types.
  */
-float IDP_coerce_to_float_or_zero(const struct IDProperty *prop);
+float IDP_coerce_to_float_or_zero(const IDProperty *prop);
 /**
  * Return a double from an #IDProperty with a compatible type. This should be avoided, but
  * it's sometimes necessary, for example when legacy files have incorrect property types.
  */
-double IDP_coerce_to_double_or_zero(const struct IDProperty *prop);
+double IDP_coerce_to_double_or_zero(const IDProperty *prop);
 
 /**
  * Call a callback for each #IDproperty in the hierarchy under given root one (included).
  */
-typedef void (*IDPForeachPropertyCallback)(struct IDProperty *id_property, void *user_data);
+using IDPForeachPropertyCallback = void (*)(IDProperty *id_property, void *user_data);
 
 /**
  * Loop through all ID properties in hierarchy of given \a id_property_root included.
@@ -327,25 +312,25 @@ typedef void (*IDPForeachPropertyCallback)(struct IDProperty *id_property, void 
  * \param type_filter: If not 0, only apply callback on properties of matching types, see
  * IDP_TYPE_FILTER_ enum in DNA_ID.h.
  */
-void IDP_foreach_property(struct IDProperty *id_property_root,
+void IDP_foreach_property(IDProperty *id_property_root,
                           int type_filter,
                           IDPForeachPropertyCallback callback,
                           void *user_data);
 
 /* Format IDProperty as strings */
-char *IDP_reprN(const struct IDProperty *prop, uint *r_len);
-void IDP_repr_fn(const struct IDProperty *prop,
+char *IDP_reprN(const IDProperty *prop, uint *r_len);
+void IDP_repr_fn(const IDProperty *prop,
                  void (*str_append_fn)(void *user_data, const char *str, uint str_len),
                  void *user_data);
-void IDP_print(const struct IDProperty *prop);
+void IDP_print(const IDProperty *prop);
 
-void IDP_BlendWrite(struct BlendWriter *writer, const struct IDProperty *prop);
+void IDP_BlendWrite(struct BlendWriter *writer, const IDProperty *prop);
 void IDP_BlendReadData_impl(struct BlendDataReader *reader,
-                            struct IDProperty **prop,
+                            IDProperty **prop,
                             const char *caller_func_id);
 #define IDP_BlendDataRead(reader, prop) IDP_BlendReadData_impl(reader, prop, __func__)
 
-typedef enum eIDPropertyUIDataType {
+enum eIDPropertyUIDataType {
   /** Other properties types that don't support RNA UI data. */
   IDP_UI_DATA_TYPE_UNSUPPORTED = -1,
   /** IDP_INT or IDP_ARRAY with subtype IDP_INT. */
@@ -358,32 +343,28 @@ typedef enum eIDPropertyUIDataType {
   IDP_UI_DATA_TYPE_ID = 3,
   /** IDP_BOOLEAN or IDP_ARRAY with subtype IDP_BOOLEAN. */
   IDP_UI_DATA_TYPE_BOOLEAN = 4,
-} eIDPropertyUIDataType;
+};
 
-bool IDP_ui_data_supported(const struct IDProperty *prop);
-eIDPropertyUIDataType IDP_ui_data_type(const struct IDProperty *prop);
-void IDP_ui_data_free(struct IDProperty *prop);
+bool IDP_ui_data_supported(const IDProperty *prop);
+eIDPropertyUIDataType IDP_ui_data_type(const IDProperty *prop);
+void IDP_ui_data_free(IDProperty *prop);
 /**
  * Free allocated pointers in the UI data that isn't shared with the UI data in the `other`
  * argument. Useful for returning early on failure when updating UI data in place, or when
  * replacing a subset of the UI data's allocated pointers.
  */
-void IDP_ui_data_free_unique_contents(struct IDPropertyUIData *ui_data,
+void IDP_ui_data_free_unique_contents(IDPropertyUIData *ui_data,
                                       eIDPropertyUIDataType type,
-                                      const struct IDPropertyUIData *other);
-struct IDPropertyUIData *IDP_ui_data_ensure(struct IDProperty *prop);
-struct IDPropertyUIData *IDP_ui_data_copy(const struct IDProperty *prop);
+                                      const IDPropertyUIData *other);
+IDPropertyUIData *IDP_ui_data_ensure(IDProperty *prop);
+IDPropertyUIData *IDP_ui_data_copy(const IDProperty *prop);
 /**
  * Convert UI data like default arrays from the old type to the new type as possible.
  * Takes ownership of the input data; it can return it directly if the types match.
  */
-struct IDPropertyUIData *IDP_TryConvertUIData(struct IDPropertyUIData *src,
-                                              eIDPropertyUIDataType src_type,
-                                              eIDPropertyUIDataType dst_type);
-
-#ifdef __cplusplus
-}
-#endif
+IDPropertyUIData *IDP_TryConvertUIData(IDPropertyUIData *src,
+                                       eIDPropertyUIDataType src_type,
+                                       eIDPropertyUIDataType dst_type);
 
 namespace blender::bke::idprop {
 

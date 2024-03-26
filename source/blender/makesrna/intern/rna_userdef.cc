@@ -178,7 +178,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 
 #  include "BKE_blender.hh"
 #  include "BKE_global.hh"
-#  include "BKE_idprop.h"
+#  include "BKE_idprop.hh"
 #  include "BKE_image.h"
 #  include "BKE_main.hh"
 #  include "BKE_mesh_runtime.hh"

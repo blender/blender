@@ -20,7 +20,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_grease_pencil_legacy_convert.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_ipo.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"

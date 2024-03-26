@@ -9,7 +9,7 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 
 namespace blender::bke::idprop::tests {
 

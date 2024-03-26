@@ -555,7 +555,7 @@ const EnumPropertyItem rna_enum_wm_report_items[] = {
 #  include "UI_interface.hh"
 
 #  include "BKE_global.hh"
-#  include "BKE_idprop.h"
+#  include "BKE_idprop.hh"
 
 #  include "MEM_guardedalloc.h"
 

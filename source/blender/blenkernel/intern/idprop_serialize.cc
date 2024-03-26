@@ -6,7 +6,7 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_serialize.hh"

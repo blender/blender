@@ -17,7 +17,7 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 
 #include "MEM_guardedalloc.h"

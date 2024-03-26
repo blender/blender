@@ -20,7 +20,7 @@
 #include "RNA_prototypes.h"
 
 #include "BKE_global.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_main.hh"
 
 #include "WM_api.hh"

@@ -6,7 +6,7 @@
  * \ingroup blenloader
  */
 
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BLI_utildefines.h"
 
 /* allow readfile to use deprecated functionality */

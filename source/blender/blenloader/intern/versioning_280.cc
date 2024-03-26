@@ -72,7 +72,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_freestyle.h"
 #include "BKE_gpencil_geom_legacy.h"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"

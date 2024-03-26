@@ -13,7 +13,7 @@
 #include "DNA_space_types.h"
 
 #include "BKE_asset.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_screen.hh"
 
 #include "BLT_translation.hh"

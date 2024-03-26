@@ -18,7 +18,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"

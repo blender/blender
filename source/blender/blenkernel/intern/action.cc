@@ -44,7 +44,7 @@
 #include "BKE_constraint.h"
 #include "BKE_deform.hh"
 #include "BKE_fcurve.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"

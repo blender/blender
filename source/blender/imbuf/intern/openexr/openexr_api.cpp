@@ -81,7 +81,7 @@
 #include "BLI_mmap.h"
 #include "BLI_threads.h"
 
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_image.h"
 
 #include "IMB_allocimbuf.hh"

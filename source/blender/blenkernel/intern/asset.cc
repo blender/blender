@@ -19,7 +19,7 @@
 #include "BLI_uuid.h"
 
 #include "BKE_asset.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_preview_image.hh"
 
 #include "BLO_read_write.hh"

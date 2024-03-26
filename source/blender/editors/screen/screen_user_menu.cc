@@ -23,7 +23,7 @@
 
 #include "BKE_blender_user_menu.hh"
 #include "BKE_context.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_screen.hh"
 
 #include "WM_api.hh"

@@ -17,7 +17,7 @@
 #include "idprop_py_api.h"
 #include "idprop_py_ui_api.h"
 
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 
 #include "DNA_ID.h" /* ID property definitions. */
 

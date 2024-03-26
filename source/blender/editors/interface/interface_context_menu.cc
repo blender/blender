@@ -24,7 +24,7 @@
 
 #include "BKE_addon.h"
 #include "BKE_context.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_screen.hh"
 
 #include "ED_asset.hh"

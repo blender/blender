@@ -8,7 +8,7 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "DNA_ID.h" /* ID property definitions. */
 
 #include "IMB_allocimbuf.hh"
