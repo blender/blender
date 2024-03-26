@@ -138,6 +138,16 @@ static ConversionType type_of_conversion_float(const eGPUTextureFormat host_form
     case GPU_R11F_G11F_B10F:
       return ConversionType::FLOAT_TO_B10F_G11F_R11F;
 
+    case GPU_SRGB8_A8_DXT1:
+    case GPU_SRGB8_A8_DXT3:
+    case GPU_SRGB8_A8_DXT5:
+    case GPU_RGBA8_DXT1:
+    case GPU_RGBA8_DXT3:
+    case GPU_RGBA8_DXT5:
+      /* Not an actual "conversion", but compressed texture upload code
+       * pretends that host data is a float. It is actually raw BCn bits. */
+      return ConversionType::PASS_THROUGH;
+
     case GPU_RGB32F: /* GPU_RGB32F Not supported by vendors. */
     case GPU_RGBA8UI:
     case GPU_RGBA8I:
@@ -169,12 +179,6 @@ static ConversionType type_of_conversion_float(const eGPUTextureFormat host_form
     case GPU_RGB16:
     case GPU_RGB32UI:
     case GPU_RGB32I:
-    case GPU_SRGB8_A8_DXT1:
-    case GPU_SRGB8_A8_DXT3:
-    case GPU_SRGB8_A8_DXT5:
-    case GPU_RGBA8_DXT1:
-    case GPU_RGBA8_DXT3:
-    case GPU_RGBA8_DXT5:
     case GPU_SRGB8:
     case GPU_RGB9_E5:
     case GPU_DEPTH_COMPONENT16:
