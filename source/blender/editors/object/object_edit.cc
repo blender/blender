@@ -1702,12 +1702,6 @@ void OBJECT_OT_shade_smooth_by_angle(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna,
-                  "use_modifier",
-                  true,
-                  "Modifier",
-                  "Add a modifier instead of applying the operation directly to the mesh");
-
   PropertyRNA *prop = RNA_def_property(ot->srna, "angle", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
   RNA_def_property_float_default(prop, DEG2RADF(30.0f));
