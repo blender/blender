@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import math
 import pathlib
 import sys
 import unittest
@@ -410,6 +411,269 @@ class USDImportTest(AbstractUSDTest):
         self.assertIsNotNone(f, "Couldn't find Elbow rotation quaternion Z curve")
         self.assertAlmostEqual(f.evaluate(0), 0.0, 2, "Unexpected value for rotation quaternion Z curve at frame 0")
         self.assertAlmostEqual(f.evaluate(10), 0.0, 2, "Unexpected value for rotation quaternion Z curve at frame 10")
+
+    def check_curve(self, blender_curve, usd_curve):
+        curve_type_map = {"linear": 1, "cubic": 2}
+        cyclic_map = {"nonperiodic": False, "periodic": True}
+
+        # Check correct spline count.
+        blender_spline_count = len(blender_curve.attributes["curve_type"].data)
+        usd_spline_count = len(usd_curve.GetCurveVertexCountsAttr().Get())
+        self.assertEqual(blender_spline_count, usd_spline_count)
+
+        # Check correct type of curve. All splines should have the same type and periodicity.
+        usd_curve_type = usd_curve.GetTypeAttr().Get()
+        usd_cyclic = usd_curve.GetWrapAttr().Get()
+        expected_curve_type = curve_type_map[usd_curve_type]
+        expected_cyclic = cyclic_map[usd_cyclic]
+
+        for i in range(0, blender_spline_count):
+            blender_curve_type = blender_curve.attributes["curve_type"].data[i].value
+            blender_cyclic = False
+            if "cyclic" in blender_curve.attributes:
+                blender_cyclic = blender_curve.attributes["cyclic"].data[i].value
+
+            self.assertEqual(blender_curve_type, expected_curve_type)
+            self.assertEqual(blender_cyclic, expected_cyclic)
+
+        # Check position data.
+        usd_positions = usd_curve.GetPointsAttr().Get()
+        blender_positions = blender_curve.attributes["position"].data
+
+        point_count = 0
+        if usd_curve_type == "linear":
+            point_count = len(usd_positions)
+            self.assertEqual(len(blender_positions), point_count)
+        elif usd_curve_type == "cubic":
+            control_point_count = 0
+            usd_vert_counts = usd_curve.GetCurveVertexCountsAttr().Get()
+            for i in range(0, usd_spline_count):
+                if usd_cyclic == "nonperiodic":
+                    control_point_count += (int(usd_vert_counts[i] / 3) + 1)
+                else:
+                    control_point_count += (int(usd_vert_counts[i] / 3))
+
+            point_count = control_point_count
+            self.assertEqual(len(blender_positions), point_count)
+
+        # Check radius data.
+        usd_width_interpolation = usd_curve.GetWidthsInterpolation()
+        usd_radius = [w / 2 for w in usd_curve.GetWidthsAttr().Get()]
+        blender_radius = [r.value for r in blender_curve.attributes["radius"].data]
+        if usd_curve_type == "linear":
+            if usd_width_interpolation == "constant":
+                usd_radius = usd_radius * point_count
+
+            for i in range(0, len(blender_radius)):
+                self.assertAlmostEqual(blender_radius[i], usd_radius[i], 2)
+
+        elif usd_curve_type == "cubic":
+            if usd_width_interpolation == "constant":
+                usd_radius = usd_radius * point_count
+
+                for i in range(0, len(blender_radius)):
+                    self.assertAlmostEqual(blender_radius[i], usd_radius[i], 2)
+            elif usd_width_interpolation == "varying":
+                # Do a quick min/max sanity check instead of reimplementing width interpolation
+                usd_min = min(usd_radius)
+                usd_max = max(usd_radius)
+                blender_min = min(blender_radius)
+                blender_max = max(blender_radius)
+
+                self.assertAlmostEqual(blender_min, usd_min, 2)
+                self.assertAlmostEqual(blender_max, usd_max, 2)
+            elif usd_width_interpolation == "vertex":
+                # Do a quick check to ensure radius has been set at all
+                self.assertEqual(True, all([r > 0 and r < 1 for r in blender_radius]))
+
+    def test_import_curves_linear(self):
+        """Test importing linear curve variations."""
+
+        infile = str(self.testdir / "usd_curve_linear_all.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+
+        curves = [o for o in bpy.data.objects if o.type == 'CURVES']
+        self.assertEqual(8, len(curves), f"Test scene {infile} should have 8 curves; found {len(curves)}")
+
+        stage = Usd.Stage.Open(infile)
+
+        blender_curve = bpy.data.objects["linear_nonperiodic_single_constant"].data
+        usd_prim = stage.GetPrimAtPath("/root/linear_nonperiodic/single/linear_nonperiodic_single_constant")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["linear_nonperiodic_single_varying"].data
+        usd_prim = stage.GetPrimAtPath("/root/linear_nonperiodic/single/linear_nonperiodic_single_varying")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["linear_nonperiodic_multiple_constant"].data
+        usd_prim = stage.GetPrimAtPath("/root/linear_nonperiodic/multiple/linear_nonperiodic_multiple_constant")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["linear_nonperiodic_multiple_varying"].data
+        usd_prim = stage.GetPrimAtPath("/root/linear_nonperiodic/multiple/linear_nonperiodic_multiple_varying")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["linear_periodic_single_constant"].data
+        usd_prim = stage.GetPrimAtPath("/root/linear_periodic/single/linear_periodic_single_constant")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["linear_periodic_single_varying"].data
+        usd_prim = stage.GetPrimAtPath("/root/linear_periodic/single/linear_periodic_single_varying")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["linear_periodic_multiple_constant"].data
+        usd_prim = stage.GetPrimAtPath("/root/linear_periodic/multiple/linear_periodic_multiple_constant")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["linear_periodic_multiple_varying"].data
+        usd_prim = stage.GetPrimAtPath("/root/linear_periodic/multiple/linear_periodic_multiple_varying")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+    def test_import_curves_bezier(self):
+        """Test importing bezier curve variations."""
+
+        infile = str(self.testdir / "usd_curve_bezier_all.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+
+        curves = [o for o in bpy.data.objects if o.type == 'CURVES']
+        self.assertEqual(12, len(curves), f"Test scene {infile} should have 12 curves; found {len(curves)}")
+
+        stage = Usd.Stage.Open(infile)
+
+        blender_curve = bpy.data.objects["bezier_nonperiodic_single_constant"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/single/bezier_nonperiodic_single_constant")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["bezier_nonperiodic_single_varying"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/single/bezier_nonperiodic_single_varying")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["bezier_nonperiodic_single_vertex"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/single/bezier_nonperiodic_single_vertex")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["bezier_nonperiodic_multiple_constant"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/multiple/bezier_nonperiodic_multiple_constant")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["bezier_nonperiodic_multiple_varying"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/multiple/bezier_nonperiodic_multiple_varying")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["bezier_nonperiodic_multiple_vertex"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_nonperiodic/multiple/bezier_nonperiodic_multiple_vertex")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["bezier_periodic_single_constant"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/single/bezier_periodic_single_constant")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["bezier_periodic_single_varying"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/single/bezier_periodic_single_varying")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["bezier_periodic_single_vertex"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/single/bezier_periodic_single_vertex")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["bezier_periodic_multiple_constant"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/multiple/bezier_periodic_multiple_constant")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["bezier_periodic_multiple_varying"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/multiple/bezier_periodic_multiple_varying")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+        blender_curve = bpy.data.objects["bezier_periodic_multiple_vertex"].data
+        usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/multiple/bezier_periodic_multiple_vertex")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+    def test_import_point_instancer(self):
+        """Test importing a typical point instancer setup."""
+
+        infile = str(self.testdir / "usd_nested_point_instancer.usda")
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+
+        pointclouds = [o for o in bpy.data.objects if o.type == 'POINTCLOUD']
+        self.assertEqual(
+            2,
+            len(pointclouds),
+            f"Test scene {infile} should have 2 pointclouds; found {len(pointclouds)}")
+
+        vertical_points = len(bpy.data.pointclouds['verticalpoints'].attributes["position"].data)
+        horizontal_points = len(bpy.data.pointclouds['horizontalpoints'].attributes["position"].data)
+        self.assertEqual(3, vertical_points)
+        self.assertEqual(2, horizontal_points)
+
+    def test_import_light_types(self):
+        """Test importing light types and attributes."""
+
+        # Use the current scene to first create and export the lights
+        bpy.ops.object.light_add(type='POINT', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        bpy.context.active_object.data.energy = 2
+        bpy.context.active_object.data.shadow_soft_size = 2.2
+
+        bpy.ops.object.light_add(type='SPOT', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        bpy.context.active_object.data.energy = 3
+        bpy.context.active_object.data.shadow_soft_size = 3.3
+        bpy.context.active_object.data.spot_blend = 0.25
+        bpy.context.active_object.data.spot_size = math.radians(60)
+
+        bpy.ops.object.light_add(type='SUN', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        bpy.context.active_object.data.energy = 4
+        bpy.context.active_object.data.angle = math.radians(1)
+
+        bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        bpy.context.active_object.data.energy = 5
+        bpy.context.active_object.data.shape = 'RECTANGLE'
+        bpy.context.active_object.data.size = 0.5
+        bpy.context.active_object.data.size_y = 1.5
+
+        bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        bpy.context.active_object.data.energy = 6
+        bpy.context.active_object.data.shape = 'DISK'
+        bpy.context.active_object.data.size = 2
+
+        test_path = self.tempdir / "temp_lights.usda"
+        res = bpy.ops.wm.usd_export(filepath=str(test_path), evaluation_mode="RENDER")
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {test_path}")
+
+        # Reload the empty file and import back in
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        infile = str(test_path)
+        res = bpy.ops.wm.usd_import(filepath=infile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+
+        lights = [o for o in bpy.data.objects if o.type == 'LIGHT']
+        self.assertEqual(5, len(lights), f"Test scene {infile} should have 5 lights; found {len(lights)}")
+
+        blender_light = bpy.data.lights["Point"]
+        self.assertAlmostEqual(blender_light.energy, 2, 3)
+        self.assertAlmostEqual(blender_light.shadow_soft_size, 2.2, 3)
+
+        blender_light = bpy.data.lights["Spot"]
+        self.assertAlmostEqual(blender_light.energy, 3, 3)
+        self.assertAlmostEqual(blender_light.shadow_soft_size, 3.3, 3)
+        self.assertAlmostEqual(blender_light.spot_blend, 0.25, 3)
+        self.assertAlmostEqual(blender_light.spot_size, math.radians(60), 3)
+
+        blender_light = bpy.data.lights["Sun"]
+        self.assertAlmostEqual(blender_light.energy, 4, 3)
+        self.assertAlmostEqual(blender_light.angle, math.radians(1), 3)
+
+        blender_light = bpy.data.lights["Area"]
+        self.assertAlmostEqual(blender_light.energy, 5, 3)
+        self.assertEqual(blender_light.shape, 'RECTANGLE')
+        self.assertAlmostEqual(blender_light.size, 0.5, 3)
+        self.assertAlmostEqual(blender_light.size_y, 1.5, 3)
+
+        blender_light = bpy.data.lights["Area_001"]
+        self.assertAlmostEqual(blender_light.energy, 6, 3)
+        self.assertEqual(blender_light.shape, 'DISK')
+        self.assertAlmostEqual(blender_light.size, 2, 3)
 
 
 def main():
