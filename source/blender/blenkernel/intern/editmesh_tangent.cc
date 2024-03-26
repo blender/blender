@@ -59,12 +59,12 @@ struct SGLSLEditMeshToTangent {
   const BMLoop *GetLoop(const uint face_num, uint vert_index)
   {
     // BLI_assert(vert_index >= 0 && vert_index < 4);
-    std::array<BMLoop *, 3> lt;
+    BMLoop *const *lt;
     const BMLoop *l;
 
 #ifdef USE_LOOPTRI_DETECT_QUADS
     if (face_as_quad_map) {
-      lt = looptris[face_as_quad_map[face_num]];
+      lt = looptris[face_as_quad_map[face_num]].data();
       if (lt[0]->f->len == 4) {
         l = BM_FACE_FIRST_LOOP(lt[0]->f);
         while (vert_index--) {
@@ -75,10 +75,10 @@ struct SGLSLEditMeshToTangent {
       /* fall through to regular triangle */
     }
     else {
-      lt = looptris[face_num];
+      lt = looptris[face_num].data();
     }
 #else
-    lt = looptris[face_num];
+    lt = looptris[face_num].data();
 #endif
     return lt[vert_index];
   }

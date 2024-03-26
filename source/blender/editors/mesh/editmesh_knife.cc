@@ -1313,7 +1313,7 @@ static void knife_bvh_raycast_cb(void *userdata,
   }
 
   KnifeTool_OpData *kcd = static_cast<KnifeTool_OpData *>(userdata);
-  std::array<BMLoop *, 3> ltri;
+  BMLoop *const *ltri = nullptr;
   Object *ob;
   BMEditMesh *em;
 
@@ -1329,10 +1329,11 @@ static void knife_bvh_raycast_cb(void *userdata,
     em = BKE_editmesh_from_object(ob);
     tottri = em->looptris.size();
     if (index < tottri) {
-      ltri = em->looptris[index];
+      ltri = em->looptris[index].data();
       break;
     }
   }
+  BLI_assert(ltri != nullptr);
 
   if (kcd->bvh.filter_cb) {
     if (!kcd->bvh.filter_cb(ltri[0]->f, kcd->bvh.filter_data)) {
@@ -2505,7 +2506,6 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
   float tri_norm[3], tri_plane[4];
   float se1[2], se2[2];
   float d, lambda;
-  std::array<BMLoop *, 3> tri;
   ListBase *list;
   KnifeEdge *kfe;
 
@@ -2519,7 +2519,7 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
     float tri_cos[3][3];
     float ray_tri_uv[2];
 
-    tri = em->looptris[tri_i];
+    const std::array<BMLoop *, 3> &tri = em->looptris[tri_i];
     if (tri[0]->f != f) {
       break;
     }
@@ -2818,7 +2818,6 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 {
   float v1[3], v2[3], v3[3], v4[3], s1[2], s2[2];
   int *results, *result;
-  std::array<BMLoop *, 3> ls;
   ListBase *list;
   KnifeLineHit *linehits = nullptr;
   BLI_array_declare(linehits);
@@ -2902,16 +2901,17 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 
   for (i = 0, result = results; i < tot; i++, result++) {
     uint ob_index = 0;
+    BMLoop *const *ls = nullptr;
     for (ob_index = 0; ob_index < kcd->objects.size(); ob_index++) {
       ob = kcd->objects[ob_index];
       em = BKE_editmesh_from_object(ob);
       if (*result >= 0 && *result < em->looptris.size()) {
-        ls = em->looptris[*result];
+        ls = em->looptris[*result].data();
         break;
       }
       *result -= em->looptris.size();
     }
-
+    BLI_assert(ls != nullptr);
     BMFace *f = ls[0]->f;
     set_lowest_face_tri(kcd, em, f, *result);
 

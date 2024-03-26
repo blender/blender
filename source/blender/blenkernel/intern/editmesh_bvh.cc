@@ -189,7 +189,7 @@ BVHTree *BKE_bmbvh_tree_get(BMBVHTree *bmtree)
  * Return the coords from a triangle.
  */
 static void bmbvh_tri_from_face(const float *cos[3],
-                                const std::array<BMLoop *, 3> ltri,
+                                const std::array<BMLoop *, 3> &ltri,
                                 const float (*cos_cage)[3])
 {
   if (cos_cage == nullptr) {
@@ -227,7 +227,7 @@ static BMFace *bmbvh_ray_cast_handle_hit(BMBVHTree *bmtree,
 {
   if (r_hitout) {
     if (bmtree->flag & BMBVH_RETURN_ORIG) {
-      std::array<BMLoop *, 3> ltri = bmtree->looptris[hit->index];
+      const std::array<BMLoop *, 3> &ltri = bmtree->looptris[hit->index];
       interp_v3_v3v3v3_uv(r_hitout, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co, bmcb_data->uv);
     }
     else {
@@ -249,7 +249,7 @@ static BMFace *bmbvh_ray_cast_handle_hit(BMBVHTree *bmtree,
 static void bmbvh_ray_cast_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
   RayCastUserData *bmcb_data = static_cast<RayCastUserData *>(userdata);
-  const std::array<BMLoop *, 3> ltri = bmcb_data->looptris[index];
+  const std::array<BMLoop *, 3> &ltri = bmcb_data->looptris[index];
   float dist, uv[2];
   const float *tri_cos[3];
   bool isect;
@@ -338,7 +338,7 @@ static void bmbvh_ray_cast_cb_filter(void *userdata,
 {
   RayCastUserData_Filter *bmcb_data_filter = static_cast<RayCastUserData_Filter *>(userdata);
   RayCastUserData *bmcb_data = &bmcb_data_filter->bmcb_data;
-  const std::array<BMLoop *, 3> ltri = bmcb_data->looptris[index];
+  const std::array<BMLoop *, 3> &ltri = bmcb_data->looptris[index];
   if (bmcb_data_filter->filter_cb(ltri[0]->f, bmcb_data_filter->filter_userdata)) {
     bmbvh_ray_cast_cb(bmcb_data, index, ray, hit);
   }
@@ -402,7 +402,7 @@ static void bmbvh_find_vert_closest_cb(void *userdata,
                                        BVHTreeNearest *hit)
 {
   VertSearchUserData *bmcb_data = static_cast<VertSearchUserData *>(userdata);
-  const std::array<BMLoop *, 3> ltri = bmcb_data->looptris[index];
+  const std::array<BMLoop *, 3> &ltri = bmcb_data->looptris[index];
   const float dist_max_sq = bmcb_data->dist_max_sq;
 
   const float *tri_cos[3];
@@ -440,7 +440,7 @@ BMVert *BKE_bmbvh_find_vert_closest(BMBVHTree *bmtree, const float co[3], const 
 
   BLI_bvhtree_find_nearest(bmtree->tree, co, &hit, bmbvh_find_vert_closest_cb, &bmcb_data);
   if (hit.index != -1) {
-    const std::array<BMLoop *, 3> ltri = bmtree->looptris[hit.index];
+    const std::array<BMLoop *, 3> &ltri = bmtree->looptris[hit.index];
     return ltri[bmcb_data.index_tri]->v;
   }
 
@@ -462,7 +462,7 @@ static void bmbvh_find_face_closest_cb(void *userdata,
                                        BVHTreeNearest *hit)
 {
   FaceSearchUserData *bmcb_data = static_cast<FaceSearchUserData *>(userdata);
-  const std::array<BMLoop *, 3> ltri = bmcb_data->looptris[index];
+  const std::array<BMLoop *, 3> &ltri = bmcb_data->looptris[index];
   const float dist_max_sq = bmcb_data->dist_max_sq;
 
   const float *tri_cos[3];
@@ -499,7 +499,7 @@ BMFace *BKE_bmbvh_find_face_closest(BMBVHTree *bmtree, const float co[3], const 
 
   BLI_bvhtree_find_nearest(bmtree->tree, co, &hit, bmbvh_find_face_closest_cb, &bmcb_data);
   if (hit.index != -1) {
-    const std::array<BMLoop *, 3> ltri = bmtree->looptris[hit.index];
+    const std::array<BMLoop *, 3> &ltri = bmtree->looptris[hit.index];
     return ltri[0]->f;
   }
 
@@ -520,8 +520,8 @@ static bool bmbvh_overlap_cb(void *userdata, int index_a, int index_b, int /*thr
   const BMBVHTree *bmtree_a = data->tree_pair[0];
   const BMBVHTree *bmtree_b = data->tree_pair[1];
 
-  const std::array<BMLoop *, 3> tri_a = bmtree_a->looptris[index_a];
-  const std::array<BMLoop *, 3> tri_b = bmtree_b->looptris[index_b];
+  const std::array<BMLoop *, 3> &tri_a = bmtree_a->looptris[index_a];
+  const std::array<BMLoop *, 3> &tri_b = bmtree_b->looptris[index_b];
   const float *tri_a_co[3] = {tri_a[0]->v->co, tri_a[1]->v->co, tri_a[2]->v->co};
   const float *tri_b_co[3] = {tri_b[0]->v->co, tri_b[1]->v->co, tri_b[2]->v->co};
   float ix_pair[2][3];
