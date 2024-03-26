@@ -903,14 +903,14 @@ static void background_cdf(
   for (int i = start; i < end; i++) {
     float sin_theta = sinf(M_PI_F * (i + 0.5f) / res_y);
     float3 env_color = (*pixels)[i * res_x];
-    float ave_luminance = average(env_color);
+    float ave_luminance = average(fabs(env_color));
 
     cond_cdf[i * cdf_width].x = ave_luminance * sin_theta;
     cond_cdf[i * cdf_width].y = 0.0f;
 
     for (int j = 1; j < res_x; j++) {
       env_color = (*pixels)[i * res_x + j];
-      ave_luminance = average(env_color);
+      ave_luminance = average(fabs(env_color));
 
       cond_cdf[i * cdf_width + j].x = ave_luminance * sin_theta;
       cond_cdf[i * cdf_width + j].y = cond_cdf[i * cdf_width + j - 1].y +
