@@ -6,7 +6,7 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_idprop.hh"
+#include "BKE_idprop.h"
 
 namespace blender::bke::idprop {
 

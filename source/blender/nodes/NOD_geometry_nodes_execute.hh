@@ -9,7 +9,7 @@
 #include "BLI_multi_value_map.hh"
 #include "BLI_set.hh"
 
-#include "BKE_idprop.hh"
+#include "BKE_idprop.h"
 #include "BKE_node.hh"
 
 struct bNodeTree;

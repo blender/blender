@@ -413,7 +413,6 @@ set(SRC
   BKE_grease_pencil_vertex_groups.hh
   BKE_icons.h
   BKE_idprop.h
-  BKE_idprop.hh
   BKE_idtype.hh
   BKE_image.h
   BKE_image_format.h

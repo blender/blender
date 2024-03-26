@@ -6,9 +6,10 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_idprop.hh"
+#include "BKE_idprop.h"
 
 #include "BLI_listbase.h"
+#include "BLI_serialize.hh"
 
 namespace blender::bke::idprop {
 using namespace blender::io::serialize;
