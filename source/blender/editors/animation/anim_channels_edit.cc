@@ -1870,7 +1870,7 @@ static bool animchannels_grouping_poll(bContext *C)
     case SPACE_ACTION: {
       SpaceAction *saction = (SpaceAction *)sl;
 
-      /* dopesheet and action only - all others are for other datatypes or have no groups */
+      /* Dopesheet and action only - all others are for other data-types or have no groups. */
       if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_DOPESHEET) == 0) {
         return false;
       }

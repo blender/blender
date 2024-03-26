@@ -15,7 +15,7 @@ Generate source code that can be copied into `vk_to_string.hh`:
   `python3 vk_to_string.py <path-to-vk-xml> --header`
 
 Every vulkan installation contains a `vk.xml` which contains the specification in a machine
-readable format. `vk.xml` is also part of the vulkan library in blender libs.
+readable format. `vk.xml` is also part of the vulkan library in blender libraries.
 
 The generated source code will be printed to the console.
 """
@@ -156,7 +156,7 @@ def generate_enum_to_string_cpp(enum, features, extensions):
     return result
 
 
-### Bitflags ###
+### Bit-flags ###
 def generate_bitflag_to_string_hpp(vk_name):
     vk_name_parameter = to_lower_snake_case(vk_name)
     result = ""

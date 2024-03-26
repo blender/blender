@@ -55,7 +55,7 @@ typedef struct uiFont {
   struct uiFont *next, *prev;
   /** 1024 = FILE_MAX. */
   char filepath[1024];
-  /** From blfont lib. */
+  /** From BLF library. */
   short blf_id;
   /** Own id (eUIFont_ID). */
   short uifont_id;
@@ -333,10 +333,10 @@ typedef struct ThemeSpace {
   float dash_alpha;
 
   /* Syntax for text-window and nodes. */
-  unsigned char syntaxl[4], syntaxs[4]; /* in nodespace used for backdrop matte */
-  unsigned char syntaxb[4], syntaxn[4]; /* in nodespace used for color input */
-  unsigned char syntaxv[4], syntaxc[4]; /* in nodespace used for converter group */
-  unsigned char syntaxd[4], syntaxr[4]; /* in nodespace used for distort */
+  unsigned char syntaxl[4], syntaxs[4]; /* In node-space used for backdrop matte. */
+  unsigned char syntaxb[4], syntaxn[4]; /* In node-space used for color input. */
+  unsigned char syntaxv[4], syntaxc[4]; /* In node-space used for converter group. */
+  unsigned char syntaxd[4], syntaxr[4]; /* In node-space used for distort. */
 
   unsigned char line_numbers[4];
   char _pad6[3];

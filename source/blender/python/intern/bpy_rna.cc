@@ -8674,7 +8674,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
   bpy_context_set(C, &gilstate);
 
   if (!(is_staticmethod || is_classmethod)) {
-    /* Some datatypes (operator, render engine) can store PyObjects for re-use. */
+    /* Some data-types (operator, render engine) can store PyObjects for re-use. */
     if (ptr->data) {
       void **instance = RNA_struct_instance(ptr);
 

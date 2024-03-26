@@ -137,9 +137,9 @@ void main()
           if ((tiles_local[tile_offset] & SHADOW_DO_UPDATE) != 0) {
             /* This tile is now masked and not considered for rendering. */
             tiles_local[tile_offset] |= SHADOW_TILE_MASKED | SHADOW_TILE_AMENDED;
-            /* Note that we can have multiple thread writting to this tile. */
+            /* Note that we can have multiple thread writing to this tile. */
             int tile_bottom_offset = shadow_tile_offset_lds(tile_co >> (max_lod - lod), max_lod);
-            /* Tag the associated tile in max_lod to be used as it contains the shadowmap area
+            /* Tag the associated tile in max_lod to be used as it contains the shadow-map area
              * covered by this collapsed tile. */
             atomicOr(tiles_local[tile_bottom_offset], uint(SHADOW_TILE_AMENDED));
             /* This tile could have been masked by the masking phase.

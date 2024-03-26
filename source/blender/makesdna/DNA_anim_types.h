@@ -729,7 +729,7 @@ typedef enum eFCurve_Smoothing {
 } eFCurve_Smoothing;
 
 /* ************************************************ */
-/* 'Action' Datatypes */
+/* 'Action' Data-types */
 
 /* NOTE: Although these are part of the Animation System,
  * they are not stored here, see `DNA_action_types.h` instead. */
@@ -938,7 +938,7 @@ typedef enum eNlaTrack_Flag {
 } eNlaTrack_Flag;
 
 /* ************************************ */
-/* KeyingSet Datatypes */
+/* KeyingSet Data-types */
 
 /**
  * Path for use in KeyingSet definitions (ksp)

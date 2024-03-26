@@ -477,7 +477,7 @@ void COM_convert_canvas(NodeOperationBuilder &builder,
                         NodeOperationInput *to_socket)
 {
   /* Data type conversions are executed before resolutions to ensure convert operations have
-   * resolution. This method have to ensure same datatypes are linked for new operations. */
+   * resolution. This method have to ensure same data-types are linked for new operations. */
   BLI_assert(from_socket->get_data_type() == to_socket->get_data_type());
 
   ResizeMode mode = to_socket->get_resize_mode();

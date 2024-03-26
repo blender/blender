@@ -1722,7 +1722,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
     const short idcode = id ? GS(id->name) : 0;
 
     if (!id || !BKE_idtype_idcode_is_linkable(idcode)) {
-      /* No need to reload non-linkable datatypes,
+      /* No need to reload non-linkable data-types,
        * those will get relinked with their 'users ID'. */
       continue;
     }

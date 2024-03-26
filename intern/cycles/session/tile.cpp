@@ -39,7 +39,7 @@ static std::atomic<uint64_t> g_instance_index = 0;
 /* Construct names of EXR channels which will ensure order of all channels to match exact offsets
  * in render buffers corresponding to the given passes.
  *
- * Returns `std` datatypes so that it can be assigned directly to the OIIO's `ImageSpec`. */
+ * Returns `std` data-types so that it can be assigned directly to the OIIO's `ImageSpec`. */
 static std::vector<std::string> exr_channel_names_for_passes(const BufferParams &buffer_params)
 {
   static const char *component_suffixes[] = {"R", "G", "B", "A"};
