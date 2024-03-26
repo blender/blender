@@ -1235,29 +1235,28 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference)
 
 void IDP_foreach_property(IDProperty *id_property_root,
                           const int type_filter,
-                          IDPForeachPropertyCallback callback,
-                          void *user_data)
+                          const blender::FunctionRef<void(IDProperty *id_property)> callback)
 {
   if (!id_property_root) {
     return;
   }
 
   if (type_filter == 0 || (1 << id_property_root->type) & type_filter) {
-    callback(id_property_root, user_data);
+    callback(id_property_root);
   }
 
   /* Recursive call into container types of ID properties. */
   switch (id_property_root->type) {
     case IDP_GROUP: {
       LISTBASE_FOREACH (IDProperty *, loop, &id_property_root->data.group) {
-        IDP_foreach_property(loop, type_filter, callback, user_data);
+        IDP_foreach_property(loop, type_filter, callback);
       }
       break;
     }
     case IDP_IDPARRAY: {
       IDProperty *loop = static_cast<IDProperty *>(IDP_Array(id_property_root));
       for (int i = 0; i < id_property_root->len; i++) {
-        IDP_foreach_property(&loop[i], type_filter, callback, user_data);
+        IDP_foreach_property(&loop[i], type_filter, callback);
       }
       break;
     }

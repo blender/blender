@@ -829,8 +829,9 @@ static bool seq_foreach_member_id_cb(Sequence *seq, void *user_data)
   FOREACHID_PROCESS_IDSUPER(data, seq->clip, IDWALK_CB_USER);
   FOREACHID_PROCESS_IDSUPER(data, seq->mask, IDWALK_CB_USER);
   FOREACHID_PROCESS_IDSUPER(data, seq->sound, IDWALK_CB_USER);
-  IDP_foreach_property(
-      seq->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
+  IDP_foreach_property(seq->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+    BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+  });
   LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
     FOREACHID_PROCESS_IDSUPER(data, smd->mask_id, IDWALK_CB_USER);
   }
@@ -885,10 +886,9 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, view_layer->world_override, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
         data,
-        IDP_foreach_property(view_layer->id_properties,
-                             IDP_TYPE_FILTER_ID,
-                             BKE_lib_query_idpropertiesForeachIDLink_callback,
-                             data));
+        IDP_foreach_property(view_layer->id_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+          BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+        }));
 
     BKE_view_layer_synced_ensure(scene, view_layer);
     LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
@@ -914,11 +914,9 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, marker->camera, IDWALK_CB_NOP);
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
-        data,
-        IDP_foreach_property(marker->prop,
-                             IDP_TYPE_FILTER_ID,
-                             BKE_lib_query_idpropertiesForeachIDLink_callback,
-                             data));
+        data, IDP_foreach_property(marker->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+          BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+        }));
   }
 
   ToolSettings *toolsett = scene->toolsettings;

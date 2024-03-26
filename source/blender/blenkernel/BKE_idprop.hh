@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_function_ref.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
@@ -300,11 +301,6 @@ float IDP_coerce_to_float_or_zero(const IDProperty *prop);
 double IDP_coerce_to_double_or_zero(const IDProperty *prop);
 
 /**
- * Call a callback for each #IDproperty in the hierarchy under given root one (included).
- */
-using IDPForeachPropertyCallback = void (*)(IDProperty *id_property, void *user_data);
-
-/**
  * Loop through all ID properties in hierarchy of given \a id_property_root included.
  *
  * \note Container types (groups and arrays) are processed after applying the callback on them.
@@ -314,8 +310,7 @@ using IDPForeachPropertyCallback = void (*)(IDProperty *id_property, void *user_
  */
 void IDP_foreach_property(IDProperty *id_property_root,
                           int type_filter,
-                          IDPForeachPropertyCallback callback,
-                          void *user_data);
+                          blender::FunctionRef<void(IDProperty *id_property)> callback);
 
 /* Format IDProperty as strings */
 char *IDP_reprN(const IDProperty *prop, uint *r_len);
@@ -324,8 +319,8 @@ void IDP_repr_fn(const IDProperty *prop,
                  void *user_data);
 void IDP_print(const IDProperty *prop);
 
-void IDP_BlendWrite(struct BlendWriter *writer, const IDProperty *prop);
-void IDP_BlendReadData_impl(struct BlendDataReader *reader,
+void IDP_BlendWrite(BlendWriter *writer, const IDProperty *prop);
+void IDP_BlendReadData_impl(BlendDataReader *reader,
                             IDProperty **prop,
                             const char *caller_func_id);
 #define IDP_BlendDataRead(reader, prop) IDP_BlendReadData_impl(reader, prop, __func__)

@@ -344,10 +344,9 @@ static bool library_foreach_ID_link(Main *bmain,
       }
     }
 
-    IDP_foreach_property(id->properties,
-                         IDP_TYPE_FILTER_ID,
-                         BKE_lib_query_idpropertiesForeachIDLink_callback,
-                         &data);
+    IDP_foreach_property(id->properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+      BKE_lib_query_idpropertiesForeachIDLink_callback(prop, &data);
+    });
     if (BKE_lib_query_foreachid_iter_stop(&data)) {
       library_foreach_ID_data_cleanup(&data);
       return false;

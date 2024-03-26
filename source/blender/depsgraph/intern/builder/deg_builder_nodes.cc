@@ -672,16 +672,11 @@ void DepsgraphNodeBuilder::build_generic_id(ID *id)
   build_parameters(id);
 }
 
-static void build_idproperties_callback(IDProperty *id_property, void *user_data)
-{
-  DepsgraphNodeBuilder *builder = reinterpret_cast<DepsgraphNodeBuilder *>(user_data);
-  BLI_assert(id_property->type == IDP_ID);
-  builder->build_id(reinterpret_cast<ID *>(id_property->data.pointer));
-}
-
 void DepsgraphNodeBuilder::build_idproperties(IDProperty *id_property)
 {
-  IDP_foreach_property(id_property, IDP_TYPE_FILTER_ID, build_idproperties_callback, this);
+  IDP_foreach_property(id_property, IDP_TYPE_FILTER_ID, [&](IDProperty *id_property) {
+    this->build_id(static_cast<ID *>(id_property->data.pointer));
+  });
 }
 
 void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collection,

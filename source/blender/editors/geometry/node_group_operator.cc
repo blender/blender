@@ -265,14 +265,11 @@ static Depsgraph *build_depsgraph_from_indirect_ids(Main &bmain,
                                      needs_own_transform_relation,
                                      needs_scene_camera_relation);
   IDP_foreach_property(
-      &const_cast<IDProperty &>(properties),
-      IDP_TYPE_FILTER_ID,
-      [](IDProperty *property, void *user_data) {
+      &const_cast<IDProperty &>(properties), IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
         if (ID *id = IDP_Id(property)) {
-          static_cast<Set<ID *> *>(user_data)->add(id);
+          ids_for_relations.add(id);
         }
-      },
-      &ids_for_relations);
+      });
 
   Vector<const ID *> ids;
   ids.append(&node_tree_orig.id);
@@ -289,16 +286,11 @@ static IDProperty *replace_inputs_evaluated_data_blocks(const IDProperty &op_pro
 {
   /* We just create a temporary copy, so don't adjust data-block user count. */
   IDProperty *properties = IDP_CopyProperty_ex(&op_properties, LIB_ID_CREATE_NO_USER_REFCOUNT);
-  IDP_foreach_property(
-      properties,
-      IDP_TYPE_FILTER_ID,
-      [](IDProperty *property, void *user_data) {
-        if (ID *id = IDP_Id(property)) {
-          Depsgraph *depsgraph = static_cast<Depsgraph *>(user_data);
-          property->data.pointer = DEG_get_evaluated_id(depsgraph, id);
-        }
-      },
-      &const_cast<Depsgraph &>(depsgraph));
+  IDP_foreach_property(properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
+    if (ID *id = IDP_Id(property)) {
+      property->data.pointer = DEG_get_evaluated_id(&depsgraph, id);
+    }
+  });
   return properties;
 }
 

@@ -184,11 +184,9 @@ void BKE_fmodifiers_foreach_id(ListBase *fmodifiers, LibraryForeachIDData *data)
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, fcm_py->script, IDWALK_CB_NOP);
 
         BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
-            data,
-            IDP_foreach_property(fcm_py->prop,
-                                 IDP_TYPE_FILTER_ID,
-                                 BKE_lib_query_idpropertiesForeachIDLink_callback,
-                                 data));
+            data, IDP_foreach_property(fcm_py->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+              BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+            }));
         break;
       }
       default:
