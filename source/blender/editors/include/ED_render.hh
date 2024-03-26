@@ -54,16 +54,15 @@ void ED_render_view3d_update(Depsgraph *depsgraph, wmWindow *window, ScrArea *ar
 Scene *ED_render_job_get_scene(const bContext *C);
 Scene *ED_render_job_get_current_scene(const bContext *C);
 
-/* Render the preview
- *
- * pr_method:
- * - PR_BUTS_RENDER: preview is rendered for buttons window
- * - PR_ICON_RENDER: preview is rendered for icons. hopefully fast enough for at least 32x32
- * - PR_ICON_DEFERRED: No render, we just ensure deferred icon data gets generated.
+/**
+ * Render the preview method.
  */
 enum ePreviewRenderMethod {
+  /** Preview is rendered for buttons window. */
   PR_BUTS_RENDER = 0,
+  /** Preview is rendered for icons. hopefully fast enough for at least 32x32. */
   PR_ICON_RENDER = 1,
+  /** No render, we just ensure deferred icon data gets generated. */
   PR_ICON_DEFERRED = 2,
 };
 

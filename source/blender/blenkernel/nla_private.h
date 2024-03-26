@@ -20,20 +20,25 @@ struct AnimationEvalContext;
 
 /* --------------- NLA Evaluation DataTypes ----------------------- */
 
-/* used for list of strips to accumulate at current time */
+/** Used for list of strips to accumulate at current time. */
 typedef struct NlaEvalStrip {
   struct NlaEvalStrip *next, *prev;
 
-  NlaTrack *track; /* Track that this strip belongs to. */
-  NlaStrip *strip; /* Strip that's being used. */
+  /** Track that this strip belongs to. */
+  NlaTrack *track;
+  /** Strip that's being used. */
+  NlaStrip *strip;
 
-  short track_index; /* The index of the track within the list. */
-  short strip_mode;  /* Which end of the strip are we looking at. */
+  /** The index of the track within the list. */
+  short track_index;
+  /** Which end of the strip are we looking at. */
+  short strip_mode;
 
-  float strip_time; /* Time at which this strip is being evaluated. */
+  /** Time at which this strip is being evaluated. */
+  float strip_time;
 } NlaEvalStrip;
 
-/* NlaEvalStrip->strip_mode */
+/** #NlaEvalStrip::strip_mode. */
 enum eNlaEvalStrip_StripMode {
   /* standard evaluation */
   NES_TIME_BEFORE = -1,
@@ -48,19 +53,19 @@ enum eNlaEvalStrip_StripMode {
 struct NlaEvalChannel;
 struct NlaEvalData;
 
-/* Unique channel key for GHash. */
+/** Unique channel key for GHash. */
 typedef struct NlaEvalChannelKey {
   struct PointerRNA ptr;
   struct PropertyRNA *prop;
 } NlaEvalChannelKey;
 
-/* Bitmask of array indices touched by actions. */
+/** Bitmask of array indices touched by actions. */
 typedef struct NlaValidMask {
   BLI_bitmap *ptr;
   BLI_bitmap buffer[sizeof(uint64_t) / sizeof(BLI_bitmap)];
 } NlaValidMask;
 
-/* Set of property values for blending. */
+/** Set of property values for blending. */
 typedef struct NlaEvalChannelSnapshot {
   struct NlaEvalChannel *channel;
 
@@ -78,7 +83,7 @@ typedef struct NlaEvalChannelSnapshot {
   /* Memory over-allocated to provide space for values. */
 } NlaEvalChannelSnapshot;
 
-/* NlaEvalChannel->mix_mode */
+/** #NlaEvalChannel::mix_mode */
 enum eNlaEvalChannel_MixMode {
   NEC_MIX_ADD,
   NEC_MIX_MULTIPLY,
@@ -86,8 +91,10 @@ enum eNlaEvalChannel_MixMode {
   NEC_MIX_AXIS_ANGLE,
 };
 
-/* Temp channel for accumulating data from NLA for a single property.
- * Handles array properties as a unit to allow intelligent blending. */
+/**
+ * Temp channel for accumulating data from NLA for a single property.
+ * Handles array properties as a unit to allow intelligent blending.
+ */
 typedef struct NlaEvalChannel {
   struct NlaEvalChannel *next, *prev;
   struct NlaEvalData *owner;
@@ -108,7 +115,7 @@ typedef struct NlaEvalChannel {
   /* Memory over-allocated to provide space for base_snapshot.values. */
 } NlaEvalChannel;
 
-/* Set of values for all channels. */
+/** Set of values for all channels. */
 typedef struct NlaEvalSnapshot {
   /* Snapshot this one defaults to. */
   struct NlaEvalSnapshot *base;
@@ -117,7 +124,7 @@ typedef struct NlaEvalSnapshot {
   NlaEvalChannelSnapshot **channels;
 } NlaEvalSnapshot;
 
-/* Set of all channels covered by NLA. */
+/** Set of all channels covered by NLA. */
 typedef struct NlaEvalData {
   ListBase channels;
 
@@ -133,7 +140,7 @@ typedef struct NlaEvalData {
   NlaEvalSnapshot eval_snapshot;
 } NlaEvalData;
 
-/* Information about the currently edited strip and ones below it for keyframing. */
+/** Information about the currently edited strip and ones below it for keyframing. */
 typedef struct NlaKeyframingContext {
   struct NlaKeyframingContext *next, *prev;
 
@@ -180,11 +187,12 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list,
  */
 
 enum eNlaStripEvaluate_Mode {
-  /* Blend upper strip with lower stack. */
+  /** Blend upper strip with lower stack. */
   STRIP_EVAL_BLEND,
-  /* Given upper strip and blended snapshot, solve for lower stack. */
+  /** Given upper strip and blended snapshot, solve for lower stack. */
   STRIP_EVAL_BLEND_GET_INVERTED_LOWER_SNAPSHOT,
-  /* Store strip fcurve values in snapshot, properly marking blend_domain values.
+  /**
+   * Store strip fcurve values in snapshot, properly marking blend_domain values.
    *
    * Currently only used for transitions to distinguish fcurve sampled values from default or lower
    * stack values.

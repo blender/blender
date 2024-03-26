@@ -493,7 +493,7 @@ static void prepare_channel_for_drawing(ChannelListElement *elem)
   ED_keylist_prepare_for_direct_access(elem->keylist);
 }
 
-/* List of channels that are actually drawn because they are in view. */
+/** List of channels that are actually drawn because they are in view. */
 struct ChannelDrawList {
   ListBase /*ChannelListElement*/ channels;
 };

@@ -40,7 +40,7 @@ void asset_reading_region_listen_fn(const wmRegionListenerParams *params);
 asset_system::AssetLibrary *library_get_once_available(
     const AssetLibraryReference &library_reference);
 
-/* Can return false to stop iterating. */
+/** Can return false to stop iterating. */
 using AssetListHandleIterFn = FunctionRef<bool(AssetHandle)>;
 using AssetListIterFn = FunctionRef<bool(asset_system::AssetRepresentation &)>;
 

@@ -24,7 +24,7 @@ struct UndoType;
 struct wmKeyConfig;
 struct wmOperator;
 
-/* paint_ops.cc */
+/* `paint_ops.cc` */
 
 void ED_operatortypes_paint();
 void ED_operatormacros_paint();
@@ -110,7 +110,8 @@ void ED_paintcurve_undo_push_end(bContext *C);
 /** Export for ED_undo_sys. */
 void ED_paintcurve_undosys_type(UndoType *ut);
 
-/* paint_canvas.cc */
+/* `paint_canvas.cc` */
+
 /** Color type of an object can be overridden in sculpt/paint mode. */
 eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
                                                      const PaintModeSettings *settings,
@@ -124,5 +125,5 @@ eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
  */
 bool ED_paint_tool_use_canvas(bContext *C, bToolRef *tref);
 
-/* Store the last used tool in the sculpt session. */
+/** Store the last used tool in the sculpt session. */
 void ED_paint_tool_update_sticky_shading_color(bContext *C, Object *ob);

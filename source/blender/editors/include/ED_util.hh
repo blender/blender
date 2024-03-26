@@ -18,7 +18,7 @@ namespace blender::bke::id {
 class IDRemapper;
 }
 
-/* ed_util.cc */
+/* `ed_util.cc` */
 
 void ED_editors_init_for_undo(Main *bmain);
 void ED_editors_init(bContext *C);
@@ -90,7 +90,7 @@ void ED_slider_status_string_get(const tSlider *slider,
 float ED_slider_factor_get(tSlider *slider);
 void ED_slider_factor_set(tSlider *slider, float factor);
 
-/* One bool value for each side of the slider. Allows to enable overshoot only on one side. */
+/** One bool value for each side of the slider. Allows to enable overshoot only on one side. */
 void ED_slider_allow_overshoot_set(tSlider *slider, bool lower, bool upper);
 
 /**

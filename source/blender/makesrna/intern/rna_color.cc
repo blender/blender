@@ -597,8 +597,11 @@ struct Seq_colorspace_cb_data {
   Sequence *r_seq;
 };
 
-/* Colorspace could be changed for scene, but also VSE strip. If property pointer matches one of
- * strip, set `r_seq`, so not all cached images have to be invalidated. */
+/**
+ * Color-space could be changed for scene, but also sequencer-strip.
+ * If property pointer matches one of strip, set `r_seq`,
+ * so not all cached images have to be invalidated.
+ */
 static bool seq_find_colorspace_settings_cb(Sequence *seq, void *user_data)
 {
   Seq_colorspace_cb_data *cd = (Seq_colorspace_cb_data *)user_data;

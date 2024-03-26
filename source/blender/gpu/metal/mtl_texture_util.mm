@@ -253,7 +253,7 @@ size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
       return 2;
     case MTLPixelFormatBC1_RGBA:
     case MTLPixelFormatBC1_RGBA_sRGB:
-      return 1; /* Note: not quite correct (BC1 is 0.5 bpp). */
+      return 1; /* NOTE: not quite correct (BC1 is 0.5 BPP). */
     case MTLPixelFormatBC2_RGBA:
     case MTLPixelFormatBC2_RGBA_sRGB:
     case MTLPixelFormatBC3_RGBA:

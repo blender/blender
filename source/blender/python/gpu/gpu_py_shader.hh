@@ -47,7 +47,7 @@ struct BPyGPUStageInterfaceInfo {
   PyObject_VAR_HEAD
   GPUStageInterfaceInfo *interface;
 #ifdef USE_GPU_PY_REFERENCES
-  /* Just to keep a user to prevent freeing buf's we're using. */
+  /* Just to keep a user to prevent freeing buffers we're using. */
   PyObject *references;
 #endif
 };
@@ -56,7 +56,7 @@ struct BPyGPUShaderCreateInfo {
   PyObject_VAR_HEAD
   GPUShaderCreateInfo *info;
 #ifdef USE_GPU_PY_REFERENCES
-  /* Just to keep a user to prevent freeing buf's we're using. */
+  /* Just to keep a user to prevent freeing buffers we're using. */
   PyObject *vertex_source;
   PyObject *fragment_source;
   PyObject *compute_source;

@@ -601,7 +601,7 @@ typedef struct FPoint {
   char _pad[4];
 } FPoint;
 
-/* 'Function-Curve' - defines values over time for a given setting (fcu) */
+/** 'Function-Curve' - defines values over time for a given setting (fcu). */
 typedef struct FCurve {
   struct FCurve *next, *prev;
 

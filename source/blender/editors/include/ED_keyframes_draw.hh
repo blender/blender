@@ -26,9 +26,12 @@ struct GreasePencil;
 struct GreasePencilLayer;
 struct GreasePencilLayerTreeGroup;
 
-/* draw simple diamond-shape keyframe */
-/* caller should set up vertex format, bind GPU_SHADER_KEYFRAME_SHAPE,
- * immBegin(GPU_PRIM_POINTS, n), then call this n times */
+/**
+ * Draw simple diamond-shape keyframe.
+ *
+ * The caller should set up vertex format, bind #GPU_SHADER_KEYFRAME_SHAPE,
+ * `immBegin(GPU_PRIM_POINTS, n)`, then call this `n` times.
+ */
 struct KeyframeShaderBindings {
   uint pos_id;
   uint size_id;

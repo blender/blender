@@ -1200,13 +1200,6 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
   return false;
 }
 
-/**
- * Convenience function for snap ray-casting.
- *
- * Given a ray, cast it into the scene (snapping to faces).
- *
- * \return Snap success
- */
 bool ED_transform_snap_object_project_ray(SnapObjectContext *sctx,
                                           Depsgraph *depsgraph,
                                           const View3D *v3d,

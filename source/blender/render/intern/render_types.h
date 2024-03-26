@@ -132,7 +132,7 @@ struct ViewRender : public BaseRender {
   }
 };
 
-/* Controls state of render, everything that's read-only during render stage */
+/** Controls state of render, everything that's read-only during render stage. */
 struct Render : public BaseRender {
   /* NOTE: Currently unused, provision for the future.
    * Add these now to allow the guarded memory allocator to catch C-specific function calls. */

@@ -56,7 +56,7 @@ GPUContext *GPU_context_create(void *ghost_window, void *ghost_context);
 void GPU_context_discard(GPUContext *);
 
 /**
- * Ctx can be null.
+ * #GPUContext can be null.
  */
 void GPU_context_active_set(GPUContext *);
 GPUContext *GPU_context_active_get();

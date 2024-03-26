@@ -6145,7 +6145,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
   }
 
   /* This check may be paranoid, this function might run outside the context of a popup or can run
-   * in popopers that are not supposed to support refreshing, see #ui_popover_create_block. */
+   * in popovers that are not supposed to support refreshing, see #ui_popover_create_block. */
   if (block->handle && block->handle->region) {
     /* Allow popovers to contain collapsible sections, see #uiItemPopoverPanel. */
     UI_popup_dummy_panel_set(block->handle->region, block);

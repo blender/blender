@@ -19,8 +19,10 @@ struct PackedFile;
 struct RenderResult;
 struct Scene;
 
-/* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
-/* should be used in conjunction with an ID * to Image. */
+/**
+ * ImageUser is in Texture, in Nodes, Background Image, Image Window, ...
+ * should be used in conjunction with an ID * to Image.
+ */
 typedef struct ImageUser {
   /** To retrieve render result. */
   struct Scene *scene;

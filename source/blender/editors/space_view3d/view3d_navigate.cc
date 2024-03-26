@@ -1042,10 +1042,10 @@ static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname)
   return nullptr;
 }
 
-/* Unlike `viewops_data_create`, `ED_view3d_navigation_init` creates a navigation context along
- * with an array of `wmKeyMapItem`s used for navigation. */
 ViewOpsData *ED_view3d_navigation_init(bContext *C, const wmKeyMapItem *kmi_merge)
 {
+  /* Unlike `viewops_data_create`, `ED_view3d_navigation_init` creates a navigation context along
+   * with an array of `wmKeyMapItem`s used for navigation. */
   if (!CTX_wm_region_view3d(C)) {
     return nullptr;
   }

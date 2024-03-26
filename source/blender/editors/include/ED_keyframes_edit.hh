@@ -28,7 +28,7 @@ struct bDopeSheet;
 /** \name Tool Flags
  * \{ */
 
-/* bezt validation */
+/** bezt validation. */
 enum eEditKeyframes_Validate {
   /* Frame range */
   BEZT_OK_FRAME = 1,
@@ -62,7 +62,7 @@ enum eEditKeyframes_Select {
   SELECT_EXTEND_RANGE = (1 << 4),
 };
 
-/* "selection map" building modes */
+/* "selection map" building modes. */
 enum eEditKeyframes_SelMap {
   SELMAP_MORE = 0,
   SELMAP_LESS,
@@ -202,9 +202,9 @@ struct KeyframeEditData {
 /** \name Function Pointer Typedefs
  * \{ */
 
-/* callback function that refreshes the F-Curve after use */
+/** Callback function that refreshes the F-Curve after use. */
 using FcuEditFunc = void (*)(FCurve *fcu);
-/* callback function that operates on the given BezTriple */
+/** Callback function that operates on the given #BezTriple. */
 using KeyframeEditFunc = short (*)(KeyframeEditData *ked, BezTriple *bezt);
 
 /** \} */
@@ -213,55 +213,55 @@ using KeyframeEditFunc = short (*)(KeyframeEditData *ked, BezTriple *bezt);
 /** \name Custom Data Type Defines
  * \{ */
 
-/* Custom data for remapping one range to another in a fixed way */
+/** Custom data for remapping one range to another in a fixed way. */
 struct KeyframeEditCD_Remap {
   float oldMin, oldMax; /* old range */
   float newMin, newMax; /* new range */
 };
 
-/* Paste options */
+/** Paste options. */
 enum eKeyPasteOffset {
-  /* paste keys starting at current frame */
+  /** Paste keys starting at current frame. */
   KEYFRAME_PASTE_OFFSET_CFRA_START,
-  /* paste keys ending at current frame */
+  /** Paste keys ending at current frame. */
   KEYFRAME_PASTE_OFFSET_CFRA_END,
-  /* paste keys relative to the current frame when copying */
+  /** Paste keys relative to the current frame when copying. */
   KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE,
-  /* paste keys from original time */
+  /** Paste keys from original time. */
   KEYFRAME_PASTE_OFFSET_NONE,
 };
 
 enum eKeyPasteValueOffset {
-  /* Paste keys with the first key matching the key left of the cursor. */
+  /** Paste keys with the first key matching the key left of the cursor. */
   KEYFRAME_PASTE_VALUE_OFFSET_LEFT_KEY,
-  /* Paste keys with the last key matching the key right of the cursor. */
+  /** Paste keys with the last key matching the key right of the cursor. */
   KEYFRAME_PASTE_VALUE_OFFSET_RIGHT_KEY,
-  /* Paste keys relative to the value of the curve under the cursor. */
+  /** Paste keys relative to the value of the curve under the cursor. */
   KEYFRAME_PASTE_VALUE_OFFSET_CFRA,
-  /* Paste values relative to the cursor position. */
+  /** Paste values relative to the cursor position. */
   KEYFRAME_PASTE_VALUE_OFFSET_CURSOR,
-  /* Paste keys with the exact copied value. */
+  /** Paste keys with the exact copied value. */
   KEYFRAME_PASTE_VALUE_OFFSET_NONE,
 };
 
 enum eKeyMergeMode {
-  /* overlay existing with new keys */
+  /** Overlay existing with new keys. */
   KEYFRAME_PASTE_MERGE_MIX,
-  /* replace entire fcurve */
+  /** Replace entire fcurve. */
   KEYFRAME_PASTE_MERGE_OVER,
-  /* overwrite keys in pasted range */
+  /** Overwrite keys in pasted range. */
   KEYFRAME_PASTE_MERGE_OVER_RANGE,
-  /* overwrite keys in pasted range (use all keyframe start & end for range) */
+  /** Overwrite keys in pasted range (use all keyframe start & end for range). */
   KEYFRAME_PASTE_MERGE_OVER_RANGE_ALL,
 };
 
-/* Possible errors occurring while pasting keys. */
+/** Possible errors occurring while pasting keys. */
 enum eKeyPasteError {
-  /* No errors occurred */
+  /** No errors occurred. */
   KEYFRAME_PASTE_OK,
-  /* Nothing was copied */
+  /** Nothing was copied. */
   KEYFRAME_PASTE_NOTHING_TO_PASTE,
-  /* No F-curves was selected to paste into. */
+  /** No F-curves was selected to paste into. */
   KEYFRAME_PASTE_NOWHERE_TO_PASTE
 };
 
@@ -438,7 +438,7 @@ void blend_to_neighbor_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float
 void breakdown_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void scale_average_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
 void push_pull_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor);
-/* Used for operators that need a reference key of the segment to work. */
+/** Used for operators that need a reference key of the segment to work. */
 enum class FCurveSegmentAnchor { LEFT, RIGHT };
 void scale_from_fcurve_segment_neighbor(FCurve *fcu,
                                         FCurveSegment *segment,
@@ -456,6 +456,10 @@ void ED_anim_free_butterworth_coefficients(ButterworthCoefficients *bw_coeff);
 void ED_anim_calculate_butterworth_coefficients(float cutoff,
                                                 float sampling_frequency,
                                                 ButterworthCoefficients *bw_coeff);
+/**
+ * \param samples: Are expected to start at the first frame of the segment with a buffer of size
+ * `segment->filter_order` at the left.
+ */
 void butterworth_smooth_fcurve_segment(FCurve *fcu,
                                        FCurveSegment *segment,
                                        float *samples,
@@ -470,8 +474,10 @@ void smooth_fcurve_segment(FCurve *fcu,
                            float factor,
                            int kernel_size,
                            double *kernel);
-/** Snap the keys on the given FCurve segment to an S-Curve. By modifying the `factor` the part of
- * the S-Curve that the keys are snapped to is moved on the x-axis.*/
+/**
+ * Snap the keys on the given FCurve segment to an S-Curve. By modifying the `factor` the part of
+ * the S-Curve that the keys are snapped to is moved on the x-axis.
+ */
 void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, float factor, float width);
 
 enum tShearDirection {

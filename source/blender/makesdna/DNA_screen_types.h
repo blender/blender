@@ -275,7 +275,7 @@ typedef struct uiListDyn {
   void *customdata;
 
   /* Filtering data. */
-  /** This bitfield is effectively exposed in Python, and scripts are explicitly allowed to assign
+  /** This bit-field is effectively exposed in Python, and scripts are explicitly allowed to assign
    * any own meaning to the lower 16 ones.
    * #items_len length. */
   int *items_filter_flags;

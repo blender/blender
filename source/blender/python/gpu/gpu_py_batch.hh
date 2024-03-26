@@ -25,7 +25,7 @@ struct BPyGPUBatch {
   /* The batch is owned, we may support thin wrapped batches later. */
   blender::gpu::Batch *batch;
 #ifdef USE_GPU_PY_REFERENCES
-  /* Just to keep a user to prevent freeing buf's we're using */
+  /* Just to keep a user to prevent freeing buffers we're using. */
   PyObject *references;
 #endif
 };

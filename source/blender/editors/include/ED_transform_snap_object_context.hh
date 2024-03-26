@@ -23,7 +23,7 @@ struct Object;
 struct Scene;
 struct View3D;
 
-/* transform_snap_object.cc */
+/* `transform_snap_object.cc` */
 
 /* ED_transform_snap_object_*** API */
 
@@ -40,24 +40,26 @@ struct SnapObjectHitDepth {
   float depth;
   float co[3];
 
-  /* needed to tell which ray-cast this was part of,
-   * the same object may be part of many ray-casts when dupli's are used. */
+  /**
+   * Needed to tell which ray-cast this was part of,
+   * the same object may be part of many ray-casts when dupli's are used.
+   */
   unsigned int ob_uuid;
 };
 
 /** parameters that define which objects will be used to snap. */
 struct SnapObjectParams {
-  /* Special context sensitive handling for the active or selected object. */
+  /** Special context sensitive handling for the active or selected object. */
   eSnapTargetOP snap_target_select;
-  /* Geometry for snapping in edit mode. */
+  /** Geometry for snapping in edit mode. */
   eSnapEditType edit_mode_type;
-  /* Break nearest face snapping into steps to improve transformations across U-shaped targets. */
+  /** Break nearest face snapping into steps to improve transformations across U-shaped targets. */
   short face_nearest_steps;
-  /* snap to the closest element, use when using more than one snap type */
+  /** Snap to the closest element, use when using more than one snap type. */
   bool use_occlusion_test : 1;
-  /* exclude back facing geometry from snapping */
+  /** Exclude back facing geometry from snapping. */
   bool use_backface_culling : 1;
-  /* Enable to force nearest face snapping to snap to target the source was initially near. */
+  /** Enable to force nearest face snapping to snap to target the source was initially near. */
   bool keep_on_same_target : 1;
 };
 
@@ -65,7 +67,7 @@ struct SnapObjectContext;
 SnapObjectContext *ED_transform_snap_object_context_create(Scene *scene, int flag);
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx);
 
-/* callbacks to filter how snap works */
+/** Callbacks to filter how snap works. */
 void ED_transform_snap_object_context_set_editmesh_callbacks(
     SnapObjectContext *sctx,
     bool (*test_vert_fn)(BMVert *, void *user_data),
@@ -86,6 +88,13 @@ bool ED_transform_snap_object_project_ray_ex(SnapObjectContext *sctx,
                                              int *r_index,
                                              Object **r_ob,
                                              float r_obmat[4][4]);
+/**
+ * Convenience function for snap ray-casting.
+ *
+ * Given a ray, cast it into the scene (snapping to faces).
+ *
+ * \return Snap success
+ */
 bool ED_transform_snap_object_project_ray(SnapObjectContext *sctx,
                                           Depsgraph *depsgraph,
                                           const View3D *v3d,

@@ -2092,11 +2092,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
 
   v3d.flag2 = V3D_HIDE_OVERLAYS;
   /* HACK: When rendering gpencil objects this opacity is used to mix vertex colors in when not in
-   * render mode (e.g. in VSE). */
+   * render mode (e.g. in the sequencer). */
   v3d.overlay.gpencil_vertex_paint_opacity = 1.0f;
 
-  /* Also initialize wireframe properties to the default so it renders properly in VSE. Should
-   * find some way to use the viewport's current opacity and threshold, but this is a start. */
+  /* Also initialize wire-frame properties to the default so it renders properly in sequencer.
+   * Should find some way to use the viewport's current opacity and threshold,
+   * but this is a start. */
   v3d.overlay.wireframe_opacity = 1.0f;
   v3d.overlay.wireframe_threshold = 0.5f;
 

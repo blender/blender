@@ -42,7 +42,7 @@ struct wmOperator;
 struct UvElement;
 struct UvElementMap;
 
-/* editmesh_utils.cc */
+/* `editmesh_utils.cc` */
 
 /**
  * \param em: Edit-mesh used for generating mirror data.
@@ -189,12 +189,12 @@ void EDBM_automerge(Object *obedit, bool update, char hflag, float dist);
 void EDBM_automerge_and_split(
     Object *obedit, bool split_edges, bool split_faces, bool update, char hflag, float dist);
 
-/* editmesh_undo.cc */
+/* `editmesh_undo.cc` */
 
 /** Export for ED_undo_sys. */
 void ED_mesh_undosys_type(UndoType *ut);
 
-/* editmesh_select.cc */
+/* `editmesh_select.cc` */
 
 void EDBM_select_mirrored(
     BMEditMesh *em, const Mesh *mesh, int axis, bool extend, int *r_totmirr, int *r_totfail);
@@ -441,7 +441,7 @@ void ED_mesh_mirrtopo_init(BMEditMesh *em,
                            bool skip_em_vert_array_init);
 void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
 
-/* object_vgroup.cc */
+/* `object_vgroup.cc` */
 
 #define WEIGHT_REPLACE 1
 #define WEIGHT_ADD 2
@@ -513,7 +513,7 @@ float ED_vgroup_vert_weight(Object *ob, bDeformGroup *dg, int vertnum);
  */
 void ED_vgroup_vert_active_mirror(Object *ob, int def_nr);
 
-/* mesh_data.cc */
+/* `mesh_data.cc` */
 
 void ED_mesh_verts_add(Mesh *mesh, ReportList *reports, int count);
 void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count);
@@ -584,7 +584,7 @@ void EDBM_redo_state_restore_and_free(BMBackup *backup, BMEditMesh *em, bool rec
     ATTR_NONNULL(1, 2);
 void EDBM_redo_state_free(BMBackup *backup) ATTR_NONNULL(1);
 
-/* *** meshtools.cc *** */
+/* `meshtools.cc` */
 
 int ED_mesh_join_objects_exec(bContext *C, wmOperator *op);
 int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op);

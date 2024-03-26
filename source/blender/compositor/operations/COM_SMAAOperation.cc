@@ -56,7 +56,7 @@
  *                           |output|
  *
  * Note that each [pass] has its own vertex and pixel shader. Remember to use
- * oversized triangles instead of quads to avoid overshading along the
+ * over-sized triangles instead of quads to avoid over-shading along the
  * diagonal.
  *
  * You've three edge detection methods to choose from: luma, color or depth.
@@ -72,7 +72,7 @@
  * - Color edge detection is usually the most expensive one but catches
  *   chroma-only edges.
  *
- * For quickstarters: just use luma edge detection.
+ * For quick-starters: just use luma edge detection.
  *
  * The general advice is to not rush the integration process and ensure each
  * step is done correctly (don't try to integrate SMAA T2x with predicated edge
@@ -119,7 +119,7 @@
  *     of the input read and the output write in
  *     'SMAANeighborhoodBlending' (and only in this pass!). If sRGB reads in
  *     this last pass are not possible, the technique will work anyway, but
- *     will perform antialiasing in gamma space.
+ *     will perform anti-aliasing in gamma space.
  *
  *     IMPORTANT: for best results the input read for the color/luma edge
  *     detection should *NOT* be sRGB.
@@ -151,7 +151,7 @@
  *
  *     Note that SMAA_RT_METRICS doesn't need to be a macro, it can be a
  *     uniform variable. The code is designed to minimize the impact of not
- *     using a constant value, but it is still better to hardcode it.
+ *     using a constant value, but it is still better to hard-code it.
  *
  *     Depending on how you encoded 'areaTex' and 'searchTex', you may have to
  *     add (and customize) the following defines before including SMAA.h:
@@ -372,7 +372,7 @@
  *
  * In number of pixels, it's actually the double. So the maximum line length
  * perfectly handled by, for example 16, is 64 (by perfectly, we meant that
- * longer lines won't look as good, but still antialiased).
+ * longer lines won't look as good, but still anti-aliased).
  *
  * Range: [0, 112]
  */

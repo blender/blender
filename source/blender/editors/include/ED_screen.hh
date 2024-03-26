@@ -469,9 +469,9 @@ bScreen *ED_screen_animation_playing(const wmWindowManager *wm);
 bScreen *ED_screen_animation_no_scrub(const wmWindowManager *wm);
 
 /* screen keymaps */
-/* called in spacetypes.cc */
+/* called in `spacetypes.cc`. */
 void ED_operatortypes_screen();
-/* called in spacetypes.cc */
+/* called in `spacetypes.cc`. */
 void ED_keymap_screen(wmKeyConfig *keyconf);
 /**
  * Workspace key-maps.

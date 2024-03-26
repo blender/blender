@@ -815,7 +815,6 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 /** \name Set Cursor Operator
  * \{ */
 
-/* cursor position in vec, result in vec, mval in region coords */
 void ED_view3d_cursor3d_position(bContext *C,
                                  const int mval[2],
                                  const bool use_depth,

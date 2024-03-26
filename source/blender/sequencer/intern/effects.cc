@@ -2644,7 +2644,8 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
     char filepath[FILE_MAX];
     STRNCPY(filepath, vfont->filepath);
     if (BLI_thread_is_main()) {
-      /* FIXME: This is a band-aid fix. A proper solution has to be worked on by the VSE team.
+      /* FIXME: This is a band-aid fix.
+       * A proper solution has to be worked on by the sequencer team.
        *
        * This code can be called from non-main thread, e.g. when copying sequences as part of
        * depsgraph evaluated copy of the evaluated scene. Just skip font loading in that case, BLF

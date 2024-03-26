@@ -357,7 +357,7 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
                                      const uchar source_color[4],
                                      const uchar target_color[4]);
 
-/* view3d_iterators.cc */
+/* `view3d_iterators.cc` */
 
 /* foreach iterators */
 
@@ -926,7 +926,7 @@ int view3d_opengl_select_with_id_filter(const ViewContext *vc,
                                         eV3DSelectObjectFilter select_filter,
                                         uint select_id);
 
-/* view3d_select.cc */
+/* `view3d_select.cc` */
 
 float ED_view3d_select_dist_px();
 ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph);
@@ -1285,7 +1285,7 @@ void ED_view3d_draw_bgpic_test(const Scene *scene,
                                bool do_foreground,
                                bool do_camera_frame);
 
-/* view3d_gizmo_preselect_type.cc */
+/* `view3d_gizmo_preselect_type.cc` */
 
 void ED_view3d_gizmo_mesh_preselect_get_active(const bContext *C,
                                                const wmGizmo *gz,
@@ -1293,7 +1293,7 @@ void ED_view3d_gizmo_mesh_preselect_get_active(const bContext *C,
                                                BMElem **r_ele);
 void ED_view3d_gizmo_mesh_preselect_clear(wmGizmo *gz);
 
-/* space_view3d.cc */
+/* `space_view3d.cc` */
 
 void ED_view3d_buttons_region_layout_ex(const bContext *C,
                                         ARegion *region,

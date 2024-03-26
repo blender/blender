@@ -514,10 +514,6 @@ static float butterworth_calculate_blend_value(float *samples,
   return 0;
 }
 
-/**
- * \param samples: Are expected to start at the first frame of the segment with a buffer of size
- * `segment->filter_order` at the left.
- */
 void butterworth_smooth_fcurve_segment(FCurve *fcu,
                                        FCurveSegment *segment,
                                        float *samples,
@@ -687,7 +683,7 @@ void ease_fcurve_segment(FCurve *fcu,
     return;
   }
 
-  /* Using the factor on the xshift we are basicaly moving the curve horizontaly. */
+  /* Using the factor on the X-shift we are basically moving the curve horizontally. */
   const float shift = -factor;
   const float y_min = ease_sigmoid_function(-1, width, shift);
   const float y_max = ease_sigmoid_function(1, width, shift);
