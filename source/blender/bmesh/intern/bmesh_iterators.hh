@@ -219,8 +219,6 @@ void *BMO_iter_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                          void **stack_array,
                          int stack_array_size);
 
-#ifdef __cplusplus
-
 int BM_iter_mesh_bitmap_from_filter(char itype,
                                     BMesh *bm,
                                     blender::MutableBitSpan bitmap,
@@ -233,8 +231,6 @@ int BM_iter_mesh_bitmap_from_filter_tessface(BMesh *bm,
                                              blender::MutableBitSpan bitmap,
                                              bool (*test_fn)(BMFace *, void *user_data),
                                              void *user_data);
-
-#endif
 
 /**
  * \brief Elem Iter Flag Count

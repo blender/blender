@@ -10,10 +10,6 @@
 
 #include "IMB_imbuf.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name Generic File Type
  * \{ */
@@ -297,7 +293,3 @@ ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
                                        size_t *r_height);
 
 /** \} */
-
-#ifdef __cplusplus
-};
-#endif

@@ -15,7 +15,6 @@
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 
-extern "C" {
 bool imb_is_a_dpx(const uchar *mem, size_t size)
 {
   return imb_oiio_check(mem, size, "dpx");
@@ -84,5 +83,4 @@ bool imb_save_dpx(ImBuf *ibuf, const char *filepath, int flags)
   }
 
   return imb_oiio_write(ctx, filepath, file_spec);
-}
 }

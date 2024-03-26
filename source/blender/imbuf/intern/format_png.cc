@@ -15,8 +15,6 @@
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 
-extern "C" {
-
 bool imb_is_a_png(const uchar *mem, size_t size)
 {
   return imb_oiio_check(mem, size, "png");
@@ -66,5 +64,4 @@ bool imb_save_png(ImBuf *ibuf, const char *filepath, int flags)
   file_spec.attribute("png:compressionLevel", compression);
 
   return imb_oiio_write(ctx, filepath, file_spec);
-}
 }

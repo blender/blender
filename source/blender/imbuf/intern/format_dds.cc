@@ -28,10 +28,6 @@
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 
-using std::unique_ptr;
-
-extern "C" {
-
 static void LoadDXTCImage(ImBuf *ibuf, Filesystem::IOMemReader &mem_reader);
 
 void imb_init_dds()
@@ -335,5 +331,4 @@ static void LoadDXTCImage(ImBuf *ibuf, Filesystem::IOMemReader &mem_reader)
     /* Flip compressed image data to match OpenGL convention. */
     FlipDXTCImage(ibuf);
   }
-}
 }

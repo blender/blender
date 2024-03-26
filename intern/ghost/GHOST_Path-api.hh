@@ -10,10 +10,6 @@
 
 #include "GHOST_Types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 GHOST_DECLARE_HANDLE(GHOST_SystemPathsHandle);
 
 /**
@@ -63,7 +59,3 @@ extern const char *GHOST_getBinaryDir();
  * Add the file to the operating system most recently used files
  */
 extern void GHOST_addToSystemRecentFiles(const char *filepath);
-
-#ifdef __cplusplus
-}
-#endif

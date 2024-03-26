@@ -14,8 +14,6 @@
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 
-extern "C" {
-
 bool imb_is_a_tga(const uchar *mem, size_t size)
 {
   return imb_oiio_check(mem, size, "tga");
@@ -41,5 +39,4 @@ bool imb_save_tga(ImBuf *ibuf, const char *filepath, int flags)
   file_spec.attribute("compression", (ibuf->foptions.flag & RAWTGA) ? "none" : "rle");
 
   return imb_oiio_write(ctx, filepath, file_spec);
-}
 }

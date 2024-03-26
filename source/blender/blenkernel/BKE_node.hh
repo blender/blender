@@ -86,7 +86,6 @@ typedef struct bNodeSocketTemplate {
 /* Use `void *` for callbacks that require C++. This is rather ugly, but works well for now. This
  * would not be necessary if we would use bNodeSocketType and bNodeType only in C++ code.
  * However, achieving this requires quite a few changes currently. */
-#ifdef __cplusplus
 namespace blender {
 class CPPType;
 namespace nodes {
@@ -106,7 +105,6 @@ class ShaderNode;
 }  // namespace realtime_compositor
 }  // namespace blender
 
-using CPPTypeHandle = blender::CPPType;
 using NodeMultiFunctionBuildFunction = void (*)(blender::nodes::NodeMultiFunctionBuilder &builder);
 using NodeGeometryExecFunction = void (*)(blender::nodes::GeoNodeExecParams params);
 using NodeDeclareFunction = void (*)(blender::nodes::NodeDeclarationBuilder &builder);
@@ -129,23 +127,6 @@ using NodeGetCompositorOperationFunction = blender::realtime_compositor::NodeOpe
 using NodeGetCompositorShaderNodeFunction =
     blender::realtime_compositor::ShaderNode *(*)(blender::nodes::DNode node);
 using NodeExtraInfoFunction = void (*)(blender::nodes::NodeExtraInfoParams &params);
-
-#else
-typedef void *NodeGetCompositorOperationFunction;
-typedef void *NodeGetCompositorShaderNodeFunction;
-typedef void *NodeMultiFunctionBuildFunction;
-typedef void *NodeGeometryExecFunction;
-typedef void *NodeDeclareFunction;
-typedef void *NodeDeclareDynamicFunction;
-typedef void *NodeGatherSocketLinkOperationsFunction;
-typedef void *NodeGatherAddOperationsFunction;
-typedef void *SocketGetCPPTypeFunction;
-typedef void *SocketGetGeometryNodesCPPTypeFunction;
-typedef void *SocketGetGeometryNodesCPPValueFunction;
-typedef void *SocketGetCPPValueFunction;
-typedef void *NodeExtraInfoFunction;
-typedef struct CPPTypeHandle CPPTypeHandle;
-#endif
 
 /**
  * \brief Defines a socket type.
@@ -201,11 +182,11 @@ typedef struct bNodeSocketType {
   void (*free_self)(struct bNodeSocketType *stype);
 
   /* Return the CPPType of this socket. */
-  const CPPTypeHandle *base_cpp_type;
+  const blender::CPPType *base_cpp_type;
   /* Get the value of this socket in a generic way. */
   SocketGetCPPValueFunction get_base_cpp_value;
   /* Get geometry nodes cpp type. */
-  const CPPTypeHandle *geometry_nodes_cpp_type;
+  const blender::CPPType *geometry_nodes_cpp_type;
   /* Get geometry nodes cpp value. */
   SocketGetGeometryNodesCPPValueFunction get_geometry_nodes_cpp_value;
   /* Default value for this socket type. */
@@ -379,7 +360,7 @@ typedef struct bNodeType {
    * the node. In this case, the static declaration is mostly just a hint, and does not have to
    * match with the final node.
    */
-  NodeDeclarationHandle *static_declaration;
+  blender::nodes::NodeDeclaration *static_declaration;
 
   /**
    * Add to the list of search names and operations gathered by node link drag searching.

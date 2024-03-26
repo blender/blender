@@ -12,9 +12,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-#  include <string>
-#endif
+#include <string>
 
 #include "BLI_assert.h"
 #include "BLI_utildefines.h"
@@ -192,7 +190,6 @@ struct GPUSamplerState {
   /** Specifies how the GPUSamplerState structure should be interpreted when passed around. */
   GPUSamplerStateType type : 8;
 
-#ifdef __cplusplus
   /**
    * Constructs a sampler state with default filtering and extended extend in both x and y axis.
    * See the documentation on GPU_SAMPLER_FILTERING_DEFAULT and GPU_SAMPLER_EXTEND_MODE_EXTEND for
@@ -387,17 +384,7 @@ struct GPUSamplerState {
            this->extend_yz == rhs.extend_yz && this->custom_type == rhs.custom_type &&
            this->type == rhs.type;
   }
-#endif
 };
-
-#ifndef __cplusplus
-/** Identical to GPUSamplerState::default_sampler for non C++ users. */
-static const GPUSamplerState GPU_SAMPLER_DEFAULT = {GPU_SAMPLER_FILTERING_DEFAULT,
-                                                    GPU_SAMPLER_EXTEND_MODE_EXTEND,
-                                                    GPU_SAMPLER_EXTEND_MODE_EXTEND,
-                                                    GPU_SAMPLER_CUSTOM_COMPARE,
-                                                    GPU_SAMPLER_STATE_TYPE_PARAMETERS};
-#endif
 
 /** \} */
 
