@@ -3,7 +3,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
-from bpy.types import Operator
+from bpy.types import (
+    Operator,
+    FileHandler,
+)
 from bpy.props import (
     BoolProperty,
     EnumProperty,
@@ -258,10 +261,40 @@ class VIEW3D_OT_transform_gizmo_set(Operator):
         return self.execute(context)
 
 
+class VIEW3D_FH_empty_image(FileHandler):
+    bl_idname = "VIEW3D_FH_empty_image"
+    bl_label = "Add empty image"
+    bl_import_operator = "OBJECT_OT_empty_image_add"
+    bl_file_extensions = ';'.join(bpy.path.extensions_image) + ';' + ';'.join(bpy.path.extensions_movie)
+
+    @classmethod
+    def poll_drop(cls, context):
+        if not context.space_data or context.space_data.type != 'VIEW_3D':
+            return False
+        rv3d = context.space_data.region_3d
+        return rv3d.view_perspective == 'PERSP' or rv3d.view_perspective == 'ORTHO'
+
+
+class VIEW3D_FH_camera_background_image(FileHandler):
+    bl_idname = "VIEW3D_FH_camera_background_image"
+    bl_label = "Add camera background image"
+    bl_import_operator = "VIEW3D_OT_camera_background_image_add"
+    bl_file_extensions = ';'.join(bpy.path.extensions_image) + ';' + ';'.join(bpy.path.extensions_movie)
+
+    @classmethod
+    def poll_drop(cls, context):
+        if not context.space_data or context.space_data.type != 'VIEW_3D':
+            return False
+        rv3d = context.space_data.region_3d
+        return rv3d.view_perspective == 'CAMERA'
+
+
 classes = (
     VIEW3D_OT_edit_mesh_extrude_individual_move,
     VIEW3D_OT_edit_mesh_extrude_move,
     VIEW3D_OT_edit_mesh_extrude_shrink_fatten,
     VIEW3D_OT_edit_mesh_extrude_manifold_normal,
     VIEW3D_OT_transform_gizmo_set,
+    VIEW3D_FH_camera_background_image,
+    VIEW3D_FH_empty_image,
 )
