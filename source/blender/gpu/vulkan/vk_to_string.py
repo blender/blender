@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 """
 This script is used to generate parts of `vk_to_string.hh` and `vk_to_string.cc` based on the
 vulkan API commands, features and extensions we use.
