@@ -133,6 +133,9 @@ static void image_runtime_reset_on_copy(Image *image)
 
   image->runtime.partial_update_register = nullptr;
   image->runtime.partial_update_user = nullptr;
+
+  image->runtime.backdrop_offset[0] = 0.0f;
+  image->runtime.backdrop_offset[1] = 0.0f;
 }
 
 static void image_runtime_free_data(Image *image)

@@ -110,8 +110,8 @@ void ViewerOperation::update_image(const rcti *rect)
     return;
   }
 
-  image_->offset_x = canvas_.xmin;
-  image_->offset_y = canvas_.ymin;
+  image_->runtime.backdrop_offset[0] = canvas_.xmin;
+  image_->runtime.backdrop_offset[1] = canvas_.ymin;
   float *buffer = output_buffer_;
   IMB_partial_display_buffer_update(ibuf_,
                                     buffer,

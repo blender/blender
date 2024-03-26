@@ -132,6 +132,9 @@ typedef struct Image_Runtime {
   /** \brief Partial update user for GPUTextures stored inside the Image. */
   struct PartialUpdateUser *partial_update_user;
 
+  /* Compositor viewer might be translated, and that translation will be stored in this runtime
+   * vector by the compositor so that the editor draw code can draw the image translated. */
+  float backdrop_offset[2];
 } Image_Runtime;
 
 typedef struct Image {
@@ -200,9 +203,6 @@ typedef struct Image {
   /** For viewer node stereoscopy. */
   char eye;
   char views_format;
-
-  /** Offset caused by translation. Used in compositor backdrop for viewer nodes in image space. */
-  int offset_x, offset_y;
 
   /* ImageTile list for UDIMs. */
   int active_tile_index;

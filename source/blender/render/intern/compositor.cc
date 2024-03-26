@@ -272,8 +272,8 @@ class Context : public realtime_compositor::Context {
 
     Image *image = BKE_image_ensure_viewer(G.main, IMA_TYPE_COMPOSITE, "Viewer Node");
     const float2 translation = domain.transformation.location();
-    image->offset_x = int(translation.x);
-    image->offset_y = int(translation.y);
+    image->runtime.backdrop_offset[0] = translation.x;
+    image->runtime.backdrop_offset[1] = translation.y;
 
     return viewer_output_texture_;
   }
