@@ -899,7 +899,6 @@ void PAINT_OT_visibility_invert(wmOperatorType *ot)
   ot->idname = "PAINT_OT_visibility_invert";
   ot->description = "Invert the visibility of all vertices";
 
-  ot->modal = WM_gesture_box_modal;
   ot->exec = visibility_invert_exec;
   ot->poll = SCULPT_mode_poll_view3d;
 
