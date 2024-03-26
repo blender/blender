@@ -14,6 +14,7 @@
 #include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_debug.hh"
+#include "vk_to_string.hh"
 
 static CLG_LogRef LOG = {"gpu.debug.vulkan"};
 
