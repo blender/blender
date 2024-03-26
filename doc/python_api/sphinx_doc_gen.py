@@ -1712,7 +1712,7 @@ def pyrna2sphinx(basepath):
                     lines.append("   * :class:`%s.%s`\n" % (base.identifier, identifier))
 
             if lines:
-                fw(".. rubric:: Inherited Properties\n\n")
+                fw(title_string("Inherited Properties", "-"))
 
                 fw(".. hlist::\n")
                 fw("   :columns: 2\n\n")
@@ -1738,7 +1738,7 @@ def pyrna2sphinx(basepath):
                     lines.append("   * :class:`%s.%s`\n" % (base.identifier, identifier))
 
             if lines:
-                fw(".. rubric:: Inherited Functions\n\n")
+                fw(title_string("Inherited Functions", "-"))
 
                 fw(".. hlist::\n")
                 fw("   :columns: 2\n\n")
@@ -1750,8 +1750,7 @@ def pyrna2sphinx(basepath):
             del lines[:]
 
         if struct.references:
-            # use this otherwise it gets in the index for a normal heading.
-            fw(".. rubric:: References\n\n")
+            fw(title_string("References", "-"))
 
             fw(".. hlist::\n")
             fw("   :columns: 2\n\n")
@@ -2238,7 +2237,6 @@ def write_rst_enum_items(basepath, key, key_no_prefix, enum_items):
         fw(".. _%s:\n\n" % key)
 
         fw(title_string(key_no_prefix.replace("_", " ").title(), "#"))
-        # fw(".. rubric:: %s\n\n" % key_no_prefix.replace("_", " ").title())
 
         for item in enum_items:
             identifier = item.identifier
