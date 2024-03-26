@@ -1166,8 +1166,9 @@ static const int *knife_bm_tri_index_get(const KnifeTool_OpData *kcd,
   if (obinfo->tri_indices) {
     return obinfo->tri_indices[tri_index];
   }
+  const std::array<BMLoop *, 3> &ltri = obinfo->em->looptris[tri_index];
   for (int i = 0; i < 3; i++) {
-    tri_index_buf[i] = BM_elem_index_get(obinfo->em->looptris[tri_index][i]->v);
+    tri_index_buf[i] = BM_elem_index_get(ltri[i]->v);
   }
   return tri_index_buf;
 }
@@ -2519,8 +2520,8 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
     float tri_cos[3][3];
     float ray_tri_uv[2];
 
-    const std::array<BMLoop *, 3> &tri = em->looptris[tri_i];
-    if (tri[0]->f != f) {
+    const std::array<BMLoop *, 3> &ltri = em->looptris[tri_i];
+    if (ltri[0]->f != f) {
       break;
     }
 
@@ -2555,7 +2556,7 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
           return false;
         }
       }
-      interp_v3_v3v3v3_uv(hit_co, tri[0]->v->co, tri[1]->v->co, tri[2]->v->co, ray_tri_uv);
+      interp_v3_v3v3v3_uv(hit_co, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co, ray_tri_uv);
       return true;
     }
   }
@@ -2901,18 +2902,18 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 
   for (i = 0, result = results; i < tot; i++, result++) {
     uint ob_index = 0;
-    BMLoop *const *ls = nullptr;
+    BMLoop *const *ltri = nullptr;
     for (ob_index = 0; ob_index < kcd->objects.size(); ob_index++) {
       ob = kcd->objects[ob_index];
       em = BKE_editmesh_from_object(ob);
       if (*result >= 0 && *result < em->looptris.size()) {
-        ls = em->looptris[*result].data();
+        ltri = em->looptris[*result].data();
         break;
       }
       *result -= em->looptris.size();
     }
-    BLI_assert(ls != nullptr);
-    BMFace *f = ls[0]->f;
+    BLI_assert(ltri != nullptr);
+    BMFace *f = ltri[0]->f;
     set_lowest_face_tri(kcd, em, f, *result);
 
     /* Occlude but never cut unselected faces (when only_select is used). */
@@ -3960,10 +3961,10 @@ static void knifetool_init_obinfo(KnifeTool_OpData *kcd,
     int(*tri_indices)[3] = static_cast<int(*)[3]>(
         MEM_mallocN(sizeof(int[3]) * em_eval->looptris.size(), __func__));
     for (int i = 0; i < em_eval->looptris.size(); i++) {
-      const std::array<BMLoop *, 3> &tri = em_eval->looptris[i];
-      tri_indices[i][0] = BM_elem_index_get(tri[0]->v);
-      tri_indices[i][1] = BM_elem_index_get(tri[1]->v);
-      tri_indices[i][2] = BM_elem_index_get(tri[2]->v);
+      const std::array<BMLoop *, 3> &ltri = em_eval->looptris[i];
+      tri_indices[i][0] = BM_elem_index_get(ltri[0]->v);
+      tri_indices[i][1] = BM_elem_index_get(ltri[1]->v);
+      tri_indices[i][2] = BM_elem_index_get(ltri[2]->v);
     }
     obinfo->tri_indices = tri_indices;
   }

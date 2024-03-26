@@ -520,15 +520,15 @@ static bool bmbvh_overlap_cb(void *userdata, int index_a, int index_b, int /*thr
   const BMBVHTree *bmtree_a = data->tree_pair[0];
   const BMBVHTree *bmtree_b = data->tree_pair[1];
 
-  const std::array<BMLoop *, 3> &tri_a = bmtree_a->looptris[index_a];
-  const std::array<BMLoop *, 3> &tri_b = bmtree_b->looptris[index_b];
-  const float *tri_a_co[3] = {tri_a[0]->v->co, tri_a[1]->v->co, tri_a[2]->v->co};
-  const float *tri_b_co[3] = {tri_b[0]->v->co, tri_b[1]->v->co, tri_b[2]->v->co};
+  const std::array<BMLoop *, 3> &ltri_a = bmtree_a->looptris[index_a];
+  const std::array<BMLoop *, 3> &ltri_b = bmtree_b->looptris[index_b];
+  const float *tri_a_co[3] = {ltri_a[0]->v->co, ltri_a[1]->v->co, ltri_a[2]->v->co};
+  const float *tri_b_co[3] = {ltri_b[0]->v->co, ltri_b[1]->v->co, ltri_b[2]->v->co};
   float ix_pair[2][3];
   int verts_shared = 0;
 
   if (bmtree_a->looptris == bmtree_b->looptris) {
-    if (UNLIKELY(tri_a[0]->f == tri_b[0]->f)) {
+    if (UNLIKELY(ltri_a[0]->f == ltri_b[0]->f)) {
       return false;
     }
 

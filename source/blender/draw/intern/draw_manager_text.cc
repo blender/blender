@@ -458,18 +458,18 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
         n = 0;
         area = 0;
         zero_v3(vmid);
-        const std::array<BMLoop *, 3> *l = &em->looptris[tri_index];
+        const std::array<BMLoop *, 3> *ltri_array = &em->looptris[tri_index];
         for (int j = 0; j < f_corner_tris_len; j++) {
 
           if (use_coords) {
-            copy_v3_v3(v1, vert_coords[BM_elem_index_get(l[j][0]->v)]);
-            copy_v3_v3(v2, vert_coords[BM_elem_index_get(l[j][1]->v)]);
-            copy_v3_v3(v3, vert_coords[BM_elem_index_get(l[j][2]->v)]);
+            copy_v3_v3(v1, vert_coords[BM_elem_index_get(ltri_array[j][0]->v)]);
+            copy_v3_v3(v2, vert_coords[BM_elem_index_get(ltri_array[j][1]->v)]);
+            copy_v3_v3(v3, vert_coords[BM_elem_index_get(ltri_array[j][2]->v)]);
           }
           else {
-            copy_v3_v3(v1, l[j][0]->v->co);
-            copy_v3_v3(v2, l[j][1]->v->co);
-            copy_v3_v3(v3, l[j][2]->v->co);
+            copy_v3_v3(v1, ltri_array[j][0]->v->co);
+            copy_v3_v3(v2, ltri_array[j][1]->v->co);
+            copy_v3_v3(v3, ltri_array[j][2]->v->co);
           }
 
           add_v3_v3(vmid, v1);

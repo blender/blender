@@ -59,14 +59,14 @@ struct SGLSLEditMeshToTangent {
   const BMLoop *GetLoop(const uint face_num, uint vert_index)
   {
     // BLI_assert(vert_index >= 0 && vert_index < 4);
-    BMLoop *const *lt;
+    BMLoop *const *ltri;
     const BMLoop *l;
 
 #ifdef USE_LOOPTRI_DETECT_QUADS
     if (face_as_quad_map) {
-      lt = looptris[face_as_quad_map[face_num]].data();
-      if (lt[0]->f->len == 4) {
-        l = BM_FACE_FIRST_LOOP(lt[0]->f);
+      ltri = looptris[face_as_quad_map[face_num]].data();
+      if (ltri[0]->f->len == 4) {
+        l = BM_FACE_FIRST_LOOP(ltri[0]->f);
         while (vert_index--) {
           l = l->next;
         }
@@ -75,12 +75,12 @@ struct SGLSLEditMeshToTangent {
       /* fall through to regular triangle */
     }
     else {
-      lt = looptris[face_num].data();
+      ltri = looptris[face_num].data();
     }
 #else
-    lt = looptris[face_num].data();
+    ltri = looptris[face_num].data();
 #endif
-    return lt[vert_index];
+    return ltri[vert_index];
   }
 
   mikk::float3 GetPosition(const uint face_num, const uint vert_index)
