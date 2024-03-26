@@ -94,7 +94,7 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
 }
 
 void GLVertArray::update_bindings(const GLuint vao,
-                                  const GPUBatch *batch_, /* Should be GLBatch. */
+                                  const Batch *batch_, /* Should be GLBatch. */
                                   const ShaderInterface *interface,
                                   const int base_instance)
 {

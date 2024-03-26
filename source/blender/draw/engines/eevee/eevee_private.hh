@@ -656,7 +656,7 @@ struct EEVEE_GeometryMotionData {
   int use_deform;
 
   /* The batch and VBOs are not owned. */
-  GPUBatch *batch;               /* Batch for time = t. */
+  blender::gpu::Batch *batch;    /* Batch for time = t. */
   blender::gpu::VertBuf *vbo[2]; /* VBO for time = t +/- step. */
 };
 

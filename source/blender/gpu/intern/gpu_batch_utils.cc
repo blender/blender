@@ -21,9 +21,9 @@
 /** \name Polygon Creation (2D)
  * \{ */
 
-GPUBatch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat,
-                                              uint polys_flat_len,
-                                              const rctf *rect)
+blender::gpu::Batch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat,
+                                                         uint polys_flat_len,
+                                                         const rctf *rect)
 {
   const uchar(*polys)[2] = static_cast<const uchar(*)[2]>((const void *)polys_flat);
   const uint polys_len = polys_flat_len / 2;
@@ -110,9 +110,9 @@ GPUBatch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat,
       GPU_PRIM_TRIS, vbo, indexbuf, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
 }
 
-GPUBatch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat,
-                                              uint polys_flat_len,
-                                              const rctf *rect)
+blender::gpu::Batch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat,
+                                                         uint polys_flat_len,
+                                                         const rctf *rect)
 {
   const uchar(*polys)[2] = static_cast<const uchar(*)[2]>((const void *)polys_flat);
   const uint polys_len = polys_flat_len / 2;

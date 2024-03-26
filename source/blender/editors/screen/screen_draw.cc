@@ -71,9 +71,9 @@ static void do_vert_pair(blender::gpu::VertBuf *vbo, uint pos, uint *vidx, int c
   GPU_vertbuf_attr_set(vbo, pos, (*vidx)++, exter);
 }
 
-static GPUBatch *batch_screen_edges_get(int *corner_len)
+static blender::gpu::Batch *batch_screen_edges_get(int *corner_len)
 {
-  static GPUBatch *screen_edges_batch = nullptr;
+  static blender::gpu::Batch *screen_edges_batch = nullptr;
 
   if (screen_edges_batch == nullptr) {
     GPUVertFormat format = {0};
@@ -129,7 +129,7 @@ static void drawscredge_area_draw(
     rect.ymin -= edge_thickness * 0.5f;
   }
 
-  GPUBatch *batch = batch_screen_edges_get(nullptr);
+  blender::gpu::Batch *batch = batch_screen_edges_get(nullptr);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_BORDERS);
   GPU_batch_uniform_4fv(batch, "rect", (float *)&rect);
   GPU_batch_draw(batch);
@@ -197,7 +197,7 @@ void ED_screen_draw_edges(wmWindow *win)
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  GPUBatch *batch = batch_screen_edges_get(&verts_per_corner);
+  blender::gpu::Batch *batch = batch_screen_edges_get(&verts_per_corner);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_BORDERS);
   GPU_batch_uniform_1i(batch, "cornerLen", verts_per_corner);
   GPU_batch_uniform_1f(batch, "scale", corner_scale);

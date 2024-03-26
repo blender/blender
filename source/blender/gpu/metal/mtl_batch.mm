@@ -5,7 +5,7 @@
 /** \file
  * \ingroup gpu
  *
- * Metal implementation of GPUBatch.
+ * Metal implementation of gpu::Batch.
  */
 
 #include "BLI_assert.h"
@@ -13,8 +13,8 @@
 
 #include "BKE_global.hh"
 
+#include "GPU_batch.hh"
 #include "GPU_common.hh"
-#include "gpu_batch_private.hh"
 #include "gpu_shader_private.hh"
 
 #include "mtl_batch.hh"

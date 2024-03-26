@@ -119,7 +119,7 @@ static void basic_cache_init(void *vedata)
 
 /* TODO(fclem): DRW_cache_object_surface_material_get needs a refactor to allow passing nullptr
  * instead of gpumat_array. Avoiding all this boilerplate code. */
-static GPUBatch **basic_object_surface_material_get(Object *ob)
+static blender::gpu::Batch **basic_object_surface_material_get(Object *ob)
 {
   const int materials_len = DRW_cache_object_material_count_get(ob);
   GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
@@ -142,7 +142,7 @@ static void basic_cache_populate_particles(void *vedata, Object *ob)
     ParticleSettings *part = psys->part;
     const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
     if (draw_as == PART_DRAW_PATH) {
-      GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
+      blender::gpu::Batch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
       if (stl->g_data->use_material_slot_selection) {
         const short material_slot = part->omat;
         DRW_select_load_id(ob->runtime->select_id | (material_slot << 16));
@@ -190,7 +190,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
 
     if (is_flat_object_viewed_from_side) {
       /* Avoid losing flat objects when in ortho views (see #56549) */
-      GPUBatch *geom = DRW_cache_object_all_edges_get(ob);
+      blender::gpu::Batch *geom = DRW_cache_object_all_edges_get(ob);
       if (geom) {
         DRW_shgroup_call(stl->g_data->depth_shgrp[do_in_front], geom, ob);
       }
@@ -211,7 +211,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
   }
   else {
     if (stl->g_data->use_material_slot_selection && BKE_object_supports_material_slots(ob)) {
-      GPUBatch **geoms = basic_object_surface_material_get(ob);
+      blender::gpu::Batch **geoms = basic_object_surface_material_get(ob);
       if (geoms) {
         const int materials_len = DRW_cache_object_material_count_get(ob);
         for (int i = 0; i < materials_len; i++) {
@@ -225,7 +225,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
       }
     }
     else {
-      GPUBatch *geom = DRW_cache_object_surface_get(ob);
+      blender::gpu::Batch *geom = DRW_cache_object_surface_get(ob);
       if (geom) {
         DRW_shgroup_call(shgrp, geom, ob);
       }

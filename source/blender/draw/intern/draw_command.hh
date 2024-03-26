@@ -349,7 +349,7 @@ struct SpecializeConstant {
 };
 
 struct Draw {
-  GPUBatch *batch;
+  gpu::Batch *batch;
   uint instance_len;
   uint vertex_len;
   uint vertex_first;
@@ -365,7 +365,7 @@ struct Draw {
 };
 
 struct DrawMulti {
-  GPUBatch *batch;
+  gpu::Batch *batch;
   DrawMultiBuf *multi_draw_buf;
   uint group_first;
   uint uuid;
@@ -375,7 +375,7 @@ struct DrawMulti {
 };
 
 struct DrawIndirect {
-  GPUBatch *batch;
+  gpu::Batch *batch;
   GPUStorageBuf **indirect_buf;
   ResourceHandle handle;
 
@@ -503,7 +503,7 @@ class DrawCommandBuf {
 
   void append_draw(Vector<Header, 0> &headers,
                    Vector<Undetermined, 0> &commands,
-                   GPUBatch *batch,
+                   gpu::Batch *batch,
                    uint instance_len,
                    uint vertex_len,
                    uint vertex_first,
@@ -555,10 +555,10 @@ class DrawCommandBuf {
  * `DrawGroup` as a container. This is done automatically for any successive commands with the
  * same state.
  *
- * A `DrawGroup` is the combination of a `GPUBatch` (VBO state) and a `command::DrawMulti`
+ * A `DrawGroup` is the combination of a `gpu::Batch` (VBO state) and a `command::DrawMulti`
  * (Pipeline State).
  *
- * Inside each `DrawGroup` all instances of a same `GPUBatch` is merged into a single indirect
+ * Inside each `DrawGroup` all instances of a same `gpu::Batch` is merged into a single indirect
  * command.
  *
  * To support this arbitrary reordering, we only need to know the offset of all the commands for a
@@ -585,7 +585,7 @@ class DrawMultiBuf {
   using DrawCommandBuf = StorageArrayBuffer<DrawCommand, 16, true>;
   using ResourceIdBuf = StorageArrayBuffer<uint, 128, true>;
 
-  using DrawGroupKey = std::pair<uint, GPUBatch *>;
+  using DrawGroupKey = std::pair<uint, gpu::Batch *>;
   using DrawGroupMap = Map<DrawGroupKey, uint>;
   /** Maps a DrawMulti command and a gpu batch to their unique DrawGroup command. */
   DrawGroupMap group_ids_;
@@ -623,7 +623,7 @@ class DrawMultiBuf {
 
   void append_draw(Vector<Header, 0> &headers,
                    Vector<Undetermined, 0> &commands,
-                   GPUBatch *batch,
+                   gpu::Batch *batch,
                    uint instance_len,
                    uint vertex_len,
                    uint vertex_first,

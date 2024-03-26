@@ -383,7 +383,7 @@ static const uint g_shape_preset_hold_action_face[2][3] = {{2, 0, 1}, {3, 5, 4}}
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #GPUBatch Creation
+/** \name #gpu::Batch Creation
  *
  * In order to speed up UI drawing we create some batches that are then
  * modified by specialized shaders to draw certain elements really fast.
@@ -392,8 +392,8 @@ static const uint g_shape_preset_hold_action_face[2][3] = {{2, 0, 1}, {3, 5, 4}}
  * \{ */
 
 static struct {
-  GPUBatch *roundbox_widget;
-  GPUBatch *roundbox_shadow;
+  blender::gpu::Batch *roundbox_widget;
+  blender::gpu::Batch *roundbox_shadow;
 
   /* TODO: remove. */
   GPUVertFormat format;
@@ -439,7 +439,7 @@ static uint32_t set_roundbox_vertex(GPUVertBufRaw *vflag_step,
   return *data;
 }
 
-GPUBatch *ui_batch_roundbox_widget_get()
+blender::gpu::Batch *ui_batch_roundbox_widget_get()
 {
   if (g_ui_batch_cache.roundbox_widget == nullptr) {
     blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
@@ -465,7 +465,7 @@ GPUBatch *ui_batch_roundbox_widget_get()
   return g_ui_batch_cache.roundbox_widget;
 }
 
-GPUBatch *ui_batch_roundbox_shadow_get()
+blender::gpu::Batch *ui_batch_roundbox_shadow_get()
 {
   if (g_ui_batch_cache.roundbox_shadow == nullptr) {
     uint32_t last_data;
@@ -1044,7 +1044,7 @@ static void widgetbase_set_uniform_colors_ubv(uiWidgetBase *wtb,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Widget Base Drawing #GPUBatch Cache
+/** \name Widget Base Drawing #gpu::Batch Cache
  * \{ */
 
 /* keep in sync with shader */
@@ -1066,7 +1066,7 @@ void UI_widgetbase_draw_cache_flush()
     return;
   }
 
-  GPUBatch *batch = ui_batch_roundbox_widget_get();
+  blender::gpu::Batch *batch = ui_batch_roundbox_widget_get();
   if (g_widget_base_batch.count == 1) {
     /* draw single */
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
@@ -1139,7 +1139,7 @@ static void draw_widgetbase_batch(uiWidgetBase *wtb)
     const float checker_params[3] = {
         UI_ALPHA_CHECKER_DARK / 255.0f, UI_ALPHA_CHECKER_LIGHT / 255.0f, 8.0f};
     /* draw single */
-    GPUBatch *batch = ui_batch_roundbox_widget_get();
+    blender::gpu::Batch *batch = ui_batch_roundbox_widget_get();
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
     GPU_batch_uniform_4fv_array(
         batch, "parameters", MAX_WIDGET_PARAMETERS, (float(*)[4]) & wtb->uniform_params);

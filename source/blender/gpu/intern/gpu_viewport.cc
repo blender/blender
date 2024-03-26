@@ -31,11 +31,11 @@
 
 #include "MEM_guardedalloc.h"
 
-/* Struct storing a viewport specific GPUBatch.
+/* Struct storing a viewport specific blender::gpu::Batch.
  * The end-goal is to have a single batch shared across viewport and use a model matrix to place
  * the batch. Due to OCIO and Image/UV editor we are not able to use an model matrix yet. */
 struct GPUViewportBatch {
-  GPUBatch *batch;
+  blender::gpu::Batch *batch;
   struct {
     rctf rect_pos;
     rctf rect_uv;
@@ -369,7 +369,7 @@ static GPUVertFormat *gpu_viewport_batch_format()
   return &g_viewport.format;
 }
 
-static GPUBatch *gpu_viewport_batch_create(const rctf *rect_pos, const rctf *rect_uv)
+static blender::gpu::Batch *gpu_viewport_batch_create(const rctf *rect_pos, const rctf *rect_uv)
 {
   blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(gpu_viewport_batch_format());
   const uint vbo_len = 4;
@@ -399,9 +399,9 @@ static GPUBatch *gpu_viewport_batch_create(const rctf *rect_pos, const rctf *rec
   return GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, nullptr, GPU_BATCH_OWNS_VBO);
 }
 
-static GPUBatch *gpu_viewport_batch_get(GPUViewport *viewport,
-                                        const rctf *rect_pos,
-                                        const rctf *rect_uv)
+static blender::gpu::Batch *gpu_viewport_batch_get(GPUViewport *viewport,
+                                                   const rctf *rect_pos,
+                                                   const rctf *rect_uv)
 {
   const float compare_limit = 0.0001f;
   const bool parameters_changed =
@@ -463,7 +463,7 @@ static void gpu_viewport_draw_colormanaged(GPUViewport *viewport,
                                                               do_overlay_merge);
   }
 
-  GPUBatch *batch = gpu_viewport_batch_get(viewport, rect_pos, rect_uv);
+  blender::gpu::Batch *batch = gpu_viewport_batch_get(viewport, rect_pos, rect_uv);
   if (use_ocio) {
     GPU_batch_program_set_imm_shader(batch);
   }

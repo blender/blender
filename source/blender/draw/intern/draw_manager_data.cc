@@ -71,7 +71,7 @@ static void draw_call_sort(DRWCommand *array, DRWCommand *array_tmp, int array_l
    * the sorting benefit will be negligible.
    * So at least sort fast! */
   uchar idx[128] = {0};
-  /* Shift by 6 positions knowing each GPUBatch is > 64 bytes */
+  /* Shift by 6 positions knowing each blender::gpu::Batch is > 64 bytes */
 #define KEY(a) ((size_t((a).draw.batch) >> 6) % ARRAY_SIZE(idx))
   BLI_assert(array_len <= ARRAY_SIZE(idx));
 
@@ -875,15 +875,20 @@ static void *drw_command_create(DRWShadingGroup *shgroup, eDRWCommandType type)
   return chunk->commands + chunk->command_used++;
 }
 
-static void drw_command_draw(DRWShadingGroup *shgroup, GPUBatch *batch, DRWResourceHandle handle)
+static void drw_command_draw(DRWShadingGroup *shgroup,
+                             blender::gpu::Batch *batch,
+                             DRWResourceHandle handle)
 {
   DRWCommandDraw *cmd = static_cast<DRWCommandDraw *>(drw_command_create(shgroup, DRW_CMD_DRAW));
   cmd->batch = batch;
   cmd->handle = handle;
 }
 
-static void drw_command_draw_range(
-    DRWShadingGroup *shgroup, GPUBatch *batch, DRWResourceHandle handle, uint start, uint count)
+static void drw_command_draw_range(DRWShadingGroup *shgroup,
+                                   blender::gpu::Batch *batch,
+                                   DRWResourceHandle handle,
+                                   uint start,
+                                   uint count)
 {
   DRWCommandDrawRange *cmd = static_cast<DRWCommandDrawRange *>(
       drw_command_create(shgroup, DRW_CMD_DRAW_RANGE));
@@ -893,8 +898,11 @@ static void drw_command_draw_range(
   cmd->vert_count = count;
 }
 
-static void drw_command_draw_instance(
-    DRWShadingGroup *shgroup, GPUBatch *batch, DRWResourceHandle handle, uint count, bool use_attr)
+static void drw_command_draw_instance(DRWShadingGroup *shgroup,
+                                      blender::gpu::Batch *batch,
+                                      DRWResourceHandle handle,
+                                      uint count,
+                                      bool use_attr)
 {
   DRWCommandDrawInstance *cmd = static_cast<DRWCommandDrawInstance *>(
       drw_command_create(shgroup, DRW_CMD_DRAW_INSTANCE));
@@ -904,8 +912,11 @@ static void drw_command_draw_instance(
   cmd->use_attrs = use_attr;
 }
 
-static void drw_command_draw_intance_range(
-    DRWShadingGroup *shgroup, GPUBatch *batch, DRWResourceHandle handle, uint start, uint count)
+static void drw_command_draw_intance_range(DRWShadingGroup *shgroup,
+                                           blender::gpu::Batch *batch,
+                                           DRWResourceHandle handle,
+                                           uint start,
+                                           uint count)
 {
   DRWCommandDrawInstanceRange *cmd = static_cast<DRWCommandDrawInstanceRange *>(
       drw_command_create(shgroup, DRW_CMD_DRAW_INSTANCE_RANGE));
@@ -949,7 +960,7 @@ static void drw_command_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 }
 
 static void drw_command_draw_procedural(DRWShadingGroup *shgroup,
-                                        GPUBatch *batch,
+                                        blender::gpu::Batch *batch,
                                         DRWResourceHandle handle,
                                         uint vert_count)
 {
@@ -961,7 +972,7 @@ static void drw_command_draw_procedural(DRWShadingGroup *shgroup,
 }
 
 static void drw_command_draw_indirect(DRWShadingGroup *shgroup,
-                                      GPUBatch *batch,
+                                      blender::gpu::Batch *batch,
                                       DRWResourceHandle handle,
                                       GPUStorageBuf *indirect_buf)
 {
@@ -1033,7 +1044,7 @@ static void drw_command_set_mutable_state(DRWShadingGroup *shgroup,
 void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
                          const Object *ob,
                          const float (*obmat)[4],
-                         GPUBatch *geom,
+                         blender::gpu::Batch *geom,
                          bool bypass_culling,
                          void *user_data)
 {
@@ -1061,7 +1072,7 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
 }
 
 void DRW_shgroup_call_range(
-    DRWShadingGroup *shgroup, const Object *ob, GPUBatch *geom, uint v_sta, uint v_num)
+    DRWShadingGroup *shgroup, const Object *ob, blender::gpu::Batch *geom, uint v_sta, uint v_num)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1073,7 +1084,7 @@ void DRW_shgroup_call_range(
 }
 
 void DRW_shgroup_call_instance_range(
-    DRWShadingGroup *shgroup, const Object *ob, GPUBatch *geom, uint i_sta, uint i_num)
+    DRWShadingGroup *shgroup, const Object *ob, blender::gpu::Batch *geom, uint i_sta, uint i_num)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1117,7 +1128,7 @@ void DRW_shgroup_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 }
 
 static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
-                                               GPUBatch *geom,
+                                               blender::gpu::Batch *geom,
                                                const Object *ob,
                                                uint vert_count)
 {
@@ -1135,13 +1146,13 @@ void DRW_shgroup_call_procedural_points(DRWShadingGroup *shgroup,
                                         const Object *ob,
                                         uint point_count)
 {
-  GPUBatch *geom = drw_cache_procedural_points_get();
+  blender::gpu::Batch *geom = drw_cache_procedural_points_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, point_count);
 }
 
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *shgroup, const Object *ob, uint line_count)
 {
-  GPUBatch *geom = drw_cache_procedural_lines_get();
+  blender::gpu::Batch *geom = drw_cache_procedural_lines_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, line_count * 2);
 }
 
@@ -1149,7 +1160,7 @@ void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup,
                                            const Object *ob,
                                            uint tri_count)
 {
-  GPUBatch *geom = drw_cache_procedural_triangles_get();
+  blender::gpu::Batch *geom = drw_cache_procedural_triangles_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tri_count * 3);
 }
 
@@ -1158,7 +1169,7 @@ void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
                                           Object *ob,
                                           GPUStorageBuf *indirect_buf)
 {
-  GPUBatch *geom = nullptr;
+  blender::gpu::Batch *geom = nullptr;
   switch (primitive_type) {
     case GPU_PRIM_POINTS:
       geom = drw_cache_procedural_points_get();
@@ -1188,7 +1199,7 @@ void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
                                 const Object *ob,
-                                GPUBatch *geom,
+                                blender::gpu::Batch *geom,
                                 uint count)
 {
   BLI_assert(geom != nullptr);
@@ -1202,8 +1213,8 @@ void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
                                            const Object *ob,
-                                           GPUBatch *geom,
-                                           GPUBatch *inst_attributes)
+                                           blender::gpu::Batch *geom,
+                                           blender::gpu::Batch *inst_attributes)
 {
   BLI_assert(geom != nullptr);
   BLI_assert(inst_attributes != nullptr);
@@ -1212,7 +1223,7 @@ void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
   }
   DRWResourceHandle handle = drw_resource_handle(
       shgroup, ob ? ob->object_to_world().ptr() : nullptr, ob);
-  GPUBatch *batch = DRW_temp_batch_instance_request(
+  blender::gpu::Batch *batch = DRW_temp_batch_instance_request(
       DST.vmempool->idatalist, nullptr, inst_attributes, geom);
   drw_command_draw_instance(shgroup, batch, handle, 0, true);
 }
@@ -1250,7 +1261,7 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
                            const blender::draw::pbvh::PBVH_GPU_Args &pbvh_draw_args)
 {
   using namespace blender::draw;
-  GPUBatch *geom;
+  blender::gpu::Batch *geom;
 
   if (!scd->use_wire) {
     geom = pbvh::tris_get(batches, scd->attrs, pbvh_draw_args, scd->fast_mode);
@@ -1534,7 +1545,8 @@ DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
   }
 
   DRWResourceHandle handle = drw_resource_handle(shgroup, nullptr, nullptr);
-  GPUBatch *batch = DRW_temp_batch_request(DST.vmempool->idatalist, callbuf->buf, prim_type);
+  blender::gpu::Batch *batch = DRW_temp_batch_request(
+      DST.vmempool->idatalist, callbuf->buf, prim_type);
   drw_command_draw(shgroup, batch, handle);
 
   return callbuf;
@@ -1542,7 +1554,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
 
 DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
                                                 GPUVertFormat *format,
-                                                GPUBatch *geom)
+                                                blender::gpu::Batch *geom)
 {
   BLI_assert(geom != nullptr);
   BLI_assert(format != nullptr);
@@ -1564,7 +1576,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
   }
 
   DRWResourceHandle handle = drw_resource_handle(shgroup, nullptr, nullptr);
-  GPUBatch *batch = DRW_temp_batch_instance_request(
+  blender::gpu::Batch *batch = DRW_temp_batch_instance_request(
       DST.vmempool->idatalist, callbuf->buf, nullptr, geom);
   drw_command_draw(shgroup, batch, handle);
 

@@ -11,8 +11,8 @@
 
 #pragma once
 
+#include "GPU_batch.hh"
 #include "MEM_guardedalloc.h"
-#include "gpu_batch_private.hh"
 #include "mtl_index_buffer.hh"
 #include "mtl_primitive.hh"
 #include "mtl_shader.hh"

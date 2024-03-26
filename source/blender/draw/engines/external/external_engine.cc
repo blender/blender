@@ -135,7 +135,7 @@ static void external_cache_image_add(DRWShadingGroup *grp)
   /* NOTE: Use the same Z-depth value as in the regular image drawing engine. */
   translate_m4(obmat, 1.0f, 1.0f, 0.75f);
 
-  GPUBatch *geom = DRW_cache_quad_get();
+  blender::gpu::Batch *geom = DRW_cache_quad_get();
 
   DRW_shgroup_call_obmat(grp, geom, obmat);
 }
@@ -218,12 +218,12 @@ static void external_cache_populate(void *vedata, Object *ob)
       const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
       if (draw_as == PART_DRAW_PATH) {
-        GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
+        blender::gpu::Batch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
         DRW_shgroup_call(stl->g_data->depth_shgrp, hairs, nullptr);
       }
     }
   }
-  GPUBatch *geom = DRW_cache_object_surface_get(ob);
+  blender::gpu::Batch *geom = DRW_cache_object_surface_get(ob);
   if (geom) {
     /* Depth Pre-pass. */
     DRW_shgroup_call(stl->g_data->depth_shgrp, geom, ob);

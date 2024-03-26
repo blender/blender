@@ -643,7 +643,7 @@ void gpu::MTLTexture::update_sub_depth_2d(
 
   GPUShader *depth_2d_update_sh = depth_2d_update_sh_get(specialization);
   BLI_assert(depth_2d_update_sh != nullptr);
-  GPUBatch *quad = GPU_batch_preset_quad();
+  Batch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, depth_2d_update_sh);
 
   GPU_batch_texture_bind(quad, "source_data", r32_tex_tmp);

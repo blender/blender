@@ -9,18 +9,18 @@
 #pragma once
 
 struct PointCloud;
-struct GPUBatch;
 namespace blender::gpu {
+class Batch;
 class VertBuf;
-}
+}  // namespace blender::gpu
 struct GPUMaterial;
 
 namespace blender::draw {
 
 gpu::VertBuf *pointcloud_position_and_radius_get(PointCloud *pointcloud);
-GPUBatch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
-                                         GPUMaterial **gpu_materials,
-                                         int mat_len);
-GPUBatch *pointcloud_surface_get(PointCloud *pointcloud);
+gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
+                                           GPUMaterial **gpu_materials,
+                                           int mat_len);
+gpu::Batch *pointcloud_surface_get(PointCloud *pointcloud);
 
 }  // namespace blender::draw

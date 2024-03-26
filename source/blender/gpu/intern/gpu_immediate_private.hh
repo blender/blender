@@ -40,7 +40,7 @@ class Immediate {
   bool strict_vertex_len = true;
 
   /** Batch in construction when using #immBeginBatch. */
-  GPUBatch *batch = nullptr;
+  Batch *batch = nullptr;
 
   /** Wide Line workaround. */
 

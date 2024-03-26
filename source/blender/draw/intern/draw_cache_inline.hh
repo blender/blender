@@ -26,7 +26,7 @@
     (flag |= DRW_ibo_requested(ibo) ? (value) : 0)
 #endif
 
-inline GPUBatch *DRW_batch_request(GPUBatch **batch)
+inline blender::gpu::Batch *DRW_batch_request(blender::gpu::Batch **batch)
 {
   /* XXX TODO(fclem): We are writing to batch cache here. Need to make this thread safe. */
   if (*batch == nullptr) {
@@ -35,7 +35,7 @@ inline GPUBatch *DRW_batch_request(GPUBatch **batch)
   return *batch;
 }
 
-inline bool DRW_batch_requested(GPUBatch *batch, GPUPrimType prim_type)
+inline bool DRW_batch_requested(blender::gpu::Batch *batch, GPUPrimType prim_type)
 {
   /* Batch has been requested if it has been created but not initialized. */
   if (batch != nullptr && batch->verts[0] == nullptr) {
@@ -48,7 +48,7 @@ inline bool DRW_batch_requested(GPUBatch *batch, GPUPrimType prim_type)
   return false;
 }
 
-inline void DRW_ibo_request(GPUBatch *batch, blender::gpu::IndexBuf **ibo)
+inline void DRW_ibo_request(blender::gpu::Batch *batch, blender::gpu::IndexBuf **ibo)
 {
   if (*ibo == nullptr) {
     *ibo = GPU_indexbuf_calloc();
@@ -65,7 +65,7 @@ inline bool DRW_ibo_requested(blender::gpu::IndexBuf *ibo)
   return (ibo != nullptr && !GPU_indexbuf_is_init(ibo));
 }
 
-inline void DRW_vbo_request(GPUBatch *batch, blender::gpu::VertBuf **vbo)
+inline void DRW_vbo_request(blender::gpu::Batch *batch, blender::gpu::VertBuf **vbo)
 {
   if (*vbo == nullptr) {
     *vbo = GPU_vertbuf_calloc();

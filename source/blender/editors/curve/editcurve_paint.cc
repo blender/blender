@@ -368,7 +368,7 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
     float color[3];
     UI_GetThemeColor3fv(TH_WIRE, color);
 
-    GPUBatch *sphere = GPU_batch_preset_sphere(0);
+    blender::gpu::Batch *sphere = GPU_batch_preset_sphere(0);
     GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_batch_uniform_3fv(sphere, "color", color);
 

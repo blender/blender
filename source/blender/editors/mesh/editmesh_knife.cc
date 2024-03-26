@@ -968,7 +968,7 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
     immUniformColor3ubv(kcd->colors.line);
     GPU_line_width(1.0);
 
-    GPUBatch *batch = immBeginBatchAtMost(GPU_PRIM_LINES, BLI_mempool_len(kcd->kedges) * 2);
+    gpu::Batch *batch = immBeginBatchAtMost(GPU_PRIM_LINES, BLI_mempool_len(kcd->kedges) * 2);
 
     BLI_mempool_iternew(kcd->kedges, &iter);
     for (kfe = static_cast<KnifeEdge *>(BLI_mempool_iterstep(&iter)); kfe;
@@ -995,7 +995,7 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
     immUniformColor3ubv(kcd->colors.point);
     GPU_point_size(5.0 * UI_SCALE_FAC);
 
-    GPUBatch *batch = immBeginBatchAtMost(GPU_PRIM_POINTS, BLI_mempool_len(kcd->kverts));
+    gpu::Batch *batch = immBeginBatchAtMost(GPU_PRIM_POINTS, BLI_mempool_len(kcd->kverts));
 
     BLI_mempool_iternew(kcd->kverts, &iter);
     for (kfv = static_cast<KnifeVert *>(BLI_mempool_iterstep(&iter)); kfv;
@@ -1045,7 +1045,7 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
       }
     }
 
-    GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, vert, nullptr, GPU_BATCH_OWNS_VBO);
+    gpu::Batch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, vert, nullptr, GPU_BATCH_OWNS_VBO);
     GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* Draw any snapped verts first. */

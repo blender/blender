@@ -27,9 +27,12 @@ struct SpaceLink;
 #ifdef __cplusplus
 namespace blender::gpu {
 class VertBuf;
-}
+class Batch;
+}  // namespace blender::gpu
+using GPUBatchHandle = blender::gpu::Batch;
 using GPUVertBufHandle = blender::gpu::VertBuf;
 #else
+typedef struct GPUBatchHandle GPUBatchHandle;
 typedef struct GPUVertBufHandle GPUVertBufHandle;
 #endif
 
@@ -79,8 +82,8 @@ typedef struct bMotionPath {
 
   /* Used for drawing. */
   GPUVertBufHandle *points_vbo;
-  struct GPUBatch *batch_line;
-  struct GPUBatch *batch_points;
+  GPUBatchHandle *batch_line;
+  GPUBatchHandle *batch_points;
   void *_pad;
 } bMotionPath;
 

@@ -192,16 +192,16 @@ static const BPoint *lattice_render_data_vert_bpoint(const LatticeRenderData *rd
 }
 
 /* ---------------------------------------------------------------------- */
-/* Lattice GPUBatch Cache */
+/* Lattice gpu::Batch Cache */
 
 struct LatticeBatchCache {
   gpu::VertBuf *pos;
   gpu::IndexBuf *edges;
 
-  GPUBatch *all_verts;
-  GPUBatch *all_edges;
+  gpu::Batch *all_verts;
+  gpu::Batch *all_edges;
 
-  GPUBatch *overlay_verts;
+  gpu::Batch *overlay_verts;
 
   /* settings to determine if cache is invalid */
   bool is_dirty;
@@ -214,7 +214,7 @@ struct LatticeBatchCache {
   bool is_editmode;
 };
 
-/* GPUBatch cache management. */
+/* gpu::Batch cache management. */
 
 static bool lattice_batch_cache_valid(Lattice *lt)
 {
@@ -317,7 +317,7 @@ void DRW_lattice_batch_cache_free(Lattice *lt)
   MEM_SAFE_FREE(lt->batch_cache);
 }
 
-/* GPUBatch cache usage. */
+/* gpu::Batch cache usage. */
 static gpu::VertBuf *lattice_batch_cache_get_pos(LatticeRenderData *rdata,
                                                  LatticeBatchCache *cache,
                                                  bool use_weight,
@@ -459,7 +459,7 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
   lattice_render_data_free(rdata);
 }
 
-GPUBatch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, const int actdef)
+gpu::Batch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, const int actdef)
 {
   LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 
@@ -478,7 +478,7 @@ GPUBatch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, co
   return cache->all_edges;
 }
 
-GPUBatch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt)
+gpu::Batch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt)
 {
   LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 
@@ -494,7 +494,7 @@ GPUBatch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt)
   return cache->all_verts;
 }
 
-GPUBatch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt)
+gpu::Batch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt)
 {
   LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 

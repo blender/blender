@@ -39,9 +39,9 @@ struct GreasePencilBatchCache {
   /** Indices in material order, then stroke order with fill first. */
   gpu::IndexBuf *ibo;
   /** Batches */
-  GPUBatch *geom_batch;
-  GPUBatch *edit_points;
-  GPUBatch *edit_lines;
+  gpu::Batch *geom_batch;
+  gpu::Batch *edit_points;
+  gpu::Batch *edit_lines;
 
   /* Crazy-space point positions for original points. */
   gpu::VertBuf *edit_points_pos;
@@ -699,7 +699,7 @@ void DRW_grease_pencil_batch_cache_free(GreasePencil *grease_pencil)
   grease_pencil->runtime->batch_cache = nullptr;
 }
 
-GPUBatch *DRW_cache_grease_pencil_get(const Scene *scene, Object *ob)
+gpu::Batch *DRW_cache_grease_pencil_get(const Scene *scene, Object *ob)
 {
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
   GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
@@ -708,7 +708,7 @@ GPUBatch *DRW_cache_grease_pencil_get(const Scene *scene, Object *ob)
   return cache->geom_batch;
 }
 
-GPUBatch *DRW_cache_grease_pencil_edit_points_get(const Scene *scene, Object *ob)
+gpu::Batch *DRW_cache_grease_pencil_edit_points_get(const Scene *scene, Object *ob)
 {
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
   GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);
@@ -717,7 +717,7 @@ GPUBatch *DRW_cache_grease_pencil_edit_points_get(const Scene *scene, Object *ob
   return cache->edit_points;
 }
 
-GPUBatch *DRW_cache_grease_pencil_edit_lines_get(const Scene *scene, Object *ob)
+gpu::Batch *DRW_cache_grease_pencil_edit_lines_get(const Scene *scene, Object *ob)
 {
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
   GreasePencilBatchCache *cache = grease_pencil_batch_cache_get(grease_pencil);

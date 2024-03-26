@@ -295,7 +295,7 @@ static void test_framebuffer_multi_viewport()
   GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
   VertBuf *verts = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(verts, 3);
-  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+  Batch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
 
   GPU_batch_set_shader(batch, shader);
 
@@ -374,7 +374,7 @@ static void test_framebuffer_subpass_input()
   GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
   VertBuf *verts = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(verts, 3);
-  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+  Batch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
 
   /* Metal Raster Order Group does not need that. */
   GPU_framebuffer_subpass_transition(

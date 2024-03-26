@@ -81,7 +81,7 @@ void MTLDrawList::init()
   command_offset_ = 0;
 }
 
-void MTLDrawList::append(GPUBatch *gpu_batch, int i_first, int i_count)
+void MTLDrawList::append(Batch *gpu_batch, int i_first, int i_count)
 {
   /* Fallback when MultiDrawIndirect is not supported/enabled. */
   MTLShader *shader = static_cast<MTLShader *>(unwrap(gpu_batch->shader));

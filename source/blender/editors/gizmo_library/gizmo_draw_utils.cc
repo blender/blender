@@ -27,7 +27,7 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
 
   blender::gpu::VertBuf *vbo;
   blender::gpu::IndexBuf *el;
-  GPUBatch *batch;
+  blender::gpu::Batch *batch;
   GPUIndexBufBuilder elb = {0};
 
   GPUVertFormat format = {0};

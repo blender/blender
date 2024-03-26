@@ -44,16 +44,16 @@ blender::gpu::VertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
  * \note Does not return a valid drawable batch until DRW_instance_buffer_finish has run.
  * Initialization is delayed because instancer or geom could still not be initialized.
  */
-GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
-                                          blender::gpu::VertBuf *buf,
-                                          GPUBatch *instancer,
-                                          GPUBatch *geom);
+blender::gpu::Batch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
+                                                     blender::gpu::VertBuf *buf,
+                                                     blender::gpu::Batch *instancer,
+                                                     blender::gpu::Batch *geom);
 /**
  * \note Use only with buf allocated via DRW_temp_buffer_request.
  */
-GPUBatch *DRW_temp_batch_request(DRWInstanceDataList *idatalist,
-                                 blender::gpu::VertBuf *buf,
-                                 GPUPrimType type);
+blender::gpu::Batch *DRW_temp_batch_request(DRWInstanceDataList *idatalist,
+                                            blender::gpu::VertBuf *buf,
+                                            GPUPrimType type);
 
 /**
  * Upload all instance data to the GPU as soon as possible.

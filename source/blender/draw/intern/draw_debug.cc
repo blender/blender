@@ -520,7 +520,7 @@ void DebugDraw::display_lines()
 
   drw_state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 
-  GPUBatch *batch = drw_cache_procedural_lines_get();
+  gpu::Batch *batch = drw_cache_procedural_lines_get();
   GPUShader *shader = DRW_shader_debug_draw_display_get();
   GPU_batch_set_shader(batch, shader);
   GPU_shader_uniform_mat4(shader, "persmat", persmat.ptr());
@@ -552,7 +552,7 @@ void DebugDraw::display_prints()
 
   drw_state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_PROGRAM_POINT_SIZE);
 
-  GPUBatch *batch = drw_cache_procedural_points_get();
+  gpu::Batch *batch = drw_cache_procedural_points_get();
   GPUShader *shader = DRW_shader_debug_print_display_get();
   GPU_batch_set_shader(batch, shader);
   float f_viewport[4];

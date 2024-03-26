@@ -11,10 +11,10 @@
 #include "BLI_sys_types.h"
 
 namespace blender::gpu {
+class Batch;
 class IndexBuf;
 class VertBuf;
 }  // namespace blender::gpu
-struct GPUBatch;
 struct ColorVertex;
 
 /**
@@ -80,12 +80,12 @@ class SeqQuadsBatch {
 
   blender::gpu::VertBuf *vbo_quads = nullptr;
   blender::gpu::IndexBuf *ibo_quads = nullptr;
-  GPUBatch *batch_quads = nullptr;
+  blender::gpu::Batch *batch_quads = nullptr;
   ColorVertex *verts_quads = nullptr;
   int quads_num = 0;
 
   blender::gpu::VertBuf *vbo_lines = nullptr;
-  GPUBatch *batch_lines = nullptr;
+  blender::gpu::Batch *batch_lines = nullptr;
   ColorVertex *verts_lines = nullptr;
   int lines_num = 0;
 };

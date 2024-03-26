@@ -28,7 +28,7 @@ struct ParticleHairFinalCache {
   blender::gpu::VertBuf *proc_buf;
 
   /* Just contains a huge index buffer used to draw the final hair. */
-  GPUBatch *proc_hairs[MAX_THICKRES];
+  blender::gpu::Batch *proc_hairs[MAX_THICKRES];
 
   int strands_res; /* points per hair, at least 2 */
 };
@@ -36,7 +36,7 @@ struct ParticleHairFinalCache {
 struct ParticleHairCache {
   blender::gpu::VertBuf *pos;
   blender::gpu::IndexBuf *indices;
-  GPUBatch *hairs;
+  blender::gpu::Batch *hairs;
 
   /* Hair Procedural display: Interpolation is done on the GPU. */
   blender::gpu::VertBuf *proc_point_buf; /* Input control points */

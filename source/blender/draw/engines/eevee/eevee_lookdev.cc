@@ -53,7 +53,7 @@ static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerD
   DRWShadingGroup *grp;
 
   const EEVEE_EffectsInfo *effects = vedata->stl->effects;
-  GPUBatch *sphere = DRW_cache_sphere_get(effects->sphere_lod);
+  blender::gpu::Batch *sphere = DRW_cache_sphere_get(effects->sphere_lod);
   int mat_options = VAR_MAT_MESH | VAR_MAT_LOOKDEV;
 
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS |

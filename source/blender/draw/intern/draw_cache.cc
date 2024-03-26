@@ -100,77 +100,77 @@ struct VertShaded {
 
 /* Batch's only (freed as an array). */
 static struct DRWShapeCache {
-  GPUBatch *drw_procedural_verts;
-  GPUBatch *drw_procedural_lines;
-  GPUBatch *drw_procedural_tris;
-  GPUBatch *drw_procedural_tri_strips;
-  GPUBatch *drw_cursor;
-  GPUBatch *drw_cursor_only_circle;
-  GPUBatch *drw_fullscreen_quad;
-  GPUBatch *drw_quad;
-  GPUBatch *drw_quad_wires;
-  GPUBatch *drw_grid;
-  GPUBatch *drw_plain_axes;
-  GPUBatch *drw_single_arrow;
-  GPUBatch *drw_cube;
-  GPUBatch *drw_circle;
-  GPUBatch *drw_normal_arrow;
-  GPUBatch *drw_empty_cube;
-  GPUBatch *drw_empty_sphere;
-  GPUBatch *drw_empty_cylinder;
-  GPUBatch *drw_empty_capsule_body;
-  GPUBatch *drw_empty_capsule_cap;
-  GPUBatch *drw_empty_cone;
-  GPUBatch *drw_field_wind;
-  GPUBatch *drw_field_force;
-  GPUBatch *drw_field_vortex;
-  GPUBatch *drw_field_curve;
-  GPUBatch *drw_field_tube_limit;
-  GPUBatch *drw_field_cone_limit;
-  GPUBatch *drw_field_sphere_limit;
-  GPUBatch *drw_ground_line;
-  GPUBatch *drw_light_icon_inner_lines;
-  GPUBatch *drw_light_icon_outer_lines;
-  GPUBatch *drw_light_icon_sun_rays;
-  GPUBatch *drw_light_point_lines;
-  GPUBatch *drw_light_sun_lines;
-  GPUBatch *drw_light_spot_lines;
-  GPUBatch *drw_light_spot_volume;
-  GPUBatch *drw_light_area_disk_lines;
-  GPUBatch *drw_light_area_square_lines;
-  GPUBatch *drw_speaker;
-  GPUBatch *drw_lightprobe_cube;
-  GPUBatch *drw_lightprobe_planar;
-  GPUBatch *drw_lightprobe_grid;
-  GPUBatch *drw_bone_octahedral;
-  GPUBatch *drw_bone_octahedral_wire;
-  GPUBatch *drw_bone_box;
-  GPUBatch *drw_bone_box_wire;
-  GPUBatch *drw_bone_envelope;
-  GPUBatch *drw_bone_envelope_outline;
-  GPUBatch *drw_bone_point;
-  GPUBatch *drw_bone_point_wire;
-  GPUBatch *drw_bone_stick;
-  GPUBatch *drw_bone_arrows;
-  GPUBatch *drw_bone_dof_sphere;
-  GPUBatch *drw_bone_dof_lines;
-  GPUBatch *drw_camera_frame;
-  GPUBatch *drw_camera_tria;
-  GPUBatch *drw_camera_tria_wire;
-  GPUBatch *drw_camera_distances;
-  GPUBatch *drw_camera_volume;
-  GPUBatch *drw_camera_volume_wire;
-  GPUBatch *drw_particle_cross;
-  GPUBatch *drw_particle_circle;
-  GPUBatch *drw_particle_axis;
-  GPUBatch *drw_gpencil_dummy_quad;
-  GPUBatch *drw_sphere_lod[DRW_LOD_MAX];
+  blender::gpu::Batch *drw_procedural_verts;
+  blender::gpu::Batch *drw_procedural_lines;
+  blender::gpu::Batch *drw_procedural_tris;
+  blender::gpu::Batch *drw_procedural_tri_strips;
+  blender::gpu::Batch *drw_cursor;
+  blender::gpu::Batch *drw_cursor_only_circle;
+  blender::gpu::Batch *drw_fullscreen_quad;
+  blender::gpu::Batch *drw_quad;
+  blender::gpu::Batch *drw_quad_wires;
+  blender::gpu::Batch *drw_grid;
+  blender::gpu::Batch *drw_plain_axes;
+  blender::gpu::Batch *drw_single_arrow;
+  blender::gpu::Batch *drw_cube;
+  blender::gpu::Batch *drw_circle;
+  blender::gpu::Batch *drw_normal_arrow;
+  blender::gpu::Batch *drw_empty_cube;
+  blender::gpu::Batch *drw_empty_sphere;
+  blender::gpu::Batch *drw_empty_cylinder;
+  blender::gpu::Batch *drw_empty_capsule_body;
+  blender::gpu::Batch *drw_empty_capsule_cap;
+  blender::gpu::Batch *drw_empty_cone;
+  blender::gpu::Batch *drw_field_wind;
+  blender::gpu::Batch *drw_field_force;
+  blender::gpu::Batch *drw_field_vortex;
+  blender::gpu::Batch *drw_field_curve;
+  blender::gpu::Batch *drw_field_tube_limit;
+  blender::gpu::Batch *drw_field_cone_limit;
+  blender::gpu::Batch *drw_field_sphere_limit;
+  blender::gpu::Batch *drw_ground_line;
+  blender::gpu::Batch *drw_light_icon_inner_lines;
+  blender::gpu::Batch *drw_light_icon_outer_lines;
+  blender::gpu::Batch *drw_light_icon_sun_rays;
+  blender::gpu::Batch *drw_light_point_lines;
+  blender::gpu::Batch *drw_light_sun_lines;
+  blender::gpu::Batch *drw_light_spot_lines;
+  blender::gpu::Batch *drw_light_spot_volume;
+  blender::gpu::Batch *drw_light_area_disk_lines;
+  blender::gpu::Batch *drw_light_area_square_lines;
+  blender::gpu::Batch *drw_speaker;
+  blender::gpu::Batch *drw_lightprobe_cube;
+  blender::gpu::Batch *drw_lightprobe_planar;
+  blender::gpu::Batch *drw_lightprobe_grid;
+  blender::gpu::Batch *drw_bone_octahedral;
+  blender::gpu::Batch *drw_bone_octahedral_wire;
+  blender::gpu::Batch *drw_bone_box;
+  blender::gpu::Batch *drw_bone_box_wire;
+  blender::gpu::Batch *drw_bone_envelope;
+  blender::gpu::Batch *drw_bone_envelope_outline;
+  blender::gpu::Batch *drw_bone_point;
+  blender::gpu::Batch *drw_bone_point_wire;
+  blender::gpu::Batch *drw_bone_stick;
+  blender::gpu::Batch *drw_bone_arrows;
+  blender::gpu::Batch *drw_bone_dof_sphere;
+  blender::gpu::Batch *drw_bone_dof_lines;
+  blender::gpu::Batch *drw_camera_frame;
+  blender::gpu::Batch *drw_camera_tria;
+  blender::gpu::Batch *drw_camera_tria_wire;
+  blender::gpu::Batch *drw_camera_distances;
+  blender::gpu::Batch *drw_camera_volume;
+  blender::gpu::Batch *drw_camera_volume_wire;
+  blender::gpu::Batch *drw_particle_cross;
+  blender::gpu::Batch *drw_particle_circle;
+  blender::gpu::Batch *drw_particle_axis;
+  blender::gpu::Batch *drw_gpencil_dummy_quad;
+  blender::gpu::Batch *drw_sphere_lod[DRW_LOD_MAX];
 } SHC = {nullptr};
 
 void DRW_shape_cache_free()
 {
-  uint i = sizeof(SHC) / sizeof(GPUBatch *);
-  GPUBatch **batch = (GPUBatch **)&SHC;
+  uint i = sizeof(SHC) / sizeof(blender::gpu::Batch *);
+  blender::gpu::Batch **batch = (blender::gpu::Batch **)&SHC;
   while (i--) {
     GPU_BATCH_DISCARD_SAFE(*batch);
     batch++;
@@ -183,7 +183,7 @@ void DRW_shape_cache_free()
 /** \name Procedural Batches
  * \{ */
 
-GPUBatch *drw_cache_procedural_points_get()
+blender::gpu::Batch *drw_cache_procedural_points_get()
 {
   if (!SHC.drw_procedural_verts) {
     /* TODO(fclem): get rid of this dummy VBO. */
@@ -198,7 +198,7 @@ GPUBatch *drw_cache_procedural_points_get()
   return SHC.drw_procedural_verts;
 }
 
-GPUBatch *drw_cache_procedural_lines_get()
+blender::gpu::Batch *drw_cache_procedural_lines_get()
 {
   if (!SHC.drw_procedural_lines) {
     /* TODO(fclem): get rid of this dummy VBO. */
@@ -213,7 +213,7 @@ GPUBatch *drw_cache_procedural_lines_get()
   return SHC.drw_procedural_lines;
 }
 
-GPUBatch *drw_cache_procedural_triangles_get()
+blender::gpu::Batch *drw_cache_procedural_triangles_get()
 {
   if (!SHC.drw_procedural_tris) {
     /* TODO(fclem): get rid of this dummy VBO. */
@@ -227,7 +227,7 @@ GPUBatch *drw_cache_procedural_triangles_get()
   return SHC.drw_procedural_tris;
 }
 
-GPUBatch *drw_cache_procedural_triangle_strips_get()
+blender::gpu::Batch *drw_cache_procedural_triangle_strips_get()
 {
   if (!SHC.drw_procedural_tri_strips) {
     /* TODO(fclem): get rid of this dummy VBO. */
@@ -387,7 +387,7 @@ static blender::gpu::VertBuf *sphere_wire_vbo(const float rad, int flag)
 }
 
 /* Quads */
-GPUBatch *DRW_cache_fullscreen_quad_get()
+blender::gpu::Batch *DRW_cache_fullscreen_quad_get()
 {
   if (!SHC.drw_fullscreen_quad) {
     /* Use a triangle instead of a real quad */
@@ -420,7 +420,7 @@ GPUBatch *DRW_cache_fullscreen_quad_get()
   return SHC.drw_fullscreen_quad;
 }
 
-GPUBatch *DRW_cache_quad_get()
+blender::gpu::Batch *DRW_cache_quad_get()
 {
   if (!SHC.drw_quad) {
     GPUVertFormat format = extra_vert_format();
@@ -440,7 +440,7 @@ GPUBatch *DRW_cache_quad_get()
   return SHC.drw_quad;
 }
 
-GPUBatch *DRW_cache_quad_wires_get()
+blender::gpu::Batch *DRW_cache_quad_wires_get()
 {
   if (!SHC.drw_quad_wires) {
     GPUVertFormat format = extra_vert_format();
@@ -461,7 +461,7 @@ GPUBatch *DRW_cache_quad_wires_get()
   return SHC.drw_quad_wires;
 }
 
-GPUBatch *DRW_cache_grid_get()
+blender::gpu::Batch *DRW_cache_grid_get()
 {
   if (!SHC.drw_grid) {
     /* Position Only 2D format */
@@ -514,7 +514,7 @@ static void sphere_lat_lon_vert(blender::gpu::VertBuf *vbo, int *v_ofs, float la
   (*v_ofs)++;
 }
 
-GPUBatch *DRW_cache_sphere_get(const eDRWLevelOfDetail level_of_detail)
+blender::gpu::Batch *DRW_cache_sphere_get(const eDRWLevelOfDetail level_of_detail)
 {
   BLI_assert(level_of_detail >= DRW_LOD_LOW && level_of_detail < DRW_LOD_MAX);
 
@@ -727,7 +727,7 @@ static const float bone_box_solid_normals[12][3] = {
     {0.0f, 1.0f, 0.0f},
 };
 
-GPUBatch *DRW_cache_cube_get()
+blender::gpu::Batch *DRW_cache_cube_get()
 {
   if (!SHC.drw_cube) {
     GPUVertFormat format = extra_vert_format();
@@ -760,7 +760,7 @@ GPUBatch *DRW_cache_cube_get()
   return SHC.drw_cube;
 }
 
-GPUBatch *DRW_cache_circle_get()
+blender::gpu::Batch *DRW_cache_circle_get()
 {
 #define CIRCLE_RESOL 64
   if (!SHC.drw_circle) {
@@ -783,7 +783,7 @@ GPUBatch *DRW_cache_circle_get()
 #undef CIRCLE_RESOL
 }
 
-GPUBatch *DRW_cache_normal_arrow_get()
+blender::gpu::Batch *DRW_cache_normal_arrow_get()
 {
   if (!SHC.drw_normal_arrow) {
     GPUVertFormat format = {0};
@@ -845,7 +845,7 @@ void DRW_vertbuf_create_wiredata(blender::gpu::VertBuf *vbo, const int vert_len)
  *
  * \{ */
 
-GPUBatch *DRW_gpencil_dummy_buffer_get()
+blender::gpu::Batch *DRW_gpencil_dummy_buffer_get()
 {
   if (SHC.drw_gpencil_dummy_quad == nullptr) {
     GPUVertFormat format = {0};
@@ -870,7 +870,7 @@ GPUBatch *DRW_gpencil_dummy_buffer_get()
  * is presented to render engines as a separate object).
  * \{ */
 
-GPUBatch *DRW_cache_object_all_edges_get(Object *ob)
+blender::gpu::Batch *DRW_cache_object_all_edges_get(Object *ob)
 {
   switch (ob->type) {
     case OB_MESH:
@@ -881,7 +881,7 @@ GPUBatch *DRW_cache_object_all_edges_get(Object *ob)
   }
 }
 
-GPUBatch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
+blender::gpu::Batch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
 {
   switch (ob->type) {
     case OB_MESH:
@@ -891,7 +891,7 @@ GPUBatch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
   }
 }
 
-GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob)
+blender::gpu::Batch *DRW_cache_object_face_wireframe_get(Object *ob)
 {
   using namespace blender::draw;
   switch (ob->type) {
@@ -908,7 +908,7 @@ GPUBatch *DRW_cache_object_face_wireframe_get(Object *ob)
   }
 }
 
-GPUBatch *DRW_cache_object_loose_edges_get(Object *ob)
+blender::gpu::Batch *DRW_cache_object_loose_edges_get(Object *ob)
 {
   switch (ob->type) {
     case OB_MESH:
@@ -918,7 +918,7 @@ GPUBatch *DRW_cache_object_loose_edges_get(Object *ob)
   }
 }
 
-GPUBatch *DRW_cache_object_surface_get(Object *ob)
+blender::gpu::Batch *DRW_cache_object_surface_get(Object *ob)
 {
   switch (ob->type) {
     case OB_MESH:
@@ -978,9 +978,9 @@ int DRW_cache_object_material_count_get(const Object *ob)
   }
 }
 
-GPUBatch **DRW_cache_object_surface_material_get(Object *ob,
-                                                 GPUMaterial **gpumat_array,
-                                                 uint gpumat_array_len)
+blender::gpu::Batch **DRW_cache_object_surface_material_get(Object *ob,
+                                                            GPUMaterial **gpumat_array,
+                                                            uint gpumat_array_len)
 {
   switch (ob->type) {
     case OB_MESH:
@@ -996,7 +996,7 @@ GPUBatch **DRW_cache_object_surface_material_get(Object *ob,
 /** \name Empties
  * \{ */
 
-GPUBatch *DRW_cache_plain_axes_get()
+blender::gpu::Batch *DRW_cache_plain_axes_get()
 {
   if (!SHC.drw_plain_axes) {
     GPUVertFormat format = extra_vert_format();
@@ -1018,7 +1018,7 @@ GPUBatch *DRW_cache_plain_axes_get()
   return SHC.drw_plain_axes;
 }
 
-GPUBatch *DRW_cache_empty_cube_get()
+blender::gpu::Batch *DRW_cache_empty_cube_get()
 {
   if (!SHC.drw_empty_cube) {
     GPUVertFormat format = extra_vert_format();
@@ -1038,7 +1038,7 @@ GPUBatch *DRW_cache_empty_cube_get()
   return SHC.drw_empty_cube;
 }
 
-GPUBatch *DRW_cache_single_arrow_get()
+blender::gpu::Batch *DRW_cache_single_arrow_get()
 {
   if (!SHC.drw_single_arrow) {
     GPUVertFormat format = extra_vert_format();
@@ -1076,7 +1076,7 @@ GPUBatch *DRW_cache_single_arrow_get()
   return SHC.drw_single_arrow;
 }
 
-GPUBatch *DRW_cache_empty_sphere_get()
+blender::gpu::Batch *DRW_cache_empty_sphere_get()
 {
   if (!SHC.drw_empty_sphere) {
     blender::gpu::VertBuf *vbo = sphere_wire_vbo(1.0f, VCLASS_EMPTY_SCALED);
@@ -1085,7 +1085,7 @@ GPUBatch *DRW_cache_empty_sphere_get()
   return SHC.drw_empty_sphere;
 }
 
-GPUBatch *DRW_cache_empty_cone_get()
+blender::gpu::Batch *DRW_cache_empty_cone_get()
 {
 #define NSEGMENTS 8
   if (!SHC.drw_empty_cone) {
@@ -1124,7 +1124,7 @@ GPUBatch *DRW_cache_empty_cone_get()
 #undef NSEGMENTS
 }
 
-GPUBatch *DRW_cache_empty_cylinder_get()
+blender::gpu::Batch *DRW_cache_empty_cylinder_get()
 {
 #define NSEGMENTS 12
   if (!SHC.drw_empty_cylinder) {
@@ -1165,7 +1165,7 @@ GPUBatch *DRW_cache_empty_cylinder_get()
 #undef NSEGMENTS
 }
 
-GPUBatch *DRW_cache_empty_capsule_body_get()
+blender::gpu::Batch *DRW_cache_empty_capsule_body_get()
 {
   if (!SHC.drw_empty_capsule_body) {
     const float pos[8][3] = {
@@ -1198,7 +1198,7 @@ GPUBatch *DRW_cache_empty_capsule_body_get()
   return SHC.drw_empty_capsule_body;
 }
 
-GPUBatch *DRW_cache_empty_capsule_cap_get()
+blender::gpu::Batch *DRW_cache_empty_capsule_cap_get()
 {
 #define NSEGMENTS 24 /* Must be multiple of 2. */
   if (!SHC.drw_empty_capsule_cap) {
@@ -1255,7 +1255,7 @@ GPUBatch *DRW_cache_empty_capsule_cap_get()
 #undef NSEGMENTS
 }
 
-GPUBatch *DRW_cache_field_wind_get()
+blender::gpu::Batch *DRW_cache_field_wind_get()
 {
 #define CIRCLE_RESOL 32
   if (!SHC.drw_field_wind) {
@@ -1278,7 +1278,7 @@ GPUBatch *DRW_cache_field_wind_get()
 #undef CIRCLE_RESOL
 }
 
-GPUBatch *DRW_cache_field_force_get()
+blender::gpu::Batch *DRW_cache_field_force_get()
 {
 #define CIRCLE_RESOL 32
   if (!SHC.drw_field_force) {
@@ -1301,7 +1301,7 @@ GPUBatch *DRW_cache_field_force_get()
 #undef CIRCLE_RESOL
 }
 
-GPUBatch *DRW_cache_field_vortex_get()
+blender::gpu::Batch *DRW_cache_field_vortex_get()
 {
 #define SPIRAL_RESOL 32
   if (!SHC.drw_field_vortex) {
@@ -1331,7 +1331,7 @@ GPUBatch *DRW_cache_field_vortex_get()
 #undef SPIRAL_RESOL
 }
 
-GPUBatch *DRW_cache_field_curve_get()
+blender::gpu::Batch *DRW_cache_field_curve_get()
 {
 #define CIRCLE_RESOL 32
   if (!SHC.drw_field_curve) {
@@ -1351,7 +1351,7 @@ GPUBatch *DRW_cache_field_curve_get()
 #undef CIRCLE_RESOL
 }
 
-GPUBatch *DRW_cache_field_tube_limit_get()
+blender::gpu::Batch *DRW_cache_field_tube_limit_get()
 {
 #define CIRCLE_RESOL 32
 #define SIDE_STIPPLE 32
@@ -1386,7 +1386,7 @@ GPUBatch *DRW_cache_field_tube_limit_get()
 #undef CIRCLE_RESOL
 }
 
-GPUBatch *DRW_cache_field_cone_limit_get()
+blender::gpu::Batch *DRW_cache_field_cone_limit_get()
 {
 #define CIRCLE_RESOL 32
 #define SIDE_STIPPLE 32
@@ -1421,7 +1421,7 @@ GPUBatch *DRW_cache_field_cone_limit_get()
 #undef CIRCLE_RESOL
 }
 
-GPUBatch *DRW_cache_field_sphere_limit_get()
+blender::gpu::Batch *DRW_cache_field_sphere_limit_get()
 {
 #define CIRCLE_RESOL 32
   if (!SHC.drw_field_sphere_limit) {
@@ -1472,7 +1472,7 @@ static float light_distance_z_get(char axis, const bool start)
   return 0.0;
 }
 
-GPUBatch *DRW_cache_groundline_get()
+blender::gpu::Batch *DRW_cache_groundline_get()
 {
   if (!SHC.drw_ground_line) {
     GPUVertFormat format = extra_vert_format();
@@ -1493,7 +1493,7 @@ GPUBatch *DRW_cache_groundline_get()
   return SHC.drw_ground_line;
 }
 
-GPUBatch *DRW_cache_light_icon_inner_lines_get()
+blender::gpu::Batch *DRW_cache_light_icon_inner_lines_get()
 {
   if (!SHC.drw_light_icon_inner_lines) {
     GPUVertFormat format = extra_vert_format();
@@ -1514,7 +1514,7 @@ GPUBatch *DRW_cache_light_icon_inner_lines_get()
   return SHC.drw_light_icon_inner_lines;
 }
 
-GPUBatch *DRW_cache_light_icon_outer_lines_get()
+blender::gpu::Batch *DRW_cache_light_icon_outer_lines_get()
 {
   if (!SHC.drw_light_icon_outer_lines) {
     GPUVertFormat format = extra_vert_format();
@@ -1534,7 +1534,7 @@ GPUBatch *DRW_cache_light_icon_outer_lines_get()
   return SHC.drw_light_icon_outer_lines;
 }
 
-GPUBatch *DRW_cache_light_icon_sun_rays_get()
+blender::gpu::Batch *DRW_cache_light_icon_sun_rays_get()
 {
   if (!SHC.drw_light_icon_sun_rays) {
     GPUVertFormat format = extra_vert_format();
@@ -1566,7 +1566,7 @@ GPUBatch *DRW_cache_light_icon_sun_rays_get()
   return SHC.drw_light_icon_sun_rays;
 }
 
-GPUBatch *DRW_cache_light_point_lines_get()
+blender::gpu::Batch *DRW_cache_light_point_lines_get()
 {
   if (!SHC.drw_light_point_lines) {
     GPUVertFormat format = extra_vert_format();
@@ -1587,7 +1587,7 @@ GPUBatch *DRW_cache_light_point_lines_get()
   return SHC.drw_light_point_lines;
 }
 
-GPUBatch *DRW_cache_light_sun_lines_get()
+blender::gpu::Batch *DRW_cache_light_sun_lines_get()
 {
   if (!SHC.drw_light_sun_lines) {
     GPUVertFormat format = extra_vert_format();
@@ -1608,7 +1608,7 @@ GPUBatch *DRW_cache_light_sun_lines_get()
   return SHC.drw_light_sun_lines;
 }
 
-GPUBatch *DRW_cache_light_spot_lines_get()
+blender::gpu::Batch *DRW_cache_light_spot_lines_get()
 {
   if (!SHC.drw_light_spot_lines) {
     GPUVertFormat format = extra_vert_format();
@@ -1650,7 +1650,7 @@ GPUBatch *DRW_cache_light_spot_lines_get()
   return SHC.drw_light_spot_lines;
 }
 
-GPUBatch *DRW_cache_light_spot_volume_get()
+blender::gpu::Batch *DRW_cache_light_spot_volume_get()
 {
   if (!SHC.drw_light_spot_volume) {
     GPUVertFormat format = extra_vert_format();
@@ -1677,7 +1677,7 @@ GPUBatch *DRW_cache_light_spot_volume_get()
   return SHC.drw_light_spot_volume;
 }
 
-GPUBatch *DRW_cache_light_area_disk_lines_get()
+blender::gpu::Batch *DRW_cache_light_area_disk_lines_get()
 {
   if (!SHC.drw_light_area_disk_lines) {
     GPUVertFormat format = extra_vert_format();
@@ -1704,7 +1704,7 @@ GPUBatch *DRW_cache_light_area_disk_lines_get()
   return SHC.drw_light_area_disk_lines;
 }
 
-GPUBatch *DRW_cache_light_area_square_lines_get()
+blender::gpu::Batch *DRW_cache_light_area_square_lines_get()
 {
   if (!SHC.drw_light_area_square_lines) {
     GPUVertFormat format = extra_vert_format();
@@ -1749,7 +1749,7 @@ GPUBatch *DRW_cache_light_area_square_lines_get()
 /** \name Speaker
  * \{ */
 
-GPUBatch *DRW_cache_speaker_get()
+blender::gpu::Batch *DRW_cache_speaker_get()
 {
   if (!SHC.drw_speaker) {
     float v[3];
@@ -1814,7 +1814,7 @@ GPUBatch *DRW_cache_speaker_get()
 /** \name Probe
  * \{ */
 
-GPUBatch *DRW_cache_lightprobe_cube_get()
+blender::gpu::Batch *DRW_cache_lightprobe_cube_get()
 {
   if (!SHC.drw_lightprobe_cube) {
     GPUVertFormat format = extra_vert_format();
@@ -1869,7 +1869,7 @@ GPUBatch *DRW_cache_lightprobe_cube_get()
   return SHC.drw_lightprobe_cube;
 }
 
-GPUBatch *DRW_cache_lightprobe_grid_get()
+blender::gpu::Batch *DRW_cache_lightprobe_grid_get()
 {
   if (!SHC.drw_lightprobe_grid) {
     GPUVertFormat format = extra_vert_format();
@@ -1932,7 +1932,7 @@ GPUBatch *DRW_cache_lightprobe_grid_get()
   return SHC.drw_lightprobe_grid;
 }
 
-GPUBatch *DRW_cache_lightprobe_planar_get()
+blender::gpu::Batch *DRW_cache_lightprobe_planar_get()
 {
   if (!SHC.drw_lightprobe_planar) {
     GPUVertFormat format = extra_vert_format();
@@ -2073,7 +2073,7 @@ static const float bone_octahedral_solid_normals[8][3] = {
     {0.00000000f, 0.11043154f, 0.99388373f},
 };
 
-GPUBatch *DRW_cache_bone_octahedral_get()
+blender::gpu::Batch *DRW_cache_bone_octahedral_get()
 {
   if (!SHC.drw_bone_octahedral) {
     uint v_idx = 0;
@@ -2109,7 +2109,7 @@ GPUBatch *DRW_cache_bone_octahedral_get()
   return SHC.drw_bone_octahedral;
 }
 
-GPUBatch *DRW_cache_bone_octahedral_wire_get()
+blender::gpu::Batch *DRW_cache_bone_octahedral_wire_get()
 {
   if (!SHC.drw_bone_octahedral_wire) {
     GPUIndexBufBuilder elb;
@@ -2124,7 +2124,7 @@ GPUBatch *DRW_cache_bone_octahedral_wire_get()
     }
 
     /* HACK Reuse vertex buffer. */
-    GPUBatch *pos_nor_batch = DRW_cache_bone_octahedral_get();
+    blender::gpu::Batch *pos_nor_batch = DRW_cache_bone_octahedral_get();
 
     SHC.drw_bone_octahedral_wire = GPU_batch_create_ex(GPU_PRIM_LINES_ADJ,
                                                        pos_nor_batch->verts[0],
@@ -2134,7 +2134,7 @@ GPUBatch *DRW_cache_bone_octahedral_wire_get()
   return SHC.drw_bone_octahedral_wire;
 }
 
-GPUBatch *DRW_cache_bone_box_get()
+blender::gpu::Batch *DRW_cache_bone_box_get()
 {
   if (!SHC.drw_bone_box) {
     uint v_idx = 0;
@@ -2167,7 +2167,7 @@ GPUBatch *DRW_cache_bone_box_get()
   return SHC.drw_bone_box;
 }
 
-GPUBatch *DRW_cache_bone_box_wire_get()
+blender::gpu::Batch *DRW_cache_bone_box_wire_get()
 {
   if (!SHC.drw_bone_box_wire) {
     GPUIndexBufBuilder elb;
@@ -2182,7 +2182,7 @@ GPUBatch *DRW_cache_bone_box_wire_get()
     }
 
     /* HACK Reuse vertex buffer. */
-    GPUBatch *pos_nor_batch = DRW_cache_bone_box_get();
+    blender::gpu::Batch *pos_nor_batch = DRW_cache_bone_box_get();
 
     SHC.drw_bone_box_wire = GPU_batch_create_ex(GPU_PRIM_LINES_ADJ,
                                                 pos_nor_batch->verts[0],
@@ -2201,7 +2201,7 @@ static void benv_lat_lon_to_co(const float lat, const float lon, float r_nor[3])
   r_nor[2] = cosf(lat);
 }
 
-GPUBatch *DRW_cache_bone_envelope_solid_get()
+blender::gpu::Batch *DRW_cache_bone_envelope_solid_get()
 {
   if (!SHC.drw_bone_envelope) {
     const int lon_res = 24;
@@ -2252,7 +2252,7 @@ GPUBatch *DRW_cache_bone_envelope_solid_get()
   return SHC.drw_bone_envelope;
 }
 
-GPUBatch *DRW_cache_bone_envelope_outline_get()
+blender::gpu::Batch *DRW_cache_bone_envelope_outline_get()
 {
   if (!SHC.drw_bone_envelope_outline) {
 #define CIRCLE_RESOL 64
@@ -2297,7 +2297,7 @@ GPUBatch *DRW_cache_bone_envelope_outline_get()
   return SHC.drw_bone_envelope_outline;
 }
 
-GPUBatch *DRW_cache_bone_point_get()
+blender::gpu::Batch *DRW_cache_bone_point_get()
 {
   if (!SHC.drw_bone_point) {
 #if 0 /* old style geometry sphere */
@@ -2372,7 +2372,7 @@ GPUBatch *DRW_cache_bone_point_get()
   return SHC.drw_bone_point;
 }
 
-GPUBatch *DRW_cache_bone_point_wire_outline_get()
+blender::gpu::Batch *DRW_cache_bone_point_wire_outline_get()
 {
   if (!SHC.drw_bone_point_wire) {
 #if 0 /* old style geometry sphere */
@@ -2421,7 +2421,7 @@ GPUBatch *DRW_cache_bone_point_wire_outline_get()
 #define POS_TAIL (1 << 5)
 #define POS_BONE (1 << 6)
 
-GPUBatch *DRW_cache_bone_stick_get()
+blender::gpu::Batch *DRW_cache_bone_stick_get()
 {
   if (!SHC.drw_bone_stick) {
 #define CIRCLE_RESOL 12
@@ -2564,7 +2564,7 @@ static float axis_marker[8][2] = {
 #undef S_X
 #undef S_Y
 
-GPUBatch *DRW_cache_bone_arrows_get()
+blender::gpu::Batch *DRW_cache_bone_arrows_get()
 {
   if (!SHC.drw_bone_arrows) {
     GPUVertFormat format = extra_vert_format();
@@ -2630,7 +2630,7 @@ static const float staticSine[16] = {
   } \
   ((void)0)
 
-GPUBatch *DRW_cache_bone_dof_sphere_get()
+blender::gpu::Batch *DRW_cache_bone_dof_sphere_get()
 {
   if (!SHC.drw_bone_dof_sphere) {
     int i, j, q, n = ARRAY_SIZE(staticSine);
@@ -2683,7 +2683,7 @@ GPUBatch *DRW_cache_bone_dof_sphere_get()
   return SHC.drw_bone_dof_sphere;
 }
 
-GPUBatch *DRW_cache_bone_dof_lines_get()
+blender::gpu::Batch *DRW_cache_bone_dof_lines_get()
 {
   if (!SHC.drw_bone_dof_lines) {
     int i, n = ARRAY_SIZE(staticSine);
@@ -2723,7 +2723,7 @@ GPUBatch *DRW_cache_bone_dof_lines_get()
 /** \name Camera
  * \{ */
 
-GPUBatch *DRW_cache_camera_frame_get()
+blender::gpu::Batch *DRW_cache_camera_frame_get()
 {
   if (!SHC.drw_camera_frame) {
     GPUVertFormat format = extra_vert_format();
@@ -2755,7 +2755,7 @@ GPUBatch *DRW_cache_camera_frame_get()
   return SHC.drw_camera_frame;
 }
 
-GPUBatch *DRW_cache_camera_volume_get()
+blender::gpu::Batch *DRW_cache_camera_volume_get()
 {
   if (!SHC.drw_camera_volume) {
     GPUVertFormat format = extra_vert_format();
@@ -2780,7 +2780,7 @@ GPUBatch *DRW_cache_camera_volume_get()
   return SHC.drw_camera_volume;
 }
 
-GPUBatch *DRW_cache_camera_volume_wire_get()
+blender::gpu::Batch *DRW_cache_camera_volume_wire_get()
 {
   if (!SHC.drw_camera_volume_wire) {
     GPUVertFormat format = extra_vert_format();
@@ -2804,7 +2804,7 @@ GPUBatch *DRW_cache_camera_volume_wire_get()
   return SHC.drw_camera_volume_wire;
 }
 
-GPUBatch *DRW_cache_camera_tria_wire_get()
+blender::gpu::Batch *DRW_cache_camera_tria_wire_get()
 {
   if (!SHC.drw_camera_tria_wire) {
     GPUVertFormat format = extra_vert_format();
@@ -2829,7 +2829,7 @@ GPUBatch *DRW_cache_camera_tria_wire_get()
   return SHC.drw_camera_tria_wire;
 }
 
-GPUBatch *DRW_cache_camera_tria_get()
+blender::gpu::Batch *DRW_cache_camera_tria_get()
 {
   if (!SHC.drw_camera_tria) {
     GPUVertFormat format = extra_vert_format();
@@ -2849,7 +2849,7 @@ GPUBatch *DRW_cache_camera_tria_get()
   return SHC.drw_camera_tria;
 }
 
-GPUBatch *DRW_cache_camera_distances_get()
+blender::gpu::Batch *DRW_cache_camera_distances_get()
 {
   if (!SHC.drw_camera_distances) {
     GPUVertFormat format = extra_vert_format();
@@ -2882,51 +2882,51 @@ GPUBatch *DRW_cache_camera_distances_get()
 /** \name Meshes
  * \{ */
 
-GPUBatch *DRW_cache_mesh_all_verts_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_all_verts_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_all_verts(static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch *DRW_cache_mesh_all_edges_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_all_edges_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_all_edges(static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch *DRW_cache_mesh_loose_edges_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_loose_edges_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_loose_edges(static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch *DRW_cache_mesh_edge_detection_get(Object *ob, bool *r_is_manifold)
+blender::gpu::Batch *DRW_cache_mesh_edge_detection_get(Object *ob, bool *r_is_manifold)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_edge_detection(static_cast<Mesh *>(ob->data), r_is_manifold);
 }
 
-GPUBatch *DRW_cache_mesh_surface_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_surface_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_surface(static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch *DRW_cache_mesh_surface_edges_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_surface_edges_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_surface_edges(ob, static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch **DRW_cache_mesh_surface_shaded_get(Object *ob,
-                                             GPUMaterial **gpumat_array,
-                                             uint gpumat_array_len)
+blender::gpu::Batch **DRW_cache_mesh_surface_shaded_get(Object *ob,
+                                                        GPUMaterial **gpumat_array,
+                                                        uint gpumat_array_len)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
@@ -2934,56 +2934,56 @@ GPUBatch **DRW_cache_mesh_surface_shaded_get(Object *ob,
       ob, static_cast<Mesh *>(ob->data), gpumat_array, gpumat_array_len);
 }
 
-GPUBatch **DRW_cache_mesh_surface_texpaint_get(Object *ob)
+blender::gpu::Batch **DRW_cache_mesh_surface_texpaint_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_surface_texpaint(ob, static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch *DRW_cache_mesh_surface_texpaint_single_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_surface_texpaint_single_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_surface_texpaint_single(ob, static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch *DRW_cache_mesh_surface_vertpaint_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_surface_vertpaint_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_surface_vertpaint(ob, static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch *DRW_cache_mesh_surface_sculptcolors_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_surface_sculptcolors_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_surface_sculpt(ob, static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch *DRW_cache_mesh_surface_weights_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_surface_weights_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_surface_weights(static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch *DRW_cache_mesh_face_wireframe_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_face_wireframe_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_wireframes_face(static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch *DRW_cache_mesh_surface_mesh_analysis_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_surface_mesh_analysis_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
   return DRW_mesh_batch_cache_get_edit_mesh_analysis(static_cast<Mesh *>(ob->data));
 }
 
-GPUBatch *DRW_cache_mesh_surface_viewer_attribute_get(Object *ob)
+blender::gpu::Batch *DRW_cache_mesh_surface_viewer_attribute_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
@@ -2996,7 +2996,7 @@ GPUBatch *DRW_cache_mesh_surface_viewer_attribute_get(Object *ob)
 /** \name Curve
  * \{ */
 
-GPUBatch *DRW_cache_curve_edge_wire_get(Object *ob)
+blender::gpu::Batch *DRW_cache_curve_edge_wire_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_CURVES_LEGACY);
@@ -3004,7 +3004,7 @@ GPUBatch *DRW_cache_curve_edge_wire_get(Object *ob)
   return DRW_curve_batch_cache_get_wire_edge(cu);
 }
 
-GPUBatch *DRW_cache_curve_edge_wire_viewer_attribute_get(Object *ob)
+blender::gpu::Batch *DRW_cache_curve_edge_wire_viewer_attribute_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_CURVES_LEGACY);
@@ -3012,7 +3012,7 @@ GPUBatch *DRW_cache_curve_edge_wire_viewer_attribute_get(Object *ob)
   return DRW_curve_batch_cache_get_wire_edge_viewer_attribute(cu);
 }
 
-GPUBatch *DRW_cache_curve_edge_normal_get(Object *ob)
+blender::gpu::Batch *DRW_cache_curve_edge_normal_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_CURVES_LEGACY);
@@ -3020,7 +3020,7 @@ GPUBatch *DRW_cache_curve_edge_normal_get(Object *ob)
   return DRW_curve_batch_cache_get_normal_edge(cu);
 }
 
-GPUBatch *DRW_cache_curve_edge_overlay_get(Object *ob)
+blender::gpu::Batch *DRW_cache_curve_edge_overlay_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF));
@@ -3029,7 +3029,7 @@ GPUBatch *DRW_cache_curve_edge_overlay_get(Object *ob)
   return DRW_curve_batch_cache_get_edit_edges(cu);
 }
 
-GPUBatch *DRW_cache_curve_vert_overlay_get(Object *ob)
+blender::gpu::Batch *DRW_cache_curve_vert_overlay_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF));
@@ -3044,7 +3044,7 @@ GPUBatch *DRW_cache_curve_vert_overlay_get(Object *ob)
 /** \name Font
  * \{ */
 
-GPUBatch *DRW_cache_text_edge_wire_get(Object *ob)
+blender::gpu::Batch *DRW_cache_text_edge_wire_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_FONT);
@@ -3058,7 +3058,7 @@ GPUBatch *DRW_cache_text_edge_wire_get(Object *ob)
 /** \name Surface
  * \{ */
 
-GPUBatch *DRW_cache_surf_edge_wire_get(Object *ob)
+blender::gpu::Batch *DRW_cache_surf_edge_wire_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_SURF);
@@ -3072,7 +3072,7 @@ GPUBatch *DRW_cache_surf_edge_wire_get(Object *ob)
 /** \name Lattice
  * \{ */
 
-GPUBatch *DRW_cache_lattice_verts_get(Object *ob)
+blender::gpu::Batch *DRW_cache_lattice_verts_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_LATTICE);
@@ -3081,7 +3081,7 @@ GPUBatch *DRW_cache_lattice_verts_get(Object *ob)
   return DRW_lattice_batch_cache_get_all_verts(lt);
 }
 
-GPUBatch *DRW_cache_lattice_wire_get(Object *ob, bool use_weight)
+blender::gpu::Batch *DRW_cache_lattice_wire_get(Object *ob, bool use_weight)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_LATTICE);
@@ -3096,7 +3096,7 @@ GPUBatch *DRW_cache_lattice_wire_get(Object *ob, bool use_weight)
   return DRW_lattice_batch_cache_get_all_edges(lt, use_weight, actdef);
 }
 
-GPUBatch *DRW_cache_lattice_vert_overlay_get(Object *ob)
+blender::gpu::Batch *DRW_cache_lattice_vert_overlay_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_LATTICE);
@@ -3119,13 +3119,13 @@ GPUBatch *DRW_cache_lattice_vert_overlay_get(Object *ob)
 
 namespace blender::draw {
 
-GPUBatch *DRW_cache_volume_face_wireframe_get(Object *ob)
+blender::gpu::Batch *DRW_cache_volume_face_wireframe_get(Object *ob)
 {
   BLI_assert(ob->type == OB_VOLUME);
   return DRW_volume_batch_cache_get_wireframes_face(static_cast<Volume *>(ob->data));
 }
 
-GPUBatch *DRW_cache_volume_selection_surface_get(Object *ob)
+blender::gpu::Batch *DRW_cache_volume_selection_surface_get(Object *ob)
 {
   BLI_assert(ob->type == OB_VOLUME);
   return DRW_volume_batch_cache_get_selection_surface(static_cast<Volume *>(ob->data));
@@ -3139,44 +3139,46 @@ GPUBatch *DRW_cache_volume_selection_surface_get(Object *ob)
 /** \name Particles
  * \{ */
 
-GPUBatch *DRW_cache_particles_get_hair(Object *object, ParticleSystem *psys, ModifierData *md)
+blender::gpu::Batch *DRW_cache_particles_get_hair(Object *object,
+                                                  ParticleSystem *psys,
+                                                  ModifierData *md)
 {
   using namespace blender::draw;
   return DRW_particles_batch_cache_get_hair(object, psys, md);
 }
 
-GPUBatch *DRW_cache_particles_get_dots(Object *object, ParticleSystem *psys)
+blender::gpu::Batch *DRW_cache_particles_get_dots(Object *object, ParticleSystem *psys)
 {
   using namespace blender::draw;
   return DRW_particles_batch_cache_get_dots(object, psys);
 }
 
-GPUBatch *DRW_cache_particles_get_edit_strands(Object *object,
-                                               ParticleSystem *psys,
-                                               PTCacheEdit *edit,
-                                               bool use_weight)
+blender::gpu::Batch *DRW_cache_particles_get_edit_strands(Object *object,
+                                                          ParticleSystem *psys,
+                                                          PTCacheEdit *edit,
+                                                          bool use_weight)
 {
   using namespace blender::draw;
   return DRW_particles_batch_cache_get_edit_strands(object, psys, edit, use_weight);
 }
 
-GPUBatch *DRW_cache_particles_get_edit_inner_points(Object *object,
-                                                    ParticleSystem *psys,
-                                                    PTCacheEdit *edit)
+blender::gpu::Batch *DRW_cache_particles_get_edit_inner_points(Object *object,
+                                                               ParticleSystem *psys,
+                                                               PTCacheEdit *edit)
 {
   using namespace blender::draw;
   return DRW_particles_batch_cache_get_edit_inner_points(object, psys, edit);
 }
 
-GPUBatch *DRW_cache_particles_get_edit_tip_points(Object *object,
-                                                  ParticleSystem *psys,
-                                                  PTCacheEdit *edit)
+blender::gpu::Batch *DRW_cache_particles_get_edit_tip_points(Object *object,
+                                                             ParticleSystem *psys,
+                                                             PTCacheEdit *edit)
 {
   using namespace blender::draw;
   return DRW_particles_batch_cache_get_edit_tip_points(object, psys, edit);
 }
 
-GPUBatch *DRW_cache_particles_get_prim(int type)
+blender::gpu::Batch *DRW_cache_particles_get_prim(int type)
 {
   switch (type) {
     case PART_DRAW_CROSS:
@@ -3250,9 +3252,10 @@ GPUBatch *DRW_cache_particles_get_prim(int type)
   return nullptr;
 }
 
-GPUBatch *DRW_cache_cursor_get(bool crosshair_lines)
+blender::gpu::Batch *DRW_cache_cursor_get(bool crosshair_lines)
 {
-  GPUBatch **drw_cursor = crosshair_lines ? &SHC.drw_cursor : &SHC.drw_cursor_only_circle;
+  blender::gpu::Batch **drw_cursor = crosshair_lines ? &SHC.drw_cursor :
+                                                       &SHC.drw_cursor_only_circle;
 
   if (*drw_cursor == nullptr) {
     const float f5 = 0.25f;

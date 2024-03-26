@@ -218,34 +218,34 @@ typedef enum {
 #define DRW_MAX_DRAW_CMD_TYPE DRW_CMD_DRAW_INDIRECT
 
 struct DRWCommandDraw {
-  GPUBatch *batch;
+  blender::gpu::Batch *batch;
   DRWResourceHandle handle;
 };
 
 /* Assume DRWResourceHandle to be 0. */
 struct DRWCommandDrawRange {
-  GPUBatch *batch;
+  blender::gpu::Batch *batch;
   DRWResourceHandle handle;
   uint vert_first;
   uint vert_count;
 };
 
 struct DRWCommandDrawInstance {
-  GPUBatch *batch;
+  blender::gpu::Batch *batch;
   DRWResourceHandle handle;
   uint inst_count;
   uint use_attrs; /* bool */
 };
 
 struct DRWCommandDrawInstanceRange {
-  GPUBatch *batch;
+  blender::gpu::Batch *batch;
   DRWResourceHandle handle;
   uint inst_first;
   uint inst_count;
 };
 
 struct DRWCommandDrawIndirect {
-  GPUBatch *batch;
+  blender::gpu::Batch *batch;
   DRWResourceHandle handle;
   GPUStorageBuf *indirect_buf;
 };
@@ -269,7 +269,7 @@ struct DRWCommandBarrier {
 };
 
 struct DRWCommandDrawProcedural {
-  GPUBatch *batch;
+  blender::gpu::Batch *batch;
   DRWResourceHandle handle;
   uint vert_count;
 };
@@ -624,7 +624,7 @@ struct DRWManager {
 
   /* Rendering state */
   GPUShader *shader;
-  GPUBatch *batch;
+  blender::gpu::Batch *batch;
 
   /* Managed by `DRW_state_set`, `DRW_state_reset` */
   DRWState state;
@@ -720,10 +720,10 @@ void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob);
 void drw_resource_buffer_finish(DRWData *vmempool);
 
 /* Procedural Drawing */
-GPUBatch *drw_cache_procedural_points_get();
-GPUBatch *drw_cache_procedural_lines_get();
-GPUBatch *drw_cache_procedural_triangles_get();
-GPUBatch *drw_cache_procedural_triangle_strips_get();
+blender::gpu::Batch *drw_cache_procedural_points_get();
+blender::gpu::Batch *drw_cache_procedural_lines_get();
+blender::gpu::Batch *drw_cache_procedural_triangles_get();
+blender::gpu::Batch *drw_cache_procedural_triangle_strips_get();
 
 void drw_uniform_attrs_pool_update(GHash *table,
                                    const GPUUniformAttrList *key,

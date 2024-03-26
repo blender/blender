@@ -1150,7 +1150,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
     UI_GetThemeColorShade4fv(TH_PANEL_HEADER, col_tint, color_high);
     UI_GetThemeColorShade4fv(TH_PANEL_BACK, -col_tint, color_dark);
 
-    GPUBatch *batch = GPU_batch_preset_panel_drag_widget(
+    blender::gpu::Batch *batch = GPU_batch_preset_panel_drag_widget(
         U.pixelsize, color_high, color_dark, drag_widget_size);
     GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR);
     GPU_batch_draw(batch);

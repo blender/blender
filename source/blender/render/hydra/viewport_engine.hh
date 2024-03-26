@@ -17,7 +17,7 @@ namespace blender::render::hydra {
 class DrawTexture {
  private:
   GPUTexture *texture_ = nullptr;
-  GPUBatch *batch_;
+  gpu::Batch *batch_;
 
  public:
   DrawTexture();

@@ -384,7 +384,7 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   GPU_framebuffer_bind(blit_target_fb);
 
   /* Execute graphics draw call to perform the blit. */
-  GPUBatch *quad = GPU_batch_preset_quad();
+  Batch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
 
   float w = dst->width_get();

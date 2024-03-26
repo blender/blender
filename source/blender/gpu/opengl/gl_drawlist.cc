@@ -100,7 +100,7 @@ void GLDrawList::init()
   command_offset_ = 0;
 }
 
-void GLDrawList::append(GPUBatch *gpu_batch, int i_first, int i_count)
+void GLDrawList::append(Batch *gpu_batch, int i_first, int i_count)
 {
   /* Fallback when MultiDrawIndirect is not supported/enabled. */
   if (MDI_DISABLED) {

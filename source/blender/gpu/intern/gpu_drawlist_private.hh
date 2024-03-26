@@ -23,7 +23,7 @@ class DrawList {
  public:
   virtual ~DrawList(){};
 
-  virtual void append(GPUBatch *batch, int i_first, int i_count) = 0;
+  virtual void append(Batch *batch, int i_first, int i_count) = 0;
   virtual void submit() = 0;
 };
 

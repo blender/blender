@@ -372,7 +372,7 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData * /*sldata*/,
     EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_geometry_data_get(mb_data);
 
     if (mb_step == MB_CURR) {
-      GPUBatch *batch = DRW_cache_object_surface_get(ob);
+      blender::gpu::Batch *batch = DRW_cache_object_surface_get(ob);
       if (batch == nullptr) {
         return;
       }
@@ -419,7 +419,7 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData * /*sldata*/,
   }
 }
 
-static void motion_blur_remove_vbo_reference_from_batch(GPUBatch *batch,
+static void motion_blur_remove_vbo_reference_from_batch(blender::gpu::Batch *batch,
                                                         blender::gpu::VertBuf *vbo1,
                                                         blender::gpu::VertBuf *vbo2)
 {
@@ -498,7 +498,7 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
     if (mb_geom != nullptr && mb_geom->use_deform) {
       if (mb_step == MB_CURR) {
         /* Modify batch to have data from adjacent frames. */
-        GPUBatch *batch = mb_geom->batch;
+        blender::gpu::Batch *batch = mb_geom->batch;
         for (int i = 0; i < MB_CURR; i++) {
           blender::gpu::VertBuf *vbo = mb_geom->vbo[i];
           if (vbo && batch) {

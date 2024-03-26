@@ -19,10 +19,6 @@
 
 #include "GPU_batch.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define GP_LIGHT
 
 #include "gpencil_defines.h"
@@ -32,7 +28,9 @@ extern DrawEngineType draw_engine_gpencil_type;
 
 struct GPENCIL_Data;
 struct GPENCIL_StorageList;
-struct GPUBatch;
+namespace blender::gpu {
+class Batch;
+}
 struct GpencilBatchCache;
 struct Object;
 struct RenderEngine;
@@ -279,8 +277,8 @@ typedef struct GPENCIL_PrivateData {
     GPENCIL_tObject *first, *last;
   } sbuffer_tobjects;
   /* Batches containing the temp stroke. */
-  GPUBatch *stroke_batch;
-  GPUBatch *fill_batch;
+  blender::gpu::Batch *stroke_batch;
+  blender::gpu::Batch *fill_batch;
   bool do_fast_drawing;
   bool snapshot_buffer_dirty;
 
@@ -418,6 +416,3 @@ void GPENCIL_render_to_image(void *vedata,
 void gpencil_light_pool_free(void *storage);
 void gpencil_material_pool_free(void *storage);
 GPENCIL_ViewLayerData *GPENCIL_view_layer_data_ensure(void);
-#ifdef __cplusplus
-}
-#endif

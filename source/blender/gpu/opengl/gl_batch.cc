@@ -5,14 +5,14 @@
 /** \file
  * \ingroup gpu
  *
- * GL implementation of GPUBatch.
+ * GL implementation of gpu::Batch.
  * The only specificity of GL here is that it caches a list of
  * Vertex Array Objects based on the bound shader interface.
  */
 
 #include "BLI_assert.h"
 
-#include "gpu_batch_private.hh"
+#include "GPU_batch.hh"
 #include "gpu_shader_private.hh"
 
 #include "gl_context.hh"
@@ -208,7 +208,7 @@ void GLVaoCache::context_check()
   }
 }
 
-GLuint GLVaoCache::vao_get(GPUBatch *batch)
+GLuint GLVaoCache::vao_get(Batch *batch)
 {
   this->context_check();
 

@@ -1633,7 +1633,7 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
   const int img_binding = GPU_shader_get_sampler_binding(shader, "image");
   GPU_texture_bind_ex(texture, GPUSamplerState::icon_sampler(), img_binding);
 
-  GPUBatch *quad = GPU_batch_preset_quad();
+  blender::gpu::Batch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
   GPU_batch_draw_instance_range(quad, 0, texture_draw_calls->calls);
 
@@ -1825,7 +1825,7 @@ static void icon_draw_texture(float x,
 
   GPU_texture_bind_ex(texture, GPUSamplerState::icon_sampler(), img_binding);
 
-  GPUBatch *quad = GPU_batch_preset_quad();
+  blender::gpu::Batch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
   GPU_batch_draw(quad);
 

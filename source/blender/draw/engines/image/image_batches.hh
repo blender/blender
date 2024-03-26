@@ -12,7 +12,7 @@
 
 namespace blender::draw::image_engine {
 
-/** \brief Create GPUBatch for a IMAGE_ScreenSpaceTextureInfo. */
+/** \brief Create gpu::Batch for a IMAGE_ScreenSpaceTextureInfo. */
 class BatchUpdater {
   TextureInfo &info;
 

@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "gpu_batch_private.hh"
+#include "GPU_batch.hh"
 
 #include "gl_index_buffer.hh"
 #include "gl_vertex_buffer.hh"
@@ -62,7 +62,7 @@ class GLVaoCache {
   GLVaoCache();
   ~GLVaoCache();
 
-  GLuint vao_get(GPUBatch *batch);
+  GLuint vao_get(Batch *batch);
 
   /**
    * Return 0 on cache miss (invalid VAO).

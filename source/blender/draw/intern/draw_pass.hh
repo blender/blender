@@ -36,7 +36,7 @@
  * optimization for passes that are always the same for each frame. The only thing to be aware of
  * is the life time of external resources. If a pass contains draw-calls with non default
  * #ResourceHandle (not 0) or a reference to any non static resources
- * (#GPUBatch, #PushConstant ref, #ResourceBind ref) it will have to be re-recorded
+ * (#gpu::Batch, #PushConstant ref, #ResourceBind ref) it will have to be re-recorded
  * if any of these reference becomes invalid.
  */
 
@@ -238,7 +238,7 @@ class PassBase {
    * \note Setting the count or first to -1 will use the values from the batch.
    * \note An instance or vertex count of 0 will discard the draw call. It will not be recorded.
    */
-  void draw(GPUBatch *batch,
+  void draw(gpu::Batch *batch,
             uint instance_len = -1,
             uint vertex_len = -1,
             uint vertex_first = -1,
@@ -249,10 +249,10 @@ class PassBase {
    * Shorter version for the common case.
    * \note Implemented in derived class. Not a virtual function to avoid indirection.
    */
-  void draw(GPUBatch *batch, ResourceHandle handle, uint custom_id = 0);
+  void draw(gpu::Batch *batch, ResourceHandle handle, uint custom_id = 0);
 
   /**
-   * Record a procedural draw call. Geometry is **NOT** source from a GPUBatch.
+   * Record a procedural draw call. Geometry is **NOT** source from a gpu::Batch.
    * \note An instance or vertex count of 0 will discard the draw call. It will not be recorded.
    */
   void draw_procedural(GPUPrimType primitive,
@@ -266,7 +266,7 @@ class PassBase {
    * Indirect variants.
    * \note If needed, the resource id need to also be set accordingly in the DrawCommand.
    */
-  void draw_indirect(GPUBatch *batch,
+  void draw_indirect(gpu::Batch *batch,
                      StorageBuffer<DrawCommand, true> &indirect_buffer,
                      ResourceHandle handle = {0});
   void draw_procedural_indirect(GPUPrimType primitive,
@@ -414,7 +414,7 @@ class PassBase {
 
   void clear(eGPUFrameBufferBits planes, float4 color, float depth, uint8_t stencil);
 
-  GPUBatch *procedural_batch_get(GPUPrimType primitive);
+  gpu::Batch *procedural_batch_get(GPUPrimType primitive);
 
   /**
    * Return a new command recorded with the given type.
@@ -562,7 +562,7 @@ template<class T> inline void PassBase<T>::clear_multi(Span<float4> colors)
                                                            static_cast<int>(colors.size())};
 }
 
-template<class T> inline GPUBatch *PassBase<T>::procedural_batch_get(GPUPrimType primitive)
+template<class T> inline gpu::Batch *PassBase<T>::procedural_batch_get(GPUPrimType primitive)
 {
   switch (primitive) {
     case GPU_PRIM_POINTS:
@@ -724,7 +724,7 @@ template<class T> std::string PassBase<T>::serialize(std::string line_prefix) co
  * \{ */
 
 template<class T>
-inline void PassBase<T>::draw(GPUBatch *batch,
+inline void PassBase<T>::draw(gpu::Batch *batch,
                               uint instance_len,
                               uint vertex_len,
                               uint vertex_first,
@@ -756,7 +756,7 @@ inline void PassBase<T>::draw(GPUBatch *batch,
 }
 
 template<class T>
-inline void PassBase<T>::draw(GPUBatch *batch, ResourceHandle handle, uint custom_id)
+inline void PassBase<T>::draw(gpu::Batch *batch, ResourceHandle handle, uint custom_id)
 {
   this->draw(batch, -1, -1, -1, handle, custom_id);
 }
@@ -780,7 +780,7 @@ inline void PassBase<T>::draw_procedural(GPUPrimType primitive,
  * \{ */
 
 template<class T>
-inline void PassBase<T>::draw_indirect(GPUBatch *batch,
+inline void PassBase<T>::draw_indirect(gpu::Batch *batch,
                                        StorageBuffer<DrawCommand, true> &indirect_buffer,
                                        ResourceHandle handle)
 {

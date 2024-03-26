@@ -292,7 +292,7 @@ static int curve_render_data_normal_len_get(const CurveRenderData *rdata)
 }
 
 /* ---------------------------------------------------------------------- */
-/* Curve GPUBatch Cache */
+/* Curve gpu::Batch Cache */
 
 struct CurveBatchCache {
   struct {
@@ -315,12 +315,12 @@ struct CurveBatchCache {
   } ibo;
 
   struct {
-    GPUBatch *curves;
-    GPUBatch *curves_viewer_attribute;
+    gpu::Batch *curves;
+    gpu::Batch *curves_viewer_attribute;
     /* control handles and vertices */
-    GPUBatch *edit_edges;
-    GPUBatch *edit_verts;
-    GPUBatch *edit_normals;
+    gpu::Batch *edit_edges;
+    gpu::Batch *edit_verts;
+    gpu::Batch *edit_normals;
   } batch;
 
   /* settings to determine if cache is invalid */
@@ -328,7 +328,7 @@ struct CurveBatchCache {
   bool is_editmode;
 };
 
-/* GPUBatch cache management. */
+/* gpu::Batch cache management. */
 
 static bool curve_batch_cache_valid(Curve *cu)
 {
@@ -437,7 +437,7 @@ static void curve_batch_cache_clear(Curve *cu)
     GPU_INDEXBUF_DISCARD_SAFE(ibo[i]);
   }
   for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
-    GPUBatch **batch = (GPUBatch **)&cache->batch;
+    gpu::Batch **batch = (gpu::Batch **)&cache->batch;
     GPU_BATCH_DISCARD_SAFE(batch[i]);
   }
 }
@@ -452,7 +452,7 @@ void DRW_curve_batch_cache_free(Curve *cu)
 /** \name Private Curve Cache API
  * \{ */
 
-/* GPUBatch cache usage. */
+/* gpu::Batch cache usage. */
 static void curve_create_curves_pos(CurveRenderData *rdata, gpu::VertBuf *vbo_curves_pos)
 {
   if (rdata->curve_eval == nullptr) {
@@ -790,31 +790,31 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
 /** \name Public Object/Curve API
  * \{ */
 
-GPUBatch *DRW_curve_batch_cache_get_wire_edge(Curve *cu)
+gpu::Batch *DRW_curve_batch_cache_get_wire_edge(Curve *cu)
 {
   CurveBatchCache *cache = curve_batch_cache_get(cu);
   return DRW_batch_request(&cache->batch.curves);
 }
 
-GPUBatch *DRW_curve_batch_cache_get_wire_edge_viewer_attribute(Curve *cu)
+gpu::Batch *DRW_curve_batch_cache_get_wire_edge_viewer_attribute(Curve *cu)
 {
   CurveBatchCache *cache = curve_batch_cache_get(cu);
   return DRW_batch_request(&cache->batch.curves_viewer_attribute);
 }
 
-GPUBatch *DRW_curve_batch_cache_get_normal_edge(Curve *cu)
+gpu::Batch *DRW_curve_batch_cache_get_normal_edge(Curve *cu)
 {
   CurveBatchCache *cache = curve_batch_cache_get(cu);
   return DRW_batch_request(&cache->batch.edit_normals);
 }
 
-GPUBatch *DRW_curve_batch_cache_get_edit_edges(Curve *cu)
+gpu::Batch *DRW_curve_batch_cache_get_edit_edges(Curve *cu)
 {
   CurveBatchCache *cache = curve_batch_cache_get(cu);
   return DRW_batch_request(&cache->batch.edit_edges);
 }
 
-GPUBatch *DRW_curve_batch_cache_get_edit_verts(Curve *cu)
+gpu::Batch *DRW_curve_batch_cache_get_edit_verts(Curve *cu)
 {
   CurveBatchCache *cache = curve_batch_cache_get(cu);
   return DRW_batch_request(&cache->batch.edit_verts);
@@ -912,7 +912,7 @@ void DRW_curve_batch_cache_create_requested(Object *ob, const Scene *scene)
 #ifndef NDEBUG
   /* Make sure all requested batches have been setup. */
   for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
-    BLI_assert(!DRW_batch_requested(((GPUBatch **)&cache->batch)[i], (GPUPrimType)0));
+    BLI_assert(!DRW_batch_requested(((gpu::Batch **)&cache->batch)[i], (GPUPrimType)0));
   }
 #endif
 }

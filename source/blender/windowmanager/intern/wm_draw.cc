@@ -891,7 +891,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   GPU_shader_uniform_float_ex(shader, rect_geo_loc, 4, 1, rectg);
   GPU_shader_uniform_float_ex(shader, color_loc, 4, 1, blender::float4{1, 1, 1, 1});
 
-  GPUBatch *quad = GPU_batch_preset_quad();
+  blender::gpu::Batch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
   GPU_batch_draw(quad);
 

@@ -98,9 +98,9 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject * /*type*/, PyObject *args, Py
     return nullptr;
   }
 
-  GPUBatch *batch = GPU_batch_create(GPUPrimType(prim_type.value_found),
-                                     py_vertbuf->buf,
-                                     py_indexbuf ? py_indexbuf->elem : nullptr);
+  blender::gpu::Batch *batch = GPU_batch_create(GPUPrimType(prim_type.value_found),
+                                                py_vertbuf->buf,
+                                                py_indexbuf ? py_indexbuf->elem : nullptr);
 
   BPyGPUBatch *ret = (BPyGPUBatch *)BPyGPUBatch_CreatePyObject(batch);
 
@@ -525,7 +525,7 @@ PyTypeObject BPyGPUBatch_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUBatch_CreatePyObject(GPUBatch *batch)
+PyObject *BPyGPUBatch_CreatePyObject(blender::gpu::Batch *batch)
 {
   BPyGPUBatch *self;
 

@@ -34,7 +34,7 @@ void DRW_select_load_id(uint id)
 #define DEBUG_UBO_BINDING
 
 struct DRWCommandsState {
-  GPUBatch *batch;
+  blender::gpu::Batch *batch;
   int resource_chunk;
   int resource_id;
   int base_inst;
@@ -531,7 +531,7 @@ BLI_INLINE void draw_legacy_matrix_update(DRWShadingGroup *shgroup,
   }
 }
 
-BLI_INLINE void draw_geometry_bind(DRWShadingGroup *shgroup, GPUBatch *geom)
+BLI_INLINE void draw_geometry_bind(DRWShadingGroup *shgroup, blender::gpu::Batch *geom)
 {
   DST.batch = geom;
 
@@ -539,7 +539,7 @@ BLI_INLINE void draw_geometry_bind(DRWShadingGroup *shgroup, GPUBatch *geom)
 }
 
 BLI_INLINE void draw_geometry_execute(DRWShadingGroup *shgroup,
-                                      GPUBatch *geom,
+                                      blender::gpu::Batch *geom,
                                       int vert_first,
                                       int vert_count,
                                       int inst_first,
@@ -742,7 +742,7 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
 
 BLI_INLINE void draw_select_buffer(DRWShadingGroup *shgroup,
                                    DRWCommandsState *state,
-                                   GPUBatch *batch,
+                                   blender::gpu::Batch *batch,
                                    const DRWResourceHandle *handle)
 {
   const bool is_instancing = (batch->inst[0] != nullptr);
@@ -856,7 +856,7 @@ static void draw_call_batching_flush(DRWShadingGroup *shgroup, DRWCommandsState 
 
 static void draw_call_single_do(DRWShadingGroup *shgroup,
                                 DRWCommandsState *state,
-                                GPUBatch *batch,
+                                blender::gpu::Batch *batch,
                                 DRWResourceHandle handle,
                                 int vert_first,
                                 int vert_count,
@@ -895,7 +895,7 @@ static void draw_call_single_do(DRWShadingGroup *shgroup,
  * only execute an indirect drawcall with user indirect buffer. */
 static void draw_call_indirect(DRWShadingGroup *shgroup,
                                DRWCommandsState *state,
-                               GPUBatch *batch,
+                               blender::gpu::Batch *batch,
                                DRWResourceHandle handle,
                                GPUStorageBuf *indirect_buf)
 {

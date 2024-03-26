@@ -64,12 +64,12 @@ struct State {
 class ShapeCache {
  private:
   struct BatchDeleter {
-    void operator()(GPUBatch *shader)
+    void operator()(gpu::Batch *shader)
     {
       GPU_BATCH_DISCARD_SAFE(shader);
     }
   };
-  using BatchPtr = std::unique_ptr<GPUBatch, BatchDeleter>;
+  using BatchPtr = std::unique_ptr<gpu::Batch, BatchDeleter>;
 
  public:
   BatchPtr quad_wire;
@@ -256,7 +256,7 @@ template<typename InstanceDataT> struct ShapeInstanceBuf : private select::Selec
     data_buf.append(data);
   }
 
-  void end_sync(PassSimple &pass, GPUBatch *shape)
+  void end_sync(PassSimple &pass, gpu::Batch *shape)
   {
     if (data_buf.is_empty()) {
       return;

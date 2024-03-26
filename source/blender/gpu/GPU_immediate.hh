@@ -37,8 +37,8 @@ void immEnd(); /* finishes and draws. */
  * Then you can draw it as many times as you like!
  * Partially replaces the need for display lists. */
 
-GPUBatch *immBeginBatch(GPUPrimType, uint vertex_len);
-GPUBatch *immBeginBatchAtMost(GPUPrimType, uint vertex_len);
+blender::gpu::Batch *immBeginBatch(GPUPrimType, uint vertex_len);
+blender::gpu::Batch *immBeginBatchAtMost(GPUPrimType, uint vertex_len);
 
 /* Provide attribute values that can change per vertex. */
 /* First vertex after immBegin must have all its attributes specified. */

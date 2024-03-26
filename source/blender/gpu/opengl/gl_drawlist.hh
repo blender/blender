@@ -32,7 +32,7 @@ class GLDrawList : public DrawList {
   GLDrawList(int length);
   ~GLDrawList();
 
-  void append(GPUBatch *batch, int i_first, int i_count) override;
+  void append(Batch *batch, int i_first, int i_count) override;
   void submit() override;
 
  private:

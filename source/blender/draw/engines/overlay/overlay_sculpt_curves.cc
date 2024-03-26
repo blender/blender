@@ -94,7 +94,7 @@ static void populate_edit_overlay(OVERLAY_Data *vedata, Object *object)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   Curves *curves = static_cast<Curves *>(object->data);
 
-  GPUBatch *geom_lines = DRW_curves_batch_cache_get_sculpt_curves_cage(curves);
+  blender::gpu::Batch *geom_lines = DRW_curves_batch_cache_get_sculpt_curves_cage(curves);
   DRW_shgroup_call_no_cull(pd->sculpt_curves_cage_lines_grp, geom_lines, object);
 }
 

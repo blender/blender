@@ -62,10 +62,10 @@ struct CurvesUboStorage {
 struct CurvesBatchCache {
   CurvesEvalCache eval_cache;
 
-  GPUBatch *edit_points;
-  GPUBatch *edit_handles;
+  gpu::Batch *edit_points;
+  gpu::Batch *edit_handles;
 
-  GPUBatch *sculpt_cage;
+  gpu::Batch *sculpt_cage;
   gpu::IndexBuf *sculpt_cage_ibo;
 
   /* Crazy-space point positions for original points. */
@@ -93,7 +93,7 @@ struct CurvesBatchCache {
 
   gpu::IndexBuf *edit_handles_ibo;
 
-  GPUBatch *edit_curves_lines;
+  gpu::Batch *edit_curves_lines;
   gpu::VertBuf *edit_curves_lines_pos;
   gpu::IndexBuf *edit_curves_lines_ibo;
 
@@ -886,25 +886,25 @@ GPUUniformBuf *DRW_curves_batch_cache_ubo_storage(Curves *curves)
   return cache.curves_ubo_storage;
 }
 
-GPUBatch *DRW_curves_batch_cache_get_edit_points(Curves *curves)
+gpu::Batch *DRW_curves_batch_cache_get_edit_points(Curves *curves)
 {
   CurvesBatchCache &cache = get_batch_cache(*curves);
   return DRW_batch_request(&cache.edit_points);
 }
 
-GPUBatch *DRW_curves_batch_cache_get_sculpt_curves_cage(Curves *curves)
+gpu::Batch *DRW_curves_batch_cache_get_sculpt_curves_cage(Curves *curves)
 {
   CurvesBatchCache &cache = get_batch_cache(*curves);
   return DRW_batch_request(&cache.sculpt_cage);
 }
 
-GPUBatch *DRW_curves_batch_cache_get_edit_curves_handles(Curves *curves)
+gpu::Batch *DRW_curves_batch_cache_get_edit_curves_handles(Curves *curves)
 {
   CurvesBatchCache &cache = get_batch_cache(*curves);
   return DRW_batch_request(&cache.edit_handles);
 }
 
-GPUBatch *DRW_curves_batch_cache_get_edit_curves_lines(Curves *curves)
+gpu::Batch *DRW_curves_batch_cache_get_edit_curves_lines(Curves *curves)
 {
   CurvesBatchCache &cache = get_batch_cache(*curves);
   return DRW_batch_request(&cache.edit_curves_lines);

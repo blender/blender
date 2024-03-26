@@ -20,9 +20,12 @@ struct MDeformVert;
 #ifdef __cplusplus
 namespace blender::gpu {
 class VertBuf;
-}
+class Batch;
+}  // namespace blender::gpu
+using GPUBatchHandle = blender::gpu::Batch;
 using GPUVertBufHandle = blender::gpu::VertBuf;
 #else
+typedef struct GPUBatchHandle GPUBatchHandle;
 typedef struct GPUVertBufHandle GPUVertBufHandle;
 #endif
 
@@ -621,7 +624,7 @@ typedef struct bGPdata_Runtime {
   /** Temp batches cleared after drawing. */
   GPUVertBufHandle *sbuffer_position_buf;
   GPUVertBufHandle *sbuffer_color_buf;
-  struct GPUBatch *sbuffer_batch;
+  GPUBatchHandle *sbuffer_batch;
   /** Temp stroke used for drawing. */
   struct bGPDstroke *sbuffer_gps;
 

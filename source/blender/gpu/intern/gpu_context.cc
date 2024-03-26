@@ -19,8 +19,8 @@
 #include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
 
+#include "GPU_batch.hh"
 #include "gpu_backend.hh"
-#include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
 #include "gpu_matrix_private.hh"
 #include "gpu_private.hh"

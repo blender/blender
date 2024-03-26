@@ -197,8 +197,8 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
   wm_xr_draw_viewport_buffers_to_active_framebuffer(xr_data->runtime, surface_data, draw_view);
 }
 
-static GPUBatch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_context,
-                                                     const char *subaction_path)
+static blender::gpu::Batch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_context,
+                                                                const char *subaction_path)
 {
   GHOST_XrControllerModelData model_data;
 
@@ -259,7 +259,7 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
   GPU_blend(GPU_BLEND_ALPHA);
 
   LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
-    GPUBatch *model = controller->model;
+    blender::gpu::Batch *model = controller->model;
     if (!model) {
       model = controller->model = wm_xr_controller_model_batch_create(xr_context,
                                                                       controller->subaction_path);
@@ -288,7 +288,7 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
     else {
       /* Fallback. */
       const float scale = 0.05f;
-      GPUBatch *sphere = GPU_batch_preset_sphere(2);
+      blender::gpu::Batch *sphere = GPU_batch_preset_sphere(2);
       GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
       GPU_batch_uniform_4fv(sphere, "color", color);
 

@@ -1813,8 +1813,8 @@ static float mute_expand_axis[3][2] = {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, -0.0f}
 
 /* Is zero initialized because it is static data. */
 static struct {
-  GPUBatch *batch;        /* for batching line together */
-  GPUBatch *batch_single; /* for single line */
+  gpu::Batch *batch;        /* for batching line together */
+  gpu::Batch *batch_single; /* for single line */
   gpu::VertBuf *inst_vbo;
   uint p0_id, p1_id, p2_id, p3_id;
   uint colid_id, muted_id, start_color_id, end_color_id;
@@ -2268,7 +2268,7 @@ static void node_draw_link_bezier_ex(const SpaceNode &snode,
     node_link_data.aspect = snode.runtime->aspect;
     node_link_data.arrowSize = ARROW_SIZE;
 
-    GPUBatch *batch = g_batch_link.batch_single;
+    gpu::Batch *batch = g_batch_link.batch_single;
     GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(sizeof(NodeLinkData), &node_link_data, __func__);
 
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);

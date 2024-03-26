@@ -48,11 +48,11 @@ namespace blender::draw {
 static void particle_batch_cache_clear(ParticleSystem *psys);
 
 /* ---------------------------------------------------------------------- */
-/* Particle GPUBatch Cache */
+/* Particle gpu::Batch Cache */
 
 struct ParticlePointCache {
   gpu::VertBuf *pos;
-  GPUBatch *points;
+  gpu::Batch *points;
   int elems_len;
   int point_len;
 };
@@ -68,14 +68,14 @@ struct ParticleBatchCache {
   ParticleHairCache edit_hair;
 
   gpu::VertBuf *edit_pos;
-  GPUBatch *edit_strands;
+  gpu::Batch *edit_strands;
 
   gpu::VertBuf *edit_inner_pos;
-  GPUBatch *edit_inner_points;
+  gpu::Batch *edit_inner_points;
   int edit_inner_point_len;
 
   gpu::VertBuf *edit_tip_pos;
-  GPUBatch *edit_tip_points;
+  gpu::Batch *edit_tip_points;
   int edit_tip_point_len;
 
   /* Settings to determine if cache is invalid. */
@@ -83,7 +83,7 @@ struct ParticleBatchCache {
   bool edit_is_weight;
 };
 
-/* GPUBatch cache management. */
+/* gpu::Batch cache management. */
 
 struct HairAttributeID {
   uint pos;
@@ -1512,9 +1512,9 @@ static void drw_particle_get_hair_source(Object *object,
   }
 }
 
-GPUBatch *DRW_particles_batch_cache_get_hair(Object *object,
-                                             ParticleSystem *psys,
-                                             ModifierData *md)
+gpu::Batch *DRW_particles_batch_cache_get_hair(Object *object,
+                                               ParticleSystem *psys,
+                                               ModifierData *md)
 {
   ParticleBatchCache *cache = particle_batch_cache_get(psys);
   if (cache->hair.hairs == nullptr) {
@@ -1529,7 +1529,7 @@ GPUBatch *DRW_particles_batch_cache_get_hair(Object *object,
   return cache->hair.hairs;
 }
 
-GPUBatch *DRW_particles_batch_cache_get_dots(Object *object, ParticleSystem *psys)
+gpu::Batch *DRW_particles_batch_cache_get_dots(Object *object, ParticleSystem *psys)
 {
   ParticleBatchCache *cache = particle_batch_cache_get(psys);
 
@@ -1577,10 +1577,10 @@ static void particle_batch_cache_ensure_edit_pos_and_seg(PTCacheEdit *edit,
   hair_cache->indices = GPU_indexbuf_build(&elb);
 }
 
-GPUBatch *DRW_particles_batch_cache_get_edit_strands(Object *object,
-                                                     ParticleSystem *psys,
-                                                     PTCacheEdit *edit,
-                                                     bool use_weight)
+gpu::Batch *DRW_particles_batch_cache_get_edit_strands(Object *object,
+                                                       ParticleSystem *psys,
+                                                       PTCacheEdit *edit,
+                                                       bool use_weight)
 {
   ParticleBatchCache *cache = particle_batch_cache_get(psys);
   if (cache->edit_is_weight != use_weight) {
@@ -1644,9 +1644,9 @@ static void particle_batch_cache_ensure_edit_inner_pos(PTCacheEdit *edit,
   }
 }
 
-GPUBatch *DRW_particles_batch_cache_get_edit_inner_points(Object *object,
-                                                          ParticleSystem *psys,
-                                                          PTCacheEdit *edit)
+gpu::Batch *DRW_particles_batch_cache_get_edit_inner_points(Object *object,
+                                                            ParticleSystem *psys,
+                                                            PTCacheEdit *edit)
 {
   ParticleBatchCache *cache = particle_batch_cache_get(psys);
   if (cache->edit_inner_points != nullptr) {
@@ -1701,9 +1701,9 @@ static void particle_batch_cache_ensure_edit_tip_pos(PTCacheEdit *edit, Particle
   }
 }
 
-GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(Object *object,
-                                                        ParticleSystem *psys,
-                                                        PTCacheEdit *edit)
+gpu::Batch *DRW_particles_batch_cache_get_edit_tip_points(Object *object,
+                                                          ParticleSystem *psys,
+                                                          PTCacheEdit *edit)
 {
   ParticleBatchCache *cache = particle_batch_cache_get(psys);
   if (cache->edit_tip_points != nullptr) {

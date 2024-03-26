@@ -2880,7 +2880,7 @@ void DRW_draw_depth_object(
 
   switch (object->type) {
     case OB_MESH: {
-      GPUBatch *batch;
+      blender::gpu::Batch *batch;
 
       Mesh *mesh = static_cast<Mesh *>(object->data);
 

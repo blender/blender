@@ -214,7 +214,7 @@ void immBeginAtMost(GPUPrimType prim_type, uint vertex_len)
   immBegin(prim_type, vertex_len);
 }
 
-GPUBatch *immBeginBatch(GPUPrimType prim_type, uint vertex_len)
+blender::gpu::Batch *immBeginBatch(GPUPrimType prim_type, uint vertex_len)
 {
   BLI_assert(imm->prim_type == GPU_PRIM_NONE); /* Make sure we haven't already begun. */
   BLI_assert(vertex_count_makes_sense_for_primitive(vertex_len, prim_type));
@@ -235,7 +235,7 @@ GPUBatch *immBeginBatch(GPUPrimType prim_type, uint vertex_len)
   return imm->batch;
 }
 
-GPUBatch *immBeginBatchAtMost(GPUPrimType prim_type, uint vertex_len)
+blender::gpu::Batch *immBeginBatchAtMost(GPUPrimType prim_type, uint vertex_len)
 {
   BLI_assert(vertex_len > 0);
   imm->strict_vertex_len = false;

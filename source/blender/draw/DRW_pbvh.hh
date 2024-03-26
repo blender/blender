@@ -21,7 +21,9 @@
 
 #include "BKE_ccg.h"
 
-struct GPUBatch;
+namespace blender::gpu {
+class Batch;
+}
 struct PBVHNode;
 struct Mesh;
 struct CustomData;
@@ -100,13 +102,13 @@ void update_pre(PBVHBatches *batches, const PBVH_GPU_Args &args);
 void node_gpu_flush(PBVHBatches *batches);
 PBVHBatches *node_create(const PBVH_GPU_Args &args);
 void node_free(PBVHBatches *batches);
-GPUBatch *tris_get(PBVHBatches *batches,
-                   Span<AttributeRequest> attrs,
-                   const PBVH_GPU_Args &args,
-                   bool do_coarse_grids);
-GPUBatch *lines_get(PBVHBatches *batches,
-                    Span<AttributeRequest> attrs,
-                    const PBVH_GPU_Args &args,
-                    bool do_coarse_grids);
+gpu::Batch *tris_get(PBVHBatches *batches,
+                     Span<AttributeRequest> attrs,
+                     const PBVH_GPU_Args &args,
+                     bool do_coarse_grids);
+gpu::Batch *lines_get(PBVHBatches *batches,
+                      Span<AttributeRequest> attrs,
+                      const PBVH_GPU_Args &args,
+                      bool do_coarse_grids);
 
 }  // namespace blender::draw::pbvh

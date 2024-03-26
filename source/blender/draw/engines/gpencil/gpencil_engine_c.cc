@@ -357,7 +357,7 @@ struct gpIterPopulateData {
   int stroke_index_last;
   int stroke_index_offset;
   /* Infos for call batching. */
-  GPUBatch *geom;
+  blender::gpu::Batch *geom;
   int vfirst, vcount;
 };
 
@@ -378,7 +378,7 @@ static void gpencil_drawcall_flush(gpIterPopulateData *iter)
 
 /* Group draw-calls that are consecutive and with the same type. Reduces GPU driver overhead. */
 static void gpencil_drawcall_add(gpIterPopulateData *iter,
-                                 GPUBatch *geom,
+                                 blender::gpu::Batch *geom,
                                  int v_first,
                                  int v_count)
 {
@@ -524,8 +524,8 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
 
   bool do_sbuffer = (iter->do_sbuffer_call == DRAW_NOW);
 
-  GPUBatch *geom = do_sbuffer ? DRW_cache_gpencil_sbuffer_get(iter->ob, show_fill) :
-                                DRW_cache_gpencil_get(iter->ob, iter->pd->cfra);
+  blender::gpu::Batch *geom = do_sbuffer ? DRW_cache_gpencil_sbuffer_get(iter->ob, show_fill) :
+                                           DRW_cache_gpencil_get(iter->ob, iter->pd->cfra);
   if (geom != iter->geom) {
     gpencil_drawcall_flush(iter);
 
@@ -623,7 +623,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
   GPUTexture *tex_fill = txl->dummy_texture;
   GPUTexture *tex_stroke = txl->dummy_texture;
 
-  GPUBatch *iter_geom = nullptr;
+  blender::gpu::Batch *iter_geom = nullptr;
   DRWShadingGroup *grp;
   int vfirst = 0;
   int vcount = 0;
@@ -639,7 +639,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
     vcount = 0;
   };
 
-  const auto drawcall_add = [&](GPUBatch *draw_geom, int v_first, int v_count) {
+  const auto drawcall_add = [&](blender::gpu::Batch *draw_geom, int v_first, int v_count) {
 #if DISABLE_BATCHING
     DRW_shgroup_call_range(grp, ob, geom, v_first, v_count);
     return;
@@ -758,7 +758,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
         }
       }
 
-      GPUBatch *geom = draw::DRW_cache_grease_pencil_get(pd->scene, ob);
+      blender::gpu::Batch *geom = draw::DRW_cache_grease_pencil_get(pd->scene, ob);
       if (iter_geom != geom) {
         drawcall_flush();
 

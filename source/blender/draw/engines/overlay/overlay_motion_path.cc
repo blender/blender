@@ -62,7 +62,7 @@ static blender::gpu::VertBuf *mpath_vbo_get(bMotionPath *mpath)
   return mpath->points_vbo;
 }
 
-static GPUBatch *mpath_batch_line_get(bMotionPath *mpath)
+static blender::gpu::Batch *mpath_batch_line_get(bMotionPath *mpath)
 {
   if (!mpath->batch_line) {
     mpath->batch_line = GPU_batch_create(GPU_PRIM_LINE_STRIP, mpath_vbo_get(mpath), nullptr);
@@ -70,7 +70,7 @@ static GPUBatch *mpath_batch_line_get(bMotionPath *mpath)
   return mpath->batch_line;
 }
 
-static GPUBatch *mpath_batch_points_get(bMotionPath *mpath)
+static blender::gpu::Batch *mpath_batch_points_get(bMotionPath *mpath)
 {
   if (!mpath->batch_points) {
     mpath->batch_points = GPU_batch_create(GPU_PRIM_POINTS, mpath_vbo_get(mpath), nullptr);

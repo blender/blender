@@ -48,7 +48,7 @@ class MTLDrawList : public DrawList {
   MTLDrawList(int length);
   ~MTLDrawList();
 
-  void append(GPUBatch *batch, int i_first, int i_count) override;
+  void append(Batch *batch, int i_first, int i_count) override;
   void submit() override;
 
  private:

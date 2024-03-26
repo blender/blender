@@ -184,7 +184,7 @@ void DRW_draw_cursor()
   GPU_matrix_translate_2f(co[0] + 0.5f, co[1] + 0.5f);
   GPU_matrix_scale_2f(U.widget_unit, U.widget_unit);
 
-  GPUBatch *cursor_batch = DRW_cache_cursor_get(is_aligned);
+  blender::gpu::Batch *cursor_batch = DRW_cache_cursor_get(is_aligned);
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR);
   GPU_batch_set_shader(cursor_batch, shader);
 
@@ -247,7 +247,7 @@ void DRW_draw_cursor_2d_ex(const ARegion *region, const float cursor[2])
   GPU_matrix_translate_2f(co[0] + 0.5f, co[1] + 0.5f);
   GPU_matrix_scale_2f(U.widget_unit, U.widget_unit);
 
-  GPUBatch *cursor_batch = DRW_cache_cursor_get(true);
+  blender::gpu::Batch *cursor_batch = DRW_cache_cursor_get(true);
 
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR);
   GPU_batch_set_shader(cursor_batch, shader);

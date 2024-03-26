@@ -14,9 +14,9 @@
 
 struct Curves;
 namespace blender::gpu {
+class Batch;
 class VertBuf;
-}
-struct GPUBatch;
+}  // namespace blender::gpu
 struct GPUMaterial;
 
 namespace blender::draw {
@@ -40,7 +40,7 @@ struct CurvesEvalFinalCache {
   gpu::VertBuf *proc_buf;
 
   /** Just contains a huge index buffer used to draw the final curves. */
-  GPUBatch *proc_hairs;
+  gpu::Batch *proc_hairs;
 
   /** Points per curve, at least 2. */
   int resolution;

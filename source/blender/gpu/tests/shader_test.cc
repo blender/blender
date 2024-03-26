@@ -408,7 +408,7 @@ static void gpu_shader_lib_test(const char *test_src_name, const char *additiona
   GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
   VertBuf *verts = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(verts, 3);
-  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+  Batch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
 
   GPU_batch_set_shader(batch, shader);
   GPU_batch_draw_advanced(batch, 0, 3, 0, 1);

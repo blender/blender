@@ -111,7 +111,7 @@ struct ShaderSpecializationConst {
       VertBuf *verts = GPU_vertbuf_create_with_format(&format);
 
       GPU_vertbuf_data_alloc(verts, 1);
-      GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+      Batch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, verts, nullptr, GPU_BATCH_OWNS_VBO);
       GPU_batch_set_shader(batch, shader);
       GPU_batch_draw_advanced(batch, 0, 1, 0, 1);
       GPU_batch_discard(batch);

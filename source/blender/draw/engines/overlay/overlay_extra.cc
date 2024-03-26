@@ -258,7 +258,7 @@ OVERLAY_ExtraCallBuffers *OVERLAY_extra_call_buffer_get(OVERLAY_Data *vedata, Ob
 }
 
 void OVERLAY_extra_loose_points(OVERLAY_ExtraCallBuffers *cb,
-                                GPUBatch *geom,
+                                blender::gpu::Batch *geom,
                                 const float mat[4][4],
                                 const float color[4])
 {
@@ -268,7 +268,7 @@ void OVERLAY_extra_loose_points(OVERLAY_ExtraCallBuffers *cb,
 }
 
 void OVERLAY_extra_wire(OVERLAY_ExtraCallBuffers *cb,
-                        GPUBatch *geom,
+                        blender::gpu::Batch *geom,
                         const float mat[4][4],
                         const float color[4])
 {

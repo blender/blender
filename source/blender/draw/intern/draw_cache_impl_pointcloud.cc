@@ -36,15 +36,15 @@
 namespace blender::draw {
 
 /* -------------------------------------------------------------------- */
-/** \name GPUBatch cache management
+/** \name gpu::Batch cache management
  * \{ */
 
 struct PointCloudEvalCache {
   /* Dot primitive types. */
-  GPUBatch *dots;
+  gpu::Batch *dots;
   /* Triangle primitive types. */
-  GPUBatch *surface;
-  GPUBatch **surface_per_mat;
+  gpu::Batch *surface;
+  gpu::Batch **surface_per_mat;
 
   /* Triangles indices to draw the points. */
   gpu::IndexBuf *geom_indices;
@@ -119,8 +119,8 @@ static void pointcloud_batch_cache_init(PointCloud &pointcloud)
   }
 
   cache->eval_cache.mat_len = DRW_pointcloud_material_count_get(&pointcloud);
-  cache->eval_cache.surface_per_mat = static_cast<GPUBatch **>(
-      MEM_callocN(sizeof(GPUBatch *) * cache->eval_cache.mat_len, __func__));
+  cache->eval_cache.surface_per_mat = static_cast<gpu::Batch **>(
+      MEM_callocN(sizeof(gpu::Batch *) * cache->eval_cache.mat_len, __func__));
 
   cache->is_dirty = false;
 }
@@ -329,9 +329,9 @@ gpu::VertBuf *pointcloud_position_and_radius_get(PointCloud *pointcloud)
   return cache->eval_cache.pos_rad;
 }
 
-GPUBatch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
-                                         GPUMaterial **gpu_materials,
-                                         int mat_len)
+gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
+                                           GPUMaterial **gpu_materials,
+                                           int mat_len)
 {
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(*pointcloud);
   DRW_Attributes attrs_needed;
@@ -366,7 +366,7 @@ GPUBatch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
   return cache->eval_cache.surface_per_mat;
 }
 
-GPUBatch *pointcloud_surface_get(PointCloud *pointcloud)
+gpu::Batch *pointcloud_surface_get(PointCloud *pointcloud)
 {
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(*pointcloud);
   return DRW_batch_request(&cache->eval_cache.surface);
@@ -378,7 +378,7 @@ GPUBatch *pointcloud_surface_get(PointCloud *pointcloud)
 /** \name API
  * \{ */
 
-GPUBatch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
+gpu::Batch *DRW_pointcloud_batch_cache_get_dots(Object *ob)
 {
   PointCloud &pointcloud = *static_cast<PointCloud *>(ob->data);
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);

@@ -45,18 +45,18 @@ struct GpencilBatchCache {
    * `gps->runtime.fill_start`. */
   blender::gpu::IndexBuf *ibo;
   /** Batches */
-  GPUBatch *geom_batch;
+  blender::gpu::Batch *geom_batch;
   /** Stroke lines only */
-  GPUBatch *lines_batch;
+  blender::gpu::Batch *lines_batch;
 
   /** Edit Mode */
   blender::gpu::VertBuf *edit_vbo;
-  GPUBatch *edit_lines_batch;
-  GPUBatch *edit_points_batch;
+  blender::gpu::Batch *edit_lines_batch;
+  blender::gpu::Batch *edit_points_batch;
   /** Edit Curve Mode */
   blender::gpu::VertBuf *edit_curve_vbo;
-  GPUBatch *edit_curve_handles_batch;
-  GPUBatch *edit_curve_points_batch;
+  blender::gpu::Batch *edit_curve_handles_batch;
+  blender::gpu::Batch *edit_curve_points_batch;
 
   /** Cache is dirty */
   bool is_dirty;
@@ -265,7 +265,7 @@ struct gpIterData {
 
 static gpu::VertBuf *gpencil_dummy_buffer_get()
 {
-  GPUBatch *batch = DRW_gpencil_dummy_buffer_get();
+  blender::gpu::Batch *batch = DRW_gpencil_dummy_buffer_get();
   return batch->verts[0];
 }
 
@@ -482,7 +482,7 @@ static void gpencil_batches_ensure(Object *ob, GpencilBatchCache *cache, int cfr
   }
 }
 
-GPUBatch *DRW_cache_gpencil_get(Object *ob, int cfra)
+blender::gpu::Batch *DRW_cache_gpencil_get(Object *ob, int cfra)
 {
   GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
   gpencil_batches_ensure(ob, cache, cfra);
@@ -522,7 +522,7 @@ static void gpencil_lines_indices_cb(bGPDlayer * /*gpl*/,
   GPU_indexbuf_add_primitive_restart(&iter->ibo);
 }
 
-GPUBatch *DRW_cache_gpencil_face_wireframe_get(Object *ob)
+blender::gpu::Batch *DRW_cache_gpencil_face_wireframe_get(Object *ob)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   int cfra = DEG_get_ctime(draw_ctx->depsgraph);
@@ -667,10 +667,10 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
     /* Fill buffers with data. */
     gpencil_buffer_add_stroke(&ibo_builder, verts, cols, gps);
 
-    GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS,
-                                          gpencil_dummy_buffer_get(),
-                                          GPU_indexbuf_build(&ibo_builder),
-                                          GPU_BATCH_OWNS_INDEX);
+    blender::gpu::Batch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS,
+                                                     gpencil_dummy_buffer_get(),
+                                                     GPU_indexbuf_build(&ibo_builder),
+                                                     GPU_BATCH_OWNS_INDEX);
 
     gpd->runtime.sbuffer_position_buf = vbo;
     gpd->runtime.sbuffer_color_buf = vbo_col;
@@ -680,7 +680,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
   }
 }
 
-GPUBatch *DRW_cache_gpencil_sbuffer_get(Object *ob, bool show_fill)
+blender::gpu::Batch *DRW_cache_gpencil_sbuffer_get(Object *ob, bool show_fill)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   /* Fill batch also need stroke batch to be created (vbo is shared). */
@@ -956,7 +956,7 @@ static void gpencil_edit_batches_ensure(Object *ob, GpencilBatchCache *cache, in
   }
 }
 
-GPUBatch *DRW_cache_gpencil_edit_lines_get(Object *ob, int cfra)
+blender::gpu::Batch *DRW_cache_gpencil_edit_lines_get(Object *ob, int cfra)
 {
   GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
   gpencil_batches_ensure(ob, cache, cfra);
@@ -965,7 +965,7 @@ GPUBatch *DRW_cache_gpencil_edit_lines_get(Object *ob, int cfra)
   return cache->edit_lines_batch;
 }
 
-GPUBatch *DRW_cache_gpencil_edit_points_get(Object *ob, int cfra)
+blender::gpu::Batch *DRW_cache_gpencil_edit_points_get(Object *ob, int cfra)
 {
   GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
   gpencil_batches_ensure(ob, cache, cfra);
@@ -974,7 +974,7 @@ GPUBatch *DRW_cache_gpencil_edit_points_get(Object *ob, int cfra)
   return cache->edit_points_batch;
 }
 
-GPUBatch *DRW_cache_gpencil_edit_curve_handles_get(Object *ob, int cfra)
+blender::gpu::Batch *DRW_cache_gpencil_edit_curve_handles_get(Object *ob, int cfra)
 {
   GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
   gpencil_batches_ensure(ob, cache, cfra);
@@ -983,7 +983,7 @@ GPUBatch *DRW_cache_gpencil_edit_curve_handles_get(Object *ob, int cfra)
   return cache->edit_curve_handles_batch;
 }
 
-GPUBatch *DRW_cache_gpencil_edit_curve_points_get(Object *ob, int cfra)
+blender::gpu::Batch *DRW_cache_gpencil_edit_curve_points_get(Object *ob, int cfra)
 {
   GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra);
   gpencil_batches_ensure(ob, cache, cfra);

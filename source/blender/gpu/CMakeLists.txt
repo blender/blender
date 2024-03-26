@@ -114,7 +114,6 @@ set(SRC
   GPU_viewport.hh
 
   intern/gpu_backend.hh
-  intern/gpu_batch_private.hh
   intern/gpu_capabilities_private.hh
   intern/gpu_codegen.hh
   intern/gpu_context_private.hh

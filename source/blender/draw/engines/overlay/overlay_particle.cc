@@ -86,7 +86,7 @@ void OVERLAY_edit_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
     return;
   }
 
-  GPUBatch *geom;
+  blender::gpu::Batch *geom;
   {
     geom = DRW_cache_particles_get_edit_strands(ob, psys, edit, pd->edit_particle.use_weight);
     DRW_shgroup_call(pd->edit_particle_strand_grp, geom, nullptr);
@@ -165,8 +165,8 @@ void OVERLAY_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
     }
 
     if (!ELEM(draw_as, PART_DRAW_NOT, PART_DRAW_OB, PART_DRAW_GR)) {
-      GPUBatch *geom = DRW_cache_particles_get_dots(ob, psys);
-      GPUBatch *shape = nullptr;
+      blender::gpu::Batch *geom = DRW_cache_particles_get_dots(ob, psys);
+      blender::gpu::Batch *shape = nullptr;
       DRWShadingGroup *grp;
 
       /* TODO(fclem): Here would be a good place for preemptive culling. */

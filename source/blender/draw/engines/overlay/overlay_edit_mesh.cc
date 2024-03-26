@@ -229,7 +229,7 @@ void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata)
 static void overlay_edit_mesh_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob, bool in_front)
 {
   using namespace blender::draw;
-  GPUBatch *geom_tris, *geom_verts, *geom_edges, *geom_fcenter, *skin_roots, *circle;
+  blender::gpu::Batch *geom_tris, *geom_verts, *geom_edges, *geom_fcenter, *skin_roots, *circle;
   DRWShadingGroup *vert_shgrp, *edge_shgrp, *fdot_shgrp, *face_shgrp, *skin_roots_shgrp;
 
   bool has_edit_mesh_cage = false;
@@ -277,7 +277,7 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   using namespace blender::draw;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  GPUBatch *geom = nullptr;
+  blender::gpu::Batch *geom = nullptr;
 
   bool draw_as_solid = (ob->dt > OB_WIRE);
   bool do_in_front = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
@@ -305,7 +305,7 @@ void OVERLAY_edit_mesh_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 
   if (vnormals_do || lnormals_do || fnormals_do) {
-    GPUBatch *normal_geom = DRW_cache_normal_arrow_get();
+    blender::gpu::Batch *normal_geom = DRW_cache_normal_arrow_get();
     Mesh *mesh = static_cast<Mesh *>(ob->data);
     if (vnormals_do) {
       geom = DRW_mesh_batch_cache_get_edit_vert_normals(mesh);

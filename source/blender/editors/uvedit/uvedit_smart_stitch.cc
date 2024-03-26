@@ -1665,7 +1665,7 @@ static void stitch_calculate_edge_normal(const int cd_loop_uv_offset,
  */
 static void stitch_draw_vbo(blender::gpu::VertBuf *vbo, GPUPrimType prim_type, const float col[4])
 {
-  GPUBatch *batch = GPU_batch_create_ex(prim_type, vbo, nullptr, GPU_BATCH_OWNS_VBO);
+  blender::gpu::Batch *batch = GPU_batch_create_ex(prim_type, vbo, nullptr, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_batch_uniform_4fv(batch, "color", col);
   GPU_batch_draw(batch);
