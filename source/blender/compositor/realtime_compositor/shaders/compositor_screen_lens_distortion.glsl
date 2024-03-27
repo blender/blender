@@ -26,7 +26,7 @@ vec3 compute_chromatic_distortion_scale(float distance_squared)
  * coordinates but outputs non-centered image coordinates. */
 vec2 compute_distorted_uv(vec2 uv, float uv_scale)
 {
-  return (uv * uv_scale + 0.5) * vec2(texture_size(input_tx)) - 0.5;
+  return (uv * uv_scale + 0.5) * vec2(texture_size(input_tx));
 }
 
 /* Compute the number of integration steps that should be used to approximate the distorted pixel
