@@ -60,6 +60,7 @@
 
 #include "ED_image.hh"
 #include "ED_mesh.hh"
+#include "ED_paint.hh"
 #include "ED_object.hh"
 #include "ED_object_vgroup.hh"
 #include "ED_screen.hh"
