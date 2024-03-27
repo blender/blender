@@ -57,6 +57,7 @@
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"
+#include "ED_object_vgroup.hh"
 #include "ED_screen.hh"
 
 #include "ANIM_bone_collections.hh"

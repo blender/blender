@@ -92,6 +92,7 @@
 #include "ED_armature.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
+#include "ED_object_vgroup.hh"
 #include "ED_screen.hh"
 #include "ED_sculpt.hh"
 

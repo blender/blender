@@ -30,6 +30,7 @@
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"
+#include "ED_object_vgroup.hh"
 
 #include "SkinInfo.h"
 #include "collada_utils.h"
