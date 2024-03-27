@@ -22,6 +22,7 @@ struct ViewContext;
 struct ViewLayer;
 struct bContext;
 struct bContextDataResult;
+struct View3DCameraControl;
 struct wmGizmoGroupType;
 struct wmGizmoType;
 struct wmKeyConfig;
@@ -29,7 +30,7 @@ struct wmOperatorType;
 
 /* `view3d_header.cc` */
 
-void VIEW3D_OT_toggle_matcap_flip(struct wmOperatorType *ot);
+void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot);
 
 /* `view3d_context.cc` */
 
@@ -37,79 +38,77 @@ int view3d_context(const bContext *C, const char *member, bContextDataResult *re
 
 /* `view3d_ops.cc` */
 
-void view3d_operatortypes(void);
+void view3d_operatortypes();
 
 /* `view3d_edit.cc` */
 
-void VIEW3D_OT_zoom_camera_1_to_1(struct wmOperatorType *ot);
-void VIEW3D_OT_view_lock_clear(struct wmOperatorType *ot);
-void VIEW3D_OT_view_lock_to_active(struct wmOperatorType *ot);
-void VIEW3D_OT_view_center_camera(struct wmOperatorType *ot);
-void VIEW3D_OT_view_center_lock(struct wmOperatorType *ot);
-void VIEW3D_OT_view_persportho(struct wmOperatorType *ot);
-void VIEW3D_OT_navigate(struct wmOperatorType *ot);
-void VIEW3D_OT_camera_background_image_add(struct wmOperatorType *ot);
-void VIEW3D_OT_camera_background_image_remove(struct wmOperatorType *ot);
-void VIEW3D_OT_drop_world(struct wmOperatorType *ot);
-void VIEW3D_OT_clip_border(struct wmOperatorType *ot);
-void VIEW3D_OT_cursor3d(struct wmOperatorType *ot);
-void VIEW3D_OT_render_border(struct wmOperatorType *ot);
-void VIEW3D_OT_clear_render_border(struct wmOperatorType *ot);
-void VIEW3D_OT_toggle_shading(struct wmOperatorType *ot);
-void VIEW3D_OT_toggle_xray(struct wmOperatorType *ot);
+void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot);
+void VIEW3D_OT_view_lock_clear(wmOperatorType *ot);
+void VIEW3D_OT_view_lock_to_active(wmOperatorType *ot);
+void VIEW3D_OT_view_center_camera(wmOperatorType *ot);
+void VIEW3D_OT_view_center_lock(wmOperatorType *ot);
+void VIEW3D_OT_view_persportho(wmOperatorType *ot);
+void VIEW3D_OT_navigate(wmOperatorType *ot);
+void VIEW3D_OT_camera_background_image_add(wmOperatorType *ot);
+void VIEW3D_OT_camera_background_image_remove(wmOperatorType *ot);
+void VIEW3D_OT_drop_world(wmOperatorType *ot);
+void VIEW3D_OT_clip_border(wmOperatorType *ot);
+void VIEW3D_OT_cursor3d(wmOperatorType *ot);
+void VIEW3D_OT_render_border(wmOperatorType *ot);
+void VIEW3D_OT_clear_render_border(wmOperatorType *ot);
+void VIEW3D_OT_toggle_shading(wmOperatorType *ot);
+void VIEW3D_OT_toggle_xray(wmOperatorType *ot);
 
 /* `view3d_draw.cc` */
 
-void view3d_main_region_draw(const struct bContext *C, struct ARegion *region);
+void view3d_main_region_draw(const bContext *C, ARegion *region);
 /**
  * Information drawn on top of the solid plates and composed data.
  */
-void view3d_draw_region_info(const struct bContext *C, struct ARegion *region);
+void view3d_draw_region_info(const bContext *C, ARegion *region);
 
-void view3d_depths_rect_create(struct ARegion *region, struct rcti *rect, struct ViewDepths *r_d);
+void view3d_depths_rect_create(ARegion *region, rcti *rect, ViewDepths *r_d);
 /**
  * Utility function to find the closest Z value, use for auto-depth.
  */
-float view3d_depth_near(struct ViewDepths *d);
+float view3d_depth_near(ViewDepths *d);
 
 /* view3d_select.cc */
 
-void VIEW3D_OT_select(struct wmOperatorType *ot);
-void VIEW3D_OT_select_circle(struct wmOperatorType *ot);
-void VIEW3D_OT_select_box(struct wmOperatorType *ot);
-void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);
-void VIEW3D_OT_select_menu(struct wmOperatorType *ot);
-void VIEW3D_OT_bone_select_menu(struct wmOperatorType *ot);
+void VIEW3D_OT_select(wmOperatorType *ot);
+void VIEW3D_OT_select_circle(wmOperatorType *ot);
+void VIEW3D_OT_select_box(wmOperatorType *ot);
+void VIEW3D_OT_select_lasso(wmOperatorType *ot);
+void VIEW3D_OT_select_menu(wmOperatorType *ot);
+void VIEW3D_OT_bone_select_menu(wmOperatorType *ot);
 
 /* `view3d_utils.cc` */
 
 /**
  * For home, center etc.
  */
-void view3d_boxview_copy(struct ScrArea *area, struct ARegion *region);
+void view3d_boxview_copy(ScrArea *area, ARegion *region);
 /**
  * Sync center/zoom view of region to others, for view transforms.
  */
-void view3d_boxview_sync(struct ScrArea *area, struct ARegion *region);
+void view3d_boxview_sync(ScrArea *area, ARegion *region);
 
-bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d,
-                                const struct BoundBox *bb,
-                                float obmat[4][4]);
-bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const struct BoundBox *bb);
+bool ED_view3d_boundbox_clip_ex(const RegionView3D *rv3d, const BoundBox *bb, float obmat[4][4]);
+bool ED_view3d_boundbox_clip(RegionView3D *rv3d, const BoundBox *bb);
 
 /* `view3d_view.cc` */
 
-void VIEW3D_OT_camera_to_view(struct wmOperatorType *ot);
-void VIEW3D_OT_camera_to_view_selected(struct wmOperatorType *ot);
-void VIEW3D_OT_object_as_camera(struct wmOperatorType *ot);
-void VIEW3D_OT_localview(struct wmOperatorType *ot);
-void VIEW3D_OT_localview_remove_from(struct wmOperatorType *ot);
+void VIEW3D_OT_camera_to_view(wmOperatorType *ot);
+void VIEW3D_OT_camera_to_view_selected(wmOperatorType *ot);
+void VIEW3D_OT_object_as_camera(wmOperatorType *ot);
+void VIEW3D_OT_localview(wmOperatorType *ot);
+void VIEW3D_OT_localview_remove_from(wmOperatorType *ot);
 
 /**
  * \param rect: optional for picking (can be NULL).
  */
-void view3d_winmatrix_set(struct Depsgraph *depsgraph,
-                          struct ARegion *region,
+void view3d_winmatrix_set(Depsgraph *depsgraph,
+                          ARegion *region,
                           const View3D *v3d,
                           const rcti *rect);
 /**
@@ -124,8 +123,8 @@ void view3d_winmatrix_set(struct Depsgraph *depsgraph,
  *
  * \note don't set windows active in here, is used by renderwin too.
  */
-void view3d_viewmatrix_set(struct Depsgraph *depsgraph,
-                           const struct Scene *scene,
+void view3d_viewmatrix_set(Depsgraph *depsgraph,
+                           const Scene *scene,
                            const View3D *v3d,
                            RegionView3D *rv3d,
                            const float rect_scale[2]);
@@ -134,12 +133,12 @@ void view3d_viewmatrix_set(struct Depsgraph *depsgraph,
 
 /* `view3d_placement.cc` */
 
-void viewplace_modal_keymap(struct wmKeyConfig *keyconf);
+void viewplace_modal_keymap(wmKeyConfig *keyconf);
 
 /* `view3d_buttons.cc` */
 
-void VIEW3D_OT_object_mode_pie_or_toggle(struct wmOperatorType *ot);
-void view3d_buttons_register(struct ARegionType *art);
+void VIEW3D_OT_object_mode_pie_or_toggle(wmOperatorType *ot);
+void view3d_buttons_register(ARegionType *art);
 
 /* `view3d_camera_control.cc` */
 
@@ -147,29 +146,26 @@ void view3d_buttons_register(struct ARegionType *art);
  * Creates a #View3DCameraControl handle and sets up
  * the view for first-person style navigation.
  */
-struct View3DCameraControl *ED_view3d_cameracontrol_acquire(struct Depsgraph *depsgraph,
-                                                            struct Scene *scene,
-                                                            View3D *v3d,
-                                                            RegionView3D *rv3d);
+View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
+                                                     Scene *scene,
+                                                     View3D *v3d,
+                                                     RegionView3D *rv3d);
 /**
  * Updates cameras from the `rv3d` values, optionally auto-keyframing.
  */
-void ED_view3d_cameracontrol_update(struct View3DCameraControl *vctrl,
-                                    bool use_autokey,
-                                    struct bContext *C,
-                                    bool do_rotate,
-                                    bool do_translate);
+void ED_view3d_cameracontrol_update(
+    View3DCameraControl *vctrl, bool use_autokey, bContext *C, bool do_rotate, bool do_translate);
 /**
  * Release view control.
  *
  * \param restore: Sets the view state to the values that were set
  *                 before #ED_view3d_control_acquire was called.
  */
-void ED_view3d_cameracontrol_release(struct View3DCameraControl *vctrl, bool restore);
+void ED_view3d_cameracontrol_release(View3DCameraControl *vctrl, bool restore);
 /**
  * Returns the object which is being manipulated or NULL.
  */
-struct Object *ED_view3d_cameracontrol_object_get(struct View3DCameraControl *vctrl);
+Object *ED_view3d_cameracontrol_object_get(View3DCameraControl *vctrl);
 
 /* `view3d_snap.cc` */
 
@@ -177,19 +173,19 @@ struct Object *ED_view3d_cameracontrol_object_get(struct View3DCameraControl *vc
  * Calculates the bounding box corners (min and max) for \a obedit.
  * The returned values are in global space.
  */
-bool ED_view3d_minmax_verts(struct Object *obedit, float min[3], float max[3]);
+bool ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3]);
 
-void VIEW3D_OT_snap_selected_to_grid(struct wmOperatorType *ot);
-void VIEW3D_OT_snap_selected_to_cursor(struct wmOperatorType *ot);
-void VIEW3D_OT_snap_selected_to_active(struct wmOperatorType *ot);
-void VIEW3D_OT_snap_cursor_to_grid(struct wmOperatorType *ot);
-void VIEW3D_OT_snap_cursor_to_center(struct wmOperatorType *ot);
-void VIEW3D_OT_snap_cursor_to_selected(struct wmOperatorType *ot);
-void VIEW3D_OT_snap_cursor_to_active(struct wmOperatorType *ot);
+void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot);
+void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot);
+void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot);
+void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot);
+void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot);
+void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot);
+void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot);
 
 /* `view3d_placement.cc` */
 
-void VIEW3D_OT_interactive_add(struct wmOperatorType *ot);
+void VIEW3D_OT_interactive_add(wmOperatorType *ot);
 
 /* space_view3d.cc */
 
@@ -197,29 +193,29 @@ extern "C" const char *view3d_context_dir[]; /* doc access */
 
 /* view3d_widgets.c */
 
-void VIEW3D_GGT_light_spot(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_light_point(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_light_area(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_light_target(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_camera(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_camera_view(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_force_field(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_empty_image(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_armature_spline(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_navigate(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_mesh_preselect_elem(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_mesh_preselect_edgering(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_tool_generic_handle_normal(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GGT_tool_generic_handle_free(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_light_spot(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_light_point(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_light_area(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_light_target(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_camera(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_camera_view(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_force_field(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_empty_image(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_armature_spline(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_navigate(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_mesh_preselect_elem(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_mesh_preselect_edgering(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_tool_generic_handle_normal(wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_tool_generic_handle_free(wmGizmoGroupType *gzgt);
 
-void VIEW3D_GGT_ruler(struct wmGizmoGroupType *gzgt);
-void VIEW3D_GT_ruler_item(struct wmGizmoType *gzt);
-void VIEW3D_OT_ruler_add(struct wmOperatorType *ot);
-void VIEW3D_OT_ruler_remove(struct wmOperatorType *ot);
+void VIEW3D_GGT_ruler(wmGizmoGroupType *gzgt);
+void VIEW3D_GT_ruler_item(wmGizmoType *gzt);
+void VIEW3D_OT_ruler_add(wmOperatorType *ot);
+void VIEW3D_OT_ruler_remove(wmOperatorType *ot);
 
-void VIEW3D_GT_navigate_rotate(struct wmGizmoType *gzt);
+void VIEW3D_GT_navigate_rotate(wmGizmoType *gzt);
 
-void VIEW3D_GGT_placement(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_placement(wmGizmoGroupType *gzgt);
 
 /* workaround for trivial but noticeable camera bug caused by imprecision
  * between view border calculation in 2D/3D space, workaround for bug #28037.

@@ -12,10 +12,10 @@
 
 /* `script_ops.cc` */
 
-void script_operatortypes(void);
-void script_keymap(struct wmKeyConfig *keyconf);
+void script_operatortypes();
+void script_keymap(wmKeyConfig *keyconf);
 
 /* `script_edit.cc` */
 
-void SCRIPT_OT_reload(struct wmOperatorType *ot);
-void SCRIPT_OT_python_file_run(struct wmOperatorType *ot);
+void SCRIPT_OT_reload(wmOperatorType *ot);
+void SCRIPT_OT_python_file_run(wmOperatorType *ot);

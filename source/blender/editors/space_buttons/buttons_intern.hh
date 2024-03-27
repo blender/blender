@@ -35,66 +35,64 @@ struct SpaceProperties_Runtime {
 
 /* context data */
 
-typedef struct ButsContextPath {
+struct ButsContextPath {
   PointerRNA ptr[8];
   int len;
   int flag;
   int collection_ctx;
-} ButsContextPath;
+};
 
-typedef struct ButsTextureUser {
-  struct ButsTextureUser *next, *prev;
+struct ButsTextureUser {
+  ButsTextureUser *next, *prev;
 
-  struct ID *id;
+  ID *id;
 
   PointerRNA ptr;
   PropertyRNA *prop;
 
-  struct bNodeTree *ntree;
-  struct bNode *node;
-  struct bNodeSocket *socket;
+  bNodeTree *ntree;
+  bNode *node;
+  bNodeSocket *socket;
 
   const char *category;
   int icon;
   const char *name;
 
   int index;
-} ButsTextureUser;
+};
 
-typedef struct ButsContextTexture {
+struct ButsContextTexture {
   ListBase users;
 
   struct Tex *texture;
 
   struct ButsTextureUser *user;
   int index;
-} ButsContextTexture;
+};
 
 /* internal exports only */
 
 /* `buttons_context.cc` */
 
-void buttons_context_compute(const struct bContext *C, struct SpaceProperties *sbuts);
-int buttons_context(const struct bContext *C,
-                    const char *member,
-                    struct bContextDataResult *result);
-void buttons_context_register(struct ARegionType *art);
-struct ID *buttons_context_id_path(const struct bContext *C);
+void buttons_context_compute(const bContext *C, SpaceProperties *sbuts);
+int buttons_context(const bContext *C, const char *member, bContextDataResult *result);
+void buttons_context_register(ARegionType *art);
+ID *buttons_context_id_path(const bContext *C);
 
 extern "C" const char *buttons_context_dir[]; /* doc access */
 
 /* `buttons_texture.cc` */
 
-void buttons_texture_context_compute(const struct bContext *C, struct SpaceProperties *sbuts);
+void buttons_texture_context_compute(const bContext *C, SpaceProperties *sbuts);
 
 /* `buttons_ops.cc` */
 
-void BUTTONS_OT_start_filter(struct wmOperatorType *ot);
-void BUTTONS_OT_clear_filter(struct wmOperatorType *ot);
-void BUTTONS_OT_toggle_pin(struct wmOperatorType *ot);
-void BUTTONS_OT_file_browse(struct wmOperatorType *ot);
+void BUTTONS_OT_start_filter(wmOperatorType *ot);
+void BUTTONS_OT_clear_filter(wmOperatorType *ot);
+void BUTTONS_OT_toggle_pin(wmOperatorType *ot);
+void BUTTONS_OT_file_browse(wmOperatorType *ot);
 /**
  * Second operator, only difference from #BUTTONS_OT_file_browse is #WM_FILESEL_DIRECTORY.
  */
-void BUTTONS_OT_directory_browse(struct wmOperatorType *ot);
-void BUTTONS_OT_context_menu(struct wmOperatorType *ot);
+void BUTTONS_OT_directory_browse(wmOperatorType *ot);
+void BUTTONS_OT_context_menu(wmOperatorType *ot);

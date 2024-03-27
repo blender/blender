@@ -11,6 +11,7 @@
 #include "DNA_space_types.h"
 
 struct ARegion;
+struct AZone;
 struct bContext;
 struct bContextDataResult;
 struct bScreen;
@@ -23,7 +24,7 @@ struct wmWindow;
 
 /* internal exports only */
 
-typedef enum eScreenDir {
+enum eScreenDir {
   /** This can mean unset, unknown or invalid. */
   SCREEN_DIR_NONE = -1,
   /** West/Left. */
@@ -34,17 +35,17 @@ typedef enum eScreenDir {
   SCREEN_DIR_E = 2,
   /** South/Down. */
   SCREEN_DIR_S = 3,
-} eScreenDir;
+};
 
 #define SCREEN_DIR_IS_VERTICAL(dir) (ELEM(dir, SCREEN_DIR_N, SCREEN_DIR_S))
 #define SCREEN_DIR_IS_HORIZONTAL(dir) (ELEM(dir, SCREEN_DIR_W, SCREEN_DIR_E))
 
-typedef enum eScreenAxis {
+enum eScreenAxis {
   /** Horizontal. */
   SCREEN_AXIS_H = 'h',
   /** Vertical. */
   SCREEN_AXIS_V = 'v',
-} eScreenAxis;
+};
 
 #define AZONESPOTW UI_HEADER_OFFSET         /* width of corner #AZone - max */
 #define AZONESPOTH (0.6f * U.widget_unit)   /* height of corner #AZone */
@@ -68,7 +69,7 @@ typedef enum eScreenAxis {
 void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, bool do_free);
 void ED_area_data_swap(ScrArea *area_dst, ScrArea *area_src);
 /* for quick toggle, can skip fades */
-void region_toggle_hidden(struct bContext *C, ARegion *region, bool do_fade);
+void region_toggle_hidden(bContext *C, ARegion *region, bool do_fade);
 
 /* screen_draw.cc */
 
@@ -78,30 +79,27 @@ void region_toggle_hidden(struct bContext *C, ARegion *region, bool do_fade);
  * \param sa1: Area from which the resultant originates.
  * \param sa2: Target area that will be replaced.
  */
-void screen_draw_join_highlight(struct ScrArea *sa1, struct ScrArea *sa2);
-void screen_draw_split_preview(struct ScrArea *area, eScreenAxis dir_axis, float fac);
+void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2);
+void screen_draw_split_preview(ScrArea *area, eScreenAxis dir_axis, float fac);
 
 /* screen_edit.cc */
 
 /**
  * Empty screen, with 1 dummy area without space-data. Uses window size.
  */
-bScreen *screen_add(struct Main *bmain, const char *name, const rcti *rect);
+bScreen *screen_add(Main *bmain, const char *name, const rcti *rect);
 void screen_data_copy(bScreen *to, bScreen *from);
 /**
  * Prepare a newly created screen for initializing it as active screen.
  */
 void screen_new_activate_prepare(const wmWindow *win, bScreen *screen_new);
-void screen_change_update(struct bContext *C, wmWindow *win, bScreen *screen);
+void screen_change_update(bContext *C, wmWindow *win, bScreen *screen);
 /**
  * \return the screen to activate.
  * \warning The returned screen may not always equal \a screen_new!
  */
-void screen_change_prepare(bScreen *screen_old,
-                           bScreen *screen_new,
-                           struct Main *bmain,
-                           struct bContext *C,
-                           wmWindow *win);
+void screen_change_prepare(
+    bScreen *screen_old, bScreen *screen_new, Main *bmain, bContext *C, wmWindow *win);
 ScrArea *area_split(const wmWindow *win,
                     bScreen *screen,
                     ScrArea *area,
@@ -111,7 +109,7 @@ ScrArea *area_split(const wmWindow *win,
 /**
  * Join any two neighboring areas. Might involve complex changes.
  */
-int screen_area_join(struct bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2);
+int screen_area_join(bContext *C, bScreen *screen, ScrArea *sa1, ScrArea *sa2);
 /**
  * with `sa_a` as center, `sa_b` is located at: 0=W, 1=N, 2=E, 3=S
  * -1 = not valid check.
@@ -125,9 +123,9 @@ void area_getoffsets(ScrArea *sa_a, ScrArea *sa_b, eScreenDir dir, int *r_offset
 /**
  * Close a screen area, allowing most-aligned neighbor to take its place.
  */
-bool screen_area_close(struct bContext *C, bScreen *screen, ScrArea *area);
-void screen_area_spacelink_add(const struct Scene *scene, ScrArea *area, eSpace_Type space_type);
-struct AZone *ED_area_actionzone_find_xy(ScrArea *area, const int xy[2]);
+bool screen_area_close(bContext *C, bScreen *screen, ScrArea *area);
+void screen_area_spacelink_add(const Scene *scene, ScrArea *area, eSpace_Type space_type);
+AZone *ED_area_actionzone_find_xy(ScrArea *area, const int xy[2]);
 
 /* screen_geometry.cc */
 
@@ -142,7 +140,7 @@ bool screen_geom_edge_is_horizontal(ScrEdge *se);
  * \param bounds_rect: Either window or screen bounds.
  * Used to exclude edges along window/screen edges.
  */
-ScrEdge *screen_geom_area_map_find_active_scredge(const struct ScrAreaMap *area_map,
+ScrEdge *screen_geom_area_map_find_active_scredge(const ScrAreaMap *area_map,
                                                   const rcti *bounds_rect,
                                                   int mx,
                                                   int my);
@@ -178,17 +176,15 @@ void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge);
 /**
  * Entry point for the screen context.
  */
-int ed_screen_context(const struct bContext *C,
-                      const char *member,
-                      struct bContextDataResult *result);
+int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result);
 
 extern "C" const char *screen_context_dir[]; /* doc access */
 
 /* screendump.cc */
 
-void SCREEN_OT_screenshot(struct wmOperatorType *ot);
-void SCREEN_OT_screenshot_area(struct wmOperatorType *ot);
+void SCREEN_OT_screenshot(wmOperatorType *ot);
+void SCREEN_OT_screenshot_area(wmOperatorType *ot);
 
 /* workspace_layout_edit.cc */
 
-bool workspace_layout_set_poll(const struct WorkSpaceLayout *layout);
+bool workspace_layout_set_poll(const WorkSpaceLayout *layout);

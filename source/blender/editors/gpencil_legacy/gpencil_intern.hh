@@ -29,7 +29,9 @@ struct Brush;
 struct Scene;
 struct View2D;
 struct View3D;
+struct ViewDepths;
 struct wmOperatorType;
+struct wmWindow;
 
 struct Depsgraph;
 
@@ -55,7 +57,7 @@ struct PropertyRNA;
 /* Internal Operator-State Data ------------------------ */
 
 /** Random settings by stroke */
-typedef struct GpRandomSettings {
+struct GpRandomSettings {
   /** Pressure used for evaluated curves. */
   float pen_press;
 
@@ -63,10 +65,10 @@ typedef struct GpRandomSettings {
   float pressure;
   float strength;
   float uv;
-} GpRandomSettings;
+};
 
 /* Temporary draw data (no draw manager mode) */
-typedef struct tGPDdraw {
+struct tGPDdraw {
   struct RegionView3D *rv3d;   /* region to draw */
   struct Depsgraph *depsgraph; /* depsgraph */
   struct Object *ob;           /* GP object */
@@ -88,14 +90,14 @@ typedef struct tGPDdraw {
   bool custonion;              /* use custom onion colors */
   bool is_fill_stroke;         /* use fill tool */
   float diff_mat[4][4];        /* matrix */
-} tGPDdraw;
+};
 
 /* Modal Operator Drawing Callbacks ------------------------ */
 
 /**
  * Wrapper to draw strokes for filling operator.
  */
-void ED_gpencil_draw_fill(struct tGPDdraw *tgpw);
+void ED_gpencil_draw_fill(tGPDdraw *tgpw);
 
 /* ***************************************************** */
 /* Internal API */
@@ -103,51 +105,51 @@ void ED_gpencil_draw_fill(struct tGPDdraw *tgpw);
 /* Stroke Coordinates API ------------------------------ */
 /* `gpencil_utils.cc` */
 
-typedef struct GP_SpaceConversion {
-  struct Scene *scene;
-  struct Object *ob;
-  struct bGPdata *gpd;
-  struct bGPDlayer *gpl;
+struct GP_SpaceConversion {
+  Scene *scene;
+  Object *ob;
+  bGPdata *gpd;
+  bGPDlayer *gpl;
 
-  struct ScrArea *area;
-  struct ARegion *region;
-  struct View2D *v2d;
+  ScrArea *area;
+  ARegion *region;
+  View2D *v2d;
 
   rctf *subrect; /* for using the camera rect within the 3d view */
   rctf subrect_data;
 
   float mat[4][4]; /* transform matrix on the strokes (introduced in [b770964]) */
-} GP_SpaceConversion;
+};
 
 /* Temporary primitive operation data */
-typedef struct tGPDprimitive {
+struct tGPDprimitive {
   /** main database pointer */
-  struct Main *bmain;
-  struct Depsgraph *depsgraph;
+  Main *bmain;
+  Depsgraph *depsgraph;
   /** window where painting originated */
-  struct wmWindow *win;
+  wmWindow *win;
   /** current scene from context */
-  struct Scene *scene;
+  Scene *scene;
   /** current active gp object */
-  struct Object *ob;
+  Object *ob;
   /** current evaluated gp object */
-  struct Object *ob_eval;
+  Object *ob_eval;
   /** area where painting originated */
-  struct ScrArea *area;
+  ScrArea *area;
   /** region where painting originated */
-  struct RegionView3D *rv3d;
+  RegionView3D *rv3d;
   /** view3d where painting originated */
-  struct View3D *v3d;
+  View3D *v3d;
   /** region where painting originated */
-  struct ARegion *region;
+  ARegion *region;
   /** current GP datablock */
-  struct bGPdata *gpd;
+  bGPdata *gpd;
   /** current material */
-  struct Material *material;
+  Material *material;
   /** current brush */
-  struct Brush *brush;
+  Brush *brush;
   /** For operations that require occlusion testing. */
-  struct ViewDepths *depths;
+  ViewDepths *depths;
 
   /** Settings to pass to gp_points_to_xy(). */
   GP_SpaceConversion gsc;
@@ -155,9 +157,9 @@ typedef struct tGPDprimitive {
   /** current frame number */
   int cframe;
   /** layer */
-  struct bGPDlayer *gpl;
+  bGPDlayer *gpl;
   /** frame */
-  struct bGPDframe *gpf;
+  bGPDframe *gpf;
   /** type of primitive */
   int type;
   /** original type of primitive */
@@ -207,7 +209,7 @@ typedef struct tGPDprimitive {
 
   /** lock to viewport axis */
   int lock_axis;
-  struct RNG *rng;
+  RNG *rng;
 
   /** numeric input */
   NumInput num;
@@ -217,8 +219,7 @@ typedef struct tGPDprimitive {
 
   /** Random settings by stroke */
   GpRandomSettings random_settings;
-
-} tGPDprimitive;
+};
 
 /**
  * Check whether a given stroke segment is inside a circular brush
@@ -236,7 +237,7 @@ bool gpencil_stroke_inside_circle(const float mval[2], int rad, int x0, int y0, 
  *
  * \param r_gsc: [out] The space conversion settings struct, populated with necessary params
  */
-void gpencil_point_conversion_init(struct bContext *C, GP_SpaceConversion *r_gsc);
+void gpencil_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc);
 
 /**
  * Convert a Grease Pencil coordinate (i.e. can be 2D or 3D) to screen-space (2D)
@@ -248,8 +249,8 @@ void gpencil_point_conversion_init(struct bContext *C, GP_SpaceConversion *r_gsc
  * whether the stroke in question can be drawn.
  */
 void gpencil_point_to_xy(const GP_SpaceConversion *gsc,
-                         const struct bGPDstroke *gps,
-                         const struct bGPDspoint *pt,
+                         const bGPDstroke *gps,
+                         const bGPDspoint *pt,
                          int *r_x,
                          int *r_y);
 
@@ -288,8 +289,8 @@ void gpencil_point_to_world_space(const bGPDspoint *pt,
 /**
  * Change position relative to parent object
  */
-void gpencil_world_to_object_space(struct Depsgraph *depsgraph,
-                                   struct Object *obact,
+void gpencil_world_to_object_space(Depsgraph *depsgraph,
+                                   Object *obact,
                                    bGPDlayer *gpl,
                                    bGPDstroke *gps);
 /**
@@ -298,8 +299,8 @@ void gpencil_world_to_object_space(struct Depsgraph *depsgraph,
 /**
  * Change point position relative to parent object
  */
-void gpencil_world_to_object_space_point(struct Depsgraph *depsgraph,
-                                         struct Object *obact,
+void gpencil_world_to_object_space_point(Depsgraph *depsgraph,
+                                         Object *obact,
                                          bGPDlayer *gpl,
                                          bGPDspoint *pt);
 
@@ -327,7 +328,7 @@ void gpencil_point_3d_to_xy(const GP_SpaceConversion *gsc,
  * \warning Assumes that it is getting called in a 3D view only.
  */
 bool gpencil_point_xy_to_3d(const GP_SpaceConversion *gsc,
-                            struct Scene *scene,
+                            Scene *scene,
                             const float screen_co[2],
                             float r_out[3]);
 
@@ -341,10 +342,10 @@ bool gpencil_point_xy_to_3d(const GP_SpaceConversion *gsc,
  * \param depth: Depth array (via #ED_view3d_depth_read_cached()).
  * \param r_out: The resulting 2D point data.
  */
-void gpencil_stroke_convertcoords_tpoint(struct Scene *scene,
-                                         struct ARegion *region,
-                                         struct Object *ob,
-                                         const struct tGPspoint *point2D,
+void gpencil_stroke_convertcoords_tpoint(Scene *scene,
+                                         ARegion *region,
+                                         Object *ob,
+                                         const tGPspoint *point2D,
                                          float *depth,
                                          float r_out[3]);
 
@@ -354,15 +355,15 @@ void gpencil_stroke_convertcoords_tpoint(struct Scene *scene,
 /**
  * Poll callback for adding data/layers - special.
  */
-bool gpencil_add_poll(struct bContext *C);
+bool gpencil_add_poll(bContext *C);
 /**
  * Poll callback for checking if there is an active layer.
  */
-bool gpencil_active_layer_poll(struct bContext *C);
+bool gpencil_active_layer_poll(bContext *C);
 /**
  * Poll callback for checking if there is an active brush.
  */
-bool gpencil_active_brush_poll(struct bContext *C);
+bool gpencil_active_brush_poll(bContext *C);
 bool gpencil_brush_create_presets_poll(bContext *C);
 
 int ED_gpencil_new_layer_dialog(bContext *C, wmOperator *op);
@@ -382,7 +383,7 @@ extern ListBase gpencil_strokes_copypastebuf;
  * Ensure that destination datablock has all the colors the pasted strokes need.
  * Helper function for copy-pasting strokes
  */
-struct GHash *gpencil_copybuf_validate_colormap(struct bContext *C);
+GHash *gpencil_copybuf_validate_colormap(bContext *C);
 
 /* Stroke Editing ------------------------------------ */
 
@@ -404,163 +405,163 @@ void gpencil_subdivide_stroke(bGPdata *gpd, bGPDstroke *gps, int subdivide);
 /**
  * Just existing layers.
  */
-const struct EnumPropertyItem *ED_gpencil_layers_enum_itemf(struct bContext *C,
-                                                            struct PointerRNA *ptr,
-                                                            struct PropertyRNA *prop,
-                                                            bool *r_free);
+const EnumPropertyItem *ED_gpencil_layers_enum_itemf(bContext *C,
+                                                     PointerRNA *ptr,
+                                                     PropertyRNA *prop,
+                                                     bool *r_free);
 /**
  * Existing + Option to add/use new layer.
  */
-const struct EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(struct bContext *C,
-                                                                     struct PointerRNA *ptr,
-                                                                     struct PropertyRNA *prop,
-                                                                     bool *r_free);
+const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C,
+                                                              PointerRNA *ptr,
+                                                              PropertyRNA *prop,
+                                                              bool *r_free);
 /**
  * Just existing Materials.
  */
-const struct EnumPropertyItem *ED_gpencil_material_enum_itemf(struct bContext *C,
-                                                              struct PointerRNA *ptr,
-                                                              struct PropertyRNA *prop,
-                                                              bool *r_free);
+const EnumPropertyItem *ED_gpencil_material_enum_itemf(bContext *C,
+                                                       PointerRNA *ptr,
+                                                       PropertyRNA *prop,
+                                                       bool *r_free);
 
 /* ***************************************************** */
 /* Operator Defines */
 
 /* annotations ------ */
 
-void GPENCIL_OT_annotate(struct wmOperatorType *ot);
+void GPENCIL_OT_annotate(wmOperatorType *ot);
 
 /* drawing ---------- */
 
-void GPENCIL_OT_draw(struct wmOperatorType *ot);
-void GPENCIL_OT_fill(struct wmOperatorType *ot);
+void GPENCIL_OT_draw(wmOperatorType *ot);
+void GPENCIL_OT_fill(wmOperatorType *ot);
 
 /* Vertex Paint. */
-void GPENCIL_OT_vertex_paint(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_color_brightness_contrast(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_color_hsv(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_color_invert(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_color_levels(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_color_set(struct wmOperatorType *ot);
+void GPENCIL_OT_vertex_paint(wmOperatorType *ot);
+void GPENCIL_OT_vertex_color_brightness_contrast(wmOperatorType *ot);
+void GPENCIL_OT_vertex_color_hsv(wmOperatorType *ot);
+void GPENCIL_OT_vertex_color_invert(wmOperatorType *ot);
+void GPENCIL_OT_vertex_color_levels(wmOperatorType *ot);
+void GPENCIL_OT_vertex_color_set(wmOperatorType *ot);
 
 /* Guides ----------------------- */
 
-void GPENCIL_OT_guide_rotate(struct wmOperatorType *ot);
+void GPENCIL_OT_guide_rotate(wmOperatorType *ot);
 
 /* Paint Modes for operator */
-typedef enum eGPencil_PaintModes {
+enum eGPencil_PaintModes {
   GP_PAINTMODE_DRAW = 0,
   GP_PAINTMODE_ERASER,
   GP_PAINTMODE_DRAW_STRAIGHT,
   GP_PAINTMODE_DRAW_POLY,
   GP_PAINTMODE_SET_CP,
-} eGPencil_PaintModes;
+};
 
 /* chunk size for gp-session buffer (the total size is a multiple of this number) */
 #define GP_STROKE_BUFFER_CHUNK 2048
 
 /* stroke editing ----- */
 
-void GPENCIL_OT_editmode_toggle(struct wmOperatorType *ot);
-void GPENCIL_OT_selectmode_toggle(struct wmOperatorType *ot);
-void GPENCIL_OT_paintmode_toggle(struct wmOperatorType *ot);
-void GPENCIL_OT_sculptmode_toggle(struct wmOperatorType *ot);
-void GPENCIL_OT_weightmode_toggle(struct wmOperatorType *ot);
-void GPENCIL_OT_vertexmode_toggle(struct wmOperatorType *ot);
-void GPENCIL_OT_selection_opacity_toggle(struct wmOperatorType *ot);
+void GPENCIL_OT_editmode_toggle(wmOperatorType *ot);
+void GPENCIL_OT_selectmode_toggle(wmOperatorType *ot);
+void GPENCIL_OT_paintmode_toggle(wmOperatorType *ot);
+void GPENCIL_OT_sculptmode_toggle(wmOperatorType *ot);
+void GPENCIL_OT_weightmode_toggle(wmOperatorType *ot);
+void GPENCIL_OT_vertexmode_toggle(wmOperatorType *ot);
+void GPENCIL_OT_selection_opacity_toggle(wmOperatorType *ot);
 
-void GPENCIL_OT_select(struct wmOperatorType *ot);
-void GPENCIL_OT_select_all(struct wmOperatorType *ot);
-void GPENCIL_OT_select_circle(struct wmOperatorType *ot);
-void GPENCIL_OT_select_box(struct wmOperatorType *ot);
-void GPENCIL_OT_select_lasso(struct wmOperatorType *ot);
+void GPENCIL_OT_select(wmOperatorType *ot);
+void GPENCIL_OT_select_all(wmOperatorType *ot);
+void GPENCIL_OT_select_circle(wmOperatorType *ot);
+void GPENCIL_OT_select_box(wmOperatorType *ot);
+void GPENCIL_OT_select_lasso(wmOperatorType *ot);
 
-void GPENCIL_OT_select_linked(struct wmOperatorType *ot);
-void GPENCIL_OT_select_grouped(struct wmOperatorType *ot);
-void GPENCIL_OT_select_more(struct wmOperatorType *ot);
-void GPENCIL_OT_select_less(struct wmOperatorType *ot);
-void GPENCIL_OT_select_first(struct wmOperatorType *ot);
-void GPENCIL_OT_select_last(struct wmOperatorType *ot);
-void GPENCIL_OT_select_alternate(struct wmOperatorType *ot);
-void GPENCIL_OT_select_random(struct wmOperatorType *ot);
-void GPENCIL_OT_select_vertex_color(struct wmOperatorType *ot);
+void GPENCIL_OT_select_linked(wmOperatorType *ot);
+void GPENCIL_OT_select_grouped(wmOperatorType *ot);
+void GPENCIL_OT_select_more(wmOperatorType *ot);
+void GPENCIL_OT_select_less(wmOperatorType *ot);
+void GPENCIL_OT_select_first(wmOperatorType *ot);
+void GPENCIL_OT_select_last(wmOperatorType *ot);
+void GPENCIL_OT_select_alternate(wmOperatorType *ot);
+void GPENCIL_OT_select_random(wmOperatorType *ot);
+void GPENCIL_OT_select_vertex_color(wmOperatorType *ot);
 
-void GPENCIL_OT_duplicate(struct wmOperatorType *ot);
-void GPENCIL_OT_delete(struct wmOperatorType *ot);
-void GPENCIL_OT_dissolve(struct wmOperatorType *ot);
-void GPENCIL_OT_copy(struct wmOperatorType *ot);
-void GPENCIL_OT_paste(struct wmOperatorType *ot);
-void GPENCIL_OT_extrude(struct wmOperatorType *ot);
+void GPENCIL_OT_duplicate(wmOperatorType *ot);
+void GPENCIL_OT_delete(wmOperatorType *ot);
+void GPENCIL_OT_dissolve(wmOperatorType *ot);
+void GPENCIL_OT_copy(wmOperatorType *ot);
+void GPENCIL_OT_paste(wmOperatorType *ot);
+void GPENCIL_OT_extrude(wmOperatorType *ot);
 
-void GPENCIL_OT_move_to_layer(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_change(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_active(struct wmOperatorType *ot);
+void GPENCIL_OT_move_to_layer(wmOperatorType *ot);
+void GPENCIL_OT_layer_change(wmOperatorType *ot);
+void GPENCIL_OT_layer_active(wmOperatorType *ot);
 
-void GPENCIL_OT_snap_to_grid(struct wmOperatorType *ot);
-void GPENCIL_OT_snap_to_cursor(struct wmOperatorType *ot);
-void GPENCIL_OT_snap_cursor_to_selected(struct wmOperatorType *ot);
+void GPENCIL_OT_snap_to_grid(wmOperatorType *ot);
+void GPENCIL_OT_snap_to_cursor(wmOperatorType *ot);
+void GPENCIL_OT_snap_cursor_to_selected(wmOperatorType *ot);
 
-void GPENCIL_OT_reproject(struct wmOperatorType *ot);
-void GPENCIL_OT_recalc_geometry(struct wmOperatorType *ot);
+void GPENCIL_OT_reproject(wmOperatorType *ot);
+void GPENCIL_OT_recalc_geometry(wmOperatorType *ot);
 
 /* stroke editcurve */
 
-void GPENCIL_OT_stroke_enter_editcurve_mode(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_editcurve_set_handle_type(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_enter_editcurve_mode(wmOperatorType *ot);
+void GPENCIL_OT_stroke_editcurve_set_handle_type(wmOperatorType *ot);
 
 /* stroke sculpting -- */
 
 /**
  * Also used for weight paint.
  */
-void GPENCIL_OT_sculpt_paint(struct wmOperatorType *ot);
-void GPENCIL_OT_weight_paint(struct wmOperatorType *ot);
-void GPENCIL_OT_weight_toggle_direction(struct wmOperatorType *ot);
-void GPENCIL_OT_weight_sample(struct wmOperatorType *ot);
+void GPENCIL_OT_sculpt_paint(wmOperatorType *ot);
+void GPENCIL_OT_weight_paint(wmOperatorType *ot);
+void GPENCIL_OT_weight_toggle_direction(wmOperatorType *ot);
+void GPENCIL_OT_weight_sample(wmOperatorType *ot);
 
 /* buttons editing --- */
 
-void GPENCIL_OT_annotation_add(struct wmOperatorType *ot);
-void GPENCIL_OT_data_unlink(struct wmOperatorType *ot);
+void GPENCIL_OT_annotation_add(wmOperatorType *ot);
+void GPENCIL_OT_data_unlink(wmOperatorType *ot);
 
-void GPENCIL_OT_layer_add(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_remove(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_move(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_annotation_add(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_annotation_remove(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_annotation_move(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_duplicate(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_duplicate_object(struct wmOperatorType *ot);
+void GPENCIL_OT_layer_add(wmOperatorType *ot);
+void GPENCIL_OT_layer_remove(wmOperatorType *ot);
+void GPENCIL_OT_layer_move(wmOperatorType *ot);
+void GPENCIL_OT_layer_annotation_add(wmOperatorType *ot);
+void GPENCIL_OT_layer_annotation_remove(wmOperatorType *ot);
+void GPENCIL_OT_layer_annotation_move(wmOperatorType *ot);
+void GPENCIL_OT_layer_duplicate(wmOperatorType *ot);
+void GPENCIL_OT_layer_duplicate_object(wmOperatorType *ot);
 
-void GPENCIL_OT_layer_mask_add(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_mask_remove(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_mask_move(struct wmOperatorType *ot);
+void GPENCIL_OT_layer_mask_add(wmOperatorType *ot);
+void GPENCIL_OT_layer_mask_remove(wmOperatorType *ot);
+void GPENCIL_OT_layer_mask_move(wmOperatorType *ot);
 
-void GPENCIL_OT_hide(struct wmOperatorType *ot);
-void GPENCIL_OT_reveal(struct wmOperatorType *ot);
+void GPENCIL_OT_hide(wmOperatorType *ot);
+void GPENCIL_OT_reveal(wmOperatorType *ot);
 
-void GPENCIL_OT_lock_all(struct wmOperatorType *ot);
-void GPENCIL_OT_unlock_all(struct wmOperatorType *ot);
+void GPENCIL_OT_lock_all(wmOperatorType *ot);
+void GPENCIL_OT_unlock_all(wmOperatorType *ot);
 
-void GPENCIL_OT_layer_isolate(struct wmOperatorType *ot);
-void GPENCIL_OT_layer_merge(struct wmOperatorType *ot);
+void GPENCIL_OT_layer_isolate(wmOperatorType *ot);
+void GPENCIL_OT_layer_merge(wmOperatorType *ot);
 
-void GPENCIL_OT_blank_frame_add(struct wmOperatorType *ot);
+void GPENCIL_OT_blank_frame_add(wmOperatorType *ot);
 
-void GPENCIL_OT_active_frame_delete(struct wmOperatorType *ot);
-void GPENCIL_OT_annotation_active_frame_delete(struct wmOperatorType *ot);
-void GPENCIL_OT_active_frames_delete_all(struct wmOperatorType *ot);
-void GPENCIL_OT_frame_duplicate(struct wmOperatorType *ot);
-void GPENCIL_OT_frame_clean_fill(struct wmOperatorType *ot);
-void GPENCIL_OT_frame_clean_loose(struct wmOperatorType *ot);
-void GPENCIL_OT_frame_clean_duplicate(struct wmOperatorType *ot);
+void GPENCIL_OT_active_frame_delete(wmOperatorType *ot);
+void GPENCIL_OT_annotation_active_frame_delete(wmOperatorType *ot);
+void GPENCIL_OT_active_frames_delete_all(wmOperatorType *ot);
+void GPENCIL_OT_frame_duplicate(wmOperatorType *ot);
+void GPENCIL_OT_frame_clean_fill(wmOperatorType *ot);
+void GPENCIL_OT_frame_clean_loose(wmOperatorType *ot);
+void GPENCIL_OT_frame_clean_duplicate(wmOperatorType *ot);
 
-void GPENCIL_OT_convert(struct wmOperatorType *ot);
-void GPENCIL_OT_bake_mesh_animation(struct wmOperatorType *ot);
-void GPENCIL_OT_bake_grease_pencil_animation(struct wmOperatorType *ot);
+void GPENCIL_OT_convert(wmOperatorType *ot);
+void GPENCIL_OT_bake_mesh_animation(wmOperatorType *ot);
+void GPENCIL_OT_bake_grease_pencil_animation(wmOperatorType *ot);
 
-void GPENCIL_OT_image_to_grease_pencil(struct wmOperatorType *ot);
-void GPENCIL_OT_trace_image(struct wmOperatorType *ot);
+void GPENCIL_OT_image_to_grease_pencil(wmOperatorType *ot);
+void GPENCIL_OT_trace_image(wmOperatorType *ot);
 
 enum {
   GP_STROKE_JOIN = -1,
@@ -581,94 +582,94 @@ enum {
   GP_MERGE_POINT = 1,
 };
 
-void GPENCIL_OT_stroke_arrange(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_change_color(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_apply_thickness(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_arrange(wmOperatorType *ot);
+void GPENCIL_OT_stroke_change_color(wmOperatorType *ot);
+void GPENCIL_OT_stroke_apply_thickness(wmOperatorType *ot);
 /**
  * Similar to #CURVE_OT_cyclic_toggle or #MASK_OT_cyclic_toggle, but with
  * option to force opened/closed strokes instead of just toggle behavior.
  */
-void GPENCIL_OT_stroke_cyclical_set(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_cyclical_set(wmOperatorType *ot);
 /**
  * Change Stroke caps mode Rounded or Flat
  */
-void GPENCIL_OT_stroke_caps_set(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_join(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_start_set(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_flip(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_subdivide(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_simplify(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_simplify_fixed(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_separate(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_split(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_smooth(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_sample(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_merge(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_cutter(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_trim(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_merge_by_distance(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_merge_material(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_reset_vertex_color(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_normalize(struct wmOperatorType *ot);
-void GPENCIL_OT_stroke_outline(struct wmOperatorType *ot);
+void GPENCIL_OT_stroke_caps_set(wmOperatorType *ot);
+void GPENCIL_OT_stroke_join(wmOperatorType *ot);
+void GPENCIL_OT_stroke_start_set(wmOperatorType *ot);
+void GPENCIL_OT_stroke_flip(wmOperatorType *ot);
+void GPENCIL_OT_stroke_subdivide(wmOperatorType *ot);
+void GPENCIL_OT_stroke_simplify(wmOperatorType *ot);
+void GPENCIL_OT_stroke_simplify_fixed(wmOperatorType *ot);
+void GPENCIL_OT_stroke_separate(wmOperatorType *ot);
+void GPENCIL_OT_stroke_split(wmOperatorType *ot);
+void GPENCIL_OT_stroke_smooth(wmOperatorType *ot);
+void GPENCIL_OT_stroke_sample(wmOperatorType *ot);
+void GPENCIL_OT_stroke_merge(wmOperatorType *ot);
+void GPENCIL_OT_stroke_cutter(wmOperatorType *ot);
+void GPENCIL_OT_stroke_trim(wmOperatorType *ot);
+void GPENCIL_OT_stroke_merge_by_distance(wmOperatorType *ot);
+void GPENCIL_OT_stroke_merge_material(wmOperatorType *ot);
+void GPENCIL_OT_stroke_reset_vertex_color(wmOperatorType *ot);
+void GPENCIL_OT_stroke_normalize(wmOperatorType *ot);
+void GPENCIL_OT_stroke_outline(wmOperatorType *ot);
 
-void GPENCIL_OT_material_to_vertex_color(struct wmOperatorType *ot);
-void GPENCIL_OT_extract_palette_vertex(struct wmOperatorType *ot);
+void GPENCIL_OT_material_to_vertex_color(wmOperatorType *ot);
+void GPENCIL_OT_extract_palette_vertex(wmOperatorType *ot);
 
-void GPENCIL_OT_transform_fill(struct wmOperatorType *ot);
-void GPENCIL_OT_reset_transform_fill(struct wmOperatorType *ot);
+void GPENCIL_OT_transform_fill(wmOperatorType *ot);
+void GPENCIL_OT_reset_transform_fill(wmOperatorType *ot);
 
-void GPENCIL_OT_brush_reset(struct wmOperatorType *ot);
-void GPENCIL_OT_brush_reset_all(struct wmOperatorType *ot);
+void GPENCIL_OT_brush_reset(wmOperatorType *ot);
+void GPENCIL_OT_brush_reset_all(wmOperatorType *ot);
 
 /* undo stack ---------- */
 
-void gpencil_undo_init(struct bGPdata *gpd);
-void gpencil_undo_push(struct bGPdata *gpd);
-void gpencil_undo_finish(void);
+void gpencil_undo_init(bGPdata *gpd);
+void gpencil_undo_push(bGPdata *gpd);
+void gpencil_undo_finish();
 
 /* interpolation ---------- */
 
-void GPENCIL_OT_interpolate(struct wmOperatorType *ot);
-void GPENCIL_OT_interpolate_sequence(struct wmOperatorType *ot);
-void GPENCIL_OT_interpolate_reverse(struct wmOperatorType *ot);
+void GPENCIL_OT_interpolate(wmOperatorType *ot);
+void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot);
+void GPENCIL_OT_interpolate_reverse(wmOperatorType *ot);
 
 /* primitives ---------- */
 
-void GPENCIL_OT_primitive_box(struct wmOperatorType *ot);
-void GPENCIL_OT_primitive_line(struct wmOperatorType *ot);
-void GPENCIL_OT_primitive_polyline(struct wmOperatorType *ot);
-void GPENCIL_OT_primitive_circle(struct wmOperatorType *ot);
-void GPENCIL_OT_primitive_curve(struct wmOperatorType *ot);
+void GPENCIL_OT_primitive_box(wmOperatorType *ot);
+void GPENCIL_OT_primitive_line(wmOperatorType *ot);
+void GPENCIL_OT_primitive_polyline(wmOperatorType *ot);
+void GPENCIL_OT_primitive_circle(wmOperatorType *ot);
+void GPENCIL_OT_primitive_curve(wmOperatorType *ot);
 
 /* vertex groups ------------ */
-void GPENCIL_OT_vertex_group_assign(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_remove_from(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_select(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_deselect(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_invert(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_smooth(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_normalize(struct wmOperatorType *ot);
-void GPENCIL_OT_vertex_group_normalize_all(struct wmOperatorType *ot);
+void GPENCIL_OT_vertex_group_assign(wmOperatorType *ot);
+void GPENCIL_OT_vertex_group_remove_from(wmOperatorType *ot);
+void GPENCIL_OT_vertex_group_select(wmOperatorType *ot);
+void GPENCIL_OT_vertex_group_deselect(wmOperatorType *ot);
+void GPENCIL_OT_vertex_group_invert(wmOperatorType *ot);
+void GPENCIL_OT_vertex_group_smooth(wmOperatorType *ot);
+void GPENCIL_OT_vertex_group_normalize(wmOperatorType *ot);
+void GPENCIL_OT_vertex_group_normalize_all(wmOperatorType *ot);
 
 /* color handle */
-void GPENCIL_OT_lock_layer(struct wmOperatorType *ot);
-void GPENCIL_OT_material_isolate(struct wmOperatorType *ot);
-void GPENCIL_OT_material_hide(struct wmOperatorType *ot);
-void GPENCIL_OT_material_reveal(struct wmOperatorType *ot);
-void GPENCIL_OT_material_lock_all(struct wmOperatorType *ot);
-void GPENCIL_OT_material_unlock_all(struct wmOperatorType *ot);
-void GPENCIL_OT_material_lock_unused(struct wmOperatorType *ot);
-void GPENCIL_OT_material_select(struct wmOperatorType *ot);
-void GPENCIL_OT_material_set(struct wmOperatorType *ot);
-void GPENCIL_OT_set_active_material(struct wmOperatorType *ot);
-void GPENCIL_OT_materials_copy_to_object(struct wmOperatorType *ot);
+void GPENCIL_OT_lock_layer(wmOperatorType *ot);
+void GPENCIL_OT_material_isolate(wmOperatorType *ot);
+void GPENCIL_OT_material_hide(wmOperatorType *ot);
+void GPENCIL_OT_material_reveal(wmOperatorType *ot);
+void GPENCIL_OT_material_lock_all(wmOperatorType *ot);
+void GPENCIL_OT_material_unlock_all(wmOperatorType *ot);
+void GPENCIL_OT_material_lock_unused(wmOperatorType *ot);
+void GPENCIL_OT_material_select(wmOperatorType *ot);
+void GPENCIL_OT_material_set(wmOperatorType *ot);
+void GPENCIL_OT_set_active_material(wmOperatorType *ot);
+void GPENCIL_OT_materials_copy_to_object(wmOperatorType *ot);
 
 /* convert old 2.7 files to 2.8 */
-void GPENCIL_OT_convert_old_files(struct wmOperatorType *ot);
+void GPENCIL_OT_convert_old_files(wmOperatorType *ot);
 
 /* armatures */
-void GPENCIL_OT_generate_weights(struct wmOperatorType *ot);
+void GPENCIL_OT_generate_weights(wmOperatorType *ot);
 
 /* ****************************************************** */
 /* Stroke Iteration Utilities */
@@ -690,7 +691,7 @@ struct GP_EditableStrokes_Iter {
  */
 #define GP_EDITABLE_STROKES_BEGIN(gpstroke_iter, C, gpl, gps) \
   { \
-    struct GP_EditableStrokes_Iter gpstroke_iter = {{{0}}}; \
+    GP_EditableStrokes_Iter gpstroke_iter = {{{0}}}; \
     Depsgraph *depsgraph_ = CTX_data_ensure_evaluated_depsgraph(C); \
     Object *obact_ = CTX_data_active_object(C); \
     bGPdata *gpd_ = CTX_data_gpencil_data(C); \
@@ -742,7 +743,7 @@ struct GP_EditableStrokes_Iter {
  */
 #define GP_EDITABLE_CURVES_BEGIN(gpstroke_iter, C, gpl, gps, gpc) \
   { \
-    struct GP_EditableStrokes_Iter gpstroke_iter = {{{0}}}; \
+    GP_EditableStrokes_Iter gpstroke_iter = {{{0}}}; \
     Depsgraph *depsgraph_ = CTX_data_ensure_evaluated_depsgraph(C); \
     Object *obact_ = CTX_data_active_object(C); \
     bGPdata *gpd_ = CTX_data_gpencil_data(C); \
@@ -790,7 +791,7 @@ struct GP_EditableStrokes_Iter {
  */
 #define GP_EVALUATED_STROKES_BEGIN(gpstroke_iter, C, gpl, gps) \
   { \
-    struct GP_EditableStrokes_Iter gpstroke_iter = {{{0}}}; \
+    GP_EditableStrokes_Iter gpstroke_iter = {{{0}}}; \
     Depsgraph *depsgraph_ = CTX_data_ensure_evaluated_depsgraph(C); \
     Object *obact_ = CTX_data_active_object(C); \
     Object *ob_eval_ = (Object *)DEG_get_evaluated_id(depsgraph_, &obact_->id); \

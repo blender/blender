@@ -10,14 +10,14 @@
 
 /* `editlattice_select.cc` */
 
-void LATTICE_OT_select_all(struct wmOperatorType *ot);
-void LATTICE_OT_select_more(struct wmOperatorType *ot);
-void LATTICE_OT_select_less(struct wmOperatorType *ot);
-void LATTICE_OT_select_ungrouped(struct wmOperatorType *ot);
-void LATTICE_OT_select_random(struct wmOperatorType *ot);
-void LATTICE_OT_select_mirror(struct wmOperatorType *ot);
+void LATTICE_OT_select_all(wmOperatorType *ot);
+void LATTICE_OT_select_more(wmOperatorType *ot);
+void LATTICE_OT_select_less(wmOperatorType *ot);
+void LATTICE_OT_select_ungrouped(wmOperatorType *ot);
+void LATTICE_OT_select_random(wmOperatorType *ot);
+void LATTICE_OT_select_mirror(wmOperatorType *ot);
 
 /* `editlattice_tools.cc` */
 
-void LATTICE_OT_make_regular(struct wmOperatorType *ot);
-void LATTICE_OT_flip(struct wmOperatorType *ot);
+void LATTICE_OT_make_regular(wmOperatorType *ot);
+void LATTICE_OT_flip(wmOperatorType *ot);
