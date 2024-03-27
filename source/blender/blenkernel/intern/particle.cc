@@ -313,11 +313,8 @@ static void particle_settings_blend_write(BlendWriter *writer, ID *id, const voi
   }
 }
 
-void BKE_particle_partdeflect_blend_read_data(BlendDataReader * /*reader*/, PartDeflect *pd)
+void BKE_particle_partdeflect_blend_read_data(BlendDataReader * /*reader*/, PartDeflect * /*pd*/)
 {
-  if (pd) {
-    pd->rng = nullptr;
-  }
 }
 
 static void particle_settings_blend_read_data(BlendDataReader *reader, ID *id)

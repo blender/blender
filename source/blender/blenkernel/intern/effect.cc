@@ -113,9 +113,6 @@ PartDeflect *BKE_partdeflect_copy(const PartDeflect *pd_src)
     return nullptr;
   }
   PartDeflect *pd_dst = static_cast<PartDeflect *>(MEM_dupallocN(pd_src));
-  if (pd_dst->rng != nullptr) {
-    pd_dst->rng = BLI_rng_copy(pd_dst->rng);
-  }
   return pd_dst;
 }
 
@@ -123,9 +120,6 @@ void BKE_partdeflect_free(PartDeflect *pd)
 {
   if (!pd) {
     return;
-  }
-  if (pd->rng) {
-    BLI_rng_free(pd->rng);
   }
   MEM_freeN(pd);
 }
@@ -136,12 +130,8 @@ static void precalculate_effector(Depsgraph *depsgraph, EffectorCache *eff)
 {
   float ctime = DEG_get_ctime(depsgraph);
   uint cfra = uint(ctime >= 0 ? ctime : -ctime);
-  if (!eff->pd->rng) {
-    eff->pd->rng = BLI_rng_new(eff->pd->seed + cfra);
-  }
-  else {
-    BLI_rng_srandom(eff->pd->rng, eff->pd->seed + cfra);
-  }
+
+  eff->rng = BLI_rng_new(eff->pd->seed + cfra);
 
   if (eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type == OB_CURVES_LEGACY) {
     Curve *cu = static_cast<Curve *>(eff->ob->data);
@@ -375,6 +365,9 @@ void BKE_effectors_free(ListBase *lb)
 {
   if (lb) {
     LISTBASE_FOREACH (EffectorCache *, eff, lb) {
+      if (eff->rng) {
+        BLI_rng_free(eff->rng);
+      }
       if (eff->guide_data) {
         MEM_freeN(eff->guide_data);
       }
@@ -960,7 +953,7 @@ static void do_physical_effector(EffectorCache *eff,
                                  float *total_force)
 {
   PartDeflect *pd = eff->pd;
-  RNG *rng = pd->rng;
+  RNG *rng = eff->rng;
   float force[3] = {0, 0, 0};
   float temp[3];
   float fac;

@@ -16,6 +16,7 @@ extern "C" {
 struct Collection;
 struct Depsgraph;
 struct ListBase;
+struct RNG;
 struct Object;
 struct ParticleData;
 struct ParticleKey;
@@ -77,6 +78,9 @@ typedef struct EffectorCache {
   struct SurfaceModifierData *surmd;
 
   struct PartDeflect *pd;
+
+  /** Random noise generator for e.g. wind. */
+  struct RNG *rng;
 
   /* precalculated for guides */
   struct GuideEffectorData *guide_data;

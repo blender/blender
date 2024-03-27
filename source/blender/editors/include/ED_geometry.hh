@@ -39,6 +39,7 @@ GPointer rna_property_for_attribute_type_retrieve_value(PointerRNA &ptr,
                                                         const eCustomDataType type,
                                                         void *buffer);
 void rna_property_for_attribute_type_set_value(PointerRNA &ptr, PropertyRNA &prop, GPointer value);
+bool attribute_set_poll(bContext &C, const ID &object_data);
 
 /** \} */
 
