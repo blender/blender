@@ -607,7 +607,7 @@ class SavePresetInterfaceTheme(AddPresetBase, Operator):
         preset_menu_class = getattr(bpy.types, cls.preset_menu)
         name = preset_menu_class.bl_label
         filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".xml")
-        if not bool(filepath) or is_path_builtin(filepath):
+        if (not filepath) or is_path_builtin(filepath):
             cls.poll_message_set("Built-in themes cannot be overwritten")
             return False
         return True
@@ -619,13 +619,13 @@ class SavePresetInterfaceTheme(AddPresetBase, Operator):
         name = preset_menu_class.bl_label
         filepath = bpy.utils.preset_find(name, self.preset_subdir, ext=".xml")
         if not bool(filepath) or is_path_builtin(filepath):
-            self.poll_message_set("Built-in themes cannot be overwritten")
+            self.report({'ERROR'}, "Built-in themes cannot be overwritten")
             return {'CANCELLED'}
 
         try:
             rna_xml.xml_file_write(context, filepath, preset_menu_class.preset_xml_map)
         except BaseException as ex:
-            self.report({'ERROR'}, f"Unable to overwrite preset: {ex}")
+            self.report({'ERROR'}, "Unable to overwrite preset: %s" % str(ex))
             import traceback
             traceback.print_exc()
             return {'CANCELLED'}
