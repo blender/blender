@@ -1,9 +1,9 @@
-sphinx==7.1.2
+sphinx==7.2.6
 
 # Sphinx dependencies that are important
-Jinja2==3.1.2
-Pygments==2.16.1
-docutils==0.18.1
+Jinja2==3.1.3
+Pygments==2.17.2
+docutils==0.20.1
 snowballstemmer==2.2.0
 requests==2.31.0
 
