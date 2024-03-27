@@ -430,15 +430,8 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
 {
   using namespace blender;
   BLI_assert(mesh->runtime->edit_mesh == nullptr);
-  const bke::AttributeAccessor attributes = mesh->attributes();
-  if (const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(
-          mesh->active_color_attribute))
-  {
-    if ((ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) &&
-        (CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL))
-    {
-      return true;
-    }
+  if (BKE_color_attribute_supported(*mesh, mesh->active_color_attribute)) {
+    return true;
   }
 
   const std::string unique_name = BKE_id_attribute_calc_unique_name(mesh->id, name);

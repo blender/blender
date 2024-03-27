@@ -933,6 +933,22 @@ const CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const char *na
       const_cast<ID *>(id), name, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_COLOR);
 }
 
+bool BKE_color_attribute_supported(const Mesh &mesh, const blender::StringRef name)
+{
+  std::optional<blender::bke::AttributeMetaData> meta_data = mesh.attributes().lookup_meta_data(
+      name);
+
+  if (!meta_data) {
+    return false;
+  }
+  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
+      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL))
+  {
+    return false;
+  }
+  return true;
+}
+
 const char *BKE_uv_map_vert_select_name_get(const char *uv_map_name, char *buffer)
 {
   BLI_assert(strlen(UV_VERTSEL_NAME) == 2);
