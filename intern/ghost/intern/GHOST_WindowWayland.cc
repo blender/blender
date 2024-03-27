@@ -1879,35 +1879,28 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
     xdg_toplevel *toplevel = libdecor_frame_get_xdg_toplevel(decor.frame);
     gwl_window_state_set_for_xdg(toplevel, state, gwl_window_state_get(window_));
+
+    /* NOTE(@ideasman42): Round trips are necessary with LIBDECOR on GNOME
+     * because resizing later on and redrawing does *not* update as it should, see #119871.
+     *
+     * Without the round-trip here:
+     * - The window will be created and this function will return using the requested buffer size,
+     *   instead of the window size which ends up being used (causing a visible flicker).
+     *   This has the down side that Blender's internal window state has the outdated size
+     *   which then gets immediately resized, causing a noticeable glitch.
+     * - The window decorations will be displayed at the wrong size before refreshing
+     *   at the new size.
+     * - On GNOME-Shell 46 shows the previous buffer-size under some conditions.
+     *
+     * In principle this could be used with XDG too however it causes problems with KDE
+     * and some WLROOTS based compositors.
+     */
+    wl_display_roundtrip(system_->wl_display_get());
   }
   else
 #endif /* WITH_GHOST_WAYLAND_LIBDECOR */
   {
     gwl_window_state_set(window_, state);
-  }
-
-  /* NOTE(@ideasman42): Round trips are important before committing.
-   * This is needed because setting the state is likely to resize the window
-   * (in the case of maximized & full-screen), "normal" windows may still be resized when
-   * they are too large or with tiling window-managers.
-   *
-   * The additional updates allow for the actual size to be configured by the window manager
-   * which is read back before committing the surface. This avoids displaying the buffer
-   * before it's resized (avoiding flickering).
-   *
-   * Without the round-trip here:
-   * - The window will be created and this function will return using the requested buffer size,
-   *   instead of the window size which ends up being used (causing a visible flicker).
-   *   This has the down side that Blender's internal window state has the outdated size
-   *   which then gets immediately resized, causing a noticeable glitch.
-   * - The window decorations will be displayed at the wrong size before refreshing
-   *   at the new size.
-   * - On GNOME-Shell 46 shows the previous buffer-size under some conditions, see #119871.
-   * - 2x updates are needed for RIVER & HYPRLAND.
-   */
-  for (int i = 0; i < 2; i++) {
-    wl_display_flush(system->wl_display_get());
-    wl_display_dispatch(system->wl_display_get());
   }
 
   /* Commit after setting the buffer.
