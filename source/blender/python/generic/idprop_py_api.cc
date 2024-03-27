@@ -414,7 +414,7 @@ static IDProperty *idp_from_PyFloat(const char *name, PyObject *ob)
 
 static IDProperty *idp_from_PyBool(const char *name, PyObject *ob)
 {
-  return blender::bke::idprop::create(name, int(PyC_Long_AsBool(ob))).release();
+  return blender::bke::idprop::create_bool(name, PyC_Long_AsBool(ob)).release();
 }
 
 static IDProperty *idp_from_PyLong(const char *name, PyObject *ob)
