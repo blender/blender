@@ -61,7 +61,6 @@ import os
 import sys
 import inspect
 import shutil
-import time
 import logging
 import warnings
 
@@ -2311,23 +2310,30 @@ def copy_sphinx_files(basepath):
 
 def format_config(basepath):
     """
-    Updates conf.py with context infromation from Blender.
+    Updates ``conf.py`` with context information from Blender.
     """
     from string import Template
 
+    # Ensure the string literals can contain any characters by closing the surrounding quotes
+    # and declare a separate literal via `repr()`.
+    def declare_in_quotes(string):
+        return "\" %r \"" % (string)
+
     substitutions = {
-        'BLENDER_VERSION_STRING': BLENDER_VERSION_STRING,
-        'BLENDER_VERSION_DOTS': BLENDER_VERSION_DOTS,
-        'BLENDER_REVISION_TIMESTAMP': BLENDER_REVISION_TIMESTAMP,
-        'BLENDER_REVISION': BLENDER_REVISION,
+        "BLENDER_VERSION_STRING": declare_in_quotes(BLENDER_VERSION_STRING),
+        "BLENDER_VERSION_DOTS": declare_in_quotes(BLENDER_VERSION_DOTS),
+        "BLENDER_REVISION_TIMESTAMP": declare_in_quotes(str(BLENDER_REVISION_TIMESTAMP)),
+        "BLENDER_REVISION": declare_in_quotes(BLENDER_REVISION),
     }
 
-    # Read the template string from the template file
-    with open(os.path.join(basepath, "conf.py"), 'r') as file:
-        template_file = file.read()
+    filepath = os.path.join(basepath, "conf.py")
 
-    with open(os.path.join(basepath, "conf.py"), 'w') as file:
-        file.write(Template(template_file).substitute(substitutions))
+    # Read the template string from the template file.
+    with open(filepath, 'r', encoding="utf-8") as fh:
+        template_file = fh.read()
+
+    with open(filepath, 'w', encoding="utf-8") as fh:
+        fh.write(Template(template_file).substitute(substitutions))
 
 
 def rna2sphinx(basepath):
