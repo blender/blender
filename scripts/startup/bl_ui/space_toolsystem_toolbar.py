@@ -1818,23 +1818,23 @@ class _defs_paint_grease_pencil:
     #
     # @staticmethod
     # def generate_from_brushes(context):
-        # # Though `data_block` is conceptually unnecessary with a single brush tool,
-        # # it's still used because many areas assume that brush tools have it set #bToolRef.
-        # tool = None
-        # if context:
-        #     brush = context.tool_settings.gpencil_paint.brush
-        #     if brush:
-        #         tool = brush.gpencil_tool
-        # return [
-        #     ToolDef.from_dict(
-        #         dict(
-        #             idname="builtin.brush",
-        #             label="Brush",
-        #             icon="brush.sculpt.paint",
-        #             data_block=tool
-        #         )
-        #     )
-        # ]
+    # # Though `data_block` is conceptually unnecessary with a single brush tool,
+    # # it's still used because many areas assume that brush tools have it set #bToolRef.
+    # tool = None
+    # if context:
+    #     brush = context.tool_settings.gpencil_paint.brush
+    #     if brush:
+    #         tool = brush.gpencil_tool
+    # return [
+    #     ToolDef.from_dict(
+    #         dict(
+    #             idname="builtin.brush",
+    #             label="Brush",
+    #             icon="brush.sculpt.paint",
+    #             data_block=tool
+    #         )
+    #     )
+    # ]
 
     @ToolDef.from_fn
     def draw():
