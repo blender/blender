@@ -11,7 +11,7 @@
 #include "BLI_math_base.h"
 #include "BLI_math_bits.h"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "gl_context.hh"
 #include "gl_framebuffer.hh"

@@ -37,7 +37,7 @@ enum eSelectOp {
   SEL_OP_XOR,
 };
 
-/* Select Similar */
+/** Select Similar. */
 enum eSimilarCmp {
   SIM_CMP_EQ = 0,
   SIM_CMP_GT,

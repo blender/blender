@@ -30,7 +30,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_2D_nodelink)
     .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
     .vertex_source("gpu_shader_2D_nodelink_vert.glsl")
     .fragment_source("gpu_shader_2D_nodelink_frag.glsl")
-    .typedef_source("GPU_shader_shared.h")
+    .typedef_source("GPU_shader_shared.hh")
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(gpu_shader_2D_nodelink_inst)
@@ -54,6 +54,6 @@ GPU_SHADER_CREATE_INFO(gpu_shader_2D_nodelink_inst)
     .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
     .vertex_source("gpu_shader_2D_nodelink_vert.glsl")
     .fragment_source("gpu_shader_2D_nodelink_frag.glsl")
-    .typedef_source("GPU_shader_shared.h")
+    .typedef_source("GPU_shader_shared.hh")
     .define("USE_INSTANCE")
     .do_static_compilation(true);

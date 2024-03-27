@@ -6,6 +6,7 @@
 
 #include "COM_Debug.h"
 
+#include "BLI_assert.h"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -106,6 +107,10 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
         case DataType::Color:
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Color");
           break;
+        case DataType::Float2:
+          /* An internal type that needn't be handled. */
+          BLI_assert_unreachable();
+          break;
       }
     }
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}");
@@ -166,6 +171,10 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Color");
           break;
         }
+        case DataType::Float2:
+          /* An internal type that needn't be handled. */
+          BLI_assert_unreachable();
+          break;
       }
     }
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}");
@@ -283,6 +292,10 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
           break;
         case DataType::Color:
           color = "orange";
+          break;
+        case DataType::Float2:
+          /* An internal type that needn't be handled. */
+          BLI_assert_unreachable();
           break;
       }
 

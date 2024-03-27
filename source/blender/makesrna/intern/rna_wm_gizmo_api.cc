@@ -162,11 +162,7 @@ static PointerRNA rna_gizmo_target_set_operator(wmGizmo *gz,
   }
 
   /* For the return value to be usable, we need 'PointerRNA.data' to be set. */
-  IDProperty *properties;
-  {
-    IDPropertyTemplate val = {0};
-    properties = IDP_New(IDP_GROUP, &val, "wmGizmoProperties");
-  }
+  IDProperty *properties = blender::bke::idprop::create_group("wmGizmoProperties").release();
 
   return *WM_gizmo_operator_set(gz, part_index, ot, properties);
 }

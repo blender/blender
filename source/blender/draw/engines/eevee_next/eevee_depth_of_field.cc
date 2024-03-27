@@ -22,8 +22,8 @@
 #include "BKE_camera.h"
 #include "DNA_camera_types.h"
 
-#include "GPU_platform.h"
-#include "GPU_texture.h"
+#include "GPU_platform.hh"
+#include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "eevee_camera.hh"

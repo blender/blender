@@ -35,28 +35,13 @@ void PlaneTrackDeformNode::convert_to_operations(NodeConverter &converter,
   }
   converter.add_operation(plane_mask_operation);
 
-  SMAAEdgeDetectionOperation *smaa_edge_detection = new SMAAEdgeDetectionOperation();
-  converter.add_operation(smaa_edge_detection);
+  SMAAOperation *smaa_operation = new SMAAOperation();
+  converter.add_operation(smaa_operation);
 
   converter.add_link(plane_mask_operation->get_output_socket(),
-                     smaa_edge_detection->get_input_socket(0));
+                     smaa_operation->get_input_socket(0));
 
-  SMAABlendingWeightCalculationOperation *smaa_blending_weights =
-      new SMAABlendingWeightCalculationOperation();
-  converter.add_operation(smaa_blending_weights);
-
-  converter.add_link(smaa_edge_detection->get_output_socket(),
-                     smaa_blending_weights->get_input_socket(0));
-
-  SMAANeighborhoodBlendingOperation *smaa_neighborhood = new SMAANeighborhoodBlendingOperation();
-  converter.add_operation(smaa_neighborhood);
-
-  converter.add_link(plane_mask_operation->get_output_socket(),
-                     smaa_neighborhood->get_input_socket(0));
-  converter.add_link(smaa_blending_weights->get_output_socket(),
-                     smaa_neighborhood->get_input_socket(1));
-
-  converter.map_output_socket(this->get_output_socket(1), smaa_neighborhood->get_output_socket());
+  converter.map_output_socket(this->get_output_socket(1), smaa_operation->get_output_socket());
 
   PlaneTrackWarpImageOperation *warp_image_operation = new PlaneTrackWarpImageOperation();
   warp_image_operation->set_movie_clip(clip);
@@ -75,7 +60,7 @@ void PlaneTrackDeformNode::convert_to_operations(NodeConverter &converter,
   converter.add_operation(set_alpha_operation);
   converter.add_link(warp_image_operation->get_output_socket(),
                      set_alpha_operation->get_input_socket(0));
-  converter.add_link(smaa_neighborhood->get_output_socket(),
+  converter.add_link(smaa_operation->get_output_socket(),
                      set_alpha_operation->get_input_socket(1));
   converter.map_output_socket(this->get_output_socket(0),
                               set_alpha_operation->get_output_socket());

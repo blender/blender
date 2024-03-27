@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-03-12 05:27+0000\n"
+"PO-Revision-Date: 2024-03-19 07:58+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -401,6 +401,10 @@ msgstr "KHR_materials_variants_ui"
 
 msgid "Displays glTF UI to manage material variants"
 msgstr "Afficher l’interface glTF pour gérer les variantes de matériaux"
+
+
+msgid "Allow glTF Embedded format"
+msgstr "Permettre le format gtTF embarqué"
 
 
 msgid "Display glTF UI to manage animations"
@@ -4464,18 +4468,6 @@ msgid "Number of pixels to expand or contract fill area"
 msgstr "Nombre de pixels à utiliser pour dilater ou contracter la zone remplie"
 
 
-msgid "Direction"
-msgstr "Direction"
-
-
-msgid "Add effect of brush"
-msgstr "Effet d’addition de la brosse"
-
-
-msgid "Subtract effect of brush"
-msgstr "Effet de soustraction de la brosse"
-
-
 msgid "Eraser Mode"
 msgstr "Mode gomme"
 
@@ -4522,6 +4514,10 @@ msgstr "Taille des extensions"
 
 msgid "Strokes end extension for closing gaps, use zero to disable"
 msgstr "Extension de l’extrémité des traits pour fermer les interstices, 0 pour désactiver"
+
+
+msgid "Direction"
+msgstr "Direction"
 
 
 msgid "Direction of the fill"
@@ -20579,6 +20575,14 @@ msgstr "La brosse déforme le maillage en déformant les contraintes d’une sim
 
 msgid "Amount of random elements that are going to be affected by the brush"
 msgstr "Quantité d’éléments aléatoires qui seront affectés par la brosse"
+
+
+msgid "Add effect of brush"
+msgstr "Effet d’addition de la brosse"
+
+
+msgid "Subtract effect of brush"
+msgstr "Effet de soustraction de la brosse"
 
 
 msgid "Max Element Distance"
@@ -63164,11 +63168,11 @@ msgstr "Hauteur du plan créé"
 
 
 msgid "Animate Image Sequences"
-msgstr "Animer la séquence d’images"
+msgstr "Séquences d’images"
 
 
 msgid "Import sequentially numbered images as an animated image sequence instead of separate planes"
-msgstr "Importer les images numérotées séquentiellement en tant que séquence d’images animée, plutôt que des plans séparés"
+msgstr "Importer les images numérotées séquentiellement en tant que séquences d’images, plutôt que comme plans séparés"
 
 
 msgid "Offset Planes"
@@ -80673,7 +80677,7 @@ msgstr "Mettre à jour le dépôt de travail d’i18n (fichiers po)"
 
 
 msgid "Skip POT"
-msgstr "Ignorer POT"
+msgstr "Ignorer le POT"
 
 
 msgid "Skip POT file generation"
@@ -90670,6 +90674,10 @@ msgstr "L’emplacement par défaut des sons"
 
 msgid "Temporary Directory"
 msgstr "Dossier temporaire"
+
+
+msgid "The directory for storing temporary save files. The path must reference an existing directory or it will be ignored"
+msgstr "Le dossier où stocker les fichiers temporaires. Le chemin doit pointer vers un dossier existant, sans quoi il sera ignoré"
 
 
 msgid ""
@@ -111844,6 +111852,10 @@ msgid "Path to gltfpack"
 msgstr "Chemin de gltfpack"
 
 
+msgid "This is the least efficient of the available forms, and should only be used when required."
+msgstr "Il s’agit de la moins efficace des formes disponibles, et ne devrait être utilisée que si nécessaire."
+
+
 msgid "Export only deformation bones is not possible when not sampling animation"
 msgstr "Impossible de n’exporter que les os de déformation si l’animation n’est pas échantillonnée"
 
@@ -114606,14 +114618,6 @@ msgstr "Valeur de masque"
 
 msgid "Caps Type"
 msgstr "Type d’extrémités"
-
-
-msgid "CCW"
-msgstr "Antihoraire"
-
-
-msgid "CW"
-msgstr "Horaire"
 
 
 msgid "Invert to Fill"
@@ -120850,6 +120854,18 @@ msgid "armatures"
 msgstr "armatures"
 
 
+msgid "Unable to create builtin attribute in edit mode"
+msgstr "Impossible de créer un attribut prédéfini en mode édition"
+
+
+msgid "Domain unsupported for \"id\" attribute"
+msgstr "Domaine non pris en charge pour l’attribut « id »"
+
+
+msgid "Type unsupported for \"id\" attribute"
+msgstr "Type non pris en charge pour l’attribut « id »"
+
+
 msgid "Attribute name cannot be empty"
 msgstr "Le nom d’attribut ne peut pas être vide"
 
@@ -121362,18 +121378,6 @@ msgstr "maillages"
 
 msgid "Auto Smooth"
 msgstr "Lissage auto"
-
-
-msgid "Socket_1"
-msgstr "Prise_1"
-
-
-msgid "Input_1_use_attribute"
-msgstr "Entrée_1_utiliser_l_attribut"
-
-
-msgid "Input_1_attribute_name"
-msgstr "Entrée_1_nom_d_attribut"
 
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
@@ -122457,6 +122461,10 @@ msgid "Cannot create the Animation Context"
 msgstr "Impossible de créer le contexte d’animation"
 
 
+msgid "One or more F-Curves are not visible due to filter settings"
+msgstr "Une F-courbe ou plus ne sont pas visibles à cause des réglages de filtrage"
+
+
 msgid "F-Curves have no valid size"
 msgstr "Les F-courbes n’ont pas de taille valide"
 
@@ -122795,20 +122803,12 @@ msgid "No object found to operate on"
 msgstr "Aucun objet trouvé sur lequel agir"
 
 
-msgid "Bone collections can only be added to an Armature"
-msgstr "Les collections d’os ne peuvent être ajoutées que sur une armature"
-
-
 msgid "Cannot add bone collections to a linked Armature without an override"
 msgstr "Impossible d’ajouter des collections d’os à une armature liée sans redéfinition"
 
 
 msgid "Cannot add bone collections to a linked Armature with a system override; explicitly create an override on the Armature"
 msgstr "Impossible d’ajouter des collections d’os à une armature liée ayant une redéfinition système ; créer une redéfinition explicite sur l’armature"
-
-
-msgid "Bone collections can only be edited on an Armature"
-msgstr "Les collections d’os ne peuvent être éditées que sur une armature"
 
 
 msgid "Cannot update a linked Armature with a system override; explicitly create an override on the Armature"
@@ -122821,6 +122821,10 @@ msgstr "L’armature n’a aucune collection d’os active, en sélectionner d�
 
 msgid "Cannot edit bone collections that are linked from another blend file"
 msgstr "Impossible d’éditer des collections d’os liées depuis un autre fichier blend"
+
+
+msgid "Bone collections can only be edited on an Armature"
+msgstr "Les collections d’os ne peuvent être éditées que sur une armature"
 
 
 msgid "Cannot edit bone collections on linked Armatures without override"
@@ -123398,6 +123402,10 @@ msgstr "Le groupe de nœuds doit avoir un nœud de sortie"
 
 msgid "Data-block inputs are unsupported"
 msgstr "Les entrées blocs de données ne sont pas prises en charge"
+
+
+msgid "Node group's first output must be a geometry"
+msgstr "La première sortie du groupe de nœuds doit être une géométrie"
 
 
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
@@ -133389,10 +133397,6 @@ msgstr "L’entrée de géométrie du groupe de nœuds doit être en premier"
 
 msgid "Node group must have an output socket"
 msgstr "Le groupe de nœuds doit avoir une prise de sortie"
-
-
-msgid "Node group's first output must be a geometry"
-msgstr "La première sortie du groupe de nœuds doit être une géométrie"
 
 
 msgid "NormalEdit"

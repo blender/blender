@@ -19,7 +19,8 @@
 #include "BLI_string_ref.hh"
 
 #include "BKE_animsys.h"
-#include "BKE_idprop.h"
+#include "BKE_grease_pencil_legacy_convert.hh"
+#include "BKE_idprop.hh"
 #include "BKE_ipo.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
@@ -388,14 +389,11 @@ int version_cycles_property_int(IDProperty *idprop, const char *name, int defaul
 
 void version_cycles_property_int_set(IDProperty *idprop, const char *name, int value)
 {
-  IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
-  if (prop) {
+  if (IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT)) {
     IDP_Int(prop) = value;
   }
   else {
-    IDPropertyTemplate val = {0};
-    val.i = value;
-    IDP_AddToGroup(idprop, IDP_New(IDP_INT, &val, name));
+    IDP_AddToGroup(idprop, blender::bke::idprop::create(name, value).release());
   }
 }
 
@@ -536,5 +534,11 @@ void do_versions_after_setup(Main *new_bmain, BlendFileReadReport *reports)
      * be cleared, so it is re-run in a later version when the bug is fixed and the versioning has
      * been made idempotent. */
     BKE_main_mesh_legacy_convert_auto_smooth(*new_bmain);
+  }
+
+  if (U.experimental.use_grease_pencil_version3 &&
+      U.experimental.use_grease_pencil_version3_convert_on_load)
+  {
+    blender::bke::greasepencil::convert::legacy_main(*new_bmain, *reports);
   }
 }

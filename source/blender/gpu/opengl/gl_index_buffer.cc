@@ -49,7 +49,7 @@ void GLIndexBuf::bind_as_ssbo(uint binding)
      * In the OpenGL backend, the VAO state persists even after `GLVertArray::update_bindings`
      * is called.
      *
-     * NOTE: For safety, we could call `glBindVertexArray(0)` right after drawing a `GPUBatch`.
+     * NOTE: For safety, we could call `glBindVertexArray(0)` right after drawing a `gpu::Batch`.
      * However, for performance reasons, we have chosen not to do so. */
     glBindVertexArray(0);
     bind();

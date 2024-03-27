@@ -42,8 +42,8 @@
 
 #include "BLF_api.hh"
 
-#include "GPU_batch.h"
-#include "GPU_matrix.h"
+#include "GPU_batch.hh"
+#include "GPU_matrix.hh"
 
 #include "blf_internal.hh"
 #include "blf_internal_types.hh"
@@ -213,7 +213,7 @@ static void blf_batch_draw_init()
   g_batch.glyph_len = 0;
 
   /* A dummy VBO containing 4 points, attributes are not used. */
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, 4);
 
   /* We render a quad as a triangle strip and instance it for each glyph. */

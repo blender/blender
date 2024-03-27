@@ -12,8 +12,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "DNA_node_types.h"
 

@@ -26,7 +26,7 @@
 #include "ED_object.hh"
 #include "ED_transverts.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 using blender::Vector;
 

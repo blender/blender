@@ -831,7 +831,7 @@ static Mesh *mesh_new_from_mesh_object(Depsgraph *depsgraph,
   Mesh *mesh_input = (Mesh *)object->data;
   /* If we are in edit mode, use evaluated mesh from edit structure, matching to what
    * viewport is using for visualization. */
-  if (mesh_input->edit_mesh != nullptr) {
+  if (mesh_input->runtime->edit_mesh != nullptr) {
     Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
     if (editmesh_eval_final != nullptr) {
       mesh_input = editmesh_eval_final;
@@ -880,7 +880,7 @@ Mesh *BKE_mesh_new_from_object(Depsgraph *depsgraph,
    * Here we are constructing a mesh which is supposed to be independent, which means no shared
    * ownership is allowed, so we make sure edit mesh is reset to nullptr (which is similar to as if
    * one duplicates the objects and applies all the modifiers). */
-  new_mesh->edit_mesh = nullptr;
+  new_mesh->runtime->edit_mesh = nullptr;
 
   return new_mesh;
 }

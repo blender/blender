@@ -11,7 +11,7 @@
  */
 
 #include "DNA_volume_types.h"
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "draw_common.hh"
 

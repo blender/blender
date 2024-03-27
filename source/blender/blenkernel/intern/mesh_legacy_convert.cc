@@ -36,6 +36,7 @@
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_main_namemap.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.hh"
@@ -816,7 +817,7 @@ void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
 /* -------------------------------------------------------------------- */
 /** \name MFace Tessellation
  *
- * #MFace is a legacy data-structure that should be avoided, use #MLoopTri instead.
+ * #MFace is a legacy data-structure that should be avoided, use #Mesh::corner_tris() instead.
  * \{ */
 
 #define MESH_MLOOPCOL_TO_MCOL(_mloopcol, _mcol) \
@@ -2380,6 +2381,7 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
       /* Move the node group to the requested library so that library data-blocks don't point to
        * local data-blocks. This requires making sure the name is unique in that library and
        * changing the name maps to be consistent with the new state. */
+      BKE_main_namemap_remove_name(&bmain, &new_group->id, new_group->id.name + 2);
       new_group->id.lib = library;
       BKE_id_new_name_validate(&bmain, &bmain.nodetrees, &new_group->id, nullptr, false);
       if (library) {

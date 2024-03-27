@@ -8,7 +8,7 @@
 
 #include "BLI_string_ref.hh"
 
-#include "GPU_platform.h"
+#include "GPU_platform.hh"
 
 #include "mtl_shader_log.hh"
 

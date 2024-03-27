@@ -26,7 +26,7 @@
 #include "eevee_ambient_occlusion.hh"
 #include "eevee_instance.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 namespace blender::eevee {
 

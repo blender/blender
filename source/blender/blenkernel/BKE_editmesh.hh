@@ -12,7 +12,12 @@
  * only concerned with low level operations on the #BMEditMesh structure.
  */
 
+#include <array>
+
+#include "BLI_array.hh"
+
 #include "DNA_customdata_types.h"
+
 #include "bmesh.hh"
 
 struct BMLoop;
@@ -31,8 +36,8 @@ struct Scene;
  * and various data that doesn't belong in the #BMesh struct itself
  * (mostly related to mesh evaluation).
  *
- * The entire modifier system works with this structure, and not #BMesh.
- * #Mesh.edit_bmesh stores a pointer to this structure. */
+ * #Mesh.runtime.edit_mesh stores a pointer to this structure.
+ */
 struct BMEditMesh {
   BMesh *bm;
 
@@ -40,10 +45,9 @@ struct BMEditMesh {
    * Face triangulation (tessellation) is stored as triplets of three loops,
    * which each define a triangle.
    *
-   * \see #MLoopTri as the documentation gives useful hints that apply to this data too.
+   * \see #Mesh::corner_tris() as the documentation gives useful hints that apply to this data too.
    */
-  BMLoop *(*looptris)[3];
-  int tottri;
+  blender::Array<std::array<BMLoop *, 3>> looptris;
 
   /** Selection mode (#SCE_SELECT_VERTEX, #SCE_SELECT_EDGE & #SCE_SELECT_FACE). */
   short selectmode;

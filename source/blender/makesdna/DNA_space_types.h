@@ -53,7 +53,7 @@ using AssetRepresentationHandle = blender::asset_system::AssetRepresentation;
 typedef struct AssetRepresentationHandle AssetRepresentationHandle;
 #endif
 
-/** Defined in `buttons_intern.h`. */
+/** Defined in `buttons_intern.hh`. */
 typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
 
 #ifdef __cplusplus

@@ -176,7 +176,6 @@ def main() -> None:
         # Support version without a minor version "3" (add zero).
         tuple((0, 0, 0))
     )
-    python_version_str = "%d.%d" % python_version_number[:2]
 
     # Get Blender version.
     blender_version_str = str(make_utils.parse_blender_version())

@@ -26,9 +26,9 @@
 #include "BKE_image_partial_update.hh"
 #include "BKE_main.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_state.h"
-#include "GPU_texture.h"
+#include "GPU_capabilities.hh"
+#include "GPU_state.hh"
+#include "GPU_texture.hh"
 
 using namespace blender::bke::image::partial_update;
 

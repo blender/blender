@@ -23,7 +23,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 
 #include "CLG_log.h"
@@ -198,11 +198,8 @@ static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
   if (newlen >= prop->len) {
     /* bigger */
     IDProperty **array = static_cast<IDProperty **>(newarr);
-    IDPropertyTemplate val;
-
     for (int a = prop->len; a < newlen; a++) {
-      val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
-      array[a] = IDP_New(IDP_GROUP, &val, "IDP_ResizeArray group");
+      array[a] = blender::bke::idprop::create_group("IDP_ResizeArray group").release();
     }
   }
   else {
@@ -1235,29 +1232,28 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference)
 
 void IDP_foreach_property(IDProperty *id_property_root,
                           const int type_filter,
-                          IDPForeachPropertyCallback callback,
-                          void *user_data)
+                          const blender::FunctionRef<void(IDProperty *id_property)> callback)
 {
   if (!id_property_root) {
     return;
   }
 
   if (type_filter == 0 || (1 << id_property_root->type) & type_filter) {
-    callback(id_property_root, user_data);
+    callback(id_property_root);
   }
 
   /* Recursive call into container types of ID properties. */
   switch (id_property_root->type) {
     case IDP_GROUP: {
       LISTBASE_FOREACH (IDProperty *, loop, &id_property_root->data.group) {
-        IDP_foreach_property(loop, type_filter, callback, user_data);
+        IDP_foreach_property(loop, type_filter, callback);
       }
       break;
     }
     case IDP_IDPARRAY: {
       IDProperty *loop = static_cast<IDProperty *>(IDP_Array(id_property_root));
       for (int i = 0; i < id_property_root->len; i++) {
-        IDP_foreach_property(&loop[i], type_filter, callback, user_data);
+        IDP_foreach_property(&loop[i], type_filter, callback);
       }
       break;
     }

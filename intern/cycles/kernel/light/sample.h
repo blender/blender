@@ -329,17 +329,25 @@ ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
                                                         const uint32_t path_flag,
                                                         ccl_private LightSample *ls)
 {
+  const int shader_flags = SD_BSDF_HAS_TRANSMISSION;
+
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
-    return light_tree_sample<true>(
-        kg, rand, time, P, D, t, object_receiver, SD_BSDF_HAS_TRANSMISSION, bounce, path_flag, ls);
+    if (!light_tree_sample<true>(kg, rand.z, P, D, t, object_receiver, shader_flags, ls)) {
+      return false;
+    }
   }
   else
 #endif
   {
-    return light_distribution_sample<true>(
-        kg, rand, time, P, D, object_receiver, SD_BSDF_HAS_TRANSMISSION, bounce, path_flag, ls);
+    if (!light_distribution_sample(kg, rand.z, ls)) {
+      return false;
+    }
   }
+
+  /* Sample position on the selected light. */
+  return light_sample<true>(
+      kg, rand, time, P, D, object_receiver, shader_flags, bounce, path_flag, ls);
 }
 
 ccl_device bool light_sample_from_position(KernelGlobals kg,
@@ -354,17 +362,24 @@ ccl_device bool light_sample_from_position(KernelGlobals kg,
                                            const uint32_t path_flag,
                                            ccl_private LightSample *ls)
 {
+  /* Randomly select a light. */
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
-    return light_tree_sample<false>(
-        kg, rand, time, P, N, 0.0f, object_receiver, shader_flags, bounce, path_flag, ls);
+    if (!light_tree_sample<false>(kg, rand.z, P, N, 0.0f, object_receiver, shader_flags, ls)) {
+      return false;
+    }
   }
   else
 #endif
   {
-    return light_distribution_sample<false>(
-        kg, rand, time, P, N, object_receiver, shader_flags, bounce, path_flag, ls);
+    if (!light_distribution_sample(kg, rand.z, ls)) {
+      return false;
+    }
   }
+
+  /* Sample position on the selected light. */
+  return light_sample<false>(
+      kg, rand, time, P, N, object_receiver, shader_flags, bounce, path_flag, ls);
 }
 
 /* Update light sample with new shading point position for MNEE. The position on the light is fixed
@@ -415,13 +430,15 @@ ccl_device_inline float light_sample_mis_weight_forward_surface(KernelGlobals kg
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
     float3 ray_P = INTEGRATOR_STATE(state, ray, P);
+    const float dt = INTEGRATOR_STATE(state, ray, previous_dt);
     const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
+
     uint lookup_offset = kernel_data_fetch(object_lookup_offset, sd->object);
     uint prim_offset = kernel_data_fetch(object_prim_offset, sd->object);
     uint triangle = kernel_data_fetch(triangle_to_tree, sd->prim - prim_offset + lookup_offset);
 
     pdf *= light_tree_pdf(
-        kg, ray_P, N, path_flag, sd->object, triangle, light_link_receiver_forward(kg, state));
+        kg, ray_P, N, dt, path_flag, sd->object, triangle, light_link_receiver_forward(kg, state));
   }
   else
 #endif
@@ -445,9 +462,11 @@ ccl_device_inline float light_sample_mis_weight_forward_lamp(KernelGlobals kg,
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
     const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
+    const float dt = INTEGRATOR_STATE(state, ray, previous_dt);
     pdf *= light_tree_pdf(kg,
                           P,
                           N,
+                          dt,
                           path_flag,
                           0,
                           kernel_data_fetch(light_to_tree, ls->lamp),
@@ -485,9 +504,10 @@ ccl_device_inline float light_sample_mis_weight_forward_background(KernelGlobals
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
     const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
+    const float dt = INTEGRATOR_STATE(state, ray, previous_dt);
     uint light = kernel_data_fetch(light_to_tree, kernel_data.background.light_index);
     pdf *= light_tree_pdf(
-        kg, ray_P, N, path_flag, 0, light, light_link_receiver_forward(kg, state));
+        kg, ray_P, N, dt, path_flag, 0, light, light_link_receiver_forward(kg, state));
   }
   else
 #endif

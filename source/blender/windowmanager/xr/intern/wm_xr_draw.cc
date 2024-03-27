@@ -20,11 +20,11 @@
 #include "ED_view3d_offscreen.hh"
 
 #include "GHOST_C-api.h"
-#include "GPU_batch_presets.h"
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
+#include "GPU_batch_presets.hh"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
 
-#include "GPU_viewport.h"
+#include "GPU_viewport.hh"
 
 #include "WM_api.hh"
 
@@ -197,8 +197,8 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
   wm_xr_draw_viewport_buffers_to_active_framebuffer(xr_data->runtime, surface_data, draw_view);
 }
 
-static GPUBatch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_context,
-                                                     const char *subaction_path)
+static blender::gpu::Batch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_context,
+                                                                const char *subaction_path)
 {
   GHOST_XrControllerModelData model_data;
 
@@ -212,13 +212,13 @@ static GPUBatch *wm_xr_controller_model_batch_create(GHOST_XrContextHandle xr_co
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, model_data.count_vertices);
   void *vbo_data = GPU_vertbuf_get_data(vbo);
   memcpy(
       vbo_data, model_data.vertices, model_data.count_vertices * sizeof(model_data.vertices[0]));
 
-  GPUIndexBuf *ibo = nullptr;
+  blender::gpu::IndexBuf *ibo = nullptr;
   if (model_data.count_indices > 0 && ((model_data.count_indices % 3) == 0)) {
     GPUIndexBufBuilder ibo_builder;
     const uint prim_len = model_data.count_indices / 3;
@@ -259,7 +259,7 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
   GPU_blend(GPU_BLEND_ALPHA);
 
   LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
-    GPUBatch *model = controller->model;
+    blender::gpu::Batch *model = controller->model;
     if (!model) {
       model = controller->model = wm_xr_controller_model_batch_create(xr_context,
                                                                       controller->subaction_path);
@@ -288,7 +288,7 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
     else {
       /* Fallback. */
       const float scale = 0.05f;
-      GPUBatch *sphere = GPU_batch_preset_sphere(2);
+      blender::gpu::Batch *sphere = GPU_batch_preset_sphere(2);
       GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
       GPU_batch_uniform_4fv(sphere, "color", color);
 

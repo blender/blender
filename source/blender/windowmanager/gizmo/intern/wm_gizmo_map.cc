@@ -24,12 +24,12 @@
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
-#include "GPU_framebuffer.h"
-#include "GPU_matrix.h"
-#include "GPU_platform.h"
+#include "GPU_framebuffer.hh"
+#include "GPU_matrix.hh"
+#include "GPU_platform.hh"
 #include "GPU_select.hh"
-#include "GPU_state.h"
-#include "GPU_viewport.h"
+#include "GPU_state.hh"
+#include "GPU_viewport.hh"
 
 #include "MEM_guardedalloc.h"
 

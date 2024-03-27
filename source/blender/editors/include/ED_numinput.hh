@@ -48,7 +48,7 @@ enum {
   /* (1 << 9) and above are reserved for internal flags! */
 };
 
-/* NumInput.val_flag[] */
+/** #NumInput::val_flag */
 enum {
   /* Public! */
   NUM_NULL_ONE = (1 << 0),

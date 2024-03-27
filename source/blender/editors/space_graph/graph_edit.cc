@@ -59,7 +59,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "graph_intern.h"
+#include "graph_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Insert Keyframes Operator
@@ -210,7 +210,6 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
         insert_keyframe(ac->bmain,
                         reports,
                         ale->id,
-                        nullptr,
                         ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
                         fcu->rna_path,
                         fcu->array_index,

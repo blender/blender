@@ -14,7 +14,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_span.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
@@ -73,10 +73,10 @@ static void populate_cache_for_instance(Object &object,
       {
         DRWShadingGroup *sub_grp = DRW_shgroup_create_sub(pd.viewer_attribute_instance_grp);
         DRW_shgroup_uniform_vec4_copy(sub_grp, "ucolor", color);
-        GPUBatch *batch = DRW_cache_mesh_surface_get(&object);
+        blender::gpu::Batch *batch = DRW_cache_mesh_surface_get(&object);
         DRW_shgroup_call(sub_grp, batch, &object);
       }
-      if (GPUBatch *batch = DRW_cache_mesh_loose_edges_get(&object)) {
+      if (blender::gpu::Batch *batch = DRW_cache_mesh_loose_edges_get(&object)) {
         DRWShadingGroup *sub_grp = DRW_shgroup_create_sub(pd.viewer_attribute_instance_grp);
         DRW_shgroup_uniform_vec4_copy(sub_grp, "ucolor", color);
         DRW_shgroup_call(sub_grp, batch, &object);
@@ -92,7 +92,7 @@ static void populate_cache_for_instance(Object &object,
     case OB_CURVES_LEGACY: {
       DRWShadingGroup *sub_grp = DRW_shgroup_create_sub(pd.viewer_attribute_instance_grp);
       DRW_shgroup_uniform_vec4_copy(sub_grp, "ucolor", color);
-      GPUBatch *batch = DRW_cache_curve_edge_wire_get(&object);
+      blender::gpu::Batch *batch = DRW_cache_curve_edge_wire_get(&object);
       DRW_shgroup_call_obmat(sub_grp, batch, object.object_to_world().ptr());
       break;
     }
@@ -124,7 +124,7 @@ static void populate_cache_for_geometry(Object &object,
               mesh->attributes().lookup_meta_data(".viewer"))
       {
         if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
-          GPUBatch *batch = DRW_cache_mesh_surface_viewer_attribute_get(&object);
+          blender::gpu::Batch *batch = DRW_cache_mesh_surface_viewer_attribute_get(&object);
           DRW_shgroup_uniform_float_copy(pd.viewer_attribute_mesh_grp, "opacity", opacity);
           DRW_shgroup_call(pd.viewer_attribute_mesh_grp, batch, &object);
         }
@@ -137,7 +137,7 @@ static void populate_cache_for_geometry(Object &object,
               pointcloud->attributes().lookup_meta_data(".viewer"))
       {
         if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
-          GPUVertBuf **vertbuf = DRW_pointcloud_evaluated_attribute(pointcloud, ".viewer");
+          gpu::VertBuf **vertbuf = DRW_pointcloud_evaluated_attribute(pointcloud, ".viewer");
           DRWShadingGroup *grp = DRW_shgroup_pointcloud_create_sub(
               &object, pd.viewer_attribute_pointcloud_grp, nullptr);
           DRW_shgroup_uniform_float_copy(grp, "opacity", opacity);
@@ -154,7 +154,7 @@ static void populate_cache_for_geometry(Object &object,
                 curves.attributes().lookup_meta_data(".viewer"))
         {
           if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
-            GPUBatch *batch = DRW_cache_curve_edge_wire_viewer_attribute_get(&object);
+            blender::gpu::Batch *batch = DRW_cache_curve_edge_wire_viewer_attribute_get(&object);
             DRW_shgroup_uniform_float_copy(pd.viewer_attribute_curve_grp, "opacity", opacity);
             DRW_shgroup_call_obmat(
                 pd.viewer_attribute_curve_grp, batch, object.object_to_world().ptr());
@@ -171,7 +171,7 @@ static void populate_cache_for_geometry(Object &object,
       {
         if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
           bool is_point_domain;
-          GPUVertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
+          gpu::VertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
               curves_id, ".viewer", &is_point_domain);
           DRWShadingGroup *grp = DRW_shgroup_curves_create_sub(
               &object, pd.viewer_attribute_curves_grp, nullptr);

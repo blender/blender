@@ -92,8 +92,19 @@ int BLI_rename(const char *from, const char *to) ATTR_NONNULL();
  */
 int BLI_rename_overwrite(const char *from, const char *to) ATTR_NONNULL();
 /**
- * Deletes the specified file or directory (depending on dir), optionally
- * doing recursive delete of directory contents.
+ * Deletes the specified file or directory.
+ *
+ * \param dir: Delete an empty directory instead of a file.
+ * The value is ignored when `recursive` is true but should true to make the intention clear.
+ * If the directory is not empty, delete fails.
+ * \param recursive: Recursively delete files including `path` which may be a directory of a file.
+ *
+ * \note Symbolic-Links for (UNIX) behave as follows:
+ * - Never followed, treated as regular files.
+ * - Links are removed, not the files/directories they references.
+ * - When `path` itself links to another directory,
+ *   deleting `path` behaves as if a regular file is being deleted.
+ * - If `dir` is true and `path` is a link, delete fails.
  *
  * \return zero on success (matching 'remove' behavior).
  */

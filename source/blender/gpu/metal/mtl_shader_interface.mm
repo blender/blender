@@ -10,7 +10,7 @@
 
 #include "BLI_bitmap.h"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "mtl_common.hh"
 #include "mtl_debug.hh"

@@ -113,7 +113,7 @@ class GLTexture : public Texture {
   /** Return true on success. */
   bool init_internal() override;
   /** Return true on success. */
-  bool init_internal(GPUVertBuf *vbo) override;
+  bool init_internal(VertBuf *vbo) override;
   /** Return true on success. */
   bool init_internal(GPUTexture *src, int mip_offset, int layer_offset, bool use_stencil) override;
 

@@ -10,10 +10,10 @@
 
 #include "BKE_global.hh"
 
-#include "GPU_vertex_format.h"
+#include "GPU_vertex_format.hh"
 #include "gpu_context_private.hh"
 #include "gpu_shader_private.hh"
-#include "gpu_vertex_format_private.h"
+#include "gpu_vertex_format_private.hh"
 
 #include "mtl_context.hh"
 #include "mtl_debug.hh"

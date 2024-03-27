@@ -8,13 +8,21 @@
 
 #pragma once
 
-struct ReportList;
 struct bContext;
-struct wmKeyConfig;
+struct Depsgraph;
 struct Object;
+struct ReportList;
 struct Scene;
+struct wmKeyConfig;
 
 /* `particle_edit.cc` */
+
+bool ED_object_particle_edit_mode_supported(const Object *ob);
+void ED_object_particle_edit_mode_enter_ex(Depsgraph *depsgraph, Scene *scene, Object *ob);
+void ED_object_particle_edit_mode_enter(bContext *C);
+
+void ED_object_particle_edit_mode_exit_ex(Scene *scene, Object *ob);
+void ED_object_particle_edit_mode_exit(bContext *C);
 
 bool PE_poll(bContext *C);
 bool PE_hair_poll(bContext *C);

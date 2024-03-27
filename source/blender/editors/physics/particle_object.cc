@@ -54,7 +54,7 @@
 
 #include "particle_edit_utildefines.h"
 
-#include "physics_intern.h"
+#include "physics_intern.hh"
 
 static float I[4][4] = {
     {1.0f, 0.0f, 0.0f, 0.0f},

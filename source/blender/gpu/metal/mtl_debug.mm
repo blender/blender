@@ -15,8 +15,8 @@
 
 #include "BKE_global.hh"
 
-#include "GPU_debug.h"
-#include "GPU_platform.h"
+#include "GPU_debug.hh"
+#include "GPU_platform.hh"
 
 #include "mtl_context.hh"
 #include "mtl_debug.hh"

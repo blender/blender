@@ -7,7 +7,7 @@
 #include "vk_data_conversion.hh"
 #include "vk_device.hh"
 
-#include "gpu_vertex_format_private.h"
+#include "gpu_vertex_format_private.hh"
 
 namespace blender::gpu::tests {
 static void test_f32_f16(uint32_t f32_in, uint32_t f16_expected)

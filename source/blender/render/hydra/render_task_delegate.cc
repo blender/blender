@@ -6,7 +6,7 @@
 
 #include <epoxy/gl.h>
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 #include <pxr/imaging/hd/renderBuffer.h>
 #include <pxr/imaging/hd/renderDelegate.h>

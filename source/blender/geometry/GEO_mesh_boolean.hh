@@ -15,7 +15,7 @@ namespace blender::geometry::boolean {
 /** Specifies which solver to use. */
 enum class Solver {
   /**
-   * The exact solver based on the Mesh Arrangments for Solid Geometry paper,
+   * The exact solver based on the Mesh Arrangements for Solid Geometry paper,
    * by Zhou, Grinspun, Zorin, and Jacobson.
    */
   MeshArr = 0,
@@ -54,9 +54,9 @@ struct BooleanOpParameters {
  * If there are more than two meshes, the first mesh is operand 0 and the rest of the
  * meshes are operand 1 (i.e., as if all of operands 1, ... are joined into one mesh.
  * The exact solvers assume that the meshes are PWN (piecewise winding number,
- * which approximately means that the meshes are enclosed watertight voluems,
+ * which approximately means that the meshes are enclosed watertight volumes,
  * and all edges are manifold, though there are allowable exceptions to that last condition).
- * If the meshes don't sastisfy those conditions, all solvers will try to use ray-shooting
+ * If the meshes don't satisfy those conditions, all solvers will try to use ray-shooting
  * to determine whether particular faces survive or not.  This may or may not work
  * in the way the user hopes.
  *

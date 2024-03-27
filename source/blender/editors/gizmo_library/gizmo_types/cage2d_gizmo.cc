@@ -23,12 +23,12 @@
 
 #include "BKE_context.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_matrix.hh"
 #include "GPU_select.hh"
-#include "GPU_shader.h"
-#include "GPU_state.h"
+#include "GPU_shader.hh"
+#include "GPU_state.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -40,7 +40,7 @@
 #include "ED_screen.hh"
 
 /* own includes */
-#include "../gizmo_library_intern.h"
+#include "../gizmo_library_intern.hh"
 
 #define GIZMO_MARGIN_OFFSET_SCALE 1.5f
 /* The same as in `draw_cache.cc`. */

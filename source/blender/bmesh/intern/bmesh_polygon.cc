@@ -159,11 +159,11 @@ void BM_face_calc_tessellation(const BMFace *f,
 
 void BM_face_calc_point_in_face(const BMFace *f, float r_co[3])
 {
-  const BMLoop *l_tri[3];
+  const BMLoop *ltri[3];
 
   if (f->len == 3) {
     const BMLoop *l = BM_FACE_FIRST_LOOP(f);
-    ARRAY_SET_ITEMS(l_tri, l, l->next, l->prev);
+    ARRAY_SET_ITEMS(ltri, l, l->next, l->prev);
   }
   else {
     /* tessellation here seems overkill when in many cases this will be the center,
@@ -189,10 +189,10 @@ void BM_face_calc_point_in_face(const BMFace *f, float r_co[3])
     }
 
     ARRAY_SET_ITEMS(
-        l_tri, loops[index[j_best][0]], loops[index[j_best][1]], loops[index[j_best][2]]);
+        ltri, loops[index[j_best][0]], loops[index[j_best][1]], loops[index[j_best][2]]);
   }
 
-  mid_v3_v3v3v3(r_co, l_tri[0]->v->co, l_tri[1]->v->co, l_tri[2]->v->co);
+  mid_v3_v3v3v3(r_co, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co);
 }
 
 float BM_face_calc_area(const BMFace *f)
@@ -1091,9 +1091,9 @@ void BM_face_triangulate(BMesh *bm,
 
     /* loop over calculated triangles and create new geometry */
     for (i = 0; i < totfilltri; i++) {
-      BMLoop *l_tri[3] = {loops[tris[i][0]], loops[tris[i][1]], loops[tris[i][2]]};
+      BMLoop *ltri[3] = {loops[tris[i][0]], loops[tris[i][1]], loops[tris[i][2]]};
 
-      BMVert *v_tri[3] = {l_tri[0]->v, l_tri[1]->v, l_tri[2]->v};
+      BMVert *v_tri[3] = {ltri[0]->v, ltri[1]->v, ltri[2]->v};
 
       f_new = BM_face_create_verts(bm, v_tri, 3, f, BM_CREATE_NOP, true);
       l_new = BM_FACE_FIRST_LOOP(f_new);
@@ -1113,9 +1113,9 @@ void BM_face_triangulate(BMesh *bm,
       }
 
       /* copy CD data */
-      BM_elem_attrs_copy(bm, l_tri[0], l_new);
-      BM_elem_attrs_copy(bm, l_tri[1], l_new->next);
-      BM_elem_attrs_copy(bm, l_tri[2], l_new->prev);
+      BM_elem_attrs_copy(bm, ltri[0], l_new);
+      BM_elem_attrs_copy(bm, ltri[1], l_new->next);
+      BM_elem_attrs_copy(bm, ltri[2], l_new->prev);
 
       /* add all but the last face which is swapped and removed (below) */
       if (i != last_tri) {

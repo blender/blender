@@ -9,7 +9,7 @@
 #include "BLI_math_base.h"
 #include "BLI_math_bits.h"
 
-#include "GPU_framebuffer.h"
+#include "GPU_framebuffer.hh"
 
 #include "mtl_context.hh"
 #include "mtl_framebuffer.hh"

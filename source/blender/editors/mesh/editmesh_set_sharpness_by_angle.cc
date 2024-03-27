@@ -15,6 +15,7 @@
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
+#include "BKE_mesh_types.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -38,7 +39,7 @@ static int set_sharpness_by_angle_exec(bContext *C, wmOperator *op)
 
   for (Object *object : objects) {
     Mesh &mesh = *static_cast<Mesh *>(object->data);
-    BMEditMesh *em = mesh.edit_mesh;
+    BMEditMesh *em = mesh.runtime->edit_mesh;
 
     bool changed = false;
     BMIter iter;

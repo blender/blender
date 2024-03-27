@@ -58,7 +58,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
@@ -210,9 +210,9 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
 
   /* calculate delta of constraints evaluation */
   invert_m4_m4(imat, cob->startmat);
-  /* XXX This would seem to be in wrong order. However, it does not work in 'right' order -
-   *     would be nice to understand why premul is needed here instead of usual postmul?
-   *     In any case, we **do not get a delta** here (e.g. startmat & matrix having same location,
+  /* XXX This would seem to be in wrong order. However, it does not work in 'right' order - would
+   *     be nice to understand why pre-multiply is needed here instead of usual post-multiply?
+   *     In any case, we *do not get a delta* here (e.g. startmat & matrix having same location,
    *     still gives a 'delta' with non-null translation component :/ ). */
   mul_m4_m4m4(delta, cob->matrix, imat);
 

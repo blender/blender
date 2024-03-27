@@ -66,7 +66,7 @@ constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 #  include "BKE_action.h"
 #  include "BKE_context.hh"
 #  include "BKE_global.hh"
-#  include "BKE_idprop.h"
+#  include "BKE_idprop.hh"
 #  include "BKE_main.hh"
 
 #  include "BKE_armature.hh"

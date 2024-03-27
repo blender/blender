@@ -25,7 +25,7 @@
 #include "ED_object.hh"
 #include "ED_transverts.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 static void object_warp_calc_view_matrix(float r_mat_view[4][4],
                                          float r_center_view[3],

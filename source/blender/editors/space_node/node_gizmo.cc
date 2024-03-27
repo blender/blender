@@ -468,7 +468,7 @@ static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgr
   if (ibuf) {
     sbeam_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
     sbeam_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    sbeam_group->state.offset = {float(ima->offset_x), float(ima->offset_y)};
+    copy_v2_v2(sbeam_group->state.offset, ima->runtime.backdrop_offset);
 
     SpaceNode *snode = CTX_wm_space_node(C);
     bNode *node = nodeGetActive(snode->edittree);
@@ -582,7 +582,7 @@ static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmGizmoGroup 
   if (ibuf) {
     cpin_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
     cpin_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    cpin_group->state.offset = {float(ima->offset_x), float(ima->offset_y)};
+    copy_v2_v2(cpin_group->state.offset, ima->runtime.backdrop_offset);
 
     SpaceNode *snode = CTX_wm_space_node(C);
     bNode *node = nodeGetActive(snode->edittree);

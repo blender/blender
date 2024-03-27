@@ -249,7 +249,7 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
         const eUIListFilterResult filter_result = item_filter_fn(itemptr, name, i);
 
         if (filter_result == UI_LIST_ITEM_NEVER_SHOW) {
-          /* Pass. */
+          dyn_data->items_filter_flags[i] = UILST_FLT_ITEM_NEVER_SHOW;
         }
         else if (filter_result == UI_LIST_ITEM_FILTER_MATCHES) {
           dyn_data->items_filter_flags[i] = UILST_FLT_ITEM;
@@ -301,6 +301,23 @@ void UI_list_filter_and_sort_items(uiList *ui_list,
       MEM_freeN(names);
     }
   }
+}
+
+bool UI_list_item_index_is_filtered_visible(const uiList *ui_list, const int item_idx)
+{
+  const uiListDyn *dyn_data = ui_list->dyn_data;
+
+  if (!dyn_data->items_filter_flags) {
+    /* If there are no filter flags to check, always consider all items visible. */
+    return true;
+  }
+
+  if (dyn_data->items_filter_flags[item_idx] & UILST_FLT_ITEM_NEVER_SHOW) {
+    return false;
+  }
+
+  const int filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;
+  return (dyn_data->items_filter_flags[item_idx] & UILST_FLT_ITEM) ^ filter_exclude;
 }
 
 /**
@@ -418,20 +435,18 @@ static bool ui_template_list_data_retrieve(const char *listtype_name,
 
 static void ui_template_list_collect_items(PointerRNA *list_ptr,
                                            PropertyRNA *list_prop,
-                                           uiListDyn *dyn_data,
-                                           int filter_exclude,
-                                           bool order_reverse,
+                                           const uiList *ui_list,
                                            int activei,
                                            TemplateListItems *r_items)
 {
+  const uiListDyn *dyn_data = ui_list->dyn_data;
+  const bool order_reverse = (ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) != 0;
   int i = 0;
   int reorder_i = 0;
   bool activei_mapping_pending = true;
 
   RNA_PROP_BEGIN (list_ptr, itemptr, list_prop) {
-    if (!dyn_data->items_filter_flags ||
-        ((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude))
-    {
+    if (UI_list_item_index_is_filtered_visible(ui_list, i)) {
       int new_order_idx;
       if (dyn_data->items_filter_neworder) {
         new_order_idx = dyn_data->items_filter_neworder[reorder_i++];
@@ -492,8 +507,6 @@ static void ui_template_list_collect_display_items(const bContext *C,
 
   /* Filter list items! (not for compact layout, though) */
   if (input_data->dataptr.data && input_data->prop) {
-    const int filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;
-    const bool order_reverse = (ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) != 0;
     int items_shown;
 #if 0
     int prev_ii = -1, prev_i;
@@ -515,13 +528,8 @@ static void ui_template_list_collect_display_items(const bContext *C,
           MEM_mallocN(sizeof(*r_items->item_vec) * items_shown, __func__));
       // printf("%s: items shown: %d.\n", __func__, items_shown);
 
-      ui_template_list_collect_items(&input_data->dataptr,
-                                     input_data->prop,
-                                     dyn_data,
-                                     filter_exclude,
-                                     order_reverse,
-                                     input_data->active_item_idx,
-                                     r_items);
+      ui_template_list_collect_items(
+          &input_data->dataptr, input_data->prop, ui_list, input_data->active_item_idx, r_items);
     }
     if (dyn_data->items_shown >= 0) {
       r_items->tot_items = dyn_data->items_shown;

@@ -117,7 +117,7 @@ struct FileIndexerType {
   FileIndexerUpdateIndexFunc update_index;
 };
 
-/* file_indexer.cc */
+/* `file_indexer.cc` */
 
 /** Removes all entries inside the given `indexer_entries`. */
 void ED_file_indexer_entries_clear(FileIndexerEntries *indexer_entries);

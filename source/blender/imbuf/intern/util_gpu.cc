@@ -9,8 +9,8 @@
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
-#include "GPU_capabilities.h"
-#include "GPU_texture.h"
+#include "GPU_capabilities.hh"
+#include "GPU_texture.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"

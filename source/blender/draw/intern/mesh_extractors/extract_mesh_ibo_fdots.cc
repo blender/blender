@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "GPU_index_buffer.h"
+#include "GPU_index_buffer.hh"
 
 #include "extract_mesh.hh"
 
@@ -73,7 +73,7 @@ static void extract_fdots_finish(const MeshRenderData & /*mr*/,
                                  void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
 }
 

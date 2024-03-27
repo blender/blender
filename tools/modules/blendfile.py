@@ -965,7 +965,7 @@ class DNAStruct:
                                     use_str=use_str,
                                     use_str_nil=use_nil,
                                     )
-        except NotImplementedError as e:
+        except NotImplementedError:
             raise NotImplementedError("%r exists, but can't resolve field %r" %
                                       (path, dna_name.name_only), dna_name, dna_type)
 

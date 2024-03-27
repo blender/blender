@@ -20,7 +20,7 @@ static void extract_select_idx_init_impl(const MeshRenderData & /*mr*/,
                                          void *buf,
                                          void *tls_data)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "index", GPU_COMP_I32, 1, GPU_FETCH_INT);
@@ -178,7 +178,7 @@ static void extract_vert_idx_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                          void *buf,
                                          void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
   /* Each element points to an element in the `ibo.points`. */
   draw_subdiv_init_origindex_buffer(vbo,
@@ -211,7 +211,7 @@ static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
     return;
   }
 
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
   int32_t *vert_idx_data = (int32_t *)GPU_vertbuf_get_data(vbo);
   uint offset = subdiv_cache.num_subdiv_loops;
 
@@ -249,7 +249,7 @@ static void extract_edge_idx_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                          void *buf,
                                          void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
   draw_subdiv_init_origindex_buffer(
       vbo,
@@ -268,7 +268,7 @@ static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
     return;
   }
 
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
   int32_t *vert_idx_data = (int32_t *)GPU_vertbuf_get_data(vbo);
   uint offset = subdiv_cache.num_subdiv_loops;
 
@@ -288,7 +288,7 @@ static void extract_face_idx_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                          void *buf,
                                          void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   draw_subdiv_init_origindex_buffer(
       vbo, subdiv_cache.subdiv_loop_face_index, subdiv_cache.num_subdiv_loops, 0);
 

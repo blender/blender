@@ -16,7 +16,7 @@
 #include "ED_lattice.hh"
 #include "ED_screen.hh"
 
-#include "lattice_intern.h"
+#include "lattice_intern.hh"
 
 void ED_operatortypes_lattice()
 {

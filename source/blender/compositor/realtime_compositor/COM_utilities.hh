@@ -9,7 +9,7 @@
 
 #include "NOD_derived_node_tree.hh"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "COM_input_descriptor.hh"
 #include "COM_result.hh"

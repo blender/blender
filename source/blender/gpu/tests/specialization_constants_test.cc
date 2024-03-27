@@ -4,13 +4,13 @@
 
 #include "testing/testing.h"
 
-#include "GPU_batch.h"
-#include "GPU_capabilities.h"
-#include "GPU_compute.h"
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_shader.h"
-#include "GPU_storage_buffer.h"
+#include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
+#include "GPU_compute.hh"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_shader.hh"
+#include "GPU_storage_buffer.hh"
 
 #include "BLI_math_vector.hh"
 #include "BLI_utility_mixins.hh"
@@ -108,10 +108,10 @@ struct ShaderSpecializationConst {
       /* TODO(fclem): remove this boilerplate. */
       GPUVertFormat format{};
       GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
-      GPUVertBuf *verts = GPU_vertbuf_create_with_format(&format);
+      VertBuf *verts = GPU_vertbuf_create_with_format(&format);
 
       GPU_vertbuf_data_alloc(verts, 1);
-      GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+      Batch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, verts, nullptr, GPU_BATCH_OWNS_VBO);
       GPU_batch_set_shader(batch, shader);
       GPU_batch_draw_advanced(batch, 0, 1, 0, 1);
       GPU_batch_discard(batch);

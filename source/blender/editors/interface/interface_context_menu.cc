@@ -24,7 +24,7 @@
 
 #include "BKE_addon.h"
 #include "BKE_context.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_screen.hh"
 
 #include "ED_asset.hh"
@@ -58,6 +58,7 @@
 
 static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
 {
+  using namespace blender;
   /* Compute data path from context to property. */
 
   /* If this returns null, we won't be able to bind shortcuts to these RNA properties.
@@ -69,15 +70,14 @@ static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
   }
 
   /* Create ID property of data path, to pass to the operator. */
-  const IDPropertyTemplate val = {0};
-  IDProperty *prop = IDP_New(IDP_GROUP, &val, __func__);
-  IDP_AddToGroup(prop, IDP_NewString(final_data_path.value().c_str(), "data_path"));
-
+  IDProperty *prop = bke::idprop::create_group(__func__).release();
+  IDP_AddToGroup(prop, bke::idprop::create("data_path", final_data_path.value()).release());
   return prop;
 }
 
 static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDProperty **r_prop)
 {
+  using namespace blender;
   if (but->optype) {
     /* Operator */
     *r_prop = (but->opptr && but->opptr->data) ?
@@ -108,17 +108,15 @@ static const char *shortcut_get_operator_property(bContext *C, uiBut *but, IDPro
   }
 
   if (MenuType *mt = UI_but_menutype_get(but)) {
-    const IDPropertyTemplate val = {0};
-    IDProperty *prop = IDP_New(IDP_GROUP, &val, __func__);
-    IDP_AddToGroup(prop, IDP_NewString(mt->idname, "name"));
+    IDProperty *prop = bke::idprop::create_group(__func__).release();
+    IDP_AddToGroup(prop, bke::idprop::create("name", mt->idname).release());
     *r_prop = prop;
     return "WM_OT_call_menu";
   }
 
   if (PanelType *pt = UI_but_paneltype_get(but)) {
-    const IDPropertyTemplate val = {0};
-    IDProperty *prop = IDP_New(IDP_GROUP, &val, __func__);
-    IDP_AddToGroup(prop, IDP_NewString(pt->idname, "name"));
+    IDProperty *prop = blender::bke::idprop::create_group(__func__).release();
+    IDP_AddToGroup(prop, bke::idprop::create("name", pt->idname).release());
     *r_prop = prop;
     return "WM_OT_call_panel";
   }
@@ -688,7 +686,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         uiItemFullO_ptr(layout,
                         ot,
                         CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View All in Graph Editor"),
-                        ICON_NONE,
+                        ICON_GRAPH,
                         nullptr,
                         WM_OP_INVOKE_DEFAULT,
                         UI_ITEM_NONE,

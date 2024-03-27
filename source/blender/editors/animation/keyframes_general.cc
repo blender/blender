@@ -514,10 +514,6 @@ static float butterworth_calculate_blend_value(float *samples,
   return 0;
 }
 
-/**
- * \param samples: Are expected to start at the first frame of the segment with a buffer of size
- * `segment->filter_order` at the left.
- */
 void butterworth_smooth_fcurve_segment(FCurve *fcu,
                                        FCurveSegment *segment,
                                        float *samples,
@@ -662,16 +658,24 @@ void smooth_fcurve_segment(FCurve *fcu,
 }
 /* ---------------- */
 
-void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor)
+static float ease_sigmoid_function(const float x, const float width, const float shift)
+{
+  const float x_shift = (x - shift) * width;
+  const float y = x_shift / sqrt(1 + pow2f(x_shift));
+  /* Normalize result to 0-1. */
+  return (y + 1) * 0.5f;
+}
+
+void ease_fcurve_segment(FCurve *fcu,
+                         FCurveSegment *segment,
+                         const float factor,
+                         const float width)
 {
   const BezTriple *left_key = fcurve_segment_start_get(fcu, segment->start_index);
-  const float left_x = left_key->vec[1][0];
-  const float left_y = left_key->vec[1][1];
-
   const BezTriple *right_key = fcurve_segment_end_get(fcu, segment->start_index + segment->length);
 
-  const float key_x_range = right_key->vec[1][0] - left_x;
-  const float key_y_range = right_key->vec[1][1] - left_y;
+  const float key_x_range = right_key->vec[1][0] - left_key->vec[1][0];
+  const float key_y_range = right_key->vec[1][1] - left_key->vec[1][1];
 
   /* Happens if there is only 1 key on the FCurve. Needs to be skipped because it
    * would be a divide by 0. */
@@ -679,24 +683,20 @@ void ease_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float factor
     return;
   }
 
-  /* In order to have a curve that favors the right key, the curve needs to be mirrored in x and y.
-   * Having an exponent that is a fraction of 1 would produce a similar but inferior result. */
-  const bool inverted = factor > 0;
-  const float exponent = 1 + fabs(factor) * 4;
+  /* Using the factor on the X-shift we are basically moving the curve horizontally. */
+  const float shift = -factor;
+  const float y_min = ease_sigmoid_function(-1, width, shift);
+  const float y_max = ease_sigmoid_function(1, width, shift);
 
   for (int i = segment->start_index; i < segment->start_index + segment->length; i++) {
-    /* For easy calculation of the curve, the values are normalized. */
-    const float normalized_x = (fcu->bezt[i].vec[1][0] - left_x) / key_x_range;
+    /* Mapping the x-location of the key within the segment to a -1/1 range. */
+    const float x = ((fcu->bezt[i].vec[1][0] - left_key->vec[1][0]) / key_x_range) * 2 - 1;
+    const float y = ease_sigmoid_function(x, width, shift);
+    /* Normalizing the y value to the min and max to ensure that the keys at the end are not
+     * detached from the rest of the animation. */
+    const float blend = (y - y_min) * (1 / (y_max - y_min));
 
-    float normalized_y = 0;
-    if (inverted) {
-      normalized_y = 1 - pow(1 - normalized_x, exponent);
-    }
-    else {
-      normalized_y = pow(normalized_x, exponent);
-    }
-
-    const float key_y_value = left_y + normalized_y * key_y_range;
+    const float key_y_value = left_key->vec[1][1] + key_y_range * blend;
     BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 }

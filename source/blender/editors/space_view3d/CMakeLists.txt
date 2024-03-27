@@ -73,7 +73,7 @@ set(SRC
   view3d_utils.cc
   view3d_view.cc
 
-  view3d_intern.h
+  view3d_intern.hh
   view3d_navigate.hh
 )
 

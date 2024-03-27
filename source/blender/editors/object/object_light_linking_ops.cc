@@ -6,7 +6,7 @@
  * \ingroup edobj
  */
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 #include "BKE_context.hh"
 #include "BKE_light_linking.h"

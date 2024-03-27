@@ -15,9 +15,9 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
@@ -67,6 +67,13 @@ static void snap_source_median_fn(TransInfo *t);
 static void snap_source_center_fn(TransInfo *t);
 static void snap_source_closest_fn(TransInfo *t);
 static void snap_source_active_fn(TransInfo *t);
+
+static eSnapMode snapObjectsTransform(TransInfo *t,
+                                      const float mval[2],
+                                      const float *vec,
+                                      float *dist_px,
+                                      float r_loc[3],
+                                      float r_no[3]);
 
 /** \} */
 
@@ -552,7 +559,7 @@ static bool transform_snap_mixed_is_active(const TransInfo *t)
 
   return (t->tsnap.mode &
           (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE | SCE_SNAP_TO_FACE | SCE_SNAP_TO_VOLUME |
-           SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR)) != 0;
+           SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR | SCE_SNAP_TO_GRID)) != 0;
 }
 
 void transform_snap_mixed_apply(TransInfo *t, float *vec)
@@ -561,7 +568,7 @@ void transform_snap_mixed_apply(TransInfo *t, float *vec)
     return;
   }
 
-  if (t->tsnap.mode & ~(SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID)) {
+  if (t->tsnap.mode != SCE_SNAP_TO_INCREMENT) {
     double current = BLI_time_now_seconds();
 
     /* Time base quirky code to go around find-nearest slowness. */
@@ -675,14 +682,7 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
   }
 
   if (t->spacetype == SPACE_IMAGE) {
-    eSnapMode snap_mode = eSnapMode(ts->snap_uv_mode);
-    if ((snap_mode & SCE_SNAP_TO_INCREMENT) && (ts->snap_uv_flag & SCE_SNAP_ABS_GRID) &&
-        (t->mode == TFM_TRANSLATION))
-    {
-      snap_mode &= ~SCE_SNAP_TO_INCREMENT;
-      snap_mode |= SCE_SNAP_TO_GRID;
-    }
-    return snap_mode;
+    return eSnapMode(ts->snap_uv_mode);
   }
 
   if (t->spacetype == SPACE_SEQ) {
@@ -694,15 +694,7 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
       return SCE_SNAP_TO_INCREMENT;
     }
 
-    eSnapMode snap_mode = eSnapMode(ts->snap_mode);
-    if ((snap_mode & SCE_SNAP_TO_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
-        (t->mode == TFM_TRANSLATION))
-    {
-      /* Special case in which snap to increments is transformed to snap to grid. */
-      snap_mode &= ~SCE_SNAP_TO_INCREMENT;
-      snap_mode |= SCE_SNAP_TO_GRID;
-    }
-    return snap_mode;
+    return eSnapMode(ts->snap_mode);
   }
 
   if (ELEM(t->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_GRAPH)) {
@@ -1146,7 +1138,58 @@ static void snap_multipoints_free(TransInfo *t)
 /** \name Calc Snap
  * \{ */
 
-static void snap_target_view3d_fn(TransInfo *t, float * /*vec*/)
+static void snap_grid_uv_apply(TransInfo *t,
+                               const float grid_dist[2],
+                               const float vec[2],
+                               float r_out[2])
+{
+  const float *center_global = t->center_global;
+  float in[2];
+  if (t->con.mode & CON_APPLY) {
+    /* We need to clear the previous Snap to Grid result,
+     * otherwise #t->con.applyVec will have no effect. */
+    t->tsnap.target_type = SCE_SNAP_TO_NONE;
+    t->con.applyVec(t, nullptr, nullptr, vec, in);
+  }
+  else {
+    copy_v2_v2(in, vec);
+  }
+
+  for (int i = 0; i < 2; i++) {
+    const float iter_fac = grid_dist[i];
+    r_out[i] = iter_fac * roundf((in[i] + center_global[i]) / iter_fac);
+  }
+}
+
+static bool snap_grid_uv(TransInfo *t, float vec[2], float r_val[2])
+{
+  if (t->mode != TFM_TRANSLATION) {
+    return false;
+  }
+
+  float grid_dist[2];
+  mul_v2_v2v2(grid_dist, t->snap_spatial, t->aspect);
+  if (t->modifiers & MOD_PRECISION) {
+    mul_v2_fl(grid_dist, t->snap_spatial_precision);
+  }
+
+  /* Early bailing out if no need to snap */
+  if (is_zero_v2(grid_dist)) {
+    return false;
+  }
+
+  snap_grid_uv_apply(t, grid_dist, vec, r_val);
+  t->tsnap.target_type = SCE_SNAP_TO_GRID;
+  return true;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Calc Snap
+ * \{ */
+
+static void snap_target_view3d_fn(TransInfo *t, float *vec)
 {
   BLI_assert(t->spacetype == SPACE_VIEW3D);
   float loc[3];
@@ -1155,9 +1198,9 @@ static void snap_target_view3d_fn(TransInfo *t, float * /*vec*/)
   eSnapMode snap_elem = SCE_SNAP_TO_NONE;
   float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
 
-  if (t->tsnap.mode & SCE_SNAP_TO_GEOM) {
-    zero_v3(no); /* Objects won't set this. */
-    snap_elem = snapObjectsTransform(t, t->mval, &dist_px, loc, no);
+  if (t->tsnap.mode & (SCE_SNAP_TO_GEOM | SCE_SNAP_TO_GRID)) {
+    zero_v3(no); /* objects won't set this */
+    snap_elem = snapObjectsTransform(t, t->mval, vec, &dist_px, loc, no);
     found = (snap_elem != SCE_SNAP_TO_NONE);
   }
   if ((found == false) && (t->tsnap.mode & SCE_SNAP_TO_VOLUME)) {
@@ -1174,6 +1217,11 @@ static void snap_target_view3d_fn(TransInfo *t, float * /*vec*/)
     copy_v3_v3(t->tsnap.snapNormal, no);
 
     t->tsnap.status |= SNAP_TARGET_FOUND;
+
+    if (snap_elem == SCE_SNAP_TO_GRID && t->mode_info != &TransMode_translate) {
+      /* Change it to #SCE_SNAP_TO_POINT so we can see the symbol for other modes. */
+      snap_elem = SCE_SNAP_TO_POINT;
+    }
   }
   else {
     t->tsnap.status &= ~SNAP_TARGET_FOUND;
@@ -1182,10 +1230,10 @@ static void snap_target_view3d_fn(TransInfo *t, float * /*vec*/)
   t->tsnap.target_type = snap_elem;
 }
 
-static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
+static void snap_target_uv_fn(TransInfo *t, float *vec)
 {
   BLI_assert(t->spacetype == SPACE_IMAGE);
-  if (t->tsnap.mode & SCE_SNAP_TO_VERTEX) {
+  if (t->tsnap.mode & (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_GRID)) {
     const Vector<Object *> objects =
         BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
             t->scene, t->view_layer, nullptr);
@@ -1202,6 +1250,9 @@ static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
       t->tsnap.snap_target[0] *= t->aspect[0];
       t->tsnap.snap_target[1] *= t->aspect[1];
 
+      t->tsnap.status |= SNAP_TARGET_FOUND;
+    }
+    else if ((t->tsnap.mode & SCE_SNAP_TO_GRID) && snap_grid_uv(t, vec, t->tsnap.snap_target)) {
       t->tsnap.status |= SNAP_TARGET_FOUND;
     }
     else {
@@ -1358,7 +1409,17 @@ static void snap_source_median_fn(TransInfo *t)
 static void snap_source_closest_fn(TransInfo *t)
 {
   /* Only valid if a snap point has been selected. */
-  if (t->tsnap.status & SNAP_TARGET_FOUND) {
+  if (!(t->tsnap.status & SNAP_TARGET_FOUND)) {
+    return;
+  }
+
+  if (t->tsnap.target_type == SCE_SNAP_TO_GRID) {
+    /* Previously Snap to Grid had its own snap source which was always the result of
+     * #snap_source_median_fn. Now this mode shares the same code, so to not change the behavior
+     * too much when using Closest, use the transform pivot as the snap source in this case. */
+    copy_v3_v3(t->tsnap.snap_source, t->center_global);
+  }
+  else {
     float dist_closest = 0.0f;
     TransData *closest = nullptr;
 
@@ -1445,10 +1506,10 @@ static void snap_source_closest_fn(TransInfo *t)
     }
 
     TargetSnapOffset(t, closest);
-
-    t->tsnap.status |= SNAP_SOURCE_FOUND;
-    t->tsnap.source_type = SCE_SNAP_TO_NONE;
   }
+
+  t->tsnap.status |= SNAP_SOURCE_FOUND;
+  t->tsnap.source_type = SCE_SNAP_TO_NONE;
 }
 
 /** \} */
@@ -1457,8 +1518,12 @@ static void snap_source_closest_fn(TransInfo *t)
 /** \name Snap Objects
  * \{ */
 
-eSnapMode snapObjectsTransform(
-    TransInfo *t, const float mval[2], float *dist_px, float r_loc[3], float r_no[3])
+static eSnapMode snapObjectsTransform(TransInfo *t,
+                                      const float mval[2],
+                                      const float *vec,
+                                      float *dist_px,
+                                      float r_loc[3],
+                                      float r_no[3])
 {
   SnapObjectParams snap_object_params{};
   snap_object_params.snap_target_select = t->tsnap.target_operation;
@@ -1467,6 +1532,16 @@ eSnapMode snapObjectsTransform(
   snap_object_params.use_backface_culling = (t->tsnap.flag & SCE_SNAP_BACKFACE_CULLING) != 0;
 
   float *prev_co = (t->tsnap.status & SNAP_SOURCE_FOUND) ? t->tsnap.snap_source : t->center_global;
+  float *grid_co = nullptr, grid_co_stack[3];
+  if ((t->tsnap.mode & SCE_SNAP_TO_GRID) && (t->con.mode & CON_APPLY) &&
+      (t->mode == TFM_TRANSLATION))
+  {
+    /* Without this position adjustment, the snap may be far from the expected constraint point. */
+    grid_co = grid_co_stack;
+    t->tsnap.status &= ~SNAP_TARGET_FOUND;
+    t->con.applyVec(t, nullptr, nullptr, vec, grid_co);
+    add_v3_v3(grid_co, t->center_global);
+  }
 
   return ED_transform_snap_object_project_view3d(t->tsnap.object_context,
                                                  t->depsgraph,
@@ -1474,7 +1549,7 @@ eSnapMode snapObjectsTransform(
                                                  static_cast<const View3D *>(t->view),
                                                  t->tsnap.mode,
                                                  &snap_object_params,
-                                                 nullptr,
+                                                 grid_co,
                                                  mval,
                                                  prev_co,
                                                  dist_px,

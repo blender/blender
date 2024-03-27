@@ -73,15 +73,15 @@
 #include "UI_interface_icons.hh"
 
 #include "BLF_api.hh"
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
-#include "GPU_init_exit.h"
-#include "GPU_platform.h"
-#include "GPU_state.h"
-#include "GPU_texture.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_immediate.hh"
+#include "GPU_init_exit.hh"
+#include "GPU_platform.hh"
+#include "GPU_state.hh"
+#include "GPU_texture.hh"
 
 #include "UI_resources.hh"
 
@@ -1487,7 +1487,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
       }
 
       wm_window_make_drawable(wm, win);
-      WM_event_add_notifier(C, NC_WINDOW, nullptr);
+      WM_event_add_notifier_ex(wm, win, NC_WINDOW, nullptr);
 
       break;
     }
@@ -1502,7 +1502,7 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
          * however this causes window flickering on resize with LIBDECOR under WAYLAND. */
         wm_window_swap_buffers(win);
 #else
-      WM_event_add_notifier(C, NC_WINDOW, nullptr);
+      WM_event_add_notifier_ex(wm, win, NC_WINDOW, nullptr);
 #endif
 
       break;
@@ -1561,8 +1561,8 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
 
           wm_window_make_drawable(wm, win);
           BKE_icon_changed(screen->id.icon_id);
-          WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
-          WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, nullptr);
+          WM_event_add_notifier_ex(wm, win, NC_SCREEN | NA_EDITED, nullptr);
+          WM_event_add_notifier_ex(wm, win, NC_WINDOW | NA_EDITED, nullptr);
 
 #if defined(__APPLE__) || defined(WIN32)
           /* MACOS and WIN32 don't return to the main-loop while resize. */
@@ -1690,8 +1690,8 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
 
         wm_window_make_drawable(wm, win);
 
-        WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
-        WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, nullptr);
+        WM_event_add_notifier_ex(wm, win, NC_SCREEN | NA_EDITED, nullptr);
+        WM_event_add_notifier_ex(wm, win, NC_WINDOW | NA_EDITED, nullptr);
       }
 
       break;

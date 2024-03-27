@@ -16,17 +16,17 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
 
-#include "gpu_py.h"
-#include "gpu_py_element.h"
-#include "gpu_py_shader.h"
-#include "gpu_py_vertex_buffer.h"
+#include "gpu_py.hh"
+#include "gpu_py_element.hh"
+#include "gpu_py_shader.hh"
+#include "gpu_py_vertex_buffer.hh"
 
-#include "gpu_py_batch.h" /* own include */
+#include "gpu_py_batch.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
@@ -98,9 +98,9 @@ static PyObject *pygpu_batch__tp_new(PyTypeObject * /*type*/, PyObject *args, Py
     return nullptr;
   }
 
-  GPUBatch *batch = GPU_batch_create(GPUPrimType(prim_type.value_found),
-                                     py_vertbuf->buf,
-                                     py_indexbuf ? py_indexbuf->elem : nullptr);
+  blender::gpu::Batch *batch = GPU_batch_create(GPUPrimType(prim_type.value_found),
+                                                py_vertbuf->buf,
+                                                py_indexbuf ? py_indexbuf->elem : nullptr);
 
   BPyGPUBatch *ret = (BPyGPUBatch *)BPyGPUBatch_CreatePyObject(batch);
 
@@ -525,7 +525,7 @@ PyTypeObject BPyGPUBatch_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUBatch_CreatePyObject(GPUBatch *batch)
+PyObject *BPyGPUBatch_CreatePyObject(blender::gpu::Batch *batch)
 {
   BPyGPUBatch *self;
 

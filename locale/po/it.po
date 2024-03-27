@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-03-01 16:11+0000\n"
@@ -3928,18 +3928,6 @@ msgid "Curve used for the strength"
 msgstr "Curva usata per la forza"
 
 
-msgid "Direction"
-msgstr "Direzione"
-
-
-msgid "Add effect of brush"
-msgstr "Aggiunge l'effetto del pennello"
-
-
-msgid "Subtract effect of brush"
-msgstr "Sottrae l'effetto del pennello"
-
-
 msgid "Dissolve"
 msgstr "Dissolvi"
 
@@ -3966,6 +3954,10 @@ msgstr "Influisce sullo Spessore del Tratto"
 
 msgid "Closure Size"
 msgstr "Dimensione della Chiusura"
+
+
+msgid "Direction"
+msgstr "Direzione"
 
 
 msgid "Direction of the fill"
@@ -13245,6 +13237,14 @@ msgstr "Sottrae Colore"
 
 msgid "Color of cursor when subtracting"
 msgstr "Colore del cursore quando sottrae"
+
+
+msgid "Add effect of brush"
+msgstr "Aggiunge l'effetto del pennello"
+
+
+msgid "Subtract effect of brush"
+msgstr "Sottrae l'effetto del pennello"
 
 
 msgid "Falloff Angle"
@@ -54250,14 +54250,6 @@ msgstr "Conteggio Punto"
 
 msgid "Mask Value"
 msgstr "Valore Maschera"
-
-
-msgid "CCW"
-msgstr "Senso Antiorario"
-
-
-msgid "CW"
-msgstr "Senso Orario"
 
 
 msgctxt "Operator"

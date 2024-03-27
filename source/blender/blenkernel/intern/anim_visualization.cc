@@ -15,7 +15,7 @@
 #include "BKE_anim_visualization.h"
 #include "BKE_report.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "BLO_read_write.hh"
 

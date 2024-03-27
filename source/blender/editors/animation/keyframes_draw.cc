@@ -22,9 +22,9 @@
 #include "DNA_grease_pencil_types.h"
 #include "DNA_mask_types.h"
 
-#include "GPU_immediate.h"
-#include "GPU_shader_shared.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_shader_shared.hh"
+#include "GPU_state.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -493,7 +493,7 @@ static void prepare_channel_for_drawing(ChannelListElement *elem)
   ED_keylist_prepare_for_direct_access(elem->keylist);
 }
 
-/* List of channels that are actually drawn because they are in view. */
+/** List of channels that are actually drawn because they are in view. */
 struct ChannelDrawList {
   ListBase /*ChannelListElement*/ channels;
 };

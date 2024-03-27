@@ -14,10 +14,10 @@ void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, bool make_linear_r
 {
   using namespace blender;
   if (ibuf->float_buffer.data) {
-    imbuf::interpolate_nearest_fl(ibuf, color, x, y);
+    imbuf::interpolate_nearest_border_fl(ibuf, color, x, y);
   }
   else {
-    uchar4 byte_color = imbuf::interpolate_nearest_byte(ibuf, x, y);
+    uchar4 byte_color = imbuf::interpolate_nearest_border_byte(ibuf, x, y);
     rgba_uchar_to_float(color, byte_color);
     if (make_linear_rgb) {
       IMB_colormanagement_colorspace_to_scene_linear_v4(

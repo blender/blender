@@ -28,7 +28,7 @@ float octahedral_texel_solid_angle(ivec2 local_texel,
     /* Do not weight these border pixels that are redundant. */
     return 0.0;
   }
-  /* Since we are puting texel centers on the edges of the octahedron, the shape of a texel can be
+  /* Since we are pouting texel centers on the edges of the octahedron, the shape of a texel can be
    * anything from a simple quad (at the Z=0 poles), to a 4 pointed start (at the Z=+-1 poles)
    * passing by arrow tail shapes (at the X=0 and Y=0 edges). So while it would be more correct to
    * account for all these shapes (using 8 triangles), it proves to be quite involved with all the
@@ -54,7 +54,7 @@ float octahedral_texel_solid_angle(ivec2 local_texel,
   v02 = normalize(v02);
   v12 = normalize(v12);
   v22 = normalize(v22);
-#if 0 /* Has artifacts, is marginaly more correct. */
+#if 0 /* Has artifacts, is marginally more correct. */
   /* For some reason quad_solid_angle(v10, v20, v11, v21) gives some strange artifacts at Z=0. */
   return 0.25 * (quad_solid_angle(v00, v10, v01, v11) + quad_solid_angle(v10, v20, v11, v21) +
                  quad_solid_angle(v01, v11, v02, v12) + quad_solid_angle(v11, v21, v12, v22));
@@ -132,7 +132,7 @@ void main()
       /* TODO(fclem): Cleanup: Should spherical_harmonics_encode_signal_sample return a new sh
        * instead of adding to it? */
       spherical_harmonics_encode_signal_sample(L, local_radiance[0], sh);
-      /* Outputs one SH for each threadgroup. */
+      /* Outputs one SH for each thread-group. */
       uint work_group_index = gl_NumWorkGroups.x * gl_WorkGroupID.y + gl_WorkGroupID.x;
       out_sh[work_group_index].L0_M0 = sh.L0.M0;
       out_sh[work_group_index].L1_Mn1 = sh.L1.Mn1;

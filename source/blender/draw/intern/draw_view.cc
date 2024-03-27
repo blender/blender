@@ -8,8 +8,8 @@
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.hh"
-#include "GPU_compute.h"
-#include "GPU_debug.h"
+#include "GPU_compute.hh"
+#include "GPU_debug.hh"
 
 #include "draw_debug.hh"
 #include "draw_shader.hh"

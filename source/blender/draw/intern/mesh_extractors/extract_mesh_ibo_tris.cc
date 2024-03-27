@@ -8,7 +8,7 @@
 
 #include "BKE_editmesh.hh"
 
-#include "GPU_index_buffer.h"
+#include "GPU_index_buffer.hh"
 
 #include "extract_mesh.hh"
 
@@ -49,10 +49,10 @@ static void extract_tris_iter_face_bm(const MeshRenderData &mr,
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
   int tri_first_index_real = poly_to_tri_count(f_index, BM_elem_index_get(f->l_first));
 
-  BMLoop *(*looptris)[3] = mr.edit_bmesh->looptris;
+  Span<std::array<BMLoop *, 3>> looptris = mr.edit_bmesh->looptris;
   int tri_len = f->len - 2;
   for (int offs = 0; offs < tri_len; offs++) {
-    BMLoop **elt = looptris[tri_first_index_real + offs];
+    const std::array<BMLoop *, 3> &elt = looptris[tri_first_index_real + offs];
     int tri_index = tri_offset + offs;
     GPU_indexbuf_set_tri_verts(elb,
                                tri_index,
@@ -89,7 +89,7 @@ static void extract_tris_finish(const MeshRenderData &mr,
                                 void *buf,
                                 void *_data)
 {
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
   GPU_indexbuf_build_in_place(elb, ibo);
 
@@ -119,7 +119,7 @@ static void extract_tris_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                      void *buffer,
                                      void * /*data*/)
 {
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buffer);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buffer);
   /* Initialize the index buffer, it was already allocated, it will be filled on the device. */
   GPU_indexbuf_init_build_on_device(ibo, subdiv_cache.num_subdiv_triangles * 3);
 
@@ -208,7 +208,7 @@ static void extract_tris_single_mat_finish(const MeshRenderData &mr,
                                            void *buf,
                                            void *_data)
 {
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
   GPU_indexbuf_build_in_place(elb, ibo);
 

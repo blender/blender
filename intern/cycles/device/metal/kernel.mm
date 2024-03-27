@@ -106,7 +106,7 @@ struct ShaderCache {
 
   friend ShaderCache *get_shader_cache(id<MTLDevice> mtlDevice);
 
-  void compile_thread_func(int thread_index);
+  void compile_thread_func();
 
   using PipelineCollection = std::vector<unique_ptr<MetalKernelPipeline>>;
 
@@ -174,7 +174,7 @@ void ShaderCache::wait_for_all()
   }
 }
 
-void ShaderCache::compile_thread_func(int /*thread_index*/)
+void ShaderCache::compile_thread_func()
 {
   while (running) {
 
@@ -309,7 +309,7 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
 
       metal_printf("Spawning %d Cycles kernel compilation threads\n", max_mtlcompiler_threads);
       for (int i = 0; i < max_mtlcompiler_threads; i++) {
-        compile_threads.push_back(std::thread([&] { compile_thread_func(i); }));
+        compile_threads.push_back(std::thread([this] { this->compile_thread_func(); }));
       }
     }
   }

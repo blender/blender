@@ -32,7 +32,7 @@
 #include "ED_screen.hh"
 #include "ED_transform.hh"
 
-#include "view3d_intern.h"
+#include "view3d_intern.hh"
 #include "view3d_navigate.hh"
 
 #ifdef WIN32

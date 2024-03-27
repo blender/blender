@@ -11,7 +11,7 @@
 
 #include "BKE_global.hh"
 
-#include "GPU_framebuffer.h"
+#include "GPU_framebuffer.hh"
 
 #include "GHOST_C-api.h"
 

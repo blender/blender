@@ -34,6 +34,7 @@
 
 #include "ED_armature.hh"
 #include "ED_mesh.hh"
+#include "ED_object_vgroup.hh"
 
 #include "ANIM_bone_collections.hh"
 

@@ -2,11 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "draw_defines.h"
+#include "draw_defines.hh"
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(draw_object_infos)
-    .typedef_source("draw_shader_shared.h")
+    .typedef_source("draw_shader_shared.hh")
     .define("OBINFO_LIB")
     .define("OrcoTexCoFactors", "(drw_infos[resource_id].orco_mul_bias)")
     .define("ObjectInfo", "(drw_infos[resource_id].infos)")
@@ -17,15 +17,15 @@ GPU_SHADER_CREATE_INFO(draw_object_infos)
                  Frequency::BATCH);
 
 GPU_SHADER_CREATE_INFO(draw_volume_infos)
-    .typedef_source("draw_shader_shared.h")
+    .typedef_source("draw_shader_shared.hh")
     .uniform_buf(DRW_OBJ_DATA_INFO_UBO_SLOT, "VolumeInfos", "drw_volume", Frequency::BATCH);
 
 GPU_SHADER_CREATE_INFO(draw_curves_infos)
-    .typedef_source("draw_shader_shared.h")
+    .typedef_source("draw_shader_shared.hh")
     .uniform_buf(DRW_OBJ_DATA_INFO_UBO_SLOT, "CurvesInfos", "drw_curves", Frequency::BATCH);
 
 GPU_SHADER_CREATE_INFO(draw_layer_attributes)
-    .typedef_source("draw_shader_shared.h")
+    .typedef_source("draw_shader_shared.hh")
     .define("VLATTR_LIB")
     .uniform_buf(DRW_LAYER_ATTR_UBO_SLOT,
                  "LayerAttribute",
@@ -33,7 +33,7 @@ GPU_SHADER_CREATE_INFO(draw_layer_attributes)
                  Frequency::BATCH);
 
 GPU_SHADER_CREATE_INFO(draw_object_infos_new)
-    .typedef_source("draw_shader_shared.h")
+    .typedef_source("draw_shader_shared.hh")
     .define("OBINFO_LIB")
     .define("OBINFO_NEW")
     .define("OrcoTexCoFactors", "(drw_infos[resource_id].orco_mul_bias)")

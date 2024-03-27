@@ -16,8 +16,8 @@
 
 #include "BLI_sys_types.h" /* for bool */
 
-#include "GPU_shader.h"  /* for GPUShaderCreateInfo */
-#include "GPU_texture.h" /* for GPUSamplerState */
+#include "GPU_shader.hh"  /* for GPUShaderCreateInfo */
+#include "GPU_texture.hh" /* for GPUSamplerState */
 
 struct GHash;
 struct GPUMaterial;
@@ -275,7 +275,7 @@ const char *GPU_material_get_name(GPUMaterial *material);
 void GPU_material_optimize(GPUMaterial *mat);
 
 /**
- * Return can be NULL if it's a world material.
+ * Return can be null if it's a world material.
  */
 Material *GPU_material_get_material(GPUMaterial *material);
 /**

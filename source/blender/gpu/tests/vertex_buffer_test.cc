@@ -4,12 +4,12 @@
 
 #include "testing/testing.h"
 
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
-#include "GPU_shader.h"
-#include "GPU_vertex_buffer.h"
-#include "GPU_vertex_format.h"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_immediate.hh"
+#include "GPU_shader.hh"
+#include "GPU_vertex_buffer.hh"
+#include "GPU_vertex_format.hh"
 
 #include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"
@@ -39,7 +39,7 @@ static void vertex_buffer_fetch_mode(ColorType color)
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   GPU_vertformat_attr_add(&format, "color", comp_type, 4, fetch_mode);
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, 4);
 
   struct Vert {
@@ -56,7 +56,7 @@ static void vertex_buffer_fetch_mode(ColorType color)
     GPU_vertbuf_vert_set(vbo, i, &data[i]);
   }
 
-  GPUBatch *batch = GPU_batch_create(GPU_PRIM_TRI_FAN, vbo, nullptr);
+  Batch *batch = GPU_batch_create(GPU_PRIM_TRI_FAN, vbo, nullptr);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR);
   GPU_batch_draw(batch);
 

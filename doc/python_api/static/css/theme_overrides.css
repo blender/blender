@@ -1,19 +1,340 @@
-/* Hide home icon in search area */
-.wy-side-nav-search > a:hover {background: none; opacity: 0.9}
-.wy-side-nav-search > a.icon::before {content: none}
+/*
+ * This stylesheet is applied after the theme's default one,
+ * and thus any overrides or additions can be added here.
+ *
+ * More info:
+ *		https://www.sphinx-doc.org/en/master/extdev/appapi.html#sphinx.application.Sphinx.add_css_file
+ */
 
-.wy-nav-content {
-    max-width: 1000px !important;
+body {
+	--sidebar-caption-font-size: var(--font-size--normal);
+	--toc-title-font-size: var(--font-size--normal);
+	--toc-font-size: var(--sidebar-item-font-size);
+	--admonition-font-size: var(--font-size--normal);
+	--admonition-title-font-size: var(--font-size--normal);
+	--color-api-name: #e87d0d;
 }
 
-/* Fix long titles on mobile */
-h1, h2, h3, h4, h5, h6 {word-break: break-all}
+h1,
+h2,
+h3 {
+	margin-top: 1.75rem;
+	margin-bottom: 1rem;
+}
 
-/* Temp fix for https://github.com/readthedocs/sphinx_rtd_theme/pull/1109 */
+h1 {
+	font-size: 2em;
+}
+
+h2 {
+	font-size: 1.5em;
+}
+
+h3 {
+	font-size: 1.25em;
+}
+
+h4,
+h5,
+h6,
+.rubric {
+	margin-top: 1.25rem;
+	margin-bottom: 0.75rem;
+	font-size: 1.125em;
+}
+
+/* Reduce the margins on top/bottom of horizontal lines. */
+hr.docutils {
+	margin: 1rem 0;
+}
+
+
+/* Slightly decrease text to make the text fit on one line */
+.sidebar-brand-text {
+	font-size: 1.4rem;
+}
+
+.toctree-checkbox~label .icon svg {
+	transition: transform 0.25s ease-out;
+}
+
+/* Add more visual weight to definition terms */
+dl dt {
+	font-weight: bold !important
+}
+
+/* Fixes to field list, see #104636 */
+dl.field-list {
+	display: grid;
+	grid-template-columns: auto minmax(80%, 95%);
+}
+
+dl.field-list > dd > p:last-child {
+	margin-bottom: 0;
+}
+
+@media (max-width: calc(67em / 2)) {
+	dl.field-list  {
+		grid-template-columns: unset;
+    }
+}
+
+/* TABLE & FIGURE */
+
+/* Cell's vertical align. */
+/* use "valign" class for middle align */
+table.docutils:not(.valign) td {
+	vertical-align: baseline;
+}
+
+/* Decrease whitespace above figure and add it below */
+figure {
+	padding-bottom: 0.5rem;
+}
+
+figcaption {
+	margin-bottom: 0.5rem !important;
+
+	p {
+		margin-top: 0;
+	}
+}
+
+/* Allow horizontal lists to collapse on narrow screens */
 .hlist tr {
-   display: -ms-flexbox;
-   display: flex;
-   flex-flow: row wrap;
- }
+	display: flex;
+	flex-flow: row wrap;
+}
 
-.hlist td {margin-right: auto}
+/* End TABLE & FIGURE. */
+
+/* Force admonition to span the full width if close to a figure */
+.admonition {
+	clear: both;
+}
+
+/* Use secondary font color for caption text */
+figcaption,
+caption {
+	color: var(--color-foreground-secondary);
+	font-size: var(--font-size--small)
+}
+
+/* A bit hacky, revert the themes styling of kbd */
+kbd:not(.compound) {
+	all: revert;
+}
+
+/* Only style parent kbd elements instead of the individual children */
+:not(dl.option-list)> :not(kbd):not(kbd)>kbd,
+.menuselection {
+	background-color: var(--color-background-secondary);
+	border: 1px solid var(--color-foreground-border);
+	border-radius: .2rem;
+	box-shadow: 0 .0625rem 0 rgba(0, 0, 0, .2), inset 0 0 0 .125rem var(--color-background-secondary);
+	color: var(--color-foreground-primary);
+	display: inline-block;
+	margin: 0;
+	padding: 0 .2rem;
+}
+
+.highlight .nc,
+.highlight .nn,
+.highlight .gu {
+	text-decoration-line: none !important;
+}
+
+.caption .menuselection {
+	background-color: transparent;
+	border: none;
+}
+
+a {
+	text-decoration: none;
+}
+
+/* Break long code references onto a second line */
+a > code.docutils {
+	overflow-wrap: anywhere;
+}
+
+/* Quotes for Fig. "link". */
+a[href^="#fig-"]::before {
+	content: "\201c";
+}
+
+a[href^="#fig-"]::after {
+	content: "\201d";
+}
+
+/* Mark external links. */
+a.external {
+	filter: brightness(150%);
+}
+
+/* List blender.org as internal. */
+.external[href^="https://www.blender.org"],
+.external[href^="https://docs.blender.org"],
+.external[href^="https://projects.blender.org"],
+.external[href^="https://builder.blender.org"],
+.external[href^="https://code.blender.org"],
+.external[href^="https://translate.blender.org"],
+.external[href^="https://fund.blender.org"],
+.external[href^="blender_manual_html.zip"],
+.external[href^="blender_manual_epub.zip"],
+.external[href^="https://archive.blender.org"] {
+	filter: revert;
+}
+
+/* ".. container::" lead, block text float around image. */
+.lead {
+	clear: both;
+	width: 100%;
+}
+
+/* Start reference admonition. */
+.admonition.refbox {
+	border-color: rgb(50, 50, 50);
+}
+
+.admonition.refbox>.admonition-title {
+	background-color: rgba(50, 50, 50, 0.2);
+	border-color: rgb(50, 50, 50);
+}
+
+.admonition.refbox>.admonition-title::before {
+	background-color: var(--color-content-foreground);
+}
+
+/* 'refbox' field. */
+.refbox .field-list .field-name,
+.refbox .field-list .field-body {
+	padding: 0px;
+}
+
+.refbox dl dt {
+	font-weight: normal
+}
+
+/* End reference admonition. */
+
+/* Applied on main index:sections. */
+
+.global-index-toc {
+	display: none;
+}
+
+/* Start section cards. */
+.toc-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+	grid-gap: 20px;
+	list-style-type: none;
+	margin-bottom: 24px;
+}
+
+.card {
+	border-radius: .3em;
+	user-select: none;
+}
+
+.card div.figure,
+.card figure {
+	margin-bottom: 0px;
+	display: block;
+}
+
+.card img {
+	border-top-left-radius: .3em;
+	border-top-right-radius: .3em;
+}
+
+.card dl {
+	margin-bottom: 10px
+}
+
+.card dl dt>a {
+	display: block;
+	width: 100%;
+	margin-bottom: 10px;
+}
+
+.card dl dt a em,
+.card dl dt a span {
+	font-weight: bold;
+	font-style: normal;
+	font-size: 1.3em;
+}
+
+.card dl dt {
+	padding: 0px 15px 0px !important
+}
+
+.card dl dd {
+	padding: 0px 15px 5px 15px;
+	font-style: normal;
+	margin: 0px;
+	color: var(--color-foreground-secondary);
+	font-size: 90%;
+}
+
+.card {
+	box-shadow: 0 .2rem .5rem rgba(0, 0, 0, .05), 0 0 .0625rem rgba(0, 0, 0, .1);
+}
+
+#getting-started .card {
+	box-shadow: none;
+}
+
+/* End section cards. */
+
+/* Start custom toctree. */
+/* Indent all lines following the first. */
+.toctree-wrapper * a {
+	display: block;
+	padding-top: 0.25em;
+}
+
+.toctree-wrapper ul {
+	list-style: none;
+	padding-left: 0;
+}
+
+/* Underline provided by nested ul (not li). */
+.toctree-wrapper * ul {
+	margin-bottom: 1rem !important;
+	border-top: solid var(--color-background-border) 1px;
+	padding-left: 2em;
+}
+
+/* End custom toctree. */
+
+/* Start footer contribute link */
+.footer-contribute {
+	display: block;
+	font-size: var(--font-size--small);
+}
+
+.bottom-of-page {
+	padding-bottom: 0;
+}
+
+.footer-contribute ul {
+	margin: 0;
+	padding: 0;
+	padding-bottom: 1rem
+}
+
+.footer-contribute li {
+	display: inline;
+	list-style-type: none;
+	padding-right: 1.5rem;
+}
+
+@media print {
+	.footer-contribute {
+		display: none;
+	}
+}
+
+/* End footer contribute link */

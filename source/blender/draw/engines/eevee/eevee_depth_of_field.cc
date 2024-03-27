@@ -29,9 +29,9 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_framebuffer.h"
-#include "GPU_texture.h"
-#include "eevee_private.h"
+#include "GPU_framebuffer.hh"
+#include "GPU_texture.hh"
+#include "eevee_private.hh"
 
 #define CAMERA_JITTER_RING_DENSITY 6
 

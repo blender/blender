@@ -467,10 +467,11 @@ static void evaluate_coarse_difference(const Span<DifferenceCourseBoundary> boun
  * #CoarseSegment::Type::Unknown. Those segments can be evaluated in more detail afterwards.
  *
  * \param root_expression: Expression to be evaluated.
- * \param eval_order: Pre-computed evaluation order. All children of a term must come before
- *   the term itself.
- * \param eval_bounds: If given, the evaluation is restriced to those bounds. Otherwise, the full
- *   referenced masks are used.
+ * \param eval_order: Pre-computed evaluation order.
+ * All children of a term must come before the term itself.
+ * \param eval_bounds: If given, the evaluation is restricted to those bounds.
+ * Otherwise, the full
+ * referenced masks are used.
  */
 static CoarseResult evaluate_coarse(const Expr &root_expression,
                                     const Span<const Expr *> eval_order,
@@ -1148,7 +1149,7 @@ static void evaluate_short_unknown_segments_exactly(
       }
       case ExactEvalMode::Indices: {
         /* #evaluate_exact_with_indices requires that all index masks have a single segment in the
-         * provided bounds. So split up the range into subranges first if necessary. */
+         * provided bounds. So split up the range into sub-ranges first if necessary. */
         Vector<int64_t, 16> split_indices;
         /* Always adding the beginning and end of the bounds simplifies the code below. */
         split_indices.extend({bounds.first(), bounds.one_after_last()});

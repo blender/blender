@@ -50,7 +50,7 @@
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 
-#include "view3d_intern.h"
+#include "view3d_intern.hh"
 
 using blender::Vector;
 

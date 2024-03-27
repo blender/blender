@@ -15,7 +15,7 @@
 
 #include "BKE_context.hh"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 #include "DEG_depsgraph_query.hh"
 

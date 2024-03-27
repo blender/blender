@@ -17,6 +17,7 @@
 #include "BKE_duplilist.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_global.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
@@ -25,7 +26,7 @@
 #include "BLI_math_base.hh"
 
 #include "DRW_render.hh"
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "ED_view3d.hh"
 
@@ -153,7 +154,7 @@ static void wireframe_hair_cache_populate(OVERLAY_Data *vedata, Object *ob, Part
     unit_m4(dupli_mat);
   }
 
-  GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
+  blender::gpu::Batch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
 
   const bool use_coloring = true;
   DRWShadingGroup *shgrp = DRW_shgroup_create_sub(pd->wires_hair_grp[is_xray][use_coloring]);
@@ -178,7 +179,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     /* TODO: Should be its own function. */
     Mesh *mesh = static_cast<Mesh *>(ob->data);
     if (is_edit_mode) {
-      BLI_assert(mesh->edit_mesh);
+      BLI_assert(mesh->runtime->edit_mesh);
       Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
       Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
       has_edit_mesh_cage = editmesh_eval_cage && (editmesh_eval_cage != editmesh_eval_final);
@@ -213,7 +214,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     float *color;
     DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
-    GPUBatch *geom = nullptr;
+    blender::gpu::Batch *geom = nullptr;
     switch (ob->type) {
       case OB_CURVES_LEGACY:
         geom = DRW_cache_curve_edge_wire_get(ob);
@@ -272,7 +273,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
       OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
       DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
-      GPUBatch *geom = DRW_cache_object_face_wireframe_get(ob);
+      blender::gpu::Batch *geom = DRW_cache_object_face_wireframe_get(ob);
       if (geom) {
         OVERLAY_extra_loose_points(cb, geom, ob->object_to_world().ptr(), color);
       }
@@ -281,7 +282,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   }
 
   DRWShadingGroup *shgrp = nullptr;
-  GPUBatch *geom = nullptr;
+  blender::gpu::Batch *geom = nullptr;
 
   /* Don't do that in edit Mesh mode, unless there is a modifier preview. */
   if (use_wire && (!is_mesh || (!is_edit_mode || has_edit_mesh_cage))) {

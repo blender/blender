@@ -17,9 +17,9 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -403,9 +403,6 @@ static void applyAxisConstraintVec(const TransInfo *t,
         is_snap_to_edge = (t->tsnap.target_type & SCE_SNAP_TO_EDGE) != 0;
         is_snap_to_face = (t->tsnap.target_type & SCE_SNAP_TO_FACE) != 0;
         is_snap_to_point = !is_snap_to_edge && !is_snap_to_face;
-      }
-      else if (t->tsnap.target_type & SCE_SNAP_TO_GRID) {
-        is_snap_to_point = true;
       }
     }
 

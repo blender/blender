@@ -11,7 +11,7 @@
  */
 
 #include "BKE_global.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 
@@ -23,7 +23,7 @@
 #include "GHOST_C-api.h"
 
 #ifdef WIN32
-#  include "GPU_platform.h"
+#  include "GPU_platform.hh"
 #endif
 
 #include "MEM_guardedalloc.h"

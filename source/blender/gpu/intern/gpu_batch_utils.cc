@@ -14,16 +14,16 @@
 #include "BLI_sort_utils.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_batch.h"
-#include "GPU_batch_utils.h" /* own include */
+#include "GPU_batch.hh"
+#include "GPU_batch_utils.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Polygon Creation (2D)
  * \{ */
 
-GPUBatch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat,
-                                              uint polys_flat_len,
-                                              const rctf *rect)
+blender::gpu::Batch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat,
+                                                         uint polys_flat_len,
+                                                         const rctf *rect)
 {
   const uchar(*polys)[2] = static_cast<const uchar(*)[2]>((const void *)polys_flat);
   const uint polys_len = polys_flat_len / 2;
@@ -86,7 +86,7 @@ GPUBatch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat,
 
   const uint verts_len = (verts_step - verts);
   const uint tris_len = (tris_step - tris);
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, verts_len);
 
   GPUVertBufRaw pos_step;
@@ -101,7 +101,7 @@ GPUBatch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat,
   for (uint i = 0; i < tris_len; i++) {
     GPU_indexbuf_add_tri_verts(&elb, UNPACK3(tris[i]));
   }
-  GPUIndexBuf *indexbuf = GPU_indexbuf_build(&elb);
+  blender::gpu::IndexBuf *indexbuf = GPU_indexbuf_build(&elb);
 
   MEM_freeN(tris);
   MEM_freeN(verts);
@@ -110,9 +110,9 @@ GPUBatch *GPU_batch_tris_from_poly_2d_encoded(const uchar *polys_flat,
       GPU_PRIM_TRIS, vbo, indexbuf, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
 }
 
-GPUBatch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat,
-                                              uint polys_flat_len,
-                                              const rctf *rect)
+blender::gpu::Batch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat,
+                                                         uint polys_flat_len,
+                                                         const rctf *rect)
 {
   const uchar(*polys)[2] = static_cast<const uchar(*)[2]>((const void *)polys_flat);
   const uint polys_len = polys_flat_len / 2;
@@ -186,7 +186,7 @@ GPUBatch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat,
     attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   }
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   const uint vbo_len_capacity = lines_len * 2;
   GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
 

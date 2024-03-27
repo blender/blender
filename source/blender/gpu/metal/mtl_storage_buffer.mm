@@ -9,7 +9,7 @@
 #include "BLI_string.h"
 #include "BLI_time.h"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 

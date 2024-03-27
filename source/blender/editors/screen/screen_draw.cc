@@ -8,10 +8,10 @@
 
 #include "ED_screen.hh"
 
-#include "GPU_batch_presets.h"
-#include "GPU_immediate.h"
-#include "GPU_platform.h"
-#include "GPU_state.h"
+#include "GPU_batch_presets.hh"
+#include "GPU_immediate.hh"
+#include "GPU_platform.hh"
+#include "GPU_state.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.hh"
@@ -22,11 +22,11 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "screen_intern.h"
+#include "screen_intern.hh"
 
 #define CORNER_RESOLUTION 3
 
-static void do_vert_pair(GPUVertBuf *vbo, uint pos, uint *vidx, int corner, int i)
+static void do_vert_pair(blender::gpu::VertBuf *vbo, uint pos, uint *vidx, int corner, int i)
 {
   float inter[2];
   inter[0] = cosf(corner * M_PI_2 + (i * M_PI_2 / (CORNER_RESOLUTION - 1.0f)));
@@ -71,15 +71,15 @@ static void do_vert_pair(GPUVertBuf *vbo, uint pos, uint *vidx, int corner, int 
   GPU_vertbuf_attr_set(vbo, pos, (*vidx)++, exter);
 }
 
-static GPUBatch *batch_screen_edges_get(int *corner_len)
+static blender::gpu::Batch *batch_screen_edges_get(int *corner_len)
 {
-  static GPUBatch *screen_edges_batch = nullptr;
+  static blender::gpu::Batch *screen_edges_batch = nullptr;
 
   if (screen_edges_batch == nullptr) {
     GPUVertFormat format = {0};
     uint pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(vbo, CORNER_RESOLUTION * 2 * 4 + 2);
 
     uint vidx = 0;
@@ -129,7 +129,7 @@ static void drawscredge_area_draw(
     rect.ymin -= edge_thickness * 0.5f;
   }
 
-  GPUBatch *batch = batch_screen_edges_get(nullptr);
+  blender::gpu::Batch *batch = batch_screen_edges_get(nullptr);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_BORDERS);
   GPU_batch_uniform_4fv(batch, "rect", (float *)&rect);
   GPU_batch_draw(batch);
@@ -197,7 +197,7 @@ void ED_screen_draw_edges(wmWindow *win)
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  GPUBatch *batch = batch_screen_edges_get(&verts_per_corner);
+  blender::gpu::Batch *batch = batch_screen_edges_get(&verts_per_corner);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_BORDERS);
   GPU_batch_uniform_1i(batch, "cornerLen", verts_per_corner);
   GPU_batch_uniform_1f(batch, "scale", corner_scale);

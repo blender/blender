@@ -1406,7 +1406,7 @@ static void GREASE_PENCIL_OT_clean_loose(wmOperatorType *ot)
 
   ot->invoke = WM_operator_props_popup_confirm;
   ot->exec = grease_pencil_clean_loose_exec;
-  ot->poll = editable_grease_pencil_poll;
+  ot->poll = active_grease_pencil_layer_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

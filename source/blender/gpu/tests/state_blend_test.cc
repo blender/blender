@@ -6,10 +6,10 @@
 
 #include "gpu_testing.hh"
 
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_framebuffer.h"
-#include "GPU_matrix.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_matrix.hh"
 
 #include "BLI_math_vector.hh"
 
@@ -32,7 +32,7 @@ void blend_test(float4 source_a, float4 source_b, float4 expected_result)
   GPUTexture *color_texture = GPU_offscreen_color_texture(offscreen);
   GPU_texture_clear(color_texture, GPU_DATA_FLOAT, source_a);
 
-  GPUBatch *batch = DRW_cache_quad_get();
+  Batch *batch = DRW_cache_quad_get();
 
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_batch_uniform_4fv(batch, "color", source_b);

@@ -20,14 +20,14 @@
 
 #include "DNA_userdef_types.h"
 
-#include "GPU_capabilities.h"
-#include "GPU_matrix.h"
-#include "GPU_shader.h"
-#include "GPU_storage_buffer.h"
-#include "GPU_texture.h"
+#include "GPU_capabilities.hh"
+#include "GPU_matrix.hh"
+#include "GPU_shader.hh"
+#include "GPU_storage_buffer.hh"
+#include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
-#include "GPU_vertex_buffer.h"
-#include "intern/gpu_matrix_private.h"
+#include "GPU_vertex_buffer.hh"
+#include "intern/gpu_matrix_private.hh"
 
 #include "BLI_time.h"
 
@@ -980,8 +980,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
     }
 
     /* Transform feedback buffer binding. */
-    GPUVertBuf *tf_vbo =
-        this->pipeline_state.active_shader->get_transform_feedback_active_buffer();
+    VertBuf *tf_vbo = this->pipeline_state.active_shader->get_transform_feedback_active_buffer();
     if (tf_vbo != nullptr && pipeline_state_instance->transform_feedback_buffer_index >= 0) {
 
       /* Ensure primitive type is either GPU_LINES, GPU_TRIANGLES or GPU_POINT */

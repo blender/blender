@@ -41,7 +41,7 @@
 #include "ED_gpencil_legacy.hh"
 #include "ED_transform_snap_object_context.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 /* Check frame_end is always > start frame! */
 static void gpencil_bake_set_frame_end(Main * /*main*/, Scene * /*scene*/, PointerRNA *ptr)

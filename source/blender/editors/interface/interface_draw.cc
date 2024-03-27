@@ -36,13 +36,13 @@
 
 #include "BLF_api.hh"
 
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
-#include "GPU_shader_shared.h"
-#include "GPU_state.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_matrix.hh"
+#include "GPU_shader_shared.hh"
+#include "GPU_state.hh"
 
 #include "UI_interface.hh"
 
@@ -102,7 +102,7 @@ void UI_draw_roundbox_4fv_ex(const rctf *rect,
   widget_params.shade_dir = shade_dir;
   widget_params.alpha_discard = 1.0f;
 
-  GPUBatch *batch = ui_batch_roundbox_widget_get();
+  blender::gpu::Batch *batch = ui_batch_roundbox_widget_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
   GPU_batch_uniform_4fv_array(batch, "parameters", 11, (const float(*)[4]) & widget_params);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -594,13 +594,14 @@ static void waveform_draw_one(float *waveform, int waveform_num, const float col
   GPUVertFormat format = {0};
   const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, waveform_num);
 
   GPU_vertbuf_attr_fill(vbo, pos_id, waveform);
 
-  /* TODO: store the #GPUBatch inside the scope. */
-  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
+  /* TODO: store the #blender::gpu::Batch inside the scope. */
+  blender::gpu::Batch *batch = GPU_batch_create_ex(
+      GPU_PRIM_POINTS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_batch_uniform_4f(batch, "color", col[0], col[1], col[2], 1.0f);
   GPU_batch_draw(batch);
@@ -614,13 +615,14 @@ static void waveform_draw_rgb(float *waveform, int waveform_num, float *col)
   const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint col_id = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
 
   GPU_vertbuf_data_alloc(vbo, waveform_num);
   GPU_vertbuf_attr_fill(vbo, pos_id, waveform);
   GPU_vertbuf_attr_fill(vbo, col_id, col);
 
-  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
+  blender::gpu::Batch *batch = GPU_batch_create_ex(
+      GPU_PRIM_POINTS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
 
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_SMOOTH_COLOR);
   GPU_batch_draw(batch);
@@ -633,13 +635,13 @@ static void circle_draw_rgb(float *points, int tot_points, float *col, GPUPrimTy
   const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint col_id = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
 
   GPU_vertbuf_data_alloc(vbo, tot_points);
   GPU_vertbuf_attr_fill(vbo, pos_id, points);
   GPU_vertbuf_attr_fill(vbo, col_id, col);
 
-  GPUBatch *batch = GPU_batch_create_ex(prim, vbo, nullptr, GPU_BATCH_OWNS_VBO);
+  blender::gpu::Batch *batch = GPU_batch_create_ex(prim, vbo, nullptr, GPU_BATCH_OWNS_VBO);
 
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_SMOOTH_COLOR);
   GPU_batch_draw(batch);
@@ -1460,7 +1462,7 @@ void ui_draw_but_UNITVEC(uiBut *but,
                           rect->ymin + 0.5f * BLI_rcti_size_y(rect));
   GPU_matrix_scale_1f(size);
 
-  GPUBatch *sphere = GPU_batch_preset_sphere(2);
+  blender::gpu::Batch *sphere = GPU_batch_preset_sphere(2);
   SimpleLightingData simple_lighting_data;
   copy_v4_fl4(simple_lighting_data.l_color, diffuse[0], diffuse[1], diffuse[2], 1.0f);
   copy_v3_v3(simple_lighting_data.light, light);
@@ -2312,7 +2314,7 @@ void ui_draw_dropshadow(
   widget_params.round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f;
   widget_params.alpha_discard = 1.0f;
 
-  GPUBatch *batch = ui_batch_roundbox_shadow_get();
+  blender::gpu::Batch *batch = ui_batch_roundbox_shadow_get();
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_SHADOW);
   GPU_batch_uniform_4fv_array(batch, "parameters", 4, (const float(*)[4]) & widget_params);
   GPU_batch_uniform_1f(batch, "alpha", alpha);

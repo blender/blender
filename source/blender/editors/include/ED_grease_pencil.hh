@@ -120,9 +120,11 @@ bool mirror_selected_frames(GreasePencil &grease_pencil,
                             Scene &scene,
                             const eEditKeyframes_Mirror mode);
 
-/* Creates duplicate frames for each selected frame in the layer. The duplicates are stored in the
- * LayerTransformData structure of the layer runtime data. This function also deselects the
- * selected frames, while keeping the duplicates selected. */
+/**
+ * Creates duplicate frames for each selected frame in the layer.
+ * The duplicates are stored in the LayerTransformData structure of the layer runtime data.
+ * This function also deselects the selected frames, while keeping the duplicates selected.
+ */
 bool duplicate_selected_frames(GreasePencil &grease_pencil, bke::greasepencil::Layer &layer);
 
 bool remove_all_selected_frames(GreasePencil &grease_pencil, bke::greasepencil::Layer &layer);
@@ -228,10 +230,21 @@ void create_blank(Main &bmain, Object &object, int frame_number);
 void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, int frame_number);
 void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, int frame_number);
 
+/**
+ * An implementation of the Ramer-Douglas-Peucker algorithm.
+ *
+ * \param range: The range to simplify.
+ * \param epsilon: The threshold distance from the coord between two points for when a point
+ * in-between needs to be kept.
+ * \param dist_function: A function that computes the distance to a point at an index in the range.
+ * The IndexRange is a subrange of \a range and the index is an index relative to the subrange.
+ * \param points_to_delete: Writes true to the indices for which the points should be removed.
+ * \returns the total number of points to remove.
+ */
 int64_t ramer_douglas_peucker_simplify(IndexRange range,
                                        float epsilon,
                                        FunctionRef<float(int64_t, int64_t, int64_t)> dist_function,
-                                       MutableSpan<bool> dst);
+                                       MutableSpan<bool> points_to_delete);
 
 Array<float2> polyline_fit_curve(Span<float2> points,
                                  float error_threshold,

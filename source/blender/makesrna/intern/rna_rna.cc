@@ -247,7 +247,7 @@ const EnumPropertyItem rna_enum_property_string_search_flag_items[] = {
 #  include "BLI_string.h"
 #  include "MEM_guardedalloc.h"
 
-#  include "BKE_idprop.h"
+#  include "BKE_idprop.hh"
 #  include "BKE_lib_override.hh"
 
 #  include <optional>

@@ -12,7 +12,7 @@
 #pragma once
 
 #include "BLI_sys_types.h"
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 #include "MEM_guardedalloc.h"
 #include "gpu_drawlist_private.hh"
 
@@ -48,7 +48,7 @@ class MTLDrawList : public DrawList {
   MTLDrawList(int length);
   ~MTLDrawList();
 
-  void append(GPUBatch *batch, int i_first, int i_count) override;
+  void append(Batch *batch, int i_first, int i_count) override;
   void submit() override;
 
  private:

@@ -107,13 +107,6 @@ typedef struct Mesh {
   int attributes_active_index;
 
   /**
-   * Runtime storage of the edit mode mesh. If it exists, it generally has the most up-to-date
-   * information about the mesh.
-   * \note When the object is available, the preferred access method is #BKE_editmesh_from_object.
-   */
-  struct BMEditMesh *edit_mesh;
-
-  /**
    * This array represents the selection order when the user manually picks elements in edit-mode,
    * some tools take advantage of this information. All elements in this array are expected to be
    * selected, see #BKE_mesh_mselect_validate which ensures this. For procedurally created meshes,

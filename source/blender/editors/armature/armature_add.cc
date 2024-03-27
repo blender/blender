@@ -29,7 +29,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_object_types.hh"
@@ -1721,8 +1721,13 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
   cuts = RNA_int_get(op->ptr, "number_cuts");
 
   /* loop over all editable bones */
-  /* XXX the old code did this in reverse order though! */
   CTX_DATA_BEGIN_WITH_ID (C, EditBone *, ebone, selected_editable_bones, bArmature *, arm) {
+    /* Keep track of the last bone in the editbone list. The newly created ones
+     * will be appended after this one. */
+    EditBone *last_bone_before_cutting = static_cast<EditBone *>(arm->edbo->last);
+    BLI_assert_msg(last_bone_before_cutting,
+                   "If there is no bone before subdividing, which bone is being subdivided here?");
+
     for (i = cuts + 1; i > 1; i--) {
       /* compute cut ratio first */
       float cutratio = 1.0f / float(i);
@@ -1753,10 +1758,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
       ebone->rad_tail = newbone->rad_head;
 
       newbone->flag |= BONE_CONNECTED;
-
       newbone->prop = nullptr;
-
-      ED_armature_ebone_unique_name(arm->edbo, newbone->name, nullptr);
 
       /* correct parent bones */
       LISTBASE_FOREACH (EditBone *, tbone, arm->edbo) {
@@ -1768,6 +1770,25 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 
       /* Copy bone collection membership. */
       BLI_duplicatelist(&newbone->bone_collections, &ebone->bone_collections);
+    }
+
+    /* Ensure the bones are uniquely named, in the right order to ensure "Bone" is subdivided into
+     * "Bone", "Bone.001", "Bone.002", etc. This has to be in the opposite order as the cuts in the
+     * code above.
+     *
+     * The code above cuts into fractions (for cuts=3 it cuts into 1/4, then 1/3, then 1/2), which
+     * means that it MUST be run in that order. Since the loop below also must run in the order it
+     * is now in, and that's the opposite order of the loop above, they cannot be combined.
+     *
+     * If the code above were refactored, it could just calculate the final bone length and create
+     * (N-1) bones of that length, which can then be done in any order. Then the code below can be
+     * integrated into the code above.
+     */
+    ListBase new_bones;
+    new_bones.first = last_bone_before_cutting->next;
+    new_bones.last = static_cast<EditBone *>(arm->edbo->last);
+    LISTBASE_FOREACH_BACKWARD (EditBone *, newbone, &new_bones) {
+      ED_armature_ebone_unique_name(arm->edbo, newbone->name, newbone);
     }
   }
   CTX_DATA_END;

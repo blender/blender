@@ -451,7 +451,7 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = parent_drop_invoke;
 
-  ot->poll = ED_operator_outliner_active;
+  ot->poll = ED_operator_region_outliner_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -609,7 +609,7 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = scene_drop_invoke;
 
-  ot->poll = ED_operator_outliner_active;
+  ot->poll = ED_operator_region_outliner_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -662,7 +662,7 @@ void OUTLINER_OT_material_drop(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = material_drop_invoke;
 
-  ot->poll = ED_operator_outliner_active;
+  ot->poll = ED_operator_region_outliner_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

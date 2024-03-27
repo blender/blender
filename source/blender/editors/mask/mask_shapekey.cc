@@ -28,7 +28,7 @@
 
 #include "ED_mask.hh" /* own include */
 
-#include "mask_intern.h" /* own include */
+#include "mask_intern.hh" /* own include */
 
 static int mask_shape_key_insert_exec(bContext *C, wmOperator * /*op*/)
 {

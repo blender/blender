@@ -8,7 +8,7 @@
 GPU_SHADER_CREATE_INFO(eevee_subsurface_setup)
     .do_static_compilation(true)
     .local_group_size(SUBSURFACE_GROUP_SIZE, SUBSURFACE_GROUP_SIZE)
-    .typedef_source("draw_shader_shared.h")
+    .typedef_source("draw_shader_shared.hh")
     .additional_info("draw_view", "eevee_shared", "eevee_gbuffer_data")
     .sampler(2, ImageType::DEPTH_2D, "depth_tx")
     .image(0, DEFERRED_RADIANCE_FORMAT, Qualifier::READ, ImageType::FLOAT_2D, "direct_light_img")

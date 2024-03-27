@@ -8,7 +8,7 @@
 
 #include <sstream>
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "vk_shader.hh"
 
@@ -950,7 +950,7 @@ void VKShader::transform_feedback_names_set(Span<const char *> /*name_list*/,
   NOT_YET_IMPLEMENTED
 }
 
-bool VKShader::transform_feedback_enable(GPUVertBuf *)
+bool VKShader::transform_feedback_enable(VertBuf *)
 {
   NOT_YET_IMPLEMENTED
   return false;

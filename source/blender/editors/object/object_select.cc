@@ -62,7 +62,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Public Object Selection API
@@ -1310,7 +1310,7 @@ static bool object_select_more_less(bContext *C, const bool select)
     }
   }
 
-  ListBase ctx_base_list;
+  blender::Vector<PointerRNA> ctx_base_list;
   CTX_data_selectable_bases(C, &ctx_base_list);
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
@@ -1318,8 +1318,8 @@ static bool object_select_more_less(bContext *C, const bool select)
   }
   CTX_DATA_END;
 
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_base, &ctx_base_list) {
-    Object *ob = ((Base *)ctx_base->ptr.data)->object;
+  for (PointerRNA &ptr : ctx_base_list) {
+    Object *ob = ((Base *)ptr.data)->object;
     if (ob->parent) {
       if ((ob->flag & OB_DONE) != (ob->parent->flag & OB_DONE)) {
         ob->id.tag |= LIB_TAG_DOIT;
@@ -1332,16 +1332,14 @@ static bool object_select_more_less(bContext *C, const bool select)
   const short select_mode = select ? BA_SELECT : BA_DESELECT;
   const short select_flag = select ? BASE_SELECTED : 0;
 
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_base, &ctx_base_list) {
-    Base *base = static_cast<Base *>(ctx_base->ptr.data);
+  for (PointerRNA &ptr : ctx_base_list) {
+    Base *base = static_cast<Base *>(ptr.data);
     Object *ob = base->object;
     if ((ob->id.tag & LIB_TAG_DOIT) && ((base->flag & BASE_SELECTED) != select_flag)) {
       ED_object_base_select(base, eObjectSelect_Mode(select_mode));
       changed = true;
     }
   }
-
-  BLI_freelistN(&ctx_base_list);
 
   return changed;
 }
@@ -1420,16 +1418,15 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
   const float randfac = RNA_float_get(op->ptr, "ratio");
   const int seed = WM_operator_properties_select_random_seed_increment_get(op);
 
-  ListBase ctx_data_list;
+  blender::Vector<PointerRNA> ctx_data_list;
   CTX_data_selectable_bases(C, &ctx_data_list);
-  const int tot = BLI_listbase_count(&ctx_data_list);
   int elem_map_len = 0;
-  Base **elem_map = static_cast<Base **>(MEM_mallocN(sizeof(*elem_map) * tot, __func__));
+  Base **elem_map = static_cast<Base **>(
+      MEM_mallocN(sizeof(*elem_map) * ctx_data_list.size(), __func__));
 
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_link, &ctx_data_list) {
-    elem_map[elem_map_len++] = static_cast<Base *>(ctx_link->ptr.data);
+  for (PointerRNA &ptr : ctx_data_list) {
+    elem_map[elem_map_len++] = static_cast<Base *>(ptr.data);
   }
-  BLI_freelistN(&ctx_data_list);
 
   BLI_array_randomize(elem_map, sizeof(*elem_map), elem_map_len, seed);
   const int count_select = elem_map_len * randfac;

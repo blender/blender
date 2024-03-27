@@ -13,8 +13,8 @@
 
 #include "GHOST_C-api.h"
 
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
 
 #include "MEM_guardedalloc.h"
 

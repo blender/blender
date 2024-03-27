@@ -36,7 +36,8 @@ void shadow_tag_usage_tilemap_directional_at_level(uint l_idx, vec3 P, int level
 
   vec3 lP = light_world_to_local(light, P);
 
-  level = clamp(level, light.clipmap_lod_min, light.clipmap_lod_max);
+  level = clamp(
+      level, light_sun_data_get(light).clipmap_lod_min, light_sun_data_get(light).clipmap_lod_max);
 
   ShadowCoordinates coord = shadow_directional_coordinates_at_level(light, lP, level);
   shadow_tag_usage_tile(light, coord.tile_coord, 0, coord.tilemap_index);
@@ -90,13 +91,13 @@ void shadow_tag_usage_tilemap_punctual(
 
   vec3 lP = light_world_to_local(light, P - light._position);
   float dist_to_light = max(length(lP) - radius, 1e-5);
-  if (dist_to_light > light.influence_radius_max) {
+  if (dist_to_light > light_local_data_get(light).influence_radius_max) {
     return;
   }
   if (is_spot_light(light.type)) {
     /* Early out if out of cone. */
     float angle_tan = length(lP.xy / dist_to_light);
-    if (angle_tan > light.spot_tan) {
+    if (angle_tan > light_spot_data_get(light).spot_tan) {
       return;
     }
   }
@@ -108,10 +109,10 @@ void shadow_tag_usage_tilemap_punctual(
   }
 
   /* TODO(fclem): 3D shift for jittered soft shadows. */
-  lP += vec3(0.0, 0.0, -light.shadow_projection_shift);
+  lP += vec3(0.0, 0.0, -light_local_data_get(light).shadow_projection_shift);
 
   float footprint_ratio = shadow_punctual_footprint_ratio(
-      light, P, drw_view_is_perspective(), dist_to_cam, tilemap_projection_ratio);
+      light, P, drw_view_is_perspective(), dist_to_cam, tilemap_proj_ratio);
 
   if (radius == 0) {
     int face_id = shadow_punctual_face_index_get(lP);

@@ -29,7 +29,7 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "physics_intern.h"
+#include "physics_intern.hh"
 
 static bool ptcache_bake_all_poll(bContext *C)
 {

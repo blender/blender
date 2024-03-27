@@ -98,19 +98,30 @@ struct bAnimContext {
   ReportList *reports;
 };
 
-/* Main Data container types */
+/** Main Data container types. */
 enum eAnimCont_Types {
-  ANIMCONT_NONE = 0,      /* invalid or no data */
-  ANIMCONT_ACTION = 1,    /* action (#bAction) */
-  ANIMCONT_SHAPEKEY = 2,  /* shape-key (#Key) */
-  ANIMCONT_GPENCIL = 3,   /* grease pencil (screen) */
-  ANIMCONT_DOPESHEET = 4, /* dope-sheet (#bDopesheet) */
-  ANIMCONT_FCURVES = 5,   /* animation F-Curves (#bDopesheet) */
-  ANIMCONT_DRIVERS = 6,   /* drivers (#bDopesheet) */
-  ANIMCONT_NLA = 7,       /* NLA (#bDopesheet) */
-  ANIMCONT_CHANNEL = 8,   /* animation channel (#bAnimListElem) */
-  ANIMCONT_MASK = 9,      /* mask dope-sheet */
-  ANIMCONT_TIMELINE = 10, /* "timeline" editor (#bDopeSheet) */
+  /** Invalid or no data. */
+  ANIMCONT_NONE = 0,
+  /** Action (#bAction). */
+  ANIMCONT_ACTION = 1,
+  /** Shape-key (#Key). */
+  ANIMCONT_SHAPEKEY = 2,
+  /** Grease pencil (screen). */
+  ANIMCONT_GPENCIL = 3,
+  /** Dope-sheet (#bDopesheet). */
+  ANIMCONT_DOPESHEET = 4,
+  /** Animation F-Curves (#bDopesheet). */
+  ANIMCONT_FCURVES = 5,
+  /** Drivers (#bDopesheet). */
+  ANIMCONT_DRIVERS = 6,
+  /** NLA (#bDopesheet). */
+  ANIMCONT_NLA = 7,
+  /** Animation channel (#bAnimListElem). */
+  ANIMCONT_CHANNEL = 8,
+  /** Mask dope-sheet. */
+  ANIMCONT_MASK = 9,
+  /** "timeline" editor (#bDopeSheet). */
+  ANIMCONT_TIMELINE = 10,
 };
 
 /** \} */
@@ -247,7 +258,7 @@ enum eAnim_ChannelType {
   ANIMTYPE_NUM_TYPES,
 };
 
-/* types of keyframe data in bAnimListElem */
+/** Types of keyframe data in #bAnimListElem. */
 enum eAnim_KeyType {
   ALE_NONE = 0, /* no keyframe data */
   ALE_FCURVE,   /* F-Curve */
@@ -272,9 +283,12 @@ enum eAnim_KeyType {
  * For use with ANIM_animdata_update()
  */
 enum eAnim_Update_Flags {
-  ANIM_UPDATE_DEPS = (1 << 0),    /* referenced data and dependencies get refreshed */
-  ANIM_UPDATE_ORDER = (1 << 1),   /* keyframes need to be sorted */
-  ANIM_UPDATE_HANDLES = (1 << 2), /* recalculate handles */
+  /** Referenced data and dependencies get refreshed. */
+  ANIM_UPDATE_DEPS = (1 << 0),
+  /** Keyframes need to be sorted. */
+  ANIM_UPDATE_ORDER = (1 << 1),
+  /** Recalculate handles. */
+  ANIM_UPDATE_HANDLES = (1 << 2),
 };
 
 /* used for most tools which change keyframes (flushed by ANIM_animdata_update) */

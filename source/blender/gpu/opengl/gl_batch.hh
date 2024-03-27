@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "gpu_batch_private.hh"
+#include "GPU_batch.hh"
 
 #include "gl_index_buffer.hh"
 #include "gl_vertex_buffer.hh"
@@ -62,7 +62,7 @@ class GLVaoCache {
   GLVaoCache();
   ~GLVaoCache();
 
-  GLuint vao_get(GPUBatch *batch);
+  GLuint vao_get(Batch *batch);
 
   /**
    * Return 0 on cache miss (invalid VAO).
@@ -102,15 +102,15 @@ class GLBatch : public Batch {
 
   GLIndexBuf *elem_() const
   {
-    return static_cast<GLIndexBuf *>(unwrap(elem));
+    return static_cast<GLIndexBuf *>(elem);
   }
   GLVertBuf *verts_(const int index) const
   {
-    return static_cast<GLVertBuf *>(unwrap(verts[index]));
+    return static_cast<GLVertBuf *>(verts[index]);
   }
   GLVertBuf *inst_(const int index) const
   {
-    return static_cast<GLVertBuf *>(unwrap(inst[index]));
+    return static_cast<GLVertBuf *>(inst[index]);
   }
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLBatch");

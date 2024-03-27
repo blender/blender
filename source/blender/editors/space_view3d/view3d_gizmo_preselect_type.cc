@@ -493,8 +493,8 @@ void ED_gizmotypes_preselect_3d()
  * the information from this gizmo.
  * \{ */
 
-void ED_view3d_gizmo_mesh_preselect_get_active(bContext *C,
-                                               wmGizmo *gz,
+void ED_view3d_gizmo_mesh_preselect_get_active(const bContext *C,
+                                               const wmGizmo *gz,
                                                Base **r_base,
                                                BMElem **r_ele)
 {
@@ -506,7 +506,7 @@ void ED_view3d_gizmo_mesh_preselect_get_active(bContext *C,
   /* weak, allocate an array just to access the index. */
   Base *base = nullptr;
   Object *obedit = nullptr;
-  {
+  if (object_index != -1) {
     Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(
         scene, view_layer, CTX_wm_view3d(C));
     if (object_index < bases.size()) {

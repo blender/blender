@@ -28,7 +28,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "script_intern.h" /* own include */
+#include "script_intern.hh" /* own include */
 
 // static script_run_python(char *funcname, )
 

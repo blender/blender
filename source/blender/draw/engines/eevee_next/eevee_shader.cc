@@ -9,7 +9,7 @@
  * and static shader usage.
  */
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "gpu_shader_create_info.hh"
 

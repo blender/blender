@@ -29,6 +29,7 @@
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
@@ -51,7 +52,7 @@
 
 #include "UI_resources.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 static int return_editmesh_indexar(BMEditMesh *em,
                                    int *r_indexar_num,
@@ -129,7 +130,7 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
 static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  BMEditMesh *em = mesh->edit_mesh;
+  BMEditMesh *em = mesh->runtime->edit_mesh;
   BMVert *eve;
   BMIter iter;
   int index = 0, nr = 0;
@@ -332,14 +333,12 @@ static bool object_hook_index_array(Main *bmain,
     case OB_MESH: {
       Mesh *mesh = static_cast<Mesh *>(obedit->data);
 
-      BMEditMesh *em;
-
       EDBM_mesh_load(bmain, obedit);
       EDBM_mesh_make(obedit, scene->toolsettings->selectmode, true);
 
       DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
 
-      em = mesh->edit_mesh;
+      BMEditMesh *em = mesh->runtime->edit_mesh;
 
       BKE_editmesh_looptris_and_normals_calc(em);
 

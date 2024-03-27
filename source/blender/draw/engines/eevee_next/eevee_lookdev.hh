@@ -126,7 +126,7 @@ class LookdevModule {
   void display();
 
  private:
-  void sync_pass(PassSimple &pass, GPUBatch *geom, ::Material *mat, ResourceHandle res_handle);
+  void sync_pass(PassSimple &pass, gpu::Batch *geom, ::Material *mat, ResourceHandle res_handle);
   void sync_display();
 
   float calc_viewport_scale();

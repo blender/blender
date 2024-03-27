@@ -40,7 +40,7 @@
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 
-#include "anim_intern.h"
+#include "anim_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Frame Change Operator

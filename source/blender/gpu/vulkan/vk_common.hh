@@ -18,7 +18,7 @@
 
 #include "vk_mem_alloc.h"
 
-#include "gpu_index_buffer_private.hh"
+#include "GPU_index_buffer.hh"
 #include "gpu_shader_create_info.hh"
 #include "gpu_texture_private.hh"
 
@@ -55,7 +55,6 @@ VkIndexType to_vk_index_type(const GPUIndexBufType index_type);
 VkPrimitiveTopology to_vk_primitive_topology(const GPUPrimType prim_type);
 VkCullModeFlags to_vk_cull_mode_flags(const eGPUFaceCullTest cull_test);
 VkSamplerAddressMode to_vk_sampler_address_mode(const GPUSamplerExtendMode extend_mode);
-const char *to_string(VkObjectType type);
 
 template<typename T> VkObjectType to_vk_object_type(T /*vk_obj*/)
 {

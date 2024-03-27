@@ -10,13 +10,13 @@
 
 #include "DNA_userdef_types.h"
 
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_capabilities.h"
-#include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
-#include "GPU_platform.h"
-#include "GPU_state.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
+#include "GPU_capabilities.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_immediate.hh"
+#include "GPU_platform.hh"
+#include "GPU_state.hh"
 
 #include "mtl_backend.hh"
 #include "mtl_common.hh"
@@ -258,7 +258,7 @@ id<MTLTexture> gpu::MTLTexture::get_metal_handle()
       this->reset();
 
       /* Re-initialize. */
-      this->init_internal(wrap(vert_buffer_));
+      this->init_internal(vert_buffer_);
 
       /* Update for assertion check below. */
       buf = vert_buffer_->get_metal_buffer();
@@ -384,7 +384,7 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   GPU_framebuffer_bind(blit_target_fb);
 
   /* Execute graphics draw call to perform the blit. */
-  GPUBatch *quad = GPU_batch_preset_quad();
+  Batch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
 
   float w = dst->width_get();
@@ -527,6 +527,8 @@ void gpu::MTLTexture::update_sub(
     }
   }
 
+  const bool is_compressed = (format_flag_ & GPU_FORMAT_COMPRESSED);
+
   @autoreleasepool {
     /* Determine totalsize of INPUT Data. */
     int num_channels = to_component_len(format_);
@@ -593,10 +595,12 @@ void gpu::MTLTexture::update_sub(
         false /* Not a clear. */
     };
 
-    /* Determine whether we can do direct BLIT or not. */
+    /* Determine whether we can do direct BLIT or not. For compressed textures,
+     * always assume a direct blit (input data pretends to be float, but it is
+     * not). */
     bool can_use_direct_blit = true;
-    if (expected_dst_bytes_per_pixel != input_bytes_per_pixel ||
-        num_channels != destination_num_channels)
+    if (!is_compressed && (expected_dst_bytes_per_pixel != input_bytes_per_pixel ||
+                           num_channels != destination_num_channels))
     {
       can_use_direct_blit = false;
     }
@@ -620,7 +624,7 @@ void gpu::MTLTexture::update_sub(
 
     /* Safety Checks. */
     if (type == GPU_DATA_UINT_24_8 || type == GPU_DATA_10_11_11_REV ||
-        type == GPU_DATA_2_10_10_10_REV)
+        type == GPU_DATA_2_10_10_10_REV || is_compressed)
     {
       BLI_assert(can_use_direct_blit &&
                  "Special input data type must be a 1-1 mapping with destination texture as it "
@@ -755,6 +759,12 @@ void gpu::MTLTexture::update_sub(
                                       extent[0] :
                                       ctx->pipeline_state.unpack_row_length);
           size_t bytes_per_image = bytes_per_row;
+          if (is_compressed) {
+            size_t block_size = to_block_size(format_);
+            size_t blocks_x = divide_ceil_u(extent[0], 4);
+            bytes_per_row = blocks_x * block_size;
+            bytes_per_image = bytes_per_row;
+          }
           int max_array_index = ((type_ == GPU_TEXTURE_1D_ARRAY) ? extent[1] : 1);
           for (int array_index = 0; array_index < max_array_index; array_index++) {
 
@@ -827,6 +837,13 @@ void gpu::MTLTexture::update_sub(
                                       extent[0] :
                                       ctx->pipeline_state.unpack_row_length);
           size_t bytes_per_image = bytes_per_row * extent[1];
+          if (is_compressed) {
+            size_t block_size = to_block_size(format_);
+            size_t blocks_x = divide_ceil_u(extent[0], 4);
+            size_t blocks_y = divide_ceil_u(extent[1], 4);
+            bytes_per_row = blocks_x * block_size;
+            bytes_per_image = bytes_per_row * blocks_y;
+          }
 
           size_t texture_array_relative_offset = 0;
           int base_slice = (type_ == GPU_TEXTURE_2D_ARRAY) ? offset[2] : 0;
@@ -1013,7 +1030,7 @@ void gpu::MTLTexture::update_sub(
 
       case GPU_TEXTURE_BUFFER: {
         /* TODO(Metal): Support Data upload to TEXTURE BUFFER
-         * Data uploads generally happen via GPUVertBuf instead. */
+         * Data uploads generally happen via VertBuf instead. */
         BLI_assert(false);
       } break;
 
@@ -1218,6 +1235,12 @@ void gpu::MTLTexture::ensure_mipmaps(int miplvl)
 
 void gpu::MTLTexture::generate_mipmap()
 {
+  /* Compressed textures allow users to provide their own custom mipmaps. And
+   * we can't generate them at runtime anyway. */
+  if (format_flag_ & GPU_FORMAT_COMPRESSED) {
+    return;
+  }
+
   /* Fetch Active Context. */
   MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   BLI_assert(ctx);
@@ -1691,7 +1714,7 @@ void gpu::MTLTexture::read_internal(int mip,
 
     /** Determine source read texture handle. */
     id<MTLTexture> read_texture = texture_;
-    /* Use textureview handle if reading from a GPU texture view. */
+    /* Use texture-view handle if reading from a GPU texture view. */
     if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW) {
       read_texture = this->get_metal_handle();
     }
@@ -2028,15 +2051,15 @@ bool gpu::MTLTexture::init_internal()
   return true;
 }
 
-bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
+bool gpu::MTLTexture::init_internal(VertBuf *vbo)
 {
   MTLPixelFormat mtl_format = gpu_texture_format_to_metal(this->format_);
   mtl_max_mips_ = 1;
   mipmaps_ = 0;
   this->mip_range_set(0, 0);
 
-  /* Create texture from GPUVertBuf's buffer. */
-  MTLVertBuf *mtl_vbo = static_cast<MTLVertBuf *>(unwrap(vbo));
+  /* Create texture from VertBuf's buffer. */
+  MTLVertBuf *mtl_vbo = static_cast<MTLVertBuf *>(vbo);
   mtl_vbo->bind();
   mtl_vbo->flag_used();
 

@@ -31,3 +31,13 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports);
  * was split in `ID.tag`, which can create crashing situations in some rare cases, see #117795.
  */
 void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList *reports);
+
+/**
+ * Check that the `LIB_EMBEDDED_DATA` flag is correctly set for embedded IDs, and not for any Main
+ * ID.
+ *
+ * NOTE: It is unknown why/how this can happen, but there are some files out there that have e.g.
+ * Objects flagged as embedded data... See e.g. the `(Anim) Hero p23 for 2.blend` file from our
+ * cloud gallery (https://cloud.blender.org/p/gallery/5b642e25bf419c1042056fc6).
+ */
+void BLO_main_validate_embedded_flag(Main *bmain, ReportList *reports);

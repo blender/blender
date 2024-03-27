@@ -78,7 +78,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 using blender::Array;
 using blender::float2;
@@ -1325,7 +1325,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
   if (obedit) {
     if (obedit->type == OB_MESH) {
       Mesh *mesh = static_cast<Mesh *>(obedit->data);
-      BMEditMesh *em = mesh->edit_mesh;
+      BMEditMesh *em = mesh->runtime->edit_mesh;
       BMVert *eve;
       BMIter iter;
 

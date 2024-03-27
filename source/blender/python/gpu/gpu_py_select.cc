@@ -22,8 +22,8 @@
 
 #include "GPU_select.hh"
 
-#include "gpu_py.h"
-#include "gpu_py_select.h" /* Own include. */
+#include "gpu_py.hh"
+#include "gpu_py_select.hh" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name Methods

@@ -75,6 +75,9 @@ KERNEL_STRUCT_MEMBER(ray, float, tmax, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(ray, float, time, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(ray, float, dP, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(ray, float, dD, KERNEL_FEATURE_PATH_TRACING)
+#ifdef __LIGHT_TREE__
+KERNEL_STRUCT_MEMBER(ray, float, previous_dt, KERNEL_FEATURE_PATH_TRACING)
+#endif
 KERNEL_STRUCT_END(ray)
 
 /*************************** Intersection result ******************************/

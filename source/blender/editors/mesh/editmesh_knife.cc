@@ -42,9 +42,9 @@
 #include "BKE_scene.hh"
 #include "BKE_unit.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "ED_mesh.hh"
 #include "ED_numinput.hh"
@@ -186,8 +186,9 @@ struct KnifeUndoFrame {
 };
 
 struct KnifeBVH {
-  BVHTree *tree;          /* Knife Custom BVH Tree. */
-  BMLoop *(*looptris)[3]; /* Used by #knife_bvh_raycast_cb to store the intersecting triangles. */
+  BVHTree *tree; /* Knife Custom BVH Tree. */
+  /* Used by #knife_bvh_raycast_cb to store the intersecting triangles. */
+  blender::Span<std::array<BMLoop *, 3>> looptris;
   int ob_index;
 
   /* Use #bm_ray_cast_cb_elem_not_in_face_check. */
@@ -967,7 +968,7 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
     immUniformColor3ubv(kcd->colors.line);
     GPU_line_width(1.0);
 
-    GPUBatch *batch = immBeginBatchAtMost(GPU_PRIM_LINES, BLI_mempool_len(kcd->kedges) * 2);
+    gpu::Batch *batch = immBeginBatchAtMost(GPU_PRIM_LINES, BLI_mempool_len(kcd->kedges) * 2);
 
     BLI_mempool_iternew(kcd->kedges, &iter);
     for (kfe = static_cast<KnifeEdge *>(BLI_mempool_iterstep(&iter)); kfe;
@@ -994,7 +995,7 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
     immUniformColor3ubv(kcd->colors.point);
     GPU_point_size(5.0 * UI_SCALE_FAC);
 
-    GPUBatch *batch = immBeginBatchAtMost(GPU_PRIM_POINTS, BLI_mempool_len(kcd->kverts));
+    gpu::Batch *batch = immBeginBatchAtMost(GPU_PRIM_POINTS, BLI_mempool_len(kcd->kverts));
 
     BLI_mempool_iternew(kcd->kverts, &iter);
     for (kfv = static_cast<KnifeVert *>(BLI_mempool_iterstep(&iter)); kfv;
@@ -1031,7 +1032,7 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
 
     GPU_blend(GPU_BLEND_ALPHA);
 
-    GPUVertBuf *vert = GPU_vertbuf_create_with_format(format);
+    blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(format);
     GPU_vertbuf_data_alloc(vert, kcd->totlinehit);
 
     lh = kcd->linehits;
@@ -1044,7 +1045,7 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
       }
     }
 
-    GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, vert, nullptr, GPU_BATCH_OWNS_VBO);
+    gpu::Batch *batch = GPU_batch_create_ex(GPU_PRIM_POINTS, vert, nullptr, GPU_BATCH_OWNS_VBO);
     GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* Draw any snapped verts first. */
@@ -1165,8 +1166,9 @@ static const int *knife_bm_tri_index_get(const KnifeTool_OpData *kcd,
   if (obinfo->tri_indices) {
     return obinfo->tri_indices[tri_index];
   }
+  const std::array<BMLoop *, 3> &ltri = obinfo->em->looptris[tri_index];
   for (int i = 0; i < 3; i++) {
-    tri_index_buf[i] = BM_elem_index_get(obinfo->em->looptris[tri_index][i]->v);
+    tri_index_buf[i] = BM_elem_index_get(ltri[i]->v);
   }
   return tri_index_buf;
 }
@@ -1230,7 +1232,7 @@ static void knife_bvh_init(KnifeTool_OpData *kcd)
   const float epsilon = FLT_EPSILON * 2.0f;
   int tottri = 0;
   int ob_tottri = 0;
-  BMLoop *(*looptris)[3];
+  blender::Span<std::array<BMLoop *, 3>> looptris;
   BMFace *f_test = nullptr, *f_test_prev = nullptr;
   bool test_fn_ret = false;
 
@@ -1239,7 +1241,7 @@ static void knife_bvh_init(KnifeTool_OpData *kcd)
     ob_tottri = 0;
     em = BKE_editmesh_from_object(ob);
 
-    for (int i = 0; i < em->tottri; i++) {
+    for (int i = 0; i < em->looptris.size(); i++) {
       f_test = em->looptris[i][0]->f;
       if (f_test != f_test_prev) {
         test_fn_ret = test_fn(f_test);
@@ -1270,7 +1272,7 @@ static void knife_bvh_init(KnifeTool_OpData *kcd)
     em = BKE_editmesh_from_object(ob);
     looptris = em->looptris;
 
-    for (int i = 0; i < em->tottri; i++) {
+    for (int i = 0; i < em->looptris.size(); i++) {
 
       f_test = looptris[i][0]->f;
       if (f_test != f_test_prev) {
@@ -1287,7 +1289,7 @@ static void knife_bvh_init(KnifeTool_OpData *kcd)
       BLI_bvhtree_insert(kcd->bvh.tree, i + tottri, &tri_cos[0][0], 3);
     }
 
-    tottri += em->tottri;
+    tottri += em->looptris.size();
   }
 
   BLI_bvhtree_balance(kcd->bvh.tree);
@@ -1312,7 +1314,7 @@ static void knife_bvh_raycast_cb(void *userdata,
   }
 
   KnifeTool_OpData *kcd = static_cast<KnifeTool_OpData *>(userdata);
-  BMLoop **ltri;
+  BMLoop *const *ltri = nullptr;
   Object *ob;
   BMEditMesh *em;
 
@@ -1326,12 +1328,13 @@ static void knife_bvh_raycast_cb(void *userdata,
     index -= tottri;
     ob = kcd->objects[ob_index];
     em = BKE_editmesh_from_object(ob);
-    tottri = em->tottri;
+    tottri = em->looptris.size();
     if (index < tottri) {
-      ltri = em->looptris[index];
+      ltri = em->looptris[index].data();
       break;
     }
   }
+  BLI_assert(ltri != nullptr);
 
   if (kcd->bvh.filter_cb) {
     if (!kcd->bvh.filter_cb(ltri[0]->f, kcd->bvh.filter_data)) {
@@ -2452,7 +2455,7 @@ static void set_lowest_face_tri(KnifeTool_OpData *kcd, BMEditMesh *em, BMFace *f
     return;
   }
 
-  BLI_assert(index >= 0 && index < em->tottri);
+  BLI_assert(index >= 0 && index < em->looptris.size());
   BLI_assert(em->looptris[index][0]->f == f);
   for (i = index - 1; i >= 0; i--) {
     if (em->looptris[i][0]->f != f) {
@@ -2504,22 +2507,21 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
   float tri_norm[3], tri_plane[4];
   float se1[2], se2[2];
   float d, lambda;
-  BMLoop **tri;
   ListBase *list;
   KnifeEdge *kfe;
 
   sub_v3_v3v3(raydir, v2, v1);
   normalize_v3(raydir);
   tri_i = get_lowest_face_tri(kcd, f);
-  tottri = em->tottri;
+  tottri = em->looptris.size();
   BLI_assert(tri_i >= 0 && tri_i < tottri);
 
   for (; tri_i < tottri; tri_i++) {
     float tri_cos[3][3];
     float ray_tri_uv[2];
 
-    tri = em->looptris[tri_i];
-    if (tri[0]->f != f) {
+    const std::array<BMLoop *, 3> &ltri = em->looptris[tri_i];
+    if (ltri[0]->f != f) {
       break;
     }
 
@@ -2554,7 +2556,7 @@ static bool knife_ray_intersect_face(KnifeTool_OpData *kcd,
           return false;
         }
       }
-      interp_v3_v3v3v3_uv(hit_co, tri[0]->v->co, tri[1]->v->co, tri[2]->v->co, ray_tri_uv);
+      interp_v3_v3v3v3_uv(hit_co, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co, ray_tri_uv);
       return true;
     }
   }
@@ -2817,7 +2819,6 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 {
   float v1[3], v2[3], v3[3], v4[3], s1[2], s2[2];
   int *results, *result;
-  BMLoop **ls;
   ListBase *list;
   KnifeLineHit *linehits = nullptr;
   BLI_array_declare(linehits);
@@ -2901,17 +2902,18 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 
   for (i = 0, result = results; i < tot; i++, result++) {
     uint ob_index = 0;
+    BMLoop *const *ltri = nullptr;
     for (ob_index = 0; ob_index < kcd->objects.size(); ob_index++) {
       ob = kcd->objects[ob_index];
       em = BKE_editmesh_from_object(ob);
-      if (*result >= 0 && *result < em->tottri) {
-        ls = (BMLoop **)em->looptris[*result];
+      if (*result >= 0 && *result < em->looptris.size()) {
+        ltri = em->looptris[*result].data();
         break;
       }
-      *result -= em->tottri;
+      *result -= em->looptris.size();
     }
-
-    BMFace *f = ls[0]->f;
+    BLI_assert(ltri != nullptr);
+    BMFace *f = ltri[0]->f;
     set_lowest_face_tri(kcd, em, f, *result);
 
     /* Occlude but never cut unselected faces (when only_select is used). */
@@ -3956,14 +3958,13 @@ static void knifetool_init_obinfo(KnifeTool_OpData *kcd,
       kcd->vc.depsgraph, em_eval, scene_eval, obedit_eval, nullptr);
 
   if (use_tri_indices) {
-    BMLoop *(*looptris)[3] = em_eval->looptris;
     int(*tri_indices)[3] = static_cast<int(*)[3]>(
-        MEM_mallocN(sizeof(int[3]) * em_eval->tottri, __func__));
-    for (int i = 0; i < em_eval->tottri; i++) {
-      BMLoop **tri = looptris[i];
-      tri_indices[i][0] = BM_elem_index_get(tri[0]->v);
-      tri_indices[i][1] = BM_elem_index_get(tri[1]->v);
-      tri_indices[i][2] = BM_elem_index_get(tri[2]->v);
+        MEM_mallocN(sizeof(int[3]) * em_eval->looptris.size(), __func__));
+    for (int i = 0; i < em_eval->looptris.size(); i++) {
+      const std::array<BMLoop *, 3> &ltri = em_eval->looptris[i];
+      tri_indices[i][0] = BM_elem_index_get(ltri[0]->v);
+      tri_indices[i][1] = BM_elem_index_get(ltri[1]->v);
+      tri_indices[i][2] = BM_elem_index_get(ltri[2]->v);
     }
     obinfo->tri_indices = tri_indices;
   }

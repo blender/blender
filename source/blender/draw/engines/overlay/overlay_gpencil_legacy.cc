@@ -20,7 +20,7 @@
 
 #include "overlay_private.hh"
 
-#include "draw_common.h"
+#include "draw_common_c.hh"
 #include "draw_manager_text.hh"
 
 void OVERLAY_edit_gpencil_legacy_cache_init(OVERLAY_Data *vedata)
@@ -339,7 +339,7 @@ static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob
     DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->edit_gpencil_wires_grp);
     DRW_shgroup_uniform_vec4_copy(grp, "gpEditColor", gpd->line_color);
 
-    GPUBatch *geom = DRW_cache_gpencil_edit_lines_get(ob, pd->cfra);
+    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_lines_get(ob, pd->cfra);
     DRW_shgroup_call_no_cull(pd->edit_gpencil_wires_grp, geom, ob);
   }
 
@@ -349,19 +349,19 @@ static void OVERLAY_edit_gpencil_cache_populate(OVERLAY_Data *vedata, Object *ob
     DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->edit_gpencil_points_grp);
     DRW_shgroup_uniform_float_copy(grp, "doStrokeEndpoints", show_direction);
 
-    GPUBatch *geom = DRW_cache_gpencil_edit_points_get(ob, pd->cfra);
+    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_points_get(ob, pd->cfra);
     DRW_shgroup_call_no_cull(grp, geom, ob);
   }
 
   if (pd->edit_gpencil_curve_handle_grp) {
-    GPUBatch *geom = DRW_cache_gpencil_edit_curve_handles_get(ob, pd->cfra);
+    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_curve_handles_get(ob, pd->cfra);
     if (geom) {
       DRW_shgroup_call_no_cull(pd->edit_gpencil_curve_handle_grp, geom, ob);
     }
   }
 
   if (pd->edit_gpencil_curve_points_grp) {
-    GPUBatch *geom = DRW_cache_gpencil_edit_curve_points_get(ob, pd->cfra);
+    blender::gpu::Batch *geom = DRW_cache_gpencil_edit_curve_points_get(ob, pd->cfra);
     if (geom) {
       DRW_shgroup_call_no_cull(pd->edit_gpencil_curve_points_grp, geom, ob);
     }

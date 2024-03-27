@@ -641,10 +641,14 @@ static void wm_data_consistency_ensure(wmWindowManager *curwm,
 }
 
 /**
- * Context matching, handle no-UI case.
+ * This function runs after loading blend-file data and is responsible
+ * for setting up the context (the active view-layer, scene & work-space).
  *
- * \note this is called on Undo so any slow conversion functions here
- * should be avoided or check (mode != LOAD_UNDO).
+ * When loading a blend-file without it's UI (#G_FILE_NO_UI),
+ * the existing screen-data needs to point to the newly loaded blend-file data.
+ *
+ * \note this is called on undo so any slow conversion functions here
+ * should be avoided or check `mode != LOAD_UNDO`.
  *
  * \param bfd: Blend file data, freed by this function on exit.
  */
@@ -667,8 +671,8 @@ static void setup_app_data(bContext *C,
     BLI_assert(bfd->curscene != nullptr);
     mode = LOAD_UNDO;
   }
-  /* may happen with library files - UNDO file should never have nullptr curscene (but may have a
-   * nullptr curscreen)... */
+  /* May happen with library files, loading undo-data should never have a null `curscene`
+   * (but may have a null `curscreen`). */
   else if (ELEM(nullptr, bfd->curscreen, bfd->curscene)) {
     BKE_report(reports->reports, RPT_WARNING, "Library file, loading empty scene");
     if (blender::StringRefNull(bfd->main->filepath).endswith(BLENDER_ASSET_FILE_SUFFIX)) {
@@ -688,15 +692,15 @@ static void setup_app_data(bContext *C,
     RE_FreeAllRenderResults();
   }
 
-  /* Only make filepaths compatible when loading for real (not undo) */
+  /* Only make file-paths compatible when loading for real (not undo). */
   if (mode != LOAD_UNDO) {
     clean_paths(bfd->main);
   }
 
   BLI_assert(BKE_main_namemap_validate(bfd->main));
 
-  /* Temp data to handle swapping around IDs between old and new mains, and accumulate the
-   * required remapping accordingly. */
+  /* Temporary data to handle swapping around IDs between old and new mains,
+   * and accumulate the required remapping accordingly. */
   ReuseOldBMainData reuse_data = {nullptr};
   reuse_data.new_bmain = bfd->main;
   reuse_data.old_bmain = bmain;
@@ -732,8 +736,8 @@ static void setup_app_data(bContext *C,
   /* Logic for 'track_undo_scene' is to keep using the scene which the active screen has, as long
    * as the scene associated with the undo operation is visible in one of the open windows.
    *
-   * - 'curscreen->scene' - scene the user is currently looking at.
-   * - 'bfd->curscene' - scene undo-step was created in.
+   * - 'curscreen->scene': Scene the user is currently looking at.
+   * - 'bfd->curscene': Scene undo-step was created in.
    *
    * This means that users can have 2 or more windows open and undo in both without screens
    * switching. But if they close one of the screens, undo will ensure that the scene being
@@ -761,8 +765,8 @@ static void setup_app_data(bContext *C,
     cur_view_layer = BKE_view_layer_default_view(curscene);
   }
 
-  /* If UI is not loaded when opening actual .blend file, and always in case of undo memfile
-   * reading. */
+  /* If UI is not loaded when opening actual `.blend` file,
+   * and always in case of undo MEMFILE reading. */
   if (mode != LOAD_UI) {
     /* Re-use current window and screen. */
     win = CTX_wm_window(C);
@@ -775,8 +779,8 @@ static void setup_app_data(bContext *C,
        * matching new scene if available, or null otherwise, in which case
        * #wm_data_consistency_ensure will define `curscene` as the active one. */
     }
-    /* Enforce curscene to be in current screen. */
-    else if (win) { /* The window may be nullptr in background-mode. */
+    /* Enforce `curscene` to be in current screen. */
+    else if (win) { /* The window may be null in background-mode. */
       win->scene = curscene;
     }
   }
@@ -786,8 +790,8 @@ static void setup_app_data(bContext *C,
   /* Apply remapping of ID pointers caused by re-using part of the data from the 'old' main into
    * the new one. */
   if (reuse_data.remapper != nullptr) {
-    /* In undo case all 'keeping old data' and remapping logic is now handled in readfile code
-     * itself, so there should never be any remapping to do here. */
+    /* In undo case all "keeping old data" and remapping logic is now handled
+     * in file reading code itself, so there should never be any remapping to do here. */
     BLI_assert(mode != LOAD_UNDO);
 
     /* Handle all pending remapping from swapping old and new IDs around. */
@@ -797,8 +801,8 @@ static void setup_app_data(bContext *C,
                                      ID_REMAP_SKIP_UPDATE_TAGGING | ID_REMAP_SKIP_USER_CLEAR));
 
     /* Fix potential invalid usages of now-locale-data created by remapping above. Should never
-     * be needed in undo case, this is to address cases like 'opening a blendfile that was a
-     * library of the previous opened blendfile'. */
+     * be needed in undo case, this is to address cases like:
+     * "opening a blend-file that was a library of the previous opened blend-file". */
     reuse_bmain_data_invalid_local_usages_fix(&reuse_data);
 
     MEM_delete(reuse_data.remapper);
@@ -859,9 +863,9 @@ static void setup_app_data(bContext *C,
 
   /* These context data should remain valid if old UI is being re-used. */
   if (mode == LOAD_UI) {
-    /* Setting WindowManager in context clears all other Context UI data (window, area, etc.). So
-     * only do it when effectively loading a new WM, otherwise just assert that the WM from context
-     * is still the same as in `new_bmain`. */
+    /* Setting a window-manger clears all other windowing members (window, screen, area, etc).
+     * So only do it when effectively loading a new #wmWindowManager
+     * otherwise just assert that the WM from context is still the same as in `new_bmain`. */
     CTX_wm_manager_set(C, static_cast<wmWindowManager *>(bmain->wm.first));
     CTX_wm_screen_set(C, bfd->curscreen);
     CTX_wm_area_set(C, nullptr);
@@ -874,7 +878,7 @@ static void setup_app_data(bContext *C,
   const int fileflags_keep = G_FILE_FLAG_ALL_RUNTIME;
   G.fileflags = (G.fileflags & fileflags_keep) | (bfd->fileflags & ~fileflags_keep);
 
-  /* special cases, override loaded flags: */
+  /* Special cases, override any #G_FLAG_ALL_READFILE flags from the blend-file. */
   if (G.f != bfd->globalf) {
     const int flags_keep = G_FLAG_ALL_RUNTIME;
     bfd->globalf &= G_FLAG_ALL_READFILE;
@@ -891,30 +895,29 @@ static void setup_app_data(bContext *C,
 #endif
 
   if (mode != LOAD_UNDO) {
-    /* Perform complex versioning that involves adding or removing IDs, and/or needs to operate
-     * over the whole Main data-base (versioning done in readfile code only operates on a
-     * per-library basis). */
+    /* Perform complex versioning that involves adding or removing IDs,
+     * and/or needs to operate over the whole Main data-base
+     * (versioning done in file reading code only operates on a per-library basis). */
     BLO_read_do_version_after_setup(bmain, reports);
   }
 
   bmain->recovered = false;
 
-  /* startup.blend or recovered startup */
+  /* `startup.blend` or recovered startup. */
   if (is_startup) {
     bmain->filepath[0] = '\0';
   }
   else if (recover) {
-    /* In case of auto-save or quit.blend, use original filepath instead (see also #read_global in
-     * `readfile.cc`). */
+    /* In case of auto-save or `quit.blend`, use original file-path instead
+     * (see also #read_global in `readfile.cc`). */
     bmain->recovered = true;
     STRNCPY(bmain->filepath, bfd->filepath);
   }
 
   /* Base-flags, groups, make depsgraph, etc. */
-  /* first handle case if other windows have different scenes visible */
+  /* first handle case if other windows have different scenes visible. */
   if (mode == LOAD_UI) {
     wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-
     if (wm) {
       LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
         if (win->scene && win->scene != curscene) {
@@ -926,8 +929,7 @@ static void setup_app_data(bContext *C,
 
   /* Setting scene might require having a dependency graph, with copy-on-eval
    * we need to make sure we ensure scene has correct color management before
-   * constructing dependency graph.
-   */
+   * constructing dependency graph. */
   if (mode != LOAD_UNDO) {
     IMB_colormanagement_check_file_config(bmain);
   }
@@ -935,7 +937,7 @@ static void setup_app_data(bContext *C,
   BKE_scene_set_background(bmain, curscene);
 
   if (mode != LOAD_UNDO) {
-    /* TODO(sergey): Can this be also move above? */
+    /* TODO(@sergey): Can this be also move above? */
     RE_FreeAllPersistentData();
   }
 

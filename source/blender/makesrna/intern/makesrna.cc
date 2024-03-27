@@ -581,7 +581,7 @@ static const char *rna_parameter_type_name(PropertyRNA *parm)
       return rna_find_dna_type((const char *)pparm->type);
     }
     case PROP_COLLECTION: {
-      return "CollectionListBase";
+      return "CollectionVector";
     }
     default:
       return "<error, no type specified>";

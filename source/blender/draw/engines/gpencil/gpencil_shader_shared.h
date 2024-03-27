@@ -5,7 +5,7 @@
 #ifndef GPU_SHADER
 #  pragma once
 
-#  include "GPU_shader_shared_utils.h"
+#  include "GPU_shader_shared_utils.hh"
 
 #  ifndef __cplusplus
 typedef struct gpMaterial gpMaterial;

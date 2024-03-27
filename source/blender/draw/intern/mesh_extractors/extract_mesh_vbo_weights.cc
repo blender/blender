@@ -87,7 +87,7 @@ static void extract_weights_init(const MeshRenderData &mr,
                                  void *buf,
                                  void *tls_data)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
@@ -160,7 +160,7 @@ static void extract_weights_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                         void *_data)
 {
   Mesh *coarse_mesh = subdiv_cache.mesh;
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
 
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -168,7 +168,7 @@ static void extract_weights_init_subdiv(const DRWSubdivCache &subdiv_cache,
   }
   GPU_vertbuf_init_build_on_device(vbo, &format, subdiv_cache.num_subdiv_loops);
 
-  GPUVertBuf *coarse_weights = GPU_vertbuf_calloc();
+  gpu::VertBuf *coarse_weights = GPU_vertbuf_calloc();
   extract_weights_init(mr, cache, coarse_weights, _data);
 
   if (mr.extract_type != MR_EXTRACT_BMESH) {

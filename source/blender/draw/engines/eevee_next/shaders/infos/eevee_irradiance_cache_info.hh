@@ -127,7 +127,7 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_bounds)
     .storage_buf(0, Qualifier::READ_WRITE, "CaptureInfoData", "capture_info_buf")
     .storage_buf(1, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
     .push_constant(Type::INT, "resource_len")
-    .typedef_source("draw_shader_shared.h")
+    .typedef_source("draw_shader_shared.hh")
     .additional_info("eevee_shared")
     .compute_source("eevee_lightprobe_irradiance_bounds_comp.glsl");
 

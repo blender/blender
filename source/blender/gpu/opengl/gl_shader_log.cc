@@ -8,7 +8,7 @@
 
 #include "gl_shader.hh"
 
-#include "GPU_platform.h"
+#include "GPU_platform.hh"
 
 namespace blender::gpu {
 

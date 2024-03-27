@@ -24,7 +24,7 @@ void TranslateNode::convert_to_operations(NodeConverter &converter,
   NodeInput *input_ysocket = this->get_input_socket(2);
   NodeOutput *output_socket = this->get_output_socket(0);
 
-  TranslateOperation *operation = new TranslateCanvasOperation();
+  TranslateCanvasOperation *operation = new TranslateCanvasOperation();
   operation->set_wrapping(data->wrap_axis);
   operation->set_is_relative(data->relative);
 

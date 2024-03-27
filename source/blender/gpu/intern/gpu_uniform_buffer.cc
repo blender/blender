@@ -13,9 +13,9 @@
 #include "BLI_math_base.h"
 
 #include "gpu_backend.hh"
-#include "gpu_node_graph.h"
+#include "gpu_node_graph.hh"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 #include "GPU_material.hh"
 
 #include "GPU_uniform_buffer.hh"

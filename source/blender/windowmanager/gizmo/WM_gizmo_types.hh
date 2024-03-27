@@ -189,9 +189,9 @@ ENUM_OPERATORS(eWM_GizmoFlagMapTypeUpdateFlag, WM_GIZMOMAPTYPE_KEYMAP_INIT)
  * \note Gizmos are responsible for handling this #wmGizmo.modal callback.
  */
 enum eWM_GizmoFlagTweak {
-  /* Drag with extra precision (Shift). */
+  /** Drag with extra precision (Shift). */
   WM_GIZMO_TWEAK_PRECISE = (1 << 0),
-  /* Drag with snap enabled (Ctrl). */
+  /** Drag with snap enabled (Control). */
   WM_GIZMO_TWEAK_SNAP = (1 << 1),
 };
 
@@ -206,7 +206,7 @@ struct wmGizmoOpElem {
   bool is_redo;
 };
 
-/* Gizmos are set per region by registering them on gizmo-maps. */
+/** Gizmos are set per region by registering them on gizmo-maps. */
 struct wmGizmo {
   wmGizmo *next, *prev;
 
@@ -411,7 +411,7 @@ struct wmGizmoGroupTypeRef {
   wmGizmoGroupType *type;
 };
 
-/* Factory class for a gizmo-group type, gets called every time a new area is spawned. */
+/** Factory class for a gizmo-group type, gets called every time a new area is spawned. */
 struct wmGizmoGroupType {
   const char *idname; /* #MAX_NAME. */
   /** Gizmo-group name - displayed in UI (keymap editor). */

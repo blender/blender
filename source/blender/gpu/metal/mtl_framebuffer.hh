@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "GPU_common_types.h"
+#include "GPU_common_types.hh"
 #include "MEM_guardedalloc.h"
 
 #include "gpu_framebuffer_private.hh"

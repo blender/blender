@@ -30,7 +30,7 @@
 #include "WM_api.hh"
 
 /* own includes */
-#include "../gizmo_library_intern.h"
+#include "../gizmo_library_intern.hh"
 
 struct SnapGizmo3D {
   wmGizmo gizmo;

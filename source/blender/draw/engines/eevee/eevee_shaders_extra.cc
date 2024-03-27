@@ -8,13 +8,13 @@
  * This file is only there to handle ShaderCreateInfos.
  */
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "BLI_string_ref.hh"
 
 #include "gpu_shader_create_info.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 #include <sstream>
 

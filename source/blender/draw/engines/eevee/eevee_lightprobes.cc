@@ -22,15 +22,15 @@
 #include "BKE_object.hh"
 #include "MEM_guardedalloc.h"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 #include "GPU_material.hh"
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "DEG_depsgraph_query.hh"
 
 #include "eevee_lightcache.h"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -237,7 +237,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
 
-    GPUBatch *geom = DRW_cache_fullscreen_quad_get();
+    blender::gpu::Batch *geom = DRW_cache_fullscreen_quad_get();
     DRW_shgroup_call_instances(grp, nullptr, geom, 6);
   }
 
@@ -257,7 +257,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
 
-    GPUBatch *geom = DRW_cache_fullscreen_quad_get();
+    blender::gpu::Batch *geom = DRW_cache_fullscreen_quad_get();
     DRW_shgroup_call(grp, geom, nullptr);
   }
 
@@ -276,7 +276,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
 
-    GPUBatch *geom = DRW_cache_fullscreen_quad_get();
+    blender::gpu::Batch *geom = DRW_cache_fullscreen_quad_get();
     DRW_shgroup_call(grp, geom, nullptr);
   }
 
@@ -288,7 +288,7 @@ void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata,
 
     DRW_shgroup_uniform_texture_ref(grp, "irradianceGrid", &light_cache->grid_tx.tex);
 
-    GPUBatch *geom = DRW_cache_fullscreen_quad_get();
+    blender::gpu::Batch *geom = DRW_cache_fullscreen_quad_get();
     DRW_shgroup_call(grp, geom, nullptr);
   }
 }

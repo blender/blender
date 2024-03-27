@@ -25,8 +25,8 @@
 #include "BKE_global.hh"
 #include "BKE_sound.h"
 
-#include "GPU_immediate.h"
-#include "GPU_viewport.h"
+#include "GPU_immediate.hh"
+#include "GPU_viewport.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"

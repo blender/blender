@@ -50,7 +50,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "physics_intern.h" /* own include */
+#include "physics_intern.hh" /* own include */
 
 static int surface_slot_add_exec(bContext *C, wmOperator * /*op*/)
 {

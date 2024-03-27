@@ -25,6 +25,8 @@ enum class DataType {
   Vector = 1,
   /** \brief Color data type */
   Color = 2,
+  /** \brief Float2 data type */
+  Float2 = 3,
 };
 
 /**
@@ -35,6 +37,8 @@ constexpr int COM_data_type_num_channels(const DataType datatype)
   switch (datatype) {
     case DataType::Value:
       return 1;
+    case DataType::Float2:
+      return 2;
     case DataType::Vector:
       return 3;
     case DataType::Color:
@@ -49,10 +53,12 @@ constexpr int COM_data_type_bytes_len(DataType data_type)
 }
 
 constexpr int COM_DATA_TYPE_VALUE_CHANNELS = COM_data_type_num_channels(DataType::Value);
+constexpr int COM_DATA_TYPE_FLOAT2_CHANNELS = COM_data_type_num_channels(DataType::Float2);
 constexpr int COM_DATA_TYPE_VECTOR_CHANNELS = COM_data_type_num_channels(DataType::Vector);
 constexpr int COM_DATA_TYPE_COLOR_CHANNELS = COM_data_type_num_channels(DataType::Color);
 
 constexpr float COM_COLOR_TRANSPARENT[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+constexpr float COM_FLOAT2_ZERO[2] = {0.0f, 0.0f};
 constexpr float COM_VECTOR_ZERO[3] = {0.0f, 0.0f, 0.0f};
 constexpr float COM_COLOR_BLACK[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 constexpr float COM_VALUE_ZERO[1] = {0.0f};
@@ -66,6 +72,8 @@ constexpr DataType COM_num_channels_data_type(const int num_channels)
   switch (num_channels) {
     case 1:
       return DataType::Value;
+    case 2:
+      return DataType::Float2;
     case 3:
       return DataType::Vector;
     case 4:

@@ -290,8 +290,6 @@ int main(int argc,
   int argv_num;
 #endif
 
-  /* --- end declarations --- */
-
   /* Ensure we free data on early-exit. */
   CreatorAtExitData app_init_data = {nullptr};
   BKE_blender_atexit_register(callback_main_atexit, &app_init_data);

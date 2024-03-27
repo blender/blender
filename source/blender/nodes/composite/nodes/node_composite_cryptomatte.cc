@@ -23,8 +23,8 @@
 
 #include "IMB_imbuf_types.hh"
 
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "DNA_image_types.h"
 

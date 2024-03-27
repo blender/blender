@@ -24,7 +24,7 @@
  * with only very minor edits, see:
  * http://github.com/freebsd/freebsd/blob/master/sys/libkern/qsort.c
  *
- * \note modified to use glibc arg order for callbacks.
+ * \note modified to use GLIBC argument order for callbacks.
  */
 BLI_INLINE char *med3(char *a, char *b, char *c, BLI_sort_cmp_t cmp, void *thunk);
 BLI_INLINE void  swapfunc(char *a, char *b, int n, int swaptype);

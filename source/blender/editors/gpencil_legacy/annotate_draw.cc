@@ -33,9 +33,9 @@
 
 #include "WM_api.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_screen.hh"

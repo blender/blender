@@ -298,7 +298,7 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
   calc_lat_fudu(lt->flag, wNew, &fw, &dw);
 
   /* If old size is different than resolution changed in interface,
-   * try to do clever reinit of points. Pretty simply idea, we just
+   * try to do clever reinitialize of points. Pretty simply idea, we just
    * deform new verts by old lattice, but scaling them to match old
    * size first.
    */

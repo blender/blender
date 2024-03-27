@@ -27,7 +27,7 @@ static void extract_edituv_stretch_area_init(const MeshRenderData &mr,
                                              void *buf,
                                              void * /*tls_data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
@@ -97,7 +97,7 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData &mr,
                                                void *buf,
                                                void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   float *area_ratio = static_cast<float *>(MEM_mallocN(sizeof(float) * mr.faces_num, __func__));
   compute_area_ratio(mr, area_ratio, cache.tot_area, cache.tot_uv_area);
 
@@ -134,7 +134,7 @@ static void extract_edituv_stretch_area_init_subdiv(const DRWSubdivCache &subdiv
 {
 
   /* Initialize final buffer. */
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
@@ -144,7 +144,7 @@ static void extract_edituv_stretch_area_init_subdiv(const DRWSubdivCache &subdiv
 
   /* Initialize coarse data buffer. */
 
-  GPUVertBuf *coarse_data = GPU_vertbuf_calloc();
+  gpu::VertBuf *coarse_data = GPU_vertbuf_calloc();
 
   /* We use the same format as we just copy data around. */
   GPU_vertbuf_init_with_format(coarse_data, &format);

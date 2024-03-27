@@ -71,7 +71,7 @@ WorldHandle SyncModule::sync_world()
  * \{ */
 
 static inline void geometry_call(PassMain::Sub *sub_pass,
-                                 GPUBatch *geom,
+                                 gpu::Batch *geom,
                                  ResourceHandle resource_handle)
 {
   if (sub_pass != nullptr) {
@@ -99,7 +99,7 @@ void SyncModule::sync_mesh(Object *ob,
 
   MaterialArray &material_array = inst_.materials.material_array_get(ob, has_motion);
 
-  GPUBatch **mat_geom = DRW_cache_object_surface_material_get(
+  gpu::Batch **mat_geom = DRW_cache_object_surface_material_get(
       ob, material_array.gpu_materials.data(), material_array.gpu_materials.size());
 
   if (mat_geom == nullptr) {
@@ -117,7 +117,7 @@ void SyncModule::sync_mesh(Object *ob,
   bool has_transparent_shadows = false;
   float inflate_bounds = 0.0f;
   for (auto i : material_array.gpu_materials.index_range()) {
-    GPUBatch *geom = mat_geom[i];
+    gpu::Batch *geom = mat_geom[i];
     if (geom == nullptr) {
       continue;
     }
@@ -199,7 +199,7 @@ bool SyncModule::sync_sculpt(Object *ob,
   for (SculptBatch &batch :
        sculpt_batches_per_material_get(ob_ref.object, material_array.gpu_materials))
   {
-    GPUBatch *geom = batch.batch;
+    gpu::Batch *geom = batch.batch;
     if (geom == nullptr) {
       continue;
     }
@@ -279,7 +279,7 @@ void SyncModule::sync_point_cloud(Object *ob,
       return;
     }
     PassMain::Sub &object_pass = matpass.sub_pass->sub("Point Cloud Sub Pass");
-    GPUBatch *geometry = point_cloud_sub_pass_setup(object_pass, ob, matpass.gpumat);
+    gpu::Batch *geometry = point_cloud_sub_pass_setup(object_pass, ob, matpass.gpumat);
     object_pass.draw(geometry, res_handle);
   };
 
@@ -344,7 +344,7 @@ void SyncModule::sync_volume(Object *ob, ObjectHandle & /*ob_handle*/, ResourceH
       ob, has_motion, material_slot - 1, MAT_GEOM_VOLUME);
 
   /* Use bounding box tag empty spaces. */
-  GPUBatch *geom = DRW_cache_cube_get();
+  gpu::Batch *geom = DRW_cache_cube_get();
 
   geometry_call(material.volume_occupancy.sub_pass, geom, res_handle);
 
@@ -366,7 +366,7 @@ struct gpIterData {
   int cfra;
 
   /* Drawcall batching. */
-  GPUBatch *geom = nullptr;
+  gpu::Batch *geom = nullptr;
   Material *material = nullptr;
   int vfirst = 0;
   int vcount = 0;
@@ -415,7 +415,7 @@ static void gpencil_drawcall_flush(gpIterData &iter)
 
 /* Group draw-calls that are consecutive and with the same type. Reduces GPU driver overhead. */
 static void gpencil_drawcall_add(gpIterData &iter,
-                                 GPUBatch *geom,
+                                 gpu::Batch *geom,
                                  Material *material,
                                  int v_first,
                                  int v_count,
@@ -454,7 +454,7 @@ static void gpencil_stroke_sync(bGPDlayer * /*gpl*/,
     return;
   }
 
-  GPUBatch *geom = DRW_cache_gpencil_get(iter.ob, iter.cfra);
+  gpu::Batch *geom = DRW_cache_gpencil_get(iter.ob, iter.cfra);
 
   if (show_fill) {
     int vfirst = gps->runtime.fill_start * 3;
@@ -528,13 +528,13 @@ void SyncModule::sync_curves(Object *ob,
     }
     if (particle_sys != nullptr) {
       PassMain::Sub &sub_pass = matpass.sub_pass->sub("Hair SubPass");
-      GPUBatch *geometry = hair_sub_pass_setup(
+      gpu::Batch *geometry = hair_sub_pass_setup(
           sub_pass, inst_.scene, ob, particle_sys, modifier_data, matpass.gpumat);
       sub_pass.draw(geometry, res_handle);
     }
     else {
       PassMain::Sub &sub_pass = matpass.sub_pass->sub("Curves SubPass");
-      GPUBatch *geometry = curves_sub_pass_setup(sub_pass, inst_.scene, ob, matpass.gpumat);
+      gpu::Batch *geometry = curves_sub_pass_setup(sub_pass, inst_.scene, ob, matpass.gpumat);
       sub_pass.draw(geometry, res_handle);
     }
   };

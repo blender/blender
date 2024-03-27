@@ -26,6 +26,7 @@
 #define BLF_BLUR_ENABLE 0
 
 struct ColorManagedDisplay;
+struct ListBase;
 struct ResultBLF;
 struct rcti;
 
@@ -81,7 +82,7 @@ bool BLF_get_vfont_metrics(int fontid, float *ascend_ratio, float *em_ratio, flo
  */
 float BLF_character_to_curves(int fontid,
                               unsigned int unicode,
-                              struct ListBase *nurbsbase,
+                              ListBase *nurbsbase,
                               const float scale);
 
 /**
@@ -143,15 +144,14 @@ void BLF_batch_draw_end();
 /**
  * Draw the string using the current font.
  */
-void BLF_draw_ex(int fontid, const char *str, size_t str_len, struct ResultBLF *r_info)
-    ATTR_NONNULL(2);
+void BLF_draw_ex(int fontid, const char *str, size_t str_len, ResultBLF *r_info) ATTR_NONNULL(2);
 void BLF_draw(int fontid, const char *str, size_t str_len) ATTR_NONNULL(2);
 int BLF_draw_mono(int fontid, const char *str, size_t str_len, int cwidth, int tab_columns)
     ATTR_NONNULL(2);
 
 typedef bool (*BLF_GlyphBoundsFn)(const char *str,
                                   size_t str_step_ofs,
-                                  const struct rcti *bounds,
+                                  const rcti *bounds,
                                   void *user_data);
 
 /**
@@ -182,8 +182,7 @@ size_t BLF_str_offset_from_cursor_position(int fontid,
 bool BLF_str_offset_to_glyph_bounds(int fontid,
                                     const char *str,
                                     size_t str_offset,
-                                    struct rcti *glyph_bounds) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(2, 4);
+                                    rcti *glyph_bounds) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2, 4);
 
 /**
  * Get the string byte offset that fits within a given width.
@@ -206,23 +205,20 @@ size_t BLF_width_to_rstrlen(int fontid,
  * This function return the bounding box of the string
  * and are not multiplied by the aspect.
  */
-void BLF_boundbox_ex(int fontid,
-                     const char *str,
-                     size_t str_len,
-                     struct rcti *box,
-                     struct ResultBLF *r_info) ATTR_NONNULL(2);
-void BLF_boundbox(int fontid, const char *str, size_t str_len, struct rcti *box) ATTR_NONNULL();
+void BLF_boundbox_ex(int fontid, const char *str, size_t str_len, rcti *box, ResultBLF *r_info)
+    ATTR_NONNULL(2);
+void BLF_boundbox(int fontid, const char *str, size_t str_len, rcti *box) ATTR_NONNULL();
 
 /**
  * The next both function return the width and height
  * of the string, using the current font and both value
  * are multiplied by the aspect of the font.
  */
-float BLF_width_ex(int fontid, const char *str, size_t str_len, struct ResultBLF *r_info)
+float BLF_width_ex(int fontid, const char *str, size_t str_len, ResultBLF *r_info)
     ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
 float BLF_width(int fontid, const char *str, size_t str_len) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-float BLF_height_ex(int fontid, const char *str, size_t str_len, struct ResultBLF *r_info)
+float BLF_height_ex(int fontid, const char *str, size_t str_len, ResultBLF *r_info)
     ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2);
 float BLF_height(int fontid, const char *str, size_t str_len) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
@@ -299,7 +295,7 @@ void BLF_buffer(int fontid,
                 int w,
                 int h,
                 int nch,
-                struct ColorManagedDisplay *display);
+                ColorManagedDisplay *display);
 
 /**
  * Set the color to be used for text.
@@ -310,7 +306,7 @@ void BLF_buffer_col(int fontid, const float rgba[4]) ATTR_NONNULL(2);
  * Draw the string into the buffer, this function draw in both buffer,
  * float and unsigned char _BUT_ it's not necessary set both buffer, NULL is valid here.
  */
-void BLF_draw_buffer_ex(int fontid, const char *str, size_t str_len, struct ResultBLF *r_info)
+void BLF_draw_buffer_ex(int fontid, const char *str, size_t str_len, ResultBLF *r_info)
     ATTR_NONNULL(2);
 void BLF_draw_buffer(int fontid, const char *str, size_t str_len) ATTR_NONNULL(2);
 

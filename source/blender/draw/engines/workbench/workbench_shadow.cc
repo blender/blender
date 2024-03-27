@@ -17,7 +17,7 @@
 
 #include "BKE_object.hh"
 #include "DRW_render.hh"
-#include "GPU_compute.h"
+#include "GPU_compute.hh"
 
 #include "workbench_private.hh"
 
@@ -381,7 +381,7 @@ void ShadowPass::object_sync(SceneState &scene_state,
 
   Object *ob = ob_ref.object;
   bool is_manifold;
-  GPUBatch *geom_shadow = DRW_cache_object_edge_detection_get(ob, &is_manifold);
+  blender::gpu::Batch *geom_shadow = DRW_cache_object_edge_detection_get(ob, &is_manifold);
   if (geom_shadow == nullptr) {
     return;
   }

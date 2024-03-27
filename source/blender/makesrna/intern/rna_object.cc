@@ -47,6 +47,7 @@
 
 #include "BLI_sys_types.h" /* needed for intptr_t used in ED_mesh.hh */
 #include "ED_mesh.hh"
+#include "ED_object_vgroup.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -485,11 +486,11 @@ static void rna_Object_active_shape_update(Main *bmain, Scene * /*scene*/, Point
     switch (ob->type) {
       case OB_MESH: {
         Mesh *mesh = static_cast<Mesh *>(ob->data);
-        BMEditMesh *em = mesh->edit_mesh;
+        BMEditMesh *em = mesh->runtime->edit_mesh;
         int select_mode = em->selectmode;
         EDBM_mesh_load(bmain, ob);
         EDBM_mesh_make(ob, select_mode, true);
-        em = mesh->edit_mesh;
+        em = mesh->runtime->edit_mesh;
 
         DEG_id_tag_update(&mesh->id, 0);
 
@@ -1131,8 +1132,8 @@ static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
   if (ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-    if (mesh->edit_mesh) {
-      mesh->edit_mesh->mat_nr = value;
+    if (mesh->runtime->edit_mesh) {
+      mesh->runtime->edit_mesh->mat_nr = value;
     }
   }
 }

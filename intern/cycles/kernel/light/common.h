@@ -12,9 +12,9 @@ CCL_NAMESPACE_BEGIN
 
 typedef struct LightSample {
   float3 P;            /* position on light, or direction for distant light */
-  float3 Ng;           /* normal on light */
-  float3 D;            /* direction from shading point to light */
+  packed_float3 Ng;    /* normal on light */
   float t;             /* distance to light (FLT_MAX for distant light) */
+  float3 D;            /* direction from shading point to light */
   float u, v;          /* parametric coordinate on primitive */
   float pdf;           /* pdf for selecting light and point on light */
   float pdf_selection; /* pdf for selecting light */
@@ -25,6 +25,7 @@ typedef struct LightSample {
   int lamp;            /* lamp id */
   int group;           /* lightgroup */
   LightType type;      /* type of light */
+  int emitter_id;      /* index in the emitter array */
 } LightSample;
 
 /* Utilities */

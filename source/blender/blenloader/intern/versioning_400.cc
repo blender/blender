@@ -50,6 +50,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
+#include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_effect.h"
@@ -2028,6 +2029,31 @@ static void image_settings_avi_to_ffmpeg(Scene *scene)
   }
 }
 
+static bool seq_hue_correct_set_wrapping(Sequence *seq, void * /*user_data*/)
+{
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+    if (smd->type == seqModifierType_HueCorrect) {
+      HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
+      CurveMapping *cumap = (CurveMapping *)&hcmd->curve_mapping;
+      cumap->flag |= CUMA_USE_WRAPPING;
+    }
+  }
+  return true;
+}
+
+static void versioning_node_hue_correct_set_wrappng(bNodeTree *ntree)
+{
+  if (ntree->type == NTREE_COMPOSIT) {
+    LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
+
+      if (node->type == CMP_NODE_HUECORRECT) {
+        CurveMapping *cumap = (CurveMapping *)node->storage;
+        cumap->flag |= CUMA_USE_WRAPPING;
+      }
+    }
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -3107,20 +3133,34 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 12)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      versioning_node_hue_correct_set_wrappng(ntree);
+    }
+    FOREACH_NODETREE_END;
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != nullptr) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_hue_correct_set_wrapping, nullptr);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 13)) {
     update_paint_modes_for_brush_assets(*bmain);
   }
+}
 
-  /**
-   * Always bump subversion in BKE_blender_version.h when adding versioning
-   * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
-   *
-   * \note Keep this message at the bottom of the function.
-   */
+/**
+ * Always bump subversion in BKE_blender_version.h when adding versioning
+ * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
+ *
+ * \note Keep this message at the bottom of the function.
+ */
 
-  /* Always run this versioning; meshes are written with the legacy format which always needs to
-   * be converted to the new format on file load. Can be moved to a subversion check in a larger
-   * breaking release. */
-  LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
-    blender::bke::mesh_sculpt_mask_to_generic(*mesh);
-  }
+/* Always run this versioning; meshes are written with the legacy format which always needs to
+ * be converted to the new format on file load. Can be moved to a subversion check in a larger
+ * breaking release. */
+LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+  blender::bke::mesh_sculpt_mask_to_generic(*mesh);
+}
 }

@@ -34,7 +34,7 @@
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
-#include "curve_intern.h"
+#include "curve_intern.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

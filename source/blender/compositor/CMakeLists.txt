@@ -584,20 +584,6 @@ if(WITH_COMPOSITOR_CPU)
     ${CMAKE_CURRENT_BINARY_DIR}/operations
   )
 
-  set(GENSRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/operations)
-  set(GENSRC ${GENSRC_DIR}/COM_SMAAAreaTexture.h)
-  add_custom_command(
-    OUTPUT ${GENSRC}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${GENSRC_DIR}
-    COMMAND "$<TARGET_FILE:smaa_areatex>" ${GENSRC}
-    DEPENDS smaa_areatex
-  )
-  list(APPEND SRC
-    ${GENSRC}
-  )
-  unset(GENSRC)
-  unset(GENSRC_DIR)
-
   if(WITH_OPENIMAGEDENOISE)
     add_definitions(-DWITH_OPENIMAGEDENOISE)
     add_definitions(-DOIDN_STATIC_LIB)

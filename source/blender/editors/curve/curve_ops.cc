@@ -19,7 +19,7 @@
 #include "ED_curve.hh"
 #include "ED_screen.hh"
 
-#include "curve_intern.h"
+#include "curve_intern.hh"
 
 /************************* registration ****************************/
 

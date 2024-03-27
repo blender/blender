@@ -104,8 +104,8 @@
 #include "UI_resources.hh"
 #include "UI_string_search.hh"
 
-#include "GPU_context.h"
-#include "GPU_init_exit.h"
+#include "GPU_context.hh"
+#include "GPU_init_exit.hh"
 #include "GPU_material.hh"
 
 #include "COM_compositor.hh"

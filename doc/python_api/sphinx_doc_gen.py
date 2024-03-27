@@ -61,7 +61,6 @@ import os
 import sys
 import inspect
 import shutil
-import time
 import logging
 import warnings
 
@@ -485,19 +484,6 @@ BLENDER_REVISION_TIMESTAMP = bpy.app.build_commit_timestamp
 # '2.83.0 Beta' or '2.83.0' or '2.83.1'
 BLENDER_VERSION_STRING = bpy.app.version_string
 BLENDER_VERSION_DOTS = "%d.%d" % (bpy.app.version[0], bpy.app.version[1])
-
-if BLENDER_REVISION != "Unknown":
-    # SHA1 Git hash
-    BLENDER_VERSION_HASH = BLENDER_REVISION
-    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://projects.blender.org/blender/blender/commit/%s>%s</a>" % (
-        BLENDER_VERSION_HASH, BLENDER_VERSION_HASH,
-    )
-    BLENDER_VERSION_DATE = time.strftime("%d/%m/%Y", time.localtime(BLENDER_REVISION_TIMESTAMP))
-else:
-    # Fallback: Should not be used
-    BLENDER_VERSION_HASH = "Hash Unknown"
-    BLENDER_VERSION_HASH_HTML_LINK = BLENDER_VERSION_HASH
-    BLENDER_VERSION_DATE = time.strftime("%Y-%m-%d")
 
 # Example: `2_83`.
 BLENDER_VERSION_PATH = "%d_%d" % (bpy.app.version[0], bpy.app.version[1])
@@ -1712,7 +1698,7 @@ def pyrna2sphinx(basepath):
                     lines.append("   * :class:`%s.%s`\n" % (base.identifier, identifier))
 
             if lines:
-                fw(".. rubric:: Inherited Properties\n\n")
+                fw(title_string("Inherited Properties", "-"))
 
                 fw(".. hlist::\n")
                 fw("   :columns: 2\n\n")
@@ -1738,7 +1724,7 @@ def pyrna2sphinx(basepath):
                     lines.append("   * :class:`%s.%s`\n" % (base.identifier, identifier))
 
             if lines:
-                fw(".. rubric:: Inherited Functions\n\n")
+                fw(title_string("Inherited Functions", "-"))
 
                 fw(".. hlist::\n")
                 fw("   :columns: 2\n\n")
@@ -1750,8 +1736,7 @@ def pyrna2sphinx(basepath):
             del lines[:]
 
         if struct.references:
-            # use this otherwise it gets in the index for a normal heading.
-            fw(".. rubric:: References\n\n")
+            fw(title_string("References", "-"))
 
             fw(".. hlist::\n")
             fw("   :columns: 2\n\n")
@@ -1894,103 +1879,6 @@ def pyrna2sphinx(basepath):
 
     if "bpy.ops" not in EXCLUDE_MODULES:
         write_ops()
-
-
-def write_sphinx_conf_py(basepath):
-    """
-    Write sphinx's ``conf.py``.
-    """
-    filepath = os.path.join(basepath, "conf.py")
-    file = open(filepath, "w", encoding="utf-8")
-    fw = file.write
-
-    fw("import sys, os\n\n")
-    fw("extensions = ['sphinx.ext.intersphinx']\n\n")
-    fw("intersphinx_mapping = {'blender_manual': ('https://docs.blender.org/manual/en/dev/', None)}\n\n")
-    fw("project = 'Blender %s Python API'\n" % BLENDER_VERSION_STRING)
-    fw("root_doc = 'index'\n")
-    fw("copyright = 'Blender Authors'\n")
-    fw("version = '%s'\n" % BLENDER_VERSION_DOTS)
-    fw("release = '%s'\n" % BLENDER_VERSION_DOTS)
-
-    # Set this as the default is a super-set of Python3.
-    fw("highlight_language = 'python3'\n")
-    # No need to detect encoding.
-    fw("highlight_options = {'default': {'encoding': 'utf-8'}}\n\n")
-
-    # Quiet file not in table-of-contents warnings.
-    fw("exclude_patterns = [\n")
-    fw("    'include__bmesh.rst',\n")
-    fw("]\n\n")
-
-    fw("html_title = 'Blender Python API'\n")
-
-    fw("html_theme = 'default'\n")
-    # The theme 'sphinx_rtd_theme' is no longer distributed with sphinx by default, only use when available.
-    fw(r"""
-try:
-    __import__('sphinx_rtd_theme')
-    html_theme = 'sphinx_rtd_theme'
-except ModuleNotFoundError:
-    pass
-""")
-
-    fw("if html_theme == 'sphinx_rtd_theme':\n")
-    fw("    html_theme_options = {\n")
-    fw("        'display_version': False,\n")
-    # fw("        'analytics_id': '',\n")
-    # fw("        'collapse_navigation': True,\n")
-    fw("        'sticky_navigation': False,\n")
-    fw("        'navigation_depth': 1,\n")
-    fw("        'includehidden': False,\n")
-    # fw("        'titles_only': False\n")
-    fw("    }\n\n")
-
-    # not helpful since the source is generated, adds to upload size.
-    fw("html_copy_source = False\n")
-    fw("html_show_sphinx = False\n")
-    fw("html_baseurl = 'https://docs.blender.org/api/current/'\n")
-    fw("html_use_opensearch = 'https://docs.blender.org/api/current'\n")
-    fw("html_show_search_summary = True\n")
-    fw("html_split_index = True\n")
-    fw("html_static_path = ['static']\n")
-    fw("templates_path = ['templates']\n")
-    fw("html_context = {'commit': '%s - %s'}\n" % (BLENDER_VERSION_HASH_HTML_LINK, BLENDER_VERSION_DATE))
-    fw("html_extra_path = ['static/favicon.ico', 'static/blender_logo.svg']\n")
-    fw("html_favicon = 'static/favicon.ico'\n")
-    fw("html_logo = 'static/blender_logo.svg'\n")
-    # Disable default `last_updated` value, since this is the date of doc generation, not the one of the source commit.
-    fw("html_last_updated_fmt = None\n\n")
-    fw("if html_theme == 'sphinx_rtd_theme':\n")
-    fw("    html_css_files = ['css/version_switch.css']\n")
-    fw("    html_js_files = ['js/version_switch.js']\n")
-
-    # needed for latex, pdf gen
-    fw("latex_elements = {\n")
-    fw("  'papersize': 'a4paper',\n")
-    fw("}\n\n")
-
-    fw("latex_documents = [ ('contents', 'contents.tex', 'Blender Index', 'Blender Foundation', 'manual'), ]\n")
-
-    # Workaround for useless links leading to compile errors
-    # See https://github.com/sphinx-doc/sphinx/issues/3866
-    fw(r"""
-from sphinx.domains.python import PythonDomain
-
-class PatchedPythonDomain(PythonDomain):
-    def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
-        if 'refspecific' in node:
-            del node['refspecific']
-        return super(PatchedPythonDomain, self).resolve_xref(
-            env, fromdocname, builder, typ, target, node, contnode)
-""")
-    # end workaround
-
-    fw("def setup(app):\n")
-    fw("    app.add_css_file('css/theme_overrides.css')\n")
-    fw("    app.add_domain(PatchedPythonDomain, override=True)\n\n")
-
-    file.close()
 
 
 def write_rst_index(basepath):
@@ -2231,7 +2119,6 @@ def write_rst_enum_items(basepath, key, key_no_prefix, enum_items):
         fw(".. _%s:\n\n" % key)
 
         fw(title_string(key_no_prefix.replace("_", " ").title(), "#"))
-        # fw(".. rubric:: %s\n\n" % key_no_prefix.replace("_", " ").title())
 
         for item in enum_items:
             identifier = item.identifier
@@ -2406,7 +2293,7 @@ def copy_handwritten_extra(basepath):
         shutil.copy2(f_src, f_dst)
 
 
-def copy_theme_assets(basepath):
+def copy_sphinx_files(basepath):
     shutil.copytree(
         os.path.join(SCRIPT_DIR, "static"),
         os.path.join(basepath, "static"),
@@ -2418,17 +2305,38 @@ def copy_theme_assets(basepath):
         copy_function=shutil.copy,
     )
 
+    shutil.copy2(os.path.join(SCRIPT_DIR, "conf.py"), basepath, )
+
+
+def format_config(basepath):
+    """
+    Updates ``conf.py`` with context information from Blender.
+    """
+    from string import Template
+
+    # Ensure the string literals can contain any characters by closing the surrounding quotes
+    # and declare a separate literal via `repr()`.
+    def declare_in_quotes(string):
+        return "\" %r \"" % (string)
+
+    substitutions = {
+        "BLENDER_VERSION_STRING": declare_in_quotes(BLENDER_VERSION_STRING),
+        "BLENDER_VERSION_DOTS": declare_in_quotes(BLENDER_VERSION_DOTS),
+        "BLENDER_REVISION_TIMESTAMP": declare_in_quotes(str(BLENDER_REVISION_TIMESTAMP)),
+        "BLENDER_REVISION": declare_in_quotes(BLENDER_REVISION),
+    }
+
+    filepath = os.path.join(basepath, "conf.py")
+
+    # Read the template string from the template file.
+    with open(filepath, 'r', encoding="utf-8") as fh:
+        template_file = fh.read()
+
+    with open(filepath, 'w', encoding="utf-8") as fh:
+        fh.write(Template(template_file).substitute(substitutions))
+
 
 def rna2sphinx(basepath):
-
-    try:
-        os.mkdir(basepath)
-    except:
-        pass
-
-    # sphinx setup
-    write_sphinx_conf_py(basepath)
-
     # main page
     write_rst_index(basepath)
 
@@ -2454,9 +2362,6 @@ def rna2sphinx(basepath):
 
     # copy source files referenced
     copy_handwritten_extra(basepath)
-
-    # copy extra files needed for theme
-    copy_theme_assets(basepath)
 
 
 def align_sphinx_in_to_sphinx_in_tmp(dir_src, dir_dst):
@@ -2578,10 +2483,22 @@ def main():
             copy_function=shutil.copy,
         )
 
-    # Dump the API in RST files.
+    # start from a clean directory everytime
     if os.path.exists(SPHINX_IN_TMP):
         shutil.rmtree(SPHINX_IN_TMP, True)
 
+    try:
+        os.mkdir(SPHINX_IN_TMP)
+    except:
+        pass
+
+    # copy extra files needed for theme
+    copy_sphinx_files(SPHINX_IN_TMP)
+
+    # write infromation needed for 'conf.py'
+    format_config(SPHINX_IN_TMP)
+
+    # Dump the API in RST files.
     rna2sphinx(SPHINX_IN_TMP)
 
     if ARGS.changelog:

@@ -11,7 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_index_buffer.h"
+#include "GPU_index_buffer.hh"
 
 #include "draw_subdivision.hh"
 #include "extract_mesh.hh"
@@ -81,7 +81,7 @@ static void extract_lines_paint_mask_finish(const MeshRenderData & /*mr*/,
                                             void *_data)
 {
   MeshExtract_LinePaintMask_Data *data = static_cast<MeshExtract_LinePaintMask_Data *>(_data);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
   MEM_freeN(data->select_map);
 }

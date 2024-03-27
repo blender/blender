@@ -14,6 +14,8 @@
 
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_types.hh"
+
 #include "BLI_kdtree.h"
 
 #include "ED_mesh.hh"
@@ -31,7 +33,7 @@ static struct {
 void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  const bool use_em = (!mesh_eval && em && mesh->edit_mesh == em);
+  const bool use_em = (!mesh_eval && em && mesh->runtime->edit_mesh == em);
   const int totvert = use_em    ? em->bm->totvert :
                       mesh_eval ? mesh_eval->verts_num :
                                   mesh->verts_num;

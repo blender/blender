@@ -20,8 +20,8 @@
 
 #include "bmesh.hh"
 
-#include "GPU_vertex_buffer.h"
-#include "GPU_vertex_format.h"
+#include "GPU_vertex_buffer.hh"
+#include "GPU_vertex_format.hh"
 
 #include "draw_cache_extract.hh"
 

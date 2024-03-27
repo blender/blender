@@ -13,10 +13,10 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "GPU_compute.h"
-#include "GPU_shader.h"
-#include "GPU_storage_buffer.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_compute.hh"
+#include "GPU_shader.hh"
+#include "GPU_storage_buffer.hh"
+#include "GPU_vertex_buffer.hh"
 
 #include "COM_node_operation.hh"
 #include "COM_result.hh"

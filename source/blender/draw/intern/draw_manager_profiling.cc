@@ -18,10 +18,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
-#include "GPU_debug.h"
-#include "GPU_texture.h"
+#include "GPU_debug.hh"
+#include "GPU_texture.hh"
 
 #include "UI_resources.hh"
 

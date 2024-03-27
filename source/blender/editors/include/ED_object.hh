@@ -42,7 +42,7 @@ struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
 
-/* object_edit.cc */
+/* `object_edit.cc` */
 
 /** `context.object` */
 Object *ED_object_context(const bContext *C);
@@ -108,7 +108,7 @@ void ED_object_data_xform_container_update_all(XFormObjectData_Container *xds,
                                                Depsgraph *depsgraph);
 void ED_object_data_xform_container_item_ensure(XFormObjectData_Container *xds, Object *ob);
 
-/* Object Skip-Child Container helper API. */
+/** Object Skip-Child Container helper API. */
 enum {
   /**
    * The parent is transformed, this is held in place.
@@ -282,42 +282,6 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 bool ED_object_editmode_enter(bContext *C, int flag);
 bool ED_object_editmode_load(Main *bmain, Object *obedit);
 
-void ED_object_vpaintmode_enter_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
-void ED_object_vpaintmode_enter(bContext *C, Depsgraph *depsgraph);
-void ED_object_wpaintmode_enter_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
-void ED_object_wpaintmode_enter(bContext *C, Depsgraph *depsgraph);
-
-void ED_object_vpaintmode_exit_ex(Object *ob);
-void ED_object_vpaintmode_exit(bContext *C);
-void ED_object_wpaintmode_exit_ex(Object *ob);
-void ED_object_wpaintmode_exit(bContext *C);
-
-void ED_object_texture_paint_mode_enter_ex(Main *bmain,
-                                           Scene *scene,
-                                           Depsgraph *depsgraph,
-                                           Object *ob);
-void ED_object_texture_paint_mode_enter(bContext *C);
-
-void ED_object_texture_paint_mode_exit_ex(Main *bmain, Scene *scene, Object *ob);
-void ED_object_texture_paint_mode_exit(bContext *C);
-
-bool ED_object_particle_edit_mode_supported(const Object *ob);
-void ED_object_particle_edit_mode_enter_ex(Depsgraph *depsgraph, Scene *scene, Object *ob);
-void ED_object_particle_edit_mode_enter(bContext *C);
-
-void ED_object_particle_edit_mode_exit_ex(Scene *scene, Object *ob);
-void ED_object_particle_edit_mode_exit(bContext *C);
-
-void ED_object_sculptmode_enter_ex(Main *bmain,
-                                   Depsgraph *depsgraph,
-                                   Scene *scene,
-                                   Object *ob,
-                                   bool force_dyntopo,
-                                   ReportList *reports);
-void ED_object_sculptmode_enter(bContext *C, Depsgraph *depsgraph, ReportList *reports);
-void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
-void ED_object_sculptmode_exit(bContext *C, Depsgraph *depsgraph);
-
 void ED_object_location_from_view(bContext *C, float loc[3]);
 void ED_object_rotation_from_quat(float rot[3], const float quat[4], char align_axis);
 void ED_object_rotation_from_view(bContext *C, float rot[3], char align_axis);
@@ -343,7 +307,7 @@ void ED_object_add_unit_props_radius_ex(wmOperatorType *ot, float default_value)
 void ED_object_add_unit_props_radius(wmOperatorType *ot);
 void ED_object_add_generic_props(wmOperatorType *ot, bool do_editmode);
 void ED_object_add_mesh_props(wmOperatorType *ot);
-bool ED_object_add_generic_get_opts(bContext *C,
+void ED_object_add_generic_get_opts(bContext *C,
                                     wmOperator *op,
                                     char view_align_axis,
                                     float r_loc[3],
@@ -451,7 +415,7 @@ void ED_object_constraint_copy_for_pose(Main *bmain,
                                         bPoseChannel *pchan,
                                         bConstraint *con);
 
-/* object_modes.cc */
+/* `object_modes.cc` */
 
 /**
  * Checks the mode to be set is compatible with the object
@@ -577,7 +541,7 @@ bool ED_object_iter_other(Main *bmain,
  */
 bool ED_object_multires_update_totlevels_cb(Object *ob, void *totlevel_v);
 
-/* object_greasepencil_modifier.c */
+/* `object_greasepencil_modifier.cc` */
 
 GpencilModifierData *ED_object_gpencil_modifier_add(
     ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type);
@@ -652,7 +616,7 @@ bool ED_object_jump_to_object(bContext *C, Object *ob, bool reveal_hidden);
  */
 bool ED_object_jump_to_bone(bContext *C, Object *ob, const char *bone_name, bool reveal_hidden);
 
-/* object_data_transform.cc */
+/* `object_data_transform.cc` */
 
 XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode);
 XFormObjectData *ED_object_data_xform_create(ID *id);

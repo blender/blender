@@ -19,8 +19,8 @@
 #include "NOD_derived_node_tree.hh"
 #include "NOD_node_declaration.hh"
 
-#include "GPU_compute.h"
-#include "GPU_shader.h"
+#include "GPU_compute.hh"
+#include "GPU_shader.hh"
 
 #include "COM_operation.hh"
 #include "COM_result.hh"

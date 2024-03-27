@@ -235,41 +235,41 @@ set(SRC
   intern/draw_cache_extract.hh
   intern/draw_cache_impl.hh
   intern/draw_cache_inline.hh
-  intern/draw_color_management.h
+  intern/draw_color_management.hh
   intern/draw_command.hh
-  intern/draw_common.h
+  intern/draw_common_c.hh
   intern/draw_common.hh
-  intern/draw_common_shader_shared.h
+  intern/draw_common_shader_shared.hh
   intern/draw_curves_private.hh
-  intern/draw_debug.h
+  intern/draw_debug_c.hh
   intern/draw_debug.hh
-  intern/draw_hair_private.h
+  intern/draw_hair_private.hh
   intern/draw_handle.hh
-  intern/draw_instance_data.h
-  intern/draw_manager.h
+  intern/draw_instance_data.hh
+  intern/draw_manager_c.hh
   intern/draw_manager.hh
   intern/draw_manager_profiling.hh
-  intern/draw_manager_testing.h
+  intern/draw_manager_testing.hh
   intern/draw_manager_text.hh
   intern/draw_pass.hh
   intern/draw_pbvh.hh
   intern/draw_resource.hh
   intern/draw_sculpt.hh
   intern/draw_shader.hh
-  intern/draw_shader_shared.h
-  intern/draw_state.h
+  intern/draw_shader_shared.hh
+  intern/draw_state.hh
   intern/draw_subdivision.hh
-  intern/draw_texture_pool.h
-  intern/draw_view.h
+  intern/draw_texture_pool.hh
+  intern/draw_view_c.hh
   intern/draw_view.hh
-  intern/draw_view_data.h
+  intern/draw_view_data.hh
   intern/mesh_extractors/extract_mesh.hh
   engines/basic/basic_engine.h
   engines/basic/basic_private.h
   engines/compositor/compositor_engine.h
   engines/eevee/eevee_engine.h
   engines/eevee/eevee_lightcache.h
-  engines/eevee/eevee_private.h
+  engines/eevee/eevee_private.hh
   engines/eevee/engine_eevee_shared_defines.h
   engines/eevee_next/eevee_ambient_occlusion.hh
   engines/eevee_next/eevee_camera.hh
@@ -705,10 +705,10 @@ set(GLSL_SRC
   intern/shaders/draw_visibility_comp.glsl
 
   intern/draw_command_shared.hh
-  intern/draw_common_shader_shared.h
-  intern/draw_defines.h
+  intern/draw_common_shader_shared.hh
+  intern/draw_defines.hh
   intern/draw_pointcloud_private.hh
-  intern/draw_shader_shared.h
+  intern/draw_shader_shared.hh
 
   engines/gpencil/shaders/gpencil_frag.glsl
   engines/gpencil/shaders/gpencil_vert.glsl

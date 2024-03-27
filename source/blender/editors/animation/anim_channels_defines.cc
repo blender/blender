@@ -60,8 +60,8 @@
 #include "BKE_lib_id.hh"
 #include "BKE_nla.h"
 
-#include "GPU_immediate.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "DEG_depsgraph.hh"
 

@@ -15,7 +15,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
-#include "GPU_platform.h"
+#include "GPU_platform.hh"
 
 #include "gpu_platform_private.hh"
 

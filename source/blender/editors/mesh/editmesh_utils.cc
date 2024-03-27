@@ -276,27 +276,27 @@ void EDBM_mesh_make_from_mesh(Object *ob,
   create_params.use_toolflags = true;
   BMesh *bm = BKE_mesh_to_bmesh(src_mesh, ob, add_key_index, &create_params);
 
-  if (mesh->edit_mesh) {
+  if (mesh->runtime->edit_mesh) {
     /* this happens when switching shape keys */
-    EDBM_mesh_free_data(mesh->edit_mesh);
-    MEM_freeN(mesh->edit_mesh);
+    EDBM_mesh_free_data(mesh->runtime->edit_mesh);
+    MEM_freeN(mesh->runtime->edit_mesh);
   }
 
   /* Executing operators re-tessellates,
    * so we can avoid doing here but at some point it may need to be added back. */
-  mesh->edit_mesh = BKE_editmesh_create(bm);
+  mesh->runtime->edit_mesh = BKE_editmesh_create(bm);
 
-  mesh->edit_mesh->selectmode = mesh->edit_mesh->bm->selectmode = select_mode;
-  mesh->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
+  mesh->runtime->edit_mesh->selectmode = mesh->runtime->edit_mesh->bm->selectmode = select_mode;
+  mesh->runtime->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
 
   /* we need to flush selection because the mode may have changed from when last in editmode */
-  EDBM_selectmode_flush(mesh->edit_mesh);
+  EDBM_selectmode_flush(mesh->runtime->edit_mesh);
 }
 
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  BMesh *bm = mesh->edit_mesh->bm;
+  BMesh *bm = mesh->runtime->edit_mesh->bm;
 
   /* Workaround for #42360, 'ob->shapenr' should be 1 in this case.
    * however this isn't synchronized between objects at the moment. */
@@ -308,16 +308,6 @@ void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
   params.calc_object_remap = true;
   params.update_shapekey_indices = !free_data;
   BM_mesh_bm_to_me(bmain, bm, mesh, &params);
-}
-
-void EDBM_mesh_clear(BMEditMesh *em)
-{
-  /* clear bmesh */
-  BM_mesh_clear(em->bm);
-
-  /* free tessellation data */
-  em->tottri = 0;
-  MEM_SAFE_FREE(em->looptris);
 }
 
 void EDBM_mesh_load(Main *bmain, Object *ob)
@@ -1663,7 +1653,7 @@ void EDBM_stats_update(BMEditMesh *em)
 
 void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
 {
-  BMEditMesh *em = mesh->edit_mesh;
+  BMEditMesh *em = mesh->runtime->edit_mesh;
   /* Order of calling isn't important. */
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);

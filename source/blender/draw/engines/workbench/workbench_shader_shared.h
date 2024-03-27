@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifndef GPU_SHADER
-#  include "GPU_shader_shared_utils.h"
+#  include "GPU_shader_shared_utils.hh"
 #endif
 
 #define WORKBENCH_SHADER_SHARED_H

@@ -16,10 +16,6 @@
 
 #include "RE_texture.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct bNodeThreadStack;
 
 struct TexCallData {
@@ -90,7 +86,3 @@ bNodeTreeExec *ntreeTexBeginExecTree_internal(bNodeExecContext *context,
                                               bNodeTree *ntree,
                                               bNodeInstanceKey parent_key);
 void ntreeTexEndExecTree_internal(bNodeTreeExec *exec);
-
-#ifdef __cplusplus
-}
-#endif

@@ -168,6 +168,7 @@ void BKE_curvemapping_premultiply(CurveMapping *cumap, bool restore);
 
 void BKE_curvemapping_blend_write(BlendWriter *writer, const CurveMapping *cumap);
 void BKE_curvemapping_curves_blend_write(BlendWriter *writer, const CurveMapping *cumap);
+
 /**
  * \note `cumap` itself has been read already.
  */

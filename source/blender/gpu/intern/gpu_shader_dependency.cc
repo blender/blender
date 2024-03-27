@@ -20,11 +20,11 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
-#include "gpu_material_library.h"
+#include "gpu_material_library.hh"
 #include "gpu_shader_create_info.hh"
-#include "gpu_shader_dependency_private.h"
+#include "gpu_shader_dependency_private.hh"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 extern "C" {
 #define SHADER_SOURCE(datatoc, filename, filepath) extern char datatoc[];

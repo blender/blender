@@ -15,14 +15,14 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 
-#include "GPU_matrix.h"
+#include "GPU_matrix.hh"
 #include "GPU_select.hh"
 
 #include "WM_types.hh"
 
 /* own includes */
-#include "ED_gizmo_library.hh"    /* own include */
-#include "gizmo_library_intern.h" /* own include */
+#include "ED_gizmo_library.hh"     /* own include */
+#include "gizmo_library_intern.hh" /* own include */
 
 /* TODO: this is to be used by RNA. might move to ED_gizmo_library. */
 

@@ -16,7 +16,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "DNA_ID.h"
 
 using Alembic::Abc::ArraySample;

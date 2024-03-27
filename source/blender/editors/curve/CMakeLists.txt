@@ -28,7 +28,7 @@ set(SRC
   editfont.cc
   editfont_undo.cc
 
-  curve_intern.h
+  curve_intern.hh
 )
 
 set(LIB

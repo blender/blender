@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <optional>
+
 #include <fmt/format.h>
 
 #include "BKE_anim_data.hh"
@@ -19,15 +21,20 @@
 #include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_lib_remap.hh"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 
+#include "BLO_readfile.hh"
+
 #include "BLI_color.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
+#include "BLI_map.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
@@ -156,6 +163,113 @@ static void find_used_vertex_groups(const bGPDframe &gpf,
   }
 }
 
+/*
+ * This takes the legacy UV transforms and returns the stroke-space to texture-space matrix.
+ */
+static float3x2 get_legacy_stroke_to_texture_matrix(const float2 uv_translation,
+                                                    const float uv_rotation,
+                                                    const float2 uv_scale)
+{
+  using namespace blender;
+
+  /* Bounding box data. */
+  const float2 minv = float2(-1.0f, -1.0f);
+  const float2 maxv = float2(1.0f, 1.0f);
+  /* Center of rotation. */
+  const float2 center = float2(0.5f, 0.5f);
+
+  const float2 uv_scale_inv = math::safe_rcp(uv_scale);
+  const float2 diagonal = maxv - minv;
+  const float sin_rotation = sin(uv_rotation);
+  const float cos_rotation = cos(uv_rotation);
+  const float2x2 rotation = float2x2(float2(cos_rotation, sin_rotation),
+                                     float2(-sin_rotation, cos_rotation));
+
+  float3x2 texture_matrix = float3x2::identity();
+
+  /* Apply bounding box rescaling. */
+  texture_matrix[2] -= minv;
+  texture_matrix = math::from_scale<float2x2>(1.0f / diagonal) * texture_matrix;
+
+  /* Apply translation. */
+  texture_matrix[2] += uv_translation;
+
+  /* Apply rotation. */
+  texture_matrix[2] -= center;
+  texture_matrix = rotation * texture_matrix;
+  texture_matrix[2] += center;
+
+  /* Apply scale. */
+  texture_matrix = math::from_scale<float2x2>(uv_scale_inv) * texture_matrix;
+
+  return texture_matrix;
+}
+
+/*
+ * This gets the legacy layer-space to stroke-space matrix.
+ */
+static blender::float4x2 get_legacy_layer_to_stroke_matrix(bGPDstroke *gps)
+{
+  using namespace blender;
+  using namespace blender::math;
+
+  const bGPDspoint *points = gps->points;
+  const int totpoints = gps->totpoints;
+
+  if (totpoints < 2) {
+    return float4x2::identity();
+  }
+
+  const bGPDspoint *point0 = &points[0];
+  const bGPDspoint *point1 = &points[1];
+  const bGPDspoint *point3 = &points[int(totpoints * 0.75f)];
+
+  const float3 pt0 = float3(point0->x, point0->y, point0->z);
+  const float3 pt1 = float3(point1->x, point1->y, point1->z);
+  const float3 pt3 = float3(point3->x, point3->y, point3->z);
+
+  /* Local X axis (p0 -> p1) */
+  const float3 local_x = normalize(pt1 - pt0);
+
+  /* Point vector at 3/4 */
+  const float3 local_3 = (totpoints == 2) ? (pt3 * 0.001f) - pt0 : pt3 - pt0;
+
+  /* Vector orthogonal to polygon plane. */
+  const float3 normal = cross(local_x, local_3);
+
+  /* Local Y axis (cross to normal/x axis). */
+  const float3 local_y = normalize(cross(normal, local_x));
+
+  /* Get local space using first point as origin. */
+  const float4x2 mat = transpose(
+      float2x4(float4(local_x, -dot(pt0, local_x)), float4(local_y, -dot(pt0, local_y))));
+
+  return mat;
+}
+
+static blender::float4x2 get_legacy_texture_matrix(bGPDstroke *gps)
+{
+  const float3x2 texture_matrix = get_legacy_stroke_to_texture_matrix(
+      float2(gps->uv_translation), gps->uv_rotation, float2(gps->uv_scale));
+
+  const float4x2 strokemat = get_legacy_layer_to_stroke_matrix(gps);
+  float4x3 strokemat4x3 = float4x3(strokemat);
+  /*
+   * We need the diagonal of ones to start from the bottom right instead top left to properly apply
+   * the two matrices.
+   *
+   * i.e.
+   *          # # # #              # # # #
+   * We need  # # # #  Instead of  # # # #
+   *          0 0 0 1              0 0 1 0
+   *
+   */
+  strokemat4x3[2][2] = 0.0f;
+  strokemat4x3[3][2] = 1.0f;
+
+  return texture_matrix * strokemat4x3;
+}
+
 void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
                                                    const ListBase &vertex_group_names,
                                                    GreasePencilDrawing &r_drawing)
@@ -259,16 +373,12 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
       "hardness", AttrDomain::Curve);
   SpanAttributeWriter<float> stroke_point_aspect_ratios =
       attributes.lookup_or_add_for_write_span<float>("aspect_ratio", AttrDomain::Curve);
-  SpanAttributeWriter<float2> stroke_fill_translations =
-      attributes.lookup_or_add_for_write_span<float2>("fill_translation", AttrDomain::Curve);
-  SpanAttributeWriter<float> stroke_fill_rotations =
-      attributes.lookup_or_add_for_write_span<float>("fill_rotation", AttrDomain::Curve);
-  SpanAttributeWriter<float2> stroke_fill_scales = attributes.lookup_or_add_for_write_span<float2>(
-      "fill_scale", AttrDomain::Curve);
   SpanAttributeWriter<ColorGeometry4f> stroke_fill_colors =
       attributes.lookup_or_add_for_write_span<ColorGeometry4f>("fill_color", AttrDomain::Curve);
   SpanAttributeWriter<int> stroke_materials = attributes.lookup_or_add_for_write_span<int>(
       "material_index", AttrDomain::Curve);
+
+  Array<float4x2> legacy_texture_matrices(num_strokes);
 
   int stroke_i = 0;
   LISTBASE_FOREACH_INDEX (bGPDstroke *, gps, &gpf.strokes, stroke_i) {
@@ -280,9 +390,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     stroke_hardnesses.span[stroke_i] = gps->hardness;
     stroke_point_aspect_ratios.span[stroke_i] = gps->aspect_ratio[0] /
                                                 max_ff(gps->aspect_ratio[1], 1e-8);
-    stroke_fill_translations.span[stroke_i] = float2(gps->uv_translation);
-    stroke_fill_rotations.span[stroke_i] = gps->uv_rotation;
-    stroke_fill_scales.span[stroke_i] = float2(gps->uv_scale);
     stroke_fill_colors.span[stroke_i] = ColorGeometry4f(gps->vert_color_fill);
     stroke_materials.span[stroke_i] = gps->mat_nr;
 
@@ -367,7 +474,14 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
       /* Unknown curve type. */
       BLI_assert_unreachable();
     }
+
+    const float4x2 legacy_texture_matrix = get_legacy_texture_matrix(gps);
+    legacy_texture_matrices[stroke_i] = legacy_texture_matrix;
   }
+
+  /* Ensure that the normals are up to date. */
+  curves.tag_normals_changed();
+  drawing.set_texture_matrices(legacy_texture_matrices.as_span(), curves.curves_range());
 
   delta_times.finish();
   rotations.finish();
@@ -380,9 +494,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   stroke_end_caps.finish();
   stroke_hardnesses.finish();
   stroke_point_aspect_ratios.finish();
-  stroke_fill_translations.finish();
-  stroke_fill_rotations.finish();
-  stroke_fill_scales.finish();
   stroke_fill_colors.finish();
   stroke_materials.finish();
 }
@@ -524,11 +635,10 @@ static bNodeTree *add_offset_radius_node_tree(Main &bmain)
   }
   group->geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;
 
-  group->tree_interface.add_socket(DATA_("Geometry"),
-                                   "",
-                                   "NodeSocketGeometry",
-                                   NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT,
-                                   nullptr);
+  group->tree_interface.add_socket(
+      DATA_("Geometry"), "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_INPUT, nullptr);
+  group->tree_interface.add_socket(
+      DATA_("Geometry"), "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
 
   bNodeTreeInterfaceSocket *radius_offset = group->tree_interface.add_socket(
       DATA_("Offset"), "", "NodeSocketFloat", NODE_INTERFACE_SOCKET_INPUT, nullptr);
@@ -572,11 +682,11 @@ static bNodeTree *add_offset_radius_node_tree(Main &bmain)
               set_curve_radius,
               nodeFindSocket(set_curve_radius, SOCK_OUT, "Curve"),
               group_output,
-              nodeFindSocket(group_output, SOCK_IN, "Socket_0"));
+              nodeFindSocket(group_output, SOCK_IN, "Socket_1"));
 
   nodeAddLink(group,
               group_input,
-              nodeFindSocket(group_input, SOCK_OUT, "Socket_2"),
+              nodeFindSocket(group_input, SOCK_OUT, "Socket_3"),
               named_layer_selection,
               nodeFindSocket(named_layer_selection, SOCK_IN, "Name"));
   nodeAddLink(group,
@@ -587,7 +697,7 @@ static bNodeTree *add_offset_radius_node_tree(Main &bmain)
 
   nodeAddLink(group,
               group_input,
-              nodeFindSocket(group_input, SOCK_OUT, "Socket_1"),
+              nodeFindSocket(group_input, SOCK_OUT, "Socket_2"),
               add,
               nodeFindSocket(add, SOCK_IN, "Value"));
   nodeAddLink(group,
@@ -677,14 +787,14 @@ void layer_adjustments_to_modifiers(Main &bmain,
 
       md->settings.properties = bke::idprop::create_group("Nodes Modifier Settings").release();
       IDProperty *radius_offset_prop =
-          bke::idprop::create(DATA_("Socket_1"), radius_offset).release();
+          bke::idprop::create(DATA_("Socket_2"), radius_offset).release();
       auto *ui_data = reinterpret_cast<IDPropertyUIDataFloat *>(
           IDP_ui_data_ensure(radius_offset_prop));
       ui_data->soft_min = 0.0f;
       ui_data->base.rna_subtype = PROP_TRANSLATION;
       IDP_AddToGroup(md->settings.properties, radius_offset_prop);
       IDP_AddToGroup(md->settings.properties,
-                     bke::idprop::create(DATA_("Socket_2"), gpl->info).release());
+                     bke::idprop::create(DATA_("Socket_3"), gpl->info).release());
     }
   }
 
@@ -1920,21 +2030,41 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
   }
 }
 
-void legacy_gpencil_object(Main &bmain, Object &object)
+static void legacy_gpencil_object_ex(
+    Main &bmain,
+    Object &object,
+    std::optional<blender::Map<bGPdata *, GreasePencil *>> legacy_to_greasepencil_data)
 {
-  bGPdata *gpd = static_cast<bGPdata *>(object.data);
+  BLI_assert((GS(static_cast<ID *>(object.data)->name) == ID_GD_LEGACY));
 
-  GreasePencil *new_grease_pencil = static_cast<GreasePencil *>(
-      BKE_id_new(&bmain, ID_GP, gpd->id.name + 2));
+  bGPdata *gpd = static_cast<bGPdata *>(object.data);
+  GreasePencil *new_grease_pencil = nullptr;
+  bool do_gpencil_data_conversion = true;
+
+  if (legacy_to_greasepencil_data) {
+    new_grease_pencil = legacy_to_greasepencil_data->lookup_default(gpd, nullptr);
+    do_gpencil_data_conversion = (new_grease_pencil == nullptr);
+  }
+
+  if (!new_grease_pencil) {
+    new_grease_pencil = static_cast<GreasePencil *>(
+        BKE_id_new_in_lib(&bmain, gpd->id.lib, ID_GP, gpd->id.name + 2));
+    id_us_min(&new_grease_pencil->id);
+  }
+
   object.data = new_grease_pencil;
   object.type = OB_GREASE_PENCIL;
 
   /* NOTE: Could also use #BKE_id_free_us, to also free the legacy GP if not used anymore? */
   id_us_min(&gpd->id);
-  /* No need to increase user-count of `new_grease_pencil`,
-   * since ID creation already set it to 1. */
+  id_us_plus(&new_grease_pencil->id);
 
-  legacy_gpencil_to_grease_pencil(bmain, *new_grease_pencil, *gpd);
+  if (do_gpencil_data_conversion) {
+    legacy_gpencil_to_grease_pencil(bmain, *new_grease_pencil, *gpd);
+    if (legacy_to_greasepencil_data) {
+      legacy_to_greasepencil_data->add(gpd, new_grease_pencil);
+    }
+  }
 
   legacy_object_modifiers(bmain, object);
 
@@ -1944,6 +2074,45 @@ void legacy_gpencil_object(Main &bmain, Object &object)
   thickness_factor_to_modifier(*gpd, object);
 
   BKE_object_free_derived_caches(&object);
+}
+
+void legacy_gpencil_object(Main &bmain, Object &object)
+{
+  legacy_gpencil_object_ex(bmain, object, std::nullopt);
+}
+
+void legacy_main(Main &bmain, BlendFileReadReport & /*reports*/)
+{
+  /* Allows to convert a legacy GPencil data only once, in case it's used by several objects. */
+  blender::Map<bGPdata *, GreasePencil *> legacy_to_greasepencil_data;
+
+  LISTBASE_FOREACH (Object *, object, &bmain.objects) {
+    if (object->type != OB_GPENCIL_LEGACY) {
+      continue;
+    }
+    legacy_gpencil_object_ex(bmain, *object, std::make_optional(legacy_to_greasepencil_data));
+  }
+
+  /* Potential other usages of legacy bGPdata IDs also need to be remapped to their matching new
+   * GreasePencil counterparts. */
+  blender::bke::id::IDRemapper gpd_remapper;
+  /* Allow remapping from legacy bGPdata IDs to new GreasePencil ones. */
+  gpd_remapper.allow_idtype_mismatch = true;
+
+  LISTBASE_FOREACH (bGPdata *, legacy_gpd, &bmain.gpencils) {
+    GreasePencil *new_grease_pencil = legacy_to_greasepencil_data.lookup_default(legacy_gpd,
+                                                                                 nullptr);
+    if (!new_grease_pencil) {
+      new_grease_pencil = static_cast<GreasePencil *>(
+          BKE_id_new_in_lib(&bmain, legacy_gpd->id.lib, ID_GP, legacy_gpd->id.name + 2));
+      id_us_min(&new_grease_pencil->id);
+      legacy_gpencil_to_grease_pencil(bmain, *new_grease_pencil, *legacy_gpd);
+      legacy_to_greasepencil_data.add(legacy_gpd, new_grease_pencil);
+    }
+    gpd_remapper.add(&legacy_gpd->id, &new_grease_pencil->id);
+  }
+
+  BKE_libblock_remap_multiple(&bmain, gpd_remapper, ID_REMAP_ALLOW_IDTYPE_MISMATCH);
 }
 
 void lineart_wrap_v3(const LineartGpencilModifierData *lmd_legacy,

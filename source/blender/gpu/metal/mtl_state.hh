@@ -11,7 +11,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 #include "gpu_state_private.hh"
 
 #include "mtl_pso_descriptor_state.hh"

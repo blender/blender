@@ -30,7 +30,7 @@
 
 #include "ED_clip.hh"
 
-#include "clip_intern.h"
+#include "clip_intern.hh"
 
 /********************** solve camera operator *********************/
 

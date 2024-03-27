@@ -11,8 +11,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "COM_domain.hh"
 #include "COM_render_context.hh"

@@ -863,7 +863,7 @@ bool ED_geometry_attribute_convert(Mesh *mesh,
   using namespace blender;
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   BLI_assert(mesh->attributes().contains(name));
-  BLI_assert(mesh->edit_mesh == nullptr);
+  BLI_assert(mesh->runtime->edit_mesh == nullptr);
   if (ELEM(dst_type, CD_PROP_STRING)) {
     if (reports) {
       BKE_report(reports, RPT_ERROR, "Cannot convert to the selected type");

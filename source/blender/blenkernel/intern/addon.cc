@@ -17,7 +17,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_addon.h" /* own include */
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"

@@ -60,6 +60,11 @@ void VKTexture::generate_mipmap()
   if (mipmaps_ <= 1) {
     return;
   }
+  /* Allow users to provide mipmaps stored in compressed textures.
+   * Skip generating mipmaps to avoid overriding the existing ones. */
+  if (format_flag_ & GPU_FORMAT_COMPRESSED) {
+    return;
+  }
 
   VKContext &context = *VKContext::get();
   VKCommandBuffers &command_buffers = context.command_buffers_get();
@@ -264,6 +269,8 @@ void VKTexture::read_sub(
 
 void *VKTexture::read(int mip, eGPUDataFormat format)
 {
+  BLI_assert(!(format_flag_ & GPU_FORMAT_COMPRESSED));
+
   int mip_size[3] = {1, 1, 1};
   VkImageType vk_image_type = to_vk_image_type(type_);
   mip_size_get(mip, mip_size);
@@ -298,19 +305,32 @@ void VKTexture::update_sub(
 {
   BLI_assert(!is_texture_view());
 
-  /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
-  VKContext &context = *VKContext::get();
-  int layers = vk_layer_count(1);
-  int3 extent = int3(extent_[0], max_ii(extent_[1], 1), max_ii(extent_[2], 1));
-  size_t sample_len = extent.x * extent.y * extent.z;
-  size_t device_memory_size = sample_len * to_bytesize(device_format_);
+  const bool is_compressed = (format_flag_ & GPU_FORMAT_COMPRESSED);
 
+  int3 extent = int3(extent_[0], max_ii(extent_[1], 1), max_ii(extent_[2], 1));
   if (type_ & GPU_TEXTURE_1D) {
     extent.y = 1;
     extent.z = 1;
   }
   if (type_ & (GPU_TEXTURE_2D | GPU_TEXTURE_CUBE)) {
     extent.z = 1;
+  }
+
+  /* Vulkan images cannot be directly mapped to host memory and requires a staging buffer. */
+  VKContext &context = *VKContext::get();
+  int layers = vk_layer_count(1);
+  size_t sample_len = size_t(extent.x) * extent.y * extent.z;
+  size_t device_memory_size = sample_len * to_bytesize(device_format_);
+
+  if (is_compressed) {
+    BLI_assert_msg(extent.z == 1, "Compressed 3D textures are not supported");
+    size_t block_size = to_block_size(device_format_);
+    size_t blocks_x = divide_ceil_u(extent.x, 4);
+    size_t blocks_y = divide_ceil_u(extent.y, 4);
+    device_memory_size = blocks_x * blocks_y * block_size;
+    /* `convert_buffer` later on will use `sample_len * to_bytesize(device_format_)`
+     * as total memory size calculation. Make that work for compressed case. */
+    sample_len = device_memory_size / to_bytesize(device_format_);
   }
 
   VKBuffer staging_buffer;
@@ -375,18 +395,19 @@ bool VKTexture::init_internal()
   if (!allocate()) {
     return false;
   }
+  this->mip_range_set(0, mipmaps_ - 1);
 
   return true;
 }
 
-bool VKTexture::init_internal(GPUVertBuf *vbo)
+bool VKTexture::init_internal(VertBuf *vbo)
 {
   device_format_ = format_;
   if (!allocate()) {
     return false;
   }
 
-  VKVertexBuffer *vertex_buffer = unwrap(unwrap(vbo));
+  VKVertexBuffer *vertex_buffer = unwrap(vbo);
 
   VkBufferImageCopy region = {};
   region.imageExtent.width = w_;

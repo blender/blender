@@ -16,7 +16,7 @@
 
 #include "BKE_blender_version.h"
 
-#include "GPU_platform.h"
+#include "GPU_platform_backend_enum.h"
 
 #include "BLO_userdef_default.h" /* own include */
 

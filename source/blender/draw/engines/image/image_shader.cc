@@ -10,7 +10,7 @@
 
 #include "BLI_dynstr.h"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "image_engine.h"
 #include "image_private.hh"

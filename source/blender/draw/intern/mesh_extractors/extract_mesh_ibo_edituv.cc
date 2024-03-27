@@ -8,7 +8,7 @@
 
 #include "extract_mesh.hh"
 
-#include "GPU_index_buffer.h"
+#include "GPU_index_buffer.hh"
 
 #include "draw_subdivision.hh"
 
@@ -74,7 +74,7 @@ static void extract_edituv_tris_finish(const MeshRenderData & /*mr*/,
                                        void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
 }
 
@@ -138,7 +138,7 @@ static void extract_edituv_tris_finish_subdiv(const DRWSubdivCache & /*subdiv_ca
                                               void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
 }
 
@@ -236,7 +236,7 @@ static void extract_edituv_lines_finish(const MeshRenderData & /*mr*/,
                                         void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
 }
 
@@ -320,7 +320,7 @@ static void extract_edituv_lines_finish_subdiv(const DRWSubdivCache & /*subdiv_c
                                                void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
 }
 
@@ -408,7 +408,7 @@ static void extract_edituv_points_finish(const MeshRenderData & /*mr*/,
                                          void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
 }
 
@@ -474,7 +474,7 @@ static void extract_edituv_points_finish_subdiv(const DRWSubdivCache & /*subdiv_
                                                 void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
 }
 
@@ -570,7 +570,7 @@ static void extract_edituv_fdots_finish(const MeshRenderData & /*mr*/,
                                         void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(&data->elb, ibo);
 }
 

@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2024-03-12 05:27+0000\n"
@@ -4487,18 +4487,6 @@ msgid "Number of pixels to expand or contract fill area"
 msgstr "フィルエリアを拡大，または縮小するピクセル数"
 
 
-msgid "Direction"
-msgstr "方向"
-
-
-msgid "Add effect of brush"
-msgstr "ブラシにエフェクトを追加"
-
-
-msgid "Subtract effect of brush"
-msgstr "ブラシの効果を差し引きます"
-
-
 msgid "Eraser Mode"
 msgstr "消しゴムモード"
 
@@ -4545,6 +4533,10 @@ msgstr "クロージャサイズ"
 
 msgid "Strokes end extension for closing gaps, use zero to disable"
 msgstr "ストロークの端を延長し，隙間を埋めます（０で無効）"
+
+
+msgid "Direction"
+msgstr "方向"
 
 
 msgid "Direction of the fill"
@@ -20831,6 +20823,14 @@ msgstr "メッシュにクロスシミュレーションによる制約を受け
 
 msgid "Amount of random elements that are going to be affected by the brush"
 msgstr "このブラシにより影響を受けるランダム要素の量"
+
+
+msgid "Add effect of brush"
+msgstr "ブラシにエフェクトを追加"
+
+
+msgid "Subtract effect of brush"
+msgstr "ブラシの効果を差し引きます"
 
 
 msgid "Max Element Distance"
@@ -115570,14 +115570,6 @@ msgid "Caps Type"
 msgstr "端のタイプ"
 
 
-msgid "CCW"
-msgstr "反時計回り"
-
-
-msgid "CW"
-msgstr "時計回り"
-
-
 msgid "Invert to Fill"
 msgstr "反転をフィルに"
 
@@ -122326,18 +122318,6 @@ msgid "Auto Smooth"
 msgstr "自動スムーズ"
 
 
-msgid "Socket_1"
-msgstr "ソケット_1"
-
-
-msgid "Input_1_use_attribute"
-msgstr "入力_1_属性使用"
-
-
-msgid "Input_1_attribute_name"
-msgstr "入力_1_属性名"
-
-
 msgid "Tangent space can only be computed for tris/quads, aborting"
 msgstr "タンジェント空間は三角面/四角面のみ計算可能です．中止します"
 
@@ -123759,20 +123739,12 @@ msgid "No object found to operate on"
 msgstr "操作するオブジェクトがありません"
 
 
-msgid "Bone collections can only be added to an Armature"
-msgstr "ボーンコレクションはアーマチュアにのみ追加可能です"
-
-
 msgid "Cannot add bone collections to a linked Armature without an override"
 msgstr "オーバーライドのないリンク中のアーマチュアにはボーンコレクションを追加できません"
 
 
 msgid "Cannot add bone collections to a linked Armature with a system override; explicitly create an override on the Armature"
 msgstr "システムオーバーライドのあるリンク中のアーマチュアにボーンコレクションを追加できません．アーマチュアにオーバーライドを明示的に作成してください"
-
-
-msgid "Bone collections can only be edited on an Armature"
-msgstr "ボーンコレクションはアーマチュアでのみ編集できます"
 
 
 msgid "Cannot update a linked Armature with a system override; explicitly create an override on the Armature"
@@ -123785,6 +123757,10 @@ msgstr "アーマチュアにアクティブボーンコレクションがない
 
 msgid "Cannot edit bone collections that are linked from another blend file"
 msgstr "他の blend ファイルからリンク中のボーンコレクションの編集はできません"
+
+
+msgid "Bone collections can only be edited on an Armature"
+msgstr "ボーンコレクションはアーマチュアでのみ編集できます"
 
 
 msgid "Cannot edit bone collections on linked Armatures without override"
@@ -124364,6 +124340,10 @@ msgstr "ノードグループにグループ出力ノードが必要です"
 
 msgid "Data-block inputs are unsupported"
 msgstr "データブロック入力は未対応です"
+
+
+msgid "Node group's first output must be a geometry"
+msgstr "ノードグループの最初の出力はジオメトリにしてください"
 
 
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
@@ -134363,10 +134343,6 @@ msgstr "ノードグループのジオメトリ入力は最初にしてくださ
 
 msgid "Node group must have an output socket"
 msgstr "ノードグループに出力ソケットが必要です"
-
-
-msgid "Node group's first output must be a geometry"
-msgstr "ノードグループの最初の出力はジオメトリにしてください"
 
 
 msgid "NormalEdit"

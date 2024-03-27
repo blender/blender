@@ -34,7 +34,7 @@
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 
-#include "GPU_framebuffer.h"
+#include "GPU_framebuffer.hh"
 #include "interface_intern.hh"
 
 /* be sure to keep 'bThemeState' in sync */

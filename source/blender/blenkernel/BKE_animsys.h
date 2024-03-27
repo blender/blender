@@ -34,7 +34,7 @@ struct PropertyRNA;
 struct bAction;
 struct bActionGroup;
 
-/* Container for data required to do FCurve and Driver evaluation. */
+/** Container for data required to do FCurve and Driver evaluation. */
 typedef struct AnimationEvalContext {
   /* For drivers, so that they have access to the dependency graph and the current view layer. See
    * #77086. */

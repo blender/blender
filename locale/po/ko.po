@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
@@ -3181,18 +3181,6 @@ msgid "Curve used for the strength"
 msgstr "강도를 위해 사용되는 커브"
 
 
-msgid "Direction"
-msgstr "방향"
-
-
-msgid "Add effect of brush"
-msgstr "브러시의 이팩트를 추가"
-
-
-msgid "Subtract effect of brush"
-msgstr "브러시의 이펙트를 빼기"
-
-
 msgid "Eraser Mode"
 msgstr "지우게 모드"
 
@@ -3219,6 +3207,10 @@ msgstr "스트로크 두께에 영향"
 
 msgid "Amount of erasing for thickness"
 msgstr "두께에 대한 소거 양"
+
+
+msgid "Direction"
+msgstr "방향"
 
 
 msgid "Normal"
@@ -14745,6 +14737,14 @@ msgstr "대시 길이"
 
 msgid "Length of a dash cycle measured in stroke samples"
 msgstr "스트로크 샘플에서 측정된 대시 사이클의 길이"
+
+
+msgid "Add effect of brush"
+msgstr "브러시의 이팩트를 추가"
+
+
+msgid "Subtract effect of brush"
+msgstr "브러시의 이펙트를 빼기"
 
 
 msgid "Poisson ratio for elastic deformation. Higher values preserve volume more, but also lead to more bulging"
@@ -75200,14 +75200,6 @@ msgstr "그라디언트 매핑"
 
 msgid "Mask Value"
 msgstr "마스크 값"
-
-
-msgid "CCW"
-msgstr "CCW"
-
-
-msgid "CW"
-msgstr "CW"
 
 
 msgid "Invert to Fill"

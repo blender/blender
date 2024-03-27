@@ -13,10 +13,10 @@
 
 #include "DNA_customdata_types.h"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 #include "GPU_material.hh"
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "gpu_shader_create_info.hh"

@@ -104,8 +104,8 @@ void MovieDistortionOperation::update_memory_buffer_partial(MemoryBuffer *output
   float xy[2];
   float distorted_xy[2];
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
-    xy[0] = (it.x /* `- 0.5 * overscan * w` */) / aspx;
-    xy[1] = (it.y /* `- 0.5 * overscan * h` */) / aspy / pixel_aspect;
+    xy[0] = (it.x + 0.5f /* `- 0.5 * overscan * w` */) / aspx;
+    xy[1] = (it.y + 0.5f /* `- 0.5 * overscan * h` */) / aspy / pixel_aspect;
 
     if (apply_) {
       BKE_tracking_distortion_undistort_v2(distortion_, xy, distorted_xy);
@@ -116,7 +116,7 @@ void MovieDistortionOperation::update_memory_buffer_partial(MemoryBuffer *output
 
     const float u = distorted_xy[0] * aspx /* `+ 0.5 * overscan * w` */;
     const float v = (distorted_xy[1] * aspy /* `+ 0.5 * overscan * h` */) * pixel_aspect;
-    input_img->read_elem_bilinear(u, v, it.out);
+    input_img->read_elem_bilinear(u - 0.5f, v - 0.5f, it.out);
   }
 }
 

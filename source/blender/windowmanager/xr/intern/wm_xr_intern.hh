@@ -137,7 +137,7 @@ struct wmXrController {
   float aim_mat_base[4][4];
 
   /** Controller model. */
-  struct GPUBatch *model;
+  blender::gpu::Batch *model;
 };
 
 struct wmXrAction {

@@ -47,7 +47,7 @@ class VKShader : public Shader {
 
   void transform_feedback_names_set(Span<const char *> name_list,
                                     eGPUShaderTFBType geom_type) override;
-  bool transform_feedback_enable(GPUVertBuf *) override;
+  bool transform_feedback_enable(VertBuf *) override;
   void transform_feedback_disable() override;
 
   void bind() override;

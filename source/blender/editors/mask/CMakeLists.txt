@@ -25,7 +25,7 @@ set(SRC
   mask_select.cc
   mask_shapekey.cc
 
-  mask_intern.h
+  mask_intern.hh
 )
 
 set(LIB

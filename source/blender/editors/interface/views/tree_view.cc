@@ -13,7 +13,7 @@
 
 #include "BLT_translation.hh"
 
-#include "GPU_immediate.h"
+#include "GPU_immediate.hh"
 
 #include "interface_intern.hh"
 

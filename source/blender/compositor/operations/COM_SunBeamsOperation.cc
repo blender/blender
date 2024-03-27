@@ -59,10 +59,7 @@ void SunBeamsOperation::update_memory_buffer_partial(MemoryBuffer *output,
           break;
         }
 
-        const float2 coordinates = position * input_size;
-
-        float4 sample_color;
-        input->read_elem_bilinear(coordinates.x, coordinates.y, sample_color);
+        const float4 sample_color = input->texture_bilinear_extend(position);
 
         /* Attenuate the contributions of pixels that are further away from the source using a
          * quadratic falloff. Also weight by the alpha to give more significance to opaque pixels.

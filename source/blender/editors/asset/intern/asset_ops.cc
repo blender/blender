@@ -58,17 +58,9 @@ static Vector<PointerRNA> asset_operation_get_ids_from_context(const bContext *C
   Vector<PointerRNA> ids;
 
   /* "selected_ids" context member. */
-  {
-    ListBase list;
-    CTX_data_selected_ids(C, &list);
-    LISTBASE_FOREACH (CollectionPointerLink *, link, &list) {
-      ids.append(link->ptr);
-    }
-    BLI_freelistN(&list);
-
-    if (!ids.is_empty()) {
-      return ids;
-    }
+  CTX_data_selected_ids(C, &ids);
+  if (!ids.is_empty()) {
+    return ids;
   }
 
   /* "id" context member. */
@@ -582,7 +574,7 @@ static void ASSET_OT_catalog_delete(wmOperatorType *ot)
 static asset_system::AssetCatalogService *get_catalog_service(bContext *C)
 {
   const SpaceFile *sfile = CTX_wm_space_file(C);
-  if (!sfile) {
+  if (!sfile || ED_fileselect_is_file_browser(sfile)) {
     return nullptr;
   }
 

@@ -32,9 +32,9 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_batch.h"
-#include "GPU_texture.h"
-#include "eevee_private.h"
+#include "GPU_batch.hh"
+#include "GPU_texture.hh"
+#include "eevee_private.hh"
 
 int EEVEE_motion_blur_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
 {
@@ -372,7 +372,7 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData * /*sldata*/,
     EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_geometry_data_get(mb_data);
 
     if (mb_step == MB_CURR) {
-      GPUBatch *batch = DRW_cache_object_surface_get(ob);
+      blender::gpu::Batch *batch = DRW_cache_object_surface_get(ob);
       if (batch == nullptr) {
         return;
       }
@@ -419,9 +419,9 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData * /*sldata*/,
   }
 }
 
-static void motion_blur_remove_vbo_reference_from_batch(GPUBatch *batch,
-                                                        GPUVertBuf *vbo1,
-                                                        GPUVertBuf *vbo2)
+static void motion_blur_remove_vbo_reference_from_batch(blender::gpu::Batch *batch,
+                                                        blender::gpu::VertBuf *vbo1,
+                                                        blender::gpu::VertBuf *vbo2)
 {
 
   for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN; i++) {
@@ -472,7 +472,7 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
       }
       else {
         for (int i = 0; i < mb_hair->psys_len; i++) {
-          GPUVertBuf *vbo = mb_hair->psys[i].step_data[mb_step].hair_pos;
+          blender::gpu::VertBuf *vbo = mb_hair->psys[i].step_data[mb_step].hair_pos;
           if (vbo == nullptr) {
             continue;
           }
@@ -498,9 +498,9 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
     if (mb_geom != nullptr && mb_geom->use_deform) {
       if (mb_step == MB_CURR) {
         /* Modify batch to have data from adjacent frames. */
-        GPUBatch *batch = mb_geom->batch;
+        blender::gpu::Batch *batch = mb_geom->batch;
         for (int i = 0; i < MB_CURR; i++) {
-          GPUVertBuf *vbo = mb_geom->vbo[i];
+          blender::gpu::VertBuf *vbo = mb_geom->vbo[i];
           if (vbo && batch) {
             if (GPU_vertbuf_get_vertex_len(vbo) != GPU_vertbuf_get_vertex_len(batch->verts[0])) {
               /* Vertex count mismatch, disable deform motion blur. */
@@ -523,17 +523,17 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
         }
       }
       else {
-        GPUVertBuf *vbo = mb_geom->vbo[mb_step];
+        blender::gpu::VertBuf *vbo = mb_geom->vbo[mb_step];
         if (vbo) {
           /* Use the vbo to perform the copy on the GPU. */
           GPU_vertbuf_use(vbo);
           /* Perform a copy to avoid losing it after RE_engine_frame_set(). */
-          GPUVertBuf **vbo_cache_ptr;
+          blender::gpu::VertBuf **vbo_cache_ptr;
           if (!BLI_ghash_ensure_p(
                   effects->motion_blur.position_vbo_cache[mb_step], vbo, (void ***)&vbo_cache_ptr))
           {
             /* Duplicate the vbo, otherwise it would be lost when evaluating another frame. */
-            GPUVertBuf *duplicated_vbo = GPU_vertbuf_duplicate(vbo);
+            blender::gpu::VertBuf *duplicated_vbo = GPU_vertbuf_duplicate(vbo);
             *vbo_cache_ptr = duplicated_vbo;
             /* Find and replace "pos" attrib name. */
             GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(duplicated_vbo);
@@ -588,7 +588,8 @@ void EEVEE_motion_blur_swap_data(EEVEE_Data *vedata)
        !BLI_ghashIterator_done(&ghi);
        BLI_ghashIterator_step(&ghi))
   {
-    GPUVertBuf *vbo = static_cast<GPUVertBuf *>(BLI_ghashIterator_getValue(&ghi));
+    blender::gpu::VertBuf *vbo = static_cast<blender::gpu::VertBuf *>(
+        BLI_ghashIterator_getValue(&ghi));
     GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(vbo);
     int attrib_id = GPU_vertformat_attr_id_get(format, "nxt");
     GPU_vertformat_attr_rename(format, attrib_id, "prv");

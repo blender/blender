@@ -103,7 +103,7 @@
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
-#include "object_intern.h" /* own include */
+#include "object_intern.hh" /* own include */
 
 using blender::Vector;
 
@@ -564,16 +564,16 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
 
   if (obedit->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(obedit->data);
-    if (mesh->edit_mesh == nullptr) {
+    if (mesh->runtime->edit_mesh == nullptr) {
       return false;
     }
 
-    if (mesh->edit_mesh->bm->totvert > MESH_MAX_VERTS) {
+    if (mesh->runtime->edit_mesh->bm->totvert > MESH_MAX_VERTS) {
       /* This used to be warned int the UI, we could warn again although it's quite rare. */
       CLOG_WARN(&LOG,
                 "Too many vertices for mesh '%s' (%d)",
                 mesh->id.name + 2,
-                mesh->edit_mesh->bm->totvert);
+                mesh->runtime->edit_mesh->bm->totvert);
       return false;
     }
 
@@ -582,9 +582,9 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
     }
 
     if (free_data) {
-      EDBM_mesh_free_data(mesh->edit_mesh);
-      MEM_freeN(mesh->edit_mesh);
-      mesh->edit_mesh = nullptr;
+      EDBM_mesh_free_data(mesh->runtime->edit_mesh);
+      MEM_freeN(mesh->runtime->edit_mesh);
+      mesh->runtime->edit_mesh = nullptr;
     }
     /* will be recalculated as needed. */
     {
@@ -1558,11 +1558,9 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
   using namespace blender;
   const bool use_smooth = STREQ(op->idname, "OBJECT_OT_shade_smooth");
   const bool use_smooth_by_angle = STREQ(op->idname, "OBJECT_OT_shade_smooth_by_angle");
-  bool changed_multi = false;
-  bool has_linked_data = false;
+  Main *bmain = CTX_data_main(C);
 
-  ListBase ctx_objects = {nullptr, nullptr};
-  CollectionPointerLink ctx_ob_single_active = {nullptr};
+  Vector<PointerRNA> ctx_objects;
 
   /* For modes that only use an active object, don't handle the whole selection. */
   {
@@ -1571,67 +1569,53 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
     BKE_view_layer_synced_ensure(scene, view_layer);
     Object *obact = BKE_view_layer_active_object_get(view_layer);
     if (obact && (obact->mode & OB_MODE_ALL_PAINT)) {
-      ctx_ob_single_active.ptr.data = obact;
-      BLI_addtail(&ctx_objects, &ctx_ob_single_active);
+      ctx_objects.append(RNA_id_pointer_create(&obact->id));
     }
   }
 
-  if (ctx_objects.first != &ctx_ob_single_active) {
+  if (ctx_objects.is_empty()) {
     CTX_data_selected_editable_objects(C, &ctx_objects);
   }
 
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, &ctx_objects) {
-    Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
-    ID *data = static_cast<ID *>(ob->data);
-    if (data != nullptr) {
-      data->tag |= LIB_TAG_DOIT;
+  Set<ID *> object_data;
+  for (const PointerRNA &ptr : ctx_objects) {
+    Object *ob = static_cast<Object *>(ptr.data);
+    if (ID *data = static_cast<ID *>(ob->data)) {
+      object_data.add(data);
     }
   }
 
-  Main *bmain = CTX_data_main(C);
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, &ctx_objects) {
-    /* Always un-tag all object data-blocks irrespective of our ability to operate on them. */
-    Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
-    ID *data = static_cast<ID *>(ob->data);
-    if ((data == nullptr) || ((data->tag & LIB_TAG_DOIT) == 0)) {
-      continue;
-    }
-    data->tag &= ~LIB_TAG_DOIT;
-    /* Finished un-tagging, continue with regular logic. */
-
-    if (data && !BKE_id_is_editable(bmain, data)) {
+  bool changed_multi = false;
+  bool has_linked_data = false;
+  for (ID *data : object_data) {
+    if (!BKE_id_is_editable(bmain, data)) {
       has_linked_data = true;
       continue;
     }
 
     bool changed = false;
-    if (ob->type == OB_MESH) {
-      Mesh &mesh = *static_cast<Mesh *>(ob->data);
+    if (GS(data->name) == ID_ME) {
+      Mesh &mesh = *reinterpret_cast<Mesh *>(data);
       const bool keep_sharp_edges = RNA_boolean_get(op->ptr, "keep_sharp_edges");
       bke::mesh_smooth_set(mesh, use_smooth || use_smooth_by_angle, keep_sharp_edges);
       if (use_smooth_by_angle) {
         const float angle = RNA_float_get(op->ptr, "angle");
         bke::mesh_sharp_edges_set_from_angle(mesh, angle, keep_sharp_edges);
       }
-      mesh.tag_sharpness_changed();
-      BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
+      BKE_mesh_batch_cache_dirty_tag(reinterpret_cast<Mesh *>(data), BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
     }
-    else if (ELEM(ob->type, OB_SURF, OB_CURVES_LEGACY)) {
-      BKE_curve_smooth_flag_set(static_cast<Curve *>(ob->data), use_smooth);
+    else if (GS(data->name) == ID_CU_LEGACY) {
+      BKE_curve_smooth_flag_set(reinterpret_cast<Curve *>(data), use_smooth);
       changed = true;
     }
 
     if (changed) {
       changed_multi = true;
 
-      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-      WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+      DEG_id_tag_update(data, ID_RECALC_GEOMETRY);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, data);
     }
-  }
-
-  if (ctx_objects.first != &ctx_ob_single_active) {
-    BLI_freelistN(&ctx_objects);
   }
 
   if (has_linked_data) {

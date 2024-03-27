@@ -459,7 +459,7 @@ static void mesh_calc_finalize(const Mesh *mesh_input, Mesh *mesh_eval)
    * take care of naming. */
   STRNCPY(mesh_eval->id.name, mesh_input->id.name);
   /* Make evaluated mesh to share same edit mesh pointer as original and copied meshes. */
-  mesh_eval->edit_mesh = mesh_input->edit_mesh;
+  mesh_eval->runtime->edit_mesh = mesh_input->runtime->edit_mesh;
 }
 
 void BKE_mesh_wrapper_deferred_finalize_mdata(Mesh *mesh_eval)
@@ -1017,7 +1017,7 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final)
     case ME_WRAPPER_TYPE_MDATA:
       break;
     case ME_WRAPPER_TYPE_BMESH: {
-      BMEditMesh &em = *mesh_final->edit_mesh;
+      BMEditMesh &em = *mesh_final->runtime->edit_mesh;
       blender::bke::EditMeshData &emd = *mesh_final->runtime->edit_data;
       if (!emd.vertexCos.is_empty()) {
         BKE_editmesh_cache_ensure_vert_normals(em, emd);
@@ -1045,7 +1045,8 @@ static MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       if (mesh->runtime->edit_data->vertexCos.is_empty()) {
-        mesh->runtime->edit_data->vertexCos = editbmesh_vert_coords_alloc(mesh->edit_mesh);
+        mesh->runtime->edit_data->vertexCos = editbmesh_vert_coords_alloc(
+            mesh->runtime->edit_mesh);
       }
       return mesh->runtime->edit_data->vertexCos;
     case ME_WRAPPER_TYPE_MDATA:
@@ -1143,11 +1144,15 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
        * list. If the cage and final meshes are still the same, duplicate the final mesh so the
        * cage mesh isn't modified anymore. */
       mesh_final = BKE_mesh_copy_for_eval(mesh_final);
-      if (mesh_cage->edit_mesh) {
-        mesh_final->edit_mesh = static_cast<BMEditMesh *>(MEM_dupallocN(mesh_cage->edit_mesh));
-        mesh_final->edit_mesh->is_shallow_copy = true;
+      if (mesh_cage->runtime->edit_mesh) {
+        mesh_final->runtime->edit_mesh = static_cast<BMEditMesh *>(
+            MEM_dupallocN(mesh_cage->runtime->edit_mesh));
+        mesh_final->runtime->edit_mesh->is_shallow_copy = true;
         mesh_final->runtime->is_original_bmesh = true;
-        BKE_mesh_runtime_ensure_edit_data(mesh_final);
+        if (mesh_cage->runtime->edit_data) {
+          mesh_final->runtime->edit_data = std::make_unique<blender::bke::EditMeshData>(
+              *mesh_cage->runtime->edit_data);
+        }
       }
     }
 
@@ -1354,7 +1359,7 @@ static void editbmesh_build_data(Depsgraph *depsgraph,
    * This is similar `mesh_calc_finalize()`. */
   BKE_mesh_free_editmesh(me_final);
   BKE_mesh_free_editmesh(me_cage);
-  me_final->edit_mesh = me_cage->edit_mesh = em;
+  me_final->runtime->edit_mesh = me_cage->runtime->edit_mesh = em;
 
   /* Object has edit_mesh but is not in edit mode (object shares mesh datablock with another object
    * with is in edit mode).
@@ -1457,7 +1462,8 @@ void makeDerivedMesh(Depsgraph *depsgraph,
    * to the pre-evaluated state. This is because the evaluated state is not necessarily sharing the
    * `edit_mesh` pointer with the input. For example, if the object is first evaluated in the
    * object mode, and then user in another scene moves object to edit mode. */
-  BMEditMesh *em = ((Mesh *)ob->data)->edit_mesh;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  BMEditMesh *em = mesh->runtime->edit_mesh;
 
   bool need_mapping;
   CustomData_MeshMasks cddata_masks = *dataMask;
@@ -1478,7 +1484,7 @@ Mesh *mesh_get_eval_deform(Depsgraph *depsgraph,
                            Object *ob,
                            const CustomData_MeshMasks *dataMask)
 {
-  BMEditMesh *em = ((Mesh *)ob->data)->edit_mesh;
+  BMEditMesh *em = ((Mesh *)ob->data)->runtime->edit_mesh;
   if (em != nullptr) {
     /* There is no such a concept as deformed mesh in edit mode.
      * Explicitly disallow this request so that the evaluated result is not modified with evaluated

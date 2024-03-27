@@ -26,7 +26,7 @@ typedef struct bConstraintChannel {
   char name[30];
 } bConstraintChannel;
 
-/* A Constraint */
+/** A Constraint. */
 typedef struct bConstraint {
   struct bConstraint *next, *prev;
 

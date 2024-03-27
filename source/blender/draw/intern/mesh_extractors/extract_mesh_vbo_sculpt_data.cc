@@ -38,7 +38,7 @@ static void extract_sculpt_data_init(const MeshRenderData &mr,
                                      void *buf,
                                      void * /*tls_data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   GPUVertFormat *format = get_sculpt_data_format();
 
   GPU_vertbuf_init_with_format(vbo, format);
@@ -115,13 +115,13 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                             void *buffer,
                                             void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
 
   Mesh *coarse_mesh = mr.mesh;
 
   /* First, interpolate mask if available. */
-  GPUVertBuf *mask_vbo = nullptr;
-  GPUVertBuf *subdiv_mask_vbo = nullptr;
+  gpu::VertBuf *mask_vbo = nullptr;
+  gpu::VertBuf *subdiv_mask_vbo = nullptr;
 
   const bke::AttributeAccessor attributes = coarse_mesh->attributes();
   const VArray<float> mask = *attributes.lookup<float>(".sculpt_mask", bke::AttrDomain::Point);
@@ -155,7 +155,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
   GPUVertFormat face_set_format = {0};
   GPU_vertformat_attr_add(&face_set_format, "msk", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-  GPUVertBuf *face_set_vbo = GPU_vertbuf_calloc();
+  gpu::VertBuf *face_set_vbo = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format(face_set_vbo, &face_set_format);
   GPU_vertbuf_data_alloc(face_set_vbo, subdiv_cache.num_subdiv_loops);
 

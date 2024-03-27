@@ -28,10 +28,10 @@
 
 #include "ED_screen.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_immediate.h"
-#include "GPU_texture.h"
-#include "GPU_viewport.h"
+#include "GPU_capabilities.hh"
+#include "GPU_immediate.hh"
+#include "GPU_texture.hh"
+#include "GPU_viewport.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

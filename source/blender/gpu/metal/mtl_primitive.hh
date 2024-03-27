@@ -12,7 +12,7 @@
 
 #include "BLI_assert.h"
 
-#include "GPU_primitive.h"
+#include "GPU_primitive.hh"
 
 #include <Metal/Metal.h>
 

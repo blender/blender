@@ -14,9 +14,11 @@
 
 #include "DNA_customdata_types.h" /* #eCustomDataType. */
 
-#include "GPU_vertex_format.h"
+#include "GPU_vertex_format.hh"
 
-struct GPUVertBuf;
+namespace blender::gpu {
+class VertBuf;
+}
 
 /**
  * Component length of 3 is used for scalars because implicit conversion is done by OpenGL from a
@@ -141,6 +143,6 @@ template<> struct AttributeConverter<math::Quaternion> {
 
 GPUVertFormat init_format_for_attribute(eCustomDataType data_type, StringRefNull vbo_name);
 
-void vertbuf_data_extract_direct(GSpan attribute, GPUVertBuf &vbo);
+void vertbuf_data_extract_direct(GSpan attribute, gpu::VertBuf &vbo);
 
 }  // namespace blender::draw

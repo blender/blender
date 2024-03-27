@@ -27,7 +27,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke_base)
     .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
     .push_constant(Type::MAT4, "ProjectionMatrix")
     .fragment_source("gpu_shader_gpencil_stroke_frag.glsl")
-    .typedef_source("GPU_shader_shared.h");
+    .typedef_source("GPU_shader_shared.hh");
 
 GPU_SHADER_CREATE_INFO(gpu_shader_gpencil_stroke)
     .additional_info("gpu_shader_gpencil_stroke_base")

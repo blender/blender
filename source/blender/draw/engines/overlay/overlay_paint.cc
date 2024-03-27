@@ -193,7 +193,7 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
 void OVERLAY_paint_texture_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  GPUBatch *geom = nullptr;
+  blender::gpu::Batch *geom = nullptr;
 
   const Mesh *me_orig = static_cast<Mesh *>(DEG_get_original_object(ob)->data);
   const bool use_face_sel = (me_orig->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
@@ -212,7 +212,7 @@ void OVERLAY_paint_texture_cache_populate(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_paint_vertex_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  GPUBatch *geom = nullptr;
+  blender::gpu::Batch *geom = nullptr;
 
   const Mesh *me_orig = static_cast<Mesh *>(DEG_get_original_object(ob)->data);
   const bool is_edit_mode = (pd->ctx_mode == CTX_MODE_EDIT_MESH);

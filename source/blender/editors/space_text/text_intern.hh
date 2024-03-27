@@ -20,10 +20,6 @@ struct TextLine;
 struct bContext;
 struct wmOperatorType;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* `text_draw.cc` */
 
 void draw_text_main(SpaceText *st, ARegion *region);
@@ -181,11 +177,7 @@ void TEXT_OT_autocomplete(wmOperatorType *ot);
 
 /* `space_text.cc` */
 
-extern const char *text_context_dir[]; /* doc access */
-
-#ifdef __cplusplus
-}
-#endif
+extern "C" const char *text_context_dir[]; /* doc access */
 
 namespace blender::ed::text {
 struct SpaceText_Runtime {

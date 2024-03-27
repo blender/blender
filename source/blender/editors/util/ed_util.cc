@@ -44,10 +44,11 @@
 #include "ED_object.hh"
 #include "ED_paint.hh"
 #include "ED_screen.hh"
+#include "ED_sculpt.hh"
 #include "ED_space_api.hh"
 #include "ED_util.hh"
 
-#include "GPU_immediate.h"
+#include "GPU_immediate.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

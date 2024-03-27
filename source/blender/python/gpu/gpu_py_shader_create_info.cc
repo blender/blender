@@ -13,14 +13,14 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 #include "intern/gpu_shader_create_info.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
 
-#include "gpu_py_shader.h" /* own include */
-#include "gpu_py_texture.h"
+#include "gpu_py_shader.hh" /* own include */
+#include "gpu_py_texture.hh"
 
 #define USE_PYGPU_SHADER_INFO_IMAGE_METHOD
 
@@ -1102,7 +1102,7 @@ static PyObject *pygpu_shader_info_typedef_source(BPyGPUShaderCreateInfo *self, 
   ShaderCreateInfo *info = reinterpret_cast<ShaderCreateInfo *>(self->info);
 #if 0
   if (info->typedef_sources_.is_empty()) {
-    info->typedef_source("GPU_shader_shared_utils.h");
+    info->typedef_source("GPU_shader_shared_utils.hh");
   }
 #endif
   info->typedef_source_generated = typedef_source;

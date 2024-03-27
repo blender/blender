@@ -597,6 +597,11 @@ struct Seq_colorspace_cb_data {
   Sequence *r_seq;
 };
 
+/**
+ * Color-space could be changed for scene, but also sequencer-strip.
+ * If property pointer matches one of strip, set `r_seq`,
+ * so not all cached images have to be invalidated.
+ */
 static bool seq_find_colorspace_settings_cb(Sequence *seq, void *user_data)
 {
   Seq_colorspace_cb_data *cd = (Seq_colorspace_cb_data *)user_data;
@@ -604,12 +609,6 @@ static bool seq_find_colorspace_settings_cb(Sequence *seq, void *user_data)
     cd->r_seq = seq;
     return false;
   }
-  return true;
-}
-
-static bool seq_free_anim_cb(Sequence *seq, void * /*user_data*/)
-{
-  SEQ_relations_sequence_free_anim(seq);
   return true;
 }
 
@@ -653,23 +652,25 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
                                                                 ptr->data;
       Seq_colorspace_cb_data cb_data = {colorspace_settings, nullptr};
 
-      if (&scene->sequencer_colorspace_settings != colorspace_settings) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_find_colorspace_settings_cb, &cb_data);
-      }
-      Sequence *seq = cb_data.r_seq;
-
-      if (seq) {
-        SEQ_relations_sequence_free_anim(seq);
-
-        if (seq->strip->proxy && seq->strip->proxy->anim) {
-          IMB_free_anim(seq->strip->proxy->anim);
-          seq->strip->proxy->anim = nullptr;
-        }
-
-        SEQ_relations_invalidate_cache_raw(scene, seq);
+      if (&scene->sequencer_colorspace_settings == colorspace_settings) {
+        /* Scene colorspace was changed. */
+        SEQ_cache_cleanup(scene);
       }
       else {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_free_anim_cb, nullptr);
+        /* Strip colorspace was likely changed. */
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_find_colorspace_settings_cb, &cb_data);
+        Sequence *seq = cb_data.r_seq;
+
+        if (seq) {
+          SEQ_relations_sequence_free_anim(seq);
+
+          if (seq->strip->proxy && seq->strip->proxy->anim) {
+            IMB_free_anim(seq->strip->proxy->anim);
+            seq->strip->proxy->anim = nullptr;
+          }
+
+          SEQ_relations_invalidate_cache_raw(scene, seq);
+        }
       }
 
       WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);

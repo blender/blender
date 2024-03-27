@@ -11,7 +11,7 @@
 #include "BLI_vector_set.hh"
 
 #include "GPU_material.hh"
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "gpu_shader_create_info.hh"
 

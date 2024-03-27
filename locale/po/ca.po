@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
+"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-01-01 00:00+0000\n"
-"PO-Revision-Date: 2024-03-12 05:27+0000\n"
+"PO-Revision-Date: 2024-03-24 20:56+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -401,6 +401,10 @@ msgstr "KHR_materials_variants_ui"
 
 msgid "Displays glTF UI to manage material variants"
 msgstr "Mostra la IU de glTF per gestionar variants de materials"
+
+
+msgid "Allow glTF Embedded format"
+msgstr "Permetre format incrustat gITF"
 
 
 msgid "Display glTF UI to manage animations"
@@ -4464,18 +4468,6 @@ msgid "Number of pixels to expand or contract fill area"
 msgstr "[Dilate/Contract]: Nombre de píxels per expandir o contraure l'àrea d'emplenament"
 
 
-msgid "Direction"
-msgstr "Direcció"
-
-
-msgid "Add effect of brush"
-msgstr "Sumar efecte de pinzell"
-
-
-msgid "Subtract effect of brush"
-msgstr "Restar efecte de pinzell"
-
-
 msgid "Eraser Mode"
 msgstr "Mode esborrar"
 
@@ -4522,6 +4514,10 @@ msgstr "Mida de tancament"
 
 msgid "Strokes end extension for closing gaps, use zero to disable"
 msgstr "[Closure Size]: Extensió final dels traços per a tancar buits, posar zero per a desactivar"
+
+
+msgid "Direction"
+msgstr "Direcció"
 
 
 msgid "Direction of the fill"
@@ -20581,6 +20577,14 @@ msgid "Amount of random elements that are going to be affected by the brush"
 msgstr "Quantitat d'elements aleatoris que es veuran afectats pel pinzell"
 
 
+msgid "Add effect of brush"
+msgstr "Sumar efecte de pinzell"
+
+
+msgid "Subtract effect of brush"
+msgstr "Restar efecte de pinzell"
+
+
 msgid "Max Element Distance"
 msgstr "Distància màxima d'element"
 
@@ -21921,7 +21925,7 @@ msgstr "Usar pressió per a mescla d'impregnació"
 
 
 msgid "Use pressure to modulate wet mix"
-msgstr "[Use Pressure for Wet Mix]: Utilitza la pressió per a modular la mescla humida"
+msgstr "[Use Pressure for Wet Mix]: Utilitza la pressió per a modular la mescla d'impregnació"
 
 
 msgid "Use Pressure for Wet Persistence"
@@ -33889,7 +33893,7 @@ msgstr "[Keying set paths]: Col·lecció de camins de jocs d'atributs de fites"
 
 
 msgid "Active Keying Set"
-msgstr "Jocs de fitoatributs actiu"
+msgstr "Joc de fitoatributs actiu"
 
 
 msgid "Active Keying Set used to insert/delete keyframes"
@@ -35481,7 +35485,7 @@ msgstr "Especials de rastreig de translació"
 
 
 msgid "Rotation Track Specials"
-msgstr "Especials de rastreig de rotacació"
+msgstr "Especials de rastreig de rotació"
 
 
 msgid "Track"
@@ -53481,7 +53485,7 @@ msgstr "Aplica escala de solució"
 
 
 msgid "Apply scale on solution itself to make distance between selected tracks equals to desired"
-msgstr "[Apply Solution Scale]: Aplica l'escala sobre la solució mateixa per fer que la distància entre les rastres seleccionats sigui igual a la desitjada"
+msgstr "[Apply Solution Scale]: Aplica l'escala sobre la solució mateixa per fer que la distància entre els rastres seleccionats sigui igual a la desitjada"
 
 
 msgid "Distance between selected tracks"
@@ -57346,7 +57350,7 @@ msgstr "Restablir morfofites entre accions"
 
 
 msgid "Reset shape keys between each action exported. This is needed when some SK channels are not keyed on some animations"
-msgstr "Reestableix la morfofites entre cada acció exportada. Es fa necessari quan alguns canals SK no tenen fites en algunes animacions"
+msgstr "Reestableix la morfofites entre cada acció exportada. Es fa necessari quan alguns canals de MF no tinguin fites en algunes animacions"
 
 
 msgid "Shape Key Tangents"
@@ -90670,6 +90674,10 @@ msgid "Temporary Directory"
 msgstr "Directori temporal"
 
 
+msgid "The directory for storing temporary save files. The path must reference an existing directory or it will be ignored"
+msgstr "Directori per emmagatzamar documents guardats temporals. La ruta ha de referir-se a un directori concret o s'ignorarà"
+
+
 msgid ""
 "Command to launch the text editor, either a full path or a command in $PATH.\n"
 "Use the internal editor when left blank"
@@ -106021,7 +106029,7 @@ msgstr "Ganxo USD"
 
 
 msgid "Defines callback functions to extend USD IO"
-msgstr "Defineix les funcions de reinvocació per estendre a E/E d'USD"
+msgstr "Defineix les funcions de reinvocació per estendre a IE d'USD"
 
 
 msgid "A short description of the USD hook"
@@ -111250,6 +111258,11 @@ msgid "Mesh Filter Modal Map"
 msgstr "Mapa modal de filtre de malla"
 
 
+msgctxt "Operator"
+msgid "DEM data (.hgt) as Mesh and/or Image"
+msgstr "Dades DEM (.hgt) as com a malla i/o imatge"
+
+
 msgid "You have been logged out"
 msgstr "Ha expirat la teva sessió d'usuari"
 
@@ -111840,6 +111853,10 @@ msgstr "IU d'animació"
 
 msgid "Path to gltfpack"
 msgstr "Ruta a gltfpack"
+
+
+msgid "This is the least efficient of the available forms, and should only be used when required."
+msgstr "Aquesta és la forma menys eficient de les disponibles, i només s'hauria d'emprar quan cal."
 
 
 msgid "Export only deformation bones is not possible when not sampling animation"
@@ -114604,14 +114621,6 @@ msgstr "Valor de màscara"
 
 msgid "Caps Type"
 msgstr "Tipus d'extrems"
-
-
-msgid "CCW"
-msgstr "SAH"
-
-
-msgid "CW"
-msgstr "SH"
 
 
 msgid "Invert to Fill"
@@ -120848,6 +120857,18 @@ msgid "armatures"
 msgstr "esquelets"
 
 
+msgid "Unable to create builtin attribute in edit mode"
+msgstr "No s'ha pogut crear atribut de fàbrica en mode edició"
+
+
+msgid "Domain unsupported for \"id\" attribute"
+msgstr "Domini no admès com a atribut \"id\""
+
+
+msgid "Type unsupported for \"id\" attribute"
+msgstr "Tipus no admès per a atribut \"id\""
+
+
 msgid "Attribute name cannot be empty"
 msgstr "El nom de l'atribut no pot quedar buit"
 
@@ -121360,18 +121381,6 @@ msgstr "malles"
 
 msgid "Auto Smooth"
 msgstr "Autosuavitzar"
-
-
-msgid "Socket_1"
-msgstr "Born_1"
-
-
-msgid "Input_1_use_attribute"
-msgstr "Input_1_use_attribute"
-
-
-msgid "Input_1_attribute_name"
-msgstr "Input_1_attribute_name"
 
 
 msgid "Tangent space can only be computed for tris/quads, aborting"
@@ -122455,6 +122464,10 @@ msgid "Cannot create the Animation Context"
 msgstr "No es pot crear el Context d'animació"
 
 
+msgid "One or more F-Curves are not visible due to filter settings"
+msgstr "Una o més corbes-F no són visibles degut al filtre"
+
+
 msgid "F-Curves have no valid size"
 msgstr "Les corbes-F no tenen una dimensió vàlida"
 
@@ -122793,20 +122806,12 @@ msgid "No object found to operate on"
 msgstr "No s'ha trobat cap objecte amb què operar"
 
 
-msgid "Bone collections can only be added to an Armature"
-msgstr "Les col·leccions d'ossos només es poden afegir a un esquelet"
-
-
 msgid "Cannot add bone collections to a linked Armature without an override"
 msgstr "No es poden afegir col·leccions d'ossos a una esquelet vinculat sense un sobreseïment"
 
 
 msgid "Cannot add bone collections to a linked Armature with a system override; explicitly create an override on the Armature"
 msgstr "No es poden afegir col·leccions d'ossos a un esquelet enllaçat amb un sobreseïment de sistema; creeu explícitament un sobreseïment en l'esquelet"
-
-
-msgid "Bone collections can only be edited on an Armature"
-msgstr "Les col·leccions d'ossos només es poden editar en un esquelet"
 
 
 msgid "Cannot update a linked Armature with a system override; explicitly create an override on the Armature"
@@ -122819,6 +122824,10 @@ msgstr "L'esquelet no té col·lecció d'ossos activa, selecciona'n una primer"
 
 msgid "Cannot edit bone collections that are linked from another blend file"
 msgstr "No es poden editar col·leccions d'ossos vinculades a un altre document blend"
+
+
+msgid "Bone collections can only be edited on an Armature"
+msgstr "Les col·leccions d'ossos només es poden editar en un esquelet"
 
 
 msgid "Cannot edit bone collections on linked Armatures without override"
@@ -123396,6 +123405,10 @@ msgstr "El grup nodes ha de tenir un node de sortida de grup"
 
 msgid "Data-block inputs are unsupported"
 msgstr "Ingressions de blocs de dades no compatibles"
+
+
+msgid "Node group's first output must be a geometry"
+msgstr "La primera egressió del grup de nodes ha de ser una geometria"
 
 
 msgid "Annotation Create Poly: LMB click to place next stroke vertex | ESC/Enter to end  (or click outside this area)"
@@ -133389,10 +133402,6 @@ msgid "Node group must have an output socket"
 msgstr "El grup de nodes ha de tenir un born de sortida"
 
 
-msgid "Node group's first output must be a geometry"
-msgstr "La primera egressió del grup de nodes ha de ser una geometria"
-
-
 msgid "NormalEdit"
 msgstr "Edició de normals (NormalEdit)"
 
@@ -137344,7 +137353,7 @@ msgstr "Format FBX"
 
 
 msgid "FBX IO meshes, UVs, vertex colors, materials, textures, cameras, lamps and actions"
-msgstr "Malles IO FBX, UV's, colors de vèrtex, materials, textures, càmeres, llums i accions"
+msgstr "Malles IE FBX, UV's, colors de vèrtex, materials, textures, càmeres, llums i accions"
 
 
 msgid "Import Images as Planes"

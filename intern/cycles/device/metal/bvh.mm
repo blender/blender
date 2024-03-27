@@ -119,7 +119,7 @@ BVHMetal::BVHMetal(const BVHParams &params_,
 
 BVHMetal::~BVHMetal()
 {
-  /* Clear point used by enqueuing. */
+  /* Clear point used by enqueueing. */
   device->release_bvh(this);
 
   if (@available(macos 12.0, *)) {

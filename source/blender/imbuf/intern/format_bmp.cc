@@ -14,8 +14,6 @@
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 
-extern "C" {
-
 bool imb_is_a_bmp(const uchar *mem, size_t size)
 {
   return imb_oiio_check(mem, size, "bmp");
@@ -41,5 +39,4 @@ bool imb_save_bmp(ImBuf *ibuf, const char *filepath, int flags)
   ImageSpec file_spec = imb_create_write_spec(ctx, file_channels, data_format);
 
   return imb_oiio_write(ctx, filepath, file_spec);
-}
 }

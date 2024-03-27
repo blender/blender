@@ -33,7 +33,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "curve_intern.h"
+#include "curve_intern.hh"
 
 static const float nurbcircle[8][2] = {
     {0.0, -1.0},
@@ -509,11 +509,8 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 
   WM_operator_view3d_unit_defaults(C, op);
 
-  if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr))
-  {
-    return OPERATOR_CANCELLED;
-  }
+  ED_object_add_generic_get_opts(
+      C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr);
 
   if (!isSurf) { /* adding curve */
     if (obedit == nullptr || obedit->type != OB_CURVES_LEGACY) {

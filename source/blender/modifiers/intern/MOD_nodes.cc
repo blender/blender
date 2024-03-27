@@ -118,17 +118,11 @@ static void init_data(ModifierData *md)
 
 static void find_used_ids_from_settings(const NodesModifierSettings &settings, Set<ID *> &ids)
 {
-  IDP_foreach_property(
-      settings.properties,
-      IDP_TYPE_FILTER_ID,
-      [](IDProperty *property, void *user_data) {
-        Set<ID *> *ids = (Set<ID *> *)user_data;
-        ID *id = IDP_Id(property);
-        if (id != nullptr) {
-          ids->add(id);
-        }
-      },
-      &ids);
+  IDP_foreach_property(settings.properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
+    if (ID *id = IDP_Id(property)) {
+      ids.add(id);
+    }
+  });
 }
 
 /* We don't know exactly what attributes from the other object we will need. */
@@ -268,21 +262,9 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   walk(user_data, ob, (ID **)&nmd->node_group, IDWALK_CB_USER);
 
-  struct ForeachSettingData {
-    IDWalkFunc walk;
-    void *user_data;
-    Object *ob;
-  } settings = {walk, user_data, ob};
-
-  IDP_foreach_property(
-      nmd->settings.properties,
-      IDP_TYPE_FILTER_ID,
-      [](IDProperty *id_prop, void *user_data) {
-        ForeachSettingData *settings = (ForeachSettingData *)user_data;
-        settings->walk(
-            settings->user_data, settings->ob, (ID **)&id_prop->data.pointer, IDWALK_CB_USER);
-      },
-      &settings);
+  IDP_foreach_property(nmd->settings.properties, IDP_TYPE_FILTER_ID, [&](IDProperty *id_prop) {
+    walk(user_data, ob, (ID **)&id_prop->data.pointer, IDWALK_CB_USER);
+  });
 
   for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
     for (NodesModifierDataBlock &data_block : MutableSpan(bake.data_blocks, bake.data_blocks_num))
@@ -330,10 +312,7 @@ static void update_id_properties_from_node_group(NodesModifierData *nmd)
   }
 
   IDProperty *old_properties = nmd->settings.properties;
-  {
-    IDPropertyTemplate idprop = {0};
-    nmd->settings.properties = IDP_New(IDP_GROUP, &idprop, "Nodes Modifier Settings");
-  }
+  nmd->settings.properties = bke::idprop::create_group("Nodes Modifier Settings").release();
   IDProperty *new_properties = nmd->settings.properties;
 
   nodes::update_input_properties_from_node_tree(*nmd->node_group, old_properties, *new_properties);

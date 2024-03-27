@@ -24,27 +24,29 @@ struct UvMapVert {
   bool separate;
 };
 
-/* Map from uv vertex to face. Used by select linked, uv subdivision-surface and obj exporter. */
+/** Map from UV vertex to face. Used by select linked, UV subdivision-surface and obj exporter. */
 struct UvVertMap {
   UvMapVert **vert;
   UvMapVert *buf;
 };
 
-/* UvElement stores per uv information so that we can quickly access information for a uv.
+/**
+ * UvElement stores per uv information so that we can quickly access information for a uv.
  * it is actually an improved UvMapVert, including an island and a direct pointer to the face
- * to avoid initializing face arrays */
+ * to avoid initializing face arrays.
+ */
 struct UvElement {
-  /* Next UvElement corresponding to same vertex */
+  /** Next UvElement corresponding to same vertex */
   UvElement *next;
-  /* Face the element belongs to */
+  /** Face the element belongs to */
   BMLoop *l;
-  /* index in loop. */
+  /** Index in loop. */
   unsigned short loop_of_face_index;
-  /* Whether this element is the first of coincident elements */
+  /** Whether this element is the first of coincident elements */
   bool separate;
-  /* general use flag */
+  /** general use flag. */
   unsigned char flag;
-  /* If generating element map with island sorting, this stores the island index */
+  /** If generating element map with island sorting, this stores the island index */
   unsigned int island;
 };
 

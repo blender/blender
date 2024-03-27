@@ -666,7 +666,6 @@ def main():
         print_commit(c)
         sys.stdout.flush()
 
-        accept = False
         while True:
             print("Space=" + colorize("Accept", 'green'),
                   "Enter=" + colorize("Skip", 'red'),

@@ -40,7 +40,7 @@
 #include "ED_gpencil_legacy.hh"
 #include "ED_object.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 #include "gpencil_trace.h"
 
 struct TraceJob {

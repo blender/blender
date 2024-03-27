@@ -8,7 +8,7 @@
 
 #include "BLI_string.h"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 

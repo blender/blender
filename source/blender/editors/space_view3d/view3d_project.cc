@@ -22,7 +22,7 @@
 #include "BKE_camera.h"
 #include "BKE_screen.hh"
 
-#include "GPU_matrix.h"
+#include "GPU_matrix.hh"
 
 #include "ED_view3d.hh" /* own include */
 

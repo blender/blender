@@ -24,7 +24,7 @@ static void extract_fdots_nor_init(const MeshRenderData &mr,
                                    void *buf,
                                    void * /*tls_data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
@@ -39,7 +39,7 @@ static void extract_fdots_nor_finish(const MeshRenderData &mr,
                                      void *buf,
                                      void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static float invalid_normal[3] = {0.0f, 0.0f, 0.0f};
   GPUPackedNormal *nor = (GPUPackedNormal *)GPU_vertbuf_get_data(vbo);
   BMFace *efa;
@@ -104,7 +104,7 @@ static void extract_fdots_nor_hq_init(const MeshRenderData &mr,
                                       void *buf,
                                       void * /*tls_data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
@@ -119,7 +119,7 @@ static void extract_fdots_nor_hq_finish(const MeshRenderData &mr,
                                         void *buf,
                                         void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static float invalid_normal[3] = {0.0f, 0.0f, 0.0f};
   short *nor = (short *)GPU_vertbuf_get_data(vbo);
   BMFace *efa;

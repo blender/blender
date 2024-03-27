@@ -1897,7 +1897,7 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 
   ot->invoke = outliner_item_activate_invoke;
 
-  ot->poll = ED_operator_outliner_active;
+  ot->poll = ED_operator_region_outliner_active;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -2005,7 +2005,7 @@ void OUTLINER_OT_select_box(wmOperatorType *ot)
   ot->modal = WM_gesture_box_modal;
   ot->cancel = WM_gesture_box_cancel;
 
-  ot->poll = ED_operator_outliner_active;
+  ot->poll = ED_operator_region_outliner_active;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

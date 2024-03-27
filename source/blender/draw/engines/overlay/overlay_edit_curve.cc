@@ -67,7 +67,7 @@ void OVERLAY_edit_curve_cache_populate(OVERLAY_Data *vedata, Object *ob)
   bool do_xray = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
 
   Curve *cu = static_cast<Curve *>(ob->data);
-  GPUBatch *geom;
+  blender::gpu::Batch *geom;
 
   geom = DRW_cache_curve_edge_wire_get(ob);
   if (geom) {
@@ -93,7 +93,7 @@ void OVERLAY_edit_curve_cache_populate(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_edit_surf_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  GPUBatch *geom;
+  blender::gpu::Batch *geom;
 
   geom = DRW_cache_curve_edge_overlay_get(ob);
   if (geom) {

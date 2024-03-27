@@ -18,7 +18,7 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "UI_interface.hh"
 #include "UI_view2d.hh"

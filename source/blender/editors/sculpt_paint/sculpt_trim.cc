@@ -32,6 +32,7 @@
 
 #include "bmesh.hh"
 #include "tools/bmesh_boolean.hh"
+#include "tools/bmesh_intersect.hh"
 
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
@@ -90,6 +91,17 @@ static EnumPropertyItem extrude_modes[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+enum class SolverMode {
+  Exact = 0,
+  Fast = 1,
+};
+
+static EnumPropertyItem solver_modes[] = {
+    {int(SolverMode::Exact), "EXACT", 0, "Exact", "Use the exact boolean solver"},
+    {int(SolverMode::Fast), "FAST", 0, "Fast", "Use the fast float boolean solver"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 struct TrimOperation {
   gesture::Operation op;
 
@@ -102,6 +114,7 @@ struct TrimOperation {
   bool use_cursor_depth;
 
   OperationType mode;
+  SolverMode solver_mode;
   OrientationType orientation;
   ExtrudeMode extrude_mode;
 };
@@ -454,8 +467,7 @@ static void apply_trim(gesture::GestureData &gesture_data)
   BM_mesh_bm_from_me(bm, sculpt_mesh, &bm_from_me_params);
 
   const int corner_tris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  BMLoop *(*corner_tris)[3] = static_cast<BMLoop *(*)[3]>(
-      MEM_malloc_arrayN(corner_tris_tot, sizeof(*corner_tris), __func__));
+  Array<std::array<BMLoop *, 3>> corner_tris(corner_tris_tot);
   BM_mesh_calc_tessellation_beauty(bm, corner_tris);
 
   BMIter iter;
@@ -503,19 +515,26 @@ static void apply_trim(gesture::GestureData &gesture_data)
         BLI_assert(false);
         break;
     }
-    BM_mesh_boolean(bm,
-                    corner_tris,
-                    corner_tris_tot,
-                    bm_face_isect_pair,
-                    nullptr,
-                    2,
-                    true,
-                    true,
-                    false,
-                    boolean_mode);
-  }
 
-  MEM_freeN(corner_tris);
+    if (trim_operation->solver_mode == SolverMode::Exact) {
+      BM_mesh_boolean(
+          bm, corner_tris, bm_face_isect_pair, nullptr, 2, true, true, false, boolean_mode);
+    }
+    else {
+      BM_mesh_intersect(bm,
+                        corner_tris,
+                        bm_face_isect_pair,
+                        nullptr,
+                        false,
+                        false,
+                        true,
+                        true,
+                        false,
+                        false,
+                        boolean_mode,
+                        1e-6f);
+    }
+  }
 
   BMeshToMeshParams convert_params{};
   convert_params.calc_object_remap = false;
@@ -584,6 +603,7 @@ static void init_operation(gesture::GestureData &gesture_data, wmOperator &op)
   trim_operation->use_cursor_depth = RNA_boolean_get(op.ptr, "use_cursor_depth");
   trim_operation->orientation = OrientationType(RNA_enum_get(op.ptr, "trim_orientation"));
   trim_operation->extrude_mode = ExtrudeMode(RNA_enum_get(op.ptr, "trim_extrude_mode"));
+  trim_operation->solver_mode = SolverMode(RNA_enum_get(op.ptr, "trim_solver"));
 
   /* If the cursor was not over the mesh, force the orientation to view. */
   if (!gesture_data.ss->gesture_initial_hit) {
@@ -617,6 +637,8 @@ static void operator_properties(wmOperatorType *ot)
                int(ExtrudeMode::Fixed),
                "Extrude Mode",
                nullptr);
+
+  RNA_def_enum(ot->srna, "trim_solver", solver_modes, int(SolverMode::Fast), "Solver", nullptr);
 }
 
 static int gesture_box_exec(bContext *C, wmOperator *op)

@@ -91,7 +91,7 @@ class ChromaMatteShaderNode : public ShaderNode {
 
   float get_acceptance()
   {
-    return std::tan(node_storage(bnode()).t1) / 2.0f;
+    return std::tan(node_storage(bnode()).t1 / 2.0f);
   }
 
   float get_cutoff()

@@ -193,8 +193,6 @@ static void mesh_copy_data(Main *bmain,
     mesh_tessface_clear_intern(mesh_dst, false);
   }
 
-  mesh_dst->edit_mesh = nullptr;
-
   mesh_dst->mselect = (MSelect *)MEM_dupallocN(mesh_dst->mselect);
 
   /* TODO: Do we want to add flag to prevent this? */
@@ -207,15 +205,15 @@ static void mesh_copy_data(Main *bmain,
 
 void BKE_mesh_free_editmesh(Mesh *mesh)
 {
-  if (mesh->edit_mesh == nullptr) {
+  if (mesh->runtime->edit_mesh == nullptr) {
     return;
   }
 
-  if (mesh->edit_mesh->is_shallow_copy == false) {
-    BKE_editmesh_free_data(mesh->edit_mesh);
+  if (mesh->runtime->edit_mesh->is_shallow_copy == false) {
+    BKE_editmesh_free_data(mesh->runtime->edit_mesh);
   }
-  MEM_freeN(mesh->edit_mesh);
-  mesh->edit_mesh = nullptr;
+  MEM_freeN(mesh->runtime->edit_mesh);
+  mesh->runtime->edit_mesh = nullptr;
 }
 
 static void mesh_free_data(ID *id)
@@ -370,7 +368,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_data_address(reader, &mesh->default_color_attribute);
 
   mesh->texspace_flag &= ~ME_TEXSPACE_FLAG_AUTO_EVALUATED;
-  mesh->edit_mesh = nullptr;
 
   mesh->runtime = new blender::bke::MeshRuntime();
 
@@ -431,7 +428,7 @@ bool BKE_mesh_attribute_required(const char *name)
 
 void BKE_mesh_ensure_skin_customdata(Mesh *mesh)
 {
-  BMesh *bm = mesh->edit_mesh ? mesh->edit_mesh->bm : nullptr;
+  BMesh *bm = mesh->runtime->edit_mesh ? mesh->runtime->edit_mesh->bm : nullptr;
   MVertSkin *vs;
 
   if (bm) {
@@ -464,8 +461,8 @@ void BKE_mesh_ensure_skin_customdata(Mesh *mesh)
 
 bool BKE_mesh_has_custom_loop_normals(Mesh *mesh)
 {
-  if (mesh->edit_mesh) {
-    return CustomData_has_layer(&mesh->edit_mesh->bm->ldata, CD_CUSTOMLOOPNORMAL);
+  if (mesh->runtime->edit_mesh) {
+    return CustomData_has_layer(&mesh->runtime->edit_mesh->bm->ldata, CD_CUSTOMLOOPNORMAL);
   }
 
   return CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL);
@@ -855,7 +852,7 @@ Mesh *BKE_mesh_new_nomain_from_template(const Mesh *me_src,
 void BKE_mesh_eval_delete(Mesh *mesh_eval)
 {
   /* Evaluated mesh may point to edit mesh, but never owns it. */
-  mesh_eval->edit_mesh = nullptr;
+  mesh_eval->runtime->edit_mesh = nullptr;
   mesh_free_data(&mesh_eval->id);
   BKE_libblock_free_data(&mesh_eval->id, false);
   MEM_freeN(mesh_eval);
@@ -1159,8 +1156,8 @@ void BKE_mesh_material_remap(Mesh *mesh, const uint *remap, uint remap_len)
   } \
   ((void)0)
 
-  if (mesh->edit_mesh) {
-    BMEditMesh *em = mesh->edit_mesh;
+  if (mesh->runtime->edit_mesh) {
+    BMEditMesh *em = mesh->runtime->edit_mesh;
     BMIter iter;
     BMFace *efa;
 
@@ -1241,7 +1238,8 @@ std::optional<blender::Bounds<blender::float3>> Mesh::bounds_min_max() const
   this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
     switch (this->runtime->wrapper_type) {
       case ME_WRAPPER_TYPE_BMESH:
-        r_bounds = *BKE_editmesh_cache_calc_minmax(*this->edit_mesh, *this->runtime->edit_data);
+        r_bounds = *BKE_editmesh_cache_calc_minmax(*this->runtime->edit_mesh,
+                                                   *this->runtime->edit_data);
         break;
       case ME_WRAPPER_TYPE_MDATA:
       case ME_WRAPPER_TYPE_SUBD:
@@ -1446,8 +1444,8 @@ void BKE_mesh_mselect_active_set(Mesh *mesh, int index, int type)
 void BKE_mesh_count_selected_items(const Mesh *mesh, int r_count[3])
 {
   r_count[0] = r_count[1] = r_count[2] = 0;
-  if (mesh->edit_mesh) {
-    BMesh *bm = mesh->edit_mesh->bm;
+  if (mesh->runtime->edit_mesh) {
+    BMesh *bm = mesh->runtime->edit_mesh->bm;
     r_count[0] = bm->totvertsel;
     r_count[1] = bm->totedgesel;
     r_count[2] = bm->totfacesel;
@@ -1465,7 +1463,7 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
    * evaluated mesh, and we don't know what parts of the mesh did change. So we simply delete the
    * evaluated mesh and let objects to re-create it with updated settings. */
   if (mesh->runtime->mesh_eval != nullptr) {
-    mesh->runtime->mesh_eval->edit_mesh = nullptr;
+    mesh->runtime->mesh_eval->runtime->edit_mesh = nullptr;
     BKE_id_free(nullptr, mesh->runtime->mesh_eval);
     mesh->runtime->mesh_eval = nullptr;
   }

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "gpu_batch_private.hh"
+#include "GPU_batch.hh"
 
 namespace blender::gpu {
 

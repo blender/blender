@@ -357,7 +357,7 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
                                      const uchar source_color[4],
                                      const uchar target_color[4]);
 
-/* view3d_iterators.cc */
+/* `view3d_iterators.cc` */
 
 /* foreach iterators */
 
@@ -926,7 +926,7 @@ int view3d_opengl_select_with_id_filter(const ViewContext *vc,
                                         eV3DSelectObjectFilter select_filter,
                                         uint select_id);
 
-/* view3d_select.cc */
+/* `view3d_select.cc` */
 
 float ED_view3d_select_dist_px();
 ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph);
@@ -1224,9 +1224,9 @@ void ED_view3d_grid_steps(const Scene *scene,
  * The actual code is seen in `object_grid_frag.glsl` (see `grid_res`).
  * Currently the simulation is only done when RV3D_VIEW_IS_AXIS.
  */
-float ED_view3d_grid_view_scale(Scene *scene,
-                                View3D *v3d,
-                                ARegion *region,
+float ED_view3d_grid_view_scale(const Scene *scene,
+                                const View3D *v3d,
+                                const ARegion *region,
                                 const char **r_grid_unit);
 
 /**
@@ -1273,27 +1273,15 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area);
 #define RETOPOLOGY_ENABLED(v3d) (OVERLAY_RETOPOLOGY_ENABLED((v3d)->overlay))
 #define RETOPOLOGY_OFFSET(v3d) (OVERLAY_RETOPOLOGY_OFFSET((v3d)->overlay))
 
-/* view3d_draw_legacy.c */
+/* `view3d_gizmo_preselect_type.cc` */
 
-/**
- * Try avoid using these more move out of legacy.
- */
-void ED_view3d_draw_bgpic_test(const Scene *scene,
-                               Depsgraph *depsgraph,
-                               ARegion *region,
-                               View3D *v3d,
-                               bool do_foreground,
-                               bool do_camera_frame);
-
-/* view3d_gizmo_preselect_type.cc */
-
-void ED_view3d_gizmo_mesh_preselect_get_active(bContext *C,
-                                               wmGizmo *gz,
+void ED_view3d_gizmo_mesh_preselect_get_active(const bContext *C,
+                                               const wmGizmo *gz,
                                                Base **r_base,
                                                BMElem **r_ele);
 void ED_view3d_gizmo_mesh_preselect_clear(wmGizmo *gz);
 
-/* space_view3d.cc */
+/* `space_view3d.cc` */
 
 void ED_view3d_buttons_region_layout_ex(const bContext *C,
                                         ARegion *region,
@@ -1305,8 +1293,8 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
  * See if current UUID is valid, otherwise set a valid UUID to v3d,
  * Try to keep the same UUID previously used to allow users to quickly toggle back and forth.
  */
-bool ED_view3d_local_collections_set(Main *bmain, View3D *v3d);
-void ED_view3d_local_collections_reset(bContext *C, bool reset_all);
+bool ED_view3d_local_collections_set(const Main *bmain, View3D *v3d);
+void ED_view3d_local_collections_reset(const bContext *C, bool reset_all);
 
 #ifdef WITH_XR_OPENXR
 void ED_view3d_xr_mirror_update(const ScrArea *area, const View3D *v3d, bool enable);

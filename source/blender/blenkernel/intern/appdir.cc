@@ -626,15 +626,6 @@ bool BKE_appdir_folder_id_ex(const int folder_id,
       }
       return false;
 
-    case BLENDER_USER_AUTOSAVE:
-      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_USER_DATAFILES")) {
-        break;
-      }
-      if (get_path_user(path, path_maxncpy, "autosave", subfolder)) {
-        break;
-      }
-      return false;
-
     case BLENDER_USER_CONFIG:
       if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_USER_CONFIG")) {
         break;
@@ -661,6 +652,15 @@ bool BKE_appdir_folder_id_ex(const int folder_id,
         break;
       }
       if (get_path_local(path, path_maxncpy, "scripts", subfolder)) {
+        break;
+      }
+      return false;
+
+    case BLENDER_USER_EXTENSIONS:
+      if (get_path_environment(path, path_maxncpy, subfolder, "BLENDER_USER_EXTENSIONS")) {
+        break;
+      }
+      if (get_path_user(path, path_maxncpy, "extensions", subfolder)) {
         break;
       }
       return false;
@@ -718,14 +718,6 @@ std::optional<std::string> BKE_appdir_folder_id_user_notest(const int folder_id,
       }
       get_path_user_ex(path, sizeof(path), "config", subfolder, version, check_is_dir);
       break;
-    case BLENDER_USER_AUTOSAVE:
-      if (get_path_environment_ex(
-              path, sizeof(path), subfolder, "BLENDER_USER_AUTOSAVE", check_is_dir))
-      {
-        break;
-      }
-      get_path_user_ex(path, sizeof(path), "autosave", subfolder, version, check_is_dir);
-      break;
     case BLENDER_USER_SCRIPTS:
       if (get_path_environment_ex(
               path, sizeof(path), subfolder, "BLENDER_USER_SCRIPTS", check_is_dir))
@@ -733,6 +725,14 @@ std::optional<std::string> BKE_appdir_folder_id_user_notest(const int folder_id,
         break;
       }
       get_path_user_ex(path, sizeof(path), "scripts", subfolder, version, check_is_dir);
+      break;
+    case BLENDER_USER_EXTENSIONS:
+      if (get_path_environment_ex(
+              path, sizeof(path), subfolder, "BLENDER_USER_EXTENSIONS", check_is_dir))
+      {
+        break;
+      }
+      get_path_user_ex(path, sizeof(path), "extensions", subfolder, version, check_is_dir);
       break;
     default:
       BLI_assert_unreachable();
@@ -752,7 +752,7 @@ std::optional<std::string> BKE_appdir_folder_id_create(const int folder_id, cons
             BLENDER_USER_DATAFILES,
             BLENDER_USER_CONFIG,
             BLENDER_USER_SCRIPTS,
-            BLENDER_USER_AUTOSAVE))
+            BLENDER_USER_EXTENSIONS))
   {
     BLI_assert_unreachable();
     return std::nullopt;

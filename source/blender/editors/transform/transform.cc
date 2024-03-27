@@ -22,7 +22,7 @@
 #include "BKE_layer.hh"
 #include "BKE_mask.h"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
@@ -1478,7 +1478,7 @@ bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], floa
     }
   }
 
-  /* Aftertrans does insert keyframes, and clears base flags; doesn't read transdata. */
+  /* Does insert keyframes, and clears base flags; doesn't read `transdata`. */
   special_aftertrans_update(C, t);
 
   postTrans(C, t);
@@ -1884,11 +1884,7 @@ static void initSnapSpatial(TransInfo *t, float r_snap[3], float *r_snap_precisi
   *r_snap_precision = 0.1f;
 
   if (t->spacetype == SPACE_VIEW3D) {
-    if (t->region->regiondata) {
-      View3D *v3d = static_cast<View3D *>(t->area->spacedata.first);
-      r_snap[0] = r_snap[1] = r_snap[2] = ED_view3d_grid_view_scale(
-          t->scene, v3d, t->region, nullptr);
-    }
+    /* Pass. Done in #ED_transform_snap_object_project_view3d_ex. */
   }
   else if (t->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = static_cast<SpaceImage *>(t->area->spacedata.first);
@@ -2221,7 +2217,7 @@ int transformEnd(bContext *C, TransInfo *t)
       exit_code = OPERATOR_FINISHED;
     }
 
-    /* Aftertrans does insert keyframes, and clears base flags; doesn't read transdata. */
+    /* Does insert keyframes, and clears base flags; doesn't read `transdata`. */
     special_aftertrans_update(C, t);
 
     /* Free data, also handles overlap [in freeTransCustomData()]. */

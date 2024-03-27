@@ -91,7 +91,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "GPU_matrix.h"
+#include "GPU_matrix.hh"
 #include "GPU_select.hh"
 
 #include "DEG_depsgraph.hh"
@@ -102,7 +102,7 @@
 
 #include "ANIM_bone_collections.hh"
 
-#include "view3d_intern.h" /* own include */
+#include "view3d_intern.hh" /* own include */
 
 // #include "BLI_time_utildefines.h"
 

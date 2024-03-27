@@ -65,7 +65,7 @@
 
 #include "DRW_engine.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "BLO_read_write.hh"
 

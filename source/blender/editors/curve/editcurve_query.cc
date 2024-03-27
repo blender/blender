@@ -21,7 +21,7 @@
 #include "ED_curve.hh"
 #include "ED_view3d.hh"
 
-#include "curve_intern.h"
+#include "curve_intern.hh"
 
 using blender::Vector;
 

@@ -13,9 +13,9 @@
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_capabilities.hh"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "gpu_shader_create_info.hh"

@@ -13,7 +13,7 @@
 #include "BLI_pool.hh"
 #include "BLI_vector.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "eevee_camera.hh"
 #include "eevee_material.hh"
@@ -227,7 +227,7 @@ class ShadowModule {
   PassSimple tilemap_update_ps_ = {"TilemapUpdate"};
 
   PassMain::Sub *tilemap_usage_transparent_ps_ = nullptr;
-  GPUBatch *box_batch_ = nullptr;
+  gpu::Batch *box_batch_ = nullptr;
   /* Source texture for depth buffer analysis. */
   GPUTexture *src_depth_tx_ = nullptr;
 
@@ -259,6 +259,7 @@ class ShadowModule {
   float pixel_world_radius_;
   int2 usage_tag_fb_resolution_;
   int usage_tag_fb_lod_ = 5;
+  int max_view_per_tilemap_ = 1;
 
   /* Statistics that are read back to CPU after a few frame (to avoid stall). */
   SwapChain<ShadowStatisticsBuf, 5> statistics_buf_;
@@ -379,6 +380,9 @@ class ShadowModule {
   float screen_pixel_radius(const View &view, const int2 &extent);
   /** Compute approximate punctual shadow pixel world space radius, 1 unit away of the light. */
   float tilemap_pixel_radius();
+
+  /* Returns the maximum number of view per shadow projection for a single update loop. */
+  int max_view_per_tilemap();
 };
 
 /** \} */
@@ -394,8 +398,6 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   ShadowModule &shadows_;
   /** Tile-map for each cube-face needed (in eCubeFace order). */
   Vector<ShadowTileMap *> tilemaps_;
-  /** Area light size. */
-  float size_x_, size_y_;
   /** Shape type. */
   eLightType light_type_;
   /** Light position. */
@@ -468,7 +470,7 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   float4x4 object_mat_;
   /** Current range of clip-map / cascades levels covered by this shadow. */
   IndexRange levels_range;
-  /** Radius of the shadowed light shape. Might be scaled compared to the shading disk. */
+  /** Angle of the shadowed light shape. Might be scaled compared to the shading disk. */
   float disk_shape_angle_;
   /** Maximum distance a shadow map ray can be travel. */
   float trace_distance_;

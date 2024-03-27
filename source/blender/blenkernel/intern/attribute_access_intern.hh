@@ -31,14 +31,10 @@ struct CustomDataAccessInfo {
  * A #BuiltinAttributeProvider is responsible for exactly one attribute on a geometry component.
  * The attribute is identified by its name and has a fixed domain and type. Builtin attributes do
  * not follow the same loose rules as other attributes, because they are mapped to internal
- * "legacy" data structures. For example, some builtin attributes cannot be deleted. */
+ * "legacy" data structures. For example, some builtin attributes cannot be deleted.
+ */
 class BuiltinAttributeProvider {
  public:
-  /* Some utility enums to avoid hard to read booleans in function calls. */
-  enum CreatableEnum {
-    Creatable,
-    NonCreatable,
-  };
   enum DeletableEnum {
     Deletable,
     NonDeletable,
@@ -48,7 +44,6 @@ class BuiltinAttributeProvider {
   const std::string name_;
   const AttrDomain domain_;
   const eCustomDataType data_type_;
-  const CreatableEnum createable_;
   const DeletableEnum deletable_;
   const AttributeValidator validator_;
 
@@ -56,13 +51,11 @@ class BuiltinAttributeProvider {
   BuiltinAttributeProvider(std::string name,
                            const AttrDomain domain,
                            const eCustomDataType data_type,
-                           const CreatableEnum createable,
                            const DeletableEnum deletable,
                            AttributeValidator validator = {})
       : name_(std::move(name)),
         domain_(domain),
         data_type_(data_type),
-        createable_(createable),
         deletable_(deletable),
         validator_(validator)
   {
@@ -174,27 +167,21 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
  */
 class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   using UpdateOnChange = void (*)(void *owner);
-  const eCustomDataType stored_type_;
   const CustomDataAccessInfo custom_data_access_;
   const UpdateOnChange update_on_change_;
-  bool stored_as_named_attribute_;
 
  public:
   BuiltinCustomDataLayerProvider(std::string attribute_name,
                                  const AttrDomain domain,
-                                 const eCustomDataType attribute_type,
-                                 const eCustomDataType stored_type,
-                                 const CreatableEnum creatable,
+                                 const eCustomDataType data_type,
                                  const DeletableEnum deletable,
                                  const CustomDataAccessInfo custom_data_access,
-                                 const UpdateOnChange update_on_write,
+                                 const UpdateOnChange update_on_change,
                                  const AttributeValidator validator = {})
       : BuiltinAttributeProvider(
-            std::move(attribute_name), domain, attribute_type, creatable, deletable, validator),
-        stored_type_(stored_type),
+            std::move(attribute_name), domain, data_type, deletable, validator),
         custom_data_access_(custom_data_access),
-        update_on_change_(update_on_write),
-        stored_as_named_attribute_(data_type_ == stored_type_)
+        update_on_change_(update_on_change)
   {
   }
 

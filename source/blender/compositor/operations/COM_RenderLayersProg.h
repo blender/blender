@@ -69,8 +69,6 @@ class RenderLayersProg : public MultiThreadedOperation {
     return input_buffer_;
   }
 
-  void do_interpolation(float output[4], float x, float y, PixelSampler sampler);
-
  public:
   /**
    * Constructor

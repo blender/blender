@@ -263,7 +263,7 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *ved)
 
   {
     DRWShadingGroup *grp;
-    GPUBatch *geom = DRW_cache_grid_get();
+    blender::gpu::Batch *geom = DRW_cache_grid_get();
 
     GPUShader *sh = OVERLAY_shader_grid();
 

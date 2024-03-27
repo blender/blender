@@ -34,14 +34,14 @@
 
 #include "BIF_glutil.hh"
 
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_platform.h"
-#include "GPU_shader_shared.h"
-#include "GPU_state.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_platform.hh"
+#include "GPU_shader_shared.hh"
+#include "GPU_state.hh"
 #include "GPU_uniform_buffer.hh"
 
 #include "DRW_engine.hh"
@@ -1673,8 +1673,8 @@ void draw_nodespace_back_pix(const bContext &C,
   if (ibuf) {
     /* somehow the offset has to be calculated inverse */
     wmOrtho2_region_pixelspace(&region);
-    const float offset_x = snode.xof + ima->offset_x * snode.zoom;
-    const float offset_y = snode.yof + ima->offset_y * snode.zoom;
+    const float offset_x = snode.xof + ima->runtime.backdrop_offset[0] * snode.zoom;
+    const float offset_y = snode.yof + ima->runtime.backdrop_offset[1] * snode.zoom;
     const float x = (region.winx - snode.zoom * ibuf->x) / 2 + offset_x;
     const float y = (region.winy - snode.zoom * ibuf->y) / 2 + offset_y;
 
@@ -1813,9 +1813,9 @@ static float mute_expand_axis[3][2] = {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, -0.0f}
 
 /* Is zero initialized because it is static data. */
 static struct {
-  GPUBatch *batch;        /* for batching line together */
-  GPUBatch *batch_single; /* for single line */
-  GPUVertBuf *inst_vbo;
+  gpu::Batch *batch;        /* for batching line together */
+  gpu::Batch *batch_single; /* for single line */
+  gpu::VertBuf *inst_vbo;
   uint p0_id, p1_id, p2_id, p3_id;
   uint colid_id, muted_id, start_color_id, end_color_id;
   uint dim_factor_id;
@@ -1853,7 +1853,7 @@ static void nodelink_batch_reset()
   g_batch_link.count = 0;
 }
 
-static void set_nodelink_vertex(GPUVertBuf *vbo,
+static void set_nodelink_vertex(gpu::VertBuf *vbo,
                                 uint uv_id,
                                 uint pos_id,
                                 uint exp_id,
@@ -1873,7 +1873,7 @@ static void nodelink_batch_init()
   uint uv_id = GPU_vertformat_attr_add(&format, "uv", GPU_COMP_U8, 2, GPU_FETCH_INT_TO_FLOAT_UNIT);
   uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uint expand_id = GPU_vertformat_attr_add(&format, "expand", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STATIC);
+  gpu::VertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STATIC);
   int vcount = LINK_RESOL * 2; /* curve */
   vcount += 2;                 /* restart strip */
   vcount += 3 * 2;             /* arrow */
@@ -2268,7 +2268,7 @@ static void node_draw_link_bezier_ex(const SpaceNode &snode,
     node_link_data.aspect = snode.runtime->aspect;
     node_link_data.arrowSize = ARROW_SIZE;
 
-    GPUBatch *batch = g_batch_link.batch_single;
+    gpu::Batch *batch = g_batch_link.batch_single;
     GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(sizeof(NodeLinkData), &node_link_data, __func__);
 
     GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);

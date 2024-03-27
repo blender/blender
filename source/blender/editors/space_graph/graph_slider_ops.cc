@@ -42,7 +42,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "graph_intern.h"
+#include "graph_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Struct & Defines
@@ -918,22 +918,120 @@ void GRAPH_OT_blend_to_default(wmOperatorType *ot)
 /** \name Ease Operator
  * \{ */
 
-static void ease_graph_keys(bAnimContext *ac, const float factor)
+static void ease_graph_keys(bAnimContext *ac, const float factor, const float width)
 {
-  apply_fcu_segment_function(ac, factor, ease_fcurve_segment);
+  ListBase anim_data = {nullptr, nullptr};
+
+  ANIM_animdata_filter(
+      ac, &anim_data, OPERATOR_DATA_FILTER, ac->data, eAnimCont_Types(ac->datatype));
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+    ListBase segments = find_fcurve_segments(fcu);
+
+    LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
+      ease_fcurve_segment(fcu, segment, factor, width);
+    }
+
+    ale->update |= ANIM_UPDATE_DEFAULT;
+    BLI_freelistN(&segments);
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+}
+
+static void ease_draw_status_header(bContext *C, wmOperator *op)
+{
+  char status_str[UI_MAX_DRAW_STR];
+  char mode_str[32];
+  char slider_string[UI_MAX_DRAW_STR];
+
+  tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+  ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
+
+  /* Operator specific functionality that extends beyond the slider. */
+  char op_slider_string[UI_MAX_DRAW_STR];
+  if (STREQ(RNA_property_identifier(gso->factor_prop), "factor")) {
+    SNPRINTF(op_slider_string, "%s | %s", slider_string, IFACE_("[TAB] - Modify Sharpness"));
+  }
+  else {
+    SNPRINTF(op_slider_string, "%s | %s", slider_string, IFACE_("[TAB] - Modify Curve Bend"));
+  }
+
+  STRNCPY(mode_str, IFACE_("Ease Keys"));
+
+  if (hasNumInput(&gso->num)) {
+    char str_ofs[NUM_STR_REP_LEN];
+
+    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
+
+    SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
+  }
+  else {
+    SNPRINTF(status_str, "%s: %s", mode_str, op_slider_string);
+  }
+
+  ED_workspace_status_text(C, status_str);
 }
 
 static void ease_modal_update(bContext *C, wmOperator *op)
 {
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
 
-  common_draw_status_header(C, gso, "Ease Keys");
+  ease_draw_status_header(C, op);
 
   /* Reset keyframes to the state at invoke. */
   reset_bezts(gso);
-  const float factor = slider_factor_get_and_remember(op);
-  ease_graph_keys(&gso->ac, factor);
+  float factor;
+  float width;
+  if (STREQ(RNA_property_identifier(gso->factor_prop), "factor")) {
+    factor = slider_factor_get_and_remember(op);
+    width = RNA_float_get(op->ptr, "sharpness");
+  }
+  else {
+    factor = RNA_float_get(op->ptr, "factor");
+    width = slider_factor_get_and_remember(op);
+  }
+
+  ease_graph_keys(&gso->ac, factor, width);
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
+}
+
+static int ease_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (event->val != KM_PRESS) {
+    return graph_slider_modal(C, op, event);
+  }
+
+  switch (event->type) {
+    case EVT_TABKEY: {
+      tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
+      if (STREQ(RNA_property_identifier(gso->factor_prop), "factor")) {
+        /* Switch to sharpness. */
+        ED_slider_allow_overshoot_set(gso->slider, false, true);
+        ED_slider_factor_bounds_set(gso->slider, 0.001f, 10);
+        ED_slider_factor_set(gso->slider, RNA_float_get(op->ptr, "sharpness"));
+        ED_slider_mode_set(gso->slider, SLIDER_MODE_FLOAT);
+        ED_slider_unit_set(gso->slider, "");
+        gso->factor_prop = RNA_struct_find_property(op->ptr, "sharpness");
+      }
+      else {
+        ED_slider_allow_overshoot_set(gso->slider, false, false);
+        ED_slider_factor_bounds_set(gso->slider, -1, 1);
+        ED_slider_factor_set(gso->slider, 0.0f);
+        ED_slider_factor_set(gso->slider, RNA_float_get(op->ptr, "factor"));
+        ED_slider_mode_set(gso->slider, SLIDER_MODE_PERCENT);
+        ED_slider_unit_set(gso->slider, "%");
+        gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
+      }
+      ease_modal_update(C, op);
+      break;
+    }
+
+    default:
+      return graph_slider_modal(C, op, event);
+  }
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static int ease_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -947,7 +1045,8 @@ static int ease_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
   gso->modal_update = ease_modal_update;
   gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
-  common_draw_status_header(C, gso, "Ease Keys");
+  ease_draw_status_header(C, op);
+  ED_slider_allow_overshoot_set(gso->slider, false, false);
   ED_slider_factor_bounds_set(gso->slider, -1, 1);
   ED_slider_factor_set(gso->slider, 0.0f);
 
@@ -958,16 +1057,15 @@ static int ease_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
-  /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
 
   const float factor = RNA_float_get(op->ptr, "factor");
+  const float width = RNA_float_get(op->ptr, "sharpness");
 
-  ease_graph_keys(&ac, factor);
+  ease_graph_keys(&ac, factor, width);
 
-  /* Set notifier that keyframes have changed. */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
@@ -982,7 +1080,7 @@ void GRAPH_OT_ease(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->invoke = ease_invoke;
-  ot->modal = graph_slider_modal;
+  ot->modal = ease_modal;
   ot->exec = ease_exec;
   ot->poll = graphop_editable_keyframes_poll;
 
@@ -995,9 +1093,19 @@ void GRAPH_OT_ease(wmOperatorType *ot)
                        -FLT_MAX,
                        FLT_MAX,
                        "Curve Bend",
-                       "Control the bend of the curve",
+                       "Defines if the keys should be aligned on an ease-in or ease-out curve",
                        -1.0f,
                        1.0f);
+
+  RNA_def_float(ot->srna,
+                "sharpness",
+                2.0f,
+                0.001f,
+                FLT_MAX,
+                "Sharpness",
+                "Higher values make the change more abrupt",
+                0.01f,
+                16.0f);
 }
 
 /** \} */
@@ -2468,3 +2576,5 @@ void GRAPH_OT_scale_from_neighbor(wmOperatorType *ot)
                "Reference Key",
                "Which end of the segment to use as a reference to scale from");
 }
+
+/** \} */

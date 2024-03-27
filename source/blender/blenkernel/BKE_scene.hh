@@ -9,7 +9,6 @@
 
 #include "BLI_sys_types.h"
 
-struct AviCodecData;
 struct Base;
 struct Collection;
 struct Depsgraph;
@@ -61,8 +60,6 @@ enum eSceneCopyMethod {
  */
 Base *_setlooper_base_step(Scene **sce_iter, ViewLayer *view_layer, Base *base);
 
-void free_avicodecdata(AviCodecData *acd);
-
 Scene *BKE_scene_add(Main *bmain, const char *name);
 
 void BKE_scene_remove_rigidbody_object(Main *bmain, Scene *scene, Object *ob, bool free_us);
@@ -112,7 +109,7 @@ void BKE_scene_object_base_flag_sync_from_base(Base *base);
  */
 void BKE_scene_set_background(Main *bmain, Scene *sce);
 /**
- * Called from `creator_args.c`.
+ * Called from `creator_args.cc`.
  */
 Scene *BKE_scene_set_name(Main *bmain, const char *name);
 

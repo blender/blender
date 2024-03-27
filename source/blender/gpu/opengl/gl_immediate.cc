@@ -10,7 +10,7 @@
 
 #include "gpu_context_private.hh"
 #include "gpu_shader_private.hh"
-#include "gpu_vertex_format_private.h"
+#include "gpu_vertex_format_private.hh"
 
 #include "gl_context.hh"
 #include "gl_debug.hh"

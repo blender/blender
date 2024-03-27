@@ -43,7 +43,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_path.hh"
 
-#include "anim_intern.h"
+#include "anim_intern.hh"
 
 /* ************************************************** */
 /* KEYING SETS - OPERATORS (for use in UI panels) */
@@ -1079,7 +1079,6 @@ static int insert_key_to_keying_set_path(bContext *C,
       keyed_channels += blender::animrig::insert_keyframe(bmain,
                                                           reports,
                                                           keyingset_path->id,
-                                                          nullptr,
                                                           groupname,
                                                           keyingset_path->rna_path,
                                                           array_index,

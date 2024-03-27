@@ -37,7 +37,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 /* ***************** Convert old 2.7 files to 2.8 ************************ */
 static bool gpencil_convert_old_files_poll(bContext *C)

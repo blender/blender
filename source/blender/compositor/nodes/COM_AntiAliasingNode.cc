@@ -7,37 +7,41 @@
 
 namespace blender::compositor {
 
+/* Blender encodes the threshold in the [0, 1] range, while the SMAA algorithm expects it in
+ * the [0, 0.5] range. */
+static float get_threshold(const NodeAntiAliasingData *data)
+{
+  return data->threshold / 2.0f;
+}
+
+/* Blender encodes the local contrast adaptation factor in the [0, 1] range, while the SMAA
+ * algorithm expects it in the [0, 10] range. */
+static float get_local_contrast_adaptation_factor(const NodeAntiAliasingData *data)
+{
+  return data->contrast_limit * 10.0f;
+}
+
+/* Blender encodes the corner rounding factor in the float [0, 1] range, while the SMAA algorithm
+ * expects it in the integer [0, 100] range. */
+static int get_corner_rounding(const NodeAntiAliasingData *data)
+{
+  return int(data->corner_rounding * 100.0f);
+}
+
 void AntiAliasingNode::convert_to_operations(NodeConverter &converter,
                                              const CompositorContext & /*context*/) const
 {
   const bNode *node = this->get_bnode();
   const NodeAntiAliasingData *data = (const NodeAntiAliasingData *)node->storage;
 
-  /* Edge Detection (First Pass) */
-  SMAAEdgeDetectionOperation *operation1 = nullptr;
+  SMAAOperation *operation = new SMAAOperation();
+  operation->set_threshold(get_threshold(data));
+  operation->set_local_contrast_adaptation_factor(get_local_contrast_adaptation_factor(data));
+  operation->set_corner_rounding(get_corner_rounding(data));
+  converter.add_operation(operation);
 
-  operation1 = new SMAAEdgeDetectionOperation();
-  operation1->set_threshold(data->threshold);
-  operation1->set_local_contrast_adaptation_factor(data->contrast_limit);
-  converter.add_operation(operation1);
-
-  converter.map_input_socket(get_input_socket(0), operation1->get_input_socket(0));
-
-  /* Blending Weight Calculation Pixel Shader (Second Pass) */
-  SMAABlendingWeightCalculationOperation *operation2 =
-      new SMAABlendingWeightCalculationOperation();
-  operation2->set_corner_rounding(data->corner_rounding);
-  converter.add_operation(operation2);
-
-  converter.add_link(operation1->get_output_socket(), operation2->get_input_socket(0));
-
-  /* Neighborhood Blending Pixel Shader (Third Pass) */
-  SMAANeighborhoodBlendingOperation *operation3 = new SMAANeighborhoodBlendingOperation();
-  converter.add_operation(operation3);
-
-  converter.map_input_socket(get_input_socket(0), operation3->get_input_socket(0));
-  converter.add_link(operation2->get_output_socket(), operation3->get_input_socket(1));
-  converter.map_output_socket(get_output_socket(0), operation3->get_output_socket());
+  converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
+  converter.map_output_socket(get_output_socket(0), operation->get_output_socket());
 }
 
 }  // namespace blender::compositor

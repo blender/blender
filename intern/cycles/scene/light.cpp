@@ -903,14 +903,14 @@ static void background_cdf(
   for (int i = start; i < end; i++) {
     float sin_theta = sinf(M_PI_F * (i + 0.5f) / res_y);
     float3 env_color = (*pixels)[i * res_x];
-    float ave_luminance = average(env_color);
+    float ave_luminance = average(fabs(env_color));
 
     cond_cdf[i * cdf_width].x = ave_luminance * sin_theta;
     cond_cdf[i * cdf_width].y = 0.0f;
 
     for (int j = 1; j < res_x; j++) {
       env_color = (*pixels)[i * res_x + j];
-      ave_luminance = average(env_color);
+      ave_luminance = average(fabs(env_color));
 
       cond_cdf[i * cdf_width + j].x = ave_luminance * sin_theta;
       cond_cdf[i * cdf_width + j].y = cond_cdf[i * cdf_width + j - 1].y +
@@ -1362,6 +1362,9 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       /* Choose the angle which spans a larger cone. */
       klights[light_index].spot.cos_half_larger_spread = inversesqrtf(
           1.0f + tan_sq * fmaxf(len_u_sq, len_v_sq) / len_w_sq);
+      /* radius / sin(half_angle_small) */
+      klights[light_index].spot.ray_segment_dp =
+          light->size * sqrtf(1.0f + len_w_sq / (tan_sq * fminf(len_u_sq, len_v_sq)));
     }
 
     klights[light_index].shader_id = shader_id;

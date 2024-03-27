@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "GPU_vertex_buffer.h"
+#include "GPU_vertex_buffer.hh"
 
 namespace blender {
 namespace gpu {

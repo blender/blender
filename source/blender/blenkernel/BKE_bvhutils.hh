@@ -92,7 +92,7 @@ BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
                                     int axis);
 
 /**
- * Builds a BVH-tree where nodes are the triangle faces (#MLoopTri) of the given mesh.
+ * Builds a BVH-tree where nodes are the triangle faces (#Mesh::corner_tris()) of the given mesh.
  */
 BVHTree *bvhtree_from_mesh_corner_tris_ex(BVHTreeFromMesh *data,
                                           blender::Span<blender::float3> vert_positions,

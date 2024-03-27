@@ -1015,52 +1015,46 @@ static void override_idtemplate_menu()
 #define NOT_NULL(assignment) ((assignment) != nullptr)
 #define NOT_RNA_NULL(assignment) ((assignment).data != nullptr)
 
-static void ui_context_selected_bones_via_pose(bContext *C, ListBase *r_lb)
+static void ui_context_selected_bones_via_pose(bContext *C, blender::Vector<PointerRNA> *r_lb)
 {
-  ListBase lb;
-  lb = CTX_data_collection_get(C, "selected_pose_bones");
+  blender::Vector<PointerRNA> lb = CTX_data_collection_get(C, "selected_pose_bones");
 
-  if (!BLI_listbase_is_empty(&lb)) {
-    LISTBASE_FOREACH (CollectionPointerLink *, link, &lb) {
-      bPoseChannel *pchan = static_cast<bPoseChannel *>(link->ptr.data);
-      link->ptr = RNA_pointer_create(link->ptr.owner_id, &RNA_Bone, pchan->bone);
+  if (!lb.is_empty()) {
+    for (PointerRNA &ptr : lb) {
+      bPoseChannel *pchan = static_cast<bPoseChannel *>(ptr.data);
+      ptr = RNA_pointer_create(ptr.owner_id, &RNA_Bone, pchan->bone);
     }
   }
 
-  *r_lb = lb;
+  *r_lb = std::move(lb);
 }
 
-static void ui_context_fcurve_modifiers_via_fcurve(bContext *C, ListBase *r_lb, FModifier *source)
+static void ui_context_fcurve_modifiers_via_fcurve(bContext *C,
+                                                   blender::Vector<PointerRNA> *r_lb,
+                                                   FModifier *source)
 {
-  ListBase /* CollectionPointerLink */ fcurve_links;
+  blender::Vector<PointerRNA> fcurve_links;
   fcurve_links = CTX_data_collection_get(C, "selected_editable_fcurves");
-  if (BLI_listbase_is_empty(&fcurve_links)) {
+  if (fcurve_links.is_empty()) {
     return;
   }
-  LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, &fcurve_links) {
-    FCurve *fcu = static_cast<FCurve *>(link->ptr.data);
-    bool found_modifier = false;
+  r_lb->clear();
+  for (const PointerRNA &ptr : fcurve_links) {
+    FCurve *fcu = static_cast<FCurve *>(ptr.data);
     LISTBASE_FOREACH (FModifier *, mod, &fcu->modifiers) {
       if (STREQ(mod->name, source->name) && mod->type == source->type) {
-        link->ptr = RNA_pointer_create(link->ptr.owner_id, &RNA_FModifier, mod);
-        found_modifier = true;
+        r_lb->append(RNA_pointer_create(ptr.owner_id, &RNA_FModifier, mod));
         /* Since names are unique it is safe to break here. */
         break;
       }
     }
-    if (!found_modifier) {
-      /* FCurves that don't have a modifier named the same must be removed to avoid segfaults. */
-      BLI_freelinkN(&fcurve_links, link);
-    }
   }
-
-  *r_lb = fcurve_links;
 }
 
 bool UI_context_copy_to_selected_list(bContext *C,
                                       PointerRNA *ptr,
                                       PropertyRNA *prop,
-                                      ListBase *r_lb,
+                                      blender::Vector<PointerRNA> *r_lb,
                                       bool *r_use_path_from_id,
                                       std::optional<std::string> *r_path)
 {
@@ -1133,7 +1127,8 @@ bool UI_context_copy_to_selected_list(bContext *C,
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_BoneColor)) {
     /* Get the things that own the bone color (bones, pose bones, or edit bones). */
-    ListBase list_of_things = {}; /* First this will be bones, then gets remapped to colors. */
+    /* First this will be bones, then gets remapped to colors. */
+    blender::Vector<PointerRNA> list_of_things = {};
     switch (GS(ptr->owner_id->name)) {
       case ID_OB:
         list_of_things = CTX_data_collection_get(C, "selected_pose_bones");
@@ -1212,7 +1207,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
     *r_path = path_from_bone;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Node) || RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
-    ListBase lb = {nullptr, nullptr};
+    blender::Vector<PointerRNA> lb;
     std::optional<std::string> path;
     bNode *node = nullptr;
 
@@ -1237,15 +1232,13 @@ bool UI_context_copy_to_selected_list(bContext *C,
     /* Now filter by type */
     if (node) {
       lb = CTX_data_collection_get(C, "selected_nodes");
-
-      LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, &lb) {
-        bNode *node_data = static_cast<bNode *>(link->ptr.data);
-
+      lb.remove_if([&](const PointerRNA &link) {
+        bNode *node_data = static_cast<bNode *>(link.data);
         if (node_data->type != node->type) {
-          BLI_remlink(&lb, link);
-          MEM_freeN(link);
+          return true;
         }
-      }
+        return false;
+      });
     }
 
     *r_lb = lb;
@@ -1262,38 +1255,36 @@ bool UI_context_copy_to_selected_list(bContext *C,
     else if (OB_DATA_SUPPORT_ID(GS(id->name))) {
       /* check we're using the active object */
       const short id_code = GS(id->name);
-      ListBase lb = CTX_data_collection_get(C, "selected_editable_objects");
+      blender::Vector<PointerRNA> lb = CTX_data_collection_get(C, "selected_editable_objects");
       const std::optional<std::string> path = RNA_path_from_ID_to_property(ptr, prop);
 
       /* de-duplicate obdata */
-      if (!BLI_listbase_is_empty(&lb)) {
-        LISTBASE_FOREACH (CollectionPointerLink *, link, &lb) {
-          Object *ob = (Object *)link->ptr.owner_id;
-          if (ob->data) {
-            ID *id_data = static_cast<ID *>(ob->data);
+      if (!lb.is_empty()) {
+        for (const PointerRNA &ptr : lb) {
+          Object *ob = (Object *)ptr.owner_id;
+          if (ID *id_data = static_cast<ID *>(ob->data)) {
             id_data->tag |= LIB_TAG_DOIT;
           }
         }
 
-        LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, &lb) {
-          Object *ob = (Object *)link->ptr.owner_id;
+        blender::Vector<PointerRNA> new_lb;
+        for (const PointerRNA &link : lb) {
+          Object *ob = (Object *)link.owner_id;
           ID *id_data = static_cast<ID *>(ob->data);
-
           if ((id_data == nullptr) || (id_data->tag & LIB_TAG_DOIT) == 0 ||
               ID_IS_LINKED(id_data) || (GS(id_data->name) != id_code))
           {
-            BLI_remlink(&lb, link);
-            MEM_freeN(link);
+            continue;
           }
-          else {
-            /* Avoid prepending 'data' to the path. */
-            link->ptr = RNA_id_pointer_create(id_data);
-          }
+          /* Avoid prepending 'data' to the path. */
+          new_lb.append(RNA_id_pointer_create(id_data));
 
           if (id_data) {
             id_data->tag &= ~LIB_TAG_DOIT;
           }
         }
+
+        lb = std::move(new_lb);
       }
 
       *r_lb = lb;
@@ -1339,48 +1330,42 @@ bool UI_context_copy_to_selected_list(bContext *C,
   if (ensure_list_items_contain_prop) {
     if (is_rna) {
       const char *prop_id = RNA_property_identifier(prop);
-      LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, r_lb) {
-        if ((ptr->type != link->ptr.type) &&
-            (RNA_struct_type_find_property(link->ptr.type, prop_id) != prop))
+      r_lb->remove_if([&](const PointerRNA &link) {
+        if ((ptr->type != link.type) &&
+            (RNA_struct_type_find_property(link.type, prop_id) != prop))
         {
-          BLI_remlink(r_lb, link);
-          MEM_freeN(link);
+          return true;
         }
-      }
+        return false;
+      });
     }
     else {
       const bool prop_is_array = RNA_property_array_check(prop);
       const int prop_array_len = prop_is_array ? RNA_property_array_length(ptr, prop) : -1;
       const PropertyType prop_type = RNA_property_type(prop);
-      LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, r_lb) {
+      r_lb->remove_if([&](PointerRNA &link) {
         PointerRNA lptr;
         PropertyRNA *lprop = nullptr;
         RNA_path_resolve_property(
-            &link->ptr, r_path->has_value() ? r_path->value().c_str() : nullptr, &lptr, &lprop);
+            &link, r_path->has_value() ? r_path->value().c_str() : nullptr, &lptr, &lprop);
 
-        bool remove = false;
         if (lprop == nullptr) {
-          remove = true;
+          return true;
         }
-        else if (!RNA_property_is_idprop(lprop)) {
-          remove = true;
+        if (!RNA_property_is_idprop(lprop)) {
+          return true;
         }
-        else if (prop_type != RNA_property_type(lprop)) {
-          remove = true;
+        if (prop_type != RNA_property_type(lprop)) {
+          return true;
         }
-        else if (prop_is_array != RNA_property_array_check(lprop)) {
-          remove = true;
+        if (prop_is_array != RNA_property_array_check(lprop)) {
+          return true;
         }
-        else if (prop_is_array && (prop_array_len != RNA_property_array_length(&link->ptr, lprop)))
-        {
-          remove = true;
+        if (prop_is_array && (prop_array_len != RNA_property_array_length(&link, lprop))) {
+          return true;
         }
-
-        if (remove) {
-          BLI_remlink(r_lb, link);
-          MEM_freeN(link);
-        }
-      }
+        return false;
+      });
     }
   }
 
@@ -1504,16 +1489,16 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
   bool success = false;
   std::optional<std::string> path;
   bool use_path_from_id;
-  ListBase lb = {nullptr};
+  blender::Vector<PointerRNA> lb;
 
   if (UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path)) {
-    LISTBASE_FOREACH (CollectionPointerLink *, link, &lb) {
-      if (link->ptr.data == ptr.data) {
+    for (PointerRNA &link : lb) {
+      if (link.data == ptr.data) {
         continue;
       }
 
       if (!UI_context_copy_to_selected_check(&ptr,
-                                             &link->ptr,
+                                             &link,
                                              prop,
                                              path.has_value() ? path->c_str() : nullptr,
                                              use_path_from_id,
@@ -1533,8 +1518,6 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
       }
     }
   }
-
-  BLI_freelistN(&lb);
 
   return success;
 }

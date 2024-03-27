@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "vk_batch.hh"
 #include "vk_common.hh"
@@ -24,7 +24,7 @@ VKDrawList::VKDrawList(int list_length) : length_(list_length)
                          true);
 }
 
-void VKDrawList::append(GPUBatch *gpu_batch, int instance_first, int instance_count)
+void VKDrawList::append(Batch *gpu_batch, int instance_first, int instance_count)
 {
   /* Check for different batch. When batch is different the previous commands should be flushed to
    * the gpu. */

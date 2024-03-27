@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "GPU_index_buffer.h"
+#include "GPU_index_buffer.hh"
 
 #include "extract_mesh.hh"
 
@@ -169,7 +169,7 @@ static void extract_lines_finish(const MeshRenderData & /*mr*/,
 {
   MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
   GPUIndexBufBuilder *elb = &data->elb;
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
 }
 
@@ -180,7 +180,7 @@ static void extract_lines_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                       void * /*data*/)
 {
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buffer);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buffer);
   GPU_indexbuf_init_build_on_device(ibo,
                                     subdiv_cache.num_subdiv_loops * 2 + loose_geom.edge_len * 2);
 
@@ -207,7 +207,7 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
     GPU_vertformat_attr_add(&format, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
   }
 
-  GPUVertBuf *flags = GPU_vertbuf_calloc();
+  gpu::VertBuf *flags = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format(flags, &format);
 
   Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
@@ -267,7 +267,7 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
     }
   }
 
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buffer);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buffer);
   draw_subdiv_build_lines_loose_buffer(subdiv_cache, ibo, flags, uint(loose_geom.edge_len));
 
   GPU_vertbuf_discard(flags);
@@ -316,7 +316,7 @@ static void extract_lines_with_lines_loose_finish(const MeshRenderData &mr,
 {
   MeshExtract_LinesData *data = static_cast<MeshExtract_LinesData *>(tls_data);
   GPUIndexBufBuilder *elb = &data->elb;
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
   extract_lines_loose_subbuffer(mr, cache);
 }

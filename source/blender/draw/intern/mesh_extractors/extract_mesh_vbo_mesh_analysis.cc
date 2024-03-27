@@ -31,7 +31,7 @@ static void extract_mesh_analysis_init(const MeshRenderData &mr,
                                        void *buf,
                                        void * /*tls_data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
@@ -167,9 +167,9 @@ static void statvis_calc_thickness(const MeshRenderData &mr, float *r_thickness)
     BM_mesh_elem_index_ensure(bm, BM_FACE);
 
     BMBVHTree *bmtree = BKE_bmbvh_new_from_editmesh(em, 0, nullptr, false);
-    BMLoop *(*looptris)[3] = em->looptris;
+    const Span<std::array<BMLoop *, 3>> looptris = em->looptris;
     for (int i = 0; i < mr.corner_tris_num; i++) {
-      BMLoop **ltri = looptris[i];
+      const BMLoop *const *ltri = looptris[i].data();
       const int index = BM_elem_index_get(ltri[0]->f);
       const float *cos[3] = {
           bm_vert_co_get(mr, ltri[0]->v),
@@ -594,7 +594,7 @@ static void extract_analysis_iter_finish_mesh(const MeshRenderData &mr,
                                               void *buf,
                                               void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   BLI_assert(mr.edit_bmesh);
 
   float *l_weight = (float *)GPU_vertbuf_get_data(vbo);

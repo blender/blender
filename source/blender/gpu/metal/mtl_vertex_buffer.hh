@@ -14,8 +14,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_vertex_buffer.h"
-#include "gpu_vertex_buffer_private.hh"
+#include "GPU_vertex_buffer.hh"
 #include "mtl_context.hh"
 
 namespace blender::gpu {

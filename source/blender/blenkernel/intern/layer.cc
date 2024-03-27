@@ -24,7 +24,7 @@
 #include "BKE_animsys.h"
 #include "BKE_collection.hh"
 #include "BKE_freestyle.h"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"

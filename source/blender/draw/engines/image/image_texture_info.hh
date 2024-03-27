@@ -11,8 +11,8 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_rect.h"
 
-#include "GPU_batch.h"
-#include "GPU_texture.h"
+#include "GPU_batch.hh"
+#include "GPU_texture.hh"
 
 namespace blender::draw::image_engine {
 
@@ -40,7 +40,7 @@ struct TextureInfo {
    * `pos` (2xI32) is relative to the origin of the space.
    * `uv` (2xF32) reflect the uv bounds.
    */
-  GPUBatch *batch = nullptr;
+  gpu::Batch *batch = nullptr;
 
   /**
    * \brief GPU Texture for a partial region of the image editor.

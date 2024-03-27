@@ -233,6 +233,11 @@ ccl_device bool area_light_spread_clamp_light(const float3 P,
   return true;
 }
 
+ccl_device_forceinline bool area_light_is_ellipse(const ccl_global KernelAreaLight *light)
+{
+  return light->invarea < 0.0f;
+}
+
 /* Common API. */
 /* Compute `eval_fac` and `pdf`. Also sample a new position on the light if `sample_coord`. */
 template<bool in_volume_segment>
@@ -338,7 +343,7 @@ ccl_device_inline bool area_light_sample(const ccl_global KernelLight *klight,
   const float light_v = dot(inplane, klight->area.axis_v) / klight->area.len_v;
 
   if (!in_volume_segment) {
-    const bool is_ellipse = (klight->area.invarea < 0.0f);
+    const bool is_ellipse = area_light_is_ellipse(&klight->area);
 
     /* Sampled point lies outside of the area light. */
     if (is_ellipse && (sqr(light_u) + sqr(light_v) > 0.25f)) {
@@ -380,7 +385,7 @@ ccl_device_inline bool area_light_intersect(const ccl_global KernelLight *klight
 {
   /* Area light. */
   const float invarea = fabsf(klight->area.invarea);
-  const bool is_ellipse = (klight->area.invarea < 0.0f);
+  const bool is_ellipse = area_light_is_ellipse(&klight->area);
   if (invarea == 0.0f) {
     return false;
   }
@@ -428,6 +433,55 @@ ccl_device_inline bool area_light_sample_from_intersection(
   return area_light_eval<false>(klight, ray_P, &light_P, ls, zero_float2(), false);
 }
 
+/* Returns the maximal distance between the light center and the boundary. */
+ccl_device_forceinline float area_light_max_extent(const ccl_global KernelAreaLight *light)
+{
+  return 0.5f * (area_light_is_ellipse(light) ? fmaxf(light->len_u, light->len_v) :
+                                                len(make_float2(light->len_u, light->len_v)));
+}
+
+/* Find the ray segment lit by the area light. */
+ccl_device_inline bool area_light_valid_ray_segment(const ccl_global KernelAreaLight *light,
+                                                    float3 P,
+                                                    float3 D,
+                                                    ccl_private float2 *t_range)
+{
+  bool valid;
+  const float tan_half_spread = light->tan_half_spread;
+  float3 axis = light->dir;
+
+  const bool angle_almost_zero = (tan_half_spread < 1e-5f);
+  if (angle_almost_zero) {
+    /* Map to local coordinate of the light. Do not use `itfm` in `KernelLight` as there might be
+     * additional scaling in the light size. */
+    const Transform tfm = make_transform(light->axis_u, light->axis_v, axis);
+    P = transform_point(&tfm, P);
+    D = transform_direction(&tfm, D);
+    axis = make_float3(0.0f, 0.0f, 1.0f);
+
+    const float half_len_u = 0.5f * light->len_u;
+    const float half_len_v = 0.5f * light->len_v;
+    if (area_light_is_ellipse(light)) {
+      valid = ray_infinite_cylinder_intersect(P, D, half_len_u, half_len_v, t_range);
+    }
+    else {
+      const float3 bbox_min = make_float3(-half_len_u, -half_len_v, 0.0f);
+      const float3 bbox_max = make_float3(half_len_u, half_len_v, FLT_MAX);
+      valid = ray_aabb_intersect(bbox_min, bbox_max, P, D, t_range);
+    }
+  }
+  else {
+    /* Conservative estimation with the smallest possible cone covering the whole spread. */
+    const float3 apex_to_point = P + area_light_max_extent(light) / tan_half_spread * axis;
+    const float cos_angle_sq = 1.0f / (1.0f + sqr(tan_half_spread));
+
+    valid = ray_cone_intersect(axis, apex_to_point, D, cos_angle_sq, t_range);
+  }
+
+  /* Limit the range to the positive side of the area light. */
+  return valid && ray_plane_intersect(axis, P, D, t_range);
+}
+
 template<bool in_volume_segment>
 ccl_device_forceinline bool area_light_tree_parameters(const ccl_global KernelLight *klight,
                                                        const float3 centroid,
@@ -464,9 +518,8 @@ ccl_device_forceinline bool area_light_tree_parameters(const ccl_global KernelLi
   const bool shape_above_surface = dot(N, centroid - P) + fabsf(dot(N, extentu)) +
                                        fabsf(dot(N, extentv)) >
                                    0;
-  const bool in_volume = is_zero(N);
 
-  return (front_facing && shape_above_surface) || in_volume;
+  return front_facing && shape_above_surface;
 }
 
 CCL_NAMESPACE_END

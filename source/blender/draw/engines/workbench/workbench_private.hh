@@ -11,7 +11,7 @@
 #include "workbench_enums.hh"
 #include "workbench_shader_shared.h"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 extern "C" DrawEngineType draw_engine_workbench;
 

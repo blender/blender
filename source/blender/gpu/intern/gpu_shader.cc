@@ -12,16 +12,16 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_debug.h"
-#include "GPU_matrix.h"
-#include "GPU_platform.h"
+#include "GPU_capabilities.hh"
+#include "GPU_debug.hh"
+#include "GPU_matrix.hh"
+#include "GPU_platform.hh"
 
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
-#include "gpu_shader_dependency_private.h"
+#include "gpu_shader_dependency_private.hh"
 #include "gpu_shader_private.hh"
 
 #include <string>
@@ -311,7 +311,7 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
 
   Vector<const char *> typedefs;
   if (!info.typedef_sources_.is_empty() || !info.typedef_source_generated.empty()) {
-    typedefs.append(gpu_shader_dependency_get_source("GPU_shader_shared_utils.h").c_str());
+    typedefs.append(gpu_shader_dependency_get_source("GPU_shader_shared_utils.hh").c_str());
   }
   if (!info.typedef_source_generated.empty()) {
     typedefs.append(info.typedef_source_generated.c_str());
@@ -547,7 +547,7 @@ void GPU_shader_warm_cache(GPUShader *shader, int limit)
  * TODO(fclem): Should be replaced by compute shaders.
  * \{ */
 
-bool GPU_shader_transform_feedback_enable(GPUShader *shader, GPUVertBuf *vertbuf)
+bool GPU_shader_transform_feedback_enable(GPUShader *shader, blender::gpu::VertBuf *vertbuf)
 {
   return unwrap(shader)->transform_feedback_enable(vertbuf);
 }

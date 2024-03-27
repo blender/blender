@@ -145,8 +145,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   Scene *scene_dst = BKE_scene_add(bmain_src, "copybuffer_vse_scene");
 
   /* Create a temporary scene that we will copy from.
-   * This is needed as it is the scene that contains all the VSE strip data.
-   */
+   * This is needed as it is the scene that contains all the sequence-strip data. */
   scene_dst->ed = MEM_cnew<Editing>(__func__);
   scene_dst->ed->seqbasep = &scene_dst->ed->seqbase;
   SEQ_sequence_base_dupli_recursive(

@@ -22,10 +22,10 @@
 
 #include <cstring>
 
-#include "GPU_platform.h"
-#include "GPU_vertex_format.h"
+#include "GPU_platform.hh"
+#include "GPU_vertex_format.hh"
 
-#include "gpu_shader_dependency_private.h"
+#include "gpu_shader_dependency_private.hh"
 #include "mtl_common.hh"
 #include "mtl_context.hh"
 #include "mtl_debug.hh"
@@ -482,13 +482,13 @@ void MTLShader::transform_feedback_names_set(Span<const char *> name_list,
   transform_feedback_type_ = geom_type;
 }
 
-bool MTLShader::transform_feedback_enable(GPUVertBuf *buf)
+bool MTLShader::transform_feedback_enable(blender::gpu::VertBuf *buf)
 {
   BLI_assert(transform_feedback_type_ != GPU_SHADER_TFB_NONE);
   BLI_assert(buf);
   transform_feedback_active_ = true;
   transform_feedback_vertbuf_ = buf;
-  BLI_assert(static_cast<MTLVertBuf *>(unwrap(transform_feedback_vertbuf_))->get_usage_type() ==
+  BLI_assert(static_cast<MTLVertBuf *>(transform_feedback_vertbuf_)->get_usage_type() ==
              GPU_USAGE_DEVICE_ONLY);
   return true;
 }
@@ -1788,7 +1788,7 @@ void MTLShader::ssbo_vertex_fetch_bind_attributes_end(
   }
 }
 
-GPUVertBuf *MTLShader::get_transform_feedback_active_buffer()
+blender::gpu::VertBuf *MTLShader::get_transform_feedback_active_buffer()
 {
   if (transform_feedback_type_ == GPU_SHADER_TFB_NONE || !transform_feedback_active_) {
     return nullptr;

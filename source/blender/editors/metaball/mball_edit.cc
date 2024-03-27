@@ -50,7 +50,7 @@
 
 #include "UI_interface_icons.hh"
 
-#include "mball_intern.h"
+#include "mball_intern.hh"
 
 using blender::Span;
 using blender::Vector;

@@ -26,7 +26,7 @@
 #include "util/tbb.h"
 #include "util/types.h"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #ifdef WITH_OSL
 #  include "scene/osl.h"

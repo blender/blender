@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "GPU_compute.h"
+#include "GPU_compute.hh"
 
 #include "gpu_backend.hh"
 

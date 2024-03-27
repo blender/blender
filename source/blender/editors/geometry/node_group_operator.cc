@@ -154,8 +154,8 @@ static bke::GeometrySet get_original_geometry_eval_copy(Object &object)
     }
     case OB_MESH: {
       const Mesh *mesh = static_cast<const Mesh *>(object.data);
-      if (mesh->edit_mesh) {
-        Mesh *mesh_copy = BKE_mesh_wrapper_from_editmesh(mesh->edit_mesh, nullptr, mesh);
+      if (BMEditMesh *em = mesh->runtime->edit_mesh) {
+        Mesh *mesh_copy = BKE_mesh_wrapper_from_editmesh(em, nullptr, mesh);
         BKE_mesh_wrapper_ensure_mdata(mesh_copy);
         Mesh *final_copy = BKE_mesh_copy_for_eval(mesh_copy);
         BKE_id_free(nullptr, mesh_copy);
@@ -225,7 +225,7 @@ static void store_result_geometry(
         BKE_object_material_from_eval_data(&bmain, &object, &new_mesh->id);
         if (object.mode == OB_MODE_EDIT) {
           EDBM_mesh_make_from_mesh(&object, new_mesh, scene.toolsettings->selectmode, true);
-          BKE_editmesh_looptris_and_normals_calc(mesh.edit_mesh);
+          BKE_editmesh_looptris_and_normals_calc(mesh.runtime->edit_mesh);
           BKE_id_free(nullptr, new_mesh);
         }
         else {
@@ -265,14 +265,11 @@ static Depsgraph *build_depsgraph_from_indirect_ids(Main &bmain,
                                      needs_own_transform_relation,
                                      needs_scene_camera_relation);
   IDP_foreach_property(
-      &const_cast<IDProperty &>(properties),
-      IDP_TYPE_FILTER_ID,
-      [](IDProperty *property, void *user_data) {
+      &const_cast<IDProperty &>(properties), IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
         if (ID *id = IDP_Id(property)) {
-          static_cast<Set<ID *> *>(user_data)->add(id);
+          ids_for_relations.add(id);
         }
-      },
-      &ids_for_relations);
+      });
 
   Vector<const ID *> ids;
   ids.append(&node_tree_orig.id);
@@ -289,16 +286,11 @@ static IDProperty *replace_inputs_evaluated_data_blocks(const IDProperty &op_pro
 {
   /* We just create a temporary copy, so don't adjust data-block user count. */
   IDProperty *properties = IDP_CopyProperty_ex(&op_properties, LIB_ID_CREATE_NO_USER_REFCOUNT);
-  IDP_foreach_property(
-      properties,
-      IDP_TYPE_FILTER_ID,
-      [](IDProperty *property, void *user_data) {
-        if (ID *id = IDP_Id(property)) {
-          Depsgraph *depsgraph = static_cast<Depsgraph *>(user_data);
-          property->data.pointer = DEG_get_evaluated_id(depsgraph, id);
-        }
-      },
-      &const_cast<Depsgraph &>(depsgraph));
+  IDP_foreach_property(properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
+    if (ID *id = IDP_Id(property)) {
+      property->data.pointer = DEG_get_evaluated_id(&depsgraph, id);
+    }
+  });
   return properties;
 }
 

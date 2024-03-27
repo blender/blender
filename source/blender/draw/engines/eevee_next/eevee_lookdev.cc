@@ -204,7 +204,7 @@ void LookdevModule::sync()
   model_m4 = math::scale(model_m4, float3(sphere_scale));
 
   ResourceHandle handle = inst_.manager->resource_handle(model_m4);
-  GPUBatch *geom = DRW_cache_sphere_get(calc_level_of_detail(viewport_scale));
+  gpu::Batch *geom = DRW_cache_sphere_get(calc_level_of_detail(viewport_scale));
 
   sync_pass(spheres_[0].pass, geom, inst_.materials.metallic_mat, handle);
   sync_pass(spheres_[1].pass, geom, inst_.materials.diffuse_mat, handle);
@@ -212,7 +212,7 @@ void LookdevModule::sync()
 }
 
 void LookdevModule::sync_pass(PassSimple &pass,
-                              GPUBatch *geom,
+                              gpu::Batch *geom,
                               ::Material *mat,
                               ResourceHandle res_handle)
 {

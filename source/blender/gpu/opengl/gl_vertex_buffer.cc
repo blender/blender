@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "gl_context.hh"
 
@@ -121,7 +121,7 @@ void GLVertBuf::bind_as_texture(uint binding)
   bind();
   BLI_assert(vbo_id_ != 0);
   if (buffer_texture_ == nullptr) {
-    buffer_texture_ = GPU_texture_create_from_vertbuf("vertbuf_as_texture", wrap(this));
+    buffer_texture_ = GPU_texture_create_from_vertbuf("vertbuf_as_texture", this);
   }
   GPU_texture_bind(buffer_texture_, binding);
 }

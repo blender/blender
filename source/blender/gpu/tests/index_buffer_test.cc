@@ -6,7 +6,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_index_buffer.h"
+#include "GPU_index_buffer.hh"
 
 #include "gpu_testing.hh"
 
@@ -42,7 +42,7 @@ static void test_index_buffer_subbuilders()
     EXPECT_EQ(builder.index_len, (subbuilder_index + 1) * verts_per_subbuilders);
   }
 
-  GPUIndexBuf *index_buffer = GPU_indexbuf_build(&builder);
+  IndexBuf *index_buffer = GPU_indexbuf_build(&builder);
   EXPECT_NE(index_buffer, nullptr);
   GPU_INDEXBUF_DISCARD_SAFE(index_buffer);
 }

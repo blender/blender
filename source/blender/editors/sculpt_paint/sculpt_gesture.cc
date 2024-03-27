@@ -342,7 +342,7 @@ static void update_affected_nodes_by_clip_planes(GestureData &gesture_data)
       case SelectionType::Outside:
         /* Certain degenerate cases of a lasso shape can cause the resulting
          * frustum planes to enclose a node's AABB, therefore we must submit it
-         * to be more throughly evaluated. */
+         * to be more thoroughly evaluated. */
         if (gesture_data.shape_type == ShapeType::Lasso) {
           return true;
         }

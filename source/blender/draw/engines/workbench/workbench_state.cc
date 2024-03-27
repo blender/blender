@@ -16,7 +16,7 @@
 #include "DNA_fluid_types.h"
 #include "ED_paint.hh"
 #include "ED_view3d.hh"
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 namespace blender::workbench {
 
@@ -189,9 +189,9 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
 static const CustomData *get_loop_custom_data(const Mesh *mesh)
 {
   if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
-    BLI_assert(mesh->edit_mesh != nullptr);
-    BLI_assert(mesh->edit_mesh->bm != nullptr);
-    return &mesh->edit_mesh->bm->ldata;
+    BLI_assert(mesh->runtime->edit_mesh != nullptr);
+    BLI_assert(mesh->runtime->edit_mesh->bm != nullptr);
+    return &mesh->runtime->edit_mesh->bm->ldata;
   }
   return &mesh->corner_data;
 }
@@ -199,9 +199,9 @@ static const CustomData *get_loop_custom_data(const Mesh *mesh)
 static const CustomData *get_vert_custom_data(const Mesh *mesh)
 {
   if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
-    BLI_assert(mesh->edit_mesh != nullptr);
-    BLI_assert(mesh->edit_mesh->bm != nullptr);
-    return &mesh->edit_mesh->bm->vdata;
+    BLI_assert(mesh->runtime->edit_mesh != nullptr);
+    BLI_assert(mesh->runtime->edit_mesh->bm != nullptr);
+    return &mesh->runtime->edit_mesh->bm->vdata;
   }
   return &mesh->vert_data;
 }

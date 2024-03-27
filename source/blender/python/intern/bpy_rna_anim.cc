@@ -388,7 +388,6 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
     result = (blender::animrig::insert_keyframe(main,
                                                 &reports,
                                                 id,
-                                                nullptr,
                                                 group_name,
                                                 path_full,
                                                 index,

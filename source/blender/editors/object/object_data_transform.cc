@@ -35,6 +35,7 @@
 #include "BKE_key.hh"
 #include "BKE_lattice.hh"
 #include "BKE_mball.hh"
+#include "BKE_mesh_types.hh"
 
 #include "bmesh.hh"
 
@@ -313,7 +314,7 @@ XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
       const int key_index = -1;
 
       if (is_edit_mode) {
-        BMesh *bm = mesh->edit_mesh->bm;
+        BMesh *bm = mesh->runtime->edit_mesh->bm;
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;
         const int elem_array_len = bm->totvert;
@@ -534,7 +535,7 @@ void ED_object_data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][
 
       XFormObjectData_Mesh *xod = (XFormObjectData_Mesh *)xod_base;
       if (xod_base->is_edit_mode) {
-        BMesh *bm = mesh->edit_mesh->bm;
+        BMesh *bm = mesh->runtime->edit_mesh->bm;
         BM_mesh_vert_coords_apply_with_mat4(bm, xod->elem_array, mat);
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;
@@ -652,7 +653,7 @@ void ED_object_data_xform_restore(XFormObjectData *xod_base)
 
       XFormObjectData_Mesh *xod = (XFormObjectData_Mesh *)xod_base;
       if (xod_base->is_edit_mode) {
-        BMesh *bm = mesh->edit_mesh->bm;
+        BMesh *bm = mesh->runtime->edit_mesh->bm;
         BM_mesh_vert_coords_apply(bm, xod->elem_array);
         /* Always operate on all keys for the moment. */
         // key_index = bm->shapenr - 1;

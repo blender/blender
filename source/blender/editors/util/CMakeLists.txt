@@ -67,6 +67,7 @@ set(SRC
   ../include/ED_node_preview.hh
   ../include/ED_numinput.hh
   ../include/ED_object.hh
+  ../include/ED_object_vgroup.hh
   ../include/ED_outliner.hh
   ../include/ED_paint.hh
   ../include/ED_particle.hh

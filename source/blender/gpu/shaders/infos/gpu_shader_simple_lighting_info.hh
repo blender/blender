@@ -18,7 +18,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_simple_lighting)
     .uniform_buf(0, "SimpleLightingData", "simple_lighting_data", Frequency::PASS)
     .push_constant(Type::MAT4, "ModelViewProjectionMatrix")
     .push_constant(Type::MAT3, "NormalMatrix")
-    .typedef_source("GPU_shader_shared.h")
+    .typedef_source("GPU_shader_shared.hh")
     .vertex_source("gpu_shader_3D_normal_vert.glsl")
     .fragment_source("gpu_shader_simple_lighting_frag.glsl")
     .do_static_compilation(true);

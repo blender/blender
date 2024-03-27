@@ -52,7 +52,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh" /* evil G.* */
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
@@ -2019,10 +2019,9 @@ static int pyrna_py_to_prop(
         Py_ssize_t seq_len, i;
         PyObject *item;
         PointerRNA itemptr;
-        ListBase *lb;
-        CollectionPointerLink *link;
+        CollectionVector *lb;
 
-        lb = (data) ? (ListBase *)data : nullptr;
+        lb = (data) ? (CollectionVector *)data : nullptr;
 
         /* Convert a sequence of dict's into a collection. */
         if (!PySequence_Check(value)) {
@@ -2065,10 +2064,7 @@ static int pyrna_py_to_prop(
           }
 
           if (lb) {
-            link = static_cast<CollectionPointerLink *>(
-                MEM_callocN(sizeof(CollectionPointerLink), "PyCollectionPointerLink"));
-            link->ptr = itemptr;
-            BLI_addtail(lb, link);
+            lb->items.append(itemptr);
           }
           else {
             RNA_property_collection_add(ptr, prop, &itemptr);
@@ -4441,7 +4437,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
     }
     else {
       PointerRNA newptr;
-      ListBase newlb;
+      blender::Vector<PointerRNA> newlb;
       PropertyRNA *newprop;
       int newindex;
       short newtype;
@@ -4456,7 +4452,6 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
       else {
         /* Fall through to built-in `getattr`. */
         done = CTX_RESULT_MEMBER_NOT_FOUND;
-        BLI_listbase_clear(&newlb);
       }
 
       if (done == CTX_RESULT_OK) {
@@ -4472,9 +4467,8 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
             break;
           case CTX_DATA_TYPE_COLLECTION: {
             ret = PyList_New(0);
-
-            LISTBASE_FOREACH (CollectionPointerLink *, link, &newlb) {
-              PyList_APPEND(ret, pyrna_struct_CreatePyObject(&link->ptr));
+            for (PointerRNA &ptr : newlb) {
+              PyList_APPEND(ret, pyrna_struct_CreatePyObject(&ptr));
             }
             break;
           }
@@ -4534,8 +4528,6 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
         /* Lookup the subclass. raise an error if it's not found. */
         ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
       }
-
-      BLI_freelistN(&newlb);
     }
   }
   else {
@@ -4709,7 +4701,7 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
     }
 
     PointerRNA newptr;
-    ListBase newlb;
+    blender::Vector<PointerRNA> newlb;
     PropertyRNA *newprop;
     int newindex;
     short newtype;
@@ -4720,11 +4712,8 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
     if (done == CTX_RESULT_OK) {
       PyErr_Format(
           PyExc_AttributeError, "bpy_struct: Context property \"%.200s\" is read-only", name);
-      BLI_freelistN(&newlb);
       return -1;
     }
-
-    BLI_freelistN(&newlb);
   }
 
   /* pyrna_py_to_prop sets its own exceptions */
@@ -6400,15 +6389,11 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
         break;
       }
       case PROP_COLLECTION: {
-        CollectionListBase *lb = (CollectionListBase *)data;
-        CollectionPointerLink *link;
-
+        CollectionVector *lb = (CollectionVector *)data;
         ret = PyList_New(0);
-
-        for (link = lb->first; link; link = link->next) {
-          PyList_APPEND(ret, pyrna_struct_CreatePyObject(&link->ptr));
+        for (PointerRNA &ptr : lb->items) {
+          PyList_APPEND(ret, pyrna_struct_CreatePyObject(&ptr));
         }
-
         break;
       }
       default:
@@ -8674,7 +8659,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
   bpy_context_set(C, &gilstate);
 
   if (!(is_staticmethod || is_classmethod)) {
-    /* Some datatypes (operator, render engine) can store PyObjects for re-use. */
+    /* Some data-types (operator, render engine) can store PyObjects for re-use. */
     if (ptr->data) {
       void **instance = RNA_struct_instance(ptr);
 

@@ -38,7 +38,7 @@
 
 #include "ED_object.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 /* All possible data to transfer.
  * Note some are 'fake' ones, i.e. they are not hold by real CDLayers. */
@@ -352,7 +352,7 @@ static bool data_transfer_check(bContext * /*C*/, wmOperator *op)
 static void data_transfer_exec_preprocess_objects(bContext *C,
                                                   wmOperator *op,
                                                   Object *ob_src,
-                                                  ListBase *ctx_objects,
+                                                  blender::Vector<PointerRNA> *ctx_objects,
                                                   const bool reverse_transfer)
 {
   CTX_data_selected_editable_objects(C, ctx_objects);
@@ -361,8 +361,8 @@ static void data_transfer_exec_preprocess_objects(bContext *C,
     return; /* Nothing else to do in this case... */
   }
 
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, ctx_objects) {
-    Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
+  for (const PointerRNA &ptr : *ctx_objects) {
+    Object *ob = static_cast<Object *>(ptr.data);
     Mesh *mesh;
     if ((ob == ob_src) || (ob->type != OB_MESH)) {
       continue;
@@ -422,7 +422,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
   Object *ob_src = ED_object_active_context(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-  ListBase ctx_objects;
+  blender::Vector<PointerRNA> ctx_objects;
 
   bool changed = false;
 
@@ -483,8 +483,8 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 
   data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, reverse_transfer);
 
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob_dst, &ctx_objects) {
-    Object *ob_dst = static_cast<Object *>(ctx_ob_dst->ptr.data);
+  for (const PointerRNA &ptr : ctx_objects) {
+    Object *ob_dst = static_cast<Object *>(ptr.data);
 
     if (reverse_transfer) {
       std::swap(ob_src, ob_dst);
@@ -529,8 +529,6 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
       std::swap(ob_src, ob_dst);
     }
   }
-
-  BLI_freelistN(&ctx_objects);
 
   if (changed) {
     DEG_relations_tag_update(CTX_data_main(C));
@@ -854,7 +852,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
   else {
     Object *ob_src = ob_act;
 
-    ListBase ctx_objects;
+    blender::Vector<PointerRNA> ctx_objects;
 
     const int data_type = RNA_enum_get(op->ptr, "data_type");
     const bool use_delete = RNA_boolean_get(op->ptr, "use_delete");
@@ -874,8 +872,8 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 
     data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, false);
 
-    LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob_dst, &ctx_objects) {
-      Object *ob_dst = static_cast<Object *>(ctx_ob_dst->ptr.data);
+    for (const PointerRNA &ptr : ctx_objects) {
+      Object *ob_dst = static_cast<Object *>(ptr.data);
       if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst, false)) {
         BKE_object_data_transfer_layout(depsgraph,
                                         ob_src_eval,
@@ -888,8 +886,6 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 
       DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
     }
-
-    BLI_freelistN(&ctx_objects);
   }
 
   DEG_relations_tag_update(CTX_data_main(C));

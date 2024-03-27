@@ -70,7 +70,7 @@
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_remap.hh"
@@ -109,7 +109,7 @@
 #include "GHOST_C-api.h"
 #include "GHOST_Path-api.hh"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -2098,20 +2098,6 @@ static void wm_autosave_location(char filepath[FILE_MAX])
   }
 
   const char *tempdir_base = BKE_tempdir_base();
-  /* NOTE(@ideasman42): It's strange that this is only used on WIN32.
-   * From reading commits it seems accessing the temporary directory used to be less reliable.
-   * If this is still the case on WIN32 - other features such as copy-paste will also fail.
-   * We could support #BLENDER_USER_AUTOSAVE on all platforms or remove it entirely. */
-#ifdef WIN32
-  std::optional<std::string> savedir;
-  if (!BLI_exists(tempdir_base)) {
-    savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, nullptr);
-    if (savedir.has_value()) {
-      tempdir_base = savedir->c_str();
-    }
-  }
-#endif
-
   BLI_path_join(filepath, FILE_MAX, tempdir_base, filename);
 }
 

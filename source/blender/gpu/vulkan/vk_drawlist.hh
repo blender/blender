@@ -52,7 +52,7 @@ class VKDrawList : public DrawList {
    *
    * Will flush when batch is different than the previous one or when the command_buffer_ is full.
    */
-  void append(GPUBatch *batch, int instance_first, int instance_count) override;
+  void append(Batch *batch, int instance_first, int instance_count) override;
 
   /**
    * Submit buffered commands to the GPU.

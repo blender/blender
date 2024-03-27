@@ -192,7 +192,7 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
                                          int mode,
                                          bool mirror);
 
-/* editarmature_undo.cc */
+/* `editarmature_undo.cc` */
 
 /** Export for ED_undo_sys. */
 void ED_armature_undosys_type(UndoType *ut);
@@ -331,7 +331,7 @@ void ED_pose_bone_select_tag_update(Object *ob);
  */
 void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select, bool change_active);
 
-/* meshlaplacian.cc */
+/* `meshlaplacian.cc` */
 
 void ED_mesh_deform_bind_callback(Object *object,
                                   MeshDeformModifierData *mmd,
