@@ -2806,6 +2806,7 @@ static int image_flip_exec(bContext *C, wmOperator *op)
 
   BKE_image_partial_update_mark_full_update(ima);
 
+  DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
   BKE_image_release_ibuf(ima, ibuf, nullptr);
@@ -2881,6 +2882,7 @@ static int image_rotate_orthogonal_exec(bContext *C, wmOperator *op)
 
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
+  DEG_id_tag_update(&ima->id, ID_RECALC_EDITORS);
   BKE_image_release_ibuf(ima, ibuf, nullptr);
 
   return OPERATOR_FINISHED;
