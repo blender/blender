@@ -77,13 +77,7 @@ static bool mesh_active_attribute_poll(bContext *C)
     return false;
   }
   const Mesh *mesh = ED_mesh_context(C);
-  const CustomDataLayer *layer = BKE_id_attributes_active_get(&const_cast<ID &>(mesh->id));
-  if (!layer) {
-    CTX_wm_operator_poll_msg_set(C, "No active attribute");
-    return false;
-  }
-  if (layer->type == CD_PROP_STRING) {
-    CTX_wm_operator_poll_msg_set(C, "Active string attribute not supported");
+  if (!geometry::attribute_set_poll(*C, mesh->id)) {
     return false;
   }
   return true;

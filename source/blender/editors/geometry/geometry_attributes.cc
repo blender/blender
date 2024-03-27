@@ -66,6 +66,8 @@ StringRefNull rna_property_name_for_type(const eCustomDataType type)
     case CD_PROP_INT8:
     case CD_PROP_INT32:
       return "value_int";
+    case CD_PROP_INT32_2D:
+      return "value_int_vector_2d";
     default:
       BLI_assert_unreachable();
       return "";
@@ -103,6 +105,8 @@ void register_rna_properties_for_attribute_types(StructRNA &srna)
                       -FLT_MAX,
                       FLT_MAX);
   RNA_def_int(&srna, "value_int", 0, INT_MIN, INT_MAX, "Value", "", INT_MIN, INT_MAX);
+  RNA_def_int_array(
+      &srna, "value_int_vector_2d", 2, nullptr, INT_MIN, INT_MAX, "Value", "", INT_MIN, INT_MAX);
   RNA_def_float_color(
       &srna, "value_color", 4, color_default, -FLT_MAX, FLT_MAX, "Value", "", 0.0f, 1.0f);
   RNA_def_boolean(&srna, "value_bool", false, "Value", "");
@@ -140,8 +144,12 @@ GPointer rna_property_for_attribute_type_retrieve_value(PointerRNA &ptr,
     case CD_PROP_INT32:
       *static_cast<int32_t *>(buffer) = RNA_int_get(&ptr, prop_name.c_str());
       break;
+    case CD_PROP_INT32_2D:
+      RNA_int_get_array(&ptr, prop_name.c_str(), static_cast<int *>(buffer));
+      break;
     default:
       BLI_assert_unreachable();
+      return {};
   }
   return GPointer(bke::custom_data_type_to_cpp_type(type), buffer);
 }
@@ -175,9 +183,26 @@ void rna_property_for_attribute_type_set_value(PointerRNA &ptr,
     case CD_PROP_INT32:
       RNA_property_int_set(&ptr, &prop, *value.get<int32_t>());
       break;
+    case CD_PROP_INT32_2D:
+      RNA_property_int_set_array(&ptr, &prop, *value.get<int2>());
+      break;
     default:
       BLI_assert_unreachable();
   }
+}
+
+bool attribute_set_poll(bContext &C, const ID &object_data)
+{
+  const CustomDataLayer *layer = BKE_id_attributes_active_get(&const_cast<ID &>(object_data));
+  if (!layer) {
+    CTX_wm_operator_poll_msg_set(&C, "No active attribute");
+    return false;
+  }
+  if (ELEM(layer->type, CD_PROP_STRING, CD_PROP_FLOAT4X4, CD_PROP_QUATERNION)) {
+    CTX_wm_operator_poll_msg_set(&C, "The active attribute has an unsupported type");
+    return false;
+  }
+  return true;
 }
 
 /*********************** Attribute Operators ************************/
