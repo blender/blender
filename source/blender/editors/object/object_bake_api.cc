@@ -61,7 +61,7 @@
 #include "ED_screen.hh"
 #include "ED_uvedit.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 /* prototypes */
 static void bake_set_props(wmOperator *op, Scene *scene);

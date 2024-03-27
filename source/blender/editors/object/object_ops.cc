@@ -21,7 +21,7 @@
 
 #include "ED_object.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 #include "MOD_gpencil_legacy_lineart.h"
 

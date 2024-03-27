@@ -46,7 +46,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "view3d_intern.h" /* own include */
+#include "view3d_intern.hh" /* own include */
 
 #include "GPU_immediate.hh"
 #include "GPU_immediate_util.hh"

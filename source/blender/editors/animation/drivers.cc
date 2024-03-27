@@ -42,7 +42,7 @@
 
 #include "ANIM_fcurve.hh"
 
-#include "anim_intern.h"
+#include "anim_intern.hh"
 
 /* ************************************************** */
 /* Animation Data Validation */

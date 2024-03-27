@@ -40,7 +40,7 @@
 #include "ED_gpencil_legacy.hh"
 #include "ED_transform_snap_object_context.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 const EnumPropertyItem rna_gpencil_reproject_type_items[] = {
     {GP_REPROJECT_KEEP, "KEEP", 0, "No Reproject", ""},

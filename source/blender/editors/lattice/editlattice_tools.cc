@@ -31,7 +31,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "lattice_intern.h"
+#include "lattice_intern.hh"
 
 using blender::Vector;
 

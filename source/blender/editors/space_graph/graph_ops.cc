@@ -22,7 +22,7 @@
 #include "ED_anim_api.hh"
 #include "ED_screen.hh"
 
-#include "graph_intern.h"
+#include "graph_intern.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

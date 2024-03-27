@@ -42,7 +42,7 @@
 #include "ED_screen.hh"
 #include "ED_uvedit.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 static Image *bake_object_image_get(Object *ob, int mat_nr)
 {

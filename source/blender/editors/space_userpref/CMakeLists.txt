@@ -22,7 +22,7 @@ set(SRC
   space_userpref.cc
   userpref_ops.cc
 
-  userpref_intern.h
+  userpref_intern.hh
 )
 
 set(LIB

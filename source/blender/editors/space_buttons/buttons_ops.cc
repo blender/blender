@@ -38,7 +38,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "buttons_intern.h" /* own include */
+#include "buttons_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Start / Clear Search Filter Operators

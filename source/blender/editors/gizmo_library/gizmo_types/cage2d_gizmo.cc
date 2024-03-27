@@ -40,7 +40,7 @@
 #include "ED_screen.hh"
 
 /* own includes */
-#include "../gizmo_library_intern.h"
+#include "../gizmo_library_intern.hh"
 
 #define GIZMO_MARGIN_OFFSET_SCALE 1.5f
 /* The same as in `draw_cache.cc`. */

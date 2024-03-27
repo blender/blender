@@ -93,7 +93,7 @@
 
 #include "MOD_nodes.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 /* ------------------------------------------------------------------- */
 /** \name Make Vertex Parent Operator

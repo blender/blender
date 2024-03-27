@@ -73,7 +73,7 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Stroke Edit Mode Management

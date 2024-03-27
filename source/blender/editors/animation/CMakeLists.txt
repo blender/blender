@@ -37,7 +37,7 @@ set(SRC
   keyingsets.cc
   time_scrub_ui.cc
 
-  anim_intern.h
+  anim_intern.hh
 )
 
 set(LIB

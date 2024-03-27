@@ -35,8 +35,8 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "clip_intern.h"         /* own include */
-#include "tracking_ops_intern.h" /* own include */
+#include "clip_intern.hh"         /* own include */
+#include "tracking_ops_intern.hh" /* own include */
 
 using blender::Array;
 using blender::int2;

@@ -8,7 +8,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "view3d_intern.h" /* bad level include */
+#include "view3d_intern.hh" /* bad level include */
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 uchar view3d_camera_border_hack_col[3];

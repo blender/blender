@@ -74,7 +74,7 @@
 
 #include "GPU_capabilities.hh"
 
-#include "screen_intern.h" /* own module include */
+#include "screen_intern.hh" /* own module include */
 
 using blender::Vector;
 

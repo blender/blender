@@ -8,17 +8,12 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+struct bContext;
+struct ModifierData;
 struct Object;
 struct StructRNA;
-struct bContext;
 struct wmOperator;
 struct wmOperatorType;
-
-struct ModifierData;
 
 /* add hook menu */
 enum eObject_Hook_Add_Mode {
@@ -376,16 +371,8 @@ void OBJECT_OT_quadriflow_remesh(struct wmOperatorType *ot);
 void OBJECT_OT_data_transfer(struct wmOperatorType *ot);
 void OBJECT_OT_datalayout_transfer(struct wmOperatorType *ot);
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-
 namespace blender::ed::object {
 
 void object_modifier_add_asset_register();
 
 }
-
-#endif

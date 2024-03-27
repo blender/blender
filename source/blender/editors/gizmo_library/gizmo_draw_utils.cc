@@ -16,7 +16,7 @@
 /* only for separate init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
 
 /* own includes */
-#include "gizmo_library_intern.h"
+#include "gizmo_library_intern.hh"
 
 void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
                                 const bool /*select*/,

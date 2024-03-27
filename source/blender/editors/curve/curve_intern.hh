@@ -16,10 +16,6 @@ struct Object;
 struct ViewContext;
 struct wmOperatorType;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* `editfont.cc` */
 
 enum {
@@ -241,7 +237,3 @@ void CURVE_OT_draw(struct wmOperatorType *ot);
 
 void CURVE_OT_pen(struct wmOperatorType *ot);
 struct wmKeyMap *curve_pen_modal_keymap(struct wmKeyConfig *keyconf);
-
-#ifdef __cplusplus
-}
-#endif

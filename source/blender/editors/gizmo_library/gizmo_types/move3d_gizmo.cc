@@ -41,7 +41,7 @@
 #include "ED_view3d.hh"
 
 /* own includes */
-#include "../gizmo_library_intern.h"
+#include "../gizmo_library_intern.hh"
 
 #define MVAL_MAX_PX_DIST 12.0f
 #define RING_2D_RESOLUTION 32

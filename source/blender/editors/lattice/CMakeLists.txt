@@ -20,7 +20,7 @@ set(SRC
   editlattice_undo.cc
   lattice_ops.cc
 
-  lattice_intern.h
+  lattice_intern.hh
 )
 
 set(LIB

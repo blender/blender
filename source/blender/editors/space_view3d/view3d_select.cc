@@ -102,7 +102,7 @@
 
 #include "ANIM_bone_collections.hh"
 
-#include "view3d_intern.h" /* own include */
+#include "view3d_intern.hh" /* own include */
 
 // #include "BLI_time_utildefines.h"
 

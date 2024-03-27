@@ -8,9 +8,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct ListBase;
 
 /* KeyingSets/Keyframing Interface ------------- */
 
@@ -96,7 +94,3 @@ void ANIM_OT_copy_driver_button(struct wmOperatorType *ot);
 void ANIM_OT_paste_driver_button(struct wmOperatorType *ot);
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

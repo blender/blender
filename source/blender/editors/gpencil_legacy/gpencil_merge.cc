@@ -35,7 +35,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 struct tGPencilPointCache {
   float factor; /* value to sort */

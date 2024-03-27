@@ -51,7 +51,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 /* ******************************************* */
 /* 'Globals' and Defines */

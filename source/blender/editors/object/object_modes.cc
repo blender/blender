@@ -44,7 +44,7 @@
 #include "WM_toolsystem.hh"
 
 #include "ED_object.hh" /* own include */
-#include "object_intern.h"
+#include "object_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name High Level Mode Operations

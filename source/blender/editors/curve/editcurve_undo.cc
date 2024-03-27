@@ -35,7 +35,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "curve_intern.h"
+#include "curve_intern.hh"
 
 using blender::Vector;
 

@@ -33,7 +33,7 @@
 
 #include "GPU_immediate.hh"
 
-#include "view3d_intern.h"
+#include "view3d_intern.hh"
 
 static const char *view3d_gzgt_placement_id = "VIEW3D_GGT_placement";
 

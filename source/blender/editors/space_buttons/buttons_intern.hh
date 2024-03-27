@@ -12,10 +12,6 @@
 #include "DNA_listBase.h"
 #include "RNA_types.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ARegionType;
 struct ID;
 struct SpaceProperties;
@@ -85,7 +81,7 @@ int buttons_context(const struct bContext *C,
 void buttons_context_register(struct ARegionType *art);
 struct ID *buttons_context_id_path(const struct bContext *C);
 
-extern const char *buttons_context_dir[]; /* doc access */
+extern "C" const char *buttons_context_dir[]; /* doc access */
 
 /* `buttons_texture.cc` */
 
@@ -102,7 +98,3 @@ void BUTTONS_OT_file_browse(struct wmOperatorType *ot);
  */
 void BUTTONS_OT_directory_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_context_menu(struct wmOperatorType *ot);
-
-#ifdef __cplusplus
-}
-#endif

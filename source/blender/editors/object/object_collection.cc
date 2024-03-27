@@ -38,7 +38,7 @@
 
 #include "UI_interface_icons.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 /********************* 3d view operators ***********************/
 

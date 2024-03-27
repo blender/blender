@@ -62,7 +62,7 @@
 
 #include "UI_resources.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 using blender::float3;
 using blender::MutableSpan;

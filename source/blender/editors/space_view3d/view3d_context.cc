@@ -18,7 +18,7 @@
 
 #include "ED_view3d.hh"
 
-#include "view3d_intern.h"
+#include "view3d_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name View3D Context Callback

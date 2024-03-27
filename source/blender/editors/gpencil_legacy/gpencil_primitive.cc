@@ -62,7 +62,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 #define MIN_EDGES 2
 #define MAX_EDGES 128

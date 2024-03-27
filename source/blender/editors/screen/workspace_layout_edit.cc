@@ -23,7 +23,7 @@
 
 #include "ED_screen.hh"
 
-#include "screen_intern.h"
+#include "screen_intern.hh"
 
 WorkSpaceLayout *ED_workspace_layout_add(Main *bmain,
                                          WorkSpace *workspace,

@@ -22,7 +22,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "screen_intern.h"
+#include "screen_intern.hh"
 
 #define CORNER_RESOLUTION 3
 

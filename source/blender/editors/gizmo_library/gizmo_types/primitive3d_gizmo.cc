@@ -32,7 +32,7 @@
 #include "ED_gizmo_library.hh"
 
 /* own includes */
-#include "../gizmo_library_intern.h"
+#include "../gizmo_library_intern.hh"
 
 static float verts_plane[4][3] = {
     {-1, -1, 0},

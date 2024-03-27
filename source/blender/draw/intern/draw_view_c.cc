@@ -33,7 +33,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 
-#include "view3d_intern.h"
+#include "view3d_intern.hh"
 
 #include "draw_manager_c.hh"
 

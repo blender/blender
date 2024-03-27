@@ -38,7 +38,7 @@
 
 #include "ED_object.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 /* All possible data to transfer.
  * Note some are 'fake' ones, i.e. they are not hold by real CDLayers. */

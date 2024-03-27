@@ -37,7 +37,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "view3d_intern.h"
+#include "view3d_intern.hh"
 
 /* Radius of the entire background. */
 #define WIDGET_RADIUS ((U.gizmo_size_navigate_v3d / 2.0f) * UI_SCALE_FAC)

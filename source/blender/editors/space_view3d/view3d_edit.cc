@@ -41,7 +41,7 @@
 #include "ED_transform.hh"
 #include "ED_transform_snap_object_context.hh"
 
-#include "view3d_intern.h" /* own include */
+#include "view3d_intern.hh" /* own include */
 
 /* test for unlocked camera view in quad view */
 static bool view3d_camera_user_poll(bContext *C)

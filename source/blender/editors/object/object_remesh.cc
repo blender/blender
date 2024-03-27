@@ -60,7 +60,7 @@
 
 #include "BLF_api.hh"
 
-#include "object_intern.h" /* own include */
+#include "object_intern.hh" /* own include */
 
 using blender::float3;
 using blender::IndexRange;

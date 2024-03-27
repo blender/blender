@@ -26,7 +26,7 @@
 
 #include "ED_screen.hh"
 
-#include "script_intern.h" /* own include */
+#include "script_intern.hh" /* own include */
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern_run.h"

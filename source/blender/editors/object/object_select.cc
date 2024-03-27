@@ -62,7 +62,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Public Object Selection API

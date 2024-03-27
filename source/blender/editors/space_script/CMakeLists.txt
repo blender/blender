@@ -21,7 +21,7 @@ set(SRC
   script_ops.cc
   space_script.cc
 
-  script_intern.h
+  script_intern.hh
 )
 
 set(LIB

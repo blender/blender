@@ -16,10 +16,6 @@ struct PointCache;
 struct Scene;
 struct wmOperatorType;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* `particle_edit.cc` */
 
 void PARTICLE_OT_select_all(struct wmOperatorType *ot);
@@ -164,7 +160,3 @@ void RIGIDBODY_OT_constraint_remove(struct wmOperatorType *ot);
 void RIGIDBODY_OT_world_add(struct wmOperatorType *ot);
 void RIGIDBODY_OT_world_remove(struct wmOperatorType *ot);
 void RIGIDBODY_OT_world_export(struct wmOperatorType *ot);
-
-#ifdef __cplusplus
-}
-#endif

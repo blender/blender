@@ -32,7 +32,7 @@
 #include "ED_object.hh"
 #include "ED_screen.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 /* Volume Add */
 

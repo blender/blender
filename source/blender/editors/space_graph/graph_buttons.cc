@@ -51,7 +51,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "graph_intern.h" /* own include */
+#include "graph_intern.hh" /* own include */
 
 #define B_REDR 1
 

@@ -38,7 +38,7 @@ set(SRC
   workspace_layout_edit.cc
   workspace_listen.cc
 
-  screen_intern.h
+  screen_intern.hh
 )
 
 set(LIB

@@ -27,7 +27,7 @@
 
 #include "RNA_prototypes.h"
 
-#include "graph_intern.h" /* own include */
+#include "graph_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Set Up Drivers Editor

@@ -13,10 +13,6 @@
 #include "DNA_space_types.h"
 #include "DNA_tracking_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ARegion;
 struct MovieClip;
 struct MovieTrackingMarker;
@@ -295,7 +291,3 @@ BLI_INLINE bool ED_space_clip_marker_is_visible(const SpaceClip *space_clip,
 }
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

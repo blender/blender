@@ -48,7 +48,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "graph_intern.h" /* own include */
+#include "graph_intern.hh" /* own include */
 
 /* ******************** default callbacks for ipo space ***************** */
 

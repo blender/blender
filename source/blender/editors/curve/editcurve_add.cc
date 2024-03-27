@@ -33,7 +33,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "curve_intern.h"
+#include "curve_intern.hh"
 
 static const float nurbcircle[8][2] = {
     {0.0, -1.0},

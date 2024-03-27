@@ -47,7 +47,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Public API

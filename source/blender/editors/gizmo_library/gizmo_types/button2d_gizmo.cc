@@ -43,7 +43,7 @@
 #include "UI_interface_icons.hh"
 
 /* own includes */
-#include "../gizmo_library_intern.h"
+#include "../gizmo_library_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Types

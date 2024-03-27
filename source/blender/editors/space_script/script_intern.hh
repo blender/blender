@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* internal exports only */
 
 /* `script_ops.cc` */
@@ -23,7 +19,3 @@ void script_keymap(struct wmKeyConfig *keyconf);
 
 void SCRIPT_OT_reload(struct wmOperatorType *ot);
 void SCRIPT_OT_python_file_run(struct wmOperatorType *ot);
-
-#ifdef __cplusplus
-}
-#endif

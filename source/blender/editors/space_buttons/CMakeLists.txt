@@ -25,7 +25,7 @@ set(SRC
   buttons_texture.cc
   space_buttons.cc
 
-  buttons_intern.h
+  buttons_intern.hh
 )
 
 set(LIB

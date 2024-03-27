@@ -60,7 +60,7 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "anim_intern.h"
+#include "anim_intern.hh"
 
 static KeyingSet *keyingset_get_from_op_with_error(wmOperator *op,
                                                    PropertyRNA *prop,

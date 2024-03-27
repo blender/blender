@@ -65,7 +65,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 /* ------------------------------------------------------------------- */
 /** \name Constraint Data Accessors

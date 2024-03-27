@@ -103,7 +103,7 @@
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
-#include "object_intern.h" /* own include */
+#include "object_intern.hh" /* own include */
 
 using blender::Vector;
 

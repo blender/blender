@@ -53,7 +53,7 @@
 
 #include "RNA_access.hh"
 
-#include "clip_intern.h" /* own include */
+#include "clip_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities

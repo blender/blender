@@ -40,7 +40,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "screen_intern.h"
+#include "screen_intern.hh"
 
 struct ScreenshotData {
   uint8_t *dumprect;

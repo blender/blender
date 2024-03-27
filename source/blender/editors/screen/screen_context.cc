@@ -54,7 +54,7 @@
 
 #include "ANIM_bone_collections.hh"
 
-#include "screen_intern.h"
+#include "screen_intern.hh"
 
 using blender::Vector;
 

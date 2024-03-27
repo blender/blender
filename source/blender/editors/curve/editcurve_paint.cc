@@ -38,7 +38,7 @@
 #include "GPU_matrix.hh"
 #include "GPU_state.hh"
 
-#include "curve_intern.h"
+#include "curve_intern.hh"
 
 #include "UI_resources.hh"
 

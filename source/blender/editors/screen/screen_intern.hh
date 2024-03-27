@@ -8,13 +8,18 @@
 
 #pragma once
 
-struct Main;
+#include "DNA_space_types.h"
+
+struct ARegion;
 struct bContext;
 struct bContextDataResult;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct bScreen;
+struct Main;
+struct rcti;
+struct ScrAreaMap;
+struct ScrEdge;
+struct ScrVert;
+struct wmWindow;
 
 /* internal exports only */
 
@@ -177,7 +182,7 @@ int ed_screen_context(const struct bContext *C,
                       const char *member,
                       struct bContextDataResult *result);
 
-extern const char *screen_context_dir[]; /* doc access */
+extern "C" const char *screen_context_dir[]; /* doc access */
 
 /* screendump.cc */
 
@@ -187,7 +192,3 @@ void SCREEN_OT_screenshot_area(struct wmOperatorType *ot);
 /* workspace_layout_edit.cc */
 
 bool workspace_layout_set_poll(const struct WorkSpaceLayout *layout);
-
-#ifdef __cplusplus
-}
-#endif

@@ -10,9 +10,8 @@
 
 #include "gizmo_geometry.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct bContext;
+struct wmGizmoProperty;
 
 #define DIAL_RESOLUTION 48
 
@@ -100,7 +99,3 @@ void wm_gizmo_geometryinfo_draw(const struct GizmoGeomInfo *info,
                                 const float color[4]);
 void wm_gizmo_vec_draw(
     const float color[4], const float (*verts)[3], uint vert_count, uint pos, uint primitive_type);
-
-#ifdef __cplusplus
-}
-#endif

@@ -54,7 +54,7 @@
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
 
-#include "curve_intern.h"
+#include "curve_intern.hh"
 
 extern "C" {
 #include "curve_fit_nd.h"

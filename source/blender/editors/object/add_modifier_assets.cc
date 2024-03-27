@@ -38,7 +38,7 @@
 
 #include "WM_api.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 namespace blender::ed::object {
 

@@ -42,7 +42,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "lattice_intern.h"
+#include "lattice_intern.hh"
 
 using blender::Span;
 using blender::Vector;

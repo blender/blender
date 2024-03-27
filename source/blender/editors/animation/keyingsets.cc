@@ -43,7 +43,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_path.hh"
 
-#include "anim_intern.h"
+#include "anim_intern.hh"
 
 /* ************************************************** */
 /* KEYING SETS - OPERATORS (for use in UI panels) */

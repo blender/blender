@@ -78,7 +78,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 using blender::Array;
 using blender::float2;

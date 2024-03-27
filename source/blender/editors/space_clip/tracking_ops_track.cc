@@ -29,8 +29,8 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "clip_intern.h" /* own include */
-#include "tracking_ops_intern.h"
+#include "clip_intern.hh" /* own include */
+#include "tracking_ops_intern.hh"
 
 /********************** Track operator *********************/
 

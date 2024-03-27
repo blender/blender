@@ -10,10 +10,6 @@
 
 #include "ED_view3d.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* internal exports only */
 
 struct ARegion;
@@ -197,7 +193,7 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot);
 
 /* space_view3d.cc */
 
-extern const char *view3d_context_dir[]; /* doc access */
+extern "C" const char *view3d_context_dir[]; /* doc access */
 
 /* view3d_widgets.c */
 
@@ -234,8 +230,4 @@ void VIEW3D_GGT_placement(struct wmGizmoGroupType *gzgt);
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 extern uchar view3d_camera_border_hack_col[3];
 extern bool view3d_camera_border_hack_test;
-#endif
-
-#ifdef __cplusplus
-}
 #endif

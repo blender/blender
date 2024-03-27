@@ -40,7 +40,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "lattice_intern.h"
+#include "lattice_intern.hh"
 
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo.lattice"};

@@ -52,7 +52,7 @@
 
 #include "UI_resources.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 static int return_editmesh_indexar(BMEditMesh *em,
                                    int *r_indexar_num,

@@ -65,7 +65,7 @@
 #include "ED_object.hh"
 #include "ED_view3d.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 /* ************************************************ */
 /* Grease Pencil to Data Operator */
