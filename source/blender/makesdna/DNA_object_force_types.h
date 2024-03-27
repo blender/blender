@@ -131,8 +131,6 @@ typedef struct PartDeflect {
   struct Tex *tex;
 
   /* effector noise */
-  /** Random noise generator for e.g. wind. */
-  struct RNG *rng;
   /** Noise of force. */
   float f_noise;
   /** Noise random seed. */
