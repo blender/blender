@@ -28,6 +28,10 @@ void Sampling::init(const Scene *scene)
 {
   sample_count_ = inst_.is_viewport() ? scene->eevee.taa_samples : scene->eevee.taa_render_samples;
 
+  if (inst_.is_image_render()) {
+    sample_count_ = math::max(uint64_t(1), sample_count_);
+  }
+
   if (sample_count_ == 0) {
     BLI_assert(inst_.is_viewport());
     sample_count_ = infinite_sample_count_;
