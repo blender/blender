@@ -183,7 +183,7 @@ void PlaneDistortMaskOperation::update_memory_buffer_partial(MemoryBuffer *outpu
 {
   for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
     float accumulated_mask = 0.0f;
-    const float2 point = float2(it.x, it.y);
+    const float2 point = float2(it.x, it.y) + 0.5f;
     for (const int motion_sample : IndexRange(motion_blur_samples_)) {
       MotionSample &sample = samples_[motion_sample];
       const bool is_inside_plane = isect_point_tri_v2(point,
