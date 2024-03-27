@@ -131,38 +131,6 @@ static void v3d_cursor_poject_surface_normal(const float normal[3],
 }
 
 /**
- * Calculate 3D view incremental (grid) snapping.
- *
- * \note This could be moved to a public function.
- */
-static bool v3d_cursor_snap_calc_incremental(
-    Scene *scene, View3D *v3d, ARegion *region, const float co_relative[3], float co[3])
-{
-  const float grid_size = ED_view3d_grid_view_scale(scene, v3d, region, nullptr);
-  if (UNLIKELY(grid_size == 0.0f)) {
-    return false;
-  }
-
-  if (scene->toolsettings->snap_flag & SCE_SNAP_ABS_GRID) {
-    co_relative = nullptr;
-  }
-
-  if (co_relative != nullptr) {
-    sub_v3_v3(co, co_relative);
-  }
-  mul_v3_fl(co, 1.0f / grid_size);
-  co[0] = roundf(co[0]);
-  co[1] = roundf(co[1]);
-  co[2] = roundf(co[2]);
-  mul_v3_fl(co, grid_size);
-  if (co_relative != nullptr) {
-    add_v3_v3(co, co_relative);
-  }
-
-  return true;
-}
-
-/**
  * Re-order \a mat so \a axis_align uses its own axis which is closest to \a v.
  */
 static bool mat3_align_axis_to_v3(float mat[3][3], const int axis_align, const float v[3])
@@ -377,6 +345,11 @@ static void cursor_box_draw(const float dimensions[3], uchar color[4])
 static void cursor_point_draw(
     uint attr_pos, const float loc[3], const float size, eSnapMode snap_type, const uchar color[4])
 {
+  if (snap_type == SCE_SNAP_TO_GRID) {
+    /* No drawing. */
+    return;
+  }
+
   immUniformColor4ubv(color);
 
   GPU_matrix_push();
@@ -686,7 +659,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
       snap_elements |= SCE_SNAP_TO_FACE;
     }
 
-    if (snap_elements & SCE_SNAP_TO_GEOM) {
+    if (snap_elements & (SCE_SNAP_TO_GEOM | SCE_SNAP_TO_GRID)) {
       float prev_co[3] = {0.0f};
       if (state->prevpoint) {
         copy_v3_v3(prev_co, state->prevpoint);
@@ -809,10 +782,6 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 
     if (!do_plane_isect) {
       ED_view3d_win_to_3d(v3d, region, co_depth, mval_fl, co);
-    }
-
-    if (snap_data->is_enabled && (snap_elements & SCE_SNAP_TO_INCREMENT)) {
-      v3d_cursor_snap_calc_incremental(scene, v3d, region, state->prevpoint, co);
     }
   }
   else if (snap_elem & SCE_SNAP_TO_VERTEX) {

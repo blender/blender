@@ -155,7 +155,9 @@ struct InteractivePlaceData {
   /** When activated without a tool. */
   bool wait_for_input;
 
-  eSnapMode snap_to;
+  /* WORKAROUND: We need to remove #SCE_SNAP_TO_GRID temporarily. */
+  short *snap_to_ptr;
+  eSnapMode snap_to_restore;
 };
 
 /** \} */
@@ -225,7 +227,7 @@ static bool idp_snap_calc_incremental(
     return false;
   }
 
-  if (scene->toolsettings->snap_flag & SCE_SNAP_ABS_GRID) {
+  if (scene->toolsettings->snap_mode & SCE_SNAP_TO_GRID) {
     co_relative = nullptr;
   }
 
@@ -764,10 +766,11 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
 
   ipd->step_index = STEP_BASE;
 
-  ipd->snap_to = eSnapMode(tool_settings->snap_mode_tools);
-  if (ipd->snap_to == SCE_SNAP_TO_NONE) {
-    ipd->snap_to = eSnapMode(tool_settings->snap_mode);
+  ipd->snap_to_ptr = &tool_settings->snap_mode_tools;
+  if (eSnapMode(*ipd->snap_to_ptr) == SCE_SNAP_TO_NONE) {
+    ipd->snap_to_ptr = &tool_settings->snap_mode;
   }
+  ipd->snap_to_restore = eSnapMode(*ipd->snap_to_ptr);
 
   plane_from_point_normal_v3(ipd->step[0].plane, ipd->co_src, ipd->matrix_orient[plane_axis]);
 
@@ -1038,6 +1041,10 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
     if (ELEM(event->type, ipd->launch_event, LEFTMOUSE)) {
       if (event->val == KM_RELEASE) {
         ED_view3d_cursor_snap_state_prevpoint_set(ipd->snap_state, ipd->co_src);
+        if (ipd->snap_to_restore & SCE_SNAP_TO_GRID) {
+          /* Don't snap to grid in #STEP_DEPTH. */
+          *ipd->snap_to_ptr = ipd->snap_to_restore & ~SCE_SNAP_TO_GRID;
+        }
 
         /* Set secondary plane. */
 
@@ -1075,7 +1082,10 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
   else if (ipd->step_index == STEP_DEPTH) {
     if (ELEM(event->type, ipd->launch_event, LEFTMOUSE)) {
       if (event->val == KM_PRESS) {
+        /* Restore snap mode. */
+        *ipd->snap_to_ptr = ipd->snap_to_restore;
 
+        /* Confirm. */
         BoundBox bounds;
         calc_bbox(ipd, &bounds);
 
@@ -1208,7 +1218,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
           /* pass */
         }
 
-        if (ipd->use_snap && (ipd->snap_to & SCE_SNAP_TO_INCREMENT)) {
+        if (ipd->use_snap && (ipd->snap_to_restore & (SCE_SNAP_TO_GRID | SCE_SNAP_TO_INCREMENT))) {
           if (idp_snap_calc_incremental(
                   ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_BASE].co_dst))
           {
@@ -1232,7 +1242,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
           /* pass */
         }
 
-        if (ipd->use_snap && (ipd->snap_to & SCE_SNAP_TO_INCREMENT)) {
+        if (ipd->use_snap && (ipd->snap_to_restore & (SCE_SNAP_TO_GRID | SCE_SNAP_TO_INCREMENT))) {
           if (idp_snap_calc_incremental(
                   ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_DEPTH].co_dst))
           {

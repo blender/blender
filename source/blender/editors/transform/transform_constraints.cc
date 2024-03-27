@@ -404,9 +404,6 @@ static void applyAxisConstraintVec(const TransInfo *t,
         is_snap_to_face = (t->tsnap.target_type & SCE_SNAP_TO_FACE) != 0;
         is_snap_to_point = !is_snap_to_edge && !is_snap_to_face;
       }
-      else if (t->tsnap.target_type & SCE_SNAP_TO_GRID) {
-        is_snap_to_point = true;
-      }
     }
 
     /* Fallback for when axes are aligned. */

@@ -139,7 +139,7 @@ void SnapData::clip_planes_enable(SnapObjectContext *sctx,
 {
   float4x4 tobmat = math::transpose(this->obmat_);
   if (!skip_occlusion_plane) {
-    const bool is_in_front = sctx->runtime.params.use_occlusion_test &&
+    const bool is_in_front = sctx->runtime.params.use_occlusion_test && ob_eval &&
                              (ob_eval->dtx & OB_DRAW_IN_FRONT) != 0;
     if (!is_in_front && sctx->runtime.has_occlusion_plane) {
       this->clip_planes.append(tobmat * sctx->runtime.occlusion_plane);
@@ -964,6 +964,54 @@ static eSnapMode snapObjectsRay(SnapObjectContext *sctx)
   return iter_snap_objects(sctx, snap_obj_fn);
 }
 
+static bool snap_grid(SnapObjectContext *sctx)
+{
+  SnapData nearest2d(sctx);
+  nearest2d.clip_planes_enable(sctx, nullptr);
+
+  /* Ignore the maximum pixel distance when snapping to grid.
+   * This avoids undesirable jumps of the element being snapped. */
+  nearest2d.nearest_point.dist_sq = FLT_MAX;
+
+  float grid_dist = sctx->grid.size;
+
+  if (sctx->grid.use_init_co) {
+    float3 co = math::round((sctx->runtime.init_co) / grid_dist) * grid_dist;
+    if (nearest2d.snap_point(co)) {
+      nearest2d.register_result(sctx, nullptr, nullptr);
+      return true;
+    }
+  }
+
+  float ray_dist;
+  for (int i = 0; i < 4; i++) {
+    if (isect_ray_plane_v3(sctx->runtime.ray_start,
+                           sctx->runtime.ray_dir,
+                           sctx->grid.planes[i],
+                           &ray_dist,
+                           false) &&
+        IN_RANGE_INCL(ray_dist, 0.0f, sctx->ret.ray_depth_max))
+    {
+      float3 co = math::round((sctx->runtime.ray_start + sctx->runtime.ray_dir * ray_dist) /
+                              grid_dist) *
+                  grid_dist;
+
+      if (nearest2d.snap_point(co)) {
+        copy_v3_v3(nearest2d.nearest_point.no, sctx->grid.planes[i]);
+        if (!sctx->runtime.rv3d->is_persp && RV3D_VIEW_IS_AXIS(sctx->runtime.rv3d->view)) {
+          /* Project in #sctx->runtime.curr_co plane. */
+          add_v3_v3(nearest2d.nearest_point.co,
+                    sctx->runtime.curr_co * float3(nearest2d.nearest_point.no));
+        }
+        nearest2d.register_result(sctx, nullptr, nullptr);
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1030,7 +1078,9 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
                                              ListBase *hit_list,
                                              bool use_occlusion_test)
 {
-  if (snap_to_flag & (SCE_SNAP_TO_EDGE_PERPENDICULAR | SCE_SNAP_INDIVIDUAL_NEAREST)) {
+  if (snap_to_flag &
+      (SCE_SNAP_TO_GRID | SCE_SNAP_TO_EDGE_PERPENDICULAR | SCE_SNAP_INDIVIDUAL_NEAREST))
+  {
     if (prev_co) {
       copy_v3_v3(sctx->runtime.curr_co, prev_co);
       if (init_co) {
@@ -1088,6 +1138,30 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
     }
 
     sctx->runtime.rv3d = rv3d;
+
+    if (sctx->runtime.snap_to_flag & SCE_SNAP_TO_GRID) {
+      if (init_co) {
+        sctx->grid.use_init_co = true;
+      }
+      else if (!compare_m4m4(sctx->grid.persmat.ptr(), rv3d->persmat, FLT_EPSILON)) {
+        sctx->grid.persmat = float4x4(rv3d->persmat);
+        memset(sctx->grid.planes, 0, sizeof(sctx->grid.planes));
+        sctx->grid.planes[0][2] = 1.0f;
+        if (math::abs(sctx->runtime.ray_dir[0]) < math::abs(sctx->runtime.ray_dir[1])) {
+          sctx->grid.planes[1][1] = 1.0f;
+          sctx->grid.planes[2][0] = 1.0f;
+        }
+        else {
+          sctx->grid.planes[1][0] = 1.0f;
+          sctx->grid.planes[2][1] = 1.0f;
+        }
+
+        plane_from_point_normal_v3(sctx->grid.planes[3], sctx->runtime.curr_co, rv3d->viewinv[2]);
+
+        sctx->grid.size = ED_view3d_grid_view_scale(
+            sctx->scene, sctx->runtime.v3d, region, nullptr);
+      }
+    }
   }
 
   sctx->ret.ray_depth_max = sctx->ret.ray_depth_max_in_front = ray_depth;
@@ -1251,7 +1325,12 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
     use_occlusion_plane = is_allways_occluded || !XRAY_ENABLED(v3d);
   }
 
-  if (use_occlusion_plane || (snap_to_flag & SCE_SNAP_TO_FACE)) {
+  if (use_occlusion_plane || (snap_to_flag & (SCE_SNAP_TO_FACE | SCE_SNAP_TO_GRID))) {
+    /* Calculate the direction (`ray_dir`) and starting point (`ray_start`) of the ray from the
+     * viewport to a 3D point under the mouse cursor (`mval`), taking into account potential view
+     * clipping.
+     * This is required for raycast or snap to grid. */
+
     const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
     float3 ray_end;
     ED_view3d_win_to_ray_clipped_ex(depsgraph,
@@ -1302,7 +1381,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
 
   snap_to_flag = sctx->runtime.snap_to_flag;
 
-  BLI_assert(snap_to_flag & (SCE_SNAP_TO_GEOM | SCE_SNAP_INDIVIDUAL_NEAREST));
+  BLI_assert(snap_to_flag & (SCE_SNAP_TO_GEOM | SCE_SNAP_TO_GRID | SCE_SNAP_INDIVIDUAL_NEAREST));
 
   bool has_hit = false;
 
@@ -1312,21 +1391,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
     has_hit = nearestWorldObjects(sctx);
 
     if (has_hit) {
-      retval = SCE_SNAP_INDIVIDUAL_NEAREST;
-
-      copy_v3_v3(r_loc, sctx->ret.loc);
-      if (r_no) {
-        copy_v3_v3(r_no, sctx->ret.no);
-      }
-      if (r_ob) {
-        *r_ob = sctx->ret.ob;
-      }
-      if (r_obmat) {
-        copy_m4_m4(r_obmat, sctx->ret.obmat.ptr());
-      }
-      if (r_index) {
-        *r_index = sctx->ret.index;
-      }
+      retval |= SCE_SNAP_INDIVIDUAL_NEAREST;
     }
   }
 
@@ -1339,21 +1404,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
       }
 
       if (snap_to_flag & SCE_SNAP_TO_FACE) {
-        retval = SCE_SNAP_TO_FACE;
-
-        copy_v3_v3(r_loc, sctx->ret.loc);
-        if (r_no) {
-          copy_v3_v3(r_no, sctx->ret.no);
-        }
-        if (r_ob) {
-          *r_ob = sctx->ret.ob;
-        }
-        if (r_obmat) {
-          copy_m4_m4(r_obmat, sctx->ret.obmat.ptr());
-        }
-        if (r_index) {
-          *r_index = sctx->ret.index;
-        }
+        retval |= SCE_SNAP_TO_FACE;
       }
     }
   }
@@ -1392,26 +1443,32 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
       elem = snap_edge_points(sctx, square_f(*dist_px));
     }
 
-    if (elem & snap_to_flag) {
-      retval = elem;
+    retval |= elem & snap_to_flag;
+  }
 
-      copy_v3_v3(r_loc, sctx->ret.loc);
-      if (r_no) {
-        copy_v3_v3(r_no, sctx->ret.no);
-      }
-      if (r_ob) {
-        *r_ob = sctx->ret.ob;
-      }
-      if (r_obmat) {
-        copy_m4_m4(r_obmat, sctx->ret.obmat.ptr());
-      }
-      if (r_index) {
-        *r_index = sctx->ret.index;
-      }
+  if ((retval == SCE_SNAP_TO_NONE) && (snap_to_flag & SCE_SNAP_TO_GRID)) {
+    if (snap_grid(sctx)) {
+      retval = SCE_SNAP_TO_GRID;
+    }
+  }
 
-      if (dist_px) {
-        *dist_px = math::sqrt(sctx->ret.dist_px_sq);
-      }
+  if (retval != SCE_SNAP_TO_NONE) {
+    copy_v3_v3(r_loc, sctx->ret.loc);
+    if (r_no) {
+      copy_v3_v3(r_no, sctx->ret.no);
+    }
+    if (r_ob) {
+      *r_ob = sctx->ret.ob;
+    }
+    if (r_obmat) {
+      copy_m4_m4(r_obmat, sctx->ret.obmat.ptr());
+    }
+    if (r_index) {
+      *r_index = sctx->ret.index;
+    }
+
+    if (dist_px) {
+      *dist_px = math::sqrt(sctx->ret.dist_px_sq);
     }
   }
 

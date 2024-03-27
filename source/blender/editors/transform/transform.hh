@@ -174,9 +174,8 @@ enum eTSnap {
   SNAP_RESETTED = 0,
   SNAP_SOURCE_FOUND = 1 << 0,
   /* Special flag for snap to grid. */
-  SNAP_TARGET_GRID_FOUND = 1 << 1,
-  SNAP_TARGET_FOUND = 1 << 2,
-  SNAP_MULTI_POINTS = 1 << 3,
+  SNAP_TARGET_FOUND = 1 << 1,
+  SNAP_MULTI_POINTS = 1 << 2,
 };
 ENUM_OPERATORS(eTSnap, SNAP_MULTI_POINTS)
 
@@ -316,7 +315,6 @@ struct TransSnap {
   float snap_source[3];
   /** To this point (in global-space). */
   float snap_target[3];
-  float snap_target_grid[3];
   float snapNormal[3];
   char snapNodeBorder;
   ListBase points;

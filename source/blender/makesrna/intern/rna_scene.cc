@@ -157,6 +157,7 @@ const EnumPropertyItem rna_enum_mesh_select_mode_uv_items[] = {
 /* clang-format off */
 #define RNA_SNAP_ELEMENTS_BASE \
   {SCE_SNAP_TO_INCREMENT, "INCREMENT", ICON_SNAP_INCREMENT, "Increment", "Snap to increments"}, \
+  {SCE_SNAP_TO_GRID, "GRID", ICON_SNAP_GRID, "Grid", "Snap to grid"}, \
   {SCE_SNAP_TO_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices"}, \
   {SCE_SNAP_TO_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges"}, \
   {SCE_SNAP_TO_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap by projecting onto faces"}, \
@@ -217,6 +218,7 @@ static const EnumPropertyItem snap_uv_element_items[] = {
      ICON_SNAP_INCREMENT,
      "Increment",
      "Snap to increments of grid"},
+    {SCE_SNAP_TO_GRID, "GRID", ICON_SNAP_GRID, "Grid", "Snap to grid"},
     {SCE_SNAP_TO_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices"},
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -3513,15 +3515,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       prop, "Align Rotation to Target", "Align rotation with the snapping target");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
-  prop = RNA_def_property(srna, "use_snap_grid_absolute", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "snap_flag", SCE_SNAP_ABS_GRID);
-  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
-  RNA_def_property_ui_text(
-      prop,
-      "Absolute Grid Snap",
-      "Absolute grid alignment while translating (based on the pivot center)");
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
-
   prop = RNA_def_property(srna, "snap_angle_increment_2d", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, nullptr, "snap_angle_increment_2d");
   RNA_def_property_ui_text(
@@ -3641,15 +3634,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_enum_items(prop, snap_uv_element_items);
   RNA_def_property_ui_text(prop, "Snap UV Element", "Type of element to snap to");
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
-
-  prop = RNA_def_property(srna, "use_snap_uv_grid_absolute", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "snap_uv_flag", SCE_SNAP_ABS_GRID);
-  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
-  RNA_def_property_ui_text(
-      prop,
-      "Absolute Grid Snap",
-      "Absolute grid alignment while translating (based on the pivot center)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
   /* TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid previous ambiguity of "target"

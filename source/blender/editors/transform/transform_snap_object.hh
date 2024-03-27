@@ -36,6 +36,14 @@ struct SnapObjectContext {
   } callbacks;
 
   struct {
+    /* Compare with #RegionView3D::persmat to update. */
+    blender::float4x4 persmat;
+    blender::float4 planes[4];
+    float size;
+    bool use_init_co;
+  } grid;
+
+  struct {
     Depsgraph *depsgraph;
     const RegionView3D *rv3d;
     const View3D *v3d;

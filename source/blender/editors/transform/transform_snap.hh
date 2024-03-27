@@ -22,12 +22,6 @@ bool peelObjectsTransform(TransInfo *t,
                           float r_no[3],
                           float *r_thickness);
 
-eSnapMode snapObjectsTransform(TransInfo *t,
-                               const float mval[2],
-                               float *dist_px,
-                               /* Return args. */
-                               float r_loc[3],
-                               float r_no[3]);
 bool snapNodesTransform(TransInfo *t,
                         const blender::float2 &mval,
                         /* Return args. */
