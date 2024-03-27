@@ -588,6 +588,54 @@ class RemovePresetInterfaceTheme(AddPresetBase, Operator):
         return context.window_manager.invoke_confirm(self, event, title="Remove Custom Theme", confirm_text="Delete")
 
 
+class SavePresetInterfaceTheme(AddPresetBase, Operator):
+    """Save a custom theme in the preset list"""
+    bl_idname = "wm.interface_theme_preset_save"
+    bl_label = "Save Theme"
+    preset_menu = "USERPREF_MT_interface_theme_presets"
+    preset_subdir = "interface_theme"
+
+    remove_active: BoolProperty(
+        default=True,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
+
+    @classmethod
+    def poll(cls, context):
+        from bpy.utils import is_path_builtin
+
+        preset_menu_class = getattr(bpy.types, cls.preset_menu)
+        name = preset_menu_class.bl_label
+        filepath = bpy.utils.preset_find(name, cls.preset_subdir, ext=".xml")
+        if not bool(filepath) or is_path_builtin(filepath):
+            cls.poll_message_set("Built-in themes cannot be overwritten")
+            return False
+        return True
+
+    def execute(self, context):
+        from bpy.utils import is_path_builtin
+        import rna_xml
+        preset_menu_class = getattr(bpy.types, self.preset_menu)
+        name = preset_menu_class.bl_label
+        filepath = bpy.utils.preset_find(name, self.preset_subdir, ext=".xml")
+        if not bool(filepath) or is_path_builtin(filepath):
+            self.poll_message_set("Built-in themes cannot be overwritten")
+            return {'CANCELLED'}
+
+        try:
+            rna_xml.xml_file_write(context, filepath, preset_menu_class.preset_xml_map)
+        except BaseException as ex:
+            self.report({'ERROR'}, f"Unable to overwrite preset: {ex}")
+            import traceback
+            traceback.print_exc()
+            return {'CANCELLED'}
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(self, event, title="Overwrite Custom Theme?", confirm_text="Save")
+
+
 class AddPresetKeyconfig(AddPresetBase, Operator):
     """Add a custom keymap configuration to the preset list"""
     bl_idname = "wm.keyconfig_preset_add"
@@ -857,6 +905,7 @@ classes = (
     AddPresetHairDynamics,
     AddPresetInterfaceTheme,
     RemovePresetInterfaceTheme,
+    SavePresetInterfaceTheme,
     AddPresetKeyconfig,
     RemovePresetKeyconfig,
     AddPresetNodeColor,
