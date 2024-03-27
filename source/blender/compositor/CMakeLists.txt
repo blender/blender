@@ -580,10 +580,6 @@ if(WITH_COMPOSITOR_CPU)
     PRIVATE bf::intern::atomic
   )
 
-  list(APPEND INC
-    ${CMAKE_CURRENT_BINARY_DIR}/operations
-  )
-
   if(WITH_OPENIMAGEDENOISE)
     add_definitions(-DWITH_OPENIMAGEDENOISE)
     add_definitions(-DOIDN_STATIC_LIB)
