@@ -17,8 +17,8 @@ struct bContextDataResult;
 struct BlendDataReader;
 struct BlendWriter;
 struct Main;
-struct wmWindowManager;
 struct RegionPollParams;
+struct wmWindowManager;
 
 namespace blender::ed::asset::shelf {
 

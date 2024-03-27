@@ -12,7 +12,6 @@
 
 struct ID;
 struct Main;
-
 namespace blender::asset_system {
 class AssetRepresentation;
 }
