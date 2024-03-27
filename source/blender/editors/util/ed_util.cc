@@ -44,6 +44,7 @@
 #include "ED_object.hh"
 #include "ED_paint.hh"
 #include "ED_screen.hh"
+#include "ED_sculpt.hh"
 #include "ED_space_api.hh"
 #include "ED_util.hh"
 

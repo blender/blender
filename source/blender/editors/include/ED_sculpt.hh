@@ -18,6 +18,16 @@ struct rcti;
 struct wmOperator;
 struct wmKeyConfig;
 
+void ED_object_sculptmode_enter_ex(Main *bmain,
+                                   Depsgraph *depsgraph,
+                                   Scene *scene,
+                                   Object *ob,
+                                   bool force_dyntopo,
+                                   ReportList *reports);
+void ED_object_sculptmode_enter(bContext *C, Depsgraph *depsgraph, ReportList *reports);
+void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
+void ED_object_sculptmode_exit(bContext *C, Depsgraph *depsgraph);
+
 /* `sculpt.cc` */
 
 /**

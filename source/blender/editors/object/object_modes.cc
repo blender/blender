@@ -38,6 +38,9 @@
 #include "ED_armature.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_outliner.hh"
+#include "ED_paint.hh"
+#include "ED_physics.hh"
+#include "ED_sculpt.hh"
 #include "ED_undo.hh"
 #include "ED_view3d.hh"
 

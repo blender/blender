@@ -282,42 +282,6 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
 bool ED_object_editmode_enter(bContext *C, int flag);
 bool ED_object_editmode_load(Main *bmain, Object *obedit);
 
-void ED_object_vpaintmode_enter_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
-void ED_object_vpaintmode_enter(bContext *C, Depsgraph *depsgraph);
-void ED_object_wpaintmode_enter_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
-void ED_object_wpaintmode_enter(bContext *C, Depsgraph *depsgraph);
-
-void ED_object_vpaintmode_exit_ex(Object *ob);
-void ED_object_vpaintmode_exit(bContext *C);
-void ED_object_wpaintmode_exit_ex(Object *ob);
-void ED_object_wpaintmode_exit(bContext *C);
-
-void ED_object_texture_paint_mode_enter_ex(Main *bmain,
-                                           Scene *scene,
-                                           Depsgraph *depsgraph,
-                                           Object *ob);
-void ED_object_texture_paint_mode_enter(bContext *C);
-
-void ED_object_texture_paint_mode_exit_ex(Main *bmain, Scene *scene, Object *ob);
-void ED_object_texture_paint_mode_exit(bContext *C);
-
-bool ED_object_particle_edit_mode_supported(const Object *ob);
-void ED_object_particle_edit_mode_enter_ex(Depsgraph *depsgraph, Scene *scene, Object *ob);
-void ED_object_particle_edit_mode_enter(bContext *C);
-
-void ED_object_particle_edit_mode_exit_ex(Scene *scene, Object *ob);
-void ED_object_particle_edit_mode_exit(bContext *C);
-
-void ED_object_sculptmode_enter_ex(Main *bmain,
-                                   Depsgraph *depsgraph,
-                                   Scene *scene,
-                                   Object *ob,
-                                   bool force_dyntopo,
-                                   ReportList *reports);
-void ED_object_sculptmode_enter(bContext *C, Depsgraph *depsgraph, ReportList *reports);
-void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
-void ED_object_sculptmode_exit(bContext *C, Depsgraph *depsgraph);
-
 void ED_object_location_from_view(bContext *C, float loc[3]);
 void ED_object_rotation_from_quat(float rot[3], const float quat[4], char align_axis);
 void ED_object_rotation_from_view(bContext *C, float rot[3], char align_axis);
