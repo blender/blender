@@ -12,6 +12,11 @@ from bpy.props import (
     EnumProperty,
 )
 
+bl_file_extensions_image_and_movie = ";".join((
+    *bpy.path.extensions_image,
+    *bpy.path.extensions_movie,
+))
+
 
 class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
     """Extrude each individual face separately along local normals"""
@@ -265,7 +270,7 @@ class VIEW3D_FH_empty_image(FileHandler):
     bl_idname = "VIEW3D_FH_empty_image"
     bl_label = "Add empty image"
     bl_import_operator = "OBJECT_OT_empty_image_add"
-    bl_file_extensions = ';'.join(bpy.path.extensions_image) + ';' + ';'.join(bpy.path.extensions_movie)
+    bl_file_extensions = bl_file_extensions_image_and_movie
 
     @classmethod
     def poll_drop(cls, context):
@@ -279,7 +284,7 @@ class VIEW3D_FH_camera_background_image(FileHandler):
     bl_idname = "VIEW3D_FH_camera_background_image"
     bl_label = "Add camera background image"
     bl_import_operator = "VIEW3D_OT_camera_background_image_add"
-    bl_file_extensions = ';'.join(bpy.path.extensions_image) + ';' + ';'.join(bpy.path.extensions_movie)
+    bl_file_extensions = bl_file_extensions_image_and_movie
 
     @classmethod
     def poll_drop(cls, context):
