@@ -10,18 +10,20 @@ BLENDER_VERSION_STRING = "${BLENDER_VERSION_STRING}"
 BLENDER_VERSION_DOTS = "${BLENDER_VERSION_DOTS}"
 BLENDER_REVISION = "${BLENDER_REVISION}"
 BLENDER_REVISION_TIMESTAMP = "${BLENDER_REVISION_TIMESTAMP}"
+BLENDER_VERSION_DATE = time.strftime(
+    "%d/%m/%Y",
+    time.localtime(BLENDER_REVISION_TIMESTAMP if BLENDER_REVISION_TIMESTAMP != "0" else None),
+)
 
 if BLENDER_REVISION != "Unknown":
     # SHA1 GIT hash.
     BLENDER_VERSION_HASH = BLENDER_REVISION
     BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://projects.blender.org/blender/blender/commit/%s>%s</a>" % (
         BLENDER_VERSION_HASH, BLENDER_VERSION_HASH)
-    BLENDER_VERSION_DATE = time.strftime("%d/%m/%Y", time.localtime(BLENDER_REVISION_TIMESTAMP))
 else:
     # Fallback: Should not be used.
     BLENDER_VERSION_HASH = "Hash Unknown"
     BLENDER_VERSION_HASH_HTML_LINK = BLENDER_VERSION_HASH
-    BLENDER_VERSION_DATE = time.strftime("%Y-%m-%d")
 
 extensions = ["sphinx.ext.intersphinx"]
 intersphinx_mapping = {"blender_manual": ("https://docs.blender.org/manual/en/dev/", None)}
