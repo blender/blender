@@ -3447,6 +3447,15 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
     if (ELEM(comp_node->type, NodeType::LAYER_COLLECTIONS)) {
       rel_flag &= ~RELATION_FLAG_NO_FLUSH;
     }
+    /* Mask evaluation operation is part of parameters, and it needs to be re-evaluated when the
+     * mask is tagged for copy-on-eval.
+     *
+     * TODO(@sergey): This needs to be moved out of here.
+     * In order to do so, moving mask evaluation out of parameters would be helpful and
+     * semantically correct. */
+    if (comp_node->type == NodeType::PARAMETERS && id_type == ID_MSK) {
+      rel_flag &= ~RELATION_FLAG_NO_FLUSH;
+    }
     /* Compatibility with the legacy tagging: groups are only tagged for Copy-on-Write when their
      * hierarchy changes, and it needs to be flushed downstream. */
     if (id_type == ID_GR && comp_node->type == NodeType::HIERARCHY) {
