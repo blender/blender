@@ -3585,6 +3585,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
 
   /* Choose best face for plane. */
   BMFace *fprev = nullptr;
+  int fprev_ob_index = kcd->prev.ob_index;
   if (kcd->prev.vert && kcd->prev.vert->v) {
     LISTBASE_FOREACH (LinkData *, ref, &kcd->prev.vert->faces) {
       f = ((BMFace *)(ref->data));
@@ -3615,7 +3616,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
 
     /* kcd->prev.face is usually not set. */
     fprev = knife_bvh_raycast(
-        kcd, prev_origin, prev_ray_normal, 0.0f, nullptr, prev_cage, nullptr);
+        kcd, prev_origin, prev_ray_normal, 0.0f, nullptr, prev_cage, &fprev_ob_index);
   }
 
   if (!fprev || fprev != fcurr) {
@@ -3623,7 +3624,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
   }
 
   /* Use normal global direction. */
-  Object *ob = kcd->objects[kcd->curr.ob_index];
+  Object *ob = kcd->objects[fprev_ob_index];
   float no_global[3];
   copy_v3_v3(no_global, fprev->no);
   mul_transposed_mat3_m4_v3(ob->world_to_object().ptr(), no_global);

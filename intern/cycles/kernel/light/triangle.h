@@ -301,13 +301,11 @@ ccl_device_forceinline bool triangle_light_tree_parameters(
     ccl_private float2 &distance,
     ccl_private float3 &point_to_centroid)
 {
-  if (!in_volume_segment) {
-    /* TODO: a cheap substitute for minimal distance between point and primitive. Does it
-     * worth the overhead to compute the accurate minimal distance? */
-    float min_distance;
-    point_to_centroid = safe_normalize_len(centroid - P, &min_distance);
-    distance = make_float2(min_distance, min_distance);
-  }
+  /* TODO: a cheap substitute for minimal distance between point and primitive. Does it worth the
+   * overhead to compute the accurate minimal distance? */
+  float min_distance;
+  point_to_centroid = safe_normalize_len(centroid - P, &min_distance);
+  distance = make_float2(min_distance, min_distance);
 
   cos_theta_u = FLT_MAX;
 

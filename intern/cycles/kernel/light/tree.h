@@ -333,14 +333,14 @@ ccl_device void light_tree_node_importance(KernelGlobals kg,
 
     if (in_volume_segment) {
       const float3 D = N_or_D;
-      const float3 closest_point = P + dot(centroid - P, D) * D;
+      const float closest_t = clamp(dot(centroid - P, D), 0.0f, t);
+      const float3 closest_point = P + D * closest_t;
       /* Minimal distance of the ray to the cluster. */
       distance = len(centroid - closest_point);
+      /* Vector that forms a minimal angle with the emitter centroid. */
       point_to_centroid = -compute_v(centroid, P, D, bcone.axis, t);
-      /* FIXME(weizhen): it is not clear from which point the `cos_theta_u` should be computed in
-       * volume segment. We could use `closest_point` as a conservative measure, but then
-       * `point_to_centroid` should also use `closest_point`. */
-      cos_theta_u = light_tree_cos_bounding_box_angle(bbox, closest_point, point_to_centroid);
+      cos_theta_u = light_tree_cos_bounding_box_angle(
+          bbox, closest_point, normalize(centroid - closest_point));
     }
     else {
       const float3 N = N_or_D;
@@ -405,8 +405,8 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
   bcone.theta_o = kemitter->theta_o;
   bcone.theta_e = kemitter->theta_e;
   float cos_theta_u;
-  float2 distance; /* distance.x = max_distance, distance.y = mix_distance */
-  float3 centroid, point_to_centroid, P_c;
+  float2 distance; /* distance.x = max_distance, distance.y = min_distance */
+  float3 centroid, point_to_centroid, P_c = P;
 
   if (!compute_emitter_centroid_and_dir<in_volume_segment>(kg, kemitter, P, centroid, bcone.axis))
   {
@@ -415,15 +415,9 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
 
   if (in_volume_segment) {
     const float3 D = N_or_D;
-    /* Closest point. */
-    P_c = P + dot(centroid - P, D) * D;
-    /* Minimal distance of the ray to the cluster. */
-    distance.x = len(centroid - P_c);
-    distance.y = distance.x;
-    point_to_centroid = -compute_v(centroid, P, D, bcone.axis, t);
-  }
-  else {
-    P_c = P;
+    /* Closest point from ray to the emitter centroid. */
+    const float closest_t = clamp(dot(centroid - P, D), 0.0f, t);
+    P_c += D * closest_t;
   }
 
   /* Early out if the emitter is guaranteed to be invisible. */
@@ -457,6 +451,9 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
       case LIGHT_DISTANT:
         is_visible = distant_light_tree_parameters(
             centroid, bcone.theta_e, cos_theta_u, distance, point_to_centroid);
+        if (in_volume_segment) {
+          centroid = P - bcone.axis;
+        }
         break;
       default:
         return;
@@ -466,6 +463,11 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
   is_visible |= has_transmission;
   if (!is_visible) {
     return;
+  }
+
+  if (in_volume_segment) {
+    /* Vector that forms a minimal angle with the emitter centroid. */
+    point_to_centroid = -compute_v(centroid, P, N_or_D, bcone.axis, t);
   }
 
   light_tree_importance<in_volume_segment>(N_or_D,

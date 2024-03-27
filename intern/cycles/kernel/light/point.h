@@ -196,21 +196,22 @@ ccl_device_forceinline bool point_light_tree_parameters(const ccl_global KernelL
                                                         ccl_private float2 &distance,
                                                         ccl_private float3 &point_to_centroid)
 {
+  float min_distance;
+  point_to_centroid = safe_normalize_len(centroid - P, &min_distance);
+  distance = min_distance * one_float2();
+
   if (in_volume_segment) {
     cos_theta_u = 1.0f; /* Any value in [-1, 1], irrelevant since theta = 0 */
     return true;
   }
 
-  float dist_point_to_centroid;
-  point_to_centroid = safe_normalize_len(centroid - P, &dist_point_to_centroid);
-
   const float radius = klight->spot.radius;
 
   if (klight->spot.is_sphere) {
-    if (dist_point_to_centroid > radius) {
+    if (min_distance > radius) {
       /* Equivalent to a disk light with the same angular span. */
-      cos_theta_u = cos_from_sin(radius / dist_point_to_centroid);
-      distance = dist_point_to_centroid * make_float2(1.0f / cos_theta_u, 1.0f);
+      cos_theta_u = cos_from_sin(radius / min_distance);
+      distance.x = min_distance / cos_theta_u;
     }
     else {
       /* Similar to background light. */
@@ -220,10 +221,10 @@ ccl_device_forceinline bool point_light_tree_parameters(const ccl_global KernelL
     }
   }
   else {
-    const float hypotenus = sqrtf(sqr(radius) + sqr(dist_point_to_centroid));
-    cos_theta_u = dist_point_to_centroid / hypotenus;
+    const float hypotenus = sqrtf(sqr(radius) + sqr(min_distance));
+    cos_theta_u = min_distance / hypotenus;
 
-    distance = make_float2(hypotenus, dist_point_to_centroid);
+    distance.x = hypotenus;
   }
 
   return true;
