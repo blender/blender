@@ -235,7 +235,7 @@ def enum_preview_denoiser(self, context):
         items = [
             ('AUTO',
              "Automatic",
-             ("Use GPU accelerated denoising if supported, for the best performance.
+             ("Use GPU accelerated denoising if supported, for the best performance. "
               "Prefer OpenImageDenoise over OptiX"),
              0)]
     else:
