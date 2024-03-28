@@ -1368,7 +1368,7 @@ static std::optional<std::string> ui_but_event_property_operator_string(const bC
   int prop_index = but->rnaindex;
   if ((but->type == UI_BTYPE_BUT_MENU) && (but->block->handle != nullptr)) {
     uiBut *but_parent = but->block->handle->popup_create_vars.but;
-    if ((but->type == UI_BTYPE_BUT_MENU) && (but_parent && but_parent->rnaprop) &&
+    if ((but_parent && but_parent->rnaprop) &&
         (RNA_property_type(but_parent->rnaprop) == PROP_ENUM) &&
         ELEM(but_parent->menu_create_func,
              ui_def_but_rna__menu,
@@ -3420,9 +3420,7 @@ static void ui_but_free(const bContext *C, uiBut *but)
       ui_but_active_free(C, but);
     }
     else {
-      if (but->active) {
-        MEM_freeN(but->active);
-      }
+      MEM_freeN(but->active);
     }
   }
 
