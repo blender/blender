@@ -142,7 +142,7 @@ bool BKE_shrinkwrap_init_tree(
   }
 
   if (shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
-    data->boundary = mesh->runtime->shrinkwrap_data.get();
+    data->boundary = &blender::bke::shrinkwrap::boundary_cache_ensure(*mesh);
   }
 
   return true;
@@ -179,12 +179,12 @@ static void merge_vert_dir(ShrinkwrapBoundaryVertData *vdata,
   status[index] = (status[index] == 0) ? side : -1;
 }
 
-static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Mesh *mesh)
+static ShrinkwrapBoundaryData shrinkwrap_build_boundary_data(const Mesh &mesh)
 {
-  const Span<float3> positions = mesh->vert_positions();
-  const Span<int2> edges = mesh->edges();
-  const Span<int> corner_verts = mesh->corner_verts();
-  const Span<int> corner_edges = mesh->corner_edges();
+  const Span<float3> positions = mesh.vert_positions();
+  const Span<int2> edges = mesh.edges();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const Span<int> corner_edges = mesh.corner_edges();
 
   /* Count faces per edge (up to 2). */
   Array<int8_t> edge_mode(edges.size(), 0);
@@ -196,7 +196,7 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
   }
 
   /* Build the boundary edge bitmask. */
-  BitVector<> edge_is_boundary(mesh->edges_num, false);
+  BitVector<> edge_is_boundary(mesh.edges_num, false);
 
   int num_boundary_edges = 0;
   for (const int64_t i : edges.index_range()) {
@@ -212,10 +212,10 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
   }
 
   /* Allocate the data object. */
-  std::unique_ptr<ShrinkwrapBoundaryData> data = std::make_unique<ShrinkwrapBoundaryData>();
+  ShrinkwrapBoundaryData data;
 
   /* Build the boundary corner_tris bit-mask. */
-  const Span<int3> corner_tris = mesh->corner_tris();
+  const Span<int3> corner_tris = mesh.corner_tris();
 
   BitVector<> tri_has_boundary(corner_tris.size(), false);
 
@@ -232,7 +232,7 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
   }
 
   /* Find boundary vertices and build a mapping table for compact storage of data. */
-  Array<int> vert_boundary_id(mesh->verts_num, 0);
+  Array<int> vert_boundary_id(mesh.verts_num, 0);
 
   for (const int64_t i : edges.index_range()) {
     if (edge_is_boundary[i]) {
@@ -265,7 +265,7 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
   }
 
   /* Finalize average direction and compute normal. */
-  const Span<float3> vert_normals = mesh->vert_normals();
+  const Span<float3> vert_normals = mesh.vert_normals();
   for (const int64_t i : positions.index_range()) {
     int bidx = vert_boundary_id[i];
 
@@ -281,17 +281,19 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
     }
   }
 
-  data->edge_is_boundary = std::move(edge_is_boundary);
-  data->tri_has_boundary = std::move(tri_has_boundary);
-  data->vert_boundary_id = std::move(vert_boundary_id);
-  data->boundary_verts = std::move(boundary_verts);
+  data.edge_is_boundary = std::move(edge_is_boundary);
+  data.tri_has_boundary = std::move(tri_has_boundary);
+  data.vert_boundary_id = std::move(vert_boundary_id);
+  data.boundary_verts = std::move(boundary_verts);
 
   return data;
 }
 
-void compute_boundary_data(Mesh *mesh)
+const ShrinkwrapBoundaryData &boundary_cache_ensure(const Mesh &mesh)
 {
-  mesh->runtime->shrinkwrap_data = blender::bke::shrinkwrap::shrinkwrap_build_boundary_data(mesh);
+  mesh.runtime->shrinkwrap_boundary_cache.ensure(
+      [&](ShrinkwrapBoundaryData &r_data) { r_data = shrinkwrap_build_boundary_data(mesh); });
+  return mesh.runtime->shrinkwrap_boundary_cache.data();
 }
 
 }  // namespace blender::bke::shrinkwrap

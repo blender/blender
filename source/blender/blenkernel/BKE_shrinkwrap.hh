@@ -62,7 +62,7 @@ struct ShrinkwrapBoundaryData {
 
 namespace blender::bke::shrinkwrap {
 
-void compute_boundary_data(Mesh *mesh);
+const ShrinkwrapBoundaryData &boundary_cache_ensure(const Mesh &mesh);
 
 }  // namespace blender::bke::shrinkwrap
 
@@ -80,7 +80,7 @@ struct ShrinkwrapTreeData {
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> corner_normals;
   const bool *sharp_faces;
-  ShrinkwrapBoundaryData *boundary;
+  const ShrinkwrapBoundaryData *boundary;
 };
 
 /**

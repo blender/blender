@@ -1269,12 +1269,14 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
   }
 }
 
-static void mesh_build_extra_data(Depsgraph *depsgraph, Object *ob, Mesh *mesh_eval)
+static void mesh_build_extra_data(const Depsgraph *depsgraph,
+                                  const Object *ob,
+                                  const Mesh *mesh_eval)
 {
   uint32_t eval_flags = DEG_get_eval_flags_for_id(depsgraph, &ob->id);
 
   if (eval_flags & DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY) {
-    blender::bke::shrinkwrap::compute_boundary_data(mesh_eval);
+    blender::bke::shrinkwrap::boundary_cache_ensure(*mesh_eval);
   }
 }
 

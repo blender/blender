@@ -140,9 +140,6 @@ struct MeshRuntime {
   /** Cache for BVH trees generated for the mesh. Defined in 'BKE_bvhutil.c' */
   BVHCache *bvh_cache = nullptr;
 
-  /** Cache of non-manifold boundary data for Shrink-wrap Target Project. */
-  std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_data;
-
   /** Needed in case we need to lazily initialize the mesh. */
   CustomData_MeshMasks cd_mask_extra = {};
 
@@ -203,6 +200,9 @@ struct MeshRuntime {
   SharedCache<LooseVertCache> loose_verts_cache;
   /** Cache of data about vertices not used by faces. See #Mesh::verts_no_face(). */
   SharedCache<LooseVertCache> verts_no_face_cache;
+
+  /** Cache of non-manifold boundary data for shrinkwrap target Project. */
+  SharedCache<ShrinkwrapBoundaryData> shrinkwrap_boundary_cache;
 
   /**
    * A bit vector the size of the number of vertices, set to true for the center vertices of

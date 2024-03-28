@@ -299,9 +299,9 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->verts_no_face_cache.tag_dirty();
   mesh->runtime->corner_tris_cache.tag_dirty();
   mesh->runtime->corner_tri_faces_cache.tag_dirty();
+  mesh->runtime->shrinkwrap_boundary_cache.tag_dirty();
   mesh->runtime->subsurf_face_dot_tags.clear_and_shrink();
   mesh->runtime->subsurf_optimal_display_edges.clear_and_shrink();
-  mesh->runtime->shrinkwrap_data.reset();
   mesh->flag &= ~ME_NO_OVERLAPPING_TOPOLOGY;
 }
 
@@ -331,7 +331,7 @@ void Mesh::tag_edges_split()
   }
   this->runtime->subsurf_face_dot_tags.clear_and_shrink();
   this->runtime->subsurf_optimal_display_edges.clear_and_shrink();
-  this->runtime->shrinkwrap_data.reset();
+  this->runtime->shrinkwrap_boundary_cache.tag_dirty();
 }
 
 void Mesh::tag_sharpness_changed()
@@ -350,6 +350,7 @@ void Mesh::tag_face_winding_changed()
   this->runtime->face_normals_cache.tag_dirty();
   this->runtime->corner_normals_cache.tag_dirty();
   this->runtime->vert_to_corner_map_cache.tag_dirty();
+  this->runtime->shrinkwrap_boundary_cache.tag_dirty();
 }
 
 void Mesh::tag_positions_changed()
@@ -357,6 +358,7 @@ void Mesh::tag_positions_changed()
   this->runtime->vert_normals_cache.tag_dirty();
   this->runtime->face_normals_cache.tag_dirty();
   this->runtime->corner_normals_cache.tag_dirty();
+  this->runtime->shrinkwrap_boundary_cache.tag_dirty();
   this->tag_positions_changed_no_normals();
 }
 
@@ -365,6 +367,7 @@ void Mesh::tag_positions_changed_no_normals()
   free_bvh_cache(*this->runtime);
   this->runtime->corner_tris_cache.tag_dirty();
   this->runtime->bounds_cache.tag_dirty();
+  this->runtime->shrinkwrap_boundary_cache.tag_dirty();
 }
 
 void Mesh::tag_positions_changed_uniformly()
