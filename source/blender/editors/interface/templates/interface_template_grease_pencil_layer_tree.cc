@@ -253,66 +253,23 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   void build_layer_buttons(uiLayout &row)
   {
-    uiBut *but;
+    uiLayout *sub;
     PointerRNA layer_ptr = RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_);
 
-    uiBlock *block = uiLayoutGetBlock(&row);
+    sub = uiLayoutRow(&row, true);
+    uiLayoutSetActive(sub, layer_.parent_group().use_masks());
+    const int icon_mask = (layer_.base.flag & GP_LAYER_TREE_NODE_HIDE_MASKS) == 0 ?
+                              ICON_CLIPUV_DEHLT :
+                              ICON_CLIPUV_HLT;
+    uiItemR(sub, &layer_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, nullptr, icon_mask);
 
-    const int icon = (layer_.base.flag & GP_LAYER_TREE_NODE_HIDE_MASKS) == 0 ? ICON_CLIPUV_DEHLT :
-                                                                               ICON_CLIPUV_HLT;
-    but = uiDefIconButR(block,
-                        UI_BTYPE_ICON_TOGGLE,
-                        0,
-                        icon,
-                        0,
-                        0,
-                        UI_UNIT_X,
-                        UI_UNIT_Y,
-                        &layer_ptr,
-                        "use_masks",
-                        0,
-                        0.0f,
-                        0.0f,
-                        nullptr);
-    if (layer_.parent_group().use_masks()) {
-      UI_but_flag_enable(but, UI_BUT_INACTIVE);
-    }
+    sub = uiLayoutRow(&row, true);
+    uiLayoutSetActive(sub, layer_.parent_group().is_visible());
+    uiItemR(sub, &layer_ptr, "hide", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
 
-    but = uiDefIconButR(block,
-                        UI_BTYPE_ICON_TOGGLE,
-                        0,
-                        ICON_NONE,
-                        0,
-                        0,
-                        UI_UNIT_X,
-                        UI_UNIT_Y,
-                        &layer_ptr,
-                        "hide",
-                        0,
-                        0.0f,
-                        0.0f,
-                        nullptr);
-    if (!layer_.parent_group().is_visible()) {
-      UI_but_flag_enable(but, UI_BUT_INACTIVE);
-    }
-
-    but = uiDefIconButR(block,
-                        UI_BTYPE_ICON_TOGGLE,
-                        0,
-                        ICON_NONE,
-                        0,
-                        0,
-                        UI_UNIT_X,
-                        UI_UNIT_Y,
-                        &layer_ptr,
-                        "lock",
-                        0,
-                        0.0f,
-                        0.0f,
-                        nullptr);
-    if (layer_.parent_group().is_locked()) {
-      UI_but_flag_enable(but, UI_BUT_INACTIVE);
-    }
+    sub = uiLayoutRow(&row, true);
+    uiLayoutSetActive(sub, !layer_.parent_group().is_locked());
+    uiItemR(sub, &layer_ptr, "lock", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
   }
 };
 
@@ -382,9 +339,10 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     PointerRNA group_ptr = RNA_pointer_create(
         &grease_pencil_.id, &RNA_GreasePencilLayerGroup, &group_);
 
-    const int icon = (group_.base.flag & GP_LAYER_TREE_NODE_HIDE_MASKS) == 0 ? ICON_CLIPUV_DEHLT :
-                                                                               ICON_CLIPUV_HLT;
-    uiItemR(&row, &group_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, nullptr, icon);
+    const int icon_mask = (group_.base.flag & GP_LAYER_TREE_NODE_HIDE_MASKS) == 0 ?
+                              ICON_CLIPUV_DEHLT :
+                              ICON_CLIPUV_HLT;
+    uiItemR(&row, &group_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, nullptr, icon_mask);
     uiItemR(&row, &group_ptr, "hide", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
     uiItemR(&row, &group_ptr, "lock", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
   }
