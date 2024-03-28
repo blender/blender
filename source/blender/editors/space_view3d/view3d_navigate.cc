@@ -89,7 +89,7 @@ void ViewOpsData::init_context(bContext *C)
 void ViewOpsData::state_backup()
 {
   copy_v3_v3(this->init.ofs, rv3d->ofs);
-  copy_v3_v3(this->init.ofs_lock, rv3d->ofs_lock);
+  copy_v2_v2(this->init.ofs_lock, rv3d->ofs_lock);
   this->init.camdx = rv3d->camdx;
   this->init.camdy = rv3d->camdy;
   this->init.camzoom = rv3d->camzoom;
