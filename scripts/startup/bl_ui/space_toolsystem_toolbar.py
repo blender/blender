@@ -171,8 +171,8 @@ class _defs_annotate:
 
             gpl = context.active_annotation_layer
             if gpl is not None:
-                layout.label(text="Annotation:")
-                if context.space_data.type in {'VIEW_3D', 'SEQUENCE_EDITOR'}:
+                if context.space_data.type in {'VIEW_3D', 'SEQUENCE_EDITOR', 'IMAGE_EDITOR', 'NODE_EDITOR'}:
+                    layout.label(text="Annotation:")
                     if region_type == 'TOOL_HEADER':
                         sub = layout.split(align=True, factor=0.5)
                         sub.ui_units_x = 6.5
@@ -184,7 +184,15 @@ class _defs_annotate:
                         panel="TOPBAR_PT_annotation_layers",
                         text=text,
                     )
+                elif context.space_data.type == 'PROPERTIES':
+                    row = layout.row(align=True)
+                    row.prop(gpl, "color", text="Annotation")
+                    row.popover(
+                        panel="TOPBAR_PT_annotation_layers",
+                        text=text,
+                    )
                 else:
+                    layout.label(text="Annotation:")
                     layout.prop(gpl, "color", text="")
 
         space_type = tool.space_type
