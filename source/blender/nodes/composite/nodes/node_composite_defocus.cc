@@ -231,6 +231,10 @@ class DefocusOperation : public NodeOperation {
   /* Computes the maximum possible defocus radius in pixels. */
   float compute_maximum_defocus_radius()
   {
+    if (node_storage(bnode()).no_zbuf) {
+      return node_storage(bnode()).maxblur;
+    }
+
     const float maximum_diameter = compute_maximum_diameter_of_circle_of_confusion();
     const float pixels_per_meter = compute_pixels_per_meter();
     const float radius = (maximum_diameter / 2.0f) * pixels_per_meter;
