@@ -1236,6 +1236,9 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
   /* Use the polygon normal if flat. */
   else if (tree->poly_normals != nullptr) {
     copy_v3_v3(r_no, tree->poly_normals[poly_i]);
+    if (transform) {
+      BLI_space_transform_invert_normal(transform, r_no);
+    }
   }
   /* Finally fallback to the looptri normal. */
   else {
