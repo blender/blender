@@ -40,6 +40,8 @@
 
 #include "object_intern.hh"
 
+namespace blender::ed::object {
+
 /* All possible data to transfer.
  * Note some are 'fake' ones, i.e. they are not hold by real CDLayers. */
 /* Not shared with modifier, since we use a usual enum here, not a multi-choice one. */
@@ -147,7 +149,7 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
   RNA_enum_items_add_value(
       &item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_ALL_SRC);
 
-  Object *ob_src = ED_object_active_context(C);
+  Object *ob_src = context_active_object(C);
   if (ob_src == nullptr) {
     RNA_enum_item_end(&item, &totitem);
     *r_free = true;
@@ -352,7 +354,7 @@ static bool data_transfer_check(bContext * /*C*/, wmOperator *op)
 static void data_transfer_exec_preprocess_objects(bContext *C,
                                                   wmOperator *op,
                                                   Object *ob_src,
-                                                  blender::Vector<PointerRNA> *ctx_objects,
+                                                  Vector<PointerRNA> *ctx_objects,
                                                   const bool reverse_transfer)
 {
   CTX_data_selected_editable_objects(C, ctx_objects);
@@ -419,10 +421,10 @@ static bool data_transfer_exec_is_object_valid(wmOperator *op,
 
 static int data_transfer_exec(bContext *C, wmOperator *op)
 {
-  Object *ob_src = ED_object_active_context(C);
+  Object *ob_src = context_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-  blender::Vector<PointerRNA> ctx_objects;
+  Vector<PointerRNA> ctx_objects;
 
   bool changed = false;
 
@@ -548,7 +550,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
  * it cannot check for all possible invalid cases. */
 static bool data_transfer_poll(bContext *C)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   ID *data = static_cast<ID *>((ob) ? ob->data : nullptr);
   return (ob != nullptr && ob->type == OB_MESH && data != nullptr);
 }
@@ -818,7 +820,7 @@ static bool datalayout_transfer_poll(bContext *C)
 
 static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 {
-  Object *ob_act = ED_object_active_context(C);
+  Object *ob_act = context_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   DataTransferModifierData *dtmd;
 
@@ -852,7 +854,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
   else {
     Object *ob_src = ob_act;
 
-    blender::Vector<PointerRNA> ctx_objects;
+    Vector<PointerRNA> ctx_objects;
 
     const int data_type = RNA_enum_get(op->ptr, "data_type");
     const bool use_delete = RNA_boolean_get(op->ptr, "use_delete");
@@ -949,3 +951,5 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
                       "How to match source and destination layers");
   RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, dt_layers_select_dst_itemf);
 }
+
+}  // namespace blender::ed::object

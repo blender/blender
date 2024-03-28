@@ -66,7 +66,7 @@ bArmature *ED_armature_context(const bContext *C)
       CTX_data_pointer_get_type(C, "armature", &RNA_Armature).data);
 
   if (armature == nullptr) {
-    Object *object = ED_object_active_context(C);
+    Object *object = blender::ed::object::context_active_object(C);
     if (object && object->type == OB_ARMATURE) {
       armature = static_cast<bArmature *>(object->data);
     }

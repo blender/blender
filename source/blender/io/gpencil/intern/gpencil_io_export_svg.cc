@@ -375,7 +375,7 @@ void GpencilExporterSVG::add_rect(pugi::xml_node node,
                                   float width,
                                   float height,
                                   float thickness,
-                                  std::string hexcolor)
+                                  const std::string &hexcolor)
 {
   pugi::xml_node rect_node = node.append_child("rect");
   rect_node.append_attribute("x").set_value(x);
@@ -392,9 +392,9 @@ void GpencilExporterSVG::add_rect(pugi::xml_node node,
 void GpencilExporterSVG::add_text(pugi::xml_node node,
                                   float x,
                                   float y,
-                                  std::string text,
+                                  const std::string &text,
                                   const float size,
-                                  std::string hexcolor)
+                                  const std::string &hexcolor)
 {
   pugi::xml_node nodetxt = node.append_child("text");
 

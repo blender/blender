@@ -1004,6 +1004,14 @@ static void image_header_region_listener(const wmRegionListenerParams *params)
         ED_region_tag_redraw(region);
       }
       break;
+    case NC_GPENCIL:
+      if (wmn->data & ND_GPENCIL_EDITMODE) {
+        ED_region_tag_redraw(region);
+      }
+      else if (wmn->action == NA_EDITED) {
+        ED_region_tag_redraw(region);
+      }
+      break;
   }
 }
 

@@ -96,12 +96,6 @@ namespace blender::ed::outliner {
 
 static CLG_LogRef LOG = {"ed.outliner.tools"};
 
-using namespace blender::ed::outliner;
-
-using blender::Map;
-using blender::Set;
-using blender::Vector;
-
 /* -------------------------------------------------------------------- */
 /** \name ID/Library/Data Set/Un-link Utilities
  * \{ */
@@ -891,7 +885,7 @@ static void object_select_fn(bContext *C,
   Base *base = BKE_view_layer_base_find(view_layer, ob);
 
   if (base) {
-    ED_object_base_select(base, BA_SELECT);
+    object::base_select(base, object::BA_SELECT);
   }
 }
 
@@ -956,7 +950,7 @@ static void outliner_object_delete_fn(bContext *C, ReportList *reports, Scene *s
 
     /* Check also library later. */
     if ((ob->mode & OB_MODE_EDIT) && BKE_object_is_in_editmode(ob)) {
-      ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
+      object::editmode_exit_ex(bmain, scene, ob, object::EM_FREEDATA);
     }
     BKE_id_delete(bmain, ob);
   }
@@ -1334,7 +1328,7 @@ static void id_override_library_create_hierarchy(
      * instead. */
     if (success && data_idroot.is_override_instancing_object) {
       BLI_assert(GS(data_idroot.id_instance_hint->name) == ID_OB);
-      ED_object_base_free_and_unlink(
+      object::base_free_and_unlink(
           &bmain, scene, reinterpret_cast<Object *>(data_idroot.id_instance_hint));
     }
 
@@ -1605,7 +1599,7 @@ static void id_select_linked_fn(bContext *C,
 {
   ID *id = tselem->id;
 
-  ED_object_select_linked_by_id(C, id);
+  object::select_linked_by_id(C, id);
 }
 
 static void singleuser_action_fn(bContext *C,
@@ -2214,7 +2208,7 @@ static void data_select_linked_fn(int event,
       bContext *C = (bContext *)C_v;
       ID *id = static_cast<ID *>(ptr.data);
 
-      ED_object_select_linked_by_id(C, id);
+      object::select_linked_by_id(C, id);
     }
   }
 }
@@ -2228,12 +2222,12 @@ static void constraint_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/
 
   if (event == OL_CONSTRAINTOP_ENABLE) {
     constraint->flag &= ~CONSTRAINT_OFF;
-    ED_object_constraint_update(bmain, ob);
+    object::constraint_update(bmain, ob);
     WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
   }
   else if (event == OL_CONSTRAINTOP_DISABLE) {
     constraint->flag |= CONSTRAINT_OFF;
-    ED_object_constraint_update(bmain, ob);
+    object::constraint_update(bmain, ob);
     WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
   }
   else if (event == OL_CONSTRAINTOP_DELETE) {
@@ -2251,7 +2245,7 @@ static void constraint_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/
       BKE_constraints_active_set(&ob->constraints, nullptr);
 
       /* Needed to set the flags on pose-bones correctly. */
-      ED_object_constraint_update(bmain, ob);
+      object::constraint_update(bmain, ob);
 
       WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
       te->store_elem->flag &= ~TSE_SELECTED;
@@ -2285,13 +2279,13 @@ static void modifier_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, 
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
   }
   else if (event == OL_MODIFIER_OP_DELETE) {
-    ED_object_modifier_remove(data->reports, bmain, scene, ob, md);
+    object::modifier_remove(data->reports, bmain, scene, ob, md);
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_REMOVED, ob);
     te->store_elem->flag &= ~TSE_SELECTED;
   }
   else if (event == OL_MODIFIER_OP_APPLY) {
-    ED_object_modifier_apply(
-        bmain, data->reports, depsgraph, scene, ob, md, MODIFIER_APPLY_DATA, false);
+    object::modifier_apply(
+        bmain, data->reports, depsgraph, scene, ob, md, object::MODIFIER_APPLY_DATA, false);
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     DEG_relations_tag_update(bmain);
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
@@ -2413,7 +2407,7 @@ static void object_batch_delete_hierarchy_tag_fn(bContext *C,
     /* pass */
   }
   if (obedit == base->object) {
-    ED_object_editmode_exit(C, EM_FREEDATA);
+    object::editmode_exit(C, object::EM_FREEDATA);
   }
 
   Main *bmain = CTX_data_main(C);

@@ -228,7 +228,7 @@ static void ed_undo_step_post(bContext *C,
       }
       /* set workspace mode */
       Base *basact = CTX_data_active_base(C);
-      ED_object_base_activate(C, basact);
+      object::base_activate(C, basact);
     }
   }
 
@@ -816,13 +816,14 @@ void ED_OT_undo_history(wmOperatorType *ot)
 void ED_undo_object_set_active_or_warn(
     Scene *scene, ViewLayer *view_layer, Object *ob, const char *info, CLG_LogRef *log)
 {
+  using namespace blender::ed;
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob_prev = BKE_view_layer_active_object_get(view_layer);
   if (ob_prev != ob) {
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     if (base != nullptr) {
       view_layer->basact = base;
-      ED_object_base_active_refresh(G_MAIN, scene, view_layer);
+      object::base_active_refresh(G_MAIN, scene, view_layer);
     }
     else {
       /* Should never fail, may not crash but can give odd behavior. */
@@ -854,6 +855,7 @@ void ED_undo_object_editmode_restore_helper(Scene *scene,
                                             uint object_array_len,
                                             uint object_array_stride)
 {
+  using namespace blender::ed;
   Main *bmain = G_MAIN;
   /* Don't request unique data because we want to de-select objects when exiting edit-mode
    * for that to be done on all objects we can't skip ones that share data. */
@@ -866,16 +868,16 @@ void ED_undo_object_editmode_restore_helper(Scene *scene,
        i++, ob_p = static_cast<Object **>(POINTER_OFFSET(ob_p, object_array_stride)))
   {
     Object *obedit = *ob_p;
-    ED_object_editmode_enter_ex(bmain, scene, obedit, EM_NO_CONTEXT);
+    object::editmode_enter_ex(bmain, scene, obedit, object::EM_NO_CONTEXT);
     ((ID *)obedit->data)->tag &= ~LIB_TAG_DOIT;
   }
   for (Base *base : bases) {
     ID *id = static_cast<ID *>(base->object->data);
     if (id->tag & LIB_TAG_DOIT) {
-      ED_object_editmode_exit_ex(bmain, scene, base->object, EM_FREEDATA);
+      object::editmode_exit_ex(bmain, scene, base->object, object::EM_FREEDATA);
       /* Ideally we would know the selection state it was before entering edit-mode,
        * for now follow the convention of having them unselected when exiting the mode. */
-      ED_object_base_select(base, BA_DESELECT);
+      object::base_select(base, object::BA_DESELECT);
     }
   }
 }

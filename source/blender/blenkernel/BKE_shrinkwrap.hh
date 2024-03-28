@@ -60,10 +60,11 @@ struct ShrinkwrapBoundaryData {
   blender::Array<ShrinkwrapBoundaryVertData> boundary_verts;
 };
 
-/**
- * Free boundary data for target project.
- */
-void BKE_shrinkwrap_compute_boundary_data(Mesh *mesh);
+namespace blender::bke::shrinkwrap {
+
+const ShrinkwrapBoundaryData &boundary_cache_ensure(const Mesh &mesh);
+
+}  // namespace blender::bke::shrinkwrap
 
 /* Information about a mesh and BVH tree. */
 struct ShrinkwrapTreeData {
@@ -79,7 +80,7 @@ struct ShrinkwrapTreeData {
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> corner_normals;
   const bool *sharp_faces;
-  ShrinkwrapBoundaryData *boundary;
+  const ShrinkwrapBoundaryData *boundary;
 };
 
 /**

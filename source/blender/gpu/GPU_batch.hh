@@ -243,7 +243,7 @@ void GPU_batch_elembuf_set(blender::gpu::Batch *batch,
  * Returns true if the #GPUbatch has \a vertex_buf in its vertex buffer list.
  * \note The search is only conducted on the non-instance rate vertex buffer list.
  */
-bool GPU_batch_vertbuf_has(blender::gpu::Batch *batch, blender::gpu::VertBuf *vertex_buf);
+bool GPU_batch_vertbuf_has(const blender::gpu::Batch *batch, blender::gpu::VertBuf *vertex_buf);
 
 /**
  * Set resource id buffer to bind as instance attribute to workaround the lack of gl_BaseInstance

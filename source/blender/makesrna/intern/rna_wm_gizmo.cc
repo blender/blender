@@ -1082,7 +1082,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   /* wmGizmo.handler */
-  static EnumPropertyItem tweak_actions[] = {
+  static const EnumPropertyItem tweak_actions[] = {
       {WM_GIZMO_TWEAK_PRECISE, "PRECISE", 0, "Precise", ""},
       {WM_GIZMO_TWEAK_SNAP, "SNAP", 0, "Snap", ""},
       {0, nullptr, 0, nullptr, nullptr},
@@ -1391,7 +1391,7 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
   /* bl_options */
-  static EnumPropertyItem gizmogroup_flag_items[] = {
+  static const EnumPropertyItem gizmogroup_flag_items[] = {
       {WM_GIZMOGROUPTYPE_3D, "3D", 0, "3D", "Use in 3D viewport"},
       {WM_GIZMOGROUPTYPE_SCALE,
        "SCALE",

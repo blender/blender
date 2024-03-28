@@ -1280,7 +1280,7 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, const wmEven
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   SetConsoleCursor *scu = static_cast<SetConsoleCursor *>(op->customdata);
-  int sel_prev[2] = {sc->sel_start, sc->sel_end};
+  const int sel_prev[2] = {sc->sel_start, sc->sel_end};
 
   console_cursor_set_to_pos(sc, region, scu, event);
 

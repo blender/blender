@@ -524,7 +524,7 @@ static int curves_convert_from_particle_system_exec(bContext *C, wmOperator * /*
   Scene &scene = *CTX_data_scene(C);
   ViewLayer &view_layer = *CTX_data_view_layer(C);
   Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
-  Object *ob_from_orig = ED_object_active_context(C);
+  Object *ob_from_orig = object::context_active_object(C);
   ParticleSystem *psys_orig = static_cast<ParticleSystem *>(
       CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data);
   if (psys_orig == nullptr) {
@@ -559,7 +559,7 @@ static int curves_convert_from_particle_system_exec(bContext *C, wmOperator * /*
 
 static bool curves_convert_from_particle_system_poll(bContext *C)
 {
-  return ED_object_active_context(C) != nullptr;
+  return blender::ed::object::context_active_object(C) != nullptr;
 }
 
 }  // namespace convert_from_particle_system
@@ -1186,11 +1186,18 @@ static int surface_set_exec(bContext *C, wmOperator *op)
         &missing_uvs);
 
     /* Add deformation modifier if necessary. */
-    blender::ed::curves::ensure_surface_deformation_node_exists(*C, curves_ob);
+    ensure_surface_deformation_node_exists(*C, curves_ob);
 
     curves_id.surface = &new_surface_ob;
-    ED_object_parent_set(
-        op->reports, C, scene, &curves_ob, &new_surface_ob, PAR_OBJECT, false, true, nullptr);
+    object::parent_set(op->reports,
+                       C,
+                       scene,
+                       &curves_ob,
+                       &new_surface_ob,
+                       object::PAR_OBJECT,
+                       false,
+                       true,
+                       nullptr);
 
     DEG_id_tag_update(&curves_ob.id, ID_RECALC_TRANSFORM);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, &curves_id);
@@ -1329,11 +1336,8 @@ static void CURVES_OT_tilt_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-}  // namespace blender::ed::curves
-
-void ED_operatortypes_curves()
+void operatortypes_curves()
 {
-  using namespace blender::ed::curves;
   WM_operatortype_append(CURVES_OT_attribute_set);
   WM_operatortype_append(CURVES_OT_convert_to_particle_system);
   WM_operatortype_append(CURVES_OT_convert_from_particle_system);
@@ -1353,7 +1357,7 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_tilt_clear);
 }
 
-void ED_operatormacros_curves()
+void operatormacros_curves()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;
@@ -1379,10 +1383,11 @@ void ED_operatormacros_curves()
   RNA_boolean_set(otmacro->ptr, "mirror", false);
 }
 
-void ED_keymap_curves(wmKeyConfig *keyconf)
+void keymap_curves(wmKeyConfig *keyconf)
 {
-  using namespace blender::ed::curves;
   /* Only set in editmode curves, by space_view3d listener. */
   wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = editable_curves_in_edit_mode_poll;
 }
+
+}  // namespace blender::ed::curves

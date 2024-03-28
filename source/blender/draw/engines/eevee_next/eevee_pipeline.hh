@@ -40,7 +40,7 @@ class BackgroundPipeline {
  public:
   BackgroundPipeline(Instance &inst) : inst_(inst){};
 
-  void sync(GPUMaterial *gpumat, float background_opacity);
+  void sync(GPUMaterial *gpumat, float background_opacity, float background_blur);
   void render(View &view);
 };
 

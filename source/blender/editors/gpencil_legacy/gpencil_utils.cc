@@ -123,21 +123,19 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
     SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
 
     switch (area->spacetype) {
-      case SPACE_PROPERTIES: /* properties */
-      case SPACE_INFO:       /* header info */
+      case SPACE_INFO: /* header info */
       {
         return nullptr;
       }
 
-      case SPACE_TOPBAR: /* Top-bar */
-      case SPACE_VIEW3D: /* 3D-View */
+      case SPACE_TOPBAR:     /* Top-bar */
+      case SPACE_VIEW3D:     /* 3D-View */
+      case SPACE_PROPERTIES: /* properties */
       {
         if (r_ptr) {
           *r_ptr = RNA_id_pointer_create(&scene->id);
         }
         return &scene->gpd;
-
-        break;
       }
       case SPACE_NODE: /* Nodes Editor */
       {
@@ -1416,7 +1414,8 @@ Object *ED_gpencil_add_object(bContext *C, const float loc[3], ushort local_view
 {
   const float rot[3] = {0.0f};
 
-  Object *ob = ED_object_add_type(C, OB_GPENCIL_LEGACY, nullptr, loc, rot, false, local_view_bits);
+  Object *ob = blender::ed::object::add_type(
+      C, OB_GPENCIL_LEGACY, nullptr, loc, rot, false, local_view_bits);
 
   /* create default brushes and colors */
   ED_gpencil_add_defaults(C, ob);

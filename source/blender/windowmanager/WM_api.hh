@@ -187,7 +187,7 @@ enum eWM_CapabilitiesFlag {
   /** Support for IME input methods. */
   WM_CAPABILITY_INPUT_IME = (1 << 6),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
-  WM_CAPABILITY_INITIALIZED = (1 << 31),
+  WM_CAPABILITY_INITIALIZED = (1u << 31),
 };
 ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_CLIPBOARD_IMAGES)
 

@@ -90,16 +90,16 @@ static void do_outliner_item_editmode_toggle(bContext *C, Scene *scene, Base *ba
 
   bool changed = false;
   if (BKE_object_is_in_editmode(ob)) {
-    changed = ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
+    changed = object::editmode_exit_ex(bmain, scene, ob, object::EM_FREEDATA);
     if (changed) {
-      ED_object_base_select(base, BA_DESELECT);
+      object::base_select(base, object::BA_DESELECT);
       WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, nullptr);
     }
   }
   else {
-    changed = ED_object_editmode_enter_ex(CTX_data_main(C), scene, ob, EM_NO_CONTEXT);
+    changed = object::editmode_enter_ex(CTX_data_main(C), scene, ob, object::EM_NO_CONTEXT);
     if (changed) {
-      ED_object_base_select(base, BA_SELECT);
+      object::base_select(base, object::BA_SELECT);
       WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
     }
   }
@@ -130,14 +130,14 @@ static void do_outliner_item_posemode_toggle(bContext *C, Scene *scene, Base *ba
   if (ob->mode & OB_MODE_POSE) {
     changed = ED_object_posemode_exit_ex(bmain, ob);
     if (changed) {
-      ED_object_base_select(base, BA_DESELECT);
+      object::base_select(base, object::BA_DESELECT);
       WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, nullptr);
     }
   }
   else {
     changed = ED_object_posemode_enter_ex(bmain, ob);
     if (changed) {
-      ED_object_base_select(base, BA_SELECT);
+      object::base_select(base, object::BA_SELECT);
       WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_POSE, nullptr);
     }
   }
@@ -165,7 +165,7 @@ static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *t
   const eObjectMode active_mode = (eObjectMode)tvc->obact->mode;
   ED_undo_group_begin(C);
 
-  if (ED_object_mode_set(C, OB_MODE_OBJECT)) {
+  if (object::mode_set(C, OB_MODE_OBJECT)) {
     BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
     Base *base_active = BKE_view_layer_base_find(tvc->view_layer, tvc->obact);
     if (base_active != base) {
@@ -175,7 +175,7 @@ static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *t
       ED_undo_push(C, "Change Active");
 
       /* Operator call does undo push. */
-      ED_object_mode_set(C, active_mode);
+      object::mode_set(C, active_mode);
       ED_outliner_select_sync_from_object_tag(C);
     }
   }
@@ -250,7 +250,7 @@ static void do_outliner_object_select_recursive(const Scene *scene,
     if (((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0) &&
         BKE_object_is_child_recursive(ob_parent, ob))
     {
-      ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
+      object::base_select(base, select ? object::BA_SELECT : object::BA_DESELECT);
     }
   }
 }
@@ -337,7 +337,7 @@ static void tree_element_object_activate(bContext *C,
         if (object_mode == OB_MODE_OBJECT) {
           Main *bmain = CTX_data_main(C);
           Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-          ED_object_mode_generic_exit(bmain, depsgraph, scene, base->object);
+          object::mode_generic_exit(bmain, depsgraph, scene, base->object);
         }
         if (!BKE_object_is_mode_compat(base->object, object_mode)) {
           base = nullptr;
@@ -350,13 +350,13 @@ static void tree_element_object_activate(bContext *C,
     if (set == OL_SETSEL_EXTEND) {
       /* swap select */
       if (base->flag & BASE_SELECTED) {
-        ED_object_base_select(base, BA_DESELECT);
+        object::base_select(base, object::BA_DESELECT);
         if (parent_tselem) {
           parent_tselem->flag &= ~TSE_SELECTED;
         }
       }
       else {
-        ED_object_base_select(base, BA_SELECT);
+        object::base_select(base, object::BA_SELECT);
         if (parent_tselem) {
           parent_tselem->flag |= TSE_SELECTED;
         }
@@ -378,7 +378,7 @@ static void tree_element_object_activate(bContext *C,
       {
         BKE_view_layer_base_deselect_all(scene, view_layer);
       }
-      ED_object_base_select(base, BA_SELECT);
+      object::base_select(base, object::BA_SELECT);
       if (parent_tselem) {
         parent_tselem->flag |= TSE_SELECTED;
       }
@@ -392,7 +392,7 @@ static void tree_element_object_activate(bContext *C,
 
     if (set != OL_SETSEL_NONE) {
       if (!recursive) {
-        ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
+        object::base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
       }
       DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
@@ -1472,11 +1472,11 @@ static void do_outliner_item_activate_tree_element(bContext *C,
       BKE_view_layer_synced_ensure(tvc->scene, tvc->view_layer);
 
       if (extend) {
-        eObjectSelect_Mode sel = BA_SELECT;
+        object::eObjectSelect_Mode sel = object::BA_SELECT;
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (gr, object) {
           Base *base = BKE_view_layer_base_find(tvc->view_layer, object);
           if (base && (base->flag & BASE_SELECTED)) {
-            sel = BA_DESELECT;
+            sel = object::BA_DESELECT;
             break;
           }
         }
@@ -1485,7 +1485,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (gr, object) {
           Base *base = BKE_view_layer_base_find(tvc->view_layer, object);
           if (base) {
-            ED_object_base_select(base, sel);
+            object::base_select(base, sel);
           }
         }
         FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
@@ -1498,7 +1498,7 @@ static void do_outliner_item_activate_tree_element(bContext *C,
           /* Object may not be in this scene */
           if (base != nullptr) {
             if ((base->flag & BASE_SELECTED) == 0) {
-              ED_object_base_select(base, BA_SELECT);
+              object::base_select(base, object::BA_SELECT);
             }
           }
         }

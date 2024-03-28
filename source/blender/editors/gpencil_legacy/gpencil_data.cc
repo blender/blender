@@ -3056,7 +3056,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
       }
 
       /* Free the old object */
-      ED_object_base_free_and_unlink(bmain, scene, ob_iter);
+      blender::ed::object::base_free_and_unlink(bmain, scene, ob_iter);
     }
   }
   CTX_DATA_END;
@@ -3764,7 +3764,7 @@ bool ED_gpencil_add_lattice_modifier(const bContext *C,
   /* if no lattice modifier, add a new one */
   GpencilModifierData *md = BKE_gpencil_modifiers_findby_type(ob, eGpencilModifierType_Lattice);
   if (md == nullptr) {
-    md = ED_object_gpencil_modifier_add(
+    md = blender::ed::object::gpencil_modifier_add(
         reports, bmain, scene, ob, "Lattice", eGpencilModifierType_Lattice);
     if (md == nullptr) {
       BKE_report(reports, RPT_ERROR, "Unable to add a new Lattice modifier to object");

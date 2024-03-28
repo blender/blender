@@ -1097,7 +1097,7 @@ static int localview_remove_from_exec(bContext *C, wmOperator *op)
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     if (BASE_SELECTED(v3d, base)) {
       base->local_view_bits &= ~v3d->local_view_uid;
-      ED_object_base_select(base, BA_DESELECT);
+      blender::ed::object::base_select(base, blender::ed::object::BA_DESELECT);
 
       if (base == view_layer->basact) {
         view_layer->basact = nullptr;

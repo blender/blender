@@ -1254,7 +1254,7 @@ static void do_view3d_vgroup_buttons(bContext *C, void * /*arg*/, int event)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  ED_vgroup_vert_active_mirror(ob, event - B_VGRP_PNL_EDIT_SINGLE);
+  blender::ed::object::vgroup_vert_active_mirror(ob, event - B_VGRP_PNL_EDIT_SINGLE);
   DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 }
@@ -1757,7 +1757,7 @@ static void view3d_panel_transform(const bContext *C, Panel *panel)
 
 static void hide_collections_menu_draw(const bContext *C, Menu *menu)
 {
-  ED_collection_hide_menu_draw(C, menu->layout);
+  blender::ed::object::collection_hide_menu_draw(C, menu->layout);
 }
 
 void view3d_buttons_register(ARegionType *art)
@@ -1800,7 +1800,7 @@ static int view3d_object_mode_menu_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   if (((ob->mode & OB_MODE_EDIT) == 0) && ELEM(ob->type, OB_ARMATURE)) {
-    ED_object_mode_set(C, (ob->mode == OB_MODE_OBJECT) ? OB_MODE_POSE : OB_MODE_OBJECT);
+    blender::ed::object::mode_set(C, (ob->mode == OB_MODE_OBJECT) ? OB_MODE_POSE : OB_MODE_OBJECT);
     return OPERATOR_CANCELLED;
   }
 

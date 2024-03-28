@@ -16,7 +16,7 @@
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_compat.h"
 #include "BLI_function_ref.hh"
-#include "BLI_index_mask.hh"
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"

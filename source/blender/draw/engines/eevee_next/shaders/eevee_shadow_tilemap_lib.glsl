@@ -176,13 +176,16 @@ struct ShadowCoordinates {
 };
 
 /* Retain sign bit and avoid costly int division. */
-ivec2 shadow_decompress_grid_offset(eLightType light_type, ivec2 offset, int level_relative)
+ivec2 shadow_decompress_grid_offset(eLightType light_type,
+                                    ivec2 offset_neg,
+                                    ivec2 offset_pos,
+                                    int level_relative)
 {
   if (light_type == LIGHT_SUN_ORTHO) {
-    return shadow_cascade_grid_offset(offset, level_relative);
+    return shadow_cascade_grid_offset(offset_pos, level_relative);
   }
   else {
-    return ((offset & 0xFFFF) >> level_relative) - ((offset >> 16) >> level_relative);
+    return (offset_pos >> level_relative) - (offset_neg >> level_relative);
   }
 }
 
@@ -203,7 +206,10 @@ ShadowCoordinates shadow_directional_coordinates_at_level(LightData light, vec3 
 
   /* Compute offset in tile. */
   ivec2 clipmap_offset = shadow_decompress_grid_offset(
-      light.type, light_sun_data_get(light).clipmap_base_offset, level_relative);
+      light.type,
+      light_sun_data_get(light).clipmap_base_offset_neg,
+      light_sun_data_get(light).clipmap_base_offset_pos,
+      level_relative);
 
   ret.uv = lP.xy - light_sun_data_get(light).clipmap_origin;
   ret.uv /= exp2(float(ret.lod_relative));

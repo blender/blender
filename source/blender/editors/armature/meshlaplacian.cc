@@ -737,9 +737,9 @@ void heat_bone_weighting(Object *ob,
           continue;
         }
 
-        ED_vgroup_vert_remove(ob, dgrouplist[j], a);
+        blender::ed::object::vgroup_vert_remove(ob, dgrouplist[j], a);
         if (vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0) {
-          ED_vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
+          blender::ed::object::vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
         }
       }
     }
@@ -765,16 +765,16 @@ void heat_bone_weighting(Object *ob,
 
         if (bbone) {
           if (solution > 0.0f) {
-            ED_vgroup_vert_add(ob, dgrouplist[j], a, solution, WEIGHT_ADD);
+            blender::ed::object::vgroup_vert_add(ob, dgrouplist[j], a, solution, WEIGHT_ADD);
           }
         }
         else {
           weight = heat_limit_weight(solution);
           if (weight > 0.0f) {
-            ED_vgroup_vert_add(ob, dgrouplist[j], a, weight, WEIGHT_REPLACE);
+            blender::ed::object::vgroup_vert_add(ob, dgrouplist[j], a, weight, WEIGHT_REPLACE);
           }
           else {
-            ED_vgroup_vert_remove(ob, dgrouplist[j], a);
+            blender::ed::object::vgroup_vert_remove(ob, dgrouplist[j], a);
           }
         }
 
@@ -782,16 +782,18 @@ void heat_bone_weighting(Object *ob,
         if (vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0) {
           if (bbone) {
             if (solution > 0.0f) {
-              ED_vgroup_vert_add(ob, dgroupflip[j], vertsflipped[a], solution, WEIGHT_ADD);
+              blender::ed::object::vgroup_vert_add(
+                  ob, dgroupflip[j], vertsflipped[a], solution, WEIGHT_ADD);
             }
           }
           else {
             weight = heat_limit_weight(solution);
             if (weight > 0.0f) {
-              ED_vgroup_vert_add(ob, dgroupflip[j], vertsflipped[a], weight, WEIGHT_REPLACE);
+              blender::ed::object::vgroup_vert_add(
+                  ob, dgroupflip[j], vertsflipped[a], weight, WEIGHT_REPLACE);
             }
             else {
-              ED_vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
+              blender::ed::object::vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
             }
           }
         }
@@ -809,17 +811,17 @@ void heat_bone_weighting(Object *ob,
           continue;
         }
 
-        weight = ED_vgroup_vert_weight(ob, dgrouplist[j], a);
+        weight = blender::ed::object::vgroup_vert_weight(ob, dgrouplist[j], a);
         weight = heat_limit_weight(weight);
         if (weight <= 0.0f) {
-          ED_vgroup_vert_remove(ob, dgrouplist[j], a);
+          blender::ed::object::vgroup_vert_remove(ob, dgrouplist[j], a);
         }
 
         if (vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0) {
-          weight = ED_vgroup_vert_weight(ob, dgroupflip[j], vertsflipped[a]);
+          weight = blender::ed::object::vgroup_vert_weight(ob, dgroupflip[j], vertsflipped[a]);
           weight = heat_limit_weight(weight);
           if (weight <= 0.0f) {
-            ED_vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
+            blender::ed::object::vgroup_vert_remove(ob, dgroupflip[j], vertsflipped[a]);
           }
         }
       }

@@ -37,7 +37,7 @@ struct ThumbnailDrawJob {
   SeqRenderData context;
   GHash *sequences_ghash;
   Scene *scene;
-  rctf *view_area;
+  const rctf *view_area;
   float pixelx;
   float pixely;
   float thumb_height;
@@ -59,7 +59,7 @@ static void thumbnail_freejob(void *data)
 {
   ThumbnailDrawJob *tj = static_cast<ThumbnailDrawJob *>(data);
   BLI_ghash_free(tj->sequences_ghash, nullptr, thumbnail_hash_data_free);
-  MEM_freeN(tj->view_area);
+  MEM_freeN((void *)tj->view_area);
   MEM_freeN(tj);
 }
 
@@ -69,7 +69,7 @@ static void thumbnail_endjob(void *data)
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, tj->scene);
 }
 
-static bool check_seq_need_thumbnails(const Scene *scene, Sequence *seq, rctf *view_area)
+static bool check_seq_need_thumbnails(const Scene *scene, Sequence *seq, const rctf *view_area)
 {
   if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
     return false;
@@ -143,7 +143,7 @@ static void thumbnail_start_job(void *data, wmJobWorkerStatus *worker_status)
 
   /* First pass: render visible images. */
   BLI_ghashIterator_init(&gh_iter, tj->sequences_ghash);
-  while (!BLI_ghashIterator_done(&gh_iter) & !worker_status->stop) {
+  while (!BLI_ghashIterator_done(&gh_iter) && !worker_status->stop) {
     Sequence *seq_orig = static_cast<Sequence *>(BLI_ghashIterator_getKey(&gh_iter));
     ThumbDataItem *val = static_cast<ThumbDataItem *>(
         BLI_ghash_lookup(tj->sequences_ghash, seq_orig));
@@ -160,7 +160,7 @@ static void thumbnail_start_job(void *data, wmJobWorkerStatus *worker_status)
 
   /* Second pass: render "guaranteed" set of images. */
   BLI_ghashIterator_init(&gh_iter, tj->sequences_ghash);
-  while (!BLI_ghashIterator_done(&gh_iter) & !worker_status->stop) {
+  while (!BLI_ghashIterator_done(&gh_iter) && !worker_status->stop) {
     Sequence *seq_orig = static_cast<Sequence *>(BLI_ghashIterator_getKey(&gh_iter));
     ThumbDataItem *val = static_cast<ThumbDataItem *>(
         BLI_ghash_lookup(tj->sequences_ghash, seq_orig));

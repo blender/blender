@@ -62,6 +62,7 @@
 #include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_object_vgroup.hh"
+#include "ED_paint.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
@@ -336,7 +337,7 @@ void mode_enter_generic(
 
     /* weight paint specific */
     ED_mesh_mirror_spatial_table_end(ob);
-    ED_vgroup_sync_from_pose(ob);
+    blender::ed::object::vgroup_sync_from_pose(ob);
   }
   else {
     BLI_assert(0);
@@ -826,7 +827,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   ToolSettings *ts = scene->toolsettings;
 
   if (!is_mode_set) {
-    if (!ED_object_mode_compat_set(C, ob, (eObjectMode)mode_flag, op->reports)) {
+    if (!blender::ed::object::mode_compat_set(C, ob, (eObjectMode)mode_flag, op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }

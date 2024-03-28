@@ -19,7 +19,6 @@
 
 struct AssetLibraryReference;
 struct bContext;
-
 namespace blender::asset_system {
 class AssetLibrary;
 class AssetRepresentation;

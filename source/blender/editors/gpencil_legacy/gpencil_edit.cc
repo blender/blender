@@ -611,7 +611,7 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
     ob->mode = mode;
 
     /* Prepare armature posemode. */
-    ED_object_posemode_set_for_weight_paint(C, bmain, ob, is_mode_set);
+    blender::ed::object::posemode_set_for_weight_paint(C, bmain, ob, is_mode_set);
   }
 
   if (mode == OB_MODE_WEIGHT_GPENCIL_LEGACY) {
@@ -2786,7 +2786,7 @@ static int gpencil_dissolve_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_dissolve(wmOperatorType *ot)
 {
-  static EnumPropertyItem prop_gpencil_dissolve_types[] = {
+  static const EnumPropertyItem prop_gpencil_dissolve_types[] = {
       {GP_DISSOLVE_POINTS, "POINTS", 0, "Dissolve", "Dissolve selected points"},
       {GP_DISSOLVE_BETWEEN,
        "BETWEEN",
@@ -5074,7 +5074,7 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
   /* Take into account user preferences for duplicating actions. */
   const eDupli_ID_Flags dupflag = eDupli_ID_Flags(U.dupflag & USER_DUP_ACT);
 
-  base_new = ED_object_add_duplicate(bmain, scene, view_layer, base_prev, dupflag);
+  base_new = blender::ed::object::add_duplicate(bmain, scene, view_layer, base_prev, dupflag);
   ob_dst = base_new->object;
   ob_dst->mode = OB_MODE_OBJECT;
   /* Duplication will increment #bGPdata user-count, but since we create a new grease-pencil

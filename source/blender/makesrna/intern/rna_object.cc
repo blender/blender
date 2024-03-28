@@ -666,7 +666,7 @@ static void rna_Object_parent_set(PointerRNA *ptr, PointerRNA value, ReportList 
   Object *par = static_cast<Object *>(value.data);
 
   {
-    ED_object_parent(ob, par, ob->partype, ob->parsubstr);
+    blender::ed::object::parent_set(ob, par, ob->partype, ob->parsubstr);
   }
 }
 
@@ -700,7 +700,7 @@ static bool rna_Object_parent_override_apply(Main *bmain,
 
   if (parent_src == nullptr) {
     /* The only case where we do want default behavior (with matrix reset). */
-    ED_object_parent(ob, parent_src, ob->partype, ob->parsubstr);
+    blender::ed::object::parent_set(ob, parent_src, ob->partype, ob->parsubstr);
   }
   else {
     ob->parent = parent_src;
@@ -713,12 +713,13 @@ static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
 {
   Object *ob = static_cast<Object *>(ptr->data);
 
-  /* Skip if type did not change (otherwise we loose parent inverse in ED_object_parent). */
+  /* Skip if type did not change (otherwise we loose parent inverse in
+   * blender::ed::object::parent_set). */
   if (ob->partype == value) {
     return;
   }
 
-  ED_object_parent(ob, ob->parent, value, ob->parsubstr);
+  blender::ed::object::parent_set(ob, ob->parent, value, ob->parsubstr);
 }
 
 static bool rna_Object_parent_type_override_apply(Main *bmain,
@@ -801,7 +802,7 @@ static void rna_Object_parent_bone_set(PointerRNA *ptr, const char *value)
 {
   Object *ob = static_cast<Object *>(ptr->data);
 
-  ED_object_parent(ob, ob->parent, ob->partype, value);
+  blender::ed::object::parent_set(ob, ob->parent, ob->partype, value);
 }
 
 static bool rna_Object_parent_bone_override_apply(Main *bmain,
@@ -1641,7 +1642,7 @@ static bConstraint *rna_Object_constraints_new(Object *object, Main *bmain, int 
 {
   bConstraint *new_con = BKE_constraint_add_for_object(object, nullptr, type);
 
-  ED_object_constraint_tag_update(bmain, object, new_con);
+  blender::ed::object::constraint_tag_update(bmain, object, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, object);
 
   return new_con;
@@ -1665,8 +1666,8 @@ static void rna_Object_constraints_remove(Object *object,
   BKE_constraint_remove(&object->constraints, con);
   RNA_POINTER_INVALIDATE(con_ptr);
 
-  ED_object_constraint_update(bmain, object);
-  ED_object_constraint_active_set(object, nullptr);
+  blender::ed::object::constraint_update(bmain, object);
+  blender::ed::object::constraint_active_set(object, nullptr);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, object);
 }
 
@@ -1674,8 +1675,8 @@ static void rna_Object_constraints_clear(Object *object, Main *bmain)
 {
   BKE_constraints_free(&object->constraints);
 
-  ED_object_constraint_update(bmain, object);
-  ED_object_constraint_active_set(object, nullptr);
+  blender::ed::object::constraint_update(bmain, object);
+  blender::ed::object::constraint_active_set(object, nullptr);
 
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, object);
 }
@@ -1692,7 +1693,7 @@ static void rna_Object_constraints_move(
     return;
   }
 
-  ED_object_constraint_tag_update(bmain, object, nullptr);
+  blender::ed::object::constraint_tag_update(bmain, object, nullptr);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT, object);
 }
 
@@ -1702,7 +1703,7 @@ static bConstraint *rna_Object_constraints_copy(Object *object, Main *bmain, Poi
   bConstraint *new_con = BKE_constraint_copy_for_object(object, con);
   new_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
 
-  ED_object_constraint_tag_update(bmain, object, new_con);
+  blender::ed::object::constraint_tag_update(bmain, object, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, object);
 
   return new_con;
@@ -1758,7 +1759,7 @@ bool rna_Object_constraints_override_apply(Main *bmain,
 static ModifierData *rna_Object_modifier_new(
     Object *object, bContext *C, ReportList *reports, const char *name, int type)
 {
-  ModifierData *md = ED_object_modifier_add(
+  ModifierData *md = blender::ed::object::modifier_add(
       reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
 
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_ADDED, object);
@@ -1772,7 +1773,8 @@ static void rna_Object_modifier_remove(Object *object,
                                        PointerRNA *md_ptr)
 {
   ModifierData *md = static_cast<ModifierData *>(md_ptr->data);
-  if (ED_object_modifier_remove(reports, CTX_data_main(C), CTX_data_scene(C), object, md) == false)
+  if (blender::ed::object::modifier_remove(
+          reports, CTX_data_main(C), CTX_data_scene(C), object, md) == false)
   {
     /* error is already set */
     return;
@@ -1785,7 +1787,7 @@ static void rna_Object_modifier_remove(Object *object,
 
 static void rna_Object_modifier_clear(Object *object, bContext *C)
 {
-  ED_object_modifier_clear(CTX_data_main(C), CTX_data_scene(C), object);
+  blender::ed::object::modifier_clear(CTX_data_main(C), CTX_data_scene(C), object);
 
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
@@ -1799,7 +1801,7 @@ static void rna_Object_modifier_move(Object *object, ReportList *reports, int fr
     return;
   }
 
-  ED_object_modifier_move_to_index(reports, RPT_ERROR, object, md, to, false);
+  blender::ed::object::modifier_move_to_index(reports, RPT_ERROR, object, md, to, false);
 }
 
 static PointerRNA rna_Object_active_modifier_get(PointerRNA *ptr)
@@ -1866,7 +1868,7 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
   /* While it would be nicer to use lower-level BKE_modifier_new() here, this one is lacking
    * special-cases handling (particles and other physics modifiers mostly), so using the ED version
    * instead, to avoid duplicating code. */
-  ModifierData *mod_dst = ED_object_modifier_add(
+  ModifierData *mod_dst = blender::ed::object::modifier_add(
       nullptr, bmain, nullptr, ob_dst, mod_src->name, mod_src->type);
 
   if (mod_dst == nullptr) {
@@ -1916,7 +1918,7 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
 static GpencilModifierData *rna_Object_greasepencil_modifier_new(
     Object *object, bContext *C, ReportList *reports, const char *name, int type)
 {
-  return ED_object_gpencil_modifier_add(
+  return blender::ed::object::gpencil_modifier_add(
       reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
 }
 
@@ -1926,7 +1928,9 @@ static void rna_Object_greasepencil_modifier_remove(Object *object,
                                                     PointerRNA *gmd_ptr)
 {
   GpencilModifierData *gmd = static_cast<GpencilModifierData *>(gmd_ptr->data);
-  if (ED_object_gpencil_modifier_remove(reports, CTX_data_main(C), object, gmd) == false) {
+  if (blender::ed::object::gpencil_modifier_remove(reports, CTX_data_main(C), object, gmd) ==
+      false)
+  {
     /* error is already set */
     return;
   }
@@ -1938,7 +1942,7 @@ static void rna_Object_greasepencil_modifier_remove(Object *object,
 
 static void rna_Object_greasepencil_modifier_clear(Object *object, bContext *C)
 {
-  ED_object_gpencil_modifier_clear(CTX_data_main(C), object);
+  blender::ed::object::gpencil_modifier_clear(CTX_data_main(C), object);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
 
@@ -1981,7 +1985,7 @@ bool rna_Object_greasepencil_modifiers_override_apply(
   /* While it would be nicer to use lower-level BKE_modifier_new() here, this one is lacking
    * special-cases handling (particles and other physics modifiers mostly), so using the ED version
    * instead, to avoid duplicating code. */
-  GpencilModifierData *mod_dst = ED_object_gpencil_modifier_add(
+  GpencilModifierData *mod_dst = blender::ed::object::gpencil_modifier_add(
       nullptr, bmain, nullptr, ob_dst, mod_src->name, mod_src->type);
 
   BKE_gpencil_modifier_copydata(mod_src, mod_dst);
@@ -1999,7 +2003,8 @@ bool rna_Object_greasepencil_modifiers_override_apply(
 static ShaderFxData *rna_Object_shaderfx_new(
     Object *object, bContext *C, ReportList *reports, const char *name, int type)
 {
-  return ED_object_shaderfx_add(reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
+  return blender::ed::object::shaderfx_add(
+      reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
 }
 
 static void rna_Object_shaderfx_remove(Object *object,
@@ -2008,7 +2013,7 @@ static void rna_Object_shaderfx_remove(Object *object,
                                        PointerRNA *gmd_ptr)
 {
   ShaderFxData *gmd = static_cast<ShaderFxData *>(gmd_ptr->data);
-  if (ED_object_shaderfx_remove(reports, CTX_data_main(C), object, gmd) == false) {
+  if (blender::ed::object::shaderfx_remove(reports, CTX_data_main(C), object, gmd) == false) {
     /* error is already set */
     return;
   }
@@ -2020,7 +2025,7 @@ static void rna_Object_shaderfx_remove(Object *object,
 
 static void rna_Object_shaderfx_clear(Object *object, bContext *C)
 {
-  ED_object_shaderfx_clear(CTX_data_main(C), object);
+  blender::ed::object::shaderfx_clear(CTX_data_main(C), object);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
 
@@ -2126,7 +2131,7 @@ static void rna_VertexGroup_vertex_add(ID *id,
 
   while (index_num--) {
     /* XXX: not efficient calling within loop. */
-    ED_vgroup_vert_add(ob, def, *index++, weight, assignmode);
+    blender::ed::object::vgroup_vert_add(ob, def, *index++, weight, assignmode);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -2145,7 +2150,7 @@ static void rna_VertexGroup_vertex_remove(
   }
 
   while (index_num--) {
-    ED_vgroup_vert_remove(ob, dg, *index++);
+    blender::ed::object::vgroup_vert_remove(ob, dg, *index++);
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -2154,7 +2159,8 @@ static void rna_VertexGroup_vertex_remove(
 
 static float rna_VertexGroup_weight(ID *id, bDeformGroup *dg, ReportList *reports, int index)
 {
-  float weight = ED_vgroup_vert_weight(reinterpret_cast<Object *>(id), dg, index);
+  float weight = blender::ed::object::vgroup_vert_weight(
+      reinterpret_cast<Object *>(id), dg, index);
 
   if (weight < 0) {
     BKE_report(reports, RPT_ERROR, "Vertex not in group");

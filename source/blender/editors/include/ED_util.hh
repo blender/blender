@@ -87,7 +87,7 @@ void ED_slider_status_string_get(const tSlider *slider,
                                  char *status_string,
                                  size_t size_of_status_string);
 
-float ED_slider_factor_get(tSlider *slider);
+float ED_slider_factor_get(const tSlider *slider);
 void ED_slider_factor_set(tSlider *slider, float factor);
 
 /** One bool value for each side of the slider. Allows to enable overshoot only on one side. */
@@ -98,11 +98,11 @@ void ED_slider_allow_overshoot_set(tSlider *slider, bool lower, bool upper);
  */
 void ED_slider_factor_bounds_set(tSlider *slider, float lower_bound, float upper_bound);
 
-bool ED_slider_allow_increments_get(tSlider *slider);
+bool ED_slider_allow_increments_get(const tSlider *slider);
 void ED_slider_allow_increments_set(tSlider *slider, bool value);
 
 void ED_slider_mode_set(tSlider *slider, SliderMode mode);
-SliderMode ED_slider_mode_get(tSlider *slider);
+SliderMode ED_slider_mode_get(const tSlider *slider);
 void ED_slider_unit_set(tSlider *slider, const char *unit);
 
 /* ************** XXX OLD CRUFT WARNING ************* */

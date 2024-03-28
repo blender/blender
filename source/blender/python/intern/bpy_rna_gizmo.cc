@@ -491,8 +491,6 @@ static PyObject *bpy_gizmo_target_get_value(PyObject * /*self*/, PyObject *args,
 
       const float value = WM_gizmo_target_property_float_get(gz, gz_prop);
       return PyFloat_FromDouble(value);
-
-      break;
     }
     default: {
       PyErr_SetString(PyExc_RuntimeError, "Not yet supported type");

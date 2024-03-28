@@ -164,7 +164,7 @@ static bool object_deselect_all_visible(const Scene *scene, ViewLayer *view_laye
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     if (base->flag & BASE_SELECTED) {
       if (BASE_SELECTABLE(v3d, base)) {
-        ED_object_base_select(base, BA_DESELECT);
+        blender::ed::object::base_select(base, blender::ed::object::BA_DESELECT);
         changed = true;
       }
     }
@@ -180,7 +180,7 @@ static bool object_deselect_all_except(const Scene *scene, ViewLayer *view_layer
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     if (base->flag & BASE_SELECTED) {
       if (b != base) {
-        ED_object_base_select(base, BA_DESELECT);
+        blender::ed::object::base_select(base, blender::ed::object::BA_DESELECT);
         changed = true;
       }
     }
@@ -593,7 +593,9 @@ static bool do_lasso_select_objects(const ViewContext *vc,
                                                        INT_MAX);
       const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
-        ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
+        blender::ed::object::base_select(base,
+                                         sel_op_result ? blender::ed::object::BA_SELECT :
+                                                         blender::ed::object::BA_DESELECT);
         changed = true;
       }
     }
@@ -1601,33 +1603,33 @@ static int object_select_menu_exec(bContext *C, wmOperator *op)
   BLI_assert(BASE_SELECTABLE(v3d, basact));
 
   if (extend) {
-    ED_object_base_select(basact, BA_SELECT);
+    blender::ed::object::base_select(basact, blender::ed::object::BA_SELECT);
     changed = true;
   }
   else if (deselect) {
-    ED_object_base_select(basact, BA_DESELECT);
+    blender::ed::object::base_select(basact, blender::ed::object::BA_DESELECT);
     changed = true;
   }
   else if (toggle) {
     if (basact->flag & BASE_SELECTED) {
       if (basact == oldbasact) {
-        ED_object_base_select(basact, BA_DESELECT);
+        blender::ed::object::base_select(basact, blender::ed::object::BA_DESELECT);
         changed = true;
       }
     }
     else {
-      ED_object_base_select(basact, BA_SELECT);
+      blender::ed::object::base_select(basact, blender::ed::object::BA_SELECT);
       changed = true;
     }
   }
   else {
     object_deselect_all_except(scene, view_layer, basact);
-    ED_object_base_select(basact, BA_SELECT);
+    blender::ed::object::base_select(basact, blender::ed::object::BA_SELECT);
     changed = true;
   }
 
   if (oldbasact != basact) {
-    ED_object_base_activate(C, basact);
+    blender::ed::object::base_activate(C, basact);
   }
 
   /* weak but ensures we activate menu again before using the enum */
@@ -1825,7 +1827,7 @@ static int bone_select_menu_exec(bContext *C, wmOperator *op)
 
   /* We make the armature selected:
    * Not-selected active object in pose-mode won't work well for tools. */
-  ED_object_base_select(basact, BA_SELECT);
+  blender::ed::object::base_select(basact, blender::ed::object::BA_SELECT);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, basact->object);
@@ -1845,7 +1847,7 @@ static int bone_select_menu_exec(bContext *C, wmOperator *op)
     }
     else {
       if (oldbasact != basact) {
-        ED_object_base_activate(C, basact);
+        blender::ed::object::base_activate(C, basact);
       }
     }
   }
@@ -2758,7 +2760,7 @@ static bool ed_object_select_pick(bContext *C,
           if (ed_object_select_pick_camera_track(
                   C, scene, basact, clip, gpu->buffer, gpu->hits, params))
           {
-            ED_object_base_select(basact, BA_SELECT);
+            blender::ed::object::base_select(basact, blender::ed::object::BA_SELECT);
             /* Don't set `handled` here as the object activation may be necessary. */
             changed_object = true;
 
@@ -2794,7 +2796,7 @@ static bool ed_object_select_pick(bContext *C,
           /* By convention the armature-object is selected when in pose-mode.
            * While leaving it unselected will work, leaving pose-mode would leave the object
            * active + unselected which isn't ideal when performing other actions on the object. */
-          ED_object_base_select(basact, BA_SELECT);
+          blender::ed::object::base_select(basact, blender::ed::object::BA_SELECT);
           changed_object = true;
 
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
@@ -2848,7 +2850,7 @@ static bool ed_object_select_pick(bContext *C,
         if (basact && !BKE_object_is_mode_compat(basact->object, object_mode)) {
           if (object_mode == OB_MODE_OBJECT) {
             Main *bmain = vc.bmain;
-            ED_object_mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
+            blender::ed::object::mode_generic_exit(bmain, vc.depsgraph, scene, basact->object);
           }
           if (!BKE_object_is_mode_compat(basact->object, object_mode)) {
             basact = nullptr;
@@ -2889,7 +2891,7 @@ static bool ed_object_select_pick(bContext *C,
     /* Only do the select (use for setting vertex parents & hooks).
      * In edit-mode do not activate. */
     object_deselect_all_except(scene, view_layer, basact);
-    ED_object_base_select(basact, BA_SELECT);
+    blender::ed::object::base_select(basact, blender::ed::object::BA_SELECT);
 
     changed_object = true;
   }
@@ -2931,28 +2933,28 @@ static bool ed_object_select_pick(bContext *C,
 
       switch (params->sel_op) {
         case SEL_OP_ADD: {
-          ED_object_base_select(basact, BA_SELECT);
+          blender::ed::object::base_select(basact, blender::ed::object::BA_SELECT);
           break;
         }
         case SEL_OP_SUB: {
-          ED_object_base_select(basact, BA_DESELECT);
+          blender::ed::object::base_select(basact, blender::ed::object::BA_DESELECT);
           break;
         }
         case SEL_OP_XOR: {
           if (basact->flag & BASE_SELECTED) {
             /* Keep selected if the base is to be activated. */
             if (use_activate_selected_base == false) {
-              ED_object_base_select(basact, BA_DESELECT);
+              blender::ed::object::base_select(basact, blender::ed::object::BA_DESELECT);
             }
           }
           else {
-            ED_object_base_select(basact, BA_SELECT);
+            blender::ed::object::base_select(basact, blender::ed::object::BA_SELECT);
           }
           break;
         }
         case SEL_OP_SET: {
           /* Deselect has already been performed. */
-          ED_object_base_select(basact, BA_SELECT);
+          blender::ed::object::base_select(basact, blender::ed::object::BA_SELECT);
           break;
         }
         case SEL_OP_AND: {
@@ -2969,7 +2971,7 @@ static bool ed_object_select_pick(bContext *C,
    * the object from the pose-bone selected is also activated. */
   if (use_activate_selected_base && (basact != nullptr)) {
     changed_object = true;
-    ED_object_base_activate(C, basact); /* adds notifier */
+    blender::ed::object::base_activate(C, basact); /* adds notifier */
     if ((scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) == 0) {
       WM_toolsystem_update_from_context_view3d(C);
     }
@@ -4120,7 +4122,9 @@ static bool do_object_box_select(bContext *C,
       const bool is_inside = base->object->id.tag & LIB_TAG_DOIT;
       const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
       if (sel_op_result != -1) {
-        ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
+        blender::ed::object::base_select(base,
+                                         sel_op_result ? blender::ed::object::BA_SELECT :
+                                                         blender::ed::object::BA_DESELECT);
         changed = true;
       }
     }
@@ -5231,7 +5235,8 @@ static bool object_circle_select(const ViewContext *vc,
                                          V3D_PROJ_TEST_CLIP_DEFAULT) == V3D_PROJ_RET_OK)
       {
         if (len_squared_v2v2(mval_fl, screen_co) <= radius_squared) {
-          ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
+          blender::ed::object::base_select(
+              base, select ? blender::ed::object::BA_SELECT : blender::ed::object::BA_DESELECT);
           changed = true;
         }
       }

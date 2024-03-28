@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
 #include "BLI_listbase.h"
@@ -226,13 +227,12 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
   }
 }
 
-static void gather_search_link_ops_for_asset_library(const bContext &C,
-                                                     const bNodeTree &node_tree,
-                                                     const bNodeSocket &socket,
-                                                     const AssetLibraryReference &library_ref,
-                                                     const bool skip_local,
-                                                     Vector<SocketLinkOperation> &search_link_ops)
+static void gather_search_link_ops_for_all_assets(const bContext &C,
+                                                  const bNodeTree &node_tree,
+                                                  const bNodeSocket &socket,
+                                                  Vector<SocketLinkOperation> &search_link_ops)
 {
+  const AssetLibraryReference library_ref = asset_system::all_library_reference();
   asset::AssetFilterSettings filter_settings{};
   filter_settings.id_types = FILTER_ID_NT;
 
@@ -241,43 +241,9 @@ static void gather_search_link_ops_for_asset_library(const bContext &C,
     if (!asset::filter_matches_asset(&filter_settings, asset)) {
       return true;
     }
-    if (skip_local && asset.is_local_id()) {
-      return true;
-    }
     search_link_ops_for_asset_metadata(node_tree, socket, asset, search_link_ops);
     return true;
   });
-}
-
-static void gather_search_link_ops_for_all_assets(const bContext &C,
-                                                  const bNodeTree &node_tree,
-                                                  const bNodeSocket &socket,
-                                                  Vector<SocketLinkOperation> &search_link_ops)
-{
-  int i;
-  LISTBASE_FOREACH_INDEX (const bUserAssetLibrary *, asset_library, &U.asset_libraries, i) {
-    AssetLibraryReference library_ref{};
-    library_ref.custom_library_index = i;
-    library_ref.type = ASSET_LIBRARY_CUSTOM;
-    /* Skip local assets to avoid duplicates when the asset is part of the local file library. */
-    gather_search_link_ops_for_asset_library(
-        C, node_tree, socket, library_ref, true, search_link_ops);
-  }
-
-  {
-    AssetLibraryReference library_ref{};
-    library_ref.custom_library_index = -1;
-    library_ref.type = ASSET_LIBRARY_ESSENTIALS;
-    gather_search_link_ops_for_asset_library(
-        C, node_tree, socket, library_ref, true, search_link_ops);
-  }
-  {
-    AssetLibraryReference library_ref{};
-    library_ref.custom_library_index = -1;
-    library_ref.type = ASSET_LIBRARY_LOCAL;
-    gather_search_link_ops_for_asset_library(
-        C, node_tree, socket, library_ref, false, search_link_ops);
-  }
 }
 
 /**

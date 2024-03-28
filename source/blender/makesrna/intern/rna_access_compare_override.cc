@@ -1103,9 +1103,7 @@ static void rna_property_override_collection_subitem_name_index_lookup(
   RNA_POINTER_INVALIDATE(r_ptr_item_name);
   RNA_POINTER_INVALIDATE(r_ptr_item_index);
 
-  PointerRNA collection_ptr_type;
-  RNA_property_collection_type_get(ptr, prop, &collection_ptr_type);
-  const bool do_id_pointer = item_id && RNA_struct_is_ID(collection_ptr_type.type);
+  const bool do_id_pointer = item_id && RNA_struct_is_ID(RNA_property_pointer_type(ptr, prop));
 
   const int item_name_len = item_name ? int(strlen(item_name)) : 0;
 

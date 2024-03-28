@@ -63,8 +63,7 @@ void init_globals_curves()
     /* Random cosine normal distribution on the hair surface. */
     float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).x;
 #      ifdef EEVEE_SAMPLING_DATA
-    /* Needs to check for SAMPLING_DATA,
-     * otherwise Surfel and World (?!?!) shader validation fails. */
+    /* Needs to check for SAMPLING_DATA, otherwise surfel shader validation fails. */
     noise = fract(noise + sampling_rng_1D_get(SAMPLING_CURVES_U));
 #      endif
     cos_theta = noise * 2.0 - 1.0;

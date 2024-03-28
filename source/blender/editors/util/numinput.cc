@@ -85,7 +85,7 @@ void initNumInput(NumInput *n)
   n->str_cur = 0;
 }
 
-void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
+void outputNumInput(NumInput *n, char *str, const UnitSettings *unit_settings)
 {
   short j;
   const int ln = NUM_STR_REP_LEN;

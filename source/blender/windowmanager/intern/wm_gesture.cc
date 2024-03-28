@@ -116,7 +116,7 @@ bool WM_gesture_is_modal_first(const wmGesture *gesture)
 
 /* ******************* gesture draw ******************* */
 
-static void wm_gesture_draw_line_active_side(rcti *rect, const bool flip)
+static void wm_gesture_draw_line_active_side(const rcti *rect, const bool flip)
 {
   GPUVertFormat *format = immVertexFormat();
   uint shdr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -167,7 +167,7 @@ static void wm_gesture_draw_line_active_side(rcti *rect, const bool flip)
 
 static void wm_gesture_draw_line(wmGesture *gt)
 {
-  rcti *rect = (rcti *)gt->customdata;
+  const rcti *rect = (rcti *)gt->customdata;
 
   if (gt->draw_active_side) {
     wm_gesture_draw_line_active_side(rect, gt->use_flip);

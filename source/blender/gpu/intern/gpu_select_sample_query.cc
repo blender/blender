@@ -84,7 +84,7 @@ void gpu_select_query_begin(GPUSelectBuffer *buffer,
    * get rejected before the depth test. Should probably cull rect against
    * the viewport but this is a rare case I think */
 
-  int viewport[4] = {
+  const int viewport[4] = {
       UNPACK2(g_query_state.viewport), BLI_rcti_size_x(input), BLI_rcti_size_y(input)};
 
   GPU_viewport(UNPACK4(viewport));

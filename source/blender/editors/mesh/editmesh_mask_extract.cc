@@ -203,7 +203,7 @@ static int geometry_extract_apply(bContext *C,
   if (v3d && v3d->localvd) {
     local_view_bits = v3d->local_view_uid;
   }
-  Object *new_ob = ED_object_add_type(
+  Object *new_ob = blender::ed::object::add_type(
       C, OB_MESH, nullptr, ob->loc, ob->rot, false, local_view_bits);
   BKE_mesh_nomain_to_mesh(new_mesh, static_cast<Mesh *>(new_ob->data), new_ob);
 
@@ -212,7 +212,7 @@ static int geometry_extract_apply(bContext *C,
   }
 
   if (params->add_solidify) {
-    ED_object_modifier_add(
+    blender::ed::object::modifier_add(
         op->reports, bmain, scene, new_ob, "geometry_extract_solidify", eModifierType_Solidify);
     SolidifyModifierData *sfmd = (SolidifyModifierData *)BKE_modifiers_findby_name(
         new_ob, "mask_extract_solidify");
@@ -490,7 +490,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     if (v3d && v3d->localvd) {
       local_view_bits = v3d->local_view_uid;
     }
-    Object *new_ob = ED_object_add_type(
+    Object *new_ob = blender::ed::object::add_type(
         C, OB_MESH, nullptr, ob->loc, ob->rot, false, local_view_bits);
     Mesh *new_ob_mesh = (Mesh *)BKE_id_copy(bmain, &mesh->id);
 

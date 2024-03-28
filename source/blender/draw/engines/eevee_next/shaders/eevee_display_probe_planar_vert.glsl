@@ -25,6 +25,6 @@ void main()
   vec3 P = transform_point(display_data_buf[display_index].plane_to_world, vec3(lP, 0.0));
 
   gl_Position = drw_point_world_to_homogenous(P);
-  /* Small bias to let the icon draw without Z-fighting. */
-  gl_Position.z += 0.0001;
+  /* Small bias to let the probe draw without Z-fighting. */
+  gl_Position.z -= 0.0001;
 }

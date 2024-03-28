@@ -793,12 +793,12 @@ static inline bool is_local_light(eLightType type)
   /** --- Shadow Data --- */ \
   /** Other parts of the perspective matrix. Assumes symmetric frustum. */ \
   float clip_side; \
+  /** Number of allocated tilemap for this local light. */ \
+  int tilemaps_count; \
   /** Scaling factor to the light shape for shadow ray casting. */ \
   float shadow_scale; \
   /** Shift to apply to the light origin to get the shadow projection origin. */ \
-  float shadow_projection_shift; \
-  /** Number of allocated tilemap for this local light. */ \
-  int tilemaps_count;
+  float shadow_projection_shift;
 
 /* Untyped local light data. Gets reinterpreted to LightSpotData and LightAreaData.
  * Allow access to local light common data without casting. */
@@ -861,12 +861,11 @@ struct LightSunData {
 
   float _pad3;
   float _pad4;
-  float _pad5;
-  float _pad6;
-
   /** --- Shadow Data --- */
-  /** Offset of the LOD min in LOD min tile units. */
-  int2 clipmap_base_offset;
+  /** Offset of the LOD min in LOD min tile units. Split positive and negative for bit-shift. */
+  int2 clipmap_base_offset_neg;
+
+  int2 clipmap_base_offset_pos;
   /** Angle covered by the light shape for shadow ray casting. */
   float shadow_angle;
   /** Trace distance around the shading point. */
@@ -1073,7 +1072,8 @@ static inline LightSunData light_sun_data_get(LightData light)
 {
   SAFE_BEGIN(LightSunData, is_sun_light(light.type))
   SAFE_ASSIGN_FLOAT(radius, radius_squared)
-  SAFE_ASSIGN_FLOAT_AS_INT2_COMBINE(clipmap_base_offset, _pad0_reserved, _pad1_reserved)
+  SAFE_ASSIGN_FLOAT_AS_INT2_COMBINE(clipmap_base_offset_neg, shadow_scale, shadow_projection_shift)
+  SAFE_ASSIGN_FLOAT_AS_INT2_COMBINE(clipmap_base_offset_pos, _pad0_reserved, _pad1_reserved)
   SAFE_ASSIGN_FLOAT(shadow_angle, _pad1)
   SAFE_ASSIGN_FLOAT(shadow_trace_distance, _pad2)
   SAFE_ASSIGN_FLOAT2(clipmap_origin, _pad3)

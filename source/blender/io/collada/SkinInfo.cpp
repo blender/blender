@@ -199,7 +199,7 @@ void SkinInfo::link_armature(bContext *C,
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
-  ModifierData *md = ED_object_modifier_add(
+  ModifierData *md = blender::ed::object::modifier_add(
       nullptr, bmain, scene, ob, nullptr, eModifierType_Armature);
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
   amd->object = ob_arm;
@@ -266,7 +266,8 @@ void SkinInfo::link_armature(bContext *C,
         const ListBase *defbase = BKE_object_defgroup_list(ob);
         bDeformGroup *def = (bDeformGroup *)BLI_findlink(defbase, joint);
 
-        ED_vgroup_vert_add(ob, def, vertex, weights[joint_weight], WEIGHT_REPLACE);
+        blender::ed::object::vgroup_vert_add(
+            ob, def, vertex, weights[joint_weight], WEIGHT_REPLACE);
       }
     }
   }

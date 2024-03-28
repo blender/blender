@@ -210,7 +210,10 @@ ShadowDirectionalSampleInfo shadow_directional_sample_info_get(LightData light, 
                                                         level;
 
   info.clipmap_offset = shadow_decompress_grid_offset(
-      light.type, light_sun_data_get(light).clipmap_base_offset, info.level_relative);
+      light.type,
+      light_sun_data_get(light).clipmap_base_offset_neg,
+      light_sun_data_get(light).clipmap_base_offset_pos,
+      info.level_relative);
   info.clipmap_origin = light_sun_data_get(light).clipmap_origin;
 
   return info;

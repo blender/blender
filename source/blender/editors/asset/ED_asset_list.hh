@@ -14,10 +14,9 @@
 
 struct AssetHandle;
 struct AssetLibraryReference;
-struct AssetLibraryReference;
+struct bContext;
 struct ID;
 struct ImBuf;
-struct bContext;
 struct wmNotifier;
 struct wmRegionListenerParams;
 namespace blender::asset_system {
@@ -84,7 +83,7 @@ void storage_exit();
 
 AssetHandle asset_handle_get_by_index(const AssetLibraryReference *library_reference,
                                       int asset_index);
-blender::asset_system::AssetRepresentation *asset_get_by_index(
+asset_system::AssetRepresentation *asset_get_by_index(
     const AssetLibraryReference &library_reference, int asset_index);
 
 bool asset_image_is_loading(const AssetLibraryReference *library_reference,

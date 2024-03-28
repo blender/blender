@@ -15,6 +15,8 @@ struct StructRNA;
 struct wmOperator;
 struct wmOperatorType;
 
+namespace blender::ed::object {
+
 /* add hook menu */
 enum eObject_Hook_Add_Mode {
   OBJECT_ADDHOOK_NEWOB = 1,
@@ -345,11 +347,15 @@ void OBJECT_OT_bake(wmOperatorType *ot);
 
 /* object_bake_simulation.cc */
 
+namespace bake_simulation {
+
 void OBJECT_OT_simulation_nodes_cache_calculate_to_frame(wmOperatorType *ot);
 void OBJECT_OT_simulation_nodes_cache_bake(wmOperatorType *ot);
 void OBJECT_OT_simulation_nodes_cache_delete(wmOperatorType *ot);
 void OBJECT_OT_geometry_node_bake_single(wmOperatorType *ot);
 void OBJECT_OT_geometry_node_bake_delete_single(wmOperatorType *ot);
+
+}  // namespace bake_simulation
 
 /* `object_random.cc` */
 
@@ -369,8 +375,6 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot);
 void OBJECT_OT_data_transfer(wmOperatorType *ot);
 void OBJECT_OT_datalayout_transfer(wmOperatorType *ot);
 
-namespace blender::ed::object {
-
 void object_modifier_add_asset_register();
 
-}
+}  // namespace blender::ed::object

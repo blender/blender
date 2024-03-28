@@ -295,7 +295,7 @@ bool ED_operator_region_outliner_active(bContext *C)
 bool ED_operator_outliner_active_no_editobject(bContext *C)
 {
   if (ed_spacetype_test(C, SPACE_OUTLINER)) {
-    Object *ob = ED_object_active_context(C);
+    Object *ob = blender::ed::object::context_active_object(C);
     Object *obedit = CTX_data_edit_object(C);
     if (ob && ob == obedit) {
       return false;
@@ -406,7 +406,7 @@ static bool ed_object_hidden(const Object *ob)
 
 bool ED_operator_object_active(bContext *C)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   return ((ob != nullptr) && !ed_object_hidden(ob));
 }
 
@@ -432,7 +432,7 @@ bool ED_operator_object_active_editable_ex(bContext *C, const Object *ob)
 
 bool ED_operator_object_active_editable(bContext *C)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   return ED_operator_object_active_editable_ex(C, ob);
 }
 
@@ -443,20 +443,20 @@ bool ED_operator_object_active_local_editable_ex(bContext *C, const Object *ob)
 
 bool ED_operator_object_active_local_editable(bContext *C)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   return ED_operator_object_active_editable_ex(C, ob) && !ID_IS_OVERRIDE_LIBRARY(ob);
 }
 
 bool ED_operator_object_active_editable_mesh(bContext *C)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   return ((ob != nullptr) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob) && (ob->type == OB_MESH) &&
           !ID_IS_LINKED(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
 }
 
 bool ED_operator_object_active_editable_font(bContext *C)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   return ((ob != nullptr) && !ID_IS_LINKED(ob) && !ed_object_hidden(ob) && (ob->type == OB_FONT) &&
           !ID_IS_LINKED(ob->data) && !ID_IS_OVERRIDE_LIBRARY(ob->data));
 }
@@ -521,14 +521,14 @@ static bool ed_operator_posemode_exclusive_ex(bContext *C, Object *obact)
 
 bool ED_operator_posemode_exclusive(bContext *C)
 {
-  Object *obact = ED_object_active_context(C);
+  Object *obact = blender::ed::object::context_active_object(C);
 
   return ed_operator_posemode_exclusive_ex(C, obact);
 }
 
 bool ED_operator_object_active_local_editable_posemode_exclusive(bContext *C)
 {
-  Object *obact = ED_object_active_context(C);
+  Object *obact = blender::ed::object::context_active_object(C);
 
   if (!ed_operator_posemode_exclusive_ex(C, obact)) {
     return false;

@@ -673,7 +673,7 @@ void txt_clean_text(Text *text)
   }
 }
 
-int txt_get_span(TextLine *from, TextLine *to)
+int txt_get_span(TextLine *from, const TextLine *to)
 {
   int ret = 0;
   TextLine *tmp = from;
@@ -825,7 +825,7 @@ void txt_move_down(Text *text, const bool sel)
   }
 }
 
-int txt_calc_tab_left(TextLine *tl, int ch)
+int txt_calc_tab_left(const TextLine *tl, int ch)
 {
   /* do nice left only if there are only spaces */
 
@@ -845,7 +845,7 @@ int txt_calc_tab_left(TextLine *tl, int ch)
   return tabsize;
 }
 
-int txt_calc_tab_right(TextLine *tl, int ch)
+int txt_calc_tab_right(const TextLine *tl, int ch)
 {
   if (tl->line[ch] == ' ') {
     int i;
@@ -2270,8 +2270,8 @@ int txt_setcurr_tab_spaces(Text *text, int space)
 int text_check_bracket(const char ch)
 {
   int a;
-  char opens[] = "([{";
-  char close[] = ")]}";
+  const char opens[] = "([{";
+  const char close[] = ")]}";
 
   for (a = 0; a < (sizeof(opens) - 1); a++) {
     if (ch == opens[a]) {

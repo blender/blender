@@ -140,7 +140,7 @@ Mesh *BKE_mesh_new_nomain_from_curve_displist(const Object *ob, const ListBase *
 
 bool BKE_mesh_attribute_required(const char *name);
 
-float (*BKE_mesh_orco_verts_get(Object *ob))[3];
+float (*BKE_mesh_orco_verts_get(const Object *ob))[3];
 void BKE_mesh_orco_verts_transform(Mesh *mesh, float (*orco)[3], int totvert, bool invert);
 
 /**

@@ -1242,7 +1242,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static EnumPropertyItem domain_types[] = {
+  static const EnumPropertyItem domain_types[] = {
       {FLUID_DOMAIN_TYPE_GAS, "GAS", 0, "Gas", "Create domain for gases"},
       {FLUID_DOMAIN_TYPE_LIQUID, "LIQUID", 0, "Liquid", "Create domain for liquids"},
       {0, nullptr, 0, nullptr, nullptr}};
@@ -1266,7 +1266,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static EnumPropertyItem cache_types[] = {
+  static const EnumPropertyItem cache_types[] = {
       {FLUID_DOMAIN_CACHE_REPLAY, "REPLAY", 0, "Replay", "Use the timeline to bake the scene"},
       {FLUID_DOMAIN_CACHE_MODULAR,
        "MODULAR",
@@ -1277,12 +1277,12 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr}};
 
   /*  OpenVDB data depth - generated dynamically based on domain type */
-  static EnumPropertyItem fluid_data_depth_items[] = {
+  static const EnumPropertyItem fluid_data_depth_items[] = {
       {0, "NONE", 0, "", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static EnumPropertyItem fluid_mesh_quality_items[] = {
+  static const EnumPropertyItem fluid_mesh_quality_items[] = {
       {FLUID_DOMAIN_MESH_IMPROVED,
        "IMPROVED",
        0,
@@ -1297,7 +1297,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static EnumPropertyItem fluid_guide_source_items[] = {
+  static const EnumPropertyItem fluid_guide_source_items[] = {
       {FLUID_DOMAIN_GUIDE_SRC_DOMAIN,
        "DOMAIN",
        0,
@@ -1314,7 +1314,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   };
 
   /*  Cache type - generated dynamically based on domain type */
-  static EnumPropertyItem cache_file_type_items[] = {
+  static const EnumPropertyItem cache_file_type_items[] = {
       {0, "NONE", 0, "", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
@@ -1434,7 +1434,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
        "Create one particle system that contains all three secondary particle types"},
       {0, nullptr, 0, nullptr, nullptr}};
 
-  static EnumPropertyItem simulation_methods[] = {
+  static const EnumPropertyItem simulation_methods[] = {
       {FLUID_DOMAIN_METHOD_FLIP,
        "FLIP",
        0,
@@ -2676,7 +2676,7 @@ static void rna_def_fluid_flow_settings(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static EnumPropertyItem flow_behavior_items[] = {
+  static const EnumPropertyItem flow_behavior_items[] = {
       {FLUID_FLOW_BEHAVIOR_INFLOW, "INFLOW", 0, "Inflow", "Add fluid to simulation"},
       {FLUID_FLOW_BEHAVIOR_OUTFLOW, "OUTFLOW", 0, "Outflow", "Delete fluid from simulation"},
       {FLUID_FLOW_BEHAVIOR_GEOMETRY,
@@ -2688,7 +2688,7 @@ static void rna_def_fluid_flow_settings(BlenderRNA *brna)
   };
 
   /*  Flow source - generated dynamically based on flow type */
-  static EnumPropertyItem flow_sources[] = {
+  static const EnumPropertyItem flow_sources[] = {
       {0, "NONE", 0, "", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
@@ -2909,13 +2909,13 @@ static void rna_def_fluid_flow_settings(BlenderRNA *brna)
 
 static void rna_def_fluid_effector_settings(BlenderRNA *brna)
 {
-  static EnumPropertyItem effector_type_items[] = {
+  static const EnumPropertyItem effector_type_items[] = {
       {FLUID_EFFECTOR_TYPE_COLLISION, "COLLISION", 0, "Collision", "Create collision object"},
       {FLUID_EFFECTOR_TYPE_GUIDE, "GUIDE", 0, "Guide", "Create guide object"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static EnumPropertyItem fluid_guide_mode_items[] = {
+  static const EnumPropertyItem fluid_guide_mode_items[] = {
       {FLUID_EFFECTOR_GUIDE_MAX,
        "MAXIMUM",
        0,

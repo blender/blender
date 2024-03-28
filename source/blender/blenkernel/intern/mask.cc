@@ -136,7 +136,6 @@ static void mask_blend_write(BlendWriter *writer, ID *id, const void *id_address
 static void mask_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Mask *mask = (Mask *)id;
-  BLO_read_data_address(reader, &mask->adt);
 
   BLO_read_list(reader, &mask->masklayers);
 

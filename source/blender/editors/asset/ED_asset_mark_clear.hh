@@ -9,9 +9,9 @@
 #pragma once
 
 struct AssetMetaData;
+struct bContext;
 struct ID;
 struct Main;
-struct bContext;
 
 namespace blender::ed::asset {
 

@@ -50,7 +50,7 @@ RNG *BLI_rng_new_srandom(uint seed)
   return rng;
 }
 
-RNG *BLI_rng_copy(RNG *rng)
+RNG *BLI_rng_copy(const RNG *rng)
 {
   return new RNG(*rng);
 }

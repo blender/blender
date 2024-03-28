@@ -8,7 +8,7 @@
 
 TEST(math_color, RGBToHSVRoundtrip)
 {
-  float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
+  const float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
   float hsv[3], rgb[3];
   rgb_to_hsv_v(orig_rgb, hsv);
   hsv_to_rgb_v(hsv, rgb);
@@ -17,7 +17,7 @@ TEST(math_color, RGBToHSVRoundtrip)
 
 TEST(math_color, RGBToHSLRoundtrip)
 {
-  float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
+  const float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
   float hsl[3], rgb[3];
   rgb_to_hsl_v(orig_rgb, hsl);
   hsl_to_rgb_v(hsl, rgb);
@@ -26,7 +26,7 @@ TEST(math_color, RGBToHSLRoundtrip)
 
 TEST(math_color, RGBToYUVRoundtrip)
 {
-  float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
+  const float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
   float yuv[3], rgb[3];
   rgb_to_yuv(orig_rgb[0], orig_rgb[1], orig_rgb[2], &yuv[0], &yuv[1], &yuv[2], BLI_YUV_ITU_BT709);
   yuv_to_rgb(yuv[0], yuv[1], yuv[2], &rgb[0], &rgb[1], &rgb[2], BLI_YUV_ITU_BT709);
@@ -35,7 +35,7 @@ TEST(math_color, RGBToYUVRoundtrip)
 
 TEST(math_color, RGBToYCCRoundtrip)
 {
-  float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
+  const float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
   float ycc[3], rgb[3];
 
   rgb_to_ycc(orig_rgb[0], orig_rgb[1], orig_rgb[2], &ycc[0], &ycc[1], &ycc[2], BLI_YCC_ITU_BT601);

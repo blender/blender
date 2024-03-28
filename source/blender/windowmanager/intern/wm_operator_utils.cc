@@ -169,7 +169,7 @@ struct ObCustomData_ForEditMode {
   ValueInteraction inter;
 
   /** This could be split into a sub-type if we support different kinds of data. */
-  blender::Array<XFormObjectData *> objects_xform;
+  blender::Array<blender::ed::object::XFormObjectData *> objects_xform;
 };
 
 /* Internal callback to free. */
@@ -179,9 +179,9 @@ static void op_generic_value_exit(wmOperator *op)
   if (cd) {
     interactive_value_exit(&cd->inter);
 
-    for (XFormObjectData *xod : cd->objects_xform) {
+    for (blender::ed::object::XFormObjectData *xod : cd->objects_xform) {
       if (xod != nullptr) {
-        ED_object_data_xform_destroy(xod);
+        blender::ed::object::data_xform_destroy(xod);
       }
     }
     MEM_delete(cd);
@@ -193,9 +193,9 @@ static void op_generic_value_exit(wmOperator *op)
 static void op_generic_value_restore(wmOperator *op)
 {
   ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(op->customdata);
-  for (XFormObjectData *xod : cd->objects_xform) {
-    ED_object_data_xform_restore(xod);
-    ED_object_data_xform_tag_update(xod);
+  for (blender::ed::object::XFormObjectData *xod : cd->objects_xform) {
+    blender::ed::object::data_xform_restore(xod);
+    blender::ed::object::data_xform_tag_update(xod);
   }
 }
 
@@ -231,7 +231,7 @@ static int op_generic_value_invoke(bContext *C, wmOperator *op, const wmEvent *e
   cd->objects_xform.reinitialize(objects.size());
   for (const int i : objects.index_range()) {
     Object *obedit = objects[i];
-    cd->objects_xform[i] = ED_object_data_xform_create_from_edit_mode(
+    cd->objects_xform[i] = blender::ed::object::data_xform_create_from_edit_mode(
         static_cast<ID *>(obedit->data));
   }
 

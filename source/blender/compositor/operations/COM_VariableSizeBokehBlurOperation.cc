@@ -87,7 +87,6 @@ void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *
   const float base_size = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
   const float maximum_size = size_buffer->get_max_value();
   const int search_radius = math::clamp(int(maximum_size * base_size), 0, max_blur_);
-  const int2 bokeh_size = int2(bokeh_buffer->get_width(), bokeh_buffer->get_height());
 
   BuffersIterator<float> it = output->iterate_with({}, area);
   for (; !it.is_end(); ++it) {
@@ -115,8 +114,8 @@ void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *
           }
 
           const float2 normalized_texel = (float2(xi, yi) + size + 0.5f) / (size * 2.0f + 1.0f);
-          const float2 weight_texel = (1.0f - normalized_texel) * float2(bokeh_size - 1);
-          const float4 weight = bokeh_buffer->get_elem(int(weight_texel.x), int(weight_texel.y));
+          const float2 weight_texel = 1.0f - normalized_texel;
+          const float4 weight = bokeh_buffer->texture_bilinear_extend(weight_texel);
           const float4 color = input_buffer->get_elem_clamped(it.x + xi, it.y + yi);
           accumulated_color += color * weight;
           accumulated_weight += weight;

@@ -44,6 +44,8 @@
 
 #include "object_intern.hh"
 
+namespace blender::ed::object {
+
 static Image *bake_object_image_get(Object *ob, int mat_nr)
 {
   Image *image = nullptr;
@@ -103,7 +105,6 @@ struct MultiresBakeJob {
 
 static bool multiresbake_check(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   Scene *scene = CTX_data_scene(C);
   Object *ob;
   Mesh *mesh;
@@ -215,7 +216,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
   DerivedMesh *dm;
   MultiresModifierData *mmd = get_multires_modifier(scene, ob, false);
   Mesh *mesh = (Mesh *)ob->data;
-  MultiresModifierData tmp_mmd = blender::dna::shallow_copy(*mmd);
+  MultiresModifierData tmp_mmd = dna::shallow_copy(*mmd);
 
   *lvl = mmd->lvl;
 
@@ -240,7 +241,7 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 {
   Mesh *mesh = (Mesh *)ob->data;
   MultiresModifierData *mmd = get_multires_modifier(scene, ob, false);
-  MultiresModifierData tmp_mmd = blender::dna::shallow_copy(*mmd);
+  MultiresModifierData tmp_mmd = dna::shallow_copy(*mmd);
   DerivedMesh *cddm = CDDM_from_mesh(mesh);
   DerivedMesh *dm;
 
@@ -654,3 +655,5 @@ void OBJECT_OT_bake_image(wmOperatorType *ot)
   ot->modal = objects_bake_render_modal;
   ot->poll = ED_operator_object_active;
 }
+
+}  // namespace blender::ed::object

@@ -316,7 +316,7 @@ static _inittab bpy_internal_modules[] = {
  * Show an error just to avoid silent failure in the unlikely event something goes wrong,
  * in this case a developer will need to track down the root cause.
  */
-static void pystatus_exit_on_error(PyStatus status)
+static void pystatus_exit_on_error(const PyStatus &status)
 {
   if (UNLIKELY(PyStatus_Exception(status))) {
     fputs("Internal error initializing Python!\n", stderr);

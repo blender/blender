@@ -223,8 +223,8 @@ static void join_mesh_single(Depsgraph *depsgraph,
       multiresModifier_prepare_join(depsgraph, scene, ob_src, ob_dst);
 
       if ((mmd = get_multires_modifier(scene, ob_src, true))) {
-        ED_object_iter_other(
-            bmain, ob_src, true, ED_object_multires_update_totlevels_cb, &mmd->totlvl);
+        blender::ed::object::iter_other(
+            bmain, ob_src, true, blender::ed::object::multires_update_totlevels, &mmd->totlvl);
       }
     }
 
@@ -640,7 +640,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
       /* free base, now that data is merged */
       if (ob_iter != ob) {
-        ED_object_base_free_and_unlink(bmain, scene, ob_iter);
+        blender::ed::object::base_free_and_unlink(bmain, scene, ob_iter);
       }
     }
   }

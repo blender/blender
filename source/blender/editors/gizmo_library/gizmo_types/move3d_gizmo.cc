@@ -449,12 +449,12 @@ static void GIZMO_GT_move_3d(wmGizmoType *gzt)
   gzt->struct_size = sizeof(MoveGizmo3D);
 
   /* rna */
-  static EnumPropertyItem rna_enum_draw_style[] = {
+  static const EnumPropertyItem rna_enum_draw_style[] = {
       {ED_GIZMO_MOVE_STYLE_RING_2D, "RING_2D", 0, "Ring", ""},
       {ED_GIZMO_MOVE_STYLE_CROSS_2D, "CROSS_2D", 0, "Ring", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  static EnumPropertyItem rna_enum_draw_options[] = {
+  static const EnumPropertyItem rna_enum_draw_options[] = {
       {ED_GIZMO_MOVE_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
       {ED_GIZMO_MOVE_DRAW_FLAG_FILL_SELECT, "FILL_SELECT", 0, "Use fill for selection test", ""},
       {ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW, "ALIGN_VIEW", 0, "Align View", ""},

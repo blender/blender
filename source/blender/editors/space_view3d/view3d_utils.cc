@@ -1572,7 +1572,8 @@ void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], c
   sub_v3_v3v3(mat[3], dvec, ofs);
 }
 
-void ED_view3d_from_object(const Object *ob, float ofs[3], float quat[4], float *dist, float *lens)
+void ED_view3d_from_object(
+    const Object *ob, float ofs[3], float quat[4], const float *dist, float *lens)
 {
   ED_view3d_from_m4(ob->object_to_world().ptr(), ofs, quat, dist);
 

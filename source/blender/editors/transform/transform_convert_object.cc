@@ -45,14 +45,14 @@ struct TransDataObject {
    * Don't add these to transform data because we may want to include child objects
    * which aren't being transformed.
    */
-  XFormObjectData_Container *xds;
+  blender::ed::object::XFormObjectData_Container *xds;
 
   /**
    * Transform
    * - The key is object data #Object.
    * - The value is #XFormObjectSkipChild.
    */
-  XFormObjectSkipChild_Container *xcs;
+  blender::ed::object::XFormObjectSkipChild_Container *xcs;
 };
 
 static void freeTransObjectCustomData(TransInfo *t,
@@ -63,11 +63,11 @@ static void freeTransObjectCustomData(TransInfo *t,
   custom_data->data = nullptr;
 
   if (t->options & CTX_OBMODE_XFORM_OBDATA) {
-    ED_object_data_xform_container_destroy(tdo->xds);
+    blender::ed::object::data_xform_container_destroy(tdo->xds);
   }
 
   if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
-    ED_object_xform_skip_child_container_destroy(tdo->xcs);
+    blender::ed::object::object_xform_skip_child_container_destroy(tdo->xcs);
   }
   MEM_freeN(tdo);
 }
@@ -81,7 +81,7 @@ static void freeTransObjectCustomData(TransInfo *t,
  * We need this to be detached from transform data because,
  * unlike transforming regular objects, we need to transform the children.
  *
- * Nearly all of the logic here is in the 'ED_object_data_xform_container_*' API.
+ * Nearly all of the logic here is in the 'blender::ed::object::data_xform_container_*' API.
  * \{ */
 
 static void trans_obdata_in_obmode_update_all(TransInfo *t)
@@ -92,7 +92,7 @@ static void trans_obdata_in_obmode_update_all(TransInfo *t)
   }
 
   Main *bmain = CTX_data_main(t->context);
-  ED_object_data_xform_container_update_all(tdo->xds, bmain, t->depsgraph);
+  blender::ed::object::data_xform_container_update_all(tdo->xds, bmain, t->depsgraph);
 }
 
 /** \} */
@@ -115,7 +115,7 @@ static void trans_obchild_in_obmode_update_all(TransInfo *t)
   }
 
   Main *bmain = CTX_data_main(t->context);
-  ED_object_xform_skip_child_container_update_all(tdo->xcs, bmain, t->depsgraph);
+  blender::ed::object::object_xform_skip_child_container_update_all(tdo->xcs, bmain, t->depsgraph);
 }
 
 /** \} */
@@ -479,7 +479,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
   BKE_view_layer_synced_ensure(scene, view_layer);
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     if (base->flag_legacy & BA_WAS_SEL) {
-      ED_object_base_select(base, BA_SELECT);
+      blender::ed::object::base_select(base, blender::ed::object::BA_SELECT);
     }
 
     base->flag_legacy &= ~(BA_WAS_SEL | BA_SNAP_FIX_DEPS_FIASCO | BA_TEMP_TAG |
@@ -490,6 +490,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
 
 static void createTransObject(bContext *C, TransInfo *t)
 {
+  using namespace blender::ed;
   Main *bmain = CTX_data_main(C);
   TransData *td = nullptr;
   TransDataExtension *tx;
@@ -522,7 +523,7 @@ static void createTransObject(bContext *C, TransInfo *t)
   t->custom.type.free_cb = freeTransObjectCustomData;
 
   if (t->options & CTX_OBMODE_XFORM_OBDATA) {
-    tdo->xds = ED_object_data_xform_container_create();
+    tdo->xds = object::data_xform_container_create();
   }
 
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
@@ -557,7 +558,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 
     if (t->options & CTX_OBMODE_XFORM_OBDATA) {
       if ((td->flag & TD_SKIP) == 0) {
-        ED_object_data_xform_container_item_ensure(tdo->xds, ob);
+        object::data_xform_container_item_ensure(tdo->xds, ob);
       }
     }
 
@@ -630,7 +631,7 @@ static void createTransObject(bContext *C, TransInfo *t)
               ob_parent = ob_parent->parent;
             }
             if (parent_in_transdata) {
-              ED_object_data_xform_container_item_ensure(tdo->xds, ob);
+              object::data_xform_container_item_ensure(tdo->xds, ob);
             }
           }
         }
@@ -641,7 +642,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 
   if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
 
-    tdo->xcs = ED_object_xform_skip_child_container_create();
+    tdo->xcs = object::xform_skip_child_container_create();
 
 #define BASE_XFORM_INDIRECT(base) \
 \
@@ -679,8 +680,8 @@ static void createTransObject(bContext *C, TransInfo *t)
                 }
 
                 if (ob_parent_recurse) {
-                  ED_object_xform_skip_child_container_item_ensure(
-                      tdo->xcs, ob, ob_parent_recurse, XFORM_OB_SKIP_CHILD_PARENT_APPLY);
+                  object::object_xform_skip_child_container_item_ensure(
+                      tdo->xcs, ob, ob_parent_recurse, object::XFORM_OB_SKIP_CHILD_PARENT_APPLY);
                   BLI_ghash_insert(objects_parent_root, ob, ob_parent_recurse);
                   base->flag_legacy |= BA_TRANSFORM_LOCKED_IN_PLACE;
                 }
@@ -703,16 +704,19 @@ static void createTransObject(bContext *C, TransInfo *t)
           if (BASE_XFORM_INDIRECT(base_parent) ||
               BLI_gset_haskey(objects_in_transdata, ob->parent))
           {
-            ED_object_xform_skip_child_container_item_ensure(
-                tdo->xcs, ob, nullptr, XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM);
+            object::object_xform_skip_child_container_item_ensure(
+                tdo->xcs, ob, nullptr, object::XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM);
             base->flag_legacy |= BA_TRANSFORM_LOCKED_IN_PLACE;
           }
           else {
             Object *ob_parent_recurse = static_cast<Object *>(
                 BLI_ghash_lookup(objects_parent_root, ob->parent));
             if (ob_parent_recurse) {
-              ED_object_xform_skip_child_container_item_ensure(
-                  tdo->xcs, ob, ob_parent_recurse, XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM_INDIRECT);
+              object::object_xform_skip_child_container_item_ensure(
+                  tdo->xcs,
+                  ob,
+                  ob_parent_recurse,
+                  object::XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM_INDIRECT);
             }
           }
         }
@@ -829,6 +833,7 @@ static void autokeyframe_object(bContext *C, Scene *scene, Object *ob, const eTf
 
 static void recalcData_objects(TransInfo *t)
 {
+  using namespace blender::ed;
   bool motionpath_update = false;
 
   if (t->state != TRANS_CANCEL) {
@@ -865,8 +870,8 @@ static void recalcData_objects(TransInfo *t)
 
   if (motionpath_update) {
     /* Update motion paths once for all transformed objects. */
-    ED_objects_recalculate_paths_selected(
-        t->context, t->scene, OBJECT_PATH_CALC_RANGE_CURRENT_FRAME);
+    object::motion_paths_recalc_selected(
+        t->context, t->scene, object::OBJECT_PATH_CALC_RANGE_CURRENT_FRAME);
   }
 
   if (t->options & CTX_OBMODE_XFORM_SKIP_CHILDREN) {
@@ -886,6 +891,7 @@ static void recalcData_objects(TransInfo *t)
 
 static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 {
+  using namespace blender::ed;
   BLI_assert(t->options & CTX_OBJECT);
 
   Object *ob;
@@ -947,9 +953,10 @@ static void special_aftertrans_update__object(bContext *C, TransInfo *t)
 
   if (motionpath_update) {
     /* Update motion paths once for all transformed objects. */
-    const eObjectPathCalcRange range = canceled ? OBJECT_PATH_CALC_RANGE_CURRENT_FRAME :
-                                                  OBJECT_PATH_CALC_RANGE_CHANGED;
-    ED_objects_recalculate_paths_selected(C, t->scene, range);
+    const object::eObjectPathCalcRange range = canceled ?
+                                                   object::OBJECT_PATH_CALC_RANGE_CURRENT_FRAME :
+                                                   object::OBJECT_PATH_CALC_RANGE_CHANGED;
+    object::motion_paths_recalc_selected(C, t->scene, range);
   }
 
   clear_trans_object_base_flags(t);

@@ -200,13 +200,11 @@ static std::optional<std::string> rna_ColorRamp_path(const PointerRNA *ptr)
       case ID_LS: {
         /* may be nullptr */
         return BKE_linestyle_path_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
-        break;
       }
 
       default:
         /* everything else just uses 'color_ramp' */
         return "color_ramp";
-        break;
     }
   }
   else {

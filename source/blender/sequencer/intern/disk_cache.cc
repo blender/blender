@@ -97,7 +97,7 @@ struct DiskCacheFile {
 
 static ThreadMutex cache_create_lock = BLI_MUTEX_INITIALIZER;
 
-static char *seq_disk_cache_base_dir()
+static const char *seq_disk_cache_base_dir()
 {
   return U.sequencer_disk_cache_dir;
 }
@@ -152,7 +152,7 @@ static DiskCacheFile *seq_disk_cache_add_file_to_list(SeqDiskCache *disk_cache,
   return cache_file;
 }
 
-static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *dirpath)
+static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, const char *dirpath)
 {
   direntry *filelist, *fl;
   uint i;
@@ -176,7 +176,7 @@ static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *dirpath)
     if (is_dir && !FILENAME_IS_CURRPAR(file)) {
       char subpath[FILE_MAX];
       STRNCPY(subpath, fl->path);
-      BLI_path_slash_ensure(subpath, sizeof(sizeof(subpath)));
+      BLI_path_slash_ensure(subpath, sizeof(subpath));
       seq_disk_cache_get_files(disk_cache, subpath);
     }
 
@@ -329,7 +329,7 @@ static void seq_disk_cache_get_file_path(SeqDiskCache *disk_cache,
   BLI_path_append(filepath, filepath_maxncpy, cache_filename);
 }
 
-static void seq_disk_cache_create_version_file(char *filepath)
+static void seq_disk_cache_create_version_file(const char *filepath)
 {
   BLI_file_ensure_parent_dir_exists(filepath);
 
@@ -475,7 +475,7 @@ static bool seq_disk_cache_read_header(FILE *file, DiskCacheHeader *header)
   return true;
 }
 
-static size_t seq_disk_cache_write_header(FILE *file, DiskCacheHeader *header)
+static size_t seq_disk_cache_write_header(FILE *file, const DiskCacheHeader *header)
 {
   BLI_fseek(file, 0LL, SEEK_SET);
   return fwrite(header, sizeof(*header), 1, file);
@@ -531,7 +531,7 @@ static int seq_disk_cache_add_header_entry(SeqCacheKey *key, ImBuf *ibuf, DiskCa
   return i;
 }
 
-static int seq_disk_cache_get_header_entry(SeqCacheKey *key, DiskCacheHeader *header)
+static int seq_disk_cache_get_header_entry(SeqCacheKey *key, const DiskCacheHeader *header)
 {
   for (int i = 0; i < DCACHE_IMAGES_PER_FILE; i++) {
     if (header->entry[i].frameno == key->frame_index) {

@@ -118,12 +118,14 @@ void ShadowTileMap::sync_cubeface(const float4x4 &object_mat_,
 void ShadowTileMap::debug_draw() const
 {
   /** Used for debug drawing. */
-  float4 debug_color[6] = {{1.0f, 0.1f, 0.1f, 1.0f},
-                           {0.1f, 1.0f, 0.1f, 1.0f},
-                           {0.0f, 0.2f, 1.0f, 1.0f},
-                           {1.0f, 1.0f, 0.3f, 1.0f},
-                           {0.1f, 0.1f, 0.1f, 1.0f},
-                           {1.0f, 1.0f, 1.0f, 1.0f}};
+  const float4 debug_color[6] = {
+      {1.0f, 0.1f, 0.1f, 1.0f},
+      {0.1f, 1.0f, 0.1f, 1.0f},
+      {0.0f, 0.2f, 1.0f, 1.0f},
+      {1.0f, 1.0f, 0.3f, 1.0f},
+      {0.1f, 0.1f, 0.1f, 1.0f},
+      {1.0f, 1.0f, 1.0f, 1.0f},
+  };
   float4 color =
       debug_color[((projection_type == SHADOW_PROJECTION_CUBEFACE ? cubeface : level) + 9999) % 6];
 
@@ -490,12 +492,13 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
   /* Offset for smooth level transitions. */
   light.object_mat.location() = near_point;
 
-  /* Offset in tiles from the origin to the center of the first tile-maps. */
+  /* Offset in tiles from the scene origin to the center of the first tile-maps. */
   int2 origin_offset = int2(round(float2(near_point) / tile_size));
   /* Offset in tiles between the first and the last tile-maps. */
   int2 offset_vector = int2(round(farthest_tilemap_center / tile_size));
 
-  light.sun.clipmap_base_offset = (offset_vector * (1 << 16)) / max_ii(levels_range.size() - 1, 1);
+  light.sun.clipmap_base_offset_pos = (offset_vector * (1 << 16)) /
+                                      max_ii(levels_range.size() - 1, 1);
 
   /* \note: cascade_level_range starts the range at the unique LOD to apply to all tile-maps. */
   int level = levels_range.first();
@@ -504,7 +507,7 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
 
     /* Equal spacing between cascades layers since we want uniform shadow density. */
     int2 level_offset = origin_offset +
-                        shadow_cascade_grid_offset(light.sun.clipmap_base_offset, i);
+                        shadow_cascade_grid_offset(light.sun.clipmap_base_offset_pos, i);
     tilemap->sync_orthographic(object_mat_, level_offset, level, 0.0f, SHADOW_PROJECTION_CASCADE);
 
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
@@ -535,8 +538,8 @@ IndexRange ShadowDirectional::clipmap_level_range(const Camera &camera)
 {
   using namespace blender::math;
 
-  /* Take 16 to be able to pack offset into a single int2. */
-  const int max_tilemap_per_shadows = 16;
+  /* 32 to be able to pack offset into two single int2. */
+  const int max_tilemap_per_shadows = 32;
 
   int user_min_level = floorf(log2(min_resolution_));
   /* Covers the farthest points of the view. */
@@ -586,8 +589,7 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light,
      * single integer where one bit contains offset between 2 levels. Then a single bit shift in
      * the shader gives the number of tile to offset in the given tile-map space. However we need
      * also the sign of the offset for each level offset. To this end, we split the negative
-     * offsets to a separate int.
-     * Recovering the offset with: (pos_offset >> lod) - (neg_offset >> lod). */
+     * offsets to a separate int. */
     int2 lvl_offset_next = tilemaps_[lod + 1]->grid_offset;
     int2 lvl_offset = tilemaps_[lod]->grid_offset;
     int2 lvl_delta = lvl_offset - (lvl_offset_next << 1);
@@ -596,9 +598,9 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light,
     neg_offset |= math::max(-lvl_delta, int2(0)) << lod;
   }
 
-  /* Compressing to a single value to save up storage in light data. Number of levels is limited to
-   * 16 by `clipmap_level_range()` for this reason. */
-  light.sun.clipmap_base_offset = pos_offset | (neg_offset << 16);
+  /* Number of levels is limited to 32 by `clipmap_level_range()` for this reason. */
+  light.sun.clipmap_base_offset_pos = pos_offset;
+  light.sun.clipmap_base_offset_neg = neg_offset;
 
   float tile_size_max = ShadowDirectional::tile_size_get(levels_range.last());
   int2 level_offset_max = tilemaps_[levels_range.size() - 1]->grid_offset;
@@ -1333,7 +1335,7 @@ int ShadowModule::max_view_per_tilemap()
       potential_view_count += 1;
     }
   }
-  int max_view_count = divide_ceil_u(SHADOW_VIEW_MAX, potential_view_count);
+  int max_view_count = divide_ceil_u(SHADOW_VIEW_MAX, math::max(potential_view_count, 1));
   /* For viewport interactivity, have a hard maximum. This allows smoother experience. */
   if (inst_.is_transforming() || inst_.is_navigating()) {
     max_view_count = math::min(2, max_view_count);

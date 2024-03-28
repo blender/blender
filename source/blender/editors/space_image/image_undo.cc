@@ -1021,7 +1021,7 @@ static void image_undosys_step_decode(
   }
 
   if (us->paint_mode == PaintMode::Texture3D) {
-    ED_object_mode_set_ex(C, OB_MODE_TEXTURE_PAINT, false, nullptr);
+    blender::ed::object::mode_set_ex(C, OB_MODE_TEXTURE_PAINT, false, nullptr);
   }
 
   /* Refresh texture slots. */

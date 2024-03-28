@@ -589,7 +589,7 @@ void ui_draw_but_HISTOGRAM(ARegion * /*region*/,
 
 #undef HISTOGRAM_TOT_GRID_LINES
 
-static void waveform_draw_one(float *waveform, int waveform_num, const float col[3])
+static void waveform_draw_one(const float *waveform, int waveform_num, const float col[3])
 {
   GPUVertFormat format = {0};
   const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -609,7 +609,7 @@ static void waveform_draw_one(float *waveform, int waveform_num, const float col
   GPU_batch_discard(batch);
 }
 
-static void waveform_draw_rgb(float *waveform, int waveform_num, float *col)
+static void waveform_draw_rgb(const float *waveform, int waveform_num, const float *col)
 {
   GPUVertFormat format = {0};
   const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -629,7 +629,7 @@ static void waveform_draw_rgb(float *waveform, int waveform_num, float *col)
   GPU_batch_discard(batch);
 }
 
-static void circle_draw_rgb(float *points, int tot_points, float *col, GPUPrimType prim)
+static void circle_draw_rgb(float *points, int tot_points, const float *col, GPUPrimType prim)
 {
   GPUVertFormat format = {0};
   const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -904,7 +904,7 @@ static void vectorscope_draw_target(
   float y, u, v;
   float tangle = 0.0f, tampli;
   float dangle, dampli;
-  char labelstr[2] = {label, '\0'};
+  const char labelstr[2] = {label, '\0'};
 
   rgb_to_yuv(colf[0], colf[1], colf[2], &y, &u, &v, BLI_YUV_ITU_BT709);
 

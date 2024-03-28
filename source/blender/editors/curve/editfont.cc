@@ -670,7 +670,7 @@ static void text_insert_unicode_confirm(bContext *C, void *arg_block, void *arg_
   if (val > 31 && val < 0x10FFFF) {
     Object *obedit = CTX_data_edit_object(C);
     if (obedit) {
-      char32_t utf32[2] = {val, 0};
+      const char32_t utf32[2] = {val, 0};
       font_paste_wchar(obedit, utf32, 1, nullptr);
       text_update_edited(C, obedit, FO_EDIT);
     }
@@ -809,7 +809,7 @@ static void txt_add_object(bContext *C,
   object = BKE_view_layer_active_object_get(view_layer);
 
   /* seems to assume view align ? TODO: look into this, could be an operator option. */
-  ED_object_base_init_transform_on_add(object, nullptr, rot);
+  blender::ed::object::init_transform_on_add(object, nullptr, rot);
 
   BKE_object_where_is_calc(depsgraph, scene, obedit);
 

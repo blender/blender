@@ -316,7 +316,7 @@ static int curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
   const bool is_mode_set = ob->mode == OB_MODE_SCULPT_CURVES;
 
   if (is_mode_set) {
-    if (!ED_object_mode_compat_set(C, ob, OB_MODE_SCULPT_CURVES, op->reports)) {
+    if (!object::mode_compat_set(C, ob, OB_MODE_SCULPT_CURVES, op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }

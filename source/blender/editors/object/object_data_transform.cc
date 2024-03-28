@@ -47,6 +47,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender::ed::object {
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Transform Get/Apply
  *
@@ -300,7 +302,7 @@ struct XFormObjectData_GPencil {
   GPencilPointCoordinates elem_array[0];
 };
 
-XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
+XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)
 {
   XFormObjectData *xod_base = nullptr;
   if (id == nullptr) {
@@ -339,7 +341,7 @@ XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
         XFormObjectData_Mesh *xod = static_cast<XFormObjectData_Mesh *>(
             MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
         memset(xod, 0x0, sizeof(*xod));
-        blender::MutableSpan(reinterpret_cast<blender::float3 *>(xod->elem_array), mesh->verts_num)
+        MutableSpan(reinterpret_cast<float3 *>(xod->elem_array), mesh->verts_num)
             .copy_from(mesh->vert_positions());
 
         xod_base = &xod->base;
@@ -482,17 +484,17 @@ XFormObjectData *ED_object_data_xform_create_ex(ID *id, bool is_edit_mode)
   return xod_base;
 }
 
-XFormObjectData *ED_object_data_xform_create(ID *id)
+XFormObjectData *data_xform_create(ID *id)
 {
-  return ED_object_data_xform_create_ex(id, false);
+  return data_xform_create_ex(id, false);
 }
 
-XFormObjectData *ED_object_data_xform_create_from_edit_mode(ID *id)
+XFormObjectData *data_xform_create_from_edit_mode(ID *id)
 {
-  return ED_object_data_xform_create_ex(id, true);
+  return data_xform_create_ex(id, true);
 }
 
-void ED_object_data_xform_destroy(XFormObjectData *xod_base)
+void data_xform_destroy(XFormObjectData *xod_base)
 {
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
@@ -523,9 +525,8 @@ void ED_object_data_xform_destroy(XFormObjectData *xod_base)
   MEM_freeN(xod_base);
 }
 
-void ED_object_data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][4])
+void data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][4])
 {
-  using namespace blender;
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
       Mesh *mesh = (Mesh *)xod_base->id;
@@ -642,7 +643,7 @@ void ED_object_data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][
   }
 }
 
-void ED_object_data_xform_restore(XFormObjectData *xod_base)
+void data_xform_restore(XFormObjectData *xod_base)
 {
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
@@ -660,7 +661,7 @@ void ED_object_data_xform_restore(XFormObjectData *xod_base)
       }
       else {
         mesh->vert_positions_for_write().copy_from(
-            {reinterpret_cast<const blender::float3 *>(xod->elem_array), mesh->verts_num});
+            {reinterpret_cast<const float3 *>(xod->elem_array), mesh->verts_num});
         mesh->tag_positions_changed();
       }
 
@@ -743,7 +744,7 @@ void ED_object_data_xform_restore(XFormObjectData *xod_base)
   }
 }
 
-void ED_object_data_xform_tag_update(XFormObjectData *xod_base)
+void data_xform_tag_update(XFormObjectData *xod_base)
 {
   switch (GS(xod_base->id->name)) {
     case ID_ME: {
@@ -797,3 +798,5 @@ void ED_object_data_xform_tag_update(XFormObjectData *xod_base)
 }
 
 /** \} */
+
+}  // namespace blender::ed::object

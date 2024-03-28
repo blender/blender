@@ -191,7 +191,7 @@ static void brush_painter_cache_2d_free(BrushPainterCache *cache)
   }
 }
 
-static void brush_imbuf_tex_co(rctf *mapping, int x, int y, float texco[3])
+static void brush_imbuf_tex_co(const rctf *mapping, int x, int y, float texco[3])
 {
   texco[0] = mapping->xmin + x * mapping->xmax;
   texco[1] = mapping->ymin + y * mapping->ymax;

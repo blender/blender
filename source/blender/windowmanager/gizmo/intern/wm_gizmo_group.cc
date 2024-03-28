@@ -632,7 +632,7 @@ wmKeyMap *wm_gizmogroup_tweak_modal_keymap(wmKeyConfig *keyconf)
   wmKeyMap *keymap;
   char name[KMAP_MAX_NAME];
 
-  static EnumPropertyItem modal_items[] = {
+  static const EnumPropertyItem modal_items[] = {
       {TWEAK_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
       {TWEAK_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
       {TWEAK_MODAL_PRECISION_ON, "PRECISION_ON", 0, "Enable Precision", ""},

@@ -191,8 +191,7 @@ void BLI_memarena_merge(MemArena *ma_dst, MemArena *ma_src)
       /* Loop over `ma_src` instead of `ma_dst` since it's likely the destination is larger
        * when used for accumulating from multiple sources. */
       struct MemBuf *mb_src = ma_src->bufs;
-      mb_src = ma_src->bufs;
-      while (mb_src && mb_src->next) {
+      while (mb_src->next) {
         mb_src = mb_src->next;
       }
       mb_src->next = ma_dst->bufs->next;

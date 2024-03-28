@@ -3137,7 +3137,7 @@ const char *BKE_scene_multiview_view_id_suffix_get(const RenderData *rd, const i
 }
 
 void BKE_scene_multiview_view_prefix_get(Scene *scene,
-                                         const char *name,
+                                         const char *filepath,
                                          char *r_prefix,
                                          const char **r_ext)
 {
@@ -3146,8 +3146,8 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene,
 
   r_prefix[0] = '\0';
 
-  /* Split filename into base name and extension. */
-  const size_t basename_len = BLI_str_rpartition(name, delims, r_ext, &unused);
+  /* Split `filepath` into base name and extension. */
+  const size_t basename_len = BLI_str_rpartition(filepath, delims, r_ext, &unused);
   if (*r_ext == nullptr) {
     return;
   }
@@ -3158,9 +3158,9 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene,
     if (BKE_scene_multiview_is_render_view_active(&scene->r, srv)) {
       const size_t suffix_len = strlen(srv->suffix);
       if (basename_len >= suffix_len &&
-          STREQLEN(name + basename_len - suffix_len, srv->suffix, suffix_len))
+          STREQLEN(filepath + basename_len - suffix_len, srv->suffix, suffix_len))
       {
-        BLI_strncpy(r_prefix, name, basename_len - suffix_len + 1);
+        BLI_strncpy(r_prefix, filepath, basename_len - suffix_len + 1);
         break;
       }
     }

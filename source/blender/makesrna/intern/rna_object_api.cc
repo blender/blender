@@ -122,7 +122,8 @@ static void rna_Object_select_set(
     return;
   }
 
-  ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
+  blender::ed::object::base_select(
+      base, select ? blender::ed::object::BA_SELECT : blender::ed::object::BA_DESELECT);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
@@ -790,7 +791,7 @@ void rna_Object_me_eval_info(Object * /*ob*/,
 static bool rna_Object_update_from_editmode(Object *ob, Main *bmain)
 {
   /* fail gracefully if we aren't in edit-mode. */
-  const bool result = ED_object_editmode_load(bmain, ob);
+  const bool result = blender::ed::object::editmode_load(bmain, ob);
   if (result) {
     /* Loading edit mesh to mesh changes geometry, and scripts might expect it to be properly
      * informed about changes. */

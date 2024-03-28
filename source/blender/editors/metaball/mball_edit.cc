@@ -914,7 +914,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], const SelectPick_Param
 
     BKE_view_layer_synced_ensure(scene, view_layer);
     if (BKE_view_layer_active_base_get(view_layer) != base) {
-      ED_object_base_activate(C, base);
+      blender::ed::object::base_activate(C, base);
     }
 
     changed = true;

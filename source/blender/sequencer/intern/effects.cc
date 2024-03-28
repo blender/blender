@@ -888,7 +888,7 @@ static void apply_blend_function(
 }
 
 static void do_blend_effect_float(
-    float fac, int x, int y, float *rect1, float *rect2, int btype, float *out)
+    float fac, int x, int y, const float *rect1, float *rect2, int btype, float *out)
 {
   switch (btype) {
     case SEQ_TYPE_ADD:
@@ -2770,7 +2770,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
     rcti rect;
   } wrap;
 
-  BLF_boundbox_ex(font, data->text, sizeof(data->text), &wrap.rect, &wrap.info);
+  BLF_boundbox(font, data->text, sizeof(data->text), &wrap.rect, &wrap.info);
 
   if ((data->align == SEQ_TEXT_ALIGN_X_LEFT) && (data->align_y == SEQ_TEXT_ALIGN_Y_TOP)) {
     y -= line_height;

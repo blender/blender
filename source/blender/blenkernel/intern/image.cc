@@ -2003,7 +2003,7 @@ void BKE_image_stamp_buf(Scene *scene,
 
   /* must enable BLF_WORD_WRAP before using */
 #define TEXT_SIZE_CHECK_WORD_WRAP(str, w, h) \
-  ((str[0]) && (BLF_boundbox_ex(mono, str, sizeof(str), &wrap.rect, &wrap.info), \
+  ((str[0]) && (BLF_boundbox(mono, str, sizeof(str), &wrap.rect, &wrap.info), \
                 (void)(h = h_fixed * wrap.info.lines), \
                 (w = BLI_rcti_size_x(&wrap.rect))))
 

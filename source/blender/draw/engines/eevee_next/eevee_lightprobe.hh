@@ -202,6 +202,7 @@ class LightProbeModule {
   friend class VolumeProbeModule;
   friend class PlanarProbeModule;
   friend class SphereProbeModule;
+  friend class BackgroundPipeline;
 
  private:
   Instance &inst_;

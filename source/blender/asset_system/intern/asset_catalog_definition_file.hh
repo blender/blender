@@ -81,7 +81,7 @@ class AssetCatalogDefinitionFile {
    * Return true when the file was written correctly, false when there was a problem.
    */
   bool write_to_disk_unsafe(const CatalogFilePath &dest_file_path) const;
-  bool ensure_directory_exists(const CatalogFilePath directory_path) const;
+  bool ensure_directory_exists(const CatalogFilePath &directory_path) const;
 };
 
 }  // namespace blender::asset_system

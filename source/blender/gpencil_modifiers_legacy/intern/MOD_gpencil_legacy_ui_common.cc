@@ -39,7 +39,7 @@
  */
 static bool gpencil_modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
 
   return (ob != nullptr) && (ob->type == OB_GPENCIL_LEGACY);
 }
@@ -231,7 +231,7 @@ static void gpencil_modifier_ops_extra_draw(bContext *C, uiLayout *layout, void 
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
       GpencilModifierType(md->type));
 
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md);
   uiLayoutSetContextPointer(layout, "modifier", &ptr);
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);

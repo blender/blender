@@ -970,7 +970,7 @@ static int rna_Sequence_input_count_get(PointerRNA *ptr)
 }
 
 static void rna_Sequence_input_set(PointerRNA *ptr,
-                                   PointerRNA ptr_value,
+                                   const PointerRNA &ptr_value,
                                    ReportList *reports,
                                    int input_num)
 {
@@ -3466,7 +3466,7 @@ static void rna_def_text(StructRNA *srna)
 
 static void rna_def_color_mix(StructRNA *srna)
 {
-  static EnumPropertyItem blend_color_items[] = {
+  static const EnumPropertyItem blend_color_items[] = {
       {SEQ_TYPE_DARKEN, "DARKEN", 0, "Darken", ""},
       {SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
       {SEQ_TYPE_COLOR_BURN, "BURN", 0, "Color Burn", ""},

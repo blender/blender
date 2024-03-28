@@ -289,7 +289,7 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
       char size[16];
       BLI_filelist_entry_size_to_string(nullptr, file->size, false, size);
       if (file->size < 10000) {
-        char size_full[16];
+        char size_full[BLI_STR_FORMAT_UINT64_GROUPED_SIZE];
         BLI_str_format_uint64_grouped(size_full, file->size);
         UI_tooltip_text_field_add(
             tip,

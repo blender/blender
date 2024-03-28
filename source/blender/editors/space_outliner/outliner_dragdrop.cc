@@ -386,7 +386,7 @@ static void parent_drop_set_parents(bContext *C,
         continue;
       }
 
-      if (ED_object_parent_set(
+      if (object::parent_set(
               reports, C, scene, object, parent, parent_type, false, keep_transform, nullptr))
       {
         parent_set = true;
@@ -435,7 +435,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                           op->reports,
                           static_cast<wmDragID *>(drag->ids.first),
                           par,
-                          PAR_OBJECT,
+                          object::PAR_OBJECT,
                           event->modifier & KM_ALT);
 
   return OPERATOR_FINISHED;
@@ -518,8 +518,9 @@ static int parent_clear_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *
     if (GS(drag_id->id->name) == ID_OB) {
       Object *object = (Object *)drag_id->id;
 
-      ED_object_parent_clear(
-          object, (event->modifier & KM_ALT) ? CLEAR_PARENT_KEEP_TRANSFORM : CLEAR_PARENT_ALL);
+      object::parent_clear(object,
+                           (event->modifier & KM_ALT) ? object::CLEAR_PARENT_KEEP_TRANSFORM :
+                                                        object::CLEAR_PARENT_ALL);
     }
   }
 
@@ -587,7 +588,7 @@ static int scene_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *ev
     BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     if (base) {
-      ED_object_base_select(base, BA_SELECT);
+      object::base_select(base, object::BA_SELECT);
     }
   }
 
@@ -924,7 +925,7 @@ static void datastack_drop_link(bContext *C, StackDropData *drop_data)
 
   switch (drop_data->drag_tselem->type) {
     case TSE_MODIFIER_BASE:
-      ED_object_modifier_link(C, ob_dst, drop_data->ob_parent);
+      object::modifier_link(C, ob_dst, drop_data->ob_parent);
       break;
     case TSE_CONSTRAINT_BASE: {
       ListBase *src;
@@ -945,7 +946,7 @@ static void datastack_drop_link(bContext *C, StackDropData *drop_data)
         dst = &ob_dst->constraints;
       }
 
-      ED_object_constraint_link(bmain, ob_dst, dst, src);
+      object::constraint_link(bmain, ob_dst, dst, src);
       break;
     }
     case TSE_GPENCIL_EFFECT_BASE:
@@ -953,7 +954,7 @@ static void datastack_drop_link(bContext *C, StackDropData *drop_data)
         return;
       }
 
-      ED_object_shaderfx_link(ob_dst, drop_data->ob_parent);
+      object::shaderfx_link(ob_dst, drop_data->ob_parent);
       break;
   }
 }
@@ -968,28 +969,28 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
   switch (drop_data->drag_tselem->type) {
     case TSE_MODIFIER:
       if (drop_data->ob_parent->type == OB_GPENCIL_LEGACY && ob_dst->type == OB_GPENCIL_LEGACY) {
-        ED_object_gpencil_modifier_copy_to_object(
+        object::gpencil_modifier_copy_to_object(
             ob_dst, static_cast<GpencilModifierData *>(drop_data->drag_directdata));
       }
       else if (drop_data->ob_parent->type != OB_GPENCIL_LEGACY &&
                ob_dst->type != OB_GPENCIL_LEGACY)
       {
-        ED_object_modifier_copy_to_object(C,
-                                          ob_dst,
-                                          drop_data->ob_parent,
-                                          static_cast<ModifierData *>(drop_data->drag_directdata));
+        object::modifier_copy_to_object(C,
+                                        ob_dst,
+                                        drop_data->ob_parent,
+                                        static_cast<ModifierData *>(drop_data->drag_directdata));
       }
       break;
     case TSE_CONSTRAINT:
       if (tselem->type == TSE_POSE_CHANNEL) {
-        ED_object_constraint_copy_for_pose(
+        object::constraint_copy_for_pose(
             bmain,
             ob_dst,
             static_cast<bPoseChannel *>(drop_data->drop_te->directdata),
             static_cast<bConstraint *>(drop_data->drag_directdata));
       }
       else {
-        ED_object_constraint_copy_for_object(
+        object::constraint_copy_for_object(
             bmain, ob_dst, static_cast<bConstraint *>(drop_data->drag_directdata));
       }
       break;
@@ -998,7 +999,7 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
         return;
       }
 
-      ED_object_shaderfx_copy(ob_dst, static_cast<ShaderFxData *>(drop_data->drag_directdata));
+      object::shaderfx_copy(ob_dst, static_cast<ShaderFxData *>(drop_data->drag_directdata));
       break;
     }
   }
@@ -1024,17 +1025,17 @@ static void datastack_drop_reorder(bContext *C, ReportList *reports, StackDropDa
       if (ob->type == OB_GPENCIL_LEGACY) {
         index = outliner_get_insert_index(
             drag_te, drop_te, insert_type, &ob->greasepencil_modifiers);
-        ED_object_gpencil_modifier_move_to_index(
+        object::gpencil_modifier_move_to_index(
             reports, ob, static_cast<GpencilModifierData *>(drop_data->drag_directdata), index);
       }
       else {
         index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->modifiers);
-        ED_object_modifier_move_to_index(reports,
-                                         RPT_WARNING,
-                                         ob,
-                                         static_cast<ModifierData *>(drop_data->drag_directdata),
-                                         index,
-                                         true);
+        object::modifier_move_to_index(reports,
+                                       RPT_WARNING,
+                                       ob,
+                                       static_cast<ModifierData *>(drop_data->drag_directdata),
+                                       index,
+                                       true);
       }
       break;
     case TSE_CONSTRAINT:
@@ -1045,13 +1046,13 @@ static void datastack_drop_reorder(bContext *C, ReportList *reports, StackDropDa
       else {
         index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->constraints);
       }
-      ED_object_constraint_move_to_index(
+      object::constraint_move_to_index(
           ob, static_cast<bConstraint *>(drop_data->drag_directdata), index);
 
       break;
     case TSE_GPENCIL_EFFECT:
       index = outliner_get_insert_index(drag_te, drop_te, insert_type, &ob->shader_fx);
-      ED_object_shaderfx_move_to_index(
+      object::shaderfx_move_to_index(
           reports, ob, static_cast<ShaderFxData *>(drop_data->drag_directdata), index);
   }
 }

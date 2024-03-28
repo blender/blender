@@ -535,7 +535,7 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
   gzt->struct_size = sizeof(ArrowGizmo3D);
 
   /* rna */
-  static EnumPropertyItem rna_enum_draw_style_items[] = {
+  static const EnumPropertyItem rna_enum_draw_style_items[] = {
       {ED_GIZMO_ARROW_STYLE_NORMAL, "NORMAL", 0, "Normal", ""},
       {ED_GIZMO_ARROW_STYLE_CROSS, "CROSS", 0, "Cross", ""},
       {ED_GIZMO_ARROW_STYLE_BOX, "BOX", 0, "Box", ""},
@@ -543,12 +543,12 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
       {ED_GIZMO_ARROW_STYLE_PLANE, "PLANE", 0, "Plane", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  static EnumPropertyItem rna_enum_draw_options_items[] = {
+  static const EnumPropertyItem rna_enum_draw_options_items[] = {
       {ED_GIZMO_ARROW_DRAW_FLAG_STEM, "STEM", 0, "Stem", ""},
       {ED_GIZMO_ARROW_DRAW_FLAG_ORIGIN, "ORIGIN", 0, "Origin", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  static EnumPropertyItem rna_enum_transform_items[] = {
+  static const EnumPropertyItem rna_enum_transform_items[] = {
       {ED_GIZMO_ARROW_XFORM_FLAG_INVERTED, "INVERT", 0, "Inverted", ""},
       {ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED, "CONSTRAIN", 0, "Constrained", ""},
       {0, nullptr, 0, nullptr, nullptr},

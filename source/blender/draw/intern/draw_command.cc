@@ -501,7 +501,7 @@ std::string Draw::serialize() const
          ")";
 }
 
-std::string DrawMulti::serialize(std::string line_prefix) const
+std::string DrawMulti::serialize(const std::string &line_prefix) const
 {
   DrawMultiBuf::DrawGroupBuf &groups = multi_draw_buf->group_buf_;
 

@@ -3773,7 +3773,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
       if (line->line[0]) {
         BLF_position(fontid, x, y, 0);
         ResultBLF info;
-        BLF_draw_ex(fontid, line->line, line->len, &info);
+        BLF_draw(fontid, line->line, line->len, &info);
         y -= line_spacing * info.lines;
       }
       else {

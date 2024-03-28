@@ -1048,8 +1048,6 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
       }
 
       return i < len ? 1 : 0;
-
-      break;
     }
     case PROP_INT: {
       const int value_i = PyC_Long_AsI32(value);
@@ -1081,8 +1079,6 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
       }
 
       return i < len ? 1 : 0;
-
-      break;
     }
     case PROP_BOOLEAN: {
       const int value_i = PyC_Long_AsBool(value);
@@ -1114,8 +1110,6 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
       }
 
       return i < len ? 1 : 0;
-
-      break;
     }
   }
 

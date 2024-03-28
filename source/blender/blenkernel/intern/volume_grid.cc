@@ -383,8 +383,8 @@ VolumeGridType get_type(const VolumeGridData &volume_grid)
   return volume_grid.grid_type();
 #else
   UNUSED_VARS(volume_grid);
-#endif
   return VOLUME_GRID_UNKNOWN;
+#endif
 }
 
 int get_channels_num(const VolumeGridType type)

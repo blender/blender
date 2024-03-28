@@ -96,7 +96,7 @@ void main()
   float circumradius = float(imageSize(output_img).x) / 2.0;
 
   /* Move the texel coordinates such that the regular polygon is centered. */
-  vec2 point = vec2(texel) - circumradius;
+  vec2 point = vec2(texel) + vec2(0.5) - circumradius;
 
   /* Each of the color channels of the output image contains a bokeh with a different circumradius.
    * The largest one occupies the whole image as stated above, while the other two have circumradii

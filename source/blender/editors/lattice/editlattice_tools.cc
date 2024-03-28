@@ -68,7 +68,7 @@ static int make_regular_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      if (ED_object_edit_report_if_shape_key_is_locked(ob, op->reports)) {
+      if (blender::ed::object::shape_key_report_if_locked(ob, op->reports)) {
         continue;
       }
 
@@ -221,7 +221,7 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
     lt = (Lattice *)obedit->data;
     lt = lt->editlatt->latt;
 
-    if (ED_object_edit_report_if_shape_key_is_locked(obedit, op->reports)) {
+    if (blender::ed::object::shape_key_report_if_locked(obedit, op->reports)) {
       continue;
     }
 

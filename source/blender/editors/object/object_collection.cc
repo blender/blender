@@ -40,6 +40,8 @@
 
 #include "object_intern.hh"
 
+namespace blender::ed::object {
+
 /********************* 3d view operators ***********************/
 
 /* can be called with C == nullptr */
@@ -58,7 +60,7 @@ static const EnumPropertyItem *collection_object_active_itemf(bContext *C,
     return rna_enum_dummy_NULL_items;
   }
 
-  ob = ED_object_context(C);
+  ob = context_object(C);
 
   /* check that the object exists */
   if (ob) {
@@ -115,7 +117,7 @@ static Collection *collection_object_active_find_index(Main *bmain,
 
 static int objects_add_active_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = context_object(C);
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   int single_collection_index = RNA_enum_get(op->ptr, "collection");
@@ -305,7 +307,7 @@ void COLLECTION_OT_objects_remove_all(wmOperatorType *ot)
 
 static int collection_objects_remove_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = context_object(C);
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   int single_collection_index = RNA_enum_get(op->ptr, "collection");
@@ -418,7 +420,7 @@ void COLLECTION_OT_create(wmOperatorType *ot)
 
 static int collection_add_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = context_object(C);
   Main *bmain = CTX_data_main(C);
 
   if (ob == nullptr) {
@@ -455,7 +457,7 @@ void OBJECT_OT_collection_add(wmOperatorType *ot)
 static int collection_link_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = ED_object_context(C);
+  Object *ob = context_object(C);
   Collection *collection = static_cast<Collection *>(
       BLI_findlink(&bmain->collections, RNA_enum_get(op->ptr, "collection")));
 
@@ -532,7 +534,7 @@ void OBJECT_OT_collection_link(wmOperatorType *ot)
 static int collection_remove_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = ED_object_context(C);
+  Object *ob = context_object(C);
   Collection *collection = static_cast<Collection *>(
       CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data);
 
@@ -628,7 +630,7 @@ static int select_grouped_exec(bContext *C, wmOperator * /*op*/)
   CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
     if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLE) != 0)) {
       if (BKE_collection_has_object_recursive(collection, base->object)) {
-        ED_object_base_select(base, BA_SELECT);
+        base_select(base, BA_SELECT);
       }
     }
   }
@@ -654,3 +656,5 @@ void OBJECT_OT_collection_objects_select(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+}  // namespace blender::ed::object

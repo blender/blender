@@ -22,6 +22,17 @@
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 
+/* NOTE(@dingto): Don't define icons here,
+ * so they don't show up in the Light UI (properties editor). */
+
+const EnumPropertyItem rna_enum_light_type_items[] = {
+    {LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
+    {LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},
+    {LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source"},
+    {LA_AREA, "AREA", 0, "Area", "Directional area light source"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "MEM_guardedalloc.h"
@@ -82,17 +93,6 @@ static void rna_Light_use_nodes_update(bContext *C, PointerRNA *ptr)
 }
 
 #else
-
-/* NOTE(@dingto): Don't define icons here,
- * so they don't show up in the Light UI (properties editor). */
-
-const EnumPropertyItem rna_enum_light_type_items[] = {
-    {LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
-    {LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},
-    {LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source"},
-    {LA_AREA, "AREA", 0, "Area", "Directional area light source"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
 
 static void rna_def_light(BlenderRNA *brna)
 {

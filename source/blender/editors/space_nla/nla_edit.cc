@@ -220,7 +220,7 @@ bool nlaedit_disable_tweakmode(bAnimContext *ac, bool do_solo)
     AnimData *adt = static_cast<AnimData *>(ale->data);
 
     /* clear solo flags */
-    if ((do_solo) & (adt->flag & ADT_NLA_SOLO_TRACK) && (adt->flag & ADT_NLA_EDIT_ON)) {
+    if (do_solo && (adt->flag & ADT_NLA_SOLO_TRACK) && (adt->flag & ADT_NLA_EDIT_ON)) {
       BKE_nlatrack_solo_toggle(adt, nullptr);
     }
 

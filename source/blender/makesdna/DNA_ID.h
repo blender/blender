@@ -1017,7 +1017,7 @@ enum {
    *
    * \todo Make it a RESET_AFTER_USE too.
    */
-  LIB_TAG_DOIT = 1 << 31,
+  LIB_TAG_DOIT = 1u << 31,
 };
 
 /**

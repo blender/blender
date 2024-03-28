@@ -130,7 +130,7 @@ bool bc_validateConstraints(bConstraint *con)
 bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 {
   Scene *scene = CTX_data_scene(C);
-  int partype = PAR_OBJECT;
+  int partype = blender::ed::object::PAR_OBJECT;
   const bool xmirror = false;
   const bool keep_transform = false;
 
@@ -140,7 +140,7 @@ bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
                 ob->object_to_world().ptr());
   }
 
-  bool ok = ED_object_parent_set(
+  bool ok = blender::ed::object::parent_set(
       nullptr, C, scene, ob, par, partype, xmirror, keep_transform, nullptr);
   return ok;
 }

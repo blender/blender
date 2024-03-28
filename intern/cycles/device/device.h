@@ -124,7 +124,8 @@ class DeviceInfo {
     /* Multiple Devices with the same ID would be very bad. */
     assert(id != info.id ||
            (type == info.type && num == info.num && description == info.description));
-    return id == info.id;
+    return id == info.id && use_hardware_raytracing == info.use_hardware_raytracing &&
+           kernel_optimization_level == info.kernel_optimization_level;
   }
 };
 

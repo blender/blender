@@ -632,8 +632,8 @@ int AssetLibraryIndex::remove_broken_index_files()
   }
 
   int num_files_deleted = 0;
-  for (StringRef files_to_remove : files_to_remove) {
-    if (delete_file_index(files_to_remove)) {
+  for (StringRef filepath : files_to_remove) {
+    if (delete_file_index(filepath)) {
       num_files_deleted++;
     }
   }

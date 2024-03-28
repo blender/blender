@@ -429,7 +429,7 @@ static void write_severity(CLogStringBuf *cstr, enum CLG_Severity severity, bool
   }
 }
 
-static void write_type(CLogStringBuf *cstr, CLG_LogType *lg)
+static void write_type(CLogStringBuf *cstr, const CLG_LogType *lg)
 {
   clg_str_append(cstr, " (");
   clg_str_append(cstr, lg->identifier);
@@ -460,7 +460,7 @@ static void write_file_line_fn(CLogStringBuf *cstr,
   clg_str_append(cstr, ": ");
 }
 
-void CLG_log_str(CLG_LogType *lg,
+void CLG_log_str(const CLG_LogType *lg,
                  enum CLG_Severity severity,
                  const char *file_line,
                  const char *fn,
@@ -498,7 +498,7 @@ void CLG_log_str(CLG_LogType *lg,
   }
 }
 
-void CLG_logf(CLG_LogType *lg,
+void CLG_logf(const CLG_LogType *lg,
               enum CLG_Severity severity,
               const char *file_line,
               const char *fn,

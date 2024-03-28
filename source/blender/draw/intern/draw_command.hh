@@ -371,7 +371,7 @@ struct DrawMulti {
   uint uuid;
 
   void execute(RecordingState &state) const;
-  std::string serialize(std::string line_prefix) const;
+  std::string serialize(const std::string &line_prefix) const;
 };
 
 struct DrawIndirect {

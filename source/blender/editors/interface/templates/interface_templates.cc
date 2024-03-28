@@ -1055,7 +1055,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
         /* make copy */
         if (do_scene_obj) {
           Scene *scene = CTX_data_scene(C);
-          ED_object_single_user(id_main, scene, (Object *)id);
+          blender::ed::object::object_single_user_make(id_main, scene, (Object *)id);
           WM_event_add_notifier(C, NC_WINDOW, nullptr);
           DEG_relations_tag_update(id_main);
         }
@@ -2299,7 +2299,7 @@ void uiTemplateModifiers(uiLayout * /*layout*/, bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
 
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   ListBase *modifiers = &ob->modifiers;
 
   const bool panels_match = UI_panel_list_matches_data(region, modifiers, modifier_panel_id);
@@ -2444,10 +2444,10 @@ void uiTemplateConstraints(uiLayout * /*layout*/, bContext *C, bool use_bone_con
 {
   ARegion *region = CTX_wm_region(C);
 
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   ListBase *constraints = {nullptr};
   if (use_bone_constraints) {
-    constraints = ED_object_pose_constraint_list(C);
+    constraints = blender::ed::object::pose_constraint_list(C);
   }
   else if (ob != nullptr) {
     constraints = &ob->constraints;
@@ -2547,7 +2547,7 @@ static void gpencil_modifier_panel_id(void *md_link, char *r_name)
 void uiTemplateGpencilModifiers(uiLayout * /*layout*/, bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   ListBase *modifiers = &ob->greasepencil_modifiers;
 
   const bool panels_match = UI_panel_list_matches_data(
@@ -2621,7 +2621,7 @@ static void shaderfx_panel_id(void *fx_v, char *r_idname)
 void uiTemplateShaderFx(uiLayout * /*layout*/, bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   ListBase *shaderfx = &ob->shader_fx;
 
   const bool panels_match = UI_panel_list_matches_data(region, shaderfx, shaderfx_panel_id);
@@ -2978,7 +2978,8 @@ void uiTemplateOperatorRedoProperties(uiLayout *layout, const bContext *C)
 
 static void constraint_active_func(bContext * /*C*/, void *ob_v, void *con_v)
 {
-  ED_object_constraint_active_set(static_cast<Object *>(ob_v), static_cast<bConstraint *>(con_v));
+  blender::ed::object::constraint_active_set(static_cast<Object *>(ob_v),
+                                             static_cast<bConstraint *>(con_v));
 }
 
 static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v)
@@ -2987,7 +2988,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
   uiLayout *row;
   bConstraint *con = (bConstraint *)con_v;
 
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
 
   PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_Constraint, con);
   uiLayoutSetContextPointer(layout, "constraint", &ptr);
@@ -3039,7 +3040,8 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
               WM_OP_INVOKE_DEFAULT,
               UI_ITEM_NONE,
               &op_ptr);
-  ListBase *constraint_list = ED_object_constraint_list_from_constraint(ob, con, nullptr);
+  ListBase *constraint_list = blender::ed::object::constraint_list_from_constraint(
+      ob, con, nullptr);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(constraint_list) - 1);
   if (!con->next) {
     uiLayoutSetEnabled(row, false);

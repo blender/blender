@@ -257,7 +257,7 @@ static void index_dir_set(Editing *ed, Sequence *seq, StripAnim *sanim)
   seq_proxy_index_dir_set(sanim->anim, proxy_dirpath);
 }
 
-static bool open_anim_file_multiview(Scene *scene, Sequence *seq, char *filepath)
+static bool open_anim_file_multiview(Scene *scene, Sequence *seq, const char *filepath)
 {
   char prefix[FILE_MAX];
   const char *ext = nullptr;

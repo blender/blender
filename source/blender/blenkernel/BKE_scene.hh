@@ -283,7 +283,7 @@ void BKE_scene_multiview_view_filepath_get(const RenderData *rd,
 const char *BKE_scene_multiview_view_suffix_get(const RenderData *rd, const char *viewname);
 const char *BKE_scene_multiview_view_id_suffix_get(const RenderData *rd, int view_id);
 void BKE_scene_multiview_view_prefix_get(Scene *scene,
-                                         const char *name,
+                                         const char *filepath,
                                          char *r_prefix,
                                          const char **r_ext);
 void BKE_scene_multiview_videos_dimensions_get(

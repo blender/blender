@@ -1335,7 +1335,7 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static EnumPropertyItem prop_gpencil_simplify_mode_items[] = {
+  static const EnumPropertyItem prop_gpencil_simplify_mode_items[] = {
       {GP_SIMPLIFY_FIXED,
        "FIXED",
        ICON_IPO_CONSTANT,
@@ -1572,7 +1572,7 @@ static void rna_def_modifier_gpenciloffset(BlenderRNA *brna)
   PropertyRNA *prop;
 
   RNA_define_lib_overridable(true);
-  static EnumPropertyItem rna_enum_offset_mode_items[] = {
+  static const EnumPropertyItem rna_enum_offset_mode_items[] = {
       {GP_OFFSET_RANDOM, "RANDOM", 0, "Random", "Randomize stroke offset"},
       {GP_OFFSET_LAYER, "LAYER", 0, "Layer", "Offset layers by the same factor"},
       {GP_OFFSET_STROKE,
@@ -1718,7 +1718,7 @@ static void rna_def_modifier_gpenciltint(BlenderRNA *brna)
   PropertyRNA *prop;
 
   /* modes */
-  static EnumPropertyItem tint_mode_types_items[] = {
+  static const EnumPropertyItem tint_mode_types_items[] = {
       {GPPAINT_MODE_STROKE, "STROKE", 0, "Stroke", "Vertex Color affects to Stroke only"},
       {GPPAINT_MODE_FILL, "FILL", 0, "Fill", "Vertex Color affects to Fill only"},
       {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke & Fill", "Vertex Color affects to Stroke and Fill"},
@@ -2456,7 +2456,7 @@ static void rna_def_modifier_gpencilarray(BlenderRNA *brna)
 
 static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
 {
-  static EnumPropertyItem prop_gpencil_build_mode_items[] = {
+  static const EnumPropertyItem prop_gpencil_build_mode_items[] = {
       {GP_BUILD_MODE_SEQUENTIAL,
        "SEQUENTIAL",
        0,
@@ -2475,7 +2475,7 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static EnumPropertyItem prop_gpencil_build_transition_items[] = {
+  static const EnumPropertyItem prop_gpencil_build_transition_items[] = {
       {GP_BUILD_TRANSITION_GROW,
        "GROW",
        0,
@@ -2497,7 +2497,7 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static EnumPropertyItem prop_gpencil_build_time_align_items[] = {
+  static const EnumPropertyItem prop_gpencil_build_time_align_items[] = {
       {GP_BUILD_TIMEALIGN_START,
        "START",
        0,

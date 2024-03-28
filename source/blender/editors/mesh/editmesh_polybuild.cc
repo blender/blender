@@ -153,7 +153,7 @@ static int edbm_polybuild_transform_at_cursor_invoke(bContext *C,
   if (basact != nullptr) {
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      ED_object_base_activate(C, basact);
+      blender::ed::object::base_activate(C, basact);
     }
   }
   BM_select_history_store(bm, ele_act);
@@ -239,7 +239,7 @@ static int edbm_polybuild_delete_at_cursor_invoke(bContext *C,
     if (basact != nullptr) {
       BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
       if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-        ED_object_base_activate(C, basact);
+        blender::ed::object::base_activate(C, basact);
       }
     }
     WM_event_add_mousemove(vc.win);
@@ -407,7 +407,7 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
     if (basact != nullptr) {
       BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
       if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-        ED_object_base_activate(C, basact);
+        blender::ed::object::base_activate(C, basact);
       }
     }
 
@@ -499,7 +499,7 @@ static int edbm_polybuild_split_at_cursor_invoke(bContext *C,
 
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      ED_object_base_activate(C, basact);
+      blender::ed::object::base_activate(C, basact);
     }
 
     return OPERATOR_FINISHED;
@@ -588,7 +588,7 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
 
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      ED_object_base_activate(C, basact);
+      blender::ed::object::base_activate(C, basact);
     }
 
     WM_event_add_mousemove(vc.win);

@@ -1234,7 +1234,7 @@ static void p_chart_fill_boundary(ParamHandle *handle, PChart *chart, PEdge *be,
   BLI_heap_free(heap, nullptr);
 }
 
-static void p_chart_fill_boundaries(ParamHandle *handle, PChart *chart, PEdge *outer)
+static void p_chart_fill_boundaries(ParamHandle *handle, PChart *chart, const PEdge *outer)
 {
   PEdge *e, *be; /* *enext - as yet unused */
   int nedges;
@@ -3800,8 +3800,8 @@ static void p_add_ngon(ParamHandle *handle,
     const ParamKey tri_vkeys[3] = {vkeys[v0], vkeys[v1], vkeys[v2]};
     const float *tri_co[3] = {co[v0], co[v1], co[v2]};
     float *tri_uv[3] = {uv[v0], uv[v1], uv[v2]};
-    bool tri_pin[3] = {pin[v0], pin[v1], pin[v2]};
-    bool tri_select[3] = {select[v0], select[v1], select[v2]};
+    const bool tri_pin[3] = {pin[v0], pin[v1], pin[v2]};
+    const bool tri_select[3] = {select[v0], select[v1], select[v2]};
 
     uv_parametrizer_face_add(handle, key, 3, tri_vkeys, tri_co, tri_uv, tri_pin, tri_select);
   }

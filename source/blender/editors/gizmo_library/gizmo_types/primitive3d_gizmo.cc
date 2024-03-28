@@ -256,7 +256,7 @@ static void GIZMO_GT_primitive_3d(wmGizmoType *gzt)
 
   gzt->struct_size = sizeof(PrimitiveGizmo3D);
 
-  static EnumPropertyItem rna_enum_draw_style[] = {
+  static const EnumPropertyItem rna_enum_draw_style[] = {
       {ED_GIZMO_PRIMITIVE_STYLE_PLANE, "PLANE", 0, "Plane", ""},
       {ED_GIZMO_PRIMITIVE_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
       {ED_GIZMO_PRIMITIVE_STYLE_ANNULUS, "ANNULUS", 0, "Annulus", ""},

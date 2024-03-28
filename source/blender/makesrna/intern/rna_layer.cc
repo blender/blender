@@ -251,8 +251,9 @@ static void rna_ViewLayer_update_tagged(ID *id_ptr,
 static void rna_ObjectBase_select_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Base *base = (Base *)ptr->data;
-  short mode = (base->flag & BASE_SELECTED) ? BA_SELECT : BA_DESELECT;
-  ED_object_base_select(base, eObjectSelect_Mode(mode));
+  short mode = (base->flag & BASE_SELECTED) ? blender::ed::object::BA_SELECT :
+                                              blender::ed::object::BA_DESELECT;
+  blender::ed::object::base_select(base, blender::ed::object::eObjectSelect_Mode(mode));
 }
 
 static void rna_ObjectBase_hide_viewport_update(bContext *C, PointerRNA * /*ptr*/)
@@ -338,7 +339,7 @@ static void rna_LayerCollection_exclude_update(Main *bmain, Scene * /*scene*/, P
   DEG_relations_tag_update(bmain);
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, nullptr);
   if (exclude) {
-    ED_object_base_active_refresh(bmain, scene, view_layer);
+    blender::ed::object::base_active_refresh(bmain, scene, view_layer);
   }
 }
 
@@ -547,7 +548,7 @@ static void rna_def_layer_objects(BlenderRNA *brna, PropertyRNA *cprop)
                                  nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Active Object", "Active object for this layer");
-  /* Could call: `ED_object_base_activate(C, view_layer->basact);`
+  /* Could call: `blender::ed::object::base_activate(C, view_layer->basact);`
    * but would be a bad level call and it seems the notifier is enough */
   RNA_def_property_update(prop, NC_SCENE | ND_OB_ACTIVE, nullptr);
 
