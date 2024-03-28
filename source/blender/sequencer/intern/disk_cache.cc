@@ -185,7 +185,7 @@ static void seq_disk_cache_get_files(SeqDiskCache *disk_cache, char *dirpath)
     if (is_dir && !FILENAME_IS_CURRPAR(file)) {
       char subpath[FILE_MAX];
       STRNCPY(subpath, fl->path);
-      BLI_path_slash_ensure(subpath, sizeof(sizeof(subpath)));
+      BLI_path_slash_ensure(subpath, sizeof(subpath));
       seq_disk_cache_get_files(disk_cache, subpath);
     }
 
