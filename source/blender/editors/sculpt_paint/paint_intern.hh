@@ -471,6 +471,7 @@ void PAINT_OT_hide_show_masked(wmOperatorType *ot);
 void PAINT_OT_hide_show_all(wmOperatorType *ot);
 void PAINT_OT_hide_show(wmOperatorType *ot);
 void PAINT_OT_hide_show_lasso_gesture(wmOperatorType *ot);
+void PAINT_OT_hide_show_line_gesture(wmOperatorType *ot);
 
 void PAINT_OT_visibility_invert(wmOperatorType *ot);
 }  // namespace blender::ed::sculpt_paint::hide

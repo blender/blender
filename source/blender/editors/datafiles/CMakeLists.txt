@@ -878,6 +878,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.lasso_hide
   ops.sculpt.lasso_mask
   ops.sculpt.lasso_trim
+  ops.sculpt.line_hide
   ops.sculpt.line_mask
   ops.sculpt.line_project
   ops.sculpt.mask_by_color
