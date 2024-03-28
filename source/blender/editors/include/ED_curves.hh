@@ -11,7 +11,7 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 
-#include "BLI_index_mask.hh"
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 

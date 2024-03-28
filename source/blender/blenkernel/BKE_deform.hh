@@ -6,7 +6,7 @@
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_virtual_array.hh"
+#include "BLI_virtual_array_fwd.hh"
 
 /** \file
  * \ingroup bke
