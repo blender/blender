@@ -1336,11 +1336,8 @@ static void CURVES_OT_tilt_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-}  // namespace blender::ed::curves
-
-void ED_operatortypes_curves()
+void operatortypes_curves()
 {
-  using namespace blender::ed::curves;
   WM_operatortype_append(CURVES_OT_attribute_set);
   WM_operatortype_append(CURVES_OT_convert_to_particle_system);
   WM_operatortype_append(CURVES_OT_convert_from_particle_system);
@@ -1360,7 +1357,7 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_tilt_clear);
 }
 
-void ED_operatormacros_curves()
+void operatormacros_curves()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;
@@ -1386,10 +1383,11 @@ void ED_operatormacros_curves()
   RNA_boolean_set(otmacro->ptr, "mirror", false);
 }
 
-void ED_keymap_curves(wmKeyConfig *keyconf)
+void keymap_curves(wmKeyConfig *keyconf)
 {
-  using namespace blender::ed::curves;
   /* Only set in editmode curves, by space_view3d listener. */
   wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = editable_curves_in_edit_mode_poll;
 }
+
+}  // namespace blender::ed::curves

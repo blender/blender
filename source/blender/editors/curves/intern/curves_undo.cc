@@ -28,7 +28,8 @@
 
 static CLG_LogRef LOG = {"ed.undo.curves"};
 
-namespace blender::ed::curves::undo {
+namespace blender::ed::curves {
+namespace undo {
 
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System
@@ -129,21 +130,21 @@ static void foreach_ID_ref(UndoStep *us_p,
 
 /** \} */
 
-}  // namespace blender::ed::curves::undo
+}  // namespace undo
 
-void ED_curves_undosys_type(UndoType *ut)
+void undosys_type_register(UndoType *ut)
 {
-  using namespace blender::ed;
-
   ut->name = "Edit Curves";
-  ut->poll = curves::editable_curves_in_edit_mode_poll;
-  ut->step_encode = curves::undo::step_encode;
-  ut->step_decode = curves::undo::step_decode;
-  ut->step_free = curves::undo::step_free;
+  ut->poll = editable_curves_in_edit_mode_poll;
+  ut->step_encode = undo::step_encode;
+  ut->step_decode = undo::step_decode;
+  ut->step_free = undo::step_free;
 
-  ut->step_foreach_ID_ref = curves::undo::foreach_ID_ref;
+  ut->step_foreach_ID_ref = undo::foreach_ID_ref;
 
   ut->flags = UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE;
 
-  ut->step_size = sizeof(curves::undo::CurvesUndoStep);
+  ut->step_size = sizeof(undo::CurvesUndoStep);
 }
+
+}  // namespace blender::ed::curves

@@ -270,7 +270,7 @@ static void rna_CurveSlice_points_begin(CollectionPropertyIterator *iter, Pointe
 static void rna_Curves_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   Curves *curves = rna_curves(ptr);
-  float(*positions)[3] = ED_curves_point_normals_array_create(curves);
+  float(*positions)[3] = blender::ed::curves::point_normals_array_create(curves);
   const int size = curves->geometry.point_num;
   rna_iterator_array_begin(iter, positions, sizeof(float[3]), size, true, nullptr);
 }

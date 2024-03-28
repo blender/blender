@@ -31,13 +31,14 @@ void ED_undosys_type_init()
 {
   /* Edit Modes */
   using namespace blender;
+  using namespace blender::ed;
   BKE_undosys_type_append(ED_armature_undosys_type);
   BKE_undosys_type_append(ED_curve_undosys_type);
   BKE_undosys_type_append(ED_font_undosys_type);
   BKE_undosys_type_append(ED_lattice_undosys_type);
   BKE_undosys_type_append(ED_mball_undosys_type);
   BKE_undosys_type_append(ED_mesh_undosys_type);
-  BKE_undosys_type_append(ED_curves_undosys_type);
+  BKE_undosys_type_append(curves::undosys_type_register);
   BKE_undosys_type_append(ED_undosys_type_grease_pencil);
 
   /* Paint Modes */

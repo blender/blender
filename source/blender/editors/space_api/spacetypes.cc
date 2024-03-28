@@ -105,7 +105,7 @@ void ED_spacetypes_init()
   ED_operatortypes_paint();
   ED_operatortypes_physics();
   ED_operatortypes_curve();
-  ED_operatortypes_curves();
+  curves::operatortypes_curves();
   ED_operatortypes_armature();
   ED_operatortypes_marker();
   ED_operatortypes_metaball();
@@ -162,7 +162,7 @@ void ED_spacemacros_init()
   ED_operatormacros_action();
   ED_operatormacros_clip();
   ED_operatormacros_curve();
-  ED_operatormacros_curves();
+  curves::operatormacros_curves();
   ED_operatormacros_mask();
   ED_operatormacros_sequencer();
   ED_operatormacros_paint();
@@ -192,7 +192,7 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
   ED_keymap_mesh(keyconf);
   ED_keymap_uvedit(keyconf);
   ED_keymap_curve(keyconf);
-  ED_keymap_curves(keyconf);
+  curves::keymap_curves(keyconf);
   ED_keymap_armature(keyconf);
   ED_keymap_physics(keyconf);
   ED_keymap_metaball(keyconf);

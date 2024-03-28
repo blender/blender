@@ -30,25 +30,19 @@ enum class AttrDomain : int8_t;
 struct GSpanAttributeWriter;
 }  // namespace blender::bke
 
-/* -------------------------------------------------------------------- */
-/** \name C Wrappers
- * \{ */
+namespace blender::ed::curves {
 
-void ED_operatortypes_curves();
-void ED_operatormacros_curves();
-void ED_curves_undosys_type(UndoType *ut);
-void ED_keymap_curves(wmKeyConfig *keyconf);
+void operatortypes_curves();
+void operatormacros_curves();
+void undosys_type_register(UndoType *ut);
+void keymap_curves(wmKeyConfig *keyconf);
 
 /**
  * Return an owning pointer to an array of point normals the same size as the number of control
  * points. The normals depend on the normal mode for each curve and the "tilt" attribute and may be
  * calculated for the evaluated points and sampled back to the control points.
  */
-float (*ED_curves_point_normals_array_create(const Curves *curves_id))[3];
-
-/** \} */
-
-namespace blender::ed::curves {
+float (*point_normals_array_create(const Curves *curves_id))[3];
 
 bool object_has_editable_curves(const Main &bmain, const Object &object);
 bke::CurvesGeometry primitive_random_sphere(int curves_size, int points_per_curve);
