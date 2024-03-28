@@ -1014,7 +1014,10 @@ static void render_result_exr_file_cache_path(Scene *sce,
 
   BLI_path_join(r_path, FILE_CACHE_MAX, root, filename_full);
   if (BLI_path_is_rel(r_path)) {
-    BLI_path_abs(r_path, dirname);
+    char path_temp[FILE_MAX];
+    STRNCPY(path_temp, r_path);
+    BLI_path_abs(path_temp, dirname);
+    BLI_strncpy(r_path, path_temp, FILE_CACHE_MAX);
   }
 }
 
