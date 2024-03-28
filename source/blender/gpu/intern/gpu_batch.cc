@@ -12,6 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_base.h"
+#include "BLI_utildefines.h"
 
 #include "GPU_batch.hh"
 #include "GPU_batch_presets.hh"
@@ -36,8 +37,8 @@ using namespace blender::gpu;
 
 void GPU_batch_zero(Batch *batch)
 {
-  std::fill_n(batch->verts, sizeof(GPU_BATCH_VBO_MAX_LEN), nullptr);
-  std::fill_n(batch->inst, sizeof(GPU_BATCH_INST_VBO_MAX_LEN), nullptr);
+  std::fill_n(batch->verts, ARRAY_SIZE(batch->verts), nullptr);
+  std::fill_n(batch->inst, ARRAY_SIZE(batch->inst), nullptr);
   batch->elem = nullptr;
   batch->resource_id_buf = nullptr;
   batch->flag = eGPUBatchFlag(0);
