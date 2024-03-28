@@ -136,8 +136,6 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
           *r_ptr = RNA_id_pointer_create(&scene->id);
         }
         return &scene->gpd;
-
-        break;
       }
       case SPACE_NODE: /* Nodes Editor */
       {

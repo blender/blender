@@ -169,8 +169,6 @@ LogImageFile *logImageCreate(const char *filepath,
                    referenceBlack,
                    gamma,
                    creator);
-
-  return nullptr;
 }
 
 void logImageClose(LogImageFile *logImage)
