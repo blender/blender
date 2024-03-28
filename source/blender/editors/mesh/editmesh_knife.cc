@@ -198,7 +198,7 @@ struct KnifeBVH {
 
 /** Additional per-object data. */
 struct KnifeObjectInfo {
-  const float (*cagecos)[3];
+  Array<float3> positions_cage;
 
   /**
    * Optionally allocate triangle indices, these are needed for non-interactive knife
@@ -206,7 +206,7 @@ struct KnifeObjectInfo {
    * Using these indices the it's possible to access `cagecos` even if the face has been cut
    * and the loops in `em->looptris` no longer refer to the original triangles, see: #97153.
    */
-  const int (*tri_indices)[3];
+  Array<int3> tri_indices;
 
   /** Only assigned for convenient access. */
   BMEditMesh *em;
@@ -227,7 +227,7 @@ struct KnifeTool_OpData {
   Vector<Object *> objects;
 
   /** Array `objects_len` length of additional per-object data. */
-  KnifeObjectInfo *objects_info;
+  Array<KnifeObjectInfo> objects_info;
 
   MemArena *arena;
 
@@ -1163,7 +1163,7 @@ static const int *knife_bm_tri_index_get(const KnifeTool_OpData *kcd,
                                          int tri_index_buf[3])
 {
   const KnifeObjectInfo *obinfo = &kcd->objects_info[ob_index];
-  if (obinfo->tri_indices) {
+  if (!obinfo->tri_indices.is_empty()) {
     return obinfo->tri_indices[tri_index];
   }
   const std::array<BMLoop *, 3> &ltri = obinfo->em->looptris[tri_index];
@@ -1182,7 +1182,7 @@ static void knife_bm_tri_cagecos_get(const KnifeTool_OpData *kcd,
   int tri_ind_buf[3];
   const int *tri_ind = knife_bm_tri_index_get(kcd, ob_index, tri_index, tri_ind_buf);
   for (int i = 0; i < 3; i++) {
-    copy_v3_v3(cos[i], obinfo->cagecos[tri_ind[i]]);
+    copy_v3_v3(cos[i], obinfo->positions_cage[tri_ind[i]]);
   }
 }
 
@@ -1689,7 +1689,7 @@ static KnifeVert *get_bm_knife_vert(KnifeTool_OpData *kcd, BMVert *v, int ob_ind
     BMFace *f;
 
     if (BM_elem_index_get(v) >= 0) {
-      cageco = kcd->objects_info[ob_index].cagecos[BM_elem_index_get(v)];
+      cageco = kcd->objects_info[ob_index].positions_cage[BM_elem_index_get(v)];
     }
     else {
       cageco = v->co;
@@ -2581,10 +2581,10 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
     ob = kcd->objects[ob_index];
     em = BKE_editmesh_from_object(ob);
 
-    const float(*cagecos)[3] = kcd->objects_info[ob_index].cagecos;
-    if (cagecos) {
+    const Span<float3> positions_cage = kcd->objects_info[ob_index].positions_cage;
+    if (!positions_cage.is_empty()) {
       for (int i = 0; i < em->bm->totvert; i++) {
-        copy_v3_v3(ws, cagecos[i]);
+        copy_v3_v3(ws, positions_cage[i]);
         mul_m4_v3(ob->object_to_world().ptr(), ws);
         minmax_v3v3_v3(min, max, ws);
       }
@@ -3955,26 +3955,18 @@ static void knifetool_init_obinfo(KnifeTool_OpData *kcd,
 
   KnifeObjectInfo *obinfo = &kcd->objects_info[ob_index];
   obinfo->em = em_eval;
-  obinfo->cagecos = (const float(*)[3])BKE_editmesh_vert_coords_alloc(
-      kcd->vc.depsgraph, em_eval, scene_eval, obedit_eval, nullptr);
+  obinfo->positions_cage = BKE_editmesh_vert_coords_alloc(
+      kcd->vc.depsgraph, em_eval, scene_eval, obedit_eval);
 
   if (use_tri_indices) {
-    int(*tri_indices)[3] = static_cast<int(*)[3]>(
-        MEM_mallocN(sizeof(int[3]) * em_eval->looptris.size(), __func__));
+    obinfo->tri_indices.reinitialize(em_eval->looptris.size());
     for (int i = 0; i < em_eval->looptris.size(); i++) {
       const std::array<BMLoop *, 3> &ltri = em_eval->looptris[i];
-      tri_indices[i][0] = BM_elem_index_get(ltri[0]->v);
-      tri_indices[i][1] = BM_elem_index_get(ltri[1]->v);
-      tri_indices[i][2] = BM_elem_index_get(ltri[2]->v);
+      obinfo->tri_indices[i][0] = BM_elem_index_get(ltri[0]->v);
+      obinfo->tri_indices[i][1] = BM_elem_index_get(ltri[1]->v);
+      obinfo->tri_indices[i][2] = BM_elem_index_get(ltri[2]->v);
     }
-    obinfo->tri_indices = tri_indices;
   }
-}
-
-static void knifetool_free_obinfo(KnifeTool_OpData *kcd, int ob_index)
-{
-  MEM_SAFE_FREE(kcd->objects_info[ob_index].cagecos);
-  MEM_SAFE_FREE(kcd->objects_info[ob_index].tri_indices);
 }
 
 /** \} */
@@ -4032,8 +4024,7 @@ static void knifetool_init(ViewContext *vc,
 
   Object *ob;
   BMEditMesh *em;
-  kcd->objects_info = static_cast<KnifeObjectInfo *>(
-      MEM_callocN(sizeof(*kcd->objects_info) * kcd->objects.size(), "knife cagecos"));
+  kcd->objects_info.reinitialize(kcd->objects.size());
   for (int ob_index = 0; ob_index < kcd->objects.size(); ob_index++) {
     ob = kcd->objects[ob_index];
     em = BKE_editmesh_from_object(ob);
@@ -4140,10 +4131,6 @@ static void knifetool_exit_ex(KnifeTool_OpData *kcd)
   ED_region_tag_redraw(kcd->region);
 
   /* Knife BVH cleanup. */
-  for (int i = 0; i < kcd->objects.size(); i++) {
-    knifetool_free_obinfo(kcd, i);
-  }
-  MEM_freeN((void *)kcd->objects_info);
   knife_bvh_free(kcd);
 
   /* Line-hits cleanup. */

@@ -506,13 +506,11 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
                         Mesh *mesh,
                         const MDeformVert *dvert,
                         const int defgrp_index,
-                        const float (*rest_coords)[3],
-                        uint verts_num)
+                        const blender::Span<blender::float3> rest_coords)
 {
   const blender::Span<int> corner_verts = mesh->corner_verts();
 
-  blender::Array<blender::float3> smooth_vertex_coords(
-      blender::Span(reinterpret_cast<const blender::float3 *>(rest_coords), verts_num));
+  blender::Array<blender::float3> smooth_vertex_coords(rest_coords);
 
   uint l_index;
 
@@ -644,43 +642,37 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   if (!csmd->delta_cache.deltas || (csmd->delta_cache.deltas_num != corner_verts.size()) ||
       force_delta_cache_update)
   {
-    const float(*rest_coords)[3];
-    bool is_rest_coords_alloc = false;
+    blender::Array<blender::float3> rest_coords_alloc;
+    blender::Span<blender::float3> rest_coords;
 
     store_cache_settings(csmd);
 
     if (csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) {
       /* caller needs to do sanity check here */
       csmd->bind_coords_num = uint(vertexCos.size());
-      rest_coords = csmd->bind_coords;
+      rest_coords = {reinterpret_cast<const blender::float3 *>(csmd->bind_coords),
+                     csmd->bind_coords_num};
     }
     else {
-      int me_numVerts;
       if (em) {
-        rest_coords = BKE_editmesh_vert_coords_alloc_orco(em, &me_numVerts);
-        is_rest_coords_alloc = true;
+        rest_coords_alloc = BKE_editmesh_vert_coords_alloc_orco(em);
+        rest_coords = rest_coords_alloc;
       }
       else {
         const Mesh *object_mesh = static_cast<const Mesh *>(ob->data);
-        rest_coords = reinterpret_cast<const float(*)[3]>(object_mesh->vert_positions().data());
-        me_numVerts = object_mesh->verts_num;
+        rest_coords = object_mesh->vert_positions();
       }
-
-      BLI_assert(me_numVerts == int(vertexCos.size()));
     }
 
 #ifdef DEBUG_TIME
     TIMEIT_START(corrective_smooth_deltas);
 #endif
 
-    calc_deltas(csmd, mesh, dvert, defgrp_index, rest_coords, uint(vertexCos.size()));
+    calc_deltas(csmd, mesh, dvert, defgrp_index, rest_coords);
 
 #ifdef DEBUG_TIME
     TIMEIT_END(corrective_smooth_deltas);
 #endif
-    if (is_rest_coords_alloc) {
-      MEM_freeN((void *)rest_coords);
-    }
   }
 
   if (csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) {

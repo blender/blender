@@ -26,15 +26,15 @@ int BKE_mesh_wrapper_face_len(const Mesh *mesh);
 
 /**
  * Return a contiguous array of vertex position values, if available.
- * Otherwise, vertex positions are stored in BMesh vertices.
+ * Otherwise, vertex positions are stored in BMesh vertices and this returns null.
  */
-const float (*BKE_mesh_wrapper_vert_coords(const Mesh *mesh))[3];
+blender::Span<blender::float3> BKE_mesh_wrapper_vert_coords(const Mesh *mesh);
 
 /**
  * Return a contiguous array of face normal values, if available.
- * Otherwise, normals are stored in BMesh faces.
+ * Otherwise, normals are stored in BMesh faces and this returns null.
  */
-const float (*BKE_mesh_wrapper_face_normals(Mesh *mesh))[3];
+blender::Span<blender::float3> BKE_mesh_wrapper_face_normals(Mesh *mesh);
 
 void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh);
 

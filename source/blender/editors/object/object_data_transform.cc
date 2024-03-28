@@ -324,7 +324,8 @@ XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)
             MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
         memset(xod, 0x0, sizeof(*xod));
 
-        BM_mesh_vert_coords_get(bm, xod->elem_array);
+        BM_mesh_vert_coords_get(
+            bm, MutableSpan(reinterpret_cast<float3 *>(xod->elem_array), elem_array_len));
         xod_base = &xod->base;
 
         if (key != nullptr) {

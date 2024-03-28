@@ -81,8 +81,7 @@ void BKE_editmesh_cache_ensure_face_centers(BMEditMesh &em, blender::bke::EditMe
   else {
     BM_mesh_elem_index_ensure(bm, BM_VERT);
     BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
-      BM_face_calc_center_median_vcos(
-          bm, efa, emd.faceCos[i], reinterpret_cast<const float(*)[3]>(emd.vertexCos.data()));
+      BM_face_calc_center_median_vcos(bm, efa, emd.faceCos[i], emd.vertexCos);
     }
   }
 }

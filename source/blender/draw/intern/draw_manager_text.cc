@@ -46,6 +46,9 @@
 #include "draw_manager_text.hh"
 #include "intern/bmesh_polygon.hh"
 
+using blender::float3;
+using blender::Span;
+
 struct ViewCachedString {
   float vec[3];
   union {
@@ -269,8 +272,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   float clip_planes[4][4];
   /* allow for displaying shape keys and deform mods */
   BMIter iter;
-  const float(*vert_coords)[3] = BKE_mesh_wrapper_vert_coords(mesh);
-  const bool use_coords = (vert_coords != nullptr);
+  const Span<float3> vert_positions = BKE_mesh_wrapper_vert_coords(mesh);
+  const bool use_coords = !vert_positions.is_empty();
 
   /* when 2 or more edge-info options are enabled, space apart */
   short edge_tex_count = 0;
@@ -329,9 +332,9 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
       {
         float v1_clip[3], v2_clip[3];
 
-        if (vert_coords) {
-          copy_v3_v3(v1, vert_coords[BM_elem_index_get(eed->v1)]);
-          copy_v3_v3(v2, vert_coords[BM_elem_index_get(eed->v2)]);
+        if (use_coords) {
+          copy_v3_v3(v1, vert_positions[BM_elem_index_get(eed->v1)]);
+          copy_v3_v3(v2, vert_positions[BM_elem_index_get(eed->v2)]);
         }
         else {
           copy_v3_v3(v1, eed->v1->co);
@@ -373,7 +376,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGEANG, col);
 
-    const float(*face_normals)[3] = nullptr;
+    Span<float3> face_normals;
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
       face_normals = BKE_mesh_wrapper_face_normals(mesh);
@@ -395,9 +398,9 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
         {
           float v1_clip[3], v2_clip[3];
 
-          if (vert_coords) {
-            copy_v3_v3(v1, vert_coords[BM_elem_index_get(eed->v1)]);
-            copy_v3_v3(v2, vert_coords[BM_elem_index_get(eed->v2)]);
+          if (use_coords) {
+            copy_v3_v3(v1, vert_positions[BM_elem_index_get(eed->v1)]);
+            copy_v3_v3(v2, vert_positions[BM_elem_index_get(eed->v2)]);
           }
           else {
             copy_v3_v3(v1, eed->v1->co);
@@ -462,9 +465,9 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
         for (int j = 0; j < f_corner_tris_len; j++) {
 
           if (use_coords) {
-            copy_v3_v3(v1, vert_coords[BM_elem_index_get(ltri_array[j][0]->v)]);
-            copy_v3_v3(v2, vert_coords[BM_elem_index_get(ltri_array[j][1]->v)]);
-            copy_v3_v3(v3, vert_coords[BM_elem_index_get(ltri_array[j][2]->v)]);
+            copy_v3_v3(v1, vert_positions[BM_elem_index_get(ltri_array[j][0]->v)]);
+            copy_v3_v3(v2, vert_positions[BM_elem_index_get(ltri_array[j][1]->v)]);
+            copy_v3_v3(v3, vert_positions[BM_elem_index_get(ltri_array[j][2]->v)]);
           }
           else {
             copy_v3_v3(v1, ltri_array[j][0]->v->co);
@@ -537,7 +540,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
             /* lazy init center calc */
             if (is_first) {
               if (use_coords) {
-                BM_face_calc_center_bounds_vcos(em->bm, efa, vmid, vert_coords);
+                BM_face_calc_center_bounds_vcos(em->bm, efa, vmid, vert_positions);
               }
               else {
                 BM_face_calc_center_bounds(efa, vmid);
@@ -545,9 +548,9 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
               is_first = false;
             }
             if (use_coords) {
-              copy_v3_v3(v1, vert_coords[BM_elem_index_get(loop->prev->v)]);
-              copy_v3_v3(v2, vert_coords[BM_elem_index_get(loop->v)]);
-              copy_v3_v3(v3, vert_coords[BM_elem_index_get(loop->next->v)]);
+              copy_v3_v3(v1, vert_positions[BM_elem_index_get(loop->prev->v)]);
+              copy_v3_v3(v2, vert_positions[BM_elem_index_get(loop->v)]);
+              copy_v3_v3(v3, vert_positions[BM_elem_index_get(loop->next->v)]);
             }
             else {
               copy_v3_v3(v1, loop->prev->v->co);
@@ -595,7 +598,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
       BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
         if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
           if (use_coords) {
-            copy_v3_v3(v1, vert_coords[BM_elem_index_get(v)]);
+            copy_v3_v3(v1, vert_positions[BM_elem_index_get(v)]);
           }
           else {
             copy_v3_v3(v1, v->co);
@@ -620,8 +623,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
           float v1_clip[3], v2_clip[3];
 
           if (use_coords) {
-            copy_v3_v3(v1, vert_coords[BM_elem_index_get(eed->v1)]);
-            copy_v3_v3(v2, vert_coords[BM_elem_index_get(eed->v2)]);
+            copy_v3_v3(v1, vert_positions[BM_elem_index_get(eed->v1)]);
+            copy_v3_v3(v2, vert_positions[BM_elem_index_get(eed->v2)]);
           }
           else {
             copy_v3_v3(v1, eed->v1->co);
@@ -658,7 +661,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
         if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 
           if (use_coords) {
-            BM_face_calc_center_median_vcos(em->bm, f, v1, vert_coords);
+            BM_face_calc_center_median_vcos(em->bm, f, v1, vert_positions);
           }
           else {
             BM_face_calc_center_median(f, v1);

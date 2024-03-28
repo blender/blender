@@ -148,35 +148,31 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
 /** \name Mesh Coordinate Access
  * \{ */
 
-const float (*BKE_mesh_wrapper_vert_coords(const Mesh *mesh))[3]
+Span<float3> BKE_mesh_wrapper_vert_coords(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      if (mesh->runtime->edit_data->vertexCos.is_empty()) {
-        return nullptr;
-      }
-      return reinterpret_cast<const float(*)[3]>(mesh->runtime->edit_data->vertexCos.data());
+      return mesh->runtime->edit_data->vertexCos;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
-      return reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data());
+      return mesh->vert_positions();
   }
-  return nullptr;
+  BLI_assert_unreachable();
+  return {};
 }
 
-const float (*BKE_mesh_wrapper_face_normals(Mesh *mesh))[3]
+Span<float3> BKE_mesh_wrapper_face_normals(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       BKE_editmesh_cache_ensure_face_normals(*mesh->runtime->edit_mesh, *mesh->runtime->edit_data);
-      if (mesh->runtime->edit_data->faceNos.is_empty()) {
-        return nullptr;
-      }
-      return reinterpret_cast<const float(*)[3]>(mesh->runtime->edit_data->faceNos.data());
+      return mesh->runtime->edit_data->faceNos;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
-      return reinterpret_cast<const float(*)[3]>(mesh->face_normals().data());
+      return mesh->face_normals();
   }
-  return nullptr;
+  BLI_assert_unreachable();
+  return {};
 }
 
 void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)

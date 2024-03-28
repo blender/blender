@@ -22,6 +22,10 @@
 
 #include "bmesh.hh"
 
+using blender::Array;
+using blender::float3;
+using blender::MutableSpan;
+
 const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
 const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
 
@@ -1328,23 +1332,21 @@ void BM_mesh_toolflags_set(BMesh *bm, bool use_toolflags)
 /** \name BMesh Coordinate Access
  * \{ */
 
-void BM_mesh_vert_coords_get(BMesh *bm, float (*vert_coords)[3])
+void BM_mesh_vert_coords_get(BMesh *bm, MutableSpan<float3> positions)
 {
   BMIter iter;
   BMVert *v;
   int i;
   BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-    copy_v3_v3(vert_coords[i], v->co);
+    positions[i] = v->co;
   }
 }
 
-float (*BM_mesh_vert_coords_alloc(BMesh *bm, int *r_vert_len))[3]
+Array<float3> BM_mesh_vert_coords_alloc(BMesh *bm)
 {
-  float(*vert_coords)[3] = static_cast<float(*)[3]>(
-      MEM_mallocN(bm->totvert * sizeof(*vert_coords), __func__));
-  BM_mesh_vert_coords_get(bm, vert_coords);
-  *r_vert_len = bm->totvert;
-  return vert_coords;
+  Array<float3> positions(bm->totvert);
+  BM_mesh_vert_coords_get(bm, positions);
+  return positions;
 }
 
 void BM_mesh_vert_coords_apply(BMesh *bm, const float (*vert_coords)[3])
