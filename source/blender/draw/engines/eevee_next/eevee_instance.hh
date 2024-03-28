@@ -250,7 +250,7 @@ class Instance {
 
   bool is_transforming() const
   {
-    BLI_assert_msg(is_image_render(), "Need to be checked first otherwise this is unsafe");
+    BLI_assert_msg(!is_image_render(), "Caller need to check, otherwise this is unsafe");
     return (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) != 0;
   }
 
