@@ -888,7 +888,7 @@ static void apply_blend_function(
 }
 
 static void do_blend_effect_float(
-    float fac, int x, int y, float *rect1, float *rect2, int btype, float *out)
+    float fac, int x, int y, const float *rect1, float *rect2, int btype, float *out)
 {
   switch (btype) {
     case SEQ_TYPE_ADD:

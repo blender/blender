@@ -117,7 +117,7 @@ static void invert_snap(eSnapMode &snap_mode)
 /* WORKAROUND: The source position is based on the transformed elements.
  * However, at this stage, the transformation has not yet been applied.
  * So apply the transformation here. */
-static float2 nla_transform_apply(TransInfo *t, float *vec, float2 &ival)
+static float2 nla_transform_apply(TransInfo *t, const float *vec, float2 &ival)
 {
   float4x4 mat = float4x4::identity();
 

@@ -1060,7 +1060,9 @@ void IMB_colormanagement_init_default_view_settings(
   view_settings->curve_mapping = nullptr;
 }
 
-static void curve_mapping_apply_pixel(CurveMapping *curve_mapping, float *pixel, int channels)
+static void curve_mapping_apply_pixel(const CurveMapping *curve_mapping,
+                                      float *pixel,
+                                      int channels)
 {
   if (channels == 1) {
     pixel[0] = BKE_curvemap_evaluateF(curve_mapping, curve_mapping->cm, pixel[0]);

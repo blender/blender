@@ -1234,7 +1234,7 @@ static void p_chart_fill_boundary(ParamHandle *handle, PChart *chart, PEdge *be,
   BLI_heap_free(heap, nullptr);
 }
 
-static void p_chart_fill_boundaries(ParamHandle *handle, PChart *chart, PEdge *outer)
+static void p_chart_fill_boundaries(ParamHandle *handle, PChart *chart, const PEdge *outer)
 {
   PEdge *e, *be; /* *enext - as yet unused */
   int nedges;

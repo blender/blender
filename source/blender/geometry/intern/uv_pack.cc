@@ -2189,7 +2189,7 @@ class OverlapMerger {
   }
 
   /** Return a new root of the binary tree, with `a` and `b` as leaves. */
-  static PackIsland *merge_islands(PackIsland *a, PackIsland *b)
+  static PackIsland *merge_islands(const PackIsland *a, const PackIsland *b)
   {
     PackIsland *result = new PackIsland();
     result->aspect_y = sqrtf(a->aspect_y * b->aspect_y);

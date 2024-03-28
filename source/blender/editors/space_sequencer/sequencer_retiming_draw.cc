@@ -509,7 +509,7 @@ static size_t label_str_get(const Sequence *seq,
 static bool label_rect_get(const bContext *C,
                            const Sequence *seq,
                            const SeqRetimingKey *key,
-                           char *label_str,
+                           const char *label_str,
                            const size_t label_len,
                            rctf *rect)
 {

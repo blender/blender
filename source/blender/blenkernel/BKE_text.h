@@ -65,7 +65,7 @@ void txt_clean_text(struct Text *text);
 void txt_order_cursors(struct Text *text, bool reverse);
 int txt_find_string(struct Text *text, const char *findstr, int wrap, int match_case);
 bool txt_has_sel(const struct Text *text);
-int txt_get_span(struct TextLine *from, struct TextLine *to);
+int txt_get_span(struct TextLine *from, const struct TextLine *to);
 void txt_move_up(struct Text *text, bool sel);
 void txt_move_down(struct Text *text, bool sel);
 void txt_move_left(struct Text *text, bool sel);
@@ -116,8 +116,8 @@ int txt_setcurr_tab_spaces(struct Text *text, int space);
 bool txt_cursor_is_line_start(const struct Text *text);
 bool txt_cursor_is_line_end(const struct Text *text);
 
-int txt_calc_tab_left(struct TextLine *tl, int ch);
-int txt_calc_tab_right(struct TextLine *tl, int ch);
+int txt_calc_tab_left(const struct TextLine *tl, int ch);
+int txt_calc_tab_right(const struct TextLine *tl, int ch);
 
 /**
  * Utility functions, could be moved somewhere more generic but are python/text related.

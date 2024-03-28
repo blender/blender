@@ -249,8 +249,11 @@ static uint8_t find_min_value(const uint8_t *arr, uint8_t start_idx, uint8_t len
   return min_v;
 }
 
-static void select_bidomain(
-    uint8_t domains[][BDS], int bd_pos, uint8_t *left, int current_matching_size, bool connected)
+static void select_bidomain(uint8_t domains[][BDS],
+                            int bd_pos,
+                            const uint8_t *left,
+                            int current_matching_size,
+                            bool connected)
 {
   int i;
   int min_size = INT_MAX;

@@ -144,7 +144,7 @@ static const char *strdup_memarena(MemArena *memarena, const char *str)
   return str_dst;
 }
 
-static const char *strdup_memarena_from_dynstr(MemArena *memarena, DynStr *dyn_str)
+static const char *strdup_memarena_from_dynstr(MemArena *memarena, const DynStr *dyn_str)
 {
   const uint str_size = BLI_dynstr_get_len(dyn_str) + 1;
   char *str_dst = (char *)BLI_memarena_alloc(memarena, str_size);

@@ -111,7 +111,7 @@ bool BKE_vfont_to_curve(Object *ob, eEditFontMode mode);
 void BKE_vfont_build_char(Curve *cu,
                           ListBase *nubase,
                           unsigned int character,
-                          CharInfo *info,
+                          const CharInfo *info,
                           float ofsx,
                           float ofsy,
                           float rot,

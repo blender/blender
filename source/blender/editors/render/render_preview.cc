@@ -643,7 +643,7 @@ static Scene *preview_prepare_scene(
 /* new UI convention: draw is in pixel space already. */
 /* uses UI_BTYPE_ROUNDBOX button in block to get the rect */
 static bool ed_preview_draw_rect(
-    Scene *scene, ScrArea *area, int split, int first, rcti *rect, rcti *newrect)
+    Scene *scene, ScrArea *area, int split, int first, const rcti *rect, rcti *newrect)
 {
   Render *re;
   RenderView *rv;

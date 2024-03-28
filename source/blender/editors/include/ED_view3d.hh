@@ -148,7 +148,7 @@ void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], const
  * \param lens: The view lens angle set for cameras and lights, normally from View3D.lens.
  */
 void ED_view3d_from_object(
-    const Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
+    const Object *ob, float ofs[3], float quat[4], const float *dist, float *lens);
 /**
  * Set the object transformation from #RegionView3D members.
  * \param depsgraph: The depsgraph to get the evaluated object parent

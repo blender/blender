@@ -1027,7 +1027,7 @@ void render_result_exr_file_cache_write(Render *re)
 {
   RenderResult *rr = re->result;
   char str[FILE_CACHE_MAX];
-  char *root = U.render_cachedir;
+  const char *root = U.render_cachedir;
 
   render_result_passes_allocated_ensure(rr);
 
@@ -1041,7 +1041,7 @@ bool render_result_exr_file_cache_read(Render *re)
 {
   /* File path to cache. */
   char filepath[FILE_CACHE_MAX] = "";
-  char *root = U.render_cachedir;
+  const char *root = U.render_cachedir;
   render_result_exr_file_cache_path(re->scene, root, filepath);
 
   printf("read exr cache file: %s\n", filepath);

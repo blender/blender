@@ -258,7 +258,7 @@ static void bvh_insertionsort(BVHNode **a, int lo, int hi, int axis)
   }
 }
 
-static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode *x, int axis)
+static int bvh_partition(BVHNode **a, int lo, int hi, const BVHNode *x, int axis)
 {
   int i = lo, j = hi;
   while (1) {

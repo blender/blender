@@ -204,7 +204,7 @@ int GPU_batch_vertbuf_add(Batch *batch, VertBuf *vertex_buf, bool own_vbo)
   return -1;
 }
 
-bool GPU_batch_vertbuf_has(Batch *batch, VertBuf *vertex_buf)
+bool GPU_batch_vertbuf_has(const Batch *batch, VertBuf *vertex_buf)
 {
   for (uint v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
     if (batch->verts[v] == vertex_buf) {

@@ -531,7 +531,7 @@ void ED_slider_destroy(bContext *C, tSlider *slider)
 
 /* Setters & Getters */
 
-float ED_slider_factor_get(tSlider *slider)
+float ED_slider_factor_get(const tSlider *slider)
 {
   return slider->factor;
 }
@@ -551,7 +551,7 @@ void ED_slider_allow_overshoot_set(tSlider *slider, const bool lower, const bool
   slider->allow_overshoot_upper = upper;
 }
 
-bool ED_slider_allow_increments_get(tSlider *slider)
+bool ED_slider_allow_increments_get(const tSlider *slider)
 {
   return slider->allow_increments;
 }
@@ -574,7 +574,7 @@ void ED_slider_mode_set(tSlider *slider, SliderMode mode)
   slider->slider_mode = mode;
 }
 
-SliderMode ED_slider_mode_get(tSlider *slider)
+SliderMode ED_slider_mode_get(const tSlider *slider)
 {
   return slider->slider_mode;
 }
