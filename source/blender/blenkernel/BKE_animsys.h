@@ -238,7 +238,7 @@ typedef struct NlaKeyframingContext NlaKeyframingContext;
  *
  * \param cache: List used to cache contexts for reuse when keying
  * multiple channels in one operation.
- * \param ptr: RNA pointer to the Object with the animation.
+ * \param ptr: RNA pointer to the ID with the animation.
  * \return Keyframing context, or NULL if not necessary.
  */
 struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(

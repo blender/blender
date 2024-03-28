@@ -949,9 +949,11 @@ void insert_key_rna(PointerRNA *rna_pointer,
   /* Keyframing functions can deal with the nla_context being a nullptr. */
   ListBase nla_cache = {nullptr, nullptr};
   NlaKeyframingContext *nla_context = nullptr;
+
   if (adt && adt->action == action) {
+    PointerRNA id_pointer = RNA_id_pointer_create(id);
     nla_context = BKE_animsys_get_nla_keyframing_context(
-        &nla_cache, rna_pointer, adt, &anim_eval_context);
+        &nla_cache, &id_pointer, adt, &anim_eval_context);
   }
 
   const float nla_frame = BKE_nla_tweakedit_remap(adt, scene_frame, NLATIME_CONVERT_UNMAP);
