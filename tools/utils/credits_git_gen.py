@@ -64,7 +64,7 @@ def process_commits_for_map(commits: Iterable[GitCommit]) -> "Credits":
 
 def value_as_percentage(value_partial: int, value_final: int) -> str:
     percent = 0.0 if (value_final == 0) else (value_partial / value_final)
-    return "{:-6.2f}%".format(percent * 100)
+    return f"{percent:-7.2%}"
 
 
 if IS_ATTY:
