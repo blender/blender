@@ -15,6 +15,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
+#include "BLI_virtual_array.hh"
 
 /*
  * Shrinkwrap is composed by a set of functions and options that define the type of shrink.
@@ -79,7 +80,7 @@ struct ShrinkwrapTreeData {
   blender::Span<blender::float3> face_normals;
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::float3> corner_normals;
-  const bool *sharp_faces;
+  blender::VArraySpan<bool> sharp_faces;
   const ShrinkwrapBoundaryData *boundary;
 };
 

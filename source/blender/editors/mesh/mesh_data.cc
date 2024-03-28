@@ -1154,15 +1154,15 @@ void ED_mesh_split_faces(Mesh *mesh)
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> mesh_sharp_edges = *attributes.lookup_or_default<bool>(
       "sharp_edge", bke::AttrDomain::Edge, false);
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
+  const VArraySpan<bool> sharp_faces = *attributes.lookup<bool>("sharp_face",
+                                                                bke::AttrDomain::Face);
 
   Array<bool> sharp_edges(mesh->edges_num);
   mesh_sharp_edges.materialize(sharp_edges);
 
   threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
     for (const int face_i : range) {
-      if (sharp_faces && sharp_faces[face_i]) {
+      if (!sharp_faces.is_empty() && sharp_faces[face_i]) {
         for (const int edge : corner_edges.slice(polys[face_i])) {
           sharp_edges[edge] = true;
         }
