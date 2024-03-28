@@ -106,12 +106,13 @@ static bool raycastMesh(SnapObjectContext *sctx,
   }
 
   /* Test bounding box. */
-  const Bounds<float3> bounds = *mesh_eval->bounds_min_max();
-  /* Was #BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
-  if (!isect_ray_aabb_v3_simple(
-          ray_start_local, ray_normal_local, bounds.min, bounds.max, &len_diff, nullptr))
-  {
-    return retval;
+  if (std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max()) {
+    /* Was #BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
+    if (!isect_ray_aabb_v3_simple(
+            ray_start_local, ray_normal_local, bounds->min, bounds->max, &len_diff, nullptr))
+    {
+      return retval;
+    }
   }
 
   /* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with
