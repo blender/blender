@@ -4228,9 +4228,48 @@ bool BKE_lib_override_library_property_operation_operands_validate(
   return true;
 }
 
+static bool override_library_is_valid(const ID &id,
+                                      const IDOverrideLibrary &liboverride,
+                                      ReportList *reports)
+{
+  if (liboverride.reference == nullptr) {
+    /* This (probably) used to be a template ID, could be linked or local, not an override. */
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Library override templates have been removed: removing all override data from "
+                "the data-block '%s'",
+                id.name);
+    return false;
+  }
+  if (liboverride.reference == &id) {
+    /* Very serious data corruption, cannot do much about it besides removing the liboverride data.
+     */
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Data corruption: data-block '%s' is using itself as library override reference, "
+                "removing all override data",
+                id.name);
+    return false;
+  }
+  if (!ID_IS_LINKED(liboverride.reference)) {
+    /* Very serious data corruption, cannot do much about it besides removing the liboverride data.
+     */
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Data corruption: data-block '%s' is using another local data-block ('%s') as "
+                "library override reference, removing all override data",
+                id.name,
+                liboverride.reference->name);
+    return false;
+  }
+  return true;
+}
+
 void BKE_lib_override_library_validate(Main *bmain, ID *id, ReportList *reports)
 {
-  if (!ID_IS_OVERRIDE_LIBRARY(id)) {
+  /* Do NOT use `ID_IS_OVERRIDE_LIBRARY` here, since this code also needs to fix broken cases (like
+   * null reference pointer), which would be skipped by that macro. */
+  if (id->override_library == nullptr && !ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id)) {
     return;
   }
 
@@ -4238,7 +4277,7 @@ void BKE_lib_override_library_validate(Main *bmain, ID *id, ReportList *reports)
   IDOverrideLibrary *liboverride = id->override_library;
   if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id)) {
     liboverride = BKE_lib_override_library_get(bmain, id, nullptr, &liboverride_id);
-    if (!liboverride) {
+    if (!liboverride || !override_library_is_valid(*liboverride_id, *liboverride, reports)) {
       /* Happens in case the given ID is a liboverride-embedded one (actual embedded ID like
        * NodeTree or master collection, or shape-keys), used by a totally not-liboverride owner ID.
        * Just clear the relevant ID flag.
@@ -4252,39 +4291,8 @@ void BKE_lib_override_library_validate(Main *bmain, ID *id, ReportList *reports)
   /* NOTE: In code deleting liboverride data below, #BKE_lib_override_library_make_local is used
    * instead of directly calling #BKE_lib_override_library_free, because the former also handles
    * properly 'liboverride embedded' IDs, like root node-trees, or shape-keys. */
-
-  if (liboverride->reference == nullptr) {
-    /* This (probably) used to be a template ID, could be linked or local, not an override. */
-    BKE_reportf(reports,
-                RPT_WARNING,
-                "Library override templates have been removed: removing all override data from "
-                "the data-block '%s'",
-                liboverride_id->name);
+  if (!override_library_is_valid(*liboverride_id, *liboverride, reports)) {
     BKE_lib_override_library_make_local(nullptr, liboverride_id);
-    return;
-  }
-  if (liboverride->reference == liboverride_id) {
-    /* Very serious data corruption, cannot do much about it besides removing the liboverride data.
-     */
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Data corruption: data-block '%s' is using itself as library override reference, "
-                "removing all override data",
-                liboverride_id->name);
-    BKE_lib_override_library_make_local(nullptr, liboverride_id);
-    return;
-  }
-  if (!ID_IS_LINKED(liboverride->reference)) {
-    /* Very serious data corruption, cannot do much about it besides removing the liboverride data.
-     */
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Data corruption: data-block '%s' is using another local data-block ('%s') as "
-                "library override reference, removing all override data",
-                liboverride_id->name,
-                liboverride->reference->name);
-    BKE_lib_override_library_make_local(nullptr, liboverride_id);
-    return;
   }
 }
 
@@ -4293,9 +4301,7 @@ void BKE_lib_override_library_main_validate(Main *bmain, ReportList *reports)
   ID *id;
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (ID_IS_OVERRIDE_LIBRARY(id)) {
-      BKE_lib_override_library_validate(bmain, id, reports);
-    }
+    BKE_lib_override_library_validate(bmain, id, reports);
   }
   FOREACH_MAIN_ID_END;
 }
