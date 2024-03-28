@@ -143,7 +143,7 @@ static void thumbnail_start_job(void *data, wmJobWorkerStatus *worker_status)
 
   /* First pass: render visible images. */
   BLI_ghashIterator_init(&gh_iter, tj->sequences_ghash);
-  while (!BLI_ghashIterator_done(&gh_iter) & !worker_status->stop) {
+  while (!BLI_ghashIterator_done(&gh_iter) && !worker_status->stop) {
     Sequence *seq_orig = static_cast<Sequence *>(BLI_ghashIterator_getKey(&gh_iter));
     ThumbDataItem *val = static_cast<ThumbDataItem *>(
         BLI_ghash_lookup(tj->sequences_ghash, seq_orig));
@@ -160,7 +160,7 @@ static void thumbnail_start_job(void *data, wmJobWorkerStatus *worker_status)
 
   /* Second pass: render "guaranteed" set of images. */
   BLI_ghashIterator_init(&gh_iter, tj->sequences_ghash);
-  while (!BLI_ghashIterator_done(&gh_iter) & !worker_status->stop) {
+  while (!BLI_ghashIterator_done(&gh_iter) && !worker_status->stop) {
     Sequence *seq_orig = static_cast<Sequence *>(BLI_ghashIterator_getKey(&gh_iter));
     ThumbDataItem *val = static_cast<ThumbDataItem *>(
         BLI_ghash_lookup(tj->sequences_ghash, seq_orig));
