@@ -248,7 +248,7 @@ void GLStateManager::set_stencil_test(const eGPUStencilTest test, const eGPUSten
   }
 }
 
-void GLStateManager::set_stencil_mask(const eGPUStencilTest test, const GPUStateMutable state)
+void GLStateManager::set_stencil_mask(const eGPUStencilTest test, const GPUStateMutable &state)
 {
   GLenum func;
   switch (test) {

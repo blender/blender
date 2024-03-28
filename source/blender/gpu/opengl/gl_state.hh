@@ -87,7 +87,7 @@ class GLStateManager : public StateManager {
   static void set_write_mask(eGPUWriteMask value);
   static void set_depth_test(eGPUDepthTest value);
   static void set_stencil_test(eGPUStencilTest test, eGPUStencilOp operation);
-  static void set_stencil_mask(eGPUStencilTest test, const GPUStateMutable state);
+  static void set_stencil_mask(eGPUStencilTest test, const GPUStateMutable &state);
   static void set_clip_distances(int new_dist_len, int old_dist_len);
   static void set_logic_op(bool enable);
   static void set_facing(bool invert);

@@ -65,7 +65,7 @@ class MTLStateManager : public StateManager {
   void set_write_mask(const eGPUWriteMask value);
   void set_depth_test(const eGPUDepthTest value);
   void set_stencil_test(const eGPUStencilTest test, const eGPUStencilOp operation);
-  void set_stencil_mask(const eGPUStencilTest test, const GPUStateMutable state);
+  void set_stencil_mask(const eGPUStencilTest test, const GPUStateMutable &state);
   void set_clip_distances(const int new_dist_len, const int old_dist_len);
   void set_logic_op(const bool enable);
   void set_facing(const bool invert);
