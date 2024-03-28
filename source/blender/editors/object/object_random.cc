@@ -28,7 +28,7 @@
 
 #include "object_intern.hh"
 
-using blender::Vector;
+namespace blender::ed::object {
 
 /**
  * Generic randomize vertices function
@@ -106,7 +106,7 @@ static int object_rand_verts_exec(bContext *C, wmOperator *op)
         mode |= TX_VERT_USE_NORMAL;
       }
 
-      if (ED_object_edit_report_if_shape_key_is_locked(ob_iter, op->reports)) {
+      if (shape_key_report_if_locked(ob_iter, op->reports)) {
         continue;
       }
 
@@ -175,3 +175,5 @@ void TRANSFORM_OT_vertex_random(wmOperatorType *ot)
   /* Set generic modal callbacks. */
   WM_operator_type_modal_from_exec_for_object_edit_coords(ot);
 }
+
+}  // namespace blender::ed::object

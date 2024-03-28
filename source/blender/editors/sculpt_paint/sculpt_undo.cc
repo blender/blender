@@ -1883,10 +1883,10 @@ static void sculpt_undosys_step_decode(
         /* Pass. */
       }
       else {
-        ED_object_mode_generic_exit(bmain, depsgraph, scene, ob);
+        object::mode_generic_exit(bmain, depsgraph, scene, ob);
 
         /* Sculpt needs evaluated state.
-         * NOTE: needs to be done here, as #ED_object_mode_generic_exit will usually invalidate
+         * NOTE: needs to be done here, as #object::mode_generic_exit will usually invalidate
          * (some) evaluated data. */
         BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
 

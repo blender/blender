@@ -524,7 +524,7 @@ static int curves_convert_from_particle_system_exec(bContext *C, wmOperator * /*
   Scene &scene = *CTX_data_scene(C);
   ViewLayer &view_layer = *CTX_data_view_layer(C);
   Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
-  Object *ob_from_orig = ED_object_active_context(C);
+  Object *ob_from_orig = object::context_active_object(C);
   ParticleSystem *psys_orig = static_cast<ParticleSystem *>(
       CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data);
   if (psys_orig == nullptr) {
@@ -559,7 +559,7 @@ static int curves_convert_from_particle_system_exec(bContext *C, wmOperator * /*
 
 static bool curves_convert_from_particle_system_poll(bContext *C)
 {
-  return ED_object_active_context(C) != nullptr;
+  return blender::ed::object::context_active_object(C) != nullptr;
 }
 
 }  // namespace convert_from_particle_system
@@ -1186,11 +1186,18 @@ static int surface_set_exec(bContext *C, wmOperator *op)
         &missing_uvs);
 
     /* Add deformation modifier if necessary. */
-    blender::ed::curves::ensure_surface_deformation_node_exists(*C, curves_ob);
+    ensure_surface_deformation_node_exists(*C, curves_ob);
 
     curves_id.surface = &new_surface_ob;
-    ED_object_parent_set(
-        op->reports, C, scene, &curves_ob, &new_surface_ob, PAR_OBJECT, false, true, nullptr);
+    object::parent_set(op->reports,
+                       C,
+                       scene,
+                       &curves_ob,
+                       &new_surface_ob,
+                       object::PAR_OBJECT,
+                       false,
+                       true,
+                       nullptr);
 
     DEG_id_tag_update(&curves_ob.id, ID_RECALC_TRANSFORM);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, &curves_id);

@@ -1388,7 +1388,7 @@ static void gpencil_layer_to_curve(bContext *C,
     }
   }
 
-  ED_object_base_select(base_new, BA_SELECT);
+  blender::ed::object::base_select(base_new, blender::ed::object::BA_SELECT);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }

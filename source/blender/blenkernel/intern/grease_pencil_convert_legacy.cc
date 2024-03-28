@@ -805,7 +805,7 @@ static ModifierData &legacy_object_modifier_common(Object &object,
                                                    const ModifierType type,
                                                    GpencilModifierData &legacy_md)
 {
-  /* TODO: Copy of most of #ED_object_modifier_add, this should be a BKE_modifiers function
+  /* TODO: Copy of most of #ed::object::modifier_add, this should be a BKE_modifiers function
    * actually. */
   const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
 

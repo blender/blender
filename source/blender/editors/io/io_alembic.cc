@@ -631,7 +631,7 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
   /* Switch out of edit mode to avoid being stuck in it (#54326). */
   Object *obedit = CTX_data_edit_object(C);
   if (obedit) {
-    ED_object_mode_set(C, OB_MODE_OBJECT);
+    blender::ed::object::mode_set(C, OB_MODE_OBJECT);
   }
 
   AlembicImportParams params = {0};

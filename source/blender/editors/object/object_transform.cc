@@ -80,10 +80,7 @@
 
 #include "object_intern.hh"
 
-using blender::Array;
-using blender::float2;
-using blender::float3;
-using blender::Vector;
+namespace blender::ed::object {
 
 /* -------------------------------------------------------------------- */
 /** \name Clear Transformation Utilities
@@ -332,13 +329,13 @@ static int object_clear_transform_generic_exec(bContext *C,
 
   if (use_transform_skip_children) {
     BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
-    xcs = ED_object_xform_skip_child_container_create();
-    ED_object_xform_skip_child_container_item_ensure_from_array(
+    xcs = xform_skip_child_container_create();
+    xform_skip_child_container_item_ensure_from_array(
         xcs, scene, view_layer, objects.data(), objects.size());
   }
   if (use_transform_data_origin) {
     BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
-    xds = ED_object_data_xform_container_create();
+    xds = data_xform_container_create();
   }
 
   /* get KeyingSet to use */
@@ -346,26 +343,26 @@ static int object_clear_transform_generic_exec(bContext *C,
 
   for (Object *ob : objects) {
     if (use_transform_data_origin) {
-      ED_object_data_xform_container_item_ensure(xds, ob);
+      data_xform_container_item_ensure(xds, ob);
     }
 
     /* run provided clearing function */
     clear_func(ob, clear_delta);
 
-    blender::animrig::autokeyframe_object(C, scene, ob, ks);
+    animrig::autokeyframe_object(C, scene, ob, ks);
 
     /* tag for updates */
     DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
   }
 
   if (use_transform_skip_children) {
-    ED_object_xform_skip_child_container_update_all(xcs, bmain, depsgraph);
-    ED_object_xform_skip_child_container_destroy(xcs);
+    object_xform_skip_child_container_update_all(xcs, bmain, depsgraph);
+    object_xform_skip_child_container_destroy(xcs);
   }
 
   if (use_transform_data_origin) {
-    ED_object_data_xform_container_update_all(xds, bmain, depsgraph);
-    ED_object_data_xform_container_destroy(xds);
+    data_xform_container_update_all(xds, bmain, depsgraph);
+    data_xform_container_destroy(xds);
   }
 
   /* this is needed so children are also updated */
@@ -649,10 +646,8 @@ static bool apply_objects_internal_need_single_user(bContext *C)
   return (ID_REAL_USERS(ob->data) > CTX_DATA_COUNT(C, selected_editable_objects));
 }
 
-static void transform_positions(blender::MutableSpan<blender::float3> positions,
-                                const blender::float4x4 &matrix)
+static void transform_positions(MutableSpan<float3> positions, const float4x4 &matrix)
 {
-  using namespace blender;
   threading::parallel_for(positions.index_range(), 1024, [&](const IndexRange range) {
     for (float3 &position : positions.slice(range)) {
       position = math::transform_point(matrix, position);
@@ -668,7 +663,6 @@ static int apply_objects_internal(bContext *C,
                                   bool do_props,
                                   bool do_single_user)
 {
-  using namespace blender;
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -841,7 +835,7 @@ static int apply_objects_internal(bContext *C,
 
   if (make_single_user) {
     /* Make single user. */
-    ED_object_single_obdata_user(bmain, scene, obact);
+    single_obdata_user_make(bmain, scene, obact);
     BKE_main_id_newptr_and_tag_clear(bmain);
     WM_event_add_notifier(C, NC_WINDOW, nullptr);
     DEG_relations_tag_update(bmain);
@@ -1031,7 +1025,7 @@ static int apply_objects_internal(bContext *C,
         BKE_object_apply_mat4(ob, _mat, false, true);
       }
       else {
-        Object ob_temp = blender::dna::shallow_copy(*ob);
+        Object ob_temp = dna::shallow_copy(*ob);
         BKE_object_apply_mat4(&ob_temp, _mat, false, true);
 
         if (apply_loc) {
@@ -1155,7 +1149,7 @@ static int object_transform_apply_exec(bContext *C, wmOperator *op)
 
 static int object_transform_apply_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
 
   bool can_handle_multiuser = apply_objects_internal_can_multiuser(C);
   bool need_single_user = can_handle_multiuser && apply_objects_internal_need_single_user(C);
@@ -1263,7 +1257,7 @@ enum {
   ORIGIN_TO_CENTER_OF_MASS_VOLUME,
 };
 
-static float3 arithmetic_mean(const blender::Span<blender::float3> values)
+static float3 arithmetic_mean(const Span<float3> values)
 {
   if (values.is_empty()) {
     return float3(0);
@@ -1272,10 +1266,8 @@ static float3 arithmetic_mean(const blender::Span<blender::float3> values)
   return std::accumulate(values.begin(), values.end(), float3(0)) / values.size();
 }
 
-static void translate_positions(blender::MutableSpan<blender::float3> positions,
-                                const blender::float3 &translation)
+static void translate_positions(MutableSpan<float3> positions, const float3 &translation)
 {
-  using namespace blender;
   threading::parallel_for(positions.index_range(), 2048, [&](const IndexRange range) {
     for (float3 &position : positions.slice(range)) {
       position += translation;
@@ -1285,7 +1277,6 @@ static void translate_positions(blender::MutableSpan<blender::float3> positions,
 
 static int object_origin_set_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *obact = CTX_data_active_object(C);
@@ -1473,7 +1464,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         /* done */
       }
       else if (around == V3D_AROUND_CENTER_BOUNDS) {
-        if (std::optional<blender::Bounds<blender::float3>> bounds = BKE_curve_minmax(cu, true)) {
+        if (std::optional<Bounds<float3>> bounds = BKE_curve_minmax(cu, true)) {
           cent = math::midpoint(bounds->min, bounds->max);
         }
       }
@@ -1504,7 +1495,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       /* Get from bounding-box. */
 
       Curve *cu = static_cast<Curve *>(ob->data);
-      std::optional<blender::Bounds<blender::float3>> bounds = BKE_curve_minmax(cu, true);
+      std::optional<Bounds<float3>> bounds = BKE_curve_minmax(cu, true);
 
       if (!bounds && (centermode != ORIGIN_TO_CURSOR)) {
         /* Do nothing. */
@@ -1596,7 +1587,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         /* done */
       }
       else if (around == V3D_AROUND_CENTER_BOUNDS) {
-        if (std::optional<blender::Bounds<blender::float3>> bounds = BKE_lattice_minmax(lt)) {
+        if (std::optional<Bounds<float3>> bounds = BKE_lattice_minmax(lt)) {
           cent = math::midpoint(bounds->min, bounds->max);
         }
       }
@@ -1689,7 +1680,6 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
       }
     }
     else if (ob->type == OB_CURVES) {
-      using namespace blender;
       Curves &curves_id = *static_cast<Curves *>(ob->data);
       bke::CurvesGeometry &curves = curves_id.geometry.wrap();
       if (ELEM(centermode, ORIGIN_TO_CENTER_OF_MASS_SURFACE, ORIGIN_TO_CENTER_OF_MASS_VOLUME) ||
@@ -2036,13 +2026,13 @@ static void object_apply_rotation(Object *ob, const float rmat[3][3])
 static void object_apply_location(Object *ob, const float loc[3])
 {
   /* quick but weak */
-  Object ob_prev = blender::dna::shallow_copy(*ob);
+  Object ob_prev = dna::shallow_copy(*ob);
   float mat[4][4];
   copy_m4_m4(mat, ob->object_to_world().ptr());
   copy_v3_v3(mat[3], loc);
   BKE_object_apply_mat4(ob, mat, true, true);
   copy_v3_v3(mat[3], ob->loc);
-  *ob = blender::dna::shallow_copy(ob_prev);
+  *ob = dna::shallow_copy(ob_prev);
   copy_v3_v3(ob->loc, mat[3]);
 }
 
@@ -2361,3 +2351,5 @@ void OBJECT_OT_transform_axis_target(wmOperatorType *ot)
 #undef USE_RELATIVE_ROTATION
 
 /** \} */
+
+}  // namespace blender::ed::object

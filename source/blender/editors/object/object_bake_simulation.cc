@@ -202,7 +202,7 @@ static bool bake_simulation_poll(bContext *C)
     CTX_wm_operator_poll_msg_set(C, "File must be saved before baking");
     return false;
   }
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   const bool use_frame_cache = ob->flag & OB_FLAG_USE_SIMULATION_CACHE;
   if (!use_frame_cache) {
     CTX_wm_operator_poll_msg_set(C, "Cache has to be enabled");
@@ -941,12 +941,8 @@ static bool bake_delete_poll(bContext *C)
   return true;
 }
 
-}  // namespace blender::ed::object::bake_simulation
-
 void OBJECT_OT_simulation_nodes_cache_calculate_to_frame(wmOperatorType *ot)
 {
-  using namespace blender::ed::object::bake_simulation;
-
   ot->name = "Calculate Simulation to Frame";
   ot->description =
       "Calculate simulations in geometry nodes modifiers from the start to current frame";
@@ -965,8 +961,6 @@ void OBJECT_OT_simulation_nodes_cache_calculate_to_frame(wmOperatorType *ot)
 
 void OBJECT_OT_simulation_nodes_cache_bake(wmOperatorType *ot)
 {
-  using namespace blender::ed::object::bake_simulation;
-
   ot->name = "Bake Simulation";
   ot->description = "Bake simulations in geometry nodes modifiers";
   ot->idname = __func__;
@@ -981,8 +975,6 @@ void OBJECT_OT_simulation_nodes_cache_bake(wmOperatorType *ot)
 
 void OBJECT_OT_simulation_nodes_cache_delete(wmOperatorType *ot)
 {
-  using namespace blender::ed::object::bake_simulation;
-
   ot->name = "Delete Cached Simulation";
   ot->description = "Delete cached/baked simulations in geometry nodes modifiers";
   ot->idname = __func__;
@@ -1009,8 +1001,6 @@ static void single_bake_operator_props(wmOperatorType *ot)
 
 void OBJECT_OT_geometry_node_bake_single(wmOperatorType *ot)
 {
-  using namespace blender::ed::object::bake_simulation;
-
   ot->name = "Bake Geometry Node";
   ot->description = "Bake a single bake node or simulation";
   ot->idname = "OBJECT_OT_geometry_node_bake_single";
@@ -1025,8 +1015,6 @@ void OBJECT_OT_geometry_node_bake_single(wmOperatorType *ot)
 
 void OBJECT_OT_geometry_node_bake_delete_single(wmOperatorType *ot)
 {
-  using namespace blender::ed::object::bake_simulation;
-
   ot->name = "Delete Geometry Node Bake";
   ot->description = "Delete baked data of a single bake node or simulation";
   ot->idname = "OBJECT_OT_geometry_node_bake_delete_single";
@@ -1036,3 +1024,5 @@ void OBJECT_OT_geometry_node_bake_delete_single(wmOperatorType *ot)
 
   single_bake_operator_props(ot);
 }
+
+}  // namespace blender::ed::object::bake_simulation

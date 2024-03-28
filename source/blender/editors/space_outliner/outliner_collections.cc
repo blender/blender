@@ -823,7 +823,7 @@ static int collection_instance_exec(bContext *C, wmOperator * /*op*/)
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
     Collection *collection = static_cast<Collection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
-    Object *ob = ED_object_add_type(
+    Object *ob = object::add_type(
         C, OB_EMPTY, collection->id.name + 2, scene->cursor.location, nullptr, false, 0);
     ob->instance_collection = collection;
     ob->transflag |= OB_DUPLICOLLECTION;

@@ -145,7 +145,7 @@ static void workspace_change_update(WorkSpace *workspace_new,
   eObjectMode mode_new = workspace_new->object_mode;
 
   if (mode_old != mode_new) {
-    ED_object_mode_set(C, mode_new);
+    blender::ed::object::mode_set(C, mode_new);
   }
 #endif
 }
@@ -208,7 +208,7 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
 
   /* Automatic mode switching. */
   if (workspace_new->object_mode != workspace_old->object_mode) {
-    ED_object_mode_set(C, eObjectMode(workspace_new->object_mode));
+    blender::ed::object::mode_set(C, eObjectMode(workspace_new->object_mode));
   }
 
   return true;

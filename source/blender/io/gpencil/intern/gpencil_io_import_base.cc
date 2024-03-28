@@ -34,14 +34,14 @@ Object *GpencilImporter::create_object()
   ushort local_view_bits = (params_.v3d && params_.v3d->localvd) ? params_.v3d->local_view_uid :
                                                                    ushort(0);
 
-  Object *ob_gpencil = ED_object_add_type(params_.C,
-                                          OB_GPENCIL_LEGACY,
-                                          (params_.filename[0] != '\0') ? params_.filename :
-                                                                          nullptr,
-                                          cur_loc,
-                                          rot,
-                                          false,
-                                          local_view_bits);
+  Object *ob_gpencil = ed::object::add_type(params_.C,
+                                            OB_GPENCIL_LEGACY,
+                                            (params_.filename[0] != '\0') ? params_.filename :
+                                                                            nullptr,
+                                            cur_loc,
+                                            rot,
+                                            false,
+                                            local_view_bits);
 
   /* Set object defaults. */
   ED_gpencil_add_defaults(params_.C, ob_gpencil);

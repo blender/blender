@@ -2214,7 +2214,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
      * switch UV layers, vgroups for eg. */
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      ED_object_base_activate(C, basact);
+      blender::ed::object::base_activate(C, basact);
     }
 
     DEG_id_tag_update(static_cast<ID *>(vc.obedit->data), ID_RECALC_SELECT);

@@ -428,7 +428,7 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
   /* make sure name is unique */
   if (ptr->owner_id) {
     Object *ob = (Object *)ptr->owner_id;
-    ListBase *list = ED_object_constraint_list_from_constraint(ob, con, nullptr);
+    ListBase *list = blender::ed::object::constraint_list_from_constraint(ob, con, nullptr);
 
     /* if we have the list, check for unique name, otherwise give up */
     if (list) {
@@ -443,7 +443,7 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 static std::optional<std::string> rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
 {
   bPoseChannel *pchan;
-  ListBase *lb = ED_object_constraint_list_from_constraint(ob, con, &pchan);
+  ListBase *lb = blender::ed::object::constraint_list_from_constraint(ob, con, &pchan);
 
   if (lb == nullptr) {
     printf("%s: internal error, constraint '%s' not found in object '%s'\n",
@@ -512,24 +512,25 @@ static std::optional<std::string> rna_ConstraintTarget_path(const PointerRNA *pt
 
 static void rna_Constraint_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  ED_object_constraint_tag_update(
+  blender::ed::object::constraint_tag_update(
       bmain, (Object *)ptr->owner_id, static_cast<bConstraint *>(ptr->data));
 }
 
 static void rna_Constraint_dependency_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  ED_object_constraint_dependency_tag_update(
+  blender::ed::object::constraint_dependency_tag_update(
       bmain, (Object *)ptr->owner_id, static_cast<bConstraint *>(ptr->data));
 }
 
 static void rna_ConstraintTarget_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  ED_object_constraint_tag_update(bmain, (Object *)ptr->owner_id, rna_constraint_from_target(ptr));
+  blender::ed::object::constraint_tag_update(
+      bmain, (Object *)ptr->owner_id, rna_constraint_from_target(ptr));
 }
 
 static void rna_ConstraintTarget_dependency_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
-  ED_object_constraint_dependency_tag_update(
+  blender::ed::object::constraint_dependency_tag_update(
       bmain, (Object *)ptr->owner_id, rna_constraint_from_target(ptr));
 }
 
@@ -643,7 +644,7 @@ static bConstraintTarget *rna_ArmatureConstraint_target_new(ID *id, bConstraint 
   tgt->weight = 1.0f;
   BLI_addtail(&acon->targets, tgt);
 
-  ED_object_constraint_dependency_tag_update(bmain, (Object *)id, con);
+  blender::ed::object::constraint_dependency_tag_update(bmain, (Object *)id, con);
   return tgt;
 }
 
@@ -660,7 +661,7 @@ static void rna_ArmatureConstraint_target_remove(
 
   BLI_freelinkN(&acon->targets, tgt);
 
-  ED_object_constraint_dependency_tag_update(bmain, (Object *)id, con);
+  blender::ed::object::constraint_dependency_tag_update(bmain, (Object *)id, con);
 }
 
 static void rna_ArmatureConstraint_target_clear(ID *id, bConstraint *con, Main *bmain)
@@ -669,7 +670,7 @@ static void rna_ArmatureConstraint_target_clear(ID *id, bConstraint *con, Main *
 
   BLI_freelistN(&acon->targets);
 
-  ED_object_constraint_dependency_tag_update(bmain, (Object *)id, con);
+  blender::ed::object::constraint_dependency_tag_update(bmain, (Object *)id, con);
 }
 
 static void rna_ActionConstraint_mix_mode_set(PointerRNA *ptr, int value)

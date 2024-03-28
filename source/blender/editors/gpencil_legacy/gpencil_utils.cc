@@ -1416,7 +1416,8 @@ Object *ED_gpencil_add_object(bContext *C, const float loc[3], ushort local_view
 {
   const float rot[3] = {0.0f};
 
-  Object *ob = ED_object_add_type(C, OB_GPENCIL_LEGACY, nullptr, loc, rot, false, local_view_bits);
+  Object *ob = blender::ed::object::add_type(
+      C, OB_GPENCIL_LEGACY, nullptr, loc, rot, false, local_view_bits);
 
   /* create default brushes and colors */
   ED_gpencil_add_defaults(C, ob);

@@ -124,7 +124,7 @@ static bool object_array_for_shading_edit_mode_enabled_filter(const Object *ob, 
 
 static Vector<Object *> object_array_for_shading_edit_mode_enabled(bContext *C)
 {
-  return ED_object_array_in_mode_or_selected(
+  return blender::ed::object::objects_in_mode_or_selected(
       C, object_array_for_shading_edit_mode_enabled_filter, C);
 }
 
@@ -141,7 +141,7 @@ static bool object_array_for_shading_edit_mode_disabled_filter(const Object *ob,
 
 static Vector<Object *> object_array_for_shading_edit_mode_disabled(bContext *C)
 {
-  return ED_object_array_in_mode_or_selected(
+  return blender::ed::object::objects_in_mode_or_selected(
       C, object_array_for_shading_edit_mode_disabled_filter, C);
 }
 
@@ -172,7 +172,7 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob)
 
 static bool object_materials_supported_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   return object_materials_supported_poll_ex(C, ob);
 }
 
@@ -185,7 +185,7 @@ static bool object_materials_supported_poll(bContext *C)
 static int material_slot_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
 
   if (!ob) {
     return OPERATOR_CANCELLED;
@@ -229,7 +229,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 
 static int material_slot_remove_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
 
   if (!ob) {
     return OPERATOR_CANCELLED;
@@ -532,7 +532,7 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 static int material_slot_copy_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   Material ***matar_obdata;
 
   if (!ob || !(matar_obdata = BKE_object_material_array_p(ob))) {
@@ -592,7 +592,7 @@ void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
 
 static int material_slot_move_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
 
   uint *slot_remap;
   int index_pair[2];

@@ -973,6 +973,7 @@ static bool texture_paint_toggle_poll(bContext *C)
 
 static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender::ed;
   wmMsgBus *mbus = CTX_wm_message_bus(C);
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -981,7 +982,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
   const bool is_mode_set = (ob->mode & mode_flag) != 0;
 
   if (!is_mode_set) {
-    if (!ED_object_mode_compat_set(C, ob, static_cast<eObjectMode>(mode_flag), op->reports)) {
+    if (!object::mode_compat_set(C, ob, eObjectMode(mode_flag), op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }

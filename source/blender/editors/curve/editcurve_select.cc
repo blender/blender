@@ -2043,7 +2043,7 @@ static int edcu_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
   BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
   if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-    ED_object_base_activate(C, basact);
+    blender::ed::object::base_activate(C, basact);
   }
 
   DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT | ID_RECALC_SYNC_TO_EVAL);

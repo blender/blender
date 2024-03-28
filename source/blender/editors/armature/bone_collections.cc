@@ -366,7 +366,7 @@ static bool bone_collection_assign_named_mode_specific(bContext *C,
 
 static bool bone_collection_assign_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob == nullptr) {
     return false;
   }
@@ -399,7 +399,7 @@ static bool bone_collection_assign_poll(bContext *C)
 /* Assign selected pchans to the bone collection that the user selects */
 static int bone_collection_assign_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -469,7 +469,7 @@ void ARMATURE_OT_collection_assign(wmOperatorType *ot)
 
 static bool bone_collection_create_and_assign_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob == nullptr) {
     return false;
   }
@@ -498,7 +498,7 @@ static bool bone_collection_create_and_assign_poll(bContext *C)
 /* Assign selected pchans to the bone collection that the user selects */
 static int bone_collection_create_and_assign_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -565,7 +565,7 @@ void ARMATURE_OT_collection_create_and_assign(wmOperatorType *ot)
 
 static int bone_collection_unassign_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -626,7 +626,7 @@ void ARMATURE_OT_collection_unassign(wmOperatorType *ot)
 
 static int bone_collection_unassign_named_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -712,7 +712,7 @@ static bool editbone_is_member(const EditBone *ebone, const BoneCollection *bcol
 
 static bool armature_bone_select_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob == nullptr || ob->type != OB_ARMATURE) {
     return false;
   }
@@ -784,7 +784,7 @@ static void bone_collection_select(bContext *C,
 
 static int bone_collection_select_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -816,7 +816,7 @@ void ARMATURE_OT_collection_select(wmOperatorType *ot)
 
 static int bone_collection_deselect_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -891,7 +891,7 @@ static int add_or_move_to_collection_exec(bContext *C,
                                           const assign_bone_func assign_func_bone,
                                           const assign_ebone_func assign_func_ebone)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob->mode == OB_MODE_POSE) {
     ob = ED_pose_object_from_context(C);
   }
@@ -953,7 +953,7 @@ static int assign_to_collection_exec(bContext *C, wmOperator *op)
 
 static bool move_to_collection_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob == nullptr) {
     return false;
   }
@@ -1062,7 +1062,7 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
   bool is_move_operation;
   std::tie(parent_bcoll_index, is_move_operation) = menu_custom_data_decode(menu_custom_data);
 
-  const Object *ob = ED_object_context(C);
+  const Object *ob = blender::ed::object::context_object(C);
   const bArmature *arm = static_cast<bArmature *>(ob->data);
 
   /* The "Create a new collection" mode of this operator has its own menu, and should thus be

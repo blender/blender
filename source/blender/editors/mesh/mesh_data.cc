@@ -455,7 +455,7 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
 
 static bool layers_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
   return (ob && !ID_IS_LINKED(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && ob->type == OB_MESH && data &&
           !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
@@ -469,7 +469,7 @@ static bool uv_texture_remove_poll(bContext *C)
     return false;
   }
 
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
   const int active = CustomData_get_active_layer(ldata, CD_PROP_FLOAT2);
@@ -482,7 +482,7 @@ static bool uv_texture_remove_poll(bContext *C)
 
 static int mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   if (ED_mesh_uv_add(mesh, nullptr, true, true, op->reports) == -1) {
@@ -515,7 +515,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 
 static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
@@ -583,7 +583,7 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
 /* Clear Mask */
 static bool mesh_customdata_mask_clear_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob && ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
 
@@ -607,7 +607,7 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
 }
 static int mesh_customdata_mask_clear_exec(bContext *C, wmOperator *op)
 {
-  Object *object = ED_object_context(C);
+  Object *object = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(object->data);
   const bool ret_a = BKE_id_attribute_remove(&mesh->id, ".sculpt_mask", op->reports);
   int ret_b = mesh_customdata_clear_exec__internal(C, BM_LOOP, CD_GRID_PAINT_MASK);
@@ -641,7 +641,7 @@ void MESH_OT_customdata_mask_clear(wmOperatorType *ot)
  */
 static int mesh_customdata_skin_state(bContext *C)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
 
   if (ob && ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -660,7 +660,7 @@ static bool mesh_customdata_skin_add_poll(bContext *C)
 
 static int mesh_customdata_skin_add_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   BKE_mesh_ensure_skin_customdata(mesh);
@@ -1133,7 +1133,7 @@ Mesh *ED_mesh_context(bContext *C)
     return mesh;
   }
 
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   if (ob == nullptr) {
     return nullptr;
   }

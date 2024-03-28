@@ -1096,7 +1096,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
           copy_v3_v3(r_pivot_pos, ss->pivot_pos);
           return true;
         }
-        else if (ED_object_calc_active_center(ob, false, r_pivot_pos)) {
+        else if (blender::ed::object::calc_active_center(ob, false, r_pivot_pos)) {
           return true;
         }
       }

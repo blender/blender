@@ -49,11 +49,13 @@
 
 #include "object_intern.hh"
 
+namespace blender::ed::object {
+
 /* -------------------------------------------------------------------- */
 /** \name Public API
  * \{ */
 
-ShaderFxData *ED_object_shaderfx_add(
+ShaderFxData *shaderfx_add(
     ReportList *reports, Main *bmain, Scene * /*scene*/, Object *ob, const char *name, int type)
 {
   ShaderFxData *new_fx = nullptr;
@@ -128,7 +130,7 @@ static bool object_shaderfx_remove(Main *bmain,
   return true;
 }
 
-bool ED_object_shaderfx_remove(ReportList *reports, Main *bmain, Object *ob, ShaderFxData *fx)
+bool shaderfx_remove(ReportList *reports, Main *bmain, Object *ob, ShaderFxData *fx)
 {
   bool sort_depsgraph = false;
   bool ok;
@@ -146,7 +148,7 @@ bool ED_object_shaderfx_remove(ReportList *reports, Main *bmain, Object *ob, Sha
   return true;
 }
 
-void ED_object_shaderfx_clear(Main *bmain, Object *ob)
+void shaderfx_clear(Main *bmain, Object *ob)
 {
   ShaderFxData *fx = static_cast<ShaderFxData *>(ob->shader_fx.first);
   bool sort_depsgraph = false;
@@ -169,7 +171,7 @@ void ED_object_shaderfx_clear(Main *bmain, Object *ob)
   DEG_relations_tag_update(bmain);
 }
 
-int ED_object_shaderfx_move_up(ReportList * /*reports*/, Object *ob, ShaderFxData *fx)
+int shaderfx_move_up(ReportList * /*reports*/, Object *ob, ShaderFxData *fx)
 {
   if (fx->prev) {
     BLI_remlink(&ob->shader_fx, fx);
@@ -179,7 +181,7 @@ int ED_object_shaderfx_move_up(ReportList * /*reports*/, Object *ob, ShaderFxDat
   return 1;
 }
 
-int ED_object_shaderfx_move_down(ReportList * /*reports*/, Object *ob, ShaderFxData *fx)
+int shaderfx_move_down(ReportList * /*reports*/, Object *ob, ShaderFxData *fx)
 {
   if (fx->next) {
     BLI_remlink(&ob->shader_fx, fx);
@@ -189,10 +191,7 @@ int ED_object_shaderfx_move_down(ReportList * /*reports*/, Object *ob, ShaderFxD
   return 1;
 }
 
-bool ED_object_shaderfx_move_to_index(ReportList *reports,
-                                      Object *ob,
-                                      ShaderFxData *fx,
-                                      const int index)
+bool shaderfx_move_to_index(ReportList *reports, Object *ob, ShaderFxData *fx, const int index)
 {
   BLI_assert(fx != nullptr);
   BLI_assert(index >= 0);
@@ -206,7 +205,7 @@ bool ED_object_shaderfx_move_to_index(ReportList *reports,
   if (fx_index < index) {
     /* Move shaderfx down in list. */
     for (; fx_index < index; fx_index++) {
-      if (!ED_object_shaderfx_move_down(reports, ob, fx)) {
+      if (!shaderfx_move_down(reports, ob, fx)) {
         break;
       }
     }
@@ -214,7 +213,7 @@ bool ED_object_shaderfx_move_to_index(ReportList *reports,
   else {
     /* Move shaderfx up in list. */
     for (; fx_index > index; fx_index--) {
-      if (!ED_object_shaderfx_move_up(reports, ob, fx)) {
+      if (!shaderfx_move_up(reports, ob, fx)) {
         break;
       }
     }
@@ -226,7 +225,7 @@ bool ED_object_shaderfx_move_to_index(ReportList *reports,
   return true;
 }
 
-void ED_object_shaderfx_link(Object *dst, Object *src)
+void shaderfx_link(Object *dst, Object *src)
 {
   BLI_freelistN(&dst->shader_fx);
   BKE_shaderfx_copy(&dst->shader_fx, &src->shader_fx);
@@ -235,7 +234,7 @@ void ED_object_shaderfx_link(Object *dst, Object *src)
   WM_main_add_notifier(NC_OBJECT | ND_SHADERFX, dst);
 }
 
-void ED_object_shaderfx_copy(Object *dst, ShaderFxData *fx)
+void shaderfx_copy(Object *dst, ShaderFxData *fx)
 {
   ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
   STRNCPY(nfx->name, fx->name);
@@ -258,7 +257,7 @@ static bool edit_shaderfx_poll_generic(bContext *C,
                                        const bool is_liboverride_allowed)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "shaderfx", rna_type);
-  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
+  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : context_active_object(C);
   ShaderFxData *fx = static_cast<ShaderFxData *>(ptr.data); /* May be nullptr. */
 
   if (!ED_operator_object_active_editable_ex(C, ob)) {
@@ -304,10 +303,10 @@ static int shaderfx_add_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   int type = RNA_enum_get(op->ptr, "type");
 
-  if (!ED_object_shaderfx_add(op->reports, bmain, scene, ob, nullptr, type)) {
+  if (!shaderfx_add(op->reports, bmain, scene, ob, nullptr, type)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -321,7 +320,7 @@ static const EnumPropertyItem *shaderfx_add_itemf(bContext *C,
                                                   PropertyRNA * /*prop*/,
                                                   bool *r_free)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   EnumPropertyItem *item = nullptr;
   const EnumPropertyItem *fx_item, *group_item = nullptr;
   const ShaderFxTypeInfo *mti;
@@ -476,7 +475,7 @@ static ShaderFxData *edit_shaderfx_property_get(wmOperator *op, Object *ob, int 
 static int shaderfx_remove_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   ShaderFxData *fx = edit_shaderfx_property_get(op, ob, 0);
   if (!fx) {
     return OPERATOR_CANCELLED;
@@ -486,7 +485,7 @@ static int shaderfx_remove_exec(bContext *C, wmOperator *op)
   char name[MAX_NAME];
   STRNCPY(name, fx->name);
 
-  if (!ED_object_shaderfx_remove(op->reports, bmain, ob, fx)) {
+  if (!shaderfx_remove(op->reports, bmain, ob, fx)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -532,10 +531,10 @@ void OBJECT_OT_shaderfx_remove(wmOperatorType *ot)
 
 static int shaderfx_move_up_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   ShaderFxData *fx = edit_shaderfx_property_get(op, ob, 0);
 
-  if (!fx || !ED_object_shaderfx_move_up(op->reports, ob, fx)) {
+  if (!fx || !shaderfx_move_up(op->reports, ob, fx)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -577,10 +576,10 @@ void OBJECT_OT_shaderfx_move_up(wmOperatorType *ot)
 
 static int shaderfx_move_down_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   ShaderFxData *fx = edit_shaderfx_property_get(op, ob, 0);
 
-  if (!fx || !ED_object_shaderfx_move_down(op->reports, ob, fx)) {
+  if (!fx || !shaderfx_move_down(op->reports, ob, fx)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -622,11 +621,11 @@ void OBJECT_OT_shaderfx_move_down(wmOperatorType *ot)
 
 static int shaderfx_move_to_index_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   ShaderFxData *fx = edit_shaderfx_property_get(op, ob, 0);
   int index = RNA_int_get(op->ptr, "index");
 
-  if (!fx || !ED_object_shaderfx_move_to_index(op->reports, ob, fx, index)) {
+  if (!fx || !shaderfx_move_to_index(op->reports, ob, fx, index)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -669,7 +668,7 @@ void OBJECT_OT_shaderfx_move_to_index(wmOperatorType *ot)
 
 static int shaderfx_copy_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   ShaderFxData *fx = edit_shaderfx_property_get(op, ob, 0);
   if (!fx) {
     return OPERATOR_CANCELLED;
@@ -717,3 +716,5 @@ void OBJECT_OT_shaderfx_copy(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender::ed::object

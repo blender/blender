@@ -156,7 +156,7 @@ void ED_editors_init(bContext *C)
     }
 
     if (mode == OB_MODE_EDIT) {
-      ED_object_editmode_enter_ex(bmain, scene, ob, 0);
+      object::editmode_enter_ex(bmain, scene, ob, 0);
     }
     else if (mode & OB_MODE_ALL_SCULPT) {
       if (obact == ob) {
@@ -185,7 +185,7 @@ void ED_editors_init(bContext *C)
     else {
       /* TODO(@ideasman42): avoid operator calls. */
       if (obact == ob) {
-        ED_object_mode_set(C, eObjectMode(mode));
+        object::mode_set(C, eObjectMode(mode));
       }
     }
   }
@@ -215,6 +215,7 @@ void ED_editors_init(bContext *C)
 
 void ED_editors_exit(Main *bmain, bool do_undo_system)
 {
+  using namespace blender::ed;
   if (!bmain) {
     return;
   }
@@ -237,12 +238,12 @@ void ED_editors_exit(Main *bmain, bool do_undo_system)
    * since exiting edit-mode will tag the objects too.
    *
    * However there is no guarantee the active object _never_ changes while in edit-mode.
-   * Python for example can do this, some callers to #ED_object_base_activate
+   * Python for example can do this, some callers to #object::base_activate
    * don't handle modes either (doing so isn't always practical).
    *
    * To reproduce the problem where stale data is used, see: #84920. */
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    if (ED_object_editmode_free_ex(bmain, ob)) {
+    if (object::editmode_free_ex(bmain, ob)) {
       if (do_undo_system == false) {
         DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
       }
@@ -259,6 +260,7 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain,
                                           bool for_render,
                                           bool check_needs_flush)
 {
+  using namespace blender::ed;
   bool has_edited = false;
   if (ob->mode & OB_MODE_SCULPT) {
     /* Don't allow flushing while in the middle of a stroke (frees data in use).
@@ -298,7 +300,7 @@ bool ED_editors_flush_edits_for_object_ex(Main *bmain,
 
     /* get editmode results */
     has_edited = true;
-    ED_object_editmode_load(bmain, ob);
+    object::editmode_load(bmain, ob);
   }
   return has_edited;
 }

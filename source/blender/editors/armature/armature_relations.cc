@@ -493,7 +493,7 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
       }
 
       /* Free the old object data */
-      ED_object_base_free_and_unlink(bmain, scene, ob_iter);
+      blender::ed::object::base_free_and_unlink(bmain, scene, ob_iter);
     }
   }
   CTX_DATA_END;
@@ -735,7 +735,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
     /* Only duplicate linked armature but take into account
      * user preferences for duplicating actions. */
     short dupflag = USER_DUP_ARM | (U.dupflag & USER_DUP_ACT);
-    Base *base_new = ED_object_add_duplicate(
+    Base *base_new = blender::ed::object::add_duplicate(
         bmain, scene, view_layer, base_old, eDupli_ID_Flags(dupflag));
     Object *ob_new = base_new->object;
 

@@ -221,12 +221,12 @@ static void outliner_select_sync_to_object(ViewLayer *view_layer,
 
   if (base && (base->flag & BASE_SELECTABLE)) {
     if (tselem->flag & TSE_SELECTED) {
-      ED_object_base_select(base, BA_SELECT);
+      object::base_select(base, object::BA_SELECT);
 
       add_selected_item(selected_objects, base);
     }
     else if (!is_object_selected(selected_objects, base)) {
-      ED_object_base_select(base, BA_DESELECT);
+      object::base_select(base, object::BA_DESELECT);
     }
   }
 }

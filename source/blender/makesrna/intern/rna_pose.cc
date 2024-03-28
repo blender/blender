@@ -197,7 +197,7 @@ static void rna_Pose_ik_solver_update(Main *bmain, Scene * /*scene*/, PointerRNA
 
   BKE_pose_update_constraint_flags(pose);
 
-  object_test_constraints(bmain, ob);
+  blender::ed::object::object_test_constraints(bmain, ob);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_TRANSFORM);
 }
@@ -383,7 +383,7 @@ static bConstraint *rna_PoseChannel_constraints_new(ID *id,
   Object *ob = (Object *)id;
   bConstraint *new_con = BKE_constraint_add_for_pose(ob, pchan, nullptr, type);
 
-  ED_object_constraint_dependency_tag_update(main, ob, new_con);
+  blender::ed::object::constraint_dependency_tag_update(main, ob, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, id);
 
   return new_con;
@@ -405,7 +405,7 @@ static void rna_PoseChannel_constraints_remove(
   BKE_constraint_remove(&pchan->constraints, con);
   RNA_POINTER_INVALIDATE(con_ptr);
 
-  ED_object_constraint_update(bmain, ob);
+  blender::ed::object::constraint_update(bmain, ob);
 
   /* XXX(@ideasman42): is this really needed? */
   BKE_constraints_active_set(&pchan->constraints, nullptr);
@@ -431,7 +431,7 @@ static void rna_PoseChannel_constraints_move(
     return;
   }
 
-  ED_object_constraint_tag_update(bmain, ob, nullptr);
+  blender::ed::object::constraint_tag_update(bmain, ob, nullptr);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT, ob);
 }
 
@@ -445,7 +445,7 @@ static bConstraint *rna_PoseChannel_constraints_copy(ID *id,
   bConstraint *new_con = BKE_constraint_copy_for_pose(ob, pchan, con);
   new_con->flag |= CONSTRAINT_OVERRIDE_LIBRARY_LOCAL;
 
-  ED_object_constraint_dependency_tag_update(bmain, ob, new_con);
+  blender::ed::object::constraint_dependency_tag_update(bmain, ob, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, id);
 
   return new_con;

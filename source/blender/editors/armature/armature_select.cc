@@ -1092,7 +1092,7 @@ bool ED_armature_edit_select_pick_bone(
 
     BKE_view_layer_synced_ensure(scene, view_layer);
     if (BKE_view_layer_active_base_get(view_layer) != basact) {
-      ED_object_base_activate(C, basact);
+      blender::ed::object::base_activate(C, basact);
     }
 
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);

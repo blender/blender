@@ -198,7 +198,7 @@ static int insert_key_with_keyingset(bContext *C, wmOperator *op, KeyingSet *ks)
    * updated since the last switching to the edit mode will be keyframed correctly
    */
   if (obedit && ANIM_keyingset_find_id(ks, (ID *)obedit->data)) {
-    ED_object_mode_set(C, OB_MODE_OBJECT);
+    blender::ed::object::mode_set(C, OB_MODE_OBJECT);
     ob_edit_mode = true;
   }
 
@@ -214,7 +214,7 @@ static int insert_key_with_keyingset(bContext *C, wmOperator *op, KeyingSet *ks)
 
   /* restore the edit mode if necessary */
   if (ob_edit_mode) {
-    ED_object_mode_set(C, OB_MODE_EDIT);
+    blender::ed::object::mode_set(C, OB_MODE_EDIT);
   }
 
   /* report failure or do updates? */

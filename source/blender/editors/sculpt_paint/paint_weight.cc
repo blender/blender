@@ -1661,7 +1661,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   ToolSettings *ts = scene->toolsettings;
 
   if (!is_mode_set) {
-    if (!ED_object_mode_compat_set(C, ob, (eObjectMode)mode_flag, op->reports)) {
+    if (!blender::ed::object::mode_compat_set(C, ob, (eObjectMode)mode_flag, op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -1679,7 +1679,7 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   }
 
   /* Prepare armature posemode. */
-  ED_object_posemode_set_for_weight_paint(C, bmain, ob, is_mode_set);
+  blender::ed::object::posemode_set_for_weight_paint(C, bmain, ob, is_mode_set);
 
   if (ob->type == OB_MESH) {
     /* Weight-paint works by overriding colors in mesh,

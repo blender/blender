@@ -337,7 +337,7 @@ static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
   trace_initialize_job_data(job);
 
   /* Back to active base. */
-  ED_object_base_activate(job->C, job->base_active);
+  blender::ed::object::base_activate(job->C, job->base_active);
 
   if ((job->image->source == IMA_SRC_FILE) || (job->frame_num > 0)) {
     wmJobWorkerStatus worker_status = {};

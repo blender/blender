@@ -1599,7 +1599,7 @@ static bool jump_to_target_ptr(bContext *C, PointerRNA ptr, const bool poll)
     base = BKE_view_layer_base_find(view_layer, (Object *)ptr.owner_id);
   }
   else if (OB_DATA_SUPPORT_ID(id_type)) {
-    base = ED_object_find_first_by_data_id(scene, view_layer, ptr.owner_id);
+    base = blender::ed::object::find_first_by_data_id(scene, view_layer, ptr.owner_id);
   }
 
   bool ok = false;
@@ -1614,10 +1614,10 @@ static bool jump_to_target_ptr(bContext *C, PointerRNA ptr, const bool poll)
     const bool reveal_hidden = true;
     /* Select and activate the target. */
     if (target_type == &RNA_Bone) {
-      ok = ED_object_jump_to_bone(C, base->object, bone_name, reveal_hidden);
+      ok = blender::ed::object::jump_to_bone(C, base->object, bone_name, reveal_hidden);
     }
     else if (target_type == &RNA_Object) {
-      ok = ED_object_jump_to_object(C, base->object, reveal_hidden);
+      ok = blender::ed::object::jump_to_object(C, base->object, reveal_hidden);
     }
     else {
       BLI_assert(0);

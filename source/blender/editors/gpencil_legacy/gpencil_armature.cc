@@ -461,7 +461,7 @@ static void gpencil_object_vgroup_calc_from_armature(const bContext *C,
   if (defbase_add) {
     /* It's possible there are DWeights outside the range of the current
      * object's deform groups. In this case the new groups won't be empty */
-    ED_vgroup_data_clamp_range(static_cast<ID *>(ob->data), defbase_tot);
+    blender::ed::object::vgroup_data_clamp_range(static_cast<ID *>(ob->data), defbase_tot);
   }
 
   if (mode == GP_ARMATURE_AUTO) {
@@ -487,7 +487,7 @@ bool ED_gpencil_add_armature(const bContext *C, ReportList *reports, Object *ob,
   /* if no armature modifier, add a new one */
   GpencilModifierData *md = BKE_gpencil_modifiers_findby_type(ob, eGpencilModifierType_Armature);
   if (md == nullptr) {
-    md = ED_object_gpencil_modifier_add(
+    md = blender::ed::object::gpencil_modifier_add(
         reports, bmain, scene, ob, "Armature", eGpencilModifierType_Armature);
     if (md == nullptr) {
       BKE_report(reports, RPT_ERROR, "Unable to add a new Armature modifier to object");
