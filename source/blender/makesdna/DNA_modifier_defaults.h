@@ -1062,15 +1062,4 @@
     .percentage_fac = 0.0f, \
   }
 
-#define _DNA_DEFAULT_GreasePencilSimplifyModifierData \
-  { \
-    .flag = 0, \
-    .factor = 0.0f, \
-    .mode = 0, \
-    .step = 1, \
-    .length = 0.1f, \
-    .distance = 0.1f, \
-  }
-  
-  
 /* clang-format off */

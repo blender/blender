@@ -284,7 +284,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
   INIT_TYPE(GreasePencilLineart);
   INIT_TYPE(GreasePencilArmature);
   INIT_TYPE(GreasePencilTime);
-  INIT_TYPE(GreasePencilSimplify);
   INIT_TYPE(GreasePencilEnvelope);
   INIT_TYPE(GreasePencilOutline);
   INIT_TYPE(GreasePencilShrinkwrap);
