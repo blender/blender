@@ -1108,7 +1108,7 @@ static bool gpencil_vertexpaint_brush_do_frame(bContext *C,
 static bool gpencil_vertexpaint_brush_apply_to_layers(bContext *C, tGP_BrushVertexpaintData *gso)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *obact = gso->object;
   bool changed = false;
 
