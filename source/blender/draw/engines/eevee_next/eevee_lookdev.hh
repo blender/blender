@@ -72,6 +72,11 @@ class LookdevWorld {
   {
     return parameters_.background_opacity;
   }
+
+  float background_blur_get()
+  {
+    return parameters_.blur;
+  }
 };
 
 /** \} */

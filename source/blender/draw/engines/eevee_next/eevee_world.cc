@@ -133,8 +133,9 @@ void World::sync()
 
   float opacity = inst_.use_studio_light() ? lookdev_world_.background_opacity_get() :
                                              inst_.film.background_opacity_get();
+  float background_blur = inst_.use_studio_light() ? lookdev_world_.background_blur_get() : 0.0;
 
-  inst_.pipelines.background.sync(gpumat, opacity);
+  inst_.pipelines.background.sync(gpumat, opacity, background_blur);
   inst_.pipelines.world.sync(gpumat);
 }
 
