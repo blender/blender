@@ -10,6 +10,7 @@
 
 #include <fmt/format.h>
 
+#include "BKE_action.h"
 #include "BKE_anim_data.hh"
 #include "BKE_attribute.hh"
 #include "BKE_colorband.hh"
@@ -62,23 +63,51 @@ namespace blender::bke::greasepencil::convert {
  * (also includes drivers, and actions linked through the NLA).
  * \{ */
 
-static bool legacy_fcurves_process(ListBase &fcurves,
-                                   blender::FunctionRef<bool(FCurve *fcurve)> callback)
+using FCurveCallback = bool(bAction *owner_action, FCurve &fcurve);
+
+/* Utils to move a list of fcurves from one container (Action or Drivers) to another. */
+static void legacy_fcurves_move(ListBase &fcurves_dst,
+                                ListBase &fcurves_src,
+                                const Span<FCurve *> fcurves)
+{
+  for (FCurve *fcurve : fcurves) {
+    BLI_assert(BLI_findindex(&fcurves_src, fcurve) >= 0);
+    BLI_remlink(&fcurves_src, fcurve);
+    BLI_addtail(&fcurves_dst, fcurve);
+  }
+}
+
+/* Basic common check to decide whether a legacy fcurve should be processed or not. */
+static bool legacy_fcurves_is_valid_for_root_path(FCurve &fcurve, StringRefNull legacy_root_path)
+{
+  if (!fcurve.rna_path) {
+    return false;
+  }
+  StringRefNull rna_path = fcurve.rna_path;
+  if (!rna_path.startswith(legacy_root_path)) {
+    return false;
+  }
+  return true;
+}
+
+static bool legacy_fcurves_process(bAction *owner_action,
+                                   ListBase &fcurves,
+                                   blender::FunctionRef<FCurveCallback> callback)
 {
   bool is_changed = false;
   LISTBASE_FOREACH (FCurve *, fcurve, &fcurves) {
-    const bool local_is_changed = callback(fcurve);
+    const bool local_is_changed = callback(owner_action, *fcurve);
     is_changed = is_changed || local_is_changed;
   }
   return is_changed;
 }
 
 static bool legacy_nla_strip_process(NlaStrip &nla_strip,
-                                     blender::FunctionRef<bool(FCurve *fcurve)> callback)
+                                     blender::FunctionRef<FCurveCallback> callback)
 {
   bool is_changed = false;
   if (nla_strip.act) {
-    if (legacy_fcurves_process(nla_strip.act->curves, callback)) {
+    if (legacy_fcurves_process(nla_strip.act, nla_strip.act->curves, callback)) {
       DEG_id_tag_update(&nla_strip.act->id, ID_RECALC_ANIMATION);
       is_changed = true;
     }
@@ -91,24 +120,24 @@ static bool legacy_nla_strip_process(NlaStrip &nla_strip,
 }
 
 static bool legacy_animation_process(AnimData &anim_data,
-                                     blender::FunctionRef<bool(FCurve *fcurve)> callback)
+                                     blender::FunctionRef<FCurveCallback> callback)
 {
   bool is_changed = false;
   if (anim_data.action) {
-    if (legacy_fcurves_process(anim_data.action->curves, callback)) {
+    if (legacy_fcurves_process(anim_data.action, anim_data.action->curves, callback)) {
       DEG_id_tag_update(&anim_data.action->id, ID_RECALC_ANIMATION);
       is_changed = true;
     }
   }
   if (anim_data.tmpact) {
-    if (legacy_fcurves_process(anim_data.tmpact->curves, callback)) {
+    if (legacy_fcurves_process(anim_data.tmpact, anim_data.tmpact->curves, callback)) {
       DEG_id_tag_update(&anim_data.tmpact->id, ID_RECALC_ANIMATION);
       is_changed = true;
     }
   }
 
   {
-    const bool local_is_changed = legacy_fcurves_process(anim_data.drivers, callback);
+    const bool local_is_changed = legacy_fcurves_process(nullptr, anim_data.drivers, callback);
     is_changed = is_changed || local_is_changed;
   }
 
@@ -623,6 +652,15 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
   copy_v3_v3(grease_pencil.onion_skinning_settings.color_after, gpd.gcolor_next);
 
   BKE_id_materials_copy(&bmain, &gpd.id, &grease_pencil.id);
+
+  /* Copy animation data from legacy GP data.
+   *
+   * Note that currently, Actions IDs are not duplicated. They may be needed ultimately, but for
+   * the time being, assuming invalid fcurves/drivers are fine here. */
+  if (AnimData *gpd_animdata = BKE_animdata_from_id(&gpd.id)) {
+    grease_pencil.adt = BKE_animdata_copy_in_lib(
+        &bmain, gpd.id.lib, gpd_animdata, LIB_ID_COPY_DEFAULT);
+  }
 }
 
 static bNodeTree *add_offset_radius_node_tree(Main &bmain)
@@ -737,18 +775,115 @@ void thickness_factor_to_modifier(const bGPdata &src_object_data, Object &dst_ob
   BKE_modifiers_persistent_uid_init(dst_object, *md);
 }
 
-void layer_adjustments_to_modifiers(Main &bmain,
-                                    const bGPdata &src_object_data,
-                                    Object &dst_object)
+void layer_adjustments_to_modifiers(Main &bmain, bGPdata &src_object_data, Object &dst_object)
 {
   bNodeTree *offset_radius_node_tree = nullptr;
+
+  /* Handling of animation here is a bit complex, since paths needs to be updated, but also
+   * FCurves need to be transferred from legacy GPData animation to Object animation.
+   *
+   * NOTE: NLA animation in GPData that would control adjustment properties is not converted. This
+   * would require (partially) re-creating a copy of the potential bGPData NLA into the Object NLA,
+   * which is too complex for the few potential usecases.
+   *
+   * This is achieved in several steps, roughly:
+   *   * For each GP layer, chack if there is animation on the adjutment data.
+   *   * Rename relevant FCurves RNA paths from GP animation data, and store their reference in
+   *     temporary vectors.
+   *   * Once all layers have been processed, move all affected FCurves from GPData animation to
+   *     Object one. */
+
+  AnimData *gpd_animdata = BKE_animdata_from_id(&src_object_data.id);
+  AnimData *dst_object_animdata = BKE_animdata_from_id(&dst_object.id);
+
+  /* Old 'adjutment' GPData RNA property path to new matching modifier property RNA path. */
+  static const std::pair<const char *, const char *> fcurve_tint_valid_prop_paths[] = {
+      {".tint_color", ".color"}, {".tint_factor", ".factor"}};
+  static const std::pair<const char *, const char *> fcurve_thickness_valid_prop_paths[] = {
+      {".line_change", "[\"Socket_1\"]"}};
+
+  /* Store all FCurves that need to be moved from GPData animation to Object animation,
+   * respectively for the main action, the temp action, and the drivers. */
+  blender::Vector<FCurve *> fcurves_from_gpd_main_action;
+  blender::Vector<FCurve *> fcurves_from_gpd_tmp_action;
+  blender::Vector<FCurve *> fcurves_from_gpd_drivers;
+
+  /* Common filtering of FCurve RNA path to decide whether they can/need to be processed here or
+   * not. */
+  auto adjustment_animation_fcurve_is_valid =
+      [&](bAction *owner_action, FCurve &fcurve, blender::StringRefNull legacy_root_path) -> bool {
+    /* Only take into account drivers (nullptr `action_owner`), and Actions directly assigned
+     * to the animdata, not the NLA ones. */
+    if (owner_action && !ELEM(owner_action, gpd_animdata->action, gpd_animdata->tmpact)) {
+      return false;
+    }
+    if (!legacy_fcurves_is_valid_for_root_path(fcurve, legacy_root_path)) {
+      return false;
+    }
+    return true;
+  };
+
   /* Replace layer adjustments with modifiers. */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &src_object_data.layers) {
     const float3 tint_color = float3(gpl->tintcolor);
     const float tint_factor = gpl->tintcolor[3];
     const int thickness_px = gpl->line_change;
+
+    bool has_tint_adjustment = tint_factor > 0.0f;
+    bool has_tint_adjustment_animation = false;
+    bool has_thickness_adjustment = thickness_px != 0;
+    bool has_thickness_adjustment_animation = false;
+
+    char layer_name_esc[sizeof(gpl->info) * 2];
+    BLI_str_escape(layer_name_esc, gpl->info, sizeof(layer_name_esc));
+    const std::string legacy_root_path = fmt::format("layers[\"{}\"]", layer_name_esc);
+
+    /* If tint or thickness are animated, relevamt modifiers also need to be created. */
+    if (gpd_animdata) {
+      auto adjustment_animation_detection = [&](bAction *owner_action, FCurve &fcurve) -> bool {
+        /* Early out if we already know that both data are animated. */
+        if (has_tint_adjustment_animation && has_thickness_adjustment_animation) {
+          return false;
+        }
+        if (!adjustment_animation_fcurve_is_valid(owner_action, fcurve, legacy_root_path)) {
+          return false;
+        }
+        StringRefNull rna_path = fcurve.rna_path;
+        for (const auto &[from_prop_path, to_prop_path] : fcurve_tint_valid_prop_paths) {
+          const char *rna_adjustment_prop_path = from_prop_path;
+          const std::string old_rna_path = fmt::format(
+              "{}{}", legacy_root_path, rna_adjustment_prop_path);
+          if (rna_path == old_rna_path) {
+            has_tint_adjustment_animation = true;
+            return false;
+          }
+        }
+        for (const auto &[from_prop_path, to_prop_path] : fcurve_thickness_valid_prop_paths) {
+          const char *rna_prop_rna_adjustment_prop_pathpath = from_prop_path;
+          const std::string old_rna_path = fmt::format(
+              "{}{}", legacy_root_path, rna_prop_rna_adjustment_prop_pathpath);
+          if (rna_path == old_rna_path) {
+            has_thickness_adjustment_animation = true;
+            return false;
+          }
+        }
+        return false;
+      };
+
+      legacy_animation_process(*gpd_animdata, adjustment_animation_detection);
+      has_tint_adjustment = has_tint_adjustment || has_tint_adjustment_animation;
+      has_thickness_adjustment = has_thickness_adjustment || has_thickness_adjustment_animation;
+    }
+
+    /* Create animdata in destination object if needed. */
+    if ((has_tint_adjustment_animation || has_thickness_adjustment_animation) &&
+        !dst_object_animdata)
+    {
+      dst_object_animdata = BKE_animdata_ensure_id(&dst_object.id);
+    }
+
     /* Tint adjustment. */
-    if (tint_factor > 0.0f) {
+    if (has_tint_adjustment) {
       ModifierData *md = BKE_modifier_new(eModifierType_GreasePencilTint);
       GreasePencilTintModifierData *tmd = reinterpret_cast<GreasePencilTintModifierData *>(md);
 
@@ -756,16 +891,59 @@ void layer_adjustments_to_modifiers(Main &bmain,
       tmd->factor = tint_factor;
       STRNCPY(tmd->influence.layer_name, gpl->info);
 
-      char modifier_name[64];
+      char modifier_name[MAX_NAME];
       SNPRINTF(modifier_name, "Tint %s", gpl->info);
       STRNCPY(md->name, modifier_name);
       BKE_modifier_unique_name(&dst_object.modifiers, md);
 
       BLI_addtail(&dst_object.modifiers, md);
       BKE_modifiers_persistent_uid_init(dst_object, *md);
+
+      if (has_tint_adjustment_animation) {
+        char modifier_name_esc[MAX_NAME * 2];
+        BLI_str_escape(modifier_name_esc, md->name, sizeof(modifier_name_esc));
+
+        auto adjustment_tint_path_update = [&](bAction *owner_action, FCurve &fcurve) -> bool {
+          if (!adjustment_animation_fcurve_is_valid(owner_action, fcurve, legacy_root_path)) {
+            return false;
+          }
+          StringRefNull rna_path = fcurve.rna_path;
+          for (const auto &[from_prop_path, to_prop_path] : fcurve_tint_valid_prop_paths) {
+            const char *rna_adjustment_prop_path = from_prop_path;
+            const char *rna_modifier_prop_path = to_prop_path;
+            const std::string old_rna_path = fmt::format(
+                "{}{}", legacy_root_path, rna_adjustment_prop_path);
+            if (rna_path == old_rna_path) {
+              const std::string new_rna_path = fmt::format(
+                  "modifiers[\"{}\"]{}", modifier_name_esc, rna_modifier_prop_path);
+              MEM_freeN(fcurve.rna_path);
+              fcurve.rna_path = BLI_strdupn(new_rna_path.c_str(), new_rna_path.size());
+              if (owner_action) {
+                if (owner_action == gpd_animdata->action) {
+                  fcurves_from_gpd_main_action.append(&fcurve);
+                }
+                else {
+                  BLI_assert(owner_action == gpd_animdata->tmpact);
+                  fcurves_from_gpd_tmp_action.append(&fcurve);
+                }
+              }
+              else { /* Driver */
+                fcurves_from_gpd_drivers.append(&fcurve);
+              }
+              return true;
+            }
+          }
+          return false;
+        };
+
+        const bool has_edits = legacy_animation_process(*gpd_animdata,
+                                                        adjustment_tint_path_update);
+        BLI_assert(has_edits);
+        UNUSED_VARS_NDEBUG(has_edits);
+      }
     }
     /* Thickness adjustment. */
-    if (thickness_px != 0) {
+    if (has_thickness_adjustment) {
       /* Convert the "pixel" offset value into a radius value.
        * GPv2 used a conversion of 1 "px" = 0.001. */
       /* Note: this offset may be negative. */
@@ -776,7 +954,7 @@ void layer_adjustments_to_modifiers(Main &bmain,
       }
       auto *md = reinterpret_cast<NodesModifierData *>(BKE_modifier_new(eModifierType_Nodes));
 
-      char modifier_name[64];
+      char modifier_name[MAX_NAME];
       SNPRINTF(modifier_name, "Thickness %s", gpl->info);
       STRNCPY(md->modifier.name, modifier_name);
       BKE_modifier_unique_name(&dst_object.modifiers, &md->modifier);
@@ -790,12 +968,83 @@ void layer_adjustments_to_modifiers(Main &bmain,
           bke::idprop::create(DATA_("Socket_2"), radius_offset).release();
       auto *ui_data = reinterpret_cast<IDPropertyUIDataFloat *>(
           IDP_ui_data_ensure(radius_offset_prop));
-      ui_data->soft_min = 0.0f;
+      ui_data->soft_min = 0.0;
       ui_data->base.rna_subtype = PROP_TRANSLATION;
       IDP_AddToGroup(md->settings.properties, radius_offset_prop);
       IDP_AddToGroup(md->settings.properties,
                      bke::idprop::create(DATA_("Socket_3"), gpl->info).release());
+
+      if (has_thickness_adjustment_animation) {
+        char modifier_name_esc[MAX_NAME * 2];
+        BLI_str_escape(modifier_name_esc, md->modifier.name, sizeof(modifier_name_esc));
+
+        auto adjustment_thickness_path_update = [&](bAction *owner_action,
+                                                    FCurve &fcurve) -> bool {
+          if (!adjustment_animation_fcurve_is_valid(owner_action, fcurve, legacy_root_path)) {
+            return false;
+          }
+          StringRefNull rna_path = fcurve.rna_path;
+          for (const auto &[from_prop_path, to_prop_path] : fcurve_thickness_valid_prop_paths) {
+            const char *rna_adjustment_prop_path = from_prop_path;
+            const char *rna_modifier_prop_path = to_prop_path;
+            const std::string old_rna_path = fmt::format(
+                "{}{}", legacy_root_path, rna_adjustment_prop_path);
+            if (rna_path == old_rna_path) {
+              const std::string new_rna_path = fmt::format(
+                  "modifiers[\"{}\"]{}", modifier_name_esc, rna_modifier_prop_path);
+              MEM_freeN(fcurve.rna_path);
+              fcurve.rna_path = BLI_strdupn(new_rna_path.c_str(), new_rna_path.size());
+              if (owner_action) {
+                if (owner_action == gpd_animdata->action) {
+                  fcurves_from_gpd_main_action.append(&fcurve);
+                }
+                else {
+                  BLI_assert(owner_action == gpd_animdata->tmpact);
+                  fcurves_from_gpd_tmp_action.append(&fcurve);
+                }
+              }
+              else { /* Driver */
+                fcurves_from_gpd_drivers.append(&fcurve);
+              }
+              return true;
+            }
+          }
+          return false;
+        };
+
+        const bool has_edits = legacy_animation_process(*gpd_animdata,
+                                                        adjustment_thickness_path_update);
+        BLI_assert(has_edits);
+        UNUSED_VARS_NDEBUG(has_edits);
+      }
     }
+  }
+
+  if (!fcurves_from_gpd_main_action.is_empty()) {
+    if (!dst_object_animdata->action) {
+      dst_object_animdata->action = BKE_action_add(&bmain, gpd_animdata->action->id.name + 2);
+    }
+    legacy_fcurves_move(dst_object_animdata->action->curves,
+                        gpd_animdata->action->curves,
+                        fcurves_from_gpd_main_action);
+    DEG_id_tag_update(&dst_object.id, ID_RECALC_ANIMATION);
+    DEG_id_tag_update(&src_object_data.id, ID_RECALC_ANIMATION);
+  }
+  if (!fcurves_from_gpd_tmp_action.is_empty()) {
+    if (!dst_object_animdata->tmpact) {
+      dst_object_animdata->tmpact = BKE_action_add(&bmain, gpd_animdata->tmpact->id.name + 2);
+    }
+    legacy_fcurves_move(dst_object_animdata->tmpact->curves,
+                        gpd_animdata->tmpact->curves,
+                        fcurves_from_gpd_tmp_action);
+    DEG_id_tag_update(&dst_object.id, ID_RECALC_ANIMATION);
+    DEG_id_tag_update(&src_object_data.id, ID_RECALC_ANIMATION);
+  }
+  if (!fcurves_from_gpd_drivers.is_empty()) {
+    legacy_fcurves_move(
+        dst_object_animdata->drivers, gpd_animdata->drivers, fcurves_from_gpd_drivers);
+    DEG_id_tag_update(&dst_object.id, ID_RECALC_ANIMATION);
+    DEG_id_tag_update(&src_object_data.id, ID_RECALC_ANIMATION);
   }
 
   DEG_relations_tag_update(&bmain);
@@ -838,8 +1087,7 @@ static ModifierData &legacy_object_modifier_common(Object &object,
   new_md.ui_expand_flag = legacy_md.ui_expand_flag;
 
   /* Convert animation data if needed. */
-  AnimData *anim_data = BKE_animdata_from_id(&object.id);
-  if (anim_data) {
+  if (AnimData *anim_data = BKE_animdata_from_id(&object.id)) {
     char legacy_name_esc[MAX_NAME * 2];
     BLI_str_escape(legacy_name_esc, legacy_md.name, sizeof(legacy_name_esc));
     const std::string legacy_root_path = fmt::format("grease_pencil_modifiers[\"{}\"]",
@@ -847,20 +1095,15 @@ static ModifierData &legacy_object_modifier_common(Object &object,
     char new_name_esc[MAX_NAME * 2];
     BLI_str_escape(new_name_esc, new_md.name, sizeof(new_name_esc));
 
-    auto modifier_path_update = [&](FCurve *fcurve) -> bool {
-      /* NOTE: This logic will likely need to be re-used in other similar conditions for other
-       * areas, should be put into its own util then. */
-      if (!fcurve->rna_path) {
+    auto modifier_path_update = [&](bAction * /*owner_action*/, FCurve &fcurve) -> bool {
+      if (!legacy_fcurves_is_valid_for_root_path(fcurve, legacy_root_path)) {
         return false;
       }
-      StringRefNull rna_path = fcurve->rna_path;
-      if (!rna_path.startswith(legacy_root_path)) {
-        return false;
-      }
+      StringRefNull rna_path = fcurve.rna_path;
       const std::string new_rna_path = fmt::format(
           "modifiers[\"{}\"]{}", new_name_esc, rna_path.substr(int64_t(legacy_root_path.size())));
-      MEM_freeN(fcurve->rna_path);
-      fcurve->rna_path = BLI_strdupn(new_rna_path.c_str(), new_rna_path.size());
+      MEM_freeN(fcurve.rna_path);
+      fcurve.rna_path = BLI_strdupn(new_rna_path.c_str(), new_rna_path.size());
       return true;
     };
 
