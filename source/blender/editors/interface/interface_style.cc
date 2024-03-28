@@ -182,7 +182,7 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   BLF_position(fs->uifont_id, rect->xmin + xofs, rect->ymin + yofs, 0.0f);
   BLF_color4ubv(fs->uifont_id, col);
 
-  BLF_draw_ex(fs->uifont_id, str, str_len, r_info);
+  BLF_draw(fs->uifont_id, str, str_len, r_info);
 
   BLF_disable(fs->uifont_id, font_flag);
 

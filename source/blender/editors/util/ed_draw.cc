@@ -731,7 +731,7 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
           BLF_enable(fontid, BLF_WORD_WRAP);
           BLF_wordwrap(fontid, ibuf->x - (margin * 2));
           BLF_position(fontid, xmin, ymax - vertical_offset - ofs_y, 0.0f);
-          BLF_draw_ex(fontid, temp_str, sizeof(temp_str), &info);
+          BLF_draw(fontid, temp_str, sizeof(temp_str), &info);
           BLF_wordwrap(fontid, 0);
           BLF_disable(fontid, BLF_WORD_WRAP);
           ofs_y += vertical_offset * info.lines;
@@ -804,7 +804,7 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
 
           BLF_enable(fontid, BLF_WORD_WRAP);
           BLF_wordwrap(fontid, ibuf->x - (margin * 2));
-          BLF_boundbox_ex(fontid, str, sizeof(str), &wrap.rect, &wrap.info);
+          BLF_boundbox(fontid, str, sizeof(str), &wrap.rect, &wrap.info);
           BLF_wordwrap(fontid, 0);
           BLF_disable(fontid, BLF_WORD_WRAP);
 

@@ -1208,7 +1208,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     }
 
     if (!field->text.empty()) {
-      w = BLF_width_ex(font_id, field->text.c_str(), field->text.size(), &info);
+      w = BLF_width(font_id, field->text.c_str(), field->text.size(), &info);
     }
 
     /* check for suffix (enum label) */
