@@ -1281,6 +1281,9 @@ void update_normals(PBVH &pbvh, SubdivCCG *subdiv_ccg)
 {
   Vector<PBVHNode *> nodes = search_gather(
       &pbvh, [&](PBVHNode &node) { return update_search(&node, PBVH_UpdateNormals); });
+  if (nodes.is_empty()) {
+    return;
+  }
 
   if (pbvh.header.type == PBVH_BMESH) {
     bmesh_normals_update(nodes);
