@@ -258,7 +258,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
    */
   DRWTextStore *dt = DRW_text_cache_ensure();
   const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
-  Mesh *mesh = BKE_object_get_editmesh_eval_cage(ob);
+  const Mesh *mesh = BKE_object_get_editmesh_eval_cage(ob);
   BMEditMesh *em = mesh->runtime->edit_mesh;
   float v1[3], v2[3], v3[3], vmid[3], fvec[3];
   char numstr[32]; /* Stores the measurement display text here */
@@ -379,7 +379,9 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     Span<float3> face_normals;
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
-      face_normals = BKE_mesh_wrapper_face_normals(mesh);
+      /* TODO: This is not const correct for wrapper meshes, but it should be okay because
+       * every evaluated object gets its own evaluated cage mesh (they are not shared). */
+      face_normals = BKE_mesh_wrapper_face_normals(const_cast<Mesh *>(mesh));
     }
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {

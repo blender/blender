@@ -89,7 +89,7 @@ struct MeshRenderData {
   int freestyle_edge_ofs;
   int freestyle_face_ofs;
   /** Mesh */
-  Mesh *mesh;
+  const Mesh *mesh;
   Span<float3> vert_positions;
   Span<int2> edges;
   OffsetIndices<int> faces;

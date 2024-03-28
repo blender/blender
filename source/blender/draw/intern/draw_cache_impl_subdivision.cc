@@ -750,7 +750,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_bm(BMesh *bm,
 }
 
 static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData &mr,
-                                                          Mesh *mesh,
+                                                          const Mesh *mesh,
                                                           uint32_t *flags_data)
 {
   const OffsetIndices faces = mesh->faces();
@@ -771,7 +771,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(const MeshRenderData &
   }
 }
 
-static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
+static void draw_subdiv_cache_extra_coarse_face_data_mapped(const Mesh *mesh,
                                                             BMesh *bm,
                                                             MeshRenderData &mr,
                                                             uint32_t *flags_data)
@@ -797,7 +797,7 @@ static void draw_subdiv_cache_extra_coarse_face_data_mapped(Mesh *mesh,
 }
 
 static void draw_subdiv_cache_update_extra_coarse_face_data(DRWSubdivCache &cache,
-                                                            Mesh *mesh,
+                                                            const Mesh *mesh,
                                                             MeshRenderData &mr)
 {
   if (cache.extra_coarse_face_data == nullptr) {
@@ -839,7 +839,7 @@ static DRWSubdivCache &mesh_batch_cache_ensure_subdiv_cache(MeshBatchCache &mbc)
   return *subdiv_cache;
 }
 
-static void draw_subdiv_invalidate_evaluator_for_orco(Subdiv *subdiv, Mesh *mesh)
+static void draw_subdiv_invalidate_evaluator_for_orco(Subdiv *subdiv, const Mesh *mesh)
 {
   if (!(subdiv && subdiv->evaluator)) {
     return;
@@ -1167,7 +1167,7 @@ static void build_vertex_face_adjacency_maps(DRWSubdivCache &cache)
 
 static bool draw_subdiv_build_cache(DRWSubdivCache &cache,
                                     Subdiv *subdiv,
-                                    Mesh *mesh_eval,
+                                    const Mesh *mesh_eval,
                                     const SubsurfRuntimeData *runtime_data)
 {
   SubdivToMeshSettings to_mesh_settings;
@@ -2020,7 +2020,7 @@ void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache &cache,
  * since all sub-faces are contiguous, they all share the same offset.
  */
 static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
-                                                 Mesh *mesh_eval,
+                                                 const Mesh *mesh_eval,
                                                  uint mat_len)
 {
   draw_subdiv_cache_free_material_data(cache);
@@ -2108,7 +2108,7 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
     return false;
   }
 
-  Mesh *mesh_eval = mesh;
+  const Mesh *mesh_eval = mesh;
   BMesh *bm = nullptr;
   if (mesh->runtime->edit_mesh) {
     mesh_eval = BKE_object_get_editmesh_eval_final(ob);

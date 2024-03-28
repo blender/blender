@@ -157,7 +157,7 @@ static void rna_Scene_ray_cast(Scene *scene,
                                                      r_location,
                                                      r_normal,
                                                      r_index,
-                                                     r_ob,
+                                                     (const Object **)(r_ob),
                                                      (float(*)[4])r_obmat);
 
   ED_transform_snap_object_context_destroy(sctx);

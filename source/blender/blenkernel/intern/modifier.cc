@@ -952,10 +952,10 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval)
 
   if ((ob_eval->type == OB_MESH) && (ob_eval->mode & OB_MODE_EDIT)) {
     /* In EditMode, evaluated mesh is stored in BMEditMesh, not the object... */
-    BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
+    const BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
     /* 'em' might not exist yet in some cases, just after loading a .blend file, see #57878. */
     if (em != nullptr) {
-      mesh = BKE_object_get_editmesh_eval_final(ob_eval);
+      mesh = const_cast<Mesh *>(BKE_object_get_editmesh_eval_final(ob_eval));
     }
   }
   if (mesh == nullptr) {

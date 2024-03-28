@@ -1407,7 +1407,8 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
     /* Modifiers will only generate an orco layer if the mesh is deformed. */
     if (cache.cd_needed.orco != 0) {
       /* Orco is always extracted from final mesh. */
-      Mesh *me_final = (mesh->runtime->edit_mesh) ? BKE_object_get_editmesh_eval_final(ob) : mesh;
+      const Mesh *me_final = (mesh->runtime->edit_mesh) ? BKE_object_get_editmesh_eval_final(ob) :
+                                                          mesh;
       if (CustomData_get_layer(&me_final->vert_data, CD_ORCO) == nullptr) {
         /* Skip orco calculation */
         cache.cd_needed.orco = 0;
@@ -1512,8 +1513,8 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
 
   bool do_cage = false, do_uvcage = false;
   if (is_editmode && is_mode_active) {
-    Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
-    Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
+    const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
+    const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
 
     do_cage = editmesh_eval_final != editmesh_eval_cage;
     do_uvcage = !(editmesh_eval_final->runtime->is_original_bmesh &&

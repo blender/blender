@@ -19,7 +19,7 @@
 using namespace blender;
 
 eSnapMode snapCamera(SnapObjectContext *sctx,
-                     Object *object,
+                     const Object *object,
                      const float4x4 &obmat,
                      eSnapMode snap_to_flag)
 {

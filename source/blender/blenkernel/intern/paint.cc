@@ -1769,7 +1769,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     bool used_me_eval = false;
 
     if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
-      Mesh *me_eval_deform = ob_eval->runtime->mesh_deform_eval;
+      const Mesh *me_eval_deform = BKE_object_get_mesh_deform_eval(ob_eval);
 
       /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
        * This matters because crazyspace evaluation is very restrictive and excludes even modifiers
@@ -2127,7 +2127,7 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
                            ob->sculpt->attrs.dyntopo_node_id_face->bmesh_cd_offset);
 }
 
-static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
+static PBVH *build_pbvh_from_regular_mesh(Object *ob, const Mesh *me_eval_deform)
 {
   Mesh *mesh = BKE_object_get_original_mesh(ob);
   PBVH *pbvh = pbvh::build_mesh(mesh);
@@ -2200,7 +2200,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime->subdiv_ccg.get());
     }
     else if (ob->type == OB_MESH) {
-      Mesh *me_eval_deform = object_eval->runtime->mesh_deform_eval;
+      const Mesh *me_eval_deform = BKE_object_get_mesh_deform_eval(object_eval);
       pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform);
     }
   }

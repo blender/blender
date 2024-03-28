@@ -85,7 +85,7 @@ struct SnapObjectContext {
     /* List of #SnapObjectHitDepth (caller must free). */
     ListBase *hit_list;
     /* Snapped object. */
-    Object *ob;
+    const Object *ob;
     /* Snapped data. */
     const ID *data;
 
@@ -141,13 +141,13 @@ class SnapData {
   bool snap_edge(const blender::float3 &va, const blender::float3 &vb, int edge_index = -1);
   eSnapMode snap_edge_points_impl(SnapObjectContext *sctx, int edge_index, float dist_px_sq_orig);
   static void register_result(SnapObjectContext *sctx,
-                              Object *ob_eval,
+                              const Object *ob_eval,
                               const ID *id_eval,
                               const blender::float4x4 &obmat,
                               BVHTreeNearest *r_nearest);
-  void register_result(SnapObjectContext *sctx, Object *ob_eval, const ID *id_eval);
+  void register_result(SnapObjectContext *sctx, const Object *ob_eval, const ID *id_eval);
   static void register_result_raycast(SnapObjectContext *sctx,
-                                      Object *ob_eval,
+                                      const Object *ob_eval,
                                       const ID *id_eval,
                                       const blender::float4x4 &obmat,
                                       const BVHTreeRayHit *hit,
@@ -187,32 +187,34 @@ bool nearest_world_tree(SnapObjectContext *sctx,
                         BVHTreeNearest *r_nearest);
 
 eSnapMode snap_object_center(SnapObjectContext *sctx,
-                             Object *ob_eval,
+                             const Object *ob_eval,
                              const blender::float4x4 &obmat,
                              eSnapMode snap_to_flag);
 
 /* `transform_snap_object_armature.cc` */
 
 eSnapMode snapArmature(SnapObjectContext *sctx,
-                       Object *ob_eval,
+                       const Object *ob_eval,
                        const blender::float4x4 &obmat,
                        bool is_object_active);
 
 /* `transform_snap_object_camera.cc` */
 
 eSnapMode snapCamera(SnapObjectContext *sctx,
-                     Object *object,
+                     const Object *object,
                      const blender::float4x4 &obmat,
                      eSnapMode snap_to_flag);
 
 /* `transform_snap_object_curve.cc` */
 
-eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const blender::float4x4 &obmat);
+eSnapMode snapCurve(SnapObjectContext *sctx,
+                    const Object *ob_eval,
+                    const blender::float4x4 &obmat);
 
 /* `transform_snap_object_editmesh.cc` */
 
 eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
-                               Object *ob_eval,
+                               const Object *ob_eval,
                                const ID *id,
                                const blender::float4x4 &obmat,
                                eSnapMode snap_to_flag,
@@ -221,21 +223,21 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
 /* `transform_snap_object_mesh.cc` */
 
 eSnapMode snap_object_mesh(SnapObjectContext *sctx,
-                           Object *ob_eval,
+                           const Object *ob_eval,
                            const ID *id,
                            const blender::float4x4 &obmat,
                            eSnapMode snap_to_flag,
                            bool use_hide);
 
 eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
-                            Object *ob_eval,
+                            const Object *ob_eval,
                             const ID *id,
                             const blender::float4x4 &obmat,
                             eSnapMode snap_to_flag,
                             int face);
 
 eSnapMode snap_edge_points_mesh(SnapObjectContext *sctx,
-                                Object *ob_eval,
+                                const Object *ob_eval,
                                 const ID *id,
                                 const blender::float4x4 &obmat,
                                 float dist_px_sq_orig,

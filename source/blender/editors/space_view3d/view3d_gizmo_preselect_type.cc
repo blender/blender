@@ -242,9 +242,9 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
     Span<float3> vert_positions;
     {
       Object *ob = gz_ele->bases[gz_ele->base_index]->object;
-      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-      Mesh *mesh_eval = BKE_object_get_editmesh_eval_cage(ob_eval);
+      const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+      const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      const Mesh *mesh_eval = BKE_object_get_editmesh_eval_cage(ob_eval);
       if (BKE_mesh_wrapper_vert_len(mesh_eval) == bm->totvert) {
         vert_positions = BKE_mesh_wrapper_vert_coords(mesh_eval);
       }

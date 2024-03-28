@@ -268,7 +268,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache &subdiv_cache,
   const DRW_Attributes *attrs_used = &cache.attr_used;
   const DRW_AttributeRequest &request = attrs_used->requests[index];
 
-  Mesh *coarse_mesh = subdiv_cache.mesh;
+  const Mesh *coarse_mesh = subdiv_cache.mesh;
 
   /* Prepare VBO for coarse data. The compute shader only expects floats. */
   gpu::VertBuf *src_data = GPU_vertbuf_calloc();

@@ -903,7 +903,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
     SnapObjectContext *snap_context = ED_transform_snap_object_context_create(scene, 0);
 
     float obmat[4][4];
-    Object *ob_dummy = nullptr;
+    const Object *ob_dummy = nullptr;
     float dist_px = 0;
     SnapObjectParams params{};
     params.snap_target_select = SCE_SNAP_TARGET_ALL;

@@ -75,7 +75,7 @@ void BKE_tracking_settings_init(struct MovieTracking *tracking);
  * Get transformation matrix for a given object which is used
  * for parenting motion tracker reconstruction to 3D world.
  */
-void BKE_tracking_get_camera_object_matrix(struct Object *camera_object, float mat[4][4]);
+void BKE_tracking_get_camera_object_matrix(const struct Object *camera_object, float mat[4][4]);
 /**
  * Get projection matrix for camera specified by given tracking object
  * and frame number.

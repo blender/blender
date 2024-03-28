@@ -336,8 +336,7 @@ void mesh_render_data_update_faces_sorted(MeshRenderData &mr,
 const Mesh *editmesh_final_or_this(const Object *object, const Mesh *mesh)
 {
   if (mesh->runtime->edit_mesh != nullptr) {
-    Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
-    if (editmesh_eval_final != nullptr) {
+    if (const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object)) {
       return editmesh_eval_final;
     }
   }
@@ -559,8 +558,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
   mr->use_hide = use_hide;
 
   if (is_editmode) {
-    Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
-    Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(object);
+    const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
+    const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(object);
 
     BLI_assert(editmesh_eval_cage && editmesh_eval_final);
     mr->bm = mesh->runtime->edit_mesh->bm;

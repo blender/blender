@@ -253,8 +253,8 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache &subdi
 
   /* UVs are stored contiguously so we need to compute the offset in the UVs buffer for the active
    * UV layer. */
-  CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_MESH) ? &mr.mesh->corner_data :
-                                                                &mr.bm->ldata;
+  const CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_MESH) ? &mr.mesh->corner_data :
+                                                                      &mr.bm->ldata;
 
   uint32_t uv_layers = cache.cd_used.uv;
   /* HACK to fix #68857 */

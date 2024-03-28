@@ -26,17 +26,17 @@ using namespace blender;
 /** \name Snap Object Data
  * \{ */
 
-static Mesh *get_mesh_ref(Object *ob_eval)
+static const Mesh *get_mesh_ref(const Object *ob_eval)
 {
-  if (Mesh *me = BKE_object_get_editmesh_eval_final(ob_eval)) {
+  if (const Mesh *me = BKE_object_get_editmesh_eval_final(ob_eval)) {
     return me;
   }
 
-  if (Mesh *me = BKE_object_get_editmesh_eval_cage(ob_eval)) {
+  if (const Mesh *me = BKE_object_get_editmesh_eval_cage(ob_eval)) {
     return me;
   }
 
-  return static_cast<Mesh *>(ob_eval->data);
+  return static_cast<const Mesh *>(ob_eval->data);
 }
 
 struct SnapCache_EditMesh : public SnapObjectContext::SnapCache {
@@ -44,11 +44,11 @@ struct SnapCache_EditMesh : public SnapObjectContext::SnapCache {
   Mesh *mesh;
 
   /* Reference to pointers that change when the mesh is changed. It is used to detect updates. */
-  Mesh *mesh_ref;
+  const Mesh *mesh_ref;
   bke::MeshRuntime *runtime_ref;
   bke::EditMeshData *edit_data_ref;
 
-  bool has_mesh_updated(Mesh *mesh)
+  bool has_mesh_updated(const Mesh *mesh)
   {
     if (mesh != this->mesh_ref || mesh->runtime != this->runtime_ref ||
         mesh->runtime->edit_data.get() != this->edit_data_ref)
@@ -77,11 +77,11 @@ struct SnapCache_EditMesh : public SnapObjectContext::SnapCache {
 };
 
 static Mesh *create_mesh(SnapObjectContext *sctx,
-                         Object *ob_eval,
+                         const Object *ob_eval,
                          eSnapEditType /*edit_mode_type*/)
 {
   Mesh *mesh = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, nullptr));
-  BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
+  const BMEditMesh *em = BKE_editmesh_from_object(const_cast<Object *>(ob_eval));
   BMesh *bm = em->bm;
   BM_mesh_bm_to_me_compact(*bm, *mesh, nullptr, false);
 
@@ -148,17 +148,17 @@ static Mesh *create_mesh(SnapObjectContext *sctx,
 }
 
 static SnapCache_EditMesh *snap_object_data_editmesh_get(SnapObjectContext *sctx,
-                                                         Object *ob_eval,
+                                                         const Object *ob_eval,
                                                          bool create)
 {
   SnapCache_EditMesh *em_cache = nullptr;
 
   bool init = false;
-  Mesh *mesh_ref = (G.moving) ? /* WORKAROUND:
-                                 * Avoid updating while transforming. Do not check if the reference
-                                 * mesh has been updated. */
-                       nullptr :
-                       get_mesh_ref(ob_eval);
+  const Mesh *mesh_ref = (G.moving) ? /* WORKAROUND:
+                                       * Avoid updating while transforming. Do not check if the
+                                       * reference mesh has been updated. */
+                             nullptr :
+                             get_mesh_ref(ob_eval);
 
   if (std::unique_ptr<SnapObjectContext::SnapCache> *em_cache_p = sctx->editmesh_caches.lookup_ptr(
           ob_eval->runtime->data_orig))
@@ -213,10 +213,10 @@ static eSnapMode editmesh_snap_mode_supported(BMesh *bm)
 }
 
 static SnapCache_EditMesh *editmesh_snapdata_init(SnapObjectContext *sctx,
-                                                  Object *ob_eval,
+                                                  const Object *ob_eval,
                                                   eSnapMode snap_to_flag)
 {
-  BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
+  const BMEditMesh *em = BKE_editmesh_from_object(const_cast<Object *>(ob_eval));
   if (em == nullptr) {
     return nullptr;
   }
@@ -237,7 +237,7 @@ static SnapCache_EditMesh *editmesh_snapdata_init(SnapObjectContext *sctx,
 /** \} */
 
 eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
-                               Object *ob_eval,
+                               const Object *ob_eval,
                                const ID * /*id*/,
                                const float4x4 &obmat,
                                eSnapMode snap_to_flag,
