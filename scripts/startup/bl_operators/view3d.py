@@ -31,10 +31,11 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
     def execute(self, context):
         from bpy_extras.object_utils import object_report_if_active_shape_key_is_locked
 
-        if object_report_if_active_shape_key_is_locked(context.object, self):
+        ob = context.object
+        if object_report_if_active_shape_key_is_locked(ob, self):
             return {'CANCELLED'}
 
-        mesh = context.object.data
+        mesh = ob.data
         select_mode = context.tool_settings.mesh_select_mode
 
         totface = mesh.total_face_sel
@@ -99,10 +100,11 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
     def extrude_region(operator, context, use_vert_normals, dissolve_and_intersect):
         from bpy_extras.object_utils import object_report_if_active_shape_key_is_locked
 
-        if object_report_if_active_shape_key_is_locked(context.object, operator):
+        ob = context.object
+        if object_report_if_active_shape_key_is_locked(ob, operator):
             return {'CANCELLED'}
 
-        mesh = context.object.data
+        mesh = ob.data
 
         totface = mesh.total_face_sel
         totedge = mesh.total_edge_sel

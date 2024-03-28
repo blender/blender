@@ -82,7 +82,8 @@ class GREASE_PENCIL_MT_grease_pencil_add_layer_extra(Menu):
 
     def draw(self, context):
         layout = self.layout
-        grease_pencil = context.object.data
+        ob = context.object
+        grease_pencil = ob.data
         space = context.space_data
 
         if space.type == 'PROPERTIES':

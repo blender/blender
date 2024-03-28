@@ -431,8 +431,9 @@ class AnnotationDataPanel:
     def draw(self, context):
         layout = self.layout
         layout.use_property_decorate = False
+        space = context.space_data
 
-        is_clip_editor = context.space_data.type == 'CLIP_EDITOR'
+        is_clip_editor = space.type == 'CLIP_EDITOR'
 
         # Grease Pencil owner.
         gpd_owner = context.annotation_data_owner
@@ -443,7 +444,7 @@ class AnnotationDataPanel:
             col = layout.column()
             col.label(text="Data Source:")
             row = col.row()
-            row.prop(context.space_data, "annotation_source", expand=True)
+            row.prop(space, "annotation_source", expand=True)
 
         # Only allow adding annotation ID if its owner exist
         if context.annotation_data_owner is None:
