@@ -581,7 +581,6 @@ MeshRenderData *mesh_render_data_create(Object *object,
       mr->bm_vert_coords = mr->edit_data->vert_positions;
       mr->bm_vert_normals = mr->edit_data->vert_normals;
       mr->bm_face_normals = mr->edit_data->face_normals;
-      mr->bm_face_centers = mr->edit_data->face_centers;
     }
 
     int bm_ensure_types = BM_VERT | BM_EDGE | BM_LOOP | BM_FACE;
