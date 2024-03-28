@@ -1107,7 +1107,7 @@ void IMB_rectfill_area_replace(
     return;
   }
 
-  uchar col_char[4] = {
+  const uchar col_char[4] = {
       uchar(col[0] * 255), uchar(col[1] * 255), uchar(col[2] * 255), uchar(col[3] * 255)};
 
   for (int y = y1; y < y2; y++) {

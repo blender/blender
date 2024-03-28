@@ -512,8 +512,8 @@ static void updateGPUCurveMapping(OCIO_GPUCurveMappping &curvemap,
   curvemap.cache_id = curve_mapping_settings->cache_id;
 
   /* Update texture. */
-  int offset[3] = {0, 0, 0};
-  int extent[3] = {curve_mapping_settings->lut_size, 0, 0};
+  const int offset[3] = {0, 0, 0};
+  const int extent[3] = {curve_mapping_settings->lut_size, 0, 0};
   const float *pixels = curve_mapping_settings->lut;
   GPU_texture_update_sub(
       curvemap.texture, GPU_DATA_FLOAT, pixels, UNPACK3(offset), UNPACK3(extent));

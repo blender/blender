@@ -1138,7 +1138,7 @@ static int gpencil_stroke_reset_vertex_color_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_stroke_reset_vertex_color(wmOperatorType *ot)
 {
-  static EnumPropertyItem mode_types_items[] = {
+  static const EnumPropertyItem mode_types_items[] = {
       {GPPAINT_MODE_STROKE, "STROKE", 0, "Stroke", "Reset Vertex Color to Stroke only"},
       {GPPAINT_MODE_FILL, "FILL", 0, "Fill", "Reset Vertex Color to Fill only"},
       {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke & Fill", "Reset Vertex Color to Stroke and Fill"},

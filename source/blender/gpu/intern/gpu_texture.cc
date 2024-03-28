@@ -436,7 +436,7 @@ GPUTexture *GPU_texture_create_from_vertbuf(const char *name, blender::gpu::Vert
 
 GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
 {
-  float pixel[4] = {1.0f, 0.0f, 1.0f, 1.0f};
+  const float pixel[4] = {1.0f, 0.0f, 1.0f, 1.0f};
   int w = 1;
   int h = (dimension < 2 && !is_array) ? 0 : 1;
   int d = (dimension < 3 && !is_array) ? 0 : 1;

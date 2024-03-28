@@ -105,7 +105,7 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat,
   }
 
   /* Default values if attributes not found. */
-  static float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  static const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   if (!density) {
     density = GPU_constant(white);
   }

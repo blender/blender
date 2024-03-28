@@ -118,12 +118,14 @@ void ShadowTileMap::sync_cubeface(const float4x4 &object_mat_,
 void ShadowTileMap::debug_draw() const
 {
   /** Used for debug drawing. */
-  float4 debug_color[6] = {{1.0f, 0.1f, 0.1f, 1.0f},
-                           {0.1f, 1.0f, 0.1f, 1.0f},
-                           {0.0f, 0.2f, 1.0f, 1.0f},
-                           {1.0f, 1.0f, 0.3f, 1.0f},
-                           {0.1f, 0.1f, 0.1f, 1.0f},
-                           {1.0f, 1.0f, 1.0f, 1.0f}};
+  const float4 debug_color[6] = {
+      {1.0f, 0.1f, 0.1f, 1.0f},
+      {0.1f, 1.0f, 0.1f, 1.0f},
+      {0.0f, 0.2f, 1.0f, 1.0f},
+      {1.0f, 1.0f, 0.3f, 1.0f},
+      {0.1f, 0.1f, 0.1f, 1.0f},
+      {1.0f, 1.0f, 1.0f, 1.0f},
+  };
   float4 color =
       debug_color[((projection_type == SHADOW_PROJECTION_CUBEFACE ? cubeface : level) + 9999) % 6];
 

@@ -111,7 +111,7 @@ TEST(math_matrix, mul_m3_series)
       {0.0f, 0.0f, 5.0f},
   };
   mul_m3_series(matrix, matrix, matrix, matrix);
-  float expect[3][3] = {
+  float const expect[3][3] = {
       {8.0f, 0.0f, 0.0f},
       {0.0f, 27.0f, 0.0f},
       {0.0f, 0.0f, 125.0f},
@@ -128,7 +128,7 @@ TEST(math_matrix, mul_m4_series)
       {0.0f, 0.0f, 0.0f, 7.0f},
   };
   mul_m4_series(matrix, matrix, matrix, matrix);
-  float expect[4][4] = {
+  float const expect[4][4] = {
       {8.0f, 0.0f, 0.0f, 0.0f},
       {0.0f, 27.0f, 0.0f, 0.0f},
       {0.0f, 0.0f, 125.0f, 0.0f},

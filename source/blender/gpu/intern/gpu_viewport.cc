@@ -121,7 +121,7 @@ DRWData **GPU_viewport_data_get(GPUViewport *viewport)
 static void gpu_viewport_textures_create(GPUViewport *viewport)
 {
   int *size = viewport->size;
-  float empty_pixel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float const empty_pixel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
 
   if (viewport->color_render_tx[0] == nullptr) {

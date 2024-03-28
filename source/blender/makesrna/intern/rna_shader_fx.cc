@@ -282,7 +282,7 @@ static void rna_def_shader_fx_wave(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static EnumPropertyItem prop_shaderfx_wave_type_items[] = {
+  static const EnumPropertyItem prop_shaderfx_wave_type_items[] = {
       {0, "HORIZONTAL", 0, "Horizontal", ""},
       {1, "VERTICAL", 0, "Vertical", ""},
       {0, nullptr, 0, nullptr, nullptr}};
@@ -406,7 +406,7 @@ static void rna_def_shader_fx_rim(BlenderRNA *brna)
 
 static void rna_def_shader_fx_shadow(BlenderRNA *brna)
 {
-  static EnumPropertyItem prop_shaderfx_shadow_type_items[] = {
+  static const EnumPropertyItem prop_shaderfx_shadow_type_items[] = {
       {0, "HORIZONTAL", 0, "Horizontal", ""},
       {1, "VERTICAL", 0, "Vertical", ""},
       {0, nullptr, 0, nullptr, nullptr}};

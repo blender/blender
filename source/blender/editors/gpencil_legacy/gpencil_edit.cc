@@ -2786,7 +2786,7 @@ static int gpencil_dissolve_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_dissolve(wmOperatorType *ot)
 {
-  static EnumPropertyItem prop_gpencil_dissolve_types[] = {
+  static const EnumPropertyItem prop_gpencil_dissolve_types[] = {
       {GP_DISSOLVE_POINTS, "POINTS", 0, "Dissolve", "Dissolve selected points"},
       {GP_DISSOLVE_BETWEEN,
        "BETWEEN",

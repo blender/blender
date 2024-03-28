@@ -26,11 +26,11 @@ void ShaderCache::release()
 
 ShaderCache::ShaderCache()
 {
-  std::string geometries[] = {"_mesh", "_curves", "_ptcloud"};
-  std::string pipelines[] = {"_opaque", "_transparent"};
-  std::string lightings[] = {"_flat", "_studio", "_matcap"};
-  std::string shaders[] = {"_material", "_texture"};
-  std::string clip[] = {"_no_clip", "_clip"};
+  const std::string geometries[] = {"_mesh", "_curves", "_ptcloud"};
+  const std::string pipelines[] = {"_opaque", "_transparent"};
+  const std::string lightings[] = {"_flat", "_studio", "_matcap"};
+  const std::string shaders[] = {"_material", "_texture"};
+  const std::string clip[] = {"_no_clip", "_clip"};
   static_assert(std::size(geometries) == geometry_type_len);
   static_assert(std::size(pipelines) == pipeline_type_len);
   static_assert(std::size(lightings) == lighting_type_len);
@@ -49,9 +49,9 @@ ShaderCache::ShaderCache()
     }
   }
 
-  std::string cavity[] = {"_no_cavity", "_cavity"};
-  std::string curvature[] = {"_no_curvature", "_curvature"};
-  std::string shadow[] = {"_no_shadow", "_shadow"};
+  const std::string cavity[] = {"_no_cavity", "_cavity"};
+  const std::string curvature[] = {"_no_curvature", "_curvature"};
+  const std::string shadow[] = {"_no_shadow", "_shadow"};
 
   for (auto l : IndexRange(lighting_type_len)) {
     for (auto ca : IndexRange(2) /*cavity*/) {
@@ -64,9 +64,9 @@ ShaderCache::ShaderCache()
     }
   }
 
-  std::string pass[] = {"_fail", "_pass"};
-  std::string manifold[] = {"_no_manifold", "_manifold"};
-  std::string caps[] = {"_no_caps", "_caps"};
+  const std::string pass[] = {"_fail", "_pass"};
+  const std::string manifold[] = {"_no_manifold", "_manifold"};
+  const std::string caps[] = {"_no_caps", "_caps"};
 
   for (auto p : IndexRange(2) /*pass*/) {
     for (auto m : IndexRange(2) /*manifold*/) {
@@ -77,10 +77,10 @@ ShaderCache::ShaderCache()
     }
   }
 
-  std::string smoke[] = {"_object", "_smoke"};
-  std::string interpolation[] = {"_linear", "_cubic", "_closest"};
-  std::string coba[] = {"_no_coba", "_coba"};
-  std::string slice[] = {"_no_slice", "_slice"};
+  const std::string smoke[] = {"_object", "_smoke"};
+  const std::string interpolation[] = {"_linear", "_cubic", "_closest"};
+  const std::string coba[] = {"_no_coba", "_coba"};
+  const std::string slice[] = {"_no_slice", "_slice"};
 
   for (auto sm : IndexRange(2) /*smoke*/) {
     for (auto i : IndexRange(3) /*interpolation*/) {

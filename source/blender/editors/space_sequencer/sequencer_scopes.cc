@@ -123,7 +123,7 @@ ImBuf *make_waveform_view_from_ibuf(const ImBuf *ibuf)
    * overhead, so instead get luma coefficients as 16-bit integers. */
   float coeffs[3];
   IMB_colormanagement_get_luminance_coefficients(coeffs);
-  int muls[3] = {int(coeffs[0] * 65535), int(coeffs[1] * 65535), int(coeffs[2] * 65535)};
+  const int muls[3] = {int(coeffs[0] * 65535), int(coeffs[1] * 65535), int(coeffs[2] * 65535)};
 
   /* Parallel over x, since each column is easily independent from others. */
   threading::parallel_for(IndexRange(ibuf->x), 32, [&](IndexRange x_range) {

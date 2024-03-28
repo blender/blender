@@ -2270,8 +2270,8 @@ int txt_setcurr_tab_spaces(Text *text, int space)
 int text_check_bracket(const char ch)
 {
   int a;
-  char opens[] = "([{";
-  char close[] = ")]}";
+  const char opens[] = "([{";
+  const char close[] = ")]}";
 
   for (a = 0; a < (sizeof(opens) - 1); a++) {
     if (ch == opens[a]) {

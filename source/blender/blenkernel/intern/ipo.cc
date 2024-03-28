@@ -1022,8 +1022,8 @@ static const char *particle_adrcodes_to_paths(int adrcode, int *r_array_index)
 static char *get_rna_access(ID *id,
                             int blocktype,
                             int adrcode,
-                            char actname[],
-                            char constname[],
+                            const char actname[],
+                            const char constname[],
                             Sequence *seq,
                             int *r_array_index)
 {

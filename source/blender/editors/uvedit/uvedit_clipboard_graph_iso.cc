@@ -155,7 +155,7 @@ static void add_bidomain(uint8_t domains[][BDS],
   (*bd_pos)++;
 }
 
-static int calc_bound(uint8_t domains[][BDS], int bd_pos, int cur_pos)
+static int calc_bound(const uint8_t domains[][BDS], int bd_pos, int cur_pos)
 {
   int bound = 0;
   for (int i = bd_pos - 1; i >= 0 && domains[i][P] == cur_pos; i--) {

@@ -123,7 +123,7 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   common_data->vol_history_alpha = (txl->volume_prop_scattering == nullptr) ? 0.0f : 0.95f;
 
   /* Temporal Super sampling jitter */
-  uint ht_primes[3] = {3, 7, 2};
+  const uint ht_primes[3] = {3, 7, 2};
   uint current_sample = 0;
 
   /* If TAA is in use do not use the history buffer. */

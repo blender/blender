@@ -670,7 +670,7 @@ static void text_insert_unicode_confirm(bContext *C, void *arg_block, void *arg_
   if (val > 31 && val < 0x10FFFF) {
     Object *obedit = CTX_data_edit_object(C);
     if (obedit) {
-      char32_t utf32[2] = {val, 0};
+      const char32_t utf32[2] = {val, 0};
       font_paste_wchar(obedit, utf32, 1, nullptr);
       text_update_edited(C, obedit, FO_EDIT);
     }

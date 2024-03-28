@@ -2006,7 +2006,7 @@ bool BKE_vfont_to_curve_ex(Object *ob,
   return data.ok;
 }
 
-int BKE_vfont_cursor_to_text_index(Object *ob, float cursor_location[2])
+int BKE_vfont_cursor_to_text_index(Object *ob, const float cursor_location[2])
 {
   Curve *cu = (Curve *)ob->data;
   ListBase *r_nubase = &cu->nurb;
