@@ -28,41 +28,51 @@
  * Declaration of static functions
  */
 
-static int logImageSetData8(LogImageFile *logImage, LogImageElement logElement, float *data);
-static int logImageSetData10(LogImageFile *logImage, LogImageElement logElement, float *data);
-static int logImageSetData12(LogImageFile *logImage, LogImageElement logElement, float *data);
-static int logImageSetData16(LogImageFile *logImage, LogImageElement logElement, float *data);
-static int logImageElementGetData(LogImageFile *logImage, LogImageElement logElement, float *data);
+static int logImageSetData8(LogImageFile *logImage,
+                            const LogImageElement &logElement,
+                            float *data);
+static int logImageSetData10(LogImageFile *logImage,
+                             const LogImageElement &logElement,
+                             float *data);
+static int logImageSetData12(LogImageFile *logImage,
+                             const LogImageElement &logElement,
+                             float *data);
+static int logImageSetData16(LogImageFile *logImage,
+                             const LogImageElement &logElement,
+                             float *data);
+static int logImageElementGetData(LogImageFile *logImage,
+                                  const LogImageElement &logElement,
+                                  float *data);
 static int logImageElementGetData1(LogImageFile *logImage,
-                                   LogImageElement logElement,
+                                   const LogImageElement &logElement,
                                    float *data);
 static int logImageElementGetData8(LogImageFile *logImage,
-                                   LogImageElement logElement,
+                                   const LogImageElement &logElement,
                                    float *data);
 static int logImageElementGetData10(LogImageFile *logImage,
-                                    LogImageElement logElement,
+                                    const LogImageElement &logElement,
                                     float *data);
 static int logImageElementGetData10Packed(LogImageFile *logImage,
-                                          LogImageElement logElement,
+                                          const LogImageElement &logElement,
                                           float *data);
 static int logImageElementGetData12(LogImageFile *logImage,
-                                    LogImageElement logElement,
+                                    const LogImageElement &logElement,
                                     float *data);
 static int logImageElementGetData12Packed(LogImageFile *logImage,
-                                          LogImageElement logElement,
+                                          const LogImageElement &logElement,
                                           float *data);
 static int logImageElementGetData16(LogImageFile *logImage,
-                                    LogImageElement logElement,
+                                    const LogImageElement &logElement,
                                     float *data);
 static int convertLogElementToRGBA(float *src,
                                    float *dst,
                                    LogImageFile *logImage,
-                                   LogImageElement logElement,
+                                   const LogImageElement &logElement,
                                    int dstIsLinearRGB);
 static int convertRGBAToLogElement(float *src,
                                    float *dst,
                                    LogImageFile *logImage,
-                                   LogImageElement logElement,
+                                   const LogImageElement &logElement,
                                    int srcIsLinearRGB);
 
 /*
@@ -193,7 +203,7 @@ void logImageGetSize(LogImageFile *logImage, int *width, int *height, int *depth
  * Helper
  */
 
-size_t getRowLength(size_t width, LogImageElement logElement)
+static size_t getRowLength(size_t width, const LogImageElement &logElement)
 {
   /* return the row length in bytes according to width and packing method */
   switch (logElement.bitsPerSample) {
@@ -223,6 +233,12 @@ size_t getRowLength(size_t width, LogImageElement logElement)
       return width * logElement.depth * 2;
   }
   return 0;
+}
+
+/* For the C-API. */
+size_t getRowLength(size_t width, const LogImageElement *logElement)
+{
+  return getRowLength(width, *logElement);
 }
 
 /*
@@ -273,7 +289,7 @@ int logImageSetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
   return returnValue;
 }
 
-static int logImageSetData8(LogImageFile *logImage, LogImageElement logElement, float *data)
+static int logImageSetData8(LogImageFile *logImage, const LogImageElement &logElement, float *data)
 {
   size_t rowLength = getRowLength(logImage->width, logElement);
   uchar *row;
@@ -304,7 +320,9 @@ static int logImageSetData8(LogImageFile *logImage, LogImageElement logElement, 
   return 0;
 }
 
-static int logImageSetData10(LogImageFile *logImage, LogImageElement logElement, float *data)
+static int logImageSetData10(LogImageFile *logImage,
+                             const LogImageElement &logElement,
+                             float *data)
 {
   size_t rowLength = getRowLength(logImage->width, logElement);
   uint pixel, index;
@@ -349,7 +367,9 @@ static int logImageSetData10(LogImageFile *logImage, LogImageElement logElement,
   return 0;
 }
 
-static int logImageSetData12(LogImageFile *logImage, LogImageElement logElement, float *data)
+static int logImageSetData12(LogImageFile *logImage,
+                             const LogImageElement &logElement,
+                             float *data)
 {
   size_t rowLength = getRowLength(logImage->width, logElement);
   ushort *row;
@@ -381,7 +401,9 @@ static int logImageSetData12(LogImageFile *logImage, LogImageElement logElement,
   return 0;
 }
 
-static int logImageSetData16(LogImageFile *logImage, LogImageElement logElement, float *data)
+static int logImageSetData16(LogImageFile *logImage,
+                             const LogImageElement &logElement,
+                             float *data)
 {
   size_t rowLength = getRowLength(logImage->width, logElement);
   ushort *row;
@@ -662,7 +684,9 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
   return returnValue;
 }
 
-static int logImageElementGetData(LogImageFile *logImage, LogImageElement logElement, float *data)
+static int logImageElementGetData(LogImageFile *logImage,
+                                  const LogImageElement &logElement,
+                                  float *data)
 {
   switch (logElement.bitsPerSample) {
     case 1:
@@ -696,7 +720,9 @@ static int logImageElementGetData(LogImageFile *logImage, LogImageElement logEle
   return 1;
 }
 
-static int logImageElementGetData1(LogImageFile *logImage, LogImageElement logElement, float *data)
+static int logImageElementGetData1(LogImageFile *logImage,
+                                   const LogImageElement &logElement,
+                                   float *data)
 {
   uint pixel;
 
@@ -727,7 +753,9 @@ static int logImageElementGetData1(LogImageFile *logImage, LogImageElement logEl
   return 0;
 }
 
-static int logImageElementGetData8(LogImageFile *logImage, LogImageElement logElement, float *data)
+static int logImageElementGetData8(LogImageFile *logImage,
+                                   const LogImageElement &logElement,
+                                   float *data)
 {
   size_t rowLength = getRowLength(logImage->width, logElement);
   uchar pixel;
@@ -756,7 +784,7 @@ static int logImageElementGetData8(LogImageFile *logImage, LogImageElement logEl
 }
 
 static int logImageElementGetData10(LogImageFile *logImage,
-                                    LogImageElement logElement,
+                                    const LogImageElement &logElement,
                                     float *data)
 {
   uint pixel;
@@ -828,7 +856,7 @@ static int logImageElementGetData10(LogImageFile *logImage,
 }
 
 static int logImageElementGetData10Packed(LogImageFile *logImage,
-                                          LogImageElement logElement,
+                                          const LogImageElement &logElement,
                                           float *data)
 {
   size_t rowLength = getRowLength(logImage->width, logElement);
@@ -883,7 +911,7 @@ static int logImageElementGetData10Packed(LogImageFile *logImage,
 }
 
 static int logImageElementGetData12(LogImageFile *logImage,
-                                    LogImageElement logElement,
+                                    const LogImageElement &logElement,
                                     float *data)
 {
   uint sampleIndex;
@@ -921,7 +949,7 @@ static int logImageElementGetData12(LogImageFile *logImage,
 }
 
 static int logImageElementGetData12Packed(LogImageFile *logImage,
-                                          LogImageElement logElement,
+                                          const LogImageElement &logElement,
                                           float *data)
 {
   size_t rowLength = getRowLength(logImage->width, logElement);
@@ -976,7 +1004,7 @@ static int logImageElementGetData12Packed(LogImageFile *logImage,
 }
 
 static int logImageElementGetData16(LogImageFile *logImage,
-                                    LogImageElement logElement,
+                                    const LogImageElement &logElement,
                                     float *data)
 {
   uint numSamples = logImage->width * logImage->height * logElement.depth;
@@ -1009,7 +1037,7 @@ static int logImageElementGetData16(LogImageFile *logImage,
  * Color conversion
  */
 
-static int getYUVtoRGBMatrix(float *matrix, LogImageElement logElement)
+static int getYUVtoRGBMatrix(float *matrix, const LogImageElement &logElement)
 {
   float scaleY, scaleCbCr;
   float refHighData = float(logElement.refHighData) / logElement.maxValue;
@@ -1073,7 +1101,7 @@ static int getYUVtoRGBMatrix(float *matrix, LogImageElement logElement)
   }
 }
 
-static float *getLinToLogLut(LogImageFile *logImage, LogImageElement logElement)
+static float *getLinToLogLut(LogImageFile *logImage, const LogImageElement &logElement)
 {
   float *lut;
   float gain, negativeFilmGamma, offset, step;
@@ -1100,7 +1128,7 @@ static float *getLinToLogLut(LogImageFile *logImage, LogImageElement logElement)
   return lut;
 }
 
-static float *getLogToLinLut(LogImageFile *logImage, LogImageElement logElement)
+static float *getLogToLinLut(LogImageFile *logImage, const LogImageElement &logElement)
 {
   float *lut;
   float breakPoint, gain, kneeGain, kneeOffset, negativeFilmGamma, offset, step, softClip;
@@ -1152,7 +1180,7 @@ static float *getLogToLinLut(LogImageFile *logImage, LogImageElement logElement)
   return lut;
 }
 
-static float *getLinToSrgbLut(LogImageElement logElement)
+static float *getLinToSrgbLut(const LogImageElement &logElement)
 {
   float col, *lut;
   uint lutsize = uint(logElement.maxValue + 1);
@@ -1173,7 +1201,7 @@ static float *getLinToSrgbLut(LogImageElement logElement)
   return lut;
 }
 
-static float *getSrgbToLinLut(LogImageElement logElement)
+static float *getSrgbToLinLut(const LogImageElement &logElement)
 {
   float col, *lut;
   uint lutsize = uint(logElement.maxValue + 1);
@@ -1197,7 +1225,7 @@ static float *getSrgbToLinLut(LogImageElement logElement)
 static int convertRGBA_RGB(float *src,
                            float *dst,
                            LogImageFile *logImage,
-                           LogImageElement logElement,
+                           const LogImageElement &logElement,
                            int elementIsSource)
 {
   uint i;
@@ -1252,7 +1280,7 @@ static int convertRGBA_RGB(float *src,
 static int convertRGB_RGBA(float *src,
                            float *dst,
                            LogImageFile *logImage,
-                           LogImageElement logElement,
+                           const LogImageElement &logElement,
                            int elementIsSource)
 {
   uint i;
@@ -1307,7 +1335,7 @@ static int convertRGB_RGBA(float *src,
 static int convertRGBA_RGBA(float *src,
                             float *dst,
                             LogImageFile *logImage,
-                            LogImageElement logElement,
+                            const LogImageElement &logElement,
                             int elementIsSource)
 {
   uint i;
@@ -1352,7 +1380,7 @@ static int convertRGBA_RGBA(float *src,
 static int convertABGR_RGBA(float *src,
                             float *dst,
                             LogImageFile *logImage,
-                            LogImageElement logElement,
+                            const LogImageElement &logElement,
                             int elementIsSource)
 {
   uint i;
@@ -1406,7 +1434,7 @@ static int convertABGR_RGBA(float *src,
 static int convertCbYCr_RGBA(float *src,
                              float *dst,
                              LogImageFile *logImage,
-                             LogImageElement logElement)
+                             const LogImageElement &logElement)
 {
   uint i;
   float conversionMatrix[9], refLowData, y, cb, cr;
@@ -1438,7 +1466,7 @@ static int convertCbYCr_RGBA(float *src,
 static int convertCbYCrA_RGBA(float *src,
                               float *dst,
                               LogImageFile *logImage,
-                              LogImageElement logElement)
+                              const LogImageElement &logElement)
 {
   uint i;
   float conversionMatrix[9], refLowData, y, cb, cr, a;
@@ -1471,7 +1499,7 @@ static int convertCbYCrA_RGBA(float *src,
 static int convertCbYCrY_RGBA(float *src,
                               float *dst,
                               LogImageFile *logImage,
-                              LogImageElement logElement)
+                              const LogImageElement &logElement)
 {
   uint i;
   float conversionMatrix[9], refLowData, y1, y2, cb, cr;
@@ -1523,7 +1551,7 @@ static int convertCbYCrY_RGBA(float *src,
 static int convertCbYACrYA_RGBA(float *src,
                                 float *dst,
                                 LogImageFile *logImage,
-                                LogImageElement logElement)
+                                const LogImageElement &logElement)
 {
   uint i;
   float conversionMatrix[9], refLowData, y1, y2, cb, cr, a1, a2;
@@ -1577,7 +1605,7 @@ static int convertCbYACrYA_RGBA(float *src,
 static int convertLuminance_RGBA(float *src,
                                  float *dst,
                                  LogImageFile *logImage,
-                                 LogImageElement logElement)
+                                 const LogImageElement &logElement)
 {
   uint i;
   float conversionMatrix[9], value, refLowData;
@@ -1603,7 +1631,7 @@ static int convertLuminance_RGBA(float *src,
 static int convertYA_RGBA(float *src,
                           float *dst,
                           LogImageFile *logImage,
-                          LogImageElement logElement)
+                          const LogImageElement &logElement)
 {
   uint i;
   float conversionMatrix[9], value, refLowData;
@@ -1626,8 +1654,11 @@ static int convertYA_RGBA(float *src,
   return 0;
 }
 
-static int convertLogElementToRGBA(
-    float *src, float *dst, LogImageFile *logImage, LogImageElement logElement, int dstIsLinearRGB)
+static int convertLogElementToRGBA(float *src,
+                                   float *dst,
+                                   LogImageFile *logImage,
+                                   const LogImageElement &logElement,
+                                   int dstIsLinearRGB)
 {
   int rvalue;
   uint i;
@@ -1696,8 +1727,11 @@ static int convertLogElementToRGBA(
   return 0;
 }
 
-static int convertRGBAToLogElement(
-    float *src, float *dst, LogImageFile *logImage, LogImageElement logElement, int srcIsLinearRGB)
+static int convertRGBAToLogElement(float *src,
+                                   float *dst,
+                                   LogImageFile *logImage,
+                                   const LogImageElement &logElement,
+                                   int srcIsLinearRGB)
 {
   uint i;
   int rvalue;

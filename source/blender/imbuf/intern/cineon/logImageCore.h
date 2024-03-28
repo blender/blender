@@ -192,7 +192,7 @@ LogImageFile *logImageCreate(const char *filepath,
 void logImageClose(LogImageFile *logImage);
 
 /* Data handling */
-size_t getRowLength(size_t width, LogImageElement logElement);
+size_t getRowLength(size_t width, const LogImageElement *logElement);
 int logImageSetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB);
 int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB);
 
