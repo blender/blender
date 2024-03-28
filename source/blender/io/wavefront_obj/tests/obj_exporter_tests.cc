@@ -161,7 +161,7 @@ class ObjExporterWriterTest : public testing::Test {
   }
 
   std::unique_ptr<OBJWriter> init_writer(const OBJExportParams &params,
-                                         const std::string out_filepath)
+                                         const std::string &out_filepath)
   {
     try {
       auto writer = std::make_unique<OBJWriter>(out_filepath.c_str(), params);

@@ -970,7 +970,7 @@ static int rna_Sequence_input_count_get(PointerRNA *ptr)
 }
 
 static void rna_Sequence_input_set(PointerRNA *ptr,
-                                   PointerRNA ptr_value,
+                                   const PointerRNA &ptr_value,
                                    ReportList *reports,
                                    int input_num)
 {
