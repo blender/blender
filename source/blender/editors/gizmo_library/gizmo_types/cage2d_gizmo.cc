@@ -1090,7 +1090,7 @@ static int gizmo_cage2d_modal(bContext *C,
      * remains unused (this controls #WM_GIZMO_TWEAK_PRECISE by default). */
     const bool use_temp_uniform = (event->modifier & KM_SHIFT) != 0;
     const bool changed = data->use_temp_uniform != use_temp_uniform;
-    data->use_temp_uniform = data->use_temp_uniform;
+    data->use_temp_uniform = use_temp_uniform;
     if (use_temp_uniform) {
       transform_flag |= ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM;
     }
