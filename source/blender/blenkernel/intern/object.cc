@@ -3111,9 +3111,9 @@ static void give_parvert(Object *par, int nr, float vec[3])
         }
         if (nr < numVerts) {
           if (mesh_eval && mesh_eval->runtime->edit_data &&
-              !mesh_eval->runtime->edit_data->vertexCos.is_empty())
+              !mesh_eval->runtime->edit_data->vert_positions.is_empty())
           {
-            add_v3_v3(vec, mesh_eval->runtime->edit_data->vertexCos[nr]);
+            add_v3_v3(vec, mesh_eval->runtime->edit_data->vert_positions[nr]);
           }
           else {
             const BMVert *v = BM_vert_at_index(em->bm, nr);

@@ -124,8 +124,8 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
         BKE_mesh_ensure_default_orig_index_customdata_no_check(mesh);
 
         blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
-        if (!edit_data.vertexCos.is_empty()) {
-          mesh->vert_positions_for_write().copy_from(edit_data.vertexCos);
+        if (!edit_data.vert_positions.is_empty()) {
+          mesh->vert_positions_for_write().copy_from(edit_data.vert_positions);
           mesh->runtime->is_original_bmesh = false;
         }
 
@@ -152,7 +152,7 @@ Span<float3> BKE_mesh_wrapper_vert_coords(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return mesh->runtime->edit_data->vertexCos;
+      return mesh->runtime->edit_data->vert_positions;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->vert_positions();
@@ -166,7 +166,7 @@ Span<float3> BKE_mesh_wrapper_face_normals(Mesh *mesh)
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       BKE_editmesh_cache_ensure_face_normals(*mesh->runtime->edit_mesh, *mesh->runtime->edit_data);
-      return mesh->runtime->edit_data->faceNos;
+      return mesh->runtime->edit_data->face_normals;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->face_normals();
@@ -180,9 +180,9 @@ void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       if (mesh->runtime->edit_data) {
-        mesh->runtime->edit_data->vertexNos = {};
-        mesh->runtime->edit_data->faceCos = {};
-        mesh->runtime->edit_data->faceNos = {};
+        mesh->runtime->edit_data->vert_normals = {};
+        mesh->runtime->edit_data->face_centers = {};
+        mesh->runtime->edit_data->face_normals = {};
       }
       break;
     case ME_WRAPPER_TYPE_MDATA:
@@ -198,8 +198,8 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *mesh, blender::MutableSpan<fl
     case ME_WRAPPER_TYPE_BMESH: {
       BMesh *bm = mesh->runtime->edit_mesh->bm;
       const blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
-      if (!edit_data.vertexCos.is_empty()) {
-        positions.copy_from(edit_data.vertexCos);
+      if (!edit_data.vert_positions.is_empty()) {
+        positions.copy_from(edit_data.vert_positions);
       }
       else {
         BMIter iter;
@@ -230,9 +230,9 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *mesh,
       BMesh *bm = mesh->runtime->edit_mesh->bm;
       BLI_assert(vert_coords_len == bm->totvert);
       const blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
-      if (!edit_data.vertexCos.is_empty()) {
+      if (!edit_data.vert_positions.is_empty()) {
         for (int i = 0; i < vert_coords_len; i++) {
-          mul_v3_m4v3(vert_coords[i], mat, edit_data.vertexCos[i]);
+          mul_v3_m4v3(vert_coords[i], mat, edit_data.vert_positions[i]);
         }
       }
       else {

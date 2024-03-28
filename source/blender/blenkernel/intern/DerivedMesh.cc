@@ -1022,7 +1022,7 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final)
     case ME_WRAPPER_TYPE_BMESH: {
       BMEditMesh &em = *mesh_final->runtime->edit_mesh;
       blender::bke::EditMeshData &emd = *mesh_final->runtime->edit_data;
-      if (!emd.vertexCos.is_empty()) {
+      if (!emd.vert_positions.is_empty()) {
         BKE_editmesh_cache_ensure_vert_normals(em, emd);
         BKE_editmesh_cache_ensure_face_normals(em, emd);
       }
@@ -1047,11 +1047,11 @@ static MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      if (mesh->runtime->edit_data->vertexCos.is_empty()) {
-        mesh->runtime->edit_data->vertexCos = editbmesh_vert_coords_alloc(
+      if (mesh->runtime->edit_data->vert_positions.is_empty()) {
+        mesh->runtime->edit_data->vert_positions = editbmesh_vert_coords_alloc(
             mesh->runtime->edit_mesh);
       }
-      return mesh->runtime->edit_data->vertexCos;
+      return mesh->runtime->edit_data->vert_positions;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->vert_positions_for_write();

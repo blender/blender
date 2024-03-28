@@ -41,12 +41,12 @@ void BKE_mesh_foreach_mapped_vert(
     BMIter iter;
     BMVert *eve;
     int i;
-    if (!mesh->runtime->edit_data->vertexCos.is_empty()) {
-      const blender::Span<blender::float3> positions = mesh->runtime->edit_data->vertexCos;
+    if (!mesh->runtime->edit_data->vert_positions.is_empty()) {
+      const blender::Span<blender::float3> positions = mesh->runtime->edit_data->vert_positions;
       blender::Span<blender::float3> vert_normals;
       if (flag & MESH_FOREACH_USE_NORMAL) {
         BKE_editmesh_cache_ensure_vert_normals(*em, *mesh->runtime->edit_data);
-        vert_normals = mesh->runtime->edit_data->vertexNos;
+        vert_normals = mesh->runtime->edit_data->vert_normals;
       }
       BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
         const float *no = (flag & MESH_FOREACH_USE_NORMAL) ? &vert_normals[i].x : nullptr;
@@ -100,8 +100,8 @@ void BKE_mesh_foreach_mapped_edge(
     BMIter iter;
     BMEdge *eed;
     int i;
-    if (!mesh->runtime->edit_data->vertexCos.is_empty()) {
-      const blender::Span<blender::float3> positions = mesh->runtime->edit_data->vertexCos;
+    if (!mesh->runtime->edit_data->vert_positions.is_empty()) {
+      const blender::Span<blender::float3> positions = mesh->runtime->edit_data->vert_positions;
       BM_mesh_elem_index_ensure(bm, BM_VERT);
       BM_ITER_MESH_INDEX (eed, &iter, bm, BM_EDGES_OF_MESH, i) {
         func(user_data,
@@ -159,7 +159,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
     BMIter iter;
     BMFace *efa;
 
-    const blender::Span<blender::float3> positions = mesh->runtime->edit_data->vertexCos;
+    const blender::Span<blender::float3> positions = mesh->runtime->edit_data->vert_positions;
 
     /* XXX: investigate using EditMesh data. */
     blender::Span<blender::float3> corner_normals;
@@ -243,11 +243,11 @@ void BKE_mesh_foreach_mapped_face_center(
     int i;
 
     BKE_editmesh_cache_ensure_face_centers(*em, *mesh->runtime->edit_data);
-    face_centers = mesh->runtime->edit_data->faceCos; /* always set */
+    face_centers = mesh->runtime->edit_data->face_centers; /* always set */
 
     if (flag & MESH_FOREACH_USE_NORMAL) {
       BKE_editmesh_cache_ensure_face_normals(*em, *mesh->runtime->edit_data);
-      face_normals = mesh->runtime->edit_data->faceNos; /* maybe nullptr */
+      face_normals = mesh->runtime->edit_data->face_normals; /* maybe nullptr */
     }
 
     if (!face_normals.is_empty()) {

@@ -472,11 +472,11 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
       *r_em = em;
       mesh_eval = nullptr;
 
-      if ((emd != nullptr) && !emd->vertexCos.is_empty()) {
-        *r_vert_coords = reinterpret_cast<const float(*)[3]>(emd->vertexCos.data());
+      if ((emd != nullptr) && !emd->vert_positions.is_empty()) {
+        *r_vert_coords = reinterpret_cast<const float(*)[3]>(emd->vert_positions.data());
         if (r_vert_normals != nullptr) {
           BKE_editmesh_cache_ensure_vert_normals(*em, *emd);
-          *r_vert_normals = reinterpret_cast<const float(*)[3]>(emd->vertexNos.data());
+          *r_vert_normals = reinterpret_cast<const float(*)[3]>(emd->vert_normals.data());
         }
       }
     }
