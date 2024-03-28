@@ -6421,7 +6421,7 @@ std::string UI_but_string_get_rna_label(uiBut &but)
   }
   if (but.optype) {
     PointerRNA *opptr = UI_but_operator_ptr_ensure(&but);
-    return WM_operatortype_name(but.optype, opptr).c_str();
+    return WM_operatortype_name(but.optype, opptr);
   }
   if (ELEM(but.type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER)) {
     if (MenuType *mt = UI_but_menutype_get(&but)) {
@@ -6429,7 +6429,7 @@ std::string UI_but_string_get_rna_label(uiBut &but)
     }
 
     if (wmOperatorType *ot = UI_but_operatortype_get_from_enum_menu(&but, nullptr)) {
-      return WM_operatortype_name(ot, nullptr).c_str();
+      return WM_operatortype_name(ot, nullptr);
     }
 
     if (PanelType *pt = UI_but_paneltype_get(&but)) {
@@ -6494,7 +6494,7 @@ std::string UI_but_string_get_rna_tooltip(bContext &C, uiBut &but)
     }
 
     if (wmOperatorType *ot = UI_but_operatortype_get_from_enum_menu(&but, nullptr)) {
-      return WM_operatortype_description(&C, ot, nullptr).c_str();
+      return WM_operatortype_description(&C, ot, nullptr);
     }
   }
 
