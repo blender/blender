@@ -153,9 +153,11 @@ void BKE_shrinkwrap_free_tree(ShrinkwrapTreeData *data)
   free_bvhtree_from_mesh(&data->treeData);
 }
 
+namespace blender::bke::shrinkwrap {
+
 /* Accumulate edge for average boundary edge direction. */
 static void merge_vert_dir(ShrinkwrapBoundaryVertData *vdata,
-                           signed char *status,
+                           MutableSpan<int8_t> status,
                            int index,
                            const float edge_dir[3],
                            signed char side)
@@ -179,32 +181,26 @@ static void merge_vert_dir(ShrinkwrapBoundaryVertData *vdata,
 
 static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Mesh *mesh)
 {
-  using namespace blender;
-  const blender::Span<float3> positions = mesh->vert_positions();
-  const blender::Span<int2> edges = mesh->edges();
+  const Span<float3> positions = mesh->vert_positions();
+  const Span<int2> edges = mesh->edges();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
 
   /* Count faces per edge (up to 2). */
-  char *edge_mode = static_cast<char *>(
-      MEM_calloc_arrayN(size_t(mesh->edges_num), sizeof(char), __func__));
+  Array<int8_t> edge_mode(edges.size(), 0);
 
-  for (int i = 0; i < mesh->corners_num; i++) {
-    const int eidx = corner_edges[i];
-
-    if (edge_mode[eidx] < 2) {
-      edge_mode[eidx]++;
+  for (const int edge : corner_edges) {
+    if (edge_mode[edge] < 2) {
+      edge_mode[edge]++;
     }
   }
 
   /* Build the boundary edge bitmask. */
-  blender::BitVector<> edge_is_boundary(mesh->edges_num, false);
-  uint num_boundary_edges = 0;
+  BitVector<> edge_is_boundary(mesh->edges_num, false);
 
-  for (int i = 0; i < mesh->edges_num; i++) {
-    edge_mode[i] = (edge_mode[i] == 1);
-
-    if (edge_mode[i]) {
+  int num_boundary_edges = 0;
+  for (const int64_t i : edges.index_range()) {
+    if (edge_mode[i] == 1) {
       edge_is_boundary[i].set();
       num_boundary_edges++;
     }
@@ -212,63 +208,52 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
 
   /* If no boundary, return nullptr. */
   if (num_boundary_edges == 0) {
-    MEM_freeN(edge_mode);
     return {};
   }
 
   /* Allocate the data object. */
   std::unique_ptr<ShrinkwrapBoundaryData> data = std::make_unique<ShrinkwrapBoundaryData>();
 
-  data->edge_is_boundary = std::move(edge_is_boundary);
-
   /* Build the boundary corner_tris bit-mask. */
-  const blender::Span<int3> corner_tris = mesh->corner_tris();
+  const Span<int3> corner_tris = mesh->corner_tris();
 
-  blender::BitVector<> tri_has_boundary(corner_tris.size(), false);
+  BitVector<> tri_has_boundary(corner_tris.size(), false);
 
   for (const int64_t i : corner_tris.index_range()) {
     const int3 real_edges = bke::mesh::corner_tri_get_real_edges(
         edges, corner_verts, corner_edges, corner_tris[i]);
 
     for (int j = 0; j < 3; j++) {
-      if (real_edges[j] >= 0 && edge_mode[real_edges[j]]) {
+      if (real_edges[j] >= 0 && edge_is_boundary[real_edges[j]]) {
         tri_has_boundary[i].set();
         break;
       }
     }
   }
 
-  data->tri_has_boundary = std::move(tri_has_boundary);
-
   /* Find boundary vertices and build a mapping table for compact storage of data. */
   Array<int> vert_boundary_id(mesh->verts_num, 0);
 
-  for (int i = 0; i < mesh->edges_num; i++) {
-    if (edge_mode[i]) {
-      const blender::int2 &edge = edges[i];
-
+  for (const int64_t i : edges.index_range()) {
+    if (edge_is_boundary[i]) {
+      const int2 &edge = edges[i];
       vert_boundary_id[edge[0]] = 1;
       vert_boundary_id[edge[1]] = 1;
     }
   }
 
-  uint num_boundary_verts = 0;
-
-  for (int i = 0; i < mesh->verts_num; i++) {
-    vert_boundary_id[i] = (vert_boundary_id[i] != 0) ? int(num_boundary_verts++) : -1;
+  int boundary_verts_num = 0;
+  for (const int64_t i : positions.index_range()) {
+    vert_boundary_id[i] = (vert_boundary_id[i] != 0) ? boundary_verts_num++ : -1;
   }
 
-  data->vert_boundary_id = vert_boundary_id;
-
   /* Compute average directions. */
-  Array<ShrinkwrapBoundaryVertData> boundary_verts(num_boundary_verts);
+  Array<ShrinkwrapBoundaryVertData> boundary_verts(boundary_verts_num);
 
-  signed char *vert_status = static_cast<signed char *>(
-      MEM_calloc_arrayN(num_boundary_verts, sizeof(char), __func__));
-
-  for (int i = 0; i < mesh->edges_num; i++) {
-    if (edge_mode[i]) {
-      const blender::int2 &edge = edges[i];
+  Array<int8_t> vert_status(boundary_verts_num);
+  for (const int64_t i : edges.index_range()) {
+    if (edge_is_boundary[i]) {
+      const int2 &edge = edges[i];
 
       float dir[3];
       sub_v3_v3v3(dir, positions[edge[1]], positions[edge[0]]);
@@ -279,11 +264,9 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
     }
   }
 
-  MEM_freeN(vert_status);
-
   /* Finalize average direction and compute normal. */
-  const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
-  for (int i = 0; i < mesh->verts_num; i++) {
+  const Span<float3> vert_normals = mesh->vert_normals();
+  for (const int64_t i : positions.index_range()) {
     int bidx = vert_boundary_id[i];
 
     if (bidx >= 0) {
@@ -298,16 +281,20 @@ static std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_build_boundary_data(Me
     }
   }
 
+  data->edge_is_boundary = std::move(edge_is_boundary);
+  data->tri_has_boundary = std::move(tri_has_boundary);
+  data->vert_boundary_id = std::move(vert_boundary_id);
   data->boundary_verts = std::move(boundary_verts);
 
-  MEM_freeN(edge_mode);
   return data;
 }
 
-void BKE_shrinkwrap_compute_boundary_data(Mesh *mesh)
+void compute_boundary_data(Mesh *mesh)
 {
-  mesh->runtime->shrinkwrap_data = shrinkwrap_build_boundary_data(mesh);
+  mesh->runtime->shrinkwrap_data = blender::bke::shrinkwrap::shrinkwrap_build_boundary_data(mesh);
 }
+
+}  // namespace blender::bke::shrinkwrap
 
 /**
  * Shrink-wrap to the nearest vertex

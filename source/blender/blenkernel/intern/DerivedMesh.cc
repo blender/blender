@@ -1274,7 +1274,7 @@ static void mesh_build_extra_data(Depsgraph *depsgraph, Object *ob, Mesh *mesh_e
   uint32_t eval_flags = DEG_get_eval_flags_for_id(depsgraph, &ob->id);
 
   if (eval_flags & DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY) {
-    BKE_shrinkwrap_compute_boundary_data(mesh_eval);
+    blender::bke::shrinkwrap::compute_boundary_data(mesh_eval);
   }
 }
 
