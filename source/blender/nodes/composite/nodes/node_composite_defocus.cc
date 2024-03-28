@@ -115,12 +115,12 @@ class DefocusOperation : public NodeOperation {
 
     Result radius = compute_defocus_radius();
 
-    const int maximum_defocus_radius = compute_maximum_defocus_radius();
+    const int maximum_defocus_radius = math::ceil(compute_maximum_defocus_radius());
 
     /* The special zero value indicate a circle, in which case, the roundness should be set to
      * 1, and the number of sides can be anything and is arbitrarily set to 3. */
     const bool is_circle = node_storage(bnode()).bktype == 0;
-    const int2 kernel_size = int2(maximum_defocus_radius * 2);
+    const int2 kernel_size = int2(maximum_defocus_radius * 2 + 1);
     const int sides = is_circle ? 3 : node_storage(bnode()).bktype;
     const float rotation = node_storage(bnode()).rotation;
     const float roundness = is_circle ? 1.0f : 0.0f;
