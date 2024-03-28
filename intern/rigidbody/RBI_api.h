@@ -244,7 +244,7 @@ float RB_shape_get_margin(rbCollisionShape *shape);
 void RB_shape_set_margin(rbCollisionShape *shape, float value);
 
 void RB_shape_trimesh_update(rbCollisionShape *shape,
-                             float *vertices,
+                             const float *vertices,
                              int num_verts,
                              int vert_stride,
                              const float min[3],
