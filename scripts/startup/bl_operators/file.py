@@ -270,8 +270,8 @@ class WM_OT_blend_strings_utf8_validate(Operator):
                 continue
             if prop.type == 'STRING':
                 val_bytes = item.path_resolve(prop.identifier, False).as_bytes()
-                val_utf8 = val_bytes.decode('utf-8', 'replace')
-                val_bytes_valid = val_utf8.encode('utf-8')
+                val_utf8 = val_bytes.decode("utf-8", "replace")
+                val_bytes_valid = val_utf8.encode("utf-8")
                 if val_bytes_valid != val_bytes:
                     print("found bad utf8 encoded string %r, fixing to %r (%r)..."
                           "" % (val_bytes, val_bytes_valid, val_utf8))

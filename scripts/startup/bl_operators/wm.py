@@ -3367,10 +3367,13 @@ class WM_MT_splash_about(Menu):
         col.scale_y = 0.8
         col.label(text=iface_("Version: %s") % bpy.app.version_string, translate=False)
         col.separator(factor=2.5)
-        col.label(text=iface_("Date: %s %s") % (bpy.app.build_commit_date.decode('utf-8', 'replace'),
-                                                bpy.app.build_commit_time.decode('utf-8', 'replace')), translate=False)
-        col.label(text=iface_("Hash: %s") % bpy.app.build_hash.decode('ascii'), translate=False)
-        col.label(text=iface_("Branch: %s") % bpy.app.build_branch.decode('utf-8', 'replace'), translate=False)
+        col.label(text=iface_("Date: %s %s") % (
+            bpy.app.build_commit_date.decode("utf-8", "replace"),
+            bpy.app.build_commit_time.decode("utf-8", "replace")),
+            translate=False
+        )
+        col.label(text=iface_("Hash: %s") % bpy.app.build_hash.decode("ascii"), translate=False)
+        col.label(text=iface_("Branch: %s") % bpy.app.build_branch.decode("utf-8", "replace"), translate=False)
 
         # This isn't useful information on MS-Windows or Apple systems as dynamically switching
         # between windowing systems is only supported between X11/WAYLAND.

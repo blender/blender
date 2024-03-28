@@ -530,7 +530,7 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
 
 
 def _armature_from_context(context):
-    pin_armature = getattr(context, 'armature', None)
+    pin_armature = getattr(context, "armature", None)
     if pin_armature:
         return pin_armature
     if context.object and context.object.type == 'ARMATURE':
