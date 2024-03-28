@@ -63,6 +63,7 @@ set(SRC
   intern/MOD_grease_pencil_noise.cc
   intern/MOD_grease_pencil_offset.cc
   intern/MOD_grease_pencil_opacity.cc
+  intern/MOD_grease_pencil_simplify.cc
   intern/MOD_grease_pencil_outline.cc
   intern/MOD_grease_pencil_shrinkwrap.cc
   intern/MOD_grease_pencil_smooth.cc
