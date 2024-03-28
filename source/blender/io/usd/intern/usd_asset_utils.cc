@@ -302,7 +302,10 @@ std::string import_asset(const char *src,
                   src);
       return src;
     }
-    BLI_path_abs(dest_dir_path, basepath);
+    char path_temp[FILE_MAX];
+    STRNCPY(path_temp, dest_dir_path);
+    BLI_path_abs(path_temp, basepath);
+    STRNCPY(dest_dir_path, path_temp);
   }
 
   BLI_path_normalize(dest_dir_path);
