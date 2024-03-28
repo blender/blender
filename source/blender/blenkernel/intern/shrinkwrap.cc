@@ -1205,6 +1205,9 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
   /* Use the face normal if flat. */
   else if (!tree->face_normals.is_empty()) {
     copy_v3_v3(r_no, tree->face_normals[face_i]);
+    if (transform) {
+      BLI_space_transform_invert_normal(transform, r_no);
+    }
   }
   /* Finally fallback to the corner_tris normal. */
   else {
