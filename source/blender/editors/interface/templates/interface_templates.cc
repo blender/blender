@@ -2727,7 +2727,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     PointerRNA op_ptr;
     uiLayout *row;
 
-    block->ui_operator = op;
+    UI_block_set_active_operator(block, op, false);
 
     row = uiLayoutRow(layout, true);
     uiItemM(row, "WM_MT_operator_presets", nullptr, ICON_NONE);
