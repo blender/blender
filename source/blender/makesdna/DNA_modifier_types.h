@@ -119,6 +119,7 @@ typedef enum ModifierType {
   eModifierType_GreasePencilOutline = 82,
   eModifierType_GreasePencilShrinkwrap = 83,
   eModifierType_GreasePencilBuild = 84,
+  eModifierType_GreasePencilSimplify = 85,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -3404,3 +3405,28 @@ typedef enum GreasePencilBuildFlag {
   MOD_GREASE_PENCIL_BUILD_RESTRICT_TIME = (1 << 0),
   MOD_GREASE_PENCIL_BUILD_USE_FADING = (1 << 14),
 } GreasePencilBuildFlag;
+
+typedef struct GreasePencilSimplifyModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+
+  /** #GreasePencilSimplifyModifierMode. */
+  short mode;
+  char _pad[4];
+  /** Every n vertex to keep. */
+  short step;
+  float factor;
+  /** For sampling. */
+  float length;
+  float sharp_threshold;
+
+  /** Merge distance */
+  float distance;
+} GreasePencilSimplifyModifierData;
+
+typedef enum GreasePencilSimplifyModifierMode {
+  MOD_GREASE_PENCIL_SIMPLIFY_FIXED = 0,
+  MOD_GREASE_PENCIL_SIMPLIFY_ADAPTIVE = 1,
+  MOD_GREASE_PENCIL_SIMPLIFY_SAMPLE = 2,
+  MOD_GREASE_PENCIL_SIMPLIFY_MERGE = 3,
+} GreasePencilSimplifyModifierMode;

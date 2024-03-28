@@ -622,13 +622,8 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter material_indices = attributes.lookup_or_add_for_write_span<int>(
       "material_index", bke::AttrDomain::Face);
-
-  bool *sharp_faces = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->face_data, CD_PROP_BOOL, "sharp_face", mesh->faces_num));
-  if (!sharp_faces) {
-    sharp_faces = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh->face_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->faces_num, "sharp_face"));
-  }
+  bke::SpanAttributeWriter sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
+      "sharp_face", bke::AttrDomain::Face);
 
   COLLADAFW::MeshPrimitiveArray &prim_arr = collada_mesh->getMeshPrimitives();
   COLLADAFW::MeshVertexData &nor = collada_mesh->getNormals();
@@ -673,7 +668,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
           if (mp_has_normals) { /* vertex normals, same implementation as for the triangles */
             /* The same for vertices normals. */
             uint vertex_normal_indices[3] = {first_normal, normal_indices[1], normal_indices[2]};
-            sharp_faces[face_index] = is_flat_face(vertex_normal_indices, nor, 3);
+            sharp_faces.span[face_index] = is_flat_face(vertex_normal_indices, nor, 3);
             normal_indices++;
           }
 
@@ -743,7 +738,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
         if (mp_has_normals) {
           /* If it turns out that we have complete custom normals for each poly
            * and we want to use custom normals, this will be overridden. */
-          sharp_faces[face_index] = is_flat_face(normal_indices, nor, vcount);
+          sharp_faces.span[face_index] = is_flat_face(normal_indices, nor, vcount);
 
           if (use_custom_normals) {
             /* Store the custom normals for later application. */

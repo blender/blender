@@ -18,6 +18,7 @@
 #include <string>
 
 #include "BLI_string_ref.hh"
+#include "BLI_utility_mixins.hh"
 
 #include "DNA_ID_enums.h"
 #include "DNA_asset_types.h"
@@ -31,7 +32,7 @@ namespace blender::asset_system {
 
 class AssetLibrary;
 
-class AssetRepresentation {
+class AssetRepresentation : NonCopyable, NonMovable {
   AssetIdentifier identifier_;
   /**
    * Indicate if this is a local or external asset, and as such, which of the union members below
@@ -68,11 +69,6 @@ class AssetRepresentation {
                       ID &id,
                       const AssetLibrary &owner_asset_library);
   ~AssetRepresentation();
-
-  AssetRepresentation(const AssetRepresentation &) = delete;
-  AssetRepresentation(AssetRepresentation &&) = delete;
-  AssetRepresentation &operator=(AssetRepresentation &&) = delete;
-  AssetRepresentation &operator=(const AssetRepresentation &) = delete;
 
   const AssetIdentifier &get_identifier() const;
 

@@ -1010,6 +1010,8 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   vwpaint::update_cache_invariants(C, vp, ss, op, mouse);
   vwpaint::init_session_data(ts, ob);
 
+  /* Brush may have changed after initialization. */
+  brush = BKE_paint_brush(&vp->paint);
   if (ELEM(brush->weightpaint_tool, WPAINT_TOOL_SMEAR, WPAINT_TOOL_BLUR)) {
     wpd->precomputed_weight = (float *)MEM_mallocN(sizeof(float) * mesh->verts_num, __func__);
   }
