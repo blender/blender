@@ -2181,6 +2181,49 @@ static void legacy_object_modifier_build(Object &object, GpencilModifierData &le
                                    false);
 }
 
+static void legacy_object_modifier_simplify(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilSimplify, legacy_md);
+  auto &md_simplify = reinterpret_cast<GreasePencilSimplifyModifierData &>(md);
+  auto &legacy_md_simplify = reinterpret_cast<SimplifyGpencilModifierData &>(legacy_md);
+
+  switch (legacy_md_simplify.mode) {
+    case GP_SIMPLIFY_FIXED:
+      md_simplify.mode = MOD_GREASE_PENCIL_SIMPLIFY_FIXED;
+      break;
+    case GP_SIMPLIFY_ADAPTIVE:
+      md_simplify.mode = MOD_GREASE_PENCIL_SIMPLIFY_ADAPTIVE;
+      break;
+    case GP_SIMPLIFY_SAMPLE:
+      md_simplify.mode = MOD_GREASE_PENCIL_SIMPLIFY_SAMPLE;
+      break;
+    case GP_SIMPLIFY_MERGE:
+      md_simplify.mode = MOD_GREASE_PENCIL_SIMPLIFY_MERGE;
+      break;
+  }
+
+  md_simplify.step = legacy_md_simplify.step;
+  md_simplify.factor = legacy_md_simplify.factor;
+  md_simplify.length = legacy_md_simplify.length;
+  md_simplify.sharp_threshold = legacy_md_simplify.sharp_threshold;
+  md_simplify.distance = legacy_md_simplify.distance;
+
+  legacy_object_modifier_influence(md_simplify.influence,
+                                   legacy_md_simplify.layername,
+                                   legacy_md_simplify.layer_pass,
+                                   legacy_md_simplify.flag & GP_SIMPLIFY_INVERT_LAYER,
+                                   legacy_md_simplify.flag & GP_SIMPLIFY_INVERT_LAYERPASS,
+                                   &legacy_md_simplify.material,
+                                   legacy_md_simplify.pass_index,
+                                   legacy_md_simplify.flag & GP_SIMPLIFY_INVERT_MATERIAL,
+                                   legacy_md_simplify.flag & GP_SIMPLIFY_INVERT_PASS,
+                                   "",
+                                   false,
+                                   nullptr,
+                                   false);
+}
+
 static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
 {
   BLI_assert(BLI_listbase_is_empty(&object.modifiers));
@@ -2265,6 +2308,8 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
         legacy_object_modifier_build(object, *gpd_md);
         break;
       case eGpencilModifierType_Simplify:
+        legacy_object_modifier_simplify(object, *gpd_md);
+        break;
       case eGpencilModifierType_Texture:
         break;
     }
