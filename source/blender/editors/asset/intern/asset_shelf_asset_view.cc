@@ -123,7 +123,7 @@ void AssetView::build_items()
       return handle_get_preview_or_type_icon_id(&asset_handle);
     }();
 
-    AssetViewItem &item = add_item<AssetViewItem>(
+    AssetViewItem &item = this->add_item<AssetViewItem>(
         asset_handle, identifier, asset->get_name(), preview_id);
     if (!show_names) {
       item.hide_label();
@@ -206,7 +206,7 @@ void AssetViewItem::build_grid_tile(uiLayout &layout) const
 
 void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
 {
-  const AssetView &asset_view = dynamic_cast<const AssetView &>(get_view());
+  const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
   const AssetShelfType &shelf_type = *asset_view.shelf_.type;
   if (shelf_type.draw_context_menu) {
     asset_system::AssetRepresentation *asset = handle_get_representation(&asset_);
@@ -216,7 +216,7 @@ void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
 
 bool AssetViewItem::is_filtered_visible() const
 {
-  const AssetView &asset_view = dynamic_cast<const AssetView &>(get_view());
+  const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
   if (asset_view.search_string[0] == '\0') {
     return true;
   }
@@ -231,7 +231,7 @@ std::unique_ptr<ui::AbstractViewItemDragController> AssetViewItem::create_drag_c
     return nullptr;
   }
   asset_system::AssetRepresentation *asset = handle_get_representation(&asset_);
-  return std::make_unique<AssetDragController>(get_view(), *asset);
+  return std::make_unique<AssetDragController>(this->get_view(), *asset);
 }
 
 /* ---------------------------------------------------------------------- */
