@@ -1439,11 +1439,7 @@ static std::optional<std::string> ui_but_event_property_operator_string(const bC
   }
 
   /* We have a data-path! */
-  bool found = false;
-
-  for (int data_path_index = 0; data_path_index < data_path_variations.size() && (found == false);
-       data_path_index++)
-  {
+  for (int data_path_index = 0; data_path_index < data_path_variations.size(); data_path_index++) {
     const StringRefNull data_path = data_path_variations[data_path_index];
     if (!data_path.is_empty() || (prop_enum_value_ok && prop_enum_value_id)) {
       /* Create a property to host the "data_path" property we're sending to the operators. */
