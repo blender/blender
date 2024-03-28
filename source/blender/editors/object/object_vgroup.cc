@@ -3611,7 +3611,12 @@ static int vgroup_do_remap(Object *ob, const char *name_array, wmOperator *op)
     BLI_assert(sort_map[i] != -1);
   }
 
-  if (ob->mode == OB_MODE_EDIT) {
+  if (ob->type == OB_GREASE_PENCIL) {
+    /* For Grease Pencil objects we don't have to do anything, because all drawings in the object
+     * store their own set of #vertex_group_names. So changing the vertex group order on object
+     * level is just a UI matter, no remapping in drawings is needed. */
+  }
+  else if (ob->mode == OB_MODE_EDIT) {
     if (ob->type == OB_MESH) {
       BMEditMesh *em = BKE_editmesh_from_object(ob);
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
