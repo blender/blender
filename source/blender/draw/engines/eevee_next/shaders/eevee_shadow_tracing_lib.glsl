@@ -252,7 +252,10 @@ ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state,
 
   /* Compute offset in tile. */
   ivec2 clipmap_offset = shadow_decompress_grid_offset(
-      ray.light.type, light_sun_data_get(ray.light).clipmap_base_offset, level_relative);
+      ray.light.type,
+      light_sun_data_get(ray.light).clipmap_base_offset_neg,
+      light_sun_data_get(ray.light).clipmap_base_offset_pos,
+      level_relative);
   /* Translate tilemap UVs to its origin. */
   tilemap_uv -= vec2(clipmap_offset) / float(SHADOW_TILEMAP_RES);
   /* Clamp to avoid out of tilemap access. */
