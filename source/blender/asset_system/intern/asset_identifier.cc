@@ -19,7 +19,7 @@
 namespace blender::asset_system {
 
 AssetIdentifier::AssetIdentifier(std::shared_ptr<std::string> library_root_path,
-                                 std::string relative_asset_path)
+                                 const std::string &relative_asset_path)
     : library_root_path_(library_root_path), relative_asset_path_(relative_asset_path)
 {
 }

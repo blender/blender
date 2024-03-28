@@ -26,7 +26,7 @@ class AssetIdentifier {
   std::string relative_asset_path_;
 
  public:
-  AssetIdentifier(std::shared_ptr<std::string> library_root_path, std::string relative_asset_path);
+  AssetIdentifier(std::shared_ptr<std::string> library_root_path, const std::string &relative_asset_path);
   AssetIdentifier(AssetIdentifier &&) = default;
   AssetIdentifier(const AssetIdentifier &) = default;
 

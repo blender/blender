@@ -223,7 +223,7 @@ bool AssetCatalogDefinitionFile::write_to_disk_unsafe(const CatalogFilePath &des
 }
 
 bool AssetCatalogDefinitionFile::ensure_directory_exists(
-    const CatalogFilePath directory_path) const
+    const CatalogFilePath &directory_path) const
 {
   /* TODO(@sybren): design a way to get such errors presented to users (or ensure that they never
    * occur). */

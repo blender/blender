@@ -43,7 +43,7 @@ class GpencilExporterSVG : public GpencilExporter {
                        float width,
                        float height,
                        float thickness,
-                       std::string hexcolor);
+                       const std::string &hexcolor);
 
   /**
    * Create SVG text
@@ -54,8 +54,12 @@ class GpencilExporterSVG : public GpencilExporter {
    * \param size: Size of the text
    * \param hexcolor: Color of the text
    */
-  static void add_text(
-      pugi::xml_node node, float x, float y, std::string text, float size, std::string hexcolor);
+  static void add_text(pugi::xml_node node,
+                       float x,
+                       float y,
+                       const std::string &text,
+                       float size,
+                       const std::string &hexcolor);
 
  private:
   /** XML doc. */
