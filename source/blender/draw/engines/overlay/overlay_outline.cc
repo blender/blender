@@ -330,7 +330,7 @@ static void OVERLAY_outline_grease_pencil(OVERLAY_PrivateData *pd, Scene *scene,
     visible_strokes.foreach_index([&](const int stroke_i) {
       const IndexRange points = points_by_curve[stroke_i];
       const int material_index = stroke_materials[stroke_i];
-      MaterialGPencilStyle *gp_style = BKE_object_material_get(ob, material_index + 1)->gp_style;
+      MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, material_index + 1);
 
       const bool hide_material = (gp_style->flag & GP_MATERIAL_HIDE) != 0;
       if (hide_material) {

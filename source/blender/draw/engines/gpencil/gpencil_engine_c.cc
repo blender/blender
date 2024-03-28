@@ -701,7 +701,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
     visible_strokes.foreach_index([&](const int stroke_i) {
       const IndexRange points = points_by_curve[stroke_i];
       const int material_index = stroke_materials[stroke_i];
-      MaterialGPencilStyle *gp_style = BKE_object_material_get(ob, material_index + 1)->gp_style;
+      MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, material_index + 1);
 
       const bool hide_material = (gp_style->flag & GP_MATERIAL_HIDE) != 0;
       const bool show_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0);
