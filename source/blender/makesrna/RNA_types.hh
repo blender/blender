@@ -183,7 +183,7 @@ enum PropertySubType {
 };
 
 /* Make sure enums are updated with these */
-/* HIGHEST FLAG IN USE: 1 << 31
+/* HIGHEST FLAG IN USE: 1u << 31
  * FREE FLAGS: 13, 14, 15. */
 enum PropertyFlag {
   /**
