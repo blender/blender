@@ -1333,7 +1333,7 @@ int ShadowModule::max_view_per_tilemap()
       potential_view_count += 1;
     }
   }
-  int max_view_count = divide_ceil_u(SHADOW_VIEW_MAX, potential_view_count);
+  int max_view_count = divide_ceil_u(SHADOW_VIEW_MAX, math::max(potential_view_count, 1));
   /* For viewport interactivity, have a hard maximum. This allows smoother experience. */
   if (inst_.is_transforming() || inst_.is_navigating()) {
     max_view_count = math::min(2, max_view_count);
