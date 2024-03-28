@@ -1005,10 +1005,10 @@ void BKE_mesh_texspace_get_reference(Mesh *mesh,
   }
 }
 
-float (*BKE_mesh_orco_verts_get(Object *ob))[3]
+float (*BKE_mesh_orco_verts_get(const Object *ob))[3]
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-  Mesh *tme = mesh->texcomesh ? mesh->texcomesh : mesh;
+  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
+  const Mesh *tme = mesh->texcomesh ? mesh->texcomesh : mesh;
 
   /* Get appropriate vertex coordinates */
   float(*vcos)[3] = (float(*)[3])MEM_calloc_arrayN(mesh->verts_num, sizeof(*vcos), "orco mesh");
