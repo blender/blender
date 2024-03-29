@@ -24,7 +24,7 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_asset.hh"
+#include "BKE_asset_edit.hh"
 #include "BKE_bpath.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
@@ -972,7 +972,7 @@ Main *BKE_main_from_id(Main *global_main, const ID *id, const bool verify)
     return nullptr;
   }
   if (id->tag & LIB_TAG_ASSET_MAIN) {
-    return BKE_asset_weak_reference_main(id);
+    return blender::bke::asset_edit_main(id);
   }
 
   if (verify) {

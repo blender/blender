@@ -22,7 +22,7 @@
 #include "IMB_moviecache.hh"
 
 #include "BKE_addon.h"
-#include "BKE_asset.hh"
+#include "BKE_asset_edit.hh"
 #include "BKE_blender.hh"           /* own include */
 #include "BKE_blender_user_menu.hh" /* own include */
 #include "BKE_blender_version.h"    /* own include */
@@ -64,7 +64,7 @@ void BKE_blender_free()
   /* Free separate data-bases after #BKE_blender_globals_clear in case any data-blocks in the
    * global main use pointers to asset main data-blocks when they're freed. That generally
    * shouldn't happen but it's better to be safe. */
-  BKE_asset_weak_reference_main_free_all();
+  blender::bke::asset_edit_main_free_all();
 
   if (G.log.file != nullptr) {
     fclose(static_cast<FILE *>(G.log.file));
