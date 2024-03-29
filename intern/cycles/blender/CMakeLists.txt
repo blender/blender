@@ -142,6 +142,12 @@ if(WITH_OPENIMAGEDENOISE)
   )
 endif()
 
+if(WITH_CYCLES_OSL)
+  list(APPEND LIB
+    ${OSL_LIBRARIES}
+  )
+endif()
+
 blender_add_lib(bf_intern_cycles "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 add_dependencies(bf_intern_cycles bf_rna)
