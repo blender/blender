@@ -1444,6 +1444,7 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=
     elif grease_pencil_tool == 'TINT':
         layout.prop(gp_settings, "vertex_mode", text="Mode")
         layout.popover("VIEW3D_PT_tools_brush_settings_advanced", text="Brush")
+        layout.popover("VIEW3D_PT_tools_brush_falloff")
 
 
 def brush_basic_gpencil_sculpt_settings(layout, _context, brush, *, compact=False):
