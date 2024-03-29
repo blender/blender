@@ -478,7 +478,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   BKE_curvemapping_init(brush->gpencil_settings->curve_rand_saturation);
   BKE_curvemapping_init(brush->gpencil_settings->curve_rand_value);
 
-  const bke::greasepencil::Layer layer = *grease_pencil->get_active_layer();
+  const bke::greasepencil::Layer &layer = *grease_pencil->get_active_layer();
   /* Initialize helper class for projecting screen space coordinates. */
   placement_ = ed::greasepencil::DrawingPlacement(*scene, *region, *view3d, *eval_object, layer);
   if (placement_.use_project_to_surface()) {
