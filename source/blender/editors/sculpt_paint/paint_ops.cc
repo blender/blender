@@ -740,7 +740,7 @@ static int brush_asset_select_exec(bContext *C, wmOperator *op)
 
   AssetWeakReference brush_asset_reference = asset->make_weak_reference();
   Brush *brush = reinterpret_cast<Brush *>(
-      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
+      bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
 
   Paint *paint = BKE_paint_get_active_from_context(C);
 
@@ -925,7 +925,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     catalog_simple_name = catalog.simple_name;
   }
 
-  const std::optional<std::string> final_full_asset_filepath = blender::bke::asset_edit_id_save_as(
+  const std::optional<std::string> final_full_asset_filepath = bke::asset_edit_id_save_as(
       *bmain, &brush->id, name, catalog_id, catalog_simple_name, user_library, op->reports);
 
   if (!final_full_asset_filepath) {
@@ -938,7 +938,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
       user_library, *final_full_asset_filepath);
 
   brush = reinterpret_cast<Brush *>(
-      blender::bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, new_brush_weak_ref));
+      bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, new_brush_weak_ref));
 
   if (!BKE_paint_brush_asset_set(paint, brush, new_brush_weak_ref)) {
     /* Note brush sset was still saved in editable asset library, so was not a no-op. */
@@ -1049,7 +1049,7 @@ static bool brush_asset_delete_poll(bContext *C)
 
   /* Asset brush, check if belongs to an editable blend file. */
   if (paint->brush_asset_reference && ID_IS_ASSET(brush)) {
-    if (!blender::bke::asset_edit_id_is_editable(&brush->id)) {
+    if (!bke::asset_edit_id_is_editable(&brush->id)) {
       CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
       return false;
     }
@@ -1070,7 +1070,7 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  blender::bke::asset_edit_id_delete(*bmain, &brush->id, op->reports);
+  bke::asset_edit_id_delete(*bmain, &brush->id, op->reports);
 
   refresh_asset_library(C, *library);
 
@@ -1121,7 +1121,7 @@ static bool brush_asset_update_poll(bContext *C)
     return false;
   }
 
-  if (!blender::bke::asset_edit_id_is_editable(&brush->id)) {
+  if (!bke::asset_edit_id_is_editable(&brush->id)) {
     CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
     return false;
   }
@@ -1144,7 +1144,7 @@ static int brush_asset_update_exec(bContext *C, wmOperator *op)
 
   BLI_assert(ID_IS_ASSET(brush));
 
-  blender::bke::asset_edit_id_save(*bmain, &brush->id, op->reports);
+  bke::asset_edit_id_save(*bmain, &brush->id, op->reports);
 
   refresh_asset_library(C, *user_library);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_EDITED, nullptr);
@@ -1180,7 +1180,7 @@ static int brush_asset_revert_exec(bContext *C, wmOperator *op)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
 
-  blender::bke::asset_edit_id_revert(*bmain, &brush->id, op->reports);
+  bke::asset_edit_id_revert(*bmain, &brush->id, op->reports);
 
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_TEXTURE | ND_NODES, nullptr);
