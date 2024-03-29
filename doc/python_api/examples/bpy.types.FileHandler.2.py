@@ -16,10 +16,11 @@ This ``directory`` and ``files`` properties now will be used by the
 """
 
 import bpy
+from bpy_extras.io_utils import ImportHelper
 from mathutils import Vector
 
 
-class ShaderScriptImport(bpy.types.Operator):
+class ShaderScriptImport(bpy.types.Operator, ImportHelper):
     """Test importer that creates scripts nodes from .txt files"""
     bl_idname = "shader.script_import"
     bl_label = "Import a text file as a script node"
@@ -28,8 +29,11 @@ class ShaderScriptImport(bpy.types.Operator):
     This Operator can import multiple .txt files, we need following directory and files
     properties that the file handler will use to set files path data
     """
-    directory: bpy.props.StringProperty(subtype='FILE_PATH', options={'SKIP_SAVE'})
-    files: bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE'})
+    directory: bpy.props.StringProperty(subtype='FILE_PATH', options={'SKIP_SAVE', 'HIDDEN'})
+    files: bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement, options={'SKIP_SAVE', 'HIDDEN'})
+
+    """Allow the user to select if the node's label is set or not"""
+    set_label: bpy.props.BoolProperty(name="Set Label", default=False)
 
     @classmethod
     def poll(cls, context):
@@ -57,23 +61,25 @@ class ShaderScriptImport(bpy.types.Operator):
                 filepath = os.path.join(self.directory, file.name)
                 text_node.filepath = filepath
                 text_node.location = Vector((x, y))
+
+                # Set the node's title to the file name
+                if self.set_label:
+                    text_node.label = file.name
+
                 x += 20.0
                 y -= 20.0
         return {'FINISHED'}
 
     """
-    By default the file handler invokes the operator with the directory and files properties set.
-    In this example if this properties are set the operator is executed, if not the
-    file select window is invoked.
-    This depends on setting ``options={'SKIP_SAVE'}`` to the properties options to avoid
-    to reuse filepath data between operator calls.
-    """
+    Use ImportHelper's invoke_popup() to handle the invocation so that this operator's properties
+    are shown in a popup. This allows the user to configure additional settings on the operator like
+    the `set_label` property. Consider having a draw() method on the operator in order to layout the
+    properties in the UI appropriately.
 
+    If filepath information is not provided the file select window will be invoked instead.
+    """
     def invoke(self, context, event):
-        if self.directory:
-            return self.execute(context)
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return self.invoke_popup(context)
 
 
 class SHADER_FH_script_import(bpy.types.FileHandler):
