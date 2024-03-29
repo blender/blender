@@ -916,7 +916,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   }
 
   const std::optional<std::string> final_full_asset_filepath = bke::asset_edit_id_save_as(
-      *bmain, &brush->id, name, catalog_id, catalog_simple_name, user_library, op->reports);
+      *bmain, brush->id, name, catalog_id, catalog_simple_name, *user_library, *op->reports);
 
   if (!final_full_asset_filepath) {
     return OPERATOR_CANCELLED;
@@ -1100,7 +1100,7 @@ static bool brush_asset_delete_poll(bContext *C)
 
   /* Asset brush, check if belongs to an editable blend file. */
   if (ID_IS_ASSET(brush)) {
-    if (!bke::asset_edit_id_is_editable(&brush->id)) {
+    if (!bke::asset_edit_id_is_editable(brush->id)) {
       CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
       return false;
     }
@@ -1121,7 +1121,7 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bke::asset_edit_id_delete(*bmain, &brush->id, op->reports);
+  bke::asset_edit_id_delete(*bmain, brush->id, *op->reports);
 
   refresh_asset_library(C, *library);
 
@@ -1172,7 +1172,7 @@ static bool brush_asset_update_poll(bContext *C)
     return false;
   }
 
-  if (!bke::asset_edit_id_is_editable(&brush->id)) {
+  if (!bke::asset_edit_id_is_editable(brush->id)) {
     CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
     return false;
   }
@@ -1195,7 +1195,7 @@ static int brush_asset_update_exec(bContext *C, wmOperator *op)
 
   BLI_assert(ID_IS_ASSET(brush));
 
-  bke::asset_edit_id_save(*bmain, &brush->id, op->reports);
+  bke::asset_edit_id_save(*bmain, brush->id, *op->reports);
 
   refresh_asset_library(C, *user_library);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_EDITED, nullptr);
@@ -1231,7 +1231,7 @@ static int brush_asset_revert_exec(bContext *C, wmOperator *op)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
 
-  bke::asset_edit_id_revert(*bmain, &brush->id, op->reports);
+  bke::asset_edit_id_revert(*bmain, brush->id, *op->reports);
 
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_TEXTURE | ND_NODES, nullptr);

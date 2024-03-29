@@ -155,21 +155,23 @@ static std::string asset_root_path_for_save(const bUserAssetLibrary &user_librar
   return std::string(libpath) + SEP + "Saved" + SEP + name;
 }
 
-static std::string asset_blendfile_path_for_save(ReportList *reports,
-                                                 const bUserAssetLibrary &user_library,
-                                                 const StringRefNull base_name,
-                                                 const ID_Type id_type)
+static std::string asset_blendfile_path_for_save(const bUserAssetLibrary &user_library,
+                                                 const StringRef base_name,
+                                                 const ID_Type id_type,
+                                                 ReportList &reports)
 {
   std::string root_path = asset_root_path_for_save(user_library, id_type);
   BLI_assert(!root_path.empty());
 
   if (!BLI_dir_create_recursive(root_path.c_str())) {
-    BKE_report(reports, RPT_ERROR, "Failed to create asset library directory to save brush");
+    BKE_report(&reports, RPT_ERROR, "Failed to create asset library directory to save brush");
     return "";
   }
 
   char base_name_filesafe[FILE_MAXFILE];
-  BLI_strncpy(base_name_filesafe, base_name.c_str(), sizeof(base_name_filesafe));
+  BLI_strncpy(base_name_filesafe,
+              base_name.data(),
+              std::min(sizeof(base_name_filesafe), size_t(base_name.size())));
   BLI_path_make_safe_filename(base_name_filesafe);
 
   const std::string filepath = root_path + SEP + base_name_filesafe + BLENDER_ASSET_FILE_SUFFIX;
@@ -189,13 +191,13 @@ static std::string asset_blendfile_path_for_save(ReportList *reports,
 }
 
 static bool asset_write_in_library(Main *bmain,
-                                   const ID *id_const,
-                                   const char *name,
+                                   const ID &id_const,
+                                   const StringRef name,
                                    const StringRefNull filepath,
                                    const std::optional<asset_system::CatalogID> catalog,
                                    const std::optional<StringRefNull> catalog_simple_name,
                                    std::string &final_full_file_path,
-                                   ReportList *reports)
+                                   ReportList &reports)
 {
   /* XXX
    * FIXME
@@ -216,41 +218,41 @@ static bool asset_write_in_library(Main *bmain,
    *   - `BKE_blendfile_write_partial_end` frees the temp Main.
    */
 
-  ID *id = const_cast<ID *>(id_const);
+  ID &id = const_cast<ID &>(id_const);
 
-  const short prev_flag = id->flag;
-  const int prev_tag = id->tag;
-  const int prev_us = id->us;
-  const std::string prev_name = id->name + 2;
-  IDOverrideLibrary *prev_liboverride = id->override_library;
-  AssetMetaData *asset_data = id->asset_data;
+  const short prev_flag = id.flag;
+  const int prev_tag = id.tag;
+  const int prev_us = id.us;
+  const std::string prev_name = id.name + 2;
+  IDOverrideLibrary *prev_liboverride = id.override_library;
+  AssetMetaData *asset_data = id.asset_data;
   const int write_flags = 0; /* Could use #G_FILE_COMPRESS ? */
   const eBLO_WritePathRemap remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE;
 
   BKE_blendfile_write_partial_begin(bmain);
 
-  id->flag |= LIB_FAKEUSER;
-  id->tag &= ~LIB_TAG_RUNTIME;
-  id->us = 1;
-  BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
-  if (!ID_IS_ASSET(id)) {
-    id->asset_data = id->override_library->reference->asset_data;
+  id.flag |= LIB_FAKEUSER;
+  id.tag &= ~LIB_TAG_RUNTIME;
+  id.us = 1;
+  BLI_strncpy(id.name + 2, name.data(), std::min(sizeof(id.name) - 2, size_t(name.size())));
+  if (!ID_IS_ASSET(&id)) {
+    id.asset_data = id.override_library->reference->asset_data;
   }
-  id->override_library = nullptr;
+  id.override_library = nullptr;
 
   if (catalog) {
-    id->asset_data->catalog_id = *catalog;
+    id.asset_data->catalog_id = *catalog;
   }
   if (catalog_simple_name) {
-    STRNCPY(id->asset_data->catalog_simple_name, catalog_simple_name->c_str());
+    STRNCPY(id.asset_data->catalog_simple_name, catalog_simple_name->c_str());
   }
 
-  BKE_blendfile_write_partial_tag_ID(id, true);
+  BKE_blendfile_write_partial_tag_ID(&id, true);
 
   /* TODO: check overwriting existing file. */
   /* TODO: ensure filepath contains only valid characters for file system. */
   const bool sucess = BKE_blendfile_write_partial(
-      bmain, filepath.c_str(), write_flags, remap_mode, reports);
+      bmain, filepath.c_str(), write_flags, remap_mode, &reports);
 
   if (sucess) {
     final_full_file_path = std::string(filepath) + SEP + "Brush" + SEP + name;
@@ -258,13 +260,13 @@ static bool asset_write_in_library(Main *bmain,
 
   BKE_blendfile_write_partial_end(bmain);
 
-  BKE_blendfile_write_partial_tag_ID(id, false);
-  id->flag = prev_flag;
-  id->tag = prev_tag;
-  id->us = prev_us;
-  BLI_strncpy(id->name + 2, prev_name.c_str(), sizeof(id->name) - 2);
-  id->override_library = prev_liboverride;
-  id->asset_data = asset_data;
+  BKE_blendfile_write_partial_tag_ID(&id, false);
+  id.flag = prev_flag;
+  id.tag = prev_tag;
+  id.us = prev_us;
+  BLI_strncpy(id.name + 2, prev_name.c_str(), sizeof(id.name) - 2);
+  id.override_library = prev_liboverride;
+  id.asset_data = asset_data;
 
   return sucess;
 }
@@ -338,15 +340,15 @@ static Vector<AssetEditBlend> &asset_edit_blend_get_all()
   return mains;
 }
 
-static AssetEditBlend *asset_edit_blend_from_id(const ID *id)
+static AssetEditBlend *asset_edit_blend_from_id(const ID &id)
 {
-  BLI_assert(id->tag & LIB_TAG_ASSET_MAIN);
+  BLI_assert(id.tag & LIB_TAG_ASSET_MAIN);
 
   for (AssetEditBlend &asset_blend : asset_edit_blend_get_all()) {
     /* TODO: Look into make this whole thing more efficient. */
-    ListBase *lb = which_libbase(asset_blend.main, GS(id->name));
+    ListBase *lb = which_libbase(asset_blend.main, GS(id.name));
     LISTBASE_FOREACH (ID *, other_id, lb) {
-      if (id == other_id) {
+      if (&id == other_id) {
         return &asset_blend;
       }
     }
@@ -356,7 +358,7 @@ static AssetEditBlend *asset_edit_blend_from_id(const ID *id)
   return nullptr;
 }
 
-Main *asset_edit_main(const ID *id)
+Main *asset_edit_main(const ID &id)
 {
   const AssetEditBlend *asset_blend = asset_edit_blend_from_id(id);
   return (asset_blend) ? asset_blend->main : nullptr;
@@ -375,18 +377,18 @@ static AssetEditBlend &asset_edit_blend_file_ensure(const StringRef filepath)
 }
 
 std::optional<std::string> asset_edit_id_save_as(Main &global_main,
-                                                 const ID *id,
-                                                 const char *name,
+                                                 const ID &id,
+                                                 const StringRef name,
                                                  std::optional<asset_system::CatalogID> catalog_id,
                                                  std::optional<std::string> catalog_simple_name,
-                                                 const bUserAssetLibrary *user_library,
-                                                 ReportList *reports)
+                                                 const bUserAssetLibrary &user_library,
+                                                 ReportList &reports)
 {
   const std::string filepath = asset_blendfile_path_for_save(
-      reports, *user_library, name, GS(id->name));
+      user_library, name, GS(id.name), reports);
 
   /* Save to asset library. */
-  Main *asset_main = BKE_main_from_id(&global_main, id);
+  Main *asset_main = BKE_main_from_id(&global_main, &id);
 
   std::string final_full_asset_filepath;
   const bool success = asset_write_in_library(asset_main,
@@ -397,18 +399,17 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
                                               catalog_simple_name,
                                               final_full_asset_filepath,
                                               reports);
-
   if (!success) {
-    BKE_report(reports, RPT_ERROR, "Failed to write to asset library");
+    BKE_report(&reports, RPT_ERROR, "Failed to write to asset library");
     return std::nullopt;
   }
 
-  BKE_reportf(reports, RPT_INFO, "Saved \"%s\"", filepath.c_str());
+  BKE_reportf(&reports, RPT_INFO, "Saved \"%s\"", filepath.c_str());
 
   return final_full_asset_filepath;
 }
 
-bool asset_edit_id_save(Main & /*global_main*/, const ID *id, ReportList *reports)
+bool asset_edit_id_save(Main & /*global_main*/, const ID &id, ReportList &reports)
 {
   AssetEditBlend *asset_blend = asset_edit_blend_from_id(id);
   if (asset_blend == nullptr) {
@@ -418,7 +419,7 @@ bool asset_edit_id_save(Main & /*global_main*/, const ID *id, ReportList *report
   std::string final_full_asset_filepath;
   const bool success = asset_write_in_library(asset_blend->main,
                                               id,
-                                              id->name + 2,
+                                              id.name + 2,
                                               asset_blend->filepath.c_str(),
                                               std::nullopt,
                                               std::nullopt,
@@ -426,14 +427,14 @@ bool asset_edit_id_save(Main & /*global_main*/, const ID *id, ReportList *report
                                               reports);
 
   if (!success) {
-    BKE_report(reports, RPT_ERROR, "Failed to write to asset library");
+    BKE_report(&reports, RPT_ERROR, "Failed to write to asset library");
     return false;
   }
 
   return true;
 }
 
-bool asset_edit_id_revert(Main &global_main, const ID *id, ReportList * /*reports*/)
+bool asset_edit_id_revert(Main &global_main, const ID &id, ReportList & /*reports*/)
 {
   AssetEditBlend *asset_blend = asset_edit_blend_from_id(id);
   if (asset_blend == nullptr) {
@@ -447,7 +448,7 @@ bool asset_edit_id_revert(Main &global_main, const ID *id, ReportList * /*report
   return true;
 }
 
-bool asset_edit_id_delete(Main &global_main, const ID *id, ReportList *reports)
+bool asset_edit_id_delete(Main &global_main, const ID &id, ReportList &reports)
 {
   AssetEditBlend *asset_blend = asset_edit_blend_from_id(id);
   if (asset_blend == nullptr) {
@@ -455,7 +456,7 @@ bool asset_edit_id_delete(Main &global_main, const ID *id, ReportList *reports)
   }
 
   if (BLI_delete(asset_blend->filepath.c_str(), false, false) != 0) {
-    BKE_report(reports, RPT_ERROR, "Failed to delete asset library file");
+    BKE_report(&reports, RPT_ERROR, "Failed to delete asset library file");
     return false;
   }
 
@@ -500,9 +501,9 @@ ID *asset_edit_id_from_weak_reference(Main &global_main,
   return asset_blend.ensure_id(id_type, asset_name);
 }
 
-bool asset_edit_id_is_editable(const ID *id)
+bool asset_edit_id_is_editable(const ID &id)
 {
-  if (!(id->tag & LIB_TAG_ASSET_MAIN)) {
+  if (!(id.tag & LIB_TAG_ASSET_MAIN)) {
     return false;
   }
 

@@ -972,7 +972,7 @@ Main *BKE_main_from_id(Main *global_main, const ID *id, const bool verify)
     return nullptr;
   }
   if (id->tag & LIB_TAG_ASSET_MAIN) {
-    return blender::bke::asset_edit_main(id);
+    return blender::bke::asset_edit_main(*id);
   }
 
   if (verify) {
