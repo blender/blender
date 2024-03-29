@@ -21,6 +21,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_mempool.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -902,6 +903,28 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       if (!brush->automasking_cavity_curve) {
         brush->automasking_cavity_curve = BKE_sculpt_default_cavity_curve();
       }
+    }
+  }
+
+  {
+    /* Remove default brushes replaced by assets. Also remove outliner `treestore` that may point
+     * to brushes. Normally the treestore is updated properly but it doesn't seem to update during
+     * versioning code. It's not helpful anyway. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space_link, &area->spacedata) {
+          if (space_link->spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(space_link);
+            if (space_outliner->treestore) {
+              BLI_mempool_destroy(space_outliner->treestore);
+              space_outliner->treestore = nullptr;
+            }
+          }
+        }
+      }
+    }
+    LISTBASE_FOREACH_MUTABLE (Brush *, brush, &bmain->brushes) {
+      BKE_id_delete(bmain, brush);
     }
   }
 }
