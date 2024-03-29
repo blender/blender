@@ -981,18 +981,6 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
   }
 }
 
-static blender::Array<float3> editbmesh_vert_coords_alloc(const BMEditMesh *em)
-{
-  blender::Array<float3> cos(em->bm->totvert);
-  BMIter iter;
-  BMVert *eve;
-  int i;
-  BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-    cos[i] = eve->co;
-  }
-  return cos;
-}
-
 bool editbmesh_modifier_is_enabled(const Scene *scene,
                                    const Object *ob,
                                    ModifierData *md,
@@ -1048,8 +1036,8 @@ static MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       if (mesh->runtime->edit_data->vert_positions.is_empty()) {
-        mesh->runtime->edit_data->vert_positions = editbmesh_vert_coords_alloc(
-            mesh->runtime->edit_mesh);
+        mesh->runtime->edit_data->vert_positions = BM_mesh_vert_coords_alloc(
+            mesh->runtime->edit_mesh->bm);
       }
       return mesh->runtime->edit_data->vert_positions;
     case ME_WRAPPER_TYPE_MDATA:
