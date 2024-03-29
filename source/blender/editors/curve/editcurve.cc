@@ -1455,20 +1455,6 @@ static int separate_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int separate_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Move selected points to a new object?"),
-                                  nullptr,
-                                  IFACE_("Separate"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return separate_exec(C, op);
-}
-
 void CURVE_OT_separate(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1477,13 +1463,11 @@ void CURVE_OT_separate(wmOperatorType *ot)
   ot->description = "Separate selected points from connected unselected points into a new object";
 
   /* api callbacks */
-  ot->invoke = separate_invoke;
   ot->exec = separate_exec;
   ot->poll = ED_operator_editsurfcurve;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /** \} */
