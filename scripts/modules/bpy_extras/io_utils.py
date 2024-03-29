@@ -116,7 +116,8 @@ class ImportHelper:
                 confirm_text = self.bl_label
 
             confirm_text = iface_(confirm_text)
-            return context.window_manager.invoke_props_dialog(self, confirm_text=confirm_text, title=title, translate=False)
+            return context.window_manager.invoke_props_dialog(
+                self, confirm_text=confirm_text, title=title, translate=False)
 
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}

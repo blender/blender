@@ -78,6 +78,7 @@ class ShaderScriptImport(bpy.types.Operator, ImportHelper):
 
     If filepath information is not provided the file select window will be invoked instead.
     """
+
     def invoke(self, context, event):
         return self.invoke_popup(context)
 
