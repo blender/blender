@@ -92,7 +92,7 @@ static IndexMask simplify_fixed(const bke::CurvesGeometry &curves,
           return true;
         }
         const int local_i = i - points.start();
-        return (local_i % int(math::pow(2.0f, float(step - 1))) == 0) || points.last() == i;
+        return (local_i % int(math::pow(2.0f, float(step))) == 0) || points.last() == i;
       });
 }
 
