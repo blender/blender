@@ -871,9 +871,6 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
-  if (paint == nullptr || brush == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
 
   /* Determine file path to save to. */
   PropertyRNA *name_prop = RNA_struct_find_property(op->ptr, "name");
