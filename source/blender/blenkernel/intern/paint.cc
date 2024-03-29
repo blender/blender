@@ -1781,7 +1781,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
       {
         BKE_sculptsession_free_deformMats(ss);
 
-        BLI_assert(me_eval_deform->verts_num == mesh->verts_num);
+        BLI_assert(me_eval_deform->verts_num == mesh_orig->verts_num);
 
         ss->deform_cos = mesh_eval->vert_positions();
         BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos);
