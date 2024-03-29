@@ -619,7 +619,7 @@ struct uiBlock {
 
   /** unit system, used a lot for numeric buttons so include here
    * rather than fetching through the scene every time. */
-  UnitSettings *unit;
+  const UnitSettings *unit;
   /** \note only accessed by color picker templates. */
   ColorPickerData color_pickers;
 

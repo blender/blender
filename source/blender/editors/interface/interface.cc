@@ -98,14 +98,14 @@ static void ui_def_but_rna__menu_type(bContext * /*C*/, uiLayout *layout, void *
 
 static void ui_but_free(const bContext *C, uiBut *but);
 
-static bool ui_but_is_unit_radians_ex(UnitSettings *unit, const int unit_type)
+static bool ui_but_is_unit_radians_ex(const UnitSettings *unit, const int unit_type)
 {
   return (unit->system_rotation == USER_UNIT_ROT_RADIANS && unit_type == PROP_UNIT_ROTATION);
 }
 
 static bool ui_but_is_unit_radians(const uiBut *but)
 {
-  UnitSettings *unit = but->block->unit;
+  const UnitSettings *unit = but->block->unit;
   const int unit_type = UI_but_unit_type_get(but);
 
   return ui_but_is_unit_radians_ex(unit, unit_type);
@@ -2425,7 +2425,7 @@ bool ui_but_is_bool(const uiBut *but)
 
 bool ui_but_is_unit(const uiBut *but)
 {
-  UnitSettings *unit = but->block->unit;
+  const UnitSettings *unit = but->block->unit;
   const int unit_type = UI_but_unit_type_get(but);
 
   if (unit_type == PROP_UNIT_NONE) {
@@ -2683,7 +2683,7 @@ uiBut *ui_but_drag_multi_edit_get(uiBut *but)
 
 static double ui_get_but_scale_unit(uiBut *but, double value)
 {
-  UnitSettings *unit = but->block->unit;
+  const UnitSettings *unit = but->block->unit;
   const int unit_type = UI_but_unit_type_get(but);
 
   /* Time unit is a bit special, not handled by BKE_scene_unit_scale() for now. */
@@ -2700,7 +2700,7 @@ void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t str_maxncpy)
     return;
   }
 
-  UnitSettings *unit = but->block->unit;
+  const UnitSettings *unit = but->block->unit;
   const int unit_type = UI_but_unit_type_get(but);
   char *orig_str;
 
@@ -2718,7 +2718,7 @@ void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t str_maxncpy)
 static void ui_get_but_string_unit(
     uiBut *but, char *str, int str_maxncpy, double value, bool pad, int float_precision)
 {
-  UnitSettings *unit = but->block->unit;
+  const UnitSettings *unit = but->block->unit;
   const int unit_type = UI_but_unit_type_get(but);
   int precision;
 
@@ -3443,7 +3443,7 @@ void UI_block_free(const bContext *C, uiBlock *block)
   }
 
   if (block->unit) {
-    MEM_freeN(block->unit);
+    MEM_freeN((void *)block->unit);
   }
 
   if (block->func_argN) {
@@ -3586,9 +3586,10 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, std::string name, eU
      */
     STRNCPY(block->display_device, scene->display_settings.display_device);
 
-    /* copy to avoid crash when scene gets deleted with ui still open */
-    block->unit = MEM_new<UnitSettings>(__func__);
-    memcpy(block->unit, &scene->unit, sizeof(scene->unit));
+    /* Copy to avoid crash when scene gets deleted with UI still open. */
+    UnitSettings *unit = MEM_new<UnitSettings>(__func__);
+    memcpy(unit, &scene->unit, sizeof(scene->unit));
+    block->unit = unit;
   }
   else {
     STRNCPY(block->display_device, IMB_colormanagement_display_get_default_name());
