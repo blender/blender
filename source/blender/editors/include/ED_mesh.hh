@@ -377,7 +377,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf);
 /* `editface.cc` */
 
 /**
- * Copy the face flags, most importantly selection from the mesh to the final derived mesh,
+ * Copy the face flags, most importantly selection from the mesh to the final evaluated mesh,
  * use in object mode when selecting faces (while painting).
  */
 void paintface_flush_flags(bContext *C, Object *ob, bool flush_selection, bool flush_hidden);
@@ -411,7 +411,7 @@ bool paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags);
 void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags);
 /**
  * (similar to void `paintface_flush_flags(Object *ob)`)
- * copy the vertex flags, most importantly selection from the mesh to the final derived mesh,
+ * copy the vertex flags, most importantly selection from the mesh to the final evaluated mesh,
  * use in object mode when selecting vertices (while painting).
  */
 void paintvert_flush_flags(Object *ob);

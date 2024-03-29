@@ -199,7 +199,7 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
 void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob);
 void BKE_mesh_nomain_to_meshkey(Mesh *mesh_src, Mesh *mesh_dst, KeyBlock *kb);
 
-/* vertex level transformations & checks (no derived mesh) */
+/* Vertex level transformations & checks (no evaluated mesh). */
 
 /* basic vertex data functions */
 void BKE_mesh_transform(Mesh *mesh, const float mat[4][4], bool do_keys);

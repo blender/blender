@@ -1233,8 +1233,8 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 
   BM_mesh_bm_to_me(bmain, bm, mesh, &params);
 
-  /* we could have the user do this but if they forget blender can easy crash
-   * since the references arrays for the objects derived meshes are now invalid */
+  /* We could have the user do this but if they forget blender can easy crash
+   * since the references arrays for the objects evaluated meshes are now invalid. */
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY_ALL_MODES);
 
   Py_RETURN_NONE;

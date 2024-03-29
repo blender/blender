@@ -57,7 +57,7 @@ struct wmOperator;
 struct wmWindow;
 struct wmWindowManager;
 
-/* for derivedmesh drawing callbacks, for view3d_select, .... */
+/** For mesh drawing callbacks, for viewport selection, etc. */
 struct ViewContext {
   bContext *C;
   Main *bmain;

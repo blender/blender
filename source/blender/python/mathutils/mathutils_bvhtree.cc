@@ -1024,7 +1024,7 @@ static PyObject *C_BVHTree_FromBMesh(PyObject * /*cls*/, PyObject *args, PyObjec
   }
 }
 
-/* return various derived meshes based on requested settings */
+/** Return various evaluated meshes based on requested settings. */
 static const Mesh *bvh_get_mesh(const char *funcname,
                                 Depsgraph *depsgraph,
                                 Scene *scene,
