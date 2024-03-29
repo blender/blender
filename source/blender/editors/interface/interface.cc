@@ -2722,9 +2722,7 @@ static void ui_get_but_string_unit(
   const int unit_type = UI_but_unit_type_get(but);
   int precision;
 
-  if (unit->scale_length < 0.0001f) {
-    unit->scale_length = 1.0f; /* XXX do_versions */
-  }
+  BLI_assert(unit->scale_length > 0.0f);
 
   /* Use precision override? */
   if (float_precision == -1) {
