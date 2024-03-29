@@ -9,6 +9,8 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 
 struct ARegion;
 struct BMBVHTree;
@@ -337,7 +339,7 @@ void EDBM_preselect_edgering_update_from_edge(EditMesh_PreSelEdgeRing *psel,
                                               BMesh *bm,
                                               BMEdge *eed_start,
                                               int previewlines,
-                                              const float (*coords)[3]);
+                                              blender::Span<blender::float3> vert_positions);
 
 /* `editmesh_preselect_elem.cc` */
 
@@ -356,7 +358,7 @@ void EDBM_preselect_elem_draw(EditMesh_PreSelElem *psel, const float matrix[4][4
 void EDBM_preselect_elem_update_from_single(EditMesh_PreSelElem *psel,
                                             BMesh *bm,
                                             BMElem *ele,
-                                            const float (*coords)[3]);
+                                            blender::Span<blender::float3> vert_positions);
 
 void EDBM_preselect_elem_update_preview(
     EditMesh_PreSelElem *psel, ViewContext *vc, BMesh *bm, BMElem *ele, const int mval[2]);
@@ -375,7 +377,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf);
 /* `editface.cc` */
 
 /**
- * Copy the face flags, most importantly selection from the mesh to the final derived mesh,
+ * Copy the face flags, most importantly selection from the mesh to the final evaluated mesh,
  * use in object mode when selecting faces (while painting).
  */
 void paintface_flush_flags(bContext *C, Object *ob, bool flush_selection, bool flush_hidden);
@@ -409,7 +411,7 @@ bool paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags);
 void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags);
 /**
  * (similar to void `paintface_flush_flags(Object *ob)`)
- * copy the vertex flags, most importantly selection from the mesh to the final derived mesh,
+ * copy the vertex flags, most importantly selection from the mesh to the final evaluated mesh,
  * use in object mode when selecting vertices (while painting).
  */
 void paintvert_flush_flags(Object *ob);

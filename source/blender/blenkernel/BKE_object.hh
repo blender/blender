@@ -242,11 +242,11 @@ Object *BKE_object_duplicate(Main *bmain,
  */
 void BKE_object_obdata_size_init(Object *ob, float size);
 
-void BKE_object_scale_to_mat3(Object *ob, float r_mat[3][3]);
+void BKE_object_scale_to_mat3(const Object *ob, float r_mat[3][3]);
 void BKE_object_rot_to_mat3(const Object *ob, float r_mat[3][3], bool use_drot);
 void BKE_object_mat3_to_rot(Object *ob, float r_mat[3][3], bool use_compat);
-void BKE_object_to_mat3(Object *ob, float r_mat[3][3]);
-void BKE_object_to_mat4(Object *ob, float r_mat[4][4]);
+void BKE_object_to_mat3(const Object *ob, float r_mat[3][3]);
+void BKE_object_to_mat4(const Object *ob, float r_mat[4][4]);
 /**
  * Applies the global transformation \a mat to the \a ob using a relative parent space if
  * supplied.
@@ -319,7 +319,7 @@ blender::Vector<Base *> BKE_object_pose_base_array_get(const Scene *scene,
                                                        ViewLayer *view_layer,
                                                        View3D *v3d);
 
-void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][4]);
+void BKE_object_get_parent_matrix(const Object *ob, Object *par, float r_parentmat[4][4]);
 
 /**
  * Compute object world transform and store it in `ob->object_to_world().ptr()`.
@@ -334,7 +334,7 @@ void BKE_object_where_is_calc_time(Depsgraph *depsgraph, Scene *scene, Object *o
  * No changes to object and its parent would be done.
  * Used for bundles orientation in 3d space relative to parented blender camera.
  */
-void BKE_object_where_is_calc_mat4(Object *ob, float r_obmat[4][4]);
+void BKE_object_where_is_calc_mat4(const Object *ob, float r_obmat[4][4]);
 
 /* Possibly belong in its own module? */
 
@@ -522,8 +522,9 @@ Mesh *BKE_object_get_pre_modified_mesh(const Object *object);
  */
 Mesh *BKE_object_get_original_mesh(const Object *object);
 
-Mesh *BKE_object_get_editmesh_eval_final(const Object *object);
-Mesh *BKE_object_get_editmesh_eval_cage(const Object *object);
+const Mesh *BKE_object_get_editmesh_eval_final(const Object *object);
+const Mesh *BKE_object_get_editmesh_eval_cage(const Object *object);
+const Mesh *BKE_object_get_mesh_deform_eval(const Object *object);
 
 /* Lattice accessors.
  * These functions return either the regular lattice, or the edit-mode lattice,
@@ -576,7 +577,7 @@ bool BKE_object_moves_in_time(const Object *object, bool recurse_parent);
 /** Return the number of scenes using (instantiating) that object in their collections. */
 int BKE_object_scenes_users_get(Main *bmain, Object *ob);
 
-MovieClip *BKE_object_movieclip_get(Scene *scene, Object *ob, bool use_default);
+MovieClip *BKE_object_movieclip_get(Scene *scene, const Object *ob, bool use_default);
 
 void BKE_object_runtime_reset(Object *object);
 /**

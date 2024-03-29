@@ -490,21 +490,40 @@ BLI_INLINE float perlin_noise(float4 position)
 
 float perlin_signed(float position)
 {
+  /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
+   * representation issues. */
+  position = math::mod(position, 100000.0f);
+
   return perlin_noise(position) * 0.2500f;
 }
 
 float perlin_signed(float2 position)
 {
+  /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
+   * representation issues. This causes discontinuities every 100000.0f, however at such scales
+   * this usually shouldn't be noticeable. */
+  position = math::mod(position, 100000.0f);
+
   return perlin_noise(position) * 0.6616f;
 }
 
 float perlin_signed(float3 position)
 {
+  /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
+   * representation issues. This causes discontinuities every 100000.0f, however at such scales
+   * this usually shouldn't be noticeable. */
+  position = math::mod(position, 100000.0f);
+
   return perlin_noise(position) * 0.9820f;
 }
 
 float perlin_signed(float4 position)
 {
+  /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
+   * representation issues. This causes discontinuities every 100000.0f, however at such scales
+   * this usually shouldn't be noticeable. */
+  position = math::mod(position, 100000.0f);
+
   return perlin_noise(position) * 0.8344f;
 }
 

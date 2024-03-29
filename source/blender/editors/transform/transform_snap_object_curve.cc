@@ -21,7 +21,7 @@
 using blender::float4x4;
 using blender::IndexRange;
 
-eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float4x4 &obmat)
+eSnapMode snapCurve(SnapObjectContext *sctx, const Object *ob_eval, const float4x4 &obmat)
 {
   bool has_snap = false;
 

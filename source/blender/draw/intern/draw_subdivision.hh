@@ -101,7 +101,7 @@ struct DRWSubdivLooseGeom {
  * \{ */
 
 struct DRWSubdivCache {
-  Mesh *mesh;
+  const Mesh *mesh;
   BMesh *bm;
   Subdiv *subdiv;
   bool optimal_display;

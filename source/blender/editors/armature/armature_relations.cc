@@ -774,20 +774,6 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int separate_armature_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  if (RNA_boolean_get(op->ptr, "confirm")) {
-    return WM_operator_confirm_ex(C,
-                                  op,
-                                  IFACE_("Move selected bones to a separate armature?"),
-                                  nullptr,
-                                  IFACE_("Separate"),
-                                  ALERT_ICON_NONE,
-                                  false);
-  }
-  return separate_armature_exec(C, op);
-}
-
 void ARMATURE_OT_separate(wmOperatorType *ot)
 {
   /* identifiers */
@@ -796,13 +782,11 @@ void ARMATURE_OT_separate(wmOperatorType *ot)
   ot->description = "Isolate selected bones into a separate armature";
 
   /* callbacks */
-  ot->invoke = separate_armature_invoke;
   ot->exec = separate_armature_exec;
   ot->poll = ED_operator_editarmature;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /** \} */

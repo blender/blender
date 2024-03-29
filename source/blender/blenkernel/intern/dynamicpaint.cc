@@ -218,7 +218,7 @@ struct PaintBakeData {
 /** UV Image sequence format point */
 struct PaintUVPoint {
   /* Pixel / mesh data */
-  /** tri index on domain derived mesh */
+  /** Triangle index on domain evaluated mesh. */
   uint tri_index;
   uint pixel_index;
   /* vertex indexes */
@@ -1825,7 +1825,7 @@ static void dynamic_paint_apply_surface_displace_cb(void *__restrict userdata,
   madd_v3_v3fl(data->vert_positions[i], data->vert_normals[i], -val);
 }
 
-/* apply displacing vertex surface to the derived mesh */
+/** Apply displacing vertex surface to the evaluated-mesh. */
 static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Mesh *result)
 {
   PaintSurfaceData *sData = surface->data;
@@ -1911,8 +1911,8 @@ static void dynamic_paint_apply_surface_wave_cb(void *__restrict userdata,
   madd_v3_v3fl(data->vert_positions[i], data->vert_normals[i], wPoint[i].height);
 }
 
-/*
- * Apply canvas data to the object derived mesh
+/**
+ * Apply canvas data to the object evaluated-mesh.
  */
 static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *ob, Mesh *mesh)
 {
@@ -2094,7 +2094,7 @@ static void canvas_copyMesh(DynamicPaintCanvasSettings *canvas, Mesh *mesh)
 }
 
 /*
- * Updates derived mesh copy and processes dynamic paint step / caches.
+ * Updates evaluated-mesh copy and processes dynamic paint step / caches.
  */
 static void dynamicPaint_frameUpdate(
     DynamicPaintModifierData *pmd, Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh)
@@ -2103,7 +2103,7 @@ static void dynamicPaint_frameUpdate(
     DynamicPaintCanvasSettings *canvas = pmd->canvas;
     DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(canvas->surfaces.first);
 
-    /* update derived mesh copy */
+    /* update evaluated-mesh copy */
     canvas_copyMesh(canvas, mesh);
 
     /* in case image sequence baking, stop here */
@@ -3855,7 +3855,8 @@ static void dynamicPaint_brushMeshCalculateVelocity(Depsgraph *depsgraph,
     return;
   }
 
-  /* if mesh is constructive -> num of verts has changed, only use current frame derived mesh */
+  /* If mesh is constructive -> num of verts has changed,
+   * only use current frame evaluated-mesh. */
   if (numOfVerts_p != numOfVerts_c) {
     positions_p = positions_c;
   }
@@ -6174,7 +6175,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   }
 
   /*
-   * Make a transformed copy of canvas derived mesh vertices to avoid recalculation.
+   * Make a transformed copy of canvas evaluated-mesh vertices to avoid recalculation.
    */
   bData->mesh_bounds.valid = false;
   for (index = 0; index < canvasNumOfVerts; index++) {
@@ -6404,7 +6405,7 @@ int dynamicPaint_calculateFrame(
 {
   float timescale = 1.0f;
 
-  /* apply previous displace on derivedmesh if incremental surface */
+  /* Apply previous displace on evaluated-mesh if incremental surface. */
   if (surface->flags & MOD_DPAINT_DISP_INCREMENTAL) {
     dynamicPaint_applySurfaceDisplace(surface, dynamicPaint_canvas_mesh_get(surface->canvas));
   }

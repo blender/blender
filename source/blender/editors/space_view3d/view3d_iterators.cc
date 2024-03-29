@@ -221,7 +221,7 @@ struct foreachScreenVert_userData {
   eV3DProjTest clip_flag;
 };
 
-/* user data structures for derived mesh callbacks */
+/** User data structures for evaluated mesh callbacks. */
 struct foreachScreenEdge_userData {
   void (*func)(void *user_data,
                BMEdge *eed,

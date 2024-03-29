@@ -145,7 +145,7 @@ class AddPresetBase:
 
                             file_preset.write("%s = %r\n" % (rna_path_step, value))
 
-                    file_preset = open(filepath, 'w', encoding="utf-8")
+                    file_preset = open(filepath, "w", encoding="utf-8")
                     file_preset.write("import bpy\n")
 
                     if hasattr(self, "preset_defines"):

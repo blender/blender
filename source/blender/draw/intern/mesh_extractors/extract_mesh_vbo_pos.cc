@@ -48,14 +48,20 @@ static void extract_pos_init(const MeshRenderData &mr,
   MutableSpan vbo_data(static_cast<float3 *>(GPU_vertbuf_get_data(vbo)),
                        GPU_vertbuf_get_vertex_len(vbo));
   if (mr.extract_type == MR_EXTRACT_MESH) {
-    array_utils::gather(
-        mr.vert_positions, mr.corner_verts, vbo_data.take_front(mr.corner_verts.size()));
-    extract_mesh_loose_edge_positions(mr.vert_positions,
-                                      mr.edges,
-                                      mr.loose_edges,
-                                      vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2));
-    array_utils::gather(
-        mr.vert_positions, mr.loose_verts, vbo_data.take_back(mr.loose_verts.size()));
+    threading::memory_bandwidth_bound_task(
+        mr.vert_positions.size_in_bytes() + mr.corner_verts.size_in_bytes() +
+            vbo_data.size_in_bytes() + mr.loose_edges.size(),
+        [&]() {
+          array_utils::gather(
+              mr.vert_positions, mr.corner_verts, vbo_data.take_front(mr.corner_verts.size()));
+          extract_mesh_loose_edge_positions(
+              mr.vert_positions,
+              mr.edges,
+              mr.loose_edges,
+              vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2));
+          array_utils::gather(
+              mr.vert_positions, mr.loose_verts, vbo_data.take_back(mr.loose_verts.size()));
+        });
   }
   else {
     *static_cast<float3 **>(tls_data) = vbo_data.data();

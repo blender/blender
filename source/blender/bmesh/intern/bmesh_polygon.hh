@@ -11,6 +11,8 @@
 struct Heap;
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 
 /**
  * For tools that insist on using triangles, ideally we would cache this data.
@@ -128,7 +130,7 @@ void BM_face_calc_center_bounds(const BMFace *f, float r_cent[3]) ATTR_NONNULL()
 void BM_face_calc_center_bounds_vcos(const BMesh *bm,
                                      const BMFace *f,
                                      float r_center[3],
-                                     float const (*vertexCos)[3]) ATTR_NONNULL();
+                                     blender::Span<blender::float3> vert_positions) ATTR_NONNULL();
 /**
  * computes the center of a face, using the mean average
  */
@@ -137,7 +139,8 @@ void BM_face_calc_center_median(const BMFace *f, float r_center[3]) ATTR_NONNULL
 void BM_face_calc_center_median_vcos(const BMesh *bm,
                                      const BMFace *f,
                                      float r_center[3],
-                                     float const (*vertexCos)[3]) ATTR_NONNULL();
+                                     const blender::Span<blender::float3> vert_positions)
+    ATTR_NONNULL();
 /**
  * computes the center of a face, using the mean average
  * weighted by edge length

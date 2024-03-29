@@ -2863,7 +2863,7 @@ const EnumPropertyItem *rna_UnitSettings_length_unit_itemf(bContext * /*C*/,
                                                            PropertyRNA * /*prop*/,
                                                            bool *r_free)
 {
-  UnitSettings *units = static_cast<UnitSettings *>(ptr->data);
+  const UnitSettings *units = static_cast<const UnitSettings *>(ptr->data);
   return rna_UnitSettings_itemf_wrapper(units->system, B_UNIT_LENGTH, r_free);
 }
 
@@ -2872,7 +2872,7 @@ const EnumPropertyItem *rna_UnitSettings_mass_unit_itemf(bContext * /*C*/,
                                                          PropertyRNA * /*prop*/,
                                                          bool *r_free)
 {
-  UnitSettings *units = static_cast<UnitSettings *>(ptr->data);
+  const UnitSettings *units = static_cast<const UnitSettings *>(ptr->data);
   return rna_UnitSettings_itemf_wrapper(units->system, B_UNIT_MASS, r_free);
 }
 
@@ -2881,7 +2881,7 @@ const EnumPropertyItem *rna_UnitSettings_time_unit_itemf(bContext * /*C*/,
                                                          PropertyRNA * /*prop*/,
                                                          bool *r_free)
 {
-  UnitSettings *units = static_cast<UnitSettings *>(ptr->data);
+  const UnitSettings *units = static_cast<const UnitSettings *>(ptr->data);
   return rna_UnitSettings_itemf_wrapper(units->system, B_UNIT_TIME, r_free);
 }
 
@@ -2890,7 +2890,7 @@ const EnumPropertyItem *rna_UnitSettings_temperature_unit_itemf(bContext * /*C*/
                                                                 PropertyRNA * /*prop*/,
                                                                 bool *r_free)
 {
-  UnitSettings *units = static_cast<UnitSettings *>(ptr->data);
+  const UnitSettings *units = static_cast<const UnitSettings *>(ptr->data);
   return rna_UnitSettings_itemf_wrapper(units->system, B_UNIT_TEMPERATURE, r_free);
 }
 

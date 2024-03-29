@@ -42,6 +42,9 @@
 
 #include "mesh_intern.hh" /* own include */
 
+using blender::Array;
+using blender::float3;
+using blender::Span;
 using blender::Vector;
 
 #define SUBD_SMOOTH_MAX 4.0f
@@ -50,8 +53,9 @@ using blender::Vector;
 /* ringsel operator */
 
 struct MeshCoordsCache {
-  bool is_init, is_alloc;
-  const float (*coords)[3];
+  bool is_init;
+  Array<float3> allocated_vert_positions;
+  Span<float3> vert_positions;
 };
 
 /* struct for properties used while drawing */
@@ -67,7 +71,7 @@ struct RingSelOpData {
 
   Vector<Base *> bases;
 
-  MeshCoordsCache *geom_cache;
+  Array<MeshCoordsCache> geom_cache;
 
   /* These values switch objects based on the object under the cursor. */
   uint base_index;
@@ -138,13 +142,13 @@ static void ringsel_find_edge(RingSelOpData *lcd, const int previewlines)
       Scene *scene_eval = (Scene *)DEG_get_evaluated_id(lcd->vc.depsgraph, &lcd->vc.scene->id);
       Object *ob_eval = DEG_get_evaluated_object(lcd->vc.depsgraph, lcd->ob);
       BMEditMesh *em_eval = BKE_editmesh_from_object(ob_eval);
-      gcache->coords = BKE_editmesh_vert_coords_when_deformed(
-          lcd->vc.depsgraph, em_eval, scene_eval, ob_eval, nullptr, &gcache->is_alloc);
+      gcache->vert_positions = BKE_editmesh_vert_coords_when_deformed(
+          lcd->vc.depsgraph, em_eval, scene_eval, ob_eval, gcache->allocated_vert_positions);
       gcache->is_init = true;
     }
 
     EDBM_preselect_edgering_update_from_edge(
-        lcd->presel_edgering, lcd->em->bm, lcd->eed, previewlines, gcache->coords);
+        lcd->presel_edgering, lcd->em->bm, lcd->eed, previewlines, gcache->vert_positions);
   }
   else {
     EDBM_preselect_edgering_clear(lcd->presel_edgering);
@@ -255,14 +259,6 @@ static void ringsel_exit(bContext * /*C*/, wmOperator *op)
   ED_region_draw_cb_exit(lcd->region->type, lcd->draw_handle);
 
   EDBM_preselect_edgering_destroy(lcd->presel_edgering);
-
-  for (const int i : lcd->bases.index_range()) {
-    MeshCoordsCache *gcache = &lcd->geom_cache[i];
-    if (gcache->is_alloc) {
-      MEM_freeN((void *)gcache->coords);
-    }
-  }
-  MEM_freeN(lcd->geom_cache);
 
   ED_region_tag_redraw(lcd->region);
 
@@ -428,8 +424,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
   RingSelOpData *lcd = static_cast<RingSelOpData *>(op->customdata);
 
   lcd->bases = std::move(bases);
-  lcd->geom_cache = static_cast<MeshCoordsCache *>(
-      MEM_callocN(sizeof(*lcd->geom_cache) * lcd->bases.size(), __func__));
+  lcd->geom_cache.reinitialize(lcd->bases.size());
 
   if (is_interactive) {
     copy_v2_v2_int(lcd->vc.mval, event->mval);

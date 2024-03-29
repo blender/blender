@@ -478,9 +478,8 @@ static int shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
-  KeyBlock *kb = BKE_keyblock_from_object(ob);
 
-  if (!key || !kb) {
+  if (!key || BLI_listbase_is_empty(&key->block)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -514,10 +513,9 @@ static int shape_key_retime_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
-  KeyBlock *kb = BKE_keyblock_from_object(ob);
   float cfra = 0.0f;
 
-  if (!key || !kb) {
+  if (!key || BLI_listbase_is_empty(&key->block)) {
     return OPERATOR_CANCELLED;
   }
 

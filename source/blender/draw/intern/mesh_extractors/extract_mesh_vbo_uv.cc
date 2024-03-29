@@ -22,9 +22,9 @@ namespace blender::draw {
 /* Initialize the vertex format to be used for UVs. Return true if any UV layer is
  * found, false otherwise. */
 static bool mesh_extract_uv_format_init(GPUVertFormat *format,
-                                        MeshBatchCache &cache,
-                                        CustomData *cd_ldata,
-                                        eMRExtractType extract_type,
+                                        const MeshBatchCache &cache,
+                                        const CustomData *cd_ldata,
+                                        const eMRExtractType extract_type,
                                         uint32_t &r_uv_layers)
 {
   GPU_vertformat_deinterleave(format);
@@ -89,8 +89,8 @@ static void extract_uv_init(const MeshRenderData &mr,
   gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   GPUVertFormat format = {0};
 
-  CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->ldata :
-                                                                 &mr.mesh->corner_data;
+  const CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->ldata :
+                                                                       &mr.mesh->corner_data;
   int v_len = mr.corners_num;
   uint32_t uv_layers = cache.cd_used.uv;
   if (!mesh_extract_uv_format_init(&format, cache, cd_ldata, mr.extract_type, uv_layers)) {
@@ -136,7 +136,7 @@ static void extract_uv_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                    void *buffer,
                                    void * /*data*/)
 {
-  Mesh *coarse_mesh = subdiv_cache.mesh;
+  const Mesh *coarse_mesh = subdiv_cache.mesh;
   gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
   GPUVertFormat format = {0};
 

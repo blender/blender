@@ -241,6 +241,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_shadow_page_free";
     case SHADOW_PAGE_MASK:
       return "eevee_shadow_page_mask";
+    case SHADOW_TILEMAP_AMEND:
+      return "eevee_shadow_tilemap_amend";
     case SHADOW_TILEMAP_BOUNDS:
       return "eevee_shadow_tilemap_bounds";
     case SHADOW_TILEMAP_FINALIZE:

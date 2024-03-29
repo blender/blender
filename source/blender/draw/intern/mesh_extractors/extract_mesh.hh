@@ -80,7 +80,6 @@ struct MeshRenderData {
   Span<float3> bm_vert_coords;
   Span<float3> bm_vert_normals;
   Span<float3> bm_face_normals;
-  Span<float3> bm_face_centers;
   Array<float3> bm_loop_normals;
 
   const int *v_origindex, *e_origindex, *p_origindex;
@@ -90,7 +89,7 @@ struct MeshRenderData {
   int freestyle_edge_ofs;
   int freestyle_face_ofs;
   /** Mesh */
-  Mesh *mesh;
+  const Mesh *mesh;
   Span<float3> vert_positions;
   Span<int2> edges;
   OffsetIndices<int> faces;

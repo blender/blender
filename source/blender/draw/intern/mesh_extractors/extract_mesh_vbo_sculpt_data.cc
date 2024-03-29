@@ -117,7 +117,7 @@ static void extract_sculpt_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
 {
   gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
 
-  Mesh *coarse_mesh = mr.mesh;
+  const Mesh *coarse_mesh = mr.mesh;
 
   /* First, interpolate mask if available. */
   gpu::VertBuf *mask_vbo = nullptr;

@@ -77,7 +77,7 @@ static void mesh_corner_tris_raycast_backface_culling_cb(void *userdata,
 }
 
 static bool raycastMesh(SnapObjectContext *sctx,
-                        Object *ob_eval,
+                        const Object *ob_eval,
                         const Mesh *mesh_eval,
                         const float4x4 &obmat,
                         const uint ob_index,
@@ -106,12 +106,13 @@ static bool raycastMesh(SnapObjectContext *sctx,
   }
 
   /* Test bounding box. */
-  const Bounds<float3> bounds = *mesh_eval->bounds_min_max();
-  /* Was #BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
-  if (!isect_ray_aabb_v3_simple(
-          ray_start_local, ray_normal_local, bounds.min, bounds.max, &len_diff, nullptr))
-  {
-    return retval;
+  if (std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max()) {
+    /* Was #BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
+    if (!isect_ray_aabb_v3_simple(
+            ray_start_local, ray_normal_local, bounds->min, bounds->max, &len_diff, nullptr))
+    {
+      return retval;
+    }
   }
 
   /* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with
@@ -189,7 +190,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
  * \{ */
 
 static bool nearest_world_mesh(SnapObjectContext *sctx,
-                               Object *ob_eval,
+                               const Object *ob_eval,
                                const Mesh *mesh_eval,
                                const float4x4 &obmat,
                                bool use_hide)
@@ -354,7 +355,7 @@ static void cb_snap_tri_edges(void *userdata,
  * \{ */
 
 eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
-                            Object *ob_eval,
+                            const Object *ob_eval,
                             const ID *id,
                             const float4x4 &obmat,
                             eSnapMode snap_to_flag,
@@ -409,7 +410,7 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
 }
 
 eSnapMode snap_edge_points_mesh(SnapObjectContext *sctx,
-                                Object *ob_eval,
+                                const Object *ob_eval,
                                 const ID *id,
                                 const float4x4 &obmat,
                                 float dist_pex_sq_orig,
@@ -437,7 +438,7 @@ static eSnapMode mesh_snap_mode_supported(const Mesh *mesh)
 }
 
 static eSnapMode snapMesh(SnapObjectContext *sctx,
-                          Object *ob_eval,
+                          const Object *ob_eval,
                           const Mesh *mesh_eval,
                           const float4x4 &obmat,
                           bool use_hide,
@@ -578,7 +579,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
 /** \} */
 
 eSnapMode snap_object_mesh(SnapObjectContext *sctx,
-                           Object *ob_eval,
+                           const Object *ob_eval,
                            const ID *id,
                            const float4x4 &obmat,
                            eSnapMode snap_to_flag,

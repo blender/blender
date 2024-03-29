@@ -18,13 +18,13 @@ namespace blender::bke {
 
 struct EditMeshData {
   /** when set, \a vertexNos, faceNos are lazy initialized */
-  Array<float3> vertexCos;
+  Array<float3> vert_positions;
 
-  /** lazy initialize (when \a vertexCos is set) */
-  Array<float3> vertexNos;
-  Array<float3> faceNos;
-  /** also lazy init but don't depend on \a vertexCos */
-  Array<float3> faceCos;
+  /** lazy initialize (when \a vert_positions is set) */
+  Array<float3> vert_normals;
+  Array<float3> face_normals;
+  /** also lazy init but don't depend on \a vert_positions */
+  Array<float3> face_centers;
 };
 
 }  // namespace blender::bke

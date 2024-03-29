@@ -38,10 +38,10 @@ static void extract_tan_init_common(const MeshRenderData &mr,
 {
   GPU_vertformat_deinterleave(format);
 
-  CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->ldata :
-                                                                 &mr.mesh->corner_data;
-  CustomData *cd_vdata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->vdata :
-                                                                 &mr.mesh->vert_data;
+  const CustomData *cd_ldata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->ldata :
+                                                                       &mr.mesh->corner_data;
+  const CustomData *cd_vdata = (mr.extract_type == MR_EXTRACT_BMESH) ? &mr.bm->vdata :
+                                                                       &mr.mesh->vert_data;
   uint32_t tan_layers = cache.cd_used.tan;
   const float(*orco)[3] = (const float(*)[3])CustomData_get_layer(cd_vdata, CD_ORCO);
   float(*orco_allocated)[3] = nullptr;
@@ -96,7 +96,9 @@ static void extract_tan_init_common(const MeshRenderData &mr,
         copy_v3_v3(orco_allocated[v], mr.vert_positions[v]);
       }
     }
-    BKE_mesh_orco_verts_transform(mr.mesh, orco_allocated, mr.verts_num, false);
+    /* TODO: This is not thread-safe. Draw extraction should not modify the mesh. */
+    BKE_mesh_orco_verts_transform(
+        const_cast<Mesh *>(mr.mesh), orco_allocated, mr.verts_num, false);
     orco = orco_allocated;
   }
 
@@ -118,6 +120,7 @@ static void extract_tan_init_common(const MeshRenderData &mr,
                                      &tangent_mask);
     }
     else {
+      /* TODO: This is not thread-safe. Draw extraction should not modify the mesh. */
       BKE_mesh_calc_loop_tangent_ex(reinterpret_cast<const float(*)[3]>(mr.vert_positions.data()),
                                     mr.faces,
                                     mr.corner_verts.data(),

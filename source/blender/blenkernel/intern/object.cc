@@ -2764,7 +2764,7 @@ void BKE_object_obdata_size_init(Object *ob, const float size)
 /** \name Object Matrix Get/Set API
  * \{ */
 
-void BKE_object_scale_to_mat3(Object *ob, float mat[3][3])
+void BKE_object_scale_to_mat3(const Object *ob, float mat[3][3])
 {
   float3 vec;
   mul_v3_v3v3(vec, ob->scale, ob->dscale);
@@ -2946,7 +2946,7 @@ void BKE_object_tfm_copy(Object *object_dst, const Object *object_src)
 #undef TFMCPY4D
 }
 
-void BKE_object_to_mat3(Object *ob, float r_mat[3][3]) /* no parent */
+void BKE_object_to_mat3(const Object *ob, float r_mat[3][3]) /* no parent */
 {
   float smat[3][3];
   float rmat[3][3];
@@ -2959,7 +2959,7 @@ void BKE_object_to_mat3(Object *ob, float r_mat[3][3]) /* no parent */
   mul_m3_m3m3(r_mat, rmat, smat);
 }
 
-void BKE_object_to_mat4(Object *ob, float r_mat[4][4])
+void BKE_object_to_mat4(const Object *ob, float r_mat[4][4])
 {
   float tmat[3][3];
 
@@ -2987,7 +2987,7 @@ void BKE_object_matrix_local_get(Object *ob, float r_mat[4][4])
 /**
  * \return success if \a mat is set.
  */
-static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
+static bool ob_parcurve(const Object *ob, Object *par, float r_mat[4][4])
 {
   Curve *cu = (Curve *)par->data;
   float vec[4], quat[4], radius, ctime;
@@ -3046,7 +3046,7 @@ static bool ob_parcurve(Object *ob, Object *par, float r_mat[4][4])
   return true;
 }
 
-static void ob_parbone(Object *ob, Object *par, float r_mat[4][4])
+static void ob_parbone(const Object *ob, const Object *par, float r_mat[4][4])
 {
   float3 vec;
 
@@ -3056,7 +3056,7 @@ static void ob_parbone(Object *ob, Object *par, float r_mat[4][4])
   }
 
   /* Make sure the bone is still valid */
-  bPoseChannel *pchan = BKE_pose_channel_find_name(par->pose, ob->parsubstr);
+  const bPoseChannel *pchan = BKE_pose_channel_find_name(par->pose, ob->parsubstr);
   if (!pchan || !pchan->bone) {
     CLOG_WARN(
         &LOG, "Parent Bone: '%s' for Object: '%s' doesn't exist", ob->parsubstr, ob->id.name + 2);
@@ -3080,15 +3080,15 @@ static void ob_parbone(Object *ob, Object *par, float r_mat[4][4])
   }
 }
 
-static void give_parvert(Object *par, int nr, float vec[3])
+static void give_parvert(const Object *par, int nr, float vec[3])
 {
   zero_v3(vec);
 
   if (par->type == OB_MESH) {
-    Mesh *mesh = (Mesh *)par->data;
-    BMEditMesh *em = mesh->runtime->edit_mesh;
-    Mesh *mesh_eval = (em) ? BKE_object_get_editmesh_eval_final(par) :
-                             BKE_object_get_evaluated_mesh(par);
+    const Mesh *mesh = (const Mesh *)par->data;
+    const BMEditMesh *em = mesh->runtime->edit_mesh;
+    const Mesh *mesh_eval = (em) ? BKE_object_get_editmesh_eval_final(par) :
+                                   BKE_object_get_evaluated_mesh(par);
 
     if (mesh_eval) {
       const Span<float3> positions = mesh_eval->vert_positions();
@@ -3111,9 +3111,9 @@ static void give_parvert(Object *par, int nr, float vec[3])
         }
         if (nr < numVerts) {
           if (mesh_eval && mesh_eval->runtime->edit_data &&
-              !mesh_eval->runtime->edit_data->vertexCos.is_empty())
+              !mesh_eval->runtime->edit_data->vert_positions.is_empty())
           {
-            add_v3_v3(vec, mesh_eval->runtime->edit_data->vertexCos[nr]);
+            add_v3_v3(vec, mesh_eval->runtime->edit_data->vert_positions[nr]);
           }
           else {
             const BMVert *v = BM_vert_at_index(em->bm, nr);
@@ -3201,7 +3201,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
   }
 }
 
-static void ob_parvert3(Object *ob, Object *par, float r_mat[4][4])
+static void ob_parvert3(const Object *ob, const Object *par, float r_mat[4][4])
 {
   /* in local ob space */
   if (OB_TYPE_SUPPORT_PARVERT(par->type)) {
@@ -3222,7 +3222,7 @@ static void ob_parvert3(Object *ob, Object *par, float r_mat[4][4])
   }
 }
 
-void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][4])
+void BKE_object_get_parent_matrix(const Object *ob, Object *par, float r_parentmat[4][4])
 {
   float tmat[4][4];
   float vec[3];
@@ -3277,8 +3277,11 @@ void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][
  * \param r_originmat: Optional matrix that stores the space the object is in
  * (without its own matrix applied)
  */
-static void solve_parenting(
-    Object *ob, Object *par, const bool set_origin, float r_obmat[4][4], float r_originmat[3][3])
+static void solve_parenting(const Object *ob,
+                            Object *par,
+                            const bool set_origin,
+                            float r_obmat[4][4],
+                            float r_originmat[3][3])
 {
   float totmat[4][4];
   float tmat[4][4];
@@ -3358,7 +3361,7 @@ void BKE_object_where_is_calc_time(Depsgraph *depsgraph, Scene *scene, Object *o
   object_where_is_calc_ex(depsgraph, scene, ob, ctime, nullptr, nullptr);
 }
 
-void BKE_object_where_is_calc_mat4(Object *ob, float r_obmat[4][4])
+void BKE_object_where_is_calc_mat4(const Object *ob, float r_obmat[4][4])
 {
   if (ob->parent) {
     Object *par = ob->parent;
@@ -4202,7 +4205,7 @@ Mesh *BKE_object_get_original_mesh(const Object *object)
   return result;
 }
 
-Mesh *BKE_object_get_editmesh_eval_final(const Object *object)
+const Mesh *BKE_object_get_editmesh_eval_final(const Object *object)
 {
   BLI_assert(!DEG_is_original_id(&object->id));
   BLI_assert(object->type == OB_MESH);
@@ -4217,7 +4220,7 @@ Mesh *BKE_object_get_editmesh_eval_final(const Object *object)
   return reinterpret_cast<Mesh *>(object->runtime->data_eval);
 }
 
-Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
+const Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
 {
   BLI_assert(!DEG_is_original_id(&object->id));
   BLI_assert(object->type == OB_MESH);
@@ -4227,6 +4230,13 @@ Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
   UNUSED_VARS_NDEBUG(mesh);
 
   return object->runtime->editmesh_eval_cage;
+}
+
+const Mesh *BKE_object_get_mesh_deform_eval(const Object *object)
+{
+  BLI_assert(!DEG_is_original_id(&object->id));
+  BLI_assert(object->type == OB_MESH);
+  return object->runtime->mesh_deform_eval;
 }
 
 Lattice *BKE_object_get_lattice(const Object *object)
@@ -4806,7 +4816,7 @@ int BKE_object_scenes_users_get(Main *bmain, Object *ob)
   return num_scenes;
 }
 
-MovieClip *BKE_object_movieclip_get(Scene *scene, Object *ob, bool use_default)
+MovieClip *BKE_object_movieclip_get(Scene *scene, const Object *ob, bool use_default)
 {
   MovieClip *clip = use_default ? scene->clip : nullptr;
   bConstraint *con = (bConstraint *)ob->constraints.first, *scon = nullptr;
@@ -5039,8 +5049,9 @@ KDTree_3d *BKE_object_as_kdtree(Object *ob, int *r_tot)
       Mesh *mesh = (Mesh *)ob->data;
       uint i;
 
-      Mesh *mesh_eval = ob->runtime->mesh_deform_eval ? ob->runtime->mesh_deform_eval :
-                                                        BKE_object_get_evaluated_mesh(ob);
+      const Mesh *mesh_eval = BKE_object_get_mesh_deform_eval(ob) ?
+                                  BKE_object_get_mesh_deform_eval(ob) :
+                                  BKE_object_get_evaluated_mesh(ob);
       const int *index;
 
       if (mesh_eval &&

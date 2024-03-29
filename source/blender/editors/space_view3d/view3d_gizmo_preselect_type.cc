@@ -44,6 +44,9 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
+using blender::Array;
+using blender::float3;
+using blender::Span;
 using blender::Vector;
 
 /* -------------------------------------------------------------------- */
@@ -236,17 +239,17 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
   }
 
   if (best.ele) {
-    const float(*coords)[3] = nullptr;
+    Span<float3> vert_positions;
     {
       Object *ob = gz_ele->bases[gz_ele->base_index]->object;
-      Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-      Mesh *mesh_eval = BKE_object_get_editmesh_eval_cage(ob_eval);
+      const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+      const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      const Mesh *mesh_eval = BKE_object_get_editmesh_eval_cage(ob_eval);
       if (BKE_mesh_wrapper_vert_len(mesh_eval) == bm->totvert) {
-        coords = BKE_mesh_wrapper_vert_coords(mesh_eval);
+        vert_positions = BKE_mesh_wrapper_vert_coords(mesh_eval);
       }
     }
-    EDBM_preselect_elem_update_from_single(gz_ele->psel, bm, best.ele, coords);
+    EDBM_preselect_elem_update_from_single(gz_ele->psel, bm, best.ele, vert_positions);
     EDBM_preselect_elem_update_preview(gz_ele->psel, &vc, bm, best.ele, mval);
   }
   else {
@@ -406,13 +409,10 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
       BMEditMesh *em_eval = BKE_editmesh_from_object(ob_eval);
       /* Re-allocate coords each update isn't ideal, however we can't be sure
        * the mesh hasn't been edited since last update. */
-      bool is_alloc = false;
-      const float(*coords)[3] = BKE_editmesh_vert_coords_when_deformed(
-          vc.depsgraph, em_eval, scene_eval, ob_eval, nullptr, &is_alloc);
-      EDBM_preselect_edgering_update_from_edge(gz_ring->psel, bm, best.eed, 1, coords);
-      if (is_alloc) {
-        MEM_freeN((void *)coords);
-      }
+      Array<float3> storage;
+      const Span<float3> vert_positions = BKE_editmesh_vert_coords_when_deformed(
+          vc.depsgraph, em_eval, scene_eval, ob_eval, storage);
+      EDBM_preselect_edgering_update_from_edge(gz_ring->psel, bm, best.eed, 1, vert_positions);
     }
     else {
       EDBM_preselect_edgering_clear(gz_ring->psel);

@@ -69,6 +69,7 @@
 /* use bmesh operator flags for a few operators */
 #define BMO_ELE_TAG 1
 
+using blender::float3;
 using blender::Span;
 using blender::Vector;
 
@@ -1079,16 +1080,16 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
       copy_m3_m4(imat3, obedit->object_to_world().ptr());
       invert_m3(imat3);
 
-      const float(*coords)[3] = nullptr;
+      Span<float3> vert_positions;
       {
-        Object *obedit_eval = DEG_get_evaluated_object(vc->depsgraph, obedit);
-        Mesh *mesh_eval = BKE_object_get_editmesh_eval_cage(obedit_eval);
+        const Object *obedit_eval = DEG_get_evaluated_object(vc->depsgraph, obedit);
+        const Mesh *mesh_eval = BKE_object_get_editmesh_eval_cage(obedit_eval);
         if (BKE_mesh_wrapper_vert_len(mesh_eval) == bm->totvert) {
-          coords = BKE_mesh_wrapper_vert_coords(mesh_eval);
+          vert_positions = BKE_mesh_wrapper_vert_coords(mesh_eval);
         }
       }
 
-      if (coords != nullptr) {
+      if (!vert_positions.is_empty()) {
         BM_mesh_elem_index_ensure(bm, BM_VERT);
       }
 
@@ -1103,7 +1104,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
                 float point[3];
                 mul_v3_m4v3(point,
                             obedit->object_to_world().ptr(),
-                            coords ? coords[BM_elem_index_get(v)] : v->co);
+                            !vert_positions.is_empty() ? vert_positions[BM_elem_index_get(v)] :
+                                                         v->co);
                 const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                     ray_origin, ray_direction, point);
                 if (dist_sq_test < dist_sq_best_vert) {
@@ -1125,9 +1127,10 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
               const float dist_sq_test = dist_squared_ray_to_seg_v3(
                   ray_origin, ray_direction, e->v1->co, e->v2->co, point, &depth);
 #else
-              if (coords) {
-                mid_v3_v3v3(
-                    point, coords[BM_elem_index_get(e->v1)], coords[BM_elem_index_get(e->v2)]);
+              if (!vert_positions.is_empty()) {
+                mid_v3_v3v3(point,
+                            vert_positions[BM_elem_index_get(e->v1)],
+                            vert_positions[BM_elem_index_get(e->v2)]);
               }
               else {
                 mid_v3_v3v3(point, e->v1->co, e->v2->co);
@@ -1159,7 +1162,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
             float point[3];
             mul_v3_m4v3(point,
                         obedit->object_to_world().ptr(),
-                        coords ? coords[BM_elem_index_get(v)] : v->co);
+                        !vert_positions.is_empty() ? vert_positions[BM_elem_index_get(v)] : v->co);
             const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                 ray_origin, ray_direction, point);
             if (dist_sq_test < dist_sq_best_vert) {
@@ -1182,9 +1185,10 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
         BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
           if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == false) {
             float point[3];
-            if (coords) {
-              mid_v3_v3v3(
-                  point, coords[BM_elem_index_get(e->v1)], coords[BM_elem_index_get(e->v2)]);
+            if (!vert_positions.is_empty()) {
+              mid_v3_v3v3(point,
+                          vert_positions[BM_elem_index_get(e->v1)],
+                          vert_positions[BM_elem_index_get(e->v2)]);
             }
             else {
               mid_v3_v3v3(point, e->v1->co, e->v2->co);
@@ -1212,8 +1216,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
         BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
           if (BM_elem_flag_test(f, BM_ELEM_HIDDEN) == false) {
             float point[3];
-            if (coords) {
-              BM_face_calc_center_median_vcos(bm, f, point, coords);
+            if (!vert_positions.is_empty()) {
+              BM_face_calc_center_median_vcos(bm, f, point, vert_positions);
             }
             else {
               BM_face_calc_center_median(f, point);

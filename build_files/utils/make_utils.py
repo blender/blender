@@ -115,7 +115,8 @@ def git_branch(git_command: str) -> str:
 
     try:
         branch = subprocess.check_output([git_command, "rev-parse", "--abbrev-ref", "HEAD"])
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
+        # No need to print the exception, error text is written to the output already.
         sys.stderr.write("Failed to get Blender git branch\n")
         sys.exit(1)
 

@@ -390,46 +390,44 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
    */
   EditBone *oldtarget, *newtarget;
   bPoseChannel *pchan;
-  ListBase *conlist;
 
   if ((pchan = BKE_pose_channel_ensure(ob->pose, dup_bone->name))) {
-    if ((conlist = &pchan->constraints)) {
-      LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
-        /* does this constraint have a subtarget in
-         * this armature?
-         */
-        ListBase targets = {nullptr, nullptr};
+    ListBase *conlist = &pchan->constraints;
+    LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
+      /* does this constraint have a subtarget in
+       * this armature?
+       */
+      ListBase targets = {nullptr, nullptr};
 
-        if (BKE_constraint_targets_get(curcon, &targets)) {
-          LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
-            if ((ct->tar == ob) && (ct->subtarget[0])) {
-              oldtarget = get_named_editbone(editbones, ct->subtarget);
-              if (oldtarget) {
-                /* was the subtarget bone duplicated too? If
-                 * so, update the constraint to point at the
-                 * duplicate of the old subtarget.
-                 */
-                if (oldtarget->temp.ebone) {
-                  newtarget = oldtarget->temp.ebone;
+      if (BKE_constraint_targets_get(curcon, &targets)) {
+        LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
+          if ((ct->tar == ob) && (ct->subtarget[0])) {
+            oldtarget = get_named_editbone(editbones, ct->subtarget);
+            if (oldtarget) {
+              /* was the subtarget bone duplicated too? If
+               * so, update the constraint to point at the
+               * duplicate of the old subtarget.
+               */
+              if (oldtarget->temp.ebone) {
+                newtarget = oldtarget->temp.ebone;
+                STRNCPY(ct->subtarget, newtarget->name);
+              }
+              else if (lookup_mirror_subtarget) {
+                /* The subtarget was not selected for duplication, try to see if a mirror bone of
+                 * the current target exists */
+                char name_flip[MAXBONENAME];
+
+                BLI_string_flip_side_name(name_flip, oldtarget->name, false, sizeof(name_flip));
+                newtarget = get_named_editbone(editbones, name_flip);
+                if (newtarget) {
                   STRNCPY(ct->subtarget, newtarget->name);
-                }
-                else if (lookup_mirror_subtarget) {
-                  /* The subtarget was not selected for duplication, try to see if a mirror bone of
-                   * the current target exists */
-                  char name_flip[MAXBONENAME];
-
-                  BLI_string_flip_side_name(name_flip, oldtarget->name, false, sizeof(name_flip));
-                  newtarget = get_named_editbone(editbones, name_flip);
-                  if (newtarget) {
-                    STRNCPY(ct->subtarget, newtarget->name);
-                  }
                 }
               }
             }
           }
-
-          BKE_constraint_targets_flush(curcon, &targets, false);
         }
+
+        BKE_constraint_targets_flush(curcon, &targets, false);
       }
     }
   }

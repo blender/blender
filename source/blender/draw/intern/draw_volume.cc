@@ -197,7 +197,7 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
       return nullptr;
     }
 
-    if (fds->fluid && (fds->type == FLUID_DOMAIN_TYPE_GAS)) {
+    if (fds->type == FLUID_DOMAIN_TYPE_GAS) {
       DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
     }
 
@@ -384,7 +384,7 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
       return nullptr;
     }
 
-    if (fds->fluid && (fds->type == FLUID_DOMAIN_TYPE_GAS)) {
+    if (fds->type == FLUID_DOMAIN_TYPE_GAS) {
       DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
     }
 

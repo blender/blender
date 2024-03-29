@@ -674,7 +674,7 @@ class PREFERENCES_OT_addon_install(Operator):
         # check to see if the file is in compressed format (.zip)
         if zipfile.is_zipfile(pyfile):
             try:
-                file_to_extract = zipfile.ZipFile(pyfile, 'r')
+                file_to_extract = zipfile.ZipFile(pyfile, "r")
             except BaseException:
                 traceback.print_exc()
                 return {'CANCELLED'}
@@ -926,7 +926,7 @@ class PREFERENCES_OT_app_template_install(Operator):
         # check to see if the file is in compressed format (.zip)
         if zipfile.is_zipfile(filepath):
             try:
-                file_to_extract = zipfile.ZipFile(filepath, 'r')
+                file_to_extract = zipfile.ZipFile(filepath, "r")
             except BaseException:
                 traceback.print_exc()
                 return {'CANCELLED'}

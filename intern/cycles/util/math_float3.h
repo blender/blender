@@ -309,6 +309,11 @@ ccl_device_inline float3 fabs(const float3 a)
 #  endif
 }
 
+ccl_device_inline float3 fmod(const float3 a, const float b)
+{
+  return make_float3(fmodf(a.x, b), fmodf(a.y, b), fmodf(a.z, b));
+}
+
 ccl_device_inline float3 sqrt(const float3 a)
 {
 #  ifdef __KERNEL_SSE__

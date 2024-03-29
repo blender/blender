@@ -610,7 +610,7 @@ class VIEW3D_PT_slots_paint_canvas(SelectPaintSlotHelper, View3DPanel, Panel):
     def draw_header(self, context):
         paint = context.tool_settings.paint_mode
         ob = context.object
-        me = context.object.data
+        me = ob.data
         mat = ob.active_material
 
         label = iface_("Canvas")
@@ -641,7 +641,8 @@ class VIEW3D_PT_slots_color_attributes(Panel):
         )
 
     def draw(self, context):
-        mesh = context.object.data
+        ob = context.object
+        mesh = ob.data
 
         layout = self.layout
         row = layout.row()
@@ -1119,7 +1120,9 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         sculpt = context.tool_settings.sculpt
 
         row = layout.row(align=True, heading="Mirror")
-        mesh = context.object.data
+
+        ob = context.object
+        mesh = ob.data
         row.prop(mesh, "use_mirror_x", text="X", toggle=True)
         row.prop(mesh, "use_mirror_y", text="Y", toggle=True)
         row.prop(mesh, "use_mirror_z", text="Z", toggle=True)
@@ -1162,14 +1165,16 @@ class VIEW3D_PT_curves_sculpt_symmetry(Panel, View3DPaintPanel):
 
     @classmethod
     def poll(cls, context):
-        return context.object and context.object.type == 'CURVES'
+        ob = context.object
+        return ob and ob.type == 'CURVES'
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        curves = context.object.data
+        ob = context.object
+        curves = ob.data
 
         row = layout.row(align=True, heading="Mirror")
         row.prop(curves, "use_mirror_x", text="X", toggle=True)
@@ -1206,11 +1211,13 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
 
         tool_settings = context.tool_settings
         wpaint = tool_settings.weight_paint
-        mesh = context.object.data
+
+        ob = context.object
+        mesh = ob.data
 
         layout.prop(mesh, "use_mirror_vertex_groups")
 
-        draw_vpaint_symmetry(layout, wpaint, context.object)
+        draw_vpaint_symmetry(layout, wpaint, ob)
 
         row = layout.row()
         row.active = mesh.use_mirror_vertex_groups
@@ -1288,7 +1295,9 @@ class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
         tool_settings = context.tool_settings
         vpaint = tool_settings.vertex_paint
 
-        draw_vpaint_symmetry(layout, vpaint, context.object)
+        ob = context.object
+
+        draw_vpaint_symmetry(layout, vpaint, ob)
 
 
 class VIEW3D_PT_tools_vertexpaint_symmetry_for_topbar(Panel):
@@ -1353,7 +1362,8 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
         col = split.column()
 
         row = col.row(align=True)
-        mesh = context.object.data
+        ob = context.object
+        mesh = ob.data
         row.prop(mesh, "use_mirror_x", text="X", toggle=True)
         row.prop(mesh, "use_mirror_y", text="Y", toggle=True)
         row.prop(mesh, "use_mirror_z", text="Z", toggle=True)
@@ -1933,7 +1943,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_paint_falloff(GreasePencilBrushFalloff
 
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         tool = ToolSelectPanelHelper.tool_active_from_context(context)
-        if tool and tool.idname != 'builtin_brush.Tint':
+        if tool and tool.idname != "builtin_brush.Tint":
             return False
 
         gptool = brush.gpencil_tool
@@ -2344,7 +2354,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_mixcolor(View3DPanel, Panel):
 
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         tool = ToolSelectPanelHelper.tool_active_from_context(context)
-        if tool and tool.idname in {'builtin.cutter', 'builtin.eyedropper', 'builtin.interpolate'}:
+        if tool and tool.idname in {"builtin.cutter", "builtin.eyedropper", "builtin.interpolate"}:
             return False
 
         if brush.gpencil_tool == 'TINT':
@@ -2405,7 +2415,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_mix_palette(View3DPanel, Panel):
 
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         tool = ToolSelectPanelHelper.tool_active_from_context(context)
-        if tool and tool.idname in {'builtin.cutter', 'builtin.eyedropper', 'builtin.interpolate'}:
+        if tool and tool.idname in {"builtin.cutter", "builtin.eyedropper", "builtin.interpolate"}:
             return False
 
         if brush.gpencil_tool == 'TINT':
@@ -2570,7 +2580,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_mixcolor(View3DPanel, Panel):
 
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         tool = ToolSelectPanelHelper.tool_active_from_context(context)
-        if tool and tool.idname in {'builtin.cutter', 'builtin.eyedropper', 'builtin.interpolate'}:
+        if tool and tool.idname in {"builtin.cutter", "builtin.eyedropper", "builtin.interpolate"}:
             return False
 
         if brush.gpencil_tool == 'TINT':
@@ -2627,7 +2637,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_mix_palette(View3DPanel, Panel):
 
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         tool = ToolSelectPanelHelper.tool_active_from_context(context)
-        if tool and tool.idname in {'builtin.cutter', 'builtin.eyedropper', 'builtin.interpolate'}:
+        if tool and tool.idname in {"builtin.cutter", "builtin.eyedropper", "builtin.interpolate"}:
             return False
 
         if brush.gpencil_tool == 'TINT':

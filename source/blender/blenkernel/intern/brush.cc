@@ -1526,13 +1526,11 @@ void BKE_brush_gpencil_vertex_presets(Main *bmain, ToolSettings *ts, const bool 
   }
 
   /* Set default Vertex brush. */
-  if (reset || brush_prev == nullptr) {
-    BKE_paint_brush_set(vertexpaint, deft_vertex);
+  if ((reset == false) && (brush_prev != nullptr)) {
+    BKE_paint_brush_set(vertexpaint, brush_prev);
   }
   else {
-    if (brush_prev != nullptr) {
-      BKE_paint_brush_set(vertexpaint, brush_prev);
-    }
+    BKE_paint_brush_set(vertexpaint, deft_vertex);
   }
 }
 
@@ -1603,13 +1601,11 @@ void BKE_brush_gpencil_sculpt_presets(Main *bmain, ToolSettings *ts, const bool 
   }
 
   /* Set default brush. */
-  if (reset || brush_prev == nullptr) {
-    BKE_paint_brush_set(sculptpaint, deft_sculpt);
+  if ((reset == false) && (brush_prev != nullptr)) {
+    BKE_paint_brush_set(sculptpaint, brush_prev);
   }
   else {
-    if (brush_prev != nullptr) {
-      BKE_paint_brush_set(sculptpaint, brush_prev);
-    }
+    BKE_paint_brush_set(sculptpaint, deft_sculpt);
   }
 }
 
@@ -1648,13 +1644,11 @@ void BKE_brush_gpencil_weight_presets(Main *bmain, ToolSettings *ts, const bool 
   }
 
   /* Set default brush. */
-  if (reset || brush_prev == nullptr) {
-    BKE_paint_brush_set(weightpaint, deft_weight);
+  if ((reset == false) && (brush_prev != nullptr)) {
+    BKE_paint_brush_set(weightpaint, brush_prev);
   }
   else {
-    if (brush_prev != nullptr) {
-      BKE_paint_brush_set(weightpaint, brush_prev);
-    }
+    BKE_paint_brush_set(weightpaint, deft_weight);
   }
 }
 

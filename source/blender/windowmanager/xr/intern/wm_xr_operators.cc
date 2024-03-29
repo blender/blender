@@ -732,7 +732,7 @@ static void wm_xr_raycast(Scene *scene,
                           float r_location[3],
                           float r_normal[3],
                           int *r_index,
-                          Object **r_ob,
+                          const Object **r_ob,
                           float r_obmat[4][4])
 {
   /* Uses same raycast method as Scene.ray_cast(). */
@@ -1232,7 +1232,7 @@ static void wm_xr_navigation_teleport(bContext *C,
   float location[3];
   float normal[3];
   int index;
-  Object *ob = nullptr;
+  const Object *ob = nullptr;
   float obmat[4][4];
 
   wm_xr_raycast(scene,

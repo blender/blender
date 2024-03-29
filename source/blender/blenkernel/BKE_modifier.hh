@@ -200,8 +200,8 @@ struct ModifierTypeInfo {
   /********************* Deform modifier functions *********************/
 
   /**
-   * Apply a deformation to the positions in the \a vertexCos array. If the \a mesh argument is
-   * non-null, if will contain proper (not wrapped) mesh data. The \a vertexCos array may or may
+   * Apply a deformation to the positions in the \a positions array. If the \a mesh argument is
+   * non-null, if will contain proper (not wrapped) mesh data. The \a positions array may or may
    * not be the same as the mesh's position attribute.
    */
   void (*deform_verts)(ModifierData *md,

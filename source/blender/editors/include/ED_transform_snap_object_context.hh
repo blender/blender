@@ -86,7 +86,7 @@ bool ED_transform_snap_object_project_ray_ex(SnapObjectContext *sctx,
                                              float r_loc[3],
                                              float r_no[3],
                                              int *r_index,
-                                             Object **r_ob,
+                                             const Object **r_ob,
                                              float r_obmat[4][4]);
 /**
  * Convenience function for snap ray-casting.
@@ -155,7 +155,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                                      float r_loc[3],
                                                      float r_no[3],
                                                      int *r_index,
-                                                     Object **r_ob,
+                                                     const Object **r_ob,
                                                      float r_obmat[4][4],
                                                      float r_face_nor[3]);
 /**

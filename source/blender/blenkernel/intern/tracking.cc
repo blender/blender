@@ -367,7 +367,7 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
   BKE_tracking_object_add(tracking, DATA_("Camera"));
 }
 
-void BKE_tracking_get_camera_object_matrix(Object *camera_object, float mat[4][4])
+void BKE_tracking_get_camera_object_matrix(const Object *camera_object, float mat[4][4])
 {
   BLI_assert(camera_object != nullptr);
   /* NOTE: Construct matrix from scratch rather than using obmat because the camera object here

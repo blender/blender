@@ -198,6 +198,11 @@ ccl_device_inline float2 clamp(const float2 a, const float2 mn, const float2 mx)
   return min(max(a, mn), mx);
 }
 
+ccl_device_inline float2 fmod(const float2 a, const float b)
+{
+  return make_float2(fmodf(a.x, b), fmodf(a.y, b));
+}
+
 ccl_device_inline float2 fabs(const float2 a)
 {
   return make_float2(fabsf(a.x), fabsf(a.y));

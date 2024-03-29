@@ -88,11 +88,11 @@ static IndexMask simplify_fixed(const bke::CurvesGeometry &curves,
       curves.points_range(), GrainSize(2048), memory, [&](const int64_t i) {
         const int curve_i = point_to_curve_map[i];
         const IndexRange points = points_by_curve[curve_i];
-        if (points.drop_front(1).drop_back(1).contains(i)) {
-          const int local_i = i - points.start();
-          return local_i % int(math::pow(2.0f, float(step - 1))) == 0;
+        if (points.size() <= 2) {
+          return true;
         }
-        return false;
+        const int local_i = i - points.start();
+        return (local_i % int(math::pow(2.0f, float(step))) == 0) || points.last() == i;
       });
 }
 
@@ -280,6 +280,13 @@ static void simplify_drawing(const GreasePencilSimplifyModifierData &mmd,
   switch (mmd.mode) {
     case MOD_GREASE_PENCIL_SIMPLIFY_FIXED: {
       const IndexMask points_to_keep = simplify_fixed(curves, mmd.step, memory);
+      if (points_to_keep.is_empty()) {
+        drawing.strokes_for_write() = {};
+        break;
+      }
+      if (points_to_keep.size() == curves.points_num()) {
+        break;
+      }
       drawing.strokes_for_write() = bke::curves_copy_point_selection(curves, points_to_keep, {});
       break;
     }

@@ -4993,7 +4993,7 @@ static float ui_numedit_apply_snapf(
     float fac = 1.0f;
 
     if (ui_but_is_unit(but)) {
-      UnitSettings *unit = but->block->unit;
+      const UnitSettings *unit = but->block->unit;
       const int unit_type = RNA_SUBTYPE_UNIT_VALUE(UI_but_unit_type_get(but));
 
       if (BKE_unit_is_valid(unit->system, unit_type)) {
@@ -5016,7 +5016,7 @@ static float ui_numedit_apply_snapf(
     /* snapping by 10's for float buttons is quite annoying (location, scale...),
      * but allow for rotations */
     if (softrange >= 21.0f) {
-      UnitSettings *unit = but->block->unit;
+      const UnitSettings *unit = but->block->unit;
       const int unit_type = UI_but_unit_type_get(but);
       if ((unit_type == PROP_UNIT_ROTATION) && (unit->system_rotation != USER_UNIT_ROT_RADIANS)) {
         /* Pass (degrees). */
@@ -6014,7 +6014,7 @@ static int ui_do_but_SCROLL(
       button_activate_state(C, but, BUTTON_STATE_EXIT);
     }
     else if (event->type == MOUSEMOVE) {
-      const bool is_motion = (event->type == MOUSEMOVE);
+      const bool is_motion = true;
       if (ui_numedit_but_SLI(
               but, data, (horizontal) ? mx : my, horizontal, is_motion, false, false))
       {

@@ -87,6 +87,8 @@
 #define SHADOW_TILEDATA_PER_TILEMAP \
   (SHADOW_TILEMAP_LOD0_LEN + SHADOW_TILEMAP_LOD1_LEN + SHADOW_TILEMAP_LOD2_LEN + \
    SHADOW_TILEMAP_LOD3_LEN + SHADOW_TILEMAP_LOD4_LEN + SHADOW_TILEMAP_LOD5_LEN)
+/* Maximum number of relative LOD distance we can store. */
+#define SHADOW_TILEMAP_MAX_CLIPMAP_LOD 8
 #if 0
 /* Useful for debugging the tile-copy version of the shadow rendering without making debugging
  * tools unresponsive. */

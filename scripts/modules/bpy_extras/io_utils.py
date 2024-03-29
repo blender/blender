@@ -23,7 +23,10 @@ from bpy.props import (
     EnumProperty,
     StringProperty,
 )
-from bpy.app.translations import pgettext_data as data_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_data as data_,
+)
 
 
 def _check_axis_conversion(op):
@@ -96,9 +99,26 @@ class ImportHelper:
         description="Filepath used for importing the file",
         maxlen=1024,
         subtype='FILE_PATH',
+        options={'SKIP_PRESET', 'HIDDEN'}
     )
 
     def invoke(self, context, _event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    def invoke_popup(self, context, confirm_text=""):
+        if self.properties.is_property_set("filepath"):
+            title = self.filepath
+            if len(self.files) > 1:
+                title = iface_("Import {} files").format(len(self.files))
+
+            if not confirm_text:
+                confirm_text = self.bl_label
+
+            confirm_text = iface_(confirm_text)
+            return context.window_manager.invoke_props_dialog(
+                self, confirm_text=confirm_text, title=title, translate=False)
+
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -392,6 +412,19 @@ def unpack_face_list(list_of_tuples):
         flat_ls[i:i + len(t)] = t
         i += 4
     return flat_ls
+
+
+def poll_file_object_drop(context):
+    """
+    A default implementation for FileHandler poll_drop methods. Allows for both the 3D Viewport and
+    the Outliner (in ViewLayer display mode) to be targets for file drag and drop.
+    """
+    area = context.area
+    if not area:
+        return False
+    is_v3d = area.type == 'VIEW_3D'
+    is_outliner_view_layer = area.type == 'OUTLINER' and area.spaces.active.display_mode == 'VIEW_LAYER'
+    return is_v3d or is_outliner_view_layer
 
 
 path_reference_mode = EnumProperty(

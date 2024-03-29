@@ -21,7 +21,7 @@
 using blender::float4x4;
 
 eSnapMode snapArmature(SnapObjectContext *sctx,
-                       Object *ob_eval,
+                       const Object *ob_eval,
                        const float4x4 &obmat,
                        bool is_object_active)
 {

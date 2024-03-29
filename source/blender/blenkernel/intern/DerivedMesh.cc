@@ -981,18 +981,6 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
   }
 }
 
-static blender::Array<float3> editbmesh_vert_coords_alloc(const BMEditMesh *em)
-{
-  blender::Array<float3> cos(em->bm->totvert);
-  BMIter iter;
-  BMVert *eve;
-  int i;
-  BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-    cos[i] = eve->co;
-  }
-  return cos;
-}
-
 bool editbmesh_modifier_is_enabled(const Scene *scene,
                                    const Object *ob,
                                    ModifierData *md,
@@ -1022,7 +1010,7 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final)
     case ME_WRAPPER_TYPE_BMESH: {
       BMEditMesh &em = *mesh_final->runtime->edit_mesh;
       blender::bke::EditMeshData &emd = *mesh_final->runtime->edit_data;
-      if (!emd.vertexCos.is_empty()) {
+      if (!emd.vert_positions.is_empty()) {
         BKE_editmesh_cache_ensure_vert_normals(em, emd);
         BKE_editmesh_cache_ensure_face_normals(em, emd);
       }
@@ -1047,11 +1035,11 @@ static MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      if (mesh->runtime->edit_data->vertexCos.is_empty()) {
-        mesh->runtime->edit_data->vertexCos = editbmesh_vert_coords_alloc(
-            mesh->runtime->edit_mesh);
+      if (mesh->runtime->edit_data->vert_positions.is_empty()) {
+        mesh->runtime->edit_data->vert_positions = BM_mesh_vert_coords_alloc(
+            mesh->runtime->edit_mesh->bm);
       }
-      return mesh->runtime->edit_data->vertexCos;
+      return mesh->runtime->edit_data->vert_positions;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->vert_positions_for_write();

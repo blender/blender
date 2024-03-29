@@ -258,9 +258,9 @@ class ToolSelectPanelHelper:
 
     # tool flattening
     #
-    # usually 'tools' is already expanded into `ToolDef`
+    # usually "tools" is already expanded into `ToolDef`
     # but when registering a tool, this can still be a function
-    # (_tools_flatten is usually called with cls.tools_from_context(context)
+    # (`_tools_flatten` is usually called with `cls.tools_from_context(context)`
     # [that already yields from the function])
     # so if item is still a function (e.g._defs_XXX.generate_from_brushes)
     # seems like we cannot expand here (have no context yet)

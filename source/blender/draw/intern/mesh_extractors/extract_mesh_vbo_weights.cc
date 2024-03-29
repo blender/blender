@@ -159,7 +159,7 @@ static void extract_weights_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                         void *buffer,
                                         void *_data)
 {
-  Mesh *coarse_mesh = subdiv_cache.mesh;
+  const Mesh *coarse_mesh = subdiv_cache.mesh;
   gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
 
   static GPUVertFormat format = {0};

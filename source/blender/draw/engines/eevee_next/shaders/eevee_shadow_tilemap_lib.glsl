@@ -91,14 +91,14 @@ int shadow_tile_offset(ivec2 tile, int tiles_index, int lod)
  * \{ */
 
 /** \note: Will clamp if out of bounds. */
-ShadowTileData shadow_tile_load(usampler2D tilemaps_tx, ivec2 tile_co, int tilemap_index)
+ShadowSamplingTile shadow_tile_load(usampler2D tilemaps_tx, ivec2 tile_co, int tilemap_index)
 {
   /* NOTE(@fclem): This clamp can hide some small imprecision at clip-map transition.
    * Can be disabled to check if the clip-map is well centered. */
   tile_co = clamp(tile_co, ivec2(0), ivec2(SHADOW_TILEMAP_RES - 1));
-  uint tile_data =
-      texelFetch(tilemaps_tx, shadow_tile_coord_in_atlas(tile_co, tilemap_index), 0).x;
-  return shadow_tile_unpack(tile_data);
+  ivec2 texel = shadow_tile_coord_in_atlas(tile_co, tilemap_index);
+  uint tile_data = texelFetch(tilemaps_tx, texel, 0).x;
+  return shadow_sampling_tile_unpack(tile_data);
 }
 
 /**

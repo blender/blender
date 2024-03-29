@@ -1231,8 +1231,6 @@ struct ShadowTileData {
   uint3 page;
   /** Page index inside pages_cached_buf. Only valid if `is_cached` is true. */
   uint cache_index;
-  /** LOD pointed to LOD 0 tile page. (cube-map only). */
-  uint lod;
   /** If the tile is needed for rendering. */
   bool is_used;
   /** True if an update is needed. This persists even if the tile gets unused. */
@@ -1279,8 +1277,7 @@ static inline ShadowTileData shadow_tile_unpack(ShadowTileDataPacked data)
   ShadowTileData tile;
   tile.page = shadow_page_unpack(data);
   /* -- 12 bits -- */
-  BLI_STATIC_ASSERT(SHADOW_TILEMAP_LOD < 8, "Update page packing")
-  tile.lod = (data >> 12u) & 7u;
+  /* Unused bits. */
   /* -- 15 bits -- */
   BLI_STATIC_ASSERT(SHADOW_MAX_PAGE <= 4096, "Update page packing")
   tile.cache_index = (data >> 15u) & 4095u;
@@ -1299,7 +1296,6 @@ static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
   /* NOTE: Page might be set to invalid values for tracking invalid usages.
    * So we have to mask the result. */
   data = shadow_page_pack(tile.page) & uint(SHADOW_MAX_PAGE - 1);
-  data |= (tile.lod & 7u) << 12u;
   data |= (tile.cache_index & 4095u) << 15u;
   data |= (tile.is_used ? uint(SHADOW_IS_USED) : 0);
   data |= (tile.is_allocated ? uint(SHADOW_IS_ALLOCATED) : 0);
@@ -1307,6 +1303,89 @@ static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
   data |= (tile.is_rendered ? uint(SHADOW_IS_RENDERED) : 0);
   data |= (tile.do_update ? uint(SHADOW_DO_UPDATE) : 0);
   return data;
+}
+
+/**
+ * Decoded tile data structure.
+ * Similar to ShadowTileData, this one is only used for rendering and packed into `tilemap_tx`.
+ * This allow to reuse some bits for other purpose.
+ */
+struct ShadowSamplingTile {
+  /** Page inside the virtual shadow map atlas. */
+  uint3 page;
+  /** LOD pointed to LOD 0 tile page. */
+  uint lod;
+  /** Offset to the texel position to align with the LOD page start. (directional only). */
+  uint2 lod_offset;
+  /** If the tile is needed for rendering. */
+  bool is_valid;
+};
+/** \note Stored packed as a uint. */
+#define ShadowSamplingTilePacked uint
+
+/* NOTE: Trust the input to be in valid range [0, (1 << SHADOW_TILEMAP_MAX_CLIPMAP_LOD) - 1].
+ * Maximum LOD level index we can store is SHADOW_TILEMAP_MAX_CLIPMAP_LOD,
+ * so we need SHADOW_TILEMAP_MAX_CLIPMAP_LOD bits to store the offset in each dimension.
+ * Result fits into SHADOW_TILEMAP_MAX_CLIPMAP_LOD * 2 bits. */
+static inline uint shadow_lod_offset_pack(uint2 ofs)
+{
+  BLI_STATIC_ASSERT(SHADOW_TILEMAP_MAX_CLIPMAP_LOD <= 8, "Update page packing")
+  return ofs.x | (ofs.y << SHADOW_TILEMAP_MAX_CLIPMAP_LOD);
+}
+static inline uint2 shadow_lod_offset_unpack(uint data)
+{
+  return (uint2(data) >> uint2(0, SHADOW_TILEMAP_MAX_CLIPMAP_LOD)) &
+         uint2((1 << SHADOW_TILEMAP_MAX_CLIPMAP_LOD) - 1);
+}
+
+static inline ShadowSamplingTile shadow_sampling_tile_unpack(ShadowSamplingTilePacked data)
+{
+  ShadowSamplingTile tile;
+  tile.page = shadow_page_unpack(data);
+  /* -- 12 bits -- */
+  /* Max value is actually SHADOW_TILEMAP_MAX_CLIPMAP_LOD but we mask the bits. */
+  tile.lod = (data >> 12u) & 15u;
+  /* -- 16 bits -- */
+  tile.lod_offset = shadow_lod_offset_unpack(data >> 16u);
+  /* -- 32 bits -- */
+  tile.is_valid = data != 0u;
+#ifndef GPU_SHADER
+  /* Make tests pass on CPU but it is not required for proper rendering. */
+  if (tile.lod == 0) {
+    tile.lod_offset.x = 0;
+  }
+#endif
+  return tile;
+}
+
+static inline ShadowSamplingTilePacked shadow_sampling_tile_pack(ShadowSamplingTile tile)
+{
+  if (!tile.is_valid) {
+    return 0u;
+  }
+  /* Tag a valid tile of LOD0 valid by setting their offset to 1.
+   * This doesn't change the sampling and allows to use of all bits for data.
+   * This makes sure no valid packed tile is 0u. */
+  if (tile.lod == 0) {
+    tile.lod_offset.x = 1;
+  }
+  uint data = shadow_page_pack(tile.page);
+  /* Max value is actually SHADOW_TILEMAP_MAX_CLIPMAP_LOD but we mask the bits. */
+  data |= (tile.lod & 15u) << 12u;
+  data |= shadow_lod_offset_pack(tile.lod_offset) << 16u;
+  return data;
+}
+
+static inline ShadowSamplingTile shadow_sampling_tile_create(ShadowTileData tile_data, uint lod)
+{
+  ShadowSamplingTile tile;
+  tile.page = tile_data.page;
+  tile.lod = lod;
+  tile.lod_offset = uint2(0, 0); /* Computed during tilemap amend phase. */
+  /* At this point, it should be the case that all given tiles that have been tagged as used are
+   * ready for sampling. Otherwise tile_data should be SHADOW_NO_DATA. */
+  tile.is_valid = tile_data.is_used;
+  return tile;
 }
 
 struct ShadowSceneData {

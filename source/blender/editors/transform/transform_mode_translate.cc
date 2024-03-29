@@ -202,7 +202,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   char dist_str[NUM_STR_REP_LEN];
   float dist;
 
-  UnitSettings *unit = nullptr;
+  const UnitSettings *unit = nullptr;
   if (!(t->flag & T_2D_EDIT)) {
     unit = &t->scene->unit;
   }

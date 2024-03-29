@@ -90,9 +90,8 @@ static float bm_face_calc_poly_normal_vertex_cos(const BMFace *f,
 /**
  * \brief COMPUTE POLY CENTER (BMFace)
  */
-static void bm_face_calc_poly_center_median_vertex_cos(const BMFace *f,
-                                                       float r_cent[3],
-                                                       float const (*vertexCos)[3])
+static void bm_face_calc_poly_center_median_vertex_cos(
+    const BMFace *f, float r_cent[3], const blender::Span<blender::float3> vert_positions)
 {
   const BMLoop *l_first, *l_iter;
 
@@ -101,7 +100,7 @@ static void bm_face_calc_poly_center_median_vertex_cos(const BMFace *f,
   /* Newell's Method */
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
-    add_v3_v3(r_cent, vertexCos[BM_elem_index_get(l_iter->v)]);
+    add_v3_v3(r_cent, vert_positions[BM_elem_index_get(l_iter->v)]);
   } while ((l_iter = l_iter->next) != l_first);
   mul_v3_fl(r_cent, 1.0f / f->len);
 }
@@ -520,7 +519,7 @@ void BM_face_calc_center_bounds(const BMFace *f, float r_cent[3])
 void BM_face_calc_center_bounds_vcos(const BMesh *bm,
                                      const BMFace *f,
                                      float r_cent[3],
-                                     float const (*vertexCos)[3])
+                                     const blender::Span<blender::float3> vert_positions)
 {
   /* must have valid index data */
   BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
@@ -533,7 +532,7 @@ void BM_face_calc_center_bounds_vcos(const BMesh *bm,
 
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
-    minmax_v3v3_v3(min, max, vertexCos[BM_elem_index_get(l_iter->v)]);
+    minmax_v3v3_v3(min, max, vert_positions[BM_elem_index_get(l_iter->v)]);
   } while ((l_iter = l_iter->next) != l_first);
 
   mid_v3_v3v3(r_cent, min, max);
@@ -900,13 +899,13 @@ float BM_face_calc_normal_subset(const BMLoop *l_first, const BMLoop *l_last, fl
 void BM_face_calc_center_median_vcos(const BMesh *bm,
                                      const BMFace *f,
                                      float r_cent[3],
-                                     float const (*vertexCos)[3])
+                                     const blender::Span<blender::float3> vert_positions)
 {
   /* must have valid index data */
   BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
   (void)bm;
 
-  bm_face_calc_poly_center_median_vertex_cos(f, r_cent, vertexCos);
+  bm_face_calc_poly_center_median_vertex_cos(f, r_cent, vert_positions);
 }
 
 void BM_face_normal_flip_ex(BMesh *bm,

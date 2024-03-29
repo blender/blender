@@ -224,9 +224,20 @@ def main():
         SpecMeshTest("CubeLattice", "testCubeLattice", "expectedCubeLattice",
                      [ModifierSpec('lattice', 'LATTICE', {'object': bpy.data.objects["testLattice"]})]),
 
-        SpecMeshTest("PlaneShrinkWrap", "testPlaneShrinkWrap", "expectedPlaneShrinkWrap",
+        SpecMeshTest("ShrinkwrapTargetNormalProject1",
+                     "testShrinkwrapTargetNormalProject1Object",
+                     "expectedShrinkwrapTargetNormalProject1Object",
                      [ModifierSpec('shrinkwrap', 'SHRINKWRAP',
-                                   {'target': bpy.data.objects["testCubeWrap"], 'offset': 0.5})]),
+                                   {'wrap_method': 'TARGET_PROJECT',
+                                    'target': bpy.data.objects["ShrinkwrapTargetNormalProject1Target"],
+                                    'offset': 0.0})]),
+        SpecMeshTest("ShrinkwrapTargetNormalProject2",
+                     "testShrinkwrapTargetNormalProject2Object",
+                     "expectedShrinkwrapTargetNormalProject2Object",
+                     [ModifierSpec('shrinkwrap', 'SHRINKWRAP',
+                                   {'wrap_method': 'TARGET_PROJECT',
+                                    'target': bpy.data.objects["ShrinkwrapTargetNormalProject2Target"],
+                                    'offset': 0.0})]),
 
         SpecMeshTest("CylinderSimpleDeform", "testCylinderSimpleDeform", "expectedCylinderSimpleDeform",
                      [ModifierSpec('simple_deform', 'SIMPLE_DEFORM', {'angle': math.radians(180), 'deform_axis': 'Z'})]),
@@ -277,7 +288,7 @@ def main():
         SpecMeshTest("CurveTriangulate", "testObjBezierCurveTriangulate", "expObjBezierCurveTriangulate",
                      [ModifierSpec('triangulate', 'TRIANGULATE', {})]),
 
-        # Test 60
+        # Test 62
         # Caution Weld: if the distance is increased beyond a limit, the object disappears
         SpecMeshTest("CurveWeld", "testObjBezierCurveWeld", "expObjBezierCurveWeld",
                      [ModifierSpec('weld', 'WELD', {})]),
@@ -288,7 +299,7 @@ def main():
         #############################################
         # Curves Deform Modifiers
         #############################################
-        # Test 62
+        # Test 64
         SpecMeshTest("CurveCast", "testObjBezierCurveCast", "expObjBezierCurveCast",
                      [ModifierSpec('Cast', 'CAST', {'cast_type': 'CYLINDER', 'factor': 10})]),
 

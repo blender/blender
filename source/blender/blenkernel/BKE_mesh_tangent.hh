@@ -53,7 +53,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    uint corner_tris_len,
                                    const blender::Span<bool> sharp_faces,
 
-                                   CustomData *loopdata,
+                                   const CustomData *loopdata,
                                    bool calc_active_tangent,
                                    const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                    int tangent_names_len,
@@ -72,7 +72,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *mesh_eval,
                                  int tangent_names_len);
 
 /* Helpers */
-void BKE_mesh_add_loop_tangent_named_layer_for_uv(CustomData *uv_data,
+void BKE_mesh_add_loop_tangent_named_layer_for_uv(const CustomData *uv_data,
                                                   CustomData *tan_data,
                                                   int numLoopData,
                                                   const char *layer_name);
