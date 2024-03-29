@@ -1831,6 +1831,15 @@ class _defs_paint_grease_pencil:
             data_block='ERASE',
         )
 
+    @ToolDef.from_fn
+    def tint():
+        return dict(
+            idname="builtin_brush.Tint",
+            label="Tint",
+            icon="brush.gpencil_draw.tint",
+            data_block='TINT',
+        )
+
 
 class _defs_image_generic:
 
@@ -3197,6 +3206,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_paint_grease_pencil.draw,
             _defs_paint_grease_pencil.erase,
+            _defs_paint_grease_pencil.tint,
         ],
         'PAINT_GPENCIL': [
             _defs_view3d_generic.cursor,

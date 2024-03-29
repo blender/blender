@@ -42,6 +42,7 @@ set(SRC
   curves_sculpt_snake_hook.cc
   grease_pencil_draw_ops.cc
   grease_pencil_erase.cc
+  grease_pencil_tint.cc
   grease_pencil_paint.cc
   paint_canvas.cc
   paint_cursor.cc
