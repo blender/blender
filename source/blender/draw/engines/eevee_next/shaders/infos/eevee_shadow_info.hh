@@ -195,6 +195,13 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_finalize)
     .additional_info("eevee_shared")
     .compute_source("eevee_shadow_tilemap_finalize_comp.glsl");
 
+GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_amend)
+    .do_static_compilation(true)
+    .local_group_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
+    .image(0, GPU_R32UI, Qualifier::READ_WRITE, ImageType::UINT_2D, "tilemaps_img")
+    .additional_info("eevee_shared", "eevee_light_data", "draw_view")
+    .compute_source("eevee_shadow_tilemap_amend_comp.glsl");
+
 /* AtomicMin clear implementation. */
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_clear)
     .do_static_compilation(true)

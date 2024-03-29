@@ -586,6 +586,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_shadow_tag_usage_vert.glsl
   engines/eevee_next/shaders/eevee_shadow_tag_usage_volume_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_test.glsl
+  engines/eevee_next/shaders/eevee_shadow_tilemap_amend_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_bounds_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_finalize_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_init_comp.glsl
