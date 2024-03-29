@@ -888,7 +888,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   }
 
   asset_system::AssetLibrary *library = AS_asset_library_load(
-      CTX_data_main(C), user_library_to_library_ref(*user_library));
+      bmain, user_library_to_library_ref(*user_library));
   if (!library) {
     BKE_report(op->reports, RPT_ERROR, "Failed to load asset library");
     return OPERATOR_CANCELLED;
