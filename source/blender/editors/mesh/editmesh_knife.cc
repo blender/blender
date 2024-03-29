@@ -19,7 +19,6 @@
 #include "BLF_api.hh"
 
 #include "BLI_alloca.h"
-#include "BLI_array.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
@@ -31,6 +30,7 @@
 #include "BLI_set.hh"
 #include "BLI_stack.h"
 #include "BLI_string.h"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.hh"
 
@@ -258,8 +258,7 @@ struct KnifeTool_OpData {
   float ethresh;
 
   /* Used for drag-cutting. */
-  KnifeLineHit *linehits;
-  int totlinehit;
+  Vector<KnifeLineHit> linehits;
 
   /* Data for mouse-position-derived data. */
   KnifePosData curr; /* Current point under the cursor. */
@@ -1025,23 +1024,21 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
     immEnd();
   }
 
-  if (kcd->totlinehit > 0) {
-    KnifeLineHit *lh;
-    int i, snapped_verts_count, other_verts_count;
-    float fcol[4];
-
+  const int64_t total_hits = kcd->linehits.size();
+  if (total_hits > 0) {
     GPU_blend(GPU_BLEND_ALPHA);
 
     blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(format);
-    GPU_vertbuf_data_alloc(vert, kcd->totlinehit);
+    GPU_vertbuf_data_alloc(vert, total_hits);
 
-    lh = kcd->linehits;
-    for (i = 0, snapped_verts_count = 0, other_verts_count = 0; i < kcd->totlinehit; i++, lh++) {
-      if (lh->v) {
-        GPU_vertbuf_attr_set(vert, pos, snapped_verts_count++, lh->cagehit);
+    int other_verts_count = 0;
+    int snapped_verts_count = 0;
+    for (const KnifeLineHit &hit : kcd->linehits) {
+      if (hit.v) {
+        GPU_vertbuf_attr_set(vert, pos, snapped_verts_count++, hit.cagehit);
       }
       else {
-        GPU_vertbuf_attr_set(vert, pos, kcd->totlinehit - 1 - other_verts_count++, lh->cagehit);
+        GPU_vertbuf_attr_set(vert, pos, total_hits - 1 - other_verts_count++, hit.cagehit);
       }
     }
 
@@ -1049,6 +1046,7 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
     GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 
     /* Draw any snapped verts first. */
+    float fcol[4];
     rgba_uchar_to_float(fcol, kcd->colors.point_a);
     GPU_batch_uniform_4fv(batch, "color", fcol);
     GPU_point_size(11 * UI_SCALE_FAC);
@@ -1863,30 +1861,27 @@ static void linehit_to_knifepos(KnifePosData *kpos, KnifeLineHit *lh)
  * Secondary key: lambda along depth
  * Tertiary key: pointer comparisons of verts if both snapped to verts
  */
-static int linehit_compare(const void *vlh1, const void *vlh2)
+static int linehit_compare(const KnifeLineHit &lh1, const KnifeLineHit &lh2)
 {
-  const KnifeLineHit *lh1 = static_cast<const KnifeLineHit *>(vlh1);
-  const KnifeLineHit *lh2 = static_cast<const KnifeLineHit *>(vlh2);
-
-  if (lh1->l < lh2->l) {
-    return -1;
+  if (lh1.l < lh2.l) {
+    return true;
   }
-  if (lh1->l > lh2->l) {
-    return 1;
+  if (lh1.l > lh2.l) {
+    return false;
   }
-  if (lh1->m < lh2->m) {
-    return -1;
+  if (lh1.m < lh2.m) {
+    return true;
   }
-  if (lh1->m > lh2->m) {
-    return 1;
+  if (lh1.m > lh2.m) {
+    return false;
   }
-  if (lh1->v < lh2->v) {
-    return -1;
+  if (lh1.v < lh2.v) {
+    return true;
   }
-  if (lh1->v > lh2->v) {
-    return 1;
+  if (lh1.v > lh2.v) {
+    return false;
   }
-  return 0;
+  return false;
 }
 
 /*
@@ -1898,26 +1893,25 @@ static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
 {
   bool is_double = false;
 
-  int n = kcd->totlinehit;
-  KnifeLineHit *linehits = kcd->linehits;
-  if (n == 0) {
+  if (kcd->linehits.is_empty()) {
     return;
   }
 
-  qsort(linehits, n, sizeof(KnifeLineHit), linehit_compare);
+  std::sort(kcd->linehits.begin(), kcd->linehits.end(), linehit_compare);
 
   /* Remove any edge hits that are preceded or followed
    * by a vertex hit that is very near. Mark such edge hits using
    * l == -1 and then do another pass to actually remove.
    * Also remove all but one of a series of vertex hits for the same vertex. */
-  for (int i = 0; i < n; i++) {
-    KnifeLineHit *lhi = &linehits[i];
+  const int64_t total_hits = kcd->linehits.size();
+  for (int i = 0; i < total_hits; i++) {
+    KnifeLineHit *lhi = &kcd->linehits[i];
     if (lhi->v == nullptr) {
       continue;
     }
 
     for (int j = i - 1; j >= 0; j--) {
-      KnifeLineHit *lhj = &linehits[j];
+      KnifeLineHit *lhj = &kcd->linehits[j];
       if (!lhj->kfe || fabsf(lhi->l - lhj->l) > KNIFE_FLT_EPSBIG ||
           fabsf(lhi->m - lhj->m) > KNIFE_FLT_EPSBIG)
       {
@@ -1929,8 +1923,8 @@ static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
         is_double = true;
       }
     }
-    for (int j = i + 1; j < n; j++) {
-      KnifeLineHit *lhj = &linehits[j];
+    for (int j = i + 1; j < total_hits; j++) {
+      KnifeLineHit *lhj = &kcd->linehits[j];
       if (fabsf(lhi->l - lhj->l) > KNIFE_FLT_EPSBIG || fabsf(lhi->m - lhj->m) > KNIFE_FLT_EPSBIG) {
         break;
       }
@@ -1945,9 +1939,9 @@ static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
     /* Delete-in-place loop: copying from pos j to pos i+1. */
     int i = 0;
     int j = 1;
-    while (j < n) {
-      KnifeLineHit *lhi = &linehits[i];
-      KnifeLineHit *lhj = &linehits[j];
+    while (j < total_hits) {
+      KnifeLineHit *lhi = &kcd->linehits[i];
+      KnifeLineHit *lhj = &kcd->linehits[j];
       if (lhj->l == -1.0f) {
         j++; /* Skip copying this one. */
       }
@@ -1955,18 +1949,18 @@ static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
         /* Copy unless a no-op. */
         if (lhi->l == -1.0f) {
           /* Could happen if linehits[0] is being deleted. */
-          memcpy(&linehits[i], &linehits[j], sizeof(KnifeLineHit));
+          memcpy(&kcd->linehits[i], &kcd->linehits[j], sizeof(KnifeLineHit));
         }
         else {
           if (i + 1 != j) {
-            memcpy(&linehits[i + 1], &linehits[j], sizeof(KnifeLineHit));
+            memcpy(&kcd->linehits[i + 1], &kcd->linehits[j], sizeof(KnifeLineHit));
           }
           i++;
         }
         j++;
       }
     }
-    kcd->totlinehit = i + 1;
+    kcd->linehits.resize(i + 1);
   }
 }
 
@@ -2340,7 +2334,6 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, int ob_index)
  */
 static void knife_add_cut(KnifeTool_OpData *kcd)
 {
-  int i;
   GHash *facehits;
   BMFace *f;
   GHashIterator giter;
@@ -2362,7 +2355,7 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
   kcd->mdata.is_stored = true;
 
   prepare_linehits_for_cut(kcd);
-  if (kcd->totlinehit == 0) {
+  if (kcd->linehits.is_empty()) {
     if (kcd->is_drag_hold == false) {
       kcd->prev = kcd->curr;
     }
@@ -2370,14 +2363,14 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
   }
 
   /* Consider most recent linehit in angle drawing calculations. */
-  if (kcd->totlinehit >= 2) {
-    copy_v3_v3(kcd->mdata.cage, kcd->linehits[kcd->totlinehit - 2].cagehit);
+  if (kcd->linehits.size() >= 2) {
+    copy_v3_v3(kcd->mdata.cage, kcd->linehits[kcd->linehits.size() - 2].cagehit);
   }
 
   /* Make facehits: map face -> list of linehits touching it. */
   facehits = BLI_ghash_ptr_new("knife facehits");
-  for (i = 0; i < kcd->totlinehit; i++) {
-    KnifeLineHit *lh = &kcd->linehits[i];
+  for (KnifeLineHit &hit : kcd->linehits) {
+    KnifeLineHit *lh = &hit;
     if (lh->f) {
       add_hit_to_facehits(kcd, facehits, lh->f, lh);
     }
@@ -2408,29 +2401,23 @@ static void knife_add_cut(KnifeTool_OpData *kcd)
 
   if (kcd->prev.bmface) {
     /* Was "in face" but now we have a KnifeVert it is snapped to. */
-    KnifeLineHit *lh = &kcd->linehits[kcd->totlinehit - 1];
+    KnifeLineHit *lh = &kcd->linehits.last();
     kcd->prev.vert = lh->v;
     kcd->prev.bmface = nullptr;
   }
 
   if (kcd->is_drag_hold) {
-    KnifeLineHit *lh = &kcd->linehits[kcd->totlinehit - 1];
+    KnifeLineHit *lh = &kcd->linehits.last();
     linehit_to_knifepos(&kcd->prev, lh);
   }
 
   BLI_ghash_free(facehits, nullptr, nullptr);
-  MEM_freeN(kcd->linehits);
-  kcd->linehits = nullptr;
-  kcd->totlinehit = 0;
+  kcd->linehits.clear_and_shrink();
 }
 
 static void knife_finish_cut(KnifeTool_OpData *kcd)
 {
-  if (kcd->linehits) {
-    MEM_freeN(kcd->linehits);
-    kcd->linehits = nullptr;
-    kcd->totlinehit = 0;
-  }
+  kcd->linehits.clear_and_shrink();
 }
 
 /** \} */
@@ -2820,8 +2807,6 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   float v1[3], v2[3], v3[3], v4[3], s1[2], s2[2];
   int *results, *result;
   ListBase *list;
-  KnifeLineHit *linehits = nullptr;
-  BLI_array_declare(linehits);
   KnifeLineHit hit;
   float s[2], se1[2], se2[2];
   float d1, d2;
@@ -2831,11 +2816,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   uint tot;
   int i;
 
-  if (kcd->linehits) {
-    MEM_freeN(kcd->linehits);
-    kcd->linehits = nullptr;
-    kcd->totlinehit = 0;
-  }
+  kcd->linehits.clear_and_shrink();
 
   copy_v3_v3(v1, kcd->prev.cage);
   copy_v3_v3(v2, kcd->curr.cage);
@@ -2967,6 +2948,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   /* Assume these tolerances swamp floating point rounding errors in calculations below. */
 
   /* First look for vertex hits. */
+  Vector<KnifeLineHit> linehits;
   for (KnifeVert *v : kfvs) {
     KnifeEdge *kfe_hit = nullptr;
 
@@ -2991,7 +2973,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 
     if (kfv_is_in_cut) {
       knife_linehit_set(kcd, s1, s2, s, v->cageco, v->ob_index, v, kfe_hit, &hit);
-      BLI_array_append(linehits, hit);
+      linehits.append(hit);
     }
     else {
       /* This vertex isn't used so remove from `kfvs`.
@@ -3068,7 +3050,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     }
     if (kfe_is_in_cut) {
       knife_linehit_set(kcd, s1, s2, p_cage_ss, p_cage, kfe->v1->ob_index, nullptr, kfe, &hit);
-      BLI_array_append(linehits, hit);
+      linehits.append(hit);
     }
   }
 
@@ -3082,19 +3064,18 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
       if (use_hit_prev &&
           knife_linehit_face_test(kcd, s1, s2, s1, v1, v3, ob_index, f, face_tol_sq, &hit))
       {
-        BLI_array_append(linehits, hit);
+        linehits.append(hit);
       }
 
       if (use_hit_curr &&
           knife_linehit_face_test(kcd, s1, s2, s2, v2, v4, ob_index, f, face_tol_sq, &hit))
       {
-        BLI_array_append(linehits, hit);
+        linehits.append(hit);
       }
     }
   }
 
-  kcd->linehits = linehits;
-  kcd->totlinehit = BLI_array_len(linehits);
+  kcd->linehits = std::move(linehits);
 
   MEM_freeN(results);
 }
@@ -4133,11 +4114,6 @@ static void knifetool_exit_ex(KnifeTool_OpData *kcd)
   /* Knife BVH cleanup. */
   knife_bvh_free(kcd);
 
-  /* Line-hits cleanup. */
-  if (kcd->linehits) {
-    MEM_freeN(kcd->linehits);
-  }
-
   /* Destroy kcd itself. */
   MEM_delete(kcd);
 }
@@ -4581,7 +4557,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
           knife_update_header(C, op, kcd);
 
           if (kcd->is_drag_hold) {
-            if (kcd->totlinehit >= 2) {
+            if (kcd->linehits.size() >= 2) {
               knife_add_cut(kcd);
             }
           }
