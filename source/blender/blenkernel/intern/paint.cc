@@ -1662,7 +1662,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
   SculptSession *ss = ob->sculpt;
-  Mesh *mesh = BKE_object_get_original_mesh(ob);
+  Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
   Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
   MultiresModifierData *mmd = sculpt_multires_modifier_get(scene, ob, true);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
@@ -1693,28 +1693,28 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->multires.level = mmd->sculptlvl;
     ss->totvert = mesh_eval->verts_num;
     ss->faces_num = mesh_eval->faces_num;
-    ss->totfaces = mesh->faces_num;
+    ss->totfaces = mesh_orig->faces_num;
 
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
-    ss->vert_positions = mesh->vert_positions_for_write();
-    ss->faces = mesh->faces();
-    ss->corner_verts = mesh->corner_verts();
+    ss->vert_positions = mesh_orig->vert_positions_for_write();
+    ss->faces = mesh_orig->faces();
+    ss->corner_verts = mesh_orig->corner_verts();
   }
   else {
-    ss->totvert = mesh->verts_num;
-    ss->faces_num = mesh->faces_num;
-    ss->totfaces = mesh->faces_num;
-    ss->vert_positions = mesh->vert_positions_for_write();
-    ss->faces = mesh->faces();
-    ss->corner_verts = mesh->corner_verts();
+    ss->totvert = mesh_orig->verts_num;
+    ss->faces_num = mesh_orig->faces_num;
+    ss->totfaces = mesh_orig->faces_num;
+    ss->vert_positions = mesh_orig->vert_positions_for_write();
+    ss->faces = mesh_orig->faces();
+    ss->corner_verts = mesh_orig->corner_verts();
     ss->multires.active = false;
     ss->multires.modifier = nullptr;
     ss->multires.level = 0;
 
     CustomDataLayer *layer;
     AttrDomain domain;
-    if (BKE_pbvh_get_color_layer(mesh, &layer, &domain)) {
+    if (BKE_pbvh_get_color_layer(mesh_orig, &layer, &domain)) {
       if (layer->type == CD_PROP_COLOR) {
         ss->vcol = static_cast<MPropCol *>(layer->data);
       }
@@ -1737,13 +1737,14 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   /* Sculpt Face Sets. */
   if (use_face_sets) {
     ss->face_sets = static_cast<const int *>(
-        CustomData_get_layer_named(&mesh->face_data, CD_PROP_INT32, ".sculpt_face_set"));
+        CustomData_get_layer_named(&mesh_orig->face_data, CD_PROP_INT32, ".sculpt_face_set"));
   }
   else {
     ss->face_sets = nullptr;
   }
 
-  ss->hide_poly = (bool *)CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, ".hide_poly");
+  ss->hide_poly = (bool *)CustomData_get_layer_named(
+      &mesh_orig->face_data, CD_PROP_BOOL, ".hide_poly");
 
   ss->subdiv_ccg = mesh_eval->runtime->subdiv_ccg.get();
 
@@ -1757,7 +1758,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   sculpt_update_persistent_base(ob);
 
   if (ob->type == OB_MESH) {
-    ss->vert_to_face_map = mesh->vert_to_face_map();
+    ss->vert_to_face_map = mesh_orig->vert_to_face_map();
   }
 
   if (ss->pbvh) {
@@ -1794,8 +1795,8 @@ static void sculpt_update_object(Depsgraph *depsgraph,
 
       ss->orig_cos = (ss->shapekey_active) ?
                          Span(static_cast<const float3 *>(ss->shapekey_active->data),
-                              mesh->verts_num) :
-                         mesh->vert_positions();
+                              mesh_orig->verts_num) :
+                         mesh_orig->vert_positions();
 
       BKE_crazyspace_build_sculpt(depsgraph, scene, ob, ss->deform_imats, ss->deform_cos);
       BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos);
@@ -1810,14 +1811,16 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   }
 
   if (ss->shapekey_active != nullptr && ss->deform_cos.is_empty()) {
-    ss->deform_cos = Span(static_cast<const float3 *>(ss->shapekey_active->data), mesh->verts_num);
+    ss->deform_cos = Span(static_cast<const float3 *>(ss->shapekey_active->data),
+                          mesh_orig->verts_num);
   }
 
   /* if pbvh is deformed, key block is already applied to it */
   if (ss->shapekey_active) {
     bool pbvh_deformed = BKE_pbvh_is_deformed(ss->pbvh);
     if (!pbvh_deformed || ss->deform_cos.is_empty()) {
-      const Span key_data(static_cast<const float3 *>(ss->shapekey_active->data), mesh->verts_num);
+      const Span key_data(static_cast<const float3 *>(ss->shapekey_active->data),
+                          mesh_orig->verts_num);
 
       if (key_data.data() != nullptr) {
         if (!pbvh_deformed) {
