@@ -117,7 +117,6 @@ typedef enum eAssetImportMethod {
 
 typedef enum eAssetLibrary_Flag {
   ASSET_LIBRARY_RELATIVE_PATH = (1 << 0),
-  ASSET_LIBRARY_DEFAULT = (1 << 1),
 } eAssetLibrary_Flag;
 
 /**

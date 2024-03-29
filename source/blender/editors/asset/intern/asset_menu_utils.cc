@@ -89,7 +89,7 @@ static const asset_system::AssetRepresentation *get_local_asset_from_relative_id
   return matching_asset;
 }
 
-static const asset_system::AssetRepresentation *find_asset_from_weak_ref(
+const asset_system::AssetRepresentation *find_asset_from_weak_ref(
     const bContext &C, const AssetWeakReference &weak_ref, ReportList *reports)
 {
   if (weak_ref.asset_library_type == ASSET_LIBRARY_LOCAL) {

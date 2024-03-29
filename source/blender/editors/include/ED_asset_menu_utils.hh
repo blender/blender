@@ -44,6 +44,9 @@ void operator_asset_reference_props_set(const asset_system::AssetRepresentation 
                                         PointerRNA &ptr);
 void operator_asset_reference_props_register(StructRNA &srna);
 
+const asset_system::AssetRepresentation *find_asset_from_weak_ref(
+    const bContext &C, const AssetWeakReference &weak_ref, ReportList *reports);
+
 /**
  * Load all asset libraries to find an asset from the #operator_asset_reference_props_register
  * properties. The loading happens in the background, so there may be no result immediately. In

@@ -1581,7 +1581,6 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         layout.prop(active_library, "path")
         layout.prop(active_library, "import_method", text="Import Method")
         layout.prop(active_library, "use_relative_path")
-        layout.prop(active_library, "is_default")
 
 
 class USERPREF_UL_asset_libraries(UIList):
