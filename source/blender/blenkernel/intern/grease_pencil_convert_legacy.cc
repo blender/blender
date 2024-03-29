@@ -1840,6 +1840,55 @@ static void legacy_object_modifier_subdiv(Object &object, GpencilModifierData &l
                                    false);
 }
 
+static void legacy_object_modifier_texture(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilTexture, legacy_md);
+  auto &md_texture = reinterpret_cast<GreasePencilTextureModifierData &>(md);
+  auto &legacy_md_texture = reinterpret_cast<TextureGpencilModifierData &>(legacy_md);
+
+  switch (eTextureGpencil_Mode(legacy_md_texture.mode)) {
+    case STROKE:
+      md_texture.mode = MOD_GREASE_PENCIL_TEXTURE_STROKE;
+      break;
+    case FILL:
+      md_texture.mode = MOD_GREASE_PENCIL_TEXTURE_FILL;
+      break;
+    case STROKE_AND_FILL:
+      md_texture.mode = MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL;
+      break;
+  }
+  switch (eTextureGpencil_Fit(legacy_md_texture.fit_method)) {
+    case GP_TEX_FIT_STROKE:
+      md_texture.fit_method = MOD_GREASE_PENCIL_TEXTURE_FIT_STROKE;
+      break;
+    case GP_TEX_CONSTANT_LENGTH:
+      md_texture.fit_method = MOD_GREASE_PENCIL_TEXTURE_CONSTANT_LENGTH;
+      break;
+  }
+  md_texture.uv_offset = legacy_md_texture.uv_offset;
+  md_texture.uv_scale = legacy_md_texture.uv_scale;
+  md_texture.fill_rotation = legacy_md_texture.fill_rotation;
+  copy_v2_v2(md_texture.fill_offset, legacy_md_texture.fill_offset);
+  md_texture.fill_scale = legacy_md_texture.fill_scale;
+  md_texture.layer_pass = legacy_md_texture.layer_pass;
+  md_texture.alignment_rotation = legacy_md_texture.alignment_rotation;
+
+  legacy_object_modifier_influence(md_texture.influence,
+                                   legacy_md_texture.layername,
+                                   legacy_md_texture.layer_pass,
+                                   legacy_md_texture.flag & GP_TEX_INVERT_LAYER,
+                                   legacy_md_texture.flag & GP_TEX_INVERT_LAYERPASS,
+                                   &legacy_md_texture.material,
+                                   legacy_md_texture.pass_index,
+                                   legacy_md_texture.flag & GP_TEX_INVERT_MATERIAL,
+                                   legacy_md_texture.flag & GP_TEX_INVERT_PASS,
+                                   legacy_md_texture.vgname,
+                                   legacy_md_texture.flag & GP_TEX_INVERT_VGROUP,
+                                   nullptr,
+                                   false);
+}
+
 static void legacy_object_modifier_thickness(Object &object, GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
@@ -2286,6 +2335,9 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_Subdiv:
         legacy_object_modifier_subdiv(object, *gpd_md);
         break;
+      case eGpencilModifierType_Texture:
+        legacy_object_modifier_texture(object, *gpd_md);
+        break;
       case eGpencilModifierType_Thick:
         legacy_object_modifier_thickness(object, *gpd_md);
         break;
@@ -2310,7 +2362,6 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_Simplify:
         legacy_object_modifier_simplify(object, *gpd_md);
         break;
-      case eGpencilModifierType_Texture:
         break;
     }
 

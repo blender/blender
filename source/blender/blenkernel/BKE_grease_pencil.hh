@@ -76,12 +76,12 @@ class Drawing : public ::GreasePencilDrawing {
   void tag_positions_changed();
   void tag_topology_changed();
 
-  /*
+  /**
    * Returns the matrices that transform from a 3D point in layer-space to a 2D point in
    * texture-space.
    */
   Span<float4x2> texture_matrices() const;
-  /*
+  /**
    * Sets the matrices the that transform from a 3D point in layer-space to a 2D point in
    * texture-space
    */

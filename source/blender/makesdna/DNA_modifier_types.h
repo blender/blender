@@ -120,6 +120,7 @@ typedef enum ModifierType {
   eModifierType_GreasePencilShrinkwrap = 83,
   eModifierType_GreasePencilBuild = 84,
   eModifierType_GreasePencilSimplify = 85,
+  eModifierType_GreasePencilTexture = 86,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -3430,3 +3431,35 @@ typedef enum GreasePencilSimplifyModifierMode {
   MOD_GREASE_PENCIL_SIMPLIFY_SAMPLE = 2,
   MOD_GREASE_PENCIL_SIMPLIFY_MERGE = 3,
 } GreasePencilSimplifyModifierMode;
+
+typedef struct GreasePencilTextureModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  /* Offset value to add to uv_fac. */
+  float uv_offset;
+  float uv_scale;
+  float fill_rotation;
+  float fill_offset[2];
+  float fill_scale;
+  /* Custom index for passes. */
+  int layer_pass;
+  /* Texture fit options. */
+  short fit_method;
+  short mode;
+  /* Dot texture rotation. */
+  float alignment_rotation;
+  char _pad[4];
+} GreasePencilTextureModifierData;
+
+/* Texture->fit_method */
+typedef enum GreasePencilTextureModifierFit {
+  MOD_GREASE_PENCIL_TEXTURE_FIT_STROKE = 0,
+  MOD_GREASE_PENCIL_TEXTURE_CONSTANT_LENGTH = 1,
+} GreasePencilTextureModifierFit;
+
+/* Texture->mode */
+typedef enum GreasePencilTextureModifierMode {
+  MOD_GREASE_PENCIL_TEXTURE_STROKE = 0,
+  MOD_GREASE_PENCIL_TEXTURE_FILL = 1,
+  MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL = 2,
+} GreasePencilTextureModifierMode;

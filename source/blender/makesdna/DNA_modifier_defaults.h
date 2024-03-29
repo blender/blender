@@ -1070,6 +1070,16 @@
     .length = 0.1f, \
     .distance = 0.1f, \
   }
-  
-  
+
+#define _DNA_DEFAULT_GreasePencilTextureModifierData \
+  { \
+    .uv_offset = 0.0f, \
+    .uv_scale = 1.0f, \
+    .fill_rotation = 0.0f, \
+    .fill_offset = {0.0f, 0.0f}, \
+    .fill_scale = 1.0f, \
+    .fit_method = GP_TEX_CONSTANT_LENGTH, \
+    .mode = 0, \
+  }
+
 /* clang-format off */
