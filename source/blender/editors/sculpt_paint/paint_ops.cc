@@ -1097,9 +1097,12 @@ static bool brush_asset_delete_poll(bContext *C)
   if (paint == nullptr || brush == nullptr) {
     return false;
   }
+  if (!paint->brush_asset_reference) {
+    return false;
+  }
 
   /* Asset brush, check if belongs to an editable blend file. */
-  if (paint->brush_asset_reference && ID_IS_ASSET(brush)) {
+  if (ID_IS_ASSET(brush)) {
     if (!bke::asset_edit_id_is_editable(&brush->id)) {
       CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
       return false;
