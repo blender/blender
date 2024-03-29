@@ -24,7 +24,7 @@
 struct BMEditMesh;
 struct BVHCache;
 struct Mesh;
-struct ShrinkwrapBoundaryData;
+class ShrinkwrapBoundaryData;
 struct SubdivCCG;
 struct SubsurfRuntimeData;
 namespace blender::bke {

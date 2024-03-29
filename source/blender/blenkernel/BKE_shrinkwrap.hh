@@ -47,7 +47,15 @@ struct ShrinkwrapBoundaryVertData {
   float normal_plane[3];
 };
 
-struct ShrinkwrapBoundaryData {
+class ShrinkwrapBoundaryData {
+ public:
+  /* Returns true if there is boundary information. If there is no boundary information, then the
+   * mesh from which this data is created from has no boundaries. */
+  inline bool has_boundary() const
+  {
+    return !edge_is_boundary.is_empty();
+  }
+
   /* True if the edge belongs to exactly one face. */
   blender::BitVector<> edge_is_boundary;
   /* True if the triangle has any boundary edges. */
