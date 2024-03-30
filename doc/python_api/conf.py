@@ -5,6 +5,17 @@
 import time
 
 
+def has_module(module_name):
+    found = False
+    try:
+        __import__(module_name)
+        found = True
+    except ModuleNotFoundError as ex:
+        if ex.name != module_name:
+            raise ex
+    return found
+
+
 # These are substituted when this file is copied to the build directory.
 BLENDER_VERSION_STRING = "${BLENDER_VERSION_STRING}"
 BLENDER_VERSION_DOTS = "${BLENDER_VERSION_DOTS}"
@@ -27,6 +38,16 @@ else:
 
 extensions = ["sphinx.ext.intersphinx"]
 intersphinx_mapping = {"blender_manual": ("https://docs.blender.org/manual/en/dev/", None)}
+
+
+# Provides copy button next to code-blocks (nice to have but not essential).
+if has_module("sphinx_copybutton"):
+    extensions.append("sphinx_copybutton")
+
+    # Exclude line numbers, prompts, and console text.
+    copybutton_exclude = ".linenos, .gp, .go"
+
+
 project = "Blender %s Python API" % BLENDER_VERSION_STRING
 root_doc = "index"
 copyright = "Blender Authors"
@@ -48,14 +69,8 @@ html_title = "Blender Python API"
 # The fallback to a built-in theme when `furo` is not found.
 html_theme = "default"
 
-try:
-    import furo
+if has_module("furo"):
     html_theme = "furo"
-    del furo
-except ModuleNotFoundError:
-    pass
-
-if html_theme == "furo":
     html_theme_options = {
         "light_css_variables": {
             "color-brand-primary": "#265787",
