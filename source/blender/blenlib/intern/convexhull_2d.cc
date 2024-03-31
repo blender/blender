@@ -233,17 +233,18 @@ int BLI_convexhull_2d(const float (*points)[2], const int points_num, int r_poin
  * \{ */
 
 #if defined(USE_BRUTE_FORCE_ASSERT) && !defined(NDEBUG)
-static float convexhull_aabb_fit_hull_2d_brute_force(const float (*points_hull)[2],
-                                                     int points_hull_num)
+static float2 convexhull_aabb_fit_hull_2d_brute_force(const float (*points_hull)[2],
+                                                      int points_hull_num)
 {
   float area_best = FLT_MAX;
   float2 sincos_best = {0.0f, 1.0f}; /* Track the best angle as a unit vector, delaying `atan2`. */
 
-  for (int i = 0, i_prev = points_hull_num - 1; i < points_hull_num; i_prev = i++) {
+  for (int i = 0; i < points_hull_num; i++) {
+    const int i_next = (i + 1) % points_hull_num;
     /* 2D rotation matrix. */
     float dvec_length = 0.0f;
     const float2 sincos = math::normalize_and_get_length(
-        float2(points_hull[i]) - float2(points_hull[i_prev]), dvec_length);
+        float2(points_hull[i_next]) - float2(points_hull[i]), dvec_length);
     if (UNLIKELY(dvec_length == 0.0f)) {
       continue;
     }
@@ -274,7 +275,7 @@ static float convexhull_aabb_fit_hull_2d_brute_force(const float (*points_hull)[
     }
   }
 
-  return (area_best != FLT_MAX) ? float(atan2(sincos_best[0], sincos_best[1])) : 0.0f;
+  return sincos_best;
 }
 #endif
 
@@ -337,11 +338,12 @@ static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int poin
   /* Initialize to zero because the first pass uses the first index to set the bounds. */
   blender::Bounds<int> bounds_index[2] = {{0, 0}, {0, 0}};
 
-  for (int i = 0, i_prev = points_hull_num - 1; i < points_hull_num; i_prev = i++) {
+  for (int i = 0; i < points_hull_num; i++) {
+    const int i_next = (i + 1) % points_hull_num;
     /* 2D rotation matrix. */
     float dvec_length = 0.0f;
     const float2 sincos = math::normalize_and_get_length(
-        float2(points_hull[i]) - float2(points_hull[i_prev]), dvec_length);
+        float2(points_hull[i_next]) - float2(points_hull[i]), dvec_length);
     if (UNLIKELY(dvec_length == 0.0f)) {
       continue;
     }
@@ -406,8 +408,11 @@ static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int poin
 #if defined(USE_BRUTE_FORCE_ASSERT) && !defined(NDEBUG)
   {
     /* Ensure the optimized result matches the brute-force version. */
-    const float angle_test = convexhull_aabb_fit_hull_2d_brute_force(points_hull, points_hull_num);
-    BLI_assert(angle == angle_test);
+    const float2 sincos_test = convexhull_aabb_fit_hull_2d_brute_force(points_hull,
+                                                                       points_hull_num);
+    if (sincos_best != sincos_test) {
+      BLI_assert(sincos_best == sincos_test);
+    }
   }
 #endif
 
