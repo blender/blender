@@ -26,6 +26,15 @@
  */
 // #define USE_BRUTE_FORCE_ASSERT
 
+/**
+ * Assert that the angles the iterator is looping over are in order.
+ * This works as a general rule however it can fail for large near co-linear edges.
+ * Even though the hull is convex, the angles calculated from the edges may not consistently
+ * wind in in the same direction. Even when it does occur the angle discrepancy is so small
+ * that it can be safely ignored.
+ */
+// #define USE_ANGLE_ITER_ORDER_ASSERT
+
 using namespace blender;
 
 /* -------------------------------------------------------------------- */
@@ -282,6 +291,267 @@ static float2 convexhull_aabb_fit_hull_2d_brute_force(const float (*points_hull)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Hull Angle Iteration
+ *
+ * Step over all angles defined by a convex hull in order from 0-90 degrees,
+ * when angles are converted into their canonical form (see #sincos_canonical).
+ * \{ */
+
+/**
+ * Return a canonical version of `sincos` for the purpose of bounding box fitting,
+ * this maps any `sincos` to 0-1 range for both `sin` & `cos`.
+ */
+static float2 sincos_canonical(const float2 &sincos)
+{
+
+  /* Normalize doesn't ensure a `sin` / `cos` of 1.0/-1.0 ensures the other value is zero.
+   * Without the check for both 0.0 and 1.0, iteration may not be ordered. */
+  float2 result;
+  if (sincos[0] < 0.0f) {
+    if (sincos[1] < 0.0f) {
+      result[0] = -sincos[0];
+      result[1] = -sincos[1];
+    }
+    else if ((sincos[0] == -1.0f) && (sincos[1] == 0.0f)) {
+      result[0] = -sincos[0];
+      result[1] = sincos[1];
+    }
+    else {
+      result[0] = sincos[1];
+      result[1] = -sincos[0];
+    }
+  }
+  else {
+    if (sincos[1] < 0.0f) {
+      result[0] = -sincos[1];
+      result[1] = sincos[0];
+    }
+    else if ((sincos[0] == 0.0f) && (sincos[1] == 1.0f)) {
+      result[0] = sincos[1];
+      result[1] = sincos[0];
+    }
+    else {
+      result = sincos;
+    }
+  }
+
+  /* The range is [1.0, 0.0], it will approach but never return [0.0, 1.0],
+   * as the canonical version of this value gets flipped to [1.0, 0.0]. */
+  BLI_assert(result[0] > 0.0f);
+  BLI_assert(result[1] >= 0.0f);
+  return result;
+}
+
+/**
+ * An angle calculated from an edge in a convex hull.
+ */
+struct AngleCanonical {
+  /** The edges normalized vector. */
+  float2 sincos;
+  /** The result of `sincos_canonical(sincos)` */
+  float2 sincos_canonical;
+  /** The index value for the edge `sincos` was calculated from, used as a tie breaker. */
+  int index;
+};
+
+static int hull_angle_canonical_cmp(const AngleCanonical &a, const AngleCanonical &b)
+{
+  if (a.sincos_canonical[0] < b.sincos_canonical[0]) {
+    return -1;
+  }
+  if (a.sincos_canonical[0] > b.sincos_canonical[0]) {
+    return 1;
+  }
+  /* Flipped intentionally. */
+  if (a.sincos_canonical[1] > b.sincos_canonical[1]) {
+    return -1;
+  }
+  if (a.sincos_canonical[1] < b.sincos_canonical[1]) {
+    return 1;
+  }
+
+  /* Flipped intentionally. */
+  if (a.index > b.index) {
+    return -1;
+  }
+  if (a.index < b.index) {
+    return 1;
+  }
+  return 0;
+}
+
+/**
+ * This represents an angle at index `index`.
+ */
+struct HullAngleStep {
+  /** Single linked list. */
+  HullAngleStep *next;
+
+  /** The current angle value. */
+  AngleCanonical angle;
+
+  /** The next index value to step into.  */
+  int index;
+  /** Do not seek past this index. */
+  int index_max;
+};
+
+/**
+ * Iterate over all angles of a convex hull (defined by `points_hull`) in-order.
+ */
+struct HullAngleIter {
+  /** Linked list of up to 4 items (kept in order), * to support walking over angles in order. */
+  HullAngleStep *axis_ordered = nullptr;
+  /** [X/Y][min/max]. */
+  HullAngleStep axis[2][2];
+  /** The convex hull being iterated over. */
+  const float (*points_hull)[2];
+  int points_hull_num;
+};
+
+static void hull_angle_insert_ordered(HullAngleIter &hiter, HullAngleStep *insert)
+{
+  HullAngleStep **prev_p = &hiter.axis_ordered;
+  HullAngleStep *iter = hiter.axis_ordered;
+  while (iter && hull_angle_canonical_cmp(iter->angle, insert->angle) > 0) {
+    prev_p = &iter->next;
+    iter = iter->next;
+  }
+  *prev_p = insert;
+  insert->next = iter;
+}
+
+static bool convexhull_2d_angle_iter_step_on_axis(const HullAngleIter &hiter, HullAngleStep &hstep)
+{
+  BLI_assert(hstep.index != -1);
+  while (hstep.index != hstep.index_max) {
+    const int i_curr = hstep.index;
+    const int i_next = (hstep.index + 1) % hiter.points_hull_num;
+    const float2 dir = float2(hiter.points_hull[i_next]) - float2(hiter.points_hull[i_curr]);
+    float dir_length = 0.0f;
+    const float2 sincos_test = math::normalize_and_get_length(dir, dir_length);
+    hstep.index = i_next;
+    if (LIKELY(dir_length != 0.0f)) {
+      hstep.angle.sincos = sincos_test;
+      hstep.angle.sincos_canonical = sincos_canonical(sincos_test);
+      hstep.angle.index = i_curr;
+      return true;
+    }
+  }
+
+  /* Reached the end, signal this axis shouldn't be stepped over. */
+  hstep.index = -1;
+  return false;
+}
+
+static HullAngleIter convexhull_2d_angle_iter_init(const float (*points_hull)[2],
+                                                   const int points_hull_num)
+{
+  const int points_hull_num_minus_1 = points_hull_num - 1;
+  HullAngleIter hiter = {};
+  /* Aligned with `hiter.axis`. */
+  float range[2][2];
+  /* Initialize min-max range from the first point. */
+  for (int axis = 0; axis < 2; axis++) {
+    range[axis][0] = points_hull[0][axis];
+    range[axis][1] = points_hull[0][axis];
+  }
+  /* Expand from all other points.
+   *
+   * NOTE: Don't attempt to pick either side when there are multiple equal points.
+   * Walking backwards while checking `sincos_canonical` handles that. */
+  for (int i = 1; i < points_hull_num; i++) {
+    const float *p = points_hull[i];
+    for (int axis = 0; axis < 2; axis++) {
+      if (range[axis][0] < p[axis]) {
+        range[axis][0] = p[axis];
+        hiter.axis[axis][0].index = i;
+      }
+      if (range[axis][1] > p[axis]) {
+        range[axis][1] = p[axis];
+        hiter.axis[axis][1].index = i;
+      }
+    }
+  }
+
+  /* Step backwards, compute the actual `sincos_canonical` because it's possible
+   * an edge which is not *exactly* axis aligned normalizes to a value which is.
+   * Instead of attempting to guess when this might happen,
+   * simply calculate the value and walk backwards for a long as the canonical angle
+   * has a `sin` of 1.0 (which must always come first). */
+  for (int axis = 0; axis < 2; axis++) {
+    for (int i = 0; i < 2; i++) {
+      int count = 0;
+      const int i_orig = hiter.axis[axis][i].index;
+      int i_curr = i_orig, i_prev;
+      /* Prevent an eternal loop (incredibly unlikely).
+       * In virtually all cases this will step back once
+       * (in the case of an axis-aligned edge) or not at all. */
+      while ((i_prev = (i_curr + points_hull_num_minus_1) % points_hull_num) != i_orig) {
+        float dir_length = 0.0f;
+        const float2 sincos_test = math::normalize_and_get_length(
+            float2(points_hull[i_curr]) - float2(points_hull[i_prev]), dir_length);
+        if (LIKELY(dir_length != 0.0f)) {
+          /* Account for 90 degree corners that may also have an axis-aligned canonical angle. */
+          if (math::abs(sincos_test[axis]) > 0.5f) {
+            break;
+          }
+          const float2 sincos_test_canonical = sincos_canonical(sincos_test);
+          if (LIKELY(sincos_test_canonical[0] != 1.0f)) {
+            break;
+          }
+        }
+        i_curr = i_prev;
+        hiter.axis[axis][i].index = i_curr;
+        count++;
+      }
+    }
+  }
+
+  /* Setup counter-clockwise limits. */
+  hiter.axis[0][0].index_max = hiter.axis[1][0].index; /* West to south. */
+  hiter.axis[1][0].index_max = hiter.axis[0][1].index; /* South to east. */
+  hiter.axis[0][1].index_max = hiter.axis[1][1].index; /* East to north. */
+  hiter.axis[1][1].index_max = hiter.axis[0][0].index; /* North to west. */
+
+  hiter.points_hull = points_hull;
+  hiter.points_hull_num = points_hull_num;
+
+  for (int axis = 0; axis < 2; axis++) {
+    for (int i = 0; i < 2; i++) {
+      hiter.axis[axis][i].angle.index = hiter.axis[axis][i].index;
+      if (convexhull_2d_angle_iter_step_on_axis(hiter, hiter.axis[axis][i])) {
+        hull_angle_insert_ordered(hiter, &hiter.axis[axis][i]);
+      }
+    }
+  }
+
+  return hiter;
+}
+
+static void convexhull_2d_angle_iter_step(HullAngleIter &hiter)
+{
+  HullAngleStep *hstep = hiter.axis_ordered;
+#ifndef USE_ANGLE_ITER_ORDER_ASSERT
+  const AngleCanonical angle_prev = hstep->angle;
+#endif
+
+  hiter.axis_ordered = hiter.axis_ordered->next;
+  if (convexhull_2d_angle_iter_step_on_axis(hiter, *hstep)) {
+    hull_angle_insert_ordered(hiter, hstep);
+  }
+
+#ifndef USE_ANGLE_ITER_ORDER_ASSERT
+  if (hiter.axis_ordered) {
+    hstep = hiter.axis_ordered;
+    BLI_assert(hull_angle_canonical_cmp(angle_prev, hiter.axis_ordered->angle) > 0);
+  }
+#endif
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Comupte AABB Fitting Angle (Optimized)
  * \{ */
 
@@ -296,18 +566,12 @@ static float convexhull_2d_compute_extent_on_axis(const float (*points_hull)[2],
                                                   const float2 &sincos,
                                                   int *index_p)
 {
-  /* NOTE(@ideasman42): This could be optimized to use a search strategy
-   * that computes the upper bounds and narrows down the result instead of
-   * simply checking every point until the new maximum is reached.
-   * From looking into I couldn't find cases where doing this has significant benefits,
-   * especially when compared with the complexity of using more involved logic for
-   * the common case, where only a few steps are needed.
-   * Typically the number of points to scan is small (around [0..8]).
-   * And while a high-detail hull with single outliner points will cause stepping over
-   * many more points, in practice there are rarely more than a few of these in a convex-hull.
-   * Nevertheless, a high-poly hull that has subtle curves containing many points as well as
-   * some sharp-corners wont perform as well with this method. */
-
+  /* NOTE(@ideasman42): Use a forward search instead of attempting a search strategy
+   * computing upper & lower bounds (similar to a binary search). The rotating calipers
+   * are ensured to test ordered rotations between 0-90 degrees, meaning any cases where
+   * this function needs to step over many points will be limited to a small number of cases.
+   * Since scanning forward isn't expensive it shouldn't pose a problem. */
+  BLI_assert(*index_p >= 0);
   const int index_init = *index_p;
   int index_best = index_init;
   float value_init = (Axis == 0) ? sincos_rotate_cw_x(sincos, points_hull[index_best]) :
@@ -332,75 +596,46 @@ static float convexhull_2d_compute_extent_on_axis(const float (*points_hull)[2],
 static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int points_hull_num)
 {
   float area_best = FLT_MAX;
-  float2 sincos_best; /* Track the best angle as a unit vector, delaying `atan2`. */
-  bool is_first = true;
+  float2 sincos_best = {0.0f, 1.0f}; /* Track the best angle as a unit vector, delaying `atan2`. */
+  int index_best = INT_MAX;
 
   /* Initialize to zero because the first pass uses the first index to set the bounds. */
   blender::Bounds<int> bounds_index[2] = {{0, 0}, {0, 0}};
 
-  for (int i = 0; i < points_hull_num; i++) {
-    const int i_next = (i + 1) % points_hull_num;
-    /* 2D rotation matrix. */
-    float dvec_length = 0.0f;
-    const float2 sincos = math::normalize_and_get_length(
-        float2(points_hull[i_next]) - float2(points_hull[i]), dvec_length);
-    if (UNLIKELY(dvec_length == 0.0f)) {
-      continue;
-    }
+  HullAngleIter hull_iter = convexhull_2d_angle_iter_init(points_hull, points_hull_num);
 
-    if (UNLIKELY(is_first)) {
-      is_first = false;
-
-      blender::Bounds<float> bounds[2];
-
-      bounds[0].min = bounds[0].max = sincos_rotate_cw_x(sincos, points_hull[0]);
-      bounds[1].min = bounds[1].max = sincos_rotate_cw_y(sincos, points_hull[0]);
-
-      bounds_index[0].min = bounds_index[0].max = 0;
-      bounds_index[1].min = bounds_index[1].max = 0;
-
-      for (int j = 1; j < points_hull_num; j++) {
-        const float2 tvec = {
-            sincos_rotate_cw_x(sincos, points_hull[j]),
-            sincos_rotate_cw_y(sincos, points_hull[j]),
-        };
-        for (int axis = 0; axis < 2; axis++) {
-          if (tvec[axis] < bounds[axis].min) {
-            bounds[axis].min = tvec[axis];
-            bounds_index[axis].min = j;
-          }
-          if (tvec[axis] > bounds[axis].max) {
-            bounds[axis].max = tvec[axis];
-            bounds_index[axis].max = j;
-          }
-        }
-      }
-
-      area_best = (bounds[0].max - bounds[0].min) * (bounds[1].max - bounds[1].min);
-      sincos_best = sincos;
-      continue;
-    }
-
+  /* Use the axis aligned bounds as starting points. */
+  bounds_index[0].min = hull_iter.axis[0][1].angle.index;
+  bounds_index[0].max = hull_iter.axis[0][0].angle.index;
+  bounds_index[1].min = hull_iter.axis[1][0].angle.index;
+  bounds_index[1].max = hull_iter.axis[1][1].angle.index;
+  while (const HullAngleStep *hstep = hull_iter.axis_ordered) {
     /* Step the calipers to the new rotation `sincos`, returning the bounds at the same time. */
     blender::Bounds<float> bounds_test[2] = {
         {convexhull_2d_compute_extent_on_axis<0, -1>(
-             points_hull, points_hull_num, sincos, &bounds_index[0].min),
+             points_hull, points_hull_num, hstep->angle.sincos_canonical, &bounds_index[0].min),
          convexhull_2d_compute_extent_on_axis<0, 1>(
-             points_hull, points_hull_num, sincos, &bounds_index[0].max)},
+             points_hull, points_hull_num, hstep->angle.sincos_canonical, &bounds_index[0].max)},
         {convexhull_2d_compute_extent_on_axis<1, -1>(
-             points_hull, points_hull_num, sincos, &bounds_index[1].min),
+             points_hull, points_hull_num, hstep->angle.sincos_canonical, &bounds_index[1].min),
          convexhull_2d_compute_extent_on_axis<1, 1>(
-             points_hull, points_hull_num, sincos, &bounds_index[1].max)},
-
+             points_hull, points_hull_num, hstep->angle.sincos_canonical, &bounds_index[1].max)},
     };
 
     const float area_test = (bounds_test[0].max - bounds_test[0].min) *
                             (bounds_test[1].max - bounds_test[1].min);
 
-    if (area_test < area_best) {
+    if (area_test < area_best ||
+        /* Use the index as a tie breaker, this simply matches the behavior of checking
+         * all edges in-order and only overwriting past results when they're an improvement. */
+        ((area_test == area_best) && (hstep->angle.index < index_best)))
+    {
       area_best = area_test;
-      sincos_best = sincos;
+      sincos_best = hstep->angle.sincos;
+      index_best = hstep->angle.index;
     }
+
+    convexhull_2d_angle_iter_step(hull_iter);
   }
 
   const float angle = (area_best != FLT_MAX) ? float(atan2(sincos_best[0], sincos_best[1])) : 0.0f;

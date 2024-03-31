@@ -21,6 +21,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_rotation.h"
 #include "BLI_math_rotation.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
@@ -268,6 +269,50 @@ TEST(convexhull_2d, Simple)
   }
 }
 
+TEST(convexhull_2d, Octagon)
+{
+  auto shape_octagon_fn = [](RandomNumberGenerator &rng,
+                             const int points_num) -> blender::Array<float2> {
+    /* Avoid zero area boxes. */
+    blender::Array<float2> points(points_num);
+    for (int i = 0; i < points_num; i++) {
+      sin_cos_from_fraction(i, points_num, &points[i][0], &points[i][1]);
+    }
+    rng.shuffle<float2>(points);
+    return points;
+  };
+
+  RandomNumberGenerator rng = RandomNumberGenerator(DEFAULT_TEST_RANDOM_SEED);
+  for (int iter = 0; iter < DEFAULT_TEST_ITER; iter++) {
+    blender::Array<float2> points = shape_octagon_fn(rng, 8);
+    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+                float(math::AngleRadian::from_degree(67.5f)),
+                ROTATION_EPS);
+  }
+}
+
+TEST(convexhull_2d, OctagonAxisAligned)
+{
+  auto shape_octagon_fn = [](RandomNumberGenerator &rng,
+                             const int points_num) -> blender::Array<float2> {
+    /* Avoid zero area boxes. */
+    blender::Array<float2> points(points_num);
+    for (int i = 0; i < points_num; i++) {
+      sin_cos_from_fraction((i * 2) + 1, points_num * 2, &points[i][0], &points[i][1]);
+    }
+    rng.shuffle<float2>(points);
+    return points;
+  };
+
+  RandomNumberGenerator rng = RandomNumberGenerator(DEFAULT_TEST_RANDOM_SEED);
+  for (int iter = 0; iter < DEFAULT_TEST_ITER; iter++) {
+    blender::Array<float2> points = shape_octagon_fn(rng, 8);
+    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+                float(math::AngleRadian::from_degree(90.0f)),
+                ROTATION_EPS);
+  }
+}
+
 /**
  * Generate complex rotated/translated shapes with a known size.
  * Check the rotation returned by #BLI_convexhull_aabb_fit_points_2d
@@ -342,5 +387,59 @@ TEST(convexhull_2d, Complex)
     EXPECT_LE(area_result, area_input + 1e-6f);
   }
 }
+
+/* Keep these as they're handy for generating a lot of random data.
+ * To brute force check results are as expected:
+ * - Increase #DEFAULT_TEST_ITER to a large number (100k or so).
+ * - Uncomment #USE_BRUTE_FORCE_ASSERT define in `convexhull_2d.cc` to ensure results
+ *   match a reference implementation.
+ */
+#if 0
+TEST(convexhull_2d, Circle)
+{
+  auto shape_circle_fn = [](RandomNumberGenerator &rng,
+                            const int points_num) -> blender::Array<float2> {
+    /* Avoid zero area boxes. */
+    blender::Array<float2> points(points_num);
+
+    /* Going this way ends up with normal(s) upward */
+    for (int i = 0; i < points_num; i++) {
+      sin_cos_from_fraction(i, points_num, &points[i][0], &points[i][1]);
+    }
+    rng.shuffle<float2>(points);
+    return points;
+  };
+
+  RandomNumberGenerator rng = RandomNumberGenerator(DEFAULT_TEST_RANDOM_SEED);
+  for (int iter = 0; iter < DEFAULT_TEST_ITER; iter++) {
+    blender::Array<float2> points = shape_circle_fn(rng, DEFAULT_TEST_POLY_NUM);
+    const float angle = convexhull_2d_aabb_fit_points_2d(points);
+    (void)angle;
+  }
+}
+
+TEST(convexhull_2d, Random)
+{
+  auto shape_random_unit_fn = [](RandomNumberGenerator &rng,
+                                 const int points_num) -> blender::Array<float2> {
+    /* Avoid zero area boxes. */
+    blender::Array<float2> points(points_num);
+
+    /* Going this way ends up with normal(s) upward */
+    for (int i = 0; i < points_num; i++) {
+      points[i] = rng.get_unit_float2();
+    }
+    return points;
+  };
+
+  RandomNumberGenerator rng = RandomNumberGenerator(DEFAULT_TEST_RANDOM_SEED);
+
+  for (int iter = 0; iter < DEFAULT_TEST_ITER; iter++) {
+    blender::Array<float2> points = shape_random_unit_fn(rng, DEFAULT_TEST_POLY_NUM);
+    const float angle = convexhull_2d_aabb_fit_points_2d(points);
+    (void)angle;
+  }
+}
+#endif
 
 /** \} */
