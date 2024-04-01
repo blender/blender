@@ -15,6 +15,7 @@
 
 #include "GPU_compute.hh"
 #include "GPU_shader.hh"
+#include "GPU_state.hh"
 #include "GPU_storage_buffer.hh"
 #include "GPU_vertex_buffer.hh"
 
@@ -172,6 +173,7 @@ class VectorBlurOperation : public NodeOperation {
 
     max_tile_velocity.bind_as_texture(shader, "max_velocity_tx");
 
+    GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
     const int slot = GPU_shader_get_ssbo_binding(shader, "tile_indirection_buf");
     GPU_storagebuf_bind(tile_indirection_buffer, slot);
 
