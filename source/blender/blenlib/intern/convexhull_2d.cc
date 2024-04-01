@@ -532,7 +532,7 @@ static HullAngleIter convexhull_2d_angle_iter_init(const float (*points_hull)[2]
 static void convexhull_2d_angle_iter_step(HullAngleIter &hiter)
 {
   HullAngleStep *hstep = hiter.axis_ordered;
-#ifndef USE_ANGLE_ITER_ORDER_ASSERT
+#ifdef USE_ANGLE_ITER_ORDER_ASSERT
   const AngleCanonical angle_prev = hstep->angle;
 #endif
 
@@ -541,7 +541,7 @@ static void convexhull_2d_angle_iter_step(HullAngleIter &hiter)
     hull_angle_insert_ordered(hiter, hstep);
   }
 
-#ifndef USE_ANGLE_ITER_ORDER_ASSERT
+#ifdef USE_ANGLE_ITER_ORDER_ASSERT
   if (hiter.axis_ordered) {
     hstep = hiter.axis_ordered;
     BLI_assert(hull_angle_canonical_cmp(angle_prev, hiter.axis_ordered->angle) > 0);
