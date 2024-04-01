@@ -1754,8 +1754,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr},
     /* 18: CD_TANGENT */
-    {sizeof(float[4][4]),
-     alignof(float[4][4]),
+    {sizeof(float[4]),
+     alignof(float[4]),
      "",
      0,
      N_("Tangent"),

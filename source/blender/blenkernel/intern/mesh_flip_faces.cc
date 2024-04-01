@@ -57,7 +57,7 @@ void mesh_flip_faces(Mesh &mesh, const IndexMask &selection)
     }
   });
 
-  flip_custom_data_type<float4x4>(faces, mesh.corner_data, selection, CD_TANGENT);
+  flip_custom_data_type<float4>(faces, mesh.corner_data, selection, CD_TANGENT);
   flip_custom_data_type<float4>(faces, mesh.corner_data, selection, CD_MLOOPTANGENT);
   flip_custom_data_type<short2>(faces, mesh.corner_data, selection, CD_CUSTOMLOOPNORMAL);
   flip_custom_data_type<GridPaintMask>(faces, mesh.corner_data, selection, CD_GRID_PAINT_MASK);
