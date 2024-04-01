@@ -329,7 +329,7 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   BLI_path_split_dir_file(
       load_data->path, strip->dirpath, sizeof(strip->dirpath), se->filename, sizeof(se->filename));
 
-  if (seq != nullptr && seq->sound != nullptr) {
+  if (seq->sound != nullptr) {
     if (load_data->flags & SEQ_LOAD_SOUND_MONO) {
       seq->sound->flags |= SOUND_FLAGS_MONO;
     }

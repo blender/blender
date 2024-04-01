@@ -452,9 +452,7 @@ static int rna_find_sdna_member(SDNA *sdna,
 
   smember->offset = -1;
   if (structnr == -1) {
-    if (offset) {
-      *offset = -1;
-    }
+    *offset = -1;
     return 0;
   }
 
@@ -506,16 +504,14 @@ static int rna_find_sdna_member(SDNA *sdna,
       smember->pointerlevel = 0;
       smember->arraylength = 0;
 
-      if (offset) {
-        *offset = -1;
-      }
+      *offset = -1;
       membername = strstr(membername, "->") + strlen("->");
       rna_find_sdna_member(sdna, sdna->alias.types[member->type], membername, smember, offset);
 
       return 1;
     }
 
-    if (offset && *offset != -1) {
+    if (*offset != -1) {
       *offset += size;
     }
   }
