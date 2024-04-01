@@ -2253,7 +2253,7 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
                                                               upper_thumb_bound;
 
   float timeline_frame = SEQ_render_thumbnail_first_frame_get(scene, seq, frame_step, view_area);
-  while ((timeline_frame < upper_thumb_bound) & !*stop) {
+  while ((timeline_frame < upper_thumb_bound) && !*stop) {
     ImBuf *ibuf = seq_cache_get(
         context, seq_orig, round_fl_to_int(timeline_frame), SEQ_CACHE_STORE_THUMBNAIL);
     if (ibuf) {

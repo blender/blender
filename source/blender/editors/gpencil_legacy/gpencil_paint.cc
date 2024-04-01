@@ -1420,7 +1420,7 @@ static bool gpencil_stroke_eraser_is_occluded(
   if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
     gp_settings = brush->gpencil_settings;
   }
-  else if ((eraser != nullptr) & (eraser->gpencil_tool == GPAINT_TOOL_ERASE)) {
+  else if ((eraser != nullptr) && (eraser->gpencil_tool == GPAINT_TOOL_ERASE)) {
     gp_settings = eraser->gpencil_settings;
   }
 
