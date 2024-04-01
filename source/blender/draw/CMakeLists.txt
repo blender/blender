@@ -237,17 +237,17 @@ set(SRC
   intern/draw_cache_inline.hh
   intern/draw_color_management.hh
   intern/draw_command.hh
-  intern/draw_common_c.hh
   intern/draw_common.hh
+  intern/draw_common_c.hh
   intern/draw_common_shader_shared.hh
   intern/draw_curves_private.hh
-  intern/draw_debug_c.hh
   intern/draw_debug.hh
+  intern/draw_debug_c.hh
   intern/draw_hair_private.hh
   intern/draw_handle.hh
   intern/draw_instance_data.hh
-  intern/draw_manager_c.hh
   intern/draw_manager.hh
+  intern/draw_manager_c.hh
   intern/draw_manager_profiling.hh
   intern/draw_manager_testing.hh
   intern/draw_manager_text.hh
@@ -260,8 +260,8 @@ set(SRC
   intern/draw_state.hh
   intern/draw_subdivision.hh
   intern/draw_texture_pool.hh
-  intern/draw_view_c.hh
   intern/draw_view.hh
+  intern/draw_view_c.hh
   intern/draw_view_data.hh
   intern/mesh_extractors/extract_mesh.hh
   engines/basic/basic_engine.h

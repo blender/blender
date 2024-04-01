@@ -254,8 +254,8 @@ set(SRC
   BLI_implicit_sharing.hh
   BLI_implicit_sharing_ptr.hh
   BLI_index_mask.hh
-  BLI_index_mask_fwd.hh
   BLI_index_mask_expression.hh
+  BLI_index_mask_fwd.hh
   BLI_index_range.hh
   BLI_inplace_priority_queue.hh
   BLI_iterator.h
@@ -521,8 +521,8 @@ if(WITH_GTESTS)
     tests/BLI_heap_simple_test.cc
     tests/BLI_heap_test.cc
     tests/BLI_implicit_sharing_test.cc
-    tests/BLI_index_mask_test.cc
     tests/BLI_index_mask_expression_test.cc
+    tests/BLI_index_mask_test.cc
     tests/BLI_index_range_test.cc
     tests/BLI_inplace_priority_queue_test.cc
     tests/BLI_kdopbvh_test.cc
