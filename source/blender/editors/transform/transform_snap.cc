@@ -1422,7 +1422,7 @@ static void snap_source_closest_fn(TransInfo *t)
           std::optional<blender::Bounds<blender::float3>> bounds;
 
           if ((t->options & CTX_OBMODE_XFORM_OBDATA) == 0) {
-            bounds = BKE_object_boundbox_get(td->ob);
+            bounds = BKE_object_boundbox_eval_cached_get(td->ob);
           }
 
           /* Use bound-box if possible. */
