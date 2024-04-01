@@ -1226,7 +1226,7 @@ LightProbeGridCacheFrame *IrradianceBake::read_result_packed()
   cache_frame->baking.L1_c = (float(*)[4])irradiance_L1_c_tx_.read<float4>(GPU_DATA_FLOAT);
   cache_frame->baking.validity = (float *)validity_tx_.read<float>(GPU_DATA_FLOAT);
 
-  int64_t sample_count = irradiance_L0_tx_.width() * irradiance_L0_tx_.height() *
+  int64_t sample_count = int64_t(irradiance_L0_tx_.width()) * irradiance_L0_tx_.height() *
                          irradiance_L0_tx_.depth();
   size_t coefficient_texture_size = sizeof(*cache_frame->irradiance.L0) * sample_count;
   size_t validity_texture_size = sizeof(*cache_frame->connectivity.validity) * sample_count;

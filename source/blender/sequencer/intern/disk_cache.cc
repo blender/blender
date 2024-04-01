@@ -519,11 +519,11 @@ static int seq_disk_cache_add_header_entry(SeqCacheKey *key, ImBuf *ibuf, DiskCa
   /* Store colorspace name of ibuf. */
   const char *colorspace_name;
   if (ibuf->byte_buffer.data) {
-    header->entry[i].size_raw = ibuf->x * ibuf->y * ibuf->channels;
+    header->entry[i].size_raw = int64_t(ibuf->x) * ibuf->y * ibuf->channels;
     colorspace_name = IMB_colormanagement_get_rect_colorspace(ibuf);
   }
   else {
-    header->entry[i].size_raw = ibuf->x * ibuf->y * ibuf->channels * 4;
+    header->entry[i].size_raw = int64_t(ibuf->x) * ibuf->y * ibuf->channels * 4;
     colorspace_name = IMB_colormanagement_get_float_colorspace(ibuf);
   }
   STRNCPY(header->entry[i].colorspace_name, colorspace_name);
