@@ -134,10 +134,6 @@ class VectorBlurOperation : public NodeOperation {
 
     max_tile_velocity.bind_as_texture(shader, "input_tx");
 
-    Result output = context().create_temporary_result(ResultType::Color);
-    output.allocate_texture(max_tile_velocity.domain());
-    output.bind_as_image(shader, "output_img");
-
     /* The shader assumes a maximum input size of 16k, and since the max tile velocity image is
      * composed of blocks of 32, we get 16k / 32 = 512. So the table is 512x512, but we store two
      * tables for the previous and next velocities, so we double that. */
