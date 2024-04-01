@@ -140,6 +140,7 @@ class VectorBlurOperation : public NodeOperation {
     const int size = sizeof(uint32_t) * 512 * 512 * 2;
     GPUStorageBuf *tile_indirection_buffer = GPU_storagebuf_create_ex(
         size, nullptr, GPU_USAGE_DEVICE_ONLY, __func__);
+    GPU_storagebuf_clear_to_zero(tile_indirection_buffer);
     const int slot = GPU_shader_get_ssbo_binding(shader, "tile_indirection_buf");
     GPU_storagebuf_bind(tile_indirection_buffer, slot);
 
