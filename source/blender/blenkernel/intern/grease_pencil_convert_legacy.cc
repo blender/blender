@@ -784,10 +784,10 @@ void layer_adjustments_to_modifiers(Main &bmain, bGPdata &src_object_data, Objec
    *
    * NOTE: NLA animation in GPData that would control adjustment properties is not converted. This
    * would require (partially) re-creating a copy of the potential bGPData NLA into the Object NLA,
-   * which is too complex for the few potential usecases.
+   * which is too complex for the few potential use cases.
    *
    * This is achieved in several steps, roughly:
-   *   * For each GP layer, chack if there is animation on the adjutment data.
+   *   * For each GP layer, check if there is animation on the adjustment data.
    *   * Rename relevant FCurves RNA paths from GP animation data, and store their reference in
    *     temporary vectors.
    *   * Once all layers have been processed, move all affected FCurves from GPData animation to
@@ -838,7 +838,7 @@ void layer_adjustments_to_modifiers(Main &bmain, bGPdata &src_object_data, Objec
     BLI_str_escape(layer_name_esc, gpl->info, sizeof(layer_name_esc));
     const std::string legacy_root_path = fmt::format("layers[\"{}\"]", layer_name_esc);
 
-    /* If tint or thickness are animated, relevamt modifiers also need to be created. */
+    /* If tint or thickness are animated, relevant modifiers also need to be created. */
     if (gpd_animdata) {
       auto adjustment_animation_detection = [&](bAction *owner_action, FCurve &fcurve) -> bool {
         /* Early out if we already know that both data are animated. */

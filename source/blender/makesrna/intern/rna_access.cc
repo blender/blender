@@ -1795,7 +1795,7 @@ void RNA_property_enum_items_gettexted_all(bContext *C,
         int i_fixed;
 
         /* Items that do not exist on list are returned,
-         * but have their names/identifiers nullptr'ed out. */
+         * but have their names/identifiers null'ed out. */
         for (i_fixed = 0; item[i_fixed].identifier; i_fixed++) {
           if (STREQ(item[i_fixed].identifier, item_array[i].identifier)) {
             exists = true;

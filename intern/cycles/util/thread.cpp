@@ -14,7 +14,7 @@ CCL_NAMESPACE_BEGIN
 thread::thread(function<void()> run_cb) : run_cb_(run_cb), joined_(false)
 {
 #if defined(__APPLE__) || defined(__linux__) && !defined(__GLIBC__)
-  /* Set the stack size to 2MB to match glibc. The default 512KB on macOS is
+  /* Set the stack size to 2MB to match GLIBC. The default 512KB on macOS is
    * too small for Embree, and consistent stack size also makes things more
    * predictable in general. */
   pthread_attr_t attribute;

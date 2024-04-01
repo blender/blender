@@ -18,9 +18,8 @@
 #include "util/texture.h"
 #include "util/types.h"
 
-/* On x86_64, versions of glibc < 2.16 have an issue where expf is
- * much slower than the double version.  This was fixed in glibc 2.16.
- */
+/* On x86_64, versions of GLIBC < 2.16 have an issue where `expf` is
+ * much slower than the double version. This was fixed in GLIBC 2.16. */
 #if !defined(__KERNEL_GPU__) && defined(__x86_64__) && defined(__x86_64__) && \
     defined(__GNU_LIBRARY__) && defined(__GLIBC__) && defined(__GLIBC_MINOR__) && \
     (__GLIBC__ <= 2 && __GLIBC_MINOR__ < 16)

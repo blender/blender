@@ -61,7 +61,7 @@ enum eScreenAxis {
  */
 #define BORDERPADDING ((2.0f * UI_SCALE_FAC) + U.pixelsize)
 
-/* area.cc */
+/* `area.cc` */
 
 /**
  * We swap spaces for full-screen to keep all allocated data area vertices were set.
@@ -71,7 +71,7 @@ void ED_area_data_swap(ScrArea *area_dst, ScrArea *area_src);
 /* for quick toggle, can skip fades */
 void region_toggle_hidden(bContext *C, ARegion *region, bool do_fade);
 
-/* screen_draw.cc */
+/* `screen_draw.cc` */
 
 /**
  * Visual indication of the two areas involved in a proposed join.
@@ -82,7 +82,7 @@ void region_toggle_hidden(bContext *C, ARegion *region, bool do_fade);
 void screen_draw_join_highlight(ScrArea *sa1, ScrArea *sa2);
 void screen_draw_split_preview(ScrArea *area, eScreenAxis dir_axis, float fac);
 
-/* screen_edit.cc */
+/* `screen_edit.cc` */
 
 /**
  * Empty screen, with 1 dummy area without space-data. Uses window size.
@@ -127,7 +127,7 @@ bool screen_area_close(bContext *C, bScreen *screen, ScrArea *area);
 void screen_area_spacelink_add(const Scene *scene, ScrArea *area, eSpace_Type space_type);
 AZone *ED_area_actionzone_find_xy(ScrArea *area, const int xy[2]);
 
-/* screen_geometry.cc */
+/* `screen_geometry.cc` */
 
 int screen_geom_area_height(const ScrArea *area);
 int screen_geom_area_width(const ScrArea *area);
@@ -171,7 +171,7 @@ short screen_geom_find_area_split_point(const ScrArea *area,
  */
 void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge);
 
-/* screen_context.cc */
+/* `screen_context.cc` */
 
 /**
  * Entry point for the screen context.
@@ -180,11 +180,11 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 extern "C" const char *screen_context_dir[]; /* doc access */
 
-/* screendump.cc */
+/* `screendump.cc` */
 
 void SCREEN_OT_screenshot(wmOperatorType *ot);
 void SCREEN_OT_screenshot_area(wmOperatorType *ot);
 
-/* workspace_layout_edit.cc */
+/* `workspace_layout_edit.cc` */
 
 bool workspace_layout_set_poll(const WorkSpaceLayout *layout);
