@@ -3110,7 +3110,7 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
         {
           RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr, nullptr);
         }
-        else if (search_but->item_active != nullptr) {
+        else if (search_but && search_but->item_active != nullptr) {
           rptr = RNA_pointer_create(nullptr,
                                     RNA_property_pointer_type(&but->rnapoin, but->rnaprop),
                                     search_but->item_active);

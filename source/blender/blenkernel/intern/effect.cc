@@ -700,9 +700,9 @@ bool get_effector_data(EffectorCache *eff,
   else if (eff->pd && eff->pd->shape == PFIELD_SHAPE_POINTS) {
     /* TODO: hair and points object support */
     const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(eff->ob);
-    const blender::Span<blender::float3> positions = mesh_eval->vert_positions();
-    const blender::Span<blender::float3> vert_normals = mesh_eval->vert_normals();
     if (mesh_eval != nullptr) {
+      const blender::Span<blender::float3> positions = mesh_eval->vert_positions();
+      const blender::Span<blender::float3> vert_normals = mesh_eval->vert_normals();
       copy_v3_v3(efd->loc, positions[*efd->index]);
       copy_v3_v3(efd->nor, vert_normals[*efd->index]);
 

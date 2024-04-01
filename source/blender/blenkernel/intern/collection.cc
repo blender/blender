@@ -1359,8 +1359,6 @@ bool BKE_collection_object_add_notest(Main *bmain, Collection *collection, Objec
     return false;
   }
 
-  const int id_create_flag = (collection->id.tag & LIB_TAG_NO_MAIN) ? LIB_ID_CREATE_NO_MAIN : 0;
-
   /* Only case where this pointer can be nullptr is when scene itself is linked, this case should
    * never be reached. */
   BLI_assert(collection != nullptr);
@@ -1368,6 +1366,7 @@ bool BKE_collection_object_add_notest(Main *bmain, Collection *collection, Objec
     return false;
   }
 
+  const int id_create_flag = (collection->id.tag & LIB_TAG_NO_MAIN) ? LIB_ID_CREATE_NO_MAIN : 0;
   if (!collection_object_add(bmain, collection, ob, nullptr, id_create_flag, true)) {
     return false;
   }
