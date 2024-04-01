@@ -2515,10 +2515,10 @@ double ui_but_value_get(uiBut *but)
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN:
         if (RNA_property_array_check(prop)) {
-          value = RNA_property_boolean_get_index(&but->rnapoin, prop, but->rnaindex);
+          value = double(RNA_property_boolean_get_index(&but->rnapoin, prop, but->rnaindex));
         }
         else {
-          value = RNA_property_boolean_get(&but->rnapoin, prop);
+          value = double(RNA_property_boolean_get(&but->rnapoin, prop));
         }
         break;
       case PROP_INT:

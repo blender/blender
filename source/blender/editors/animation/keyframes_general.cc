@@ -342,10 +342,10 @@ float get_default_rna_value(FCurve *fcu, PropertyRNA *prop, PointerRNA *ptr)
   switch (RNA_property_type(prop)) {
     case PROP_BOOLEAN:
       if (len) {
-        default_value = RNA_property_boolean_get_default_index(ptr, prop, fcu->array_index);
+        default_value = float(RNA_property_boolean_get_default_index(ptr, prop, fcu->array_index));
       }
       else {
-        default_value = RNA_property_boolean_get_default(ptr, prop);
+        default_value = float(RNA_property_boolean_get_default(ptr, prop));
       }
       break;
     case PROP_INT:
