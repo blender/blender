@@ -1365,14 +1365,14 @@ void SEQUENCER_OT_image_strip_add(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER | FILE_TYPE_IMAGE,
-                                 FILE_SPECIAL,
-                                 FILE_OPENFILE,
-                                 WM_FILESEL_DIRECTORY | WM_FILESEL_RELPATH | WM_FILESEL_FILES |
-                                     WM_FILESEL_SHOW_PROPS | WM_FILESEL_DIRECTORY,
-                                 FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_DEFAULT);
+  WM_operator_properties_filesel(
+      ot,
+      FILE_TYPE_FOLDER | FILE_TYPE_IMAGE,
+      FILE_SPECIAL,
+      FILE_OPENFILE,
+      (WM_FILESEL_DIRECTORY | WM_FILESEL_RELPATH | WM_FILESEL_FILES | WM_FILESEL_SHOW_PROPS),
+      FILE_DEFAULTDISPLAY,
+      FILE_SORT_DEFAULT);
   sequencer_generic_props__internal(
       ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME | SEQPROP_FIT_METHOD | SEQPROP_VIEW_TRANSFORM);
 
