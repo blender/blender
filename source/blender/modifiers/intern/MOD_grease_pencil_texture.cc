@@ -212,8 +212,8 @@ static void write_fill_transforms(bke::greasepencil::Drawing &drawing,
     const float2 uv_translation = uv_matrix[2];
     float2 inv_uv_scale;
     const float2 axis_u = math::normalize_and_get_length(uv_matrix[0], inv_uv_scale[0]);
-    /* UNUSED. */
-    // const float2 axis_v = math::normalize_and_get_length(uv_matrix[1], inv_uv_scale[1]);
+    const float2 axis_v = math::normalize_and_get_length(uv_matrix[1], inv_uv_scale[1]);
+    UNUSED_VARS(axis_v); /* `inv_uv_scale[1]` is used. */
     const float uv_rotation = math::atan2(axis_u[1], axis_u[0]);
     const float2 uv_scale = math::safe_rcp(inv_uv_scale);
 
