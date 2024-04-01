@@ -84,7 +84,7 @@ def _kmi_properties_to_lines_recursive(level, properties, lines):
                 lines_test = []
                 _kmi_properties_to_lines_recursive(level + 2, value, lines_test)
                 if lines_test:
-                    lines.append(f"(")
+                    lines.append("(")
                     lines.append(f"\"{pname}\",\n")
                     lines.append(f"{indent(level + 3)}" "[")
                     lines.extend(lines_test)
@@ -172,19 +172,19 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
             fw("},\n")
             fw(f"{indent(2)}" "{")
             is_modal = km.is_modal
-            fw(f"\"items\":\n")
+            fw("\"items\":\n")
             fw(f"{indent(3)}[")
             for kmi in km.keymap_items:
                 if is_modal:
                     kmi_id = kmi.propvalue
                 else:
                     kmi_id = kmi.idname
-                fw(f"(")
+                fw("(")
                 kmi_args = kmi_args_as_data(kmi)
                 kmi_data = _kmi_attrs_or_none(4, kmi)
                 fw(f"\"{kmi_id:s}\"")
                 if kmi_data is None:
-                    fw(f", ")
+                    fw(", ")
                 else:
                     fw(",\n" f"{indent(5)}")
 

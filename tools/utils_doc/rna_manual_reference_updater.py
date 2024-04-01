@@ -76,7 +76,7 @@ def write_mappings(inv, output):
     fw = file.write
     year = datetime.date.today().year
 
-    fw(f"# SPDX-FileCopyrightText: 2019-%d Blender Authors\n" % (year))
+    fw("# SPDX-FileCopyrightText: 2019-%d Blender Authors\n" % year)
     fw("#\n")
     fw("# SPDX-License-Identifier: GPL-2.0-or-later\n")
     fw("\n")
