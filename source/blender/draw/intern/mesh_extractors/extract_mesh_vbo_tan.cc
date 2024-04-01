@@ -120,7 +120,6 @@ static void extract_tan_init_common(const MeshRenderData &mr,
                                      &tangent_mask);
     }
     else {
-      /* TODO: This is not thread-safe. Draw extraction should not modify the mesh. */
       BKE_mesh_calc_loop_tangent_ex(reinterpret_cast<const float(*)[3]>(mr.vert_positions.data()),
                                     mr.faces,
                                     mr.corner_verts.data(),
