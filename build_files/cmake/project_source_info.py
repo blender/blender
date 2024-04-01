@@ -24,12 +24,12 @@ from typing import (
     Any,
     Callable,
     Generator,
+    IO,
     List,
     Optional,
     Sequence,
     Tuple,
     Union,
-    cast,
 )
 
 import shlex
@@ -120,12 +120,13 @@ def makefile_log() -> List[str]:
         time.sleep(1)
 
     # We know this is always true based on the input arguments to `Popen`.
-    stdout: IO[bytes] = process.stdout  # type: ignore
+    assert process.stdout is not None
+    stdout: IO[bytes] = process.stdout
 
     out = stdout.read()
     stdout.close()
     print("done!", len(out), "bytes")
-    return cast(List[str], out.decode("utf-8", errors="ignore").split("\n"))
+    return out.decode("utf-8", errors="ignore").split("\n")
 
 
 def build_info(
@@ -211,9 +212,10 @@ def build_defines_as_source() -> str:
     )
 
     # We know this is always true based on the input arguments to `Popen`.
-    stdout: IO[bytes] = process.stdout  # type: ignore
+    assert process.stdout is not None
+    stdout: IO[bytes] = process.stdout
 
-    return cast(str, stdout.read().strip().decode('ascii'))
+    return stdout.read().strip().decode('ascii')
 
 
 def build_defines_as_args() -> List[str]:
