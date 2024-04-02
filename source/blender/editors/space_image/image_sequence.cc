@@ -42,10 +42,7 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
 {
   char dir[FILE_MAXDIR];
   const bool do_frame_range = RNA_boolean_get(op->ptr, "use_sequence_detection");
-  ImageFrameRange *range = nullptr;
   int range_first_frame = 0;
-  /* Track when a new series of files are found that aren't compatible with the previous file. */
-  char base_head[FILE_MAX], base_tail[FILE_MAX];
 
   RNA_string_get(op->ptr, "directory", dir);
   RNA_BEGIN (op->ptr, itemptr, "files") {
@@ -58,10 +55,19 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
     frame->framenr = BLI_path_sequence_decode(
         filename, head, sizeof(head), tail, sizeof(tail), &digits);
 
-    /* still in the same sequence */
-    if (do_frame_range && (range != nullptr) && STREQLEN(base_head, head, FILE_MAX) &&
-        STREQLEN(base_tail, tail, FILE_MAX))
-    {
+    /* Check if the image sequence is already initialized. */
+    ImageFrameRange *range = nullptr;
+    if (do_frame_range) {
+      LISTBASE_FOREACH (ImageFrameRange *, range_test, ranges) {
+        if ((digits == range_test->filename_digits) &&
+            (STREQ(head, range_test->filename_head) && STREQ(tail, range_test->filename_tail)))
+        {
+          range = range_test;
+          break;
+        }
+      }
+    }
+    if (range) {
       /* Set filepath to first frame in the range. */
       if (frame->framenr < range_first_frame) {
         BLI_path_join(range->filepath, sizeof(range->filepath), dir, filename);
@@ -73,9 +79,9 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
       range = static_cast<ImageFrameRange *>(MEM_callocN(sizeof(*range), __func__));
       BLI_path_join(range->filepath, sizeof(range->filepath), dir, filename);
       BLI_addtail(ranges, range);
-
-      STRNCPY(base_head, head);
-      STRNCPY(base_tail, tail);
+      range->filename_digits = digits;
+      STRNCPY(range->filename_head, head);
+      STRNCPY(range->filename_tail, tail);
 
       range_first_frame = frame->framenr;
     }
