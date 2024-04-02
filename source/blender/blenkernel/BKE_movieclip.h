@@ -87,7 +87,7 @@ void BKE_movieclip_build_proxy_frame(struct MovieClip *clip,
                                      int clip_flag,
                                      struct MovieDistortion *distortion,
                                      int cfra,
-                                     int *build_sizes,
+                                     const int *build_sizes,
                                      int build_count,
                                      bool undistorted);
 
@@ -99,7 +99,7 @@ void BKE_movieclip_build_proxy_frame_for_ibuf(struct MovieClip *clip,
                                               struct ImBuf *ibuf,
                                               struct MovieDistortion *distortion,
                                               int cfra,
-                                              int *build_sizes,
+                                              const int *build_sizes,
                                               int build_count,
                                               bool undistorted);
 bool BKE_movieclip_proxy_enabled(struct MovieClip *clip);

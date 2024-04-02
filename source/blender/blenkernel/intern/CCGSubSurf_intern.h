@@ -221,7 +221,8 @@ struct CCGSubSurf {
   (void)0
 #define NormCopy(av, bv) \
   { \
-    float *_a = (float *)av, *_b = (float *)bv; \
+    float *_a = (float *)av; \
+    const float *_b = (const float *)bv; \
     _a[0] = _b[0]; \
     _a[1] = _b[1]; \
     _a[2] = _b[2]; \
@@ -229,7 +230,8 @@ struct CCGSubSurf {
   (void)0
 #define NormAdd(av, bv) \
   { \
-    float *_a = (float *)av, *_b = (float *)bv; \
+    float *_a = (float *)av; \
+    const float *_b = (const float *)bv; \
     _a[0] += _b[0]; \
     _a[1] += _b[1]; \
     _a[2] += _b[2]; \

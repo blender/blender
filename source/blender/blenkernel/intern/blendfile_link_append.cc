@@ -182,7 +182,7 @@ static BlendHandle *link_append_context_library_blohandle_ensure(
     lib_context->bf_reports.reports = reports;
   }
 
-  char *libname = lib_context->path;
+  const char *libname = lib_context->path;
   BlendHandle *blo_handle = lib_context->blo_handle;
   if (blo_handle == nullptr) {
     if (STREQ(libname, BLO_EMBEDDED_STARTUP_BLEND)) {
@@ -1410,7 +1410,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
   {
     BlendfileLinkAppendContextLibrary *lib_context =
         static_cast<BlendfileLinkAppendContextLibrary *>(liblink->link);
-    char *libname = lib_context->path;
+    const char *libname = lib_context->path;
     BlendHandle *blo_handle = link_append_context_library_blohandle_ensure(
         lapp_context, lib_context, reports);
 

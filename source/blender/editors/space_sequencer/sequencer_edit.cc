@@ -2263,7 +2263,7 @@ static Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, i
   return best_seq; /* Can be nullptr. */
 }
 
-static bool seq_is_parent(Sequence *par, Sequence *seq)
+static bool seq_is_parent(const Sequence *par, const Sequence *seq)
 {
   return ((par->seq1 == seq) || (par->seq2 == seq) || (par->seq3 == seq));
 }

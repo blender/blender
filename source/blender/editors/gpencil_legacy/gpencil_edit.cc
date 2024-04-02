@@ -1453,7 +1453,7 @@ GHash *gpencil_copybuf_validate_colormap(bContext *C)
 
   GHASH_ITER (gh_iter, gpencil_strokes_copypastebuf_colors) {
     int *key = static_cast<int *>(BLI_ghashIterator_getKey(&gh_iter));
-    char *ma_name = static_cast<char *>(BLI_ghashIterator_getValue(&gh_iter));
+    const char *ma_name = static_cast<const char *>(BLI_ghashIterator_getValue(&gh_iter));
     Material *ma = static_cast<Material *>(BLI_ghash_lookup(name_to_ma, ma_name));
 
     BKE_gpencil_object_material_ensure(bmain, ob, ma);

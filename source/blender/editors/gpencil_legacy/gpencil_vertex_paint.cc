@@ -818,7 +818,7 @@ static bool gpencil_vertexpaint_select_stroke(tGP_BrushVertexpaintData *gso,
                                               const float bound_mat[4][4])
 {
   GP_SpaceConversion *gsc = &gso->gsc;
-  rcti *rect = &gso->brush_rect;
+  const rcti *rect = &gso->brush_rect;
   Brush *brush = gso->brush;
   const int radius = (brush->flag & GP_BRUSH_USE_PRESSURE) ? gso->brush->size * gso->pressure :
                                                              gso->brush->size;

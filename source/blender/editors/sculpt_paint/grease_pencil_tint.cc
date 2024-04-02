@@ -28,9 +28,6 @@
 
 namespace blender::ed::sculpt_paint::greasepencil {
 
-static constexpr float POINT_OVERRIDE_THRESHOLD_PX = 3.0f;
-static constexpr float POINT_RESAMPLE_MIN_DISTANCE_PX = 10.0f;
-
 using ed::greasepencil::MutableDrawingInfo;
 
 class TintOperation : public GreasePencilStrokeOperation {

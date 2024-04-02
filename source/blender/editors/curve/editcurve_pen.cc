@@ -1172,7 +1172,7 @@ static bool is_spline_nearby(ViewContext *vc,
   return false;
 }
 
-static void move_segment(ViewContext *vc, MoveSegmentData *seg_data, const wmEvent *event)
+static void move_segment(const ViewContext *vc, MoveSegmentData *seg_data, const wmEvent *event)
 {
   Nurb *nu = seg_data->nu;
   BezTriple *bezt1 = nu->bezt + seg_data->bezt_index;
@@ -1290,7 +1290,7 @@ static void toggle_sel_bezt_free_align_handles(ListBase *nurbs)
 /**
  * If a point is found under mouse, delete point and return true. Else return false.
  */
-static bool delete_point_under_mouse(ViewContext *vc, const wmEvent *event)
+static bool delete_point_under_mouse(const ViewContext *vc, const wmEvent *event)
 {
   BezTriple *bezt = nullptr;
   BPoint *bp = nullptr;
@@ -1338,7 +1338,7 @@ static bool delete_point_under_mouse(ViewContext *vc, const wmEvent *event)
   return deleted;
 }
 
-static void move_adjacent_handle(ViewContext *vc, const wmEvent *event, ListBase *nurbs)
+static void move_adjacent_handle(const ViewContext *vc, const wmEvent *event, ListBase *nurbs)
 {
   FOREACH_SELECTED_BEZT_BEGIN (bezt, nurbs) {
     BezTriple *adj_bezt;
@@ -1382,7 +1382,7 @@ static void move_adjacent_handle(ViewContext *vc, const wmEvent *event, ListBase
 /**
  * Close the spline if endpoints are selected consecutively. Return true if cycle was created.
  */
-static bool make_cyclic_if_endpoints(ViewContext *vc,
+static bool make_cyclic_if_endpoints(const ViewContext *vc,
                                      Nurb *sel_nu,
                                      BezTriple *sel_bezt,
                                      BPoint *sel_bp)

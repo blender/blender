@@ -1102,7 +1102,7 @@ void TEXT_OT_duplicate_line(wmOperatorType *ot)
 /** \name Copy Operator
  * \{ */
 
-static void txt_copy_clipboard(Text *text)
+static void txt_copy_clipboard(const Text *text)
 {
   char *buf;
 
@@ -1120,7 +1120,7 @@ static void txt_copy_clipboard(Text *text)
 
 static int text_copy_exec(bContext *C, wmOperator * /*op*/)
 {
-  Text *text = CTX_data_edit_text(C);
+  const Text *text = CTX_data_edit_text(C);
 
   txt_copy_clipboard(text);
 

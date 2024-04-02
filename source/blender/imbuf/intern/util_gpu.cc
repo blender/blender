@@ -201,8 +201,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
   }
 
   if (do_rescale) {
-    uint8_t *rect = (is_float_rect) ? nullptr : (uint8_t *)data_rect;
-    float *rect_float = (is_float_rect) ? (float *)data_rect : nullptr;
+    const uint8_t *rect = (is_float_rect) ? nullptr : (uint8_t *)data_rect;
+    const float *rect_float = (is_float_rect) ? (float *)data_rect : nullptr;
 
     ImBuf *scale_ibuf = IMB_allocFromBuffer(rect, rect_float, ibuf->x, ibuf->y, 4);
     IMB_scaleImBuf(scale_ibuf, UNPACK2(rescale_size));

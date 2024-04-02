@@ -848,12 +848,12 @@ int space_text_get_visible_lines(const SpaceText *st, const ARegion *region, con
 
 int space_text_get_span_wrap(const SpaceText *st,
                              const ARegion *region,
-                             TextLine *from,
-                             TextLine *to)
+                             const TextLine *from,
+                             const TextLine *to)
 {
   if (st->wordwrap) {
     int ret = 0;
-    TextLine *tmp = from;
+    const TextLine *tmp = from;
 
     /* Look forwards */
     while (tmp) {

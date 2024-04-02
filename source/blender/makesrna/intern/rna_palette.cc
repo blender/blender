@@ -80,7 +80,7 @@ static void rna_Palette_active_color_set(PointerRNA *ptr,
                                          ReportList * /*reports*/)
 {
   Palette *palette = static_cast<Palette *>(ptr->data);
-  PaletteColor *color = static_cast<PaletteColor *>(value.data);
+  const PaletteColor *color = static_cast<const PaletteColor *>(value.data);
 
   /* -1 is ok for an unset index */
   if (color == nullptr) {

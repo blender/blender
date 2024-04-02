@@ -367,7 +367,7 @@ int BKE_packedfile_write_to_file(ReportList *reports,
 
 enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
                                                     const char *filepath_rel,
-                                                    PackedFile *pf)
+                                                    const PackedFile *pf)
 {
   BLI_stat_t st;
   enum ePF_FileCompare ret_val;
@@ -880,7 +880,7 @@ void BKE_packedfile_id_unpack(Main *bmain, ID *id, ReportList *reports, enum ePF
   }
 }
 
-void BKE_packedfile_blend_write(BlendWriter *writer, PackedFile *pf)
+void BKE_packedfile_blend_write(BlendWriter *writer, const PackedFile *pf)
 {
   if (pf == nullptr) {
     return;

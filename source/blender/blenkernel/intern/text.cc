@@ -673,10 +673,10 @@ void txt_clean_text(Text *text)
   }
 }
 
-int txt_get_span(TextLine *from, const TextLine *to)
+int txt_get_span(const TextLine *from, const TextLine *to)
 {
   int ret = 0;
-  TextLine *tmp = from;
+  const TextLine *tmp = from;
 
   if (!to || !from) {
     return 0;

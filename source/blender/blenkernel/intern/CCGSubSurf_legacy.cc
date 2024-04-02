@@ -70,12 +70,16 @@ static float *_face_getIFNoEdge(CCGFace *f,
 static void _face_calcIFNo(
     CCGFace *f, int lvl, int S, int x, int y, float no[3], int levels, int dataSize)
 {
-  float *a = static_cast<float *>(ccg_face_getIFCo(f, lvl, S, x + 0, y + 0, levels, dataSize));
-  float *b = static_cast<float *>(ccg_face_getIFCo(f, lvl, S, x + 1, y + 0, levels, dataSize));
-  float *c = static_cast<float *>(ccg_face_getIFCo(f, lvl, S, x + 1, y + 1, levels, dataSize));
-  float *d = static_cast<float *>(ccg_face_getIFCo(f, lvl, S, x + 0, y + 1, levels, dataSize));
-  float a_cX = c[0] - a[0], a_cY = c[1] - a[1], a_cZ = c[2] - a[2];
-  float b_dX = d[0] - b[0], b_dY = d[1] - b[1], b_dZ = d[2] - b[2];
+  const float *a = static_cast<float *>(
+      ccg_face_getIFCo(f, lvl, S, x + 0, y + 0, levels, dataSize));
+  const float *b = static_cast<float *>(
+      ccg_face_getIFCo(f, lvl, S, x + 1, y + 0, levels, dataSize));
+  const float *c = static_cast<float *>(
+      ccg_face_getIFCo(f, lvl, S, x + 1, y + 1, levels, dataSize));
+  const float *d = static_cast<float *>(
+      ccg_face_getIFCo(f, lvl, S, x + 0, y + 1, levels, dataSize));
+  const float a_cX = c[0] - a[0], a_cY = c[1] - a[1], a_cZ = c[2] - a[2];
+  const float b_dX = d[0] - b[0], b_dY = d[1] - b[1], b_dZ = d[2] - b[2];
 
   no[0] = b_dY * a_cZ - b_dZ * a_cY;
   no[1] = b_dZ * a_cX - b_dX * a_cZ;

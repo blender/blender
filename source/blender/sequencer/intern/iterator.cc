@@ -77,7 +77,7 @@ void SEQ_iterator_set_expand(const Scene *scene,
   strips.add_multiple(query_matches);
 }
 
-static void query_all_strips_recursive(ListBase *seqbase, VectorSet<Sequence *> &strips)
+static void query_all_strips_recursive(const ListBase *seqbase, VectorSet<Sequence *> &strips)
 {
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->type == SEQ_TYPE_META) {
@@ -87,7 +87,7 @@ static void query_all_strips_recursive(ListBase *seqbase, VectorSet<Sequence *> 
   }
 }
 
-static void query_all_meta_strips_recursive(ListBase *seqbase, VectorSet<Sequence *> &strips)
+static void query_all_meta_strips_recursive(const ListBase *seqbase, VectorSet<Sequence *> &strips)
 {
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (seq->type == SEQ_TYPE_META) {
@@ -97,14 +97,14 @@ static void query_all_meta_strips_recursive(ListBase *seqbase, VectorSet<Sequenc
   }
 }
 
-VectorSet<Sequence *> SEQ_query_all_strips_recursive(ListBase *seqbase)
+VectorSet<Sequence *> SEQ_query_all_strips_recursive(const ListBase *seqbase)
 {
   VectorSet<Sequence *> strips;
   query_all_strips_recursive(seqbase, strips);
   return strips;
 }
 
-VectorSet<Sequence *> SEQ_query_all_meta_strips_recursive(ListBase *seqbase)
+VectorSet<Sequence *> SEQ_query_all_meta_strips_recursive(const ListBase *seqbase)
 {
   VectorSet<Sequence *> strips;
   query_all_meta_strips_recursive(seqbase, strips);

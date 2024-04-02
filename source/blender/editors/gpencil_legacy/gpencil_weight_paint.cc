@@ -952,7 +952,7 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
                                               const float bound_mat[4][4])
 {
   GP_SpaceConversion *gsc = &gso->gsc;
-  rcti *rect = &gso->brush_rect;
+  const rcti *rect = &gso->brush_rect;
   Brush *brush = gso->brush;
   /* For the blur tool, look a bit wider than the brush itself,
    * because we need the weight of surrounding points to perform the blur. */

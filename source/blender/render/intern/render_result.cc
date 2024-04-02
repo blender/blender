@@ -263,7 +263,7 @@ RenderPass *render_layer_add_pass(RenderResult *rr,
 }
 
 RenderResult *render_result_new(Render *re,
-                                rcti *partrct,
+                                const rcti *partrct,
                                 const char *layername,
                                 const char *viewname)
 {
