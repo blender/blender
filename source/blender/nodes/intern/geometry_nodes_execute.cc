@@ -748,6 +748,19 @@ static void store_output_attributes(bke::GeometrySet &geometry,
   if (outputs_by_domain.size() == 0) {
     return;
   }
+  const bool only_instance_attributes = outputs_by_domain.size() == 1 &&
+                                        *outputs_by_domain.keys().begin() ==
+                                            bke::AttrDomain::Instance;
+  if (only_instance_attributes) {
+    /* No need to call #modify_geometry_sets when only adding attributes to top-level instances.
+     * This avoids some unnecessary data copies currently if some sub-geometries are not yet owned
+     * by the geometry set, i.e. they use #GeometryOwnershipType::Editable/ReadOnly. */
+    Vector<OutputAttributeToStore> attributes_to_store = compute_attributes_to_store(
+        geometry, outputs_by_domain, true);
+    store_computed_output_attributes(geometry, attributes_to_store);
+    return;
+  }
+
   geometry.modify_geometry_sets([&](bke::GeometrySet &instance_geometry) {
     /* Instance attributes should only be created for the top-level geometry. */
     const bool do_instances = &geometry == &instance_geometry;
