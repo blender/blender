@@ -4164,7 +4164,7 @@ static blender::Set<int> get_known_node_types_set()
 static bool can_read_node_type(const int type)
 {
   /* Can always read custom node types. */
-  if (type == NODE_CUSTOM) {
+  if (ELEM(type, NODE_CUSTOM, NODE_CUSTOM_GROUP)) {
     return true;
   }
 
