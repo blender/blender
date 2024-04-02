@@ -71,7 +71,6 @@ static void add_face_edges_to_hash_maps(const Mesh &mesh,
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - edge_maps.data();
     for (const int face_i : faces.index_range()) {
-      const Span<int> face_verts = corner_verts.slice(faces[face_i]);
       const IndexRange face = faces[face_i];
       for (const int corner : face) {
         const int vert = corner_verts[corner];
