@@ -41,8 +41,14 @@ modules = {
     "Module/VFX & Video": ModuleInfo(name="VFX & Video", labelid="284"),
 }
 
-base_url = "https://projects.blender.org/blender/blender/issues?q=&type=all&sort=&state=open&labels="
-total_url = "https://projects.blender.org/blender/blender/issues?q=&type=all&sort=&state=open&labels=285%2c-297%2c-298%2c-299%2c-301"
+base_url = (
+    "https://projects.blender.org/blender/blender/"
+    "issues?q=&type=all&sort=&state=open&labels="
+)
+total_url = (
+    "https://projects.blender.org/blender/blender/"
+    "issues?q=&type=all&sort=&state=open&labels=285%2c-297%2c-298%2c-299%2c-301"
+)
 
 severity_labelid = {
     "Low": "286",
@@ -79,27 +85,25 @@ def compile_list(severity: str) -> None:
     else:
         uncategorized_reports.append(f"[#{number}]({html_url})")
 
-    uncategorized_reports = (', '.join(uncategorized_reports))
-
     # Print statistics
     print(f"Open {severity} Priority bugs as of {date.today()}:\n")
 
     total = 0
     for module in modules.values():
-        total += len(module.buglist)
-        str_list = (', '.join(module.buglist))
-        full_url = base_url + severity_labelid[severity] + "%2c" + module.labelid
+        buglist_str = (", ".join(module.buglist))
         buglist_len = len(module.buglist)
-        if not module.buglist or severity != 'High':
+        total += buglist_len
+        full_url = base_url + severity_labelid[severity] + "%2c" + module.labelid
+        if not module.buglist or severity != "High":
             print(f"- [{module.name}]({full_url}): *{buglist_len}*")
         else:
-            print(f"- [{module.name}]({full_url}): *{buglist_len}* _{str_list}_")
+            print(f"- [{module.name}]({full_url}): *{buglist_len}* _{buglist_str}_")
 
     print()
     print(f"[Total]({total_url}): {total}")
 
     print()
-    print(f"Uncategorized: {uncategorized_reports}")
+    print("Uncategorized:", ", ".join(uncategorized_reports))
 
 
 def main() -> None:
