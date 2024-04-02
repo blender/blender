@@ -103,8 +103,8 @@ class ConvertColorToFloatOperation : public ConversionOperation {
 /* -------------------------------------------------------------------- */
 /** \name Convert Color to Vector Operation
  *
- * Takes a color result and outputs a vector result. The output is a copy of the three color
- * channels to the three vector components.
+ * Takes a color result and outputs a vector result. The output is an exact copy of the input since
+ * vectors are 4D.
  * \{ */
 
 class ConvertColorToVectorOperation : public ConversionOperation {

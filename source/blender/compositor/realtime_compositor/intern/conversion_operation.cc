@@ -177,7 +177,7 @@ ConvertColorToVectorOperation::ConvertColorToVectorOperation(Context &context)
 void ConvertColorToVectorOperation::execute_single(const Result &input, Result &output)
 {
   float4 color = input.get_color_value();
-  output.set_vector_value(float4(float3(color), 0.0f));
+  output.set_vector_value(color);
 }
 
 GPUShader *ConvertColorToVectorOperation::get_conversion_shader() const
