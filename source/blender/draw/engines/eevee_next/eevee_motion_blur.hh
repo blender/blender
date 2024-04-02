@@ -83,7 +83,7 @@ class MotionBlurModule {
   /** True if motion blur is enabled as a module. */
   bool enabled_ = false;
   /** True if motion blur post-fx is enabled. */
-  float motion_blur_fx_enabled_ = false;
+  bool motion_blur_fx_enabled_ = false;
   /** True if last viewport redraw state was already in navigation state. */
   bool was_navigating_ = false;
 
