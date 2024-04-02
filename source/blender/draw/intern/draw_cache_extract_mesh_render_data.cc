@@ -559,16 +559,12 @@ MeshRenderData *mesh_render_data_create(Object *object,
     /* If there is no distinct cage, hide unmapped edges that can't be selected. */
     mr->hide_unmapped_edges = !do_final || editmesh_eval_final == editmesh_eval_cage;
 
-    if (mr->edit_data) {
-      bke::EditMeshData *emd = mr->edit_data;
+    if (bke::EditMeshData *emd = mr->edit_data) {
       if (!emd->vert_positions.is_empty()) {
-        BKE_editmesh_cache_ensure_vert_normals(*mr->edit_bmesh, *emd);
-        BKE_editmesh_cache_ensure_face_normals(*mr->edit_bmesh, *emd);
+        mr->bm_vert_coords = mr->edit_data->vert_positions;
+        mr->bm_vert_normals = BKE_editmesh_cache_ensure_vert_normals(*mr->edit_bmesh, *emd);
+        mr->bm_face_normals = BKE_editmesh_cache_ensure_face_normals(*mr->edit_bmesh, *emd);
       }
-
-      mr->bm_vert_coords = mr->edit_data->vert_positions;
-      mr->bm_vert_normals = mr->edit_data->vert_normals;
-      mr->bm_face_normals = mr->edit_data->face_normals;
     }
 
     int bm_ensure_types = BM_VERT | BM_EDGE | BM_LOOP | BM_FACE;

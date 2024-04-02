@@ -165,8 +165,8 @@ Span<float3> BKE_mesh_wrapper_face_normals(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      BKE_editmesh_cache_ensure_face_normals(*mesh->runtime->edit_mesh, *mesh->runtime->edit_data);
-      return mesh->runtime->edit_data->face_normals;
+      return BKE_editmesh_cache_ensure_face_normals(*mesh->runtime->edit_mesh,
+                                                    *mesh->runtime->edit_data);
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->face_normals();
@@ -179,10 +179,10 @@ void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      if (mesh->runtime->edit_data) {
-        mesh->runtime->edit_data->vert_normals = {};
-        mesh->runtime->edit_data->face_centers = {};
-        mesh->runtime->edit_data->face_normals = {};
+      if (blender::bke::EditMeshData *edit_data = mesh->runtime->edit_data.get()) {
+        edit_data->vert_normals = {};
+        edit_data->face_centers = {};
+        edit_data->face_normals = {};
       }
       break;
     case ME_WRAPPER_TYPE_MDATA:

@@ -475,8 +475,7 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
       if ((emd != nullptr) && !emd->vert_positions.is_empty()) {
         *r_vert_coords = emd->vert_positions;
         if (r_vert_normals != nullptr) {
-          BKE_editmesh_cache_ensure_vert_normals(*em, *emd);
-          *r_vert_normals = emd->vert_normals;
+          *r_vert_normals = BKE_editmesh_cache_ensure_vert_normals(*em, *emd);
         }
       }
     }

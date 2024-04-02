@@ -29,10 +29,13 @@ struct EditMeshData {
 
 }  // namespace blender::bke
 
-void BKE_editmesh_cache_ensure_face_normals(BMEditMesh &em, blender::bke::EditMeshData &emd);
-void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh &em, blender::bke::EditMeshData &emd);
+blender::Span<blender::float3> BKE_editmesh_cache_ensure_face_normals(
+    BMEditMesh &em, blender::bke::EditMeshData &emd);
+blender::Span<blender::float3> BKE_editmesh_cache_ensure_vert_normals(
+    BMEditMesh &em, blender::bke::EditMeshData &emd);
 
-void BKE_editmesh_cache_ensure_face_centers(BMEditMesh &em, blender::bke::EditMeshData &emd);
+blender::Span<blender::float3> BKE_editmesh_cache_ensure_face_centers(
+    BMEditMesh &em, blender::bke::EditMeshData &emd);
 
 std::optional<blender::Bounds<blender::float3>> BKE_editmesh_cache_calc_minmax(
     const BMEditMesh &em, const blender::bke::EditMeshData &emd);
