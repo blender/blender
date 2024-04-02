@@ -317,7 +317,7 @@ void icon_draw_rect_input(
       SNPRINTF(str, "%s%i", BLI_STR_UTF8_CIRCLED_WHITE_BULLET, 1 + event_type - NDOF_BUTTON_1);
       icon_draw_rect_input_text(&rect, color, str, 9.0f, 0.0f);
     }
-    else if ((event_type == NDOF_BUTTON_10)) {
+    else if (event_type == NDOF_BUTTON_10) {
       icon_draw_rect_input_text(&rect, color, BLI_STR_UTF8_CIRCLED_WHITE_BULLET "10", 7.5f, 0.0f);
     }
     else if ((event_type >= NDOF_BUTTON_A) && (event_type <= NDOF_BUTTON_C)) {
