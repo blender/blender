@@ -49,8 +49,8 @@ class ConversionOperation : public SimpleOperation {
 /* -------------------------------------------------------------------- */
 /** \name Convert Float to Vector Operation
  *
- * Takes a float result and outputs a vector result. All three components of the output are filled
- * with the input float.
+ * Takes a float result and outputs a vector result. The first three components of the output are
+ * filled with the input float, while the fourth component is set to 1.
  * \{ */
 
 class ConvertFloatToVectorOperation : public ConversionOperation {
