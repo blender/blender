@@ -589,12 +589,12 @@ static void grease_pencil_geom_batch_ensure(Object &object,
     };
 
     visible_strokes.foreach_index([&](const int curve_i, const int pos) {
-      IndexRange points = points_by_curve[curve_i];
+      const IndexRange points = points_by_curve[curve_i];
       const bool is_cyclic = cyclic[curve_i];
       const int verts_start_offset = verts_start_offsets[pos];
       const int tris_start_offset = tris_start_offsets[pos];
       const int num_verts = 1 + points.size() + (is_cyclic ? 1 : 0) + 1;
-      IndexRange verts_range = IndexRange(verts_start_offset, num_verts);
+      const IndexRange verts_range = IndexRange(verts_start_offset, num_verts);
       MutableSpan<GreasePencilStrokeVert> verts_slice = verts.slice(verts_range);
       MutableSpan<GreasePencilColorVert> cols_slice = cols.slice(verts_range);
       const float4x2 texture_matrix = texture_matrices[curve_i] * object_space_to_layer_space;

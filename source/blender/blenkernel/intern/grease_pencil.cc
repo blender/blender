@@ -578,7 +578,7 @@ void Drawing::set_texture_matrices(Span<float4x2> matrices, const IndexMask &sel
     const float4x2 texspace = matrices[pos];
 
     /* We do the computation using doubles to avoid numerical precision errors. */
-    double4x3 strokemat4x3 = double4x3(expand_4x2_mat(strokemat));
+    const double4x3 strokemat4x3 = double4x3(expand_4x2_mat(strokemat));
 
     /*
      * We want to solve for `texture_matrix` in the equation: `texspace = texture_matrix *
