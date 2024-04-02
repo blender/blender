@@ -63,6 +63,10 @@
 
 namespace blender::ed::sculpt_paint::face_set {
 
+/* -------------------------------------------------------------------- */
+/** \name Public API
+ * \{ */
+
 int find_next_available_id(Object &object)
 {
   SculptSession &ss = *object.sculpt;
@@ -177,7 +181,11 @@ int ensure_face_sets_bmesh(Object &object)
   return CustomData_get_offset_named(&bm.pdata, CD_PROP_INT32, ".sculpt_face_set");
 }
 
-/* Draw Face Sets Brush. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Draw Face Sets Brush
+ * \{ */
 
 constexpr float FACE_SET_BRUSH_MIN_FADE = 0.05f;
 
@@ -477,6 +485,13 @@ void do_draw_face_sets_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Global Mesh Operators
+ * Operators that work on the mesh as a whole.
+ * \{ */
+
 static void face_sets_update(Object &object,
                              const Span<PBVHNode *> nodes,
                              const FunctionRef<void(Span<int>, MutableSpan<int>)> calc_face_sets)
@@ -514,8 +529,6 @@ static void face_sets_update(Object &object,
 
   face_sets.finish();
 }
-
-/* Face Sets Operators */
 
 enum class CreateMode {
   Masked = 0,
@@ -1652,8 +1665,11 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
                              "Apply the edit operation to hidden geometry");
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Gesture Operators
+ * Operators that modify face sets based on a selected area.
  * \{ */
 
 struct SculptGestureFaceSetOperation {
