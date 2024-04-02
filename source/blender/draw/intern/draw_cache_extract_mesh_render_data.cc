@@ -501,25 +501,14 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
          mr.normals_domain == bke::MeshNormalDomain::Corner) ||
         (data_flag & MR_DATA_TAN_LOOP_NOR))
     {
-
-      const float(*vert_coords)[3] = nullptr;
-      const float(*vert_normals)[3] = nullptr;
-      const float(*face_normals)[3] = nullptr;
-
-      if (mr.edit_data && !mr.edit_data->vert_positions.is_empty()) {
-        vert_coords = reinterpret_cast<const float(*)[3]>(mr.bm_vert_coords.data());
-        vert_normals = reinterpret_cast<const float(*)[3]>(mr.bm_vert_normals.data());
-        face_normals = reinterpret_cast<const float(*)[3]>(mr.bm_face_normals.data());
-      }
-
       mr.bm_loop_normals.reinitialize(mr.corners_num);
       const int clnors_offset = CustomData_get_offset(&mr.bm->ldata, CD_CUSTOMLOOPNORMAL);
       BM_loops_calc_normal_vcos(mr.bm,
-                                vert_coords,
-                                vert_normals,
-                                face_normals,
+                                mr.bm_vert_coords,
+                                mr.bm_vert_normals,
+                                mr.bm_face_normals,
                                 true,
-                                reinterpret_cast<float(*)[3]>(mr.bm_loop_normals.data()),
+                                mr.bm_loop_normals,
                                 nullptr,
                                 nullptr,
                                 clnors_offset,

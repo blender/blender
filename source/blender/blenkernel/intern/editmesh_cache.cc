@@ -36,10 +36,7 @@ void BKE_editmesh_cache_ensure_face_normals(BMEditMesh &em, blender::bke::EditMe
   int i;
   BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
     BM_elem_index_set(efa, i); /* set_inline */
-    BM_face_calc_normal_vcos(bm,
-                             efa,
-                             emd.face_normals[i],
-                             reinterpret_cast<const float(*)[3]>(emd.vert_positions.data()));
+    BM_face_calc_normal_vcos(bm, efa, emd.face_normals[i], emd.vert_positions);
   }
   bm->elem_index_dirty &= ~BM_FACE;
 }
@@ -57,10 +54,7 @@ void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh &em, blender::bke::EditMe
   emd.vert_normals.reinitialize(bm->totvert);
 
   BM_mesh_elem_index_ensure(bm, BM_FACE);
-  BM_verts_calc_normal_vcos(bm,
-                            reinterpret_cast<const float(*)[3]>(emd.face_normals.data()),
-                            reinterpret_cast<const float(*)[3]>(emd.vert_positions.data()),
-                            reinterpret_cast<float(*)[3]>(emd.vert_normals.data()));
+  BM_verts_calc_normal_vcos(bm, emd.face_normals, emd.vert_positions, emd.vert_normals);
 }
 
 void BKE_editmesh_cache_ensure_face_centers(BMEditMesh &em, blender::bke::EditMeshData &emd)
