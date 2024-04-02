@@ -641,17 +641,55 @@ static void operator_properties(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "trim_solver", solver_modes, int(SolverMode::Fast), "Solver", nullptr);
 }
 
-static int gesture_box_exec(bContext *C, wmOperator *op)
+static bool can_invoke(const bContext &C)
 {
-  Object *object = CTX_data_active_object(C);
-  SculptSession *ss = object->sculpt;
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
-    /* Not supported in Multires and Dyntopo. */
-    return OPERATOR_CANCELLED;
+  const View3D &v3d = *CTX_wm_view3d(&C);
+  const Base &base = *CTX_data_active_base(&C);
+  if (!BKE_base_is_visible(&v3d, &base)) {
+    return false;
   }
 
-  if (ss->totvert == 0) {
+  return true;
+}
+
+static bool can_exec(const bContext &C)
+{
+  const Object &object = *CTX_data_active_object(&C);
+  const SculptSession &ss = *object.sculpt;
+  if (BKE_pbvh_type(ss.pbvh) != PBVH_FACES) {
+    /* Not supported in Multires and Dyntopo. */
+    return false;
+  }
+
+  if (ss.totvert == 0) {
     /* No geometry to trim or to detect a valid position for the trimming shape. */
+    return false;
+  }
+
+  return true;
+}
+
+static void initialize_cursor_info(bContext &C, const wmEvent *event)
+{
+  const Object &ob = *CTX_data_active_object(&C);
+  SculptSession &ss = *ob.sculpt;
+
+  SCULPT_vertex_random_access_ensure(&ss);
+
+  SculptCursorGeometryInfo sgi;
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
+
+  /* TODO: Remove gesture_* properties from SculptSession */
+  ss.gesture_initial_hit = SCULPT_cursor_geometry_info_update(&C, &sgi, mval_fl, false);
+  if (ss.gesture_initial_hit) {
+    copy_v3_v3(ss.gesture_initial_location, sgi.location);
+    copy_v3_v3(ss.gesture_initial_normal, sgi.normal);
+  }
+}
+
+static int gesture_box_exec(bContext *C, wmOperator *op)
+{
+  if (!can_exec(*C)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -667,42 +705,18 @@ static int gesture_box_exec(bContext *C, wmOperator *op)
 
 static int gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
-
-  const View3D *v3d = CTX_wm_view3d(C);
-  const Base *base = CTX_data_active_base(C);
-  if (!BKE_base_is_visible(v3d, base)) {
+  if (!can_invoke(*C)) {
     return OPERATOR_CANCELLED;
   }
 
-  SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
-  SCULPT_vertex_random_access_ensure(ss);
-  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
-  if (ss->gesture_initial_hit) {
-    copy_v3_v3(ss->gesture_initial_location, sgi.location);
-    copy_v3_v3(ss->gesture_initial_normal, sgi.normal);
-  }
+  initialize_cursor_info(*C, event);
 
   return WM_gesture_box_invoke(C, op, event);
 }
 
 static int gesture_lasso_exec(bContext *C, wmOperator *op)
 {
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Object *object = CTX_data_active_object(C);
-
-  BKE_sculpt_update_object_for_edit(depsgraph, object, false);
-
-  SculptSession *ss = object->sculpt;
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
-    /* Not supported in Multires and Dyntopo. */
-    return OPERATOR_CANCELLED;
-  }
-
-  if (ss->totvert == 0) {
-    /* No geometry to trim or to detect a valid position for the trimming shape. */
+  if (!can_exec(*C)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -717,23 +731,11 @@ static int gesture_lasso_exec(bContext *C, wmOperator *op)
 
 static int gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Object *ob = CTX_data_active_object(C);
-  SculptSession *ss = ob->sculpt;
-
-  const View3D *v3d = CTX_wm_view3d(C);
-  const Base *base = CTX_data_active_base(C);
-  if (!BKE_base_is_visible(v3d, base)) {
+  if (!can_invoke(*C)) {
     return OPERATOR_CANCELLED;
   }
 
-  SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
-  SCULPT_vertex_random_access_ensure(ss);
-  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
-  if (ss->gesture_initial_hit) {
-    copy_v3_v3(ss->gesture_initial_location, sgi.location);
-    copy_v3_v3(ss->gesture_initial_normal, sgi.normal);
-  }
+  initialize_cursor_info(*C, event);
 
   return WM_gesture_lasso_invoke(C, op, event);
 }
