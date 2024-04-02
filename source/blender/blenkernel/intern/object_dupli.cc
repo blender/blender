@@ -444,17 +444,17 @@ static void make_child_duplis(const DupliContext *ctx,
 
 static const Mesh *mesh_data_from_duplicator_object(Object *ob,
                                                     BMEditMesh **r_em,
-                                                    const float (**r_vert_coords)[3],
-                                                    const float (**r_vert_normals)[3])
+                                                    Span<float3> *r_vert_coords,
+                                                    Span<float3> *r_vert_normals)
 {
   /* Gather mesh info. */
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   const Mesh *mesh_eval;
 
   *r_em = nullptr;
-  *r_vert_coords = nullptr;
+  *r_vert_coords = {};
   if (r_vert_normals != nullptr) {
-    *r_vert_normals = nullptr;
+    *r_vert_normals = {};
   }
 
   /* We do not need any render-specific handling anymore, depsgraph takes care of that. */
@@ -473,10 +473,10 @@ static const Mesh *mesh_data_from_duplicator_object(Object *ob,
       mesh_eval = nullptr;
 
       if ((emd != nullptr) && !emd->vert_positions.is_empty()) {
-        *r_vert_coords = reinterpret_cast<const float(*)[3]>(emd->vert_positions.data());
+        *r_vert_coords = emd->vert_positions;
         if (r_vert_normals != nullptr) {
           BKE_editmesh_cache_ensure_vert_normals(*em, *emd);
-          *r_vert_normals = reinterpret_cast<const float(*)[3]>(emd->vert_normals.data());
+          *r_vert_normals = emd->vert_normals;
         }
       }
     }
@@ -563,9 +563,9 @@ struct VertexDupliData_EditMesh {
 
   BMEditMesh *em;
 
-  /* Can be nullptr. */
-  const float (*vert_positions_deform)[3];
-  const float (*vert_normals_deform)[3];
+  /* Can be empty. */
+  Span<float3> vert_positions_deform;
+  Span<float3> vert_normals_deform;
 
   /**
    * \note The edit-mesh may assign #DupliObject.orco in cases when a regular mesh wouldn't.
@@ -582,8 +582,8 @@ struct VertexDupliData_EditMesh {
  * currently this is copied from a `short[3]` normal without division.
  * Can be null when \a use_rotation is false.
  */
-static void get_duplivert_transform(const float co[3],
-                                    const float no[3],
+static void get_duplivert_transform(const float3 &co,
+                                    const float3 &no,
                                     const bool use_rotation,
                                     const short axis,
                                     const short upflag,
@@ -609,8 +609,8 @@ static DupliObject *vertex_dupli(const DupliContext *ctx,
                                  Object *inst_ob,
                                  const float child_imat[4][4],
                                  int index,
-                                 const float co[3],
-                                 const float no[3],
+                                 const float3 &co,
+                                 const float3 &no,
                                  const bool use_rotation)
 {
   /* `obmat` is transform to vertex. */
@@ -681,14 +681,13 @@ static void make_child_duplis_verts_from_editmesh(const DupliContext *ctx,
   BMIter iter;
   int i;
 
-  const float(*vert_positions_deform)[3] = vdd->vert_positions_deform;
-  const float(*vert_normals_deform)[3] = vdd->vert_normals_deform;
-
+  const Span<float3> vert_positions_deform = vdd->vert_positions_deform;
+  const Span<float3> vert_normals_deform = vdd->vert_normals_deform;
   BM_ITER_MESH_INDEX (v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-    const float *co, *no;
-    if (vert_positions_deform != nullptr) {
+    float3 co, no;
+    if (!vert_positions_deform.is_empty()) {
       co = vert_positions_deform[i];
-      no = vert_normals_deform ? vert_normals_deform[i] : nullptr;
+      no = !vert_normals_deform.is_empty() ? vert_normals_deform[i] : float3(0);
     }
     else {
       co = v->co;
@@ -709,8 +708,8 @@ static void make_duplis_verts(const DupliContext *ctx)
 
   /* Gather mesh info. */
   BMEditMesh *em = nullptr;
-  const float(*vert_positions_deform)[3] = nullptr;
-  const float(*vert_normals_deform)[3] = nullptr;
+  Span<float3> vert_positions_deform;
+  Span<float3> vert_normals_deform;
   const Mesh *mesh_eval = mesh_data_from_duplicator_object(
       parent, &em, &vert_positions_deform, use_rotation ? &vert_normals_deform : nullptr);
   if (em == nullptr && mesh_eval == nullptr) {
@@ -725,7 +724,7 @@ static void make_duplis_verts(const DupliContext *ctx)
     vdd.em = em;
     vdd.vert_positions_deform = vert_positions_deform;
     vdd.vert_normals_deform = vert_normals_deform;
-    vdd.has_orco = (vert_positions_deform != nullptr);
+    vdd.has_orco = !vert_positions_deform.is_empty();
 
     make_child_duplis(ctx, &vdd, make_child_duplis_verts_from_editmesh);
   }
@@ -1080,8 +1079,8 @@ struct FaceDupliData_EditMesh {
 
   bool has_orco, has_uvs;
   int cd_loop_uv_offset;
-  /* Can be nullptr. */
-  const float (*vert_positions_deform)[3];
+  /* Can be empty. */
+  Span<float3> vert_positions_deform;
 };
 
 static void get_dupliface_transform_from_coords(Span<float3> coords,
@@ -1186,7 +1185,7 @@ static DupliObject *face_dupli_from_editmesh(const DupliContext *ctx,
 
                                              /* Mesh variables. */
                                              BMFace *f,
-                                             const float (*vert_positions_deform)[3])
+                                             const Span<float3> vert_positions_deform)
 {
   const int coords_len = f->len;
   Array<float3, 64> coords(coords_len);
@@ -1194,7 +1193,7 @@ static DupliObject *face_dupli_from_editmesh(const DupliContext *ctx,
   BMLoop *l_first, *l_iter;
   int i = 0;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  if (vert_positions_deform != nullptr) {
+  if (!vert_positions_deform.is_empty()) {
     do {
       copy_v3_v3(coords[i++], vert_positions_deform[BM_elem_index_get(l_iter->v)]);
     } while ((l_iter = l_iter->next) != l_first);
@@ -1263,9 +1262,9 @@ static void make_child_duplis_faces_from_editmesh(const DupliContext *ctx,
   BMIter iter;
   const bool use_scale = fdd->params.use_scale;
 
-  const float(*vert_positions_deform)[3] = fdd->vert_positions_deform;
+  const Span<float3> vert_positions_deform = fdd->vert_positions_deform;
 
-  BLI_assert((vert_positions_deform == nullptr) || (em->bm->elem_index_dirty & BM_VERT) == 0);
+  BLI_assert(vert_positions_deform.is_empty() || (em->bm->elem_index_dirty & BM_VERT) == 0);
 
   invert_m4_m4(inst_ob->runtime->world_to_object.ptr(), inst_ob->object_to_world().ptr());
   /* Relative transform from parent to child space. */
@@ -1296,7 +1295,7 @@ static void make_duplis_faces(const DupliContext *ctx)
 
   /* Gather mesh info. */
   BMEditMesh *em = nullptr;
-  const float(*vert_positions_deform)[3] = nullptr;
+  Span<float3> vert_positions_deform;
   const Mesh *mesh_eval = mesh_data_from_duplicator_object(
       parent, &em, &vert_positions_deform, nullptr);
   if (em == nullptr && mesh_eval == nullptr) {
@@ -1311,7 +1310,7 @@ static void make_duplis_faces(const DupliContext *ctx)
     fdd.params = fdd_params;
     fdd.em = em;
     fdd.vert_positions_deform = vert_positions_deform;
-    fdd.has_orco = (vert_positions_deform != nullptr);
+    fdd.has_orco = !vert_positions_deform.is_empty();
     fdd.has_uvs = (uv_idx != -1);
     fdd.cd_loop_uv_offset = (uv_idx != -1) ?
                                 CustomData_get_n_offset(&em->bm->ldata, CD_PROP_FLOAT2, uv_idx) :
