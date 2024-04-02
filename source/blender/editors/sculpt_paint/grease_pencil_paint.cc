@@ -605,7 +605,7 @@ void PaintOperation::process_stroke_end(const bContext &C, bke::greasepencil::Dr
 {
   Scene *scene = CTX_data_scene(&C);
   const int stroke_index = drawing.strokes().curves_range().last();
-  const IndexRange points = drawing.strokes().points_by_curve()[stroke_index];
+  IndexRange points = drawing.strokes().points_by_curve()[stroke_index];
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
   const VArray<float> radii = drawing.radii();
 
@@ -622,6 +622,7 @@ void PaintOperation::process_stroke_end(const bContext &C, bke::greasepencil::Dr
   if (points_to_remove > 0) {
     curves.resize(curves.points_num() - points_to_remove, curves.curves_num());
     curves.offsets_for_write().last() = curves.points_num();
+    points = points.drop_back(points_to_remove);
   }
 
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
