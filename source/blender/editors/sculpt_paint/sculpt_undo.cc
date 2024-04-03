@@ -1186,10 +1186,11 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
     unode->maxgrid = ss->subdiv_ccg->grids.size();
     unode->gridsize = ss->subdiv_ccg->grid_size;
 
-    verts_num = unode->maxgrid * unode->gridsize * unode->gridsize;
-
     unode->grids = BKE_pbvh_node_get_grid_indices(*node);
     usculpt->undo_size += unode->grids.as_span().size_in_bytes();
+
+    const int grid_area = unode->gridsize * unode->gridsize;
+    verts_num = unode->grids.size() * grid_area;
   }
   else {
     unode->mesh_verts_num = ss->totvert;
