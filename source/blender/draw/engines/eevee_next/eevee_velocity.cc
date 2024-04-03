@@ -209,9 +209,9 @@ bool VelocityModule::step_object_sync(Object *ob,
 
   /* Avoid drawing object that has no motions but were tagged as such. */
   if (step_ == STEP_CURRENT && has_motion == true && has_deform == false) {
-    float4x4 &obmat_curr = (*object_steps[STEP_CURRENT])[vel.obj.ofs[STEP_CURRENT]];
-    float4x4 &obmat_prev = (*object_steps[STEP_PREVIOUS])[vel.obj.ofs[STEP_PREVIOUS]];
-    float4x4 &obmat_next = (*object_steps[STEP_NEXT])[vel.obj.ofs[STEP_NEXT]];
+    const float4x4 &obmat_curr = (*object_steps[STEP_CURRENT])[vel.obj.ofs[STEP_CURRENT]];
+    const float4x4 &obmat_prev = (*object_steps[STEP_PREVIOUS])[vel.obj.ofs[STEP_PREVIOUS]];
+    const float4x4 &obmat_next = (*object_steps[STEP_NEXT])[vel.obj.ofs[STEP_NEXT]];
     if (inst_.is_viewport()) {
       has_motion = (obmat_curr != obmat_prev);
     }

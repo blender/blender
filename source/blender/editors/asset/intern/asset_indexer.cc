@@ -547,7 +547,7 @@ class AssetIndexFile : public AbstractFile {
   /**
    * Returns whether the index file is older than the given asset file.
    */
-  bool is_older_than(BlendFile &asset_file) const
+  bool is_older_than(const BlendFile &asset_file) const
   {
     return BLI_file_older(this->get_file_path(), asset_file.get_file_path());
   }

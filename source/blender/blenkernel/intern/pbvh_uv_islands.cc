@@ -312,7 +312,7 @@ UVVertex *UVEdge::get_other_uv_vertex(const int vertex)
 UVVertex *UVIsland::lookup(const UVVertex &vertex)
 {
   const int vert_index = vertex.vertex;
-  Vector<UVVertex *> &vertices = uv_vertex_lookup.lookup_or_add_default(vert_index);
+  const Vector<UVVertex *> &vertices = uv_vertex_lookup.lookup_or_add_default(vert_index);
   for (UVVertex *v : vertices) {
     if (v->uv == vertex.uv) {
       return v;

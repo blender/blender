@@ -152,7 +152,7 @@ static void collection_filter_channel_up_to_incl(VectorSet<Sequence *> &strips, 
 
 /* Check if seq must be rendered. This depends on whole stack in some cases, not only seq itself.
  * Order of applying these conditions is important. */
-static bool must_render_strip(VectorSet<Sequence *> &strips, Sequence *strip)
+static bool must_render_strip(const VectorSet<Sequence *> &strips, Sequence *strip)
 {
   bool seq_have_effect_in_stack = false;
   for (Sequence *strip_iter : strips) {

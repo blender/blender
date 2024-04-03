@@ -2705,7 +2705,7 @@ static bool raycast_test_remove(BoolOpType op, Array<int> &winding, int shape, b
 }
 
 /** Add triangle a flipped version of tri to out_faces. */
-static void raycast_add_flipped(Vector<Face *> &out_faces, Face &tri, IMeshArena *arena)
+static void raycast_add_flipped(Vector<Face *> &out_faces, const Face &tri, IMeshArena *arena)
 {
 
   Array<const Vert *> flipped_vs = {tri[0], tri[2], tri[1]};

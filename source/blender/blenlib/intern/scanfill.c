@@ -348,7 +348,7 @@ static ScanFillVertLink *addedgetoscanlist(ScanFillVertLink *scdata, ScanFillEdg
 /**
  * Return true if `eve` inside the bound-box of `eed`.
  */
-static bool boundinsideEV(ScanFillEdge *eed, ScanFillVert *eve)
+static bool boundinsideEV(const ScanFillEdge *eed, const ScanFillVert *eve)
 {
   float minx, maxx, miny, maxy;
 

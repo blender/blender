@@ -115,10 +115,10 @@ void *MEM_lockfree_dupallocN(const void *vmemh)
 {
   void *newp = NULL;
   if (vmemh) {
-    MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
+    const MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
     const size_t prev_size = MEM_lockfree_allocN_len(vmemh);
     if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
-      MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
+      const MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
       newp = MEM_lockfree_mallocN_aligned(
           prev_size, (size_t)memh_aligned->alignment, "dupli_malloc");
     }
@@ -135,14 +135,14 @@ void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *str)
   void *newp = NULL;
 
   if (vmemh) {
-    MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
-    size_t old_len = MEM_lockfree_allocN_len(vmemh);
+    const MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
+    const size_t old_len = MEM_lockfree_allocN_len(vmemh);
 
     if (LIKELY(!MEMHEAD_IS_ALIGNED(memh))) {
       newp = MEM_lockfree_mallocN(len, "realloc");
     }
     else {
-      MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
+      const MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
       newp = MEM_lockfree_mallocN_aligned(len, (size_t)memh_aligned->alignment, "realloc");
     }
 
@@ -171,14 +171,14 @@ void *MEM_lockfree_recallocN_id(void *vmemh, size_t len, const char *str)
   void *newp = NULL;
 
   if (vmemh) {
-    MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
-    size_t old_len = MEM_lockfree_allocN_len(vmemh);
+    const MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
+    const size_t old_len = MEM_lockfree_allocN_len(vmemh);
 
     if (LIKELY(!MEMHEAD_IS_ALIGNED(memh))) {
       newp = MEM_lockfree_mallocN(len, "recalloc");
     }
     else {
-      MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
+      const MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
       newp = MEM_lockfree_mallocN_aligned(len, (size_t)memh_aligned->alignment, "recalloc");
     }
 

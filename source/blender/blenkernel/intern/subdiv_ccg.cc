@@ -560,7 +560,7 @@ CCGKey BKE_subdiv_ccg_key_top_level(const SubdivCCG &subdiv_ccg)
  *   {(x, y), {x + 1, y}, {x + 1, y + 1}, {x, y + 1}}
  *
  * The result is stored in normals storage from TLS. */
-static void subdiv_ccg_recalc_inner_face_normals(SubdivCCG &subdiv_ccg,
+static void subdiv_ccg_recalc_inner_face_normals(const SubdivCCG &subdiv_ccg,
                                                  const CCGKey &key,
                                                  MutableSpan<float3> face_normals,
                                                  const int corner)
@@ -590,7 +590,7 @@ static void subdiv_ccg_recalc_inner_face_normals(SubdivCCG &subdiv_ccg,
 }
 
 /* Average normals at every grid element, using adjacent faces normals. */
-static void subdiv_ccg_average_inner_face_normals(SubdivCCG &subdiv_ccg,
+static void subdiv_ccg_average_inner_face_normals(const SubdivCCG &subdiv_ccg,
                                                   const CCGKey &key,
                                                   const Span<float3> face_normals,
                                                   const int corner)
@@ -690,7 +690,7 @@ static void average_grid_element_value_v3(float a[3], float b[3])
   copy_v3_v3(b, a);
 }
 
-static void average_grid_element(SubdivCCG &subdiv_ccg,
+static void average_grid_element(const SubdivCCG &subdiv_ccg,
                                  const CCGKey &key,
                                  CCGElem *grid_element_a,
                                  CCGElem *grid_element_b)
@@ -744,7 +744,7 @@ static void element_accumulator_mul_fl(GridElementAccumulator &accumulator, cons
   accumulator.mask *= f;
 }
 
-static void element_accumulator_copy(SubdivCCG &subdiv_ccg,
+static void element_accumulator_copy(const SubdivCCG &subdiv_ccg,
                                      const CCGKey &key,
                                      CCGElem &destination,
                                      const GridElementAccumulator &accumulator)
