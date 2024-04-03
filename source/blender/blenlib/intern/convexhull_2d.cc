@@ -128,7 +128,7 @@ static int convexhull_2d_sorted(const float (*points)[2], const int points_num, 
   i = minmax;
   while (++i <= maxmin) {
     /* The lower line joins `points[minmin]` with `points[maxmin]`. */
-    if (is_left(points[minmin], points[maxmin], points[i]) >= 0 && i < maxmin) {
+    if ((i < maxmin) && (is_left(points[minmin], points[maxmin], points[i]) >= 0)) {
       continue; /* Ignore `points[i]` above or on the lower line. */
     }
 
@@ -152,7 +152,7 @@ static int convexhull_2d_sorted(const float (*points)[2], const int points_num, 
   i = maxmin;
   while (--i >= minmax) {
     /* The upper line joins `points[maxmax]` with `points[minmax]`. */
-    if (is_left(points[maxmax], points[minmax], points[i]) >= 0 && i > minmax) {
+    if ((i > minmax) && (is_left(points[maxmax], points[minmax], points[i]) >= 0)) {
       continue; /* Ignore points[i] below or on the upper line. */
     }
 
