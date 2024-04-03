@@ -58,7 +58,7 @@ enum eGPUBarrier {
   // GPU_BARRIER_CLIENT_MAPPED_BUFFER = (1 << 15), /* Not implemented yet. */
 };
 
-ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_UNIFORM)
+ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_BUFFER_UPDATE)
 
 /* NOTE: For Metal and Vulkan only.
  * TODO(Metal): Update barrier calls to use stage flags. */

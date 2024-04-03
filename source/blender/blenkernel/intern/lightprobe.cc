@@ -287,5 +287,5 @@ int64_t BKE_lightprobe_grid_cache_frame_sample_count(const LightProbeGridCacheFr
     return cache->block_len * cube_i(cache->block_size);
   }
   /* LIGHTPROBE_CACHE_UNIFORM_GRID */
-  return cache->size[0] * cache->size[1] * cache->size[2];
+  return int64_t(cache->size[0]) * cache->size[1] * cache->size[2];
 }

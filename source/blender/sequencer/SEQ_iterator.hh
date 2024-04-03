@@ -86,14 +86,14 @@ blender::VectorSet<Sequence *> SEQ_query_all_strips(ListBase *seqbase);
  * \param seqbase: ListBase in which strips are queried
  * \return set of strips
  */
-blender::VectorSet<Sequence *> SEQ_query_all_strips_recursive(ListBase *seqbase);
+blender::VectorSet<Sequence *> SEQ_query_all_strips_recursive(const ListBase *seqbase);
 /**
  * Query all meta strips in seqbase and nested meta strips.
  *
  * \param seqbase: ListBase in which strips are queried
  * \return set of meta strips
  */
-blender::VectorSet<Sequence *> SEQ_query_all_meta_strips_recursive(ListBase *seqbase);
+blender::VectorSet<Sequence *> SEQ_query_all_meta_strips_recursive(const ListBase *seqbase);
 
 /**
  * Query all effect strips that are directly or indirectly connected to seq_reference.

@@ -30,7 +30,7 @@ CHECKER_EXCLUDE_SOURCE_FILES = set(os.path.join(*f.split("/")) for f in (
     "source/blender/draw/engines/eevee_next/eevee_lut.cc",
 ))
 
-CHECKER_ARGS = [
+CHECKER_ARGS = (
     # Speed up execution.
     # As Blender has many defines, the total number of configurations is large making execution unreasonably slow.
     # This could be increased but do so with care.
@@ -39,8 +39,14 @@ CHECKER_ARGS = [
     # Enable this when includes are missing.
     #  "--check-config",
 
+    # This is slower, for a comprehensive output it is needed.
+    "--check-level=exhaustive",
+
     # Shows many pedantic issues, some are quite useful.
     "--enable=all",
+
+    # Generates many warnings, CPPCHECK known about system includes without resolving them.
+    "--suppress=missingIncludeSystem",
 
     # Also shows useful messages, even if some are false-positives.
     "--inconclusive",
@@ -50,7 +56,15 @@ CHECKER_ARGS = [
     *(() if USE_VERBOSE else ("--quiet",))
 
     # NOTE: `--cppcheck-build-dir=<dir>` is added later as a temporary directory.
-]
+)
+
+CHECKER_ARGS_C = (
+    "--std=c11",
+)
+
+CHECKER_ARGS_CXX = (
+    "--std=c++17",
+)
 
 
 def source_info_filter(
@@ -74,22 +88,50 @@ def source_info_filter(
     return source_info_result
 
 
-def cppcheck() -> None:
+def cppcheck(temp_dir: str) -> None:
+    temp_build_dir = os.path.join(temp_dir, "build")
+    temp_source_dir = os.path.join(temp_dir, "source")
+    del temp_dir
+
+    os.mkdir(temp_build_dir)
+    os.mkdir(temp_source_dir)
+
     source_info = project_source_info.build_info(ignore_prefix_list=CHECKER_IGNORE_PREFIX)
-    source_defines = project_source_info.build_defines_as_args()
+    cppcheck_compiler_h = os.path.join(temp_source_dir, "cppcheck_compiler.h")
+    with open(cppcheck_compiler_h, "w", encoding="utf-8") as fh:
+        fh.write(project_source_info.build_defines_as_source())
+
+        # Add additional defines.
+        fh.write("\n")
+        # Python's `pyport.h` errors without this.
+        fh.write("#define UCHAR_MAX 255\n")
+        # `intern/atomic/intern/atomic_ops_utils.h` errors with `Cannot find int size` without this.
+        fh.write("#define UINT_MAX 0xFFFFFFFF\n")
 
     # Apply exclusion.
     source_info = source_info_filter(source_info)
 
     check_commands = []
     for c, inc_dirs, defs in source_info:
+        if c.endswith(".c"):
+            checker_args_extra = CHECKER_ARGS_C
+        else:
+            checker_args_extra = CHECKER_ARGS_CXX
+
         cmd = (
-            [CHECKER_BIN] +
-            CHECKER_ARGS +
-            [c] +
-            [("-I%s" % i) for i in inc_dirs] +
-            [("-D%s" % d) for d in defs] +
-            source_defines
+            CHECKER_BIN,
+            *CHECKER_ARGS,
+            *checker_args_extra,
+            "--cppcheck-build-dir=" + temp_build_dir,
+            "--include=" + cppcheck_compiler_h,
+            # NOTE: for some reason failing to include this crease a large number of syntax errors
+            # from `intern/guardedalloc/MEM_guardedalloc.h`. Include directly to resolve.
+            "--include=" + os.path.join(
+                project_source_info.SOURCE_DIR, "source", "blender", "blenlib", "BLI_compiler_attrs.h",
+            ),
+            c,
+            *[("-I%s" % i) for i in inc_dirs],
+            *[("-D%s" % d) for d in defs],
         )
 
         check_commands.append((c, cmd))
@@ -119,8 +161,7 @@ def cppcheck() -> None:
 
 def main() -> None:
     with tempfile.TemporaryDirectory() as temp_dir:
-        CHECKER_ARGS.append("--cppcheck-build-dir=" + temp_dir)
-        cppcheck()
+        cppcheck(temp_dir)
 
 
 if __name__ == "__main__":

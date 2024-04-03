@@ -333,8 +333,8 @@ CurvesSurfaceTransforms::CurvesSurfaceTransforms(const Object &curves_ob, const 
 bool CurvesEditHints::is_valid() const
 {
   const int point_num = this->curves_id_orig.geometry.point_num;
-  if (this->positions.has_value()) {
-    if (this->positions->size() != point_num) {
+  if (this->positions().has_value()) {
+    if (this->positions()->size() != point_num) {
       return false;
     }
   }
@@ -344,6 +344,35 @@ bool CurvesEditHints::is_valid() const
     }
   }
   return true;
+}
+
+std::optional<Span<float3>> CurvesEditHints::positions() const
+{
+  if (!this->positions_data.has_value()) {
+    return std::nullopt;
+  }
+  const int points_num = this->curves_id_orig.geometry.wrap().points_num();
+  return Span(static_cast<const float3 *>(this->positions_data.data), points_num);
+}
+
+std::optional<MutableSpan<float3>> CurvesEditHints::positions_for_write()
+{
+  if (!this->positions_data.has_value()) {
+    return std::nullopt;
+  }
+
+  const int points_num = this->curves_id_orig.geometry.wrap().points_num();
+  ImplicitSharingPtrAndData &data = this->positions_data;
+  if (data.sharing_info->is_mutable()) {
+    data.sharing_info->tag_ensured_mutable();
+  }
+  else {
+    auto *new_sharing_info = new ImplicitSharedValue<Array<float3>>(*this->positions());
+    data.sharing_info = ImplicitSharingPtr<ImplicitSharingInfo>(new_sharing_info);
+    data.data = new_sharing_info->data.data();
+  }
+
+  return MutableSpan(const_cast<float3 *>(static_cast<const float3 *>(data.data)), points_num);
 }
 
 void curves_normals_point_domain_calc(const CurvesGeometry &curves, MutableSpan<float3> normals)

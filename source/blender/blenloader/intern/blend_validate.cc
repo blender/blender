@@ -126,7 +126,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 
         LinkNode *name = names;
         for (; name; name = name->next) {
-          char *str_name = (char *)name->link;
+          const char *str_name = (const char *)name->link;
           if (id->name[2] == str_name[0] && STREQ(str_name, id->name + 2)) {
             break;
           }

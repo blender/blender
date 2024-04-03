@@ -223,7 +223,7 @@ static void gizmo_primitive_setup(wmGizmo *gz)
   /* Default Values. */
   PrimitiveGizmo3D *gz_prim = (PrimitiveGizmo3D *)gz;
   gz_prim->draw_style = ED_GIZMO_PRIMITIVE_STYLE_PLANE;
-  gz_prim->arc_inner_factor = true;
+  gz_prim->arc_inner_factor = 1.0f;
   gz_prim->draw_inner = true;
 }
 

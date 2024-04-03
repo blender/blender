@@ -639,22 +639,23 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
     vcount = 0;
   };
 
-  const auto drawcall_add = [&](blender::gpu::Batch *draw_geom, int v_first, int v_count) {
+  const auto drawcall_add =
+      [&](blender::gpu::Batch *draw_geom, const int v_first, const int v_count) {
 #if DISABLE_BATCHING
-    DRW_shgroup_call_range(grp, ob, geom, v_first, v_count);
-    return;
+        DRW_shgroup_call_range(grp, ob, geom, v_first, v_count);
+        return;
 #endif
-    int last = vfirst + vcount;
-    /* Interrupt draw-call grouping if the sequence is not consecutive. */
-    if ((draw_geom != iter_geom) || (v_first - last > 0)) {
-      drawcall_flush();
-    }
-    iter_geom = draw_geom;
-    if (vfirst == -1) {
-      vfirst = v_first;
-    }
-    vcount = v_first + v_count - vfirst;
-  };
+        int last = vfirst + vcount;
+        /* Interrupt draw-call grouping if the sequence is not consecutive. */
+        if ((draw_geom != iter_geom) || (v_first - last > 0)) {
+          drawcall_flush();
+        }
+        iter_geom = draw_geom;
+        if (vfirst == -1) {
+          vfirst = v_first;
+        }
+        vcount = v_first + v_count - vfirst;
+      };
 
   int t_offset = 0;
   const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*pd->scene, grease_pencil);
@@ -701,7 +702,7 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
     visible_strokes.foreach_index([&](const int stroke_i) {
       const IndexRange points = points_by_curve[stroke_i];
       const int material_index = stroke_materials[stroke_i];
-      MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, material_index + 1);
+      const MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, material_index + 1);
 
       const bool hide_material = (gp_style->flag & GP_MATERIAL_HIDE) != 0;
       const bool show_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0);
@@ -736,9 +737,9 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
       gpencil_material_resources_get(
           matpool, mat_ofs + material_index, &new_tex_stroke, &new_tex_fill, &new_ubo_mat);
 
-      bool resource_changed = (ubo_mat != new_ubo_mat) ||
-                              (new_tex_fill && (new_tex_fill != tex_fill)) ||
-                              (new_tex_stroke && (new_tex_stroke != tex_stroke));
+      const bool resource_changed = (ubo_mat != new_ubo_mat) ||
+                                    (new_tex_fill && (new_tex_fill != tex_fill)) ||
+                                    (new_tex_stroke && (new_tex_stroke != tex_stroke));
 
       if (resource_changed) {
         drawcall_flush();
@@ -771,16 +772,16 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
       }
 
       if (show_fill) {
-        int v_first = t_offset * 3;
-        int v_count = num_stroke_triangles * 3;
+        const int v_first = t_offset * 3;
+        const int v_count = num_stroke_triangles * 3;
         drawcall_add(geom, v_first, v_count);
       }
 
       t_offset += num_stroke_triangles;
 
       if (show_stroke) {
-        int v_first = t_offset * 3;
-        int v_count = num_stroke_vertices * 2 * 3;
+        const int v_first = t_offset * 3;
+        const int v_count = num_stroke_vertices * 2 * 3;
         drawcall_add(geom, v_first, v_count);
       }
 

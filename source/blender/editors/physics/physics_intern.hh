@@ -110,7 +110,7 @@ void FLUID_OT_bake_guides(wmOperatorType *ot);
 void FLUID_OT_free_guides(wmOperatorType *ot);
 void FLUID_OT_pause_bake(wmOperatorType *ot);
 
-/* dynamicpaint.cc */
+/* `dynamicpaint.cc` */
 
 void DPAINT_OT_bake(wmOperatorType *ot);
 /**

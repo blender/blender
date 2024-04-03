@@ -14,7 +14,6 @@
 
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
-#include "BLI_hash_md5.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_path_util.h"
 
@@ -26,6 +25,7 @@
 
 #include <fmt/format.h>
 #include <sstream>
+#include <xxhash.h>
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/io/Stream.h>
@@ -192,8 +192,7 @@ DictionaryValuePtr BlobWriteSharing::write_implicitly_shared(
 std::shared_ptr<io::serialize::DictionaryValue> BlobWriteSharing::write_deduplicated(
     BlobWriter &writer, const void *data, const int64_t size_in_bytes)
 {
-  SliceHash content_hash;
-  BLI_hash_md5_buffer(static_cast<const char *>(data), size_in_bytes, &content_hash);
+  const uint64_t content_hash = XXH3_64bits(data, size_in_bytes);
   const BlobSlice slice = slice_by_content_hash_.lookup_or_add_cb(
       content_hash, [&]() { return writer.write(data, size_in_bytes); });
   return slice.serialize();

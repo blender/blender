@@ -1152,7 +1152,9 @@ bool UI_context_copy_to_selected_list(bContext *C,
         printf("BoneColor is unexpectedly owned by %s '%s'\n",
                BKE_idtype_idcode_to_name(GS(ptr->owner_id->name)),
                ptr->owner_id->name + 2);
-        BLI_assert(!"expected BoneColor to be owned by the Armature (bone & edit bone) or the Object (pose bone)");
+        BLI_assert_msg(false,
+                       "expected BoneColor to be owned by the Armature "
+                       "(bone & edit bone) or the Object (pose bone)");
         return false;
     }
 
@@ -1260,8 +1262,8 @@ bool UI_context_copy_to_selected_list(bContext *C,
 
       /* de-duplicate obdata */
       if (!lb.is_empty()) {
-        for (const PointerRNA &ptr : lb) {
-          Object *ob = (Object *)ptr.owner_id;
+        for (const PointerRNA &ob_ptr : lb) {
+          Object *ob = (Object *)ob_ptr.owner_id;
           if (ID *id_data = static_cast<ID *>(ob->data)) {
             id_data->tag |= LIB_TAG_DOIT;
           }

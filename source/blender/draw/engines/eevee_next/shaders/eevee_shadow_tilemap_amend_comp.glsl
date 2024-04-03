@@ -28,7 +28,7 @@ void main()
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     LightData light = light_buf[l_idx];
-    /* This only works on clipmaps. Cascade have already the same LOD for every tilemaps. */
+    /* This only works on clip-maps. Cascade have already the same LOD for every tile-maps. */
     if (light.type != LIGHT_SUN) {
       break;
     }

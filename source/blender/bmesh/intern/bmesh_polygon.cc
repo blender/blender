@@ -31,6 +31,9 @@
 
 #include "intern/bmesh_private.hh"
 
+using blender::float3;
+using blender::Span;
+
 /**
  * \brief COMPUTE POLY NORMAL (BMFace)
  *
@@ -66,7 +69,7 @@ static float bm_face_calc_poly_normal(const BMFace *f, float n[3])
  */
 static float bm_face_calc_poly_normal_vertex_cos(const BMFace *f,
                                                  float r_no[3],
-                                                 float const (*vertexCos)[3])
+                                                 const Span<float3> vertexCos)
 {
   BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
   BMLoop *l_iter = l_first;
@@ -742,7 +745,7 @@ void BM_face_normal_update(BMFace *f)
 float BM_face_calc_normal_vcos(const BMesh *bm,
                                const BMFace *f,
                                float r_no[3],
-                               float const (*vertexCos)[3])
+                               const Span<float3> vertexCos)
 {
   BMLoop *l;
 

@@ -429,7 +429,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
     }
 
     if (image->comps[i].sgnd) {
-      signed_offsets[i] = 1 << (image->comps[i].prec - 1);
+      signed_offsets[i] = long(1) << (image->comps[i].prec - 1);
     }
 
     /* only needed for float images but doesn't hurt to calc this */

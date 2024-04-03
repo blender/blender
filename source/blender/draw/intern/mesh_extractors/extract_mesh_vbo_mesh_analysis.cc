@@ -397,14 +397,6 @@ static void statvis_calc_distort(const MeshRenderData &mr, float *r_distort)
     BMesh *bm = em->bm;
     BMFace *f;
 
-    if (!mr.bm_vert_coords.is_empty()) {
-      BKE_editmesh_cache_ensure_face_normals(*em, *mr.edit_data);
-
-      /* Most likely this is already valid, ensure just in case.
-       * Needed for #BM_loop_calc_face_normal_safe_vcos. */
-      BM_mesh_elem_index_ensure(em->bm, BM_VERT);
-    }
-
     int l_index = 0;
     int f_index = 0;
     BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, f_index) {

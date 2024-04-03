@@ -36,7 +36,7 @@ class DistortionGridKey {
   DistortionType type;
   int2 calibration_size;
 
-  DistortionGridKey(MovieTrackingCamera camera,
+  DistortionGridKey(const MovieTrackingCamera &camera,
                     int2 size,
                     DistortionType type,
                     int2 calibration_size);

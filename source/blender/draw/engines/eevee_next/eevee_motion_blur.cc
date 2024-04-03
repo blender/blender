@@ -120,7 +120,7 @@ float MotionBlurModule::shutter_time_to_scene_time(float time)
       time -= 1.0;
       break;
     default:
-      BLI_assert(!"Invalid motion blur position enum!");
+      BLI_assert_msg(false, "Invalid motion blur position enum!");
       break;
   }
   time *= shutter_time_;

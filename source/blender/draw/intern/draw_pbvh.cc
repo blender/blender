@@ -1053,10 +1053,12 @@ struct PBVHBatches {
 
   void create_index_faces(const PBVH_GPU_Args &args)
   {
-    const bke::AttributeAccessor attributes = args.mesh->attributes();
-    const VArray material_indices = *attributes.lookup_or_default<int>(
-        "material_index", bke::AttrDomain::Face, 0);
-    material_index = material_indices[args.tri_faces[args.prim_indices.first()]];
+    if (!args.prim_indices.is_empty()) {
+      const bke::AttributeAccessor attributes = args.mesh->attributes();
+      const VArray material_indices = *attributes.lookup_or_default<int>(
+          "material_index", bke::AttrDomain::Face, 0);
+      material_index = material_indices[args.tri_faces[args.prim_indices.first()]];
+    }
 
     const Span<int2> edges = args.mesh->edges();
 
@@ -1144,8 +1146,10 @@ struct PBVHBatches {
     const BitGroupVector<> &grid_hidden = args.subdiv_ccg->grid_hidden;
     const Span<int> grid_to_face_map = args.subdiv_ccg->grid_to_face_map;
 
-    material_index = material_indices[BKE_subdiv_ccg_grid_to_face_index(
-        *args.subdiv_ccg, args.grid_indices.first())];
+    if (!args.grid_indices.is_empty()) {
+      material_index = material_indices[BKE_subdiv_ccg_grid_to_face_index(
+          *args.subdiv_ccg, args.grid_indices.first())];
+    }
 
     needs_tri_index = true;
     int gridsize = args.ccg_key.grid_size;

@@ -494,9 +494,6 @@ bool BKE_mesh_validate_all_customdata(CustomData *vert_data,
 
 void BKE_mesh_strip_loose_faces(Mesh *mesh);
 
-/* In DerivedMesh.cc */
-void BKE_mesh_wrapper_deferred_finalize_mdata(Mesh *mesh_eval);
-
 /* **** Depsgraph evaluation **** */
 
 void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh);

@@ -839,7 +839,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
   }
   request.path = std::move(*bake_path);
 
-  if (bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL) {
+  if (node->type == GEO_NODE_BAKE && bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL) {
     const int current_frame = scene->r.cfra;
     request.frame_start = current_frame;
     request.frame_end = current_frame;

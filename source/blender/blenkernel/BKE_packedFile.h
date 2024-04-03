@@ -123,7 +123,7 @@ int BKE_packedfile_count_all(struct Main *bmain);
  */
 enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
                                                     const char *filepath_rel,
-                                                    struct PackedFile *pf);
+                                                    const struct PackedFile *pf);
 
 /* Read. */
 
@@ -143,7 +143,7 @@ void BKE_packedfile_id_unpack(struct Main *bmain,
                               struct ReportList *reports,
                               enum ePF_FileStatus how);
 
-void BKE_packedfile_blend_write(struct BlendWriter *writer, struct PackedFile *pf);
+void BKE_packedfile_blend_write(struct BlendWriter *writer, const struct PackedFile *pf);
 void BKE_packedfile_blend_read(struct BlendDataReader *reader, struct PackedFile **pf_p);
 
 #ifdef __cplusplus

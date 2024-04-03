@@ -1852,7 +1852,7 @@ void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, List
 }
 
 std::optional<std::string> BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle,
-                                                            ColorBand *color_ramp)
+                                                            const ColorBand *color_ramp)
 {
   bool found = false;
 

@@ -821,22 +821,20 @@ void ED_info_draw_stats(
   }
   else if (any_objects) {
     stats_row(col1, labels[OBJ], col2, stats_fmt.totobj, nullptr, y, height);
+    /* Show scene totals if nothing is selected. */
+    stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, nullptr, y, height);
+    stats_row(col1, labels[EDGES], col2, stats_fmt.totedge, nullptr, y, height);
+    stats_row(col1, labels[FACES], col2, stats_fmt.totface, nullptr, y, height);
+    stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
+    return;
+  }
+  else if (!(object_mode & OB_MODE_SCULPT)) {
+    /* No objects in scene. */
+    stats_row(col1, labels[OBJ], col2, 0, nullptr, y, height);
+    return;
   }
 
-  if (!any_selected) {
-    if (any_objects) {
-      /* Show scene totals if nothing is selected. */
-      stats_row(col1, labels[VERTS], col2, stats_fmt.totvert, nullptr, y, height);
-      stats_row(col1, labels[EDGES], col2, stats_fmt.totedge, nullptr, y, height);
-      stats_row(col1, labels[FACES], col2, stats_fmt.totface, nullptr, y, height);
-      stats_row(col1, labels[TRIS], col2, stats_fmt.tottri, nullptr, y, height);
-    }
-    else {
-      /* No objects in scene. */
-      stats_row(col1, labels[OBJ], col2, stats_fmt.totobj, nullptr, y, height);
-    }
-  }
-  else if ((ob) && ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
+  if ((ob) && ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
     stats_row(col1, labels[LAYERS], col2, stats_fmt.totgplayer, nullptr, y, height);
     stats_row(col1, labels[FRAMES], col2, stats_fmt.totgpframe, nullptr, y, height);
     stats_row(col1, labels[STROKES], col2, stats_fmt.totgpstroke, nullptr, y, height);

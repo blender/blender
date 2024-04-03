@@ -65,7 +65,7 @@ void txt_clean_text(struct Text *text);
 void txt_order_cursors(struct Text *text, bool reverse);
 int txt_find_string(struct Text *text, const char *findstr, int wrap, int match_case);
 bool txt_has_sel(const struct Text *text);
-int txt_get_span(struct TextLine *from, const struct TextLine *to);
+int txt_get_span(const struct TextLine *from, const struct TextLine *to);
 void txt_move_up(struct Text *text, bool sel);
 void txt_move_down(struct Text *text, bool sel);
 void txt_move_left(struct Text *text, bool sel);

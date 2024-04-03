@@ -104,7 +104,7 @@ static void standard_defines(Vector<const char *> &sources)
       sources.append("#define GPU_VULKAN\n");
       break;
     default:
-      BLI_assert(false && "Invalid GPU Backend Type");
+      BLI_assert_msg(false, "Invalid GPU Backend Type");
       break;
   }
 

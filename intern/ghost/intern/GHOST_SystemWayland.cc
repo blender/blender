@@ -427,7 +427,7 @@ struct GWL_Cursor {
 
   /**
    * The name of the theme (set by an environment variable).
-   * When disabled, leave as an empty string and the default theme will be used.
+   * When disabled, leave as an empty string and pass in nullptr to use the default theme.
    */
   std::string theme_name;
   /**
@@ -2507,7 +2507,9 @@ static const wl_cursor *gwl_seat_cursor_find_from_shape(GWL_Seat *seat,
     if (!cursor->wl.theme) {
       /* The cursor wl_surface hasn't entered an output yet. Initialize theme with scale 1. */
       cursor->wl.theme = wl_cursor_theme_load(
-          cursor->theme_name.c_str(), cursor->theme_size, seat->system->wl_shm_get());
+          (cursor->theme_name.empty() ? nullptr : cursor->theme_name.c_str()),
+          cursor->theme_size,
+          seat->system->wl_shm_get());
     }
 
     if (cursor->wl.theme) {
@@ -3521,7 +3523,9 @@ static bool update_cursor_scale(GWL_Cursor &cursor,
     }
     wl_cursor_theme_destroy(cursor.wl.theme);
     cursor.wl.theme = wl_cursor_theme_load(
-        cursor.theme_name.c_str(), scale * cursor.theme_size, shm);
+        (cursor.theme_name.empty() ? nullptr : cursor.theme_name.c_str()),
+        scale * cursor.theme_size,
+        shm);
     if (cursor.wl.theme_cursor) {
       cursor.wl.theme_cursor = wl_cursor_theme_get_cursor(cursor.wl.theme,
                                                           cursor.wl.theme_cursor_name);

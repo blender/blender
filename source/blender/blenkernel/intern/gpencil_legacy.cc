@@ -1028,7 +1028,7 @@ void BKE_gpencil_stroke_copy_settings(const bGPDstroke *gps_src, bGPDstroke *gps
   copy_v2_v2_short(gps_dst->caps, gps_src->caps);
   gps_dst->hardness = gps_src->hardness;
   copy_v2_v2(gps_dst->aspect_ratio, gps_src->aspect_ratio);
-  gps_dst->fill_opacity_fac = gps_dst->fill_opacity_fac;
+  gps_dst->fill_opacity_fac = gps_src->fill_opacity_fac;
   copy_v3_v3(gps_dst->boundbox_min, gps_src->boundbox_min);
   copy_v3_v3(gps_dst->boundbox_max, gps_src->boundbox_max);
   gps_dst->uv_rotation = gps_src->uv_rotation;

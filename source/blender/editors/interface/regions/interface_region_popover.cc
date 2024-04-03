@@ -409,7 +409,7 @@ void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
   pup->window = window;
 
   /* TODO(@ideasman42): we may want to make this configurable.
-   * The begin/end stype of calling popups doesn't allow 'can_refresh' to be set.
+   * The begin/end type of calling popups doesn't allow 'can_refresh' to be set.
    * For now close this style of popovers when accessed. */
   UI_block_flag_disable(pup->block, UI_BLOCK_KEEP_OPEN);
 }

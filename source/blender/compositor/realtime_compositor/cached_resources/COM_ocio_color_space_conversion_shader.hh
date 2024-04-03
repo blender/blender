@@ -22,9 +22,9 @@ class OCIOColorSpaceConversionShaderKey {
   std::string target;
   std::string config_cache_id;
 
-  OCIOColorSpaceConversionShaderKey(std::string source,
-                                    std::string target,
-                                    std::string config_cache_id);
+  OCIOColorSpaceConversionShaderKey(const std::string &source,
+                                    const std::string &target,
+                                    const std::string &config_cache_id);
 
   uint64_t hash() const;
 };

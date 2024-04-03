@@ -23,6 +23,11 @@ void transform_constraint_snap_axis_to_edge(const TransInfo *t,
 void transform_constraint_snap_axis_to_face(const TransInfo *t,
                                             const float axis[3],
                                             float r_out[3]);
+
+void transform_constraint_get_nearest(const TransInfo *t,
+                                      const blender::float3 &vec,
+                                      float r_vec[3]);
+
 void setConstraint(TransInfo *t, int mode, const char text[]);
 /**
  * Applies individual `td->axismtx` constraints.

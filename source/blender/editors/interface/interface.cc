@@ -2515,10 +2515,10 @@ double ui_but_value_get(uiBut *but)
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN:
         if (RNA_property_array_check(prop)) {
-          value = RNA_property_boolean_get_index(&but->rnapoin, prop, but->rnaindex);
+          value = double(RNA_property_boolean_get_index(&but->rnapoin, prop, but->rnaindex));
         }
         else {
-          value = RNA_property_boolean_get(&but->rnapoin, prop);
+          value = double(RNA_property_boolean_get(&but->rnapoin, prop));
         }
         break;
       case PROP_INT:
@@ -3110,7 +3110,7 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
         {
           RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr, nullptr);
         }
-        else if (search_but->item_active != nullptr) {
+        else if (search_but && search_but->item_active != nullptr) {
           rptr = RNA_pointer_create(nullptr,
                                     RNA_property_pointer_type(&but->rnapoin, but->rnaprop),
                                     search_but->item_active);

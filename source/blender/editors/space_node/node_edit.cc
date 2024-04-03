@@ -1477,6 +1477,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
     nodeSetSelected(dst_node, true);
   }
 
+  tree_draw_order_update(*snode->edittree);
   ED_node_tree_propagate_change(C, bmain, snode->edittree);
   return OPERATOR_FINISHED;
 }

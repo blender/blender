@@ -318,8 +318,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   MutableSpan<float3> edit_hint_positions;
   MutableSpan<float3x3> edit_hint_rotations;
   if (edit_hints != nullptr) {
-    if (edit_hints->positions.has_value()) {
-      edit_hint_positions = *edit_hints->positions;
+    if (const std::optional<MutableSpan<float3>> positions = edit_hints->positions_for_write()) {
+      edit_hint_positions = *positions;
     }
     if (!edit_hints->deform_mats.has_value()) {
       edit_hints->deform_mats.emplace(edit_hints->curves_id_orig.geometry.point_num,

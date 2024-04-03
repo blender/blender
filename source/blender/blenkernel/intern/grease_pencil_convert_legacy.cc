@@ -172,6 +172,10 @@ static void find_used_vertex_groups(const bGPDframe &gpf,
     Span<MDeformVert> dverts = {gps->dvert, gps->totpoints};
     for (const MDeformVert &dvert : dverts) {
       for (const MDeformWeight &weight : Span<MDeformWeight>{dvert.dw, dvert.totweight}) {
+        if (weight.def_nr >= dvert.totweight) {
+          /* Ignore invalid deform weight group indices. */
+          continue;
+        }
         is_group_used[weight.def_nr] = true;
       }
     }
@@ -362,6 +366,10 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     dst_dvert.dw = static_cast<MDeformWeight *>(MEM_dupallocN(src_dvert.dw));
     const MutableSpan<MDeformWeight> vertex_weights = {dst_dvert.dw, dst_dvert.totweight};
     for (MDeformWeight &weight : vertex_weights) {
+      if (weight.def_nr >= dst_dvert.totweight) {
+        /* Ignore invalid deform weight group indices. */
+        continue;
+      }
       /* Map def_nr to the reduced vertex group list. */
       weight.def_nr = stroke_def_nr_map[weight.def_nr];
     }
@@ -784,10 +792,10 @@ void layer_adjustments_to_modifiers(Main &bmain, bGPdata &src_object_data, Objec
    *
    * NOTE: NLA animation in GPData that would control adjustment properties is not converted. This
    * would require (partially) re-creating a copy of the potential bGPData NLA into the Object NLA,
-   * which is too complex for the few potential usecases.
+   * which is too complex for the few potential use cases.
    *
    * This is achieved in several steps, roughly:
-   *   * For each GP layer, chack if there is animation on the adjutment data.
+   *   * For each GP layer, check if there is animation on the adjustment data.
    *   * Rename relevant FCurves RNA paths from GP animation data, and store their reference in
    *     temporary vectors.
    *   * Once all layers have been processed, move all affected FCurves from GPData animation to
@@ -838,7 +846,7 @@ void layer_adjustments_to_modifiers(Main &bmain, bGPdata &src_object_data, Objec
     BLI_str_escape(layer_name_esc, gpl->info, sizeof(layer_name_esc));
     const std::string legacy_root_path = fmt::format("layers[\"{}\"]", layer_name_esc);
 
-    /* If tint or thickness are animated, relevamt modifiers also need to be created. */
+    /* If tint or thickness are animated, relevant modifiers also need to be created. */
     if (gpd_animdata) {
       auto adjustment_animation_detection = [&](bAction *owner_action, FCurve &fcurve) -> bool {
         /* Early out if we already know that both data are animated. */
@@ -1840,6 +1848,55 @@ static void legacy_object_modifier_subdiv(Object &object, GpencilModifierData &l
                                    false);
 }
 
+static void legacy_object_modifier_texture(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilTexture, legacy_md);
+  auto &md_texture = reinterpret_cast<GreasePencilTextureModifierData &>(md);
+  auto &legacy_md_texture = reinterpret_cast<TextureGpencilModifierData &>(legacy_md);
+
+  switch (eTextureGpencil_Mode(legacy_md_texture.mode)) {
+    case STROKE:
+      md_texture.mode = MOD_GREASE_PENCIL_TEXTURE_STROKE;
+      break;
+    case FILL:
+      md_texture.mode = MOD_GREASE_PENCIL_TEXTURE_FILL;
+      break;
+    case STROKE_AND_FILL:
+      md_texture.mode = MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL;
+      break;
+  }
+  switch (eTextureGpencil_Fit(legacy_md_texture.fit_method)) {
+    case GP_TEX_FIT_STROKE:
+      md_texture.fit_method = MOD_GREASE_PENCIL_TEXTURE_FIT_STROKE;
+      break;
+    case GP_TEX_CONSTANT_LENGTH:
+      md_texture.fit_method = MOD_GREASE_PENCIL_TEXTURE_CONSTANT_LENGTH;
+      break;
+  }
+  md_texture.uv_offset = legacy_md_texture.uv_offset;
+  md_texture.uv_scale = legacy_md_texture.uv_scale;
+  md_texture.fill_rotation = legacy_md_texture.fill_rotation;
+  copy_v2_v2(md_texture.fill_offset, legacy_md_texture.fill_offset);
+  md_texture.fill_scale = legacy_md_texture.fill_scale;
+  md_texture.layer_pass = legacy_md_texture.layer_pass;
+  md_texture.alignment_rotation = legacy_md_texture.alignment_rotation;
+
+  legacy_object_modifier_influence(md_texture.influence,
+                                   legacy_md_texture.layername,
+                                   legacy_md_texture.layer_pass,
+                                   legacy_md_texture.flag & GP_TEX_INVERT_LAYER,
+                                   legacy_md_texture.flag & GP_TEX_INVERT_LAYERPASS,
+                                   &legacy_md_texture.material,
+                                   legacy_md_texture.pass_index,
+                                   legacy_md_texture.flag & GP_TEX_INVERT_MATERIAL,
+                                   legacy_md_texture.flag & GP_TEX_INVERT_PASS,
+                                   legacy_md_texture.vgname,
+                                   legacy_md_texture.flag & GP_TEX_INVERT_VGROUP,
+                                   nullptr,
+                                   false);
+}
+
 static void legacy_object_modifier_thickness(Object &object, GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
@@ -2286,6 +2343,9 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_Subdiv:
         legacy_object_modifier_subdiv(object, *gpd_md);
         break;
+      case eGpencilModifierType_Texture:
+        legacy_object_modifier_texture(object, *gpd_md);
+        break;
       case eGpencilModifierType_Thick:
         legacy_object_modifier_thickness(object, *gpd_md);
         break;
@@ -2310,7 +2370,6 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_Simplify:
         legacy_object_modifier_simplify(object, *gpd_md);
         break;
-      case eGpencilModifierType_Texture:
         break;
     }
 

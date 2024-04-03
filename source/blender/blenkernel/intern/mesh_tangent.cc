@@ -548,22 +548,14 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
     *tangent_mask_curr_p = tangent_mask_curr;
 
     /* Update active layer index */
-    int act_uv_index = (act_uv_n != -1) ?
-                           CustomData_get_layer_index_n(loopdata, CD_PROP_FLOAT2, act_uv_n) :
-                           -1;
-    if (act_uv_index != -1) {
-      int tan_index = CustomData_get_named_layer_index(
-          loopdata, CD_TANGENT, loopdata->layers[act_uv_index].name);
+    if (const char *active_uv_name = CustomData_get_active_layer_name(loopdata, CD_PROP_FLOAT2)) {
+      int tan_index = CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, active_uv_name);
       CustomData_set_layer_active_index(loopdata_out, CD_TANGENT, tan_index);
     } /* else tangent has been built from orco */
 
     /* Update render layer index */
-    int ren_uv_index = (ren_uv_n != -1) ?
-                           CustomData_get_layer_index_n(loopdata, CD_PROP_FLOAT2, ren_uv_n) :
-                           -1;
-    if (ren_uv_index != -1) {
-      int tan_index = CustomData_get_named_layer_index(
-          loopdata, CD_TANGENT, loopdata->layers[ren_uv_index].name);
+    if (const char *render_uv_name = CustomData_get_render_layer_name(loopdata, CD_PROP_FLOAT2)) {
+      int tan_index = CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, render_uv_name);
       CustomData_set_layer_render_index(loopdata_out, CD_TANGENT, tan_index);
     } /* else tangent has been built from orco */
   }

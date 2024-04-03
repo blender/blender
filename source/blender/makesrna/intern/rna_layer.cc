@@ -386,7 +386,7 @@ void rna_LayerCollection_children_begin(CollectionPropertyIterator *iter, Pointe
   rna_iterator_listbase_begin(iter, &lc->layer_collections, nullptr);
 }
 
-static bool rna_LayerCollection_children_lookupint(PointerRNA *ptr, int key, PointerRNA *r_ptr)
+static int rna_LayerCollection_children_lookupint(PointerRNA *ptr, int key, PointerRNA *r_ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   LayerCollection *lc = (LayerCollection *)ptr->data;
@@ -402,9 +402,9 @@ static bool rna_LayerCollection_children_lookupint(PointerRNA *ptr, int key, Poi
   return true;
 }
 
-static bool rna_LayerCollection_children_lookupstring(PointerRNA *ptr,
-                                                      const char *key,
-                                                      PointerRNA *r_ptr)
+static int rna_LayerCollection_children_lookupstring(PointerRNA *ptr,
+                                                     const char *key,
+                                                     PointerRNA *r_ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   LayerCollection *lc = (LayerCollection *)ptr->data;

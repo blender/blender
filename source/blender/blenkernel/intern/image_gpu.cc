@@ -457,9 +457,7 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
 
       if (GPU_mipmap_enabled()) {
         GPU_texture_update_mipmap_chain(*tex);
-        if (ima) {
-          ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
-        }
+        ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
         GPU_texture_mipmap_mode(*tex, true, true);
       }
       else {
@@ -624,8 +622,8 @@ void BKE_image_free_old_gputextures(Main *bmain)
 /** \name Paint Update
  * \{ */
 
-static ImBuf *update_do_scale(uchar *rect,
-                              float *rect_float,
+static ImBuf *update_do_scale(const uchar *rect,
+                              const float *rect_float,
                               int *x,
                               int *y,
                               int *w,
@@ -664,8 +662,8 @@ static ImBuf *update_do_scale(uchar *rect,
 }
 
 static void gpu_texture_update_scaled(GPUTexture *tex,
-                                      uchar *rect,
-                                      float *rect_float,
+                                      const uchar *rect,
+                                      const float *rect_float,
                                       int full_w,
                                       int full_h,
                                       int x,

@@ -17,14 +17,18 @@
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh" /* own include */
 
+using blender::float3;
+using blender::Span;
+
 /* -------------------------------------------------------------------- */
 /** \name Ensure Data (derived from coords)
  * \{ */
 
-void BKE_editmesh_cache_ensure_face_normals(BMEditMesh &em, blender::bke::EditMeshData &emd)
+Span<float3> BKE_editmesh_cache_ensure_face_normals(BMEditMesh &em,
+                                                    blender::bke::EditMeshData &emd)
 {
   if (emd.vert_positions.is_empty() || !emd.face_normals.is_empty()) {
-    return;
+    return emd.face_normals;
   }
   BMesh *bm = em.bm;
 
@@ -36,37 +40,35 @@ void BKE_editmesh_cache_ensure_face_normals(BMEditMesh &em, blender::bke::EditMe
   int i;
   BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
     BM_elem_index_set(efa, i); /* set_inline */
-    BM_face_calc_normal_vcos(bm,
-                             efa,
-                             emd.face_normals[i],
-                             reinterpret_cast<const float(*)[3]>(emd.vert_positions.data()));
+    BM_face_calc_normal_vcos(bm, efa, emd.face_normals[i], emd.vert_positions);
   }
   bm->elem_index_dirty &= ~BM_FACE;
+  return emd.face_normals;
 }
 
-void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh &em, blender::bke::EditMeshData &emd)
+Span<float3> BKE_editmesh_cache_ensure_vert_normals(BMEditMesh &em,
+                                                    blender::bke::EditMeshData &emd)
 {
   if (emd.vert_positions.is_empty() || !emd.vert_normals.is_empty()) {
-    return;
+    return emd.vert_normals;
   }
   BMesh *bm = em.bm;
 
   /* Calculate vertex normals from face normals. */
-  BKE_editmesh_cache_ensure_face_normals(em, emd);
+  const Span<float3> face_normals = BKE_editmesh_cache_ensure_face_normals(em, emd);
 
   emd.vert_normals.reinitialize(bm->totvert);
 
   BM_mesh_elem_index_ensure(bm, BM_FACE);
-  BM_verts_calc_normal_vcos(bm,
-                            reinterpret_cast<const float(*)[3]>(emd.face_normals.data()),
-                            reinterpret_cast<const float(*)[3]>(emd.vert_positions.data()),
-                            reinterpret_cast<float(*)[3]>(emd.vert_normals.data()));
+  BM_verts_calc_normal_vcos(bm, face_normals, emd.vert_positions, emd.vert_normals);
+  return emd.vert_normals;
 }
 
-void BKE_editmesh_cache_ensure_face_centers(BMEditMesh &em, blender::bke::EditMeshData &emd)
+Span<float3> BKE_editmesh_cache_ensure_face_centers(BMEditMesh &em,
+                                                    blender::bke::EditMeshData &emd)
 {
   if (!emd.face_centers.is_empty()) {
-    return;
+    return emd.face_centers;
   }
   BMesh *bm = em.bm;
 
@@ -86,6 +88,7 @@ void BKE_editmesh_cache_ensure_face_centers(BMEditMesh &em, blender::bke::EditMe
       BM_face_calc_center_median_vcos(bm, efa, emd.face_centers[i], emd.vert_positions);
     }
   }
+  return emd.face_centers;
 }
 
 /** \} */

@@ -431,9 +431,7 @@ static void layer_aov_copy_data(ViewLayer *view_layer_dst,
                                 ListBase *aovs_dst,
                                 const ListBase *aovs_src)
 {
-  if (aovs_src != nullptr) {
-    BLI_duplicatelist(aovs_dst, aovs_src);
-  }
+  BLI_duplicatelist(aovs_dst, aovs_src);
 
   ViewLayerAOV *aov_dst = static_cast<ViewLayerAOV *>(aovs_dst->first);
   const ViewLayerAOV *aov_src = static_cast<const ViewLayerAOV *>(aovs_src->first);

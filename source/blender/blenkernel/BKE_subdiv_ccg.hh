@@ -220,11 +220,8 @@ void BKE_subdiv_ccg_topology_counters(const SubdivCCG &subdiv_ccg,
                                       int &r_num_loops);
 
 struct SubdivCCGNeighbors {
-  SubdivCCGCoord *coords;
-  int size;
+  blender::Array<SubdivCCGCoord, 256> coords;
   int num_duplicates;
-
-  SubdivCCGCoord coords_fixed[256];
 };
 
 void BKE_subdiv_ccg_print_coord(const char *message, const SubdivCCGCoord &coord);
@@ -244,9 +241,6 @@ bool BKE_subdiv_ccg_check_coord_valid(const SubdivCCG &subdiv_ccg, const SubdivC
  *   element inside of every neighboring grid. */
 
 /* Get actual neighbors of the given coordinate.
- *
- * SubdivCCGNeighbors.neighbors must be freed if it is not equal to
- * SubdivCCGNeighbors.fixed_neighbors.
  *
  * If include_duplicates is true, vertices in other grids that match
  * the current vertex are added at the end of the coords array. */

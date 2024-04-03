@@ -275,8 +275,8 @@ ccl_device_inline float4 improve_5throot_solution_sse2(const float4 &old_result,
 /* Calculate powf(x, 2.4). Working domain: 1e-10 < x < 1e+10 */
 ccl_device_inline float4 fastpow24_sse2(const float4 &arg)
 {
-  /* max, avg and |avg| errors were calculated in gcc without FMA instructions
-   * The final precision should be better than powf in glibc */
+  /* `max`, `avg` and |avg| errors were calculated in GCC without FMA instructions.
+   * The final precision should be better than `powf` in GLIBC. */
 
   /* Calculate x^4/5, coefficient 0.994 was constructed manually to minimize avg error */
   /* 0x3F4CCCCD = 4/5 */

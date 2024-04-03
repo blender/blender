@@ -91,8 +91,8 @@ void text_pop_suggest_list();
 int space_text_get_visible_lines(const SpaceText *st, const ARegion *region, const char *str);
 int space_text_get_span_wrap(const SpaceText *st,
                              const ARegion *region,
-                             TextLine *from,
-                             TextLine *to);
+                             const TextLine *from,
+                             const TextLine *to);
 int space_text_get_total_lines(SpaceText *st, const ARegion *region);
 
 /* `text_ops.cc` */

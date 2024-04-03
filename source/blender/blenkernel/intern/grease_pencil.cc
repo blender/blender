@@ -578,7 +578,7 @@ void Drawing::set_texture_matrices(Span<float4x2> matrices, const IndexMask &sel
     const float4x2 texspace = matrices[pos];
 
     /* We do the computation using doubles to avoid numerical precision errors. */
-    double4x3 strokemat4x3 = double4x3(expand_4x2_mat(strokemat));
+    const double4x3 strokemat4x3 = double4x3(expand_4x2_mat(strokemat));
 
     /*
      * We want to solve for `texture_matrix` in the equation: `texspace = texture_matrix *
@@ -1569,6 +1569,40 @@ void LayerGroup::update_from_dna_read()
 }
 
 }  // namespace blender::bke::greasepencil
+
+namespace blender::bke {
+
+std::optional<Span<float3>> GreasePencilDrawingEditHints::positions() const
+{
+  if (!this->positions_data.has_value()) {
+    return std::nullopt;
+  }
+  const int points_num = this->drawing_orig->geometry.wrap().points_num();
+  return Span(static_cast<const float3 *>(this->positions_data.data), points_num);
+}
+
+std::optional<MutableSpan<float3>> GreasePencilDrawingEditHints::positions_for_write()
+{
+  if (!this->positions_data.has_value()) {
+    return std::nullopt;
+  }
+
+  const int points_num = this->drawing_orig->geometry.wrap().points_num();
+  ImplicitSharingPtrAndData &data = this->positions_data;
+  if (data.sharing_info->is_mutable()) {
+    /* If the referenced component is already mutable, return it directly. */
+    data.sharing_info->tag_ensured_mutable();
+  }
+  else {
+    auto *new_sharing_info = new ImplicitSharedValue<Array<float3>>(*this->positions());
+    data.sharing_info = ImplicitSharingPtr<ImplicitSharingInfo>(new_sharing_info);
+    data.data = new_sharing_info->data.data();
+  }
+
+  return MutableSpan(const_cast<float3 *>(static_cast<const float3 *>(data.data)), points_num);
+}
+
+}  // namespace blender::bke
 
 /* ------------------------------------------------------------------- */
 /** \name Grease Pencil kernel functions

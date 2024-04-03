@@ -125,11 +125,11 @@ template<typename T, int Size>
 [[nodiscard]] inline bool less_or_equal_than(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
 {
   for (int i = 0; i < Size; i++) {
-    if (a[i] > b[i]) {
-      return false;
+    if (a[i] <= b[i]) {
+      return true;
     }
   }
-  return true;
+  return false;
 }
 
 }  // namespace detail

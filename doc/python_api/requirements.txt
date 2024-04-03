@@ -11,3 +11,6 @@ requests==2.31.0
 # Without this theme, the default theme will be used.
 furo==2024.1.29
 sphinx-basic-ng==1.0.0b2
+
+# Show a copy button (convenience only).
+sphinx-copybutton==0.5.2

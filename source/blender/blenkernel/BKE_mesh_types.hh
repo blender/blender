@@ -163,11 +163,6 @@ struct MeshRuntime {
 
   /** #eMeshWrapperType and others. */
   eMeshWrapperType wrapper_type = ME_WRAPPER_TYPE_MDATA;
-  /**
-   * A type mask from wrapper_type,
-   * in case there are differences in finalizing logic between types.
-   */
-  eMeshWrapperType wrapper_type_finalize = ME_WRAPPER_TYPE_MDATA;
 
   /**
    * Settings for lazily evaluating the subdivision on the CPU if needed. These are

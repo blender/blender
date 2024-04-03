@@ -286,7 +286,6 @@ static void gpencil_select_buffer_avg_weight_set(tGP_BrushWeightpaintData *gso)
  */
 static bool *gpencil_vgroup_bone_deformed_map_get(Object *ob, const int defbase_tot)
 {
-  bDeformGroup *dg;
   bool *vgroup_bone_deformed;
   GHash *gh;
   int i;
@@ -331,7 +330,9 @@ static bool *gpencil_vgroup_bone_deformed_map_get(Object *ob, const int defbase_
   /* Mark vertex groups with reference in the bone hash table. */
   vgroup_bone_deformed = static_cast<bool *>(
       MEM_mallocN(sizeof(*vgroup_bone_deformed) * defbase_tot, __func__));
-  for (dg = static_cast<bDeformGroup *>(defbase->first), i = 0; dg; dg = dg->next, i++) {
+
+  i = 0;
+  LISTBASE_FOREACH_INDEX (bDeformGroup *, dg, defbase, i) {
     vgroup_bone_deformed[i] = (BLI_ghash_lookup(gh, dg->name) != nullptr);
   }
 
@@ -952,7 +953,7 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
                                               const float bound_mat[4][4])
 {
   GP_SpaceConversion *gsc = &gso->gsc;
-  rcti *rect = &gso->brush_rect;
+  const rcti *rect = &gso->brush_rect;
   Brush *brush = gso->brush;
   /* For the blur tool, look a bit wider than the brush itself,
    * because we need the weight of surrounding points to perform the blur. */

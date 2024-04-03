@@ -596,7 +596,7 @@ static int file_select_exec(bContext *C, wmOperator *op)
   int ret_val = OPERATOR_FINISHED;
 
   const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  if (sfile && params) {
+  if (params) {
     int idx = params->highlight_file;
     int numfiles = filelist_files_ensure(sfile->files);
 

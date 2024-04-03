@@ -46,7 +46,7 @@ float BM_face_calc_normal(const BMFace *f, float r_no[3]) ATTR_NONNULL();
 float BM_face_calc_normal_vcos(const BMesh *bm,
                                const BMFace *f,
                                float r_no[3],
-                               float const (*vertexCos)[3]) ATTR_NONNULL();
+                               blender::Span<blender::float3> vertexCos) ATTR_NONNULL();
 
 /**
  * Calculate a normal from a vertex cloud.

@@ -1507,7 +1507,8 @@ static void rna_Sequence_separate(ID *id, Sequence *seqm, Main *bmain)
 }
 
 /* Find channel owner. If nullptr, owner is `Editing`, otherwise it's `Sequence`. */
-static Sequence *rna_SeqTimelineChannel_owner_get(Editing *ed, SeqTimelineChannel *channel)
+static Sequence *rna_SeqTimelineChannel_owner_get(const Editing *ed,
+                                                  const SeqTimelineChannel *channel)
 {
   blender::VectorSet strips = SEQ_query_all_meta_strips_recursive(&ed->seqbase);
 

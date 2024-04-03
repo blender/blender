@@ -59,7 +59,7 @@ inline void parallel_for_each(Range &&range, const Function &function)
 #ifdef WITH_TBB
   tbb::parallel_for_each(range, function);
 #else
-  for (auto &value : range) {
+  for (auto &&value : range) {
     function(value);
   }
 #endif

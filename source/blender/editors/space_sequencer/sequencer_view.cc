@@ -219,7 +219,7 @@ void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
 
 static int sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
 {
-  RenderData *rd = &CTX_data_scene(C)->r;
+  const RenderData *rd = &CTX_data_scene(C)->r;
   View2D *v2d = UI_view2d_fromcontext(C);
 
   float ratio = RNA_float_get(op->ptr, "ratio");

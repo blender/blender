@@ -28,9 +28,6 @@
 
 namespace blender::ed::sculpt_paint::greasepencil {
 
-static constexpr float POINT_OVERRIDE_THRESHOLD_PX = 3.0f;
-static constexpr float POINT_RESAMPLE_MIN_DISTANCE_PX = 10.0f;
-
 using ed::greasepencil::MutableDrawingInfo;
 
 class TintOperation : public GreasePencilStrokeOperation {
@@ -104,8 +101,9 @@ void TintOperation::on_stroke_begin(const bContext &C, const InputSample & /*sta
 
   screen_positions_per_drawing_.reinitialize(drawings_.size());
 
-  threading::parallel_for_each(drawings_.index_range(), [&](const int drawing_index) {
-    MutableDrawingInfo drawing_info = drawings_[drawing_index];
+  threading::parallel_for_each(drawings_, [&](const MutableDrawingInfo &drawing_info) {
+    const int drawing_index = (&drawing_info - drawings_.data());
+
     bke::CurvesGeometry &strokes = drawing_info.drawing.strokes_for_write();
     const Layer &layer = *grease_pencil.layers()[drawing_info.layer_index];
 
@@ -244,8 +242,8 @@ void TintOperation::execute_tint(const bContext &C, const InputSample &extension
     fill_colors.finish();
   };
 
-  threading::parallel_for_each(drawings_.index_range(), [&](const int drawing_index) {
-    const MutableDrawingInfo &info = drawings_[drawing_index];
+  threading::parallel_for_each(drawings_, [&](const MutableDrawingInfo &info) {
+    const int drawing_index = (&info - drawings_.data());
     execute_tint_on_drawing(info.drawing, drawing_index);
   });
 

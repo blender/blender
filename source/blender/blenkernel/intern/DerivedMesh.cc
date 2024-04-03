@@ -89,8 +89,6 @@ using blender::bke::MeshComponent;
 #endif
 
 static void mesh_init_origspace(Mesh *mesh);
-static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final);
-static void editbmesh_calc_modifier_final_normals_or_defer(Mesh *mesh_final);
 
 /* -------------------------------------------------------------------- */
 
@@ -463,16 +461,6 @@ static void mesh_calc_finalize(const Mesh *mesh_input, Mesh *mesh_eval)
   STRNCPY(mesh_eval->id.name, mesh_input->id.name);
   /* Make evaluated mesh to share same edit mesh pointer as original and copied meshes. */
   mesh_eval->runtime->edit_mesh = mesh_input->runtime->edit_mesh;
-}
-
-void BKE_mesh_wrapper_deferred_finalize_mdata(Mesh *mesh_eval)
-{
-  if (mesh_eval->runtime->wrapper_type_finalize & (1 << ME_WRAPPER_TYPE_BMESH)) {
-    editbmesh_calc_modifier_final_normals(mesh_eval);
-    mesh_eval->runtime->wrapper_type_finalize = eMeshWrapperType(
-        mesh_eval->runtime->wrapper_type_finalize & ~(1 << ME_WRAPPER_TYPE_BMESH));
-  }
-  BLI_assert(mesh_eval->runtime->wrapper_type_finalize == 0);
 }
 
 /**
@@ -1001,36 +989,6 @@ bool editbmesh_modifier_is_enabled(const Scene *scene,
   return true;
 }
 
-static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final)
-{
-  switch (mesh_final->runtime->wrapper_type) {
-    case ME_WRAPPER_TYPE_SUBD:
-    case ME_WRAPPER_TYPE_MDATA:
-      break;
-    case ME_WRAPPER_TYPE_BMESH: {
-      BMEditMesh &em = *mesh_final->runtime->edit_mesh;
-      blender::bke::EditMeshData &emd = *mesh_final->runtime->edit_data;
-      if (!emd.vert_positions.is_empty()) {
-        BKE_editmesh_cache_ensure_vert_normals(em, emd);
-        BKE_editmesh_cache_ensure_face_normals(em, emd);
-      }
-      return;
-    }
-  }
-}
-
-static void editbmesh_calc_modifier_final_normals_or_defer(Mesh *mesh_final)
-{
-  if (mesh_final->runtime->wrapper_type != ME_WRAPPER_TYPE_MDATA) {
-    /* Generated at draw time. */
-    mesh_final->runtime->wrapper_type_finalize = eMeshWrapperType(
-        1 << mesh_final->runtime->wrapper_type);
-    return;
-  }
-
-  editbmesh_calc_modifier_final_normals(mesh_final);
-}
-
 static MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
@@ -1242,12 +1200,6 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
 
   if (mesh_orco) {
     BKE_id_free(nullptr, mesh_orco);
-  }
-
-  /* Compute normals. */
-  editbmesh_calc_modifier_final_normals_or_defer(mesh_final);
-  if (mesh_cage && (mesh_cage != mesh_final)) {
-    editbmesh_calc_modifier_final_normals_or_defer(mesh_cage);
   }
 
   /* Return final mesh. */

@@ -1872,8 +1872,9 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
         BLI_strncpy(str, value, attr_maxncpy); /* utf8 already ensured */ \
       } \
       else { \
-        BLI_assert( \
-            !"setting the bl_" STRINGIFY(translation_context) " on a non-builtin operator"); \
+        BLI_assert_msg( \
+            false, \
+            "setting the bl_" STRINGIFY(translation_context) " on a non-builtin operator"); \
       } \
     } \
     static void rna_Operator_bl_##attr##_get(PointerRNA *ptr, char *value) \

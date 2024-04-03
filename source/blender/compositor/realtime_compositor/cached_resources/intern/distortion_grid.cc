@@ -30,7 +30,7 @@ namespace blender::realtime_compositor {
  * Distortion Grid Key.
  */
 
-DistortionGridKey::DistortionGridKey(MovieTrackingCamera camera,
+DistortionGridKey::DistortionGridKey(const MovieTrackingCamera &camera,
                                      int2 size,
                                      DistortionType type,
                                      int2 calibration_size)

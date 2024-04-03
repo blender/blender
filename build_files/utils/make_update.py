@@ -393,7 +393,7 @@ def floating_checkout_add_origin_if_needed(
         upstream_url = make_utils.git_get_remote_url(args.git_command, "upstream")
 
         call((args.git_command, "remote", "rename", "upstream", "origin"))
-        make_utils.git_set_config(args.git_command, f"remote.origin.url", origin_external_url)
+        make_utils.git_set_config(args.git_command, "remote.origin.url", origin_external_url)
 
         call((args.git_command, "remote", "add", "upstream", upstream_url))
     finally:

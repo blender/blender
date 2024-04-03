@@ -340,7 +340,10 @@ void BKE_mask_layer_unique_name(Mask *mask, MaskLayer *masklay)
                  sizeof(masklay->name));
 }
 
-void BKE_mask_layer_rename(Mask *mask, MaskLayer *masklay, char *oldname, char *newname)
+void BKE_mask_layer_rename(Mask *mask,
+                           MaskLayer *masklay,
+                           const char *oldname,
+                           const char *newname)
 {
   STRNCPY(masklay->name, newname);
 

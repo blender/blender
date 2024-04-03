@@ -4047,8 +4047,8 @@ void IMB_colormanagement_processor_apply_pixel(ColormanageProcessor *cm_processo
     }
   }
   else {
-    BLI_assert(
-        !"Incorrect number of channels passed to IMB_colormanagement_processor_apply_pixel");
+    BLI_assert_msg(
+        false, "Incorrect number of channels passed to IMB_colormanagement_processor_apply_pixel");
   }
 }
 
