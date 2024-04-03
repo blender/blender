@@ -338,7 +338,7 @@ GPENCIL_tLayer *gpencil_layer_cache_get(GPENCIL_tObject *tgp_ob, int number);
 GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
                                               const Object *ob,
                                               const blender::bke::greasepencil::Layer &layer,
-                                              std::optional<int> onion_id,
+                                              int onion_id,
                                               GPENCIL_tObject *tgp_ob);
 /**
  * Creates a linked list of material pool containing all materials assigned for a given object.

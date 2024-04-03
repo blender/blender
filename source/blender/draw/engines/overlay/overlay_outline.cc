@@ -293,7 +293,7 @@ static void OVERLAY_outline_grease_pencil(OVERLAY_PrivateData *pd, Scene *scene,
   }
 
   int t_offset = 0;
-  const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*scene, grease_pencil);
+  const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*scene, grease_pencil, true);
   for (const DrawingInfo info : drawings) {
     const bool is_screenspace = false;
     const bool is_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
@@ -332,8 +332,16 @@ static void OVERLAY_outline_grease_pencil(OVERLAY_PrivateData *pd, Scene *scene,
       const int material_index = stroke_materials[stroke_i];
       MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, material_index + 1);
 
+      const bool hide_onion = info.onion_id != 0;
       const bool hide_material = (gp_style->flag & GP_MATERIAL_HIDE) != 0;
-      if (hide_material) {
+
+      const int num_stroke_triangles = (points.size() >= 3) ? (points.size() - 2) : 0;
+      const int num_stroke_vertices = (points.size() +
+                                       int(cyclic[stroke_i] && (points.size() >= 3)));
+
+      if (hide_material || hide_onion) {
+        t_offset += num_stroke_triangles;
+        t_offset += num_stroke_vertices * 2;
         return;
       }
 
@@ -341,22 +349,19 @@ static void OVERLAY_outline_grease_pencil(OVERLAY_PrivateData *pd, Scene *scene,
 
       const bool show_stroke = (gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0;
       const bool show_fill = (points.size() >= 3) && (gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0;
-      const bool is_cyclic = cyclic[stroke_i] && (points.size() > 2);
-      const int num_stroke_triangles = points.size() - 2;
-      const int num_stroke_vertices = (points.size() + int(is_cyclic));
 
       if (show_fill) {
-        int vfirst = t_offset * 3;
-        int vcount = num_stroke_triangles * 3;
-        DRW_shgroup_call_range(grp, ob, geom, vfirst, vcount);
+        int v_first = t_offset * 3;
+        int v_count = num_stroke_triangles * 3;
+        DRW_shgroup_call_range(grp, ob, geom, v_first, v_count);
       }
 
       t_offset += num_stroke_triangles;
 
       if (show_stroke) {
-        int vfirst = t_offset * 3;
-        int vcount = num_stroke_vertices * 2 * 3;
-        DRW_shgroup_call_range(grp, ob, geom, vfirst, vcount);
+        int v_first = t_offset * 3;
+        int v_count = num_stroke_vertices * 2 * 3;
+        DRW_shgroup_call_range(grp, ob, geom, v_first, v_count);
       }
       t_offset += num_stroke_vertices * 2;
     });

@@ -42,6 +42,7 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
+#include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 #include "BLI_virtual_array.hh"
 
@@ -52,6 +53,7 @@
 #include "DNA_ID.h"
 #include "DNA_ID_enums.h"
 #include "DNA_brush_types.h"
+#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
@@ -80,10 +82,12 @@ static void grease_pencil_init_data(ID *id)
   using namespace blender::bke;
 
   GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(id);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(grease_pencil, id));
+
+  MEMCPY_STRUCT_AFTER(grease_pencil, DNA_struct_default_get(GreasePencil), id);
 
   grease_pencil->root_group_ptr = MEM_new<greasepencil::LayerGroup>(__func__);
   grease_pencil->active_layer = nullptr;
-  grease_pencil->flag |= GREASE_PENCIL_ANIM_CHANNEL_EXPANDED;
 
   CustomData_reset(&grease_pencil->layers_data);
 

@@ -230,9 +230,132 @@ static std::pair<int, int> get_minmax_selected_frame_numbers(const GreasePencil 
   return std::pair<int, int>(frame_min, frame_max);
 }
 
-static Array<int> get_frame_numbers_for_layer(const bke::greasepencil::Layer &layer,
-                                              const int current_frame,
-                                              const bool use_multi_frame_editing)
+static std::optional<int> get_frame_id(const bke::greasepencil::Layer &layer,
+                                       const GreasePencilFrame &frame,
+                                       const int frame_number,
+                                       const int frame_index,
+                                       const int current_frame,
+                                       const int current_frame_index,
+                                       const int last_frame,
+                                       const int last_frame_index,
+                                       const bool use_multi_frame_editing,
+                                       const bool do_onion_skinning,
+                                       const bool is_before_first,
+                                       const GreasePencilOnionSkinningSettings onion_settings)
+{
+  if (use_multi_frame_editing) {
+    if (frame.is_selected()) {
+      if (do_onion_skinning) {
+        return (frame_number < current_frame) ? -1 : 1;
+      }
+      return 0;
+    }
+    return {};
+  }
+  if (do_onion_skinning && layer.use_onion_skinning()) {
+    /* Keyframe type filter. */
+    if (onion_settings.filter != 0 && (onion_settings.filter & (1 << frame.type)) == 0) {
+      return {};
+    }
+    /* Selected mode filter. */
+    if (onion_settings.mode == GP_ONION_SKINNING_MODE_SELECTED && !frame.is_selected()) {
+      return {};
+    }
+
+    int delta = 0;
+    if (onion_settings.mode == GP_ONION_SKINNING_MODE_ABSOLUTE) {
+      delta = frame_number - current_frame;
+    }
+    else {
+      delta = frame_index - current_frame_index;
+    }
+
+    if (is_before_first) {
+      delta++;
+    }
+    if ((onion_settings.flag & GP_ONION_SKINNING_SHOW_LOOP) != 0 &&
+        (-delta > onion_settings.num_frames_before || delta > onion_settings.num_frames_after))
+    {
+      /* We wrap the value using the last frame and 0 as reference. */
+      /* FIXME: This might not be good for animations not starting at 0. */
+      int shift = 0;
+      if (onion_settings.mode == GP_ONION_SKINNING_MODE_ABSOLUTE) {
+        shift = last_frame;
+      }
+      else {
+        shift = last_frame_index;
+      }
+      delta += (delta < 0) ? (shift + 1) : -(shift + 1);
+    }
+    /* Frame range filter. */
+    if (ELEM(onion_settings.mode,
+             GP_ONION_SKINNING_MODE_ABSOLUTE,
+             GP_ONION_SKINNING_MODE_RELATIVE) &&
+        (-delta > onion_settings.num_frames_before || delta > onion_settings.num_frames_after))
+    {
+      return {};
+    }
+
+    return delta;
+  }
+  return {};
+}
+
+static Array<std::pair<int, int>> get_visible_frames_for_layer(
+    const GreasePencil &grease_pencil,
+    const bke::greasepencil::Layer &layer,
+    const int current_frame,
+    const bool use_multi_frame_editing,
+    const bool do_onion_skinning)
+{
+  GreasePencilOnionSkinningSettings onion_settings = grease_pencil.onion_skinning_settings;
+  Vector<std::pair<int, int>> frame_numbers;
+  const Span<int> sorted_keys = layer.sorted_keys();
+  if (sorted_keys.is_empty()) {
+    return {};
+  }
+  const std::optional<bke::greasepencil::FramesMapKey> current_frame_key = layer.frame_key_at(
+      current_frame);
+  const int current_frame_index = current_frame_key.has_value() ?
+                                      sorted_keys.first_index(*current_frame_key) :
+                                      0;
+  const int last_frame = sorted_keys.last();
+  const int last_frame_index = sorted_keys.index_range().last();
+  const bool is_before_first = (current_frame < sorted_keys.first());
+  for (const int frame_i : sorted_keys.index_range()) {
+    const int frame_number = sorted_keys[frame_i];
+    if (frame_number == current_frame) {
+      continue;
+    }
+    const GreasePencilFrame &frame = layer.frames().lookup(frame_number);
+    const std::optional<int> frame_id = get_frame_id(layer,
+                                                     frame,
+                                                     frame_number,
+                                                     frame_i,
+                                                     current_frame,
+                                                     current_frame_index,
+                                                     last_frame,
+                                                     last_frame_index,
+                                                     use_multi_frame_editing,
+                                                     do_onion_skinning,
+                                                     is_before_first,
+                                                     onion_settings);
+    if (!frame_id.has_value()) {
+      /* Drawing on this frame is not visible. */
+      continue;
+    }
+
+    frame_numbers.append({frame_number, *frame_id});
+  }
+
+  frame_numbers.append({current_frame, 0});
+
+  return frame_numbers.as_span();
+}
+
+static Array<int> get_editable_frames_for_layer(const bke::greasepencil::Layer &layer,
+                                                const int current_frame,
+                                                const bool use_multi_frame_editing)
 {
   Vector<int> frame_numbers;
   if (use_multi_frame_editing) {
@@ -271,7 +394,7 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
     if (!layer.is_editable()) {
       continue;
     }
-    const Array<int> frame_numbers = get_frame_numbers_for_layer(
+    const Array<int> frame_numbers = get_editable_frames_for_layer(
         layer, current_frame, use_multi_frame_editing);
     for (const int frame_number : frame_numbers) {
       if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
@@ -309,7 +432,7 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_with_falloff(const Scene &
     if (!layer.is_editable()) {
       continue;
     }
-    const Array<int> frame_numbers = get_frame_numbers_for_layer(
+    const Array<int> frame_numbers = get_editable_frames_for_layer(
         layer, current_frame, use_multi_frame_editing);
     for (const int frame_number : frame_numbers) {
       if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
@@ -340,7 +463,7 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
                                         GP_USE_MULTI_FRAME_EDITING) != 0;
 
   Vector<MutableDrawingInfo> editable_drawings;
-  const Array<int> frame_numbers = get_frame_numbers_for_layer(
+  const Array<int> frame_numbers = get_editable_frames_for_layer(
       layer, current_frame, use_multi_frame_editing);
   for (const int frame_number : frame_numbers) {
     if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
@@ -353,7 +476,8 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
 }
 
 Vector<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
-                                              const GreasePencil &grease_pencil)
+                                              const GreasePencil &grease_pencil,
+                                              const bool do_onion_skinning)
 {
   using namespace blender::bke::greasepencil;
   const int current_frame = scene.r.cfra;
@@ -368,11 +492,11 @@ Vector<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
     if (!layer.is_visible()) {
       continue;
     }
-    const Array<int> frame_numbers = get_frame_numbers_for_layer(
-        layer, current_frame, use_multi_frame_editing);
-    for (const int frame_number : frame_numbers) {
+    const Array<std::pair<int, int>> frames = get_visible_frames_for_layer(
+        grease_pencil, layer, current_frame, use_multi_frame_editing, do_onion_skinning);
+    for (const auto &[frame_number, onion_id] : frames) {
       if (const Drawing *drawing = grease_pencil.get_drawing_at(layer, frame_number)) {
-        visible_drawings.append({*drawing, layer_i, frame_number});
+        visible_drawings.append({*drawing, layer_i, frame_number, onion_id});
       }
     }
   }
