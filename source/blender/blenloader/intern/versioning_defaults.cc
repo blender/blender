@@ -538,9 +538,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
         if (layout->screen) {
           bScreen *screen = layout->screen;
           if (!STREQ(screen->id.name + 2, workspace->id.name + 2)) {
-            BKE_main_namemap_remove_name(bmain, &screen->id, screen->id.name + 2);
-            BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
-            BKE_libblock_ensure_unique_name(bmain, &screen->id);
+            BKE_libblock_rename(bmain, &screen->id, workspace->id.name + 2);
           }
         }
 

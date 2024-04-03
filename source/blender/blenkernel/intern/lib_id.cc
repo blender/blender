@@ -2033,24 +2033,12 @@ void BKE_library_make_local(Main *bmain,
 #endif
 }
 
-void BKE_libblock_ensure_unique_name(Main *bmain, ID *id)
-{
-  ListBase *lb;
-
-  lb = which_libbase(bmain, GS(id->name));
-  if (lb == nullptr) {
-    return;
-  }
-
-  /* BKE_id_new_name_validate also takes care of sorting. */
-  if (!ID_IS_LINKED(id) && BKE_id_new_name_validate(bmain, lb, id, nullptr, false)) {
-    bmain->is_memfile_undo_written = false;
-  }
-}
-
 void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
 {
   BLI_assert(!ID_IS_LINKED(id));
+  if (STREQ(id->name + 2, name)) {
+    return;
+  }
   BKE_main_namemap_remove_name(bmain, id, id->name + 2);
   ListBase *lb = which_libbase(bmain, GS(id->name));
   if (BKE_id_new_name_validate(bmain, lb, id, name, false)) {

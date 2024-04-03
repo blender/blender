@@ -288,9 +288,7 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
   BLI_assert(BKE_id_is_in_global_main(id));
   BLI_assert(!ID_IS_LINKED(id));
 
-  BKE_main_namemap_remove_name(G_MAIN, id, id->name + 2);
-  BLI_strncpy_utf8(id->name + 2, value, sizeof(id->name) - 2);
-  BKE_libblock_ensure_unique_name(G_MAIN, id);
+  BKE_libblock_rename(G_MAIN, id, value);
 
   if (GS(id->name) == ID_OB) {
     Object *ob = (Object *)id;

@@ -195,11 +195,6 @@ void *BKE_libblock_copy(Main *bmain, const ID *id) ATTR_WARN_UNUSED_RESULT ATTR_
  * Sets the name of a block to name, suitably adjusted for uniqueness.
  */
 void BKE_libblock_rename(Main *bmain, ID *id, const char *name) ATTR_NONNULL();
-/**
- * Use after setting the ID's name
- * When name exists: call 'new_id'
- */
-void BKE_libblock_ensure_unique_name(Main *bmain, ID *id) ATTR_NONNULL();
 
 ID *BKE_libblock_find_name(Main *bmain, short type, const char *name) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
@@ -501,16 +496,20 @@ void id_sort_by_name(ListBase *lb, ID *id, ID *id_sorting_hint);
 void BKE_lib_id_expand_local(Main *bmain, ID *id, int flags);
 
 /**
- * Ensures given ID has a unique name in given listbase.
+ * Optionally set the given ID's name from given parameter, and ensure that the ID has a unique
+ * name in given listbase.
  *
  * Uniqueness is only ensured within the ID's library (nullptr for local ones), libraries act as
  * some kind of namespace for IDs.
  *
- * \param name: The new name of the given ID, if NULL the current given ID name is used instead.
- * \param do_linked_data: if true, also ensure a unique name in case the given \a id is linked
+ * \param name: The new name of the given ID, if `nullptr` the current given ID name is used
+ * instead. If the given ID has no name (or the given name is an empty string), the default
+ * matching data name is used as fallback.
+ * \param do_linked_data: if true, also ensure a unique name in case the given ID is linked
  * (otherwise, just ensure that it is properly sorted).
  *
- * \return true if a new name had to be created.
+ * \return true if the ID's name has been modified (either from given `name` parameter, or because
+ * its current name was colliding with another existing ID).
  */
 bool BKE_id_new_name_validate(Main *bmain,
                               ListBase *lb,
