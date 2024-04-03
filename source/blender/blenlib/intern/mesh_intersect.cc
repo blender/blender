@@ -946,7 +946,7 @@ class CoplanarClusterInfo {
     return tri_cluster_[t];
   }
 
-  int add_cluster(CoplanarCluster cl)
+  int add_cluster(const CoplanarCluster &cl)
   {
     int c_index = clusters_.append_and_get_index(cl);
     for (int t : cl) {
