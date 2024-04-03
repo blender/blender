@@ -816,7 +816,7 @@ def brush_settings(layout, context, brush, popover=False):
             col.active = not brush.curves_sculpt_settings.use_point_count_interpolate
             col.prop(brush.curves_sculpt_settings, "points_per_curve", text="Points")
 
-        if brush.curves_sculpt_tool == 'DENSITY' :
+        if brush.curves_sculpt_tool == 'DENSITY':
             col = layout.column()
             col.prop(brush.curves_sculpt_settings, "density_add_attempts", text="Count Max")
             col = layout.column(heading="Interpolate", align=True)
