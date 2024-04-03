@@ -779,8 +779,8 @@ bool rna_AnimaData_override_apply(Main *bmain, RNAPropertyOverrideApplyContext &
   IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
 
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
-  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
-             "Unsupported RNA override operation on animdata pointer");
+  BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_REPLACE,
+                 "Unsupported RNA override operation on animdata pointer");
   UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
 
   /* AnimData is a special case, since you cannot edit/replace it, it's either existent or not.
@@ -841,8 +841,8 @@ bool rna_NLA_tracks_override_apply(Main *bmain, RNAPropertyOverrideApplyContext 
   PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
   IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
 
-  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
-             "Unsupported RNA override operation on constraints collection");
+  BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER,
+                 "Unsupported RNA override operation on constraints collection");
 
   AnimData *anim_data_dst = (AnimData *)ptr_dst->data;
   AnimData *anim_data_src = (AnimData *)ptr_src->data;

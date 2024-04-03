@@ -153,7 +153,7 @@ auto imb_steal_buffer_data(BufferType &buffer) -> decltype(BufferType::data)
 
   switch (buffer.ownership) {
     case IB_DO_NOT_TAKE_OWNERSHIP:
-      BLI_assert(!"Unexpected behavior: stealing non-owned data pointer");
+      BLI_assert_msg(false, "Unexpected behavior: stealing non-owned data pointer");
       return nullptr;
 
     case IB_TAKE_OWNERSHIP: {

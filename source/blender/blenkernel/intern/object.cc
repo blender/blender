@@ -1455,7 +1455,7 @@ bool BKE_object_modifier_stack_copy(Object *ob_dst,
                                     const int flag_subdata)
 {
   if ((ob_dst->type == OB_GPENCIL_LEGACY) != (ob_src->type == OB_GPENCIL_LEGACY)) {
-    BLI_assert_msg(0,
+    BLI_assert_msg(false,
                    "Trying to copy a modifier stack between a GPencil object and another type.");
     return false;
   }
@@ -1463,8 +1463,9 @@ bool BKE_object_modifier_stack_copy(Object *ob_dst,
   if (!BLI_listbase_is_empty(&ob_dst->modifiers) ||
       !BLI_listbase_is_empty(&ob_dst->greasepencil_modifiers))
   {
-    BLI_assert(
-        !"Trying to copy a modifier stack into an object having a non-empty modifier stack.");
+    BLI_assert_msg(
+        false,
+        "Trying to copy a modifier stack into an object having a non-empty modifier stack.");
     return false;
   }
 

@@ -690,8 +690,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 void SEQ_add_movie_reload_if_needed(
     Main *bmain, Scene *scene, Sequence *seq, bool *r_was_reloaded, bool *r_can_produce_frames)
 {
-  BLI_assert(seq->type == SEQ_TYPE_MOVIE ||
-             !"This function is only implemented for movie strips.");
+  BLI_assert_msg(seq->type == SEQ_TYPE_MOVIE,
+                 "This function is only implemented for movie strips.");
 
   bool must_reload = false;
 

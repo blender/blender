@@ -1152,7 +1152,9 @@ bool UI_context_copy_to_selected_list(bContext *C,
         printf("BoneColor is unexpectedly owned by %s '%s'\n",
                BKE_idtype_idcode_to_name(GS(ptr->owner_id->name)),
                ptr->owner_id->name + 2);
-        BLI_assert(!"expected BoneColor to be owned by the Armature (bone & edit bone) or the Object (pose bone)");
+        BLI_assert_msg(false,
+                       "expected BoneColor to be owned by the Armature "
+                       "(bone & edit bone) or the Object (pose bone)");
         return false;
     }
 

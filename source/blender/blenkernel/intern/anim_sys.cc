@@ -2850,8 +2850,9 @@ static void nlastrip_evaluate_transition(const int evaluation_mode,
       break;
     }
     case STRIP_EVAL_NOBLEND: {
-      BLI_assert( !"This case shouldn't occur. Transitions assumed to not reference other "
-"transitions. ");
+      BLI_assert_msg(false,
+                     "This case shouldn't occur. "
+                     "Transitions assumed to not reference other transitions.");
       break;
     }
   }

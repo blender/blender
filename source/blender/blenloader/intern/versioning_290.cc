@@ -1335,8 +1335,9 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
               }
             }
             if (relation->parentid == 0) {
-              BLI_assert(
-                  !"Found a valid parent for workspace data relation, but no valid parent id.");
+              BLI_assert_msg(
+                  false,
+                  "Found a valid parent for workspace data relation, but no valid parent id.");
             }
           }
           if (relation->parentid == 0) {

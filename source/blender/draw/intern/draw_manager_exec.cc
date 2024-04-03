@@ -1191,8 +1191,8 @@ static void drw_draw_pass_ex(DRWPass *pass,
 
   DST.shader = nullptr;
 
-  BLI_assert(DST.buffer_finish_called &&
-             "DRW_render_instance_buffer_finish had not been called before drawing");
+  BLI_assert_msg(DST.buffer_finish_called,
+                 "DRW_render_instance_buffer_finish had not been called before drawing");
 
   if (DST.view_previous != DST.view_active || DST.view_active->is_dirty) {
     drw_update_view();

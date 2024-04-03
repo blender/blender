@@ -265,7 +265,7 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
     return;
   }
   if (!frame_writer) {
-    BLI_assert(!"File should be writable by now.");
+    BLI_assert_msg(false, "File should be writable by now.");
     return;
   }
   std::unique_ptr<MTLWriter> mtl_writer = nullptr;

@@ -498,8 +498,8 @@ void ED_gizmo_arrow3d_set_ui_range(wmGizmo *gz, const float min, const float max
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
 
   BLI_assert(min < max);
-  BLI_assert(!(WM_gizmo_target_property_is_valid(WM_gizmo_target_property_find(gz, "offset")) &&
-               "Make sure this function is called before WM_gizmo_target_property_def_rna"));
+  BLI_assert_msg(!WM_gizmo_target_property_is_valid(WM_gizmo_target_property_find(gz, "offset")),
+                 "Make sure this function is called before WM_gizmo_target_property_def_rna");
 
   arrow->data.range = max - min;
   arrow->data.min = min;
@@ -510,8 +510,8 @@ void ED_gizmo_arrow3d_set_ui_range(wmGizmo *gz, const float min, const float max
 void ED_gizmo_arrow3d_set_range_fac(wmGizmo *gz, const float range_fac)
 {
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
-  BLI_assert(!(WM_gizmo_target_property_is_valid(WM_gizmo_target_property_find(gz, "offset")) &&
-               "Make sure this function is called before WM_gizmo_target_property_def_rna"));
+  BLI_assert_msg(!WM_gizmo_target_property_is_valid(WM_gizmo_target_property_find(gz, "offset")),
+                 "Make sure this function is called before WM_gizmo_target_property_def_rna");
 
   arrow->data.range_fac = range_fac;
 }
