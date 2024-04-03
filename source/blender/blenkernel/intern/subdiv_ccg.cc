@@ -1004,15 +1004,8 @@ BLI_INLINE void subdiv_ccg_neighbors_init(SubdivCCGNeighbors &neighbors,
                                           const int num_duplicates)
 {
   const int size = num_unique + num_duplicates;
-  neighbors.size = size;
+  neighbors.coords.reinitialize(size);
   neighbors.num_duplicates = num_duplicates;
-  if (size < ARRAY_SIZE(neighbors.coords_fixed)) {
-    neighbors.coords = neighbors.coords_fixed;
-  }
-  else {
-    neighbors.coords = static_cast<SubdivCCGCoord *>(
-        MEM_mallocN(sizeof(*neighbors.coords) * size, "SubdivCCGNeighbors.coords"));
-  }
 }
 
 /* Check whether given coordinate belongs to a grid corner. */
@@ -1520,7 +1513,7 @@ void BKE_subdiv_ccg_neighbor_coords_get(const SubdivCCG &subdiv_ccg,
   }
 
 #ifndef NDEBUG
-  for (int i = 0; i < r_neighbors.size; i++) {
+  for (const int i : r_neighbors.coords.index_range()) {
     BLI_assert(BKE_subdiv_ccg_check_coord_valid(subdiv_ccg, r_neighbors.coords[i]));
   }
 #endif
