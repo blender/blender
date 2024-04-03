@@ -34,9 +34,8 @@ namespace blender::realtime_compositor {
  * OCIO Color Space Conversion Shader Key.
  */
 
-OCIOColorSpaceConversionShaderKey::OCIOColorSpaceConversionShaderKey(std::string source,
-                                                                     std::string target,
-                                                                     std::string config_cache_id)
+OCIOColorSpaceConversionShaderKey::OCIOColorSpaceConversionShaderKey(
+    const std::string &source, const std::string &target, const std::string &config_cache_id)
     : source(source), target(target), config_cache_id(config_cache_id)
 {
 }
