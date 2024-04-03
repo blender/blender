@@ -35,7 +35,6 @@ using VolumeInfosBuf = blender::draw::UniformBuffer<VolumeInfos>;
 static struct {
   GPUTexture *dummy_zero;
   GPUTexture *dummy_one;
-  float dummy_grid_mat[4][4];
 } g_data = {};
 
 struct VolumeUniformBufPool {
@@ -79,8 +78,6 @@ static void drw_volume_globals_init()
       "dummy_one", 1, 1, 1, 1, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, one);
   GPU_texture_extend_mode(g_data.dummy_zero, GPU_SAMPLER_EXTEND_MODE_REPEAT);
   GPU_texture_extend_mode(g_data.dummy_one, GPU_SAMPLER_EXTEND_MODE_REPEAT);
-
-  memset(g_data.dummy_grid_mat, 0, sizeof(g_data.dummy_grid_mat));
 }
 
 void DRW_volume_free()
@@ -153,8 +150,8 @@ static DRWShadingGroup *drw_volume_object_grids_init(Object *ob,
                                                  grid_default_texture(attr->default_value);
     DRW_shgroup_uniform_texture(grp, attr->input_name, grid_tex);
 
-    copy_m4_m4(volume_infos.grids_xform[grid_id++].ptr(),
-               (drw_grid) ? drw_grid->object_to_texture : g_data.dummy_grid_mat);
+    volume_infos.grids_xform[grid_id++] = (drw_grid) ? float4x4(drw_grid->object_to_texture) :
+                                                       float4x4::identity();
   }
   /* Render nothing if there is no attribute for the shader to render.
    * This also avoids an assert caused by the bounding box being zero in size. */
@@ -221,7 +218,7 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
         DRW_shgroup_uniform_texture(
             grp, attr->input_name, grid_default_texture(attr->default_value));
       }
-      copy_m4_m4(volume_infos.grids_xform[grid_id++].ptr(), g_data.dummy_grid_mat);
+      volume_infos.grids_xform[grid_id++] = float4x4::identity();
     }
 
     bool use_constant_color = ((fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
@@ -241,7 +238,7 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
     LISTBASE_FOREACH (GPUMaterialAttribute *, attr, attrs) {
       DRW_shgroup_uniform_texture(
           grp, attr->input_name, grid_default_texture(attr->default_value));
-      copy_m4_m4(volume_infos.grids_xform[grid_id++].ptr(), g_data.dummy_grid_mat);
+      volume_infos.grids_xform[grid_id++] = float4x4::identity();
     }
   }
 
@@ -342,8 +339,8 @@ PassType *volume_object_grids_init(PassType &ps,
     /* TODO(@pragma37): bind_texture const support ? */
     sub->bind_texture(attr->input_name, (GPUTexture *)grid_tex);
 
-    volume_infos.grids_xform[grid_id++] = float4x4(drw_grid ? drw_grid->object_to_texture :
-                                                              g_data.dummy_grid_mat);
+    volume_infos.grids_xform[grid_id++] = drw_grid ? float4x4(drw_grid->object_to_texture) :
+                                                     float4x4::identity();
   }
 
   volume_infos.push_update();
@@ -405,7 +402,7 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
       else {
         sub->bind_texture(attr->input_name, grid_default_texture(attr->default_value));
       }
-      volume_infos.grids_xform[grid_id++] = float4x4(g_data.dummy_grid_mat);
+      volume_infos.grids_xform[grid_id++] = float4x4::identity();
     }
 
     bool use_constant_color = ((fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
@@ -423,7 +420,7 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
     int grid_id = 0;
     for (const GPUMaterialAttribute *attr : attrs) {
       sub->bind_texture(attr->input_name, grid_default_texture(attr->default_value));
-      volume_infos.grids_xform[grid_id++] = float4x4(g_data.dummy_grid_mat);
+      volume_infos.grids_xform[grid_id++] = float4x4::identity();
     }
   }
 
