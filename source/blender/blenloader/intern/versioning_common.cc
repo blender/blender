@@ -101,10 +101,7 @@ ID *do_versions_rename_id(Main *bmain,
     }
   }
   if (id != nullptr) {
-    BKE_main_namemap_remove_name(bmain, id, id->name + 2);
-    BLI_strncpy(id->name + 2, name_dst, sizeof(id->name) - 2);
-    /* We know it's unique, this just sorts. */
-    BKE_libblock_ensure_unique_name(bmain, id);
+    BKE_libblock_rename(bmain, id, name_dst);
   }
   return id;
 }
