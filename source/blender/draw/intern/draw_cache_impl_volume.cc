@@ -14,6 +14,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
@@ -304,8 +305,8 @@ static DRWVolumeGrid *volume_grid_cache_get(const Volume *volume,
 
   DenseFloatVolumeGrid dense_grid;
   if (BKE_volume_grid_dense_floats(volume, grid, &dense_grid)) {
-    copy_m4_m4(cache_grid->texture_to_object, dense_grid.texture_to_object);
-    invert_m4_m4(cache_grid->object_to_texture, dense_grid.texture_to_object);
+    cache_grid->texture_to_object = float4x4(dense_grid.texture_to_object);
+    cache_grid->object_to_texture = math::invert(cache_grid->texture_to_object);
 
     /* Create GPU texture. */
     eGPUTextureFormat format = (channels == 3) ? GPU_RGB16F : GPU_R16F;

@@ -387,6 +387,14 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
 
     sub = &ps.sub("Volume Modifier SubPass");
 
+    float3 location, scale;
+    BKE_mesh_texspace_get(static_cast<Mesh *>(ob->data), location, scale);
+    float3 orco_mul = math::safe_rcp(scale * 2.0);
+    float3 orco_add = (location - scale) * -orco_mul;
+    /* Replace OrcoTexCoFactors with a matrix multiplication. */
+    float4x4 orco_mat = math::from_scale<float4x4>(orco_mul);
+    orco_mat.location() = orco_add;
+
     int grid_id = 0;
     for (const GPUMaterialAttribute *attr : attrs) {
       if (STREQ(attr->name, "density")) {
@@ -402,7 +410,7 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
       else {
         sub->bind_texture(attr->input_name, grid_default_texture(attr->default_value));
       }
-      volume_infos.grids_xform[grid_id++] = float4x4::identity();
+      volume_infos.grids_xform[grid_id++] = orco_mat;
     }
 
     bool use_constant_color = ((fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&

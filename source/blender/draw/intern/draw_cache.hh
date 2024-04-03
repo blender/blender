@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_math_matrix_types.hh"
+
 #include "BKE_volume_grid_fwd.hh"
 
 struct GPUMaterial;
@@ -241,12 +243,12 @@ struct DRWVolumeGrid {
   GPUTexture *texture;
 
   /* Transform between 0..1 texture space and object space. */
-  float texture_to_object[4][4];
-  float object_to_texture[4][4];
+  blender::float4x4 texture_to_object;
+  blender::float4x4 object_to_texture;
 
   /* Transform from bounds to texture space. */
-  float object_to_bounds[4][4];
-  float bounds_to_texture[4][4];
+  blender::float4x4 object_to_bounds;
+  blender::float4x4 bounds_to_texture;
 };
 
 namespace blender::draw {
