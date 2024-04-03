@@ -770,7 +770,7 @@ TreeNode::TreeNode()
   this->parent = nullptr;
 
   this->GreasePencilLayerTreeNode::name = nullptr;
-  this->flag = GP_LAYER_TREE_NODE_HIDE_MASKS;
+  this->flag = 0;
   this->color[0] = this->color[1] = this->color[2] = 0;
 }
 
