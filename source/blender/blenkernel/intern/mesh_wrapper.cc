@@ -129,10 +129,6 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
           mesh->runtime->is_original_bmesh = false;
         }
 
-        if (mesh->runtime->wrapper_type_finalize) {
-          BKE_mesh_wrapper_deferred_finalize_mdata(mesh);
-        }
-
         mesh->runtime->edit_data.reset();
         break;
       }
