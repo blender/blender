@@ -181,7 +181,7 @@ struct Node {
   Array<float4> loop_col;
   Array<float4> orig_loop_col;
 
-  /* non-multires */
+  /* Mesh. */
 
   /* to verify if totvert it still the same */
   int mesh_verts_num;
@@ -195,10 +195,14 @@ struct Node {
   BitVector<> vert_hidden;
   BitVector<> face_hidden;
 
-  /* multires */
-  int maxgrid;      /* same for grid */
-  int gridsize;     /* same for grid */
-  Array<int> grids; /* to restore into right location */
+  /* Multires. */
+
+  /** The number of grids in the entire mesh. */
+  int mesh_grids_num;
+  /** A copy of #SubdivCCG::grid_size. */
+  int grid_size;
+  /** Indices of grids in the PBVH node. */
+  Array<int> grids;
   BitGroupVector<> grid_hidden;
 
   /* bmesh */
