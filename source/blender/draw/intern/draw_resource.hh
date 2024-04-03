@@ -109,6 +109,10 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
         orco_add = blender::math::midpoint(bounds->min, bounds->max);
         orco_mul = (bounds->max - bounds->min) * 0.5f;
       }
+      else {
+        orco_add = float3(0.0f);
+        orco_mul = float3(1.0f);
+      }
       break;
     }
     case ID_ME: {
