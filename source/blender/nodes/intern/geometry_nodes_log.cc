@@ -120,7 +120,7 @@ GeometryInfoLog::GeometryInfoLog(const bke::GeometrySet &geometry_set)
         {
           EditDataInfo &info = this->edit_data_info.emplace();
           info.has_deform_matrices = curve_edit_hints->deform_mats.has_value();
-          info.has_deformed_positions = curve_edit_hints->positions.has_value();
+          info.has_deformed_positions = curve_edit_hints->positions().has_value();
         }
         break;
       }

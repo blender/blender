@@ -177,8 +177,8 @@ static void translate_volume(Volume &volume, const float3 translation)
 
 static void transform_curve_edit_hints(bke::CurvesEditHints &edit_hints, const float4x4 &transform)
 {
-  if (edit_hints.positions.has_value()) {
-    transform_positions(*edit_hints.positions, transform);
+  if (const std::optional<MutableSpan<float3>> positions = edit_hints.positions_for_write()) {
+    transform_positions(*positions, transform);
   }
   float3x3 deform_mat;
   copy_m3_m4(deform_mat.ptr(), transform.ptr());
@@ -197,8 +197,8 @@ static void transform_curve_edit_hints(bke::CurvesEditHints &edit_hints, const f
 
 static void translate_curve_edit_hints(bke::CurvesEditHints &edit_hints, const float3 &translation)
 {
-  if (edit_hints.positions.has_value()) {
-    translate_positions(*edit_hints.positions, translation);
+  if (const std::optional<MutableSpan<float3>> positions = edit_hints.positions_for_write()) {
+    translate_positions(*positions, translation);
   }
 }
 

@@ -8,6 +8,9 @@
  * \ingroup bli
  */
 
+#include <memory>
+#include <utility>
+
 #include "BLI_implicit_sharing.hh"
 #include "BLI_struct_equality_utils.hh"
 
@@ -129,6 +132,66 @@ template<typename T> class ImplicitSharingPtr {
     if (data != nullptr) {
       data->remove_user_and_delete_if_last();
     }
+  }
+};
+
+/**
+ * Utility struct to allow used #ImplicitSharingPtr when it's necessary to type-erase the backing
+ * storage for user-exposed data. For example, #blender::Vector, or #std::vector might be used to
+ * store an implicitly shared array that is only accessed with #Span or #MutableSpan.
+ *
+ * This class handles RAII for the sharing info and the exposed data pointer.
+ * Retrieving the data with write access and type safety must be handled elsewhere.
+ */
+class ImplicitSharingPtrAndData {
+ public:
+  ImplicitSharingPtr<ImplicitSharingInfo> sharing_info;
+  const void *data = nullptr;
+
+  ImplicitSharingPtrAndData() = default;
+  ImplicitSharingPtrAndData(ImplicitSharingPtr<ImplicitSharingInfo> sharing_info, const void *data)
+      : sharing_info(std::move(sharing_info)), data(data)
+  {
+  }
+
+  ImplicitSharingPtrAndData(const ImplicitSharingPtrAndData &other)
+      : sharing_info(other.sharing_info), data(other.data)
+  {
+  }
+
+  ImplicitSharingPtrAndData(ImplicitSharingPtrAndData &&other)
+      : sharing_info(std::move(other.sharing_info)), data(std::exchange(other.data, nullptr))
+  {
+  }
+
+  ImplicitSharingPtrAndData &operator=(const ImplicitSharingPtrAndData &other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+    std::destroy_at(this);
+    new (this) ImplicitSharingPtrAndData(other);
+    return *this;
+  }
+
+  ImplicitSharingPtrAndData &operator=(ImplicitSharingPtrAndData &&other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+    std::destroy_at(this);
+    new (this) ImplicitSharingPtrAndData(std::move(other));
+    return *this;
+  }
+
+  ~ImplicitSharingPtrAndData()
+  {
+    this->data = nullptr;
+  }
+
+  bool has_value() const
+  {
+    return this->sharing_info.has_value();
   }
 };
 

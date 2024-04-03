@@ -14,6 +14,7 @@
 #include "BLI_array_utils.hh"
 #include "BLI_color.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -773,7 +774,11 @@ class GreasePencilRuntime {
 
 class GreasePencilDrawingEditHints {
  public:
-  std::optional<Array<float3>> positions;
+  const greasepencil::Drawing *drawing_orig;
+  ImplicitSharingPtrAndData positions_data;
+
+  std::optional<Span<float3>> positions() const;
+  std::optional<MutableSpan<float3>> positions_for_write();
 };
 
 /**
