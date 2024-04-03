@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_listbase.h"
 #include "BLI_span.hh"
 
@@ -287,7 +288,8 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
                                        View3D *v3d,
                                        Object *ob,
                                        Bone *bone,
-                                       const SelectPick_Params *params);
+                                       const SelectPick_Params *params)
+    ATTR_NONNULL(1, 2, 3, 4, 6);
 /**
  * Called for mode-less pose selection.
  * assumes the active object is still on old situation.
@@ -301,7 +303,7 @@ bool ED_armature_pose_select_pick_with_buffer(const Scene *scene,
                                               const GPUSelectResult *hit_results,
                                               int hits,
                                               const SelectPick_Params *params,
-                                              bool do_nearest);
+                                              bool do_nearest) ATTR_NONNULL(1, 2, 3, 4, 5, 7);
 /**
  * While in weight-paint mode, a single pose may be active as well.
  * While not common, it's possible we have multiple armatures deforming a mesh.
