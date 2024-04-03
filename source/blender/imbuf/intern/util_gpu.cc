@@ -335,6 +335,10 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
       fprintf(stderr, "Unable to load DXT image resolution,");
     }
     else if (!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) {
+      /* We require POT DXT/S3TC texture sizes not because something in there
+       * intrinsically needs it, but because we flip them upside down at
+       * load time, and that (when mipmaps are involved) is only possible
+       * with POT height. */
       fprintf(stderr, "Unable to load non-power-of-two DXT image resolution,");
     }
     else {
@@ -353,7 +357,7 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
       fprintf(stderr, "ST3C support not found,");
     }
     /* Fallback to uncompressed texture. */
-    fprintf(stderr, " falling back to uncompressed.\n");
+    fprintf(stderr, " falling back to uncompressed (%s, %ix%i).\n", name, ibuf->x, ibuf->y);
   }
 
   eGPUTextureFormat tex_format;
