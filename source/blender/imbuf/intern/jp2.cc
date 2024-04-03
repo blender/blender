@@ -455,7 +455,6 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
 
     if (image->numcomps < 3) {
       r = image->comps[0].data;
-      a = (use_alpha) ? image->comps[1].data : nullptr;
 
       /* Gray-scale 12bits+ */
       if (use_alpha) {
@@ -508,7 +507,6 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
 
     if (image->numcomps < 3) {
       r = image->comps[0].data;
-      a = (use_alpha) ? image->comps[1].data : nullptr;
 
       /* Gray-scale. */
       if (use_alpha) {

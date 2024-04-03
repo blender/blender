@@ -1550,7 +1550,6 @@ static void rna_property_override_diff_propptr(Main *bmain,
                                                                       true,
                                                                       nullptr);
               opop->tag &= ~LIBOVERRIDE_PROP_OP_TAG_UNUSED;
-              BLI_assert(opop != nullptr);
             }
 
             BLI_assert(propptr_a->data == propptr_a->owner_id);

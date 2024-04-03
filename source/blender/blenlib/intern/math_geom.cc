@@ -2674,7 +2674,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
 
     /* clamp to [0, 1] */
     CLAMP(t0, 0.0f, 1.0f);
-    CLAMP(t1, 0.0f, 1.0f);
+    // CLAMP(t1, 0.0f, 1.0f); /* UNUSED. */
 
     /*---test inside of tri---*/
     /* plane intersection point */
