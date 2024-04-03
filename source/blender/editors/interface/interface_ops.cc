@@ -1262,8 +1262,8 @@ bool UI_context_copy_to_selected_list(bContext *C,
 
       /* de-duplicate obdata */
       if (!lb.is_empty()) {
-        for (const PointerRNA &ptr : lb) {
-          Object *ob = (Object *)ptr.owner_id;
+        for (const PointerRNA &ob_ptr : lb) {
+          Object *ob = (Object *)ob_ptr.owner_id;
           if (ID *id_data = static_cast<ID *>(ob->data)) {
             id_data->tag |= LIB_TAG_DOIT;
           }
