@@ -172,6 +172,10 @@ static void find_used_vertex_groups(const bGPDframe &gpf,
     Span<MDeformVert> dverts = {gps->dvert, gps->totpoints};
     for (const MDeformVert &dvert : dverts) {
       for (const MDeformWeight &weight : Span<MDeformWeight>{dvert.dw, dvert.totweight}) {
+        if (weight.def_nr >= dvert.totweight) {
+          /* Ignore invalid deform weight group indices. */
+          continue;
+        }
         is_group_used[weight.def_nr] = true;
       }
     }
@@ -362,6 +366,10 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     dst_dvert.dw = static_cast<MDeformWeight *>(MEM_dupallocN(src_dvert.dw));
     const MutableSpan<MDeformWeight> vertex_weights = {dst_dvert.dw, dst_dvert.totweight};
     for (MDeformWeight &weight : vertex_weights) {
+      if (weight.def_nr >= dst_dvert.totweight) {
+        /* Ignore invalid deform weight group indices. */
+        continue;
+      }
       /* Map def_nr to the reduced vertex group list. */
       weight.def_nr = stroke_def_nr_map[weight.def_nr];
     }
