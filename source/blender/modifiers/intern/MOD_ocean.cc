@@ -136,12 +136,6 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
 static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks * /*r_cddata_masks*/) {}
 #endif /* WITH_OCEANSIM */
 
-static bool depends_on_normals(ModifierData *md)
-{
-  OceanModifierData *omd = (OceanModifierData *)md;
-  return (omd->geometry_mode != MOD_OCEAN_GEOM_GENERATE);
-}
-
 #ifdef WITH_OCEANSIM
 
 struct GenerateOceanGeometryData {
@@ -710,7 +704,7 @@ ModifierTypeInfo modifierType_Ocean = {
     /*is_disabled*/ nullptr,
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
-    /*depends_on_normals*/ depends_on_normals,
+    /*depends_on_normals*/ nullptr,
     /*foreach_ID_link*/ nullptr,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,
