@@ -1339,6 +1339,50 @@ static void CURVES_OT_tilt_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+namespace cyclic_toggle {
+
+static int exec(bContext *C, wmOperator * /*op*/)
+{
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    IndexMaskMemory memory;
+    const IndexMask selection = retrieve_selected_curves(*curves_id, memory);
+    if (selection.is_empty()) {
+      continue;
+    }
+
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+    bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
+        "cyclic", bke::AttrDomain::Curve);
+    selection.foreach_index(GrainSize(4096),
+                            [&](const int i) { cyclic.span[i] = !cyclic.span[i]; });
+    cyclic.finish();
+
+    if (!cyclic.span.as_span().contains(true)) {
+      attributes.remove("cyclic");
+    }
+
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace cyclic_toggle
+
+static void CURVES_OT_cyclic_toggle(wmOperatorType *ot)
+{
+  ot->name = "Toggle Cyclic";
+  ot->idname = __func__;
+  ot->description = "Make active curve closed/opened loop";
+
+  ot->exec = cyclic_toggle::exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 void operatortypes_curves()
 {
   WM_operatortype_append(CURVES_OT_attribute_set);
@@ -1358,6 +1402,7 @@ void operatortypes_curves()
   WM_operatortype_append(CURVES_OT_delete);
   WM_operatortype_append(CURVES_OT_duplicate);
   WM_operatortype_append(CURVES_OT_tilt_clear);
+  WM_operatortype_append(CURVES_OT_cyclic_toggle);
 }
 
 void operatormacros_curves()
