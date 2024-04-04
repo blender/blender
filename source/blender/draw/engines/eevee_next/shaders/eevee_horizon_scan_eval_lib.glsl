@@ -112,6 +112,10 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
   float occlusion_accum = 0.0;
   SphericalHarmonicL1 sh_accum = spherical_harmonics_L1_new();
 
+#if defined(GPU_METAL) && defined(GPU_APPLE)
+/* NOTE: Full loop unroll hint increases performance on Apple Silicon. */
+#  pragma clang loop unroll(full)
+#endif
   for (int slice = 0; slice < slice_len; slice++) {
 #if 0 /* For debug purpose. For when slice_len is greater than 2. */
     vec2 v_dir = sample_circle(((float(slice) + noise.x) / float(slice_len)));
@@ -145,6 +149,10 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
        * screen at once and just scan through. */
       ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray, pixel_size);
 
+#if defined(GPU_METAL) && defined(GPU_APPLE)
+/* NOTE: Full loop unroll hint increases performance on Apple Silicon. */
+#  pragma clang loop unroll(full)
+#endif
       for (int j = 0; j < sample_count; j++) {
         /* Always cross at least one pixel. */
         float time = 1.0 + square((float(j) + noise.y) / float(sample_count)) * ssray.max_time;

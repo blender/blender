@@ -203,6 +203,8 @@ GPU_SHADER_CREATE_INFO(eevee_horizon_scan)
     .image(4, GPU_RGBA8, Qualifier::WRITE, ImageType::FLOAT_2D, "horizon_radiance_2_img")
     .image(5, GPU_RGBA8, Qualifier::WRITE, ImageType::FLOAT_2D, "horizon_radiance_3_img")
     .storage_buf(7, Qualifier::READ, "uint", "tiles_coord_buf[]")
+    /* Metal: Provide compiler with hint to tune per-thread resource allocation. */
+    .mtl_max_total_threads_per_threadgroup(400)
     .compute_source("eevee_horizon_scan_comp.glsl");
 
 GPU_SHADER_CREATE_INFO(eevee_horizon_denoise)
@@ -241,6 +243,8 @@ GPU_SHADER_CREATE_INFO(eevee_horizon_resolve)
     .image(4, RAYTRACE_RADIANCE_FORMAT, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "closure1_img")
     .image(5, RAYTRACE_RADIANCE_FORMAT, Qualifier::READ_WRITE, ImageType::FLOAT_2D, "closure2_img")
     .storage_buf(7, Qualifier::READ, "uint", "tiles_coord_buf[]")
+    /* Metal: Provide compiler with hint to tune per-thread resource allocation. */
+    .mtl_max_total_threads_per_threadgroup(400)
     .compute_source("eevee_horizon_resolve_comp.glsl");
 
 #undef image_out
