@@ -179,7 +179,7 @@ static void modify_stroke_color(Object &ob,
 
   /* Common input color and base factor calculation. */
   auto get_material_color = [&](const int64_t curve_i) {
-    const Material *ma = BKE_object_material_get(&ob, stroke_materials[curve_i]);
+    const Material *ma = BKE_object_material_get(&ob, stroke_materials[curve_i] + 1);
     const MaterialGPencilStyle *gp_style = ma ? ma->gp_style : nullptr;
     return (gp_style ? ColorGeometry4f(gp_style->stroke_rgba) :
                        ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
@@ -256,8 +256,11 @@ static void modify_fill_color(Object &ob,
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   /* Fill color per stroke. */
   bke::SpanAttributeWriter<ColorGeometry4f> fill_colors =
-      attributes.lookup_or_add_for_write_span<ColorGeometry4f>("fill_color",
-                                                               bke::AttrDomain::Curve);
+      attributes.lookup_or_add_for_write_span<ColorGeometry4f>(
+          "fill_color",
+          bke::AttrDomain::Curve,
+          bke::AttributeInitVArray(VArray<ColorGeometry4f>::ForSingle(
+              ColorGeometry4f(float4(0.0f)), curves.curves_num())));
   const VArray<int> stroke_materials = *attributes.lookup_or_default<int>(
       "material_index", bke::AttrDomain::Curve, 0);
   const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
@@ -265,7 +268,7 @@ static void modify_fill_color(Object &ob,
 
   /* Common input color and base factor calculation. */
   auto get_material_color = [&](const int64_t curve_i) {
-    const Material *ma = BKE_object_material_get(&ob, stroke_materials[curve_i]);
+    const Material *ma = BKE_object_material_get(&ob, stroke_materials[curve_i] + 1);
     const MaterialGPencilStyle *gp_style = ma ? ma->gp_style : nullptr;
     return (gp_style ? ColorGeometry4f(gp_style->fill_rgba) :
                        ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
