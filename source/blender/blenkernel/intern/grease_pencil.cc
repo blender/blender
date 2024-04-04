@@ -823,12 +823,19 @@ Layer &TreeNode::as_layer()
   return *reinterpret_cast<Layer *>(this);
 }
 
-LayerGroup *TreeNode::parent_group() const
+const LayerGroup *TreeNode::parent_group() const
 {
   return (this->parent) ? &this->parent->wrap() : nullptr;
 }
-
-TreeNode *TreeNode::parent_node() const
+LayerGroup *TreeNode::parent_group()
+{
+  return (this->parent) ? &this->parent->wrap() : nullptr;
+}
+const TreeNode *TreeNode::parent_node() const
+{
+  return this->parent_group() ? &this->parent->wrap().as_node() : nullptr;
+}
+TreeNode *TreeNode::parent_node()
 {
   return this->parent_group() ? &this->parent->wrap().as_node() : nullptr;
 }
