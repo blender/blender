@@ -342,7 +342,7 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
   Object *obedit = cdd->vc.obedit;
 
   /* Disabled: not representative in enough cases, and curves draw shape is not per object yet.
-   * In the future this could be enabled when the object's draw shape is "strand" or "3D".*/
+   * In the future this could be enabled when the object's draw shape is "strand" or "3D". */
   if (false && cdd->bevel_radius > 0.0f) {
     BLI_mempool_iter iter;
     const StrokeElem *selem;

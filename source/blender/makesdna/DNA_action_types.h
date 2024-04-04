@@ -68,7 +68,7 @@ typedef struct bMotionPath {
   /** The number of cached verts. */
   int length;
 
-  /** For drawing paths, the start frame number. Inclusive.*/
+  /** For drawing paths, the start frame number. Inclusive. */
   int start_frame;
   /** For drawing paths, the end frame number. Exclusive. */
   int end_frame;
@@ -124,7 +124,7 @@ typedef struct bAnimVizSettings {
   short path_bakeflag;
   char _pad[4];
 
-  /** Start and end frames of path-calculation range. Both are inclusive.*/
+  /** Start and end frames of path-calculation range. Both are inclusive. */
   int path_sf, path_ef;
   /** Number of frames before/after current frame to show. */
   int path_bc, path_ac;

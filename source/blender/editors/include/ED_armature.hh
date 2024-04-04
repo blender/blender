@@ -68,7 +68,7 @@ void ED_armature_ebone_copy(EditBone *dest, const EditBone *source);
 
 /**
  * Get current armature from the context, including properties editor pinning.
- **/
+ */
 bArmature *ED_armature_context(const bContext *C);
 
 /**

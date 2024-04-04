@@ -18,7 +18,7 @@ typedef struct HuangHairExtra {
   /* Optional modulation factors. */
   float R, TT, TRT;
 
-  /* Local coordinate system. X is stored as `bsdf->N`.*/
+  /* Local coordinate system. X is stored as `bsdf->N`. */
   float3 Y, Z;
 
   /* Incident direction in local coordinate system. */

@@ -83,8 +83,8 @@ void foreach_selectable_point_range(const bke::CurvesGeometry &curves,
 
 /**
  * Same logic as in foreach_selectable_point_range, just ranges reference curves instead of
- * positions directly. Futher positions can be referenced by using curves.points_by_curve() in a
- * callback function.
+ * positions directly. Further positions can be referenced by using `curves.points_by_curve()`
+ * in a callback function.
  */
 void foreach_selectable_curve_range(const bke::CurvesGeometry &curves,
                                     const bke::crazyspace::GeometryDeformation &deformation,
@@ -240,8 +240,8 @@ void apply_selection_operation_at_index(GMutableSpan selection, int index, eSele
  *
  * \param mask (optional): The elements that should be affected. This mask should be in the domain
  * of the \a selection_domain.
- * \param action: One of SEL_TOGGLE, SEL_SELECT, SEL_DESELECT, or SEL_INVERT. See
- * "ED_select_utils.hh".
+ * \param action: One of #SEL_TOGGLE, #SEL_SELECT, #SEL_DESELECT, or #SEL_INVERT.
+ * See `ED_select_utils.hh`.
  */
 void select_all(bke::CurvesGeometry &curves, bke::AttrDomain selection_domain, int action);
 void select_all(bke::CurvesGeometry &curves,

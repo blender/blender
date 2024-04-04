@@ -140,7 +140,7 @@ static PatternInfo get_pattern_info(const GreasePencilDashModifierData &dmd)
   return info;
 }
 
-/* Returns the segment covering the given index, including repetitions.*/
+/* Returns the segment covering the given index, including repetitions. */
 static int find_dash_segment(const PatternInfo &pattern_info, const int index)
 {
   const int repeat = index / pattern_info.length;
