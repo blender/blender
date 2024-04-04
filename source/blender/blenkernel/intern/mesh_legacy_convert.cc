@@ -2432,6 +2432,16 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
           BLI_insertlinkbefore(&object->modifiers, object->modifiers.last, new_md);
         }
       }
+      if (md->type == eModifierType_Nodes) {
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+        if (nmd->node_group && is_auto_smooth_node_tree(*nmd->node_group)) {
+          /* This object has already been processed by versioning. If the mesh is linked from
+           * another file its auto-smooth flag may not be cleared, so this check is necessary to
+           * avoid adding a duplicate modifier. */
+          has_custom_normals = true;
+          break;
+        }
+      }
     }
 
     /* Some modifiers always generate custom normals which disabled sharp edge tagging, making
