@@ -221,9 +221,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   }
 #endif
 
-  /* Force an initial paint of the window. */
-  ::UpdateWindow(m_hWnd);
-
   /* Initialize WINTAB. */
   if (system->getTabletAPI() != GHOST_kTabletWinPointer) {
     loadWintab(GHOST_kWindowStateMinimized != state);
