@@ -1659,6 +1659,64 @@ static bConstraintTypeInfo CTI_LOCLIMIT = {
 
 /* -------- Limit Rotation --------- */
 
+/**
+ * Wraps a number to be in [-PI, +PI].
+ */
+static inline float wrap_rad_angle(const float angle)
+{
+  const float b = angle * (0.5 / M_PI) + 0.5;
+  return ((b - std::floor(b)) - 0.5) * (2.0 * M_PI);
+}
+
+/**
+ * Clamps an angle between min and max.
+ *
+ * All angles are in radians.
+ *
+ * This function treats angles as existing in a looping (cyclic) space, and is therefore
+ * specifically not equivalent to a simple `clamp(angle, min, max)`. `min` and `max` are treated as
+ * a directed range on the unit circle and `angle` is treated as a point on the unit circle.
+ * `angle` is then clamped to be within the directed range defined by `min` and `max`.
+ */
+static float clamp_angle(const float angle, const float min, const float max)
+{
+  /* If the allowed range exceeds 360 degrees no clamping can occur. */
+  if ((max - min) >= (2 * M_PI)) {
+    return angle;
+  }
+
+  /* Invalid case, just return min. */
+  if (max <= min) {
+    return min;
+  }
+
+  /* Move min and max into a space where `angle == 0.0`, and wrap them to
+   * [-PI, +PI] in that space.  This simplifies the cases below, as we can
+   * just use 0.0 in place of `angle` and know that everything is in
+   * [-PI, +PI]. */
+  const float min_wrapped = wrap_rad_angle(min - angle);
+  const float max_wrapped = wrap_rad_angle(max - angle);
+
+  /* If the range defined by `min`/`max` doesn't contain the boundary at
+   * PI/-PI.  This is the simple case, because it means we can do a simple
+   * clamp. */
+  if (min_wrapped < max_wrapped) {
+    return angle + std::clamp(0.0f, min_wrapped, max_wrapped);
+  }
+
+  /* At this point we know that `min_wrapped` >= `max_wrapped`, meaning the boundary is crossed.
+   * With that we know that no clamping is needed in the following case. */
+  if (max_wrapped >= 0.0 || min_wrapped <= 0.0) {
+    return angle;
+  }
+
+  /* If zero is outside of the range, we clamp to the closest of `min_wrapped` or `max_wrapped`. */
+  if (std::fabs(max_wrapped) < std::fabs(min_wrapped)) {
+    return angle + max_wrapped;
+  }
+  return angle + min_wrapped;
+}
+
 static void rotlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase * /*targets*/)
 {
   bRotLimitConstraint *data = static_cast<bRotLimitConstraint *>(con->data);
@@ -1693,31 +1751,13 @@ static void rotlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase * /
 
   /* limiting of euler values... */
   if (data->flag & LIMIT_XROT) {
-    if (eul[0] < data->xmin) {
-      eul[0] = data->xmin;
-    }
-
-    if (eul[0] > data->xmax) {
-      eul[0] = data->xmax;
-    }
+    eul[0] = clamp_angle(eul[0], data->xmin, data->xmax);
   }
   if (data->flag & LIMIT_YROT) {
-    if (eul[1] < data->ymin) {
-      eul[1] = data->ymin;
-    }
-
-    if (eul[1] > data->ymax) {
-      eul[1] = data->ymax;
-    }
+    eul[1] = clamp_angle(eul[1], data->ymin, data->ymax);
   }
   if (data->flag & LIMIT_ZROT) {
-    if (eul[2] < data->zmin) {
-      eul[2] = data->zmin;
-    }
-
-    if (eul[2] > data->zmax) {
-      eul[2] = data->zmax;
-    }
+    eul[2] = clamp_angle(eul[2], data->zmin, data->zmax);
   }
 
   loc_eulO_size_to_mat4(cob->matrix, loc, eul, size, rot_order);
