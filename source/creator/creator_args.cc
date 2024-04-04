@@ -1640,7 +1640,7 @@ static const char arg_handle_output_set_doc[] =
     "\t* 'animation_##_test.png' becomes 'animation_01_test.png'\n"
     "\t* 'test-######.png' becomes 'test-000001.png'\n"
     "\n"
-    "\tWhen the filename does not contain '#', The suffix '####' is added to the filename.\n"
+    "\tWhen the filename does not contain '#', the suffix '####' is added to the filename.\n"
     "\n"
     "\tThe frame number will be added at the end of the filename, eg:\n"
     "\t# blender -b animation.blend -o //render_ -F PNG -x 1 -a\n"
@@ -1744,7 +1744,7 @@ static int arg_handle_image_type_set(int argc, const char **argv, void *data)
 static const char arg_handle_threads_set_doc[] =
     "<threads>\n"
     "\tUse amount of <threads> for rendering and other operations\n"
-    "\t[1-" STRINGIFY(BLENDER_MAX_THREADS) "], 0 for systems processor count.";
+    "\t[1-" STRINGIFY(BLENDER_MAX_THREADS) "], 0 to use the systems processor count.";
 static int arg_handle_threads_set(int argc, const char **argv, void * /*data*/)
 {
   const char *arg_id = "-t / --threads";
