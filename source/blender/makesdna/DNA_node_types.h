@@ -681,10 +681,14 @@ typedef struct bNodeTree {
   short edit_quality;
   /** Quality setting when rendering. */
   short render_quality;
+  /** Tile size for compositor engine. */
+  int chunksize DNA_DEPRECATED;
   /** Execution mode to use for compositor engine. */
   int execution_mode;
   /** Execution mode to use for compositor engine. */
   int precision;
+
+  char _pad[4];
 
   rctf viewer_border;
 
