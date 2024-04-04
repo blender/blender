@@ -229,7 +229,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
 
   /* Get the visible drawings. */
   const Vector<ed::greasepencil::DrawingInfo> drawings =
-      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil);
+      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil, false);
 
   const Span<const Layer *> layers = grease_pencil.layers();
 
@@ -423,7 +423,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
 
   /* Get the visible drawings. */
   const Vector<ed::greasepencil::DrawingInfo> drawings =
-      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil);
+      ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil, true);
 
   /* First, count how many vertices and triangles are needed for the whole object. Also record the
    * offsets into the curves for the vertices and triangles. */

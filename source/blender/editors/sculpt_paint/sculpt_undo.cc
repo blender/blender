@@ -943,9 +943,9 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
         continue;
       }
     }
-    else if (unode->maxgrid && subdiv_ccg != nullptr) {
-      if ((subdiv_ccg->grids.size() != unode->maxgrid) ||
-          (subdiv_ccg->grid_size != unode->gridsize))
+    else if (unode->mesh_grids_num && subdiv_ccg != nullptr) {
+      if ((subdiv_ccg->grids.size() != unode->mesh_grids_num) ||
+          (subdiv_ccg->grid_size != unode->grid_size))
       {
         continue;
       }
@@ -1009,7 +1009,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
       if (!STREQ(unode->idname, ob->id.name)) {
         continue;
       }
-      modified_grids.resize(unode->maxgrid, false);
+      modified_grids.resize(unode->mesh_grids_num, false);
       modified_grids.as_mutable_span().fill_indices(unode->grids.as_span(), true);
     }
   }
@@ -1183,13 +1183,14 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
 
   int verts_num;
   if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-    unode->maxgrid = ss->subdiv_ccg->grids.size();
-    unode->gridsize = ss->subdiv_ccg->grid_size;
-
-    verts_num = unode->maxgrid * unode->gridsize * unode->gridsize;
+    unode->mesh_grids_num = ss->subdiv_ccg->grids.size();
+    unode->grid_size = ss->subdiv_ccg->grid_size;
 
     unode->grids = BKE_pbvh_node_get_grid_indices(*node);
     usculpt->undo_size += unode->grids.as_span().size_in_bytes();
+
+    const int grid_area = unode->grid_size * unode->grid_size;
+    verts_num = unode->grids.size() * grid_area;
   }
   else {
     unode->mesh_verts_num = ss->totvert;

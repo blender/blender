@@ -106,6 +106,7 @@ static bool copy_data_path_button_poll(bContext *C)
 
   if (ptr.owner_id && ptr.data && prop) {
     if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
+      UNUSED_VARS(path);
       return true;
     }
   }
@@ -194,6 +195,7 @@ static bool copy_as_driver_button_poll(bContext *C)
       (index >= 0 || !RNA_property_array_check(prop)))
   {
     if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
+      UNUSED_VARS(path);
       return true;
     }
   }

@@ -400,8 +400,9 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
 
   /* Onion Skinning. */
   prop = RNA_def_property(srna, "use_onion_skinning", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_USE_ONION_SKINNING);
+  RNA_def_property_ui_icon(prop, ICON_ONIONSKIN_OFF, 1);
+  RNA_def_property_boolean_negative_sdna(
+      prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_HIDE_ONION_SKINNING);
   RNA_def_property_ui_text(
       prop, "Onion Skinning", "Display onion skins before and after the current frame");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
@@ -542,6 +543,148 @@ static void rna_def_grease_pencil_layer_group(BlenderRNA *brna)
                            "The visibility of drawings in the layers in this group is affected by "
                            "the layers in the masks lists");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "use_onion_skinning", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_icon(prop, ICON_ONIONSKIN_OFF, 1);
+  RNA_def_property_boolean_negative_sdna(
+      prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_HIDE_ONION_SKINNING);
+  RNA_def_property_ui_text(
+      prop, "Onion Skinning", "Display onion skins before and after the current frame");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+}
+
+static void rna_def_grease_pencil_onion_skinning(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static EnumPropertyItem prop_enum_onion_modes_items[] = {
+      {GP_ONION_SKINNING_MODE_ABSOLUTE,
+       "ABSOLUTE",
+       0,
+       "Frames",
+       "Frames in absolute range of the scene frame"},
+      {GP_ONION_SKINNING_MODE_RELATIVE,
+       "RELATIVE",
+       0,
+       "Keyframes",
+       "Frames in relative range of the Grease Pencil keyframes"},
+      {GP_ONION_SKINNING_MODE_SELECTED, "SELECTED", 0, "Selected", "Only selected keyframes"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static EnumPropertyItem prop_enum_onion_keyframe_type_items[] = {
+      {GREASE_PENCIL_ONION_SKINNING_FILTER_ALL, "ALL", 0, "All", "Include all Keyframe types"},
+      {GP_ONION_SKINNING_FILTER_KEYTYPE_KEYFRAME,
+       "KEYFRAME",
+       ICON_KEYTYPE_KEYFRAME_VEC,
+       "Keyframe",
+       "Normal keyframe, e.g. for key poses"},
+      {GP_ONION_SKINNING_FILTER_KEYTYPE_BREAKDOWN,
+       "BREAKDOWN",
+       ICON_KEYTYPE_BREAKDOWN_VEC,
+       "Breakdown",
+       "A breakdown pose, e.g. for transitions between key poses"},
+      {GP_ONION_SKINNING_FILTER_KEYTYPE_MOVEHOLD,
+       "MOVING_HOLD",
+       ICON_KEYTYPE_MOVING_HOLD_VEC,
+       "Moving Hold",
+       "A keyframe that is part of a moving hold"},
+      {GP_ONION_SKINNING_FILTER_KEYTYPE_EXTREME,
+       "EXTREME",
+       ICON_KEYTYPE_EXTREME_VEC,
+       "Extreme",
+       "An 'extreme' pose, or some other purpose as needed"},
+      {GP_ONION_SKINNING_FILTER_KEYTYPE_JITTER,
+       "JITTER",
+       ICON_KEYTYPE_JITTER_VEC,
+       "Jitter",
+       "A filler or baked keyframe for keying on ones, or some other purpose as needed"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  prop = RNA_def_property(srna, "ghost_before_range", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "onion_skinning_settings.num_frames_before");
+  RNA_def_property_range(prop, 0, 120);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
+  RNA_def_property_ui_text(prop,
+                           "Frames Before",
+                           "Maximum number of frames to show before current frame "
+                           "(0 = don't show any frames before current)");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "ghost_after_range", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "onion_skinning_settings.num_frames_after");
+  RNA_def_property_range(prop, 0, 120);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
+  RNA_def_property_ui_text(prop,
+                           "Frames After",
+                           "Maximum number of frames to show after current frame "
+                           "(0 = don't show any frames after current)");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "use_ghost_custom_colors", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "onion_skinning_settings.flag", GP_ONION_SKINNING_USE_CUSTOM_COLORS);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
+  RNA_def_property_ui_text(prop, "Use Custom Ghost Colors", "Use custom colors for ghost frames");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "before_color", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_float_sdna(prop, nullptr, "onion_skinning_settings.color_before");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
+  RNA_def_property_ui_text(prop, "Before Color", "Base color for ghosts before the active frame");
+  RNA_def_property_update(prop,
+                          NC_SCREEN | NC_SCENE | ND_TOOLSETTINGS | ND_DATA | NC_GPENCIL,
+                          "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "after_color", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_float_sdna(prop, nullptr, "onion_skinning_settings.color_after");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
+  RNA_def_property_ui_text(prop, "After Color", "Base color for ghosts after the active frame");
+  RNA_def_property_update(prop,
+                          NC_SCREEN | NC_SCENE | ND_TOOLSETTINGS | ND_DATA | NC_GPENCIL,
+                          "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "onion_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "onion_skinning_settings.mode");
+  RNA_def_property_enum_items(prop, prop_enum_onion_modes_items);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
+  RNA_def_property_ui_text(prop, "Mode", "Mode to display frames");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "onion_keyframe_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "onion_skinning_settings.filter");
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
+  RNA_def_property_enum_items(prop, prop_enum_onion_keyframe_type_items);
+  RNA_def_property_ui_text(prop, "Filter by Type", "Type of keyframe (for filtering)");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "use_onion_fade", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "onion_skinning_settings.flag", GP_ONION_SKINNING_USE_FADE);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
+  RNA_def_property_ui_text(
+      prop, "Fade", "Display onion keyframes with a fade in color transparency");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "use_onion_loop", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "onion_skinning_settings.flag", GP_ONION_SKINNING_SHOW_LOOP);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
+  RNA_def_property_ui_text(
+      prop, "Show Start Frame", "Display onion keyframes for looping animations");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "onion_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "onion_skinning_settings.opacity");
+  RNA_def_property_range(prop, 0.0, 1.0f);
+  RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
+  RNA_def_property_ui_text(prop, "Onion Opacity", "Change fade opacity of displayed onion frames");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 }
 
 static void rna_def_grease_pencil_data(BlenderRNA *brna)
@@ -632,6 +775,9 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
       "Stroke Depth Order",
       "Defines how the strokes are ordered in 3D space (for objects not displayed 'In Front')");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  /* Onion skinning. */
+  rna_def_grease_pencil_onion_skinning(srna);
 }
 
 void RNA_def_grease_pencil(BlenderRNA *brna)

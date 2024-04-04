@@ -6464,7 +6464,7 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
     /* Icon and text separately is closer together with aligned layout. */
     uiItemL(layout, "", icon);
     if (icon < ICON_MOUSE_LMB || icon > ICON_MOUSE_RMB_DRAG) {
-      /* Mouse icons are left-aliged. Everything else needs a bit of space here. */
+      /* Mouse icons are left-aligned. Everything else needs a bit of space here. */
       uiItemS_ex(layout, 0.6f);
     }
     uiItemL(layout, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text), ICON_NONE);

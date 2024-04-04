@@ -125,10 +125,7 @@ vec3 grid_coordinates()
 {
   vec3 co = volumeOrco;
 #ifdef MESH_SHADER
-  /* Optional per-grid transform. */
-  if (drw_volume.grids_xform[attr_id][3][3] != 0.0) {
-    co = (drw_volume.grids_xform[attr_id] * vec4(objectPosition, 1.0)).xyz;
-  }
+  co = (drw_volume.grids_xform[attr_id] * vec4(objectPosition, 1.0)).xyz;
 #endif
   attr_id += 1;
   return co;

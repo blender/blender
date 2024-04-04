@@ -50,7 +50,7 @@ struct TransConvertTypeInfo {
  */
 struct TransDataEdgeSlideVert {
   TransData *td;
-  blender::float3 dir_side[2]; /* Directional vectors on the sides.*/
+  blender::float3 dir_side[2]; /* Directional vectors on the sides. */
   float edge_len;              /* Distance between vectors. */
   int loop_nr;                 /* Number that identifies the group of connected edges. */
 
@@ -66,7 +66,7 @@ struct TransDataEdgeSlideVert {
  */
 struct TransDataVertSlideVert {
   TransData *td;
-  blender::Span<blender::float3> co_link_orig_3d; /* Target locations.*/
+  blender::Span<blender::float3> co_link_orig_3d; /* Target locations. */
   int co_link_curr;
 
   const float *co_orig_3d() const

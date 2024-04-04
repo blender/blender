@@ -99,6 +99,7 @@ static void geom_add_vertex(const char *p, const char *end, GlobalVertices &r_gl
       blocks.last().colors.append(linear);
     }
   }
+  UNUSED_VARS(p);
 }
 
 static void geom_add_mrgb_colors(const char *p, const char *end, GlobalVertices &r_global_vertices)

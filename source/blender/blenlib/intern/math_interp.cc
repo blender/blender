@@ -784,6 +784,7 @@ void BLI_ewa_filter(const int width,
   BLI_ewa_imp2radangle(A, B, C, F, &a, &b, &th, &ecc);
   if ((b2 = b * b) < rmin) {
     if ((a2 = a * a) < rmin) {
+      UNUSED_VARS(a2, b2);
       B = 0.0f;
       A = C = rmin;
       F = A * C;

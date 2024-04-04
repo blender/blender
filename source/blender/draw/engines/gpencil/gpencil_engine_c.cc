@@ -614,6 +614,9 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
   const blender::Bounds<float3> bounds = grease_pencil.bounds_min_max_eval().value_or(
       blender::Bounds(float3(0)));
 
+  const bool do_onion = !pd->is_render && pd->do_onion;
+  const bool do_multi_frame = (pd->scene->toolsettings->gpencil_flags &
+                               GP_USE_MULTI_FRAME_EDITING) != 0;
   const bool use_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
   GPENCIL_tObject *tgp_ob = gpencil_object_cache_add(pd, ob, use_stroke_order_3d, bounds);
 
@@ -658,14 +661,17 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
       };
 
   int t_offset = 0;
-  const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*pd->scene, grease_pencil);
+  /* Note that we loop over all the drawings (including the onion skinned ones) to make sure we
+   * match the offsets of the batch cache. */
+  const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*pd->scene, grease_pencil, true);
   const Span<const Layer *> layers = grease_pencil.layers();
   for (const DrawingInfo info : drawings) {
     const Layer &layer = *layers[info.layer_index];
 
     drawcall_flush();
 
-    GPENCIL_tLayer *tgp_layer = grease_pencil_layer_cache_add(pd, ob, layer, {}, tgp_ob);
+    GPENCIL_tLayer *tgp_layer = grease_pencil_layer_cache_add(
+        pd, ob, layer, info.onion_id, tgp_ob);
 
     const bool use_lights = pd->use_lighting &&
                             ((layer.base.flag & GP_LAYER_TREE_NODE_USE_LIGHTS) != 0) &&
@@ -714,9 +720,9 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
                                     OB_MODE_WEIGHT_PAINT,
                                     OB_MODE_VERTEX_PAINT) &&
                               info.frame_number != pd->cfra && pd->use_multiedit_lines_only;
-      /* bool is_onion = gpl && gpf && gpf->runtime.onion_id != 0; */
-      const bool is_onion = false;
-      const bool hide_onion = is_onion && ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0);
+      const bool is_onion = info.onion_id != 0;
+      const bool hide_onion = is_onion && ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0 ||
+                                           (!do_onion && !do_multi_frame));
 
       const int num_stroke_triangles = (points.size() >= 3) ? (points.size() - 2) : 0;
       const int num_stroke_vertices = (points.size() +

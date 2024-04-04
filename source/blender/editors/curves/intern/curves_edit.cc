@@ -105,7 +105,7 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
   /* Delete selection attribute so that it will not have to be resized. */
-  attributes.remove(".selection");
+  remove_selection_attributes(attributes);
 
   curves.resize(old_points_num + num_points_to_add, old_curves_num + num_curves_to_add);
 
@@ -160,10 +160,12 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
   curves.update_curve_types();
   curves.tag_topology_changed();
 
-  bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-      ".selection", bke::AttrDomain::Point);
-  selection.span.take_back(num_points_to_add).fill(true);
-  selection.finish();
+  for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
+    bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
+        selection_name, bke::AttrDomain::Point);
+    selection.span.take_back(num_points_to_add).fill(true);
+    selection.finish();
+  }
 }
 
 void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
@@ -173,7 +175,7 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
   /* Delete selection attribute so that it will not have to be resized. */
-  attributes.remove(".selection");
+  remove_selection_attributes(attributes);
 
   /* Resize the curves and copy the offsets of duplicated curves into the new offsets. */
   curves.resize(curves.points_num(), orig_curves_num + mask.size());
@@ -215,10 +217,12 @@ void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
   curves.update_curve_types();
   curves.tag_topology_changed();
 
-  bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
-      ".selection", bke::AttrDomain::Curve);
-  selection.span.take_back(mask.size()).fill(true);
-  selection.finish();
+  for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
+    bke::SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
+        selection_name, bke::AttrDomain::Curve);
+    selection.span.take_back(mask.size()).fill(true);
+    selection.finish();
+  }
 }
 
 }  // namespace blender::ed::curves

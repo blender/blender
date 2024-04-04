@@ -824,6 +824,27 @@ def brush_settings(layout, context, brush, popover=False):
             col.active = not brush.curves_sculpt_settings.use_point_count_interpolate
             col.prop(brush.curves_sculpt_settings, "points_per_curve", text="Points")
 
+        if brush.curves_sculpt_tool == 'DENSITY':
+            col = layout.column()
+            col.prop(brush.curves_sculpt_settings, "density_add_attempts", text="Count Max")
+            col = layout.column(heading="Interpolate", align=True)
+            col.prop(brush.curves_sculpt_settings, "use_length_interpolate", text="Length")
+            col.prop(brush.curves_sculpt_settings, "use_radius_interpolate", text="Radius")
+            col.prop(brush.curves_sculpt_settings, "use_shape_interpolate", text="Shape")
+            col.prop(brush.curves_sculpt_settings, "use_point_count_interpolate", text="Point Count")
+
+            col = layout.column()
+            col.active = not brush.curves_sculpt_settings.use_length_interpolate
+            col.prop(brush.curves_sculpt_settings, "curve_length", text="Length")
+
+            col = layout.column()
+            col.active = not brush.curves_sculpt_settings.use_radius_interpolate
+            col.prop(brush.curves_sculpt_settings, "curve_radius", text="Radius")
+
+            col = layout.column()
+            col.active = not brush.curves_sculpt_settings.use_point_count_interpolate
+            col.prop(brush.curves_sculpt_settings, "points_per_curve", text="Points")
+
         elif brush.curves_sculpt_tool == 'GROW_SHRINK':
             layout.prop(brush.curves_sculpt_settings, "use_uniform_scale")
             layout.prop(brush.curves_sculpt_settings, "minimum_length")

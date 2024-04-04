@@ -38,7 +38,7 @@ bAddon *BKE_addon_new()
   return addon;
 }
 
-bAddon *BKE_addon_find(ListBase *addon_list, const char *module)
+bAddon *BKE_addon_find(const ListBase *addon_list, const char *module)
 {
   return static_cast<bAddon *>(BLI_findstring(addon_list, module, offsetof(bAddon, module)));
 }

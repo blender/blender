@@ -230,7 +230,7 @@ void GLStorageBuf::read(void *data)
   }
 
   while (glClientWaitSync(read_fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 1000) == GL_TIMEOUT_EXPIRED) {
-    /* Repeat until the data is ready.*/
+    /* Repeat until the data is ready. */
   }
   glDeleteSync(read_fence_);
   read_fence_ = 0;

@@ -238,7 +238,7 @@ typedef enum GreasePencilLayerTreeNodeFlag {
   GP_LAYER_TREE_NODE_SELECT = (1 << 2),
   GP_LAYER_TREE_NODE_MUTE = (1 << 3),
   GP_LAYER_TREE_NODE_USE_LIGHTS = (1 << 4),
-  GP_LAYER_TREE_NODE_USE_ONION_SKINNING = (1 << 5),
+  GP_LAYER_TREE_NODE_HIDE_ONION_SKINNING = (1 << 5),
   GP_LAYER_TREE_NODE_EXPANDED = (1 << 6),
   GP_LAYER_TREE_NODE_HIDE_MASKS = (1 << 7),
 } GreasePencilLayerTreeNodeFlag;
@@ -352,6 +352,15 @@ typedef enum GreasePencilOnionSkinningMode {
   GP_ONION_SKINNING_MODE_SELECTED = 2,
 } GreasePencilOnionSkinningMode;
 
+typedef enum GreasePencilOnionSkinningFlag {
+  /* Use custom colors (per object-data) for onion skinning. */
+  GP_ONION_SKINNING_USE_CUSTOM_COLORS = (1 << 0),
+  /* Fade the opacity of ghost frames further away from the current frame. */
+  GP_ONION_SKINNING_USE_FADE = (1 << 1),
+  /* Show looping frames in onion skinning. */
+  GP_ONION_SKINNING_SHOW_LOOP = (1 << 2),
+} GreasePencilOnionSkinningFlag;
+
 /**
  * Flag for filtering the onion skinning per keyframe type.
  * #GreasePencilOnionSkinningSettings.filter
@@ -378,15 +387,13 @@ typedef struct GreasePencilOnionSkinningSettings {
    * Opacity for the ghost frames.
    */
   float opacity;
-  /**
-   * Onion skinning mode. See `GreasePencilOnionSkinningMode`.
-   */
+  /* #GreasePencilOnionSkinningMode. */
   int8_t mode;
-  /**
-   * Onion skinning filtering flag. See `GreasePencilOnionSkinningFilter`.
-   */
+  /* #GreasePencilOnionSkinningFlag. */
+  uint8_t flag;
+  /* #GreasePencilOnionSkinningFilter. */
   uint8_t filter;
-  char _pad[2];
+  char _pad[1];
   /**
    * Number of ghost frames shown before.
    */

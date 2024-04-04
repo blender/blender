@@ -312,7 +312,7 @@ UVVertex *UVEdge::get_other_uv_vertex(const int vertex)
 UVVertex *UVIsland::lookup(const UVVertex &vertex)
 {
   const int vert_index = vertex.vertex;
-  Vector<UVVertex *> &vertices = uv_vertex_lookup.lookup_or_add_default(vert_index);
+  const Vector<UVVertex *> &vertices = uv_vertex_lookup.lookup_or_add_default(vert_index);
   for (UVVertex *v : vertices) {
     if (v->uv == vertex.uv) {
       return v;
@@ -1033,9 +1033,8 @@ static void reset_extendability_flags(UVIsland &island)
       uv_vertex.flags.is_extended = false;
     }
   }
-
-  for (UVBorder border : island.borders) {
-    for (UVBorderEdge &border_edge : border.edges) {
+  for (const UVBorder &border : island.borders) {
+    for (const UVBorderEdge &border_edge : border.edges) {
       border_edge.edge->vertices[0]->flags.is_border = true;
       border_edge.edge->vertices[1]->flags.is_border = true;
     }

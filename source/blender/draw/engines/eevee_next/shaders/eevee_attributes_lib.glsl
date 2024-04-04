@@ -250,10 +250,7 @@ vec3 grid_coordinates()
 {
   vec3 co = g_orco;
 #  ifdef MAT_GEOM_VOLUME_OBJECT
-  /* Optional per-grid transform. */
-  if (drw_volume.grids_xform[g_attr_id][3][3] != 0.0) {
-    co = (drw_volume.grids_xform[g_attr_id] * vec4(g_lP, 1.0)).xyz;
-  }
+  co = (drw_volume.grids_xform[g_attr_id] * vec4(g_lP, 1.0)).xyz;
 #  endif
   g_attr_id += 1;
   return co;

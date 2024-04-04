@@ -1779,6 +1779,9 @@ void what_does_obaction(Object *ob,
 
     /* execute effects of Action on to workob (or its PoseChannels) */
     BKE_animsys_evaluate_animdata(&workob->id, &adt, anim_eval_context, ADT_RECALC_ANIM, false);
+
+    /* Ensure stack memory set here isn't accessed later, relates to !118847. */
+    workob->adt = nullptr;
   }
   /* Ensure stack memory set here isn't accessed later, see !118847. */
   workob->runtime = nullptr;

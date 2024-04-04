@@ -280,17 +280,17 @@ void BKE_pose_where_is_bone_tail(bPoseChannel *pchan);
  */
 void BKE_pose_apply_action_selected_bones(Object *ob,
                                           bAction *action,
-                                          AnimationEvalContext *anim_eval_context);
+                                          const AnimationEvalContext *anim_eval_context);
 /**
  * Evaluate the action and apply it to the pose. Ignore selection state of the bones.
  */
 void BKE_pose_apply_action_all_bones(Object *ob,
                                      bAction *action,
-                                     AnimationEvalContext *anim_eval_context);
+                                     const AnimationEvalContext *anim_eval_context);
 
 void BKE_pose_apply_action_blend(Object *ob,
                                  bAction *action,
-                                 AnimationEvalContext *anim_eval_context,
+                                 const AnimationEvalContext *anim_eval_context,
                                  float blend_factor);
 
 void vec_roll_to_mat3(const float vec[3], float roll, float r_mat[3][3]);

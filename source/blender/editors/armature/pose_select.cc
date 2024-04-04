@@ -143,7 +143,7 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
   bool found = false;
   bool changed = false;
 
-  if (ob || ob->pose) {
+  if (ob->pose) {
     if (bone && ((bone->flag & BONE_UNSELECTABLE) == 0)) {
       found = true;
     }

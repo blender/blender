@@ -44,6 +44,52 @@ void keymap_curves(wmKeyConfig *keyconf);
  */
 float (*point_normals_array_create(const Curves *curves_id))[3];
 
+/**
+ * Get selection attribute names need for given curve.
+ * Possible outcomes: [".selection"] if Bezier curves are present,
+ * [".selection", ".selection_handle_left", ".selection_handle_right"] otherwise. */
+Span<StringRef> get_curves_selection_attribute_names(const bke::CurvesGeometry &curves);
+
+/* Get all possible curve selection attribute names. */
+Span<StringRef> get_curves_all_selection_attribute_names();
+
+/**
+ * Returns [".selection_handle_left", ".selection_handle_right"] if argument contains Bezier
+ * curves, empty span otherwise.
+ */
+Span<StringRef> get_curves_bezier_selection_attribute_names(const bke::CurvesGeometry &curves);
+
+/**
+ * Used to select everything or to delete selection attribute so that it will not have to be
+ * resized.
+ */
+void remove_selection_attributes(
+    bke::MutableAttributeAccessor &attributes,
+    Span<StringRef> selection_attribute_names = get_curves_all_selection_attribute_names());
+
+using SelectionRangeFn = FunctionRef<void(
+    IndexRange range, Span<float3> positions, StringRef selection_attribute_name)>;
+/**
+ * Traverses all ranges of control points possible select. Callback function is provided with a
+ * range being visited, positions (deformed if possible) referenced by the range and selection
+ * attribute name positions belongs to:
+ *  curves.positions() belong to ".selection",
+ *  curves.handle_positions_left() belong to  ".selection_handle_left",
+ *  curves.handle_positions_right() belong to ".selection_handle_right".
+ */
+void foreach_selectable_point_range(const bke::CurvesGeometry &curves,
+                                    const bke::crazyspace::GeometryDeformation &deformation,
+                                    SelectionRangeFn range_consumer);
+
+/**
+ * Same logic as in foreach_selectable_point_range, just ranges reference curves instead of
+ * positions directly. Further positions can be referenced by using `curves.points_by_curve()`
+ * in a callback function.
+ */
+void foreach_selectable_curve_range(const bke::CurvesGeometry &curves,
+                                    const bke::crazyspace::GeometryDeformation &deformation,
+                                    SelectionRangeFn range_consumer);
+
 bool object_has_editable_curves(const Main &bmain, const Object &object);
 bke::CurvesGeometry primitive_random_sphere(int curves_size, int points_per_curve);
 VectorSet<Curves *> get_unique_editable_curves(const bContext &C);
@@ -146,6 +192,7 @@ void fill_selection_true(GMutableSpan selection, const IndexMask &mask);
  * Return true if any element is selected, on either domain with either type.
  */
 bool has_anything_selected(const bke::CurvesGeometry &curves);
+bool has_anything_selected(const bke::CurvesGeometry &curves, bke::AttrDomain selection_domain);
 bool has_anything_selected(const bke::CurvesGeometry &curves, const IndexMask &mask);
 
 /**
@@ -167,14 +214,23 @@ IndexMask retrieve_selected_curves(const Curves &curves_id, IndexMaskMemory &mem
  * or points in curves with a selection factor greater than zero).
  */
 IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves, IndexMaskMemory &memory);
+IndexMask retrieve_selected_points(const bke::CurvesGeometry &curves,
+                                   StringRef attribute_name,
+                                   IndexMaskMemory &memory);
 IndexMask retrieve_selected_points(const Curves &curves_id, IndexMaskMemory &memory);
 
 /**
- * If the ".selection" attribute doesn't exist, create it with the requested type (bool or float).
+ * If the selection_id attribute doesn't exist, create it with the requested type (bool or float).
  */
 bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves,
                                                      bke::AttrDomain selection_domain,
-                                                     eCustomDataType create_type);
+                                                     eCustomDataType create_type,
+                                                     StringRef attribute_name = ".selection");
+
+void foreach_selection_attribute_writer(
+    bke::CurvesGeometry &curves,
+    bke::AttrDomain selection_domain,
+    FunctionRef<void(bke::GSpanAttributeWriter &selection)> fn);
 
 /** Apply a change to a single curve or point. Avoid using this when affecting many elements. */
 void apply_selection_operation_at_index(GMutableSpan selection, int index, eSelectOp sel_op);
@@ -184,8 +240,8 @@ void apply_selection_operation_at_index(GMutableSpan selection, int index, eSele
  *
  * \param mask (optional): The elements that should be affected. This mask should be in the domain
  * of the \a selection_domain.
- * \param action: One of SEL_TOGGLE, SEL_SELECT, SEL_DESELECT, or SEL_INVERT. See
- * "ED_select_utils.hh".
+ * \param action: One of #SEL_TOGGLE, #SEL_SELECT, #SEL_DESELECT, or #SEL_INVERT.
+ * See `ED_select_utils.hh`.
  */
 void select_all(bke::CurvesGeometry &curves, bke::AttrDomain selection_domain, int action);
 void select_all(bke::CurvesGeometry &curves,
@@ -246,7 +302,7 @@ std::optional<FindClosestData> closest_elem_find_screen_space(const ViewContext 
  */
 bool select_box(const ViewContext &vc,
                 bke::CurvesGeometry &curves,
-                Span<float3> deformed_positions,
+                const bke::crazyspace::GeometryDeformation &deformation,
                 const float4x4 &projection,
                 const IndexMask &mask,
                 bke::AttrDomain selection_domain,
@@ -258,7 +314,7 @@ bool select_box(const ViewContext &vc,
  */
 bool select_lasso(const ViewContext &vc,
                   bke::CurvesGeometry &curves,
-                  Span<float3> deformed_positions,
+                  const bke::crazyspace::GeometryDeformation &deformation,
                   const float4x4 &projection_matrix,
                   const IndexMask &mask,
                   bke::AttrDomain selection_domain,
@@ -270,7 +326,7 @@ bool select_lasso(const ViewContext &vc,
  */
 bool select_circle(const ViewContext &vc,
                    bke::CurvesGeometry &curves,
-                   Span<float3> deformed_positions,
+                   const bke::crazyspace::GeometryDeformation &deformation,
                    const float4x4 &projection,
                    const IndexMask &mask,
                    bke::AttrDomain selection_domain,

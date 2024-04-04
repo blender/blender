@@ -2824,14 +2824,13 @@ static int smooth_exec(bContext *C, wmOperator *op)
     ListBase *editnurb = object_editcurve_get(obedit);
 
     int a, a_end;
-    bool changed = false;
 
     LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (nu->bezt) {
         /* duplicate the curve to use in weight calculation */
         const BezTriple *bezt_orig = static_cast<const BezTriple *>(MEM_dupallocN(nu->bezt));
         BezTriple *bezt;
-        changed = false;
+        bool changed = false;
 
         /* check whether its cyclic or not, and set initial & final conditions */
         if (nu->flagu & CU_NURB_CYCLIC) {

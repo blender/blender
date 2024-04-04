@@ -1210,7 +1210,7 @@ static bool do_lasso_select_grease_pencil(const ViewContext *vc,
     const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d, layer_to_world);
     changed = ed::curves::select_lasso(*vc,
                                        info.drawing.strokes_for_write(),
-                                       deformation.positions,
+                                       deformation,
                                        projection,
                                        elements,
                                        selection_domain,
@@ -1440,14 +1440,8 @@ static bool view3d_lasso_select(bContext *C,
           const bke::AttrDomain selection_domain = bke::AttrDomain(curves_id.selection_domain);
           const IndexRange elements(curves.attributes().domain_size(selection_domain));
           const float4x4 projection = ED_view3d_ob_project_mat_get(vc->rv3d, vc->obedit);
-          changed = ed::curves::select_lasso(*vc,
-                                             curves,
-                                             deformation.positions,
-                                             projection,
-                                             elements,
-                                             selection_domain,
-                                             mcoords,
-                                             sel_op);
+          changed = ed::curves::select_lasso(
+              *vc, curves, deformation, projection, elements, selection_domain, mcoords, sel_op);
           if (changed) {
             /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
              * generic attribute for now. */
@@ -3081,6 +3075,7 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
 }
 
 struct ClosestCurveDataBlock {
+  blender::StringRef selection_name;
   Curves *curves_id = nullptr;
   blender::ed::curves::FindClosestData elem = {};
 };
@@ -3116,20 +3111,33 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
               bke::crazyspace::get_evaluated_curves_deformation(*vc.depsgraph, *vc.obedit);
           const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
           const float4x4 projection = ED_view3d_ob_project_mat_get(vc.rv3d, &curves_ob);
-          const IndexRange elements(curves.attributes().domain_size(selection_domain));
-          std::optional<ed::curves::FindClosestData> new_closest_elem =
-              ed::curves::closest_elem_find_screen_space(vc,
-                                                         curves.points_by_curve(),
-                                                         deformation.positions,
-                                                         projection,
-                                                         elements,
-                                                         selection_domain,
-                                                         mval,
-                                                         new_closest.elem);
-          if (new_closest_elem) {
-            new_closest.elem = *new_closest_elem;
-            new_closest.curves_id = &curves_id;
+          const IndexMask elements(curves.attributes().domain_size(selection_domain));
+          const auto range_consumer =
+              [&](IndexRange range, Span<float3> positions, StringRef selection_attribute_name) {
+                IndexMask mask = elements.slice_content(range);
+
+                std::optional<ed::curves::FindClosestData> new_closest_elem =
+                    ed::curves::closest_elem_find_screen_space(vc,
+                                                               curves.points_by_curve(),
+                                                               positions,
+                                                               projection,
+                                                               mask,
+                                                               selection_domain,
+                                                               mval,
+                                                               new_closest.elem);
+                if (new_closest_elem) {
+                  new_closest.selection_name = selection_attribute_name;
+                  new_closest.elem = *new_closest_elem;
+                  new_closest.curves_id = &curves_id;
+                }
+              };
+
+          if (selection_domain == bke::AttrDomain::Point) {
+            ed::curves::foreach_selectable_point_range(curves, deformation, range_consumer);
           }
+          else if (selection_domain == bke::AttrDomain::Curve) {
+            ed::curves::foreach_selectable_curve_range(curves, deformation, range_consumer);
+          };
         }
         return new_closest;
       },
@@ -3143,13 +3151,14 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
       for (Base *base : bases.as_span().slice(range)) {
         Curves &curves_id = *static_cast<Curves *>(base->object->data);
         bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-        if (!ed::curves::has_anything_selected(curves)) {
+        if (!ed::curves::has_anything_selected(curves, selection_domain)) {
           continue;
         }
-        bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-            curves, selection_domain, CD_PROP_BOOL);
-        ed::curves::fill_selection_false(selection.span);
-        selection.finish();
+
+        ed::curves::foreach_selection_attribute_writer(
+            curves, selection_domain, [](bke::GSpanAttributeWriter &selection) {
+              ed::curves::fill_selection_false(selection.span);
+            });
 
         deselected = true;
         /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
@@ -3164,11 +3173,25 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
     return deselected;
   }
 
-  bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-      closest.curves_id->geometry.wrap(), selection_domain, CD_PROP_BOOL);
-  ed::curves::apply_selection_operation_at_index(
-      selection.span, closest.elem.index, params.sel_op);
-  selection.finish();
+  if (selection_domain == bke::AttrDomain::Point) {
+    bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+        closest.curves_id->geometry.wrap(),
+        bke::AttrDomain::Point,
+        CD_PROP_BOOL,
+        closest.selection_name);
+    ed::curves::apply_selection_operation_at_index(
+        selection.span, closest.elem.index, params.sel_op);
+    selection.finish();
+  }
+  else if (selection_domain == bke::AttrDomain::Curve) {
+    ed::curves::foreach_selection_attribute_writer(
+        closest.curves_id->geometry.wrap(),
+        bke::AttrDomain::Curve,
+        [&](bke::GSpanAttributeWriter &selection) {
+          ed::curves::apply_selection_operation_at_index(
+              selection.span, closest.elem.index, params.sel_op);
+        });
+  }
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
    * generic attribute for now. */
@@ -4245,7 +4268,7 @@ static bool do_grease_pencil_box_select(const ViewContext *vc,
     const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d, layer_to_world);
     changed |= ed::curves::select_box(*vc,
                                       info.drawing.strokes_for_write(),
-                                      deformation.positions,
+                                      deformation,
                                       projection,
                                       elements,
                                       selection_domain,
@@ -4334,14 +4357,8 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
           const bke::AttrDomain selection_domain = bke::AttrDomain(curves_id.selection_domain);
           const float4x4 projection = ED_view3d_ob_project_mat_get(vc.rv3d, vc.obedit);
           const IndexRange elements(curves.attributes().domain_size(selection_domain));
-          changed = ed::curves::select_box(vc,
-                                           curves,
-                                           deformation.positions,
-                                           projection,
-                                           elements,
-                                           selection_domain,
-                                           rect,
-                                           sel_op);
+          changed = ed::curves::select_box(
+              vc, curves, deformation, projection, elements, selection_domain, rect, sel_op);
           if (changed) {
             /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
              * generic attribute for now. */
@@ -5113,7 +5130,7 @@ static bool grease_pencil_circle_select(const ViewContext *vc,
     const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d, layer_to_world);
     changed = ed::curves::select_circle(*vc,
                                         info.drawing.strokes_for_write(),
-                                        deformation.positions,
+                                        deformation,
                                         projection,
                                         elements,
                                         selection_domain,
@@ -5173,15 +5190,8 @@ static bool obedit_circle_select(bContext *C,
       const bke::AttrDomain selection_domain = bke::AttrDomain(curves_id.selection_domain);
       const float4x4 projection = ED_view3d_ob_project_mat_get(vc->rv3d, vc->obedit);
       const IndexRange elements(curves.attributes().domain_size(selection_domain));
-      changed = ed::curves::select_circle(*vc,
-                                          curves,
-                                          deformation.positions,
-                                          projection,
-                                          elements,
-                                          selection_domain,
-                                          mval,
-                                          rad,
-                                          sel_op);
+      changed = ed::curves::select_circle(
+          *vc, curves, deformation, projection, elements, selection_domain, mval, rad, sel_op);
       if (changed) {
         /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
          * generic attribute for now. */

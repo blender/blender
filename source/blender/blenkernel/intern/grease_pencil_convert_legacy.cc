@@ -581,8 +581,8 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
     SET_FLAG_FROM_TEST(
         new_layer.base.flag, (gpl->flag & GP_LAYER_USE_LIGHTS), GP_LAYER_TREE_NODE_USE_LIGHTS);
     SET_FLAG_FROM_TEST(new_layer.base.flag,
-                       (gpl->onion_flag & GP_LAYER_ONIONSKIN),
-                       GP_LAYER_TREE_NODE_USE_ONION_SKINNING);
+                       (gpl->onion_flag & GP_LAYER_ONIONSKIN) == 0,
+                       GP_LAYER_TREE_NODE_HIDE_ONION_SKINNING);
     SET_FLAG_FROM_TEST(
         new_layer.base.flag, (gpl->flag & GP_LAYER_USE_MASK) == 0, GP_LAYER_TREE_NODE_HIDE_MASKS);
 
@@ -646,18 +646,28 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
   grease_pencil.vertex_group_active_index = gpd.vertex_group_active_index;
 
   /* Convert the onion skinning settings. */
-  grease_pencil.onion_skinning_settings.opacity = gpd.onion_factor;
-  grease_pencil.onion_skinning_settings.mode = gpd.onion_mode;
+  GreasePencilOnionSkinningSettings &settings = grease_pencil.onion_skinning_settings;
+  settings.opacity = gpd.onion_factor;
+  settings.mode = gpd.onion_mode;
+  SET_FLAG_FROM_TEST(settings.flag,
+                     ((gpd.onion_flag & GP_ONION_GHOST_PREVCOL) != 0 &&
+                      (gpd.onion_flag & GP_ONION_GHOST_NEXTCOL) != 0),
+                     GP_ONION_SKINNING_USE_CUSTOM_COLORS);
+  SET_FLAG_FROM_TEST(
+      settings.flag, (gpd.onion_flag & GP_ONION_FADE) != 0, GP_ONION_SKINNING_USE_FADE);
+  SET_FLAG_FROM_TEST(
+      settings.flag, (gpd.onion_flag & GP_ONION_LOOP) != 0, GP_ONION_SKINNING_SHOW_LOOP);
+  /* Convert keytype filter to a bit flag. */
   if (gpd.onion_keytype == -1) {
-    grease_pencil.onion_skinning_settings.filter = GREASE_PENCIL_ONION_SKINNING_FILTER_ALL;
+    settings.filter = GREASE_PENCIL_ONION_SKINNING_FILTER_ALL;
   }
   else {
-    grease_pencil.onion_skinning_settings.filter = (1 << gpd.onion_keytype);
+    settings.filter = (1 << gpd.onion_keytype);
   }
-  grease_pencil.onion_skinning_settings.num_frames_before = gpd.gstep;
-  grease_pencil.onion_skinning_settings.num_frames_after = gpd.gstep_next;
-  copy_v3_v3(grease_pencil.onion_skinning_settings.color_before, gpd.gcolor_prev);
-  copy_v3_v3(grease_pencil.onion_skinning_settings.color_after, gpd.gcolor_next);
+  settings.num_frames_before = gpd.gstep;
+  settings.num_frames_after = gpd.gstep_next;
+  copy_v3_v3(settings.color_before, gpd.gcolor_prev);
+  copy_v3_v3(settings.color_after, gpd.gcolor_next);
 
   BKE_id_materials_copy(&bmain, &gpd.id, &grease_pencil.id);
 

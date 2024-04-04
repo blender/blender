@@ -806,26 +806,29 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
      *
      * This would be unnecessary if the active attribute were stored as a string on the ID. */
     std::string active_attribute;
-    if (const CustomDataLayer *layer = BKE_id_attributes_active_get(&curves_id->id)) {
+    const CustomDataLayer *layer = BKE_id_attributes_active_get(&curves_id->id);
+    if (layer) {
       active_attribute = layer->name;
     }
+    for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
+      if (const GVArray src = *attributes.lookup(selection_name, domain)) {
+        const CPPType &type = src.type();
+        void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size(), __func__);
+        src.materialize(dst);
 
-    if (const GVArray src = *attributes.lookup(".selection", domain)) {
-      const CPPType &type = src.type();
-      void *dst = MEM_malloc_arrayN(attributes.domain_size(domain), type.size(), __func__);
-      src.materialize(dst);
-
-      attributes.remove(".selection");
-      if (!attributes.add(".selection",
-                          domain,
-                          bke::cpp_type_to_custom_data_type(type),
-                          bke::AttributeInitMoveArray(dst)))
-      {
-        MEM_freeN(dst);
+        attributes.remove(selection_name);
+        if (!attributes.add(selection_name,
+                            domain,
+                            bke::cpp_type_to_custom_data_type(type),
+                            bke::AttributeInitMoveArray(dst)))
+        {
+          MEM_freeN(dst);
+        }
       }
     }
-
-    BKE_id_attributes_active_set(&curves_id->id, active_attribute.c_str());
+    if (!active_attribute.empty()) {
+      BKE_id_attributes_active_set(&curves_id->id, active_attribute.c_str());
+    }
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */

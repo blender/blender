@@ -264,6 +264,10 @@ class LayerViewItem : public AbstractTreeViewItem {
     uiItemR(sub, &layer_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, nullptr, icon_mask);
 
     sub = uiLayoutRow(&row, true);
+    uiLayoutSetActive(sub, layer_.parent_group().use_onion_skinning());
+    uiItemR(sub, &layer_ptr, "use_onion_skinning", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
+
+    sub = uiLayoutRow(&row, true);
     uiLayoutSetActive(sub, layer_.parent_group().is_visible());
     uiItemR(sub, &layer_ptr, "hide", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
 
@@ -348,6 +352,12 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
                               ICON_CLIPUV_DEHLT :
                               ICON_CLIPUV_HLT;
     uiItemR(sub, &group_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, nullptr, icon_mask);
+
+    sub = uiLayoutRow(&row, true);
+    if (group_.as_node().parent_group()) {
+      uiLayoutSetActive(sub, group_.as_node().parent_group()->use_onion_skinning());
+    }
+    uiItemR(sub, &group_ptr, "use_onion_skinning", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
 
     sub = uiLayoutRow(&row, true);
     if (group_.as_node().parent_group()) {

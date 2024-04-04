@@ -105,6 +105,7 @@ set(SRC_DNA_DEFAULTS_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_fluid_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpencil_modifier_defaults.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_grease_pencil_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_image_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lattice_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_light_defaults.h

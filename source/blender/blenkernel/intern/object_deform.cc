@@ -544,7 +544,7 @@ bool BKE_object_defgroup_array_get(ID *id, MDeformVert **dvert_arr, int *dvert_t
         return true;
       }
       case ID_GP:
-        /* Should not be used with grease pencil objects.*/
+        /* Should not be used with grease pencil objects. */
         BLI_assert_unreachable();
         break;
       default:

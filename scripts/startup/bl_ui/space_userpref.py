@@ -671,8 +671,8 @@ class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
         import sys
         return sys.platform[:3] == "win"
 
-    def draw_centered(self, _context, layout):
-        if _context.preferences.system.is_microsoft_store_install:
+    def draw_centered(self, context, layout):
+        if context.preferences.system.is_microsoft_store_install:
             layout.label(text="Microsoft Store installation")
             layout.label(text="Use Windows 'Default Apps' to associate with blend files")
         else:

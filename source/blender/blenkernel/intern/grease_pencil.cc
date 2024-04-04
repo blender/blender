@@ -42,6 +42,7 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
+#include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 #include "BLI_virtual_array.hh"
 
@@ -52,6 +53,7 @@
 #include "DNA_ID.h"
 #include "DNA_ID_enums.h"
 #include "DNA_brush_types.h"
+#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
@@ -80,10 +82,12 @@ static void grease_pencil_init_data(ID *id)
   using namespace blender::bke;
 
   GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(id);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(grease_pencil, id));
+
+  MEMCPY_STRUCT_AFTER(grease_pencil, DNA_struct_default_get(GreasePencil), id);
 
   grease_pencil->root_group_ptr = MEM_new<greasepencil::LayerGroup>(__func__);
   grease_pencil->active_layer = nullptr;
-  grease_pencil->flag |= GREASE_PENCIL_ANIM_CHANNEL_EXPANDED;
 
   CustomData_reset(&grease_pencil->layers_data);
 
@@ -766,7 +770,7 @@ TreeNode::TreeNode()
   this->parent = nullptr;
 
   this->GreasePencilLayerTreeNode::name = nullptr;
-  this->flag = GP_LAYER_TREE_NODE_HIDE_MASKS;
+  this->flag = 0;
   this->color[0] = this->color[1] = this->color[2] = 0;
 }
 
@@ -928,7 +932,7 @@ Layer::Layer(const Layer &other) : Layer()
   /* Note: We do not duplicate the frame storage since it is only needed for writing to file. */
   this->runtime->frames_ = other.runtime->frames_;
   this->runtime->sorted_keys_cache_ = other.runtime->sorted_keys_cache_;
-  /* Tag the frames map, so the frame storage is recreated once the DNA is saved.*/
+  /* Tag the frames map, so the frame storage is recreated once the DNA is saved. */
   this->tag_frames_map_changed();
 
   /* TODO: what about masks cache? */

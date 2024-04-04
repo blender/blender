@@ -1085,7 +1085,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
         /* Scissor is disabled, reset to default size as scissor state may have been previously
          * assigned on this encoder.
          * NOTE: If an attachment-less framebuffer is used, fetch specified width/height rather
-         * than active attachment width/height as provided by get_default_w/h().*/
+         * than active attachment width/height as provided by get_default_w/h(). */
         uint default_w = render_fb->get_default_width();
         uint default_h = render_fb->get_default_height();
         bool is_attachmentless = (default_w == 0) && (default_h == 0);

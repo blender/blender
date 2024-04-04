@@ -1834,10 +1834,6 @@ static bool ui_selectcontext_begin(bContext *C, uiBut *but, uiSelectContextStore
       int i;
       PointerRNA *link;
       for (i = 0, link = lb.data(); i < selctx_data->elems_len; i++, link++) {
-        if (i >= selctx_data->elems_len) {
-          break;
-        }
-
         if (!UI_context_copy_to_selected_check(&ptr,
                                                link,
                                                prop,

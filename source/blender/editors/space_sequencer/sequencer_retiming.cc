@@ -769,7 +769,7 @@ int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op)
   return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static void realize_fake_keys_in_rect(bContext *C, Sequence *seq, rctf &rectf)
+static void realize_fake_keys_in_rect(bContext *C, Sequence *seq, const rctf &rectf)
 {
   const Scene *scene = CTX_data_scene(C);
 

@@ -48,18 +48,15 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
   char *new_layer_name = RNA_string_get_alloc(
       op->ptr, "new_layer_name", nullptr, 0, &new_layer_name_length);
   BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(new_layer_name); });
+  Layer &new_layer = grease_pencil.add_layer(new_layer_name);
+  /* Hide masks by default. */
+  new_layer.base.flag |= GP_LAYER_TREE_NODE_HIDE_MASKS;
   if (grease_pencil.has_active_layer()) {
-    Layer &new_layer = grease_pencil.add_layer(new_layer_name);
     grease_pencil.move_node_after(new_layer.as_node(),
                                   grease_pencil.get_active_layer()->as_node());
-    grease_pencil.set_active_layer(&new_layer);
-    grease_pencil.insert_blank_frame(new_layer, scene->r.cfra, 0, BEZT_KEYTYPE_KEYFRAME);
   }
-  else {
-    Layer &new_layer = grease_pencil.add_layer(new_layer_name);
-    grease_pencil.set_active_layer(&new_layer);
-    grease_pencil.insert_blank_frame(new_layer, scene->r.cfra, 0, BEZT_KEYTYPE_KEYFRAME);
-  }
+  grease_pencil.set_active_layer(&new_layer);
+  grease_pencil.insert_blank_frame(new_layer, scene->r.cfra, 0, BEZT_KEYTYPE_KEYFRAME);
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, &grease_pencil);
@@ -244,14 +241,19 @@ static int grease_pencil_layer_group_add_exec(bContext *C, wmOperator *op)
   char *new_layer_group_name = RNA_string_get_alloc(
       op->ptr, "new_layer_group_name", nullptr, 0, &new_layer_group_name_length);
 
+  LayerGroup &parent_group = [&]() -> LayerGroup & {
+    if (grease_pencil.has_active_layer()) {
+      return grease_pencil.get_active_layer()->parent_group();
+    }
+    return grease_pencil.root_group();
+  }();
+
+  LayerGroup &new_group = grease_pencil.add_layer_group(parent_group, new_layer_group_name);
+  /* Hide masks by default. */
+  new_group.base.flag |= GP_LAYER_TREE_NODE_HIDE_MASKS;
   if (grease_pencil.has_active_layer()) {
-    LayerGroup &new_group = grease_pencil.add_layer_group(
-        grease_pencil.get_active_layer()->parent_group(), new_layer_group_name);
     grease_pencil.move_node_after(new_group.as_node(),
                                   grease_pencil.get_active_layer()->as_node());
-  }
-  else {
-    grease_pencil.add_layer_group(grease_pencil.root_group(), new_layer_group_name);
   }
 
   MEM_SAFE_FREE(new_layer_group_name);

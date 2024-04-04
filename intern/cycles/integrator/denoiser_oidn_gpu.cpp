@@ -46,7 +46,7 @@ static const char *oidn_device_type_to_string(const OIDNDeviceType type)
       return "HIP";
 #  endif
 
-      /* The Metal support was added in OIDN 2.2.*/
+      /* The Metal support was added in OIDN 2.2. */
 #  if (OIDN_VERSION_MAJOR > 2) || ((OIDN_VERSION_MAJOR == 2) && (OIDN_VERSION_MINOR >= 2))
     case OIDN_DEVICE_TYPE_METAL:
       return "METAL";

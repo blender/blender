@@ -7844,6 +7844,8 @@ class VIEW3D_PT_overlay_grease_pencil_options(Panel):
             'OBJECT': iface_("Grease Pencil"),
         }[context.mode], translate=False)
 
+        layout.prop(overlay, "use_gpencil_onion_skin", text="Onion Skin")
+
         if ob.mode in {'EDIT'}:
             split = layout.split()
             col = split.column()
