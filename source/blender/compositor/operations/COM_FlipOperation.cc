@@ -34,6 +34,34 @@ void FlipOperation::execute_pixel_sampled(float output[4], float x, float y, Pix
   input_operation_->read_sampled(output, nx, ny, sampler);
 }
 
+bool FlipOperation::determine_depending_area_of_interest(rcti *input,
+                                                         ReadBufferOperation *read_operation,
+                                                         rcti *output)
+{
+  rcti new_input;
+
+  if (flip_x_) {
+    const int w = int(this->get_width()) - 1;
+    new_input.xmax = (w - input->xmin) + 1;
+    new_input.xmin = (w - input->xmax) - 1;
+  }
+  else {
+    new_input.xmin = input->xmin;
+    new_input.xmax = input->xmax;
+  }
+  if (flip_y_) {
+    const int h = int(this->get_height()) - 1;
+    new_input.ymax = (h - input->ymin) + 1;
+    new_input.ymin = (h - input->ymax) - 1;
+  }
+  else {
+    new_input.ymin = input->ymin;
+    new_input.ymax = input->ymax;
+  }
+
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
+}
+
 void FlipOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                  const rcti &area,
                                                  Span<MemoryBuffer *> inputs)
