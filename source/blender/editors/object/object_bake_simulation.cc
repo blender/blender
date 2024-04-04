@@ -269,7 +269,6 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
   BakeGeometryNodesJob &job = *static_cast<BakeGeometryNodesJob *>(customdata);
   G.is_rendering = true;
   G.is_break = false;
-  WM_set_locked_interface(job.wm, true);
 
   int global_bake_start_frame = INT32_MAX;
   int global_bake_end_frame = INT32_MIN;
@@ -422,6 +421,7 @@ static int start_bake_job(bContext *C,
   job->depsgraph = CTX_data_depsgraph_pointer(C);
   job->scene = CTX_data_scene(C);
   job->bake_requests = std::move(requests);
+  WM_set_locked_interface(job->wm, true);
 
   if (mode == BakeRequestsMode::Sync) {
     wmJobWorkerStatus worker_status{};
