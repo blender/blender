@@ -1426,7 +1426,7 @@ static void CURVES_OT_curve_type_set(wmOperatorType *ot)
 
 namespace switch_direction {
 
-static int exec(bContext *C, wmOperator *op)
+static int exec(bContext *C, wmOperator * /*op*/)
 {
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
