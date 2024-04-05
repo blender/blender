@@ -540,8 +540,7 @@ typedef struct Library_Runtime {
 } Library_Runtime;
 
 /**
- * For each library file used, a Library struct is added to Main
- * WARNING: `readfile.cc`, expand_doit() reads this struct without DNA check!
+ * For each library file used, a Library struct is added to Main.
  */
 typedef struct Library {
   ID id;
