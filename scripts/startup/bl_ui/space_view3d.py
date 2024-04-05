@@ -5923,6 +5923,7 @@ class VIEW3D_MT_edit_curves_segments(Menu):
     def draw(self, _context):
         layout = self.layout
 
+        layout.operator("curves.subdivide")
         layout.operator("curves.switch_direction")
 
 
