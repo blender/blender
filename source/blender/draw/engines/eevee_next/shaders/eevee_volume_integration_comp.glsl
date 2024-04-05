@@ -25,7 +25,7 @@ void main()
 
   /* Compute view ray. Note that jittering the position of the first voxel doesn't bring any
    * benefit here. */
-  vec3 uvw = (vec3(texel, 0.0) + vec3(0.5, 0.5, 0.0)) * uniform_buf.volumes.inv_tex_size;
+  vec3 uvw = (vec3(vec2(texel), 0.0) + vec3(0.5, 0.5, 0.0)) * uniform_buf.volumes.inv_tex_size;
   vec3 view_cell = volume_jitter_to_view(uvw);
 
   float prev_ray_len;
