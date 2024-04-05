@@ -545,11 +545,11 @@ static inline float view_z_to_volume_z(
   }
 }
 
-static inline float3 screen_to_volume(const float4x4 &projection_matrix,
+static inline float3 screen_to_volume(const float4x4 projection_matrix,
                                       float near,
                                       float far,
                                       float distribution,
-                                      const float2 &coord_scale,
+                                      const float2 coord_scale,
                                       float3 coord)
 {
   bool is_persp = projection_matrix[3][3] == 0.0;
