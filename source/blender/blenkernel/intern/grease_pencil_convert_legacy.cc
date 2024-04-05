@@ -389,8 +389,7 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
       "delta_time", AttrDomain::Point);
   SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
       "rotation", AttrDomain::Point);
-  SpanAttributeWriter<ColorGeometry4f> vertex_colors =
-      attributes.lookup_or_add_for_write_span<ColorGeometry4f>("vertex_color", AttrDomain::Point);
+  MutableSpan<ColorGeometry4f> vertex_colors = drawing.fill_colors_for_write();
   SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
       ".selection", AttrDomain::Point);
   MutableSpan<MDeformVert> dverts = use_dverts ? curves.wrap().deform_verts_for_write() :
@@ -410,12 +409,7 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
       "hardness", AttrDomain::Curve);
   SpanAttributeWriter<float> stroke_point_aspect_ratios =
       attributes.lookup_or_add_for_write_span<float>("aspect_ratio", AttrDomain::Curve);
-  SpanAttributeWriter<ColorGeometry4f> stroke_fill_colors =
-      attributes.lookup_or_add_for_write_span<ColorGeometry4f>(
-          "fill_color",
-          AttrDomain::Curve,
-          bke::AttributeInitVArray(VArray<ColorGeometry4f>::ForSingle(
-              ColorGeometry4f(float4(0.0f)), curves.curves_num())));
+  MutableSpan<ColorGeometry4f> stroke_fill_colors = drawing.fill_colors_for_write();
   SpanAttributeWriter<int> stroke_materials = attributes.lookup_or_add_for_write_span<int>(
       "material_index", AttrDomain::Curve);
 
@@ -431,7 +425,7 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     stroke_hardnesses.span[stroke_i] = gps->hardness;
     stroke_point_aspect_ratios.span[stroke_i] = gps->aspect_ratio[0] /
                                                 max_ff(gps->aspect_ratio[1], 1e-8);
-    stroke_fill_colors.span[stroke_i] = ColorGeometry4f(gps->vert_color_fill);
+    stroke_fill_colors[stroke_i] = ColorGeometry4f(gps->vert_color_fill);
     stroke_materials.span[stroke_i] = gps->mat_nr;
 
     IndexRange points = points_by_curve[stroke_i];
@@ -458,7 +452,7 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     MutableSpan<float> dst_opacities = opacities.slice(points);
     MutableSpan<float> dst_deltatimes = delta_times.span.slice(points);
     MutableSpan<float> dst_rotations = rotations.span.slice(points);
-    MutableSpan<ColorGeometry4f> dst_vertex_colors = vertex_colors.span.slice(points);
+    MutableSpan<ColorGeometry4f> dst_vertex_colors = vertex_colors.slice(points);
     MutableSpan<bool> dst_selection = selection.span.slice(points);
     MutableSpan<MDeformVert> dst_dverts = use_dverts ? dverts.slice(points) :
                                                        MutableSpan<MDeformVert>();
@@ -526,7 +520,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 
   delta_times.finish();
   rotations.finish();
-  vertex_colors.finish();
   selection.finish();
 
   stroke_cyclic.finish();
@@ -535,7 +528,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   stroke_end_caps.finish();
   stroke_hardnesses.finish();
   stroke_point_aspect_ratios.finish();
-  stroke_fill_colors.finish();
   stroke_materials.finish();
 }
 

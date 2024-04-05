@@ -239,12 +239,13 @@ static void modify_stroke_color(Object &ob,
 
 static void modify_fill_color(Object &ob,
                               const GreasePencilTintModifierData &tmd,
-                              bke::CurvesGeometry &curves,
+                              Drawing &drawing,
                               const IndexMask &curves_mask)
 {
   const bool use_weight_as_factor = (tmd.flag & MOD_GREASE_PENCIL_TINT_USE_WEIGHT_AS_FACTOR);
   const bool invert_vertex_group = (tmd.influence.flag &
                                     GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP);
+  const bke::CurvesGeometry &curves = drawing.strokes();
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
   const GreasePencilTintModifierMode tint_mode = GreasePencilTintModifierMode(tmd.tint_mode);
 
@@ -253,14 +254,9 @@ static void modify_fill_color(Object &ob,
     return;
   }
 
-  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  bke::MutableAttributeAccessor attributes = drawing.strokes_for_write().attributes_for_write();
   /* Fill color per stroke. */
-  bke::SpanAttributeWriter<ColorGeometry4f> fill_colors =
-      attributes.lookup_or_add_for_write_span<ColorGeometry4f>(
-          "fill_color",
-          bke::AttrDomain::Curve,
-          bke::AttributeInitVArray(VArray<ColorGeometry4f>::ForSingle(
-              ColorGeometry4f(float4(0.0f)), curves.curves_num())));
+  MutableSpan<ColorGeometry4f> fill_colors = drawing.fill_colors_for_write();
   const VArray<int> stroke_materials = *attributes.lookup_or_default<int>(
       "material_index", bke::AttrDomain::Curve, 0);
   const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
@@ -288,10 +284,8 @@ static void modify_fill_color(Object &ob,
     case MOD_GREASE_PENCIL_TINT_UNIFORM: {
       curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
         const ColorGeometry4f material_color = get_material_color(curve_i);
-        fill_colors.span[curve_i] = apply_uniform_tint(
-            tmd,
-            get_base_color(fill_colors.span[curve_i], material_color),
-            get_curve_factor(curve_i));
+        fill_colors[curve_i] = apply_uniform_tint(
+            tmd, get_base_color(fill_colors[curve_i], material_color), get_curve_factor(curve_i));
       });
       break;
     }
@@ -308,18 +302,16 @@ static void modify_fill_color(Object &ob,
         const float3 pos = points.is_empty() ? float3(0.0f, 0.0f, 0.0f) :
                                                positions[points.first()];
 
-        fill_colors.span[curve_i] = apply_gradient_tint(
+        fill_colors[curve_i] = apply_gradient_tint(
             tmd,
             matrix,
             pos,
-            get_base_color(fill_colors.span[curve_i], material_color),
+            get_base_color(fill_colors[curve_i], material_color),
             get_curve_factor(curve_i));
       });
       break;
     }
   }
-
-  fill_colors.finish();
 }
 
 static void modify_opacity(const GreasePencilTintModifierData &tmd,
@@ -365,12 +357,12 @@ static void modify_curves(ModifierData &md, const ModifierEvalContext &ctx, Draw
           *ctx.object, tmd, curves, curves_mask, drawing.vertex_colors_for_write());
       break;
     case MOD_GREASE_PENCIL_COLOR_FILL:
-      modify_fill_color(*ctx.object, tmd, curves, curves_mask);
+      modify_fill_color(*ctx.object, tmd, drawing, curves_mask);
       break;
     case MOD_GREASE_PENCIL_COLOR_BOTH:
       modify_stroke_color(
           *ctx.object, tmd, curves, curves_mask, drawing.vertex_colors_for_write());
-      modify_fill_color(*ctx.object, tmd, curves, curves_mask);
+      modify_fill_color(*ctx.object, tmd, drawing, curves_mask);
       break;
     case MOD_GREASE_PENCIL_COLOR_HARDNESS:
       BLI_assert_unreachable();

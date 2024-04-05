@@ -79,7 +79,7 @@ class Drawing : public ::GreasePencilDrawing {
 
   /**
    * Returns the matrices that transform from a 3D point in layer-space to a 2D point in
-   * texture-space.
+   * texture-space. This is stored per curve.
    */
   Span<float4x2> texture_matrices() const;
   /**
@@ -103,10 +103,18 @@ class Drawing : public ::GreasePencilDrawing {
   MutableSpan<float> opacities_for_write();
 
   /**
-   * Vertex colors of the points. Default is black.
+   * Vertex colors of the points. Default is black. This is mixed on top of the base material
+   * stroke color.
    */
   VArray<ColorGeometry4f> vertex_colors() const;
   MutableSpan<ColorGeometry4f> vertex_colors_for_write();
+
+  /**
+   * Fill colors of the curves. Default is black and fully transparent. This is mixed on top of the
+   * base material fill color.
+   */
+  VArray<ColorGeometry4f> fill_colors() const;
+  MutableSpan<ColorGeometry4f> fill_colors_for_write();
 
   /**
    * Add a user for this drawing. When a drawing has multiple users, both users are allowed to
