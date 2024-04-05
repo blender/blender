@@ -1423,6 +1423,40 @@ static void CURVES_OT_curve_type_set(wmOperatorType *ot)
       ot->srna, "type", rna_enum_curves_type_items, CURVE_TYPE_POLY, "Type", "Curve type");
 }
 
+namespace switch_direction {
+
+static int exec(bContext *C, wmOperator *op)
+{
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    IndexMaskMemory memory;
+    const IndexMask selection = retrieve_selected_curves(*curves_id, memory);
+    if (selection.is_empty()) {
+      continue;
+    }
+
+    curves.reverse_curves(selection);
+
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace switch_direction
+
+static void CURVES_OT_switch_direction(wmOperatorType *ot)
+{
+  ot->name = "Switch Direction";
+  ot->idname = __func__;
+  ot->description = "Reverse the direction of the selected curves";
+
+  ot->exec = switch_direction::exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 void operatortypes_curves()
 {
   WM_operatortype_append(CURVES_OT_attribute_set);
@@ -1444,6 +1478,7 @@ void operatortypes_curves()
   WM_operatortype_append(CURVES_OT_tilt_clear);
   WM_operatortype_append(CURVES_OT_cyclic_toggle);
   WM_operatortype_append(CURVES_OT_curve_type_set);
+  WM_operatortype_append(CURVES_OT_switch_direction);
 }
 
 void operatormacros_curves()
