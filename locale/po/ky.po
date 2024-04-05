@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -787,6 +787,10 @@ msgid "Operator"
 msgstr "Оператор"
 
 
+msgid "Matrix"
+msgstr "Матрица"
+
+
 msgid "End"
 msgstr "Соңу"
 
@@ -892,10 +896,6 @@ msgid "Sphere"
 msgstr "Сфера"
 
 
-msgid "Matrix"
-msgstr "Матрица"
-
-
 msgid "Catmull-Clark"
 msgstr "Катмулл-Кларк"
 
@@ -922,6 +922,10 @@ msgstr "B"
 
 msgid "Blue"
 msgstr "Көк"
+
+
+msgid "Animation"
+msgstr "Анимация"
 
 
 msgid "Brush"
@@ -1068,14 +1072,6 @@ msgid "Radiance HDR"
 msgstr "Radiance HDR"
 
 
-msgid "AVI JPEG"
-msgstr "AVI JPEG"
-
-
-msgid "AVI Raw"
-msgstr "AVI Raw"
-
-
 msgid "Movie"
 msgstr "Тасма"
 
@@ -1150,10 +1146,6 @@ msgstr "Шилтемелер"
 
 msgid "Nodes"
 msgstr "Түйүндөр"
-
-
-msgid "OpenCL"
-msgstr "OpenCL"
 
 
 msgid "Edit"
@@ -1335,10 +1327,6 @@ msgstr "Туман"
 
 msgid "Operation"
 msgstr "Операция"
-
-
-msgid "Animation"
-msgstr "Анимация"
 
 
 msgid "Black"
@@ -2130,10 +2118,6 @@ msgid "Add Torus"
 msgstr "Торду кошуу"
 
 
-msgid "Construct a UV sphere mesh"
-msgstr "UV-сфера политорун жаратуу"
-
-
 msgid "Cursor Distance"
 msgstr "Курсор аралыгы"
 
@@ -2177,10 +2161,6 @@ msgstr "Тандалган объекттерди өчүрүү"
 
 msgid "Remove object from all scenes"
 msgstr "Объектти бардык сахналардан өчүрүү"
-
-
-msgid "Filepath"
-msgstr "Файлга жол"
 
 
 msgctxt "Operator"
@@ -2536,6 +2516,10 @@ msgid "Jump"
 msgstr "Өтүү"
 
 
+msgid "Filepath"
+msgstr "Файлга жол"
+
+
 msgctxt "Operator"
 msgid "Reload"
 msgstr "Кайтадан жүктөө"
@@ -2614,11 +2598,6 @@ msgstr "Түшүрүү"
 
 msgid "Island"
 msgstr "Арал"
-
-
-msgctxt "Operator"
-msgid "Remove Background Image"
-msgstr "Фон сүрөтүн өчүрүү"
 
 
 msgid "Save a Collada file"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -631,6 +631,10 @@ msgid "Count"
 msgstr "गिनती"
 
 
+msgid "Curve Radius"
+msgstr "वक्र में त्रिज्या"
+
+
 msgid "Remove"
 msgstr "हटाएँ"
 
@@ -930,10 +934,6 @@ msgstr "ZYX यूलर"
 
 msgid "Power"
 msgstr "शक्ति"
-
-
-msgid "Curve Radius"
-msgstr "वक्र में त्रिज्या"
 
 
 msgid "Camera"
@@ -1710,6 +1710,10 @@ msgid "Grid Scale"
 msgstr "जालक प्रंमाण"
 
 
+msgid "Repeat"
+msgstr "दोहराएँ"
+
+
 msgid "Red Green Blue"
 msgstr "लाल हरा नीला"
 
@@ -1740,6 +1744,10 @@ msgstr "नीला"
 
 msgid "Show Line"
 msgstr "रेखा दिखाएँ"
+
+
+msgid "Animation"
+msgstr "अनुप्राणन"
 
 
 msgid "Brush"
@@ -1854,10 +1862,6 @@ msgid "Add Color"
 msgstr "रंग जोड़ें"
 
 
-msgid "Repeat"
-msgstr "दोहराएँ"
-
-
 msgid "Clamp"
 msgstr "कीलक"
 
@@ -1892,10 +1896,6 @@ msgstr "बिन्दु्"
 
 msgid "Use Vertex"
 msgstr "शिरोबिन्दु का उपयोग करें"
-
-
-msgid "Sculpt Tool"
-msgstr "शिल्प यंत्र"
 
 
 msgid "Relax"
@@ -2244,10 +2244,6 @@ msgstr "उच्च"
 
 msgid "Low"
 msgstr "कम"
-
-
-msgid "Tiled"
-msgstr "खण्ड की गईं"
 
 
 msgid "Use boundaries for viewer nodes and composite backdrop"
@@ -2609,10 +2605,6 @@ msgstr "प्रकाश व्यवस्था"
 
 msgid "Mist"
 msgstr "धुंध"
-
-
-msgid "Animation"
-msgstr "अनुप्राणन"
 
 
 msgid "Max Step"
@@ -3598,13 +3590,13 @@ msgid "Report"
 msgstr "विवरण"
 
 
-msgid "Duplicate"
-msgstr "अनुकृति"
-
-
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "चक्रीय बंद/बुझ"
+
+
+msgid "Duplicate"
+msgstr "अनुकृति"
 
 
 msgctxt "Operator"
@@ -3795,6 +3787,10 @@ msgstr "दृश्य रूप का चयन करें"
 
 msgid "Create a new image"
 msgstr "एक नई छवि बनाएँ"
+
+
+msgid "Tiled"
+msgstr "खण्ड की गईं"
 
 
 msgid "X End"
@@ -4030,10 +4026,6 @@ msgid "Add Camera"
 msgstr "प्रतिबिंबक जोडें"
 
 
-msgid "Add an empty image type to scene with data"
-msgstr "डेटा के साथ दृश्य के लिए एक रिक्त छवि प्रकार जोड़ें"
-
-
 msgctxt "Operator"
 msgid "Duplicate Objects"
 msgstr "वस्तुओं की नकल"
@@ -4046,6 +4038,10 @@ msgstr "वस्तुओं की नकल"
 msgctxt "Operator"
 msgid "Add Empty"
 msgstr "खाली जोड़ें"
+
+
+msgid "Add an empty image type to scene with data"
+msgstr "डेटा के साथ दृश्य के लिए एक रिक्त छवि प्रकार जोड़ें"
 
 
 msgid "Monkey"
@@ -6315,6 +6311,10 @@ msgid "Remove Shortcut"
 msgstr "शॉर्टकट हटाएँ"
 
 
+msgid "%d items"
+msgstr "%d वस्तु"
+
+
 msgid "Hex"
 msgstr "हेक्स"
 
@@ -6428,10 +6428,6 @@ msgstr "नई"
 msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "नई"
-
-
-msgid "%d items"
-msgstr "%d वस्तु"
 
 
 msgid "Rigging"
@@ -6938,10 +6934,6 @@ msgstr "ऑन"
 
 msgid "OFF"
 msgstr "बंद"
-
-
-msgid "OK?"
-msgstr "ठीक है?"
 
 
 msgctxt "Operator"

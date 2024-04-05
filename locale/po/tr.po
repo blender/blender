@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -2357,6 +2357,10 @@ msgid "Grease Pencil data-blocks"
 msgstr "Gres Kalemi veri blokları"
 
 
+msgid "Grease Pencil v3"
+msgstr "Gres Kalemi 3.0"
+
+
 msgid "Hair Curves"
 msgstr "Kıl Eğrileri"
 
@@ -4151,30 +4155,6 @@ msgid "Remove curves whose root points are too close"
 msgstr "Kök noktaları pek yakın olan eğrileri kaldır"
 
 
-msgid "Interpolate Length"
-msgstr "Uzunluğu Aradeğerle"
-
-
-msgid "Use length of the curves in close proximity"
-msgstr "Yakın uzaklıktaki eğrilerin uzunluğunu kullan"
-
-
-msgid "Interpolate Point Count"
-msgstr "Nokta Sayısını Aradeğerle"
-
-
-msgid "Use the number of points from the curves in close proximity"
-msgstr "Yakın uzaklıktaki eğrilerin noktaları sayısını kullan"
-
-
-msgid "Interpolate Shape"
-msgstr "Şekli Aradeğerle"
-
-
-msgid "Use shape of the curves in close proximity"
-msgstr "Yakın uzaklıktaki eğrilerin şeklini kullan"
-
-
 msgid "Minimum Distance"
 msgstr "En Düşük Uzaklık"
 
@@ -4197,6 +4177,30 @@ msgstr "Eğri Başına Nokta"
 
 msgid "Number of control points in a newly added curve"
 msgstr "Yeni eklenen bir eğrideki denetim noktalarının sayısı"
+
+
+msgid "Interpolate Length"
+msgstr "Uzunluğu Aradeğerle"
+
+
+msgid "Use length of the curves in close proximity"
+msgstr "Yakın uzaklıktaki eğrilerin uzunluğunu kullan"
+
+
+msgid "Interpolate Point Count"
+msgstr "Nokta Sayısını Aradeğerle"
+
+
+msgid "Use the number of points from the curves in close proximity"
+msgstr "Yakın uzaklıktaki eğrilerin noktaları sayısını kullan"
+
+
+msgid "Interpolate Shape"
+msgstr "Şekli Aradeğerle"
+
+
+msgid "Use shape of the curves in close proximity"
+msgstr "Yakın uzaklıktaki eğrilerin şeklini kullan"
 
 
 msgid "Scale Uniform"
@@ -6811,6 +6815,10 @@ msgid "Space"
 msgstr "Boşluk"
 
 
+msgid "Translation"
+msgstr "Taşıma"
+
+
 msgid "R"
 msgstr "R"
 
@@ -6827,12 +6835,12 @@ msgid "Blue"
 msgstr "Mavi"
 
 
+msgid "Animation"
+msgstr "Canlandırma"
+
+
 msgid "Font"
 msgstr "Yazıtipi"
-
-
-msgid "Grease Pencil v3"
-msgstr "Gres Kalemi 3.0"
 
 
 msgid "Key"
@@ -7164,10 +7172,6 @@ msgstr "Rampa"
 
 msgid "Smooth Stroke"
 msgstr "Yumuşatma Konturu"
-
-
-msgid "Sculpt Tool"
-msgstr "Yontma Aracı"
 
 
 msgid "Use Render Engine Procedural"
@@ -7768,10 +7772,6 @@ msgstr "Çalışma alanı için en son kullanılan sahneyi anımsa ve bu çalı�
 
 msgid "Mist"
 msgstr "Sis"
-
-
-msgid "Animation"
-msgstr "Canlandırma"
 
 
 msgid "Translate Roots"
@@ -8669,10 +8669,6 @@ msgid "Curve Falloff Preset"
 msgstr "Eğri Düşüş Önayarı"
 
 
-msgid "Translation"
-msgstr "Taşıma"
-
-
 msgctxt "Operator"
 msgid "Context Menu"
 msgstr "Bağlam Menüsü"
@@ -9492,26 +9488,8 @@ msgid "Flip quaternion values to achieve desired rotations, while maintaining th
 msgstr "Aynı yönelimi korurken istenen döndürmelere ulaşmak için dördey değerleri ters çevir"
 
 
-msgctxt "Operator"
-msgid "Disable Add-on"
-msgstr "Eklentiyi Devre Dışı Bırak"
-
-
-msgid "Disable an add-on"
-msgstr "Bir eklentiyi devre dışı bırak"
-
-
 msgid "Module name of the add-on to disable"
 msgstr "Devre dışı bırakılacak eklentinin adı"
-
-
-msgctxt "Operator"
-msgid "Enable Add-on"
-msgstr "Eklenti Etkinleştir"
-
-
-msgid "Enable an add-on"
-msgstr "Bir eklentiyi etkinleştir"
 
 
 msgid "Module name of the add-on to enable"
@@ -10075,6 +10053,16 @@ msgid "List all the operators in a text-block, useful for scripting"
 msgstr "Bir metin blokundaki tüm işleçlerin listesi, betik yazımında yararlıdır"
 
 
+msgctxt "Operator"
+msgid "Disable Add-on"
+msgstr "Eklentiyi Devre Dışı Bırak"
+
+
+msgctxt "Operator"
+msgid "Enable Add-on"
+msgstr "Eklenti Etkinleştir"
+
+
 msgid "Open a path in a file browser"
 msgstr "Bir dosya tarayıcısında bir yol aç"
 
@@ -10232,10 +10220,6 @@ msgstr "Kopya Kaydet"
 msgctxt "Operator"
 msgid "Save Startup File"
 msgstr "Başlangıç Dosyası Olarak Kaydet"
-
-
-msgid "Make the current file the default .blend file"
-msgstr "Geçerli dosyayı saptanmış .blend dosyası yap"
 
 
 msgctxt "Operator"
@@ -10466,10 +10450,6 @@ msgid "Active Tool"
 msgstr "Etkin Araç"
 
 
-msgid "UV Editing"
-msgstr "UV Düzenleme"
-
-
 msgctxt "Operator"
 msgid "Select Box"
 msgstr "Kutu Seç"
@@ -10540,11 +10520,6 @@ msgstr "Düzenleyiciler"
 
 msgid "Open on Mouse Over"
 msgstr "Fareyle Üzerine Gelindiğinde Aç"
-
-
-msgctxt "WindowManager"
-msgid "Translation"
-msgstr "Çeviri"
 
 
 msgid "Preferences Navigation"
@@ -12062,11 +12037,6 @@ msgid "Install Application Template..."
 msgstr "Uygulama Şablonu Kur..."
 
 
-msgctxt "Operator"
-msgid "Unused Data-Blocks"
-msgstr "Kullanılmayan Veri Blokları"
-
-
 msgctxt "WindowManager"
 msgid "New"
 msgstr "Yeni"
@@ -12534,10 +12504,6 @@ msgid "VFX"
 msgstr "Görsel Efektler"
 
 
-msgid "Gpencil"
-msgstr "Gres Kalemi"
-
-
 msgid "GpencilMode"
 msgstr "Gres Kalemi Kipi"
 
@@ -12584,6 +12550,10 @@ msgstr "Sürücüler Düzenleyicisini Aç"
 msgctxt "Operator"
 msgid "Add All to Keying Set"
 msgstr "Tümünü Anahtarlama Kümesine Ekle"
+
+
+msgid "%d items"
+msgstr "%d öğe"
 
 
 msgid "Hex"
@@ -12924,10 +12894,6 @@ msgstr "Yeni"
 msgctxt "PaintCurve"
 msgid "New"
 msgstr "Yeni"
-
-
-msgid "%d items"
-msgstr "%d öğe"
 
 
 msgid "Texture Options"
@@ -13319,10 +13285,6 @@ msgstr "AÇIK"
 
 msgid "OFF"
 msgstr "KAPALI"
-
-
-msgid "OK?"
-msgstr "TAMAM MI?"
 
 
 msgid "Toggle System Console"

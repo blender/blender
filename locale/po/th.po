@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -1125,6 +1125,10 @@ msgid "Link"
 msgstr "เชื่อมโยง"
 
 
+msgid "Matrix"
+msgstr "เมทริกซ์"
+
+
 msgid "End"
 msgstr "สิ้นสุด"
 
@@ -1268,10 +1272,6 @@ msgid "Constant"
 msgstr "คงที่"
 
 
-msgid "Matrix"
-msgstr "เมทริกซ์"
-
-
 msgid "Step"
 msgstr "ขั้นตอน"
 
@@ -1308,6 +1308,14 @@ msgid "Grid scale"
 msgstr "ขนาดตะแกรง"
 
 
+msgid "Translation"
+msgstr "แปลภาษา"
+
+
+msgid "Repeat"
+msgstr "ทำซ้ำ"
+
+
 msgid "Red Green Blue"
 msgstr "แดง เขียน น้ำเงิน"
 
@@ -1318,6 +1326,10 @@ msgstr "แดง"
 
 msgid "B"
 msgstr "B"
+
+
+msgid "Animation"
+msgstr "แอนิเมชัน"
 
 
 msgid "Font"
@@ -1392,16 +1404,8 @@ msgid "Add Color"
 msgstr "เพิ่มสี"
 
 
-msgid "Repeat"
-msgstr "ทำซ้ำ"
-
-
 msgid "Mask Texture"
 msgstr "พื้นผิวหน้ากาก"
-
-
-msgid "Sculpt Tool"
-msgstr "เครื่องแกะสลัก"
 
 
 msgid "Grab UVs"
@@ -1907,10 +1911,6 @@ msgstr "แหลม"
 
 msgid "Rings"
 msgstr "แหวน"
-
-
-msgid "Animation"
-msgstr "แอนิเมชัน"
 
 
 msgid "ZIP (lossless)"
@@ -2531,10 +2531,6 @@ msgid "Round"
 msgstr "มน"
 
 
-msgid "Translation"
-msgstr "แปลภาษา"
-
-
 msgctxt "Operator"
 msgid "Select"
 msgstr "เลือก"
@@ -2889,10 +2885,6 @@ msgid "Add Ico Sphere"
 msgstr "เพิ่มทรงกลม Ico"
 
 
-msgid "Construct an Icosphere mesh"
-msgstr "สร้างเมชทรงกลม Ico"
-
-
 msgctxt "Operator"
 msgid "Add Monkey"
 msgstr "เพิ่มลิง"
@@ -2915,10 +2907,6 @@ msgstr "เพิ่มทอรัส"
 msgctxt "Operator"
 msgid "Add UV Sphere"
 msgstr "เพิ่มทรงกลม UV"
-
-
-msgid "Construct a UV sphere mesh"
-msgstr "สร้างเมชทรงกลม UV"
 
 
 msgid "Axis Mode"
@@ -2970,10 +2958,6 @@ msgstr "เพิ่มกล้องไปยังฉาก"
 
 msgid "Vertex Group(s)"
 msgstr "กลุ่มจุดยอด"
-
-
-msgid "Path to image file"
-msgstr "ตำแหน่งไปยังไฟล์ภาพ"
 
 
 msgid "Add an empty object to the scene"
@@ -3226,6 +3210,10 @@ msgid "Transformation orientation"
 msgstr "ทิศทางการแปลง"
 
 
+msgid "Snap to grid"
+msgstr "ยึดตามตาราง"
+
+
 msgid "Snap to vertices"
 msgstr "ยึดตามจุดยอด"
 
@@ -3287,6 +3275,10 @@ msgstr "หน้า"
 msgctxt "Operator"
 msgid "Zoom 2D View"
 msgstr "ซูมมุมมองสองมิติ"
+
+
+msgid "Path to image file"
+msgstr "ตำแหน่งไปยังไฟล์ภาพ"
 
 
 msgctxt "Operator"
@@ -3452,11 +3444,6 @@ msgstr "เมนู"
 
 msgid "Text Rendering"
 msgstr "เรนเดอร์ข้อความ"
-
-
-msgctxt "WindowManager"
-msgid "Translation"
-msgstr "แปลภาษา"
 
 
 msgid "3D Mouse Settings"
@@ -3863,10 +3850,6 @@ msgstr "ชนิดของส่วนประกอบที่จะยึ
 
 msgid "Snap Element"
 msgstr "ยึดตามส่วนประกอบ"
-
-
-msgid "Snap to grid"
-msgstr "ยึดตามตาราง"
 
 
 msgid "Snap Target"
@@ -4767,16 +4750,6 @@ msgstr "ลำโพง"
 
 
 msgctxt "Operator"
-msgid "Reference"
-msgstr "อ้างอิง"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "พื้นหลัง"
-
-
-msgctxt "Operator"
 msgid "Delete Keyframes..."
 msgstr "ลบคีย์เฟรม..."
 
@@ -4921,6 +4894,16 @@ msgstr "แหลม"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "โครงร่าง"
+
+
+msgctxt "Operator"
+msgid "Reference"
+msgstr "อ้างอิง"
+
+
+msgctxt "Operator"
+msgid "Background"
+msgstr "พื้นหลัง"
 
 
 msgid "Mirror Vertices"
@@ -5291,10 +5274,6 @@ msgid "Verts:%s/%s"
 msgstr "จุดยอด:%s/%s"
 
 
-msgid "). Click here to proceed..."
-msgstr "). คลิกที่นี่เพื่อดำเนินการ..."
-
-
 msgid "(empty)"
 msgstr "(ว่างเปล่า)"
 
@@ -5491,10 +5470,6 @@ msgstr "เปิด"
 
 msgid "OFF"
 msgstr "ปิด"
-
-
-msgid "OK?"
-msgstr "ตกลง?"
 
 
 msgid "%s '%s' not found"

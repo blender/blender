@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: 2023-11-30 20:00+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -2293,6 +2293,10 @@ msgid "Append"
 msgstr "ﻥﺩﻭﺰﻓﺍ"
 
 
+msgid "Matrix"
+msgstr "ﺲﯾﺮﺗﺎﻣ"
+
+
 msgid "End"
 msgstr "ﻥﺎﯾﺎﭘ"
 
@@ -2400,10 +2404,6 @@ msgid "Constant"
 msgstr "ﺖﺑﺎﺛ"
 
 
-msgid "Matrix"
-msgstr "ﺲﯾﺮﺗﺎﻣ"
-
-
 msgid "Camera Object"
 msgstr "ﻦﯿﺑﺭﻭﺩ ءﯽﺷ"
 
@@ -2438,6 +2438,10 @@ msgstr "B"
 
 msgid "Blue"
 msgstr "ﯽﺑﺁ"
+
+
+msgid "Animation"
+msgstr "ﻦﺸﯿﻤﯿﻧﺍ"
 
 
 msgid "Brush"
@@ -2661,10 +2665,6 @@ msgid "Paint"
 msgstr "ﮓﻧﺭ"
 
 
-msgid "Sculpt Tool"
-msgstr "ﯼﺭﺎﺠﺣ ﺭﺍﺰﺑﺍ"
-
-
 msgid "Relax"
 msgstr "ﻥﺩﺮﮐ‌ﻞﺷ"
 
@@ -2759,10 +2759,6 @@ msgstr "ﻂﺳﺍﻭ"
 
 msgid "Nodes"
 msgstr "ﺎﻫ ﻩﺮﮔ"
-
-
-msgid "OpenCL"
-msgstr "OpenCL"
 
 
 msgid "Edit"
@@ -2974,10 +2970,6 @@ msgstr "ﯽﻓﺎﺻ"
 
 msgid "Weight 1"
 msgstr "ﯽﻨﯿﮕﻨﺳ"
-
-
-msgid "Animation"
-msgstr "ﻦﺸﯿﻤﯿﻧﺍ"
 
 
 msgid "Simulation"
@@ -5096,6 +5088,10 @@ msgid "Active button not found"
 msgstr "ﺪﺸﻧ ﺖﻓﺎﯾ ﻝﺎﻌﻓ ﻪﻤﮐﺩ"
 
 
+msgid "%d items"
+msgstr "‬%d‪‪ ﻡﻼ﻿ﻗﺍ"
+
+
 msgid "Hex"
 msgstr "Hex"
 
@@ -5281,10 +5277,6 @@ msgid "Browse ID data to be linked"
 msgstr "ﻥﺩﺮﮐ‌ﮏﻨﯿﻟ ﯼﺍﺮﺑ ﯼﺩ−ﯼﺁ ﻩٔﺩﺍﺩ ﺶﻨﯾﺰﮔ"
 
 
-msgid "%d items"
-msgstr "‬%d‪‪ ﻡﻼ﻿ﻗﺍ"
-
-
 msgid "3D View "
 msgstr " .ﯼﺪﻌﺑ ﻪﺳ ﺪﯾﺩ"
 
@@ -5415,10 +5407,6 @@ msgstr "ﺭﺪﻨﻠﺑ ﻞﯾﺎﻓ ﺶﯾﺎﻤﻧ"
 
 msgid "Esc"
 msgstr "Esc"
-
-
-msgid "OK?"
-msgstr "؟ﺪﯿﯾﺄﺗ"
 
 
 msgid "English (English)"
