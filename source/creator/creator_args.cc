@@ -35,6 +35,7 @@
 #  endif
 
 #  include "BKE_appdir.hh"
+#  include "BKE_blender_cli_command.hh"
 #  include "BKE_blender_version.h"
 #  include "BKE_blendfile.hh"
 #  include "BKE_context.hh"
@@ -416,6 +417,57 @@ static int (*parse_int_range_relative_clamp_n(const char *str,
 fail:
   MEM_freeN(values);
   return nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Deferred Argument Handling
+ *
+ * Support executing an argument running instead of #WM_main which is deferred.
+ * Needed for arguments which are handled early but require sub-systems
+ * (Python in particular) * to be initialized.
+ * \{ */
+
+struct BA_ArgCallback_Deferred {
+  BA_ArgCallback func;
+  int argc;
+  const char **argv;
+  void *data;
+  /** Return-code. */
+  int exit_code;
+};
+
+static bool main_arg_deferred_is_set()
+{
+  return app_state.main_arg_deferred != nullptr;
+}
+
+static void main_arg_deferred_setup(BA_ArgCallback func, int argc, const char **argv, void *data)
+{
+  BLI_assert(app_state.main_arg_deferred == nullptr);
+  BA_ArgCallback_Deferred *d = static_cast<BA_ArgCallback_Deferred *>(
+      MEM_callocN(sizeof(*d), __func__));
+  d->func = func;
+  d->argc = argc;
+  d->argv = argv;
+  d->data = data;
+  d->exit_code = 0;
+  app_state.main_arg_deferred = d;
+}
+
+static void main_arg_deferred_exit_code_set(int exit_code)
+{
+  BA_ArgCallback_Deferred *d = app_state.main_arg_deferred;
+  BLI_assert(d != nullptr);
+  d->exit_code = exit_code;
+}
+
+int main_arg_handle_deferred()
+{
+  BA_ArgCallback_Deferred *d = app_state.main_arg_deferred;
+  d->func(d->argc, d->argv, d->data);
+  return d->exit_code;
 }
 
 /** \} */
@@ -940,21 +992,34 @@ static const char arg_handle_command_set_doc[] =
     "\tPass '--help' after the command to see its help text.\n"
     "\n"
     "\tThis implies '--background' mode.";
-static int arg_handle_command_set(int argc, const char **argv, void * /*data*/)
+static int arg_handle_command_set(int argc, const char **argv, void *data)
 {
-  if (argc < 2) {
-    fprintf(stderr, "%s requires at least one argument\n", argv[0]);
-    exit(EXIT_FAILURE);
-    BLI_assert_unreachable();
+  if (!main_arg_deferred_is_set()) {
+    if (argc < 2) {
+      fprintf(stderr, "%s requires at least one argument\n", argv[0]);
+      exit(EXIT_FAILURE);
+      BLI_assert_unreachable();
+    }
+    /* Application "info" messages get in the way of command line output, suppress them. */
+    G.quiet = true;
+
+    background_mode_set();
+
+    main_arg_deferred_setup(arg_handle_command_set, argc, argv, data);
   }
-
-  /* Application "info" messages get in the way of command line output, suppress them. */
-  G.quiet = true;
-
-  background_mode_set();
-
-  app_state.command.argc = argc - 1;
-  app_state.command.argv = argv + 1;
+  else {
+    bContext *C = static_cast<bContext *>(data);
+    const char *id = argv[1];
+    int exit_code;
+    if (STREQ(id, "help")) {
+      BKE_blender_cli_command_print_help();
+      exit_code = EXIT_SUCCESS;
+    }
+    else {
+      exit_code = BKE_blender_cli_command_exec(C, id, argc - 2, argv + 2);
+    }
+    main_arg_deferred_exit_code_set(exit_code);
+  }
 
   /* Consume remaining arguments. */
   return argc - 1;
@@ -2409,8 +2474,8 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
       ba, nullptr, "--disable-abort-handler", CB(arg_handle_abort_handler_disable), nullptr);
 
   BLI_args_add(ba, "-b", "--background", CB(arg_handle_background_mode_set), nullptr);
-  /* Command implies background mode. */
-  BLI_args_add(ba, "-c", "--command", CB(arg_handle_command_set), nullptr);
+  /* Command implies background mode (defers execution). */
+  BLI_args_add(ba, "-c", "--command", CB(arg_handle_command_set), C);
 
   BLI_args_add(ba, "-a", nullptr, CB(arg_handle_playback_mode), nullptr);
 

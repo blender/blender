@@ -10,6 +10,7 @@
  * Functionality for main() initialization.
  */
 
+struct BA_ArgCallback_Deferred;
 struct bArgs;
 struct bContext;
 
@@ -33,6 +34,12 @@ void main_args_setup(struct bContext *C, struct bArgs *ba, bool all);
  */
 int main_args_handle_load_file(int argc, const char **argv, void *data);
 
+/**
+ * Handle an argument which requested deferred evaluation.
+ * Needed when arguments which evaluate early need Python to be initialized for example.
+ */
+int main_arg_handle_deferred();
+
 /* `creator_signals.cc` */
 
 void main_signal_setup(void);
@@ -53,12 +60,10 @@ struct ApplicationState {
     unsigned char python;
   } exit_code_on_error;
 
-  /** Storage for commands (see `--command` argument). */
-  struct {
-    int argc;
-    const char **argv;
-  } command;
+  /** Store the argument state for later handling. */
+  struct BA_ArgCallback_Deferred *main_arg_deferred;
 };
+
 extern struct ApplicationState app_state; /* `creator.cc` */
 
 /**
