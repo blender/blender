@@ -489,7 +489,7 @@ static void arg_py_context_backup(bContext *C, BlendePyContextStore *c_py, const
 {
   c_py->wm = CTX_wm_manager(C);
   c_py->scene = CTX_data_scene(C);
-  c_py->has_win = !BLI_listbase_is_empty(&c_py->wm->windows);
+  c_py->has_win = c_py->wm && !BLI_listbase_is_empty(&c_py->wm->windows);
   if (c_py->has_win) {
     c_py->win = CTX_wm_window(C);
     CTX_wm_window_set(C, static_cast<wmWindow *>(c_py->wm->windows.first));
