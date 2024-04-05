@@ -145,7 +145,7 @@ bool is_inside_motion_line(int2 tile, MotionLine motion_line)
   float distance_to_line = math::dot(motion_line.normal, motion_line.origin - float2(tile));
   /* In order to be conservative and for simplicity, we use the tiles bounding circles.
    * Consider that both the tile and the line have bounding radius of M_SQRT1_2. */
-  return math::abs(distance_to_line) < math::numbers::sqrt2;
+  return math::abs(distance_to_line) < math::numbers::sqrt2_v<float>;
 }
 
 /* The max tile velocity image computes the maximum within 32x32 blocks, while the velocity can
