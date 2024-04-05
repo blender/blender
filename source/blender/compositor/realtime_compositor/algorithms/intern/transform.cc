@@ -55,7 +55,7 @@ static Domain compute_realized_transformation_domain(const Domain &domain)
 void transform(Context &context,
                Result &input,
                Result &output,
-               float3x3 transformation,
+               const float3x3 &transformation,
                RealizationOptions realization_options)
 {
   /* If we are wrapping, the input is translated but the target domain remains fixed, which results

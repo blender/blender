@@ -518,8 +518,8 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
      * this vertex just takes its face normal.
      */
     const int l_curr_index = BM_elem_index_get(l_curr);
-    const float3 no = !fnos.is_empty() ? fnos[BM_elem_index_get(l_curr->f)] :
-                                         float3(l_curr->f->no);
+    const float3 &no = !fnos.is_empty() ? fnos[BM_elem_index_get(l_curr->f)] :
+                                          float3(l_curr->f->no);
     copy_v3_v3(r_lnos[l_curr_index], no);
 
     /* If needed, generate this (simple!) lnor space. */
@@ -529,8 +529,8 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
 
       {
         const BMVert *v_pivot = l_curr->v;
-        const float3 co_pivot = !vcos.is_empty() ? vcos[BM_elem_index_get(v_pivot)] :
-                                                   float3(v_pivot->co);
+        const float3 &co_pivot = !vcos.is_empty() ? vcos[BM_elem_index_get(v_pivot)] :
+                                                    float3(v_pivot->co);
         const BMVert *v_1 = l_curr->next->v;
         const float3 co_1 = !vcos.is_empty() ? vcos[BM_elem_index_get(v_1)] : float3(v_1->co);
         const BMVert *v_2 = l_curr->prev->v;
@@ -592,8 +592,8 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
     int clnors_count = 0;
     bool clnors_invalid = false;
 
-    const float3 co_pivot = !vcos.is_empty() ? vcos[BM_elem_index_get(v_pivot)] :
-                                               float3(v_pivot->co);
+    const float3 &co_pivot = !vcos.is_empty() ? vcos[BM_elem_index_get(v_pivot)] :
+                                                float3(v_pivot->co);
 
     MLoopNorSpace *lnor_space = r_lnors_spacearr ? BKE_lnor_space_create(r_lnors_spacearr) :
                                                    nullptr;
@@ -651,7 +651,7 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
         /* Calculate angle between the two face edges incident on this vertex. */
         const BMFace *f = lfan_pivot->f;
         const float fac = blender::math::safe_acos_approx(dot_v3v3(vec_next, vec_curr));
-        const float3 no = !fnos.is_empty() ? fnos[BM_elem_index_get(f)] : float3(f->no);
+        const float3 &no = !fnos.is_empty() ? fnos[BM_elem_index_get(f)] : float3(f->no);
         /* Accumulate */
         madd_v3_v3fl(lnor, no, fac);
 
@@ -1691,10 +1691,10 @@ static void bm_mesh_loops_calc_normals_no_autosmooth(BMesh *bm,
 
     l_curr = l_first = BM_FACE_FIRST_LOOP(f_curr);
     do {
-      const float3 no = is_face_flat ? (!fnos.is_empty() ? fnos[BM_elem_index_get(f_curr)] :
-                                                           float3(f_curr->no)) :
-                                       (!vnos.is_empty() ? vnos[BM_elem_index_get(l_curr->v)] :
-                                                           float3(l_curr->v->no));
+      const float3 &no = is_face_flat ? (!fnos.is_empty() ? fnos[BM_elem_index_get(f_curr)] :
+                                                            float3(f_curr->no)) :
+                                        (!vnos.is_empty() ? vnos[BM_elem_index_get(l_curr->v)] :
+                                                            float3(l_curr->v->no));
       copy_v3_v3(r_lnos[BM_elem_index_get(l_curr)], no);
 
     } while ((l_curr = l_curr->next) != l_first);
