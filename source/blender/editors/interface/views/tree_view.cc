@@ -664,7 +664,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   item.add_treerow_button(block_);
 
   /* After adding tree-row button (would disable hover highlighting). */
-  UI_block_emboss_set(&block_, UI_EMBOSS_NONE);
+  UI_block_emboss_set(&block_, UI_EMBOSS_NONE_OR_STATUS);
 
   row = uiLayoutRow(overlap, true);
   item.add_indent(*row);
