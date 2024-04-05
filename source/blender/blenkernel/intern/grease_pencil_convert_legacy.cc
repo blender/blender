@@ -389,7 +389,7 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
       "delta_time", AttrDomain::Point);
   SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
       "rotation", AttrDomain::Point);
-  MutableSpan<ColorGeometry4f> vertex_colors = drawing.fill_colors_for_write();
+  MutableSpan<ColorGeometry4f> vertex_colors = drawing.vertex_colors_for_write();
   SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_span<bool>(
       ".selection", AttrDomain::Point);
   MutableSpan<MDeformVert> dverts = use_dverts ? curves.wrap().deform_verts_for_write() :
