@@ -185,8 +185,8 @@ ENUM_OPERATORS(Layer::Flags, Layer::Flags::Enabled);
  * to identify which F-Curves (and in the future other animation data) it will
  * be animated by.
  *
- * This is called an 'binding' because it acts like an binding socket of the
- * Animation data-block, into which an animatable ID can be noodled.
+ * This is called a 'binding' because it binds the animatable ID to the sub-set
+ * of animation data that should animate it.
  *
  * \see AnimData::binding_handle
  */
