@@ -58,18 +58,9 @@ static void node_composit_init_vecblur(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_vecblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *col;
-
-  col = uiLayoutColumn(layout, false);
+  uiLayout *col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "samples", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(col, ptr, "factor", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Blur"), ICON_NONE);
-
-  col = uiLayoutColumn(layout, true);
-  uiItemL(col, IFACE_("Speed:"), ICON_NONE);
-  uiItemR(col, ptr, "speed_min", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Min"), ICON_NONE);
-  uiItemR(col, ptr, "speed_max", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Max"), ICON_NONE);
-
-  uiItemR(layout, ptr, "use_curved", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;
