@@ -302,7 +302,7 @@ static bool bpy_run_string_impl(bContext *C,
 
   if (retval == nullptr) {
     ok = false;
-    if (ReportList *wm_reports = CTX_wm_reports(C)) {
+    if (ReportList *wm_reports = C ? CTX_wm_reports(C) : nullptr) {
       BPy_errors_to_report(wm_reports);
     }
     PyErr_Print();
