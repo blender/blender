@@ -7,7 +7,6 @@
  */
 
 #include <algorithm>
-#include <cstdio>
 #include <sstream>
 
 #include "BKE_attribute.hh"
@@ -18,6 +17,7 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_task.hh"
 
 #include "IO_path_util.hh"
@@ -528,14 +528,15 @@ static std::string float3_to_string(const float3 &numbers)
 
 MTLWriter::MTLWriter(const char *obj_filepath) noexcept(false)
 {
-  mtl_filepath_ = obj_filepath;
-  /* It only makes sense to replace this extension if it's at least as long as the existing one. */
-  BLI_assert(strlen(BLI_path_extension(obj_filepath)) == 4);
-  const bool ok = BLI_path_extension_replace(
-      mtl_filepath_.data(), mtl_filepath_.size() + 1, ".mtl");
+  char mtl_path[FILE_MAX];
+  STRNCPY(mtl_path, obj_filepath);
+
+  const bool ok = BLI_path_extension_replace(mtl_path, sizeof(mtl_path), ".mtl");
   if (!ok) {
     throw std::system_error(ENAMETOOLONG, std::system_category(), "");
   }
+
+  mtl_filepath_ = mtl_path;
   outfile_ = BLI_fopen(mtl_filepath_.c_str(), "wb");
   if (!outfile_) {
     throw std::system_error(errno, std::system_category(), "Cannot open file " + mtl_filepath_);
