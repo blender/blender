@@ -501,73 +501,37 @@ BLI_STATIC_ASSERT_ALIGN(MotionBlurTileIndirection, 16)
  * \{ */
 
 struct VolumesInfoData {
-  float2 coord_scale;
-  float2 viewport_size_inv;
+  /* During object voxelization, we need to use an infinite projection matrix to avoid clipping
+   * faces. But they cannot be used for recovering the view position from froxel position as they
+   * are not invertible. We store the finite projection matrix and use it for this purpose. */
+  float4x4 winmat_finite;
+  float4x4 wininv_finite;
+  /* Convert volume frustum UV(+ linear Z) coordinates into previous frame UV(+ linear Z). */
+  float4x4 history_matrix;
+  /* Size of the froxel grid texture. */
   packed_int3 tex_size;
+  /* Maximum light intensity during volume lighting evaluation. */
   float light_clamp;
+  /* Inverse of size of the froxel grid. */
   packed_float3 inv_tex_size;
-  int tile_size;
-  int tile_size_lod;
+  /* Maximum light intensity during volume lighting evaluation. */
   float shadow_steps;
+  /* 2D scaling factor to make froxel squared. */
+  float2 coord_scale;
+  /* Extent and inverse extent of the main shading view (render extent, not film extent). */
+  float2 main_view_extent;
+  float2 main_view_extent_inv;
+  /* Size in main view pixels of one froxel in XY. */
+  int tile_size;
+  /* Hi-Z LOD to use during volume shadow tagging. */
+  int tile_size_lod;
+  /* Depth to froxel mapping. */
   float depth_near;
   float depth_far;
   float depth_distribution;
   float _pad0;
-  float _pad1;
-  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(VolumesInfoData, 16)
-
-/* Volume slice to view space depth. */
-static inline float volume_z_to_view_z(
-    float near, float far, float distribution, bool is_persp, float z)
-{
-  if (is_persp) {
-    /* Exponential distribution. */
-    return (exp2(z / distribution) - near) / far;
-  }
-  else {
-    /* Linear distribution. */
-    return near + (far - near) * z;
-  }
-}
-
-static inline float view_z_to_volume_z(
-    float near, float far, float distribution, bool is_persp, float depth)
-{
-  if (is_persp) {
-    /* Exponential distribution. */
-    return distribution * log2(depth * far + near);
-  }
-  else {
-    /* Linear distribution. */
-    return (depth - near) * distribution;
-  }
-}
-
-static inline float3 screen_to_volume(const float4x4 projection_matrix,
-                                      float near,
-                                      float far,
-                                      float distribution,
-                                      const float2 coord_scale,
-                                      float3 coord)
-{
-  bool is_persp = projection_matrix[3][3] == 0.0;
-
-  /* get_view_z_from_depth */
-  float d = 2.0 * coord.z - 1.0;
-  if (is_persp) {
-    coord.z = -projection_matrix[3][2] / (d + projection_matrix[2][2]);
-  }
-  else {
-    coord.z = (d - projection_matrix[3][2]) / projection_matrix[2][2];
-  }
-
-  coord.z = view_z_to_volume_z(near, far, distribution, is_persp, coord.z);
-  coord.x *= coord_scale.x;
-  coord.y *= coord_scale.y;
-  return coord;
-}
 
 /** \} */
 

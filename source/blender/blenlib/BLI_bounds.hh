@@ -42,6 +42,16 @@ template<typename T>
   return std::nullopt;
 }
 
+template<typename T>
+[[nodiscard]] inline std::optional<Bounds<T>> min_max(const std::optional<Bounds<T>> &a,
+                                                      const T &b)
+{
+  if (a.has_value()) {
+    return merge(*a, {b, b});
+  }
+  return Bounds<T>{b, b};
+}
+
 /**
  * Find the smallest and largest values element-wise in the span.
  */
@@ -117,12 +127,32 @@ template<typename T, typename RadiusT>
       [](const Bounds<T> &a, const Bounds<T> &b) { return merge(a, b); });
 }
 
+/**
+ * Returns a new bound that contains the intersection of the two given bound.
+ * Returns no box if there are no overlap.
+ */
+template<typename T>
+[[nodiscard]] inline std::optional<Bounds<T>> intersect(const std::optional<Bounds<T>> &a,
+                                                        const std::optional<Bounds<T>> &b)
+{
+  if (!a.has_value() || !b.has_value()) {
+    return std::nullopt;
+  }
+  const Bounds<T> result{math::max(a.value().min, b.value().min),
+                         math::min(a.value().max, b.value().max)};
+  if (result.is_empty()) {
+    return std::nullopt;
+  }
+  return result;
+}
+
 }  // namespace bounds
 
 namespace detail {
 
 template<typename T, int Size>
-[[nodiscard]] inline bool less_or_equal_than(const VecBase<T, Size> &a, const VecBase<T, Size> &b)
+[[nodiscard]] inline bool any_less_or_equal_than(const VecBase<T, Size> &a,
+                                                 const VecBase<T, Size> &b)
 {
   for (int i = 0; i < Size; i++) {
     if (a[i] <= b[i]) {
@@ -140,7 +170,7 @@ template<typename T> inline bool Bounds<T>::is_empty() const
     return this->max <= this->min;
   }
   else {
-    return detail::less_or_equal_than(this->max, this->min);
+    return detail::any_less_or_equal_than(this->max, this->min);
   }
 }
 

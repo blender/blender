@@ -7,6 +7,7 @@
  * - uniform_buf.volumes
  */
 
+#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(draw_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_lib.glsl)
@@ -15,44 +16,109 @@
 /* Based on Frosbite Unified Volumetric.
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
 
-/* Volume slice to view space depth. */
+/* Per froxel jitter to break slices and flickering.
+ * Wrapped so that changing it is easier. */
+float volume_froxel_jitter(ivec2 froxel, float offset)
+{
+  return interlieved_gradient_noise(vec2(froxel), 0.0, offset);
+}
+
+/* Volume froxel texture normalized linear Z to view space Z.
+ * Not dependant on projection matrix (as long as drw_view_is_perspective is consistent). */
 float volume_z_to_view_z(float z)
 {
   float near = uniform_buf.volumes.depth_near;
   float far = uniform_buf.volumes.depth_far;
   float distribution = uniform_buf.volumes.depth_distribution;
-  bool is_persp = ProjectionMatrix[3][3] == 0.0;
-  /* Implemented in eevee_shader_shared.cc */
-  return volume_z_to_view_z(near, far, distribution, is_persp, z);
+  if (drw_view_is_perspective()) {
+    /* Exponential distribution. */
+    return (exp2(z / distribution) - near) / far;
+  }
+  else {
+    /* Linear distribution. */
+    return near + (far - near) * z;
+  }
 }
 
+/* View space Z to volume froxel texture normalized linear Z.
+ * Not dependant on projection matrix (as long as drw_view_is_perspective is consistent). */
 float view_z_to_volume_z(float depth)
 {
   float near = uniform_buf.volumes.depth_near;
   float far = uniform_buf.volumes.depth_far;
   float distribution = uniform_buf.volumes.depth_distribution;
-  bool is_persp = ProjectionMatrix[3][3] == 0.0;
-  /* Implemented in eevee_shader_shared.cc */
-  return view_z_to_volume_z(near, far, distribution, is_persp, depth);
+  if (drw_view_is_perspective()) {
+    /* Exponential distribution. */
+    return distribution * log2(depth * far + near);
+  }
+  else {
+    /* Linear distribution. */
+    return (depth - near) / (far - near);
+  }
 }
 
-/* Volume texture normalized coordinates to screen UVs (special range [0, 1]). */
-vec3 volume_to_screen(vec3 coord)
+/* Jittered volume texture normalized coordinates to view space position. */
+vec3 volume_jitter_to_view(vec3 coord)
+{
+  /* Since we use an infinite projection matrix for rendering inside the jittered volumes,
+   * we need to use a different matrix to reconstruct positions as the infinite matrix is not
+   * always invertible. */
+  mat4x4 winmat = uniform_buf.volumes.winmat_finite;
+  mat4x4 wininv = uniform_buf.volumes.wininv_finite;
+  /* Input coordinates are in jittered volume texture space. */
+  float view_z = volume_z_to_view_z(coord.z);
+  /* We need to recover the NDC position for correct perspective divide. */
+  float ndc_z = drw_perspective_divide(winmat * vec4(0.0, 0.0, view_z, 1.0)).z;
+  vec2 ndc_xy = drw_screen_to_ndc(coord.xy);
+  /* NDC to view. */
+  return drw_perspective_divide(wininv * vec4(ndc_xy, ndc_z, 1.0)).xyz;
+}
+
+/* View space position to jittered volume texture normalized coordinates. */
+vec3 volume_view_to_jitter(vec3 vP)
+{
+  /* Since we use an infinite projection matrix for rendering inside the jittered volumes,
+   * we need to use a different matrix to reconstruct positions as the infinite matrix is not
+   * always invertible. */
+  mat4x4 winmat = uniform_buf.volumes.winmat_finite;
+  /* View to ndc. */
+  vec3 ndc_P = drw_perspective_divide(winmat * vec4(vP, 1.0));
+  /* Here, screen is the same as volume texture UVW space. */
+  return vec3(drw_ndc_to_screen(ndc_P.xy), view_z_to_volume_z(vP.z));
+}
+
+/* Volume texture normalized coordinates (UVW) to render screen (UV).
+ * Expect active view to be the main view. */
+vec3 volume_resolve_to_screen(vec3 coord)
 {
   coord.z = volume_z_to_view_z(coord.z);
   coord.z = drw_depth_view_to_screen(coord.z);
   coord.xy /= uniform_buf.volumes.coord_scale;
   return coord;
 }
-
-vec3 screen_to_volume(vec3 coord)
+/* Render screen (UV) to volume texture normalized coordinates (UVW).
+ * Expect active view to be the main view. */
+vec3 volume_screen_to_resolve(vec3 coord)
 {
-  float near = uniform_buf.volumes.depth_near;
-  float far = uniform_buf.volumes.depth_far;
-  float distribution = uniform_buf.volumes.depth_distribution;
-  vec2 coord_scale = uniform_buf.volumes.coord_scale;
-  /* Implemented in eevee_shader_shared.cc */
-  return screen_to_volume(ProjectionMatrix, near, far, distribution, coord_scale, coord);
+  coord.xy *= uniform_buf.volumes.coord_scale;
+  coord.z = drw_depth_screen_to_view(coord.z);
+  coord.z = view_z_to_volume_z(coord.z);
+  return coord;
+}
+
+/* Returns the uvw (normalized coordinate) of a froxel in the previous frame.
+ * If no history exists, it will return out of bounds sampling coordinates. */
+vec3 volume_history_position_get(ivec3 froxel)
+{
+  /* We can't reproject by a simple matrix multiplication. We first need to remap to the view Z,
+   * then transform, then remap back to Volume range. */
+  vec3 uvw = (vec3(froxel) + 0.5) * uniform_buf.volumes.inv_tex_size;
+  uvw.z = volume_z_to_view_z(uvw.z);
+
+  vec3 uvw_history = transform_point(uniform_buf.volumes.history_matrix, uvw);
+  /* TODO(fclem): For now assume same distribution settings. */
+  uvw_history.z = view_z_to_volume_z(uvw_history.z);
+  return uvw_history;
 }
 
 float volume_phase_function_isotropic()
@@ -155,10 +221,10 @@ vec3 volume_shadow(
   for (float t = 1.0; t < VOLUMETRIC_SHADOW_MAX_STEP && t <= uniform_buf.volumes.shadow_steps;
        t += 1.0)
   {
-    vec3 pos = P + L * t;
+    vec3 w_pos = P + L * t;
 
-    vec3 ndc = drw_point_world_to_ndc(pos);
-    vec3 volume_co = screen_to_volume(drw_ndc_to_screen(ndc));
+    vec3 v_pos = drw_point_world_to_view(w_pos);
+    vec3 volume_co = volume_view_to_jitter(v_pos);
     /* Let the texture be clamped to edge. This reduce visual glitches. */
     vec3 s_extinction = texture(extinction_tx, volume_co).rgb;
 
@@ -177,7 +243,13 @@ struct VolumeResolveSample {
 
 VolumeResolveSample volume_resolve(vec3 ndc_P, sampler3D transmittance_tx, sampler3D scattering_tx)
 {
-  vec3 coord = screen_to_volume(ndc_P);
+  vec3 coord = volume_screen_to_resolve(ndc_P);
+
+  /* Volumes objects have the same aliasing problems has shadow maps.
+   * To fix this we need a quantization bias (the size of a step in Z) and a slope bias
+   * (multiplied by the size of a froxel in 2D). */
+  coord.z -= uniform_buf.volumes.inv_tex_size.z;
+  /* TODO(fclem): Slope bias. */
 
   VolumeResolveSample volume;
   volume.scattering = texture(scattering_tx, coord).rgb;

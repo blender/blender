@@ -79,6 +79,15 @@ static inline void geometry_call(PassMain::Sub *sub_pass,
   }
 }
 
+static inline void volume_call(
+    MaterialPass &matpass, Scene *scene, Object *ob, gpu::Batch *geom, ResourceHandle res_handle)
+{
+  if (matpass.sub_pass != nullptr) {
+    PassMain::Sub *object_pass = volume_sub_pass(*matpass.sub_pass, scene, ob, matpass.gpumat);
+    object_pass->draw(geom, res_handle);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -125,13 +134,12 @@ void SyncModule::sync_mesh(Object *ob,
     Material &material = material_array.materials[i];
     GPUMaterial *gpu_material = material_array.gpu_materials[i];
 
-    if (material.has_volume && (i == 0)) {
-      /* Only support single volume material for now. */
-      geometry_call(material.volume_occupancy.sub_pass, geom, res_handle);
-      inst_.pipelines.volume.material_call(material.volume_material, ob, res_handle);
+    if (material.has_volume) {
+      volume_call(material.volume_occupancy, inst_.scene, ob, geom, res_handle);
+      volume_call(material.volume_material, inst_.scene, ob, geom, res_handle);
       /* Do not render surface if we are rendering a volume object
        * and do not have a surface closure. */
-      if (gpu_material && !GPU_material_has_surface_output(gpu_material)) {
+      if (!material.has_surface) {
         continue;
       }
     }
@@ -206,10 +214,9 @@ bool SyncModule::sync_sculpt(Object *ob,
 
     Material &material = material_array.materials[batch.material_slot];
 
-    if (material.has_volume && (batch.material_slot == 0)) {
-      /* Only support single volume material for now. */
-      geometry_call(material.volume_occupancy.sub_pass, geom, res_handle);
-      inst_.pipelines.volume.material_call(material.volume_material, ob, res_handle);
+    if (material.has_volume) {
+      volume_call(material.volume_occupancy, inst_.scene, ob, geom, res_handle);
+      volume_call(material.volume_material, inst_.scene, ob, geom, res_handle);
       /* Do not render surface if we are rendering a volume object
        * and do not have a surface closure. */
       if (material.has_surface == false) {
@@ -286,7 +293,7 @@ void SyncModule::sync_point_cloud(Object *ob,
   if (material.has_volume) {
     /* Only support single volume material for now. */
     drawcall_add(material.volume_occupancy);
-    inst_.pipelines.volume.material_call(material.volume_material, ob, res_handle);
+    drawcall_add(material.volume_material);
 
     /* Do not render surface if we are rendering a volume object
      * and do not have a surface closure. */
@@ -346,9 +353,17 @@ void SyncModule::sync_volume(Object *ob, ObjectHandle & /*ob_handle*/, ResourceH
   /* Use bounding box tag empty spaces. */
   gpu::Batch *geom = DRW_cache_cube_get();
 
-  geometry_call(material.volume_occupancy.sub_pass, geom, res_handle);
+  auto drawcall_add = [&](MaterialPass &matpass, gpu::Batch *geom, ResourceHandle res_handle) {
+    if (matpass.sub_pass == nullptr) {
+      return;
+    }
+    PassMain::Sub *object_pass = volume_sub_pass(
+        *matpass.sub_pass, inst_.scene, ob, matpass.gpumat);
+    object_pass->draw(geom, res_handle);
+  };
 
-  inst_.pipelines.volume.material_call(material.volume_material, ob, res_handle);
+  drawcall_add(material.volume_occupancy, geom, res_handle);
+  drawcall_add(material.volume_material, geom, res_handle);
 }
 
 /** \} */
@@ -542,7 +557,7 @@ void SyncModule::sync_curves(Object *ob,
   if (material.has_volume) {
     /* Only support single volume material for now. */
     drawcall_add(material.volume_occupancy);
-    inst_.pipelines.volume.material_call(material.volume_material, ob, res_handle);
+    drawcall_add(material.volume_material);
     /* Do not render surface if we are rendering a volume object
      * and do not have a surface closure. */
     if (material.has_surface == false) {

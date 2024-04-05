@@ -10,9 +10,13 @@
  * This file is only for shading passes. Other passes are declared in their own module.
  */
 
-#include "eevee_pipeline.hh"
+#include "BLI_bounds.hh"
+
 #include "eevee_instance.hh"
+#include "eevee_pipeline.hh"
 #include "eevee_shadow.hh"
+
+#include <iostream>
 
 #include "draw_common.hh"
 
@@ -124,7 +128,8 @@ void WorldPipeline::render(View &view)
 
 void WorldVolumePipeline::sync(GPUMaterial *gpumat)
 {
-  is_valid_ = (gpumat != nullptr) && (GPU_material_status(gpumat) == GPU_MAT_SUCCESS);
+  is_valid_ = (gpumat != nullptr) && (GPU_material_status(gpumat) == GPU_MAT_SUCCESS) &&
+              GPU_material_has_volume_output(gpumat);
   if (!is_valid_) {
     /* Skip if the material has not compiled yet. */
     return;
@@ -138,9 +143,10 @@ void WorldVolumePipeline::sync(GPUMaterial *gpumat)
   world_ps_.bind_resources(inst_.sampling);
 
   world_ps_.material_set(*inst_.manager, gpumat);
+  /* Bind correct dummy texture for attributes defaults. */
   volume_sub_pass(world_ps_, nullptr, nullptr, gpumat);
 
-  world_ps_.dispatch(math::divide_ceil(inst_.volume.grid_size(), int3(VOLUME_GROUP_SIZE)));
+  world_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   /* Sync with object property pass. */
   world_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
 }
@@ -926,15 +932,19 @@ void DeferredPipeline::render(View &main_view,
 void VolumeLayer::sync()
 {
   object_bounds_.clear();
+  combined_screen_bounds_ = std::nullopt;
   use_hit_list = false;
   is_empty = true;
   finalized = false;
+  has_scatter = false;
+  has_absorption = false;
 
   draw::PassMain &layer_pass = volume_layer_ps_;
   layer_pass.init();
+  layer_pass.clear_stencil(0x0u);
   {
     PassMain::Sub &pass = layer_pass.sub("occupancy_ps");
-    /* Double sided without depth test. */
+    /* Always double sided to let all fragments be invoked. */
     pass.state_set(DRW_STATE_WRITE_DEPTH);
     pass.bind_resources(inst_.uniform_data);
     pass.bind_resources(inst_.volume.occupancy);
@@ -943,6 +953,9 @@ void VolumeLayer::sync()
   }
   {
     PassMain::Sub &pass = layer_pass.sub("material_ps");
+    /* Double sided with stencil equal to ensure only one fragment is nvoked per pixel. */
+    pass.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_NEQUAL);
+    pass.state_stencil(0x1u, 0x1u, 0x1u);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
     pass.bind_resources(inst_.uniform_data);
@@ -977,7 +990,34 @@ PassMain::Sub *VolumeLayer::material_add(const Object * /*ob*/,
                  "Only volume material should be added here");
   PassMain::Sub *pass = &material_ps_->sub(GPU_material_get_name(gpumat));
   pass->material_set(*inst_.manager, gpumat);
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_SCATTER)) {
+    has_scatter = true;
+  }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_ABSORPTION)) {
+    has_absorption = true;
+  }
   return pass;
+}
+
+bool VolumeLayer::bounds_overlaps(const VolumeObjectBounds &object_bounds) const
+{
+  /* First check the biggest area. */
+  if (bounds::intersect(object_bounds.screen_bounds, combined_screen_bounds_)) {
+    return true;
+  }
+  /* Check against individual bounds to try to squeeze the new object between them. */
+  for (const std::optional<Bounds<float2>> &other_aabb : object_bounds_) {
+    if (bounds::intersect(object_bounds.screen_bounds, other_aabb)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void VolumeLayer::add_object_bound(const VolumeObjectBounds &object_bounds)
+{
+  object_bounds_.append(object_bounds.screen_bounds);
+  combined_screen_bounds_ = bounds::merge(combined_screen_bounds_, object_bounds.screen_bounds);
 }
 
 void VolumeLayer::render(View &view, Texture &occupancy_tx)
@@ -1007,6 +1047,7 @@ void VolumeLayer::render(View &view, Texture &occupancy_tx)
 
 void VolumePipeline::sync()
 {
+  object_integration_range_ = std::nullopt;
   enabled_ = false;
   has_scatter_ = false;
   has_absorption_ = false;
@@ -1024,107 +1065,63 @@ void VolumePipeline::render(View &view, Texture &occupancy_tx)
   }
 }
 
-GridAABB VolumePipeline::grid_aabb_from_object(Object *ob)
+VolumeObjectBounds::VolumeObjectBounds(const Camera &camera, Object *ob)
 {
-  const Camera &camera = inst_.camera;
-  const VolumesInfoData &data = inst_.volume.data_;
-  /* Returns the unified volume grid cell corner of a world space coordinate. */
-  auto to_global_grid_coords = [&](float3 wP) -> int3 {
-    /* TODO(fclem): Should we use the render view winmat and not the camera one? */
-    const float4x4 &view_matrix = camera.data_get().viewmat;
-    const float4x4 &projection_matrix = camera.data_get().winmat;
+  /* TODO(fclem): For panoramic camera, we will have to do this check for each cubeface. */
+  const float4x4 &view_matrix = camera.data_get().viewmat;
+  /* Note in practice we only care about the projection type since we only care about 2D overlap,
+   * and this is independant of FOV. */
+  const float4x4 &projection_matrix = camera.data_get().winmat;
 
-    float3 ndc_coords = math::project_point(projection_matrix * view_matrix, wP);
-    ndc_coords = (ndc_coords * 0.5f) + float3(0.5f);
-
-    float3 grid_coords = screen_to_volume(projection_matrix,
-                                          data.depth_near,
-                                          data.depth_far,
-                                          data.depth_distribution,
-                                          data.coord_scale,
-                                          ndc_coords);
-    /* Round to nearest grid corner. */
-    return int3(grid_coords * float3(data.tex_size) + 0.5);
-  };
-
-  const Bounds<float3> bounds = BKE_object_boundbox_get(ob).value_or(Bounds(float3(0)));
-  int3 min = int3(INT32_MAX);
-  int3 max = int3(INT32_MIN);
+  const Bounds<float3> bounds = BKE_object_boundbox_get(ob).value_or(Bounds(float3(0.0f)));
 
   BoundBox bb;
   BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
-  for (float3 l_corner : bb.vec) {
-    float3 w_corner = math::transform_point(ob->object_to_world(), l_corner);
-    /* Note that this returns the nearest cell corner coordinate.
-     * So sub-froxel AABB will effectively return the same coordinate
-     * for each corner (making it empty and skipped) unless it
-     * cover the center of the froxel. */
-    math::min_max(to_global_grid_coords(w_corner), min, max);
-  }
-  return {min, max};
-}
 
-GridAABB VolumePipeline::grid_aabb_from_view()
-{
-  return {int3(0), inst_.volume.data_.tex_size};
+  screen_bounds = std::nullopt;
+  z_range = std::nullopt;
+
+  for (float3 l_corner : bb.vec) {
+    float3 ws_corner = math::transform_point(ob->object_to_world(), l_corner);
+    /* Split view and projection for percision. */
+    float3 vs_corner = math::transform_point(view_matrix, ws_corner);
+    float3 ss_corner = math::project_point(projection_matrix, vs_corner);
+
+    z_range = bounds::min_max(z_range, vs_corner.z);
+    if (camera.is_perspective() && vs_corner.z >= 1.0e-8f) {
+      /* If the object is crossing the z=0 plane, we can't determine its 2D bounds easily.
+       * In this case, consider the object covering the whole screen.
+       * Still continue the loop for the Z range. */
+      screen_bounds = Bounds<float2>(float2(-1.0f), float2(1.0f));
+    }
+    else {
+      screen_bounds = bounds::min_max(screen_bounds, ss_corner.xy());
+    }
+  }
 }
 
 VolumeLayer *VolumePipeline::register_and_get_layer(Object *ob)
 {
-  GridAABB object_aabb = grid_aabb_from_object(ob);
-  GridAABB view_aabb = grid_aabb_from_view();
-  if (object_aabb.intersection(view_aabb).is_empty()) {
-    /* Skip invisible object with respect to raster grid and bounds density. */
-    return nullptr;
-  }
+  VolumeObjectBounds object_bounds(inst_.camera, ob);
+  object_integration_range_ = bounds::merge(object_integration_range_, object_bounds.z_range);
+
+  enabled_ = true;
   /* Do linear search in all layers in order. This can be optimized. */
   for (auto &layer : layers_) {
-    if (!layer->bounds_overlaps(object_aabb)) {
-      layer->add_object_bound(object_aabb);
+    if (!layer->bounds_overlaps(object_bounds)) {
+      layer->add_object_bound(object_bounds);
       return layer.get();
     }
   }
   /* No non-overlapping layer found. Create new one. */
   int64_t index = layers_.append_and_get_index(std::make_unique<VolumeLayer>(inst_));
-  (*layers_[index]).add_object_bound(object_aabb);
+  (*layers_[index]).add_object_bound(object_bounds);
   return layers_[index].get();
 }
 
-void VolumePipeline::material_call(MaterialPass &volume_material_pass,
-                                   Object *ob,
-                                   ResourceHandle res_handle)
+std::optional<Bounds<float>> VolumePipeline::object_integration_range() const
 {
-  if (volume_material_pass.sub_pass == nullptr) {
-    /* Can happen if shader is not compiled, or if object has been culled. */
-    return;
-  }
-
-  /* TODO(fclem): This should be revisited, `volume_sub_pass()` should not decide on the volume
-   * visibility. Instead, we should query visibility upstream and not try to even compile the
-   * shader. */
-  PassMain::Sub *object_pass = volume_sub_pass(
-      *volume_material_pass.sub_pass, inst_.scene, ob, volume_material_pass.gpumat);
-  if (object_pass) {
-    /* Possible double work here. Should be relatively insignificant in practice. */
-    GridAABB object_aabb = grid_aabb_from_object(ob);
-    GridAABB view_aabb = grid_aabb_from_view();
-    GridAABB visible_aabb = object_aabb.intersection(view_aabb);
-    /* Invisible volumes should already have been clipped. */
-    BLI_assert(visible_aabb.is_empty() == false);
-    /* TODO(fclem): Use graphic pipeline instead of compute so we can leverage GPU culling,
-     * resource indexing and other further optimizations. */
-    object_pass->push_constant("drw_ResourceID", int(res_handle.resource_index()));
-    object_pass->push_constant("grid_coords_min", visible_aabb.min);
-    object_pass->dispatch(math::divide_ceil(visible_aabb.extent(), int3(VOLUME_GROUP_SIZE)));
-    /* Notify the volume module to enable itself. */
-    enabled_ = true;
-    if (GPU_material_flag_get(volume_material_pass.gpumat, GPU_MATFLAG_VOLUME_SCATTER)) {
-      has_scatter_ = true;
-    }
-    if (GPU_material_flag_get(volume_material_pass.gpumat, GPU_MATFLAG_VOLUME_ABSORPTION)) {
-      has_absorption_ = true;
-    }
-  }
+  return object_integration_range_;
 }
 
 bool VolumePipeline::use_hit_list() const

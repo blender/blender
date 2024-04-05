@@ -11,7 +11,7 @@
 
 void main()
 {
-  vec2 uvs = gl_FragCoord.xy * uniform_buf.volumes.viewport_size_inv;
+  vec2 uvs = gl_FragCoord.xy * uniform_buf.volumes.main_view_extent_inv;
   float scene_depth = texelFetch(hiz_tx, ivec2(gl_FragCoord.xy), 0).r;
 
   VolumeResolveSample vol = volume_resolve(

@@ -444,6 +444,14 @@ template<typename T>
 template<typename T>
 [[nodiscard]] MatBase<T, 4, 4> perspective_infinite(T left, T right, T bottom, T top, T near_clip);
 
+/**
+ * \brief Translate a projection matrix after creation in the screen plane.
+ *  Usually used for anti-aliasing jittering.
+ * `offset` is the translation vector in projected space.
+ */
+template<typename T>
+[[nodiscard]] MatBase<T, 4, 4> translate(const MatBase<T, 4, 4> &mat, const VecBase<T, 2> &offset);
+
 }  // namespace projection
 
 /** \} */
@@ -1647,6 +1655,23 @@ template<typename T>
   mat[0][0] /= near_clip;
   mat[1][1] /= near_clip;
   return mat;
+}
+
+template<typename T>
+[[nodiscard]] MatBase<T, 4, 4> translate(const MatBase<T, 4, 4> &mat, const VecBase<T, 2> &offset)
+{
+  MatBase<T, 4, 4> result = mat;
+  const bool is_perspective = mat[2][3] == -1.0f;
+  const bool is_perspective_infinite = mat[2][2] == -1.0f;
+  if (is_perspective | is_perspective_infinite) {
+    result[2][0] -= mat[0][0] * offset.x / math::length(float3(mat[0][0], mat[1][0], mat[2][0]));
+    result[2][1] -= mat[1][1] * offset.y / math::length(float3(mat[0][1], mat[1][1], mat[2][1]));
+  }
+  else {
+    result[3][0] += offset.x;
+    result[3][1] += offset.y;
+  }
+  return result;
 }
 
 extern template float4x4 orthographic(

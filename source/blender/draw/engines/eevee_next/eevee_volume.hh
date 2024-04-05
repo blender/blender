@@ -68,7 +68,7 @@ class VolumeModule {
    */
   Texture hit_count_tx_ = {"hit_count_tx"};
   Texture hit_depth_tx_ = {"hit_depth_tx"};
-  /** Empty frame-buffer for occupancy pass. */
+  Texture front_depth_tx_ = {"front_depth_tx"};
   Framebuffer occupancy_fb_ = {"occupancy_fb"};
 
   /* Material Parameters */
@@ -79,8 +79,8 @@ class VolumeModule {
 
   /* Light Scattering. */
   PassSimple scatter_ps_ = {"Volumes.Scatter"};
-  Texture scatter_tx_;
-  Texture extinction_tx_;
+  SwapChain<Texture, 2> scatter_tx_;
+  SwapChain<Texture, 2> extinction_tx_;
 
   /* Volume Integration */
   PassSimple integration_ps_ = {"Volumes.Integration"};
@@ -93,6 +93,8 @@ class VolumeModule {
 
   Texture dummy_scatter_tx_;
   Texture dummy_transmit_tx_;
+
+  View volume_view = {"Volume View"};
 
  public:
   VolumeModule(Instance &inst, VolumesInfoData &data) : inst_(inst), data_(data)
