@@ -241,7 +241,7 @@ void initialize_bezt(BezTriple *beztr,
 
   /* Set keyframe type value (supplied),
    * which should come from the scene settings in most cases. */
-  BEZKEYTYPE(beztr) = settings.keyframe_type;
+  BEZKEYTYPE_LVALUE(beztr) = settings.keyframe_type;
 
   /* Set default values for "easing" interpolation mode settings.
    * NOTE: Even if these modes aren't currently used, if users switch

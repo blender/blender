@@ -11,6 +11,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_range.h"
 
+#include "DNA_curve_types.h"
+
 struct AnimData;
 struct CacheFile;
 struct FCurve;
@@ -57,8 +59,7 @@ struct ActKeyColumn {
   char tree_col;
 
   /* keyframe info */
-  /** eBezTripe_KeyframeType */
-  char key_type;
+  eBezTriple_KeyframeType key_type;
   /** eKeyframeHandleDrawOpts */
   char handle_type;
   /** eKeyframeExtremeDrawOpts */

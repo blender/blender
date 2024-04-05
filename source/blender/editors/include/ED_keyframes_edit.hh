@@ -13,6 +13,8 @@
 
 #include "ED_anim_api.hh" /* for enum eAnimFilter_Flags */
 
+#include "DNA_curve_types.h"
+
 struct BezTriple;
 struct ButterworthCoefficients;
 struct FCurve;
@@ -355,7 +357,7 @@ KeyframeEditFunc ANIM_editkeyframes_handles(short mode);
  * Set the interpolation type of the selected BezTriples in each F-Curve to the specified one.
  */
 KeyframeEditFunc ANIM_editkeyframes_ipo(short mode);
-KeyframeEditFunc ANIM_editkeyframes_keytype(short mode);
+KeyframeEditFunc ANIM_editkeyframes_keytype(eBezTriple_KeyframeType keyframe_type);
 KeyframeEditFunc ANIM_editkeyframes_easing(short mode);
 
 /** \} */
