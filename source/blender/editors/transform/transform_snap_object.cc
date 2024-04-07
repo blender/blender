@@ -967,7 +967,7 @@ static eSnapMode snapObjectsRay(SnapObjectContext *sctx)
 static bool snap_grid(SnapObjectContext *sctx)
 {
   SnapData nearest2d(sctx);
-  nearest2d.clip_planes_enable(sctx, nullptr);
+  nearest2d.clip_planes_enable(sctx, nullptr, true);
 
   /* Ignore the maximum pixel distance when snapping to grid.
    * This avoids undesirable jumps of the element being snapped. */
@@ -990,7 +990,7 @@ static bool snap_grid(SnapObjectContext *sctx)
                            sctx->grid.planes[i],
                            &ray_dist,
                            false) &&
-        IN_RANGE_INCL(ray_dist, 0.0f, sctx->ret.ray_depth_max))
+        (ray_dist > 0.0f))
     {
       float3 co = math::round((sctx->runtime.ray_start + sctx->runtime.ray_dir * ray_dist) /
                               grid_dist) *
@@ -1323,7 +1323,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
   bool use_occlusion_plane = false;
 
   /* It is required `mval` to calculate the occlusion plane. */
-  if (mval) {
+  if (mval && (snap_to_flag & SCE_SNAP_TO_GEOM)) {
     const bool is_allways_occluded = !params->use_occlusion_test;
     use_occlusion_plane = is_allways_occluded || !XRAY_ENABLED(v3d);
   }
