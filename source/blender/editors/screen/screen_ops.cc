@@ -4382,23 +4382,21 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
 
   uiItemS(layout);
 
-  if (area->spacetype != SPACE_FILE) {
-    uiItemO(layout,
-            area->full ? IFACE_("Restore Areas") : IFACE_("Maximize Area"),
-            ICON_NONE,
-            "SCREEN_OT_screen_full_area");
+  uiItemO(layout,
+          area->full ? IFACE_("Restore Areas") : IFACE_("Maximize Area"),
+          ICON_NONE,
+          "SCREEN_OT_screen_full_area");
 
-    if (!area->full) {
-      uiItemFullO(layout,
-                  "SCREEN_OT_screen_full_area",
-                  IFACE_("Full Screen Area"),
-                  ICON_NONE,
-                  nullptr,
-                  WM_OP_INVOKE_DEFAULT,
-                  UI_ITEM_NONE,
-                  &ptr);
-      RNA_boolean_set(&ptr, "use_hide_panels", true);
-    }
+  if (area->spacetype != SPACE_FILE && !area->full) {
+    uiItemFullO(layout,
+                "SCREEN_OT_screen_full_area",
+                IFACE_("Full Screen Area"),
+                ICON_NONE,
+                nullptr,
+                WM_OP_INVOKE_DEFAULT,
+                UI_ITEM_NONE,
+                &ptr);
+    RNA_boolean_set(&ptr, "use_hide_panels", true);
   }
 
   uiItemO(layout, nullptr, ICON_NONE, "SCREEN_OT_area_dupli");
