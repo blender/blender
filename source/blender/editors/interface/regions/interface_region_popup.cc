@@ -895,8 +895,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C,
 
 void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 {
-  /* This disables the status bar text that is set when opening a menu. */
-  ED_workspace_status_text(C, nullptr);
+  bool is_submenu = false;
 
   /* If this popup is created from a popover which does NOT have keep-open flag set,
    * then close the popover too. We could extend this to other popup types too. */
@@ -909,7 +908,16 @@ void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
         uiPopupBlockHandle *menu = block->handle;
         menu->menuretval = UI_RETURN_OK;
       }
+
+      if (ui_block_is_menu(block)) {
+        is_submenu = true;
+      }
     }
+  }
+
+  /* Clear the status bar text that is set when opening a menu. */
+  if (!is_submenu) {
+    ED_workspace_status_text(C, nullptr);
   }
 
   if (handle->popup_create_vars.arg_free) {
