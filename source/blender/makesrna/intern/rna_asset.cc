@@ -463,8 +463,8 @@ const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
   const EnumPropertyItem *items = blender::ed::asset::library_reference_to_rna_enum_itemf(true);
   if (!items) {
     *r_free = false;
+    return rna_enum_dummy_NULL_items;
   }
-
   *r_free = true;
   return items;
 }
