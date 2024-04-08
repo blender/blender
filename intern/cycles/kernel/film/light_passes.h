@@ -466,10 +466,7 @@ ccl_device_inline void film_write_direct_light(KernelGlobals kg,
   Spectrum contribution = INTEGRATOR_STATE(state, shadow_path, throughput);
   film_clamp_light(kg, &contribution, INTEGRATOR_STATE(state, shadow_path, bounce));
 
-  const uint32_t render_pixel_index = INTEGRATOR_STATE(state, shadow_path, render_pixel_index);
-  const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
-                                        kernel_data.film.pass_stride;
-  ccl_global float *buffer = render_buffer + render_buffer_offset;
+  ccl_global float *buffer = film_pass_pixel_render_buffer_shadow(kg, state, render_buffer);
 
   const uint32_t path_flag = INTEGRATOR_STATE(state, shadow_path, flag);
   const int sample = INTEGRATOR_STATE(state, shadow_path, sample);
