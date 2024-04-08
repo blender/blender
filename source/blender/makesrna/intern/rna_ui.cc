@@ -2392,7 +2392,14 @@ static void rna_def_file_handler(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Operator",
-      "Operator that can handle import files with the extensions given in bl_file_extensions");
+      "Operator that can handle import for files with the extensions given in bl_file_extensions");
+  prop = RNA_def_property(srna, "bl_export_operator", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "type->export_operator");
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(
+      prop,
+      "Operator",
+      "Operator that can handle export for files with the extensions given in bl_file_extensions");
 
   prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "type->label");

@@ -23,6 +23,8 @@ struct FileHandlerType {
   char label[OP_MAX_TYPENAME];
   /** Import operator name. */
   char import_operator[OP_MAX_TYPENAME];
+  /** Export operator name. */
+  char export_operator[OP_MAX_TYPENAME];
   /** Formatted string of file extensions supported by the file handler, each extension should
    * start with a `.` and be separated by `;`. For Example: `".blend;.ble"`. */
   char file_extensions_str[FH_MAX_FILE_EXTENSIONS_STR];
@@ -40,6 +42,11 @@ struct FileHandlerType {
    * Return a vector of indices in #paths of file paths supported by the file handler.
    */
   blender::Vector<int64_t> filter_supported_paths(const blender::Span<std::string> paths) const;
+
+  /**
+   * Generate a default file name for use with this file handler.
+   */
+  std::string get_default_filename(const StringRefNull name);
 };
 
 /**

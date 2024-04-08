@@ -303,6 +303,7 @@ void operatortypes_object()
   WM_operatortype_append(OBJECT_OT_light_linking_unlink_from_collection);
 
   object_modifier_add_asset_register();
+  collection_exporter_register();
 }
 
 void operatormacros_object()
