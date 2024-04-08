@@ -45,11 +45,25 @@ CHECKER_ARGS = (
     # Shows many pedantic issues, some are quite useful.
     "--enable=all",
 
-    # Generates many warnings, CPPCHECK known about system includes without resolving them.
-    "--suppress=missingIncludeSystem",
 
     # Also shows useful messages, even if some are false-positives.
     "--inconclusive",
+
+    # Generates many warnings, CPPCHECK known about system includes without resolving them.
+    "--suppress=missingIncludeSystem",
+
+    # Not considered an error.
+    "--suppress=allocaCalled",
+    # Overly noisy, we could consider resolving all of these at some point.
+    "--suppress=cstyleCast",
+    # There are various classes which don't have copy or equal constructors (GHOST windows for e.g.)
+    "--suppress=noCopyConstructor",
+    # Similar for `noCopyConstructor`.
+    "--suppress=nonoOperatorEq",
+    # There seems to be many false positives here.
+    "--suppress=unusedFunction",
+    # May be interesting to handle but very noisy currently.
+    "--suppress=variableScope",
 
     # Quiet output, otherwise all defines/includes are printed (overly verbose).
     # Only enable this for troubleshooting (if defines are not set as expected for example).
