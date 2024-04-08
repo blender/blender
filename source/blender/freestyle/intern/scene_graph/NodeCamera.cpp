@@ -50,12 +50,12 @@ void NodeCamera::accept(SceneVisitor &v)
   v.visitNodeCamera(*this);
 }
 
-void NodeCamera::setModelViewMatrix(double modelview_matrix[16])
+void NodeCamera::setModelViewMatrix(const double modelview_matrix[16])
 {
   memcpy(modelview_matrix_, modelview_matrix, sizeof(double[16]));
 }
 
-void NodeCamera::setProjectionMatrix(double projection_matrix[16])
+void NodeCamera::setProjectionMatrix(const double projection_matrix[16])
 {
   memcpy(projection_matrix_, projection_matrix, sizeof(double[16]));
 }
