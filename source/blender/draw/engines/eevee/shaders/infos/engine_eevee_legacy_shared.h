@@ -150,13 +150,13 @@ struct ShadowBlock {
 BLI_STATIC_ASSERT_ALIGN(ShadowBlock, 16)
 
 struct LightData {
-  vec4 position_influence;     /* w : InfluenceRadius (inversed and squared) */
-  vec4 color_influence_volume; /* w : InfluenceRadius but for Volume power */
-  vec4 spotdata_radius_shadow; /* x : spot size, y : spot blend, z : radius, w: shadow id */
-  vec4 rightvec_sizex;         /* xyz: Normalized up vector, w: area size X or spot scale X */
-  vec4 upvec_sizey;            /* xyz: Normalized right vector, w: area size Y or spot scale Y */
-  vec4 forwardvec_type;        /* xyz: Normalized forward vector, w: Light Type */
-  vec4 diff_spec_volume;       /* xyz: Diffuse/Spec/Volume power, w: radius for volumetric. */
+  vec4 position_influence;     /* W:   InfluenceRadius (inversed and squared) */
+  vec4 color_influence_volume; /* W:   InfluenceRadius but for Volume power */
+  vec4 spotdata_radius_shadow; /* X:   spot size, y : spot blend, z : radius, w: shadow id */
+  vec4 rightvec_sizex;         /* XYZ: Normalized up vector, w: area size X or spot scale X */
+  vec4 upvec_sizey;            /* XYZ: Normalized right vector, w: area size Y or spot scale Y */
+  vec4 forwardvec_type;        /* XYZ: Normalized forward vector, w: Light Type */
+  vec4 diff_spec_volume;       /* XYZ: Diffuse/Spec/Volume power, w: radius for volumetric. */
 };
 BLI_STATIC_ASSERT_ALIGN(LightData, 16)
 

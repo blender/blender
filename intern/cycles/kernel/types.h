@@ -1533,7 +1533,7 @@ typedef struct KernelParticle {
   float lifetime;
   float size;
   float4 rotation;
-  /* Only xyz are used of the following. float4 instead of float3 are used
+  /* Only XYZ are used of the following. float4 instead of float3 are used
    * to ensure consistent padding/alignment across devices. */
   float4 location;
   float4 velocity;

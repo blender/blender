@@ -1837,7 +1837,7 @@ static ListBase /*tEulerFilter*/ euler_filter_group_channels(
      * saves another loop over the animation data. */
     ale->update |= ANIM_UPDATE_DEFAULT;
 
-    /* Optimization: assume that xyz curves will always be stored consecutively,
+    /* Optimization: assume that XYZ curves will always be stored consecutively,
      * so if the paths or the ID's don't match up, then a curve needs to be added
      * to a new group.
      */

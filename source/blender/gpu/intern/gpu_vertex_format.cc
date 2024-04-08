@@ -139,7 +139,7 @@ uint GPU_vertformat_attr_add(GPUVertFormat *format,
       assert(fetch_mode == GPU_FETCH_FLOAT);
       break;
     case GPU_COMP_I10:
-      /* 10_10_10 format intended for normals (xyz) or colors (rgb)
+      /* 10_10_10 format intended for normals (XYZ) or colors (RGB)
        * extra component packed.w can be manually set to { -2, -1, 0, 1 } */
       assert(ELEM(comp_len, 3, 4));
 

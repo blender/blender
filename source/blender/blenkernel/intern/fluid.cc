@@ -1969,7 +1969,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
         printf("adding flow object vel: [%f, %f, %f]\n", hit_vel[0], hit_vel[1], hit_vel[2]);
 #  endif
       }
-      /* Convert xyz velocities flow settings from world to grid space. */
+      /* Convert XYZ velocities flow settings from world to grid space. */
       float convert_vel[3];
       copy_v3_v3(convert_vel, ffs->vel_coord);
       float time_mult = 1.0 / (25.0f * DT_DEFAULT);

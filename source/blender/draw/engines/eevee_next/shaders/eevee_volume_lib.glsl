@@ -24,7 +24,7 @@ float volume_froxel_jitter(ivec2 froxel, float offset)
 }
 
 /* Volume froxel texture normalized linear Z to view space Z.
- * Not dependant on projection matrix (as long as drw_view_is_perspective is consistent). */
+ * Not dependent on projection matrix (as long as drw_view_is_perspective is consistent). */
 float volume_z_to_view_z(float z)
 {
   float near = uniform_buf.volumes.depth_near;
@@ -41,7 +41,7 @@ float volume_z_to_view_z(float z)
 }
 
 /* View space Z to volume froxel texture normalized linear Z.
- * Not dependant on projection matrix (as long as drw_view_is_perspective is consistent). */
+ * Not dependent on projection matrix (as long as drw_view_is_perspective is consistent). */
 float view_z_to_volume_z(float depth)
 {
   float near = uniform_buf.volumes.depth_near;
