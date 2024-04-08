@@ -32,11 +32,13 @@ void Evaluator::evaluate()
 
   if (!is_compiled_) {
     compile_and_evaluate();
-    is_compiled_ = true;
     return;
   }
 
   for (const std::unique_ptr<Operation> &operation : operations_stream_) {
+    if (context_.is_canceled()) {
+      return;
+    }
     operation->evaluate();
   }
 }
@@ -68,7 +70,7 @@ void Evaluator::compile_and_evaluate()
 {
   derived_node_tree_ = std::make_unique<DerivedNodeTree>(context_.get_node_tree());
 
-  if (!validate_node_tree()) {
+  if (!validate_node_tree() || context_.is_canceled()) {
     return;
   }
 
@@ -77,6 +79,11 @@ void Evaluator::compile_and_evaluate()
   CompileState compile_state(schedule);
 
   for (const DNode &node : schedule) {
+    if (context_.is_canceled()) {
+      reset();
+      return;
+    }
+
     if (compile_state.should_compile_shader_compile_unit(node)) {
       compile_and_evaluate_shader_compile_unit(compile_state);
     }
@@ -88,6 +95,8 @@ void Evaluator::compile_and_evaluate()
       compile_and_evaluate_node(node, compile_state);
     }
   }
+
+  is_compiled_ = true;
 }
 
 void Evaluator::compile_and_evaluate_node(DNode node, CompileState &compile_state)
