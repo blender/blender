@@ -925,10 +925,8 @@ BLI_STATIC_ASSERT_ALIGN(LightData, 16)
  * the GPU so that only lights of a certain type can read for the appropriate union member.
  * Return cross platform garbage data as some platform can return cleared memory if we early exit.
  */
-#ifdef SAFE_UNION_ACCESS
+#if SAFE_UNION_ACCESS
 #  ifdef GPU_SHADER
-#    define DATA_MEMBER do_not_access_directly
-
 /* Should result in a beautiful zebra pattern on invalid load. */
 #    if defined(GPU_FRAGMENT_SHADER)
 #      define GARBAGE_VALUE sin(gl_FragCoord.x + gl_FragCoord.y)
@@ -944,7 +942,6 @@ BLI_STATIC_ASSERT_ALIGN(LightData, 16)
 
 #  else /* C++ */
 #    define GARBAGE_VALUE 0.0f
-#    define DATA_MEMBER local
 #  endif
 
 #  define SAFE_BEGIN(data_type, check) \
@@ -958,6 +955,12 @@ BLI_STATIC_ASSERT_ALIGN(LightData, 16)
 #else
 #  define SAFE_BEGIN(data_type, check) data_type data;
 #  define SAFE_ASSIGN_LIGHT_TYPE_CHECK(_type, _value) _value
+#endif
+
+#if USE_LIGHT_UNION
+#  define DATA_MEMBER local
+#else
+#  define DATA_MEMBER do_not_access_directly
 #endif
 
 #define ERROR_OFS(a, b) "Offset of " STRINGIFY(a) " mismatch offset of " STRINGIFY(b)
