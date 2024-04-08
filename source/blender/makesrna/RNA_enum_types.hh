@@ -72,10 +72,10 @@ const EnumPropertyItem *RNA_action_itemf(bContext *C,
                                          PropertyRNA *prop,
                                          bool *r_free);
 #if 0
-EnumPropertyItem *RNA_action_local_itemf(bContext *C,
-                                         PointerRNA *ptr,
-                                         PropertyRNA *prop,
-                                         bool *r_free);
+const EnumPropertyItem *RNA_action_local_itemf(bContext *C,
+                                               PointerRNA *ptr,
+                                               PropertyRNA *prop,
+                                               bool *r_free);
 #endif
 const EnumPropertyItem *RNA_collection_itemf(bContext *C,
                                              PointerRNA *ptr,
