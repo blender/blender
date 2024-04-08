@@ -625,7 +625,7 @@ class NodeTreeMainUpdater {
                                            const Span<const bNodeLink *> links) const
   {
     for (const bNodeLink *link : links) {
-      if (!bke::nodeIsDanglingReroute(&ntree, link->fromnode)) {
+      if (!link->fromnode->is_dangling_reroute()) {
         return link;
       }
     }
