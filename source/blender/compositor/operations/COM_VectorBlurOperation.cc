@@ -101,7 +101,7 @@ struct MotionRect {
   int2 extent;
 };
 
-MotionRect compute_motion_rect(int2 tile, float2 motion, int2 size)
+static MotionRect compute_motion_rect(int2 tile, float2 motion, int2 size)
 {
   /* `ceil()` to number of tile touched. */
   int2 point1 = tile + int2(math::sign(motion) *
@@ -127,7 +127,7 @@ struct MotionLine {
   float2 normal;
 };
 
-MotionLine compute_motion_line(int2 tile, float2 motion)
+static MotionLine compute_motion_line(int2 tile, float2 motion)
 {
   float magnitude = math::length(motion);
   float2 dir = magnitude != 0.0f ? motion / magnitude : motion;
@@ -139,7 +139,7 @@ MotionLine compute_motion_line(int2 tile, float2 motion)
   return line;
 }
 
-bool is_inside_motion_line(int2 tile, MotionLine motion_line)
+static bool is_inside_motion_line(int2 tile, MotionLine motion_line)
 {
   /* NOTE: Everything in is tile unit. */
   float distance_to_line = math::dot(motion_line.normal, motion_line.origin - float2(tile));
