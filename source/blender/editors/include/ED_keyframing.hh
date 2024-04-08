@@ -299,7 +299,7 @@ enum eCreateDriver_MappingTypes {
  * Mapping Types enum for operators.
  * \note Used by #ANIM_OT_driver_button_add and #UI_OT_eyedropper_driver.
  */
-extern EnumPropertyItem prop_driver_create_mapping_types[];
+extern const EnumPropertyItem prop_driver_create_mapping_types[];
 
 /* -------- */
 

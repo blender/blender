@@ -46,4 +46,4 @@ void BLT_lang_locale_explode(const char *locale,
                              char **language_variant);
 
 /* Get EnumPropertyItem's for translations menu. */
-EnumPropertyItem *BLT_lang_RNA_enum_properties();
+const EnumPropertyItem *BLT_lang_RNA_enum_properties();

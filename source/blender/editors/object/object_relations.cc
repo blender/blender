@@ -309,7 +309,7 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 /** \name Clear Parent Operator
  * \{ */
 
-EnumPropertyItem prop_clear_parent_types[] = {
+const EnumPropertyItem prop_clear_parent_types[] = {
     {CLEAR_PARENT_ALL,
      "CLEAR",
      0,
@@ -475,7 +475,7 @@ void parent_set(Object *ob, Object *par, const int type, const char *substr)
   STRNCPY(ob->parsubstr, substr);
 }
 
-EnumPropertyItem prop_make_parent_types[] = {
+const EnumPropertyItem prop_make_parent_types[] = {
     {PAR_OBJECT, "OBJECT", 0, "Object", ""},
     {PAR_ARMATURE, "ARMATURE", 0, "Armature Deform", ""},
     {PAR_ARMATURE_NAME, "ARMATURE_NAME", 0, "   With Empty Groups", ""},

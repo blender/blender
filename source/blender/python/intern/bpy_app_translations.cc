@@ -512,7 +512,7 @@ PyDoc_STRVAR(
 static PyObject *app_translations_locales_get(PyObject * /*self*/, void * /*userdata*/)
 {
   PyObject *ret;
-  EnumPropertyItem *it, *items = BLT_lang_RNA_enum_properties();
+  const EnumPropertyItem *it, *items = BLT_lang_RNA_enum_properties();
   int num_locales = 0, pos = 0;
 
   if (items) {

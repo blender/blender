@@ -171,7 +171,7 @@ static void fill_locales()
 }
 #endif /* WITH_INTERNATIONAL */
 
-EnumPropertyItem *BLT_lang_RNA_enum_properties()
+const EnumPropertyItem *BLT_lang_RNA_enum_properties()
 {
 #ifdef WITH_INTERNATIONAL
   return locales_menu;
