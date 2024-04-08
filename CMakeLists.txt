@@ -722,8 +722,8 @@ This option is only for debugging purposes."
   # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
   # The target architectures levels can be retrieved from `ocloc` output when running
   # `ocloc compile -device {device_id} test.c` for given GPUs PCI device IDs.
-  # 12.55.8 is for Arc Alchemist GPUs. 12.70.0 for Meteor Lake iGPUs.
-  set(CYCLES_ONEAPI_INTEL_BINARIES_ARCH 12.55.8 12.70.0 CACHE STRING "\
+  # 12.55.8 is for Arc Alchemist GPUs. 12.70.4 for Meteor Lake iGPUs.
+  set(CYCLES_ONEAPI_INTEL_BINARIES_ARCH 12.55.8 12.70.4 CACHE STRING "\
 oneAPI Intel GPU architectures to build binaries for"
   )
   set(CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "\
