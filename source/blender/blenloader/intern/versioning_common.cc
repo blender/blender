@@ -464,7 +464,7 @@ static bool blendfile_or_libraries_versions_atleast(Main *bmain,
   }
 
   LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
-    if (!MAIN_VERSION_FILE_ATLEAST(library, versionfile, subversionfile)) {
+    if (!LIBRARY_VERSION_FILE_ATLEAST(library, versionfile, subversionfile)) {
       return false;
     }
   }

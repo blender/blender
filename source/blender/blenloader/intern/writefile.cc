@@ -1008,7 +1008,7 @@ static void write_libraries(WriteData *wd, Main *main)
                          "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
                          "directly linked",
                          id->name,
-                         main->curlib->filepath_abs);
+                         main->curlib->runtime.filepath_abs);
             }
             writestruct(wd, ID_LINK_PLACEHOLDER, ID, 1, id);
           }

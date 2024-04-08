@@ -185,8 +185,8 @@ TEST_F(BMainMergeTest, linked_data)
   BKE_collection_object_add(bmain_src, coll_2, ob_2);
   Library *lib_src_2 = static_cast<Library *>(BKE_id_new(bmain_src, ID_LI, LIB_PATH));
   BKE_library_filepath_set(bmain_src, lib_src_2, LIB_PATH);
-  std::cout << lib_src_1->filepath_abs << "\n";
-  std::cout << lib_src_2->filepath_abs << "\n";
+  std::cout << lib_src_1->runtime.filepath_abs << "\n";
+  std::cout << lib_src_2->runtime.filepath_abs << "\n";
   ob_2->id.lib = lib_src_2;
 
   EXPECT_EQ(1, BLI_listbase_count(&bmain_src->collections));
@@ -227,7 +227,7 @@ TEST_F(BMainMergeTest, linked_data)
   EXPECT_EQ(1, BLI_listbase_count(&bmain_src->objects));
   EXPECT_EQ(1, BLI_listbase_count(&bmain_src->libraries));
   EXPECT_TRUE(STREQ(lib_src_3->filepath, LIB_PATH_RELATIVE));
-  EXPECT_TRUE(STREQ(lib_src_3->filepath_abs, LIB_PATH_RELATIVE_ABS_SRC));
+  EXPECT_TRUE(STREQ(lib_src_3->runtime.filepath_abs, LIB_PATH_RELATIVE_ABS_SRC));
 
   reports = {};
   BKE_main_merge(bmain_dst, &bmain_src, reports);
@@ -243,7 +243,7 @@ TEST_F(BMainMergeTest, linked_data)
   EXPECT_EQ(ob_2->id.lib, lib_src_1);
   EXPECT_EQ(ob_3->id.lib, lib_src_3);
   EXPECT_FALSE(STREQ(lib_src_3->filepath, LIB_PATH_RELATIVE));
-  EXPECT_TRUE(STREQ(lib_src_3->filepath_abs, LIB_PATH_RELATIVE_ABS_SRC));
+  EXPECT_TRUE(STREQ(lib_src_3->runtime.filepath_abs, LIB_PATH_RELATIVE_ABS_SRC));
   EXPECT_EQ(3, reports.num_merged_ids);
   EXPECT_EQ(0, reports.num_unknown_ids);
   EXPECT_EQ(0, reports.num_remapped_ids);

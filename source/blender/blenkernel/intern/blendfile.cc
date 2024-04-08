@@ -269,7 +269,7 @@ static id::IDRemapper &reuse_bmain_data_remapper_ensure(ReuseOldBMainData *reuse
   LISTBASE_FOREACH (Library *, old_lib_iter, &old_bmain->libraries) {
     /* In case newly opened `new_bmain` is a library of the `old_bmain`, remap it to null, since a
      * file should never ever have linked data from itself. */
-    if (STREQ(old_lib_iter->filepath_abs, new_bmain->filepath)) {
+    if (STREQ(old_lib_iter->runtime.filepath_abs, new_bmain->filepath)) {
       remapper.add(&old_lib_iter->id, nullptr);
       continue;
     }
@@ -279,7 +279,7 @@ static id::IDRemapper &reuse_bmain_data_remapper_ensure(ReuseOldBMainData *reuse
      *  - This code is only executed once for every file reading (not on undos).
      */
     LISTBASE_FOREACH (Library *, new_lib_iter, &new_bmain->libraries) {
-      if (!STREQ(old_lib_iter->filepath_abs, new_lib_iter->filepath_abs)) {
+      if (!STREQ(old_lib_iter->runtime.filepath_abs, new_lib_iter->runtime.filepath_abs)) {
         continue;
       }
 
@@ -973,8 +973,10 @@ static void setup_app_data(bContext *C,
                          RPT_("LIB: %s: '%s' missing from '%s', parent '%s'"),
                          BKE_idtype_idcode_to_name(GS(id_iter->name)),
                          id_iter->name + 2,
-                         id_iter->lib->filepath_abs,
-                         id_iter->lib->parent ? id_iter->lib->parent->filepath_abs : "<direct>");
+                         id_iter->lib->runtime.filepath_abs,
+                         id_iter->lib->runtime.parent ?
+                             id_iter->lib->runtime.parent->runtime.filepath_abs :
+                             "<direct>");
       }
     }
     FOREACH_MAIN_ID_END;

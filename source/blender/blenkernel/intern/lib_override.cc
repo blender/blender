@@ -2761,7 +2761,7 @@ static bool lib_override_resync_id_lib_level_is_valid(ID *id,
                                                       const int library_indirect_level,
                                                       const bool do_strict_equal)
 {
-  const int id_lib_level = (ID_IS_LINKED(id) ? id->lib->temp_index : 0);
+  const int id_lib_level = (ID_IS_LINKED(id) ? id->lib->runtime.temp_index : 0);
   return do_strict_equal ? id_lib_level == library_indirect_level :
                            id_lib_level <= library_indirect_level;
 }
@@ -2794,7 +2794,7 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
         library_indirect_level,
         id_root->name,
         id_root->lib ? id_root->lib->filepath : "<LOCAL>",
-        id_root->lib ? id_root->lib->temp_index : 0);
+        id_root->lib ? id_root->lib->runtime.temp_index : 0);
     id_root->tag &= ~LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
     return;
   }
@@ -3395,7 +3395,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
         BLI_ghashIterator_getValue(id_roots_iter));
 
     if (ID_IS_LINKED(id_root)) {
-      id_root->lib->tag |= LIBRARY_TAG_RESYNC_REQUIRED;
+      id_root->lib->runtime.tag |= LIBRARY_TAG_RESYNC_REQUIRED;
     }
 
     CLOG_INFO(&LOG_RESYNC,
@@ -3465,7 +3465,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
             "otherwise unchanged linked reference was moved around in the library file (e.g. if "
             "an object was moved into another sub-collection of the same hierarchy).",
             id->name,
-            ID_IS_LINKED(id) ? id->lib->temp_index : 0);
+            ID_IS_LINKED(id) ? id->lib->runtime.temp_index : 0);
         id->tag |= LIB_TAG_DOIT;
       }
       else {
@@ -3476,7 +3476,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
             "otherwise unchanged linked reference was moved around in the library file (e.g. if "
             "an object was moved into another sub-collection of the same hierarchy).",
             id->name,
-            ID_IS_LINKED(id) ? id->lib->temp_index : 0);
+            ID_IS_LINKED(id) ? id->lib->runtime.temp_index : 0);
         id->tag &= ~LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
         id->override_library->runtime->tag &= ~LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT;
       }
@@ -3490,7 +3490,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
                   "RNA/liboverride apply code, this whole level of library needs to be processed "
                   "another time.",
                   id->name,
-                  ID_IS_LINKED(id) ? id->lib->temp_index : 0,
+                  ID_IS_LINKED(id) ? id->lib->runtime.temp_index : 0,
                   library_indirect_level);
         process_lib_level_again = true;
         /* Cleanup tag for now, will be re-set by next iteration of this function. */
@@ -3506,7 +3506,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
                   "tackling library level %d. However, it was not tagged as such by "
                   "RNA/liboverride apply code, so ignoring it",
                   id->name,
-                  ID_IS_LINKED(id) ? id->lib->temp_index : 0,
+                  ID_IS_LINKED(id) ? id->lib->runtime.temp_index : 0,
                   library_indirect_level);
         id->tag &= ~LIB_TAG_LIBOVERRIDE_NEED_RESYNC;
       }
@@ -3521,7 +3521,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
           "ID override %s from library level %d still tagged as isolated from its hierarchy root, "
           "it should have been either properly resynced or removed at that point.",
           id->name,
-          ID_IS_LINKED(id) ? id->lib->temp_index : 0);
+          ID_IS_LINKED(id) ? id->lib->runtime.temp_index : 0);
       id->override_library->runtime->tag &= ~LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT;
     }
   }
@@ -3552,8 +3552,9 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
   ID *id_owner = cb_data->owner_id;
   ID *id = *cb_data->id_pointer;
   if (id != nullptr && ID_IS_LINKED(id) && id->lib != id_owner->lib) {
-    const int owner_library_indirect_level = ID_IS_LINKED(id_owner) ? id_owner->lib->temp_index :
-                                                                      0;
+    const int owner_library_indirect_level = ID_IS_LINKED(id_owner) ?
+                                                 id_owner->lib->runtime.temp_index :
+                                                 0;
     if (owner_library_indirect_level > 100) {
       CLOG_ERROR(&LOG_RESYNC,
                  "Levels of indirect usages of libraries is way too high, there are most likely "
@@ -3576,8 +3577,8 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
           id->lib->filepath);
     }
 
-    if (owner_library_indirect_level >= id->lib->temp_index) {
-      id->lib->temp_index = owner_library_indirect_level + 1;
+    if (owner_library_indirect_level >= id->lib->runtime.temp_index) {
+      id->lib->runtime.temp_index = owner_library_indirect_level + 1;
       *reinterpret_cast<bool *>(cb_data->user_data) = true;
     }
   }
@@ -3594,7 +3595,7 @@ static int lib_override_libraries_index_define(Main *bmain)
 {
   LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
     /* index 0 is reserved for local data. */
-    library->temp_index = 1;
+    library->runtime.temp_index = 1;
   }
   bool do_continue = true;
   while (do_continue) {
@@ -3612,8 +3613,8 @@ static int lib_override_libraries_index_define(Main *bmain)
 
   int library_indirect_level_max = 0;
   LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
-    if (library->temp_index > library_indirect_level_max) {
-      library_indirect_level_max = library->temp_index;
+    if (library->runtime.temp_index > library_indirect_level_max) {
+      library_indirect_level_max = library->runtime.temp_index;
     }
   }
   return library_indirect_level_max;
@@ -3708,7 +3709,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
   }
 
   LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
-    if (library->tag & LIBRARY_TAG_RESYNC_REQUIRED) {
+    if (library->runtime.tag & LIBRARY_TAG_RESYNC_REQUIRED) {
       CLOG_INFO(&LOG_RESYNC,
                 2,
                 "library '%s' contains some linked overrides that required recursive resync, "

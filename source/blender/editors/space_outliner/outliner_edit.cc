@@ -486,7 +486,7 @@ static void id_delete_tag(bContext *C, ReportList *reports, TreeElement *te, Tre
     }
   }
 
-  if (te->idcode == ID_LI && ((Library *)id)->parent != nullptr) {
+  if (te->idcode == ID_LI && ((Library *)id)->runtime.parent != nullptr) {
     BKE_reportf(reports, RPT_WARNING, "Cannot delete indirectly linked library '%s'", id->name);
     return;
   }
@@ -538,11 +538,11 @@ static int outliner_id_delete_tag(bContext *C,
     TreeStoreElem *tselem = TREESTORE(te);
 
     if (te->idcode != 0 && tselem->id) {
-      if (te->idcode == ID_LI && ((Library *)tselem->id)->parent) {
+      if (te->idcode == ID_LI && ((Library *)tselem->id)->runtime.parent) {
         BKE_reportf(reports,
                     RPT_ERROR_INVALID_INPUT,
                     "Cannot delete indirectly linked library '%s'",
-                    ((Library *)tselem->id)->filepath_abs);
+                    ((Library *)tselem->id)->runtime.filepath_abs);
       }
       else {
         id_delete_tag(C, reports, te, tselem);
@@ -913,13 +913,14 @@ static int lib_relocate(
     Library *lib = (Library *)tselem->id;
     char dir[FILE_MAXDIR], filename[FILE_MAX];
 
-    BLI_path_split_dir_file(lib->filepath_abs, dir, sizeof(dir), filename, sizeof(filename));
+    BLI_path_split_dir_file(
+        lib->runtime.filepath_abs, dir, sizeof(dir), filename, sizeof(filename));
 
-    printf("%s, %s\n", tselem->id->name, lib->filepath_abs);
+    printf("%s, %s\n", tselem->id->name, lib->runtime.filepath_abs);
 
     /* We assume if both paths in lib are not the same then `lib->filepath` was relative. */
     RNA_boolean_set(
-        &op_props, "relative_path", BLI_path_cmp(lib->filepath_abs, lib->filepath) != 0);
+        &op_props, "relative_path", BLI_path_cmp(lib->runtime.filepath_abs, lib->filepath) != 0);
 
     RNA_string_set(&op_props, "directory", dir);
     RNA_string_set(&op_props, "filename", filename);
@@ -942,11 +943,11 @@ static int outliner_lib_relocate_invoke_do(
     TreeStoreElem *tselem = TREESTORE(te);
 
     if (te->idcode == ID_LI && tselem->id) {
-      if (((Library *)tselem->id)->parent && !reload) {
+      if (((Library *)tselem->id)->runtime.parent && !reload) {
         BKE_reportf(reports,
                     RPT_ERROR_INVALID_INPUT,
                     "Cannot relocate indirectly linked library '%s'",
-                    ((Library *)tselem->id)->filepath_abs);
+                    ((Library *)tselem->id)->runtime.filepath_abs);
         return OPERATOR_CANCELLED;
       }
 

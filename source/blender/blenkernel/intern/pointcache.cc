@@ -1320,7 +1320,7 @@ static int ptcache_path(PTCacheID *pid, char dirname[MAX_PTCACHE_PATH])
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   Library *lib = (pid->owner_id) ? pid->owner_id->lib : nullptr;
   const char *blendfile_path_lib = (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH) == 0) ?
-                                       lib->filepath_abs :
+                                       lib->runtime.filepath_abs :
                                        blendfile_path;
 
   if (pid->cache->flag & PTCACHE_EXTERNAL) {

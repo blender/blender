@@ -980,12 +980,14 @@ void BKE_modifiers_persistent_uid_init(const Object &object, ModifierData &md)
 {
   uint64_t hash = blender::get_default_hash(blender::StringRef(md.name));
   if (ID_IS_LINKED(&object)) {
-    hash = blender::get_default_hash(hash, blender::StringRef(object.id.lib->filepath_abs));
+    hash = blender::get_default_hash(hash,
+                                     blender::StringRef(object.id.lib->runtime.filepath_abs));
   }
   if (ID_IS_OVERRIDE_LIBRARY_REAL(&object)) {
     BLI_assert(ID_IS_LINKED(object.id.override_library->reference));
     hash = blender::get_default_hash(
-        hash, blender::StringRef(object.id.override_library->reference->lib->filepath_abs));
+        hash,
+        blender::StringRef(object.id.override_library->reference->lib->runtime.filepath_abs));
   }
   blender::RandomNumberGenerator rng{uint32_t(hash)};
   while (true) {

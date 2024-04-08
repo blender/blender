@@ -1912,7 +1912,7 @@ static bool wm_file_write_check_with_report_on_failure(Main *bmain,
   }
 
   LISTBASE_FOREACH (Library *, li, &bmain->libraries) {
-    if (BLI_path_cmp(li->filepath_abs, filepath) == 0) {
+    if (BLI_path_cmp(li->runtime.filepath_abs, filepath) == 0) {
       BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
       return false;
     }

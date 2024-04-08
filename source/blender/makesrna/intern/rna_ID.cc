@@ -1535,9 +1535,9 @@ static IDProperty **rna_IDPropertyWrapPtr_idprops(PointerRNA *ptr)
 static void rna_Library_version_get(PointerRNA *ptr, int *value)
 {
   Library *lib = (Library *)ptr->data;
-  value[0] = lib->versionfile / 100;
-  value[1] = lib->versionfile % 100;
-  value[2] = lib->subversionfile;
+  value[0] = lib->runtime.versionfile / 100;
+  value[1] = lib->runtime.versionfile % 100;
+  value[2] = lib->runtime.subversionfile;
 }
 
 static void rna_Library_reload(Library *lib, bContext *C, ReportList *reports)
@@ -2524,6 +2524,7 @@ static void rna_def_library(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Library_filepath_set");
 
   prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "runtime.parent");
   RNA_def_property_struct_type(prop, "Library");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Parent", "");
@@ -2547,7 +2548,7 @@ static void rna_def_library(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_THICK_WRAP);
 
   prop = RNA_def_property(srna, "needs_liboverride_resync", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "tag", LIBRARY_TAG_RESYNC_REQUIRED);
+  RNA_def_property_boolean_sdna(prop, nullptr, "runtime.tag", LIBRARY_TAG_RESYNC_REQUIRED);
   RNA_def_property_ui_text(prop,
                            "Library Overrides Need resync",
                            "True if this library contains library overrides that are linked in "
