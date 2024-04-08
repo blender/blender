@@ -67,21 +67,6 @@
 #include "sequencer_intern.hh"
 
 /* -------------------------------------------------------------------- */
-/** \name Structs & Enums
- * \{ */
-
-struct TransSeq {
-  int start, machine;
-  int startofs, endofs;
-  int anim_startofs, anim_endofs;
-  // int final_left, final_right; /* UNUSED. */
-  int len;
-  float content_start;
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Public Context Checks
  * \{ */
 
