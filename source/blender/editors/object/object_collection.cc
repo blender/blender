@@ -475,7 +475,7 @@ static int collection_exporter_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void COLLECTION_OT_exporter_add(wmOperatorType *ot)
+static void COLLECTION_OT_exporter_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Exporter";
@@ -525,7 +525,7 @@ static int collection_exporter_remove_invoke(bContext *C,
       C, op, IFACE_("Remove exporter?"), nullptr, IFACE_("Delete"), ALERT_ICON_NONE, false);
 }
 
-void COLLECTION_OT_exporter_remove(wmOperatorType *ot)
+static void COLLECTION_OT_exporter_remove(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Remove Exporter";
@@ -611,7 +611,7 @@ static int collection_exporter_export_exec(bContext *C, wmOperator *op)
   return collection_exporter_export(C, op, data, collection);
 }
 
-void COLLECTION_OT_exporter_export(wmOperatorType *ot)
+static void COLLECTION_OT_exporter_export(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Export";
@@ -648,7 +648,7 @@ static int collection_io_export_all_exec(bContext *C, wmOperator *op)
   return collection_export(C, op, collection);
 }
 
-void COLLECTION_OT_export_all(wmOperatorType *ot)
+static void COLLECTION_OT_export_all(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Export All";
@@ -697,7 +697,7 @@ static int wm_collection_export_all_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void WM_OT_collection_export_all(wmOperatorType *ot)
+static void WM_OT_collection_export_all(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Export All Collections";
