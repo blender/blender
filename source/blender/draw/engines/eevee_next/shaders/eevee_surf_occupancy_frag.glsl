@@ -64,10 +64,12 @@ void main()
     }
   }
   else {
-    uint hit_id = imageAtomicAdd(hit_count_img, texel, 1u);
-    if (hit_id < VOLUME_HIT_DEPTH_MAX) {
-      float value = gl_FrontFacing ? volume_z : -volume_z;
-      imageStore(hit_depth_img, ivec3(texel, hit_id), vec4(value));
+    if (volume_z > 0.0) {
+      uint hit_id = imageAtomicAdd(hit_count_img, texel, 1u);
+      if (hit_id < VOLUME_HIT_DEPTH_MAX) {
+        float value = gl_FrontFacing ? volume_z : -volume_z;
+        imageStore(hit_depth_img, ivec3(texel, hit_id), vec4(value));
+      }
     }
   }
 }
