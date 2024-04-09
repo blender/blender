@@ -105,7 +105,6 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 
   if (ibuf) {
-    Scene *scene = opts->scene;
     bool is_depth_set = false;
     const char *ima_colorspace = ima->colorspace_settings.name;
 

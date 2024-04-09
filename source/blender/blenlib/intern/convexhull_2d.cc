@@ -481,7 +481,6 @@ static HullAngleIter convexhull_2d_angle_iter_init(const float (*points_hull)[2]
    * has a `sin` of 1.0 (which must always come first). */
   for (int axis = 0; axis < 2; axis++) {
     for (int i = 0; i < 2; i++) {
-      int count = 0;
       const int i_orig = hiter.axis[axis][i].index;
       int i_curr = i_orig, i_prev;
       /* Prevent an eternal loop (incredibly unlikely).
@@ -503,7 +502,6 @@ static HullAngleIter convexhull_2d_angle_iter_init(const float (*points_hull)[2]
         }
         i_curr = i_prev;
         hiter.axis[axis][i].index = i_curr;
-        count++;
       }
     }
   }
