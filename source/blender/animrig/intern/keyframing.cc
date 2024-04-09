@@ -50,7 +50,6 @@ namespace blender::animrig {
 
 CombinedKeyingResult::CombinedKeyingResult()
 {
-  result_counter = Array<int>(int(SingleKeyingResult::_KEYING_RESULT_MAX));
   result_counter.fill(0);
 }
 
