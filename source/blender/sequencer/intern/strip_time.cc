@@ -241,8 +241,8 @@ void seq_time_update_effects_strip_range(const Scene *scene,
   /* Second pass: Recursive call to update effects in chain and in order, so they inherit length
    * correctly. */
   for (Sequence *seq : effects) {
-    blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, seq);
-    seq_time_update_effects_strip_range(scene, effects);
+    blender::Span effects_recurse = seq_sequence_lookup_effects_by_seq(scene, seq);
+    seq_time_update_effects_strip_range(scene, effects_recurse);
   }
 }
 
