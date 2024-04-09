@@ -506,8 +506,13 @@ struct VolumesInfoData {
    * are not invertible. We store the finite projection matrix and use it for this purpose. */
   float4x4 winmat_finite;
   float4x4 wininv_finite;
-  /* Convert volume frustum UV(+ linear Z) coordinates into previous frame UV(+ linear Z). */
-  float4x4 history_matrix;
+  /* Copies of the matrices above but without jittering. Used for re-projection. */
+  float4x4 wininv_stable;
+  float4x4 winmat_stable;
+  /* Previous render sample copy of winmat_stable. */
+  float4x4 history_winmat_stable;
+  /* Transform from current view space to previous render sample view space. */
+  float4x4 curr_view_to_past_view;
   /* Size of the froxel grid texture. */
   packed_int3 tex_size;
   /* Maximum light intensity during volume lighting evaluation. */
@@ -529,7 +534,14 @@ struct VolumesInfoData {
   float depth_near;
   float depth_far;
   float depth_distribution;
-  float _pad0;
+  /* Previous render sample copy of the depth mapping parameters. */
+  float history_depth_near;
+  float history_depth_far;
+  float history_depth_distribution;
+  /* Amount of history to blend during the scatter phase. */
+  float history_opacity;
+
+  float _pad1;
 };
 BLI_STATIC_ASSERT_ALIGN(VolumesInfoData, 16)
 

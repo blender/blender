@@ -99,17 +99,16 @@ void main()
   scattering += light_scattering * s_scattering;
 #endif
 
-#if 0 /* TODO */
- {
+  if (uniform_buf.volumes.history_opacity > 0.0) {
     /* Temporal reprojection. */
-    vec3 uvw_history = volume_history_position_get(froxel);
-    vec4 scattering_history = texture(scattering_history_tx, uvw_history);
-    vec4 extinction_history = texture(extinction_history_tx, uvw_history);
-    float history_opacity = 0.95 * scattering_history.a;
-    scattering = mix(scattering, scattering_history.rgb, history_opacity);
-    extinction = mix(extinction, extinction_history.rgb, history_opacity);
+    vec3 uvw_history = volume_history_uvw_get(froxel);
+    if (uvw_history.x != -1.0) {
+      vec3 scattering_history = texture(scattering_history_tx, uvw_history).rgb;
+      vec3 extinction_history = texture(extinction_history_tx, uvw_history).rgb;
+      scattering = mix(scattering, scattering_history, uniform_buf.volumes.history_opacity);
+      extinction = mix(extinction, extinction_history, uniform_buf.volumes.history_opacity);
+    }
   }
-#endif
 
   /* Catch NaNs. */
   if (any(isnan(scattering)) || any(isnan(extinction))) {

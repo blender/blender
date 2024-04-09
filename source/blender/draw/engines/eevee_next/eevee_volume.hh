@@ -51,6 +51,7 @@ class VolumeModule {
   Instance &inst_;
 
   bool enabled_;
+  bool use_reprojection_;
   bool use_lights_;
 
   VolumesInfoData &data_;
@@ -96,6 +97,15 @@ class VolumeModule {
 
   View volume_view = {"Volume View"};
 
+  float4x4 history_viewmat_ = float4x4::zero();
+  /* Number of re-projected frame into the volume history.
+   * Allows continuous integration between interactive and static mode. */
+  int history_frame_count_ = 0;
+  /* Used to detect change in camera projection type. */
+  bool history_camera_is_perspective_ = false;
+  /* Must be set to false on every event that makes the history invalid to sample. */
+  bool valid_history_ = false;
+
  public:
   VolumeModule(Instance &inst, VolumesInfoData &data) : inst_(inst), data_(data)
   {
@@ -127,9 +137,9 @@ class VolumeModule {
   void end_sync();
 
   /* Render material properties. */
-  void draw_prepass(View &view);
+  void draw_prepass(View &main_view);
   /* Compute scattering and integration. */
-  void draw_compute(View &view);
+  void draw_compute(View &main_view);
   /* Final image compositing. */
   void draw_resolve(View &view);
 
