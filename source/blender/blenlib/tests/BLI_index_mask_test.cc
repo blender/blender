@@ -104,6 +104,62 @@ TEST(index_mask, FromUnion)
   }
 }
 
+TEST(index_mask, FromDifference)
+{
+  {
+    IndexMaskMemory memory;
+    Array<int> data_a = {1, 2, 3};
+    IndexMask mask_a = IndexMask::from_indices<int>(data_a, memory);
+    Array<int> data_b = {2, 20000, 20001};
+    IndexMask mask_b = IndexMask::from_indices<int>(data_b, memory);
+
+    IndexMask mask_difference = IndexMask::from_difference(mask_a, mask_b, memory);
+
+    EXPECT_EQ(mask_difference.size(), 2);
+    EXPECT_EQ(mask_difference[0], 1);
+    EXPECT_EQ(mask_difference[1], 3);
+  }
+  {
+    IndexMaskMemory memory;
+    Array<int> data_a = {1, 2, 3};
+    IndexMask mask_a = IndexMask::from_indices<int>(data_a, memory);
+    Array<int> data_b = {1, 2, 3};
+    IndexMask mask_b = IndexMask::from_indices<int>(data_b, memory);
+
+    IndexMask mask_difference = IndexMask::from_difference(mask_a, mask_b, memory);
+
+    EXPECT_TRUE(mask_difference.is_empty());
+  }
+}
+
+TEST(index_mask, FromIntersection)
+{
+  {
+    IndexMaskMemory memory;
+    Array<int> data_a = {1, 2, 20000};
+    IndexMask mask_a = IndexMask::from_indices<int>(data_a, memory);
+    Array<int> data_b = {2, 20000, 20001};
+    IndexMask mask_b = IndexMask::from_indices<int>(data_b, memory);
+
+    IndexMask mask_intersection = IndexMask::from_intersection(mask_a, mask_b, memory);
+
+    EXPECT_EQ(mask_intersection.size(), 2);
+    EXPECT_EQ(mask_intersection[0], 2);
+    EXPECT_EQ(mask_intersection[1], 20000);
+  }
+  {
+    IndexMaskMemory memory;
+    Array<int> data_a = {1, 2, 3};
+    IndexMask mask_a = IndexMask::from_indices<int>(data_a, memory);
+    Array<int> data_b = {20000, 20001, 20002};
+    IndexMask mask_b = IndexMask::from_indices<int>(data_b, memory);
+
+    IndexMask mask_intersection = IndexMask::from_intersection(mask_a, mask_b, memory);
+
+    EXPECT_TRUE(mask_intersection.is_empty());
+  }
+}
+
 TEST(index_mask, DefaultConstructor)
 {
   IndexMask mask;

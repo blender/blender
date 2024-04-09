@@ -234,10 +234,18 @@ class IndexMask : private IndexMaskData {
   using Initializer = std::variant<IndexRange, Span<int64_t>, Span<int>, int64_t>;
   static IndexMask from_initializers(const Span<Initializer> initializers,
                                      IndexMaskMemory &memory);
-  /** Construct a mask from the union of two other masks. */
+  /** Construct a mask from the union of #mask_a and #mask_b. */
   static IndexMask from_union(const IndexMask &mask_a,
                               const IndexMask &mask_b,
                               IndexMaskMemory &memory);
+  /** Construct a mask from the difference of #mask_a and #mask_b. */
+  static IndexMask from_difference(const IndexMask &mask_a,
+                                   const IndexMask &mask_b,
+                                   IndexMaskMemory &memory);
+  /** Construct a mask from the intersection of #mask_a and #mask_b. */
+  static IndexMask from_intersection(const IndexMask &mask_a,
+                                     const IndexMask &mask_b,
+                                     IndexMaskMemory &memory);
   /** Construct a mask from all the indices for which the predicate is true. */
   template<typename Fn>
   static IndexMask from_predicate(const IndexMask &universe,

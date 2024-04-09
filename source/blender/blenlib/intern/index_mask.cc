@@ -495,6 +495,24 @@ IndexMask IndexMask::from_union(const IndexMask &mask_a,
   return evaluate_expression(expr, memory);
 }
 
+IndexMask IndexMask::from_difference(const IndexMask &mask_a,
+                                     const IndexMask &mask_b,
+                                     IndexMaskMemory &memory)
+{
+  ExprBuilder builder;
+  const Expr &expr = builder.subtract({&mask_a}, {&mask_b});
+  return evaluate_expression(expr, memory);
+}
+
+IndexMask IndexMask::from_intersection(const IndexMask &mask_a,
+                                       const IndexMask &mask_b,
+                                       IndexMaskMemory &memory)
+{
+  ExprBuilder builder;
+  const Expr &expr = builder.intersect({&mask_a, &mask_b});
+  return evaluate_expression(expr, memory);
+}
+
 IndexMask IndexMask::from_initializers(const Span<Initializer> initializers,
                                        IndexMaskMemory &memory)
 {
