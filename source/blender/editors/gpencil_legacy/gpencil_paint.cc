@@ -2040,6 +2040,14 @@ static void gpencil_init_colors(tGPsdata *p)
 
   gpd->runtime.matid = BKE_object_material_slot_find_index(p->ob, p->material);
   gpd->runtime.sbuffer_brush = brush;
+
+  /* Reduce slightly the opacity of fill to make easy fill areas while drawing. */
+  gpd->runtime.fill_opacity_fac = 0.8f;
+  if ((brush->gpencil_settings->flag & GP_BRUSH_DISSABLE_LASSO) != 0) {
+    /* Don't set it to 0 so that there is still some feedback if the material has no stroke color.
+     */
+    gpd->runtime.fill_opacity_fac = 0.1f;
+  }
 }
 
 /* (re)init new painting data */

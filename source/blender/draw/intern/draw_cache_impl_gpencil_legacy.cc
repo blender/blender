@@ -572,8 +572,7 @@ bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(Object *ob)
     gps->hardness = brush->gpencil_settings->hardness;
     copy_v2_v2(gps->aspect_ratio, brush->gpencil_settings->aspect_ratio);
 
-    /* Reduce slightly the opacity of fill to make easy fill areas while drawing. */
-    gps->fill_opacity_fac = 0.8f;
+    gps->fill_opacity_fac = gpd->runtime.fill_opacity_fac;
 
     gps->tot_triangles = max_ii(0, gpd->runtime.sbuffer_used - 2);
     gps->caps[0] = gps->caps[1] = GP_STROKE_CAP_ROUND;

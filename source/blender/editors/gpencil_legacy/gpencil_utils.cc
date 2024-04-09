@@ -3019,6 +3019,7 @@ void ED_gpencil_sbuffer_vertex_color_set(Depsgraph *depsgraph,
   if (gpd_eval != nullptr) {
     copy_v4_v4(gpd_eval->runtime.vert_color_fill, gpd->runtime.vert_color_fill);
     gpd_eval->runtime.matid = gpd->runtime.matid;
+    gpd_eval->runtime.fill_opacity_fac = gpd->runtime.fill_opacity_fac;
   }
 }
 
