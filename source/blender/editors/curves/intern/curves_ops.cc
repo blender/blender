@@ -1525,6 +1525,64 @@ static void CURVES_OT_subdivide(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+namespace set_handle_type {
+
+static int exec(bContext *C, wmOperator *op)
+{
+  const HandleType dst_handle_type = HandleType(RNA_enum_get(op->ptr, "type"));
+
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    const bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+    const VArraySpan<bool> selection = *attributes.lookup_or_default<bool>(
+        ".selection", bke::AttrDomain::Point, true);
+    const VArraySpan<bool> selection_left = *attributes.lookup_or_default<bool>(
+        ".selection_handle_left", bke::AttrDomain::Point, true);
+    const VArraySpan<bool> selection_right = *attributes.lookup_or_default<bool>(
+        ".selection_handle_right", bke::AttrDomain::Point, true);
+
+    MutableSpan<int8_t> handle_types_left = curves.handle_types_left_for_write();
+    MutableSpan<int8_t> handle_types_right = curves.handle_types_right_for_write();
+
+    threading::parallel_for(curves.points_range(), 4096, [&](const IndexRange range) {
+      for (const int point_i : range) {
+        if (selection_left[point_i] || selection[point_i]) {
+          handle_types_left[point_i] = int8_t(dst_handle_type);
+        }
+        if (selection_right[point_i] || selection[point_i]) {
+          handle_types_right[point_i] = int8_t(dst_handle_type);
+        }
+      }
+    });
+
+    curves.calculate_bezier_auto_handles();
+    curves.tag_positions_changed();
+
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace set_handle_type
+
+static void CURVES_OT_handle_type_set(wmOperatorType *ot)
+{
+  ot->name = "Set Handle Type";
+  ot->idname = __func__;
+  ot->description = "Set the handle type for bezier curves";
+
+  ot->invoke = WM_menu_invoke;
+  ot->exec = set_handle_type::exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", rna_enum_curves_handle_type_items, CURVE_TYPE_POLY, "Type", nullptr);
+}
+
 void operatortypes_curves()
 {
   WM_operatortype_append(CURVES_OT_attribute_set);
@@ -1548,6 +1606,7 @@ void operatortypes_curves()
   WM_operatortype_append(CURVES_OT_curve_type_set);
   WM_operatortype_append(CURVES_OT_switch_direction);
   WM_operatortype_append(CURVES_OT_subdivide);
+  WM_operatortype_append(CURVES_OT_handle_type_set);
 }
 
 void operatormacros_curves()
