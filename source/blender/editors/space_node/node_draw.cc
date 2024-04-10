@@ -1579,20 +1579,6 @@ static std::optional<std::string> create_socket_inspection_string(
   return str;
 }
 
-static bool node_socket_has_tooltip(const bNodeTree &ntree, const bNodeSocket &socket)
-{
-  if (ntree.type == NTREE_GEOMETRY) {
-    return true;
-  }
-
-  if (socket.runtime->declaration != nullptr) {
-    const nodes::SocketDeclaration &socket_decl = *socket.runtime->declaration;
-    return !socket_decl.description.empty();
-  }
-
-  return false;
-}
-
 static std::string node_socket_get_tooltip(const SpaceNode *snode,
                                            const bNodeTree &ntree,
                                            const bNodeSocket &socket)
@@ -1651,9 +1637,6 @@ static void node_socket_add_tooltip_in_node_editor(const bNodeTree &ntree,
                                                    const bNodeSocket &sock,
                                                    uiLayout &layout)
 {
-  if (!node_socket_has_tooltip(ntree, sock)) {
-    return;
-  }
   uiLayoutSetTooltipFunc(
       &layout,
       [](bContext *C, void *argN, const char * /*tip*/) {
@@ -1670,10 +1653,6 @@ static void node_socket_add_tooltip_in_node_editor(const bNodeTree &ntree,
 
 void node_socket_add_tooltip(const bNodeTree &ntree, const bNodeSocket &sock, uiLayout &layout)
 {
-  if (!node_socket_has_tooltip(ntree, sock)) {
-    return;
-  }
-
   struct SocketTooltipData {
     const bNodeTree *ntree;
     const bNodeSocket *socket;
@@ -1726,10 +1705,6 @@ static void node_socket_draw_nested(const bContext &C,
                    shape_id,
                    size_id,
                    outline_col_id);
-
-  if (!node_socket_has_tooltip(ntree, sock)) {
-    return;
-  }
 
   /* Ideally sockets themselves should be buttons, but they aren't currently. So add an invisible
    * button on top of them for the tooltip. */
