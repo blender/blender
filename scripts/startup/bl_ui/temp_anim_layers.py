@@ -29,7 +29,7 @@ class VIEW3D_PT_animation_layers(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        # FIXME: this should be done in response to a messagebus callback, notifier, whatnot.
+        # FIXME: this should be done in response to a message-bus callback, notifier, whatnot.
         adt = context.object.animation_data
         with _wm_selected_animation_lock:
             if adt:
@@ -38,7 +38,7 @@ class VIEW3D_PT_animation_layers(Panel):
                 context.window_manager.selected_animation = None
 
         col = layout.column()
-        # This has to go via an auxillary property, as assigning an Animation
+        # This has to go via an auxiliary property, as assigning an Animation
         # data-block should be possible even when `context.object.animation_data`
         # is `None`, and thus its `animation` property does not exist.
         col.template_ID(context.window_manager, 'selected_animation')

@@ -33,7 +33,7 @@ class AnimationLayersTest : public testing::Test {
 
   static void SetUpTestSuite()
   {
-    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialised properly. */
+    /* BKE_id_free() hits a code path that uses CLOG, which crashes if not initialized properly. */
     CLG_init();
 
     /* To make id_can_have_animdata() and friends work, the `id_types` array needs to be set up. */
@@ -248,7 +248,7 @@ TEST_F(AnimationLayersTest, rename_binding)
   EXPECT_STREQ("New Binding Name", out_cube.name);
   /* At this point the binding name will not have been copied to the cube
    * AnimData. However, I don't want to test for that here, as it's not exactly
-   * desirable behaviour, but more of a side-effect of the current
+   * desirable behavior, but more of a side-effect of the current
    * implementation. */
 
   anim->binding_name_propagate(*bmain, out_cube);

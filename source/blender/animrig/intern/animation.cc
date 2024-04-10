@@ -186,7 +186,7 @@ Binding *Animation::binding_for_handle(const binding_handle_t handle)
 
 const Binding *Animation::binding_for_handle(const binding_handle_t handle) const
 {
-  /* TODO: implement hashmap lookup. */
+  /* TODO: implement hash-map lookup. */
   for (const Binding *binding : bindings()) {
     if (binding->handle == handle) {
       return binding;
@@ -236,7 +236,7 @@ void Animation::binding_name_define(Binding &binding, const StringRefNull new_na
 
 void Animation::binding_name_propagate(Main &bmain, const Binding &binding)
 {
-  /* Just loop over all animatable IDs in the main dataabase. */
+  /* Just loop over all animatable IDs in the main database. */
   ListBase *lb;
   ID *id;
   FOREACH_MAIN_LISTBASE_BEGIN (&bmain, lb) {
