@@ -261,9 +261,6 @@ static int imapaint_pick_face(ViewContext *vc,
     return 0;
   }
 
-  BVHTreeFromMesh mesh_bvh;
-  BKE_bvhtree_from_mesh_get(&mesh_bvh, &mesh, BVHTREE_FROM_CORNER_TRIS, 2);
-  BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&mesh_bvh); });
 
   float3 start_world, end_world;
   ED_view3d_win_to_segment_clipped(
@@ -272,6 +269,10 @@ static int imapaint_pick_face(ViewContext *vc,
   const float4x4 &world_to_object = vc->obact->world_to_object();
   const float3 start_object = math::transform_point(world_to_object, start_world);
   const float3 end_object = math::transform_point(world_to_object, end_world);
+
+  BVHTreeFromMesh mesh_bvh;
+  BKE_bvhtree_from_mesh_get(&mesh_bvh, &mesh, BVHTREE_FROM_CORNER_TRIS, 2);
+  BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&mesh_bvh); });
 
   BVHTreeRayHit ray_hit;
   ray_hit.dist = FLT_MAX;
@@ -287,15 +288,8 @@ static int imapaint_pick_face(ViewContext *vc,
     return 0;
   }
 
-  const Span<float3> positions = mesh.vert_positions();
-  const Span<int> corner_verts = mesh.corner_verts();
-  const Span<int3> corner_tris = mesh.corner_tris();
-  const int3 &tri = corner_tris[ray_hit.index];
-  interp_weights_tri_v3(*r_bary_coord,
-                        positions[corner_verts[tri[0]]],
-                        positions[corner_verts[tri[1]]],
-                        positions[corner_verts[tri[2]]],
-                        ray_hit.co);
+  *r_bary_coord = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
+      mesh.vert_positions(), mesh.corner_verts(), mesh.corner_tris()[ray_hit.index], ray_hit.co);
 
   *r_tri_index = ray_hit.index;
   *r_face_index = mesh.corner_tri_faces()[ray_hit.index];
