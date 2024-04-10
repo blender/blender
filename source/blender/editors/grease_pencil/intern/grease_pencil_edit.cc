@@ -2354,6 +2354,7 @@ static int grease_pencil_copy_strokes_exec(bContext *C, wmOperator *op)
   }
 
   if (!anything_copied) {
+    clipboard.curves.resize(0, 0);
     return OPERATOR_CANCELLED;
   }
 
