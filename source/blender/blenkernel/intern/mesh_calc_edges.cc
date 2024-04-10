@@ -102,6 +102,9 @@ static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edg
 
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
     const int task_index = &edge_map - edge_maps.data();
+    if (edge_offsets[task_index].is_empty()) {
+      return;
+    }
 
     int new_edge_index = edge_offsets[task_index].first();
     for (EdgeMap::MutableItem item : edge_map.items()) {
