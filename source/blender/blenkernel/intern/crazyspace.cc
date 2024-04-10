@@ -435,6 +435,7 @@ void BKE_crazyspace_build_sculpt(Depsgraph *depsgraph,
     VirtualModifierData virtual_modifier_data;
     Object object_eval;
     crazyspace_init_object_for_eval(depsgraph, object, &object_eval);
+    BLI_SCOPED_DEFER([&]() { MEM_delete(object_eval.runtime); });
     ModifierData *md = BKE_modifiers_get_virtual_modifierlist(&object_eval,
                                                               &virtual_modifier_data);
     const ModifierEvalContext mectx = {depsgraph, &object_eval, ModifierApplyFlag(0)};
