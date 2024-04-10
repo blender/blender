@@ -10,7 +10,10 @@ It is not meant for any particular use, just to have *something* in the UI.
 import threading
 
 import bpy
-from bpy.types import Context, Panel, WindowManager
+from bpy.types import (
+    Panel,
+    WindowManager,
+)
 from bpy.props import PointerProperty
 
 
@@ -21,10 +24,10 @@ class VIEW3D_PT_animation_layers(Panel):
     bl_label = "Baklava"
 
     @classmethod
-    def poll(cls, context: Context) -> bool:
+    def poll(cls, context):
         return context.preferences.experimental.use_animation_baklava and context.object
 
-    def draw(self, context: Context) -> None:
+    def draw(self, context) -> None:
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
@@ -66,7 +69,7 @@ class VIEW3D_PT_animation_layers(Panel):
         for layer_idx, layer in reversed(list(enumerate(anim.layers))):
             layerbox = layout.box()
             col = layerbox.column(align=True)
-            col.prop(layer, "name", text=f"Layer {layer_idx+1}:")
+            col.prop(layer, "name", text="Layer %d:" % (layer_idx + 1))
             col.prop(layer, "influence")
             col.prop(layer, "mix_mode")
 
@@ -78,25 +81,25 @@ classes = (
 _wm_selected_animation_lock = threading.Lock()
 
 
-def _wm_selected_animation_update(self: WindowManager, context: Context) -> None:
+def _wm_selected_animation_update(wm, context):
     # Avoid responding to changes written by the panel above.
     lock_ok = _wm_selected_animation_lock.acquire(blocking=False)
     if not lock_ok:
         return
     try:
-        if self.selected_animation is None and context.object.animation_data is None:
+        if wm.selected_animation is None and context.object.animation_data is None:
             return
 
         adt = context.object.animation_data_create()
-        if adt.animation == self.selected_animation:
+        if adt.animation == wm.selected_animation:
             # Avoid writing to the property when the new value hasn't changed.
             return
-        adt.animation = self.selected_animation
+        adt.animation = wm.selected_animation
     finally:
         _wm_selected_animation_lock.release()
 
 
-def register_props() -> None:
+def register_props():
     # Put behind a `try` because it won't exist when Blender is built without
     # experimental features.
     try:
