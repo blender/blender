@@ -429,6 +429,28 @@ fail:
  * (Python in particular) * to be initialized.
  * \{ */
 
+/* When the deferred argument is handled on Windows the `argv` will have been freed,
+ * see `USE_WIN32_UNICODE_ARGS` in `creator.cc`. */
+
+#  ifdef WIN32
+static char **argv_duplicate(const char **argv, int argc)
+{
+  char **argv_copy = static_cast<char **>(MEM_mallocN(sizeof(*argv_copy) * argc, __func__));
+  for (int i = 0; i < argc; i++) {
+    argv_copy[i] = BLI_strdup(argv[i]);
+  }
+  return argv_copy;
+}
+
+static void argv_free(char **argv, int argc)
+{
+  for (int i = 0; i < argc; i++) {
+    MEM_freeN(argv[i]);
+  }
+  MEM_freeN(argv);
+}
+#  endif /* !WIN32 */
+
 struct BA_ArgCallback_Deferred {
   BA_ArgCallback func;
   int argc;
@@ -453,7 +475,20 @@ static void main_arg_deferred_setup(BA_ArgCallback func, int argc, const char **
   d->argv = argv;
   d->data = data;
   d->exit_code = 0;
+#  ifdef WIN32
+  d->argv = const_cast<const char **>(argv_duplicate(d->argv, d->argc));
+#  endif
   app_state.main_arg_deferred = d;
+}
+
+void main_arg_deferred_free()
+{
+  BA_ArgCallback_Deferred *d = app_state.main_arg_deferred;
+  app_state.main_arg_deferred = nullptr;
+#  ifdef WIN32
+  argv_free(const_cast<char **>(d->argv), d->argc);
+#  endif
+  MEM_freeN(d);
 }
 
 static void main_arg_deferred_exit_code_set(int exit_code)
@@ -463,7 +498,7 @@ static void main_arg_deferred_exit_code_set(int exit_code)
   d->exit_code = exit_code;
 }
 
-int main_arg_handle_deferred()
+int main_arg_deferred_handle()
 {
   BA_ArgCallback_Deferred *d = app_state.main_arg_deferred;
   d->func(d->argc, d->argv, d->data);

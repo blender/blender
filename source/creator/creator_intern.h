@@ -38,7 +38,8 @@ int main_args_handle_load_file(int argc, const char **argv, void *data);
  * Handle an argument which requested deferred evaluation.
  * Needed when arguments which evaluate early need Python to be initialized for example.
  */
-int main_arg_handle_deferred();
+int main_arg_deferred_handle();
+void main_arg_deferred_free();
 
 /* `creator_signals.cc` */
 

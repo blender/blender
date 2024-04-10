@@ -567,8 +567,8 @@ int main(int argc,
   if (G.background) {
     int exit_code;
     if (app_state.main_arg_deferred != nullptr) {
-      exit_code = main_arg_handle_deferred();
-      MEM_freeN(app_state.main_arg_deferred);
+      exit_code = main_arg_deferred_handle();
+      main_arg_deferred_free();
     }
     else {
       exit_code = G.is_break ? EXIT_FAILURE : EXIT_SUCCESS;
