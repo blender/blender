@@ -28,7 +28,7 @@ class OpenvdbTreeSharingInfo : public ImplicitSharingInfo {
 
   void delete_self_with_data() override
   {
-    MEM_freeN(this);
+    MEM_delete(this);
   }
 
   void delete_data_only() override
