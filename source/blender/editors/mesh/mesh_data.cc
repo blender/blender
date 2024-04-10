@@ -436,7 +436,7 @@ int ED_mesh_color_add(
 bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
 {
   using namespace blender;
-  BLI_assert(mesh->runtime->edit_mesh == nullptr);
+  BLI_assert(mesh->edit_mesh == nullptr);
   if (BKE_color_attribute_supported(*mesh, mesh->active_color_attribute)) {
     return true;
   }
