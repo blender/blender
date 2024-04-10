@@ -406,6 +406,12 @@ void DepsgraphNodeBuilder::begin_build()
     saved_entry_tags_.append_as(op_node);
   }
 
+  for (const OperationNode *op_node : graph_->operations) {
+    if (op_node->flag & DEPSOP_FLAG_NEEDS_UPDATE) {
+      needs_update_operations_.append_as(op_node);
+    }
+  }
+
   /* Make sure graph has no nodes left from previous state. */
   graph_->clear_all_nodes();
   graph_->operations.clear();
@@ -536,6 +542,16 @@ void DepsgraphNodeBuilder::tag_previously_tagged_nodes()
     /* Since the tag is coming from a saved copy of entry tags, this means
      * that originally node was explicitly tagged for user update. */
     operation_node->tag_update(graph_, DEG_UPDATE_SOURCE_USER_EDIT);
+  }
+
+  /* Restore needs-update flags since the previous state of the dependency graph, ensuring the
+   * previously-skipped operations are properly re-evaluated when needed. */
+  for (const OperationKey &operation_key : needs_update_operations_) {
+    OperationNode *operation_node = find_operation_node(operation_key);
+    if (operation_node == nullptr) {
+      continue;
+    }
+    operation_node->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
   }
 }
 
