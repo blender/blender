@@ -325,7 +325,7 @@ static Sequence *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase
     }
 
     if (seq->type == SEQ_TYPE_SCENE && (seq->flag & SEQ_SCENE_STRIPS)) {
-      if (sequencer_check_scene_recursion(scene, &seq->scene->ed->seqbase)) {
+      if (seq->scene->ed && sequencer_check_scene_recursion(scene, &seq->scene->ed->seqbase)) {
         return seq;
       }
     }
