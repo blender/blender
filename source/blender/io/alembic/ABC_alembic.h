@@ -60,6 +60,8 @@ struct AlembicExportParams {
   int ngon_method;
 
   float global_scale;
+
+  char collection[MAX_IDPROP_NAME] = "";
 };
 
 struct AlembicImportParams {
