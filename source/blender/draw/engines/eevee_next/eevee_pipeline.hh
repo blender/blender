@@ -341,28 +341,13 @@ class DeferredPipeline {
  *
  * \{ */
 
-struct GridAABB {
-  int3 min, max;
+struct VolumeObjectBounds {
+  /* Screen 2D bounds for layer intersection check. */
+  std::optional<Bounds<float2>> screen_bounds;
+  /* Combined bounds in Z. Allow tighter integration bounds. */
+  std::optional<Bounds<float>> z_range;
 
-  GridAABB(int3 min_, int3 max_) : min(min_), max(max_){};
-
-  /** Returns the intersection between this AABB and the \a other AABB. */
-  GridAABB intersection(const GridAABB &other) const
-  {
-    return {math::max(this->min, other.min), math::min(this->max, other.max)};
-  }
-
-  /** Returns the extent of the volume. Undefined if AABB is empty. */
-  int3 extent() const
-  {
-    return max - min;
-  }
-
-  /** Returns true if volume covers nothing or is negative. */
-  bool is_empty() const
-  {
-    return math::reduce_min(max - min) <= 0;
-  }
+  VolumeObjectBounds(const Camera &camera, Object *ob);
 };
 
 /**
@@ -373,6 +358,8 @@ class VolumeLayer {
   bool use_hit_list = false;
   bool is_empty = true;
   bool finalized = false;
+  bool has_scatter = false;
+  bool has_absorption = false;
 
  private:
   Instance &inst_;
@@ -382,7 +369,9 @@ class VolumeLayer {
   PassMain::Sub *occupancy_ps_;
   PassMain::Sub *material_ps_;
   /* List of bounds from all objects contained inside this pass. */
-  Vector<GridAABB> object_bounds_;
+  Vector<std::optional<Bounds<float2>>> object_bounds_;
+  /* Combined bounds from object_bounds_. */
+  std::optional<Bounds<float2>> combined_screen_bounds_;
 
  public:
   VolumeLayer(Instance &inst) : inst_(inst)
@@ -398,20 +387,9 @@ class VolumeLayer {
                               GPUMaterial *gpumat);
 
   /* Return true if the given bounds overlaps any of the contained object in this layer. */
-  bool bounds_overlaps(const GridAABB &object_aabb) const
-  {
-    for (const GridAABB &other_aabb : object_bounds_) {
-      if (object_aabb.intersection(other_aabb).is_empty() == false) {
-        return true;
-      }
-    }
-    return false;
-  }
+  bool bounds_overlaps(const VolumeObjectBounds &object_aabb) const;
 
-  void add_object_bound(const GridAABB &object_aabb)
-  {
-    object_bounds_.append(object_aabb);
-  }
+  void add_object_bound(const VolumeObjectBounds &object_aabb);
 
   void sync();
   void render(View &view, Texture &occupancy_tx);
@@ -423,6 +401,8 @@ class VolumePipeline {
 
   Vector<std::unique_ptr<VolumeLayer>> layers_;
 
+  /* Combined bounds in Z. Allow tighter integration bounds. */
+  std::optional<Bounds<float>> object_integration_range_;
   /* True if any volume (any object type) creates a volume draw-call. Enables the volume module. */
   bool enabled_ = false;
   /* Aggregated properties of all volume objects. */
@@ -441,12 +421,7 @@ class VolumePipeline {
    */
   VolumeLayer *register_and_get_layer(Object *ob);
 
-  /**
-   * Creates a volume material call.
-   * If any call to this function result in a valid draw-call, then the volume module will be
-   * enabled.
-   */
-  void material_call(MaterialPass &volume_material_pass, Object *ob, ResourceHandle res_handle);
+  std::optional<Bounds<float>> object_integration_range() const;
 
   bool is_enabled() const
   {
@@ -454,31 +429,25 @@ class VolumePipeline {
   }
   bool has_scatter() const
   {
-    return has_scatter_;
+    for (auto &layer : layers_) {
+      if (layer->has_scatter) {
+        return true;
+      }
+    }
+    return false;
   }
   bool has_absorption() const
   {
-    return has_absorption_;
+    for (auto &layer : layers_) {
+      if (layer->has_absorption) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /* Returns true if any volume layer uses the hist list. */
   bool use_hit_list() const;
-
- private:
-  /**
-   * Returns Axis aligned bounding box in the volume grid.
-   * Used for frustum culling and volumes overlapping detection.
-   * Represents min and max grid corners covered by a volume.
-   * So a volume covering the first froxel will have min={0,0,0} and max={1,1,1}.
-   * A volume with min={0,0,0} and max={0,0,0} covers nothing.
-   */
-  GridAABB grid_aabb_from_object(Object *ob);
-
-  /**
-   * Returns the view entire AABB. Used for clipping object bounds.
-   * Remember that these are cells corners, so this extents to `tex_size`.
-   */
-  GridAABB grid_aabb_from_view();
 };
 
 /** \} */

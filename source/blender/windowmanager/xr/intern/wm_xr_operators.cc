@@ -1365,7 +1365,7 @@ static void WM_OT_xr_navigation_teleport(wmOperatorType *ot)
   ot->poll = wm_xr_operator_sessionactive;
 
   /* Properties. */
-  static bool default_teleport_axes[3] = {true, true, true};
+  static const bool default_teleport_axes[3] = {true, true, true};
 
   RNA_def_boolean_vector(ot->srna,
                          "teleport_axes",

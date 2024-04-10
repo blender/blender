@@ -255,6 +255,7 @@ namespace blender::bke::greasepencil {
 static const std::string ATTR_RADIUS = "radius";
 static const std::string ATTR_OPACITY = "opacity";
 static const std::string ATTR_VERTEX_COLOR = "vertex_color";
+static const std::string ATTR_FILL_COLOR = "fill_color";
 
 /* Curves attributes getters */
 static int domain_num(const CurvesGeometry &curves, const AttrDomain domain)
@@ -680,6 +681,20 @@ MutableSpan<ColorGeometry4f> Drawing::vertex_colors_for_write()
                                                 ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
 }
 
+VArray<ColorGeometry4f> Drawing::fill_colors() const
+{
+  return *this->strokes().attributes().lookup_or_default<ColorGeometry4f>(
+      ATTR_FILL_COLOR, AttrDomain::Curve, ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
+}
+
+MutableSpan<ColorGeometry4f> Drawing::fill_colors_for_write()
+{
+  return get_mutable_attribute<ColorGeometry4f>(this->strokes_for_write(),
+                                                AttrDomain::Curve,
+                                                ATTR_FILL_COLOR,
+                                                ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
+}
+
 void Drawing::tag_texture_matrices_changed()
 {
   this->runtime->curve_texture_matrices.tag_dirty();
@@ -823,12 +838,19 @@ Layer &TreeNode::as_layer()
   return *reinterpret_cast<Layer *>(this);
 }
 
-LayerGroup *TreeNode::parent_group() const
+const LayerGroup *TreeNode::parent_group() const
 {
   return (this->parent) ? &this->parent->wrap() : nullptr;
 }
-
-TreeNode *TreeNode::parent_node() const
+LayerGroup *TreeNode::parent_group()
+{
+  return (this->parent) ? &this->parent->wrap() : nullptr;
+}
+const TreeNode *TreeNode::parent_node() const
+{
+  return this->parent_group() ? &this->parent->wrap().as_node() : nullptr;
+}
+TreeNode *TreeNode::parent_node()
 {
   return this->parent_group() ? &this->parent->wrap().as_node() : nullptr;
 }
@@ -889,6 +911,7 @@ Layer::Layer()
 
   this->parent = nullptr;
   this->parsubstr = nullptr;
+  unit_m4(this->parentinv);
 
   zero_v3(this->translation);
   zero_v3(this->rotation);
@@ -922,6 +945,7 @@ Layer::Layer(const Layer &other) : Layer()
 
   this->parent = other.parent;
   this->set_parent_bone_name(other.parsubstr);
+  copy_m4_m4(this->parentinv, other.parentinv);
 
   copy_v3_v3(this->translation, other.translation);
   copy_v3_v3(this->rotation, other.rotation);
@@ -1203,7 +1227,7 @@ float4x4 Layer::to_world_space(const Object &object) const
     return object.object_to_world() * this->local_transform();
   }
   const Object &parent = *this->parent;
-  return this->parent_to_world(parent) * this->local_transform();
+  return this->parent_to_world(parent) * this->parent_inverse() * this->local_transform();
 }
 
 float4x4 Layer::to_object_space(const Object &object) const
@@ -1212,7 +1236,8 @@ float4x4 Layer::to_object_space(const Object &object) const
     return this->local_transform();
   }
   const Object &parent = *this->parent;
-  return object.world_to_object() * this->parent_to_world(parent) * this->local_transform();
+  return object.world_to_object() * this->parent_to_world(parent) * this->parent_inverse() *
+         this->local_transform();
 }
 
 StringRefNull Layer::parent_bone_name() const
@@ -1239,6 +1264,11 @@ float4x4 Layer::parent_to_world(const Object &parent) const
     }
   }
   return parent_object_to_world;
+}
+
+float4x4 Layer::parent_inverse() const
+{
+  return float4x4_view(this->parentinv);
 }
 
 float4x4 Layer::local_transform() const

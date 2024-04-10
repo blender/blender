@@ -243,8 +243,13 @@ static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
 
 /* Utilities */
 
-static void vicon_keytype_draw_wrapper(
-    int x, int y, int w, int h, float alpha, short key_type, short handle_type)
+static void vicon_keytype_draw_wrapper(const int x,
+                                       const int y,
+                                       const int w,
+                                       const int h,
+                                       const float alpha,
+                                       const eBezTriple_KeyframeType key_type,
+                                       const short handle_type)
 {
   /* Initialize dummy theme state for Action Editor - where these colors are defined
    * (since we're doing this off-screen, free from any particular space_id). */

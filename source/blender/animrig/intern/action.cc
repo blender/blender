@@ -7,6 +7,7 @@
  */
 
 #include "ANIM_action.hh"
+#include "ANIM_fcurve.hh"
 #include "BKE_action.h"
 #include "BKE_fcurve.hh"
 #include "BLI_listbase.h"
@@ -49,16 +50,11 @@ FCurve *action_fcurve_ensure(Main *bmain,
     return fcu;
   }
 
-  fcu = BKE_fcurve_create();
+  fcu = create_fcurve_for_channel(rna_path, array_index);
 
-  fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
-  fcu->auto_smoothing = U.auto_smoothing_new;
   if (BLI_listbase_is_empty(&act->curves)) {
     fcu->flag |= FCURVE_ACTIVE;
   }
-
-  fcu->rna_path = BLI_strdup(rna_path);
-  fcu->array_index = array_index;
 
   if (U.keying_flag & KEYING_FLAG_XYZ2RGB && ptr != nullptr) {
     /* For Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,

@@ -106,13 +106,13 @@ class VertBuf {
   size_t size_alloc_get() const
   {
     BLI_assert(format.packed);
-    return vertex_alloc * format.stride;
+    return size_t(vertex_alloc) * format.stride;
   }
   /* Size of the data uploaded to the GPU. */
   size_t size_used_get() const
   {
     BLI_assert(format.packed);
-    return vertex_len * format.stride;
+    return size_t(vertex_len) * format.stride;
   }
 
   void reference_add()

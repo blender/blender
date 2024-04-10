@@ -835,7 +835,7 @@ void ANIM_copy_as_driver(ID *target_id, const char *target_path, const char *var
 
 /* Add Driver - Enum Defines ------------------------- */
 
-EnumPropertyItem prop_driver_create_mapping_types[] = {
+const EnumPropertyItem prop_driver_create_mapping_types[] = {
     /* XXX: These names need reviewing. */
     {CREATEDRIVER_MAPPING_1_N,
      "SINGLE_MANY",
@@ -873,7 +873,7 @@ static const EnumPropertyItem *driver_mapping_type_itemf(bContext *C,
                                                          PropertyRNA * /*owner_prop*/,
                                                          bool *r_free)
 {
-  EnumPropertyItem *input = prop_driver_create_mapping_types;
+  const EnumPropertyItem *input = prop_driver_create_mapping_types;
   EnumPropertyItem *item = nullptr;
 
   PointerRNA ptr = {nullptr};

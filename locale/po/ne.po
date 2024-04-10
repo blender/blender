@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Yudhir Khanal <yudhir.khanal@gmail.com>\n"
 "Language-Team: Yudhir\n"
@@ -457,11 +457,6 @@ msgstr "पंक्तिबद्ध पार"
 msgctxt "Operator"
 msgid "View Documentation"
 msgstr "यसको अभिलेख हेर्ने"
-
-
-msgctxt "Operator"
-msgid "Add Keyconfig Preset"
-msgstr "पुर्व-स्थापित keyboard संग्रह बनाऊ "
 
 
 msgctxt "Operator"

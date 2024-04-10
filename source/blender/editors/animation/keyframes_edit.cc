@@ -1371,7 +1371,7 @@ KeyframeEditFunc ANIM_editkeyframes_ipo(short mode)
 static short set_keytype_keyframe(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
   if (bezt->f2 & SELECT) {
-    BEZKEYTYPE(bezt) = BEZT_KEYTYPE_KEYFRAME;
+    BEZKEYTYPE_LVALUE(bezt) = BEZT_KEYTYPE_KEYFRAME;
   }
   return 0;
 }
@@ -1379,7 +1379,7 @@ static short set_keytype_keyframe(KeyframeEditData * /*ked*/, BezTriple *bezt)
 static short set_keytype_breakdown(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
   if (bezt->f2 & SELECT) {
-    BEZKEYTYPE(bezt) = BEZT_KEYTYPE_BREAKDOWN;
+    BEZKEYTYPE_LVALUE(bezt) = BEZT_KEYTYPE_BREAKDOWN;
   }
   return 0;
 }
@@ -1387,7 +1387,7 @@ static short set_keytype_breakdown(KeyframeEditData * /*ked*/, BezTriple *bezt)
 static short set_keytype_extreme(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
   if (bezt->f2 & SELECT) {
-    BEZKEYTYPE(bezt) = BEZT_KEYTYPE_EXTREME;
+    BEZKEYTYPE_LVALUE(bezt) = BEZT_KEYTYPE_EXTREME;
   }
   return 0;
 }
@@ -1395,7 +1395,7 @@ static short set_keytype_extreme(KeyframeEditData * /*ked*/, BezTriple *bezt)
 static short set_keytype_jitter(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
   if (bezt->f2 & SELECT) {
-    BEZKEYTYPE(bezt) = BEZT_KEYTYPE_JITTER;
+    BEZKEYTYPE_LVALUE(bezt) = BEZT_KEYTYPE_JITTER;
   }
   return 0;
 }
@@ -1403,30 +1403,32 @@ static short set_keytype_jitter(KeyframeEditData * /*ked*/, BezTriple *bezt)
 static short set_keytype_moving_hold(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
   if (bezt->f2 & SELECT) {
-    BEZKEYTYPE(bezt) = BEZT_KEYTYPE_MOVEHOLD;
+    BEZKEYTYPE_LVALUE(bezt) = BEZT_KEYTYPE_MOVEHOLD;
   }
   return 0;
 }
 
-KeyframeEditFunc ANIM_editkeyframes_keytype(short mode)
+KeyframeEditFunc ANIM_editkeyframes_keytype(const eBezTriple_KeyframeType keyframe_type)
 {
-  switch (mode) {
-    case BEZT_KEYTYPE_BREAKDOWN: /* breakdown */
+  switch (keyframe_type) {
+    case BEZT_KEYTYPE_BREAKDOWN:
       return set_keytype_breakdown;
 
-    case BEZT_KEYTYPE_EXTREME: /* extreme keyframe */
+    case BEZT_KEYTYPE_EXTREME:
       return set_keytype_extreme;
 
-    case BEZT_KEYTYPE_JITTER: /* jitter keyframe */
+    case BEZT_KEYTYPE_JITTER:
       return set_keytype_jitter;
 
-    case BEZT_KEYTYPE_MOVEHOLD: /* moving hold */
+    case BEZT_KEYTYPE_MOVEHOLD:
       return set_keytype_moving_hold;
 
-    case BEZT_KEYTYPE_KEYFRAME: /* proper keyframe */
-    default:
+    case BEZT_KEYTYPE_KEYFRAME:
       return set_keytype_keyframe;
   }
+
+  BLI_assert_unreachable();
+  return nullptr;
 }
 
 /* ------- */

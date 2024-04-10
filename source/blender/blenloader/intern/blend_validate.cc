@@ -78,14 +78,14 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
     BKE_library_filepath_set(bmain, curlib, curlib->filepath);
     BlendFileReadReport bf_reports{};
     bf_reports.reports = reports;
-    BlendHandle *bh = BLO_blendhandle_from_file(curlib->filepath_abs, &bf_reports);
+    BlendHandle *bh = BLO_blendhandle_from_file(curlib->runtime.filepath_abs, &bf_reports);
 
     if (bh == nullptr) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Library ID %s not found at expected path %s!",
                   curlib->id.name,
-                  curlib->filepath_abs);
+                  curlib->runtime.filepath_abs);
       continue;
     }
 

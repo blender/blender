@@ -10,8 +10,10 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 
+#include "BLI_array.hh"
 #include "BLI_bit_span.hh"
 #include "BLI_vector.hh"
 #include "DNA_anim_types.h"
@@ -28,6 +30,41 @@ struct AnimationEvalContext;
 struct NlaKeyframingContext;
 
 namespace blender::animrig {
+
+enum class SingleKeyingResult {
+  SUCCESS = 0,
+  CANNOT_CREATE_FCURVE,
+  FCURVE_NOT_KEYFRAMEABLE,
+  NO_KEY_NEEDED,
+  UNABLE_TO_INSERT_TO_NLA_STACK,
+  /* Make sure to always keep this at the end of the enum. */
+  _KEYING_RESULT_MAX,
+};
+
+/**
+ * Class for tracking the result of inserting keyframes. Tracks how often each of
+ * `SingleKeyingResult` has happened.
+ * */
+class CombinedKeyingResult {
+ private:
+  /* The index to the array maps a `SingleKeyingResult` to the number of times this result has
+   * occurred. */
+  std::array<int, size_t(SingleKeyingResult::_KEYING_RESULT_MAX)> result_counter;
+
+ public:
+  CombinedKeyingResult();
+
+  void add(const SingleKeyingResult result);
+
+  /* Add values of the given result to this result. */
+  void merge(const CombinedKeyingResult &combined_result);
+
+  int get_count(const SingleKeyingResult result) const;
+
+  bool has_errors() const;
+
+  void generate_reports(ReportList *reports);
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Key-Framing Management
@@ -194,31 +231,31 @@ bool autokeyframe_property(bContext *C,
  * already.
  * \param keying_mask is expected to have the same size as `rna_path`. A false bit means that index
  * will be skipped.
- * \returns The number of keys inserted.
+ * \returns How often keyframe insertion was successful and how often it failed / for which reason.
  */
-int insert_key_action(Main *bmain,
-                      bAction *action,
-                      PointerRNA *ptr,
-                      PropertyRNA *prop,
-                      const std::string &rna_path,
-                      float frame,
-                      Span<float> values,
-                      eInsertKeyFlags insert_key_flag,
-                      eBezTriple_KeyframeType key_type,
-                      BitSpan keying_mask);
+CombinedKeyingResult insert_key_action(Main *bmain,
+                                       bAction *action,
+                                       PointerRNA *ptr,
+                                       PropertyRNA *prop,
+                                       const std::string &rna_path,
+                                       float frame,
+                                       Span<float> values,
+                                       eInsertKeyFlags insert_key_flag,
+                                       eBezTriple_KeyframeType key_type,
+                                       BitSpan keying_mask);
 
 /**
  * Insert keys to the ID of the given PointerRNA for the given RNA paths. Tries to create an
  * action if none exists yet.
  * \param scene_frame: is expected to be not NLA mapped as that happens within the function.
+ * \returns How often keyframe insertion was successful and how often it failed / for which reason.
  */
-void insert_key_rna(PointerRNA *rna_pointer,
-                    const blender::Span<std::string> rna_paths,
-                    float scene_frame,
-                    eInsertKeyFlags insert_key_flags,
-                    eBezTriple_KeyframeType key_type,
-                    Main *bmain,
-                    ReportList *reports,
-                    const AnimationEvalContext &anim_eval_context);
+CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
+                                    const blender::Span<std::string> rna_paths,
+                                    float scene_frame,
+                                    eInsertKeyFlags insert_key_flags,
+                                    eBezTriple_KeyframeType key_type,
+                                    Main *bmain,
+                                    const AnimationEvalContext &anim_eval_context);
 
 }  // namespace blender::animrig

@@ -10,6 +10,8 @@
 
 #include "BLI_sys_types.h"
 
+#include "DNA_curve_types.h"
+
 struct AnimData;
 struct ChannelDrawList;
 struct FCurve;
@@ -44,7 +46,7 @@ void draw_keyframe_shape(float x,
                          float y,
                          float size,
                          bool sel,
-                         short key_type,
+                         eBezTriple_KeyframeType key_type,
                          short mode,
                          float alpha,
                          const KeyframeShaderBindings *sh_bindings,

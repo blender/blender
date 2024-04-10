@@ -377,4 +377,6 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot);
 
 void object_modifier_add_asset_register();
 
+void collection_exporter_register();
+
 }  // namespace blender::ed::object

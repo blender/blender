@@ -300,8 +300,18 @@ void AbstractTreeViewItem::tree_row_click_fn(bContext *C, void *but_arg1, void *
 void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
 {
   /* For some reason a width > (UI_UNIT_X * 2) make the layout system use all available width. */
-  view_item_but_ = reinterpret_cast<uiButViewItem *>(uiDefBut(
-      &block, UI_BTYPE_VIEW_ITEM, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y, nullptr, 0, 0, ""));
+  view_item_but_ = reinterpret_cast<uiButViewItem *>(uiDefBut(&block,
+                                                              UI_BTYPE_VIEW_ITEM,
+                                                              0,
+                                                              "",
+                                                              0,
+                                                              0,
+                                                              UI_UNIT_X * 10,
+                                                              padded_item_height(),
+                                                              nullptr,
+                                                              0,
+                                                              0,
+                                                              ""));
 
   view_item_but_->view_item = this;
   view_item_but_->draw_height = unpadded_item_height();
@@ -650,8 +660,6 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   if (!item.is_interactive_) {
     uiLayoutSetActive(overlap, false);
   }
-  /* Scale the layout for the padded height. Widgets will be vertically centered then. */
-  uiLayoutSetScaleY(overlap, float(padded_item_height()) / UI_UNIT_Y);
 
   uiLayout *row = uiLayoutRow(overlap, false);
   /* Enable emboss for mouse hover highlight. */
@@ -660,9 +668,15 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   item.add_treerow_button(block_);
 
   /* After adding tree-row button (would disable hover highlighting). */
-  UI_block_emboss_set(&block_, UI_EMBOSS_NONE);
+  UI_block_emboss_set(&block_, UI_EMBOSS_NONE_OR_STATUS);
 
-  row = uiLayoutRow(overlap, true);
+  /* Add little margin to align actual contents vertically. */
+  uiLayout *content_col = uiLayoutColumn(overlap, true);
+  const int margin_top = (padded_item_height() - unpadded_item_height()) / 2;
+  if (margin_top > 0) {
+    uiDefBut(&block_, UI_BTYPE_LABEL, 0, "", 0, 0, UI_UNIT_X, margin_top, nullptr, 0, 0, "");
+  }
+  row = uiLayoutRow(content_col, true);
   item.add_indent(*row);
   item.add_collapse_chevron(block_);
 

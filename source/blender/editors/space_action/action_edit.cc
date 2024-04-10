@@ -1673,7 +1673,7 @@ void ACTION_OT_handle_type(wmOperatorType *ot)
  * \{ */
 
 /* this function is responsible for setting keyframe type for keyframes */
-static void setkeytype_action_keys(bAnimContext *ac, short mode)
+static void setkeytype_action_keys(bAnimContext *ac, eBezTriple_KeyframeType mode)
 {
   ListBase anim_data = {nullptr, nullptr};
   eAnimFilter_Flags filter;
@@ -1722,7 +1722,6 @@ static void setkeytype_action_keys(bAnimContext *ac, short mode)
 static int actkeys_keytype_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
-  short mode;
 
   /* get editor data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
@@ -1734,11 +1733,8 @@ static int actkeys_keytype_exec(bContext *C, wmOperator *op)
     return OPERATOR_PASS_THROUGH;
   }
 
-  /* get handle setting mode */
-  mode = RNA_enum_get(op->ptr, "type");
-
-  /* set handle type */
-  setkeytype_action_keys(&ac, mode);
+  const int mode = RNA_enum_get(op->ptr, "type");
+  setkeytype_action_keys(&ac, eBezTriple_KeyframeType(mode));
 
   /* set notifier that keyframe properties have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME_PROP, nullptr);

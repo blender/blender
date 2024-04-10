@@ -723,8 +723,8 @@ typedef struct UserDef_Experimental {
   char use_extension_repos;
   char use_extension_utils;
   char use_grease_pencil_version3_convert_on_load;
+  char use_animation_baklava;
 
-  char _pad[1];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

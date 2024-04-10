@@ -95,9 +95,12 @@ struct LooseEdgeCache : public LooseGeomCache {};
 struct LooseVertCache : public LooseGeomCache {};
 
 struct MeshRuntime {
-  /* Evaluated mesh for objects which do not have effective modifiers.
-   * This mesh is used as a result of modifier stack evaluation.
-   * Since modifier stack evaluation is threaded on object level we need some synchronization. */
+  /**
+   * "Evaluated" mesh owned by this mesh. Used for objects which don't have effective modifiers, so
+   * that the evaluated mesh can be shared between objects. Also stores the lazily created #Mesh
+   * for #BMesh and GPU subdivision mesh wrappers. Since this is accessed and set from multiple
+   * threads, access and use must be protected by the #eval_mutex lock.
+   */
   Mesh *mesh_eval = nullptr;
   std::mutex eval_mutex;
 

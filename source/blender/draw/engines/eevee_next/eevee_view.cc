@@ -126,7 +126,7 @@ void ShadingView::render()
 
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
 
-  inst_.volume.draw_prepass(render_view_);
+  inst_.volume.draw_prepass(main_view_);
 
   /* TODO(Miguel Pozo): Deferred and forward prepass should happen before the GBuffer pass. */
   inst_.pipelines.deferred.render(main_view_,
@@ -140,7 +140,7 @@ void ShadingView::render()
 
   inst_.gbuffer.release();
 
-  inst_.volume.draw_compute(render_view_);
+  inst_.volume.draw_compute(main_view_);
 
   // inst_.lookdev.render_overlay(view_fb_);
 

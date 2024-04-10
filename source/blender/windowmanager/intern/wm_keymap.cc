@@ -1980,7 +1980,6 @@ void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties)
    *
    * In practice both cases are quite unlikely though. */
   if (U.space_data.section_active == USER_SECTION_KEYMAP) {
-    wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       bScreen *screen = WM_window_get_active_screen(win);
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {

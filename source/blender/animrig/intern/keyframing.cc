@@ -48,44 +48,101 @@
 
 namespace blender::animrig {
 
-enum class SingleKeyingResult {
-  SUCCESS = 0,
-  CANNOT_CREATE_FCURVE,
-  FCURVE_NOT_KEYFRAMEABLE,
-  NO_KEY_NEEDED,
-  /* Make sure to always keep this at the end of the enum. */
-  _KEYING_RESULT_MAX,
-};
+CombinedKeyingResult::CombinedKeyingResult()
+{
+  result_counter.fill(0);
+}
 
-class CombinedKeyingResult {
- private:
-  /* The index to the array maps a `SingleKeyingResult` to the number of times this result has
-   * occurred. */
-  std::array<int, int(SingleKeyingResult::_KEYING_RESULT_MAX)> result_counter{0};
+void CombinedKeyingResult::add(const SingleKeyingResult result)
+{
+  result_counter[int(result)]++;
+}
 
- public:
-  void add(const SingleKeyingResult result)
-  {
-    result_counter[int(result)]++;
+void CombinedKeyingResult::merge(const CombinedKeyingResult &other)
+{
+  for (int i = 0; i < result_counter.size(); i++) {
+    result_counter[i] += other.result_counter[i];
   }
+}
 
-  int get_count(const SingleKeyingResult result) const
-  {
-    return result_counter[int(result)];
-  }
+int CombinedKeyingResult::get_count(const SingleKeyingResult result) const
+{
+  return result_counter[int(result)];
+}
 
-  bool has_errors() const
-  {
-    /* For loop starts at 1 to skip the SUCCESS flag. Assumes that SUCCESS is 0 and the rest of the
-     * enum are sequential values. */
-    for (int i = 1; i < result_counter.size(); i++) {
-      if (result_counter[i] > 0) {
-        return true;
-      }
+bool CombinedKeyingResult::has_errors() const
+{
+  /* For loop starts at 1 to skip the SUCCESS flag. Assumes that SUCCESS is 0 and the rest of the
+   * enum are sequential values. */
+  static_assert(int(SingleKeyingResult::SUCCESS) == 0);
+  for (int i = 1; i < result_counter.size(); i++) {
+    if (result_counter[i] > 0) {
+      return true;
     }
-    return false;
   }
-};
+  return false;
+}
+
+void CombinedKeyingResult::generate_reports(ReportList *reports)
+{
+  if (!this->has_errors() && this->get_count(SingleKeyingResult::SUCCESS) == 0) {
+    BKE_reportf(
+        reports, RPT_WARNING, "No keys have been inserted and no errors have been reported.");
+    return;
+  }
+
+  Vector<std::string> errors;
+  if (this->get_count(SingleKeyingResult::CANNOT_CREATE_FCURVE) > 0) {
+    const int error_count = this->get_count(SingleKeyingResult::CANNOT_CREATE_FCURVE);
+    errors.append(
+        fmt::format("Could not create {} F-Curve{}. This can happen when only inserting to "
+                    "available F-Curves.",
+                    error_count,
+                    error_count > 1 ? "s" : ""));
+  }
+
+  if (this->get_count(SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE) > 0) {
+    const int error_count = this->get_count(SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE);
+    if (error_count == 1) {
+      errors.append("One F-Curve is not keyframeable. It might be locked or sampled.");
+    }
+    else {
+      errors.append(fmt::format(
+          "{} F-Curves are not keyframeable. They might be locked or sampled.", error_count));
+    }
+  }
+
+  if (this->get_count(SingleKeyingResult::NO_KEY_NEEDED) > 0) {
+    const int error_count = this->get_count(SingleKeyingResult::NO_KEY_NEEDED);
+    errors.append(
+        fmt::format("Due to the setting 'Only Insert Needed', {} keyframe{} not been inserted.",
+                    error_count,
+                    error_count > 1 ? "s have" : " has"));
+  }
+
+  if (this->get_count(SingleKeyingResult::UNABLE_TO_INSERT_TO_NLA_STACK) > 0) {
+    const int error_count = this->get_count(SingleKeyingResult::UNABLE_TO_INSERT_TO_NLA_STACK);
+    errors.append(fmt::format("Due to the NLA stack setup, {} keyframe{} not been inserted.",
+                              error_count,
+                              error_count > 1 ? "s have" : " has"));
+  }
+
+  if (errors.is_empty()) {
+    BKE_report(reports, RPT_WARNING, "Encountered unhandled error during keyframing");
+    return;
+  }
+
+  if (errors.size() == 1) {
+    BKE_report(reports, RPT_ERROR, errors[0].c_str());
+    return;
+  }
+
+  std::string error_message = "Inserting keyframes failed:";
+  for (const std::string &error : errors) {
+    error_message.append(fmt::format("\n- {}", error));
+  }
+  BKE_report(reports, RPT_ERROR, error_message.c_str());
+}
 
 void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop)
 {
@@ -499,42 +556,6 @@ static SingleKeyingResult insert_keyframe_fcurve_value(Main *bmain,
   return result;
 }
 
-static void generate_keyframe_reports_from_result(ReportList *reports,
-                                                  const CombinedKeyingResult &result)
-{
-  std::string error = "Inserting keyframes failed due to the following reasons:";
-
-  if (result.get_count(SingleKeyingResult::CANNOT_CREATE_FCURVE) > 0) {
-    const int error_count = result.get_count(SingleKeyingResult::CANNOT_CREATE_FCURVE);
-    error.append(
-        fmt::format("\n- Could not create {} F-Curve{}. This can happen when only inserting to "
-                    "available F-Curves.",
-                    error_count,
-                    error_count > 1 ? "s" : ""));
-  }
-
-  if (result.get_count(SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE) > 0) {
-    const int error_count = result.get_count(SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE);
-    if (error_count == 1) {
-      error.append("\n- One F-Curve is not keyframeable. It might be locked or sampled.");
-    }
-    else {
-      error.append(fmt::format(
-          "\n- {} F-Curves are not keyframeable. They might be locked or sampled.", error_count));
-    }
-  }
-
-  if (result.get_count(SingleKeyingResult::NO_KEY_NEEDED) > 0) {
-    const int error_count = result.get_count(SingleKeyingResult::NO_KEY_NEEDED);
-    error.append(fmt::format(
-        "\n- Due to the setting 'Only Insert Needed', {} keyframe{} not been inserted.",
-        error_count,
-        error_count > 1 ? "s have" : " has"));
-  }
-
-  BKE_reportf(reports, RPT_ERROR, "%s", error.c_str());
-}
-
 int insert_keyframe(Main *bmain,
                     ReportList *reports,
                     ID *id,
@@ -718,7 +739,7 @@ int insert_keyframe(Main *bmain,
   }
 
   if (key_count == 0) {
-    generate_keyframe_reports_from_result(reports, combined_result);
+    combined_result.generate_reports(reports);
   }
 
   return key_count;
@@ -916,16 +937,16 @@ int clear_keyframe(Main *bmain,
   return key_count;
 }
 
-int insert_key_action(Main *bmain,
-                      bAction *action,
-                      PointerRNA *ptr,
-                      PropertyRNA *prop,
-                      const std::string &rna_path,
-                      const float frame,
-                      const Span<float> values,
-                      eInsertKeyFlags insert_key_flag,
-                      eBezTriple_KeyframeType key_type,
-                      const BitSpan keying_mask)
+CombinedKeyingResult insert_key_action(Main *bmain,
+                                       bAction *action,
+                                       PointerRNA *ptr,
+                                       PropertyRNA *prop,
+                                       const std::string &rna_path,
+                                       const float frame,
+                                       const Span<float> values,
+                                       eInsertKeyFlags insert_key_flag,
+                                       eBezTriple_KeyframeType key_type,
+                                       const BitSpan keying_mask)
 {
   BLI_assert(bmain != nullptr);
   BLI_assert(action != nullptr);
@@ -940,49 +961,44 @@ int insert_key_action(Main *bmain,
   }
 
   int property_array_index = 0;
-  int inserted_keys = 0;
+  CombinedKeyingResult combined_result;
   for (float value : values) {
     if (!keying_mask[property_array_index]) {
+      combined_result.add(SingleKeyingResult::UNABLE_TO_INSERT_TO_NLA_STACK);
       property_array_index++;
       continue;
     }
-    const SingleKeyingResult inserted_key = insert_keyframe_fcurve_value(bmain,
-                                                                         ptr,
-                                                                         prop,
-                                                                         action,
-                                                                         group.c_str(),
-                                                                         rna_path.c_str(),
-                                                                         property_array_index,
-                                                                         frame,
-                                                                         value,
-                                                                         key_type,
-                                                                         insert_key_flag);
-    if (inserted_key == SingleKeyingResult::SUCCESS) {
-      inserted_keys++;
-    }
+    const SingleKeyingResult keying_result = insert_keyframe_fcurve_value(bmain,
+                                                                          ptr,
+                                                                          prop,
+                                                                          action,
+                                                                          group.c_str(),
+                                                                          rna_path.c_str(),
+                                                                          property_array_index,
+                                                                          frame,
+                                                                          value,
+                                                                          key_type,
+                                                                          insert_key_flag);
+    combined_result.add(keying_result);
     property_array_index++;
   }
-  return inserted_keys;
+  return combined_result;
 }
 
-void insert_key_rna(PointerRNA *rna_pointer,
-                    const blender::Span<std::string> rna_paths,
-                    const float scene_frame,
-                    const eInsertKeyFlags insert_key_flags,
-                    const eBezTriple_KeyframeType key_type,
-                    Main *bmain,
-                    ReportList *reports,
-                    const AnimationEvalContext &anim_eval_context)
+CombinedKeyingResult insert_key_rna(PointerRNA *rna_pointer,
+                                    const blender::Span<std::string> rna_paths,
+                                    const float scene_frame,
+                                    const eInsertKeyFlags insert_key_flags,
+                                    const eBezTriple_KeyframeType key_type,
+                                    Main *bmain,
+                                    const AnimationEvalContext &anim_eval_context)
 {
   ID *id = rna_pointer->owner_id;
   bAction *action = id_action_ensure(bmain, id);
+  CombinedKeyingResult combined_result;
+
   if (action == nullptr) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Could not insert keyframe, as this type does not support animation data (ID = "
-                "%s)",
-                id->name);
-    return;
+    return combined_result;
   }
 
   AnimData *adt = BKE_animdata_from_id(id);
@@ -1000,19 +1016,12 @@ void insert_key_rna(PointerRNA *rna_pointer,
   const float nla_frame = BKE_nla_tweakedit_remap(adt, scene_frame, NLATIME_CONVERT_UNMAP);
   const bool visual_keyframing = insert_key_flags & INSERTKEY_MATRIX;
 
-  int insert_key_count = 0;
   for (const std::string &rna_path : rna_paths) {
     PointerRNA ptr;
     PropertyRNA *prop = nullptr;
     const bool path_resolved = RNA_path_resolve_property(
         rna_pointer, rna_path.c_str(), &ptr, &prop);
     if (!path_resolved) {
-      BKE_reportf(reports,
-                  RPT_ERROR,
-                  "Could not insert keyframe, as this property does not exist (ID = "
-                  "%s, path = %s)",
-                  id->name,
-                  rna_path.c_str());
       continue;
     }
     const std::optional<std::string> rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr,
@@ -1028,23 +1037,21 @@ void insert_key_rna(PointerRNA *rna_pointer,
                                           &anim_eval_context,
                                           nullptr,
                                           successful_remaps);
-
-    insert_key_count += insert_key_action(bmain,
-                                          action,
-                                          rna_pointer,
-                                          prop,
-                                          rna_path_id_to_prop->c_str(),
-                                          nla_frame,
-                                          rna_values.as_span(),
-                                          insert_key_flags,
-                                          key_type,
-                                          successful_remaps);
+    const CombinedKeyingResult result = insert_key_action(bmain,
+                                                          action,
+                                                          rna_pointer,
+                                                          prop,
+                                                          rna_path_id_to_prop->c_str(),
+                                                          nla_frame,
+                                                          rna_values.as_span(),
+                                                          insert_key_flags,
+                                                          key_type,
+                                                          successful_remaps);
+    combined_result.merge(result);
   }
   BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 
-  if (insert_key_count == 0) {
-    BKE_reportf(reports, RPT_ERROR, "Failed to insert any keys");
-  }
+  return combined_result;
 }
 
 }  // namespace blender::animrig

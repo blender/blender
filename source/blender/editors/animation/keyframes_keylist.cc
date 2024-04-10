@@ -518,7 +518,7 @@ static ActKeyColumn *nalloc_ak_cel(void *data)
   /* Store settings based on state of BezTriple */
   ak->cfra = cel.frame_number;
   ak->sel = (cel.frame.flag & SELECT) != 0;
-  ak->key_type = cel.frame.type;
+  ak->key_type = eBezTriple_KeyframeType(cel.frame.type);
 
   /* Count keyframes in this column */
   ak->totkey = 1;
@@ -559,7 +559,7 @@ static ActKeyColumn *nalloc_ak_gpframe(void *data)
   /* store settings based on state of BezTriple */
   ak->cfra = gpf->framenum;
   ak->sel = (gpf->flag & GP_FRAME_SELECT) ? SELECT : 0;
-  ak->key_type = gpf->key_type;
+  ak->key_type = eBezTriple_KeyframeType(gpf->key_type);
 
   /* Count keyframes in this column. */
   ak->totkey = 1;

@@ -14,9 +14,8 @@
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  ivec3 tex_size = uniform_buf.volumes.tex_size;
 
-  if (any(greaterThanEqual(texel, tex_size.xy))) {
+  if (any(greaterThanEqual(texel, uniform_buf.volumes.tex_size.xy))) {
     return;
   }
 
@@ -24,16 +23,14 @@ void main()
   vec3 scattering = vec3(0.0);
   vec3 transmittance = vec3(1.0);
 
-  /* Compute view ray. */
-  vec2 uvs = (vec2(texel) + vec2(0.5)) / vec2(tex_size.xy);
-  vec3 ss_cell = volume_to_screen(vec3(uvs, 1e-5));
-  vec3 view_cell = drw_point_screen_to_view(ss_cell);
+  /* Compute view ray. Note that jittering the position of the first voxel doesn't bring any
+   * benefit here. */
+  vec3 uvw = (vec3(vec2(texel), 0.0) + vec3(0.5, 0.5, 0.0)) * uniform_buf.volumes.inv_tex_size;
+  vec3 view_cell = volume_jitter_to_view(uvw);
 
   float prev_ray_len;
   float orig_ray_len;
-
-  bool is_persp = ProjectionMatrix[3][3] == 0.0;
-  if (is_persp) {
+  if (drw_view_is_perspective()) {
     prev_ray_len = length(view_cell);
     orig_ray_len = prev_ray_len / view_cell.z;
   }
@@ -42,13 +39,13 @@ void main()
     orig_ray_len = 1.0;
   }
 
-  for (int i = 0; i <= tex_size.z; i++) {
+  for (int i = 0; i <= uniform_buf.volumes.tex_size.z; i++) {
     ivec3 froxel = ivec3(texel, i);
 
     vec3 froxel_scattering = texelFetch(in_scattering_tx, froxel, 0).rgb;
     vec3 extinction = texelFetch(in_extinction_tx, froxel, 0).rgb;
 
-    float cell_depth = volume_z_to_view_z((float(i) + 1.0) / tex_size.z);
+    float cell_depth = volume_z_to_view_z((float(i) + 1.0) * uniform_buf.volumes.inv_tex_size.z);
     float ray_len = orig_ray_len * cell_depth;
 
     /* Evaluate Scattering. */

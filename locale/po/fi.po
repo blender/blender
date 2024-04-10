@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2098,6 +2098,10 @@ msgid "Curve Length"
 msgstr "Käyrän pituus"
 
 
+msgid "Curve Radius"
+msgstr "Käyrän säde"
+
+
 msgid "Remove"
 msgstr "Poista"
 
@@ -3124,10 +3128,6 @@ msgstr "Seuraa polkurajoitusta"
 
 msgid "Follow Curve"
 msgstr "Seuraa käyrää"
-
-
-msgid "Curve Radius"
-msgstr "Käyrän säde"
 
 
 msgid "Camera"
@@ -4659,6 +4659,10 @@ msgstr "Automaattinen maskausmateriaali"
 
 msgid "Auto-Masking Strokes"
 msgstr "Automaattinen maskauspiirto"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Aktiivinen öljykynän taso"
 
 
 msgid "Key"
@@ -7052,10 +7056,6 @@ msgid "Active Layer"
 msgstr "Aktiivinen taso"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Aktiivinen öljykynän taso"
-
-
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Lisää uusi taso"
@@ -7882,6 +7882,10 @@ msgid "Before"
 msgstr "Ennen"
 
 
+msgid "No layers to add"
+msgstr "Ei lisättäviä tasoja"
+
+
 msgid "Combination"
 msgstr "Kombinaatio"
 
@@ -7900,10 +7904,6 @@ msgstr "Piirrä:"
 
 msgid "Data Source:"
 msgstr "Tietolähde:"
-
-
-msgid "No layers to add"
-msgstr "Ei lisättäviä tasoja"
 
 
 msgid "Cursor Color"
@@ -8514,16 +8514,6 @@ msgid "Speaker"
 msgstr "Kaijutin"
 
 
-msgctxt "Operator"
-msgid "Reference"
-msgstr "Referenssi"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Tausta"
-
-
 msgid "Set Pivot"
 msgstr "Aseta napa"
 
@@ -8584,6 +8574,16 @@ msgstr "Saumat"
 msgctxt "Operator"
 msgid "Lattice"
 msgstr "Säleikkö"
+
+
+msgctxt "Operator"
+msgid "Reference"
+msgstr "Referenssi"
+
+
+msgctxt "Operator"
+msgid "Background"
+msgstr "Tausta"
 
 
 msgctxt "Operator"
@@ -9386,6 +9386,10 @@ msgid "Path is already animated"
 msgstr "Polku on jo animoitu"
 
 
+msgid "Create"
+msgstr "Luo"
+
+
 msgid "No collection selected"
 msgstr "Yhtäkään kokoelmaa ei ole valittu"
 
@@ -10035,10 +10039,6 @@ msgid "UV Vertex"
 msgstr "UV-kärki"
 
 
-msgid "Create"
-msgstr "Luo"
-
-
 msgid "Custom Camera"
 msgstr "Mukautettu kamera"
 
@@ -10665,6 +10665,10 @@ msgid "Is Valid Offset"
 msgstr "On pätevä siirros"
 
 
+msgid "Is Valid"
+msgstr "On pätevä"
+
+
 msgid "Source Position"
 msgstr "Lähteen sijainti"
 
@@ -10683,10 +10687,6 @@ msgstr "Osuman normaali"
 
 msgid "Hit Distance"
 msgstr "Osuman etäisyys"
-
-
-msgid "Is Valid"
-msgstr "On pätevä"
 
 
 msgid "Strings"
@@ -11052,10 +11052,6 @@ msgstr "Päällä"
 
 msgid "OFF"
 msgstr "Pois päältä"
-
-
-msgid "OK?"
-msgstr "OK?"
 
 
 msgid "unsupported format"

@@ -127,25 +127,6 @@ typedef void (*BVHTree_NearestProjectedCallback)(void *userdata,
                                                  int clip_plane_len,
                                                  BVHTreeNearest *nearest);
 
-/* callbacks to BLI_bvhtree_walk_dfs */
-
-/**
- * Return true to traverse into this nodes children, else skip.
- */
-typedef bool (*BVHTree_WalkParentCallback)(const BVHTreeAxisRange *bounds, void *userdata);
-/**
- * Return true to keep walking, else early-exit the search.
- */
-typedef bool (*BVHTree_WalkLeafCallback)(const BVHTreeAxisRange *bounds,
-                                         int index,
-                                         void *userdata);
-/**
- * Return true to search (min, max) else (max, min).
- */
-typedef bool (*BVHTree_WalkOrderCallback)(const BVHTreeAxisRange *bounds,
-                                          char axis,
-                                          void *userdata);
-
 /**
  * \note many callers don't check for `NULL` return.
  */
@@ -314,24 +295,6 @@ int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
                                        BVHTreeNearest *nearest,
                                        BVHTree_NearestProjectedCallback callback,
                                        void *userdata);
-
-/**
- * This is a generic function to perform a depth first search on the #BVHTree
- * where the search order and nodes traversed depend on callbacks passed in.
- *
- * \param tree: Tree to walk.
- * \param walk_parent_cb: Callback on a parents bound-box to test if it should be traversed.
- * \param walk_leaf_cb: Callback to test leaf nodes, callback must store its own result,
- * returning false exits early.
- * \param walk_order_cb: Callback that indicates which direction to search,
- * either from the node with the lower or higher K-DOP axis value.
- * \param userdata: Argument passed to all callbacks.
- */
-void BLI_bvhtree_walk_dfs(const BVHTree *tree,
-                          BVHTree_WalkParentCallback walk_parent_cb,
-                          BVHTree_WalkLeafCallback walk_leaf_cb,
-                          BVHTree_WalkOrderCallback walk_order_cb,
-                          void *userdata);
 
 /**
  * Expose for BVH callbacks to use.

@@ -13,6 +13,7 @@
 #include "ANIM_fcurve.hh"
 #include "BKE_fcurve.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_string.h"
 #include "DNA_anim_types.h"
 #include "MEM_guardedalloc.h"
 
@@ -30,6 +31,17 @@ KeyframeSettings get_keyframe_settings(const bool from_userprefs)
     settings.handle = eBezTriple_Handle(U.keyhandles_new);
   }
   return settings;
+}
+
+FCurve *create_fcurve_for_channel(const StringRef rna_path, const int array_index)
+{
+  FCurve *fcu = BKE_fcurve_create();
+  fcu->rna_path = BLI_strdupn(rna_path.data(), rna_path.size());
+  fcu->array_index = array_index;
+  fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
+  fcu->auto_smoothing = U.auto_smoothing_new;
+
+  return fcu;
 }
 
 bool delete_keyframe_fcurve(AnimData *adt, FCurve *fcu, float cfra)
@@ -241,7 +253,7 @@ void initialize_bezt(BezTriple *beztr,
 
   /* Set keyframe type value (supplied),
    * which should come from the scene settings in most cases. */
-  BEZKEYTYPE(beztr) = settings.keyframe_type;
+  BEZKEYTYPE_LVALUE(beztr) = settings.keyframe_type;
 
   /* Set default values for "easing" interpolation mode settings.
    * NOTE: Even if these modes aren't currently used, if users switch

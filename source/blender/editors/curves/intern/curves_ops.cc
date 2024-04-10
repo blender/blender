@@ -64,6 +64,8 @@
 #include "UI_resources.hh"
 
 #include "GEO_reverse_uv_sampler.hh"
+#include "GEO_set_curve_type.hh"
+#include "GEO_subdivide_curves.hh"
 
 /**
  * The code below uses a suffix naming convention to indicate the coordinate space:
@@ -1339,6 +1341,248 @@ static void CURVES_OT_tilt_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+namespace cyclic_toggle {
+
+static int exec(bContext *C, wmOperator * /*op*/)
+{
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    IndexMaskMemory memory;
+    const IndexMask selection = retrieve_selected_curves(*curves_id, memory);
+    if (selection.is_empty()) {
+      continue;
+    }
+
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+    bke::SpanAttributeWriter<bool> cyclic = attributes.lookup_or_add_for_write_span<bool>(
+        "cyclic", bke::AttrDomain::Curve);
+    selection.foreach_index(GrainSize(4096),
+                            [&](const int i) { cyclic.span[i] = !cyclic.span[i]; });
+    cyclic.finish();
+
+    if (!cyclic.span.as_span().contains(true)) {
+      attributes.remove("cyclic");
+    }
+
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace cyclic_toggle
+
+static void CURVES_OT_cyclic_toggle(wmOperatorType *ot)
+{
+  ot->name = "Toggle Cyclic";
+  ot->idname = __func__;
+  ot->description = "Make active curve closed/opened loop";
+
+  ot->exec = cyclic_toggle::exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+namespace curve_type_set {
+
+static int exec(bContext *C, wmOperator *op)
+{
+  const CurveType dst_type = CurveType(RNA_enum_get(op->ptr, "type"));
+
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    IndexMaskMemory memory;
+    const IndexMask selection = retrieve_selected_curves(*curves_id, memory);
+    if (selection.is_empty()) {
+      continue;
+    }
+
+    curves = geometry::convert_curves(curves, selection, dst_type, {});
+
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace curve_type_set
+
+static void CURVES_OT_curve_type_set(wmOperatorType *ot)
+{
+  ot->name = "Set Curve Type";
+  ot->idname = __func__;
+  ot->description = "Set type of selected curves";
+
+  ot->exec = curve_type_set::exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", rna_enum_curves_type_items, CURVE_TYPE_POLY, "Type", "Curve type");
+}
+
+namespace switch_direction {
+
+static int exec(bContext *C, wmOperator * /*op*/)
+{
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    IndexMaskMemory memory;
+    const IndexMask selection = retrieve_selected_curves(*curves_id, memory);
+    if (selection.is_empty()) {
+      continue;
+    }
+
+    curves.reverse_curves(selection);
+
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace switch_direction
+
+static void CURVES_OT_switch_direction(wmOperatorType *ot)
+{
+  ot->name = "Switch Direction";
+  ot->idname = __func__;
+  ot->description = "Reverse the direction of the selected curves";
+
+  ot->exec = switch_direction::exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+namespace subdivide {
+
+static int exec(bContext *C, wmOperator *op)
+{
+  const int number_cuts = RNA_int_get(op->ptr, "number_cuts");
+
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    const int points_num = curves.points_num();
+    IndexMaskMemory memory;
+    const IndexMask points_selection = retrieve_selected_points(*curves_id, memory);
+    if (points_selection.is_empty()) {
+      continue;
+    }
+
+    Array<bool> points_selection_span(points_num);
+    points_selection.to_bools(points_selection_span);
+
+    Array<int> segment_cuts(points_num, number_cuts);
+
+    const OffsetIndices points_by_curve = curves.points_by_curve();
+    threading::parallel_for(points_by_curve.index_range(), 512, [&](const IndexRange range) {
+      for (const int curve_i : range) {
+        const IndexRange points = points_by_curve[curve_i];
+        if (points.size() <= 1) {
+          continue;
+        }
+        for (const int point_i : points.drop_back(1)) {
+          if (!points_selection_span[point_i] || !points_selection_span[point_i + 1]) {
+            segment_cuts[point_i] = 0;
+          }
+        }
+        /* Cyclic segment. Doesn't matter if it is computed even if the curve is not cyclic. */
+        if (!points_selection_span[points.last()] || !points_selection_span[points.first()]) {
+          segment_cuts[points.last()] = 0;
+        }
+      }
+    });
+
+    curves = geometry::subdivide_curves(
+        curves, curves.curves_range(), VArray<int>::ForSpan(segment_cuts), {});
+
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace subdivide
+
+static void CURVES_OT_subdivide(wmOperatorType *ot)
+{
+  ot->name = "Subdivide";
+  ot->idname = __func__;
+  ot->description = "Subdivide selected curve segments";
+
+  ot->exec = subdivide::exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop;
+  prop = RNA_def_int(ot->srna, "number_cuts", 1, 1, 1000, "Number of Cuts", "", 1, 10);
+  /* Avoid re-using last value because it can cause an unexpectedly high number of subdivisions. */
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+namespace set_handle_type {
+
+static int exec(bContext *C, wmOperator *op)
+{
+  const HandleType dst_handle_type = HandleType(RNA_enum_get(op->ptr, "type"));
+
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    const bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+    const VArraySpan<bool> selection = *attributes.lookup_or_default<bool>(
+        ".selection", bke::AttrDomain::Point, true);
+    const VArraySpan<bool> selection_left = *attributes.lookup_or_default<bool>(
+        ".selection_handle_left", bke::AttrDomain::Point, true);
+    const VArraySpan<bool> selection_right = *attributes.lookup_or_default<bool>(
+        ".selection_handle_right", bke::AttrDomain::Point, true);
+
+    MutableSpan<int8_t> handle_types_left = curves.handle_types_left_for_write();
+    MutableSpan<int8_t> handle_types_right = curves.handle_types_right_for_write();
+
+    threading::parallel_for(curves.points_range(), 4096, [&](const IndexRange range) {
+      for (const int point_i : range) {
+        if (selection_left[point_i] || selection[point_i]) {
+          handle_types_left[point_i] = int8_t(dst_handle_type);
+        }
+        if (selection_right[point_i] || selection[point_i]) {
+          handle_types_right[point_i] = int8_t(dst_handle_type);
+        }
+      }
+    });
+
+    curves.calculate_bezier_auto_handles();
+    curves.tag_positions_changed();
+
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace set_handle_type
+
+static void CURVES_OT_handle_type_set(wmOperatorType *ot)
+{
+  ot->name = "Set Handle Type";
+  ot->idname = __func__;
+  ot->description = "Set the handle type for bezier curves";
+
+  ot->invoke = WM_menu_invoke;
+  ot->exec = set_handle_type::exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", rna_enum_curves_handle_type_items, CURVE_TYPE_POLY, "Type", nullptr);
+}
+
 void operatortypes_curves()
 {
   WM_operatortype_append(CURVES_OT_attribute_set);
@@ -1358,6 +1602,11 @@ void operatortypes_curves()
   WM_operatortype_append(CURVES_OT_delete);
   WM_operatortype_append(CURVES_OT_duplicate);
   WM_operatortype_append(CURVES_OT_tilt_clear);
+  WM_operatortype_append(CURVES_OT_cyclic_toggle);
+  WM_operatortype_append(CURVES_OT_curve_type_set);
+  WM_operatortype_append(CURVES_OT_switch_direction);
+  WM_operatortype_append(CURVES_OT_subdivide);
+  WM_operatortype_append(CURVES_OT_handle_type_set);
 }
 
 void operatormacros_curves()

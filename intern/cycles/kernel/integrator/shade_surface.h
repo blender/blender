@@ -507,7 +507,7 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   /* Update path state */
   if (!(label & LABEL_TRANSPARENT)) {
     INTEGRATOR_STATE_WRITE(state, path, mis_ray_pdf) = mis_pdf;
-    INTEGRATOR_STATE_WRITE(state, path, mis_origin_n) = sc->N;
+    INTEGRATOR_STATE_WRITE(state, path, mis_origin_n) = sd->N;
     INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = fminf(
         unguided_bsdf_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
 

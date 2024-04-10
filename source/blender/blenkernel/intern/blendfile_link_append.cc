@@ -1646,11 +1646,11 @@ static void blendfile_library_relocate_remap(Main *bmain,
               new_id->us);
 
     /* In some cases, new_id might become direct link, remove parent of library in this case. */
-    if (new_id->lib->parent && (new_id->tag & LIB_TAG_INDIRECT) == 0) {
+    if (new_id->lib->runtime.parent && (new_id->tag & LIB_TAG_INDIRECT) == 0) {
       if (do_reload) {
         BLI_assert_unreachable(); /* Should not happen in 'pure' reload case... */
       }
-      new_id->lib->parent = nullptr;
+      new_id->lib->runtime.parent = nullptr;
     }
   }
 

@@ -35,44 +35,42 @@
 
 /* *************************** Keyframe Drawing *************************** */
 
-void draw_keyframe_shape(float x,
-                         float y,
+void draw_keyframe_shape(const float x,
+                         const float y,
                          float size,
-                         bool sel,
-                         short key_type,
-                         short mode,
-                         float alpha,
+                         const bool sel,
+                         const eBezTriple_KeyframeType key_type,
+                         const short mode,
+                         const float alpha,
                          const KeyframeShaderBindings *sh_bindings,
-                         short handle_type,
-                         short extreme_type)
+                         const short handle_type,
+                         const short extreme_type)
 {
   bool draw_fill = ELEM(mode, KEYFRAME_SHAPE_INSIDE, KEYFRAME_SHAPE_BOTH);
   bool draw_outline = ELEM(mode, KEYFRAME_SHAPE_FRAME, KEYFRAME_SHAPE_BOTH);
 
   BLI_assert(draw_fill || draw_outline);
 
-  /* tweak size of keyframe shape according to type of keyframe
-   * - 'proper' keyframes have key_type = 0, so get drawn at full size
-   */
+  /* Adjust size of keyframe shape according to type of keyframe. */
   switch (key_type) {
-    case BEZT_KEYTYPE_KEYFRAME: /* must be full size */
+    case BEZT_KEYTYPE_KEYFRAME:
       break;
 
-    case BEZT_KEYTYPE_BREAKDOWN: /* slightly smaller than normal keyframe */
+    case BEZT_KEYTYPE_BREAKDOWN:
       size *= 0.85f;
       break;
 
-    case BEZT_KEYTYPE_MOVEHOLD: /* Slightly smaller than normal keyframes
-                                 * (but by less than for breakdowns). */
+    case BEZT_KEYTYPE_MOVEHOLD:
       size *= 0.925f;
       break;
 
-    case BEZT_KEYTYPE_EXTREME: /* slightly larger */
+    case BEZT_KEYTYPE_EXTREME:
       size *= 1.2f;
       break;
 
-    default:
-      size -= 0.8f * key_type;
+    case BEZT_KEYTYPE_JITTER:
+      size *= 0.8f;
+      break;
   }
 
   uchar fill_col[4];
@@ -83,27 +81,26 @@ void draw_keyframe_shape(float x,
   if (draw_fill) {
     /* get interior colors from theme (for selected and unselected only) */
     switch (key_type) {
-      case BEZT_KEYTYPE_BREAKDOWN: /* bluish frames (default theme) */
-        UI_GetThemeColor4ubv(sel ? TH_KEYTYPE_BREAKDOWN_SELECT : TH_KEYTYPE_BREAKDOWN, fill_col);
+      case BEZT_KEYTYPE_BREAKDOWN:
+        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_BREAKDOWN_SELECT : TH_KEYTYPE_BREAKDOWN, fill_col);
         break;
-      case BEZT_KEYTYPE_EXTREME: /* reddish frames (default theme) */
-        UI_GetThemeColor4ubv(sel ? TH_KEYTYPE_EXTREME_SELECT : TH_KEYTYPE_EXTREME, fill_col);
+      case BEZT_KEYTYPE_EXTREME:
+        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_EXTREME_SELECT : TH_KEYTYPE_EXTREME, fill_col);
         break;
-      case BEZT_KEYTYPE_JITTER: /* greenish frames (default theme) */
-        UI_GetThemeColor4ubv(sel ? TH_KEYTYPE_JITTER_SELECT : TH_KEYTYPE_JITTER, fill_col);
+      case BEZT_KEYTYPE_JITTER:
+        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_JITTER_SELECT : TH_KEYTYPE_JITTER, fill_col);
         break;
-      case BEZT_KEYTYPE_MOVEHOLD: /* similar to traditional keyframes, but different... */
-        UI_GetThemeColor4ubv(sel ? TH_KEYTYPE_MOVEHOLD_SELECT : TH_KEYTYPE_MOVEHOLD, fill_col);
+      case BEZT_KEYTYPE_MOVEHOLD:
+        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_MOVEHOLD_SELECT : TH_KEYTYPE_MOVEHOLD, fill_col);
         break;
-      case BEZT_KEYTYPE_KEYFRAME: /* traditional yellowish frames (default theme) */
-      default:
-        UI_GetThemeColor4ubv(sel ? TH_KEYTYPE_KEYFRAME_SELECT : TH_KEYTYPE_KEYFRAME, fill_col);
+      case BEZT_KEYTYPE_KEYFRAME:
+        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_KEYFRAME_SELECT : TH_KEYTYPE_KEYFRAME, fill_col);
+        break;
     }
 
-    /* NOTE: we don't use the straight alpha from the theme, or else effects such as
-     * graying out protected/muted channels doesn't work correctly!
-     */
-    fill_col[3] *= alpha;
+    /* For effects like graying out protected/muted channels. The theme RNA/UI doesn't allow users
+     * to set the alpha. */
+    fill_col[3] = 255.0f * alpha;
 
     if (!draw_outline) {
       /* force outline color to match */
@@ -236,7 +233,7 @@ static void draw_keylist_block_gpencil(const DrawKeylistUIData *ctx,
     case BEZT_KEYTYPE_KEYFRAME:
       size *= 0.8f;
       break;
-    default:
+    case BEZT_KEYTYPE_EXTREME:
       break;
   }
 
@@ -363,7 +360,7 @@ static void draw_keylist_keys(const DrawKeylistUIData *ctx,
                           ypos,
                           ctx->icon_size,
                           (ak->sel & SELECT),
-                          ak->key_type,
+                          eBezTriple_KeyframeType(ak->key_type),
                           KEYFRAME_SHAPE_BOTH,
                           ctx->alpha,
                           sh_bindings,

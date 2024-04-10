@@ -79,7 +79,7 @@ class Drawing : public ::GreasePencilDrawing {
 
   /**
    * Returns the matrices that transform from a 3D point in layer-space to a 2D point in
-   * texture-space.
+   * texture-space. This is stored per curve.
    */
   Span<float4x2> texture_matrices() const;
   /**
@@ -103,10 +103,18 @@ class Drawing : public ::GreasePencilDrawing {
   MutableSpan<float> opacities_for_write();
 
   /**
-   * Vertex colors of the points. Default is black.
+   * Vertex colors of the points. Default is black. This is mixed on top of the base material
+   * stroke color.
    */
   VArray<ColorGeometry4f> vertex_colors() const;
   MutableSpan<ColorGeometry4f> vertex_colors_for_write();
+
+  /**
+   * Fill colors of the curves. Default is black and fully transparent. This is mixed on top of the
+   * base material fill color.
+   */
+  VArray<ColorGeometry4f> fill_colors() const;
+  MutableSpan<ColorGeometry4f> fill_colors_for_write();
 
   /**
    * Add a user for this drawing. When a drawing has multiple users, both users are allowed to
@@ -245,20 +253,23 @@ class TreeNode : public ::GreasePencilLayerTreeNode {
   /**
    * \returns this node as a #Layer.
    */
-  Layer &as_layer();
   const Layer &as_layer() const;
+  Layer &as_layer();
 
   /**
    * \returns this node as a #LayerGroup.
    */
-  LayerGroup &as_group();
   const LayerGroup &as_group() const;
+  LayerGroup &as_group();
 
   /**
    * \returns the parent layer group or nullptr for the root group.
    */
-  LayerGroup *parent_group() const;
-  TreeNode *parent_node() const;
+  const LayerGroup *parent_group() const;
+  LayerGroup *parent_group();
+
+  const TreeNode *parent_node() const;
+  TreeNode *parent_node();
 
   /**
    * \returns the number of non-null parents of the node.
@@ -287,16 +298,21 @@ struct LayerTransformData {
    * frame indices, and the values of the map are the destination frame indices. */
   Map<int, int> frames_destination;
 
-  /* Copy of the layer frames map. This allows to display the transformation while running, without
-   * removing any drawing. */
-  Map<int, GreasePencilFrame> frames_copy;
+  /* Copy of the layer frames, stored in two separate maps :
+   * - frames_static contains the frames not affected by the transformation,
+   * - frames_transformed contains the frames affected by the transformation.
+   * This allows to display the transformation while running, without removing any drawing.
+   */
+  Map<int, GreasePencilFrame> frames_static;
+  Map<int, GreasePencilFrame> frames_transformed;
+
   /* Map containing the duration (in frames) for each frame in the layer that has a fixed duration,
    * i.e. each frame that is not an implicit hold. */
   Map<int, int> frames_duration;
 
   /* Temporary copy of duplicated frames before we decide on a place to insert them.
    * Used in the move+duplicate operator. */
-  Map<int, GreasePencilFrame> temp_frames_buffer;
+  Map<int, GreasePencilFrame> duplicated_frames_buffer;
 
   FrameTransformationStatus status{TRANS_CLEAR};
 };
@@ -374,7 +390,8 @@ class Layer : public ::GreasePencilLayer {
   /**
    * \returns the parent #LayerGroup of this layer.
    */
-  LayerGroup &parent_group() const;
+  const LayerGroup &parent_group() const;
+  LayerGroup &parent_group();
 
   /**
    * \returns the frames mapping.
@@ -496,6 +513,8 @@ class Layer : public ::GreasePencilLayer {
    */
   SortedKeysIterator remove_leading_null_frames_in_range(SortedKeysIterator begin,
                                                          SortedKeysIterator end);
+
+  float4x4 parent_inverse() const;
 
   /**
    * The local transform of the layer (in layer space, not object space).
@@ -750,7 +769,11 @@ inline bool Layer::is_empty() const
 {
   return (this->frames().is_empty());
 }
-inline LayerGroup &Layer::parent_group() const
+inline const LayerGroup &Layer::parent_group() const
+{
+  return *this->as_node().parent_group();
+}
+inline LayerGroup &Layer::parent_group()
 {
   return *this->as_node().parent_group();
 }

@@ -536,6 +536,10 @@ Main *BKE_main_from_id(Main *global_main, const ID *id, bool verify = false);
   ((main)->versionfile < (ver) || \
    ((main)->versionfile == (ver) && (main)->subversionfile <= (subver)))
 
+#define LIBRARY_VERSION_FILE_ATLEAST(lib, ver, subver) \
+  ((lib)->runtime.versionfile > (ver) || \
+   ((lib)->runtime.versionfile == (ver) && (lib)->runtime.subversionfile >= (subver)))
+
 /**
  * The size of thumbnails (optionally) stored in the `.blend` files header.
  *

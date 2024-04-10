@@ -165,7 +165,7 @@ static bool lib_id_library_local_paths_callback(BPathForeachPathData *bpath_data
  */
 static void lib_id_library_local_paths(Main *bmain, Library *lib, ID *id)
 {
-  const char *bpath_user_data[2] = {BKE_main_blendfile_path(bmain), lib->filepath_abs};
+  const char *bpath_user_data[2] = {BKE_main_blendfile_path(bmain), lib->runtime.filepath_abs};
 
   BPathForeachPathData path_data{};
   path_data.bmain = bmain;
@@ -259,7 +259,7 @@ void id_lib_extern(ID *id)
       id->tag &= ~LIB_TAG_INDIRECT;
       id->flag &= ~LIB_INDIRECT_WEAK_LINK;
       id->tag |= LIB_TAG_EXTERN;
-      id->lib->parent = nullptr;
+      id->lib->runtime.parent = nullptr;
     }
   }
 }
@@ -284,7 +284,7 @@ void id_us_ensure_real(ID *id)
         CLOG_ERROR(&LOG,
                    "ID user count error: %s (from '%s')",
                    id->name,
-                   id->lib ? id->lib->filepath_abs : "[Main]");
+                   id->lib ? id->lib->runtime.filepath_abs : "[Main]");
       }
       id->us = limit + 1;
       id->tag |= LIB_TAG_EXTRAUSER_SET;
@@ -339,7 +339,7 @@ void id_us_min(ID *id)
         CLOG_ERROR(&LOG,
                    "ID user decrement error: %s (from '%s'): %d <= %d",
                    id->name,
-                   id->lib ? id->lib->filepath_abs : "[Main]",
+                   id->lib ? id->lib->runtime.filepath_abs : "[Main]",
                    id->us,
                    limit);
       }
@@ -2128,24 +2128,12 @@ void BKE_library_make_local(Main *bmain,
 #endif
 }
 
-void BKE_libblock_ensure_unique_name(Main *bmain, ID *id)
-{
-  ListBase *lb;
-
-  lb = which_libbase(bmain, GS(id->name));
-  if (lb == nullptr) {
-    return;
-  }
-
-  /* BKE_id_new_name_validate also takes care of sorting. */
-  if (!ID_IS_LINKED(id) && BKE_id_new_name_validate(bmain, lb, id, nullptr, false)) {
-    bmain->is_memfile_undo_written = false;
-  }
-}
-
 void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
 {
   BLI_assert(!ID_IS_LINKED(id));
+  if (STREQ(id->name + 2, name)) {
+    return;
+  }
   BKE_main_namemap_remove_name(bmain, id, id->name + 2);
   ListBase *lb = which_libbase(bmain, GS(id->name));
   if (BKE_id_new_name_validate(bmain, lb, id, name, false)) {

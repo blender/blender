@@ -388,7 +388,7 @@ float ambient_occlusion_eval(vec3 normal,
 #ifndef GPU_METAL
 void attrib_load();
 Closure nodetree_surface(float closure_rand);
-/* Closure nodetree_volume(); */
+Closure nodetree_volume();
 vec3 nodetree_displacement();
 float nodetree_thickness();
 vec4 closure_to_rgba(Closure cl);
@@ -713,39 +713,35 @@ float film_scaling_factor_get()
  *
  * \{ */
 
-#if defined(MAT_GEOM_VOLUME_OBJECT) || defined(MAT_GEOM_VOLUME_WORLD)
+/* Point clouds and curves are not compatible with volume grids.
+ * They will fallback to their own attributes loading. */
+#if defined(MAT_VOLUME) && !defined(MAT_GEOM_CURVES) && !defined(MAT_GEOM_POINT_CLOUD)
+#  if defined(OBINFO_LIB) && !defined(MAT_GEOM_WORLD)
+/* We could just check for GRID_ATTRIBUTES but this avoids for header dependency. */
+#    define GRID_ATTRIBUTES_LOAD_POST
+#  endif
+#endif
 
 float attr_load_temperature_post(float attr)
 {
-#  ifdef MAT_GEOM_VOLUME_OBJECT
+#ifdef GRID_ATTRIBUTES_LOAD_POST
   /* Bring the into standard range without having to modify the grid values */
   attr = (attr > 0.01) ? (attr * drw_volume.temperature_mul + drw_volume.temperature_bias) : 0.0;
-#  endif
+#endif
   return attr;
 }
 vec4 attr_load_color_post(vec4 attr)
 {
-#  ifdef MAT_GEOM_VOLUME_OBJECT
+#ifdef GRID_ATTRIBUTES_LOAD_POST
   /* Density is premultiplied for interpolation, divide it out here. */
   attr.rgb *= safe_rcp(attr.a);
   attr.rgb *= drw_volume.color_mul.rgb;
   attr.a = 1.0;
-#  endif
-  return attr;
-}
-
-#else /* NOP for any other surface. */
-
-float attr_load_temperature_post(float attr)
-{
-  return attr;
-}
-vec4 attr_load_color_post(vec4 attr)
-{
-  return attr;
-}
-
 #endif
+  return attr;
+}
+
+#undef GRID_ATTRIBUTES_LOAD_POST
 
 /** \} */
 

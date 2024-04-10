@@ -13,6 +13,8 @@
 #include "BLI_assert.h"
 #include "BLI_utility_mixins.hh"
 
+#include "MEM_guardedalloc.h"
+
 namespace blender {
 
 /**

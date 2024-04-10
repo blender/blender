@@ -111,12 +111,11 @@ static void set_instances_position(bke::Instances &instances,
   evaluator.add_with_destination(position_field, result.as_mutable_span());
   evaluator.evaluate();
 
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+
   MutableSpan<float4x4> transforms = instances.transforms_for_write();
-  threading::parallel_for(transforms.index_range(), 2048, [&](const IndexRange range) {
-    for (const int i : range) {
-      transforms[i].location() = result[i];
-    }
-  });
+  selection.foreach_index(GrainSize(2048),
+                          [&](const int i) { transforms[i].location() = result[i]; });
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

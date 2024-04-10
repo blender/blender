@@ -159,7 +159,6 @@ void autokeyframe_object(bContext *C, Scene *scene, Object *ob, Span<std::string
                    flag,
                    eBezTriple_KeyframeType(scene->toolsettings->keyframe_type),
                    bmain,
-                   reports,
                    anim_eval_context);
   }
 }
@@ -284,7 +283,6 @@ void autokeyframe_pose_channel(bContext *C,
                    flag,
                    eBezTriple_KeyframeType(scene->toolsettings->keyframe_type),
                    bmain,
-                   reports,
                    anim_eval_context);
   }
 }

@@ -224,11 +224,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   return result;
 }
 
-static bool depends_on_normals(ModifierData * /*md*/)
-{
-  return true;
-}
-
 static void free_data(ModifierData *md)
 {
   BevelModifierData *bmd = (BevelModifierData *)md;
@@ -432,7 +427,7 @@ ModifierTypeInfo modifierType_Bevel = {
     /*is_disabled*/ is_disabled,
     /*update_depsgraph*/ nullptr,
     /*depends_on_time*/ nullptr,
-    /*depends_on_normals*/ depends_on_normals,
+    /*depends_on_normals*/ nullptr,
     /*foreach_ID_link*/ nullptr,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,

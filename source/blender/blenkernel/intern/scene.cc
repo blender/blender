@@ -1119,13 +1119,12 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   if (sce->nodetree) {
     BLO_write_init_id_buffer_from_id(
         temp_embedded_id_buffer, &sce->nodetree->id, BLO_write_is_undo(writer));
-    BLO_write_struct_at_address(writer,
-                                bNodeTree,
-                                sce->nodetree,
-                                BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
-    ntreeBlendWrite(
-        writer,
-        reinterpret_cast<bNodeTree *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
+    bNodeTree *temp_nodetree = reinterpret_cast<bNodeTree *>(
+        BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    /* Set deprecated chunksize for forward compatibility. */
+    temp_nodetree->chunksize = 256;
+    BLO_write_struct_at_address(writer, bNodeTree, sce->nodetree, temp_nodetree);
+    ntreeBlendWrite(writer, temp_nodetree);
   }
 
   BKE_color_managed_view_settings_blend_write(writer, &sce->view_settings);

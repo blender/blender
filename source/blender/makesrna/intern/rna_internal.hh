@@ -139,6 +139,9 @@ extern BlenderRNA BLENDER_RNA;
 void RNA_def_ID(BlenderRNA *brna);
 void RNA_def_action(BlenderRNA *brna);
 void RNA_def_animation(BlenderRNA *brna);
+#ifdef WITH_ANIM_BAKLAVA
+void RNA_def_animation_id(BlenderRNA *brna);
+#endif
 void RNA_def_animviz(BlenderRNA *brna);
 void RNA_def_armature(BlenderRNA *brna);
 void RNA_def_attribute(BlenderRNA *brna);
@@ -486,6 +489,9 @@ void RNA_def_main_speakers(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_sounds(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_armatures(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop);
+#ifdef WITH_ANIM_BAKLAVA
+void RNA_def_main_animations(BlenderRNA *brna, PropertyRNA *cprop);
+#endif
 void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_palettes(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_gpencil_legacy(BlenderRNA *brna, PropertyRNA *cprop);

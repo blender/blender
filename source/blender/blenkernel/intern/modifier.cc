@@ -873,8 +873,10 @@ void BKE_modifier_path_init(char *path, int path_maxncpy, const char *name)
 
 /**
  * Call when #ModifierTypeInfo.depends_on_normals callback requests normals.
+ * Necessary for BMesh normals when there is no separate #EditMeshData positions array,
+ * since they cannot be calculated lazily.
  */
-static void modwrap_dependsOnNormals(Mesh *mesh)
+static void ensure_non_lazy_normals(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
@@ -910,9 +912,6 @@ Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx,
     }
   }
 
-  if (mti->depends_on_normals && mti->depends_on_normals(md)) {
-    modwrap_dependsOnNormals(mesh);
-  }
   return mti->modify_mesh(md, ctx, mesh);
 }
 
@@ -922,9 +921,6 @@ void BKE_modifier_deform_verts(ModifierData *md,
                                blender::MutableSpan<blender::float3> positions)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-  if (mesh && mti->depends_on_normals && mti->depends_on_normals(md)) {
-    modwrap_dependsOnNormals(mesh);
-  }
   mti->deform_verts(md, ctx, mesh, positions);
   if (mesh) {
     mesh->tag_positions_changed();
@@ -939,7 +935,7 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
   if (mesh && mti->depends_on_normals && mti->depends_on_normals(md)) {
-    modwrap_dependsOnNormals(mesh);
+    ensure_non_lazy_normals(mesh);
   }
   mti->deform_verts_EM(md, ctx, em, mesh, positions);
 }
@@ -984,12 +980,14 @@ void BKE_modifiers_persistent_uid_init(const Object &object, ModifierData &md)
 {
   uint64_t hash = blender::get_default_hash(blender::StringRef(md.name));
   if (ID_IS_LINKED(&object)) {
-    hash = blender::get_default_hash(hash, blender::StringRef(object.id.lib->filepath_abs));
+    hash = blender::get_default_hash(hash,
+                                     blender::StringRef(object.id.lib->runtime.filepath_abs));
   }
   if (ID_IS_OVERRIDE_LIBRARY_REAL(&object)) {
     BLI_assert(ID_IS_LINKED(object.id.override_library->reference));
     hash = blender::get_default_hash(
-        hash, blender::StringRef(object.id.override_library->reference->lib->filepath_abs));
+        hash,
+        blender::StringRef(object.id.override_library->reference->lib->runtime.filepath_abs));
   }
   blender::RandomNumberGenerator rng{uint32_t(hash)};
   while (true) {

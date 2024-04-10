@@ -27,6 +27,7 @@ set(SRC
   intern/bone_collections.cc
   intern/bonecolor.cc
   intern/driver.cc
+  intern/evaluation.cc
   intern/fcurve.cc
   intern/keyframing.cc
   intern/keyframing_auto.cc
@@ -39,11 +40,13 @@ set(SRC
   ANIM_bone_collections.hh
   ANIM_bonecolor.hh
   ANIM_driver.hh
+  ANIM_evaluation.hh
   ANIM_fcurve.hh
   ANIM_keyframing.hh
   ANIM_rna.hh
   ANIM_visualkey.hh
   intern/bone_collections_internal.hh
+  intern/evaluation_internal.hh
 )
 
 set(LIB
@@ -54,6 +57,7 @@ set(LIB
   PRIVATE bf_editor_interface
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::atomic
+  PRIVATE bf::intern::clog
 )
 
 
@@ -64,7 +68,9 @@ if(WITH_GTESTS)
   set(TEST_INC
   )
   set(TEST_SRC
+    intern/animation_test.cc
     intern/bone_collections_test.cc
+    intern/evaluation_test.cc
   )
   set(TEST_LIB
     PRIVATE bf::animrig

@@ -6389,8 +6389,8 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
       case PROP_COLLECTION: {
         CollectionVector *lb = (CollectionVector *)data;
         ret = PyList_New(0);
-        for (PointerRNA &ptr : lb->items) {
-          PyList_APPEND(ret, pyrna_struct_CreatePyObject(&ptr));
+        for (PointerRNA &ptr_iter : lb->items) {
+          PyList_APPEND(ret, pyrna_struct_CreatePyObject(&ptr_iter));
         }
         break;
       }

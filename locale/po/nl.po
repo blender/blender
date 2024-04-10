@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -1969,6 +1969,10 @@ msgid "Lowest"
 msgstr "Laagste"
 
 
+msgid "Repeat"
+msgstr "Herhaal"
+
+
 msgid "R"
 msgstr "R"
 
@@ -1995,6 +1999,10 @@ msgstr "Blauw"
 
 msgid "Show Line"
 msgstr "Toon Lijn"
+
+
+msgid "Animation"
+msgstr "Animatie"
 
 
 msgid "Brush"
@@ -2107,10 +2115,6 @@ msgstr "Afvlakking Vorm"
 
 msgid "Projected"
 msgstr "Geprojecteerd"
-
-
-msgid "Repeat"
-msgstr "Herhaal"
 
 
 msgid "Elastic"
@@ -2608,10 +2612,6 @@ msgstr "Spiegel Y"
 
 msgid "Sharp"
 msgstr "Scherp"
-
-
-msgid "Animation"
-msgstr "Animatie"
 
 
 msgid "Simulation"
@@ -4918,10 +4918,6 @@ msgid "Delete selected objects"
 msgstr "Verwijder geselecteerde objecten"
 
 
-msgid "Filepath"
-msgstr "Bestandspad"
-
-
 msgctxt "Operator"
 msgid "Duplicate Objects"
 msgstr "Dupliceer Objecten"
@@ -5026,16 +5022,6 @@ msgstr "Voeg Licht Toe"
 
 msgid "Add a light object to the scene"
 msgstr "Voeg een licht object toe in de scene"
-
-
-msgctxt "Operator"
-msgid "Load Background Image"
-msgstr "Laad Achtergrondafbeelding"
-
-
-msgctxt "Operator"
-msgid "Load Reference Image"
-msgstr "Laad Voorbeeldafbeelding"
 
 
 msgid "Copy Modifiers"
@@ -5944,6 +5930,10 @@ msgid "Jump"
 msgstr "Spring"
 
 
+msgid "Filepath"
+msgstr "Bestandspad"
+
+
 msgctxt "Operator"
 msgid "Line Number"
 msgstr "Lijnnummer"
@@ -6645,11 +6635,6 @@ msgstr "Ontwikkeling"
 
 msgid "Tablet"
 msgstr "Tablet"
-
-
-msgctxt "WindowManager"
-msgid "Translation"
-msgstr "Vertaling"
 
 
 msgid "Fly & Walk"
@@ -8437,11 +8422,6 @@ msgstr "Luidspreker"
 
 
 msgctxt "Operator"
-msgid "Background"
-msgstr "Achtergrond"
-
-
-msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Maak Lokaal..."
 
@@ -8644,6 +8624,11 @@ msgstr "Rol Rechts"
 msgctxt "Operator"
 msgid "Armature"
 msgstr "Skelet"
+
+
+msgctxt "Operator"
+msgid "Background"
+msgstr "Achtergrond"
 
 
 msgctxt "Operator"
@@ -9541,10 +9526,6 @@ msgstr "\"%s\" Opgeslagen"
 
 msgid "Not a library"
 msgstr "Geen bibliotheek"
-
-
-msgid "OK?"
-msgstr "OK?"
 
 
 msgid "Toggle System Console"

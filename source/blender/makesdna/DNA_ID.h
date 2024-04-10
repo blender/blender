@@ -537,17 +537,8 @@ typedef struct ID {
 typedef struct Library_Runtime {
   /* Used for efficient calculations of unique names. */
   struct UniqueName_Map *name_map;
-} Library_Runtime;
 
-/**
- * For each library file used, a Library struct is added to Main
- * WARNING: `readfile.cc`, expand_doit() reads this struct without DNA check!
- */
-typedef struct Library {
-  ID id;
   struct FileData *filedata;
-  /** Path name used for reading, can be relative and edited in the outliner. */
-  char filepath[1024];
 
   /**
    * Run-time only, absolute file-path (set on read).
@@ -562,20 +553,31 @@ typedef struct Library {
   /** Set for indirectly linked libraries, used in the outliner and while reading. */
   struct Library *parent;
 
-  struct PackedFile *packedfile;
-
+  /** #eLibrary_Tag. */
   ushort tag;
-  char _pad_0[6];
+  char _pad[6];
 
   /** Temp data needed by read/write code, and lib-override recursive re-synchronized. */
   int temp_index;
+
   /** See BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION, needed for do_versions. */
   short versionfile, subversionfile;
+} Library_Runtime;
+
+/**
+ * For each library file used, a Library struct is added to Main.
+ */
+typedef struct Library {
+  ID id;
+  /** Path name used for reading, can be relative and edited in the outliner. */
+  char filepath[1024];
+
+  struct PackedFile *packedfile;
 
   struct Library_Runtime runtime;
 } Library;
 
-/** #Library.tag */
+/** #Library.runtime.tag */
 enum eLibrary_Tag {
   /* Automatic recursive resync was needed when linking/loading data from that library. */
   LIBRARY_TAG_RESYNC_REQUIRED = 1 << 0,
@@ -660,9 +662,9 @@ typedef struct PreviewImage {
   ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM) && (GS((id)->name) != ID_WS))
 
 #define ID_BLEND_PATH(_bmain, _id) \
-  ((_id)->lib ? (_id)->lib->filepath_abs : BKE_main_blendfile_path((_bmain)))
+  ((_id)->lib ? (_id)->lib->runtime.filepath_abs : BKE_main_blendfile_path((_bmain)))
 #define ID_BLEND_PATH_FROM_GLOBAL(_id) \
-  ((_id)->lib ? (_id)->lib->filepath_abs : BKE_main_blendfile_path_from_global())
+  ((_id)->lib ? (_id)->lib->runtime.filepath_abs : BKE_main_blendfile_path_from_global())
 
 #define ID_MISSING(_id) ((((const ID *)(_id))->tag & LIB_TAG_MISSING) != 0)
 

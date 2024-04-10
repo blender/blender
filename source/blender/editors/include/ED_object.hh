@@ -184,9 +184,9 @@ enum eObClearParentTypes {
 
 #ifdef __RNA_TYPES_H__
 /** Operator Property: `OBJECT_OT_parent_clear`. */
-extern EnumPropertyItem prop_clear_parent_types[];
+extern const EnumPropertyItem prop_clear_parent_types[];
 /** Operator Property: `OBJECT_OT_parent_set`. */
-extern EnumPropertyItem prop_make_parent_types[];
+extern const EnumPropertyItem prop_make_parent_types[];
 #endif
 
 /**

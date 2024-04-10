@@ -967,7 +967,7 @@ static eSnapMode snapObjectsRay(SnapObjectContext *sctx)
 static bool snap_grid(SnapObjectContext *sctx)
 {
   SnapData nearest2d(sctx);
-  nearest2d.clip_planes_enable(sctx, nullptr);
+  nearest2d.clip_planes_enable(sctx, nullptr, true);
 
   /* Ignore the maximum pixel distance when snapping to grid.
    * This avoids undesirable jumps of the element being snapped. */
@@ -990,7 +990,7 @@ static bool snap_grid(SnapObjectContext *sctx)
                            sctx->grid.planes[i],
                            &ray_dist,
                            false) &&
-        IN_RANGE_INCL(ray_dist, 0.0f, sctx->ret.ray_depth_max))
+        (ray_dist > 0.0f))
     {
       float3 co = math::round((sctx->runtime.ray_start + sctx->runtime.ray_dir * ray_dist) /
                               grid_dist) *
@@ -1140,26 +1140,29 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
     sctx->runtime.rv3d = rv3d;
 
     if (sctx->runtime.snap_to_flag & SCE_SNAP_TO_GRID) {
-      if (init_co) {
-        sctx->grid.use_init_co = true;
-      }
-      else if (!compare_m4m4(sctx->grid.persmat.ptr(), rv3d->persmat, FLT_EPSILON)) {
+      if (!compare_m4m4(sctx->grid.persmat.ptr(), rv3d->persmat, FLT_EPSILON)) {
         sctx->grid.persmat = float4x4(rv3d->persmat);
-        memset(sctx->grid.planes, 0, sizeof(sctx->grid.planes));
-        sctx->grid.planes[0][2] = 1.0f;
-        if (math::abs(sctx->runtime.ray_dir[0]) < math::abs(sctx->runtime.ray_dir[1])) {
-          sctx->grid.planes[1][1] = 1.0f;
-          sctx->grid.planes[2][0] = 1.0f;
-        }
-        else {
-          sctx->grid.planes[1][0] = 1.0f;
-          sctx->grid.planes[2][1] = 1.0f;
-        }
-
-        plane_from_point_normal_v3(sctx->grid.planes[3], sctx->runtime.curr_co, rv3d->viewinv[2]);
-
         sctx->grid.size = ED_view3d_grid_view_scale(
             sctx->scene, sctx->runtime.v3d, region, nullptr);
+
+        if (init_co) {
+          sctx->grid.use_init_co = true;
+        }
+        else {
+          memset(sctx->grid.planes, 0, sizeof(sctx->grid.planes));
+          sctx->grid.planes[0][2] = 1.0f;
+          if (math::abs(sctx->runtime.ray_dir[0]) < math::abs(sctx->runtime.ray_dir[1])) {
+            sctx->grid.planes[1][1] = 1.0f;
+            sctx->grid.planes[2][0] = 1.0f;
+          }
+          else {
+            sctx->grid.planes[1][0] = 1.0f;
+            sctx->grid.planes[2][1] = 1.0f;
+          }
+
+          plane_from_point_normal_v3(
+              sctx->grid.planes[3], sctx->runtime.curr_co, rv3d->viewinv[2]);
+        }
       }
     }
   }
@@ -1320,7 +1323,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
   bool use_occlusion_plane = false;
 
   /* It is required `mval` to calculate the occlusion plane. */
-  if (mval) {
+  if (mval && (snap_to_flag & SCE_SNAP_TO_GEOM)) {
     const bool is_allways_occluded = !params->use_occlusion_test;
     use_occlusion_plane = is_allways_occluded || !XRAY_ENABLED(v3d);
   }

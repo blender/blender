@@ -3608,7 +3608,7 @@ void RNA_def_py_data(PropertyRNA *prop, void *py_data)
 
 PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont_,
                              const char *identifier,
-                             bool default_value,
+                             const bool default_value,
                              const char *ui_name,
                              const char *ui_description)
 {
@@ -3624,8 +3624,8 @@ PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont_,
                                    const char *identifier,
-                                   int len,
-                                   bool *default_value,
+                                   const int len,
+                                   const bool *default_value,
                                    const char *ui_name,
                                    const char *ui_description)
 {
@@ -3646,8 +3646,8 @@ PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_boolean_layer(StructOrFunctionRNA *cont_,
                                    const char *identifier,
-                                   int len,
-                                   bool *default_value,
+                                   const int len,
+                                   const bool *default_value,
                                    const char *ui_name,
                                    const char *ui_description)
 {
@@ -3668,8 +3668,8 @@ PropertyRNA *RNA_def_boolean_layer(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_boolean_layer_member(StructOrFunctionRNA *cont_,
                                           const char *identifier,
-                                          int len,
-                                          bool *default_value,
+                                          const int len,
+                                          const bool *default_value,
                                           const char *ui_name,
                                           const char *ui_description)
 {
@@ -3690,8 +3690,8 @@ PropertyRNA *RNA_def_boolean_layer_member(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont_,
                                     const char *identifier,
-                                    int len,
-                                    bool *default_value,
+                                    const int len,
+                                    const bool *default_value,
                                     const char *ui_name,
                                     const char *ui_description)
 {
@@ -3712,13 +3712,13 @@ PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_int(StructOrFunctionRNA *cont_,
                          const char *identifier,
-                         int default_value,
-                         int hardmin,
-                         int hardmax,
+                         const int default_value,
+                         const int hardmin,
+                         const int hardmax,
                          const char *ui_name,
                          const char *ui_description,
-                         int softmin,
-                         int softmax)
+                         const int softmin,
+                         const int softmax)
 {
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
@@ -3738,14 +3738,14 @@ PropertyRNA *RNA_def_int(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_int_vector(StructOrFunctionRNA *cont_,
                                 const char *identifier,
-                                int len,
+                                const int len,
                                 const int *default_value,
-                                int hardmin,
-                                int hardmax,
+                                const int hardmin,
+                                const int hardmax,
                                 const char *ui_name,
                                 const char *ui_description,
-                                int softmin,
-                                int softmax)
+                                const int softmin,
+                                const int softmax)
 {
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
@@ -3770,14 +3770,14 @@ PropertyRNA *RNA_def_int_vector(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_int_array(StructOrFunctionRNA *cont_,
                                const char *identifier,
-                               int len,
+                               const int len,
                                const int *default_value,
-                               int hardmin,
-                               int hardmax,
+                               const int hardmin,
+                               const int hardmax,
                                const char *ui_name,
                                const char *ui_description,
-                               int softmin,
-                               int softmax)
+                               const int softmin,
+                               const int softmax)
 {
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
@@ -3803,7 +3803,7 @@ PropertyRNA *RNA_def_int_array(StructOrFunctionRNA *cont_,
 PropertyRNA *RNA_def_string(StructOrFunctionRNA *cont_,
                             const char *identifier,
                             const char *default_value,
-                            int maxlen,
+                            const int maxlen,
                             const char *ui_name,
                             const char *ui_description)
 {
@@ -3827,7 +3827,7 @@ PropertyRNA *RNA_def_string(StructOrFunctionRNA *cont_,
 PropertyRNA *RNA_def_string_file_path(StructOrFunctionRNA *cont_,
                                       const char *identifier,
                                       const char *default_value,
-                                      int maxlen,
+                                      const int maxlen,
                                       const char *ui_name,
                                       const char *ui_description)
 {
@@ -3851,7 +3851,7 @@ PropertyRNA *RNA_def_string_file_path(StructOrFunctionRNA *cont_,
 PropertyRNA *RNA_def_string_dir_path(StructOrFunctionRNA *cont_,
                                      const char *identifier,
                                      const char *default_value,
-                                     int maxlen,
+                                     const int maxlen,
                                      const char *ui_name,
                                      const char *ui_description)
 {
@@ -3875,7 +3875,7 @@ PropertyRNA *RNA_def_string_dir_path(StructOrFunctionRNA *cont_,
 PropertyRNA *RNA_def_string_file_name(StructOrFunctionRNA *cont_,
                                       const char *identifier,
                                       const char *default_value,
-                                      int maxlen,
+                                      const int maxlen,
                                       const char *ui_name,
                                       const char *ui_description)
 {
@@ -3899,7 +3899,7 @@ PropertyRNA *RNA_def_string_file_name(StructOrFunctionRNA *cont_,
 PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_,
                           const char *identifier,
                           const EnumPropertyItem *items,
-                          int default_value,
+                          const int default_value,
                           const char *ui_name,
                           const char *ui_description)
 {
@@ -3922,7 +3922,7 @@ PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_,
 PropertyRNA *RNA_def_enum_flag(StructOrFunctionRNA *cont_,
                                const char *identifier,
                                const EnumPropertyItem *items,
-                               int default_value,
+                               const int default_value,
                                const char *ui_name,
                                const char *ui_description)
 {
@@ -3951,13 +3951,13 @@ void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc)
 
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_,
                            const char *identifier,
-                           float default_value,
-                           float hardmin,
-                           float hardmax,
+                           const float default_value,
+                           const float hardmin,
+                           const float hardmax,
                            const char *ui_name,
                            const char *ui_description,
-                           float softmin,
-                           float softmax)
+                           const float softmin,
+                           const float softmax)
 {
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
@@ -3977,14 +3977,14 @@ PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont_,
                                   const char *identifier,
-                                  int len,
+                                  const int len,
                                   const float *default_value,
-                                  float hardmin,
-                                  float hardmax,
+                                  const float hardmin,
+                                  const float hardmax,
                                   const char *ui_name,
                                   const char *ui_description,
-                                  float softmin,
-                                  float softmax)
+                                  const float softmin,
+                                  const float softmax)
 {
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
@@ -4009,14 +4009,14 @@ PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_float_vector_xyz(StructOrFunctionRNA *cont_,
                                       const char *identifier,
-                                      int len,
+                                      const int len,
                                       const float *default_value,
-                                      float hardmin,
-                                      float hardmax,
+                                      const float hardmin,
+                                      const float hardmax,
                                       const char *ui_name,
                                       const char *ui_description,
-                                      float softmin,
-                                      float softmax)
+                                      const float softmin,
+                                      const float softmax)
 {
   PropertyRNA *prop;
 
@@ -4037,14 +4037,14 @@ PropertyRNA *RNA_def_float_vector_xyz(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_float_color(StructOrFunctionRNA *cont_,
                                  const char *identifier,
-                                 int len,
+                                 const int len,
                                  const float *default_value,
-                                 float hardmin,
-                                 float hardmax,
+                                 const float hardmin,
+                                 const float hardmax,
                                  const char *ui_name,
                                  const char *ui_description,
-                                 float softmin,
-                                 float softmax)
+                                 const float softmin,
+                                 const float softmax)
 {
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
@@ -4069,15 +4069,15 @@ PropertyRNA *RNA_def_float_color(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont_,
                                   const char *identifier,
-                                  int rows,
-                                  int columns,
+                                  const int rows,
+                                  const int columns,
                                   const float *default_value,
-                                  float hardmin,
-                                  float hardmax,
+                                  const float hardmin,
+                                  const float hardmax,
                                   const char *ui_name,
                                   const char *ui_description,
-                                  float softmin,
-                                  float softmax)
+                                  const float softmin,
+                                  const float softmax)
 {
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
@@ -4101,14 +4101,14 @@ PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_float_translation(StructOrFunctionRNA *cont_,
                                        const char *identifier,
-                                       int len,
+                                       const int len,
                                        const float *default_value,
-                                       float hardmin,
-                                       float hardmax,
+                                       const float hardmin,
+                                       const float hardmax,
                                        const char *ui_name,
                                        const char *ui_description,
-                                       float softmin,
-                                       float softmax)
+                                       const float softmin,
+                                       const float softmax)
 {
   PropertyRNA *prop;
 
@@ -4131,14 +4131,14 @@ PropertyRNA *RNA_def_float_translation(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont_,
                                     const char *identifier,
-                                    int len,
+                                    const int len,
                                     const float *default_value,
-                                    float hardmin,
-                                    float hardmax,
+                                    const float hardmin,
+                                    const float hardmax,
                                     const char *ui_name,
                                     const char *ui_description,
-                                    float softmin,
-                                    float softmax)
+                                    const float softmin,
+                                    const float softmax)
 {
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
@@ -4167,13 +4167,13 @@ PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_float_distance(StructOrFunctionRNA *cont_,
                                     const char *identifier,
-                                    float default_value,
-                                    float hardmin,
-                                    float hardmax,
+                                    const float default_value,
+                                    const float hardmin,
+                                    const float hardmax,
                                     const char *ui_name,
                                     const char *ui_description,
-                                    float softmin,
-                                    float softmax)
+                                    const float softmin,
+                                    const float softmax)
 {
   PropertyRNA *prop = RNA_def_float(cont_,
                                     identifier,
@@ -4191,14 +4191,14 @@ PropertyRNA *RNA_def_float_distance(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_float_array(StructOrFunctionRNA *cont_,
                                  const char *identifier,
-                                 int len,
+                                 const int len,
                                  const float *default_value,
-                                 float hardmin,
-                                 float hardmax,
+                                 const float hardmin,
+                                 const float hardmax,
                                  const char *ui_name,
                                  const char *ui_description,
-                                 float softmin,
-                                 float softmax)
+                                 const float softmin,
+                                 const float softmax)
 {
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
@@ -4223,13 +4223,13 @@ PropertyRNA *RNA_def_float_array(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont_,
                                       const char *identifier,
-                                      float default_value,
-                                      float hardmin,
-                                      float hardmax,
+                                      const float default_value,
+                                      const float hardmin,
+                                      const float hardmax,
                                       const char *ui_name,
                                       const char *ui_description,
-                                      float softmin,
-                                      float softmax)
+                                      const float softmin,
+                                      const float softmax)
 {
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;
@@ -4259,13 +4259,13 @@ PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont_,
 
 PropertyRNA *RNA_def_float_factor(StructOrFunctionRNA *cont_,
                                   const char *identifier,
-                                  float default_value,
-                                  float hardmin,
-                                  float hardmax,
+                                  const float default_value,
+                                  const float hardmin,
+                                  const float hardmax,
                                   const char *ui_name,
                                   const char *ui_description,
-                                  float softmin,
-                                  float softmax)
+                                  const float softmin,
+                                  const float softmax)
 {
   ContainerRNA *cont = static_cast<ContainerRNA *>(cont_);
   PropertyRNA *prop;

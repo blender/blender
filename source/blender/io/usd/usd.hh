@@ -85,6 +85,7 @@ struct USDExportParams {
   bool overwrite_textures = true;
   bool relative_paths = true;
   char root_prim_path[1024] = ""; /* FILE_MAX */
+  char collection[MAX_IDPROP_NAME] = "";
 
   /** Communication structure between the wmJob management code and the worker code. Currently used
    * to generate safely reports from the worker thread. */

@@ -13,14 +13,13 @@ VectorBlurNode::VectorBlurNode(bNode *editor_node) : Node(editor_node)
 }
 
 void VectorBlurNode::convert_to_operations(NodeConverter &converter,
-                                           const CompositorContext &context) const
+                                           const CompositorContext & /*context*/) const
 {
   const bNode *node = this->get_bnode();
   const NodeBlurData *vector_blur_settings = (const NodeBlurData *)node->storage;
 
   VectorBlurOperation *operation = new VectorBlurOperation();
   operation->set_vector_blur_settings(vector_blur_settings);
-  operation->set_quality(context.get_quality());
   converter.add_operation(operation);
 
   converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));

@@ -228,7 +228,7 @@ void BLO_reportf_wrap(BlendFileReadReport *reports, eReportType type, const char
 /* for reporting linking messages */
 static const char *library_parent_filepath(Library *lib)
 {
-  return lib->parent ? lib->parent->filepath_abs : "<direct>";
+  return lib->runtime.parent ? lib->runtime.parent->runtime.filepath_abs : "<direct>";
 }
 
 /** \} */
@@ -365,11 +365,11 @@ static void split_libdata(ListBase *lb_src, Main **lib_main_array, const uint li
     idnext = static_cast<ID *>(id->next);
 
     if (id->lib) {
-      if ((uint(id->lib->temp_index) < lib_main_array_len) &&
+      if ((uint(id->lib->runtime.temp_index) < lib_main_array_len) &&
           /* this check should never fail, just in case 'id->lib' is a dangling pointer. */
-          (lib_main_array[id->lib->temp_index]->curlib == id->lib))
+          (lib_main_array[id->lib->runtime.temp_index]->curlib == id->lib))
       {
-        Main *mainvar = lib_main_array[id->lib->temp_index];
+        Main *mainvar = lib_main_array[id->lib->runtime.temp_index];
         ListBase *lb_dst = which_libbase(mainvar, GS(id->name));
         BLI_remlink(lb_src, id);
         BLI_addtail(lb_dst, id);
@@ -407,12 +407,12 @@ void blo_split_main(ListBase *mainlist, Main *main)
   {
     Main *libmain = BKE_main_new();
     libmain->curlib = lib;
-    libmain->versionfile = lib->versionfile;
-    libmain->subversionfile = lib->subversionfile;
+    libmain->versionfile = lib->runtime.versionfile;
+    libmain->subversionfile = lib->runtime.subversionfile;
     libmain->has_forward_compatibility_issues = !MAIN_VERSION_FILE_OLDER_OR_EQUAL(
         libmain, BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
     BLI_addtail(mainlist, libmain);
-    lib->temp_index = i;
+    lib->runtime.temp_index = i;
     lib_main_array[i] = libmain;
   }
 
@@ -449,8 +449,8 @@ static void read_file_version(FileData *fd, Main *main)
     }
   }
   if (main->curlib) {
-    main->curlib->versionfile = main->versionfile;
-    main->curlib->subversionfile = main->subversionfile;
+    main->curlib->runtime.versionfile = main->versionfile;
+    main->curlib->runtime.subversionfile = main->subversionfile;
   }
 }
 
@@ -529,7 +529,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   //  printf("blo_find_main: converted to %s\n", filepath_abs);
 
   LISTBASE_FOREACH (Main *, m, mainlist) {
-    const char *libname = (m->curlib) ? m->curlib->filepath_abs : m->filepath;
+    const char *libname = (m->curlib) ? m->curlib->runtime.filepath_abs : m->filepath;
 
     if (BLI_path_cmp(filepath_abs, libname) == 0) {
       if (G.debug & G_DEBUG) {
@@ -554,7 +554,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   id_us_ensure_real(&lib->id);
 
   STRNCPY(lib->filepath, filepath);
-  STRNCPY(lib->filepath_abs, filepath_abs);
+  STRNCPY(lib->runtime.filepath_abs, filepath_abs);
 
   m->curlib = lib;
 
@@ -1493,7 +1493,7 @@ static void change_link_placeholder_to_real_ID_pointer(ListBase *mainlist,
     FileData *fd;
 
     if (mainptr->curlib) {
-      fd = mainptr->curlib->filedata;
+      fd = mainptr->curlib->runtime.filedata;
     }
     else {
       fd = basefd;
@@ -2258,25 +2258,25 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 {
   Main *newmain;
 
-  /* Make sure we have full path in lib->filepath_abs */
+  /* Make sure we have full path in lib->runtime.filepath_abs */
   /* NOTE: Since existing libraries are searched by their absolute path, this has to be generated
    * before the lookup below. Otherwise, in case the stored absolute filepath is not 'correct' (may
    * be empty, or have been stored in a different 'relative path context'), the comparison below
    * will always fail, leading to creating duplicates IDs of a same library. */
   /* TODO: May be worth checking whether comparison below could use `lib->filepath` instead? */
-  STRNCPY(lib->filepath_abs, lib->filepath);
-  BLI_path_abs(lib->filepath_abs, fd->relabase);
-  BLI_path_normalize(lib->filepath_abs);
+  STRNCPY(lib->runtime.filepath_abs, lib->filepath);
+  BLI_path_abs(lib->runtime.filepath_abs, fd->relabase);
+  BLI_path_normalize(lib->runtime.filepath_abs);
 
   /* check if the library was already read */
   LISTBASE_FOREACH (Main *, newmain, fd->mainlist) {
     if (newmain->curlib) {
-      if (BLI_path_cmp(newmain->curlib->filepath_abs, lib->filepath_abs) == 0) {
+      if (BLI_path_cmp(newmain->curlib->runtime.filepath_abs, lib->runtime.filepath_abs) == 0) {
         BLO_reportf_wrap(fd->reports,
                          RPT_WARNING,
                          RPT_("Library '%s', '%s' had multiple instances, save and reload!"),
                          lib->filepath,
-                         lib->filepath_abs);
+                         lib->runtime.filepath_abs);
 
         change_link_placeholder_to_real_ID_pointer(fd->mainlist, fd, lib, newmain->curlib);
         // change_link_placeholder_to_real_ID_pointer_fd(fd, lib, newmain->curlib);
@@ -2299,7 +2299,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   }
 
   //  printf("direct_link_library: filepath %s\n", lib->filepath);
-  //  printf("direct_link_library: filepath_abs %s\n", lib->filepath_abs);
+  //  printf("direct_link_library: filepath_abs %s\n", lib->runtime.filepath_abs);
 
   BlendDataReader reader = {fd};
   BKE_packedfile_blend_read(&reader, &lib->packedfile);
@@ -2309,7 +2309,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   BLI_addtail(fd->mainlist, newmain);
   newmain->curlib = lib;
 
-  lib->parent = nullptr;
+  lib->runtime.parent = nullptr;
 
   id_us_ensure_real(&lib->id);
 }
@@ -2327,7 +2327,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
        * link into an unsaved blend file. See #27405.
        * The remap relative option will make it relative again on save - campbell */
       if (BLI_path_is_rel(lib->filepath)) {
-        STRNCPY(lib->filepath, lib->filepath_abs);
+        STRNCPY(lib->filepath, lib->runtime.filepath_abs);
       }
     }
   }
@@ -2337,7 +2337,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
        * relative to the blend file since indirectly linked libraries will be
        * relative to their direct linked library. */
       if (BLI_path_is_rel(lib->filepath)) { /* if this is relative to begin with? */
-        STRNCPY(lib->filepath, lib->filepath_abs);
+        STRNCPY(lib->filepath, lib->runtime.filepath_abs);
         BLI_path_rel(lib->filepath, basepath);
       }
     }
@@ -2621,7 +2621,7 @@ static bool read_libblock_undo_restore_library(
                 2,
                 "    compare with %s -> match (existing libpath: %s)",
                 libmain->curlib ? libmain->curlib->id.name : "<none>",
-                libmain->curlib ? libmain->curlib->filepath_abs : "<none>");
+                libmain->curlib ? libmain->curlib->runtime.filepath_abs : "<none>");
       /* In case of a library, we need to re-add its main to fd->mainlist,
        * because if we have later a missing ID_LINK_PLACEHOLDER,
        * we need to get the correct lib it is linked to!
@@ -3703,9 +3703,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       blo_split_main(&mainlist, bfd->main);
       LISTBASE_FOREACH (Main *, mainvar, &mainlist) {
         BLI_assert(mainvar->versionfile != 0);
-        do_versions_after_linking(
-            (mainvar->curlib && mainvar->curlib->filedata) ? mainvar->curlib->filedata : fd,
-            mainvar);
+        do_versions_after_linking((mainvar->curlib && mainvar->curlib->runtime.filedata) ?
+                                      mainvar->curlib->runtime.filedata :
+                                      fd,
+                                  mainvar);
       }
       blo_join_main(&mainlist);
 
@@ -3717,9 +3718,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     LISTBASE_FOREACH (Library *, lib, &bfd->main->libraries) {
       /* Now we can clear this runtime library filedata, it is not needed anymore. */
-      if (lib->filedata) {
-        blo_filedata_free(lib->filedata);
-        lib->filedata = nullptr;
+      if (lib->runtime.filedata) {
+        blo_filedata_free(lib->runtime.filedata);
+        lib->runtime.filedata = nullptr;
       }
     }
 
@@ -3982,7 +3983,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
                        RPT_WARNING,
                        RPT_("LIB: Data refers to main .blend file: '%s' from %s"),
                        idname,
-                       mainvar->curlib->filepath_abs);
+                       mainvar->curlib->runtime.filepath_abs);
       return;
     }
 
@@ -3999,7 +4000,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       // if (G.debug & G_DEBUG) printf("expand_doit: other lib %s\n", lib->filepath);
 
       /* for outliner dependency only */
-      libmain->curlib->parent = mainvar->curlib;
+      libmain->curlib->runtime.parent = mainvar->curlib;
     }
     else {
       /* Convert any previously read weak link to regular link
@@ -4236,7 +4237,7 @@ static Main *library_link_begin(Main *mainvar,
   /* which one do we need? */
   mainl = blo_find_main(fd, filepath, BKE_main_blendfile_path(mainvar));
   if (mainl->curlib) {
-    mainl->curlib->filedata = fd;
+    mainl->curlib->runtime.filedata = fd;
   }
 
   /* needed for do_version */
@@ -4332,7 +4333,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   /* make the lib path relative if required */
   if (flag & FILE_RELPATH) {
     /* use the full path, this could have been read by other library even */
-    STRNCPY(curlib->filepath, curlib->filepath_abs);
+    STRNCPY(curlib->filepath, curlib->runtime.filepath_abs);
 
     /* uses current .blend file as reference */
     BLI_path_rel(curlib->filepath, BKE_main_blendfile_path_from_global());
@@ -4366,9 +4367,10 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
      * or they will go again through do_versions - bad, very bad! */
     split_main_newid(mainvar, main_newid);
 
-    do_versions_after_linking(
-        (main_newid->curlib && main_newid->curlib->filedata) ? main_newid->curlib->filedata : *fd,
-        main_newid);
+    do_versions_after_linking((main_newid->curlib && main_newid->curlib->runtime.filedata) ?
+                                  main_newid->curlib->runtime.filedata :
+                                  *fd,
+                              main_newid);
 
     add_main_to_main(mainvar, main_newid);
 
@@ -4434,19 +4436,19 @@ void BLO_library_link_end(Main *mainl, BlendHandle **bh, const LibraryLink_Param
 
   LISTBASE_FOREACH (Library *, lib, &params->bmain->libraries) {
     /* Now we can clear this runtime library filedata, it is not needed anymore. */
-    if (lib->filedata == reinterpret_cast<FileData *>(*bh)) {
+    if (lib->runtime.filedata == reinterpret_cast<FileData *>(*bh)) {
       /* The filedata is owned and managed by caller code, only clear matching library pointer. */
-      lib->filedata = nullptr;
+      lib->runtime.filedata = nullptr;
     }
-    else if (lib->filedata) {
+    else if (lib->runtime.filedata) {
       /* In case other libraries had to be read as dependencies of the main linked one, they need
        * to be cleared here.
        *
        * TODO: In the future, could be worth keeping them in case data are linked from several
        * libraries at once? To avoid closing and re-opening the same file several times. Would need
        * a global cleanup callback then once all linking is done, though. */
-      blo_filedata_free(lib->filedata);
-      lib->filedata = nullptr;
+      blo_filedata_free(lib->runtime.filedata);
+      lib->runtime.filedata = nullptr;
     }
   }
 
@@ -4498,7 +4500,7 @@ static void read_library_linked_id(
                           "non-linkable data type"),
                      BKE_idtype_idcode_to_name(GS(id->name)),
                      id->name + 2,
-                     mainvar->curlib->filepath_abs,
+                     mainvar->curlib->runtime.filepath_abs,
                      library_parent_filepath(mainvar->curlib));
   }
 
@@ -4516,7 +4518,7 @@ static void read_library_linked_id(
               "LIB: %s: '%s' missing from '%s', parent '%s'",
               BKE_idtype_idcode_to_name(GS(id->name)),
               id->name + 2,
-              mainvar->curlib->filepath_abs,
+              mainvar->curlib->runtime.filepath_abs,
               library_parent_filepath(mainvar->curlib));
     basefd->reports->count.missing_linked_id++;
 
@@ -4614,7 +4616,7 @@ static FileData *read_library_file_data(FileData *basefd,
                                         Main *mainl,
                                         Main *mainptr)
 {
-  FileData *fd = mainptr->curlib->filedata;
+  FileData *fd = mainptr->curlib->runtime.filedata;
 
   if (fd != nullptr) {
     /* File already open. */
@@ -4633,17 +4635,17 @@ static FileData *read_library_file_data(FileData *basefd,
     fd = blo_filedata_from_memory(pf->data, pf->size, basefd->reports);
 
     /* Needed for library_append and read_libraries. */
-    STRNCPY(fd->relabase, mainptr->curlib->filepath_abs);
+    STRNCPY(fd->relabase, mainptr->curlib->runtime.filepath_abs);
   }
   else {
     /* Read file on disk. */
     BLO_reportf_wrap(basefd->reports,
                      RPT_INFO,
                      RPT_("Read library:  '%s', '%s', parent '%s'"),
-                     mainptr->curlib->filepath_abs,
+                     mainptr->curlib->runtime.filepath_abs,
                      mainptr->curlib->filepath,
                      library_parent_filepath(mainptr->curlib));
-    fd = blo_filedata_from_file(mainptr->curlib->filepath_abs, basefd->reports);
+    fd = blo_filedata_from_file(mainptr->curlib->runtime.filepath_abs, basefd->reports);
   }
 
   if (fd) {
@@ -4661,7 +4663,7 @@ static FileData *read_library_file_data(FileData *basefd,
 
     fd->libmap = oldnewmap_new();
 
-    mainptr->curlib->filedata = fd;
+    mainptr->curlib->runtime.filedata = fd;
     mainptr->versionfile = fd->fileversion;
 
     /* subversion */
@@ -4671,16 +4673,18 @@ static FileData *read_library_file_data(FileData *basefd,
 #endif
   }
   else {
-    mainptr->curlib->filedata = nullptr;
+    mainptr->curlib->runtime.filedata = nullptr;
     mainptr->curlib->id.tag |= LIB_TAG_MISSING;
     /* Set lib version to current main one... Makes assert later happy. */
-    mainptr->versionfile = mainptr->curlib->versionfile = mainl->versionfile;
-    mainptr->subversionfile = mainptr->curlib->subversionfile = mainl->subversionfile;
+    mainptr->versionfile = mainptr->curlib->runtime.versionfile = mainl->versionfile;
+    mainptr->subversionfile = mainptr->curlib->runtime.subversionfile = mainl->subversionfile;
   }
 
   if (fd == nullptr) {
-    BLO_reportf_wrap(
-        basefd->reports, RPT_INFO, RPT_("Cannot find lib '%s'"), mainptr->curlib->filepath_abs);
+    BLO_reportf_wrap(basefd->reports,
+                     RPT_INFO,
+                     RPT_("Cannot find lib '%s'"),
+                     mainptr->curlib->runtime.filepath_abs);
     basefd->reports->count.missing_libraries++;
   }
 
@@ -4761,16 +4765,16 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
        *
        * Skip versioning in these cases, since the only IDs here will be placeholders (missing
        * lib), or already existing IDs (linking/appending). */
-      if (mainptr->curlib->filedata) {
-        do_versions(mainptr->curlib->filedata, mainptr->curlib, main_newid);
+      if (mainptr->curlib->runtime.filedata) {
+        do_versions(mainptr->curlib->runtime.filedata, mainptr->curlib, main_newid);
       }
 
       add_main_to_main(mainptr, main_newid);
     }
 
     /* Lib linking. */
-    if (mainptr->curlib->filedata) {
-      lib_link_all(mainptr->curlib->filedata, mainptr);
+    if (mainptr->curlib->runtime.filedata) {
+      lib_link_all(mainptr->curlib->runtime.filedata, mainptr);
     }
 
     /* NOTE: No need to call #do_versions_after_linking() or #BKE_main_id_refcount_recompute()
@@ -4778,8 +4782,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
      * either full blend-file reading (#blo_read_file_internal()), or library-data linking
      * (#library_link_end()).
      *
-     * For this to work reliably, `mainptr->curlib->filedata` also needs to be freed after said
-     * versioning code has run. */
+     * For this to work reliably, `mainptr->curlib->runtime.filedata` also needs to be freed after
+     * said versioning code has run. */
   }
   BKE_main_free(main_newid);
 }

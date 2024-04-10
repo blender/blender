@@ -111,7 +111,8 @@ typedef struct BezTriple {
  * Provide access to Keyframe Type info #eBezTriple_KeyframeType in #BezTriple::hide.
  * \note this is so that we can change it to another location.
  */
-#define BEZKEYTYPE(bezt) ((bezt)->hide)
+#define BEZKEYTYPE(bezt) (eBezTriple_KeyframeType((bezt)->hide))
+#define BEZKEYTYPE_LVALUE(bezt) ((bezt)->hide)
 
 /**
  * \note #BPoint.tilt location in struct is abused by Key system.

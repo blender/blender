@@ -338,6 +338,12 @@ static int insert_key(bContext *C, wmOperator *op)
   const bool found_selection = get_selection(C, &selection);
   if (!found_selection) {
     BKE_reportf(op->reports, RPT_ERROR, "Unsupported context mode");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (selection.is_empty()) {
+    BKE_reportf(op->reports, RPT_WARNING, "Nothing selected to key");
+    return OPERATOR_CANCELLED;
   }
 
   Main *bmain = CTX_data_main(C);
@@ -351,22 +357,34 @@ static int insert_key(bContext *C, wmOperator *op)
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
       depsgraph, BKE_scene_frame_get(scene));
 
+  animrig::CombinedKeyingResult combined_result;
   for (PointerRNA &id_ptr : selection) {
     ID *selected_id = id_ptr.owner_id;
+    if (!id_can_have_animdata(selected_id)) {
+      BKE_reportf(op->reports,
+                  RPT_ERROR,
+                  "Could not insert keyframe, as this type does not support animation data (ID = "
+                  "%s)",
+                  selected_id->name);
+      continue;
+    }
     if (!BKE_id_is_editable(bmain, selected_id)) {
       BKE_reportf(op->reports, RPT_ERROR, "'%s' is not editable", selected_id->name + 2);
       continue;
     }
     Vector<std::string> rna_paths = construct_rna_paths(&id_ptr);
 
-    animrig::insert_key_rna(&id_ptr,
-                            rna_paths.as_span(),
-                            scene_frame,
-                            insert_key_flags,
-                            key_type,
-                            bmain,
-                            op->reports,
-                            anim_eval_context);
+    combined_result.merge(animrig::insert_key_rna(&id_ptr,
+                                                  rna_paths.as_span(),
+                                                  scene_frame,
+                                                  insert_key_flags,
+                                                  key_type,
+                                                  bmain,
+                                                  anim_eval_context));
+  }
+
+  if (combined_result.get_count(animrig::SingleKeyingResult::SUCCESS) == 0) {
+    combined_result.generate_reports(op->reports);
   }
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);

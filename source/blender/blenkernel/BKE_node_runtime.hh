@@ -300,6 +300,10 @@ class bNodeRuntime : NonCopyable, NonMovable {
   /** Used to avoid running forward compatibility code more often than necessary. */
   bool forward_compatible_versioning_done = false;
 
+  /** If this node is reroute and this reroute is not logically linked with any source except other
+   * reroute, this will be true. */
+  bool is_dangling_reroute = false;
+
   /** Only valid if #topology_cache_is_dirty is false. */
   Vector<bNodeSocket *> inputs;
   Vector<bNodeSocket *> outputs;
@@ -729,6 +733,12 @@ inline bool bNode::is_group_output() const
 inline blender::Span<bNodeLink> bNode::internal_links() const
 {
   return this->runtime->internal_links;
+}
+
+inline bool bNode::is_dangling_reroute() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->is_dangling_reroute;
 }
 
 inline bool bNode::is_socket_drawn(const bNodeSocket &socket) const

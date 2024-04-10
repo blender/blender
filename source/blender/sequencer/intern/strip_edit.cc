@@ -433,13 +433,13 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
   SEQ_animation_backup_original(scene, &animation_backup);
 
   ListBase left_strips = {nullptr, nullptr};
-  for (Sequence *seq : strips) {
+  for (Sequence *seq_iter : strips) {
     /* Move strips in collection from seqbase to new ListBase. */
-    BLI_remlink(seqbase, seq);
-    BLI_addtail(&left_strips, seq);
+    BLI_remlink(seqbase, seq_iter);
+    BLI_addtail(&left_strips, seq_iter);
 
     /* Duplicate curves from backup, so they can be renamed along with split strips. */
-    SEQ_animation_duplicate_backup_to_scene(scene, seq, &animation_backup);
+    SEQ_animation_duplicate_backup_to_scene(scene, seq_iter, &animation_backup);
   }
 
   /* Duplicate ListBase. */

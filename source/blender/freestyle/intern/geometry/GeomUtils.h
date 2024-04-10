@@ -91,11 +91,10 @@ bool intersect2dSeg2dArea(const Vec2r &min, const Vec2r &max, const Vec2r &A, co
 /** check whether a 2D segment is included in a 2D region or not */
 bool include2dSeg2dArea(const Vec2r &min, const Vec2r &max, const Vec2r &A, const Vec2r &B);
 
-/** Box-triangle overlap test, adapted from Tomas Akenine-Möller code */
-bool overlapTriangleBox(Vec3r &boxcenter, Vec3r &boxhalfsize, Vec3r triverts[3]);
+/** Box-triangle overlap test. */
+bool overlapTriangleBox(const Vec3r &boxcenter, const Vec3r &boxhalfsize, const Vec3r triverts[3]);
 
-/** Fast, Minimum Storage Ray-Triangle Intersection, adapted from Tomas Möller and Ben Trumbore
- * code. */
+/** Fast, Minimum Storage Ray-Triangle Intersection. */
 bool intersectRayTriangle(const Vec3r &orig,
                           const Vec3r &dir,
                           const Vec3r &v0,
@@ -106,7 +105,7 @@ bool intersectRayTriangle(const Vec3r &orig,
                           real &v,  // I = (1 - u - v) * v0 + u * v1 + v * v2
                           const real epsilon = M_EPSILON);  // the epsilon to use
 
-/** Intersection between plane and ray adapted from Graphics Gems, Didier Badouel */
+/** Intersection between plane and ray. */
 intersection_test intersectRayPlane(const Vec3r &orig,
                                     const Vec3r &dir,  // ray origin and direction
                                     // plane's normal and offset (plane = { P / P.N + d = 0 })

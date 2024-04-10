@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: 2023-09-26 10:37+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -550,10 +550,6 @@ msgstr "Макс"
 
 msgid "Layers"
 msgstr "Слоеве"
-
-
-msgid "AVI Raw"
-msgstr "AVI Суров"
 
 
 msgid "Movie"
@@ -1832,12 +1828,12 @@ msgid "Layer:"
 msgstr "Слой"
 
 
-msgid "Stop this job"
-msgstr "Спри тази задача"
-
-
 msgid "%d items"
 msgstr "%d артикули"
+
+
+msgid "Stop this job"
+msgstr "Спри тази задача"
 
 
 msgid "OK"
@@ -1858,10 +1854,6 @@ msgstr "{} (String)"
 
 msgid "{} (Integer)"
 msgstr "{} (Integer)"
-
-
-msgid "OK?"
-msgstr "ОК?"
 
 
 msgid "English (English)"

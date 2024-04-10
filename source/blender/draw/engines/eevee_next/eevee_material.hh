@@ -51,8 +51,6 @@ enum eMaterialGeometry {
   MAT_GEOM_VOLUME,
 
   /* These maps to special shader. */
-  MAT_GEOM_VOLUME_OBJECT,
-  MAT_GEOM_VOLUME_WORLD,
   MAT_GEOM_WORLD,
 };
 

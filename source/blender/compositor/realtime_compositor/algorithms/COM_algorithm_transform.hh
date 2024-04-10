@@ -32,7 +32,7 @@ namespace blender::realtime_compositor {
 void transform(Context &context,
                Result &input,
                Result &output,
-               float3x3 transformation,
+               const float3x3 &transformation,
                RealizationOptions realization_options);
 
 }  // namespace blender::realtime_compositor

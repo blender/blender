@@ -252,7 +252,7 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
         col.prop(screen, "use_play_3d_editors", text="3D Viewport")
         col.prop(screen, "use_play_animation_editors", text="Animation Editors")
         col.prop(screen, "use_play_image_editors", text="Image Editor")
-        col.prop(screen, "use_play_properties_editors", text="Properties Editor")
+        col.prop(screen, "use_play_properties_editors", text="Properties and Sidebars")
         col.prop(screen, "use_play_clip_editors", text="Movie Clip Editor")
         col.prop(screen, "use_play_node_editors", text="Node Editors")
         col.prop(screen, "use_play_sequence_editors", text="Video Sequencer")

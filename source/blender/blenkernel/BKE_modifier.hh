@@ -322,12 +322,9 @@ struct ModifierTypeInfo {
   bool (*depends_on_time)(Scene *scene, ModifierData *md);
 
   /**
-   * True when a deform modifier uses normals, the required_data_mask
-   * can't be used here because that refers to a normal layer whereas
-   * in this case we need to know if the deform modifier uses normals.
-   *
-   * this is needed because applying 2 deform modifiers will give the
-   * second modifier bogus normals.
+   * Returns true when a deform modifier uses mesh normals as input. This callback is only required
+   * for deform modifiers that support deforming positions with an edit mesh (when #deform_verts_EM
+   * is implemented).
    */
   bool (*depends_on_normals)(ModifierData *md);
 

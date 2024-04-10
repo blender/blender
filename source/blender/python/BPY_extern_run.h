@@ -90,10 +90,16 @@ bool BPY_run_text(struct bContext *C, struct Text *text, struct ReportList *repo
 
 /**
  * Run an entire script, matches: `exec(compile(..., "exec"))`
+ *
+ * \param C: Optional context (may be null),
+ *  used for `bpy.context` and reporting errors to `CTX_wm_reports(C)`.
  */
 bool BPY_run_string_exec(struct bContext *C, const char *imports[], const char *expr);
 /**
  * Run an expression, matches: `exec(compile(..., "eval"))`.
+ *
+ * \param C: Optional context (may be null),
+ *  used for `bpy.context` and reporting errors to `CTX_wm_reports(C)`.
  */
 bool BPY_run_string_eval(struct bContext *C, const char *imports[], const char *expr);
 

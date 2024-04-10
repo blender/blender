@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -493,6 +493,10 @@ msgid "Blue"
 msgstr "לוחכ"
 
 
+msgid "Animation"
+msgstr "היצמינא"
+
+
 msgid "Mask"
 msgstr "הכסמ"
 
@@ -516,10 +520,6 @@ msgstr "קלח"
 
 
 msgctxt "Brush"
-msgid "Sculpt Tool"
-msgstr "לוסיפ ילכ"
-
-
 msgid "Sculpt Tool"
 msgstr "לוסיפ ילכ"
 
@@ -603,10 +603,6 @@ msgstr "יעוביר"
 
 msgid "Mist"
 msgstr "לפרע"
-
-
-msgid "Animation"
-msgstr "היצמינא"
 
 
 msgid "Black"
@@ -957,6 +953,10 @@ msgid "Remove Shortcut"
 msgstr "ךרד־רוציק רסה"
 
 
+msgid "%d items"
+msgstr "‪%d‬ םיטירפ"
+
+
 msgid "Red:"
 msgstr ":םודא"
 
@@ -987,10 +987,6 @@ msgstr "תודוקנ קחמ"
 
 msgid "Stop this job"
 msgstr "וז הדובע רוצע"
-
-
-msgid "%d items"
-msgstr "‪%d‬ םיטירפ"
 
 
 msgid "vertex data"

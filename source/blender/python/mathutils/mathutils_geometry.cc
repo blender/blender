@@ -1320,7 +1320,6 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject * /*self*/, PyObject *po
     if (len_polypoints > 0) { /* don't bother adding edges as polylines */
       dl = static_cast<DispList *>(MEM_callocN(sizeof(DispList), "poly disp"));
       BLI_addtail(&dispbase, dl);
-      dl->type = DL_INDEX3;
       dl->nr = len_polypoints;
       dl->type = DL_POLY;
       dl->parts = 1; /* no faces, 1 edge loop */

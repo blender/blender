@@ -621,11 +621,11 @@ class NodeTreeMainUpdater {
     BLI_STRUCT_EQUALITY_OPERATORS_3(InternalLink, from, to, multi_input_sort_id);
   };
 
-  const bNodeLink *first_non_dangling_link(const bNodeTree &ntree,
+  const bNodeLink *first_non_dangling_link(const bNodeTree & /*ntree*/,
                                            const Span<const bNodeLink *> links) const
   {
     for (const bNodeLink *link : links) {
-      if (!bke::nodeIsDanglingReroute(&ntree, link->fromnode)) {
+      if (!link->fromnode->is_dangling_reroute()) {
         return link;
       }
     }

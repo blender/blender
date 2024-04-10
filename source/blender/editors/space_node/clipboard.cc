@@ -99,7 +99,7 @@ struct NodeClipboard {
     if (item.id) {
       item.id_name = new_node->id->name;
       if (ID_IS_LINKED(new_node->id)) {
-        item.library_name = new_node->id->lib->filepath_abs;
+        item.library_name = new_node->id->lib->runtime.filepath_abs;
       }
     }
     this->nodes.append(std::move(item));

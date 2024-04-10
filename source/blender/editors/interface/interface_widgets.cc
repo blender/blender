@@ -1582,8 +1582,8 @@ float UI_text_clip_middle_ex(const uiFontStyle *fstyle,
    * probably reduce this to one pixel if we consolidate text output with length measuring. But
    * our text string lengths include the last character's right-side bearing anyway, so a string
    * can be longer by that amount and still fit visibly in the required space. */
-
   BLI_assert((strwidth <= (okwidth + 2)) || (okwidth <= 0.0f));
+  UNUSED_VARS_NDEBUG(okwidth);
 
   return strwidth;
 }
@@ -2778,6 +2778,7 @@ static void widget_state_menu_item(uiWidgetType *wt,
     /* Inactive. */
     if (state->but_flag & UI_HOVER) {
       color_blend_v3_v3(wt->wcol.inner, wt->wcol.text, 0.2f);
+      copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
       wt->wcol.inner[3] = 255;
     }
     color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);

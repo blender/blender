@@ -773,8 +773,9 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
                                                        size_t &kernel_local_size)
 {
   assert(queue);
-
-  const static size_t preferred_work_group_size_intersect_shading = 32;
+  const static size_t preferred_work_group_size_intersect = 128;
+  const static size_t preferred_work_group_size_shading = 256;
+  const static size_t preferred_work_group_size_shading_simd8 = 64;
   /* Shader evaluation kernels seems to use some amount of shared memory, so better
    * to avoid usage of maximum work group sizes for them. */
   const static size_t preferred_work_group_size_shader_evaluation = 256;
@@ -782,6 +783,9 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
    * for now their work-group size is restricted to 512. */
   const static size_t preferred_work_group_size_cryptomatte = 512;
   const static size_t preferred_work_group_size_default = 1024;
+
+  const sycl::device &device = reinterpret_cast<sycl::queue *>(queue)->get_device();
+  const size_t max_work_group_size = device.get_info<sycl::info::device::max_work_group_size>();
 
   size_t preferred_work_group_size = 0;
   switch (kernel) {
@@ -792,6 +796,9 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE:
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK:
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT:
+      preferred_work_group_size = preferred_work_group_size_intersect;
+      break;
+
     case DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE:
@@ -799,9 +806,13 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
-    case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT:
-      preferred_work_group_size = preferred_work_group_size_intersect_shading;
-      break;
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT: {
+      const bool device_is_simd8 =
+          (device.has(sycl::aspect::ext_intel_gpu_eu_simd_width) &&
+           device.get_info<sycl::ext::intel::info::device::gpu_eu_simd_width>() == 8);
+      preferred_work_group_size = (device_is_simd8) ? preferred_work_group_size_shading_simd8 :
+                                                      preferred_work_group_size_shading;
+    } break;
 
     case DEVICE_KERNEL_CRYPTOMATTE_POSTPROCESS:
       preferred_work_group_size = preferred_work_group_size_cryptomatte;
@@ -829,11 +840,7 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
     preferred_work_group_size = preferred_work_group_size_default;
   }
 
-  const size_t limit_work_group_size = reinterpret_cast<sycl::queue *>(queue)
-                                           ->get_device()
-                                           .get_info<sycl::info::device::max_work_group_size>();
-
-  kernel_local_size = std::min(limit_work_group_size, preferred_work_group_size);
+  kernel_local_size = std::min(max_work_group_size, preferred_work_group_size);
 
   /* NOTE(@nsirgien): As for now non-uniform work-groups don't work on most oneAPI devices,
    * we extend work size to fit uniformity requirements. */

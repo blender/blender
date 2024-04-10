@@ -591,7 +591,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
     float axis[3];
     float arc_angle;
 
-    Object *ob = kcd->objects[kcd->curr.ob_index];
+    Object *ob = kcd->objects[kcd->bvh.ob_index];
     const float inverse_average_scale = 1 / (ob->object_to_world().ptr()[0][0] +
                                              ob->object_to_world().ptr()[1][1] +
                                              ob->object_to_world().ptr()[2][2]);
@@ -3263,22 +3263,17 @@ static void knife_interp_v3_v3v3(const KnifeTool_OpData *kcd,
                                  float r_co[3],
                                  const float v1[3],
                                  const float v2[3],
-                                 float lambda_ss)
+                                 const float lambda_ss)
 {
-  if (kcd->is_ortho) {
-    interp_v3_v3v3(r_co, v1, v2, lambda_ss);
+  float lambda = lambda_ss;
+  if (!kcd->is_ortho) {
+    /* Adjust the lambda according to the perspective. */
+    float w1 = mul_project_m4_v3_zfac(kcd->vc.rv3d->persmat, v1);
+    float w2 = mul_project_m4_v3_zfac(kcd->vc.rv3d->persmat, v2);
+    lambda = (lambda_ss * w1) / (w2 + (lambda_ss * (w1 - w2)));
   }
-  else {
-    /* Transform into screen-space, interp, then transform back. */
-    float v1_ss[3], v2_ss[3];
 
-    mul_v3_project_m4_v3(v1_ss, (float(*)[4])kcd->vc.rv3d->persmat, v1);
-    mul_v3_project_m4_v3(v2_ss, (float(*)[4])kcd->vc.rv3d->persmat, v2);
-
-    interp_v3_v3v3(r_co, v1_ss, v2_ss, lambda_ss);
-
-    mul_project_m4_v3((float(*)[4])kcd->vc.rv3d->persinv, r_co);
-  }
+  interp_v3_v3v3(r_co, v1, v2, lambda);
 }
 
 /* p is closest point on edge to the mouse cursor. */

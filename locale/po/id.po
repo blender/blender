@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: 2023-12-04 11:07+0000\n"
 "Last-Translator: Mohamad Rido <mohamadrido@mail.ru>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -3167,6 +3167,10 @@ msgid "Count"
 msgstr "Hitung"
 
 
+msgid "Curve Radius"
+msgstr "Radius Kurva"
+
+
 msgid "Minimum Distance"
 msgstr "Jarak Minimal"
 
@@ -5276,10 +5280,6 @@ msgstr "Sumbu yang mengarah ke atas"
 
 msgid "Follow Curve"
 msgstr "Ikuti Kurva"
-
-
-msgid "Curve Radius"
-msgstr "Radius Kurva"
 
 
 msgid "Object is scaled by the curve radius"
@@ -7761,6 +7761,10 @@ msgid "Library Browser"
 msgstr "Browser Perpustakaan"
 
 
+msgid "Matrix"
+msgstr "Matriks"
+
+
 msgid "Floating-point value in geometry attribute"
 msgstr "Nilai floating-point di atribut geometri"
 
@@ -8825,10 +8829,6 @@ msgid "Constant"
 msgstr "Konstan"
 
 
-msgid "Matrix"
-msgstr "Matriks"
-
-
 msgid "Parent Object for hook, also recalculates and clears offset"
 msgstr "Objek Induk untuk kait, juga rekalkulasi dan bersihkan offset"
 
@@ -8969,6 +8969,18 @@ msgid "Grid scale"
 msgstr "Skala grid"
 
 
+msgid "Translation"
+msgstr "Terjemahan"
+
+
+msgid "Active Layer Mask Index"
+msgstr "Indeks Masker Layer Aktif"
+
+
+msgid "Active index in layer mask array"
+msgstr "Aktif indeks di larik masker layer"
+
+
 msgid "Grease Pencil Layers"
 msgstr "Layer Pensil Grease"
 
@@ -8993,12 +9005,12 @@ msgid "Active Note"
 msgstr "Catatan Aktif"
 
 
-msgid "Active Layer Mask Index"
-msgstr "Indeks Masker Layer Aktif"
+msgid "Repeat"
+msgstr "Ulang"
 
 
-msgid "Active index in layer mask array"
-msgstr "Aktif indeks di larik masker layer"
+msgid "Frame Start"
+msgstr "Frame Mulai"
 
 
 msgid "Red Green Blue"
@@ -9031,6 +9043,10 @@ msgstr "Biru"
 
 msgid "Show Line"
 msgstr "Tampilkan Garis"
+
+
+msgid "Animation"
+msgstr "Animasi"
 
 
 msgid "Brush"
@@ -9254,10 +9270,6 @@ msgid "Gradient Spacing"
 msgstr "Spasi Gradien"
 
 
-msgid "Repeat"
-msgstr "Ulang"
-
-
 msgid "Clamp"
 msgstr "Penjepit"
 
@@ -9334,10 +9346,6 @@ msgstr "Gunakan Cat"
 
 msgid "Show texture in viewport"
 msgstr "Tampilkan tekstur di viewport"
-
-
-msgid "Sculpt Tool"
-msgstr "Modus Pahat"
 
 
 msgid "Grab UVs"
@@ -9759,10 +9767,6 @@ msgstr "Partikel"
 
 msgid "JPEG 2000"
 msgstr "JPEG 2000"
-
-
-msgid "AVI JPEG"
-msgstr "AVI JPEG"
 
 
 msgid "Generated Type"
@@ -10543,10 +10547,6 @@ msgstr "Diferensial"
 
 msgid "Feedback"
 msgstr "Umpan balik"
-
-
-msgid "Animation"
-msgstr "Animasi"
 
 
 msgid "Simulation"
@@ -12212,10 +12212,6 @@ msgstr "Modus Pahat"
 
 msgid "Integrate"
 msgstr "Integrasi"
-
-
-msgid "Frame Start"
-msgstr "Frame Mulai"
 
 
 msgid "Resolution Mode"
@@ -14860,10 +14856,6 @@ msgid "Scalar"
 msgstr "Skalar"
 
 
-msgid "Translation"
-msgstr "Terjemahan"
-
-
 msgid "Primary"
 msgstr "Primer"
 
@@ -17056,18 +17048,6 @@ msgid "Delete Globally"
 msgstr "Hapus Secara Global"
 
 
-msgid "Add an empty image type to scene with data"
-msgstr "Tambah tipe gambar kosong ke adegan dengan data"
-
-
-msgid "Filepath"
-msgstr "Jalurdokumen"
-
-
-msgid "Path to image file"
-msgstr "Jalur ke dokumen gambar"
-
-
 msgctxt "Operator"
 msgid "Drop Named Material on Object"
 msgstr "Menjatuhkan Material yang Bernama di Objek"
@@ -17094,6 +17074,10 @@ msgstr "Tambah Kosong"
 
 msgid "Add an empty object to the scene"
 msgstr "Tambahkan objek kosong ke adegan"
+
+
+msgid "Add an empty image type to scene with data"
+msgstr "Tambah tipe gambar kosong ke adegan dengan data"
 
 
 msgctxt "Operator"
@@ -18785,6 +18769,10 @@ msgid "Line number to jump to"
 msgstr "Angka garis melompat ke"
 
 
+msgid "Filepath"
+msgstr "Jalurdokumen"
+
+
 msgctxt "Operator"
 msgid "Line Number"
 msgstr "Angka Garis"
@@ -19130,22 +19118,16 @@ msgstr "Tampilan 3D"
 
 
 msgctxt "Operator"
-msgid "Add Background Image"
-msgstr "Tambah Gambar Background"
+msgid "Select Menu"
+msgstr "Seleksi"
 
 
-msgctxt "Operator"
-msgid "Remove Background Image"
-msgstr "Gambar Latar"
+msgid "Path to image file"
+msgstr "Jalur ke dokumen gambar"
 
 
 msgid "Background image index to remove"
 msgstr "Tampilkan Gambar Latar pada tampilan atas"
-
-
-msgctxt "Operator"
-msgid "Select Menu"
-msgstr "Seleksi"
 
 
 msgctxt "Operator"
@@ -20119,11 +20101,6 @@ msgid "Temporary Editors"
 msgstr "Editor Sementara"
 
 
-msgctxt "WindowManager"
-msgid "Translation"
-msgstr "Terjemahan"
-
-
 msgid "Preferences Navigation"
 msgstr "Navigasi Pengaturan"
 
@@ -20680,6 +20657,10 @@ msgid "32 px"
 msgstr "32 px"
 
 
+msgid "4 px"
+msgstr "4 px"
+
+
 msgid "Background Separation"
 msgstr "Separasi Latar Belakang"
 
@@ -20694,10 +20675,6 @@ msgstr "Sampel Render"
 
 msgid "2 px"
 msgstr "2 px"
-
-
-msgid "4 px"
-msgstr "4 px"
 
 
 msgid "Grease Pencil Render"
@@ -20886,10 +20863,6 @@ msgstr "Modus Pahat"
 
 msgid "White Balance"
 msgstr "Keseimbangan Putih"
-
-
-msgid "Bright"
-msgstr "Kanan"
 
 
 msgid "Effect name"
@@ -22615,6 +22588,10 @@ msgid "Remove All Groups"
 msgstr "Hapus Semua Kelompok"
 
 
+msgid "No layers to add"
+msgstr "Tidak ada layer untuk ditambahkan"
+
+
 msgid "Interpolation U"
 msgstr "Interpolasi U"
 
@@ -22796,10 +22773,6 @@ msgstr "Sumber Data:"
 
 msgid "No annotation source"
 msgstr "Tidak ada sumber anotasi"
-
-
-msgid "No layers to add"
-msgstr "Tidak ada layer untuk ditambahkan"
 
 
 msgid "Channel Colors are disabled in Animation preferences"
@@ -24172,12 +24145,12 @@ msgid "    Operator"
 msgstr "    Operator"
 
 
-msgid "Annotation:"
-msgstr "Anotasi:"
-
-
 msgid "Intersections"
 msgstr "Persilangan"
+
+
+msgid "Annotation:"
+msgstr "Anotasi:"
 
 
 msgctxt "Operator"
@@ -24978,6 +24951,10 @@ msgid "Remove Shortcut"
 msgstr "Induk"
 
 
+msgid "%d items"
+msgstr "%d item"
+
+
 msgid "Red:"
 msgstr "Merah:"
 
@@ -25184,10 +25161,6 @@ msgstr "Baru"
 msgctxt "Volume"
 msgid "New"
 msgstr "Baru"
-
-
-msgid "%d items"
-msgstr "%d item"
 
 
 msgid "Manual Transform"
@@ -26198,6 +26171,10 @@ msgid "Fac"
 msgstr "Fac"
 
 
+msgid "Bright"
+msgstr "Kanan"
+
+
 msgid "Color Space:"
 msgstr "Ruang Warna:"
 
@@ -26507,10 +26484,6 @@ msgstr "ON"
 
 msgid "OFF"
 msgstr "OFF"
-
-
-msgid "OK?"
-msgstr "OK?"
 
 
 msgid "unsupported format"

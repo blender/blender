@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -920,6 +920,10 @@ msgid "Grease Pencil data-blocks"
 msgstr "Zsírkréta adatblokkok"
 
 
+msgid "Grease Pencil v3"
+msgstr "Zsírkréta v3"
+
+
 msgid "Hair Curves"
 msgstr "Haj görbék"
 
@@ -1098,6 +1102,10 @@ msgstr "Látható"
 
 msgid "Count"
 msgstr "Szám"
+
+
+msgid "Curve Radius"
+msgstr "Görbe sugara"
 
 
 msgid "Remove"
@@ -2164,10 +2172,6 @@ msgstr "Görbe követése"
 
 msgid "Object will follow the heading and banking of the curve"
 msgstr "Az objektum követni fogja a görbe irányultságát és dőlését"
-
-
-msgid "Curve Radius"
-msgstr "Görbe sugara"
 
 
 msgid "Object is scaled by the curve radius"
@@ -3528,6 +3532,10 @@ msgid "Link"
 msgstr "Linkelés"
 
 
+msgid "Matrix"
+msgstr "Mátrix"
+
+
 msgid "Domain Settings"
 msgstr "Tartomány beállítások"
 
@@ -4321,10 +4329,6 @@ msgid "Constant"
 msgstr "Konstans"
 
 
-msgid "Matrix"
-msgstr "Mátrix"
-
-
 msgid "Parent Object for hook, also recalculates and clears offset"
 msgstr "A kampó szülőobjektuma, az eltolást szintén törli és újraszámítja"
 
@@ -4493,6 +4497,14 @@ msgid "Lowest"
 msgstr "Legalacsonyabb"
 
 
+msgid "Grease Pencil Mask Layers"
+msgstr "Zsírkréta maszkoló rétegek"
+
+
+msgid "Collection of grease pencil masking layers"
+msgstr "Zsírkréta maszkoló rétegek gyűjteménye"
+
+
 msgid "Grease Pencil Layers"
 msgstr "Zsírkréta rétegek"
 
@@ -4509,12 +4521,16 @@ msgid "Index of active grease pencil layer"
 msgstr "Aktív zsírkréta réteg indexe"
 
 
-msgid "Grease Pencil Mask Layers"
-msgstr "Zsírkréta maszkoló rétegek"
+msgid "Repeat"
+msgstr "Ismétlés"
 
 
-msgid "Collection of grease pencil masking layers"
-msgstr "Zsírkréta maszkoló rétegek gyűjteménye"
+msgid "Frame Start"
+msgstr "Kezdő képkocka"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Aktív zsírkréta réteg"
 
 
 msgid "Red"
@@ -4529,16 +4545,16 @@ msgid "Blue"
 msgstr "Kék"
 
 
+msgid "Animation"
+msgstr "Animáció"
+
+
 msgid "Brush"
 msgstr "Ecset"
 
 
 msgid "Font"
 msgstr "Betűkészlet"
-
-
-msgid "Grease Pencil v3"
-msgstr "Zsírkréta v3"
 
 
 msgid "Key"
@@ -4657,10 +4673,6 @@ msgstr "Zsírkréta rajz eszköz"
 
 msgid "Grease Pencil Vertex Paint Tool"
 msgstr "Zsírkréta csúcspont festő eszköz"
-
-
-msgid "Repeat"
-msgstr "Ismétlés"
 
 
 msgid "Clamp"
@@ -5219,6 +5231,10 @@ msgid "Edit Grease Pencil strokes instead of viewport data"
 msgstr "Zsírkréta vonások szerkesztése a nézetablak adatok helyett"
 
 
+msgid "Grease Pencil data-block"
+msgstr "Zsírkréta adatblokk"
+
+
 msgid "Alpha Mode"
 msgstr "Alfa mód"
 
@@ -5293,22 +5309,6 @@ msgstr "Kimeneti kép Radiancia HDR formátumban"
 
 msgid "Output image in TIFF format"
 msgstr "Kimeneti kép TIFF formátumban"
-
-
-msgid "AVI JPEG"
-msgstr "AVI JPEG"
-
-
-msgid "Output video in AVI JPEG format"
-msgstr "Kimeneti videó AVI JPEG formátumban"
-
-
-msgid "AVI Raw"
-msgstr "AVI Raw (nyers)"
-
-
-msgid "Output video in AVI Raw format"
-msgstr "Kimeneti videó AVI Raw (nyers) formátumban"
 
 
 msgid "Generated image height"
@@ -5494,10 +5494,6 @@ msgstr "Videófájl"
 
 msgid "Grease Pencil Data"
 msgstr "Zsírkrétaadat"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Zsírkréta adatblokk"
 
 
 msgid "Interface"
@@ -6134,10 +6130,6 @@ msgstr "ID anyagok"
 
 msgid "Operation"
 msgstr "Művelet"
-
-
-msgid "Animation"
-msgstr "Animáció"
 
 
 msgid "Auto Step"
@@ -8174,10 +8166,6 @@ msgstr "Kiszámítás ennél a képkockánál (a 0-nál kezdődik)"
 
 msgid "Influence of the deformation"
 msgstr "Deformáció befolyásának mértéke"
-
-
-msgid "Frame Start"
-msgstr "Kezdő képkocka"
 
 
 msgid "Add this to the start frame"
@@ -10695,10 +10683,6 @@ msgid "Erase Grease Pencil strokes"
 msgstr "Böngészés a linkelhető Zsírkréta adatok között"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Aktív zsírkréta réteg"
-
-
 msgctxt "Operator"
 msgid "Isolate Material"
 msgstr "Anyag izolálása"
@@ -11078,24 +11062,12 @@ msgid "Construct a cylinder mesh"
 msgstr "Henger alakú mesh létrehozása"
 
 
-msgid "Construct a grid mesh"
-msgstr "Rács mesh létrehozása"
-
-
-msgid "Construct an Icosphere mesh"
-msgstr "Iko Gömb létrehozása"
-
-
 msgid "Construct a Suzanne mesh"
 msgstr "Suzanne mesh létrehozása"
 
 
 msgid "Construct a filled planar mesh with 4 vertices"
 msgstr "4 pontból álló, kitöltött síklap mesh létrehozása"
-
-
-msgid "Construct a UV sphere mesh"
-msgstr "UV Gömb mesh létrehozása"
 
 
 msgid "Sharp Edges"
@@ -13169,11 +13141,6 @@ msgid "Include all scene frames"
 msgstr "Minden jelenet képkocka bevonása"
 
 
-msgctxt "Operator"
-msgid "Add Theme Preset"
-msgstr "Témabeállítás hozzáadása"
-
-
 msgid "Open a Blender file"
 msgstr "Blender fájl megnyitása"
 
@@ -14854,10 +14821,6 @@ msgstr "Áthelyezés Y (irányba)"
 
 msgid "Show Cache"
 msgstr "Gyorsítótár megjelenítése"
-
-
-msgid "Bright"
-msgstr "Fényerő"
 
 
 msgid "Show Source"
@@ -17118,6 +17081,10 @@ msgid "Online Python Reference"
 msgstr "Online Python Referencia"
 
 
+msgid "%d items"
+msgstr "%d elem"
+
+
 msgid "Hex"
 msgstr "Hex"
 
@@ -17435,10 +17402,6 @@ msgstr "Új"
 msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Új"
-
-
-msgid "%d items"
-msgstr "%d elem"
 
 
 msgid "Texture Options"
@@ -17891,6 +17854,10 @@ msgstr "Eredeti felülírása"
 
 msgid "Crease Edges"
 msgstr "Élek domborítása"
+
+
+msgid "Bright"
+msgstr "Fényerő"
 
 
 msgid "Color Space:"

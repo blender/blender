@@ -1111,7 +1111,6 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
                                     &mectx,
                                     em_input,
                                     mesh_final,
-
                                     mesh_wrapper_vert_coords_ensure_for_write(mesh_final));
         BKE_mesh_wrapper_tag_positions_changed(mesh_final);
       }

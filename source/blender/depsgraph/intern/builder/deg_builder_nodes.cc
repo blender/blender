@@ -558,8 +558,7 @@ void DepsgraphNodeBuilder::build_id(ID *id, const bool force_be_visible)
       build_action((bAction *)id);
       break;
     case ID_AN:
-      /* TODO: actually handle this ID type properly, will be done in a followup commit. */
-      build_generic_id(id);
+      build_animation((Animation *)id);
       break;
     case ID_AR:
       build_armature((bArmature *)id);
@@ -1217,10 +1216,15 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
   if (adt->action != nullptr) {
     build_action(adt->action);
   }
+  if (adt->animation != nullptr) {
+    build_animation(adt->animation);
+  }
   /* Make sure ID node exists. */
   (void)add_id_node(id);
   ID *id_cow = get_cow_id(id);
-  if (adt->action != nullptr || !BLI_listbase_is_empty(&adt->nla_tracks)) {
+  if (adt->action != nullptr || adt->animation != nullptr ||
+      !BLI_listbase_is_empty(&adt->nla_tracks))
+  {
     OperationNode *operation_node;
     /* Explicit entry operation. */
     operation_node = add_operation_node(id, NodeType::ANIMATION, OperationCode::ANIMATION_ENTRY);
@@ -1288,6 +1292,15 @@ void DepsgraphNodeBuilder::build_action(bAction *action)
   }
   build_idproperties(action->id.properties);
   add_operation_node(&action->id, NodeType::ANIMATION, OperationCode::ANIMATION_EVAL);
+}
+
+void DepsgraphNodeBuilder::build_animation(Animation *animation)
+{
+  if (built_map_.checkIsBuiltAndTag(animation)) {
+    return;
+  }
+  build_idproperties(animation->id.properties);
+  add_operation_node(&animation->id, NodeType::ANIMATION, OperationCode::ANIMATION_EVAL);
 }
 
 void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve, int driver_index)

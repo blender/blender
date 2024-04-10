@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Release Candidate (b'64bfe491645f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"POT-Creation-Date: 2024-04-05 01:39+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -1295,6 +1295,10 @@ msgid "Count"
 msgstr "Broj"
 
 
+msgid "Curve Radius"
+msgstr "Poluprečnik krive"
+
+
 msgid "Remove"
 msgstr "Ukloni"
 
@@ -2454,10 +2458,6 @@ msgstr "Osa na gore"
 
 msgid "Follow Curve"
 msgstr "Prati krivu"
-
-
-msgid "Curve Radius"
-msgstr "Poluprečnik krive"
 
 
 msgid "Fixed Position"
@@ -4338,6 +4338,10 @@ msgid "Link"
 msgstr "Veza"
 
 
+msgid "Matrix"
+msgstr "Matrica"
+
+
 msgid "Additional"
 msgstr "Dodatno"
 
@@ -5043,10 +5047,6 @@ msgid "Constant"
 msgstr "Konstantno"
 
 
-msgid "Matrix"
-msgstr "Matrica"
-
-
 msgid "Lattice Modifier"
 msgstr "Modifikator kaveza"
 
@@ -5159,6 +5159,18 @@ msgid "Grid Scale"
 msgstr "Razmera mreže"
 
 
+msgid "Translation"
+msgstr "Prelaz"
+
+
+msgid "Repeat"
+msgstr "Ponovi"
+
+
+msgid "Frame Start"
+msgstr "Početni kadar"
+
+
 msgid "R"
 msgstr "R"
 
@@ -5185,6 +5197,10 @@ msgstr "Plava"
 
 msgid "Show Line"
 msgstr "Prikaži liniju"
+
+
+msgid "Animation"
+msgstr "Animacija"
 
 
 msgid "Brush"
@@ -5415,10 +5431,6 @@ msgid "Gradient Stroke Mode"
 msgstr "Mod iscrtavanja prelaza"
 
 
-msgid "Repeat"
-msgstr "Ponovi"
-
-
 msgid "Clamp"
 msgstr "Stega"
 
@@ -5577,10 +5589,6 @@ msgstr "Koristi dodatnu providnost"
 
 msgid "Restore Mesh"
 msgstr "Vrati"
-
-
-msgid "Sculpt Tool"
-msgstr "Alatke vajanja"
 
 
 msgid "Relax"
@@ -6215,14 +6223,6 @@ msgid "Radiance HDR"
 msgstr "Radiance HDR"
 
 
-msgid "AVI JPEG"
-msgstr "AVI JPEG"
-
-
-msgid "AVI Raw"
-msgstr "AVI sirovo"
-
-
 msgid "Image/Movie file name"
 msgstr "Naziv datoteke slike/filma"
 
@@ -6735,10 +6735,6 @@ msgid "Node tree consisting of linked nodes used for compositing"
 msgstr "Drvo čvorova koji čine čvorovi za slaganje"
 
 
-msgid "Chunksize"
-msgstr "Veličina pločice"
-
-
 msgid "Edit Quality"
 msgstr "Kvalitet uređenja"
 
@@ -6767,20 +6763,12 @@ msgid "Low quality"
 msgstr "Nizak kvalitet"
 
 
-msgid "Tiled"
-msgstr "Popločano"
-
-
 msgid "Render Quality"
 msgstr "Kvalitet renderinga"
 
 
 msgid "Quality when rendering"
 msgstr "Kvalitet pri renderingu"
-
-
-msgid "OpenCL"
-msgstr "OpenCL"
 
 
 msgid "Two Pass"
@@ -8359,10 +8347,6 @@ msgstr "Operacija"
 
 msgid "iTaSC"
 msgstr "iTaSC"
-
-
-msgid "Animation"
-msgstr "Animacija"
 
 
 msgid "Simulation"
@@ -10012,10 +9996,6 @@ msgid "Influence of the deformation"
 msgstr "Uticaj deformacije"
 
 
-msgid "Frame Start"
-msgstr "Početni kadar"
-
-
 msgid "Add this to the start frame"
 msgstr "Dodaj ovo na početni kadar"
 
@@ -10964,12 +10944,12 @@ msgid "Not"
 msgstr "Ne"
 
 
-msgid "Rotation angle of the box"
-msgstr "Ugao rotacije kutije"
-
-
 msgid "Width of the box"
 msgstr "Širina kutije"
+
+
+msgid "Rotation angle of the box"
+msgstr "Ugao rotacije kutije"
 
 
 msgid "Channel Key"
@@ -11200,12 +11180,12 @@ msgid "Height of the ellipse"
 msgstr "Visina elipse"
 
 
-msgid "Rotation angle of the ellipse"
-msgstr "Ugao rotacije elipse"
-
-
 msgid "Width of the ellipse"
 msgstr "Širina elipse"
+
+
+msgid "Rotation angle of the ellipse"
+msgstr "Ugao rotacije elipse"
 
 
 msgid "Filter Type"
@@ -12798,10 +12778,6 @@ msgstr "Skalar"
 
 msgid "Factor to scale brush size by"
 msgstr "Faktor uvećanja veličine četkice"
-
-
-msgid "Translation"
-msgstr "Prelaz"
 
 
 msgid "Primary"
@@ -14888,6 +14864,10 @@ msgid "Image height"
 msgstr "Visina sliku"
 
 
+msgid "Tiled"
+msgstr "Popločano"
+
+
 msgid "Image width"
 msgstr "Širina slike"
 
@@ -16704,14 +16684,6 @@ msgid "Remove object from all scenes"
 msgstr "Briše objekat sa svih scena"
 
 
-msgid "Filepath"
-msgstr "Putanje datoteke"
-
-
-msgid "Path to image file"
-msgstr "Putanja do datoteke slike"
-
-
 msgctxt "Operator"
 msgid "Drop Named Material on Object"
 msgstr "Vezuje materijal za objekat"
@@ -17553,8 +17525,8 @@ msgid "Show vertices"
 msgstr "Prikaži temena"
 
 
-msgid "Masked"
-msgstr "Maskirano"
+msgid "Front Faces Only"
+msgstr "Samo prednje stranice"
 
 
 msgctxt "Operator"
@@ -17573,10 +17545,6 @@ msgstr "Bojenje slike"
 
 msgid "Invert the mask"
 msgstr "Izvrni masku"
-
-
-msgid "Front Faces Only"
-msgstr "Samo prednje stranice"
 
 
 msgctxt "Operator"
@@ -19016,6 +18984,10 @@ msgid "Line number to jump to"
 msgstr "Broj linije za prebacivanje"
 
 
+msgid "Filepath"
+msgstr "Putanje datoteke"
+
+
 msgctxt "Operator"
 msgid "Line Number"
 msgstr "Broj linije"
@@ -19213,6 +19185,10 @@ msgstr "Ispravi UV-e"
 
 msgid "Correct UV coordinates when transforming"
 msgstr "Ispravi UV koordinate prilikom transformacije"
+
+
+msgid "Snap to grid"
+msgstr "Lepi za mrežu"
 
 
 msgid "Snap to vertices"
@@ -19727,21 +19703,16 @@ msgstr "Y faktor približavanja"
 
 
 msgctxt "Operator"
-msgid "Remove Background Image"
-msgstr "Ukloni pozadinsku sliku"
+msgid "Select Menu"
+msgstr "Meni izvora"
 
 
-msgid "Remove a background image from the 3D view"
-msgstr "Uklanja pozadinsku sliku iz 3D pogleda"
+msgid "Path to image file"
+msgstr "Putanja do datoteke slike"
 
 
 msgid "Background image index to remove"
 msgstr "Indeks pozadinske slike za uklanjanje "
-
-
-msgctxt "Operator"
-msgid "Select Menu"
-msgstr "Meni izvora"
 
 
 msgctxt "Operator"
@@ -22539,10 +22510,6 @@ msgid "Mask Strip"
 msgstr "Maskiraj traku"
 
 
-msgid "Bright"
-msgstr "Svetlina"
-
-
 msgid "Sequence Transform"
 msgstr "Transformacija sekvence"
 
@@ -23790,10 +23757,6 @@ msgstr "Zalepi za najbliži marker"
 
 msgid "Snap Element"
 msgstr "Element lepljenja"
-
-
-msgid "Snap to grid"
-msgstr "Lepi za mrežu"
 
 
 msgid "Node X"
@@ -26036,6 +25999,10 @@ msgid "Online Python Reference"
 msgstr "Python uputstvo na internetu"
 
 
+msgid "%d items"
+msgstr "%d stavki"
+
+
 msgid "Lightness"
 msgstr "Svetlina"
 
@@ -26281,10 +26248,6 @@ msgstr "Novo"
 msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "Novo"
-
-
-msgid "%d items"
-msgstr "%d stavki"
 
 
 msgid "Material Groups"
@@ -27121,6 +27084,10 @@ msgid "Fac"
 msgstr "Strana"
 
 
+msgid "Bright"
+msgstr "Svetlina"
+
+
 msgid "Val"
 msgstr "Vr."
 
@@ -27353,10 +27320,6 @@ msgstr "Ne mogu da otvorim datoteku"
 
 msgid "Not a library"
 msgstr "Nije zbirka"
-
-
-msgid "OK?"
-msgstr "U redu?"
 
 
 msgid "unsupported format"
