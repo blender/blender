@@ -408,8 +408,8 @@ template<typename T>
 /**
  * \brief Create an orthographic projection matrix using OpenGL coordinate convention:
  * Maps each axis range to [-1..1] range for all axes except Z.
- * The Z axis is collapsed to 0 which eliminates the depth component. So it cannot be used with
- * depth testing.
+ * The Z axis is almost collapsed to 0 which eliminates the depth component.
+ * So it should not be used with depth testing.
  * The resulting matrix can be used with either #project_point or #transform_point.
  */
 template<typename T> MatBase<T, 4, 4> orthographic_infinite(T left, T right, T bottom, T top);
@@ -1581,7 +1581,8 @@ MatBase<T, 4, 4> orthographic(T left, T right, T bottom, T top, T near_clip, T f
   return mat;
 }
 
-template<typename T> MatBase<T, 4, 4> orthographic_infinite(T left, T right, T bottom, T top)
+template<typename T>
+MatBase<T, 4, 4> orthographic_infinite(T left, T right, T bottom, T top, T near_clip)
 {
   const T x_delta = right - left;
   const T y_delta = top - bottom;
@@ -1592,8 +1593,13 @@ template<typename T> MatBase<T, 4, 4> orthographic_infinite(T left, T right, T b
     mat[3][0] = -(right + left) / x_delta;
     mat[1][1] = T(2.0) / y_delta;
     mat[3][1] = -(top + bottom) / y_delta;
-    mat[2][2] = 0.0f;
-    mat[3][2] = 0.0f;
+    /* Page 17. Choosing an epsilon for 32 bit floating-point precision. */
+    constexpr float eps = 2.4e-7f;
+    /* From "Projection Matrix Tricks" by Eric Lengyel GDC 2007.
+     * Following same procedure as the reference but for orthographic matrix.
+     * This avoids degenerate matrix (0 determinant). */
+    mat[2][2] = -eps;
+    mat[3][2] = -1.0f - eps * near_clip;
   }
   return mat;
 }
