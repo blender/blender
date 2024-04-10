@@ -291,9 +291,14 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   };
 
  protected:
-  /* Entry tags from the previous state of the dependency graph.
+  /* Entry tags and non-updated operations from the previous state of the dependency graph.
+   * The entry tags are operations which were directly tagged, the matching operations from the
+   * new dependency graph will be tagged. The needs-update operations are possibly indirectly
+   * modified operations, whose complementary part from the new dependency graph will only be
+   * marked as needs-update.
    * Stored before the graph is re-created so that they can be transferred over. */
   Vector<PersistentOperationKey> saved_entry_tags_;
+  Vector<PersistentOperationKey> needs_update_operations_;
 
   struct BuilderWalkUserData {
     DepsgraphNodeBuilder *builder;

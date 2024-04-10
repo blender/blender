@@ -17,6 +17,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 
@@ -49,14 +50,27 @@ struct ExportJobData {
 namespace blender::io::alembic {
 
 /* Construct the depsgraph for exporting. */
-static void build_depsgraph(Depsgraph *depsgraph, const bool visible_objects_only)
+static bool build_depsgraph(ExportJobData *job)
 {
-  if (visible_objects_only) {
-    DEG_graph_build_from_view_layer(depsgraph);
+  if (strlen(job->params.collection) > 0) {
+    Collection *collection = reinterpret_cast<Collection *>(
+        BKE_libblock_find_name(job->bmain, ID_GR, job->params.collection));
+    if (!collection) {
+      WM_reportf(
+          RPT_ERROR, "Alembic Export: Unable to find collection '%s'", job->params.collection);
+      return false;
+    }
+
+    DEG_graph_build_from_collection(job->depsgraph, collection);
+  }
+  else if (job->params.visible_objects_only) {
+    DEG_graph_build_from_view_layer(job->depsgraph);
   }
   else {
-    DEG_graph_build_for_all_objects(depsgraph);
+    DEG_graph_build_for_all_objects(job->depsgraph);
   }
+
+  return true;
 }
 
 static void report_job_duration(const ExportJobData *data)
@@ -208,7 +222,9 @@ bool ABC_export(Scene *scene,
    *
    * Has to be done from main thread currently, as it may affect Main original data (e.g. when
    * doing deferred update of the view-layers, see #112534 for details). */
-  blender::io::alembic::build_depsgraph(job->depsgraph, job->params.visible_objects_only);
+  if (!blender::io::alembic::build_depsgraph(job)) {
+    return false;
+  }
 
   bool export_ok = false;
   if (as_background_job) {

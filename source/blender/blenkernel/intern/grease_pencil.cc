@@ -2233,91 +2233,97 @@ bool GreasePencil::remove_frames(blender::bke::greasepencil::Layer &layer,
   return false;
 }
 
-static void remove_drawings_unchecked(GreasePencil &grease_pencil,
-                                      Span<int64_t> sorted_indices_to_remove)
-{
-  using namespace blender::bke::greasepencil;
-  if (grease_pencil.drawing_array_num == 0 || sorted_indices_to_remove.is_empty()) {
-    return;
-  }
-  const int64_t drawings_to_remove = sorted_indices_to_remove.size();
-  const blender::IndexRange last_drawings_range(
-      grease_pencil.drawings().size() - drawings_to_remove, drawings_to_remove);
-
-  /* We keep track of the next available index (for swapping) by iterating from the end and
-   * skipping over drawings that are already in the range to be removed. */
-  auto next_available_index = last_drawings_range.last();
-  auto greatest_index_to_remove_it = std::rbegin(sorted_indices_to_remove);
-  auto get_next_available_index = [&]() {
-    while (next_available_index == *greatest_index_to_remove_it) {
-      greatest_index_to_remove_it = std::prev(greatest_index_to_remove_it);
-      next_available_index--;
-    }
-    return next_available_index;
-  };
-
-  /* Move the drawings to be removed to the end of the array by swapping the pointers. Make sure to
-   * remap any frames pointing to the drawings being swapped. */
-  for (const int64_t index_to_remove : sorted_indices_to_remove) {
-    if (index_to_remove >= last_drawings_range.first()) {
-      /* This drawing and all the next drawings are already in the range to be removed. */
-      break;
-    }
-    const int64_t swap_index = get_next_available_index();
-    /* Remap the drawing_index for frames that point to the drawing to be swapped with. */
-    for (Layer *layer : grease_pencil.layers_for_write()) {
-      for (auto [key, value] : layer->frames_for_write().items()) {
-        if (value.drawing_index == swap_index) {
-          value.drawing_index = index_to_remove;
-          layer->tag_frames_map_changed();
-        }
-      }
-    }
-    /* Swap the pointers to the drawings in the drawing array. */
-    std::swap(grease_pencil.drawing_array[index_to_remove],
-              grease_pencil.drawing_array[swap_index]);
-    next_available_index--;
-  }
-
-  /* Free the last drawings. */
-  for (const int64_t drawing_index : last_drawings_range) {
-    GreasePencilDrawingBase *drawing_base_to_remove = grease_pencil.drawing(drawing_index);
-    switch (drawing_base_to_remove->type) {
-      case GP_DRAWING: {
-        GreasePencilDrawing *drawing_to_remove = reinterpret_cast<GreasePencilDrawing *>(
-            drawing_base_to_remove);
-        MEM_delete(&drawing_to_remove->wrap());
-        break;
-      }
-      case GP_DRAWING_REFERENCE: {
-        GreasePencilDrawingReference *drawing_reference_to_remove =
-            reinterpret_cast<GreasePencilDrawingReference *>(drawing_base_to_remove);
-        MEM_delete(&drawing_reference_to_remove->wrap());
-        break;
-      }
-    }
-  }
-
-  /* Shrink drawing array. */
-  shrink_array<GreasePencilDrawingBase *>(
-      &grease_pencil.drawing_array, &grease_pencil.drawing_array_num, drawings_to_remove);
-}
-
 void GreasePencil::remove_drawings_with_no_users()
 {
   using namespace blender;
-  Vector<int64_t> drawings_to_be_removed;
-  for (const int64_t drawing_i : this->drawings().index_range()) {
-    GreasePencilDrawingBase *drawing_base = this->drawing(drawing_i);
+  using namespace blender::bke::greasepencil;
+
+  /* Compress the drawings array by finding unused drawings.
+   * In every step two indices are found:
+   *   - The next unused drawing from the start
+   *   - The last used drawing from the end
+   * These two drawings are then swapped. Rinse and repeat until both iterators meet somewhere in
+   * the middle. At this point the drawings array is fully compressed.
+   * Then the drawing indices in frame data are remapped. */
+
+  const MutableSpan<GreasePencilDrawingBase *> drawings = this->drawings();
+  if (drawings.is_empty()) {
+    return;
+  }
+
+  auto is_drawing_used = [&](const int drawing_index) {
+    GreasePencilDrawingBase *drawing_base = drawings[drawing_index];
+    /* Note: GreasePencilDrawingReference does not have a user count currently, but should
+     * eventually be counted like GreasePencilDrawing. */
     if (drawing_base->type != GP_DRAWING) {
-      continue;
+      return false;
     }
     GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-    if (!drawing->wrap().has_users()) {
-      drawings_to_be_removed.append(drawing_i);
+    return drawing->wrap().has_users();
+  };
+
+  /* Index map to remap drawing indices in frame data.
+   * Index -1 indicates that the drawing has not been moved. */
+  constexpr const int unchanged_index = -1;
+  Array<int> drawing_index_map(drawings.size(), unchanged_index);
+
+  int first_unused_drawing = -1;
+  int last_used_drawing = drawings.size();
+  /* Advance head and tail iterators to the next unused/used drawing respectively.
+   * Returns true if an index pair was found that needs to be swapped. */
+  auto find_next_swap_index = [&]() -> bool {
+    do {
+      ++first_unused_drawing;
+    } while (first_unused_drawing < last_used_drawing && is_drawing_used(first_unused_drawing));
+    do {
+      --last_used_drawing;
+    } while (first_unused_drawing < last_used_drawing && !is_drawing_used(last_used_drawing));
+
+    return first_unused_drawing < last_used_drawing;
+  };
+
+  while (find_next_swap_index()) {
+    /* Found two valid iterators, now swap drawings. */
+    std::swap(drawings[first_unused_drawing], drawings[last_used_drawing]);
+    drawing_index_map[last_used_drawing] = first_unused_drawing;
+  }
+
+  /* Tail range of unused drawings that can be removed. */
+  const IndexRange drawings_to_remove = drawings.index_range().drop_front(last_used_drawing + 1);
+  if (drawings_to_remove.is_empty()) {
+    return;
+  }
+
+  /* Free the unused drawings. */
+  for (const int i : drawings_to_remove) {
+    GreasePencilDrawingBase *unused_drawing_base = drawings[i];
+    switch (unused_drawing_base->type) {
+      case GP_DRAWING: {
+        auto *unused_drawing = reinterpret_cast<GreasePencilDrawing *>(unused_drawing_base);
+        MEM_delete(&unused_drawing->wrap());
+        break;
+      }
+      case GP_DRAWING_REFERENCE: {
+        auto *unused_drawing_ref = reinterpret_cast<GreasePencilDrawingReference *>(
+            unused_drawing_base);
+        MEM_delete(&unused_drawing_ref->wrap());
+        break;
+      }
     }
   }
-  remove_drawings_unchecked(*this, drawings_to_be_removed.as_span());
+  shrink_array<GreasePencilDrawingBase *>(
+      &this->drawing_array, &this->drawing_array_num, drawings_to_remove.size());
+
+  /* Remap drawing indices in frame data. */
+  for (Layer *layer : this->layers_for_write()) {
+    for (auto [key, value] : layer->frames_for_write().items()) {
+      const int new_drawing_index = drawing_index_map[value.drawing_index];
+      if (new_drawing_index != unchanged_index) {
+        value.drawing_index = new_drawing_index;
+        layer->tag_frames_map_changed();
+      }
+    }
+  }
 }
 
 void GreasePencil::update_drawing_users_for_layer(const blender::bke::greasepencil::Layer &layer)

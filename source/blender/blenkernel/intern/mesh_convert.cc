@@ -929,27 +929,26 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
     return mesh_in_bmain;
   }
 
-  /* Make sure mesh only points original data-blocks, also increase users of materials and other
-   * possibly referenced data-blocks.
+  /* Make sure mesh only points to original data-blocks. Also increase user count of materials and
+   * other possibly referenced data-blocks.
    *
-   * Going to original data-blocks is required to have bmain in a consistent state, where
+   * Changing to original data-blocks is required to have bmain in a consistent state, where
    * everything is only allowed to reference original data-blocks.
    *
-   * Note that user-count updates has to be done *after* mesh has been transferred to Main database
-   * (since doing reference-counting on non-Main IDs is forbidden). */
+   * Note that user-count updates have to be done *after* the mesh has been transferred to Main
+   * database (since doing reference-counting on non-Main IDs is forbidden). */
   BKE_library_foreach_ID_link(
       nullptr, &mesh->id, foreach_libblock_make_original_callback, nullptr, IDWALK_NOP);
 
-  /* Append the mesh to 'bmain'.
-   * We do it a bit longer way since there is no simple and clear way of adding existing data-block
-   * to the 'bmain'. So we allocate new empty mesh in the 'bmain' (which guarantees all the naming
-   * and orders and flags) and move the temporary mesh in place there. */
+  /* Add the mesh to 'bmain'. We do it in a bit longer way since there is no simple and clear way
+   * of adding existing data-blocks to the 'bmain'. So we create new empty mesh (which guarantees
+   * all the naming and order and flags) and move the temporary mesh in place there. */
   Mesh *mesh_in_bmain = BKE_mesh_add(bmain, mesh->id.name + 2);
 
-  /* NOTE: BKE_mesh_nomain_to_mesh() does not copy materials and instead it preserves them in the
+  /* NOTE: BKE_mesh_nomain_to_mesh() does not copy materials and instead preserves them in the
    * destination mesh. So we "steal" materials before calling it.
    *
-   * TODO(sergey): We really better have a function which gets and ID and accepts it for the bmain.
+   * TODO(sergey): We really ought to have a function which gets an ID and accepts it into #Main.
    */
   mesh_in_bmain->mat = mesh->mat;
   mesh_in_bmain->totcol = mesh->totcol;

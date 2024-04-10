@@ -129,6 +129,8 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
 
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
 
+  RNA_string_get(op->ptr, "collection", params.collection);
+
   /* Take some defaults from the scene, if not specified explicitly. */
   Scene *scene = CTX_data_scene(C);
   if (params.frame_start == INT_MIN) {
@@ -144,7 +146,7 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
+static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, PointerRNA *imfptr)
 {
   uiLayout *box, *row, *col, *sub;
 
@@ -185,9 +187,12 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
           IFACE_("Custom Properties"),
           ICON_NONE);
 
-  sub = uiLayoutColumnWithHeading(col, true, IFACE_("Only"));
-  uiItemR(sub, imfptr, "selected", UI_ITEM_NONE, IFACE_("Selected Objects"), ICON_NONE);
-  uiItemR(sub, imfptr, "visible_objects_only", UI_ITEM_NONE, IFACE_("Visible Objects"), ICON_NONE);
+  if (CTX_wm_space_file(C)) {
+    sub = uiLayoutColumnWithHeading(col, true, IFACE_("Only"));
+    uiItemR(sub, imfptr, "selected", UI_ITEM_NONE, IFACE_("Selected Objects"), ICON_NONE);
+    uiItemR(
+        sub, imfptr, "visible_objects_only", UI_ITEM_NONE, IFACE_("Visible Objects"), ICON_NONE);
+  }
 
   col = uiLayoutColumn(box, true);
   uiItemR(col, imfptr, "evaluation_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -247,7 +252,7 @@ static void wm_alembic_export_draw(bContext *C, wmOperator *op)
     RNA_boolean_set(op->ptr, "init_scene_frame_range", false);
   }
 
-  ui_alembic_export_settings(op->layout, op->ptr);
+  ui_alembic_export_settings(C, op->layout, op->ptr);
 }
 
 static bool wm_alembic_export_check(bContext * /*C*/, wmOperator *op)
@@ -364,6 +369,9 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                   false,
                   "Flatten Hierarchy",
                   "Do not preserve objects' parent/children relationship");
+
+  prop = RNA_def_string(ot->srna, "collection", nullptr, MAX_IDPROP_NAME, "Collection", nullptr);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 
   RNA_def_boolean(ot->srna, "uvs", true, "UVs", "Export UVs");
 
@@ -724,6 +732,7 @@ void alembic_file_handler_add()
   auto fh = std::make_unique<blender::bke::FileHandlerType>();
   STRNCPY(fh->idname, "IO_FH_alembic");
   STRNCPY(fh->import_operator, "WM_OT_alembic_import");
+  STRNCPY(fh->export_operator, "WM_OT_alembic_export");
   STRNCPY(fh->label, "Alembic");
   STRNCPY(fh->file_extensions_str, ".abc");
   fh->poll_drop = poll_file_object_drop;
