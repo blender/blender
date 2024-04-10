@@ -301,6 +301,11 @@ typedef struct GreasePencilLayer {
   struct Object *parent;
   char *parsubstr;
   /**
+   * Stores the inverse of the parent during parenting to keep the layer in its position.
+   * Also referred to as the "keep transform" parenting elsewhere.
+   */
+  float parentinv[4][4];
+  /**
    * Layer transform UI settings. These should *not* be used to do any computation.
    * Use the functions is the `bke::greasepencil::Layer` class instead.
    */

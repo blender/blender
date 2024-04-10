@@ -514,6 +514,8 @@ class Layer : public ::GreasePencilLayer {
   SortedKeysIterator remove_leading_null_frames_in_range(SortedKeysIterator begin,
                                                          SortedKeysIterator end);
 
+  float4x4 parent_inverse() const;
+
   /**
    * The local transform of the layer (in layer space, not object space).
    */

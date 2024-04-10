@@ -911,6 +911,7 @@ Layer::Layer()
 
   this->parent = nullptr;
   this->parsubstr = nullptr;
+  unit_m4(this->parentinv);
 
   zero_v3(this->translation);
   zero_v3(this->rotation);
@@ -944,6 +945,7 @@ Layer::Layer(const Layer &other) : Layer()
 
   this->parent = other.parent;
   this->set_parent_bone_name(other.parsubstr);
+  copy_m4_m4(this->parentinv, other.parentinv);
 
   copy_v3_v3(this->translation, other.translation);
   copy_v3_v3(this->rotation, other.rotation);
@@ -1225,7 +1227,7 @@ float4x4 Layer::to_world_space(const Object &object) const
     return object.object_to_world() * this->local_transform();
   }
   const Object &parent = *this->parent;
-  return this->parent_to_world(parent) * this->local_transform();
+  return this->parent_to_world(parent) * this->parent_inverse() * this->local_transform();
 }
 
 float4x4 Layer::to_object_space(const Object &object) const
@@ -1234,7 +1236,8 @@ float4x4 Layer::to_object_space(const Object &object) const
     return this->local_transform();
   }
   const Object &parent = *this->parent;
-  return object.world_to_object() * this->parent_to_world(parent) * this->local_transform();
+  return object.world_to_object() * this->parent_to_world(parent) * this->parent_inverse() *
+         this->local_transform();
 }
 
 StringRefNull Layer::parent_bone_name() const
@@ -1261,6 +1264,11 @@ float4x4 Layer::parent_to_world(const Object &parent) const
     }
   }
   return parent_object_to_world;
+}
+
+float4x4 Layer::parent_inverse() const
+{
+  return float4x4_view(this->parentinv);
 }
 
 float4x4 Layer::local_transform() const
