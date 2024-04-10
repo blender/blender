@@ -261,7 +261,6 @@ static int imapaint_pick_face(ViewContext *vc,
     return 0;
   }
 
-
   float3 start_world, end_world;
   ED_view3d_win_to_segment_clipped(
       vc->depsgraph, vc->region, vc->v3d, float2(mval[0], mval[1]), start_world, end_world, true);
