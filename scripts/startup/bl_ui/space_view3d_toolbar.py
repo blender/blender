@@ -640,8 +640,9 @@ class VIEW3D_PT_slots_color_attributes(Panel):
 
     def draw_header(self, context):
         me = context.object.data
+        active_color = me.color_attributes.active_color
         self.bl_label = (
-            iface_("%s") % (me.color_attributes.active_color.name) if me.color_attributes.active_color else
+            iface_(active_color.name) if active_color else
             iface_("Color Attributes")
         )
 
@@ -682,7 +683,7 @@ class VIEW3D_PT_slots_vertex_groups(Panel):
         ob = context.object
         groups = ob.vertex_groups
         self.bl_label = (
-            iface_("%s") % (groups.active.name) if groups and groups.active else
+            iface_(groups.active.name) if groups and groups.active else
             iface_("Vertex Groups")
         )
 
