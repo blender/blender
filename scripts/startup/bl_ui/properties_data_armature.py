@@ -185,6 +185,7 @@ class ARMATURE_MT_collection_tree_context_menu(Menu):
         layout.separator()
         layout.operator("UI_OT_view_item_rename", text="Rename")
 
+
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
     bl_label = "Inverse Kinematics"
     bl_options = {'DEFAULT_CLOSED'}
