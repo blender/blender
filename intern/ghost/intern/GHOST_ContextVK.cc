@@ -32,10 +32,6 @@
 
 #include <sys/stat.h>
 
-/* Set to 0 to allow devices that do not have the required features.
- * This allows development on OSX until we really needs these features. */
-#define STRICT_REQUIREMENTS true
-
 /*
  * Should we only select surfaces that are known to be compatible. Or should we in case no
  * compatible surfaces have been found select the first one.
@@ -226,14 +222,15 @@ class GHOST_DeviceVK {
     queue_create_infos.push_back(graphic_queue_create_info);
 
     VkPhysicalDeviceFeatures device_features = {};
-#if STRICT_REQUIREMENTS
+#ifndef __APPLE__
     device_features.geometryShader = VK_TRUE;
-    device_features.dualSrcBlend = VK_TRUE;
+    /* MoltenVK supports logicOp, needs to be build with MVK_USE_METAL_PRIVATE_API. */
     device_features.logicOp = VK_TRUE;
+#endif
+    device_features.dualSrcBlend = VK_TRUE;
     device_features.imageCubeArray = VK_TRUE;
     device_features.multiViewport = VK_TRUE;
     device_features.shaderClipDistance = VK_TRUE;
-#endif
     device_features.drawIndirectFirstInstance = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
     device_features.samplerAnisotropy = features.features.samplerAnisotropy;
@@ -355,7 +352,11 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
       }
     }
 
-#if STRICT_REQUIREMENTS
+#ifdef __APPLE__
+    if (!device_vk.features.features.dualSrcBlend || !device_vk.features.features.imageCubeArray) {
+      continue;
+    }
+#else
     if (!device_vk.features.features.geometryShader || !device_vk.features.features.dualSrcBlend ||
         !device_vk.features.features.logicOp || !device_vk.features.features.imageCubeArray)
     {
@@ -1000,8 +1001,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
   if (use_window_surface) {
     const char *native_surface_extension_name = getPlatformSpecificSurfaceExtension();
-
-    requireExtension(extensions_available, extensions_enabled, "VK_KHR_surface");
+    requireExtension(extensions_available, extensions_enabled, VK_KHR_SURFACE_EXTENSION_NAME);
     requireExtension(extensions_available, extensions_enabled, native_surface_extension_name);
 
     extensions_device.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
@@ -1010,10 +1010,13 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   extensions_device.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
 
   /* Enable MoltenVK required instance extensions. */
-#ifdef VK_MVK_MOLTENVK_EXTENSION_NAME
+#ifdef __APPLE__
   requireExtension(
-      extensions_available, extensions_enabled, "VK_KHR_get_physical_device_properties2");
+      extensions_available, extensions_enabled, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 #endif
+  requireExtension(extensions_available,
+                   extensions_enabled,
+                   VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
   VkInstance instance = VK_NULL_HANDLE;
   if (!vulkan_device.has_value()) {
@@ -1045,6 +1048,10 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     if (m_debug) {
       create_info.pNext = &validationFeatures;
     }
+
+#ifdef __APPLE__
+    create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
 
     VK_CHECK(vkCreateInstance(&create_info, nullptr, &instance));
   }

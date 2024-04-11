@@ -870,19 +870,29 @@ else()
 endif()
 
 # Vulkan
-if(NOT APPLE)
-  option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (experimental)" ON)
-  option(WITH_VULKAN_GUARDEDALLOC "\
-Use guardedalloc for host allocations done inside Vulkan (development option)"
-    OFF
-  )
+option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (experimental)" ON)
+option(WITH_VULKAN_GUARDEDALLOC "Use guardedalloc for host allocations done inside Vulkan (development option)"
+  OFF
+)
+mark_as_advanced(
+  WITH_VULKAN_BACKEND
+  WITH_VULKAN_GUARDEDALLOC
+)
+if(APPLE)
+  option(WITH_VULKAN_MOLTENVK "Enable Vulkan over MoltenVK (development option)" OFF)
   mark_as_advanced(
-    WITH_VULKAN_BACKEND
-    WITH_VULKAN_GUARDEDALLOC
+    WITH_VULKAN_MOLTENVK
   )
-  if(NOT WITH_EXPERIMENTAL_FEATURES)
-    set(WITH_VULKAN_BACKEND OFF)
+endif()
+
+if(APPLE AND NOT WITH_VULKAN_MOLTENVK)
+  set(WITH_VULKAN_BACKEND OFF)
+endif()
+if(NOT WITH_EXPERIMENTAL_FEATURES)
+  if (APPLE)
+    set(WITH_VULKAN_MOLTENVK OFF)
   endif()
+  set(WITH_VULKAN_BACKEND OFF)
 endif()
 
 # Metal
