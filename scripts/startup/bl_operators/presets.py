@@ -589,6 +589,11 @@ class RemovePresetInterfaceTheme(AddPresetBase, Operator):
     def invoke(self, context, event):
         return context.window_manager.invoke_confirm(self, event, title="Remove Custom Theme", confirm_text="Delete")
 
+    def post_cb(self, context):
+        # Without this, the name & colors are kept after removing the theme.
+        # Even though the theme is removed from the list, it's seems like a bug to keep it displayed after removal.
+        bpy.ops.preferences.reset_default_theme()
+
 
 class SavePresetInterfaceTheme(AddPresetBase, Operator):
     """Save a custom theme in the preset list"""
