@@ -1902,7 +1902,7 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
         case shader::ShaderCreateInfo::Resource::BindType::IMAGE: {
           /* Flatten qualifier flags into final access state. */
           MSLTextureSamplerAccess access;
-          if (bool(res.image.qualifiers & Qualifier::READ_WRITE)) {
+          if ((res.image.qualifiers & Qualifier::READ_WRITE) == Qualifier::READ_WRITE) {
             access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READWRITE;
           }
           else if (bool(res.image.qualifiers & Qualifier::WRITE)) {
