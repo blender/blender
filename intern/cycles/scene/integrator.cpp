@@ -345,6 +345,10 @@ uint Integrator::get_kernel_features() const
     kernel_features |= KERNEL_FEATURE_AO_ADDITIVE;
   }
 
+  if (get_use_light_tree()) {
+    kernel_features |= KERNEL_FEATURE_LIGHT_TREE;
+  }
+
   return kernel_features;
 }
 
