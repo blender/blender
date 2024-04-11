@@ -1969,7 +1969,7 @@ void BKE_fcurve_deduplicate_keys(FCurve *fcu)
   if (fcu->totvert < 2) {
     return;
   }
-  
+
   BLI_assert_msg(fcu->bezt, "this function only works with regular (non-sampled) FCurves");
   if (fcu->bezt == nullptr) {
     return;
