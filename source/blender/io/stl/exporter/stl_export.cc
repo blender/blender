@@ -77,10 +77,14 @@ void export_frame(Depsgraph *depsgraph,
       std::replace(object_name.begin(), object_name.end(), ' ', '_');
 
       /* Include object name in the exported file name. */
-      std::string suffix = object_name + ".stl";
       char filepath[FILE_MAX];
       STRNCPY(filepath, export_params.filepath);
-      BLI_path_extension_replace(filepath, FILE_MAX, suffix.c_str());
+      BLI_path_suffix(filepath, FILE_MAX, object_name.c_str(), "");
+      /* Make sure we have .stl extension (case insensitive). */
+      if (!BLI_path_extension_check(filepath, ".stl")) {
+        BLI_path_extension_ensure(filepath, FILE_MAX, ".stl");
+      }
+
       try {
         writer = std::make_unique<FileWriter>(filepath, export_params.ascii_format);
       }
