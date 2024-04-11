@@ -315,7 +315,7 @@ void AssetClearHelper::reportResults(const bContext *C, ReportList &reports) con
         &reports, RPT_INFO, "Data-block '%s' is not an asset anymore", stats.last_id->name + 2);
   }
   else {
-    BKE_reportf(&reports, RPT_INFO, "%i data-blocks are no assets anymore", stats.tot_cleared);
+    BKE_reportf(&reports, RPT_INFO, "%i data-blocks are not assets anymore", stats.tot_cleared);
   }
 }
 
