@@ -245,6 +245,23 @@ static void version_bonegroups_to_bonecollections(Main *bmain)
   }
 }
 
+/**
+ * Change animation/drivers from "collections[..." to "collections_all[..." so
+ * they remain stable when the bone collection hierarchy structure changes.
+ */
+static void version_bonecollection_anim(FCurve *fcurve)
+{
+  const blender::StringRef rna_path(fcurve->rna_path);
+  constexpr char const *rna_path_prefix = "collections[";
+  if (!rna_path.startswith(rna_path_prefix)) {
+    return;
+  }
+
+  const std::string path_remainder(rna_path.drop_known_prefix(rna_path_prefix));
+  MEM_freeN(fcurve->rna_path);
+  fcurve->rna_path = BLI_sprintfN("collections_all[%s", path_remainder.c_str());
+}
+
 static void version_principled_bsdf_update_animdata(ID *owner_id, bNodeTree *ntree)
 {
   ID *id = &ntree->id;
@@ -493,6 +510,27 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 23)) {
     version_nla_tweakmode_incomplete(bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 15)) {
+    /* Change drivers and animation on "armature.collections" to
+     * ".collections_all", so that they are drawn correctly in the tree view,
+     * and keep working when the collection is moved around in the hierarchy. */
+    LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
+      AnimData *adt = BKE_animdata_from_id(&arm->id);
+      if (!adt) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (FCurve *, fcurve, &adt->drivers) {
+        version_bonecollection_anim(fcurve);
+      }
+      if (adt->action) {
+        LISTBASE_FOREACH (FCurve *, fcurve, &adt->action->curves) {
+          version_bonecollection_anim(fcurve);
+        }
+      }
+    }
   }
 
   /**
