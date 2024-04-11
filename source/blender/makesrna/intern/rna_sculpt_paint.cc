@@ -274,6 +274,9 @@ static PointerRNA rna_Paint_brush_get(PointerRNA *ptr)
 {
   Paint *paint = static_cast<Paint *>(ptr->data);
   Brush *brush = BKE_paint_brush(paint);
+  if (!brush) {
+    return PointerRNA_NULL;
+  }
   return RNA_id_pointer_create(&brush->id);
 }
 
