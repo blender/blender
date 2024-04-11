@@ -74,7 +74,7 @@ static void free_data(ModifierData *md)
 
   if (smd->cache_data) {
     BKE_shrinkwrap_free_tree(smd->cache_data);
-    MEM_SAFE_FREE(smd->cache_data);
+    MEM_delete(smd->cache_data);
   }
 }
 
@@ -196,17 +196,18 @@ static void ensure_shrinkwrap_cache_data(GreasePencilShrinkwrapModifierData &smd
 {
   if (smd.cache_data) {
     BKE_shrinkwrap_free_tree(smd.cache_data);
-    MEM_SAFE_FREE(smd.cache_data);
+    MEM_delete(smd.cache_data);
+    smd.cache_data = nullptr;
   }
   Object *target_ob = DEG_get_evaluated_object(ctx.depsgraph, smd.target);
   Mesh *target_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(target_ob);
 
-  smd.cache_data = static_cast<ShrinkwrapTreeData *>(
-      MEM_callocN(sizeof(ShrinkwrapTreeData), __func__));
+  smd.cache_data = MEM_new<ShrinkwrapTreeData>(__func__);
   const bool tree_ok = BKE_shrinkwrap_init_tree(
       smd.cache_data, target_mesh, smd.shrink_type, smd.shrink_mode, false);
   if (!tree_ok) {
-    MEM_SAFE_FREE(smd.cache_data);
+    MEM_delete(smd.cache_data);
+    smd.cache_data = nullptr;
   }
 }
 

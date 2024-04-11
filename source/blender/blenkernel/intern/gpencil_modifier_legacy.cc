@@ -98,18 +98,19 @@ void BKE_gpencil_cache_data_init(Depsgraph *depsgraph, Object *ob)
         }
         if (mmd->cache_data) {
           BKE_shrinkwrap_free_tree(mmd->cache_data);
-          MEM_SAFE_FREE(mmd->cache_data);
+          MEM_delete(mmd->cache_data);
+          mmd->cache_data = nullptr;
         }
         Object *ob_target = DEG_get_evaluated_object(depsgraph, ob);
         Mesh *target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target);
-        mmd->cache_data = static_cast<ShrinkwrapTreeData *>(
-            MEM_callocN(sizeof(ShrinkwrapTreeData), __func__));
+        mmd->cache_data = MEM_new<ShrinkwrapTreeData>(__func__);
         if (BKE_shrinkwrap_init_tree(
                 mmd->cache_data, target, mmd->shrink_type, mmd->shrink_mode, false))
         {
         }
         else {
-          MEM_SAFE_FREE(mmd->cache_data);
+          MEM_delete(mmd->cache_data);
+          mmd->cache_data = nullptr;
         }
         break;
       }
@@ -136,7 +137,8 @@ void BKE_gpencil_cache_data_clear(Object *ob)
         ShrinkwrapGpencilModifierData *mmd = (ShrinkwrapGpencilModifierData *)md;
         if ((mmd) && (mmd->cache_data)) {
           BKE_shrinkwrap_free_tree(mmd->cache_data);
-          MEM_SAFE_FREE(mmd->cache_data);
+          MEM_delete(mmd->cache_data);
+          mmd->cache_data = nullptr;
         }
         break;
       }
