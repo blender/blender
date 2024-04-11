@@ -84,6 +84,8 @@ class UnifiedPaintPanel:
             return tool_settings.curves_sculpt
         elif mode == 'PAINT_GREASE_PENCIL':
             return tool_settings.gpencil_paint
+        elif mode == 'SCULPT_GREASE_PENCIL':
+            return tool_settings.gpencil_sculpt_paint
         return None
 
     @staticmethod
@@ -906,6 +908,11 @@ def brush_shared_settings(layout, context, brush, popover=False):
         size = True
         strength = True
 
+    # Grease Pencil #
+    if mode == 'SCULPT_GREASE_PENCIL':
+        size = True
+        strength = True
+
     ### Draw settings. ###
     ups = context.scene.tool_settings.unified_paint_settings
 
@@ -1052,6 +1059,17 @@ def brush_settings_advanced(layout, context, brush, popover=False):
             col.prop(brush, "use_original_normal", text="Normal")
             col.prop(brush, "use_original_plane", text="Plane")
             layout.separator()
+
+    elif mode == 'SCULPT_GREASE_PENCIL':
+        tool = brush.gpencil_sculpt_tool
+        gp_settings = brush.gpencil_settings
+
+        if tool in {'SMOOTH', 'RANDOMIZE'}:
+            col = layout.column(heading="Affect", align=True)
+            col.prop(gp_settings, "use_edit_position", text="Position")
+            col.prop(gp_settings, "use_edit_strength", text="Strength")
+            col.prop(gp_settings, "use_edit_thickness", text="Thickness")
+            col.prop(gp_settings, "use_edit_uv", text="UV")
 
     # 3D and 2D Texture Paint.
     elif mode in {'PAINT_TEXTURE', 'PAINT_2D'}:

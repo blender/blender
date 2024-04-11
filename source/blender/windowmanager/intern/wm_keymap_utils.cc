@@ -156,6 +156,9 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
       case CTX_MODE_PAINT_GREASE_PENCIL:
         km_id = "Grease Pencil Paint Mode";
         break;
+      case CTX_MODE_SCULPT_GREASE_PENCIL:
+        km_id = "Grease Pencil Sculpt Mode";
+        break;
     }
   }
   else if (sl->spacetype == SPACE_IMAGE) {

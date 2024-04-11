@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_object_enums.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
@@ -25,6 +26,7 @@
 #include "BLT_translation.hh"
 
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -61,6 +63,7 @@
 #include "UI_view2d.hh"
 
 #include "ED_gpencil_legacy.hh"
+#include "ED_image.hh"
 #include "ED_object.hh"
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
@@ -453,10 +456,25 @@ static bool gpencil_sculptmode_toggle_poll(bContext *C)
 {
   /* if using gpencil object, use this gpd */
   Object *ob = CTX_data_active_object(C);
-  if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
+  if (ob == nullptr) {
+    return false;
+  }
+  if (ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
     return ob->data != nullptr;
   }
-  return ED_gpencil_data_get_active(C) != nullptr;
+  return false;
+}
+
+bool gpencil_sculpt_poll_view3d(bContext *C)
+{
+  const Object *ob = CTX_data_active_object(C);
+  if (ob == nullptr || (ob->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) == 0) {
+    return false;
+  }
+  if (CTX_wm_region_view3d(C) == nullptr) {
+    return false;
+  }
+  return true;
 }
 
 static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
@@ -467,35 +485,49 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
   const bool back = RNA_boolean_get(op->ptr, "back");
 
   wmMsgBus *mbus = CTX_wm_message_bus(C);
-  bGPdata *gpd = ED_gpencil_data_get_active(C);
   bool is_object = false;
   short mode;
   /* if using a gpencil object, use this datablock */
   Object *ob = CTX_data_active_object(C);
   if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
-    gpd = static_cast<bGPdata *>(ob->data);
+    bGPdata *gpd = ED_gpencil_data_get_active(C);
+    if (gpd == nullptr) {
+      return OPERATOR_CANCELLED;
+    }
+    /* Just toggle sculptmode flag... */
+    gpd->flag ^= GP_DATA_STROKE_SCULPTMODE;
+    /* set mode */
+    if (gpd->flag & GP_DATA_STROKE_SCULPTMODE) {
+      mode = OB_MODE_SCULPT_GPENCIL_LEGACY;
+    }
+    else {
+      /* try to back previous mode */
+      if ((ob->restore_mode) && (back == 1)) {
+        mode = ob->restore_mode;
+      }
+      else {
+        mode = OB_MODE_OBJECT;
+      }
+    }
+    is_object = true;
+  }
+  if ((ob) && (ob->type == OB_GREASE_PENCIL)) {
+    const bool is_mode_set = (ob->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) != 0;
+    if (is_mode_set) {
+      mode = OB_MODE_OBJECT;
+    }
+    else {
+      Scene *scene = CTX_data_scene(C);
+      BKE_paint_init(
+          bmain, scene, PaintMode::SculptGreasePencil, PAINT_CURSOR_SCULPT_GREASE_PENCIL);
+      Paint *paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::SculptGreasePencil);
+      ED_paint_cursor_start(paint, gpencil_sculpt_poll_view3d);
+      mode = OB_MODE_SCULPT_GPENCIL_LEGACY;
+    }
     is_object = true;
   }
 
-  if (gpd == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
-
-  /* Just toggle sculptmode flag... */
-  gpd->flag ^= GP_DATA_STROKE_SCULPTMODE;
-  /* set mode */
-  if (gpd->flag & GP_DATA_STROKE_SCULPTMODE) {
-    mode = OB_MODE_SCULPT_GPENCIL_LEGACY;
-  }
-  else {
-    mode = OB_MODE_OBJECT;
-  }
-
   if (is_object) {
-    /* try to back previous mode */
-    if ((ob->restore_mode) && ((gpd->flag & GP_DATA_STROKE_SCULPTMODE) == 0) && (back == 1)) {
-      mode = ob->restore_mode;
-    }
     ob->restore_mode = ob->mode;
     ob->mode = mode;
   }
@@ -511,9 +543,16 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
   }
 
   /* setup other modes */
-  ED_gpencil_setup_modes(C, gpd, mode);
-  /* set cache as dirty */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+  if (ob->type == OB_GPENCIL_LEGACY) {
+    bGPdata *gpd = ED_gpencil_data_get_active(C);
+    ED_gpencil_setup_modes(C, gpd, mode);
+    /* set cache as dirty */
+    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+  }
+  if (ob->type == OB_GREASE_PENCIL) {
+    GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+    DEG_id_tag_update(&grease_pencil->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+  }
 
   WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, nullptr);
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);

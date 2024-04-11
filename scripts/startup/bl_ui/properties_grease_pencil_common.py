@@ -70,7 +70,7 @@ class GreasePencilDisplayPanel:
     def poll(cls, context):
         ob = context.active_object
         brush = context.tool_settings.gpencil_paint.brush
-        if ob and ob.type == 'GPENCIL' and brush:
+        if ob and ob.type in {'GPENCIL', 'GREASE_PENCIL'} and brush:
             return True
 
         return False

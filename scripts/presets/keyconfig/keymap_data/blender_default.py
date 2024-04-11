@@ -4680,6 +4680,25 @@ def km_grease_pencil_edit_mode(params):
     return keymap
 
 
+def km_grease_pencil_sculpt_mode(params):
+    items = []
+    keymap = (
+        "Grease Pencil Sculpt Mode",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items}
+    )
+
+    items.extend([
+        ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS', "repeat": True},
+         {"properties": [("scalar", 0.9)]}),
+        ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "repeat": True},
+         {"properties": [("scalar", 1.0 / 0.9)]}),
+        *_template_paint_radial_control("gpencil_sculpt_paint"),
+    ])
+
+    return keymap
+
+
 # ------------------------------------------------------------------------------
 # Object/Pose Modes
 
@@ -8599,6 +8618,7 @@ def generate_keymaps(params=None):
         km_animation_channels(params),
 
         # Modes.
+        # Grease Pencil v2
         km_grease_pencil(params),  # TODO: Rename to km_annotate
         km_grease_pencil_stroke_curve_edit_mode(params),
         km_grease_pencil_stroke_edit_mode(params),
@@ -8631,6 +8651,7 @@ def generate_keymaps(params=None):
         # Grease Pencil v3
         km_grease_pencil_paint_mode(params),
         km_grease_pencil_edit_mode(params),
+        km_grease_pencil_sculpt_mode(params),
         # Object mode.
         km_object_mode(params),
         km_object_non_modal(params),

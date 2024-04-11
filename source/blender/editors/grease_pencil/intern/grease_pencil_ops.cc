@@ -8,6 +8,7 @@
 
 #include "BKE_context.hh"
 
+#include "DNA_object_enums.h"
 #include "DNA_scene_types.h"
 
 #include "ED_grease_pencil.hh"
@@ -76,6 +77,22 @@ bool grease_pencil_painting_poll(bContext *C)
   }
   ToolSettings *ts = CTX_data_tool_settings(C);
   if (!ts || !ts->gp_paint) {
+    return false;
+  }
+  return true;
+}
+
+bool grease_pencil_sculpting_poll(bContext *C)
+{
+  if (!active_grease_pencil_poll(C)) {
+    return false;
+  }
+  Object *object = CTX_data_active_object(C);
+  if ((object->mode & OB_MODE_SCULPT_GPENCIL_LEGACY) == 0) {
+    return false;
+  }
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  if (!ts || !ts->gp_sculptpaint) {
     return false;
   }
   return true;
