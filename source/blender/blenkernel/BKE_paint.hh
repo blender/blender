@@ -582,14 +582,6 @@ struct SculptSession {
   blender::float3 cursor_sampled_normal;
   blender::float3 cursor_view_normal;
 
-  /* For Sculpt trimming gesture tools, initial ray-cast data from the position of the mouse
-   * when
-   * the gesture starts (intersection with the surface and if they ray hit the surface or not).
-   */
-  blender::float3 gesture_initial_location;
-  blender::float3 gesture_initial_normal;
-  bool gesture_initial_hit;
-
   /* TODO(jbakker): Replace rv3d and v3d with ViewContext */
   RegionView3D *rv3d;
   View3D *v3d;

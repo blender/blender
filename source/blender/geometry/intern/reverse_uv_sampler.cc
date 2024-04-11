@@ -238,6 +238,10 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
    * the lookup can fail for floating point accuracy reasons when the uv is almost exact on an
    * edge. */
   const float edge_epsilon = 0.00001f;
+  /* If uv triangles are very small, it may look like the query hits multiple triangles due to
+   * floating point precision issues. Better just pick one of the triangles instead of failing the
+   * entire operation in this case. */
+  const float area_epsilon = 0.00001f;
 
   for (const int tri_i : tri_indices) {
     const int3 &tri = corner_tris_[tri_i];
@@ -260,8 +264,14 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
       const float worse_dist = std::max(dist, best_dist);
       /* Allow ignoring multiple triangle intersections if the uv is almost exactly on an edge. */
       if (worse_dist < -edge_epsilon) {
-        /* The uv sample is in multiple triangles. */
-        return Result{ResultType::Multiple};
+        const int3 &best_tri = corner_tris_[tri_i];
+        const float best_tri_area = area_tri_v2(
+            uv_map_[best_tri[0]], uv_map_[best_tri[1]], uv_map_[best_tri[2]]);
+        const float current_tri_area = area_tri_v2(uv_0, uv_1, uv_2);
+        if (best_tri_area > area_epsilon && current_tri_area > area_epsilon) {
+          /* The uv sample is in multiple triangles. */
+          return Result{ResultType::Multiple};
+        }
       }
     }
 

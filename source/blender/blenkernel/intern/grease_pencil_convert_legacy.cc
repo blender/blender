@@ -321,11 +321,17 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   bool has_bezier_stroke = false;
   LISTBASE_FOREACH (bGPDstroke *, gps, &gpf.strokes) {
     if (gps->editcurve != nullptr) {
+      if (gps->editcurve->tot_curve_points == 0) {
+        continue;
+      }
       has_bezier_stroke = true;
       num_points += gps->editcurve->tot_curve_points;
       curve_types.append(CURVE_TYPE_BEZIER);
     }
     else {
+      if (gps->totpoints == 0) {
+        continue;
+      }
       num_points += gps->totpoints;
       curve_types.append(CURVE_TYPE_POLY);
     }
@@ -333,13 +339,17 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     offsets.append(num_points);
   }
 
+  /* Return if the legacy frame contains no strokes (or zero points). */
+  if (num_strokes == 0) {
+    return;
+  }
+
   /* Resize the CurvesGeometry. */
   Drawing &drawing = r_drawing.wrap();
   CurvesGeometry &curves = drawing.strokes_for_write();
   curves.resize(num_points, num_strokes);
-  if (num_strokes > 0) {
-    curves.offsets_for_write().copy_from(offsets);
-  }
+  curves.offsets_for_write().copy_from(offsets);
+
   OffsetIndices<int> points_by_curve = curves.points_by_curve();
   MutableAttributeAccessor attributes = curves.attributes_for_write();
 
@@ -416,7 +426,16 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   Array<float4x2> legacy_texture_matrices(num_strokes);
 
   int stroke_i = 0;
-  LISTBASE_FOREACH_INDEX (bGPDstroke *, gps, &gpf.strokes, stroke_i) {
+  LISTBASE_FOREACH (bGPDstroke *, gps, &gpf.strokes) {
+    /* In GPv2 strokes with 0 points could technically be represented. In `CurvesGeometry` this is
+     * not the case and would be a bug. So we explicitly make sure to skip over strokes with no
+     * points. */
+    if (gps->totpoints == 0 ||
+        (gps->editcurve != nullptr && gps->editcurve->tot_curve_points == 0))
+    {
+      continue;
+    }
+
     stroke_cyclic.span[stroke_i] = (gps->flag & GP_STROKE_CYCLIC) != 0;
     /* TODO: This should be a `double` attribute. */
     stroke_init_times.span[stroke_i] = float(gps->inittime);
@@ -428,10 +447,8 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     stroke_fill_colors[stroke_i] = ColorGeometry4f(gps->vert_color_fill);
     stroke_materials.span[stroke_i] = gps->mat_nr;
 
-    IndexRange points = points_by_curve[stroke_i];
-    if (points.is_empty()) {
-      continue;
-    }
+    const IndexRange points = points_by_curve[stroke_i];
+    BLI_assert(points.size() == gps->totpoints);
 
     const Span<bGPDspoint> src_points{gps->points, gps->totpoints};
     /* Previously, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This `px`
@@ -512,6 +529,8 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 
     const float4x2 legacy_texture_matrix = get_legacy_texture_matrix(gps);
     legacy_texture_matrices[stroke_i] = legacy_texture_matrix;
+
+    stroke_i++;
   }
 
   /* Ensure that the normals are up to date. */

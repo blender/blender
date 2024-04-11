@@ -69,11 +69,6 @@ set(SRC
   dna_utils.cc
   makesdna.cc
   ${SRC_BLENLIB}
-  ../../../../intern/guardedalloc/intern/leak_detector.cc
-  ../../../../intern/guardedalloc/intern/mallocn.c
-  ../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
-  ../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
-  ../../../../intern/guardedalloc/intern/memory_usage.cc
   ${dna_header_include_file}
   ${dna_header_string_file}
 )

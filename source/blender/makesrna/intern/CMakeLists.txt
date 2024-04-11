@@ -222,12 +222,6 @@ set(SRC
   ${DEFSRC}
   ${APISRC}
   ../../../../intern/clog/clog.c
-  ../../../../intern/guardedalloc/intern/leak_detector.cc
-  ../../../../intern/guardedalloc/intern/mallocn.c
-  ../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
-  ../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
-  ../../../../intern/guardedalloc/intern/memory_usage.cc
-
   # Needed for defaults.
   ../../../../release/datafiles/userdef/userdef_default.c
   ../../../../release/datafiles/userdef/userdef_default_theme.c

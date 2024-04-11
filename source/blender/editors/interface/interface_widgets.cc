@@ -1105,20 +1105,6 @@ void UI_widgetbase_draw_cache_end()
   GPU_blend(GPU_BLEND_NONE);
 }
 
-/* Disable cached/instanced drawing and enforce single widget drawing pipeline.
- * Works around interface artifacts happening on certain driver and hardware
- * configurations. */
-static bool draw_widgetbase_batch_skip_draw_cache()
-{
-  /* MacOS is known to have issues on Mac Mini and MacBook Pro with Intel Iris GPU.
-   * For example, #78307. */
-  if (GPU_type_matches_ex(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
-    return true;
-  }
-
-  return false;
-}
-
 static void draw_widgetbase_batch(uiWidgetBase *wtb)
 {
   wtb->uniform_params.tria_type = wtb->tria1.type;
@@ -1127,7 +1113,7 @@ static void draw_widgetbase_batch(uiWidgetBase *wtb)
   copy_v2_v2(wtb->uniform_params.tria1_center, wtb->tria1.center);
   copy_v2_v2(wtb->uniform_params.tria2_center, wtb->tria2.center);
 
-  if (g_widget_base_batch.enabled && !draw_widgetbase_batch_skip_draw_cache()) {
+  if (g_widget_base_batch.enabled) {
     g_widget_base_batch.params[g_widget_base_batch.count] = wtb->uniform_params;
     g_widget_base_batch.count++;
 
