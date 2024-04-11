@@ -1642,7 +1642,15 @@ static std::string node_socket_get_tooltip(const SpaceNode *snode,
   }
 
   if (inspection_strings.is_empty()) {
-    output << bke::nodeSocketLabel(&socket);
+    const bNode &node = socket.owner_node();
+    if (node.is_reroute()) {
+      char reroute_name[MAX_NAME];
+      bke::nodeLabel(&ntree, &node, reroute_name, sizeof(reroute_name));
+      output << reroute_name;
+    }
+    else {
+      output << bke::nodeSocketLabel(&socket);
+    }
 
     if (ntree.type == NTREE_GEOMETRY) {
       output << ".\n\n";
