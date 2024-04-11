@@ -603,7 +603,10 @@ void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll,
 
   bonecoll_ensure_name_unique(armature, bcoll);
 
+  /* Bone collections can be reached via .collections (4.0+) and .collections_all (4.1+).
+   * Animation data from 4.0 should have been versioned to only use `.collections_all`. */
   BKE_animdata_fix_paths_rename_all(&armature->id, "collections", old_name, bcoll->name);
+  BKE_animdata_fix_paths_rename_all(&armature->id, "collections_all", old_name, bcoll->name);
 }
 
 void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
