@@ -1837,55 +1837,25 @@ class _defs_weight_paint:
 
 class _defs_paint_grease_pencil:
 
-    # FIXME: Replace brush tools with code below once they are all implemented:
-    #
-    # @staticmethod
-    # def generate_from_brushes(context):
-    # # Though `data_block` is conceptually unnecessary with a single brush tool,
-    # # it's still used because many areas assume that brush tools have it set #bToolRef.
-    # tool = None
-    # if context:
-    #     brush = context.tool_settings.gpencil_paint.brush
-    #     if brush:
-    #         tool = brush.gpencil_tool
-    # return [
-    #     ToolDef.from_dict(
-    #         dict(
-    #             idname="builtin.brush",
-    #             label="Brush",
-    #             icon="brush.sculpt.paint",
-    #             data_block=tool
-    #         )
-    #     )
-    # ]
-
-    @ToolDef.from_fn
-    def draw():
-        return dict(
-            idname="builtin_brush.Draw",
-            label="Draw",
-            icon="brush.gpencil_draw.draw",
-            data_block='DRAW',
-        )
-
-    @ToolDef.from_fn
-    def erase():
-        return dict(
-            idname="builtin_brush.Erase",
-            label="Erase",
-            icon="brush.gpencil_draw.erase",
-            data_block='ERASE',
-        )
-
-    @ToolDef.from_fn
-    def tint():
-        return dict(
-            idname="builtin_brush.Tint",
-            label="Tint",
-            icon="brush.gpencil_draw.tint",
-            data_block='TINT',
-        )
-
+    @staticmethod
+    def generate_from_brushes(context):
+        # Though `data_block` is conceptually unnecessary with a single brush tool,
+        # it's still used because many areas assume that brush tools have it set #bToolRef.
+        tool = None
+        if context:
+            brush = context.tool_settings.gpencil_paint.brush
+            if brush:
+                tool = brush.gpencil_tool
+        return [
+            ToolDef.from_dict(
+                dict(
+                    idname="builtin.brush",
+                    label="Brush",
+                    icon="brush.sculpt.paint",
+                    data_block=tool
+                )
+            )
+        ]
 
 class _defs_image_generic:
 
@@ -3329,9 +3299,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'PAINT_GREASE_PENCIL': [
             _defs_view3d_generic.cursor,
             None,
-            _defs_paint_grease_pencil.draw,
-            _defs_paint_grease_pencil.erase,
-            _defs_paint_grease_pencil.tint,
+            _defs_paint_grease_pencil.generate_from_brushes,
         ],
         'PAINT_GPENCIL': [
             _defs_view3d_generic.cursor,
