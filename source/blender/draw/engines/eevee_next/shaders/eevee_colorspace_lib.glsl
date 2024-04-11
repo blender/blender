@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
+
 /* -------------------------------------------------------------------- */
 /** \name YCoCg
  * \{ */
@@ -55,15 +57,11 @@ vec3 colorspace_safe_color(vec3 c)
 /**
  * Clamp all components to the specified maximum and avoid color shifting.
  */
-vec3 colorspace_brightness_clamp_max(vec3 color, float max_value)
+vec3 colorspace_brightness_clamp_max(vec3 color, float limit)
 {
-  float luma = max(1e-8, max(max(color.r, color.g), color.b));
-  if (luma < 1e-8) {
-    return color;
-  }
-  return color * (1.0 - max(0.0, luma - max_value) / luma);
+  return color * saturate(limit / max(1e-8, reduce_max(abs(color))));
 }
-vec4 colorspace_brightness_clamp_max(vec4 color, float max_value)
+vec4 colorspace_brightness_clamp_max(vec4 color, float limit)
 {
-  return vec4(colorspace_brightness_clamp_max(color.rgb, max_value), color.a);
+  return vec4(colorspace_brightness_clamp_max(color.rgb, limit), color.a);
 }
