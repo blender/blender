@@ -339,7 +339,7 @@ void exporter_main(bContext *C, const OBJExportParams &export_params)
     if (!collection) {
       BKE_reportf(export_params.reports,
                   RPT_ERROR,
-                  "OBJ Export: Unable to find collection %s",
+                  "OBJ Export: Unable to find collection '%s'",
                   export_params.collection);
       return;
     }

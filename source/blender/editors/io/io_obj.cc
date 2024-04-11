@@ -115,7 +115,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
+static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerRNA *imfptr)
 {
   const bool export_animation = RNA_boolean_get(imfptr, "export_animation");
   const bool export_smooth_groups = RNA_boolean_get(imfptr, "export_smooth_groups");
@@ -129,9 +129,16 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   /* Object Transform options. */
   box = uiLayoutBox(layout);
   col = uiLayoutColumn(box, false);
-  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
-  uiItemR(
-      sub, imfptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selected Only"), ICON_NONE);
+
+  if (CTX_wm_space_file(C)) {
+    sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
+    uiItemR(
+        sub, imfptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selected Only"), ICON_NONE);
+  }
+  else {
+    sub = uiLayoutColumn(col, false);
+  }
+
   uiItemR(sub, imfptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(sub, imfptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
   uiItemR(sub, imfptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
@@ -197,9 +204,9 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "end_frame", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
 }
 
-static void wm_obj_export_draw(bContext * /*C*/, wmOperator *op)
+static void wm_obj_export_draw(bContext *C, wmOperator *op)
 {
-  ui_obj_export_settings(op->layout, op->ptr);
+  ui_obj_export_settings(C, op->layout, op->ptr);
 }
 
 /**

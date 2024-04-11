@@ -222,7 +222,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   return as_background_job || ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static void wm_usd_export_draw(bContext * /*C*/, wmOperator *op)
+static void wm_usd_export_draw(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
   uiLayout *col;
@@ -232,9 +232,11 @@ static void wm_usd_export_draw(bContext * /*C*/, wmOperator *op)
 
   uiLayout *box = uiLayoutBox(layout);
 
-  col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "selected_objects_only", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "visible_objects_only", UI_ITEM_NONE, nullptr, ICON_NONE);
+  if (CTX_wm_space_file(C)) {
+    col = uiLayoutColumn(box, true);
+    uiItemR(col, ptr, "selected_objects_only", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "visible_objects_only", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
 
   col = uiLayoutColumn(box, true);
   uiItemR(col, ptr, "export_animation", UI_ITEM_NONE, nullptr, ICON_NONE);
