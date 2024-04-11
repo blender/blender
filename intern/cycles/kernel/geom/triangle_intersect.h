@@ -159,4 +159,26 @@ ccl_device_inline float3 triangle_point_from_uv(KernelGlobals kg,
   return P;
 }
 
+ccl_device_inline void triangle_shader_setup(KernelGlobals kg, ccl_private ShaderData *sd)
+{
+  sd->shader = kernel_data_fetch(tri_shader, sd->prim);
+
+  sd->P = triangle_point_from_uv(kg, sd, sd->prim, sd->u, sd->v);
+
+  /* Normals. */
+  float3 Ng = triangle_normal(kg, sd);
+  sd->Ng = Ng;
+  sd->N = Ng;
+
+  /* Smooth normal. */
+  if (sd->shader & SHADER_SMOOTH_NORMAL) {
+    sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
+  }
+
+#ifdef __DPDU__
+  /* dPdu/dPdv */
+  triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
+#endif
+}
+
 CCL_NAMESPACE_END

@@ -76,22 +76,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
   {
     if (sd->type == PRIMITIVE_TRIANGLE) {
       /* static triangle */
-      float3 Ng = triangle_normal(kg, sd);
-      sd->shader = kernel_data_fetch(tri_shader, sd->prim);
-
-      /* vectors */
-      sd->P = triangle_point_from_uv(kg, sd, isect->prim, isect->u, isect->v);
-      sd->Ng = Ng;
-      sd->N = Ng;
-
-      /* smooth normal */
-      if (sd->shader & SHADER_SMOOTH_NORMAL)
-        sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
-
-#ifdef __DPDU__
-      /* dPdu/dPdv */
-      triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
-#endif
+      triangle_shader_setup(kg, sd);
     }
     else {
       /* motion triangle */
