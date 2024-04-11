@@ -2542,7 +2542,7 @@ class _defs_grease_pencil_sculpt:
         # it's still used because many areas assume that brush tools have it set #bToolRef.
         tool = None
         if context:
-            brush = context.tool_settings.gpencil_sculpt.brush
+            brush = context.tool_settings.gpencil_sculpt_paint.brush
             if brush:
                 tool = brush.gpencil_sculpt_tool
         return [
