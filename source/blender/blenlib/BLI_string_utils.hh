@@ -179,7 +179,7 @@ std::string BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRef)> uni
  * \param name_offset: Offset of name within block structure
  * \param name_maxncpy: Maximum length of name area
  */
-void BLI_uniquename(struct ListBase *list,
+void BLI_uniquename(const struct ListBase *list,
                     void *vlink,
                     const char *defname,
                     char delim,
