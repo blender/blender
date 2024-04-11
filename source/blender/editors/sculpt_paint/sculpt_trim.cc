@@ -38,6 +38,7 @@
 #include "sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint::trim {
+
 enum class OperationType {
   Intersect = 0,
   Difference = 1,
@@ -112,6 +113,10 @@ struct TrimOperation {
   /* Operator properties. */
   bool use_cursor_depth;
 
+  bool initial_hit;
+  blender::float3 initial_location;
+  blender::float3 initial_normal;
+
   OperationType mode;
   SolverMode solver_mode;
   OrientationType orientation;
@@ -166,17 +171,17 @@ static void get_origin_and_normal(gesture::GestureData &gesture_data,
     case OrientationType::View:
       mul_v3_m4v3(r_origin,
                   gesture_data.vc.obact->object_to_world().ptr(),
-                  gesture_data.ss->gesture_initial_location);
+                  trim_operation->initial_location);
       copy_v3_v3(r_normal, gesture_data.world_space_view_normal);
       negate_v3(r_normal);
       break;
     case OrientationType::Surface:
       mul_v3_m4v3(r_origin,
                   gesture_data.vc.obact->object_to_world().ptr(),
-                  gesture_data.ss->gesture_initial_location);
+                  trim_operation->initial_location);
       /* Transforming the normal does not take non uniform scaling into account. Sculpt mode is not
        * expected to work on object with non uniform scaling. */
-      copy_v3_v3(r_normal, gesture_data.ss->gesture_initial_normal);
+      copy_v3_v3(r_normal, trim_operation->initial_normal);
       mul_mat3_m4_v3(gesture_data.vc.obact->object_to_world().ptr(), r_normal);
       break;
   }
@@ -221,11 +226,11 @@ static void calculate_depth(gesture::GestureData &gesture_data,
     float world_space_gesture_initial_location[3];
     mul_v3_m4v3(world_space_gesture_initial_location,
                 vc->obact->object_to_world().ptr(),
-                ss->gesture_initial_location);
+                trim_operation->initial_location);
 
     float mid_point_depth;
     if (trim_operation->orientation == OrientationType::View) {
-      mid_point_depth = ss->gesture_initial_hit ?
+      mid_point_depth = trim_operation->initial_hit ?
                             dist_signed_to_plane_v3(world_space_gesture_initial_location,
                                                     shape_plane) :
                             (depth_back + depth_front) * 0.5f;
@@ -234,12 +239,12 @@ static void calculate_depth(gesture::GestureData &gesture_data,
       /* When using normal orientation, if the stroke started over the mesh, position the mid point
        * at 0 distance from the shape plane. This positions the trimming shape half inside of the
        * surface. */
-      mid_point_depth = ss->gesture_initial_hit ? 0.0f : (depth_back + depth_front) * 0.5f;
+      mid_point_depth = trim_operation->initial_hit ? 0.0f : (depth_back + depth_front) * 0.5f;
     }
 
     float depth_radius;
 
-    if (ss->gesture_initial_hit) {
+    if (trim_operation->initial_hit) {
       depth_radius = ss->cursor_radius;
     }
     else {
@@ -254,7 +259,7 @@ static void calculate_depth(gesture::GestureData &gesture_data,
 
       if (!BKE_brush_use_locked_size(scene, brush)) {
         depth_radius = paint_calc_object_space_radius(
-            vc, ss->gesture_initial_location, BKE_brush_size_get(scene, brush));
+            vc, trim_operation->initial_location, BKE_brush_size_get(scene, brush));
       }
       else {
         depth_radius = BKE_brush_unprojected_radius_get(scene, brush);
@@ -609,13 +614,27 @@ static void init_operation(gesture::GestureData &gesture_data, wmOperator &op)
   trim_operation->solver_mode = SolverMode(RNA_enum_get(op.ptr, "trim_solver"));
 
   /* If the cursor was not over the mesh, force the orientation to view. */
-  if (!gesture_data.ss->gesture_initial_hit) {
+  if (!trim_operation->initial_hit) {
     trim_operation->orientation = OrientationType::View;
   }
 }
 
 static void operator_properties(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
+  prop = RNA_def_int_vector(ot->srna,
+                            "location",
+                            2,
+                            nullptr,
+                            INT_MIN,
+                            INT_MAX,
+                            "Location",
+                            "Mouse location",
+                            INT_MIN,
+                            INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
   RNA_def_enum(ot->srna,
                "trim_mode",
                operation_types,
@@ -672,21 +691,26 @@ static bool can_exec(const bContext &C)
   return true;
 }
 
-static void initialize_cursor_info(bContext &C, const wmEvent *event)
+static void initialize_cursor_info(bContext &C,
+                                   const wmOperator &op,
+                                   gesture::GestureData &gesture_data)
 {
   const Object &ob = *CTX_data_active_object(&C);
   SculptSession &ss = *ob.sculpt;
 
   SCULPT_vertex_random_access_ensure(&ss);
 
-  SculptCursorGeometryInfo sgi;
-  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
+  int mval[2];
+  RNA_int_get_array(op.ptr, "location", mval);
 
-  /* TODO: Remove gesture_* properties from SculptSession */
-  ss.gesture_initial_hit = SCULPT_cursor_geometry_info_update(&C, &sgi, mval_fl, false);
-  if (ss.gesture_initial_hit) {
-    copy_v3_v3(ss.gesture_initial_location, sgi.location);
-    copy_v3_v3(ss.gesture_initial_normal, sgi.normal);
+  SculptCursorGeometryInfo sgi;
+  const float mval_fl[2] = {float(mval[0]), float(mval[1])};
+
+  TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
+  trim_operation->initial_hit = SCULPT_cursor_geometry_info_update(&C, &sgi, mval_fl, false);
+  if (trim_operation->initial_hit) {
+    copy_v3_v3(trim_operation->initial_location, sgi.location);
+    copy_v3_v3(trim_operation->initial_normal, sgi.normal);
   }
 }
 
@@ -701,7 +725,9 @@ static int gesture_box_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
+
   gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
@@ -712,7 +738,7 @@ static int gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  initialize_cursor_info(*C, event);
+  RNA_int_set_array(op->ptr, "location", event->mval);
 
   return WM_gesture_box_invoke(C, op, event);
 }
@@ -727,7 +753,10 @@ static int gesture_lasso_exec(bContext *C, wmOperator *op)
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
+
+  initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
+
   gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
@@ -738,7 +767,7 @@ static int gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *even
     return OPERATOR_CANCELLED;
   }
 
-  initialize_cursor_info(*C, event);
+  RNA_int_set_array(op->ptr, "location", event->mval);
 
   return WM_gesture_lasso_invoke(C, op, event);
 }
