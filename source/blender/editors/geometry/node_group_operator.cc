@@ -787,7 +787,7 @@ void clear_operator_asset_trees()
   for (const ObjectType type : {OB_MESH, OB_CURVES, OB_POINTCLOUD}) {
     for (const eObjectMode mode : {OB_MODE_OBJECT, OB_MODE_EDIT, OB_MODE_SCULPT_CURVES}) {
       if (asset::AssetItemTree *tree = get_static_item_tree(type, mode)) {
-        *tree = {};
+        tree->dirty = true;
       }
     }
   }
@@ -1105,7 +1105,7 @@ void ui_template_node_operator_asset_root_items(uiLayout &layout, const bContext
   if (!tree) {
     return;
   }
-  if (tree->assets_per_path.size() == 0) {
+  if (tree->dirty) {
     *tree = build_catalog_tree(C, *active_object);
   }
 
