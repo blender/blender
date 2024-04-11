@@ -10,6 +10,7 @@
 #include <cstring>
 #include <optional>
 
+#include "DNA_object_enums.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_asset_types.h"
@@ -254,6 +255,7 @@ const uchar PAINT_CURSOR_VERTEX_PAINT[3] = {255, 255, 255};
 const uchar PAINT_CURSOR_WEIGHT_PAINT[3] = {200, 200, 255};
 const uchar PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 const uchar PAINT_CURSOR_SCULPT_CURVES[3] = {255, 100, 100};
+const uchar PAINT_CURSOR_SCULPT_GREASE_PENCIL[3] = {255, 100, 100};
 
 static ePaintOverlayControlFlags overlay_flags = (ePaintOverlayControlFlags)0;
 
@@ -365,6 +367,9 @@ bool BKE_paint_ensure_from_paintmode(Main *bmain, Scene *sce, PaintMode mode)
     case PaintMode::SculptCurves:
       paint_ptr = (Paint **)&ts->curves_sculpt;
       break;
+    case PaintMode::SculptGreasePencil:
+      paint_ptr = (Paint **)&ts->gp_sculptpaint;
+      break;
     case PaintMode::Invalid:
       break;
   }
@@ -402,6 +407,8 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode)
         return &ts->gp_weightpaint->paint;
       case PaintMode::SculptCurves:
         return &ts->curves_sculpt->paint;
+      case PaintMode::SculptGreasePencil:
+        return &ts->gp_sculptpaint->paint;
       case PaintMode::Invalid:
         return nullptr;
       default:
@@ -436,6 +443,8 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(const PaintMode m
       return rna_enum_brush_gpencil_weight_types_items;
     case PaintMode::SculptCurves:
       return rna_enum_brush_curves_sculpt_tool_items;
+    case PaintMode::SculptGreasePencil:
+      return rna_enum_brush_gpencil_sculpt_types_items;
     case PaintMode::Invalid:
       break;
   }
@@ -545,7 +554,13 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
         case OB_MODE_SCULPT:
           return PaintMode::Sculpt;
         case OB_MODE_SCULPT_GPENCIL_LEGACY:
-          return PaintMode::SculptGPencil;
+          if (obact->type == OB_GPENCIL_LEGACY) {
+            return PaintMode::SculptGPencil;
+          }
+          if (obact->type == OB_GREASE_PENCIL) {
+            return PaintMode::SculptGreasePencil;
+          }
+          return PaintMode::Invalid;
         case OB_MODE_WEIGHT_GPENCIL_LEGACY:
           return PaintMode::WeightGPencil;
         case OB_MODE_VERTEX_PAINT:
@@ -597,6 +612,8 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
         return PaintMode::SculptCurves;
       case CTX_MODE_PAINT_GREASE_PENCIL:
         return PaintMode::GPencil;
+      case CTX_MODE_SCULPT_GREASE_PENCIL:
+        return PaintMode::SculptGreasePencil;
     }
   }
   else if (tref->space_type == SPACE_IMAGE) {
@@ -872,6 +889,8 @@ uint BKE_paint_get_brush_tool_offset_from_paintmode(const PaintMode mode)
       return offsetof(Brush, gpencil_weight_tool);
     case PaintMode::SculptCurves:
       return offsetof(Brush, curves_sculpt_tool);
+    case PaintMode::SculptGreasePencil:
+      return offsetof(Brush, gpencil_sculpt_tool);
     case PaintMode::Invalid:
       break; /* We don't use these yet. */
   }
@@ -1206,6 +1225,8 @@ eObjectMode BKE_paint_object_mode_from_paintmode(const PaintMode mode)
       return OB_MODE_SCULPT_CURVES;
     case PaintMode::GPencil:
       return OB_MODE_PAINT_GREASE_PENCIL;
+    case PaintMode::SculptGreasePencil:
+      return OB_MODE_SCULPT_GPENCIL_LEGACY;
     case PaintMode::Invalid:
     default:
       return OB_MODE_OBJECT;

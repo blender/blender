@@ -9,6 +9,7 @@
  * actual mode switching logic is per-object type.
  */
 
+#include "DNA_object_enums.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -147,7 +148,9 @@ bool mode_compat_test(const Object *ob, eObjectMode mode)
       }
       break;
     case OB_GREASE_PENCIL:
-      if (mode & (OB_MODE_EDIT | OB_MODE_PAINT_GREASE_PENCIL | OB_MODE_WEIGHT_PAINT)) {
+      if (mode & (OB_MODE_EDIT | OB_MODE_PAINT_GREASE_PENCIL | OB_MODE_WEIGHT_PAINT |
+                  OB_MODE_SCULPT_GPENCIL_LEGACY))
+      {
         return true;
       }
       break;

@@ -62,18 +62,17 @@ static PyObject *pygpu_compute_dispatch(PyObject * /*self*/, PyObject *args, PyO
   if (_PyArg_ParseTupleAndKeywordsFast(
           args, kwds, &_parser, &py_shader, &groups_x_len, &groups_y_len, &groups_z_len))
   {
-
     if (!BPyGPUShader_Check(py_shader)) {
       PyErr_Format(PyExc_TypeError, "Expected a GPUShader, got %s", Py_TYPE(py_shader)->tp_name);
       return nullptr;
     }
 
-    // Check that groups do not exceed GPU_max_work_group_count()
+    /* Check that groups do not exceed #GPU_max_work_group_count(). */
     const int max_work_group_count_x = GPU_max_work_group_count(0);
     const int max_work_group_count_y = GPU_max_work_group_count(1);
     const int max_work_group_count_z = GPU_max_work_group_count(2);
 
-    // Report back to the user both the requested and the maximum supported value
+    /* Report back to the user both the requested and the maximum supported value. */
     if (groups_x_len > GPU_max_work_group_count(0)) {
       PyErr_Format(PyExc_ValueError,
                    "groups_x_len (%d) exceeds maximum supported value (max work group count: %d)",

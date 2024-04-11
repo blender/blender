@@ -48,13 +48,13 @@ void ArmatureExporter::add_bone_collections(Object *ob_arm, COLLADASW::Node &nod
 
   std::string collection_names = collection_stream.str();
   if (collection_names.length() > 1) {
-    collection_names.pop_back();  // Pop off the last \n.
+    collection_names.pop_back(); /* Pop off the last `\n`. */
     node.addExtraTechniqueParameter("blender", "collections", collection_names);
   }
 
   std::string visible_names = visible_stream.str();
   if (visible_names.length() > 1) {
-    visible_names.pop_back();  // Pop off the last \n.
+    visible_names.pop_back(); /* Pop off the last `\n`. */
     node.addExtraTechniqueParameter("blender", "visible_collections", visible_names);
   }
 
@@ -195,7 +195,7 @@ void ArmatureExporter::add_bone_node(Bone *bone,
         collection_names += std::string(bcoll_ref->bcoll->name) + "\n";
       }
       if (collection_names.length() > 1) {
-        collection_names.pop_back();  // Pop off the last \n.
+        collection_names.pop_back(); /* Pop off the last `\n`. */
         node.addExtraTechniqueParameter("blender", "", collection_names, "", "collections");
       }
 

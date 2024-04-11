@@ -793,7 +793,7 @@ struct EraseOperationExecutor {
           erased = hard_eraser(src, screen_space_positions, dst, self.keep_caps);
           break;
         case GP_BRUSH_ERASER_SOFT:
-          // To be implemented
+          /* To be implemented. */
           return;
       }
 

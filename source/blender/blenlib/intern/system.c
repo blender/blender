@@ -140,7 +140,7 @@ char *BLI_cpu_brand_string(void)
     return brand;
   }
 #else
-  // No CPUID on ARM64, so we pull from the registry (on Windows) instead
+  /* No CPUID on ARM64, so we pull from the registry (on Windows) instead. */
   DWORD vendorIdentifierLength = 255;
   char vendorIdentifier[255];
   if (RegGetValueA(HKEY_LOCAL_MACHINE,

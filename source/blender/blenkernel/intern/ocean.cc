@@ -1348,12 +1348,11 @@ OceanCache *BKE_ocean_init_cache(const char *bakepath,
 void BKE_ocean_simulate_cache(OceanCache *och, int frame)
 {
   char filepath[FILE_MAX];
-  int f = frame;
 
   /* ibufs array is zero based, but filenames are based on frame numbers */
   /* still need to clamp frame numbers to valid range of images on disk though */
   CLAMP(frame, och->start, och->end);
-  f = frame - och->start; /* shift to 0 based */
+  const int f = frame - och->start; /* shift to 0 based */
 
   /* if image is already loaded in mem, return */
   if (och->ibufs_disp[f] != nullptr) {

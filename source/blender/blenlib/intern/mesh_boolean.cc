@@ -1397,7 +1397,7 @@ static bool is_pwn(const IMesh &tm, const TriMeshTopology &tmtopo)
  * the dummy triangle lies, then finding which cell is between
  * the two triangles on either side of the dummy.
  */
-static int find_cell_for_point_near_edge(mpq3 p,
+static int find_cell_for_point_near_edge(const mpq3 &p,
                                          const Edge &e,
                                          const IMesh &tm,
                                          const TriMeshTopology &tmtopo,
@@ -3254,7 +3254,7 @@ static void do_dissolve(FaceMergeState *fms)
  * \note it is possible that some of the triangles in \a tris have reversed orientation
  * to the rest, so we have to handle the two cases separately.
  */
-static Vector<Face *> merge_tris_for_face(Vector<int> tris,
+static Vector<Face *> merge_tris_for_face(const Vector<int> &tris,
                                           const IMesh &tm,
                                           const IMesh &imesh_in,
                                           IMeshArena *arena)

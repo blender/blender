@@ -491,7 +491,7 @@ bool USD_export(bContext *C,
     if (!collection) {
       BKE_reportf(job->params.worker_status->reports,
                   RPT_ERROR,
-                  "USD Export: Unable to find collection %s",
+                  "USD Export: Unable to find collection '%s'",
                   job->params.collection);
       return false;
     }

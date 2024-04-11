@@ -41,7 +41,7 @@ class VKVertexAttributeObject {
 
   void bind(VKContext &context);
 
-  // Copy assignment operator.
+  /** Copy assignment operator. */
   VKVertexAttributeObject &operator=(const VKVertexAttributeObject &other);
 
   void update_bindings(const VKContext &context, VKBatch &batch);

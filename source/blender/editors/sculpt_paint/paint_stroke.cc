@@ -1041,7 +1041,7 @@ bool paint_space_stroke_enabled(Brush *br, PaintMode mode)
     return false;
   }
 
-  if (mode == PaintMode::GPencil) {
+  if (ELEM(mode, PaintMode::GPencil, PaintMode::SculptGreasePencil)) {
     /* No spacing needed for now. */
     return false;
   }

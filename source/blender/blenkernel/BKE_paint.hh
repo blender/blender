@@ -87,6 +87,7 @@ extern const uchar PAINT_CURSOR_VERTEX_PAINT[3];
 extern const uchar PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const uchar PAINT_CURSOR_TEXTURE_PAINT[3];
 extern const uchar PAINT_CURSOR_SCULPT_CURVES[3];
+extern const uchar PAINT_CURSOR_SCULPT_GREASE_PENCIL[3];
 
 enum class PaintMode : int8_t {
   Sculpt = 0,
@@ -105,9 +106,11 @@ enum class PaintMode : int8_t {
   WeightGPencil = 9,
   /** Curves. */
   SculptCurves = 10,
+  /** Grease Pencil. */
+  SculptGreasePencil = 11,
 
   /** Keep last. */
-  Invalid = 11,
+  Invalid = 12,
 };
 
 #define PAINT_MODE_HAS_BRUSH(mode) !ELEM(mode, PaintMode::SculptUV)

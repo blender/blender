@@ -45,7 +45,7 @@ void SEQ_for_each_callback(ListBase *seqbase, SeqForEachFunc callback, void *use
   seq_for_each_recursive(seqbase, callback, user_data);
 }
 
-VectorSet<Sequence *> SEQ_query_by_reference(Sequence *reference_strip,
+VectorSet<Sequence *> SEQ_query_by_reference(Sequence *seq_reference,
                                              const Scene *scene,
                                              ListBase *seqbase,
                                              void seq_query_func(const Scene *scene,
@@ -54,7 +54,7 @@ VectorSet<Sequence *> SEQ_query_by_reference(Sequence *reference_strip,
                                                                  VectorSet<Sequence *> &strips))
 {
   VectorSet<Sequence *> strips;
-  seq_query_func(scene, reference_strip, seqbase, strips);
+  seq_query_func(scene, seq_reference, seqbase, strips);
   return strips;
 }
 

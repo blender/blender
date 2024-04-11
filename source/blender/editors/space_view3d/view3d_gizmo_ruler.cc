@@ -291,6 +291,7 @@ static bool view3d_ruler_pick(wmGizmoGroup *gzgroup,
       }
     }
   }
+  UNUSED_VARS(dist_best);
 
   *r_co_index = co_index_best;
   return found;

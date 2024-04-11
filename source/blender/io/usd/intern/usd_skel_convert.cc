@@ -372,7 +372,7 @@ void add_skinned_mesh_bindings(const pxr::UsdSkelSkeleton &skel,
   }
 }
 
-}  // End anonymous namespace.
+}  // namespace
 
 namespace blender::io::usd {
 

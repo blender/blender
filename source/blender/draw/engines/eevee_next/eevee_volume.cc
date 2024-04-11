@@ -53,6 +53,7 @@ void VolumeModule::init()
   data_.shadow_steps = (shadow_enabled) ? scene_eval->eevee.volumetric_shadow_samples : 0;
 
   data_.light_clamp = scene_eval->eevee.volumetric_light_clamp;
+  data_.light_clamp = (data_.light_clamp > 0.0) ? data_.light_clamp : 1e20;
 
   use_reprojection_ = (scene_eval->eevee.flag & SCE_EEVEE_TAA_REPROJECTION) != 0;
 }

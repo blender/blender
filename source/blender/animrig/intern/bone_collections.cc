@@ -1207,12 +1207,11 @@ bool armature_bonecoll_is_child_of(const bArmature *armature,
                                    const int potential_child_index)
 {
   /* Check for roots, before we try and access collection_array[-1]. */
-  const bool is_root = armature_bonecoll_is_root(armature, potential_child_index);
-  if (is_root) {
+  if (armature_bonecoll_is_root(armature, potential_child_index)) {
     return potential_parent_index == -1;
   }
   if (potential_parent_index < 0) {
-    return is_root;
+    return false;
   }
 
   const BoneCollection *potential_parent = armature->collection_array[potential_parent_index];

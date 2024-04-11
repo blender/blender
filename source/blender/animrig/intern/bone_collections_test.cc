@@ -916,7 +916,7 @@ TEST_F(ArmatureBoneCollections, bcoll_move_to_parent__root_unroot)
   ASSERT_EQ(6, arm.collection_array_num);
   EXPECT_STREQ(bcoll_root_0->name, arm.collection_array[0]->name);
   EXPECT_STREQ(bcoll_root_1->name, arm.collection_array[1]->name);
-  EXPECT_STREQ(bcoll_r0_child1->name, arm.collection_array[2]->name);  // Became a root.
+  EXPECT_STREQ(bcoll_r0_child1->name, arm.collection_array[2]->name); /* Became a root. */
   EXPECT_STREQ(bcoll_r0_child0->name, arm.collection_array[3]->name);
   EXPECT_STREQ(bcoll_r0_child2->name, arm.collection_array[4]->name);
   EXPECT_STREQ(bcoll_r1_child0->name, arm.collection_array[5]->name);
@@ -941,10 +941,10 @@ TEST_F(ArmatureBoneCollections, bcoll_move_to_parent__root_unroot)
   ASSERT_EQ(2, arm.collection_root_count);
   ASSERT_EQ(6, arm.collection_array_num);
   EXPECT_STREQ(bcoll_root_0->name, arm.collection_array[0]->name);
-  EXPECT_STREQ(bcoll_r0_child1->name, arm.collection_array[1]->name);  // Actually a root.
+  EXPECT_STREQ(bcoll_r0_child1->name, arm.collection_array[1]->name); /* Actually a root. */
   EXPECT_STREQ(bcoll_r0_child0->name, arm.collection_array[2]->name);
   EXPECT_STREQ(bcoll_r0_child2->name, arm.collection_array[3]->name);
-  EXPECT_STREQ(bcoll_root_1->name, arm.collection_array[4]->name);  // Became a child.
+  EXPECT_STREQ(bcoll_root_1->name, arm.collection_array[4]->name); /* Became a child. */
   EXPECT_STREQ(bcoll_r1_child0->name, arm.collection_array[5]->name);
 
   EXPECT_EQ(2, arm.collection_array[0]->child_index);

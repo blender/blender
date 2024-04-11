@@ -689,6 +689,9 @@ static int paintcurve_draw_exec(bContext *C, wmOperator * /*op*/)
     case PaintMode::GPencil:
       name = "GREASE_PENCIL_OT_brush_stroke";
       break;
+    case PaintMode::SculptGreasePencil:
+      name = "GREASE_PENCIL_OT_sculpt_paint";
+      break;
     default:
       return OPERATOR_PASS_THROUGH;
   }

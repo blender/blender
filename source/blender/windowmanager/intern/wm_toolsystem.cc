@@ -665,6 +665,7 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
         case CTX_MODE_PAINT_GREASE_PENCIL:
           return "builtin_brush.Draw";
         case CTX_MODE_SCULPT_GPENCIL_LEGACY:
+        case CTX_MODE_SCULPT_GREASE_PENCIL:
           return "builtin_brush.Push";
         case CTX_MODE_WEIGHT_GPENCIL_LEGACY:
           return "builtin_brush.Weight";

@@ -765,7 +765,7 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 #if defined __GNUC__
 #  define RNA_warning(format, args...) _RNA_warning("%s: " format "\n", __func__, ##args)
 #elif defined(_MSVC_TRADITIONAL) && \
-    !_MSVC_TRADITIONAL  // The "new preprocessor" is enabled via /Zc:preprocessor
+    !_MSVC_TRADITIONAL /* The "new preprocessor" is enabled via `/Zc:preprocessor`. */
 #  define RNA_warning(format, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, ##__VA_ARGS__)
 #else
 #  define RNA_warning(format, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, __VA_ARGS__)

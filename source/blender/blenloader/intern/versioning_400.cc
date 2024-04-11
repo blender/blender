@@ -3145,7 +3145,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 13)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 14)) {
     update_paint_modes_for_brush_assets(*bmain);
   }
 

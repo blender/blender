@@ -468,7 +468,10 @@ std::string BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRef)> uni
  * \param name_offset: should be calculated using `offsetof(structname, membername)`
  * macro from `stddef.h`
  */
-static bool uniquename_find_dupe(ListBase *list, void *vlink, const char *name, int name_offset)
+static bool uniquename_find_dupe(const ListBase *list,
+                                 void *vlink,
+                                 const char *name,
+                                 int name_offset)
 {
   for (Link *link = static_cast<Link *>(list->first); link; link = link->next) {
     if (link != vlink) {
@@ -483,7 +486,7 @@ static bool uniquename_find_dupe(ListBase *list, void *vlink, const char *name, 
 }
 
 struct UniqueNameCheckData {
-  ListBase *lb;
+  const ListBase *lb;
   void *vlink;
   int name_offset;
 };
@@ -495,7 +498,7 @@ static bool uniquename_unique_check(void *arg, const char *name)
   return uniquename_find_dupe(data->lb, data->vlink, name, data->name_offset);
 }
 
-void BLI_uniquename(ListBase *list,
+void BLI_uniquename(const ListBase *list,
                     void *vlink,
                     const char *defname,
                     char delim,

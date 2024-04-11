@@ -108,6 +108,12 @@ if(WITH_OPENSUBDIV)
 endif()
 add_bundled_libraries(opensubdiv/lib)
 
+if(WITH_VULKAN_BACKEND)
+  find_package(MoltenVK REQUIRED)
+  find_package(ShaderC REQUIRED)
+  find_package(Vulkan REQUIRED)
+endif()
+
 if(WITH_CODEC_SNDFILE)
   find_package(SndFile)
   find_library(_sndfile_FLAC_LIBRARY NAMES flac HINTS ${LIBDIR}/sndfile/lib)
