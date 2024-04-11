@@ -14,6 +14,7 @@
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 
 #pragma BLENDER_REQUIRE(eevee_volume_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
@@ -25,6 +26,7 @@ vec3 volume_scatter_light_eval(
 {
   LightData light = light_buf[l_idx];
 
+  /* TODO(fclem): Own light list for volume without lights that have 0 volume influence. */
   if (light.power[LIGHT_VOLUME] == 0.0) {
     return vec3(0);
   }
@@ -41,14 +43,15 @@ vec3 volume_scatter_light_eval(
     visibility *= shadow_sample(is_directional, shadow_atlas_tx, shadow_tilemaps_tx, light, P)
                       .light_visibilty;
   }
-
+  visibility *= volume_phase_function(-V, lv.L, s_anisotropy);
   if (visibility < LIGHT_ATTENUATION_THRESHOLD) {
     return vec3(0);
   }
 
-  vec3 Li = volume_light(light, is_directional, lv) *
+  vec3 Li = volume_light(light, is_directional, lv) * visibility *
             volume_shadow(light, is_directional, P, lv, extinction_tx);
-  return Li * visibility * volume_phase_function(-V, lv.L, s_anisotropy);
+
+  return colorspace_brightness_clamp_max(Li, uniform_buf.volumes.light_clamp);
 }
 
 #endif
