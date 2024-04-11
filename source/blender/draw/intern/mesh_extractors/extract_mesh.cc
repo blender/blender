@@ -64,24 +64,11 @@ static const MeshExtract *mesh_extract_override_hq_normals(const MeshExtract *ex
   return extractor;
 }
 
-static const MeshExtract *mesh_extract_override_single_material(const MeshExtract *extractor)
-{
-  if (extractor == &extract_tris) {
-    return &extract_tris_single_mat;
-  }
-  return extractor;
-}
-
 const MeshExtract *mesh_extract_override_get(const MeshExtract *extractor,
-                                             const bool do_hq_normals,
-                                             const bool do_single_mat)
+                                             const bool do_hq_normals)
 {
   if (do_hq_normals) {
     extractor = mesh_extract_override_hq_normals(extractor);
-  }
-
-  if (do_single_mat) {
-    extractor = mesh_extract_override_single_material(extractor);
   }
 
   return extractor;

@@ -225,8 +225,9 @@ struct SortedFaceData {
   Array<int> tris_num_by_material;
   /**
    * The first triangle index for each face, sorted into slices by material.
+   * May be empty if the mesh only has a single material.
    */
-  Array<int> face_tri_offsets;
+  std::optional<Array<int>> face_tri_offsets;
 };
 
 /**

@@ -611,7 +611,6 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
    */
   const bool do_hq_normals = (scene->r.perf_flag & SCE_PERF_HQ_NORMALS) != 0 ||
                              GPU_use_hq_normals_workaround();
-  const bool override_single_mat = mesh_render_mat_len_get(object, mesh) <= 1;
 
   /* Create an array containing all the extractors that needs to be executed. */
   ExtractorRunDatas extractors;
@@ -621,8 +620,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
 #define EXTRACT_ADD_REQUESTED(type, name) \
   do { \
     if (DRW_##type##_requested(mbuflist->type.name)) { \
-      const MeshExtract *extractor = mesh_extract_override_get( \
-          &extract_##name, do_hq_normals, override_single_mat); \
+      const MeshExtract *extractor = mesh_extract_override_get(&extract_##name, do_hq_normals); \
       extractors.append(extractor); \
     } \
   } while (0)
