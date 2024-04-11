@@ -636,7 +636,7 @@ static void nla_draw_strip_text(AnimData *adt,
   else {
     col[0] = col[1] = col[2] = 255;
   }
-  // Default strip to 100% opacity.
+  /* Default strip to 100% opacity. */
   col[3] = 255;
 
   /* Reduce text opacity if a track is soloed,

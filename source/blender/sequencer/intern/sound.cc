@@ -272,7 +272,7 @@ void *SEQ_sound_equalizermodifier_recreator(Sequence *seq, SequenceModifierData 
 
   SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
 
-  // No Equalizer definition
+  /* No equalizer definition. */
   if (BLI_listbase_is_empty(&semd->graphics)) {
     return sound;
   }
@@ -286,7 +286,7 @@ void *SEQ_sound_equalizermodifier_recreator(Sequence *seq, SequenceModifierData 
   float maxX;
   float interval = SOUND_EQUALIZER_DEFAULT_MAX_FREQ / float(SOUND_EQUALIZER_SIZE_DEFINITION);
 
-  // Visit all equalizer definitions
+  /* Visit all equalizer definitions. */
   LISTBASE_FOREACH (EQCurveMappingData *, mapping, &semd->graphics) {
     eq_mapping = &mapping->curve_mapping;
     BKE_curvemapping_init(eq_mapping);

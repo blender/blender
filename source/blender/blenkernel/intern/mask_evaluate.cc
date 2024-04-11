@@ -643,13 +643,13 @@ static float (*mask_spline_feather_differentiated_points_with_resolution__double
     /* before we transform verts */
     len_base = len_v2v2(bezt_prev->vec[1], bezt_curr->vec[1]);
 
-    // add_v2_v2(bezt_prev->vec[0], point_prev_n);  // not needed
+    // add_v2_v2(bezt_prev->vec[0], point_prev_n);  /* Not needed. */
     add_v2_v2(bezt_prev->vec[1], point_prev_n);
     add_v2_v2(bezt_prev->vec[2], point_prev_n);
 
     add_v2_v2(bezt_curr->vec[0], point_curr_n);
     add_v2_v2(bezt_curr->vec[1], point_curr_n);
-    // add_v2_v2(bezt_curr->vec[2], point_curr_n); // not needed
+    // add_v2_v2(bezt_curr->vec[2], point_curr_n); /* Not needed. */
 
     len_feather = len_v2v2(bezt_prev->vec[1], bezt_curr->vec[1]);
 

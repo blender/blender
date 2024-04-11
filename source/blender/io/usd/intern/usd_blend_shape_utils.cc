@@ -70,7 +70,7 @@ std::string add_unique_name(blender::Set<std::string> &names, const std::string 
   return unique_name;
 }
 
-}  // End anonymous namespace.
+}  // namespace
 
 namespace blender::io::usd {
 

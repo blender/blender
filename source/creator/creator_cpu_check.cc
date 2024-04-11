@@ -54,7 +54,7 @@ static const char *cpu_brand_string()
     __cpuid((int *)(buf + 16), 0x80000003);
     __cpuid((int *)(buf + 32), 0x80000004);
     const char *buf_ptr = buf;
-    // Trim any leading spaces.
+    /* Trim any leading spaces. */
     while (*buf_ptr == ' ') {
       buf_ptr++;
     }
