@@ -911,8 +911,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
 
     /* To avoid unnecessarily reloading static primvars during animation,
      * early out if not first load and this primvar isn't animated. */
-    const bool is_time_varying = primvar_varying_map_.lookup_default(name, false);
-    if (!new_mesh && !is_time_varying) {
+    if (!new_mesh && primvar_varying_map_.contains(name) && !primvar_varying_map_.lookup(name)) {
       continue;
     }
 
