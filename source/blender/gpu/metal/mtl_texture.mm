@@ -2215,8 +2215,14 @@ void gpu::MTLTexture::prepare_internal()
    * bandwidth implications for lossless compression and is considered best-practice.
    *
    * Attachment usage also required for depth-stencil attachment targets, for depth-update support.
+   * NOTE: Emulated atomic textures cannot support render-target usage. For clearing, the backing
+   * buffer is cleared instead.
    */
-  gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
+  if (!((gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_ATOMIC) &&
+        !MTLBackend::get_capabilities().supports_texture_atomics))
+  {
+    gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
+  }
 
   /* Derive maximum number of mip levels by default.
    * TODO(Metal): This can be removed if max mip counts are specified upfront. */
