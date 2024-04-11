@@ -892,8 +892,12 @@ static bool nlastrips_path_rename_fix(ID *owner_id,
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* fix strip's action */
     if (strip->act != nullptr) {
-      is_changed |= fcurves_path_rename_fix(
+      const bool is_changed_action = fcurves_path_rename_fix(
           owner_id, prefix, oldName, newName, oldKey, newKey, &strip->act->curves, verify_paths);
+      if (is_changed_action) {
+        DEG_id_tag_update(&strip->act->id, ID_RECALC_ANIMATION);
+      }
+      is_changed |= is_changed_action;
     }
     /* Ignore own F-Curves, since those are local. */
     /* Check sub-strips (if meta-strips). */
