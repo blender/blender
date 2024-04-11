@@ -1403,6 +1403,10 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         ptr = RNA_pointer_create(tselem->id, &RNA_BoneCollection, te->directdata);
         context = BCONTEXT_DATA;
         break;
+      case TSE_LAYER_COLLECTION:
+        ptr = RNA_pointer_create(tselem->id, &RNA_Collection, te->directdata);
+        context = BCONTEXT_COLLECTION;
+        break;
     }
   }
 
