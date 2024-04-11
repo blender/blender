@@ -1003,13 +1003,10 @@ static int brush_asset_save_as_invoke(bContext *C, wmOperator *op, const wmEvent
 
   /* By default, put the new asset in the same catalog as the existing asset. */
   if (!RNA_struct_property_is_set(op->ptr, "catalog_path")) {
-    const asset_system::CatalogID catalog_id = asset->get_metadata().catalog_id;
-    const asset_system::AssetCatalog *catalog = library.catalog_service().find_catalog(catalog_id);
-    if (catalog == nullptr) {
-      BLI_assert_unreachable();
-      return OPERATOR_CANCELLED;
+    const asset_system::CatalogID &id = asset->get_metadata().catalog_id;
+    if (const asset_system::AssetCatalog *catalog = library.catalog_service().find_catalog(id)) {
+      RNA_string_set(op->ptr, "catalog_path", catalog->path.c_str());
     }
-    RNA_string_set(op->ptr, "catalog_path", catalog->path.c_str());
   }
 
   return WM_operator_props_dialog_popup(C, op, 400, std::nullopt, IFACE_("Save"));
