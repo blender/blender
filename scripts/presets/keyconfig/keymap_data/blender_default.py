@@ -6163,6 +6163,7 @@ def km_edit_curves(params):
          {"properties": [("mode", 'CURVE_SHRINKFATTEN')]}),
         ("curves.cyclic_toggle", {"type": 'C', "value": 'PRESS', "alt": True}, None),
         ("curves.handle_type_set", {"type": 'V', "value": 'PRESS'}, None),
+        op_menu("VIEW3D_MT_edit_curves_add", {"type": 'A', "value": 'PRESS', "shift": True}),
     ])
 
     return keymap
