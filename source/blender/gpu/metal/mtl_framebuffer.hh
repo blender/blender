@@ -155,7 +155,7 @@ class MTLFrameBuffer : public FrameBuffer {
 
  protected:
   void subpass_transition_impl(const GPUAttachmentState /*depth_attachment_state*/,
-                               Span<GPUAttachmentState> /*color_attachment_states*/) override{};
+                               Span<GPUAttachmentState> color_attachment_states) override;
 
  public:
   void apply_state();
