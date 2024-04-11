@@ -1966,8 +1966,12 @@ void BKE_fcurve_merge_duplicate_keys(FCurve *fcu, const int sel_flag, const bool
 
 void BKE_fcurve_deduplicate_keys(FCurve *fcu)
 {
+  if (fcu->totvert < 2) {
+    return;
+  }
+  
   BLI_assert_msg(fcu->bezt, "this function only works with regular (non-sampled) FCurves");
-  if (fcu->totvert < 2 || fcu->bezt == nullptr) {
+  if (fcu->bezt == nullptr) {
     return;
   }
 
