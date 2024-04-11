@@ -467,7 +467,6 @@ void gpu_shader_create_info_init()
                           GPU_OS_ANY,
                           GPU_DRIVER_ANY,
                           GPU_BACKEND_OPENGL) ||
-      GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL) ||
       GPU_crappy_amd_driver())
   {
     draw_modelmat = draw_modelmat_legacy;

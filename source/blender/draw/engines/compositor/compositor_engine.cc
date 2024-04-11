@@ -276,12 +276,6 @@ static void compositor_engine_draw(void *data)
      * the GPU for extended periods of time and sub-optimally schedule work for execution. */
     GPU_flush();
   }
-  else {
-    /* Realtime Compositor is not supported on macOS with the OpenGL backend. */
-    blender::StringRef("Viewport compositor is only supported on MacOS with the Metal Backend.")
-        .copy(compositor_data->info, GPU_INFO_SIZE);
-    return;
-  }
 #endif
 
   /* Execute Compositor render commands. */

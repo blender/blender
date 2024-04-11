@@ -3259,14 +3259,6 @@ void DRW_gpu_context_enable_ex(bool /*restore*/)
 void DRW_gpu_context_disable_ex(bool restore)
 {
   if (DST.system_gpu_context != nullptr) {
-#ifdef __APPLE__
-    /* Need to flush before disabling draw context, otherwise it does not
-     * always finish drawing and viewport can be empty or partially drawn */
-    if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
-      GPU_flush();
-    }
-#endif
-
     if (BLI_thread_is_main() && restore) {
       wm_window_reset_drawable();
     }
