@@ -1332,7 +1332,8 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
                       ((*static_cast<bool *>(socket_value)) ? TIP_("True") : TIP_("False")));
   }
   else if (socket_type.is<float4x4>()) {
-    const float4x4 &value = *static_cast<const float4x4 *>(socket_value);
+    /* Transpose to be able to print row by row. */
+    const float4x4 value = math::transpose(*static_cast<const float4x4 *>(socket_value));
     ss << value[0] << ",\n";
     ss << value[1] << ",\n";
     ss << value[2] << ",\n";
