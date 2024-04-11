@@ -145,12 +145,6 @@ void USDPrimReader::set_props(ID *id, const pxr::UsdPrim &prim, const double mot
     return;
   }
 
-  IDProperty *idgroup = IDP_GetProperties(id);
-
-  if (!idgroup) {
-    return;
-  }
-
   bool all_custom_attrs = (attr_import_mode == USD_ATTR_IMPORT_ALL);
 
   pxr::UsdAttributeVector attribs = prim.GetAuthoredAttributes();
@@ -171,6 +165,13 @@ void USDPrimReader::set_props(ID *id, const pxr::UsdPrim &prim, const double mot
 
     if (!all_custom_attrs && !is_user_prop) {
       continue;
+    }
+
+    IDProperty* idgroup = IDP_EnsureProperties(id);
+
+    if (!idgroup) {
+      BLI_assert_unreachable();
+      break;
     }
 
     /* When importing user properties, strip the namespace. */
