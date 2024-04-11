@@ -278,8 +278,8 @@ class DeferredLayer : DeferredLayerBase {
   void render(View &main_view,
               View &render_view,
               Framebuffer &prepass_fb,
-              Framebuffer &gbuffer_fb,
               Framebuffer &combined_fb,
+              Framebuffer &gbuffer_fb,
               int2 extent,
               RayTraceBuffer &rt_buffer,
               bool is_first_pass);

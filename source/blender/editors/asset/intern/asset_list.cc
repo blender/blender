@@ -352,10 +352,10 @@ void storage_tag_main_data_dirty()
   }
 }
 
-void storage_id_remap(ID *id_new, ID *id_old)
+void storage_id_remap(ID *id_old, ID *id_new)
 {
   for (AssetList &list : global_storage().values()) {
-    list.remap_id(id_new, id_old);
+    list.remap_id(id_old, id_new);
   }
 }
 
