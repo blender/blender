@@ -1066,18 +1066,21 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 
 void UI_theme_init_default()
 {
-  /* we search for the theme with name Default */
+  /* We search for the theme with the default name. */
   bTheme *btheme = static_cast<bTheme *>(
-      BLI_findstring(&U.themes, "Default", offsetof(bTheme, name)));
+      BLI_findstring(&U.themes, U_theme_default.name, offsetof(bTheme, name)));
   if (btheme == nullptr) {
     btheme = MEM_cnew<bTheme>(__func__);
-    BLI_addtail(&U.themes, btheme);
+    BLI_addhead(&U.themes, btheme);
   }
+
+  /* Must be first, see `U.themes` doc-string. */
+  BLI_listbase_rotate_first(&U.themes, btheme);
 
   UI_SetTheme(0, 0); /* make sure the global used in this file is set */
 
   const int active_theme_area = btheme->active_theme_area;
-  memcpy(btheme, &U_theme_default, sizeof(*btheme));
+  MEMCPY_STRUCT_AFTER(btheme, &U_theme_default, name);
   btheme->active_theme_area = active_theme_area;
 }
 
