@@ -153,7 +153,8 @@ AssetItemTree build_filtered_all_catalog_tree(
 
   return {std::move(catalogs_with_node_assets),
           std::move(assets_per_path),
-          std::move(unassigned_assets)};
+          std::move(unassigned_assets),
+          false};
 }
 
 }  // namespace blender::ed::asset
