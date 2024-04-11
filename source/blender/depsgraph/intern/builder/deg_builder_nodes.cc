@@ -968,7 +968,13 @@ void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
 
   BuilderWalkUserData data;
   data.builder = this;
+
+  /* Temporarily set the collection visibility to false, relying on the visibility flushing code
+   * to flush the visibility from a modifier into collections it depends on. */
+  const bool is_current_parent_collection_visible = is_parent_collection_visible_;
+  is_parent_collection_visible_ = false;
   BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
+  is_parent_collection_visible_ = is_current_parent_collection_visible;
 }
 
 void DepsgraphNodeBuilder::build_object_data(Object *object)

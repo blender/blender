@@ -2089,6 +2089,16 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
     fragment_outputs.append(mtl_frag_out);
   }
 
+  /** Identify support for tile inputs. */
+  const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);
+  if (is_tile_based_arch) {
+    supports_native_tile_inputs = true;
+  }
+  else {
+    /* NOTE: If emulating tile input reads, we must ensure we also expose position data. */
+    supports_native_tile_inputs = false;
+  }
+
   /* Fragment tile inputs. */
   for (const shader::ShaderCreateInfo::SubpassIn &frag_tile_in : create_info_->subpass_inputs_) {
 
@@ -2107,6 +2117,51 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
     mtl_frag_in.raster_order_group = frag_tile_in.raster_order_group;
 
     fragment_tile_inputs.append(mtl_frag_in);
+
+    /* If we do not support native tile inputs, generate an image-binding per input. */
+    if (!supports_native_tile_inputs) {
+      /* Determine type: */
+      bool is_layered_fb = bool(create_info_->builtins_ & BuiltinBits::LAYER);
+      /* Start with invalid value to detect failure cases. */
+      ImageType image_type = ImageType::FLOAT_BUFFER;
+      switch (frag_tile_in.type) {
+        case Type::FLOAT:
+          image_type = is_layered_fb ? ImageType::FLOAT_2D_ARRAY : ImageType::FLOAT_2D;
+          break;
+        case Type::INT:
+          image_type = is_layered_fb ? ImageType::INT_2D_ARRAY : ImageType::INT_2D;
+          break;
+        case Type::UINT:
+          image_type = is_layered_fb ? ImageType::UINT_2D_ARRAY : ImageType::UINT_2D;
+          break;
+        default:
+          break;
+      }
+      BLI_assert(image_type != ImageType::FLOAT_BUFFER);
+
+      /* Generate texture binding resource. */
+      MSLTextureResource msl_image;
+      msl_image.stage = ShaderStage::FRAGMENT;
+      msl_image.type = image_type;
+      msl_image.name = frag_tile_in.name + "_subpass_img";
+      msl_image.access = MSLTextureSamplerAccess::TEXTURE_ACCESS_READ;
+      msl_image.slot = texture_slot_id++;
+      /* WATCH: We don't have a great place to generate the image bindings.
+       * So we will use the subpass binding index and check if it collides with an existing
+       * binding. */
+      msl_image.location = frag_tile_in.index;
+      msl_image.is_texture_sampler = false;
+      BLI_assert(msl_image.slot < MTL_MAX_TEXTURE_SLOTS);
+      BLI_assert(msl_image.location < MTL_MAX_TEXTURE_SLOTS);
+
+      /* Check existing samplers. */
+      for (const auto &tex : texture_samplers) {
+        BLI_assert(tex.location != msl_image.location);
+      }
+
+      texture_samplers.append(msl_image);
+      max_tex_bind_index = max_ii(max_tex_bind_index, msl_image.slot);
+    }
   }
 
   /* Transform feedback. */
@@ -3043,10 +3098,31 @@ std::string MSLGeneratorInterface::generate_msl_global_uniform_population(Shader
 std::string MSLGeneratorInterface::generate_msl_fragment_tile_input_population()
 {
   std::stringstream out;
-  for (const MSLFragmentTileInputAttribute &tile_input : this->fragment_tile_inputs) {
-    out << "\t" << get_shader_stage_instance_name(ShaderStage::FRAGMENT) << "." << tile_input.name
-        << " = "
-        << "fragment_tile_in." << tile_input.name << ";" << std::endl;
+
+  /* Native tile read is supported on tile-based architectures (Apple Silicon). */
+  if (supports_native_tile_inputs) {
+    for (const MSLFragmentTileInputAttribute &tile_input : this->fragment_tile_inputs) {
+      out << "\t" << get_shader_stage_instance_name(ShaderStage::FRAGMENT) << "."
+          << tile_input.name << " = "
+          << "fragment_tile_in." << tile_input.name << ";" << std::endl;
+    }
+  }
+  else {
+    for (const MSLFragmentTileInputAttribute &tile_input : this->fragment_tile_inputs) {
+      /* Get read swizzle mask. */
+      char swizzle[] = "xyzw";
+      swizzle[to_component_count(tile_input.type)] = '\0';
+
+      bool is_layered_fb = bool(create_info_->builtins_ & BuiltinBits::LAYER);
+      std::string texel_co = (is_layered_fb) ?
+                                 "ivec3(ivec2(v_in._default_position_.xy), int(v_in.gpu_Layer))" :
+                                 "ivec2(v_in._default_position_.xy)";
+
+      out << "\t" << get_shader_stage_instance_name(ShaderStage::FRAGMENT) << "."
+          << tile_input.name << " = texelFetch("
+          << get_shader_stage_instance_name(ShaderStage::FRAGMENT) << "." << tile_input.name
+          << "_subpass_img, " << texel_co << ", 0)." << swizzle << ";\n";
+    }
   }
   return out.str();
 }

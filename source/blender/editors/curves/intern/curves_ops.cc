@@ -63,9 +63,11 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "GEO_join_geometries.hh"
 #include "GEO_reverse_uv_sampler.hh"
 #include "GEO_set_curve_type.hh"
 #include "GEO_subdivide_curves.hh"
+#include "GEO_transform.hh"
 
 /**
  * The code below uses a suffix naming convention to indicate the coordinate space:
@@ -1527,6 +1529,169 @@ static void CURVES_OT_subdivide(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/** Add new curves primitive to an existing curves object in edit mode. */
+static void append_primitive_curve(bContext *C,
+                                   Curves &curves_id,
+                                   CurvesGeometry new_curves,
+                                   wmOperator &op)
+{
+  const int new_points_num = new_curves.points_num();
+  const int new_curves_num = new_curves.curves_num();
+
+  /* Create geometry sets so that generic join code can be used. */
+  bke::GeometrySet old_geometry = bke::GeometrySet::from_curves(
+      &curves_id, bke::GeometryOwnershipType::ReadOnly);
+  bke::GeometrySet new_geometry = bke::GeometrySet::from_curves(
+      bke::curves_new_nomain(std::move(new_curves)));
+
+  /* Transform primitive according to settings. */
+  float3 location;
+  float3 rotation;
+  float3 scale;
+  object::add_generic_get_opts(C, &op, 'Z', location, rotation, scale, nullptr, nullptr, nullptr);
+  const float4x4 transform = math::from_loc_rot_scale<float4x4>(
+      location, math::EulerXYZ(rotation), scale);
+  geometry::transform_geometry(new_geometry, transform);
+
+  bke::GeometrySet joined_geometry = geometry::join_geometries({old_geometry, new_geometry}, {});
+  Curves *joined_curves_id = joined_geometry.get_curves_for_write();
+  CurvesGeometry &dst_curves = curves_id.geometry.wrap();
+  dst_curves = std::move(joined_curves_id->geometry.wrap());
+
+  /* Only select the new curves. */
+  const bke::AttrDomain selection_domain = bke::AttrDomain(curves_id.selection_domain);
+  const int new_element_num = selection_domain == bke::AttrDomain::Point ? new_points_num :
+                                                                           new_curves_num;
+  foreach_selection_attribute_writer(
+      dst_curves, selection_domain, [&](bke::GSpanAttributeWriter &selection) {
+        fill_selection_false(selection.span.drop_back(new_element_num));
+        fill_selection_true(selection.span.take_back(new_element_num));
+      });
+
+  dst_curves.tag_topology_changed();
+}
+
+namespace add_circle {
+
+static CurvesGeometry generate_circle_primitive(const float radius)
+{
+  CurvesGeometry curves{4, 1};
+
+  MutableSpan<int> offsets = curves.offsets_for_write();
+  offsets[0] = 0;
+  offsets[1] = 4;
+
+  curves.fill_curve_types(CURVE_TYPE_BEZIER);
+  curves.cyclic_for_write().fill(true);
+  curves.handle_types_left_for_write().fill(BEZIER_HANDLE_AUTO);
+  curves.handle_types_right_for_write().fill(BEZIER_HANDLE_AUTO);
+  curves.resolution_for_write().fill(12);
+
+  MutableSpan<float3> positions = curves.positions_for_write();
+  positions[0] = float3(-radius, 0, 0);
+  positions[1] = float3(0, radius, 0);
+  positions[2] = float3(radius, 0, 0);
+  positions[3] = float3(0, -radius, 0);
+
+  /* Ensure these attributes exist. */
+  curves.handle_positions_left_for_write();
+  curves.handle_positions_right_for_write();
+
+  curves.calculate_bezier_auto_handles();
+
+  return curves;
+}
+
+static int exec(bContext *C, wmOperator *op)
+{
+  Object *object = CTX_data_edit_object(C);
+  Curves *active_curves_id = static_cast<Curves *>(object->data);
+
+  const float radius = RNA_float_get(op->ptr, "radius");
+  append_primitive_curve(C, *active_curves_id, generate_circle_primitive(radius), *op);
+
+  DEG_id_tag_update(&active_curves_id->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, active_curves_id);
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace add_circle
+
+static void CURVES_OT_add_circle(wmOperatorType *ot)
+{
+  ot->name = "Add Circle";
+  ot->idname = __func__;
+  ot->description = "Add new circle curve";
+
+  ot->exec = add_circle::exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  object::add_unit_props_radius(ot);
+  object::add_generic_props(ot, true);
+}
+
+namespace add_bezier {
+
+static CurvesGeometry generate_bezier_primitive(const float radius)
+{
+  CurvesGeometry curves{2, 1};
+
+  MutableSpan<int> offsets = curves.offsets_for_write();
+  offsets[0] = 0;
+  offsets[1] = 2;
+
+  curves.fill_curve_types(CURVE_TYPE_BEZIER);
+  curves.handle_types_left_for_write().fill(BEZIER_HANDLE_ALIGN);
+  curves.handle_types_right_for_write().fill(BEZIER_HANDLE_ALIGN);
+  curves.resolution_for_write().fill(12);
+
+  MutableSpan<float3> positions = curves.positions_for_write();
+  MutableSpan<float3> left_handles = curves.handle_positions_left_for_write();
+  MutableSpan<float3> right_handles = curves.handle_positions_right_for_write();
+
+  left_handles[0] = float3(-1.5f, -0.5, 0) * radius;
+  positions[0] = float3(-1.0f, 0, 0) * radius;
+  right_handles[0] = float3(-0.5f, 0.5f, 0) * radius;
+
+  left_handles[1] = float3(0, 0, 0) * radius;
+  positions[1] = float3(1.0f, 0, 0) * radius;
+  right_handles[1] = float3(2.0f, 0, 0) * radius;
+
+  return curves;
+}
+
+static int exec(bContext *C, wmOperator *op)
+{
+  Object *object = CTX_data_edit_object(C);
+  Curves *active_curves_id = static_cast<Curves *>(object->data);
+
+  const float radius = RNA_float_get(op->ptr, "radius");
+  append_primitive_curve(C, *active_curves_id, generate_bezier_primitive(radius), *op);
+
+  DEG_id_tag_update(&active_curves_id->id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, active_curves_id);
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace add_bezier
+
+static void CURVES_OT_add_bezier(wmOperatorType *ot)
+{
+  ot->name = "Add Bezier";
+  ot->idname = __func__;
+  ot->description = "Add new bezier curve";
+
+  ot->exec = add_bezier::exec;
+  ot->poll = editable_curves_in_edit_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  object::add_unit_props_radius(ot);
+  object::add_generic_props(ot, true);
+}
+
 namespace set_handle_type {
 
 static int exec(bContext *C, wmOperator *op)
@@ -1608,6 +1773,8 @@ void operatortypes_curves()
   WM_operatortype_append(CURVES_OT_curve_type_set);
   WM_operatortype_append(CURVES_OT_switch_direction);
   WM_operatortype_append(CURVES_OT_subdivide);
+  WM_operatortype_append(CURVES_OT_add_circle);
+  WM_operatortype_append(CURVES_OT_add_bezier);
   WM_operatortype_append(CURVES_OT_handle_type_set);
 }
 
