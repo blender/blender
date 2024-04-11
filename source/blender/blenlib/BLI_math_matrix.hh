@@ -1669,7 +1669,7 @@ template<typename T>
   MatBase<T, 4, 4> result = mat;
   const bool is_perspective = mat[2][3] == -1.0f;
   const bool is_perspective_infinite = mat[2][2] == -1.0f;
-  if (is_perspective | is_perspective_infinite) {
+  if (is_perspective || is_perspective_infinite) {
     result[2][0] -= mat[0][0] * offset.x / math::length(float3(mat[0][0], mat[1][0], mat[2][0]));
     result[2][1] -= mat[1][1] * offset.y / math::length(float3(mat[0][1], mat[1][1], mat[2][1]));
   }

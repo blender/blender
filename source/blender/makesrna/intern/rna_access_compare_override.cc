@@ -498,7 +498,7 @@ static bool rna_property_override_operation_store(Main *bmain,
     }
   }
 
-  if (ptr_storage != nullptr && prop_storage->magic == RNA_MAGIC &&
+  if ((prop_storage->magic == RNA_MAGIC) &&
       !ELEM(prop_storage->override_store, nullptr, override_store))
   {
     override_store = nullptr;
