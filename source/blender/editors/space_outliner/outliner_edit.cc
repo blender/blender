@@ -2340,7 +2340,7 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "do_recursive",
-                  false,
+                  true,
                   "Recursive Delete",
                   "Recursively check for indirectly unused data-blocks, ensuring that no orphaned "
                   "data-blocks remain after execution");
