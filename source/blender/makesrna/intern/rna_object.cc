@@ -1120,6 +1120,8 @@ static int rna_Object_active_material_index_get(PointerRNA *ptr)
 static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
+
+  value = std::max(std::min(value, ob->totcol - 1), 0);
   ob->actcol = value + 1;
 
   if (ob->type == OB_MESH) {
