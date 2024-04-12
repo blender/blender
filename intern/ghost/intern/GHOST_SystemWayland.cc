@@ -3852,6 +3852,7 @@ static void pointer_handle_axis_value120(void * /*data*/,
    * Nevertheless, we might want to support this. */
   CLOG_INFO(LOG, 2, "axis_value120 (axis=%u, value120=%d)", axis, value120);
 }
+/* NOTE: this seems to require `wl_seat_interface.verson >= 9`. */
 #ifdef WL_POINTER_AXIS_RELATIVE_DIRECTION_ENUM /* Requires WAYLAND 1.22 or newer. */
 static void pointer_handle_axis_relative_direction(void *data,
                                                    wl_pointer * /*wl_pointer*/,
@@ -6237,7 +6238,13 @@ static void gwl_registry_wl_seat_add(GWL_Display *display, const GWL_RegisteryAd
 
   seat->data_source = new GWL_DataSource;
   seat->wl.seat = static_cast<wl_seat *>(
-      wl_registry_bind(display->wl.registry, params->name, &wl_seat_interface, 5));
+      wl_registry_bind(display->wl.registry,
+                       params->name,
+                       &wl_seat_interface,
+                       /* NOTE: version 9 is significant because it's required
+                        * for #wl_pointer_listener::axis_relative_direction to be called.
+                        * Otherwise version 5 seems sufficient. */
+                       std::clamp(params->version, 5u, 9u)));
   display->seats.push_back(seat);
   wl_seat_add_listener(seat->wl.seat, &seat_listener, seat);
   gwl_registry_entry_add(display, params, static_cast<void *>(seat));
