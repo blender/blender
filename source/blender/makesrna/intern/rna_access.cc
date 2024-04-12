@@ -2158,6 +2158,11 @@ static bool rna_property_editable_do(const PointerRNA *ptr,
   return true;
 }
 
+bool RNA_property_is_runtime(const PropertyRNA *prop)
+{
+  return prop->flag_internal & PROP_INTERN_RUNTIME;
+}
+
 bool RNA_property_editable(const PointerRNA *ptr, PropertyRNA *prop)
 {
   return rna_property_editable_do(ptr, prop, -1, nullptr);
