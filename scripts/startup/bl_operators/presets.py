@@ -57,6 +57,25 @@ class AddPresetBase:
     )
 
     @staticmethod
+    def _call_pre_or_post_cb(fn, context, filepath):
+        # Allow "None" so the caller doesn't have to assign a variable and check it.
+        if fn is None:
+            return
+
+        # Support a `filepath` argument, optional for backwards compatibility.
+        fn_arg_count = getattr(getattr(fn, "__code__", None), "co_argcount", None)
+        if fn_arg_count == 2:
+            args = (context, filepath)
+        else:
+            print("Deprecated since Blender v4.2, a filepath argument should be included in:", fn)
+            args = (context, )
+
+        try:
+            fn(*args)
+        except BaseException as ex:
+            print("Internal error running", fn, str(ex))
+
+    @staticmethod
     def as_filename(name):  # could reuse for other presets
 
         # lazy init maketrans
@@ -80,8 +99,7 @@ class AddPresetBase:
         import os
         from bpy.utils import is_path_builtin
 
-        if hasattr(self, "pre_cb"):
-            self.pre_cb(context)
+        self._call_pre_or_post_cb(getattr(preset_class, "pre_cb", None), context, filepath)
 
         preset_menu_class = getattr(bpy.types, self.preset_menu)
 
@@ -196,8 +214,7 @@ class AddPresetBase:
             # XXX, stupid!
             preset_menu_class.bl_label = "Presets"
 
-        if hasattr(self, "post_cb"):
-            self.post_cb(context)
+        self._call_pre_or_post_cb(getattr(self, "post_cb", None), context, filepath)
 
         return {'FINISHED'}
 
@@ -254,8 +271,7 @@ class ExecutePreset(Operator):
             import rna_xml
             rna_xml.xml_file_run(context, filepath, preset_class.preset_xml_map)
 
-        if hasattr(preset_class, "post_cb"):
-            preset_class.post_cb(context)
+        AddPresetBase._call_pre_or_post_cb(getattr(preset_class, "post_cb", None), context, filepath)
 
         return {'FINISHED'}
 
@@ -589,7 +605,7 @@ class RemovePresetInterfaceTheme(AddPresetBase, Operator):
     def invoke(self, context, event):
         return context.window_manager.invoke_confirm(self, event, title="Remove Custom Theme", confirm_text="Delete")
 
-    def post_cb(self, context):
+    def post_cb(self, _context, _filepath):
         # Without this, the name & colors are kept after removing the theme.
         # Even though the theme is removed from the list, it's seems like a bug to keep it displayed after removal.
         bpy.ops.preferences.reset_default_theme()
@@ -679,13 +695,13 @@ class RemovePresetKeyconfig(AddPresetBase, Operator):
             return False
         return True
 
-    def pre_cb(self, context):
-        keyconfigs = bpy.context.window_manager.keyconfigs
+    def pre_cb(self, context, _filepath):
+        keyconfigs = context.window_manager.keyconfigs
         preset_menu_class = getattr(bpy.types, self.preset_menu)
         preset_menu_class.bl_label = keyconfigs.active.name
 
-    def post_cb(self, context):
-        keyconfigs = bpy.context.window_manager.keyconfigs
+    def post_cb(self, context, _filepath):
+        keyconfigs = context.window_manager.keyconfigs
         keyconfigs.remove(keyconfigs.active)
 
     def invoke(self, context, event):

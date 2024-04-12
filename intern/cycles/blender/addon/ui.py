@@ -21,7 +21,7 @@ class CyclesPresetPanel(PresetPanel, Panel):
     preset_operator = "script.execute_preset"
 
     @staticmethod
-    def post_cb(context):
+    def post_cb(context, _filepath):
         # Modify an arbitrary built-in scene property to force a depsgraph
         # update, because add-on properties don't. (see #62325)
         render = context.scene.render
