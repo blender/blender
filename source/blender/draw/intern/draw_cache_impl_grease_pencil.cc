@@ -631,9 +631,10 @@ static void grease_pencil_geom_batch_ensure(Object &object,
                        cols_slice[idx]);
       }
 
-      if (is_cyclic && points.size() > 1) {
+      if (is_cyclic) {
         const int idx = points.size() + 1;
-        const float u_stroke = u_scale * lengths[points.size() - 1] + u_translation;
+        const float u = points.size() > 1 ? lengths[points.size() - 1] : 0.0f;
+        const float u_stroke = u_scale * u + u_translation;
         populate_point(verts_range,
                        curve_i,
                        start_caps[curve_i],
