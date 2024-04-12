@@ -843,7 +843,7 @@ static bool rna_Property_is_registered_optional_get(PointerRNA *ptr)
 static bool rna_Property_is_runtime_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
-  return (prop->flag_internal & PROP_INTERN_RUNTIME) != 0;
+  return RNA_property_is_runtime(prop);
 }
 
 static bool rna_BoolProperty_default_get(PointerRNA *ptr)

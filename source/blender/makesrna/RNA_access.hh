@@ -288,6 +288,11 @@ int RNA_property_enum_bitflag_identifiers(
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *value);
 
+/**
+ * A property is a runtime property if the PROP_INTERN_RUNTIME flag is set on it.
+ */
+bool RNA_property_is_runtime(const PropertyRNA *prop);
+
 bool RNA_property_editable(const PointerRNA *ptr, PropertyRNA *prop);
 /**
  * Version of #RNA_property_editable that tries to return additional info in \a r_info
