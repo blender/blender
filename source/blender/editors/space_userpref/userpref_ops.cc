@@ -706,7 +706,7 @@ static int preferences_extension_repo_upgrade_exec(bContext *C, wmOperator * /*o
 
 static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
 {
-  ot->name = "Update Repository";
+  ot->name = "Install Available Updates for Repository";
   ot->idname = "PREFERENCES_OT_extension_repo_upgrade";
   ot->description = "Update any outdated extensions for the active extension repository";
 
