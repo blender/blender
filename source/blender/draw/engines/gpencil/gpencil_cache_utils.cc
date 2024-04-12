@@ -540,7 +540,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
 
   const float vert_col_opacity = (override_vertcol) ?
                                      (is_vert_col_mode ? pd->vertex_paint_opacity : 0.0f) :
-                                     pd->vertex_paint_opacity;
+                                     (pd->is_render ? 1.0f : pd->vertex_paint_opacity);
   /* Negate thickness sign to tag that strokes are in screen space.
    * Convert to world units (by default, 1 meter = 1000 pixels). */
   const float thickness_scale = (is_screenspace) ? -1.0f : 1.0f / 1000.0f;
