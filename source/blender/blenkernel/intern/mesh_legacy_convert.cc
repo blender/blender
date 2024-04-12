@@ -2290,7 +2290,7 @@ static bool is_auto_smooth_node_tree(const bNodeTree &group)
   }
   if (static_cast<bNodeSocket *>(nodes[4]->inputs.last)
           ->default_value_typed<bNodeSocketValueBoolean>()
-          ->value != true)
+          ->value != 1)
   {
     return false;
   }
