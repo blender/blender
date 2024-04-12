@@ -653,6 +653,8 @@ class SavePresetInterfaceTheme(AddPresetBase, Operator):
             traceback.print_exc()
             return {'CANCELLED'}
 
+        context.preferences.themes[0].filepath = filepath
+
         return {'FINISHED'}
 
     def invoke(self, context, event):

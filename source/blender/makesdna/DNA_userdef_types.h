@@ -493,6 +493,16 @@ typedef struct bTheme {
 
   /* NOTE: Values after `name` are copied when resetting the default theme. */
 
+  /**
+   * The file-path for the preset that was loaded into this theme.
+   *
+   * This is needed so it's possible to know if updating or removing a theme preset
+   * should apply changes to the current theme.
+   *
+   * #FILE_MAX.
+   */
+  char filepath[1024];
+
   ThemeUI tui;
 
   /**

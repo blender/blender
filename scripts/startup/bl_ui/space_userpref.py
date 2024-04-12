@@ -863,18 +863,34 @@ class USERPREF_MT_interface_theme_presets(Menu):
     def reset_cb(context):
         bpy.ops.preferences.reset_default_theme()
 
+    @staticmethod
+    def post_cb(context, filepath):
+        context.preferences.themes[0].filepath = filepath
+
 
 class USERPREF_PT_theme(ThemePanel, Panel):
     bl_label = "Themes"
     bl_options = {'HIDE_HEADER'}
 
-    def draw(self, _context):
+    def draw(self, context):
+        import os
+
         layout = self.layout
 
         split = layout.split(factor=0.6)
 
         row = split.row(align=True)
-        row.menu("USERPREF_MT_interface_theme_presets", text=USERPREF_MT_interface_theme_presets.bl_label)
+
+        # Unlike most presets (which use the classes bl_label),
+        # themes store the path, use this when set.
+        if filepath := context.preferences.themes[0].filepath:
+            preset_label = bpy.path.display_name(os.path.basename(filepath))
+        else:
+            preset_label = USERPREF_MT_interface_theme_presets.bl_label
+
+        row.menu("USERPREF_MT_interface_theme_presets", text=preset_label)
+        del filepath, preset_label
+
         row.operator("wm.interface_theme_preset_add", text="", icon='ADD')
         row.operator("wm.interface_theme_preset_remove", text="", icon='REMOVE')
         row.operator("wm.interface_theme_preset_save", text="", icon='FILE_TICK')
