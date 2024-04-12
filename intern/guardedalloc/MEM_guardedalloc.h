@@ -258,6 +258,13 @@ void MEM_use_guarded_allocator(void);
 #  include <type_traits>
 #  include <utility>
 
+/* Conservative value of memory alignment returned by non-aligned OS-level memory allocation
+ * functions. For alignments smaller than this value, using non-aligned versions of allocator API
+ * functions is okay, allowing use of calloc, for example. */
+#  define MEM_MIN_CPP_ALIGNMENT \
+    (__STDCPP_DEFAULT_NEW_ALIGNMENT__ < alignof(void *) ? __STDCPP_DEFAULT_NEW_ALIGNMENT__ : \
+                                                          alignof(void *))
+
 /**
  * Allocate new memory for and constructs an object of type #T.
  * #MEM_delete should be used to delete the object. Just calling #MEM_freeN is not enough when #T

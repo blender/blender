@@ -32,11 +32,15 @@ typedef struct MemHead {
   /* Length of allocated memory block. */
   size_t len;
 } MemHead;
+static_assert(MEM_MIN_CPP_ALIGNMENT <= alignof(MemHead), "Bad alignment of MemHead");
+static_assert(MEM_MIN_CPP_ALIGNMENT <= sizeof(MemHead), "Bad size of MemHead");
 
 typedef struct MemHeadAligned {
   short alignment;
   size_t len;
 } MemHeadAligned;
+static_assert(MEM_MIN_CPP_ALIGNMENT <= alignof(MemHeadAligned), "Bad alignment of MemHeadAligned");
+static_assert(MEM_MIN_CPP_ALIGNMENT <= sizeof(MemHeadAligned), "Bad size of MemHeadAligned");
 
 static bool malloc_debug_memset = false;
 
