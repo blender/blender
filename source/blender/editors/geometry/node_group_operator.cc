@@ -113,27 +113,6 @@ static const bNodeTree *get_node_group(const bContext &C, PointerRNA &ptr, Repor
   return group;
 }
 
-class OperatorComputeContext : public ComputeContext {
- private:
-  static constexpr const char *s_static_type = "OPERATOR";
-
-  std::string operator_name_;
-
- public:
-  OperatorComputeContext(std::string operator_name)
-      : ComputeContext(s_static_type, nullptr), operator_name_(std::move(operator_name))
-  {
-    hash_.mix_in(s_static_type, strlen(s_static_type));
-    hash_.mix_in(operator_name_.data(), operator_name_.size());
-  }
-
- private:
-  void print_current_in_line(std::ostream &stream) const override
-  {
-    stream << "Operator: " << operator_name_;
-  }
-};
-
 /**
  * Geometry nodes currently requires working on "evaluated" data-blocks (rather than "original"
  * data-blocks that are part of a #Main data-base). This could change in the future, but for now,
@@ -405,7 +384,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
   IDProperty *properties = replace_inputs_evaluated_data_blocks(*op->properties, *depsgraph);
   BLI_SCOPED_DEFER([&]() { IDP_FreeProperty_ex(properties, false); });
 
-  OperatorComputeContext compute_context(op->type->idname);
+  bke::OperatorComputeContext compute_context;
   auto eval_log = std::make_unique<geo_log::GeoModifierLog>();
 
   for (Object *object : objects) {
