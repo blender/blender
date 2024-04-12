@@ -742,7 +742,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
       /* Be sure to also compute the #V3DSnapCursorData.plane_omat. */
       snap_state->draw_plane = true;
 
-      ED_view3d_cursor_snap_data_update(snap_state_new, C, mval[0], mval[1]);
+      ED_view3d_cursor_snap_data_update(snap_state_new, C, ipd->region, mval[0], mval[1]);
     }
   }
 

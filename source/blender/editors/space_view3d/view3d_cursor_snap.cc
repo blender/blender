@@ -596,7 +596,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
                                    const bContext *C,
                                    Depsgraph *depsgraph,
                                    Scene *scene,
-                                   ARegion *region,
+                                   const ARegion *region,
                                    View3D *v3d,
                                    int x,
                                    int y,
@@ -846,6 +846,21 @@ static bool v3d_cursor_snap_poll_fn(bContext *C)
 
 static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void * /*customdata*/)
 {
+  using namespace blender;
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  int2 xy(x, y);
+  if (region->alignment == RGN_ALIGN_QSPLIT) {
+    /* Quad-View. */
+    region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, xy);
+    if (region == nullptr) {
+      return;
+    }
+  }
+
+  xy[0] -= region->winrct.xmin;
+  xy[1] -= region->winrct.ymin;
+
   SnapCursorDataIntern *data_intern = &g_data_intern;
   V3DSnapCursorState *state = ED_view3d_cursor_snap_state_active_get();
   V3DSnapCursorData *snap_data = &data_intern->snap_data;
@@ -853,14 +868,11 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void * /*customda
   Scene *scene = DEG_get_input_scene(depsgraph);
 
   wmWindow *win = CTX_wm_window(C);
-  ScrArea *area = CTX_wm_area(C);
-  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   wmEvent *event = win->eventstate;
-  x -= region->winrct.xmin;
-  y -= region->winrct.ymin;
-  if (event && v3d_cursor_eventstate_has_changed(data_intern, state, x, y, event->modifier)) {
+  if (event && v3d_cursor_eventstate_has_changed(data_intern, state, UNPACK2(xy), event->modifier))
+  {
     View3D *v3d = CTX_wm_view3d(C);
-    v3d_cursor_snap_update(state, C, depsgraph, scene, region, v3d, x, y, event->modifier);
+    v3d_cursor_snap_update(state, C, depsgraph, scene, region, v3d, UNPACK2(xy), event->modifier);
   }
 
   const bool draw_plane = state->draw_plane || state->draw_box;
@@ -1038,18 +1050,14 @@ void ED_view3d_cursor_snap_state_prevpoint_set(V3DSnapCursorState *state,
   }
 }
 
-void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state,
-                                       const bContext *C,
-                                       const int x,
-                                       const int y)
+void ED_view3d_cursor_snap_data_update(
+    V3DSnapCursorState *state, const bContext *C, const ARegion *region, const int x, const int y)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   const wmEvent *event = CTX_wm_window(C)->eventstate;
   if (event && v3d_cursor_eventstate_has_changed(data_intern, state, x, y, event->modifier)) {
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     Scene *scene = DEG_get_input_scene(depsgraph);
-    ScrArea *area = CTX_wm_area(C);
-    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     View3D *v3d = CTX_wm_view3d(C);
 
     if (!state) {
