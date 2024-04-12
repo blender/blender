@@ -540,6 +540,9 @@ static void grease_pencil_geom_batch_ensure(Object &object,
         "u_translation", bke::AttrDomain::Curve, 0.0f);
     const VArray<float> u_scales = *attributes.lookup_or_default<float>(
         "u_scale", bke::AttrDomain::Curve, 1.0f);
+    const VArray<float> fill_opacities = *attributes.lookup_or_default<float>(
+        "fill_opacity", bke::AttrDomain::Curve, 1.0f);
+
     const Span<uint3> triangles = info.drawing.triangles();
     const Span<float4x2> texture_matrices = info.drawing.texture_matrices();
     const Span<int> verts_start_offsets = verts_start_offsets_per_visible_drawing[drawing_i];
@@ -579,7 +582,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
 
       copy_v4_v4(c_vert.vcol, vertex_colors[point_i]);
       copy_v4_v4(c_vert.fcol, stroke_fill_colors[curve_i]);
-      c_vert.fcol[3] = (int(c_vert.fcol[3] * 10000.0f) * 10.0f) + 1.0f;
+      c_vert.fcol[3] = (int(c_vert.fcol[3] * 10000.0f) * 10.0f) + fill_opacities[curve_i];
 
       int v_mat = (verts_range[idx] << GP_VERTEX_ID_SHIFT) | GP_IS_STROKE_VERTEX_BIT;
       GPU_indexbuf_add_tri_verts(&ibo, v_mat + 0, v_mat + 1, v_mat + 2);
