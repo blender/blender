@@ -86,6 +86,11 @@ GPU_SHADER_CREATE_INFO(gpu_push_constants_512bytes_test)
     .push_constant(Type::FLOAT, "filler3", 64)
     .do_static_compilation(true);
 
+GPU_SHADER_CREATE_INFO(gpu_push_constants_8192bytes_test)
+    .additional_info("gpu_push_constants_512bytes_test")
+    .push_constant(Type::FLOAT, "filler4", 1920)
+    .do_static_compilation(true);
+
 GPU_SHADER_CREATE_INFO(gpu_buffer_texture_test)
     .local_group_size(1)
     .sampler(0, ImageType::FLOAT_BUFFER, "bufferTexture")
