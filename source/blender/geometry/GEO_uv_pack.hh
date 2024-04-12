@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 #include "BLI_heap.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_memarena.h"
@@ -10,8 +12,6 @@
 
 #include "DNA_space_types.h"
 #include "DNA_vec_types.h"
-
-#pragma once
 
 /** \file
  * \ingroup geo

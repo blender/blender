@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_index_mask.hh"
-
 #pragma once
+
+#include "BLI_index_mask.hh"
 
 struct PointCloud;
 namespace blender::bke {
