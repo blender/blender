@@ -40,7 +40,7 @@ typedef struct MemHeadAligned {
 
 static bool malloc_debug_memset = false;
 
-static void (*error_callback)(const char *) = NULL;
+static void (*error_callback)(const char *) = nullptr;
 
 enum {
   MEMHEAD_ALIGN_FLAG = 1,
@@ -86,8 +86,8 @@ void MEM_lockfree_freeN(void *vmemh)
     print_error("%s\n", free_after_leak_detection_message);
   }
 
-  if (UNLIKELY(vmemh == NULL)) {
-    print_error("Attempt to free NULL pointer\n");
+  if (UNLIKELY(vmemh == nullptr)) {
+    print_error("Attempt to free nullptr pointer\n");
 #ifdef WITH_ASSERT_ABORT
     abort();
 #endif
@@ -113,7 +113,7 @@ void MEM_lockfree_freeN(void *vmemh)
 
 void *MEM_lockfree_dupallocN(const void *vmemh)
 {
-  void *newp = NULL;
+  void *newp = nullptr;
   if (vmemh) {
     const MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
     const size_t prev_size = MEM_lockfree_allocN_len(vmemh);
@@ -132,7 +132,7 @@ void *MEM_lockfree_dupallocN(const void *vmemh)
 
 void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *str)
 {
-  void *newp = NULL;
+  void *newp = nullptr;
 
   if (vmemh) {
     const MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
@@ -168,7 +168,7 @@ void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *str)
 
 void *MEM_lockfree_recallocN_id(void *vmemh, size_t len, const char *str)
 {
-  void *newp = NULL;
+  void *newp = nullptr;
 
   if (vmemh) {
     const MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
@@ -225,7 +225,7 @@ void *MEM_lockfree_callocN(size_t len, const char *str)
               SIZET_ARG(len),
               str,
               memory_usage_current());
-  return NULL;
+  return nullptr;
 }
 
 void *MEM_lockfree_calloc_arrayN(size_t len, size_t size, const char *str)
@@ -240,7 +240,7 @@ void *MEM_lockfree_calloc_arrayN(size_t len, size_t size, const char *str)
         str,
         memory_usage_current());
     abort();
-    return NULL;
+    return nullptr;
   }
 
   return MEM_lockfree_callocN(total_size, str);
@@ -282,7 +282,7 @@ void *MEM_lockfree_mallocN(size_t len, const char *str)
               SIZET_ARG(len),
               str,
               memory_usage_current());
-  return NULL;
+  return nullptr;
 }
 
 void *MEM_lockfree_malloc_arrayN(size_t len, size_t size, const char *str)
@@ -297,7 +297,7 @@ void *MEM_lockfree_malloc_arrayN(size_t len, size_t size, const char *str)
         str,
         memory_usage_current());
     abort();
-    return NULL;
+    return nullptr;
   }
 
   return MEM_lockfree_mallocN(total_size, str);
@@ -364,14 +364,14 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
               SIZET_ARG(len),
               str,
               memory_usage_current());
-  return NULL;
+  return nullptr;
 }
 
-void MEM_lockfree_printmemlist_pydict(void) {}
+void MEM_lockfree_printmemlist_pydict() {}
 
-void MEM_lockfree_printmemlist(void) {}
+void MEM_lockfree_printmemlist() {}
 
-void mem_lockfree_clearmemlist(void) {}
+void mem_lockfree_clearmemlist() {}
 
 /* unused */
 void MEM_lockfree_callbackmemlist(void (*func)(void *))
@@ -379,7 +379,7 @@ void MEM_lockfree_callbackmemlist(void (*func)(void *))
   (void)func; /* Ignored. */
 }
 
-void MEM_lockfree_printmemlist_stats(void)
+void MEM_lockfree_printmemlist_stats()
 {
   printf("\ntotal memory len: %.3f MB\n", (double)memory_usage_current() / (double)(1024 * 1024));
   printf("peak memory len: %.3f MB\n", (double)memory_usage_peak() / (double)(1024 * 1024));
@@ -398,33 +398,33 @@ void MEM_lockfree_set_error_callback(void (*func)(const char *))
   error_callback = func;
 }
 
-bool MEM_lockfree_consistency_check(void)
+bool MEM_lockfree_consistency_check()
 {
   return true;
 }
 
-void MEM_lockfree_set_memory_debug(void)
+void MEM_lockfree_set_memory_debug()
 {
   malloc_debug_memset = true;
 }
 
-size_t MEM_lockfree_get_memory_in_use(void)
+size_t MEM_lockfree_get_memory_in_use()
 {
   return memory_usage_current();
 }
 
-uint MEM_lockfree_get_memory_blocks_in_use(void)
+uint MEM_lockfree_get_memory_blocks_in_use()
 {
   return (uint)memory_usage_block_num();
 }
 
 /* dummy */
-void MEM_lockfree_reset_peak_memory(void)
+void MEM_lockfree_reset_peak_memory()
 {
   memory_usage_peak_reset();
 }
 
-size_t MEM_lockfree_get_peak_memory(void)
+size_t MEM_lockfree_get_peak_memory()
 {
   return memory_usage_peak();
 }
@@ -436,7 +436,7 @@ const char *MEM_lockfree_name_ptr(void *vmemh)
     return "unknown block name ptr";
   }
 
-  return "MEM_lockfree_name_ptr(NULL)";
+  return "MEM_lockfree_name_ptr(nullptr)";
 }
 
 void MEM_lockfree_name_ptr_set(void *UNUSED(vmemh), const char *UNUSED(str)) {}
