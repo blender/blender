@@ -157,7 +157,15 @@ static void rna_def_animviz_motion_path(BlenderRNA *brna)
   /* Custom Color */
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_array(prop, 3);
-  RNA_def_property_ui_text(prop, "Color", "Custom color for motion path");
+  RNA_def_property_ui_text(
+      prop, "Color Pre", "Custom color for motion path before the current frame");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW_ANIMVIZ, nullptr);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+
+  prop = RNA_def_property(srna, "color_post", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(
+      prop, "Color Post", "Custom color for motion path after the current frame");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW_ANIMVIZ, nullptr);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 

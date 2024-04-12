@@ -194,6 +194,10 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
   mpath->color[1] = 0.0;
   mpath->color[2] = 0.0;
 
+  mpath->color_post[0] = 0.1;
+  mpath->color_post[1] = 1.0;
+  mpath->color_post[2] = 0.1;
+
   mpath->line_thickness = 2;
   mpath->flag |= MOTIONPATH_FLAG_LINES;
 

@@ -3147,6 +3147,26 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 14)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (bMotionPath *mpath = ob->mpath) {
+        mpath->color_post[0] = 0.1f;
+        mpath->color_post[1] = 1.0f;
+        mpath->color_post[2] = 0.1f;
+      }
+      if (!ob->pose) {
+        continue;
+      }
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
+        if (bMotionPath *mpath = pchan->mpath) {
+          mpath->color_post[0] = 0.1f;
+          mpath->color_post[1] = 1.0f;
+          mpath->color_post[2] = 0.1f;
+        }
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
