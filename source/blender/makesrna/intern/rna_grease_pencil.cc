@@ -417,6 +417,13 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
       "The visibility of drawings on this layer is affected by the layers in its masks list");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 
+  prop = RNA_def_property(srna, "use_lights", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_USE_LIGHTS);
+  RNA_def_property_ui_text(
+      prop, "Use Lights", "Enable the use of lights on stroke and fill materials");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
   /* pass index for compositing and modifiers */
   prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_ui_text(prop, "Pass Index", "Index number for the \"Layer Index\" pass");

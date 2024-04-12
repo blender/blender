@@ -139,6 +139,9 @@ class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
         row = layout.row(align=True)
         row.prop(layer, "opacity", text="Opacity", slider=True)
 
+        row = layout.row(align=True)
+        row.prop(layer, "use_lights", text="Lights")
+
 
 class DATA_PT_grease_pencil_layer_masks(LayerDataButtonsPanel, Panel):
     bl_label = "Masks"

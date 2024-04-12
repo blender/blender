@@ -592,9 +592,10 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
     new_layer.set_locked((gpl->flag & GP_LAYER_LOCKED) != 0);
     new_layer.set_selected((gpl->flag & GP_LAYER_SELECT) != 0);
     SET_FLAG_FROM_TEST(
-        new_layer.base.flag, (gpl->flag & GP_LAYER_FRAMELOCK), GP_LAYER_TREE_NODE_MUTE);
-    SET_FLAG_FROM_TEST(
-        new_layer.base.flag, (gpl->flag & GP_LAYER_USE_LIGHTS), GP_LAYER_TREE_NODE_USE_LIGHTS);
+        new_layer.base.flag, (gpl->flag & GP_LAYER_FRAMELOCK) != 0, GP_LAYER_TREE_NODE_MUTE);
+    SET_FLAG_FROM_TEST(new_layer.base.flag,
+                       (gpl->flag & GP_LAYER_USE_LIGHTS) != 0,
+                       GP_LAYER_TREE_NODE_USE_LIGHTS);
     SET_FLAG_FROM_TEST(new_layer.base.flag,
                        (gpl->onion_flag & GP_LAYER_ONIONSKIN) == 0,
                        GP_LAYER_TREE_NODE_HIDE_ONION_SKINNING);
