@@ -860,7 +860,7 @@ class USERPREF_MT_interface_theme_presets(Menu):
     draw = Menu.draw_preset
 
     @staticmethod
-    def reset_cb(context):
+    def reset_cb(_context, _filepath):
         bpy.ops.preferences.reset_default_theme()
 
     @staticmethod
