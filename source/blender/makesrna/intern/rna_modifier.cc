@@ -8378,7 +8378,7 @@ static void rna_def_modifier_grease_pencil_tint(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "GreasePencilTintModifier", "Modifier");
   RNA_def_struct_ui_text(srna, "Grease Pencil Tint Modifier", "");
   RNA_def_struct_sdna(srna, "GreasePencilTintModifierData");
-  RNA_def_struct_ui_icon(srna, ICON_MOD_OPACITY);
+  RNA_def_struct_ui_icon(srna, ICON_MOD_TINT);
 
   rna_def_modifier_grease_pencil_layer_filter(srna);
   rna_def_modifier_grease_pencil_material_filter(
