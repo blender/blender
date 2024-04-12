@@ -44,7 +44,7 @@
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

@@ -87,7 +87,7 @@
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"
 #include "BKE_unit.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"

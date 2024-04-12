@@ -22,7 +22,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_screen.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "RNA_access.hh"
 

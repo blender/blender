@@ -76,7 +76,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "BKE_paint.hh"
 #  include "BKE_scene.hh"
 #  include "BKE_texture.h"
-#  include "BKE_workspace.h"
+#  include "BKE_workspace.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

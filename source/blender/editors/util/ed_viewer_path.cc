@@ -10,7 +10,7 @@
 #include "BKE_main.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"

@@ -79,7 +79,7 @@
 #include "BKE_preview_image.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "BLF_api.hh"
 

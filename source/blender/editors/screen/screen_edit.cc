@@ -28,7 +28,7 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

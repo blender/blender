@@ -83,7 +83,7 @@
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_unit.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

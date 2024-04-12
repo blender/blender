@@ -39,7 +39,7 @@
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_wm_runtime.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "RE_engine.h"
 

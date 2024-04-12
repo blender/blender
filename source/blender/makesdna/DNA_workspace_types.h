@@ -5,7 +5,7 @@
 /** \file
  * \ingroup DNA
  *
- * Use API in BKE_workspace.h to edit these.
+ * Use API in BKE_workspace.hh to edit these.
  */
 
 #pragma once

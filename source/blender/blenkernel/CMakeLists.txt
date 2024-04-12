@@ -525,7 +525,7 @@ set(SRC
   BKE_volume_render.hh
   BKE_volume_to_mesh.hh
   BKE_wm_runtime.hh
-  BKE_workspace.h
+  BKE_workspace.hh
   BKE_world.h
   BKE_writemovie.hh
 

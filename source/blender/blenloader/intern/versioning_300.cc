@@ -80,7 +80,7 @@
 #include "BKE_nla.h"
 #include "BKE_node.hh"
 #include "BKE_screen.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"

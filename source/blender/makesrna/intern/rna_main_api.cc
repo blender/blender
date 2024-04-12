@@ -60,7 +60,7 @@
 #  include "BKE_texture.h"
 #  include "BKE_vfont.hh"
 #  include "BKE_volume.hh"
-#  include "BKE_workspace.h"
+#  include "BKE_workspace.hh"
 #  include "BKE_world.h"
 
 #  include "DEG_depsgraph_build.hh"

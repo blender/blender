@@ -59,7 +59,7 @@
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_screen.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "BLO_read_write.hh"
 
