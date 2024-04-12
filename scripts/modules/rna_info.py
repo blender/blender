@@ -332,7 +332,7 @@ class InfoPropertyRNA:
             self.default_str = "\"%s\"" % self.default
         elif self.type == "enum":
             if self.is_enum_flag:
-                # self.default_str = "%r" % self.default  # repr or set()
+                # self.default_str = repr(self.default)  # repr or set()
                 self.default_str = "{%s}" % repr(list(sorted(self.default)))[1:-1]
             else:
                 self.default_str = "'%s'" % self.default
