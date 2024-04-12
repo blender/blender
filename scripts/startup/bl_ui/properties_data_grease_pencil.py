@@ -233,6 +233,11 @@ class DATA_PT_grease_pencil_layer_relations(LayerDataButtonsPanel, Panel):
         col = layout.row(align=True)
         col.prop_search(layer, "viewlayer_render", context.scene, "view_layers", text="View Layer")
 
+        col = layout.row(align=True)
+        # Only enable this property when a view layer is selected.
+        col.enabled = bool(layer.viewlayer_render)
+        col.prop(layer, "use_viewlayer_masks")
+
 
 class DATA_PT_grease_pencil_onion_skinning(DataButtonsPanel, Panel):
     bl_label = "Onion Skinning"

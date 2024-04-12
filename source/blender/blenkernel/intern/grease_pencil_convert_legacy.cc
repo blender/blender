@@ -613,6 +613,9 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
     copy_v3_v3(new_layer.scale, gpl->scale);
 
     new_layer.set_view_layer_name(gpl->viewlayername);
+    SET_FLAG_FROM_TEST(new_layer.base.flag,
+                       (gpl->flag & GP_LAYER_DISABLE_MASKS_IN_VIEWLAYER) != 0,
+                       GP_LAYER_TREE_NODE_DISABLE_MASKS_IN_VIEWLAYER);
 
     /* Convert the layer masks. */
     LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl->mask_layers) {
