@@ -57,7 +57,7 @@ static void extract_tris_mesh(const MeshRenderData &mr, gpu::IndexBuf &ibo)
     }
   });
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, mr.face_sorted->visible_tris_num, false, &ibo);
+  GPU_indexbuf_build_in_place_ex(&builder, 0, mr.corners_num, false, &ibo);
 }
 
 static void extract_tris_bmesh(const MeshRenderData &mr, gpu::IndexBuf &ibo)
@@ -87,7 +87,7 @@ static void extract_tris_bmesh(const MeshRenderData &mr, gpu::IndexBuf &ibo)
     }
   });
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, mr.face_sorted->visible_tris_num, false, &ibo);
+  GPU_indexbuf_build_in_place_ex(&builder, 0, bm.totloop, false, &ibo);
 }
 
 static void extract_tris_finish(const MeshRenderData &mr,
