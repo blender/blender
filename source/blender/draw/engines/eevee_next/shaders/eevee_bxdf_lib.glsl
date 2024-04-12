@@ -144,4 +144,34 @@ float refraction_roughness_remapping(float roughness, float ior)
   }
 }
 
+/**
+ * `roughness` is expected to be the linear (from UI) roughess from.
+ */
+vec3 reflection_dominant_dir(vec3 N, vec3 V, float roughness)
+{
+  /* From Frostbite PBR Course
+   * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf
+   * Listing 22.
+   * Note that the reference labels squared roughness (GGX input) as roughness. */
+  float m = square(roughness);
+  vec3 R = -reflect(V, N);
+  float smoothness = 1.0 - m;
+  float fac = smoothness * (sqrt(smoothness) + m);
+  return normalize(mix(N, R, fac));
+}
+
+/**
+ * `roughness` is expected to be the reflection roughess from `refraction_roughness_remapping`.
+ */
+vec3 refraction_dominant_dir(vec3 N, vec3 V, float ior, float roughness)
+{
+  /* Reusing same thing as reflection_dominant_dir for now with the roughness mapped to
+   * reflection roughness. */
+  float m = square(roughness);
+  vec3 R = refract(-V, N, 1.0 / ior);
+  float smoothness = 1.0 - m;
+  float fac = smoothness * (sqrt(smoothness) + m);
+  return normalize(mix(-N, R, fac));
+}
+
 /** \} */

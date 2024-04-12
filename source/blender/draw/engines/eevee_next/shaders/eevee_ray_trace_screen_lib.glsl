@@ -16,6 +16,7 @@
 #pragma BLENDER_REQUIRE(gpu_shader_math_matrix_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_fast_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
 
 /* Inputs expected to be in view-space. */
 void raytrace_clip_ray_to_near_plane(inout Ray ray)
@@ -221,3 +222,26 @@ ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
 }
 
 #endif
+
+/* Modify the ray origin before tracing it. We must do this because ray origin is implicitly
+ * reconstructed from from gbuffer depth which we cannot modify. */
+Ray raytrace_thickness_ray_ammend(Ray ray,
+                                  ClosureType closure_type,
+                                  vec3 surface_N,
+                                  float thickness)
+{
+  switch (closure_type) {
+    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+      /* The ray direction was generated using the same 2 transmission events assumption.
+       * Only change its origin. Skip the volume inside the object. */
+      ray.origin += thickness_sphere_intersect(thickness, surface_N, ray.direction).hit_P;
+    case CLOSURE_BSDF_TRANSLUCENT_ID:
+      /* Ray direction is distributed on the whole sphere.
+       * Move the ray origin to the sphere surface (with bias to avoid self-intersection). */
+      ray.origin += (ray.direction - surface_N) * thickness * 0.505;
+      break;
+    default:
+      break;
+  }
+  return ray;
+}

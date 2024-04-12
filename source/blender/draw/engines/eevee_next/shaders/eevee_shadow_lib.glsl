@@ -117,8 +117,11 @@ float shadow_linear_occluder_distance(LightData light,
 
   float occluder_z = (is_directional) ? (occluder * (far - near) + near) :
                                         ((near * far) / (occluder * (near - far) + far));
-  float receiver_z = (is_directional) ? -lP.z : max(abs(lP.x), max(abs(lP.y), abs(lP.z)));
-
+  float receiver_z = (is_directional) ? -lP.z : reduce_max(abs(lP));
+  if (!is_directional) {
+    float lP_len = length(lP);
+    return lP_len - lP_len * (occluder_z / receiver_z);
+  }
   return receiver_z - occluder_z;
 }
 

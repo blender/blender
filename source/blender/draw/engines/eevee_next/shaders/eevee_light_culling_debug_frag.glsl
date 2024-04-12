@@ -37,7 +37,9 @@ void main()
     LightData light = light_buf[l_idx];
     LightVector lv = light_vector_get(light, false, P);
     /* Use light vector as Ng to never cull based on angle to light. */
-    if (light_attenuation_surface(light, false, lv.L, lv).x > LIGHT_ATTENUATION_THRESHOLD) {
+    if (light_attenuation_surface(light, false, false, false, lv.L, lv) >
+        LIGHT_ATTENUATION_THRESHOLD)
+    {
       light_nocull |= 1u << l_idx;
     }
   }

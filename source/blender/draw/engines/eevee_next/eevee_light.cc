@@ -73,7 +73,6 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
   float shape_power = shape_radiance_get();
   float point_power = point_radiance_get();
   this->power[LIGHT_DIFFUSE] = la->diff_fac * shape_power;
-  this->power[LIGHT_TRANSMIT] = la->diff_fac * point_power;
   this->power[LIGHT_SPECULAR] = la->spec_fac * shape_power;
   this->power[LIGHT_VOLUME] = la->volume_fac * point_power;
 

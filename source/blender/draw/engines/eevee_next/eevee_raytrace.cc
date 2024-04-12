@@ -138,7 +138,9 @@ void RayTraceModule::sync()
   {
     PassSimple &pass = trace_fallback_ps_;
     pass.init();
-    pass.shader_set(inst_.shaders.static_shader_get(RAY_TRACE_FALLBACK));
+    GPUShader *sh = inst_.shaders.static_shader_get(RAY_TRACE_FALLBACK);
+    pass.specialize_constant(sh, "closure_index", &data_.closure_index);
+    pass.shader_set(sh);
     pass.bind_ssbo("tiles_coord_buf", &raytrace_tracing_tiles_buf_);
     pass.bind_image("ray_data_img", &ray_data_tx_);
     pass.bind_image("ray_time_img", &ray_time_tx_);
@@ -148,6 +150,7 @@ void RayTraceModule::sync()
     pass.bind_resources(inst_.volume_probes);
     pass.bind_resources(inst_.sphere_probes);
     pass.bind_resources(inst_.sampling);
+    pass.bind_resources(inst_.gbuffer);
     pass.dispatch(raytrace_tracing_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }

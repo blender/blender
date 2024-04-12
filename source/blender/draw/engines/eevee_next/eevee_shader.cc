@@ -397,10 +397,18 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   int32_t closure_data_slots = 0;
-  int32_t closure_extra_eval = 0;
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_DIFFUSE)) {
     info.define("MAT_DIFFUSE");
-    closure_data_slots |= (1 << 0);
+    if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT) &&
+        !GPU_material_flag_get(gpumat, GPU_MATFLAG_COAT))
+    {
+      /* Special case to allow translucent with diffuse without noise.
+       * Revert back to noise if clear coat is present. */
+      closure_data_slots |= (1 << 2);
+    }
+    else {
+      closure_data_slots |= (1 << 0);
+    }
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE)) {
     info.define("MAT_SUBSURFACE");
@@ -412,23 +420,19 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT)) {
     info.define("MAT_TRANSLUCENT");
-    closure_data_slots |= (1 << 1);
+    closure_data_slots |= (1 << 0);
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_GLOSSY)) {
     info.define("MAT_REFLECTION");
-    closure_data_slots |= (1 << 2);
+    closure_data_slots |= (1 << 1);
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_COAT)) {
     info.define("MAT_CLEARCOAT");
-    closure_data_slots |= (1 << 3);
+    closure_data_slots |= (1 << 2);
   }
 
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT | GPU_MATFLAG_SUBSURFACE)) {
-    info.define("SHADOW_SUBSURFACE");
-  }
-
-  int32_t CLOSURE_BIN_COUNT = count_bits_i(closure_data_slots);
-  switch (CLOSURE_BIN_COUNT) {
+  int32_t closure_bin_count = count_bits_i(closure_data_slots);
+  switch (closure_bin_count) {
     /* These need to be separated since the strings need to be static. */
     case 0:
     case 1:
@@ -446,7 +450,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   if (pipeline_type == MAT_PIPE_DEFERRED) {
-    switch (CLOSURE_BIN_COUNT) {
+    switch (closure_bin_count) {
       /* These need to be separated since the strings need to be static. */
       case 0:
       case 1:
@@ -467,8 +471,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   if ((pipeline_type == MAT_PIPE_FORWARD) ||
       GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA))
   {
-    int32_t lit_closure_count = CLOSURE_BIN_COUNT + closure_extra_eval;
-    switch (lit_closure_count) {
+    switch (closure_bin_count) {
       case 0:
         /* Define nothing. This will in turn define SKIP_LIGHT_EVAL. */
         break;

@@ -196,12 +196,8 @@ struct ShadowRayDirectional {
   LightData light;
 };
 
-ShadowRayDirectional shadow_ray_generate_directional(LightData light,
-                                                     vec2 random_2d,
-                                                     vec3 lP,
-                                                     vec3 lNg,
-                                                     float thickness,
-                                                     out bool r_is_above_surface)
+ShadowRayDirectional shadow_ray_generate_directional(
+    LightData light, vec2 random_2d, vec3 lP, vec3 lNg, out bool r_is_above_surface)
 {
   float clip_near = orderedIntBitsToFloat(light.clip_near);
   float clip_far = orderedIntBitsToFloat(light.clip_far);
@@ -219,10 +215,10 @@ ShadowRayDirectional shadow_ray_generate_directional(LightData light,
 
   r_is_above_surface = dot(lNg, direction.xyz) > 0.0;
 
-  if (!r_is_above_surface) {
-    /* Skip the object volume. */
-    origin += direction * thickness;
-  }
+  /* TODO(fclem): Bias sample direction above the horizon (or below if transmission).
+   * We don't really care about the shadow shape at such light elevation angles but more about
+   * noise. */
+
   /* It only make sense to trace where there can be occluder. Clamp by distance to near plane. */
   direction *= min(light_sun_data_get(light).shadow_trace_distance,
                    dist_to_near_plane / disk_direction.z);
@@ -289,12 +285,8 @@ struct ShadowRayPunctual {
 };
 
 /* Return ray in UV clip space [0..1]. */
-ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
-                                               vec2 random_2d,
-                                               vec3 lP,
-                                               vec3 lNg,
-                                               float thickness,
-                                               out bool r_is_above_surface)
+ShadowRayPunctual shadow_ray_generate_punctual(
+    LightData light, vec2 random_2d, vec3 lP, vec3 lNg, out bool r_is_above_surface)
 {
   if (light.type == LIGHT_RECT) {
     random_2d = random_2d * 2.0 - 1.0;
@@ -321,14 +313,9 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
     direction = point_on_light_shape - lP;
     r_is_above_surface = dot(direction, lNg) > 0.0;
 
-#ifdef SHADOW_SUBSURFACE
-    if (!r_is_above_surface) {
-      /* Skip the object volume. Do not push behind the light. */
-      float offset_len = saturate(thickness / length(direction));
-      lP += direction * offset_len;
-      direction *= 1.0 - offset_len;
-    }
-#endif
+    /* TODO(fclem): Bias sample direction above the horizon (or below if transmission).
+     * We don't really care about the shadow shape at such light elevation angles but more about
+     * noise. */
 
     /* Clip the ray to not cross the near plane.
      * Scale it so that it encompass the whole cube (with a safety margin). */
@@ -356,14 +343,9 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
     direction = point_on_light_shape - lP;
     r_is_above_surface = dot(direction, lNg) > 0.0;
 
-#ifdef SHADOW_SUBSURFACE
-    if (!r_is_above_surface) {
-      /* Skip the object volume. Do not push behind the light. */
-      float offset_len = saturate(thickness / length(direction));
-      lP += direction * offset_len;
-      direction *= 1.0 - offset_len;
-    }
-#endif
+    /* TODO(fclem): Bias sample direction above the horizon (or below if transmission).
+     * We don't really care about the shadow shape at such light elevation angles but more about
+     * noise. */
 
     /* Clip the ray to not cross the light shape. */
     float clip_distance = light_spot_data_get(light).radius;
@@ -525,9 +507,9 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
  */
 ShadowEvalResult shadow_eval(LightData light,
                              const bool is_directional,
+                             const bool is_transmission,
                              vec3 P,
                              vec3 Ng,
-                             float thickness,
                              int ray_count,
                              int ray_step_count)
 {
@@ -549,6 +531,9 @@ ShadowEvalResult shadow_eval(LightData light,
   float normal_offset = 0.02;
 #endif
 
+  /* We want to bias inside the object for transmission to go through the object itself. */
+  normal_offset = is_transmission ? -normal_offset : normal_offset;
+
   P += shadow_pcf_offset(light, is_directional, P, Ng, random_pcf_2d);
 
   /* Avoid self intersection. */
@@ -563,8 +548,6 @@ ShadowEvalResult shadow_eval(LightData light,
 
   float surface_hit = 0.0;
   float surface_ray_count = 0.0;
-  float subsurface_hit = 0.0;
-  float subsurface_ray_count = 0.0;
   for (int ray_index = 0; ray_index < ray_count && ray_index < SHADOW_MAX_RAY; ray_index++) {
     vec2 random_ray_2d = fract(hammersley_2d(ray_index, ray_count) + random_shadow_3d.xy);
 
@@ -575,29 +558,23 @@ ShadowEvalResult shadow_eval(LightData light,
     ShadowMapTraceResult trace;
     if (is_directional) {
       ShadowRayDirectional clip_ray = shadow_ray_generate_directional(
-          light, random_ray_2d, lP, lNg, thickness, is_above_surface);
+          light, random_ray_2d, lP, lNg, is_above_surface);
       trace = shadow_map_trace(clip_ray, ray_step_count, random_shadow_3d.z);
     }
     else {
       ShadowRayPunctual clip_ray = shadow_ray_generate_punctual(
-          light, random_ray_2d, lP, lNg, thickness, is_above_surface);
+          light, random_ray_2d, lP, lNg, is_above_surface);
       trace = shadow_map_trace(clip_ray, ray_step_count, random_shadow_3d.z);
     }
 
-    if (is_above_surface) {
+    if (is_above_surface != is_transmission) {
       surface_hit += float(trace.has_hit);
       surface_ray_count += 1.0;
-    }
-    else {
-      subsurface_hit += float(trace.has_hit);
-      subsurface_ray_count += 1.0;
     }
   }
   /* Average samples. */
   ShadowEvalResult result;
   result.light_visibilty = saturate(1.0 - surface_hit * safe_rcp(surface_ray_count));
-  result.light_visibilty = min(result.light_visibilty,
-                               saturate(1.0 - subsurface_hit * safe_rcp(subsurface_ray_count)));
   result.occluder_distance = 0.0; /* Unused. Could reintroduced if needed. */
   return result;
 }
