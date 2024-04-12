@@ -18,9 +18,8 @@ quat_out = quat_a @ quat_b
 # print the quat, euler degrees for mere mortals and (axis, angle)
 print("Final Rotation:")
 print(quat_out)
-print("%.2f, %.2f, %.2f" % tuple(math.degrees(a) for a in quat_out.to_euler()))
-print("(%.2f, %.2f, %.2f), %.2f" % (quat_out.axis[:] +
-                                    (math.degrees(quat_out.angle), )))
+print("{:.2f}, {:.2f}, {:.2f}".format(*(math.degrees(a) for a in quat_out.to_euler())))
+print("({:.2f}, {:.2f}, {:.2f}), {:.2f}".format(*quat_out.axis, math.degrees(quat_out.angle)))
 
 # multiple rotations can be interpolated using the exponential map
 quat_c = mathutils.Quaternion((1.0, 0.0, 0.0), math.radians(15.0))

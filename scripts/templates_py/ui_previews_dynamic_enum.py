@@ -39,7 +39,7 @@ def enum_previews_from_directory_items(self, context):
     if directory == pcoll.my_previews_dir:
         return pcoll.my_previews
 
-    print("Scanning directory: %s" % directory)
+    print("Scanning directory:", directory)
 
     if directory and os.path.exists(directory):
         # Scan the directory for `*.png` files

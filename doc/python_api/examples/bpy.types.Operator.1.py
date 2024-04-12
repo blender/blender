@@ -34,7 +34,7 @@ class SimpleMouseOperator(bpy.types.Operator):
     def execute(self, context):
         # rather than printing, use the report function,
         # this way the message appears in the header,
-        self.report({'INFO'}, "Mouse coords are %d %d" % (self.x, self.y))
+        self.report({'INFO'}, "Mouse coords are {:d} {:d}".format(self.x, self.y))
         return {'FINISHED'}
 
     def invoke(self, context, event):
