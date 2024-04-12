@@ -191,6 +191,7 @@ ABCAbstractWriter *ABCHierarchyIterator::create_data_writer_for_object_type(
     case OB_CAMERA:
       return new ABCCameraWriter(writer_args);
     case OB_CURVES_LEGACY:
+    case OB_CURVES:
       if (params_.curves_as_mesh) {
         return new ABCCurveMeshWriter(writer_args);
       }
