@@ -8,7 +8,7 @@
 #include "GHOST_Debug.hh"
 #include "GHOST_DisplayManagerCocoa.hh"
 
-// We do not support multiple monitors at the moment
+/* We do not support multiple monitors at the moment. */
 
 GHOST_DisplayManagerCocoa::GHOST_DisplayManagerCocoa(void) {}
 
@@ -25,7 +25,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplays(uint8_t &numDisplays) c
 GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplaySettings(uint8_t /*display*/,
                                                                 int32_t &numSettings) const
 {
-  numSettings = (int32_t)3;  // Width, Height, BitsPerPixel
+  numSettings = (int32_t)3; /* Width, Height, BitsPerPixel. */
 
   return GHOST_kSuccess;
 }
@@ -38,7 +38,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(uint8_t display,
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-  if (display == kMainDisplay)  // Screen #0 may not be the main one
+  if (display == kMainDisplay) /* Screen #0 may not be the main one. */
     askedDisplay = [NSScreen mainScreen];
   else
     askedDisplay = [[NSScreen screens] objectAtIndex:display];
@@ -54,7 +54,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(uint8_t display,
 
   setting.bpp = NSBitsPerPixelFromDepth([askedDisplay depth]);
 
-  setting.frequency = 0;  // No more CRT display...
+  setting.frequency = 0; /* No more CRT display. */
 
 #ifdef GHOST_DEBUG
   printf("display mode: width=%d, height=%d, bpp=%d, frequency=%d\n",
@@ -62,7 +62,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getDisplaySetting(uint8_t display,
          setting.yPixels,
          setting.bpp,
          setting.frequency);
-#endif  // GHOST_DEBUG
+#endif /* GHOST_DEBUG */
 
   [pool drain];
   return GHOST_kSuccess;
@@ -79,7 +79,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-  if (display == kMainDisplay)  // Screen #0 may not be the main one
+  if (display == kMainDisplay) /* Screen #0 may not be the main one. */
     askedDisplay = [NSScreen mainScreen];
   else
     askedDisplay = [[NSScreen screens] objectAtIndex:display];
@@ -95,7 +95,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(
 
   setting.bpp = NSBitsPerPixelFromDepth([askedDisplay depth]);
 
-  setting.frequency = 0;  // No more CRT display...
+  setting.frequency = 0; /* No more CRT display. */
 
 #ifdef GHOST_DEBUG
   printf("current display mode: width=%d, height=%d, bpp=%d, frequency=%d\n",
@@ -103,7 +103,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(
          setting.yPixels,
          setting.bpp,
          setting.frequency);
-#endif  // GHOST_DEBUG
+#endif /* GHOST_DEBUG */
 
   [pool drain];
   return GHOST_kSuccess;
@@ -122,7 +122,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(
   printf("  setting.yPixels=%d\n", setting.yPixels);
   printf("  setting.bpp=%d\n", setting.bpp);
   printf("  setting.frequency=%d\n", setting.frequency);
-#endif  // GHOST_DEBUG
+#endif /* GHOST_DEBUG */
 
   /* Display configuration is no more available in 10.6. */
 
@@ -144,7 +144,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(
   printf("  setting.bpp=%d\n", getValue(displayModeValues, kCGDisplayBitsPerPixel));
   printf("  setting.frequency=%d\n", getValue(displayModeValues, kCGDisplayRefreshRate));
 #  endif
-#endif  // GHOST_DEBUG
+#endif /* GHOST_DEBUG */
 
   // CGDisplayErr err = ::CGDisplaySwitchToMode(m_displayIDs[display], displayModeValues);
 

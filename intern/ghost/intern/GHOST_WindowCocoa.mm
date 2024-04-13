@@ -58,7 +58,7 @@
 - (void)windowDidBecomeKey:(NSNotification *)notification
 {
   systemCocoa->handleWindowEvent(GHOST_kEventWindowActivate, associatedWindow);
-  // work around for broken appswitching when combining cmd-tab and missioncontrol
+  /* Workaround for broken app-switching when combining cmd-tab and mission-control. */
   [(NSWindow *)associatedWindow->getOSWindow() orderFrontRegardless];
 }
 
@@ -111,10 +111,13 @@
 
 - (void)windowDidResize:(NSNotification *)notification
 {
-  // if (![[notification object] inLiveResize]) {
-  // Send event only once, at end of resize operation (when user has released mouse button)
-  systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
-  //}
+#if 0
+  if (![[notification object] inLiveResize])
+#endif
+  {
+    /* Send event only once, at end of resize operation (when user has released mouse button). */
+    systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
+  }
   /* Live resize, send event, gets handled in wm_window.c.
    * Needed because live resize runs in a modal loop, not letting main loop run */
   if ([[notification object] inLiveResize]) {
@@ -130,7 +133,7 @@
 
 - (BOOL)windowShouldClose:(id)sender;
 {
-  // Let Blender close the window rather than closing immediately
+  /* Let Blender close the window rather than closing immediately. */
   systemCocoa->handleWindowEvent(GHOST_kEventWindowClose, associatedWindow);
   return false;
 }
@@ -138,8 +141,8 @@
 @end
 
 #pragma mark NSWindow subclass
-// We need to subclass it to tell that even borderless (fullscreen),
-// it can become key (receive user events)
+/* We need to subclass it to tell that even borderless (full-screen),
+ * it can become key (receive user events). */
 @interface CocoaWindow : NSWindow
 {
   GHOST_SystemCocoa *systemCocoa;
@@ -169,7 +172,7 @@
   return (associatedWindow->isDialog() || !systemCocoa->hasDialogWindow());
 }
 
-// The drag'n'drop dragging destination methods
+/* The drag'n'drop dragging destination methods. */
 - (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)sender
 {
   NSPoint mouseLocation = [sender draggingLocation];
@@ -188,7 +191,7 @@
     return NSDragOperationNone;
   }
 
-  associatedWindow->setAcceptDragOperation(TRUE);  // Drag operation is accepted by default
+  associatedWindow->setAcceptDragOperation(TRUE); /* Drag operation is accepted by default. */
   systemCocoa->handleDraggingEvent(GHOST_kEventDraggingEntered,
                                    m_draggedObjectType,
                                    associatedWindow,
@@ -200,7 +203,7 @@
 
 - (BOOL)wantsPeriodicDraggingUpdates
 {
-  return NO;  // No need to overflow blender event queue. Events shall be sent only on changes
+  return NO; /* No need to overflow blender event queue. Events shall be sent only on changes. */
 }
 
 - (NSDragOperation)draggingUpdated:(id<NSDraggingInfo>)sender
@@ -242,7 +245,7 @@
     case GHOST_kDragnDropTypeBitmap:
       if ([NSImage canInitWithPasteboard:draggingPBoard]) {
         droppedImg = [[NSImage alloc] initWithPasteboard:draggingPBoard];
-        data = droppedImg;  //[draggingPBoard dataForType:NSPasteboardTypeTIFF];
+        data = droppedImg;  // [draggingPBoard dataForType:NSPasteboardTypeTIFF];
       }
       else {
         return NO;
@@ -311,7 +314,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-  // Creates the window
+  /* Creates the window. */
   NSRect rect;
   NSSize minSize;
 
@@ -333,17 +336,17 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
 
   [m_window setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
 
-  // Forbid to resize the window below the blender defined minimum one
+  /* Forbid to resize the window below the blender defined minimum one. */
   minSize.width = 320;
   minSize.height = 240;
   [m_window setContentMinSize:minSize];
 
-  // Create NSView inside the window
+  /* Create NSView inside the window. */
   id<MTLDevice> metalDevice = MTLCreateSystemDefaultDevice();
   NSView *view;
 
   if (metalDevice) {
-    // Create metal layer and view if supported
+    /* Create metal layer and view if supported. */
     m_metalLayer = [[CAMetalLayer alloc] init];
     [m_metalLayer setEdgeAntialiasingMask:0];
     [m_metalLayer setMasksToBounds:NO];
@@ -375,15 +378,15 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     view = m_metalView;
   }
   else {
-    // Fallback to OpenGL view if there is no Metal support
+    /* Fallback to OpenGL view if there is no Metal support. */
     m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect];
     [m_openGLView setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
     view = m_openGLView;
   }
 
   if (m_systemCocoa->m_nativePixel) {
-    // Needs to happen early when building with the 10.14 SDK, otherwise
-    // has no effect until resizeing the window.
+    /* Needs to happen early when building with the 10.14 SDK, otherwise
+     * has no effect until resizeing the window. */
     if ([view respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
       [view setWantsBestResolutionOpenGLSurface:YES];
     }
@@ -571,7 +574,7 @@ void GHOST_WindowCocoa::getClientBounds(GHOST_Rect &bounds) const
 
   NSRect screenSize = [[m_window screen] visibleFrame];
 
-  // Max window contents as screen size (excluding title bar...)
+  /* Max window contents as screen size (excluding title bar...). */
   NSRect contentRect = [CocoaWindow contentRectForFrameRect:screenSize
                                                   styleMask:[m_window styleMask]];
 
@@ -641,7 +644,7 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
   NSUInteger masks = [m_window styleMask];
 
   if (masks & NSWindowStyleMaskFullScreen) {
-    // Lion style fullscreen
+    /* Lion style full-screen. */
     if (!m_immediateDraw) {
       state = GHOST_kWindowStateFullScreen;
     }
@@ -780,7 +783,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
       NSUInteger masks = [m_window styleMask];
 
       if (masks & NSWindowStyleMaskFullScreen) {
-        // Lion style fullscreen
+        /* Lion style full-screen. */
         [m_window toggleFullScreen:nil];
       }
       else if ([m_window isMiniaturized]) {
@@ -820,7 +823,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 
     [m_window orderBack:nil];
 
-    // Check for other blender opened windows and make the frontmost key
+    /* Check for other blender opened windows and make the front-most key. */
     windowsList = [NSApp orderedWindows];
     if ([windowsList count]) {
       [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
@@ -1090,7 +1093,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
   GHOST_TSuccess err = GHOST_kSuccess;
 
   if (mode != GHOST_kGrabDisable) {
-    // No need to perform grab without warp as it is always on in OS X
+    /* No need to perform grab without warp as it is always on in OS X. */
     if (mode != GHOST_kGrabNormal) {
       NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -1101,7 +1104,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
         setWindowCursorVisibility(false);
       }
 
-      // Make window key if it wasn't to get the mouse move events
+      /* Make window key if it wasn't to get the mouse move events. */
       [m_window makeKeyWindow];
 
       [pool drain];
@@ -1218,7 +1221,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCustomCursorShape(
   hotSpotPoint.x = hotX;
   hotSpotPoint.y = hotY;
 
-  // foreground and background color parameter is not handled for now (10.6)
+  /* Foreground and background color parameter is not handled for now (10.6). */
   m_customCursor = [[NSCursor alloc] initWithImage:cursorImage hotSpot:hotSpotPoint];
 
   [cursorImageRep release];
