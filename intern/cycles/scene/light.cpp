@@ -1376,12 +1376,18 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
     klights[light_index].tfm = light->tfm;
     klights[light_index].itfm = transform_inverse(light->tfm);
 
-    auto it = scene->lightgroups.find(light->lightgroup);
-    if (it != scene->lightgroups.end()) {
-      klights[light_index].lightgroup = it->second;
+    /* Light group. */
+    if (light->light_type == LIGHT_BACKGROUND) {
+      klights[light_index].lightgroup = dscene->data.background.lightgroup;
     }
     else {
-      klights[light_index].lightgroup = LIGHTGROUP_NONE;
+      auto it = scene->lightgroups.find(light->lightgroup);
+      if (it != scene->lightgroups.end()) {
+        klights[light_index].lightgroup = it->second;
+      }
+      else {
+        klights[light_index].lightgroup = LIGHTGROUP_NONE;
+      }
     }
 
     klights[light_index].light_set_membership = light->light_set_membership;

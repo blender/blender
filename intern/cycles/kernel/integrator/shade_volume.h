@@ -866,10 +866,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput_phase;
 
   /* Write Light-group, +1 as light-group is int but we need to encode into a uint8_t. */
-  INTEGRATOR_STATE_WRITE(
-      shadow_state, shadow_path, lightgroup) = (ls.type != LIGHT_BACKGROUND) ?
-                                                   ls.group + 1 :
-                                                   kernel_data.background.lightgroup + 1;
+  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, lightgroup) = ls.group + 1;
 
 #  ifdef __PATH_GUIDING__
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unlit_throughput) = unlit_throughput;

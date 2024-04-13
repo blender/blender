@@ -345,13 +345,8 @@ ccl_device
   }
 
   /* Branch off shadow kernel. */
-
-  // TODO(: De-duplicate with the shade_Dedicated_light.
-  // Possibly by ensuring ls->group is always assigned properly.
-  const int light_group = ls.type != LIGHT_BACKGROUND ? ls.group :
-                                                        kernel_data.background.lightgroup;
   IntegratorShadowState shadow_state = integrate_direct_light_shadow_init_common(
-      kg, state, &ray, bsdf_eval_sum(&bsdf_eval), light_group, mnee_vertex_count);
+      kg, state, &ray, bsdf_eval_sum(&bsdf_eval), ls.group, mnee_vertex_count);
 
   if (is_transmission) {
 #ifdef __VOLUME__

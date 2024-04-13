@@ -114,10 +114,7 @@ ccl_device bool shadow_linking_shade_light(KernelGlobals kg,
 
   bsdf_spectrum = light_eval * mis_weight *
                   INTEGRATOR_STATE(state, shadow_link, dedicated_light_weight);
-
-  // TODO(: De-duplicate with the shade_surface.
-  // Possibly by ensuring ls->group is always assigned properly.
-  light_group = ls.type != LIGHT_BACKGROUND ? ls.group : kernel_data.background.lightgroup;
+  light_group = ls.group;
 
   return true;
 }
