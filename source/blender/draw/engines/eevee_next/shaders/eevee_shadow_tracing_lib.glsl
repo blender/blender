@@ -510,8 +510,10 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
 ShadowEvalResult shadow_eval(LightData light,
                              const bool is_directional,
                              const bool is_transmission,
+                             bool is_translucent_with_thickness,
                              vec3 P,
                              vec3 Ng,
+                             vec3 L,
                              int ray_count,
                              int ray_step_count)
 {
@@ -533,21 +535,27 @@ ShadowEvalResult shadow_eval(LightData light,
   float normal_offset = 0.02;
 #endif
 
-  /* We want to bias inside the object for transmission to go through the object itself. */
-  normal_offset = is_transmission ? -normal_offset : normal_offset;
-
   P += shadow_pcf_offset(light, is_directional, P, Ng, random_pcf_2d);
 
+  /* We want to bias inside the object for transmission to go through the object itself.
+   * But doing so split the shadow in two different directions at the horizon. Also this
+   * doesn't fix the the aliasing issue. So we reflect the normal so that it always go towards
+   * the light. */
+  vec3 N_bias = is_transmission ? reflect(Ng, L) : Ng;
+
   /* Avoid self intersection. */
-  P = offset_ray(P, Ng);
+  P = offset_ray(P, N_bias);
   /* The above offset isn't enough in most situation. Still add a bigger bias. */
   /* TODO(fclem): Scale based on depth. */
-  P += Ng * normal_offset;
+  P += N_bias * normal_offset;
 
   vec3 lP = is_directional ? light_world_to_local(light, P) :
                              light_world_to_local(light, P - light._position);
   vec3 lNg = light_world_to_local(light, Ng);
-  lNg = is_transmission ? -Ng : Ng;
+  /* Invert horizon clipping. */
+  lNg = (is_transmission) ? -lNg : lNg;
+  /* Don't do a any horizon clipping in this case as the closure is lit from both sides. */
+  lNg = (is_transmission && is_translucent_with_thickness) ? vec3(0.0) : lNg;
 
   float surface_hit = 0.0;
   for (int ray_index = 0; ray_index < ray_count && ray_index < SHADOW_MAX_RAY; ray_index++) {

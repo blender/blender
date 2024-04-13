@@ -46,7 +46,6 @@ void main()
   }
 
   vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
-  vec3 P_transmit = vec3(0.0);
   vec3 Ng = gbuf.surface_N;
   vec3 V = drw_world_incident_vector(P);
   float vPz = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
@@ -66,8 +65,8 @@ void main()
 
   vec3 radiance_front = stack.cl[0].light_shadowed;
 
-  stack.cl[0] = closure_light_new(cl_transmit, V, P, gbuf.thickness, P_transmit);
-  light_eval_transmission(stack, P_transmit, Ng, V, vPz);
+  stack.cl[0] = closure_light_new(cl_transmit, V, gbuf.thickness);
+  light_eval_transmission(stack, P, Ng, V, vPz);
 
   vec3 radiance_back = stack.cl[0].light_shadowed;
 

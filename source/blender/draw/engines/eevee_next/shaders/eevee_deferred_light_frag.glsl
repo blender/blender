@@ -57,11 +57,10 @@ void main()
     }
 #  endif
 
-    vec3 P_transmit = vec3(0.0);
-    stack.cl[0] = closure_light_new(cl_transmit, V, P, gbuf.thickness, P_transmit);
+    stack.cl[0] = closure_light_new(cl_transmit, V, gbuf.thickness);
 
     /* Note: Only evaluates `stack.cl[0]`. */
-    light_eval_transmission(stack, P_transmit, Ng, V, vPz);
+    light_eval_transmission(stack, P, Ng, V, vPz);
 
 #  if 1 /* TODO Limit to SSS. */
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {

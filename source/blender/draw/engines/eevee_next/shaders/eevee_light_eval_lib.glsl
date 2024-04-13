@@ -70,7 +70,7 @@ void light_shadow_single(uint l_idx,
 #endif
 
   ShadowEvalResult result = shadow_eval(
-      light, is_directional, is_transmission, P, Ng, ray_count, ray_step_count);
+      light, is_directional, is_transmission, false, P, Ng, Ng, ray_count, ray_step_count);
 
   shadow_bits |= shadow_pack(result.light_visibilty, ray_count, shift);
   shift += ray_count;
@@ -101,11 +101,13 @@ struct ClosureLight {
   vec3 N;
   /* Enum used as index to fetch which light intensity to use [0..3]. */
   LightingType type;
-  /* Is a translucent BSDF with thickness greater than 0. */
-  bool is_translucent_with_thickness;
   /* Output both shadowed and unshadowed for shadow denoising. */
   vec3 light_shadowed;
   vec3 light_unshadowed;
+
+  /** Only for transmission BSDFs. */
+  vec3 shading_offset;
+  float shadow_offset;
 };
 
 struct ClosureLightStack {
@@ -115,10 +117,8 @@ struct ClosureLightStack {
 
 ClosureLight closure_light_new_ex(ClosureUndetermined cl,
                                   vec3 V,
-                                  vec3 P,
                                   float thickness,
-                                  const bool is_transmission,
-                                  out vec3 out_P)
+                                  const bool is_transmission)
 {
   ClosureLight cl_light;
   cl_light.N = cl.N;
@@ -126,27 +126,20 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
   cl_light.type = LIGHT_DIFFUSE;
   cl_light.light_shadowed = vec3(0.0);
   cl_light.light_unshadowed = vec3(0.0);
-  cl_light.is_translucent_with_thickness = false;
+  cl_light.shading_offset = vec3(0.0);
+  cl_light.shadow_offset = is_transmission ? thickness : 0.0;
   switch (cl.type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
       if (is_transmission) {
         cl_light.N = -cl.N;
         cl_light.type = LIGHT_DIFFUSE;
-        out_P = P;
 
         if (thickness > 0.0) {
-          vec2 random_2d = pcg3d(P).xy;
-#ifdef EEVEE_SAMPLING_DATA
-          random_2d = fract(random_2d + sampling_rng_2D_get(SAMPLING_SHADOW_X));
-#endif
-          float radius = thickness * 0.5;
-          /* Store random shadow position inside the normal since it has no effect. */
-          cl_light.N = vec3(sample_disk(random_2d) * radius, radius);
           /* Strangely, a translucent sphere lit by a light outside the sphere transmits the light
            * uniformly over the sphere. To mimic this phenomenon, we shift the shading position to
            * a unique position on the sphere and use the light vector as normal. */
-          out_P -= cl.N * radius;
-          cl_light.is_translucent_with_thickness = true;
+          cl_light.shading_offset = -cl.N * thickness * 0.5;
+          cl_light.N = vec3(0.0);
         }
       }
       break;
@@ -158,8 +151,7 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
         cl_light.N = -cl.N;
         cl_light.type = LIGHT_DIFFUSE;
         /* Lit and shadow as outside of the object. */
-        out_P = P - cl.N * thickness;
-        break;
+        cl_light.shading_offset = -cl.N * thickness;
       }
       /* Reflection term uses the lambertian diffuse. */
       break;
@@ -171,7 +163,6 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
       if (is_transmission) {
-        out_P = P;
         ClosureRefraction cl_refract = to_closure_refraction(cl);
         cl_refract.roughness = refraction_roughness_remapping(cl_refract.roughness,
                                                               cl_refract.ior);
@@ -181,7 +172,7 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
 
           ThicknessIsect isect = thickness_sphere_intersect(thickness, cl.N, L);
           cl.N = -isect.hit_N;
-          out_P += isect.hit_P;
+          cl_light.shading_offset = isect.hit_P;
 
           cl_refract.ior = 1.0 / cl_refract.ior;
           V = -L;
@@ -200,16 +191,14 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
   return cl_light;
 }
 
-ClosureLight closure_light_new(
-    ClosureUndetermined cl, vec3 V, vec3 P, float thickness, out vec3 out_P)
+ClosureLight closure_light_new(ClosureUndetermined cl, vec3 V, float thickness)
 {
-  return closure_light_new_ex(cl, V, P, thickness, true, out_P);
+  return closure_light_new_ex(cl, V, thickness, true);
 }
 
 ClosureLight closure_light_new(ClosureUndetermined cl, vec3 V)
 {
-  vec3 unused_P = vec3(0.0), unused_out_P = vec3(0.0);
-  return closure_light_new_ex(cl, V, unused_P, 0.0, false, unused_out_P);
+  return closure_light_new_ex(cl, V, 0.0, false);
 }
 
 void light_eval_single_closure(LightData light,
@@ -249,10 +238,10 @@ void light_eval_single(uint l_idx,
   int ray_step_count = uniform_buf.shadow.step_count;
 #endif
 
-  LightVector lv = light_vector_get(light, is_directional, P);
+  vec3 shading_P = (is_transmission) ? P + stack.cl[0].shading_offset : P;
+  LightVector lv = light_vector_get(light, is_directional, shading_P);
 
-  bool is_translucent_with_thickness = is_transmission &&
-                                       stack.cl[0].is_translucent_with_thickness;
+  bool is_translucent_with_thickness = is_transmission && all(equal(stack.cl[0].N, vec3(0.0)));
 
   float attenuation = light_attenuation_surface(
       light, is_directional, is_transmission, is_translucent_with_thickness, Ng, lv);
@@ -267,14 +256,16 @@ void light_eval_single(uint l_idx,
     shift += ray_count;
 #else
 
-    if (is_translucent_with_thickness) {
-      /* Translucent doesn't use the normal for shading.
-       * Instead it stores the random shadow position offsets. */
-      P += from_up_axis(lv.L) * stack.cl[0].N;
-    }
-
-    ShadowEvalResult result = shadow_eval(
-        light, is_directional, is_transmission, P, Ng, ray_count, ray_step_count);
+    vec3 shadow_P = (is_transmission) ? P + lv.L * stack.cl[0].shadow_offset : P;
+    ShadowEvalResult result = shadow_eval(light,
+                                          is_directional,
+                                          is_transmission,
+                                          is_translucent_with_thickness,
+                                          shadow_P,
+                                          Ng,
+                                          lv.L,
+                                          ray_count,
+                                          ray_step_count);
     shadow = result.light_visibilty;
 #endif
   }
