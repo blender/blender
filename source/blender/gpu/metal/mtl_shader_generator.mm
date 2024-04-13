@@ -2156,6 +2156,7 @@ void MSLGeneratorInterface::prepare_from_createinfo(const shader::ShaderCreateIn
 
       /* Check existing samplers. */
       for (const auto &tex : texture_samplers) {
+        UNUSED_VARS_NDEBUG(tex);
         BLI_assert(tex.location != msl_image.location);
       }
 
