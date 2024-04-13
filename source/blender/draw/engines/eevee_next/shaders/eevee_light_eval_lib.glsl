@@ -278,9 +278,17 @@ void light_eval_single(uint l_idx,
     attenuation *= M_1_PI;
   }
 
-  /* WATCH(@fclem): Might have to manually unroll for best performance. */
-  for (int i = 0; i < (is_transmission ? 1 : LIGHT_CLOSURE_EVAL_COUNT); i++) {
-    light_eval_single_closure(light, lv, stack.cl[i], V, attenuation, shadow, is_transmission);
+  light_eval_single_closure(light, lv, stack.cl[0], V, attenuation, shadow, is_transmission);
+  if (!is_transmission) {
+#if LIGHT_CLOSURE_EVAL_COUNT > 1
+    light_eval_single_closure(light, lv, stack.cl[1], V, attenuation, shadow, is_transmission);
+#endif
+#if LIGHT_CLOSURE_EVAL_COUNT > 2
+    light_eval_single_closure(light, lv, stack.cl[2], V, attenuation, shadow, is_transmission);
+#endif
+#if LIGHT_CLOSURE_EVAL_COUNT > 3
+#  error
+#endif
   }
 }
 

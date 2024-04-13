@@ -90,7 +90,6 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_light_double)
 
 GPU_SHADER_CREATE_INFO(eevee_deferred_light_triple)
     .additional_info("eevee_deferred_light")
-    .define("MAT_SUBSURFACE")
     .define("LIGHT_CLOSURE_EVAL_COUNT", "3")
     .do_static_compilation(true);
 
