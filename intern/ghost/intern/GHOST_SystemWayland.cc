@@ -3879,9 +3879,8 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
     if (seat->pointer_scroll.discrete_xy[1]) {
       if (wl_surface *wl_surface_focus = seat->pointer.wl.surface_window) {
         GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_focus);
-        const int32_t discrete = seat->pointer_scroll.discrete_xy[1];
         seat->system->pushEvent_maybe_pending(
-            new GHOST_EventWheel(event_ms, win, std::signbit(discrete) ? +1 : -1));
+            new GHOST_EventWheel(event_ms, win, seat->pointer_scroll.discrete_xy[1]));
       }
     }
     seat->pointer_scroll.discrete_xy[0] = 0;
