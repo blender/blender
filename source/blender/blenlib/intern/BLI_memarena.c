@@ -210,20 +210,17 @@ void BLI_memarena_merge(MemArena *ma_dst, MemArena *ma_src)
 void BLI_memarena_clear(MemArena *ma)
 {
   if (ma->bufs) {
-    uchar *curbuf_prev;
-    size_t curbuf_used;
-
     if (ma->bufs->next) {
       memarena_buf_free_all(ma->bufs->next);
       ma->bufs->next = NULL;
     }
 
-    curbuf_prev = ma->curbuf;
+    const uchar *curbuf_prev = ma->curbuf;
     ma->curbuf = ma->bufs->data;
     memarena_curbuf_align(ma);
 
     /* restore to original size */
-    curbuf_used = (size_t)(curbuf_prev - ma->curbuf);
+    const size_t curbuf_used = (size_t)(curbuf_prev - ma->curbuf);
     ma->cursize += curbuf_used;
 
     if (ma->use_calloc) {

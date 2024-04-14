@@ -2311,7 +2311,7 @@ static bool bvhtreeverlap_cmp(const BVHTreeOverlap &a, const BVHTreeOverlap &b)
   if (a.indexA < b.indexA) {
     return true;
   }
-  if ((a.indexA == b.indexA) & (a.indexB < b.indexB)) {
+  if ((a.indexA == b.indexA) && (a.indexB < b.indexB)) {
     return true;
   }
   return false;

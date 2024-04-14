@@ -44,7 +44,7 @@ DebugDraw::DebugDraw()
     for (auto edge : IndexRange(circle_resolution)) {
       for (auto vert : IndexRange(2)) {
         const float angle = (2 * M_PI) * (edge + vert) / float(circle_resolution);
-        float point[3] = {cosf(angle), sinf(angle), 0.0f};
+        const float point[3] = {cosf(angle), sinf(angle), 0.0f};
         sphere_verts_.append(
             float3(point[(0 + axis) % 3], point[(1 + axis) % 3], point[(2 + axis) % 3]));
       }
@@ -56,7 +56,7 @@ DebugDraw::DebugDraw()
     for (auto edge : IndexRange(point_resolution)) {
       for (auto vert : IndexRange(2)) {
         const float angle = (2 * M_PI) * (edge + vert) / float(point_resolution);
-        float point[3] = {cosf(angle), sinf(angle), 0.0f};
+        const float point[3] = {cosf(angle), sinf(angle), 0.0f};
         point_verts_.append(
             float3(point[(0 + axis) % 3], point[(1 + axis) % 3], point[(2 + axis) % 3]));
       }

@@ -63,7 +63,7 @@ static void sigbus_handler(int sig, siginfo_t *siginfo, void *ptr)
   /* We only handle SIGBUS here for now. */
   BLI_assert(sig == SIGBUS);
 
-  char *error_addr = (char *)siginfo->si_addr;
+  const char *error_addr = (const char *)siginfo->si_addr;
   /* Find the file that this error belongs to. */
   LISTBASE_FOREACH (LinkData *, link, &error_handler.open_mmaps) {
     BLI_mmap_file *file = link->data;

@@ -214,7 +214,7 @@ int BLF_load_unique(const char *filepath)
   return i;
 }
 
-void BLF_metrics_attach(int fontid, uchar *mem, int mem_size)
+void BLF_metrics_attach(const int fontid, const uchar *mem, const int mem_size)
 {
   FontBLF *font = blf_get(fontid);
 

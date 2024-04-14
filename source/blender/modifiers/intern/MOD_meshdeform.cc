@@ -441,10 +441,10 @@ static void deform_verts(ModifierData *md,
 void BKE_modifier_mdef_compact_influences(ModifierData *md)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
-  float weight, *weights, totweight;
+  float weight, totweight;
   int influences_num, verts_num, cage_verts_num, a, b;
 
-  weights = mmd->bindweights;
+  const float *weights = mmd->bindweights;
   if (!weights) {
     return;
   }

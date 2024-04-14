@@ -118,7 +118,6 @@ ImBuf *IMB_ibImageFromMemory(
 ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *descr)
 {
   ImBuf *ibuf;
-  uchar *mem;
 
   if (file == -1) {
     return nullptr;
@@ -132,7 +131,7 @@ ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const
     return nullptr;
   }
 
-  mem = static_cast<uchar *>(BLI_mmap_get_pointer(mmap_file));
+  const uchar *mem = static_cast<const uchar *>(BLI_mmap_get_pointer(mmap_file));
   const size_t size = BLI_mmap_get_length(mmap_file);
 
   ibuf = IMB_ibImageFromMemory(mem, size, flags, colorspace, descr);

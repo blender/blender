@@ -81,7 +81,7 @@ void blf_draw_buffer__start(FontBLF *font);
 void blf_draw_buffer__end();
 
 FontBLF *blf_font_new_from_filepath(const char *filepath);
-FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, size_t mem_size);
+FontBLF *blf_font_new_from_mem(const char *mem_name, const unsigned char *mem, size_t mem_size);
 void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, size_t mem_size);
 
 /**
