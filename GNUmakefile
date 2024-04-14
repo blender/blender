@@ -481,9 +481,7 @@ check_cppcheck: .FORCE
 	@$(CMAKE_CONFIG)
 	@cd "$(BUILD_DIR)" ; \
 	$(PYTHON) \
-	    "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py" 2> \
-	    "$(BLENDER_DIR)/check_cppcheck.txt"
-	@echo "written: check_cppcheck.txt"
+	    "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py"
 
 check_struct_comments: .FORCE
 	@$(CMAKE_CONFIG)
