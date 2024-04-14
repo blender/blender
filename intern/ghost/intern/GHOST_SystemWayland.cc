@@ -3965,6 +3965,7 @@ static void pointer_handle_axis_relative_direction(void *data,
                                                    uint32_t axis,
                                                    uint32_t direction)
 {
+  /* Only available in interface version 9. */
   CLOG_INFO(LOG, 2, "axis_relative_direction (axis=%u, direction=%u)", axis, direction);
   const int index = pointer_axis_as_index(axis);
   if (UNLIKELY(index == -1)) {
@@ -6358,7 +6359,7 @@ static void gwl_registry_wl_output_remove(GWL_Display *display,
 
 static void gwl_registry_wl_seat_add(GWL_Display *display, const GWL_RegisteryAdd_Params &params)
 {
-  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 5u, 5u);
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 5u, 9u);
 
   GWL_Seat *seat = new GWL_Seat;
   seat->system = display->system;
