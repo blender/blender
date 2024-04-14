@@ -6126,11 +6126,26 @@ static void output_handle_scale(void *data, wl_output * /*wl_output*/, const int
   output->system->output_scale_update(output);
 }
 
+static void output_handle_name(void * /*data*/, struct wl_output * /*wl_output*/, const char *name)
+{
+  /* Only available in interface version 4. */
+  CLOG_INFO(LOG, 2, "name (%s)", name);
+}
+static void output_handle_description(void * /*data*/,
+                                      struct wl_output * /*wl_output*/,
+                                      const char *description)
+{
+  /* Only available in interface version 4. */
+  CLOG_INFO(LOG, 2, "description (%s)", description);
+}
+
 static const wl_output_listener output_listener = {
     /*geometry*/ output_handle_geometry,
     /*mode*/ output_handle_mode,
     /*done*/ output_handle_done,
     /*scale*/ output_handle_scale,
+    /*name*/ output_handle_name,
+    /*description*/ output_handle_description,
 };
 
 #undef LOG
@@ -6291,7 +6306,7 @@ static void gwl_registry_xdg_output_manager_remove(GWL_Display *display,
 
 static void gwl_registry_wl_output_add(GWL_Display *display, const GWL_RegisteryAdd_Params &params)
 {
-  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 2u, 2u);
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 2u, 4u);
 
   GWL_Output *output = new GWL_Output;
   output->system = display->system;
