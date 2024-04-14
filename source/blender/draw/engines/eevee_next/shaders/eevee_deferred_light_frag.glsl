@@ -34,7 +34,7 @@ void main()
   }
 
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
-   * by 1 for this evaluaiton and skip evaluating the transmission closure twice. */
+   * by 1 for this evaluation and skip evaluating the transmission closure twice. */
   light_eval_reflection(stack, P, Ng, V, vPz);
 
 #if 1 /* TODO Limit to transmission. Can bypass the check if stencil is tagged properly and use \

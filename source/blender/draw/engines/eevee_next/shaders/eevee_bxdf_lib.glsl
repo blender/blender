@@ -145,7 +145,7 @@ float refraction_roughness_remapping(float roughness, float ior)
 }
 
 /**
- * `roughness` is expected to be the linear (from UI) roughess from.
+ * `roughness` is expected to be the linear (from UI) roughness from.
  */
 vec3 reflection_dominant_dir(vec3 N, vec3 V, float roughness)
 {
@@ -161,7 +161,7 @@ vec3 reflection_dominant_dir(vec3 N, vec3 V, float roughness)
 }
 
 /**
- * `roughness` is expected to be the reflection roughess from `refraction_roughness_remapping`.
+ * `roughness` is expected to be the reflection roughness from `refraction_roughness_remapping`.
  */
 vec3 refraction_dominant_dir(vec3 N, vec3 V, float ior, float roughness)
 {

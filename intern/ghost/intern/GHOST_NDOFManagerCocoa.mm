@@ -47,7 +47,7 @@ struct ConnexionDeviceState {
   uint64_t time;
   uint8_t report[8];
   uint16_t buttons8; /* Obsolete! (pre-10.x drivers). */
-  int16_t axis[6];   /* tx, ty, tz, rx, ry, rz. */
+  int16_t axis[6];   /* TX, TY, TZ, RX, RY, RZ. */
   uint16_t address;
   uint32_t buttons;
 };

@@ -147,7 +147,7 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
       if (is_transmission) {
         /* If the `thickness / sss_radius` ratio is near 0, this transmission term should converge
          * to a uniform term like the translucent BSDF. But we need to find what to do in other
-         * cases. For now, approximate the transmission term as just backfacing. */
+         * cases. For now, approximate the transmission term as just back-facing. */
         cl_light.N = -cl.N;
         cl_light.type = LIGHT_DIFFUSE;
         /* Lit and shadow as outside of the object. */

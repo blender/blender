@@ -28,7 +28,7 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
   }
 
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
-   * by 1 for this evaluaiton and skip evaluating the transmission closure twice. */
+   * by 1 for this evaluation and skip evaluating the transmission closure twice. */
   light_eval_reflection(stack, g_data.P, g_data.Ng, V, vPz);
 
 #if defined(MAT_SUBSURFACE) || defined(MAT_REFRACTION) || defined(MAT_TRANSLUCENT)

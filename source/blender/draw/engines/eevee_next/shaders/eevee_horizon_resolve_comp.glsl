@@ -155,7 +155,7 @@ void main()
         break;
       }
       case CLOSURE_BSDF_TRANSLUCENT_ID:
-        /* Translucent BSDF with thickness is modelled as uniform sphere distribution which drops
+        /* Translucent BSDF with thickness is modeled as uniform sphere distribution which drops
          * all the directional terms. */
         L = (gbuf.thickness > 0.0) ? vec3(0.0) : -N;
         break;

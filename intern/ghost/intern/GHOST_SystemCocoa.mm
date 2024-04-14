@@ -426,7 +426,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 {
   /* TODO: implement graceful termination through Cocoa mechanism
    * to avoid session log off to be canceled. */
-  /* Note that Cmd+Q is already handled by key-handler. */
+  /* Note that Command-Q is already handled by key-handler. */
   systemCocoa->handleQuitRequest();
   return NSTerminateCancel;
 }
@@ -1497,8 +1497,9 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
   char *temp_buff;
   size_t filenameTextSize;
 
-  /* Check for blender opened windows and make the frontmost key. In case blender
-   * is minimized, opened on another desktop space, or in full-screen mode. */
+  /* Check for blender opened windows and make the front-most key.
+   * In case blender is minimized, opened on another desktop space,
+   * or in full-screen mode. */
   windowsList = [NSApp orderedWindows];
   if ([windowsList count]) {
     [[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
@@ -1970,7 +1971,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
       }
 
       if ((keyCode == GHOST_kKeyQ) && (m_modifierMask & NSEventModifierFlagCommand)) {
-        break; /* Cmd-Q is directly handled by Cocoa. */
+        break; /* Command-Q is directly handled by Cocoa. */
       }
 
       if ([event type] == NSEventTypeKeyDown) {

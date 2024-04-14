@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
- * Amend thickness after object rasterization using shadowmaps.
+ * Amend thickness after object rasterization using shadow-maps.
  *
  * Required resources:
  * - atlas_tx

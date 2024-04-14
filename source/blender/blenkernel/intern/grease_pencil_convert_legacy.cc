@@ -2420,7 +2420,7 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
  *
  * \note De-duplication needs to assign the new, duplicated GPv2 ID to annotations, and keep the
  * original one assigned to objects. That way, when the object data are converted, other potential
- * references to the old GPv2 ID (drivers, custom propoerties, etc.) can be safely remapped to the
+ * references to the old GPv2 ID (drivers, custom properties, etc.) can be safely remapped to the
  * new GPv3 ID.
  *
  * \warning: This makes the assumption that annotation data is not typically referenced by anything

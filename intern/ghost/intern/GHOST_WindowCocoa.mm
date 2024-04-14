@@ -58,7 +58,7 @@
 - (void)windowDidBecomeKey:(NSNotification *)notification
 {
   systemCocoa->handleWindowEvent(GHOST_kEventWindowActivate, associatedWindow);
-  /* Workaround for broken app-switching when combining cmd-tab and mission-control. */
+  /* Workaround for broken app-switching when combining Command-Tab and mission-control. */
   [(NSWindow *)associatedWindow->getOSWindow() orderFrontRegardless];
 }
 
@@ -90,7 +90,7 @@
 - (void)windowDidEnterFullScreen:(NSNotification *)notification
 {
   /* macOS does not send a window resize event when switching between zoomed
-   * and fullscreen, when automatic show/hide of dock and menu bar are enabled.
+   * and full-screen, when automatic show/hide of dock and menu bar are enabled.
    * Send our own to prevent artifacts. */
   systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
 
@@ -386,7 +386,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
 
   if (m_systemCocoa->m_nativePixel) {
     /* Needs to happen early when building with the 10.14 SDK, otherwise
-     * has no effect until resizeing the window. */
+     * has no effect until resizing the window. */
     if ([view respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
       [view setWantsBestResolutionOpenGLSurface:YES];
     }
@@ -752,11 +752,11 @@ void GHOST_WindowCocoa::setNativePixelSize(void)
 }
 
 /**
- * \note Full-screen switch is not actual fullscreen with display capture.
+ * \note Full-screen switch is not actual full-screen with display capture.
  * As this capture removes all OS X window manager features.
  *
  * Instead, the menu bar and the dock are hidden, and the window is made border-less and enlarged.
- * Thus, process switch, exposé, spaces, ... still work in fullscreen mode
+ * Thus, process switch, exposé, spaces, ... still work in full-screen mode.
  */
 GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 {
