@@ -6778,7 +6778,7 @@ static void gwl_registry_wp_text_input_manager_add(GWL_Display *display,
   const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
 
   display->wp.text_input_manager = static_cast<zwp_text_input_manager_v3 *>(wl_registry_bind(
-      display->wl.registry, params->name, &zwp_text_input_manager_v3_interface, version));
+      display->wl.registry, params.name, &zwp_text_input_manager_v3_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wp_text_input_manager_remove(GWL_Display *display,
