@@ -31,7 +31,7 @@ MTLShaderInterface::MTLShaderInterface(const char *name)
   inputs_ = nullptr;
 
   if (name != nullptr) {
-    strcpy(this->name, name);
+    STRNCPY(this->name, name);
   }
 
   /* Ensure #ShaderInterface parameters are cleared. */
