@@ -688,6 +688,8 @@ struct GWL_SeatStatePointerScroll {
   wl_fixed_t smooth_xy[2] = {0, 0};
   /** Discrete scrolling (handled & reset with pointer "frame" callback). */
   int32_t discrete_xy[2] = {0, 0};
+  /** Discrete scrolling, v8 of the seat API (handled & reset with pointer "frame" callback). */
+  int32_t discrete120_xy[2] = {0, 0};
   /** True when the axis is inverted (also known is "natural" scrolling). */
   bool inverted_xy[2] = {false, false};
   /** The source of scroll event. */
@@ -3758,38 +3760,47 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
 
   CLOG_INFO(LOG, 2, "frame");
 
-  /* Force discrete logic. */
-  bool force_discrete = false;
-  switch (wl_pointer_axis_source(seat->pointer_scroll.axis_source)) {
-    case WL_POINTER_AXIS_SOURCE_FINGER: {
-      if (seat->use_pointer_scroll_smooth_as_discrete) {
-        force_discrete = true;
-      }
-      break;
-    }
-    default: {
-      break;
-    }
+  /* Handle value120 to discrete steps first. */
+  if (seat->pointer_scroll.discrete120_xy[0] || seat->pointer_scroll.discrete120_xy[1]) {
+    /* The values will have been normalized so 120 represents a single click-step. */
+    seat->pointer_scroll.discrete_xy[0] = seat->pointer_scroll.discrete120_xy[0] / 120;
+    seat->pointer_scroll.discrete_xy[1] = seat->pointer_scroll.discrete120_xy[1] / 120;
+
+    seat->pointer_scroll.discrete120_xy[0] = 0;
+    seat->pointer_scroll.discrete120_xy[1] = 0;
   }
 
-  if (force_discrete && (seat->pointer_scroll.smooth_xy[0] || seat->pointer_scroll.smooth_xy[1])) {
-    GWL_SeatStatePointerScroll_SmoothAsDiscrete &smooth_as_discrete =
-        seat->pointer_scroll.smooth_as_discrete;
-    /* If discrete steps have been sent, use them as-is. */
-    if ((seat->pointer_scroll.discrete_xy[0] == 0) && (seat->pointer_scroll.discrete_xy[1] == 0)) {
-      /* Convert smooth to discrete. */
-      for (int i = 0; i < 2; i++) {
-        smooth_as_discrete.smooth_xy_accum[i] += seat->pointer_scroll.smooth_xy[i];
-        if (std::abs(smooth_as_discrete.smooth_xy_accum[i]) >= smooth_as_discrete_steps) {
-          seat->pointer_scroll.discrete_xy[i] = smooth_as_discrete.smooth_xy_accum[i] /
-                                                smooth_as_discrete_steps;
-          smooth_as_discrete.smooth_xy_accum[i] -= seat->pointer_scroll.discrete_xy[i] *
-                                                   smooth_as_discrete_steps;
-        }
-      }
-    }
+  /* Multiple wheel events may have been generated and it's not known which.
+   * The logic here handles prioritizing how they should be handled. */
+  if (seat->pointer_scroll.axis_source == WL_POINTER_AXIS_SOURCE_WHEEL) {
+    /* We never want mouse wheel events to be treated as smooth scrolling as this
+     * causes mouse wheel scroll to orbit the view, see #120587.
+     * Although it could be supported if the event system would forward
+     * the source of the scroll action (a wheel or touch device).  */
     seat->pointer_scroll.smooth_xy[0] = 0;
     seat->pointer_scroll.smooth_xy[1] = 0;
+  }
+  else if (seat->pointer_scroll.axis_source == WL_POINTER_AXIS_SOURCE_FINGER) {
+    if (seat->use_pointer_scroll_smooth_as_discrete) {
+      GWL_SeatStatePointerScroll_SmoothAsDiscrete &smooth_as_discrete =
+          seat->pointer_scroll.smooth_as_discrete;
+      /* If discrete steps have been sent, use them as-is. */
+      if ((seat->pointer_scroll.discrete_xy[0] == 0) && (seat->pointer_scroll.discrete_xy[1] == 0))
+      {
+        /* Convert smooth to discrete. */
+        for (int i = 0; i < 2; i++) {
+          smooth_as_discrete.smooth_xy_accum[i] += seat->pointer_scroll.smooth_xy[i];
+          if (std::abs(smooth_as_discrete.smooth_xy_accum[i]) >= smooth_as_discrete_steps) {
+            seat->pointer_scroll.discrete_xy[i] = smooth_as_discrete.smooth_xy_accum[i] /
+                                                  smooth_as_discrete_steps;
+            smooth_as_discrete.smooth_xy_accum[i] -= seat->pointer_scroll.discrete_xy[i] *
+                                                     smooth_as_discrete_steps;
+          }
+        }
+      }
+      seat->pointer_scroll.smooth_xy[0] = 0;
+      seat->pointer_scroll.smooth_xy[1] = 0;
+    }
   }
 
   /* Both discrete and smooth events may be set at once, never generate events for both
@@ -3901,14 +3912,19 @@ static void pointer_handle_axis_discrete(void *data,
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->pointer_scroll.discrete_xy[index] = discrete;
 }
-static void pointer_handle_axis_value120(void * /*data*/,
+static void pointer_handle_axis_value120(void *data,
                                          wl_pointer * /*wl_pointer*/,
                                          uint32_t axis,
                                          int32_t value120)
 {
-  /* NOTE: the axis handler seems high resolution enough.
-   * Nevertheless, we might want to support this. */
+  /* Only available in interface version 8. */
   CLOG_INFO(LOG, 2, "axis_value120 (axis=%u, value120=%d)", axis, value120);
+  const int index = pointer_axis_as_index(axis);
+  if (UNLIKELY(index == -1)) {
+    return;
+  }
+  GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  seat->pointer_scroll.discrete120_xy[index] = value120;
 }
 #ifdef WL_POINTER_AXIS_RELATIVE_DIRECTION_ENUM /* Requires WAYLAND 1.22 or newer. */
 static void pointer_handle_axis_relative_direction(void *data,
