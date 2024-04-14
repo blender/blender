@@ -207,6 +207,39 @@ static bool use_gnome_confine_hack = false;
  * \{ */
 
 /**
+ * A version clamping macro that optionally prints when the version is outdated.
+ * This is useful when investigating when newer versions of an interface might be supported.
+ *
+ * This addresses the following:
+ * - Filling in callbacks which wont be called because they aren't part of the older interface.
+ * - Not taking advantage of newer interfaces which would be beneficial.
+ * - When interface versions need to be bumped to support new features,
+ *   avoid large version bumps that could change behavior in unexpected ways
+ *   due to versions changes between each version that wont have been accounted for.
+ *
+ * This should only be enabled during development, never enabled for regular releases.
+ */
+// #define USE_VERBOSE_OLD_IFACE_PRINT
+
+#ifdef USE_VERBOSE_OLD_IFACE_PRINT
+#  define _VERBOSE_OLD_IFACE_PRINT(params_version, version_max) \
+    ((params_version > version_max) ? \
+         fprintf(stderr, \
+                 "%s: version_max=%u, is smaller than run-time version=%u\n", \
+                 __func__, \
+                 version_max, \
+                 params_version) : \
+         0)
+#else
+#  define _VERBOSE_OLD_IFACE_PRINT(params_version, version_max) \
+    ((void)(params_version), (version_max))
+#endif
+
+#define GWL_IFACE_VERSION_CLAMP(params_version, version_min, version_max) \
+  ((void)_VERBOSE_OLD_IFACE_PRINT(params_version, version_max), \
+   std::clamp(params_version, version_min, version_max))
+
+/**
  * Fix short-cut part of keyboard reading code not properly handling some keys, see: #102194.
  * \note This is similar to X11 workaround by the same name, see: #47228.
  */
@@ -6167,8 +6200,10 @@ static CLG_LogRef LOG_WL_REGISTRY = {"ghost.wl.handle.registry"};
 static void gwl_registry_compositor_add(GWL_Display *display,
                                         const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 3u, 3u);
+
   display->wl.compositor = static_cast<wl_compositor *>(
-      wl_registry_bind(display->wl.registry, params.name, &wl_compositor_interface, 3));
+      wl_registry_bind(display->wl.registry, params.name, &wl_compositor_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_compositor_remove(GWL_Display *display,
@@ -6185,9 +6220,11 @@ static void gwl_registry_compositor_remove(GWL_Display *display,
 static void gwl_registry_xdg_wm_base_add(GWL_Display *display,
                                          const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
   GWL_XDG_Decor_System &decor = *display->xdg_decor;
   decor.shell = static_cast<xdg_wm_base *>(
-      wl_registry_bind(display->wl.registry, params.name, &xdg_wm_base_interface, 1));
+      wl_registry_bind(display->wl.registry, params.name, &xdg_wm_base_interface, version));
   xdg_wm_base_add_listener(decor.shell, &shell_listener, nullptr);
   decor.shell_name = params.name;
   gwl_registry_entry_add(display, params, nullptr);
@@ -6209,9 +6246,11 @@ static void gwl_registry_xdg_wm_base_remove(GWL_Display *display,
 static void gwl_registry_xdg_decoration_manager_add(GWL_Display *display,
                                                     const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
   GWL_XDG_Decor_System &decor = *display->xdg_decor;
   decor.manager = static_cast<zxdg_decoration_manager_v1 *>(wl_registry_bind(
-      display->wl.registry, params.name, &zxdg_decoration_manager_v1_interface, 1));
+      display->wl.registry, params.name, &zxdg_decoration_manager_v1_interface, version));
   decor.manager_name = params.name;
   gwl_registry_entry_add(display, params, nullptr);
 }
@@ -6232,8 +6271,10 @@ static void gwl_registry_xdg_decoration_manager_remove(GWL_Display *display,
 static void gwl_registry_xdg_output_manager_add(GWL_Display *display,
                                                 const GWL_RegisteryAdd_Params &params)
 {
-  display->xdg.output_manager = static_cast<zxdg_output_manager_v1 *>(
-      wl_registry_bind(display->wl.registry, params.name, &zxdg_output_manager_v1_interface, 2));
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 2u, 2u);
+
+  display->xdg.output_manager = static_cast<zxdg_output_manager_v1 *>(wl_registry_bind(
+      display->wl.registry, params.name, &zxdg_output_manager_v1_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_xdg_output_manager_remove(GWL_Display *display,
@@ -6249,10 +6290,12 @@ static void gwl_registry_xdg_output_manager_remove(GWL_Display *display,
 
 static void gwl_registry_wl_output_add(GWL_Display *display, const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 2u, 2u);
+
   GWL_Output *output = new GWL_Output;
   output->system = display->system;
   output->wl.output = static_cast<wl_output *>(
-      wl_registry_bind(display->wl.registry, params.name, &wl_output_interface, 2));
+      wl_registry_bind(display->wl.registry, params.name, &wl_output_interface, version));
   ghost_wl_output_tag(output->wl.output);
   wl_output_set_user_data(output->wl.output, output);
 
@@ -6315,6 +6358,8 @@ static void gwl_registry_wl_output_remove(GWL_Display *display,
 
 static void gwl_registry_wl_seat_add(GWL_Display *display, const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 5u, 5u);
+
   GWL_Seat *seat = new GWL_Seat;
   seat->system = display->system;
   seat->xkb.context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
@@ -6325,7 +6370,7 @@ static void gwl_registry_wl_seat_add(GWL_Display *display, const GWL_RegisteryAd
 
   seat->data_source = new GWL_DataSource;
   seat->wl.seat = static_cast<wl_seat *>(
-      wl_registry_bind(display->wl.registry, params.name, &wl_seat_interface, 5));
+      wl_registry_bind(display->wl.registry, params.name, &wl_seat_interface, version));
   display->seats.push_back(seat);
   wl_seat_add_listener(seat->wl.seat, &seat_listener, seat);
   gwl_registry_entry_add(display, params, static_cast<void *>(seat));
@@ -6485,8 +6530,10 @@ static void gwl_registry_wl_seat_remove(GWL_Display *display, void *user_data, c
 
 static void gwl_registry_wl_shm_add(GWL_Display *display, const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
   display->wl.shm = static_cast<wl_shm *>(
-      wl_registry_bind(display->wl.registry, params.name, &wl_shm_interface, 1));
+      wl_registry_bind(display->wl.registry, params.name, &wl_shm_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wl_shm_remove(GWL_Display *display,
@@ -6503,8 +6550,10 @@ static void gwl_registry_wl_shm_remove(GWL_Display *display,
 static void gwl_registry_wl_data_device_manager_add(GWL_Display *display,
                                                     const GWL_RegisteryAdd_Params &params)
 {
-  display->wl.data_device_manager = static_cast<wl_data_device_manager *>(
-      wl_registry_bind(display->wl.registry, params.name, &wl_data_device_manager_interface, 3));
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 3u, 3u);
+
+  display->wl.data_device_manager = static_cast<wl_data_device_manager *>(wl_registry_bind(
+      display->wl.registry, params.name, &wl_data_device_manager_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wl_data_device_manager_remove(GWL_Display *display,
@@ -6521,8 +6570,10 @@ static void gwl_registry_wl_data_device_manager_remove(GWL_Display *display,
 static void gwl_registry_wp_tablet_manager_add(GWL_Display *display,
                                                const GWL_RegisteryAdd_Params &params)
 {
-  display->wp.tablet_manager = static_cast<zwp_tablet_manager_v2 *>(
-      wl_registry_bind(display->wl.registry, params.name, &zwp_tablet_manager_v2_interface, 1));
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
+  display->wp.tablet_manager = static_cast<zwp_tablet_manager_v2 *>(wl_registry_bind(
+      display->wl.registry, params.name, &zwp_tablet_manager_v2_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wp_tablet_manager_remove(GWL_Display *display,
@@ -6539,9 +6590,11 @@ static void gwl_registry_wp_tablet_manager_remove(GWL_Display *display,
 static void gwl_registry_wp_relative_pointer_manager_add(GWL_Display *display,
                                                          const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
   display->wp.relative_pointer_manager = static_cast<zwp_relative_pointer_manager_v1 *>(
       wl_registry_bind(
-          display->wl.registry, params.name, &zwp_relative_pointer_manager_v1_interface, 1));
+          display->wl.registry, params.name, &zwp_relative_pointer_manager_v1_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wp_relative_pointer_manager_remove(GWL_Display *display,
@@ -6558,8 +6611,10 @@ static void gwl_registry_wp_relative_pointer_manager_remove(GWL_Display *display
 static void gwl_registry_wp_pointer_constraints_add(GWL_Display *display,
                                                     const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
   display->wp.pointer_constraints = static_cast<zwp_pointer_constraints_v1 *>(wl_registry_bind(
-      display->wl.registry, params.name, &zwp_pointer_constraints_v1_interface, 1));
+      display->wl.registry, params.name, &zwp_pointer_constraints_v1_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wp_pointer_constraints_remove(GWL_Display *display,
@@ -6576,11 +6631,13 @@ static void gwl_registry_wp_pointer_constraints_remove(GWL_Display *display,
 static void gwl_registry_wp_pointer_gestures_add(GWL_Display *display,
                                                  const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 3u, 3u);
+
   display->wp.pointer_gestures = static_cast<zwp_pointer_gestures_v1 *>(
       wl_registry_bind(display->wl.registry,
                        params.name,
                        &zwp_pointer_gestures_v1_interface,
-                       std::min(params.version, 3u)));
+                       std::min(params.version, version)));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wp_pointer_gestures_remove(GWL_Display *display,
@@ -6597,8 +6654,10 @@ static void gwl_registry_wp_pointer_gestures_remove(GWL_Display *display,
 static void gwl_registry_xdg_activation_add(GWL_Display *display,
                                             const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
   display->xdg.activation_manager = static_cast<xdg_activation_v1 *>(
-      wl_registry_bind(display->wl.registry, params.name, &xdg_activation_v1_interface, 1));
+      wl_registry_bind(display->wl.registry, params.name, &xdg_activation_v1_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_xdg_activation_remove(GWL_Display *display,
@@ -6615,9 +6674,11 @@ static void gwl_registry_xdg_activation_remove(GWL_Display *display,
 static void gwl_registry_wp_fractional_scale_manager_add(GWL_Display *display,
                                                          const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
   display->wp.fractional_scale_manager = static_cast<wp_fractional_scale_manager_v1 *>(
       wl_registry_bind(
-          display->wl.registry, params.name, &wp_fractional_scale_manager_v1_interface, 1));
+          display->wl.registry, params.name, &wp_fractional_scale_manager_v1_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wp_fractional_scale_manager_remove(GWL_Display *display,
@@ -6634,8 +6695,10 @@ static void gwl_registry_wp_fractional_scale_manager_remove(GWL_Display *display
 static void gwl_registry_wp_viewporter_add(GWL_Display *display,
                                            const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
   display->wp.viewporter = static_cast<wp_viewporter *>(
-      wl_registry_bind(display->wl.registry, params.name, &wp_viewporter_interface, 1));
+      wl_registry_bind(display->wl.registry, params.name, &wp_viewporter_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wp_viewporter_remove(GWL_Display *display,
@@ -6652,12 +6715,14 @@ static void gwl_registry_wp_viewporter_remove(GWL_Display *display,
 static void gwl_registry_wp_primary_selection_device_manager_add(
     GWL_Display *display, const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
   display->wp.primary_selection_device_manager =
       static_cast<zwp_primary_selection_device_manager_v1 *>(
           wl_registry_bind(display->wl.registry,
                            params.name,
                            &zwp_primary_selection_device_manager_v1_interface,
-                           1));
+                           version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wp_primary_selection_device_manager_remove(GWL_Display *display,
@@ -6677,8 +6742,10 @@ static void gwl_registry_wp_primary_selection_device_manager_remove(GWL_Display 
 static void gwl_registry_wp_text_input_manager_add(GWL_Display *display,
                                                    const GWL_RegisteryAdd_Params &params)
 {
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+
   display->wp.text_input_manager = static_cast<zwp_text_input_manager_v3 *>(wl_registry_bind(
-      display->wl.registry, params->name, &zwp_text_input_manager_v3_interface, 1));
+      display->wl.registry, params->name, &zwp_text_input_manager_v3_interface, version));
   gwl_registry_entry_add(display, params, nullptr);
 }
 static void gwl_registry_wp_text_input_manager_remove(GWL_Display *display,
