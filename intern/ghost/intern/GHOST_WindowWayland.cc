@@ -1564,9 +1564,27 @@ static void surface_handle_leave(void *data, wl_surface * /*wl_surface*/, wl_out
   }
 }
 
+static void surface_handle_preferred_buffer_scale(void * /*data*/,
+                                                  struct wl_surface * /*wl_surface*/,
+                                                  int32_t factor)
+{
+  /* Only available in interface version 6. */
+  CLOG_INFO(LOG, 2, "handle_preferred_buffer_scale (factor=%d)", factor);
+}
+
+static void surface_handle_preferred_buffer_transform(void * /*data*/,
+                                                      struct wl_surface * /*wl_surface*/,
+                                                      uint32_t transform)
+{
+  /* Only available in interface version 6. */
+  CLOG_INFO(LOG, 2, "handle_preferred_buffer_transform (transform=%u)", transform);
+}
+
 static const wl_surface_listener wl_surface_listener = {
     /*enter*/ surface_handle_enter,
     /*leave*/ surface_handle_leave,
+    /*preferred_buffer_scale*/ surface_handle_preferred_buffer_scale,
+    /*preferred_buffer_transform*/ surface_handle_preferred_buffer_transform,
 };
 
 #undef LOG

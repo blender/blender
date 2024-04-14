@@ -3615,9 +3615,27 @@ static void cursor_surface_handle_leave(void *data, wl_surface *wl_surface, wl_o
   update_cursor_scale(seat->cursor, seat->system->wl_shm_get(), seat_state_pointer, wl_surface);
 }
 
+static void cursor_surface_handle_preferred_buffer_scale(void * /*data*/,
+                                                         struct wl_surface * /*wl_surface*/,
+                                                         int32_t factor)
+{
+  /* Only available in interface version 6. */
+  CLOG_INFO(LOG, 2, "handle_preferred_buffer_scale (factor=%d)", factor);
+}
+
+static void cursor_surface_handle_preferred_buffer_transform(void * /*data*/,
+                                                             struct wl_surface * /*wl_surface*/,
+                                                             uint32_t transform)
+{
+  /* Only available in interface version 6. */
+  CLOG_INFO(LOG, 2, "handle_preferred_buffer_transform (transform=%u)", transform);
+}
+
 static const wl_surface_listener cursor_surface_listener = {
     /*enter*/ cursor_surface_handle_enter,
     /*leave*/ cursor_surface_handle_leave,
+    /*preferred_buffer_scale*/ cursor_surface_handle_preferred_buffer_scale,
+    /*preferred_buffer_transform*/ cursor_surface_handle_preferred_buffer_transform,
 };
 
 #undef LOG
@@ -6216,7 +6234,7 @@ static CLG_LogRef LOG_WL_REGISTRY = {"ghost.wl.handle.registry"};
 static void gwl_registry_compositor_add(GWL_Display *display,
                                         const GWL_RegisteryAdd_Params &params)
 {
-  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 3u, 3u);
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 3u, 6u);
 
   display->wl.compositor = static_cast<wl_compositor *>(
       wl_registry_bind(display->wl.registry, params.name, &wl_compositor_interface, version));
