@@ -97,7 +97,7 @@ static void memcount_raise(const char *name)
 /* --------------------------------------------------------------------- */
 /* all memory chunks are put in linked lists */
 typedef struct localLink {
-  struct localLink *next, *prev;
+  localLink *next, *prev;
 } localLink;
 
 typedef struct localListBase {
@@ -108,7 +108,7 @@ typedef struct localListBase {
 typedef struct MemHead {
   int tag1;
   size_t len;
-  struct MemHead *next, *prev;
+  MemHead *next, *prev;
   const char *name;
   const char *nextname;
   int tag2;
@@ -159,7 +159,7 @@ static const char *check_memlist(MemHead *memh);
 #ifdef __BIG_ENDIAN__
 #  define MAKE_ID(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))
 #else
-#  define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
+#  define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
 #endif
 
 #define MEMTAG1 MAKE_ID('M', 'E', 'M', 'O')
@@ -280,7 +280,7 @@ void *MEM_guarded_dupallocN(const void *vmemh)
       newp = MEM_guarded_mallocN(memh->len, "dupli_alloc");
     }
     else {
-      newp = MEM_guarded_mallocN_aligned(memh->len, (size_t)memh->alignment, "dupli_alloc");
+      newp = MEM_guarded_mallocN_aligned(memh->len, size_t(memh->alignment), "dupli_alloc");
     }
 
     if (newp == nullptr) {
@@ -331,7 +331,7 @@ void *MEM_guarded_reallocN_id(void *vmemh, size_t len, const char *str)
       newp = MEM_guarded_mallocN(len, memh->name);
     }
     else {
-      newp = MEM_guarded_mallocN_aligned(len, (size_t)memh->alignment, memh->name);
+      newp = MEM_guarded_mallocN_aligned(len, size_t(memh->alignment), memh->name);
     }
 
     if (newp) {
@@ -366,7 +366,7 @@ void *MEM_guarded_recallocN_id(void *vmemh, size_t len, const char *str)
       newp = MEM_guarded_mallocN(len, memh->name);
     }
     else {
-      newp = MEM_guarded_mallocN_aligned(len, (size_t)memh->alignment, memh->name);
+      newp = MEM_guarded_mallocN_aligned(len, size_t(memh->alignment), memh->name);
     }
 
     if (newp) {
@@ -548,7 +548,7 @@ void *MEM_guarded_mallocN_aligned(size_t len, size_t alignment, const char *str)
     memh = (MemHead *)((char *)memh + extra_padding);
 
     make_memhead_header(memh, len, str);
-    memh->alignment = (short)alignment;
+    memh->alignment = short(alignment);
     if (LIKELY(len)) {
       if (UNLIKELY(malloc_debug_memset)) {
         memset(memh + 1, 255, len);
@@ -728,15 +728,15 @@ void MEM_guarded_printmemlist_stats()
     qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
   }
 
-  printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use / (double)(1024 * 1024));
-  printf("peak memory len: %.3f MB\n", (double)peak_mem / (double)(1024 * 1024));
-  printf("slop memory len: %.3f MB\n", (double)mem_in_use_slop / (double)(1024 * 1024));
+  printf("\ntotal memory len: %.3f MB\n", double(mem_in_use) / double(1024 * 1024));
+  printf("peak memory len: %.3f MB\n", double(peak_mem) / double(1024 * 1024));
+  printf("slop memory len: %.3f MB\n", double(mem_in_use_slop) / double(1024 * 1024));
   printf(" ITEMS TOTAL-MiB AVERAGE-KiB TYPE\n");
   for (a = 0, pb = printblock; a < totpb; a++, pb++) {
     printf("%6d (%8.3f  %8.3f) %s\n",
            pb->items,
-           (double)pb->len / (double)(1024 * 1024),
-           (double)pb->len / 1024.0 / (double)pb->items,
+           double(pb->len) / double(1024 * 1024),
+           double(pb->len) / 1024.0 / double(pb->items),
            pb->name);
   }
 
@@ -913,13 +913,13 @@ void MEM_guarded_freeN(void *vmemh)
   }
 
   if (sizeof(intptr_t) == 8) {
-    if (((intptr_t)memh) & 0x7) {
+    if (intptr_t(memh) & 0x7) {
       MemorY_ErroR("free", "attempt to free illegal pointer");
       return;
     }
   }
   else {
-    if (((intptr_t)memh) & 0x3) {
+    if (intptr_t(memh) & 0x3) {
       MemorY_ErroR("free", "attempt to free illegal pointer");
       return;
     }

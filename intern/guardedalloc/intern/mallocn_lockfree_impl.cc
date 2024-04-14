@@ -53,8 +53,8 @@ enum {
 #define MEMHEAD_FROM_PTR(ptr) (((MemHead *)ptr) - 1)
 #define PTR_FROM_MEMHEAD(memhead) (memhead + 1)
 #define MEMHEAD_ALIGNED_FROM_PTR(ptr) (((MemHeadAligned *)ptr) - 1)
-#define MEMHEAD_IS_ALIGNED(memhead) ((memhead)->len & (size_t)MEMHEAD_ALIGN_FLAG)
-#define MEMHEAD_LEN(memhead) ((memhead)->len & ~((size_t)(MEMHEAD_ALIGN_FLAG)))
+#define MEMHEAD_IS_ALIGNED(memhead) ((memhead)->len & size_t(MEMHEAD_ALIGN_FLAG))
+#define MEMHEAD_LEN(memhead) ((memhead)->len & ~size_t(MEMHEAD_ALIGN_FLAG))
 
 #ifdef __GNUC__
 __attribute__((format(printf, 1, 2)))
@@ -124,7 +124,7 @@ void *MEM_lockfree_dupallocN(const void *vmemh)
     if (UNLIKELY(MEMHEAD_IS_ALIGNED(memh))) {
       const MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
       newp = MEM_lockfree_mallocN_aligned(
-          prev_size, (size_t)memh_aligned->alignment, "dupli_malloc");
+          prev_size, size_t(memh_aligned->alignment), "dupli_malloc");
     }
     else {
       newp = MEM_lockfree_mallocN(prev_size, "dupli_malloc");
@@ -147,7 +147,7 @@ void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *str)
     }
     else {
       const MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
-      newp = MEM_lockfree_mallocN_aligned(len, (size_t)memh_aligned->alignment, "realloc");
+      newp = MEM_lockfree_mallocN_aligned(len, size_t(memh_aligned->alignment), "realloc");
     }
 
     if (newp) {
@@ -183,7 +183,7 @@ void *MEM_lockfree_recallocN_id(void *vmemh, size_t len, const char *str)
     }
     else {
       const MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
-      newp = MEM_lockfree_mallocN_aligned(len, (size_t)memh_aligned->alignment, "recalloc");
+      newp = MEM_lockfree_mallocN_aligned(len, size_t(memh_aligned->alignment), "recalloc");
     }
 
     if (newp) {
@@ -358,8 +358,8 @@ void *MEM_lockfree_mallocN_aligned(size_t len, size_t alignment, const char *str
 #endif /* WITH_MEM_VALGRIND */
     }
 
-    memh->len = len | (size_t)MEMHEAD_ALIGN_FLAG;
-    memh->alignment = (short)alignment;
+    memh->len = len | size_t(MEMHEAD_ALIGN_FLAG);
+    memh->alignment = short(alignment);
     memory_usage_block_alloc(len);
 
     return PTR_FROM_MEMHEAD(memh);
@@ -385,8 +385,8 @@ void MEM_lockfree_callbackmemlist(void (*func)(void *))
 
 void MEM_lockfree_printmemlist_stats()
 {
-  printf("\ntotal memory len: %.3f MB\n", (double)memory_usage_current() / (double)(1024 * 1024));
-  printf("peak memory len: %.3f MB\n", (double)memory_usage_peak() / (double)(1024 * 1024));
+  printf("\ntotal memory len: %.3f MB\n", double(memory_usage_current()) / double(1024 * 1024));
+  printf("peak memory len: %.3f MB\n", double(memory_usage_peak()) / double(1024 * 1024));
   printf(
       "\nFor more detailed per-block statistics run Blender with memory debugging command line "
       "argument.\n");
@@ -419,7 +419,7 @@ size_t MEM_lockfree_get_memory_in_use()
 
 uint MEM_lockfree_get_memory_blocks_in_use()
 {
-  return (uint)memory_usage_block_num();
+  return uint(memory_usage_block_num());
 }
 
 /* dummy */
