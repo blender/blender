@@ -1194,9 +1194,31 @@ static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*
   win->ghost_window->close();
 }
 
+static void xdg_toplevel_handle_configure_bounds(void * /*data*/,
+                                                 struct xdg_toplevel * /*xdg_toplevel*/,
+                                                 int32_t width,
+                                                 int32_t height)
+{
+  /* Only available in interface version 4. */
+  CLOG_INFO(LOG, 2, "configure_bounds (size=[%d, %d])", width, height);
+
+  /* TODO: investigate using this information, it may reduce flickering on window creation. */
+}
+static void xdg_toplevel_handle_wm_capabilities(void * /*data*/,
+                                                struct xdg_toplevel * /*xdg_toplevel*/,
+                                                struct wl_array * /*capabilities*/)
+{
+  /* Only available in interface version 5. */
+  CLOG_INFO(LOG, 2, "wm_capabilities");
+
+  /* NOTE: this would be useful if blender had CSD, . */
+}
+
 static const xdg_toplevel_listener xdg_toplevel_listener = {
     /*configure*/ xdg_toplevel_handle_configure,
     /*close*/ xdg_toplevel_handle_close,
+    /*configure_bounds*/ xdg_toplevel_handle_configure_bounds,
+    /*wm_capabilities*/ xdg_toplevel_handle_wm_capabilities,
 };
 
 #undef LOG

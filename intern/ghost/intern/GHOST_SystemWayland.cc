@@ -6254,7 +6254,7 @@ static void gwl_registry_compositor_remove(GWL_Display *display,
 static void gwl_registry_xdg_wm_base_add(GWL_Display *display,
                                          const GWL_RegisteryAdd_Params &params)
 {
-  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 1u);
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 1u, 6u);
 
   GWL_XDG_Decor_System &decor = *display->xdg_decor;
   decor.shell = static_cast<xdg_wm_base *>(
