@@ -176,6 +176,8 @@ struct GWL_XDG_Decor_Window {
 
   /** The window has been configured (see #xdg_surface_ack_configure). */
   bool initial_configure_seen = false;
+  /** The maximum bounds on startup, monitor size minus docs for example. */
+  int initial_bounds[2] = {0, 0};
 };
 
 static void gwl_xdg_decor_window_destroy(GWL_XDG_Decor_Window *decor)
@@ -1194,7 +1196,7 @@ static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*
   win->ghost_window->close();
 }
 
-static void xdg_toplevel_handle_configure_bounds(void * /*data*/,
+static void xdg_toplevel_handle_configure_bounds(void *data,
                                                  struct xdg_toplevel * /*xdg_toplevel*/,
                                                  int32_t width,
                                                  int32_t height)
@@ -1202,7 +1204,13 @@ static void xdg_toplevel_handle_configure_bounds(void * /*data*/,
   /* Only available in interface version 4. */
   CLOG_INFO(LOG, 2, "configure_bounds (size=[%d, %d])", width, height);
 
-  /* TODO: investigate using this information, it may reduce flickering on window creation. */
+  /* No need to lock as this only runs on window creation. */
+  GWL_Window *win = static_cast<GWL_Window *>(data);
+  GWL_XDG_Decor_Window &decor = *win->xdg_decor;
+  if (decor.initial_configure_seen == false) {
+    decor.initial_bounds[0] = width;
+    decor.initial_bounds[1] = height;
+  }
 }
 static void xdg_toplevel_handle_wm_capabilities(void * /*data*/,
                                                 struct xdg_toplevel * /*xdg_toplevel*/,
@@ -1841,6 +1849,24 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   }
 
   wl_surface_set_buffer_scale(window_->wl.surface, window_->frame.buffer_scale);
+
+  /* Apply Bounds.
+   * Important to run after the buffer scale is known & before the buffer is created. */
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (use_libdecor) {
+    /* Pass (unsupported). */
+  }
+  else
+#endif /* WITH_GHOST_WAYLAND_LIBDECOR */
+  {
+    const GWL_XDG_Decor_Window &decor = *window_->xdg_decor;
+    if (decor.initial_bounds[0] && decor.initial_bounds[1]) {
+      window_->frame.size[0] = std::min(window_->frame.size[0],
+                                        decor.initial_bounds[0] * window_->frame.buffer_scale);
+      window_->frame.size[1] = std::min(window_->frame.size[1],
+                                        decor.initial_bounds[1] * window_->frame.buffer_scale);
+    }
+  }
 
 /* Postpone binding the buffer until after it's decor has been configured:
  * - Ensure the window is sized properly (with XDG window decorations), see: #113059.
