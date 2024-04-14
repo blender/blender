@@ -373,7 +373,7 @@ static void gpencil_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd,
 }
 
 static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
-                                                        PointerRNA ptr,
+                                                        const PointerRNA &ptr,
                                                         PropertyRNA *prop,
                                                         Depsgraph *depsgraph,
                                                         FCurve *fcu,

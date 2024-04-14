@@ -1661,7 +1661,7 @@ static bool is_valid_unit_collection(const bUnitCollection *usys)
   return usys != nullptr && usys->units[0].name != nullptr;
 }
 
-static const bUnitDef *get_preferred_display_unit_if_used(int type, PreferredUnits units)
+static const bUnitDef *get_preferred_display_unit_if_used(int type, const PreferredUnits &units)
 {
   const bUnitCollection *usys = unit_get_system(units.system, type);
   if (!is_valid_unit_collection(usys)) {
@@ -1715,7 +1715,7 @@ static size_t unit_as_string_main(char *str,
                                   int type,
                                   bool split,
                                   bool pad,
-                                  PreferredUnits units)
+                                  const PreferredUnits &units)
 {
   const bUnitCollection *usys = unit_get_system(units.system, type);
   const bUnitDef *main_unit = nullptr;
