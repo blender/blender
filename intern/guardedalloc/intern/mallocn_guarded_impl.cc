@@ -157,7 +157,7 @@ static const char *check_memlist(MemHead *memh);
 /* --------------------------------------------------------------------- */
 
 #ifdef __BIG_ENDIAN__
-#  define MAKE_ID(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))
+#  define MAKE_ID(a, b, c, d) (int(a) << 24 | int(b) << 16 | (c) << 8 | (d))
 #else
 #  define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
 #endif
