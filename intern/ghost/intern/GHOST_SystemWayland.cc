@@ -671,6 +671,15 @@ struct GWL_SeatStatePointer {
 };
 
 /**
+ * Support for converting smooth-scrolling as discrete steps.
+ */
+struct GWL_SeatStatePointerScroll_SmoothAsDiscrete {
+  wl_fixed_t smooth_xy_accum[2] = {0, 0};
+};
+/** Number of smooth steps for a discrete step (matches X11 for touch-pads). */
+static constexpr int smooth_as_discrete_steps = 2400;
+
+/**
  * Scroll state, applying to pointer (not tablet) events.
  * Otherwise this would be part of #GWL_SeatStatePointer.
  */
@@ -691,6 +700,8 @@ struct GWL_SeatStatePointerScroll {
   bool has_event_ms = false;
   /** Event time-stamp. */
   uint64_t event_ms = 0;
+
+  GWL_SeatStatePointerScroll_SmoothAsDiscrete smooth_as_discrete;
 };
 
 /**
@@ -983,6 +994,7 @@ struct GWL_Seat {
   GWL_SeatStatePointer pointer;
   GWL_SeatStatePointerScroll pointer_scroll;
   GWL_SeatStatePointerGesture_Pinch pointer_gesture_pinch;
+  bool use_pointer_scroll_smooth_as_discrete = false;
 
   /** Mostly this can be interchanged with `pointer` however it can't be locked/confined. */
   GWL_SeatStatePointer tablet;
@@ -3746,6 +3758,40 @@ static void pointer_handle_frame(void *data, wl_pointer * /*wl_pointer*/)
 
   CLOG_INFO(LOG, 2, "frame");
 
+  /* Force discrete logic. */
+  bool force_discrete = false;
+  switch (wl_pointer_axis_source(seat->pointer_scroll.axis_source)) {
+    case WL_POINTER_AXIS_SOURCE_FINGER: {
+      if (seat->use_pointer_scroll_smooth_as_discrete) {
+        force_discrete = true;
+      }
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+
+  if (force_discrete && (seat->pointer_scroll.smooth_xy[0] || seat->pointer_scroll.smooth_xy[1])) {
+    GWL_SeatStatePointerScroll_SmoothAsDiscrete &smooth_as_discrete =
+        seat->pointer_scroll.smooth_as_discrete;
+    /* If discrete steps have been sent, use them as-is. */
+    if ((seat->pointer_scroll.discrete_xy[0] == 0) && (seat->pointer_scroll.discrete_xy[1] == 0)) {
+      /* Convert smooth to discrete. */
+      for (int i = 0; i < 2; i++) {
+        smooth_as_discrete.smooth_xy_accum[i] += seat->pointer_scroll.smooth_xy[i];
+        if (std::abs(smooth_as_discrete.smooth_xy_accum[i]) >= smooth_as_discrete_steps) {
+          seat->pointer_scroll.discrete_xy[i] = smooth_as_discrete.smooth_xy_accum[i] /
+                                                smooth_as_discrete_steps;
+          smooth_as_discrete.smooth_xy_accum[i] -= seat->pointer_scroll.discrete_xy[i] *
+                                                   smooth_as_discrete_steps;
+        }
+      }
+    }
+    seat->pointer_scroll.smooth_xy[0] = 0;
+    seat->pointer_scroll.smooth_xy[1] = 0;
+  }
+
   /* Both discrete and smooth events may be set at once, never generate events for both
    * as this will be handling the same event in to different ways.
    * Prioritize discrete axis events for the mouse wheel, otherwise smooth scroll. */
@@ -3827,6 +3873,16 @@ static void pointer_handle_axis_stop(void *data,
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
   seat->pointer_scroll.event_ms = seat->system->ms_from_input_time(time);
   seat->pointer_scroll.has_event_ms = true;
+
+  if (seat->use_pointer_scroll_smooth_as_discrete) {
+    /* Reset the scroll steps when the touch event ends.
+     * Done so the user doesn't accidentally bump smooth scroll input a small number of steps
+     * causing an unexpected discrete step caused by a very small amount of smooth-scrolling. */
+    GWL_SeatStatePointerScroll_SmoothAsDiscrete &smooth_as_discrete =
+        seat->pointer_scroll.smooth_as_discrete;
+    smooth_as_discrete.smooth_xy_accum[0] = 0;
+    smooth_as_discrete.smooth_xy_accum[1] = 0;
+  }
 
   CLOG_INFO(LOG, 2, "axis_stop (axis=%u)", axis);
 }
@@ -5576,6 +5632,10 @@ static bool gwl_seat_capability_pointer_multitouch_check(const GWL_Seat *seat, c
   }
   found = true;
 #endif
+  if (seat->use_pointer_scroll_smooth_as_discrete == false) {
+    return true;
+  }
+
   if (found == false) {
     return fallback;
   }
@@ -5584,6 +5644,10 @@ static bool gwl_seat_capability_pointer_multitouch_check(const GWL_Seat *seat, c
 
 static void gwl_seat_capability_pointer_multitouch_enable(GWL_Seat *seat)
 {
+  /* Smooth to discrete handling. */
+  seat->use_pointer_scroll_smooth_as_discrete = false;
+  seat->pointer_scroll.smooth_as_discrete = GWL_SeatStatePointerScroll_SmoothAsDiscrete{};
+
   zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
   if (pointer_gestures == nullptr) {
     return;
@@ -5622,6 +5686,12 @@ static void gwl_seat_capability_pointer_multitouch_enable(GWL_Seat *seat)
 
 static void gwl_seat_capability_pointer_multitouch_disable(GWL_Seat *seat)
 {
+  /* Smooth to discrete handling. */
+  seat->use_pointer_scroll_smooth_as_discrete = true;
+  seat->pointer_scroll.smooth_as_discrete = GWL_SeatStatePointerScroll_SmoothAsDiscrete{};
+  seat->pointer_scroll.smooth_xy[0] = 0;
+  seat->pointer_scroll.smooth_xy[1] = 0;
+
   const zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
   if (pointer_gestures == nullptr) {
     return;
