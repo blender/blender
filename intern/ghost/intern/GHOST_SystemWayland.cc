@@ -6305,7 +6305,7 @@ static void gwl_registry_xdg_decoration_manager_remove(GWL_Display *display,
 static void gwl_registry_xdg_output_manager_add(GWL_Display *display,
                                                 const GWL_RegisteryAdd_Params &params)
 {
-  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 2u, 2u);
+  const uint version = GWL_IFACE_VERSION_CLAMP(params.version, 2u, 3u);
 
   display->xdg.output_manager = static_cast<zxdg_output_manager_v1 *>(wl_registry_bind(
       display->wl.registry, params.name, &zxdg_output_manager_v1_interface, version));
