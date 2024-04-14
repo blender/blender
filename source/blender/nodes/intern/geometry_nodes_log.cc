@@ -14,6 +14,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
 
+#include "ED_geometry.hh"
 #include "ED_node.hh"
 #include "ED_viewer_path.hh"
 
@@ -532,11 +533,9 @@ static void find_tree_zone_hash_recursive(
 }
 
 Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
-    get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, StringRefNull modifier_name)
+    get_context_hash_by_zone_for_node_editor(const SpaceNode &snode,
+                                             ComputeContextBuilder &compute_context_builder)
 {
-  ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(modifier_name);
-
   if (!ed::space_node::push_compute_context_for_tree_path(snode, compute_context_builder)) {
     return {};
   }
@@ -553,27 +552,58 @@ Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
   return hash_by_zone;
 }
 
+Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
+    get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, StringRefNull modifier_name)
+{
+  ComputeContextBuilder compute_context_builder;
+  compute_context_builder.push<bke::ModifierComputeContext>(modifier_name);
+  return get_context_hash_by_zone_for_node_editor(snode, compute_context_builder);
+}
+
 Map<const bNodeTreeZone *, GeoTreeLog *> GeoModifierLog::get_tree_log_by_zone_for_node_editor(
     const SpaceNode &snode)
 {
-  std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
-      ed::space_node::get_modifier_for_node_editor(snode);
-  if (!object_and_modifier) {
-    return {};
+  switch (SpaceNodeGeometryNodesType(snode.geometry_nodes_type)) {
+    case SNODE_GEOMETRY_MODIFIER: {
+      std::optional<ed::space_node::ObjectAndModifier> object_and_modifier =
+          ed::space_node::get_modifier_for_node_editor(snode);
+      if (!object_and_modifier) {
+        return {};
+      }
+      GeoModifierLog *modifier_log = object_and_modifier->nmd->runtime->eval_log.get();
+      if (modifier_log == nullptr) {
+        return {};
+      }
+      const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
+          GeoModifierLog::get_context_hash_by_zone_for_node_editor(
+              snode, object_and_modifier->nmd->modifier.name);
+      Map<const bNodeTreeZone *, GeoTreeLog *> log_by_zone;
+      for (const auto item : hash_by_zone.items()) {
+        GeoTreeLog &tree_log = modifier_log->get_tree_log(item.value);
+        log_by_zone.add(item.key, &tree_log);
+      }
+      return log_by_zone;
+    }
+    case SNODE_GEOMETRY_TOOL: {
+      const ed::geometry::GeoOperatorLog &log =
+          ed::geometry::node_group_operator_static_eval_log();
+      if (snode.geometry_nodes_tool_tree->id.name + 2 != log.node_group_name) {
+        return {};
+      }
+      ComputeContextBuilder compute_context_builder;
+      compute_context_builder.push<bke::OperatorComputeContext>();
+      const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
+          GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode, compute_context_builder);
+      Map<const bNodeTreeZone *, GeoTreeLog *> log_by_zone;
+      for (const auto item : hash_by_zone.items()) {
+        GeoTreeLog &tree_log = log.log->get_tree_log(item.value);
+        log_by_zone.add(item.key, &tree_log);
+      }
+      return log_by_zone;
+    }
   }
-  GeoModifierLog *modifier_log = object_and_modifier->nmd->runtime->eval_log.get();
-  if (modifier_log == nullptr) {
-    return {};
-  }
-  const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
-      GeoModifierLog::get_context_hash_by_zone_for_node_editor(
-          snode, object_and_modifier->nmd->modifier.name);
-  Map<const bNodeTreeZone *, GeoTreeLog *> log_by_zone;
-  for (const auto item : hash_by_zone.items()) {
-    GeoTreeLog &tree_log = modifier_log->get_tree_log(item.value);
-    log_by_zone.add(item.key, &tree_log);
-  }
-  return log_by_zone;
+  BLI_assert_unreachable();
+  return {};
 }
 
 const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerPath &viewer_path)

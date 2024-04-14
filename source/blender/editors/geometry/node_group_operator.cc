@@ -36,6 +36,7 @@
 #include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
+#include "BKE_workspace.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -111,6 +112,54 @@ static const bNodeTree *get_node_group(const bContext &C, PointerRNA &ptr, Repor
     return nullptr;
   }
   return group;
+}
+
+GeoOperatorLog::~GeoOperatorLog() {}
+
+/**
+ * The socket value log is stored statically so it can be used in the node editor. A fancier
+ * storage system shouldn't be necessary, since the goal is just to be able to debug intermediate
+ * values when building a tool.
+ */
+static GeoOperatorLog &get_static_eval_log()
+{
+  static GeoOperatorLog log;
+  return log;
+}
+
+const GeoOperatorLog &node_group_operator_static_eval_log()
+{
+  return get_static_eval_log();
+}
+
+/** Find all the visible node editors to log values for. */
+static void find_socket_log_contexts(const Main &bmain,
+                                     Set<ComputeContextHash> &r_socket_log_contexts)
+{
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain.wm.first);
+  if (wm == nullptr) {
+    return;
+  }
+  LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
+    const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
+    LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
+      const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
+      if (sl->spacetype == SPACE_NODE) {
+        const SpaceNode &snode = *reinterpret_cast<const SpaceNode *>(sl);
+        if (snode.edittree == nullptr) {
+          continue;
+        }
+        ComputeContextBuilder compute_context_builder;
+        compute_context_builder.push<bke::OperatorComputeContext>();
+        const Map<const bke::bNodeTreeZone *, ComputeContextHash> hash_by_zone =
+            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(
+                snode, compute_context_builder);
+        for (const ComputeContextHash &hash : hash_by_zone.values()) {
+          r_socket_log_contexts.add(hash);
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -385,7 +434,11 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
   BLI_SCOPED_DEFER([&]() { IDP_FreeProperty_ex(properties, false); });
 
   bke::OperatorComputeContext compute_context;
-  auto eval_log = std::make_unique<geo_log::GeoModifierLog>();
+  Set<ComputeContextHash> socket_log_contexts;
+  GeoOperatorLog &eval_log = get_static_eval_log();
+  eval_log.log = std::make_unique<geo_log::GeoModifierLog>();
+  eval_log.node_group_name = node_tree->id.name + 2;
+  find_socket_log_contexts(*bmain, socket_log_contexts);
 
   for (Object *object : objects) {
     nodes::GeoNodesOperatorData operator_eval_data{};
@@ -396,7 +449,11 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
 
     nodes::GeoNodesCallData call_data{};
     call_data.operator_data = &operator_eval_data;
-    call_data.eval_log = eval_log.get();
+    call_data.eval_log = eval_log.log.get();
+    if (object == active_object) {
+      /* Only log values from the active object. */
+      call_data.socket_log_contexts = &socket_log_contexts;
+    }
 
     bke::GeometrySet geometry_orig = get_original_geometry_eval_copy(*object);
 
@@ -409,7 +466,7 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, object->data);
   }
 
-  geo_log::GeoTreeLog &tree_log = eval_log->get_tree_log(compute_context.hash());
+  geo_log::GeoTreeLog &tree_log = eval_log.log->get_tree_log(compute_context.hash());
   tree_log.ensure_node_warnings();
   for (const geo_log::NodeWarning &warning : tree_log.all_warnings) {
     if (warning.type == geo_log::NodeWarningType::Info) {
