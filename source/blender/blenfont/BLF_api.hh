@@ -185,6 +185,12 @@ bool BLF_str_offset_to_glyph_bounds(int fontid,
                                     rcti *glyph_bounds) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2, 4);
 
 /**
+ * Return left edge of text cursor (caret), given a character offset and cursor width.
+ */
+int BLF_str_offset_to_cursor(
+    int fontid, const char *str, size_t str_len, size_t str_offset, float cursor_width);
+
+/**
  * Get the string byte offset that fits within a given width.
  */
 size_t BLF_width_to_strlen(int fontid,

@@ -144,6 +144,9 @@ void blf_str_offset_to_glyph_bounds(FontBLF *font,
                                     size_t str_offset,
                                     rcti *glyph_bounds);
 
+int blf_str_offset_to_cursor(
+    FontBLF *font, const char *str, size_t str_len, size_t str_offset, float cursor_width);
+
 void blf_font_free(FontBLF *font);
 
 GlyphCacheBLF *blf_glyph_cache_acquire(FontBLF *font);

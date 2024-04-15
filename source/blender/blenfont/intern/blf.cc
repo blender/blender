@@ -652,6 +652,16 @@ bool BLF_str_offset_to_glyph_bounds(int fontid,
   return false;
 }
 
+int BLF_str_offset_to_cursor(
+    int fontid, const char *str, size_t str_len, size_t str_offset, float cursor_width)
+{
+  FontBLF *font = blf_get(fontid);
+  if (font) {
+    return blf_str_offset_to_cursor(font, str, str_len, str_offset, cursor_width);
+  }
+  return 0;
+}
+
 size_t BLF_width_to_strlen(
     int fontid, const char *str, const size_t str_len, float width, float *r_width)
 {

@@ -1075,6 +1075,50 @@ void blf_str_offset_to_glyph_bounds(FontBLF *font,
   *glyph_bounds = data.bounds;
 }
 
+int blf_str_offset_to_cursor(
+    FontBLF *font, const char *str, size_t str_len, size_t str_offset, float cursor_width)
+{
+  if (!str || !str[0]) {
+    return 0;
+  }
+
+  /* Right edge of the previous character, if available. */
+  rcti prev = {0};
+  if (str_offset > 0) {
+    blf_str_offset_to_glyph_bounds(font, str, str_offset - 1, &prev);
+  }
+
+  /* Left edge of the next character, if available. */
+  rcti next = {0};
+  if (str_offset < strlen(str)) {
+    blf_str_offset_to_glyph_bounds(font, str, str_offset, &next);
+  }
+
+  if ((prev.xmax == prev.xmin) && next.xmax) {
+    /* Nothing (or a space) to the left, so align to right character. */
+    return next.xmin - int(cursor_width);
+  }
+  else if ((prev.xmax != prev.xmin) && !next.xmax) {
+    /* End of string, so align to last character. */
+    return prev.xmax;
+  }
+  else if (prev.xmax && next.xmax) {
+    /* Between two characters, so use the center. */
+    if (next.xmin >= prev.xmax) {
+      return int((float(prev.xmax + next.xmin) - cursor_width) / 2.0f);
+    }
+    /* A nicer center if reversed order - RTL. */
+    return int((float(next.xmax + prev.xmin) - cursor_width) / 2.0f);
+  }
+  else if (!str_offset) {
+    /* Start of string. */
+    return 0 - int(cursor_width);
+  }
+  else {
+    return int(blf_font_width(font, str, str_len, nullptr));
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

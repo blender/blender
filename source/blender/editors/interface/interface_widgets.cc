@@ -1988,54 +1988,12 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
     /* Draw text cursor (caret). */
     if (but->pos >= but->ofs) {
-      int t = 0;
 
-      if (drawstr[0] != 0) {
-        const int pos = but_pos_ofs - but->ofs;
-        rcti bounds;
-
-        /* Find right edge of previous character if available. */
-        int prev_right_edge = 0;
-        bool has_prev = false;
-        if (pos > 0) {
-          if (BLF_str_offset_to_glyph_bounds(
-                  fstyle->uifont_id, drawstr + but->ofs, pos - 1, &bounds))
-          {
-            if (bounds.xmax > bounds.xmin) {
-              prev_right_edge = bounds.xmax;
-            }
-            else {
-              /* Some characters, like space, have empty bounds. */
-              prev_right_edge = BLF_width(fstyle->uifont_id, drawstr + but->ofs, pos);
-            }
-            has_prev = true;
-          }
-        }
-
-        /* Find left edge of next character if available. */
-        int next_left_edge = 0;
-        bool has_next = false;
-        if (pos < strlen(drawstr + but->ofs)) {
-          if (BLF_str_offset_to_glyph_bounds(fstyle->uifont_id, drawstr + but->ofs, pos, &bounds))
-          {
-            next_left_edge = bounds.xmin;
-            has_next = true;
-          }
-        }
-
-        if (has_next && !has_prev) {
-          /* Left of the first character. */
-          t = next_left_edge - U.pixelsize;
-        }
-        else if (has_prev && !has_next) {
-          /* Right of the last character. */
-          t = prev_right_edge + U.pixelsize;
-        }
-        else if (has_prev && has_next) {
-          /* Middle of the string, so in between. */
-          t = (prev_right_edge + next_left_edge) / 2;
-        }
-      }
+      int t = BLF_str_offset_to_cursor(fstyle->uifont_id,
+                                       drawstr + but->ofs,
+                                       UI_MAX_DRAW_STR,
+                                       but_pos_ofs - but->ofs,
+                                       U.pixelsize + U.pixelsize);
 
       /* We are drawing on top of widget bases. Flush cache. */
       GPU_blend(GPU_BLEND_ALPHA);
@@ -2048,19 +2006,12 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
       immUniformThemeColor(TH_WIDGET_TEXT_CURSOR);
 
-      /* Shape of the cursor for drawing. */
-      rcti but_cursor_shape;
-      but_cursor_shape.xmin = (rect->xmin + t) - U.pixelsize;
-      but_cursor_shape.ymin = rect->ymin + U.pixelsize;
-      but_cursor_shape.xmax = (rect->xmin + t) + U.pixelsize;
-      but_cursor_shape.ymax = rect->ymax - U.pixelsize;
-
       /* draw cursor */
       immRecti(pos,
-               but_cursor_shape.xmin,
-               but_cursor_shape.ymin,
-               but_cursor_shape.xmax,
-               but_cursor_shape.ymax);
+               rect->xmin + t,
+               rect->ymin + U.pixelsize,
+               rect->xmin + t + int(2.0f * U.pixelsize),
+               rect->ymax - U.pixelsize);
 
       immUnbindProgram();
 
@@ -2068,8 +2019,8 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       /* IME candidate window uses cursor position. */
       if (!ime_reposition_window) {
         ime_reposition_window = true;
-        ime_win_x = but_cursor_shape.xmax + 5;
-        ime_win_y = but_cursor_shape.ymin + 3;
+        ime_win_x = rect->xmin + t + 5;
+        ime_win_y = rect->ymin + 3;
       }
 #endif
     }
