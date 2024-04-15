@@ -139,8 +139,9 @@ void VolumeProbeModule::set_view(View & /*view*/)
       continue;
     }
 
+    int3 grid_size_with_padding = grid_size + 2;
     if (grid.bricks.is_empty()) {
-      int3 grid_size_in_bricks = math::divide_ceil(grid_size,
+      int3 grid_size_in_bricks = math::divide_ceil(grid_size_with_padding,
                                                    int3(IRRADIANCE_GRID_BRICK_SIZE - 1));
       int brick_len = grid_size_in_bricks.x * grid_size_in_bricks.y * grid_size_in_bricks.z;
       grid.bricks = bricks_alloc(brick_len);
@@ -162,17 +163,13 @@ void VolumeProbeModule::set_view(View & /*view*/)
     grid.brick_offset = bricks_infos_buf_.size();
     bricks_infos_buf_.extend(grid.bricks);
 
-    if (grid_size.x <= 0 || grid_size.y <= 0 || grid_size.z <= 0) {
-      inst_.info += "Error: Malformed irradiance grid data\n";
-      continue;
-    }
-
     float4x4 grid_to_world = grid.object_to_world * math::from_location<float4x4>(float3(-1.0f)) *
-                             math::from_scale<float4x4>(float3(2.0f / float3(grid_size))) *
-                             math::from_location<float4x4>(float3(0.0f));
+                             math::from_scale<float4x4>(
+                                 float3(2.0f / float3(grid_size_with_padding - 1))) *
+                             math::from_location<float4x4>(float3(-0.5f));
 
     grid.world_to_grid_transposed = float3x4(math::transpose(math::invert(grid_to_world)));
-    grid.grid_size = grid_size;
+    grid.grid_size_padded = grid_size_with_padding;
     grid_loaded.append(&grid);
   }
 
@@ -229,7 +226,7 @@ void VolumeProbeModule::set_view(View & /*view*/)
 
     VolumeProbeData grid;
     grid.world_to_grid_transposed = float3x4::identity();
-    grid.grid_size = int3(1);
+    grid.grid_size_padded = int3(1);
     grid.brick_offset = bricks_infos_buf_.size();
     grid.normal_bias = 0.0f;
     grid.view_bias = 0.0f;
@@ -240,7 +237,7 @@ void VolumeProbeModule::set_view(View & /*view*/)
 
     if (grids_len < IRRADIANCE_GRID_MAX) {
       /* Tag last grid as invalid to stop the iteration. */
-      grids_infos_buf_[grids_len].grid_size = int3(-1);
+      grids_infos_buf_[grids_len].grid_size_padded = int3(-1);
     }
 
     bricks_infos_buf_.push_update();

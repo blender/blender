@@ -5,11 +5,18 @@
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 
+/**
+ * Returns world position of a volume lightprobe sample (center of cell).
+ * Returned position take into account the half voxel padding on each sides.
+ * `grid_local_to_world_mat` is the unmodified object matrix.
+ * `grid_res` is the un-padded grid resolution.
+ * `cell_coord` is the coordinate of the sample in [0..grid_res) range.
+ */
 vec3 lightprobe_irradiance_grid_sample_position(mat4 grid_local_to_world_mat,
                                                 ivec3 grid_res,
                                                 ivec3 cell_coord)
 {
-  vec3 ls_cell_pos = (vec3(cell_coord) + vec3(0.5)) / vec3(grid_res);
+  vec3 ls_cell_pos = (vec3(cell_coord + 1)) / vec3(grid_res + 1);
   ls_cell_pos = ls_cell_pos * 2.0 - 1.0;
   vec3 ws_cell_pos = (grid_local_to_world_mat * vec4(ls_cell_pos, 1.0)).xyz;
   return ws_cell_pos;
@@ -24,14 +31,14 @@ bool lightprobe_irradiance_grid_local_coord(VolumeProbeData grid_data, vec3 P, o
   /* Position in cell units. */
   /* NOTE: The vector-matrix multiplication swapped on purpose to cancel the matrix transpose. */
   vec3 lP = (vec4(P, 1.0) * grid_data.world_to_grid_transposed).xyz;
-  r_lP = clamp(lP, vec3(0.0), vec3(grid_data.grid_size) - 1e-5);
+  r_lP = clamp(lP, vec3(0.5), vec3(grid_data.grid_size_padded) - 0.5);
   /* Sample is valid if position wasn't clamped. */
   return all(equal(lP, r_lP));
 }
 
 int lightprobe_irradiance_grid_brick_index_get(VolumeProbeData grid_data, ivec3 brick_coord)
 {
-  int3 grid_size_in_bricks = divide_ceil(grid_data.grid_size,
+  int3 grid_size_in_bricks = divide_ceil(grid_data.grid_size_padded,
                                          int3(IRRADIANCE_GRID_BRICK_SIZE - 1));
   int brick_index = grid_data.brick_offset;
   brick_index += brick_coord.x;

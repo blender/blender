@@ -46,11 +46,17 @@ void main()
   int brick_index = lightprobe_irradiance_grid_brick_index_get(grids_infos_buf[grid_index],
                                                                ivec3(gl_WorkGroupID));
 
+  ivec3 grid_size = textureSize(irradiance_a_tx, 0);
   /* Brick coordinate in the source grid. */
   ivec3 brick_coord = ivec3(gl_WorkGroupID);
   /* Add padding border to allow bilinear filtering. */
   ivec3 texel_coord = brick_coord * (IRRADIANCE_GRID_BRICK_SIZE - 1) + ivec3(gl_LocalInvocationID);
-  ivec3 input_coord = min(texel_coord, textureSize(irradiance_a_tx, 0) - 1);
+  /* Add padding to the grid to allow interpolation to outside grid. */
+  texel_coord -= 1;
+
+  ivec3 input_coord = clamp(texel_coord, ivec3(0), grid_size - 1);
+
+  bool is_padding_voxel = !all(equal(texel_coord, input_coord));
 
   /* Brick coordinate in the destination atlas. */
   IrradianceBrick brick = irradiance_brick_unpack(bricks_infos_buf[brick_index]);
@@ -107,32 +113,40 @@ void main()
   sh_visibility.L1.M0 = sh_local.L1.M0.aaaa;
   sh_visibility.L1.Mp1 = sh_local.L1.Mp1.aaaa;
 
-  vec3 P = lightprobe_irradiance_grid_sample_position(
-      grid_local_to_world, grids_infos_buf[grid_index].grid_size, input_coord);
+  vec3 P = lightprobe_irradiance_grid_sample_position(grid_local_to_world, grid_size, input_coord);
 
   SphericalHarmonicL1 sh_distant = lightprobe_irradiance_sample(P);
-  /* Mask distant lighting by local visibility. */
-  sh_distant = spherical_harmonics_triple_product(sh_visibility, sh_distant);
-  /* Apply intensity scaling. */
-  sh_local = spherical_harmonics_mul(sh_local, grid_intensity_factor);
-  /* Add local lighting to distant lighting. */
-  sh_local = spherical_harmonics_add(sh_local, sh_distant);
+
+  if (is_padding_voxel) {
+    /* Padding voxels just contain the distant lighting. */
+    sh_local = sh_distant;
+  }
+  else {
+    /* Mask distant lighting by local visibility. */
+    sh_distant = spherical_harmonics_triple_product(sh_visibility, sh_distant);
+    /* Apply intensity scaling. */
+    sh_local = spherical_harmonics_mul(sh_local, grid_intensity_factor);
+    /* Add local lighting to distant lighting. */
+    sh_local = spherical_harmonics_add(sh_local, sh_distant);
+  }
 
   atlas_store(sh_local.L0.M0, output_coord, 0);
   atlas_store(sh_local.L1.Mn1, output_coord, 1);
   atlas_store(sh_local.L1.M0, output_coord, 2);
   atlas_store(sh_local.L1.Mp1, output_coord, 3);
 
-  if (gl_LocalInvocationID.z % 4 == 0u) {
+  if ((gl_LocalInvocationID.z % 4u) == 0u) {
     /* Encode 4 cells into one volume sample. */
     ivec4 cell_validity_bits = ivec4(0);
     /* Encode validity of each samples in the grid cell. */
     for (int cell = 0; cell < 4; cell++) {
       for (int i = 0; i < 8; i++) {
         ivec3 offset = lightprobe_irradiance_grid_cell_corner(i);
-        ivec3 coord = input_coord + offset + ivec3(0, 0, cell);
-        float validity = texelFetch(validity_tx, coord, 0).r;
-        if (validity > validity_threshold) {
+        ivec3 coord_output = texel_coord + offset + ivec3(0, 0, cell);
+        ivec3 coord_input = clamp(texel_coord, ivec3(0), grid_size - 1);
+        float validity = texelFetch(validity_tx, coord_input, 0).r;
+        bool is_padding_voxel = !all(equal(texel_coord, input_coord));
+        if ((validity > validity_threshold) || is_padding_voxel) {
           cell_validity_bits[cell] |= (1 << i);
         }
       }
