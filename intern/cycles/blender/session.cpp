@@ -406,15 +406,21 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
                     height,
                     &python_thread_state,
                     session_params.device);
+
+    /* At the moment we only free if we are not doing multi-view
+     * (or if we are rendering the last view). See #58142/D4239 for discussion.
+     */
+    const bool can_free_cache = (view_index == num_views - 1);
+    if (can_free_cache) {
+      sync->free_data_after_sync(b_depsgraph);
+    }
+
     builtin_images_load();
 
     /* Attempt to free all data which is held by Blender side, since at this
      * point we know that we've got everything to render current view layer.
      */
-    /* At the moment we only free if we are not doing multi-view
-     * (or if we are rendering the last view). See #58142/D4239 for discussion.
-     */
-    if (view_index == num_views - 1) {
+    if (can_free_cache) {
       free_blender_memory_if_possible();
     }
 

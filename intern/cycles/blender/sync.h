@@ -87,6 +87,9 @@ class BlenderSync {
     return view_layer.bound_samples;
   }
 
+  /* Early data free. */
+  void free_data_after_sync(BL::Depsgraph &b_depsgraph);
+
   /* get parameters */
   static SceneParams get_scene_params(BL::Scene &b_scene,
                                       const bool background,
@@ -207,9 +210,6 @@ class BlenderSync {
 
   /* Images. */
   void sync_images();
-
-  /* Early data free. */
-  void free_data_after_sync(BL::Depsgraph &b_depsgraph);
 
   /* util */
   void find_shader(BL::ID &id, array<Node *> &used_shaders, Shader *default_shader);
