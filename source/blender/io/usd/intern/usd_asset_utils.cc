@@ -192,7 +192,7 @@ bool copy_asset(const char *src,
   if (!ar.CanWriteAssetToPath(dst_path, &why_not)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s: Can't write to asset %s:  %s",
+                "%s: Can't write to asset %s: %s",
                 __func__,
                 dst_path.GetPathString().c_str(),
                 why_not.c_str());

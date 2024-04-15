@@ -162,17 +162,17 @@ const EnumPropertyItem rna_enum_object_gpencil_type_items[] = {
      "LINEART_SCENE",
      ICON_SCENE_DATA,
      "Scene Line Art",
-     "Quickly set up line art for the entire scene"},
+     "Quickly set up Line Art for the entire scene"},
     {GREASE_PENCIL_LINEART_COLLECTION,
      "LINEART_COLLECTION",
      ICON_OUTLINER_COLLECTION,
      "Collection Line Art",
-     "Quickly set up line art for the active collection"},
+     "Quickly set up Line Art for the active collection"},
     {GREASE_PENCIL_LINEART_OBJECT,
      "LINEART_OBJECT",
      ICON_OBJECT_DATA,
      "Object Line Art",
-     "Quickly set up line art for the active object"},
+     "Quickly set up Line Art for the active object"},
     {0, nullptr, 0, nullptr, nullptr}};
 
 static const EnumPropertyItem parent_type_items[] = {
@@ -2877,13 +2877,13 @@ static void rna_def_object_lineart(BlenderRNA *brna)
   };
 
   srna = RNA_def_struct(brna, "ObjectLineArt", nullptr);
-  RNA_def_struct_ui_text(srna, "Object Line Art", "Object line art settings");
+  RNA_def_struct_ui_text(srna, "Object Line Art", "Object Line Art settings");
   RNA_def_struct_sdna(srna, "ObjectLineArt");
   RNA_def_struct_path_func(srna, "rna_ObjectLineArt_path");
 
   prop = RNA_def_property(srna, "usage", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_feature_line_usage_items);
-  RNA_def_property_ui_text(prop, "Usage", "How to use this object in line art calculation");
+  RNA_def_property_ui_text(prop, "Usage", "How to use this object in Line Art calculation");
   RNA_def_property_update(prop, 0, "rna_object_lineart_update");
 
   prop = RNA_def_property(srna, "use_crease_override", PROP_BOOLEAN, PROP_NONE);
@@ -3787,7 +3787,7 @@ static void rna_def_object(BlenderRNA *brna)
   /* Line Art */
   prop = RNA_def_property(srna, "lineart", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ObjectLineArt");
-  RNA_def_property_ui_text(prop, "Line Art", "Line art settings for the object");
+  RNA_def_property_ui_text(prop, "Line Art", "Line Art settings for the object");
 
   /* Mesh Symmetry Settings */
 

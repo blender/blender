@@ -3058,7 +3058,9 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, 1.0f);
   RNA_def_property_ui_range(prop, 0, 0.2f, 1, 3);
   RNA_def_property_ui_text(
-      prop, "Brush Height", "Affectable height of brush (layer height for layer tool, i.e.)");
+      prop,
+      "Brush Height",
+      "Affectable height of brush (i.e. the layer height for the layer tool)");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "texture_sample_bias", PROP_FLOAT, PROP_DISTANCE);

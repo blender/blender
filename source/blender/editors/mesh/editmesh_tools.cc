@@ -9511,7 +9511,7 @@ void MESH_OT_normals_tools(wmOperatorType *ot)
                   "absolute",
                   false,
                   "Absolute Coordinates",
-                  "Copy Absolute coordinates or Normal vector");
+                  "Copy Absolute coordinates of Normal vector");
 }
 
 /** \} */

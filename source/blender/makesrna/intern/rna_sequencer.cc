@@ -2306,11 +2306,10 @@ static void rna_def_sequence(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_default_fade", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_USE_EFFECT_DEFAULT_FADE);
-  RNA_def_property_ui_text(
-      prop,
-      "Use Default Fade",
-      "Fade effect using the built-in default (usually make transition as long as "
-      "effect strip)");
+  RNA_def_property_ui_text(prop,
+                           "Use Default Fade",
+                           "Fade effect using the built-in default (usually makes the transition "
+                           "as long as the effect strip)");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 

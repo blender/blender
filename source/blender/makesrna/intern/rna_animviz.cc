@@ -282,7 +282,7 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Start Frame",
                            "Starting frame of range of paths to display/calculate "
-                           "(not for 'Around Current Frame' Onion-skinning method)");
+                           "(not for 'Around Frame' Onion-skinning method)");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW_ANIMVIZ, nullptr);
 
   prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
@@ -291,7 +291,7 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "End Frame",
                            "End frame of range of paths to display/calculate "
-                           "(not for 'Around Current Frame' Onion-skinning method)");
+                           "(not for 'Around Frame' Onion-skinning method)");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW_ANIMVIZ, nullptr);
 
   /* Around Current Ranges */
@@ -301,7 +301,7 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Before Current",
                            "Number of frames to show before the current frame "
-                           "(only for 'Around Current Frame' Onion-skinning method)");
+                           "(only for 'Around Frame' Onion-skinning method)");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW_ANIMVIZ, nullptr);
 
   prop = RNA_def_property(srna, "frame_after", PROP_INT, PROP_TIME);
@@ -310,7 +310,7 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "After Current",
                            "Number of frames to show after the current frame "
-                           "(only for 'Around Current Frame' Onion-skinning method)");
+                           "(only for 'Around Frame' Onion-skinning method)");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW_ANIMVIZ, nullptr);
 
   /* Readonly Property - Do any motion paths exist/need updating? (Mainly for bone paths) */

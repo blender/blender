@@ -763,7 +763,7 @@ void import_skeleton(Main *bmain,
   if (bind_xforms.size() != num_joints) {
     BKE_reportf(reports,
                 RPT_WARNING,
-                "%s:  Mismatch in bind xforms and joint counts for skeleton %s",
+                "%s: Mismatch in bind xforms and joint counts for skeleton %s",
                 __func__,
                 skel.GetPath().GetAsString().c_str());
     return;

@@ -156,7 +156,7 @@ static void node_rna(StructRNA *srna)
        0,
        "Wildcard",
        "Remove all attributes that match the pattern which is allowed to contain a single "
-       "wildcard (*)."},
+       "wildcard (*)"},
       {0, nullptr, 0, nullptr, nullptr},
   };
   RNA_def_node_enum(srna,

@@ -406,7 +406,7 @@ static void options_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (use_cache && !is_first) {
-    uiItemL(layout, TIP_("Cached from the first line art modifier"), ICON_INFO);
+    uiItemL(layout, TIP_("Cached from the first Line Art modifier"), ICON_INFO);
     return;
   }
 
@@ -584,7 +584,7 @@ static void face_mark_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (use_cache && !is_first) {
-    uiItemL(layout, TIP_("Cached from the first line art modifier"), ICON_INFO);
+    uiItemL(layout, TIP_("Cached from the first Line Art modifier"), ICON_INFO);
     return;
   }
 
@@ -614,7 +614,7 @@ static void chaining_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (use_cache && !is_first) {
-    uiItemL(layout, TIP_("Cached from the first line art modifier"), ICON_INFO);
+    uiItemL(layout, TIP_("Cached from the first Line Art modifier"), ICON_INFO);
     return;
   }
 
@@ -654,7 +654,7 @@ static void vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (use_cache && !is_first) {
-    uiItemL(layout, TIP_("Cached from the first line art modifier"), ICON_INFO);
+    uiItemL(layout, TIP_("Cached from the first Line Art modifier"), ICON_INFO);
     return;
   }
 

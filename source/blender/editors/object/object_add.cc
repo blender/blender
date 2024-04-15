@@ -1587,14 +1587,14 @@ void OBJECT_OT_gpencil_add(wmOperatorType *ot)
                   "use_in_front",
                   true,
                   "Show In Front",
-                  "Show line art grease pencil in front of everything");
+                  "Show Line Art grease pencil in front of everything");
   RNA_def_float(ot->srna,
                 "stroke_depth_offset",
                 0.05f,
                 0.0f,
                 FLT_MAX,
                 "Stroke Offset",
-                "Stroke offset for the line art modifier",
+                "Stroke offset for the Line Art modifier",
                 0.0f,
                 0.5f);
   RNA_def_boolean(
@@ -1768,14 +1768,14 @@ void OBJECT_OT_grease_pencil_add(wmOperatorType *ot)
                   "use_in_front",
                   true,
                   "Show In Front",
-                  "Show line art grease pencil in front of everything");
+                  "Show Line Art grease pencil in front of everything");
   RNA_def_float(ot->srna,
                 "stroke_depth_offset",
                 0.05f,
                 0.0f,
                 FLT_MAX,
                 "Stroke Offset",
-                "Stroke offset for the line art modifier",
+                "Stroke offset for the Line Art modifier",
                 0.0f,
                 0.5f);
   RNA_def_boolean(

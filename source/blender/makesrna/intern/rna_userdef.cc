@@ -5714,8 +5714,9 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_duplicate_grease_pencil", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "dupflag", USER_DUP_GPENCIL);
-  RNA_def_property_ui_text(
-      prop, "Duplicate GPencil", "Causes grease pencil data to be duplicated with the object");
+  RNA_def_property_ui_text(prop,
+                           "Duplicate Grease Pencil",
+                           "Causes grease pencil data to be duplicated with the object");
 
   prop = RNA_def_property(srna, "use_duplicate_curves", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "dupflag", USER_DUP_CURVES);
@@ -6705,7 +6706,7 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Custom Directory",
                            "Manually set the path for extensions to be stored. "
-                           "When disabled a users extensions directory is created");
+                           "When disabled a user's extensions directory is created");
   RNA_def_property_boolean_funcs(
       prop, nullptr, "rna_userdef_extension_repo_use_custom_directory_set");
 
