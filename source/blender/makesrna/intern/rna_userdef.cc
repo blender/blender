@@ -3600,6 +3600,19 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
       prop, "Moving Hold Keyframe Selected", "Color of selected moving hold keyframe");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  prop = RNA_def_property(srna, "keyframe_generated", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "keytype_generated");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Generated Keyframe", "Color of generated keyframe");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "keyframe_generated_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "keytype_generated_select");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(
+      prop, "Generated Keyframe Selected", "Color of selected generated keyframe");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   prop = RNA_def_property(srna, "keyframe_border", PROP_FLOAT, PROP_COLOR_GAMMA);
   RNA_def_property_float_sdna(prop, nullptr, "keyborder");
   RNA_def_property_array(prop, 4);
@@ -3809,6 +3822,19 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(
       prop, "Moving Hold Keyframe Selected", "Color of selected moving hold keyframe");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "keyframe_generated", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "keytype_generated");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Generated Keyframe", "Color of generated keyframe");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
+  prop = RNA_def_property(srna, "keyframe_generated_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_float_sdna(prop, nullptr, "keytype_generated_select");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(
+      prop, "Generated Keyframe Selected", "Color of selected generated keyframe");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "keyframe_border", PROP_FLOAT, PROP_COLOR_GAMMA);

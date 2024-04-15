@@ -40,7 +40,7 @@ void draw_keyframe_shape(const float x,
                          float size,
                          const bool sel,
                          const eBezTriple_KeyframeType key_type,
-                         const short mode,
+                         const eKeyframeShapeDrawOpts mode,
                          const float alpha,
                          const KeyframeShaderBindings *sh_bindings,
                          const short handle_type,
@@ -71,6 +71,10 @@ void draw_keyframe_shape(const float x,
     case BEZT_KEYTYPE_JITTER:
       size *= 0.8f;
       break;
+
+    case BEZT_KEYTYPE_GENERATED:
+      size *= 0.75;
+      break;
   }
 
   uchar fill_col[4];
@@ -95,6 +99,9 @@ void draw_keyframe_shape(const float x,
         break;
       case BEZT_KEYTYPE_KEYFRAME:
         UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_KEYFRAME_SELECT : TH_KEYTYPE_KEYFRAME, fill_col);
+        break;
+      case BEZT_KEYTYPE_GENERATED:
+        UI_GetThemeColor3ubv(sel ? TH_KEYTYPE_GENERATED_SELECT : TH_KEYTYPE_GENERATED, fill_col);
         break;
     }
 
@@ -228,6 +235,7 @@ static void draw_keylist_block_gpencil(const DrawKeylistUIData *ctx,
     case BEZT_KEYTYPE_BREAKDOWN:
     case BEZT_KEYTYPE_MOVEHOLD:
     case BEZT_KEYTYPE_JITTER:
+    case BEZT_KEYTYPE_GENERATED:
       size *= 0.5f;
       break;
     case BEZT_KEYTYPE_KEYFRAME:

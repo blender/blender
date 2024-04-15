@@ -613,6 +613,11 @@ static void rna_def_grease_pencil_onion_skinning(StructRNA *srna)
        ICON_KEYTYPE_JITTER_VEC,
        "Jitter",
        "A filler or baked keyframe for keying on ones, or some other purpose as needed"},
+      {BEZT_KEYTYPE_GENERATED,
+       "GENERATED",
+       ICON_KEYTYPE_GENERATED_VEC,
+       "Generated",
+       "A key generated automatically by a tool, not manually created"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

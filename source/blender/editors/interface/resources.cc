@@ -505,6 +505,12 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_KEYTYPE_MOVEHOLD_SELECT:
           cp = ts->keytype_movehold_select;
           break;
+        case TH_KEYTYPE_GENERATED:
+          cp = ts->keytype_generated;
+          break;
+        case TH_KEYTYPE_GENERATED_SELECT:
+          cp = ts->keytype_generated_select;
+          break;
         case TH_KEYBORDER:
           cp = ts->keyborder;
           break;
