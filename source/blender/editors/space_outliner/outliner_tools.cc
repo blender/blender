@@ -428,6 +428,8 @@ static void unlink_object_fn(bContext *C,
   if (tsep && tsep->id) {
     Main *bmain = CTX_data_main(C);
     Object *ob = (Object *)tselem->id;
+    const eSpaceOutliner_Mode outliner_mode = eSpaceOutliner_Mode(
+        CTX_wm_space_outliner(C)->outlinevis);
 
     if (GS(tsep->id->name) == ID_OB) {
       /* Parented objects need to find which collection to unlink from. */
@@ -455,29 +457,41 @@ static void unlink_object_fn(bContext *C,
                     tsep->id->name + 2);
         return;
       }
-      if (GS(tsep->id->name) == ID_GR) {
-        Collection *parent = (Collection *)tsep->id;
-        BKE_collection_object_remove(bmain, parent, ob, true);
-        DEG_id_tag_update(&parent->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_HIERARCHY);
-        DEG_id_tag_update(&ob->id, ID_RECALC_HIERARCHY);
-        DEG_relations_tag_update(bmain);
-      }
-      else if (GS(tsep->id->name) == ID_SCE) {
-        /* Following execution is expected to happen exclusively in the Outliner scene view. */
-#ifdef NDEBUG
-        BLI_assert(CTX_wm_space_outliner(C)->outlinevis == SO_SCENES);
-#endif
-
-        Scene *scene = (Scene *)tsep->id;
-        FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-          if (BKE_collection_has_object(collection, ob)) {
-            BKE_collection_object_remove(bmain, collection, ob, true);
-          }
+      switch (GS(tsep->id->name)) {
+        case ID_GR: {
+          Collection *parent = (Collection *)tsep->id;
+          BKE_collection_object_remove(bmain, parent, ob, true);
+          break;
         }
-        FOREACH_SCENE_COLLECTION_END;
-        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_HIERARCHY);
-        DEG_relations_tag_update(bmain);
+        case ID_SCE: {
+          Scene *scene = reinterpret_cast<Scene *>(tsep->id);
+          /* In Scene view, remove the object from all collections in the scene. */
+          if (outliner_mode == SO_SCENES) {
+            FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
+              if (BKE_collection_has_object(collection, ob)) {
+                BKE_collection_object_remove(bmain, collection, ob, true);
+                DEG_id_tag_update(&collection->id, ID_RECALC_HIERARCHY);
+              }
+            }
+            FOREACH_SCENE_COLLECTION_END;
+          }
+          /* Otherwise, remove the object from the scene's main collection. */
+          else {
+            Collection *parent = scene->master_collection;
+            BKE_collection_object_remove(bmain, parent, ob, true);
+          }
+          break;
+        }
+        default: {
+          /* Un-handled case, should never be reached. */
+          BLI_assert_unreachable();
+          return;
+        }
       }
+      /* NOTE: Cannot risk tagging the object here, as it may have been deleted if its last usage
+       * was removed by above code. */
+      DEG_id_tag_update(tsep->id, ID_RECALC_HIERARCHY);
+      DEG_relations_tag_update(bmain);
     }
   }
 }
