@@ -96,59 +96,23 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
         if probe.type == 'VOLUME':
             col = layout.column()
 
-            sub = col.column(align=True)
-            sub.prop(probe, "grid_resolution_x", text="Resolution X")
-            sub.prop(probe, "grid_resolution_y", text="Y")
-            sub.prop(probe, "grid_resolution_z", text="Z")
-
-            col.separator()
-
             col.prop(probe, "intensity")
 
             col.separator()
 
-            col.operator("object.lightprobe_cache_bake").subset = 'ACTIVE'
-            col.operator("object.lightprobe_cache_free").subset = 'ACTIVE'
+            sub = col.column(align=True)
+            sub.prop(probe, "grid_normal_bias")
+            sub.prop(probe, "grid_view_bias")
+            sub.prop(probe, "grid_facing_bias")
 
             col.separator()
 
-            row = col.row(align=True)
-            row.prop(probe, "data_display_size", text="Display Data")
-            row.prop(probe, "use_data_display", text="", toggle=True)
-
-            col.separator()
-
-            col.prop(probe, "grid_bake_samples")
-            col.prop(probe, "surfel_density")
-            col.prop(probe, "clip_end", text="Capture Distance")
-
-            col.separator()
-
-            col.prop(probe, "grid_clamp_direct")
-            col.prop(probe, "grid_clamp_indirect")
-
-            col.separator()
-
-            col.prop(probe, "grid_normal_bias")
-            col.prop(probe, "grid_view_bias")
-            col.prop(probe, "grid_irradiance_smoothing")
             col.prop(probe, "grid_validity_threshold")
+            sub = col.column(align=True)
+            sub.prop(probe, "grid_dilation_threshold")
+            sub.prop(probe, "grid_dilation_radius", text="Radius")
 
             col.separator()
-
-            col.prop(probe, "grid_surface_bias")
-            col.prop(probe, "grid_escape_bias")
-
-            col.separator()
-
-            col.prop(probe, "grid_dilation_threshold")
-            col.prop(probe, "grid_dilation_radius")
-
-            col.separator()
-
-            col.prop(probe, "grid_capture_world")
-            col.prop(probe, "grid_capture_indirect")
-            col.prop(probe, "grid_capture_emission")
 
         elif probe.type == 'SPHERE':
             col = layout.column()
@@ -162,19 +126,9 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
             col.prop(probe, "influence_distance", text=influence_text)
             col.prop(probe, "falloff")
 
-            sub = layout.column(align=True)
-            sub.prop(probe, "clip_start", text="Clipping Start")
-            sub.prop(probe, "clip_end", text="End")
-
-            row = col.row(align=True)
-            row.prop(probe, "data_display_size", text="Display Data")
-            row.prop(probe, "use_data_display", text="", toggle=True)
-
         elif probe.type == 'PLANE':
             col = layout.column()
-            col.prop(probe, "clip_start", text="Clipping Offset")
             col.prop(probe, "influence_distance", text="Distance")
-            col.prop(probe, "use_data_display", toggle=True)
             pass
         else:
             # Currently unsupported
@@ -202,6 +156,134 @@ class DATA_PT_lightprobe_visibility(DataButtonsPanel, Panel):
         row = col.row(align=True)
         row.prop(probe, "visibility_collection")
         row.prop(probe, "invert_visibility_collection", text="", icon='ARROW_LEFTRIGHT')
+
+
+class DATA_PT_lightprobe_capture(DataButtonsPanel, Panel):
+    bl_label = "Capture"
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.engine
+        return context.lightprobe and context.lightprobe.type in {'SPHERE', 'PLANE'} and (engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        probe = context.lightprobe
+
+        col = layout.column()
+
+        if probe.type == 'SPHERE':
+            sub = col.column(align=True)
+            sub.prop(probe, "clip_start", text="Clipping Start")
+            sub.prop(probe, "clip_end", text="End")
+        elif probe.type == 'PLANE':
+            col.prop(probe, "clip_start", text="Clipping Offset")
+
+
+class DATA_PT_lightprobe_bake(DataButtonsPanel, Panel):
+    bl_label = "Bake"
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.engine
+        return context.lightprobe and context.lightprobe.type == 'VOLUME' and (engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        probe = context.lightprobe
+
+        col = layout.column()
+
+        col.operator("object.lightprobe_cache_bake", icon='OUTLINER_DATA_LIGHTPROBE').subset = 'ACTIVE'
+        col.operator("object.lightprobe_cache_free", icon='TRASH').subset = 'ACTIVE'
+
+
+class DATA_PT_lightprobe_bake_resolution(DataButtonsPanel, Panel):
+    bl_label = "Resolution"
+    bl_parent_id = "DATA_PT_lightprobe_bake"
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        probe = context.lightprobe
+
+        col = layout.column()
+
+        sub = col.column(align=True)
+        sub.prop(probe, "grid_resolution_x", text="Resolution X")
+        sub.prop(probe, "grid_resolution_y", text="Y")
+        sub.prop(probe, "grid_resolution_z", text="Z")
+
+        col.prop(probe, "grid_bake_samples")
+        col.prop(probe, "surfel_density")
+
+
+class DATA_PT_lightprobe_bake_capture(DataButtonsPanel, Panel):
+    bl_label = "Capture"
+    bl_parent_id = "DATA_PT_lightprobe_bake"
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        probe = context.lightprobe
+
+        col = layout.column()
+
+        col.prop(probe, "clip_end", text="Distance")
+
+        col = layout.column(heading="Contributions", align=True)
+        col.prop(probe, "grid_capture_world", text="World")
+        col.prop(probe, "grid_capture_indirect", text="Indirect Light")
+        col.prop(probe, "grid_capture_emission", text="Emission")
+
+
+class DATA_PT_lightprobe_bake_offset(DataButtonsPanel, Panel):
+    bl_label = "Offset"
+    bl_parent_id = "DATA_PT_lightprobe_bake_capture"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        probe = context.lightprobe
+
+        col = layout.column(align=True)
+        col.prop(probe, "grid_surface_bias", text="Surface Bias")
+        col.prop(probe, "grid_escape_bias", text="Escape Bias")
+
+
+class DATA_PT_lightprobe_bake_clamping(DataButtonsPanel, Panel):
+    bl_label = "Clamping"
+    bl_parent_id = "DATA_PT_lightprobe_bake_capture"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        probe = context.lightprobe
+
+        col = layout.column(align=True)
+        col.prop(probe, "grid_clamp_direct", text="Direct Light")
+        col.prop(probe, "grid_clamp_indirect", text="Indirect Light")
 
 
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
@@ -238,11 +320,12 @@ class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
 class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         ob = context.object
         probe = context.lightprobe
@@ -252,7 +335,6 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
         if probe.type == 'PLANE':
             col.prop(ob, "empty_display_size", text="Arrow Size")
             col.prop(probe, "show_influence")
-            col.prop(probe, "show_data")
 
         if probe.type in {'VOLUME', 'SPHERE'}:
             col.prop(probe, "show_influence")
@@ -264,13 +346,55 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
             sub.prop(probe, "show_parallax")
 
 
+class DATA_PT_lightprobe_display_eevee_next(DataButtonsPanel, Panel):
+    bl_label = "Viewport Display"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        ob = context.object
+        probe = context.lightprobe
+
+        col = layout.column()
+
+        if probe.type in {'VOLUME', 'SPHERE'}:
+            row = col.row(heading="Data")
+            row.prop(probe, "use_data_display", text="")
+            subrow = row.row()
+            subrow.active = probe.use_data_display
+            subrow.prop(probe, "data_display_size", text="Size", slider=True)
+            col.prop(probe, "show_clip")
+            col.prop(probe, "show_influence")
+
+        if probe.type == 'SPHERE':
+            sub = col.column()
+            sub.active = probe.use_custom_parallax
+            sub.prop(probe, "show_parallax")
+
+        if probe.type == 'PLANE':
+            col.prop(ob, "empty_display_size", text="Arrow Size")
+            col.prop(probe, "use_data_display", text="Capture")
+            col.prop(probe, "show_influence")
+
+
 classes = (
     DATA_PT_context_lightprobe,
     DATA_PT_lightprobe,
     DATA_PT_lightprobe_eevee_next,
+    DATA_PT_lightprobe_capture,
+    DATA_PT_lightprobe_bake,
+    DATA_PT_lightprobe_bake_resolution,
+    DATA_PT_lightprobe_bake_capture,
+    DATA_PT_lightprobe_bake_offset,
+    DATA_PT_lightprobe_bake_clamping,
     DATA_PT_lightprobe_visibility,
     DATA_PT_lightprobe_parallax,
     DATA_PT_lightprobe_display,
+    DATA_PT_lightprobe_display_eevee_next,
 )
 
 if __name__ == "__main__":  # only for live edit.
