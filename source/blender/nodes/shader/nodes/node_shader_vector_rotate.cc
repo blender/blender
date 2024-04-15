@@ -26,16 +26,21 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Vector>("Vector").min(0.0f).max(1.0f).hide_value();
-  b.add_input<decl::Vector>("Center");
+  b.add_input<decl::Vector>("Center").description("Point to rotate around");
   b.add_input<decl::Vector>("Axis")
       .min(-1.0f)
       .max(1.0f)
       .default_value({0.0f, 0.0f, 1.0f})
-      .make_available([](bNode &node) { node.custom1 = NODE_VECTOR_ROTATE_TYPE_AXIS; });
-  b.add_input<decl::Float>("Angle").subtype(PROP_ANGLE);
-  b.add_input<decl::Vector>("Rotation").subtype(PROP_EULER).make_available([](bNode &node) {
-    node.custom1 = NODE_VECTOR_ROTATE_TYPE_EULER_XYZ;
-  });
+      .make_available([](bNode &node) { node.custom1 = NODE_VECTOR_ROTATE_TYPE_AXIS; })
+      .description("Axis to rotate around");
+  b.add_input<decl::Float>("Angle")
+      .subtype(PROP_ANGLE)
+      .description("Angle to rotate the input vector by");
+  b.add_input<decl::Vector>("Rotation")
+      .subtype(PROP_EULER)
+      .make_available([](bNode &node) { node.custom1 = NODE_VECTOR_ROTATE_TYPE_EULER_XYZ; })
+      .description(
+          "The amount of rotation on each axis, around the X, Y, then Z axes in that order");
   b.add_output<decl::Vector>("Vector");
 }
 

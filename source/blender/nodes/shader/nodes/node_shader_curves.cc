@@ -26,8 +26,10 @@ static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
-      .no_muted_links();
-  b.add_input<decl::Vector>("Vector").min(-1.0f).max(1.0f);
+      .no_muted_links()
+      .description("Amount of influence the node exerts on the output vector");
+  b.add_input<decl::Vector>("Vector").min(-1.0f).max(1.0f).description(
+      "Vector which would be mapped to the curve");
   b.add_output<decl::Vector>("Vector");
 }
 
