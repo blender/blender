@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -571,6 +571,10 @@ msgid "Slot to temporarily hold the main action while in tweak mode"
 msgstr "在微調模式中暫時保留主要動作的插槽"
 
 
+msgid "Animation"
+msgstr "動畫"
+
+
 msgid "Drivers"
 msgstr "驅動器"
 
@@ -797,6 +801,30 @@ msgstr "範圍內"
 
 msgid "Display Paths of poses within specified range"
 msgstr "顯示指定範圍內姿勢的路徑"
+
+
+msgid "F-Curves"
+msgstr "F 曲線"
+
+
+msgid "Influence"
+msgstr "影響"
+
+
+msgid "Mix Mode"
+msgstr "混合模式"
+
+
+msgid "Offset"
+msgstr "偏移"
+
+
+msgid "Strips"
+msgstr "片段"
+
+
+msgid "Keyframe"
+msgstr "鍵幀"
 
 
 msgid "Any Type"
@@ -3888,16 +3916,8 @@ msgid "Eraser Mode"
 msgstr "橡皮擦模式"
 
 
-msgid "Dissolve"
-msgstr "消散"
-
-
 msgid "Erase stroke points"
 msgstr "擦除筆觸頂點"
-
-
-msgid "Stroke"
-msgstr "筆觸"
 
 
 msgid "Closure Size"
@@ -4395,6 +4415,10 @@ msgid "Defines how vertex color affect to the strokes"
 msgstr "定義頂點色彩如何影響筆觸"
 
 
+msgid "Stroke"
+msgstr "筆觸"
+
+
 msgid "Vertex Color affects to Stroke only"
 msgstr "頂點色彩僅影響筆觸"
 
@@ -4529,10 +4553,6 @@ msgstr "影像使用者"
 
 msgid "Parameters defining which layer, pass and frame of the image is displayed"
 msgstr "定義要顯示影像的哪一層、通遞和框幀的參數"
-
-
-msgid "Offset"
-msgstr "偏移"
 
 
 msgid "Rotation"
@@ -5832,10 +5852,6 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "約束作用於方向的殘餘弧度錯誤"
 
 
-msgid "Influence"
-msgstr "影響"
-
-
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "約束對最終解決方案的影響量"
 
@@ -6162,10 +6178,6 @@ msgstr "最小值"
 
 msgid "Minimum value for target channel range"
 msgstr "目標通道範圍的最小值"
-
-
-msgid "Mix Mode"
-msgstr "混合模式"
 
 
 msgid "Target object"
@@ -9527,10 +9539,6 @@ msgid "MPEG-2"
 msgstr "MPEG-2"
 
 
-msgid "QT rle / QT Animation"
-msgstr "QT rle / QT 動畫"
-
-
 msgid "Theora"
 msgstr "Theora"
 
@@ -10504,6 +10512,10 @@ msgid "Both Z"
 msgstr "雙向 Z"
 
 
+msgid "Animations"
+msgstr "動畫"
+
+
 msgid "Fonts"
 msgstr "字型"
 
@@ -10528,12 +10540,12 @@ msgid "Whether this path is saved in bookmarks, or generated from OS"
 msgstr "此路徑是否儲存於書籤、或是從作業系統生成"
 
 
-msgid "File Extensions"
-msgstr "副檔名"
-
-
 msgid "Operator"
 msgstr "操作器"
+
+
+msgid "File Extensions"
+msgstr "副檔名"
 
 
 msgid "Label"
@@ -10546,10 +10558,6 @@ msgstr "圖示 ID"
 
 msgid "Relative Path"
 msgstr "相對路徑"
-
-
-msgid "Animations"
-msgstr "動畫"
 
 
 msgid "Environment"
@@ -11861,10 +11869,6 @@ msgid "Frame is being edited (painted on)"
 msgstr "正被編輯的框幀 (繪於其上)"
 
 
-msgid "Keyframe"
-msgstr "鍵幀"
-
-
 msgid "Breakdown"
 msgstr "分解"
 
@@ -12894,32 +12898,16 @@ msgid "Red Green Blue"
 msgstr "紅綠藍"
 
 
-msgid "R"
-msgstr "R"
-
-
 msgid "Red"
 msgstr "紅"
-
-
-msgid "G"
-msgstr "G"
 
 
 msgid "Green"
 msgstr "綠"
 
 
-msgid "B"
-msgstr "B"
-
-
 msgid "Blue"
 msgstr "藍"
-
-
-msgid "A"
-msgstr "A"
 
 
 msgid "Show Line"
@@ -12928,10 +12916,6 @@ msgstr "顯示線"
 
 msgid "Display lines rather than filled shapes"
 msgstr "顯示線條而不是上色的形狀"
-
-
-msgid "Animation"
-msgstr "動畫"
 
 
 msgid "Brush"
@@ -13042,10 +13026,6 @@ msgid "A collection of F-Curves for animation"
 msgstr "動畫的 F 曲線集盒"
 
 
-msgid "F-Curves"
-msgstr "F 曲線"
-
-
 msgid "The individual F-Curves that make up the action"
 msgstr "構成動作的個別 F 曲線"
 
@@ -13077,6 +13057,10 @@ msgstr "姿態標記"
 
 msgid "Markers specific to this action, for labeling poses"
 msgstr "此動作的特定標註，用來為姿勢加上標籤"
+
+
+msgid "Layers"
+msgstr "層"
 
 
 msgid "Octahedral"
@@ -15206,10 +15190,6 @@ msgstr "啟用或停用紋理筆觸"
 
 msgid "Freehand annotation sketchbook"
 msgstr "隨手畫註記草圖簿"
-
-
-msgid "Layers"
-msgstr "層"
 
 
 msgid "Filter by Type"
@@ -23219,24 +23199,12 @@ msgid "Only dissolve angles below this (planar only)"
 msgstr "僅消融這之下的角 (僅平面)"
 
 
-msgid "Collapse"
-msgstr "塌陷"
-
-
 msgid "Use edge collapsing"
 msgstr "使用邊線塌陷"
 
 
-msgid "Un-Subdivide"
-msgstr "取消細分"
-
-
 msgid "Use un-subdivide face reduction"
 msgstr "使用取消細分來讓面減少"
-
-
-msgid "Planar"
-msgstr "平面"
 
 
 msgid "Dissolve geometry to form planar polygons"
@@ -26329,10 +26297,6 @@ msgstr "RGB 色彩空間"
 
 msgid "YCbCr"
 msgstr "YCbCr"
-
-
-msgid "Limit Channel"
-msgstr "限制通道"
 
 
 msgid "Limit by this channel's value"
@@ -31581,6 +31545,11 @@ msgstr "建立新的集盒"
 
 
 msgctxt "Operator"
+msgid "Export"
+msgstr "匯出"
+
+
+msgctxt "Operator"
 msgid "Add Selected to Active Collection"
 msgstr "添加所選項至作用中集盒"
 
@@ -31954,6 +31923,27 @@ msgid "Reset original length of bone for Stretch To Constraint"
 msgstr "為「拉伸至約束」重設骨骼的原始長度"
 
 
+msgid "Align the new object to the view"
+msgstr "將新增的物體對齊視圖"
+
+
+msgid "Enter Edit Mode"
+msgstr "進入編輯模式"
+
+
+msgid "Location for the newly added object"
+msgstr "新添加物體的位置"
+
+
+msgid "Rotation for the newly added object"
+msgstr "新添加物體的旋轉"
+
+
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "添加圓"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "切換循環"
@@ -31974,6 +31964,11 @@ msgstr "擠出曲線並移動"
 
 msgid "Extrude curve and move result"
 msgstr "擠出曲線並移動結果"
+
+
+msgctxt "Operator"
+msgid "Set Handle Type"
+msgstr "設定控制桿類型"
 
 
 msgid "(De)select all control points"
@@ -32110,11 +32105,6 @@ msgid "Sequence Slide"
 msgstr "序段滑動"
 
 
-msgctxt "Operator"
-msgid "Set Handle Type"
-msgstr "設定控制桿類型"
-
-
 msgid "Set type of handles for selected control points"
 msgstr "設定所選控制點的控制桿類型"
 
@@ -32167,22 +32157,6 @@ msgstr "切換選取"
 
 msgid "Toggle the selection"
 msgstr "切換選取"
-
-
-msgid "Align the new object to the view"
-msgstr "將新增的物體對齊視圖"
-
-
-msgid "Enter Edit Mode"
-msgstr "進入編輯模式"
-
-
-msgid "Location for the newly added object"
-msgstr "新添加物體的位置"
-
-
-msgid "Rotation for the newly added object"
-msgstr "新添加物體的旋轉"
 
 
 msgctxt "Operator"
@@ -33718,10 +33692,6 @@ msgid "Dissolve"
 msgstr "消融"
 
 
-msgid "Dissolve Unselect"
-msgstr "消散選取項"
-
-
 msgctxt "Operator"
 msgid "Grease Pencil Draw"
 msgstr "蠟筆繪製"
@@ -34900,11 +34870,6 @@ msgid "Set the mask's parenting"
 msgstr "設定遮罩的親子關係"
 
 
-msgctxt "Operator"
-msgid "Add Circle"
-msgstr "添加圓"
-
-
 msgid "Add new circle-shaped spline"
 msgstr "添加新的圓形雲形線"
 
@@ -35840,6 +35805,10 @@ msgstr "到中心"
 
 msgid "At Cursor"
 msgstr "到游標"
+
+
+msgid "Collapse"
+msgstr "塌陷"
 
 
 msgid "At First"
@@ -46538,6 +46507,16 @@ msgstr "套索遮罩"
 
 
 msgctxt "Operator"
+msgid "Thickness"
+msgstr "厚度"
+
+
+msgctxt "Operator"
+msgid "Strength"
+msgstr "力量"
+
+
+msgctxt "Operator"
 msgid "Blur"
 msgstr "模糊"
 
@@ -46595,16 +46574,6 @@ msgstr "圓"
 msgctxt "Operator"
 msgid "Interpolate"
 msgstr "插補"
-
-
-msgctxt "Operator"
-msgid "Thickness"
-msgstr "厚度"
-
-
-msgctxt "Operator"
-msgid "Strength"
-msgstr "力量"
 
 
 msgctxt "Operator"
@@ -53873,10 +53842,6 @@ msgid "Settings for space list"
 msgstr "空間清單的設定"
 
 
-msgid "Strips"
-msgstr "片段"
-
-
 msgid "Strips Selected"
 msgstr "選取的片段"
 
@@ -56550,11 +56515,6 @@ msgstr "邊界"
 
 
 msgctxt "Operator"
-msgid "Export"
-msgstr "匯出"
-
-
-msgctxt "Operator"
 msgid "Clear Math Vis"
 msgstr "清除統計表"
 
@@ -56803,6 +56763,10 @@ msgid "+ Non-Grouped Keyframes"
 msgstr "+ 未群組的鍵幀"
 
 
+msgid "Before"
+msgstr "在這之前"
+
+
 msgctxt "Operator"
 msgid "Add Object Constraint"
 msgstr "添加物體約束"
@@ -56883,10 +56847,6 @@ msgstr "端點"
 msgctxt "Operator"
 msgid "Lock All"
 msgstr "鎖定全部"
-
-
-msgid "Before"
-msgstr "在這之前"
 
 
 msgctxt "Operator"
@@ -58054,6 +58014,10 @@ msgstr "視圖名稱"
 
 msgid "Limit Size"
 msgstr "限制大小"
+
+
+msgid "B"
+msgstr "B"
 
 
 msgid "Shadow Offset X"
@@ -63173,8 +63137,8 @@ msgid "Cr"
 msgstr "Cr"
 
 
-msgid "Speed:"
-msgstr "速度："
+msgid "Planar"
+msgstr "平面"
 
 
 msgid "Rotation of the instances"

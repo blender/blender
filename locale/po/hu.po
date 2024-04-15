@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -237,6 +237,10 @@ msgid "Multiply"
 msgstr "Többszörözés"
 
 
+msgid "Animation"
+msgstr "Animáció"
+
+
 msgid "Motion Paths"
 msgstr "Mozgásútvonal"
 
@@ -347,6 +351,26 @@ msgstr "Tartományban"
 
 msgid "Display Paths of poses within specified range"
 msgstr "Pózok útvonalának megjelenítése a megadott tartományban"
+
+
+msgid "F-Curves"
+msgstr "F-Görbék"
+
+
+msgid "Influence"
+msgstr "Befolyás"
+
+
+msgid "Mix Mode"
+msgstr "Keverési mód"
+
+
+msgid "Offset"
+msgstr "Eltolás"
+
+
+msgid "Keyframe"
+msgstr "Kulcsképkocka"
 
 
 msgid "Height"
@@ -1237,10 +1261,6 @@ msgid "Image"
 msgstr "Kép"
 
 
-msgid "Offset"
-msgstr "Eltolás"
-
-
 msgid "Rotation"
 msgstr "Forgatás"
 
@@ -1287,6 +1307,10 @@ msgstr "Gravitáció"
 
 msgid "Quality"
 msgstr "Minőség"
+
+
+msgid "Is Open"
+msgstr "Nyitva"
 
 
 msgid "Damping"
@@ -1456,10 +1480,6 @@ msgstr "Bemenet"
 
 msgid "Error"
 msgstr "Hiba"
-
-
-msgid "Influence"
-msgstr "Befolyás"
 
 
 msgid "Amount of influence constraint will have on the final solution"
@@ -1752,10 +1772,6 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "A célobjektum csatorna-tartományának minimum értéke"
-
-
-msgid "Mix Mode"
-msgstr "Keverési mód"
 
 
 msgid "Target object"
@@ -3436,12 +3452,12 @@ msgid "Save"
 msgstr "Mentés"
 
 
-msgid "File Extensions"
-msgstr "Fájlkiterjesztések"
-
-
 msgid "Operator"
 msgstr "Operátor"
+
+
+msgid "File Extensions"
+msgstr "Fájlkiterjesztések"
 
 
 msgid "Relative Path"
@@ -4004,10 +4020,6 @@ msgid "Grease Pencil Frame"
 msgstr "Zsírkréta kép"
 
 
-msgid "Keyframe"
-msgstr "Kulcsképkocka"
-
-
 msgid "Jitter"
 msgstr "Elszórás"
 
@@ -4545,10 +4557,6 @@ msgid "Blue"
 msgstr "Kék"
 
 
-msgid "Animation"
-msgstr "Animáció"
-
-
 msgid "Brush"
 msgstr "Ecset"
 
@@ -4609,16 +4617,16 @@ msgid "World"
 msgstr "Világ"
 
 
-msgid "F-Curves"
-msgstr "F-Görbék"
-
-
 msgid "Frame Range"
 msgstr "Képkockasor"
 
 
 msgid "Groups"
 msgstr "Csoportok"
+
+
+msgid "Layers"
+msgstr "Rétegek"
 
 
 msgid "Wire"
@@ -5209,10 +5217,6 @@ msgstr "Zsírkréta vonások rajzolása kattintásra/húzásra"
 
 msgid "Grease Pencil vertex paint"
 msgstr "Zsírkréta csúcspont festés"
-
-
-msgid "Layers"
-msgstr "Rétegek"
 
 
 msgid "Only selected keyframes"
@@ -6573,10 +6577,6 @@ msgid "Selected Objects"
 msgstr "Kijelölt objektumok"
 
 
-msgid "Is Open"
-msgstr "Nyitva"
-
-
 msgid "Modifier Name"
 msgstr "Módosító név"
 
@@ -7800,24 +7800,12 @@ msgid "Only dissolve angles below this (planar only)"
 msgstr "Szögek lebontása ez alatt az érték alatt (csak a síkbeliél)"
 
 
-msgid "Collapse"
-msgstr "Összeomlás"
-
-
 msgid "Use edge collapsing"
 msgstr "Él-összeomlás használata"
 
 
-msgid "Un-Subdivide"
-msgstr "Anti-felosztás"
-
-
 msgid "Use un-subdivide face reduction"
 msgstr "Anti-felosztás oldallapszám-csökkentés használata"
-
-
-msgid "Planar"
-msgstr "Síkbeli"
 
 
 msgid "Dissolve geometry to form planar polygons"
@@ -10012,6 +10000,11 @@ msgid "Zoom Out"
 msgstr "Kicsinyítés"
 
 
+msgctxt "Operator"
+msgid "Export"
+msgstr "Exportálás"
+
+
 msgid "Clear text by type"
 msgstr "Szöveg törlése típus alapján"
 
@@ -10137,6 +10130,10 @@ msgid "Reset original length of bone for Stretch To Constraint"
 msgstr "A csont eredeti hosszának alaphelyztbeállítása a Nyújtás kényszerítőnél"
 
 
+msgid "Enter Edit Mode"
+msgstr "Belépés Szerkesztő módba"
+
+
 msgid "Skin Resize"
 msgstr "Bőr átméretezése"
 
@@ -10151,10 +10148,6 @@ msgstr "Zsírkréta zsugorítás/hízlalás"
 
 msgid "Grease Pencil Opacity"
 msgstr "Zsírkréta átlátszatlanság"
-
-
-msgid "Enter Edit Mode"
-msgstr "Belépés Szerkesztő módba"
 
 
 msgid "Construct a Nurbs Circle"
@@ -11044,6 +11037,10 @@ msgstr "Röntgen"
 msgctxt "Operator"
 msgid "Merge"
 msgstr "Összefésülés"
+
+
+msgid "Collapse"
+msgstr "Összeomlás"
 
 
 msgid "Construct a circle mesh"
@@ -13511,6 +13508,11 @@ msgstr "Mozgáskövetés"
 
 
 msgctxt "Operator"
+msgid "Thickness"
+msgstr "Vastagság"
+
+
+msgctxt "Operator"
 msgid "Erase"
 msgstr "Törlés"
 
@@ -13523,11 +13525,6 @@ msgstr "Vonal"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Kör"
-
-
-msgctxt "Operator"
-msgid "Thickness"
-msgstr "Vastagság"
 
 
 msgctxt "Operator"
@@ -15907,11 +15904,6 @@ msgid "Edge Sharp"
 msgstr "Él kiemelés"
 
 
-msgctxt "Operator"
-msgid "Export"
-msgstr "Exportálás"
-
-
 msgid "Generate Settings:"
 msgstr "Generálás beállításai:"
 
@@ -15982,14 +15974,6 @@ msgid "Open..."
 msgstr "Megnyitás..."
 
 
-msgid "Select With"
-msgstr "Kiválasztás ezzel"
-
-
-msgid "Spacebar"
-msgstr "Szóköz"
-
-
 msgctxt "Operator"
 msgid "Append..."
 msgstr "Melléklés..."
@@ -16043,6 +16027,10 @@ msgid "+ Non-Grouped Keyframes"
 msgstr "+ Nem-csoportosított kulcsképkockák"
 
 
+msgid "Before"
+msgstr "Előtte"
+
+
 msgctxt "Operator"
 msgid "Add Object Constraint"
 msgstr "Objektum kényszerítő hozzáadása"
@@ -16087,10 +16075,6 @@ msgstr "Egyéni..."
 msgctxt "Operator"
 msgid "Lock All"
 msgstr "Mindegyik lezárása"
-
-
-msgid "Before"
-msgstr "Előtte"
 
 
 msgctxt "Operator"
@@ -17884,10 +17868,6 @@ msgid "Format:"
 msgstr "Formátum:"
 
 
-msgid "Speed:"
-msgstr "Sebesség:"
-
-
 msgid "Mesh 1"
 msgstr "Térháló 1"
 
@@ -17898,6 +17878,10 @@ msgstr "Térháló 2"
 
 msgid "Reset Children"
 msgstr "Gyermekek alaphelyzetbe állítása"
+
+
+msgid "Planar"
+msgstr "Síkbeli"
 
 
 msgid "Old"

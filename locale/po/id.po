@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: 2023-12-04 11:07+0000\n"
 "Last-Translator: Mohamad Rido <mohamadrido@mail.ru>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -493,6 +493,10 @@ msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Jumlah Aksi Aktif berkontribusi ke hasil stack NLA"
 
 
+msgid "Animation"
+msgstr "Animasi"
+
+
 msgid "Drivers"
 msgstr "Driver"
 
@@ -679,6 +683,22 @@ msgstr "Dalam Jarak"
 
 msgid "Display Paths of poses within specified range"
 msgstr "Jalur Tampilan pose dalam rentang tertentu"
+
+
+msgid "Influence"
+msgstr "Pengaruh"
+
+
+msgid "Mix Mode"
+msgstr "Mode Campur"
+
+
+msgid "Offset"
+msgstr "Offset"
+
+
+msgid "Keyframe"
+msgstr "Frame Kunci"
 
 
 msgid "Any Type"
@@ -3284,20 +3304,12 @@ msgid "Eraser Mode"
 msgstr "Mode Penghapus"
 
 
-msgid "Dissolve"
-msgstr "Larut"
-
-
 msgid "Erase strokes, fading their points strength and thickness"
 msgstr "Hapus garis luar, mengkaburkan kekuatan dan ketebalan titik mereka"
 
 
 msgid "Erase stroke points"
 msgstr "Hapus titik garis luar"
-
-
-msgid "Stroke"
-msgstr "Goresan"
 
 
 msgid "Erase entire strokes"
@@ -3673,6 +3685,10 @@ msgid "Mode Type"
 msgstr "Tipe Mode"
 
 
+msgid "Stroke"
+msgstr "Goresan"
+
+
 msgid "Byte Color Attribute Value"
 msgstr "Nilai Atribut Warna Byte"
 
@@ -3767,10 +3783,6 @@ msgstr "Gambar Pengguna"
 
 msgid "Parameters defining which layer, pass and frame of the image is displayed"
 msgstr "Parameter mendefinisikan layer mana, lewati dan frame gambar ditampilkan"
-
-
-msgid "Offset"
-msgstr "Offset"
 
 
 msgid "Rotation"
@@ -4610,10 +4622,6 @@ msgid "Rotation error"
 msgstr "Rotasi error"
 
 
-msgid "Influence"
-msgstr "Pengaruh"
-
-
 msgid "Disable"
 msgstr "Matikan"
 
@@ -4808,10 +4816,6 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Nilai minimum untuk jarak saluran target"
-
-
-msgid "Mix Mode"
-msgstr "Mode Campur"
 
 
 msgid "Before Original (Full)"
@@ -7341,6 +7345,10 @@ msgid "Both Z"
 msgstr "Kedua Z"
 
 
+msgid "Animations"
+msgstr "Animasi"
+
+
 msgid "Show Armature data-blocks"
 msgstr "Tampilkan Armatur data-blok"
 
@@ -7475,10 +7483,6 @@ msgstr "Simpan"
 
 msgid "Icon ID"
 msgstr "Ikon ID"
-
-
-msgid "Animations"
-msgstr "Animasi"
 
 
 msgid "Images & Sounds"
@@ -8317,10 +8321,6 @@ msgid "Type of keyframe"
 msgstr "Tipe keyframe"
 
 
-msgid "Keyframe"
-msgstr "Frame Kunci"
-
-
 msgid "Extreme"
 msgstr "Ekstrim"
 
@@ -9017,24 +9017,12 @@ msgid "Red Green Blue"
 msgstr "Merah Hijau Biru"
 
 
-msgid "R"
-msgstr "R"
-
-
 msgid "Red"
 msgstr "Merah"
 
 
-msgid "G"
-msgstr "G"
-
-
 msgid "Green"
 msgstr "Hijau"
-
-
-msgid "B"
-msgstr "B"
 
 
 msgid "Blue"
@@ -9043,10 +9031,6 @@ msgstr "Biru"
 
 msgid "Show Line"
 msgstr "Tampilkan Garis"
-
-
-msgid "Animation"
-msgstr "Animasi"
 
 
 msgid "Brush"
@@ -9124,6 +9108,10 @@ msgstr "Dalam Jarak"
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Tipe Akar ID"
+
+
+msgid "Layers"
+msgstr "Layer"
 
 
 msgid "Stick"
@@ -9735,10 +9723,6 @@ msgstr "Edit Warna Garis"
 
 msgid "Annotation"
 msgstr "Anotasi"
-
-
-msgid "Layers"
-msgstr "Layer"
 
 
 msgid "Selected"
@@ -12110,10 +12094,6 @@ msgid "Use edge collapsing"
 msgstr "Buat"
 
 
-msgid "Un-Subdivide"
-msgstr "Modus Pahat"
-
-
 msgid "All Boundaries"
 msgstr "Suara"
 
@@ -13282,10 +13262,6 @@ msgstr "YCbCr"
 
 msgid "YCbCr color space"
 msgstr "Spasi warna YCbCr"
-
-
-msgid "Limit Channel"
-msgstr "Batas Saluran"
 
 
 msgid "Algorithm"
@@ -15185,6 +15161,11 @@ msgstr "Perkecil"
 
 
 msgctxt "Operator"
+msgid "Export"
+msgstr "Ekspor"
+
+
+msgctxt "Operator"
 msgid "Clear Line"
 msgstr "Kosongkan Garis"
 
@@ -15271,6 +15252,11 @@ msgid "Extrude curve and move result"
 msgstr "Partikel"
 
 
+msgctxt "Operator"
+msgid "Set Handle Type"
+msgstr "Tekstur"
+
+
 msgid "(De)select all control points"
 msgstr "Material"
 
@@ -15305,11 +15291,6 @@ msgstr "Mengubah Ukuran Kulit"
 
 msgid "Bend"
 msgstr "Membengkokkan"
-
-
-msgctxt "Operator"
-msgid "Set Handle Type"
-msgstr "Tekstur"
 
 
 msgid "Hide (un)selected control points"
@@ -19959,10 +19940,6 @@ msgid "Fluid Presets"
 msgstr "Kamera"
 
 
-msgid "Notes"
-msgstr "Catatan"
-
-
 msgid "Color Palette"
 msgstr "Palet Warna"
 
@@ -22048,6 +22025,10 @@ msgid "%s is not supported"
 msgstr "%s tidak didukung"
 
 
+msgid "Notes"
+msgstr "Catatan"
+
+
 msgid "Scaled by {}{}"
 msgstr "Diskalakan oleh {}{}"
 
@@ -22095,11 +22076,6 @@ msgstr "Cek Semua"
 
 msgid "Scale To"
 msgstr "Skalakan Ke"
-
-
-msgctxt "Operator"
-msgid "Export"
-msgstr "Ekspor"
 
 
 msgid "Result"
@@ -22330,19 +22306,6 @@ msgid "Data path not set"
 msgstr "Jalur data tidak set"
 
 
-msgid "Select With"
-msgstr "Pilih Dengan"
-
-
-msgid "Spacebar"
-msgstr "Spasi"
-
-
-msgctxt "Operator"
-msgid "Save New Settings"
-msgstr "Simpan Pengaturan Baru"
-
-
 msgid "Getting Started"
 msgstr "Baru Memulai"
 
@@ -22405,6 +22368,10 @@ msgstr "Tidak ada yang ditampilkan sekarang..."
 msgctxt "Operator"
 msgid "Calculate..."
 msgstr "Kalkulasi..."
+
+
+msgid "Before"
+msgstr "Sebelum"
 
 
 msgctxt "Operator"
@@ -22511,10 +22478,6 @@ msgstr "Tidak Kunci Semua"
 
 msgid "Autolock Inactive Layers"
 msgstr "Autoblok Layer Tidak Aktif"
-
-
-msgid "Before"
-msgstr "Sebelum"
 
 
 msgid "View in Render"
@@ -24252,6 +24215,10 @@ msgstr "Radius Penghapus"
 
 msgid "Show Warning"
 msgstr "Tampilkan Peringatan"
+
+
+msgid "B"
+msgstr "B"
 
 
 msgid "Invert Axis Pan"
@@ -26138,10 +26105,6 @@ msgid "Save External..."
 msgstr "Simpan Eksternal..."
 
 
-msgid "Settings are in the particle tab"
-msgstr "Pengaturan berada di tab partikel"
-
-
 msgid "Axis Object"
 msgstr "Sumbu Objek"
 
@@ -26225,10 +26188,6 @@ msgstr "Titik"
 
 msgid "Val"
 msgstr "Val"
-
-
-msgid "Speed:"
-msgstr "Kecepatan:"
 
 
 msgid "Intersecting Edges"

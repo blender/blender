@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: 2023-11-30 20:00+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -590,6 +590,10 @@ msgid "Slot to temporarily hold the main action while in tweak mode"
 msgstr "ﺖﺳﺍ ﯼﺯﺎﺳ ﻪﻨﯿﻬﺑ ﺖﻟﺎﺣ ﺭﺩ ﻪﮐ ﯽﻟﺎﺣ ﺭﺩ ﯽﻠﺻﺍ ﻡﺍﺪﻗﺍ ﺖﻗﻮﻣ ﻦﺘﺷﺍﺩ ﻪﮕﻧ ﯼﺍﺮﺑ ﯽﯾﺎﻀﻓ"
 
 
+msgid "Animation"
+msgstr "ﻦﺸﯿﻤﯿﻧﺍ"
+
+
 msgid "Drivers"
 msgstr "ﺎﻫﺭﻮﯾﺍﺭﺩ"
 
@@ -816,6 +820,18 @@ msgstr "ﻩﺯﺎﺑ ﺭﺩ"
 
 msgid "Display Paths of poses within specified range"
 msgstr "ﻩﺪﺷ ﺺﺨﺸﻣ ﻩﺯﺎﺑ ﺭﺩ ﺎﻫ‌ﺖﺳﮊ ﯼﺎﻫﺮﯿﺴﻣ ﺶﯾﺎﻤﻧ"
+
+
+msgid "Influence"
+msgstr "ﺫﻮﻔﻧ"
+
+
+msgid "Mix Mode"
+msgstr "ﯽﺒﯿﮐﺮﺗ ﺖﻟﺎﺣ"
+
+
+msgid "Offset"
+msgstr "ﺖﺴﻓﺍ"
 
 
 msgid "Any Type"
@@ -1369,10 +1385,6 @@ msgid "Image"
 msgstr "ﺮﯾﻮﺼﺗ"
 
 
-msgid "Offset"
-msgstr "ﺖﺴﻓﺍ"
-
-
 msgid "Rotation"
 msgstr "ﻥﺍﺭﻭﺩ"
 
@@ -1737,10 +1749,6 @@ msgid "Input"
 msgstr "ﯼﺩﻭﺭﻭ"
 
 
-msgid "Influence"
-msgstr "ﺫﻮﻔﻧ"
-
-
 msgid "Disable"
 msgstr "ﻝﺎﻌﻓﺮﯿﻏ"
 
@@ -1795,10 +1803,6 @@ msgstr "ﺮﭽﯿﻣﺭﺁ"
 
 msgid "Follow Path"
 msgstr "ﺮﯿﺴﻣ ﻩﺪﻨﻨﮐ ﻝﺎﺒﻧﺩ"
-
-
-msgid "Mix Mode"
-msgstr "ﯽﺒﯿﮐﺮﺗ ﺖﻟﺎﺣ"
 
 
 msgid "X Location"
@@ -2416,32 +2420,16 @@ msgid "Space"
 msgstr "ﺎﻀﻓ"
 
 
-msgid "R"
-msgstr "R"
-
-
 msgid "Red"
 msgstr "ﺰﻣﺮﻗ"
-
-
-msgid "G"
-msgstr "G"
 
 
 msgid "Green"
 msgstr "ﺰﺒﺳ"
 
 
-msgid "B"
-msgstr "B"
-
-
 msgid "Blue"
 msgstr "ﯽﺑﺁ"
-
-
-msgid "Animation"
-msgstr "ﻦﺸﯿﻤﯿﻧﺍ"
 
 
 msgid "Brush"
@@ -2490,6 +2478,10 @@ msgstr "ﻩﺮﺠﻨﭘ ﺖﯾﺮﯾﺪﻣ"
 
 msgid "World"
 msgstr "ﻥﺎﻬﺟ"
+
+
+msgid "Layers"
+msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
 
 
 msgid "B-Bone"
@@ -2717,10 +2709,6 @@ msgstr "ﻪﻨﯿﻤﮐ"
 
 msgid "Max"
 msgstr "ﻪﻨﯿﺸﯿﺑ"
-
-
-msgid "Layers"
-msgstr "ﺎﻫ‌ﻪﯾﻻ﻿"
 
 
 msgid "U"
@@ -4874,10 +4862,6 @@ msgid "3D View"
 msgstr "ﯼﺪﻌﺑ ﻪﺳ ﺪﯾﺩ"
 
 
-msgid "Spacebar"
-msgstr "Spacebar"
-
-
 msgid "Assign"
 msgstr "ﻥﺩﺍﺩ ﺹﺎﺼﺘﺣﺍ"
 
@@ -4990,6 +4974,10 @@ msgstr "ﻡﺎﻧ ﺶﯾﺎﻤﻧ"
 
 msgid "Limit Size"
 msgstr "ﺯﺎﺠﻣ ﻩﺯﺍﺪﻧﺍ"
+
+
+msgid "B"
+msgstr "B"
 
 
 msgid "Description:"

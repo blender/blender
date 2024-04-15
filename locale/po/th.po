@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -230,6 +230,10 @@ msgid "Multiply"
 msgstr "คูณ"
 
 
+msgid "Animation"
+msgstr "แอนิเมชัน"
+
+
 msgid "End Frame"
 msgstr "เฟรมสิ้นสุด"
 
@@ -248,6 +252,14 @@ msgstr "ชนิดของเส้นทาง"
 
 msgid "In Range"
 msgstr "ในระยะ"
+
+
+msgid "Mix Mode"
+msgstr "โหมดผสม"
+
+
+msgid "Keyframe"
+msgstr "คีย์เฟรม"
 
 
 msgid "Height"
@@ -809,10 +821,6 @@ msgid "Armature"
 msgstr "โครงร่าง"
 
 
-msgid "Mix Mode"
-msgstr "โหมดผสม"
-
-
 msgid "Rotation X"
 msgstr "หมุน X"
 
@@ -1193,10 +1201,6 @@ msgid "Use"
 msgstr "ใช้"
 
 
-msgid "Keyframe"
-msgstr "คีย์เฟรม"
-
-
 msgid "Frames"
 msgstr "เฟรม"
 
@@ -1324,14 +1328,6 @@ msgid "Red"
 msgstr "แดง"
 
 
-msgid "B"
-msgstr "B"
-
-
-msgid "Animation"
-msgstr "แอนิเมชัน"
-
-
 msgid "Font"
 msgstr "ฟอนต์"
 
@@ -1382,6 +1378,10 @@ msgstr "โลก"
 
 msgid "Users"
 msgstr "ผู้ใช้"
+
+
+msgid "Layers"
+msgstr "ชั้น"
 
 
 msgid "Wire"
@@ -1518,10 +1518,6 @@ msgstr "เรียงตาม"
 
 msgid "Grid Settings"
 msgstr "การตั้งค่าตะแกรง"
-
-
-msgid "Layers"
-msgstr "ชั้น"
 
 
 msgid "Selected"
@@ -2565,12 +2561,17 @@ msgid "Report"
 msgstr "รายงาน"
 
 
-msgid "Duplicate"
-msgstr "ทำซ้ำ"
-
-
 msgid "Enter Edit Mode"
 msgstr "เข้าสู่โหมดแก้ไข"
+
+
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "เพิ่มวงกลม"
+
+
+msgid "Duplicate"
+msgstr "ทำซ้ำ"
 
 
 msgctxt "Operator"
@@ -2788,11 +2789,6 @@ msgstr "เพิ่มจุดยอด"
 
 msgid "Add Vertex"
 msgstr "เพิ่มจุดยอด"
-
-
-msgctxt "Operator"
-msgid "Add Circle"
-msgstr "เพิ่มวงกลม"
 
 
 msgctxt "Operator"
@@ -4555,6 +4551,10 @@ msgstr "ชื่อมุมมอง"
 
 msgid "Axis X"
 msgstr "แกน X"
+
+
+msgid "B"
+msgstr "B"
 
 
 msgid "Panel Title"

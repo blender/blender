@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: 2023-11-06 03:54+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -561,6 +561,14 @@ msgstr "I rækkevidde"
 
 msgid "Display Paths of poses within specified range"
 msgstr "Vis stier til stillinger inden for det specificerede område"
+
+
+msgid "Influence"
+msgstr "Indflydelse"
+
+
+msgid "Keyframe"
+msgstr "Nøglebillede"
 
 
 msgid "Any Type"
@@ -1263,10 +1271,6 @@ msgid "Look"
 msgstr "udseende"
 
 
-msgid "Influence"
-msgstr "Indflydelse"
-
-
 msgid "Disable"
 msgstr "Deaktivere"
 
@@ -1370,10 +1374,6 @@ msgstr "Top"
 
 msgid "Visibility"
 msgstr "Synlighed"
-
-
-msgid "Keyframe"
-msgstr "Nøglebillede"
 
 
 msgid "Blend Mode"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -490,6 +490,10 @@ msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Der Betrag, den die aktive Aktion zum Ergebnis des NLA-Stacks beiträgt"
 
 
+msgid "Animation"
+msgstr "Animation"
+
+
 msgid "Drivers"
 msgstr "Treiber"
 
@@ -684,6 +688,30 @@ msgstr "Im Bereich"
 
 msgid "Display Paths of poses within specified range"
 msgstr "Zeigt Posenpfade innerhalb des angegebenen Bereichs an"
+
+
+msgid "F-Curves"
+msgstr "F-Kurven"
+
+
+msgid "Influence"
+msgstr "Einfluss"
+
+
+msgid "Mix Mode"
+msgstr "Mischmodus"
+
+
+msgid "Offset"
+msgstr "Versatz"
+
+
+msgid "Strips"
+msgstr "Streifen"
+
+
+msgid "Keyframe"
+msgstr "Schlüsselbild"
 
 
 msgid "Any Type"
@@ -3611,20 +3639,12 @@ msgid "Eraser Mode"
 msgstr "Radiermodus"
 
 
-msgid "Dissolve"
-msgstr "Auflösen"
-
-
 msgid "Erase strokes, fading their points strength and thickness"
 msgstr "Löschen von Strichen, Verblassen ihrer Punktestärke und Dicke"
 
 
 msgid "Erase stroke points"
 msgstr "Strickpunkte entfernen"
-
-
-msgid "Stroke"
-msgstr "Pinselstrich"
 
 
 msgid "Erase entire strokes"
@@ -4127,6 +4147,10 @@ msgid "Defines how vertex color affect to the strokes"
 msgstr "Definiert, wie sich die Eckpunktfarbe auf die Striche auswirkt"
 
 
+msgid "Stroke"
+msgstr "Pinselstrich"
+
+
 msgid "Vertex Color affects to Stroke only"
 msgstr "Eckpunktfarbe wirkt sich nur auf Strich aus"
 
@@ -4261,10 +4285,6 @@ msgstr "Parameter definieren welche Ebene, Durchgang und Einzelbild des Bildes w
 
 msgid "Override Background Image"
 msgstr "Hintergrundbild überschreiben"
-
-
-msgid "Offset"
-msgstr "Versatz"
 
 
 msgid "Rotation"
@@ -5652,10 +5672,6 @@ msgid "Amount of residual error in radians for constraints that work on orientat
 msgstr "Menge des Restfehlers in Bogenmaß für Abhängigkeiten, die auf die Orientierung wirken"
 
 
-msgid "Influence"
-msgstr "Einfluss"
-
-
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Menge der Einflussbeschränkung auf die endgültige Lösung"
 
@@ -5986,10 +6002,6 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Minimaler Wert für Zielkanalspanne"
-
-
-msgid "Mix Mode"
-msgstr "Mischmodus"
 
 
 msgid "Before Original (Full)"
@@ -8891,10 +8903,6 @@ msgid "MPEG-4 (divx)"
 msgstr "MPEG-4 (divx)"
 
 
-msgid "QT rle / QT Animation"
-msgstr "QT rle / QT Animation"
-
-
 msgid "Theora"
 msgstr "Theora"
 
@@ -9576,6 +9584,10 @@ msgid "Both Z"
 msgstr "Beide Z"
 
 
+msgid "Animations"
+msgstr "Animationen"
+
+
 msgid "Show Armature data-blocks"
 msgstr "Anker-Datenblöcke anzeigen"
 
@@ -9732,12 +9744,12 @@ msgid "Save"
 msgstr "Speichern"
 
 
-msgid "File Extensions"
-msgstr "Dateiendungen"
-
-
 msgid "Operator"
 msgstr "Operator"
+
+
+msgid "File Extensions"
+msgstr "Dateiendungen"
 
 
 msgid "Label"
@@ -9754,10 +9766,6 @@ msgstr "Icon ID"
 
 msgid "Relative Path"
 msgstr "Relativer Pfad"
-
-
-msgid "Animations"
-msgstr "Animationen"
 
 
 msgid "Show animation data"
@@ -11092,10 +11100,6 @@ msgid "Keyframe Type"
 msgstr "Schlüsselbildtyp"
 
 
-msgid "Keyframe"
-msgstr "Schlüsselbild"
-
-
 msgid "Breakdown"
 msgstr "Ausfall"
 
@@ -12412,32 +12416,16 @@ msgid "Red Green Blue"
 msgstr "Rot-Grün-Blau"
 
 
-msgid "R"
-msgstr "R"
-
-
 msgid "Red"
 msgstr "Rot"
-
-
-msgid "G"
-msgstr "G"
 
 
 msgid "Green"
 msgstr "Grün"
 
 
-msgid "B"
-msgstr "B"
-
-
 msgid "Blue"
 msgstr "Blau"
-
-
-msgid "A"
-msgstr "A"
 
 
 msgid "Show Line"
@@ -12450,10 +12438,6 @@ msgstr "Anzeigemodus für die Dateiliste"
 
 msgid "Additional data for an asset data-block"
 msgstr "Zusätzliche Daten für einen Asset-Datenblock"
-
-
-msgid "Animation"
-msgstr "Animation"
 
 
 msgid "Brush"
@@ -12584,10 +12568,6 @@ msgid "Users"
 msgstr "Benutzer"
 
 
-msgid "F-Curves"
-msgstr "F-Kurven"
-
-
 msgid "Frame Range"
 msgstr "Bildbereich"
 
@@ -12615,6 +12595,14 @@ msgstr "Posenmarker"
 
 msgid "Cyclic Animation"
 msgstr "Zyklische Animation"
+
+
+msgid "Bindings"
+msgstr "Bindung"
+
+
+msgid "Layers"
+msgstr "Ebenen"
 
 
 msgid "Animation data for this data-block"
@@ -14399,10 +14387,6 @@ msgstr "Strichmaleinfluss Modus"
 
 msgid "Grease Pencil weight paint"
 msgstr "Wachsstift Malereieinfluss"
-
-
-msgid "Layers"
-msgstr "Ebenen"
 
 
 msgid "Filter by Type"
@@ -21554,20 +21538,8 @@ msgid "Angle Limit"
 msgstr "Winkelbegrenzung"
 
 
-msgid "Collapse"
-msgstr "Zusammenbruch"
-
-
 msgid "Use edge collapsing"
 msgstr "Kanten als Federn verwenden"
-
-
-msgid "Un-Subdivide"
-msgstr "Unterteilen"
-
-
-msgid "Planar"
-msgstr "Ebenflächig"
 
 
 msgid "Delimit"
@@ -24018,10 +23990,6 @@ msgstr "YCbCr"
 
 msgid "YCbCr color space"
 msgstr "YCbCr Farbraum"
-
-
-msgid "Limit Channel"
-msgstr "Kanal begrenzen"
 
 
 msgid "Limit by this channel's value"
@@ -28741,6 +28709,11 @@ msgstr "Name der neuen Sammlung"
 
 
 msgctxt "Operator"
+msgid "Export"
+msgstr "Exportieren"
+
+
+msgctxt "Operator"
 msgid "Add Selected to Active Collection"
 msgstr "Auswahl zu aktiven Sammlung hinzufügen"
 
@@ -29060,6 +29033,39 @@ msgid "Reset Original Length"
 msgstr "Originallänge zurücksetzen"
 
 
+msgid "Align the new object to the world"
+msgstr "Neues Objekt an der Welt ausrichten"
+
+
+msgid "Align the new object to the view"
+msgstr "Neues Objekt an der Ansicht ausrichten"
+
+
+msgid "Enter Edit Mode"
+msgstr "In Bearbeitungsmodus wechseln"
+
+
+msgid "Enter edit mode when adding this object"
+msgstr "Zum Bearbeitungsmodus, beim Hinzufügen dieses Objekts, wechseln"
+
+
+msgid "Location for the newly added object"
+msgstr "Position des neu hinzufügten Objekts"
+
+
+msgid "Rotation for the newly added object"
+msgstr "Rotation des neu hinzufügten Objekts"
+
+
+msgid "Scale for the newly added object"
+msgstr "Skalierung des neu hinzufügten Objekts"
+
+
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "Kreis hinzufügen"
+
+
 msgctxt "Operator"
 msgid "Convert Particle System to Curves"
 msgstr "Partikelsysteme zu Kurven konvertieren"
@@ -29080,6 +29086,11 @@ msgstr "Kurve extrudieren und bewegen"
 
 msgid "Extrude curve and move result"
 msgstr "Kurve extrudieren und Ergebnis bewegen"
+
+
+msgctxt "Operator"
+msgid "Set Handle Type"
+msgstr "Grifftyp festlegen"
 
 
 msgid "(De)select all control points"
@@ -29255,11 +29266,6 @@ msgid "Grease Pencil Opacity"
 msgstr "Wachsstiftdeckkraft"
 
 
-msgctxt "Operator"
-msgid "Set Handle Type"
-msgstr "Grifftyp festlegen"
-
-
 msgid "Set type of handles for selected control points"
 msgstr "Grifftyp für ausgewählte Kontrollpunkte festlegen"
 
@@ -29330,34 +29336,6 @@ msgstr "Punkt auswählen"
 
 msgid "Toggle Vector"
 msgstr "Vektor umschalten"
-
-
-msgid "Align the new object to the world"
-msgstr "Neues Objekt an der Welt ausrichten"
-
-
-msgid "Align the new object to the view"
-msgstr "Neues Objekt an der Ansicht ausrichten"
-
-
-msgid "Enter Edit Mode"
-msgstr "In Bearbeitungsmodus wechseln"
-
-
-msgid "Enter edit mode when adding this object"
-msgstr "Zum Bearbeitungsmodus, beim Hinzufügen dieses Objekts, wechseln"
-
-
-msgid "Location for the newly added object"
-msgstr "Position des neu hinzufügten Objekts"
-
-
-msgid "Rotation for the newly added object"
-msgstr "Rotation des neu hinzufügten Objekts"
-
-
-msgid "Scale for the newly added object"
-msgstr "Skalierung des neu hinzufügten Objekts"
 
 
 msgctxt "Operator"
@@ -30807,6 +30785,11 @@ msgid "Dissolve"
 msgstr "Auflösen"
 
 
+msgctxt "GPencil"
+msgid "Type"
+msgstr "Typ"
+
+
 msgid "Dissolve selected points"
 msgstr "Ausgewählte Punkte auflösen"
 
@@ -30965,11 +30948,6 @@ msgstr "Leichtes Ein- und Aussteigen"
 
 msgid "Number of frames between generated interpolated frames"
 msgstr "Anzahl der Frames zwischen generierten interpolierten Frames"
-
-
-msgctxt "GPencil"
-msgid "Type"
-msgstr "Typ"
 
 
 msgctxt "GPencil"
@@ -32668,11 +32646,6 @@ msgstr "Dieses Objekt als Elternteil setzen"
 
 
 msgctxt "Operator"
-msgid "Add Circle"
-msgstr "Kreis hinzufügen"
-
-
-msgctxt "Operator"
 msgid "Add Square"
 msgstr "Quadrat hinzufügen"
 
@@ -33312,6 +33285,10 @@ msgstr "Ausgewählte Punkt zusammenfügen"
 
 msgid "At Center"
 msgstr "Zur Mitte"
+
+
+msgid "Collapse"
+msgstr "Zusammenbruch"
 
 
 msgctxt "Operator"
@@ -43045,6 +43022,16 @@ msgstr "Farbfilter"
 
 
 msgctxt "Operator"
+msgid "Thickness"
+msgstr "Dicke"
+
+
+msgctxt "Operator"
+msgid "Strength"
+msgstr "Stärke"
+
+
+msgctxt "Operator"
 msgid "Blur"
 msgstr "Verwischen"
 
@@ -43116,16 +43103,6 @@ msgstr "Interpolieren"
 
 msgid "Expand or contract the radius of the selected points"
 msgstr "Erweitern oder verkleinern des Radiuses der ausgewählten Punkte"
-
-
-msgctxt "Operator"
-msgid "Thickness"
-msgstr "Dicke"
-
-
-msgctxt "Operator"
-msgid "Strength"
-msgstr "Stärke"
 
 
 msgctxt "Operator"
@@ -49746,10 +49723,6 @@ msgid "Color of selected marker"
 msgstr "Farbe der ausgewählten Marker"
 
 
-msgid "Strips"
-msgstr "Streifen"
-
-
 msgid "Strips Selected"
 msgstr "Ausgewählte Streifen"
 
@@ -51655,10 +51628,6 @@ msgid "Component Paths"
 msgstr "Komponentenpfade"
 
 
-msgid "Bindings"
-msgstr "Bindung"
-
-
 msgid "Haptic Duration"
 msgstr "Haptische Dauer"
 
@@ -52787,11 +52756,6 @@ msgid "Align XY"
 msgstr "Ausrichten XY"
 
 
-msgctxt "Operator"
-msgid "Export"
-msgstr "Exportieren"
-
-
 msgid "Result"
 msgstr "Ergebnis"
 
@@ -53214,10 +53178,6 @@ msgid "Renamed %d of %d %s"
 msgstr "Umbenannt %d of %d %s"
 
 
-msgid "Shortcuts"
-msgstr "Tastenkürzel"
-
-
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Öffnen..."
@@ -53273,19 +53233,6 @@ msgstr "Eigenschaften können nicht von überschriebenen Daten entfernt werden"
 
 msgid "Tool %r not found for space %r"
 msgstr "Werkzeug %r nicht gefunden für Raum %r"
-
-
-msgid "Select With"
-msgstr "Auswählen mit"
-
-
-msgid "Spacebar"
-msgstr "Leertaste"
-
-
-msgctxt "Operator"
-msgid "Save New Settings"
-msgstr "Speichere neue Einstellungen"
 
 
 msgid "Getting Started"
@@ -53445,6 +53392,10 @@ msgstr "Aktuell gibt es nichts zu zeigen..."
 msgctxt "Operator"
 msgid "Calculate..."
 msgstr "Berechne..."
+
+
+msgid "Before"
+msgstr "Davor"
 
 
 msgid "Frame Range Start"
@@ -53678,10 +53629,6 @@ msgstr "Alles entsperren"
 
 msgid "Autolock Inactive Layers"
 msgstr "Inaktive Ebenen automatisch sperren"
-
-
-msgid "Before"
-msgstr "Davor"
 
 
 msgid "View in Render"
@@ -56248,10 +56195,6 @@ msgid "Active Editor"
 msgstr "Aktiver Editor"
 
 
-msgid "Properties Editor"
-msgstr "Eigenschafteneditor"
-
-
 msgid "Only Active Keying Set"
 msgstr "Nur aktiver Schlüsselbildsatz"
 
@@ -56591,6 +56534,10 @@ msgstr "Installieren..."
 
 msgid "Axis X"
 msgstr "Achse X"
+
+
+msgid "B"
+msgstr "B"
 
 
 msgid "Shadow Offset X"
@@ -62141,10 +62088,6 @@ msgid "Coordinate Space"
 msgstr "Koordinatenraum"
 
 
-msgid "Settings are in the particle tab"
-msgstr "Einstellungen sind im Partikle Tab"
-
-
 msgid "Axis Object"
 msgstr "Achsen Objekt"
 
@@ -62330,10 +62273,6 @@ msgid "Val"
 msgstr "Wert"
 
 
-msgid "Speed:"
-msgstr "Geschwindigkeit:"
-
-
 msgid "Line Break"
 msgstr "Zeilenumbruch"
 
@@ -62464,6 +62403,10 @@ msgstr "Position 1"
 
 msgid "Position 2"
 msgstr "Position 2"
+
+
+msgid "Planar"
+msgstr "Ebenflächig"
 
 
 msgid "Pick Instance"

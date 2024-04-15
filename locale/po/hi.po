@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -247,6 +247,10 @@ msgid "Hold"
 msgstr "पकड़ो"
 
 
+msgid "Animation"
+msgstr "अनुप्राणन"
+
+
 msgid "Bake Location"
 msgstr "स्थिति भर्जन"
 
@@ -273,6 +277,10 @@ msgstr "गठन चरण"
 
 msgid "Show Frame Numbers"
 msgstr "गठन संख्या दिखाएँ"
+
+
+msgid "Influence"
+msgstr "प्रभाव"
 
 
 msgid "Height"
@@ -659,10 +667,6 @@ msgid "Vertex Color"
 msgstr "शिरोबिन्दु रंग"
 
 
-msgid "Dissolve"
-msgstr "भंग"
-
-
 msgid "Direction"
 msgstr "दिशा"
 
@@ -870,10 +874,6 @@ msgstr "निवेश"
 
 msgid "Error"
 msgstr "त्रुटि"
-
-
-msgid "Influence"
-msgstr "प्रभाव"
 
 
 msgid "Copy Location"
@@ -1718,24 +1718,12 @@ msgid "Red Green Blue"
 msgstr "लाल हरा नीला"
 
 
-msgid "R"
-msgstr "आर"
-
-
 msgid "Red"
 msgstr "लाल"
 
 
-msgid "G"
-msgstr "जी"
-
-
 msgid "Green"
 msgstr "हरा"
-
-
-msgid "B"
-msgstr "बी"
 
 
 msgid "Blue"
@@ -1744,10 +1732,6 @@ msgstr "नीला"
 
 msgid "Show Line"
 msgstr "रेखा दिखाएँ"
-
-
-msgid "Animation"
-msgstr "अनुप्राणन"
 
 
 msgid "Brush"
@@ -1796,6 +1780,10 @@ msgstr "टैग"
 
 msgid "Users"
 msgstr "प्रयोक्ता"
+
+
+msgid "Layers"
+msgstr "परतें"
 
 
 msgid "Stick"
@@ -2040,10 +2028,6 @@ msgstr "अधिकतम"
 
 msgid "Rounds"
 msgstr "दौर"
-
-
-msgid "Layers"
-msgstr "परतें"
 
 
 msgid "Alpha Mode"
@@ -3568,6 +3552,11 @@ msgstr "रंग की प्रतिलिपि बनाएँ"
 
 
 msgctxt "Operator"
+msgid "Export"
+msgstr "निर्यात करें"
+
+
+msgctxt "Operator"
 msgid "Delete"
 msgstr "मिटाएँ"
 
@@ -3588,6 +3577,11 @@ msgstr "प्रतिबंधी"
 
 msgid "Report"
 msgstr "विवरण"
+
+
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "चक्र जोड़ें"
 
 
 msgctxt "Operator"
@@ -3812,11 +3806,6 @@ msgstr "प्रतिबिंबक का चयन करें"
 msgctxt "Operator"
 msgid "Add Vertex"
 msgstr "शिरोबिन्दु जोडें"
-
-
-msgctxt "Operator"
-msgid "Add Circle"
-msgstr "चक्र जोड़ें"
 
 
 msgctxt "Operator"
@@ -5316,11 +5305,6 @@ msgid "Solid"
 msgstr "ठोस"
 
 
-msgctxt "Operator"
-msgid "Export"
-msgstr "निर्यात करें"
-
-
 msgid "Save to PO File"
 msgstr "PO फाइल को बचाने के लिए"
 
@@ -5823,6 +5807,10 @@ msgstr "छवि  प्रतिपादन"
 msgctxt "Operator"
 msgid "Python API Reference"
 msgstr "पाइथन एपीआई संदर्भ"
+
+
+msgid "B"
+msgstr "बी"
 
 
 msgid "Preferences:"

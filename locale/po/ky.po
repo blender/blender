@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -93,8 +93,16 @@ msgid "Nothing"
 msgstr "Эч нерсе"
 
 
+msgid "Animation"
+msgstr "Анимация"
+
+
 msgid "Drivers"
 msgstr "Драйверлер"
+
+
+msgid "Influence"
+msgstr "Таасир"
 
 
 msgid "Empty"
@@ -486,10 +494,6 @@ msgid "Error"
 msgstr "Ката"
 
 
-msgid "Influence"
-msgstr "Таасир"
-
-
 msgid "Armature"
 msgstr "Скелет"
 
@@ -731,10 +735,6 @@ msgid "MPEG-2"
 msgstr "MPEG-2"
 
 
-msgid "QT rle / QT Animation"
-msgstr "QT RLE / QT-анимация"
-
-
 msgid "Theora"
 msgstr "Theora"
 
@@ -900,32 +900,16 @@ msgid "Catmull-Clark"
 msgstr "Катмулл-Кларк"
 
 
-msgid "R"
-msgstr "R"
-
-
 msgid "Red"
 msgstr "Кызыл"
-
-
-msgid "G"
-msgstr "G"
 
 
 msgid "Green"
 msgstr "Жашыл"
 
 
-msgid "B"
-msgstr "B"
-
-
 msgid "Blue"
 msgstr "Көк"
-
-
-msgid "Animation"
-msgstr "Анимация"
 
 
 msgid "Brush"
@@ -1797,6 +1781,11 @@ msgid "Constraint"
 msgstr "Чектөө"
 
 
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "Тегеректи кошуу"
+
+
 msgid "Resize"
 msgstr "Өлчөмүн өзгөртүү"
 
@@ -2033,11 +2022,6 @@ msgstr "Катты ташуу"
 msgctxt "Operator"
 msgid "New Mask"
 msgstr "Жаңы маска"
-
-
-msgctxt "Operator"
-msgid "Add Circle"
-msgstr "Тегеректи кошуу"
 
 
 msgctxt "Operator"
@@ -3328,6 +3312,10 @@ msgstr "Python API маалымдамасы"
 
 msgid "New Data"
 msgstr "Жаңы маалыматтар"
+
+
+msgid "B"
+msgstr "B"
 
 
 msgid "Error (see console)"
