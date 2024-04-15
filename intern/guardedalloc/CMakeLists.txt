@@ -20,7 +20,7 @@ set(INC_SYS
 
 set(SRC
   ./intern/leak_detector.cc
-  ./intern/mallocn.c
+  ./intern/mallocn.cc
   ./intern/mallocn_guarded_impl.cc
   ./intern/mallocn_lockfree_impl.cc
   ./intern/memory_usage.cc

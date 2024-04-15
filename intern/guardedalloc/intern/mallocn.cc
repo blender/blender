@@ -13,7 +13,7 @@
 /* to ensure strict conversions */
 #include "../../source/blender/blenlib/BLI_strict_flags.h"
 
-#include <assert.h>
+#include <cassert>
 
 #include "mallocn_intern.h"
 
