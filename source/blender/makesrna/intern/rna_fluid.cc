@@ -2454,6 +2454,14 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Time Scale", "Adjust simulation speed");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
+  prop = RNA_def_property(srna, "use_adaptive_timesteps", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", FLUID_DOMAIN_USE_ADAPTIVE_TIME);
+  RNA_def_property_ui_text(
+      prop,
+      "Use Adaptive Time Steps",
+      "Lets the solver automatically decide when to perform multiple simulation steps per frame");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
+
   prop = RNA_def_property(srna, "cfl_condition", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "cfl_condition");
   RNA_def_property_range(prop, 0.0, 10.0);
@@ -2461,14 +2469,6 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
                            "CFL",
                            "Maximal velocity per cell (greater CFL numbers will minimize the "
                            "number of simulation steps and the computation time.)");
-  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
-
-  prop = RNA_def_property(srna, "use_adaptive_timesteps", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flags", FLUID_DOMAIN_USE_ADAPTIVE_TIME);
-  RNA_def_property_ui_text(
-      prop,
-      "Use Adaptive Time Steps",
-      "Lets the solver automatically decide when to perform multiple simulation steps per frame");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
   prop = RNA_def_property(srna, "timesteps_min", PROP_INT, PROP_NONE);

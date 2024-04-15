@@ -167,12 +167,12 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             col.enabled = not domain.has_cache_baked_guide
             col.prop(domain, "resolution_max", text="Resolution Divisions")
             col.prop(domain, "time_scale", text="Time Scale")
-            col.prop(domain, "cfl_condition", text="CFL Number")
 
             col = flow.column()
             col.prop(domain, "use_adaptive_timesteps")
             sub = col.column(align=True)
             sub.active = domain.use_adaptive_timesteps
+            sub.prop(domain, "cfl_condition", text="CFL Number")
             sub.prop(domain, "timesteps_max", text="Timesteps Maximum")
             sub.prop(domain, "timesteps_min", text="Minimum")
 
