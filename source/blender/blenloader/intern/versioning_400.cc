@@ -41,6 +41,7 @@
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
@@ -2992,6 +2993,16 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       if (brush->gpencil_settings && (brush->gpencil_settings->sculpt_flag & BRUSH_DIR_IN) != 0) {
         brush->flag |= BRUSH_DIR_IN;
       }
+    }
+  }
+
+  if (MAIN_VERSION_FILE_ATLEAST(bmain, 402, 0)) {
+    /* These matrices are runtime data and in 4.2 they are not contained in DNA. For those files
+     * from future versions, initialize the matrices to the identity so they are valid before a
+     * depsgraph update. */
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      unit_m4(object->object_to_world);
+      unit_m4(object->world_to_object);
     }
   }
 
