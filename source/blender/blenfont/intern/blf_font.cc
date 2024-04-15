@@ -1107,11 +1107,11 @@ int blf_str_offset_to_cursor(
     /* Nothing (or a space) to the left, so align to right character. */
     return next.xmin - int(cursor_width);
   }
-  else if ((prev.xmax != prev.xmin) && !next.xmax) {
+  if ((prev.xmax != prev.xmin) && !next.xmax) {
     /* End of string, so align to last character. */
     return prev.xmax;
   }
-  else if (prev.xmax && next.xmax) {
+  if (prev.xmax && next.xmax) {
     /* Between two characters, so use the center. */
     if (next.xmin >= prev.xmax) {
       return int((float(prev.xmax + next.xmin) - cursor_width) / 2.0f);
@@ -1119,13 +1119,11 @@ int blf_str_offset_to_cursor(
     /* A nicer center if reversed order - RTL. */
     return int((float(next.xmax + prev.xmin) - cursor_width) / 2.0f);
   }
-  else if (!str_offset) {
+  if (!str_offset) {
     /* Start of string. */
     return 0 - int(cursor_width);
   }
-  else {
-    return int(blf_font_width(font, str, str_len, nullptr));
-  }
+  return int(blf_font_width(font, str, str_len, nullptr));
 }
 
 /** \} */
