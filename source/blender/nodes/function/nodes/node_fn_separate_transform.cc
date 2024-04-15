@@ -61,12 +61,14 @@ class SeparateTransformFunction : public mf::MultiFunction {
     }
     else if (!rotation.is_empty() && scale.is_empty()) {
       mask.foreach_index([&](const int64_t i) {
-        rotation[i] = math::to_quaternion(math::normalize(float3x3(transforms[i])));
+        rotation[i] = math::normalized_to_quaternion_safe(math::normalize(transforms[i]));
       });
     }
     else if (!rotation.is_empty() && !scale.is_empty()) {
       mask.foreach_index([&](const int64_t i) {
-        math::to_rot_scale(float3x3(transforms[i]), rotation[i], scale[i]);
+        const float3x3 normalized_mat = math::normalize_and_get_size(float3x3(transforms[i]),
+                                                                     scale[i]);
+        rotation[i] = math::normalized_to_quaternion_safe(normalized_mat);
       });
     }
   }
