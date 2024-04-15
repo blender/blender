@@ -135,6 +135,16 @@ extern void *(*MEM_mallocN_aligned)(size_t len,
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
 
 /**
+ * Allocate an aligned block of memory that is initialized with zeros.
+ */
+extern void *(*MEM_calloc_arrayN_aligned)(
+    size_t len,
+    size_t size,
+    size_t alignment,
+    const char *str) /* ATTR_MALLOC */ ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1, 2)
+    ATTR_NONNULL(4);
+
+/**
  * Print a list of the names and sizes of all allocated memory
  * blocks. as a python dict for easy investigation.
  */
@@ -311,14 +321,7 @@ template<typename T> inline void MEM_delete(const T *ptr)
 template<typename T> inline T *MEM_cnew(const char *allocation_name)
 {
   static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
-  if (alignof(T) <= MEM_MIN_CPP_ALIGNMENT) {
-    return static_cast<T *>(MEM_callocN(sizeof(T), allocation_name));
-  }
-  void *ptr = MEM_mallocN_aligned(sizeof(T), alignof(T), allocation_name);
-  if (ptr) {
-    memset(ptr, 0, sizeof(T));
-  }
-  return static_cast<T *>(ptr);
+  return static_cast<T *>(MEM_calloc_arrayN_aligned(1, sizeof(T), alignof(T), allocation_name));
 }
 
 /**
@@ -327,7 +330,8 @@ template<typename T> inline T *MEM_cnew(const char *allocation_name)
 template<typename T> inline T *MEM_cnew_array(const size_t length, const char *allocation_name)
 {
   static_assert(std::is_trivial_v<T>, "For non-trivial types, MEM_new should be used.");
-  return static_cast<T *>(MEM_calloc_arrayN(length, sizeof(T), allocation_name));
+  return static_cast<T *>(
+      MEM_calloc_arrayN_aligned(length, sizeof(T), alignof(T), allocation_name));
 }
 
 /**
