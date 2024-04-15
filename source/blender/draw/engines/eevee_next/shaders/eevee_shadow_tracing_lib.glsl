@@ -576,7 +576,7 @@ ShadowEvalResult shadow_eval(LightData light,
   }
   /* Average samples. */
   ShadowEvalResult result;
-  result.light_visibilty = saturate(1.0 - surface_hit * float(ray_count));
+  result.light_visibilty = saturate(1.0 - surface_hit / float(ray_count));
   result.occluder_distance = 0.0; /* Unused. Could reintroduced if needed. */
   return result;
 }
