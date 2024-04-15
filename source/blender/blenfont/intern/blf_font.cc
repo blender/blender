@@ -980,7 +980,8 @@ void blf_font_boundbox_foreach_glyph(FontBLF *font,
     const size_t i_curr = i;
     g = blf_glyph_from_utf8_and_step(font, gc, g, str, str_len, &i, &pen_x);
 
-    if (UNLIKELY(g == nullptr)) {
+    if (UNLIKELY(g == nullptr || g->advance_x == 0)) {
+      /* Ignore combining characters like diacritical marks. */
       continue;
     }
     rcti bounds;
