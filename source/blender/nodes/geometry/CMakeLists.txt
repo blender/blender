@@ -220,6 +220,7 @@ set(LIB
   bf_geometry
   PRIVATE bf::intern::guardedalloc
   bf_nodes
+  PRIVATE bf::intern::atomic
   PRIVATE bf::extern::fmtlib
 )
 
