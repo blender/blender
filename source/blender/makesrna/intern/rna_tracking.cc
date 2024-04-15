@@ -418,26 +418,26 @@ static std::optional<std::string> rna_trackingStabilization_path(const PointerRN
   return "tracking.stabilization";
 }
 
-static int rna_track_2d_stabilization(CollectionPropertyIterator * /*iter*/, void *data)
+static bool rna_track_2d_stabilization(CollectionPropertyIterator * /*iter*/, void *data)
 {
   MovieTrackingTrack *track = (MovieTrackingTrack *)data;
 
   if ((track->flag & TRACK_USE_2D_STAB) == 0) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
-static int rna_track_2d_stabilization_rotation(CollectionPropertyIterator * /*iter*/, void *data)
+static bool rna_track_2d_stabilization_rotation(CollectionPropertyIterator * /*iter*/, void *data)
 {
   MovieTrackingTrack *track = (MovieTrackingTrack *)data;
 
   if ((track->flag & TRACK_USE_2D_STAB_ROT) == 0) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 static void rna_tracking_stabTracks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

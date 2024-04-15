@@ -316,7 +316,7 @@ static PointerRNA rna_Struct_name_property_get(PointerRNA *ptr)
  * iterate over properties of all inheritance levels, and for each struct to
  * also iterator over id properties not known by RNA. */
 
-static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
+static bool rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
 {
   IDProperty *idprop = (IDProperty *)data;
   PropertyRNA *prop;
@@ -330,30 +330,30 @@ static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
       if ((prop->flag_internal & PROP_INTERN_BUILTIN) == 0 &&
           STREQ(prop->identifier, idprop->name))
       {
-        return 1;
+        return true;
       }
     }
   } while ((ptype = ptype->base));
 
-  return 0;
+  return false;
 }
 
-static int rna_property_builtin(CollectionPropertyIterator * /*iter*/, void *data)
+static bool rna_property_builtin(CollectionPropertyIterator * /*iter*/, void *data)
 {
   PropertyRNA *prop = (PropertyRNA *)data;
 
   /* function to skip builtin rna properties */
 
-  return (prop->flag_internal & PROP_INTERN_BUILTIN);
+  return (prop->flag_internal & PROP_INTERN_BUILTIN) != 0;
 }
 
-static int rna_function_builtin(CollectionPropertyIterator * /*iter*/, void *data)
+static bool rna_function_builtin(CollectionPropertyIterator * /*iter*/, void *data)
 {
   FunctionRNA *func = (FunctionRNA *)data;
 
   /* function to skip builtin rna functions */
 
-  return (func->flag & FUNC_BUILTIN);
+  return (func->flag & FUNC_BUILTIN) != 0;
 }
 
 static void rna_inheritance_next_level_restart(CollectionPropertyIterator *iter,
@@ -538,7 +538,7 @@ PointerRNA rna_builtin_properties_get(CollectionPropertyIterator *iter)
   return rna_Struct_properties_get(iter);
 }
 
-int rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
+bool rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
   StructRNA *srna;
   PropertyRNA *prop;
@@ -1045,7 +1045,7 @@ static int rna_EnumProperty_default_get(PointerRNA *ptr)
   return ((EnumPropertyRNA *)prop)->defaultvalue;
 }
 
-static int rna_enum_check_separator(CollectionPropertyIterator * /*iter*/, void *data)
+static bool rna_enum_check_separator(CollectionPropertyIterator * /*iter*/, void *data)
 {
   EnumPropertyItem *item = (EnumPropertyItem *)data;
 
@@ -1218,7 +1218,7 @@ static bool rna_Function_use_self_type_get(PointerRNA *ptr)
 
 /* Blender RNA */
 
-static int rna_struct_is_publc(CollectionPropertyIterator * /*iter*/, void *data)
+static bool rna_struct_is_publc(CollectionPropertyIterator * /*iter*/, void *data)
 {
   StructRNA *srna = static_cast<StructRNA *>(data);
 
@@ -1238,7 +1238,7 @@ static int rna_BlenderRNA_structs_length(PointerRNA *ptr)
   BLI_assert(brna->structs_len == BLI_listbase_count(&brna->structs));
   return brna->structs_len;
 }
-static int rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+static bool rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   BlenderRNA *brna = static_cast<BlenderRNA *>(ptr->data);
   StructRNA *srna = static_cast<StructRNA *>(
@@ -1251,9 +1251,9 @@ static int rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index, Pointer
     return false;
   }
 }
-static int rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr,
-                                                const char *key,
-                                                PointerRNA *r_ptr)
+static bool rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr,
+                                                 const char *key,
+                                                 PointerRNA *r_ptr)
 {
   BlenderRNA *brna = static_cast<BlenderRNA *>(ptr->data);
   StructRNA *srna = static_cast<StructRNA *>(BLI_ghash_lookup(brna->structs_map, (void *)key));

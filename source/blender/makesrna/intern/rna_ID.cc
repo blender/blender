@@ -1162,7 +1162,7 @@ static int rna_IDPArray_length(PointerRNA *ptr)
   return prop->len;
 }
 
-int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assign_ptr)
+bool rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assign_ptr)
 {
   ID *id = ptr->owner_id;
   short *totcol = BKE_id_material_len_p(id);
@@ -1171,10 +1171,10 @@ int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assig
     BLI_assert(BKE_id_is_in_global_main(id));
     BLI_assert(BKE_id_is_in_global_main(&mat_id->id));
     BKE_id_material_assign(G_MAIN, id, mat_id, key + 1);
-    return 1;
+    return true;
   }
   else {
-    return 0;
+    return false;
   }
 }
 

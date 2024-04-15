@@ -357,7 +357,7 @@ static int rna_Mesh_loop_triangles_length(PointerRNA *ptr)
   return BKE_mesh_runtime_corner_tris_len(mesh);
 }
 
-int rna_Mesh_loop_triangles_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_Mesh_loop_triangles_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   if (index < 0 || index >= BKE_mesh_runtime_corner_tris_len(mesh)) {
@@ -382,7 +382,7 @@ static void rna_Mesh_loop_triangle_polygons_begin(CollectionPropertyIterator *it
                            nullptr);
 }
 
-int rna_Mesh_loop_triangle_polygons_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_Mesh_loop_triangle_polygons_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   if (index < 0 || index >= BKE_mesh_runtime_corner_tris_len(mesh)) {
@@ -986,10 +986,10 @@ static void bool_layer_begin(CollectionPropertyIterator *iter,
                            nullptr);
 }
 
-static int bool_layer_lookup_int(PointerRNA *ptr,
-                                 int index,
-                                 PointerRNA *r_ptr,
-                                 const char *(*layername_func)(const char *uv_name, char *name))
+static bool bool_layer_lookup_int(PointerRNA *ptr,
+                                  int index,
+                                  PointerRNA *r_ptr,
+                                  const char *(*layername_func)(const char *uv_name, char *name))
 {
   char bool_layer_name[MAX_CUSTOMDATA_LAYER_NAME];
   Mesh *mesh = rna_mesh(ptr);
@@ -1012,9 +1012,9 @@ static void rna_MeshUVLoopLayer_vert_select_begin(CollectionPropertyIterator *it
   bool_layer_begin(iter, ptr, BKE_uv_map_vert_select_name_get);
 }
 
-static int rna_MeshUVLoopLayer_vert_select_lookup_int(PointerRNA *ptr,
-                                                      int index,
-                                                      PointerRNA *r_ptr)
+static bool rna_MeshUVLoopLayer_vert_select_lookup_int(PointerRNA *ptr,
+                                                       int index,
+                                                       PointerRNA *r_ptr)
 {
   return bool_layer_lookup_int(ptr, index, r_ptr, BKE_uv_map_vert_select_name_get);
 }
@@ -1026,9 +1026,9 @@ static void rna_MeshUVLoopLayer_edge_select_begin(CollectionPropertyIterator *it
   bool_layer_begin(iter, ptr, BKE_uv_map_edge_select_name_get);
 }
 
-static int rna_MeshUVLoopLayer_edge_select_lookup_int(PointerRNA *ptr,
-                                                      int index,
-                                                      PointerRNA *r_ptr)
+static bool rna_MeshUVLoopLayer_edge_select_lookup_int(PointerRNA *ptr,
+                                                       int index,
+                                                       PointerRNA *r_ptr)
 {
   return bool_layer_lookup_int(ptr, index, r_ptr, BKE_uv_map_edge_select_name_get);
 }
@@ -1039,7 +1039,7 @@ static void rna_MeshUVLoopLayer_pin_begin(CollectionPropertyIterator *iter, Poin
   bool_layer_begin(iter, ptr, BKE_uv_map_pin_name_get);
 }
 
-static int rna_MeshUVLoopLayer_pin_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+static bool rna_MeshUVLoopLayer_pin_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   return bool_layer_lookup_int(ptr, index, r_ptr, BKE_uv_map_pin_name_get);
 }
@@ -1057,7 +1057,7 @@ static void rna_MeshUVLoopLayer_uv_begin(CollectionPropertyIterator *iter, Point
                            nullptr);
 }
 
-int rna_MeshUVLoopLayer_uv_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_MeshUVLoopLayer_uv_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
   if (mesh->runtime->edit_mesh || index < 0 || index >= mesh->corners_num) {
@@ -1535,7 +1535,7 @@ static int rna_Mesh_vertices_length(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   return mesh->verts_num;
 }
-int rna_Mesh_vertices_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_Mesh_vertices_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
   if (index < 0 || index >= mesh->verts_num) {
@@ -1560,7 +1560,7 @@ static int rna_Mesh_edges_length(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   return mesh->edges_num;
 }
-int rna_Mesh_edges_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_Mesh_edges_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   using namespace blender;
   Mesh *mesh = rna_mesh(ptr);
@@ -1586,7 +1586,7 @@ static int rna_Mesh_polygons_length(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   return mesh->faces_num;
 }
-int rna_Mesh_polygons_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_Mesh_polygons_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
   if (index < 0 || index >= mesh->faces_num) {
@@ -1609,7 +1609,7 @@ static int rna_Mesh_loops_length(PointerRNA *ptr)
   const Mesh *mesh = rna_mesh(ptr);
   return mesh->corners_num;
 }
-int rna_Mesh_loops_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_Mesh_loops_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
   if (index < 0 || index >= mesh->corners_num) {
@@ -1644,7 +1644,7 @@ static int rna_Mesh_vertex_normals_length(PointerRNA *ptr)
   return mesh->verts_num;
 }
 
-int rna_Mesh_vertex_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_Mesh_vertex_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   if (index < 0 || index >= mesh->verts_num) {
@@ -1675,7 +1675,7 @@ static int rna_Mesh_poly_normals_length(PointerRNA *ptr)
   return mesh->faces_num;
 }
 
-int rna_Mesh_poly_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_Mesh_poly_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   if (index < 0 || index >= mesh->faces_num) {
@@ -1706,7 +1706,7 @@ static int rna_Mesh_corner_normals_length(PointerRNA *ptr)
   return mesh->corners_num;
 }
 
-int rna_Mesh_corner_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_Mesh_corner_normals_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   const blender::Span<blender::float3> normals = mesh->corner_normals();

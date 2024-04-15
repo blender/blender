@@ -91,13 +91,13 @@ using PropCollectionNextFunc = void (*)(CollectionPropertyIterator *iter);
 using PropCollectionEndFunc = void (*)(CollectionPropertyIterator *iter);
 using PropCollectionGetFunc = PointerRNA (*)(CollectionPropertyIterator *iter);
 using PropCollectionLengthFunc = int (*)(PointerRNA *ptr);
-using PropCollectionLookupIntFunc = int (*)(PointerRNA *ptr, int key, PointerRNA *r_ptr);
-using PropCollectionLookupStringFunc = int (*)(PointerRNA *ptr,
-                                               const char *key,
-                                               PointerRNA *r_ptr);
-using PropCollectionAssignIntFunc = int (*)(PointerRNA *ptr,
-                                            int key,
-                                            const PointerRNA *assign_ptr);
+using PropCollectionLookupIntFunc = bool (*)(PointerRNA *ptr, int key, PointerRNA *r_ptr);
+using PropCollectionLookupStringFunc = bool (*)(PointerRNA *ptr,
+                                                const char *key,
+                                                PointerRNA *r_ptr);
+using PropCollectionAssignIntFunc = bool (*)(PointerRNA *ptr,
+                                             int key,
+                                             const PointerRNA *assign_ptr);
 
 /* extended versions with PropertyRNA argument */
 using PropBooleanGetFuncEx = bool (*)(PointerRNA *ptr, PropertyRNA *prop);

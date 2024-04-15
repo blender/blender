@@ -1221,16 +1221,16 @@ static std::optional<std::string> rna_SceneHydra_path(const PointerRNA * /*ptr*/
   return "hydra";
 }
 
-static int rna_RenderSettings_stereoViews_skip(CollectionPropertyIterator *iter, void * /*data*/)
+static bool rna_RenderSettings_stereoViews_skip(CollectionPropertyIterator *iter, void * /*data*/)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
   SceneRenderView *srv = (SceneRenderView *)internal->link;
 
   if (STR_ELEM(srv->name, STEREO_LEFT_NAME, STEREO_RIGHT_NAME)) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 };
 
 static void rna_RenderSettings_stereoViews_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

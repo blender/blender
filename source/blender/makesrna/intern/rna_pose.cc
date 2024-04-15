@@ -597,7 +597,7 @@ static int rna_PoseChannel_rotation_4d_editable(const PointerRNA *ptr, int index
 }
 
 /* not essential, but much faster than the default lookup function */
-static int rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
+static bool rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
   bPose *pose = (bPose *)ptr->data;
   bPoseChannel *pchan = BKE_pose_channel_find_name(pose, key);

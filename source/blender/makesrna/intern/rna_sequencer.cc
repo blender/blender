@@ -283,9 +283,9 @@ static void rna_SequenceEditor_sequences_all_end(CollectionPropertyIterator *ite
   MEM_freeN(bli_iter);
 }
 
-static int rna_SequenceEditor_sequences_all_lookup_string(PointerRNA *ptr,
-                                                          const char *key,
-                                                          PointerRNA *r_ptr)
+static bool rna_SequenceEditor_sequences_all_lookup_string(PointerRNA *ptr,
+                                                           const char *key,
+                                                           PointerRNA *r_ptr)
 {
   ID *id = ptr->owner_id;
   Scene *scene = (Scene *)id;

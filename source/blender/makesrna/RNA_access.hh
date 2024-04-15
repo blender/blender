@@ -472,15 +472,15 @@ bool RNA_property_collection_is_empty(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_collection_lookup_index(PointerRNA *ptr,
                                          PropertyRNA *prop,
                                          const PointerRNA *t_ptr);
-int RNA_property_collection_lookup_int(PointerRNA *ptr,
-                                       PropertyRNA *prop,
-                                       int key,
-                                       PointerRNA *r_ptr);
-int RNA_property_collection_lookup_string(PointerRNA *ptr,
-                                          PropertyRNA *prop,
-                                          const char *key,
-                                          PointerRNA *r_ptr);
-int RNA_property_collection_lookup_string_index(
+bool RNA_property_collection_lookup_int(PointerRNA *ptr,
+                                        PropertyRNA *prop,
+                                        int key,
+                                        PointerRNA *r_ptr);
+bool RNA_property_collection_lookup_string(PointerRNA *ptr,
+                                           PropertyRNA *prop,
+                                           const char *key,
+                                           PointerRNA *r_ptr);
+bool RNA_property_collection_lookup_string_index(
     PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr, int *r_index);
 
 bool RNA_property_collection_lookup_int_has_fn(PropertyRNA *prop);
@@ -495,10 +495,10 @@ bool RNA_property_collection_lookup_string_supported(PropertyRNA *prop);
 /**
  * Zero return is an assignment error.
  */
-int RNA_property_collection_assign_int(PointerRNA *ptr,
-                                       PropertyRNA *prop,
-                                       int key,
-                                       const PointerRNA *assign_ptr);
+bool RNA_property_collection_assign_int(PointerRNA *ptr,
+                                        PropertyRNA *prop,
+                                        int key,
+                                        const PointerRNA *assign_ptr);
 bool RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
 
 /* efficient functions to set properties for arrays */

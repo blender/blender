@@ -79,7 +79,7 @@ static void rna_PointCloud_points_begin(CollectionPropertyIterator *iter, Pointe
                            nullptr);
 }
 
-int rna_PointCloud_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_PointCloud_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   PointCloud *pointcloud = rna_pointcloud(ptr);
   if (index < 0 || index >= pointcloud->totpoint) {
