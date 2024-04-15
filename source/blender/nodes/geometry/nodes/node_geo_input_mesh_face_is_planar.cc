@@ -20,7 +20,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description(
           "The distance a point can be from the surface before the face is no longer "
           "considered planar");
-  b.add_output<decl::Bool>("Planar").field_source();
+  b.add_output<decl::Bool>("Planar")
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
+      .field_source();
 }
 
 class PlanarFieldInput final : public bke::MeshFieldInput {

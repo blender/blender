@@ -88,9 +88,9 @@ class CLIP_PT_clip_display(Panel):
         col = layout.column(align=True)
 
         row = layout.row(align=True)
-        row.prop(sc, "show_red_channel", text="R", toggle=True)
-        row.prop(sc, "show_green_channel", text="G", toggle=True)
-        row.prop(sc, "show_blue_channel", text="B", toggle=True)
+        row.prop(sc, "show_red_channel", text="R", text_ctxt=i18n_contexts.color, toggle=True)
+        row.prop(sc, "show_green_channel", text="G", text_ctxt=i18n_contexts.color, toggle=True)
+        row.prop(sc, "show_blue_channel", text="B", text_ctxt=i18n_contexts.color, toggle=True)
         row.separator()
         row.prop(sc, "use_grayscale_preview", text="B/W", toggle=True)
         row.separator()
@@ -429,9 +429,9 @@ class CLIP_PT_tracking_settings(CLIP_PT_tracking_panel, Panel):
 
         row = col.row(align=True)
         row.use_property_split = False
-        row.prop(settings, "use_default_red_channel", text="R", toggle=True)
-        row.prop(settings, "use_default_green_channel", text="G", toggle=True)
-        row.prop(settings, "use_default_blue_channel", text="B", toggle=True)
+        row.prop(settings, "use_default_red_channel", text="R", text_ctxt=i18n_contexts.color, toggle=True)
+        row.prop(settings, "use_default_green_channel", text="G", text_ctxt=i18n_contexts.color, toggle=True)
+        row.prop(settings, "use_default_blue_channel", text="B", text_ctxt=i18n_contexts.color, toggle=True)
 
         col.separator()
         col.operator("clip.track_settings_as_default", text="Copy from Active Track")
@@ -744,9 +744,9 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
 
         row = layout.row(align=True)
         sub = row.row(align=True)
-        sub.prop(act_track, "use_red_channel", text="R", toggle=True)
-        sub.prop(act_track, "use_green_channel", text="G", toggle=True)
-        sub.prop(act_track, "use_blue_channel", text="B", toggle=True)
+        sub.prop(act_track, "use_red_channel", text="R", text_ctxt=i18n_contexts.color, toggle=True)
+        sub.prop(act_track, "use_green_channel", text="G", text_ctxt=i18n_contexts.color, toggle=True)
+        sub.prop(act_track, "use_blue_channel", text="B", text_ctxt=i18n_contexts.color, toggle=True)
 
         row.separator()
 

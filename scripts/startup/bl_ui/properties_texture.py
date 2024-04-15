@@ -904,8 +904,8 @@ class TEXTURE_PT_colors(TextureButtonsPanel, TextureColorsPoll, Panel):
 
         col = flow.column(align=True)
         col.prop(tex, "factor_red", text="Multiply R")
-        col.prop(tex, "factor_green", text="G")
-        col.prop(tex, "factor_blue", text="B")
+        col.prop(tex, "factor_green", text="G", text_ctxt=i18n_contexts.color)
+        col.prop(tex, "factor_blue", text="B", text_ctxt=i18n_contexts.color)
 
         col.separator()
 

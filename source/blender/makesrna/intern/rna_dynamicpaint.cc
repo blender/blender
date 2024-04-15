@@ -409,6 +409,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_dissolve", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", MOD_DPAINT_DISSOLVE);
   RNA_def_property_ui_text(prop, "Dissolve", "Enable to make surface changes disappear over time");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SIMULATION);
 
   prop = RNA_def_property(srna, "dissolve_speed", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, nullptr, "diss_speed");

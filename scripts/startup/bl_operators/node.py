@@ -23,6 +23,7 @@ from mathutils import (
 from bpy.app.translations import (
     pgettext_tip as tip_,
     pgettext_rpt as rpt_,
+    pgettext_data as data_,
 )
 
 
@@ -394,7 +395,7 @@ class NODE_OT_enum_definition_item_add(Operator):
     def execute(self, context):
         node = context.active_node
         enum_def = node.enum_definition
-        item = enum_def.enum_items.new("Item")
+        item = enum_def.enum_items.new(data_("Item"))
         enum_def.active_index = enum_def.enum_items[:].index(item)
         return {'FINISHED'}
 
