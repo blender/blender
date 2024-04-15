@@ -50,55 +50,13 @@ template<enum eCubicFilter filter> static float4 cubic_filter_coefficients(float
   }
 }
 
-#if BLI_HAVE_SSE2
-#  if defined(__SSE4_1__)
-#    include <smmintrin.h> /* _mm_floor_ps */
-#  endif
-
-BLI_INLINE __m128 floor_simd(__m128 v)
-{
-#  if BLI_HAVE_SSE4
-  __m128 v_floor = _mm_floor_ps(v);
-#  else
-  /* Truncate, for negative inputs this will round towards zero. Then compare
-   * with input, and subtract 1 for the inputs that were negative. */
-  __m128 v_trunc = _mm_cvtepi32_ps(_mm_cvttps_epi32(v));
-  __m128 v_neg = _mm_cmplt_ps(v, v_trunc);
-  __m128 v_floor = _mm_sub_ps(v_trunc, _mm_and_ps(v_neg, _mm_set1_ps(1.0f)));
-#  endif
-  return v_floor;
-}
-
-BLI_INLINE __m128i min_i_simd(__m128i a, __m128i b)
-{
-#  if BLI_HAVE_SSE4
-  return _mm_min_epi32(a, b);
-#  else
-  __m128i cmp = _mm_cmplt_epi32(a, b);
-  a = _mm_and_si128(cmp, a);
-  b = _mm_andnot_si128(cmp, b);
-  return _mm_or_si128(a, b);
-#  endif
-}
-
-BLI_INLINE __m128i max_i_simd(__m128i a, __m128i b)
-{
-#  if BLI_HAVE_SSE4
-  return _mm_max_epi32(a, b);
-#  else
-  __m128i cmp = _mm_cmplt_epi32(b, a);
-  a = _mm_and_si128(cmp, a);
-  b = _mm_andnot_si128(cmp, b);
-  return _mm_or_si128(a, b);
-#  endif
-}
-
+#if BLI_HAVE_SSE4
 template<eCubicFilter filter>
 BLI_INLINE void bicubic_interpolation_uchar_simd(
     const uchar *src_buffer, uchar *output, int width, int height, float u, float v)
 {
   __m128 uv = _mm_set_ps(0, 0, v, u);
-  __m128 uv_floor = floor_simd(uv);
+  __m128 uv_floor = _mm_floor_ps(uv);
   __m128i i_uv = _mm_cvttps_epi32(uv_floor);
 
   /* Sample area entirely outside image?
@@ -153,7 +111,7 @@ BLI_INLINE void bicubic_interpolation_uchar_simd(
   __m128i rgba8 = _mm_packus_epi16(rgba16, _mm_setzero_si128());
   _mm_store_ss((float *)output, _mm_castsi128_ps(rgba8));
 }
-#endif /* BLI_HAVE_SSE2 */
+#endif /* BLI_HAVE_SSE4 */
 
 template<typename T, eCubicFilter filter>
 static void bicubic_interpolation(
@@ -161,7 +119,7 @@ static void bicubic_interpolation(
 {
   BLI_assert(src_buffer && output);
 
-#if BLI_HAVE_SSE2
+#if BLI_HAVE_SSE4
   if constexpr (std::is_same_v<T, uchar>) {
     if (components == 4) {
       bicubic_interpolation_uchar_simd<filter>(src_buffer, output, width, height, u, v);
@@ -375,9 +333,9 @@ BLI_INLINE uchar4 bilinear_byte_impl(const uchar *buffer, int width, int height,
   BLI_assert(buffer);
   uchar4 res;
 
-#if BLI_HAVE_SSE2
+#if BLI_HAVE_SSE4
   __m128 uvuv = _mm_set_ps(v, u, v, u);
-  __m128 uvuv_floor = floor_simd(uvuv);
+  __m128 uvuv_floor = _mm_floor_ps(uvuv);
 
   /* x1, y1, x2, y2 */
   __m128i xy12 = _mm_add_epi32(_mm_cvttps_epi32(uvuv_floor), _mm_set_epi32(1, 1, 0, 0));
@@ -407,8 +365,8 @@ BLI_INLINE uchar4 bilinear_byte_impl(const uchar *buffer, int width, int height,
   }
   else {
     /* Clamp samples to image edges. */
-    __m128i xy12_clamped = max_i_simd(xy12, _mm_setzero_si128());
-    xy12_clamped = min_i_simd(xy12_clamped, size_minus_1);
+    __m128i xy12_clamped = _mm_max_epi32(xy12, _mm_setzero_si128());
+    xy12_clamped = _mm_min_epi32(xy12_clamped, size_minus_1);
     x1234 = _mm_shuffle_epi32(xy12_clamped, _MM_SHUFFLE(2, 2, 0, 0));
     y1234 = _mm_shuffle_epi32(xy12_clamped, _MM_SHUFFLE(3, 1, 3, 1));
   }
