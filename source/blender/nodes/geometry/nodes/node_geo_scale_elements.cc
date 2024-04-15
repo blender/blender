@@ -176,17 +176,6 @@ static GroupedSpan<int> gather_groups(const Span<int> group_indices,
   return {OffsetIndices<int>(r_offsets), r_indices};
 }
 
-template<typename T, typename Function>
-inline void parallel_transform(MutableSpan<T> data,
-                               const int64_t grain_size,
-                               const Function &function)
-{
-  threading::parallel_for(data.index_range(), grain_size, [&](const IndexRange range) {
-    MutableSpan<T> data_range = data.slice(range);
-    std::transform(data_range.begin(), data_range.end(), data_range.begin(), function);
-  });
-}
-
 template<typename T> static T gather_mean(const VArray<T> &values, const Span<int> indices)
 {
   BLI_assert(!indices.is_empty());
