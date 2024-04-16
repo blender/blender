@@ -306,9 +306,9 @@ static blender::float4x2 get_legacy_texture_matrix(bGPDstroke *gps)
   return texture_matrix * strokemat4x3;
 }
 
-void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
-                                                   const ListBase &vertex_group_names,
-                                                   GreasePencilDrawing &r_drawing)
+static void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
+                                                          const ListBase &vertex_group_names,
+                                                          GreasePencilDrawing &r_drawing)
 {
   /* Construct an empty CurvesGeometry in-place. */
   new (&r_drawing.geometry) CurvesGeometry();
@@ -553,7 +553,7 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   stroke_materials.finish();
 }
 
-void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, bGPdata &gpd)
+static void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, bGPdata &gpd)
 {
   using namespace blender::bke::greasepencil;
 
@@ -797,7 +797,7 @@ static bNodeTree *add_offset_radius_node_tree(Main &bmain)
   return group;
 }
 
-void thickness_factor_to_modifier(const bGPdata &src_object_data, Object &dst_object)
+static void thickness_factor_to_modifier(const bGPdata &src_object_data, Object &dst_object)
 {
   if (src_object_data.pixfactor == 1.0f) {
     return;
@@ -816,7 +816,9 @@ void thickness_factor_to_modifier(const bGPdata &src_object_data, Object &dst_ob
   BKE_modifiers_persistent_uid_init(dst_object, *md);
 }
 
-void layer_adjustments_to_modifiers(Main &bmain, bGPdata &src_object_data, Object &dst_object)
+static void layer_adjustments_to_modifiers(Main &bmain,
+                                           bGPdata &src_object_data,
+                                           Object &dst_object)
 {
   bNodeTree *offset_radius_node_tree = nullptr;
 
