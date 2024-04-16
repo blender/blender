@@ -4039,8 +4039,8 @@ static void widget_icon_has_anim(uiBut *but,
                                  int roundboxalign,
                                  const float zoom)
 {
-  if (state->but_flag &
-          (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_REDALERT) &&
+  if (state->but_flag & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN |
+                         UI_BUT_OVERRIDDEN | UI_BUT_REDALERT) &&
       but->emboss != UI_EMBOSS_NONE)
   {
     uiWidgetBase wtb;
