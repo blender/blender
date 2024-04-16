@@ -2013,3 +2013,39 @@ int BLI_path_cmp_normalized(const char *p1, const char *p2)
   }
   return result;
 }
+
+bool BLI_path_has_hidden_component(const char *path)
+{
+  bool component_start = true;
+  char cur_char = path[0];
+  char prev_char = '\0';
+
+  while (cur_char != '\0') {
+    char next_char = path[1];
+    /* If we're at a start of path component, current is '.'
+     * and next one is not '.', end or separator: hidden. */
+    if (component_start && cur_char == '.') {
+      if (!ELEM(path[1], '.', '\0', '/', '\\')) {
+        return true;
+      }
+    }
+
+    component_start = ELEM(cur_char, '/', '\\');
+    /* Separator, and previous was tilde: hidden. */
+    if (component_start && prev_char == '~') {
+      return true;
+    }
+
+    path++;
+    prev_char = cur_char;
+    cur_char = next_char;
+  }
+
+  /* Was a tilde right at end of path: hidden. */
+  if (prev_char == '~') {
+    return true;
+  }
+
+  /* Nothing was hidden. */
+  return false;
+}
