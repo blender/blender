@@ -572,7 +572,7 @@ struct Cache {
 
   /* Indexed by vertex index, precalculated falloff value of that vertex (without any falloff
    * editing modification applied). */
-  float *vert_falloff;
+  Array<float> vert_falloff;
   /* Max falloff value in *vert_falloff. */
   float max_vert_falloff;
 
@@ -1358,8 +1358,10 @@ namespace blender::ed::sculpt_paint::geodesic {
  * Geodesic distances will only work when used with PBVH_FACES, for other types of PBVH it will
  * fallback to euclidean distances to one of the initial vertices in the set.
  */
-float *distances_create(Object *ob, GSet *initial_verts, float limit_radius);
-float *distances_create_from_vert_and_symm(Object *ob, PBVHVertRef vertex, float limit_radius);
+Array<float> distances_create(Object *ob, const Set<int> &initial_verts, float limit_radius);
+Array<float> distances_create_from_vert_and_symm(Object *ob,
+                                                 PBVHVertRef vertex,
+                                                 float limit_radius);
 
 }
 
