@@ -2120,9 +2120,10 @@ void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh)
 
 namespace blender::bke {
 
-static bNodeTree *add_auto_smooth_node_tree(Main &bmain)
+static bNodeTree *add_auto_smooth_node_tree(Main &bmain, Library *owner_library)
 {
-  bNodeTree *group = ntreeAddTree(&bmain, DATA_("Auto Smooth"), "GeometryNodeTree");
+  bNodeTree *group = BKE_node_tree_add_in_lib(
+      &bmain, owner_library, DATA_("Auto Smooth"), "GeometryNodeTree");
   if (!group->geometry_node_asset_traits) {
     group->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
   }
@@ -2326,7 +2327,7 @@ static bool is_auto_smooth_node_tree(const bNodeTree &group)
 
 static ModifierData *create_auto_smooth_modifier(
     Object &object,
-    const FunctionRef<bNodeTree *(Library *library)> get_node_group,
+    const FunctionRef<bNodeTree *(Library *owner_library)> get_node_group,
     const float angle)
 {
   auto *md = reinterpret_cast<NodesModifierData *>(BKE_modifier_new(eModifierType_Nodes));
@@ -2358,38 +2359,25 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
 
   /* Add the node group lazily and share it among all objects in the same library. */
   Map<Library *, bNodeTree *> group_by_library;
-  const auto add_node_group = [&](Library *library) {
-    if (bNodeTree **group = group_by_library.lookup_ptr(library)) {
+  const auto add_node_group = [&](Library *owner_library) {
+    if (bNodeTree **group = group_by_library.lookup_ptr(owner_library)) {
       /* Node tree has already been found/created for this versioning call. */
       return *group;
     }
     /* Try to find an existing group added by previous versioning to avoid adding duplicates. */
     LISTBASE_FOREACH (bNodeTree *, existing_group, &bmain.nodetrees) {
-      if (existing_group->id.lib != library) {
+      if (existing_group->id.lib != owner_library) {
         continue;
       }
       if (is_auto_smooth_node_tree(*existing_group)) {
-        group_by_library.add_new(library, existing_group);
+        group_by_library.add_new(owner_library, existing_group);
         return existing_group;
       }
     }
-    bNodeTree *new_group = add_auto_smooth_node_tree(bmain);
+    bNodeTree *new_group = add_auto_smooth_node_tree(bmain, owner_library);
     /* Remove the default user. The count is tracked manually when assigning to modifiers. */
     id_us_min(&new_group->id);
-
-    if (new_group->id.lib != library) {
-      /* Move the node group to the requested library so that library data-blocks don't point to
-       * local data-blocks. This requires making sure the name is unique in that library and
-       * changing the name maps to be consistent with the new state. */
-      BKE_main_namemap_remove_name(&bmain, &new_group->id, new_group->id.name + 2);
-      new_group->id.lib = library;
-      BKE_id_new_name_validate(&bmain, &bmain.nodetrees, &new_group->id, nullptr, false);
-      if (library) {
-        new_group->id.tag |= LIB_TAG_INDIRECT;
-      }
-    }
-
-    group_by_library.add_new(library, new_group);
+    group_by_library.add_new(owner_library, new_group);
     return new_group;
   };
 
