@@ -44,6 +44,10 @@ void main()
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     LightData light = light_buf[l_idx];
 
+    if (light.tilemap_index == LIGHT_NO_SHADOW) {
+      continue;
+    }
+
     float local_min = FLT_MAX;
     float local_max = -FLT_MAX;
     for (int i = 0; i < 8; i++) {
