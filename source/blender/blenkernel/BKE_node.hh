@@ -457,6 +457,15 @@ void ntreeSetTypes(const bContext *C, bNodeTree *ntree);
 bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname);
 
 /**
+ * Add a new (non-embedded) node tree, like #ntreeAddTree, but allows to create it inside a given
+ * library. Used mainly by readfile code when versionning linked data.
+ */
+bNodeTree *BKE_node_tree_add_in_lib(Main *bmain,
+                                    Library *owner_library,
+                                    const char *name,
+                                    const char *idname);
+
+/**
  * Free tree which is embedded into another data-block.
  */
 void ntreeFreeEmbeddedTree(bNodeTree *ntree);
