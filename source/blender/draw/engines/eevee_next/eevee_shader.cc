@@ -383,15 +383,8 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     }
   }
 
-  bool supports_render_passes = (pipeline_type == MAT_PIPE_DEFERRED);
-  /* Opaque forward do support AOVs and render pass if not using transparency. */
-  if (!GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) &&
-      (pipeline_type == MAT_PIPE_FORWARD))
-  {
-    supports_render_passes = true;
-  }
-
-  if (supports_render_passes) {
+  /* Only deferred material allow use of cryptomatte and render passes. */
+  if (pipeline_type == MAT_PIPE_DEFERRED) {
     info.additional_info("eevee_render_pass_out");
     info.additional_info("eevee_cryptomatte_out");
   }
