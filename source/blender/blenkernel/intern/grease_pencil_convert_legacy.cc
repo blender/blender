@@ -59,6 +59,16 @@
 
 namespace blender::bke::greasepencil::convert {
 
+/**
+ * Data shared accross most of GP conversion code.
+ */
+struct ConversionData {
+  /** A mapping between a library and a generated 'offset radius' node group. */
+  Map<Library *, bNodeTree *> offset_radius_ntree_by_library;
+  /** A mapping between a legacy GPv2 ID and its converted GPv3 ID. */
+  Map<bGPdata *, GreasePencil *> legacy_to_greasepencil_data;
+};
+
 /* -------------------------------------------------------------------- */
 /** \name Animation conversion helpers.
  *
@@ -704,10 +714,14 @@ static void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pe
   }
 }
 
-static bNodeTree *add_offset_radius_node_tree(Main &bmain)
+constexpr const char *OFFSET_RADIUS_NODETREE_NAME = "Offset Radius GPv3 Conversion";
+static bNodeTree *offset_radius_node_tree_add(Main &bmain, Library *library)
 {
   using namespace blender;
-  bNodeTree *group = ntreeAddTree(&bmain, DATA_("Offset Radius"), "GeometryNodeTree");
+  /* NOTE: DO NOT translate this ID name, it is used to find a potentially already existing
+   * nodetree. */
+  bNodeTree *group = BKE_node_tree_add_in_lib(
+      &bmain, library, OFFSET_RADIUS_NODETREE_NAME, "GeometryNodeTree");
 
   if (!group->geometry_node_asset_traits) {
     group->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
@@ -818,9 +832,9 @@ static void thickness_factor_to_modifier(const bGPdata &src_object_data, Object 
 
 static void layer_adjustments_to_modifiers(Main &bmain,
                                            bGPdata &src_object_data,
-                                           Object &dst_object)
+                                           Object &dst_object,
+                                           ConversionData &conversion_data)
 {
-  bNodeTree *offset_radius_node_tree = nullptr;
 
   /* Handling of animation here is a bit complex, since paths needs to be updated, but also
    * FCurves need to be transferred from legacy GPData animation to Object animation.
@@ -991,10 +1005,34 @@ static void layer_adjustments_to_modifiers(Main &bmain,
        * GPv2 used a conversion of 1 "px" = 0.001. */
       /* Note: this offset may be negative. */
       const float radius_offset = float(thickness_px) / 2000.0f;
-      if (!offset_radius_node_tree) {
-        offset_radius_node_tree = add_offset_radius_node_tree(bmain);
-        BKE_ntree_update_main_tree(&bmain, offset_radius_node_tree, nullptr);
-      }
+
+      const auto offset_radius_ntree_ensure = [&](Library *owner_library) {
+        if (bNodeTree **ntree = conversion_data.offset_radius_ntree_by_library.lookup_ptr(
+                owner_library))
+        {
+          /* Node tree has already been found/created for this versioning call. */
+          return *ntree;
+        }
+        /* Try to find an existing group added by previous versioning to avoid adding duplicates.
+         */
+        LISTBASE_FOREACH (bNodeTree *, ntree_iter, &bmain.nodetrees) {
+          if (ntree_iter->id.lib != owner_library) {
+            continue;
+          }
+          if (STREQ(ntree_iter->id.name + 2, OFFSET_RADIUS_NODETREE_NAME)) {
+            conversion_data.offset_radius_ntree_by_library.add_new(owner_library, ntree_iter);
+            return ntree_iter;
+          }
+        }
+        bNodeTree *new_ntree = offset_radius_node_tree_add(bmain, owner_library);
+        /* Remove the default user. The count is tracked manually when assigning to modifiers. */
+        id_us_min(&new_ntree->id);
+        conversion_data.offset_radius_ntree_by_library.add_new(owner_library, new_ntree);
+        BKE_ntree_update_main_tree(&bmain, new_ntree, nullptr);
+        return new_ntree;
+      };
+      bNodeTree *offset_radius_node_tree = offset_radius_ntree_ensure(dst_object.id.lib);
+
       auto *md = reinterpret_cast<NodesModifierData *>(BKE_modifier_new(eModifierType_Nodes));
 
       char modifier_name[MAX_NAME];
@@ -2567,21 +2605,15 @@ static void legacy_gpencil_sanitize_annotations(Main &bmain)
   }
 }
 
-static void legacy_gpencil_object_ex(
-    Main &bmain,
-    Object &object,
-    std::optional<blender::Map<bGPdata *, GreasePencil *>> legacy_to_greasepencil_data)
+static void legacy_gpencil_object_ex(Main &bmain, Object &object, ConversionData &conversion_data)
 {
   BLI_assert((GS(static_cast<ID *>(object.data)->name) == ID_GD_LEGACY));
 
   bGPdata *gpd = static_cast<bGPdata *>(object.data);
-  GreasePencil *new_grease_pencil = nullptr;
-  bool do_gpencil_data_conversion = true;
 
-  if (legacy_to_greasepencil_data) {
-    new_grease_pencil = legacy_to_greasepencil_data->lookup_default(gpd, nullptr);
-    do_gpencil_data_conversion = (new_grease_pencil == nullptr);
-  }
+  GreasePencil *new_grease_pencil = conversion_data.legacy_to_greasepencil_data.lookup_default(
+      gpd, nullptr);
+  const bool do_gpencil_data_conversion = (new_grease_pencil == nullptr);
 
   if (!new_grease_pencil) {
     new_grease_pencil = static_cast<GreasePencil *>(
@@ -2598,15 +2630,13 @@ static void legacy_gpencil_object_ex(
 
   if (do_gpencil_data_conversion) {
     legacy_gpencil_to_grease_pencil(bmain, *new_grease_pencil, *gpd);
-    if (legacy_to_greasepencil_data) {
-      legacy_to_greasepencil_data->add(gpd, new_grease_pencil);
-    }
+    conversion_data.legacy_to_greasepencil_data.add(gpd, new_grease_pencil);
   }
 
   legacy_object_modifiers(bmain, object);
 
   /* Layer adjustments should be added after all other modifiers. */
-  layer_adjustments_to_modifiers(bmain, *gpd, object);
+  layer_adjustments_to_modifiers(bmain, *gpd, object, conversion_data);
   /* Thickness factor is applied after all other changes to the radii. */
   thickness_factor_to_modifier(*gpd, object);
 
@@ -2615,22 +2645,23 @@ static void legacy_gpencil_object_ex(
 
 void legacy_gpencil_object(Main &bmain, Object &object)
 {
-  legacy_gpencil_object_ex(bmain, object, std::nullopt);
+  ConversionData conversion_data;
+
+  legacy_gpencil_object_ex(bmain, object, conversion_data);
 }
 
 void legacy_main(Main &bmain, BlendFileReadReport & /*reports*/)
 {
+  ConversionData conversion_data;
+
   /* Ensure that annotations are fully separated from object usages of legacy GPv2 data. */
   legacy_gpencil_sanitize_annotations(bmain);
-
-  /* Allows to convert a legacy GPencil data only once, in case it's used by several objects. */
-  Map<bGPdata *, GreasePencil *> legacy_to_greasepencil_data;
 
   LISTBASE_FOREACH (Object *, object, &bmain.objects) {
     if (object->type != OB_GPENCIL_LEGACY) {
       continue;
     }
-    legacy_gpencil_object_ex(bmain, *object, std::make_optional(legacy_to_greasepencil_data));
+    legacy_gpencil_object_ex(bmain, *object, conversion_data);
   }
 
   /* Potential other usages of legacy bGPdata IDs also need to be remapped to their matching new
@@ -2646,14 +2677,14 @@ void legacy_main(Main &bmain, BlendFileReadReport & /*reports*/)
     if ((legacy_gpd->flag & GP_DATA_ANNOTATIONS) != 0) {
       continue;
     }
-    GreasePencil *new_grease_pencil = legacy_to_greasepencil_data.lookup_default(legacy_gpd,
-                                                                                 nullptr);
+    GreasePencil *new_grease_pencil = conversion_data.legacy_to_greasepencil_data.lookup_default(
+        legacy_gpd, nullptr);
     if (!new_grease_pencil) {
       new_grease_pencil = static_cast<GreasePencil *>(
           BKE_id_new_in_lib(&bmain, legacy_gpd->id.lib, ID_GP, legacy_gpd->id.name + 2));
       id_us_min(&new_grease_pencil->id);
       legacy_gpencil_to_grease_pencil(bmain, *new_grease_pencil, *legacy_gpd);
-      legacy_to_greasepencil_data.add(legacy_gpd, new_grease_pencil);
+      conversion_data.legacy_to_greasepencil_data.add(legacy_gpd, new_grease_pencil);
     }
     gpd_remapper.add(&legacy_gpd->id, &new_grease_pencil->id);
   }
