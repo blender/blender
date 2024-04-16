@@ -121,12 +121,6 @@ struct SculptOrigFaceData {
   int face_set;
 };
 
-/* Flood Fill. */
-struct SculptFloodFill {
-  std::queue<PBVHVertRef> queue;
-  blender::BitVector<> visited_verts;
-};
-
 enum eBoundaryAutomaskMode {
   AUTOMASK_INIT_BOUNDARY_EDGES = 1,
   AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
@@ -1175,14 +1169,19 @@ void SCULPT_tilt_effective_normal_get(const SculptSession *ss, const Brush *brus
 
 namespace blender::ed::sculpt_paint::flood_fill {
 
-void init_fill(SculptSession *ss, SculptFloodFill *flood);
-void add_active(Object *ob, SculptSession *ss, SculptFloodFill *flood, float radius);
+struct FillData {
+  std::queue<PBVHVertRef> queue;
+  blender::BitVector<> visited_verts;
+};
+
+void init_fill(SculptSession *ss, FillData *flood);
+void add_active(Object *ob, SculptSession *ss, FillData *flood, float radius);
 void add_initial_with_symmetry(
-    Object *ob, SculptSession *ss, SculptFloodFill *flood, PBVHVertRef vertex, float radius);
-void add_initial(SculptFloodFill *flood, PBVHVertRef vertex);
-void add_and_skip_initial(SculptFloodFill *flood, PBVHVertRef vertex);
+    Object *ob, SculptSession *ss, FillData *flood, PBVHVertRef vertex, float radius);
+void add_initial(FillData *flood, PBVHVertRef vertex);
+void add_and_skip_initial(FillData *flood, PBVHVertRef vertex);
 void execute(SculptSession *ss,
-             SculptFloodFill *flood,
+             FillData *flood,
              bool (*func)(SculptSession *ss,
                           PBVHVertRef from_v,
                           PBVHVertRef to_v,

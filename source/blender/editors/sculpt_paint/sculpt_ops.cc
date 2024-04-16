@@ -825,7 +825,7 @@ static void sculpt_mask_by_color_contiguous(Object *object,
     }
   }
 
-  SculptFloodFill flood;
+  flood_fill::FillData flood;
   flood_fill::init_fill(ss, &flood);
   flood_fill::add_initial(&flood, vertex);
 

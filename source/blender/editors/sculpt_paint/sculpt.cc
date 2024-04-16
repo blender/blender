@@ -1003,25 +1003,25 @@ void SCULPT_tag_update_overlays(bContext *C)
 
 namespace blender::ed::sculpt_paint::flood_fill {
 
-void init_fill(SculptSession *ss, SculptFloodFill *flood)
+void init_fill(SculptSession *ss, FillData *flood)
 {
   SCULPT_vertex_random_access_ensure(ss);
   flood->visited_verts.resize(SCULPT_vertex_count_get(ss));
 }
 
-void add_initial(SculptFloodFill *flood, PBVHVertRef vertex)
+void add_initial(FillData *flood, PBVHVertRef vertex)
 {
   flood->queue.push(vertex);
 }
 
-void add_and_skip_initial(SculptFloodFill *flood, PBVHVertRef vertex)
+void add_and_skip_initial(FillData *flood, PBVHVertRef vertex)
 {
   flood->queue.push(vertex);
   flood->visited_verts[vertex.i].set(vertex.i);
 }
 
 void add_initial_with_symmetry(
-    Object *ob, SculptSession *ss, SculptFloodFill *flood, PBVHVertRef vertex, float radius)
+    Object *ob, SculptSession *ss, FillData *flood, PBVHVertRef vertex, float radius)
 {
   /* Add active vertex and symmetric vertices to the queue. */
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -1047,7 +1047,7 @@ void add_initial_with_symmetry(
   }
 }
 
-void add_active(Object *ob, SculptSession *ss, SculptFloodFill *flood, float radius)
+void add_active(Object *ob, SculptSession *ss, FillData *flood, float radius)
 {
   /* Add active vertex and symmetric vertices to the queue. */
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -1074,7 +1074,7 @@ void add_active(Object *ob, SculptSession *ss, SculptFloodFill *flood, float rad
 }
 
 void execute(SculptSession *ss,
-             SculptFloodFill *flood,
+             FillData *flood,
              bool (*func)(SculptSession *ss,
                           PBVHVertRef from_v,
                           PBVHVertRef to_v,
