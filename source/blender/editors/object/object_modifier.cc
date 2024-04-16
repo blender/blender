@@ -1170,9 +1170,7 @@ bool modifier_apply(Main *bmain,
     local_depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
     DEG_disable_visibility_optimization(local_depsgraph);
 
-    ID *ids[] = {&ob->id};
-
-    DEG_graph_build_from_ids(local_depsgraph, ids, 1);
+    DEG_graph_build_from_ids(local_depsgraph, {&ob->id});
     DEG_evaluate_on_refresh(local_depsgraph);
 
     apply_depsgraph = local_depsgraph;

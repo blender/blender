@@ -305,7 +305,7 @@ static Depsgraph *build_depsgraph_from_indirect_ids(Main &bmain,
   ids.insert(ids.size(), ids_for_relations.begin(), ids_for_relations.end());
 
   Depsgraph *depsgraph = DEG_graph_new(&bmain, &scene, &view_layer, DAG_EVAL_VIEWPORT);
-  DEG_graph_build_from_ids(depsgraph, const_cast<ID **>(ids.data()), ids.size());
+  DEG_graph_build_from_ids(depsgraph, {const_cast<ID **>(ids.data()), ids.size()});
   return depsgraph;
 }
 

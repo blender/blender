@@ -271,9 +271,9 @@ void DEG_graph_build_for_compositor_preview(Depsgraph *graph, bNodeTree *nodetre
   builder.build();
 }
 
-void DEG_graph_build_from_ids(Depsgraph *graph, ID **ids, const int num_ids)
+void DEG_graph_build_from_ids(Depsgraph *graph, blender::Span<ID *> ids)
 {
-  deg::FromIDsBuilderPipeline builder(graph, blender::Span(ids, num_ids));
+  deg::FromIDsBuilderPipeline builder(graph, ids);
   builder.build();
 }
 
