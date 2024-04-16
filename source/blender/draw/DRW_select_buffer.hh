@@ -68,7 +68,8 @@ struct SELECTID_Context {
 
 /* `draw_select_buffer.cc` */
 
-bool DRW_select_buffer_elem_get(uint sel_id, uint *r_elem, uint *r_base_index, char *r_elem_type);
+bool DRW_select_buffer_elem_get(
+    uint sel_id, uint *r_elem, uint *r_base_index, char *r_elem_type, bool use_orig_index);
 uint DRW_select_buffer_context_offset_for_object_elem(Depsgraph *depsgraph,
                                                       Object *object,
                                                       char elem_type);
