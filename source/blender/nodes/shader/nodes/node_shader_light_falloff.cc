@@ -8,8 +8,16 @@ namespace blender::nodes::node_shader_light_falloff_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Strength").default_value(100.0f).min(0.0f).max(1000000.0f);
-  b.add_input<decl::Float>("Smooth").default_value(0.0f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Float>("Strength")
+      .default_value(100.0f)
+      .min(0.0f)
+      .max(1000000.0f)
+      .description("Light strength before applying falloff modification");
+
+  b.add_input<decl::Float>("Smooth").default_value(0.0f).min(0.0f).max(1000.0f).description(
+      "Smooth intensity of light near light sources.\n"
+      "This can avoid harsh highlights, and reduce global illumination noise. "
+      "0.0 corresponds to no smoothing; higher values smooth more");
   b.add_output<decl::Float>("Quadratic");
   b.add_output<decl::Float>("Linear");
   b.add_output<decl::Float>("Constant");

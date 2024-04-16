@@ -214,12 +214,18 @@ static void cmp_node_rgbcurves_declare(NodeDeclarationBuilder &b)
       .min(-1.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .compositor_domain_priority(1);
+      .compositor_domain_priority(1)
+      .description("Amount of influence the node exerts on the image");
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_input<decl::Color>("Black Level").default_value({0.0f, 0.0f, 0.0f, 1.0f});
-  b.add_input<decl::Color>("White Level").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+      .compositor_domain_priority(0)
+      .description("Image/Color input on which RGB color transformation will be applied");
+  b.add_input<decl::Color>("Black Level")
+      .default_value({0.0f, 0.0f, 0.0f, 1.0f})
+      .description("Input color that should be mapped to black");
+  b.add_input<decl::Color>("White Level")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .description("Input color that should be mapped to white");
   b.add_output<decl::Color>("Image");
 }
 

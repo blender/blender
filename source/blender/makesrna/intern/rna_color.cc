@@ -817,8 +817,13 @@ static void rna_def_curvemapping(BlenderRNA *brna)
   FunctionRNA *func;
 
   static const EnumPropertyItem tone_items[] = {
-      {CURVE_TONE_STANDARD, "STANDARD", 0, "Standard", ""},
-      {CURVE_TONE_FILMLIKE, "FILMLIKE", 0, "Filmlike", ""},
+      {CURVE_TONE_STANDARD,
+       "STANDARD",
+       0,
+       "Standard",
+       "Combined curve is applied to each channel individually, which may result in a change of "
+       "hue"},
+      {CURVE_TONE_FILMLIKE, "FILMLIKE", 0, "Filmlike", "Keeps the hue constant"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

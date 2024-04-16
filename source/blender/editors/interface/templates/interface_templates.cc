@@ -4540,7 +4540,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
                      &cumap->cur,
                      0.0,
                      3.0,
-                     "");
+                     TIP_("Combined channels"));
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[0].curve) {
@@ -4555,7 +4555,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
                      &cumap->cur,
                      0.0,
                      0.0,
-                     "");
+                     TIP_("Red channel"));
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[1].curve) {
@@ -4570,7 +4570,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
                      &cumap->cur,
                      0.0,
                      1.0,
-                     "");
+                     TIP_("Green channel"));
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[2].curve) {
@@ -4585,7 +4585,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
                      &cumap->cur,
                      0.0,
                      2.0,
-                     "");
+                     TIP_("Blue channel"));
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
   }
@@ -4595,15 +4595,48 @@ static void curvemap_buttons_layout(uiLayout *layout,
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
     if (cumap->cm[0].curve) {
-      bt = uiDefButI(block, UI_BTYPE_ROW, 0, IFACE_("H"), 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, "");
+      bt = uiDefButI(block,
+                     UI_BTYPE_ROW,
+                     0,
+                     IFACE_("H"),
+                     0,
+                     0,
+                     dx,
+                     dx,
+                     &cumap->cur,
+                     0.0,
+                     0.0,
+                     TIP_("Hue level"));
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[1].curve) {
-      bt = uiDefButI(block, UI_BTYPE_ROW, 0, IFACE_("S"), 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, "");
+      bt = uiDefButI(block,
+                     UI_BTYPE_ROW,
+                     0,
+                     IFACE_("S"),
+                     0,
+                     0,
+                     dx,
+                     dx,
+                     &cumap->cur,
+                     0.0,
+                     1.0,
+                     TIP_("Saturation level"));
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[2].curve) {
-      bt = uiDefButI(block, UI_BTYPE_ROW, 0, IFACE_("V"), 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, "");
+      bt = uiDefButI(block,
+                     UI_BTYPE_ROW,
+                     0,
+                     IFACE_("V"),
+                     0,
+                     0,
+                     dx,
+                     dx,
+                     &cumap->cur,
+                     0.0,
+                     2.0,
+                     TIP_("Value level"));
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
   }
