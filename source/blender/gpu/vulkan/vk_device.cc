@@ -49,6 +49,7 @@ void VKDevice::deinit()
   samplers_.free();
   destroy_discarded_resources();
   vkDestroyPipelineCache(vk_device_, vk_pipeline_cache_, vk_allocation_callbacks);
+  descriptor_set_layouts_.deinit();
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
 
