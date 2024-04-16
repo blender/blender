@@ -3195,7 +3195,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             *_tools_annotate,
             lambda context: (
-                VIEW3D_PT_tools_active._tools_gpencil_select
+                VIEW3D_PT_tools_active._tools_select
                 if _defs_grease_pencil_sculpt.poll_select_mask(context)
                 else ()
             ),
