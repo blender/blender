@@ -93,7 +93,7 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
       blender::gpu::Batch *geom_facedots = DRW_mesh_batch_cache_get_facedots_with_select_id(mesh);
       DRW_shgroup_call_no_cull(face_shgrp, geom_facedots, ob);
     }
-    *r_face_offset = initial_offset + mesh->faces_num;
+    *r_face_offset = initial_offset + em->bm->totface;
   }
   else {
     if (ob->dt >= OB_SOLID) {
@@ -114,7 +114,7 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
     DRWShadingGroup *edge_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_edge);
     DRW_shgroup_uniform_int_copy(edge_shgrp, "offset", *(int *)r_face_offset);
     DRW_shgroup_call_no_cull(edge_shgrp, geom_edges, ob);
-    *r_edge_offset = *r_face_offset + mesh->edges_num;
+    *r_edge_offset = *r_face_offset + em->bm->totedge;
   }
   else {
     /* Note that `r_vert_offset` is calculated from `r_edge_offset`.
@@ -128,7 +128,7 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
     DRWShadingGroup *vert_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_vert);
     DRW_shgroup_uniform_int_copy(vert_shgrp, "offset", *(int *)r_edge_offset);
     DRW_shgroup_call_no_cull(vert_shgrp, geom_verts, ob);
-    *r_vert_offset = *r_edge_offset + mesh->verts_num;
+    *r_vert_offset = *r_edge_offset + em->bm->totvert;
   }
   else {
     *r_vert_offset = *r_edge_offset;

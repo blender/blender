@@ -17,10 +17,6 @@
 
 #include "DNA_screen_types.h"
 
-#include "BKE_customdata.hh"
-#include "BKE_mesh.hh"
-#include "BKE_object.hh"
-
 #include "GPU_select.hh"
 
 #include "DEG_depsgraph.hh"
@@ -393,41 +389,10 @@ uint DRW_select_buffer_find_nearest_to_point(Depsgraph *depsgraph,
 /** \name Object Utils
  * \{ */
 
-static const CustomData *mesh_customdata_of_type(const Mesh *mesh_eval, char elem_type)
-{
-  switch (elem_type) {
-    case SCE_SELECT_FACE:
-      return &mesh_eval->face_data;
-    case SCE_SELECT_EDGE:
-      return &mesh_eval->edge_data;
-    case SCE_SELECT_VERTEX:
-      return &mesh_eval->vert_data;
-  }
-  BLI_assert_unreachable();
-  return nullptr;
-}
-
-static const int *orig_index_from_object_get(const Object *object_eval, char elem_type)
-{
-  if (object_eval->type != OB_MESH) {
-    return nullptr;
-  }
-
-  /* Keep in sync with the mesh used in #MeshRenderData::mesh. */
-  const Mesh *mesh_eval = static_cast<const Mesh *>(object_eval->data);
-  const bool is_editmode = (mesh_eval->runtime->edit_mesh != nullptr) &&
-                           (BKE_object_get_editmesh_eval_final(object_eval) != nullptr) &&
-                           DRW_object_is_in_edit_mode(object_eval);
-  if (is_editmode) {
-    mesh_eval = BKE_object_get_editmesh_eval_cage(object_eval);
-  }
-
-  const CustomData *data = mesh_customdata_of_type(mesh_eval, elem_type);
-  return static_cast<const int *>(CustomData_get_layer(data, CD_ORIGINDEX));
-}
-
-bool DRW_select_buffer_elem_get(
-    const uint sel_id, uint *r_elem, uint *r_base_index, char *r_elem_type, bool use_orig_index)
+bool DRW_select_buffer_elem_get(const uint sel_id,
+                                uint *r_elem,
+                                uint *r_base_index,
+                                char *r_elem_type)
 {
   SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
@@ -459,6 +424,8 @@ bool DRW_select_buffer_elem_get(
     return false;
   }
 
+  *r_elem = elem_id;
+
   if (r_base_index) {
     *r_base_index = base_index;
   }
@@ -466,16 +433,6 @@ bool DRW_select_buffer_elem_get(
   if (r_elem_type) {
     *r_elem_type = elem_type;
   }
-
-  if (use_orig_index) {
-    const Object *object_eval = select_ctx->objects[base_index];
-    const int *orig_index = orig_index_from_object_get(object_eval, elem_type);
-    if (orig_index) {
-      elem_id = orig_index[elem_id];
-    }
-  }
-
-  *r_elem = elem_id;
 
   return true;
 }

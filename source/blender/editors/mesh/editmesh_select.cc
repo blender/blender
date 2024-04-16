@@ -182,7 +182,7 @@ static BMElem *edbm_select_id_bm_elem_get(const Span<Base *> bases,
 {
   uint elem_id;
   char elem_type = 0;
-  bool success = DRW_select_buffer_elem_get(sel_id, &elem_id, r_base_index, &elem_type, true);
+  bool success = DRW_select_buffer_elem_get(sel_id, &elem_id, r_base_index, &elem_type);
 
   if (success) {
     Object *obedit = bases[*r_base_index]->object;
