@@ -2723,7 +2723,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
   }
 
   /* menu */
-  if (op->type->flag & OPTYPE_PRESET) {
+  if ((op->type->flag & OPTYPE_PRESET) && !(layout_flags & UI_TEMPLATE_OP_PROPS_HIDE_PRESETS)) {
     /* XXX, no simple way to get WM_MT_operator_presets.bl_label
      * from python! Label remains the same always! */
     PointerRNA op_ptr;
@@ -2986,9 +2986,11 @@ static void draw_export_controls(
 {
   uiItemL(layout, label.c_str(), ICON_NONE);
   if (valid) {
-    uiItemPopoverPanel(layout, C, "WM_PT_operator_presets", "", ICON_PRESET);
-    uiItemIntO(layout, "", ICON_EXPORT, "COLLECTION_OT_exporter_export", "index", index);
-    uiItemIntO(layout, "", ICON_X, "COLLECTION_OT_exporter_remove", "index", index);
+    uiLayout *row = uiLayoutRow(layout, false);
+    uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+    uiItemPopoverPanel(row, C, "WM_PT_operator_presets", "", ICON_PRESET);
+    uiItemIntO(row, "", ICON_EXPORT, "COLLECTION_OT_exporter_export", "index", index);
+    uiItemIntO(row, "", ICON_X, "COLLECTION_OT_exporter_remove", "index", index);
   }
 }
 
@@ -2997,14 +2999,18 @@ static void draw_export_properties(bContext *C,
                                    wmOperator *op,
                                    const std::string &filename)
 {
-  uiLayout *box = uiLayoutBox(layout);
+  uiLayout *col = uiLayoutColumn(layout, false);
+
+  uiLayoutSetPropSep(col, true);
+  uiLayoutSetPropDecorate(col, false);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
   std::string placeholder = "//" + filename;
   uiItemFullR(
-      box, op->ptr, prop, RNA_NO_INDEX, 0, UI_ITEM_NONE, nullptr, ICON_NONE, placeholder.c_str());
+      col, op->ptr, prop, RNA_NO_INDEX, 0, UI_ITEM_NONE, nullptr, ICON_NONE, placeholder.c_str());
 
-  template_operator_property_buts_draw_single(C, op, layout, UI_BUT_LABEL_ALIGN_NONE, 0);
+  template_operator_property_buts_draw_single(
+      C, op, layout, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_HIDE_PRESETS);
 }
 
 void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
