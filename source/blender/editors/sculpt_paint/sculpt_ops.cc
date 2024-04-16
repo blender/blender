@@ -781,14 +781,15 @@ static void do_mask_by_color_contiguous_update_node(Object *ob,
   }
 }
 
-static bool sculpt_mask_by_color_contiguous_floodfill(
-    SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, void *userdata)
+static bool sculpt_mask_by_color_contiguous_floodfill(SculptSession *ss,
+                                                      PBVHVertRef from_v,
+                                                      PBVHVertRef to_v,
+                                                      bool is_duplicate,
+                                                      MaskByColorContiguousFloodFillData *data)
 {
   int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-  MaskByColorContiguousFloodFillData *data = static_cast<MaskByColorContiguousFloodFillData *>(
-      userdata);
   float current_color[4];
 
   SCULPT_vertex_color_get(ss, to_v, current_color);
@@ -839,7 +840,10 @@ static void sculpt_mask_by_color_contiguous(Object *object,
 
   copy_v3_v3(ffd.initial_color, color);
 
-  flood_fill::execute(ss, &flood, sculpt_mask_by_color_contiguous_floodfill, &ffd);
+  flood_fill::execute(
+      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+        return sculpt_mask_by_color_contiguous_floodfill(ss, from_v, to_v, is_duplicate, &ffd);
+      });
 
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
   const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);

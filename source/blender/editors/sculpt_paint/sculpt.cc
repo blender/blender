@@ -1073,14 +1073,11 @@ void add_active(Object *ob, SculptSession *ss, FillData *flood, float radius)
   }
 }
 
-void execute(SculptSession *ss,
-             FillData *flood,
-             bool (*func)(SculptSession *ss,
-                          PBVHVertRef from_v,
-                          PBVHVertRef to_v,
-                          bool is_duplicate,
-                          void *userdata),
-             void *userdata)
+void execute(
+    SculptSession *ss,
+    FillData *flood,
+    FunctionRef<bool(SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)>
+        func)
 {
   while (!flood->queue.empty()) {
     PBVHVertRef from_v = flood->queue.front();
@@ -1101,7 +1098,7 @@ void execute(SculptSession *ss,
 
       flood->visited_verts[BKE_pbvh_vertex_to_index(ss->pbvh, to_v)].set();
 
-      if (func(ss, from_v, to_v, ni.is_duplicate, userdata)) {
+      if (func(ss, from_v, to_v, ni.is_duplicate)) {
         flood->queue.push(to_v);
       }
     }

@@ -600,11 +600,11 @@ struct AutomaskFloodFillData {
   char symm;
 };
 
-static bool floodfill_cb(
-    SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/, void *userdata)
+static bool floodfill_cb(SculptSession *ss,
+                         PBVHVertRef from_v,
+                         PBVHVertRef to_v,
+                         AutomaskFloodFillData *data)
 {
-  AutomaskFloodFillData *data = (AutomaskFloodFillData *)userdata;
-
   *(float *)SCULPT_vertex_attr_get(to_v, ss->attrs.automasking_factor) = 1.0f;
   *(float *)SCULPT_vertex_attr_get(from_v, ss->attrs.automasking_factor) = 1.0f;
   return (!data->use_radius ||
@@ -638,7 +638,12 @@ static void topology_automasking_init(const Sculpt *sd, Object *ob)
   fdata.symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   copy_v3_v3(fdata.location, SCULPT_active_vertex_co_get(ss));
-  flood_fill::execute(ss, &flood, floodfill_cb, &fdata);
+  flood_fill::execute(
+      ss,
+      &flood,
+      [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/) {
+        return floodfill_cb(ss, from_v, to_v, &fdata);
+      });
 }
 
 static void init_face_sets_masking(const Sculpt *sd, Object *ob)

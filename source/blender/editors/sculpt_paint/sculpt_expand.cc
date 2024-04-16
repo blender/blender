@@ -468,13 +468,15 @@ struct ExpandFloodFillData {
   float *edge_factor;
 };
 
-static bool expand_topology_floodfill_cb(
-    SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, void *userdata)
+static bool expand_topology_floodfill_cb(SculptSession *ss,
+                                         PBVHVertRef from_v,
+                                         PBVHVertRef to_v,
+                                         bool is_duplicate,
+                                         ExpandFloodFillData *data)
 {
   int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-  ExpandFloodFillData *data = static_cast<ExpandFloodFillData *>(userdata);
   if (!is_duplicate) {
     const float to_it = data->dists[from_v_i] + 1.0f;
     data->dists[to_v_i] = to_it;
@@ -498,7 +500,10 @@ static float *sculpt_expand_topology_falloff_create(Object *ob, const PBVHVertRe
   ExpandFloodFillData fdata;
   fdata.dists = dists;
 
-  flood_fill::execute(ss, &flood, expand_topology_floodfill_cb, &fdata);
+  flood_fill::execute(
+      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+        return expand_topology_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
+      });
 
   return dists;
 }
@@ -508,13 +513,15 @@ static float *sculpt_expand_topology_falloff_create(Object *ob, const PBVHVertRe
  * each vertex and the previous one.
  * This creates falloff patterns that follow and snap to the hard edges of the object.
  */
-static bool mask_expand_normal_floodfill_cb(
-    SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, void *userdata)
+static bool mask_expand_normal_floodfill_cb(SculptSession *ss,
+                                            PBVHVertRef from_v,
+                                            PBVHVertRef to_v,
+                                            bool is_duplicate,
+                                            ExpandFloodFillData *data)
 {
   int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
   int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-  ExpandFloodFillData *data = static_cast<ExpandFloodFillData *>(userdata);
   if (!is_duplicate) {
     float current_normal[3], prev_normal[3];
     SCULPT_vertex_normal_get(ss, to_v, current_normal);
@@ -557,7 +564,10 @@ static float *sculpt_expand_normal_falloff_create(Object *ob,
   fdata.edge_sensitivity = edge_sensitivity;
   SCULPT_vertex_normal_get(ss, v, fdata.original_normal);
 
-  flood_fill::execute(ss, &flood, mask_expand_normal_floodfill_cb, &fdata);
+  flood_fill::execute(
+      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+        return mask_expand_normal_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
+      });
 
   for (int repeat = 0; repeat < blur_steps; repeat++) {
     for (int i = 0; i < totvert; i++) {
@@ -917,7 +927,10 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
 
   ExpandFloodFillData fdata;
   fdata.dists = dists;
-  flood_fill::execute(ss, &flood, expand_topology_floodfill_cb, &fdata);
+  flood_fill::execute(
+      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+        return expand_topology_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
+      });
 
   expand_cache->vert_falloff = dists;
 }
