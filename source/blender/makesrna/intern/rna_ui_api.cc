@@ -335,7 +335,8 @@ static PointerRNA rna_uiItemO(uiLayout *layout,
                               int icon,
                               bool emboss,
                               bool depress,
-                              int icon_value)
+                              int icon_value,
+                              const float search_weight)
 {
   wmOperatorType *ot;
 
@@ -359,9 +360,14 @@ static PointerRNA rna_uiItemO(uiLayout *layout,
     flag |= UI_ITEM_O_DEPRESS;
   }
 
+  const float prev_weight = uiLayoutGetSearchWeight(layout);
+  uiLayoutSetSearchWeight(layout, search_weight);
+
   PointerRNA opptr;
   uiItemFullO_ptr(
       layout, ot, name, icon, nullptr, uiLayoutGetOperatorContext(layout), flag, &opptr);
+
+  uiLayoutSetSearchWeight(layout, prev_weight);
   return opptr;
 }
 
@@ -1386,6 +1392,17 @@ void RNA_api_ui_layout(StructRNA *srna)
     if (is_menu_hold) {
       parm = RNA_def_string(func, "menu", nullptr, 0, "", "Identifier of the menu");
       RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+    }
+    else {
+      RNA_def_float(func,
+                    "search_weight",
+                    0.0f,
+                    -FLT_MAX,
+                    FLT_MAX,
+                    "Search Weight",
+                    "Influences the sorting when using menu-seach",
+                    -FLT_MAX,
+                    FLT_MAX);
     }
     parm = RNA_def_pointer(
         func, "properties", "OperatorProperties", "", "Operator properties to fill in");

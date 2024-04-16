@@ -11,7 +11,7 @@ from bpy.app.translations import (
 )
 
 
-def add_node_type(layout, node_type, *, label=None, poll=None):
+def add_node_type(layout, node_type, *, label=None, poll=None, search_weight=0.0):
     """Add a node type to a menu."""
     bl_rna = bpy.types.Node.bl_rna_get_subclass(node_type)
     if not label:
@@ -19,7 +19,7 @@ def add_node_type(layout, node_type, *, label=None, poll=None):
 
     if poll is True or poll is None:
         translation_context = bl_rna.translation_context if bl_rna else i18n_contexts.default
-        props = layout.operator("node.add_node", text=label, text_ctxt=translation_context)
+        props = layout.operator("node.add_node", text=label, text_ctxt=translation_context, search_weight=search_weight)
         props.type = node_type
         props.use_transform = True
         return props
