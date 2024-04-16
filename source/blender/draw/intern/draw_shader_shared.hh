@@ -203,6 +203,11 @@ struct ObjectBounds {
 };
 BLI_STATIC_ASSERT_ALIGN(ObjectBounds, 16)
 
+inline bool drw_bounds_are_valid(ObjectBounds bounds)
+{
+  return bounds.bounding_sphere.w >= 0.0f;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

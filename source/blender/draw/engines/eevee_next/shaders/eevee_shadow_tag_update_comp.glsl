@@ -38,10 +38,14 @@ void main()
   uint resource_id = resource_ids_buf[gl_GlobalInvocationID.x];
   resource_id = (resource_id & 0x7FFFFFFFu);
 
-  IsectBox box = isect_box_setup(bounds_buf[resource_id].bounding_corners[0].xyz,
-                                 bounds_buf[resource_id].bounding_corners[1].xyz,
-                                 bounds_buf[resource_id].bounding_corners[2].xyz,
-                                 bounds_buf[resource_id].bounding_corners[3].xyz);
+  ObjectBounds bounds = bounds_buf[resource_id];
+  if (!drw_bounds_are_valid(bounds)) {
+    return;
+  }
+  IsectBox box = isect_box_setup(bounds.bounding_corners[0].xyz,
+                                 bounds.bounding_corners[1].xyz,
+                                 bounds.bounding_corners[2].xyz,
+                                 bounds.bounding_corners[3].xyz);
 
   int clipped = 0;
   /* NDC space post projection [-1..1] (unclamped). */

@@ -43,6 +43,11 @@ void main()
   DRW_RESOURCE_ID_VARYING_SET
 
   ObjectBounds bounds = bounds_buf[resource_id];
+  if (!drw_bounds_are_valid(bounds)) {
+    /* Discard. */
+    gl_Position = vec4(NAN_FLT);
+    return;
+  }
 
   Box box = shape_box(bounds.bounding_corners[0].xyz,
                       bounds.bounding_corners[0].xyz + bounds.bounding_corners[1].xyz,

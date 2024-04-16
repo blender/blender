@@ -155,10 +155,10 @@ class Instance {
 
     if (is_object_data_visible) {
       if (object_state.sculpt_pbvh) {
-        /* Disable frustum culling for sculpt meshes. */
-        /* TODO(@pragma37): Implement a cleaner way to disable frustum culling. */
-        ResourceHandle handle = manager.resource_handle(ob_ref.object->object_to_world());
-        handle = ResourceHandle(handle.resource_index(), ob_ref.object->transflag & OB_NEG_SCALE);
+        const Bounds<float3> bounds = BKE_pbvh_bounding_box(ob_ref.object->sculpt->pbvh);
+        const float3 center = math::midpoint(bounds.min, bounds.max);
+        const float3 half_extent = bounds.max - center;
+        ResourceHandle handle = manager.resource_handle(ob_ref, nullptr, &center, &half_extent);
         sculpt_sync(ob_ref, handle, object_state);
         emitter_handle = handle;
       }
