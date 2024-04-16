@@ -20,7 +20,8 @@ struct bUUID;
 struct wmWindowManager;
 namespace blender::asset_system {
 class AssetLibrary;
-}
+class AssetRepresentation;
+}  // namespace blender::asset_system
 
 struct FileDirEntry;
 
@@ -147,6 +148,8 @@ ID *filelist_file_get_id(const FileDirEntry *file);
  * Same as #filelist_file_get_id(), but gets the file by index (doesn't require the file to be
  * cached, uses #FileListInternEntry only). */
 ID *filelist_entry_get_id(const FileList *filelist, int index);
+blender::asset_system::AssetRepresentation *filelist_entry_get_asset_representation(
+    const FileList *filelist, const int index);
 /**
  * Get the #FileDirEntry.relpath value without requiring the #FileDirEntry to be available (doesn't
  * require the file to be cached, uses #FileListInternEntry only).

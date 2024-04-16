@@ -2210,6 +2210,13 @@ ID *filelist_entry_get_id(const FileList *filelist, const int index)
   return intern_entry->local_data.id;
 }
 
+asset_system::AssetRepresentation *filelist_entry_get_asset_representation(
+    const FileList *filelist, const int index)
+{
+  const FileListInternEntry *intern_entry = filelist_entry_intern_get(filelist, index);
+  return intern_entry->asset;
+}
+
 ID *filelist_file_get_id(const FileDirEntry *file)
 {
   return file->id;
