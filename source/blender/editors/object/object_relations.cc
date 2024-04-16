@@ -2612,9 +2612,15 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
 
 static bool make_override_library_poll(bContext *C)
 {
-  Object *obact = CTX_data_active_object(C);
+  Base *base_act = CTX_data_active_base(C);
+  /* If the active object is not selected, do nothing (operators rely on selection too, they will
+   * misbehave if the active object is not also selected, see e.g. #120701. */
+  if ((base_act->flag & BASE_SELECTED) == 0) {
+    return false;
+  }
 
   /* Object must be directly linked to be overridable. */
+  Object *obact = base_act->object;
   return (
       ED_operator_objectmode(C) && obact != nullptr &&
       (ID_IS_LINKED(obact) || ID_IS_OVERRIDE_LIBRARY(obact) ||
@@ -2663,9 +2669,15 @@ void OBJECT_OT_make_override_library(wmOperatorType *ot)
 
 static bool reset_clear_override_library_poll(bContext *C)
 {
-  Object *obact = CTX_data_active_object(C);
+  Base *base_act = CTX_data_active_base(C);
+  /* If the active object is not selected, do nothing (operators rely on selection too, they will
+   * misbehave if the active object is not also selected, see e.g. #120701. */
+  if ((base_act->flag & BASE_SELECTED) == 0) {
+    return false;
+  }
 
   /* Object must be local and an override. */
+  Object *obact = base_act->object;
   return (ED_operator_objectmode(C) && obact != nullptr && !ID_IS_LINKED(obact) &&
           ID_IS_OVERRIDE_LIBRARY(obact));
 }
@@ -2674,7 +2686,7 @@ static int reset_override_library_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
 
-  /* Make already existing selected liboverrides editable. */
+  /* Reset all selected liboverrides. */
   FOREACH_SELECTED_OBJECT_BEGIN (CTX_data_view_layer(C), CTX_wm_view3d(C), ob_iter) {
     if (ID_IS_OVERRIDE_LIBRARY_REAL(ob_iter) && !ID_IS_LINKED(ob_iter)) {
       BKE_lib_override_library_id_reset(bmain, &ob_iter->id, false);
