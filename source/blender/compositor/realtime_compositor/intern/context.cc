@@ -26,6 +26,8 @@ RenderContext *Context::render_context() const
   return nullptr;
 }
 
+void Context::evaluate_operation_post() const {}
+
 bool Context::is_canceled() const
 {
   if (!this->get_node_tree().runtime->test_break) {
