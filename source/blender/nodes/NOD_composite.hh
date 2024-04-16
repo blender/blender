@@ -41,8 +41,6 @@ void ntreeCompositExecTree(Render *render,
                            Scene *scene,
                            bNodeTree *ntree,
                            RenderData *rd,
-                           bool rendering,
-                           int do_previews,
                            const char *view_name,
                            blender::realtime_compositor::RenderContext *render_context,
                            blender::compositor::ProfilerData &profiler_data);

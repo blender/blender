@@ -1305,8 +1305,6 @@ static void do_render_compositor(Render *re)
                                 re->pipeline_scene_eval,
                                 ntree,
                                 &re->r,
-                                true,
-                                G.background == 0,
                                 rv->name,
                                 &compositor_render_context,
                                 profiler_data);

@@ -104,7 +104,6 @@ void COM_execute(Render *render,
                  RenderData *render_data,
                  Scene *scene,
                  bNodeTree *node_tree,
-                 bool rendering,
                  const char *view_name,
                  blender::realtime_compositor::RenderContext *render_context,
                  blender::compositor::ProfilerData &profiler_data);
