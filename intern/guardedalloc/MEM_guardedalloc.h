@@ -206,7 +206,7 @@ extern size_t (*MEM_get_peak_memory)(void) ATTR_WARN_UNUSED_RESULT;
     } while (0)
 #endif
 
-/* overhead for lockfree allocator (use to avoid slop-space) */
+/** Overhead for lockfree allocator (use to avoid slop-space). */
 #define MEM_SIZE_OVERHEAD sizeof(size_t)
 #define MEM_SIZE_OPTIMAL(size) ((size)-MEM_SIZE_OVERHEAD)
 
@@ -242,22 +242,26 @@ void MEM_use_memleak_detection(bool enabled);
  */
 void MEM_enable_fail_on_memleak(void);
 
-/* Switch allocator to fast mode, with less tracking.
+/**
+ * Switch allocator to fast mode, with less tracking.
  *
  * Use in the production code where performance is the priority, and exact details about allocation
  * is not. This allocator keeps track of number of allocation and amount of allocated bytes, but it
  * does not track of names of allocated blocks.
  *
- * NOTE: The switch between allocator types can only happen before any allocation did happen. */
+ * \note The switch between allocator types can only happen before any allocation did happen.
+ */
 void MEM_use_lockfree_allocator(void);
 
-/* Switch allocator to slow fully guarded mode.
+/**
+ * Switch allocator to slow fully guarded mode.
  *
  * Use for debug purposes. This allocator contains lock section around every allocator call, which
  * makes it slow. What is gained with this is the ability to have list of allocated blocks (in an
  * addition to the tracking of number of allocations and amount of allocated bytes).
  *
- * NOTE: The switch between allocator types can only happen before any allocation did happen. */
+ * \note The switch between allocator types can only happen before any allocation did happen.
+ */
 void MEM_use_guarded_allocator(void);
 
 #ifdef __cplusplus
@@ -270,9 +274,11 @@ void MEM_use_guarded_allocator(void);
 #  include <type_traits>
 #  include <utility>
 
-/* Conservative value of memory alignment returned by non-aligned OS-level memory allocation
+/**
+ * Conservative value of memory alignment returned by non-aligned OS-level memory allocation
  * functions. For alignments smaller than this value, using non-aligned versions of allocator API
- * functions is okay, allowing use of calloc, for example. */
+ * functions is okay, allowing use of `calloc`, for example.
+ */
 #  define MEM_MIN_CPP_ALIGNMENT \
     (__STDCPP_DEFAULT_NEW_ALIGNMENT__ < alignof(void *) ? __STDCPP_DEFAULT_NEW_ALIGNMENT__ : \
                                                           alignof(void *))
@@ -307,7 +313,7 @@ template<typename T> inline void MEM_delete(const T *ptr)
     /* Support #ptr being null, because C++ `delete` supports that as well. */
     return;
   }
-  /* C++ allows destruction of const objects, so the pointer is allowed to be const. */
+  /* C++ allows destruction of `const` objects, so the pointer is allowed to be `const`. */
   ptr->~T();
   MEM_freeN(const_cast<T *>(ptr));
 }
@@ -354,7 +360,7 @@ template<typename T> inline T *MEM_cnew(const char *allocation_name, const T &ot
   return new_object;
 }
 
-/* Allocation functions (for C++ only). */
+/** Allocation functions (for C++ only). */
 #  define MEM_CXX_CLASS_ALLOC_FUNCS(_id) \
    public: \
     void *operator new(size_t num_bytes) \
@@ -389,8 +395,11 @@ template<typename T> inline T *MEM_cnew(const char *allocation_name, const T &ot
     { \
       return ptr; \
     } \
-    /* This is the matching delete operator to the placement-new operator above. Both parameters \
-     * will have the same value. Without this, we get the warning C4291 on windows. */ \
+    /** \
+     * This is the matching delete operator to the placement-new operator above. \
+     * Both parameters \
+     * will have the same value. Without this, we get the warning C4291 on windows. \
+     */ \
     void operator delete(void * /*ptr_to_free*/, void * /*ptr*/) {}
 
 #endif /* __cplusplus */
