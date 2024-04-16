@@ -4617,7 +4617,7 @@ static FileData *read_library_file_data(FileData *basefd,
 
   if (mainptr->curlib->packedfile) {
     /* Read packed file. */
-    PackedFile *pf = mainptr->curlib->packedfile;
+    const PackedFile *pf = mainptr->curlib->packedfile;
 
     BLO_reportf_wrap(basefd->reports,
                      RPT_INFO,

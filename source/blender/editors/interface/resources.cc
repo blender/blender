@@ -1129,7 +1129,7 @@ void UI_Theme_Store(bThemeState *theme_state)
 {
   *theme_state = g_theme_state;
 }
-void UI_Theme_Restore(bThemeState *theme_state)
+void UI_Theme_Restore(const bThemeState *theme_state)
 {
   g_theme_state = *theme_state;
 }

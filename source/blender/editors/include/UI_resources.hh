@@ -495,7 +495,7 @@ bTheme *UI_GetTheme();
  * For the rare case we need to temp swap in a different theme (off-screen render).
  */
 void UI_Theme_Store(bThemeState *theme_state);
-void UI_Theme_Restore(bThemeState *theme_state);
+void UI_Theme_Restore(const bThemeState *theme_state);
 
 /**
  * Return shadow width outside menus and popups.
