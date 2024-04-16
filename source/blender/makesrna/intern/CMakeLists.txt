@@ -112,8 +112,8 @@ if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_GREASE_PENCIL_V3)
   add_definitions(-DWITH_ANIM_BAKLAVA)
   list(APPEND DEFSRC
-    rna_grease_pencil.cc
     rna_animation_id.cc
+    rna_grease_pencil.cc
   )
 endif()
 
@@ -230,8 +230,8 @@ set(SRC
 set(INC
   .
   ..
-  ../../asset_system
   ../../animrig
+  ../../asset_system
   ../../blenfont
   ../../blenkernel
   ../../blenlib
