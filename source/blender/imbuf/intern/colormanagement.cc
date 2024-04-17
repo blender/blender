@@ -363,7 +363,6 @@ static uchar *colormanage_cache_get(ImBuf *ibuf,
   cache_ibuf = colormanage_cache_get_ibuf(ibuf, &key, cache_handle);
 
   if (cache_ibuf) {
-    ColormanageCacheData *cache_data;
 
     BLI_assert(cache_ibuf->x == ibuf->x && cache_ibuf->y == ibuf->y);
 
@@ -374,7 +373,7 @@ static uchar *colormanage_cache_get(ImBuf *ibuf,
      * check here which exposure/gamma/curve was used for cached buffer and if they're
      * different from requested buffer should be re-generated
      */
-    cache_data = colormanage_cachedata_get(cache_ibuf);
+    const ColormanageCacheData *cache_data = colormanage_cachedata_get(cache_ibuf);
 
     if (cache_data->look != view_settings->look ||
         cache_data->exposure != view_settings->exposure ||

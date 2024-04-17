@@ -115,9 +115,6 @@ static bool geometry_node_tree_validate_link(eNodeSocketDatatype type_a,
 static bool geometry_node_tree_socket_type_valid(bNodeTreeType * /*treetype*/,
                                                  bNodeSocketType *socket_type)
 {
-  if (socket_type->type == SOCK_MATRIX) {
-    return U.experimental.use_new_matrix_socket;
-  }
   return blender::bke::nodeIsStaticSocketType(socket_type) && ELEM(socket_type->type,
                                                                    SOCK_FLOAT,
                                                                    SOCK_VECTOR,

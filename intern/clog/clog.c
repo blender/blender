@@ -171,7 +171,7 @@ static void clg_str_append(CLogStringBuf *cstr, const char *str)
 }
 
 ATTR_PRINTF_FORMAT(2, 0)
-static void clg_str_vappendf(CLogStringBuf *cstr, const char *fmt, va_list args)
+static void clg_str_vappendf(CLogStringBuf *cstr, const char *format, va_list args)
 {
   /* Use limit because windows may use '-1' for a formatting error. */
   const uint len_max = 65535;
@@ -179,7 +179,7 @@ static void clg_str_vappendf(CLogStringBuf *cstr, const char *fmt, va_list args)
   while (true) {
     va_list args_cpy;
     va_copy(args_cpy, args);
-    int retval = vsnprintf(cstr->data + cstr->len, len_avail, fmt, args_cpy);
+    int retval = vsnprintf(cstr->data + cstr->len, len_avail, format, args_cpy);
     va_end(args_cpy);
 
     if (retval < 0) {
@@ -502,7 +502,7 @@ void CLG_logf(const CLG_LogType *lg,
               enum CLG_Severity severity,
               const char *file_line,
               const char *fn,
-              const char *fmt,
+              const char *format,
               ...)
 {
   CLogStringBuf cstr;
@@ -520,8 +520,8 @@ void CLG_logf(const CLG_LogType *lg,
     write_file_line_fn(&cstr, file_line, fn, lg->ctx->use_basename);
 
     va_list ap;
-    va_start(ap, fmt);
-    clg_str_vappendf(&cstr, fmt, ap);
+    va_start(ap, format);
+    clg_str_vappendf(&cstr, format, ap);
     va_end(ap);
   }
   clg_str_append(&cstr, "\n");

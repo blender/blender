@@ -11,6 +11,7 @@
  * Each of them are reference by resource index (#ResourceHandle).
  */
 
+#include "BLI_math_base.h"
 #include "BLI_math_matrix.hh"
 
 #include "BKE_curve.hh"
@@ -163,6 +164,14 @@ inline std::ostream &operator<<(std::ostream &stream, const ObjectInfos &infos)
 
 inline void ObjectBounds::sync()
 {
+#ifndef NDEBUG
+  /* Initialize to NaN for easier debugging of uninitialized data usage. */
+  bounding_corners[0] = float4(NAN_FLT);
+  bounding_corners[1] = float4(NAN_FLT);
+  bounding_corners[2] = float4(NAN_FLT);
+  bounding_corners[3] = float4(NAN_FLT);
+  bounding_sphere = float4(NAN_FLT);
+#endif
   bounding_sphere.w = -1.0f; /* Disable test. */
 }
 
@@ -170,6 +179,14 @@ inline void ObjectBounds::sync(const Object &ob, float inflate_bounds)
 {
   const std::optional<blender::Bounds<float3>> bounds = BKE_object_boundbox_get(&ob);
   if (!bounds) {
+#ifndef NDEBUG
+    /* Initialize to NaN for easier debugging of uninitialized data usage. */
+    bounding_corners[0] = float4(NAN_FLT);
+    bounding_corners[1] = float4(NAN_FLT);
+    bounding_corners[2] = float4(NAN_FLT);
+    bounding_corners[3] = float4(NAN_FLT);
+    bounding_sphere = float4(NAN_FLT);
+#endif
     bounding_sphere.w = -1.0f; /* Disable test. */
     return;
   }

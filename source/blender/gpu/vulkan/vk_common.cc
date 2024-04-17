@@ -870,4 +870,113 @@ VkSamplerAddressMode to_vk_sampler_address_mode(const GPUSamplerExtendMode exten
   return VK_SAMPLER_ADDRESS_MODE_REPEAT;
 }
 
+static VkDescriptorType to_vk_descriptor_type_image(const shader::ImageType &image_type)
+{
+  switch (image_type) {
+    case shader::ImageType::FLOAT_1D:
+    case shader::ImageType::FLOAT_1D_ARRAY:
+    case shader::ImageType::FLOAT_2D:
+    case shader::ImageType::FLOAT_2D_ARRAY:
+    case shader::ImageType::FLOAT_3D:
+    case shader::ImageType::FLOAT_CUBE:
+    case shader::ImageType::FLOAT_CUBE_ARRAY:
+    case shader::ImageType::INT_1D:
+    case shader::ImageType::INT_1D_ARRAY:
+    case shader::ImageType::INT_2D:
+    case shader::ImageType::INT_2D_ARRAY:
+    case shader::ImageType::INT_3D:
+    case shader::ImageType::INT_CUBE:
+    case shader::ImageType::INT_CUBE_ARRAY:
+    case shader::ImageType::INT_2D_ATOMIC:
+    case shader::ImageType::INT_2D_ARRAY_ATOMIC:
+    case shader::ImageType::INT_3D_ATOMIC:
+    case shader::ImageType::UINT_1D:
+    case shader::ImageType::UINT_1D_ARRAY:
+    case shader::ImageType::UINT_2D:
+    case shader::ImageType::UINT_2D_ARRAY:
+    case shader::ImageType::UINT_3D:
+    case shader::ImageType::UINT_CUBE:
+    case shader::ImageType::UINT_CUBE_ARRAY:
+    case shader::ImageType::UINT_2D_ATOMIC:
+    case shader::ImageType::UINT_2D_ARRAY_ATOMIC:
+    case shader::ImageType::UINT_3D_ATOMIC:
+      return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+
+    case shader::ImageType::FLOAT_BUFFER:
+    case shader::ImageType::INT_BUFFER:
+    case shader::ImageType::UINT_BUFFER:
+      return VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+
+    default:
+      BLI_assert_msg(false, "ImageType not supported.");
+  }
+
+  return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+}
+
+static VkDescriptorType to_vk_descriptor_type_sampler(const shader::ImageType &image_type)
+{
+  switch (image_type) {
+    case shader::ImageType::FLOAT_1D:
+    case shader::ImageType::FLOAT_1D_ARRAY:
+    case shader::ImageType::FLOAT_2D:
+    case shader::ImageType::FLOAT_2D_ARRAY:
+    case shader::ImageType::FLOAT_3D:
+    case shader::ImageType::FLOAT_CUBE:
+    case shader::ImageType::FLOAT_CUBE_ARRAY:
+    case shader::ImageType::INT_1D:
+    case shader::ImageType::INT_1D_ARRAY:
+    case shader::ImageType::INT_2D:
+    case shader::ImageType::INT_2D_ARRAY:
+    case shader::ImageType::INT_3D:
+    case shader::ImageType::INT_CUBE:
+    case shader::ImageType::INT_CUBE_ARRAY:
+    case shader::ImageType::INT_2D_ATOMIC:
+    case shader::ImageType::INT_2D_ARRAY_ATOMIC:
+    case shader::ImageType::INT_3D_ATOMIC:
+    case shader::ImageType::UINT_1D:
+    case shader::ImageType::UINT_1D_ARRAY:
+    case shader::ImageType::UINT_2D:
+    case shader::ImageType::UINT_2D_ARRAY:
+    case shader::ImageType::UINT_3D:
+    case shader::ImageType::UINT_CUBE:
+    case shader::ImageType::UINT_CUBE_ARRAY:
+    case shader::ImageType::UINT_2D_ATOMIC:
+    case shader::ImageType::UINT_2D_ARRAY_ATOMIC:
+    case shader::ImageType::UINT_3D_ATOMIC:
+    case shader::ImageType::SHADOW_2D:
+    case shader::ImageType::SHADOW_2D_ARRAY:
+    case shader::ImageType::SHADOW_CUBE:
+    case shader::ImageType::SHADOW_CUBE_ARRAY:
+    case shader::ImageType::DEPTH_2D:
+    case shader::ImageType::DEPTH_2D_ARRAY:
+    case shader::ImageType::DEPTH_CUBE:
+    case shader::ImageType::DEPTH_CUBE_ARRAY:
+      return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
+    case shader::ImageType::FLOAT_BUFFER:
+    case shader::ImageType::INT_BUFFER:
+    case shader::ImageType::UINT_BUFFER:
+      return VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+  }
+
+  return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+}
+
+VkDescriptorType to_vk_descriptor_type(const shader::ShaderCreateInfo::Resource &resource)
+{
+  switch (resource.bind_type) {
+    case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
+      return to_vk_descriptor_type_image(resource.image.type);
+    case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
+      return to_vk_descriptor_type_sampler(resource.sampler.type);
+    case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
+      return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
+      return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+  }
+  BLI_assert_unreachable();
+  return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+}
+
 }  // namespace blender::gpu

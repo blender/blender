@@ -97,7 +97,7 @@ static void memcount_raise(const char *name)
 /* --------------------------------------------------------------------- */
 /* all memory chunks are put in linked lists */
 typedef struct localLink {
-  struct localLink *next, *prev;
+  localLink *next, *prev;
 } localLink;
 
 typedef struct localListBase {
@@ -108,7 +108,7 @@ typedef struct localListBase {
 typedef struct MemHead {
   int tag1;
   size_t len;
-  struct MemHead *next, *prev;
+  MemHead *next, *prev;
   const char *name;
   const char *nextname;
   int tag2;
@@ -129,6 +129,8 @@ typedef struct MemHead {
 #endif
 
 } MemHead;
+static_assert(MEM_MIN_CPP_ALIGNMENT <= alignof(MemHead), "Bad alignment of MemHead");
+static_assert(MEM_MIN_CPP_ALIGNMENT <= sizeof(MemHead), "Bad size of MemHead");
 
 typedef MemHead MemHeadAligned;
 
@@ -148,16 +150,16 @@ static void addtail(volatile localListBase *listbase, void *vlink);
 static void remlink(volatile localListBase *listbase, void *vlink);
 static void rem_memblock(MemHead *memh);
 static void MemorY_ErroR(const char *block, const char *error);
-static const char *check_memlist(MemHead *memh);
+static const char *check_memlist(const MemHead *memh);
 
 /* --------------------------------------------------------------------- */
 /* locally used defines                                                  */
 /* --------------------------------------------------------------------- */
 
 #ifdef __BIG_ENDIAN__
-#  define MAKE_ID(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))
+#  define MAKE_ID(a, b, c, d) (int(a) << 24 | int(b) << 16 | (c) << 8 | (d))
 #else
-#  define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
+#  define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
 #endif
 
 #define MEMTAG1 MAKE_ID('M', 'E', 'M', 'O')
@@ -176,7 +178,7 @@ static size_t mem_in_use = 0, peak_mem = 0;
 
 static volatile localListBase _membase;
 static volatile localListBase *membase = &_membase;
-static void (*error_callback)(const char *) = NULL;
+static void (*error_callback)(const char *) = nullptr;
 
 static bool malloc_debug_memset = false;
 
@@ -220,27 +222,27 @@ print_error(const char *str, ...)
 
 static pthread_mutex_t thread_lock = PTHREAD_MUTEX_INITIALIZER;
 
-static void mem_lock_thread(void)
+static void mem_lock_thread()
 {
   pthread_mutex_lock(&thread_lock);
 }
 
-static void mem_unlock_thread(void)
+static void mem_unlock_thread()
 {
   pthread_mutex_unlock(&thread_lock);
 }
 
-bool MEM_guarded_consistency_check(void)
+bool MEM_guarded_consistency_check()
 {
-  const char *err_val = NULL;
-  MemHead *listend;
+  const char *err_val = nullptr;
+  const MemHead *listend;
   /* check_memlist starts from the front, and runs until it finds
    * the requested chunk. For this test, that's the last one. */
-  listend = membase->last;
+  listend = static_cast<MemHead *>(membase->last);
 
   err_val = check_memlist(listend);
 
-  return (err_val == NULL);
+  return (err_val == nullptr);
 }
 
 void MEM_guarded_set_error_callback(void (*func)(const char *))
@@ -248,7 +250,7 @@ void MEM_guarded_set_error_callback(void (*func)(const char *))
   error_callback = func;
 }
 
-void MEM_guarded_set_memory_debug(void)
+void MEM_guarded_set_memory_debug()
 {
   malloc_debug_memset = true;
 }
@@ -256,7 +258,7 @@ void MEM_guarded_set_memory_debug(void)
 size_t MEM_guarded_allocN_len(const void *vmemh)
 {
   if (vmemh) {
-    const MemHead *memh = vmemh;
+    const MemHead *memh = static_cast<const MemHead *>(vmemh);
 
     memh--;
     return memh->len;
@@ -267,10 +269,10 @@ size_t MEM_guarded_allocN_len(const void *vmemh)
 
 void *MEM_guarded_dupallocN(const void *vmemh)
 {
-  void *newp = NULL;
+  void *newp = nullptr;
 
   if (vmemh) {
-    const MemHead *memh = vmemh;
+    const MemHead *memh = static_cast<const MemHead *>(vmemh);
     memh--;
 
 #ifndef DEBUG_MEMDUPLINAME
@@ -278,11 +280,11 @@ void *MEM_guarded_dupallocN(const void *vmemh)
       newp = MEM_guarded_mallocN(memh->len, "dupli_alloc");
     }
     else {
-      newp = MEM_guarded_mallocN_aligned(memh->len, (size_t)memh->alignment, "dupli_alloc");
+      newp = MEM_guarded_mallocN_aligned(memh->len, size_t(memh->alignment), "dupli_alloc");
     }
 
-    if (newp == NULL) {
-      return NULL;
+    if (newp == nullptr) {
+      return nullptr;
     }
 #else
     {
@@ -301,8 +303,8 @@ void *MEM_guarded_dupallocN(const void *vmemh)
         newp = MEM_guarded_mallocN_aligned(memh->len, (size_t)memh->alignment, name);
       }
 
-      if (newp == NULL)
-        return NULL;
+      if (newp == nullptr)
+        return nullptr;
 
       nmemh = newp;
       nmemh--;
@@ -319,17 +321,17 @@ void *MEM_guarded_dupallocN(const void *vmemh)
 
 void *MEM_guarded_reallocN_id(void *vmemh, size_t len, const char *str)
 {
-  void *newp = NULL;
+  void *newp = nullptr;
 
   if (vmemh) {
-    MemHead *memh = vmemh;
+    MemHead *memh = static_cast<MemHead *>(vmemh);
     memh--;
 
     if (LIKELY(memh->alignment == 0)) {
       newp = MEM_guarded_mallocN(len, memh->name);
     }
     else {
-      newp = MEM_guarded_mallocN_aligned(len, (size_t)memh->alignment, memh->name);
+      newp = MEM_guarded_mallocN_aligned(len, size_t(memh->alignment), memh->name);
     }
 
     if (newp) {
@@ -354,17 +356,17 @@ void *MEM_guarded_reallocN_id(void *vmemh, size_t len, const char *str)
 
 void *MEM_guarded_recallocN_id(void *vmemh, size_t len, const char *str)
 {
-  void *newp = NULL;
+  void *newp = nullptr;
 
   if (vmemh) {
-    MemHead *memh = vmemh;
+    MemHead *memh = static_cast<MemHead *>(vmemh);
     memh--;
 
     if (LIKELY(memh->alignment == 0)) {
       newp = MEM_guarded_mallocN(len, memh->name);
     }
     else {
-      newp = MEM_guarded_mallocN_aligned(len, (size_t)memh->alignment, memh->name);
+      newp = MEM_guarded_mallocN_aligned(len, size_t(memh->alignment), memh->name);
     }
 
     if (newp) {
@@ -418,7 +420,7 @@ static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 
   memh->tag1 = MEMTAG1;
   memh->name = str;
-  memh->nextname = NULL;
+  memh->nextname = nullptr;
   memh->len = len;
   memh->pad1 = 0;
   memh->alignment = 0;
@@ -486,7 +488,7 @@ void *MEM_guarded_mallocN(size_t len, const char *str)
               SIZET_ARG(len),
               str,
               mem_in_use);
-  return NULL;
+  return nullptr;
 }
 
 void *MEM_guarded_malloc_arrayN(size_t len, size_t size, const char *str)
@@ -501,7 +503,7 @@ void *MEM_guarded_malloc_arrayN(size_t len, size_t size, const char *str)
         str,
         mem_in_use);
     abort();
-    return NULL;
+    return nullptr;
   }
 
   return MEM_guarded_mallocN(total_size, str);
@@ -546,7 +548,7 @@ void *MEM_guarded_mallocN_aligned(size_t len, size_t alignment, const char *str)
     memh = (MemHead *)((char *)memh + extra_padding);
 
     make_memhead_header(memh, len, str);
-    memh->alignment = (short)alignment;
+    memh->alignment = short(alignment);
     if (LIKELY(len)) {
       if (UNLIKELY(malloc_debug_memset)) {
         memset(memh + 1, 255, len);
@@ -572,7 +574,7 @@ void *MEM_guarded_mallocN_aligned(size_t len, size_t alignment, const char *str)
               SIZET_ARG(len),
               str,
               mem_in_use);
-  return NULL;
+  return nullptr;
 }
 
 void *MEM_guarded_callocN(size_t len, const char *str)
@@ -596,7 +598,7 @@ void *MEM_guarded_callocN(size_t len, const char *str)
               SIZET_ARG(len),
               str,
               mem_in_use);
-  return NULL;
+  return nullptr;
 }
 
 void *MEM_guarded_calloc_arrayN(size_t len, size_t size, const char *str)
@@ -611,10 +613,40 @@ void *MEM_guarded_calloc_arrayN(size_t len, size_t size, const char *str)
         str,
         mem_in_use);
     abort();
-    return NULL;
+    return nullptr;
   }
 
   return MEM_guarded_callocN(total_size, str);
+}
+
+void *MEM_guarded_calloc_arrayN_aligned(const size_t len,
+                                        const size_t size,
+                                        const size_t alignment,
+                                        const char *str)
+{
+  size_t bytes_num;
+  if (UNLIKELY(!MEM_size_safe_multiply(len, size, &bytes_num))) {
+    print_error(
+        "Calloc array aborted due to integer overflow: "
+        "len=" SIZET_FORMAT "x" SIZET_FORMAT " in %s, total " SIZET_FORMAT "\n",
+        SIZET_ARG(len),
+        SIZET_ARG(size),
+        str,
+        mem_in_use);
+    abort();
+    return nullptr;
+  }
+  if (alignment <= MEM_MIN_CPP_ALIGNMENT) {
+    return MEM_callocN(bytes_num, str);
+  }
+  /* There is no lower level #calloc with an alignment parameter, so we have to fallback to using
+   * #memset unfortunately. */
+  void *ptr = MEM_mallocN_aligned(bytes_num, alignment, str);
+  if (!ptr) {
+    return nullptr;
+  }
+  memset(ptr, 0, bytes_num);
+  return ptr;
 }
 
 /* Memory statistics print */
@@ -647,7 +679,7 @@ static int compare_len(const void *p1, const void *p2)
   return -1;
 }
 
-void MEM_guarded_printmemlist_stats(void)
+void MEM_guarded_printmemlist_stats()
 {
   MemHead *membl;
   MemPrintBlock *pb, *printblock;
@@ -658,7 +690,7 @@ void MEM_guarded_printmemlist_stats(void)
 
   if (totblock != 0) {
     /* put memory blocks into array */
-    printblock = malloc(sizeof(MemPrintBlock) * totblock);
+    printblock = static_cast<MemPrintBlock *>(malloc(sizeof(MemPrintBlock) * totblock));
 
     if (UNLIKELY(!printblock)) {
       mem_unlock_thread();
@@ -667,13 +699,13 @@ void MEM_guarded_printmemlist_stats(void)
     }
   }
   else {
-    printblock = NULL;
+    printblock = nullptr;
   }
 
   pb = printblock;
   totpb = 0;
 
-  membl = membase->first;
+  membl = static_cast<MemHead *>(membase->first);
   if (membl) {
     membl = MEMNEXT(membl);
   }
@@ -726,19 +758,19 @@ void MEM_guarded_printmemlist_stats(void)
     qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
   }
 
-  printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use / (double)(1024 * 1024));
-  printf("peak memory len: %.3f MB\n", (double)peak_mem / (double)(1024 * 1024));
-  printf("slop memory len: %.3f MB\n", (double)mem_in_use_slop / (double)(1024 * 1024));
+  printf("\ntotal memory len: %.3f MB\n", double(mem_in_use) / double(1024 * 1024));
+  printf("peak memory len: %.3f MB\n", double(peak_mem) / double(1024 * 1024));
+  printf("slop memory len: %.3f MB\n", double(mem_in_use_slop) / double(1024 * 1024));
   printf(" ITEMS TOTAL-MiB AVERAGE-KiB TYPE\n");
   for (a = 0, pb = printblock; a < totpb; a++, pb++) {
     printf("%6d (%8.3f  %8.3f) %s\n",
            pb->items,
-           (double)pb->len / (double)(1024 * 1024),
-           (double)pb->len / 1024.0 / (double)pb->items,
+           double(pb->len) / double(1024 * 1024),
+           double(pb->len) / 1024.0 / double(pb->items),
            pb->name);
   }
 
-  if (printblock != NULL) {
+  if (printblock != nullptr) {
     free(printblock);
   }
 
@@ -777,7 +809,7 @@ static void MEM_guarded_printmemlist_internal(int pydict)
 
   mem_lock_thread();
 
-  membl = membase->first;
+  membl = static_cast<MemHead *>(membase->first);
   if (membl) {
     membl = MEMNEXT(membl);
   }
@@ -837,7 +869,7 @@ void MEM_guarded_callbackmemlist(void (*func)(void *))
 
   mem_lock_thread();
 
-  membl = membase->first;
+  membl = static_cast<MemHead *>(membase->first);
   if (membl) {
     membl = MEMNEXT(membl);
   }
@@ -885,39 +917,39 @@ short MEM_guarded_testN(void *vmemh)
 }
 #endif
 
-void MEM_guarded_printmemlist(void)
+void MEM_guarded_printmemlist()
 {
   MEM_guarded_printmemlist_internal(0);
 }
-void MEM_guarded_printmemlist_pydict(void)
+void MEM_guarded_printmemlist_pydict()
 {
   MEM_guarded_printmemlist_internal(1);
 }
-void mem_guarded_clearmemlist(void)
+void mem_guarded_clearmemlist()
 {
-  membase->first = membase->last = NULL;
+  membase->first = membase->last = nullptr;
 }
 
 void MEM_guarded_freeN(void *vmemh)
 {
   MemTail *memt;
-  MemHead *memh = vmemh;
+  MemHead *memh = static_cast<MemHead *>(vmemh);
   const char *name;
 
-  if (memh == NULL) {
-    MemorY_ErroR("free", "attempt to free NULL pointer");
+  if (memh == nullptr) {
+    MemorY_ErroR("free", "attempt to free nullptr pointer");
     // print_error(err_stream, "%d\n", (memh+4000)->tag1);
     return;
   }
 
   if (sizeof(intptr_t) == 8) {
-    if (((intptr_t)memh) & 0x7) {
+    if (intptr_t(memh) & 0x7) {
       MemorY_ErroR("free", "attempt to free illegal pointer");
       return;
     }
   }
   else {
-    if (((intptr_t)memh) & 0x3) {
+    if (intptr_t(memh) & 0x3) {
       MemorY_ErroR("free", "attempt to free illegal pointer");
       return;
     }
@@ -947,7 +979,7 @@ void MEM_guarded_freeN(void *vmemh)
     }
     MemorY_ErroR(memh->name, "end corrupt");
     name = check_memlist(memh);
-    if (name != NULL) {
+    if (name != nullptr) {
       if (name != memh->name) {
         MemorY_ErroR(name, "is also corrupt");
       }
@@ -957,7 +989,7 @@ void MEM_guarded_freeN(void *vmemh)
     mem_lock_thread();
     name = check_memlist(memh);
     mem_unlock_thread();
-    if (name == NULL) {
+    if (name == nullptr) {
       MemorY_ErroR("free", "pointer not in memlist");
     }
     else {
@@ -975,24 +1007,24 @@ void MEM_guarded_freeN(void *vmemh)
 
 static void addtail(volatile localListBase *listbase, void *vlink)
 {
-  localLink *link = vlink;
+  localLink *link = static_cast<localLink *>(vlink);
 
   /* for a generic API error checks here is fine but
-   * the limited use here they will never be NULL */
+   * the limited use here they will never be nullptr */
 #if 0
-  if (link == NULL)
+  if (link == nullptr)
     return;
-  if (listbase == NULL)
+  if (listbase == nullptr)
     return;
 #endif
 
-  link->next = NULL;
-  link->prev = listbase->last;
+  link->next = nullptr;
+  link->prev = static_cast<localLink *>(listbase->last);
 
   if (listbase->last) {
     ((localLink *)listbase->last)->next = link;
   }
-  if (listbase->first == NULL) {
+  if (listbase->first == nullptr) {
     listbase->first = link;
   }
   listbase->last = link;
@@ -1000,14 +1032,14 @@ static void addtail(volatile localListBase *listbase, void *vlink)
 
 static void remlink(volatile localListBase *listbase, void *vlink)
 {
-  localLink *link = vlink;
+  localLink *link = static_cast<localLink *>(vlink);
 
   /* for a generic API error checks here is fine but
-   * the limited use here they will never be NULL */
+   * the limited use here they will never be nullptr */
 #if 0
-  if (link == NULL)
+  if (link == nullptr)
     return;
-  if (listbase == NULL)
+  if (listbase == nullptr)
     return;
 #endif
 
@@ -1035,7 +1067,7 @@ static void rem_memblock(MemHead *memh)
       MEMNEXT(memh->prev)->nextname = MEMNEXT(memh->next)->name;
     }
     else {
-      MEMNEXT(memh->prev)->nextname = NULL;
+      MEMNEXT(memh->prev)->nextname = nullptr;
     }
   }
   mem_unlock_thread();
@@ -1068,16 +1100,16 @@ static void MemorY_ErroR(const char *block, const char *error)
 #endif
 }
 
-static const char *check_memlist(MemHead *memh)
+static const char *check_memlist(const MemHead *memh)
 {
   MemHead *forw, *back, *forwok, *backok;
   const char *name;
 
-  forw = membase->first;
+  forw = static_cast<MemHead *>(membase->first);
   if (forw) {
     forw = MEMNEXT(forw);
   }
-  forwok = NULL;
+  forwok = nullptr;
   while (forw) {
     if (forw->tag1 != MEMTAG1 || forw->tag2 != MEMTAG2) {
       break;
@@ -1087,7 +1119,7 @@ static const char *check_memlist(MemHead *memh)
       forw = MEMNEXT(forw->next);
     }
     else {
-      forw = NULL;
+      forw = nullptr;
     }
   }
 
@@ -1095,7 +1127,7 @@ static const char *check_memlist(MemHead *memh)
   if (back) {
     back = MEMNEXT(back);
   }
-  backok = NULL;
+  backok = nullptr;
   while (back) {
     if (back->tag1 != MEMTAG1 || back->tag2 != MEMTAG2) {
       break;
@@ -1105,7 +1137,7 @@ static const char *check_memlist(MemHead *memh)
       back = MEMNEXT(back->prev);
     }
     else {
-      back = NULL;
+      back = nullptr;
     }
   }
 
@@ -1113,14 +1145,14 @@ static const char *check_memlist(MemHead *memh)
     return ("MORE THAN 1 MEMORYBLOCK CORRUPT");
   }
 
-  if (forw == NULL && back == NULL) {
+  if (forw == nullptr && back == nullptr) {
     /* no wrong headers found then but in search of memblock */
 
-    forw = membase->first;
+    forw = static_cast<MemHead *>(membase->first);
     if (forw) {
       forw = MEMNEXT(forw);
     }
-    forwok = NULL;
+    forwok = nullptr;
     while (forw) {
       if (forw == memh) {
         break;
@@ -1133,18 +1165,18 @@ static const char *check_memlist(MemHead *memh)
         forw = MEMNEXT(forw->next);
       }
       else {
-        forw = NULL;
+        forw = nullptr;
       }
     }
-    if (forw == NULL) {
-      return NULL;
+    if (forw == nullptr) {
+      return nullptr;
     }
 
     back = (MemHead *)membase->last;
     if (back) {
       back = MEMNEXT(back);
     }
-    backok = NULL;
+    backok = nullptr;
     while (back) {
       if (back == memh) {
         break;
@@ -1157,7 +1189,7 @@ static const char *check_memlist(MemHead *memh)
         back = MEMNEXT(back->prev);
       }
       else {
-        back = NULL;
+        back = nullptr;
       }
     }
   }
@@ -1178,17 +1210,17 @@ static const char *check_memlist(MemHead *memh)
         forwok->nextname = backok->name;
       }
       else {
-        forwok->next = NULL;
+        forwok->next = nullptr;
         membase->last = (localLink *)&forwok->next;
       }
     }
     else {
       if (backok) {
-        backok->prev = NULL;
+        backok->prev = nullptr;
         membase->first = &backok->next;
       }
       else {
-        membase->first = membase->last = NULL;
+        membase->first = membase->last = nullptr;
       }
     }
   }
@@ -1200,7 +1232,7 @@ static const char *check_memlist(MemHead *memh)
   return name;
 }
 
-size_t MEM_guarded_get_peak_memory(void)
+size_t MEM_guarded_get_peak_memory()
 {
   size_t _peak_mem;
 
@@ -1211,14 +1243,14 @@ size_t MEM_guarded_get_peak_memory(void)
   return _peak_mem;
 }
 
-void MEM_guarded_reset_peak_memory(void)
+void MEM_guarded_reset_peak_memory()
 {
   mem_lock_thread();
   peak_mem = mem_in_use;
   mem_unlock_thread();
 }
 
-size_t MEM_guarded_get_memory_in_use(void)
+size_t MEM_guarded_get_memory_in_use()
 {
   size_t _mem_in_use;
 
@@ -1229,7 +1261,7 @@ size_t MEM_guarded_get_memory_in_use(void)
   return _mem_in_use;
 }
 
-uint MEM_guarded_get_memory_blocks_in_use(void)
+uint MEM_guarded_get_memory_blocks_in_use()
 {
   uint _totblock;
 
@@ -1244,12 +1276,12 @@ uint MEM_guarded_get_memory_blocks_in_use(void)
 const char *MEM_guarded_name_ptr(void *vmemh)
 {
   if (vmemh) {
-    MemHead *memh = vmemh;
+    MemHead *memh = static_cast<MemHead *>(vmemh);
     memh--;
     return memh->name;
   }
 
-  return "MEM_guarded_name_ptr(NULL)";
+  return "MEM_guarded_name_ptr(nullptr)";
 }
 
 void MEM_guarded_name_ptr_set(void *vmemh, const char *str)
@@ -1258,7 +1290,7 @@ void MEM_guarded_name_ptr_set(void *vmemh, const char *str)
     return;
   }
 
-  MemHead *memh = vmemh;
+  MemHead *memh = static_cast<MemHead *>(vmemh);
   memh--;
   memh->name = str;
   if (memh->prev) {

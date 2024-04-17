@@ -328,6 +328,11 @@ static void vicon_keytype_moving_hold_draw(int x, int y, int w, int h, float alp
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_MOVEHOLD, KEYFRAME_HANDLE_NONE);
 }
 
+static void vicon_keytype_generated_draw(int x, int y, int w, int h, float alpha)
+{
+  vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_GENERATED, KEYFRAME_HANDLE_NONE);
+}
+
 static void vicon_handletype_free_draw(int x, int y, int w, int h, float alpha)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_FREE);
@@ -1120,6 +1125,7 @@ static void init_internal_icons()
   def_internal_vicon(ICON_KEYTYPE_EXTREME_VEC, vicon_keytype_extreme_draw);
   def_internal_vicon(ICON_KEYTYPE_JITTER_VEC, vicon_keytype_jitter_draw);
   def_internal_vicon(ICON_KEYTYPE_MOVING_HOLD_VEC, vicon_keytype_moving_hold_draw);
+  def_internal_vicon(ICON_KEYTYPE_GENERATED_VEC, vicon_keytype_generated_draw);
 
   def_internal_vicon(ICON_HANDLETYPE_FREE_VEC, vicon_handletype_free_draw);
   def_internal_vicon(ICON_HANDLETYPE_ALIGNED_VEC, vicon_handletype_aligned_draw);

@@ -58,7 +58,7 @@ static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 
 #  include "BKE_global.hh"
 #  include "BKE_screen.hh"
-#  include "BKE_workspace.h"
+#  include "BKE_workspace.hh"
 
 #  include "DEG_depsgraph.hh"
 

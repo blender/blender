@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -464,6 +464,14 @@ msgstr "Polkutyypit"
 
 msgid "Around Frame"
 msgstr "Kehyksen ympärillä"
+
+
+msgid "Mix Mode"
+msgstr "Sekoitustila"
+
+
+msgid "Offset"
+msgstr "Siirros"
 
 
 msgid "Any Type"
@@ -2138,6 +2146,7 @@ msgid "Curve Strength"
 msgstr "Käyrän vahvuus"
 
 
+msgctxt "GPencil"
 msgid "Stroke"
 msgstr "Piirto"
 
@@ -2322,6 +2331,10 @@ msgid "Mode Type"
 msgstr "Tilatyyppi"
 
 
+msgid "Stroke"
+msgstr "Piirto"
+
+
 msgid "Stroke & Fill"
 msgstr "Piirrä & täytä"
 
@@ -2431,10 +2444,6 @@ msgstr "Kuva"
 
 msgid "Image User"
 msgstr "Kuvan käyttäjä"
-
-
-msgid "Offset"
-msgstr "Siirros"
 
 
 msgid "Rotation"
@@ -2784,10 +2793,6 @@ msgstr "Maksimi"
 
 msgid "Minimum"
 msgstr "Minimi"
-
-
-msgid "Mix Mode"
-msgstr "Sekoitustila"
 
 
 msgid "Target object"
@@ -4194,10 +4199,6 @@ msgid "MPEG-4 (divx)"
 msgstr "MPEG-4 (divx)"
 
 
-msgid "QT rle / QT Animation"
-msgstr "QT rle / QT Animation"
-
-
 msgid "Theora"
 msgstr "Theora"
 
@@ -4389,6 +4390,10 @@ msgid "Z Direction"
 msgstr "Z-suunta"
 
 
+msgid "Animations"
+msgstr "Animaatiot"
+
+
 msgid "Show Armature data-blocks"
 msgstr "Näytä luurangon data-palikat"
 
@@ -4531,10 +4536,6 @@ msgstr "Näytä maailman data-palikat"
 
 msgid "Save"
 msgstr "Tallenna"
-
-
-msgid "Animations"
-msgstr "Animaatiot"
 
 
 msgid "Environment"
@@ -4693,6 +4694,10 @@ msgid "World"
 msgstr "Maailma"
 
 
+msgid "Layers"
+msgstr "Tasot"
+
+
 msgid "Push"
 msgstr "Työnnä"
 
@@ -4707,10 +4712,6 @@ msgstr "Polku"
 
 msgid "Normals"
 msgstr "Normaalit"
-
-
-msgid "Layers"
-msgstr "Tasot"
 
 
 msgid "Corner"
@@ -5379,10 +5380,6 @@ msgstr "Suhteellinen X-koko"
 
 msgid "Relative Size Y"
 msgstr "Suhteellinen Y-koko"
-
-
-msgid "Limit Channel"
-msgstr "Rajoita kanava"
 
 
 msgid "Algorithm"
@@ -6683,6 +6680,11 @@ msgid "Only Channel"
 msgstr "Vain kanava"
 
 
+msgctxt "Operator"
+msgid "Export"
+msgstr "Vie"
+
+
 msgid "Output A"
 msgstr "A-tuloste"
 
@@ -7021,6 +7023,11 @@ msgid "Delete active frame"
 msgstr "Poista aktiivinen kehys"
 
 
+msgctxt "GPencil"
+msgid "Type"
+msgstr "Tyyppi"
+
+
 msgid "All Frames"
 msgstr "Kaikki kehykset"
 
@@ -7039,11 +7046,6 @@ msgstr "Automaattiset painot"
 
 msgid "Point Size"
 msgstr "Pistekoko"
-
-
-msgctxt "GPencil"
-msgid "Type"
-msgstr "Tyyppi"
 
 
 msgctxt "GPencil"
@@ -7764,11 +7766,6 @@ msgid "Solid"
 msgstr "Kiinteä"
 
 
-msgctxt "Operator"
-msgid "Export"
-msgstr "Vie"
-
-
 msgid "Result"
 msgstr "Tulos"
 
@@ -7830,20 +7827,16 @@ msgid "No camera found"
 msgstr "Kameraa ei löydetty"
 
 
-msgid "Shortcuts"
-msgstr "Pikanäppäimet"
-
-
-msgid "Spacebar"
-msgstr "Välilyönti"
-
-
 msgid "Bug"
 msgstr "Bugi"
 
 
 msgid "After"
 msgstr "Jälkeen"
+
+
+msgid "Before"
+msgstr "Ennen"
 
 
 msgid "Order"
@@ -7876,10 +7869,6 @@ msgstr "Ei sarjaa"
 
 msgid "Offset X"
 msgstr "X-siirros"
-
-
-msgid "Before"
-msgstr "Ennen"
 
 
 msgid "No layers to add"
@@ -9361,11 +9350,6 @@ msgid "Suzanne"
 msgstr "Suzanne"
 
 
-msgctxt "GPencil"
-msgid "Stroke"
-msgstr "Piirto"
-
-
 msgid "To Active Bone"
 msgstr "Aktiiviseen luuhun"
 
@@ -10391,10 +10375,6 @@ msgstr "Piste"
 
 msgid "Degr"
 msgstr "Aste"
-
-
-msgid "Speed:"
-msgstr "Nopeus:"
 
 
 msgid "Rotate By"

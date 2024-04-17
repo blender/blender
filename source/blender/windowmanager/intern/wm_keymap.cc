@@ -34,7 +34,7 @@
 #include "BKE_idprop.hh"
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "BLT_translation.hh"
 

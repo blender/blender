@@ -479,7 +479,7 @@ void extract_normalized_words(StringRef str,
   }
 }
 
-void StringSearchBase::add_impl(const StringRef str, void *user_data, const int weight)
+void StringSearchBase::add_impl(const StringRef str, void *user_data, const float weight)
 {
   Vector<StringRef, 64> words;
   Vector<int, 64> word_group_ids;

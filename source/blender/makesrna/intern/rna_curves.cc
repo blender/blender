@@ -109,7 +109,7 @@ static void rna_Curves_curve_offset_data_begin(CollectionPropertyIterator *iter,
                            nullptr);
 }
 
-static int rna_Curves_curve_offset_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+static bool rna_Curves_curve_offset_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   Curves *curves = rna_curves(ptr);
   if (index < 0 || index >= curves->geometry.curve_num + 1) {
@@ -156,7 +156,7 @@ static int rna_Curves_curves_length(PointerRNA *ptr)
   return curves->geometry.curve_num;
 }
 
-static int rna_Curves_curves_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+static bool rna_Curves_curves_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   Curves *curves = rna_curves(ptr);
   if (index < 0 || index >= curves->geometry.curve_num) {
@@ -174,7 +174,7 @@ static int rna_Curves_position_data_length(PointerRNA *ptr)
   return curves->geometry.point_num;
 }
 
-int rna_Curves_position_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_Curves_position_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   Curves *curves = rna_curves(ptr);
   if (index < 0 || index >= curves->geometry.point_num) {
@@ -240,7 +240,7 @@ static std::optional<std::string> rna_CurvePoint_path(const PointerRNA *ptr)
   return fmt::format("points[{}]", rna_CurvePoint_index_get_const(ptr));
 }
 
-int rna_Curves_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_Curves_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   Curves *curves = rna_curves(ptr);
   if (index < 0 || index >= curves->geometry.point_num) {

@@ -39,7 +39,7 @@
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_wm_runtime.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "RE_engine.h"
 
@@ -546,7 +546,7 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
   memset(&lb, 0, sizeof(lb));
 
   if (use_rna) {
-    char name[256], *nameptr;
+    char name_buf[256], *name;
     int namelen;
 
     PropertyRNA *iterprop;
@@ -555,12 +555,10 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
     iterprop = RNA_struct_iterator_property(ctx_ptr.type);
 
     RNA_PROP_BEGIN (&ctx_ptr, itemptr, iterprop) {
-      nameptr = RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &namelen);
+      name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), &namelen);
       data_dir_add(&lb, name, use_all);
-      if (nameptr) {
-        if (name != nameptr) {
-          MEM_freeN(nameptr);
-        }
+      if (name != name_buf) {
+        MEM_freeN(name);
       }
     }
     RNA_PROP_END;

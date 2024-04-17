@@ -121,12 +121,6 @@ struct SculptOrigFaceData {
   int face_set;
 };
 
-/* Flood Fill. */
-struct SculptFloodFill {
-  std::queue<PBVHVertRef> queue;
-  blender::BitVector<> visited_verts;
-};
-
 enum eBoundaryAutomaskMode {
   AUTOMASK_INIT_BOUNDARY_EDGES = 1,
   AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
@@ -578,7 +572,7 @@ struct Cache {
 
   /* Indexed by vertex index, precalculated falloff value of that vertex (without any falloff
    * editing modification applied). */
-  float *vert_falloff;
+  Array<float> vert_falloff;
   /* Max falloff value in *vert_falloff. */
   float max_vert_falloff;
 
@@ -1175,20 +1169,22 @@ void SCULPT_tilt_effective_normal_get(const SculptSession *ss, const Brush *brus
 
 namespace blender::ed::sculpt_paint::flood_fill {
 
-void init_fill(SculptSession *ss, SculptFloodFill *flood);
-void add_active(Object *ob, SculptSession *ss, SculptFloodFill *flood, float radius);
+struct FillData {
+  std::queue<PBVHVertRef> queue;
+  blender::BitVector<> visited_verts;
+};
+
+void init_fill(SculptSession *ss, FillData *flood);
+void add_active(Object *ob, SculptSession *ss, FillData *flood, float radius);
 void add_initial_with_symmetry(
-    Object *ob, SculptSession *ss, SculptFloodFill *flood, PBVHVertRef vertex, float radius);
-void add_initial(SculptFloodFill *flood, PBVHVertRef vertex);
-void add_and_skip_initial(SculptFloodFill *flood, PBVHVertRef vertex);
-void execute(SculptSession *ss,
-             SculptFloodFill *flood,
-             bool (*func)(SculptSession *ss,
-                          PBVHVertRef from_v,
-                          PBVHVertRef to_v,
-                          bool is_duplicate,
-                          void *userdata),
-             void *userdata);
+    Object *ob, SculptSession *ss, FillData *flood, PBVHVertRef vertex, float radius);
+void add_initial(FillData *flood, PBVHVertRef vertex);
+void add_and_skip_initial(FillData *flood, PBVHVertRef vertex);
+void execute(
+    SculptSession *ss,
+    FillData *flood,
+    FunctionRef<bool(SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)>
+        func);
 
 }
 
@@ -1362,8 +1358,10 @@ namespace blender::ed::sculpt_paint::geodesic {
  * Geodesic distances will only work when used with PBVH_FACES, for other types of PBVH it will
  * fallback to euclidean distances to one of the initial vertices in the set.
  */
-float *distances_create(Object *ob, GSet *initial_verts, float limit_radius);
-float *distances_create_from_vert_and_symm(Object *ob, PBVHVertRef vertex, float limit_radius);
+Array<float> distances_create(Object *ob, const Set<int> &initial_verts, float limit_radius);
+Array<float> distances_create_from_vert_and_symm(Object *ob,
+                                                 PBVHVertRef vertex,
+                                                 float limit_radius);
 
 }
 

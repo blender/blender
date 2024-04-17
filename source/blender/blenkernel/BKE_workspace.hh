@@ -10,19 +10,18 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Main;
 struct bScreen;
 struct bToolRef;
+struct WorkSpace;
+struct WorkSpaceInstanceHook;
+struct WorkSpaceLayout;
 
 /* -------------------------------------------------------------------- */
 /** \name Create, Delete, Initialize
  * \{ */
 
-struct WorkSpace *BKE_workspace_add(struct Main *bmain, const char *name);
+WorkSpace *BKE_workspace_add(Main *bmain, const char *name);
 /**
  * Remove \a workspace by freeing itself and its data. This is a higher-level wrapper that
  * calls #workspace_free_data (through #BKE_id_free) to free the workspace data, and frees
@@ -30,23 +29,20 @@ struct WorkSpace *BKE_workspace_add(struct Main *bmain, const char *name);
  *
  * Always use this to remove (and free) workspaces. Don't free non-ID workspace members here.
  */
-void BKE_workspace_remove(struct Main *bmain, struct WorkSpace *workspace);
+void BKE_workspace_remove(Main *bmain, WorkSpace *workspace);
 
-struct WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const struct Main *bmain,
-                                                                 int winid);
-void BKE_workspace_instance_hook_free(const struct Main *bmain,
-                                      struct WorkSpaceInstanceHook *hook);
+WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const Main *bmain, int winid);
+void BKE_workspace_instance_hook_free(const Main *bmain, WorkSpaceInstanceHook *hook);
 
 /**
  * Add a new layout to \a workspace for \a screen.
  */
-struct WorkSpaceLayout *BKE_workspace_layout_add(struct Main *bmain,
-                                                 struct WorkSpace *workspace,
-                                                 struct bScreen *screen,
-                                                 const char *name) ATTR_NONNULL();
-void BKE_workspace_layout_remove(struct Main *bmain,
-                                 struct WorkSpace *workspace,
-                                 struct WorkSpaceLayout *layout) ATTR_NONNULL();
+WorkSpaceLayout *BKE_workspace_layout_add(Main *bmain,
+                                          WorkSpace *workspace,
+                                          bScreen *screen,
+                                          const char *name) ATTR_NONNULL();
+void BKE_workspace_layout_remove(Main *bmain, WorkSpace *workspace, WorkSpaceLayout *layout)
+    ATTR_NONNULL();
 
 void BKE_workspace_relations_free(ListBase *relation_list);
 
@@ -56,8 +52,7 @@ void BKE_workspace_relations_free(ListBase *relation_list);
 /** \name General Utilities
  * \{ */
 
-struct WorkSpaceLayout *BKE_workspace_layout_find(const struct WorkSpace *workspace,
-                                                  const struct bScreen *screen)
+WorkSpaceLayout *BKE_workspace_layout_find(const WorkSpace *workspace, const bScreen *screen)
     ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 /**
  * Find the layout for \a screen without knowing which workspace to look in.
@@ -66,10 +61,9 @@ struct WorkSpaceLayout *BKE_workspace_layout_find(const struct WorkSpace *worksp
  * \param r_workspace: Optionally return the workspace that contains the
  * looked up layout (if found).
  */
-struct WorkSpaceLayout *BKE_workspace_layout_find_global(const struct Main *bmain,
-                                                         const struct bScreen *screen,
-                                                         struct WorkSpace **r_workspace)
-    ATTR_NONNULL(1, 2);
+WorkSpaceLayout *BKE_workspace_layout_find_global(const Main *bmain,
+                                                  const bScreen *screen,
+                                                  WorkSpace **r_workspace) ATTR_NONNULL(1, 2);
 
 /**
  * Circular workspace layout iterator.
@@ -80,15 +74,14 @@ struct WorkSpaceLayout *BKE_workspace_layout_find_global(const struct Main *bmai
  *
  * \return the layout at which \a callback returned false.
  */
-struct WorkSpaceLayout *BKE_workspace_layout_iter_circular(
-    const struct WorkSpace *workspace,
-    struct WorkSpaceLayout *start,
-    bool (*callback)(const struct WorkSpaceLayout *layout, void *arg),
-    void *arg,
-    bool iter_backward);
+WorkSpaceLayout *BKE_workspace_layout_iter_circular(const WorkSpace *workspace,
+                                                    WorkSpaceLayout *start,
+                                                    bool (*callback)(const WorkSpaceLayout *layout,
+                                                                     void *arg),
+                                                    void *arg,
+                                                    bool iter_backward);
 
-void BKE_workspace_tool_remove(struct WorkSpace *workspace, struct bToolRef *tref)
-    ATTR_NONNULL(1, 2);
+void BKE_workspace_tool_remove(WorkSpace *workspace, bToolRef *tref) ATTR_NONNULL(1, 2);
 
 /**
  * Replace tools ID's, intended for use in versioning code.
@@ -100,7 +93,7 @@ void BKE_workspace_tool_remove(struct WorkSpace *workspace, struct bToolRef *tre
  * \param replace_table: An array of (source, destination) pairs.
  * \param replace_table_num: The number of items in `replace_table`.
  */
-void BKE_workspace_tool_id_replace_table(struct WorkSpace *workspace,
+void BKE_workspace_tool_id_replace_table(WorkSpace *workspace,
                                          const int space_type,
                                          const int mode,
                                          const char *idname_prefix_skip,
@@ -116,15 +109,13 @@ void BKE_workspace_tool_id_replace_table(struct WorkSpace *workspace,
 #define GETTER_ATTRS ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT
 #define SETTER_ATTRS ATTR_NONNULL(1)
 
-struct WorkSpace *BKE_workspace_active_get(struct WorkSpaceInstanceHook *hook) GETTER_ATTRS;
-void BKE_workspace_active_set(struct WorkSpaceInstanceHook *hook,
-                              struct WorkSpace *workspace) SETTER_ATTRS;
+WorkSpace *BKE_workspace_active_get(WorkSpaceInstanceHook *hook) GETTER_ATTRS;
+void BKE_workspace_active_set(WorkSpaceInstanceHook *hook, WorkSpace *workspace) SETTER_ATTRS;
 /**
  * Get the layout that is active for \a hook (which is the visible layout for the active workspace
  * in \a hook).
  */
-struct WorkSpaceLayout *BKE_workspace_active_layout_get(const struct WorkSpaceInstanceHook *hook)
-    GETTER_ATTRS;
+WorkSpaceLayout *BKE_workspace_active_layout_get(const WorkSpaceInstanceHook *hook) GETTER_ATTRS;
 /**
  * \brief Activate a layout
  *
@@ -136,39 +127,33 @@ struct WorkSpaceLayout *BKE_workspace_active_layout_get(const struct WorkSpaceIn
  *
  * #WorkSpaceInstanceHook.act_layout should only be modified directly to update the layout pointer.
  */
-void BKE_workspace_active_layout_set(struct WorkSpaceInstanceHook *hook,
+void BKE_workspace_active_layout_set(WorkSpaceInstanceHook *hook,
                                      int winid,
-                                     struct WorkSpace *workspace,
-                                     struct WorkSpaceLayout *layout) SETTER_ATTRS;
-struct bScreen *BKE_workspace_active_screen_get(const struct WorkSpaceInstanceHook *hook)
-    GETTER_ATTRS;
-void BKE_workspace_active_screen_set(struct WorkSpaceInstanceHook *hook,
+                                     WorkSpace *workspace,
+                                     WorkSpaceLayout *layout) SETTER_ATTRS;
+bScreen *BKE_workspace_active_screen_get(const WorkSpaceInstanceHook *hook) GETTER_ATTRS;
+void BKE_workspace_active_screen_set(WorkSpaceInstanceHook *hook,
                                      int winid,
-                                     struct WorkSpace *workspace,
-                                     struct bScreen *screen) SETTER_ATTRS;
+                                     WorkSpace *workspace,
+                                     bScreen *screen) SETTER_ATTRS;
 
-const char *BKE_workspace_layout_name_get(const struct WorkSpaceLayout *layout) GETTER_ATTRS;
-void BKE_workspace_layout_name_set(struct WorkSpace *workspace,
-                                   struct WorkSpaceLayout *layout,
+const char *BKE_workspace_layout_name_get(const WorkSpaceLayout *layout) GETTER_ATTRS;
+void BKE_workspace_layout_name_set(WorkSpace *workspace,
+                                   WorkSpaceLayout *layout,
                                    const char *new_name) ATTR_NONNULL();
-struct bScreen *BKE_workspace_layout_screen_get(const struct WorkSpaceLayout *layout) GETTER_ATTRS;
+bScreen *BKE_workspace_layout_screen_get(const WorkSpaceLayout *layout) GETTER_ATTRS;
 
 /**
  * Get the layout to be activated should \a workspace become or be the active workspace in \a hook.
  */
-struct WorkSpaceLayout *BKE_workspace_active_layout_for_workspace_get(
-    const struct WorkSpaceInstanceHook *hook, const struct WorkSpace *workspace) GETTER_ATTRS;
+WorkSpaceLayout *BKE_workspace_active_layout_for_workspace_get(
+    const WorkSpaceInstanceHook *hook, const WorkSpace *workspace) GETTER_ATTRS;
 
-bool BKE_workspace_owner_id_check(const struct WorkSpace *workspace, const char *owner_id)
-    ATTR_NONNULL();
+bool BKE_workspace_owner_id_check(const WorkSpace *workspace, const char *owner_id) ATTR_NONNULL();
 
-void BKE_workspace_id_tag_all_visible(struct Main *bmain, int tag) ATTR_NONNULL();
+void BKE_workspace_id_tag_all_visible(Main *bmain, int tag) ATTR_NONNULL();
 
 #undef GETTER_ATTRS
 #undef SETTER_ATTRS
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

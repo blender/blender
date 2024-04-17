@@ -47,7 +47,6 @@ namespace blender {
  * have enough bits to make collisions practically impossible.
  */
 struct ComputeContextHash {
-  static constexpr int64_t HashSizeInBytes = 16;
   uint64_t v1 = 0;
   uint64_t v2 = 0;
 
@@ -62,8 +61,6 @@ struct ComputeContextHash {
 
   friend std::ostream &operator<<(std::ostream &stream, const ComputeContextHash &hash);
 };
-
-static_assert(sizeof(ComputeContextHash) == ComputeContextHash::HashSizeInBytes);
 
 /**
  * Identifies the context in which a computation happens. This context can be used to identify

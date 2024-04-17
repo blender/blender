@@ -241,7 +241,7 @@ static void icon_merge_context_init(IconMergeContext *context)
  * Is used to check whether icon is re-defined, and to provide useful information about which
  * files are conflicting. */
 static IconInfo *icon_merge_context_info_for_icon_head(IconMergeContext *context,
-                                                       IconHead *icon_head)
+                                                       const IconHead *icon_head)
 {
   if (context->read_icons == nullptr) {
     return nullptr;

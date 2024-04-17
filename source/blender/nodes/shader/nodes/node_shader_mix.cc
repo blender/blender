@@ -45,34 +45,43 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .no_muted_links();
+      .no_muted_links()
+      .description("Amount of mixing between the A and B inputs");
   b.add_input<decl::Vector>("Factor", "Factor_Vector")
       .default_value(float3(0.5f))
       .subtype(PROP_FACTOR)
-      .no_muted_links();
+      .no_muted_links()
+      .description("Amount of mixing between the A and B vector inputs");
 
   b.add_input<decl::Float>("A", "A_Float")
       .min(-10000.0f)
       .max(10000.0f)
       .is_default_link_socket()
-      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
+      .description("Value of the first floating number input");
   b.add_input<decl::Float>("B", "B_Float")
       .min(-10000.0f)
       .max(10000.0f)
-      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
+      .description("Value of the second floating number input");
 
   b.add_input<decl::Vector>("A", "A_Vector")
       .is_default_link_socket()
-      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
-  b.add_input<decl::Vector>("B", "B_Vector").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
+      .description("Value of the first vector input");
+  b.add_input<decl::Vector>("B", "B_Vector")
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
+      .description("Value of the second vector input");
 
   b.add_input<decl::Color>("A", "A_Color")
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
       .is_default_link_socket()
-      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
+      .description("Value of the first color input");
   b.add_input<decl::Color>("B", "B_Color")
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
-      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
+      .description("Value of the second color input");
 
   b.add_input<decl::Rotation>("A", "A_Rotation")
       .is_default_link_socket()

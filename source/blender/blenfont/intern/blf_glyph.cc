@@ -881,7 +881,6 @@ static const FT_Var_Axis *blf_var_axis_by_tag(const FT_MM_Var *variations,
     if (variations->axis[i].tag == tag) {
       *r_axis_index = i;
       return &(variations->axis)[i];
-      break;
     }
   }
   return nullptr;
@@ -1152,7 +1151,7 @@ static bool blf_glyph_transform_monospace(FT_GlyphSlot glyph, int width)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
     FT_Fixed current = glyph->linearHoriAdvance;
-    FT_Fixed target = width << 16; /* Do math in 16.16 values. */
+    FT_Fixed target = FT_Fixed(width) << 16; /* Do math in 16.16 values. */
     if (target < current) {
       const FT_Pos embolden = (FT_Pos)((current - target) >> 13);
       /* Horizontally widen strokes to counteract narrowing. */
@@ -1362,7 +1361,7 @@ static void blf_glyph_calc_rect_shadow(
 /** \name Glyph Drawing
  * \{ */
 
-static void blf_texture_draw(GlyphBLF *g,
+static void blf_texture_draw(const GlyphBLF *g,
                              const uchar color[4],
                              const int glyph_size[2],
                              const int x1,
@@ -1390,8 +1389,12 @@ static void blf_texture_draw(GlyphBLF *g,
   }
 }
 
-static void blf_texture5_draw(
-    GlyphBLF *g, const uchar color_in[4], const int x1, const int y1, const int x2, const int y2)
+static void blf_texture5_draw(const GlyphBLF *g,
+                              const uchar color_in[4],
+                              const int x1,
+                              const int y1,
+                              const int x2,
+                              const int y2)
 {
   int glyph_size_flag[2];
   /* flag the x and y component signs for 5x5 blurring */
@@ -1401,8 +1404,12 @@ static void blf_texture5_draw(
   blf_texture_draw(g, color_in, glyph_size_flag, x1, y1, x2, y2);
 }
 
-static void blf_texture3_draw(
-    GlyphBLF *g, const uchar color_in[4], const int x1, const int y1, const int x2, const int y2)
+static void blf_texture3_draw(const GlyphBLF *g,
+                              const uchar color_in[4],
+                              const int x1,
+                              const int y1,
+                              const int x2,
+                              const int y2)
 {
   int glyph_size_flag[2];
   /* flag the x component sign for 3x3 blurring */
@@ -1604,7 +1611,9 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
  * B3=P2
  */
 
-static void blf_glyph_to_curves(FT_Outline ftoutline, ListBase *nurbsbase, const float scale)
+static void blf_glyph_to_curves(const FT_Outline &ftoutline,
+                                ListBase *nurbsbase,
+                                const float scale)
 {
   const float eps = 0.0001f;
   const float eps_sq = eps * eps;

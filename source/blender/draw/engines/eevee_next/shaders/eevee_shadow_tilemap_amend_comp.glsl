@@ -32,6 +32,10 @@ void main()
     if (light.type != LIGHT_SUN) {
       break;
     }
+    if (light.tilemap_index == LIGHT_NO_SHADOW) {
+      continue;
+    }
+
     ivec2 base_offset_neg = light_sun_data_get(light).clipmap_base_offset_neg;
     ivec2 base_offset_pos = light_sun_data_get(light).clipmap_base_offset_pos;
     /* LOD relative max with respect to clipmap_lod_min. */

@@ -818,7 +818,7 @@ class TransformsToDeltasAnim(Operator):
                     if fcu.array_index in existingFCurves[dpath]:
                         # conflict
                         self.report({'ERROR'},
-                                    rpt_("Object '%r' already has '%r' F-Curve(s). "
+                                    rpt_("Object %r already has %r F-Curve(s). "
                                          "Remove these before trying again") %
                                     (obj.name, dpath))
                         return {'CANCELLED'}

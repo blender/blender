@@ -112,7 +112,7 @@ static TransformOrientation *createViewSpace(bContext *C,
       name = v3d->camera->id.name + 2;
     }
     else {
-      name = "Custom View";
+      name = DATA_("Custom View");
     }
   }
 
@@ -161,7 +161,7 @@ static TransformOrientation *createBoneSpace(bContext *C,
   }
 
   if (name[0] == 0) {
-    name = "Bone";
+    name = DATA_("Bone");
   }
 
   return addMatrixSpace(C, mat, name, overwrite);
@@ -183,7 +183,7 @@ static TransformOrientation *createCurveSpace(bContext *C,
   }
 
   if (name[0] == 0) {
-    name = "Curve";
+    name = DATA_("Curve");
   }
 
   return addMatrixSpace(C, mat, name, overwrite);
@@ -208,7 +208,7 @@ static TransformOrientation *createMeshSpace(bContext *C,
       }
 
       if (name[0] == 0) {
-        name = "Vertex";
+        name = DATA_("Vertex");
       }
       break;
     case ORIENTATION_EDGE:
@@ -218,7 +218,7 @@ static TransformOrientation *createMeshSpace(bContext *C,
       }
 
       if (name[0] == 0) {
-        name = "Edge";
+        name = DATA_("Edge");
       }
       break;
     case ORIENTATION_FACE:
@@ -228,7 +228,7 @@ static TransformOrientation *createMeshSpace(bContext *C,
       }
 
       if (name[0] == 0) {
-        name = "Face";
+        name = DATA_("Face");
       }
       break;
     default:

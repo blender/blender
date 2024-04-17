@@ -50,7 +50,7 @@ void main()
 
   g_holdout = saturate(g_holdout);
 
-  g_thickness = max(0.0, nodetree_thickness());
+  g_thickness = nodetree_thickness();
 
   /** Transparency weight is already applied through dithering, remove it from other closures. */
   float transparency = 1.0 - average(g_transmittance);

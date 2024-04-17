@@ -12,6 +12,8 @@
 
 #include "DNA_curve_types.h"
 
+#include "ED_keyframes_keylist.hh"
+
 struct AnimData;
 struct ChannelDrawList;
 struct FCurve;
@@ -47,7 +49,7 @@ void draw_keyframe_shape(float x,
                          float size,
                          bool sel,
                          eBezTriple_KeyframeType key_type,
-                         short mode,
+                         eKeyframeShapeDrawOpts mode,
                          float alpha,
                          const KeyframeShaderBindings *sh_bindings,
                          short handle_type,

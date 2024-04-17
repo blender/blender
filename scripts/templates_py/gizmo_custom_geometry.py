@@ -108,7 +108,7 @@ class MyCustomShapeWidget(Gizmo):
             delta /= 10.0
         value = self.init_value - delta
         self.target_set_value("offset", value)
-        context.area.header_text_set("My Gizmo: %.4f" % value)
+        context.area.header_text_set("My Gizmo: {:.4f}".format(value))
         return {'RUNNING_MODAL'}
 
 

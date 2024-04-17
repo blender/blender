@@ -717,7 +717,6 @@ enum eLightType : uint32_t {
 enum LightingType : uint32_t {
   LIGHT_DIFFUSE = 0u,
   LIGHT_SPECULAR = 1u,
-  LIGHT_TRANSMIT = 2u,
   LIGHT_VOLUME = 3u,
 };
 
@@ -1510,7 +1509,7 @@ struct Surfel {
 BLI_STATIC_ASSERT_ALIGN(Surfel, 16)
 
 struct CaptureInfoData {
-  /** Number of surfels inside the surfel buffer or the needed len. */
+  /** Grid size without padding. */
   packed_int3 irradiance_grid_size;
   /** True if the surface shader needs to write the surfel data. */
   bool32_t do_surfel_output;
@@ -1574,7 +1573,7 @@ struct VolumeProbeData {
   /** World to non-normalized local grid space [0..size-1]. Stored transposed for compactness. */
   float3x4 world_to_grid_transposed;
   /** Number of bricks for this grid. */
-  packed_int3 grid_size;
+  packed_int3 grid_size_padded;
   /** Index in brick descriptor list of the first brick of this grid. */
   int brick_offset;
   /** Biases to apply to the shading point in order to sample a valid probe. */

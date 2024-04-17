@@ -786,6 +786,9 @@ class MTLContext : public Context {
   bool debug_capture_scope_begin(void *scope) override;
   void debug_capture_scope_end(void *scope) override;
 
+  void debug_unbind_all_ubo() override{};
+  void debug_unbind_all_ssbo() override{};
+
   /*** MTLContext Utility functions. */
   /*
    * All below functions modify the global state for the context, controlling the flow of

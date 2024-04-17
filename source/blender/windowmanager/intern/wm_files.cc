@@ -82,7 +82,7 @@
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_undo_system.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "BLO_writefile.hh"
 
@@ -955,7 +955,7 @@ static void file_read_reports_finalize(BlendFileReadReport *bf_reports)
   if (bf_reports->resynced_lib_overrides_libraries_count != 0) {
     BKE_reportf(bf_reports->reports,
                 RPT_WARNING,
-                "%d libraries have overrides needing resync (auto resynced in %.0fm%.2fs),  "
+                "%d libraries have overrides needing resync (auto resynced in %.0fm%.2fs), "
                 "please check the Info editor for details",
                 bf_reports->resynced_lib_overrides_libraries_count,
                 duration_lib_override_recursive_resync_minutes,
@@ -2568,7 +2568,7 @@ static int wm_userpref_read_invoke(bContext *C, wmOperator *op, const wmEvent * 
       C,
       op,
       title.c_str(),
-      IFACE_("To make changes to Preferences permanent, use \"Save Preferences.\""),
+      IFACE_("To make changes to Preferences permanent, use \"Save Preferences\""),
       IFACE_("Load"),
       ALERT_ICON_WARNING,
       false);

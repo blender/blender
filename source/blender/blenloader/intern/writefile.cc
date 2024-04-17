@@ -114,7 +114,7 @@
 #include "BKE_node.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "BLO_blend_defs.hh"
 #include "BLO_blend_validate.hh"

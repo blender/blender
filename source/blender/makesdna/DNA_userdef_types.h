@@ -316,10 +316,10 @@ typedef struct ThemeSpace {
   unsigned char ds_channel[4], ds_subchannel[4], ds_ipoline[4];
   /** Keytypes. */
   unsigned char keytype_keyframe[4], keytype_extreme[4], keytype_breakdown[4], keytype_jitter[4],
-      keytype_movehold[4];
+      keytype_movehold[4], keytype_generated[4];
   /** Keytypes. */
   unsigned char keytype_keyframe_select[4], keytype_extreme_select[4], keytype_breakdown_select[4],
-      keytype_jitter_select[4], keytype_movehold_select[4];
+      keytype_jitter_select[4], keytype_movehold_select[4], keytype_generated_select[4];
   unsigned char keyborder[4], keyborder_select[4];
   char _pad4[3];
 
@@ -492,6 +492,16 @@ typedef struct bTheme {
   char name[64];
 
   /* NOTE: Values after `name` are copied when resetting the default theme. */
+
+  /**
+   * The file-path for the preset that was loaded into this theme.
+   *
+   * This is needed so it's possible to know if updating or removing a theme preset
+   * should apply changes to the current theme.
+   *
+   * #FILE_MAX.
+   */
+  char filepath[1024];
 
   ThemeUI tui;
 
@@ -719,7 +729,6 @@ typedef struct UserDef_Experimental {
   char use_extended_asset_browser;
   char use_sculpt_texture_paint;
   char use_grease_pencil_version3;
-  char use_new_matrix_socket;
   char enable_overlay_next;
   char use_new_volume_nodes;
   char use_shader_node_previews;
@@ -727,7 +736,7 @@ typedef struct UserDef_Experimental {
   char use_extension_utils;
   char use_grease_pencil_version3_convert_on_load;
   char use_animation_baklava;
-
+  char _pad[1];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

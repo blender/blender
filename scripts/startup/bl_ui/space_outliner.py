@@ -66,7 +66,7 @@ class OUTLINER_HT_header(Header):
             layout.operator("outliner.collection_new", text="", icon='COLLECTION_NEW').nested = True
 
         elif display_mode == 'ORPHAN_DATA':
-            layout.operator("outliner.orphans_purge", text="Purge").do_recursive = True
+            layout.operator("outliner.orphans_purge", text="Purge")
 
         elif space.display_mode == 'DATA_API':
             layout.separator()

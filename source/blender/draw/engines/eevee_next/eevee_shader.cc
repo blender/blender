@@ -383,24 +383,25 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     }
   }
 
-  bool supports_render_passes = (pipeline_type == MAT_PIPE_DEFERRED);
-  /* Opaque forward do support AOVs and render pass if not using transparency. */
-  if (!GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) &&
-      (pipeline_type == MAT_PIPE_FORWARD))
-  {
-    supports_render_passes = true;
-  }
-
-  if (supports_render_passes) {
+  /* Only deferred material allow use of cryptomatte and render passes. */
+  if (pipeline_type == MAT_PIPE_DEFERRED) {
     info.additional_info("eevee_render_pass_out");
     info.additional_info("eevee_cryptomatte_out");
   }
 
   int32_t closure_data_slots = 0;
-  int32_t closure_extra_eval = 0;
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_DIFFUSE)) {
     info.define("MAT_DIFFUSE");
-    closure_data_slots |= (1 << 0);
+    if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT) &&
+        !GPU_material_flag_get(gpumat, GPU_MATFLAG_COAT))
+    {
+      /* Special case to allow translucent with diffuse without noise.
+       * Revert back to noise if clear coat is present. */
+      closure_data_slots |= (1 << 2);
+    }
+    else {
+      closure_data_slots |= (1 << 0);
+    }
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE)) {
     info.define("MAT_SUBSURFACE");
@@ -412,23 +413,19 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT)) {
     info.define("MAT_TRANSLUCENT");
-    closure_data_slots |= (1 << 1);
+    closure_data_slots |= (1 << 0);
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_GLOSSY)) {
     info.define("MAT_REFLECTION");
-    closure_data_slots |= (1 << 2);
+    closure_data_slots |= (1 << 1);
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_COAT)) {
     info.define("MAT_CLEARCOAT");
-    closure_data_slots |= (1 << 3);
+    closure_data_slots |= (1 << 2);
   }
 
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT | GPU_MATFLAG_SUBSURFACE)) {
-    info.define("SHADOW_SUBSURFACE");
-  }
-
-  int32_t CLOSURE_BIN_COUNT = count_bits_i(closure_data_slots);
-  switch (CLOSURE_BIN_COUNT) {
+  int32_t closure_bin_count = count_bits_i(closure_data_slots);
+  switch (closure_bin_count) {
     /* These need to be separated since the strings need to be static. */
     case 0:
     case 1:
@@ -446,7 +443,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   if (pipeline_type == MAT_PIPE_DEFERRED) {
-    switch (CLOSURE_BIN_COUNT) {
+    switch (closure_bin_count) {
       /* These need to be separated since the strings need to be static. */
       case 0:
       case 1:
@@ -467,8 +464,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   if ((pipeline_type == MAT_PIPE_FORWARD) ||
       GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA))
   {
-    int32_t lit_closure_count = CLOSURE_BIN_COUNT + closure_extra_eval;
-    switch (lit_closure_count) {
+    switch (closure_bin_count) {
       case 0:
         /* Define nothing. This will in turn define SKIP_LIGHT_EVAL. */
         break;
@@ -641,8 +637,26 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
 
     frag_gen << "float nodetree_thickness()\n";
     frag_gen << "{\n";
-    /* TODO(fclem): Better default. */
-    frag_gen << ((!codegen.thickness.empty()) ? codegen.thickness : "return 0.1;\n");
+    if (codegen.thickness.empty()) {
+      /* Check presence of closure needing thickness to not add mandatory dependency on obinfos. */
+      if (!GPU_material_flag_get(
+              gpumat, GPU_MATFLAG_SUBSURFACE | GPU_MATFLAG_REFRACT | GPU_MATFLAG_TRANSLUCENT))
+      {
+        frag_gen << "return 0.0;\n";
+      }
+      else {
+        if (info.additional_infos_.first_index_of_try("draw_object_infos_new") == -1) {
+          info.additional_info("draw_object_infos_new");
+        }
+        frag_gen << "vec3 ls_dimensions = safe_rcp(abs(OrcoTexCoFactors[1].xyz));\n";
+        frag_gen << "vec3 ws_dimensions = (ModelMatrix * vec4(ls_dimensions, 1.0)).xyz;\n";
+        /* Choose the minimum axis so that cuboids are better represented. */
+        frag_gen << "return reduce_min(ws_dimensions);\n";
+      }
+    }
+    else {
+      frag_gen << codegen.thickness;
+    }
     frag_gen << "}\n\n";
 
     frag_gen << "Closure nodetree_volume()\n";

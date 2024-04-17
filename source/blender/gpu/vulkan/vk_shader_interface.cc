@@ -163,6 +163,10 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   /* Determine the descriptor set locations after the inputs have been sorted. */
   /* Note: input_tot_len is sometimes more than we need. */
   const uint32_t resources_len = input_tot_len;
+
+  /* Initialize the descriptor set layout. */
+  init_descriptor_set_layout_info(info, resources_len, all_resources, push_constants_storage_type);
+
   descriptor_set_locations_ = Array<VKDescriptorSet::Location>(resources_len);
   descriptor_set_locations_.fill(-1);
   descriptor_set_bind_types_ = Array<shader::ShaderCreateInfo::Resource::BindType>(resources_len);
@@ -264,6 +268,26 @@ const ShaderInput *VKShaderInterface::shader_input_get(
       return ubo_get(binding);
   }
   return nullptr;
+}
+
+void VKShaderInterface::init_descriptor_set_layout_info(
+    const shader::ShaderCreateInfo &info,
+    int64_t resources_len,
+    Span<shader::ShaderCreateInfo::Resource> all_resources,
+    VKPushConstants::StorageType push_constants_storage)
+{
+  BLI_assert(descriptor_set_layout_info_.bindings.is_empty());
+  descriptor_set_layout_info_.bindings.reserve(resources_len);
+  descriptor_set_layout_info_.vk_shader_stage_flags =
+      info.compute_source_.is_empty() && info.compute_source_generated.empty() ?
+          VK_SHADER_STAGE_ALL_GRAPHICS :
+          VK_SHADER_STAGE_COMPUTE_BIT;
+  for (const shader::ShaderCreateInfo::Resource &res : all_resources) {
+    descriptor_set_layout_info_.bindings.append(to_vk_descriptor_type(res));
+  }
+  if (push_constants_storage == VKPushConstants::StorageType::UNIFORM_BUFFER) {
+    descriptor_set_layout_info_.bindings.append(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+  }
 }
 
 }  // namespace blender::gpu

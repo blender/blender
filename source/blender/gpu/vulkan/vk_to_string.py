@@ -270,7 +270,7 @@ def parse_features(root):
     features = []
     for feature_name in FEATURES:
         feature = root.find(f"feature[@name='{feature_name}']")
-        assert(feature)
+        assert (feature)
         features.append(feature)
     return features
 
@@ -280,7 +280,7 @@ def parse_extensions(root):
     extensions = []
     for extension_name in EXTENSIONS:
         extension = root.find(f"extensions/extension[@name='{extension_name}']")
-        assert(extension)
+        assert (extension)
         extensions.append(extension)
     return extensions
 
@@ -361,7 +361,7 @@ def generate_to_string(vk_xml, header):
                 vk_to_string += generate_bitflag_to_string_hpp(flag_to_generate)
         for struct_to_generate in structs_to_generate:
             struct = root.find(f"types/type[@category='struct'][@name='{struct_to_generate}']")
-            assert(struct)
+            assert (struct)
             vk_to_string += generate_struct_to_string_hpp(struct)
     else:
         for enum_to_generate in enums_to_generate:
@@ -376,7 +376,7 @@ def generate_to_string(vk_xml, header):
 
         for struct_to_generate in structs_to_generate:
             struct = root.find(f"types/type[@category='struct'][@name='{struct_to_generate}']")
-            assert(struct)
+            assert (struct)
             vk_to_string += generate_struct_to_string_cpp(struct,
                                                           flags_to_generate,
                                                           enums_to_generate,

@@ -154,10 +154,10 @@ void TintOperation::execute_tint(const bContext &C, const InputSample &extension
   strength = math::clamp(strength, 0.0f, 1.0f);
   fill_strength = math::clamp(fill_strength, 0.0f, 1.0f);
 
-  const bool tint_strokes = ((brush->gpencil_settings->vertex_mode == GPPAINT_MODE_STROKE) ||
-                             (brush->gpencil_settings->vertex_mode == GPPAINT_MODE_BOTH));
-  const bool tint_fills = ((brush->gpencil_settings->vertex_mode == GPPAINT_MODE_FILL) ||
-                           (brush->gpencil_settings->vertex_mode == GPPAINT_MODE_BOTH));
+  const bool tint_strokes = ELEM(
+      brush->gpencil_settings->vertex_mode, GPPAINT_MODE_STROKE, GPPAINT_MODE_BOTH);
+  const bool tint_fills = ELEM(
+      brush->gpencil_settings->vertex_mode, GPPAINT_MODE_FILL, GPPAINT_MODE_BOTH);
 
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(obact->data);
 

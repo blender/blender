@@ -107,7 +107,7 @@ class MeshExportTest(AbstractColladaTest):
         outfile = tempdir / Path("%s_out.dae" % test)
 
         bpy.ops.wm.collada_export(
-            filepath="%s" % str(outfile),
+            filepath=str(outfile),
             check_existing=True,
             filemode=8,
             display_type="DEFAULT",

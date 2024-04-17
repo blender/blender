@@ -2,11 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 #include "BLI_string_ref.hh"
 
 #include "BKE_volume_grid_fwd.hh"
-
-#pragma once
 
 struct Volume;
 

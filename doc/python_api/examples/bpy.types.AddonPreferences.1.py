@@ -53,9 +53,9 @@ class OBJECT_OT_addon_prefs_example(Operator):
         preferences = context.preferences
         addon_prefs = preferences.addons[__name__].preferences
 
-        info = ("Path: %s, Number: %d, Boolean %r" %
-                (addon_prefs.filepath, addon_prefs.number, addon_prefs.boolean))
-
+        info = "Path: {:s}, Number: {:d}, Boolean {!r}".format(
+            addon_prefs.filepath, addon_prefs.number, addon_prefs.boolean,
+        )
         self.report({'INFO'}, info)
         print(info)
 

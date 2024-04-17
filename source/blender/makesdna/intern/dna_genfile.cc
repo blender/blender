@@ -1420,7 +1420,7 @@ static void init_reconstruct_step_for_member(const SDNA *oldsdna,
 }
 
 /** Useful function when debugging the reconstruct steps. */
-[[maybe_unused]] static void print_reconstruct_step(ReconstructStep *step,
+[[maybe_unused]] static void print_reconstruct_step(const ReconstructStep *step,
                                                     const SDNA *oldsdna,
                                                     const SDNA *newsdna)
 {

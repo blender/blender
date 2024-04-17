@@ -107,12 +107,11 @@ class MotionPathButtonsPanel_display:
             col = layout.column()
             col.prop(mpath, "line_thickness", text="Thickness")
 
-            split = col.split(factor=0.6)
-
-            split.prop(mpath, "use_custom_color", text="Custom Color")
-            sub = split.column()
+            col.prop(mpath, "use_custom_color", text="Custom Color")
+            sub = layout.column()
             sub.enabled = mpath.use_custom_color
-            sub.prop(mpath, "color", text="")
+            sub.prop(mpath, "color", text="Before")
+            sub.prop(mpath, "color_post", text="After")
 
 
 classes = (

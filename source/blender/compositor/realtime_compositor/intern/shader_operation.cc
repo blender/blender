@@ -73,7 +73,7 @@ void ShaderOperation::execute()
 
   GPU_texture_unbind_all();
   GPU_texture_image_unbind_all();
-  GPU_uniformbuf_unbind_all();
+  GPU_uniformbuf_debug_unbind_all();
   GPU_shader_unbind();
 }
 

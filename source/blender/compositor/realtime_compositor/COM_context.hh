@@ -112,6 +112,10 @@ class Context {
    * render pipeline. */
   virtual RenderContext *render_context() const;
 
+  /* Gets called after the evaluation of each compositor operation. See overrides for possible
+   * uses. */
+  virtual void evaluate_operation_post() const;
+
   /* Returns true if the compositor evaluation is canceled and that the evaluator should stop
    * executing as soon as possible. */
   virtual bool is_canceled() const;

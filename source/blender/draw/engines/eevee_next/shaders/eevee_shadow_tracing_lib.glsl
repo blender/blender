@@ -185,6 +185,18 @@ ShadowMapTraceResult shadow_map_trace_finish(ShadowMapTracingState state)
 
 /** \} */
 
+/* If the ray direction `L`  is below the horizon defined by N (normalized) at the shading point,
+ * push it just above the horizon so that this ray will never be below it and produce
+ * over-shadowing (since light evaluation already clips the light shape). */
+vec3 shadow_ray_above_horizon_ensure(vec3 L, vec3 N)
+{
+  float distance_to_plan = dot(L, -N);
+  if (distance_to_plan > 0.0) {
+    L += N * (0.01 + distance_to_plan);
+  }
+  return L;
+}
+
 /* ---------------------------------------------------------------------- */
 /** \name Directional Shadow Map Tracing
  * \{ */
@@ -199,9 +211,7 @@ struct ShadowRayDirectional {
 ShadowRayDirectional shadow_ray_generate_directional(LightData light,
                                                      vec2 random_2d,
                                                      vec3 lP,
-                                                     vec3 lNg,
-                                                     float thickness,
-                                                     out bool r_is_above_surface)
+                                                     vec3 lNg)
 {
   float clip_near = orderedIntBitsToFloat(light.clip_near);
   float clip_far = orderedIntBitsToFloat(light.clip_far);
@@ -214,15 +224,12 @@ ShadowRayDirectional shadow_ray_generate_directional(LightData light,
 
   vec3 disk_direction = sample_uniform_cone(sample_cylinder(random_2d),
                                             light_sun_data_get(light).shadow_angle);
+
+  disk_direction = shadow_ray_above_horizon_ensure(disk_direction, lNg);
+
   /* Light shape is 1 unit away from the shading point. */
   vec4 direction = vec4(disk_direction, -1.0 / z_range);
 
-  r_is_above_surface = dot(lNg, direction.xyz) > 0.0;
-
-  if (!r_is_above_surface) {
-    /* Skip the object volume. */
-    origin += direction * thickness;
-  }
   /* It only make sense to trace where there can be occluder. Clamp by distance to near plane. */
   direction *= min(light_sun_data_get(light).shadow_trace_distance,
                    dist_to_near_plane / disk_direction.z);
@@ -289,12 +296,7 @@ struct ShadowRayPunctual {
 };
 
 /* Return ray in UV clip space [0..1]. */
-ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
-                                               vec2 random_2d,
-                                               vec3 lP,
-                                               vec3 lNg,
-                                               float thickness,
-                                               out bool r_is_above_surface)
+ShadowRayPunctual shadow_ray_generate_punctual(LightData light, vec2 random_2d, vec3 lP, vec3 lNg)
 {
   if (light.type == LIGHT_RECT) {
     random_2d = random_2d * 2.0 - 1.0;
@@ -319,16 +321,7 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
         -projection_origin, point_on_light_shape, light_local_data_get(light).shadow_scale);
 
     direction = point_on_light_shape - lP;
-    r_is_above_surface = dot(direction, lNg) > 0.0;
-
-#ifdef SHADOW_SUBSURFACE
-    if (!r_is_above_surface) {
-      /* Skip the object volume. Do not push behind the light. */
-      float offset_len = saturate(thickness / length(direction));
-      lP += direction * offset_len;
-      direction *= 1.0 - offset_len;
-    }
-#endif
+    direction = shadow_ray_above_horizon_ensure(direction, lNg);
 
     /* Clip the ray to not cross the near plane.
      * Scale it so that it encompass the whole cube (with a safety margin). */
@@ -354,16 +347,7 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light,
     vec3 point_on_light_shape = right * random_2d.x + up * random_2d.y;
 
     direction = point_on_light_shape - lP;
-    r_is_above_surface = dot(direction, lNg) > 0.0;
-
-#ifdef SHADOW_SUBSURFACE
-    if (!r_is_above_surface) {
-      /* Skip the object volume. Do not push behind the light. */
-      float offset_len = saturate(thickness / length(direction));
-      lP += direction * offset_len;
-      direction *= 1.0 - offset_len;
-    }
-#endif
+    direction = shadow_ray_above_horizon_ensure(direction, lNg);
 
     /* Clip the ray to not cross the light shape. */
     float clip_distance = light_spot_data_get(light).radius;
@@ -525,9 +509,11 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
  */
 ShadowEvalResult shadow_eval(LightData light,
                              const bool is_directional,
+                             const bool is_transmission,
+                             bool is_translucent_with_thickness,
                              vec3 P,
                              vec3 Ng,
-                             float thickness,
+                             vec3 L,
                              int ray_count,
                              int ray_step_count)
 {
@@ -551,53 +537,46 @@ ShadowEvalResult shadow_eval(LightData light,
 
   P += shadow_pcf_offset(light, is_directional, P, Ng, random_pcf_2d);
 
+  /* We want to bias inside the object for transmission to go through the object itself.
+   * But doing so split the shadow in two different directions at the horizon. Also this
+   * doesn't fix the the aliasing issue. So we reflect the normal so that it always go towards
+   * the light. */
+  vec3 N_bias = is_transmission ? reflect(Ng, L) : Ng;
+
   /* Avoid self intersection. */
-  P = offset_ray(P, Ng);
+  P = offset_ray(P, N_bias);
   /* The above offset isn't enough in most situation. Still add a bigger bias. */
   /* TODO(fclem): Scale based on depth. */
-  P += Ng * normal_offset;
+  P += N_bias * normal_offset;
 
   vec3 lP = is_directional ? light_world_to_local(light, P) :
                              light_world_to_local(light, P - light._position);
   vec3 lNg = light_world_to_local(light, Ng);
+  /* Invert horizon clipping. */
+  lNg = (is_transmission) ? -lNg : lNg;
+  /* Don't do a any horizon clipping in this case as the closure is lit from both sides. */
+  lNg = (is_transmission && is_translucent_with_thickness) ? vec3(0.0) : lNg;
 
   float surface_hit = 0.0;
-  float surface_ray_count = 0.0;
-  float subsurface_hit = 0.0;
-  float subsurface_ray_count = 0.0;
   for (int ray_index = 0; ray_index < ray_count && ray_index < SHADOW_MAX_RAY; ray_index++) {
     vec2 random_ray_2d = fract(hammersley_2d(ray_index, ray_count) + random_shadow_3d.xy);
-
-    /* We only consider rays above the surface for shadowing. This is because the LTC evaluation
-     * already accounts for the clipping of the light shape. */
-    bool is_above_surface;
 
     ShadowMapTraceResult trace;
     if (is_directional) {
       ShadowRayDirectional clip_ray = shadow_ray_generate_directional(
-          light, random_ray_2d, lP, lNg, thickness, is_above_surface);
+          light, random_ray_2d, lP, lNg);
       trace = shadow_map_trace(clip_ray, ray_step_count, random_shadow_3d.z);
     }
     else {
-      ShadowRayPunctual clip_ray = shadow_ray_generate_punctual(
-          light, random_ray_2d, lP, lNg, thickness, is_above_surface);
+      ShadowRayPunctual clip_ray = shadow_ray_generate_punctual(light, random_ray_2d, lP, lNg);
       trace = shadow_map_trace(clip_ray, ray_step_count, random_shadow_3d.z);
     }
 
-    if (is_above_surface) {
-      surface_hit += float(trace.has_hit);
-      surface_ray_count += 1.0;
-    }
-    else {
-      subsurface_hit += float(trace.has_hit);
-      subsurface_ray_count += 1.0;
-    }
+    surface_hit += float(trace.has_hit);
   }
   /* Average samples. */
   ShadowEvalResult result;
-  result.light_visibilty = saturate(1.0 - surface_hit * safe_rcp(surface_ray_count));
-  result.light_visibilty = min(result.light_visibilty,
-                               saturate(1.0 - subsurface_hit * safe_rcp(subsurface_ray_count)));
+  result.light_visibilty = saturate(1.0 - surface_hit / float(ray_count));
   result.occluder_distance = 0.0; /* Unused. Could reintroduced if needed. */
   return result;
 }

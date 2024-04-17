@@ -313,6 +313,17 @@ const char *BLI_path_basename(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Path Filtering Utilities
+ * \{ */
+
+/**
+ * Return true if any path component starts with a dot.
+ */
+bool BLI_path_has_hidden_component(const char *path) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Path Append
  * \{ */
 

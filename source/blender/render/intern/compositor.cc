@@ -126,20 +126,17 @@ class ContextInputData {
   const Scene *scene;
   const RenderData *render_data;
   const bNodeTree *node_tree;
-  bool use_file_output;
   std::string view_name;
   realtime_compositor::RenderContext *render_context;
 
   ContextInputData(const Scene &scene,
                    const RenderData &render_data,
                    const bNodeTree &node_tree,
-                   const bool use_file_output,
                    const char *view_name,
                    realtime_compositor::RenderContext *render_context)
       : scene(&scene),
         render_data(&render_data),
         node_tree(&node_tree),
-        use_file_output(use_file_output),
         view_name(view_name),
         render_context(render_context)
   {
@@ -194,7 +191,7 @@ class Context : public realtime_compositor::Context {
 
   bool use_file_output() const override
   {
-    return input_data_.use_file_output;
+    return this->render_context() != nullptr;
   }
 
   bool use_composite_output() const override
@@ -327,9 +324,8 @@ class Context : public realtime_compositor::Context {
   {
     switch (input_data_.node_tree->precision) {
       case NODE_TREE_COMPOSITOR_PRECISION_AUTO:
-        /* Auto uses full precision for final renders and half procession otherwise. File outputs
-         * are only used in final renders, so use that as a condition. */
-        if (use_file_output()) {
+        /* Auto uses full precision for final renders and half procession otherwise. */
+        if (this->render_context()) {
           return realtime_compositor::ResultPrecision::Full;
         }
         else {
@@ -453,6 +449,21 @@ class Context : public realtime_compositor::Context {
   {
     return input_data_.render_context;
   }
+
+  void evaluate_operation_post() const override
+  {
+    /* If no render context exist, that means this is an interactive compositor evaluation due to
+     * the user editing the node tree. In that case, we wait until the operation finishes executing
+     * on the GPU before we continue to improve interactivity. The improvement comes from the fact
+     * that the user might be rapidly changing values, so we need to cancel previous evaluations to
+     * make editing faster, but we can't do that if all operations are submitted to the GPU all at
+     * once, and we can't cancel work that was already submitted to the GPU. This does have a
+     * performance penalty, but in practice, the improved interactivity is worth it according to
+     * user feedback. */
+    if (!this->render_context()) {
+      GPU_finish();
+    }
+  }
 };
 
 /* Render Realtime Compositor */
@@ -548,14 +559,13 @@ class RealtimeCompositor {
 void Render::compositor_execute(const Scene &scene,
                                 const RenderData &render_data,
                                 const bNodeTree &node_tree,
-                                const bool use_file_output,
                                 const char *view_name,
                                 blender::realtime_compositor::RenderContext *render_context)
 {
   std::unique_lock lock(gpu_compositor_mutex);
 
   blender::render::ContextInputData input_data(
-      scene, render_data, node_tree, use_file_output, view_name, render_context);
+      scene, render_data, node_tree, view_name, render_context);
 
   if (gpu_compositor == nullptr) {
     gpu_compositor = new blender::render::RealtimeCompositor(*this, input_data);
@@ -578,12 +588,10 @@ void RE_compositor_execute(Render &render,
                            const Scene &scene,
                            const RenderData &render_data,
                            const bNodeTree &node_tree,
-                           const bool use_file_output,
                            const char *view_name,
                            blender::realtime_compositor::RenderContext *render_context)
 {
-  render.compositor_execute(
-      scene, render_data, node_tree, use_file_output, view_name, render_context);
+  render.compositor_execute(scene, render_data, node_tree, view_name, render_context);
 }
 
 void RE_compositor_free(Render &render)

@@ -417,6 +417,13 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
       "The visibility of drawings on this layer is affected by the layers in its masks list");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 
+  prop = RNA_def_property(srna, "use_lights", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_USE_LIGHTS);
+  RNA_def_property_ui_text(
+      prop, "Use Lights", "Enable the use of lights on stroke and fill materials");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
   /* pass index for compositing and modifiers */
   prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_ui_text(prop, "Pass Index", "Index number for the \"Layer Index\" pass");
@@ -467,6 +474,13 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
       prop,
       "ViewLayer",
       "Only include Layer in this View Layer render output (leave blank to include always)");
+
+  prop = RNA_def_property(srna, "use_viewlayer_masks", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(
+      prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_DISABLE_MASKS_IN_VIEWLAYER);
+  RNA_def_property_ui_text(
+      prop, "Use Masks in Render", "Include the mask layers when rendering the view-layer");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 
   prop = RNA_def_property(srna, "blend_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "blend_mode");
@@ -599,6 +613,11 @@ static void rna_def_grease_pencil_onion_skinning(StructRNA *srna)
        ICON_KEYTYPE_JITTER_VEC,
        "Jitter",
        "A filler or baked keyframe for keying on ones, or some other purpose as needed"},
+      {BEZT_KEYTYPE_GENERATED,
+       "GENERATED",
+       ICON_KEYTYPE_GENERATED_VEC,
+       "Generated",
+       "A key generated automatically by a tool, not manually created"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

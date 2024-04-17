@@ -15,6 +15,7 @@
 #include "BKE_report.hh"
 
 #include "BLI_string.h"
+#include "BLI_string_utils.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -72,14 +73,16 @@ void export_frame(Depsgraph *depsgraph,
     /* If exporting in batch, create writer for each iteration over objects. */
     if (export_params.use_batch) {
       /* Get object name by skipping initial "OB" prefix. */
-      std::string object_name = (object->id.name + 2);
+      char object_name[sizeof(object->id.name) - 2];
+      STRNCPY(object_name, object->id.name + 2);
+      BLI_path_make_safe_filename(object_name);
       /* Replace spaces with underscores. */
-      std::replace(object_name.begin(), object_name.end(), ' ', '_');
+      BLI_string_replace_char(object_name, ' ', '_');
 
       /* Include object name in the exported file name. */
       char filepath[FILE_MAX];
       STRNCPY(filepath, export_params.filepath);
-      BLI_path_suffix(filepath, FILE_MAX, object_name.c_str(), "");
+      BLI_path_suffix(filepath, FILE_MAX, object_name, "");
       /* Make sure we have .stl extension (case insensitive). */
       if (!BLI_path_extension_check(filepath, ".stl")) {
         BLI_path_extension_ensure(filepath, FILE_MAX, ".stl");

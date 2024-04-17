@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
-"PO-Revision-Date: 2024-02-27 14:48+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"PO-Revision-Date: 2024-04-09 08:21+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
 "Language: sw\n"
@@ -577,4 +577,8 @@ msgstr "Hupunguza nywele kwa urefu fulani"
 
 msgid "Smooth by Angle"
 msgstr "Lainisha kwa Pembe"
+
+
+msgid "Ignore Sharpness"
+msgstr "Puuza Ukali"
 

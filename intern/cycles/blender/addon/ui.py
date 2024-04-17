@@ -21,7 +21,7 @@ class CyclesPresetPanel(PresetPanel, Panel):
     preset_operator = "script.execute_preset"
 
     @staticmethod
-    def post_cb(context):
+    def post_cb(context, _filepath):
         # Modify an arbitrary built-in scene property to force a depsgraph
         # update, because add-on properties don't. (see #62325)
         render = context.scene.render
@@ -2090,8 +2090,8 @@ class CYCLES_RENDER_PT_bake_influence(CyclesButtonsPanel, Panel):
 
             sub = col.column(align=True)
             sub.prop(cbk, "normal_r", text="Swizzle R")
-            sub.prop(cbk, "normal_g", text="G")
-            sub.prop(cbk, "normal_b", text="B")
+            sub.prop(cbk, "normal_g", text="G", text_ctxt=i18n_contexts.color)
+            sub.prop(cbk, "normal_b", text="B", text_ctxt=i18n_contexts.color)
 
         elif cscene.bake_type == 'COMBINED':
 

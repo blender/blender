@@ -84,10 +84,19 @@ void LightProbeModule::sync_volume(const Object *ob, ObjectHandle &handle)
     grid.updated = true;
     grid.surfel_density = static_cast<const ::LightProbe *>(ob->data)->surfel_density;
     grid.object_to_world = ob->object_to_world();
+    grid.cache = ob->lightprobe_cache;
+
+    /* Needed for display. */
+    // LightProbeGridCacheFrame *cache = grid.cache ? grid.cache->grid_static_cache : nullptr;
+    // if (cache != nullptr) {
+    //   int3 grid_size = int3(cache->size);
+    //   /* Offset sample placement so that border texels are on the edges of the volume. */
+    //   float3 grid_scale = float3(grid_size) / float3(grid_size + 1);
+    //   grid.object_to_world *= math::from_scale<float4x4>(grid_scale);
+    // }
     grid.world_to_object = float4x4(
         math::normalize(math::transpose(float3x3(grid.object_to_world))));
 
-    grid.cache = ob->lightprobe_cache;
     grid.normal_bias = lightprobe->grid_normal_bias;
     grid.view_bias = lightprobe->grid_view_bias;
     grid.facing_bias = lightprobe->grid_facing_bias;

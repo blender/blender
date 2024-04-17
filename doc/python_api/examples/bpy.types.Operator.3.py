@@ -16,9 +16,8 @@ class DialogOperator(bpy.types.Operator):
     my_string: bpy.props.StringProperty(name="String Value")
 
     def execute(self, context):
-        message = (
-            "Popup Values: %f, %d, '%s'" %
-            (self.my_float, self.my_bool, self.my_string)
+        message = "Popup Values: {:f}, {:d}, '{:s}'".format(
+            self.my_float, self.my_bool, self.my_string,
         )
         self.report({'INFO'}, message)
         return {'FINISHED'}

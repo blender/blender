@@ -1709,7 +1709,7 @@ static char *rna_def_property_lookup_int_func(FILE *f,
 
   func = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "lookup_int");
 
-  fprintf(f, "RNA_EXTERN_C int %s(PointerRNA *ptr, int index, PointerRNA *r_ptr)\n", func);
+  fprintf(f, "RNA_EXTERN_C bool %s(PointerRNA *ptr, int index, PointerRNA *r_ptr)\n", func);
   fprintf(f, "{\n");
 
   if (manualfunc) {
@@ -1719,7 +1719,7 @@ static char *rna_def_property_lookup_int_func(FILE *f,
     return func;
   }
 
-  fprintf(f, "    int found = 0;\n");
+  fprintf(f, "    bool found = false;\n");
   fprintf(f, "    CollectionPropertyIterator iter;\n\n");
 
   fprintf(f, "    %s_%s_begin(&iter, ptr);\n\n", srna->identifier, rna_safe_id(prop->identifier));
@@ -1868,7 +1868,7 @@ static char *rna_def_property_lookup_string_func(FILE *f,
             rna_safe_id(item_name_prop->identifier));
   }
 
-  fprintf(f, "RNA_EXTERN_C int %s(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)\n", func);
+  fprintf(f, "RNA_EXTERN_C bool %s(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)\n", func);
   fprintf(f, "{\n");
 
   if (manualfunc) {
@@ -2441,11 +2441,11 @@ static void rna_def_property_funcs_header(FILE *f, StructRNA *srna, PropertyDefR
         fprintf(f, "int %slength(PointerRNA *ptr);\n", func);
       }
       if (cprop->lookupint) {
-        fprintf(f, "int %slookup_int(PointerRNA *ptr, int key, PointerRNA *r_ptr);\n", func);
+        fprintf(f, "bool %slookup_int(PointerRNA *ptr, int key, PointerRNA *r_ptr);\n", func);
       }
       if (cprop->lookupstring) {
         fprintf(f,
-                "int %slookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr);\n",
+                "bool %slookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr);\n",
                 func);
       }
       break;
@@ -5163,16 +5163,17 @@ static const char *cpp_classes =
     "    { return sname##_##identifier##_length(ptr) == 0; } \n"
     "\n"
     "#define COLLECTION_PROPERTY_LOOKUP_INT_false(sname, identifier) \\\n"
-    "    inline static int sname##_##identifier##_lookup_int_wrap(PointerRNA *ptr, int key, "
+    "    inline static bool sname##_##identifier##_lookup_int_wrap(PointerRNA *ptr, int key, "
     "PointerRNA *r_ptr) \\\n"
     "    { \\\n"
     "        CollectionPropertyIterator iter; \\\n"
-    "        int i = 0, found = 0; \\\n"
+    "        int i = 0; \\\n"
+    "        bool found = false; \\\n"
     "        sname##_##identifier##_begin(&iter, ptr); \\\n"
     "        while (iter.valid) { \\\n"
     "            if (i == key) { \\\n"
     "                *r_ptr = iter.ptr; \\\n"
-    "                found = 1; \\\n"
+    "                found = true; \\\n"
     "                break; \\\n"
     "            } \\\n"
     "            sname##_##identifier##_next(&iter); \\\n"
@@ -5185,21 +5186,21 @@ static const char *cpp_classes =
     "        return found; \\\n"
     "    } \n"
     "#define COLLECTION_PROPERTY_LOOKUP_INT_true(sname, identifier) \\\n"
-    "    inline static int sname##_##identifier##_lookup_int_wrap(PointerRNA *ptr, int key, "
+    "    inline static bool sname##_##identifier##_lookup_int_wrap(PointerRNA *ptr, int key, "
     "PointerRNA *r_ptr) \\\n"
     "    { \\\n"
-    "        int found = sname##_##identifier##_lookup_int(ptr, key, r_ptr); \\\n"
+    "        bool found = sname##_##identifier##_lookup_int(ptr, key, r_ptr); \\\n"
     "        if (!found) { \\\n"
     "            memset(r_ptr, 0, sizeof(*r_ptr)); \\\n"
     "        } \\\n"
     "        return found; \\\n"
     "    } \n"
     "#define COLLECTION_PROPERTY_LOOKUP_STRING_false(sname, identifier) \\\n"
-    "    inline static int sname##_##identifier##_lookup_string_wrap(PointerRNA *ptr, const char "
+    "    inline static bool sname##_##identifier##_lookup_string_wrap(PointerRNA *ptr, const char "
     "*key, PointerRNA *r_ptr) \\\n"
     "    { \\\n"
     "        CollectionPropertyIterator iter; \\\n"
-    "        int found = 0; \\\n"
+    "        bool found = false; \\\n"
     "        PropertyRNA *item_name_prop = RNA_struct_name_property(ptr->type); \\\n"
     "        sname##_##identifier##_begin(&iter, ptr); \\\n"
     "        while (iter.valid && !found) { \\\n"
@@ -5210,7 +5211,7 @@ static const char *cpp_classes =
     "sizeof(name_fixed), &name_length); \\\n"
     "            if (!strncmp(name, key, name_length)) { \\\n"
     "                *r_ptr = iter.ptr; \\\n"
-    "                found = 1; \\\n"
+    "                found = true; \\\n"
     "            } \\\n"
     "            if (name_fixed != name) { \\\n"
     "                MEM_freeN((void *) name); \\\n"
@@ -5224,10 +5225,10 @@ static const char *cpp_classes =
     "        return found; \\\n"
     "    } \n"
     "#define COLLECTION_PROPERTY_LOOKUP_STRING_true(sname, identifier) \\\n"
-    "    inline static int sname##_##identifier##_lookup_string_wrap(PointerRNA *ptr, const char "
+    "    inline static bool sname##_##identifier##_lookup_string_wrap(PointerRNA *ptr, const char "
     "*key, PointerRNA *r_ptr) \\\n"
     "    { \\\n"
-    "        int found = sname##_##identifier##_lookup_string(ptr, key, r_ptr); \\\n"
+    "        bool found = sname##_##identifier##_lookup_string(ptr, key, r_ptr); \\\n"
     "        if (!found) { \\\n"
     "            memset(r_ptr, 0, sizeof(*r_ptr)); \\\n"
     "        } \\\n"
@@ -5312,8 +5313,8 @@ static const char *cpp_classes =
     "typedef void (*TEndFunc)(CollectionPropertyIterator *iter);\n"
     "typedef int (*TLengthFunc)(PointerRNA *ptr);\n"
     "typedef bool (*TEmptyFunc)(PointerRNA *ptr);\n"
-    "typedef int (*TLookupIntFunc)(PointerRNA *ptr, int key, PointerRNA *r_ptr);\n"
-    "typedef int (*TLookupStringFunc)(PointerRNA *ptr, const char *key, PointerRNA *r_ptr);\n"
+    "typedef bool (*TLookupIntFunc)(PointerRNA *ptr, int key, PointerRNA *r_ptr);\n"
+    "typedef bool (*TLookupStringFunc)(PointerRNA *ptr, const char *key, PointerRNA *r_ptr);\n"
     "\n"
     "template<typename T, TBeginFunc Tbegin, TNextFunc Tnext, TEndFunc Tend>\n"
     "class CollectionIterator {\n"

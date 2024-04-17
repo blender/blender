@@ -1574,7 +1574,7 @@ MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(MovieTracking *tracking,
   plane_track = MEM_cnew<MovieTrackingPlaneTrack>("new plane track");
 
   /* Use some default name. */
-  STRNCPY(plane_track->name, "Plane Track");
+  STRNCPY(plane_track->name, DATA_("Plane Track"));
 
   plane_track->image_opacity = 1.0f;
 

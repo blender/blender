@@ -256,6 +256,19 @@ static Span<T> blur_on_mesh_exec(const Span<float> neighbor_weights,
   return dst;
 }
 
+template<typename Func> static void to_static_type_for_blur(const CPPType &type, const Func &func)
+{
+  type.to_static_type_tag<int, float, float3, ColorGeometry4f>([&](auto type_tag) {
+    using T = typename decltype(type_tag)::type;
+    if constexpr (!std::is_same_v<T, void>) {
+      func(T());
+    }
+    else {
+      BLI_assert_unreachable();
+    }
+  });
+}
+
 static GSpan blur_on_mesh(const Mesh &mesh,
                           const AttrDomain domain,
                           const int iterations,
@@ -269,12 +282,10 @@ static GSpan blur_on_mesh(const Mesh &mesh,
       mesh, domain, neighbor_offsets, neighbor_indices);
 
   GSpan result_buffer;
-  bke::attribute_math::convert_to_static_type(buffer_a.type(), [&](auto dummy) {
+  to_static_type_for_blur(buffer_a.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    if constexpr (!std::is_same_v<T, bool>) {
-      result_buffer = blur_on_mesh_exec<T>(
-          neighbor_weights, neighbors_map, iterations, buffer_a.typed<T>(), buffer_b.typed<T>());
-    }
+    result_buffer = blur_on_mesh_exec<T>(
+        neighbor_weights, neighbors_map, iterations, buffer_a.typed<T>(), buffer_b.typed<T>());
   });
   return result_buffer;
 }
@@ -344,12 +355,10 @@ static GSpan blur_on_curves(const bke::CurvesGeometry &curves,
                             const GMutableSpan buffer_b)
 {
   GSpan result_buffer;
-  bke::attribute_math::convert_to_static_type(buffer_a.type(), [&](auto dummy) {
+  to_static_type_for_blur(buffer_a.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    if constexpr (!std::is_same_v<T, bool>) {
-      result_buffer = blur_on_curve_exec<T>(
-          curves, neighbor_weights, iterations, buffer_a.typed<T>(), buffer_b.typed<T>());
-    }
+    result_buffer = blur_on_curve_exec<T>(
+        curves, neighbor_weights, iterations, buffer_a.typed<T>(), buffer_b.typed<T>());
   });
   return result_buffer;
 }

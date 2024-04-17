@@ -1638,7 +1638,7 @@ class edit_generators:
             ):
                 edits.append(Edit(
                     span=match.span(),
-                    content='%s' % match.group(2),
+                    content=match.group(2),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 

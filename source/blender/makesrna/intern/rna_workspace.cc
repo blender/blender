@@ -10,7 +10,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_types.hh"
 
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "ED_render.hh"
 

@@ -1455,7 +1455,7 @@ void NODE_OT_link_make(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Make Links";
-  ot->description = "Makes a link between selected output in input sockets";
+  ot->description = "Make a link between selected output and input sockets";
   ot->idname = "NODE_OT_link_make";
 
   /* callbacks */

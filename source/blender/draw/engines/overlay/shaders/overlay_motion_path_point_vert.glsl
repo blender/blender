@@ -16,8 +16,8 @@ void main()
   gl_PointSize = float(pointSize + 2);
 
   int frame = gl_VertexID + cacheStart;
-  bool use_custom_color = customColor.x >= 0.0;
-  finalColor = (use_custom_color) ? vec4(customColor, 1.0) : colorVertex;
+  bool use_custom_color = customColorPre.x >= 0.0;
+  finalColor = (use_custom_color) ? vec4(customColorPre, 1.0) : colorVertex;
 
   /* Bias to reduce z fighting with the path */
   gl_Position.z -= 1e-4;
@@ -26,20 +26,31 @@ void main()
     gl_PointSize = float(pointSize) + 4;
   }
 
+  /* Draw special dot where the current frame is. */
+  if (frame == frameCurrent) {
+    gl_PointSize = float(pointSize + 8);
+    finalColor = colorCurrentFrame;
+    /* Bias more to get these on top of keyframes */
+    gl_Position.z -= 1e-4;
+  }
+  else if (frame < frameCurrent) {
+    if (use_custom_color) {
+      finalColor = vec4(customColorPre, 1.0);
+    }
+  }
+  else {
+    /* frame > frameCurrent */
+    if (use_custom_color) {
+      finalColor = vec4(customColorPost, 1.0);
+    }
+  }
+
   if (showKeyFrames) {
+    /* Overrides the color to highlight points that are keyframes. */
     if ((flag & MOTIONPATH_VERT_KEY) != 0u) {
       gl_PointSize = float(pointSize + 5);
       finalColor = colorVertexSelect;
       /* Bias more to get these on top of regular points */
-      gl_Position.z -= 1e-4;
-    }
-    /* Draw big green dot where the current frame is.
-     * NOTE: this is only done when keyframes are shown, since this adds similar types of clutter
-     */
-    if (frame == frameCurrent) {
-      gl_PointSize = float(pointSize + 8);
-      finalColor = colorCurrentFrame;
-      /* Bias more to get these on top of keyframes */
       gl_Position.z -= 1e-4;
     }
   }

@@ -388,7 +388,7 @@ ENUM_OPERATORS(ParameterFlag, PARM_PYFUNC_OPTIONAL)
 
 struct CollectionPropertyIterator;
 struct Link;
-using IteratorSkipFunc = int (*)(CollectionPropertyIterator *iter, void *data);
+using IteratorSkipFunc = bool (*)(CollectionPropertyIterator *iter, void *data);
 
 struct ListBaseIterator {
   Link *link;
@@ -439,7 +439,7 @@ struct CollectionPropertyIterator {
 
   /* external */
   PointerRNA ptr;
-  int valid;
+  bool valid;
 };
 
 struct CollectionVector {
@@ -611,7 +611,7 @@ struct ParameterIterator {
   int size, offset;
 
   PropertyRNA *parm;
-  int valid;
+  bool valid;
 };
 
 /** Mainly to avoid confusing casts. */

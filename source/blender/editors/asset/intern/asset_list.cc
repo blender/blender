@@ -224,10 +224,19 @@ void AssetList::iterate(AssetListHandleIterFn fn) const
 
 void AssetList::iterate(AssetListIterFn fn) const
 {
-  this->iterate([&fn](AssetHandle handle) {
-    auto &asset = reinterpret_cast<asset_system::AssetRepresentation &>(*handle.file_data->asset);
-    return fn(asset);
-  });
+  FileList *files = filelist_;
+  const int numfiles = filelist_files_ensure(files);
+
+  for (int i = 0; i < numfiles; i++) {
+    asset_system::AssetRepresentation *asset = filelist_entry_get_asset_representation(files, i);
+    if (!asset) {
+      continue;
+    }
+
+    if (!fn(*asset)) {
+      break;
+    }
+  }
 }
 
 void AssetList::ensure_previews_job(const bContext *C)

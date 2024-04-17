@@ -1412,7 +1412,7 @@ static int ptcache_filepath(PTCacheID *pid,
                             const bool do_ext)
 {
   int len = 0;
-  char *idname;
+  const char *idname;
   char *newname;
   filepath[0] = '\0';
   newname = filepath;
@@ -1444,6 +1444,7 @@ static int ptcache_filepath(PTCacheID *pid,
     newname += temp;
     len += temp;
   }
+  UNUSED_VARS(newname);
 
   if (do_ext) {
     len += ptcache_filepath_ext_append(pid, filepath, size_t(len), true, cfra);

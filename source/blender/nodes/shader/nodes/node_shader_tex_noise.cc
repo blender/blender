@@ -443,7 +443,8 @@ NODE_SHADER_MATERIALX_BEGIN
   position = position * scale;
 
   return create_node("fractal3d",
-                     NodeItem::Type::Color3,
+                     STREQ(socket_out_->identifier, "Fac") ? NodeItem::Type::Float :
+                                                             NodeItem::Type::Color3,
                      {{"position", position},
                       {"octaves", val(int(detail.value->asA<float>()))},
                       {"lacunarity", lacunarity}});

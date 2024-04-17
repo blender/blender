@@ -63,16 +63,16 @@ struct CallData {
   void validate()
   {
     /* Check the results. */
-    EXPECT_EQ(data[0], float_in);
-    EXPECT_EQ(data[1], vec2_in.x);
-    EXPECT_EQ(data[2], vec2_in.y);
-    EXPECT_EQ(data[3], vec3_in.x);
-    EXPECT_EQ(data[4], vec3_in.y);
-    EXPECT_EQ(data[5], vec3_in.z);
-    EXPECT_EQ(data[6], vec4_in.x);
-    EXPECT_EQ(data[7], vec4_in.y);
-    EXPECT_EQ(data[8], vec4_in.z);
-    EXPECT_EQ(data[9], vec4_in.w);
+    EXPECT_EQ(float_in, data[0]);
+    EXPECT_EQ(vec2_in.x, data[1]);
+    EXPECT_EQ(vec2_in.y, data[2]);
+    EXPECT_EQ(vec3_in.x, data[3]);
+    EXPECT_EQ(vec3_in.y, data[4]);
+    EXPECT_EQ(vec3_in.z, data[5]);
+    EXPECT_EQ(vec4_in.x, data[6]);
+    EXPECT_EQ(vec4_in.y, data[7]);
+    EXPECT_EQ(vec4_in.z, data[8]);
+    EXPECT_EQ(vec4_in.w, data[9]);
   }
 };
 
@@ -146,7 +146,7 @@ static void do_push_constants_test(const char *info_name, const int num_calls_si
 
   for (const int call_index : IndexRange(num_calls_simultaneously)) {
     CallData &call_data = shader.new_call();
-    call_data.generate_test_data(call_index * 10.0, call_index * 1.0);
+    call_data.generate_test_data(call_index * 10.0, (call_index + 1) * 1.0);
     call_data.init_ssbo(SIZE);
     shader.bind(call_data);
     shader.update_push_constants(call_data);
@@ -186,6 +186,12 @@ static void test_push_constants_512bytes()
 }
 GPU_TEST(push_constants_512bytes)
 
+static void test_push_constants_8192bytes()
+{
+  do_push_constants_test("gpu_push_constants_8192bytes_test");
+}
+GPU_TEST(push_constants_8192bytes)
+
 /* Schedule multiple simultaneously. */
 static void test_push_constants_multiple()
 {
@@ -210,5 +216,11 @@ static void test_push_constants_multiple_512bytes()
   do_push_constants_test("gpu_push_constants_512bytes_test", 10);
 }
 GPU_TEST(push_constants_multiple_512bytes)
+
+static void test_push_constants_multiple_8192bytes()
+{
+  do_push_constants_test("gpu_push_constants_8192bytes_test", 10);
+}
+GPU_TEST(push_constants_multiple_8192bytes)
 
 }  // namespace blender::gpu::tests

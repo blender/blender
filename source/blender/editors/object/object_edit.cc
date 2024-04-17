@@ -65,7 +65,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_softbody.h"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

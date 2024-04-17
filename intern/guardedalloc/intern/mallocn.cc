@@ -10,22 +10,25 @@
 
 #include "MEM_guardedalloc.h"
 
-/* to ensure strict conversions */
+/* To ensure strict conversions. */
 #include "../../source/blender/blenlib/BLI_strict_flags.h"
 
-#include <assert.h>
+#include <cassert>
 
 #include "mallocn_intern.h"
 
 #ifdef WITH_JEMALLOC_CONF
-/* If JEMALLOC is used, it reads this global variable and enables background
+/**
+ * If JEMALLOC is used, it reads this global variable and enables background
  * threads to purge dirty pages. Otherwise we release memory too slowly or not
- * at all if the thread that did the allocation stays inactive. */
+ * at all if the thread that did the allocation stays inactive.
+ */
 const char *malloc_conf =
     "background_thread:true,dirty_decay_ms:4000,thp:always,metadata_thp:always";
 #endif
 
 /* NOTE: Keep in sync with MEM_use_lockfree_allocator(). */
+
 size_t (*MEM_allocN_len)(const void *vmemh) = MEM_lockfree_allocN_len;
 void (*MEM_freeN)(void *vmemh) = MEM_lockfree_freeN;
 void *(*MEM_dupallocN)(const void *vmemh) = MEM_lockfree_dupallocN;
@@ -38,6 +41,10 @@ void *(*MEM_malloc_arrayN)(size_t len, size_t size, const char *str) = MEM_lockf
 void *(*MEM_mallocN_aligned)(size_t len,
                              size_t alignment,
                              const char *str) = MEM_lockfree_mallocN_aligned;
+void *(*MEM_calloc_arrayN_aligned)(size_t len,
+                                   size_t size,
+                                   size_t alignment,
+                                   const char *str) = MEM_lockfree_calloc_arrayN_aligned;
 void (*MEM_printmemlist_pydict)(void) = MEM_lockfree_printmemlist_pydict;
 void (*MEM_printmemlist)(void) = MEM_lockfree_printmemlist;
 void (*MEM_callbackmemlist)(void (*func)(void *)) = MEM_lockfree_callbackmemlist;
@@ -88,10 +95,12 @@ void aligned_free(void *ptr)
 #endif
 }
 
-/* Perform assert checks on allocator type change.
+/**
+ * Perform assert checks on allocator type change.
  *
  * Helps catching issues (in debug build) caused by an unintended allocator type change when there
- * are allocation happened. */
+ * are allocation happened.
+ */
 static void assert_for_allocator_change(void)
 {
   /* NOTE: Assume that there is no "sticky" internal state which would make switching allocator
@@ -120,6 +129,7 @@ void MEM_use_lockfree_allocator(void)
   MEM_mallocN = MEM_lockfree_mallocN;
   MEM_malloc_arrayN = MEM_lockfree_malloc_arrayN;
   MEM_mallocN_aligned = MEM_lockfree_mallocN_aligned;
+  MEM_calloc_arrayN_aligned = MEM_lockfree_calloc_arrayN_aligned;
   MEM_printmemlist_pydict = MEM_lockfree_printmemlist_pydict;
   MEM_printmemlist = MEM_lockfree_printmemlist;
   MEM_callbackmemlist = MEM_lockfree_callbackmemlist;
@@ -154,6 +164,7 @@ void MEM_use_guarded_allocator(void)
   MEM_mallocN = MEM_guarded_mallocN;
   MEM_malloc_arrayN = MEM_guarded_malloc_arrayN;
   MEM_mallocN_aligned = MEM_guarded_mallocN_aligned;
+  MEM_calloc_arrayN_aligned = MEM_guarded_calloc_arrayN_aligned;
   MEM_printmemlist_pydict = MEM_guarded_printmemlist_pydict;
   MEM_printmemlist = MEM_guarded_printmemlist;
   MEM_callbackmemlist = MEM_guarded_callbackmemlist;

@@ -125,7 +125,18 @@ blender::Vector<int64_t> FileHandlerType::filter_supported_paths(
 
 std::string FileHandlerType::get_default_filename(const StringRefNull name)
 {
-  return name + (file_extensions.is_empty() ? "" : file_extensions.first());
+  /* Spaces are supported but do not allow all characters to be blank. */
+  const bool all_blank = name.is_empty() ||
+                         std::all_of(name.begin(), name.end(), [](char c) { return c == ' '; });
+
+  char filename[FILE_MAXFILE];
+  STRNCPY(filename, all_blank ? "untitled" : name.c_str());
+  BLI_path_extension_ensure(filename,
+                            sizeof(filename),
+                            file_extensions.is_empty() ? "" : file_extensions.first().c_str());
+  BLI_path_make_safe_filename(filename);
+
+  return filename;
 }
 
 }  // namespace blender::bke

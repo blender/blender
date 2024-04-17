@@ -57,6 +57,7 @@ bool BKE_subsurf_modifier_runtime_init(SubsurfModifierData *smd, bool use_render
 
 bool BKE_subsurf_modifier_use_custom_loop_normals(const SubsurfModifierData *smd,
                                                   const Mesh *mesh);
+bool BKE_subsurf_modifier_has_split_normals(const SubsurfModifierData *smd, const Mesh *mesh);
 
 /**
  * Return true if GPU subdivision evaluation is disabled by force due to incompatible mesh or

@@ -421,7 +421,11 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
   static const EnumPropertyItem convergence_mode_items[] = {
       {CAM_S3D_OFFAXIS, "OFFAXIS", 0, "Off-Axis", "Off-axis frustums converging in a plane"},
       {CAM_S3D_PARALLEL, "PARALLEL", 0, "Parallel", "Parallel cameras with no convergence"},
-      {CAM_S3D_TOE, "TOE", 0, "Toe-in", "Rotated cameras, looking at the convergence distance"},
+      {CAM_S3D_TOE,
+       "TOE",
+       0,
+       "Toe-in",
+       "Rotated cameras, looking at the same point at the convergence distance"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

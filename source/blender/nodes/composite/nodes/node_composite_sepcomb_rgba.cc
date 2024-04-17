@@ -21,10 +21,10 @@ static void cmp_node_seprgba_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_output<decl::Float>("R");
-  b.add_output<decl::Float>("G");
-  b.add_output<decl::Float>("B");
-  b.add_output<decl::Float>("A");
+  b.add_output<decl::Float>("R").translation_context(BLT_I18NCONTEXT_COLOR);
+  b.add_output<decl::Float>("G").translation_context(BLT_I18NCONTEXT_COLOR);
+  b.add_output<decl::Float>("B").translation_context(BLT_I18NCONTEXT_COLOR);
+  b.add_output<decl::Float>("A").translation_context(BLT_I18NCONTEXT_COLOR);
 }
 
 using namespace blender::realtime_compositor;
@@ -70,11 +70,27 @@ namespace blender::nodes::node_composite_combine_rgba_cc {
 
 static void cmp_node_combrgba_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("R").min(0.0f).max(1.0f).compositor_domain_priority(0);
-  b.add_input<decl::Float>("G").min(0.0f).max(1.0f).compositor_domain_priority(1);
-  b.add_input<decl::Float>("B").min(0.0f).max(1.0f).compositor_domain_priority(2);
-  b.add_input<decl::Float>("A").default_value(1.0f).min(0.0f).max(1.0f).compositor_domain_priority(
-      3);
+  b.add_input<decl::Float>("R")
+      .min(0.0f)
+      .max(1.0f)
+      .compositor_domain_priority(0)
+      .translation_context(BLT_I18NCONTEXT_COLOR);
+  b.add_input<decl::Float>("G")
+      .min(0.0f)
+      .max(1.0f)
+      .compositor_domain_priority(1)
+      .translation_context(BLT_I18NCONTEXT_COLOR);
+  b.add_input<decl::Float>("B")
+      .min(0.0f)
+      .max(1.0f)
+      .compositor_domain_priority(2)
+      .translation_context(BLT_I18NCONTEXT_COLOR);
+  b.add_input<decl::Float>("A")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .compositor_domain_priority(3)
+      .translation_context(BLT_I18NCONTEXT_COLOR);
   b.add_output<decl::Color>("Image");
 }
 

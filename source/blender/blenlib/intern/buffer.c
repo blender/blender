@@ -52,7 +52,7 @@ void BLI_buffer_resize(BLI_Buffer *buffer, const size_t new_count)
 {
   if (UNLIKELY(new_count > buffer->alloc_count)) {
     if (buffer->flag & BLI_BUFFER_USE_STATIC) {
-      void *orig = buffer->data;
+      const void *orig = buffer->data;
 
       buffer->data = buffer_alloc(buffer, new_count);
       memcpy(buffer->data, orig, buffer->elem_size * buffer->count);

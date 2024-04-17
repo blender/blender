@@ -858,6 +858,19 @@ int gbuffer_closure_count(uint header)
   return reduce_add(ivec3(not(equal(closure_types, uvec3(0u)))));
 }
 
+/* Return the number of normal layer as encoded in the given header value. */
+int gbuffer_normal_count(uint header)
+{
+  if (header == 0u) {
+    return 0;
+  }
+  /* Count implicit first layer. */
+  uint count = 1u;
+  count += uint(((header >> 12u) & 3u) != 0);
+  count += uint(((header >> 14u) & 3u) != 0);
+  return int(count);
+}
+
 /* Return the type of a closure using its bin index. */
 ClosureType gbuffer_closure_type_get_by_bin(uint header, int bin_index)
 {
@@ -994,7 +1007,7 @@ GBufferReader gbuffer_read(samplerGBufferHeader header_tx,
 }
 
 /* Read only one bin from the GBuffer. */
-ClosureUndetermined gbuffer_read_bin(samplerGBufferHeader header_tx,
+ClosureUndetermined gbuffer_read_bin(uint header,
                                      samplerGBufferClosure closure_tx,
                                      samplerGBufferNormal normal_tx,
                                      ivec2 texel,
@@ -1005,7 +1018,7 @@ ClosureUndetermined gbuffer_read_bin(samplerGBufferHeader header_tx,
   gbuf.closure_count = 0;
   gbuf.data_len = 0;
   gbuf.normal_len = 0;
-  gbuf.header = fetchGBuffer(header_tx, texel);
+  gbuf.header = header;
 
   if (gbuf.header == 0u) {
     return closure_new(CLOSURE_NONE_ID);
@@ -1047,7 +1060,6 @@ ClosureUndetermined gbuffer_read_bin(samplerGBufferHeader header_tx,
     }
   }
 
-  bool has_additional_data = false;
   switch (mode) {
     default:
     case GBUF_NONE:
@@ -1077,6 +1089,38 @@ ClosureUndetermined gbuffer_read_bin(samplerGBufferHeader header_tx,
   }
 
   return gbuffer_closure_get(gbuf, gbuf.closure_count);
+}
+ClosureUndetermined gbuffer_read_bin(samplerGBufferHeader header_tx,
+                                     samplerGBufferClosure closure_tx,
+                                     samplerGBufferNormal normal_tx,
+                                     ivec2 texel,
+                                     int bin_index)
+{
+  return gbuffer_read_bin(fetchGBuffer(header_tx, texel), closure_tx, normal_tx, texel, bin_index);
+}
+
+/* Load thickness data only if available. Return 0 otherwise. */
+float gbuffer_read_thickness(uint header, samplerGBufferNormal normal_tx, ivec2 texel)
+{
+  /* WATCH: Assumes all closures needing additional data are in first bin. */
+  switch (gbuffer_closure_type_get_by_bin(header, 0)) {
+    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+    case CLOSURE_BSDF_TRANSLUCENT_ID:
+    case CLOSURE_BSSRDF_BURLEY_ID: {
+      int normal_len = gbuffer_normal_count(header);
+      vec2 data_packed = fetchGBuffer(normal_tx, texel, normal_len).rg;
+      return gbuffer_thickness_unpack(data_packed.x);
+    }
+    default:
+      return 0.0;
+  }
+}
+
+/* Returns the first world normal stored in the gbuffer. Assume gbuffer header is non-null. */
+vec3 gbuffer_read_normal(samplerGBufferNormal normal_tx, ivec2 texel)
+{
+  vec2 normal_packed = fetchGBuffer(normal_tx, texel, 0).rg;
+  return gbuffer_normal_unpack(normal_packed);
 }
 
 /** \} */

@@ -618,7 +618,8 @@ void BLI_mempool_as_array(BLI_mempool *pool, void *data)
 {
   const uint esize = pool->esize - (uint)POISON_REDZONE_SIZE;
   BLI_mempool_iter iter;
-  char *elem, *p = data;
+  const char *elem;
+  char *p = data;
 
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 

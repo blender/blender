@@ -694,7 +694,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "children", nullptr);
   RNA_def_property_ui_text(prop,
                            "Collection Children",
-                           "Children collections their parent-collection-specific settings");
+                           "Children collections with their parent-collection-specific settings");
 
   /* Export Handlers. */
   prop = RNA_def_property(srna, "exporters", PROP_COLLECTION, PROP_NONE);
@@ -741,7 +741,7 @@ void RNA_def_collections(BlenderRNA *brna)
        0,
        "Occlusion Only",
        "Only use the collection to produce occlusion"},
-      {COLLECTION_LRT_EXCLUDE, "EXCLUDE", 0, "Exclude", "Don't use this collection in line art"},
+      {COLLECTION_LRT_EXCLUDE, "EXCLUDE", 0, "Exclude", "Don't use this collection in Line Art"},
       {COLLECTION_LRT_INTERSECTION_ONLY,
        "INTERSECTION_ONLY",
        0,
@@ -761,7 +761,7 @@ void RNA_def_collections(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "lineart_usage", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_collection_lineart_usage);
-  RNA_def_property_ui_text(prop, "Usage", "How to use this collection in line art");
+  RNA_def_property_ui_text(prop, "Usage", "How to use this collection in Line Art calculation");
   RNA_def_property_update(prop, NC_SCENE, nullptr);
 
   prop = RNA_def_property(srna, "lineart_use_intersection_mask", PROP_BOOLEAN, PROP_NONE);

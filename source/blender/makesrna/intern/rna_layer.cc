@@ -176,16 +176,16 @@ static PointerRNA rna_ViewLayer_objects_get(CollectionPropertyIterator *iter)
   return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, base->object);
 }
 
-static int rna_ViewLayer_objects_selected_skip(CollectionPropertyIterator *iter, void * /*data*/)
+static bool rna_ViewLayer_objects_selected_skip(CollectionPropertyIterator *iter, void * /*data*/)
 {
   ListBaseIterator *internal = &iter->internal.listbase;
   Base *base = (Base *)internal->link;
 
   if ((base->flag & BASE_SELECTED) != 0) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 };
 
 static PointerRNA rna_ViewLayer_depsgraph_get(PointerRNA *ptr)
@@ -386,7 +386,7 @@ void rna_LayerCollection_children_begin(CollectionPropertyIterator *iter, Pointe
   rna_iterator_listbase_begin(iter, &lc->layer_collections, nullptr);
 }
 
-static int rna_LayerCollection_children_lookupint(PointerRNA *ptr, int key, PointerRNA *r_ptr)
+static bool rna_LayerCollection_children_lookupint(PointerRNA *ptr, int key, PointerRNA *r_ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   LayerCollection *lc = (LayerCollection *)ptr->data;
@@ -402,9 +402,9 @@ static int rna_LayerCollection_children_lookupint(PointerRNA *ptr, int key, Poin
   return true;
 }
 
-static int rna_LayerCollection_children_lookupstring(PointerRNA *ptr,
-                                                     const char *key,
-                                                     PointerRNA *r_ptr)
+static bool rna_LayerCollection_children_lookupstring(PointerRNA *ptr,
+                                                      const char *key,
+                                                      PointerRNA *r_ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   LayerCollection *lc = (LayerCollection *)ptr->data;

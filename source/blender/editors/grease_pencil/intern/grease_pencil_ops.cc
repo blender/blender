@@ -112,6 +112,13 @@ static void keymap_grease_pencil_paint_mode(wmKeyConfig *keyconf)
   keymap->poll = grease_pencil_painting_poll;
 }
 
+static void keymap_grease_pencil_sculpt_mode(wmKeyConfig *keyconf)
+{
+  wmKeyMap *keymap = WM_keymap_ensure(
+      keyconf, "Grease Pencil Sculpt Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  keymap->poll = grease_pencil_sculpting_poll;
+}
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil()
@@ -154,4 +161,5 @@ void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
   using namespace blender::ed::greasepencil;
   keymap_grease_pencil_edit_mode(keyconf);
   keymap_grease_pencil_paint_mode(keyconf);
+  keymap_grease_pencil_sculpt_mode(keyconf);
 }

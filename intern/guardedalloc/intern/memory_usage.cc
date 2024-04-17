@@ -233,7 +233,7 @@ size_t memory_usage_block_num()
 
   /* Count the number of active blocks. */
   int64_t blocks_num = global.blocks_num_outside_locals;
-  for (Local *local : global.locals) {
+  for (const Local *local : global.locals) {
     blocks_num += local->blocks_num;
   }
   return size_t(blocks_num);
@@ -246,7 +246,7 @@ size_t memory_usage_current()
 
   /* Count the memory that's currently in use. */
   int64_t mem_in_use = global.mem_in_use_outside_locals;
-  for (Local *local : global.locals) {
+  for (const Local *local : global.locals) {
     mem_in_use += local->mem_in_use;
   }
   return size_t(mem_in_use);

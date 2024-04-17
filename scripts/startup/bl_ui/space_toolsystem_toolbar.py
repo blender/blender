@@ -2499,7 +2499,7 @@ class _defs_grease_pencil_sculpt:
         tool_settings = context.scene.tool_settings
         return (
             ob is not None and
-            ob.type in {'GPENCIL', 'GREASE_PENCIL'} and (
+            ob.type in {'GPENCIL', 'GREASEPENCIL'} and (
                 tool_settings.use_gpencil_select_mask_point or
                 tool_settings.use_gpencil_select_mask_stroke or
                 tool_settings.use_gpencil_select_mask_segment
@@ -3249,7 +3249,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             *_tools_annotate,
             lambda context: (
-                VIEW3D_PT_tools_active._tools_gpencil_select
+                VIEW3D_PT_tools_active._tools_select
                 if _defs_grease_pencil_sculpt.poll_select_mask(context)
                 else ()
             ),

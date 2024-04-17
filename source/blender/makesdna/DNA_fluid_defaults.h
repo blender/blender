@@ -154,7 +154,7 @@
     .time_per_frame = 0.0f, \
     .frame_length = 0.0f, \
     .time_scale = 1.0f, \
-    .cfl_condition = 4.0f, \
+    .cfl_condition = 2.0f, \
     .timesteps_minimum = 1, \
     .timesteps_maximum = 4, \
     .slice_per_voxel = 5.0f, \

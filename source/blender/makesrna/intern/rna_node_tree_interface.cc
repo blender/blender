@@ -823,11 +823,11 @@ static int rna_NodeTreeInterface_items_length(PointerRNA *ptr)
   return ntree->interface_items().size();
 }
 
-static int rna_NodeTreeInterface_items_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+static bool rna_NodeTreeInterface_items_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   if (!ntree->runtime) {
-    return 0;
+    return false;
   }
 
   ntree->ensure_interface_cache();
@@ -840,13 +840,13 @@ static int rna_NodeTreeInterface_items_lookup_int(PointerRNA *ptr, int index, Po
   return true;
 }
 
-static int rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
-                                                     const char *key,
-                                                     PointerRNA *r_ptr)
+static bool rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
+                                                      const char *key,
+                                                      PointerRNA *r_ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   if (!ntree->runtime) {
-    return 0;
+    return false;
   }
 
   ntree->ensure_interface_cache();

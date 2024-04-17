@@ -169,7 +169,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY(Menu):
         layout.menu("NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS")
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodeGeometryToInstance")
-        node_add_menu.add_node_type(layout, "GeometryNodeJoinGeometry")
+        node_add_menu.add_node_type(layout, "GeometryNodeJoinGeometry", search_weight=1.0)
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -216,7 +216,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_OPERATIONS(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeDuplicateElements")
         node_add_menu.add_node_type(layout, "GeometryNodeMergeByDistance")
         node_add_menu.add_node_type(layout, "GeometryNodeSortElements")
-        node_add_menu.add_node_type(layout, "GeometryNodeTransform")
+        node_add_menu.add_node_type(layout, "GeometryNodeTransform", search_weight=1.0)
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodeSeparateComponents")
         node_add_menu.add_node_type(layout, "GeometryNodeSeparateGeometry")
@@ -549,8 +549,7 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
         layout.separator()
         layout.menu("NODE_MT_category_GEO_UTILITIES_FIELD")
         layout.menu("NODE_MT_category_GEO_UTILITIES_MATH")
-        if context.preferences.experimental.use_new_matrix_socket:
-            layout.menu("NODE_MT_category_utilities_matrix")
+        layout.menu("NODE_MT_category_utilities_matrix")
         layout.menu("NODE_MT_category_GEO_UTILITIES_ROTATION")
         layout.menu("NODE_MT_category_GEO_UTILITIES_DEPRECATED")
         layout.separator()

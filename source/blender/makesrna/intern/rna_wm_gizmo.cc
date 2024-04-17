@@ -45,7 +45,7 @@
 
 #  include "BKE_global.hh"
 #  include "BKE_idprop.hh"
-#  include "BKE_workspace.h"
+#  include "BKE_workspace.hh"
 
 #  include "MEM_guardedalloc.h"
 

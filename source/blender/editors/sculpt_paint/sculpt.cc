@@ -1003,25 +1003,25 @@ void SCULPT_tag_update_overlays(bContext *C)
 
 namespace blender::ed::sculpt_paint::flood_fill {
 
-void init_fill(SculptSession *ss, SculptFloodFill *flood)
+void init_fill(SculptSession *ss, FillData *flood)
 {
   SCULPT_vertex_random_access_ensure(ss);
   flood->visited_verts.resize(SCULPT_vertex_count_get(ss));
 }
 
-void add_initial(SculptFloodFill *flood, PBVHVertRef vertex)
+void add_initial(FillData *flood, PBVHVertRef vertex)
 {
   flood->queue.push(vertex);
 }
 
-void add_and_skip_initial(SculptFloodFill *flood, PBVHVertRef vertex)
+void add_and_skip_initial(FillData *flood, PBVHVertRef vertex)
 {
   flood->queue.push(vertex);
   flood->visited_verts[vertex.i].set(vertex.i);
 }
 
 void add_initial_with_symmetry(
-    Object *ob, SculptSession *ss, SculptFloodFill *flood, PBVHVertRef vertex, float radius)
+    Object *ob, SculptSession *ss, FillData *flood, PBVHVertRef vertex, float radius)
 {
   /* Add active vertex and symmetric vertices to the queue. */
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -1047,7 +1047,7 @@ void add_initial_with_symmetry(
   }
 }
 
-void add_active(Object *ob, SculptSession *ss, SculptFloodFill *flood, float radius)
+void add_active(Object *ob, SculptSession *ss, FillData *flood, float radius)
 {
   /* Add active vertex and symmetric vertices to the queue. */
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
@@ -1073,14 +1073,11 @@ void add_active(Object *ob, SculptSession *ss, SculptFloodFill *flood, float rad
   }
 }
 
-void execute(SculptSession *ss,
-             SculptFloodFill *flood,
-             bool (*func)(SculptSession *ss,
-                          PBVHVertRef from_v,
-                          PBVHVertRef to_v,
-                          bool is_duplicate,
-                          void *userdata),
-             void *userdata)
+void execute(
+    SculptSession *ss,
+    FillData *flood,
+    FunctionRef<bool(SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)>
+        func)
 {
   while (!flood->queue.empty()) {
     PBVHVertRef from_v = flood->queue.front();
@@ -1101,7 +1098,7 @@ void execute(SculptSession *ss,
 
       flood->visited_verts[BKE_pbvh_vertex_to_index(ss->pbvh, to_v)].set();
 
-      if (func(ss, from_v, to_v, ni.is_duplicate, userdata)) {
+      if (func(ss, from_v, to_v, ni.is_duplicate)) {
         flood->queue.push(to_v);
       }
     }

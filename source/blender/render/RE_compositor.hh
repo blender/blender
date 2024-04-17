@@ -32,7 +32,6 @@ void RE_compositor_execute(Render &render,
                            const Scene &scene,
                            const RenderData &render_data,
                            const bNodeTree &node_tree,
-                           const bool use_file_output,
                            const char *view_name,
                            blender::realtime_compositor::RenderContext *render_context);
 

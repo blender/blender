@@ -339,7 +339,8 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   const bool in_paint_mode = (ob == draw_ctx->obact) &&
                              (draw_ctx->object_mode & OB_MODE_ALL_PAINT);
   const bool in_sculpt_curve_mode = (ob == draw_ctx->obact ||
-                                     (is_preview && dupli_parent == draw_ctx->obact)) &&
+                                     (is_preview && dupli_parent == draw_ctx->obact &&
+                                      ob->type == OB_CURVES)) &&
                                     (draw_ctx->object_mode & OB_MODE_SCULPT_CURVES);
   const bool in_sculpt_mode = (ob == draw_ctx->obact) && (ob->sculpt != nullptr) &&
                               (ob->sculpt->mode_type == OB_MODE_SCULPT);

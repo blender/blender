@@ -6,8 +6,6 @@
  * Display characters using an ascii table. Outputs one point per character.
  */
 
-#pragma BLENDER_REQUIRE(common_view_lib.glsl)
-
 void main()
 {
   /* Skip first 4 chars containing header data. */

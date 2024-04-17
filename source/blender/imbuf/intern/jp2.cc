@@ -355,7 +355,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
 
   uint i, i_next, w, h, planes;
   uint y;
-  int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
+  const int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
 
   opj_dparameters_t parameters; /* decompression parameters */
 

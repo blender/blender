@@ -58,6 +58,7 @@ GPU_SHADER_CREATE_INFO(eevee_ray_trace_fallback)
     .do_static_compilation(true)
     .local_group_size(RAYTRACE_GROUP_SIZE, RAYTRACE_GROUP_SIZE)
     .additional_info("eevee_shared",
+                     "eevee_gbuffer_data",
                      "eevee_global_ubo",
                      "draw_view",
                      "eevee_sampling_data",
@@ -67,6 +68,7 @@ GPU_SHADER_CREATE_INFO(eevee_ray_trace_fallback)
     .image(2, RAYTRACE_RADIANCE_FORMAT, Qualifier::WRITE, ImageType::FLOAT_2D, "ray_radiance_img")
     .sampler(1, ImageType::DEPTH_2D, "depth_tx")
     .storage_buf(5, Qualifier::READ, "uint", "tiles_coord_buf[]")
+    .specialization_constant(Type::INT, "closure_index", 0)
     .compute_source("eevee_ray_trace_fallback_comp.glsl");
 
 GPU_SHADER_CREATE_INFO(eevee_ray_trace_planar)

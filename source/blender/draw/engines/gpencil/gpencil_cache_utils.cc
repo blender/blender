@@ -517,6 +517,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
                                               const Object *ob,
                                               const blender::bke::greasepencil::Layer &layer,
                                               const int onion_id,
+                                              const bool is_used_as_mask,
                                               GPENCIL_tObject *tgp_ob)
 
 {
@@ -532,17 +533,22 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
   const bool is_viewlayer_render = pd->is_render && !layer.view_layer_name().is_empty() &&
                                    STREQ(pd->view_layer->name, layer.view_layer_name().c_str());
   const bool disable_masks_render = is_viewlayer_render &&
-                                    (layer.base.flag & GP_LAYER_DISABLE_MASKS_IN_VIEWLAYER) != 0;
+                                    (layer.base.flag &
+                                     GP_LAYER_TREE_NODE_DISABLE_MASKS_IN_VIEWLAYER) != 0;
   bool is_masked = !disable_masks_render && layer.use_masks() &&
                    !BLI_listbase_is_empty(&layer.masks);
 
-  float vert_col_opacity = (override_vertcol) ?
-                               (is_vert_col_mode ? pd->vertex_paint_opacity : 0.0f) :
-                               pd->vertex_paint_opacity;
+  const float vert_col_opacity = (override_vertcol) ?
+                                     (is_vert_col_mode ? pd->vertex_paint_opacity : 0.0f) :
+                                     (pd->is_render ? 1.0f : pd->vertex_paint_opacity);
   /* Negate thickness sign to tag that strokes are in screen space.
    * Convert to world units (by default, 1 meter = 1000 pixels). */
-  float thickness_scale = (is_screenspace) ? -1.0f : 1.0f / 1000.0f;
-  float layer_opacity = grease_pencil_layer_final_opacity_get(pd, ob, grease_pencil, layer);
+  const float thickness_scale = (is_screenspace) ? -1.0f : 1.0f / 1000.0f;
+  /* If the layer is used as a mask (but is otherwise not visible in the render), render it with a
+   * opacity of 0 so that it can still mask other layers. */
+  const float layer_opacity = !is_used_as_mask ? grease_pencil_layer_final_opacity_get(
+                                                     pd, ob, grease_pencil, layer) :
+                                                 0.0f;
 
   float layer_alpha = pd->xray_alpha;
   const float4 layer_tint = grease_pencil_layer_final_tint_and_alpha_get(

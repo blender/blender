@@ -394,7 +394,7 @@ bool BLI_gset_ensure_p_ex(GSet *gs, const void *key, void ***r_key);
  *
  * \returns true if a new key has been added.
  */
-bool BLI_gset_reinsert(GSet *gh, void *key, GSetKeyFreeFP keyfreefp);
+bool BLI_gset_reinsert(GSet *gs, void *key, GSetKeyFreeFP keyfreefp);
 /**
  * Replaces the key to the set if it's found.
  * Matching #BLI_ghash_replace_key

@@ -21,6 +21,7 @@ shared int global_max;
 void main()
 {
   IsectBox box;
+  bool is_valid = true;
 
   if (resource_len > 0) {
     uint index = gl_GlobalInvocationID.x;
@@ -30,6 +31,7 @@ void main()
     resource_id = (resource_id & 0x7FFFFFFFu);
 
     ObjectBounds bounds = bounds_buf[resource_id];
+    is_valid = drw_bounds_are_valid(bounds);
     box = isect_box_setup(bounds.bounding_corners[0].xyz,
                           bounds.bounding_corners[1].xyz,
                           bounds.bounding_corners[2].xyz,
@@ -43,6 +45,10 @@ void main()
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
     LightData light = light_buf[l_idx];
+
+    if (light.tilemap_index == LIGHT_NO_SHADOW) {
+      continue;
+    }
 
     float local_min = FLT_MAX;
     float local_max = -FLT_MAX;
@@ -63,9 +69,11 @@ void main()
     local_min -= abs(local_min) * 0.01;
     local_max += abs(local_max) * 0.01;
 
-    /* Intermediate result. Min/Max of a compute group. */
-    atomicMin(global_min, floatBitsToOrderedInt(local_min));
-    atomicMax(global_max, floatBitsToOrderedInt(local_max));
+    if (is_valid) {
+      /* Intermediate result. Min/Max of a compute group. */
+      atomicMin(global_min, floatBitsToOrderedInt(local_min));
+      atomicMax(global_max, floatBitsToOrderedInt(local_max));
+    }
 
     barrier();
 

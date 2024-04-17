@@ -11,9 +11,10 @@
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_renderpass_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
-#pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_thickness_amend_lib.glsl)
 
 void main()
 {
@@ -32,36 +33,46 @@ void main()
     stack.cl[i] = closure_light_new(gbuffer_closure_get(gbuf, i), V);
   }
 
-  /* TODO(fclem): Split thickness computation. */
-  float thickness = gbuf.thickness;
-#ifdef MAT_SUBSURFACE
-  /* NOTE: BSSRDF is supposed to always be the first closure. */
-  bool has_sss = gbuffer_closure_get(gbuf, 0).type == CLOSURE_BSSRDF_BURLEY_ID;
-  if (has_sss) {
+  /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
+   * by 1 for this evaluation and skip evaluating the transmission closure twice. */
+  light_eval_reflection(stack, P, Ng, V, vPz);
+
+#if 1 /* TODO Limit to transmission. Can bypass the check if stencil is tagged properly and use \
+         specialization constant. */
+  ClosureUndetermined cl_transmit = gbuffer_closure_get(gbuf, 0);
+  if ((cl_transmit.type == CLOSURE_BSDF_TRANSLUCENT_ID) ||
+      (cl_transmit.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) ||
+      (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID))
+  {
     float shadow_thickness = thickness_from_shadow(P, Ng, vPz);
-    thickness = (shadow_thickness != THICKNESS_NO_VALUE) ? max(shadow_thickness, gbuf.thickness) :
-                                                           gbuf.thickness;
+    gbuf.thickness = (shadow_thickness != THICKNESS_NO_VALUE) ?
+                         min(shadow_thickness, gbuf.thickness) :
+                         gbuf.thickness;
 
-    /* Add one translucent closure for all SSS closure. Reuse the same lighting. */
-    ClosureLight cl_light;
-    cl_light.N = -Ng;
-    cl_light.ltc_mat = LTC_LAMBERT_MAT;
-    cl_light.type = LIGHT_DIFFUSE;
-    cl_light.subsurface = true;
-    stack.cl[gbuf.closure_count] = cl_light;
-  }
-#endif
+#  if 1 /* TODO Limit to SSS. */
+    vec3 sss_reflect_shadowed, sss_reflect_unshadowed;
+    if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
+      sss_reflect_shadowed = stack.cl[0].light_shadowed;
+      sss_reflect_unshadowed = stack.cl[0].light_unshadowed;
+    }
+#  endif
 
-  light_eval(stack, P, Ng, V, vPz, thickness);
+    stack.cl[0] = closure_light_new(cl_transmit, V, gbuf.thickness);
 
-#ifdef MAT_SUBSURFACE
-  if (has_sss) {
-    /* Add to diffuse light for processing inside the Screen Space SSS pass.
-     * The translucent light is not outputted as a separate quantity because
-     * it is over the closure_count. */
-    vec3 sss_profile = subsurface_transmission(gbuffer_closure_get(gbuf, 0).data.rgb, thickness);
-    stack.cl[0].light_shadowed += stack.cl[gbuf.closure_count].light_shadowed * sss_profile;
-    stack.cl[0].light_unshadowed += stack.cl[gbuf.closure_count].light_unshadowed * sss_profile;
+    /* Note: Only evaluates `stack.cl[0]`. */
+    light_eval_transmission(stack, P, Ng, V, vPz);
+
+#  if 1 /* TODO Limit to SSS. */
+    if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
+      /* Apply transmission profile onto transmitted light and sum with reflected light. */
+      vec3 sss_profile = subsurface_transmission(to_closure_subsurface(cl_transmit).sss_radius,
+                                                 gbuf.thickness);
+      stack.cl[0].light_shadowed *= sss_profile;
+      stack.cl[0].light_unshadowed *= sss_profile;
+      stack.cl[0].light_shadowed += sss_reflect_shadowed;
+      stack.cl[0].light_unshadowed += sss_reflect_unshadowed;
+    }
+#  endif
   }
 #endif
 
@@ -82,7 +93,7 @@ void main()
 
     for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
       ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
-      lightprobe_eval(samp, cl, g_data.P, V, stack.cl[i].light_shadowed);
+      lightprobe_eval(samp, cl, P, V, gbuf.thickness, stack.cl[i].light_shadowed);
     }
   }
 

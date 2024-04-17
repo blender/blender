@@ -570,7 +570,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
       true,
       "Include Animations",
       "Export animations if available (exporting animations will enforce the decomposition of "
-      "node transforms into  <translation> <rotation> and <scale> components)");
+      "node transforms into <translation> <rotation> and <scale> components)");
 
   RNA_def_boolean(ot->srna,
                   "include_all_actions",

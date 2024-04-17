@@ -343,6 +343,9 @@ void OverrideRNAPathTreeBuilder::build_path(TreeElement &parent,
       name = RNA_struct_name_get_alloc(&elem->next->ptr, name_buf, sizeof(name_buf), nullptr);
       const char *coll_item_path = RNA_path_append(
           previous_path, &elem->ptr, elem->prop, coll_item_idx, name);
+      if (name && (name != name_buf)) {
+        MEM_freeN(name);
+      }
 
       te_to_expand = &ensure_label_element_for_ptr(
           *te_to_expand, coll_item_path, elem->next->ptr, index);
@@ -408,6 +411,9 @@ void OverrideRNAPathTreeBuilder::ensure_entire_collection(
                                                  &override_data.override_rna_prop,
                                                  item_idx,
                                                  name);
+    if (name && (name != name_buf)) {
+      MEM_freeN(name);
+    }
     IDOverrideLibraryPropertyOperation *item_operation =
         BKE_lib_override_library_property_operation_find(&override_data.override_property,
                                                          nullptr,

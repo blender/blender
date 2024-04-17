@@ -18,9 +18,9 @@ static void sh_node_seprgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Color>("Image").default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_output<decl::Float>("R");
-  b.add_output<decl::Float>("G");
-  b.add_output<decl::Float>("B");
+  b.add_output<decl::Float>("R").translation_context(BLT_I18NCONTEXT_COLOR);
+  b.add_output<decl::Float>("G").translation_context(BLT_I18NCONTEXT_COLOR);
+  b.add_output<decl::Float>("B").translation_context(BLT_I18NCONTEXT_COLOR);
 }
 
 static int gpu_shader_seprgb(GPUMaterial *mat,
@@ -94,9 +94,9 @@ namespace blender::nodes::node_shader_sepcomb_rgb_cc {
 static void sh_node_combrgb_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>("R").min(0.0f).max(1.0f);
-  b.add_input<decl::Float>("G").min(0.0f).max(1.0f);
-  b.add_input<decl::Float>("B").min(0.0f).max(1.0f);
+  b.add_input<decl::Float>("R").min(0.0f).max(1.0f).translation_context(BLT_I18NCONTEXT_COLOR);
+  b.add_input<decl::Float>("G").min(0.0f).max(1.0f).translation_context(BLT_I18NCONTEXT_COLOR);
+  b.add_input<decl::Float>("B").min(0.0f).max(1.0f).translation_context(BLT_I18NCONTEXT_COLOR);
   b.add_output<decl::Color>("Image");
 }
 

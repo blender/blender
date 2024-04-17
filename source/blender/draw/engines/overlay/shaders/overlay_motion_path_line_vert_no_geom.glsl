@@ -38,15 +38,13 @@ void do_vertex_shader(vec4 pos, int vertex_id, out vec2 out_sspos, out vec4 out_
   vec3 blend_base = (abs(frame - frameCurrent) == 0) ?
                         colorCurrentFrame.rgb :
                         colorBackground.rgb; /* "bleed" CFRAME color to ease color blending. */
-  bool use_custom_color = customColor.x >= 0.0;
-  /* TODO: We might want something more consistent with custom color and standard colors. */
+  bool use_custom_color = customColorPre.x >= 0.0;
+
   if (frame < frameCurrent) {
     if (use_custom_color) {
-      /* Custom color: previous frames color is darker than current frame */
-      out_finalcolor.rgb = customColor * 0.25;
+      out_finalcolor.rgb = customColorPre;
     }
     else {
-      /* black - before frameCurrent */
       if (selected) {
         intensity = SET_INTENSITY(frameStart, frame, frameCurrent, 0.25, 0.75);
       }
@@ -58,11 +56,9 @@ void do_vertex_shader(vec4 pos, int vertex_id, out vec2 out_sspos, out vec4 out_
   }
   else if (frame > frameCurrent) {
     if (use_custom_color) {
-      /* Custom color: next frames color is equal to user selected color */
-      out_finalcolor.rgb = customColor;
+      out_finalcolor.rgb = customColorPost;
     }
     else {
-      /* blue - after frameCurrent */
       if (selected) {
         intensity = SET_INTENSITY(frameCurrent, frame, frameEnd, 0.25, 0.75);
       }
@@ -75,20 +71,19 @@ void do_vertex_shader(vec4 pos, int vertex_id, out vec2 out_sspos, out vec4 out_
   }
   else {
     if (use_custom_color) {
-      /* Custom color: current frame color is slightly darker than user selected color */
-      out_finalcolor.rgb = customColor * 0.5;
+      out_finalcolor.rgb = colorCurrentFrame.rgb;
     }
     else {
-      /* green - on frameCurrent */
       if (selected) {
         intensity = 0.92f;
       }
       else {
         intensity = 0.75f;
       }
-      out_finalcolor.rgb = mix(colorBackground.rgb, blend_base, intensity);
+      out_finalcolor.rgb = mix(colorCurrentFrame.rgb, blend_base, intensity);
     }
   }
+
   out_finalcolor.a = 1.0;
 }
 

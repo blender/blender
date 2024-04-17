@@ -2348,7 +2348,7 @@ static int pyrna_prop_collection_ass_subscript_int(BPy_PropertyRNA *self,
 
   PYRNA_PROP_COLLECTION_ABS_INDEX(-1);
 
-  if (RNA_property_collection_assign_int(&self->ptr, self->prop, keynum_abs, ptr) == 0) {
+  if (!RNA_property_collection_assign_int(&self->ptr, self->prop, keynum_abs, ptr)) {
     const int len = RNA_property_collection_length(&self->ptr, self->prop);
     if (keynum_abs >= len) {
       PyErr_Format(PyExc_IndexError,

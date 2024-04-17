@@ -247,6 +247,35 @@ static int insert_key_with_keyingset(bContext *C, wmOperator *op, KeyingSet *ks)
   return OPERATOR_FINISHED;
 }
 
+static bool is_idproperty_keyable(IDProperty *prop, const PropertyRNA *property_rna)
+{
+  if (RNA_property_is_runtime(property_rna)) {
+    return false;
+  }
+
+  if (ELEM(prop->type,
+           eIDPropertyType::IDP_BOOLEAN,
+           eIDPropertyType::IDP_INT,
+           eIDPropertyType::IDP_FLOAT,
+           eIDPropertyType::IDP_DOUBLE))
+  {
+    return true;
+  }
+
+  if (prop->type == eIDPropertyType::IDP_ARRAY) {
+    if (ELEM(prop->subtype,
+             eIDPropertyType::IDP_BOOLEAN,
+             eIDPropertyType::IDP_INT,
+             eIDPropertyType::IDP_FLOAT,
+             eIDPropertyType::IDP_DOUBLE))
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 static blender::Vector<std::string> construct_rna_paths(PointerRNA *ptr)
 {
   eRotationModes rotation_mode;
@@ -302,7 +331,17 @@ static blender::Vector<std::string> construct_rna_paths(PointerRNA *ptr)
       LISTBASE_FOREACH (IDProperty *, prop, &properties->data.group) {
         char name_escaped[MAX_IDPROP_NAME * 2];
         BLI_str_escape(name_escaped, prop->name, sizeof(name_escaped));
-        paths.append(fmt::format("[\"{}\"]", name_escaped));
+        std::string path = fmt::format("[\"{}\"]", name_escaped);
+        PointerRNA resolved_ptr;
+        PropertyRNA *resolved_prop;
+        const bool is_resolved = RNA_path_resolve_property(
+            ptr, path.c_str(), &resolved_ptr, &resolved_prop);
+        if (!is_resolved) {
+          continue;
+        }
+        if (is_idproperty_keyable(prop, resolved_prop)) {
+          paths.append(path);
+        }
       }
     }
   }

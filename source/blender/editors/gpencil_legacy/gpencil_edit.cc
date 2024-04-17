@@ -2856,6 +2856,7 @@ void GPENCIL_OT_dissolve(wmOperatorType *ot)
                           0,
                           "Type",
                           "Method used for dissolving stroke points");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_GPENCIL);
 }
 
 /** \} */

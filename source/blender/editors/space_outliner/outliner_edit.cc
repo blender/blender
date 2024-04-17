@@ -44,7 +44,7 @@
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -2216,7 +2216,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
   return WM_operator_props_dialog_popup(C,
                                         op,
                                         unused_message_popup_width_compute(C),
-                                        IFACE_("Purge Unused Data From This File"),
+                                        IFACE_("Purge Unused Data from This File"),
                                         IFACE_("Delete"));
 }
 
@@ -2340,7 +2340,7 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
 
   RNA_def_boolean(ot->srna,
                   "do_recursive",
-                  false,
+                  true,
                   "Recursive Delete",
                   "Recursively check for indirectly unused data-blocks, ensuring that no orphaned "
                   "data-blocks remain after execution");

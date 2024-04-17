@@ -1408,6 +1408,14 @@ static short set_keytype_moving_hold(KeyframeEditData * /*ked*/, BezTriple *bezt
   return 0;
 }
 
+static short set_keytype_generated(KeyframeEditData * /*ked*/, BezTriple *bezt)
+{
+  if (bezt->f2 & SELECT) {
+    BEZKEYTYPE_LVALUE(bezt) = BEZT_KEYTYPE_GENERATED;
+  }
+  return 0;
+}
+
 KeyframeEditFunc ANIM_editkeyframes_keytype(const eBezTriple_KeyframeType keyframe_type)
 {
   switch (keyframe_type) {
@@ -1425,6 +1433,9 @@ KeyframeEditFunc ANIM_editkeyframes_keytype(const eBezTriple_KeyframeType keyfra
 
     case BEZT_KEYTYPE_KEYFRAME:
       return set_keytype_keyframe;
+
+    case BEZT_KEYTYPE_GENERATED:
+      return set_keytype_generated;
   }
 
   BLI_assert_unreachable();

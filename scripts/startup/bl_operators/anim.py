@@ -44,10 +44,12 @@ class ANIM_OT_keying_set_export(Operator):
     )
 
     def execute(self, context):
+        from bpy.utils import escape_identifier
+
         if not self.filepath:
             raise Exception("Filepath not set")
 
-        f = open(self.filepath, "w")
+        f = open(self.filepath, "w", encoding="utf8")
         if not f:
             raise Exception("Could not open file")
 
@@ -61,16 +63,16 @@ class ANIM_OT_keying_set_export(Operator):
 
         # Add KeyingSet and set general settings
         f.write("# Keying Set Level declarations\n")
-        f.write("ks = scene.keying_sets.new(idname=\"%s\", name=\"%s\")\n"
-                "" % (ks.bl_idname, ks.bl_label))
+        f.write("ks = scene.keying_sets.new(idname=%r, name=%r)\n" % (ks.bl_idname, ks.bl_label))
         f.write("ks.bl_description = %r\n" % ks.bl_description)
 
-        if not ks.is_path_absolute:
-            f.write("ks.is_path_absolute = False\n")
+        # TODO: this isn't editable, it should be possible to set this flag for `scene.keying_sets.new`.
+        # if not ks.is_path_absolute:
+        #     f.write("ks.is_path_absolute = False\n")
         f.write("\n")
 
-        f.write("ks.use_insertkey_needed = %s\n" % ks.use_insertkey_needed)
-        f.write("ks.use_insertkey_visual = %s\n" % ks.use_insertkey_visual)
+        f.write("ks.use_insertkey_needed = %r\n" % ks.use_insertkey_needed)
+        f.write("ks.use_insertkey_visual = %r\n" % ks.use_insertkey_visual)
         f.write("\n")
 
         # --------------------------------------------------------
@@ -99,14 +101,14 @@ class ANIM_OT_keying_set_export(Operator):
 
                 for mat in bpy.data.materials:
                     if mat.node_tree == ksp.id:
-                        id_bpy_path = "bpy.data.materials[\"%s\"].node_tree" % (mat.name)
+                        id_bpy_path = "bpy.data.materials[\"%s\"].node_tree" % escape_identifier(mat.name)
                         found = True
                         break
 
                 if not found:
                     for light in bpy.data.lights:
                         if light.node_tree == ksp.id:
-                            id_bpy_path = "bpy.data.lights[\"%s\"].node_tree" % (light.name)
+                            id_bpy_path = "bpy.data.lights[\"%s\"].node_tree" % escape_identifier(light.name)
                             found = True
                             break
 
@@ -119,16 +121,16 @@ class ANIM_OT_keying_set_export(Operator):
                 # Find compositor node-tree using this node tree.
                 for scene in bpy.data.scenes:
                     if scene.node_tree == ksp.id:
-                        id_bpy_path = "bpy.data.scenes[\"%s\"].node_tree" % (scene.name)
+                        id_bpy_path = "bpy.data.scenes[\"%s\"].node_tree" % escape_identifier(scene.name)
                         break
                 else:
                     self.report({'WARN'}, rpt_("Could not find scene using Compositor Node Tree - %s") % (ksp.id))
             elif ksp.id.bl_rna.name == "Key":
                 # "keys" conflicts with a Python keyword, hence the simple solution won't work
-                id_bpy_path = "bpy.data.shape_keys[\"%s\"]" % (ksp.id.name)
+                id_bpy_path = "bpy.data.shape_keys[\"%s\"]" % escape_identifier(ksp.id.name)
             else:
                 idtype_list = ksp.id.bl_rna.name.lower() + "s"
-                id_bpy_path = "bpy.data.%s[\"%s\"]" % (idtype_list, ksp.id.name)
+                id_bpy_path = "bpy.data.%s[\"%s\"]" % (idtype_list, escape_identifier(ksp.id.name))
 
             # shorthand ID for the ID-block (as used in the script)
             short_id = "id_%d" % len(id_to_paths_cache)
@@ -152,7 +154,7 @@ class ANIM_OT_keying_set_export(Operator):
                 id_bpy_path = id_to_paths_cache[ksp.id][0]
             else:
                 id_bpy_path = "None"  # XXX...
-            f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
+            f.write("%s, %r" % (id_bpy_path, ksp.data_path))
 
             # array index settings (if applicable)
             if ksp.use_entire_array:
@@ -164,10 +166,10 @@ class ANIM_OT_keying_set_export(Operator):
             # NOTE: the current default is KEYINGSET, but if this changes,
             # change this code too
             if ksp.group_method == 'NAMED':
-                f.write(", group_method='%s', group_name=\"%s\"" %
+                f.write(", group_method=%r, group_name=%r" %
                         (ksp.group_method, ksp.group))
             elif ksp.group_method != 'KEYINGSET':
-                f.write(", group_method='%s'" % ksp.group_method)
+                f.write(", group_method=%r" % ksp.group_method)
 
             # finish off
             f.write(")\n")

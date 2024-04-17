@@ -644,6 +644,7 @@ static void GREASE_PENCIL_OT_dissolve(wmOperatorType *ot)
                                  "Type",
                                  "Method used for dissolving stroke points");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
 }
 
 /** \} */

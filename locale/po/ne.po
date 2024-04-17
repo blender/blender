@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Yudhir Khanal <yudhir.khanal@gmail.com>\n"
 "Language-Team: Yudhir\n"
@@ -539,16 +539,16 @@ msgid "+ Non-Grouped Keyframes"
 msgstr "+ असंग्रहित मुख्याचित्रसाचोहरु"
 
 
+msgid "Before"
+msgstr "पहिले "
+
+
 msgid "Axes"
 msgstr "अक्ष"
 
 
 msgid "Control Rotation"
 msgstr "घुमावमा नियन्त्रण"
-
-
-msgid "Before"
-msgstr "पहिले "
 
 
 msgid "Parent:"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -311,6 +311,10 @@ msgid "Hold Forward"
 msgstr "Håll fast framåt"
 
 
+msgid "Animation"
+msgstr "Animering"
+
+
 msgid "Motion Paths"
 msgstr "Rörelsebanor"
 
@@ -357,6 +361,22 @@ msgstr "Visa keyframe-nummer"
 
 msgid "Around Frame"
 msgstr "Omkring bildruta"
+
+
+msgid "F-Curves"
+msgstr "F-kurvor"
+
+
+msgid "Influence"
+msgstr "Inflytande"
+
+
+msgid "Offset"
+msgstr "Förskjutning"
+
+
+msgid "Keyframe"
+msgstr "Keyframe"
 
 
 msgid "Height"
@@ -2181,10 +2201,6 @@ msgid "Image"
 msgstr "Bild"
 
 
-msgid "Offset"
-msgstr "Förskjutning"
-
-
 msgid "Rotation"
 msgstr "Rotation"
 
@@ -2307,10 +2323,6 @@ msgstr "Alpha"
 
 msgid "Position"
 msgstr "Position"
-
-
-msgid "Influence"
-msgstr "Inflytande"
 
 
 msgid "World Space"
@@ -2931,12 +2943,12 @@ msgid "Save"
 msgstr "Spara"
 
 
-msgid "File Extensions"
-msgstr "Filändelse"
-
-
 msgid "Operator"
 msgstr "Operator"
+
+
+msgid "File Extensions"
+msgstr "Filändelse"
 
 
 msgid "Label"
@@ -3436,10 +3448,6 @@ msgid "Type of keyframe"
 msgstr "Typ av keyframe"
 
 
-msgid "Keyframe"
-msgstr "Keyframe"
-
-
 msgid "Blend Mode"
 msgstr "Blandningsläge"
 
@@ -3552,32 +3560,16 @@ msgid "Red Green Blue"
 msgstr "Röd Grön Blå"
 
 
-msgid "R"
-msgstr "R"
-
-
 msgid "Red"
 msgstr "Röd"
-
-
-msgid "G"
-msgstr "G"
 
 
 msgid "Green"
 msgstr "Grön"
 
 
-msgid "B"
-msgstr "B"
-
-
 msgid "Blue"
 msgstr "Blå"
-
-
-msgid "A"
-msgstr "A"
 
 
 msgid "Show Line"
@@ -3586,10 +3578,6 @@ msgstr "Visa linje"
 
 msgid "Display lines rather than filled shapes"
 msgstr "Visa linjer istället för fyllda former"
-
-
-msgid "Animation"
-msgstr "Animering"
 
 
 msgid "Brush"
@@ -3692,12 +3680,12 @@ msgid "A collection of F-Curves for animation"
 msgstr "En samling F-kurvor för animering"
 
 
-msgid "F-Curves"
-msgstr "F-kurvor"
-
-
 msgid "Groups"
 msgstr "Grupper"
+
+
+msgid "Layers"
+msgstr "Lager"
 
 
 msgid "Wire"
@@ -4090,10 +4078,6 @@ msgstr "Max"
 
 msgid "Node tree for node-based shaders"
 msgstr "Nodträd för nodbaserade shaders"
-
-
-msgid "Layers"
-msgstr "Lager"
 
 
 msgid "Only selected keyframes"
@@ -8376,6 +8360,15 @@ msgid "Delete 4 spaces from line beginning"
 msgstr "Ta bort 4 mellanslag från radens början"
 
 
+msgid "Align the new object to the view"
+msgstr "Justera det nya objektet till vyn"
+
+
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "Lägg till cirkel"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "Växla cyklisk"
@@ -8404,10 +8397,6 @@ msgstr "Krymp/sväll"
 
 msgid "Toggle Free/Align"
 msgstr "Växla fri/upprätad"
-
-
-msgid "Align the new object to the view"
-msgstr "Justera det nya objektet till vyn"
 
 
 msgctxt "Operator"
@@ -9542,11 +9531,6 @@ msgstr "Skapa ny mask"
 
 msgid "Name of new mask"
 msgstr "Namn på ny mask"
-
-
-msgctxt "Operator"
-msgid "Add Circle"
-msgstr "Lägg till cirkel"
 
 
 msgid "Location of new circle"
@@ -12135,14 +12119,6 @@ msgid "Volumes"
 msgstr "Volymer"
 
 
-msgid "Scene Graph"
-msgstr "Scengraf"
-
-
-msgid "Unused Textures & Images"
-msgstr "Oanvända texturer och bilder"
-
-
 msgid "Active Tool"
 msgstr "Aktivt verktyg"
 
@@ -14035,6 +14011,14 @@ msgid "Please select at least one image"
 msgstr "Välj minst en bild"
 
 
+msgid "Scene Graph"
+msgstr "Scengraf"
+
+
+msgid "Unused Textures & Images"
+msgstr "Oanvända texturer och bilder"
+
+
 msgid "Volume: {}³"
 msgstr "Volym: {}³"
 
@@ -14202,11 +14186,6 @@ msgstr "Fil '%s' hittas inte"
 
 
 msgctxt "Operator"
-msgid "Save New Settings"
-msgstr "Spara nya inställningar"
-
-
-msgctxt "Operator"
 msgid "Continue"
 msgstr "Fortsätt"
 
@@ -14311,11 +14290,6 @@ msgstr "Högtalare"
 
 
 msgctxt "Operator"
-msgid "See What's New..."
-msgstr "Se vad som är nytt..."
-
-
-msgctxt "Operator"
 msgid "Manual"
 msgstr "Manual"
 
@@ -14386,6 +14360,10 @@ msgid "+ Non-Grouped Keyframes"
 msgstr "+ ej grupperade nycklar"
 
 
+msgid "Before"
+msgstr "Innan"
+
+
 msgid "Pivot Offset"
 msgstr "Rotationspunktförskjutning"
 
@@ -14449,10 +14427,6 @@ msgstr "Kapitäler"
 msgctxt "Operator"
 msgid "Custom..."
 msgstr "Anpassa..."
-
-
-msgid "Before"
-msgstr "Innan"
 
 
 msgid "Thickness Scale"
@@ -15907,6 +15881,10 @@ msgstr "Visa varning"
 msgctxt "Operator"
 msgid "Install..."
 msgstr "Installera..."
+
+
+msgid "B"
+msgstr "B"
 
 
 msgctxt "Text"

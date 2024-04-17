@@ -185,7 +185,7 @@
  *
  * b) If you want to enable temporal supersampling (SMAA T2x):
  *
- * 1. The first step is to render using subpixel jitters. I won't go into
+ * 1. The first step is to render using sub-pixel jitters. I won't go into
  *    detail, but it's as simple as moving each vertex position in the
  *    vertex shader, you can check how we do it in our DX10 demo.
  *
@@ -195,7 +195,7 @@
  *    CryENGINE temporal reprojection by setting the SMAA_REPROJECTION macro.
  *    Check out SMAA_DECODE_VELOCITY if your velocity buffer is encoded.
  *
- * 3. The next step is to apply SMAA to each subpixel jittered frame, just as
+ * 3. The next step is to apply SMAA to each sub-pixel jittered frame, just as
  *    done for 1x.
  *
  * 4. At this point you should already have something usable, but for best
@@ -878,7 +878,7 @@ static float2 SMAAAreaDiag(SMAATexture2D(areaTex), float2 dist, float2 e, float 
   /* Diagonal areas are on the second half of the texture: */
   texcoord.x += 0.5f;
 
-  /* Move to proper place, according to the subpixel offset: */
+  /* Move to proper place, according to the sub-pixel offset: */
   texcoord.y += SMAA_AREATEX_SUBTEX_SIZE * offset;
 
   /* Do it! */
@@ -1125,7 +1125,7 @@ static float2 SMAAArea(SMAATexture2D(areaTex), float2 dist, float e1, float e2, 
   /* We do a scale and bias for mapping to texel space: */
   texcoord = mad(SMAA_AREATEX_PIXEL_SIZE, texcoord, 0.5f * SMAA_AREATEX_PIXEL_SIZE);
 
-  /* Move to proper place, according to the subpixel offset: */
+  /* Move to proper place, according to the sub-pixel offset: */
   texcoord.y = mad(SMAA_AREATEX_SUBTEX_SIZE, offset, texcoord.y);
 
   /* Do it! */
@@ -1389,7 +1389,7 @@ static float4 SMAANeighborhoodBlendingPS(float2 texcoord,
     color += blendingWeight.y * SMAASampleLevelZero(colorTex, blendingCoord.zw());
 
 #if SMAA_REPROJECTION
-    /* Antialias velocity for proper reprojection in a later stage: */
+    /* Anti-alias velocity for proper reprojection in a later stage: */
     float2 velocity = blendingWeight.x *
                       SMAA_DECODE_VELOCITY(SMAASampleLevelZero(velocityTex, blendingCoord.xy()));
     velocity += blendingWeight.y *

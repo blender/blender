@@ -45,7 +45,7 @@ void main()
 
   fragment_displacement();
 
-  g_thickness = max(0.0, nodetree_thickness());
+  g_thickness = nodetree_thickness();
 
   nodetree_surface(closure_rand);
 

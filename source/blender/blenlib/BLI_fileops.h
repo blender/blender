@@ -380,7 +380,8 @@ bool BLI_file_older(const char *file1, const char *file2) ATTR_WARN_UNUSED_RESUL
  *
  * \return the lines in a linked list (an empty list when file reading fails).
  */
-struct LinkNode *BLI_file_read_as_lines(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+struct LinkNode *BLI_file_read_as_lines(const char *filepath) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
 
 /**
  * Read the contents of `fp`, returning the result as a buffer or null when it can't be read.

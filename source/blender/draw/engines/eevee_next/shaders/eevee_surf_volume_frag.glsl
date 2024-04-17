@@ -136,7 +136,7 @@ void main()
 #endif
 
 #ifndef VOLUME_HOMOGENOUS
-      /* Heterogenous volumes evaluate properties at every froxel position. */
+      /* Heterogeneous volumes evaluate properties at every froxel position. */
       VolumeProperties prop = eval_froxel(froxel, jitter);
 #endif
       write_froxel(froxel, prop);

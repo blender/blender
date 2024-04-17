@@ -76,7 +76,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "BKE_paint.hh"
 #  include "BKE_scene.hh"
 #  include "BKE_texture.h"
-#  include "BKE_workspace.h"
+#  include "BKE_workspace.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -1058,7 +1058,7 @@ void RNA_def_material(BlenderRNA *brna)
   /* line art */
   prop = RNA_def_property(srna, "lineart", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "lineart");
-  RNA_def_property_ui_text(prop, "Line Art Settings", "Line art settings for material");
+  RNA_def_property_ui_text(prop, "Line Art Settings", "Line Art settings for material");
 
   rna_def_material_greasepencil(brna);
   rna_def_material_lineart(brna);

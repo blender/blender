@@ -224,7 +224,7 @@ class UI_UL_list(bpy.types.UIList):
             flags = [0] * len(items)
 
         # Implicitly add heading/trailing wildcards.
-        pattern_regex = re.compile(fnmatch.translate("*" + pattern + "*"))
+        pattern_regex = re.compile(fnmatch.translate("*" + pattern + "*"), re.IGNORECASE)
 
         for i, item in enumerate(items):
             name = getattr(item, propname, None)

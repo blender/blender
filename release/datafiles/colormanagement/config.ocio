@@ -347,7 +347,7 @@ colorspaces:
     equalitygroup:
     bitdepth: 32f
     description: |
-      Log Encoding with Chroma inset and rotation, and with 25 Stops of Dynamic Range
+      Log Encoding with Chroma inset and rotation of primaries, and with 25 Stops of Dynamic Range
     isdata: false
     from_reference: !<GroupTransform>
       children:

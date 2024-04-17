@@ -26,8 +26,7 @@ GPU_SHADER_CREATE_INFO(draw_debug_print_display)
     .fragment_out(0, Type::VEC4, "out_color")
     .push_constant(Type::VEC2, "viewport_size")
     .vertex_source("draw_debug_print_display_vert.glsl")
-    .fragment_source("draw_debug_print_display_frag.glsl")
-    .additional_info("draw_view");
+    .fragment_source("draw_debug_print_display_frag.glsl");
 
 /** \} */
 
@@ -55,7 +54,6 @@ GPU_SHADER_CREATE_INFO(draw_debug_draw_display)
     .fragment_out(0, Type::VEC4, "out_color")
     .push_constant(Type::MAT4, "persmat")
     .vertex_source("draw_debug_draw_display_vert.glsl")
-    .fragment_source("draw_debug_draw_display_frag.glsl")
-    .additional_info("draw_view");
+    .fragment_source("draw_debug_draw_display_frag.glsl");
 
 /** \} */

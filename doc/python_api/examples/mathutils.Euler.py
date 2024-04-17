@@ -16,7 +16,7 @@ print("Euler Z", eul[-1])
 eul[:] = 1.0, 2.0, 3.0
 
 # components of an existing euler can use slice notation to get a tuple
-print("Values: %f, %f, %f" % eul[:])
+print("Values: {:f}, {:f}, {:f}".format(*eul))
 
 # the order can be set at any time too
 eul.order = 'ZYX'

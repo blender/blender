@@ -93,7 +93,7 @@ bool BLF_has_glyph(int fontid, unsigned int unicode) ATTR_WARN_UNUSED_RESULT;
 /**
  * Attach a file with metrics information from memory.
  */
-void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size) ATTR_NONNULL(2);
+void BLF_metrics_attach(int fontid, const unsigned char *mem, int mem_size) ATTR_NONNULL(2);
 
 void BLF_aspect(int fontid, float x, float y, float z);
 void BLF_position(int fontid, float x, float y, float z);
@@ -185,6 +185,12 @@ bool BLF_str_offset_to_glyph_bounds(int fontid,
                                     rcti *glyph_bounds) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(2, 4);
 
 /**
+ * Return left edge of text cursor (caret), given a character offset and cursor width.
+ */
+int BLF_str_offset_to_cursor(
+    int fontid, const char *str, size_t str_len, size_t str_offset, float cursor_width);
+
+/**
  * Get the string byte offset that fits within a given width.
  */
 size_t BLF_width_to_strlen(int fontid,
@@ -208,7 +214,7 @@ size_t BLF_width_to_rstrlen(int fontid,
 void BLF_boundbox(int fontid,
                   const char *str,
                   size_t str_len,
-                  rcti *box,
+                  rcti *r_box,
                   ResultBLF *r_info = nullptr) ATTR_NONNULL(2);
 
 /**

@@ -93,6 +93,11 @@ class Context {
   virtual bool debug_capture_scope_begin(void *scope) = 0;
   virtual void debug_capture_scope_end(void *scope) = 0;
 
+  /* Consider all buffers slot empty after these call for error checking.
+   * But doesn't really free them. */
+  virtual void debug_unbind_all_ubo() = 0;
+  virtual void debug_unbind_all_ssbo() = 0;
+
   bool is_active_on_thread();
 };
 

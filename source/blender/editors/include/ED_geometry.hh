@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "BLI_generic_pointer.hh"
 #include "BLI_string_ref.hh"
 
@@ -21,6 +23,9 @@ struct PointerRNA;
 struct PropertyRNA;
 namespace blender::bke {
 enum class AttrDomain : int8_t;
+}
+namespace blender::nodes::geo_eval_log {
+class GeoModifierLog;
 }
 
 namespace blender::ed::geometry {
@@ -60,6 +65,16 @@ bool ED_geometry_attribute_convert(Mesh *mesh,
                                    ReportList *reports);
 
 namespace blender::ed::geometry {
+
+struct GeoOperatorLog {
+  std::string node_group_name;
+  std::unique_ptr<nodes::geo_eval_log::GeoModifierLog> log;
+
+  GeoOperatorLog() = default;
+  ~GeoOperatorLog();
+};
+
+const GeoOperatorLog &node_group_operator_static_eval_log();
 
 MenuType node_group_operator_assets_menu();
 MenuType node_group_operator_assets_menu_unassigned();

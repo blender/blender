@@ -10,7 +10,7 @@
 #include "BKE_main.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -99,8 +99,11 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
     /* The tree path contains the name of the node but not its ID. */
     const char *node_name = tree_path[i + 1]->node_name;
     const bNode *node = nodeFindNodebyName(tree, node_name);
-    /* The name in the tree path should match a group node in the tree. */
-    BLI_assert(node != nullptr);
+    /* The name in the tree path should match a group node in the tree. Sometimes, the tree-path is
+     * out of date though. */
+    if (node == nullptr) {
+      return;
+    }
 
     tree->ensure_topology_cache();
     const bNodeTreeZones *tree_zones = tree->zones();

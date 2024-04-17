@@ -21,7 +21,7 @@ namespace Freestyle {
 
 class ScenePrettyPrinter : public SceneVisitor {
  public:
-  ScenePrettyPrinter(const string filename = "SceneLog.txt") : SceneVisitor()
+  ScenePrettyPrinter(const string &filename = "SceneLog.txt") : SceneVisitor()
   {
     if (!filename.empty()) {
       _ofs.open(filename.c_str());

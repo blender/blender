@@ -25,7 +25,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "ED_node.hh" /* own include */
 #include "ED_screen.hh"

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#pragma once
+
 #include "BLI_bounds.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
@@ -12,8 +14,6 @@
 #include "DNA_modifier_types.h"
 
 #include "BKE_volume_grid_fwd.hh"
-
-#pragma once
 
 struct Depsgraph;
 struct Mesh;

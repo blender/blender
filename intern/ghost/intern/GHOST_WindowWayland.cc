@@ -176,6 +176,8 @@ struct GWL_XDG_Decor_Window {
 
   /** The window has been configured (see #xdg_surface_ack_configure). */
   bool initial_configure_seen = false;
+  /** The maximum bounds on startup, monitor size minus docs for example. */
+  int initial_bounds[2] = {0, 0};
 };
 
 static void gwl_xdg_decor_window_destroy(GWL_XDG_Decor_Window *decor)
@@ -1194,9 +1196,37 @@ static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*
   win->ghost_window->close();
 }
 
+static void xdg_toplevel_handle_configure_bounds(void *data,
+                                                 struct xdg_toplevel * /*xdg_toplevel*/,
+                                                 int32_t width,
+                                                 int32_t height)
+{
+  /* Only available in interface version 4. */
+  CLOG_INFO(LOG, 2, "configure_bounds (size=[%d, %d])", width, height);
+
+  /* No need to lock as this only runs on window creation. */
+  GWL_Window *win = static_cast<GWL_Window *>(data);
+  GWL_XDG_Decor_Window &decor = *win->xdg_decor;
+  if (decor.initial_configure_seen == false) {
+    decor.initial_bounds[0] = width;
+    decor.initial_bounds[1] = height;
+  }
+}
+static void xdg_toplevel_handle_wm_capabilities(void * /*data*/,
+                                                struct xdg_toplevel * /*xdg_toplevel*/,
+                                                struct wl_array * /*capabilities*/)
+{
+  /* Only available in interface version 5. */
+  CLOG_INFO(LOG, 2, "wm_capabilities");
+
+  /* NOTE: this would be useful if blender had CSD, . */
+}
+
 static const xdg_toplevel_listener xdg_toplevel_listener = {
     /*configure*/ xdg_toplevel_handle_configure,
     /*close*/ xdg_toplevel_handle_close,
+    /*configure_bounds*/ xdg_toplevel_handle_configure_bounds,
+    /*wm_capabilities*/ xdg_toplevel_handle_wm_capabilities,
 };
 
 #undef LOG
@@ -1564,9 +1594,27 @@ static void surface_handle_leave(void *data, wl_surface * /*wl_surface*/, wl_out
   }
 }
 
+static void surface_handle_preferred_buffer_scale(void * /*data*/,
+                                                  struct wl_surface * /*wl_surface*/,
+                                                  int32_t factor)
+{
+  /* Only available in interface version 6. */
+  CLOG_INFO(LOG, 2, "handle_preferred_buffer_scale (factor=%d)", factor);
+}
+
+static void surface_handle_preferred_buffer_transform(void * /*data*/,
+                                                      struct wl_surface * /*wl_surface*/,
+                                                      uint32_t transform)
+{
+  /* Only available in interface version 6. */
+  CLOG_INFO(LOG, 2, "handle_preferred_buffer_transform (transform=%u)", transform);
+}
+
 static const wl_surface_listener wl_surface_listener = {
     /*enter*/ surface_handle_enter,
     /*leave*/ surface_handle_leave,
+    /*preferred_buffer_scale*/ surface_handle_preferred_buffer_scale,
+    /*preferred_buffer_transform*/ surface_handle_preferred_buffer_transform,
 };
 
 #undef LOG
@@ -1802,6 +1850,24 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
   wl_surface_set_buffer_scale(window_->wl.surface, window_->frame.buffer_scale);
 
+  /* Apply Bounds.
+   * Important to run after the buffer scale is known & before the buffer is created. */
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (use_libdecor) {
+    /* Pass (unsupported). */
+  }
+  else
+#endif /* WITH_GHOST_WAYLAND_LIBDECOR */
+  {
+    const GWL_XDG_Decor_Window &decor = *window_->xdg_decor;
+    if (decor.initial_bounds[0] && decor.initial_bounds[1]) {
+      window_->frame.size[0] = std::min(window_->frame.size[0],
+                                        decor.initial_bounds[0] * window_->frame.buffer_scale);
+      window_->frame.size[1] = std::min(window_->frame.size[1],
+                                        decor.initial_bounds[1] * window_->frame.buffer_scale);
+    }
+  }
+
 /* Postpone binding the buffer until after it's decor has been configured:
  * - Ensure the window is sized properly (with XDG window decorations), see: #113059.
  * - Avoids flickering on startup.
@@ -1990,7 +2056,7 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mo
 #endif
 
   GHOST_Rect bounds_buf;
-  GHOST_Rect *bounds = nullptr;
+  const GHOST_Rect *bounds = nullptr;
   if (m_cursorGrab == GHOST_kGrabWrap) {
     if (getCursorGrabBounds(bounds_buf) == GHOST_kFailure) {
       getClientBounds(bounds_buf);

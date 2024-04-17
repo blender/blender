@@ -27,8 +27,39 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
     stack.cl[i] = closure_light_new(g_closure_get(i), V);
   }
 
-#ifndef SKIP_LIGHT_EVAL
-  light_eval(stack, g_data.P, g_data.Ng, V, vPz, thickness);
+  /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
+   * by 1 for this evaluation and skip evaluating the transmission closure twice. */
+  light_eval_reflection(stack, g_data.P, g_data.Ng, V, vPz);
+
+#if defined(MAT_SUBSURFACE) || defined(MAT_REFRACTION) || defined(MAT_TRANSLUCENT)
+
+  ClosureUndetermined cl_transmit = g_closure_get(0);
+  if (cl_transmit.type != CLOSURE_NONE) {
+#  if defined(MAT_SUBSURFACE)
+    vec3 sss_reflect_shadowed, sss_reflect_unshadowed;
+    if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
+      sss_reflect_shadowed = stack.cl[0].light_shadowed;
+      sss_reflect_unshadowed = stack.cl[0].light_unshadowed;
+    }
+#  endif
+
+    stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
+
+    /* Note: Only evaluates `stack.cl[0]`. */
+    light_eval_transmission(stack, g_data.P, g_data.Ng, V, vPz);
+
+#  if defined(MAT_SUBSURFACE)
+    if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
+      /* Apply transmission profile onto transmitted light and sum with reflected light. */
+      vec3 sss_profile = subsurface_transmission(to_closure_subsurface(cl_transmit).sss_radius,
+                                                 thickness);
+      stack.cl[0].light_shadowed *= sss_profile;
+      stack.cl[0].light_unshadowed *= sss_profile;
+      stack.cl[0].light_shadowed += sss_reflect_shadowed;
+      stack.cl[0].light_unshadowed += sss_reflect_unshadowed;
+    }
+#  endif
+  }
 #endif
 
   LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
@@ -37,8 +68,15 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
   radiance = g_emission;
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
     ClosureUndetermined cl = g_closure_get(i);
-    lightprobe_eval(samp, cl, g_data.P, V, stack.cl[i].light_shadowed);
+    lightprobe_eval(samp, cl, g_data.P, V, thickness, stack.cl[i].light_shadowed);
     if (cl.weight > 1e-5) {
+      if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
+           cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&
+          (thickness > 0.0))
+      {
+        /* We model two transmission event, so the surface color need to be applied twice. */
+        stack.cl[i].light_shadowed *= cl.color;
+      }
       radiance += stack.cl[i].light_shadowed * cl.color * cl.weight;
     }
   }

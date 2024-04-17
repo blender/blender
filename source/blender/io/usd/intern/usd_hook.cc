@@ -186,7 +186,7 @@ static void handle_python_error(USDHook *hook, ReportList *reports)
 
   BKE_reportf(reports,
               RPT_ERROR,
-              "An exception occurred invoking USD hook '%s'.  Please see the console for details",
+              "An exception occurred invoking USD hook '%s'. Please see the console for details",
               hook->name);
 }
 

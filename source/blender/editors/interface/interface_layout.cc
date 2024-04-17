@@ -167,6 +167,8 @@ struct uiLayout {
   eUIEmbossType emboss;
   /** for fixed width or height to avoid UI size changes */
   float units[2];
+  /** Is copied to uiButs created in this layout. */
+  float search_weight;
 };
 
 struct uiLayoutItemFlow {
@@ -1474,7 +1476,7 @@ BLI_INLINE bool ui_layout_is_radial(const uiLayout *layout)
 
 void uiItemsFullEnumO_items(uiLayout *layout,
                             wmOperatorType *ot,
-                            PointerRNA ptr,
+                            const PointerRNA &ptr,
                             PropertyRNA *prop,
                             IDProperty *properties,
                             wmOperatorCallContext context,
@@ -5273,6 +5275,16 @@ void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep)
   SET_FLAG_FROM_TEST(layout->item.flag, is_sep, UI_ITEM_PROP_DECORATE);
 }
 
+void uiLayoutSetSearchWeight(uiLayout *layout, const float weight)
+{
+  layout->search_weight = weight;
+}
+
+float uiLayoutGetSearchWeight(uiLayout *layout)
+{
+  return layout->search_weight;
+}
+
 Panel *uiLayoutGetRootPanel(uiLayout *layout)
 {
   return layout->root->block->panel;
@@ -5856,6 +5868,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
     BLI_addtail(&layout->items, bitem);
   }
   but->layout = layout;
+  but->search_weight = layout->search_weight;
 
   if (layout->context) {
     but->context = layout->context;

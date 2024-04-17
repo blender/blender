@@ -188,6 +188,21 @@ class KeyframeInsertTest(AbstractAnimationTest, unittest.TestCase):
 
         bpy.ops.object.delete(use_global=False)
 
+    def test_keyframe_insert_keytype(self):
+        key_object = bpy.context.active_object
+
+        # Inserting a key with a specific type should work.
+        key_object.keyframe_insert("location", keytype='GENERATED')
+
+        # Unsupported/unknown types should be rejected.
+        with self.assertRaises(ValueError):
+            key_object.keyframe_insert("rotation_euler", keytype='UNSUPPORTED')
+
+        # Only a single key should have been inserted.
+        keys = key_object.animation_data.action.fcurves[0].keyframe_points
+        self.assertEqual(len(keys), 1)
+        self.assertEqual(keys[0].type, 'GENERATED')
+
     def test_keyframe_insertion_high_frame_number(self):
         bpy.ops.mesh.primitive_monkey_add()
         key_count = 100

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -185,6 +185,10 @@ msgid "Multiply"
 msgstr "Biderkatu"
 
 
+msgid "Animation"
+msgstr "Animazioa"
+
+
 msgid "Heads"
 msgstr "Buruak"
 
@@ -305,16 +309,16 @@ msgid "Material"
 msgstr "Materiala"
 
 
-msgid "Stroke"
-msgstr "Trazua"
-
-
 msgid "Direction"
 msgstr "Norabidea"
 
 
 msgid "Normal"
 msgstr "Normala"
+
+
+msgid "Stroke"
+msgstr "Trazua"
 
 
 msgid "Curve"
@@ -445,10 +449,6 @@ msgstr "Kurba"
 msgctxt "Curve"
 msgid "Sphere"
 msgstr "Esfera"
-
-
-msgid "Animation"
-msgstr "Animazioa"
 
 
 msgid "Sound"

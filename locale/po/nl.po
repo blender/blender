@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'cb66cc3028dd')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-05 01:39+0000\n"
+"POT-Creation-Date: 2024-04-15 10:09+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -299,6 +299,10 @@ msgid "Action Influence"
 msgstr "Invloed Actie"
 
 
+msgid "Animation"
+msgstr "Animatie"
+
+
 msgid "After Current"
 msgstr "Na Huidige"
 
@@ -329,6 +333,14 @@ msgstr "Rond Frame"
 
 msgid "In Range"
 msgstr "In Bereik"
+
+
+msgid "Influence"
+msgstr "Invloed"
+
+
+msgid "Mix Mode"
+msgstr "Mixmodus"
 
 
 msgid "Any Type"
@@ -866,10 +878,6 @@ msgid "Vertex Color"
 msgstr "Kleur van Punt"
 
 
-msgid "Dissolve"
-msgstr "Oplossen"
-
-
 msgid "Precision"
 msgstr "Nauwkeurigheid"
 
@@ -1071,10 +1079,6 @@ msgid "Rotation error"
 msgstr "Rotatiefout"
 
 
-msgid "Influence"
-msgstr "Invloed"
-
-
 msgid "Disable"
 msgstr "Uitzetten"
 
@@ -1121,10 +1125,6 @@ msgstr "Skelet"
 
 msgid "Floor"
 msgstr "Vloer"
-
-
-msgid "Mix Mode"
-msgstr "Mixmodus"
 
 
 msgid "Active Clip"
@@ -1507,6 +1507,10 @@ msgid "2D"
 msgstr "2D"
 
 
+msgid "Animations"
+msgstr "Animaties"
+
+
 msgid "Fonts"
 msgstr "Lettertypen"
 
@@ -1517,10 +1521,6 @@ msgstr "Deeltjes Instellingen"
 
 msgid "Save"
 msgstr "Opslaan"
-
-
-msgid "Animations"
-msgstr "Animaties"
 
 
 msgid "Environment"
@@ -1973,24 +1973,12 @@ msgid "Repeat"
 msgstr "Herhaal"
 
 
-msgid "R"
-msgstr "R"
-
-
 msgid "Red"
 msgstr "Rood"
 
 
-msgid "G"
-msgstr "G"
-
-
 msgid "Green"
 msgstr "Groen"
-
-
-msgid "B"
-msgstr "B"
 
 
 msgid "Blue"
@@ -1999,10 +1987,6 @@ msgstr "Blauw"
 
 msgid "Show Line"
 msgstr "Toon Lijn"
-
-
-msgid "Animation"
-msgstr "Animatie"
 
 
 msgid "Brush"
@@ -2063,6 +2047,10 @@ msgstr "Volledige Naam"
 
 msgid "Users"
 msgstr "Gebruikers"
+
+
+msgid "Layers"
+msgstr "Lagen"
 
 
 msgid "X-Axis Mirror"
@@ -2319,10 +2307,6 @@ msgstr "Gebruik Nodes"
 
 msgid "Annotation"
 msgstr "Annotatie"
-
-
-msgid "Layers"
-msgstr "Lagen"
 
 
 msgid "Only selected keyframes"
@@ -3798,6 +3782,11 @@ msgstr "Zoom Uit"
 
 
 msgctxt "Operator"
+msgid "Export"
+msgstr "Exporteren"
+
+
+msgctxt "Operator"
 msgid "Remove from All Collections"
 msgstr "Verwijder van Alle Collecties"
 
@@ -3838,6 +3827,11 @@ msgstr "Begrenzing"
 msgctxt "Operator"
 msgid "Delete Constraint"
 msgstr "Verwijder Beperking"
+
+
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "Voeg Cirkel Toe"
 
 
 msgid "Duplicate"
@@ -4583,11 +4577,6 @@ msgstr "Verplaats Laag"
 msgctxt "Operator"
 msgid "New Mask"
 msgstr "Nieuwe Masker"
-
-
-msgctxt "Operator"
-msgid "Add Circle"
-msgstr "Voeg Cirkel Toe"
 
 
 msgctxt "Operator"
@@ -6668,6 +6657,11 @@ msgstr "Kleding"
 
 
 msgctxt "Operator"
+msgid "Strength"
+msgstr "Sterkte"
+
+
+msgctxt "Operator"
 msgid "Erase"
 msgstr "Gummen"
 
@@ -6690,11 +6684,6 @@ msgstr "Doos"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Cirkel"
-
-
-msgctxt "Operator"
-msgid "Strength"
-msgstr "Sterkte"
 
 
 msgid "Custom Object"
@@ -7389,11 +7378,6 @@ msgstr "Gebied"
 
 
 msgctxt "Operator"
-msgid "Export"
-msgstr "Exporteren"
-
-
-msgctxt "Operator"
 msgid "Load"
 msgstr "Laden"
 
@@ -7414,10 +7398,6 @@ msgstr "Geen camera gevonden"
 
 msgid "No other objects selected"
 msgstr "Geen andere objecten geselecteerd"
-
-
-msgid "Shortcuts"
-msgstr "Sneltoetsen"
 
 
 msgctxt "Operator"
@@ -7466,6 +7446,10 @@ msgid "Calculate..."
 msgstr "Berekenen..."
 
 
+msgid "Before"
+msgstr "Voordat"
+
+
 msgid "Frame Range Start"
 msgstr "Framebereik Start"
 
@@ -7512,10 +7496,6 @@ msgstr "Vergrendel Alles"
 msgctxt "Operator"
 msgid "Unlock All"
 msgstr "Ontgrendel Alles"
-
-
-msgid "Before"
-msgstr "Voordat"
 
 
 msgctxt "Operator"
@@ -8250,6 +8230,10 @@ msgstr "XYZ naar RGB"
 msgctxt "Operator"
 msgid "Install..."
 msgstr "Installeer..."
+
+
+msgid "B"
+msgstr "B"
 
 
 msgid "Double Click Speed"
@@ -9428,10 +9412,6 @@ msgstr "Midden:"
 
 msgid "Path:"
 msgstr "Pad:"
-
-
-msgid "Speed:"
-msgstr "Snelheid:"
 
 
 msgid "Old"

@@ -635,7 +635,7 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
   return rna_pointer_inherit_refine(&iter->parent, type, ptr);
 }
 
-int rna_ShapeKey_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_ShapeKey_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   Key *key = rna_ShapeKey_find_key(ptr->owner_id);
   KeyBlock *kb = (KeyBlock *)ptr->data;
@@ -696,7 +696,7 @@ static int rna_ShapeKey_points_length(PointerRNA *ptr)
   return tot;
 }
 
-int rna_ShapeKey_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+bool rna_ShapeKey_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   Key *key = rna_ShapeKey_find_key(ptr->owner_id);
   KeyBlock *kb = (KeyBlock *)ptr->data;

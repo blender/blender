@@ -7,10 +7,10 @@ add_subdirectory(realtime_compositor)
 if(WITH_COMPOSITOR_CPU)
   set(INC
     .
+    algorithms
     intern
     nodes
     operations
-    algorithms
     realtime_compositor
     ../blenkernel
     ../blentranslation
