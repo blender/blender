@@ -19,6 +19,7 @@
 #include "GPU_material.hh"
 
 #include "GPU_uniform_buffer.hh"
+#include "gpu_context_private.hh"
 #include "gpu_uniform_buffer_private.hh"
 
 /* -------------------------------------------------------------------- */
@@ -240,9 +241,9 @@ void GPU_uniformbuf_unbind(GPUUniformBuf *ubo)
   unwrap(ubo)->unbind();
 }
 
-void GPU_uniformbuf_unbind_all()
+void GPU_uniformbuf_debug_unbind_all()
 {
-  /* FIXME */
+  Context::get()->debug_unbind_all_ubo();
 }
 
 void GPU_uniformbuf_clear_to_zero(GPUUniformBuf *ubo)

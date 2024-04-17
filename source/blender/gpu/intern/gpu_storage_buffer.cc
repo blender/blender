@@ -19,6 +19,7 @@
 
 #include "GPU_storage_buffer.hh"
 #include "GPU_vertex_buffer.hh"
+#include "gpu_context_private.hh"
 #include "gpu_storage_buffer_private.hh"
 
 /* -------------------------------------------------------------------- */
@@ -85,9 +86,9 @@ void GPU_storagebuf_unbind(GPUStorageBuf *ssbo)
   unwrap(ssbo)->unbind();
 }
 
-void GPU_storagebuf_unbind_all()
+void GPU_storagebuf_debug_unbind_all()
 {
-  /* FIXME */
+  Context::get()->debug_unbind_all_ssbo();
 }
 
 void GPU_storagebuf_clear_to_zero(GPUStorageBuf *ssbo)

@@ -67,10 +67,10 @@ struct RecordingState {
     }
 
     if (G.debug & G_DEBUG_GPU) {
-      GPU_storagebuf_unbind_all();
+      GPU_storagebuf_debug_unbind_all();
       GPU_texture_image_unbind_all();
       GPU_texture_unbind_all();
-      GPU_uniformbuf_unbind_all();
+      GPU_uniformbuf_debug_unbind_all();
     }
   }
 };

@@ -46,6 +46,9 @@ class DummyContext : public Context {
     return false;
   }
   void debug_capture_scope_end(void * /*scope*/) override {}
+
+  void debug_unbind_all_ubo() override {}
+  void debug_unbind_all_ssbo() override {}
 };
 
 }  // namespace blender::gpu
