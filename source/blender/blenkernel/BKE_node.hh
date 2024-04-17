@@ -458,7 +458,7 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname);
 
 /**
  * Add a new (non-embedded) node tree, like #ntreeAddTree, but allows to create it inside a given
- * library. Used mainly by readfile code when versionning linked data.
+ * library. Used mainly by readfile code when versioning linked data.
  */
 bNodeTree *BKE_node_tree_add_in_lib(Main *bmain,
                                     Library *owner_library,

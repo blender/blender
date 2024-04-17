@@ -1920,7 +1920,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
     sculpt_expand_move_propagation_origin(C, ob, event, expand_cache);
   }
 
-  /* Add new Face Sets IDs to the snapping gset if enabled. */
+  /* Add new Face Sets IDs to the snapping set if enabled. */
   if (expand_cache->snap) {
     const int active_face_set_id = sculpt_expand_active_face_set_id_get(ss, expand_cache);
     /* The key may exist, in that case this does nothing. */

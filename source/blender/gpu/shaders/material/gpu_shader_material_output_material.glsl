@@ -25,7 +25,7 @@ void node_output_material_thickness(float thickness, out float out_thickness)
   direction_transform_object_to_world(vec3(max(thickness, 0.0)), thickness_vec);
   thickness_vec = abs(thickness_vec);
   /* Contrary to displacement we need to output a scalar quantity.
-   * We arbitrarly choose to output the axis with the minimum extent since it is the axis along
+   * We arbitrarily choose to output the axis with the minimum extent since it is the axis along
    * which the object is usually viewed at. */
   out_thickness = min(min(thickness_vec.x, thickness_vec.y), thickness_vec.z);
 }

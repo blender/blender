@@ -60,7 +60,7 @@
 namespace blender::bke::greasepencil::convert {
 
 /**
- * Data shared accross most of GP conversion code.
+ * Data shared across most of GP conversion code.
  */
 struct ConversionData {
   /** A mapping between a library and a generated 'offset radius' node group. */
@@ -719,7 +719,7 @@ static bNodeTree *offset_radius_node_tree_add(Main &bmain, Library *library)
 {
   using namespace blender;
   /* NOTE: DO NOT translate this ID name, it is used to find a potentially already existing
-   * nodetree. */
+   * node-tree. */
   bNodeTree *group = BKE_node_tree_add_in_lib(
       &bmain, library, OFFSET_RADIUS_NODETREE_NAME, "GeometryNodeTree");
 
