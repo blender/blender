@@ -25,6 +25,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
 
 #include "DNA_meshdata_types.h"
@@ -566,6 +567,9 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
 
   CustomData_free(&mesh->edge_data, mesh->edges_num);
   mesh->edge_data = edge_data;
+
+  BKE_mesh_runtime_clear_cache(mesh);
+
   mesh->edges_num = totedge;
 }
 
