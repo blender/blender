@@ -17,6 +17,11 @@
 
 namespace blender::nodes {
 
+Main *GeoNodeExecParams::bmain() const
+{
+  return DEG_get_bmain(this->depsgraph());
+}
+
 void GeoNodeExecParams::error_message_add(const NodeWarningType type,
                                           const StringRef message) const
 {
