@@ -9,8 +9,7 @@
 #include <cassert>
 #include <cstring>
 #include <opensubdiv/sdc/crease.h>
-
-#include "internal/base/type.h"
+#include <vector>
 
 #include "opensubdiv_converter_capi.hh"
 
@@ -80,7 +79,7 @@ bool isEqualGeometryFace(const MeshTopology &mesh_topology, const OpenSubdiv_Con
     return false;
   }
 
-  vector<int> vertices_of_face;
+  std::vector<int> vertices_of_face;
   for (int face_index = 0; face_index < num_requested_faces; ++face_index) {
     int num_face_vertices = converter->getNumFaceVertices(converter, face_index);
     if (mesh_topology.getNumFaceVertices(face_index) != num_face_vertices) {
