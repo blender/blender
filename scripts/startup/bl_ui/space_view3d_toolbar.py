@@ -52,6 +52,7 @@ class VIEW3D_MT_brush_context_menu(Menu):
 
             layout.separator()
 
+            layout.operator("brush.asset_edit_metadata", text="Edit Metadata")
             layout.operator("brush.asset_update", text="Update Asset")
             layout.operator("brush.asset_revert", text="Revert to Asset")
         else:

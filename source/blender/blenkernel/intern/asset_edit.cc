@@ -194,12 +194,11 @@ static bool asset_write_in_library(Main *bmain,
                                    const ID &id_const,
                                    const StringRef name,
                                    const StringRefNull filepath,
-                                   const std::optional<asset_system::CatalogID> catalog,
-                                   const std::optional<StringRefNull> catalog_simple_name,
                                    std::string &final_full_file_path,
                                    ReportList &reports)
 {
-  /* XXX
+  /* TODO: Comment seems to be resolved by separate #Main storage?
+   *  XXX
    * FIXME
    *
    * This code is _pure evil_. It does in-place manipulation on IDs in global Main database,
@@ -224,8 +223,8 @@ static bool asset_write_in_library(Main *bmain,
   const int prev_tag = id.tag;
   const int prev_us = id.us;
   const std::string prev_name = id.name + 2;
+  /* TODO: Remove library overrides stuff now that they are not used for brush assets. */
   IDOverrideLibrary *prev_liboverride = id.override_library;
-  AssetMetaData *asset_data = id.asset_data;
   const int write_flags = 0; /* Could use #G_FILE_COMPRESS ? */
   const eBLO_WritePathRemap remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE;
 
@@ -235,17 +234,7 @@ static bool asset_write_in_library(Main *bmain,
   id.tag &= ~LIB_TAG_RUNTIME;
   id.us = 1;
   BLI_strncpy(id.name + 2, name.data(), std::min(sizeof(id.name) - 2, size_t(name.size())));
-  if (!ID_IS_ASSET(&id)) {
-    id.asset_data = id.override_library->reference->asset_data;
-  }
   id.override_library = nullptr;
-
-  if (catalog) {
-    id.asset_data->catalog_id = *catalog;
-  }
-  if (catalog_simple_name) {
-    STRNCPY(id.asset_data->catalog_simple_name, catalog_simple_name->c_str());
-  }
 
   BKE_blendfile_write_partial_tag_ID(&id, true);
 
@@ -266,7 +255,6 @@ static bool asset_write_in_library(Main *bmain,
   id.us = prev_us;
   BLI_strncpy(id.name + 2, prev_name.c_str(), sizeof(id.name) - 2);
   id.override_library = prev_liboverride;
-  id.asset_data = asset_data;
 
   return sucess;
 }
@@ -379,8 +367,6 @@ static AssetEditBlend &asset_edit_blend_file_ensure(const StringRef filepath)
 std::optional<std::string> asset_edit_id_save_as(Main &global_main,
                                                  const ID &id,
                                                  const StringRef name,
-                                                 std::optional<asset_system::CatalogID> catalog_id,
-                                                 std::optional<std::string> catalog_simple_name,
                                                  const bUserAssetLibrary &user_library,
                                                  ReportList &reports)
 {
@@ -391,14 +377,8 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
   Main *asset_main = BKE_main_from_id(&global_main, &id);
 
   std::string final_full_asset_filepath;
-  const bool success = asset_write_in_library(asset_main,
-                                              id,
-                                              name,
-                                              filepath,
-                                              catalog_id,
-                                              catalog_simple_name,
-                                              final_full_asset_filepath,
-                                              reports);
+  const bool success = asset_write_in_library(
+      asset_main, id, name, filepath, final_full_asset_filepath, reports);
   if (!success) {
     BKE_report(&reports, RPT_ERROR, "Failed to write to asset library");
     return std::nullopt;
@@ -421,8 +401,6 @@ bool asset_edit_id_save(Main & /*global_main*/, const ID &id, ReportList &report
                                               id,
                                               id.name + 2,
                                               asset_blend->filepath.c_str(),
-                                              std::nullopt,
-                                              std::nullopt,
                                               final_full_asset_filepath,
                                               reports);
 

@@ -33,6 +33,7 @@
 #include "DNA_ID_enums.h"
 
 struct bUserAssetLibrary;
+struct AssetMetaData;
 struct AssetWeakReference;
 struct ID;
 struct Main;
@@ -52,14 +53,11 @@ Main *asset_edit_main(const ID &id);
 
 bool asset_edit_id_is_editable(const ID &id);
 
-std::optional<std::string> asset_edit_id_save_as(
-    Main &global_main,
-    const ID &id,
-    StringRef name,
-    std::optional<blender::asset_system::CatalogID> catalog_id,
-    std::optional<std::string> catalog_simple_name,
-    const bUserAssetLibrary &user_library,
-    ReportList &reports);
+std::optional<std::string> asset_edit_id_save_as(Main &global_main,
+                                                 const ID &id,
+                                                 StringRef name,
+                                                 const bUserAssetLibrary &user_library,
+                                                 ReportList &reports);
 
 bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports);
 bool asset_edit_id_revert(Main &global_main, const ID &id, ReportList &reports);
