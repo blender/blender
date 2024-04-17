@@ -4021,10 +4021,11 @@ static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bma
       uiItemS_ex(layout, 1.4f);
     }
 
-    uiItemL(layout, RPT_("This file is managed by the Blender asset system"), ICON_NONE);
+    uiItemL(layout, RPT_("This file is managed by the Blender asset system."), ICON_NONE);
     uiItemL(
-        layout, RPT_("By overwriting it as a regular blend file, it will no longer "), ICON_NONE);
-    uiItemL(layout, RPT_("be possible to update its assets through the asset browser"), ICON_NONE);
+        layout, RPT_("By overwriting it as a regular blend file, it will no longer"), ICON_NONE);
+    uiItemL(
+        layout, RPT_("be possible to update its assets through the asset browser."), ICON_NONE);
   }
 }
 
