@@ -149,7 +149,8 @@ PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifi
 FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier);
 const ListBase *RNA_struct_type_functions(StructRNA *srna);
 
-char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len);
+char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len)
+    ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Use when registering structs with the #STRUCT_PUBLIC_NAMESPACE flag.
@@ -407,8 +408,11 @@ void RNA_property_float_get_default_array(PointerRNA *ptr, PropertyRNA *prop, fl
 float RNA_property_float_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int index);
 
 void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value);
-char *RNA_property_string_get_alloc(
-    PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen, int *r_len);
+char *RNA_property_string_get_alloc(PointerRNA *ptr,
+                                    PropertyRNA *prop,
+                                    char *fixedbuf,
+                                    int fixedlen,
+                                    int *r_len) ATTR_WARN_UNUSED_RESULT;
 void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *value);
 void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const char *value, int len);
 
@@ -430,8 +434,11 @@ void RNA_property_string_search(
  */
 int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_string_get_default(PropertyRNA *prop, char *value, int value_maxncpy);
-char *RNA_property_string_get_default_alloc(
-    PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen, int *r_len);
+char *RNA_property_string_get_default_alloc(PointerRNA *ptr,
+                                            PropertyRNA *prop,
+                                            char *fixedbuf,
+                                            int fixedlen,
+                                            int *r_len) ATTR_WARN_UNUSED_RESULT;
 /**
  * \return the length without `\0` terminator.
  */
@@ -571,8 +578,11 @@ bool RNA_enum_icon_from_value(const EnumPropertyItem *item, int value, int *r_ic
 bool RNA_enum_name_from_value(const EnumPropertyItem *item, int value, const char **r_name);
 
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value);
-char *RNA_string_get_alloc(
-    PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen, int *r_len);
+char *RNA_string_get_alloc(PointerRNA *ptr,
+                           const char *name,
+                           char *fixedbuf,
+                           int fixedlen,
+                           int *r_len) ATTR_WARN_UNUSED_RESULT;
 int RNA_string_length(PointerRNA *ptr, const char *name);
 void RNA_string_set(PointerRNA *ptr, const char *name, const char *value);
 
