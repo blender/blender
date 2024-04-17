@@ -493,10 +493,8 @@ static void uv_sculpt_stroke_apply(bContext *C,
 
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
 
-  /*
-   * Pinch Tool
-   */
-  if (tool == UV_SCULPT_TOOL_PINCH) {
+  switch (tool) {
+    case UV_SCULPT_TOOL_PINCH: {
     int i;
     alpha *= invert;
     for (i = 0; i < sculptdata->totalUniqueUvs; i++) {
@@ -528,12 +526,9 @@ static void uv_sculpt_stroke_apply(bContext *C,
         }
       }
     }
-  }
-
-  /*
-   * Relax Tool
-   */
-  else if (tool == UV_SCULPT_TOOL_RELAX) {
+      break;
+    }
+    case UV_SCULPT_TOOL_RELAX: {
     relaxation_iteration_uv(sculptdata,
                             cd_loop_uv_offset,
                             co,
@@ -541,12 +536,9 @@ static void uv_sculpt_stroke_apply(bContext *C,
                             radius,
                             aspectRatio,
                             toolsettings->uv_relax_method);
-  }
-
-  /*
-   * Grab Tool
-   */
-  else if (tool == UV_SCULPT_TOOL_GRAB) {
+      break;
+    }
+    case UV_SCULPT_TOOL_GRAB: {
     int i;
     float diff[2];
     sub_v2_v2v2(diff, co, sculptdata->initial_stroke->init_coord);
@@ -572,6 +564,8 @@ static void uv_sculpt_stroke_apply(bContext *C,
     }
     if (sima->flag & SI_LIVE_UNWRAP) {
       ED_uvedit_live_unwrap_re_solve();
+      }
+      break;
     }
   }
 }
