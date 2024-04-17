@@ -129,6 +129,14 @@
 
 #include "object_intern.hh"
 
+const EnumPropertyItem rna_enum_light_type_items[] = {
+    {LA_LOCAL, "POINT", ICON_LIGHT_POINT, "Point", "Omnidirectional point light source"},
+    {LA_SUN, "SUN", ICON_LIGHT_SUN, "Sun", "Constant direction parallel ray light source"},
+    {LA_SPOT, "SPOT", ICON_LIGHT_SPOT, "Spot", "Directional cone light source"},
+    {LA_AREA, "AREA", ICON_LIGHT_AREA, "Area", "Directional area light source"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 namespace blender::ed::object {
 
 /* -------------------------------------------------------------------- */
@@ -138,14 +146,6 @@ namespace blender::ed::object {
 /* This is an exact copy of the define in `rna_light.cc`
  * kept here because of linking order.
  * Icons are only defined here. */
-
-static const EnumPropertyItem enum_light_type_items[] = {
-    {LA_LOCAL, "POINT", ICON_LIGHT_POINT, "Point", "Omnidirectional point light source"},
-    {LA_SUN, "SUN", ICON_LIGHT_SUN, "Sun", "Constant direction parallel ray light source"},
-    {LA_SPOT, "SPOT", ICON_LIGHT_SPOT, "Spot", "Directional cone light source"},
-    {LA_AREA, "AREA", ICON_LIGHT_AREA, "Area", "Directional area light source"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
 
 /* copy from rna_object_force.cc */
 static const EnumPropertyItem field_type_items[] = {
@@ -1868,7 +1868,7 @@ void OBJECT_OT_light_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  ot->prop = RNA_def_enum(ot->srna, "type", enum_light_type_items, 0, "Type", "");
+  ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_light_type_items, 0, "Type", "");
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_LIGHT);
 
   add_unit_props_radius(ot);
