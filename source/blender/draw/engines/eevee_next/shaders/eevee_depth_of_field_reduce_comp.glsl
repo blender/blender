@@ -109,7 +109,7 @@ vec4 load4_coc_cache(uvec2 coord)
 void main()
 {
   ivec2 texel = min(ivec2(gl_GlobalInvocationID.xy), imageSize(inout_color_lod0_img) - 1);
-  uvec2 thread = gl_LocalInvocationID.xy;
+  uvec2 thread_co = gl_LocalInvocationID.xy;
 
   vec4 local_color = imageLoad(inout_color_lod0_img, texel);
   float local_coc = imageLoad(in_coc_lod0_img, texel).r;
@@ -128,25 +128,25 @@ void main()
   }
 
   /* Use coc_cache for broadcasting the do_scatter result. */
-  store_coc_cache(thread, do_scatter);
+  store_coc_cache(thread_co, do_scatter);
   barrier();
 
   /* Load the same value for each thread quad. */
-  vec4 do_scatter4 = load4_coc_cache(thread & ~1u);
+  vec4 do_scatter4 = load4_coc_cache(thread_co & ~1u);
   barrier();
 
   /* Load level 0 into cache. */
-  store_color_cache(thread, local_color);
-  store_coc_cache(thread, local_coc);
+  store_color_cache(thread_co, local_color);
+  store_coc_cache(thread_co, local_coc);
   barrier();
 
   /* Add a scatter sprite for each 2x2 pixel neighborhood passing the threshold. */
   bool any_scatter = any(greaterThan(do_scatter4, vec4(0.0)));
-  if (all(equal(thread & 1u, uvec2(0))) && any_scatter) {
+  if (all(equal(thread_co & 1u, uvec2(0))) && any_scatter) {
     /* Apply energy conservation to anamorphic scattered bokeh. */
     do_scatter4 *= reduce_max(dof_buf.bokeh_anisotropic_scale_inv);
     /* Circle of Confusion. */
-    vec4 coc4 = load4_coc_cache(thread);
+    vec4 coc4 = load4_coc_cache(thread_co);
     /* We are scattering at half resolution, so divide CoC by 2. */
     coc4 *= 0.5;
     /* Sprite center position. Center sprite around the 4 texture taps. */
@@ -155,10 +155,10 @@ void main()
      * and because we smooth the bokeh shape a bit in the pixel shader. */
     vec2 half_extent = reduce_max(abs(coc4)) * dof_buf.bokeh_anisotropic_scale + 2.5;
     /* Follows quad_offsets order. */
-    vec3 color4_0 = load_color_cache(thread + quad_offsets_u[0]).rgb;
-    vec3 color4_1 = load_color_cache(thread + quad_offsets_u[1]).rgb;
-    vec3 color4_2 = load_color_cache(thread + quad_offsets_u[2]).rgb;
-    vec3 color4_3 = load_color_cache(thread + quad_offsets_u[3]).rgb;
+    vec3 color4_0 = load_color_cache(thread_co + quad_offsets_u[0]).rgb;
+    vec3 color4_1 = load_color_cache(thread_co + quad_offsets_u[1]).rgb;
+    vec3 color4_2 = load_color_cache(thread_co + quad_offsets_u[2]).rgb;
+    vec3 color4_3 = load_color_cache(thread_co + quad_offsets_u[3]).rgb;
     /* Issue a sprite for each field if any CoC matches. */
     if (any(lessThan(do_scatter4 * sign(coc4), vec4(0.0)))) {
       /* Same value for all threads. Not an issue if we don't sync access to it. */
@@ -225,8 +225,8 @@ void main()
   }
 
   /* Remove scatter color from gather. */
-  vec4 color_lod0 = load_color_cache(thread) * (1.0 - do_scatter);
-  store_color_cache(thread, color_lod0);
+  vec4 color_lod0 = load_color_cache(thread_co) * (1.0 - do_scatter);
+  store_color_cache(thread_co, color_lod0);
 
   imageStore(inout_color_lod0_img, texel, color_lod0);
 
@@ -239,15 +239,15 @@ void main()
 
       /* TODO(fclem): Could use wave shuffle intrinsics to avoid LDS as suggested by the paper. */
       vec4 coc4;
-      coc4[0] = load_coc_cache(thread + uvec2(ofs, 0));
-      coc4[1] = load_coc_cache(thread + uvec2(ofs, ofs));
-      coc4[2] = load_coc_cache(thread + uvec2(0, ofs));
-      coc4[3] = load_coc_cache(thread + uvec2(0, 0));
+      coc4[0] = load_coc_cache(thread_co + uvec2(ofs, 0));
+      coc4[1] = load_coc_cache(thread_co + uvec2(ofs, ofs));
+      coc4[2] = load_coc_cache(thread_co + uvec2(0, ofs));
+      coc4[3] = load_coc_cache(thread_co + uvec2(0, 0));
       vec4 colors[4];
-      colors[0] = load_color_cache(thread + uvec2(ofs, 0));
-      colors[1] = load_color_cache(thread + uvec2(ofs, ofs));
-      colors[2] = load_color_cache(thread + uvec2(0, ofs));
-      colors[3] = load_color_cache(thread + uvec2(0, 0));
+      colors[0] = load_color_cache(thread_co + uvec2(ofs, 0));
+      colors[1] = load_color_cache(thread_co + uvec2(ofs, ofs));
+      colors[2] = load_color_cache(thread_co + uvec2(0, ofs));
+      colors[3] = load_color_cache(thread_co + uvec2(0, 0));
 
       vec4 weights = dof_bilateral_coc_weights(coc4) * dof_bilateral_color_weights(colors);
       /* Normalize so that the sum is 1. */
@@ -256,8 +256,8 @@ void main()
       vec4 color_lod = weighted_sum_array(colors, weights);
       float coc_lod = dot(coc4, weights);
 
-      store_color_cache(thread, color_lod);
-      store_coc_cache(thread, coc_lod);
+      store_color_cache(thread_co, color_lod);
+      store_coc_cache(thread_co, coc_lod);
 
       ivec2 texel = ivec2(gl_GlobalInvocationID.xy >> i);
 
