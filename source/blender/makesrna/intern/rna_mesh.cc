@@ -268,8 +268,6 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Mesh_update_positions_tag(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Mesh *mesh = rna_mesh(ptr);
-  mesh->tag_positions_changed();
   rna_Mesh_update_data_legacy_deg_tag_all(bmain, scene, ptr);
 }
 
@@ -403,6 +401,8 @@ static void rna_MeshVertex_co_get(PointerRNA *ptr, float *value)
 static void rna_MeshVertex_co_set(PointerRNA *ptr, const float *value)
 {
   copy_v3_v3((float *)ptr->data, value);
+  Mesh *mesh = rna_mesh(ptr);
+  mesh->tag_positions_changed();
 }
 
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
