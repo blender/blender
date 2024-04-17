@@ -1476,7 +1476,7 @@ BLI_INLINE bool ui_layout_is_radial(const uiLayout *layout)
 
 void uiItemsFullEnumO_items(uiLayout *layout,
                             wmOperatorType *ot,
-                            PointerRNA ptr,
+                            const PointerRNA &ptr,
                             PropertyRNA *prop,
                             IDProperty *properties,
                             wmOperatorCallContext context,
