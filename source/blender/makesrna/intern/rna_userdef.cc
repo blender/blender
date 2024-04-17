@@ -7204,12 +7204,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "blendfile (only active if 'Grease Pencil 3.0' is enabled)");
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 
-  prop = RNA_def_property(srna, "use_new_matrix_socket", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "use_new_matrix_socket", 1);
-  RNA_def_property_ui_text(
-      prop, "Matrix Socket", "Enable the matrix socket type for geometry nodes");
-  RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
-
   prop = RNA_def_property(srna, "use_viewport_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "use_viewport_debug", 1);
   RNA_def_property_ui_text(prop,

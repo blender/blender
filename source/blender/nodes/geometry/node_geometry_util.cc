@@ -58,9 +58,6 @@ const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,
 
 bool generic_attribute_type_supported(const EnumPropertyItem &item)
 {
-  if (item.value == CD_PROP_FLOAT4X4) {
-    return U.experimental.use_new_matrix_socket;
-  }
   return ELEM(item.value,
               CD_PROP_FLOAT,
               CD_PROP_FLOAT2,

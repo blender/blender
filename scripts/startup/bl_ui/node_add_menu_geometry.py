@@ -549,8 +549,7 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
         layout.separator()
         layout.menu("NODE_MT_category_GEO_UTILITIES_FIELD")
         layout.menu("NODE_MT_category_GEO_UTILITIES_MATH")
-        if context.preferences.experimental.use_new_matrix_socket:
-            layout.menu("NODE_MT_category_utilities_matrix")
+        layout.menu("NODE_MT_category_utilities_matrix")
         layout.menu("NODE_MT_category_GEO_UTILITIES_ROTATION")
         layout.menu("NODE_MT_category_GEO_UTILITIES_DEPRECATED")
         layout.separator()
