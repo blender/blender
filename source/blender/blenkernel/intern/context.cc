@@ -556,7 +556,7 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
 
     RNA_PROP_BEGIN (&ctx_ptr, itemptr, iterprop) {
       nameptr = RNA_struct_name_get_alloc(&itemptr, name, sizeof(name), &namelen);
-      data_dir_add(&lb, name, use_all);
+      data_dir_add(&lb, nameptr, use_all);
       if (nameptr) {
         if (name != nameptr) {
           MEM_freeN(nameptr);

@@ -28,8 +28,8 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
   }
 
   PointerRNA rna_ptr = RNA_pointer_create(nullptr, &rna_type, ptr);
-  char name[128];
-  RNA_struct_name_get_alloc(&rna_ptr, name, sizeof(name), nullptr);
+  char name_buf[128], *name;
+  name = RNA_struct_name_get_alloc(&rna_ptr, name_buf, sizeof(name_buf), nullptr);
 
   /* Use a blank icon by default to check whether to retrieve it automatically from the type. */
   const BIFIconID icon = icon_override == ICON_NONE ? RNA_struct_ui_icon(rna_ptr.type) :
@@ -41,6 +41,9 @@ void context_path_add_generic(Vector<ContextPathItem> &path,
   }
   else {
     path.append({name, icon, 1});
+  }
+  if (name != name_buf) {
+    MEM_freeN(name);
   }
 }
 
