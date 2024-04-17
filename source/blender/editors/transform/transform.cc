@@ -726,11 +726,11 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       break;
     }
     case TFM_MODAL_PASSTHROUGH_NAVIGATE:
-      if (ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+      if (ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE, TFM_SHRINKFATTEN)) {
         /* Returning `false` will not prevent the navigation from working, it will just not display
          * the shortcut in the header.
          * Return `false` here to prevent this modal item from affecting the state with
-         * #T_ALT_TRANSFORM used by the Edge and Vert Slide operators. */
+         * #T_ALT_TRANSFORM is used by the operator. */
         return false;
       }
       return t->vod != nullptr;
