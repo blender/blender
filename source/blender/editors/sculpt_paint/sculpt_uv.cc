@@ -653,7 +653,10 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
   BKE_curvemapping_init(brush->curve);
 
-  if (data) {
+  if (!data) {
+return nullptr;
+  }
+
     ARegion *region = CTX_wm_region(C);
     float co[2];
     BMFace *efa;
@@ -899,8 +902,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       data->initial_stroke->totalInitialSelected = counter;
       if (sima->flag & SI_LIVE_UNWRAP) {
         ED_uvedit_live_unwrap_begin(scene, obedit);
-      }
-    }
+          }
   }
 
   return static_cast<UvSculptData *>(op->customdata);
