@@ -4443,7 +4443,7 @@ bool RNA_property_collection_lookup_string_index(
   /* no callback defined, compare with name properties if they exist */
   CollectionPropertyIterator iter;
   PropertyRNA *nameprop;
-  char name[256], *nameptr;
+  char name_buf[256], *name;
   bool found = false;
   int keylen = strlen(key);
   int namelen;
@@ -4454,15 +4454,16 @@ bool RNA_property_collection_lookup_string_index(
     if (iter.ptr.data && iter.ptr.type->nameproperty) {
       nameprop = iter.ptr.type->nameproperty;
 
-      nameptr = RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name), &namelen);
+      name = RNA_property_string_get_alloc(
+          &iter.ptr, nameprop, name_buf, sizeof(name_buf), &namelen);
 
-      if ((keylen == namelen) && STREQ(nameptr, key)) {
+      if ((keylen == namelen) && STREQ(name, key)) {
         *r_ptr = iter.ptr;
         found = true;
       }
 
-      if (name != nameptr) {
-        MEM_freeN(nameptr);
+      if (name != name_buf) {
+        MEM_freeN(name);
       }
 
       if (found) {

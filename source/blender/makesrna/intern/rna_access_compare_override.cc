@@ -1031,16 +1031,17 @@ static bool rna_property_override_collection_subitem_name_id_match(
   }
 
   PropertyRNA *nameprop = ptr_item_name->type->nameproperty;
-  char name[256];
-  char *nameptr;
+  char name_buf[256];
+  char *name;
   int namelen;
 
-  nameptr = RNA_property_string_get_alloc(ptr_item_name, nameprop, name, sizeof(name), &namelen);
+  name = RNA_property_string_get_alloc(
+      ptr_item_name, nameprop, name_buf, sizeof(name_buf), &namelen);
 
-  is_match = ((item_name_len == namelen) && STREQ(item_name, nameptr));
+  is_match = ((item_name_len == namelen) && STREQ(item_name, name));
 
-  if (UNLIKELY(name != nameptr)) {
-    MEM_freeN(nameptr);
+  if (UNLIKELY(name != name_buf)) {
+    MEM_freeN(name);
   }
 
   return is_match;
