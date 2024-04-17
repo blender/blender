@@ -646,6 +646,10 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
     int collada_meshtype = mp->getPrimitiveType();
 
+    if (collada_meshtype == COLLADAFW::MeshPrimitive::LINES) {
+      continue; /* read the lines later after all the rest is done */
+    }
+
     /* Since we cannot set `poly->mat_nr` here, we store a portion of `mesh->mpoly` in Primitive.
      */
     Primitive prim = {face_index, &material_indices.span[face_index], 0};
@@ -795,10 +799,6 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
                 mesh->id.name,
                 invalid_loop_holes);
       }
-    }
-
-    else if (collada_meshtype == COLLADAFW::MeshPrimitive::LINES) {
-      continue; /* read the lines later after all the rest is done */
     }
 
     if (mp_has_faces) {
