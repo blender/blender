@@ -150,7 +150,7 @@ static void addtail(volatile localListBase *listbase, void *vlink);
 static void remlink(volatile localListBase *listbase, void *vlink);
 static void rem_memblock(MemHead *memh);
 static void MemorY_ErroR(const char *block, const char *error);
-static const char *check_memlist(MemHead *memh);
+static const char *check_memlist(const MemHead *memh);
 
 /* --------------------------------------------------------------------- */
 /* locally used defines                                                  */
@@ -235,7 +235,7 @@ static void mem_unlock_thread()
 bool MEM_guarded_consistency_check()
 {
   const char *err_val = nullptr;
-  MemHead *listend;
+  const MemHead *listend;
   /* check_memlist starts from the front, and runs until it finds
    * the requested chunk. For this test, that's the last one. */
   listend = static_cast<MemHead *>(membase->last);
@@ -1100,7 +1100,7 @@ static void MemorY_ErroR(const char *block, const char *error)
 #endif
 }
 
-static const char *check_memlist(MemHead *memh)
+static const char *check_memlist(const MemHead *memh)
 {
   MemHead *forw, *back, *forwok, *backok;
   const char *name;

@@ -260,6 +260,7 @@ char *BLI_sprintfN_with_buffer(
   retval = vsnprintf(result, size, format, args);
   va_end(args);
   BLI_assert((size_t)(retval + 1) == size);
+  UNUSED_VARS_NDEBUG(retval);
   return result;
 }
 

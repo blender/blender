@@ -1687,7 +1687,7 @@ size_t BLI_array_store_state_size_get(BArrayState *state)
   return state->chunk_list->total_expanded_size;
 }
 
-void BLI_array_store_state_data_get(BArrayState *state, void *data)
+void BLI_array_store_state_data_get(const BArrayState *state, void *data)
 {
 #ifdef USE_PARANOID_CHECKS
   size_t data_test_len = 0;

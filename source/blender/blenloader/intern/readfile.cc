@@ -1385,7 +1385,7 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 {
   FileData *fd;
   BlendThumbnail *data = nullptr;
-  int *fd_data;
+  const int *fd_data;
 
   fd = blo_filedata_from_file_minimal(filepath);
   fd_data = fd ? read_file_thumbnail(fd) : nullptr;

@@ -5338,7 +5338,7 @@ void ui_draw_pie_center(uiBlock *block)
   const float cx = block->pie_data.pie_center_spawned[0];
   const float cy = block->pie_data.pie_center_spawned[1];
 
-  float *pie_dir = block->pie_data.pie_dir;
+  const float *pie_dir = block->pie_data.pie_dir;
 
   const float pie_radius_internal = UI_SCALE_FAC * U.pie_menu_threshold;
   const float pie_radius_external = UI_SCALE_FAC * (U.pie_menu_threshold + 7.0f);

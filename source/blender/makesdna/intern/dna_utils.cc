@@ -158,6 +158,7 @@ char *DNA_elem_id_rename(MemArena *mem_arena,
     i += elem_full_tail_len;
   }
   BLI_assert((strlen(elem_dst_full) == elem_final_len) && (i == elem_final_len));
+  UNUSED_VARS_NDEBUG(i);
   return elem_dst_full;
 }
 

@@ -88,7 +88,7 @@ size_t BLI_array_store_state_size_get(BArrayState *state);
 /**
  * Fill in existing allocated memory with the contents of \a state.
  */
-void BLI_array_store_state_data_get(BArrayState *state, void *data);
+void BLI_array_store_state_data_get(const BArrayState *state, void *data);
 /**
  * Allocate an array for \a state and return it.
  */
