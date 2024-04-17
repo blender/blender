@@ -38,6 +38,8 @@
 
 #include "eyedropper_intern.hh"
 
+namespace blender::ui {
+
 struct EyedropperColorband {
   int event_xy_last[2];
   /* Alpha is currently fixed at 1.0, may support in future. */
@@ -361,4 +363,6 @@ void UI_OT_eyedropper_colorramp_point(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_INTERNAL;
 
   /* properties */
+}
+
 }
