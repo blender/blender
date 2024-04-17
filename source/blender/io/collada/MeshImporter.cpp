@@ -23,6 +23,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 
 #include "BLI_edgehash.h"
@@ -560,6 +561,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
   CustomData_free(&mesh->edata, mesh->totedge);
   mesh->edata = edata;
   mesh->totedge = totedge;
+  BKE_mesh_runtime_clear_cache(mesh);
 }
 
 void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
