@@ -299,12 +299,9 @@ inline void TopologyRefinerFactory<TopologyRefinerData>::reportInvalidTopology(
 } /* namespace OPENSUBDIV_VERSION */
 } /* namespace OpenSubdiv */
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
-namespace {
-
-OpenSubdiv::Sdc::Options getSDCOptions(OpenSubdiv_Converter *converter)
+static OpenSubdiv::Sdc::Options getSDCOptions(OpenSubdiv_Converter *converter)
 {
   using OpenSubdiv::Sdc::Options;
 
@@ -320,7 +317,8 @@ OpenSubdiv::Sdc::Options getSDCOptions(OpenSubdiv_Converter *converter)
   return options;
 }
 
-TopologyRefinerFactoryType::Options getTopologyRefinerOptions(OpenSubdiv_Converter *converter)
+static TopologyRefinerFactoryType::Options getTopologyRefinerOptions(
+    OpenSubdiv_Converter *converter)
 {
   using OpenSubdiv::Sdc::SchemeType;
 
@@ -336,8 +334,6 @@ TopologyRefinerFactoryType::Options getTopologyRefinerOptions(OpenSubdiv_Convert
 
   return topology_options;
 }
-
-}  // namespace
 
 TopologyRefinerImpl *TopologyRefinerImpl::createFromConverter(
     OpenSubdiv_Converter *converter, const OpenSubdiv_TopologyRefinerSettings &settings)
@@ -368,5 +364,4 @@ TopologyRefinerImpl *TopologyRefinerImpl::createFromConverter(
   return topology_refiner_impl;
 }
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv

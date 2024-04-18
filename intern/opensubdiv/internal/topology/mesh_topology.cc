@@ -8,8 +8,7 @@
 
 #include <cassert>
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 MeshTopology::MeshTopology() : num_vertices_(0), num_edges_(0), num_faces_(0) {}
 
@@ -253,5 +252,4 @@ void MeshTopology::finishResizeTopology()
   }
 }
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv

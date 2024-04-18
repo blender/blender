@@ -4,8 +4,6 @@
  *
  * Author: Sergey Sharybin. */
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
-}
-}  // namespace blender
+}  // namespace blender::opensubdiv

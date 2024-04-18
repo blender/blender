@@ -38,10 +38,7 @@ using OpenSubdiv::Far::TopologyRefiner;
 using OpenSubdiv::Osd::PatchArray;
 using OpenSubdiv::Osd::PatchCoord;
 
-namespace blender {
-namespace opensubdiv {
-
-namespace {
+namespace blender::opensubdiv {
 
 // Array implementation which stores small data on stack (or, rather, in the class itself).
 template<typename T, int kNumMaxElementsOnStack> class StackOrHeapArray {
@@ -126,10 +123,10 @@ template<typename T, int kNumMaxElementsOnStack> class StackOrHeapArray {
 // 32 is a number of inner vertices along the patch size at subdivision level 6.
 typedef StackOrHeapArray<PatchCoord, 32 * 32> StackOrHeapPatchCoordArray;
 
-void convertPatchCoordsToArray(const OpenSubdiv_PatchCoord *patch_coords,
-                               const int num_patch_coords,
-                               const PatchMap *patch_map,
-                               StackOrHeapPatchCoordArray *array)
+static void convertPatchCoordsToArray(const OpenSubdiv_PatchCoord *patch_coords,
+                                      const int num_patch_coords,
+                                      const PatchMap *patch_map,
+                                      StackOrHeapPatchCoordArray *array)
 {
   array->resize(num_patch_coords);
   for (int i = 0; i < num_patch_coords; ++i) {
@@ -138,8 +135,6 @@ void convertPatchCoordsToArray(const OpenSubdiv_PatchCoord *patch_coords,
     (array->data())[i] = PatchCoord(*handle, patch_coords[i].u, patch_coords[i].v);
   }
 }
-
-}  // namespace
 
 ////////////////////////////////////////////////////////////////////////////////
 // Evaluator wrapper for anonymous API.
@@ -410,8 +405,7 @@ bool EvalOutputAPI::hasVertexData() const
   return implementation_->hasVertexData();
 }
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv
 
 OpenSubdiv_EvaluatorImpl::OpenSubdiv_EvaluatorImpl()
     : eval_output(NULL), patch_map(NULL), patch_table(NULL)

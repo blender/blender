@@ -10,26 +10,24 @@
 #include "internal/base/type_convert.h"
 #include "internal/topology/topology_refiner_impl.h"
 
-namespace {
-
-const OpenSubdiv::Far::TopologyRefiner *getOSDTopologyRefiner(
+static const OpenSubdiv::Far::TopologyRefiner *getOSDTopologyRefiner(
     const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   return topology_refiner->impl->topology_refiner;
 }
 
-const OpenSubdiv::Far::TopologyLevel &getOSDTopologyBaseLevel(
+static const OpenSubdiv::Far::TopologyLevel &getOSDTopologyBaseLevel(
     const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   return getOSDTopologyRefiner(topology_refiner)->GetLevel(0);
 }
 
-int getSubdivisionLevel(const OpenSubdiv_TopologyRefiner *topology_refiner)
+static int getSubdivisionLevel(const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   return topology_refiner->impl->settings.level;
 }
 
-bool getIsAdaptive(const OpenSubdiv_TopologyRefiner *topology_refiner)
+static bool getIsAdaptive(const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   return topology_refiner->impl->settings.is_adaptive;
 }
@@ -37,17 +35,17 @@ bool getIsAdaptive(const OpenSubdiv_TopologyRefiner *topology_refiner)
 ////////////////////////////////////////////////////////////////////////////////
 // Query basic topology information from base level.
 
-int getNumVertices(const OpenSubdiv_TopologyRefiner *topology_refiner)
+static int getNumVertices(const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   return getOSDTopologyBaseLevel(topology_refiner).GetNumVertices();
 }
 
-int getNumEdges(const OpenSubdiv_TopologyRefiner *topology_refiner)
+static int getNumEdges(const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   return getOSDTopologyBaseLevel(topology_refiner).GetNumEdges();
 }
 
-int getNumFaces(const OpenSubdiv_TopologyRefiner *topology_refiner)
+static int getNumFaces(const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   return getOSDTopologyBaseLevel(topology_refiner).GetNumFaces();
 }
@@ -62,39 +60,41 @@ static void convertArrayToRaw(const OpenSubdiv::Far::ConstIndexArray &array, int
   }
 }
 
-int getNumFaceVertices(const OpenSubdiv_TopologyRefiner *topology_refiner, const int face_index)
+static int getNumFaceVertices(const OpenSubdiv_TopologyRefiner *topology_refiner,
+                              const int face_index)
 {
   const OpenSubdiv::Far::TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner);
   return base_level.GetFaceVertices(face_index).size();
 }
 
-void getFaceVertices(const OpenSubdiv_TopologyRefiner *topology_refiner,
-                     const int face_index,
-                     int *face_vertices_indices)
+static void getFaceVertices(const OpenSubdiv_TopologyRefiner *topology_refiner,
+                            const int face_index,
+                            int *face_vertices_indices)
 {
   const OpenSubdiv::Far::TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner);
   OpenSubdiv::Far::ConstIndexArray array = base_level.GetFaceVertices(face_index);
   convertArrayToRaw(array, face_vertices_indices);
 }
 
-int getNumFaceEdges(const OpenSubdiv_TopologyRefiner *topology_refiner, const int face_index)
+static int getNumFaceEdges(const OpenSubdiv_TopologyRefiner *topology_refiner,
+                           const int face_index)
 {
   const OpenSubdiv::Far::TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner);
   return base_level.GetFaceEdges(face_index).size();
 }
 
-void getFaceEdges(const OpenSubdiv_TopologyRefiner *topology_refiner,
-                  const int face_index,
-                  int *face_edges_indices)
+static void getFaceEdges(const OpenSubdiv_TopologyRefiner *topology_refiner,
+                         const int face_index,
+                         int *face_edges_indices)
 {
   const OpenSubdiv::Far::TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner);
   OpenSubdiv::Far::ConstIndexArray array = base_level.GetFaceEdges(face_index);
   convertArrayToRaw(array, face_edges_indices);
 }
 
-void getEdgeVertices(const OpenSubdiv_TopologyRefiner *topology_refiner,
-                     const int edge_index,
-                     int edge_vertices_indices[2])
+static void getEdgeVertices(const OpenSubdiv_TopologyRefiner *topology_refiner,
+                            const int edge_index,
+                            int edge_vertices_indices[2])
 {
   const OpenSubdiv::Far::TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner);
   OpenSubdiv::Far::ConstIndexArray array = base_level.GetEdgeVertices(edge_index);
@@ -103,22 +103,24 @@ void getEdgeVertices(const OpenSubdiv_TopologyRefiner *topology_refiner,
   edge_vertices_indices[1] = array[1];
 }
 
-int getNumVertexEdges(const OpenSubdiv_TopologyRefiner *topology_refiner, const int vertex_index)
+static int getNumVertexEdges(const OpenSubdiv_TopologyRefiner *topology_refiner,
+                             const int vertex_index)
 {
   const OpenSubdiv::Far::TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner);
   return base_level.GetVertexEdges(vertex_index).size();
 }
 
-void getVertexEdges(const OpenSubdiv_TopologyRefiner *topology_refiner,
-                    const int vertex_index,
-                    int *vertex_edges_indices)
+static void getVertexEdges(const OpenSubdiv_TopologyRefiner *topology_refiner,
+                           const int vertex_index,
+                           int *vertex_edges_indices)
 {
   const OpenSubdiv::Far::TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner);
   OpenSubdiv::Far::ConstIndexArray array = base_level.GetVertexEdges(vertex_index);
   convertArrayToRaw(array, vertex_edges_indices);
 }
 
-int getNumFacePtexFaces(const OpenSubdiv_TopologyRefiner *topology_refiner, const int face_index)
+static int getNumFacePtexFaces(const OpenSubdiv_TopologyRefiner *topology_refiner,
+                               const int face_index)
 {
   const int num_face_vertices = topology_refiner->getNumFaceVertices(topology_refiner, face_index);
   if (num_face_vertices == 4) {
@@ -127,7 +129,7 @@ int getNumFacePtexFaces(const OpenSubdiv_TopologyRefiner *topology_refiner, cons
   return num_face_vertices;
 }
 
-int getNumPtexFaces(const OpenSubdiv_TopologyRefiner *topology_refiner)
+static int getNumPtexFaces(const OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   const int num_faces = topology_refiner->getNumFaces(topology_refiner);
   int num_ptex_faces = 0;
@@ -137,8 +139,8 @@ int getNumPtexFaces(const OpenSubdiv_TopologyRefiner *topology_refiner)
   return num_ptex_faces;
 }
 
-void fillFacePtexIndexOffset(const OpenSubdiv_TopologyRefiner *topology_refiner,
-                             int *face_ptex_index_offset)
+static void fillFacePtexIndexOffset(const OpenSubdiv_TopologyRefiner *topology_refiner,
+                                    int *face_ptex_index_offset)
 {
   const int num_faces = topology_refiner->getNumFaces(topology_refiner);
   int num_ptex_faces = 0;
@@ -151,28 +153,30 @@ void fillFacePtexIndexOffset(const OpenSubdiv_TopologyRefiner *topology_refiner,
 ////////////////////////////////////////////////////////////////////////////////
 // Face-varying data.
 
-int getNumFVarChannels(const struct OpenSubdiv_TopologyRefiner *topology_refiner)
+static int getNumFVarChannels(const struct OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   const OpenSubdiv::Far::TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner);
   return base_level.GetNumFVarChannels();
 }
 
-OpenSubdiv_FVarLinearInterpolation getFVarLinearInterpolation(
+static OpenSubdiv_FVarLinearInterpolation getFVarLinearInterpolation(
     const struct OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   return blender::opensubdiv::getCAPIFVarLinearInterpolationFromOSD(
       getOSDTopologyRefiner(topology_refiner)->GetFVarLinearInterpolation());
 }
 
-int getNumFVarValues(const struct OpenSubdiv_TopologyRefiner *topology_refiner, const int channel)
+static int getNumFVarValues(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+                            const int channel)
 {
   const OpenSubdiv::Far::TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner);
   return base_level.GetNumFVarValues(channel);
 }
 
-const int *getFaceFVarValueIndices(const struct OpenSubdiv_TopologyRefiner *topology_refiner,
-                                   const int face_index,
-                                   const int channel)
+static const int *getFaceFVarValueIndices(
+    const struct OpenSubdiv_TopologyRefiner *topology_refiner,
+    const int face_index,
+    const int channel)
 {
   const OpenSubdiv::Far::TopologyLevel &base_level = getOSDTopologyBaseLevel(topology_refiner);
   return &base_level.GetFaceFVarValues(face_index, channel)[0];
@@ -181,7 +185,7 @@ const int *getFaceFVarValueIndices(const struct OpenSubdiv_TopologyRefiner *topo
 ////////////////////////////////////////////////////////////////////////////////
 // Internal helpers.
 
-void assignFunctionPointers(OpenSubdiv_TopologyRefiner *topology_refiner)
+static void assignFunctionPointers(OpenSubdiv_TopologyRefiner *topology_refiner)
 {
   topology_refiner->getSubdivisionLevel = getSubdivisionLevel;
   topology_refiner->getIsAdaptive = getIsAdaptive;
@@ -207,14 +211,12 @@ void assignFunctionPointers(OpenSubdiv_TopologyRefiner *topology_refiner)
   topology_refiner->getFaceFVarValueIndices = getFaceFVarValueIndices;
 }
 
-OpenSubdiv_TopologyRefiner *allocateTopologyRefiner()
+static OpenSubdiv_TopologyRefiner *allocateTopologyRefiner()
 {
   OpenSubdiv_TopologyRefiner *topology_refiner = MEM_new<OpenSubdiv_TopologyRefiner>(__func__);
   assignFunctionPointers(topology_refiner);
   return topology_refiner;
 }
-
-}  // namespace
 
 OpenSubdiv_TopologyRefiner *openSubdiv_createTopologyRefinerFromConverter(
     OpenSubdiv_Converter *converter, const OpenSubdiv_TopologyRefinerSettings *settings)

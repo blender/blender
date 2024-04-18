@@ -13,8 +13,7 @@
 
 struct OpenSubdiv_Converter;
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 // Simplified representation of mesh topology.
 // Only includes parts of actual mesh topology which is needed to perform
@@ -160,7 +159,6 @@ class MeshTopology {
   MEM_CXX_CLASS_ALLOC_FUNCS("MeshTopology");
 };
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv
 
 #endif  // OPENSUBDIV_MESH_TOPOLOGY_H_

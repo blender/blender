@@ -13,8 +13,7 @@
 #include <cassert>
 #include <opensubdiv/sdc/crease.h>
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 OpenSubdiv::Sdc::SchemeType getSchemeTypeFromCAPI(OpenSubdiv_SchemeType type)
 {
@@ -91,5 +90,4 @@ OpenSubdiv::Sdc::Options::VtxBoundaryInterpolation getVtxBoundaryInterpolationFr
   return Options::VTX_BOUNDARY_EDGE_ONLY;
 }
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv

@@ -24,8 +24,7 @@ struct OpenSubdiv_EvaluatorSettings;
 struct OpenSubdiv_PatchCoord;
 struct OpenSubdiv_TopologyRefiner;
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 class PatchMap;
 
@@ -183,8 +182,7 @@ class EvalOutputAPI {
   EvalOutput *implementation_;
 };
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv
 
 struct OpenSubdiv_EvaluatorImpl {
  public:
