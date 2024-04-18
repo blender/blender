@@ -114,6 +114,11 @@ void GLVertBuf::bind_as_ssbo(uint binding)
   bind();
   BLI_assert(vbo_id_ != 0);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, vbo_id_);
+
+#ifndef NDEBUG
+  BLI_assert(binding < 16);
+  GLContext::get()->bound_ssbo_slots |= 1 << binding;
+#endif
 }
 
 void GLVertBuf::bind_as_texture(uint binding)
