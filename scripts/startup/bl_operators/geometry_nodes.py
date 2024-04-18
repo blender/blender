@@ -136,6 +136,7 @@ def get_enabled_socket_with_name(sockets, name):
             return socket
     return None
 
+
 def create_wrapper_group(modifier, old_group):
     wrapper_name = old_group.name + ".wrapper"
     group = bpy.data.node_groups.new(wrapper_name, 'GeometryNodeTree')
