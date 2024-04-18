@@ -264,8 +264,8 @@ class DATA_PT_lightprobe_bake_offset(DataButtonsPanel, Panel):
         probe = context.lightprobe
 
         col = layout.column(align=True)
-        col.prop(probe, "grid_surface_bias", text="Surface Bias")
-        col.prop(probe, "grid_escape_bias", text="Escape Bias")
+        col.prop(probe, "grid_surface_bias")
+        col.prop(probe, "grid_escape_bias")
 
 
 class DATA_PT_lightprobe_bake_clamping(DataButtonsPanel, Panel):
