@@ -11,6 +11,14 @@
 #include "vk_common.hh"
 
 namespace blender::gpu {
+std::string to_string(VkImage vk_handle);
+std::string to_string(VkBuffer vk_handle);
+std::string to_string(VkDescriptorSet vk_handle);
+std::string to_string(VkPipeline vk_handle);
+std::string to_string(VkPipelineLayout vk_handle);
+std::string to_string(VkRenderPass vk_handle);
+std::string to_string(VkFramebuffer vk_handle);
+
 const char *to_string(VkFilter vk_filter);
 const char *to_string(VkImageLayout vk_image_layout);
 const char *to_string(VkIndexType vk_index_type);
