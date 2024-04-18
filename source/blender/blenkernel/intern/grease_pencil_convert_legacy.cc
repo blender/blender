@@ -17,6 +17,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_deform.hh"
+#include "BKE_fcurve.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_legacy_convert.hh"
@@ -63,10 +64,13 @@ namespace blender::bke::greasepencil::convert {
  * Data shared across most of GP conversion code.
  */
 struct ConversionData {
+  Main &bmain;
   /** A mapping between a library and a generated 'offset radius' node group. */
-  Map<Library *, bNodeTree *> offset_radius_ntree_by_library;
+  Map<Library *, bNodeTree *> offset_radius_ntree_by_library = {};
   /** A mapping between a legacy GPv2 ID and its converted GPv3 ID. */
-  Map<bGPdata *, GreasePencil *> legacy_to_greasepencil_data;
+  Map<bGPdata *, GreasePencil *> legacy_to_greasepencil_data = {};
+
+  ConversionData(Main &bmain) : bmain(bmain) {}
 };
 
 /* -------------------------------------------------------------------- */
@@ -76,92 +80,437 @@ struct ConversionData {
  * (also includes drivers, and actions linked through the NLA).
  * \{ */
 
-using FCurveCallback = bool(bAction *owner_action, FCurve &fcurve);
+using FCurveConvertCB = void(FCurve &fcurve);
 
-/* Utils to move a list of fcurves from one container (Action or Drivers) to another. */
-static void legacy_fcurves_move(ListBase &fcurves_dst,
-                                ListBase &fcurves_src,
-                                const Span<FCurve *> fcurves)
-{
-  for (FCurve *fcurve : fcurves) {
-    BLI_assert(BLI_findindex(&fcurves_src, fcurve) >= 0);
-    BLI_remlink(&fcurves_src, fcurve);
-    BLI_addtail(&fcurves_dst, fcurve);
-  }
-}
+/**
+ * Conversion data for the FCurve of a specific RNA property.
+ *
+ * Used as sub-data of #AnimDataConvertor when precise control over which and how FCurves are
+ * converted.
+ */
+struct AnimDataFCurveConvertor {
+  /** Source and destination RNA paths (relative to the relevant root paths stored in the owner
+   * #AnimDataConvertor data). */
+  const char *relative_rna_path_src;
+  const char *relative_rna_path_dst;
 
-/* Basic common check to decide whether a legacy fcurve should be processed or not. */
-static bool legacy_fcurves_is_valid_for_root_path(FCurve &fcurve, StringRefNull legacy_root_path)
-{
-  if (!fcurve.rna_path) {
-    return false;
-  }
-  StringRefNull rna_path = fcurve.rna_path;
-  if (!rna_path.startswith(legacy_root_path)) {
-    return false;
-  }
-  return true;
-}
+  /** Optional callback to perform additional conversion work on a specific FCurve. */
+  blender::FunctionRef<FCurveConvertCB> convert_cb;
 
-static bool legacy_fcurves_process(bAction *owner_action,
-                                   ListBase &fcurves,
-                                   blender::FunctionRef<FCurveCallback> callback)
-{
-  bool is_changed = false;
-  LISTBASE_FOREACH (FCurve *, fcurve, &fcurves) {
-    const bool local_is_changed = callback(owner_action, *fcurve);
-    is_changed = is_changed || local_is_changed;
-  }
-  return is_changed;
-}
-
-static bool legacy_nla_strip_process(NlaStrip &nla_strip,
-                                     blender::FunctionRef<FCurveCallback> callback)
-{
-  bool is_changed = false;
-  if (nla_strip.act) {
-    if (legacy_fcurves_process(nla_strip.act, nla_strip.act->curves, callback)) {
-      DEG_id_tag_update(&nla_strip.act->id, ID_RECALC_ANIMATION);
-      is_changed = true;
-    }
-  }
-  LISTBASE_FOREACH (NlaStrip *, nla_strip_children, &nla_strip.strips) {
-    const bool local_is_changed = legacy_nla_strip_process(*nla_strip_children, callback);
-    is_changed = is_changed || local_is_changed;
-  }
-  return is_changed;
-}
-
-static bool legacy_animation_process(AnimData &anim_data,
-                                     blender::FunctionRef<FCurveCallback> callback)
-{
-  bool is_changed = false;
-  if (anim_data.action) {
-    if (legacy_fcurves_process(anim_data.action, anim_data.action->curves, callback)) {
-      DEG_id_tag_update(&anim_data.action->id, ID_RECALC_ANIMATION);
-      is_changed = true;
-    }
-  }
-  if (anim_data.tmpact) {
-    if (legacy_fcurves_process(anim_data.tmpact, anim_data.tmpact->curves, callback)) {
-      DEG_id_tag_update(&anim_data.tmpact->id, ID_RECALC_ANIMATION);
-      is_changed = true;
-    }
-  }
-
+  AnimDataFCurveConvertor(const char *relative_rna_path_src,
+                          const char *relative_rna_path_dst,
+                          blender::FunctionRef<FCurveConvertCB> convert_cb = {nullptr})
+      : relative_rna_path_src(relative_rna_path_src),
+        relative_rna_path_dst(relative_rna_path_dst),
+        convert_cb(convert_cb)
   {
-    const bool local_is_changed = legacy_fcurves_process(nullptr, anim_data.drivers, callback);
-    is_changed = is_changed || local_is_changed;
+  }
+};
+
+/**
+ * This class contains data and logic to handle conversion of animation data (FCurves).
+ *
+ * It can be used to either:
+ *  - Convert FCurves within a same animation data (essentially updating the RNA paths).
+ *  - Convert FCurves and move them from the source to the destination IDs animation data.
+ * The constructor used defines which of these two 'modes' will be the used by a given convertor.
+ *
+ * RNA paths to convert can be specified  in two ways:
+ *  - Complete paths, with a list of source to destination pairs of paths (relative to the relevant
+ * root paths).
+ *  - Only by the source and destination root paths (in which case all FCurves starting by these
+ * paths will be converted).
+ *
+ * \note In case of transfer of animation data between IDs, NLA animation in source data is not
+ * converted. This would require (partially) re-creating a copy of the potential source NLA into
+ * the destination NLA, which is too complex for the few potential use cases.
+ */
+class AnimDataConvertor {
+  ConversionData &conversion_data;
+
+  ID &id_src;
+  ID &id_dst;
+  AnimData *animdata_src;
+  AnimData *animdata_dst;
+
+  /** Whether the source and destination IDs are different or not. */
+  const bool is_transfer_between_ids;
+  /**
+   * Whether to skip NLA animation processing or not.
+   * \note Currently NLA is skipped if this convertor transfers animation data between different
+   * source and destination IDs.
+   */
+  const bool skip_nla;
+
+  /**
+   * Source (old) RNA property path in source ID to destination (new) matching property RNA path in
+   * destination ID.
+   *
+   * \note All paths here are relative the their respective (source or destination) root path.
+   * \note If this array is empty, all FCurves starting with `root_path_source` will be 'rebased'
+   * on `root_path_dst`.
+   */
+  const Array<AnimDataFCurveConvertor> fcurve_convertors;
+
+ public:
+  /**
+   * Source and destination RNA root path. These can be modified by user code at any time (e.g.
+   * when processing animation data for different modifiers...).
+   */
+  std::string root_path_src = "";
+  std::string root_path_dst = "";
+
+ private:
+  /**
+   * Store all FCurves that need to be moved from source animation to destination animation,
+   * respectively for the main action, the temp action, and the drivers.
+   *
+   * Currently only used when moving animation from one source ID to a different destination ID.
+   */
+  blender::Vector<FCurve *> fcurves_from_src_main_action = {};
+  blender::Vector<FCurve *> fcurves_from_src_tmp_action = {};
+  blender::Vector<FCurve *> fcurves_from_src_drivers = {};
+  /** Generic 'has done something' flag, used to decide whether depsgraph tagging for updates is
+   * needed. */
+  bool has_changes = false;
+
+ public:
+  /** Constructor to use when only processing FCurves within a same ID animation data. */
+  AnimDataConvertor(ConversionData &conversion_data,
+                    ID &id_src,
+                    const Array<AnimDataFCurveConvertor> fcurve_convertors = {})
+      : conversion_data(conversion_data),
+        id_src(id_src),
+        id_dst(id_src),
+        animdata_src(BKE_animdata_from_id(&id_src)),
+        animdata_dst(BKE_animdata_from_id(&id_dst)),
+        is_transfer_between_ids(false),
+        skip_nla(false),
+        fcurve_convertors(fcurve_convertors)
+  {
+  }
+  /** Constructor to use when moving FCurves from one ID to another. */
+  AnimDataConvertor(ConversionData &conversion_data,
+                    ID &id_dst,
+                    ID &id_src,
+                    const Array<AnimDataFCurveConvertor> fcurve_convertors = {})
+      : conversion_data(conversion_data),
+        id_src(id_src),
+        id_dst(id_dst),
+        animdata_src(BKE_animdata_from_id(&id_src)),
+        animdata_dst(BKE_animdata_from_id(&id_dst)),
+        is_transfer_between_ids(true),
+        skip_nla(true),
+        fcurve_convertors(fcurve_convertors)
+  {
+  }
+  AnimDataConvertor() = delete;
+
+  /** \return True if this AnimDataConvertor is valid, i.e. can be used to process animation data
+   * from source ID. */
+  explicit operator bool() const
+  {
+    return (this->animdata_src);
   }
 
-  LISTBASE_FOREACH (NlaTrack *, nla_track, &anim_data.nla_tracks) {
-    LISTBASE_FOREACH (NlaStrip *, nla_strip, &nla_track->strips) {
-      const bool local_is_changed = legacy_nla_strip_process(*nla_strip, callback);
+ private:
+  using FCurveCallback = bool(bAction *owner_action, FCurve &fcurve);
+
+  /* Basic common check to decide whether a legacy fcurve should be processed or not. */
+  bool legacy_fcurves_is_valid_for_root_path(FCurve &fcurve, StringRefNull legacy_root_path) const
+  {
+    if (!fcurve.rna_path) {
+      return false;
+    }
+    StringRefNull rna_path = fcurve.rna_path;
+    if (!rna_path.startswith(legacy_root_path)) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Common filtering of FCurve RNA path to decide whether they can/need to be processed here or
+   * not.
+   */
+  bool animation_fcurve_is_valid(bAction *owner_action, FCurve &fcurve) const
+  {
+    if (!*this) {
+      return false;
+    }
+    /* Only take into account drivers (nullptr `action_owner`), and Actions directly assigned
+     * to the animdata, not the NLA ones. */
+    if (owner_action &&
+        !ELEM(owner_action, this->animdata_src->action, this->animdata_src->tmpact))
+    {
+      return false;
+    }
+    if (!legacy_fcurves_is_valid_for_root_path(fcurve, this->root_path_src)) {
+      return false;
+    }
+    return true;
+  }
+
+  /* Iterator over all FCurves in a given animation data. */
+
+  bool fcurve_foreach(bAction *owner_action,
+                      ListBase &fcurves,
+                      blender::FunctionRef<FCurveCallback> callback) const
+  {
+    bool is_changed = false;
+    LISTBASE_FOREACH (FCurve *, fcurve, &fcurves) {
+      const bool local_is_changed = callback(owner_action, *fcurve);
       is_changed = is_changed || local_is_changed;
     }
+    return is_changed;
   }
-  return is_changed;
-}
+
+  bool nla_strip_fcurve_foreach(NlaStrip &nla_strip,
+                                blender::FunctionRef<FCurveCallback> callback) const
+  {
+    bool is_changed = false;
+    if (nla_strip.act) {
+      if (this->fcurve_foreach(nla_strip.act, nla_strip.act->curves, callback)) {
+        DEG_id_tag_update(&nla_strip.act->id, ID_RECALC_ANIMATION);
+        is_changed = true;
+      }
+    }
+    LISTBASE_FOREACH (NlaStrip *, nla_strip_children, &nla_strip.strips) {
+      const bool local_is_changed = this->nla_strip_fcurve_foreach(*nla_strip_children, callback);
+      is_changed = is_changed || local_is_changed;
+    }
+    return is_changed;
+  }
+
+  bool animdata_fcurve_foreach(AnimData &anim_data,
+                               blender::FunctionRef<FCurveCallback> callback) const
+  {
+    bool is_changed = false;
+    if (anim_data.action) {
+      if (this->fcurve_foreach(anim_data.action, anim_data.action->curves, callback)) {
+        DEG_id_tag_update(&anim_data.action->id, ID_RECALC_ANIMATION);
+        is_changed = true;
+      }
+    }
+    if (anim_data.tmpact) {
+      if (this->fcurve_foreach(anim_data.tmpact, anim_data.tmpact->curves, callback)) {
+        DEG_id_tag_update(&anim_data.tmpact->id, ID_RECALC_ANIMATION);
+        is_changed = true;
+      }
+    }
+
+    {
+      const bool local_is_changed = this->fcurve_foreach(nullptr, anim_data.drivers, callback);
+      is_changed = is_changed || local_is_changed;
+    }
+
+    if (this->skip_nla) {
+      return is_changed;
+    }
+
+    LISTBASE_FOREACH (NlaTrack *, nla_track, &anim_data.nla_tracks) {
+      LISTBASE_FOREACH (NlaStrip *, nla_strip, &nla_track->strips) {
+        const bool local_is_changed = this->nla_strip_fcurve_foreach(*nla_strip, callback);
+        is_changed = is_changed || local_is_changed;
+      }
+    }
+    return is_changed;
+  }
+
+ public:
+  /**
+   * Check whether the source animation data contains FCurves that need to be converted/moved to
+   * the destination animation data.
+   */
+  bool source_has_animation_to_convert() const
+  {
+    if (!*this) {
+      return false;
+    }
+
+    bool has_animation = false;
+    auto animation_detection_cb = [&](bAction *owner_action, FCurve &fcurve) -> bool {
+      /* Early out if we already know that the target data is animated. */
+      if (has_animation) {
+        return false;
+      }
+      if (!this->animation_fcurve_is_valid(owner_action, fcurve)) {
+        return false;
+      }
+      if (this->fcurve_convertors.is_empty()) {
+        has_animation = true;
+        return false;
+      }
+      StringRefNull rna_path = fcurve.rna_path;
+      for (const AnimDataFCurveConvertor &fcurve_convertor : this->fcurve_convertors) {
+        const std::string rna_path_src = fmt::format(
+            "{}{}", this->root_path_src, fcurve_convertor.relative_rna_path_src);
+        if (rna_path == rna_path_src) {
+          has_animation = true;
+          return false;
+        }
+      }
+      return false;
+    };
+
+    this->animdata_fcurve_foreach(*this->animdata_src, animation_detection_cb);
+    return has_animation;
+  }
+
+  /**
+   * Convert relevant FCurves, i.e. modify their RNA path to match destination data.
+   *
+   * \note: Edited FCurves will remain in the source animation data after this process. Once all
+   * source animation data has been processed, #fcurves_convert_finalize has to be called.
+   */
+  void fcurves_convert()
+  {
+    if (!*this) {
+      return;
+    }
+
+    auto fcurve_convert_cb = [&](const AnimDataFCurveConvertor *fcurve_convertor,
+                                 bAction *owner_action,
+                                 FCurve &fcurve,
+                                 const std::string &rna_path_dst) {
+      MEM_freeN(fcurve.rna_path);
+      fcurve.rna_path = BLI_strdupn(rna_path_dst.c_str(), rna_path_dst.size());
+      if (fcurve_convertor && fcurve_convertor->convert_cb) {
+        fcurve_convertor->convert_cb(fcurve);
+      }
+      this->has_changes = true;
+
+      if (!this->is_transfer_between_ids) {
+        return;
+      }
+      if (owner_action) {
+        if (owner_action == this->animdata_src->action) {
+          this->fcurves_from_src_main_action.append(&fcurve);
+        }
+        else if (owner_action == this->animdata_src->tmpact) {
+          this->fcurves_from_src_tmp_action.append(&fcurve);
+        }
+      }
+      else { /* Driver */
+        this->fcurves_from_src_drivers.append(&fcurve);
+      }
+    };
+
+    /* Update all FCurves which RNA path starts with the #root_path_src. */
+    if (this->fcurve_convertors.is_empty()) {
+      auto fcurve_root_path_convert_cb = [&](bAction *owner_action, FCurve &fcurve) -> bool {
+        if (!legacy_fcurves_is_valid_for_root_path(fcurve, this->root_path_src)) {
+          return false;
+        }
+        StringRefNull rna_path = fcurve.rna_path;
+        const std::string rna_path_dst = fmt::format(
+            "{}{}", this->root_path_dst, rna_path.substr(int64_t(this->root_path_src.size())));
+        fcurve_convert_cb(nullptr, owner_action, fcurve, rna_path_dst);
+        return true;
+      };
+
+      this->animdata_fcurve_foreach(*(this->animdata_src), fcurve_root_path_convert_cb);
+      return;
+    }
+
+    /* Update all FCurves which RNA path starts with the #root_path_src, and remains of the path
+     * matches one of the entries in #fcurve_convertors. */
+    auto fcurve_full_path_convert_cb = [&](bAction *owner_action, FCurve &fcurve) -> bool {
+      if (!animation_fcurve_is_valid(owner_action, fcurve)) {
+        return false;
+      }
+      StringRefNull rna_path = fcurve.rna_path;
+      for (const AnimDataFCurveConvertor &fcurve_convertor : this->fcurve_convertors) {
+        const std::string rna_path_src = fmt::format(
+            "{}{}", this->root_path_src, fcurve_convertor.relative_rna_path_src);
+        if (rna_path == rna_path_src) {
+          const std::string rna_path_dst = fmt::format(
+              "{}{}", this->root_path_dst, fcurve_convertor.relative_rna_path_dst);
+          fcurve_convert_cb(&fcurve_convertor, owner_action, fcurve, rna_path_dst);
+          return true;
+        }
+      }
+      return false;
+    };
+
+    this->animdata_fcurve_foreach(*(this->animdata_src), fcurve_full_path_convert_cb);
+  }
+
+  /**
+   * Finalize FCurves conversion. Typically, this #AnimDataConvertor should not be used after this
+   * call.
+   *
+   * Currently, this call merely ensure depsgraph update in case of conversion of animation data
+   * within a same ID.
+   *
+   * When transferring animation between source and destination IDs, this call actually moves the
+   * processed fcurves accumulated by previous call(s) to #fcurves_convert.
+   */
+  void fcurves_convert_finalize()
+  {
+    if (!*this) {
+      return;
+    }
+
+    if (&id_src == &id_dst) {
+      if (this->has_changes) {
+        DEG_id_tag_update(&this->id_src, ID_RECALC_ANIMATION);
+        DEG_relations_tag_update(&this->conversion_data.bmain);
+      }
+      return;
+    }
+    if (this->fcurves_from_src_main_action.is_empty() &&
+        this->fcurves_from_src_tmp_action.is_empty() && this->fcurves_from_src_drivers.is_empty())
+    {
+      return;
+    }
+    if (!this->animdata_dst) {
+      this->animdata_dst = BKE_animdata_ensure_id(&this->id_dst);
+    }
+
+    auto fcurves_move =
+        [&](ListBase &fcurves_dst, ListBase &fcurves_src, const Span<FCurve *> fcurves) {
+          for (FCurve *fcurve : fcurves) {
+            BLI_assert(BLI_findindex(&fcurves_src, fcurve) >= 0);
+            BLI_remlink(&fcurves_src, fcurve);
+            BLI_addtail(&fcurves_dst, fcurve);
+          }
+        };
+
+    if (!this->fcurves_from_src_main_action.is_empty()) {
+      if (!this->animdata_dst->action) {
+        this->animdata_dst->action = BKE_action_add(
+            &this->conversion_data.bmain,
+            this->animdata_src->action ? this->animdata_src->action->id.name + 2 : nullptr);
+      }
+      fcurves_move(this->animdata_dst->action->curves,
+                   this->animdata_src->action->curves,
+                   this->fcurves_from_src_main_action);
+      this->fcurves_from_src_main_action.clear();
+    }
+    if (!this->fcurves_from_src_tmp_action.is_empty()) {
+      if (!this->animdata_dst->tmpact) {
+        this->animdata_dst->tmpact = BKE_action_add(
+            &this->conversion_data.bmain,
+            this->animdata_src->tmpact ? this->animdata_src->tmpact->id.name + 2 : nullptr);
+      }
+      fcurves_move(this->animdata_dst->tmpact->curves,
+                   this->animdata_src->tmpact->curves,
+                   this->fcurves_from_src_tmp_action);
+      this->fcurves_from_src_tmp_action.clear();
+    }
+    if (!this->fcurves_from_src_drivers.is_empty()) {
+      fcurves_move(this->animdata_dst->drivers,
+                   this->animdata_src->drivers,
+                   this->fcurves_from_src_drivers);
+      this->fcurves_from_src_drivers.clear();
+    }
+
+    DEG_id_tag_update(&this->id_dst, ID_RECALC_ANIMATION);
+    DEG_id_tag_update(&this->id_src, ID_RECALC_ANIMATION);
+    DEG_relations_tag_update(&this->conversion_data.bmain);
+  }
+};
 
 /* \} */
 
@@ -563,7 +912,9 @@ static void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   stroke_materials.finish();
 }
 
-static void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, bGPdata &gpd)
+static void legacy_gpencil_to_grease_pencil(ConversionData &conversion_data,
+                                            GreasePencil &grease_pencil,
+                                            bGPdata &gpd)
 {
   using namespace blender::bke::greasepencil;
 
@@ -702,7 +1053,7 @@ static void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pe
   copy_v3_v3(settings.color_before, gpd.gcolor_prev);
   copy_v3_v3(settings.color_after, gpd.gcolor_next);
 
-  BKE_id_materials_copy(&bmain, &gpd.id, &grease_pencil.id);
+  BKE_id_materials_copy(&conversion_data.bmain, &gpd.id, &grease_pencil.id);
 
   /* Copy animation data from legacy GP data.
    *
@@ -710,18 +1061,18 @@ static void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pe
    * the time being, assuming invalid fcurves/drivers are fine here. */
   if (AnimData *gpd_animdata = BKE_animdata_from_id(&gpd.id)) {
     grease_pencil.adt = BKE_animdata_copy_in_lib(
-        &bmain, gpd.id.lib, gpd_animdata, LIB_ID_COPY_DEFAULT);
+        &conversion_data.bmain, gpd.id.lib, gpd_animdata, LIB_ID_COPY_DEFAULT);
   }
 }
 
 constexpr const char *OFFSET_RADIUS_NODETREE_NAME = "Offset Radius GPv3 Conversion";
-static bNodeTree *offset_radius_node_tree_add(Main &bmain, Library *library)
+static bNodeTree *offset_radius_node_tree_add(ConversionData &conversion_data, Library *library)
 {
   using namespace blender;
   /* NOTE: DO NOT translate this ID name, it is used to find a potentially already existing
    * node-tree. */
   bNodeTree *group = BKE_node_tree_add_in_lib(
-      &bmain, library, OFFSET_RADIUS_NODETREE_NAME, "GeometryNodeTree");
+      &conversion_data.bmain, library, OFFSET_RADIUS_NODETREE_NAME, "GeometryNodeTree");
 
   if (!group->geometry_node_asset_traits) {
     group->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
@@ -811,12 +1162,22 @@ static bNodeTree *offset_radius_node_tree_add(Main &bmain, Library *library)
   return group;
 }
 
-static void thickness_factor_to_modifier(const bGPdata &src_object_data, Object &dst_object)
+static void thickness_factor_to_modifier(ConversionData &conversion_data,
+                                         bGPdata &src_object_data,
+                                         Object &dst_object)
 {
-  if (src_object_data.pixfactor == 1.0f) {
+  AnimDataConvertor animdata_thickness_transfer(
+      conversion_data, dst_object.id, src_object_data.id, {{"pixel_factor", ".thickness_factor"}});
+  animdata_thickness_transfer.root_path_src = "";
+
+  const float thickness_factor = src_object_data.pixfactor;
+  const bool has_thickness_factor_animation =
+      animdata_thickness_transfer.source_has_animation_to_convert();
+  const bool has_thickness_factor = thickness_factor != 1.0f || has_thickness_factor_animation;
+
+  if (!has_thickness_factor) {
     return;
   }
-  const float thickness_factor = src_object_data.pixfactor;
 
   ModifierData *md = BKE_modifier_new(eModifierType_GreasePencilThickness);
   GreasePencilThickModifierData *tmd = reinterpret_cast<GreasePencilThickModifierData *>(md);
@@ -828,57 +1189,56 @@ static void thickness_factor_to_modifier(const bGPdata &src_object_data, Object 
 
   BLI_addtail(&dst_object.modifiers, md);
   BKE_modifiers_persistent_uid_init(dst_object, *md);
+
+  if (has_thickness_factor_animation) {
+    char modifier_name_esc[MAX_NAME * 2];
+    BLI_str_escape(modifier_name_esc, md->name, sizeof(modifier_name_esc));
+    animdata_thickness_transfer.root_path_dst = fmt::format("modifiers[\"{}\"]",
+                                                            modifier_name_esc);
+
+    animdata_thickness_transfer.fcurves_convert();
+  }
+
+  animdata_thickness_transfer.fcurves_convert_finalize();
 }
 
-static void layer_adjustments_to_modifiers(Main &bmain,
+static void layer_adjustments_to_modifiers(ConversionData &conversion_data,
                                            bGPdata &src_object_data,
-                                           Object &dst_object,
-                                           ConversionData &conversion_data)
+                                           Object &dst_object)
 {
-
   /* Handling of animation here is a bit complex, since paths needs to be updated, but also
-   * FCurves need to be transferred from legacy GPData animation to Object animation.
-   *
-   * NOTE: NLA animation in GPData that would control adjustment properties is not converted. This
-   * would require (partially) re-creating a copy of the potential bGPData NLA into the Object NLA,
-   * which is too complex for the few potential use cases.
-   *
-   * This is achieved in several steps, roughly:
-   *   * For each GP layer, check if there is animation on the adjustment data.
-   *   * Rename relevant FCurves RNA paths from GP animation data, and store their reference in
-   *     temporary vectors.
-   *   * Once all layers have been processed, move all affected FCurves from GPData animation to
-   *     Object one. */
+   * FCurves need to be transferred from legacy GPData animation to Object animation. */
+  AnimDataConvertor animdata_tint_transfer(
+      conversion_data,
+      dst_object.id,
+      src_object_data.id,
+      {{".tint_color", ".color"}, {".tint_factor", ".factor"}});
 
-  AnimData *gpd_animdata = BKE_animdata_from_id(&src_object_data.id);
-  AnimData *dst_object_animdata = BKE_animdata_from_id(&dst_object.id);
-
-  /* Old 'adjutment' GPData RNA property path to new matching modifier property RNA path. */
-  static const std::pair<const char *, const char *> fcurve_tint_valid_prop_paths[] = {
-      {".tint_color", ".color"}, {".tint_factor", ".factor"}};
-  static const std::pair<const char *, const char *> fcurve_thickness_valid_prop_paths[] = {
-      {".line_change", "[\"Socket_1\"]"}};
-
-  /* Store all FCurves that need to be moved from GPData animation to Object animation,
-   * respectively for the main action, the temp action, and the drivers. */
-  blender::Vector<FCurve *> fcurves_from_gpd_main_action;
-  blender::Vector<FCurve *> fcurves_from_gpd_tmp_action;
-  blender::Vector<FCurve *> fcurves_from_gpd_drivers;
-
-  /* Common filtering of FCurve RNA path to decide whether they can/need to be processed here or
-   * not. */
-  auto adjustment_animation_fcurve_is_valid =
-      [&](bAction *owner_action, FCurve &fcurve, blender::StringRefNull legacy_root_path) -> bool {
-    /* Only take into account drivers (nullptr `action_owner`), and Actions directly assigned
-     * to the animdata, not the NLA ones. */
-    if (owner_action && !ELEM(owner_action, gpd_animdata->action, gpd_animdata->tmpact)) {
-      return false;
+  /* Ensure values are divided by 2k, to match conversion done for non-animated value. */
+  constexpr float thickness_adjustement_factor = 1.0f / 2000.0f;
+  auto fcurve_convert_thickness_cb = [&thickness_adjustement_factor](FCurve &fcurve) {
+    if (fcurve.bezt) {
+      for (uint i = 0; i < fcurve.totvert; i++) {
+        BezTriple &bezier_triple = fcurve.bezt[i];
+        bezier_triple.vec[0][1] *= thickness_adjustement_factor;
+        bezier_triple.vec[1][1] *= thickness_adjustement_factor;
+        bezier_triple.vec[2][1] *= thickness_adjustement_factor;
+      }
     }
-    if (!legacy_fcurves_is_valid_for_root_path(fcurve, legacy_root_path)) {
-      return false;
+    if (fcurve.fpt) {
+      for (uint i = 0; i < fcurve.totvert; i++) {
+        FPoint &fpoint = fcurve.fpt[i];
+        fpoint.vec[1] *= thickness_adjustement_factor;
+      }
     }
-    return true;
+    fcurve.flag &= ~FCURVE_INT_VALUES;
+    BKE_fcurve_handles_recalc(&fcurve);
   };
+  AnimDataConvertor animdata_thickness_transfer(
+      conversion_data,
+      dst_object.id,
+      src_object_data.id,
+      {{".line_change", "[\"Socket_2\"]", fcurve_convert_thickness_cb}});
 
   /* Replace layer adjustments with modifiers. */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &src_object_data.layers) {
@@ -886,58 +1246,19 @@ static void layer_adjustments_to_modifiers(Main &bmain,
     const float tint_factor = gpl->tintcolor[3];
     const int thickness_px = gpl->line_change;
 
-    bool has_tint_adjustment = tint_factor > 0.0f;
-    bool has_tint_adjustment_animation = false;
-    bool has_thickness_adjustment = thickness_px != 0;
-    bool has_thickness_adjustment_animation = false;
-
     char layer_name_esc[sizeof(gpl->info) * 2];
     BLI_str_escape(layer_name_esc, gpl->info, sizeof(layer_name_esc));
-    const std::string legacy_root_path = fmt::format("layers[\"{}\"]", layer_name_esc);
+    animdata_tint_transfer.root_path_src = fmt::format("layers[\"{}\"]", layer_name_esc);
+    animdata_thickness_transfer.root_path_src = fmt::format("layers[\"{}\"]", layer_name_esc);
+
+    const bool has_tint_adjustment_animation =
+        animdata_tint_transfer.source_has_animation_to_convert();
+    const bool has_thickness_adjustment_animation =
+        animdata_thickness_transfer.source_has_animation_to_convert();
 
     /* If tint or thickness are animated, relevant modifiers also need to be created. */
-    if (gpd_animdata) {
-      auto adjustment_animation_detection = [&](bAction *owner_action, FCurve &fcurve) -> bool {
-        /* Early out if we already know that both data are animated. */
-        if (has_tint_adjustment_animation && has_thickness_adjustment_animation) {
-          return false;
-        }
-        if (!adjustment_animation_fcurve_is_valid(owner_action, fcurve, legacy_root_path)) {
-          return false;
-        }
-        StringRefNull rna_path = fcurve.rna_path;
-        for (const auto &[from_prop_path, to_prop_path] : fcurve_tint_valid_prop_paths) {
-          const char *rna_adjustment_prop_path = from_prop_path;
-          const std::string old_rna_path = fmt::format(
-              "{}{}", legacy_root_path, rna_adjustment_prop_path);
-          if (rna_path == old_rna_path) {
-            has_tint_adjustment_animation = true;
-            return false;
-          }
-        }
-        for (const auto &[from_prop_path, to_prop_path] : fcurve_thickness_valid_prop_paths) {
-          const char *rna_prop_rna_adjustment_prop_pathpath = from_prop_path;
-          const std::string old_rna_path = fmt::format(
-              "{}{}", legacy_root_path, rna_prop_rna_adjustment_prop_pathpath);
-          if (rna_path == old_rna_path) {
-            has_thickness_adjustment_animation = true;
-            return false;
-          }
-        }
-        return false;
-      };
-
-      legacy_animation_process(*gpd_animdata, adjustment_animation_detection);
-      has_tint_adjustment = has_tint_adjustment || has_tint_adjustment_animation;
-      has_thickness_adjustment = has_thickness_adjustment || has_thickness_adjustment_animation;
-    }
-
-    /* Create animdata in destination object if needed. */
-    if ((has_tint_adjustment_animation || has_thickness_adjustment_animation) &&
-        !dst_object_animdata)
-    {
-      dst_object_animdata = BKE_animdata_ensure_id(&dst_object.id);
-    }
+    const bool has_tint_adjustment = tint_factor > 0.0f || has_tint_adjustment_animation;
+    const bool has_thickness_adjustment = thickness_px != 0 || has_thickness_adjustment_animation;
 
     /* Tint adjustment. */
     if (has_tint_adjustment) {
@@ -959,44 +1280,9 @@ static void layer_adjustments_to_modifiers(Main &bmain,
       if (has_tint_adjustment_animation) {
         char modifier_name_esc[MAX_NAME * 2];
         BLI_str_escape(modifier_name_esc, md->name, sizeof(modifier_name_esc));
+        animdata_tint_transfer.root_path_dst = fmt::format("modifiers[\"{}\"]", modifier_name_esc);
 
-        auto adjustment_tint_path_update = [&](bAction *owner_action, FCurve &fcurve) -> bool {
-          if (!adjustment_animation_fcurve_is_valid(owner_action, fcurve, legacy_root_path)) {
-            return false;
-          }
-          StringRefNull rna_path = fcurve.rna_path;
-          for (const auto &[from_prop_path, to_prop_path] : fcurve_tint_valid_prop_paths) {
-            const char *rna_adjustment_prop_path = from_prop_path;
-            const char *rna_modifier_prop_path = to_prop_path;
-            const std::string old_rna_path = fmt::format(
-                "{}{}", legacy_root_path, rna_adjustment_prop_path);
-            if (rna_path == old_rna_path) {
-              const std::string new_rna_path = fmt::format(
-                  "modifiers[\"{}\"]{}", modifier_name_esc, rna_modifier_prop_path);
-              MEM_freeN(fcurve.rna_path);
-              fcurve.rna_path = BLI_strdupn(new_rna_path.c_str(), new_rna_path.size());
-              if (owner_action) {
-                if (owner_action == gpd_animdata->action) {
-                  fcurves_from_gpd_main_action.append(&fcurve);
-                }
-                else {
-                  BLI_assert(owner_action == gpd_animdata->tmpact);
-                  fcurves_from_gpd_tmp_action.append(&fcurve);
-                }
-              }
-              else { /* Driver */
-                fcurves_from_gpd_drivers.append(&fcurve);
-              }
-              return true;
-            }
-          }
-          return false;
-        };
-
-        const bool has_edits = legacy_animation_process(*gpd_animdata,
-                                                        adjustment_tint_path_update);
-        BLI_assert(has_edits);
-        UNUSED_VARS_NDEBUG(has_edits);
+        animdata_tint_transfer.fcurves_convert();
       }
     }
     /* Thickness adjustment. */
@@ -1004,7 +1290,7 @@ static void layer_adjustments_to_modifiers(Main &bmain,
       /* Convert the "pixel" offset value into a radius value.
        * GPv2 used a conversion of 1 "px" = 0.001. */
       /* Note: this offset may be negative. */
-      const float radius_offset = float(thickness_px) / 2000.0f;
+      const float radius_offset = float(thickness_px) * thickness_adjustement_factor;
 
       const auto offset_radius_ntree_ensure = [&](Library *owner_library) {
         if (bNodeTree **ntree = conversion_data.offset_radius_ntree_by_library.lookup_ptr(
@@ -1015,7 +1301,7 @@ static void layer_adjustments_to_modifiers(Main &bmain,
         }
         /* Try to find an existing group added by previous versioning to avoid adding duplicates.
          */
-        LISTBASE_FOREACH (bNodeTree *, ntree_iter, &bmain.nodetrees) {
+        LISTBASE_FOREACH (bNodeTree *, ntree_iter, &conversion_data.bmain.nodetrees) {
           if (ntree_iter->id.lib != owner_library) {
             continue;
           }
@@ -1024,11 +1310,11 @@ static void layer_adjustments_to_modifiers(Main &bmain,
             return ntree_iter;
           }
         }
-        bNodeTree *new_ntree = offset_radius_node_tree_add(bmain, owner_library);
+        bNodeTree *new_ntree = offset_radius_node_tree_add(conversion_data, owner_library);
         /* Remove the default user. The count is tracked manually when assigning to modifiers. */
         id_us_min(&new_ntree->id);
         conversion_data.offset_radius_ntree_by_library.add_new(owner_library, new_ntree);
-        BKE_ntree_update_main_tree(&bmain, new_ntree, nullptr);
+        BKE_ntree_update_main_tree(&conversion_data.bmain, new_ntree, nullptr);
         return new_ntree;
       };
       bNodeTree *offset_radius_node_tree = offset_radius_ntree_ensure(dst_object.id.lib);
@@ -1058,80 +1344,22 @@ static void layer_adjustments_to_modifiers(Main &bmain,
       if (has_thickness_adjustment_animation) {
         char modifier_name_esc[MAX_NAME * 2];
         BLI_str_escape(modifier_name_esc, md->modifier.name, sizeof(modifier_name_esc));
+        animdata_thickness_transfer.root_path_dst = fmt::format("modifiers[\"{}\"]",
+                                                                modifier_name_esc);
 
-        auto adjustment_thickness_path_update = [&](bAction *owner_action,
-                                                    FCurve &fcurve) -> bool {
-          if (!adjustment_animation_fcurve_is_valid(owner_action, fcurve, legacy_root_path)) {
-            return false;
-          }
-          StringRefNull rna_path = fcurve.rna_path;
-          for (const auto &[from_prop_path, to_prop_path] : fcurve_thickness_valid_prop_paths) {
-            const char *rna_adjustment_prop_path = from_prop_path;
-            const char *rna_modifier_prop_path = to_prop_path;
-            const std::string old_rna_path = fmt::format(
-                "{}{}", legacy_root_path, rna_adjustment_prop_path);
-            if (rna_path == old_rna_path) {
-              const std::string new_rna_path = fmt::format(
-                  "modifiers[\"{}\"]{}", modifier_name_esc, rna_modifier_prop_path);
-              MEM_freeN(fcurve.rna_path);
-              fcurve.rna_path = BLI_strdupn(new_rna_path.c_str(), new_rna_path.size());
-              if (owner_action) {
-                if (owner_action == gpd_animdata->action) {
-                  fcurves_from_gpd_main_action.append(&fcurve);
-                }
-                else {
-                  BLI_assert(owner_action == gpd_animdata->tmpact);
-                  fcurves_from_gpd_tmp_action.append(&fcurve);
-                }
-              }
-              else { /* Driver */
-                fcurves_from_gpd_drivers.append(&fcurve);
-              }
-              return true;
-            }
-          }
-          return false;
-        };
-
-        const bool has_edits = legacy_animation_process(*gpd_animdata,
-                                                        adjustment_thickness_path_update);
-        BLI_assert(has_edits);
-        UNUSED_VARS_NDEBUG(has_edits);
+        animdata_thickness_transfer.fcurves_convert();
       }
     }
   }
 
-  if (!fcurves_from_gpd_main_action.is_empty()) {
-    if (!dst_object_animdata->action) {
-      dst_object_animdata->action = BKE_action_add(&bmain, gpd_animdata->action->id.name + 2);
-    }
-    legacy_fcurves_move(dst_object_animdata->action->curves,
-                        gpd_animdata->action->curves,
-                        fcurves_from_gpd_main_action);
-    DEG_id_tag_update(&dst_object.id, ID_RECALC_ANIMATION);
-    DEG_id_tag_update(&src_object_data.id, ID_RECALC_ANIMATION);
-  }
-  if (!fcurves_from_gpd_tmp_action.is_empty()) {
-    if (!dst_object_animdata->tmpact) {
-      dst_object_animdata->tmpact = BKE_action_add(&bmain, gpd_animdata->tmpact->id.name + 2);
-    }
-    legacy_fcurves_move(dst_object_animdata->tmpact->curves,
-                        gpd_animdata->tmpact->curves,
-                        fcurves_from_gpd_tmp_action);
-    DEG_id_tag_update(&dst_object.id, ID_RECALC_ANIMATION);
-    DEG_id_tag_update(&src_object_data.id, ID_RECALC_ANIMATION);
-  }
-  if (!fcurves_from_gpd_drivers.is_empty()) {
-    legacy_fcurves_move(
-        dst_object_animdata->drivers, gpd_animdata->drivers, fcurves_from_gpd_drivers);
-    DEG_id_tag_update(&dst_object.id, ID_RECALC_ANIMATION);
-    DEG_id_tag_update(&src_object_data.id, ID_RECALC_ANIMATION);
-  }
+  animdata_tint_transfer.fcurves_convert_finalize();
+  animdata_thickness_transfer.fcurves_convert_finalize();
 
-  DEG_relations_tag_update(&bmain);
+  DEG_relations_tag_update(&conversion_data.bmain);
 }
 
-static ModifierData &legacy_object_modifier_common(Object &object,
+static ModifierData &legacy_object_modifier_common(ConversionData &conversion_data,
+                                                   Object &object,
                                                    const ModifierType type,
                                                    GpencilModifierData &legacy_md)
 {
@@ -1168,29 +1396,19 @@ static ModifierData &legacy_object_modifier_common(Object &object,
   new_md.ui_expand_flag = legacy_md.ui_expand_flag;
 
   /* Convert animation data if needed. */
-  if (AnimData *anim_data = BKE_animdata_from_id(&object.id)) {
+  if (BKE_animdata_from_id(&object.id)) {
+    AnimDataConvertor anim_convertor(conversion_data, object.id);
+
     char legacy_name_esc[MAX_NAME * 2];
     BLI_str_escape(legacy_name_esc, legacy_md.name, sizeof(legacy_name_esc));
-    const std::string legacy_root_path = fmt::format("grease_pencil_modifiers[\"{}\"]",
-                                                     legacy_name_esc);
+    anim_convertor.root_path_src = fmt::format("grease_pencil_modifiers[\"{}\"]", legacy_name_esc);
+
     char new_name_esc[MAX_NAME * 2];
     BLI_str_escape(new_name_esc, new_md.name, sizeof(new_name_esc));
+    anim_convertor.root_path_dst = fmt::format("modifiers[\"{}\"]", new_name_esc);
 
-    auto modifier_path_update = [&](bAction * /*owner_action*/, FCurve &fcurve) -> bool {
-      if (!legacy_fcurves_is_valid_for_root_path(fcurve, legacy_root_path)) {
-        return false;
-      }
-      StringRefNull rna_path = fcurve.rna_path;
-      const std::string new_rna_path = fmt::format(
-          "modifiers[\"{}\"]{}", new_name_esc, rna_path.substr(int64_t(legacy_root_path.size())));
-      MEM_freeN(fcurve.rna_path);
-      fcurve.rna_path = BLI_strdupn(new_rna_path.c_str(), new_rna_path.size());
-      return true;
-    };
-
-    if (legacy_animation_process(*anim_data, modifier_path_update)) {
-      DEG_id_tag_update(&object.id, ID_RECALC_ANIMATION);
-    }
+    anim_convertor.fcurves_convert();
+    anim_convertor.fcurves_convert_finalize();
   }
 
   return new_md;
@@ -1256,10 +1474,12 @@ static void legacy_object_modifier_influence(GreasePencilModifierInfluenceData &
   }
 }
 
-static void legacy_object_modifier_armature(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_armature(ConversionData &conversion_data,
+                                            Object &object,
+                                            GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilArmature, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilArmature, legacy_md);
   auto &md_armature = reinterpret_cast<GreasePencilArmatureModifierData &>(md);
   auto &legacy_md_armature = reinterpret_cast<ArmatureGpencilModifierData &>(legacy_md);
 
@@ -1282,10 +1502,12 @@ static void legacy_object_modifier_armature(Object &object, GpencilModifierData 
                                    false);
 }
 
-static void legacy_object_modifier_array(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_array(ConversionData &conversion_data,
+                                         Object &object,
+                                         GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilArray, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilArray, legacy_md);
   auto &md_array = reinterpret_cast<GreasePencilArrayModifierData &>(md);
   auto &legacy_md_array = reinterpret_cast<ArrayGpencilModifierData &>(legacy_md);
 
@@ -1328,10 +1550,12 @@ static void legacy_object_modifier_array(Object &object, GpencilModifierData &le
                                    false);
 }
 
-static void legacy_object_modifier_color(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_color(ConversionData &conversion_data,
+                                         Object &object,
+                                         GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilColor, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilColor, legacy_md);
   auto &md_color = reinterpret_cast<GreasePencilColorModifierData &>(md);
   auto &legacy_md_color = reinterpret_cast<ColorGpencilModifierData &>(legacy_md);
 
@@ -1366,10 +1590,12 @@ static void legacy_object_modifier_color(Object &object, GpencilModifierData &le
                                    legacy_md_color.flag & GP_COLOR_CUSTOM_CURVE);
 }
 
-static void legacy_object_modifier_dash(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_dash(ConversionData &conversion_data,
+                                        Object &object,
+                                        GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilDash, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilDash, legacy_md);
   auto &md_dash = reinterpret_cast<GreasePencilDashModifierData &>(md);
   auto &legacy_md_dash = reinterpret_cast<DashGpencilModifierData &>(legacy_md);
 
@@ -1409,10 +1635,12 @@ static void legacy_object_modifier_dash(Object &object, GpencilModifierData &leg
                                    false);
 }
 
-static void legacy_object_modifier_envelope(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_envelope(ConversionData &conversion_data,
+                                            Object &object,
+                                            GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilEnvelope, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilEnvelope, legacy_md);
   auto &md_envelope = reinterpret_cast<GreasePencilEnvelopeModifierData &>(md);
   auto &legacy_md_envelope = reinterpret_cast<EnvelopeGpencilModifierData &>(legacy_md);
 
@@ -1448,10 +1676,12 @@ static void legacy_object_modifier_envelope(Object &object, GpencilModifierData 
                                    false);
 }
 
-static void legacy_object_modifier_hook(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_hook(ConversionData &conversion_data,
+                                        Object &object,
+                                        GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilHook, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilHook, legacy_md);
   auto &md_hook = reinterpret_cast<GreasePencilHookModifierData &>(md);
   auto &legacy_md_hook = reinterpret_cast<HookGpencilModifierData &>(legacy_md);
 
@@ -1511,10 +1741,12 @@ static void legacy_object_modifier_hook(Object &object, GpencilModifierData &leg
                                    true);
 }
 
-static void legacy_object_modifier_lattice(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_lattice(ConversionData &conversion_data,
+                                           Object &object,
+                                           GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilLattice, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilLattice, legacy_md);
   auto &md_lattice = reinterpret_cast<GreasePencilLatticeModifierData &>(md);
   auto &legacy_md_lattice = reinterpret_cast<LatticeGpencilModifierData &>(legacy_md);
 
@@ -1537,10 +1769,12 @@ static void legacy_object_modifier_lattice(Object &object, GpencilModifierData &
                                    false);
 }
 
-static void legacy_object_modifier_length(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_length(ConversionData &conversion_data,
+                                          Object &object,
+                                          GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilLength, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilLength, legacy_md);
   auto &md_length = reinterpret_cast<GreasePencilLengthModifierData &>(md);
   auto &legacy_md_length = reinterpret_cast<LengthGpencilModifierData &>(legacy_md);
 
@@ -1573,10 +1807,12 @@ static void legacy_object_modifier_length(Object &object, GpencilModifierData &l
                                    false);
 }
 
-static void legacy_object_modifier_mirror(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_mirror(ConversionData &conversion_data,
+                                          Object &object,
+                                          GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilMirror, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilMirror, legacy_md);
   auto &md_mirror = reinterpret_cast<GreasePencilMirrorModifierData &>(md);
   auto &legacy_md_mirror = reinterpret_cast<MirrorGpencilModifierData &>(legacy_md);
 
@@ -1608,10 +1844,12 @@ static void legacy_object_modifier_mirror(Object &object, GpencilModifierData &l
                                    false);
 }
 
-static void legacy_object_modifier_multiply(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_multiply(ConversionData &conversion_data,
+                                            Object &object,
+                                            GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilMultiply, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilMultiply, legacy_md);
   auto &md_multiply = reinterpret_cast<GreasePencilMultiModifierData &>(md);
   auto &legacy_md_multiply = reinterpret_cast<MultiplyGpencilModifierData &>(legacy_md);
 
@@ -1643,10 +1881,12 @@ static void legacy_object_modifier_multiply(Object &object, GpencilModifierData 
                                    false);
 }
 
-static void legacy_object_modifier_noise(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_noise(ConversionData &conversion_data,
+                                         Object &object,
+                                         GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilNoise, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilNoise, legacy_md);
   auto &md_noise = reinterpret_cast<GreasePencilNoiseModifierData &>(md);
   auto &legacy_md_noise = reinterpret_cast<NoiseGpencilModifierData &>(legacy_md);
 
@@ -1676,10 +1916,12 @@ static void legacy_object_modifier_noise(Object &object, GpencilModifierData &le
                                    legacy_md_noise.flag & GP_NOISE_CUSTOM_CURVE);
 }
 
-static void legacy_object_modifier_offset(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_offset(ConversionData &conversion_data,
+                                          Object &object,
+                                          GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilOffset, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilOffset, legacy_md);
   auto &md_offset = reinterpret_cast<GreasePencilOffsetModifierData &>(md);
   auto &legacy_md_offset = reinterpret_cast<OffsetGpencilModifierData &>(legacy_md);
 
@@ -1726,10 +1968,12 @@ static void legacy_object_modifier_offset(Object &object, GpencilModifierData &l
                                    false);
 }
 
-static void legacy_object_modifier_opacity(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_opacity(ConversionData &conversion_data,
+                                           Object &object,
+                                           GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilOpacity, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilOpacity, legacy_md);
   auto &md_opacity = reinterpret_cast<GreasePencilOpacityModifierData &>(md);
   auto &legacy_md_opacity = reinterpret_cast<OpacityGpencilModifierData &>(legacy_md);
 
@@ -1772,10 +2016,12 @@ static void legacy_object_modifier_opacity(Object &object, GpencilModifierData &
                                    legacy_md_opacity.flag & GP_OPACITY_CUSTOM_CURVE);
 }
 
-static void legacy_object_modifier_outline(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_outline(ConversionData &conversion_data,
+                                           Object &object,
+                                           GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilOutline, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilOutline, legacy_md);
   auto &md_outline = reinterpret_cast<GreasePencilOutlineModifierData &>(md);
   auto &legacy_md_outline = reinterpret_cast<OutlineGpencilModifierData &>(legacy_md);
 
@@ -1806,10 +2052,12 @@ static void legacy_object_modifier_outline(Object &object, GpencilModifierData &
                                    false);
 }
 
-static void legacy_object_modifier_shrinkwrap(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_shrinkwrap(ConversionData &conversion_data,
+                                              Object &object,
+                                              GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilShrinkwrap, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilShrinkwrap, legacy_md);
   auto &md_shrinkwrap = reinterpret_cast<GreasePencilShrinkwrapModifierData &>(md);
   auto &legacy_md_shrinkwrap = reinterpret_cast<ShrinkwrapGpencilModifierData &>(legacy_md);
 
@@ -1848,10 +2096,12 @@ static void legacy_object_modifier_shrinkwrap(Object &object, GpencilModifierDat
                                    false);
 }
 
-static void legacy_object_modifier_smooth(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_smooth(ConversionData &conversion_data,
+                                          Object &object,
+                                          GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilSmooth, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilSmooth, legacy_md);
   auto &md_smooth = reinterpret_cast<GreasePencilSmoothModifierData &>(md);
   auto &legacy_md_smooth = reinterpret_cast<SmoothGpencilModifierData &>(legacy_md);
 
@@ -1889,10 +2139,12 @@ static void legacy_object_modifier_smooth(Object &object, GpencilModifierData &l
                                    legacy_md_smooth.flag & GP_SMOOTH_CUSTOM_CURVE);
 }
 
-static void legacy_object_modifier_subdiv(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_subdiv(ConversionData &conversion_data,
+                                          Object &object,
+                                          GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilSubdiv, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilSubdiv, legacy_md);
   auto &md_subdiv = reinterpret_cast<GreasePencilSubdivModifierData &>(md);
   auto &legacy_md_subdiv = reinterpret_cast<SubdivGpencilModifierData &>(legacy_md);
 
@@ -1921,10 +2173,12 @@ static void legacy_object_modifier_subdiv(Object &object, GpencilModifierData &l
                                    false);
 }
 
-static void legacy_object_modifier_texture(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_texture(ConversionData &conversion_data,
+                                           Object &object,
+                                           GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilTexture, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilTexture, legacy_md);
   auto &md_texture = reinterpret_cast<GreasePencilTextureModifierData &>(md);
   auto &legacy_md_texture = reinterpret_cast<TextureGpencilModifierData &>(legacy_md);
 
@@ -1970,10 +2224,12 @@ static void legacy_object_modifier_texture(Object &object, GpencilModifierData &
                                    false);
 }
 
-static void legacy_object_modifier_thickness(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_thickness(ConversionData &conversion_data,
+                                             Object &object,
+                                             GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilThickness, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilThickness, legacy_md);
   auto &md_thickness = reinterpret_cast<GreasePencilThickModifierData &>(md);
   auto &legacy_md_thickness = reinterpret_cast<ThickGpencilModifierData &>(legacy_md);
 
@@ -2002,10 +2258,12 @@ static void legacy_object_modifier_thickness(Object &object, GpencilModifierData
                                    legacy_md_thickness.flag & GP_THICK_CUSTOM_CURVE);
 }
 
-static void legacy_object_modifier_time(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_time(ConversionData &conversion_data,
+                                        Object &object,
+                                        GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilTime, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilTime, legacy_md);
   auto &md_time = reinterpret_cast<GreasePencilTimeModifierData &>(md);
   auto &legacy_md_time = reinterpret_cast<TimeGpencilModifierData &>(legacy_md);
 
@@ -2078,10 +2336,12 @@ static void legacy_object_modifier_time(Object &object, GpencilModifierData &leg
                                    false);
 }
 
-static void legacy_object_modifier_tint(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_tint(ConversionData &conversion_data,
+                                        Object &object,
+                                        GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilTint, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilTint, legacy_md);
   auto &md_tint = reinterpret_cast<GreasePencilTintModifierData &>(md);
   auto &legacy_md_tint = reinterpret_cast<TintGpencilModifierData &>(legacy_md);
 
@@ -2132,10 +2392,12 @@ static void legacy_object_modifier_tint(Object &object, GpencilModifierData &leg
                                    legacy_md_tint.flag & GP_TINT_CUSTOM_CURVE);
 }
 
-static void legacy_object_modifier_weight_angle(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_weight_angle(ConversionData &conversion_data,
+                                                Object &object,
+                                                GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilWeightAngle, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilWeightAngle, legacy_md);
   auto &md_weight_angle = reinterpret_cast<GreasePencilWeightAngleModifierData &>(md);
   auto &legacy_md_weight_angle = reinterpret_cast<WeightAngleGpencilModifierData &>(legacy_md);
 
@@ -2174,10 +2436,12 @@ static void legacy_object_modifier_weight_angle(Object &object, GpencilModifierD
                                    false);
 }
 
-static void legacy_object_modifier_weight_proximity(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_weight_proximity(ConversionData &conversion_data,
+                                                    Object &object,
+                                                    GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilWeightProximity, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilWeightProximity, legacy_md);
   auto &md_weight_prox = reinterpret_cast<GreasePencilWeightProximityModifierData &>(md);
   auto &legacy_md_weight_prox = reinterpret_cast<WeightProxGpencilModifierData &>(legacy_md);
 
@@ -2210,20 +2474,24 @@ static void legacy_object_modifier_weight_proximity(Object &object, GpencilModif
                                    false);
 }
 
-static void legacy_object_modifier_weight_lineart(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_weight_lineart(ConversionData &conversion_data,
+                                                  Object &object,
+                                                  GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilWeightAngle, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilWeightAngle, legacy_md);
   auto &md_lineart = reinterpret_cast<GreasePencilLineartModifierData &>(md);
   auto &legacy_md_lineart = reinterpret_cast<LineartGpencilModifierData &>(legacy_md);
 
   greasepencil::convert::lineart_wrap_v3(&legacy_md_lineart, &md_lineart);
 }
 
-static void legacy_object_modifier_build(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_build(ConversionData &conversion_data,
+                                         Object &object,
+                                         GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilBuild, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilBuild, legacy_md);
   auto &md_build = reinterpret_cast<GreasePencilBuildModifierData &>(md);
   auto &legacy_md_build = reinterpret_cast<BuildGpencilModifierData &>(legacy_md);
 
@@ -2311,10 +2579,12 @@ static void legacy_object_modifier_build(Object &object, GpencilModifierData &le
                                    false);
 }
 
-static void legacy_object_modifier_simplify(Object &object, GpencilModifierData &legacy_md)
+static void legacy_object_modifier_simplify(ConversionData &conversion_data,
+                                            Object &object,
+                                            GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
-      object, eModifierType_GreasePencilSimplify, legacy_md);
+      conversion_data, object, eModifierType_GreasePencilSimplify, legacy_md);
   auto &md_simplify = reinterpret_cast<GreasePencilSimplifyModifierData &>(md);
   auto &legacy_md_simplify = reinterpret_cast<SimplifyGpencilModifierData &>(legacy_md);
 
@@ -2354,7 +2624,7 @@ static void legacy_object_modifier_simplify(Object &object, GpencilModifierData 
                                    false);
 }
 
-static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
+static void legacy_object_modifiers(ConversionData &conversion_data, Object &object)
 {
   BLI_assert(BLI_listbase_is_empty(&object.modifiers));
 
@@ -2366,83 +2636,82 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
         /* Unknown type, just ignore. */
         break;
       case eGpencilModifierType_Armature:
-        legacy_object_modifier_armature(object, *gpd_md);
+        legacy_object_modifier_armature(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Array:
-        legacy_object_modifier_array(object, *gpd_md);
+        legacy_object_modifier_array(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Color:
-        legacy_object_modifier_color(object, *gpd_md);
+        legacy_object_modifier_color(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Dash:
-        legacy_object_modifier_dash(object, *gpd_md);
+        legacy_object_modifier_dash(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Envelope:
-        legacy_object_modifier_envelope(object, *gpd_md);
+        legacy_object_modifier_envelope(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Hook:
-        legacy_object_modifier_hook(object, *gpd_md);
+        legacy_object_modifier_hook(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Lattice:
-        legacy_object_modifier_lattice(object, *gpd_md);
+        legacy_object_modifier_lattice(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Length:
-        legacy_object_modifier_length(object, *gpd_md);
+        legacy_object_modifier_length(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Mirror:
-        legacy_object_modifier_mirror(object, *gpd_md);
+        legacy_object_modifier_mirror(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Multiply:
-        legacy_object_modifier_multiply(object, *gpd_md);
+        legacy_object_modifier_multiply(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Noise:
-        legacy_object_modifier_noise(object, *gpd_md);
+        legacy_object_modifier_noise(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Offset:
-        legacy_object_modifier_offset(object, *gpd_md);
+        legacy_object_modifier_offset(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Opacity:
-        legacy_object_modifier_opacity(object, *gpd_md);
+        legacy_object_modifier_opacity(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Outline:
-        legacy_object_modifier_outline(object, *gpd_md);
+        legacy_object_modifier_outline(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Shrinkwrap:
-        legacy_object_modifier_shrinkwrap(object, *gpd_md);
+        legacy_object_modifier_shrinkwrap(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Smooth:
-        legacy_object_modifier_smooth(object, *gpd_md);
+        legacy_object_modifier_smooth(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Subdiv:
-        legacy_object_modifier_subdiv(object, *gpd_md);
+        legacy_object_modifier_subdiv(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Texture:
-        legacy_object_modifier_texture(object, *gpd_md);
+        legacy_object_modifier_texture(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Thick:
-        legacy_object_modifier_thickness(object, *gpd_md);
+        legacy_object_modifier_thickness(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Time:
-        legacy_object_modifier_time(object, *gpd_md);
+        legacy_object_modifier_time(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Tint:
-        legacy_object_modifier_tint(object, *gpd_md);
+        legacy_object_modifier_tint(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_WeightAngle:
-        legacy_object_modifier_weight_angle(object, *gpd_md);
+        legacy_object_modifier_weight_angle(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_WeightProximity:
-        legacy_object_modifier_weight_proximity(object, *gpd_md);
+        legacy_object_modifier_weight_proximity(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Lineart:
-        legacy_object_modifier_weight_lineart(object, *gpd_md);
+        legacy_object_modifier_weight_lineart(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Build:
-        legacy_object_modifier_build(object, *gpd_md);
+        legacy_object_modifier_build(conversion_data, object, *gpd_md);
         break;
       case eGpencilModifierType_Simplify:
-        legacy_object_modifier_simplify(object, *gpd_md);
-        break;
+        legacy_object_modifier_simplify(conversion_data, object, *gpd_md);
         break;
     }
 
@@ -2605,7 +2874,7 @@ static void legacy_gpencil_sanitize_annotations(Main &bmain)
   }
 }
 
-static void legacy_gpencil_object_ex(Main &bmain, Object &object, ConversionData &conversion_data)
+static void legacy_gpencil_object_ex(ConversionData &conversion_data, Object &object)
 {
   BLI_assert((GS(static_cast<ID *>(object.data)->name) == ID_GD_LEGACY));
 
@@ -2617,7 +2886,7 @@ static void legacy_gpencil_object_ex(Main &bmain, Object &object, ConversionData
 
   if (!new_grease_pencil) {
     new_grease_pencil = static_cast<GreasePencil *>(
-        BKE_id_new_in_lib(&bmain, gpd->id.lib, ID_GP, gpd->id.name + 2));
+        BKE_id_new_in_lib(&conversion_data.bmain, gpd->id.lib, ID_GP, gpd->id.name + 2));
     id_us_min(&new_grease_pencil->id);
   }
 
@@ -2629,30 +2898,30 @@ static void legacy_gpencil_object_ex(Main &bmain, Object &object, ConversionData
   id_us_plus(&new_grease_pencil->id);
 
   if (do_gpencil_data_conversion) {
-    legacy_gpencil_to_grease_pencil(bmain, *new_grease_pencil, *gpd);
+    legacy_gpencil_to_grease_pencil(conversion_data, *new_grease_pencil, *gpd);
     conversion_data.legacy_to_greasepencil_data.add(gpd, new_grease_pencil);
   }
 
-  legacy_object_modifiers(bmain, object);
+  legacy_object_modifiers(conversion_data, object);
 
   /* Layer adjustments should be added after all other modifiers. */
-  layer_adjustments_to_modifiers(bmain, *gpd, object, conversion_data);
+  layer_adjustments_to_modifiers(conversion_data, *gpd, object);
   /* Thickness factor is applied after all other changes to the radii. */
-  thickness_factor_to_modifier(*gpd, object);
+  thickness_factor_to_modifier(conversion_data, *gpd, object);
 
   BKE_object_free_derived_caches(&object);
 }
 
 void legacy_gpencil_object(Main &bmain, Object &object)
 {
-  ConversionData conversion_data;
+  ConversionData conversion_data(bmain);
 
-  legacy_gpencil_object_ex(bmain, object, conversion_data);
+  legacy_gpencil_object_ex(conversion_data, object);
 }
 
 void legacy_main(Main &bmain, BlendFileReadReport & /*reports*/)
 {
-  ConversionData conversion_data;
+  ConversionData conversion_data(bmain);
 
   /* Ensure that annotations are fully separated from object usages of legacy GPv2 data. */
   legacy_gpencil_sanitize_annotations(bmain);
@@ -2661,7 +2930,7 @@ void legacy_main(Main &bmain, BlendFileReadReport & /*reports*/)
     if (object->type != OB_GPENCIL_LEGACY) {
       continue;
     }
-    legacy_gpencil_object_ex(bmain, *object, conversion_data);
+    legacy_gpencil_object_ex(conversion_data, *object);
   }
 
   /* Potential other usages of legacy bGPdata IDs also need to be remapped to their matching new
@@ -2683,7 +2952,7 @@ void legacy_main(Main &bmain, BlendFileReadReport & /*reports*/)
       new_grease_pencil = static_cast<GreasePencil *>(
           BKE_id_new_in_lib(&bmain, legacy_gpd->id.lib, ID_GP, legacy_gpd->id.name + 2));
       id_us_min(&new_grease_pencil->id);
-      legacy_gpencil_to_grease_pencil(bmain, *new_grease_pencil, *legacy_gpd);
+      legacy_gpencil_to_grease_pencil(conversion_data, *new_grease_pencil, *legacy_gpd);
       conversion_data.legacy_to_greasepencil_data.add(legacy_gpd, new_grease_pencil);
     }
     gpd_remapper.add(&legacy_gpd->id, &new_grease_pencil->id);
