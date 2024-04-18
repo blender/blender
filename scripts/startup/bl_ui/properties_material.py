@@ -164,14 +164,12 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
 
         mat = context.material
 
-        layout.prop(mat, "use_nodes", icon='NODETREE')
-        layout.separator()
-
-        layout.use_property_split = True
-
         if mat.use_nodes:
+            layout.use_property_split = True
             panel_node_draw(layout, mat.node_tree, 'OUTPUT_MATERIAL', "Surface")
         else:
+            layout.prop(mat, "use_nodes", icon='NODETREE')
+            layout.use_property_split = True
             layout.prop(mat, "diffuse_color", text="Base Color")
             layout.prop(mat, "metallic")
             layout.prop(mat, "specular_intensity", text="Specular")
@@ -299,10 +297,14 @@ class EEVEE_NEXT_MATERIAL_PT_settings_surface(MaterialButtonsPanel, Panel):
         col.prop(mat, "use_backface_culling", text="Camera")
         col.prop(mat, "use_backface_culling_shadow", text="Shadow")
 
-        layout.prop(mat, "displacement_method", text="Displacement")
+        col = layout.column(align=True)
+        col.prop(mat, "displacement_method", text="Displacement")
+        col = col.column(align=True)
+        col.enabled = mat.displacement_method != 'BUMP'
+        col.prop(mat, "max_vertex_displacement", text="Max Distance")
+
         if mat.displacement_method == 'DISPLACEMENT':
             layout.label(text="Unsupported displacement method", icon='ERROR')
-        layout.prop(mat, "max_vertex_displacement", text="Max Displacement")
 
         layout.prop(mat, "use_transparent_shadow")
 
