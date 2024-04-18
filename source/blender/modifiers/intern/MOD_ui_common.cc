@@ -209,7 +209,6 @@ static bool modifier_can_delete(ModifierData *md)
 static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
 {
   PointerRNA op_ptr;
-  uiLayout *row;
   ModifierData *md = (ModifierData *)md_v;
 
   Object *ob = blender::ed::object::context_active_object(C);
