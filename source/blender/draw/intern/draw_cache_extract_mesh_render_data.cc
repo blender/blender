@@ -597,7 +597,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
     BLI_assert(editmesh_eval_cage && editmesh_eval_final);
     mr->bm = mesh->runtime->edit_mesh->bm;
-    mr->edit_bmesh = mesh->runtime->edit_mesh;
+    mr->edit_bmesh = mesh->runtime->edit_mesh.get();
     mr->mesh = (do_final) ? editmesh_eval_final : editmesh_eval_cage;
     mr->edit_data = is_mode_active ? mr->mesh->runtime->edit_data.get() : nullptr;
 

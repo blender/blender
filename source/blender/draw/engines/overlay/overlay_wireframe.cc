@@ -178,7 +178,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     /* TODO: Should be its own function. */
     const Mesh *mesh = static_cast<const Mesh *>(ob->data);
     if (is_edit_mode) {
-      BLI_assert(mesh->runtime->edit_mesh);
+      BLI_assert(mesh->runtime->edit_mesh.get());
       const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
       const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
       has_edit_mesh_cage = editmesh_eval_cage && (editmesh_eval_cage != editmesh_eval_final);

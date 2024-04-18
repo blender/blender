@@ -219,7 +219,7 @@ bool BKE_view_layer_filter_edit_mesh_has_uvs(const Object *ob, void * /*user_dat
 {
   if (ob->type == OB_MESH) {
     const Mesh *mesh = static_cast<const Mesh *>(ob->data);
-    if (const BMEditMesh *em = mesh->runtime->edit_mesh) {
+    if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       if (CustomData_has_layer(&em->bm->ldata, CD_PROP_FLOAT2)) {
         return true;
       }
@@ -232,7 +232,7 @@ bool BKE_view_layer_filter_edit_mesh_has_edges(const Object *ob, void * /*user_d
 {
   if (ob->type == OB_MESH) {
     const Mesh *mesh = static_cast<const Mesh *>(ob->data);
-    if (const BMEditMesh *em = mesh->runtime->edit_mesh) {
+    if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       if (em->bm->totedge != 0) {
         return true;
       }

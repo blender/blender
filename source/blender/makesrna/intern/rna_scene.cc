@@ -1987,7 +1987,7 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *valu
           Mesh *mesh = BKE_mesh_from_object(object);
           if (mesh && mesh->runtime->edit_mesh && mesh->runtime->edit_mesh->selectmode != flag) {
             mesh->runtime->edit_mesh->selectmode = flag;
-            EDBM_selectmode_set(mesh->runtime->edit_mesh);
+            EDBM_selectmode_set(mesh->runtime->edit_mesh.get());
           }
         }
       }

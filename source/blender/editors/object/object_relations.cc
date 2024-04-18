@@ -130,7 +130,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
 
-    BMEditMesh *em = mesh->runtime->edit_mesh;
+    BMEditMesh *em = mesh->runtime->edit_mesh.get();
 
     BKE_editmesh_looptris_and_normals_calc(em);
 

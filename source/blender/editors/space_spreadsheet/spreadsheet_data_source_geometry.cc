@@ -554,7 +554,7 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
     if (object_orig->type == OB_MESH) {
       const Mesh *mesh = static_cast<const Mesh *>(object_orig->data);
       if (object_orig->mode == OB_MODE_EDIT) {
-        if (const BMEditMesh *em = mesh->runtime->edit_mesh) {
+        if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
           Mesh *new_mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
           /* This is a potentially heavy operation to do on every redraw. The best solution here is
            * to display the data directly from the bmesh without a conversion, which can be

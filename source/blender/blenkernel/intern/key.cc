@@ -1285,7 +1285,7 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
     totvert = mesh->verts_num;
 
     if (mesh->runtime->edit_mesh && mesh->runtime->edit_mesh->bm->totvert == totvert) {
-      em = mesh->runtime->edit_mesh;
+      em = mesh->runtime->edit_mesh.get();
     }
   }
   else if (ob->type == OB_LATTICE) {

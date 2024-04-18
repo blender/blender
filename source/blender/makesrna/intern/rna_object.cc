@@ -486,11 +486,11 @@ static void rna_Object_active_shape_update(Main *bmain, Scene * /*scene*/, Point
     switch (ob->type) {
       case OB_MESH: {
         Mesh *mesh = static_cast<Mesh *>(ob->data);
-        BMEditMesh *em = mesh->runtime->edit_mesh;
+        BMEditMesh *em = mesh->runtime->edit_mesh.get();
         int select_mode = em->selectmode;
         EDBM_mesh_load(bmain, ob);
         EDBM_mesh_make(ob, select_mode, true);
-        em = mesh->runtime->edit_mesh;
+        em = mesh->runtime->edit_mesh.get();
 
         DEG_id_tag_update(&mesh->id, 0);
 

@@ -259,7 +259,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   DRWTextStore *dt = DRW_text_cache_ensure();
   const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
   const Mesh *mesh = BKE_object_get_editmesh_eval_cage(ob);
-  BMEditMesh *em = mesh->runtime->edit_mesh;
+  BMEditMesh *em = mesh->runtime->edit_mesh.get();
   float v1[3], v2[3], v3[3], vmid[3], fvec[3];
   char numstr[32]; /* Stores the measurement display text here */
   size_t numstr_len;

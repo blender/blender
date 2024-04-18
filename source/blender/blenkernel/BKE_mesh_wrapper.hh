@@ -7,6 +7,8 @@
  * \ingroup bke
  */
 
+#include <memory>
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
@@ -14,7 +16,7 @@ struct BMEditMesh;
 struct CustomData_MeshMasks;
 struct Mesh;
 
-Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
+Mesh *BKE_mesh_wrapper_from_editmesh(std::shared_ptr<BMEditMesh> em,
                                      const CustomData_MeshMasks *cd_mask_extra,
                                      const Mesh *me_settings);
 void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh);
