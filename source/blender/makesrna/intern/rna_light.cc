@@ -134,6 +134,13 @@ static void rna_def_light(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Diffuse Factor", "Diffuse reflection multiplier");
   RNA_def_property_update(prop, 0, "rna_Light_update");
 
+  prop = RNA_def_property(srna, "transmission_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "transmission_fac");
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01, 2);
+  RNA_def_property_ui_text(prop, "Transmission Factor", "Transmission light multiplier");
+  RNA_def_property_update(prop, 0, "rna_Light_update");
+
   prop = RNA_def_property(srna, "volume_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "volume_fac");
   RNA_def_property_range(prop, 0.0f, FLT_MAX);

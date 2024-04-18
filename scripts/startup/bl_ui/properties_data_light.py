@@ -93,6 +93,7 @@ class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
 
         col.prop(light, "diffuse_factor", text="Diffuse")
         col.prop(light, "specular_factor", text="Specular")
+        col.prop(light, "transmission_factor", text="Transmission")
         col.prop(light, "volume_factor", text="Volume", text_ctxt=i18n_contexts.id_id)
 
         col.separator()
