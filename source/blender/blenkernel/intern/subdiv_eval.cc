@@ -25,6 +25,8 @@
  * Helper functions.
  */
 
+namespace blender::bke::subdiv {
+
 static eOpenSubdivEvaluator opensubdiv_evalutor_from_subdiv_evaluator_type(
     eSubdivEvaluatorType evaluator_type)
 {
@@ -44,12 +46,12 @@ static eOpenSubdivEvaluator opensubdiv_evalutor_from_subdiv_evaluator_type(
  * Main subdivision evaluation.
  */
 
-bool BKE_subdiv_eval_begin(Subdiv *subdiv,
-                           eSubdivEvaluatorType evaluator_type,
-                           OpenSubdiv_EvaluatorCache *evaluator_cache,
-                           const OpenSubdiv_EvaluatorSettings *settings)
+bool eval_begin(Subdiv *subdiv,
+                eSubdivEvaluatorType evaluator_type,
+                OpenSubdiv_EvaluatorCache *evaluator_cache,
+                const OpenSubdiv_EvaluatorSettings *settings)
 {
-  BKE_subdiv_stats_reset(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
+  stats_reset(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
   if (subdiv->topology_refiner == nullptr) {
     /* Happens on input mesh with just loose geometry,
      * or when OpenSubdiv is disabled */
@@ -58,10 +60,10 @@ bool BKE_subdiv_eval_begin(Subdiv *subdiv,
   if (subdiv->evaluator == nullptr) {
     eOpenSubdivEvaluator opensubdiv_evaluator_type =
         opensubdiv_evalutor_from_subdiv_evaluator_type(evaluator_type);
-    BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
+    stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
     subdiv->evaluator = openSubdiv_createEvaluatorFromTopologyRefiner(
         subdiv->topology_refiner, opensubdiv_evaluator_type, evaluator_cache);
-    BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
+    stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
     if (subdiv->evaluator == nullptr) {
       return false;
     }
@@ -70,15 +72,14 @@ bool BKE_subdiv_eval_begin(Subdiv *subdiv,
     /* TODO(sergey): Check for topology change. */
   }
   subdiv->evaluator->setSettings(subdiv->evaluator, settings);
-  BKE_subdiv_eval_init_displacement(subdiv);
+  eval_init_displacement(subdiv);
   return true;
 }
 
 static void set_coarse_positions(Subdiv *subdiv,
-                                 const blender::Span<blender::float3> positions,
-                                 const blender::bke::LooseVertCache &verts_no_face)
+                                 const Span<float3> positions,
+                                 const bke::LooseVertCache &verts_no_face)
 {
-  using namespace blender;
   OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
   if (verts_no_face.count == 0) {
     evaluator->setCoarsePositions(
@@ -105,7 +106,7 @@ static void set_coarse_positions(Subdiv *subdiv,
 struct FaceVaryingDataFromUVContext {
   OpenSubdiv_TopologyRefiner *topology_refiner;
   const Mesh *mesh;
-  blender::OffsetIndices<int> faces;
+  OffsetIndices<int> faces;
   const float (*mloopuv)[2];
   float (*buffer)[2];
   int layer_index;
@@ -205,25 +206,22 @@ static void get_mesh_evaluator_settings(OpenSubdiv_EvaluatorSettings *settings, 
                               (CustomData_has_layer(&mesh->vert_data, CD_CLOTH_ORCO) ? 3 : 0);
 }
 
-bool BKE_subdiv_eval_begin_from_mesh(Subdiv *subdiv,
-                                     const Mesh *mesh,
-                                     const float (*coarse_vertex_cos)[3],
-                                     eSubdivEvaluatorType evaluator_type,
-                                     OpenSubdiv_EvaluatorCache *evaluator_cache)
+bool eval_begin_from_mesh(Subdiv *subdiv,
+                          const Mesh *mesh,
+                          const float (*coarse_vertex_cos)[3],
+                          eSubdivEvaluatorType evaluator_type,
+                          OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
   OpenSubdiv_EvaluatorSettings settings = {0};
   get_mesh_evaluator_settings(&settings, mesh);
-  if (!BKE_subdiv_eval_begin(subdiv, evaluator_type, evaluator_cache, &settings)) {
+  if (!eval_begin(subdiv, evaluator_type, evaluator_cache, &settings)) {
     return false;
   }
-  return BKE_subdiv_eval_refine_from_mesh(subdiv, mesh, coarse_vertex_cos);
+  return eval_refine_from_mesh(subdiv, mesh, coarse_vertex_cos);
 }
 
-bool BKE_subdiv_eval_refine_from_mesh(Subdiv *subdiv,
-                                      const Mesh *mesh,
-                                      const float (*coarse_vertex_cos)[3])
+bool eval_refine_from_mesh(Subdiv *subdiv, const Mesh *mesh, const float (*coarse_vertex_cos)[3])
 {
-  using namespace blender;
   if (subdiv->evaluator == nullptr) {
     /* NOTE: This situation is supposed to be handled by begin(). */
     BLI_assert_msg(0, "Is not supposed to happen");
@@ -247,13 +245,13 @@ bool BKE_subdiv_eval_refine_from_mesh(Subdiv *subdiv,
   /* Set vertex data to orco. */
   set_vertex_data_from_orco(subdiv, mesh);
   /* Update evaluator to the new coarse geometry. */
-  BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
+  stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
   subdiv->evaluator->refine(subdiv->evaluator);
-  BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
+  stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
   return true;
 }
 
-void BKE_subdiv_eval_init_displacement(Subdiv *subdiv)
+void eval_init_displacement(Subdiv *subdiv)
 {
   if (subdiv->displacement_evaluator == nullptr) {
     return;
@@ -268,20 +266,19 @@ void BKE_subdiv_eval_init_displacement(Subdiv *subdiv)
  * Single point queries.
  */
 
-void BKE_subdiv_eval_limit_point(
+void eval_limit_point(
     Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float r_P[3])
 {
-  BKE_subdiv_eval_limit_point_and_derivatives(
-      subdiv, ptex_face_index, u, v, r_P, nullptr, nullptr);
+  eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, r_P, nullptr, nullptr);
 }
 
-void BKE_subdiv_eval_limit_point_and_derivatives(Subdiv *subdiv,
-                                                 const int ptex_face_index,
-                                                 const float u,
-                                                 const float v,
-                                                 float r_P[3],
-                                                 float r_dPdu[3],
-                                                 float r_dPdv[3])
+void eval_limit_point_and_derivatives(Subdiv *subdiv,
+                                      const int ptex_face_index,
+                                      const float u,
+                                      const float v,
+                                      float r_P[3],
+                                      float r_dPdu[3],
+                                      float r_dPdv[3])
 {
   subdiv->evaluator->evaluateLimit(subdiv->evaluator, ptex_face_index, u, v, r_P, r_dPdu, r_dPdv);
 
@@ -309,43 +306,43 @@ void BKE_subdiv_eval_limit_point_and_derivatives(Subdiv *subdiv,
   }
 }
 
-void BKE_subdiv_eval_limit_point_and_normal(Subdiv *subdiv,
-                                            const int ptex_face_index,
-                                            const float u,
-                                            const float v,
-                                            float r_P[3],
-                                            float r_N[3])
+void eval_limit_point_and_normal(Subdiv *subdiv,
+                                 const int ptex_face_index,
+                                 const float u,
+                                 const float v,
+                                 float r_P[3],
+                                 float r_N[3])
 {
   float dPdu[3], dPdv[3];
-  BKE_subdiv_eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, r_P, dPdu, dPdv);
+  eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, r_P, dPdu, dPdv);
   cross_v3_v3v3(r_N, dPdu, dPdv);
   normalize_v3(r_N);
 }
 
-void BKE_subdiv_eval_vertex_data(
+void eval_vertex_data(
     Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float r_vertex_data[])
 {
   subdiv->evaluator->evaluateVertexData(subdiv->evaluator, ptex_face_index, u, v, r_vertex_data);
 }
 
-void BKE_subdiv_eval_face_varying(Subdiv *subdiv,
-                                  const int face_varying_channel,
-                                  const int ptex_face_index,
-                                  const float u,
-                                  const float v,
-                                  float r_face_varying[2])
+void eval_face_varying(Subdiv *subdiv,
+                       const int face_varying_channel,
+                       const int ptex_face_index,
+                       const float u,
+                       const float v,
+                       float r_face_varying[2])
 {
   subdiv->evaluator->evaluateFaceVarying(
       subdiv->evaluator, face_varying_channel, ptex_face_index, u, v, r_face_varying);
 }
 
-void BKE_subdiv_eval_displacement(Subdiv *subdiv,
-                                  const int ptex_face_index,
-                                  const float u,
-                                  const float v,
-                                  const float dPdu[3],
-                                  const float dPdv[3],
-                                  float r_D[3])
+void eval_displacement(Subdiv *subdiv,
+                       const int ptex_face_index,
+                       const float u,
+                       const float v,
+                       const float dPdu[3],
+                       const float dPdv[3],
+                       float r_D[3])
 {
   if (subdiv->displacement_evaluator == nullptr) {
     zero_v3(r_D);
@@ -355,16 +352,18 @@ void BKE_subdiv_eval_displacement(Subdiv *subdiv,
       subdiv->displacement_evaluator, ptex_face_index, u, v, dPdu, dPdv, r_D);
 }
 
-void BKE_subdiv_eval_final_point(
+void eval_final_point(
     Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float r_P[3])
 {
   if (subdiv->displacement_evaluator) {
     float dPdu[3], dPdv[3], D[3];
-    BKE_subdiv_eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, r_P, dPdu, dPdv);
-    BKE_subdiv_eval_displacement(subdiv, ptex_face_index, u, v, dPdu, dPdv, D);
+    eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, r_P, dPdu, dPdv);
+    eval_displacement(subdiv, ptex_face_index, u, v, dPdu, dPdv, D);
     add_v3_v3(r_P, D);
   }
   else {
-    BKE_subdiv_eval_limit_point(subdiv, ptex_face_index, u, v, r_P);
+    eval_limit_point(subdiv, ptex_face_index, u, v, r_P);
   }
 }
+
+}  // namespace blender::bke::subdiv

@@ -17,7 +17,9 @@ class VertBuf;
 struct GPUVertFormat;
 struct Mesh;
 struct Object;
+namespace blender::bke::subdiv {
 struct Subdiv;
+}
 struct ToolSettings;
 
 namespace blender::draw {
@@ -103,7 +105,7 @@ struct DRWSubdivLooseGeom {
 struct DRWSubdivCache {
   const Mesh *mesh;
   BMesh *bm;
-  Subdiv *subdiv;
+  bke::subdiv::Subdiv *subdiv;
   bool optimal_display;
   bool hide_unmapped_edges;
   bool use_custom_loop_normals;
@@ -211,7 +213,7 @@ void DRW_create_subdivision(Object *ob,
 
 void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cache);
 
-void DRW_subdiv_cache_free(Subdiv *subdiv);
+void DRW_subdiv_cache_free(bke::subdiv::Subdiv *subdiv);
 
 void draw_subdiv_init_origindex_buffer(gpu::VertBuf *buffer,
                                        int32_t *vert_origindex,

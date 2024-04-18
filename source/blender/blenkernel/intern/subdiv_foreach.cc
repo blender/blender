@@ -20,8 +20,7 @@
 
 #include "MEM_guardedalloc.h"
 
-using blender::IndexRange;
-using blender::int2;
+namespace blender::bke::subdiv {
 
 /* -------------------------------------------------------------------- */
 /** \name General helpers
@@ -66,13 +65,13 @@ BLI_INLINE int ptex_face_resolution_get(const IndexRange face, int resolution)
 
 struct SubdivForeachTaskContext {
   const Mesh *coarse_mesh;
-  blender::Span<int2> coarse_edges;
-  blender::OffsetIndices<int> coarse_faces;
-  blender::Span<int> coarse_corner_verts;
-  blender::Span<int> coarse_corner_edges;
-  const SubdivToMeshSettings *settings;
+  Span<int2> coarse_edges;
+  OffsetIndices<int> coarse_faces;
+  Span<int> coarse_corner_verts;
+  Span<int> coarse_corner_edges;
+  const ToMeshSettings *settings;
   /* Callbacks. */
-  const SubdivForeachContext *foreach_context;
+  const ForeachContext *foreach_context;
   /* Counters of geometry in subdivided mesh, initialized as a part of
    * offsets calculation.
    */
@@ -119,7 +118,7 @@ struct SubdivForeachTaskContext {
 
 static void *subdiv_foreach_tls_alloc(SubdivForeachTaskContext *ctx)
 {
-  const SubdivForeachContext *foreach_context = ctx->foreach_context;
+  const ForeachContext *foreach_context = ctx->foreach_context;
   void *tls = nullptr;
   if (foreach_context->user_data_tls_size != 0) {
     tls = MEM_mallocN(foreach_context->user_data_tls_size, "tls");
@@ -259,7 +258,7 @@ static void subdiv_foreach_ctx_init(Subdiv *subdiv, SubdivForeachTaskContext *ct
   subdiv_foreach_ctx_init_offsets(ctx);
   /* Calculate number of geometry in the result subdivision mesh. */
   subdiv_foreach_ctx_count(ctx);
-  ctx->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
+  ctx->face_ptex_offset = face_ptex_offset_get(subdiv);
 }
 
 static void subdiv_foreach_ctx_free(SubdivForeachTaskContext *ctx)
@@ -279,12 +278,11 @@ static void subdiv_foreach_ctx_free(SubdivForeachTaskContext *ctx)
 
 /* Traversal of corner vertices. They are coming from coarse vertices. */
 
-static void subdiv_foreach_corner_vertices_regular_do(
-    SubdivForeachTaskContext *ctx,
-    void *tls,
-    const int coarse_face_index,
-    SubdivForeachVertexFromCornerCb vertex_corner,
-    bool check_usage)
+static void subdiv_foreach_corner_vertices_regular_do(SubdivForeachTaskContext *ctx,
+                                                      void *tls,
+                                                      const int coarse_face_index,
+                                                      ForeachVertexFromCornerCb vertex_corner,
+                                                      bool check_usage)
 {
   const float weights[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
   const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
@@ -319,12 +317,11 @@ static void subdiv_foreach_corner_vertices_regular(SubdivForeachTaskContext *ctx
       ctx, tls, coarse_face_index, ctx->foreach_context->vertex_corner, true);
 }
 
-static void subdiv_foreach_corner_vertices_special_do(
-    SubdivForeachTaskContext *ctx,
-    void *tls,
-    const int coarse_face_index,
-    SubdivForeachVertexFromCornerCb vertex_corner,
-    bool check_usage)
+static void subdiv_foreach_corner_vertices_special_do(SubdivForeachTaskContext *ctx,
+                                                      void *tls,
+                                                      const int coarse_face_index,
+                                                      ForeachVertexFromCornerCb vertex_corner,
+                                                      bool check_usage)
 {
   const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
   int ptex_face_index = ctx->face_ptex_offset[coarse_face_index];
@@ -405,7 +402,7 @@ static void subdiv_foreach_every_corner_vertices(SubdivForeachTaskContext *ctx, 
 static void subdiv_foreach_edge_vertices_regular_do(SubdivForeachTaskContext *ctx,
                                                     void *tls,
                                                     const int coarse_face_index,
-                                                    SubdivForeachVertexFromEdgeCb vertex_edge,
+                                                    ForeachVertexFromEdgeCb vertex_edge,
                                                     bool check_usage)
 {
   const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
@@ -469,7 +466,7 @@ static void subdiv_foreach_edge_vertices_regular(SubdivForeachTaskContext *ctx,
 static void subdiv_foreach_edge_vertices_special_do(SubdivForeachTaskContext *ctx,
                                                     void *tls,
                                                     const int coarse_face_index,
-                                                    SubdivForeachVertexFromEdgeCb vertex_edge,
+                                                    ForeachVertexFromEdgeCb vertex_edge,
                                                     bool check_usage)
 {
   const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
@@ -1752,7 +1749,7 @@ static void subdiv_foreach_single_thread_tasks(SubdivForeachTaskContext *ctx)
   subdiv_foreach_single_geometry_vertices(ctx, tls);
   subdiv_foreach_tls_free(ctx, tls);
 
-  const SubdivForeachContext *foreach_context = ctx->foreach_context;
+  const ForeachContext *foreach_context = ctx->foreach_context;
   const bool is_loose_geometry_tagged = (foreach_context->vertex_every_edge != nullptr &&
                                          foreach_context->vertex_every_corner != nullptr);
   const bool is_loose_geometry_tags_needed = (foreach_context->vertex_loose != nullptr ||
@@ -1795,10 +1792,10 @@ static void subdiv_foreach_free(const void *__restrict userdata, void *__restric
   ctx->foreach_context->user_data_tls_free(userdata_chunk);
 }
 
-bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
-                                        const SubdivForeachContext *context,
-                                        const SubdivToMeshSettings *mesh_settings,
-                                        const Mesh *coarse_mesh)
+bool foreach_subdiv_geometry(Subdiv *subdiv,
+                             const ForeachContext *context,
+                             const ToMeshSettings *mesh_settings,
+                             const Mesh *coarse_mesh)
 {
   SubdivForeachTaskContext ctx = {nullptr};
   ctx.coarse_mesh = coarse_mesh;
@@ -1867,3 +1864,5 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
 }
 
 /** \} */
+
+}  // namespace blender::bke::subdiv

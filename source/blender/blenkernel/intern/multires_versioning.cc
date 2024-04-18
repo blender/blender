@@ -31,25 +31,27 @@ static bool simple_to_catmull_clark_is_infinite_sharp_vertex(
   return true;
 }
 
-static Subdiv *subdiv_for_simple_to_catmull_clark(Object *object, MultiresModifierData *mmd)
+static blender::bke::subdiv::Subdiv *subdiv_for_simple_to_catmull_clark(Object *object,
+                                                                        MultiresModifierData *mmd)
 {
-  SubdivSettings subdiv_settings;
+  using namespace blender::bke;
+  subdiv::Settings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
 
   const Mesh *base_mesh = static_cast<const Mesh *>(object->data);
 
   OpenSubdiv_Converter converter;
-  BKE_subdiv_converter_init_for_mesh(&converter, &subdiv_settings, base_mesh);
+  subdiv::converter_init_for_mesh(&converter, &subdiv_settings, base_mesh);
   converter.getEdgeSharpness = simple_to_catmull_clark_get_edge_sharpness;
   converter.isInfiniteSharpVertex = simple_to_catmull_clark_is_infinite_sharp_vertex;
 
-  Subdiv *subdiv = BKE_subdiv_new_from_converter(&subdiv_settings, &converter);
-  BKE_subdiv_converter_free(&converter);
+  subdiv::Subdiv *subdiv = subdiv::new_from_converter(&subdiv_settings, &converter);
+  subdiv::converter_free(&converter);
 
-  if (!BKE_subdiv_eval_begin_from_mesh(
-          subdiv, base_mesh, nullptr, SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
+  if (!subdiv::eval_begin_from_mesh(
+          subdiv, base_mesh, nullptr, subdiv::SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
   {
-    BKE_subdiv_free(subdiv);
+    subdiv::free(subdiv);
     return nullptr;
   }
 
@@ -65,12 +67,12 @@ void multires_do_versions_simple_to_catmull_clark(Object *object, MultiresModifi
 
   /* Store the grids displacement in object space against the simple limit surface. */
   {
-    Subdiv *subdiv = subdiv_for_simple_to_catmull_clark(object, mmd);
+    blender::bke::subdiv::Subdiv *subdiv = subdiv_for_simple_to_catmull_clark(object, mmd);
     MultiresReshapeContext reshape_context;
     if (!multires_reshape_context_create_from_subdiv(
             &reshape_context, object, mmd, subdiv, mmd->totlvl))
     {
-      BKE_subdiv_free(subdiv);
+      blender::bke::subdiv::free(subdiv);
       return;
     }
 
@@ -78,7 +80,7 @@ void multires_do_versions_simple_to_catmull_clark(Object *object, MultiresModifi
     multires_reshape_assign_final_coords_from_mdisps(&reshape_context);
     multires_reshape_context_free(&reshape_context);
 
-    BKE_subdiv_free(subdiv);
+    blender::bke::subdiv::free(subdiv);
   }
 
   /* Calculate the new tangent displacement against the new Catmull-Clark limit surface. */

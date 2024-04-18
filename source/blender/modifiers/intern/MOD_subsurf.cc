@@ -86,10 +86,10 @@ static void free_runtime_data(void *runtime_data_v)
   }
   SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)runtime_data_v;
   if (runtime_data->subdiv_cpu != nullptr) {
-    BKE_subdiv_free(runtime_data->subdiv_cpu);
+    blender::bke::subdiv::free(runtime_data->subdiv_cpu);
   }
   if (runtime_data->subdiv_gpu != nullptr) {
-    BKE_subdiv_free(runtime_data->subdiv_gpu);
+    blender::bke::subdiv::free(runtime_data->subdiv_gpu);
   }
   MEM_freeN(runtime_data);
 }
@@ -128,7 +128,7 @@ static int subdiv_levels_for_modifier_get(const SubsurfModifierData *smd,
 
 /* Subdivide into fully qualified mesh. */
 
-static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,
+static void subdiv_mesh_settings_init(blender::bke::subdiv::ToMeshSettings *settings,
                                       const SubsurfModifierData *smd,
                                       const ModifierEvalContext *ctx)
 {
@@ -141,15 +141,15 @@ static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,
 static Mesh *subdiv_as_mesh(SubsurfModifierData *smd,
                             const ModifierEvalContext *ctx,
                             Mesh *mesh,
-                            Subdiv *subdiv)
+                            blender::bke::subdiv::Subdiv *subdiv)
 {
   Mesh *result = mesh;
-  SubdivToMeshSettings mesh_settings;
+  blender::bke::subdiv::ToMeshSettings mesh_settings;
   subdiv_mesh_settings_init(&mesh_settings, smd, ctx);
   if (mesh_settings.resolution < 3) {
     return result;
   }
-  result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+  result = blender::bke::subdiv::subdiv_to_mesh(subdiv, &mesh_settings, mesh);
   return result;
 }
 
@@ -168,7 +168,7 @@ static void subdiv_ccg_settings_init(SubdivToCCGSettings *settings,
 static Mesh *subdiv_as_ccg(SubsurfModifierData *smd,
                            const ModifierEvalContext *ctx,
                            Mesh *mesh,
-                           Subdiv *subdiv)
+                           blender::bke::subdiv::Subdiv *subdiv)
 {
   Mesh *result = mesh;
   SubdivToCCGSettings ccg_settings;
@@ -187,7 +187,7 @@ static void subdiv_cache_mesh_wrapper_settings(const ModifierEvalContext *ctx,
                                                SubsurfModifierData *smd,
                                                SubsurfRuntimeData *runtime_data)
 {
-  SubdivToMeshSettings mesh_settings;
+  blender::bke::subdiv::ToMeshSettings mesh_settings;
   subdiv_mesh_settings_init(&mesh_settings, smd, ctx);
 
   runtime_data->has_gpu_subdiv = true;
@@ -239,7 +239,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
   }
 
-  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(runtime_data, mesh, false);
+  blender::bke::subdiv::Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(
+      runtime_data, mesh, false);
   if (subdiv == nullptr) {
     /* Happens on bad topology, but also on empty input mesh. */
     return result;
@@ -265,9 +266,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
                                     &result->corner_data, CD_NORMAL, result->corners_num)));
     CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
   }
-  // BKE_subdiv_stats_print(&subdiv->stats);
+  // blender::bke::subdiv::stats_print(&subdiv->stats);
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
-    BKE_subdiv_free(subdiv);
+    blender::bke::subdiv::free(subdiv);
   }
   return result;
 }
@@ -290,15 +291,16 @@ static void deform_matrices(ModifierData *md,
     return;
   }
   SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
-  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(runtime_data, mesh, false);
+  blender::bke::subdiv::Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(
+      runtime_data, mesh, false);
   if (subdiv == nullptr) {
     /* Happens on bad topology, but also on empty input mesh. */
     return;
   }
-  BKE_subdiv_deform_coarse_vertices(
+  blender::bke::subdiv::deform_coarse_vertices(
       subdiv, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
-    BKE_subdiv_free(subdiv);
+    blender::bke::subdiv::free(subdiv);
   }
 }
 

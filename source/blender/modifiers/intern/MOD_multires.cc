@@ -45,7 +45,7 @@
 
 struct MultiresRuntimeData {
   /* Cached subdivision surface descriptor, with topology and settings. */
-  Subdiv *subdiv;
+  blender::bke::subdiv::Subdiv *subdiv;
 };
 
 static void init_data(ModifierData *md)
@@ -80,7 +80,7 @@ static void free_runtime_data(void *runtime_data_v)
   }
   MultiresRuntimeData *runtime_data = (MultiresRuntimeData *)runtime_data_v;
   if (runtime_data->subdiv != nullptr) {
-    BKE_subdiv_free(runtime_data->subdiv);
+    blender::bke::subdiv::free(runtime_data->subdiv);
   }
   MEM_freeN(runtime_data);
 }
@@ -104,12 +104,14 @@ static MultiresRuntimeData *multires_ensure_runtime(MultiresModifierData *mmd)
 
 /* Main goal of this function is to give usable subdivision surface descriptor
  * which matches settings and topology. */
-static Subdiv *subdiv_descriptor_ensure(MultiresModifierData *mmd,
-                                        const SubdivSettings *subdiv_settings,
-                                        const Mesh *mesh)
+static blender::bke::subdiv::Subdiv *subdiv_descriptor_ensure(
+    MultiresModifierData *mmd,
+    const blender::bke::subdiv::Settings *subdiv_settings,
+    const Mesh *mesh)
 {
   MultiresRuntimeData *runtime_data = (MultiresRuntimeData *)mmd->modifier.runtime;
-  Subdiv *subdiv = BKE_subdiv_update_from_mesh(runtime_data->subdiv, subdiv_settings, mesh);
+  blender::bke::subdiv::Subdiv *subdiv = blender::bke::subdiv::update_from_mesh(
+      runtime_data->subdiv, subdiv_settings, mesh);
   runtime_data->subdiv = subdiv;
   return subdiv;
 }
@@ -119,7 +121,7 @@ static Subdiv *subdiv_descriptor_ensure(MultiresModifierData *mmd,
 static Mesh *multires_as_mesh(MultiresModifierData *mmd,
                               const ModifierEvalContext *ctx,
                               Mesh *mesh,
-                              Subdiv *subdiv)
+                              blender::bke::subdiv::Subdiv *subdiv)
 {
   Mesh *result = mesh;
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
@@ -127,7 +129,7 @@ static Mesh *multires_as_mesh(MultiresModifierData *mmd,
   const bool ignore_control_edges = (ctx->flag & MOD_APPLY_TO_BASE_MESH);
   const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   Object *object = ctx->object;
-  SubdivToMeshSettings mesh_settings;
+  blender::bke::subdiv::ToMeshSettings mesh_settings;
   BKE_multires_subdiv_mesh_settings_init(&mesh_settings,
                                          scene,
                                          object,
@@ -138,8 +140,8 @@ static Mesh *multires_as_mesh(MultiresModifierData *mmd,
   if (mesh_settings.resolution < 3) {
     return result;
   }
-  BKE_subdiv_displacement_attach_from_multires(subdiv, mesh, mmd);
-  result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+  blender::bke::subdiv::displacement_attach_from_multires(subdiv, mesh, mmd);
+  result = blender::bke::subdiv::subdiv_to_mesh(subdiv, &mesh_settings, mesh);
   return result;
 }
 
@@ -164,7 +166,7 @@ static void multires_ccg_settings_init(SubdivToCCGSettings *settings,
 static Mesh *multires_as_ccg(MultiresModifierData *mmd,
                              const ModifierEvalContext *ctx,
                              Mesh *mesh,
-                             Subdiv *subdiv)
+                             blender::bke::subdiv::Subdiv *subdiv)
 {
   Mesh *result = mesh;
   SubdivToCCGSettings ccg_settings;
@@ -172,7 +174,7 @@ static Mesh *multires_as_ccg(MultiresModifierData *mmd,
   if (ccg_settings.resolution < 3) {
     return result;
   }
-  BKE_subdiv_displacement_attach_from_multires(subdiv, mesh, mmd);
+  blender::bke::subdiv::displacement_attach_from_multires(subdiv, mesh, mmd);
   result = BKE_subdiv_to_ccg_mesh(*subdiv, ccg_settings, *mesh);
 
   /* NOTE: CCG becomes an owner of Subdiv descriptor, so can not share
@@ -192,13 +194,13 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   return result;
 #endif
   MultiresModifierData *mmd = (MultiresModifierData *)md;
-  SubdivSettings subdiv_settings;
+  blender::bke::subdiv::Settings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
   if (subdiv_settings.level == 0) {
     return result;
   }
   MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
-  Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
+  blender::bke::subdiv::Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
   if (subdiv == nullptr) {
     /* Happens on bad topology, also on empty input mesh. */
     return result;
@@ -235,7 +237,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       sculpt_session->faces = {};
       sculpt_session->corner_verts = {};
     }
-    // BKE_subdiv_stats_print(&subdiv->stats);
+    // blender::bke::subdiv::stats_print(&subdiv->stats);
   }
   else {
     if (use_clnors) {
@@ -252,9 +254,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
       BKE_mesh_set_custom_normals(result, corner_normals);
       CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
     }
-    // BKE_subdiv_stats_print(&subdiv->stats);
+    // blender::bke::subdiv::stats_print(&subdiv->stats);
     if (subdiv != runtime_data->subdiv) {
-      BKE_subdiv_free(subdiv);
+      blender::bke::subdiv::free(subdiv);
     }
   }
   return result;
@@ -274,7 +276,7 @@ static void deform_matrices(ModifierData *md,
 
   MultiresModifierData *mmd = (MultiresModifierData *)md;
 
-  SubdivSettings subdiv_settings;
+  blender::bke::subdiv::Settings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
   if (subdiv_settings.level == 0) {
     return;
@@ -287,16 +289,16 @@ static void deform_matrices(ModifierData *md,
   }
 
   MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
-  Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
+  blender::bke::subdiv::Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
   if (subdiv == nullptr) {
     /* Happens on bad topology, also on empty input mesh. */
     return;
   }
-  BKE_subdiv_displacement_attach_from_multires(subdiv, mesh, mmd);
-  BKE_subdiv_deform_coarse_vertices(
+  blender::bke::subdiv::displacement_attach_from_multires(subdiv, mesh, mmd);
+  blender::bke::subdiv::deform_coarse_vertices(
       subdiv, mesh, reinterpret_cast<float(*)[3]>(positions.data()), positions.size());
   if (subdiv != runtime_data->subdiv) {
-    BKE_subdiv_free(subdiv);
+    blender::bke::subdiv::free(subdiv);
   }
 }
 

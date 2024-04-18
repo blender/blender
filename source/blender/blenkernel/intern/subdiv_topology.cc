@@ -12,8 +12,12 @@
 
 #include "opensubdiv_topology_refiner_capi.hh"
 
-int BKE_subdiv_topology_num_fvar_layers_get(const Subdiv *subdiv)
+namespace blender::bke::subdiv {
+
+int topology_num_fvar_layers_get(const Subdiv *subdiv)
 {
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
   return topology_refiner->getNumFVarChannels(topology_refiner);
 }
+
+}  // namespace blender::bke::subdiv

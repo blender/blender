@@ -24,29 +24,29 @@ static void node_declare(NodeDeclarationBuilder &b)
 static Mesh *simple_subdivide_mesh(const Mesh &mesh, const int level)
 {
   /* Initialize mesh settings. */
-  SubdivToMeshSettings mesh_settings;
+  bke::subdiv::ToMeshSettings mesh_settings;
   mesh_settings.resolution = (1 << level) + 1;
   mesh_settings.use_optimal_display = false;
 
   /* Initialize subdivision settings. */
-  SubdivSettings subdiv_settings;
+  bke::subdiv::Settings subdiv_settings;
   subdiv_settings.is_simple = true;
   subdiv_settings.is_adaptive = false;
   subdiv_settings.use_creases = false;
   subdiv_settings.level = 1;
-  subdiv_settings.vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
-      0);
-  subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(0);
+  subdiv_settings.vtx_boundary_interpolation =
+      bke::subdiv::vtx_boundary_interpolation_from_subsurf(0);
+  subdiv_settings.fvar_linear_interpolation = bke::subdiv::fvar_interpolation_from_uv_smooth(0);
 
   /* Apply subdivision from mesh. */
-  Subdiv *subdiv = BKE_subdiv_new_from_mesh(&subdiv_settings, &mesh);
+  bke::subdiv::Subdiv *subdiv = bke::subdiv::new_from_mesh(&subdiv_settings, &mesh);
   if (!subdiv) {
     return nullptr;
   }
 
-  Mesh *result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, &mesh);
+  Mesh *result = bke::subdiv::subdiv_to_mesh(subdiv, &mesh_settings, &mesh);
 
-  BKE_subdiv_free(subdiv);
+  bke::subdiv::free(subdiv);
 
   geometry::debug_randomize_mesh_order(result);
   return result;

@@ -38,6 +38,7 @@ using blender::OffsetIndices;
 using blender::Span;
 using blender::Vector;
 using blender::VectorSet;
+using namespace blender::bke::subdiv;
 
 /* -------------------------------------------------------------------- */
 /** \name Various forward declarations
@@ -131,7 +132,7 @@ static void subdiv_ccg_alloc_elements(SubdivCCG &subdiv_ccg, Subdiv &subdiv)
   const int64_t element_size = element_size_bytes_get(subdiv_ccg);
   /* Allocate memory for surface grids. */
   const int64_t num_grids = topology_refiner_count_face_corners(topology_refiner);
-  const int64_t grid_size = BKE_subdiv_grid_size_from_level(subdiv_ccg.level);
+  const int64_t grid_size = grid_size_from_level(subdiv_ccg.level);
   const int64_t grid_area = grid_size * grid_size;
   subdiv_ccg.grid_element_size = element_size;
   subdiv_ccg.grids.reinitialize(num_grids);
@@ -158,18 +159,18 @@ static void subdiv_ccg_eval_grid_element_limit(Subdiv &subdiv,
                                                uchar *element)
 {
   if (subdiv.displacement_evaluator != nullptr) {
-    BKE_subdiv_eval_final_point(&subdiv, ptex_face_index, u, v, (float *)element);
+    eval_final_point(&subdiv, ptex_face_index, u, v, (float *)element);
   }
   else if (subdiv_ccg.has_normal) {
-    BKE_subdiv_eval_limit_point_and_normal(&subdiv,
-                                           ptex_face_index,
-                                           u,
-                                           v,
-                                           (float *)element,
-                                           (float *)(element + subdiv_ccg.normal_offset));
+    eval_limit_point_and_normal(&subdiv,
+                                ptex_face_index,
+                                u,
+                                v,
+                                (float *)element,
+                                (float *)(element + subdiv_ccg.normal_offset));
   }
   else {
-    BKE_subdiv_eval_limit_point(&subdiv, ptex_face_index, u, v, (float *)element);
+    eval_limit_point(&subdiv, ptex_face_index, u, v, (float *)element);
   }
 }
 
@@ -223,7 +224,7 @@ static void subdiv_ccg_eval_regular_grid(Subdiv &subdiv,
       for (int x = 0; x < grid_size; x++) {
         const float grid_u = x * grid_size_1_inv;
         float u, v;
-        BKE_subdiv_rotate_grid_to_quad(corner, grid_u, grid_v, &u, &v);
+        rotate_grid_to_quad(corner, grid_u, grid_v, &u, &v);
         const size_t grid_element_index = size_t(y) * grid_size + x;
         const size_t grid_element_offset = grid_element_index * element_size;
         subdiv_ccg_eval_grid_element(
@@ -267,8 +268,7 @@ static bool subdiv_ccg_evaluate_grids(SubdivCCG &subdiv_ccg,
   using namespace blender;
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv.topology_refiner;
   const int num_faces = topology_refiner->getNumFaces(topology_refiner);
-  const Span<int> face_ptex_offset(BKE_subdiv_face_ptex_offset_get(&subdiv),
-                                   subdiv_ccg.faces.size());
+  const Span<int> face_ptex_offset(face_ptex_offset_get(&subdiv), subdiv_ccg.faces.size());
   threading::parallel_for(IndexRange(num_faces), 1024, [&](const IndexRange range) {
     for (const int face_index : range) {
       if (subdiv_ccg.faces[face_index].size() == 4) {
@@ -460,21 +460,21 @@ std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(Subdiv &subdiv,
                                              const Mesh &coarse_mesh,
                                              SubdivCCGMaskEvaluator *mask_evaluator)
 {
-  BKE_subdiv_stats_begin(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
+  stats_begin(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
   std::unique_ptr<SubdivCCG> subdiv_ccg = std::make_unique<SubdivCCG>();
   subdiv_ccg->subdiv = &subdiv;
   subdiv_ccg->level = bitscan_forward_i(settings.resolution - 1);
-  subdiv_ccg->grid_size = BKE_subdiv_grid_size_from_level(subdiv_ccg->level);
+  subdiv_ccg->grid_size = grid_size_from_level(subdiv_ccg->level);
   subdiv_ccg_init_layers(*subdiv_ccg, settings);
   subdiv_ccg->faces = coarse_mesh.faces();
   subdiv_ccg->grid_to_face_map = coarse_mesh.corner_to_face_map();
   subdiv_ccg_alloc_elements(*subdiv_ccg, subdiv);
   subdiv_ccg_init_faces_neighborhood(*subdiv_ccg);
   if (!subdiv_ccg_evaluate_grids(*subdiv_ccg, subdiv, mask_evaluator)) {
-    BKE_subdiv_stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
+    stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
     return nullptr;
   }
-  BKE_subdiv_stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
+  stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
   return subdiv_ccg;
 }
 
@@ -483,15 +483,13 @@ Mesh *BKE_subdiv_to_ccg_mesh(Subdiv &subdiv,
                              const Mesh &coarse_mesh)
 {
   /* Make sure evaluator is ready. */
-  BKE_subdiv_stats_begin(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
-  if (!BKE_subdiv_eval_begin_from_mesh(
-          &subdiv, &coarse_mesh, nullptr, SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
-  {
+  stats_begin(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
+  if (!eval_begin_from_mesh(&subdiv, &coarse_mesh, nullptr, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
     if (coarse_mesh.faces_num) {
       return nullptr;
     }
   }
-  BKE_subdiv_stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
+  stats_end(&subdiv.stats, SUBDIV_STATS_SUBDIV_TO_CCG);
   SubdivCCGMaskEvaluator mask_evaluator;
   bool has_mask = BKE_subdiv_ccg_mask_init_from_paint(&mask_evaluator, &coarse_mesh);
   std::unique_ptr<SubdivCCG> subdiv_ccg = BKE_subdiv_to_ccg(
@@ -510,7 +508,7 @@ Mesh *BKE_subdiv_to_ccg_mesh(Subdiv &subdiv,
 SubdivCCG::~SubdivCCG()
 {
   if (this->subdiv != nullptr) {
-    BKE_subdiv_free(this->subdiv);
+    free(this->subdiv);
   }
 
   for (const int i : this->adjacent_edges.index_range()) {
@@ -532,7 +530,7 @@ CCGKey BKE_subdiv_ccg_key(const SubdivCCG &subdiv_ccg, int level)
   CCGKey key;
   key.level = level;
   key.elem_size = element_size_bytes_get(subdiv_ccg);
-  key.grid_size = BKE_subdiv_grid_size_from_level(level);
+  key.grid_size = grid_size_from_level(level);
   key.grid_area = key.grid_size * key.grid_size;
   key.grid_bytes = key.elem_size * key.grid_area;
 
@@ -1639,13 +1637,13 @@ static void subdiv_ccg_coord_to_ptex_coord(const SubdivCCG &subdiv_ccg,
   const int face_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, coord.grid_index);
   const OffsetIndices<int> faces = subdiv_ccg.faces;
   const IndexRange face = faces[face_index];
-  const int *face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
+  const int *face_ptex_offset = face_ptex_offset_get(subdiv);
   *r_ptex_face_index = face_ptex_offset[face_index];
 
   const float corner = coord.grid_index - face.start();
 
   if (face.size() == 4) {
-    BKE_subdiv_rotate_grid_to_quad(corner, grid_u, grid_v, r_u, r_v);
+    rotate_grid_to_quad(corner, grid_u, grid_v, r_u, r_v);
   }
   else {
     *r_ptex_face_index += corner;
@@ -1662,7 +1660,7 @@ void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg,
   int ptex_face_index;
   float u, v;
   subdiv_ccg_coord_to_ptex_coord(subdiv_ccg, coord, &ptex_face_index, &u, &v);
-  BKE_subdiv_eval_limit_point(subdiv, ptex_face_index, u, v, r_point);
+  eval_limit_point(subdiv, ptex_face_index, u, v, r_point);
 }
 
 /** \} */

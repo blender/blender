@@ -308,7 +308,7 @@ void WM_init(bContext *C, int argc, const char **argv)
     GPU_render_end();
   }
 
-  BKE_subdiv_init();
+  blender::bke::subdiv::init();
 
   ED_spacemacros_init();
 
@@ -588,7 +588,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   COM_deinitialize();
 #endif
 
-  BKE_subdiv_exit();
+  bke::subdiv::exit();
 
   if (gpu_is_init) {
     BKE_image_free_unused_gpu_textures();
