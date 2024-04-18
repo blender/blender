@@ -667,6 +667,7 @@ void IrradianceBake::sync()
     pass.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
     pass.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    pass.bind_resources(inst_.uniform_data);
     pass.bind_resources(inst_.lights);
     pass.bind_resources(inst_.shadows);
     /* Sync with the surfel creation stage. */
@@ -750,6 +751,7 @@ void IrradianceBake::sync()
     pass.shader_set(inst_.shaders.static_shader_get(LIGHTPROBE_IRRADIANCE_OFFSET));
     pass.bind_ssbo(SURFEL_BUF_SLOT, &surfels_buf_);
     pass.bind_ssbo(CAPTURE_BUF_SLOT, &capture_info_buf_);
+    pass.bind_ssbo("list_start_buf", &list_start_buf_);
     pass.bind_ssbo("list_info_buf", &list_info_buf_);
     pass.bind_image("cluster_list_img", &cluster_list_tx_);
     pass.bind_image("virtual_offset_img", &virtual_offset_tx_);
