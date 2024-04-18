@@ -4022,10 +4022,8 @@ static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bma
     }
 
     uiItemL(layout, RPT_("This file is managed by the Blender asset system."), ICON_NONE);
-    uiItemL(
-        layout, RPT_("By overwriting it as a regular blend file, it will no longer"), ICON_NONE);
-    uiItemL(
-        layout, RPT_("be possible to update its assets through the asset browser."), ICON_NONE);
+    uiItemL(layout, RPT_("and is expected to contain a single asset data-block."), ICON_NONE);
+    uiItemL(layout, RPT_("Take care to avoid data loss when editing assets."), ICON_NONE);
   }
 }
 
@@ -4095,17 +4093,6 @@ static void save_file_overwrite_saveas(bContext *C, void *arg_block, void * /*ar
   PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find("WM_OT_save_as_mainfile", false);
   WM_operator_properties_create_ptr(&props_ptr, ot);
-
-  if (bmain->is_asset_repository) {
-    /* If needed, substitute the 'proposed' Save As filepath by replacing the `.asset.blend` part
-     * of it by just `.blend`. */
-    std::string filepath = BKE_main_blendfile_path(bmain);
-    if (blender::StringRef(filepath).endswith(BLENDER_ASSET_FILE_SUFFIX)) {
-      filepath.replace(
-          filepath.rfind(BLENDER_ASSET_FILE_SUFFIX), strlen(BLENDER_ASSET_FILE_SUFFIX), ".blend");
-      RNA_string_set(&props_ptr, "filepath", filepath.c_str());
-    }
-  }
 
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
   WM_operator_properties_free(&props_ptr);
