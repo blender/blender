@@ -63,7 +63,7 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
 BMEditMesh *BKE_editmesh_from_object(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
-  return ((Mesh *)ob->data)->runtime->edit_mesh;
+  return ((Mesh *)ob->data)->runtime->edit_mesh.get();
 }
 
 void BKE_editmesh_looptris_calc_ex(BMEditMesh *em, const BMeshCalcTessellation_Params *params)

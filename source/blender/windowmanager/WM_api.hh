@@ -1874,6 +1874,13 @@ void WM_generic_user_data_free(wmGenericUserData *wm_userdata);
 
 bool WM_region_use_viewport(ScrArea *area, ARegion *region);
 
+/* `wm_platform.cc` */
+
+/**
+ * \return Success.
+ */
+bool WM_platform_assosiate_set(bool do_register, bool all_users, char **r_error_msg);
+
 #ifdef WITH_XR_OPENXR
 /* `wm_xr_session.cc` */
 

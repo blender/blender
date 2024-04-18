@@ -832,7 +832,7 @@ BLI_INLINE void mesh_mirror_topo_table_get_meshes(Object *ob,
   if (mesh_eval != nullptr) {
     mesh_mirror = mesh_eval;
   }
-  else if (BMEditMesh *em = mesh->runtime->edit_mesh) {
+  else if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     em_mirror = em;
   }
   else {
@@ -972,7 +972,7 @@ int ED_mesh_mirror_get_vert(Object *ob, int index)
   bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
   int index_mirr;
 
-  if (BMEditMesh *em = mesh->runtime->edit_mesh) {
+  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     BMVert *eve, *eve_mirr;
     eve = BM_vert_at_index(em->bm, index);
     eve_mirr = editbmesh_get_x_mirror_vert(ob, em, eve, eve->co, index, use_topology);

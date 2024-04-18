@@ -84,7 +84,9 @@ static inline void volume_call(
 {
   if (matpass.sub_pass != nullptr) {
     PassMain::Sub *object_pass = volume_sub_pass(*matpass.sub_pass, scene, ob, matpass.gpumat);
-    object_pass->draw(geom, res_handle);
+    if (object_pass != nullptr) {
+      object_pass->draw(geom, res_handle);
+    }
   }
 }
 
@@ -359,7 +361,9 @@ void SyncModule::sync_volume(Object *ob, ObjectHandle & /*ob_handle*/, ResourceH
     }
     PassMain::Sub *object_pass = volume_sub_pass(
         *matpass.sub_pass, inst_.scene, ob, matpass.gpumat);
-    object_pass->draw(geom, res_handle);
+    if (object_pass != nullptr) {
+      object_pass->draw(geom, res_handle);
+    }
   };
 
   drawcall_add(material.volume_occupancy, geom, res_handle);

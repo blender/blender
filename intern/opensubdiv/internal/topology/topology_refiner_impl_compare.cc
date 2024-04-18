@@ -6,7 +6,6 @@
 
 #include "internal/topology/topology_refiner_impl.h"
 
-#include "internal/base/type.h"
 #include "internal/base/type_convert.h"
 #include "internal/topology/mesh_topology.h"
 #include "internal/topology/topology_refiner_impl.h"

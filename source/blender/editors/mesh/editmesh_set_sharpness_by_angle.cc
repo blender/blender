@@ -39,7 +39,7 @@ static int set_sharpness_by_angle_exec(bContext *C, wmOperator *op)
 
   for (Object *object : objects) {
     Mesh &mesh = *static_cast<Mesh *>(object->data);
-    BMEditMesh *em = mesh.runtime->edit_mesh;
+    BMEditMesh *em = mesh.runtime->edit_mesh.get();
 
     bool changed = false;
     BMIter iter;

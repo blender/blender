@@ -134,6 +134,10 @@ void GLUniformBuf::bind_as_ssbo(int slot)
   }
 
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, slot, ubo_id_);
+#ifndef NDEBUG
+  BLI_assert(slot < 16);
+  GLContext::get()->bound_ssbo_slots |= 1 << slot;
+#endif
 }
 
 void GLUniformBuf::unbind()

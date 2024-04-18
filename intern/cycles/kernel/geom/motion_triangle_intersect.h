@@ -20,13 +20,8 @@ CCL_NAMESPACE_BEGIN
 /**
  * Use the barycentric coordinates to get the intersection location
  */
-ccl_device_inline float3 motion_triangle_point_from_uv(KernelGlobals kg,
-                                                       ccl_private ShaderData *sd,
-                                                       const int isect_object,
-                                                       const int isect_prim,
-                                                       const float u,
-                                                       const float v,
-                                                       float3 verts[3])
+ccl_device_inline float3 motion_triangle_point_from_uv(
+    KernelGlobals kg, ccl_private ShaderData *sd, const float u, const float v, float3 verts[3])
 {
   /* This appears to give slightly better precision than interpolating with w = (1 - u - v). */
   float3 P = verts[0] + u * (verts[1] - verts[0]) + v * (verts[2] - verts[0]);

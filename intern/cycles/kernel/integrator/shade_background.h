@@ -107,13 +107,7 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
     }
 
     /* Background MIS weights. */
-    float mis_weight = 1.0f;
-    /* Check if background light exists or if we should skip PDF. */
-    if (!(INTEGRATOR_STATE(state, path, flag) & PATH_RAY_MIS_SKIP) &&
-        kernel_data.background.use_mis)
-    {
-      mis_weight = light_sample_mis_weight_forward_background(kg, state, path_flag);
-    }
+    const float mis_weight = light_sample_mis_weight_forward_background(kg, state, path_flag);
 
     guiding_record_background(kg, state, L, mis_weight);
     L *= mis_weight;
@@ -174,10 +168,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
       }
 
       /* MIS weighting. */
-      float mis_weight = 1.0f;
-      if (!(path_flag & PATH_RAY_MIS_SKIP)) {
-        mis_weight = light_sample_mis_weight_forward_distant(kg, state, path_flag, &ls);
-      }
+      const float mis_weight = light_sample_mis_weight_forward_distant(kg, state, path_flag, &ls);
 
       /* Write to render buffer. */
       guiding_record_background(kg, state, light_eval, mis_weight);

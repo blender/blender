@@ -148,14 +148,13 @@ ccl_device_inline bool point_light_intersect(const ccl_global KernelLight *kligh
   }
 }
 
-ccl_device_inline bool point_light_sample_from_intersection(
-    const ccl_global KernelLight *klight,
-    ccl_private const Intersection *ccl_restrict isect,
-    const float3 ray_P,
-    const float3 ray_D,
-    const float3 N,
-    const uint32_t path_flag,
-    ccl_private LightSample *ccl_restrict ls)
+ccl_device_inline bool point_light_sample_from_intersection(const ccl_global KernelLight *klight,
+                                                            const float3 ray_P,
+                                                            const float3 ray_D,
+                                                            const float3 N,
+                                                            const uint32_t path_flag,
+                                                            ccl_private LightSample *ccl_restrict
+                                                                ls)
 {
   const float r_sq = sqr(klight->spot.radius);
 

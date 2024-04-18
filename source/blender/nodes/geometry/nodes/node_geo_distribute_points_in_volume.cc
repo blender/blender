@@ -20,8 +20,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "DEG_depsgraph_query.hh"
-
 #include "GEO_randomize.hh"
 
 #include "node_geometry_util.hh"
@@ -215,7 +213,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     const VolumeComponent *component = geometry_set.get_component<VolumeComponent>();
     const Volume *volume = component->get();
-    BKE_volume_load(volume, DEG_get_bmain(params.depsgraph()));
+    BKE_volume_load(volume, params.bmain());
 
     Vector<float3> positions;
 

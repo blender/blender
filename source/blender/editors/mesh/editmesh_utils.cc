@@ -278,19 +278,20 @@ void EDBM_mesh_make_from_mesh(Object *ob,
 
   if (mesh->runtime->edit_mesh) {
     /* this happens when switching shape keys */
-    EDBM_mesh_free_data(mesh->runtime->edit_mesh);
-    MEM_freeN(mesh->runtime->edit_mesh);
+    EDBM_mesh_free_data(mesh->runtime->edit_mesh.get());
+    mesh->runtime->edit_mesh.reset();
   }
 
   /* Executing operators re-tessellates,
    * so we can avoid doing here but at some point it may need to be added back. */
-  mesh->runtime->edit_mesh = BKE_editmesh_create(bm);
+  mesh->runtime->edit_mesh = std::make_shared<BMEditMesh>();
+  mesh->runtime->edit_mesh->bm = bm;
 
   mesh->runtime->edit_mesh->selectmode = mesh->runtime->edit_mesh->bm->selectmode = select_mode;
   mesh->runtime->edit_mesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
 
   /* we need to flush selection because the mode may have changed from when last in editmode */
-  EDBM_selectmode_flush(mesh->runtime->edit_mesh);
+  EDBM_selectmode_flush(mesh->runtime->edit_mesh.get());
 }
 
 void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
@@ -1653,7 +1654,7 @@ void EDBM_stats_update(BMEditMesh *em)
 
 void EDBM_update(Mesh *mesh, const EDBMUpdate_Params *params)
 {
-  BMEditMesh *em = mesh->runtime->edit_mesh;
+  BMEditMesh *em = mesh->runtime->edit_mesh.get();
   /* Order of calling isn't important. */
   DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &mesh->id);

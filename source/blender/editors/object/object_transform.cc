@@ -1316,7 +1316,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
   if (obedit) {
     if (obedit->type == OB_MESH) {
       Mesh *mesh = static_cast<Mesh *>(obedit->data);
-      BMEditMesh *em = mesh->runtime->edit_mesh;
+      BMEditMesh *em = mesh->runtime->edit_mesh.get();
       BMVert *eve;
       BMIter iter;
 

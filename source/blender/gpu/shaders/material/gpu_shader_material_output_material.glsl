@@ -16,7 +16,7 @@ void node_output_material_volume(Closure volume, out Closure out_volume)
 
 void node_output_material_displacement(vec3 displacement, out vec3 out_displacement)
 {
-  direction_transform_object_to_world(displacement, out_displacement);
+  out_displacement = displacement;
 }
 
 void node_output_material_thickness(float thickness, out float out_thickness)

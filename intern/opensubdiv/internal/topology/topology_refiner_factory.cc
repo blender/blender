@@ -15,15 +15,10 @@
 
 #include <opensubdiv/far/topologyRefinerFactory.h>
 
-#include "internal/base/type.h"
 #include "internal/base/type_convert.h"
 #include "internal/topology/mesh_topology.h"
 
 #include "opensubdiv_converter_capi.hh"
-
-using blender::opensubdiv::min;
-using blender::opensubdiv::stack;
-using blender::opensubdiv::vector;
 
 struct TopologyRefinerData {
   const OpenSubdiv_Converter *converter;
@@ -138,7 +133,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology
 
   // Vertex relations.
   const int num_vertices = converter->getNumVertices(converter);
-  vector<int> vertex_faces, vertex_edges;
+  std::vector<int> vertex_faces, vertex_edges;
   for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
     // Vertex-faces.
     IndexArray dst_vertex_faces = getBaseVertexFaces(refiner, vertex_index);
@@ -247,8 +242,8 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
       const float sharpness0 = refiner._levels[0]->getEdgeSharpness(edge0);
       const float sharpness1 = refiner._levels[0]->getEdgeSharpness(edge1);
       // TODO(sergey): Find a better mixing between edge and vertex sharpness.
-      sharpness += min(sharpness0, sharpness1);
-      sharpness = min(sharpness, 10.0f);
+      sharpness += std::min(sharpness0, sharpness1);
+      sharpness = std::min(sharpness, 10.0f);
     }
 
     setBaseVertexSharpness(refiner, vertex_index, sharpness);

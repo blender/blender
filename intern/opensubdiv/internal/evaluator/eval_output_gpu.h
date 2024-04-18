@@ -26,7 +26,7 @@ class GpuEvalOutput : public VolatileEvalOutput<GLVertexBuffer,
  public:
   GpuEvalOutput(const StencilTable *vertex_stencils,
                 const StencilTable *varying_stencils,
-                const vector<const StencilTable *> &all_face_varying_stencils,
+                const std::vector<const StencilTable *> &all_face_varying_stencils,
                 const int face_varying_width,
                 const PatchTable *patch_table,
                 EvaluatorCache *evaluator_cache = NULL);

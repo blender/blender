@@ -207,7 +207,7 @@ ccl_device float curve_thickness(KernelGlobals kg, ccl_private const ShaderData 
       P_curve[1] = kernel_data_fetch(curve_keys, k1);
     }
     else {
-      motion_curve_keys_linear(kg, sd->object, sd->prim, sd->time, k0, k1, P_curve);
+      motion_curve_keys_linear(kg, sd->object, sd->time, k0, k1, P_curve);
     }
 
     r = (P_curve[1].w - P_curve[0].w) * sd->u + P_curve[0].w;

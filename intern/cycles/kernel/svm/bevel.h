@@ -203,24 +203,14 @@ ccl_device float3 svm_bevel(
       /* Quickly retrieve P and Ng without setting up ShaderData. */
       float3 hit_P;
       if (sd->type == PRIMITIVE_TRIANGLE) {
-        hit_P = triangle_point_from_uv(kg,
-                                       sd,
-                                       isect.hits[hit].object,
-                                       isect.hits[hit].prim,
-                                       isect.hits[hit].u,
-                                       isect.hits[hit].v);
+        hit_P = triangle_point_from_uv(
+            kg, sd, isect.hits[hit].prim, isect.hits[hit].u, isect.hits[hit].v);
       }
 #  ifdef __OBJECT_MOTION__
       else if (sd->type == PRIMITIVE_MOTION_TRIANGLE) {
         float3 verts[3];
         motion_triangle_vertices(kg, sd->object, isect.hits[hit].prim, sd->time, verts);
-        hit_P = motion_triangle_point_from_uv(kg,
-                                              sd,
-                                              isect.hits[hit].object,
-                                              isect.hits[hit].prim,
-                                              isect.hits[hit].u,
-                                              isect.hits[hit].v,
-                                              verts);
+        hit_P = motion_triangle_point_from_uv(kg, sd, isect.hits[hit].u, isect.hits[hit].v, verts);
       }
 #  endif /* __OBJECT_MOTION__ */
 

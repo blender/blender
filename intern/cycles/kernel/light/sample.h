@@ -91,7 +91,6 @@ light_sample_shader_eval(KernelGlobals kg,
 
 /* Early path termination of shadow rays. */
 ccl_device_inline bool light_sample_terminate(KernelGlobals kg,
-                                              ccl_private const LightSample *ccl_restrict ls,
                                               ccl_private BsdfEval *ccl_restrict eval,
                                               const float rand_terminate)
 {
@@ -301,7 +300,10 @@ ccl_device_inline float light_sample_mis_weight_nee(KernelGlobals kg,
 {
 #ifdef WITH_CYCLES_DEBUG
   if (kernel_data.integrator.direct_light_sampling_type == DIRECT_LIGHT_SAMPLING_FORWARD) {
-    return 0.0f;
+    /* Return 0.0f to only account for the contribution in forward path tracing, unless when the
+     * light can not be forward sampled, in which case return 1.0f so it converges to the same
+     * result. */
+    return (forward_pdf == 0.0f);
   }
   else if (kernel_data.integrator.direct_light_sampling_type == DIRECT_LIGHT_SAMPLING_NEE) {
     return 1.0f;
@@ -351,7 +353,6 @@ ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
 }
 
 ccl_device bool light_sample_from_position(KernelGlobals kg,
-                                           ccl_private const RNGState *rng_state,
                                            const float3 rand,
                                            const float time,
                                            const float3 P,
@@ -422,6 +423,17 @@ ccl_device_inline float light_sample_mis_weight_forward_surface(KernelGlobals kg
                                                                 const uint32_t path_flag,
                                                                 const ccl_private ShaderData *sd)
 {
+  bool has_mis = !(path_flag & PATH_RAY_MIS_SKIP) &&
+                 (sd->flag & ((sd->flag & SD_BACKFACING) ? SD_MIS_BACK : SD_MIS_FRONT));
+
+#ifdef __HAIR__
+  has_mis &= (sd->type & PRIMITIVE_TRIANGLE);
+#endif
+
+  if (!has_mis) {
+    return 1.0f;
+  }
+
   const float bsdf_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
   const float t = sd->ray_length;
   float pdf = triangle_light_pdf(kg, sd, t);
@@ -455,6 +467,10 @@ ccl_device_inline float light_sample_mis_weight_forward_lamp(KernelGlobals kg,
                                                              const ccl_private LightSample *ls,
                                                              const float3 P)
 {
+  if (path_flag & PATH_RAY_MIS_SKIP) {
+    return 1.0f;
+  }
+
   const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
   float pdf = ls->pdf;
 
@@ -494,6 +510,11 @@ ccl_device_inline float light_sample_mis_weight_forward_background(KernelGlobals
                                                                    IntegratorState state,
                                                                    const uint32_t path_flag)
 {
+  /* Check if background light exists or if we should skip PDF. */
+  if (!kernel_data.background.use_mis || (path_flag & PATH_RAY_MIS_SKIP)) {
+    return 1.0f;
+  }
+
   const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
   const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
   const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);

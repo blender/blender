@@ -1624,6 +1624,64 @@ bool PyC_RunString_AsString(const char *imports[],
   return PyC_RunString_AsStringAndSize(imports, expr, filename, r_value, &value_size);
 }
 
+bool PyC_RunString_AsStringAndSizeOrNone(const char *imports[],
+                                         const char *expr,
+                                         const char *filename,
+                                         char **r_value,
+                                         size_t *r_value_size)
+{
+  PyObject *py_dict, *retval;
+  bool ok = true;
+  PyObject *main_mod = nullptr;
+
+  PyC_MainModule_Backup(&main_mod);
+
+  py_dict = PyC_DefaultNameSpace(filename);
+
+  if (imports && !PyC_NameSpace_ImportArray(py_dict, imports)) {
+    ok = false;
+  }
+  else if ((retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict)) == nullptr) {
+    ok = false;
+  }
+  else {
+    if (retval == Py_None) {
+      *r_value = nullptr;
+      *r_value_size = 0;
+    }
+    else {
+      const char *val;
+      Py_ssize_t val_len;
+
+      val = PyUnicode_AsUTF8AndSize(retval, &val_len);
+      if (val == nullptr && PyErr_Occurred()) {
+        ok = false;
+      }
+      else {
+        char *val_alloc = static_cast<char *>(MEM_mallocN(val_len + 1, __func__));
+        memcpy(val_alloc, val, val_len + 1);
+        *r_value = val_alloc;
+        *r_value_size = val_len;
+      }
+    }
+
+    Py_DECREF(retval);
+  }
+
+  PyC_MainModule_Restore(main_mod);
+
+  return ok;
+}
+
+bool PyC_RunString_AsStringOrNone(const char *imports[],
+                                  const char *expr,
+                                  const char *filename,
+                                  char **r_value)
+{
+  size_t value_size;
+  return PyC_RunString_AsStringAndSizeOrNone(imports, expr, filename, r_value, &value_size);
+}
+
 /** \} */
 
 #endif /* #ifndef MATH_STANDALONE */

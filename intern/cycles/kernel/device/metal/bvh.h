@@ -101,7 +101,7 @@ ccl_device_forceinline float curve_ribbon_v(
     curve[3] = kernel_data_fetch(curve_keys, kb);
   }
   else {
-    motion_curve_keys(kg, object, prim, time, ka, k0, k1, kb, curve);
+    motion_curve_keys(kg, object, time, ka, k0, k1, kb, curve);
   }
 
   float3 ray_P = ray->P;

@@ -22,14 +22,7 @@ CCL_NAMESPACE_BEGIN
  * normals */
 
 /* return 3 triangle vertex normals */
-ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
-                                                      ccl_private ShaderData *sd,
-                                                      const float3 P,
-                                                      const float3 D,
-                                                      const float ray_t,
-                                                      const int isect_object,
-                                                      const int isect_prim,
-                                                      bool is_local)
+ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg, ccl_private ShaderData *sd)
 {
   /* Get shader. */
   sd->shader = kernel_data_fetch(tri_shader, sd->prim);
@@ -46,7 +39,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
   motion_triangle_vertices(kg, sd->object, tri_vindex, numsteps, numverts, step, t, verts);
 
   /* Compute refined position. */
-  sd->P = motion_triangle_point_from_uv(kg, sd, isect_object, isect_prim, sd->u, sd->v, verts);
+  sd->P = motion_triangle_point_from_uv(kg, sd, sd->u, sd->v, verts);
   /* Compute face normal. */
   float3 Ng;
   if (object_negative_scale_applied(sd->object_flag)) {

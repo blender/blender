@@ -123,8 +123,6 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
                                            int corners_num,
                                            CustomData_MeshMasks mask);
 
-void BKE_mesh_eval_delete(Mesh *mesh_eval);
-
 /**
  * Performs copy for use during evaluation,
  * optional referencing original arrays to reduce memory.

@@ -23,6 +23,17 @@ ccl_device_forceinline ccl_global float *film_pass_pixel_render_buffer(
   return render_buffer + render_buffer_offset;
 }
 
+ccl_device_forceinline ccl_global float *film_pass_pixel_render_buffer_shadow(
+    KernelGlobals kg,
+    ConstIntegratorShadowState state,
+    ccl_global float *ccl_restrict render_buffer)
+{
+  const uint32_t render_pixel_index = INTEGRATOR_STATE(state, shadow_path, render_pixel_index);
+  const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
+                                        kernel_data.film.pass_stride;
+  return render_buffer + render_buffer_offset;
+}
+
 /* Accumulate in passes. */
 
 ccl_device_inline void film_write_pass_float(ccl_global float *ccl_restrict buffer, float value)

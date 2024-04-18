@@ -583,9 +583,8 @@ static bool editmode_load_free_ex(Main *bmain,
     }
 
     if (free_data) {
-      EDBM_mesh_free_data(mesh->runtime->edit_mesh);
-      MEM_freeN(mesh->runtime->edit_mesh);
-      mesh->runtime->edit_mesh = nullptr;
+      EDBM_mesh_free_data(mesh->runtime->edit_mesh.get());
+      mesh->runtime->edit_mesh.reset();
     }
     /* will be recalculated as needed. */
     {

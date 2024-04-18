@@ -10,8 +10,6 @@
 #include "internal/base/type_convert.h"
 #include "internal/topology/topology_refiner_impl.h"
 
-using blender::opensubdiv::vector;
-
 namespace {
 
 const OpenSubdiv::Far::TopologyRefiner *getOSDTopologyRefiner(

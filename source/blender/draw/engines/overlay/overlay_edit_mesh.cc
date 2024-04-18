@@ -236,7 +236,7 @@ static void overlay_edit_mesh_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *ob
   bool has_skin_roots = false;
   /* TODO: Should be its own function. */
   Mesh *mesh = (Mesh *)ob->data;
-  if (BMEditMesh *em = mesh->runtime->edit_mesh) {
+  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob);
     const Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob);
 

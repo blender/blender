@@ -12,7 +12,6 @@
 #include <opensubdiv/osd/mesh.h>
 #include <opensubdiv/osd/types.h>
 
-#include "internal/base/type.h"
 #include "internal/evaluator/evaluator_impl.h"
 
 #include "opensubdiv_evaluator_capi.hh"
@@ -325,7 +324,7 @@ class VolatileEvalOutput : public EvalOutputAPI::EvalOutput {
 
   VolatileEvalOutput(const StencilTable *vertex_stencils,
                      const StencilTable *varying_stencils,
-                     const vector<const StencilTable *> &all_face_varying_stencils,
+                     const std::vector<const StencilTable *> &all_face_varying_stencils,
                      const int face_varying_width,
                      const PatchTable *patch_table,
                      EvaluatorCache *evaluator_cache = NULL,
@@ -641,7 +640,7 @@ class VolatileEvalOutput : public EvalOutputAPI::EvalOutput {
   const STENCIL_TABLE *varying_stencils_;
 
   int face_varying_width_;
-  vector<FaceVaryingEval *> face_varying_evaluators_;
+  std::vector<FaceVaryingEval *> face_varying_evaluators_;
 
   EvaluatorCache *evaluator_cache_;
   DEVICE_CONTEXT *device_context_;

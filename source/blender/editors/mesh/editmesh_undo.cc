@@ -843,7 +843,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em)
 
   ob->shapenr = um->shapenr;
 
-  MEM_freeN(em_tmp);
+  MEM_delete(em_tmp);
 
 #ifdef USE_ARRAY_STORE
   um_arraystore_expand_clear(um);
@@ -947,11 +947,8 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 
     elem->obedit_ref.ptr = ob;
     Mesh *mesh = static_cast<Mesh *>(elem->obedit_ref.ptr->data);
-    BMEditMesh *em = mesh->runtime->edit_mesh;
-    undomesh_from_editmesh(&elem->data,
-                           mesh->runtime->edit_mesh,
-                           mesh->key,
-                           um_references ? um_references[i] : nullptr);
+    BMEditMesh *em = mesh->runtime->edit_mesh.get();
+    undomesh_from_editmesh(&elem->data, em, mesh->key, um_references ? um_references[i] : nullptr);
     em->needs_flush_to_id = 1;
     us->step.data_size += elem->data.undo_size;
     elem->data.uv_selectmode = ts->uv_selectmode;
@@ -997,7 +994,7 @@ static void mesh_undosys_step_decode(
                  obedit->id.name);
       continue;
     }
-    BMEditMesh *em = mesh->runtime->edit_mesh;
+    BMEditMesh *em = mesh->runtime->edit_mesh.get();
     undomesh_to_editmesh(&elem->data, obedit, em);
     em->needs_flush_to_id = 1;
     DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);

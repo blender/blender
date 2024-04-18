@@ -1217,7 +1217,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
       }
     }
 
-    if (BMEditMesh *em = mesh->runtime->edit_mesh) {
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       /* Copy to bmesh. */
       const int active_color_offset = CustomData_get_offset_named(
           &em->bm->vdata, eCustomDataType(active_color_layer->type), active_color_layer->name);
@@ -1252,7 +1252,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
     MEM_SAFE_FREE(num_loops_for_vertex);
   }
   else if (domain == bke::AttrDomain::Corner) {
-    if (BMEditMesh *em = mesh->runtime->edit_mesh) {
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       /* Copy to bmesh. */
       const int active_color_offset = CustomData_get_offset_named(
           &em->bm->ldata, eCustomDataType(active_color_layer->type), active_color_layer->name);

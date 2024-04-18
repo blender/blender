@@ -22,7 +22,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "internal/base/type.h"
 #include "internal/evaluator/eval_output_cpu.h"
 #include "internal/evaluator/eval_output_gpu.h"
 #include "internal/evaluator/evaluator_cache_impl.h"
@@ -90,7 +89,8 @@ template<typename T, int kNumMaxElementsOnStack> class StackOrHeapArray {
     T *old_buffer = effective_elements_;
     effective_elements_ = allocate(num_elements);
     if (old_buffer != effective_elements_) {
-      memcpy(effective_elements_, old_buffer, sizeof(T) * min(old_num_elements, num_elements));
+      memcpy(
+          effective_elements_, old_buffer, sizeof(T) * std::min(old_num_elements, num_elements));
     }
     if (old_buffer != stack_elements_) {
       delete[] old_buffer;
@@ -430,7 +430,6 @@ OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
     eOpenSubdivEvaluator evaluator_type,
     OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr)
 {
-  using blender::opensubdiv::vector;
   TopologyRefiner *refiner = topology_refiner->impl->topology_refiner;
   if (refiner == NULL) {
     // Happens on bad topology.
@@ -480,7 +479,7 @@ OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
     varying_stencils = StencilTableFactory::Create(*refiner, varying_stencil_options);
   }
   // Face warying stencil.
-  vector<const StencilTable *> all_face_varying_stencils;
+  std::vector<const StencilTable *> all_face_varying_stencils;
   all_face_varying_stencils.reserve(num_face_varying_channels);
   for (int face_varying_channel = 0; face_varying_channel < num_face_varying_channels;
        ++face_varying_channel)

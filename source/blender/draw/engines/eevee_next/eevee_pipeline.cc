@@ -144,11 +144,14 @@ void WorldVolumePipeline::sync(GPUMaterial *gpumat)
 
   world_ps_.material_set(*inst_.manager, gpumat);
   /* Bind correct dummy texture for attributes defaults. */
-  volume_sub_pass(world_ps_, nullptr, nullptr, gpumat);
+  PassSimple::Sub *sub = volume_sub_pass(world_ps_, nullptr, nullptr, gpumat);
 
-  world_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
-  /* Sync with object property pass. */
-  world_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  is_valid_ = (sub != nullptr);
+  if (is_valid_) {
+    world_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+    /* Sync with object property pass. */
+    world_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  }
 }
 
 void WorldVolumePipeline::render(View &view)

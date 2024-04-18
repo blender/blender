@@ -36,7 +36,7 @@ void BKE_mesh_foreach_mapped_vert(
     MeshForeachFlag flag)
 {
   if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
-    BMEditMesh *em = mesh->runtime->edit_mesh;
+    BMEditMesh *em = mesh->runtime->edit_mesh.get();
     BMesh *bm = em->bm;
     BMIter iter;
     BMVert *eve;
@@ -94,7 +94,7 @@ void BKE_mesh_foreach_mapped_edge(
     void *user_data)
 {
   if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data) {
-    BMEditMesh *em = mesh->runtime->edit_mesh;
+    BMEditMesh *em = mesh->runtime->edit_mesh.get();
     BMesh *bm = em->bm;
     BMIter iter;
     BMEdge *eed;
@@ -153,7 +153,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
    * we want to always access `dm->loopData`, `EditDerivedBMesh` would
    * return loop data from BMesh itself. */
   if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data) {
-    BMEditMesh *em = mesh->runtime->edit_mesh;
+    BMEditMesh *em = mesh->runtime->edit_mesh.get();
     BMesh *bm = em->bm;
     BMIter iter;
     BMFace *efa;
@@ -233,7 +233,7 @@ void BKE_mesh_foreach_mapped_face_center(
 {
   using namespace blender;
   if (mesh->runtime->edit_mesh != nullptr && mesh->runtime->edit_data != nullptr) {
-    BMEditMesh *em = mesh->runtime->edit_mesh;
+    BMEditMesh *em = mesh->runtime->edit_mesh.get();
     BMesh *bm = em->bm;
     BMFace *efa;
     BMIter iter;
