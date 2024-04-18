@@ -160,6 +160,18 @@ static void rna_def_lightprobe(BlenderRNA *brna)
       prop, "Resolution Z", "Number of samples along the z axis of the volume");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
+  /* NOTE: We reuse the same DNA for this property for historical reason, but we want a different
+   * name and tooltip for it. */
+  prop = RNA_def_property(srna, "grid_capture_distance", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, nullptr, "clipend");
+  RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 1);
+  RNA_def_property_ui_text(prop,
+                           "Capture Distance",
+                           "Distance around the probe volume that will be considered "
+                           "during the bake");
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
+
   prop = RNA_def_property(srna, "grid_normal_bias", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_ui_text(prop,
                            "Normal Bias",
