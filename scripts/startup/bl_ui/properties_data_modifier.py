@@ -66,7 +66,7 @@ class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
                             icon='VIEWZOOM').menu_idname = "OBJECT_MT_modifier_add"
             layout.separator()
 
-        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator_context = 'INVOKE_REGION_WIN'
 
         if geometry_nodes_supported:
             self.operator_modifier_add(layout, 'NODES')

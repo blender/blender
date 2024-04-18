@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+
+#include "RNA_types.hh"
+
 struct bContext;
 struct ModifierData;
 struct Object;
@@ -378,5 +382,8 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot);
 void object_modifier_add_asset_register();
 
 void collection_exporter_register();
+
+Vector<PointerRNA> modifier_get_edit_objects(const bContext &C, const wmOperator &op);
+void modifier_register_use_selected_objects_prop(wmOperatorType *ot);
 
 }  // namespace blender::ed::object
