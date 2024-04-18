@@ -291,7 +291,9 @@ static void deg_debug_graphviz_relation_arrowhead(const Relation *rel, dot::Dire
     OperationNode *op_from = (OperationNode *)rel->from;
     OperationNode *op_to = (OperationNode *)rel->to;
     if (op_from->owner->type == NodeType::COPY_ON_EVAL &&
-        !op_to->owner->need_tag_cow_before_update())
+        /* The #ID::recalc flag depends on run-time state which is not valid at this point in time.
+         * Pass in all flags although there may be a better way to represent this. */
+        !op_to->owner->need_tag_cow_before_update(ID_RECALC_ALL))
     {
       shape = shape_no_cow;
     }
