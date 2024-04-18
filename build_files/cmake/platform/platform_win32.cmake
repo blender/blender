@@ -12,6 +12,10 @@ endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(MSVC_CLANG ON)
+  if(NOT WITH_WINDOWS_EXTERNAL_MANIFEST AND CMAKE_GENERATOR MATCHES "Visual Studio")
+    message(WARNING "WITH_WINDOWS_EXTERNAL_MANIFEST is required for clang and the visual studio generator, turning ON")
+    set(WITH_WINDOWS_EXTERNAL_MANIFEST ON)
+  endif()
   set(VC_TOOLS_DIR $ENV{VCToolsRedistDir} CACHE STRING "Location of the msvc redistributables")
   set(MSVC_REDIST_DIR ${VC_TOOLS_DIR})
   if(DEFINED MSVC_REDIST_DIR)
@@ -86,6 +90,10 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 string(APPEND CMAKE_EXE_LINKER_FLAGS " /SAFESEH:NO /ignore:4099")
 string(APPEND CMAKE_SHARED_LINKER_FLAGS " /SAFESEH:NO /ignore:4099")
 string(APPEND CMAKE_MODULE_LINKER_FLAGS " /SAFESEH:NO /ignore:4099")
+
+if(WITH_WINDOWS_EXTERNAL_MANIFEST)
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " /manifest:no")
+endif()
 
 list(APPEND PLATFORM_LINKLIBS
   ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 Comctl32 version

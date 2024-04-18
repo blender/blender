@@ -167,11 +167,15 @@ if(WIN32 AND NOT UNIX)
     -DBLEN_VER_RC_4=0
   )
 
-
   list(APPEND SRC
     ${CMAKE_SOURCE_DIR}/release/windows/icons/winblender.rc
-    ${CMAKE_BINARY_DIR}/blender.exe.manifest
   )
+
+  if(NOT WITH_WINDOWS_EXTERNAL_MANIFEST)
+    list(APPEND SRC
+      ${CMAKE_BINARY_DIR}/blender.exe.manifest
+    )
+  endif()
 endif()
 
 if(WITH_BUILDINFO)
@@ -342,8 +346,12 @@ else()
     add_executable(blender-launcher WIN32
       blender_launcher_win32.c
       ${CMAKE_SOURCE_DIR}/release/windows/icons/winblender.rc
-      ${CMAKE_BINARY_DIR}/blender.exe.manifest
     )
+    if(NOT WITH_WINDOWS_EXTERNAL_MANIFEST)
+      list(APPEND SRC
+        ${CMAKE_BINARY_DIR}/blender.exe.manifest
+      )
+    endif()
     target_compile_definitions (blender-launcher PRIVATE -D_UNICODE -DUNICODE)
     target_link_libraries(blender-launcher Pathcch.lib)
   endif()
@@ -978,6 +986,17 @@ file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
     )
   endif()
 elseif(WIN32)
+  if(WITH_WINDOWS_EXTERNAL_MANIFEST)
+    install(
+      FILES ${CMAKE_BINARY_DIR}/blender.exe.manifest
+      DESTINATION "."
+    )
+    install(
+      FILES ${CMAKE_BINARY_DIR}/blender.exe.manifest
+      DESTINATION "."
+      RENAME blender-launcher.exe.manifest
+    )
+  endif()
   windows_install_shared_manifest(
     FILES ${LIBDIR}/epoxy/bin/epoxy-0.dll
     ALL
