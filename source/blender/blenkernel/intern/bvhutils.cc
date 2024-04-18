@@ -509,14 +509,15 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
   switch (bvh_cache_type) {
     case BVHTREE_FROM_VERTS:
     case BVHTREE_FROM_LOOSEVERTS:
+    case BVHTREE_FROM_LOOSEVERTS_NO_HIDDEN:
       /* a nullptr nearest callback works fine
        * remember the min distance to point is the same as the min distance to BV of point */
       r_data->nearest_callback = nullptr;
       r_data->raycast_callback = mesh_verts_spherecast;
       break;
-
     case BVHTREE_FROM_EDGES:
     case BVHTREE_FROM_LOOSEEDGES:
+    case BVHTREE_FROM_LOOSEEDGES_NO_HIDDEN:
       r_data->nearest_callback = mesh_edges_nearest_point;
       r_data->raycast_callback = mesh_edges_spherecast;
       break;
@@ -780,6 +781,89 @@ BVHTree *bvhtree_from_mesh_corner_tris_ex(BVHTreeFromMesh *data,
   return tree;
 }
 
+static BitVector<> loose_verts_no_hidden_mask_get(const Mesh &mesh, int *r_elem_active_len)
+{
+  using namespace blender;
+  using namespace blender::bke;
+
+  int count = mesh.verts_num;
+  BitVector<> verts_mask(count, true);
+
+  const AttributeAccessor attributes = mesh.attributes();
+  const Span<int2> edges = mesh.edges();
+  const VArray<bool> hide_edge = *attributes.lookup_or_default(
+      ".hide_edge", AttrDomain::Edge, false);
+  const VArray<bool> hide_vert = *attributes.lookup_or_default(
+      ".hide_vert", AttrDomain::Point, false);
+
+  for (const int i : edges.index_range()) {
+    if (hide_edge[i]) {
+      continue;
+    }
+    for (const int vert : {edges[i][0], edges[i][1]}) {
+      if (verts_mask[vert]) {
+        verts_mask[vert].reset();
+        count--;
+      }
+    }
+  }
+
+  if (count) {
+    for (const int vert : verts_mask.index_range()) {
+      if (verts_mask[vert] && hide_vert[vert]) {
+        verts_mask[vert].reset();
+        count--;
+      }
+    }
+  }
+
+  *r_elem_active_len = count;
+
+  return verts_mask;
+}
+
+static BitVector<> loose_edges_no_hidden_mask_get(const Mesh &mesh, int *r_elem_active_len)
+{
+  using namespace blender;
+  using namespace blender::bke;
+
+  int count = mesh.edges_num;
+  BitVector<> edge_mask(count, true);
+
+  const AttributeAccessor attributes = mesh.attributes();
+  const OffsetIndices faces = mesh.faces();
+  const Span<int> corner_edges = mesh.corner_edges();
+  const VArray<bool> hide_poly = *attributes.lookup_or_default(
+      ".hide_poly", AttrDomain::Face, false);
+  const VArray<bool> hide_edge = *attributes.lookup_or_default(
+      ".hide_edge", AttrDomain::Edge, false);
+
+  for (const int i : faces.index_range()) {
+    if (hide_poly[i]) {
+      continue;
+    }
+    for (const int edge : corner_edges.slice(faces[i])) {
+      if (edge_mask[edge]) {
+        edge_mask[edge].reset();
+        count--;
+      }
+    }
+  }
+
+  if (count) {
+    for (const int edge : edge_mask.index_range()) {
+      if (edge_mask[edge] && hide_edge[edge]) {
+        edge_mask[edge].reset();
+        count--;
+      }
+    }
+  }
+
+  *r_elem_active_len = count;
+
+  return edge_mask;
+}
+
 static BitVector<> corner_tris_no_hidden_map_get(const blender::OffsetIndices<int> faces,
                                                  const VArray<bool> &hide_poly,
                                                  const int corner_tris_len,
@@ -860,6 +944,13 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
           0.0f, tree_type, 6, positions, loose_verts.is_loose_bits, loose_verts.count);
       break;
     }
+    case BVHTREE_FROM_LOOSEVERTS_NO_HIDDEN: {
+      int mask_bits_act_len = -1;
+      const BitVector<> mask = loose_verts_no_hidden_mask_get(*mesh, &mask_bits_act_len);
+      data->tree = bvhtree_from_mesh_verts_create_tree(
+          0.0f, tree_type, 6, positions, mask, mask_bits_act_len);
+      break;
+    }
     case BVHTREE_FROM_VERTS: {
       data->tree = bvhtree_from_mesh_verts_create_tree(0.0f, tree_type, 6, positions, {}, -1);
       break;
@@ -868,6 +959,13 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
       const LooseEdgeCache &loose_edges = mesh->loose_edges();
       data->tree = bvhtree_from_mesh_edges_create_tree(
           positions, edges, loose_edges.is_loose_bits, loose_edges.count, 0.0f, tree_type, 6);
+      break;
+    }
+    case BVHTREE_FROM_LOOSEEDGES_NO_HIDDEN: {
+      int mask_bits_act_len = -1;
+      const BitVector<> mask = loose_edges_no_hidden_mask_get(*mesh, &mask_bits_act_len);
+      data->tree = bvhtree_from_mesh_edges_create_tree(
+          positions, edges, mask, mask_bits_act_len, 0.0f, tree_type, 6);
       break;
     }
     case BVHTREE_FROM_EDGES: {

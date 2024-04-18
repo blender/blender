@@ -55,6 +55,12 @@ enum BVHCacheType {
   BVHTREE_FROM_LOOSEVERTS,
   BVHTREE_FROM_LOOSEEDGES,
 
+  /* These types consider geometry visibility when getting loose elements.
+   * NOTE: If the element is linked to a face or edge that is hidden, but the element itself is not
+   * hidden, it is considered a loose element. */
+  BVHTREE_FROM_LOOSEVERTS_NO_HIDDEN,
+  BVHTREE_FROM_LOOSEEDGES_NO_HIDDEN,
+
   /* Keep `BVHTREE_MAX_ITEM` as last item. */
   BVHTREE_MAX_ITEM,
 };
