@@ -183,6 +183,31 @@ bool BPY_run_string_as_string(struct bContext *C,
                               struct BPy_RunErrInfo *err_info,
                               char **r_value) ATTR_NONNULL(1, 3, 5);
 
+/**
+ * Evaluate `expr` as a string or None.
+ * Where a success return value with `*r_value == nullptr` indicates a value of None.
+ *
+ * \param C: See \ref common_args.
+ * \param imports: See \ref common_args.
+ * \param expr: The expression to evaluate.
+ * \param err_info: See \ref common_args.
+ * \param r_value: The resulting value.
+ * \return Success.
+ */
+bool BPY_run_string_as_string_and_len_or_none(struct bContext *C,
+                                              const char *imports[],
+                                              const char *expr,
+                                              struct BPy_RunErrInfo *err_info,
+                                              char **r_value,
+                                              size_t *r_value_len) ATTR_NONNULL(1, 3, 5, 6);
+
+/** See #BPY_run_string_as_string_and_len */
+bool BPY_run_string_as_string_or_none(struct bContext *C,
+                                      const char *imports[],
+                                      const char *expr,
+                                      struct BPy_RunErrInfo *err_info,
+                                      char **r_value) ATTR_NONNULL(1, 3, 5);
+
 /** \} */
 
 #ifdef __cplusplus
