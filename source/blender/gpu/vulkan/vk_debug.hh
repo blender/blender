@@ -14,7 +14,6 @@
 
 #include "vk_common.hh"
 
-#include <mutex>
 #include <typeindex>
 
 namespace blender::gpu {
@@ -46,17 +45,12 @@ class VKDebuggingTools {
   ~VKDebuggingTools();
   void init(VkInstance vk_instance);
   void deinit(VkInstance vk_instance);
-  bool is_ignore(int32_t id_number);
   VkResult init_messenger(VkInstance vk_instance);
   void destroy_messenger(VkInstance vk_instance);
   void print_labels(const VkDebugUtilsMessengerCallbackDataEXT *callback_data);
 
  private:
   VkDebugUtilsMessengerEXT vk_debug_utils_messenger = nullptr;
-  Set<int32_t> vk_message_id_number_ignored;
-  std::mutex ignore_mutex;
-  void add_group(int32_t id_number);
-  void remove_group(int32_t id_number);
 };
 
 void object_label(VkObjectType vk_object_type, uint64_t object_handle, const char *name);
