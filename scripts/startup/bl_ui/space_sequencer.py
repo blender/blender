@@ -459,10 +459,6 @@ class SEQUENCER_MT_view(Menu):
                 layout.menu("SEQUENCER_MT_preview_zoom")
             layout.prop(st, "use_zoom_to_fit")
 
-            if st.display_mode == 'WAVEFORM':
-                layout.separator()
-                layout.prop(st, "show_separate_color", text="Show Separate Color Channels")
-
             layout.separator()
             layout.menu("SEQUENCER_MT_proxy")
             layout.operator_context = 'INVOKE_DEFAULT'
@@ -2469,9 +2465,6 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
 
         if st.display_mode == 'IMAGE':
             col.prop(st, "show_overexposed")
-
-        elif st.display_mode == 'WAVEFORM':
-            col.prop(st, "show_separate_color")
 
 
 class SEQUENCER_PT_view_cursor(SequencerButtonsPanel_Output, Panel):
