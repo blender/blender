@@ -56,8 +56,8 @@ class VKContext : public Context, NonCopyable {
   bool debug_capture_scope_begin(void *scope) override;
   void debug_capture_scope_end(void *scope) override;
 
-  void debug_unbind_all_ubo() override{};
-  void debug_unbind_all_ssbo() override{};
+  void debug_unbind_all_ubo() override;
+  void debug_unbind_all_ssbo() override;
 
   bool has_active_framebuffer() const;
   void activate_framebuffer(VKFrameBuffer &framebuffer);

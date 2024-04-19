@@ -101,6 +101,11 @@ void VKStateManager::uniform_buffer_unbind(VKUniformBuffer *uniform_buffer)
   uniform_buffers_.unbind(*uniform_buffer);
 }
 
+void VKStateManager::uniform_buffer_unbind_all()
+{
+  uniform_buffers_.unbind_all();
+}
+
 void VKStateManager::unbind_from_all_namespaces(VKBindableResource &resource)
 {
   uniform_buffers_.unbind(resource);
@@ -127,6 +132,11 @@ void VKStateManager::storage_buffer_bind(VKBindableResource &resource, int slot)
 void VKStateManager::storage_buffer_unbind(VKBindableResource &resource)
 {
   storage_buffers_.unbind(resource);
+}
+
+void VKStateManager::storage_buffer_unbind_all()
+{
+  storage_buffers_.unbind_all();
 }
 
 void VKStateManager::texture_unpack_row_length_set(uint len)
