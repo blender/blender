@@ -433,8 +433,8 @@ OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
   const bool has_varying_data = false;
   const int num_face_varying_channels = refiner->GetNumFVarChannels();
   const bool has_face_varying_data = (num_face_varying_channels != 0);
-  const int level = topology_refiner->getSubdivisionLevel(topology_refiner);
-  const bool is_adaptive = topology_refiner->getIsAdaptive(topology_refiner);
+  const int level = topology_refiner->getSubdivisionLevel();
+  const bool is_adaptive = topology_refiner->getIsAdaptive();
   // Common settings for stencils and patches.
   const bool stencil_generate_intermediate_levels = is_adaptive;
   const bool stencil_generate_offsets = true;

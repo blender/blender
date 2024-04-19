@@ -15,7 +15,7 @@ struct Mesh;
 struct MultiresModifierData;
 struct OpenSubdiv_Converter;
 struct OpenSubdiv_Evaluator;
-struct OpenSubdiv_TopologyRefiner;
+class OpenSubdiv_TopologyRefiner;
 
 namespace blender::bke::subdiv {
 

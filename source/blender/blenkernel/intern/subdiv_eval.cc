@@ -76,6 +76,8 @@ bool eval_begin(Subdiv *subdiv,
   return true;
 }
 
+#ifdef WITH_OPENSUBDIV
+
 static void set_coarse_positions(Subdiv *subdiv,
                                  const Span<float3> positions,
                                  const bke::LooseVertCache &verts_no_face)
@@ -124,9 +126,8 @@ static void set_face_varying_data_from_uv_task(void *__restrict userdata,
   /* TODO(sergey): OpenSubdiv's C-API converter can change winding of
    * loops of a face, need to watch for that, to prevent wrong UVs assigned.
    */
-  const int num_face_vertices = topology_refiner->getNumFaceVertices(topology_refiner, face_index);
-  const int *uv_indices = topology_refiner->getFaceFVarValueIndices(
-      topology_refiner, face_index, layer_index);
+  const int num_face_vertices = topology_refiner->getNumFaceVertices(face_index);
+  const int *uv_indices = topology_refiner->getFaceFVarValueIndices(face_index, layer_index);
   for (int vertex_index = 0; vertex_index < num_face_vertices; vertex_index++, mluv++) {
     copy_v2_v2(ctx->buffer[uv_indices[vertex_index]], *mluv);
   }
@@ -139,10 +140,10 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
 {
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
   OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
-  const int num_faces = topology_refiner->getNumFaces(topology_refiner);
+  const int num_faces = topology_refiner->getNumFaces();
   const float(*mluv)[2] = mloopuv;
 
-  const int num_fvar_values = topology_refiner->getNumFVarValues(topology_refiner, layer_index);
+  const int num_fvar_values = topology_refiner->getNumFVarValues(layer_index);
   /* Use a temporary buffer so we do not upload UVs one at a time to the GPU. */
   float(*buffer)[2] = static_cast<float(*)[2]>(
       MEM_mallocN(sizeof(float[2]) * num_fvar_values, __func__));
@@ -175,9 +176,9 @@ static void set_vertex_data_from_orco(Subdiv *subdiv, const Mesh *mesh)
       CustomData_get_layer(&mesh->vert_data, CD_CLOTH_ORCO));
 
   if (orco || cloth_orco) {
-    OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+    const OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
     OpenSubdiv_Evaluator *evaluator = subdiv->evaluator;
-    const int num_verts = topology_refiner->getNumVertices(topology_refiner);
+    const int num_verts = topology_refiner->getNumVertices();
 
     if (orco && cloth_orco) {
       /* Set one by one if have both. */
@@ -206,22 +207,30 @@ static void get_mesh_evaluator_settings(OpenSubdiv_EvaluatorSettings *settings, 
                               (CustomData_has_layer(&mesh->vert_data, CD_CLOTH_ORCO) ? 3 : 0);
 }
 
+#endif
+
 bool eval_begin_from_mesh(Subdiv *subdiv,
                           const Mesh *mesh,
                           const float (*coarse_vertex_cos)[3],
                           eSubdivEvaluatorType evaluator_type,
                           OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
+#ifdef WITH_OPENSUBDIV
   OpenSubdiv_EvaluatorSettings settings = {0};
   get_mesh_evaluator_settings(&settings, mesh);
   if (!eval_begin(subdiv, evaluator_type, evaluator_cache, &settings)) {
     return false;
   }
   return eval_refine_from_mesh(subdiv, mesh, coarse_vertex_cos);
+#else
+  UNUSED_VARS(subdiv, mesh, coarse_vertex_cos, evaluator_type, evaluator_cache);
+  return false;
+#endif
 }
 
 bool eval_refine_from_mesh(Subdiv *subdiv, const Mesh *mesh, const float (*coarse_vertex_cos)[3])
 {
+#ifdef WITH_OPENSUBDIV
   if (subdiv->evaluator == nullptr) {
     /* NOTE: This situation is supposed to be handled by begin(). */
     BLI_assert_msg(0, "Is not supposed to happen");
@@ -249,6 +258,10 @@ bool eval_refine_from_mesh(Subdiv *subdiv, const Mesh *mesh, const float (*coars
   subdiv->evaluator->refine(subdiv->evaluator);
   stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
   return true;
+#else
+  UNUSED_VARS(subdiv, mesh, coarse_vertex_cos);
+  return false;
+#endif
 }
 
 void eval_init_displacement(Subdiv *subdiv)

@@ -205,24 +205,29 @@ void free(Subdiv *subdiv)
 
 int *face_ptex_offset_get(Subdiv *subdiv)
 {
+#ifdef WITH_OPENSUBDIV
   if (subdiv->cache_.face_ptex_offset != nullptr) {
     return subdiv->cache_.face_ptex_offset;
   }
-  OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+  const OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
   if (topology_refiner == nullptr) {
     return nullptr;
   }
-  const int num_coarse_faces = topology_refiner->getNumFaces(topology_refiner);
+  const int num_coarse_faces = topology_refiner->getNumFaces();
   subdiv->cache_.face_ptex_offset = static_cast<int *>(
       MEM_malloc_arrayN(num_coarse_faces + 1, sizeof(int), __func__));
   int ptex_offset = 0;
   for (int face_index = 0; face_index < num_coarse_faces; face_index++) {
-    const int num_ptex_faces = topology_refiner->getNumFacePtexFaces(topology_refiner, face_index);
+    const int num_ptex_faces = topology_refiner->getNumFacePtexFaces(face_index);
     subdiv->cache_.face_ptex_offset[face_index] = ptex_offset;
     ptex_offset += num_ptex_faces;
   }
   subdiv->cache_.face_ptex_offset[num_coarse_faces] = ptex_offset;
   return subdiv->cache_.face_ptex_offset;
+#else
+  UNUSED_VARS(subdiv);
+  return nullptr;
+#endif
 }
 
 }  // namespace blender::bke::subdiv
