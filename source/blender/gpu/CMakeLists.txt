@@ -846,7 +846,7 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
   unset(_manifest)
   setup_platform_linker_flags(shader_builder)
 
-  if (WITH_BUILD_INFO)
+  if(WITH_BUILD_INFO)
     target_link_libraries(shader_builder PRIVATE buildinfoobj)
   endif()
   target_link_libraries(shader_builder PRIVATE
@@ -922,7 +922,7 @@ if(WITH_GTESTS)
     )
   endif()
 
-  if (TEST_SRC)
+  if(TEST_SRC)
     set(TEST_COMMON_SRC
       tests/gpu_testing.cc
       tests/gpu_testing.hh

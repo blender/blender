@@ -689,7 +689,7 @@ if(WITH_BOOST)
     # This is file new in 3.4 if it does not exist, assume we are building against 3.3 libs
     # Note, as ARM64 was introduced in 4.x, this check is not needed
     set(BOOST_34_TRIGGER_FILE ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python${_PYTHON_VERSION_NO_DOTS}-${BOOST_DEBUG_POSTFIX}.lib)
-    if (NOT EXISTS ${BOOST_34_TRIGGER_FILE})
+    if(NOT EXISTS ${BOOST_34_TRIGGER_FILE})
       set(BOOST_DEBUG_POSTFIX "vc142-mt-gd-x64-${BOOST_VERSION}")
       set(BOOST_PREFIX "lib")
     endif()

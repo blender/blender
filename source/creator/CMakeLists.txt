@@ -610,7 +610,8 @@ if(WIN32)
         ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_cpu.dll
     )
   endif()
-  if(EXISTS ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_sycl.dll) # Platforms that have SyCL support
+  # Platforms that have SyCL support.
+  if(EXISTS ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_sycl.dll)
     windows_install_shared_manifest(
       FILES
         ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_sycl.dll
