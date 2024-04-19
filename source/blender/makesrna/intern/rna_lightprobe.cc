@@ -160,6 +160,18 @@ static void rna_def_lightprobe(BlenderRNA *brna)
       prop, "Resolution Z", "Number of samples along the z axis of the volume");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
+  /* NOTE: We reuse the same DNA for this property for historical reason, but we want a different
+   * name and tooltip for it. */
+  prop = RNA_def_property(srna, "grid_capture_distance", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, nullptr, "clipend");
+  RNA_def_property_range(prop, 1e-6f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 1);
+  RNA_def_property_ui_text(prop,
+                           "Capture Distance",
+                           "Distance around the probe volume that will be considered "
+                           "during the bake");
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
+
   prop = RNA_def_property(srna, "grid_normal_bias", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_ui_text(prop,
                            "Normal Bias",
@@ -192,14 +204,16 @@ static void rna_def_lightprobe(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
   prop = RNA_def_property(srna, "grid_surface_bias", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_ui_text(prop,
-                           "Capture Surface Bias",
-                           "Moves capture points position away from surfaces to avoid artifacts");
+  RNA_def_property_ui_text(
+      prop, "Surface Offset", "Moves capture points away from surfaces to prevent artifacts");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
   prop = RNA_def_property(srna, "grid_escape_bias", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_ui_text(prop, "Capture Escape Bias", "Moves capture points outside objects");
+  RNA_def_property_ui_text(prop,
+                           "Search Distance",
+                           "Distance to search for valid capture positions to prevent "
+                           "lighting artifacts");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
@@ -242,7 +256,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Capture World",
-      "Bake incoming light from the world, instead of just the visibility, "
+      "Bake incoming light from the world instead of just the visibility "
       "for more accurate lighting, but lose correct blending to surrounding irradiance volumes");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, nullptr);
 

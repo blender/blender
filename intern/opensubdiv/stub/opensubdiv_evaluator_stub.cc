@@ -9,7 +9,7 @@
 #include <cstddef>
 
 OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
-    struct OpenSubdiv_TopologyRefiner * /*topology_refiner*/,
+    OpenSubdiv_TopologyRefiner * /*topology_refiner*/,
     eOpenSubdivEvaluator /*evaluator_type*/,
     OpenSubdiv_EvaluatorCache * /*evaluator_cache*/)
 {

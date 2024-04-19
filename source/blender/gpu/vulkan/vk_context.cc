@@ -21,7 +21,10 @@
 
 namespace blender::gpu {
 
-VKContext::VKContext(void *ghost_window, void *ghost_context)
+VKContext::VKContext(void *ghost_window,
+                     void *ghost_context,
+                     render_graph::VKResourceStateTracker &resources)
+    : render_graph(std::make_unique<render_graph::VKCommandBufferWrapper>(), resources)
 {
   ghost_window_ = ghost_window;
   ghost_context_ = ghost_context;
@@ -144,6 +147,16 @@ VKStateManager &VKContext::state_manager_get() const
 {
   return *static_cast<VKStateManager *>(state_manager);
 }
+
+void VKContext::debug_unbind_all_ubo()
+{
+  state_manager_get().uniform_buffer_unbind_all();
+};
+
+void VKContext::debug_unbind_all_ssbo()
+{
+  state_manager_get().storage_buffer_unbind_all();
+};
 
 /** \} */
 

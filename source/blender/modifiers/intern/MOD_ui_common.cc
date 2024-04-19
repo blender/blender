@@ -209,7 +209,6 @@ static bool modifier_can_delete(ModifierData *md)
 static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
 {
   PointerRNA op_ptr;
-  uiLayout *row;
   ModifierData *md = (ModifierData *)md_v;
 
   Object *ob = blender::ed::object::context_active_object(C);
@@ -265,8 +264,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   uiItemS(layout);
 
   /* Move to first. */
-  row = uiLayoutColumn(layout, false);
-  uiItemFullO(row,
+  uiItemFullO(layout,
               "OBJECT_OT_modifier_move_to_index",
               IFACE_("Move to First"),
               ICON_TRIA_UP,
@@ -275,13 +273,9 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
               UI_ITEM_NONE,
               &op_ptr);
   RNA_int_set(&op_ptr, "index", 0);
-  if (!md->prev) {
-    uiLayoutSetEnabled(row, false);
-  }
 
   /* Move to last. */
-  row = uiLayoutColumn(layout, false);
-  uiItemFullO(row,
+  uiItemFullO(layout,
               "OBJECT_OT_modifier_move_to_index",
               IFACE_("Move to Last"),
               ICON_TRIA_DOWN,
@@ -290,9 +284,6 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
               UI_ITEM_NONE,
               &op_ptr);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->modifiers) - 1);
-  if (!md->next) {
-    uiLayoutSetEnabled(row, false);
-  }
 
   if (md->type == eModifierType_Nodes) {
     uiItemS(layout);

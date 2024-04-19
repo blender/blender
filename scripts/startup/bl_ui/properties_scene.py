@@ -413,6 +413,33 @@ class SCENE_PT_rigid_body_field_weights(RigidBodySubPanel, Panel):
         effector_weights_ui(self, rbw.effector_weights, 'RIGID_BODY')
 
 
+class SCENE_PT_eevee_next_light_probes(SceneButtonsPanel, Panel):
+    bl_label = "Light Probes"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+        props = scene.eevee
+
+        col = layout.column()
+
+        # TODO(fclem): Move to probe
+        col.prop(props, "gi_cubemap_resolution", text="Spheres Resolution")
+
+        row = col.row(align=True)
+        row.operator("object.lightprobe_cache_bake", text="Bake All Light Probe Volumes").subset = 'ALL'
+        row.operator("object.lightprobe_cache_free", text="", icon='TRASH').subset = 'ALL'
+
+
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
     _context_path = "scene"
     _property_type = bpy.types.Scene
@@ -432,6 +459,7 @@ classes = (
     SCENE_PT_rigid_body_world_settings,
     SCENE_PT_rigid_body_cache,
     SCENE_PT_rigid_body_field_weights,
+    SCENE_PT_eevee_next_light_probes,
     SCENE_PT_custom_props,
 )
 

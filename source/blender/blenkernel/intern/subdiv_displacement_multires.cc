@@ -25,6 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender::bke::subdiv {
+
 struct PolyCornerIndex {
   int face_index;
   int corner;
@@ -36,7 +38,7 @@ struct MultiresDisplacementData {
   /* Mesh is used to read external displacement. */
   Mesh *mesh;
   const MultiresModifierData *mmd;
-  blender::OffsetIndices<int> faces;
+  OffsetIndices<int> faces;
   const MDisps *mdisps;
   /* Indexed by PTEX face index, contains face/corner which corresponds
    * to it.
@@ -61,7 +63,7 @@ enum eAverageWith {
   AVERAGE_WITH_NEXT,
 };
 
-static int displacement_get_grid_and_coord(SubdivDisplacement *displacement,
+static int displacement_get_grid_and_coord(Displacement *displacement,
                                            const int ptex_face_index,
                                            const float u,
                                            const float v,
@@ -72,23 +74,23 @@ static int displacement_get_grid_and_coord(SubdivDisplacement *displacement,
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
   const PolyCornerIndex *face_corner = &data->ptex_face_corner[ptex_face_index];
-  const blender::IndexRange face = data->faces[face_corner->face_index];
+  const IndexRange face = data->faces[face_corner->face_index];
   const int start_grid_index = face.start() + face_corner->corner;
   int corner = 0;
   if (face.size() == 4) {
     float corner_u, corner_v;
-    corner = BKE_subdiv_rotate_quad_to_corner(u, v, &corner_u, &corner_v);
+    corner = rotate_quad_to_corner(u, v, &corner_u, &corner_v);
     *r_displacement_grid = &data->mdisps[start_grid_index + corner];
-    BKE_subdiv_ptex_face_uv_to_grid_uv(corner_u, corner_v, grid_u, grid_v);
+    ptex_face_uv_to_grid_uv(corner_u, corner_v, grid_u, grid_v);
   }
   else {
     *r_displacement_grid = &data->mdisps[start_grid_index];
-    BKE_subdiv_ptex_face_uv_to_grid_uv(u, v, grid_u, grid_v);
+    ptex_face_uv_to_grid_uv(u, v, grid_u, grid_v);
   }
   return corner;
 }
 
-static const MDisps *displacement_get_other_grid(SubdivDisplacement *displacement,
+static const MDisps *displacement_get_other_grid(Displacement *displacement,
                                                  const int ptex_face_index,
                                                  const int corner,
                                                  const int corner_delta)
@@ -96,7 +98,7 @@ static const MDisps *displacement_get_other_grid(SubdivDisplacement *displacemen
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
   const PolyCornerIndex *face_corner = &data->ptex_face_corner[ptex_face_index];
-  const blender::IndexRange face = data->faces[face_corner->face_index];
+  const IndexRange face = data->faces[face_corner->face_index];
   const int effective_corner = (face.size() == 4) ? corner : face_corner->corner;
   const int next_corner = (effective_corner + corner_delta + face.size()) % face.size();
   return &data->mdisps[face[next_corner]];
@@ -135,10 +137,10 @@ static void average_convert_grid_coord_to_ptex(const int num_corners,
                                                float *r_ptex_face_v)
 {
   if (num_corners == 4) {
-    BKE_subdiv_rotate_grid_to_quad(corner, grid_u, grid_v, r_ptex_face_u, r_ptex_face_v);
+    rotate_grid_to_quad(corner, grid_u, grid_v, r_ptex_face_u, r_ptex_face_v);
   }
   else {
-    BKE_subdiv_grid_uv_to_ptex_face_uv(grid_u, grid_v, r_ptex_face_u, r_ptex_face_v);
+    grid_uv_to_ptex_face_uv(grid_u, grid_v, r_ptex_face_u, r_ptex_face_v);
   }
 }
 
@@ -153,7 +155,7 @@ static void average_construct_tangent_matrix(Subdiv *subdiv,
   const bool is_quad = num_corners == 4;
   const int quad_corner = is_quad ? corner : 0;
   float dummy_P[3], dPdu[3], dPdv[3];
-  BKE_subdiv_eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, dummy_P, dPdu, dPdv);
+  eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, dummy_P, dPdu, dPdv);
   BKE_multires_construct_tangent_matrix(r_tangent_matrix, dPdu, dPdv, quad_corner);
 }
 
@@ -210,7 +212,7 @@ static void average_get_other_ptex_and_corner(MultiresDisplacementData *data,
 }
 
 /* NOTE: Grid coordinates are relative to the other grid already. */
-static void average_with_other(SubdivDisplacement *displacement,
+static void average_with_other(Displacement *displacement,
                                const int ptex_face_index,
                                const int corner,
                                const float grid_u,
@@ -239,7 +241,7 @@ static void average_with_other(SubdivDisplacement *displacement,
   mul_v3_fl(r_D, 0.5f);
 }
 
-static void average_with_all(SubdivDisplacement *displacement,
+static void average_with_all(Displacement *displacement,
                              const int ptex_face_index,
                              const int corner,
                              const float /*grid_u*/,
@@ -255,7 +257,7 @@ static void average_with_all(SubdivDisplacement *displacement,
   }
 }
 
-static void average_with_next(SubdivDisplacement *displacement,
+static void average_with_next(Displacement *displacement,
                               const int ptex_face_index,
                               const int corner,
                               const float grid_u,
@@ -265,7 +267,7 @@ static void average_with_next(SubdivDisplacement *displacement,
   average_with_other(displacement, ptex_face_index, corner, 0.0f, grid_u, 1, r_D);
 }
 
-static void average_with_prev(SubdivDisplacement *displacement,
+static void average_with_prev(Displacement *displacement,
                               const int ptex_face_index,
                               const int corner,
                               const float /*grid_u*/,
@@ -275,7 +277,7 @@ static void average_with_prev(SubdivDisplacement *displacement,
   average_with_other(displacement, ptex_face_index, corner, grid_v, 0.0f, -1, r_D);
 }
 
-static void average_displacement(SubdivDisplacement *displacement,
+static void average_displacement(Displacement *displacement,
                                  eAverageWith average_with,
                                  const int ptex_face_index,
                                  const int corner,
@@ -308,13 +310,13 @@ static int displacement_get_face_corner(MultiresDisplacementData *data,
   const bool is_quad = (num_corners == 4);
   if (is_quad) {
     float dummy_corner_u, dummy_corner_v;
-    return BKE_subdiv_rotate_quad_to_corner(u, v, &dummy_corner_u, &dummy_corner_v);
+    return rotate_quad_to_corner(u, v, &dummy_corner_u, &dummy_corner_v);
   }
 
   return face_corner->corner;
 }
 
-static void initialize(SubdivDisplacement *displacement)
+static void initialize(Displacement *displacement)
 {
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
@@ -322,7 +324,7 @@ static void initialize(SubdivDisplacement *displacement)
   data->is_initialized = true;
 }
 
-static void eval_displacement(SubdivDisplacement *displacement,
+static void eval_displacement(Displacement *displacement,
                               const int ptex_face_index,
                               const float u,
                               const float v,
@@ -353,7 +355,7 @@ static void eval_displacement(SubdivDisplacement *displacement,
   average_displacement(displacement, average_with, ptex_face_index, corner, grid_u, grid_v, r_D);
 }
 
-static void free_displacement(SubdivDisplacement *displacement)
+static void free_displacement(Displacement *displacement)
 {
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
@@ -366,18 +368,18 @@ static void free_displacement(SubdivDisplacement *displacement)
 static int count_num_ptex_faces(const Mesh *mesh)
 {
   int num_ptex_faces = 0;
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   for (int face_index = 0; face_index < mesh->faces_num; face_index++) {
     num_ptex_faces += (faces[face_index].size() == 4) ? 1 : faces[face_index].size();
   }
   return num_ptex_faces;
 }
 
-static void displacement_data_init_mapping(SubdivDisplacement *displacement, const Mesh *mesh)
+static void displacement_data_init_mapping(Displacement *displacement, const Mesh *mesh)
 {
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
-  const blender::OffsetIndices faces = mesh->faces();
+  const OffsetIndices faces = mesh->faces();
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
   data->ptex_face_corner = static_cast<PolyCornerIndex *>(
@@ -386,7 +388,7 @@ static void displacement_data_init_mapping(SubdivDisplacement *displacement, con
   int ptex_face_index = 0;
   PolyCornerIndex *ptex_face_corner = data->ptex_face_corner;
   for (int face_index = 0; face_index < mesh->faces_num; face_index++) {
-    const blender::IndexRange face = faces[face_index];
+    const IndexRange face = faces[face_index];
     if (face.size() == 4) {
       ptex_face_corner[ptex_face_index].face_index = face_index;
       ptex_face_corner[ptex_face_index].corner = 0;
@@ -402,7 +404,7 @@ static void displacement_data_init_mapping(SubdivDisplacement *displacement, con
   }
 }
 
-static void displacement_init_data(SubdivDisplacement *displacement,
+static void displacement_init_data(Displacement *displacement,
                                    Subdiv *subdiv,
                                    Mesh *mesh,
                                    const MultiresModifierData *mmd)
@@ -410,36 +412,34 @@ static void displacement_init_data(SubdivDisplacement *displacement,
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
   data->subdiv = subdiv;
-  data->grid_size = BKE_subdiv_grid_size_from_level(mmd->totlvl);
+  data->grid_size = grid_size_from_level(mmd->totlvl);
   data->mesh = mesh;
   data->mmd = mmd;
   data->faces = mesh->faces();
   data->mdisps = static_cast<const MDisps *>(CustomData_get_layer(&mesh->corner_data, CD_MDISPS));
-  data->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
+  data->face_ptex_offset = face_ptex_offset_get(subdiv);
   data->is_initialized = false;
   displacement_data_init_mapping(displacement, mesh);
 }
 
-static void displacement_init_functions(SubdivDisplacement *displacement)
+static void displacement_init_functions(Displacement *displacement)
 {
   displacement->initialize = initialize;
   displacement->eval_displacement = eval_displacement;
   displacement->free = free_displacement;
 }
 
-void BKE_subdiv_displacement_attach_from_multires(Subdiv *subdiv,
-                                                  Mesh *mesh,
-                                                  const MultiresModifierData *mmd)
+void displacement_attach_from_multires(Subdiv *subdiv, Mesh *mesh, const MultiresModifierData *mmd)
 {
   /* Make sure we don't have previously assigned displacement. */
-  BKE_subdiv_displacement_detach(subdiv);
+  displacement_detach(subdiv);
   /* It is possible to have mesh without CD_MDISPS layer. Happens when using
    * dynamic topology. */
   if (!CustomData_has_layer(&mesh->corner_data, CD_MDISPS)) {
     return;
   }
   /* Allocate all required memory. */
-  SubdivDisplacement *displacement = MEM_cnew<SubdivDisplacement>("multires displacement");
+  Displacement *displacement = MEM_cnew<Displacement>("multires displacement");
   displacement->user_data = MEM_callocN(sizeof(MultiresDisplacementData),
                                         "multires displacement data");
   displacement_init_data(displacement, subdiv, mesh, mmd);
@@ -447,3 +447,5 @@ void BKE_subdiv_displacement_attach_from_multires(Subdiv *subdiv,
   /* Finish. */
   subdiv->displacement_evaluator = displacement;
 }
+
+}  // namespace blender::bke::subdiv

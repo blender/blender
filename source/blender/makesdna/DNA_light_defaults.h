@@ -40,6 +40,7 @@
     .contact_thickness = 0.2f, \
     .diff_fac = 1.0f, \
     .spec_fac = 1.0f, \
+    .transmission_fac = 1.0f, \
     .volume_fac = 1.0f, \
     .shadow_softness_factor = 1.0f, \
     .shadow_trace_distance = 10.0f, \

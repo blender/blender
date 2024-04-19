@@ -30,23 +30,39 @@ VKStagingBuffer::VKStagingBuffer(const VKBuffer &device_buffer, Direction direct
 void VKStagingBuffer::copy_to_device(VKContext &context)
 {
   BLI_assert(host_buffer_.is_allocated() && host_buffer_.is_mapped());
-  VkBufferCopy buffer_copy = {};
-  buffer_copy.size = device_buffer_.size_in_bytes();
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.copy(
-      device_buffer_, host_buffer_.vk_handle(), Span<VkBufferCopy>(&buffer_copy, 1));
-  command_buffers.submit();
+  render_graph::VKCopyBufferNode::CreateInfo copy_buffer = {};
+  copy_buffer.src_buffer = host_buffer_.vk_handle();
+  copy_buffer.dst_buffer = device_buffer_.vk_handle();
+  copy_buffer.region.size = device_buffer_.size_in_bytes();
+
+  if (use_render_graph) {
+    context.render_graph.add_node(copy_buffer);
+  }
+  else {
+    VKCommandBuffers &command_buffers = context.command_buffers_get();
+    command_buffers.copy(
+        device_buffer_, copy_buffer.src_buffer, Span<VkBufferCopy>(&copy_buffer.region, 1));
+    command_buffers.submit();
+  }
 }
 
 void VKStagingBuffer::copy_from_device(VKContext &context)
 {
   BLI_assert(host_buffer_.is_allocated() && host_buffer_.is_mapped());
-  VkBufferCopy buffer_copy = {};
-  buffer_copy.size = device_buffer_.size_in_bytes();
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.copy(
-      host_buffer_, device_buffer_.vk_handle(), Span<VkBufferCopy>(&buffer_copy, 1));
-  command_buffers.submit();
+  render_graph::VKCopyBufferNode::CreateInfo copy_buffer = {};
+  copy_buffer.src_buffer = device_buffer_.vk_handle();
+  copy_buffer.dst_buffer = host_buffer_.vk_handle();
+  copy_buffer.region.size = device_buffer_.size_in_bytes();
+
+  if (use_render_graph) {
+    context.render_graph.add_node(copy_buffer);
+  }
+  else {
+    VKCommandBuffers &command_buffers = context.command_buffers_get();
+    command_buffers.copy(
+        host_buffer_, copy_buffer.src_buffer, Span<VkBufferCopy>(&copy_buffer.region, 1));
+    command_buffers.submit();
+  }
 }
 
 void VKStagingBuffer::free()

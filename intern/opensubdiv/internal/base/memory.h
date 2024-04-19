@@ -7,10 +7,8 @@
 
 #include "MEM_guardedalloc.h"
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv
 
 #endif  // OPENSUBDIV_BASE_MEMORY_H_

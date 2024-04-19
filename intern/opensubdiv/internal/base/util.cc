@@ -4,8 +4,7 @@
 
 #include "internal/base/util.h"
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 void stringSplit(std::vector<std::string> *tokens,
                  const std::string &str,
@@ -39,5 +38,4 @@ void stringSplit(std::vector<std::string> *tokens,
   }
 }
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv

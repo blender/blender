@@ -489,6 +489,7 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL_EX(PhysicsSettings, Scene.physics_settings),
     SDNA_DEFAULT_DECL_EX(SceneDisplay, Scene.display),
     SDNA_DEFAULT_DECL_EX(SceneEEVEE, Scene.eevee),
+    SDNA_DEFAULT_DECL_EX(RaytraceEEVEE, Scene.eevee.ray_tracing_options),
 
     SDNA_DEFAULT_DECL(ToolSettings),
     SDNA_DEFAULT_DECL_EX(CurvePaintSettings, ToolSettings.curve_paint_settings),

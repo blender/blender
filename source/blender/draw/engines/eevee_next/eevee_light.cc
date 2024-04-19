@@ -70,11 +70,17 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
 
   shape_parameters_set(la, scale, threshold);
 
+  const bool diffuse_visibility = (ob->visibility_flag & OB_HIDE_DIFFUSE) == 0;
+  const bool glossy_visibility = (ob->visibility_flag & OB_HIDE_GLOSSY) == 0;
+  const bool transmission_visibility = (ob->visibility_flag & OB_HIDE_TRANSMISSION) == 0;
+  const bool volume_visibility = (ob->visibility_flag & OB_HIDE_VOLUME_SCATTER) == 0;
+
   float shape_power = shape_radiance_get();
   float point_power = point_radiance_get();
-  this->power[LIGHT_DIFFUSE] = la->diff_fac * shape_power;
-  this->power[LIGHT_SPECULAR] = la->spec_fac * shape_power;
-  this->power[LIGHT_VOLUME] = la->volume_fac * point_power;
+  this->power[LIGHT_DIFFUSE] = la->diff_fac * shape_power * diffuse_visibility;
+  this->power[LIGHT_SPECULAR] = la->spec_fac * shape_power * glossy_visibility;
+  this->power[LIGHT_TRANSMISSION] = la->transmission_fac * shape_power * transmission_visibility;
+  this->power[LIGHT_VOLUME] = la->volume_fac * point_power * volume_visibility;
 
   this->pcf_radius = la->shadow_filter_radius;
 

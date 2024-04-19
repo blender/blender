@@ -12,7 +12,7 @@ struct OpenSubdiv_EvaluatorCacheImpl;
 struct OpenSubdiv_EvaluatorImpl;
 struct OpenSubdiv_EvaluatorInternal;
 struct OpenSubdiv_PatchCoord;
-struct OpenSubdiv_TopologyRefiner;
+class OpenSubdiv_TopologyRefiner;
 
 struct OpenSubdiv_EvaluatorSettings {
   // Number of smoothly interpolated vertex data channels.

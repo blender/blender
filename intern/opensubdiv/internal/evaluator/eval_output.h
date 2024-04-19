@@ -23,8 +23,7 @@ using OpenSubdiv::Osd::CpuPatchTable;
 using OpenSubdiv::Osd::GLPatchTable;
 using OpenSubdiv::Osd::PatchCoord;
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 // Base class for the implementation of the evaluators.
 class EvalOutputAPI::EvalOutput {
@@ -114,8 +113,6 @@ class EvalOutputAPI::EvalOutput {
   }
 };
 
-namespace {
-
 // Buffer which implements API required by OpenSubdiv and uses an existing memory as an underlying
 // storage.
 template<typename T> class RawDataWrapperBuffer {
@@ -161,7 +158,6 @@ class ConstPatchCoordWrapperBuffer : public RawDataWrapperVertexBuffer<const Pat
   {
   }
 };
-}  // namespace
 
 // Discriminators used in FaceVaryingVolatileEval in order to detect whether we are using adaptive
 // patches as the CPU and OpenGL PatchTable have different APIs.
@@ -646,7 +642,6 @@ class VolatileEvalOutput : public EvalOutputAPI::EvalOutput {
   DEVICE_CONTEXT *device_context_;
 };
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv
 
 #endif  // OPENSUBDIV_EVAL_OUTPUT_H_

@@ -84,6 +84,7 @@ void FileOutputOperation::update_memory_buffer_partial(MemoryBuffer * /*output*/
     if (!input.output_buffer) {
       continue;
     }
+
     int channels_count = get_channels_count(input.data_type);
     MemoryBuffer output_buf(input.output_buffer, channels_count, get_width(), get_height());
     output_buf.copy_from(inputs[i], area, 0, inputs[i]->get_num_channels(), 0);
@@ -115,6 +116,8 @@ void FileOutputOperation::deinit_execution()
   const int2 size = int2(get_width(), get_height());
   if (size == int2(0)) {
     for (const FileOutputInput &input : file_output_inputs_) {
+      /* Ownership of outputs buffers are transfered to file outputs, so if we are not writing a
+       * file output, we need to free the output buffer here. */
       if (input.output_buffer) {
         MEM_freeN(input.output_buffer);
       }
@@ -138,8 +141,13 @@ void FileOutputOperation::execute_single_layer()
 {
   const int2 size = int2(get_width(), get_height());
   for (const FileOutputInput &input : file_output_inputs_) {
-    /* Unlinked input. */
-    if (!input.image_input) {
+    /* We only write images, not single values. */
+    if (!input.image_input || input.image_input->get_flags().is_constant_operation) {
+      /* Ownership of outputs buffers are transfered to file outputs, so if we are not writing a
+       * file output, we need to free the output buffer here. */
+      if (input.output_buffer) {
+        MEM_freeN(input.output_buffer);
+      }
       continue;
     }
 
@@ -226,8 +234,13 @@ void FileOutputOperation::execute_multi_layer()
   file_output.add_view(pass_view);
 
   for (const FileOutputInput &input : file_output_inputs_) {
-    /* Unlinked input. */
-    if (!input.image_input) {
+    /* We only write images, not single values. */
+    if (!input.image_input || input.image_input->get_flags().is_constant_operation) {
+      /* Ownership of outputs buffers are transfered to file outputs, so if we are not writing a
+       * file output, we need to free the output buffer here. */
+      if (input.output_buffer) {
+        MEM_freeN(input.output_buffer);
+      }
       continue;
     }
 

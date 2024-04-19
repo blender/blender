@@ -20,8 +20,7 @@
 
 #include "MEM_guardedalloc.h"
 
-using blender::IndexRange;
-using blender::int2;
+namespace blender::bke::subdiv {
 
 /* -------------------------------------------------------------------- */
 /** \name General helpers
@@ -64,15 +63,15 @@ BLI_INLINE int ptex_face_resolution_get(const IndexRange face, int resolution)
 /** \name Context which is passed to all threaded tasks
  * \{ */
 
-struct SubdivForeachTaskContext {
+struct ForeachTaskContext {
   const Mesh *coarse_mesh;
-  blender::Span<int2> coarse_edges;
-  blender::OffsetIndices<int> coarse_faces;
-  blender::Span<int> coarse_corner_verts;
-  blender::Span<int> coarse_corner_edges;
-  const SubdivToMeshSettings *settings;
+  Span<int2> coarse_edges;
+  OffsetIndices<int> coarse_faces;
+  Span<int> coarse_corner_verts;
+  Span<int> coarse_corner_edges;
+  const ToMeshSettings *settings;
   /* Callbacks. */
-  const SubdivForeachContext *foreach_context;
+  const ForeachContext *foreach_context;
   /* Counters of geometry in subdivided mesh, initialized as a part of
    * offsets calculation.
    */
@@ -117,9 +116,9 @@ struct SubdivForeachTaskContext {
 /** \name Threading helpers
  * \{ */
 
-static void *subdiv_foreach_tls_alloc(SubdivForeachTaskContext *ctx)
+static void *subdiv_foreach_tls_alloc(ForeachTaskContext *ctx)
 {
-  const SubdivForeachContext *foreach_context = ctx->foreach_context;
+  const ForeachContext *foreach_context = ctx->foreach_context;
   void *tls = nullptr;
   if (foreach_context->user_data_tls_size != 0) {
     tls = MEM_mallocN(foreach_context->user_data_tls_size, "tls");
@@ -128,7 +127,7 @@ static void *subdiv_foreach_tls_alloc(SubdivForeachTaskContext *ctx)
   return tls;
 }
 
-static void subdiv_foreach_tls_free(SubdivForeachTaskContext *ctx, void *tls)
+static void subdiv_foreach_tls_free(ForeachTaskContext *ctx, void *tls)
 {
   if (tls == nullptr) {
     return;
@@ -146,7 +145,7 @@ static void subdiv_foreach_tls_free(SubdivForeachTaskContext *ctx, void *tls)
  * \{ */
 
 /* NOTE: Expects edge map to be zeroed. */
-static void subdiv_foreach_ctx_count(SubdivForeachTaskContext *ctx)
+static void subdiv_foreach_ctx_count(ForeachTaskContext *ctx)
 {
   /* Reset counters. */
   ctx->num_subdiv_vertices = 0;
@@ -195,7 +194,7 @@ static void subdiv_foreach_ctx_count(SubdivForeachTaskContext *ctx)
   ctx->num_subdiv_loops = ctx->num_subdiv_faces * 4;
 }
 
-static void subdiv_foreach_ctx_init_offsets(SubdivForeachTaskContext *ctx)
+static void subdiv_foreach_ctx_init_offsets(ForeachTaskContext *ctx)
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   const int resolution = ctx->settings->resolution;
@@ -243,7 +242,7 @@ static void subdiv_foreach_ctx_init_offsets(SubdivForeachTaskContext *ctx)
   }
 }
 
-static void subdiv_foreach_ctx_init(Subdiv *subdiv, SubdivForeachTaskContext *ctx)
+static void subdiv_foreach_ctx_init(Subdiv *subdiv, ForeachTaskContext *ctx)
 {
   const Mesh *coarse_mesh = ctx->coarse_mesh;
   /* Allocate maps and offsets. */
@@ -259,10 +258,10 @@ static void subdiv_foreach_ctx_init(Subdiv *subdiv, SubdivForeachTaskContext *ct
   subdiv_foreach_ctx_init_offsets(ctx);
   /* Calculate number of geometry in the result subdivision mesh. */
   subdiv_foreach_ctx_count(ctx);
-  ctx->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
+  ctx->face_ptex_offset = face_ptex_offset_get(subdiv);
 }
 
-static void subdiv_foreach_ctx_free(SubdivForeachTaskContext *ctx)
+static void subdiv_foreach_ctx_free(ForeachTaskContext *ctx)
 {
   MEM_freeN(ctx->coarse_vertices_used_map);
   MEM_freeN(ctx->coarse_edges_used_map);
@@ -279,12 +278,11 @@ static void subdiv_foreach_ctx_free(SubdivForeachTaskContext *ctx)
 
 /* Traversal of corner vertices. They are coming from coarse vertices. */
 
-static void subdiv_foreach_corner_vertices_regular_do(
-    SubdivForeachTaskContext *ctx,
-    void *tls,
-    const int coarse_face_index,
-    SubdivForeachVertexFromCornerCb vertex_corner,
-    bool check_usage)
+static void subdiv_foreach_corner_vertices_regular_do(ForeachTaskContext *ctx,
+                                                      void *tls,
+                                                      const int coarse_face_index,
+                                                      ForeachVertexFromCornerCb vertex_corner,
+                                                      bool check_usage)
 {
   const float weights[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
   const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
@@ -311,7 +309,7 @@ static void subdiv_foreach_corner_vertices_regular_do(
   }
 }
 
-static void subdiv_foreach_corner_vertices_regular(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_corner_vertices_regular(ForeachTaskContext *ctx,
                                                    void *tls,
                                                    const int coarse_face_index)
 {
@@ -319,12 +317,11 @@ static void subdiv_foreach_corner_vertices_regular(SubdivForeachTaskContext *ctx
       ctx, tls, coarse_face_index, ctx->foreach_context->vertex_corner, true);
 }
 
-static void subdiv_foreach_corner_vertices_special_do(
-    SubdivForeachTaskContext *ctx,
-    void *tls,
-    const int coarse_face_index,
-    SubdivForeachVertexFromCornerCb vertex_corner,
-    bool check_usage)
+static void subdiv_foreach_corner_vertices_special_do(ForeachTaskContext *ctx,
+                                                      void *tls,
+                                                      const int coarse_face_index,
+                                                      ForeachVertexFromCornerCb vertex_corner,
+                                                      bool check_usage)
 {
   const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
   int ptex_face_index = ctx->face_ptex_offset[coarse_face_index];
@@ -348,7 +345,7 @@ static void subdiv_foreach_corner_vertices_special_do(
   }
 }
 
-static void subdiv_foreach_corner_vertices_special(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_corner_vertices_special(ForeachTaskContext *ctx,
                                                    void *tls,
                                                    const int coarse_face_index)
 {
@@ -356,7 +353,7 @@ static void subdiv_foreach_corner_vertices_special(SubdivForeachTaskContext *ctx
       ctx, tls, coarse_face_index, ctx->foreach_context->vertex_corner, true);
 }
 
-static void subdiv_foreach_corner_vertices(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_corner_vertices(ForeachTaskContext *ctx,
                                            void *tls,
                                            const int coarse_face_index)
 {
@@ -368,7 +365,7 @@ static void subdiv_foreach_corner_vertices(SubdivForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_every_corner_vertices_regular(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_every_corner_vertices_regular(ForeachTaskContext *ctx,
                                                          void *tls,
                                                          const int coarse_face_index)
 {
@@ -376,7 +373,7 @@ static void subdiv_foreach_every_corner_vertices_regular(SubdivForeachTaskContex
       ctx, tls, coarse_face_index, ctx->foreach_context->vertex_every_corner, false);
 }
 
-static void subdiv_foreach_every_corner_vertices_special(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_every_corner_vertices_special(ForeachTaskContext *ctx,
                                                          void *tls,
                                                          const int coarse_face_index)
 {
@@ -384,7 +381,7 @@ static void subdiv_foreach_every_corner_vertices_special(SubdivForeachTaskContex
       ctx, tls, coarse_face_index, ctx->foreach_context->vertex_every_corner, false);
 }
 
-static void subdiv_foreach_every_corner_vertices(SubdivForeachTaskContext *ctx, void *tls)
+static void subdiv_foreach_every_corner_vertices(ForeachTaskContext *ctx, void *tls)
 {
   if (ctx->foreach_context->vertex_every_corner == nullptr) {
     return;
@@ -402,10 +399,10 @@ static void subdiv_foreach_every_corner_vertices(SubdivForeachTaskContext *ctx, 
 
 /* Traverse of edge vertices. They are coming from coarse edges. */
 
-static void subdiv_foreach_edge_vertices_regular_do(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_edge_vertices_regular_do(ForeachTaskContext *ctx,
                                                     void *tls,
                                                     const int coarse_face_index,
-                                                    SubdivForeachVertexFromEdgeCb vertex_edge,
+                                                    ForeachVertexFromEdgeCb vertex_edge,
                                                     bool check_usage)
 {
   const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
@@ -458,7 +455,7 @@ static void subdiv_foreach_edge_vertices_regular_do(SubdivForeachTaskContext *ct
   }
 }
 
-static void subdiv_foreach_edge_vertices_regular(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_edge_vertices_regular(ForeachTaskContext *ctx,
                                                  void *tls,
                                                  const int coarse_face_index)
 {
@@ -466,10 +463,10 @@ static void subdiv_foreach_edge_vertices_regular(SubdivForeachTaskContext *ctx,
       ctx, tls, coarse_face_index, ctx->foreach_context->vertex_edge, true);
 }
 
-static void subdiv_foreach_edge_vertices_special_do(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_edge_vertices_special_do(ForeachTaskContext *ctx,
                                                     void *tls,
                                                     const int coarse_face_index,
-                                                    SubdivForeachVertexFromEdgeCb vertex_edge,
+                                                    ForeachVertexFromEdgeCb vertex_edge,
                                                     bool check_usage)
 {
   const IndexRange coarse_face = ctx->coarse_faces[coarse_face_index];
@@ -529,7 +526,7 @@ static void subdiv_foreach_edge_vertices_special_do(SubdivForeachTaskContext *ct
   }
 }
 
-static void subdiv_foreach_edge_vertices_special(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_edge_vertices_special(ForeachTaskContext *ctx,
                                                  void *tls,
                                                  const int coarse_face_index)
 {
@@ -537,7 +534,7 @@ static void subdiv_foreach_edge_vertices_special(SubdivForeachTaskContext *ctx,
       ctx, tls, coarse_face_index, ctx->foreach_context->vertex_edge, true);
 }
 
-static void subdiv_foreach_edge_vertices(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_edge_vertices(ForeachTaskContext *ctx,
                                          void *tls,
                                          const int coarse_face_index)
 {
@@ -549,7 +546,7 @@ static void subdiv_foreach_edge_vertices(SubdivForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_every_edge_vertices_regular(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_every_edge_vertices_regular(ForeachTaskContext *ctx,
                                                        void *tls,
                                                        const int coarse_face_index)
 {
@@ -557,7 +554,7 @@ static void subdiv_foreach_every_edge_vertices_regular(SubdivForeachTaskContext 
       ctx, tls, coarse_face_index, ctx->foreach_context->vertex_every_edge, false);
 }
 
-static void subdiv_foreach_every_edge_vertices_special(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_every_edge_vertices_special(ForeachTaskContext *ctx,
                                                        void *tls,
                                                        const int coarse_face_index)
 {
@@ -565,7 +562,7 @@ static void subdiv_foreach_every_edge_vertices_special(SubdivForeachTaskContext 
       ctx, tls, coarse_face_index, ctx->foreach_context->vertex_every_edge, false);
 }
 
-static void subdiv_foreach_every_edge_vertices(SubdivForeachTaskContext *ctx, void *tls)
+static void subdiv_foreach_every_edge_vertices(ForeachTaskContext *ctx, void *tls)
 {
   if (ctx->foreach_context->vertex_every_edge == nullptr) {
     return;
@@ -583,7 +580,7 @@ static void subdiv_foreach_every_edge_vertices(SubdivForeachTaskContext *ctx, vo
 
 /* Traversal of inner vertices, they are coming from ptex patches. */
 
-static void subdiv_foreach_inner_vertices_regular(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_inner_vertices_regular(ForeachTaskContext *ctx,
                                                   void *tls,
                                                   const int coarse_face_index)
 {
@@ -608,7 +605,7 @@ static void subdiv_foreach_inner_vertices_regular(SubdivForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_inner_vertices_special(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_inner_vertices_special(ForeachTaskContext *ctx,
                                                   void *tls,
                                                   const int coarse_face_index)
 {
@@ -646,7 +643,7 @@ static void subdiv_foreach_inner_vertices_special(SubdivForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_inner_vertices(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_inner_vertices(ForeachTaskContext *ctx,
                                           void *tls,
                                           const int coarse_face_index)
 {
@@ -659,7 +656,7 @@ static void subdiv_foreach_inner_vertices(SubdivForeachTaskContext *ctx,
 }
 
 /* Traverse all vertices which are emitted from given coarse face. */
-static void subdiv_foreach_vertices(SubdivForeachTaskContext *ctx, void *tls, const int face_index)
+static void subdiv_foreach_vertices(ForeachTaskContext *ctx, void *tls, const int face_index)
 {
   if (ctx->foreach_context->vertex_inner != nullptr) {
     subdiv_foreach_inner_vertices(ctx, tls, face_index);
@@ -673,7 +670,7 @@ static void subdiv_foreach_vertices(SubdivForeachTaskContext *ctx, void *tls, co
  * \{ */
 
 /* TODO(sergey): Coarse edge are always NONE, consider getting rid of it. */
-static int subdiv_foreach_edges_row(SubdivForeachTaskContext *ctx,
+static int subdiv_foreach_edges_row(ForeachTaskContext *ctx,
                                     void *tls,
                                     const int coarse_edge_index,
                                     const int start_subdiv_edge_index,
@@ -693,7 +690,7 @@ static int subdiv_foreach_edges_row(SubdivForeachTaskContext *ctx,
 }
 
 /* TODO(sergey): Coarse edges are always NONE, consider getting rid of them. */
-static int subdiv_foreach_edges_column(SubdivForeachTaskContext *ctx,
+static int subdiv_foreach_edges_column(ForeachTaskContext *ctx,
                                        void *tls,
                                        const int coarse_start_edge_index,
                                        const int coarse_end_edge_index,
@@ -738,7 +735,7 @@ static int subdiv_foreach_edges_column(SubdivForeachTaskContext *ctx,
  * This is illustrate which parts of geometry is created by code below.
  */
 
-static void subdiv_foreach_edges_all_patches_regular(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_edges_all_patches_regular(ForeachTaskContext *ctx,
                                                      void *tls,
                                                      const int coarse_face_index)
 {
@@ -816,7 +813,7 @@ static void subdiv_foreach_edges_all_patches_regular(SubdivForeachTaskContext *c
   }
 }
 
-static void subdiv_foreach_edges_all_patches_special(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_edges_all_patches_special(ForeachTaskContext *ctx,
                                                      void *tls,
                                                      const int coarse_face_index)
 {
@@ -932,7 +929,7 @@ static void subdiv_foreach_edges_all_patches_special(SubdivForeachTaskContext *c
   }
 }
 
-static void subdiv_foreach_edges_all_patches(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_edges_all_patches(ForeachTaskContext *ctx,
                                              void *tls,
                                              const int coarse_face_index)
 {
@@ -944,12 +941,12 @@ static void subdiv_foreach_edges_all_patches(SubdivForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_edges(SubdivForeachTaskContext *ctx, void *tls, int face_index)
+static void subdiv_foreach_edges(ForeachTaskContext *ctx, void *tls, int face_index)
 {
   subdiv_foreach_edges_all_patches(ctx, tls, face_index);
 }
 
-static void subdiv_foreach_boundary_edges(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_boundary_edges(ForeachTaskContext *ctx,
                                           void *tls,
                                           int coarse_edge_index)
 {
@@ -991,7 +988,7 @@ static void rotate_indices(const int rot, int *a, int *b, int *c, int *d)
   *d = values[(3 - rot + 4) % 4];
 }
 
-static void subdiv_foreach_loops_of_face(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_loops_of_face(ForeachTaskContext *ctx,
                                          void *tls,
                                          int subdiv_loop_start_index,
                                          const int ptex_face_index,
@@ -1076,7 +1073,7 @@ static int subdiv_foreach_loops_corner_index(const float u,
   return 3;
 }
 
-static void subdiv_foreach_loops_regular(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_loops_regular(ForeachTaskContext *ctx,
                                          void *tls,
                                          const int coarse_face_index)
 {
@@ -1270,7 +1267,7 @@ static void subdiv_foreach_loops_regular(SubdivForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_loops_special(SubdivForeachTaskContext *ctx,
+static void subdiv_foreach_loops_special(ForeachTaskContext *ctx,
                                          void *tls,
                                          const int coarse_face_index)
 {
@@ -1609,7 +1606,7 @@ static void subdiv_foreach_loops_special(SubdivForeachTaskContext *ctx,
   }
 }
 
-static void subdiv_foreach_loops(SubdivForeachTaskContext *ctx, void *tls, int face_index)
+static void subdiv_foreach_loops(ForeachTaskContext *ctx, void *tls, int face_index)
 {
   if (ctx->coarse_faces[face_index].size() == 4) {
     subdiv_foreach_loops_regular(ctx, tls, face_index);
@@ -1625,7 +1622,7 @@ static void subdiv_foreach_loops(SubdivForeachTaskContext *ctx, void *tls, int f
 /** \name Polygons traverse process
  * \{ */
 
-static void subdiv_foreach_faces(SubdivForeachTaskContext *ctx, void *tls, int face_index)
+static void subdiv_foreach_faces(ForeachTaskContext *ctx, void *tls, int face_index)
 {
   const int resolution = ctx->settings->resolution;
   const int start_face_index = ctx->subdiv_face_offset[face_index];
@@ -1662,7 +1659,7 @@ static void subdiv_foreach_loose_vertices_task(void *__restrict userdata,
                                                const int coarse_vertex_index,
                                                const TaskParallelTLS *__restrict tls)
 {
-  SubdivForeachTaskContext *ctx = static_cast<SubdivForeachTaskContext *>(userdata);
+  ForeachTaskContext *ctx = static_cast<ForeachTaskContext *>(userdata);
   if (BLI_BITMAP_TEST_BOOL(ctx->coarse_vertices_used_map, coarse_vertex_index)) {
     /* Vertex is not loose, was handled when handling polygons. */
     return;
@@ -1676,7 +1673,7 @@ static void subdiv_foreach_vertices_of_loose_edges_task(void *__restrict userdat
                                                         const int coarse_edge_index,
                                                         const TaskParallelTLS *__restrict tls)
 {
-  SubdivForeachTaskContext *ctx = static_cast<SubdivForeachTaskContext *>(userdata);
+  ForeachTaskContext *ctx = static_cast<ForeachTaskContext *>(userdata);
   if (BLI_BITMAP_TEST_BOOL(ctx->coarse_edges_used_map, coarse_edge_index)) {
     /* Vertex is not loose, was handled when handling polygons. */
     return;
@@ -1716,7 +1713,7 @@ static void subdiv_foreach_vertices_of_loose_edges_task(void *__restrict userdat
 /** \name Subdivision process entry points
  * \{ */
 
-static void subdiv_foreach_single_geometry_vertices(SubdivForeachTaskContext *ctx, void *tls)
+static void subdiv_foreach_single_geometry_vertices(ForeachTaskContext *ctx, void *tls)
 {
   if (ctx->foreach_context->vertex_corner == nullptr) {
     return;
@@ -1728,7 +1725,7 @@ static void subdiv_foreach_single_geometry_vertices(SubdivForeachTaskContext *ct
   }
 }
 
-static void subdiv_foreach_mark_non_loose_geometry(SubdivForeachTaskContext *ctx)
+static void subdiv_foreach_mark_non_loose_geometry(ForeachTaskContext *ctx)
 {
   for (const int face_index : ctx->coarse_faces.index_range()) {
     for (const int corner : ctx->coarse_faces[face_index]) {
@@ -1738,7 +1735,7 @@ static void subdiv_foreach_mark_non_loose_geometry(SubdivForeachTaskContext *ctx
   }
 }
 
-static void subdiv_foreach_single_thread_tasks(SubdivForeachTaskContext *ctx)
+static void subdiv_foreach_single_thread_tasks(ForeachTaskContext *ctx)
 {
   /* NOTE: In theory, we can try to skip allocation of TLS here, but in
    * practice if the callbacks used here are not specified then TLS will not
@@ -1752,7 +1749,7 @@ static void subdiv_foreach_single_thread_tasks(SubdivForeachTaskContext *ctx)
   subdiv_foreach_single_geometry_vertices(ctx, tls);
   subdiv_foreach_tls_free(ctx, tls);
 
-  const SubdivForeachContext *foreach_context = ctx->foreach_context;
+  const ForeachContext *foreach_context = ctx->foreach_context;
   const bool is_loose_geometry_tagged = (foreach_context->vertex_every_edge != nullptr &&
                                          foreach_context->vertex_every_corner != nullptr);
   const bool is_loose_geometry_tags_needed = (foreach_context->vertex_loose != nullptr ||
@@ -1766,7 +1763,7 @@ static void subdiv_foreach_task(void *__restrict userdata,
                                 const int face_index,
                                 const TaskParallelTLS *__restrict tls)
 {
-  SubdivForeachTaskContext *ctx = static_cast<SubdivForeachTaskContext *>(userdata);
+  ForeachTaskContext *ctx = static_cast<ForeachTaskContext *>(userdata);
   /* Traverse hi-poly vertex coordinates and normals. */
   subdiv_foreach_vertices(ctx, tls->userdata_chunk, face_index);
   /* Traverse mesh geometry for the given base poly index. */
@@ -1785,22 +1782,22 @@ static void subdiv_foreach_boundary_edges_task(void *__restrict userdata,
                                                const int edge_index,
                                                const TaskParallelTLS *__restrict tls)
 {
-  SubdivForeachTaskContext *ctx = static_cast<SubdivForeachTaskContext *>(userdata);
+  ForeachTaskContext *ctx = static_cast<ForeachTaskContext *>(userdata);
   subdiv_foreach_boundary_edges(ctx, tls->userdata_chunk, edge_index);
 }
 
 static void subdiv_foreach_free(const void *__restrict userdata, void *__restrict userdata_chunk)
 {
-  const SubdivForeachTaskContext *ctx = static_cast<const SubdivForeachTaskContext *>(userdata);
+  const ForeachTaskContext *ctx = static_cast<const ForeachTaskContext *>(userdata);
   ctx->foreach_context->user_data_tls_free(userdata_chunk);
 }
 
-bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
-                                        const SubdivForeachContext *context,
-                                        const SubdivToMeshSettings *mesh_settings,
-                                        const Mesh *coarse_mesh)
+bool foreach_subdiv_geometry(Subdiv *subdiv,
+                             const ForeachContext *context,
+                             const ToMeshSettings *mesh_settings,
+                             const Mesh *coarse_mesh)
 {
-  SubdivForeachTaskContext ctx = {nullptr};
+  ForeachTaskContext ctx = {nullptr};
   ctx.coarse_mesh = coarse_mesh;
   ctx.coarse_edges = coarse_mesh->edges();
   ctx.coarse_faces = coarse_mesh->faces();
@@ -1867,3 +1864,5 @@ bool BKE_subdiv_foreach_subdiv_geometry(Subdiv *subdiv,
 }
 
 /** \} */
+
+}  // namespace blender::bke::subdiv

@@ -863,14 +863,17 @@ static int bmesh_restore(bContext *C, Node &unode, Object *ob, SculptSession *ss
  *
  * Note that the dependency graph is ensured to be evaluated prior to the undo step is decoded,
  * so if the object's modifier stack references other object it is all fine. */
-static void refine_subdiv(Depsgraph *depsgraph, SculptSession *ss, Object *object, Subdiv *subdiv)
+static void refine_subdiv(Depsgraph *depsgraph,
+                          SculptSession *ss,
+                          Object *object,
+                          bke::subdiv::Subdiv *subdiv)
 {
   Array<float3> deformed_verts = BKE_multires_create_deformed_base_mesh_vert_coords(
       depsgraph, object, ss->multires.modifier);
 
-  BKE_subdiv_eval_refine_from_mesh(subdiv,
-                                   static_cast<const Mesh *>(object->data),
-                                   reinterpret_cast<float(*)[3]>(deformed_verts.data()));
+  bke::subdiv::eval_refine_from_mesh(subdiv,
+                                     static_cast<const Mesh *>(object->data),
+                                     reinterpret_cast<float(*)[3]>(deformed_verts.data()));
 }
 
 static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)

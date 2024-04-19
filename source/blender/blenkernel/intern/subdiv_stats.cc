@@ -12,7 +12,9 @@
 
 #include "BLI_time.h"
 
-void BKE_subdiv_stats_init(SubdivStats *stats)
+namespace blender::bke::subdiv {
+
+void stats_init(SubdivStats *stats)
 {
   stats->topology_refiner_creation_time = 0.0;
   stats->subdiv_to_mesh_time = 0.0;
@@ -24,22 +26,22 @@ void BKE_subdiv_stats_init(SubdivStats *stats)
   stats->topology_compare_time = 0.0;
 }
 
-void BKE_subdiv_stats_begin(SubdivStats *stats, eSubdivStatsValue value)
+void stats_begin(SubdivStats *stats, StatsValue value)
 {
   stats->begin_timestamp_[value] = BLI_time_now_seconds();
 }
 
-void BKE_subdiv_stats_end(SubdivStats *stats, eSubdivStatsValue value)
+void stats_end(SubdivStats *stats, StatsValue value)
 {
   stats->values_[value] = BLI_time_now_seconds() - stats->begin_timestamp_[value];
 }
 
-void BKE_subdiv_stats_reset(SubdivStats *stats, eSubdivStatsValue value)
+void stats_reset(SubdivStats *stats, StatsValue value)
 {
   stats->values_[value] = 0.0;
 }
 
-void BKE_subdiv_stats_print(const SubdivStats *stats)
+void stats_print(const SubdivStats *stats)
 {
 #define STATS_PRINT_TIME(stats, value, description) \
   do { \
@@ -61,3 +63,5 @@ void BKE_subdiv_stats_print(const SubdivStats *stats)
 
 #undef STATS_PRINT_TIME
 }
+
+}  // namespace blender::bke::subdiv

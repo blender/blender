@@ -66,11 +66,11 @@ void VolumeModule::end_sync()
 
   const Scene *scene_eval = inst_.scene;
 
-  /* Negate clip values (View matrix forward vector is -Z). */
-  const float clip_start = -inst_.camera.data_get().clip_near;
-  const float clip_end = -inst_.camera.data_get().clip_far;
-  float integration_start = scene_eval->eevee.volumetric_start;
-  float integration_end = scene_eval->eevee.volumetric_end;
+  const bool custom_range = scene_eval->eevee.flag & SCE_EEVEE_VOLUME_CUSTOM_RANGE;
+  const float camera_clip_start = inst_.camera.data_get().clip_near;
+  const float camera_clip_end = inst_.camera.data_get().clip_far;
+  float integration_start = custom_range ? scene_eval->eevee.volumetric_start : camera_clip_start;
+  float integration_end = custom_range ? scene_eval->eevee.volumetric_end : camera_clip_end;
 
   if (!inst_.camera.is_camera_object() && inst_.camera.is_orthographic()) {
     integration_start = -integration_end;
@@ -83,8 +83,9 @@ void VolumeModule::end_sync()
     integration_end = math::min(integration_end, -volume_bounds.value().min);
   }
 
-  float near = math::min(-integration_start, clip_start + 1e-4f);
-  float far = math::max(-integration_end, clip_end - 1e-4f);
+  /* Negate clip values (View matrix forward vector is -Z). */
+  float near = -math::max(integration_start, camera_clip_start - 1e-4f);
+  float far = -math::min(integration_end, camera_clip_end + 1e-4f);
 
   if (assign_if_different(history_camera_is_perspective_, inst_.camera.is_perspective())) {
     /* Currently, the re-projection uses the same path for volume_z_to_view_z conversion for both

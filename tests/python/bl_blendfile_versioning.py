@@ -53,7 +53,6 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                     yield dir_entry.path
 
     def test_open(self):
-        import subprocess
         blendfile_paths = [p for p in self.iter_blendfiles_from_directory(self.args.src_test_dir)]
         # `os.scandir()` used by `iter_blendfiles_from_directory` does not
         # guarantee any form of order.

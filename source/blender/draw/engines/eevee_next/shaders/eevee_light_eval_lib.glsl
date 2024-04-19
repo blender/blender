@@ -132,8 +132,6 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
     case CLOSURE_BSDF_TRANSLUCENT_ID:
       if (is_transmission) {
         cl_light.N = -cl.N;
-        cl_light.type = LIGHT_DIFFUSE;
-
         if (thickness > 0.0) {
           /* Strangely, a translucent sphere lit by a light outside the sphere transmits the light
            * uniformly over the sphere. To mimic this phenomenon, we shift the shading position to
@@ -149,7 +147,6 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
          * to a uniform term like the translucent BSDF. But we need to find what to do in other
          * cases. For now, approximate the transmission term as just back-facing. */
         cl_light.N = -cl.N;
-        cl_light.type = LIGHT_DIFFUSE;
         /* Lit and shadow as outside of the object. */
         cl_light.shading_offset = -cl.N * thickness;
       }
@@ -180,7 +177,7 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
         vec3 R = refract(-V, cl.N, 1.0 / cl_refract.ior);
         cl_light.ltc_mat = LTC_GGX_MAT(dot(-cl.N, R), cl_refract.roughness);
         cl_light.N = -cl.N;
-        cl_light.type = LIGHT_SPECULAR;
+        cl_light.type = LIGHT_TRANSMISSION;
       }
       break;
     }

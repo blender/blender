@@ -787,7 +787,7 @@ static void gpu_texture_update_from_ibuf(
              IMB_colormanagement_space_is_scene_linear(ibuf->byte_buffer.colorspace) ||
              IMB_colormanagement_space_is_data(ibuf->byte_buffer.colorspace))
     {
-      /* sRGB or scene linear or scaled down non-color data , store as byte texture that the GPU
+      /* sRGB or scene linear or scaled down non-color data, store as byte texture that the GPU
        * can decode directly. */
       rect = (uchar *)MEM_mallocN(sizeof(uchar[4]) * w * h, __func__);
       if (rect == nullptr) {

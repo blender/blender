@@ -46,7 +46,7 @@ BLENDER_ENV = "bpy" in sys.modules
 # -----------------------------------------------------------------------------
 # Programs
 
-# The command `xdg-mime` handles most of the file assosiation actions.
+# The command `xdg-mime` handles most of the file association actions.
 XDG_MIME_PROG = shutil.which("xdg-mime") or ""
 
 # Initialize by `bpy` or command line arguments.

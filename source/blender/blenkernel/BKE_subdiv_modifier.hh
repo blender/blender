@@ -19,18 +19,21 @@
 struct Mesh;
 struct Object;
 struct Scene;
-struct Subdiv;
-struct SubdivSettings;
 struct SubsurfModifierData;
+
+namespace blender::bke::subdiv {
+struct Subdiv;
+struct Settings;
+}  // namespace blender::bke::subdiv
 
 /* Runtime subsurf modifier data, cached in modifier on evaluated meshes. */
 struct SubsurfRuntimeData {
   /* Subdivision settings, exists before descriptor or mesh wrapper is created. */
-  SubdivSettings settings;
+  blender::bke::subdiv::Settings settings;
 
   /* Cached subdivision surface descriptor, with topology and settings. */
-  Subdiv *subdiv_cpu;
-  Subdiv *subdiv_gpu;
+  blender::bke::subdiv::Subdiv *subdiv_cpu;
+  blender::bke::subdiv::Subdiv *subdiv_gpu;
 
   /* Recent usage markers for UI diagnostics. To avoid UI flicker due to races
    * between evaluation and UI redraw, they are set to 2 when an evaluator is used,
@@ -50,8 +53,8 @@ struct SubsurfRuntimeData {
   int stats_totloop;
 };
 
-SubdivSettings BKE_subsurf_modifier_settings_init(const SubsurfModifierData *smd,
-                                                  bool use_render_params);
+blender::bke::subdiv::Settings BKE_subsurf_modifier_settings_init(const SubsurfModifierData *smd,
+                                                                  bool use_render_params);
 
 bool BKE_subsurf_modifier_runtime_init(SubsurfModifierData *smd, bool use_render_params);
 
@@ -78,15 +81,14 @@ bool BKE_subsurf_modifier_can_do_gpu_subdiv(const Scene *scene,
 
 bool BKE_subsurf_modifier_has_gpu_subdiv(const Mesh *mesh);
 
-extern void (*BKE_subsurf_modifier_free_gpu_cache_cb)(Subdiv *subdiv);
+extern void (*BKE_subsurf_modifier_free_gpu_cache_cb)(blender::bke::subdiv::Subdiv *subdiv);
 
 /**
  * Main goal of this function is to give usable subdivision surface descriptor
  * which matches settings and topology.
  */
-Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(SubsurfRuntimeData *runtime_data,
-                                                      const Mesh *mesh,
-                                                      bool for_draw_code);
+blender::bke::subdiv::Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(
+    SubsurfRuntimeData *runtime_data, const Mesh *mesh, bool for_draw_code);
 
 /**
  * Return the #ModifierMode required for the evaluation of the subsurf modifier,

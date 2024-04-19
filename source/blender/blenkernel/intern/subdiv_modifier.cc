@@ -19,28 +19,29 @@
 #include "GPU_capabilities.hh"
 #include "GPU_context.hh"
 
-SubdivSettings BKE_subsurf_modifier_settings_init(const SubsurfModifierData *smd,
-                                                  const bool use_render_params)
+using namespace blender::bke;
+
+subdiv::Settings BKE_subsurf_modifier_settings_init(const SubsurfModifierData *smd,
+                                                    const bool use_render_params)
 {
   const int requested_levels = (use_render_params) ? smd->renderLevels : smd->levels;
 
-  SubdivSettings settings{};
+  subdiv::Settings settings{};
   settings.is_simple = (smd->subdivType == SUBSURF_TYPE_SIMPLE);
   settings.is_adaptive = !(smd->flags & eSubsurfModifierFlag_UseRecursiveSubdivision);
   settings.level = settings.is_simple ? 1 :
                                         (settings.is_adaptive ? smd->quality : requested_levels);
   settings.use_creases = (smd->flags & eSubsurfModifierFlag_UseCrease);
-  settings.vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
+  settings.vtx_boundary_interpolation = subdiv::vtx_boundary_interpolation_from_subsurf(
       smd->boundary_smooth);
-  settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
-      smd->uv_smooth);
+  settings.fvar_linear_interpolation = subdiv::fvar_interpolation_from_uv_smooth(smd->uv_smooth);
 
   return settings;
 }
 
 bool BKE_subsurf_modifier_runtime_init(SubsurfModifierData *smd, const bool use_render_params)
 {
-  SubdivSettings settings = BKE_subsurf_modifier_settings_init(smd, use_render_params);
+  subdiv::Settings settings = BKE_subsurf_modifier_settings_init(smd, use_render_params);
 
   SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
   if (settings.level == 0) {
@@ -90,7 +91,7 @@ bool BKE_subsurf_modifier_use_custom_loop_normals(const SubsurfModifierData *smd
 bool BKE_subsurf_modifier_has_split_normals(const SubsurfModifierData *smd, const Mesh *mesh)
 {
   return BKE_subsurf_modifier_use_custom_loop_normals(smd, mesh) ||
-         mesh->normals_domain() == blender::bke::MeshNormalDomain::Corner;
+         mesh->normals_domain() == MeshNormalDomain::Corner;
 }
 
 static bool is_subdivision_evaluation_possible_on_gpu()
@@ -157,20 +158,20 @@ bool BKE_subsurf_modifier_has_gpu_subdiv(const Mesh *mesh)
   return runtime_data && runtime_data->has_gpu_subdiv;
 }
 
-void (*BKE_subsurf_modifier_free_gpu_cache_cb)(Subdiv *subdiv) = nullptr;
+void (*BKE_subsurf_modifier_free_gpu_cache_cb)(subdiv::Subdiv *subdiv) = nullptr;
 
-Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(SubsurfRuntimeData *runtime_data,
-                                                      const Mesh *mesh,
-                                                      const bool for_draw_code)
+subdiv::Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(SubsurfRuntimeData *runtime_data,
+                                                              const Mesh *mesh,
+                                                              const bool for_draw_code)
 {
   if (for_draw_code) {
     runtime_data->used_gpu = 2; /* countdown in frames */
 
-    return runtime_data->subdiv_gpu = BKE_subdiv_update_from_mesh(
+    return runtime_data->subdiv_gpu = subdiv::update_from_mesh(
                runtime_data->subdiv_gpu, &runtime_data->settings, mesh);
   }
   runtime_data->used_cpu = 2;
-  return runtime_data->subdiv_cpu = BKE_subdiv_update_from_mesh(
+  return runtime_data->subdiv_cpu = subdiv::update_from_mesh(
              runtime_data->subdiv_cpu, &runtime_data->settings, mesh);
 }
 

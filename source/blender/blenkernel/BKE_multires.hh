@@ -20,8 +20,10 @@ struct MultiresModifierData;
 struct Object;
 struct Scene;
 struct SubdivCCG;
-struct SubdivSettings;
-struct SubdivToMeshSettings;
+namespace blender::bke::subdiv {
+struct Settings;
+struct ToMeshSettings;
+}  // namespace blender::bke::subdiv
 
 /**
  * Delete mesh mdisps and grid paint masks.
@@ -180,10 +182,11 @@ void multiresModifier_subdivide_to_level(Object *object,
 
 /* Subdivision integration, defined in multires_subdiv.cc */
 
-void BKE_multires_subdiv_settings_init(SubdivSettings *settings, const MultiresModifierData *mmd);
+void BKE_multires_subdiv_settings_init(blender::bke::subdiv::Settings *settings,
+                                       const MultiresModifierData *mmd);
 
 /* TODO(sergey): Replace this set of boolean flags with bitmask. */
-void BKE_multires_subdiv_mesh_settings_init(SubdivToMeshSettings *mesh_settings,
+void BKE_multires_subdiv_mesh_settings_init(blender::bke::subdiv::ToMeshSettings *mesh_settings,
                                             const Scene *scene,
                                             const Object *object,
                                             const MultiresModifierData *mmd,

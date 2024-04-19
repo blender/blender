@@ -500,6 +500,7 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
       }
 
       r_prop_rna_or_id->idprop = idprop;
+      r_prop_rna_or_id->is_rna_storage_idprop = true;
       r_prop_rna_or_id->is_set = idprop != nullptr && (idprop->flag & IDP_FLAG_GHOST) == 0;
     }
     else {
@@ -559,7 +560,7 @@ PropertyRNA *rna_ensure_property_realdata(PropertyRNA **prop, PointerRNA *ptr)
   rna_property_rna_or_id_get(*prop, ptr, &prop_rna_or_id);
 
   *prop = prop_rna_or_id.rnaprop;
-  return (prop_rna_or_id.is_idprop || prop_rna_or_id.idprop != nullptr) ?
+  return (prop_rna_or_id.is_idprop || prop_rna_or_id.is_rna_storage_idprop) ?
              (PropertyRNA *)prop_rna_or_id.idprop :
              prop_rna_or_id.rnaprop;
 }

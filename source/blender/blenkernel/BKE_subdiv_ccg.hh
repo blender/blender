@@ -21,7 +21,9 @@
 struct CCGElem;
 struct CCGKey;
 struct Mesh;
+namespace blender::bke::subdiv {
 struct Subdiv;
+}
 
 /* --------------------------------------------------------------------
  * Masks.
@@ -88,7 +90,7 @@ struct SubdivCCG {
    *
    * TODO(sergey): Make sure the whole descriptor is valid, including all the
    * displacement attached to the surface. */
-  Subdiv *subdiv = nullptr;
+  blender::bke::subdiv::Subdiv *subdiv = nullptr;
   /* A level at which geometry was subdivided. This is what defines grid
    * resolution. It is NOT the topology refinement level. */
   int level = -1;
@@ -183,7 +185,7 @@ struct SubdivCCG {
  * TODO(sergey): Allow some user-counter or more explicit control over who owns
  * the Subdiv. The goal should be to allow viewport GL Mesh and CCG to share
  * same Subsurf without conflicts. */
-std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(Subdiv &subdiv,
+std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(blender::bke::subdiv::Subdiv &subdiv,
                                              const SubdivToCCGSettings &settings,
                                              const Mesh &coarse_mesh,
                                              SubdivCCGMaskEvaluator *mask_evaluator);
@@ -191,7 +193,7 @@ std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(Subdiv &subdiv,
 /* Helper function, creates Mesh structure which is properly setup to use
  * grids.
  */
-Mesh *BKE_subdiv_to_ccg_mesh(Subdiv &subdiv,
+Mesh *BKE_subdiv_to_ccg_mesh(blender::bke::subdiv::Subdiv &subdiv,
                              const SubdivToCCGSettings &settings,
                              const Mesh &coarse_mesh);
 

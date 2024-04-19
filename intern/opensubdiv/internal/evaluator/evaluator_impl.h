@@ -22,10 +22,9 @@ struct OpenSubdiv_Buffer;
 struct OpenSubdiv_EvaluatorCacheImpl;
 struct OpenSubdiv_EvaluatorSettings;
 struct OpenSubdiv_PatchCoord;
-struct OpenSubdiv_TopologyRefiner;
+class OpenSubdiv_TopologyRefiner;
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 class PatchMap;
 
@@ -183,8 +182,7 @@ class EvalOutputAPI {
   EvalOutput *implementation_;
 };
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv
 
 struct OpenSubdiv_EvaluatorImpl {
  public:
@@ -199,7 +197,7 @@ struct OpenSubdiv_EvaluatorImpl {
 };
 
 OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
-    struct OpenSubdiv_TopologyRefiner *topology_refiner,
+    OpenSubdiv_TopologyRefiner *topology_refiner,
     eOpenSubdivEvaluator evaluator_type,
     OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr);
 

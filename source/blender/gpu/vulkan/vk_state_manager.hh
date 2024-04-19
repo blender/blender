@@ -49,12 +49,14 @@ class VKStateManager : public StateManager {
 
   void uniform_buffer_bind(VKUniformBuffer *uniform_buffer, int slot);
   void uniform_buffer_unbind(VKUniformBuffer *uniform_buffer);
+  void uniform_buffer_unbind_all();
 
   void texel_buffer_bind(VKVertexBuffer &vertex_buffer, int slot);
   void texel_buffer_unbind(VKVertexBuffer &vertex_buffer);
 
   void storage_buffer_bind(VKBindableResource &resource, int slot);
   void storage_buffer_unbind(VKBindableResource &resource);
+  void storage_buffer_unbind_all();
 
   void unbind_from_all_namespaces(VKBindableResource &bindable_resource);
 

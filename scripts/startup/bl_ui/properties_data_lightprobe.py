@@ -200,9 +200,9 @@ class DATA_PT_lightprobe_bake(DataButtonsPanel, Panel):
         probe = context.lightprobe
 
         col = layout.column()
-
-        col.operator("object.lightprobe_cache_bake", icon='OUTLINER_DATA_LIGHTPROBE').subset = 'ACTIVE'
-        col.operator("object.lightprobe_cache_free", icon='TRASH').subset = 'ACTIVE'
+        row = col.row(align=True)
+        row.operator("object.lightprobe_cache_bake").subset = 'ACTIVE'
+        row.operator("object.lightprobe_cache_free", text="", icon='TRASH').subset = 'ACTIVE'
 
 
 class DATA_PT_lightprobe_bake_resolution(DataButtonsPanel, Panel):
@@ -242,7 +242,7 @@ class DATA_PT_lightprobe_bake_capture(DataButtonsPanel, Panel):
 
         col = layout.column()
 
-        col.prop(probe, "clip_end", text="Distance")
+        col.prop(probe, "grid_capture_distance", text="Distance")
 
         col = layout.column(heading="Contributions", align=True)
         col.prop(probe, "grid_capture_world", text="World")
@@ -264,8 +264,8 @@ class DATA_PT_lightprobe_bake_offset(DataButtonsPanel, Panel):
         probe = context.lightprobe
 
         col = layout.column(align=True)
-        col.prop(probe, "grid_surface_bias", text="Surface Bias")
-        col.prop(probe, "grid_escape_bias", text="Escape Bias")
+        col.prop(probe, "grid_surface_bias")
+        col.prop(probe, "grid_escape_bias")
 
 
 class DATA_PT_lightprobe_bake_clamping(DataButtonsPanel, Panel):
@@ -389,8 +389,8 @@ classes = (
     DATA_PT_lightprobe_bake,
     DATA_PT_lightprobe_bake_resolution,
     DATA_PT_lightprobe_bake_capture,
-    DATA_PT_lightprobe_bake_offset,
     DATA_PT_lightprobe_bake_clamping,
+    DATA_PT_lightprobe_bake_offset,
     DATA_PT_lightprobe_visibility,
     DATA_PT_lightprobe_parallax,
     DATA_PT_lightprobe_display,

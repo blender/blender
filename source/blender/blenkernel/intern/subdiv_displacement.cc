@@ -10,7 +10,9 @@
 
 #include "MEM_guardedalloc.h"
 
-void BKE_subdiv_displacement_detach(Subdiv *subdiv)
+namespace blender::bke::subdiv {
+
+void displacement_detach(Subdiv *subdiv)
 {
   if (subdiv->displacement_evaluator == nullptr) {
     return;
@@ -21,3 +23,5 @@ void BKE_subdiv_displacement_detach(Subdiv *subdiv)
   MEM_freeN(subdiv->displacement_evaluator);
   subdiv->displacement_evaluator = nullptr;
 }
+
+}  // namespace blender::bke::subdiv

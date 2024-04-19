@@ -368,11 +368,17 @@ void VKDevice::destroy_discarded_resources()
 
   while (!discarded_images_.is_empty()) {
     std::pair<VkImage, VmaAllocation> image_allocation = discarded_images_.pop_last();
+    if (use_render_graph) {
+      resources.remove_image(image_allocation.first);
+    }
     vmaDestroyImage(mem_allocator_get(), image_allocation.first, image_allocation.second);
   }
 
   while (!discarded_buffers_.is_empty()) {
     std::pair<VkBuffer, VmaAllocation> buffer_allocation = discarded_buffers_.pop_last();
+    if (use_render_graph) {
+      resources.remove_buffer(buffer_allocation.first);
+    }
     vmaDestroyBuffer(mem_allocator_get(), buffer_allocation.first, buffer_allocation.second);
   }
 

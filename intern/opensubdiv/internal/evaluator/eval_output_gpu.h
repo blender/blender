@@ -15,8 +15,7 @@
 
 using OpenSubdiv::Osd::GLVertexBuffer;
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 class GpuEvalOutput : public VolatileEvalOutput<GLVertexBuffer,
                                                 GLVertexBuffer,
@@ -53,7 +52,6 @@ class GpuEvalOutput : public VolatileEvalOutput<GLVertexBuffer,
   void wrapFVarSrcBuffer(const int face_varying_channel, OpenSubdiv_Buffer *src_buffer) override;
 };
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv
 
 #endif  // OPENSUBDIV_EVAL_OUTPUT_GPU_H_

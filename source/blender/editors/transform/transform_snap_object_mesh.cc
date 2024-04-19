@@ -29,14 +29,14 @@ using namespace blender;
  * \{ */
 
 static void snap_object_data_mesh_get(const Mesh *mesh_eval,
-                                      bool use_hide,
+                                      bool skip_hidden,
                                       BVHTreeFromMesh *r_treedata)
 {
   /* The BVHTree from corner_tris is always required. */
   BKE_bvhtree_from_mesh_get(r_treedata,
                             mesh_eval,
-                            use_hide ? BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN :
-                                       BVHTREE_FROM_CORNER_TRIS,
+                            skip_hidden ? BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN :
+                                          BVHTREE_FROM_CORNER_TRIS,
                             4);
 }
 
@@ -424,9 +424,13 @@ eSnapMode snap_edge_points_mesh(SnapObjectContext *sctx,
   return elem;
 }
 
-static eSnapMode mesh_snap_mode_supported(const Mesh *mesh)
+static eSnapMode mesh_snap_mode_supported(const Mesh *mesh, bool skip_hidden)
 {
-  eSnapMode snap_mode_supported = mesh->loose_verts().count ? SCE_SNAP_TO_POINT : SCE_SNAP_TO_NONE;
+  /* When skipping hidden geometry, we still cannot obtain the number of loose verts
+   * until computing #BVHTREE_FROM_LOOSEVERTS_NO_HIDDEN. Therefore, consider #SCE_SNAP_TO_POINT
+   * supported even if the mesh has no loose vertices in this case. */
+  eSnapMode snap_mode_supported = (skip_hidden || mesh->loose_verts().count) ? SCE_SNAP_TO_POINT :
+                                                                               SCE_SNAP_TO_NONE;
   if (mesh->faces_num) {
     snap_mode_supported |= SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST | SNAP_TO_EDGE_ELEMENTS;
   }
@@ -441,33 +445,44 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
                           const Object *ob_eval,
                           const Mesh *mesh_eval,
                           const float4x4 &obmat,
-                          bool use_hide,
+                          bool skip_hidden,
+                          bool is_editmesh,
                           eSnapMode snap_to)
 {
   BLI_assert(snap_to != SCE_SNAP_TO_FACE);
   SnapData_Mesh nearest2d(sctx, mesh_eval, obmat);
+  if (is_editmesh) {
+    nearest2d.use_backface_culling = false;
+  }
 
-  if (ob_eval->data == mesh_eval) {
-    if (std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max()) {
-      if (!nearest2d.snap_boundbox(bounds->min, bounds->max)) {
-        return SCE_SNAP_TO_NONE;
-      }
+  if (std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max()) {
+    if (!nearest2d.snap_boundbox(bounds->min, bounds->max)) {
+      return SCE_SNAP_TO_NONE;
     }
   }
 
-  snap_to &= mesh_snap_mode_supported(mesh_eval) & (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT);
+  snap_to &= mesh_snap_mode_supported(mesh_eval, skip_hidden) &
+             (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT);
   if (snap_to == SCE_SNAP_TO_NONE) {
     return SCE_SNAP_TO_NONE;
   }
 
   BVHTreeFromMesh treedata, treedata_dummy;
-  snap_object_data_mesh_get(mesh_eval, use_hide, &treedata);
+  snap_object_data_mesh_get(mesh_eval, skip_hidden, &treedata);
 
   BVHTree *bvhtree[2] = {nullptr};
-  bvhtree[0] = BKE_bvhtree_from_mesh_get(&treedata_dummy, mesh_eval, BVHTREE_FROM_LOOSEEDGES, 2);
+  bvhtree[0] = BKE_bvhtree_from_mesh_get(&treedata_dummy,
+                                         mesh_eval,
+                                         skip_hidden ? BVHTREE_FROM_LOOSEEDGES_NO_HIDDEN :
+                                                       BVHTREE_FROM_LOOSEEDGES,
+                                         2);
   BLI_assert(treedata_dummy.cached);
   if (snap_to & SCE_SNAP_TO_POINT) {
-    bvhtree[1] = BKE_bvhtree_from_mesh_get(&treedata_dummy, mesh_eval, BVHTREE_FROM_LOOSEVERTS, 2);
+    bvhtree[1] = BKE_bvhtree_from_mesh_get(&treedata_dummy,
+                                           mesh_eval,
+                                           skip_hidden ? BVHTREE_FROM_LOOSEVERTS_NO_HIDDEN :
+                                                         BVHTREE_FROM_LOOSEVERTS,
+                                           2);
     BLI_assert(treedata_dummy.cached);
   }
 
@@ -583,26 +598,27 @@ eSnapMode snap_object_mesh(SnapObjectContext *sctx,
                            const ID *id,
                            const float4x4 &obmat,
                            eSnapMode snap_to_flag,
-                           bool use_hide)
+                           bool skip_hidden,
+                           bool is_editmesh)
 {
   eSnapMode elem = SCE_SNAP_TO_NONE;
   const Mesh *mesh_eval = reinterpret_cast<const Mesh *>(id);
 
   if (snap_to_flag & (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT)) {
-    elem = snapMesh(sctx, ob_eval, mesh_eval, obmat, use_hide, snap_to_flag);
+    elem = snapMesh(sctx, ob_eval, mesh_eval, obmat, skip_hidden, is_editmesh, snap_to_flag);
     if (elem) {
       return elem;
     }
   }
 
   if (snap_to_flag & SCE_SNAP_TO_FACE) {
-    if (raycastMesh(sctx, ob_eval, mesh_eval, obmat, sctx->runtime.object_index++, use_hide)) {
+    if (raycastMesh(sctx, ob_eval, mesh_eval, obmat, sctx->runtime.object_index++, skip_hidden)) {
       return SCE_SNAP_TO_FACE;
     }
   }
 
   if (snap_to_flag & SCE_SNAP_INDIVIDUAL_NEAREST) {
-    if (nearest_world_mesh(sctx, ob_eval, mesh_eval, obmat, use_hide)) {
+    if (nearest_world_mesh(sctx, ob_eval, mesh_eval, obmat, skip_hidden)) {
       return SCE_SNAP_INDIVIDUAL_NEAREST;
     }
   }

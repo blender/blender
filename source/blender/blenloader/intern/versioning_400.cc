@@ -2860,7 +2860,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
                                                           RAYTRACE_EEVEE_DENOISE_BILATERAL;
         scene->eevee.ray_tracing_options.screen_trace_quality = 0.25f;
         scene->eevee.ray_tracing_options.screen_trace_thickness = 0.2f;
-        scene->eevee.ray_tracing_options.screen_trace_max_roughness = 0.5f;
+        scene->eevee.ray_tracing_options.trace_max_roughness = 0.5f;
         scene->eevee.ray_tracing_options.sample_clamp = 10.0f;
         scene->eevee.ray_tracing_options.resolution_scale = 2;
       }
@@ -3204,6 +3204,23 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 18)) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Light", "float", "transmission_fac")) {
+      LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+        /* Refracted light was not supported in legacy EEVEE. Set it to zero for compatibility with
+         * older files. */
+        light->transmission_fac = 0.0f;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 19)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      /* Keep legacy EEVEE old behavior. */
+      scene->eevee.flag |= SCE_EEVEE_VOLUME_CUSTOM_RANGE;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 20)) {
     update_paint_modes_for_brush_assets(*bmain);
   }
 

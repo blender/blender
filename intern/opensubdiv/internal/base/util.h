@@ -8,15 +8,13 @@
 #include <string>
 #include <vector>
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 void stringSplit(std::vector<std::string> *tokens,
                  const std::string &str,
                  const std::string &separators,
                  bool skip_empty);
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv
 
 #endif  // OPENSUBDIV_BASE_UTIL_H_

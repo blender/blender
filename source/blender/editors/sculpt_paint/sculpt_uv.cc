@@ -157,13 +157,13 @@ struct Temp_UVData {
 static void HC_relaxation_iteration_uv(UvSculptData *sculptdata,
                                        const int cd_loop_uv_offset,
                                        const float mouse_coord[2],
-                                       float alpha,
-                                       float radius,
-                                       float aspectRatio)
+                                       const float alpha,
+                                       const float radius_sq,
+                                       const float aspectRatio)
 {
   float diff[2];
   int i;
-  float radius_root = sqrtf(radius);
+  const float radius = sqrtf(radius_sq);
   Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
 
   Temp_UVData *tmp_uvdata = (Temp_UVData *)MEM_callocN(
@@ -202,10 +202,10 @@ static void HC_relaxation_iteration_uv(UvSculptData *sculptdata,
     sub_v2_v2v2(diff, sculptdata->uv[i].uv, mouse_coord);
     diff[1] /= aspectRatio;
     float dist = dot_v2v2(diff, diff);
-    if (dist <= radius) {
+    if (dist <= radius_sq) {
       UvElement *element;
       float strength;
-      strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius_root);
+      strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius);
 
       sculptdata->uv[i].uv[0] = (1.0f - strength) * sculptdata->uv[i].uv[0] +
                                 strength *
@@ -243,13 +243,13 @@ static void HC_relaxation_iteration_uv(UvSculptData *sculptdata,
 static void laplacian_relaxation_iteration_uv(UvSculptData *sculptdata,
                                               const int cd_loop_uv_offset,
                                               const float mouse_coord[2],
-                                              float alpha,
-                                              float radius,
-                                              float aspectRatio)
+                                              const float alpha,
+                                              const float radius_sq,
+                                              const float aspectRatio)
 {
   float diff[2];
   int i;
-  float radius_root = sqrtf(radius);
+  const float radius = sqrtf(radius_sq);
   Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
 
   Temp_UVData *tmp_uvdata = (Temp_UVData *)MEM_callocN(
@@ -285,10 +285,10 @@ static void laplacian_relaxation_iteration_uv(UvSculptData *sculptdata,
     sub_v2_v2v2(diff, sculptdata->uv[i].uv, mouse_coord);
     diff[1] /= aspectRatio;
     float dist = dot_v2v2(diff, diff);
-    if (dist <= radius) {
+    if (dist <= radius_sq) {
       UvElement *element;
       float strength;
-      strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius_root);
+      strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius);
 
       sculptdata->uv[i].uv[0] = (1.0f - strength) * sculptdata->uv[i].uv[0] +
                                 strength * tmp_uvdata[i].p[0];
@@ -356,18 +356,18 @@ static void relaxation_iteration_uv(UvSculptData *sculptdata,
                                     const int cd_loop_uv_offset,
                                     const float mouse_coord[2],
                                     const float alpha,
-                                    const float radius_squared,
+                                    const float radius_sq,
                                     const float aspect_ratio,
                                     const int method)
 {
   if (method == UV_SCULPT_TOOL_RELAX_HC) {
     HC_relaxation_iteration_uv(
-        sculptdata, cd_loop_uv_offset, mouse_coord, alpha, radius_squared, aspect_ratio);
+        sculptdata, cd_loop_uv_offset, mouse_coord, alpha, radius_sq, aspect_ratio);
     return;
   }
   if (method == UV_SCULPT_TOOL_RELAX_LAPLACIAN) {
     laplacian_relaxation_iteration_uv(
-        sculptdata, cd_loop_uv_offset, mouse_coord, alpha, radius_squared, aspect_ratio);
+        sculptdata, cd_loop_uv_offset, mouse_coord, alpha, radius_sq, aspect_ratio);
     return;
   }
 
@@ -423,12 +423,12 @@ static void relaxation_iteration_uv(UvSculptData *sculptdata,
     float diff[2];
     sub_v2_v2v2(diff, adj_el->uv, mouse_coord);
     diff[1] /= aspect_ratio;
-    const float dist_squared = len_squared_v2(diff);
-    if (dist_squared > radius_squared) {
+    const float dist_sq = len_squared_v2(diff);
+    if (dist_sq > radius_sq) {
       continue;
     }
     const float strength = alpha * BKE_brush_curve_strength_clamped(
-                                       brush, sqrtf(dist_squared), sqrtf(radius_squared));
+                                       brush, sqrtf(dist_sq), sqrtf(radius_sq));
 
     const float *delta_sum = delta_buf[adj_el->element - storage];
 
@@ -481,12 +481,11 @@ static void uv_sculpt_stroke_apply(bContext *C,
   float zoomx, zoomy;
   ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
 
-  float radius = BKE_brush_size_get(scene, brush) / (width * zoomx);
+  const float radius = BKE_brush_size_get(scene, brush) / (width * zoomx);
   float aspectRatio = width / float(height);
 
   /* We will compare squares to save some computation */
-  radius = radius * radius;
-  float radius_root = sqrtf(radius);
+  const float radius_sq = radius * radius;
 
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_PROP_FLOAT2);
 
@@ -503,10 +502,10 @@ static void uv_sculpt_stroke_apply(bContext *C,
         sub_v2_v2v2(diff, sculptdata->uv[i].uv, co);
         diff[1] /= aspectRatio;
         float dist = dot_v2v2(diff, diff);
-        if (dist <= radius) {
+        if (dist <= radius_sq) {
           UvElement *element;
           float strength;
-          strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius_root);
+          strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius);
           normalize_v2(diff);
 
           sculptdata->uv[i].uv[0] -= strength * diff[0] * 0.001f;
@@ -530,7 +529,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
                               cd_loop_uv_offset,
                               co,
                               alpha,
-                              radius,
+                              radius_sq,
                               aspectRatio,
                               toolsettings->uv_relax_method);
       break;
@@ -848,8 +847,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
     float aspectRatio = width / float(height);
     radius /= (width * zoomx);
-    radius = radius * radius;
-    float radius_root = sqrtf(radius);
+    const float radius_sq = radius * radius;
 
     /* Allocate selection stack */
     data->initial_stroke = static_cast<UVInitialStroke *>(
@@ -875,9 +873,9 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       sub_v2_v2v2(diff, data->uv[i].uv, co);
       diff[1] /= aspectRatio;
       float dist = dot_v2v2(diff, diff);
-      if (dist <= radius) {
+      if (dist <= radius_sq) {
         float strength;
-        strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius_root);
+        strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius);
 
         data->initial_stroke->initialSelection[counter].uv = i;
         data->initial_stroke->initialSelection[counter].strength = strength;

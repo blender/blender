@@ -248,7 +248,7 @@ def generate_struct_to_string_cpp(struct, flags_to_generate, enums_to_generate, 
         elif member_type in enums_to_generate:
             result += f"to_string({vk_name_parameter}.{member_name})"
         elif member_type in structs_to_generate:
-            result += f"\"\\n\";\n"
+            result += "std::endl;\n"
             result += f"  ss << std::string(indentation_level * 2 + 2, ' ') << to_string({vk_name_parameter}.{member_name}, indentation_level + 1);\n"
             result += f"  ss << std::string(indentation_level * 2, ' ')"
             indentation_used = True

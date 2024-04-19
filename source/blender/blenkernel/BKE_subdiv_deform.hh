@@ -11,6 +11,9 @@
 #include "BLI_sys_types.h"
 
 struct Mesh;
+
+namespace blender::bke::subdiv {
+
 struct Subdiv;
 
 /* Special version of subdivision surface which calculates final positions for coarse vertices.
@@ -20,7 +23,9 @@ struct Subdiv;
  * paint on a deformed mesh with sub-surf on it.
  *
  * vertex_cos are supposed to hold coordinates of the coarse mesh. */
-void BKE_subdiv_deform_coarse_vertices(Subdiv *subdiv,
-                                       const Mesh *coarse_mesh,
-                                       float (*vertex_cos)[3],
-                                       int num_verts);
+void deform_coarse_vertices(Subdiv *subdiv,
+                            const Mesh *coarse_mesh,
+                            float (*vertex_cos)[3],
+                            int num_verts);
+
+}  // namespace blender::bke::subdiv

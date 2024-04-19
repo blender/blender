@@ -77,7 +77,7 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
   else if (operation->is_output_operation(system->get_context().is_rendering())) {
     fillcolor = "dodgerblue1";
   }
-  else if (operation->get_flags().is_set_operation) {
+  else if (operation->get_flags().is_constant_operation) {
     fillcolor = "khaki1";
   }
 
