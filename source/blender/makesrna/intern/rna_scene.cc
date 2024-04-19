@@ -1211,6 +1211,11 @@ static std::optional<std::string> rna_SceneEEVEE_path(const PointerRNA * /*ptr*/
   return "eevee";
 }
 
+static std::optional<std::string> rna_RaytraceEEVEE_path(const PointerRNA * /*ptr*/)
+{
+  return "eevee.ray_tracing_options";
+}
+
 static std::optional<std::string> rna_SceneGpencil_path(const PointerRNA * /*ptr*/)
 {
   return "grease_pencil_settings";
@@ -7695,6 +7700,9 @@ static void rna_def_raytrace_eevee(BlenderRNA *brna)
   };
 
   srna = RNA_def_struct(brna, "RaytraceEEVEE", nullptr);
+  RNA_def_struct_path_func(srna, "rna_RaytraceEEVEE_path");
+  RNA_def_struct_ui_text(
+      srna, "EEVEE Raytrace Options", "Quality options for the raytracing pipeline");
 
   prop = RNA_def_property(srna, "resolution_scale", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, pixel_rate_items);
