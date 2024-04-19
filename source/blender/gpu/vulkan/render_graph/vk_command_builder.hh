@@ -113,7 +113,8 @@ class VKCommandBuilder {
                          VkAccessFlags src_access_mask,
                          VkAccessFlags dst_access_mask,
                          VkImageLayout old_image_layout,
-                         VkImageLayout new_image_layout);
+                         VkImageLayout new_image_layout,
+                         VkImageAspectFlags aspect_mask);
   void add_image_read_barriers(VKRenderGraph &render_graph,
                                NodeHandle node_handle,
                                VkPipelineStageFlags node_stages);

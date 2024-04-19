@@ -44,7 +44,12 @@ struct VKRenderGraphLink {
    * When generating the commands this attribute is compared with the actual image layout of the
    * the image. Additional pipeline barriers will be added to transit to the layout stored here.
    */
-  VkImageLayout vk_image_layout;
+  VkImageLayout vk_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+  /**
+   * Which aspect of the image is being used.
+   */
+  VkImageAspectFlags vk_image_aspect = VK_IMAGE_ASPECT_NONE;
 };
 
 /**

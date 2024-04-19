@@ -11,20 +11,21 @@
 #include "vk_node_info.hh"
 
 namespace blender::gpu::render_graph {
+
 /**
  * Information stored inside the render graph node. See `VKRenderGraphNode`.
  */
-struct VKCopyBufferToImageData {
-  VkBuffer src_buffer;
-  VkImage dst_image;
-  VkBufferImageCopy region;
+struct VKClearDepthStencilImageData {
+  VkImage vk_image;
+  VkClearDepthStencilValue vk_clear_depth_stencil_value;
+  VkImageSubresourceRange vk_image_subresource_range;
 };
 
-class VKCopyBufferToImageNode : public VKNodeInfo<VKNodeType::COPY_BUFFER_TO_IMAGE,
-                                                  VKCopyBufferToImageData,
-                                                  VKCopyBufferToImageData,
-                                                  VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                                  VKResourceType::IMAGE | VKResourceType::BUFFER> {
+class VKClearDepthStencilImageNode : public VKNodeInfo<VKNodeType::CLEAR_DEPTH_STENCIL_IMAGE,
+                                                       VKClearDepthStencilImageData,
+                                                       VKClearDepthStencilImageData,
+                                                       VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                                       VKResourceType::IMAGE> {
  public:
   /**
    * Update the node data with the data inside create_info.
@@ -35,7 +36,7 @@ class VKCopyBufferToImageNode : public VKNodeInfo<VKNodeType::COPY_BUFFER_TO_IMA
    */
   template<typename Node> static void set_node_data(Node &node, const CreateInfo &create_info)
   {
-    node.copy_buffer_to_image = create_info;
+    node.clear_depth_stencil_image = create_info;
   }
 
   /**
@@ -45,14 +46,11 @@ class VKCopyBufferToImageNode : public VKNodeInfo<VKNodeType::COPY_BUFFER_TO_IMA
                    VKRenderGraphNodeLinks &node_links,
                    const CreateInfo &create_info) override
   {
-    ResourceWithStamp src_resource = resources.get_buffer(create_info.src_buffer);
-    ResourceWithStamp dst_resource = resources.get_image_and_increase_stamp(create_info.dst_image);
-    node_links.inputs.append(
-        {src_resource, VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_UNDEFINED});
-    node_links.outputs.append({dst_resource,
+    ResourceWithStamp resource = resources.get_image_and_increase_stamp(create_info.vk_image);
+    node_links.outputs.append({resource,
                                VK_ACCESS_TRANSFER_WRITE_BIT,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                               create_info.region.imageSubresource.aspectMask});
+                               create_info.vk_image_subresource_range.aspectMask});
   }
 
   /**
@@ -62,8 +60,11 @@ class VKCopyBufferToImageNode : public VKNodeInfo<VKNodeType::COPY_BUFFER_TO_IMA
                       const Data &data,
                       VKBoundPipelines & /*r_bound_pipelines*/) override
   {
-    command_buffer.copy_buffer_to_image(
-        data.src_buffer, data.dst_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &data.region);
+    command_buffer.clear_depth_stencil_image(data.vk_image,
+                                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                             &data.vk_clear_depth_stencil_value,
+                                             1,
+                                             &data.vk_image_subresource_range);
   }
 };
 }  // namespace blender::gpu::render_graph

@@ -10,6 +10,7 @@
 
 #include "nodes/vk_blit_image_node.hh"
 #include "nodes/vk_clear_color_image_node.hh"
+#include "nodes/vk_clear_depth_stencil_image_node.hh"
 #include "nodes/vk_copy_buffer_node.hh"
 #include "nodes/vk_copy_buffer_to_image_node.hh"
 #include "nodes/vk_copy_image_node.hh"
@@ -37,6 +38,7 @@ struct VKRenderGraphNode {
   union {
     VKBlitImageNode::Data blit_image;
     VKClearColorImageNode::Data clear_color_image;
+    VKClearDepthStencilImageNode::Data clear_depth_stencil_image;
     VKCopyBufferNode::Data copy_buffer;
     VKCopyBufferToImageNode::Data copy_buffer_to_image;
     VKCopyImageNode::Data copy_image;
@@ -92,6 +94,8 @@ struct VKRenderGraphNode {
         return VK_PIPELINE_STAGE_NONE;
       case VKNodeType::CLEAR_COLOR_IMAGE:
         return VKClearColorImageNode::pipeline_stage;
+      case VKNodeType::CLEAR_DEPTH_STENCIL_IMAGE:
+        return VKClearDepthStencilImageNode::pipeline_stage;
       case VKNodeType::FILL_BUFFER:
         return VKFillBufferNode::pipeline_stage;
       case VKNodeType::COPY_BUFFER:
@@ -130,6 +134,12 @@ struct VKRenderGraphNode {
       case VKNodeType::CLEAR_COLOR_IMAGE: {
         VKClearColorImageNode node_info;
         node_info.build_commands(command_buffer, clear_color_image, r_bound_pipelines);
+        break;
+      }
+
+      case VKNodeType::CLEAR_DEPTH_STENCIL_IMAGE: {
+        VKClearDepthStencilImageNode node_info;
+        node_info.build_commands(command_buffer, clear_depth_stencil_image, r_bound_pipelines);
         break;
       }
 
@@ -200,6 +210,7 @@ struct VKRenderGraphNode {
 
       case VKNodeType::UNUSED:
       case VKNodeType::CLEAR_COLOR_IMAGE:
+      case VKNodeType::CLEAR_DEPTH_STENCIL_IMAGE:
       case VKNodeType::FILL_BUFFER:
       case VKNodeType::COPY_BUFFER:
       case VKNodeType::COPY_IMAGE:

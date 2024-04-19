@@ -263,7 +263,8 @@ void VKCommandBuilder::add_image_read_barriers(VKRenderGraph &render_graph,
                       wait_access,
                       read_access,
                       resource_state.image_layout,
-                      link.vk_image_layout);
+                      link.vk_image_layout,
+                      link.vk_image_aspect);
     resource_state.image_layout = link.vk_image_layout;
   }
 }
@@ -305,7 +306,8 @@ void VKCommandBuilder::add_image_write_barriers(VKRenderGraph &render_graph,
                         wait_access,
                         link.vk_access_flags,
                         resource_state.image_layout,
-                        link.vk_image_layout);
+                        link.vk_image_layout,
+                        link.vk_image_aspect);
       resource_state.image_layout = link.vk_image_layout;
     }
   }
@@ -315,15 +317,16 @@ void VKCommandBuilder::add_image_barrier(VkImage vk_image,
                                          VkAccessFlags src_access_mask,
                                          VkAccessFlags dst_access_mask,
                                          VkImageLayout old_layout,
-                                         VkImageLayout new_layout)
+                                         VkImageLayout new_layout,
+                                         VkImageAspectFlags aspect_mask)
 {
+  BLI_assert(aspect_mask != VK_IMAGE_ASPECT_NONE);
   vk_image_memory_barrier_.srcAccessMask = src_access_mask;
   vk_image_memory_barrier_.dstAccessMask = dst_access_mask;
   vk_image_memory_barrier_.image = vk_image;
   vk_image_memory_barrier_.oldLayout = old_layout;
   vk_image_memory_barrier_.newLayout = new_layout;
-  /* TODO: determine the correct aspect bits. */
-  vk_image_memory_barrier_.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  vk_image_memory_barrier_.subresourceRange.aspectMask = aspect_mask;
   vk_image_memory_barriers_.append(vk_image_memory_barrier_);
   vk_image_memory_barrier_.srcAccessMask = VK_ACCESS_NONE;
   vk_image_memory_barrier_.dstAccessMask = VK_ACCESS_NONE;

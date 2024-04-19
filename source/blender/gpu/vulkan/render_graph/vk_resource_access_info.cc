@@ -58,16 +58,20 @@ void VKResourceAccessInfo::build_links(VKResourceStateTracker &resources,
     VkAccessFlags read_access = image_access.vk_access_flags & VK_ACCESS_READ_MASK;
     if (read_access != VK_ACCESS_NONE) {
       ResourceWithStamp versioned_resource = resources.get_image(image_access.vk_image);
-      node_links.inputs.append(
-          {versioned_resource, read_access, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL});
+      node_links.inputs.append({versioned_resource,
+                                read_access,
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                image_access.vk_image_aspect});
     }
 
     VkAccessFlags write_access = image_access.vk_access_flags & VK_ACCESS_WRITE_MASK;
     if (write_access != VK_ACCESS_NONE) {
       ResourceWithStamp versioned_resource = resources.get_image_and_increase_stamp(
           image_access.vk_image);
-      node_links.outputs.append(
-          {versioned_resource, write_access, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL});
+      node_links.outputs.append({versioned_resource,
+                                 write_access,
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                 image_access.vk_image_aspect});
     }
   }
 }

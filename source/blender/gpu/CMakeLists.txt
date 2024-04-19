@@ -269,6 +269,7 @@ set(VULKAN_SRC
   vulkan/vk_query.hh
   vulkan/render_graph/nodes/vk_blit_image_node.hh
   vulkan/render_graph/nodes/vk_clear_color_image_node.hh
+  vulkan/render_graph/nodes/vk_clear_depth_stencil_image_node.hh
   vulkan/render_graph/nodes/vk_copy_buffer_node.hh
   vulkan/render_graph/nodes/vk_copy_buffer_to_image_node.hh
   vulkan/render_graph/nodes/vk_copy_image_node.hh

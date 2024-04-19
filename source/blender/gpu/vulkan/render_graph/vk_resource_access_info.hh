@@ -31,6 +31,7 @@ class VKRenderGraphLinks;
 struct VKImageAccess {
   VkImage vk_image;
   VkAccessFlags vk_access_flags;
+  VkImageAspectFlags vk_image_aspect;
 };
 
 /** Struct describing the access to a buffer. */

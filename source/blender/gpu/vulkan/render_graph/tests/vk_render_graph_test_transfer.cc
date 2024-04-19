@@ -142,9 +142,12 @@ TEST(vk_render_graph, clear_clear_copy_and_read_back)
   VKCopyImageNode::CreateInfo copy_image = {};
   copy_image.src_image = src_image;
   copy_image.dst_image = dst_image;
+  copy_image.region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  copy_image.region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   VKCopyImageToBufferNode::CreateInfo copy_dst_image_to_buffer = {};
   copy_dst_image_to_buffer.src_image = dst_image;
   copy_dst_image_to_buffer.dst_buffer = staging_buffer;
+  copy_dst_image_to_buffer.region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
   render_graph.add_node(clear_color_image_src);
   render_graph.add_node(clear_color_image_dst);
@@ -208,9 +211,11 @@ TEST(vk_render_graph, clear_clear_copy_and_read_back)
       "copy_image(src_image=0x1, src_image_layout=VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, "
       "dst_image=0x2, dst_image_layout=VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL" +
           endl() + " - region(src_subresource=" + endl() +
-          "    aspect_mask=, mip_level=0, base_array_layer=0, layer_count=0  , src_offset=" +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, mip_level=0, base_array_layer=0, "
+          "layer_count=0  , src_offset=" +
           endl() + "    x=0, y=0, z=0  , dst_subresource=" + endl() +
-          "    aspect_mask=, mip_level=0, base_array_layer=0, layer_count=0  , dst_offset=" +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, mip_level=0, base_array_layer=0, "
+          "layer_count=0  , dst_offset=" +
           endl() + "    x=0, y=0, z=0  , extent=" + endl() + "    width=0, height=0, depth=0  )" +
           endl() + ")",
       log[5]);
@@ -235,7 +240,8 @@ TEST(vk_render_graph, clear_clear_copy_and_read_back)
           " - region(buffer_offset=0, buffer_row_length=0, buffer_image_height=0, "
           "image_subresource=" +
           endl() +
-          "    aspect_mask=, mip_level=0, base_array_layer=0, layer_count=0  , image_offset=" +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, mip_level=0, base_array_layer=0, "
+          "layer_count=0  , image_offset=" +
           endl() + "    x=0, y=0, z=0  , image_extent=\n    width=0, height=0, depth=0  )" +
           endl() + ")",
       log[7]);
@@ -269,6 +275,7 @@ TEST(vk_render_graph, clear_blit_copy_and_read_back)
   VKCopyImageToBufferNode::CreateInfo copy_dst_image_to_buffer = {};
   copy_dst_image_to_buffer.src_image = dst_image;
   copy_dst_image_to_buffer.dst_buffer = staging_buffer;
+  copy_dst_image_to_buffer.region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
   render_graph.add_node(clear_color_image_src);
   VKBlitImageNode::CreateInfo blit_image = {src_image, dst_image, vk_image_blit, VK_FILTER_LINEAR};
@@ -340,7 +347,8 @@ TEST(vk_render_graph, clear_blit_copy_and_read_back)
           " - region(buffer_offset=0, buffer_row_length=0, buffer_image_height=0, "
           "image_subresource=" +
           endl() +
-          "    aspect_mask=, mip_level=0, base_array_layer=0, layer_count=0  , image_offset=" +
+          "    aspect_mask=VK_IMAGE_ASPECT_COLOR_BIT, mip_level=0, base_array_layer=0, "
+          "layer_count=0  , image_offset=" +
           endl() + "    x=0, y=0, z=0  , image_extent=" + endl() +
           "    width=0, height=0, depth=0  )" + endl() + ")",
       log[5]);

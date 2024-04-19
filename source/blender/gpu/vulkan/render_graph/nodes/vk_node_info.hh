@@ -22,6 +22,7 @@ namespace blender::gpu::render_graph {
 enum class VKNodeType {
   UNUSED,
   CLEAR_COLOR_IMAGE,
+  CLEAR_DEPTH_STENCIL_IMAGE,
   FILL_BUFFER,
   COPY_BUFFER,
   COPY_IMAGE,

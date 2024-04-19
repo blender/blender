@@ -44,6 +44,7 @@ void VKRenderGraph::submit_for_present(VkImage vk_swapchain_image)
   VKSynchronizationNode::CreateInfo synchronization = {};
   synchronization.vk_image = vk_swapchain_image;
   synchronization.vk_image_layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+  synchronization.vk_image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
   add_node<VKSynchronizationNode>(synchronization);
 
   std::scoped_lock lock(resources_.mutex);

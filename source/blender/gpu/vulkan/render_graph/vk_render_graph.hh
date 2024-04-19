@@ -132,6 +132,10 @@ class VKRenderGraph : public NonCopyable {
   {
     add_node<VKClearColorImageNode>(clear_color_image);
   }
+  void add_node(const VKClearDepthStencilImageNode::CreateInfo &clear_depth_stencil_image)
+  {
+    add_node<VKClearDepthStencilImageNode>(clear_depth_stencil_image);
+  }
   void add_node(const VKFillBufferNode::CreateInfo &fill_buffer)
   {
     add_node<VKFillBufferNode>(fill_buffer);
