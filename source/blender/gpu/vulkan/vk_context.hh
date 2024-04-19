@@ -12,6 +12,7 @@
 
 #include "GHOST_Types.h"
 
+#include "render_graph/vk_render_graph.hh"
 #include "vk_command_buffers.hh"
 #include "vk_common.hh"
 #include "vk_debug.hh"
@@ -35,7 +36,11 @@ class VKContext : public Context, NonCopyable {
   void *ghost_context_;
 
  public:
-  VKContext(void *ghost_window, void *ghost_context);
+  render_graph::VKRenderGraph render_graph;
+
+  VKContext(void *ghost_window,
+            void *ghost_context,
+            render_graph::VKResourceStateTracker &resources);
   virtual ~VKContext();
 
   void activate() override;

@@ -514,7 +514,7 @@ bool VKTexture::allocate()
   BLI_assert(!is_texture_view());
 
   VKContext &context = *VKContext::get();
-  const VKDevice &device = VKBackend::get().device_get();
+  VKDevice &device = VKBackend::get().device_get();
   VkImageCreateInfo image_info = {};
   image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
   image_info.flags = to_vk_image_create(type_, format_flag_, usage_get());
@@ -563,8 +563,14 @@ bool VKTexture::allocate()
   }
   debug::object_label(vk_image_, name_);
 
-  /* Promote image to the correct layout. */
-  layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
+  if (use_render_graph) {
+    device.resources.add_image(
+        vk_image_, VK_IMAGE_LAYOUT_UNDEFINED, render_graph::ResourceOwner::APPLICATION);
+  }
+  else {
+    /* Promote image to the correct layout. */
+    layout_ensure(context, VK_IMAGE_LAYOUT_GENERAL);
+  }
 
   return result == VK_SUCCESS;
 }

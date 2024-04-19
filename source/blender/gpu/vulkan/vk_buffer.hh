@@ -38,7 +38,7 @@ class VKBuffer {
   void clear(VKContext &context, uint32_t clear_value);
   void update(const void *data) const;
   void flush() const;
-  void read(void *data) const;
+  void read(VKContext &context, void *data) const;
   bool free();
 
   int64_t size_in_bytes() const

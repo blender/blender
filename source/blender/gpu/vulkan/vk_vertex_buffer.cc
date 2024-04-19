@@ -92,15 +92,17 @@ void VKVertexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*dat
 void VKVertexBuffer::read(void *data) const
 {
   VKContext &context = *VKContext::get();
-  context.flush();
+  if (!use_render_graph) {
+    context.flush();
+  }
   if (buffer_.is_mapped()) {
-    buffer_.read(data);
+    buffer_.read(context, data);
     return;
   }
 
   VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::DeviceToHost);
   staging_buffer.copy_from_device(context);
-  staging_buffer.host_buffer_get().read(data);
+  staging_buffer.host_buffer_get().read(context, data);
 }
 
 void VKVertexBuffer::acquire_data()

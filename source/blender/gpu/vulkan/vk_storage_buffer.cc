@@ -88,15 +88,23 @@ void VKStorageBuffer::copy_sub(VertBuf *src, uint dst_offset, uint src_offset, u
   VKVertexBuffer &src_vertex_buffer = *unwrap(src);
   src_vertex_buffer.upload();
 
-  VkBufferCopy region = {};
-  region.srcOffset = src_offset;
-  region.dstOffset = dst_offset;
-  region.size = copy_size;
+  render_graph::VKCopyBufferNode::CreateInfo copy_buffer = {};
+  copy_buffer.src_buffer = src_vertex_buffer.vk_handle();
+  copy_buffer.dst_buffer = vk_handle();
+  copy_buffer.region.srcOffset = src_offset;
+  copy_buffer.region.dstOffset = dst_offset;
+  copy_buffer.region.size = copy_size;
 
   VKContext &context = *VKContext::get();
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.copy(buffer_, src_vertex_buffer.vk_handle(), Span<VkBufferCopy>(&region, 1));
-  context.flush();
+  if (use_render_graph) {
+    context.render_graph.add_node(copy_buffer);
+  }
+  else {
+    VKCommandBuffers &command_buffers = context.command_buffers_get();
+    command_buffers.copy(
+        buffer_, copy_buffer.src_buffer, Span<VkBufferCopy>(&copy_buffer.region, 1));
+    context.flush();
+  }
 }
 
 void VKStorageBuffer::async_flush_to_host()
@@ -108,11 +116,13 @@ void VKStorageBuffer::read(void *data)
 {
   ensure_allocated();
   VKContext &context = *VKContext::get();
-  context.flush();
+  if (!use_render_graph) {
+    context.flush();
+  }
 
   VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::DeviceToHost);
   staging_buffer.copy_from_device(context);
-  staging_buffer.host_buffer_get().read(data);
+  staging_buffer.host_buffer_get().read(context, data);
 }
 
 }  // namespace blender::gpu

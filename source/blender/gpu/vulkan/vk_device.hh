@@ -11,6 +11,7 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
+#include "render_graph/vk_resource_state_tracker.hh"
 #include "vk_buffer.hh"
 #include "vk_common.hh"
 #include "vk_debug.hh"
@@ -109,6 +110,8 @@ class VKDevice : public NonCopyable {
   std::string glsl_patch_;
 
  public:
+  render_graph::VKResourceStateTracker resources;
+
   VkPhysicalDevice physical_device_get() const
   {
     return vk_physical_device_;
