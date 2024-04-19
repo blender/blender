@@ -194,7 +194,7 @@ class RayTraceModule {
   /** Copy of the scene options to avoid changing parameters during motion blur. */
   RaytraceEEVEE ray_tracing_options_;
 
-  RaytraceEEVEE_Method tracing_method_ = RAYTRACE_EEVEE_METHOD_NONE;
+  RaytraceEEVEE_Method tracing_method_ = RAYTRACE_EEVEE_METHOD_PROBE;
 
   RayTraceData &data_;
 

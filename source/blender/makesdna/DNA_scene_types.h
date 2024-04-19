@@ -2857,7 +2857,8 @@ typedef enum RaytraceEEVEE_DenoiseStages {
 } RaytraceEEVEE_DenoiseStages;
 
 typedef enum RaytraceEEVEE_Method {
-  RAYTRACE_EEVEE_METHOD_NONE = 0,
+  /* NOTE: Each method contains the previos one. */
+  RAYTRACE_EEVEE_METHOD_PROBE = 0,
   RAYTRACE_EEVEE_METHOD_SCREEN = 1,
   /* TODO(fclem): Hardware ray-tracing. */
   // RAYTRACE_EEVEE_METHOD_HARDWARE = 2,
