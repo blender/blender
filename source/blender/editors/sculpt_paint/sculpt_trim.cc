@@ -598,9 +598,6 @@ static void gesture_end(bContext & /*C*/, gesture::GestureData &gesture_data)
 
 static void init_operation(gesture::GestureData &gesture_data, wmOperator &op)
 {
-  gesture_data.operation = reinterpret_cast<gesture::Operation *>(
-      MEM_cnew<TrimOperation>(__func__));
-
   TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
 
   trim_operation->op.begin = gesture_begin;
@@ -725,6 +722,8 @@ static int gesture_box_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  gesture_data->operation = reinterpret_cast<gesture::Operation *>(
+      MEM_cnew<TrimOperation>(__func__));
   initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
 
@@ -754,6 +753,8 @@ static int gesture_lasso_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  gesture_data->operation = reinterpret_cast<gesture::Operation *>(
+      MEM_cnew<TrimOperation>(__func__));
   initialize_cursor_info(*C, *op, *gesture_data);
   init_operation(*gesture_data, *op);
 
