@@ -1249,11 +1249,13 @@ Vector<PointerRNA> modifier_get_edit_objects(const bContext &C, const wmOperator
 
 void modifier_register_use_selected_objects_prop(wmOperatorType *ot)
 {
-  RNA_def_boolean(ot->srna,
-                  "use_selected_objects",
-                  false,
-                  "Selected Objects",
-                  "Affect all selected objects instead of just the active object");
+  PropertyRNA *prop = RNA_def_boolean(
+      ot->srna,
+      "use_selected_objects",
+      false,
+      "Selected Objects",
+      "Affect all selected objects instead of just the active object");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ------------------------------------------------------------------- */
