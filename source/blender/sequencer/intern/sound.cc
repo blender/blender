@@ -164,7 +164,7 @@ EQCurveMappingData *SEQ_sound_equalizer_add(SoundEqualizerModifierData *semd,
   if (minX < 0) {
     minX = 0.0;
   }
-  /* It's the same as BKE_curvemapping_add , but changing the name */
+  /* It's the same as #BKE_curvemapping_add, but changing the name. */
   eqcmd = MEM_cnew<EQCurveMappingData>("Equalizer");
   BKE_curvemapping_set_defaults(&eqcmd->curve_mapping,
                                 1, /* Total. */

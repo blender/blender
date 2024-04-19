@@ -3389,7 +3389,7 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
       GHOST_TDragnDropTypes ghost_dnd_type = GHOST_kDragnDropTypeUnknown;
       void *ghost_dnd_data = nullptr;
 
-      /* Failure to receive drop data . */
+      /* Failure to receive drop data. */
       if (mime_receive == ghost_wl_mime_text_uri) {
         const char file_proto[] = "file://";
         /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.

@@ -24,7 +24,7 @@ uint horizon_scan_angles_to_bitmask(vec2 theta)
   /* Algorithm 1, line 18. Re-ordered to make sure to clamp to the hemisphere range. */
   vec2 ratio = saturate(theta * M_1_PI + 0.5);
   uint a = uint(floor(float(bitmask_len) * ratio.x));
-  /* The paper is wrong here. The additional half Pi is not needed . */
+  /* The paper is wrong here. The additional half Pi is not needed. */
   uint b = uint(ceil(float(bitmask_len) * (ratio.y - ratio.x)));
   /* Algorithm 1, line 19. */
   return (((b < 32u) ? 1u << b : 0u) - 1u) << a;

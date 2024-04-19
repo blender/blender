@@ -2869,7 +2869,7 @@ void GreasePencil::remove_layer(blender::bke::greasepencil::Layer &layer)
   const Layer *active_layer = this->get_active_layer();
   if (active_layer == &layer) {
     Span<const Layer *> layers = this->layers();
-    /* If there is no other layer available , unset the active layer. */
+    /* If there is no other layer available, unset the active layer. */
     if (layers.size() == 1) {
       this->set_active_layer(nullptr);
     }

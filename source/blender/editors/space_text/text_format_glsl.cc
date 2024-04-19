@@ -293,7 +293,7 @@ static const Span<const char *> text_format_glsl_literals_reserved(
  * https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.60.pdf
  */
 static const char *text_format_glsl_literals_specialvar_data[] = {
-    /* Force single column , sorted list */
+    /* Force single column, sorted list */
     /* clang-format off */
     "gl_ClipDistance",
     "gl_FragCoord",

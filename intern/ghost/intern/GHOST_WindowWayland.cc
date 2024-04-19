@@ -1219,7 +1219,7 @@ static void xdg_toplevel_handle_wm_capabilities(void * /*data*/,
   /* Only available in interface version 5. */
   CLOG_INFO(LOG, 2, "wm_capabilities");
 
-  /* NOTE: this would be useful if blender had CSD, . */
+  /* NOTE: this would be useful if blender had CSD. */
 }
 
 static const xdg_toplevel_listener xdg_toplevel_listener = {
