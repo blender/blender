@@ -446,16 +446,18 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
                           const Mesh *mesh_eval,
                           const float4x4 &obmat,
                           bool skip_hidden,
+                          bool is_editmesh,
                           eSnapMode snap_to)
 {
   BLI_assert(snap_to != SCE_SNAP_TO_FACE);
   SnapData_Mesh nearest2d(sctx, mesh_eval, obmat);
+  if (is_editmesh) {
+    nearest2d.use_backface_culling = false;
+  }
 
-  if (ob_eval->data == mesh_eval) {
-    if (std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max()) {
-      if (!nearest2d.snap_boundbox(bounds->min, bounds->max)) {
-        return SCE_SNAP_TO_NONE;
-      }
+  if (std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max()) {
+    if (!nearest2d.snap_boundbox(bounds->min, bounds->max)) {
+      return SCE_SNAP_TO_NONE;
     }
   }
 
@@ -596,13 +598,14 @@ eSnapMode snap_object_mesh(SnapObjectContext *sctx,
                            const ID *id,
                            const float4x4 &obmat,
                            eSnapMode snap_to_flag,
-                           bool skip_hidden)
+                           bool skip_hidden,
+                           bool is_editmesh)
 {
   eSnapMode elem = SCE_SNAP_TO_NONE;
   const Mesh *mesh_eval = reinterpret_cast<const Mesh *>(id);
 
   if (snap_to_flag & (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT)) {
-    elem = snapMesh(sctx, ob_eval, mesh_eval, obmat, skip_hidden, snap_to_flag);
+    elem = snapMesh(sctx, ob_eval, mesh_eval, obmat, skip_hidden, is_editmesh, snap_to_flag);
     if (elem) {
       return elem;
     }

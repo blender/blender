@@ -245,7 +245,7 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
 {
   SnapCache_EditMesh *em_cache = editmesh_snapdata_init(sctx, ob_eval, snap_to_flag);
   if (em_cache && em_cache->mesh) {
-    return snap_object_mesh(sctx, ob_eval, &em_cache->mesh->id, obmat, snap_to_flag, true);
+    return snap_object_mesh(sctx, ob_eval, &em_cache->mesh->id, obmat, snap_to_flag, true, true);
   }
   return SCE_SNAP_TO_NONE;
 }

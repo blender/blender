@@ -123,7 +123,7 @@ class SnapData {
   blender::float4x4 pmat_local;
   blender::float4x4 obmat_;
   const bool is_persp;
-  const bool use_backface_culling;
+  bool use_backface_culling;
 
   /* Read and write. */
   BVHTreeNearest nearest_point;
@@ -227,7 +227,8 @@ eSnapMode snap_object_mesh(SnapObjectContext *sctx,
                            const ID *id,
                            const blender::float4x4 &obmat,
                            eSnapMode snap_to_flag,
-                           bool skip_hidden);
+                           bool skip_hidden,
+                           bool is_editmesh = false);
 
 eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
                             const Object *ob_eval,
