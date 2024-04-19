@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include "BLI_utildefines.h"
+
 #include "BKE_subdiv_topology.hh"
 
 #include "BKE_subdiv.hh"
