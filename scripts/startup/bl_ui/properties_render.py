@@ -463,13 +463,19 @@ class RENDER_PT_eevee_next_volumes_range(RenderButtonsPanel, Panel):
     def poll(cls, context):
         return (context.engine in cls.COMPAT_ENGINES)
 
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
+    def draw_header(self, context):
         scene = context.scene
         props = scene.eevee
+        self.layout.prop(props, "use_volume_custom_range", text="")
+
+    def draw(self, context):
+        scene = context.scene
+        props = scene.eevee
+
+        layout = self.layout
+        layout.active = props.use_volume_custom_range
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         col = layout.column(align=True)
         col.prop(props, "volumetric_start")
