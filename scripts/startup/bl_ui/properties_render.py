@@ -573,7 +573,7 @@ class RENDER_PT_eevee_next_raytracing(RenderButtonsPanel, Panel):
         options = context.scene.eevee.ray_tracing_options
 
         col.prop(options, "resolution_scale")
-        col.prop(options, "screen_trace_max_roughness", text="Max Roughness")
+        col.prop(options, "trace_max_roughness", text="Max Roughness")
         # TODO Move it to raytracing options
         col.prop(props, "horizon_bias", text="Bias")
 

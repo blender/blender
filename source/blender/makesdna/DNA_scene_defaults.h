@@ -164,7 +164,7 @@
                     RAYTRACE_EEVEE_DENOISE_BILATERAL, \
     .screen_trace_quality = 0.25f, \
     .screen_trace_thickness = 0.2f, \
-    .screen_trace_max_roughness = 0.5f, \
+    .trace_max_roughness = 0.5f, \
     .sample_clamp = 10.0f, \
     .resolution_scale = 2, \
   }

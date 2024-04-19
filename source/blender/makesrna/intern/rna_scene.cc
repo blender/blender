@@ -7758,10 +7758,10 @@ static void rna_def_raytrace_eevee(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
-  prop = RNA_def_property(srna, "screen_trace_max_roughness", PROP_FLOAT, PROP_FACTOR);
+  prop = RNA_def_property(srna, "trace_max_roughness", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_ui_text(
       prop,
-      "Screen-Trace Max Roughness",
+      "Raytrace Max Roughness",
       "Maximum roughness to use the tracing pipeline for. Higher "
       "roughness surfaces will use horizon scan. A value of 1 will disable horizon scan");
   RNA_def_property_range(prop, 0.0f, 1.0f);

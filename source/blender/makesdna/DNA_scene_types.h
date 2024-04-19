@@ -1800,7 +1800,7 @@ typedef struct RaytraceEEVEE {
   /** Thickness in world space each surface will have during screen space tracing. */
   float screen_trace_thickness;
   /** Maximum roughness before using horizon scan. */
-  float screen_trace_max_roughness;
+  float trace_max_roughness;
   /** Resolution downscale factor. */
   int resolution_scale;
   /** Maximum intensity a ray can have. */
