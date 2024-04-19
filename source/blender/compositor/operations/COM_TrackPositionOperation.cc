@@ -23,7 +23,7 @@ TrackPositionOperation::TrackPositionOperation()
   position_ = CMP_NODE_TRACK_POSITION_ABSOLUTE;
   relative_frame_ = 0;
   speed_output_ = false;
-  flags_.is_set_operation = true;
+  flags_.is_constant_operation = true;
   is_track_position_calculated_ = false;
 }
 

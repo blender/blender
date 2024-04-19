@@ -183,11 +183,6 @@ struct NodeOperationFlags {
    */
   bool is_canvas_set : 1;
 
-  /**
-   * Is this a set operation (value, color, vector).
-   * TODO: To be replaced by is_constant_operation flag once tiled implementation is removed.
-   */
-  bool is_set_operation : 1;
   bool is_proxy_operation : 1;
   bool is_viewer_operation : 1;
   bool is_preview_operation : 1;
@@ -216,7 +211,6 @@ struct NodeOperationFlags {
     use_render_border = false;
     use_viewer_border = false;
     is_canvas_set = false;
-    is_set_operation = false;
     is_proxy_operation = false;
     is_viewer_operation = false;
     is_preview_operation = false;
