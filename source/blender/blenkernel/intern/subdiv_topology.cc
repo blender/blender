@@ -20,6 +20,7 @@ int topology_num_fvar_layers_get(const Subdiv *subdiv)
   OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
   return topology_refiner->getNumFVarChannels();
 #else
+  UNUSED_VARS(subdiv);
   return 0;
 #endif
 }
