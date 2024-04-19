@@ -4086,7 +4086,6 @@ static void save_file_overwrite_confirm_button(uiBlock *block, wmGenericCallback
 
 static void save_file_overwrite_saveas(bContext *C, void *arg_block, void * /*arg_data*/)
 {
-  Main *bmain = CTX_data_main(C);
   wmWindow *win = CTX_wm_window(C);
   UI_popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
 
