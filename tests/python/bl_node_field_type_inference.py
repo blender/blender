@@ -6,8 +6,6 @@ import pathlib
 import sys
 import unittest
 import tempfile
-import math
-from dataclasses import dataclass
 
 import bpy
 

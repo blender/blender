@@ -97,11 +97,10 @@ from _freestyle import (
 
 import time
 import bpy
-import random
 
 from mathutils import Vector
-from math import pi, sin, cos, acos, radians, atan2
-from itertools import cycle, tee
+from math import pi, sin, cos, acos, radians
+from itertools import cycle
 
 # WARNING: highly experimental, not a stable API
 # lists of callback functions

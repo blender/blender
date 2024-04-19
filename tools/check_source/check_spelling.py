@@ -308,7 +308,6 @@ class Comment:
 
 
 def extract_code_strings(filepath: str) -> Tuple[List[Comment], Set[str]]:
-    import pygments
     from pygments import lexers
     from pygments.token import Token
 

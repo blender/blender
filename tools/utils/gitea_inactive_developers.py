@@ -11,7 +11,6 @@
 # * 403 Client Error: That means the token doesn't have the right scope.
 # * 500 Server Error: The token is invalid.
 
-import csv
 import logging
 import os
 import requests

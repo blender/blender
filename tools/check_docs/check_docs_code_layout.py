@@ -16,13 +16,11 @@ check_docs_code_layout.py --markdown=markdown.txt
 """
 
 import os
-import re
 import argparse
 
 from typing import (
     List,
     Optional,
-    Tuple,
 )
 
 
