@@ -28,7 +28,7 @@ VkDescriptorSetLayout VKDescriptorSetLayouts::get_or_create(const VKDescriptorSe
                                                             bool &r_needed)
 {
   r_created = false;
-  r_needed = !(info.bindings.is_empty());
+  r_needed = !info.bindings.is_empty();
   if (r_needed == false) {
     return VK_NULL_HANDLE;
   }

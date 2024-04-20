@@ -365,7 +365,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
       break;
     case CURVE_PRESET_MID8: {
       for (int i = 0; i < cuma->totpoint; i++) {
-        cuma->curve[i].x = i / (float(cuma->totpoint));
+        cuma->curve[i].x = i / float(cuma->totpoint);
         cuma->curve[i].y = 0.5;
       }
       break;

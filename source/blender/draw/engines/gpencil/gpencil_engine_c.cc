@@ -1217,7 +1217,7 @@ void GPENCIL_draw_scene(void *ved)
 
   /* Fade 3D objects. */
   if ((!pd->is_render) && (pd->fade_3d_object_opacity > -1.0f) && (pd->obact != nullptr) &&
-      (ELEM(pd->obact->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)))
+      ELEM(pd->obact->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL))
   {
     float background_color[3];
     ED_view3d_background_color_get(pd->scene, pd->v3d, background_color);

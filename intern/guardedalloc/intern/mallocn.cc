@@ -101,7 +101,7 @@ void aligned_free(void *ptr)
  * Helps catching issues (in debug build) caused by an unintended allocator type change when there
  * are allocation happened.
  */
-static void assert_for_allocator_change(void)
+static void assert_for_allocator_change()
 {
   /* NOTE: Assume that there is no "sticky" internal state which would make switching allocator
    * type after all allocations are freed unsafe. In fact, it should be safe to change allocator
@@ -110,7 +110,7 @@ static void assert_for_allocator_change(void)
   assert(MEM_get_memory_blocks_in_use() == 0);
 }
 
-void MEM_use_lockfree_allocator(void)
+void MEM_use_lockfree_allocator()
 {
   /* NOTE: Keep in sync with static initialization of the variables. */
 
@@ -150,7 +150,7 @@ void MEM_use_lockfree_allocator(void)
 #endif
 }
 
-void MEM_use_guarded_allocator(void)
+void MEM_use_guarded_allocator()
 {
   assert_for_allocator_change();
 

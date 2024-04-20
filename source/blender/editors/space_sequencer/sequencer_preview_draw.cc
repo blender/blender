@@ -895,7 +895,7 @@ static void sequencer_draw_scopes(Scene *scene, ARegion *region, SpaceSeq *sseq)
   if (sseq->mainb == SEQ_DRAW_IMG_HISTOGRAM) {
     draw_histogram(region, scopes->histogram, quads, preview);
   }
-  if (sseq->mainb == SEQ_DRAW_IMG_WAVEFORM || sseq->mainb == SEQ_DRAW_IMG_RGBPARADE) {
+  if (ELEM(sseq->mainb, SEQ_DRAW_IMG_WAVEFORM, SEQ_DRAW_IMG_RGBPARADE)) {
     use_blend = true;
     draw_waveform_graticule(region, quads, preview);
   }

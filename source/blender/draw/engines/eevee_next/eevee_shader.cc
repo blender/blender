@@ -589,7 +589,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   std::stringstream attr_load;
   attr_load << "void attrib_load()\n";
   attr_load << "{\n";
-  attr_load << ((!codegen.attr_load.empty()) ? codegen.attr_load : "");
+  attr_load << (!codegen.attr_load.empty() ? codegen.attr_load : "");
   attr_load << "}\n\n";
 
   std::stringstream vert_gen, frag_gen, comp_gen;
@@ -604,9 +604,9 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   {
-    const bool use_vertex_displacement = (!codegen.displacement.empty()) &&
+    const bool use_vertex_displacement = !codegen.displacement.empty() &&
                                          (displacement_type != MAT_DISPLACEMENT_BUMP) &&
-                                         (!ELEM(geometry_type, MAT_GEOM_WORLD, MAT_GEOM_VOLUME));
+                                         !ELEM(geometry_type, MAT_GEOM_WORLD, MAT_GEOM_VOLUME);
 
     vert_gen << "vec3 nodetree_displacement()\n";
     vert_gen << "{\n";
@@ -617,7 +617,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   if (pipeline_type != MAT_PIPE_VOLUME_OCCUPANCY) {
-    frag_gen << ((!codegen.material_functions.empty()) ? codegen.material_functions : "\n");
+    frag_gen << (!codegen.material_functions.empty() ? codegen.material_functions : "\n");
 
     if (!codegen.displacement.empty()) {
       /* Bump displacement. Needed to recompute normals after displacement. */
@@ -632,7 +632,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     frag_gen << "Closure nodetree_surface(float closure_rand)\n";
     frag_gen << "{\n";
     frag_gen << "  closure_weights_reset(closure_rand);\n";
-    frag_gen << ((!codegen.surface.empty()) ? codegen.surface : "return Closure(0);\n");
+    frag_gen << (!codegen.surface.empty() ? codegen.surface : "return Closure(0);\n");
     frag_gen << "}\n\n";
 
     frag_gen << "float nodetree_thickness()\n";
@@ -662,7 +662,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     frag_gen << "Closure nodetree_volume()\n";
     frag_gen << "{\n";
     frag_gen << "  closure_weights_reset(0.0);\n";
-    frag_gen << ((!codegen.volume.empty()) ? codegen.volume : "return Closure(0);\n");
+    frag_gen << (!codegen.volume.empty() ? codegen.volume : "return Closure(0);\n");
     frag_gen << "}\n\n";
 
     info.fragment_source_generated = frag_gen.str();

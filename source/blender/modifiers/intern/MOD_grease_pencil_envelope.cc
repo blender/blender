@@ -316,9 +316,9 @@ static void deform_drawing_as_envelope(const GreasePencilEnvelopeModifierData &e
     const IndexRange points = points_by_curve[curve_i];
     const bool cyclic = cyclic_flags[curve_i];
     const int point_num = points.size();
-    const int spread = cyclic ? (math::abs(((emd.spread + point_num / 2) % point_num) -
-                                           point_num / 2)) :
-                                std::min(emd.spread, point_num - 1);
+    const int spread = cyclic ?
+                           math::abs(((emd.spread + point_num / 2) % point_num) - point_num / 2) :
+                           std::min(emd.spread, point_num - 1);
 
     for (const int64_t i : points.index_range()) {
       const int64_t point_i = points[i];

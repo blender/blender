@@ -64,7 +64,7 @@ void SunBeamsOperation::update_memory_buffer_partial(MemoryBuffer *output,
         /* Attenuate the contributions of pixels that are further away from the source using a
          * quadratic falloff. Also weight by the alpha to give more significance to opaque pixels.
          */
-        const float weight = (math::square(1.0f - i / float(steps))) * sample_color.w;
+        const float weight = math::square(1.0f - i / float(steps)) * sample_color.w;
 
         accumulated_weight += weight;
         accumulated_color += sample_color * weight;

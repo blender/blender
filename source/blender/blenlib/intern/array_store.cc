@@ -472,7 +472,7 @@ static void bchunk_list_ensure_min_size_last(const BArrayInfo *info,
                                              BArrayMemory *bs_mem,
                                              BChunkList *chunk_list)
 {
-  BChunkRef *cref = static_cast<BChunkRef *>((chunk_list->chunk_refs.last));
+  BChunkRef *cref = static_cast<BChunkRef *>(chunk_list->chunk_refs.last);
   if (cref && cref->prev) {
     /* Both are decrefed after use (end of this block). */
     BChunk *chunk_curr = cref->link;
