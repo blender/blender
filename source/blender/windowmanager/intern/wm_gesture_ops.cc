@@ -127,7 +127,7 @@ static int UNUSED_FUNCTION(gesture_modal_state_from_operator)(wmOperator *op)
 static bool gesture_box_apply_rect(wmOperator *op)
 {
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
-  rcti *rect = static_cast<rcti *>(gesture->customdata);
+  const rcti *rect = static_cast<const rcti *>(gesture->customdata);
 
   if (rect->xmin == rect->xmax || rect->ymin == rect->ymax) {
     return false;
@@ -319,7 +319,7 @@ int WM_gesture_circle_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 static void gesture_circle_apply(bContext *C, wmOperator *op)
 {
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
-  rcti *rect = static_cast<rcti *>(gesture->customdata);
+  const rcti *rect = static_cast<const rcti *>(gesture->customdata);
 
   if (gesture->wait_for_input && (gesture->modal_state == GESTURE_MODAL_NOP)) {
     return;
@@ -710,7 +710,7 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 static bool gesture_straightline_apply(bContext *C, wmOperator *op)
 {
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
-  rcti *rect = static_cast<rcti *>(gesture->customdata);
+  const rcti *rect = static_cast<const rcti *>(gesture->customdata);
 
   if (rect->xmin == rect->xmax && rect->ymin == rect->ymax) {
     return false;
