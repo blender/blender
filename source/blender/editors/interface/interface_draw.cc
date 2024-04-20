@@ -609,17 +609,35 @@ static void waveform_draw_one(const float *waveform, int waveform_num, const flo
   GPU_batch_discard(batch);
 }
 
-static void waveform_draw_rgb(const float *waveform, int waveform_num, const float *col)
+struct WaveformColorVertex {
+  blender::float2 pos;
+  blender::float4 color;
+};
+static_assert(sizeof(WaveformColorVertex) == 24);
+
+static void waveform_draw_rgb(const float *waveform,
+                              int waveform_num,
+                              const float *col,
+                              float alpha)
 {
   GPUVertFormat format = {0};
-  const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  const uint col_id = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
   blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
 
   GPU_vertbuf_data_alloc(vbo, waveform_num);
-  GPU_vertbuf_attr_fill(vbo, pos_id, waveform);
-  GPU_vertbuf_attr_fill(vbo, col_id, col);
+  WaveformColorVertex *data = static_cast<WaveformColorVertex *>(GPU_vertbuf_get_data(vbo));
+  for (int i = 0; i < waveform_num; i++) {
+    memcpy(&data->pos, waveform, sizeof(data->pos));
+    memcpy(&data->color, col, sizeof(float) * 3);
+    data->color.w = alpha;
+    waveform += 2;
+    col += 3;
+    data++;
+  }
+  GPU_vertbuf_tag_dirty(vbo);
+  GPU_vertbuf_use(vbo);
 
   blender::gpu::Batch *batch = GPU_batch_create_ex(
       GPU_PRIM_POINTS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
@@ -1161,7 +1179,7 @@ void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
     const float col[3] = {alpha, alpha, alpha};
     if (scopes->vecscope_mode == SCOPES_VECSCOPE_RGB) {
       GPU_blend(GPU_BLEND_ALPHA);
-      waveform_draw_rgb(scopes->vecscope, scopes->waveform_tot, scopes->vecscope_rgb);
+      waveform_draw_rgb(scopes->vecscope, scopes->waveform_tot, scopes->vecscope_rgb, alpha);
     }
     else if (scopes->vecscope_mode == SCOPES_VECSCOPE_LUMA) {
       GPU_blend(GPU_BLEND_ADDITIVE);
