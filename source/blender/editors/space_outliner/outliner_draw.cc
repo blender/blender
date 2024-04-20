@@ -3326,6 +3326,11 @@ static bool element_should_draw_faded(const TreeViewContext *tvc,
           tree_element_cast<TreeElementGreasePencilNode>(te)->node();
       return !node.is_visible();
     }
+    default: {
+      if (te->parent) {
+        return element_should_draw_faded(tvc, te->parent, te->parent->store_elem);
+      }
+    }
   }
 
   if (te->flag & TE_CHILD_NOT_IN_COLLECTION) {
