@@ -18,6 +18,7 @@
 
 /* Types --------------------------------------------------------------- */
 
+#include "DNA_anim_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -221,6 +222,7 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
           break;
         }
         case ANIMTYPE_FILLACTD:
+        case ANIMTYPE_FILLANIM:
         case ANIMTYPE_DSSKEY:
         case ANIMTYPE_DSWOR: {
           immUniformColor3ubvAlpha(col2b, sel ? col1[3] : col2b[3]);
@@ -365,6 +367,14 @@ static void draw_keyframes(bAnimContext *ac,
                               ycenter,
                               scale_factor,
                               action_flag);
+        break;
+      case ALE_ANIM:
+        ED_add_animation_channel(draw_list,
+                                 adt,
+                                 static_cast<Animation *>(ale->key_data),
+                                 ycenter,
+                                 scale_factor,
+                                 action_flag);
         break;
       case ALE_ACT:
         ED_add_action_channel(draw_list,

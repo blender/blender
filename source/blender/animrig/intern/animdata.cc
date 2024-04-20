@@ -123,6 +123,13 @@ void animdata_fcurve_delete(bAnimContext *ac, AnimData *adt, FCurve *fcu)
      */
     animdata_remove_empty_action(adt);
   }
+  else if (adt->animation) {
+    /* TODO: support deleting FCurves from Animation data-blocks. */
+    return;
+  }
+  else {
+    BLI_assert_unreachable();
+  }
 
   BKE_fcurve_free(fcu);
 }

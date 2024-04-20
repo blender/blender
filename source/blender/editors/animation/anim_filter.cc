@@ -88,7 +88,10 @@
 #include "SEQ_sequencer.hh"
 #include "SEQ_utils.hh"
 
+#include "ANIM_animation.hh"
 #include "ANIM_bone_collections.hh"
+
+using namespace blender;
 
 /* ************************************************************ */
 /* Blender Context <-> Animation Context mapping */
@@ -446,14 +449,14 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
 
 /* ............................... */
 
-/* quick macro to test if AnimData is usable */
-#define ANIMDATA_HAS_KEYS(id) ((id)->adt && (id)->adt->action)
+/* Test whether AnimData has a usable Action. */
+#define ANIMDATA_HAS_ACTION(id) ((id)->adt && !(id)->adt->animation && (id)->adt->action)
 
 /* quick macro to test if AnimData is usable for drivers */
 #define ANIMDATA_HAS_DRIVERS(id) ((id)->adt && (id)->adt->drivers.first)
 
 /* quick macro to test if AnimData is usable for NLA */
-#define ANIMDATA_HAS_NLA(id) ((id)->adt && (id)->adt->nla_tracks.first)
+#define ANIMDATA_HAS_NLA(id) ((id)->adt && !(id)->adt->animation && (id)->adt->nla_tracks.first)
 
 /**
  * Quick macro to test for all three above usability tests, performing the appropriate provided
@@ -478,6 +481,7 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
  * - driversOk: line or block of code to execute for Drivers case
  * - nlaKeysOk: line or block of code for NLA Strip Keyframes case
  * - keysOk: line or block of code for Keyframes case
+ * - animOk: line or block of code for Keyframes from Animation data blocks case
  *
  * The checks for the various cases are as follows:
  * 0) top level: checks for animdata and also that all the F-Curves for the block will be visible
@@ -489,8 +493,9 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
  * 3) drivers: include drivers from animdata block (for Drivers mode in Graph Editor)
  * 4A) nla strip keyframes: these are the per-strip controls for time and influence
  * 4B) normal keyframes: only when there is an active action
+ * 4C) normal keyframes: only when there is an Animation assigned
  */
-#define ANIMDATA_FILTER_CASES(id, adtOk, nlaOk, driversOk, nlaKeysOk, keysOk) \
+#define ANIMDATA_FILTER_CASES(id, adtOk, nlaOk, driversOk, nlaKeysOk, keysOk, animOk) \
   { \
     if ((id)->adt) { \
       if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || \
@@ -502,7 +507,7 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
           if (ANIMDATA_HAS_NLA(id)) { \
             nlaOk \
           } \
-          else if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) || ANIMDATA_HAS_KEYS(id)) { \
+          else if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) || ANIMDATA_HAS_ACTION(id)) { \
             nlaOk \
           } \
         } \
@@ -511,11 +516,14 @@ bool ANIM_animdata_can_have_greasepencil(const eAnimCont_Types type)
             driversOk \
           } \
         } \
+        else if ((id)->adt->animation) { \
+          animOk \
+        } \
         else { \
           if (ANIMDATA_HAS_NLA(id)) { \
             nlaKeysOk \
           } \
-          if (ANIMDATA_HAS_KEYS(id)) { \
+          if (ANIMDATA_HAS_ACTION(id)) { \
             keysOk \
           } \
         } \
@@ -594,6 +602,12 @@ static void key_data_from_adt(bAnimListElem &ale, AnimData *adt)
     return;
   }
 
+  if (adt->animation) {
+    ale.key_data = adt->animation;
+    ale.datatype = ALE_ANIM;
+    return;
+  }
+
   if (adt->action) {
     ale.key_data = adt->action;
     ale.datatype = ALE_ACT;
@@ -656,6 +670,15 @@ static bAnimListElem *make_new_animlistelem(void *data,
         ale->datatype = ALE_OB;
 
         ale->adt = BKE_animdata_from_id(&ob->id);
+        break;
+      }
+      case ANIMTYPE_FILLANIM: {
+        Animation *anim = (Animation *)data;
+
+        ale->flag = anim->flag;
+
+        ale->key_data = anim;
+        ale->datatype = ALE_ANIM;
         break;
       }
       case ANIMTYPE_FILLACTD: {
@@ -1271,6 +1294,37 @@ static size_t animfilter_fcurves(ListBase *anim_data,
   return items;
 }
 
+static size_t animfilter_fcurves_span(ListBase * /*bAnimListElem*/ anim_data,
+                                      bDopeSheet * /*ads*/,
+                                      Span<FCurve *> fcurves,
+                                      const int filter_mode,
+                                      ID *owner_id,
+                                      ID *fcurve_owner_id)
+{
+  size_t num_items = 0;
+  BLI_assert(owner_id);
+
+  for (FCurve *fcu : fcurves) {
+    /* make_new_animlistelem will return nullptr when fcu == nullptr, and that's
+     * going to cause problems. */
+    BLI_assert(fcu);
+
+    /* TODO: deal with `filter_mode` and `ads->filterflag`.
+     * See `animfilter_fcurve_next()`. */
+
+    if (filter_mode & ANIMFILTER_TMP_PEEK) {
+      /* Found an animation channel, which is good enough for the 'TMP_PEEK' mode. */
+      return 1;
+    }
+
+    bAnimListElem *ale = make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner_id, fcurve_owner_id);
+    BLI_addtail(anim_data, ale);
+    num_items++;
+  }
+
+  return num_items;
+}
+
 static size_t animfilter_act_group(bAnimContext *ac,
                                    ListBase *anim_data,
                                    bDopeSheet *ads,
@@ -1404,6 +1458,32 @@ static size_t animfilter_action(bAnimContext *ac,
 
   /* return the number of items added to the list */
   return items;
+}
+
+/**
+ * Add animation list elements for FCurves in an Animation data-block.
+ */
+static size_t animfilter_animation_fcurves(
+    ListBase *anim_data, bDopeSheet *ads, AnimData *adt, const int filter_mode, ID *owner_id)
+{
+  /* If this ID is not bound, there is nothing to show. */
+  if (adt->binding_handle == 0) {
+    return 0;
+  }
+
+  BLI_assert(adt->animation); /* Otherwise this function wouldn't be called. */
+  animrig::Animation &anim = adt->animation->wrap();
+
+  /* Don't include anything from this animation if it is linked in from another
+   * file, and we're getting stuff for editing... */
+  if ((filter_mode & ANIMFILTER_FOREDIT) && (ID_IS_LINKED(&anim) || ID_IS_OVERRIDE_LIBRARY(&anim)))
+  {
+    return 0;
+  }
+
+  /* For now we don't show layers anywhere, just the contained F-Curves. */
+  Span<FCurve *> fcurves = animrig::fcurves_for_animation(anim, adt->binding_handle);
+  return animfilter_fcurves_span(anim_data, ads, fcurves, filter_mode, owner_id, &anim.id);
 }
 
 /* Include NLA-Data for NLA-Editor:
@@ -1597,8 +1677,11 @@ static size_t animfilter_block_data(
         { /* NLA Control Keyframes */
           items += animfilter_nla_controls(anim_data, ads, adt, filter_mode, id);
         },
-        { /* Keyframes */
+        { /* Keyframes from Action. */
           items += animfilter_action(ac, anim_data, ads, adt->action, filter_mode, id);
+        },
+        { /* Keyframes from Animation. */
+          items += animfilter_animation_fcurves(anim_data, ads, adt, filter_mode, id);
         });
   }
 
@@ -2873,10 +2956,15 @@ static size_t animdata_filter_ds_obanim(
         expanded = EXPANDED_DRVD(adt);
       },
       {/* NLA Strip Controls - no dedicated channel for now (XXX) */},
-      { /* Keyframes */
+      { /* Keyframes from Action. */
         type = ANIMTYPE_FILLACTD;
         cdata = adt->action;
         expanded = EXPANDED_ACTC(adt->action);
+      },
+      { /* Keyframes from Animation. */
+        type = ANIMTYPE_FILLANIM;
+        cdata = adt->animation;
+        expanded = EXPANDED_ADT(adt);
       });
 
   /* add object-level animation channels */
@@ -3052,10 +3140,15 @@ static size_t animdata_filter_ds_scene(
         expanded = EXPANDED_DRVD(adt);
       },
       {/* NLA Strip Controls - no dedicated channel for now (XXX) */},
-      { /* Keyframes */
+      { /* Keyframes from Action. */
         type = ANIMTYPE_FILLACTD;
         cdata = adt->action;
         expanded = EXPANDED_ACTC(adt->action);
+      },
+      { /* Keyframes from Animation. */
+        type = ANIMTYPE_FILLANIM;
+        cdata = adt->animation;
+        expanded = EXPANDED_ADT(adt);
       });
 
   /* add scene-level animation channels */
