@@ -788,6 +788,7 @@ typedef void (*GHOST_XrDrawViewFn)(const struct GHOST_XrDrawViewInfo *draw_view,
 typedef const GHOST_TXrGraphicsBinding *GHOST_XrGraphicsBindingCandidates;
 
 typedef struct {
+  bool is_active;
   float position[3];
   /* Blender convention (w, x, y, z) */
   float orientation_quat[4];
