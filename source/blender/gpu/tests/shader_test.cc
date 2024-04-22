@@ -32,12 +32,6 @@ using namespace blender::gpu::shader;
 static void test_shader_compute_2d()
 {
 
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
-
   static constexpr uint SIZE = 512;
 
   /* Build compute shader. */
@@ -77,13 +71,6 @@ GPU_TEST(shader_compute_2d)
 
 static void test_shader_compute_1d()
 {
-
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
-
   static constexpr uint SIZE = 10;
 
   /* Build compute shader. */
@@ -126,13 +113,6 @@ GPU_TEST(shader_compute_1d)
 
 static void test_shader_compute_vbo()
 {
-
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
-
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
@@ -173,13 +153,6 @@ GPU_TEST(shader_compute_vbo)
 
 static void test_shader_compute_ibo()
 {
-
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
-
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
@@ -214,13 +187,6 @@ GPU_TEST(shader_compute_ibo)
 
 static void test_shader_compute_ssbo()
 {
-
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
-
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
@@ -256,12 +222,6 @@ GPU_TEST(shader_compute_ssbo)
 
 static void test_shader_ssbo_binding()
 {
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
-
   /* Build compute shader. */
   GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ssbo_binding_test");
   EXPECT_NE(shader, nullptr);
