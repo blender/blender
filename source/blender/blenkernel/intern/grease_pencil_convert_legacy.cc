@@ -1095,14 +1095,14 @@ static bNodeTree *offset_radius_node_tree_add(ConversionData &conversion_data, L
       DATA_("Layer"), "", "NodeSocketString", NODE_INTERFACE_SOCKET_INPUT, nullptr);
 
   bNode *group_output = nodeAddNode(nullptr, group, "NodeGroupOutput");
-  group_output->locx = 580;
+  group_output->locx = 800;
   group_output->locy = 160;
   bNode *group_input = nodeAddNode(nullptr, group, "NodeGroupInput");
   group_input->locx = 0;
   group_input->locy = 160;
 
   bNode *set_curve_radius = nodeAddNode(nullptr, group, "GeometryNodeSetCurveRadius");
-  set_curve_radius->locx = 400;
+  set_curve_radius->locx = 600;
   set_curve_radius->locy = 160;
   bNode *named_layer_selection = nodeAddNode(
       nullptr, group, "GeometryNodeInputNamedLayerSelection");
@@ -1116,6 +1116,12 @@ static bNodeTree *offset_radius_node_tree_add(ConversionData &conversion_data, L
   add->custom1 = NODE_MATH_ADD;
   add->locx = 200;
   add->locy = 0;
+
+  bNode *clamp_radius = nodeAddNode(nullptr, group, "ShaderNodeClamp");
+  clamp_radius->locx = 400;
+  clamp_radius->locy = 0;
+  bNodeSocket *sock_max = nodeFindSocket(clamp_radius, SOCK_IN, "Max");
+  static_cast<bNodeSocketValueFloat *>(sock_max->default_value)->value = FLT_MAX;
 
   nodeAddLink(group,
               group_input,
@@ -1152,6 +1158,11 @@ static bNodeTree *offset_radius_node_tree_add(ConversionData &conversion_data, L
   nodeAddLink(group,
               add,
               nodeFindSocket(add, SOCK_OUT, "Value"),
+              clamp_radius,
+              nodeFindSocket(clamp_radius, SOCK_IN, "Value"));
+  nodeAddLink(group,
+              clamp_radius,
+              nodeFindSocket(clamp_radius, SOCK_OUT, "Result"),
               set_curve_radius,
               nodeFindSocket(set_curve_radius, SOCK_IN, "Radius"));
 
