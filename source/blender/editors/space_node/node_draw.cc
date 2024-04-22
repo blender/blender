@@ -208,6 +208,10 @@ void ED_node_tag_update_id(ID *id)
 
 namespace blender::ed::space_node {
 
+static std::string node_socket_get_tooltip(const SpaceNode *snode,
+                                           const bNodeTree &ntree,
+                                           const bNodeSocket &socket);
+
 static const char *node_socket_get_translation_context(const bNodeSocket &socket)
 {
   /* The node is not explicitly defined. */
@@ -1178,30 +1182,77 @@ static void node_socket_draw(const bNodeSocket &sock,
   immVertex2f(pos_id, locx, locy);
 }
 
-static void node_socket_draw_multi_input(const float color[4],
+static void node_socket_tooltip_set(uiBlock &block,
+                                    const int socket_index_in_tree,
+                                    const float2 location,
+                                    const float2 size)
+{
+  /* Ideally sockets themselves should be buttons, but they aren't currently. So add an invisible
+   * button on top of them for the tooltip. */
+  const eUIEmbossType old_emboss = UI_block_emboss_get(&block);
+  UI_block_emboss_set(&block, UI_EMBOSS_NONE);
+  uiBut *but = uiDefIconBut(&block,
+                            UI_BTYPE_BUT,
+                            0,
+                            ICON_NONE,
+                            location.x - size.x / 2.0f,
+                            location.y - size.y / 2.0f,
+                            size.x,
+                            size.y,
+                            nullptr,
+                            0,
+                            0,
+                            nullptr);
+
+  UI_but_func_tooltip_set(
+      but,
+      [](bContext *C, void *argN, const char * /*tip*/) {
+        const SpaceNode &snode = *CTX_wm_space_node(C);
+        const bNodeTree &ntree = *snode.edittree;
+        const int index_in_tree = POINTER_AS_INT(argN);
+        ntree.ensure_topology_cache();
+        return node_socket_get_tooltip(&snode, ntree, *ntree.all_sockets()[index_in_tree]);
+      },
+      POINTER_FROM_INT(socket_index_in_tree),
+      nullptr);
+  /* Disable the button so that clicks on it are ignored the link operator still works. */
+  UI_but_flag_enable(but, UI_BUT_DISABLED);
+  UI_block_emboss_set(&block, old_emboss);
+}
+
+static void node_socket_draw_multi_input(uiBlock &block,
+                                         const int index_in_tree,
+                                         const float2 location,
+                                         const float2 draw_size,
+                                         const float color[4],
                                          const float color_outline[4],
-                                         const float width,
-                                         const float height,
-                                         const float2 location)
+                                         const float2 tooltip_size)
 {
   /* The other sockets are drawn with the keyframe shader. There, the outline has a base
    * thickness that can be varied but always scales with the size the socket is drawn at. Using
    * `UI_SCALE_FAC` has the same effect here. It scales the outline correctly across different
    * screen DPI's and UI scales without being affected by the 'line-width'. */
-  const float outline_width = NODE_SOCK_OUTLINE_SCALE * UI_SCALE_FAC;
+  const float half_outline_width = NODE_SOCK_OUTLINE_SCALE * UI_SCALE_FAC * 0.5f;
 
   /* UI_draw_roundbox draws the outline on the outer side, so compensate for the outline width.
    */
   const rctf rect = {
-      location.x - width + outline_width * 0.5f,
-      location.x + width - outline_width * 0.5f,
-      location.y - height + outline_width * 0.5f,
-      location.y + height - outline_width * 0.5f,
+      location.x - draw_size.x + half_outline_width,
+      location.x + draw_size.x + half_outline_width,
+      location.y - draw_size.y + half_outline_width,
+      location.y + draw_size.y + half_outline_width,
   };
 
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  UI_draw_roundbox_4fv_ex(
-      &rect, color, nullptr, 1.0f, color_outline, outline_width, width - outline_width * 0.5f);
+  UI_draw_roundbox_4fv_ex(&rect,
+                          color,
+                          nullptr,
+                          1.0f,
+                          color_outline,
+                          half_outline_width * 2.0f,
+                          draw_size.x - half_outline_width);
+
+  node_socket_tooltip_set(block, index_in_tree, location, tooltip_size);
 }
 
 static const float virtual_node_socket_outline_color[4] = {0.5, 0.5, 0.5, 1.0};
@@ -1600,6 +1651,87 @@ static std::optional<std::string> create_declaration_inspection_string(const bNo
   return str;
 }
 
+static geo_log::GeoTreeLog *geo_tree_log_for_socket(const bNodeTree &ntree,
+                                                    const bNodeSocket &socket,
+                                                    TreeDrawContext &tree_draw_ctx)
+{
+  const bNodeTreeZones *zones = ntree.zones();
+  if (!zones) {
+    return nullptr;
+  }
+  const bNodeTreeZone *zone = zones->get_zone_by_socket(socket);
+  return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
+}
+
+static Vector<std::string> lines_of_text(std::string text)
+{
+  Vector<std::string> result;
+  std::istringstream text_stream(text);
+  for (std::string line; std::getline(text_stream, line);) {
+    result.append(line);
+  }
+  return result;
+}
+
+static std::optional<std::string> create_multi_input_log_inspection_string(
+    const bNodeTree &ntree, const bNodeSocket &socket, TreeDrawContext &tree_draw_ctx)
+{
+  if (!socket.is_multi_input()) {
+    return std::nullopt;
+  }
+
+  Vector<std::pair<int, std::string>, 8> numerated_info;
+
+  const Span<const bNodeLink *> connected_links = socket.directly_linked_links();
+  for (const int index : connected_links.index_range()) {
+    const bNodeLink *link = connected_links[index];
+    const int connection_number = index + 1;
+    if (!link->is_used()) {
+      continue;
+    }
+    if (!(link->flag & NODE_LINK_VALID)) {
+      continue;
+    }
+    if (link->fromnode->is_dangling_reroute()) {
+      continue;
+    }
+    const bNodeSocket &connected_socket = *link->fromsock;
+    geo_log::GeoTreeLog *geo_tree_log = geo_tree_log_for_socket(
+        ntree, connected_socket, tree_draw_ctx);
+    const std::optional<std::string> input_log = create_log_inspection_string(geo_tree_log,
+                                                                              connected_socket);
+    if (!input_log.has_value()) {
+      continue;
+    }
+    numerated_info.append({connection_number, std::move(*input_log)});
+  }
+
+  if (numerated_info.is_empty()) {
+    return std::nullopt;
+  }
+
+  constexpr const char *indentation = "  ";
+
+  std::stringstream ss;
+  for (const std::pair<int, std::string> &info : numerated_info) {
+    const Vector<std::string> lines = lines_of_text(info.second);
+    ss << info.first << ". " << lines.first();
+    for (const std::string &line : lines.as_span().drop_front(1)) {
+      ss << "\n" << indentation << line;
+    }
+    if (&info != &numerated_info.last()) {
+      ss << ".\n";
+    }
+  }
+
+  const std::string str = ss.str();
+  if (str.empty()) {
+    return std::nullopt;
+  }
+
+  return str;
+}
+
 static std::string node_socket_get_tooltip(const SpaceNode *snode,
                                            const bNodeTree &ntree,
                                            const bNodeSocket &socket)
@@ -1612,14 +1744,7 @@ static std::string node_socket_get_tooltip(const SpaceNode *snode,
     }
   }
 
-  geo_log::GeoTreeLog *geo_tree_log = [&]() -> geo_log::GeoTreeLog * {
-    const bNodeTreeZones *zones = ntree.zones();
-    if (!zones) {
-      return nullptr;
-    }
-    const bNodeTreeZone *zone = zones->get_zone_by_socket(socket);
-    return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
-  }();
+  geo_log::GeoTreeLog *geo_tree_log = geo_tree_log_for_socket(ntree, socket, tree_draw_ctx);
 
   Vector<std::string> inspection_strings;
 
@@ -1627,6 +1752,11 @@ static std::string node_socket_get_tooltip(const SpaceNode *snode,
     inspection_strings.append(std::move(*info));
   }
   if (std::optional<std::string> info = create_log_inspection_string(geo_tree_log, socket)) {
+    inspection_strings.append(std::move(*info));
+  }
+  else if (std::optional<std::string> info = create_multi_input_log_inspection_string(
+               ntree, socket, tree_draw_ctx))
+  {
     inspection_strings.append(std::move(*info));
   }
   if (std::optional<std::string> info = create_declaration_inspection_string(socket)) {
@@ -1734,37 +1864,7 @@ static void node_socket_draw_nested(const bContext &C,
                    size_id,
                    outline_col_id);
 
-  /* Ideally sockets themselves should be buttons, but they aren't currently. So add an invisible
-   * button on top of them for the tooltip. */
-  const eUIEmbossType old_emboss = UI_block_emboss_get(&block);
-  UI_block_emboss_set(&block, UI_EMBOSS_NONE);
-  uiBut *but = uiDefIconBut(&block,
-                            UI_BTYPE_BUT,
-                            0,
-                            ICON_NONE,
-                            location.x - size / 2.0f,
-                            location.y - size / 2.0f,
-                            size,
-                            size,
-                            nullptr,
-                            0,
-                            0,
-                            nullptr);
-
-  UI_but_func_tooltip_set(
-      but,
-      [](bContext *C, void *argN, const char * /*tip*/) {
-        const SpaceNode &snode = *CTX_wm_space_node(C);
-        const bNodeTree &ntree = *snode.edittree;
-        const int index_in_tree = POINTER_AS_INT(argN);
-        ntree.ensure_topology_cache();
-        return node_socket_get_tooltip(&snode, ntree, *ntree.all_sockets()[index_in_tree]);
-      },
-      POINTER_FROM_INT(sock.index_in_tree()),
-      nullptr);
-  /* Disable the button so that clicks on it are ignored the link operator still works. */
-  UI_but_flag_enable(but, UI_BUT_DISABLED);
-  UI_block_emboss_set(&block, old_emboss);
+  node_socket_tooltip_set(block, sock.index_in_tree(), location, float2(size, size));
 }
 
 void node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[4], float scale)
@@ -2119,8 +2219,12 @@ static void node_draw_sockets(const View2D &v2d,
     node_socket_color_get(C, ntree, node_ptr, *socket, color);
     node_socket_outline_color_get(socket->flag & SELECT, socket->type, outline_color);
 
+    const int index_in_tree = socket->index_in_tree();
     const float2 location = socket->runtime->location;
-    node_socket_draw_multi_input(color, outline_color, width, height, location);
+    const float2 draw_size(width, height);
+    const float2 tooltip_size(scale, height * 2.0f - socket_draw_size + scale);
+    node_socket_draw_multi_input(
+        block, index_in_tree, location, draw_size, color, outline_color, tooltip_size);
   }
 }
 
