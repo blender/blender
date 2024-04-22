@@ -13,6 +13,7 @@
 
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
@@ -41,6 +42,8 @@
 using blender::Array;
 using blender::int2;
 using blender::Span;
+
+namespace math = blender::math;
 
 /* -------------------------------------------------------------------- */
 /** \name Point track marker picking.
@@ -206,7 +209,8 @@ PointTrackPick ed_tracking_pick_point_track(const TrackPickOptions *options,
   MovieClip *clip = ED_space_clip_get_clip(space_clip);
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
 
-  const float distance_tolerance_px_squared = (12.0f * 12.0f) / space_clip->zoom;
+  const float distance_tolerance_px_squared = math::square(12.0f / space_clip->zoom *
+                                                           UI_SCALE_FAC);
   const bool are_disabled_markers_visible = (space_clip->flag & SC_HIDE_DISABLED) == 0;
   const int framenr = ED_space_clip_get_clip_frame_number(space_clip);
 
@@ -395,7 +399,8 @@ PlaneTrackPick ed_tracking_pick_plane_track(const TrackPickOptions *options,
   MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
   const int framenr = ED_space_clip_get_clip_frame_number(space_clip);
 
-  const float distance_tolerance_px_squared = (12.0f * 12.0f) / space_clip->zoom;
+  const float distance_tolerance_px_squared = math::square(12.0f / space_clip->zoom *
+                                                           UI_SCALE_FAC);
   PlaneTrackPick pick = plane_track_pick_make_null();
 
   LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, &tracking_object->plane_tracks) {
