@@ -228,16 +228,6 @@ void View::frustum_culling_sphere_calc(int view_id)
   }
 }
 
-void View::disable(IndexRange range)
-{
-  /* Set bounding sphere to -1.0f radius will bypass the culling test and treat every instance as
-   * invisible. */
-  range = IndexRange(view_len_).intersect(range);
-  for (auto view_id : range) {
-    reinterpret_cast<BoundSphere *>(&culling_[view_id].bound_sphere)->radius = -1.0f;
-  }
-}
-
 void View::bind()
 {
   if (dirty_ && !procedural_) {
