@@ -216,7 +216,7 @@ static bool shaderfx_ui_poll(const bContext *C, PanelType * /*pt*/)
 {
   Object *ob = blender::ed::object::context_active_object(C);
 
-  return (ob != nullptr) && (ob->type == OB_GPENCIL_LEGACY);
+  return (ob != nullptr) && (ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL));
 }
 
 PanelType *shaderfx_panel_register(ARegionType *region_type, ShaderFxType type, PanelDrawFn draw)
