@@ -285,6 +285,12 @@ class MemoryBuffer {
                                          get_relative_y(y));
   }
 
+  void read_elem_bicubic_bspline(float x, float y, float *out) const
+  {
+    math::interpolate_cubic_bspline_fl(
+        buffer_, out, this->get_width(), this->get_height(), num_channels_, x, y);
+  }
+
   void read_elem_sampled(float x, float y, PixelSampler sampler, float *out) const
   {
     switch (sampler) {
@@ -292,9 +298,11 @@ class MemoryBuffer {
         read_elem_checked(x, y, out);
         break;
       case PixelSampler::Bilinear:
-      case PixelSampler::Bicubic:
-        /* No bicubic. Current implementation produces fuzzy results. */
         read_elem_bilinear(x, y, out);
+        break;
+      case PixelSampler::Bicubic:
+        /* Using same method as GPU compositor. Final results may still vary. */
+        read_elem_bicubic_bspline(x, y, out);
         break;
     }
   }
