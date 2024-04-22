@@ -2550,6 +2550,12 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
                                    const wmKeyMapItem *kmi,
                                    bool text_fallback);
 
+/* Draw keymap item for status bar. Returns number of items consumed,
+ * as X/Y/Z items may get merged to use less space. */
+int uiTemplateStatusBarModalItem(uiLayout *layout,
+                                 const wmKeyMap *keymap,
+                                 const EnumPropertyItem *item);
+
 void uiTemplateComponentMenu(uiLayout *layout,
                              PointerRNA *ptr,
                              const char *propname,

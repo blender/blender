@@ -6388,32 +6388,16 @@ bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *la
       continue;
     }
 
-    bool show_text = true;
-
-    {
-      /* WARNING: O(n^2). */
-      wmKeyMapItem *kmi = nullptr;
-      for (kmi = static_cast<wmKeyMapItem *>(keymap->items.first); kmi; kmi = kmi->next) {
-        if (kmi->propvalue == items[i].value) {
-          break;
-        }
-      }
-      if (kmi != nullptr) {
-        if (kmi->val == KM_RELEASE) {
-          /* Assume release events just disable something which was toggled on. */
-          continue;
-        }
-        if (uiTemplateEventFromKeymapItem(row, items[i].name, kmi, false)) {
-          show_text = false;
-        }
-      }
+    const int num_items_used = uiTemplateStatusBarModalItem(row, keymap, items + i);
+    if (num_items_used > 0) {
+      /* Skip items in case consecutive items were merged. */
+      i += num_items_used - 1;
     }
-    if (show_text) {
-      if (std::optional<std::string> str = WM_modalkeymap_operator_items_to_string(
-              op->type, items[i].value, true))
-      {
-        uiItemL(row, fmt::format("{}: {}", *str, items[i].name).c_str(), ICON_NONE);
-      }
+    else if (std::optional<std::string> str = WM_modalkeymap_operator_items_to_string(
+                 op->type, items[i].value, true))
+    {
+      /*  Show text instead */
+      uiItemL(row, fmt::format("{}: {}", *str, items[i].name).c_str(), ICON_NONE);
     }
   }
   return true;
