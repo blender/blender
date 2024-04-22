@@ -65,8 +65,10 @@ class Sampling {
 
   SamplingDataBuf data_;
 
+  ClampData &clamp_data_;
+
  public:
-  Sampling(Instance &inst) : inst_(inst){};
+  Sampling(Instance &inst, ClampData &clamp_data) : inst_(inst), clamp_data_(clamp_data){};
   ~Sampling(){};
 
   void init(const Scene *scene);

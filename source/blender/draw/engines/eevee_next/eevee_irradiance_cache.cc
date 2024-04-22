@@ -248,6 +248,7 @@ void VolumeProbeModule::set_view(View & /*view*/)
   if (do_update_world_) {
     grid_upload_ps_.init();
     grid_upload_ps_.shader_set(inst_.shaders.static_shader_get(LIGHTPROBE_IRRADIANCE_WORLD));
+    grid_upload_ps_.bind_resources(inst_.uniform_data);
     grid_upload_ps_.bind_ssbo("harmonic_buf", &inst_.sphere_probes.spherical_harmonics_buf());
     grid_upload_ps_.bind_ubo("grids_infos_buf", &grids_infos_buf_);
     grid_upload_ps_.bind_ssbo("bricks_infos_buf", &bricks_infos_buf_);
@@ -364,6 +365,7 @@ void VolumeProbeModule::set_view(View & /*view*/)
     grid_upload_ps_.init();
     grid_upload_ps_.shader_set(inst_.shaders.static_shader_get(LIGHTPROBE_IRRADIANCE_LOAD));
 
+    grid_upload_ps_.bind_resources(inst_.uniform_data);
     grid_upload_ps_.push_constant("validity_threshold", grid->validity_threshold);
     grid_upload_ps_.push_constant("dilation_threshold", grid->dilation_threshold);
     grid_upload_ps_.push_constant("dilation_radius", grid->dilation_radius);

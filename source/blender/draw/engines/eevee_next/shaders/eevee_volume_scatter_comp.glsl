@@ -21,8 +21,7 @@
 
 #ifdef VOLUME_LIGHTING
 
-vec3 volume_scatter_light_eval(
-    const bool is_directional, vec3 P, vec3 V, uint l_idx, float s_anisotropy)
+vec3 volume_light_eval(const bool is_directional, vec3 P, vec3 V, uint l_idx, float s_anisotropy)
 {
   LightData light = light_buf[l_idx];
 
@@ -48,10 +47,24 @@ vec3 volume_scatter_light_eval(
     return vec3(0);
   }
 
-  vec3 Li = volume_light(light, is_directional, lv) * visibility *
-            volume_shadow(light, is_directional, P, lv, extinction_tx);
+  vec3 Li = volume_light(light, is_directional, lv) * visibility;
 
-  return colorspace_brightness_clamp_max(Li, uniform_buf.volumes.light_clamp);
+  if (light.tilemap_index != LIGHT_NO_SHADOW) {
+    Li *= volume_shadow(light, is_directional, P, lv, extinction_tx);
+  }
+
+  return Li;
+}
+
+vec3 volume_lightprobe_eval(vec3 P, vec3 V, float s_anisotropy)
+{
+  SphericalHarmonicL1 phase_sh = volume_phase_function_as_sh_L1(V, s_anisotropy);
+  SphericalHarmonicL1 volume_radiance_sh = lightprobe_irradiance_sample(P);
+
+  float clamp_indirect = uniform_buf.clamp.volume_indirect;
+  volume_radiance_sh = spherical_harmonics_clamp(volume_radiance_sh, clamp_indirect);
+
+  return spherical_harmonics_dot(volume_radiance_sh, phase_sh).xyz;
 }
 
 #endif
@@ -81,25 +94,35 @@ void main()
   float s_anisotropy = phase.x / max(1.0, phase.y);
 
 #ifdef VOLUME_LIGHTING
-  SphericalHarmonicL1 phase_sh = volume_phase_function_as_sh_L1(V, s_anisotropy);
-  SphericalHarmonicL1 volume_radiance_sh = lightprobe_irradiance_sample(P);
+  vec3 direct_radiance = vec3(0.0);
 
-  vec3 light_scattering = spherical_harmonics_dot(volume_radiance_sh, phase_sh).xyz;
+  if (reduce_max(s_scattering) > 0.0) {
+    LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
+      direct_radiance += volume_light_eval(true, P, V, l_idx, s_anisotropy);
+    }
+    LIGHT_FOREACH_END
 
-  LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    light_scattering += volume_scatter_light_eval(true, P, V, l_idx, s_anisotropy);
+    vec2 pixel = ((vec2(froxel.xy) + 0.5) * uniform_buf.volumes.inv_tex_size.xy) *
+                 uniform_buf.volumes.main_view_extent;
+
+    LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vP.z, l_idx)
+    {
+      direct_radiance += volume_light_eval(false, P, V, l_idx, s_anisotropy);
+    }
+    LIGHT_FOREACH_END
   }
-  LIGHT_FOREACH_END
 
-  vec2 pixel = ((vec2(froxel.xy) + 0.5) * uniform_buf.volumes.inv_tex_size.xy) *
-               uniform_buf.volumes.main_view_extent;
+  vec3 indirect_radiance = volume_lightprobe_eval(P, V, s_anisotropy).xyz;
 
-  LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, pixel, vP.z, l_idx) {
-    light_scattering += volume_scatter_light_eval(false, P, V, l_idx, s_anisotropy);
-  }
-  LIGHT_FOREACH_END
+  direct_radiance *= s_scattering;
+  indirect_radiance *= s_scattering;
 
-  scattering += light_scattering * s_scattering;
+  float clamp_direct = uniform_buf.clamp.volume_direct;
+  float clamp_indirect = uniform_buf.clamp.volume_indirect;
+  direct_radiance = colorspace_brightness_clamp_max(direct_radiance, clamp_direct);
+  indirect_radiance = colorspace_brightness_clamp_max(indirect_radiance, clamp_indirect);
+
+  scattering += direct_radiance + indirect_radiance;
 #endif
 
   if (uniform_buf.volumes.history_opacity > 0.0) {

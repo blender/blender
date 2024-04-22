@@ -89,11 +89,12 @@ void main()
     radiance.rgb = mix(world_radiance.rgb, radiance.rgb, opacity);
   }
 
-  radiance = colorspace_brightness_clamp_max(radiance, probe_brightness_clamp);
-
   if (!any(greaterThanEqual(local_texel, ivec2(write_coord.extent)))) {
+    float clamp_indirect = uniform_buf.clamp.surface_indirect;
+    vec3 out_radiance = colorspace_brightness_clamp_max(radiance, clamp_indirect);
+
     ivec3 texel = ivec3(local_texel + write_coord.offset, write_coord.layer);
-    imageStore(atlas_img, texel, vec4(radiance, 1.0));
+    imageStore(atlas_img, texel, vec4(out_radiance, 1.0));
   }
 
   if (extract_sh) {

@@ -154,7 +154,7 @@ class Instance {
         depth_of_field(*this),
         cryptomatte(*this),
         hiz_buffer(*this, uniform_data.data.hiz),
-        sampling(*this),
+        sampling(*this, uniform_data.data.clamp),
         camera(*this, uniform_data.data.camera),
         film(*this, uniform_data.data.film),
         render_buffers(*this, uniform_data.data.render_pass),
