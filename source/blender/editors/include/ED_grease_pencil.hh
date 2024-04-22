@@ -134,6 +134,41 @@ bool remove_all_selected_frames(GreasePencil &grease_pencil, bke::greasepencil::
 
 void select_layer_channel(GreasePencil &grease_pencil, bke::greasepencil::Layer *layer);
 
+struct KeyframeClipboard {
+  /* Datatype for use in copy/paste buffer. */
+  struct DrawingBufferItem {
+    blender::bke::greasepencil::FramesMapKey frame_number;
+    bke::greasepencil::Drawing drawing;
+    int duration;
+  };
+
+  struct LayerBufferItem {
+    Vector<DrawingBufferItem> drawing_buffers;
+    blender::bke::greasepencil::FramesMapKey first_frame;
+    blender::bke::greasepencil::FramesMapKey last_frame;
+  };
+
+  Map<std::string, LayerBufferItem> copy_buffer{};
+  int first_frame{std::numeric_limits<int>::max()};
+  int last_frame{std::numeric_limits<int>::min()};
+  int cfra{0};
+
+  void clear()
+  {
+    copy_buffer.clear();
+    first_frame = std::numeric_limits<int>::max();
+    last_frame = std::numeric_limits<int>::min();
+    cfra = 0;
+  }
+};
+
+bool grease_pencil_copy_keyframes(bAnimContext *ac, KeyframeClipboard &clipboard);
+
+bool grease_pencil_paste_keyframes(bAnimContext *ac,
+                                   const eKeyPasteOffset offset_mode,
+                                   const eKeyMergeMode merge_mode,
+                                   const KeyframeClipboard &clipboard);
+
 /**
  * Sets the selection flag, according to \a selection_mode to the frame at \a frame_number in the
  * \a layer if such frame exists. Returns false if no such frame exists.
