@@ -42,10 +42,7 @@ struct DRWViewData {
 
   DRWViewData()
   {
-    /* Only for GL >= 4.3 implementation for now. */
-    if (GPU_compute_shader_support()) {
-      manager = new draw::Manager();
-    }
+    manager = new draw::Manager();
   };
 
   ~DRWViewData()

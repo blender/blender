@@ -97,12 +97,7 @@ void DRW_curves_init(DRWData *drw_data)
   CurvesUniformBufPool *pool = drw_data->curves_ubos;
   pool->reset();
 
-  if (GPU_transform_feedback_support() || GPU_compute_shader_support()) {
-    g_tf_pass = DRW_pass_create("Update Curves Pass", (DRWState)0);
-  }
-  else {
-    g_tf_pass = DRW_pass_create("Update Curves Pass", DRW_STATE_WRITE_COLOR);
-  }
+  g_tf_pass = DRW_pass_create("Update Curves Pass", (DRWState)0);
 
   drw_curves_ensure_dummy_vbo();
 }

@@ -1101,29 +1101,21 @@ void DRW_shgroup_call_compute(DRWShadingGroup *shgroup,
                               int groups_z_len)
 {
   BLI_assert(groups_x_len > 0 && groups_y_len > 0 && groups_z_len > 0);
-  BLI_assert(GPU_compute_shader_support());
-
   drw_command_compute(shgroup, groups_x_len, groups_y_len, groups_z_len);
 }
 
 void DRW_shgroup_call_compute_ref(DRWShadingGroup *shgroup, int groups_ref[3])
 {
-  BLI_assert(GPU_compute_shader_support());
-
   drw_command_compute_ref(shgroup, groups_ref);
 }
 
 void DRW_shgroup_call_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *indirect_buf)
 {
-  BLI_assert(GPU_compute_shader_support());
-
   drw_command_compute_indirect(shgroup, indirect_buf);
 }
 
 void DRW_shgroup_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 {
-  BLI_assert(GPU_compute_shader_support());
-
   drw_command_barrier(shgroup, type);
 }
 

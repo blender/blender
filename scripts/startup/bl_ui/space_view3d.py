@@ -6914,16 +6914,8 @@ class VIEW3D_PT_shading_compositor(Panel):
 
     def draw(self, context):
         shading = context.space_data.shading
-
-        import gpu
-        is_supported = (gpu.capabilities.compute_shader_support_get()
-                        and gpu.capabilities.shader_image_load_store_support_get())
-
         row = self.layout.row()
-        row.active = is_supported
         row.prop(shading, "use_compositor", expand=True)
-        if shading.use_compositor != 'DISABLED' and not is_supported:
-            self.layout.label(text="Compositor not supported on this platform", icon='ERROR')
 
 
 class VIEW3D_PT_gizmo_display(Panel):

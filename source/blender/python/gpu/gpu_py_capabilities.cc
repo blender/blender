@@ -245,7 +245,16 @@ PyDoc_STRVAR(
     "   :rtype: bool\n");
 static PyObject *pygpu_compute_shader_support_get(PyObject * /*self*/)
 {
-  return PyBool_FromLong(GPU_compute_shader_support());
+  static bool deprecation_warning_issued = false;
+  if (!deprecation_warning_issued) {
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "compute_shader_support_get is deprecated. All platforms have support for "
+                 "compute shaders.",
+                 1);
+    deprecation_warning_issued = true;
+  }
+
+  return PyBool_FromLong(true);
 }
 
 PyDoc_STRVAR(
@@ -259,6 +268,15 @@ PyDoc_STRVAR(
     "   :rtype: bool\n");
 static PyObject *pygpu_shader_image_load_store_support_get(PyObject * /*self*/)
 {
+  static bool deprecation_warning_issued = false;
+  if (!deprecation_warning_issued) {
+    PyErr_WarnEx(
+        PyExc_DeprecationWarning,
+        "shader_image_load_store_support_get is deprecated. All platforms have support for "
+        "image load store.",
+        1);
+    deprecation_warning_issued = true;
+  }
   /* Now required to start Blender. */
   return PyBool_FromLong(true);
 }

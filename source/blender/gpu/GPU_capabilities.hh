@@ -48,7 +48,6 @@ bool GPU_clear_viewport_workaround();
 bool GPU_crappy_amd_driver();
 
 bool GPU_geometry_shader_support();
-bool GPU_compute_shader_support();
 bool GPU_shader_draw_parameters_support();
 bool GPU_hdr_support();
 bool GPU_texture_view_support();
