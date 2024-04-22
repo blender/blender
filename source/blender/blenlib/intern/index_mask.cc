@@ -441,9 +441,9 @@ static void inverted_indices_to_segments(const IndexMaskSegment segment,
       break;
     }
 
-    const int16_t gap_first = indices[size_before_gap - 1] + 1;
-    const int16_t next = indices[size_before_gap];
-    const int16_t gap_size = next - gap_first;
+    const int16_t gap_first = int16_t(indices[size_before_gap - 1] + 1);
+    const int16_t next = int16_t(indices[size_before_gap]);
+    const int16_t gap_size = int16_t(next - gap_first);
     if (gap_size > range_threshold) {
       finish_indices();
       r_segments.append_as(offset + gap_first, static_indices.take_front(gap_size));
