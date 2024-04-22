@@ -57,6 +57,8 @@ void ED_operatormacros_grease_pencil();
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
 void ED_primitivetool_modal_keymap(wmKeyConfig *keyconf);
 
+void GREASE_PENCIL_OT_stroke_cutter(wmOperatorType *ot);
+
 void ED_undosys_type_grease_pencil(UndoType *undo_type);
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
@@ -313,5 +315,52 @@ IndexMask polyline_detect_corners(Span<float2> points,
                                   int samples_max,
                                   float angle_threshold,
                                   IndexMaskMemory &memory);
+
+/**
+ * Structure describing a point in the destination relatively to the source.
+ * If a point in the destination \a is_src_point, then it corresponds
+ * exactly to the point at \a src_point index in the source geometry.
+ * Otherwise, it is a linear combination of points at \a src_point and \a src_next_point in the
+ * source geometry, with the given \a factor.
+ * A point in the destination is a \a cut if it splits the source curves geometry, meaning it is
+ * the first point of a new curve in the destination.
+ */
+struct PointTransferData {
+  int src_point;
+  int src_next_point;
+  float factor;
+  bool is_src_point;
+  bool is_cut;
+
+  /**
+   * Source point is the last of the curve.
+   */
+  bool is_src_end_point() const
+  {
+    /* The src_next_point index increments for all points except the last, where it is set to the
+     * first point index. This can be used to detect the curve end from the source index alone.
+     */
+    return is_src_point && src_point >= src_next_point;
+  }
+};
+
+/**
+ * Computes a \a dst curves geometry by applying a change of topology from a \a src curves
+ * geometry.
+ * The change of topology is described by \a src_to_dst_points, which size should be
+ * equal to the number of points in the source.
+ * For each point in the source, the corresponding vector in \a src_to_dst_points contains a set
+ * of destination points (PointTransferData), which can correspond to points of the source, or
+ * linear combination of them. Note that this vector can be empty, if we want to remove points
+ * for example. Curves can also be split if a destination point is marked as a cut.
+ *
+ * \returns an array containing the same elements as \a src_to_dst_points, but in the destination
+ * points domain.
+ */
+Array<PointTransferData> compute_topology_change(
+    const bke::CurvesGeometry &src,
+    bke::CurvesGeometry &dst,
+    const Span<Vector<PointTransferData>> src_to_dst_points,
+    const bool keep_caps);
 
 }  // namespace blender::ed::greasepencil

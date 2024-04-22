@@ -1853,6 +1853,25 @@ class _defs_paint_grease_pencil:
         )
 
     @ToolDef.from_fn
+    def cutter():
+        def draw_settings(context, layout, _tool):
+            brush = context.tool_settings.gpencil_paint.brush
+            gp_settings = brush.gpencil_settings
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(gp_settings, "use_keep_caps_eraser")
+            row.prop(gp_settings, "use_active_layer_only")
+
+        return dict(
+            idname="builtin.cutter",
+            label="Cutter",
+            icon="ops.gpencil.stroke_cutter",
+            cursor='KNIFE',
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
     def tint():
         return dict(
             idname="builtin_brush.Tint",
@@ -3388,6 +3407,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_paint_grease_pencil.draw,
             _defs_paint_grease_pencil.erase,
+            _defs_paint_grease_pencil.cutter,
             _defs_paint_grease_pencil.tint,
             None,
             _defs_paint_grease_pencil.line,
