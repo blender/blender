@@ -665,23 +665,25 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Object
     return deformation;
   }
   const GeometrySet *geometry_eval = ob_eval->runtime->geometry_set_eval;
-  if (geometry_eval == nullptr || !geometry_eval->has<GeometryComponentEditData>()) {
+  if (geometry_eval == nullptr) {
     return deformation;
   }
 
   /* If there are edit hints, use the positions of those. */
-  const GeometryComponentEditData &edit_component_eval =
-      *geometry_eval->get_component<GeometryComponentEditData>();
-  const GreasePencilEditHints *edit_hints = edit_component_eval.grease_pencil_edit_hints_.get();
-  if (edit_hints != nullptr && &edit_hints->grease_pencil_id_orig == &grease_pencil_orig &&
-      edit_hints->drawing_hints.has_value())
-  {
-    BLI_assert(edit_hints->drawing_hints->size() == layers_orig.size());
-    const GreasePencilDrawingEditHints &drawing_hints =
-        edit_hints->drawing_hints.value()[layer_index];
-    if (const std::optional<Span<float3>> positions = drawing_hints.positions()) {
-      deformation.positions = *positions;
-      return deformation;
+  if (geometry_eval->has<GeometryComponentEditData>()) {
+    const GeometryComponentEditData &edit_component_eval =
+        *geometry_eval->get_component<GeometryComponentEditData>();
+    const GreasePencilEditHints *edit_hints = edit_component_eval.grease_pencil_edit_hints_.get();
+    if (edit_hints != nullptr && &edit_hints->grease_pencil_id_orig == &grease_pencil_orig &&
+        edit_hints->drawing_hints.has_value())
+    {
+      BLI_assert(edit_hints->drawing_hints->size() == layers_orig.size());
+      const GreasePencilDrawingEditHints &drawing_hints =
+          edit_hints->drawing_hints.value()[layer_index];
+      if (const std::optional<Span<float3>> positions = drawing_hints.positions()) {
+        deformation.positions = *positions;
+        return deformation;
+      }
     }
   }
 
