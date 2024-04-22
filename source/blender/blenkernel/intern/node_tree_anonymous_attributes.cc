@@ -61,6 +61,21 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
       return geometry_relations;
     }
   }
+  if (node.is_muted()) {
+    aal::RelationsInNode &relations = scope.construct<aal::RelationsInNode>();
+    for (const bNodeLink &link : node.internal_links()) {
+      const bNodeSocket &input = *link.fromsock;
+      const bNodeSocket &output = *link.tosock;
+      if (socket_is_field(input) || socket_is_field(output)) {
+        relations.reference_relations.append({input.index(), output.index()});
+      }
+      else if (input.type == SOCK_GEOMETRY) {
+        BLI_assert(input.type == output.type);
+        relations.propagate_relations.append({input.index(), output.index()});
+      }
+    }
+    return relations;
+  }
   if (ELEM(node.type, GEO_NODE_SIMULATION_INPUT, GEO_NODE_SIMULATION_OUTPUT, GEO_NODE_BAKE)) {
     aal::RelationsInNode &relations = scope.construct<aal::RelationsInNode>();
     {
