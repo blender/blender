@@ -387,6 +387,62 @@ static bUnitCollection buImperialLenCollection = {
     /*length*/ UNIT_COLLECTION_LENGTH(buImperialLenDef),
 };
 
+/* Wavelengths (scene-independent, with nm as the base unit). */
+static bUnitDef buWavelengthLenDef[] = {
+    {
+        /*name*/ "millimeter",
+        /*name_plural*/ "millimeters",
+        /*name_short*/ "mm",
+        /*name_alt*/ nullptr,
+        /*name_display*/ "Millimeters",
+        /*identifier*/ nullptr,
+        /*scalar*/ 1e6f,
+        /*bias*/ 0.0,
+        /*flag*/ B_UNIT_DEF_NONE,
+    },
+    {
+        /*name*/ "micrometer",
+        /*name_plural*/ "micrometers",
+        /*name_short*/ "µm",
+        /*name_alt*/ "um",
+        /*name_display*/ "Micrometers",
+        /*identifier*/ nullptr,
+        /*scalar*/ 1e3f,
+        /*bias*/ 0.0,
+        /*flag*/ B_UNIT_DEF_NONE,
+    },
+    /* Base unit. */
+    {
+        /*name*/ "nanometer",
+        /*name_plural*/ "nanometers",
+        /*name_short*/ "nm",
+        /*name_alt*/ nullptr,
+        /*name_display*/ "Nanometers",
+        /*identifier*/ nullptr,
+        /*scalar*/ 1.0f,
+        /*bias*/ 0.0,
+        /*flag*/ B_UNIT_DEF_NONE,
+    },
+    {
+        /*name*/ "picometer",
+        /*name_plural*/ "picometers",
+        /*name_short*/ "pm",
+        /*name_alt*/ nullptr,
+        /*name_display*/ "Picometers",
+        /*identifier*/ nullptr,
+        /*scalar*/ 1e-3f,
+        /*bias*/ 0.0,
+        /*flag*/ B_UNIT_DEF_NONE,
+    },
+    NULL_UNIT,
+};
+static bUnitCollection buWavelengthLenCollection = {
+    /*units*/ buWavelengthLenDef,
+    /*base_unit*/ 2,
+    /*flag*/ 0,
+    /*length*/ UNIT_COLLECTION_LENGTH(buWavelengthLenDef),
+};
+
 /* Areas. */
 static bUnitDef buMetricAreaDef[] = {
     {
@@ -1420,6 +1476,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_CAMERA*/ nullptr,
         /*B_UNIT_POWER*/ nullptr,
         /*B_UNIT_TEMPERATURE*/ nullptr,
+        /*B_UNIT_WAVELENGTH*/ nullptr,
     },
     /* Metric. */
     {
@@ -1436,6 +1493,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_CAMERA*/ &buCameraLenCollection,
         /*B_UNIT_POWER*/ &buPowerCollection,
         /*B_UNIT_TEMPERATURE*/ &buMetricTempCollection,
+        /*B_UNIT_WAVELENGTH*/ &buWavelengthLenCollection,
     },
     /* Imperial. */
     {
@@ -1452,6 +1510,7 @@ static const bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
         /*B_UNIT_CAMERA*/ &buCameraLenCollection,
         /*B_UNIT_POWER*/ &buPowerCollection,
         /*B_UNIT_TEMPERATURE*/ &buImperialTempCollection,
+        /*B_UNIT_WAVELENGTH*/ &buWavelengthLenCollection,
     },
     {nullptr},
 };
@@ -1599,7 +1658,7 @@ static size_t unit_as_string(char *str,
 
 static bool unit_should_be_split(int type)
 {
-  return ELEM(type, B_UNIT_LENGTH, B_UNIT_MASS, B_UNIT_TIME, B_UNIT_CAMERA);
+  return ELEM(type, B_UNIT_LENGTH, B_UNIT_MASS, B_UNIT_TIME, B_UNIT_CAMERA, B_UNIT_WAVELENGTH);
 }
 
 struct PreferredUnits {
