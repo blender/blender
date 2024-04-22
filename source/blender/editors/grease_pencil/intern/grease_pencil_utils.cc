@@ -221,7 +221,7 @@ static std::pair<int, int> get_minmax_selected_frame_numbers(const GreasePencil 
     for (const auto [frame_number, frame] : layer.frames().items()) {
       if (frame_number != current_frame && frame.is_selected()) {
         frame_min = math::min(frame_min, frame_number);
-        frame_max = math::min(frame_max, frame_number);
+        frame_max = math::max(frame_max, frame_number);
       }
     }
   }
