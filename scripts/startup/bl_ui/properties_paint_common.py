@@ -1432,6 +1432,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
 
 def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=False):
     gp_settings = brush.gpencil_settings
+    tool = context.workspace.tools.from_space_view3d_mode(context.mode, create=False)
     if gp_settings is None:
         return
 
@@ -1468,7 +1469,39 @@ def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=
         col = layout.column()
         col.template_curve_mapping(gp_settings, "curve_strength", brush=True, use_negative_slope=True)
 
-    if grease_pencil_tool == 'DRAW':
+    # Brush details
+    if tool.idname in {
+            "builtin.arc",
+            "builtin.curve",
+            "builtin.line",
+            "builtin.box",
+            "builtin.circle",
+            "builtin.polyline",
+    }:
+        row = layout.row(align=True)
+        if context.region.type == 'TOOL_HEADER':
+            row.prop(gp_settings, "caps_type", text="", expand=True)
+        else:
+            row.prop(gp_settings, "caps_type", text="Caps Type")
+
+        settings = context.tool_settings.gpencil_sculpt
+        if compact:
+            row = layout.row(align=True)
+            row.prop(settings, "use_thickness_curve", text="", icon='SPHERECURVE')
+            sub = row.row(align=True)
+            sub.active = settings.use_thickness_curve
+            sub.popover(
+                panel="TOPBAR_PT_gpencil_primitive",
+                text="Thickness Profile",
+            )
+        else:
+            row = layout.row(align=True)
+            row.prop(settings, "use_thickness_curve", text="Use Thickness Profile")
+            sub = row.row(align=True)
+            if settings.use_thickness_curve:
+                # Pressure curve.
+                layout.template_curve_mapping(settings, "thickness_primitive_curve", brush=True)
+    elif grease_pencil_tool == 'DRAW':
         layout.prop(gp_settings, "active_smooth_factor")
         row = layout.row(align=True)
         if compact:

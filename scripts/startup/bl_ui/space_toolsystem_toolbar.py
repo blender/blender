@@ -1840,6 +1840,126 @@ class _defs_paint_grease_pencil:
             data_block='TINT',
         )
 
+    @staticmethod
+    def grease_pencil_primitive_toolbar(context, layout, _tool, props):
+        paint = context.tool_settings.gpencil_paint
+        brush = paint.brush
+
+        if brush is None:
+            return False
+
+        gp_settings = brush.gpencil_settings
+
+        row = layout.row(align=True)
+        tool_settings = context.scene.tool_settings
+        settings = tool_settings.gpencil_paint
+        row.template_ID_preview(settings, "brush", rows=3, cols=8, hide_buttons=True)
+
+        from bl_ui.properties_paint_common import (
+            brush_basic_grease_pencil_paint_settings,
+            brush_basic__draw_color_selector,
+        )
+
+        brush_basic__draw_color_selector(context, layout, brush, gp_settings, props)
+        brush_basic_grease_pencil_paint_settings(layout, context, brush, compact=True)
+        return True
+
+    @ToolDef.from_fn
+    def line():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("grease_pencil.primitive_line")
+            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+
+        return dict(
+            idname="builtin.line",
+            label="Line",
+            icon="ops.gpencil.primitive_line",
+            cursor='CROSSHAIR',
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def polyline():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("grease_pencil.primitive_polyline")
+            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+
+        return dict(
+            idname="builtin.polyline",
+            label="Polyline",
+            icon="ops.gpencil.primitive_polyline",
+            cursor='CROSSHAIR',
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def arc():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("grease_pencil.primitive_arc")
+            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+
+        return dict(
+            idname="builtin.arc",
+            label="Arc",
+            icon="ops.gpencil.primitive_arc",
+            cursor='CROSSHAIR',
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def curve():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("grease_pencil.primitive_curve")
+            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+
+        return dict(
+            idname="builtin.curve",
+            label="Curve",
+            icon="ops.gpencil.primitive_curve",
+            cursor='CROSSHAIR',
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def box():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("grease_pencil.primitive_box")
+            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+
+        return dict(
+            idname="builtin.box",
+            label="Box",
+            icon="ops.gpencil.primitive_box",
+            cursor='CROSSHAIR',
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
+    def circle():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("grease_pencil.primitive_circle")
+            _defs_paint_grease_pencil.grease_pencil_primitive_toolbar(context, layout, tool, props)
+
+        return dict(
+            idname="builtin.circle",
+            label="Circle",
+            icon="ops.gpencil.primitive_circle",
+            cursor='CROSSHAIR',
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
 
 class _defs_image_generic:
 
@@ -3248,6 +3368,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_paint_grease_pencil.draw,
             _defs_paint_grease_pencil.erase,
             _defs_paint_grease_pencil.tint,
+            None,
+            _defs_paint_grease_pencil.line,
+            _defs_paint_grease_pencil.polyline,
+            _defs_paint_grease_pencil.arc,
+            _defs_paint_grease_pencil.curve,
+            _defs_paint_grease_pencil.box,
+            _defs_paint_grease_pencil.circle,
         ],
         'PAINT_GPENCIL': [
             _defs_view3d_generic.cursor,
