@@ -1315,7 +1315,7 @@ NodeData node_begin(Object &object, const Cache *automasking, PBVHNode &node);
 /* Call before factor_get and SCULPT_brush_strength_factor. */
 void node_update(NodeData &automask_data, PBVHVertexIter &vd);
 
-float factor_get(Cache *automasking,
+float factor_get(const Cache *automasking,
                  SculptSession *ss,
                  PBVHVertRef vertex,
                  const NodeData *automask_data);
