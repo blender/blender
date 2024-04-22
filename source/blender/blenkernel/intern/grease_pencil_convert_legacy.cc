@@ -206,15 +206,15 @@ class AnimDataConvertor {
   }
   AnimDataConvertor() = delete;
 
-  /** \return True if this AnimDataConvertor is valid, i.e. can be used to process animation data
-   * from source ID. */
-  explicit operator bool() const
-  {
-    return (this->animdata_src);
-  }
-
  private:
   using FCurveCallback = bool(bAction *owner_action, FCurve &fcurve);
+
+  /** \return True if this AnimDataConvertor is valid, i.e. can be used to process animation data
+   * from source ID. */
+  bool is_valid() const
+  {
+    return this->animdata_src != nullptr;
+  }
 
   /* Basic common check to decide whether a legacy fcurve should be processed or not. */
   bool legacy_fcurves_is_valid_for_root_path(FCurve &fcurve, StringRefNull legacy_root_path) const
@@ -235,7 +235,7 @@ class AnimDataConvertor {
    */
   bool animation_fcurve_is_valid(bAction *owner_action, FCurve &fcurve) const
   {
-    if (!*this) {
+    if (!this->is_valid()) {
       return false;
     }
     /* Only take into account drivers (nullptr `action_owner`), and Actions directly assigned
@@ -324,7 +324,7 @@ class AnimDataConvertor {
    */
   bool source_has_animation_to_convert() const
   {
-    if (!*this) {
+    if (!this->is_valid()) {
       return false;
     }
 
@@ -365,7 +365,7 @@ class AnimDataConvertor {
    */
   void fcurves_convert()
   {
-    if (!*this) {
+    if (!this->is_valid()) {
       return;
     }
 
@@ -448,7 +448,7 @@ class AnimDataConvertor {
    */
   void fcurves_convert_finalize()
   {
-    if (!*this) {
+    if (!this->is_valid()) {
       return;
     }
 
