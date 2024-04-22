@@ -544,6 +544,12 @@ IndexMask retrieve_editable_strokes(Object &object,
                                     IndexMaskMemory &memory)
 {
   using namespace blender;
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange curves_range = drawing.strokes().curves_range();
+
+  if (object.totcol == 0) {
+    return IndexMask(curves_range);
+  }
 
   /* Get all the editable material indices */
   VectorSet<int> editable_material_indices = get_editable_material_indices(object);
@@ -551,8 +557,6 @@ IndexMask retrieve_editable_strokes(Object &object,
     return {};
   }
 
-  const bke::CurvesGeometry &curves = drawing.strokes();
-  const IndexRange curves_range = drawing.strokes().curves_range();
   const bke::AttributeAccessor attributes = curves.attributes();
 
   const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
@@ -611,14 +615,19 @@ IndexMask retrieve_editable_points(Object &object,
                                    const bke::greasepencil::Drawing &drawing,
                                    IndexMaskMemory &memory)
 {
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange points_range = drawing.strokes().points_range();
+
+  if (object.totcol == 0) {
+    return IndexMask(points_range);
+  }
+
   /* Get all the editable material indices */
   VectorSet<int> editable_material_indices = get_editable_material_indices(object);
   if (editable_material_indices.is_empty()) {
     return {};
   }
 
-  const bke::CurvesGeometry &curves = drawing.strokes();
-  const IndexRange points_range = drawing.strokes().points_range();
   const bke::AttributeAccessor attributes = curves.attributes();
 
   /* Propagate the material index to the points. */
