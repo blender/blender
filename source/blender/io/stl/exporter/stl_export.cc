@@ -6,13 +6,14 @@
  * \ingroup stl
  */
 
-#include <algorithm>
+#include <cstring>
 #include <memory>
-#include <string>
 
 #include "BKE_context.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
@@ -136,13 +137,43 @@ void export_frame(Depsgraph *depsgraph,
 
 void exporter_main(bContext *C, const STLExportParams &export_params)
 {
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Depsgraph *depsgraph = nullptr;
+  bool needs_free = false;
+
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
+  if (strlen(export_params.collection) > 0) {
+    Collection *collection = reinterpret_cast<Collection *>(
+        BKE_libblock_find_name(bmain, ID_GR, export_params.collection));
+    if (!collection) {
+      BKE_reportf(export_params.reports,
+                  RPT_ERROR,
+                  "STL Export: Unable to find collection '%s'",
+                  export_params.collection);
+      return;
+    }
+
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+
+    depsgraph = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_RENDER);
+    needs_free = true;
+    DEG_graph_build_from_collection(depsgraph, collection);
+    BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+  }
+  else {
+    depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  }
+
   float scene_unit_scale = 1.0f;
   if ((scene->unit.system != USER_UNIT_NONE) && export_params.use_scene_unit) {
     scene_unit_scale = scene->unit.scale_length;
   }
+
   export_frame(depsgraph, scene_unit_scale, export_params);
+
+  if (needs_free) {
+    DEG_graph_free(depsgraph);
+  }
 }
 
 }  // namespace blender::io::stl

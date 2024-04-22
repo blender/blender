@@ -9,6 +9,9 @@
 #pragma once
 
 #include "BLI_path_util.h"
+
+#include "DNA_ID.h"
+
 #include "IO_orientation.hh"
 
 struct bContext;
@@ -45,6 +48,7 @@ struct PLYExportParams {
   ePLYVertexColorMode vertex_colors;
   bool export_attributes;
   bool export_triangulated_mesh;
+  char collection[MAX_IDPROP_NAME] = "";
 
   ReportList *reports = nullptr;
 };
