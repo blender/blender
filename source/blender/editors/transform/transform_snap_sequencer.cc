@@ -152,7 +152,8 @@ static blender::VectorSet<Sequence *> query_snap_targets(Scene *scene,
   return snap_targets;
 }
 
-static int seq_get_snap_target_points_count(short snap_mode,
+static int seq_get_snap_target_points_count(const Scene *scene,
+                                            short snap_mode,
                                             blender::Span<Sequence *> snap_targets)
 {
   int count = 2; /* Strip start and end are always used. */
@@ -167,6 +168,10 @@ static int seq_get_snap_target_points_count(short snap_mode,
     count++;
   }
 
+  if (snap_mode & SEQ_SNAP_TO_MARKERS) {
+    count += BLI_listbase_count(&scene->markers);
+  }
+
   return count;
 }
 
@@ -175,7 +180,8 @@ static bool seq_snap_target_points_build(Scene *scene,
                                          TransSeqSnapData *snap_data,
                                          blender::Span<Sequence *> snap_targets)
 {
-  const size_t point_count_target = seq_get_snap_target_points_count(snap_mode, snap_targets);
+  const size_t point_count_target = seq_get_snap_target_points_count(
+      scene, snap_mode, snap_targets);
   if (point_count_target == 0) {
     return false;
   }
@@ -186,6 +192,13 @@ static bool seq_snap_target_points_build(Scene *scene,
   if (snap_mode & SEQ_SNAP_TO_CURRENT_FRAME) {
     snap_data->target_snap_points[i] = scene->r.cfra;
     i++;
+  }
+
+  if (snap_mode & SEQ_SNAP_TO_MARKERS) {
+    LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+      snap_data->target_snap_points[i] = marker->frame;
+      i++;
+    }
   }
 
   for (Sequence *seq : snap_targets) {
