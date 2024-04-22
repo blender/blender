@@ -937,7 +937,7 @@ static bool drop_extension_url_poll(bContext * /*C*/, wmDrag *drag, const wmEven
   /* Check the URL has a `.zip` suffix OR has a known repository as a prefix.
    * This is needed to support redirects which don't contain an extension. */
   if (!(cstr_ext && STRCASEEQ(cstr_ext, ".zip")) &&
-      !(BKE_preferences_extension_repo_find_by_remote_path_prefix(&U, cstr, true)))
+      !BKE_preferences_extension_repo_find_by_remote_path_prefix(&U, cstr, true))
   {
     return false;
   }

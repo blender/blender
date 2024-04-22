@@ -419,8 +419,15 @@ static void nla_draw_strip(SpaceNla *snla,
                            float yminc,
                            float ymaxc)
 {
-  const bool solo = !((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) &&
-                      (nlt->flag & NLATRACK_SOLO) == 0);
+  /* If there is no 'adt', this strip came from nowhere. */
+  BLI_assert(adt);
+  if (!adt) {
+    return;
+  }
+
+  const bool adt_has_solo_track = (adt->flag & ADT_NLA_SOLO_TRACK);
+  const bool is_track_solo = (nlt->flag & NLATRACK_SOLO);
+  const bool is_other_track_soloed = adt_has_solo_track && !is_track_solo;
 
   const bool muted = ((nlt->flag & NLATRACK_MUTED) || (strip->flag & NLASTRIP_FLAG_MUTED));
   float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -435,7 +442,7 @@ static void nla_draw_strip(SpaceNla *snla,
   /* draw extrapolation info first (as backdrop)
    * - but this should only be drawn if track has some contribution
    */
-  if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && solo) {
+  if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && !is_other_track_soloed) {
     /* enable transparency... */
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -473,9 +480,8 @@ static void nla_draw_strip(SpaceNla *snla,
   }
 
   /* draw 'inside' of strip itself */
-  if (solo && is_nlastrip_enabled(adt, nlt, strip) &&
-      !(strip->flag & NLASTRIP_FLAG_INVALID_LOCATION))
-  {
+  const bool is_invalid_location = (strip->flag & NLASTRIP_FLAG_INVALID_LOCATION);
+  if (!is_other_track_soloed && is_nlastrip_enabled(adt, nlt, strip) && !is_invalid_location) {
     immUnbindProgram();
 
     /* strip is in normal track */
@@ -518,7 +524,7 @@ static void nla_draw_strip(SpaceNla *snla,
   /* draw strip outline
    * - color used here is to indicate active vs non-active
    */
-  if (strip->flag & NLASTRIP_FLAG_INVALID_LOCATION) {
+  if (is_invalid_location) {
     color[0] = 1.0f;
     color[1] = color[2] = 0.15f;
   }

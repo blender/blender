@@ -1386,7 +1386,7 @@ static int console_modal_select_all_invoke(bContext *C,
 
   int offset = strlen(sc->prompt);
 
-  for (ConsoleLine *cl = static_cast<ConsoleLine *>(sc->scrollback.first); cl; cl = cl->next) {
+  LISTBASE_FOREACH (ConsoleLine *, cl, &sc->scrollback) {
     offset += cl->len + 1;
   }
 

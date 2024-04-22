@@ -261,7 +261,7 @@ void RB_dworld_add_constraint(rbDynamicsWorld *world, rbConstraint *con, int dis
 /* Remove Rigid Body Constraint from simulation world */
 void RB_dworld_remove_constraint(rbDynamicsWorld *world, rbConstraint *con);
 
-rbConstraint *RB_constraint_new_point(float pivot[3], rbRigidBody *rb1, rbRigidBody *rb2);
+rbConstraint *RB_constraint_new_point(const float pivot[3], rbRigidBody *rb1, rbRigidBody *rb2);
 rbConstraint *RB_constraint_new_fixed(float pivot[3],
                                       float orn[4],
                                       rbRigidBody *rb1,

@@ -550,13 +550,17 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
     /* Update active layer index */
     if (const char *active_uv_name = CustomData_get_active_layer_name(loopdata, CD_PROP_FLOAT2)) {
       int tan_index = CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, active_uv_name);
-      CustomData_set_layer_active_index(loopdata_out, CD_TANGENT, tan_index);
+      if (tan_index != -1) {
+        CustomData_set_layer_active_index(loopdata_out, CD_TANGENT, tan_index);
+      }
     } /* else tangent has been built from orco */
 
     /* Update render layer index */
     if (const char *render_uv_name = CustomData_get_render_layer_name(loopdata, CD_PROP_FLOAT2)) {
       int tan_index = CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, render_uv_name);
-      CustomData_set_layer_render_index(loopdata_out, CD_TANGENT, tan_index);
+      if (tan_index != -1) {
+        CustomData_set_layer_render_index(loopdata_out, CD_TANGENT, tan_index);
+      }
     } /* else tangent has been built from orco */
   }
 }

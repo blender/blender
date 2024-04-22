@@ -365,7 +365,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
       break;
     case CURVE_PRESET_MID8: {
       for (int i = 0; i < cuma->totpoint; i++) {
-        cuma->curve[i].x = i / (float(cuma->totpoint));
+        cuma->curve[i].x = i / float(cuma->totpoint);
         cuma->curve[i].y = 0.5;
       }
       break;
@@ -1414,11 +1414,10 @@ static void save_sample_line(
   scopes->vecscope[idx + 0] = yuv[1];
   scopes->vecscope[idx + 1] = yuv[2];
 
-  int color_idx = (idx / 2) * 4;
+  int color_idx = (idx / 2) * 3;
   scopes->vecscope_rgb[color_idx + 0] = rgb[0];
   scopes->vecscope_rgb[color_idx + 1] = rgb[1];
   scopes->vecscope_rgb[color_idx + 2] = rgb[2];
-  scopes->vecscope_rgb[color_idx + 3] = scopes->vecscope_alpha;
 
   /* Waveform. */
   switch (scopes->wavefrm_mode) {
@@ -1782,7 +1781,7 @@ void BKE_scopes_update(Scopes *scopes,
   scopes->vecscope = static_cast<float *>(
       MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "vectorscope point channel"));
   scopes->vecscope_rgb = static_cast<float *>(
-      MEM_callocN(scopes->waveform_tot * 4 * sizeof(float), "vectorscope color channel"));
+      MEM_callocN(scopes->waveform_tot * 3 * sizeof(float), "vectorscope color channel"));
 
   if (ibuf->float_buffer.data) {
     cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);

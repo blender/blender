@@ -201,7 +201,7 @@ static void wm_gesture_draw_line(wmGesture *gt)
 
 static void wm_gesture_draw_rect(wmGesture *gt)
 {
-  rcti *rect = (rcti *)gt->customdata;
+  const rcti *rect = static_cast<const rcti *>(gt->customdata);
 
   uint shdr_pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
@@ -242,7 +242,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
 
 static void wm_gesture_draw_circle(wmGesture *gt)
 {
-  rcti *rect = (rcti *)gt->customdata;
+  const rcti *rect = static_cast<const rcti *>(gt->customdata);
 
   GPU_blend(GPU_BLEND_ALPHA);
 
@@ -384,7 +384,7 @@ static void wm_gesture_draw_lasso(wmGesture *gt, bool filled)
 
 static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 {
-  rcti *rect = (rcti *)gt->customdata;
+  const rcti *rect = static_cast<const rcti *>(gt->customdata);
   const int winsize_x = WM_window_pixels_x(win);
   const int winsize_y = WM_window_pixels_y(win);
 

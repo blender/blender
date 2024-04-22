@@ -194,12 +194,9 @@ struct VKRenderGraphNode {
   }
 
   /**
-   * Reset nodes.
-   *
-   * Nodes are reset so they can be reused in consecutive calls. Data allocated by the node are
-   * freed. This function dispatches the free_data to the actual node implementation.
+   * Free data kept by the node
    */
-  void reset()
+  void free_data()
   {
     switch (type) {
       case VKNodeType::DISPATCH: {
@@ -220,7 +217,17 @@ struct VKRenderGraphNode {
       case VKNodeType::SYNCHRONIZATION:
         break;
     }
+  }
 
+  /**
+   * Reset nodes.
+   *
+   * Nodes are reset so they can be reused in consecutive calls. Data allocated by the node are
+   * freed. This function dispatches the free_data to the actual node implementation.
+   */
+  void reset()
+  {
+    free_data();
     memset(this, 0, sizeof(VKRenderGraphNode));
     type = VKNodeType::UNUSED;
   }

@@ -980,139 +980,165 @@ template<class T> inline int PassBase<T>::push_constant_offset(const char *name)
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUStorageBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUUniformBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUUniformBuf **buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, gpu::VertBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, gpu::VertBuf **buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, gpu::IndexBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, gpu::IndexBuf **buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ubo(const char *name, GPUUniformBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_ubo(GPU_shader_get_ubo_binding(shader_, name), buffer);
 }
 
 template<class T>
 inline void PassBase<T>::bind_texture(const char *name, GPUTexture *texture, GPUSamplerState state)
 {
+  BLI_assert(texture != nullptr);
   this->bind_texture(GPU_shader_get_sampler_binding(shader_, name), texture, state);
 }
 
 template<class T> inline void PassBase<T>::bind_texture(const char *name, gpu::VertBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_texture(GPU_shader_get_sampler_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_texture(const char *name, gpu::VertBuf **buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_texture(GPU_shader_get_sampler_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_image(const char *name, GPUTexture *image)
 {
+  BLI_assert(image != nullptr);
   this->bind_image(GPU_shader_get_sampler_binding(shader_, name), image);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUStorageBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {slot, buffer};
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUUniformBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {
       slot, buffer, ResourceBind::Type::UniformAsStorageBuf};
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUUniformBuf **buffer)
 {
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {
       slot, buffer, ResourceBind::Type::UniformAsStorageBuf};
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(int slot, gpu::VertBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {
       slot, buffer, ResourceBind::Type::VertexAsStorageBuf};
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(int slot, gpu::VertBuf **buffer)
 {
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {
       slot, buffer, ResourceBind::Type::VertexAsStorageBuf};
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(int slot, gpu::IndexBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {
       slot, buffer, ResourceBind::Type::IndexAsStorageBuf};
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(int slot, gpu::IndexBuf **buffer)
 {
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {
       slot, buffer, ResourceBind::Type::IndexAsStorageBuf};
 }
 
 template<class T> inline void PassBase<T>::bind_ubo(int slot, GPUUniformBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {slot, buffer};
 }
 
 template<class T>
 inline void PassBase<T>::bind_texture(int slot, GPUTexture *texture, GPUSamplerState state)
 {
+  BLI_assert(texture != nullptr);
   create_command(Type::ResourceBind).resource_bind = {slot, texture, state};
 }
 
 template<class T> inline void PassBase<T>::bind_texture(int slot, gpu::VertBuf *buffer)
 {
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {slot, buffer};
 }
 
 template<class T> inline void PassBase<T>::bind_texture(int slot, gpu::VertBuf **buffer)
 {
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {slot, buffer};
 }
 
 template<class T> inline void PassBase<T>::bind_image(int slot, GPUTexture *image)
 {
+  BLI_assert(image != nullptr);
   create_command(Type::ResourceBind).resource_bind = {slot, as_image(image)};
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(const char *name, GPUStorageBuf **buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_ssbo(GPU_shader_get_ssbo_binding(shader_, name), buffer);
 }
 
 template<class T> inline void PassBase<T>::bind_ubo(const char *name, GPUUniformBuf **buffer)
 {
+  BLI_assert(buffer != nullptr);
   this->bind_ubo(GPU_shader_get_ubo_binding(shader_, name), buffer);
 }
 
@@ -1121,33 +1147,39 @@ inline void PassBase<T>::bind_texture(const char *name,
                                       GPUTexture **texture,
                                       GPUSamplerState state)
 {
+  BLI_assert(texture != nullptr);
   this->bind_texture(GPU_shader_get_sampler_binding(shader_, name), texture, state);
 }
 
 template<class T> inline void PassBase<T>::bind_image(const char *name, GPUTexture **image)
 {
+  BLI_assert(image != nullptr);
   this->bind_image(GPU_shader_get_sampler_binding(shader_, name), image);
 }
 
 template<class T> inline void PassBase<T>::bind_ssbo(int slot, GPUStorageBuf **buffer)
 {
 
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {slot, buffer};
 }
 
 template<class T> inline void PassBase<T>::bind_ubo(int slot, GPUUniformBuf **buffer)
 {
+  BLI_assert(buffer != nullptr);
   create_command(Type::ResourceBind).resource_bind = {slot, buffer};
 }
 
 template<class T>
 inline void PassBase<T>::bind_texture(int slot, GPUTexture **texture, GPUSamplerState state)
 {
+  BLI_assert(texture != nullptr);
   create_command(Type::ResourceBind).resource_bind = {slot, texture, state};
 }
 
 template<class T> inline void PassBase<T>::bind_image(int slot, GPUTexture **image)
 {
+  BLI_assert(image != nullptr);
   create_command(Type::ResourceBind).resource_bind = {slot, as_image(image)};
 }
 

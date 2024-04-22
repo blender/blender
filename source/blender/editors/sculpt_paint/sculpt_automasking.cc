@@ -196,7 +196,7 @@ static bool needs_factors_cache(const Sculpt *sd, const Brush *brush)
   return false;
 }
 
-static float calc_brush_normal_factor(Cache *automasking,
+static float calc_brush_normal_factor(const Cache *automasking,
                                       SculptSession *ss,
                                       PBVHVertRef vertex,
                                       const NodeData &automask_data)
@@ -219,7 +219,7 @@ static float calc_brush_normal_factor(Cache *automasking,
                      automask_data);
 }
 
-static float calc_view_normal_factor(Cache &automasking,
+static float calc_view_normal_factor(const Cache &automasking,
                                      SculptSession *ss,
                                      PBVHVertRef vertex,
                                      const NodeData &automask_data)
@@ -243,7 +243,7 @@ static float calc_view_normal_factor(Cache &automasking,
                      automask_data);
 }
 
-static float calc_view_occlusion_factor(Cache &automasking,
+static float calc_view_occlusion_factor(const Cache &automasking,
                                         SculptSession *ss,
                                         PBVHVertRef vertex,
                                         uchar stroke_id,
@@ -262,7 +262,7 @@ static float calc_view_occlusion_factor(Cache &automasking,
 
 /* Updates vertex stroke id. */
 static float automasking_factor_end(SculptSession *ss,
-                                    Cache *automasking,
+                                    const Cache *automasking,
                                     PBVHVertRef vertex,
                                     float value)
 {
@@ -274,7 +274,7 @@ static float automasking_factor_end(SculptSession *ss,
   return value;
 }
 
-static float calc_cavity_factor(Cache *automasking, float factor)
+static float calc_cavity_factor(const Cache *automasking, float factor)
 {
   float sign = signf(factor);
 
@@ -301,7 +301,7 @@ struct CavityBlurVert {
 };
 
 static void calc_blurred_cavity(SculptSession *ss,
-                                Cache *automasking,
+                                const Cache *automasking,
                                 int steps,
                                 PBVHVertRef vertex)
 {
@@ -479,7 +479,7 @@ int settings_hash(const Object &ob, const Cache &automasking)
   return hash;
 }
 
-static float calc_cavity_factor(Cache *automasking, SculptSession *ss, PBVHVertRef vertex)
+static float calc_cavity_factor(const Cache *automasking, SculptSession *ss, PBVHVertRef vertex)
 {
   uchar stroke_id = *(uchar *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_stroke_id);
 
@@ -501,7 +501,7 @@ static float calc_cavity_factor(Cache *automasking, SculptSession *ss, PBVHVertR
   return factor;
 }
 
-float factor_get(Cache *automasking,
+float factor_get(const Cache *automasking,
                  SculptSession *ss,
                  PBVHVertRef vert,
                  const NodeData *automask_data)

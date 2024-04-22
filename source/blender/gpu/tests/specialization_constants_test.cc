@@ -36,12 +36,6 @@ struct ShaderSpecializationConst {
 
   ShaderSpecializationConst(const char *info_name)
   {
-    if (!GPU_compute_shader_support()) {
-      /* We can't test as a the platform does not support compute shaders. */
-      std::cout << "Skipping test: platform not supported";
-      return;
-    }
-
     GPU_render_begin();
 
     this->init_shader(info_name);

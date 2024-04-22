@@ -1883,8 +1883,12 @@ static void icon_draw_texture(float x,
   if (show_indicator) {
     /* Handle the little numbers on top of the icon. */
     uchar text_color[4];
-    UI_GetThemeColor3ubv(TH_TEXT, text_color);
-    text_color[3] = 255;
+    if (text_overlay->color[3]) {
+      copy_v4_v4_uchar(text_color, text_overlay->color);
+    }
+    else {
+      UI_GetThemeColor4ubv(TH_TEXT, text_color);
+    }
 
     uiFontStyle fstyle_small = *UI_FSTYLE_WIDGET;
     fstyle_small.points *= zoom_factor;

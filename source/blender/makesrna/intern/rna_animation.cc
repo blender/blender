@@ -19,6 +19,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_nla.h"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -194,33 +196,9 @@ bool rna_AnimData_tweakmode_override_apply(Main * /*bmain*/,
   anim_data_dst->flag = (anim_data_dst->flag & ~ADT_NLA_EDIT_ON) |
                         (anim_data_src->flag & ADT_NLA_EDIT_ON);
 
-  if (!(anim_data_dst->flag & ADT_NLA_EDIT_ON)) {
-    /* If tweak mode is not enabled, there's nothing left to do. */
-    return true;
-  }
-
-  if (!anim_data_src->act_track || !anim_data_src->actstrip) {
-    /* If there is not enough information to find the active track/strip, don't bother. */
-    return true;
-  }
-
-  /* AnimData::act_track and AnimData::actstrip are not directly exposed to RNA as editable &
-   * overridable, so the override doesn't contain this info. Reconstruct the pointers by name. */
-  for (NlaTrack *track : blender::ListBaseWrapper<NlaTrack>(anim_data_dst->nla_tracks)) {
-    if (!STREQ(track->name, anim_data_src->act_track->name)) {
-      continue;
-    }
-
-    NlaStrip *strip = BKE_nlastrip_find_by_name(track, anim_data_src->actstrip->name);
-    if (!strip) {
-      continue;
-    }
-
-    anim_data_dst->act_track = track;
-    anim_data_dst->actstrip = strip;
-    break;
-  }
-
+  /* There are many more flags & pointers to deal with when switching NLA tweak mode. This has to
+   * be handled once all the NLA tracks & strips are available, though. It's done in a post-process
+   * step, see BKE_nla_liboverride_post_process(). */
   return true;
 }
 

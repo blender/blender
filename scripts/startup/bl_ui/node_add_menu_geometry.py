@@ -23,7 +23,7 @@ class NODE_MT_geometry_node_GEO_ATTRIBUTE(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeBlurAttribute")
         node_add_menu.add_node_type(layout, "GeometryNodeCaptureAttribute")
         node_add_menu.add_node_type(layout, "GeometryNodeRemoveAttribute")
-        node_add_menu.add_node_type(layout, "GeometryNodeStoreNamedAttribute")
+        node_add_menu.add_node_type(layout, "GeometryNodeStoreNamedAttribute", search_weight=1.0)
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -181,9 +181,9 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_READ(Menu):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeInputID")
         node_add_menu.add_node_type(layout, "GeometryNodeInputIndex")
-        node_add_menu.add_node_type(layout, "GeometryNodeInputNamedAttribute")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputNamedAttribute", search_weight=1.0)
         node_add_menu.add_node_type(layout, "GeometryNodeInputNormal")
-        node_add_menu.add_node_type(layout, "GeometryNodeInputPosition")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputPosition", search_weight=1.0)
         node_add_menu.add_node_type(layout, "GeometryNodeInputRadius")
         if context.space_data.geometry_nodes_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolSelection")
@@ -197,7 +197,7 @@ class NODE_MT_geometry_node_GEO_GEOMETRY_WRITE(Menu):
     def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeSetID")
-        node_add_menu.add_node_type(layout, "GeometryNodeSetPosition")
+        node_add_menu.add_node_type(layout, "GeometryNodeSetPosition", search_weight=1.0)
         if context.space_data.geometry_nodes_type == 'TOOL':
             node_add_menu.add_node_type(layout, "GeometryNodeToolSetSelection")
         node_add_menu.draw_assets_for_catalog(layout, "Geometry/Write")
@@ -304,10 +304,10 @@ class NODE_MT_geometry_node_GEO_INSTANCE(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "GeometryNodeInstanceOnPoints")
+        node_add_menu.add_node_type(layout, "GeometryNodeInstanceOnPoints", search_weight=2.0)
         node_add_menu.add_node_type(layout, "GeometryNodeInstancesToPoints")
         layout.separator()
-        node_add_menu.add_node_type(layout, "GeometryNodeRealizeInstances")
+        node_add_menu.add_node_type(layout, "GeometryNodeRealizeInstances", search_weight=1.0)
         node_add_menu.add_node_type(layout, "GeometryNodeRotateInstances")
         node_add_menu.add_node_type(layout, "GeometryNodeScaleInstances")
         node_add_menu.add_node_type(layout, "GeometryNodeTranslateInstances")
@@ -328,7 +328,7 @@ class NODE_MT_geometry_node_GEO_MATERIAL(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeInputMaterialIndex")
         node_add_menu.add_node_type(layout, "GeometryNodeMaterialSelection")
         layout.separator()
-        node_add_menu.add_node_type(layout, "GeometryNodeSetMaterial")
+        node_add_menu.add_node_type(layout, "GeometryNodeSetMaterial", search_weight=1.0)
         node_add_menu.add_node_type(layout, "GeometryNodeSetMaterialIndex")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 

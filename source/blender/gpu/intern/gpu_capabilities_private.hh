@@ -44,7 +44,6 @@ struct GPUCapabilities {
   const char *(*extension_get)(int);
 
   bool mem_stats_support = false;
-  bool compute_shader_support = false;
   bool geometry_shader_support = false;
   bool shader_draw_parameters_support = false;
   bool transform_feedback_support = false;

@@ -5046,6 +5046,14 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
     }
   }
 
+  /* NLA Tweak Mode is, in a way, an "edit mode" for certain animation data. However, contrary to
+   * mesh/armature edit modes, it doesn't use its own runtime data, but directly changes various
+   * DNA pointers & flags. As these need to be all consistently set for the system to behave in a
+   * well-defined manner, and the values can come from different files (library NLA tracks/strips
+   * vs. override-added NLA tracks/strips), they need to be checked _after_ all overrides have been
+   * applied. */
+  BKE_animdata_liboverride_post_process(local);
+
   if (local->override_library->storage) {
     /* We know this data-block is not used anywhere besides local->override->storage. */
     /* XXX For until we get fully shadow copies, we still need to ensure storage releases

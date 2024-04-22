@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -684,32 +684,16 @@ msgid "After Current"
 msgstr "Depois do atual"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Número de quadros a exibir após o quadro atual (apenas para o método de criação de fantasmas \"Ao redor do quadro\")"
-
-
 msgid "Before Current"
 msgstr "Antes do atual"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Números de quadros a exibir antes do quadro atual (apenas para o método de criação de fantasmas \"Ao redor do quadro\")"
 
 
 msgid "End Frame"
 msgstr "Quadro final"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Quadro final do intervalo de caminhos para exibir ou calcular (não usado para o método de criação de fantasmas \"Ao redor do quadro\")"
-
-
 msgid "Start Frame"
 msgstr "Quadro inicial"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Quadro inicial do intervalo de caminhos para exibir ou calcular (não usado para o método de criação de fantasmas \"Ao redor do quadro\")"
 
 
 msgid "Frame Step"
@@ -4191,10 +4175,6 @@ msgstr "Câmeras paralelas sem convergência."
 
 msgid "Toe-in"
 msgstr "Direcionamento angular"
-
-
-msgid "Rotated cameras, looking at the convergence distance"
-msgstr "Câmeras rotacionadas, apontando seu foco para um ponto em comum, usando a distância de convergência."
 
 
 msgid "Interocular Distance"
@@ -11772,8 +11752,16 @@ msgid "Enable offset"
 msgstr "Habilitar deslocamento"
 
 
+msgid "Add another object's transformation to the total offset"
+msgstr "Adiciona outras transformações de objetos para o deslocamento total."
+
+
 msgid "Shift"
 msgstr "Shift"
+
+
+msgid "Add an offset relative to the object's bounding box"
+msgstr "Adiciona um deslocamento relativo a caixa circundante do objeto."
 
 
 msgid "Uniform Scale"
@@ -12713,10 +12701,6 @@ msgstr "Limitar"
 
 msgid "Brush Height"
 msgstr "Altura do pincel"
-
-
-msgid "Affectable height of brush (layer height for layer tool, i.e.)"
-msgstr "A altura na qual os pincéis efetivamente funcionam (ou a altura da camada detectada com a ferramenta de camada, etc.)."
 
 
 msgid "Brush Icon Filepath"
@@ -22080,10 +22064,6 @@ msgid "Falloff"
 msgstr "Decaimento"
 
 
-msgid "Falloff type the feather"
-msgstr "Decaimento tipo plumada."
-
-
 msgid "Smooth falloff"
 msgstr "Decaimento tipo suavizado."
 
@@ -23465,14 +23445,6 @@ msgstr "Funde os vértices em duplicatas adjacentes."
 
 msgid "Merge vertices in first and last duplicates"
 msgstr "Funde os vértices na primeira e última duplicatas."
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "Adiciona outras transformações de objetos para o deslocamento total."
-
-
-msgid "Add an offset relative to the object's bounding box"
-msgstr "Adiciona um deslocamento relativo a caixa circundante do objeto."
 
 
 msgid "Bevel Modifier"
@@ -30111,10 +30083,6 @@ msgid "World space vector displacement mapping"
 msgstr "Vetor de mapa de deslocamento no espaço do ambiente."
 
 
-msgid "Type of rotation"
-msgstr "Ângulo de rotação"
-
-
 msgid "Z Axis"
 msgstr "Eixo Z"
 
@@ -30545,10 +30513,6 @@ msgstr "Objetos projetam sombras na janela de exibição 3D"
 
 msgid "Object Line Art"
 msgstr "Arte de Linhas do Objeto"
-
-
-msgid "Object line art settings"
-msgstr "Configurações da arte de linhas do objeto"
 
 
 msgid "Inherit"
@@ -41384,10 +41348,6 @@ msgstr "Desconecta e redireciona as ligações existentes."
 msgctxt "Operator"
 msgid "Make Links"
 msgstr "Criar ligações"
-
-
-msgid "Makes a link between selected output in input sockets"
-msgstr "Cria uma ligação entre a entrada e a saída dos conectores selecionados."
 
 
 msgid "Replace socket connections with the new links"
@@ -52342,10 +52302,6 @@ msgid "Path Animation"
 msgstr "Animação de caminho"
 
 
-msgid "Spot Shape"
-msgstr "Formato do foco"
-
-
 msgid "Text Boxes"
 msgstr "Caixas de texto"
 
@@ -58239,10 +58195,6 @@ msgid "Precision of the horizon search"
 msgstr "Precisão da busca do horizonte"
 
 
-msgid "4 px"
-msgstr "4 px"
-
-
 msgid "High brightness pixels generate a glowing effect"
 msgstr "Pixels com alto brilho produzem um efeito brilhante"
 
@@ -58261,10 +58213,6 @@ msgstr "Aproximação de Rebatidas"
 
 msgid "Viewport Denoising"
 msgstr "Redução de Ruídos na Janela de Exibição"
-
-
-msgid "2 px"
-msgstr "2 px"
 
 
 msgid "Scene Objects"
@@ -58474,10 +58422,6 @@ msgstr "Sobreposição"
 
 msgid "Use Default Fade"
 msgstr "Usar esmaecimento padrão"
-
-
-msgid "Fade effect using the built-in default (usually make transition as long as effect strip)"
-msgstr "Efeito de esmaecimento usando o padrão embutido no Blender (usualmente faz com que a transição seja tão grande quando a faixa de efeito)."
 
 
 msgid "Use Linear Modifiers"
@@ -60852,14 +60796,6 @@ msgstr "Mostrar super-exposições"
 
 msgid "Show overexposed areas with zebra stripes"
 msgstr "Mostra as áreas super-expostas com faixas zebra."
-
-
-msgid "Separate Colors"
-msgstr "Cores separadas"
-
-
-msgid "Separate color channels in preview"
-msgstr "Separa os canais de cor na previsão."
 
 
 msgid "Transform markers as well as strips"
@@ -68494,14 +68430,6 @@ msgid "LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a non-li
 msgstr "BIBLIOTECA: %s: O objeto '%s' está diretamente vinculado a partir de '%s' (com o parente '%s'), mas refere-se a tipos de dados não vinculáveis"
 
 
-msgid "Read packed library:  '%s', parent '%s'"
-msgstr "Lendo a biblioteca empacotada: '%s', através do parente '%s'"
-
-
-msgid "Read library:  '%s', '%s', parent '%s'"
-msgstr "Lendo a biblioteca: '%s', '%s', a partir do parente '%s'"
-
-
 msgid "Cannot find lib '%s'"
 msgstr "Não é possível encontrar biblioteca '%s'"
 
@@ -71721,18 +71649,6 @@ msgstr " Atributo nomeado"
 
 msgid " Named Attributes"
 msgstr " Atributos Nomeados"
-
-
-msgid "Number of users of this data-block"
-msgstr "O número de usuários deste bloco de dados."
-
-
-msgid "Data-block will be retained using a fake user"
-msgstr "O bloco de dados será retido usando um usuário virtual."
-
-
-msgid "Data-block has no users and will be deleted"
-msgstr "O bloco de dados não possui usuários e será apagado."
 
 
 msgid "Library path '%s' does not exist, correct this before saving"

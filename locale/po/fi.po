@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6578,14 +6578,6 @@ msgstr "Jakojäännös"
 
 msgid "Vector Rotate"
 msgstr "Vektorin kirto"
-
-
-msgid "Invert angle"
-msgstr "Käännä kulma"
-
-
-msgid "Type of rotation"
-msgstr "Kierron tyyppi"
 
 
 msgid "Z Axis"

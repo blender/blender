@@ -300,7 +300,7 @@ std::string VKDevice::driver_version() const
       /* When using Mesa driver we should use VK_VERSION_*. */
       if (major > 30) {
         return std::to_string((driver_version >> 14) & 0x3FFFF) + "." +
-               std::to_string((driver_version & 0x3FFF));
+               std::to_string(driver_version & 0x3FFF);
       }
       break;
     }

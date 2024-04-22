@@ -4485,6 +4485,7 @@ void BKE_fluid_particle_system_create(Main *bmain,
   pfmd->psys = psys;
   BLI_addtail(&ob->modifiers, pfmd);
   BKE_modifier_unique_name(&ob->modifiers, (ModifierData *)pfmd);
+  BKE_modifiers_persistent_uid_init(*ob, pfmd->modifier);
 }
 
 void BKE_fluid_particle_system_destroy(Object *ob, const int particle_type)

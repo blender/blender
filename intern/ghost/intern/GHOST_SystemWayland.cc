@@ -3616,7 +3616,7 @@ static void cursor_surface_handle_leave(void *data, wl_surface *wl_surface, wl_o
 }
 
 static void cursor_surface_handle_preferred_buffer_scale(void * /*data*/,
-                                                         struct wl_surface * /*wl_surface*/,
+                                                         wl_surface * /*wl_surface*/,
                                                          int32_t factor)
 {
   /* Only available in interface version 6. */
@@ -3624,7 +3624,7 @@ static void cursor_surface_handle_preferred_buffer_scale(void * /*data*/,
 }
 
 static void cursor_surface_handle_preferred_buffer_transform(void * /*data*/,
-                                                             struct wl_surface * /*wl_surface*/,
+                                                             wl_surface * /*wl_surface*/,
                                                              uint32_t transform)
 {
   /* Only available in interface version 6. */
@@ -6143,13 +6143,13 @@ static void output_handle_scale(void *data, wl_output * /*wl_output*/, const int
   output->system->output_scale_update(output);
 }
 
-static void output_handle_name(void * /*data*/, struct wl_output * /*wl_output*/, const char *name)
+static void output_handle_name(void * /*data*/, wl_output * /*wl_output*/, const char *name)
 {
   /* Only available in interface version 4. */
   CLOG_INFO(LOG, 2, "name (%s)", name);
 }
 static void output_handle_description(void * /*data*/,
-                                      struct wl_output * /*wl_output*/,
+                                      wl_output * /*wl_output*/,
                                       const char *description)
 {
   /* Only available in interface version 4. */

@@ -2982,7 +2982,7 @@ bool pbvh_has_mask(const PBVH *pbvh)
       return pbvh->mesh->attributes().contains(".sculpt_mask");
     case PBVH_BMESH:
       return pbvh->header.bm &&
-             (CustomData_has_layer_named(&pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask"));
+             CustomData_has_layer_named(&pbvh->header.bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
   }
 
   return false;

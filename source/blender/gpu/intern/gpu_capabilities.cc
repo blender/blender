@@ -162,11 +162,6 @@ bool GPU_clear_viewport_workaround()
   return GCaps.clear_viewport_workaround;
 }
 
-bool GPU_compute_shader_support()
-{
-  return GCaps.compute_shader_support;
-}
-
 bool GPU_geometry_shader_support()
 {
   return GCaps.geometry_shader_support;

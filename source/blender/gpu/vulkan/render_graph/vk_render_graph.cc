@@ -29,6 +29,9 @@ void VKRenderGraph::remove_nodes(Span<NodeHandle> node_handles)
                  "nodes, and will use incorrect ordering when not all nodes are removed. This "
                  "needs to be fixed when implementing a better scheduler.");
   links_.clear();
+  for (VKRenderGraphNode &node : nodes_) {
+    node.free_data();
+  }
   nodes_.clear();
 }
 

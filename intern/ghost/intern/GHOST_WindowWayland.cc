@@ -1197,7 +1197,7 @@ static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*
 }
 
 static void xdg_toplevel_handle_configure_bounds(void *data,
-                                                 struct xdg_toplevel * /*xdg_toplevel*/,
+                                                 xdg_toplevel * /*xdg_toplevel*/,
                                                  int32_t width,
                                                  int32_t height)
 {
@@ -1213,8 +1213,8 @@ static void xdg_toplevel_handle_configure_bounds(void *data,
   }
 }
 static void xdg_toplevel_handle_wm_capabilities(void * /*data*/,
-                                                struct xdg_toplevel * /*xdg_toplevel*/,
-                                                struct wl_array * /*capabilities*/)
+                                                xdg_toplevel * /*xdg_toplevel*/,
+                                                wl_array * /*capabilities*/)
 {
   /* Only available in interface version 5. */
   CLOG_INFO(LOG, 2, "wm_capabilities");
@@ -1595,7 +1595,7 @@ static void surface_handle_leave(void *data, wl_surface * /*wl_surface*/, wl_out
 }
 
 static void surface_handle_preferred_buffer_scale(void * /*data*/,
-                                                  struct wl_surface * /*wl_surface*/,
+                                                  wl_surface * /*wl_surface*/,
                                                   int32_t factor)
 {
   /* Only available in interface version 6. */
@@ -1603,7 +1603,7 @@ static void surface_handle_preferred_buffer_scale(void * /*data*/,
 }
 
 static void surface_handle_preferred_buffer_transform(void * /*data*/,
-                                                      struct wl_surface * /*wl_surface*/,
+                                                      wl_surface * /*wl_surface*/,
                                                       uint32_t transform)
 {
   /* Only available in interface version 6. */

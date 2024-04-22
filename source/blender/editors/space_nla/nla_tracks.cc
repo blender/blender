@@ -261,6 +261,9 @@ static int mouse_nla_tracks(bContext *C, bAnimContext *ac, int track_index, shor
       }
       break;
     }
+    case ANIMTYPE_FILLANIM:
+      /* The NLA doesn't support Animation data-blocks. */
+      break;
     default:
       if (G.debug & G_DEBUG) {
         printf("Error: Invalid track type in mouse_nla_tracks()\n");

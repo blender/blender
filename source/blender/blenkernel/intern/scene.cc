@@ -1526,6 +1526,12 @@ static void scene_blend_read_after_liblink(BlendLibReader *reader, ID *id)
     sce->flag |= SCE_READFILE_LIBLINK_NEED_SETSCENE_CHECK;
   }
 #endif
+  if (ID_IS_LINKED(sce)) {
+    /* Linked scenes never have NLA tweak mode enabled. This works in concert with code in
+     * BKE_animdata_blend_read_data, which also ensures that linked AnimData structs are never
+     * linked in NLA tweak mode. */
+    sce->flag &= ~SCE_NLA_EDIT_ON;
+  }
 }
 
 static void scene_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
@@ -2904,6 +2910,7 @@ double BKE_scene_unit_scale(const UnitSettings *unit, const int unit_type, doubl
     case B_UNIT_MASS:
       return value * pow(unit->scale_length, 3);
     case B_UNIT_CAMERA: /* *Do not* use scene's unit scale for camera focal lens! See #42026. */
+    case B_UNIT_WAVELENGTH: /* Wavelength values are independent of the scene scale. */
     default:
       return value;
   }

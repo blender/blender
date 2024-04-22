@@ -1524,4 +1524,19 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id)
    *       state, but it's going to be too hard to enforce this single case. */
   BLO_read_data_address(reader, &adt->act_track);
   BLO_read_data_address(reader, &adt->actstrip);
+
+  if (ID_IS_LINKED(id)) {
+    /* Linked NLAs should never be in tweak mode, as you cannot exit that on linked data. */
+    BKE_nla_tweakmode_exit_nofollowptr(adt);
+  }
+}
+
+void BKE_animdata_liboverride_post_process(ID *id)
+{
+  AnimData *adt = BKE_animdata_from_id(id);
+  if (!adt) {
+    return;
+  }
+
+  BKE_nla_liboverride_post_process(id, adt);
 }

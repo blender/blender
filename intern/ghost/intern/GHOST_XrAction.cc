@@ -339,6 +339,7 @@ void GHOST_XrAction::updateState(XrSession session,
           CHECK_XR(xrGetActionStatePose(session, &state_info, &state),
                    (std::string("Failed to get state for pose action \"") + action_name + "\".")
                        .data());
+          ((GHOST_XrPose *)m_states)[subaction_idx].is_active = state.isActive;
           if (state.isActive) {
             XrSpace pose_space = ((subaction != nullptr) && (subaction->space != nullptr)) ?
                                      subaction->space->getSpace() :

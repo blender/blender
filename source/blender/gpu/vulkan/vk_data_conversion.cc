@@ -748,7 +748,7 @@ template<typename StorageType> void convert(SignedNormalized<StorageType> &dst, 
   static constexpr int32_t scalar = SignedNormalized<StorageType>::scalar();
   static constexpr int32_t delta = SignedNormalized<StorageType>::delta();
   static constexpr int32_t max = SignedNormalized<StorageType>::max();
-  dst.value = (clamp_i((src.value * scalar + delta), 0, max));
+  dst.value = clamp_i((src.value * scalar + delta), 0, max);
 }
 
 template<typename StorageType> void convert(F32 &dst, const SignedNormalized<StorageType> &src)
@@ -762,7 +762,7 @@ template<typename StorageType> void convert(UnsignedNormalized<StorageType> &dst
 {
   static constexpr uint32_t scalar = UnsignedNormalized<StorageType>::scalar();
   static constexpr uint32_t max = scalar;
-  dst.value = (clamp_f((src.value * float(scalar)), 0, float(max)));
+  dst.value = clamp_f((src.value * float(scalar)), 0, float(max));
 }
 
 template<typename StorageType> void convert(F32 &dst, const UnsignedNormalized<StorageType> &src)

@@ -704,6 +704,7 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocketFloat_subtype_itemf(
                                    PROP_TIME,
                                    PROP_TIME_ABSOLUTE,
                                    PROP_DISTANCE,
+                                   PROP_WAVELENGTH,
                                    PROP_NONE},
                                   r_free);
 }

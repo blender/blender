@@ -68,10 +68,13 @@ static void file_panel_operator(const bContext *C, Panel *panel)
 
   /* Hack: temporary hide. */
   const char *hide[] = {"filepath", "files", "directory", "filename"};
+  /* Track overridden properties with #PROP_HIDDEN flag. */
+  bool hidden_override[ARRAY_SIZE(hide)] = {false};
   for (int i = 0; i < ARRAY_SIZE(hide); i++) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, hide[i]);
-    if (prop) {
+    if (prop && !(RNA_property_flag(prop) & PROP_HIDDEN)) {
       RNA_def_property_flag(prop, PROP_HIDDEN);
+      hidden_override[i] = true;
     }
   }
 
@@ -81,7 +84,7 @@ static void file_panel_operator(const bContext *C, Panel *panel)
   /* Hack: temporary hide. */
   for (int i = 0; i < ARRAY_SIZE(hide); i++) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, hide[i]);
-    if (prop) {
+    if (prop && hidden_override[i]) {
       RNA_def_property_clear_flag(prop, PROP_HIDDEN);
     }
   }

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -575,32 +575,16 @@ msgid "After Current"
 msgstr "현재 이후에"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "현재 프레임 이후에 표시하는 프레임의 수 ('현재 프레임 주위' 어니언 스키닝 메서드에 대해서 만 )"
-
-
 msgid "Before Current"
 msgstr "현재 이전에"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "현재 프레임 이전에 표시하는 프레임의 수 ('현재 프레임 주위' 어니언 스키닝 메서드에 대해서 만 )"
 
 
 msgid "End Frame"
 msgstr "종료 프레임"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "표시/계산하는 경로 범위의 종료 프레임 ('현재 프레임 주위' 어니언 스키닝 메서드에 대해 하지 않음)"
-
-
 msgid "Start Frame"
 msgstr "시작 프레임"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "표시/계산하는 경로 범위의 시작 프레임 ('현재 프레임 주위' 어니언 스키닝 메서드에 대해 하지 않음)"
 
 
 msgid "Frame Step"
@@ -3839,10 +3823,6 @@ msgstr "수렴이 없는 평행 카메라"
 
 msgid "Toe-in"
 msgstr "Toe-in"
-
-
-msgid "Rotated cameras, looking at the convergence distance"
-msgstr "회전된 카메라, 수렴 거리에서 보기"
 
 
 msgid "Interocular Distance"
@@ -12534,10 +12514,6 @@ msgid "Only include Layer in this View Layer render output (leave blank to inclu
 msgstr "이 뷰 레이어 렌더 출력에만 레이어를 포함 (항상 비워 두십시오)"
 
 
-msgid "GPencil Sculpt Guide"
-msgstr "그리스 펜슬 스컬프트 가이드"
-
-
 msgid "Guides for drawing"
 msgstr "그림 그리기 가이드"
 
@@ -13344,8 +13320,16 @@ msgid "Random seed"
 msgstr "랜덤 씨드"
 
 
+msgid "Add another object's transformation to the total offset"
+msgstr "전체 오프셋에 다른 오브젝트의 변환을 추가"
+
+
 msgid "Shift"
 msgstr "Shift"
+
+
+msgid "Add an offset relative to the object's bounding box"
+msgstr "오브젝트의 경계 박스에 상대적인 오프셋을 추가합니다"
 
 
 msgid "Uniform Scale"
@@ -13606,10 +13590,6 @@ msgid "Lattice Modifier"
 msgstr "래티스 모디파이어"
 
 
-msgid "Change stroke using lattice to deform modifier"
-msgstr "모디파이어를 변형하기 위해 레티스를 사용하여 스트로크를 바꿉니다"
-
-
 msgid "Lattice object to deform with"
 msgstr "함께 변형하는 래티스 오브젝트"
 
@@ -13644,10 +13624,6 @@ msgstr "미러 모디파이어"
 
 msgid "Object used as center"
 msgstr "중심으로 사용되는 오브젝트"
-
-
-msgid "Clip points"
-msgstr "클립 포인트"
 
 
 msgid "Multiply Modifier"
@@ -14861,10 +14837,6 @@ msgstr "클램프"
 
 msgid "Brush Height"
 msgstr "브러시 높이"
-
-
-msgid "Affectable height of brush (layer height for layer tool, i.e.)"
-msgstr "브러시의 영향적인 높이 (레이어 도구의 레이어 높이, 즉)"
 
 
 msgid "Brush Icon Filepath"
@@ -25322,10 +25294,6 @@ msgid "Falloff"
 msgstr "감소"
 
 
-msgid "Falloff type the feather"
-msgstr "페더 감소 유형"
-
-
 msgid "Smooth falloff"
 msgstr "스무스 감소"
 
@@ -27111,14 +27079,6 @@ msgstr "인접한 복제에서 버텍스를 병합합니다"
 
 msgid "Merge vertices in first and last duplicates"
 msgstr "처음과 마지막 복제에서 버텍스를 병합합니다"
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "전체 오프셋에 다른 오브젝트의 변환을 추가"
-
-
-msgid "Add an offset relative to the object's bounding box"
-msgstr "오브젝트의 경계 박스에 상대적인 오프셋을 추가합니다"
 
 
 msgid "Bevel Modifier"
@@ -44763,10 +44723,6 @@ msgid "Absolute Coordinates"
 msgstr "절대 좌표"
 
 
-msgid "Copy Absolute coordinates or Normal vector"
-msgstr "절대 좌표 또는 표준 벡터를 복사"
-
-
 msgid "Copy Normal"
 msgstr "노멀을 복사"
 
@@ -46778,10 +46734,6 @@ msgstr "기존의 연결을 분리 및 재지정"
 msgctxt "Operator"
 msgid "Make Links"
 msgstr "연결을 만들기"
-
-
-msgid "Makes a link between selected output in input sockets"
-msgstr "입력 소켓에서 선택된 출력 사이를 연결합니다"
 
 
 msgid "Replace socket connections with the new links"
@@ -56787,10 +56739,6 @@ msgid "Include Animations"
 msgstr "애니메이션을 포함"
 
 
-msgid "Export animations if available (exporting animations will enforce the decomposition of node transforms into  <translation> <rotation> and <scale> components)"
-msgstr "가능한 경우 애니메이션 내보내기 (애니메이션 내보내기는 노드 변환을 <translation> <rotation> 및 <scale> 구성 요소로 분해합니다)"
-
-
 msgid "Include Armatures"
 msgstr "아마튜어를 포함"
 
@@ -58830,10 +58778,6 @@ msgstr "경로 애니메이션"
 
 msgid "Effects"
 msgstr "이펙트"
-
-
-msgid "Spot Shape"
-msgstr "스폿 셰이프"
 
 
 msgid "Text Boxes"
@@ -61295,10 +61239,6 @@ msgstr "아마튜어 데이터가 오브젝트와 함께 복제되도록 합니�
 
 msgid "Causes curve data to be duplicated with the object"
 msgstr "커브 데이터가 오브젝트와 함께 복제되도록 합니다"
-
-
-msgid "Duplicate GPencil"
-msgstr "그리스 펜슬을 복제"
 
 
 msgid "Causes grease pencil data to be duplicated with the object"
@@ -65965,10 +65905,6 @@ msgid "Distribute more samples closer to the camera"
 msgstr "더 많은 샘플을 카메라에 더 가깝게 배분"
 
 
-msgid "Number of samples to compute volumetric effects"
-msgstr "볼륨메트릭 이펙트를 계산하기위한 샘플 수"
-
-
 msgid "Volumetric Shadow Samples"
 msgstr "볼륨메트릭 섀도우 샘플"
 
@@ -65979,10 +65915,6 @@ msgstr "볼륨메트릭 섀도잉을 계산하기 위한 샘플 수"
 
 msgid "Start distance of the volumetric effect"
 msgstr "볼륨메트릭 이펙트의 시작 거리"
-
-
-msgid "Control the quality of the volumetric effects (lower size increase vram usage and quality)"
-msgstr "볼륨메트릭 이펙트의 품질을 제어 (크기가 작을수록 Vram 사용 및 품질이 향상됩니다)"
 
 
 msgid "Scene Objects"
@@ -66224,10 +66156,6 @@ msgstr "디스크에서 읽은 원본 이미지를 캐시하여 메모리 비용
 
 msgid "Use Default Fade"
 msgstr "기본 페이드를 사용"
-
-
-msgid "Fade effect using the built-in default (usually make transition as long as effect strip)"
-msgstr "내장 기본값을 사용하여 페이드 효과 (일반적으로 이펙트 스트립만큼 전환을 만들기)"
 
 
 msgid "Use Linear Modifiers"
@@ -69216,14 +69144,6 @@ msgstr "얼룩말 줄무늬 과다 노출 영역을 표시"
 
 msgid "Show Overlays"
 msgstr "오버레이를 표시"
-
-
-msgid "Separate Colors"
-msgstr "컬러를 분리"
-
-
-msgid "Separate color channels in preview"
-msgstr "미리보기에서 컬러 채널을 분리"
 
 
 msgid "Transform markers as well as strips"
@@ -76849,10 +76769,6 @@ msgid "Fractional Preview Zoom"
 msgstr "분수적 미리보기 줌"
 
 
-msgid "Show Separate Color Channels"
-msgstr "별도의 색상 채널을 표시"
-
-
 msgctxt "Operator"
 msgid "Clip"
 msgstr "클립"
@@ -79244,14 +79160,6 @@ msgstr "LIB: 메인 .blend 파일에서 데이터 참조: '%s' 는 %s에서"
 
 msgid "LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a non-linkable data type"
 msgstr "LIB: %s: '%s'는 '%s' (부모 '%s')에서 직접 연결되었지만 연결 불가능한 데이터 유형입니다"
-
-
-msgid "Read packed library:  '%s', parent '%s'"
-msgstr "포장된 라이브러리를 읽기: '%s', 부모 '%s'"
-
-
-msgid "Read library:  '%s', '%s', parent '%s'"
-msgstr "라이브러리를 읽기: '%s', '%s', 부모 '%s'"
 
 
 msgid "Cannot find lib '%s'"
@@ -83079,18 +82987,6 @@ msgstr ""
 "뷰포트에서 선택 해제\n"
 "* Ctrl을 사용하여 컬렉션을 분리합니다\n"
 "* Shift를 사용하여 컬렉션 및 객체 내부를 설정합니다"
-
-
-msgid "Number of users of this data-block"
-msgstr "이 데이터 블록의 유저의 수"
-
-
-msgid "Data-block will be retained using a fake user"
-msgstr "데이터 블록은 페이크 유저를 사용하여 유지합니다"
-
-
-msgid "Data-block has no users and will be deleted"
-msgstr "데이터 블록은 유저가 없으면 삭제됩니다"
 
 
 msgid "Library path '%s' does not exist, correct this before saving"

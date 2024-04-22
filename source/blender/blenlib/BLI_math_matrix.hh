@@ -1234,12 +1234,6 @@ template<typename T>
   return to_quaternion(to_euler(mat));
 }
 
-template<typename T>
-[[nodiscard]] inline QuaternionBase<T> normalized_to_quaternion_safe(const MatBase<T, 4, 4> &mat)
-{
-  return to_quaternion(to_euler(mat));
-}
-
 template<bool AllowNegativeScale, typename T, int NumCol, int NumRow>
 [[nodiscard]] inline VecBase<T, 3> to_scale(const MatBase<T, NumCol, NumRow> &mat)
 {

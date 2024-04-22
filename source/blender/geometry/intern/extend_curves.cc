@@ -257,10 +257,10 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
       }
 
       const int count_start = (use_start_lengths[curve] > 0) ?
-                                  (math::ceil(use_start_lengths[curve] * point_density)) :
+                                  math::ceil(use_start_lengths[curve] * point_density) :
                                   0;
       const int count_end = (use_end_lengths[curve] > 0) ?
-                                (math::ceil(use_end_lengths[curve] * point_density)) :
+                                math::ceil(use_end_lengths[curve] * point_density) :
                                 0;
       dst_points_by_curve[curve] += count_start;
       dst_points_by_curve[curve] += count_end;

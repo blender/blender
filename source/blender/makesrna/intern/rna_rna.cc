@@ -78,7 +78,8 @@ const EnumPropertyItem rna_enum_property_type_items[] = {
   {PROP_DISTANCE, "DISTANCE", 0, "Distance", ""}, \
   {PROP_DISTANCE_CAMERA, "DISTANCE_CAMERA", 0, "Camera Distance", ""}, \
   {PROP_POWER, "POWER", 0, "Power", ""}, \
-  {PROP_TEMPERATURE, "TEMPERATURE", 0, "Temperature", ""}
+  {PROP_TEMPERATURE, "TEMPERATURE", 0, "Temperature", ""}, \
+  {PROP_WAVELENGTH, "WAVELENGTH", 0, "Wavelength", ""}
 
 #define RNA_ENUM_PROPERTY_SUBTYPE_NUMBER_ARRAY_ITEMS \
   {PROP_COLOR, "COLOR", 0, "Color", ""}, \
@@ -150,6 +151,7 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
     {PROP_UNIT_CAMERA, "CAMERA", 0, "Camera", ""},
     {PROP_UNIT_POWER, "POWER", 0, "Power", ""},
     {PROP_UNIT_TEMPERATURE, "TEMPERATURE", 0, "Temperature", ""},
+    {PROP_UNIT_WAVELENGTH, "WAVELENGTH", 0, "Wavelength", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

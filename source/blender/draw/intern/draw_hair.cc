@@ -72,12 +72,7 @@ static void drw_hair_ensure_vbo()
 
 void DRW_hair_init()
 {
-  if (GPU_transform_feedback_support() || GPU_compute_shader_support()) {
-    g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_NO_DRAW);
-  }
-  else {
-    g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_WRITE_COLOR);
-  }
+  g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_NO_DRAW);
 
   drw_hair_ensure_vbo();
 }

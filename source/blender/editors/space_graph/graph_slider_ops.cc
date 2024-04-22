@@ -339,6 +339,12 @@ static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
       break;
     }
 
+    case EVT_TABKEY:
+      /* Switch between acting on different properties. If this is not handled
+       * by the caller, it's explicitly gobbled up here to avoid it being passed
+       * through via the 'default' case. */
+      break;
+
     /* When the mouse is moved, the percentage and the keyframes update. */
     case MOUSEMOVE: {
       if (has_numinput == false) {

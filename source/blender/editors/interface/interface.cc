@@ -6258,6 +6258,16 @@ void UI_but_icon_indicator_number_set(uiBut *but, const int indicator_number)
   UI_icon_text_overlay_init_from_count(&but->icon_overlay_text, indicator_number);
 }
 
+void UI_but_icon_indicator_set(uiBut *but, const char *string)
+{
+  STRNCPY(but->icon_overlay_text.text, string);
+}
+
+void UI_but_icon_indicator_color_set(uiBut *but, const uchar color[4])
+{
+  copy_v4_v4_uchar(but->icon_overlay_text.color, color);
+}
+
 void UI_but_node_link_set(uiBut *but, bNodeSocket *socket, const float draw_color[4])
 {
   but->flag |= UI_BUT_NODE_LINK;

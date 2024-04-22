@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
-"PO-Revision-Date: 2024-04-15 06:56+0000\n"
-"Last-Translator: Tiago Lauriano Copelli <tiagocopelli@gmail.com>\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
+"PO-Revision-Date: 2024-04-20 01:56+0000\n"
+"Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
@@ -694,32 +694,16 @@ msgid "After Current"
 msgstr "Depois do atual"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Número de fotogramas a exibir após o fotograma actual (apenas para o método de criação de fantasmas \"Ao redor do fotograma\")."
-
-
 msgid "Before Current"
 msgstr "Antes do atual"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Números de fotogramas a exibir antes do fotograma actual (apenas para o método de criação de fantasmas \"Ao redor do fotograma\")."
 
 
 msgid "End Frame"
 msgstr "Fotograma final"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Fotograma final do intervalo de caminhos para exibir ou calcular (não usado para o método de criação de fantasmas \"Ao redor do fotograma\")."
-
-
 msgid "Start Frame"
 msgstr "Fotograma inicial"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Fotograma inicial do intervalo de caminhos para exibir ou calcular (não usado para o método de criação de fantasmas \"Ao redor do fotograma\")."
 
 
 msgid "Frame Step"
@@ -5519,10 +5503,6 @@ msgid "Toe-in"
 msgstr "Direcionamento angular"
 
 
-msgid "Rotated cameras, looking at the convergence distance"
-msgstr "Câmaras rotacionadas, apontando seu foco para um ponto em comum, usando a distância de convergência."
-
-
 msgid "Interocular Distance"
 msgstr "Distância interocular"
 
@@ -6499,10 +6479,6 @@ msgstr "Codificação de imagem base AgX para sRGB Display"
 
 msgid "AgX Log"
 msgstr "AgX Log"
-
-
-msgid "Log Encoding with Chroma inset and rotation, and with 25 Stops of Dynamic Range"
-msgstr "Codificação Log com inserção e rotação Chroma, e com 25 paragens de Intervalo Dinâmico"
 
 
 msgid "Display P3"
@@ -16342,10 +16318,6 @@ msgid "Mask layer name"
 msgstr "Nome da camada máscara"
 
 
-msgid "GPencil Sculpt Guide"
-msgstr "Guia de Escultura GPencil"
-
-
 msgid "Guides for drawing"
 msgstr "Guias para desenhar"
 
@@ -17163,16 +17135,8 @@ msgid "Vertex Weight Angle"
 msgstr "Ângulo de Peso de Vértices"
 
 
-msgid "Generate Vertex Weights base on stroke angle"
-msgstr "Gerar Pesos de Vértices baseados no ângulo de traços"
-
-
 msgid "Vertex Weight Proximity"
 msgstr "Aproximar peso de vértices"
-
-
-msgid "Generate Vertex Weights base on distance to object"
-msgstr "Gerar Pesos de Vértices baseados na distância ao objecto"
 
 
 msgid "Array"
@@ -17213,10 +17177,6 @@ msgstr "Extender ou encolher traços"
 
 msgid "Line Art"
 msgstr "Desenho de Linhas"
-
-
-msgid "Generate line art strokes from selected source"
-msgstr "Gerar traços de desenho de linhas de fonte seleccionada"
 
 
 msgid "Mirror"
@@ -17451,16 +17411,16 @@ msgid "Use Object Offset"
 msgstr "Usar Afastamento do Objecto"
 
 
-msgid "Enable object offset"
-msgstr "Activar afastamento do objecto"
+msgid "Add another object's transformation to the total offset"
+msgstr "Adiciona outras transformações de objectos para o deslocamento total."
 
 
 msgid "Shift"
 msgstr "Shift"
 
 
-msgid "Enable shift"
-msgstr "Activar Afastamento"
+msgid "Add an offset relative to the object's bounding box"
+msgstr "Adiciona um deslocamento relativo a caixa delimitadora do objecto"
 
 
 msgid "Uniform Scale"
@@ -17917,10 +17877,6 @@ msgid "Lattice Modifier"
 msgstr "Modificador - Treliça"
 
 
-msgid "Change stroke using lattice to deform modifier"
-msgstr "Alterar traço usando uma grelha para deformar"
-
-
 msgid "Lattice object to deform with"
 msgstr "Objecto jaula, com o qual deformar."
 
@@ -18073,10 +18029,6 @@ msgid "Crease Threshold"
 msgstr "Limite de Vinco"
 
 
-msgid "Angles smaller than this will be treated as creases. Crease angle priority: object line art crease override > mesh auto smooth angle > line art default crease"
-msgstr "Ângulos inferiores a este valor serão tratados como vincos. Prioridade de ângulo de vinco: Revogação de vinco de desenho de linhas do objecto > ângulo de auto-suavização da malha > vinco pré-definido do desenho de linhas"
-
-
 msgid "Invert Vertex Group"
 msgstr "Inverter Grupo de Vértices"
 
@@ -18213,10 +18165,6 @@ msgid "Camera Object"
 msgstr "Objecto Câmara"
 
 
-msgid "Use specified camera object for generating line art"
-msgstr "Usar objecto câmara especificado para gerar desenho de linhas"
-
-
 msgid "Generate strokes from the objects in this collection"
 msgstr "Gerar traços dos objectos desta colecção"
 
@@ -18227,10 +18175,6 @@ msgstr "Gerar traços deste objecto"
 
 msgid "Source Type"
 msgstr "Tipo de Origem"
-
-
-msgid "Line art stroke source type"
-msgstr "Tipo de origem dos traços do desenho de linhas"
 
 
 msgid "Source Vertex Group"
@@ -18275,10 +18219,6 @@ msgstr "Ocultação de Faces Reversas"
 
 msgid "Remove all back faces to speed up calculation, this will create edges in different occlusion levels than when disabled"
 msgstr "Remover todas as faces reversas para acelerar os cálculos, cria arestas em níveis de ocultação diferentes de quando está desactivado"
-
-
-msgid "Use cached scene data from the first line art modifier in the stack. Certain settings will be unavailable"
-msgstr "Usar dados de cena armazenados pelo primeiro modificador de desenho de linhas na lista. Algumas definições ficarão indisponíveis"
 
 
 msgid "Clipping Boundaries"
@@ -18521,10 +18461,6 @@ msgid "Instanced Objects"
 msgstr "Objectos instanciados"
 
 
-msgid "Allow particle objects and face/vertex instances to show in line art"
-msgstr "Permitir que objectos partículas e instâncias de face/vértice apareçam em desenhos de linhas"
-
-
 msgid "Offset Towards Custom Camera"
 msgstr "Afastamento em Direcção da Câmara Personalizada"
 
@@ -18583,10 +18519,6 @@ msgstr "Espelhar o eixo Y"
 
 msgid "Mirror the Z axis"
 msgstr "Espelhar o eixo Z"
-
-
-msgid "Clip points"
-msgstr "Cortar vértices"
 
 
 msgid "Multiply Modifier"
@@ -20811,10 +20743,6 @@ msgid "Brush Height"
 msgstr "Altura do pincel"
 
 
-msgid "Affectable height of brush (layer height for layer tool, i.e.)"
-msgstr "A altura na qual os pincéis efetivamente funcionam (ou a altura da camada detectada com a ferramenta de camada, etc.)."
-
-
 msgid "Brush Icon Filepath"
 msgstr "Caminho de ícone de pincel"
 
@@ -22536,10 +22464,6 @@ msgid "Collections that are immediate children of this collection"
 msgstr "Colecções que são descendentes imediatos desta colecção"
 
 
-msgid "Children collections their parent-collection-specific settings"
-msgstr "Colecções descendentes e definições específicas de colecções ascendentes"
-
-
 msgid "Objects of the collection with their parent-collection-specific settings"
 msgstr "Objectos da colecção com as suas definições específicas da colecção ascendente"
 
@@ -22636,10 +22560,6 @@ msgid "Usage"
 msgstr "Utilização"
 
 
-msgid "How to use this collection in line art"
-msgstr "Como usar esta colecção em desenhos de linhas"
-
-
 msgid "Generate feature lines for this collection"
 msgstr "Gerar linhas de feição para esta colecção"
 
@@ -22650,10 +22570,6 @@ msgstr "Apenas Ocultação"
 
 msgid "Only use the collection to produce occlusion"
 msgstr "Usar a colecção apenas para produzir ocultação"
-
-
-msgid "Don't use this collection in line art"
-msgstr "Não usar esta colecção para desenhos de contorno"
 
 
 msgid "Intersection Only"
@@ -25247,10 +25163,6 @@ msgid "Capture World"
 msgstr "Capturar Ambiente"
 
 
-msgid "Bake incoming light from the world, instead of just the visibility, for more accurate lighting, but lose correct blending to surrounding irradiance volumes"
-msgstr "Pré calcular luz ambiente do mundo, em vez de considerar apenas visibilidade para iluminação mais precisa, mas perdendo correcta mistura com volumes de irradiância circundantes"
-
-
 msgid "Clamp Direct"
 msgstr "Truncar diretamente"
 
@@ -25281,14 +25193,6 @@ msgstr "Limite de Expansão"
 
 msgid "Ratio of front-facing surface hits under which a grid sample will reuse neighbors grid sample lighting"
 msgstr "Rácio de impacto de superfícies frontais abaixo do qual uma amostra de grelha reusa a iluminação das grelhas vizinhas"
-
-
-msgid "Capture Escape Bias"
-msgstr "Desvio de Escapatória de Captura"
-
-
-msgid "Moves capture points outside objects"
-msgstr "Move pontos capturados para fora dos objectos"
 
 
 msgid "Facing Bias"
@@ -25329,14 +25233,6 @@ msgstr "Resolução Z"
 
 msgid "Number of samples along the z axis of the volume"
 msgstr "Número de amostras na direcção do eixo Z do volume"
-
-
-msgid "Capture Surface Bias"
-msgstr "Desvio de Superfície de Captura"
-
-
-msgid "Moves capture points position away from surfaces to avoid artifacts"
-msgstr "Afasta pontos de captura das superfícies para evitar artefactos"
 
 
 msgid "Validity Threshold"
@@ -25658,10 +25554,6 @@ msgstr "A cor da linha definida com uma prioridade mais alta é usada nas margen
 
 msgid "Line Art Settings"
 msgstr "Definições de Desenho de Linhas"
-
-
-msgid "Line art settings for material"
-msgstr "Definições de desenho de linhas para o material"
 
 
 msgid "Max Vertex Displacement"
@@ -26986,10 +26878,6 @@ msgstr "Grupo de Luzes"
 
 msgid "Lightgroup that the object belongs to"
 msgstr "Grupo de luzes a que o objecto pertence"
-
-
-msgid "Line art settings for the object"
-msgstr "Definições de desenho de linhas para o objecto"
 
 
 msgid "Location of the object"
@@ -34759,10 +34647,6 @@ msgid "Falloff"
 msgstr "Decaimento"
 
 
-msgid "Falloff type the feather"
-msgstr "Decaimento tipo pluma."
-
-
 msgid "Smooth falloff"
 msgstr "Decaimento tipo suavizado."
 
@@ -35860,6 +35744,10 @@ msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
 
+msgid "Face Sets Init"
+msgstr "Inicialização de Conjuntos de Faces"
+
+
 msgid "Generate Weights"
 msgstr "Gerar Pesos"
 
@@ -36249,8 +36137,16 @@ msgid "Number of loops used by this face"
 msgstr "Número de anéis usados por esta face"
 
 
+msgid "Material slot index of this face"
+msgstr "Índice de Espaço para Material desta face"
+
+
 msgid "Polygon Normal"
 msgstr "Normais do polígono"
+
+
+msgid "Local space unit length normal vector for this face"
+msgstr "Vector normal de comprimento unitário de espaço local para esta face"
 
 
 msgid "Freestyle Face Mark"
@@ -36273,6 +36169,10 @@ msgid "Active Polygon"
 msgstr "Polígono ativo"
 
 
+msgid "The active face for this mesh"
+msgstr "A face activa para esta malha"
+
+
 msgid "Skin Vertex"
 msgstr "Vértices de cobertura"
 
@@ -36291,6 +36191,10 @@ msgstr "Caso o vértice tenha múltiplas arestas adjacentes, ele está corrigido
 
 msgid "Root"
 msgstr "Raiz"
+
+
+msgid "Vertex is a root for rotation calculations and armature generation, setting this flag does not clear other roots in the same mesh island"
+msgstr "O vértice é uma raiz para cálculo de rotações e geração de armações, atribuir esta etiqueta não limpa as restantes raízes na mesma ilha de malha"
 
 
 msgid "Mesh Skin Vertex Layer"
@@ -36327,6 +36231,14 @@ msgstr "Saliências - Valor máximo"
 
 msgid "Overhang Min"
 msgstr "Saliências - Valor mínimo"
+
+
+msgid "Sharpness Max"
+msgstr "Agudeza Max"
+
+
+msgid "Sharpness Min"
+msgstr "Agudeza Min"
 
 
 msgid "Thickness Max"
@@ -36369,12 +36281,24 @@ msgid "Distortion"
 msgstr "Distorção"
 
 
+msgid "Mesh UV Layer"
+msgstr "Camada UV de Malha"
+
+
+msgid "(Deprecated) Layer of UV coordinates in a Mesh data-block"
+msgstr "(Descontinuado) Camada de coordenadas UV num bloco de dados de malha"
+
+
 msgid "UV Pinned"
 msgstr "UV afixada"
 
 
 msgid "UV Select"
 msgstr "Seleção de UVs"
+
+
+msgid "UV Edge Select"
+msgstr "Seleccionar de Aresta UV"
 
 
 msgid "Set the map as active for display and editing"
@@ -36389,8 +36313,48 @@ msgid "Set the map as active for cloning"
 msgstr "Define o mapa como o activo para clonagem."
 
 
+msgid "Set the UV map as active for rendering"
+msgstr "Definir o mapa UV como o activo para renderização"
+
+
+msgid "MeshUVLoop (Deprecated)"
+msgstr "MeshUVLoop (Descontinuado)"
+
+
+msgid "Deprecated, use 'uv', 'vertex_select', 'edge_select' or 'pin' properties instead"
+msgstr "Descontinuado, usar antes propriedades 'uv', 'vertex_select', 'edge_select' ou 'pin'"
+
+
+msgid "UV Edge Selection"
+msgstr "Selecção de Arestas UV"
+
+
+msgid "Selection state of the edge in the UV editor"
+msgstr "Estado de selecção de arestas no Editor UV"
+
+
 msgid "Name of UV map"
 msgstr "Nome do mapa UV"
+
+
+msgid "UV Pin"
+msgstr "Fixação UV"
+
+
+msgid "UV pinned state in the UV editor"
+msgstr "Estado de fixação de UV no Editor UV"
+
+
+msgid "UV coordinates on face corners"
+msgstr "Coordenadas UV nas esquinas da face"
+
+
+msgid "UV Vertex Selection"
+msgstr "Selecção de Vértices UV"
+
+
+msgid "Selection state of the face corner the UV editor"
+msgstr "Estado de selecção da esquina da face no Editor UV"
 
 
 msgid "Mesh Vertex"
@@ -36429,6 +36393,10 @@ msgid "Collection of mesh vertices"
 msgstr "Coleção de vértices de malha."
 
 
+msgid "Metaball Elements"
+msgstr "Elementos Meta-Esfera"
+
+
 msgid "Collection of metaball elements"
 msgstr "Coleção de elementos de esferas-meta."
 
@@ -36441,12 +36409,24 @@ msgid "Last selected element"
 msgstr "O último elemento seleccionado."
 
 
+msgid "Metaball Element"
+msgstr "Elemento Meta-Esfera"
+
+
+msgid "Blobby element in a metaball data-block"
+msgstr "Elemento em forma de bolhas num bloco-de-dados de Meta-Esfera"
+
+
 msgid "Hide element"
 msgstr "Oculta o elemento (ativo ou subjacente)."
 
 
 msgid "Normalized quaternion rotation"
 msgstr "Rotação de quaternião normalizada."
+
+
+msgid "Select element"
+msgstr "Seleccionar elemento"
 
 
 msgid "Size X"
@@ -36465,6 +36445,10 @@ msgid "Stiffness defines how much of the element to fill"
 msgstr "A rigidez define quanto preencher do elemento."
 
 
+msgid "Metaball type"
+msgstr "Tipo de meta-esfera"
+
+
 msgid "Ball"
 msgstr "Bola"
 
@@ -36477,8 +36461,36 @@ msgid "Set metaball as negative one"
 msgstr "Define o objecto esfera-meta como negativo."
 
 
+msgid "Scale Stiffness"
+msgstr "Redimensionar Rigidez"
+
+
+msgid "Scale stiffness instead of radius"
+msgstr "Redimensionar rigidez em vez do raio"
+
+
 msgid "Modifier affecting the geometry data of an object"
 msgstr "Modificador afetando os dados da geometria de um objecto."
+
+
+msgid "Execution Time"
+msgstr "Tempo de Execução"
+
+
+msgid "Time in seconds that the modifier took to evaluate. This is only set on evaluated objects. If multiple modifiers run in parallel, execution time is not a reliable metric"
+msgstr "Tempo em segundos que o modificador levou a ser avaliado. Apenas atribuído em objectos avaliados. Se múltiplos modificadores correm em paralelo, o tempo de execução não é uma métrica fiável"
+
+
+msgid "The active modifier in the list"
+msgstr "O modificador activo na lista"
+
+
+msgid "Persistent UID"
+msgstr "Identificador Único Persistente"
+
+
+msgid "Uniquely identifies the modifier within the modifier stack that it is part of"
+msgstr "Identifica inequivocamente o modificador dentro da lista de que faz parte"
 
 
 msgid "On Cage"
@@ -36493,28 +36505,64 @@ msgid "Data Transfer"
 msgstr "Transferência de dados"
 
 
+msgid "Transfer several types of data (vertex groups, UV maps, vertex colors, custom normals) from one mesh to another"
+msgstr "Transferir vários tipos de dados (grupos de vértices, mapas UV, cores de vértices, normais personalizadas) de uma malha para outra"
+
+
 msgid "Mesh Cache"
 msgstr "Cache de malha"
+
+
+msgid "Deform the mesh using an external frame-by-frame vertex transform cache"
+msgstr "Deformar a malha usando um armazenamento de transformação de vértices fotograma-a-fotograma externo"
 
 
 msgid "Mesh Sequence Cache"
 msgstr "Sequência de cache de malhas"
 
 
+msgid "Deform the mesh or curve using an external mesh cache in Alembic format"
+msgstr "Deformar a malha ou curva usando um armazenamento de malha externo em formato Alembic"
+
+
 msgid "Normal Edit"
 msgstr "Edição das normais"
+
+
+msgid "Modify the direction of the surface normals"
+msgstr "Modificar a direcção das normais da superfície"
+
+
+msgid "Weighted Normal"
+msgstr "Normal Ponderada"
+
+
+msgid "Modify the direction of the surface normals using a weighting method"
+msgstr "Modificar a direcção da normal da superfície usando método de ponderação por pesos"
 
 
 msgid "UV Project"
 msgstr "Projeção UV"
 
 
+msgid "Project the UV map coordinates from the negative Z axis of another object"
+msgstr "Projectar as coordenadas de mapeamento UV a partir do eixo Z negativo de outro objecto"
+
+
 msgid "UV Warp"
 msgstr "Conformar UV (curvar)"
 
 
+msgid "Transform the UV map using the difference between two objects"
+msgstr "Transformar o mapa UV usando a diferença entre dois objectos"
+
+
 msgid "Vertex Weight Edit"
 msgstr "Editar peso de vértices"
+
+
+msgid "Modify of the weights of a vertex group"
+msgstr "Mistura os pesos de dois grupos de vértices"
 
 
 msgid "Vertex Weight Mix"
@@ -36525,80 +36573,280 @@ msgid "Mix the weights of two vertex groups"
 msgstr "Mistura as influências de dois grupos de vértices."
 
 
+msgid "Set the vertex group weights based on the distance to another target object"
+msgstr "Definir os pesos de grupos de vértices usando a distância de outro objecto alvo"
+
+
+msgid "Change hue/saturation/value of the strokes"
+msgstr "Alterar os valores de matiz/saturação/valor dos traços"
+
+
+msgid "Tint the color of the strokes"
+msgstr "Tingir a cor dos traços"
+
+
+msgid "Change the opacity of the strokes"
+msgstr "Alterar a opacidade dos Traços"
+
+
+msgid "Create copies of the shape with offsets"
+msgstr "Criar cópias das formas com afastamentos"
+
+
 msgid "Bevel"
 msgstr "Bolear"
+
+
+msgid "Generate sloped corners by adding geometry to the mesh's edges or vertices"
+msgstr "Gerar esquinas arredondadas adicionando geometria às arestas ou vértices da malha"
+
+
+msgid "Use another shape to cut, combine or perform a difference operation"
+msgstr "Usar outra forma para cortar, combinar ou efectuar outra operação"
+
+
+msgid "Cause the faces of the mesh object to appear or disappear one after the other over time"
+msgstr "Faz as faces do objecto malha aparecer ou desaparecer uma após a outra ao longo do tempo"
 
 
 msgid "Decimate"
 msgstr "Decimar"
 
 
+msgid "Reduce the geometry density"
+msgstr "Reduzir a densidade da geometria"
+
+
 msgid "Edge Split"
 msgstr "Dividir arestas"
+
+
+msgid "Split away joined faces at the edges"
+msgstr "Separar faces unidas pelas arestas"
+
+
+msgid "Geometry Nodes"
+msgstr "Nós de Geometria"
+
+
+msgid "Dynamically hide vertices based on a vertex group or armature"
+msgstr "Esconder dinamicamente vértices com base num grupo de vértices ou armação"
+
+
+msgid "Mirror along the local X, Y and/or Z axes, over the object origin"
+msgstr "Espelhar ao longo do eixo X, Y e/ou Z, em torno da origem de um objecto"
+
+
+msgid "Mesh to Volume"
+msgstr "Volume em Malha"
 
 
 msgid "Multiresolution"
 msgstr "Multirresolução"
 
 
+msgid "Subdivide the mesh in a way that allows editing the higher subdivision levels"
+msgstr "Subdividir a malha de modo a permitir editar os níveis de subdivisão mais alta"
+
+
 msgid "Remesh"
 msgstr "Reestruturar malha"
 
 
+msgid "Generate new mesh topology based on the current shape"
+msgstr "Gerar nova topologia de malha baseada na actual forma"
+
+
 msgid "Screw"
-msgstr "Rosquear"
+msgstr "Revolver"
+
+
+msgid "Lathe around an axis, treating the input mesh as a profile"
+msgstr "Tornear em torno de um eixo, tratando a malha base como um perfil"
 
 
 msgid "Skin"
 msgstr "Cobertura"
 
 
+msgid "Create a solid shape from vertices and edges, using the vertex radius to define the thickness"
+msgstr "Criar uma forma sólida a partir de vértices e arestas, usando o raio dos vértices para definir espessura"
+
+
 msgid "Solidify"
 msgstr "Solidificar"
+
+
+msgid "Make the surface thick"
+msgstr "Tornar superfície espessa"
 
 
 msgid "Subdivision Surface"
 msgstr "Subdivisão de superfície"
 
 
+msgid "Split the faces into smaller parts, giving it a smoother appearance"
+msgstr "Dividir as faces em partes mais pequenas, dando-lhes uma aparência mais suave"
+
+
 msgid "Triangulate"
 msgstr "Triangular"
+
+
+msgid "Convert all polygons to triangles"
+msgstr "Converter todas as faces para triângulos"
+
+
+msgid "Volume to Mesh"
+msgstr "Volume em Malha"
+
+
+msgid "Weld"
+msgstr "Fundir"
+
+
+msgid "Find groups of vertices closer than dist and merge them together"
+msgstr "Encontrar grupos de vértices mais próximos que certa distância e fundi-los"
 
 
 msgid "Wireframe"
 msgstr "Aramado"
 
 
+msgid "Convert faces into thickened edges"
+msgstr "Converter faces em arestas engrossadas"
+
+
+msgid "Mirror strokes"
+msgstr "Espelhar Traços"
+
+
+msgid "Subdivide strokes"
+msgstr "Subdividir traços"
+
+
+msgid "Grease Pencil subdivide modifier"
+msgstr "Modificador Grease Pencil de Subdivisão"
+
+
+msgid "Deform the shape using an armature object"
+msgstr "Deformar Forma usando um objecto Armação"
+
+
 msgid "Cast"
 msgstr "Projetar"
+
+
+msgid "Shift the shape towards a predefined primitive"
+msgstr "Moldar a forma a uma primitiva pré definida"
+
+
+msgid "Bend the mesh using a curve object"
+msgstr "Dobrar forma usando um objecto curva"
 
 
 msgid "Displace"
 msgstr "Deslocar"
 
 
+msgid "Offset vertices based on a texture"
+msgstr "Deslocar vértices usando uma textura"
+
+
+msgid "Deform specific points using another object"
+msgstr "Deformar pontos específicos usando outro objecto"
+
+
 msgid "Laplacian Deform"
 msgstr "Deformação laplaciana"
+
+
+msgid "Deform based a series of anchor points"
+msgstr "Deformar com base numa série de pontos âncora"
+
+
+msgid "Deform using the shape of a lattice object"
+msgstr "Deformar usando a forma de um objecto grelha"
 
 
 msgid "Mesh Deform"
 msgstr "Deformação por malha"
 
 
+msgid "Deform using a different mesh, which acts as a deformation cage"
+msgstr "Deformar usando uma malha diferente, que age como gaiola de deformação"
+
+
 msgid "Simple Deform"
 msgstr "Deformação simples"
+
+
+msgid "Deform the shape by twisting, bending, tapering or stretching"
+msgstr "Deformar forma através de torção, dobragem, afunilamento ou extensão"
+
+
+msgid "Smooth the mesh by flattening the angles between adjacent faces"
+msgstr "Suavizar malha através de achatamento dos ângulos entre faces adjacentes"
+
+
+msgid "Smooth Corrective"
+msgstr "Suavizar Correctivamente"
+
+
+msgid "Smooth the mesh while still preserving the volume"
+msgstr "Suavizar malha preservando volume"
+
+
+msgid "Smooth Laplacian"
+msgstr "Suavizar Laplaciano"
+
+
+msgid "Reduce the noise on a mesh surface with minimal changes to its shape"
+msgstr "Reduzir ruído na superfície da malha com alterações mínimas à sua forma"
 
 
 msgid "Surface Deform"
 msgstr "Deformação de superfície"
 
 
+msgid "Transfer motion from another mesh"
+msgstr "Transferir movimento de outra malha"
+
+
 msgid "Warp"
 msgstr "Conformar em curva"
 
 
+msgid "Warp parts of a mesh to a new location in a very flexible way thanks to 2 specified objects"
+msgstr "Deslocar partes de uma malha para uma nova posição de forma bastante flexível graças a dois objectos especificados"
+
+
 msgid "Wave"
 msgstr "Ondas"
+
+
+msgid "Adds a ripple-like motion to an object's geometry"
+msgstr "Adicionar movimento tipo ondulação à geometria de um objecto"
+
+
+msgid "Volume Displace"
+msgstr "Deslocamento de Volume"
+
+
+msgid "Deform volume based on noise or other vector fields"
+msgstr "Deformar volume com base em ruído ou outros campos de vectores"
+
+
+msgid "Generate noise wobble in grease pencil strokes"
+msgstr "Criar oscilação por ruído em traços de grease pencil"
+
+
+msgid "Change stroke location, rotation, or scale"
+msgstr "Alterar posição, rotação ou escala de traços"
+
+
+msgid "Smooth grease pencil strokes"
+msgstr "Suavizar traços de grease pencil"
 
 
 msgid "Dynamic Paint"
@@ -36609,16 +36857,32 @@ msgid "Explode"
 msgstr "Explodir"
 
 
+msgid "Break apart the mesh faces and let them follow particles"
+msgstr "Separar faces da malha e deixá-las fluir com partículas"
+
+
 msgid "Ocean"
 msgstr "Oceano"
+
+
+msgid "Generate a moving ocean surface"
+msgstr "Gerar uma superfície de oceano em movimento"
 
 
 msgid "Particle Instance"
 msgstr "Instância de partículas"
 
 
+msgid "Spawn particles from the shape"
+msgstr "Gerar partículas a partir da forma"
+
+
 msgid "Soft Body"
 msgstr "Corpo macio"
+
+
+msgid "Apply on Spline"
+msgstr "Aplicar na Spline"
 
 
 msgid "Apply this and all preceding deformation modifiers on splines' points rather than on filled curve/surface"
@@ -36745,16 +37009,12 @@ msgid "Merge vertices in adjacent duplicates"
 msgstr "Funde os vértices em duplicatas adjacentes."
 
 
+msgid "Merge End Vertices"
+msgstr "Fundir Vértices Finais"
+
+
 msgid "Merge vertices in first and last duplicates"
 msgstr "Funde os vértices na primeira e última duplicatas."
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "Adiciona outras transformações de objectos para o deslocamento total."
-
-
-msgid "Add an offset relative to the object's bounding box"
-msgstr "Adiciona um deslocamento relativo a caixa delimitadora do objecto"
 
 
 msgid "Bevel Modifier"
@@ -36765,12 +37025,68 @@ msgid "Bevel modifier to make edges and vertices more rounded"
 msgstr "Modificador de chanfro para fazer com que as arestas e vértices sejam mais arredondados."
 
 
+msgid "Affect"
+msgstr "Afectar"
+
+
+msgid "Affect edges or vertices"
+msgstr "Afectar arestas ou vértices"
+
+
+msgid "Affect only vertices"
+msgstr "Afectar apenas vértices"
+
+
+msgid "Affect only edges"
+msgstr "Afectar apenas arestas"
+
+
 msgid "Angle above which to bevel edges"
 msgstr "Ângulo acima do qual chanfrar arestas."
 
 
+msgid "The path for the custom profile"
+msgstr "O caminho para o perfil personalizado"
+
+
+msgid "Face Strength"
+msgstr "Força das Faces"
+
+
+msgid "Whether to set face strength, and which faces to set it on"
+msgstr "Se definir força das faces, e em que faces definir a força"
+
+
+msgid "Do not set face strength"
+msgstr "Não definir força das faces"
+
+
 msgid "New"
 msgstr "Novo(a)"
+
+
+msgid "Set face strength on new faces only"
+msgstr "Definir força apenas nas faces novas"
+
+
+msgid "Affected"
+msgstr "Afectadas"
+
+
+msgid "Set face strength on new and affected faces only"
+msgstr "Atribuir força de faces apenas em faces novas e afectadas"
+
+
+msgid "Set face strength on all faces"
+msgstr "Definir força em todas as faces"
+
+
+msgid "Harden Normals"
+msgstr "Intensificar Normais"
+
+
+msgid "Match normals of new faces to adjacent faces"
+msgstr "Igualar normais das novas faces às faces adjacentes"
 
 
 msgid "Limit Method"
@@ -36805,12 +37121,68 @@ msgid "Mark Seams"
 msgstr "Marcar costuras"
 
 
+msgid "Mark Seams along beveled edges"
+msgstr "Marcar Costuras ao longo das arestas boleadas"
+
+
 msgid "Mark Sharp"
 msgstr "Marcar como ressaltos"
 
 
+msgid "Mark beveled edges as sharp"
+msgstr "Marcar arestas boleadas como agudas"
+
+
 msgid "Material index of generated faces, -1 for automatic"
 msgstr "Índice do material para as faces geradas, definir como \"-1\" para automático."
+
+
+msgid "Inner Miter"
+msgstr "Esquinas Internos"
+
+
+msgid "Pattern to use for inside of miters"
+msgstr "Padrão a usar para interior das esquinas"
+
+
+msgid "Inside of miter is sharp"
+msgstr "Interior da esquina é afiada"
+
+
+msgid "Arc"
+msgstr "Arco"
+
+
+msgid "Inside of miter is arc"
+msgstr "Interior da esquina é um arco"
+
+
+msgid "Outer Miter"
+msgstr "Esquina Exterior"
+
+
+msgid "Pattern to use for outside of miters"
+msgstr "Padrão a usar para exterior da esquina"
+
+
+msgid "Outside of miter is sharp"
+msgstr "Exterior da esquina é afiado"
+
+
+msgid "Patch"
+msgstr "Remendo"
+
+
+msgid "Outside of miter is squared-off patch"
+msgstr "Exterior da esquina é um remendo quadrado"
+
+
+msgid "Outside of miter is arc"
+msgstr "Exterior da esquina é um arco"
+
+
+msgid "Width Type"
+msgstr "Tipo de Largura"
 
 
 msgid "What distance Width measures"
@@ -36837,12 +37209,40 @@ msgid "Amount is percent of adjacent edge length"
 msgstr "A quantidade é um percentual do comprimento da aresta adjacente."
 
 
+msgid "Amount is absolute distance along adjacent edge"
+msgstr "Quantidade é a distância absoluta ao longo da aresta adjacente"
+
+
 msgid "The profile shape (0.5 = round)"
 msgstr "O formato do perfil. Valor de 0.5 significa arredondado."
 
 
+msgid "Profile Type"
+msgstr "Tipo de Perfil"
+
+
+msgid "The type of shape used to rebuild a beveled section"
+msgstr "O tipo de perfil usado para reconstruir a secção boleada"
+
+
+msgid "Superellipse"
+msgstr "Superelipse"
+
+
+msgid "The profile can be a concave or convex curve"
+msgstr "O perfil pode ser uma curva côncava ou convexa"
+
+
+msgid "The profile can be any arbitrary path between its endpoints"
+msgstr "O perfil pode ser qualquer caminho arbitrário entre pontas"
+
+
 msgid "Number of segments for round edges/verts"
 msgstr "Número de segmentos para arredondamento de vértices ou arestas."
+
+
+msgid "Spread distance for inner miter arcs"
+msgstr "Distância de propagação para arcos de esquinas internas"
 
 
 msgid "Clamp Overlap"
@@ -36857,8 +37257,36 @@ msgid "Vertex group name"
 msgstr "Nome do grupo de vértices."
 
 
+msgid "Vertex Mesh Method"
+msgstr "Método de Malha de Vértices"
+
+
+msgid "The method to use to create the mesh at intersections"
+msgstr "O método usado para criar a malha nas intersecções"
+
+
+msgid "Grid Fill"
+msgstr "Preenchimento em Grelha"
+
+
+msgid "Default patterned fill"
+msgstr "Preenchimento em padrão pré-definido"
+
+
+msgid "A cut-off at the end of each profile before the intersection"
+msgstr "Uma interrupção ao fim de cada perfil antes da intersecção"
+
+
 msgid "Bevel amount"
 msgstr "Quantidade de boleado"
+
+
+msgid "Width Percent"
+msgstr "Percentagem da Largura"
+
+
+msgid "Bevel amount for percentage method"
+msgstr "Método de quantidade de boleado por percentagem"
 
 
 msgid "Boolean Modifier"
@@ -36869,8 +37297,24 @@ msgid "Boolean operations modifier"
 msgstr "Modificador para operações boolianas."
 
 
+msgid "Use mesh objects in this collection for Boolean operation"
+msgstr "Usar objects malha nesta colecção para operação Booleana"
+
+
 msgid "Debug"
 msgstr "Depurar"
+
+
+msgid "Debugging options, only when started with '-d'"
+msgstr "Opções de depuração, apenas quando iniciado com '-d'"
+
+
+msgid "No Dissolve"
+msgstr "Sem Dissolução"
+
+
+msgid "No Connect Regions"
+msgstr "Sem Regiões de Conexão"
 
 
 msgid "Overlap Threshold"
@@ -36881,12 +37325,92 @@ msgid "Threshold for checking overlapping geometry"
 msgstr "Ajuste para checagem de geometria sobreposta."
 
 
+msgid "Material Mode"
+msgstr "Modo de Material"
+
+
+msgid "Method for setting materials on the new faces"
+msgstr "Método para atribuir materiais às novas faces"
+
+
+msgid "Index Based"
+msgstr "Com Base em Índice"
+
+
+msgid "Set the material on new faces based on the order of the material slot lists. If a material doesn't exist on the modifier object, the face will use the same material slot or the first if the object doesn't have enough slots"
+msgstr "Atribuir material a novas faces com base na ordem da lista de espaços para materiais. Se um material não existe no objecto do modificador, a face usará o mesmo espaço de material, ou o primeiro se o objecto não tiver espaços suficientes"
+
+
+msgid "Transfer"
+msgstr "Transferir"
+
+
+msgid "Transfer materials from non-empty slots to the result mesh, adding new materials as necessary. For empty slots, fall back to using the same material index as the operand mesh"
+msgstr "Transferir materiais de espaços para materiais não vazios para a nova malha, adicionando novos materiais conforme necessário. Para espaços para materiais vazios, recair para o mesmo índice de material que a malha operando"
+
+
 msgid "Mesh object to use for Boolean operation"
 msgstr "Objecto de malha para usar em operações boolianas."
 
 
+msgid "Operand Type"
+msgstr "Tipo de Operando"
+
+
+msgid "Use a mesh object as the operand for the Boolean operation"
+msgstr "Usar um objecto malha como operando para a operação Booleana"
+
+
+msgid "Use a collection of mesh objects as the operand for the Boolean operation"
+msgstr "Usar uma colecção de objectos malha como operando para a operação Booleana"
+
+
+msgid "Keep the part of the mesh that is common between all operands"
+msgstr "Manter a parte da malha que é comum a todos os operandos"
+
+
 msgid "Union"
 msgstr "União"
+
+
+msgid "Combine meshes in an additive way"
+msgstr "Combinar malhas de forma aditiva"
+
+
+msgid "Combine meshes in a subtractive way"
+msgstr "Combinar malhas de forma subtractiva"
+
+
+msgid "Method for calculating booleans"
+msgstr "Método para calcular booleanos"
+
+
+msgid "Simple solver for the best performance, without support for overlapping geometry"
+msgstr "Algoritmo simples para melhor performance, sem suporte para geometria sobreposta"
+
+
+msgid "Exact"
+msgstr "Exacto"
+
+
+msgid "Advanced solver for the best result"
+msgstr "Algoritmo avançado para melhor resultado"
+
+
+msgid "Hole Tolerant"
+msgstr "Tolerante a Aberturas"
+
+
+msgid "Better results when there are holes (slower)"
+msgstr "Melhores resultados quando há buracos (mais lento)"
+
+
+msgid "Self Intersection"
+msgstr "Auto Intersecção"
+
+
+msgid "Allow self-intersection in operands"
+msgstr "Permitir que os operandos se intersectem com eles mesmos"
 
 
 msgid "Build effect modifier"
@@ -36949,6 +37473,10 @@ msgid "Size of projection shape (leave as 0 for auto)"
 msgstr "Tamanho do formato de projeção. Valor zero significa automático."
 
 
+msgid "Size from Radius"
+msgstr "Tamanho a partir do Raio"
+
+
 msgid "Use radius as size of projection shape (0 = auto)"
 msgstr "Usar o raio como o tamanho do formato de projeção. Valor zero significa automático."
 
@@ -37005,6 +37533,10 @@ msgid "Lambda Factor"
 msgstr "Fator Lambda"
 
 
+msgid "Smooth effect factor"
+msgstr "Factor de efeito de suavização"
+
+
 msgid "Bind current shape"
 msgstr "Atrela o formato atual"
 
@@ -37021,8 +37553,20 @@ msgid "Original Coords"
 msgstr "Coordenadas originais"
 
 
+msgid "Use base mesh vertex coordinates as the rest position"
+msgstr "Usa as coordenadas dos vértices da malha base como a posição de descanso"
+
+
 msgid "Bind Coords"
 msgstr "Atrelamento de coordenadas"
+
+
+msgid "Use bind vertex coordinates for rest position"
+msgstr "Usa as coordenadas de vínculo para posição de descanso"
+
+
+msgid "Compensate for scale applied by other modifiers"
+msgstr "Compensar escala aplicada por outros modificadores"
 
 
 msgid "Smooth Type"
@@ -37109,6 +37653,10 @@ msgid "Transfer UV seam mark"
 msgstr "Transfere as marcações das costuras das UVs."
 
 
+msgid "Transfer subdivision crease values"
+msgstr "Transfere os valores dos vincos de subdivisão"
+
+
 msgid "Bevel Weight"
 msgstr "Peso de Boleados"
 
@@ -37141,6 +37689,10 @@ msgid "Transfer custom normals"
 msgstr "Transfere as normais personalizadas."
 
 
+msgid "Transfer color attributes"
+msgstr "Transfere os valores de cor"
+
+
 msgid "UVs"
 msgstr "UVs"
 
@@ -37151,6 +37703,10 @@ msgstr "Transfere as camadas UV"
 
 msgid "Poly Data Types"
 msgstr "Tipo de dados de polígonos"
+
+
+msgid "Which face data layers to transfer"
+msgstr "Que camadas de dados transferir"
 
 
 msgid "Transfer flat/smooth mark"
@@ -37301,20 +37857,44 @@ msgid "Method used to map source faces' corners to destination ones"
 msgstr "Método utilizado para mapear as junções das faces da fonte para as junções de faces da destinação."
 
 
+msgid "Nearest Corner and Best Matching Normal"
+msgstr "Esquina Mais Próxima e Normal com Melhor Correspondência"
+
+
 msgid "Copy from nearest corner which has the best matching normal"
 msgstr "Copia a partir das junções mais próximas e que possuírem as melhores combinações de normais."
+
+
+msgid "Nearest Corner and Best Matching Face Normal"
+msgstr "Esquina Mais Próxima e Normal de Face com Melhor Correspondência"
 
 
 msgid "Copy from nearest corner which has the face with the best matching normal to destination corner's face one"
 msgstr "Copia a partir das junções mais próximas que possuírem as faces com as melhores combinações de normais com relação às junções das faces de destinação."
 
 
+msgid "Nearest Corner of Nearest Face"
+msgstr "Esquina Mais Próxima da Face mais Próxima"
+
+
+msgid "Copy from nearest corner of nearest face"
+msgstr "Copiar a partir da esquina mais próxima da face mais próxima"
+
+
 msgid "Nearest Face Interpolated"
 msgstr "Faces interpoladas mais próximas"
 
 
+msgid "Copy from interpolated corners of the nearest source face"
+msgstr "Copiar a partir das esquinas interpoladas da face fonte mais próxima"
+
+
 msgid "Projected Face Interpolated"
 msgstr "Projeções de faces interpoladas"
+
+
+msgid "Copy from interpolated corners of the source face hit by corner normal projection"
+msgstr "Copiar a partir das esquinas interpoladas da face fonte atingida pela projecção da normal da esquina"
 
 
 msgid "Max Distance"
@@ -37323,6 +37903,10 @@ msgstr "Distância máxima"
 
 msgid "Maximum allowed distance between source and destination element, for non-topology mappings"
 msgstr "Distância máxima permitida entre os elementos da fonte e destinação, para mapeamentos não topológicos."
+
+
+msgid "Factor to use when applying data to destination (exact behavior depends on mix mode, multiplied with weights from vertex group when defined)"
+msgstr "Factor a usar durante aplicação de dados no destino (comportamento exacto depende do modo de mistura, multiplicado por pesos dos grupos de vértices quando definidos)"
 
 
 msgid "How to affect destination elements with source values"
@@ -37385,8 +37969,16 @@ msgid "Nearest Face"
 msgstr "Faces mais próximas"
 
 
+msgid "Copy from nearest face (using center points)"
+msgstr "Copiar a partir da face mais próxima (usando os pontos centrais)"
+
+
 msgid "Best Normal-Matching"
 msgstr "Melhores combinações das normais "
+
+
+msgid "Copy from source face which normal is the closest to destination one"
+msgstr "Copiar a partir da face fonte cuja normal é a mais próxima do destino"
 
 
 msgid "Interpolate all source polygons intersected by the projection of destination one along its own normal"
@@ -37581,6 +38173,10 @@ msgid "All Boundaries"
 msgstr "Todas as margens"
 
 
+msgid "Dissolve all vertices in between face boundaries (planar only)"
+msgstr "Dissolver todos os vértices entre fronteiras de faces (apenas planas)"
+
+
 msgid "Symmetry"
 msgstr "Simetrizar"
 
@@ -37677,6 +38273,14 @@ msgid "Use UV coordinates for the texture coordinates"
 msgstr "Usa as coordenadas UV para as coordenadas de textura."
 
 
+msgid "Texture Coordinate Bone"
+msgstr "Osso de Coordenada de Textura"
+
+
+msgid "Bone to set the texture coordinates"
+msgstr "Osso para definir as coordenadas de textura"
+
+
 msgid "Texture Coordinate Object"
 msgstr "Objecto de coordenadas de textura"
 
@@ -37691,6 +38295,21 @@ msgstr "Modificador - Pintura dinâmica"
 
 msgid "Dynamic Paint modifier"
 msgstr "Modificador para criar pinturas dinâmicas."
+
+
+msgctxt "Simulation"
+msgid "Type"
+msgstr "Tipo"
+
+
+msgctxt "Simulation"
+msgid "Canvas"
+msgstr "Tela"
+
+
+msgctxt "Simulation"
+msgid "Brush"
+msgstr "Pincel"
 
 
 msgid "EdgeSplit Modifier"
@@ -37781,6 +38400,10 @@ msgid "Use particle size for the shrapnel"
 msgstr "Usa o tamanho das partículas para calcular os estilhaços."
 
 
+msgid "Fluid Modifier"
+msgstr "Modificador Fluído"
+
+
 msgid "Fluid simulation modifier"
 msgstr "Modificador para simulação de fluidos"
 
@@ -37789,8 +38412,196 @@ msgid "Inflow/Outflow"
 msgstr "Entrada e saída de fluxo"
 
 
+msgid "Invert vertex group weights"
+msgstr "Inverter o peso do grupo de vértices"
+
+
+msgid "Invert Layer"
+msgstr "Inverter Camada"
+
+
+msgid "Invert layer filter"
+msgstr "Inverter filtro de camada"
+
+
+msgid "Invert Layer Pass"
+msgstr "Inverter Passagem de Camada"
+
+
+msgid "Invert layer pass filter"
+msgstr "Inverter filtro de passagem de camada"
+
+
+msgid "Invert Material"
+msgstr "Inverter Material"
+
+
+msgid "Invert material filter"
+msgstr "Inverter filtro de material"
+
+
+msgid "Invert Material Pass"
+msgstr "Inverter Passagem de Material"
+
+
+msgid "Invert material pass filter"
+msgstr "Inverter filtro de passagem de material"
+
+
+msgid "Layer Pass"
+msgstr "Passagem de Camada"
+
+
+msgid "Layer pass filter"
+msgstr "Filtro de passagem de camada"
+
+
+msgid "Material used for filtering"
+msgstr "Material usado para filtragem"
+
+
+msgid "Material Pass"
+msgstr "Passagem de Material"
+
+
+msgid "Material pass"
+msgstr "Passagem de materiais"
+
+
+msgid "Use Layer Pass"
+msgstr "Usar Passagem de Camadas"
+
+
+msgid "Use layer pass filter"
+msgstr "Usar filtro de passagem de camada"
+
+
+msgid "Use Material Pass"
+msgstr "Usar passagem de material"
+
+
+msgid "Use material pass filter"
+msgstr "Usar filtro de passagem de material"
+
+
+msgid "Grease Pencil Color Modifier"
+msgstr "Modificador Grease Pencil de Cor"
+
+
+msgid "Attributes to modify"
+msgstr "Atributos a modificar"
+
+
+msgid "Color hue offset"
+msgstr "Afastamento de Matiz da côr"
+
+
+msgid "Color saturation factor"
+msgstr "Factor de Saturação da Cor"
+
+
+msgid "Use Custom Curve"
+msgstr "Usar Curva Personalizada"
+
+
+msgid "Use a custom curve to define a factor along the strokes"
+msgstr "Usar curva personalizada para definir um factor ao longo dos traços"
+
+
+msgid "Color value factor"
+msgstr "Factor de valor de cor"
+
+
+msgid "Grease Pencil Mirror Modifier"
+msgstr "Modificador Grease Pencil Espelhar"
+
+
+msgid "Grease Pencil Noise Modifier"
+msgstr "Modificador Grease Pencil Ruído"
+
+
+msgid "Grease Pencil Offset Modifier"
+msgstr "Modificador Grease Pencil Afastamento"
+
+
+msgid "Grease Pencil Opacity Modifier"
+msgstr "Modificador Grease Pencil Opacidade"
+
+
+msgid "Factor of opacity"
+msgstr "Factor de Opacidade"
+
+
+msgid "Hardness Factor"
+msgstr "Factor de Dureza"
+
+
+msgid "Replace the stroke opacity instead of modulating each point"
+msgstr "Substituir a opacidade do traço, em vez de modular cada ponto"
+
+
+msgid "Use Weight as Factor"
+msgstr "Usar Peso como Factor"
+
+
+msgid "Use vertex group weight as factor instead of influence"
+msgstr "Usar peso de grupo de vértices como factor em vez da influência"
+
+
+msgid "Smooth Ends"
+msgstr "Pontas Suaves"
+
+
+msgid "Smooth ends of strokes"
+msgstr "Pontas dos traços suaves"
+
+
+msgid "Level of subdivision"
+msgstr "Nível de subdivisões"
+
+
+msgid "Grease Pencil Thickness Modifier"
+msgstr "Modificador Grease Pencil Espessura"
+
+
+msgid "Adjust stroke thickness"
+msgstr "Ajustar espessura do traço"
+
+
+msgid "Grease Pencil Tint Modifier"
+msgstr "Modificador Grease Pencil Tingir"
+
+
+msgid "Gradient tinting colors"
+msgstr "Cor de tingimento do gradiente"
+
+
+msgid "Object used for the gradient direction"
+msgstr "Objecto usado para direcção do gradiente"
+
+
+msgid "Influence distance from the object"
+msgstr "Distância de influência do objecto"
+
+
+msgid "Tint Mode"
+msgstr "Modo de Tingimento"
+
+
 msgid "Hook modifier to modify the location of vertices"
 msgstr "O modificador gancho usa objectos para modificar a localização de vértices."
+
+
+msgid "Center of the hook, used for falloff and display"
+msgstr "Centro do gancho, usado para decaimento e exibição"
+
+
+msgid "Vertex Indices"
+msgstr "Índices de vértices"
+
+
+msgid "Indices of vertices bound to the modifier. For Bézier curves, handles count as additional vertices"
+msgstr "Índice dos vértices associados ao modificador. Para curvas bezier, manípulos contam como vértices adicionais"
 
 
 msgid "Laplacian Deform Modifier"
@@ -37807,6 +38618,10 @@ msgstr "Margens"
 
 msgid "Whether geometry has been bound to anchors"
 msgstr "Caso a geometria esteja muito próxima das âncoras."
+
+
+msgid "Anchor Weights"
+msgstr "Pesos Âncora"
 
 
 msgid "Name of Vertex Group which determines Anchors"
@@ -37873,12 +38688,28 @@ msgid "Use vertices that are not part of region defined"
 msgstr "Usa os vértices que não são parte da região definida."
 
 
+msgid "Weights over this threshold remain"
+msgstr "Pesos acima deste valor permanecem"
+
+
+msgid "Use vertex group weights to cut faces at the weight contour"
+msgstr "Usar pesos dos grupos de vértices para cortar faces pelo contorno do peso"
+
+
 msgid "Cache Modifier"
 msgstr "Modificador - Cache de malha"
 
 
 msgid "Cache Mesh"
 msgstr "Manipula caches para malhas"
+
+
+msgid "MDD"
+msgstr "MDD"
+
+
+msgid "PC2"
+msgstr "PC2"
 
 
 msgid "Deform Mode"
@@ -37889,8 +38720,16 @@ msgid "Overwrite"
 msgstr "Sobrescrever"
 
 
+msgid "Replace vertex coordinates with cached values"
+msgstr "Substitui coordenadas dos vértices com valores armazenados"
+
+
 msgid "Integrate"
 msgstr "Integrar"
+
+
+msgid "Integrate deformation from this modifier's input with the mesh-cache coordinates (useful for shape keys)"
+msgstr "Integrar deformação da contribuição deste modificador com as coordenadas do armazenamento de malha (útil para Formas Chave)"
 
 
 msgid "Evaluation Factor"
@@ -37911,6 +38750,10 @@ msgstr "Influência da deformação"
 
 msgid "Add this to the start frame"
 msgstr "Adiciona isto ao fotograma inicial."
+
+
+msgid "Play Mode"
+msgstr "Modo de Reprodução"
 
 
 msgid "Use the time from the scene"
@@ -37935,6 +38778,14 @@ msgstr "Controla a reprodução usando os números dos fotogramas (ignorando o t
 
 msgid "Control playback using time in seconds"
 msgstr "Controla a reprodução usando o tempo em segundos."
+
+
+msgid "Control playback using a value between 0 and 1"
+msgstr "Controlar reprodução usando um valor entre 0 e 1"
+
+
+msgid "Name of the Vertex Group which determines the influence of the modifier per point"
+msgstr "Nome do Grupo de Vértices que determina a influência do modificador por ponto"
 
 
 msgid "MeshDeform Modifier"
@@ -37965,8 +38816,80 @@ msgid "Path to the object in the Alembic archive used to lookup geometric data"
 msgstr "O caminho para o objecto dentro do ficheiro de cache do tipo Alembic usado para a pesquisa de dados geométricos."
 
 
+msgid "Read Data"
+msgstr "Ler Dados"
+
+
+msgid "Data to read from the cache"
+msgstr "Dados a ler do armazenamento"
+
+
+msgid "Vertex Interpolation"
+msgstr "Interpolação de Vértices"
+
+
+msgid "Allow interpolation of vertex positions"
+msgstr "Permitir interpolação da posição dos vértices"
+
+
+msgid "Multiplier used to control the magnitude of the velocity vectors for time effects"
+msgstr "Multiplicador usado para controlar a magnitude dos vectores de velocidade para efeitos de tempo"
+
+
+msgid "Mesh to Volume Modifier"
+msgstr "Modificador Malha em Volume"
+
+
+msgid "Density of the new volume"
+msgstr "Densidade do novo volume"
+
+
+msgid "Interior Band Width"
+msgstr "Largura de Banda Interior"
+
+
+msgid "Width of the gradient inside of the mesh"
+msgstr "Largura do gradiente dentro da malha"
+
+
+msgid "Resolution Mode"
+msgstr "Modo de Resolução"
+
+
+msgid "Mode for how the desired voxel size is specified"
+msgstr "Modo como o tamanho de voxel especificado é aplicado"
+
+
+msgid "Voxel Amount"
+msgstr "Quantidade Voxels"
+
+
+msgid "Desired number of voxels along one axis"
+msgstr "Número desejado de voxels ao longo de um eixo"
+
+
+msgid "Desired voxel side length"
+msgstr "Comprimento do lado do voxel desejado"
+
+
+msgid "Approximate number of voxels along one axis"
+msgstr "Aproximar número de voxels ao longo de um eixo"
+
+
+msgid "Smaller values result in a higher resolution output"
+msgstr "Valores mais baixos dão resultados com maior resolução"
+
+
 msgid "Mirroring modifier"
 msgstr "Modificador para espelhamento."
+
+
+msgid "Bisect Distance"
+msgstr "Distância à Bissectriz"
+
+
+msgid "Distance from the bisect plane within which vertices are removed"
+msgstr "Distância ao plano bissectriz dentro da qual os vértices são removidos"
 
 
 msgid "Distance within which mirrored vertices are merged"
@@ -37975,6 +38898,54 @@ msgstr "Distância dentro da qual os vértices espelhados são fundidos."
 
 msgid "Object to use as mirror"
 msgstr "Objecto para usar como referência do espelhamento."
+
+
+msgid "Flip U Offset"
+msgstr "Deslocamento de espelhamento em U"
+
+
+msgid "Amount to offset mirrored UVs flipping point from the 0.5 on the U axis"
+msgstr "Quantidade para deslocar o ponto de inversão das UVs espelhadas a partir do ponto 0.5 no eixo U"
+
+
+msgid "Flip V Offset"
+msgstr "Deslocamento de Inversão em V"
+
+
+msgid "Amount to offset mirrored UVs flipping point from the 0.5 point on the V axis"
+msgstr "Quantidade para deslocar o ponto de inversão das UVs espelhadas a partir do ponto 0.5 no eixo V"
+
+
+msgid "Mirrored UV offset on the U axis"
+msgstr "Deslocamento das UVs espelhadas no eixo U"
+
+
+msgid "Mirrored UV offset on the V axis"
+msgstr "Deslocamento das UVs espelhadas no eixo V"
+
+
+msgid "Mirror Axis"
+msgstr "Eixo de Simetria"
+
+
+msgid "Enable axis mirror"
+msgstr "Activar eixo de espelhamento"
+
+
+msgid "Bisect Axis"
+msgstr "Eixo Bissectriz"
+
+
+msgid "Cuts the mesh across the mirror plane"
+msgstr "Cortar malha ao longo do eixo de espelhamento"
+
+
+msgid "Bisect Flip Axis"
+msgstr "Eixo de inversão da Bissectriz"
+
+
+msgid "Flips the direction of the slice"
+msgstr "Inverte a direcção do corte"
 
 
 msgid "Prevent vertices from going through the mirror during transform"
@@ -37989,8 +38960,24 @@ msgid "Mirror U"
 msgstr "Espelhar U"
 
 
+msgid "Mirror the U texture coordinate around the flip offset point"
+msgstr "Espelhar coordenada de textura U em torno do ponto de deslocamento de inversão"
+
+
+msgid "Mirror UDIM"
+msgstr "Espelhar UDIM"
+
+
+msgid "Mirror the texture coordinate around each tile center"
+msgstr "Espelha a coordenada de textura em torno do centro de cada quadrícula"
+
+
 msgid "Mirror V"
 msgstr "Espelhar V"
+
+
+msgid "Mirror the V texture coordinate around the flip offset point"
+msgstr "Espelhar coordenada de textura V em torno do ponto de deslocamento de inversão"
 
 
 msgid "Mirror vertex groups (e.g. .R->.L)"
@@ -38005,6 +38992,26 @@ msgid "Multiresolution mesh modifier"
 msgstr "Modificador para criar malhas multirresolução"
 
 
+msgid "Boundary Smooth"
+msgstr "Suavização de Limite"
+
+
+msgid "Controls how open boundaries are smoothed"
+msgstr "Controla como limites abertos são suavizados"
+
+
+msgid "Keep Corners"
+msgstr "Manter Esquinas"
+
+
+msgid "Smooth boundaries, but corners are kept sharp"
+msgstr "Suavizar limites, mas manter esquinas agudas"
+
+
+msgid "Smooth boundaries, including corners"
+msgstr "Suavizar limites incluindo esquinas"
+
+
 msgid "Store multires displacements outside the .blend file, to save memory"
 msgstr "Guarda os deslocamentos de multirresolução fora do ficheiro .blend, para economizar memória."
 
@@ -38015,6 +39022,10 @@ msgstr "Níveis"
 
 msgid "Number of subdivisions to use in the viewport"
 msgstr "Número de subdivisões para usar na janela de visualização."
+
+
+msgid "Accuracy of vertex positions, lower value is faster but less precise"
+msgstr "Precisão de posição de vértices, valor mais baixo é mais rápido mas menos preciso"
 
 
 msgid "Render Levels"
@@ -38049,12 +39060,108 @@ msgid "Number of subdivisions for which displacements are stored"
 msgstr "Número de subdivisões para os qual os deslocamentos são guardados."
 
 
+msgid "Use Creases"
+msgstr "Usar Vincos"
+
+
+msgid "Use mesh crease information to sharpen edges or corners"
+msgstr "Usar informação de vincos da malha para aguçar arestas ou esquinas"
+
+
+msgid "Use Custom Normals"
+msgstr "Usar Normais Personalizadas"
+
+
+msgid "Interpolates existing custom normals to resulting mesh"
+msgstr "Interpola normais personalizadas existentes à malha resultante"
+
+
+msgid "Sculpt Base Mesh"
+msgstr "Esculpir Malha Base"
+
+
+msgid "Make Sculpt Mode tools deform the base mesh while previewing the displacement of higher subdivision levels"
+msgstr "Fazer ferramentas de Modo de Escultura deformar a malha base, pré visualizando deslocamento de níveis superiores de subdivisão"
+
+
+msgid "UV Smooth"
+msgstr "Suavização UV"
+
+
+msgid "Controls how smoothing is applied to UVs"
+msgstr "Controlar como a suavização é aplicada aos UVs"
+
+
+msgid "UVs are not smoothed, boundaries are kept sharp"
+msgstr "UVs não são suavizadas, limites são mantidos agudos"
+
+
+msgid "UVs are smoothed, corners on discontinuous boundary are kept sharp"
+msgstr "UVs são suavizadas, esquinas em limites descontínuos são mantidas agudas"
+
+
+msgid "Keep Corners, Junctions"
+msgstr "Manter Esquinas, Confluências"
+
+
+msgid "UVs are smoothed, corners on discontinuous boundary and junctions of 3 or more regions are kept sharp"
+msgstr "UVs são suavizadas, esquinas em limites descontínuos e confluências de 3 ou mais regiões são mantidas agudas"
+
+
+msgid "Keep Corners, Junctions, Concave"
+msgstr "Manter Esquinas, Confluências, Côncavas"
+
+
+msgid "UVs are smoothed, corners on discontinuous boundary, junctions of 3 or more regions and darts and concave corners are kept sharp"
+msgstr "UVs são suavizadas, esquinas em limites descontínuos, confluências de 3 ou mais regiões e esquinas côncavas são mantidas agudas"
+
+
+msgid "Keep Boundaries"
+msgstr "Preservar Limites"
+
+
+msgid "UVs are smoothed, boundaries are kept sharp"
+msgstr "UVs são suavizadas, limites mantêm-se agudos"
+
+
+msgid "UVs and boundaries are smoothed"
+msgstr "UVs e limites são suavizados"
+
+
+msgid "Nodes Modifier"
+msgstr "Modificador de Nós"
+
+
+msgid "Simulation Bake Directory"
+msgstr "Pasta de Pré Calculo da Simulação"
+
+
+msgid "Location on disk where the bake data is stored"
+msgstr "Local no disco onde os dados pré-calculados são armazenados"
+
+
+msgid "Node Group"
+msgstr "Grupo de Nós"
+
+
+msgid "Node group that controls what this modifier does"
+msgstr "Grupo de nós que controla o que este modificador faz"
+
+
+msgid "Show Node Group"
+msgstr "Mostrar Grupos de Nós"
+
+
 msgid "Normal Edit Modifier"
 msgstr "Modificador - Edição de normais"
 
 
 msgid "Modifier affecting/generating custom normals"
 msgstr "Modificador para afetar ou gerar normais personalizadas."
+
+
+msgid "How much of generated normals to mix with existing ones"
+msgstr "Quantidade de normais geradas a misturar com as existentes"
 
 
 msgid "Maximum angle between old and new normals"
@@ -38081,6 +39188,10 @@ msgid "Copy new normals minus old normals"
 msgstr "Copia as novas normais menos as normais antigas."
 
 
+msgid "Copy product of old and new normals (not cross product)"
+msgstr "Copiar o produto entre normais anteriores e novas (sem produto vectorial)"
+
+
 msgid "How to affect (generate) normals"
 msgstr "Como afetar (gerar) normais."
 
@@ -38095,6 +39206,14 @@ msgstr "Direcional"
 
 msgid "Normals 'track' (point to) the target object"
 msgstr "As normais \"rastreiam\" (apontam para) o objecto alvo."
+
+
+msgid "Lock Polygon Normals"
+msgstr "Trancar Normais de Polígono"
+
+
+msgid "Do not flip polygons when their normals are not consistent with their newly computed custom vertex normals"
+msgstr "Não inverter polígonos quando as suas normais não forem consistentes com as novas normais personalizadas de vértices computadas"
 
 
 msgid "Offset from object's center"
@@ -38149,6 +39268,14 @@ msgid "Depth of the solid ground below the water surface"
 msgstr "Profundidade do chão sólido abaixo da superfície da água."
 
 
+msgid "Fetch"
+msgstr "Distância Sotavento"
+
+
+msgid "This is the distance from a lee shore, called the fetch, or the distance over which the wind blows with constant velocity. Used by 'JONSWAP' and 'TMA' models"
+msgstr "Distância de uma costa sotavento, ou distância à qual o vento sopra com velocidade constante. Usado por modelos 'JONSWAP' e 'TMA'"
+
+
 msgid "Cache Path"
 msgstr "Caminho de cache"
 
@@ -38201,6 +39328,14 @@ msgid "Displace existing geometry according to simulation"
 msgstr "Desloca a geometria existente de acordo com a simulação."
 
 
+msgid "Invert Spray"
+msgstr "Inverter Pulverização"
+
+
+msgid "Invert the spray direction map"
+msgstr "Inverte a direcção do mapa de pulverização"
+
+
 msgid "Ocean is Cached"
 msgstr "Oceano em cache"
 
@@ -38225,6 +39360,22 @@ msgid "Repetitions of the generated surface in Y"
 msgstr "Repetições da superfície gerada em Y."
 
 
+msgid "Render Resolution"
+msgstr "Resolução de Renderização"
+
+
+msgid "Resolution of the generated surface for rendering and baking"
+msgstr "Resolução da superfície gerada para renderização e pré-cálculo"
+
+
+msgid "Sharpen peak"
+msgstr "Aguçar Cumes"
+
+
+msgid "Peak sharpening for 'JONSWAP' and 'TMA' models"
+msgstr "Aguçamento para modelos 'JONSWAP' e 'TMA'"
+
+
 msgid "Surface scale factor (does not affect the height of the waves)"
 msgstr "Fator de escalonamento da superfície (não afeta a altura das ondas)."
 
@@ -38235,6 +39386,54 @@ msgstr "Tamanho espacial"
 
 msgid "Size of the simulation domain (in meters), and of the generated geometry (in BU)"
 msgstr "Tamanho do domínio de simulação (em metros), e da geometria gerada, em unidades Blender."
+
+
+msgid "Spectrum"
+msgstr "Espectro"
+
+
+msgid "Spectrum to use"
+msgstr "Espectro usar"
+
+
+msgid "Turbulent Ocean"
+msgstr "Oceano Turbulento"
+
+
+msgid "Use for turbulent seas with foam"
+msgstr "Usar para oceanos turbulentos com espuma"
+
+
+msgid "Established Ocean"
+msgstr "Oceano Estável"
+
+
+msgid "Use for a large area, established ocean (Pierson-Moskowitz method)"
+msgstr "Usar para oceanos amplos estáveis (método Pierson-Moskowitz)"
+
+
+msgid "Established Ocean (Sharp Peaks)"
+msgstr "Oceano Estável (Cumes agudos)"
+
+
+msgid "Use for established oceans ('JONSWAP', Pierson-Moskowitz method) with peak sharpening"
+msgstr "Usar para oceanos estáveis (método 'JONSWAP', Pierson-Moskowitz) com cumes aguçados"
+
+
+msgid "Shallow Water"
+msgstr "Água Rasa"
+
+
+msgid "Use for shallow water ('JONSWAP', 'TMA' - Texel-Marsen-Arsloe method)"
+msgstr "Usar para águas rasas (métodos 'JONSWAP', 'TMA' - Texel-Marsen-Arsloe)"
+
+
+msgid "Spray Map"
+msgstr "Mapa de Pulverização"
+
+
+msgid "Name of the vertex color layer used for the spray direction map"
+msgstr "Nome da camada de cores de vértices usada para mapa de direcção de pulverização"
 
 
 msgid "Current time of the simulation"
@@ -38251,6 +39450,26 @@ msgstr "Gera a máscara de espuma como um canal de cores de vértices."
 
 msgid "Generate Normals"
 msgstr "Gerar normais"
+
+
+msgid "Output normals for bump mapping - disabling can speed up performance if it's not needed"
+msgstr "Produzir normais para o mapa de relevos - desactivar pode acelerar a performance se não for necessário"
+
+
+msgid "Generate Spray Map"
+msgstr "Gerar Mapa de Pulverização"
+
+
+msgid "Generate map of spray direction as a vertex color channel"
+msgstr "Gerar mapa de direcção de pulverização como canal de cores de vértices"
+
+
+msgid "Viewport Resolution"
+msgstr "Resolução na Janela de Visualização"
+
+
+msgid "Viewport resolution of the generated surface"
+msgstr "Resolução da superfície gerada para janela de visualização"
 
 
 msgid "Wave Alignment"
@@ -38305,8 +39524,32 @@ msgid "Pole axis for rotation"
 msgstr "Eixo de polo para rotação"
 
 
+msgid "Index Layer Name"
+msgstr "Nome da Cama Índice"
+
+
+msgid "Custom data layer name for the index"
+msgstr "Camada de dados personalizada para o índice"
+
+
 msgid "Object that has the particle system"
 msgstr "Objecto que possui o sistema de partículas."
+
+
+msgid "Particle Amount"
+msgstr "Quantidade de Partículas"
+
+
+msgid "Amount of particles to use for instancing"
+msgstr "Quantidade de partículas a usar para instanciação"
+
+
+msgid "Particle Offset"
+msgstr "Deslocamento de Partículas"
+
+
+msgid "Relative offset of particles to use for instancing, to avoid overlap of multiple instances"
+msgstr "Deslocamento relativo de partículas a usar para instanciação, para evitar sobreposição de múltiplas instâncias"
 
 
 msgid "Particle System Number"
@@ -38325,6 +39568,14 @@ msgid "Randomize position along path"
 msgstr "Torna aleatória a posição ao longo do caminho."
 
 
+msgid "Randomize rotation around path"
+msgstr "Aleatorizar rotação em torno do caminho"
+
+
+msgid "Rotation around path"
+msgstr "Rotação em torno do caminho"
+
+
 msgid "Show instances when particles are alive"
 msgstr "Mostra instâncias quando as partículas estão vivas."
 
@@ -38335,6 +39586,23 @@ msgstr "Mostra instâncias quando as partículas estão mortas."
 
 msgid "Show instances when particles are unborn"
 msgstr "Mostra instâncias quando as partículas ainda não nasceram."
+
+
+msgid "Space to use for copying mesh data"
+msgstr "Espaço de coordenadas para copiar dados da malha"
+
+
+msgid "Use offset from the particle object in the instance object"
+msgstr "Usar deslocamento do objecto partícula no objecto instância"
+
+
+msgid "Use world space offset in the instance object"
+msgstr "Usar deslocamento em coordenadas de cena no objecto instância"
+
+
+msgctxt "ParticleSettings"
+msgid "Children"
+msgstr "Descendentes"
 
 
 msgid "Create instances from child particles"
@@ -38355,6 +39623,14 @@ msgstr "Não estica o objecto"
 
 msgid "Use particle size to scale the instances"
 msgstr "Usa o tamanho das partículas para escalonar as instâncias."
+
+
+msgid "Value Layer Name"
+msgstr "Nome da Camada de Valor"
+
+
+msgid "Custom data layer name for the randomized value"
+msgstr "Camada de dados personalizados para valor aleatorizado"
 
 
 msgid "ParticleSystem Modifier"
@@ -38393,6 +39669,10 @@ msgid "Output a surface that reproduces sharp edges and corners from the input m
 msgstr "Produz uma saída de superfície que reproduz arestas ressaltadas e quinas a partir da malha de entrada."
 
 
+msgid "Output a mesh corresponding to the volume of the original mesh"
+msgstr "Produzir malha correspondente ao volume da malha original"
+
+
 msgid "Octree Depth"
 msgstr "Profundidade da árvore de octetos"
 
@@ -38417,6 +39697,10 @@ msgid "If removing disconnected pieces, minimum size of components to preserve a
 msgstr "Caso esteja removendo as peças desconectadas, o tamanho mínimo dos componentes para preservar como uma proporção para o número de polígonos no componente mais largo."
 
 
+msgid "Remove Disconnected"
+msgstr "Remover Desconectado"
+
+
 msgid "Smooth Shading"
 msgstr "Suavização de sombreamento"
 
@@ -38426,7 +39710,7 @@ msgstr "Faz com que as faces de saída tenham um sombreamento suavizado (interpo
 
 
 msgid "Screw Modifier"
-msgstr "Modificador - Rosquear"
+msgstr "Modificador Revolver"
 
 
 msgid "Revolve edges"
@@ -38438,15 +39722,15 @@ msgstr "Ângulo de revolução"
 
 
 msgid "Screw axis"
-msgstr "Eixo de rosqueamento"
+msgstr "Eixo de Revolução"
 
 
 msgid "Number of times to apply the screw operation"
-msgstr "Número de vezes para aplicar a operação de rosqueamento."
+msgstr "Número de vezes para aplicar a operação de revolução"
 
 
 msgid "Object to define the screw axis"
-msgstr "Objecto para definir o eixo de rosqueamento."
+msgstr "Objecto para definir o eixo de revolução"
 
 
 msgid "Render Steps"
@@ -38461,6 +39745,14 @@ msgid "Offset the revolution along its axis"
 msgstr "Desloca a revolução ao longo de seu eixo."
 
 
+msgid "Merge adjacent vertices (screw offset must be zero)"
+msgstr "Fundir vértices adjacentes (deslocamento de revolução deve ser zero)"
+
+
+msgid "Calculate Order"
+msgstr "Calcular Ordem"
+
+
 msgid "Calculate the order of edges (needed for meshes, but not curves)"
 msgstr "Calcula a ordem das arestas (necessário para malhas, mas não para curvas)."
 
@@ -38470,19 +39762,27 @@ msgstr "Inverte as normais das faces torneadas"
 
 
 msgid "Object Screw"
-msgstr "Usar objecto para rosqueamento"
+msgstr "Objecto de Revolução"
 
 
 msgid "Use the distance between the objects to make a screw"
-msgstr "Usa a distância entre os objectos para criar o rosqueamento."
+msgstr "Usar a distância entre objectos para criar a revolução"
 
 
 msgid "Stretch U"
 msgstr "Esticar U"
 
 
+msgid "Stretch the U coordinates between 0 and 1 when UVs are present"
+msgstr "Esticar coordenadas U entre 0 e 1 quando UVs estiverem presentes"
+
+
 msgid "Stretch V"
 msgstr "Esticar V"
+
+
+msgid "Stretch the V coordinates between 0 and 1 when UVs are present"
+msgstr "Esticar coordenadas V entre 0 e 1 quando UVs estiverem presentes"
 
 
 msgid "SimpleDeform Modifier"
@@ -38495,6 +39795,20 @@ msgstr "Modificador de deformação simples para aplicar efeitos como giro e tor
 
 msgid "Angle of deformation"
 msgstr "Ângulo de deformação"
+
+
+msgid "Deform around local axis"
+msgstr "Deformar em torno do eixo local"
+
+
+msgctxt "Operator"
+msgid "Mode"
+msgstr "Modo"
+
+
+msgctxt "Operator"
+msgid "Twist"
+msgstr "Torção"
 
 
 msgid "Rotate around the Z axis of the modifier space"
@@ -38510,8 +39824,18 @@ msgid "Bend the mesh over the Z axis of the modifier space"
 msgstr "Conforma a malha sobre o eixo Z do espaço do modificador."
 
 
+msgctxt "Operator"
+msgid "Taper"
+msgstr "Afunilar"
+
+
 msgid "Linearly scale along Z axis of the modifier space"
 msgstr "Escalona linearmente ao longo do eixo Z do espaço do modificador."
+
+
+msgctxt "Operator"
+msgid "Stretch"
+msgstr "Esticar"
 
 
 msgid "Stretch the object along the Z axis of the modifier space"
@@ -38531,11 +39855,15 @@ msgstr "Limites mais altos e mais baixos para a deformação."
 
 
 msgid "Do not allow deformation along the X axis"
-msgstr "Não permite a deformação ao longo do eixo X."
+msgstr "Não permitir deformação ao longo do eixo X"
 
 
 msgid "Do not allow deformation along the Y axis"
-msgstr "Não permite a deformação ao longo do eixo Y."
+msgstr "Não permitir deformação ao longo do eixo Y"
+
+
+msgid "Do not allow deformation along the Z axis"
+msgstr "Não permitir deformação ao longo do eixo Z"
 
 
 msgid "Origin"
@@ -38590,6 +39918,18 @@ msgid "Solidify Modifier"
 msgstr "Modificador - Solidificar"
 
 
+msgid "Create a solid skin, compensating for sharp angles"
+msgstr "Criar uma pele com espessura compensando ângulos mais agudos"
+
+
+msgid "Bevel Convex"
+msgstr "Bolear Convexas"
+
+
+msgid "Edge bevel weight to be added to outside edges"
+msgstr "Peso de boleado de aresta a ser adicionado a arestas exteriores"
+
+
 msgid "Inner Crease"
 msgstr "Vincos interiores"
 
@@ -38638,12 +39978,67 @@ msgid "Offset material index of generated rim faces"
 msgstr "Permite deslocar o índice de material para as faces geradas nos aros."
 
 
+msgctxt "Mesh"
+msgid "Boundary Shape"
+msgstr "Forma dos Limites"
+
+
+msgid "Selects the boundary adjustment algorithm"
+msgstr "Seleccionar o algoritmo de ajuste das fronteiras"
+
+
+msgid "No shape correction"
+msgstr "Sem correcção de forma"
+
+
+msgctxt "Mesh"
+msgid "Round"
+msgstr "Arredondado"
+
+
+msgid "Round open perimeter shape"
+msgstr "Formas perimétrica aberta arredondada"
+
+
+msgctxt "Mesh"
+msgid "Flat"
+msgstr "Plana"
+
+
+msgid "Flat open perimeter shape"
+msgstr "Formas perimétrica aberta plana"
+
+
 msgid "Even"
 msgstr "Uniformizar"
 
 
 msgid "Offset the thickness from the center"
 msgstr "Desloca a espessura a partir do centro."
+
+
+msgid "Shell Vertex Group"
+msgstr "Grupo de Vértices da Casca"
+
+
+msgid "Vertex group that the generated shell geometry will be weighted to"
+msgstr "Grupo de vértices ao geometria da casca será adicionada"
+
+
+msgid "Selects the used algorithm"
+msgstr "Seleccionar o algoritmo usado"
+
+
+msgid "Output a solidified version of a mesh by simple extrusion"
+msgstr "Produzir uma versão solidificada da malha por extrusão simples"
+
+
+msgid "Complex"
+msgstr "Complexo"
+
+
+msgid "Output a manifold mesh even if the base mesh is non-manifold, where edges have 3 or more connecting faces. This method is slower"
+msgstr "Retornar uma malha manifold mesmo que a malha base seja não manifold, onde arestas tem 3 ou mais faces adjacentes. Este método é mais lento"
 
 
 msgid "Thickness of the shell"
@@ -38668,6 +40063,14 @@ msgstr "Espessura uniforme"
 
 msgid "Maintain thickness by adjusting for sharp corners (slow, disable when not needed)"
 msgstr "Mantém a espessura através do ajuste dos cantos vivos (lento, desativar quando desnecessário)."
+
+
+msgid "Flat Faces"
+msgstr "Faces Planas"
+
+
+msgid "Make faces use the minimal vertex weight assigned to their vertices (ensures new faces remain parallel to their original ones, slow, disable when not needed)"
+msgstr "Fazer as faces usar o peso de vértices mínimo atribuído aos seus vértices (assegura que novas faces permaneçam paralelas às originais. Lento, desactivar quando não for necessário)"
 
 
 msgid "Flip Normals"
@@ -38702,6 +40105,18 @@ msgid "Only add the rim to the original data"
 msgstr "Somente adiciona os aros recém criados aos dados originais."
 
 
+msgid "Angle Clamp"
+msgstr "Limitar Ângulo"
+
+
+msgid "Clamp thickness based on angles"
+msgstr "Limitar espessura com base em ângulos"
+
+
+msgid "Subdivision Surface Modifier"
+msgstr "Modificador para subdivisão de superfícies"
+
+
 msgid "Subdivision surface modifier"
 msgstr "Modificador para subdivisão de superfícies."
 
@@ -38714,8 +40129,24 @@ msgid "Number of subdivisions to perform when rendering"
 msgstr "O número de subdivisões para realizar durante a renderização."
 
 
+msgid "Skip displaying interior subdivided edges"
+msgstr "Evitar representar arestas interiores subdivididas"
+
+
+msgid "Use Limit Surface"
+msgstr "Usar Limite de Superfície"
+
+
+msgid "Place vertices at the surface that would be produced with infinite levels of subdivision (smoothest possible shape)"
+msgstr "Colocar vértices na superfície que seria produzida com níveis infinitos de subdivisão (a forma mais suavizada possível)"
+
+
 msgid "SurfaceDeform Modifier"
 msgstr "Modificador - Deformação de superfície"
+
+
+msgid "Interpolation Falloff"
+msgstr "Decaimento de Interpolação"
 
 
 msgid "Controls how much nearby polygons influence deformation"
@@ -38724,6 +40155,18 @@ msgstr "Controla quanto os polígonos mais próximos influenciam a deformação.
 
 msgid "Whether geometry has been bound to target mesh"
 msgstr "Caso a geometria esteja nos limites em relação a malha alvo."
+
+
+msgid "Strength of modifier deformations"
+msgstr "Força das deformações do modificador"
+
+
+msgid "Sparse Bind"
+msgstr "Vínculo Esparso"
+
+
+msgid "Only record binding data for vertices matching the vertex group at the time of bind"
+msgstr "Gravar apenas dados de vínculo para vértices que correspondam com o grupo de vértices na altura do vínculo"
 
 
 msgid "Surface Modifier"
@@ -38740,6 +40183,18 @@ msgstr "Modificador - Triangular"
 
 msgid "Triangulate Mesh"
 msgstr "Triangular malha"
+
+
+msgid "Keep Normals"
+msgstr "Manter Normais"
+
+
+msgid ""
+"Try to preserve custom normals.\n"
+"Warning: Depending on chosen triangulation method, shading may not be fully preserved, \"Fixed\" method usually gives the best result here"
+msgstr ""
+"Tentar preservar normais personalizadas.\n"
+"Atenção: Dependendo do método de triangulação escolhido, sombreamento pode não ser totalmente preservado, método \"Fixo\""
 
 
 msgid "Beauty"
@@ -43414,6 +44869,14 @@ msgstr "Restrição ativa"
 
 msgid "Active Object constraint"
 msgstr "Restrições ativas do objeto"
+
+
+msgid "Object Grease Pencil Modifiers"
+msgstr "Modificadores Grease Pencil de Objecto"
+
+
+msgid "Collection of object grease pencil modifiers"
+msgstr "Colecção de modificadores grease pencil de objecto"
 
 
 msgid "Object Modifiers"
@@ -51718,11 +53181,11 @@ msgstr "Romper"
 
 msgctxt "Operator"
 msgid "Screw"
-msgstr "Rosquear"
+msgstr "Revolver"
 
 
 msgid "Extrude selected vertices in screw-shaped rotation around the cursor in indicated viewport"
-msgstr "Executa uma extrusão nos vértices seleccionados na janela de visualização indicada, rotacionando-os em formato de rosca, usando a posição do cursor como referência tridimensional."
+msgstr "Extrude vértices seleccionados numa forma encaracolada em torno do cursor indicado na janela de visualização"
 
 
 msgid "Turns"
@@ -52931,10 +54394,6 @@ msgid "Make Links"
 msgstr "Criar ligações"
 
 
-msgid "Makes a link between selected output in input sockets"
-msgstr "Cria uma ligação entre a entrada e a saída dos conectores selecionados."
-
-
 msgid "Replace socket connections with the new links"
 msgstr "Substitui os soquetes de conexões com novas ligações."
 
@@ -53579,6 +55038,15 @@ msgstr "Mover modificador para cima"
 
 msgid "Move modifier up in the stack"
 msgstr "Move o modificador para cima na pilha."
+
+
+msgctxt "Operator"
+msgid "Remove Grease Pencil Modifier"
+msgstr "Remover Modificador Grease Pencil"
+
+
+msgid "Remove a modifier from the active grease pencil object"
+msgstr "Remover um modificador do objecto grease pencil activo"
 
 
 msgctxt "Operator"
@@ -62587,10 +64055,6 @@ msgid "Path Animation"
 msgstr "Animação de caminho"
 
 
-msgid "Spot Shape"
-msgstr "Formato do foco"
-
-
 msgid "Text Boxes"
 msgstr "Caixas de texto"
 
@@ -67599,10 +69063,6 @@ msgid "Use Default Fade"
 msgstr "Usar esmaecimento padrão"
 
 
-msgid "Fade effect using the built-in default (usually make transition as long as effect strip)"
-msgstr "Efeito de esmaecimento usando o padrão embutido no Blender (usualmente faz com que a transição seja tão grande quando a faixa de efeito)."
-
-
 msgid "Use Linear Modifiers"
 msgstr "Usar modificadores lineares"
 
@@ -69864,14 +71324,6 @@ msgstr "Mostrar super-exposições"
 
 msgid "Show overexposed areas with zebra stripes"
 msgstr "Mostra as áreas super-expostas com faixas zebra."
-
-
-msgid "Separate Colors"
-msgstr "Cores separadas"
-
-
-msgid "Separate color channels in preview"
-msgstr "Separa os canais de cor na previsão."
 
 
 msgid "Transform markers as well as strips"
@@ -76259,14 +77711,6 @@ msgid "LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a non-li
 msgstr "BIBLIOTECA: %s: O objeto '%s' está diretamente vinculado a partir de '%s' (com o parente '%s'), mas refere-se a tipos de dados não vinculáveis"
 
 
-msgid "Read packed library:  '%s', parent '%s'"
-msgstr "Lendo a biblioteca empacotada: '%s', através do parente '%s'"
-
-
-msgid "Read library:  '%s', '%s', parent '%s'"
-msgstr "Lendo a biblioteca: '%s', '%s', a partir do parente '%s'"
-
-
 msgid "Cannot find lib '%s'"
 msgstr "Não é possível encontrar biblioteca '%s'"
 
@@ -76775,6 +78219,10 @@ msgstr "Não é possível pintar traço."
 
 msgid "Active region not set"
 msgstr "Região ativa não definida."
+
+
+msgid "The grease pencil object needs an Armature modifier"
+msgstr "O objecto Grease Pencil que necessita de um modificador de Armação"
 
 
 msgid "No Grease Pencil data to work on"
@@ -79161,18 +80609,6 @@ msgstr "Nenhuma ação ativa para empurrar para baixo."
 
 msgid "Select an existing NLA Track or an empty action line first"
 msgstr "Seleciona primeiro uma trilha de animação não linear existente ou uma linha de ação vazia."
-
-
-msgid "Number of users of this data-block"
-msgstr "Número de utilizadores deste bloco de dados."
-
-
-msgid "Data-block will be retained using a fake user"
-msgstr "O bloco de dados será retido usando um utilizador virtual."
-
-
-msgid "Data-block has no users and will be deleted"
-msgstr "O bloco de dados não possui utilizadores e será apagado."
 
 
 msgid "Library path '%s' does not exist, correct this before saving"

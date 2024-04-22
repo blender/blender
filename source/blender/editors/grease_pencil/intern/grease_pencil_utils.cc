@@ -7,12 +7,17 @@
  */
 
 #include "BKE_attribute.hh"
+#include "BKE_brush.hh"
 #include "BKE_colortools.hh"
+#include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.h"
+#include "BKE_paint.hh"
+#include "BKE_report.hh"
 #include "BKE_scene.hh"
 
 #include "BLI_math_geom.h"
+#include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_vector_set.hh"
 
@@ -221,7 +226,7 @@ static std::pair<int, int> get_minmax_selected_frame_numbers(const GreasePencil 
     for (const auto [frame_number, frame] : layer.frames().items()) {
       if (frame_number != current_frame && frame.is_selected()) {
         frame_min = math::min(frame_min, frame_number);
-        frame_max = math::min(frame_max, frame_number);
+        frame_max = math::max(frame_max, frame_number);
       }
     }
   }
@@ -539,6 +544,12 @@ IndexMask retrieve_editable_strokes(Object &object,
                                     IndexMaskMemory &memory)
 {
   using namespace blender;
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange curves_range = drawing.strokes().curves_range();
+
+  if (object.totcol == 0) {
+    return IndexMask(curves_range);
+  }
 
   /* Get all the editable material indices */
   VectorSet<int> editable_material_indices = get_editable_material_indices(object);
@@ -546,8 +557,6 @@ IndexMask retrieve_editable_strokes(Object &object,
     return {};
   }
 
-  const bke::CurvesGeometry &curves = drawing.strokes();
-  const IndexRange curves_range = drawing.strokes().curves_range();
   const bke::AttributeAccessor attributes = curves.attributes();
 
   const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
@@ -606,14 +615,19 @@ IndexMask retrieve_editable_points(Object &object,
                                    const bke::greasepencil::Drawing &drawing,
                                    IndexMaskMemory &memory)
 {
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange points_range = drawing.strokes().points_range();
+
+  if (object.totcol == 0) {
+    return IndexMask(points_range);
+  }
+
   /* Get all the editable material indices */
   VectorSet<int> editable_material_indices = get_editable_material_indices(object);
   if (editable_material_indices.is_empty()) {
     return {};
   }
 
-  const bke::CurvesGeometry &curves = drawing.strokes();
-  const IndexRange points_range = drawing.strokes().points_range();
   const bke::AttributeAccessor attributes = curves.attributes();
 
   /* Propagate the material index to the points. */
@@ -712,6 +726,299 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
     return ed::greasepencil::retrieve_editable_and_selected_points(object, drawing, memory);
   }
   return {};
+}
+
+Array<PointTransferData> compute_topology_change(
+    const bke::CurvesGeometry &src,
+    bke::CurvesGeometry &dst,
+    const Span<Vector<PointTransferData>> src_to_dst_points,
+    const bool keep_caps)
+{
+  const int src_curves_num = src.curves_num();
+  const OffsetIndices<int> src_points_by_curve = src.points_by_curve();
+  const VArray<bool> src_cyclic = src.cyclic();
+
+  int dst_points_num = 0;
+  for (const Vector<PointTransferData> &src_transfer_data : src_to_dst_points) {
+    dst_points_num += src_transfer_data.size();
+  }
+  if (dst_points_num == 0) {
+    dst.resize(0, 0);
+    return Array<PointTransferData>(0);
+  }
+
+  /* Set the intersection parameters in the destination domain : a pair of int and float
+   * numbers for which the integer is the index of the corresponding segment in the
+   * source curves, and the float part is the (0,1) factor representing its position in
+   * the segment.
+   */
+  Array<PointTransferData> dst_transfer_data(dst_points_num);
+
+  Array<int> src_pivot_point(src_curves_num, -1);
+  Array<int> dst_interm_curves_offsets(src_curves_num + 1, 0);
+  int dst_point = -1;
+  for (const int src_curve : src.curves_range()) {
+    const IndexRange src_points = src_points_by_curve[src_curve];
+
+    for (const int src_point : src_points) {
+      for (const PointTransferData &dst_point_transfer : src_to_dst_points[src_point]) {
+        if (dst_point_transfer.is_src_point) {
+          dst_transfer_data[++dst_point] = dst_point_transfer;
+          continue;
+        }
+
+        /* Add an intersection with the eraser and mark it as a cut. */
+        dst_transfer_data[++dst_point] = dst_point_transfer;
+
+        /* For cyclic curves, mark the pivot point as the last intersection with the eraser
+         * that starts a new segment in the destination.
+         */
+        if (src_cyclic[src_curve] && dst_point_transfer.is_cut) {
+          src_pivot_point[src_curve] = dst_point;
+        }
+      }
+    }
+    /* We store intermediate curve offsets represent an intermediate state of the
+     * destination curves before cutting the curves at eraser's intersection. Thus, it
+     * contains the same number of curves than in the source, but the offsets are
+     * different, because points may have been added or removed. */
+    dst_interm_curves_offsets[src_curve + 1] = dst_point + 1;
+  }
+
+  /* Cyclic curves. */
+  Array<bool> src_now_cyclic(src_curves_num);
+  threading::parallel_for(src.curves_range(), 4096, [&](const IndexRange src_curves) {
+    for (const int src_curve : src_curves) {
+      const int pivot_point = src_pivot_point[src_curve];
+
+      if (pivot_point == -1) {
+        /* Either the curve was not cyclic or it wasn't cut : no need to change it. */
+        src_now_cyclic[src_curve] = src_cyclic[src_curve];
+        continue;
+      }
+
+      /* A cyclic curve was cut :
+       *  - this curve is not cyclic anymore,
+       *  - and we have to shift points to keep the closing segment.
+       */
+      src_now_cyclic[src_curve] = false;
+
+      const int dst_interm_first = dst_interm_curves_offsets[src_curve];
+      const int dst_interm_last = dst_interm_curves_offsets[src_curve + 1];
+      std::rotate(dst_transfer_data.begin() + dst_interm_first,
+                  dst_transfer_data.begin() + pivot_point,
+                  dst_transfer_data.begin() + dst_interm_last);
+    }
+  });
+
+  /* Compute the destination curve offsets. */
+  Vector<int> dst_curves_offset;
+  Vector<int> dst_to_src_curve;
+  dst_curves_offset.append(0);
+  for (int src_curve : src.curves_range()) {
+    const IndexRange dst_points(dst_interm_curves_offsets[src_curve],
+                                dst_interm_curves_offsets[src_curve + 1] -
+                                    dst_interm_curves_offsets[src_curve]);
+    int length_of_current = 0;
+
+    for (int dst_point : dst_points) {
+
+      if ((length_of_current > 0) && dst_transfer_data[dst_point].is_cut) {
+        /* This is the new first point of a curve. */
+        dst_curves_offset.append(dst_point);
+        dst_to_src_curve.append(src_curve);
+        length_of_current = 0;
+      }
+      ++length_of_current;
+    }
+
+    if (length_of_current != 0) {
+      /* End of a source curve. */
+      dst_curves_offset.append(dst_points.one_after_last());
+      dst_to_src_curve.append(src_curve);
+    }
+  }
+  const int dst_curves_num = dst_curves_offset.size() - 1;
+  if (dst_curves_num == 0) {
+    dst.resize(0, 0);
+    return dst_transfer_data;
+  }
+
+  /* Build destination curves geometry. */
+  dst.resize(dst_points_num, dst_curves_num);
+  array_utils::copy(dst_curves_offset.as_span(), dst.offsets_for_write());
+  const OffsetIndices<int> dst_points_by_curve = dst.points_by_curve();
+
+  /* Attributes. */
+  const bke::AttributeAccessor src_attributes = src.attributes();
+  bke::MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
+  const bke::AnonymousAttributePropagationInfo propagation_info{};
+
+  /* Copy curves attributes. */
+  bke::gather_attributes(src_attributes,
+                         bke::AttrDomain::Curve,
+                         propagation_info,
+                         {"cyclic"},
+                         dst_to_src_curve,
+                         dst_attributes);
+  if (src_cyclic.get_if_single().value_or(true)) {
+    array_utils::gather(
+        src_now_cyclic.as_span(), dst_to_src_curve.as_span(), dst.cyclic_for_write());
+  }
+
+  dst.update_curve_types();
+
+  /* Display intersections with flat caps. */
+  if (!keep_caps) {
+    bke::SpanAttributeWriter<int8_t> dst_start_caps =
+        dst_attributes.lookup_or_add_for_write_span<int8_t>("start_cap", bke::AttrDomain::Curve);
+    bke::SpanAttributeWriter<int8_t> dst_end_caps =
+        dst_attributes.lookup_or_add_for_write_span<int8_t>("end_cap", bke::AttrDomain::Curve);
+
+    threading::parallel_for(dst.curves_range(), 4096, [&](const IndexRange dst_curves) {
+      for (const int dst_curve : dst_curves) {
+        const IndexRange dst_curve_points = dst_points_by_curve[dst_curve];
+        const PointTransferData &start_point_transfer =
+            dst_transfer_data[dst_curve_points.first()];
+        const PointTransferData &end_point_transfer = dst_transfer_data[dst_curve_points.last()];
+
+        if (start_point_transfer.is_cut) {
+          dst_start_caps.span[dst_curve] = GP_STROKE_CAP_TYPE_FLAT;
+        }
+        /* The is_cut flag does not work for end points, but any end point that isn't the source
+         * point must also be a cut. */
+        if (!end_point_transfer.is_src_end_point()) {
+          dst_end_caps.span[dst_curve] = GP_STROKE_CAP_TYPE_FLAT;
+        }
+      }
+    });
+
+    dst_start_caps.finish();
+    dst_end_caps.finish();
+  }
+
+  /* Copy/Interpolate point attributes. */
+  for (bke::AttributeTransferData &attribute : bke::retrieve_attributes_for_transfer(
+           src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT, propagation_info))
+  {
+    bke::attribute_math::convert_to_static_type(attribute.dst.span.type(), [&](auto dummy) {
+      using T = decltype(dummy);
+      auto src_attr = attribute.src.typed<T>();
+      auto dst_attr = attribute.dst.span.typed<T>();
+
+      threading::parallel_for(dst.points_range(), 4096, [&](const IndexRange dst_points) {
+        for (const int dst_point : dst_points) {
+          const PointTransferData &point_transfer = dst_transfer_data[dst_point];
+          if (point_transfer.is_src_point) {
+            dst_attr[dst_point] = src_attr[point_transfer.src_point];
+          }
+          else {
+            dst_attr[dst_point] = bke::attribute_math::mix2<T>(
+                point_transfer.factor,
+                src_attr[point_transfer.src_point],
+                src_attr[point_transfer.src_next_point]);
+          }
+        }
+      });
+
+      attribute.dst.finish();
+    });
+  }
+
+  return dst_transfer_data;
+}
+
+static float paint_calc_object_space_radius(ViewContext *vc,
+                                            const float3 center,
+                                            float pixel_radius)
+{
+  Object *ob = vc->obact;
+  const float2 xy_delta = float2(pixel_radius, 0.0f);
+  const float4x4 mat = ob->object_to_world();
+
+  const float3 loc = math::transform_point(mat, center);
+
+  const float zfac = ED_view3d_calc_zfac(vc->rv3d, loc);
+  float3 delta;
+  ED_view3d_win_to_delta(vc->region, xy_delta, zfac, delta);
+
+  const float scale = math::length(
+      math::transform_direction(mat, float3(math::numbers::inv_sqrt3)));
+
+  return math::safe_divide(math::length(delta), scale);
+}
+
+static float calc_brush_radius(ViewContext *vc,
+                               const Brush *brush,
+                               const Scene *scene,
+                               const float3 location)
+{
+  if (!BKE_brush_use_locked_size(scene, brush)) {
+    return paint_calc_object_space_radius(vc, location, BKE_brush_size_get(scene, brush));
+  }
+  return BKE_brush_unprojected_radius_get(scene, brush);
+}
+
+float radius_from_input_sample(const float pressure,
+                               const float3 location,
+                               ViewContext vc,
+                               const Brush *brush,
+                               const Scene *scene,
+                               const BrushGpencilSettings *settings)
+{
+  float radius = calc_brush_radius(&vc, brush, scene, location);
+  if (BKE_brush_use_size_pressure(brush)) {
+    radius *= BKE_curvemapping_evaluateF(settings->curve_sensitivity, 0, pressure);
+  }
+  return radius;
+}
+
+float opacity_from_input_sample(const float pressure,
+                                const Brush *brush,
+                                const Scene *scene,
+                                const BrushGpencilSettings *settings)
+{
+  float opacity = BKE_brush_alpha_get(scene, brush);
+  if (BKE_brush_use_alpha_pressure(brush)) {
+    opacity *= BKE_curvemapping_evaluateF(settings->curve_strength, 0, pressure);
+  }
+  return opacity;
+}
+
+int grease_pencil_draw_operator_invoke(bContext *C, wmOperator *op)
+{
+  const Scene *scene = CTX_data_scene(C);
+  const Object *object = CTX_data_active_object(C);
+  if (!object || object->type != OB_GREASE_PENCIL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  if (!grease_pencil.has_active_layer()) {
+    BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
+    return OPERATOR_CANCELLED;
+  }
+
+  const Paint *paint = BKE_paint_get_active_from_context(C);
+  const Brush *brush = BKE_paint_brush_for_read(paint);
+  if (brush == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
+
+  if (!active_layer.is_editable()) {
+    BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hidden");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Ensure a drawing at the current keyframe. */
+  if (!ed::greasepencil::ensure_active_keyframe(*scene, grease_pencil)) {
+    BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
+    return OPERATOR_CANCELLED;
+  }
+
+  return OPERATOR_RUNNING_MODAL;
 }
 
 }  // namespace blender::ed::greasepencil

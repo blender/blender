@@ -259,6 +259,10 @@ static void wm_xr_controller_model_draw(const XrSessionSettings *settings,
   GPU_blend(GPU_BLEND_ALPHA);
 
   LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
+    if (!controller->grip_active) {
+      continue;
+    }
+
     blender::gpu::Batch *model = controller->model;
     if (!model) {
       model = controller->model = wm_xr_controller_model_batch_create(xr_context,
@@ -334,9 +338,13 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     GPU_blend(GPU_BLEND_ALPHA);
 
-    immBegin(GPU_PRIM_LINES, uint(BLI_listbase_count(&state->controllers)) * 2);
-
     LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
+      if (!controller->grip_active) {
+        continue;
+      }
+
+      immBegin(GPU_PRIM_LINES, 2);
+
       const float(*mat)[4] = controller->aim_mat;
       madd_v3_v3v3fl(ray, mat[3], mat[2], -scale);
 
@@ -344,9 +352,9 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
       immVertex3fv(pos, mat[3]);
       immAttr4ubv(col, color);
       immVertex3fv(pos, ray);
-    }
 
-    immEnd();
+      immEnd();
+    }
   }
   else {
     const uchar r[4] = {255, 51, 82, 255};
@@ -358,9 +366,13 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
     GPU_depth_test(GPU_DEPTH_NONE);
     GPU_blend(GPU_BLEND_NONE);
 
-    immBegin(GPU_PRIM_LINES, uint(BLI_listbase_count(&state->controllers)) * 6);
-
     LISTBASE_FOREACH (wmXrController *, controller, &state->controllers) {
+      if (!controller->grip_active) {
+        continue;
+      }
+
+      immBegin(GPU_PRIM_LINES, 6);
+
       const float(*mat)[4] = controller->aim_mat;
       madd_v3_v3v3fl(x_axis, mat[3], mat[0], scale);
       madd_v3_v3v3fl(y_axis, mat[3], mat[1], scale);
@@ -380,9 +392,9 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
       immVertex3fv(pos, mat[3]);
       immAttr4ubv(col, b);
       immVertex3fv(pos, z_axis);
-    }
 
-    immEnd();
+      immEnd();
+    }
   }
 
   immUnbindProgram();

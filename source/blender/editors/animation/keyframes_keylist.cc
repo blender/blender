@@ -36,6 +36,8 @@
 #include "ED_anim_api.hh"
 #include "ED_keyframes_keylist.hh"
 
+#include "ANIM_animation.hh"
+
 /* *************************** Keyframe Processing *************************** */
 
 /* ActKeyColumns (Keyframe Columns) ------------------------------------------ */
@@ -1162,6 +1164,25 @@ void action_group_to_keylist(AnimData *adt,
       break;
     }
     fcurve_to_keylist(adt, fcu, keylist, saction_flag, range);
+  }
+}
+
+/**
+ * Assumption: the animation is bound to adt->binding_handle. This assumption will break when we
+ * have things like reference strips, where the strip can reference another binding handle.
+ */
+void animation_to_keylist(AnimData *adt,
+                          Animation *anim,
+                          AnimKeylist *keylist,
+                          const int saction_flag,
+                          blender::float2 range)
+{
+  BLI_assert(adt);
+  BLI_assert(anim);
+  BLI_assert(GS(anim->id.name) == ID_AN);
+
+  for (FCurve *fcurve : fcurves_for_animation(anim->wrap(), adt->binding_handle)) {
+    fcurve_to_keylist(adt, fcurve, keylist, saction_flag, range);
   }
 }
 

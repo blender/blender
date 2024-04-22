@@ -327,7 +327,7 @@ static bool buttons_context_path_shaderfx(ButsContextPath *path)
   if (buttons_context_path_object(path)) {
     Object *ob = static_cast<Object *>(path->ptr[path->len - 1].data);
 
-    if (ob && ELEM(ob->type, OB_GPENCIL_LEGACY)) {
+    if (ob && ELEM(ob->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
       return true;
     }
   }

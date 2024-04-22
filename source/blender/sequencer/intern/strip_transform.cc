@@ -116,10 +116,7 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
    * updated based on nested strips. This won't work for empty meta-strips,
    * so they can be treated as normal strip. */
   if (seq->type == SEQ_TYPE_META && !BLI_listbase_is_empty(&seq->seqbase)) {
-    Sequence *seq_child;
-    for (seq_child = static_cast<Sequence *>(seq->seqbase.first); seq_child;
-         seq_child = seq_child->next)
-    {
+    LISTBASE_FOREACH (Sequence *, seq_child, &seq->seqbase) {
       SEQ_transform_translate_sequence(evil_scene, seq_child, delta);
     }
     /* Move meta start/end points. */

@@ -1260,7 +1260,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
 
   int w = id ? UI_UNIT_X : id_open ? UI_UNIT_X * 3 : UI_UNIT_X * 6;
   if (!id) {
-    w = std::max(UI_fontstyle_string_width(fstyle, button_text) + int((UI_UNIT_X * 1.5f)), w);
+    w = std::max(UI_fontstyle_string_width(fstyle, button_text) + int(UI_UNIT_X * 1.5f), w);
   }
 
   if (newop) {
@@ -1545,7 +1545,7 @@ static void template_ID(const bContext *C,
 
     int w = id ? UI_UNIT_X : (flag & UI_ID_ADD_NEW) ? UI_UNIT_X * 3 : UI_UNIT_X * 6;
     if (!id) {
-      w = std::max(UI_fontstyle_string_width(fstyle, button_text) + int((UI_UNIT_X * 1.5f)), w);
+      w = std::max(UI_fontstyle_string_width(fstyle, button_text) + int(UI_UNIT_X * 1.5f), w);
     }
 
     if (openop) {
@@ -2833,7 +2833,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
        * - this is used for allowing operators with popups to rename stuff with fewer clicks
        */
       if (is_popup) {
-        if ((but->rnaprop == op->type->prop) && (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_NUM))) {
+        if ((but->rnaprop == op->type->prop) && ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_NUM)) {
           UI_but_focus_on_enter_event(CTX_wm_window(C), but);
         }
       }
@@ -6601,6 +6601,89 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
 /* -------------------------------------------------------------------- */
 /** \name Event Icon Template
  * \{ */
+
+static const wmKeyMapItem *keymap_item_from_enum_item(const wmKeyMap *keymap,
+                                                      const EnumPropertyItem *item)
+{
+  if (item == nullptr) {
+    return nullptr;
+  }
+
+  for (wmKeyMapItem *kmi = static_cast<wmKeyMapItem *>(keymap->items.first); kmi; kmi = kmi->next)
+  {
+    if (kmi->val == KM_RELEASE) {
+      /* Assume release events just disable something which was toggled on. */
+      continue;
+    }
+    if (kmi->propvalue == item->value) {
+      return kmi;
+    }
+  }
+
+  return nullptr;
+}
+
+static bool keymap_item_can_collapse(const wmKeyMapItem *kmi_a, const wmKeyMapItem *kmi_b)
+{
+  return (kmi_a->shift == kmi_b->shift && kmi_a->ctrl == kmi_b->ctrl && kmi_a->alt == kmi_b->alt &&
+          kmi_a->oskey == kmi_b->oskey);
+}
+
+int uiTemplateStatusBarModalItem(uiLayout *layout,
+                                 const wmKeyMap *keymap,
+                                 const EnumPropertyItem *item)
+{
+  const wmKeyMapItem *kmi = keymap_item_from_enum_item(keymap, item);
+  if (kmi == nullptr) {
+    return 0;
+  }
+
+  /* Try to merge some known XYZ items to save horizontal space. */
+  const EnumPropertyItem *item_y = (item[1].identifier) ? item + 1 : nullptr;
+  const EnumPropertyItem *item_z = (item_y && item[2].identifier) ? item + 2 : nullptr;
+  const wmKeyMapItem *kmi_y = keymap_item_from_enum_item(keymap, item_y);
+  const wmKeyMapItem *kmi_z = keymap_item_from_enum_item(keymap, item_z);
+
+  if (kmi_y && kmi_z && keymap_item_can_collapse(kmi, kmi_y) &&
+      keymap_item_can_collapse(kmi_y, kmi_z))
+  {
+    const char *xyz_label = nullptr;
+
+    if (STREQ(item->identifier, "AXIS_X") && STREQ(item_y->identifier, "AXIS_Y") &&
+        STREQ(item_z->identifier, "AXIS_Z"))
+    {
+      xyz_label = IFACE_("Axis");
+    }
+    else if (STREQ(item->identifier, "PLANE_X") && STREQ(item_y->identifier, "PLANE_Y") &&
+             STREQ(item_z->identifier, "PLANE_Z"))
+    {
+      xyz_label = IFACE_("Plane");
+    }
+
+    if (xyz_label) {
+      int icon_mod[4];
+      int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+      for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
+        uiItemL(layout, "", icon_mod[j]);
+      }
+      uiItemL(layout, "", icon);
+
+      icon = UI_icon_from_keymap_item(kmi_y, icon_mod);
+      uiItemL(layout, "", icon);
+
+      icon = UI_icon_from_keymap_item(kmi_z, icon_mod);
+      uiItemL(layout, "", icon);
+
+      uiItemS_ex(layout, 0.6f);
+      uiItemL(layout, xyz_label, ICON_NONE);
+      uiItemS_ex(layout, 0.7f);
+      return 3;
+    }
+  }
+
+  /* Single item without merging. */
+  return uiTemplateEventFromKeymapItem(layout, item->name, kmi, false) ? 1 : 0;
+}
 
 bool uiTemplateEventFromKeymapItem(uiLayout *layout,
                                    const char *text,

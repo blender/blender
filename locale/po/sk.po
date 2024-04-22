@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2024-03-11 06:45+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -687,32 +687,16 @@ msgid "After Current"
 msgstr "Za aktuálnou"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Počet snímok, ktoré sa majú zobraziť po súčasnej snímke (len pre 'Okolo aktuálnej snímky' metóda cibuľových šupiek)"
-
-
 msgid "Before Current"
 msgstr "Pred aktuálnou"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Počet snímok, ktoré sa majú zobraziť pred súčasnou snímkou (len pre 'Okolo aktuálnej snímky' metódu cibuľových šupiek)"
 
 
 msgid "End Frame"
 msgstr "Koncová snímka"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Koncová snímka rozsahu ciest na zobrazenie/výpočet (nie pre 'Okolo aktuálnej snímky' metódu cibuľových šupiek)"
-
-
 msgid "Start Frame"
 msgstr "Počiatočná snímka"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Počiatočná snímka rozsahu ciest na zobrazenie/výpočet (nie pre 'Okolo aktuálnej snímky' metódu cibuľových šupiek)"
 
 
 msgid "Frame Step"
@@ -5517,10 +5501,6 @@ msgid "Toe-in"
 msgstr "Zbiehavosť"
 
 
-msgid "Rotated cameras, looking at the convergence distance"
-msgstr "Otočenie kamier do pohľadu na vzdialenosť zbiehavosti"
-
-
 msgid "Interocular Distance"
 msgstr "Medziočná vzdialenosť"
 
@@ -6499,10 +6479,6 @@ msgstr "Základné kódovanie obrazu AgX pre displej sRGB"
 
 msgid "AgX Log"
 msgstr "Záznam AgX"
-
-
-msgid "Log Encoding with Chroma inset and rotation, and with 25 Stops of Dynamic Range"
-msgstr "Záznam kódovania s chromatickou vložkou a rotáciou a s 25 stupňami dynamického rozsahu"
 
 
 msgid "Display P3"
@@ -16346,10 +16322,6 @@ msgid "Mask layer name"
 msgstr "Názov vrstvy masky"
 
 
-msgid "GPencil Sculpt Guide"
-msgstr "Vodenie tvarovania pastelkou"
-
-
 msgid "Guides for drawing"
 msgstr "Vodenie pre kreslenie"
 
@@ -17167,16 +17139,8 @@ msgid "Vertex Weight Angle"
 msgstr "Uhol váhy vrcholu"
 
 
-msgid "Generate Vertex Weights base on stroke angle"
-msgstr "Vygeneruje váhy vrcholov na základe uhla ťahu"
-
-
 msgid "Vertex Weight Proximity"
 msgstr "Blízkosť váhy vrcholov"
-
-
-msgid "Generate Vertex Weights base on distance to object"
-msgstr "Vygeneruje váhy vrcholov na základe vzdialenosti od objektu"
 
 
 msgid "Array"
@@ -17217,10 +17181,6 @@ msgstr "Rozšíriť alebo zúžiť ťahy"
 
 msgid "Line Art"
 msgstr "Čiarová grafika"
-
-
-msgid "Generate line art strokes from selected source"
-msgstr "Vygeneruje čiarovú grafiku z vybraného zdroja"
 
 
 msgid "Mirror"
@@ -17455,16 +17415,16 @@ msgid "Use Object Offset"
 msgstr "Použije posuv objektu"
 
 
-msgid "Enable object offset"
-msgstr "Povolí posuv objektu"
+msgid "Add another object's transformation to the total offset"
+msgstr "Pridá transformáciu ďalšieho objektu do celkového posuvu"
 
 
 msgid "Shift"
 msgstr "Posun"
 
 
-msgid "Enable shift"
-msgstr "Povoliť posun"
+msgid "Add an offset relative to the object's bounding box"
+msgstr "Pridá posuv vo vzťahu k poľu ohraničenia objektu"
 
 
 msgid "Uniform Scale"
@@ -17921,10 +17881,6 @@ msgid "Lattice Modifier"
 msgstr "Modifikátor drôtenej mriežky"
 
 
-msgid "Change stroke using lattice to deform modifier"
-msgstr "Zmena ťahu modifikátora deformácie použitím mriežky"
-
-
 msgid "Lattice object to deform with"
 msgstr "Objekt mriežky na deformovanie s"
 
@@ -18077,10 +18033,6 @@ msgid "Crease Threshold"
 msgstr "Prah záhybu"
 
 
-msgid "Angles smaller than this will be treated as creases. Crease angle priority: object line art crease override > mesh auto smooth angle > line art default crease"
-msgstr "Uhly menšie ako táto hodnota sa považujú za záhyby. Priorita uhla záhybu: objekt čiarovej grafiky prepis záhybu > povrchová sieť automatické vyhladenie uzla > čiarová grafika pôvodný záhyb"
-
-
 msgid "Invert Vertex Group"
 msgstr "Invertovať skupinu vrcholov"
 
@@ -18217,10 +18169,6 @@ msgid "Camera Object"
 msgstr "Objekt kamery"
 
 
-msgid "Use specified camera object for generating line art"
-msgstr "Použije zadaný objekt kamery na vygenerovanie čiarovej grafiky"
-
-
 msgid "Generate strokes from the objects in this collection"
 msgstr "Vygeneruje ťahy z objektov v tejto kolekcii"
 
@@ -18231,10 +18179,6 @@ msgstr "Vygeneruje ťahy z tohto objektu"
 
 msgid "Source Type"
 msgstr "Typ zdroja"
-
-
-msgid "Line art stroke source type"
-msgstr "Typ zdroja ťahu čiarovej grafiky"
 
 
 msgid "Source Vertex Group"
@@ -18279,10 +18223,6 @@ msgstr "Odstránenie zadnej plôšky"
 
 msgid "Remove all back faces to speed up calculation, this will create edges in different occlusion levels than when disabled"
 msgstr "Odstránenie všetkých zadných plôšok na urýchlenie výpočtu, čím sa vytvoria hrany v iných úrovniach pohltenia, ako keď je to vypnuté"
-
-
-msgid "Use cached scene data from the first line art modifier in the stack. Certain settings will be unavailable"
-msgstr "Použije uložené údaje v zásobníku údaje o scéne pre prvý modifikátor čiarovej grafiky v zásobníku. Niektoré nastavenia nebudú k dispozícii"
 
 
 msgid "Clipping Boundaries"
@@ -18525,10 +18465,6 @@ msgid "Instanced Objects"
 msgstr "Vytvorené inštancie objektov"
 
 
-msgid "Allow particle objects and face/vertex instances to show in line art"
-msgstr "Umožní zobrazovanie objektov častíc a inštancií plôšok/vrcholov v čiarovej grafike"
-
-
 msgid "Offset Towards Custom Camera"
 msgstr "Posuv smerom k vlastnej kamere"
 
@@ -18587,10 +18523,6 @@ msgstr "Zrkadliť os Y"
 
 msgid "Mirror the Z axis"
 msgstr "Zrkadliť os Z"
-
-
-msgid "Clip points"
-msgstr "Body strihu"
 
 
 msgid "Multiply Modifier"
@@ -20843,10 +20775,6 @@ msgid "Brush Height"
 msgstr "Výška štetca"
 
 
-msgid "Affectable height of brush (layer height for layer tool, i.e.)"
-msgstr "Predstieraná výška štetca (t. j. výška vrstvy pre nástroj vrstvy)"
-
-
 msgid "Brush Icon Filepath"
 msgstr "Cesta súboru ikony štetca"
 
@@ -22568,10 +22496,6 @@ msgid "Collections that are immediate children of this collection"
 msgstr "Kolekcie priamych potomkov tejto kolekcie"
 
 
-msgid "Children collections their parent-collection-specific settings"
-msgstr "Kolekcie potomkov s nastaveniami špecifickými pre ich kolekcie rodičov"
-
-
 msgid "Objects of the collection with their parent-collection-specific settings"
 msgstr "Kolekcie objektov s ich nastaveniami špecifickými pre kolekcie rodičov"
 
@@ -22668,10 +22592,6 @@ msgid "Usage"
 msgstr "Použitie"
 
 
-msgid "How to use this collection in line art"
-msgstr "Ako používať túto kolekciu pri čiarovej grafike"
-
-
 msgid "Generate feature lines for this collection"
 msgstr "Generuje črty čiar pre túto kolekciu"
 
@@ -22682,10 +22602,6 @@ msgstr "Len pohltené"
 
 msgid "Only use the collection to produce occlusion"
 msgstr "Použije kolekciu len na vytvorenie pohlcovania"
-
-
-msgid "Don't use this collection in line art"
-msgstr "Nepoužívať túto kolekciu pri čiarovej grafike"
 
 
 msgid "Intersection Only"
@@ -25259,6 +25175,10 @@ msgid "Number of ray directions to evaluate when baking"
 msgstr "Počet smerov lúčov na vyhodnotenie pri zapečení"
 
 
+msgid "Capture Distance"
+msgstr "Vzdialenosť zachytávania"
+
+
 msgid "Capture Emission"
 msgstr "Zachytávanie emisií"
 
@@ -25277,10 +25197,6 @@ msgstr "Zapečené svetlo sa odráža od svetelných zdrojov na presnejšie osve
 
 msgid "Capture World"
 msgstr "Zachytenie sveta"
-
-
-msgid "Bake incoming light from the world, instead of just the visibility, for more accurate lighting, but lose correct blending to surrounding irradiance volumes"
-msgstr "Zapečie prichádzajúce svetlo zo sveta namiesto viditeľnosti, pre dosiahnutie presnejšieho osvetlenia, ale so stratou správneho prelínania s okolitými objemami vyžarovania"
 
 
 msgid "Clamp Direct"
@@ -25313,14 +25229,6 @@ msgstr "Prah dilatácie"
 
 msgid "Ratio of front-facing surface hits under which a grid sample will reuse neighbors grid sample lighting"
 msgstr "Pomer zásahov povrchu prednej strany, pri ktorom vzorka mriežky opätovne použije osvetlenie susednej vzorky mriežky"
-
-
-msgid "Capture Escape Bias"
-msgstr "Zachytenie únikovej odchýlky"
-
-
-msgid "Moves capture points outside objects"
-msgstr "Presunie body zachytenia mimo objektov"
 
 
 msgid "Facing Bias"
@@ -25361,14 +25269,6 @@ msgstr "Rozlíšenie Z"
 
 msgid "Number of samples along the z axis of the volume"
 msgstr "Počet snímok pozdĺž osi Z objemu"
-
-
-msgid "Capture Surface Bias"
-msgstr "Zachytenie sklonu povrchu"
-
-
-msgid "Moves capture points position away from surfaces to avoid artifacts"
-msgstr "Presunie polohu bodov zachytenia mimo povrchov, aby sa zabránilo artefaktom"
 
 
 msgid "Validity Threshold"
@@ -25690,10 +25590,6 @@ msgstr "Farba čiary s vyššou prioritou sa používa na okrajoch materiálu"
 
 msgid "Line Art Settings"
 msgstr "Nastavenia Čiarová grafika"
-
-
-msgid "Line art settings for material"
-msgstr "Nastavenie Čiarovej grafiky pre materiál"
 
 
 msgid "Max Vertex Displacement"
@@ -27022,10 +26918,6 @@ msgstr "Skupina svetiel"
 
 msgid "Lightgroup that the object belongs to"
 msgstr "Skupina svetiel, do ktorej objekt patrí"
-
-
-msgid "Line art settings for the object"
-msgstr "Nastavenia čiarovej grafiky pre objekt"
 
 
 msgid "Location of the object"
@@ -34795,8 +34687,8 @@ msgid "Falloff"
 msgstr "Dopad"
 
 
-msgid "Falloff type the feather"
-msgstr "Typ dopadu zmäkčenia"
+msgid "Falloff type of the feather"
+msgstr "Typ dopadu pierka"
 
 
 msgid "Smooth falloff"
@@ -37175,14 +37067,6 @@ msgstr "Zlúčiť koncové vrcholy"
 
 msgid "Merge vertices in first and last duplicates"
 msgstr "Zlúči vrcholy prvej a poslednej kópie"
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "Pridá transformáciu ďalšieho objektu do celkového posuvu"
-
-
-msgid "Add an offset relative to the object's bounding box"
-msgstr "Pridá posuv vo vzťahu k poľu ohraničenia objektu"
 
 
 msgid "Bevel Modifier"
@@ -49507,14 +49391,6 @@ msgid "Rotate a vector around a pivot point (center)"
 msgstr "Rotuje vektorom okolo otočného bodu (stredu)"
 
 
-msgid "Invert angle"
-msgstr "Invertovať uhol"
-
-
-msgid "Type of rotation"
-msgstr "Typ rotácie"
-
-
 msgid "Rotate a point using axis angle"
 msgstr "Otáča bod použitím uhla osi"
 
@@ -50564,16 +50440,8 @@ msgid "Object Line Art"
 msgstr "Objekt čiarovej grafiky"
 
 
-msgid "Object line art settings"
-msgstr "Nastavenia čiarovej grafiky objektu"
-
-
 msgid "Angles smaller than this will be treated as creases"
 msgstr "Uhly menšie ako táto hodnota sa považujú za záhyby"
-
-
-msgid "How to use this object in line art calculation"
-msgstr "Určuje ako používať tento objekt pri výpočte čiarovej grafiky"
 
 
 msgid "Inherit"
@@ -65342,10 +65210,6 @@ msgid "Edge Index"
 msgstr "Index hrany"
 
 
-msgid "Falloff type of the feather"
-msgstr "Typ dopadu pierka"
-
-
 msgctxt "Mesh"
 msgid "Object Index"
 msgstr "Index objektu"
@@ -65503,10 +65367,6 @@ msgstr "Vlastné nástroje normál používajúce vektor normál v užívateľsk
 
 msgid "Absolute Coordinates"
 msgstr "Absolútne súradnice"
-
-
-msgid "Copy Absolute coordinates or Normal vector"
-msgstr "Kopíruje absolútne súradnice alebo vektor normály"
 
 
 msgid "Mode of tools taking input from interface"
@@ -68158,10 +68018,6 @@ msgid "Make Links"
 msgstr "Vytvoriť prepojenia"
 
 
-msgid "Makes a link between selected output in input sockets"
-msgstr "Vytvorí prepojenie vybraného výstupu so vstupnými zásuvkami"
-
-
 msgid "Replace socket connections with the new links"
 msgstr "Nahradí prepojenia zásuviek novými spojeniami"
 
@@ -69221,10 +69077,6 @@ msgid "Add a Grease Pencil object to the scene"
 msgstr "Pridá objekt pastelky na scénu"
 
 
-msgid "Stroke offset for the line art modifier"
-msgstr "Posunúť ťah pre modifikátor čiarovej grafiky"
-
-
 msgid "Create an empty grease pencil object"
 msgstr "Vytvoriť prázdny objekt pastelky"
 
@@ -69245,28 +69097,12 @@ msgid "Scene Line Art"
 msgstr "Scéna čiarovej grafiky"
 
 
-msgid "Quickly set up line art for the entire scene"
-msgstr "Rýchle nastavenie čiarovej grafiky pre celú scénu"
-
-
 msgid "Collection Line Art"
 msgstr "Kolekcia čiarovej grafiky"
 
 
-msgid "Quickly set up line art for the active collection"
-msgstr "Rýchle nastavenie čiarovej grafiky aktívnej kolekcie"
-
-
-msgid "Quickly set up line art for the active object"
-msgstr "Rýchle nastavenie čiarovej grafiky aktívneho objektu"
-
-
 msgid "Show In Front"
 msgstr "Zobraziť vpredu"
-
-
-msgid "Show line art grease pencil in front of everything"
-msgstr "Zobrazí Čiarovú grafiku Pastelky pred všetkými"
 
 
 msgid "Use lights for this grease pencil object"
@@ -69734,17 +69570,9 @@ msgid "Bake Line Art"
 msgstr "Zapiecť čiarovú grafiku"
 
 
-msgid "Bake Line Art for current GPencil object"
-msgstr "Zapečie čiarovú grafiku pre aktuálny objekt pastelky"
-
-
 msgctxt "Operator"
 msgid "Bake Line Art (All)"
 msgstr "Zapiecť čiarovú grafiku (všetko)"
-
-
-msgid "Bake all Grease Pencil objects that have a line art modifier"
-msgstr "Zapečie všetky objekty pastelky, ktoré majú modifikátor čiarovej grafiky"
 
 
 msgctxt "Operator"
@@ -69752,17 +69580,9 @@ msgid "Clear Baked Line Art"
 msgstr "Zmazať čiarovú grafiku"
 
 
-msgid "Clear all strokes in current GPencil object"
-msgstr "Zmaže všetky ťahy v aktuálnom objekte pastelky"
-
-
 msgctxt "Operator"
 msgid "Clear Baked Line Art (All)"
 msgstr "Zmazať zapečenú čiarovú grafiku (všetko)"
-
-
-msgid "Clear all strokes in all Grease Pencil objects that have a line art modifier"
-msgstr "Zmaže všetky ťahy vo všetkých objektoch pastelky, ktoré majú modifikátor čiarovej grafiky"
 
 
 msgid "Link objects to a collection"
@@ -74635,10 +74455,6 @@ msgstr "Pridať lokálne úložisko"
 
 msgid "Add a repository managed manually without referencing an external repository"
 msgstr "Pridá manuálne spravované úložisko bez odkazu na externé úložisko"
-
-
-msgid "Manually set the path for extensions to be stored. When disabled a users extensions directory is created"
-msgstr "Manuálne nastavenie cesty pre ukladanie rozšírení. Ak je zakázané, vytvorí sa priečinok s rozšíreniami užívateľov"
 
 
 msgctxt "Operator"
@@ -83138,10 +82954,6 @@ msgid "Include Animations"
 msgstr "Zahrnúť animácie"
 
 
-msgid "Export animations if available (exporting animations will enforce the decomposition of node transforms into  <translation> <rotation> and <scale> components)"
-msgstr "Exportuje animácie ak sú k dispozícii (export animácie bude vynútený rozkladom uzla transformácie do komponentov <presun> <rotácia> a <mierka>)"
-
-
 msgid "Include Armatures"
 msgstr "Zahrnúť armatúry"
 
@@ -86673,10 +86485,6 @@ msgid "Effects"
 msgstr "Efekty"
 
 
-msgid "Spot Shape"
-msgstr "Tvar svetelnej škvrny"
-
-
 msgid "Text Boxes"
 msgstr "Textové polia"
 
@@ -87206,20 +87014,12 @@ msgid "Raytracing Presets"
 msgstr "Predvoľby sledovania lúčov"
 
 
-msgid "Screen Tracing"
-msgstr "Sledovanie obrazovky"
-
-
 msgid "Shadows"
 msgstr "Tiene"
 
 
-msgid "Volume Lighting"
-msgstr "Svietivosť objemu"
-
-
-msgid "Volume Shadows"
-msgstr "Tienenie objemu"
+msgid "Screen Tracing"
+msgstr "Sledovanie obrazovky"
 
 
 msgid "Screen Space Reflections"
@@ -89785,10 +89585,6 @@ msgstr "Duplicitné krivky"
 
 msgid "Causes curves data to be duplicated with the object"
 msgstr "Spôsobí, že sa vytvárajú kópie údajov o krivkách s objektom"
-
-
-msgid "Duplicate GPencil"
-msgstr "Vytvárať kópie pastelky"
 
 
 msgid "Causes grease pencil data to be duplicated with the object"
@@ -94319,44 +94115,8 @@ msgid "Accumulate samples by reprojecting last tracing results"
 msgstr "Akumuluje snímky premietnutím posledných výsledkov sledovania"
 
 
-msgid "Number of rays per pixel"
-msgstr "Počet lúčov na pixel"
-
-
-msgid "1 rpp"
-msgstr "1 lnp"
-
-
-msgid "1 ray per pixel"
-msgstr "1 lúč na pixel"
-
-
-msgid "1/4 rpp"
-msgstr "1/4 lnp"
-
-
-msgid "1 ray for every 4 pixels"
-msgstr "1 lúč na 4 pixely"
-
-
-msgid "1/16 rpp"
-msgstr "1/16 lnp"
-
-
-msgid "1 ray for every 16 pixels"
-msgstr "1 lúč na 16 pixelov"
-
-
 msgid "Clamp ray intensity to reduce noise (0 to disable)"
 msgstr "Zarážka intenzity lúčov na zníženie šumu (0 pre zákaz)"
-
-
-msgid "Screen-Trace Max Roughness"
-msgstr "Maximálna drsnosť sledovania obrazovky"
-
-
-msgid "Maximum roughness to use the tracing pipeline for. Higher roughness surfaces will use horizon scan. A value of 1 will disable horizon scan"
-msgstr "Maximálna drsnosť, pre ktorú sa má použiť sledovacie potrubie. Povrchy s vyššou drsnosťou budú používať skenovanie horizontu. Hodnota 1 zakáže skenovanie horizontu"
 
 
 msgid "Screen-Trace Precision"
@@ -94373,6 +94133,10 @@ msgstr "Hrúbka sledovania obrazovky"
 
 msgid "Surface thickness used to detect intersection when using screen-tracing"
 msgstr "Hrúbka povrchu používaná na detekciu priesečníka pri použití sledovania obrazovky"
+
+
+msgid "Maximum roughness to use the tracing pipeline for. Higher roughness surfaces will use horizon scan. A value of 1 will disable horizon scan"
+msgstr "Maximálna drsnosť, pre ktorú sa má použiť sledovacie potrubie. Povrchy s vyššou drsnosťou budú používať skenovanie horizontu. Hodnota 1 zakáže skenovanie horizontu"
 
 
 msgid "Enable noise reduction techniques for raytraced effects"
@@ -96631,10 +96395,6 @@ msgid "Precision of the horizon scan"
 msgstr "Presnosť skenovania horizontu"
 
 
-msgid "4 px"
-msgstr "4 px"
-
-
 msgid "Constant thickness of the surfaces considered when doing horizon scan and by extension ambient occlusion"
 msgstr "Konštantná hrúbka povrchov, ktoré sa berú do úvahy pri skenovaní horizontu, a tým aj pohlcovanie okolím"
 
@@ -96645,10 +96405,6 @@ msgstr "Prah svetla"
 
 msgid "Minimum light intensity for a light to contribute to the lighting"
 msgstr "Minimálna intenzita svetla pre svetlo prispievajúce k osvetleniu"
-
-
-msgid "Background Separation"
-msgstr "Oddelenie pozadia"
 
 
 msgid "Lower values will reduce background bleeding onto foreground elements"
@@ -96683,16 +96439,8 @@ msgid "Select the tracing method used to find scene-ray intersections"
 msgstr "Výber metódy sledovania používanej na hľadanie priesečníkov lúčov scény"
 
 
-msgid "No intersection with scene geometry"
-msgstr "Žiadny priesečník s geometriou scény"
-
-
 msgid "Screen-Trace"
 msgstr "Sledovanie obrazovky"
-
-
-msgid "Raytrace against the depth buffer"
-msgstr "Sledovanie lúča proti zásobníku hĺbky"
 
 
 msgid "Reflection Trace Options"
@@ -96919,20 +96667,12 @@ msgid "Volume Max Ray Depth"
 msgstr "Maximálny objem hĺbky lúča"
 
 
-msgid "Maximum surface intersection count used by the accurate volume intersection method. Will create artifact if it is exceeded"
-msgstr "Maximálny počet prekrížení na povrchu, ktorý sa používa pri metóde presného objemového prekríženia. Ak sa prekročí, vytvorí sa artefakt"
-
-
 msgid "Exponential Sampling"
 msgstr "Exponenciálne snímkovanie"
 
 
 msgid "Distribute more samples closer to the camera"
 msgstr "Rozmiestni viac snímok bližšie ku kamere"
-
-
-msgid "Number of samples to compute volumetric effects"
-msgstr "Počet snímok na výpočet objemového efektu"
 
 
 msgid "Volumetric Shadow Samples"
@@ -96945,14 +96685,6 @@ msgstr "Počet snímok na výpočet objemového tieňovania"
 
 msgid "Start distance of the volumetric effect"
 msgstr "Počiatočná vzdialenosť objemového efektu"
-
-
-msgid "Control the quality of the volumetric effects (lower size increase vram usage and quality)"
-msgstr "Kontrola kvality objemového efektu (nižšia veľkosť zvýši kvalitu a využitie VRAM)"
-
-
-msgid "2 px"
-msgstr "2 px"
 
 
 msgid "Grease Pencil Render"
@@ -97282,10 +97014,6 @@ msgstr "Zásobník nespracovaných obrázkov načítaných z disku, pre rýchlej
 
 msgid "Use Default Fade"
 msgstr "Použiť predvolené vytrácanie"
-
-
-msgid "Fade effect using the built-in default (usually make transition as long as effect strip)"
-msgstr "Efekt vytrácania použitím pôvodného vytvorenia (zvyčajne vykoná taký dlhý prechod, ako je efekt pásu)"
 
 
 msgid "Use Linear Modifiers"
@@ -101157,14 +100885,6 @@ msgstr "Zobrazí preexponované oblasti s pásmi zebry"
 
 msgid "Show Overlays"
 msgstr "Zobraziť prekrytia"
-
-
-msgid "Separate Colors"
-msgstr "Oddeliť farby"
-
-
-msgid "Separate color channels in preview"
-msgstr "Oddelí farebné kanály v náhľade"
 
 
 msgid "Transform Preview"
@@ -112264,12 +111984,12 @@ msgid "Target object not specified"
 msgstr "Cieľový objekt nebol určený"
 
 
-msgid "GeometryNodes"
-msgstr "Uzly geometrie"
-
-
 msgid "Node group must have a geometry output"
 msgstr "Skupina uzlov musí mať výstup geometrie"
+
+
+msgid "GeometryNodes"
+msgstr "Uzly geometrie"
 
 
 msgid "Image path not set"
@@ -113482,24 +113202,12 @@ msgid "Interpolation U"
 msgstr "Interpolácia U"
 
 
-msgid "Shadow Softness"
-msgstr "Mäkkosť tieňov"
-
-
-msgid "Trace Distance"
-msgstr "Vzdialenosť sledovania"
-
-
 msgid "Clipping Start"
 msgstr "Počiatok strihu"
 
 
 msgid "Clipping Offset"
 msgstr "Posuv strihu"
-
-
-msgid "Capture Distance"
-msgstr "Vzdialenosť zachytávania"
 
 
 msgid "Bleed Bias"
@@ -113882,10 +113590,6 @@ msgstr "Nič"
 msgctxt "Operator"
 msgid "Invert"
 msgstr "Invertovať"
-
-
-msgid "Max Displacement"
-msgstr "Maximálny posun"
 
 
 msgid "Render Method"
@@ -114848,16 +114552,16 @@ msgid "Cascade Size"
 msgstr "Veľkosť kaskády"
 
 
-msgid "Pool Size"
-msgstr "Veľkosť nádrže"
-
-
 msgid "Tracing"
 msgstr "Sledovanie"
 
 
 msgid "Rays"
 msgstr "Lúče"
+
+
+msgid "Volume Shadows"
+msgstr "Tienenie objemu"
 
 
 msgid "Temporal Reprojection"
@@ -114893,11 +114597,6 @@ msgstr "Mechanizmus prekreslenia"
 msgctxt "Operator"
 msgid "Bake Cubemap Only"
 msgstr "Zapiecť iba kockové rozloženie"
-
-
-msgctxt "Operator"
-msgid "Bake Volumes"
-msgstr "Zapiecť objem"
 
 
 msgid "Shadow Resolution"
@@ -116862,10 +116561,6 @@ msgid "Fractional Preview Zoom"
 msgstr "Frakčné zväčšenie náhľadu"
 
 
-msgid "Show Separate Color Channels"
-msgstr "Zobraziť oddelené farebné kanály"
-
-
 msgctxt "Operator"
 msgid "Change Scene..."
 msgstr "Zmeniť scénu..."
@@ -117804,14 +117499,6 @@ msgid "Cycles is disabled in this build"
 msgstr "Cykly sú v tejto zostave vypnuté"
 
 
-msgid "Microsoft Store installation"
-msgstr "Inštalácia obchodu Microsoft Store"
-
-
-msgid "Use Windows 'Default Apps' to associate with blend files"
-msgstr "Na asociáciu blend súbrov použite \"predvolené aplikácie\" systému Windows"
-
-
 msgid "Open blend files with this Blender version"
 msgstr "Otvorí blend súbory touto verziou Blenderu"
 
@@ -117864,6 +117551,14 @@ msgstr "Nenakonfigurovaný žiadny vlastný %s"
 
 msgid "Enable Cycles Render Engine add-on to use Cycles"
 msgstr "Povoliť doplnok Cycles Render Engine (Mechanizmus prekreslenia Cykly) pre používanie Cyklov"
+
+
+msgid "Microsoft Store installation"
+msgstr "Inštalácia obchodu Microsoft Store"
+
+
+msgid "Use Windows 'Default Apps' to associate with blend files"
+msgstr "Na asociáciu blend súbrov použite \"predvolené aplikácie\" systému Windows"
 
 
 msgid "Error (see console)"
@@ -121525,14 +121220,6 @@ msgstr "Knižnica: Údaje sa týkajú hlavného .blend súboru: '%s' z %s"
 
 msgid "LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a non-linkable data type"
 msgstr "Knižnica: %s: '%s' je priamo prepojený z '%s' (rodič '%s'), ale má neprepojiteľný typ údajov"
-
-
-msgid "Read packed library:  '%s', parent '%s'"
-msgstr "Načítať zbalenú knižnicu:  '%s', rodič '%s'"
-
-
-msgid "Read library:  '%s', '%s', parent '%s'"
-msgstr "Načítať knižnicu:  '%s', '%s , rodič '%s '"
 
 
 msgid "Cannot find lib '%s'"
@@ -127835,10 +127522,6 @@ msgid " RGB byte"
 msgstr " RGB bajt"
 
 
-msgid ",  %s"
-msgstr ",  %s"
-
-
 msgid "Frame %d / %d"
 msgstr "Snímka %d / %d"
 
@@ -128691,18 +128374,6 @@ msgstr ""
 "* Shift na nastavenie vnútra kolekcie a objektov"
 
 
-msgid "Number of users of this data-block"
-msgstr "Počet užívateľov tohto bloku údajov"
-
-
-msgid "Data-block will be retained using a fake user"
-msgstr "Blok údajov sa zachová použitím falošného užívateľa"
-
-
-msgid "Data-block has no users and will be deleted"
-msgstr "Blok údajov nemá žiadnych užívateľov a bude vymazaný"
-
-
 msgid "Change the object in the current mode"
 msgstr "Zmeniť objekt v aktuálnom režime"
 
@@ -129331,20 +129002,12 @@ msgid "File association registered"
 msgstr "Registrovaná asociácia súborov"
 
 
-msgid "Unable to register file association"
-msgstr "Nemožno zaregistrovať asociáciu súborov"
-
-
 msgid "Unregistration not possible from Microsoft Store installations"
 msgstr "Zrušenie registrácie nie je možné z inštalácií obchodu Microsoft Store"
 
 
 msgid "File association unregistered"
 msgstr "Asociácia súborov neregistrovaná"
-
-
-msgid "Unable to unregister file association"
-msgstr "Nemožno zrušiť registráciu asociácie súborov"
 
 
 msgid "There is no asset library to remove"
@@ -129357,10 +129020,6 @@ msgstr "Neexistuje žiadne úložisko rozšírení na odstránenie"
 
 msgid "Not available for Microsoft Store installations"
 msgstr "Nie je k dispozícii pre inštalácie v obchode Microsoft Store"
-
-
-msgid "Windows-only operator"
-msgstr "Len Windows operátor"
 
 
 msgid "Create object instance from object-data"
@@ -130405,10 +130064,6 @@ msgid "Towards Custom Camera"
 msgstr "Smerom k vlastnej kamere"
 
 
-msgid "Cached from the first line art modifier"
-msgstr "Uložiť do zásobníka z prvého modifikátora čiarovej grafiky"
-
-
 msgid "Object is not in front"
 msgstr "Objekt nie je vpredu"
 
@@ -130480,14 +130135,6 @@ msgstr "CasovyPosuv"
 
 msgid "External library data"
 msgstr "Údaje externej knižnice"
-
-
-msgid "All line art objects are now cleared"
-msgstr "Všetky objekty čiarovej grafiky sú teraz zmazané"
-
-
-msgid "No active object or active object isn't a GPencil object"
-msgstr "Žiadny aktívny objekt ani aktívny objekt nie je objektom Pastelky"
 
 
 msgid "Object type mismatch, Alembic object path pointed to Camera when importing, but not any more"
@@ -130623,10 +130270,6 @@ msgid "%s: Can't copy %s. The source and destination paths are the same"
 msgstr "%s: Nemožno kopírovať %s. Zdrojová a cieľová cesta sú rovnaké"
 
 
-msgid "%s: Can't write to asset %s:  %s"
-msgstr "%s: Nemožno zapísať do aktíva %s.  %s"
-
-
 msgid "%s: Can't open source asset %s"
 msgstr "%s: Aktíva s otvoreným zdrojovým kódom nemožné %s"
 
@@ -130693,10 +130336,6 @@ msgstr "Nepodarilo sa otvoriť archív USD na čítanie! Podrobnosti nájdete v 
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "Import USD: nemožné otvoriť oblasť na čítanie %s"
-
-
-msgid "An exception occurred invoking USD hook '%s'.  Please see the console for details"
-msgstr "Pri volaní háku USD '%s' došlo k výnimke.  Podrobnosti nájdete v konzole"
 
 
 msgid "An exception occurred invoking USD hook '%s'"
@@ -130809,10 +130448,6 @@ msgstr "%s: Nepodarilo sa pridať kosť pre kĺb %s"
 
 msgid "%s: Mismatch in bone and joint counts for skeleton %s"
 msgstr "%s: Nesúlad v počte kostí a kĺbov pre kostru %s"
-
-
-msgid "%s:  Mismatch in bind xforms and joint counts for skeleton %s"
-msgstr "%s:  Nesúlad vo väzbách x-form a počtoch kĺbov pre kostru %s"
 
 
 msgid "USD Skeleton Import: bone matrices with negative determinants detected in prim %s. Such matrices may indicate negative scales, possibly due to mirroring operations, and can't currently be converted to Blender's bone representation. The skeletal animation won't be imported"
@@ -135850,10 +135485,6 @@ msgstr "Knižnica \"%s\" potrebuje opätovnú synchronizáciu prepisov"
 
 msgid "%d libraries and %d linked data-blocks are missing (including %d ObjectData and %d Proxies), please check the Info and Outliner editors for details"
 msgstr "Chýbajú %d knižnice a %d prepojené bloky údajov (vrátane %d ObjectData a %d náhrady), podrobnosti nájdete v editoroch Informácie a Líniový prehľad"
-
-
-msgid "%d libraries have overrides needing resync (auto resynced in %.0fm%.2fs),  please check the Info editor for details"
-msgstr "%d knižnice majú prepisy vyžadujúce opätovnú synchronizáciu (automatická opätovná synchronizácia v %.0fm%.2fs),  kvôli detailom skontrolujte, prosím, editor Informácie"
 
 
 msgid "%d sequence strips were not read because they were in a channel larger than %d"

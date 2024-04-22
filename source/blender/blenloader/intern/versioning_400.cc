@@ -1063,9 +1063,7 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
     }
     else {
       if (*detail < 1.0f) {
-        if ((noise_type != SHD_NOISE_RIDGED_MULTIFRACTAL) &&
-            (noise_type != SHD_NOISE_HETERO_TERRAIN))
-        {
+        if (!ELEM(noise_type, SHD_NOISE_RIDGED_MULTIFRACTAL, SHD_NOISE_HETERO_TERRAIN)) {
           /* Add Multiply Math node behind Fac output. */
 
           bNode *mul_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_MATH);
