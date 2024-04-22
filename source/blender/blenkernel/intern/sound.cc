@@ -835,10 +835,12 @@ void BKE_sound_set_scene_sound_pitch_at_frame(void *handle,
 }
 
 void BKE_sound_set_scene_sound_pitch_constant_range(void *handle,
-                                                    const int frame_start,
-                                                    const int frame_end,
+                                                    int frame_start,
+                                                    int frame_end,
                                                     float pitch)
 {
+  frame_start = max_ii(0, frame_start);
+  frame_end = max_ii(0, frame_end);
   AUD_SequenceEntry_setConstantRangeAnimationData(
       handle, AUD_AP_PITCH, frame_start, frame_end, &pitch);
 }
