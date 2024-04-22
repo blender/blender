@@ -483,7 +483,6 @@ static void GREASE_PENCIL_OT_delete(wmOperatorType *ot)
   ot->description = "Delete selected strokes or points";
 
   /* Callbacks. */
-  ot->invoke = WM_menu_invoke;
   ot->exec = grease_pencil_delete_exec;
   ot->poll = editable_grease_pencil_poll;
 
