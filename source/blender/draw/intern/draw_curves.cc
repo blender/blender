@@ -127,6 +127,8 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache,
                                             gpu::VertBuf *output_buf,
                                             gpu::VertBuf *input_buf)
 {
+  BLI_assert(input_buf != nullptr);
+  BLI_assert(output_buf != nullptr);
   GPUShader *shader = DRW_shader_curves_refine_get(CURVES_EVAL_CATMULL_ROM);
   DRWShadingGroup *shgrp = DRW_shgroup_create(shader, g_tf_pass);
   drw_curves_cache_shgrp_attach_resources(shgrp, cache, input_buf);
