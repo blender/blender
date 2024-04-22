@@ -3027,7 +3027,11 @@ struct GeometryNodesLazyFunctionBuilder {
       const CPPType &type = *typeinfo->geometry_nodes_cpp_type;
       lf::GraphOutputSocket &lf_socket = lf_graph.add_output(
           type, interface_output->name ? interface_output->name : "");
-      lf_socket.set_default_value(type.default_value());
+      const void *default_value = typeinfo->geometry_nodes_default_cpp_value;
+      if (default_value == nullptr) {
+        default_value = type.default_value();
+      }
+      lf_socket.set_default_value(default_value);
       standard_group_output_sockets_.append(&lf_socket);
     }
   }
