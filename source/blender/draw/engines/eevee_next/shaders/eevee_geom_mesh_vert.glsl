@@ -18,7 +18,7 @@ void main()
   init_interface();
 
   interp.P = drw_point_object_to_world(pos);
-  interp.N = drw_normal_object_to_world(nor);
+  interp.N = normalize(drw_normal_object_to_world(nor));
 #ifdef MAT_VELOCITY
   vec3 prv, nxt;
   velocity_local_pos_get(pos, gl_VertexID, prv, nxt);
