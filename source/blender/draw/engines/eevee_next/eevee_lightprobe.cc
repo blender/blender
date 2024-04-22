@@ -142,7 +142,8 @@ void LightProbeModule::sync_sphere(const Object *ob, ObjectHandle &handle)
       return (bl_shape_type == LIGHTPROBE_SHAPE_BOX) ? SHAPE_CUBOID : SHAPE_ELIPSOID;
     };
     cube.influence_shape = to_eevee_shape(light_probe.attenuation_type);
-    cube.parallax_shape = to_eevee_shape(light_probe.parallax_type);
+    cube.parallax_shape = to_eevee_shape(use_custom_parallax ? light_probe.parallax_type :
+                                                               light_probe.attenuation_type);
 
     float4x4 object_to_world = math::scale(ob->object_to_world(), float3(influence_distance));
     cube.location = object_to_world.location();
