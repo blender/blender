@@ -37,15 +37,13 @@ void VKVertexBuffer::bind_as_texture(uint binding)
   state_manager.texel_buffer_bind(*this, binding);
 }
 
-void VKVertexBuffer::bind(int binding,
-                          shader::ShaderCreateInfo::Resource::BindType bind_type,
-                          const GPUSamplerState /*sampler_state*/)
+void VKVertexBuffer::add_to_descriptor_set(AddToDescriptorSetContext &data,
+                                           int binding,
+                                           shader::ShaderCreateInfo::Resource::BindType bind_type,
+                                           const GPUSamplerState /*sampler_state*/)
 {
-  VKContext &context = *VKContext::get();
-  VKShader *shader = static_cast<VKShader *>(context.shader);
-  const VKShaderInterface &shader_interface = shader->interface_get();
   const std::optional<VKDescriptorSet::Location> location =
-      shader_interface.descriptor_set_location(bind_type, binding);
+      data.shader_interface.descriptor_set_location(bind_type, binding);
   if (!location) {
     return;
   }
@@ -70,13 +68,16 @@ void VKVertexBuffer::bind(int binding,
   }
 
   /* TODO: Check if we can move this check inside the descriptor set. */
-  VKDescriptorSetTracker &descriptor_set = context.descriptor_set_get();
   if (bind_type == shader::ShaderCreateInfo::Resource::BindType::SAMPLER) {
-    descriptor_set.bind(*this, *location);
+    data.descriptor_set.bind(*this, *location);
   }
   else {
-    descriptor_set.bind_as_ssbo(*this, *location);
+    data.descriptor_set.bind_as_ssbo(*this, *location);
   }
+  render_graph::VKBufferAccess buffer_access = {};
+  buffer_access.vk_buffer = buffer_.vk_handle();
+  buffer_access.vk_access_flags = data.shader_interface.access_mask(bind_type, *location);
+  data.resource_access_info.buffers.append(buffer_access);
 }
 
 void VKVertexBuffer::wrap_handle(uint64_t /*handle*/)
