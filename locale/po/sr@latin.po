@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -4982,6 +4982,10 @@ msgid "Relative Offset"
 msgstr "Relativno rastojanje"
 
 
+msgid "Add another object's transformation to the total offset"
+msgstr "Primeni transformaciju objekta na njegove podatke"
+
+
 msgid "Speed Factor"
 msgstr "Faktor brzine"
 
@@ -9658,10 +9662,6 @@ msgstr "Dodaje stalno rastojanje"
 
 msgid "Merge Vertices"
 msgstr "Spoj temena"
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "Primeni transformaciju objekta na njegove podatke"
 
 
 msgid "Bevel Modifier"
@@ -16480,10 +16480,6 @@ msgstr "Razdvoj"
 msgctxt "Operator"
 msgid "Make Links"
 msgstr "Napravi veze"
-
-
-msgid "Makes a link between selected output in input sockets"
-msgstr "Stvara vezu između izabranih "
 
 
 msgctxt "Operator"

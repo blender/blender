@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2024-03-12 05:27+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -691,32 +691,16 @@ msgid "After Current"
 msgstr "現在の後に"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "現在のフレームの後に表示するフレーム数(オニオンスキンの'現在のフレーム周辺'専用)"
-
-
 msgid "Before Current"
 msgstr "現在の前に"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "現在のフレームの前に表示するフレーム数(オニオンスキンの'現在のフレーム周辺'専用)"
 
 
 msgid "End Frame"
 msgstr "最終フレーム"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "表示/計算させるパス範囲の終了フレーム(オニオンスキンの'現在のフレーム周辺'用ではありません)"
-
-
 msgid "Start Frame"
 msgstr "開始フレーム"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "表示/計算させるパス範囲の開始フレーム(オニオンスキンの'現在のフレーム周辺'用ではありません)"
 
 
 msgid "Frame Step"
@@ -5546,10 +5530,6 @@ msgid "Toe-in"
 msgstr "収束"
 
 
-msgid "Rotated cameras, looking at the convergence distance"
-msgstr "カメラを回転し，収束距離を注視"
-
-
 msgid "Interocular Distance"
 msgstr "両目間の距離"
 
@@ -6550,10 +6530,6 @@ msgstr "AgX ベースの sRGB 表示用画像エンコーディング"
 
 msgid "AgX Log"
 msgstr "AgX Log"
-
-
-msgid "Log Encoding with Chroma inset and rotation, and with 25 Stops of Dynamic Range"
-msgstr "ダイナミックレンジが25ストップの，Log エンコーディング"
 
 
 msgid "Display P3"
@@ -16568,10 +16544,6 @@ msgid "Mask layer name"
 msgstr "マスクレイヤー名"
 
 
-msgid "GPencil Sculpt Guide"
-msgstr "グリペンスカルプトガイド"
-
-
 msgid "Guides for drawing"
 msgstr "ドローイング用のガイド"
 
@@ -17395,16 +17367,8 @@ msgid "Vertex Weight Angle"
 msgstr "頂点ウェイト（角度）"
 
 
-msgid "Generate Vertex Weights base on stroke angle"
-msgstr "頂点ウェイトをストロークの角度を元に生成します"
-
-
 msgid "Vertex Weight Proximity"
 msgstr "頂点ウェイト（近傍）"
-
-
-msgid "Generate Vertex Weights base on distance to object"
-msgstr "オブジェクトとの距離を元に頂点ウェイトを生成します"
 
 
 msgid "Array"
@@ -17445,10 +17409,6 @@ msgstr "ストロークを延長・縮小します"
 
 msgid "Line Art"
 msgstr "ラインアート"
-
-
-msgid "Generate line art strokes from selected source"
-msgstr "選択中のソースからラインアートストロークを生成します"
 
 
 msgid "Mirror"
@@ -17683,16 +17643,16 @@ msgid "Use Object Offset"
 msgstr "オブジェクトオフセット"
 
 
-msgid "Enable object offset"
-msgstr "オブジェクトのオフセットを有効にします"
+msgid "Add another object's transformation to the total offset"
+msgstr "他のオブジェクトの変形を全体のオフセットに適用します"
 
 
 msgid "Shift"
 msgstr "シフト"
 
 
-msgid "Enable shift"
-msgstr "シフトを有効化"
+msgid "Add an offset relative to the object's bounding box"
+msgstr "関係するオブジェクトのバウンディングボックスにオフセットを追加します"
 
 
 msgid "Uniform Scale"
@@ -18151,10 +18111,6 @@ msgid "Lattice Modifier"
 msgstr "ラティスモディファイアー"
 
 
-msgid "Change stroke using lattice to deform modifier"
-msgstr "変形用のラティスを使用しストロークを変更します"
-
-
 msgid "Lattice object to deform with"
 msgstr "変形に使うラティスオブジェクト"
 
@@ -18307,10 +18263,6 @@ msgid "Crease Threshold"
 msgstr "クリースのしきい値"
 
 
-msgid "Angles smaller than this will be treated as creases. Crease angle priority: object line art crease override > mesh auto smooth angle > line art default crease"
-msgstr "この値より角度が小さい物をクリースとして処理します．クリース角度の優先順位：オブジェクトラインアートクリースオーバライド ＞ メッシュ自動スムーズ角度 ＞ ラインアートデフォルトクリース"
-
-
 msgid "Invert Vertex Group"
 msgstr "頂点グループを反転"
 
@@ -18447,10 +18399,6 @@ msgid "Camera Object"
 msgstr "カメラオブジェクト"
 
 
-msgid "Use specified camera object for generating line art"
-msgstr "ラインアートの生成に指定のカメラオブジェクトを使用します"
-
-
 msgid "Generate strokes from the objects in this collection"
 msgstr "このコレクション内のオブジェクトからストロークを生成します"
 
@@ -18461,10 +18409,6 @@ msgstr "このオブジェクトからストロークを生成します"
 
 msgid "Source Type"
 msgstr "ソースタイプ"
-
-
-msgid "Line art stroke source type"
-msgstr "ラインアートストロークのソースタイプ"
 
 
 msgid "Source Vertex Group"
@@ -18509,10 +18453,6 @@ msgstr "裏面を無視"
 
 msgid "Remove all back faces to speed up calculation, this will create edges in different occlusion levels than when disabled"
 msgstr "裏面をすべて無視し計算速度を上げます．OFFの時とは遮蔽レベルに違いのあるエッジが作成されます"
-
-
-msgid "Use cached scene data from the first line art modifier in the stack. Certain settings will be unavailable"
-msgstr "このスタック内の最初のラインアートモディファイアーのシーンデータのキャッシュを使用します．一部の設定は利用できなくなります"
 
 
 msgid "Clipping Boundaries"
@@ -18755,10 +18695,6 @@ msgid "Instanced Objects"
 msgstr "インスタンスオブジェクト"
 
 
-msgid "Allow particle objects and face/vertex instances to show in line art"
-msgstr "ラインアート内にパーティクルオブジェクトや面/頂点インスタンスを表示できるようにします"
-
-
 msgid "Offset Towards Custom Camera"
 msgstr "カスタムカメラ方向のオフセット"
 
@@ -18819,10 +18755,6 @@ msgstr "Y 軸をミラー反転します"
 
 msgid "Mirror the Z axis"
 msgstr "Z 軸をミラー反転します"
-
-
-msgid "Clip points"
-msgstr "ポイントをクリップ"
 
 
 msgid "Multiply Modifier"
@@ -21097,10 +21029,6 @@ msgid "Brush Height"
 msgstr "ブラシ高さ"
 
 
-msgid "Affectable height of brush (layer height for layer tool, i.e.)"
-msgstr "ブラシが影響可能な高さ(つまりレイヤーツールのレイヤーの高さ)"
-
-
 msgid "Brush Icon Filepath"
 msgstr "ブラシアイコンのファイルパス"
 
@@ -22848,10 +22776,6 @@ msgid "Collections that are immediate children of this collection"
 msgstr "このコレクションの直接の子の集合"
 
 
-msgid "Children collections their parent-collection-specific settings"
-msgstr "子コレクションとその親コレクション固有の設定"
-
-
 msgid "Objects of the collection with their parent-collection-specific settings"
 msgstr "コレクションのオブジェクトとその親コレクション固有の設定"
 
@@ -22948,10 +22872,6 @@ msgid "Usage"
 msgstr "使用方法"
 
 
-msgid "How to use this collection in line art"
-msgstr "このコレクションをラインアートに使用する方法"
-
-
 msgid "Generate feature lines for this collection"
 msgstr "このコレクションの特徴ラインを生成します"
 
@@ -22962,10 +22882,6 @@ msgstr "遮蔽のみ"
 
 msgid "Only use the collection to produce occlusion"
 msgstr "遮蔽の生成にのみコレクションを使用します"
-
-
-msgid "Don't use this collection in line art"
-msgstr "このコレクションをラインアート内に使用しません"
 
 
 msgid "Intersection Only"
@@ -25563,6 +25479,10 @@ msgid "Number of ray directions to evaluate when baking"
 msgstr "ベイク時に評価するレイ方向の数"
 
 
+msgid "Capture Distance"
+msgstr "キャプチャ距離"
+
+
 msgid "Capture Emission"
 msgstr "放射をキャプチャ"
 
@@ -25581,13 +25501,6 @@ msgstr "照明をもっと正確にするため，光源からの光の反射を
 
 msgid "Capture World"
 msgstr "ワールドをキャプチャ"
-
-
-msgid "Bake incoming light from the world, instead of just the visibility, for more accurate lighting, but lose correct blending to surrounding irradiance volumes"
-msgstr ""
-"ワールドから見た目だけではなく，入射光もベイクします．\n"
-"照明はより正確になりますが，イラディアンスボリューム\n"
-"周辺とのブレンドの精度が低くなります"
 
 
 msgid "Clamp Direct"
@@ -25620,14 +25533,6 @@ msgstr "ダイレーションしきい値"
 
 msgid "Ratio of front-facing surface hits under which a grid sample will reuse neighbors grid sample lighting"
 msgstr "グリッドサンプルが近くのグリッドサンプルライティングを再利用する場合の，前向きの面のヒット率"
-
-
-msgid "Capture Escape Bias"
-msgstr "キャプチャ脱出バイアス"
-
-
-msgid "Moves capture points outside objects"
-msgstr "キャプチャポイントをオブジェクトの外側に移動します"
 
 
 msgid "Facing Bias"
@@ -25668,14 +25573,6 @@ msgstr "解像度 Z"
 
 msgid "Number of samples along the z axis of the volume"
 msgstr "ボリュームの Z 軸のサンプル数"
-
-
-msgid "Capture Surface Bias"
-msgstr "キャプチャ表面バイアス"
-
-
-msgid "Moves capture points position away from surfaces to avoid artifacts"
-msgstr "キャプチャポイントを表面から離し，アーティファクトを防ぎます"
 
 
 msgid "Validity Threshold"
@@ -25999,10 +25896,6 @@ msgstr "優先度の高いラインカラーはマテリアル境界で使用さ
 
 msgid "Line Art Settings"
 msgstr "ラインアート設定"
-
-
-msgid "Line art settings for material"
-msgstr "マテリアル用のラインアート設定"
 
 
 msgid "Max Vertex Displacement"
@@ -27354,10 +27247,6 @@ msgstr "ライトグループ"
 
 msgid "Lightgroup that the object belongs to"
 msgstr "このオブジェクトが属しているライトグループ"
-
-
-msgid "Line art settings for the object"
-msgstr "オブジェクト用のラインアート設定"
 
 
 msgid "Location of the object"
@@ -35178,7 +35067,7 @@ msgid "Falloff"
 msgstr "減衰"
 
 
-msgid "Falloff type the feather"
+msgid "Falloff type of the feather"
 msgstr "フェザーの減衰タイプ"
 
 
@@ -37568,14 +37457,6 @@ msgstr "端の頂点をマージ"
 
 msgid "Merge vertices in first and last duplicates"
 msgstr "最初と最後の複製の頂点を結合します"
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "他のオブジェクトの変形を全体のオフセットに適用します"
-
-
-msgid "Add an offset relative to the object's bounding box"
-msgstr "関係するオブジェクトのバウンディングボックスにオフセットを追加します"
 
 
 msgid "Bevel Modifier"
@@ -49981,14 +49862,6 @@ msgid "Rotate a vector around a pivot point (center)"
 msgstr "ピボットポイントを中心にベクトルを回転します"
 
 
-msgid "Invert angle"
-msgstr "角度を反転"
-
-
-msgid "Type of rotation"
-msgstr "回転タイプ"
-
-
 msgid "Rotate a point using axis angle"
 msgstr "軸の角度を使用し，ポイントを回転します"
 
@@ -51039,16 +50912,8 @@ msgid "Object Line Art"
 msgstr "オブジェクトラインアート"
 
 
-msgid "Object line art settings"
-msgstr "オブジェクトラインアート設定"
-
-
 msgid "Angles smaller than this will be treated as creases"
 msgstr "この値より小さい角度はクリースとして処理されます"
-
-
-msgid "How to use this object in line art calculation"
-msgstr "ラインアート計算にこのオブジェクトを使用する方法"
 
 
 msgid "Inherit"
@@ -65978,10 +65843,6 @@ msgid "Edge Index"
 msgstr "辺のインデックス番号"
 
 
-msgid "Falloff type of the feather"
-msgstr "フェザーの減衰タイプ"
-
-
 msgctxt "Mesh"
 msgid "Object Index"
 msgstr "オブジェクトインデックス"
@@ -66139,10 +66000,6 @@ msgstr "UIの法線ベクトルを使用したカスタム法線ツール"
 
 msgid "Absolute Coordinates"
 msgstr "絶対座標"
-
-
-msgid "Copy Absolute coordinates or Normal vector"
-msgstr "絶対座標または法線ベクトルをコピーします"
 
 
 msgid "Mode of tools taking input from interface"
@@ -68800,10 +68657,6 @@ msgid "Make Links"
 msgstr "リンク作成"
 
 
-msgid "Makes a link between selected output in input sockets"
-msgstr "選択中の出力と，入力ソケットにリンクします"
-
-
 msgid "Replace socket connections with the new links"
 msgstr "新しいリンクでソケット接続を置き換える"
 
@@ -69869,10 +69722,6 @@ msgid "Add a Grease Pencil object to the scene"
 msgstr "グリースペンシルオブジェクトをシーンに追加します"
 
 
-msgid "Stroke offset for the line art modifier"
-msgstr "ラインアートモディファイアー用のストロークのオフセット"
-
-
 msgid "Create an empty grease pencil object"
 msgstr "空のグリースペンシルオブジェクトを作成します"
 
@@ -69893,28 +69742,12 @@ msgid "Scene Line Art"
 msgstr "シーンラインアート"
 
 
-msgid "Quickly set up line art for the entire scene"
-msgstr "シーン全体用のラインアートをすばやく設定します"
-
-
 msgid "Collection Line Art"
 msgstr "コレクションラインアート"
 
 
-msgid "Quickly set up line art for the active collection"
-msgstr "アクティブコレクション用のラインアートをすばやく設定します"
-
-
-msgid "Quickly set up line art for the active object"
-msgstr "アクティブオブジェクト用のラインアートをすばやく設定します"
-
-
 msgid "Show In Front"
 msgstr "最前面に表示"
-
-
-msgid "Show line art grease pencil in front of everything"
-msgstr "すべての前にグリースペンシルラインアートを表示します"
 
 
 msgid "Use lights for this grease pencil object"
@@ -70386,17 +70219,9 @@ msgid "Bake Line Art"
 msgstr "ラインアートをベイク"
 
 
-msgid "Bake Line Art for current GPencil object"
-msgstr "ラインアートを現在のグリースペンシルオブジェクトにベイクします"
-
-
 msgctxt "Operator"
 msgid "Bake Line Art (All)"
 msgstr "全ラインアートをベイク"
-
-
-msgid "Bake all Grease Pencil objects that have a line art modifier"
-msgstr "ラインアートモディファイアーを持つ，全グリースペンシルオブジェクトをベイクします"
 
 
 msgctxt "Operator"
@@ -70404,17 +70229,9 @@ msgid "Clear Baked Line Art"
 msgstr "ベイク済ラインアートをクリア"
 
 
-msgid "Clear all strokes in current GPencil object"
-msgstr "現在のグリースペンシルオブジェクト内の全ストロークをクリアします"
-
-
 msgctxt "Operator"
 msgid "Clear Baked Line Art (All)"
 msgstr "全ベイク済ラインアートをクリア"
-
-
-msgid "Clear all strokes in all Grease Pencil objects that have a line art modifier"
-msgstr "ラインアートモディファイアーを持つすべてのグリースペンシルオブジェクト内の全ストロークをクリアします"
 
 
 msgid "Link objects to a collection"
@@ -75319,10 +75136,6 @@ msgstr "ローカルリポジトリを追加"
 
 msgid "Add a repository managed manually without referencing an external repository"
 msgstr "外部リポジトリへの参照なしで，手動で管理するリポジトリを追加します"
-
-
-msgid "Manually set the path for extensions to be stored. When disabled a users extensions directory is created"
-msgstr "エクステンションが格納されているパスを手動で設定します．無効時はユーザーエクステンションディレクトリを作成します"
 
 
 msgctxt "Operator"
@@ -83875,10 +83688,6 @@ msgid "Include Animations"
 msgstr "アニメーションを含む"
 
 
-msgid "Export animations if available (exporting animations will enforce the decomposition of node transforms into  <translation> <rotation> and <scale> components)"
-msgstr "可能ならアニメーションをエクスポートします（アニメーションのエクスポートは強制的に <translation> <rotation> <scale> 成分にノードトランスフォーム分解されます）"
-
-
 msgid "Include Armatures"
 msgstr "アーマチュアを含む"
 
@@ -87446,10 +87255,6 @@ msgid "Effects"
 msgstr "エフェクト"
 
 
-msgid "Spot Shape"
-msgstr "スポット形状"
-
-
 msgid "Text Boxes"
 msgstr "テキストボックス"
 
@@ -87979,20 +87784,12 @@ msgid "Raytracing Presets"
 msgstr "レイトレーシングプリセット"
 
 
-msgid "Screen Tracing"
-msgstr "スクリーントレーシング"
-
-
 msgid "Shadows"
 msgstr "影"
 
 
-msgid "Volume Lighting"
-msgstr "ボリュームライティング"
-
-
-msgid "Volume Shadows"
-msgstr "ボリュームシャドウ"
+msgid "Screen Tracing"
+msgstr "スクリーントレーシング"
 
 
 msgid "Screen Space Reflections"
@@ -90569,10 +90366,6 @@ msgstr "ヘアーカーブを複製"
 
 msgid "Causes curves data to be duplicated with the object"
 msgstr "ヘアーカーブデータがオブジェクトと共に複製されるようになります"
-
-
-msgid "Duplicate GPencil"
-msgstr "グリースペンシルを複製"
 
 
 msgid "Causes grease pencil data to be duplicated with the object"
@@ -95205,44 +94998,8 @@ msgid "Accumulate samples by reprojecting last tracing results"
 msgstr "最後のトレーシング結果を再投影し，サンプルを蓄積します"
 
 
-msgid "Number of rays per pixel"
-msgstr "ピクセル毎のレイ数（rpp）"
-
-
-msgid "1 rpp"
-msgstr "1 rpp"
-
-
-msgid "1 ray per pixel"
-msgstr "1レイ毎ピクセル"
-
-
-msgid "1/4 rpp"
-msgstr "1/4 rpp"
-
-
-msgid "1 ray for every 4 pixels"
-msgstr "4ピクセル毎に1レイ"
-
-
-msgid "1/16 rpp"
-msgstr "1/16 rpp"
-
-
-msgid "1 ray for every 16 pixels"
-msgstr "16ピクセル毎に1レイ"
-
-
 msgid "Clamp ray intensity to reduce noise (0 to disable)"
 msgstr "ノイズを低減するため制限するレイの明るさ（０で無効）"
-
-
-msgid "Screen-Trace Max Roughness"
-msgstr "スクリーントレースの最大粗さ"
-
-
-msgid "Maximum roughness to use the tracing pipeline for. Higher roughness surfaces will use horizon scan. A value of 1 will disable horizon scan"
-msgstr "トレーシングパイプラインで使用する粗さの最大．粗さがこれより大きいサーフェスは水平スキャンを使用します．値が１の時は水平スキャンが無効になります"
 
 
 msgid "Screen-Trace Precision"
@@ -95259,6 +95016,10 @@ msgstr "スクリーントレースの厚さ"
 
 msgid "Surface thickness used to detect intersection when using screen-tracing"
 msgstr "スクリーントレーシング時に交差を探知するサーフェスの厚さ"
+
+
+msgid "Maximum roughness to use the tracing pipeline for. Higher roughness surfaces will use horizon scan. A value of 1 will disable horizon scan"
+msgstr "トレーシングパイプラインで使用する粗さの最大．粗さがこれより大きいサーフェスは水平スキャンを使用します．値が１の時は水平スキャンが無効になります"
 
 
 msgid "Enable noise reduction techniques for raytraced effects"
@@ -97527,10 +97288,6 @@ msgid "Precision of the horizon scan"
 msgstr "水平スキャンの精度"
 
 
-msgid "4 px"
-msgstr "4ピクセル"
-
-
 msgid "Constant thickness of the surfaces considered when doing horizon scan and by extension ambient occlusion"
 msgstr "水平スキャン中かつアンビエントオクルージョン伸長で考慮するサーフェスの厚み定数"
 
@@ -97541,10 +97298,6 @@ msgstr "光のしきい値"
 
 msgid "Minimum light intensity for a light to contribute to the lighting"
 msgstr "ライティングに寄与する光の強さの最小値"
-
-
-msgid "Background Separation"
-msgstr "背景の分離"
 
 
 msgid "Lower values will reduce background bleeding onto foreground elements"
@@ -97581,16 +97334,8 @@ msgid "Select the tracing method used to find scene-ray intersections"
 msgstr "シーンのレイ交差を見つけるトレーシング方法を選択します"
 
 
-msgid "No intersection with scene geometry"
-msgstr "シーンのジオメトリと交差しません"
-
-
 msgid "Screen-Trace"
 msgstr "スクリーントレース"
-
-
-msgid "Raytrace against the depth buffer"
-msgstr "深度バッファーによるレイトレース"
 
 
 msgid "Reflection Trace Options"
@@ -97819,22 +97564,12 @@ msgid "Volume Max Ray Depth"
 msgstr "ボリューム最大レイ深度"
 
 
-msgid "Maximum surface intersection count used by the accurate volume intersection method. Will create artifact if it is exceeded"
-msgstr ""
-"高精度のボリューム交差方法で使用する，サーフェスの最大交差数．\n"
-"これを超えるとアーティファクトが生成される可能性があります"
-
-
 msgid "Exponential Sampling"
 msgstr "指数サンプリング"
 
 
 msgid "Distribute more samples closer to the camera"
 msgstr "カメラの近くでより多くのサンプルを分布します"
-
-
-msgid "Number of samples to compute volumetric effects"
-msgstr "ボリューメトリック効果を計算するサンプル数"
 
 
 msgid "Volumetric Shadow Samples"
@@ -97847,14 +97582,6 @@ msgstr "ボリューメトリックシャドウを計算するサンプル数"
 
 msgid "Start distance of the volumetric effect"
 msgstr "ボリューメトリック効果の開始距離"
-
-
-msgid "Control the quality of the volumetric effects (lower size increase vram usage and quality)"
-msgstr "ボリューメトリック効果の品質をコントロールします（サイズが小さいとVRAM使用量と品質が上がります）"
-
-
-msgid "2 px"
-msgstr "2ピクセル"
 
 
 msgid "Grease Pencil Render"
@@ -98188,10 +97915,6 @@ msgstr "ディスクから読み出した未加工画像をキャッシュし，
 
 msgid "Use Default Fade"
 msgstr "デフォルトフェードを使用"
-
-
-msgid "Fade effect using the built-in default (usually make transition as long as effect strip)"
-msgstr "ビルトインのデフォルトを使用したフェードエフェクト（通常エフェクトストリップの長さで推移）"
 
 
 msgid "Use Linear Modifiers"
@@ -102077,14 +101800,6 @@ msgstr "露出オーバーの領域をゼブラストライプ付で表示"
 
 msgid "Show Overlays"
 msgstr "オーバーレイを表示"
-
-
-msgid "Separate Colors"
-msgstr "色の分離"
-
-
-msgid "Separate color channels in preview"
-msgstr "プレビューでカラーチャンネルを分離"
 
 
 msgid "Transform Preview"
@@ -113224,12 +112939,12 @@ msgid "Target object not specified"
 msgstr "ターゲットオブジェクトが指定されていません"
 
 
-msgid "GeometryNodes"
-msgstr "ジオメトリノード"
-
-
 msgid "Node group must have a geometry output"
 msgstr "ノードグループにジオメトリ出力が必要です"
+
+
+msgid "GeometryNodes"
+msgstr "ジオメトリノード"
 
 
 msgid "Image path not set"
@@ -114442,24 +114157,12 @@ msgid "Interpolation U"
 msgstr "補間 U"
 
 
-msgid "Shadow Softness"
-msgstr "ソフトシャドウ"
-
-
-msgid "Trace Distance"
-msgstr "トレース距離"
-
-
 msgid "Clipping Start"
 msgstr "クリッピング開始"
 
 
 msgid "Clipping Offset"
 msgstr "クリッピングオフセット"
-
-
-msgid "Capture Distance"
-msgstr "キャプチャ距離"
 
 
 msgid "Bleed Bias"
@@ -114842,10 +114545,6 @@ msgstr "なし"
 msgctxt "Operator"
 msgid "Invert"
 msgstr "反転"
-
-
-msgid "Max Displacement"
-msgstr "最大ディスプレイスメント"
 
 
 msgid "Render Method"
@@ -115808,16 +115507,16 @@ msgid "Cascade Size"
 msgstr "カスケードサイズ"
 
 
-msgid "Pool Size"
-msgstr "プールサイズ"
-
-
 msgid "Tracing"
 msgstr "トレーシング"
 
 
 msgid "Rays"
 msgstr "レイ数"
+
+
+msgid "Volume Shadows"
+msgstr "ボリュームシャドウ"
 
 
 msgid "Temporal Reprojection"
@@ -115853,11 +115552,6 @@ msgstr "レンダーエンジン"
 msgctxt "Operator"
 msgid "Bake Cubemap Only"
 msgstr "キューブマップのみベイク"
-
-
-msgctxt "Operator"
-msgid "Bake Volumes"
-msgstr "ボリュームをベイク"
 
 
 msgid "Shadow Resolution"
@@ -117822,10 +117516,6 @@ msgid "Fractional Preview Zoom"
 msgstr "フラクタルプレビューズーム"
 
 
-msgid "Show Separate Color Channels"
-msgstr "各カラーチャンネルを表示"
-
-
 msgctxt "Operator"
 msgid "Change Scene..."
 msgstr "シーンを変更..."
@@ -118764,14 +118454,6 @@ msgid "Cycles is disabled in this build"
 msgstr "このビルドでは Cycles は無効化されています"
 
 
-msgid "Microsoft Store installation"
-msgstr "Microsoft Store インストール"
-
-
-msgid "Use Windows 'Default Apps' to associate with blend files"
-msgstr "Windowの「既定のアプリ」を使用し，blend ファイルと関連付けします"
-
-
 msgid "Open blend files with this Blender version"
 msgstr "この Blender バージョンで blend ファイルを開きます"
 
@@ -118824,6 +118506,14 @@ msgstr "設定済のカスタム %s がありません"
 
 msgid "Enable Cycles Render Engine add-on to use Cycles"
 msgstr "Cycles を使用するには Cycles レンダーエンジンアドオンを有効にしてください"
+
+
+msgid "Microsoft Store installation"
+msgstr "Microsoft Store インストール"
+
+
+msgid "Use Windows 'Default Apps' to associate with blend files"
+msgstr "Windowの「既定のアプリ」を使用し，blend ファイルと関連付けします"
 
 
 msgid "Error (see console)"
@@ -122485,14 +122175,6 @@ msgstr "LIB：データがメイン.blend を参照しています：「%s」(%s
 
 msgid "LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a non-linkable data type"
 msgstr "LIB: %s:「%s」が「%s」(親:「%s」)から直接リンクされていますが，非リンクデータタイプです"
-
-
-msgid "Read packed library:  '%s', parent '%s'"
-msgstr "パックされたライブラリ読み込み：「%s」(親:「%s」)"
-
-
-msgid "Read library:  '%s', '%s', parent '%s'"
-msgstr "ライブラリ読み込み：「%s」，「%s」，(親:「%s」)"
 
 
 msgid "Cannot find lib '%s'"
@@ -128807,10 +128489,6 @@ msgid " RGB byte"
 msgstr " RGB byte型"
 
 
-msgid ",  %s"
-msgstr "，%s"
-
-
 msgid "Frame %d / %d"
 msgstr "フレーム %d / %d"
 
@@ -129663,18 +129341,6 @@ msgstr ""
 "＋[Shift]で内部のコレクションとオブジェクトにセット"
 
 
-msgid "Number of users of this data-block"
-msgstr "このデータブロックのユーザー数"
-
-
-msgid "Data-block will be retained using a fake user"
-msgstr "フェイクユーザーを使用すると，データブロックを維持できます"
-
-
-msgid "Data-block has no users and will be deleted"
-msgstr "ユーザーのないデータブロックは後で削除されます"
-
-
 msgid "Change the object in the current mode"
 msgstr "オブジェクトを現在のモードに変更します"
 
@@ -130303,20 +129969,12 @@ msgid "File association registered"
 msgstr "ファイル関連付けを登録"
 
 
-msgid "Unable to register file association"
-msgstr "ファイルの関連付けができませんでした"
-
-
 msgid "Unregistration not possible from Microsoft Store installations"
 msgstr "Microsoft Store インストールからは登録解除できません"
 
 
 msgid "File association unregistered"
 msgstr "ファイル関連付けを登録解除"
-
-
-msgid "Unable to unregister file association"
-msgstr "ファイル関連付けの登録解除ができませんでした"
 
 
 msgid "There is no asset library to remove"
@@ -130329,10 +129987,6 @@ msgstr "削除するエクステンションリポジトリがありません"
 
 msgid "Not available for Microsoft Store installations"
 msgstr "Microsoft Store インストールでは利用できません"
-
-
-msgid "Windows-only operator"
-msgstr "Windows限定オペレーター"
 
 
 msgid "Create object instance from object-data"
@@ -131377,10 +131031,6 @@ msgid "Towards Custom Camera"
 msgstr "カスタムカメラ方向"
 
 
-msgid "Cached from the first line art modifier"
-msgstr "最初のラインアートモディファイアーのキャッシュ"
-
-
 msgid "Object is not in front"
 msgstr "オブジェクトは最前面ではありません"
 
@@ -131452,14 +131102,6 @@ msgstr "タイムオフセット"
 
 msgid "External library data"
 msgstr "外部ライブラリデータ"
-
-
-msgid "All line art objects are now cleared"
-msgstr "全ラインアートオブジェクトがクリアされました"
-
-
-msgid "No active object or active object isn't a GPencil object"
-msgstr "アクティブオブジェクトなし，またはグリースペンシルオブジェクトではありません"
 
 
 msgid "Object type mismatch, Alembic object path pointed to Camera when importing, but not any more"
@@ -131595,10 +131237,6 @@ msgid "%s: Can't copy %s. The source and destination paths are the same"
 msgstr "%s:「%s」がコピーできません．コピー元と先のパスが同じです"
 
 
-msgid "%s: Can't write to asset %s:  %s"
-msgstr "%s: アセット「%s」（%s）が書き込みできません"
-
-
 msgid "%s: Can't open source asset %s"
 msgstr "%s: ソースアセット「%s」が開けません"
 
@@ -131665,10 +131303,6 @@ msgstr "読み込む USD アーカイブが開けません（コンソールに�
 
 msgid "USD Import: unable to open stage to read %s"
 msgstr "USD Import:「%s」を読み込むためのステージが開けません"
-
-
-msgid "An exception occurred invoking USD hook '%s'.  Please see the console for details"
-msgstr "USD フック「%s」呼び出しで例外が発生しました（コンソールに詳細）"
 
 
 msgid "An exception occurred invoking USD hook '%s'"
@@ -131781,10 +131415,6 @@ msgstr "%s: ジョイント「%s」のボーンが追加できません"
 
 msgid "%s: Mismatch in bone and joint counts for skeleton %s"
 msgstr "%s: スケルトン「%s」のボーンとジョイント数が合いません"
-
-
-msgid "%s:  Mismatch in bind xforms and joint counts for skeleton %s"
-msgstr "%s: スケルトン「%s」のバインド xform とジョイント数が合いません"
 
 
 msgid "USD Skeleton Import: bone matrices with negative determinants detected in prim %s. Such matrices may indicate negative scales, possibly due to mirroring operations, and can't currently be converted to Blender's bone representation. The skeletal animation won't be imported"
@@ -136869,10 +136499,6 @@ msgstr "ライブラリ「%s」はオーバーライドの再同期が必要で�
 
 msgid "%d libraries and %d linked data-blocks are missing (including %d ObjectData and %d Proxies), please check the Info and Outliner editors for details"
 msgstr "%d 個のライブラリと %d 個のデータブロックがありません（%d 個のオブジェクトデータと %d 個のプロキシを含む）．情報エディターとアウトライナーをチェックしてください"
-
-
-msgid "%d libraries have overrides needing resync (auto resynced in %.0fm%.2fs),  please check the Info editor for details"
-msgstr "%d 個のライブラリに再同期が必要なオーバーライドがありました（%.0f分%.2f秒で自動再同期完了）．情報エディターに詳細があります"
 
 
 msgid "%d sequence strips were not read because they were in a channel larger than %d"

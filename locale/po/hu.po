@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -261,32 +261,16 @@ msgid "After Current"
 msgstr "Az aktuális után"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Képkockák száma az aktuális képkocka után (csak az \"Aktuális képkocka körül\" Hagyma-hámozás metódushoz)"
-
-
 msgid "Before Current"
 msgstr "Az aktuális előtt"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Képkockák száma az aktuális képkocka előtt (csak az \"Aktuális képkocka körül\" Hagyma-hámozás metódushoz)"
 
 
 msgid "End Frame"
 msgstr "Befejező képkocka"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Az útvonal tartományának befejező képkockája a megjelenítéshez/kiszámításhoz (nem az \"Aktuális képkocka körül\" hagyma-hámozás metódushoz)"
-
-
 msgid "Start Frame"
 msgstr "Első Képkocka"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Az útvonal tartományának kezdő képkockája a megjelenítéshez/kiszámításhoz (nem az \"Aktuális képkocka körül\" hagyma-hámozás metódushoz)"
 
 
 msgid "Frame Step"
@@ -4264,8 +4248,16 @@ msgid "The size of the geometry will determine the distance between arrayed item
 msgstr "A geometria mérete fogja meghatározni a távolságot a duplikált elemek között"
 
 
+msgid "Add another object's transformation to the total offset"
+msgstr "Egy másik objektum transzformációinak hozzásdása a teljes eltoláshoz"
+
+
 msgid "Shift"
 msgstr "Shift"
+
+
+msgid "Add an offset relative to the object's bounding box"
+msgstr "Az objektum befoglaló dobozához viszonyított eltolás hozzáadása"
 
 
 msgid "Build Modifier"
@@ -7550,14 +7542,6 @@ msgstr "Csúcspontok összefésülése a szomszédos duplikációknál"
 
 msgid "Merge vertices in first and last duplicates"
 msgstr "Csúcspontok összefésülése az első és az utolsó duplikációknál"
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "Egy másik objektum transzformációinak hozzásdása a teljes eltoláshoz"
-
-
-msgid "Add an offset relative to the object's bounding box"
-msgstr "Az objektum befoglaló dobozához viszonyított eltolás hozzáadása"
 
 
 msgid "Bevel Modifier"

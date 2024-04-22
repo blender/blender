@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2023-11-06 03:54+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -487,16 +487,8 @@ msgid "End Frame"
 msgstr "Slut billede"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Slutramme for række af stier, der skal vises/beregnes (ikke for 'Around Current Frame' Løgskinningsmetode)"
-
-
 msgid "Start Frame"
 msgstr "Start billede"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Starr ramme for række af stier, der skal vises/beregnes (ikke for 'Around Current Frame' Løg-afskalningsmetode)"
 
 
 msgid "Frame Step"

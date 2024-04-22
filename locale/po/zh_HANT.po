@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -663,32 +663,16 @@ msgid "After Current"
 msgstr "在目前之後"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "在目前框幀之後要顯示的幀數 (僅適用於「目前框幀周圍」洋蔥皮化方法)"
-
-
 msgid "Before Current"
 msgstr "在目前之前"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "在目前框幀前要顯示的幀數 (僅適用於「目前框幀周圍」洋蔥皮化方法)"
 
 
 msgid "End Frame"
 msgstr "結束幀"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "要顯示/計算的路徑其範圍的結束幀 (不適用「目前框幀周圍」洋蔥皮化方法)"
-
-
 msgid "Start Frame"
 msgstr "起始幀"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "要顯示/計算的路徑其範圍的起始幀 (不適用「目前框幀周圍」洋蔥皮化方法)"
 
 
 msgid "Frame Step"
@@ -4709,10 +4693,6 @@ msgstr "平行"
 
 msgid "Parallel cameras with no convergence"
 msgstr "平行的攝影機，無交叉"
-
-
-msgid "Rotated cameras, looking at the convergence distance"
-msgstr "旋轉的攝影機，望向交叉距離"
 
 
 msgid "Interocular Distance"
@@ -12464,12 +12444,16 @@ msgid "Enable offset"
 msgstr "啟用偏移"
 
 
+msgid "Add another object's transformation to the total offset"
+msgstr "將另一個物體的變換添加至總計偏移中"
+
+
 msgid "Shift"
 msgstr "換移"
 
 
-msgid "Enable shift"
-msgstr "啟用換移"
+msgid "Add an offset relative to the object's bounding box"
+msgstr "添加個相對於物體邊界方塊的偏移"
 
 
 msgid "Uniform Scale"
@@ -12636,10 +12620,6 @@ msgstr "邊界"
 
 msgid "Mirror Modifier"
 msgstr "鏡像修改器"
-
-
-msgid "Clip points"
-msgstr "剪輯點"
 
 
 msgid "Duplicates"
@@ -13418,10 +13398,6 @@ msgstr "限定"
 
 msgid "Brush Height"
 msgstr "筆刷高度"
-
-
-msgid "Affectable height of brush (layer height for layer tool, i.e.)"
-msgstr "筆刷的可影響高度 (例：層工具的層高)"
 
 
 msgid "Brush Icon Filepath"
@@ -21545,10 +21521,6 @@ msgid "Falloff"
 msgstr "衰落"
 
 
-msgid "Falloff type the feather"
-msgstr "羽毛衰落類型"
-
-
 msgid "Smooth falloff"
 msgstr "平滑衰落"
 
@@ -22745,14 +22717,6 @@ msgstr "合併相鄰複本間的頂點"
 
 msgid "Merge vertices in first and last duplicates"
 msgstr "合併第一個與最後一個複本內的頂點"
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "將另一個物體的變換添加至總計偏移中"
-
-
-msgid "Add an offset relative to the object's bounding box"
-msgstr "添加個相對於物體邊界方塊的偏移"
 
 
 msgid "Bevel Modifier"
@@ -37322,10 +37286,6 @@ msgid "Make Links"
 msgstr "建立連結"
 
 
-msgid "Makes a link between selected output in input sockets"
-msgstr "在所選輸出/眾輸入接口之間建立連結"
-
-
 msgid "Replace socket connections with the new links"
 msgstr "以新連結替換接口連接"
 
@@ -46021,10 +45981,6 @@ msgid "Effects"
 msgstr "效果"
 
 
-msgid "Spot Shape"
-msgstr "聚光外形"
-
-
 msgid "Text Boxes"
 msgstr "文字方塊"
 
@@ -50753,10 +50709,6 @@ msgid "Use Default Fade"
 msgstr "使用預設淡化"
 
 
-msgid "Fade effect using the built-in default (usually make transition as long as effect strip)"
-msgstr "使用內建的預設淡化效果 (通常讓過渡如效果片段般長)"
-
-
 msgid "Use Linear Modifiers"
 msgstr "使用線性修改器"
 
@@ -52847,14 +52799,6 @@ msgstr "顯示過曝"
 
 msgid "Show overexposed areas with zebra stripes"
 msgstr "以斑馬條紋顯示曝光過度的區域"
-
-
-msgid "Separate Colors"
-msgstr "分離色彩"
-
-
-msgid "Separate color channels in preview"
-msgstr "在預覽中分離色彩通道"
 
 
 msgid "Transform markers as well as strips"

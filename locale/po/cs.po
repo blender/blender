@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2023-12-12 02:28+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -655,32 +655,16 @@ msgid "After Current"
 msgstr "Po aktualním"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Počet snímků, které se mají zobrazit za aktuálním snímkem (pouze pro metodu zobrazení cibule \"Kolem aktuálního snímku\")"
-
-
 msgid "Before Current"
 msgstr "Před aktuálním"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Počet snímků, které se mají zobrazit před aktuálním snímkem (pouze pro metodu zobrazení cibule \"Kolem aktuálního snímku\")"
 
 
 msgid "End Frame"
 msgstr "Poslední snímek"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Koncový snímek rozsahu cest, které mají být použity k zobrazení/výpočtu (nikoli pro metodu onionového vzhledu \"Kolem aktuálního snímku\")"
-
-
 msgid "Start Frame"
 msgstr "První frame"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Počáteční snímek rozsahu cest, které mají být zobrazěn/vypočítán (nikoli pro metodu onion-skinningu \"Around Current Frame\")"
 
 
 msgid "Frame Step"
@@ -8210,8 +8194,16 @@ msgid "Random seed"
 msgstr "Náhodný seed"
 
 
+msgid "Add another object's transformation to the total offset"
+msgstr "Použije viditelné transformace objektu pro jeho data"
+
+
 msgid "Shift"
 msgstr "Z prava"
+
+
+msgid "Add an offset relative to the object's bounding box"
+msgstr "Přidat vazbu pro aktivní kost"
 
 
 msgid "Uniform Scale"
@@ -9548,20 +9540,12 @@ msgid "Usage"
 msgstr "Využití"
 
 
-msgid "How to use this collection in line art"
-msgstr "Jak použít tuto kolekci v kresbě tužkou"
-
-
 msgid "Occlusion Only"
 msgstr "Pouze Okluze"
 
 
 msgid "Only use the collection to produce occlusion"
 msgstr "Použít pouze tuto kolekci k generování okluze"
-
-
-msgid "Don't use this collection in line art"
-msgstr "Nepoužít tuto kolekci v kresbě tužkou"
 
 
 msgid "Intersection Only"
@@ -14198,10 +14182,6 @@ msgid "Falloff"
 msgstr "Sestup"
 
 
-msgid "Falloff type the feather"
-msgstr "Odsazení typ peří"
-
-
 msgid "Smooth falloff"
 msgstr "Hladký útlum"
 
@@ -15095,14 +15075,6 @@ msgstr "Přidat vazbu pro aktivní kost"
 
 msgid "Merge Vertices"
 msgstr "Sloučit vlastnosti"
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "Použije viditelné transformace objektu pro jeho data"
-
-
-msgid "Add an offset relative to the object's bounding box"
-msgstr "Přidat vazbu pro aktivní kost"
 
 
 msgid "Bevel Modifier"
@@ -18633,14 +18605,6 @@ msgstr "Normalizovat A"
 
 msgid "Vector Rotate"
 msgstr "Vektorová Rotace"
-
-
-msgid "Invert angle"
-msgstr "Invertovat úhel"
-
-
-msgid "Type of rotation"
-msgstr "Typ rotace"
 
 
 msgid "Z Axis"
@@ -36126,10 +36090,6 @@ msgid "Minimum light intensity for a light to contribute to the lighting"
 msgstr "Minimální intenzita světla pro světlo, které přispívá k osvětlení"
 
 
-msgid "Background Separation"
-msgstr "Oddělení pozadí"
-
-
 msgid "Lower values will reduce background bleeding onto foreground elements"
 msgstr "Nižší hodnoty sníží krvácení pozadí na prvky v popředí"
 
@@ -36258,16 +36218,8 @@ msgid "Distribute more samples closer to the camera"
 msgstr "Distribuovat více vzorků blíže ke kameře"
 
 
-msgid "Number of samples to compute volumetric effects"
-msgstr "Počet vzorků pro výpočet volumetrických efektů"
-
-
 msgid "Start distance of the volumetric effect"
 msgstr "Počáteční vzdálenost volumetrického efektu"
-
-
-msgid "Control the quality of the volumetric effects (lower size increase vram usage and quality)"
-msgstr "Kontrolovat kvalitu volumetrických efektů (menší velikost zvyšuje využití VRAM a kvalitu)"
 
 
 msgid "Render settings"
@@ -37747,10 +37699,6 @@ msgstr "Velikost scény"
 
 msgid "Show Overlays"
 msgstr "Zobrazit Překrytí"
-
-
-msgid "Separate Colors"
-msgstr "Oddělit"
 
 
 msgid "View Type"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2024-03-01 16:11+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -687,32 +687,16 @@ msgid "After Current"
 msgstr "Dopo Corrente"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Numero di fotogrammi da mostrare dopo quello corrente (solo per il metodo Onion-skinning 'Per Fotogramma Corrente')"
-
-
 msgid "Before Current"
 msgstr "Prima Corrente"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Numero di fotogrammi da mostrare prima di quello corrente (solo per il metodo Onion-skinning 'Per Fotogramma Corrente')"
 
 
 msgid "End Frame"
 msgstr "Ultimo Fotogramma"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Fotogramma finale dell'intervallo dei percorsi da mostrare/calcolare (non per il metodo Onion-skinning 'Per Fotogramma Corrente')"
-
-
 msgid "Start Frame"
 msgstr "Primo Fotogramma"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Fotogramma iniziale dell'intervallo dei percorsi da mostrare/calcolare (non per il metodo Onion-skinning 'Per Fotogramma Corrente')"
 
 
 msgid "Frame Step"
@@ -4614,10 +4598,6 @@ msgstr "Camere parallele senza convergenza"
 
 msgid "Toe-in"
 msgstr "Convergenti"
-
-
-msgid "Rotated cameras, looking at the convergence distance"
-msgstr "Camere ruotate, che puntano alla distanza di convergenza"
 
 
 msgid "Interocular Distance"
@@ -12136,10 +12116,6 @@ msgid "Invert mask"
 msgstr "Inverti maschera"
 
 
-msgid "GPencil Sculpt Guide"
-msgstr "Guida alla Scultura GPencil"
-
-
 msgid "Direction of lines"
 msgstr "Direzione delle linee"
 
@@ -12444,8 +12420,16 @@ msgid "The size of the geometry will determine the distance between arrayed item
 msgstr "La dimensione della geometria determinerà la distanza tra gli elementi duplicati"
 
 
+msgid "Add another object's transformation to the total offset"
+msgstr "Aggiunge la trasformazione di un altro oggetto allo scostamento totale"
+
+
 msgid "Shift"
 msgstr "Shift"
+
+
+msgid "Add an offset relative to the object's bounding box"
+msgstr "Aggiunge uno scostamento basato sulla gabbia d'inviluppo dell'oggetto"
 
 
 msgid "Uniform Scale"
@@ -20538,10 +20522,6 @@ msgid "Falloff"
 msgstr "Decadimento"
 
 
-msgid "Falloff type the feather"
-msgstr "Tipo decadimento sfumatura"
-
-
 msgid "Smooth falloff"
 msgstr "Decadimento levigato"
 
@@ -21735,14 +21715,6 @@ msgstr "Unisce i vertici dei duplicati adiacenti"
 
 msgid "Merge vertices in first and last duplicates"
 msgstr "Unisce i vertici del primo e dell'ultimo duplicato"
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "Aggiunge la trasformazione di un altro oggetto allo scostamento totale"
-
-
-msgid "Add an offset relative to the object's bounding box"
-msgstr "Aggiunge uno scostamento basato sulla gabbia d'inviluppo dell'oggetto"
 
 
 msgid "Bevel Modifier"
@@ -35492,10 +35464,6 @@ msgid "Make Links"
 msgstr "Crea Connessioni"
 
 
-msgid "Makes a link between selected output in input sockets"
-msgstr "Crea una connessione tra l'uscita selezionata ed i connettori d'ingresso"
-
-
 msgid "Replace socket connections with the new links"
 msgstr "Rimpiazza i legami fra i connettori con le nuove connessioni"
 
@@ -44206,10 +44174,6 @@ msgid "Effects"
 msgstr "Effetti"
 
 
-msgid "Spot Shape"
-msgstr "Forma Spot"
-
-
 msgid "Text Boxes"
 msgstr "Caselle di Testo"
 
@@ -50550,14 +50514,6 @@ msgstr "Mostra Sovraesposte"
 
 msgid "Show overexposed areas with zebra stripes"
 msgstr "Mostra aree sovraesposte con una zebratura"
-
-
-msgid "Separate Colors"
-msgstr "Separa Colori"
-
-
-msgid "Separate color channels in preview"
-msgstr "Separa i canali colore nell'anteprima"
 
 
 msgid "View Type"
@@ -57067,14 +57023,6 @@ msgid "Library '%s', '%s' had multiple instances, save and reload!"
 msgstr "La libreria '%s', '%s' ha istanze multiple, salva e ricarica!"
 
 
-msgid "Read packed library:  '%s', parent '%s'"
-msgstr "Lettura libreria incorporata: '%s', parentela '%s'"
-
-
-msgid "Read library:  '%s', '%s', parent '%s'"
-msgstr "Lettura libreria: '%s', '%s', parentela '%s'"
-
-
 msgid "Cannot find lib '%s'"
 msgstr "Impossibile trovare la libreria '%s'"
 
@@ -59519,18 +59467,6 @@ msgstr "Riordina"
 
 msgid "Copy to object"
 msgstr "Copia a oggetto"
-
-
-msgid "Number of users of this data-block"
-msgstr "Numero di utilizzatori di questo Blocco-dati"
-
-
-msgid "Data-block will be retained using a fake user"
-msgstr "Il Blocco-Dati sarà conservato usando un utilizzatore fittizio"
-
-
-msgid "Data-block has no users and will be deleted"
-msgstr "Il Blocco-Dati non ha un utilizzatore e sarà cancellato"
 
 
 msgid "Library path '%s' does not exist, correct this before saving"

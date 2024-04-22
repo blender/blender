@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2024-04-13 17:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -651,32 +651,16 @@ msgid "After Current"
 msgstr "Po bieżącej"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Liczba klatek do pokazania za bieżącą klatką (tylko dla 'wokół bieżącej klatki' dla metody pokrywania warstwowego)"
-
-
 msgid "Before Current"
 msgstr "Przed bieżącą"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Liczba klatek do pokazania przed bieżącą klatką (tylko dla 'wokół bieżącej klatki' dla metody pokrywania warstwowego)"
 
 
 msgid "End Frame"
 msgstr "Klatka końcowa"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Końcowa klatka zakresu dla którego wyświetlane są trajektorie (nie dla 'Wokół bieżącej klatki' w przypadku pokrywania warstwowego)"
-
-
 msgid "Start Frame"
 msgstr "Klatka początkowa"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Początkowa klatka zakresu dla którego wyświetlane są trajektorie (nie dla 'Wokół bieżącej klatki' w przypadku pokrywania warstwowego)"
 
 
 msgid "Frame Step"
@@ -3705,10 +3689,6 @@ msgstr "Równoległe"
 
 msgid "Parallel cameras with no convergence"
 msgstr "Kamery równoległe bez zbieżności"
-
-
-msgid "Rotated cameras, looking at the convergence distance"
-msgstr "Kamery obrócone, patrzące na punkt zbieżności"
 
 
 msgid "Interocular Distance"
@@ -18344,11 +18324,6 @@ msgid "Bake Cubemap Only"
 msgstr "Wypal wyłącznie mapę sześcienną"
 
 
-msgctxt "Operator"
-msgid "Bake Volumes"
-msgstr "Wypal kubatury"
-
-
 msgid "Shadow Resolution"
 msgstr "Rozdzielczość cieni"
 
@@ -20188,14 +20163,6 @@ msgstr "Otwarcie niemożliwe"
 
 msgid "Library '%s', '%s' had multiple instances, save and reload!"
 msgstr "Biblioteka '%s', '%s' posiadała wiele instancji, Zapisać i przeładować!"
-
-
-msgid "Read packed library:  '%s', parent '%s'"
-msgstr "Odczyt spakowanej biblioteki:  '%s', rodzic '%s'"
-
-
-msgid "Read library:  '%s', '%s', parent '%s'"
-msgstr "Odczyt biblioteki:  '%s', '%s', rodzic '%s'"
 
 
 msgid "Cannot find lib '%s'"

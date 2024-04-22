@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -7023,14 +7023,6 @@ msgid "Rotate a vector around a pivot point (center)"
 msgstr "Rotera en vektor runt en pivotpunkt (center)"
 
 
-msgid "Invert angle"
-msgstr "Invertera vinkel"
-
-
-msgid "Type of rotation"
-msgstr "Typ av rotation"
-
-
 msgid "Convert From"
 msgstr "Konvertera från"
 
@@ -10446,10 +10438,6 @@ msgstr "Visa/göm markerade noder"
 msgctxt "Operator"
 msgid "Make Links"
 msgstr "Skapa länkar"
-
-
-msgid "Makes a link between selected output in input sockets"
-msgstr "Skapa en länk mellan markerade output i input-uttag"
 
 
 msgid "Replace socket connections with the new links"

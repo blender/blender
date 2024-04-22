@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -423,32 +423,16 @@ msgid "After Current"
 msgstr "ﻲﻟﺎﺤﻟﺍ ﺪﻌﺑ"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "(ﺔﻴﻓﺎﻔﺸﻟﺍ ﻞﻴﻌﻔﺗ ﺔﻘﻳﺮﻃ 'ﻲﻟﺎﺤﻟﺍ ﺭﺎﻃﻹ﻿ﺍ ﻝﻮﺣ' ﻞﺟﺃ ﻦﻣ ﻂﻘﻓ) ﻲﻟﺎﺤﻟﺍ ﺭﺎﻃﻹ﻿ﺍ ﺪﻌﺑ ﺓﺮﻫﺎﻈﻟﺍ ﺕﺍﺭﺎﻃﻹ﻿ﺍ ﺩﺪﻋ"
-
-
 msgid "Before Current"
 msgstr "ﻲﻟﺎﺤﻟﺍ ﻞﺒﻗ"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "(ﺔﻴﻓﺎﻔﺸﻟﺍ ﻞﻴﻌﻔﺗ ﺔﻘﻳﺮﻃ 'ﻲﻟﺎﺤﻟﺍ ﺭﺎﻃﻹ﻿ﺍ ﻝﻮﺣ' ﻞﺟﻷ﻿ ﻂﻘﻓ) ﻲﻟﺎﺤﻟﺍ ﺭﺎﻃﻹ﻿ﺍ ﻞﺒﻗ ﺓﺮﻫﺎﻈﻟﺍ ﺮﻃﻷ﻿ﺍ ﺩﺪﻋ"
 
 
 msgid "End Frame"
 msgstr "ﺔﻳﺎﻬﻨﻟﺍ ﺭﺎﻃﺇ"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "(ﺔﻴﻓﺎﻔﺸﻟﺍ ﻞﻴﻌﻔﺗ ﺔﻘﻳﺮﻃ 'ﻲﻠﺤﻟﺍ ﺭﺎﻃﻹ﻿ﺍ ﻝﻮﺣ' ﻞﺟﺃ ﻦﻣ ﺲﻴﻟ) ﺏﺎﺴﺤﻟﺍ/ﺭﺎﻬﻇﻺ﻿ﻟ ﺕﺍﺭﺎﺴﻤﻟﺍ ﻕﺎﻄﻧ ﻞﺟﺃ ﻦﻣ ﺔﻳﺎﻬﻨﻟﺍ ﺭﺎﻃﺇ"
-
-
 msgid "Start Frame"
 msgstr "ﺔﻳﺍﺪﺒﻟﺍ ﺭﺎﻃﺇ"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "(ﺔﻴﻓﺎﻔﺸﻟﺍ ﻞﻴﻌﻔﺗ ﺔﻘﻳﺮﻃ 'ﻲﻟﺎﺤﻟﺍ ﺭﺎﻃﻺ﻿ﻟﺍ ﻝﻮﺣ' ﻞﺟﺃ ﻦﻣ ﺲﻴﻟ) ﺏﺎﺴﺤﻟﺍ/ﺭﺎﻬﻇﻺ﻿ﻟ ﺕﺍﺭﺎﺴﻤﻟﺍ ﻕﺎﻄﻧ ﻞﺟﺃ ﻦﻣ ﺔﻳﺍﺪﺒﻟﺍ ﺭﺎﻃﺇ"
 
 
 msgid "Frame Step"
@@ -2329,10 +2313,6 @@ msgstr "ءﺎﻘﺘﻟﺇ ﻥﻭﺪﺑ ﺔﻳﺯﺍﻮﺘﻣ ﺍﺮﻴﻤﻛ"
 
 msgid "Toe-in"
 msgstr "ﻞﺧﺍﺪّﻟ ﻢﺿ"
-
-
-msgid "Rotated cameras, looking at the convergence distance"
-msgstr "ءﺎﻘﺘﻟﻻ﻿ﺍ ﺔﻓﺎﺴﻤﻟ ﻪﺠﺘﺗ ,ﺓﺭﺍﺪﻣ ﺕﺍﺮﻴﻤﻛ"
 
 
 msgid "Interocular Distance"
@@ -9302,10 +9282,6 @@ msgstr "ـﻟ ﻢﻠﻗ"
 
 msgid "Brush Height"
 msgstr "ﺓﺎﺷﺮﻔﻟﺍ ﻉﺎﻔﺗﺭﺍ"
-
-
-msgid "Affectable height of brush (layer height for layer tool, i.e.)"
-msgstr "(ﻼ﻿ﺜﻣ ,ﺔﻘﺒﻄﻟﺍ ﺓﺍﺩﻻ﻿ ﺔﻘﺒﻄﻟﺍ ﻉﺎﻔﺗﺭﺍ) ﺮﺛّﺄﺘﻠﻟ ﻞﺑﺎﻗ ﺓﺎﺷﺮﻔﻟﺍ ﻉﺎﻔﺗﺭﺍ"
 
 
 msgid "Brush Icon Filepath"
@@ -16301,10 +16277,6 @@ msgstr "ﺡﺮﻄﻟﺍ ﺞﻣﺩﺍ"
 msgctxt "Curve"
 msgid "Falloff"
 msgstr "ﻲﺷﻼ﻿ﺘﻟﺍ"
-
-
-msgid "Falloff type the feather"
-msgstr "ﻲﺷﻼ﻿ﺘﻟﺍ ﻉﻮﻧ"
 
 
 msgid "Smooth falloff"
@@ -29686,10 +29658,6 @@ msgid "Path Animation"
 msgstr "ﺭﺎﺴﻤﻟﺍ ﺔﻛﺮﺣ"
 
 
-msgid "Spot Shape"
-msgstr "ءﻮﻀﻟﺍ ﺔﻌﻘﺑ ﻞﻜﺷ"
-
-
 msgid "Text Boxes"
 msgstr "ﺔﺑﺎﺘﻜﻟﺍ ﺕﺎﻧﺎﺧ"
 
@@ -33842,10 +33810,6 @@ msgstr "ﻲﻟﺎﺤﻟﺍ"
 
 msgid "Show current frame only"
 msgstr "ﻂﻘﻓ ﻲﻟﺎﺤﻟﺍ ﺭﺎﻃﻻ﻿ﺍ ﺮﻬﻇﺍ"
-
-
-msgid "Separate Colors"
-msgstr "ﻥﺍﻮﻟﻻ﻿ﺍ ﻞﺼﻓﺍ"
 
 
 msgid "View Type"

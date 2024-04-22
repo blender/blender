@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2023-11-30 20:00+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -682,32 +682,16 @@ msgid "After Current"
 msgstr "ﯽﻠﻌﻓ ﺯﺍ ﺲﭘ"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "(\"ﯽﻠﻌﻓ ﻢﯾﺮﻓ ﺩﻭﺪﺣ\" Onion-skinning ﺵﻭﺭ ﯼﺍﺮﺑ ﻂﻘﻓ) ﺪﻧﻮﺷ ﻩﺩﺍﺩ ﻥﺎﺸﻧ ﯽﻠﻌﻓ ﻢﯾﺮﻓ ﺯﺍ ﺪﻌﺑ ﺪﯾﺎﺑ ﻪﮐ ﯽﯾﺎﻫ‌ﻢﯾﺮﻓ ﺩﺍﺪﻌﺗ"
-
-
 msgid "Before Current"
 msgstr "ﯽﻠﻌﻓ ﺯﺍ ﺶﯿﭘ"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "(\"ﯽﻠﻌﻓ ﻢﯾﺮﻓ ﺩﻭﺪﺣ\" Onion-skinning ﺵﻭﺭ ﯼﺍﺮﺑ ﻂﻘﻓ) ﺪﻧﻮﺷ‌ﯽﻣ ﻩﺩﺍﺩ ﻥﺎﺸﻧ ﯽﻠﻌﻓ ﻢﯾﺮﻓ ﺯﺍ ﻞﺒﻗ ﻪﮐ ﯽﯾﺎﻫ‌ﻢﯾﺮﻓ ﺩﺍﺪﻌﺗ"
 
 
 msgid "End Frame"
 msgstr "ﻢﯾﺮﻓ ﻥﺎﯾﺎﭘ"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "(\"ﯽﻠﻌﻓ ﺏﺎﻗ ﺩﻭﺪﺣ\" Onion-skinning ﺵﻭﺭ ﯼﺍﺮﺑ ﻪﻧ) ﻪﺒﺳﺎﺤﻣ/ﺶﯾﺎﻤﻧ ﯼﺍﺮﺑ ﺎﻫﺮﯿﺴﻣ ﻩﺩﻭﺪﺤﻣ ﯽﯾﺎﻬﺘﻧﺍ ﻢﯾﺮﻓ"
-
-
 msgid "Start Frame"
 msgstr "ﻢﯾﺮﻓ ﻉﻭﺮﺷ"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "(\"ﯽﻠﻌﻓ ﺏﺎﻗ ﺩﻭﺪﺣ\" Onion-skinning ﺵﻭﺭ ﯼﺍﺮﺑ ﻪﻧ) ﻪﺒﺳﺎﺤﻣ/ﺶﯾﺎﻤﻧ ﯼﺍﺮﺑ ﺎﻫﺮﯿﺴﻣ ﻩﺩﻭﺪﺤﻣ ﻉﻭﺮﺷ ﻢﯾﺮﻓ"
 
 
 msgid "Frame Step"

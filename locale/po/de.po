@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -582,32 +582,16 @@ msgid "After Current"
 msgstr "Nach Aktuellem"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Anzahl der Bilder, die nach dem aktuellen Bild angezeigt werden(nur für 'das aktuelle Bild' Zwiebelschalen-Methode)"
-
-
 msgid "Before Current"
 msgstr "Vor Aktuellem"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Anzahl der Bilder, die vor dem aktuellen Bild angezeigt werden(nur für 'das aktuelle Bild' Zwiebelschalen-Methode)"
 
 
 msgid "End Frame"
 msgstr "Endbild"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Endbild der Pfadspanne, das angezeigt/berechnet werden soll (nicht für 'das aktuelle Bild' Zwiebelschalen-Methode)"
-
-
 msgid "Start Frame"
 msgstr "Startbild"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Startbild der Pfadspanne, das angezeigt/berechnet werden soll (nicht für 'das aktuelle Bild' Zwiebelschalen-Methode)"
 
 
 msgid "Frame Step"
@@ -4457,10 +4441,6 @@ msgstr "Parallelkameras ohne Konvergenz"
 
 msgid "Toe-in"
 msgstr "Vorspur"
-
-
-msgid "Rotated cameras, looking at the convergence distance"
-msgstr "Gedrehte Kameras, Blick auf den Konvergenzabstand"
 
 
 msgid "Interocular Distance"
@@ -11300,10 +11280,6 @@ msgid "Invert mask"
 msgstr "Maskierung invertieren"
 
 
-msgid "GPencil Sculpt Guide"
-msgstr "Wachsstift-Skulptur Anleitung"
-
-
 msgid "Circular"
 msgstr "Kreisähnlich"
 
@@ -11746,16 +11722,12 @@ msgid "Enable offset"
 msgstr "Versatz aktivieren"
 
 
-msgid "Enable object offset"
-msgstr "Objektversatz aktivieren"
+msgid "Add another object's transformation to the total offset"
+msgstr "Andere Objekttransformation zum gesamten Versatz hinzufügen"
 
 
 msgid "Shift"
 msgstr "Umschalt"
-
-
-msgid "Enable shift"
-msgstr "Veränderung aktivieren"
 
 
 msgid "Uniform Scale"
@@ -19931,10 +19903,6 @@ msgid "Falloff"
 msgstr "Abfall"
 
 
-msgid "Falloff type the feather"
-msgstr "Abfalltyp der Feder"
-
-
 msgid "Smooth falloff"
 msgstr "Weicher Abfall"
 
@@ -21216,10 +21184,6 @@ msgstr "Endpunkte zusammenführen"
 
 msgid "Merge vertices in first and last duplicates"
 msgstr "Punkte im ersten und letzten Duplikat zusammenführen"
-
-
-msgid "Add another object's transformation to the total offset"
-msgstr "Andere Objekttransformation zum gesamten Versatz hinzufügen"
 
 
 msgid "Bevel Modifier"
@@ -26317,14 +26281,6 @@ msgstr "Modulo"
 
 msgid "Vector Rotate"
 msgstr "Vektor Rotieren"
-
-
-msgid "Invert angle"
-msgstr "Achse invertieren"
-
-
-msgid "Type of rotation"
-msgstr "Rotationstyp"
 
 
 msgid "Rotate a point using X axis"
@@ -34498,10 +34454,6 @@ msgid "Make Links"
 msgstr "Verknüpfen"
 
 
-msgid "Makes a link between selected output in input sockets"
-msgstr "Verbindung zwischen Ausgangs- und Eingangsbuchse erzeugen"
-
-
 msgctxt "Operator"
 msgid "Link to Viewer Node"
 msgstr "An Ansicht ausrichten"
@@ -42136,10 +42088,6 @@ msgid "Effects"
 msgstr "Effekte"
 
 
-msgid "Spot Shape"
-msgstr "Punkt-Form"
-
-
 msgid "Text Boxes"
 msgstr "Textboxen"
 
@@ -47227,16 +47175,8 @@ msgid "Factor for ambient occlusion blending"
 msgstr "Faktor für Ambient Occlusion Überblendung"
 
 
-msgid "4 px"
-msgstr "4 px"
-
-
 msgid "Light Threshold"
 msgstr "Lichtschwellwert"
-
-
-msgid "Background Separation"
-msgstr "Hintergrundtrennung"
 
 
 msgid "Motion steps"
@@ -47269,10 +47209,6 @@ msgstr "Weiche Schatten"
 
 msgid "Viewport Denoising"
 msgstr "Viewport entrauschen"
-
-
-msgid "2 px"
-msgstr "2 px"
 
 
 msgid "Grease Pencil Render"
@@ -49085,10 +49021,6 @@ msgstr "Szenengröße"
 
 msgid "Display Frames"
 msgstr "Einzelbilder anzeigen"
-
-
-msgid "Separate Colors"
-msgstr "Farben trennen"
 
 
 msgid "Transform markers as well as strips"
@@ -58470,14 +58402,6 @@ msgstr "BIBL: Daten beziehen sich auf die Hauptdatei .blend: '%s' von %s"
 
 msgid "LIB: %s: '%s' is directly linked from '%s' (parent '%s'), but is a non-linkable data type"
 msgstr "BIBL: %s: '%s' ist direkt von '%s' (übergeordnete '%s') verknüpft, ist aber ein nicht verknüpfbarer Datentyp"
-
-
-msgid "Read packed library:  '%s', parent '%s'"
-msgstr "Lese gepackte Bibliothek: '%s', Kind '%s'"
-
-
-msgid "Read library:  '%s', '%s', parent '%s'"
-msgstr "Bibliothek lesen: '%s', '%s', übergeordnete '%s'"
 
 
 msgid "Cannot find lib '%s'"

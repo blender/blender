@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'c30667711948')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 10:09+0000\n"
+"POT-Creation-Date: 2024-04-22 07:36+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -675,32 +675,16 @@ msgid "After Current"
 msgstr "Geçerliden Sonra"
 
 
-msgid "Number of frames to show after the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Geçerli kareden sonra gösterilecek kare sayısı (yalnızca 'Geçerli Kare Çevresi' soğan zarı soyma yöntemi)"
-
-
 msgid "Before Current"
 msgstr "Geçerliden Önce"
-
-
-msgid "Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)"
-msgstr "Geçerli kareden önce gösterilecek kare sayısı (yalnızca 'Geçerli Kare Çevresi' soğan zarı soyma yöntemi)"
 
 
 msgid "End Frame"
 msgstr "Bitiş Karesi"
 
 
-msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Görüntülenecek/hesaplanacak yol eriminin bitiş karesi ('Geçerli Kare Çevresi' soğan zarı soyma yöntemi için değil)"
-
-
 msgid "Start Frame"
 msgstr "Başlangıç Karesi"
-
-
-msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
-msgstr "Görüntülenecek/hesaplanacak yol eriminin başlangıç karesi ('Geçerli Kare Çevresi' soğan zarı soyma yöntemi için değil)"
 
 
 msgid "Frame Step"
@@ -5362,10 +5346,6 @@ msgid "Toe-in"
 msgstr "Ayak Ucu"
 
 
-msgid "Rotated cameras, looking at the convergence distance"
-msgstr "Yakınsama uzaklığına bakan döndürülmüş kameralar"
-
-
 msgid "Interocular Distance"
 msgstr "Gözlerarası Uzaklık"
 
@@ -6738,10 +6718,6 @@ msgid "ViewLayer"
 msgstr "Görünüm Katmanı"
 
 
-msgid "GPencil Sculpt Guide"
-msgstr "Gres Kalemiyle Yontma Kılavuzu"
-
-
 msgid "GPencil Sculpt Settings"
 msgstr "Gres Kalemiyle Yontma Ayarları"
 
@@ -6793,10 +6769,6 @@ msgstr "Pürüzsüz"
 
 msgid "Lattice Modifier"
 msgstr "Dış Kafes Değiştiricisi"
-
-
-msgid "Change stroke using lattice to deform modifier"
-msgstr "Değiştiriciyi deforme etmek için vuruşu dış kafes kullanarak değiştir"
 
 
 msgid "Lattice object to deform with"
