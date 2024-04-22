@@ -17,6 +17,8 @@
  *  - Blend Read Data: Loads structs and memory buffers from file and updates pointers them.
  *  - Blend Read Lib: Updates pointers to ID data blocks.
  *  - Blend Expand: Defines which other data blocks should be loaded (possibly from other files).
+ *      Note, this is now handled as part of the foreach-id iteration. This needs to be implemented
+ *      for DNA data that has references to data-blocks.
  *
  * Each of these callbacks uses a different API functions.
  *
