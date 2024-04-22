@@ -203,7 +203,7 @@ void GLBackend::platform_init()
   }
 
   /* Compute shaders have some issues with those versions (see #94936). */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
+  if ((device & GPU_DEVICE_ATI) && (driver & GPU_DRIVER_OFFICIAL) &&
       (strstr(version, "4.5.14831") || strstr(version, "4.5.14760")))
   {
     support_level = GPU_SUPPORT_LEVEL_UNSUPPORTED;
