@@ -143,3 +143,12 @@ void BKE_animdata_merge_copy(
 
 void BKE_animdata_blend_write(BlendWriter *writer, ID *id);
 void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id);
+
+/**
+ * Process the AnimData struct after all library overrides have been applied.
+ *
+ * This is necessary as an extra step to fix the NLA, as that requires multiple pointers & various
+ * sets of flags to all be consistent. It's much easier to do that once all overrides have been
+ * applied.
+ */
+void BKE_animdata_liboverride_post_process(ID *id);
