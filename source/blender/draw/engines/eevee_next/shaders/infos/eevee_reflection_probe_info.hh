@@ -68,6 +68,7 @@ GPU_SHADER_CREATE_INFO(eevee_reflection_probe_convolve)
     .do_static_compilation(true);
 
 GPU_SHADER_INTERFACE_INFO(eevee_display_probe_reflection_iface, "")
+    .smooth(Type::VEC3, "P")
     .smooth(Type::VEC2, "lP")
     .flat(Type::INT, "probe_index");
 
