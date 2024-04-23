@@ -295,6 +295,14 @@ static bool overlay_object_is_edit_mode(const OVERLAY_PrivateData *pd, const Obj
   return false;
 }
 
+static bool overlay_object_is_paint_mode(const DRWContextState *draw_ctx, const Object *ob)
+{
+  if (ob->type == OB_GREASE_PENCIL && draw_ctx->object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) {
+    return true;
+  }
+  return (ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT);
+}
+
 static bool overlay_should_fade_object(Object *ob, Object *active_object)
 {
   if (!active_object || !ob) {
@@ -337,8 +345,7 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                                                 false;
   const bool in_particle_edit_mode = (ob->mode == OB_MODE_PARTICLE_EDIT) &&
                                      (pd->ctx_mode == CTX_MODE_PARTICLE);
-  const bool in_paint_mode = (ob == draw_ctx->obact) &&
-                             (draw_ctx->object_mode & OB_MODE_ALL_PAINT);
+  const bool in_paint_mode = overlay_object_is_paint_mode(draw_ctx, ob);
   const bool in_sculpt_curve_mode = (ob == draw_ctx->obact ||
                                      (is_preview && dupli_parent == draw_ctx->obact &&
                                       ob->type == OB_CURVES)) &&
@@ -464,6 +471,9 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
         break;
       case OB_MODE_TEXTURE_PAINT:
         OVERLAY_paint_texture_cache_populate(data, ob);
+        break;
+      case OB_MODE_WEIGHT_GPENCIL_LEGACY:
+        OVERLAY_weight_grease_pencil_cache_populate(data, ob);
         break;
       default:
         break;
@@ -751,6 +761,7 @@ static void OVERLAY_draw_scene(void *vedata)
       OVERLAY_edit_curves_draw(data);
       break;
     case CTX_MODE_EDIT_GREASE_PENCIL:
+    case CTX_MODE_WEIGHT_GREASE_PENCIL:
       OVERLAY_edit_grease_pencil_draw(data);
       break;
     default:

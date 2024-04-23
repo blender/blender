@@ -46,6 +46,7 @@ void OVERLAY_edit_particle_cache_init(OVERLAY_Data *vedata)
   sh = OVERLAY_shader_edit_particle_point();
   pd->edit_particle_point_grp = grp = DRW_shgroup_create(sh, psl->edit_particle_ps);
   DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
+  DRW_shgroup_uniform_bool_copy(grp, "useWeight", false);
 }
 
 void OVERLAY_edit_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
