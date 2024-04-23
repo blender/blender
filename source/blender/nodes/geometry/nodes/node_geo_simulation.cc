@@ -25,9 +25,9 @@
 #include "UI_interface.hh"
 
 #include "NOD_common.h"
+#include "NOD_geo_simulation.hh"
 #include "NOD_geometry.hh"
 #include "NOD_socket.hh"
-#include "NOD_zone_socket_items.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_mesh_types.h"
@@ -47,6 +47,8 @@
 #include "GEO_mix_geometries.hh"
 
 #include "WM_api.hh"
+
+#include "BLO_read_write.hh"
 
 #include "node_geometry_util.hh"
 
@@ -976,6 +978,27 @@ void mix_baked_data_item(const eNodeSocketDatatype socket_type,
     }
     default:
       break;
+  }
+}
+
+StructRNA *SimulationItemsAccessor::item_srna = &RNA_SimulationStateItem;
+int SimulationItemsAccessor::node_type = GEO_NODE_SIMULATION_OUTPUT;
+
+void SimulationItemsAccessor::blend_write(BlendWriter *writer, const bNode &node)
+{
+  const auto &storage = *static_cast<const NodeGeometrySimulationOutput *>(node.storage);
+  BLO_write_struct_array(writer, NodeSimulationItem, storage.items_num, storage.items);
+  for (const NodeSimulationItem &item : Span(storage.items, storage.items_num)) {
+    BLO_write_string(writer, item.name);
+  }
+}
+
+void SimulationItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
+{
+  auto &storage = *static_cast<NodeGeometrySimulationOutput *>(node.storage);
+  BLO_read_data_address(reader, &storage.items);
+  for (const NodeSimulationItem &item : Span(storage.items, storage.items_num)) {
+    BLO_read_data_address(reader, &item.name);
   }
 }
 

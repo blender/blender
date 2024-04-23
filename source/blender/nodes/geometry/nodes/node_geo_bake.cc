@@ -4,9 +4,9 @@
 
 #include <fmt/format.h>
 
+#include "NOD_geo_bake.hh"
 #include "NOD_node_extra_info.hh"
 #include "NOD_rna_define.hh"
-#include "NOD_zone_socket_items.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -28,6 +28,8 @@
 #include "MOD_nodes.hh"
 
 #include "WM_api.hh"
+
+#include "BLO_read_write.hh"
 
 #include "node_geometry_util.hh"
 
@@ -699,6 +701,27 @@ std::unique_ptr<LazyFunction> get_bake_lazy_function(
   namespace file_ns = blender::nodes::node_geo_bake_cc;
   BLI_assert(node.type == GEO_NODE_BAKE);
   return std::make_unique<file_ns::LazyFunctionForBakeNode>(node, lf_graph_info);
+}
+
+StructRNA *BakeItemsAccessor::item_srna = &RNA_NodeGeometryBakeItem;
+int BakeItemsAccessor::node_type = GEO_NODE_BAKE;
+
+void BakeItemsAccessor::blend_write(BlendWriter *writer, const bNode &node)
+{
+  const auto &storage = *static_cast<const NodeGeometryBake *>(node.storage);
+  BLO_write_struct_array(writer, NodeGeometryBakeItem, storage.items_num, storage.items);
+  for (const NodeGeometryBakeItem &item : Span(storage.items, storage.items_num)) {
+    BLO_write_string(writer, item.name);
+  }
+}
+
+void BakeItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
+{
+  auto &storage = *static_cast<NodeGeometryBake *>(node.storage);
+  BLO_read_data_address(reader, &storage.items);
+  for (const NodeGeometryBakeItem &item : Span(storage.items, storage.items_num)) {
+    BLO_read_data_address(reader, &item.name);
+  }
 }
 
 };  // namespace blender::nodes

@@ -246,6 +246,7 @@ set(INC
   ../../io/usd
   ../../modifiers
   ../../nodes
+  ../../nodes/geometry/include
   ../../sequencer
   ../../simulation
   ../../windowmanager
