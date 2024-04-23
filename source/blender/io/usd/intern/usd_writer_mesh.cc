@@ -112,6 +112,12 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
     }
     throw;
   }
+
+  auto prim = usd_export_context_.stage->GetPrimAtPath(usd_export_context_.usd_path);
+  if (prim.IsValid() && object_eval) {
+    prim.SetActive((object_eval->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
+    write_id_properties(prim, mesh->id, get_export_time_code());
+  }
 }
 
 void USDGenericMeshWriter::write_custom_data(const Object *obj,

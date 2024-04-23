@@ -54,6 +54,9 @@ void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampl
   }
 
   BKE_object_apply_mat4(object_, transform_from_usd, true, false);
+
+  /* Make sure to collect custom attributes */
+  set_props(use_parent_xform(), motionSampleTime);
 }
 
 void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,

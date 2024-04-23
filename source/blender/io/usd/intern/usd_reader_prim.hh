@@ -16,6 +16,7 @@
 #include <pxr/usd/sdf/path.h>
 #include <pxr/usd/usd/prim.h>
 
+#include <optional>
 #include <string>
 
 struct CacheFile;
@@ -161,6 +162,28 @@ class USDPrimReader {
   }
 
   bool is_in_proto() const;
+
+ protected:
+  /**
+   * Convert custom attributes on the encapsulated USD prim (or on its parent)
+   * to custom properties on the generated object and/or data.  This function
+   * assumes create_object() and read_object_data() have been called.
+   *
+   * If the generated object has instantiated data, it's assumed that the data
+   * represents the USD prim, and the prim properties will be set on the data ID.
+   * If the object data is null (which would be the case when a USD Xform is
+   * converted to an Empty object), then the prim properties will be set on the
+   * object ID.  Finally, a true value for the 'merge_with_parent' argument indicates
+   * that the object represents a USD Xform and its child prim that were merged
+   * on import, and the properties of the prim's parent will be set on the object
+   * ID.
+   *
+   * \param merge_with_parent: If true, set the properties of the prim's parent
+   *                           on the object ID
+   * \param motionSampleTime: The time code for sampling tha USD attributes
+   */
+  void set_props(bool merge_with_parent = false,
+                 pxr::UsdTimeCode motionSampleTime = pxr::UsdTimeCode::Default());
 };
 
 }  // namespace blender::io::usd

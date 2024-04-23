@@ -229,6 +229,11 @@ bool SocketValueVariant::is_context_dependent_field() const
   return field.node().depends_on_input();
 }
 
+bool SocketValueVariant::is_volume_grid() const
+{
+  return kind_ == Kind::Grid;
+}
+
 void SocketValueVariant::convert_to_single()
 {
   switch (kind_) {

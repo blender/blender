@@ -97,6 +97,9 @@ void USDCameraWriter::do_write(HierarchyContext &context)
     float focus_distance = BKE_camera_object_dof_distance(context.object);
     usd_camera.CreateFocusDistanceAttr().Set(focus_distance, timecode);
   }
+
+  auto prim = usd_camera.GetPrim();
+  write_id_properties(prim, camera->id, timecode);
 }
 
 }  // namespace blender::io::usd
