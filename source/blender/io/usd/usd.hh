@@ -35,6 +35,17 @@ enum eUSDMtlNameCollisionMode {
 };
 
 /**
+ *  Behavior for importing of custom
+ *  attributes / properties outside
+ *  a prim's regular schema.
+ */
+typedef enum eUSDAttrImportMode {
+  USD_ATTR_IMPORT_NONE = 0,
+  USD_ATTR_IMPORT_USER = 1,
+  USD_ATTR_IMPORT_ALL = 2,
+} eUSDAttrImportMode;
+
+/**
  *  Behavior when importing textures from a package
  * (e.g., USDZ archive) or from a URI path.
  */
@@ -84,6 +95,8 @@ struct USDExportParams {
   bool export_textures = true;
   bool overwrite_textures = true;
   bool relative_paths = true;
+  bool export_custom_properties = true;
+  bool author_blender_name = true;
   char root_prim_path[1024] = ""; /* FILE_MAX */
   char collection[MAX_IDPROP_NAME] = "";
 
@@ -126,6 +139,7 @@ struct USDImportParams {
   char import_textures_dir[768]; /* FILE_MAXDIR */
   eUSDTexNameCollisionMode tex_name_collision_mode;
   bool import_all_materials;
+  eUSDAttrImportMode attr_import_mode;
 
   /**
    * Communication structure between the wmJob management code and the worker code. Currently used

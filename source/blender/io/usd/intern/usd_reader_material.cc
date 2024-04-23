@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_reader_material.hh"
+#include "usd_reader_utils.hh"
 
 #include "usd_asset_utils.hh"
 
@@ -492,6 +493,9 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
       import_usd_preview(mtl, usd_preview);
     }
   }
+
+  /* Load custom properties directly from the Material's prim. */
+  set_id_props_from_prim(&mtl->id, usd_material.GetPrim());
 
   return mtl;
 }
