@@ -127,6 +127,40 @@ void CombinedKeyingResult::generate_reports(ReportList *reports)
                               error_count > 1 ? "s have" : " has"));
   }
 
+  if (this->get_count(SingleKeyingResult::ID_NOT_EDITABLE) > 0) {
+    const int error_count = this->get_count(SingleKeyingResult::ID_NOT_EDITABLE);
+    if (error_count == 1) {
+      errors.append("Inserting keys for one ID has been skipped because it is not editable.");
+    }
+    else {
+      errors.append(
+          fmt::format("{} IDs have been skipped because they are not editable.", error_count));
+    }
+  }
+
+  if (this->get_count(SingleKeyingResult::ID_NOT_ANIMATABLE) > 0) {
+    const int error_count = this->get_count(SingleKeyingResult::ID_NOT_ANIMATABLE);
+    if (error_count == 1) {
+      errors.append("Inserting keys for one ID has been skipped because it cannot be animated.");
+    }
+    else {
+      errors.append(
+          fmt::format("{} IDs have been skipped because they cannot be animated.", error_count));
+    }
+  }
+
+  if (this->get_count(SingleKeyingResult::CANNOT_RESOLVE_PATH) > 0) {
+    const int error_count = this->get_count(SingleKeyingResult::CANNOT_RESOLVE_PATH);
+    if (error_count == 1) {
+      errors.append(
+          "Inserting keys for one ID has been skipped because the RNA path wasn't valid for it");
+    }
+    else {
+      errors.append(fmt::format(
+          "{} IDs have been skipped because the RNA path wasn't valid for them.", error_count));
+    }
+  }
+
   if (errors.is_empty()) {
     BKE_report(reports, RPT_WARNING, "Encountered unhandled error during keyframing");
     return;
@@ -556,54 +590,40 @@ static SingleKeyingResult insert_keyframe_fcurve_value(Main *bmain,
   return result;
 }
 
-int insert_keyframe(Main *bmain,
-                    ReportList *reports,
-                    ID *id,
-                    const char group[],
-                    const char rna_path[],
-                    int array_index,
-                    const AnimationEvalContext *anim_eval_context,
-                    eBezTriple_KeyframeType keytype,
-                    eInsertKeyFlags flag)
+CombinedKeyingResult insert_keyframe(Main *bmain,
+                                     ID &id,
+                                     const char group[],
+                                     const char rna_path[],
+                                     int array_index,
+                                     const AnimationEvalContext *anim_eval_context,
+                                     eBezTriple_KeyframeType keytype,
+                                     eInsertKeyFlags flag)
 {
-  if (id == nullptr) {
-    BKE_reportf(reports, RPT_ERROR, "No ID block to insert keyframe in (path = %s)", rna_path);
-    return 0;
-  }
+  CombinedKeyingResult combined_result;
 
-  if (!BKE_id_is_editable(bmain, id)) {
-    BKE_reportf(reports, RPT_ERROR, "'%s' on %s is not editable", rna_path, id->name + 2);
-    return 0;
+  if (!BKE_id_is_editable(bmain, &id)) {
+    combined_result.add(SingleKeyingResult::ID_NOT_EDITABLE);
+    return combined_result;
   }
 
   PointerRNA ptr;
   PropertyRNA *prop = nullptr;
-  PointerRNA id_ptr = RNA_id_pointer_create(id);
+  PointerRNA id_ptr = RNA_id_pointer_create(&id);
   if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop) == false) {
-    BKE_reportf(
-        reports,
-        RPT_ERROR,
-        "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)",
-        (id) ? id->name : RPT_("<Missing ID block>"),
-        rna_path);
-    return 0;
+    combined_result.add(SingleKeyingResult::CANNOT_RESOLVE_PATH);
+    return combined_result;
   }
 
-  bAction *act = id_action_ensure(bmain, id);
+  bAction *act = id_action_ensure(bmain, &id);
   if (act == nullptr) {
-    BKE_reportf(reports,
-                RPT_ERROR,
-                "Could not insert keyframe, as this type does not support animation data (ID = "
-                "%s, path = %s)",
-                id->name,
-                rna_path);
-    return 0;
+    combined_result.add(SingleKeyingResult::ID_NOT_ANIMATABLE);
+    return combined_result;
   }
 
   /* Apply NLA-mapping to frame to use (if applicable). */
   NlaKeyframingContext *nla_context = nullptr;
   ListBase nla_cache = {nullptr, nullptr};
-  AnimData *adt = BKE_animdata_from_id(id);
+  AnimData *adt = BKE_animdata_from_id(&id);
   const float nla_mapped_frame = nla_time_remap(
       anim_eval_context, &id_ptr, adt, act, &nla_cache, &nla_context);
 
@@ -611,17 +631,15 @@ int insert_keyframe(Main *bmain,
   Vector<float> values = get_keyframe_values(&ptr, prop, visual_keyframing);
 
   bool force_all;
-  BitVector<> successful_remaps = nla_map_keyframe_values_and_generate_reports(
-      values.as_mutable_span(),
-      array_index,
-      ptr,
-      *prop,
-      nla_context,
-      anim_eval_context,
-      reports,
-      &force_all);
-
-  CombinedKeyingResult combined_result;
+  BitVector<> successful_remaps(values.size(), false);
+  BKE_animsys_nla_remap_keyframe_values(nla_context,
+                                        &ptr,
+                                        prop,
+                                        values,
+                                        array_index,
+                                        anim_eval_context,
+                                        &force_all,
+                                        successful_remaps);
 
   /* Key the entire array. */
   int key_count = 0;
@@ -738,11 +756,7 @@ int insert_keyframe(Main *bmain,
     }
   }
 
-  if (key_count == 0) {
-    combined_result.generate_reports(reports);
-  }
-
-  return key_count;
+  return combined_result;
 }
 
 /* ************************************************** */

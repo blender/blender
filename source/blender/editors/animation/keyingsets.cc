@@ -1020,6 +1020,7 @@ static int insert_key_to_keying_set_path(bContext *C,
                                          const eModifyKey_Modes mode,
                                          const float frame)
 {
+  using namespace blender::animrig;
   /* Since keying settings can be defined on the paths too,
    * apply the settings for this path first. */
   const eInsertKeyFlags path_insert_key_flags = keyingset_apply_keying_flags(
@@ -1074,27 +1075,34 @@ static int insert_key_to_keying_set_path(bContext *C,
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     frame);
   int keyed_channels = 0;
+
+  CombinedKeyingResult combined_result;
   for (; array_index < array_length; array_index++) {
     if (mode == MODIFYKEY_MODE_INSERT) {
-      keyed_channels += blender::animrig::insert_keyframe(bmain,
-                                                          reports,
-                                                          keyingset_path->id,
-                                                          groupname,
-                                                          keyingset_path->rna_path,
-                                                          array_index,
-                                                          &anim_eval_context,
-                                                          keytype,
-                                                          path_insert_key_flags);
+      CombinedKeyingResult result = insert_keyframe(bmain,
+                                                    *keyingset_path->id,
+                                                    groupname,
+                                                    keyingset_path->rna_path,
+                                                    array_index,
+                                                    &anim_eval_context,
+                                                    keytype,
+                                                    path_insert_key_flags);
+      keyed_channels += result.get_count(SingleKeyingResult::SUCCESS);
+      combined_result.merge(result);
     }
     else if (mode == MODIFYKEY_MODE_DELETE) {
-      keyed_channels += blender::animrig::delete_keyframe(bmain,
-                                                          reports,
-                                                          keyingset_path->id,
-                                                          nullptr,
-                                                          keyingset_path->rna_path,
-                                                          array_index,
-                                                          frame);
+      keyed_channels += delete_keyframe(bmain,
+                                        reports,
+                                        keyingset_path->id,
+                                        nullptr,
+                                        keyingset_path->rna_path,
+                                        array_index,
+                                        frame);
     }
+  }
+
+  if (combined_result.get_count(SingleKeyingResult::SUCCESS) == 0) {
+    combined_result.generate_reports(reports);
   }
 
   switch (GS(keyingset_path->id->name)) {

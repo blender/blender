@@ -37,6 +37,9 @@ enum class SingleKeyingResult {
   FCURVE_NOT_KEYFRAMEABLE,
   NO_KEY_NEEDED,
   UNABLE_TO_INSERT_TO_NLA_STACK,
+  ID_NOT_EDITABLE,
+  ID_NOT_ANIMATABLE,
+  CANNOT_RESOLVE_PATH,
   /* Make sure to always keep this at the end of the enum. */
   _KEYING_RESULT_MAX,
 };
@@ -85,15 +88,14 @@ void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop);
  * \param array_index: The index to key or -1 keys all array indices.
  * \return The number of key-frames inserted.
  */
-int insert_keyframe(Main *bmain,
-                    ReportList *reports,
-                    ID *id,
-                    const char group[],
-                    const char rna_path[],
-                    int array_index,
-                    const AnimationEvalContext *anim_eval_context,
-                    eBezTriple_KeyframeType keytype,
-                    eInsertKeyFlags flag);
+CombinedKeyingResult insert_keyframe(Main *bmain,
+                                     ID &id,
+                                     const char group[],
+                                     const char rna_path[],
+                                     int array_index,
+                                     const AnimationEvalContext *anim_eval_context,
+                                     eBezTriple_KeyframeType keytype,
+                                     eInsertKeyFlags flag);
 
 /**
  * \brief Secondary Insert Key-framing API call.
