@@ -17,6 +17,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_idprop.hh"
 #include "BKE_layer.hh"
+#include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -302,6 +303,38 @@ DEGObjectIterData &DEGObjectIterData::operator=(const DEGObjectIterData &other)
   return *this;
 }
 
+static Object *find_object_with_preview_geometry(const ViewerPath &viewer_path)
+{
+  if (BLI_listbase_is_empty(&viewer_path.path)) {
+    return nullptr;
+  }
+  const ViewerPathElem *elem = static_cast<const ViewerPathElem *>(viewer_path.path.first);
+  if (elem->type != VIEWER_PATH_ELEM_TYPE_ID) {
+    return nullptr;
+  }
+  const IDViewerPathElem *id_elem = reinterpret_cast<const IDViewerPathElem *>(elem);
+  if (id_elem->id == nullptr) {
+    return nullptr;
+  }
+  if (GS(id_elem->id->name) != ID_OB) {
+    return nullptr;
+  }
+  Object *object = reinterpret_cast<Object *>(id_elem->id);
+  if (elem->next->type != VIEWER_PATH_ELEM_TYPE_MODIFIER) {
+    return nullptr;
+  }
+  const ModifierViewerPathElem *modifier_elem = reinterpret_cast<const ModifierViewerPathElem *>(
+      elem->next);
+  ModifierData *md = BKE_modifiers_findby_name(object, modifier_elem->modifier_name);
+  if (md == nullptr) {
+    return nullptr;
+  }
+  if (!(md->mode & eModifierMode_Realtime)) {
+    return nullptr;
+  }
+  return reinterpret_cast<Object *>(id_elem->id);
+}
+
 void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 {
   Depsgraph *depsgraph = data->graph;
@@ -329,17 +362,7 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
   /* Determine if the preview of any object should be in the iterator. */
   const ViewerPath *viewer_path = data->settings->viewer_path;
   if (viewer_path != nullptr) {
-    if (!BLI_listbase_is_empty(&viewer_path->path)) {
-      const ViewerPathElem *elem = static_cast<const ViewerPathElem *>(viewer_path->path.first);
-      if (elem->type == VIEWER_PATH_ELEM_TYPE_ID) {
-        const IDViewerPathElem *id_elem = reinterpret_cast<const IDViewerPathElem *>(elem);
-        if (id_elem->id != nullptr) {
-          if (GS(id_elem->id->name) == ID_OB) {
-            data->object_orig_with_preview = reinterpret_cast<Object *>(id_elem->id);
-          }
-        }
-      }
-    }
+    data->object_orig_with_preview = find_object_with_preview_geometry(*viewer_path);
   }
 
   DEG_iterator_objects_next(iter);
