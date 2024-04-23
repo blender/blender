@@ -38,34 +38,25 @@ class VKPipeline : NonCopyable {
   VkPipeline active_vk_pipeline_ = VK_NULL_HANDLE;
   /** Keep track of all pipelines as they can still be in flight. */
   Vector<VkPipeline> vk_pipelines_;
-  VKPushConstants push_constants_;
   VKPipelineStateManager state_manager_;
 
  public:
   VKPipeline() = default;
 
   virtual ~VKPipeline();
-  VKPipeline(VKPushConstants &&push_constants);
-  VKPipeline(VkPipeline vk_pipeline, VKPushConstants &&push_constants);
+  VKPipeline(VkPipeline vk_pipeline);
   VKPipeline &operator=(VKPipeline &&other)
   {
     active_vk_pipeline_ = other.active_vk_pipeline_;
     other.active_vk_pipeline_ = VK_NULL_HANDLE;
-    push_constants_ = std::move(other.push_constants_);
     vk_pipelines_ = std::move(other.vk_pipelines_);
     other.vk_pipelines_.clear();
     return *this;
   }
 
   static VKPipeline create_compute_pipeline(VkShaderModule compute_module,
-                                            VkPipelineLayout &pipeline_layouts,
-                                            const VKPushConstants::Layout &push_constants_layout);
-  static VKPipeline create_graphics_pipeline(const VKPushConstants::Layout &push_constants_layout);
-
-  VKPushConstants &push_constants_get()
-  {
-    return push_constants_;
-  }
+                                            VkPipelineLayout &pipeline_layouts);
+  static VKPipeline create_graphics_pipeline();
 
   VKPipelineStateManager &state_manager_get()
   {
@@ -84,7 +75,6 @@ class VKPipeline : NonCopyable {
                 const VKVertexAttributeObject &vertex_attribute_object);
 
   void bind(VKContext &context, VkPipelineBindPoint vk_pipeline_bind_point);
-  void update_push_constants(VKContext &context);
 };
 
 }  // namespace blender::gpu

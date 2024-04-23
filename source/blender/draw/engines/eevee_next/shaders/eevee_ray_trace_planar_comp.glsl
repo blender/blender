@@ -87,11 +87,6 @@ void main()
   if (hit.valid) {
     /* Evaluate radiance at hit-point. */
     radiance = textureLod(planar_radiance_tx, vec3(hit.ss_hit_P.xy, planar_id), 0.0).rgb;
-
-    /* Transmit twice if thickness is set and ray is longer than thickness. */
-    // if (thickness > 0.0 && length(ray_data.xyz) > thickness) {
-    //   ray_radiance.rgb *= color;
-    // }
   }
   else {
     /* Using ray direction as geometric normal to bias the sampling position.
@@ -105,7 +100,7 @@ void main()
     hit.time = 10000.0;
   }
 
-  radiance = colorspace_brightness_clamp_max(radiance, uniform_buf.raytrace.brightness_clamp);
+  radiance = colorspace_brightness_clamp_max(radiance, uniform_buf.clamp.surface_indirect);
 
   imageStore(ray_time_img, texel, vec4(hit.time));
   imageStore(ray_radiance_img, texel, vec4(radiance, 0.0));

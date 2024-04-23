@@ -83,6 +83,10 @@
 
 #include "NOD_common.h"
 #include "NOD_composite.hh"
+#include "NOD_geo_bake.hh"
+#include "NOD_geo_index_switch.hh"
+#include "NOD_geo_repeat.hh"
+#include "NOD_geo_simulation.hh"
 #include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
@@ -90,7 +94,6 @@
 #include "NOD_shader.h"
 #include "NOD_socket.hh"
 #include "NOD_texture.h"
-#include "NOD_zone_socket_items.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

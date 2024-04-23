@@ -1233,7 +1233,7 @@ struct DefaultHash<Vector<gpu::shader::ShaderCreateInfo::SpecializationConstant:
   {
     uint64_t hash = 0;
     for (const gpu::shader::ShaderCreateInfo::SpecializationConstant::Value &value : key) {
-      hash = hash * 33 + value.u;
+      hash = hash * 33 ^ uint64_t(value.u);
     }
     return hash;
   }

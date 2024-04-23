@@ -40,11 +40,11 @@ ReflectionProbeLowFreqLight reflection_probes_extract_low_freq(SphericalHarmonic
   return result;
 }
 
-vec3 reflection_probes_normalization_eval(vec3 L,
-                                          ReflectionProbeLowFreqLight numerator,
-                                          ReflectionProbeLowFreqLight denominator)
+float reflection_probes_normalization_eval(vec3 L,
+                                           ReflectionProbeLowFreqLight numerator,
+                                           ReflectionProbeLowFreqLight denominator)
 {
   /* TODO(fclem): Adjusting directionality is tricky.
    * Needs to be revisited later on. For now only use the ambient term. */
-  return vec3(numerator.ambient * safe_rcp(denominator.ambient));
+  return (numerator.ambient * safe_rcp(denominator.ambient));
 }

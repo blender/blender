@@ -15,6 +15,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
+#include <cstdint>
 #include <cstring>
 
 struct ColormanageProcessor;
@@ -285,6 +286,12 @@ class MemoryBuffer {
                                          get_relative_y(y));
   }
 
+  void read_elem_bicubic_bspline(float x, float y, float *out) const
+  {
+    math::interpolate_cubic_bspline_fl(
+        buffer_, out, this->get_width(), this->get_height(), num_channels_, x, y);
+  }
+
   void read_elem_sampled(float x, float y, PixelSampler sampler, float *out) const
   {
     switch (sampler) {
@@ -292,9 +299,11 @@ class MemoryBuffer {
         read_elem_checked(x, y, out);
         break;
       case PixelSampler::Bilinear:
-      case PixelSampler::Bicubic:
-        /* No bicubic. Current implementation produces fuzzy results. */
         read_elem_bilinear(x, y, out);
+        break;
+      case PixelSampler::Bicubic:
+        /* Using same method as GPU compositor. Final results may still vary. */
+        read_elem_bicubic_bspline(x, y, out);
         break;
     }
   }
@@ -649,9 +658,9 @@ class MemoryBuffer {
 
  private:
   void set_strides();
-  const int buffer_len() const
+  const int64_t buffer_len() const
   {
-    return get_memory_width() * get_memory_height();
+    return int64_t(get_memory_width()) * int64_t(get_memory_height());
   }
 
   void clear_elem(float *out) const

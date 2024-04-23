@@ -5,10 +5,12 @@
 set(INC
   .
   ..
+  include
   ../intern
   ../../editors/include
   ../../blenkernel
   ../../blentranslation
+  ../../blenloader
   ../../bmesh
   ../../functions
   ../../geometry
@@ -167,6 +169,7 @@ set(SRC
   nodes/node_geo_sample_uv_surface.cc
   nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
+  nodes/node_geo_sdf_grid_boolean.cc
   nodes/node_geo_self_object.cc
   nodes/node_geo_separate_components.cc
   nodes/node_geo_separate_geometry.cc
@@ -204,6 +207,11 @@ set(SRC
   nodes/node_geo_viewer.cc
   nodes/node_geo_volume_cube.cc
   nodes/node_geo_volume_to_mesh.cc
+
+  include/NOD_geo_bake.hh
+  include/NOD_geo_index_switch.hh
+  include/NOD_geo_repeat.hh
+  include/NOD_geo_simulation.hh
 
   node_geometry_tree.cc
   node_geometry_util.cc

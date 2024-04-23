@@ -68,7 +68,7 @@ vec3 lightprobe_spherical_sample_normalized_with_parallax(
 {
   SphereProbeData probe = reflection_probe_buf[probe_index];
   ReflectionProbeLowFreqLight shading_sh = reflection_probes_extract_low_freq(P_sh);
-  vec3 normalization_factor = reflection_probes_normalization_eval(
+  float normalization_factor = reflection_probes_normalization_eval(
       L, shading_sh, probe.low_freq_light);
   L = lightprobe_sphere_parallax(probe, P, L);
   return normalization_factor * reflection_probes_sample(L, lod, probe.atlas_coord).rgb;
@@ -139,32 +139,23 @@ vec3 lightprobe_eval(LightProbeSample samp, ClosureRefraction cl, vec3 P, vec3 V
   return mix(radiance_cube, radiance_sh, fac);
 }
 
-void lightprobe_eval(LightProbeSample samp,
-                     ClosureUndetermined cl,
-                     vec3 P,
-                     vec3 V,
-                     float thickness,
-                     inout vec3 radiance)
+vec3 lightprobe_eval(
+    LightProbeSample samp, ClosureUndetermined cl, vec3 P, vec3 V, float thickness)
 {
   switch (cl.type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
-      radiance += lightprobe_eval(samp, to_closure_translucent(cl), P, V, thickness);
-      break;
+      return lightprobe_eval(samp, to_closure_translucent(cl), P, V, thickness);
     case CLOSURE_BSSRDF_BURLEY_ID:
       /* TODO: Support translucency in ray tracing first. Otherwise we have a discrepancy. */
+      return vec3(0.0);
     case CLOSURE_BSDF_DIFFUSE_ID:
-      radiance += lightprobe_eval(samp, to_closure_diffuse(cl), P, V);
-      break;
+      return lightprobe_eval(samp, to_closure_diffuse(cl), P, V);
     case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-      radiance += lightprobe_eval(samp, to_closure_reflection(cl), P, V);
-      break;
+      return lightprobe_eval(samp, to_closure_reflection(cl), P, V);
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      radiance += lightprobe_eval(samp, to_closure_refraction(cl), P, V, thickness);
-      break;
-    case CLOSURE_NONE_ID:
-      /* TODO(fclem): Assert. */
-      break;
+      return lightprobe_eval(samp, to_closure_refraction(cl), P, V, thickness);
   }
+  return vec3(0.0);
 }
 
 #endif /* SPHERE_PROBE */

@@ -17,13 +17,7 @@
 
 namespace blender::gpu {
 
-VKPipeline::VKPipeline(VKPushConstants &&push_constants)
-    : active_vk_pipeline_(VK_NULL_HANDLE), push_constants_(std::move(push_constants))
-{
-}
-
-VKPipeline::VKPipeline(VkPipeline vk_pipeline, VKPushConstants &&push_constants)
-    : active_vk_pipeline_(vk_pipeline), push_constants_(std::move(push_constants))
+VKPipeline::VKPipeline(VkPipeline vk_pipeline) : active_vk_pipeline_(vk_pipeline)
 {
   vk_pipelines_.append(vk_pipeline);
 }
@@ -37,10 +31,8 @@ VKPipeline::~VKPipeline()
   }
 }
 
-VKPipeline VKPipeline::create_compute_pipeline(
-    VkShaderModule compute_module,
-    VkPipelineLayout &pipeline_layout,
-    const VKPushConstants::Layout &push_constants_layout)
+VKPipeline VKPipeline::create_compute_pipeline(VkShaderModule compute_module,
+                                               VkPipelineLayout &pipeline_layout)
 {
   VK_ALLOCATION_CALLBACKS
   const VKDevice &device = VKBackend::get().device_get();
@@ -66,15 +58,12 @@ VKPipeline VKPipeline::create_compute_pipeline(
     return VKPipeline();
   }
 
-  VKPushConstants push_constants(&push_constants_layout);
-  return VKPipeline(vk_pipeline, std::move(push_constants));
+  return VKPipeline(vk_pipeline);
 }
 
-VKPipeline VKPipeline::create_graphics_pipeline(
-    const VKPushConstants::Layout &push_constants_layout)
+VKPipeline VKPipeline::create_graphics_pipeline()
 {
-  VKPushConstants push_constants(&push_constants_layout);
-  return VKPipeline(std::move(push_constants));
+  return VKPipeline();
 }
 
 VkPipeline VKPipeline::vk_handle() const
@@ -198,11 +187,6 @@ void VKPipeline::bind(VKContext &context, VkPipelineBindPoint vk_pipeline_bind_p
 {
   VKCommandBuffers &command_buffers = context.command_buffers_get();
   command_buffers.bind(*this, vk_pipeline_bind_point);
-}
-
-void VKPipeline::update_push_constants(VKContext &context)
-{
-  push_constants_.update(context);
 }
 
 }  // namespace blender::gpu

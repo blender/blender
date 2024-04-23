@@ -140,17 +140,28 @@ void VKBackend::samplers_update()
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
 {
   VKContext &context = *VKContext::get();
-  context.state_manager_get().apply_bindings();
-  context.bind_compute_pipeline();
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.dispatch(groups_x_len, groups_y_len, groups_z_len);
+  if (use_render_graph) {
+    render_graph::VKDispatchCreateInfo &dispatch_info = context.update_and_get_dispatch_info();
+    dispatch_info.dispatch_node.group_count_x = groups_x_len;
+    dispatch_info.dispatch_node.group_count_y = groups_y_len;
+    dispatch_info.dispatch_node.group_count_z = groups_z_len;
+    context.render_graph.add_node(dispatch_info);
+  }
+  else {
+    render_graph::VKResourceAccessInfo resource_access_info = {};
+    context.state_manager_get().apply_bindings(context, resource_access_info);
+    context.bind_compute_pipeline();
+    VKCommandBuffers &command_buffers = context.command_buffers_get();
+    command_buffers.dispatch(groups_x_len, groups_y_len, groups_z_len);
+  }
 }
 
 void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
 {
   BLI_assert(indirect_buf);
   VKContext &context = *VKContext::get();
-  context.state_manager_get().apply_bindings();
+  render_graph::VKResourceAccessInfo resource_access_info = {};
+  context.state_manager_get().apply_bindings(context, resource_access_info);
   context.bind_compute_pipeline();
   VKStorageBuffer &indirect_buffer = *unwrap(indirect_buf);
   VKCommandBuffers &command_buffers = context.command_buffers_get();

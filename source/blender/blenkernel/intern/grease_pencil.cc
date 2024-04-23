@@ -2934,9 +2934,6 @@ static void read_drawing_array(GreasePencil &grease_pencil, BlendDataReader *rea
         break;
       }
       case GP_DRAWING_REFERENCE: {
-        GreasePencilDrawingReference *drawing_reference =
-            reinterpret_cast<GreasePencilDrawingReference *>(drawing_base);
-        BLO_read_data_address(reader, &drawing_reference->id_reference);
         break;
       }
     }

@@ -61,11 +61,12 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_update)
 GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_opaque)
     .do_static_compilation(true)
     .local_group_size(SHADOW_DEPTH_SCAN_GROUP_SIZE, SHADOW_DEPTH_SCAN_GROUP_SIZE)
-    .sampler(0, ImageType::DEPTH_2D, "depth_tx")
     .storage_buf(5, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(6, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
+    .push_constant(Type::IVEC2, "input_depth_extent")
     .push_constant(Type::FLOAT, "tilemap_proj_ratio")
-    .additional_info("eevee_shared", "draw_view", "draw_view_culling", "eevee_light_data")
+    .additional_info(
+        "eevee_shared", "draw_view", "draw_view_culling", "eevee_hiz_data", "eevee_light_data")
     .compute_source("eevee_shadow_tag_usage_comp.glsl");
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_surfels)

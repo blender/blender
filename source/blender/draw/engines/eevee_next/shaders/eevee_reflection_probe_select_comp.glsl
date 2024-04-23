@@ -26,5 +26,8 @@ void main()
     sh = lightprobe_irradiance_sample(probe_center);
   }
 
+  float clamp_indirect_sh = uniform_buf.clamp.surface_indirect;
+  sh = spherical_harmonics_clamp(sh, clamp_indirect_sh);
+
   reflection_probe_buf[idx].low_freq_light = reflection_probes_extract_low_freq(sh);
 }

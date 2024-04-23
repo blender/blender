@@ -1623,6 +1623,20 @@ BLI_STATIC_ASSERT_ALIGN(HiZData, 16)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Light Clamping
+ * \{ */
+
+struct ClampData {
+  float surface_direct;
+  float surface_indirect;
+  float volume_direct;
+  float volume_indirect;
+};
+BLI_STATIC_ASSERT_ALIGN(ClampData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Ray-Tracing
  * \{ */
 
@@ -1685,8 +1699,6 @@ struct RayTraceData {
   int horizon_resolution_scale;
   /** Determine how fast the sample steps are getting bigger. */
   float quality;
-  /** Maximum brightness during lighting evaluation. */
-  float brightness_clamp;
   /** Maximum roughness for which we will trace a ray. */
   float roughness_mask_scale;
   float roughness_mask_bias;
@@ -1697,6 +1709,7 @@ struct RayTraceData {
   /** Closure being ray-traced. */
   int closure_index;
   int _pad0;
+  int _pad1;
 };
 BLI_STATIC_ASSERT_ALIGN(RayTraceData, 16)
 
@@ -1821,7 +1834,7 @@ BLI_STATIC_ASSERT_ALIGN(PlanarProbeDisplayData, 16)
 struct PipelineInfoData {
   float alpha_hash_scale;
   bool32_t is_probe_reflection;
-  bool32_t use_combined_lightprobe_eval;
+  float _pad1;
   float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(PipelineInfoData, 16)
@@ -1836,6 +1849,7 @@ BLI_STATIC_ASSERT_ALIGN(PipelineInfoData, 16)
 struct UniformData {
   AOData ao;
   CameraData camera;
+  ClampData clamp;
   FilmData film;
   HiZData hiz;
   RayTraceData raytrace;

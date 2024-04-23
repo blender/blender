@@ -2720,6 +2720,23 @@ class _defs_gpencil_weight:
         ]
 
 
+class _defs_grease_pencil_weight:
+
+    @staticmethod
+    def generate_from_brushes(context):
+        return generate_from_enum_ex(
+            context,
+            idname_prefix="builtin_brush.",
+            icon_prefix="ops.gpencil.sculpt_",
+            type=bpy.types.Brush,
+            # Uses GPv2 tool settings
+            attr="gpencil_weight_tool",
+            # tooldef_keywords=dict(
+            #     operator="grease_pencil.weight_paint",
+            # ),
+        )
+
+
 class _defs_curves_sculpt:
 
     @staticmethod
@@ -3530,6 +3547,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'WEIGHT_GPENCIL': [
             _defs_gpencil_weight.generate_from_brushes,
+            None,
+            *_tools_annotate,
+        ],
+        'WEIGHT_GREASE_PENCIL': [
+            _defs_grease_pencil_weight.generate_from_brushes,
             None,
             *_tools_annotate,
         ],

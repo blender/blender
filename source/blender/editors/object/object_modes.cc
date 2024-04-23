@@ -148,8 +148,8 @@ bool mode_compat_test(const Object *ob, eObjectMode mode)
       }
       break;
     case OB_GREASE_PENCIL:
-      if (mode & (OB_MODE_EDIT | OB_MODE_PAINT_GREASE_PENCIL | OB_MODE_WEIGHT_PAINT |
-                  OB_MODE_SCULPT_GPENCIL_LEGACY))
+      if (mode & (OB_MODE_EDIT | OB_MODE_PAINT_GREASE_PENCIL | OB_MODE_SCULPT_GPENCIL_LEGACY |
+                  OB_MODE_WEIGHT_GPENCIL_LEGACY))
       {
         return true;
       }

@@ -1714,6 +1714,9 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
     case CTX_MODE_SCULPT_GREASE_PENCIL:
       ARRAY_SET_ITEMS(contexts, ".paint_common", ".grease_pencil_sculpt");
       break;
+    case CTX_MODE_WEIGHT_GREASE_PENCIL:
+      ARRAY_SET_ITEMS(contexts, ".grease_pencil_weight");
+      break;
     case CTX_MODE_EDIT_POINT_CLOUD:
       ARRAY_SET_ITEMS(contexts, ".point_cloud_edit");
       break;

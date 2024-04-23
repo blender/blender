@@ -245,9 +245,12 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
   if (cfgdir.has_value()) {
     BLI_path_join(userpref, sizeof(userpref), cfgdir->c_str(), BLENDER_USERPREF_FILE);
   }
+  else {
+    userpref[0] = '\0';
+  }
 
   /* Draw setup screen if no preferences have been saved yet. */
-  if (!BLI_exists(userpref)) {
+  if (!(userpref[0] && BLI_exists(userpref))) {
     mt = WM_menutype_find("WM_MT_splash_quick_setup", true);
 
     /* The #UI_BLOCK_QUICK_SETUP flag prevents the button text from being left-aligned,

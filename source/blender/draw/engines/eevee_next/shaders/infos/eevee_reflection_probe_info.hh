@@ -23,13 +23,12 @@ GPU_SHADER_CREATE_INFO(eevee_reflection_probe_remap)
     .push_constant(Type::IVEC4, "probe_coord_packed")
     .push_constant(Type::IVEC4, "write_coord_packed")
     .push_constant(Type::IVEC4, "world_coord_packed")
-    .push_constant(Type::FLOAT, "probe_brightness_clamp")
     .sampler(0, ImageType::FLOAT_CUBE, "cubemap_tx")
     .sampler(1, ImageType::FLOAT_2D_ARRAY, "atlas_tx")
     .storage_buf(0, Qualifier::WRITE, "SphereProbeHarmonic", "out_sh[SPHERE_PROBE_MAX_HARMONIC]")
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D_ARRAY, "atlas_img")
     .compute_source("eevee_reflection_probe_remap_comp.glsl")
-    .additional_info("eevee_shared")
+    .additional_info("eevee_shared", "eevee_global_ubo")
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(eevee_reflection_probe_irradiance)
@@ -48,7 +47,10 @@ GPU_SHADER_CREATE_INFO(eevee_reflection_probe_select)
                  "SphereProbeData",
                  "reflection_probe_buf[SPHERE_PROBE_MAX]")
     .push_constant(Type::INT, "reflection_probe_count")
-    .additional_info("eevee_shared", "eevee_sampling_data", "eevee_volume_probe_data")
+    .additional_info("eevee_shared",
+                     "eevee_sampling_data",
+                     "eevee_global_ubo",
+                     "eevee_volume_probe_data")
     .compute_source("eevee_reflection_probe_select_comp.glsl")
     .do_static_compilation(true);
 

@@ -34,9 +34,18 @@ class VKShader : public Shader {
    */
   VkDescriptorSetLayout vk_descriptor_set_layout_ = VK_NULL_HANDLE;
   VkPipelineLayout vk_pipeline_layout_ = VK_NULL_HANDLE;
+  /* deprecated `when use_render_graph=true`. In that case use vk_pipeline_ */
   VKPipeline pipeline_;
+  /**
+   * Last created VkPipeline handle. This handle is used as template when building a variation of
+   * the shader. In case for compute shaders without specialization constants this handle is also
+   * used as an early exit. In this case there is only 1 variation.
+   */
+  VkPipeline vk_pipeline_ = VK_NULL_HANDLE;
 
  public:
+  VKPushConstants push_constants;
+
   VKShader(const char *name);
   virtual ~VKShader();
 
@@ -79,6 +88,7 @@ class VKShader : public Shader {
 
   /* DEPRECATED: Kept only because of BGL API. */
   int program_handle_get() const override;
+  VkPipeline ensure_and_get_compute_pipeline();
 
   VKPipeline &pipeline_get();
   VkPipelineLayout vk_pipeline_layout_get() const

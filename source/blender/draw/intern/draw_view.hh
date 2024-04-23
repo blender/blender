@@ -73,9 +73,6 @@ class View {
   /* For compatibility with old system. Will be removed at some point. */
   void sync(const DRWView *view);
 
-  /** Disable a range in the multi-view array. Disabled view will not produce any instances. */
-  void disable(IndexRange range);
-
   /** Enable or disable every visibility test (frustum culling, HiZ culling). */
   void visibility_test(bool enable)
   {

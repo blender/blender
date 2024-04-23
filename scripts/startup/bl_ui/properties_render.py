@@ -721,11 +721,9 @@ class RENDER_PT_eevee_next_clamping_surface(RenderButtonsPanel, Panel):
         scene = context.scene
         props = scene.eevee
 
-        # TODO(fclem): Add clamp properties
-        options = props.ray_tracing_options
-        layout.prop(options, "sample_clamp", text="Indirect Light")
-        # layout.prop(props, "clamp_surface_direct", text="Direct Light")
-        # layout.prop(props, "clamp_surface_indirect", text="Indirect Light")
+        col = layout.column(align=True)
+        col.prop(props, "clamp_surface_direct", text="Direct Light")
+        col.prop(props, "clamp_surface_indirect", text="Indirect Light")
 
 
 class RENDER_PT_eevee_next_clamping_volume(RenderButtonsPanel, Panel):
@@ -743,9 +741,10 @@ class RENDER_PT_eevee_next_clamping_volume(RenderButtonsPanel, Panel):
         layout.use_property_decorate = False
         scene = context.scene
         props = scene.eevee
-        layout.prop(props, "volumetric_light_clamp", text="Direct Light")
-        # layout.prop(props, "clamp_volumetric_direct", text="Direct Light")
-        # layout.prop(props, "clamp_volumetric_indirect", text="Indirect Light")
+
+        col = layout.column(align=True)
+        col.prop(props, "clamp_volume_direct", text="Direct Light")
+        col.prop(props, "clamp_volume_indirect", text="Indirect Light")
 
 
 class RENDER_PT_eevee_next_sampling_shadows(RenderButtonsPanel, Panel):

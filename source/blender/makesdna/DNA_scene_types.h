@@ -1802,14 +1802,10 @@ typedef struct RaytraceEEVEE {
   float trace_max_roughness;
   /** Resolution downscale factor. */
   int resolution_scale;
-  /** Maximum intensity a ray can have. */
-  float sample_clamp;
   /** #RaytraceEEVEE_Flag. */
   int flag;
   /** #RaytraceEEVEE_DenoiseStages. */
   int denoise_stages;
-
-  char _pad0[4];
 } RaytraceEEVEE;
 
 typedef struct SceneEEVEE {
@@ -1879,6 +1875,11 @@ typedef struct SceneEEVEE {
   int shadow_ray_count;
   int shadow_step_count;
   float shadow_normal_bias;
+
+  float clamp_surface_direct;
+  float clamp_surface_indirect;
+  float clamp_volume_direct;
+  float clamp_volume_indirect;
 
   int ray_tracing_method;
 
@@ -2415,6 +2416,7 @@ enum {
   SEQ_SNAP_TO_STRIPS = 1 << 0,
   SEQ_SNAP_TO_CURRENT_FRAME = 1 << 1,
   SEQ_SNAP_TO_STRIP_HOLD = 1 << 2,
+  SEQ_SNAP_TO_MARKERS = 1 << 3,
 };
 
 /** #SequencerToolSettings::snap_flag */

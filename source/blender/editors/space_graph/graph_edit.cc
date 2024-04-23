@@ -206,15 +206,17 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
        *   up adding the keyframes on a new F-Curve in the action data instead.
        */
       if (ale->id && !ale->owner && !fcu->driver) {
-        insert_keyframe(ac->bmain,
-                        reports,
-                        ale->id,
-                        ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
-                        fcu->rna_path,
-                        fcu->array_index,
-                        &anim_eval_context,
-                        eBezTriple_KeyframeType(ts->keyframe_type),
-                        flag);
+        CombinedKeyingResult result = insert_keyframe(ac->bmain,
+                                                      *ale->id,
+                                                      ((fcu->grp) ? (fcu->grp->name) : (nullptr)),
+                                                      fcu->rna_path,
+                                                      fcu->array_index,
+                                                      &anim_eval_context,
+                                                      eBezTriple_KeyframeType(ts->keyframe_type),
+                                                      flag);
+        if (result.get_count(SingleKeyingResult::SUCCESS) == 0) {
+          result.generate_reports(reports);
+        }
       }
       else {
         AnimData *adt = ANIM_nla_mapping_get(ac, ale);

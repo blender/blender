@@ -366,6 +366,9 @@ void VolumeModule::draw_prepass(View &main_view)
   inst_.pipelines.world_volume.render(main_view);
 
   volume_view.sync(main_view.viewmat(), winmat_infinite);
+  /* TODO(fclem): The infinite projection matrix makes the culling test unreliable (see #115595).
+   * We need custom culling for these but that's not implemented yet. */
+  volume_view.visibility_test(false);
 
   if (inst_.pipelines.volume.is_enabled()) {
     inst_.pipelines.volume.render(volume_view, occupancy_tx_);

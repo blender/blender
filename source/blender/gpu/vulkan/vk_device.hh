@@ -17,6 +17,7 @@
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
 #include "vk_descriptor_set_layouts.hh"
+#include "vk_pipeline_pool.hh"
 #include "vk_samplers.hh"
 #include "vk_timeline_semaphore.hh"
 
@@ -111,6 +112,7 @@ class VKDevice : public NonCopyable {
 
  public:
   render_graph::VKResourceStateTracker resources;
+  VKPipelinePool pipelines;
 
   VkPhysicalDevice physical_device_get() const
   {

@@ -31,6 +31,7 @@ class VKShaderInterface : public ShaderInterface {
   uint32_t image_offset_ = 0;
   Array<VKDescriptorSet::Location> descriptor_set_locations_;
   Array<shader::ShaderCreateInfo::Resource::BindType> descriptor_set_bind_types_;
+  Array<VkAccessFlags> access_masks_;
   VKDescriptorSetLayoutInfo descriptor_set_layout_info_;
 
   VKPushConstants::Layout push_constants_layout_;
@@ -46,6 +47,17 @@ class VKShaderInterface : public ShaderInterface {
       const shader::ShaderCreateInfo::Resource &resource) const;
   const std::optional<VKDescriptorSet::Location> descriptor_set_location(
       const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const;
+
+  /**
+   * Get the access mask for a binding.
+   *
+   * Is used to build the correct resource accesses in the render graph (dispatch/draw nodes).
+   *
+   * Will return VK_ACCESS_NONE when binding isn't found or not compatible with the given bind
+   * type.
+   */
+  const VkAccessFlags access_mask(const shader::ShaderCreateInfo::Resource::BindType &bind_type,
+                                  int binding) const;
 
   /** Get the Layout of the shader. */
   const VKPushConstants::Layout &push_constants_layout_get() const
@@ -85,10 +97,12 @@ class VKShaderInterface : public ShaderInterface {
   const VKDescriptorSet::Location descriptor_set_location(const ShaderInput *shader_input) const;
   const shader::ShaderCreateInfo::Resource::BindType descriptor_set_bind_type(
       const ShaderInput *shader_input) const;
+  const VkAccessFlags access_mask(const ShaderInput *shader_input) const;
   void descriptor_set_location_update(
       const ShaderInput *shader_input,
       const VKDescriptorSet::Location location,
-      const shader::ShaderCreateInfo::Resource::BindType bind_type);
+      const shader::ShaderCreateInfo::Resource::BindType bind_type,
+      std::optional<const shader::ShaderCreateInfo::Resource> resource);
 };
 
 }  // namespace blender::gpu

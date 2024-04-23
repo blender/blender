@@ -20,7 +20,7 @@ void OVERLAY_facing_cache_init(OVERLAY_Data *vedata)
 
   for (int i = 0; i < 2; i++) {
     /* Non Meshes Pass (Camera, empties, lights ...) */
-    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA;
+    DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_ALPHA;
     DRW_PASS_CREATE(psl->facing_ps[i], state | pd->clipping_state);
 
     GPUShader *sh = OVERLAY_shader_facing();

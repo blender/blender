@@ -125,8 +125,8 @@ MemoryBuffer *MemoryBuffer::inflate() const
 float MemoryBuffer::get_max_value() const
 {
   float result = buffer_[0];
-  const uint size = this->buffer_len();
-  uint i;
+  const int64_t size = this->buffer_len();
+  int64_t i;
 
   const float *fp_src = buffer_;
 
@@ -408,7 +408,7 @@ void MemoryBuffer::fill_from(const MemoryBuffer &src)
 void MemoryBuffer::write_pixel(int x, int y, const float color[4])
 {
   if (x >= rect_.xmin && x < rect_.xmax && y >= rect_.ymin && y < rect_.ymax) {
-    const int offset = get_coords_offset(x, y);
+    const intptr_t offset = get_coords_offset(x, y);
     memcpy(&buffer_[offset], color, sizeof(float) * num_channels_);
   }
 }
@@ -416,7 +416,7 @@ void MemoryBuffer::write_pixel(int x, int y, const float color[4])
 void MemoryBuffer::add_pixel(int x, int y, const float color[4])
 {
   if (x >= rect_.xmin && x < rect_.xmax && y >= rect_.ymin && y < rect_.ymax) {
-    const int offset = get_coords_offset(x, y);
+    const intptr_t offset = get_coords_offset(x, y);
     float *dst = &buffer_[offset];
     const float *src = color;
     for (int i = 0; i < num_channels_; i++, dst++, src++) {
