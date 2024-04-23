@@ -37,6 +37,8 @@ class VKShader : public Shader {
   VKPipeline pipeline_;
 
  public:
+  VKPushConstants push_constants;
+
   VKShader(const char *name);
   virtual ~VKShader();
 

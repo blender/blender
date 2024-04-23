@@ -207,7 +207,7 @@ void VKContext::bind_compute_pipeline()
   BLI_assert(shader);
   VKPipeline &pipeline = shader->pipeline_get();
   pipeline.bind(*this, VK_PIPELINE_BIND_POINT_COMPUTE);
-  pipeline.update_push_constants(*this);
+  shader->push_constants.update(*this);
   if (shader->has_descriptor_set()) {
     descriptor_set_.bind(*this, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_COMPUTE);
   }
@@ -234,7 +234,7 @@ void VKContext::bind_graphics_pipeline(const GPUPrimType prim_type,
 
   VKPipeline &pipeline = shader->pipeline_get();
   pipeline.bind(*this, VK_PIPELINE_BIND_POINT_GRAPHICS);
-  pipeline.update_push_constants(*this);
+  shader->push_constants.update(*this);
   if (shader->has_descriptor_set()) {
     descriptor_set_.bind(*this, shader->vk_pipeline_layout_get(), VK_PIPELINE_BIND_POINT_GRAPHICS);
   }
