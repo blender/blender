@@ -50,6 +50,7 @@ set(SRC
   intern/trim_curves.cc
   intern/uv_pack.cc
   intern/uv_parametrizer.cc
+  intern/volume_grid_resample.cc
 
   GEO_add_curves_on_mesh.hh
   GEO_curve_constraints.hh
