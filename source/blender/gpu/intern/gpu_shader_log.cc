@@ -210,8 +210,8 @@ void Shader::print_log(Span<const char *> sources,
     }
     /* Print the filename the error line is coming from. */
     if (!log_item.cursor.file_name_and_error_line.is_empty()) {
-      char name_buf[128];
-      log_item.cursor.file_name_and_error_line.copy(name_buf);
+      char name_buf[256];
+      log_item.cursor.file_name_and_error_line.substr(0, sizeof(name_buf) - 1).copy(name_buf);
       BLI_dynstr_appendf(dynstr, "%s%s: %s", info_col, name_buf, reset_col);
     }
     else if (source_index > 0) {
