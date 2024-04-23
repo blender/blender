@@ -175,21 +175,23 @@ class DATA_PT_EEVEE_light_influence(DataButtonsPanel, Panel):
         light = context.light
         layout.use_property_split = True
 
-        col = layout.column()
-        col.active = ob.visible_diffuse
-        col.prop(light, "diffuse_factor", text="Diffuse")
+        col = layout.column(align=True)
 
-        col = layout.column()
-        col.active = ob.visible_glossy
-        col.prop(light, "specular_factor", text="Glossy")
+        sub = col.column(align=True)
+        sub.active = ob.visible_diffuse
+        sub.prop(light, "diffuse_factor", text="Diffuse")
 
-        col = layout.column()
-        col.active = ob.visible_transmission
-        col.prop(light, "transmission_factor", text="Transmission")
+        sub = col.column(align=True)
+        sub.active = ob.visible_glossy
+        sub.prop(light, "specular_factor", text="Glossy")
 
-        col = layout.column()
-        col.active = ob.visible_volume_scatter
-        col.prop(light, "volume_factor", text="Volume Scatter", text_ctxt=i18n_contexts.id_id)
+        sub = col.column(align=True)
+        sub.active = ob.visible_transmission
+        sub.prop(light, "transmission_factor", text="Transmission")
+
+        sub = col.column(align=True)
+        sub.active = ob.visible_volume_scatter
+        sub.prop(light, "volume_factor", text="Volume Scatter", text_ctxt=i18n_contexts.id_id)
 
 
 class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
