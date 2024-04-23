@@ -78,6 +78,7 @@ class USDMeshReader : public USDGeomReader {
 
   void read_mpolys(Mesh *mesh);
   void read_vertex_creases(Mesh *mesh, double motionSampleTime);
+  void read_velocities(Mesh *mesh, double motionSampleTime);
 
   void read_mesh_sample(ImportSettings *settings,
                         Mesh *mesh,
