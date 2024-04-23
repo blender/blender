@@ -76,4 +76,10 @@ void VKResourceAccessInfo::build_links(VKResourceStateTracker &resources,
   }
 }
 
+void VKResourceAccessInfo::reset()
+{
+  images.clear();
+  buffers.clear();
+}
+
 }  // namespace blender::gpu::render_graph
