@@ -95,7 +95,6 @@ class VKPipelinePool : public NonCopyable {
 
  public:
   VKPipelinePool();
-
   /**
    * Get an existing or create a new compute pipeline based on the provided ComputeInfo.
    *

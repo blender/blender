@@ -664,23 +664,26 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
 
   push_constants = VKPushConstants(&vk_interface->push_constants_layout_get());
 
-  /* TODO we might need to move the actual pipeline construction to a later stage as the graphics
-   * pipeline requires more data before it can be constructed. */
   bool result;
-  if (is_graphics_shader()) {
-    BLI_assert((fragment_module_ != VK_NULL_HANDLE && info->tf_type_ == GPU_SHADER_TFB_NONE) ||
-               (fragment_module_ == VK_NULL_HANDLE && info->tf_type_ != GPU_SHADER_TFB_NONE));
-    BLI_assert(compute_module_ == VK_NULL_HANDLE);
-    pipeline_ = VKPipeline::create_graphics_pipeline();
+  if (use_render_graph) {
     result = true;
   }
   else {
-    BLI_assert(vertex_module_ == VK_NULL_HANDLE);
-    BLI_assert(geometry_module_ == VK_NULL_HANDLE);
-    BLI_assert(fragment_module_ == VK_NULL_HANDLE);
-    BLI_assert(compute_module_ != VK_NULL_HANDLE);
-    pipeline_ = VKPipeline::create_compute_pipeline(compute_module_, vk_pipeline_layout_);
-    result = pipeline_.is_valid();
+    if (is_graphics_shader()) {
+      BLI_assert((fragment_module_ != VK_NULL_HANDLE && info->tf_type_ == GPU_SHADER_TFB_NONE) ||
+                 (fragment_module_ == VK_NULL_HANDLE && info->tf_type_ != GPU_SHADER_TFB_NONE));
+      BLI_assert(compute_module_ == VK_NULL_HANDLE);
+      pipeline_ = VKPipeline::create_graphics_pipeline();
+      result = true;
+    }
+    else {
+      BLI_assert(vertex_module_ == VK_NULL_HANDLE);
+      BLI_assert(geometry_module_ == VK_NULL_HANDLE);
+      BLI_assert(fragment_module_ == VK_NULL_HANDLE);
+      BLI_assert(compute_module_ != VK_NULL_HANDLE);
+      pipeline_ = VKPipeline::create_compute_pipeline(compute_module_, vk_pipeline_layout_);
+      result = pipeline_.is_valid();
+    }
   }
 
   if (result) {
@@ -799,24 +802,25 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
   interface.init(info);
   std::stringstream ss;
 
-  /* TODO: Add support for specialization constants at compile time. */
   ss << "\n/* Specialization Constants (pass-through). */\n";
+  uint constant_id = 0;
   for (const ShaderCreateInfo::SpecializationConstant &sc : info.specialization_constants_) {
+    ss << "layout (constant_id=" << constant_id++ << ") const ";
     switch (sc.type) {
       case Type::INT:
-        ss << "const int " << sc.name << "=" << std::to_string(sc.default_value.i) << ";\n";
+        ss << "int " << sc.name << "=" << std::to_string(sc.default_value.i) << ";\n";
         break;
       case Type::UINT:
-        ss << "const uint " << sc.name << "=" << std::to_string(sc.default_value.u) << "u;\n";
+        ss << "uint " << sc.name << "=" << std::to_string(sc.default_value.u) << "u;\n";
         break;
       case Type::BOOL:
-        ss << "const bool " << sc.name << "=" << (sc.default_value.u ? "true" : "false") << ";\n";
+        ss << "bool " << sc.name << "=" << (sc.default_value.u ? "true" : "false") << ";\n";
         break;
       case Type::FLOAT:
         /* Use uint representation to allow exact same bit pattern even if NaN. uintBitsToFloat
-         * isn't supported during global const initialization.  */
-        ss << "#define " << sc.name << " uintBitsToFloat(" << std::to_string(sc.default_value.u)
-           << "u)\n";
+         * isn't supported during global const initialization. */
+        ss << "uint " << sc.name << "_uint=" << std::to_string(sc.default_value.u) << "u;\n";
+        ss << "#define " << sc.name << " uintBitsToFloat(" << sc.name << "_uint)\n";
         break;
       default:
         BLI_assert_unreachable();
@@ -1183,6 +1187,30 @@ bool VKShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
 }
 
 /** \} */
+
+VkPipeline VKShader::ensure_and_get_compute_pipeline()
+{
+  BLI_assert(compute_module_ != VK_NULL_HANDLE);
+  BLI_assert(vk_pipeline_layout_ != VK_NULL_HANDLE);
+
+  /* Early exit when no specialization constants are used and the vk_pipeline_ is already
+   * valid. This would handle most cases. */
+  if (constants.values.is_empty() && vk_pipeline_ != VK_NULL_HANDLE) {
+    return vk_pipeline_;
+  }
+
+  VKComputeInfo compute_info = {};
+  compute_info.specialization_constants.extend(constants.values);
+  compute_info.vk_shader_module = compute_module_;
+  compute_info.vk_pipeline_layout = vk_pipeline_layout_;
+
+  VKDevice &device = VKBackend::get().device_get();
+  /* Store result in local variable to ensure thread safety. */
+  VkPipeline vk_pipeline = device.pipelines.get_or_create_compute_pipeline(compute_info,
+                                                                           vk_pipeline_);
+  vk_pipeline_ = vk_pipeline;
+  return vk_pipeline;
+}
 
 int VKShader::program_handle_get() const
 {
