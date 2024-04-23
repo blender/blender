@@ -751,9 +751,9 @@ static void bmesh_restore_end(bContext *C, Node &unode, Object *ob, SculptSessio
   }
 }
 
-static void store_geometry_data(NodeGeometry *geometry, Object *object)
+static void store_geometry_data(NodeGeometry *geometry, const Object *object)
 {
-  Mesh *mesh = static_cast<Mesh *>(object->data);
+  const Mesh *mesh = static_cast<const Mesh *>(object->data);
 
   BLI_assert(!geometry->is_initialized);
   geometry->is_initialized = true;
@@ -1107,7 +1107,7 @@ static void free_list(UndoSculpt &usculpt)
   usculpt.nodes.~Vector();
 }
 
-Node *get_node(PBVHNode *node, Type type)
+Node *get_node(const PBVHNode *node, const Type type)
 {
   UndoSculpt *usculpt = get_nodes();
 
@@ -1124,9 +1124,9 @@ Node *get_node(PBVHNode *node, Type type)
   return nullptr;
 }
 
-static size_t alloc_and_store_hidden(SculptSession *ss, Node *unode)
+static size_t alloc_and_store_hidden(const SculptSession *ss, Node *unode)
 {
-  PBVHNode *node = static_cast<PBVHNode *>(unode->node);
+  const PBVHNode *node = static_cast<const PBVHNode *>(unode->node);
   if (!ss->subdiv_ccg) {
     return 0;
   }
@@ -1146,7 +1146,7 @@ static size_t alloc_and_store_hidden(SculptSession *ss, Node *unode)
 
 /* Allocate node and initialize its default fields specific for the given undo type.
  * Will also add the node to the list in the undo step. */
-static Node *alloc_node_type(Object *object, Type type)
+static Node *alloc_node_type(const Object *object, const Type type)
 {
   UndoSculpt *usculpt = get_nodes();
   std::unique_ptr<Node> unode = std::make_unique<Node>();
@@ -1163,7 +1163,7 @@ static Node *alloc_node_type(Object *object, Type type)
 /* Will return first existing undo node of the given type.
  * If such node does not exist will allocate node of this type, register it in the undo step and
  * return it. */
-static Node *find_or_alloc_node_type(Object *object, Type type)
+static Node *find_or_alloc_node_type(const Object *object, const Type type)
 {
   UndoSculpt *usculpt = get_nodes();
 
@@ -1176,10 +1176,10 @@ static Node *find_or_alloc_node_type(Object *object, Type type)
   return alloc_node_type(object, type);
 }
 
-static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
+static Node *alloc_node(const Object *ob, const PBVHNode *node, const Type type)
 {
   UndoSculpt *usculpt = get_nodes();
-  SculptSession *ss = ob->sculpt;
+  const SculptSession *ss = ob->sculpt;
 
   Node *unode = alloc_node_type(ob, type);
   unode->node = node;
@@ -1292,7 +1292,7 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
   return unode;
 }
 
-static void store_coords(Object *ob, Node *unode)
+static void store_coords(const Object *ob, Node *unode)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -1336,7 +1336,7 @@ static void store_coords(Object *ob, Node *unode)
   }
 }
 
-static void store_hidden(Object *ob, Node *unode)
+static void store_hidden(const Object *ob, Node *unode)
 {
   if (!unode->grids.is_empty()) {
     /* Already stored during allocation. */
@@ -1350,14 +1350,14 @@ static void store_hidden(Object *ob, Node *unode)
     return;
   }
 
-  PBVHNode *node = static_cast<PBVHNode *>(unode->node);
+  const PBVHNode *node = static_cast<const PBVHNode *>(unode->node);
   const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
   for (const int i : verts.index_range()) {
     unode->vert_hidden[i].set(hide_vert[verts[i]]);
   }
 }
 
-static void store_face_hidden(Object &object, Node &unode)
+static void store_face_hidden(const Object &object, Node &unode)
 {
   const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   const bke::AttributeAccessor attributes = mesh.attributes();
@@ -1372,7 +1372,7 @@ static void store_face_hidden(Object &object, Node &unode)
   }
 }
 
-static void store_mask(Object *ob, Node *unode)
+static void store_mask(const Object *ob, Node *unode)
 {
   const SculptSession *ss = ob->sculpt;
 
@@ -1406,7 +1406,7 @@ static void store_mask(Object *ob, Node *unode)
   }
 }
 
-static void store_color(Object *ob, Node *unode)
+static void store_color(const Object *ob, Node *unode)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -1433,7 +1433,7 @@ static NodeGeometry *geometry_get(Node *unode)
   return &unode->geometry_modified;
 }
 
-static Node *geometry_push(Object *object, Type type)
+static Node *geometry_push(const Object *object, const Type type)
 {
   Node *unode = find_or_alloc_node_type(object, type);
   unode->applied = false;
@@ -1453,10 +1453,10 @@ static void store_face_sets(const Mesh &mesh, Node &unode)
       unode.face_sets.as_mutable_span());
 }
 
-static Node *bmesh_push(Object *ob, PBVHNode *node, Type type)
+static Node *bmesh_push(const Object *ob, const PBVHNode *node, Type type)
 {
   UndoSculpt *usculpt = get_nodes();
-  SculptSession *ss = ob->sculpt;
+  const SculptSession *ss = ob->sculpt;
 
   Node *unode = usculpt->nodes.is_empty() ? nullptr : usculpt->nodes.first().get();
 
@@ -1493,29 +1493,32 @@ static Node *bmesh_push(Object *ob, PBVHNode *node, Type type)
     const int cd_vert_mask_offset = CustomData_get_offset_named(
         &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
 
+    /* The vertices and node aren't changed, though pointers to them are stored in the log. */
+    PBVHNode *node_mut = const_cast<PBVHNode *>(node);
+
     switch (type) {
       case Type::Position:
       case Type::Mask:
         /* Before any vertex values get modified, ensure their
          * original positions are logged. */
-        for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+        for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node_mut)) {
           BM_log_vert_before_modified(ss->bm_log, vert, cd_vert_mask_offset);
         }
-        for (BMVert *vert : BKE_pbvh_bmesh_node_other_verts(node)) {
+        for (BMVert *vert : BKE_pbvh_bmesh_node_other_verts(node_mut)) {
           BM_log_vert_before_modified(ss->bm_log, vert, cd_vert_mask_offset);
         }
         break;
 
       case Type::HideFace:
       case Type::HideVert: {
-        for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+        for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node_mut)) {
           BM_log_vert_before_modified(ss->bm_log, vert, cd_vert_mask_offset);
         }
-        for (BMVert *vert : BKE_pbvh_bmesh_node_other_verts(node)) {
+        for (BMVert *vert : BKE_pbvh_bmesh_node_other_verts(node_mut)) {
           BM_log_vert_before_modified(ss->bm_log, vert, cd_vert_mask_offset);
         }
 
-        for (BMFace *f : BKE_pbvh_bmesh_node_faces(node)) {
+        for (BMFace *f : BKE_pbvh_bmesh_node_faces(node_mut)) {
           BM_log_face_modified(ss->bm_log, f);
         }
         break;
@@ -1534,7 +1537,7 @@ static Node *bmesh_push(Object *ob, PBVHNode *node, Type type)
   return unode;
 }
 
-Node *push_node(Object *ob, PBVHNode *node, Type type)
+Node *push_node(const Object *ob, const PBVHNode *node, Type type)
 {
   SculptSession *ss = ob->sculpt;
 
