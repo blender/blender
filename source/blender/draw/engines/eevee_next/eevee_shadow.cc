@@ -863,7 +863,9 @@ void ShadowModule::begin_sync()
       sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
       sub.bind_texture("depth_tx", &src_depth_tx_);
       sub.push_constant("tilemap_proj_ratio", &data_.tilemap_projection_ratio);
+      sub.push_constant("input_depth_extent", &input_depth_extent_);
       sub.bind_resources(inst_.lights);
+      sub.bind_resources(inst_.hiz_buffer.front);
       sub.dispatch(&dispatch_depth_scan_size_);
     }
     {
@@ -1357,29 +1359,26 @@ int ShadowModule::max_view_per_tilemap()
   return max_view_count;
 }
 
-void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
+void ShadowModule::set_view(View &view, int2 extent)
 {
   if (enabled_ == false) {
     /* All lights have been tagged to have no shadow. */
     return;
   }
 
+  input_depth_extent_ = extent;
+
   GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
 
-  src_depth_tx_ = depth_tx;
-
-  int3 target_size(1);
-  GPU_texture_get_mipmap_size(depth_tx, 0, target_size);
-
-  dispatch_depth_scan_size_ = math::divide_ceil(target_size, int3(SHADOW_DEPTH_SCAN_GROUP_SIZE));
+  dispatch_depth_scan_size_ = int3(math::divide_ceil(extent, int2(SHADOW_DEPTH_SCAN_GROUP_SIZE)),
+                                   1);
   max_view_per_tilemap_ = max_view_per_tilemap();
 
-  pixel_world_radius_ = screen_pixel_radius(view, int2(target_size));
+  pixel_world_radius_ = screen_pixel_radius(view, extent);
   data_.tilemap_projection_ratio = tilemap_pixel_radius() / pixel_world_radius_;
   inst_.uniform_data.push_update();
 
-  usage_tag_fb_resolution_ = math::divide_ceil(int2(target_size),
-                                               int2(std::exp2(usage_tag_fb_lod_)));
+  usage_tag_fb_resolution_ = math::divide_ceil(extent, int2(std::exp2(usage_tag_fb_lod_)));
   usage_tag_fb.ensure(usage_tag_fb_resolution_);
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_MEMORYLESS;

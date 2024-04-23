@@ -403,7 +403,10 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   return pass;
 }
 
-void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb)
+void ForwardPipeline::render(View &view,
+                             Framebuffer &prepass_fb,
+                             Framebuffer &combined_fb,
+                             int2 extent)
 {
   if (!has_transparent_ && !has_opaque_) {
     inst_.volume.draw_resolve(view);
@@ -417,7 +420,7 @@ void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &c
 
   inst_.hiz_buffer.set_dirty();
 
-  inst_.shadows.set_view(view, inst_.render_buffers.depth_tx);
+  inst_.shadows.set_view(view, extent);
   inst_.volume_probes.set_view(view);
 
   if (has_opaque_) {
@@ -730,7 +733,7 @@ GPUTexture *DeferredLayer::render(View &main_view,
   inst_.hiz_buffer.update();
 
   inst_.volume_probes.set_view(render_view);
-  inst_.shadows.set_view(render_view, inst_.render_buffers.depth_tx);
+  inst_.shadows.set_view(render_view, extent);
 
   inst_.gbuffer.bind(gbuffer_fb);
   inst_.manager->submit(gbuffer_ps_, render_view);
@@ -1219,8 +1222,10 @@ void DeferredProbePipeline::render(View &view,
   inst_.manager->submit(opaque_layer_.prepass_ps_, view);
 
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
+  inst_.hiz_buffer.update();
+
   inst_.lights.set_view(view, extent);
-  inst_.shadows.set_view(view, inst_.render_buffers.depth_tx);
+  inst_.shadows.set_view(view, extent);
   inst_.volume_probes.set_view(view);
 
   /* Update for lighting pass. */
@@ -1333,12 +1338,11 @@ void PlanarProbePipeline::render(View &view,
   /* TODO(fclem): This is the only place where we use the layer source to HiZ.
    * This is because the texture layer view is still a layer texture. */
   inst_.hiz_buffer.set_source(&depth_layer_tx, 0);
-  inst_.lights.set_view(view, extent);
-  inst_.shadows.set_view(view, depth_layer_tx);
-  inst_.volume_probes.set_view(view);
-
-  /* Update for lighting pass. */
   inst_.hiz_buffer.update();
+
+  inst_.lights.set_view(view, extent);
+  inst_.shadows.set_view(view, extent);
+  inst_.volume_probes.set_view(view);
 
   inst_.gbuffer.bind(gbuffer_fb);
   inst_.manager->submit(gbuffer_ps_, view);

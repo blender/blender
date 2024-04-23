@@ -164,7 +164,7 @@ class ForwardPipeline {
                                           ::Material *blender_mat,
                                           GPUMaterial *gpumat);
 
-  void render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb);
+  void render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb, int2 extent);
 };
 
 /** \} */

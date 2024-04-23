@@ -144,7 +144,7 @@ void ShadingView::render()
 
   // inst_.lookdev.render_overlay(view_fb_);
 
-  inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_);
+  inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_, extent_);
 
   render_transparent_pass(rbufs);
 
@@ -176,7 +176,7 @@ void ShadingView::render_transparent_pass(RenderBuffers &rbufs)
     float4 clear_color = {0.0f, 0.0f, 0.0f, 1.0f};
     GPU_framebuffer_bind(transparent_fb_);
     GPU_framebuffer_clear_color(transparent_fb_, clear_color);
-    inst_.pipelines.forward.render(render_view_, prepass_fb_, transparent_fb_);
+    inst_.pipelines.forward.render(render_view_, prepass_fb_, transparent_fb_, rbufs.extent_get());
   }
 }
 
