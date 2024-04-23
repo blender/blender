@@ -182,7 +182,7 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
       break;
     }
     case CLOSURE_NONE_ID:
-      /* TODO(fclem): Assert. */
+      /* Can happen in forward. */
       break;
   }
   return cl_light;

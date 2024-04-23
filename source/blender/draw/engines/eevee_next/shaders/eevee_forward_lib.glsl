@@ -23,14 +23,20 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
   float vPz = dot(drw_view_forward(), g_data.P) - dot(drw_view_forward(), drw_view_position());
   vec3 V = drw_world_incident_vector(g_data.P);
 
+  vec3 surface_N = vec3(0.0);
+  bool valid_N = false;
   ClosureLightStack stack;
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT; i++) {
-    stack.cl[i] = closure_light_new(g_closure_get(i), V);
+    ClosureUndetermined cl = g_closure_get(i);
+    if (!valid_N && (cl.weight > 0.0)) {
+      surface_N = cl.N;
+    }
+    stack.cl[i] = closure_light_new(cl, V);
   }
 
   /* TODO(fclem): If transmission (no SSS) is present, we could reduce LIGHT_CLOSURE_EVAL_COUNT
    * by 1 for this evaluation and skip evaluating the transmission closure twice. */
-  light_eval_reflection(stack, g_data.P, g_data.Ng, V, vPz);
+  light_eval_reflection(stack, g_data.P, surface_N, V, vPz);
 
 #if defined(MAT_SUBSURFACE) || defined(MAT_REFRACTION) || defined(MAT_TRANSLUCENT)
 
@@ -47,7 +53,7 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
     stack.cl[0] = closure_light_new(cl_transmit, V, thickness);
 
     /* Note: Only evaluates `stack.cl[0]`. */
-    light_eval_transmission(stack, g_data.P, g_data.Ng, V, vPz);
+    light_eval_transmission(stack, g_data.P, surface_N, V, vPz);
 
 #  if defined(MAT_SUBSURFACE)
     if (cl_transmit.type == CLOSURE_BSSRDF_BURLEY_ID) {
@@ -63,7 +69,7 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
   }
 #endif
 
-  LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
+  LightProbeSample samp = lightprobe_load(g_data.P, surface_N, V);
 
   float clamp_indirect_sh = uniform_buf.clamp.surface_indirect;
   samp.volume_irradiance = spherical_harmonics_clamp(samp.volume_irradiance, clamp_indirect_sh);
