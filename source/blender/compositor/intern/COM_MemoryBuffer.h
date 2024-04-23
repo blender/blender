@@ -15,6 +15,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
+#include <cstdint>
 #include <cstring>
 
 struct ColormanageProcessor;
@@ -657,9 +658,9 @@ class MemoryBuffer {
 
  private:
   void set_strides();
-  const int buffer_len() const
+  const int64_t buffer_len() const
   {
-    return get_memory_width() * get_memory_height();
+    return int64_t(get_memory_width()) * int64_t(get_memory_height());
   }
 
   void clear_elem(float *out) const
