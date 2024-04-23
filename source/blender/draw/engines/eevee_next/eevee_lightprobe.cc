@@ -154,8 +154,9 @@ void LightProbeModule::sync_sphere(const Object *ob, ObjectHandle &handle)
     cube.parallax_distance = parallax_distance / influence_distance;
     cube.clipping_distances = float2(light_probe.clipsta, light_probe.clipend);
 
+    float3 scale = influence_distance * math::to_scale(ob->object_to_world());
     cube.viewport_display = light_probe.flag & LIGHTPROBE_FLAG_SHOW_DATA;
-    cube.viewport_display_size = light_probe.data_display_size;
+    cube.viewport_display_size = light_probe.data_display_size * math::reduce_add(scale / 3.0f);
   }
 }
 
