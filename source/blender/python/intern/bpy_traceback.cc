@@ -20,13 +20,6 @@
 
 #include "bpy_traceback.h"
 
-static const char *traceback_filepath(PyTracebackObject *tb, PyObject **r_coerce)
-{
-  PyCodeObject *code = PyFrame_GetCode(tb->tb_frame);
-  *r_coerce = PyUnicode_EncodeFSDefault(code->co_filename);
-  return PyBytes_AS_STRING(*r_coerce);
-}
-
 #define MAKE_PY_IDENTIFIER_EX(varname, value) static _Py_Identifier varname{value, -1};
 #define MAKE_PY_IDENTIFIER(varname) MAKE_PY_IDENTIFIER_EX(PyId_##varname, #varname)
 
@@ -37,7 +30,44 @@ MAKE_PY_IDENTIFIER(lineno);
 MAKE_PY_IDENTIFIER(offset);
 MAKE_PY_IDENTIFIER(end_lineno);
 MAKE_PY_IDENTIFIER(end_offset);
+MAKE_PY_IDENTIFIER(tb_lineno);
 MAKE_PY_IDENTIFIER(text);
+
+static const char *traceback_filepath(PyTracebackObject *tb, PyObject **r_coerce)
+{
+  PyCodeObject *code = PyFrame_GetCode(tb->tb_frame);
+  *r_coerce = PyUnicode_EncodeFSDefault(code->co_filename);
+  return PyBytes_AS_STRING(*r_coerce);
+}
+
+/** Return the line number from the trace-back, -1 on failure. */
+static int traceback_line_number(PyTracebackObject *tb)
+{
+  int lineno = tb->tb_lineno;
+  if (lineno == -1) {
+    PyObject *lineno_py = _PyObject_GetAttrId((PyObject *)tb, &PyId_tb_lineno);
+    if (lineno_py) {
+      if (PyLong_Check(lineno_py)) {
+        const int lineno_test = PyLong_AsLongLong(lineno_py);
+        /* Theoretically could occur from overflow,
+         * internally these are `int` so it shouldn't happen. */
+        if (!((lineno_test == -1) && PyErr_Occurred())) {
+          lineno = lineno_test;
+        }
+        else {
+          PyErr_Clear();
+        }
+      }
+      Py_DECREF(lineno_py);
+    }
+    else {
+      /* This should never happen, print the error. */
+      PyErr_Print();
+      PyErr_Clear();
+    }
+  }
+  return lineno;
+}
 
 static int parse_syntax_error(PyObject *err,
                               PyObject **message,
@@ -232,7 +262,7 @@ bool python_script_error_jump(
       if (match) {
         /* Even though a match has been found, keep searching to find the inner most line. */
         success = true;
-        *r_lineno = *r_lineno_end = tb_iter->tb_lineno;
+        *r_lineno = *r_lineno_end = traceback_line_number(tb_iter);
       }
     }
   }
