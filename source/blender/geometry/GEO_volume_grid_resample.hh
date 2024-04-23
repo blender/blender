@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include <openvdb_fwd.hh>
+#ifdef WITH_OPENVDB
 
-#include "BKE_volume_grid_fwd.hh"
+#  include <openvdb_fwd.hh>
+
+#  include "BKE_volume_grid_fwd.hh"
 
 namespace blender::geometry {
 
@@ -16,3 +18,5 @@ openvdb::FloatGrid &resample_sdf_grid_if_necessary(bke::VolumeGrid<float> &volum
                                                    std::shared_ptr<openvdb::FloatGrid> &storage);
 
 }  // namespace blender::geometry
+
+#endif
