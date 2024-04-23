@@ -358,7 +358,6 @@ bool autokeyframe_property(bContext *C,
 
     /* TODO: this should probably respect the keyingset only option for anim */
     if (autokeyframe_cfra_can_key(scene, id)) {
-      ReportList *reports = CTX_wm_reports(C);
       ToolSettings *ts = scene->toolsettings;
       const eInsertKeyFlags flag = get_autokey_flags(scene);
       const std::optional<std::string> path = RNA_path_from_ID_to_property(ptr, prop);
