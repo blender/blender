@@ -660,6 +660,7 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
         return PaintMode::VertexGPencil;
       case CTX_MODE_SCULPT_GPENCIL_LEGACY:
         return PaintMode::SculptGPencil;
+      case CTX_MODE_WEIGHT_GREASE_PENCIL:
       case CTX_MODE_WEIGHT_GPENCIL_LEGACY:
         return PaintMode::WeightGPencil;
       case CTX_MODE_SCULPT_CURVES:
