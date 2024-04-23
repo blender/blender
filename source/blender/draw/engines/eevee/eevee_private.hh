@@ -681,11 +681,11 @@ enum EEVEE_EffectsFlag {
   EFFECT_TAA = (1 << 8),
   EFFECT_POST_BUFFER = (1 << 9),      /* Not really an effect but a feature */
   EFFECT_NORMAL_BUFFER = (1 << 10),   /* Not really an effect but a feature */
-  EFFECT_RADIANCE_BUFFER = (1 << 10), /* Not really an effect but a feature */
-  EFFECT_SSS = (1 << 11),
-  EFFECT_VELOCITY_BUFFER = (1 << 12),     /* Not really an effect but a feature */
-  EFFECT_TAA_REPROJECT = (1 << 13),       /* should be mutually exclusive with EFFECT_TAA */
-  EFFECT_DEPTH_DOUBLE_BUFFER = (1 << 14), /* Not really an effect but a feature */
+  EFFECT_RADIANCE_BUFFER = (1 << 11), /* Not really an effect but a feature */
+  EFFECT_SSS = (1 << 12),
+  EFFECT_VELOCITY_BUFFER = (1 << 13),     /* Not really an effect but a feature */
+  EFFECT_TAA_REPROJECT = (1 << 14),       /* should be mutually exclusive with EFFECT_TAA */
+  EFFECT_DEPTH_DOUBLE_BUFFER = (1 << 15), /* Not really an effect but a feature */
 };
 ENUM_OPERATORS(EEVEE_EffectsFlag, EFFECT_DEPTH_DOUBLE_BUFFER)
 
