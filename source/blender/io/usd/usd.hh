@@ -102,7 +102,7 @@ struct USDExportParams {
 
   /** Communication structure between the wmJob management code and the worker code. Currently used
    * to generate safely reports from the worker thread. */
-  wmJobWorkerStatus *worker_status;
+  wmJobWorkerStatus *worker_status = nullptr;
 };
 
 struct USDImportParams {
