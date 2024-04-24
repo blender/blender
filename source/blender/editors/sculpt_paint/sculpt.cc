@@ -1302,8 +1302,8 @@ static void restore_mask(Object *ob, const Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (PBVHNode *node : nodes.slice(range)) {
           if (undo::Node *unode = undo::get_node(node, undo::Type::Mask)) {
-            array_utils::scatter(
-                unode->mask.as_span(), BKE_pbvh_node_get_unique_vert_indices(node), mask.span);
+            const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(node);
+            array_utils::scatter(unode->mask.as_span(), verts, mask.span);
             BKE_pbvh_node_mark_update_mask(node);
           }
         }
@@ -1428,23 +1428,15 @@ static void restore_face_set(Object *ob, const Span<PBVHNode *> nodes)
 static void restore_position(Object *ob, const Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
-  const auto restore_generic = [&](PBVHNode *node, undo::Node *unode) {
-    SculptOrigVertData orig_vert_data;
-    SCULPT_orig_vert_data_unode_init(&orig_vert_data, ob, unode);
-    PBVHVertexIter vd;
-    BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-      SCULPT_orig_vert_data_update(&orig_vert_data, &vd);
-      copy_v3_v3(vd.co, orig_vert_data.co);
-    }
-    BKE_pbvh_vertex_iter_end;
-    BKE_pbvh_node_mark_update(node);
-  };
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
+      MutableSpan positions = BKE_pbvh_get_vert_positions(ss->pbvh);
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (PBVHNode *node : nodes.slice(range)) {
           if (undo::Node *unode = undo::get_node(node, undo::Type::Position)) {
-            restore_generic(node, unode);
+            const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(node);
+            array_utils::scatter(unode->position.as_span(), verts, positions);
+            BKE_pbvh_node_mark_positions_update(node);
           }
         }
       });
@@ -1452,17 +1444,34 @@ static void restore_position(Object *ob, const Span<PBVHNode *> nodes)
     }
     case PBVH_BMESH: {
       for (PBVHNode *node : nodes) {
-        if (undo::Node *unode = undo::push_node(ob, node, undo::Type::Position)) {
-          restore_generic(node, unode);
+        if (undo::push_node(ob, node, undo::Type::Position)) {
+          for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
+            copy_v3_v3(vert->co, BM_log_original_vert_co(ss->bm_log, vert));
+          }
+          BKE_pbvh_node_mark_positions_update(node);
         }
       }
       break;
     }
     case PBVH_GRIDS: {
+      SubdivCCG &subdiv_ccg = *ss->subdiv_ccg;
+      const BitGroupVector<> grid_hidden = subdiv_ccg.grid_hidden;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      const Span<CCGElem *> grids = subdiv_ccg.grids;
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (PBVHNode *node : nodes.slice(range)) {
           if (undo::Node *unode = undo::get_node(node, undo::Type::Position)) {
-            restore_generic(node, unode);
+            int index = 0;
+            for (const int grid : unode->grids) {
+              CCGElem *elem = grids[grid];
+              for (const int i : IndexRange(key.grid_area)) {
+                if (grid_hidden.is_empty() || !grid_hidden[grid][i]) {
+                  copy_v3_v3(CCG_elem_offset_co(&key, elem, i), unode->position[index]);
+                }
+                index++;
+              }
+            }
+            BKE_pbvh_node_mark_positions_update(node);
           }
         }
       });
