@@ -922,6 +922,9 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
    * the topology is consistent, as in the Alembic importer. */
 
   ImportSettings settings;
+  if (settings_) {
+    settings.validate_meshes = settings_->validate_meshes;
+  }
   settings.read_flag |= params.read_flags;
 
   if (topology_changed(existing_mesh, params.motion_sample_time)) {
@@ -945,6 +948,12 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
       assign_facesets_to_material_indices(
           params.motion_sample_time, material_indices.span, &mat_map);
       material_indices.finish();
+    }
+  }
+
+  if (settings.validate_meshes) {
+    if (BKE_mesh_validate(active_mesh, false, false)) {
+      BKE_reportf(reports(), RPT_INFO, "Fixed mesh for prim: %s", mesh_prim_.GetPath().GetText());
     }
   }
 
