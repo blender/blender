@@ -100,6 +100,7 @@
 
 #include "MEM_guardedalloc.h" /* MEM_freeN */
 
+#include "BKE_asset.hh"
 #include "BKE_blender_version.h"
 #include "BKE_bpath.hh"
 #include "BKE_global.hh" /* For #Global `G`. */
@@ -938,10 +939,7 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
       const bUserAssetShelfSettings *, shelf_settings, &userdef->asset_shelves_settings)
   {
     BLO_write_struct(writer, bUserAssetShelfSettings, shelf_settings);
-    LISTBASE_FOREACH (const LinkData *, path_link, &shelf_settings->enabled_catalog_paths) {
-      BLO_write_struct(writer, LinkData, path_link);
-      BLO_write_string(writer, (const char *)path_link->data);
-    }
+    BKE_asset_catalog_path_list_blend_write(writer, shelf_settings->enabled_catalog_paths);
   }
 
   LISTBASE_FOREACH (const uiStyle *, style, &userdef->uistyles) {

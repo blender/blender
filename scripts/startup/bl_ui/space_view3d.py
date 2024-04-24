@@ -8934,7 +8934,7 @@ class VIEW3D_PT_viewport_debug(Panel):
 
 class BrushAssetShelf:
     bl_space_type = "VIEW_3D"
-    bl_options = {'DEFAULT_VISIBLE', 'NO_ASSET_DRAG'}
+    bl_options = {'DEFAULT_VISIBLE', 'NO_ASSET_DRAG', 'STORE_ENABLED_CATALOGS_IN_PREFERENCES'}
     bl_activate_operator = "BRUSH_OT_asset_select"
     bl_default_preview_size = 48
 

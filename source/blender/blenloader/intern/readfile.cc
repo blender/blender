@@ -3433,10 +3433,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   }
 
   LISTBASE_FOREACH (bUserAssetShelfSettings *, shelf_settings, &user->asset_shelves_settings) {
-    BLO_read_list(reader, &shelf_settings->enabled_catalog_paths);
-    LISTBASE_FOREACH (LinkData *, path_link, &shelf_settings->enabled_catalog_paths) {
-      BLO_read_data_address(reader, &path_link->data);
-    }
+    BKE_asset_catalog_path_list_blend_read_data(reader, shelf_settings->enabled_catalog_paths);
   }
 
   /* XXX */

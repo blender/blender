@@ -20,10 +20,12 @@
 #include "BLI_string_utils.hh"
 
 #include "BKE_appdir.hh"
+#include "BKE_asset.hh"
 #include "BKE_preferences.h"
 
 #include "BLT_translation.hh"
 
+#include "DNA_asset_types.h"
 #include "DNA_defaults.h"
 #include "DNA_userdef_types.h"
 
@@ -435,13 +437,6 @@ bUserAssetShelfSettings *BKE_preferences_asset_shelf_settings_get(const UserDef 
                      offsetof(bUserAssetShelfSettings, shelf_idname)));
 }
 
-static bool asset_shelf_settings_is_catalog_path_enabled(const bUserAssetShelfSettings *settings,
-                                                         const char *catalog_path)
-{
-  return BLI_findstring_ptr(
-             &settings->enabled_catalog_paths, catalog_path, offsetof(LinkData, data)) != nullptr;
-}
-
 bool BKE_preferences_asset_shelf_settings_is_catalog_path_enabled(const UserDef *userdef,
                                                                   const char *shelf_idname,
                                                                   const char *catalog_path)
@@ -451,7 +446,7 @@ bool BKE_preferences_asset_shelf_settings_is_catalog_path_enabled(const UserDef 
   if (!settings) {
     return false;
   }
-  return asset_shelf_settings_is_catalog_path_enabled(settings, catalog_path);
+  return BKE_asset_catalog_path_list_has_path(settings->enabled_catalog_paths, catalog_path);
 }
 
 bool BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(UserDef *userdef,
@@ -465,31 +460,8 @@ bool BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(UserDef *u
   }
 
   bUserAssetShelfSettings *settings = asset_shelf_settings_ensure(userdef, shelf_idname);
-
-  char *path_copy = BLI_strdup(catalog_path);
-  BLI_addtail(&settings->enabled_catalog_paths, BLI_genericNodeN(path_copy));
+  BKE_asset_catalog_path_list_add_path(settings->enabled_catalog_paths, catalog_path);
   return true;
-}
-
-void BKE_preferences_asset_shelf_settings_clear_enabled_catalog_paths(
-    bUserAssetShelfSettings *settings)
-{
-  LISTBASE_FOREACH_MUTABLE (LinkData *, path_link, &settings->enabled_catalog_paths) {
-    MEM_freeN(path_link->data);
-    BLI_freelinkN(&settings->enabled_catalog_paths, path_link);
-  }
-  BLI_assert(BLI_listbase_is_empty(&settings->enabled_catalog_paths));
-}
-
-void BKE_preferences_asset_shelf_settings_clear_enabled_catalog_paths(const UserDef *userdef,
-                                                                      const char *shelf_idname)
-{
-  bUserAssetShelfSettings *settings = BKE_preferences_asset_shelf_settings_get(userdef,
-                                                                               shelf_idname);
-  if (!settings) {
-    return;
-  }
-  BKE_preferences_asset_shelf_settings_clear_enabled_catalog_paths(settings);
 }
 
 /** \} */

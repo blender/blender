@@ -205,3 +205,8 @@ typedef struct AssetWeakReference {
 typedef struct AssetHandle {
   const struct FileDirEntry *file_data;
 } AssetHandle;
+
+struct AssetCatalogPathLink {
+  struct AssetCatalogPathLink *next, *prev;
+  char *path;
+};

@@ -147,8 +147,3 @@ bool BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(UserDef *u
 #ifdef __cplusplus
 }
 #endif
-
-void BKE_preferences_asset_shelf_settings_clear_enabled_catalog_paths(const UserDef *userdef,
-                                                                      const char *shelf_idname);
-void BKE_preferences_asset_shelf_settings_clear_enabled_catalog_paths(
-    bUserAssetShelfSettings *settings);

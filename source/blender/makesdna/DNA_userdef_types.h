@@ -765,7 +765,7 @@ typedef struct bUserAssetShelfSettings {
   /** Identifier that matches the #AssetShelfType.idname of the shelf these settings apply to. */
   char shelf_idname[64]; /* MAX_NAME */
 
-  ListBase enabled_catalog_paths; /* #LinkData */
+  ListBase enabled_catalog_paths; /* #AssetCatalogPathLink */
 } bUserAssetShelfSettings;
 
 /**
