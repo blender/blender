@@ -99,7 +99,7 @@ struct TimelineDrawContext {
   SeqQuadsBatch *quads;
 };
 
-static TimelineDrawContext timeline_draw_context_get(const bContext *C)
+static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuadsBatch *quads_batch)
 {
   TimelineDrawContext ctx;
 
@@ -117,6 +117,8 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C)
 
   ctx.pixely = BLI_rctf_size_y(&ctx.v2d->cur) / BLI_rcti_size_y(&ctx.v2d->mask);
   ctx.pixelx = BLI_rctf_size_x(&ctx.v2d->cur) / BLI_rcti_size_x(&ctx.v2d->mask);
+
+  ctx.quads = quads_batch;
 
   return ctx;
 }
@@ -1816,8 +1818,7 @@ static void draw_timeline_post_view_callbacks(TimelineDrawContext *ctx)
 void draw_timeline_seq(const bContext *C, ARegion *region)
 {
   SeqQuadsBatch quads_batch;
-  TimelineDrawContext ctx = timeline_draw_context_get(C);
-  ctx.quads = &quads_batch;
+  TimelineDrawContext ctx = timeline_draw_context_get(C, &quads_batch);
 
   draw_timeline_pre_view_callbacks(&ctx);
   UI_ThemeClearColor(TH_BACK);
