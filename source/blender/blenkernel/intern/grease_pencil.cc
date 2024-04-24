@@ -215,7 +215,7 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
   /* Read materials. */
   BLO_read_pointer_array(reader, reinterpret_cast<void **>(&grease_pencil->material_array));
   /* Read vertex group names. */
-  BLO_read_list(reader, &grease_pencil->vertex_group_names);
+  BLO_read_struct_list(reader, bDeformGroup, &grease_pencil->vertex_group_names);
 
   grease_pencil->runtime = MEM_new<blender::bke::GreasePencilRuntime>(__func__);
 }
@@ -2928,7 +2928,7 @@ static void read_drawing_array(GreasePencil &grease_pencil, BlendDataReader *rea
 {
   BLO_read_pointer_array(reader, reinterpret_cast<void **>(&grease_pencil.drawing_array));
   for (int i = 0; i < grease_pencil.drawing_array_num; i++) {
-    BLO_read_data_address(reader, &grease_pencil.drawing_array[i]);
+    BLO_read_struct(reader, GreasePencilDrawingBase, &grease_pencil.drawing_array[i]);
     GreasePencilDrawingBase *drawing_base = grease_pencil.drawing_array[i];
     switch (GreasePencilDrawingType(drawing_base->type)) {
       case GP_DRAWING: {
@@ -3007,19 +3007,20 @@ static void read_layer(BlendDataReader *reader,
                        GreasePencilLayer *node,
                        GreasePencilLayerTreeGroup *parent)
 {
-  BLO_read_data_address(reader, &node->base.name);
+  BLO_read_string(reader, &node->base.name);
   node->base.parent = parent;
-  BLO_read_data_address(reader, &node->parsubstr);
-  BLO_read_data_address(reader, &node->viewlayername);
+  BLO_read_string(reader, &node->parsubstr);
+  BLO_read_string(reader, &node->viewlayername);
 
   /* Read frames storage. */
   BLO_read_int32_array(reader, node->frames_storage.num, &node->frames_storage.keys);
-  BLO_read_data_address(reader, &node->frames_storage.values);
+  BLO_read_struct_array(
+      reader, GreasePencilFrame, node->frames_storage.num, &node->frames_storage.values);
 
   /* Read layer masks. */
-  BLO_read_list(reader, &node->masks);
+  BLO_read_struct_list(reader, GreasePencilLayerMask, &node->masks);
   LISTBASE_FOREACH (GreasePencilLayerMask *, mask, &node->masks) {
-    BLO_read_data_address(reader, &mask->layer_name);
+    BLO_read_string(reader, &mask->layer_name);
   }
 
   /* NOTE: Ideally this should be cleared on write, to reduce false 'changes' detection in memfile
@@ -3033,10 +3034,10 @@ static void read_layer_tree_group(BlendDataReader *reader,
                                   GreasePencilLayerTreeGroup *node,
                                   GreasePencilLayerTreeGroup *parent)
 {
-  BLO_read_data_address(reader, &node->base.name);
+  BLO_read_string(reader, &node->base.name);
   node->base.parent = parent;
   /* Read list of children. */
-  BLO_read_list(reader, &node->children);
+  BLO_read_struct_list(reader, GreasePencilLayerTreeNode, &node->children);
   LISTBASE_FOREACH (GreasePencilLayerTreeNode *, child, &node->children) {
     switch (child->type) {
       case GP_LAYER_TREE_LEAF: {
@@ -3058,7 +3059,7 @@ static void read_layer_tree_group(BlendDataReader *reader,
 static void read_layer_tree(GreasePencil &grease_pencil, BlendDataReader *reader)
 {
   /* Read root group. */
-  BLO_read_data_address(reader, &grease_pencil.root_group_ptr);
+  BLO_read_struct(reader, GreasePencilLayerTreeGroup, &grease_pencil.root_group_ptr);
   /* This shouldn't normally happen, but for files that were created before the root group became a
    * pointer, this address will not exist. In this case, we clear the pointer to the active layer
    * and create an empty root group to avoid crashes. */
@@ -3068,7 +3069,7 @@ static void read_layer_tree(GreasePencil &grease_pencil, BlendDataReader *reader
     return;
   }
   /* Read active layer. */
-  BLO_read_data_address(reader, &grease_pencil.active_layer);
+  BLO_read_struct(reader, GreasePencilLayer, &grease_pencil.active_layer);
   read_layer_tree_group(reader, grease_pencil.root_group_ptr, nullptr);
 
   grease_pencil.root_group_ptr->wrap().update_from_dna_read();

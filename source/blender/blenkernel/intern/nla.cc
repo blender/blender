@@ -2519,15 +2519,15 @@ static void blend_data_read_nla_strips(BlendDataReader *reader, ListBase *strips
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* strip's child strips */
-    BLO_read_list(reader, &strip->strips);
+    BLO_read_struct_list(reader, NlaStrip, &strip->strips);
     blend_data_read_nla_strips(reader, &strip->strips);
 
     /* strip's F-Curves */
-    BLO_read_list(reader, &strip->fcurves);
+    BLO_read_struct_list(reader, FCurve, &strip->fcurves);
     BKE_fcurve_blend_read_data_listbase(reader, &strip->fcurves);
 
     /* strip's F-Modifiers */
-    BLO_read_list(reader, &strip->modifiers);
+    BLO_read_struct_list(reader, FModifier, &strip->modifiers);
     BKE_fmodifiers_blend_read_data(reader, &strip->modifiers, nullptr);
   }
 }
@@ -2553,7 +2553,7 @@ void BKE_nla_blend_read_data(BlendDataReader *reader, ID *id_owner, ListBase *tr
     }
 
     /* relink list of strips */
-    BLO_read_list(reader, &nlt->strips);
+    BLO_read_struct_list(reader, NlaStrip, &nlt->strips);
 
     /* relink strip data */
     blend_data_read_nla_strips(reader, &nlt->strips);

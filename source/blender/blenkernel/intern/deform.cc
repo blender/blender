@@ -1639,10 +1639,9 @@ void BKE_defvert_blend_read(BlendDataReader *reader, int count, MDeformVert *mdv
 
   for (int i = count; i > 0; i--, mdverts++) {
     /* Convert to vertex group allocation system. */
-    MDeformWeight *dw;
-    if (mdverts->dw &&
-        (dw = static_cast<MDeformWeight *>(BLO_read_get_new_data_address(reader, mdverts->dw))))
-    {
+    MDeformWeight *dw = mdverts->dw;
+    BLO_read_struct_array(reader, MDeformWeight, mdverts->totweight, &dw);
+    if (dw) {
       const size_t dw_len = sizeof(MDeformWeight) * mdverts->totweight;
       void *dw_tmp = MEM_mallocN(dw_len, __func__);
       memcpy(dw_tmp, dw, dw_len);

@@ -175,11 +175,11 @@ static void world_blend_read_data(BlendDataReader *reader, ID *id)
 {
   World *wrld = (World *)id;
 
-  BLO_read_data_address(reader, &wrld->preview);
+  BLO_read_struct(reader, PreviewImage, &wrld->preview);
   BKE_previewimg_blend_read(reader, wrld->preview);
   BLI_listbase_clear(&wrld->gpumaterial);
 
-  BLO_read_data_address(reader, &wrld->lightgroup);
+  BLO_read_struct(reader, LightgroupMembership, &wrld->lightgroup);
 }
 
 IDTypeInfo IDType_ID_WO = {

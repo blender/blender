@@ -996,9 +996,9 @@ void SimulationItemsAccessor::blend_write(BlendWriter *writer, const bNode &node
 void SimulationItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
 {
   auto &storage = *static_cast<NodeGeometrySimulationOutput *>(node.storage);
-  BLO_read_data_address(reader, &storage.items);
+  BLO_read_struct_array(reader, NodeSimulationItem, storage.items_num, &storage.items);
   for (const NodeSimulationItem &item : Span(storage.items, storage.items_num)) {
-    BLO_read_data_address(reader, &item.name);
+    BLO_read_string(reader, &item.name);
   }
 }
 

@@ -98,10 +98,10 @@ static void workspace_blend_read_data(BlendDataReader *reader, ID *id)
 {
   WorkSpace *workspace = (WorkSpace *)id;
 
-  BLO_read_list(reader, &workspace->layouts);
-  BLO_read_list(reader, &workspace->hook_layout_relations);
-  BLO_read_list(reader, &workspace->owner_ids);
-  BLO_read_list(reader, &workspace->tools);
+  BLO_read_struct_list(reader, WorkSpaceLayout, &workspace->layouts);
+  BLO_read_struct_list(reader, WorkSpaceDataRelation, &workspace->hook_layout_relations);
+  BLO_read_struct_list(reader, wmOwnerID, &workspace->owner_ids);
+  BLO_read_struct_list(reader, bToolRef, &workspace->tools);
 
   LISTBASE_FOREACH (WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
     /* Parent pointer does not belong to workspace data and is therefore restored in lib_link step
@@ -111,7 +111,7 @@ static void workspace_blend_read_data(BlendDataReader *reader, ID *id)
 
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     tref->runtime = nullptr;
-    BLO_read_data_address(reader, &tref->properties);
+    BLO_read_struct(reader, IDProperty, &tref->properties);
     IDP_BlendDataRead(reader, &tref->properties);
   }
 

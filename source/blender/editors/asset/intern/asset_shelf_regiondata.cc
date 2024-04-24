@@ -70,12 +70,12 @@ void regiondata_blend_read_data(BlendDataReader *reader, RegionAssetShelf **shel
     return;
   }
 
-  BLO_read_data_address(reader, shelf_regiondata);
+  BLO_read_struct(reader, RegionAssetShelf, shelf_regiondata);
   if ((*shelf_regiondata)->active_shelf) {
-    BLO_read_data_address(reader, &(*shelf_regiondata)->active_shelf);
+    BLO_read_struct(reader, AssetShelf, &(*shelf_regiondata)->active_shelf);
   }
 
-  BLO_read_list(reader, &(*shelf_regiondata)->shelves);
+  BLO_read_struct_list(reader, AssetShelf, &(*shelf_regiondata)->shelves);
   LISTBASE_FOREACH (AssetShelf *, shelf, &(*shelf_regiondata)->shelves) {
     shelf->type = nullptr;
     settings_blend_read_data(reader, shelf->settings);

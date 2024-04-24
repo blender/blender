@@ -129,7 +129,7 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   /* Geometry */
   curves->geometry.wrap().blend_read(*reader);
 
-  BLO_read_data_address(reader, &curves->surface_uv_map);
+  BLO_read_string(reader, &curves->surface_uv_map);
 
   /* Materials */
   BLO_read_pointer_array(reader, (void **)&curves->mat);

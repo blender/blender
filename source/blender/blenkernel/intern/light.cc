@@ -153,7 +153,7 @@ static void light_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Light *la = (Light *)id;
 
-  BLO_read_data_address(reader, &la->preview);
+  BLO_read_struct(reader, PreviewImage, &la->preview);
   BKE_previewimg_blend_read(reader, la->preview);
 }
 

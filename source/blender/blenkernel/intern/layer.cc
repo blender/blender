@@ -2409,11 +2409,11 @@ void BKE_view_layer_blend_write(BlendWriter *writer, const Scene *scene, ViewLay
 
 static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb, bool master)
 {
-  BLO_read_list(reader, lb);
+  BLO_read_struct_list(reader, LayerCollection, lb);
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
     /* Master collection is not a real data-block. */
     if (master) {
-      BLO_read_data_address(reader, &lc->collection);
+      BLO_read_struct(reader, Collection, &lc->collection);
     }
 
     direct_link_layer_collections(reader, &lc->layer_collections, false);
@@ -2423,23 +2423,23 @@ static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb,
 void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_layer)
 {
   view_layer->stats = nullptr;
-  BLO_read_list(reader, &view_layer->object_bases);
-  BLO_read_data_address(reader, &view_layer->basact);
+  BLO_read_struct_list(reader, Base, &view_layer->object_bases);
+  BLO_read_struct(reader, Base, &view_layer->basact);
 
   direct_link_layer_collections(reader, &view_layer->layer_collections, true);
-  BLO_read_data_address(reader, &view_layer->active_collection);
+  BLO_read_struct(reader, LayerCollection, &view_layer->active_collection);
 
-  BLO_read_data_address(reader, &view_layer->id_properties);
+  BLO_read_struct(reader, IDProperty, &view_layer->id_properties);
   IDP_BlendDataRead(reader, &view_layer->id_properties);
 
-  BLO_read_list(reader, &(view_layer->freestyle_config.modules));
-  BLO_read_list(reader, &(view_layer->freestyle_config.linesets));
+  BLO_read_struct_list(reader, FreestyleModuleConfig, &(view_layer->freestyle_config.modules));
+  BLO_read_struct_list(reader, FreestyleLineSet, &(view_layer->freestyle_config.linesets));
 
-  BLO_read_list(reader, &view_layer->aovs);
-  BLO_read_data_address(reader, &view_layer->active_aov);
+  BLO_read_struct_list(reader, ViewLayerAOV, &view_layer->aovs);
+  BLO_read_struct(reader, ViewLayerAOV, &view_layer->active_aov);
 
-  BLO_read_list(reader, &view_layer->lightgroups);
-  BLO_read_data_address(reader, &view_layer->active_lightgroup);
+  BLO_read_struct_list(reader, ViewLayerLightgroup, &view_layer->lightgroups);
+  BLO_read_struct(reader, ViewLayerLightgroup, &view_layer->active_lightgroup);
 
   BLI_listbase_clear(&view_layer->drawdata);
   view_layer->object_bases_array = nullptr;

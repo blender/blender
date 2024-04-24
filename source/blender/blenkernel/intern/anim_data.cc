@@ -1499,13 +1499,13 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id)
     return;
   }
 
-  AnimData *adt = static_cast<AnimData *>(BLO_read_data_address(reader, &iat->adt));
+  AnimData *adt = static_cast<AnimData *>(BLO_read_struct(reader, AnimData, &iat->adt));
   if (adt == nullptr) {
     return;
   }
 
   /* link drivers */
-  BLO_read_list(reader, &adt->drivers);
+  BLO_read_struct_list(reader, FCurve, &adt->drivers);
   BKE_fcurve_blend_read_data_listbase(reader, &adt->drivers);
   adt->driver_array = nullptr;
 
@@ -1513,7 +1513,7 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id)
   /* TODO... */
 
   /* link NLA-data */
-  BLO_read_list(reader, &adt->nla_tracks);
+  BLO_read_struct_list(reader, NlaTrack, &adt->nla_tracks);
   BKE_nla_blend_read_data(reader, id, &adt->nla_tracks);
 
   /* relink active track/strip - even though strictly speaking this should only be used
@@ -1522,8 +1522,8 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id)
    */
   /* TODO: it's not really nice that anyone should be able to save the file in this
    *       state, but it's going to be too hard to enforce this single case. */
-  BLO_read_data_address(reader, &adt->act_track);
-  BLO_read_data_address(reader, &adt->actstrip);
+  BLO_read_struct(reader, NlaTrack, &adt->act_track);
+  BLO_read_struct(reader, NlaStrip, &adt->actstrip);
 
   if (ID_IS_LINKED(id)) {
     /* Linked NLAs should never be in tweak mode, as you cannot exit that on linked data. */

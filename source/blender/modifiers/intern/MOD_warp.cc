@@ -455,7 +455,7 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
-  BLO_read_data_address(reader, &wmd->curfalloff);
+  BLO_read_struct(reader, CurveMapping, &wmd->curfalloff);
   if (wmd->curfalloff) {
     BKE_curvemapping_blend_read(reader, wmd->curfalloff);
   }

@@ -117,7 +117,7 @@ static void cache_file_blend_read_data(BlendDataReader *reader, ID *id)
   cache_file->handle_readers = nullptr;
 
   /* relink layers */
-  BLO_read_list(reader, &cache_file->layers);
+  BLO_read_struct_list(reader, CacheFileLayer, &cache_file->layers);
 }
 
 IDTypeInfo IDType_ID_CF = {

@@ -589,7 +589,7 @@ static void nla_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 static void nla_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
-  BLO_read_data_address(reader, &snla->ads);
+  BLO_read_struct(reader, bDopeSheet, &snla->ads);
 }
 
 static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)

@@ -315,11 +315,11 @@ void BKE_keyingsets_blend_read_data(BlendDataReader *reader, ListBase *list)
 {
   LISTBASE_FOREACH (KeyingSet *, ks, list) {
     /* paths */
-    BLO_read_list(reader, &ks->paths);
+    BLO_read_struct_list(reader, KS_Path, &ks->paths);
 
     LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
       /* rna path */
-      BLO_read_data_address(reader, &ksp->rna_path);
+      BLO_read_string(reader, &ksp->rna_path);
     }
   }
 }

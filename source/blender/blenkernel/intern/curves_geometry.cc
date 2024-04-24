@@ -1555,7 +1555,7 @@ void CurvesGeometry::blend_read(BlendDataReader &reader)
         });
   }
 
-  BLO_read_list(&reader, &this->vertex_group_names);
+  BLO_read_struct_list(&reader, bDeformGroup, &this->vertex_group_names);
 
   /* Recalculate curve type count cache that isn't saved in files. */
   this->update_curve_types();

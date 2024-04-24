@@ -721,7 +721,7 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
   WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
 
-  BLO_read_data_address(reader, &wmd->cmap_curve);
+  BLO_read_struct(reader, CurveMapping, &wmd->cmap_curve);
   if (wmd->cmap_curve) {
     BKE_curvemapping_blend_read(reader, wmd->cmap_curve);
   }

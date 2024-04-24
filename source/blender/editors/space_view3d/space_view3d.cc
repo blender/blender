@@ -16,6 +16,7 @@
 
 #include "DNA_collection_types.h"
 #include "DNA_defaults.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
@@ -2075,10 +2076,10 @@ static void view3d_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   memset(&v3d->runtime, 0x0, sizeof(v3d->runtime));
 
   if (v3d->gpd) {
-    BLO_read_data_address(reader, &v3d->gpd);
+    BLO_read_struct(reader, bGPdata, &v3d->gpd);
     BKE_gpencil_blend_read_data(reader, v3d->gpd);
   }
-  BLO_read_data_address(reader, &v3d->localvd);
+  BLO_read_struct(reader, RegionView3D, &v3d->localvd);
 
   /* render can be quite heavy, set to solid on load */
   if (v3d->shading.type == OB_RENDER) {

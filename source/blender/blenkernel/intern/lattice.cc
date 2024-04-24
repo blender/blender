@@ -150,11 +150,11 @@ static void lattice_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 static void lattice_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Lattice *lt = (Lattice *)id;
-  BLO_read_data_address(reader, &lt->def);
+  BLO_read_struct_array(reader, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, &lt->def);
 
-  BLO_read_data_address(reader, &lt->dvert);
+  BLO_read_struct_array(reader, MDeformVert, lt->pntsu * lt->pntsv * lt->pntsw, &lt->dvert);
   BKE_defvert_blend_read(reader, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
-  BLO_read_list(reader, &lt->vertex_group_names);
+  BLO_read_struct_list(reader, bDeformGroup, &lt->vertex_group_names);
 
   lt->editlatt = nullptr;
   lt->batch_cache = nullptr;

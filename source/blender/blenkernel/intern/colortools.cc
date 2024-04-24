@@ -1384,7 +1384,7 @@ void BKE_curvemapping_blend_read(BlendDataReader *reader, CurveMapping *cumap)
   cumap->flag &= ~CUMA_PREMULLED;
 
   for (int a = 0; a < CM_TOT; a++) {
-    BLO_read_data_address(reader, &cumap->cm[a].curve);
+    BLO_read_struct_array(reader, CurveMapPoint, cumap->cm[a].totpoint, &cumap->cm[a].curve);
     cumap->cm[a].table = nullptr;
     cumap->cm[a].premultable = nullptr;
   }
@@ -1960,7 +1960,7 @@ void BKE_color_managed_view_settings_blend_write(BlendWriter *writer,
 void BKE_color_managed_view_settings_blend_read_data(BlendDataReader *reader,
                                                      ColorManagedViewSettings *settings)
 {
-  BLO_read_data_address(reader, &settings->curve_mapping);
+  BLO_read_struct(reader, CurveMapping, &settings->curve_mapping);
 
   if (settings->curve_mapping) {
     BKE_curvemapping_blend_read(reader, settings->curve_mapping);

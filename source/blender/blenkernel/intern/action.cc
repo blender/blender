@@ -221,27 +221,28 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
 {
   bAction *act = (bAction *)id;
 
-  BLO_read_list(reader, &act->curves);
-  BLO_read_list(reader, &act->chanbase); /* XXX deprecated - old animation system */
-  BLO_read_list(reader, &act->groups);
-  BLO_read_list(reader, &act->markers);
+  BLO_read_struct_list(reader, FCurve, &act->curves);
+  BLO_read_struct_list(
+      reader, bActionChannel, &act->chanbase); /* XXX deprecated - old animation system */
+  BLO_read_struct_list(reader, bActionGroup, &act->groups);
+  BLO_read_struct_list(reader, TimeMarker, &act->markers);
 
   /* XXX deprecated - old animation system <<< */
   LISTBASE_FOREACH (bActionChannel *, achan, &act->chanbase) {
-    BLO_read_data_address(reader, &achan->grp);
+    BLO_read_struct(reader, bActionGroup, &achan->grp);
 
-    BLO_read_list(reader, &achan->constraintChannels);
+    BLO_read_struct_list(reader, bConstraintChannel, &achan->constraintChannels);
   }
   /* >>> XXX deprecated - old animation system */
 
   BKE_fcurve_blend_read_data_listbase(reader, &act->curves);
 
   LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
-    BLO_read_data_address(reader, &agrp->channels.first);
-    BLO_read_data_address(reader, &agrp->channels.last);
+    BLO_read_struct(reader, FCurve, &agrp->channels.first);
+    BLO_read_struct(reader, FCurve, &agrp->channels.last);
   }
 
-  BLO_read_data_address(reader, &act->preview);
+  BLO_read_struct(reader, PreviewImage, &act->preview);
   BKE_previewimg_blend_read(reader, act->preview);
 }
 
@@ -1869,8 +1870,8 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
     return;
   }
 
-  BLO_read_list(reader, &pose->chanbase);
-  BLO_read_list(reader, &pose->agroups);
+  BLO_read_struct_list(reader, bPoseChannel, &pose->chanbase);
+  BLO_read_struct_list(reader, bActionGroup, &pose->agroups);
 
   pose->chanhash = nullptr;
   pose->chan_array = nullptr;
@@ -1880,19 +1881,19 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
     BKE_pose_channel_session_uid_generate(pchan);
 
     pchan->bone = nullptr;
-    BLO_read_data_address(reader, &pchan->parent);
-    BLO_read_data_address(reader, &pchan->child);
-    BLO_read_data_address(reader, &pchan->custom_tx);
+    BLO_read_struct(reader, bPoseChannel, &pchan->parent);
+    BLO_read_struct(reader, bPoseChannel, &pchan->child);
+    BLO_read_struct(reader, bPoseChannel, &pchan->custom_tx);
 
-    BLO_read_data_address(reader, &pchan->bbone_prev);
-    BLO_read_data_address(reader, &pchan->bbone_next);
+    BLO_read_struct(reader, bPoseChannel, &pchan->bbone_prev);
+    BLO_read_struct(reader, bPoseChannel, &pchan->bbone_next);
 
     BKE_constraint_blend_read_data(reader, id_owner, &pchan->constraints);
 
-    BLO_read_data_address(reader, &pchan->prop);
+    BLO_read_struct(reader, IDProperty, &pchan->prop);
     IDP_BlendDataRead(reader, &pchan->prop);
 
-    BLO_read_data_address(reader, &pchan->mpath);
+    BLO_read_struct(reader, bMotionPath, &pchan->mpath);
     if (pchan->mpath) {
       animviz_motionpath_blend_read_data(reader, pchan->mpath);
     }

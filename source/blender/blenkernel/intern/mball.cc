@@ -133,7 +133,7 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_pointer_array(reader, (void **)&mb->mat);
 
-  BLO_read_list(reader, &(mb->elems));
+  BLO_read_struct_list(reader, MetaElem, &(mb->elems));
 
   mb->editelems = nullptr;
   /* Must always be cleared (meta's don't have their own edit-data). */

@@ -339,16 +339,16 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
 
   collection->owner_id = owner_id;
 
-  BLO_read_list(reader, &collection->gobject);
-  BLO_read_list(reader, &collection->children);
+  BLO_read_struct_list(reader, CollectionObject, &collection->gobject);
+  BLO_read_struct_list(reader, CollectionChild, &collection->children);
 
-  BLO_read_list(reader, &collection->exporters);
+  BLO_read_struct_list(reader, CollectionExport, &collection->exporters);
   LISTBASE_FOREACH (CollectionExport *, data, &collection->exporters) {
-    BLO_read_data_address(reader, &data->export_properties);
+    BLO_read_struct(reader, IDProperty, &data->export_properties);
     IDP_BlendDataRead(reader, &data->export_properties);
   }
 
-  BLO_read_data_address(reader, &collection->preview);
+  BLO_read_struct(reader, PreviewImage, &collection->preview);
   BKE_previewimg_blend_read(reader, collection->preview);
 }
 

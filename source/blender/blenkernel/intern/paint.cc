@@ -134,7 +134,7 @@ static void palette_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 static void palette_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Palette *palette = (Palette *)id;
-  BLO_read_list(reader, &palette->colors);
+  BLO_read_struct_list(reader, PaletteColor, &palette->colors);
 }
 
 static void palette_undo_preserve(BlendLibReader * /*reader*/, ID *id_new, ID *id_old)
@@ -213,7 +213,7 @@ static void paint_curve_blend_write(BlendWriter *writer, ID *id, const void *id_
 static void paint_curve_blend_read_data(BlendDataReader *reader, ID *id)
 {
   PaintCurve *pc = (PaintCurve *)id;
-  BLO_read_data_address(reader, &pc->points);
+  BLO_read_struct_array(reader, PaintCurvePoint, pc->tot_points, &pc->points);
 }
 
 IDTypeInfo IDType_ID_PC = {
@@ -1285,7 +1285,7 @@ void BKE_paint_blend_write(BlendWriter *writer, Paint *p)
 
 void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *p)
 {
-  BLO_read_data_address(reader, &p->cavity_curve);
+  BLO_read_struct(reader, CurveMapping, &p->cavity_curve);
   if (p->cavity_curve) {
     BKE_curvemapping_blend_read(reader, p->cavity_curve);
   }
@@ -1293,7 +1293,7 @@ void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Pain
     BKE_paint_cavity_curve_preset(p, CURVE_PRESET_LINE);
   }
 
-  BLO_read_data_address(reader, &p->tool_slots);
+  BLO_read_struct_array(reader, PaintToolSlot, p->tool_slots_len, &p->tool_slots);
 
   /* Workaround for invalid data written in older versions. */
   const size_t expected_size = sizeof(PaintToolSlot) * p->tool_slots_len;

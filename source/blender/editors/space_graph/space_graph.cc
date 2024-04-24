@@ -871,7 +871,7 @@ static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceGraph *sipo = (SpaceGraph *)sl;
 
-  BLO_read_data_address(reader, &sipo->ads);
+  BLO_read_struct(reader, bDopeSheet, &sipo->ads);
   memset(&sipo->runtime, 0x0, sizeof(sipo->runtime));
 }
 

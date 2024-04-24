@@ -312,14 +312,14 @@ static void console_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceConsole *sconsole = (SpaceConsole *)sl;
 
-  BLO_read_list(reader, &sconsole->scrollback);
-  BLO_read_list(reader, &sconsole->history);
+  BLO_read_struct_list(reader, ConsoleLine, &sconsole->scrollback);
+  BLO_read_struct_list(reader, ConsoleLine, &sconsole->history);
 
   /* Comma expressions, (e.g. expr1, expr2, expr3) evaluate each expression,
    * from left to right.  the right-most expression sets the result of the comma
    * expression as a whole. */
   LISTBASE_FOREACH_MUTABLE (ConsoleLine *, cl, &sconsole->history) {
-    BLO_read_data_address(reader, &cl->line);
+    BLO_read_char_array(reader, size_t(cl->len) + 1, &cl->line);
     if (cl->line) {
       /* The allocated length is not written, so reset here. */
       cl->len_alloc = cl->len + 1;
@@ -338,7 +338,7 @@ static void console_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   LISTBASE_FOREACH (ConsoleLine *, cl, &con->history) {
     /* 'len_alloc' is invalid on write, set from 'len' on read */
     BLO_write_struct(writer, ConsoleLine, cl);
-    BLO_write_raw(writer, size_t(cl->len) + 1, cl->line);
+    BLO_write_char_array(writer, size_t(cl->len) + 1, cl->line);
   }
   BLO_write_struct(writer, SpaceConsole, sl);
 }

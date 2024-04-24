@@ -626,7 +626,7 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   /* direct data */
   BLO_write_pointer_array(writer, ob->totcol, ob->mat);
-  BLO_write_raw(writer, sizeof(char) * ob->totcol, ob->matbits);
+  BLO_write_char_array(writer, ob->totcol, ob->matbits);
 
   bArmature *arm = nullptr;
   if (ob->type == OB_ARMATURE) {
@@ -687,10 +687,10 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 /* XXX deprecated - old animation system */
 static void direct_link_nlastrips(BlendDataReader *reader, ListBase *strips)
 {
-  BLO_read_list(reader, strips);
+  BLO_read_struct_list(reader, bActionStrip, strips);
 
   LISTBASE_FOREACH (bActionStrip *, strip, strips) {
-    BLO_read_list(reader, &strip->modifiers);
+    BLO_read_struct_list(reader, bActionModifier, &strip->modifiers);
   }
 }
 
@@ -719,32 +719,32 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     ob->mode &= ~(OB_MODE_EDIT | OB_MODE_PARTICLE_EDIT);
   }
 
-  BLO_read_data_address(reader, &ob->pose);
+  BLO_read_struct(reader, bPose, &ob->pose);
   BKE_pose_blend_read_data(reader, &ob->id, ob->pose);
 
-  BLO_read_data_address(reader, &ob->mpath);
+  BLO_read_struct(reader, bMotionPath, &ob->mpath);
   if (ob->mpath) {
     animviz_motionpath_blend_read_data(reader, ob->mpath);
   }
 
   /* Only for versioning, vertex group names are now stored on object data. */
-  BLO_read_list(reader, &ob->defbase);
-  BLO_read_list(reader, &ob->fmaps);
+  BLO_read_struct_list(reader, bDeformGroup, &ob->defbase);
+  BLO_read_struct_list(reader, bFaceMap, &ob->fmaps);
 
   /* XXX deprecated - old animation system <<< */
   direct_link_nlastrips(reader, &ob->nlastrips);
-  BLO_read_list(reader, &ob->constraintChannels);
+  BLO_read_struct_list(reader, bConstraintChannel, &ob->constraintChannels);
   /* >>> XXX deprecated - old animation system */
 
   BLO_read_pointer_array(reader, (void **)&ob->mat);
-  BLO_read_data_address(reader, &ob->matbits);
+  BLO_read_char_array(reader, ob->totcol, &ob->matbits);
 
   /* do it here, below old data gets converted */
   BKE_modifier_blend_read_data(reader, &ob->modifiers, ob);
   BKE_gpencil_modifier_blend_read_data(reader, &ob->greasepencil_modifiers, ob);
   BKE_shaderfx_blend_read_data(reader, &ob->shader_fx, ob);
 
-  BLO_read_list(reader, &ob->effect);
+  BLO_read_struct_list(reader, PartEff, &ob->effect);
   paf = (PartEff *)ob->effect.first;
   while (paf) {
     if (paf->type == EFF_PARTICLE) {
@@ -797,9 +797,9 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     paf = paf->next;
   }
 
-  BLO_read_data_address(reader, &ob->pd);
+  BLO_read_struct(reader, PartDeflect, &ob->pd);
   BKE_particle_partdeflect_blend_read_data(reader, ob->pd);
-  BLO_read_data_address(reader, &ob->soft);
+  BLO_read_struct(reader, SoftBody, &ob->soft);
   if (ob->soft) {
     SoftBody *sb = ob->soft;
 
@@ -811,16 +811,16 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_pointer_array(reader, (void **)&sb->keys);
     if (sb->keys) {
       for (int a = 0; a < sb->totkey; a++) {
-        BLO_read_data_address(reader, &sb->keys[a]);
+        BLO_read_struct(reader, SBVertex, &sb->keys[a]);
       }
     }
 
-    BLO_read_data_address(reader, &sb->effector_weights);
+    BLO_read_struct(reader, EffectorWeights, &sb->effector_weights);
     if (!sb->effector_weights) {
       sb->effector_weights = BKE_effector_add_weights(nullptr);
     }
 
-    BLO_read_data_address(reader, &sb->shared);
+    BLO_read_struct(reader, SoftBody_Shared, &sb->shared);
     if (sb->shared == nullptr) {
       /* Link deprecated caches if they exist, so we can use them for versioning.
        * We should only do this when `sb->shared == nullptr`, because those pointers
@@ -833,25 +833,25 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
       BKE_ptcache_blend_read_data(reader, &sb->shared->ptcaches, &sb->shared->pointcache, false);
     }
   }
-  BLO_read_data_address(reader, &ob->fluidsimSettings); /* NT */
+  BLO_read_struct(reader, FluidsimSettings, &ob->fluidsimSettings); /* NT */
 
-  BLO_read_data_address(reader, &ob->rigidbody_object);
+  BLO_read_struct(reader, RigidBodyOb, &ob->rigidbody_object);
   if (ob->rigidbody_object) {
     RigidBodyOb *rbo = ob->rigidbody_object;
     /* Allocate runtime-only struct */
     rbo->shared = (RigidBodyOb_Shared *)MEM_callocN(sizeof(*rbo->shared), "RigidBodyObShared");
   }
-  BLO_read_data_address(reader, &ob->rigidbody_constraint);
+  BLO_read_struct(reader, RigidBodyCon, &ob->rigidbody_constraint);
   if (ob->rigidbody_constraint) {
     ob->rigidbody_constraint->physics_constraint = nullptr;
   }
 
-  BLO_read_list(reader, &ob->particlesystem);
+  BLO_read_struct_list(reader, ParticleSystem, &ob->particlesystem);
   BKE_particle_system_blend_read_data(reader, &ob->particlesystem);
 
   BKE_constraint_blend_read_data(reader, &ob->id, &ob->constraints);
 
-  BLO_read_list(reader, &ob->hooks);
+  BLO_read_struct_list(reader, ObHook, &ob->hooks);
   while (ob->hooks.first) {
     ObHook *hook = (ObHook *)ob->hooks.first;
     HookModifierData *hmd = (HookModifierData *)BKE_modifier_new(eModifierType_Hook);
@@ -879,12 +879,12 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     MEM_freeN(hook);
   }
 
-  BLO_read_data_address(reader, &ob->iuser);
+  BLO_read_struct(reader, ImageUser, &ob->iuser);
   if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE && !ob->iuser) {
     BKE_object_empty_draw_type_set(ob, ob->empty_drawtype);
   }
 
-  BLO_read_list(reader, &ob->pc_ids);
+  BLO_read_struct_list(reader, LinkData, &ob->pc_ids);
 
   /* in case this value changes in future, clamp else we get undefined behavior */
   CLAMP(ob->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
@@ -897,13 +897,13 @@ static void object_blend_read_data(BlendDataReader *reader, ID *id)
     }
   }
 
-  BLO_read_data_address(reader, &ob->preview);
+  BLO_read_struct(reader, PreviewImage, &ob->preview);
   BKE_previewimg_blend_read(reader, ob->preview);
 
-  BLO_read_data_address(reader, &ob->lightgroup);
-  BLO_read_data_address(reader, &ob->light_linking);
+  BLO_read_struct(reader, LightgroupMembership, &ob->lightgroup);
+  BLO_read_struct(reader, LightLinking, &ob->light_linking);
 
-  BLO_read_data_address(reader, &ob->lightprobe_cache);
+  BLO_read_struct(reader, LightProbeObjectCache, &ob->lightprobe_cache);
   if (ob->lightprobe_cache) {
     BKE_lightprobe_cache_blend_read(reader, ob->lightprobe_cache);
   }

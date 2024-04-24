@@ -144,13 +144,13 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
   wmWindowManager *wm = (wmWindowManager *)id;
 
   id_us_ensure_real(&wm->id);
-  BLO_read_list(reader, &wm->windows);
+  BLO_read_struct_list(reader, wmWindow, &wm->windows);
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-    BLO_read_data_address(reader, &win->parent);
+    BLO_read_struct(reader, wmWindow, &win->parent);
 
     WorkSpaceInstanceHook *hook = win->workspace_hook;
-    BLO_read_data_address(reader, &win->workspace_hook);
+    BLO_read_struct(reader, WorkSpaceInstanceHook, &win->workspace_hook);
 
     /* This will be nullptr for any pre-2.80 blend file. */
     if (win->workspace_hook != nullptr) {
@@ -194,7 +194,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
     win->event_queue_check_drag_handled = 0;
     win->event_queue_consecutive_gesture_type = 0;
     win->event_queue_consecutive_gesture_data = nullptr;
-    BLO_read_data_address(reader, &win->stereo3d_format);
+    BLO_read_struct(reader, Stereo3dFormat, &win->stereo3d_format);
 
     /* Multi-view always fallback to anaglyph at file opening
      * otherwise quad-buffer saved files can break Blender. */

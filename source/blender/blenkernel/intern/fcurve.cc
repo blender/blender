@@ -2592,14 +2592,14 @@ void BKE_fmodifiers_blend_read_data(BlendDataReader *reader, ListBase *fmodifier
       case FMODIFIER_TYPE_ENVELOPE: {
         FMod_Envelope *data = (FMod_Envelope *)fcm->data;
 
-        BLO_read_data_address(reader, &data->data);
+        BLO_read_struct_array(reader, FCM_EnvelopeData, data->totvert, &data->data);
 
         break;
       }
       case FMODIFIER_TYPE_PYTHON: {
         FMod_Python *data = (FMod_Python *)fcm->data;
 
-        BLO_read_data_address(reader, &data->prop);
+        BLO_read_struct(reader, IDProperty, &data->prop);
         IDP_BlendDataRead(reader, &data->prop);
 
         break;
@@ -2655,14 +2655,14 @@ void BKE_fcurve_blend_write_listbase(BlendWriter *writer, ListBase *fcurves)
 void BKE_fcurve_blend_read_data(BlendDataReader *reader, FCurve *fcu)
 {
   /* curve data */
-  BLO_read_data_address(reader, &fcu->bezt);
-  BLO_read_data_address(reader, &fcu->fpt);
+  BLO_read_struct_array(reader, BezTriple, fcu->totvert, &fcu->bezt);
+  BLO_read_struct_array(reader, FPoint, fcu->totvert, &fcu->fpt);
 
   /* rna path */
-  BLO_read_data_address(reader, &fcu->rna_path);
+  BLO_read_string(reader, &fcu->rna_path);
 
   /* group */
-  BLO_read_data_address(reader, &fcu->grp);
+  BLO_read_struct(reader, bActionGroup, &fcu->grp);
 
   /* clear disabled flag - allows disabled drivers to be tried again (#32155),
    * but also means that another method for "reviving disabled F-Curves" exists
@@ -2670,7 +2670,7 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, FCurve *fcu)
   fcu->flag &= ~FCURVE_DISABLED;
 
   /* driver */
-  BLO_read_data_address(reader, &fcu->driver);
+  BLO_read_struct(reader, ChannelDriver, &fcu->driver);
   if (fcu->driver) {
     ChannelDriver *driver = fcu->driver;
 
@@ -2684,12 +2684,12 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, FCurve *fcu)
     driver->flag &= ~DRIVER_FLAG_INVALID;
 
     /* relink variables, targets and their paths */
-    BLO_read_list(reader, &driver->variables);
+    BLO_read_struct_list(reader, DriverVar, &driver->variables);
     LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
       DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
         /* only relink the targets being used */
         if (tarIndex < dvar->num_targets) {
-          BLO_read_data_address(reader, &dtar->rna_path);
+          BLO_read_string(reader, &dtar->rna_path);
         }
         else {
           dtar->rna_path = nullptr;
@@ -2701,7 +2701,7 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, FCurve *fcu)
   }
 
   /* modifiers */
-  BLO_read_list(reader, &fcu->modifiers);
+  BLO_read_struct_list(reader, FModifier, &fcu->modifiers);
   BKE_fmodifiers_blend_read_data(reader, &fcu->modifiers, fcu);
 }
 

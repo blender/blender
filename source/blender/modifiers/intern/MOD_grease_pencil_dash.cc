@@ -481,7 +481,8 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 
   modifier::greasepencil::read_influence_data(reader, &dmd->influence);
 
-  BLO_read_data_address(reader, &dmd->segments_array);
+  BLO_read_struct_array(
+      reader, GreasePencilDashModifierSegment, dmd->segments_num, &dmd->segments_array);
 }
 
 }  // namespace blender
