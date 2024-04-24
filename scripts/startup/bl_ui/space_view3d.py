@@ -8933,7 +8933,6 @@ class VIEW3D_PT_viewport_debug(Panel):
 
 
 class BrushAssetShelf:
-    bl_space_type = "VIEW_3D"
     bl_options = {'DEFAULT_VISIBLE', 'NO_ASSET_DRAG', 'STORE_ENABLED_CATALOGS_IN_PREFERENCES'}
     bl_activate_operator = "BRUSH_OT_asset_select"
     bl_default_preview_size = 48
@@ -8962,52 +8961,56 @@ class BrushAssetShelf:
         layout.menu_contents("VIEW3D_MT_brush_context_menu")
 
 
-class VIEW3D_AST_brush_sculpt(BrushAssetShelf, bpy.types.AssetShelf):
+class View3DAssetShelf(BrushAssetShelf):
+    bl_space_type = "VIEW_3D"
+
+
+class VIEW3D_AST_brush_sculpt(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'SCULPT'
     mode_prop = "use_paint_sculpt"
 
 
-class VIEW3D_AST_brush_sculpt_curves(BrushAssetShelf, bpy.types.AssetShelf):
+class VIEW3D_AST_brush_sculpt_curves(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'SCULPT_CURVES'
     mode_prop = "use_paint_sculpt_curves"
 
 
-class VIEW3D_AST_brush_vertex_paint(BrushAssetShelf, bpy.types.AssetShelf):
+class VIEW3D_AST_brush_vertex_paint(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'VERTEX_PAINT'
     mode_prop = "use_paint_vertex"
 
 
-class VIEW3D_AST_brush_weight_paint(BrushAssetShelf, bpy.types.AssetShelf):
+class VIEW3D_AST_brush_weight_paint(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'WEIGHT_PAINT'
     mode_prop = "use_paint_weight"
 
 
-class VIEW3D_AST_brush_texture_paint(BrushAssetShelf, bpy.types.AssetShelf):
+class VIEW3D_AST_brush_texture_paint(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'TEXTURE_PAINT'
     mode_prop = "use_paint_image"
 
 
-class VIEW3D_AST_brush_gpencil_paint(BrushAssetShelf, bpy.types.AssetShelf):
+class VIEW3D_AST_brush_gpencil_paint(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'PAINT_GPENCIL'
     mode_prop = "use_paint_grease_pencil"
 
 
-class VIEW3D_AST_brush_grease_pencil_paint(BrushAssetShelf, bpy.types.AssetShelf):
+class VIEW3D_AST_brush_grease_pencil_paint(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'PAINT_GREASE_PENCIL'
     mode_prop = "use_paint_grease_pencil"
 
 
-class VIEW3D_AST_brush_gpencil_sculpt(BrushAssetShelf, bpy.types.AssetShelf):
+class VIEW3D_AST_brush_gpencil_sculpt(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'SCULPT_GPENCIL'
     mode_prop = "use_sculpt_grease_pencil"
 
 
-class VIEW3D_AST_brush_gpencil_vertex(BrushAssetShelf, bpy.types.AssetShelf):
+class VIEW3D_AST_brush_gpencil_vertex(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'VERTEX_GPENCIL'
     mode_prop = "use_vertex_grease_pencil"
 
 
-class VIEW3D_AST_brush_gpencil_weight(BrushAssetShelf, bpy.types.AssetShelf):
+class VIEW3D_AST_brush_gpencil_weight(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'WEIGHT_GPENCIL'
     mode_prop = "use_weight_grease_pencil"
 

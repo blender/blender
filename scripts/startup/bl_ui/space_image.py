@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from bpy.types import (
+    AssetShelf,
     Header,
     Menu,
     Panel,
@@ -29,6 +30,9 @@ from bl_ui.properties_grease_pencil_common import (
 )
 from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
+)
+from bl_ui.space_view3d import (
+    BrushAssetShelf,
 )
 
 from bpy.app.translations import (
@@ -1723,6 +1727,15 @@ class IMAGE_PT_annotation(AnnotationDataPanel, Panel):
 # Grease Pencil drawing tools.
 
 
+class ImageAssetShelf(BrushAssetShelf):
+    bl_space_type = "IMAGE_EDITOR"
+
+
+class IMAGE_AST_brush_sculpt(ImageAssetShelf, AssetShelf):
+    mode = 'TEXTURE_PAINT'
+    mode_prop = "use_paint_image"
+
+
 classes = (
     IMAGE_MT_view,
     IMAGE_MT_view_zoom,
@@ -1794,6 +1807,7 @@ classes = (
     IMAGE_PT_overlay_uv_edit_geometry,
     IMAGE_PT_overlay_texture_paint,
     IMAGE_PT_overlay_image,
+    IMAGE_AST_brush_sculpt,
 )
 
 
