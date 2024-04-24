@@ -1485,7 +1485,7 @@ static void restore_position(Object *ob, const Span<PBVHNode *> nodes)
   bke::pbvh::update_normals(*ss->pbvh, ss->subdiv_ccg);
 }
 
-static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
+static void restore_from_undo_step(Sculpt *sd, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -5273,7 +5273,7 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
       (brush->flag & BRUSH_DRAG_DOT))
   {
 
-    paint_mesh_restore_co(sd, ob);
+    restore_from_undo_step(sd, ob);
 
     if (ss->cache) {
       MEM_SAFE_FREE(ss->cache->layer_displacement_factor);
@@ -5814,7 +5814,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
   /* XXX Canceling strokes that way does not work with dynamic topology,
    *     user will have to do real undo for now. See #46456. */
   if (ss->cache && !dyntopo::stroke_is_dyntopo(ss, brush)) {
-    paint_mesh_restore_co(sd, ob);
+    restore_from_undo_step(sd, ob);
   }
 
   paint_stroke_cancel(C, op, static_cast<PaintStroke *>(op->customdata));
