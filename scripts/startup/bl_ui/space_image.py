@@ -75,6 +75,7 @@ class IMAGE_MT_view(Menu):
         layout.prop(sima, "show_region_toolbar")
         layout.prop(sima, "show_region_ui")
         layout.prop(sima, "show_region_tool_header")
+        layout.prop(sima, "show_region_asset_shelf")
         layout.prop(sima, "show_region_hud")
 
         layout.separator()
