@@ -360,7 +360,7 @@ class AnimDataConvertor {
   /**
    * Convert relevant FCurves, i.e. modify their RNA path to match destination data.
    *
-   * \note: Edited FCurves will remain in the source animation data after this process. Once all
+   * \note Edited FCurves will remain in the source animation data after this process. Once all
    * source animation data has been processed, #fcurves_convert_finalize has to be called.
    */
   void fcurves_convert()

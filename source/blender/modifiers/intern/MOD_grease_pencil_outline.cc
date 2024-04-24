@@ -106,7 +106,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
 /**
  * Rearrange curve buffers by moving points from the start to the back of each stroke.
  * \note This is an optional feature. The offset is determine by the closest point to an object.
- * \param curve_offsets Offset of each curve, indicating the point that becomes the new start.
+ * \param curve_offsets: Offset of each curve, indicating the point that becomes the new start.
  */
 static bke::CurvesGeometry reorder_cyclic_curve_points(const bke::CurvesGeometry &src_curves,
                                                        const IndexMask &curve_selection,

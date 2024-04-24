@@ -559,8 +559,8 @@ void BKE_nla_liboverride_post_process(ID *id, struct AnimData *adt);
 /**
  * Print the ADT flags, NLA tracks, strips, their flags, and other info, to the console.
  *
- * \param adt the ADT to show. If NULL, it will be determined from owner_id.
- * \param owner_id the ID that owns this ADT. If given, its name will be printed in the console
+ * \param adt: the ADT to show. If NULL, it will be determined from owner_id.
+ * \param owner_id: the ID that owns this ADT. If given, its name will be printed in the console
  * output. If NULL, that won't happen.
  *
  * Either of the parameters can be NULL, but not both.

@@ -95,9 +95,9 @@ void BM_mesh_bm_to_me_for_eval(BMesh &bm, Mesh &mesh, const CustomData_MeshMasks
  * A version of #BM_mesh_bm_to_me_for_eval but copying data layers and Mesh attributes is optional.
  * It also allows shape-keys but don't re-assigns shape-key indices.
  *
- * \param mask                Custom data masks to control which layers are copied.
- *                            If nullptr, no layer data is copied.
- * \param add_mesh_attributes If true, adds mesh attributes during the conversion.
+ * \param mask: Custom data masks to control which layers are copied.
+ * If nullptr, no layer data is copied.
+ * \param add_mesh_attributes: If true, adds mesh attributes during the conversion.
  */
 void BM_mesh_bm_to_me_compact(BMesh &bm,
                               Mesh &mesh,

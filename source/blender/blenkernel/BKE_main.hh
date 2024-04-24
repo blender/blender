@@ -139,7 +139,7 @@ struct Main {
   /** The currently opened .blend file was written from a newer version of Blender, and has forward
    * compatibility issues (data loss).
    *
-   * \note: In practice currently this is only based on the version numbers, in the future it
+   * \note In practice currently this is only based on the version numbers, in the future it
    * could try to use more refined detection on load. */
   bool has_forward_compatibility_issues;
 

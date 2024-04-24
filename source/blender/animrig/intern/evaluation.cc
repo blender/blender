@@ -28,7 +28,7 @@ EvaluationResult blend_layer_results(const EvaluationResult &last_result,
 /**
  * Apply the result of the animation evaluation to the given data-block.
  *
- * \param flush_to_original when true, look up the original data-block (assuming the given one is
+ * \param flush_to_original: when true, look up the original data-block (assuming the given one is
  * an evaluated copy) and update that too.
  */
 void apply_evaluation_result(const EvaluationResult &evaluation_result,

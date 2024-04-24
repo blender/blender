@@ -64,7 +64,7 @@ void *BKE_libblock_alloc_notest(short type) ATTR_WARN_UNUSED_RESULT;
  * The user count is set to 1, all other content (apart from name and links) being
  * initialized to zero.
  *
- * \note: By default, IDs allocated in a Main database will get the current library of the Main,
+ * \note By default, IDs allocated in a Main database will get the current library of the Main,
  * i.e. usually (besides in readfile case), they will have a `nullptr` `lib` pointer and be local
  * data. IDs allocated outside of a Main database will always get a `nullptr` `lib` pointer.
  */
@@ -73,7 +73,7 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, int flag)
 /**
  * Same as for #BKE_libblock_alloc, but allows creating a data-block for a given owner library.
  *
- * \param owner_library the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
+ * \param owner_library: the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
  * not use any library (i.e. become a local ID). Use `std::nullopt` for default behavior (i.e.
  * behavior of the #BKE_libblock_alloc function).
  */
@@ -120,7 +120,7 @@ void BKE_lib_libblock_session_uid_renew(ID *id);
 /**
  * Generic helper to create a new empty data-block of given type in given \a bmain database.
  *
- * \note: By default, IDs created in a Main database will get the current library of the Main,
+ * \note By default, IDs created in a Main database will get the current library of the Main,
  * i.e. usually (besides in readfile case), they will have a `nullptr` `lib` pointer and be local
  * data. IDs created outside of a Main database will always get a `nullptr` `lib` pointer.
  *
@@ -130,7 +130,7 @@ void *BKE_id_new(Main *bmain, short type, const char *name);
 /**
  * Same as for #BKE_id_new, but allows creating a data-block for (within) a given owner library.
  *
- * \param owner_library the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
+ * \param owner_library: the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
  * not use any library (i.e. become a local ID). Use `std::nullopt` for default behavior (i.e.
  * behavior of the #BKE_id_new function).
  */
@@ -223,7 +223,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, int orig_flag
  * Same as #BKE_libblock_copy_ex, but allows copying data into a library, and not as local data
  * only.
  *
- * \param owner_library the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
+ * \param owner_library: the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
  * not use any library (i.e. become a local ID). Use std::nullopt for default behavior (i.e.
  * behavior of the #BKE_libblock_copy_ex function).
  */
@@ -501,7 +501,7 @@ ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, int flag);
  *
  * See #BKE_id_copy_ex for details.
  *
- * \param owner_library the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
+ * \param owner_library: the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
  * not use any library (i.e. become a local ID). Use std::nullopt for default behavior (i.e.
  * behavior of the #BKE_id_copy_ex function).
  */

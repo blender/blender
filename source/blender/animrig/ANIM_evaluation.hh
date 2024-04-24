@@ -23,7 +23,7 @@ namespace blender::animrig {
  *
  * Animate the given ID, using the animation data-block and the given binding.
  *
- * \param flush_to_original when true, look up the original data-block (assuming
+ * \param flush_to_original: when true, look up the original data-block (assuming
  * the given one is an evaluated copy) and update that too.
  */
 void evaluate_and_apply_animation(PointerRNA &animated_id_ptr,

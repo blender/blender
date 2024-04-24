@@ -415,7 +415,7 @@ MaterialArray &MaterialModule::material_array_get(Object *ob, bool has_motion)
   for (auto i : IndexRange(materials_len)) {
     ::Material *blender_mat = material_from_slot(ob, i);
     Material &mat = material_sync(ob, blender_mat, to_material_geometry(ob), has_motion);
-    /* \note: Perform a whole copy since next material_sync() can move the Material memory location
+    /* \note Perform a whole copy since next material_sync() can move the Material memory location
      * (i.e: because of its container growing) */
     material_array_.materials.append(mat);
     material_array_.gpu_materials.append(mat.shading.gpumat);

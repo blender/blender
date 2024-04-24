@@ -348,21 +348,21 @@ struct LibQueryUnusedIDsData {
    * Amount of detected as unused data-blocks, per type and total as the last value of the array
    * (#INDEX_ID_NULL).
    *
-   * \note: Return value, set by the executed function.
+   * \note Return value, set by the executed function.
    */
   std::array<int, INDEX_ID_MAX> num_total;
   /**
    * Amount of detected as unused local data-blocks, per type and total as the last value of the
    * array (#INDEX_ID_NULL).
    *
-   * \note: Return value, set by the executed function.
+   * \note Return value, set by the executed function.
    */
   std::array<int, INDEX_ID_MAX> num_local;
   /**
    * Amount of detected as unused linked data-blocks, per type and total as the last value of the
    * array (#INDEX_ID_NULL).
    *
-   * \note: Return value, set by the executed function.
+   * \note Return value, set by the executed function.
    */
   std::array<int, INDEX_ID_MAX> num_linked;
 };

@@ -774,7 +774,7 @@ enum {
  * - RESET_NEVER: these flags are 'status' ones, and never actually need any reset (except on
  *   initialization during .blend file reading).
  *
- * \note: These tags are purely runtime, so changing there value is not an issue. When adding new
+ * \note These tags are purely runtime, so changing there value is not an issue. When adding new
  * tags, please put them in the relevant category and always keep their values strictly increasing.
  */
 enum {
@@ -906,7 +906,7 @@ enum {
    * ID is being re-used from the old Main (instead of read from memfile), during memfile undo
    * processing, because it was detected as unchanged.
    *
-   * \note: Also means that such ID does not need to be lib-linked during undo readfile process.
+   * \note Also means that such ID does not need to be lib-linked during undo readfile process.
    *
    * RESET_AFTER_USE
    */
@@ -915,7 +915,7 @@ enum {
    * ID is being re-used from the old Main (instead of read from memfile), during memfile undo
    * processing, because it is a 'NO_UNDO' type of ID.
    *
-   * \note: Also means that such ID does not need to be lib-linked during undo readfile process. It
+   * \note Also means that such ID does not need to be lib-linked during undo readfile process. It
    * does need to be relinked in a different way however, doing a `session_uid`-based lookup into
    * the newly read main database.
    *
