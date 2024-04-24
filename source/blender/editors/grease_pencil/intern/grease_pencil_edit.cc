@@ -1884,6 +1884,8 @@ static bke::greasepencil::Layer &find_or_create_layer_in_dst_by_name(
     return *grease_pencil_dst.layers_for_write()[dst_layer_index];
   }
 
+  Layer &dst_layer = grease_pencil_dst.add_layer(layer_src.name());
+
   /* Transfer Layer attributes. */
   bke::gather_attributes(grease_pencil_src.attributes(),
                          bke::AttrDomain::Layer,
@@ -1892,7 +1894,7 @@ static bke::greasepencil::Layer &find_or_create_layer_in_dst_by_name(
                          Span({layer_index}),
                          grease_pencil_dst.attributes_for_write());
 
-  return grease_pencil_dst.add_layer(layer_src.name());
+  return dst_layer;
 }
 
 static bool grease_pencil_separate_selected(bContext &C,
