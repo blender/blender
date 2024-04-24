@@ -865,6 +865,7 @@ void ShadowModule::begin_sync()
       sub.push_constant("tilemap_proj_ratio", &data_.tilemap_projection_ratio);
       sub.push_constant("input_depth_extent", &input_depth_extent_);
       sub.bind_resources(inst_.lights);
+      sub.bind_resources(inst_.uniform_data);
       sub.bind_resources(inst_.hiz_buffer.front);
       sub.dispatch(&dispatch_depth_scan_size_);
     }
