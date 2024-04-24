@@ -69,10 +69,6 @@ GPU_SHADER_CREATE_INFO(eevee_geom_point_cloud)
     .vertex_out(eevee_surf_iface)
     .vertex_out(eevee_surf_point_cloud_iface)
     .vertex_out(eevee_surf_point_cloud_flat_iface)
-    /* TODO(Miguel Pozo): Remove once we get rid of old EEVEE. */
-    .define("pointRadius", "point_cloud_interp.radius")
-    .define("pointPosition", "point_cloud_interp.position")
-    .define("pointID", "point_cloud_interp_flat.id")
     .additional_info("draw_pointcloud_new",
                      "draw_modelmat_new",
                      "draw_resource_id_varying",
