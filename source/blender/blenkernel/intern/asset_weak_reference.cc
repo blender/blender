@@ -165,7 +165,7 @@ void BKE_asset_catalog_path_list_blend_write(BlendWriter *writer,
 void BKE_asset_catalog_path_list_blend_read_data(BlendDataReader *reader,
                                                  ListBase &catalog_path_list)
 {
-  BLO_read_list(reader, &catalog_path_list);
+  BLO_read_struct_list(reader, AssetCatalogPathLink, &catalog_path_list);
   LISTBASE_FOREACH (AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
     BLO_read_data_address(reader, &catalog_path->path);
   }
