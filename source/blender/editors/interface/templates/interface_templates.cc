@@ -6569,10 +6569,6 @@ static const wmKeyMapItem *keymap_item_from_enum_item(const wmKeyMap *keymap,
 
   for (wmKeyMapItem *kmi = static_cast<wmKeyMapItem *>(keymap->items.first); kmi; kmi = kmi->next)
   {
-    if (kmi->val == KM_RELEASE) {
-      /* Assume release events just disable something which was toggled on. */
-      continue;
-    }
     if (kmi->propvalue == item->value) {
       return kmi;
     }
@@ -6594,6 +6590,11 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
   const wmKeyMapItem *kmi = keymap_item_from_enum_item(keymap, item);
   if (kmi == nullptr) {
     return 0;
+  }
+
+  if (kmi->val == KM_RELEASE) {
+    /* Assume release events just disable something which was toggled on. */
+    return 1;
   }
 
   /* Try to merge some known XYZ items to save horizontal space. */
