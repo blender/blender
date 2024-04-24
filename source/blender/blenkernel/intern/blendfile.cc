@@ -229,7 +229,7 @@ struct ReuseOldBMainData {
   /** Data generated and used by calling WM code to handle keeping WM and UI IDs as best as
    * possible across file reading.
    *
-   * \note: May be null in undo (memfile) case.. */
+   * \note May be null in undo (memfile) case. */
   BlendFileReadWMSetupData *wm_setup_data;
 
   /** Storage for all remapping rules (old_id -> new_id) required by the preservation of old IDs

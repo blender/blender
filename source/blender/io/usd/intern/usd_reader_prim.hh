@@ -180,7 +180,7 @@ class USDPrimReader {
    *
    * \param merge_with_parent: If true, set the properties of the prim's parent
    *                           on the object ID
-   * \param motionSampleTime: The time code for sampling tha USD attributes
+   * \param motionSampleTime: The time code for sampling the USD attributes.
    */
   void set_props(bool merge_with_parent = false,
                  pxr::UsdTimeCode motionSampleTime = pxr::UsdTimeCode::Default());

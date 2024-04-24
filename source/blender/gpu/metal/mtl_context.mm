@@ -1664,7 +1664,7 @@ void MTLContext::ensure_texture_bindings(
             /* Texture type for bound texture (e.g. Texture2DArray) does not match what was
              * expected in the shader interface. This is a problem and we will need to bind
              * a dummy texture to ensure correct API usage. */
-            MTL_LOG_WARNING(
+            MTL_LOG_ERROR(
                 "(Shader '%s') Texture (%s) %p bound to slot %d is incompatible -- Wrong "
                 "texture target type. (Expecting type %d, actual type %d) (binding "
                 "name:'%s')(texture name:'%s')",
@@ -1679,7 +1679,7 @@ void MTLContext::ensure_texture_bindings(
           }
         }
         else {
-          MTL_LOG_WARNING(
+          MTL_LOG_ERROR(
               "Shader '%s' expected texture (%s) to be bound to location %d (texture[[%d]]) -- No "
               "texture was "
               "bound. (name:'%s')",
@@ -1715,7 +1715,7 @@ void MTLContext::ensure_texture_bindings(
         }
       }
       else {
-        MTL_LOG_WARNING(
+        MTL_LOG_ERROR(
             "Shader %p expected texture (%s) to be bound to slot %d -- Slot exceeds the "
             "hardware/API limit of '%d'. (name:'%s')",
             this->pipeline_state.active_shader,
@@ -1915,7 +1915,7 @@ void MTLContext::ensure_texture_bindings(
             /* Texture type for bound texture (e.g. Texture2DArray) does not match what was
              * expected in the shader interface. This is a problem and we will need to bind
              * a dummy texture to ensure correct API usage. */
-            MTL_LOG_WARNING(
+            MTL_LOG_ERROR(
                 "(Shader '%s') Texture (%s) %p bound to slot %d is incompatible -- Wrong "
                 "texture target type. (Expecting type %d, actual type %d) (binding "
                 "name:'%s')(texture name:'%s')",
@@ -1930,7 +1930,7 @@ void MTLContext::ensure_texture_bindings(
           }
         }
         else {
-          MTL_LOG_WARNING(
+          MTL_LOG_ERROR(
               "Shader '%s' expected texture (%s) to be bound to location %d (texture[[%d]]) -- No "
               "texture was "
               "bound. (name:'%s')",
@@ -1958,7 +1958,7 @@ void MTLContext::ensure_texture_bindings(
         }
       }
       else {
-        MTL_LOG_WARNING(
+        MTL_LOG_ERROR(
             "Shader %p expected texture (%s) to be bound to slot %d -- Slot exceeds the "
             "hardware/API limit of '%d'. (name:'%s')",
             this->pipeline_state.active_shader,
@@ -2387,9 +2387,9 @@ void MTLContext::texture_bind(gpu::MTLTexture *mtl_texture, uint texture_unit, b
   if (texture_unit < 0 || texture_unit >= GPU_max_textures() ||
       texture_unit >= MTL_MAX_TEXTURE_SLOTS)
   {
-    MTL_LOG_WARNING("Attempting to bind texture '%s' to invalid texture unit %d",
-                    mtl_texture->get_name(),
-                    texture_unit);
+    MTL_LOG_ERROR("Attempting to bind texture '%s' to invalid texture unit %d",
+                  mtl_texture->get_name(),
+                  texture_unit);
     BLI_assert(false);
     return;
   }
@@ -2411,7 +2411,7 @@ void MTLContext::sampler_bind(MTLSamplerState sampler_state, uint sampler_unit)
   if (sampler_unit < 0 || sampler_unit >= GPU_max_textures() ||
       sampler_unit >= MTL_MAX_SAMPLER_SLOTS)
   {
-    MTL_LOG_WARNING("Attempting to bind sampler to invalid sampler unit %d", sampler_unit);
+    MTL_LOG_ERROR("Attempting to bind sampler to invalid sampler unit %d", sampler_unit);
     BLI_assert(false);
     return;
   }

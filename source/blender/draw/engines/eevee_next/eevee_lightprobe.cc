@@ -98,8 +98,14 @@ void LightProbeModule::sync_volume(const Object *ob, ObjectHandle &handle)
     grid.dilation_radius = lightprobe->grid_dilation_radius;
     grid.intensity = lightprobe->intensity;
 
-    grid.viewport_display = lightprobe->flag & LIGHTPROBE_FLAG_SHOW_DATA;
-    grid.viewport_display_size = lightprobe->data_display_size;
+    const bool has_valid_cache = grid.cache && grid.cache->grid_static_cache;
+    grid.viewport_display = has_valid_cache && (lightprobe->flag & LIGHTPROBE_FLAG_SHOW_DATA);
+    if (grid.viewport_display) {
+      int3 cache_size = grid.cache->grid_static_cache->size;
+      float3 scale = math::transform_direction(ob->object_to_world(),
+                                               1.0f / float3(cache_size + 1));
+      grid.viewport_display_size = math::reduce_min(scale) * lightprobe->data_display_size;
+    }
 
     /* Force reupload. */
     inst_.volume_probes.bricks_free(grid.bricks);
@@ -154,8 +160,9 @@ void LightProbeModule::sync_sphere(const Object *ob, ObjectHandle &handle)
     cube.parallax_distance = parallax_distance / influence_distance;
     cube.clipping_distances = float2(light_probe.clipsta, light_probe.clipend);
 
+    float3 scale = influence_distance * math::to_scale(ob->object_to_world());
     cube.viewport_display = light_probe.flag & LIGHTPROBE_FLAG_SHOW_DATA;
-    cube.viewport_display_size = light_probe.data_display_size;
+    cube.viewport_display_size = light_probe.data_display_size * math::reduce_add(scale / 3.0f);
   }
 }
 

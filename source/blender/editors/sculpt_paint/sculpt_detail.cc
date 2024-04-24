@@ -113,7 +113,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
     BKE_pbvh_node_mark_topology_update(node);
   }
   /* Get the bounding box, its center and size. */
-  const Bounds<float3> bounds = BKE_pbvh_bounding_box(ob->sculpt->pbvh);
+  const Bounds<float3> bounds = bke::pbvh::bounds_get(*ob->sculpt->pbvh);
   const float3 center = math::midpoint(bounds.min, bounds.max);
   const float3 dim = bounds.max - bounds.min;
   const float size = math::reduce_max(dim);
@@ -124,7 +124,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
 
   undo::push_begin(ob, op);
-  undo::push_node(ob, nullptr, undo::Type::Position);
+  undo::push_node(*ob, nullptr, undo::Type::Position);
 
   const double start_time = BLI_time_now_seconds();
 

@@ -17,7 +17,7 @@
  *   different workflow as its state can be altered externally and needs to be reset.
  * - Read/Write access masks: To generate correct and performing pipeline barriers the src/dst
  *   access masks needs to be accurate and precise. When creating pipeline barriers the resource
- *   usage upto that point should be known and the resource usage from that point on.
+ *   usage up to that point should be known and the resource usage from that point on.
  */
 
 #pragma once

@@ -90,7 +90,7 @@ int shadow_tile_offset(ivec2 tile, int tiles_index, int lod)
 /** \name Load / Store functions.
  * \{ */
 
-/** \note: Will clamp if out of bounds. */
+/** \note Will clamp if out of bounds. */
 ShadowSamplingTile shadow_tile_load(usampler2D tilemaps_tx, ivec2 tile_co, int tilemap_index)
 {
   /* NOTE(@fclem): This clamp can hide some small imprecision at clip-map transition.

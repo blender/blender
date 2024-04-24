@@ -134,7 +134,7 @@ struct CutterSegments {
  * that intersect for the eye, but not in hard numbers. */
 static constexpr int BBOX_PADDING = 2;
 
-/* When creating new intersection points, we don't want them too close to their neighbour,
+/* When creating new intersection points, we don't want them too close to their neighbor,
  * because that clutters the geometry. This threshold defines what 'too close' is. */
 static constexpr float DISTANCE_FACTOR_THRESHOLD = 0.01f;
 

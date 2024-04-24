@@ -1188,6 +1188,11 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
       if (region->regiontype == RGN_TYPE_WINDOW) {
         BLO_read_data_address(reader, &region->regiondata);
 
+        if (region->regiondata == nullptr) {
+          /* To avoid crashing on some old files. */
+          region->regiondata = MEM_cnew<RegionView3D>("region view3d");
+        }
+
         RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
         BLO_read_data_address(reader, &rv3d->localvd);

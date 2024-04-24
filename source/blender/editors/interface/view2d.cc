@@ -2156,7 +2156,7 @@ void UI_view2d_text_cache_draw(ARegion *region)
     }
 
     if (col_pack_prev != v2s->col.pack) {
-      BLF_color3ubv(font_id, v2s->col.ub);
+      BLF_color4ubv(font_id, v2s->col.ub);
       col_pack_prev = v2s->col.pack;
     }
 

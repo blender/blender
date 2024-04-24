@@ -123,16 +123,16 @@ class Animation : public ::Animation {
 
   /** Assign this animation to the ID.
    *
-   * \param binding The binding this ID should be animated by, may be nullptr if it is to be
+   * \param binding: The binding this ID should be animated by, may be nullptr if it is to be
    * assigned later. In that case, the ID will not actually receive any animation.
-   * \param animated_id The ID that should be animated by this Animation data-block.
+   * \param animated_id: The ID that should be animated by this Animation data-block.
    */
   bool assign_id(Binding *binding, ID &animated_id);
 
   /**
    * Unassign this Animation from the animated ID.
    *
-   * \param animated_id ID that is animated by this Animation. Calling this
+   * \param animated_id: ID that is animated by this Animation. Calling this
    * function when this ID is _not_ animated by this Animation is not allowed,
    * and considered a bug.
    */

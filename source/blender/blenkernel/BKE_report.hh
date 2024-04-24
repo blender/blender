@@ -28,7 +28,7 @@
 /**
  * Initialize a #ReportList struct.
  *
- * \note: Not thread-safe, should only be called from the 'owner' thread of the report list.
+ * \note Not thread-safe, should only be called from the 'owner' thread of the report list.
  */
 void BKE_reports_init(ReportList *reports, int flag);
 /**
@@ -37,7 +37,7 @@ void BKE_reports_init(ReportList *reports, int flag);
  * Also calls #BKE_reports_clear. The given `reports` should not be used anymore unless it is
  * re-initialized first.
  *
- * \note: Not thread-safe, should only be called from the current owner of the report list, once
+ * \note Not thread-safe, should only be called from the current owner of the report list, once
  * no other concurrent access is possible.
  */
 void BKE_reports_free(ReportList *reports);

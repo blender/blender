@@ -252,7 +252,7 @@ static void do_draw_face_sets_brush_faces(Object *ob,
       BKE_pbvh_vertex_iter_end;
 
       if (changed) {
-        undo::push_node(ob, node, undo::Type::FaceSet);
+        undo::push_node(*ob, node, undo::Type::FaceSet);
       }
     }
   });
@@ -310,7 +310,7 @@ static void do_draw_face_sets_brush_grids(Object *ob,
       BKE_pbvh_vertex_iter_end;
 
       if (changed) {
-        undo::push_node(ob, node, undo::Type::FaceSet);
+        undo::push_node(*ob, node, undo::Type::FaceSet);
       }
     }
   });
@@ -397,7 +397,7 @@ static void do_draw_face_sets_brush_bmesh(Object *ob,
       }
 
       if (changed) {
-        undo::push_node(ob, node, undo::Type::FaceSet);
+        undo::push_node(*ob, node, undo::Type::FaceSet);
       }
     }
   });
@@ -521,7 +521,7 @@ static void face_sets_update(Object &object,
         continue;
       }
 
-      undo::push_node(&object, node, undo::Type::FaceSet);
+      undo::push_node(object, node, undo::Type::FaceSet);
       array_utils::scatter(new_face_sets.as_span(), faces, face_sets.span);
       BKE_pbvh_node_mark_update_face_sets(node);
     }
@@ -559,7 +559,7 @@ static void clear_face_sets(Object &object, const Span<PBVHNode *> nodes)
             return face_sets[face] != default_face_set;
           }))
       {
-        undo::push_node(&object, node, undo::Type::FaceSet);
+        undo::push_node(object, node, undo::Type::FaceSet);
         BKE_pbvh_node_mark_update_face_sets(node);
       }
     }
@@ -826,7 +826,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
   undo::push_begin(ob, op);
   for (PBVHNode *node : nodes) {
-    undo::push_node(ob, node, undo::Type::FaceSet);
+    undo::push_node(*ob, node, undo::Type::FaceSet);
   }
 
   const float threshold = RNA_float_get(op->ptr, "threshold");
@@ -1026,7 +1026,7 @@ static void face_hide_update(Object &object,
       }
 
       any_changed = true;
-      undo::push_node(&object, node, undo::Type::HideFace);
+      undo::push_node(object, node, undo::Type::HideFace);
       array_utils::scatter(new_hide.as_span(), faces, hide_poly.span);
       BKE_pbvh_node_mark_update_visibility(node);
     }
@@ -1512,7 +1512,7 @@ static void sculpt_face_set_edit_modify_coordinates(
   undo::push_begin(ob, op);
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_mark_update(node);
-    undo::push_node(ob, node, undo::Type::Position);
+    undo::push_node(*ob, node, undo::Type::Position);
   }
   switch (mode) {
     case EditMode::FairPositions:
@@ -1710,7 +1710,7 @@ static void face_set_gesture_apply_mesh(gesture::GestureData &gesture_data,
   threading::parallel_for(gesture_data.nodes.index_range(), 1, [&](const IndexRange range) {
     TLS &tls = all_tls.local();
     for (PBVHNode *node : nodes.slice(range)) {
-      undo::push_node(gesture_data.vc.obact, node, undo::Type::FaceSet);
+      undo::push_node(*gesture_data.vc.obact, node, undo::Type::FaceSet);
       const Span<int> node_faces =
           BKE_pbvh_type(&pbvh) == PBVH_FACES ?
               bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, tls.face_indices) :
@@ -1751,7 +1751,7 @@ static void face_set_gesture_apply_bmesh(gesture::GestureData &gesture_data,
 
   threading::parallel_for(gesture_data.nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      undo::push_node(gesture_data.vc.obact, node, undo::Type::FaceSet);
+      undo::push_node(*gesture_data.vc.obact, node, undo::Type::FaceSet);
 
       bool any_updated = false;
       for (BMFace *face : BKE_pbvh_bmesh_node_faces(node)) {

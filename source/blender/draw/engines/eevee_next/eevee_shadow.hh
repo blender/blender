@@ -509,7 +509,7 @@ class ShadowDirectional : public NonCopyable, NonMovable {
   static float coverage_get(int lvl)
   {
     /* This function should be kept in sync with shadow_directional_level(). */
-    /* \note: If we would to introduce a global scaling option it would be here. */
+    /* \note If we would to introduce a global scaling option it would be here. */
     return exp2(lvl);
   }
 

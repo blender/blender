@@ -100,7 +100,7 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, int flag);
 /**
  * Same as #BKE_animdata_copy, but allows to duplicate Action IDs into a library.
  *
- * \param owner_library the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
+ * \param owner_library: the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
  * not use any library (i.e. become a local ID). Use `std::nullopt` for default behavior (i.e.
  * behavior of the #BKE_animdata_copy function).
  */

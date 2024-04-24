@@ -164,7 +164,7 @@ struct Node {
   Type type;
 
   char idname[MAX_ID_NAME]; /* Name instead of pointer. */
-  void *node;               /* only during push, not valid afterwards! */
+  const void *node;         /* only during push, not valid afterwards! */
 
   Array<float3> position;
   Array<float3> orig_position;
@@ -1612,8 +1612,8 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache);
 
 namespace blender::ed::sculpt_paint::undo {
 
-undo::Node *push_node(Object *ob, PBVHNode *node, undo::Type type);
-undo::Node *get_node(PBVHNode *node, undo::Type type);
+undo::Node *push_node(const Object &object, const PBVHNode *node, undo::Type type);
+undo::Node *get_node(const PBVHNode *node, undo::Type type);
 
 /**
  * Pushes an undo step using the operator name. This is necessary for
@@ -1802,14 +1802,21 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot);
 
 void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot);
 void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot);
+
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Transform Operators
  * \{ */
 
+namespace blender::ed::sculpt_paint {
+
 void SCULPT_OT_set_pivot_position(wmOperatorType *ot);
+
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

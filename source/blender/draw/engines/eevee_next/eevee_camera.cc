@@ -116,7 +116,7 @@ void Camera::sync()
     data.winmat = view.winmat();
     data.type = CAMERA_ORTHO;
 
-    /* \note: Follow camera parameters where distances are positive in front of the camera. */
+    /* \note Follow camera parameters where distances are positive in front of the camera. */
     data.clip_near = -view.far_clip();
     data.clip_far = -view.near_clip();
     data.fisheye_fov = data.fisheye_lens = -1.0f;
@@ -191,7 +191,7 @@ void Camera::sync()
     is_camera_object_ = true;
   }
   else if (inst_.drw_view) {
-    /* \note: Follow camera parameters where distances are positive in front of the camera. */
+    /* \note Follow camera parameters where distances are positive in front of the camera. */
     data.clip_near = -DRW_view_near_distance_get(inst_.drw_view);
     data.clip_far = -DRW_view_far_distance_get(inst_.drw_view);
     data.fisheye_fov = data.fisheye_lens = -1.0f;

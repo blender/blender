@@ -171,7 +171,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   undo::push_begin(ob, op);
 
   for (PBVHNode *node : nodes) {
-    undo::push_node(ob, node, undo::Type::Mask);
+    undo::push_node(*ob, node, undo::Type::Mask);
   }
 
   Array<float> prev_mask;

@@ -313,7 +313,7 @@ class EEVEE_NEXT_MATERIAL_PT_settings_surface(MaterialButtonsPanel, Panel):
         if mat.surface_render_method == 'BLENDED':
             col.prop(mat, "show_transparent_back", text="Transparency Overlap")
         elif mat.surface_render_method == 'DITHERED':
-            col.prop(mat, "use_screen_refraction", text="Raytraced Refraction")
+            col.prop(mat, "use_screen_refraction", text="Raytraced Transmission")
 
         col = layout.column(heading="Light Probe Volume")
         col.prop(mat, "lightprobe_volume_single_sided", text="Single Sided")

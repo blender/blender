@@ -1657,13 +1657,17 @@ bool BKE_pbvh_get_color_layer(Mesh *mesh, CustomDataLayer **r_layer, AttrDomain 
   return *r_layer != nullptr;
 }
 
-Bounds<float3> BKE_pbvh_bounding_box(const PBVH *pbvh)
+namespace blender::bke::pbvh {
+
+Bounds<float3> bounds_get(const PBVH &pbvh)
 {
-  if (pbvh->nodes.is_empty()) {
+  if (pbvh.nodes.is_empty()) {
     return float3(0);
   }
-  return pbvh->nodes.first().vb;
+  return pbvh.nodes.first().vb;
 }
+
+}  // namespace blender::bke::pbvh
 
 const CCGKey *BKE_pbvh_get_grid_key(const PBVH *pbvh)
 {
@@ -1788,22 +1792,22 @@ bool BKE_pbvh_node_fully_unmasked_get(const PBVHNode *node)
   return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyUnmasked);
 }
 
-blender::Span<int> BKE_pbvh_node_get_corner_indices(const PBVHNode *node)
-{
-  return node->corner_indices;
-}
-
-blender::Span<int> BKE_pbvh_node_get_vert_indices(const PBVHNode *node)
-{
-  return node->vert_indices;
-}
-
-blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node)
-{
-  return node->vert_indices.as_span().take_front(node->uniq_verts);
-}
-
 namespace blender::bke::pbvh {
+
+Span<int> node_corners(const PBVHNode &node)
+{
+  return node.corner_indices;
+}
+
+Span<int> node_verts(const PBVHNode &node)
+{
+  return node.vert_indices;
+}
+
+Span<int> node_unique_verts(const PBVHNode &node)
+{
+  return node.vert_indices.as_span().take_front(node.uniq_verts);
+}
 
 Span<int> node_face_indices_calc_mesh(const PBVH &pbvh, const PBVHNode &node, Vector<int> &faces)
 {
@@ -1835,31 +1839,21 @@ Span<int> node_face_indices_calc_grids(const PBVH &pbvh, const PBVHNode &node, V
   return faces.as_span();
 }
 
-}  // namespace blender::bke::pbvh
-
-int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node)
-{
-  switch (pbvh.header.type) {
-    case PBVH_GRIDS:
-      return node.prim_indices.size() * pbvh.gridkey.grid_area;
-    case PBVH_FACES:
-      return node.uniq_verts;
-    case PBVH_BMESH:
-      return node.bm_unique_verts.size();
-  }
-  BLI_assert_unreachable();
-  return 0;
-}
-
-Span<int> BKE_pbvh_node_get_grid_indices(const PBVHNode &node)
+Span<int> node_grid_indices(const PBVHNode &node)
 {
   return node.prim_indices;
 }
 
-Bounds<float3> BKE_pbvh_node_get_BB(const PBVHNode *node)
+}  // namespace blender::bke::pbvh
+
+namespace blender::bke::pbvh {
+
+Bounds<float3> node_bounds(const PBVHNode &node)
 {
-  return node->vb;
+  return node.vb;
 }
+
+}  // namespace blender::bke::pbvh
 
 Bounds<float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node)
 {
@@ -2279,7 +2273,7 @@ void clip_ray_ortho(
     bb_root = BKE_pbvh_node_get_original_BB(&pbvh->nodes.first());
   }
   else {
-    bb_root = BKE_pbvh_node_get_BB(&pbvh->nodes.first());
+    bb_root = node_bounds(pbvh->nodes.first());
   }
 
   /* Calc rough clipping to avoid overflow later. See #109555. */
@@ -2362,7 +2356,6 @@ static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node,
     bb_max = node->orig_vb.max;
   }
   else {
-    /* BKE_pbvh_node_get_BB */
     bb_min = node->vb.min;
     bb_max = node->vb.max;
   }
@@ -2864,7 +2857,18 @@ PBVHProxyNode &BKE_pbvh_node_add_proxy(PBVH &pbvh, PBVHNode &node)
    * pointers to multiple proxies. */
   PBVHProxyNode &proxy_node = node.proxies.last();
 
-  const int num_unique_verts = BKE_pbvh_node_num_unique_verts(pbvh, node);
+  int num_unique_verts = 0;
+  switch (pbvh.header.type) {
+    case PBVH_GRIDS:
+      num_unique_verts = node.prim_indices.size() * pbvh.gridkey.grid_area;
+      break;
+    case PBVH_FACES:
+      num_unique_verts = node.uniq_verts;
+      break;
+    case PBVH_BMESH:
+      num_unique_verts = node.bm_unique_verts.size();
+      break;
+  }
 
   /* Brushes expect proxies to be zero-initialized, so that they can do additive operation to them.
    */

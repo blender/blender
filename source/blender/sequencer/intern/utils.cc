@@ -161,7 +161,7 @@ static const char *give_seqname_by_type(int type)
   }
 }
 
-const char *SEQ_sequence_give_name(Sequence *seq)
+const char *SEQ_sequence_give_name(const Sequence *seq)
 {
   const char *name = give_seqname_by_type(seq->type);
 

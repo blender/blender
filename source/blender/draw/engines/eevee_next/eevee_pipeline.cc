@@ -772,7 +772,7 @@ GPUTexture *DeferredLayer::render(View &main_view,
   inst_.manager->submit(combine_ps_);
 
   if (use_feedback_output_ && !use_clamp_direct_) {
-    /* We skip writting the radiance during the combine pass. Do a simple fast copy. */
+    /* We skip writing the radiance during the combine pass. Do a simple fast copy. */
     GPU_texture_copy(radiance_feedback_tx_, rb.combined_tx);
   }
 

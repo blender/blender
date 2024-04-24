@@ -65,7 +65,8 @@ static blender::IndexRange get_bounding_bezt_index_range(FCurve *fcu,
   last = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, max, fcu->totvert, &replace);
   last = replace ? last + 1 : last;
   last = clamp_i(last, 0, fcu->totvert - 1);
-  /* Iterating over index range is exlusive of the last index. But we need `last` to be visited. */
+  /* Iterating over index range is exclusive of the last index.
+   * But we need `last` to be visited. */
   return blender::IndexRange(first, (last - first) + 1);
 }
 
