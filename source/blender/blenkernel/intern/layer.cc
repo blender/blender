@@ -2407,7 +2407,11 @@ void BKE_view_layer_blend_write(BlendWriter *writer, const Scene *scene, ViewLay
   write_layer_collections(writer, &view_layer->layer_collections);
 }
 
-static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb, bool master)
+static void direct_link_layer_collections(BlendDataReader *reader,
+                                          ViewLayer *view_layer,
+                                          ListBase *lb,
+                                          bool master,
+                                          bool &active_collection_found)
 {
   BLO_read_struct_list(reader, LayerCollection, lb);
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
@@ -2416,7 +2420,12 @@ static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb,
       BLO_read_struct(reader, Collection, &lc->collection);
     }
 
-    direct_link_layer_collections(reader, &lc->layer_collections, false);
+    if (lc == view_layer->active_collection) {
+      active_collection_found = true;
+    }
+
+    direct_link_layer_collections(
+        reader, view_layer, &lc->layer_collections, false, active_collection_found);
   }
 }
 
@@ -2426,8 +2435,17 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
   BLO_read_struct_list(reader, Base, &view_layer->object_bases);
   BLO_read_struct(reader, Base, &view_layer->basact);
 
-  direct_link_layer_collections(reader, &view_layer->layer_collections, true);
+  bool active_collection_found = false;
   BLO_read_struct(reader, LayerCollection, &view_layer->active_collection);
+
+  direct_link_layer_collections(
+      reader, view_layer, &view_layer->layer_collections, true, active_collection_found);
+
+  if (!active_collection_found) {
+    /* Ensure pointer is valid, in case of corrupt blend file. */
+    view_layer->active_collection = static_cast<LayerCollection *>(
+        view_layer->layer_collections.first);
+  }
 
   BLO_read_struct(reader, IDProperty, &view_layer->id_properties);
   IDP_BlendDataRead(reader, &view_layer->id_properties);
