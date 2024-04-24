@@ -78,7 +78,10 @@ class Task {
     other.freedata = nullptr;
   }
 
-#if defined(WITH_TBB) && TBB_INTERFACE_VERSION_MAJOR < 10
+// TBB has a check in tbb/include/task_group.h where __TBB_CPP11_RVALUE_REF_PRESENT should evaluate to true as with
+// the other MSVC build. However, because of the clang compiler it does not and we attempt to call a deleted constructor
+// in the tbb_task_pool_run function. This check fixes this issue and keeps our Task constructor valid
+#if (defined(WITH_TBB) && TBB_INTERFACE_VERSION_MAJOR < 10) || (defined(_MSC_VER) && defined(__clang__) && TBB_INTERFACE_VERSION_MAJOR < 12)
   Task(const Task &other)
       : pool(other.pool),
         run(other.run),

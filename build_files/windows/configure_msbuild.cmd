@@ -8,7 +8,7 @@ if "%BUILD_WITH_SCCACHE%"=="1" (
 )
 
 if "%WITH_CLANG%"=="1" (
-	set CLANG_CMAKE_ARGS=-T"llvm"
+	set CLANG_CMAKE_ARGS=-T"ClangCl"
 )
 
 if "%WITH_ASAN%"=="1" (
