@@ -186,10 +186,14 @@ class CommandBufferLog : public VKCommandBufferInterface {
 
   void dispatch_indirect(VkBuffer buffer, VkDeviceSize offset) override
   {
-    UNUSED_VARS(buffer, offset);
     BLI_assert_msg(is_recording_,
                    "Command is added to command buffer, which isn't in recording state.");
-    BLI_assert_unreachable();
+    std::stringstream ss;
+    ss << "dispatch_indirect(";
+    ss << "buffer=" << to_string(buffer);
+    ss << ", offset=" << offset;
+    ss << ")";
+    log_.append(ss.str());
   }
 
   void copy_buffer(VkBuffer src_buffer,

@@ -16,27 +16,26 @@ namespace blender::gpu::render_graph {
 /**
  * Information stored inside the render graph node. See `VKRenderGraphNode`.
  */
-struct VKDispatchData {
+struct VKDispatchIndirectData {
   VKPipelineData pipeline_data;
-  uint32_t group_count_x;
-  uint32_t group_count_y;
-  uint32_t group_count_z;
+  VkBuffer buffer;
+  VkDeviceSize offset;
 };
 
 /**
  * Information needed to add a node to the render graph.
  */
-struct VKDispatchCreateInfo : NonCopyable {
-  VKDispatchData dispatch_node = {};
+struct VKDispatchIndirectCreateInfo : NonCopyable {
+  VKDispatchIndirectData dispatch_indirect_node = {};
   const VKResourceAccessInfo &resources;
-  VKDispatchCreateInfo(const VKResourceAccessInfo &resources) : resources(resources) {}
+  VKDispatchIndirectCreateInfo(const VKResourceAccessInfo &resources) : resources(resources) {}
 };
 
-class VKDispatchNode : public VKNodeInfo<VKNodeType::DISPATCH,
-                                         VKDispatchCreateInfo,
-                                         VKDispatchData,
-                                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                         VKResourceType::IMAGE | VKResourceType::BUFFER> {
+class VKDispatchIndirectNode : public VKNodeInfo<VKNodeType::DISPATCH_INDIRECT,
+                                                 VKDispatchIndirectCreateInfo,
+                                                 VKDispatchIndirectData,
+                                                 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                                 VKResourceType::IMAGE | VKResourceType::BUFFER> {
  public:
   /**
    * Update the node data with the data inside create_info.
@@ -47,14 +46,15 @@ class VKDispatchNode : public VKNodeInfo<VKNodeType::DISPATCH,
    */
   template<typename Node> static void set_node_data(Node &node, const CreateInfo &create_info)
   {
-    node.dispatch = create_info.dispatch_node;
-    vk_pipeline_data_copy(node.dispatch.pipeline_data, create_info.dispatch_node.pipeline_data);
+    node.dispatch_indirect = create_info.dispatch_indirect_node;
+    vk_pipeline_data_copy(node.dispatch_indirect.pipeline_data,
+                          create_info.dispatch_indirect_node.pipeline_data);
   }
 
   /**
    * Free the pipeline data stored in the render graph node data.
    */
-  void free_data(VKDispatchData &data)
+  void free_data(VKDispatchIndirectData &data)
   {
     vk_pipeline_data_free(data.pipeline_data);
   }
@@ -67,6 +67,9 @@ class VKDispatchNode : public VKNodeInfo<VKNodeType::DISPATCH,
                    const CreateInfo &create_info) override
   {
     create_info.resources.build_links(resources, node_links);
+    ResourceWithStamp buffer_resource = resources.get_buffer(
+        create_info.dispatch_indirect_node.buffer);
+    node_links.inputs.append({buffer_resource, VK_ACCESS_INDIRECT_COMMAND_READ_BIT});
   }
 
   /**
@@ -78,7 +81,7 @@ class VKDispatchNode : public VKNodeInfo<VKNodeType::DISPATCH,
   {
     vk_pipeline_data_build_commands(
         command_buffer, data.pipeline_data, r_bound_pipelines, VK_PIPELINE_BIND_POINT_COMPUTE);
-    command_buffer.dispatch(data.group_count_x, data.group_count_y, data.group_count_z);
+    command_buffer.dispatch_indirect(data.buffer, data.offset);
   }
 };
 }  // namespace blender::gpu::render_graph

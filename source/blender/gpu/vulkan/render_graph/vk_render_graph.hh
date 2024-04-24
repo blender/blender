@@ -164,6 +164,10 @@ class VKRenderGraph : public NonCopyable {
   {
     add_node<VKDispatchNode>(dispatch);
   }
+  void add_node(const VKDispatchIndirectNode::CreateInfo &dispatch)
+  {
+    add_node<VKDispatchIndirectNode>(dispatch);
+  }
 
   /**
    * Submit partial graph to be able to read the expected result of the rendering commands

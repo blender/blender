@@ -15,6 +15,7 @@
 #include "nodes/vk_copy_buffer_to_image_node.hh"
 #include "nodes/vk_copy_image_node.hh"
 #include "nodes/vk_copy_image_to_buffer_node.hh"
+#include "nodes/vk_dispatch_indirect_node.hh"
 #include "nodes/vk_dispatch_node.hh"
 #include "nodes/vk_fill_buffer_node.hh"
 #include "nodes/vk_synchronization_node.hh"
@@ -44,6 +45,7 @@ struct VKRenderGraphNode {
     VKCopyImageNode::Data copy_image;
     VKCopyImageToBufferNode::Data copy_image_to_buffer;
     VKDispatchNode::Data dispatch;
+    VKDispatchIndirectNode::Data dispatch_indirect;
     VKFillBufferNode::Data fill_buffer;
     VKSynchronizationNode::Data synchronization;
   };
@@ -110,6 +112,8 @@ struct VKRenderGraphNode {
         return VKBlitImageNode::pipeline_stage;
       case VKNodeType::DISPATCH:
         return VKDispatchNode::pipeline_stage;
+      case VKNodeType::DISPATCH_INDIRECT:
+        return VKDispatchIndirectNode::pipeline_stage;
       case VKNodeType::SYNCHRONIZATION:
         return VKSynchronizationNode::pipeline_stage;
     }
@@ -190,6 +194,12 @@ struct VKRenderGraphNode {
         node_info.build_commands(command_buffer, dispatch, r_bound_pipelines);
         break;
       }
+
+      case VKNodeType::DISPATCH_INDIRECT: {
+        VKDispatchIndirectNode node_info;
+        node_info.build_commands(command_buffer, dispatch_indirect, r_bound_pipelines);
+        break;
+      }
     }
   }
 
@@ -202,6 +212,12 @@ struct VKRenderGraphNode {
       case VKNodeType::DISPATCH: {
         VKDispatchNode node_info;
         node_info.free_data(dispatch);
+        break;
+      }
+
+      case VKNodeType::DISPATCH_INDIRECT: {
+        VKDispatchIndirectNode node_info;
+        node_info.free_data(dispatch_indirect);
         break;
       }
 
