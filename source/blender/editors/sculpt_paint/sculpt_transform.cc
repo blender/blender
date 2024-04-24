@@ -37,15 +37,10 @@
 #include <cmath>
 #include <cstdlib>
 
-using blender::float3;
-using blender::MutableSpan;
+namespace blender::ed::sculpt_paint {
 
-void ED_sculpt_init_transform(bContext *C,
-                              Object *ob,
-                              const float mval_fl[2],
-                              const char *undo_name)
+void init_transform(bContext *C, Object *ob, const float mval_fl[2], const char *undo_name)
 {
-  using namespace blender::ed::sculpt_paint;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -75,10 +70,10 @@ void ED_sculpt_init_transform(bContext *C,
   }
 }
 
-static void sculpt_transform_matrices_init(SculptSession *ss,
-                                           const ePaintSymmetryFlags symm,
-                                           const SculptTransformDisplacementMode t_mode,
-                                           float r_transform_mats[8][4][4])
+static void transform_matrices_init(SculptSession *ss,
+                                    const ePaintSymmetryFlags symm,
+                                    const SculptTransformDisplacementMode t_mode,
+                                    float r_transform_mats[8][4][4])
 {
 
   float final_pivot_pos[3], d_t[3], d_r[4], d_s[3];
@@ -139,9 +134,8 @@ static void sculpt_transform_matrices_init(SculptSession *ss,
   }
 }
 
-static void sculpt_transform_task(Object *ob, const float transform_mats[8][4][4], PBVHNode *node)
+static void transform_node(Object *ob, const float transform_mats[8][4][4], PBVHNode *node)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   SculptOrigVertData orig_data;
@@ -180,30 +174,27 @@ static void sculpt_transform_task(Object *ob, const float transform_mats[8][4][4
 
 static void sculpt_transform_all_vertices(Object *ob)
 {
-  using namespace blender;
   SculptSession *ss = ob->sculpt;
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   float transform_mats[8][4][4];
-  sculpt_transform_matrices_init(
-      ss, symm, ss->filter_cache->transform_displacement_mode, transform_mats);
+  transform_matrices_init(ss, symm, ss->filter_cache->transform_displacement_mode, transform_mats);
 
   /* Regular transform applies all symmetry passes at once as it is split by symmetry areas
    * (each vertex can only be transformed once by the transform matrix of its area). */
   threading::parallel_for(ss->filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      sculpt_transform_task(ob, transform_mats, ss->filter_cache->nodes[i]);
+      transform_node(ob, transform_mats, ss->filter_cache->nodes[i]);
     }
   });
 }
 
-static void sculpt_elastic_transform_task(Object *ob,
-                                          const float transform_radius,
-                                          const float elastic_transform_mat[4][4],
-                                          const float elastic_transform_pivot[3],
-                                          PBVHNode *node)
+static void elastic_transform_node(Object *ob,
+                                   const float transform_radius,
+                                   const float elastic_transform_mat[4][4],
+                                   const float elastic_transform_pivot[3],
+                                   PBVHNode *node)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   const MutableSpan<float3> proxy = BKE_pbvh_node_add_proxy(*ss->pbvh, *node).co;
@@ -244,9 +235,8 @@ static void sculpt_elastic_transform_task(Object *ob,
   BKE_pbvh_node_mark_update(node);
 }
 
-static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float transform_radius)
+static void transform_radius_elastic(Sculpt *sd, Object *ob, const float transform_radius)
 {
-  using namespace blender;
   SculptSession *ss = ob->sculpt;
   BLI_assert(ss->filter_cache->transform_displacement_mode ==
              SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL);
@@ -254,8 +244,7 @@ static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float 
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   float transform_mats[8][4][4];
-  sculpt_transform_matrices_init(
-      ss, symm, ss->filter_cache->transform_displacement_mode, transform_mats);
+  transform_matrices_init(ss, symm, ss->filter_cache->transform_displacement_mode, transform_mats);
 
   /* Elastic transform needs to apply all transform matrices to all vertices and then combine the
    * displacement proxies as all vertices are modified by all symmetry passes. */
@@ -272,11 +261,11 @@ static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float 
       threading::parallel_for(
           ss->filter_cache->nodes.index_range(), 1, [&](const IndexRange range) {
             for (const int i : range) {
-              sculpt_elastic_transform_task(ob,
-                                            transform_radius,
-                                            elastic_transform_mat,
-                                            elastic_transform_pivot,
-                                            ss->filter_cache->nodes[i]);
+              elastic_transform_node(ob,
+                                     transform_radius,
+                                     elastic_transform_mat,
+                                     elastic_transform_pivot,
+                                     ss->filter_cache->nodes[i]);
             }
           });
     }
@@ -284,7 +273,7 @@ static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float 
   SCULPT_combine_transform_proxies(sd, ob);
 }
 
-void ED_sculpt_update_modal_transform(bContext *C, Object *ob)
+void update_modal_transform(bContext *C, Object *ob)
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
@@ -313,7 +302,7 @@ void ED_sculpt_update_modal_transform(bContext *C, Object *ob)
             &vc, ss->init_pivot_pos, BKE_brush_size_get(scene, brush));
       }
 
-      sculpt_transform_radius_elastic(sd, ob, transform_radius);
+      transform_radius_elastic(sd, ob, transform_radius);
       break;
     }
   }
@@ -329,9 +318,8 @@ void ED_sculpt_update_modal_transform(bContext *C, Object *ob)
   SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
 }
 
-void ED_sculpt_end_transform(bContext *C, Object *ob)
+void end_transform(bContext *C, Object *ob)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   if (ss->filter_cache) {
     filter::cache_free(ss);
@@ -339,36 +327,36 @@ void ED_sculpt_end_transform(bContext *C, Object *ob)
   SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS);
 }
 
-enum eSculptPivotPositionModes {
-  SCULPT_PIVOT_POSITION_ORIGIN = 0,
-  SCULPT_PIVOT_POSITION_UNMASKED = 1,
-  SCULPT_PIVOT_POSITION_MASK_BORDER = 2,
-  SCULPT_PIVOT_POSITION_ACTIVE_VERTEX = 3,
-  SCULPT_PIVOT_POSITION_CURSOR_SURFACE = 4,
+enum class PivotPositionMode {
+  Origin = 0,
+  Unmasked = 1,
+  MaskBorder = 2,
+  ActiveVert = 3,
+  CursorSurface = 4,
 };
 
 static EnumPropertyItem prop_sculpt_pivot_position_types[] = {
-    {SCULPT_PIVOT_POSITION_ORIGIN,
+    {int(PivotPositionMode::Origin),
      "ORIGIN",
      0,
      "Origin",
      "Sets the pivot to the origin of the sculpt"},
-    {SCULPT_PIVOT_POSITION_UNMASKED,
+    {int(PivotPositionMode::Unmasked),
      "UNMASKED",
      0,
      "Unmasked",
      "Sets the pivot position to the average position of the unmasked vertices"},
-    {SCULPT_PIVOT_POSITION_MASK_BORDER,
+    {int(PivotPositionMode::MaskBorder),
      "BORDER",
      0,
      "Mask Border",
      "Sets the pivot position to the center of the border of the mask"},
-    {SCULPT_PIVOT_POSITION_ACTIVE_VERTEX,
+    {int(PivotPositionMode::ActiveVert),
      "ACTIVE",
      0,
      "Active Vertex",
      "Sets the pivot position to the active vertex position"},
-    {SCULPT_PIVOT_POSITION_CURSOR_SURFACE,
+    {int(PivotPositionMode::CursorSurface),
      "SURFACE",
      0,
      "Surface",
@@ -376,7 +364,7 @@ static EnumPropertyItem prop_sculpt_pivot_position_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
+static int set_pivot_position_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -384,7 +372,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
-  int mode = RNA_enum_get(op->ptr, "mode");
+  const PivotPositionMode mode = PivotPositionMode(RNA_enum_get(op->ptr, "mode"));
 
   const View3D *v3d = CTX_wm_view3d(C);
   const Base *base = CTX_data_active_base(C);
@@ -395,15 +383,15 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   /* Pivot to center. */
-  if (mode == SCULPT_PIVOT_POSITION_ORIGIN) {
+  if (mode == PivotPositionMode::Origin) {
     zero_v3(ss->pivot_pos);
   }
   /* Pivot to active vertex. */
-  else if (mode == SCULPT_PIVOT_POSITION_ACTIVE_VERTEX) {
+  else if (mode == PivotPositionMode::ActiveVert) {
     copy_v3_v3(ss->pivot_pos, SCULPT_active_vertex_co_get(ss));
   }
   /* Pivot to ray-cast surface. */
-  else if (mode == SCULPT_PIVOT_POSITION_CURSOR_SURFACE) {
+  else if (mode == PivotPositionMode::CursorSurface) {
     float stroke_location[3];
     const float mval[2] = {
         RNA_float_get(op->ptr, "mouse_x"),
@@ -414,14 +402,14 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    blender::Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+    Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
 
     float avg[3];
     int total = 0;
     zero_v3(avg);
 
     /* Pivot to unmasked. */
-    if (mode == SCULPT_PIVOT_POSITION_UNMASKED) {
+    if (mode == PivotPositionMode::Unmasked) {
       for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
         BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -437,7 +425,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
       }
     }
     /* Pivot to mask border. */
-    else if (mode == SCULPT_PIVOT_POSITION_MASK_BORDER) {
+    else if (mode == PivotPositionMode::MaskBorder) {
       const float threshold = 0.2f;
 
       for (PBVHNode *node : nodes) {
@@ -473,30 +461,28 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int sculpt_set_pivot_position_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int set_pivot_position_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RNA_float_set(op->ptr, "mouse_x", event->mval[0]);
   RNA_float_set(op->ptr, "mouse_y", event->mval[1]);
-  return sculpt_set_pivot_position_exec(C, op);
+  return set_pivot_position_exec(C, op);
 }
 
 void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
 {
-  /* Identifiers. */
   ot->name = "Set Pivot Position";
   ot->idname = "SCULPT_OT_set_pivot_position";
   ot->description = "Sets the sculpt transform pivot position";
 
-  /* API callbacks. */
-  ot->invoke = sculpt_set_pivot_position_invoke;
-  ot->exec = sculpt_set_pivot_position_exec;
+  ot->invoke = set_pivot_position_invoke;
+  ot->exec = set_pivot_position_exec;
   ot->poll = SCULPT_mode_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
   RNA_def_enum(ot->srna,
                "mode",
                prop_sculpt_pivot_position_types,
-               SCULPT_PIVOT_POSITION_UNMASKED,
+               int(PivotPositionMode::Unmasked),
                "Mode",
                "");
 
@@ -519,3 +505,5 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot)
                 0.0f,
                 10000.0f);
 }
+
+}  // namespace blender::ed::sculpt_paint

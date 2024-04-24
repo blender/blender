@@ -1802,14 +1802,21 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot);
 
 void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot);
 void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot);
+
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Transform Operators
  * \{ */
 
+namespace blender::ed::sculpt_paint {
+
 void SCULPT_OT_set_pivot_position(wmOperatorType *ot);
+
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

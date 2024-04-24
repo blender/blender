@@ -43,16 +43,13 @@ void ED_keymap_sculpt(wmKeyConfig *keyconf);
 
 /* `sculpt_transform.cc` */
 
-void ED_sculpt_update_modal_transform(bContext *C, Object *ob);
-void ED_sculpt_init_transform(bContext *C,
-                              Object *ob,
-                              const float mval_fl[2],
-                              const char *undo_name);
-void ED_sculpt_end_transform(bContext *C, Object *ob);
+namespace blender::ed::sculpt_paint {
+
+void update_modal_transform(bContext *C, Object *ob);
+void init_transform(bContext *C, Object *ob, const float mval_fl[2], const char *undo_name);
+void end_transform(bContext *C, Object *ob);
 
 /* `sculpt_undo.cc` */
-
-namespace blender::ed::sculpt_paint {
 
 namespace undo {
 
