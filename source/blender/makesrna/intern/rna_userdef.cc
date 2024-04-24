@@ -4331,6 +4331,8 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, nullptr, "filepath");
   RNA_def_property_ui_text(
       prop, "File Path", "The path to the preset loaded into this theme (if any)");
+  /* Don't store in presets. */
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_property(srna, "theme_area", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "active_theme_area");
