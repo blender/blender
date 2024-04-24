@@ -103,7 +103,8 @@ struct ShadowTileMap : public ShadowTileMapData {
                          float lod_bias_,
                          eShadowProjectionType projection_type_);
 
-  void sync_cubeface(const float4x4 &object_mat,
+  void sync_cubeface(eLightType light_type_,
+                     const float4x4 &object_mat,
                      float near,
                      float far,
                      float side,
@@ -252,8 +253,8 @@ class ShadowModule {
   StorageArrayBuffer<uint, SHADOW_RENDER_MAP_SIZE, true> src_coord_buf_ = {"src_coord_buf"};
   /** Same as dst_coord_buf_ but is not compact. More like a linear texture. */
   StorageArrayBuffer<uint, SHADOW_RENDER_MAP_SIZE, true> render_map_buf_ = {"render_map_buf"};
-  /** View to viewport index mapping. */
-  StorageArrayBuffer<uint, SHADOW_VIEW_MAX, true> viewport_index_buf_ = {"viewport_index_buf"};
+  /** View to viewport index mapping and other render-only related data. */
+  ShadowRenderViewBuf render_view_buf_ = {"render_view_buf"};
 
   int3 dispatch_depth_scan_size_;
   float pixel_world_radius_;
@@ -453,12 +454,14 @@ class ShadowPunctual : public NonCopyable, NonMovable {
    * Make sure that the projection encompass all possible rays that can start in the projection
    * quadrant.
    */
-  void compute_projection_boundaries(float light_radius,
+  void compute_projection_boundaries(eLightType light_type,
+                                     float light_radius,
                                      float shadow_radius,
                                      float max_lit_distance,
                                      float &near,
                                      float &far,
-                                     float &side);
+                                     float &side,
+                                     float &back_shift);
 };
 
 class ShadowDirectional : public NonCopyable, NonMovable {

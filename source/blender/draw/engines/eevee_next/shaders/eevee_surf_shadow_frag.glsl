@@ -26,6 +26,12 @@ void main()
 {
   float f_depth = gl_FragCoord.z + fwidth(gl_FragCoord.z);
 
+  /* Clip to light shape. */
+  if (length_squared(shadow_clip.vector) < 1.0) {
+    discard;
+    return;
+  }
+
 #ifdef MAT_TRANSPARENT
   init_globals();
 

@@ -189,7 +189,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_finalize)
     .storage_buf(7, Qualifier::WRITE, SHADOW_PAGE_PACKED, "dst_coord_buf[SHADOW_RENDER_MAP_SIZE]")
     .storage_buf(8, Qualifier::WRITE, SHADOW_PAGE_PACKED, "src_coord_buf[SHADOW_RENDER_MAP_SIZE]")
     .storage_buf(9, Qualifier::WRITE, SHADOW_PAGE_PACKED, "render_map_buf[SHADOW_RENDER_MAP_SIZE]")
-    .storage_buf(10, Qualifier::WRITE, "uint", "viewport_index_buf[SHADOW_VIEW_MAX]")
+    .storage_buf(10, Qualifier::WRITE, "ShadowRenderView", "render_view_buf[SHADOW_VIEW_MAX]")
     .storage_buf(11, Qualifier::READ, "ShadowTileMapClip", "tilemaps_clip_buf[]")
     /* 12 is the minimum number of storage buf we require. Do not go above this limit. */
     .image(0, GPU_R32UI, Qualifier::WRITE, ImageType::UINT_2D, "tilemaps_img")
