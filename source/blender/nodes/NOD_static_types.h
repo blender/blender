@@ -280,6 +280,7 @@ DefNode(FunctionNode, FN_NODE_INPUT_VECTOR, def_fn_input_vector, "INPUT_VECTOR",
 DefNode(FunctionNode, FN_NODE_INVERT_MATRIX, 0, "INVERT_MATRIX", InvertMatrix, "Invert Matrix", "")
 DefNode(FunctionNode, FN_NODE_INVERT_ROTATION, 0, "INVERT_ROTATION", InvertRotation, "Invert Rotation", "")
 DefNode(FunctionNode, FN_NODE_MATRIX_MULTIPLY, 0, "MATRIX_MULTIPLY", MatrixMultiply, "Multiply Matrices", "")
+DefNode(FunctionNode, FN_NODE_PROJECT_POINT, 0, "PROJECT_POINT", ProjectPoint, "Project Point", "Project a point using a matrix, using location, rotation, scale, and perspective divide")
 DefNode(FunctionNode, FN_NODE_RANDOM_VALUE, def_fn_random_value, "RANDOM_VALUE", RandomValue, "Random Value", "")
 DefNode(FunctionNode, FN_NODE_REPLACE_STRING, 0, "REPLACE_STRING", ReplaceString, "Replace String", "")
 DefNode(FunctionNode, FN_NODE_ROTATE_EULER, def_fn_rotate_euler, "ROTATE_EULER", RotateEuler, "Rotate Euler", "")
