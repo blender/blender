@@ -1742,7 +1742,12 @@ void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
   }
   grease_pencil_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
-  if (!geometry_set.has_grease_pencil()) {
+  if (geometry_set.has_grease_pencil()) {
+    /* Output geometry set may be different from the input,
+     * set the frame again to ensure a correct value. */
+    geometry_set.get_grease_pencil()->runtime->eval_frame = int(DEG_get_ctime(depsgraph));
+  }
+  else {
     GreasePencil *empty_grease_pencil = BKE_grease_pencil_new_nomain();
     empty_grease_pencil->runtime->eval_frame = int(DEG_get_ctime(depsgraph));
     geometry_set.replace_grease_pencil(empty_grease_pencil);
