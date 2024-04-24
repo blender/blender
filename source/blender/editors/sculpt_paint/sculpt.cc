@@ -375,7 +375,9 @@ ePaintSymmetryFlags SCULPT_mesh_symmetry_xyz_get(Object *object)
 
 /* Sculpt Face Sets and Visibility. */
 
-namespace blender::ed::sculpt_paint::face_set {
+namespace blender::ed::sculpt_paint {
+
+namespace face_set {
 
 int active_face_set_get(SculptSession *ss)
 {
@@ -399,9 +401,9 @@ int active_face_set_get(SculptSession *ss)
   return SCULPT_FACE_SET_NONE;
 }
 
-}  // namespace blender::ed::sculpt_paint::face_set
+}  // namespace face_set
 
-namespace blender::ed::sculpt_paint::hide {
+namespace hide {
 
 bool vert_visible_get(const SculptSession *ss, PBVHVertRef vertex)
 {
@@ -500,9 +502,9 @@ bool vert_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex)
   return true;
 }
 
-}  // namespace blender::ed::sculpt_paint::hide
+}  // namespace hide
 
-namespace blender::ed::sculpt_paint::face_set {
+namespace face_set {
 
 int vert_face_set_get(SculptSession *ss, PBVHVertRef vertex)
 {
@@ -648,7 +650,7 @@ bool vert_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex)
   return false;
 }
 
-}  // namespace blender::ed::sculpt_paint::face_set
+}  // namespace face_set
 
 /* Sculpt Neighbor Iterators */
 
@@ -731,9 +733,8 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
       /* Skip connectivity from hidden faces. */
       continue;
     }
-    const blender::IndexRange face = ss->faces[face_i];
-    const blender::int2 f_adj_v = blender::bke::mesh::face_find_adjacent_verts(
-        face, ss->corner_verts, vertex.i);
+    const IndexRange face = ss->faces[face_i];
+    const int2 f_adj_v = bke::mesh::face_find_adjacent_verts(face, ss->corner_verts, vertex.i);
     for (int j = 0; j < 2; j++) {
       if (f_adj_v[j] != vertex.i) {
         sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref(f_adj_v[j]), f_adj_v[j]);
@@ -794,11 +795,14 @@ static void sculpt_vertex_neighbors_get_grids(SculptSession *ss,
   }
 }
 
+}  // namespace blender::ed::sculpt_paint
+
 void SCULPT_vertex_neighbors_get(SculptSession *ss,
                                  const PBVHVertRef vertex,
                                  const bool include_duplicates,
                                  SculptVertexNeighborIter *iter)
 {
+  using namespace blender::ed::sculpt_paint;
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
       sculpt_vertex_neighbors_get_faces(ss, vertex, iter);
@@ -831,7 +835,6 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const PBVHVertRef vertex
       BMVert *v = (BMVert *)vertex.i;
       return BM_vert_is_boundary(v);
     }
-
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = vertex.i / key->grid_area;
@@ -931,7 +934,7 @@ PBVHVertRef SCULPT_nearest_vertex_get(Object *ob,
 
   const float max_distance_sq = max_distance * max_distance;
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
     return node_in_sphere(node, co, max_distance_sq, use_original);
   });
   if (nodes.is_empty()) {
@@ -1001,7 +1004,9 @@ void SCULPT_tag_update_overlays(bContext *C)
  * Iterate over connected vertices, starting from one or more initial vertices.
  * \{ */
 
-namespace blender::ed::sculpt_paint::flood_fill {
+namespace blender::ed::sculpt_paint {
+
+namespace flood_fill {
 
 void init_fill(SculptSession *ss, FillData *flood)
 {
@@ -1106,7 +1111,7 @@ void execute(
   }
 }
 
-}  // namespace blender::ed::sculpt_paint::flood_fill
+}  // namespace flood_fill
 
 /** \} */
 
@@ -1183,6 +1188,8 @@ static bool sculpt_brush_needs_rake_rotation(const Brush *brush)
   return SCULPT_TOOL_HAS_RAKE(brush->sculpt_tool) && (brush->rake_factor != 0.0f);
 }
 
+}  // namespace blender::ed::sculpt_paint
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1251,6 +1258,8 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
   }
 }
 
+namespace blender::ed::sculpt_paint {
+
 static void sculpt_rake_data_update(SculptRakeData *srd, const float co[3])
 {
   float rake_dist = len_v3v3(srd->follow_co, co);
@@ -1265,7 +1274,7 @@ static void sculpt_rake_data_update(SculptRakeData *srd, const float co[3])
 /** \name Sculpt Dynamic Topology
  * \{ */
 
-namespace blender::ed::sculpt_paint::dyntopo {
+namespace dyntopo {
 
 bool stroke_is_dyntopo(const SculptSession *ss, const Brush *brush)
 {
@@ -1280,15 +1289,13 @@ bool stroke_is_dyntopo(const SculptSession *ss, const Brush *brush)
           SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
 }
 
-}  // namespace blender::ed::sculpt_paint::dyntopo
+}  // namespace dyntopo
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Paint Mesh
  * \{ */
-
-namespace blender::ed::sculpt_paint {
 
 static void restore_mask(Object *ob, const Span<PBVHNode *> nodes)
 {
@@ -3250,6 +3257,8 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const Span<float3> vertCos)
   BKE_keyblock_update_from_vertcos(ob, kb, reinterpret_cast<const float(*)[3]>(vertCos.data()));
 }
 
+namespace blender::ed::sculpt_paint {
+
 /* NOTE: we do the topology update before any brush actions to avoid
  * issues with the proxies. The size of the proxy can't change, so
  * topology must be updated first. */
@@ -3259,8 +3268,6 @@ static void sculpt_topology_update(Sculpt *sd,
                                    UnifiedPaintSettings * /*ups*/,
                                    PaintModeSettings * /*paint_mode_settings*/)
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
@@ -3321,7 +3328,6 @@ static void sculpt_topology_update(Sculpt *sd,
 
 static void do_brush_action_task(Object *ob, const Brush *brush, PBVHNode *node)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   bool need_coords = ss->cache->supports_gravity;
@@ -3361,8 +3367,6 @@ static void do_brush_action(Sculpt *sd,
                             UnifiedPaintSettings *ups,
                             PaintModeSettings *paint_mode_settings)
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   Vector<PBVHNode *> nodes, texnodes;
 
@@ -3395,7 +3399,7 @@ static void do_brush_action(Sculpt *sd,
 
   if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
     /* These brushes need to update all nodes as they are not constrained by the brush radius */
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+    nodes = bke::pbvh::search_gather(ss->pbvh, {});
   }
   else if (brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
     nodes = cloth::brush_affected_nodes_gather(ss, brush);
@@ -3680,7 +3684,6 @@ static void sculpt_combine_proxies_node(Object &object,
                                         const bool use_orco,
                                         PBVHNode &node)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = object.sculpt;
 
   float(*orco)[3] = nullptr;
@@ -3727,7 +3730,6 @@ static void sculpt_combine_proxies_node(Object &object,
 
 static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 {
-  using namespace blender;
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
@@ -3745,7 +3747,7 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
                              SCULPT_TOOL_BOUNDARY,
                              SCULPT_TOOL_POSE);
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::gather_proxies(ss->pbvh);
+  Vector<PBVHNode *> nodes = bke::pbvh::gather_proxies(ss->pbvh);
 
   threading::parallel_for(nodes.index_range(), 1, [&](IndexRange range) {
     for (const int i : range) {
@@ -3754,12 +3756,15 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
   });
 }
 
+}  // namespace blender::ed::sculpt_paint
+
 void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob)
 {
   using namespace blender;
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::gather_proxies(ss->pbvh);
+  Vector<PBVHNode *> nodes = bke::pbvh::gather_proxies(ss->pbvh);
 
   threading::parallel_for(nodes.index_range(), 1, [&](IndexRange range) {
     for (const int i : range) {
@@ -3788,6 +3793,7 @@ static void sculpt_update_keyblock(Object *ob)
 void SCULPT_flush_stroke_deform(Sculpt * /*sd*/, Object *ob, bool is_proxy_used)
 {
   using namespace blender;
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   if (is_proxy_used && ss->deform_modifiers_active) {
@@ -3804,7 +3810,7 @@ void SCULPT_flush_stroke_deform(Sculpt * /*sd*/, Object *ob, bool is_proxy_used)
       vertCos = ss->orig_cos;
     }
 
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+    nodes = bke::pbvh::search_gather(ss->pbvh, {});
 
     MutableSpan<float3> positions = mesh->vert_positions_for_write();
 
@@ -3886,6 +3892,8 @@ void SCULPT_cache_calc_brushdata_symm(blender::ed::sculpt_paint::StrokeCache *ca
   }
 }
 
+namespace blender::ed::sculpt_paint {
+
 using BrushActionFunc = void (*)(Sculpt *sd,
                                  Object *ob,
                                  Brush *brush,
@@ -3899,11 +3907,10 @@ static void do_tiled(Sculpt *sd,
                      PaintModeSettings *paint_mode_settings,
                      BrushActionFunc action)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
   const float radius = cache->radius;
-  const blender::Bounds<blender::float3> bb = *BKE_object_boundbox_get(ob);
+  const Bounds<float3> bb = *BKE_object_boundbox_get(ob);
   const float *bbMin = bb.min;
   const float *bbMax = bb.max;
   const float *step = sd->paint.tile_offset;
@@ -4000,7 +4007,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd,
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
-  blender::ed::sculpt_paint::StrokeCache *cache = ss->cache;
+  StrokeCache *cache = ss->cache;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   float feather = calc_symmetry_feather(sd, ss->cache);
@@ -4027,6 +4034,8 @@ static void do_symmetrical_brush_actions(Sculpt *sd,
   }
 }
 
+}  // namespace blender::ed::sculpt_paint
+
 bool SCULPT_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
@@ -4035,11 +4044,13 @@ bool SCULPT_mode_poll(bContext *C)
 
 bool SCULPT_mode_poll_view3d(bContext *C)
 {
+  using namespace blender::ed::sculpt_paint;
   return (SCULPT_mode_poll(C) && CTX_wm_region_view3d(C) && !ED_gpencil_session_active());
 }
 
 bool SCULPT_poll(bContext *C)
 {
+  using namespace blender::ed::sculpt_paint;
   return SCULPT_mode_poll(C) && blender::ed::sculpt_paint::paint_brush_tool_poll(C);
 }
 
@@ -4148,10 +4159,11 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache)
   MEM_delete(cache);
 }
 
+namespace blender::ed::sculpt_paint {
+
 /* Initialize mirror modifier clipping. */
 static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 {
-  using namespace blender;
   ss->cache->clip_mirror_mtx = float4x4::identity();
 
   LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -4186,9 +4198,7 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
   }
 }
 
-static void smooth_brush_toggle_on(const bContext *C,
-                                   Paint *paint,
-                                   blender::ed::sculpt_paint::StrokeCache *cache)
+static void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
 {
   Scene *scene = CTX_data_scene(C);
   Brush *cur_brush = paint->brush;
@@ -4227,9 +4237,7 @@ static void smooth_brush_toggle_on(const bContext *C,
   BKE_curvemapping_init(smooth_brush->curve);
 }
 
-static void smooth_brush_toggle_off(const bContext *C,
-                                    Paint *paint,
-                                    blender::ed::sculpt_paint::StrokeCache *cache)
+static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache)
 {
   Main *bmain = CTX_data_main(C);
   Brush *brush = BKE_paint_brush(paint);
@@ -4264,7 +4272,6 @@ static void smooth_brush_toggle_off(const bContext *C,
 static void sculpt_update_cache_invariants(
     bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mval[2])
 {
-  using namespace blender::ed::sculpt_paint;
   StrokeCache *cache = MEM_new<StrokeCache>(__func__);
   ToolSettings *tool_settings = CTX_data_tool_settings(C);
   UnifiedPaintSettings *ups = &tool_settings->unified_paint_settings;
@@ -4418,9 +4425,7 @@ static void sculpt_update_cache_invariants(
 #undef PIXEL_INPUT_THRESHHOLD
 }
 
-static float sculpt_brush_dynamic_size_get(Brush *brush,
-                                           blender::ed::sculpt_paint::StrokeCache *cache,
-                                           float initial_size)
+static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, float initial_size)
 {
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_CLAY:
@@ -4479,7 +4484,6 @@ static bool sculpt_needs_delta_for_tip_orientation(Brush *brush)
 
 static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Brush *brush)
 {
-  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
   const float mval[2] = {
@@ -4638,8 +4642,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
   sculpt_rake_data_update(&cache->rake_data, grab_location);
 }
 
-static void sculpt_update_cache_paint_variants(blender::ed::sculpt_paint::StrokeCache *cache,
-                                               const Brush *brush)
+static void sculpt_update_cache_paint_variants(StrokeCache *cache, const Brush *brush)
 {
   cache->paint_brush.hardness = brush->hardness;
   if (brush->paint_flags & BRUSH_PAINT_HARDNESS_PRESSURE) {
@@ -4686,7 +4689,6 @@ static void sculpt_update_cache_paint_variants(blender::ed::sculpt_paint::Stroke
 /* Initialize the stroke cache variants from operator properties. */
 static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, PointerRNA *ptr)
 {
-  using namespace blender::ed::sculpt_paint;
   Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   SculptSession *ss = ob->sculpt;
@@ -4793,7 +4795,6 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
                                            SculptSession *ss,
                                            int stroke_mode)
 {
-  using namespace blender::ed::sculpt_paint;
   if (!brush) {
     return true;
   }
@@ -4814,8 +4815,11 @@ static bool sculpt_needs_connectivity_info(const Sculpt *sd,
           (brush->sculpt_tool == SCULPT_TOOL_PAINT));
 }
 
+}  // namespace blender::ed::sculpt_paint
+
 void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
