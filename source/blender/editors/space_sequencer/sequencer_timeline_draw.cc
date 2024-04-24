@@ -781,11 +781,12 @@ static void draw_seq_outline(TimelineDrawContext *timeline_ctx, const StripDrawC
 {
   const Sequence *seq = strip_ctx->seq;
   const bool selected = seq->flag & SELECT;
+  const bool active = strip_ctx->is_active_strip;
 
   /* Outline color. */
   uchar col[4];
   if (selected) {
-    UI_GetThemeColor3ubv(strip_ctx->is_active_strip ? TH_SEQ_ACTIVE : TH_SEQ_SELECTED, col);
+    UI_GetThemeColor3ubv(active ? TH_SEQ_ACTIVE : TH_SEQ_SELECTED, col);
   }
   else {
     /* Color for unselected strips is a bit darker than the background. */
@@ -812,10 +813,10 @@ static void draw_seq_outline(TimelineDrawContext *timeline_ctx, const StripDrawC
   const float x1 = strip_ctx->right_handle;
   const float y0 = strip_ctx->bottom;
   const float y1 = strip_ctx->top;
-  if (selected) {
-    const float dx = timeline_ctx->pixelx;
-    const float dy = timeline_ctx->pixely;
+  const float dx = timeline_ctx->pixelx;
+  const float dy = timeline_ctx->pixely;
 
+  if (selected) {
     /* Left, right, bottom, top. */
     timeline_ctx->quads->add_quad(x0 - dx, y0, x0 + dx, y1, col);
     timeline_ctx->quads->add_quad(x1 - dx, y0, x1 + dx, y1, col);
@@ -828,6 +829,11 @@ static void draw_seq_outline(TimelineDrawContext *timeline_ctx, const StripDrawC
     timeline_ctx->quads->add_quad(x1 - dx * 2, y0 + dy * 2, x1 - dx, y1 - dy * 2, col);
     timeline_ctx->quads->add_quad(x0 + dx, y0 + dy * 2, x1 - dx, y0 + dy * 3, col);
     timeline_ctx->quads->add_quad(x0 + dx, y1 - dy * 3, x1 - dx, y1 - dy * 2, col);
+  }
+  else if (active) {
+    /* A subtle highlight outline when active but not selected. */
+    UI_GetThemeColorShade3ubv(TH_SEQ_ACTIVE, -40, col);
+    timeline_ctx->quads->add_wire_quad(x0 + dx, y0, x1 - dx, y1, col);
   }
   else {
     /* Thin wireframe outline for unselected strips. */
