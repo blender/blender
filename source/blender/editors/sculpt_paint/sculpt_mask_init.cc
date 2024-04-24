@@ -53,7 +53,7 @@ static void mask_init_task(Object *ob,
 {
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
-  undo::push_node(ob, node, undo::Type::Mask);
+  undo::push_node(*ob, node, undo::Type::Mask);
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float mask;
     switch (mode) {

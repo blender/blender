@@ -2037,17 +2037,17 @@ static void sculpt_expand_undo_push(Object *ob, Cache *expand_cache)
   switch (expand_cache->target) {
     case SCULPT_EXPAND_TARGET_MASK:
       for (PBVHNode *node : nodes) {
-        undo::push_node(ob, node, undo::Type::Mask);
+        undo::push_node(*ob, node, undo::Type::Mask);
       }
       break;
     case SCULPT_EXPAND_TARGET_FACE_SETS:
       for (PBVHNode *node : nodes) {
-        undo::push_node(ob, node, undo::Type::FaceSet);
+        undo::push_node(*ob, node, undo::Type::FaceSet);
       }
       break;
     case SCULPT_EXPAND_TARGET_COLORS:
       for (PBVHNode *node : nodes) {
-        undo::push_node(ob, node, undo::Type::Color);
+        undo::push_node(*ob, node, undo::Type::Color);
       }
       break;
   }

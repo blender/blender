@@ -199,7 +199,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
        * are logged as added (as opposed to attempting to store just the
        * parts that symmetrize modifies). */
       undo::push_begin(ob, op);
-      undo::push_node(ob, nullptr, undo::Type::DyntopoSymmetrize);
+      undo::push_node(*ob, nullptr, undo::Type::DyntopoSymmetrize);
       BM_log_before_all_removed(ss->bm, ss->bm_log);
 
       BM_mesh_toolflags_set(ss->bm, true);
@@ -417,7 +417,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
       }
       dyntopo::enable_ex(bmain, depsgraph, ob);
       if (has_undo) {
-        undo::push_node(ob, nullptr, undo::Type::DyntopoBegin);
+        undo::push_node(*ob, nullptr, undo::Type::DyntopoBegin);
         undo::push_end(ob);
       }
     }
@@ -758,7 +758,7 @@ static void do_mask_by_color_contiguous_update_node(Object *ob,
   using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
-  undo::push_node(ob, node, undo::Type::Mask);
+  undo::push_node(*ob, node, undo::Type::Mask);
   bool update_node = false;
 
   PBVHVertexIter vd;
@@ -869,7 +869,7 @@ static void do_mask_by_color_task(Object *ob,
   using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
-  undo::push_node(ob, node, undo::Type::Mask);
+  undo::push_node(*ob, node, undo::Type::Mask);
   bool update_node = false;
 
   float active_color[4];
@@ -1044,7 +1044,7 @@ static void sculpt_bake_cavity_exec_task(Object *ob,
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
-  undo::push_node(ob, node, undo::Type::Mask);
+  undo::push_node(*ob, node, undo::Type::Mask);
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, &automasking, *node);
 

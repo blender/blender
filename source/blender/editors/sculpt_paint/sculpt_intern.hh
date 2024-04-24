@@ -1612,7 +1612,7 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache);
 
 namespace blender::ed::sculpt_paint::undo {
 
-undo::Node *push_node(const Object *ob, const PBVHNode *node, undo::Type type);
+undo::Node *push_node(const Object &object, const PBVHNode *node, undo::Type type);
 undo::Node *get_node(const PBVHNode *node, undo::Type type);
 
 /**

@@ -149,7 +149,7 @@ static void sculpt_transform_task(Object *ob, const float transform_mats[8][4][4
 
   PBVHVertexIter vd;
 
-  undo::push_node(ob, node, undo::Type::Position);
+  undo::push_node(*ob, node, undo::Type::Position);
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float *start_co;
@@ -220,7 +220,7 @@ static void sculpt_elastic_transform_task(Object *ob,
   const float poisson_ratio = 0.4f;
   BKE_kelvinlet_init_params(&params, transform_radius, force, shear_modulus, poisson_ratio);
 
-  undo::push_node(ob, node, undo::Type::Position);
+  undo::push_node(*ob, node, undo::Type::Position);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {

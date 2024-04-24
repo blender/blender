@@ -35,7 +35,7 @@ static void apply_projection(gesture::GestureData &gesture_data, PBVHNode *node)
   PBVHVertexIter vd;
   bool any_updated = false;
 
-  undo::push_node(gesture_data.vc.obact, node, undo::Type::Position);
+  undo::push_node(*gesture_data.vc.obact, node, undo::Type::Position);
 
   BKE_pbvh_vertex_iter_begin (gesture_data.ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float vertex_normal[3];

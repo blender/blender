@@ -1229,7 +1229,7 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
                                 blender::ed::sculpt_paint::undo::Type type)
 {
   using namespace blender::ed::sculpt_paint;
-  undo::Node *unode = undo::push_node(ob, node, type);
+  undo::Node *unode = undo::push_node(*ob, node, type);
   SCULPT_orig_vert_data_unode_init(data, ob, unode);
 }
 
@@ -1297,12 +1297,12 @@ bool stroke_is_dyntopo(const SculptSession *ss, const Brush *brush)
 /** \name Sculpt Paint Mesh
  * \{ */
 
-static void restore_mask(Object *ob, const Span<PBVHNode *> nodes)
+static void restore_mask(Object &object, const Span<PBVHNode *> nodes)
 {
-  SculptSession *ss = ob->sculpt;
+  SculptSession *ss = object.sculpt;
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      Mesh &mesh = *static_cast<Mesh *>(ob->data);
+      Mesh &mesh = *static_cast<Mesh *>(object.data);
       bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
       bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
           ".sculpt_mask", bke::AttrDomain::Point);
@@ -1323,7 +1323,7 @@ static void restore_mask(Object *ob, const Span<PBVHNode *> nodes)
           &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
       if (offset != -1) {
         for (PBVHNode *node : nodes) {
-          if (undo::push_node(ob, node, undo::Type::Mask)) {
+          if (undo::push_node(object, node, undo::Type::Mask)) {
             for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
               const float orig_mask = BM_log_original_mask(ss->bm_log, vert);
               BM_ELEM_CD_SET_FLOAT(vert, offset, orig_mask);
@@ -1361,12 +1361,12 @@ static void restore_mask(Object *ob, const Span<PBVHNode *> nodes)
   }
 }
 
-static void restore_color(Object *ob, const Span<PBVHNode *> nodes)
+static void restore_color(Object &object, const Span<PBVHNode *> nodes)
 {
-  SculptSession *ss = ob->sculpt;
+  SculptSession *ss = object.sculpt;
   const auto restore_generic = [&](PBVHNode *node, undo::Node *unode) {
     SculptOrigVertData orig_vert_data;
-    SCULPT_orig_vert_data_unode_init(&orig_vert_data, ob, unode);
+    SCULPT_orig_vert_data_unode_init(&orig_vert_data, &object, unode);
     PBVHVertexIter vd;
     BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
       SCULPT_orig_vert_data_update(&orig_vert_data, &vd);
@@ -1388,7 +1388,7 @@ static void restore_color(Object *ob, const Span<PBVHNode *> nodes)
     }
     case PBVH_BMESH: {
       for (PBVHNode *node : nodes) {
-        if (undo::Node *unode = undo::push_node(ob, node, undo::Type::Color)) {
+        if (undo::Node *unode = undo::push_node(object, node, undo::Type::Color)) {
           restore_generic(node, unode);
         }
       }
@@ -1407,13 +1407,13 @@ static void restore_color(Object *ob, const Span<PBVHNode *> nodes)
   }
 }
 
-static void restore_face_set(Object *ob, const Span<PBVHNode *> nodes)
+static void restore_face_set(Object &object, const Span<PBVHNode *> nodes)
 {
-  SculptSession *ss = ob->sculpt;
+  SculptSession *ss = object.sculpt;
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
     case PBVH_GRIDS: {
-      bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(*ob);
+      bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(object);
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (PBVHNode *node : nodes.slice(range)) {
           if (undo::Node *unode = undo::get_node(node, undo::Type::FaceSet)) {
@@ -1432,9 +1432,9 @@ static void restore_face_set(Object *ob, const Span<PBVHNode *> nodes)
   }
 }
 
-static void restore_position(Object *ob, const Span<PBVHNode *> nodes)
+static void restore_position(Object &object, const Span<PBVHNode *> nodes)
 {
-  SculptSession *ss = ob->sculpt;
+  SculptSession *ss = object.sculpt;
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       MutableSpan positions = BKE_pbvh_get_vert_positions(ss->pbvh);
@@ -1451,7 +1451,7 @@ static void restore_position(Object *ob, const Span<PBVHNode *> nodes)
     }
     case PBVH_BMESH: {
       for (PBVHNode *node : nodes) {
-        if (undo::push_node(ob, node, undo::Type::Position)) {
+        if (undo::push_node(object, node, undo::Type::Position)) {
           for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
             copy_v3_v3(vert->co, BM_log_original_vert_co(ss->bm_log, vert));
           }
@@ -1492,31 +1492,31 @@ static void restore_position(Object *ob, const Span<PBVHNode *> nodes)
   bke::pbvh::update_normals(*ss->pbvh, ss->subdiv_ccg);
 }
 
-static void restore_from_undo_step(Sculpt *sd, Object *ob)
+static void restore_from_undo_step(const Sculpt &sd, Object &object)
 {
-  SculptSession *ss = ob->sculpt;
-  Brush *brush = BKE_paint_brush(&sd->paint);
+  SculptSession *ss = object.sculpt;
+  const Brush *brush = BKE_paint_brush_for_read(&sd.paint);
 
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
 
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_MASK:
-      restore_mask(ob, nodes);
+      restore_mask(object, nodes);
       break;
     case SCULPT_TOOL_PAINT:
     case SCULPT_TOOL_SMEAR:
-      restore_color(ob, nodes);
+      restore_color(object, nodes);
       break;
     case SCULPT_TOOL_DRAW_FACE_SETS:
       if (ss->cache->alt_smooth) {
-        restore_position(ob, nodes);
+        restore_position(object, nodes);
       }
       else {
-        restore_face_set(ob, nodes);
+        restore_face_set(object, nodes);
       }
       break;
     default:
-      restore_position(ob, nodes);
+      restore_position(object, nodes);
       break;
   }
   /* Disable multi-threading when dynamic-topology is enabled. Otherwise,
@@ -1882,7 +1882,7 @@ static void calc_area_normal_and_center_task(Object *ob,
   bool normal_test_r, area_test_r;
 
   if (ss->cache && !ss->cache->accum) {
-    unode = undo::push_node(ob, node, undo::Type::Position);
+    unode = undo::push_node(*ob, node, undo::Type::Position);
     use_original = (!unode->position.is_empty() || unode->bm_entry);
   }
 
@@ -3299,7 +3299,7 @@ static void sculpt_topology_update(Sculpt *sd,
   }
 
   for (PBVHNode *node : nodes) {
-    undo::push_node(ob,
+    undo::push_node(*ob,
                     node,
                     brush->sculpt_tool == SCULPT_TOOL_MASK ? undo::Type::Mask :
                                                              undo::Type::Position);
@@ -3340,15 +3340,15 @@ static void do_brush_action_task(Object *ob, const Brush *brush, PBVHNode *node)
       need_coords = true;
     }
     else {
-      undo::push_node(ob, node, undo::Type::FaceSet);
+      undo::push_node(*ob, node, undo::Type::FaceSet);
     }
   }
   else if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
-    undo::push_node(ob, node, undo::Type::Mask);
+    undo::push_node(*ob, node, undo::Type::Mask);
     BKE_pbvh_node_mark_update_mask(node);
   }
   else if (SCULPT_tool_is_paint(brush->sculpt_tool)) {
-    undo::push_node(ob, node, undo::Type::Color);
+    undo::push_node(*ob, node, undo::Type::Color);
     BKE_pbvh_node_mark_update_color(node);
   }
   else {
@@ -3356,7 +3356,7 @@ static void do_brush_action_task(Object *ob, const Brush *brush, PBVHNode *node)
   }
 
   if (need_coords) {
-    undo::push_node(ob, node, undo::Type::Position);
+    undo::push_node(*ob, node, undo::Type::Position);
     BKE_pbvh_node_mark_update(node);
   }
 }
@@ -3689,7 +3689,7 @@ static void sculpt_combine_proxies_node(Object &object,
   float(*orco)[3] = nullptr;
   if (use_orco && !ss->bm) {
     orco = reinterpret_cast<float(*)[3]>(
-        (undo::push_node(&object, &node, undo::Type::Position)->position.data()));
+        (undo::push_node(object, &node, undo::Type::Position)->position.data()));
   }
 
   MutableSpan<PBVHProxyNode> proxies = BKE_pbvh_node_get_proxies(&node);
@@ -5277,7 +5277,7 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
       (brush->flag & BRUSH_DRAG_DOT))
   {
 
-    restore_from_undo_step(sd, ob);
+    restore_from_undo_step(*sd, *ob);
 
     if (ss->cache) {
       MEM_SAFE_FREE(ss->cache->layer_displacement_factor);
@@ -5816,7 +5816,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
   /* XXX Canceling strokes that way does not work with dynamic topology,
    *     user will have to do real undo for now. See #46456. */
   if (ss->cache && !dyntopo::stroke_is_dyntopo(ss, brush)) {
-    restore_from_undo_step(sd, ob);
+    restore_from_undo_step(*sd, *ob);
   }
 
   paint_stroke_cancel(C, op, static_cast<PaintStroke *>(op->customdata));

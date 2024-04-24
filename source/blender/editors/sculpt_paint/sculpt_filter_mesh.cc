@@ -130,7 +130,7 @@ void cache_init(bContext *C,
   }
 
   for (const int i : ss->filter_cache->nodes.index_range()) {
-    undo::push_node(ob, ss->filter_cache->nodes[i], undo_type);
+    undo::push_node(*ob, ss->filter_cache->nodes[i], undo_type);
   }
 
   /* Setup orientation matrices. */
