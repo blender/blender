@@ -28,6 +28,7 @@
 #include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
+#include "SEQ_utils.hh"
 
 #include "effects.hh"
 #include "image_cache.hh"
@@ -110,6 +111,7 @@ static void sequence_invalidate_cache(Scene *scene,
     seq_effect_speed_rebuild_map(scene, seq);
   }
 
+  blender::seq::media_presence_invalidate_strip(scene, seq);
   sequence_do_invalidate_dependent(scene, seq, &ed->seqbase);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   SEQ_prefetch_stop(scene);

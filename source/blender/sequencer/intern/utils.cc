@@ -445,10 +445,8 @@ void SEQ_alpha_mode_from_file_extension(Sequence *seq)
   }
 }
 
-bool SEQ_sequence_has_source(const Sequence *seq)
+bool SEQ_sequence_has_valid_data(const Sequence *seq)
 {
-  /* Called on draw, needs to be fast,
-   * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
   switch (seq->type) {
     case SEQ_TYPE_MASK:
       return (seq->mask != nullptr);

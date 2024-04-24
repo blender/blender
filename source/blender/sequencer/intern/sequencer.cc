@@ -267,6 +267,7 @@ Editing *SEQ_editing_ensure(Scene *scene)
     ed->cache = nullptr;
     ed->cache_flag = SEQ_CACHE_STORE_FINAL_OUT;
     ed->cache_flag |= SEQ_CACHE_STORE_RAW;
+    ed->show_missing_media_flag = SEQ_EDIT_SHOW_MISSING_MEDIA;
     ed->displayed_channels = &ed->channels;
     SEQ_channels_ensure(ed->displayed_channels);
   }
@@ -292,6 +293,7 @@ void SEQ_editing_free(Scene *scene, const bool do_id_user)
 
   BLI_freelistN(&ed->metastack);
   SEQ_sequence_lookup_free(scene);
+  blender::seq::media_presence_free(scene);
   SEQ_channels_free(&ed->channels);
 
   MEM_freeN(ed);
