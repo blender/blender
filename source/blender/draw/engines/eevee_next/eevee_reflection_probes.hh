@@ -119,6 +119,10 @@ class SphereProbeModule {
     pass.bind_ubo(SPHERE_PROBE_BUF_SLOT, &data_buf_);
   }
 
+  /**
+   * Select which probes are used for rendering.
+   * NOTE: Must run after `volume_probe.set_view` as it reads the volume probe data.
+   */
   void set_view(View &view);
 
   /**

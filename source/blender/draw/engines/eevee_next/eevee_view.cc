@@ -120,7 +120,6 @@ void ShadingView::render()
 
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
   inst_.lights.set_view(render_view_, extent_);
-  inst_.sphere_probes.set_view(render_view_);
 
   inst_.pipelines.background.render(render_view_);
 
