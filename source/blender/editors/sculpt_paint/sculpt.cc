@@ -1290,111 +1290,190 @@ bool stroke_is_dyntopo(const SculptSession *ss, const Brush *brush)
 
 namespace blender::ed::sculpt_paint {
 
-static void paint_mesh_restore_node(Object *ob, const undo::Type type, PBVHNode *node)
+static void restore_mask(Object *ob, const Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
-
-  undo::Node *unode;
-  if (ss->bm) {
-    unode = undo::push_node(ob, node, type);
-  }
-  else {
-    unode = undo::get_node(node, type);
-  }
-
-  if (!unode) {
-    return;
-  }
-
-  switch (type) {
-    case undo::Type::Mask: {
-      switch (BKE_pbvh_type(ss->pbvh)) {
-        case PBVH_FACES: {
-          Mesh &mesh = *static_cast<Mesh *>(ob->data);
-          bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-          bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
-              ".sculpt_mask", bke::AttrDomain::Point);
-          array_utils::scatter(
-              unode->mask.as_span(), BKE_pbvh_node_get_unique_vert_indices(node), mask.span);
-          mask.finish();
-          break;
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      Mesh &mesh = *static_cast<Mesh *>(ob->data);
+      bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+      bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
+          ".sculpt_mask", bke::AttrDomain::Point);
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (PBVHNode *node : nodes.slice(range)) {
+          if (undo::Node *unode = undo::get_node(node, undo::Type::Mask)) {
+            array_utils::scatter(
+                unode->mask.as_span(), BKE_pbvh_node_get_unique_vert_indices(node), mask.span);
+            BKE_pbvh_node_mark_update_mask(node);
+          }
         }
-        case PBVH_BMESH: {
-          const int offset = CustomData_get_offset_named(
-              &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
-          if (offset != -1) {
+      });
+      mask.finish();
+      break;
+    }
+    case PBVH_BMESH: {
+      const int offset = CustomData_get_offset_named(
+          &ss->bm->vdata, CD_PROP_FLOAT, ".sculpt_mask");
+      if (offset != -1) {
+        for (PBVHNode *node : nodes) {
+          if (undo::push_node(ob, node, undo::Type::Mask)) {
             for (BMVert *vert : BKE_pbvh_bmesh_node_unique_verts(node)) {
               const float orig_mask = BM_log_original_mask(ss->bm_log, vert);
               BM_ELEM_CD_SET_FLOAT(vert, offset, orig_mask);
             }
+            BKE_pbvh_node_mark_update_mask(node);
           }
-          break;
         }
-        case PBVH_GRIDS: {
-          SubdivCCG &subdiv_ccg = *ss->subdiv_ccg;
-          const BitGroupVector<> grid_hidden = subdiv_ccg.grid_hidden;
-          const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-          const Span<CCGElem *> grids = subdiv_ccg.grids;
-          int index = 0;
-          for (const int grid : unode->grids) {
-            CCGElem *elem = grids[grid];
-            for (const int i : IndexRange(key.grid_area)) {
-              if (grid_hidden.is_empty() || !grid_hidden[grid][i]) {
-                *CCG_elem_offset_mask(&key, elem, i) = unode->mask[index];
+      }
+      break;
+    }
+    case PBVH_GRIDS: {
+      SubdivCCG &subdiv_ccg = *ss->subdiv_ccg;
+      const BitGroupVector<> grid_hidden = subdiv_ccg.grid_hidden;
+      const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+      const Span<CCGElem *> grids = subdiv_ccg.grids;
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (PBVHNode *node : nodes.slice(range)) {
+          if (undo::Node *unode = undo::get_node(node, undo::Type::Mask)) {
+            int index = 0;
+            for (const int grid : unode->grids) {
+              CCGElem *elem = grids[grid];
+              for (const int i : IndexRange(key.grid_area)) {
+                if (grid_hidden.is_empty() || !grid_hidden[grid][i]) {
+                  *CCG_elem_offset_mask(&key, elem, i) = unode->mask[index];
+                }
+                index++;
               }
-              index++;
             }
+            BKE_pbvh_node_mark_update_mask(node);
           }
-          break;
+        }
+      });
+      break;
+    }
+  }
+}
+
+static void restore_color(Object *ob, const Span<PBVHNode *> nodes)
+{
+  SculptSession *ss = ob->sculpt;
+  const auto restore_generic = [&](PBVHNode *node, undo::Node *unode) {
+    SculptOrigVertData orig_vert_data;
+    SCULPT_orig_vert_data_unode_init(&orig_vert_data, ob, unode);
+    PBVHVertexIter vd;
+    BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+      SCULPT_orig_vert_data_update(&orig_vert_data, &vd);
+      SCULPT_vertex_color_set(ss, vd.vertex, orig_vert_data.col);
+    }
+    BKE_pbvh_vertex_iter_end;
+    BKE_pbvh_node_mark_update_color(node);
+  };
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (PBVHNode *node : nodes.slice(range)) {
+          if (undo::Node *unode = undo::get_node(node, undo::Type::Color)) {
+            restore_generic(node, unode);
+          }
+        }
+      });
+      break;
+    }
+    case PBVH_BMESH: {
+      for (PBVHNode *node : nodes) {
+        if (undo::Node *unode = undo::push_node(ob, node, undo::Type::Color)) {
+          restore_generic(node, unode);
         }
       }
-      BKE_pbvh_node_mark_update_mask(node);
       break;
     }
-    case undo::Type::Color: {
-      SculptOrigVertData orig_vert_data;
-      SCULPT_orig_vert_data_unode_init(&orig_vert_data, ob, unode);
-      PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-        SCULPT_orig_vert_data_update(&orig_vert_data, &vd);
-        SCULPT_vertex_color_set(ss, vd.vertex, orig_vert_data.col);
-      }
-      BKE_pbvh_vertex_iter_end;
-      BKE_pbvh_node_mark_update_color(node);
-      break;
-    }
-    case undo::Type::FaceSet: {
-      switch (BKE_pbvh_type(ss->pbvh)) {
-        case PBVH_FACES:
-        case PBVH_GRIDS: {
-          const Span<int> face_sets = unode->face_sets;
-          const Span<int> faces = unode->face_indices;
-          bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(*ob);
-          blender::array_utils::scatter(face_sets, faces, attribute.span);
-          attribute.finish();
-          break;
+    case PBVH_GRIDS: {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (PBVHNode *node : nodes.slice(range)) {
+          if (undo::Node *unode = undo::get_node(node, undo::Type::Color)) {
+            restore_generic(node, unode);
+          }
         }
-        case PBVH_BMESH:
-          break;
-      }
-      BKE_pbvh_node_mark_update_face_sets(node);
+      });
       break;
     }
-    case undo::Type::Position: {
-      SculptOrigVertData orig_vert_data;
-      SCULPT_orig_vert_data_unode_init(&orig_vert_data, ob, unode);
-      PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-        SCULPT_orig_vert_data_update(&orig_vert_data, &vd);
-        copy_v3_v3(vd.co, orig_vert_data.co);
-      }
-      BKE_pbvh_vertex_iter_end;
-      BKE_pbvh_node_mark_update(node);
+  }
+}
+
+static void restore_face_set(Object *ob, const Span<PBVHNode *> nodes)
+{
+  SculptSession *ss = ob->sculpt;
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES:
+    case PBVH_GRIDS: {
+      bke::SpanAttributeWriter<int> attribute = face_set::ensure_face_sets_mesh(*ob);
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (PBVHNode *node : nodes.slice(range)) {
+          if (undo::Node *unode = undo::get_node(node, undo::Type::FaceSet)) {
+            const Span<int> faces = unode->face_indices;
+            const Span<int> face_sets = unode->face_sets;
+            blender::array_utils::scatter(face_sets, faces, attribute.span);
+            BKE_pbvh_node_mark_update_face_sets(node);
+          }
+        }
+      });
+      attribute.finish();
       break;
     }
-    default:
+    case PBVH_BMESH:
       break;
   }
+}
+
+static void restore_position(Object *ob, const Span<PBVHNode *> nodes)
+{
+  SculptSession *ss = ob->sculpt;
+  const auto restore_generic = [&](PBVHNode *node, undo::Node *unode) {
+    SculptOrigVertData orig_vert_data;
+    SCULPT_orig_vert_data_unode_init(&orig_vert_data, ob, unode);
+    PBVHVertexIter vd;
+    BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+      SCULPT_orig_vert_data_update(&orig_vert_data, &vd);
+      copy_v3_v3(vd.co, orig_vert_data.co);
+    }
+    BKE_pbvh_vertex_iter_end;
+    BKE_pbvh_node_mark_update(node);
+  };
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (PBVHNode *node : nodes.slice(range)) {
+          if (undo::Node *unode = undo::get_node(node, undo::Type::Position)) {
+            restore_generic(node, unode);
+          }
+        }
+      });
+      break;
+    }
+    case PBVH_BMESH: {
+      for (PBVHNode *node : nodes) {
+        if (undo::Node *unode = undo::push_node(ob, node, undo::Type::Position)) {
+          restore_generic(node, unode);
+        }
+      }
+      break;
+    }
+    case PBVH_GRIDS: {
+      threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
+        for (PBVHNode *node : nodes.slice(range)) {
+          if (undo::Node *unode = undo::get_node(node, undo::Type::Position)) {
+            restore_generic(node, unode);
+          }
+        }
+      });
+      break;
+    }
+  }
+
+  /* Update normals for potentially-changed positions. Theoretically this may be unnecessary if
+   * the tool restoring to the initial state doesn't use the normals, but we have no easy way to
+   * know that from here. */
+  bke::pbvh::update_normals(*ss->pbvh, ss->subdiv_ccg);
 }
 
 static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
@@ -1404,45 +1483,29 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
 
-  undo::Type type;
   switch (brush->sculpt_tool) {
     case SCULPT_TOOL_MASK:
-      type = undo::Type::Mask;
+      restore_mask(ob, nodes);
       break;
     case SCULPT_TOOL_PAINT:
     case SCULPT_TOOL_SMEAR:
-      type = undo::Type::Color;
+      restore_color(ob, nodes);
       break;
     case SCULPT_TOOL_DRAW_FACE_SETS:
-      type = ss->cache->alt_smooth ? undo::Type::Position : undo::Type::FaceSet;
+      if (ss->cache->alt_smooth) {
+        restore_position(ob, nodes);
+      }
+      else {
+        restore_face_set(ob, nodes);
+      }
       break;
     default:
-      type = undo::Type::Position;
+      restore_position(ob, nodes);
       break;
   }
-
-  if (ss->bm) {
-    /* Disable multi-threading when dynamic-topology is enabled. Otherwise,
-     * new entries might be inserted by #undo::push_node() into the #GHash
-     * used internally by #BM_log_original_vert_co() by a different thread. See #33787. */
-    for (const int i : nodes.index_range()) {
-      paint_mesh_restore_node(ob, type, nodes[i]);
-    }
-  }
-  else {
-    threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-      for (const int i : range) {
-        paint_mesh_restore_node(ob, type, nodes[i]);
-      }
-    });
-  }
-
-  if (type == undo::Type::Position) {
-    /* Update normals for potentially-changed positions. Theoretically this may be unnecessary if
-     * the tool restoring to the initial state doesn't use the normals, but we have no easy way to
-     * know that from here. */
-    bke::pbvh::update_normals(*ss->pbvh, ss->subdiv_ccg);
-  }
+  /* Disable multi-threading when dynamic-topology is enabled. Otherwise,
+   * new entries might be inserted by #undo::push_node() into the #GHash
+   * used internally by #BM_log_original_vert_co() by a different thread. See #33787. */
 
   BKE_pbvh_node_color_buffer_free(ss->pbvh);
 }
