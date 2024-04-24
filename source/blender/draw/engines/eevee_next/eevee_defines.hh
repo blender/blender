@@ -55,6 +55,9 @@
  */
 #define SPHERE_PROBE_MAX 128
 
+/** NOTE: Runtime format only. */
+#define VOLUME_PROBE_FORMAT GPU_RGBA16F
+
 /**
  * Limited by the performance impact it can cause.
  * Limited by the max layer count supported by a hardware (256).
