@@ -2,15 +2,19 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_attribute.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "usd_hash_types.hh"
+#include "usd_mesh_utils.hh"
 #include "usd_reader_shape.hh"
 
 #include <pxr/usd/usdGeom/capsule.h>
@@ -23,6 +27,11 @@
 #include <pxr/usdImaging/usdImaging/cubeAdapter.h>
 #include <pxr/usdImaging/usdImaging/cylinderAdapter.h>
 #include <pxr/usdImaging/usdImaging/sphereAdapter.h>
+
+namespace usdtokens {
+/* Materials */
+static const pxr::TfToken displayColor("displayColor", pxr::TfToken::Immortal);
+}  // namespace usdtokens
 
 namespace blender::io::usd {
 
@@ -134,8 +143,8 @@ Mesh *USDShapeReader::read_mesh(Mesh *existing_mesh,
   }
 
   /* Should have a good set of data by this point-- copy over. */
-  Mesh *active_mesh = mesh_from_prim(
-      existing_mesh, params.motion_sample_time, face_indices, face_counts);
+  Mesh *active_mesh = mesh_from_prim(existing_mesh, params, face_indices, face_counts);
+
   if (active_mesh == existing_mesh) {
     return existing_mesh;
   }
@@ -170,14 +179,74 @@ void USDShapeReader::read_geometry(bke::GeometrySet &geometry_set,
   }
 }
 
+void USDShapeReader::apply_primvars_to_mesh(Mesh *mesh, const double motionSampleTime) const
+{
+  /* TODO: also handle the displayOpacity primvar. */
+  if (!mesh || !prim_) {
+    return;
+  }
+
+  pxr::UsdGeomPrimvarsAPI pv_api = pxr::UsdGeomPrimvarsAPI(prim_);
+  std::vector<pxr::UsdGeomPrimvar> primvars = pv_api.GetPrimvarsWithValues();
+
+  pxr::TfToken active_color_name;
+
+  for (pxr::UsdGeomPrimvar &pv : primvars) {
+    if (!pv.HasValue()) {
+      BKE_reportf(reports(),
+                  RPT_WARNING,
+                  "Skipping primvar %s, mesh %s -- no value",
+                  pv.GetName().GetText(),
+                  &mesh->id.name[2]);
+      continue;
+    }
+
+    if (!pv.GetAttr().GetTypeName().IsArray()) {
+      /* Non-array attributes are technically improper USD. */
+      continue;
+    }
+
+    const pxr::TfToken name = pv.StripPrimvarsName(pv.GetPrimvarName());
+
+    /* Skip reading primvars that have been read before and are not time varying. */
+    if (primvar_time_varying_map_.contains(name) && !primvar_time_varying_map_.lookup(name)) {
+      continue;
+    }
+
+    const pxr::SdfValueTypeName sdf_type = pv.GetTypeName();
+
+    const std::optional<eCustomDataType> type = convert_usd_type_to_blender(sdf_type, reports());
+    if (type == CD_PROP_COLOR) {
+      /* Set the active color name to 'displayColor', if a color primvar
+       * with this name exists.  Otherwise, use the name of the first
+       * color primvar we find for the active color. */
+      if (active_color_name.IsEmpty() || name == usdtokens::displayColor) {
+        active_color_name = name;
+      }
+
+      read_color_data_primvar(mesh, pv, motionSampleTime, reports(), false);
+
+      /* Record whether the primvar attribute might be time varying. */
+      if (!primvar_time_varying_map_.contains(name)) {
+        primvar_time_varying_map_.add(name, pv.ValueMightBeTimeVarying());
+      }
+    }
+  }
+
+  if (!active_color_name.IsEmpty()) {
+    BKE_id_attributes_default_color_set(&mesh->id, active_color_name.GetText());
+    BKE_id_attributes_active_color_set(&mesh->id, active_color_name.GetText());
+  }
+}
+
 Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,
-                                     double motionSampleTime,
+                                     const USDMeshReadParams params,
                                      pxr::VtIntArray &face_indices,
                                      pxr::VtIntArray &face_counts) const
 {
   pxr::VtVec3fArray positions;
 
-  if (!read_mesh_values(motionSampleTime, positions, face_indices, face_counts)) {
+  if (!read_mesh_values(params.motion_sample_time, positions, face_indices, face_counts)) {
     return existing_mesh;
   }
 
@@ -203,11 +272,25 @@ Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,
     vert_positions[i][2] = positions[i][2];
   }
 
+  if (params.read_flags & MOD_MESHSEQ_READ_COLOR) {
+    if (active_mesh != existing_mesh) {
+      /* Clear the primvar map to force attributes to be reloaded. */
+      this->primvar_time_varying_map_.clear();
+    }
+    apply_primvars_to_mesh(active_mesh, params.motion_sample_time);
+  }
+
   return active_mesh;
 }
 
 bool USDShapeReader::is_time_varying()
 {
+  for (const bool animating_flag : primvar_time_varying_map_.values()) {
+    if (animating_flag) {
+      return true;
+    }
+  }
+
   if (prim_.IsA<pxr::UsdGeomCapsule>()) {
     pxr::UsdGeomCapsule geom(prim_);
     return (geom.GetAxisAttr().ValueMightBeTimeVarying() ||

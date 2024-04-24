@@ -94,10 +94,6 @@ class USDMeshReader : public USDGeomReader {
                         double motionSampleTime,
                         bool new_mesh);
 
-  void read_color_data_primvar(Mesh *mesh,
-                               const pxr::UsdGeomPrimvar &color_primvar,
-                               const double motionSampleTime);
-
   void read_uv_data_primvar(Mesh *mesh,
                             const pxr::UsdGeomPrimvar &primvar,
                             const double motionSampleTime);
