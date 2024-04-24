@@ -1146,9 +1146,12 @@ struct ShadowTileMapData {
   int clip_data_index;
   /** Bias LOD to tag for usage to lower the amount of tile used. */
   float lod_bias;
-  int _pad0;
-  int _pad1;
-  int _pad2;
+  /** Light type this tilemap is from. */
+  eLightType light_type;
+  /** True if the tilemap is part of area light shadow and is one of the side projections. */
+  bool32_t is_area_side;
+  /** Distance behind the area light a shadow is shifted. */
+  float area_shift;
   /** Near and far clip distances for punctual. */
   float clip_near;
   float clip_far;
@@ -1160,7 +1163,28 @@ struct ShadowTileMapData {
 BLI_STATIC_ASSERT_ALIGN(ShadowTileMapData, 16)
 
 /**
+ * Lightweight version of ShadowTileMapData that only contains data used for rendering the shadow.
+ */
+struct ShadowRenderView {
+  /**
+   * Is either:
+   * - positive radial distance for point lights.
+   * - negative distance to light plane (divided by sqrt3) for area lights side projections.
+   * - zero if disabled.
+   * Use sign to determine with case we are in.
+   */
+  float clip_distance_inv;
+  /* Viewport to submit the geometry of this tilemap view to. */
+  uint viewport_index;
+
+  uint _pad0;
+  uint _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(ShadowRenderView, 16)
+
+/**
  * Per tilemap data persistent on GPU.
+ * Kept separately for easier clearing on GPU.
  */
 struct ShadowTileMapClip {
   /** Clip distances that were used to render the pages. */
@@ -1976,6 +2000,7 @@ using ShadowPageCacheBuf = draw::StorageArrayBuffer<uint2, SHADOW_MAX_PAGE, true
 using ShadowTileMapDataBuf = draw::StorageVectorBuffer<ShadowTileMapData, SHADOW_MAX_TILEMAP>;
 using ShadowTileMapClipBuf = draw::StorageArrayBuffer<ShadowTileMapClip, SHADOW_MAX_TILEMAP, true>;
 using ShadowTileDataBuf = draw::StorageArrayBuffer<ShadowTileDataPacked, SHADOW_MAX_TILE, true>;
+using ShadowRenderViewBuf = draw::StorageArrayBuffer<ShadowRenderView, SHADOW_VIEW_MAX, true>;
 using SurfelBuf = draw::StorageArrayBuffer<Surfel, 64>;
 using SurfelRadianceBuf = draw::StorageArrayBuffer<SurfelRadiance, 64>;
 using CaptureInfoBuf = draw::StorageBuffer<CaptureInfoData>;

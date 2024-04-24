@@ -108,6 +108,9 @@ AssetItemTree build_filtered_all_catalog_tree(
     return {};
   }
 
+  const bool loading_finished = list::is_loaded(&library_ref);
+  const bool dirty = !loading_finished;
+
   list::iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
     if (!filter_matches_asset(&filter_settings, asset)) {
       return true;
@@ -151,7 +154,7 @@ AssetItemTree build_filtered_all_catalog_tree(
   return {std::move(catalogs_with_node_assets),
           std::move(assets_per_path),
           std::move(unassigned_assets),
-          false};
+          dirty};
 }
 
 }  // namespace blender::ed::asset

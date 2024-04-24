@@ -274,7 +274,7 @@ void BKE_shaderfx_blend_write(BlendWriter *writer, ListBase *fxbase)
 
 void BKE_shaderfx_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob)
 {
-  BLO_read_list(reader, lb);
+  BLO_read_struct_list(reader, ShaderFxData, lb);
 
   LISTBASE_FOREACH (ShaderFxData *, fx, lb) {
     fx->error = nullptr;

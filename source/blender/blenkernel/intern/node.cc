@@ -957,14 +957,14 @@ static bool is_node_socket_supported(const bNodeSocket *sock)
 
 static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
 {
-  BLO_read_data_address(reader, &sock->prop);
+  BLO_read_struct(reader, IDProperty, &sock->prop);
   IDP_BlendDataRead(reader, &sock->prop);
 
-  BLO_read_data_address(reader, &sock->link);
+  BLO_read_struct(reader, bNodeLink, &sock->link);
   sock->typeinfo = nullptr;
   BLO_read_data_address(reader, &sock->storage);
   BLO_read_data_address(reader, &sock->default_value);
-  BLO_read_data_address(reader, &sock->default_attribute_name);
+  BLO_read_string(reader, &sock->default_attribute_name);
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
 
   switch (eNodeSocketDatatype(sock->type)) {
@@ -1041,7 +1041,7 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   ntree->runtime = MEM_new<bNodeTreeRuntime>(__func__);
   BKE_ntree_update_tag_missing_runtime_data(ntree);
 
-  BLO_read_list(reader, &ntree->nodes);
+  BLO_read_struct_list(reader, bNode, &ntree->nodes);
   int i;
   LISTBASE_FOREACH_INDEX (bNode *, node, &ntree->nodes, i) {
     node->runtime = MEM_new<bNodeRuntime>(__func__);
@@ -1057,11 +1057,12 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
       ntree->runtime->nodes_by_id.add_new(node);
     }
 
-    BLO_read_list(reader, &node->inputs);
-    BLO_read_list(reader, &node->outputs);
-    BLO_read_data_address(reader, &node->panel_states_array);
+    BLO_read_struct_list(reader, bNodeSocket, &node->inputs);
+    BLO_read_struct_list(reader, bNodeSocket, &node->outputs);
+    BLO_read_struct_array(
+        reader, bNodePanelState, node->num_panel_states, &node->panel_states_array);
 
-    BLO_read_data_address(reader, &node->prop);
+    BLO_read_struct(reader, IDProperty, &node->prop);
     IDP_BlendDataRead(reader, &node->prop);
 
     if (node->type == CMP_NODE_MOVIEDISTORTION) {
@@ -1088,7 +1089,7 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
         }
         case SH_NODE_SCRIPT: {
           NodeShaderScript *nss = static_cast<NodeShaderScript *>(node->storage);
-          BLO_read_data_address(reader, &nss->bytecode);
+          BLO_read_string(reader, &nss->bytecode);
           break;
         }
         case SH_NODE_TEX_POINTDENSITY: {
@@ -1116,8 +1117,8 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
         case CMP_NODE_CRYPTOMATTE_LEGACY:
         case CMP_NODE_CRYPTOMATTE: {
           NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
-          BLO_read_data_address(reader, &nc->matte_id);
-          BLO_read_list(reader, &nc->entries);
+          BLO_read_string(reader, &nc->matte_id);
+          BLO_read_struct_list(reader, CryptomatteEntry, &nc->entries);
           BLI_listbase_clear(&nc->runtime.layers);
           break;
         }
@@ -1133,7 +1134,7 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
         }
         case FN_NODE_INPUT_STRING: {
           NodeInputString *storage = static_cast<NodeInputString *>(node->storage);
-          BLO_read_data_address(reader, &storage->string);
+          BLO_read_string(reader, &storage->string);
           break;
         }
         case GEO_NODE_SIMULATION_OUTPUT: {
@@ -1154,10 +1155,13 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
         }
         case GEO_NODE_MENU_SWITCH: {
           NodeMenuSwitch &storage = *static_cast<NodeMenuSwitch *>(node->storage);
-          BLO_read_data_address(reader, &storage.enum_definition.items_array);
+          BLO_read_struct_array(reader,
+                                NodeEnumItem,
+                                storage.enum_definition.items_num,
+                                &storage.enum_definition.items_array);
           for (const NodeEnumItem &item : storage.enum_definition.items()) {
-            BLO_read_data_address(reader, &item.name);
-            BLO_read_data_address(reader, &item.description);
+            BLO_read_string(reader, &item.name);
+            BLO_read_string(reader, &item.description);
           }
           break;
         }
@@ -1167,12 +1171,12 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
       }
     }
   }
-  BLO_read_list(reader, &ntree->links);
+  BLO_read_struct_list(reader, bNodeLink, &ntree->links);
   BLI_assert(ntree->all_nodes().size() == BLI_listbase_count(&ntree->nodes));
 
   /* and we connect the rest */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    BLO_read_data_address(reader, &node->parent);
+    BLO_read_struct(reader, bNode, &node->parent);
 
     LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &node->inputs) {
       direct_link_node_socket(reader, sock);
@@ -1192,8 +1196,8 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   }
 
   /* Read legacy interface socket lists for versioning. */
-  BLO_read_list(reader, &ntree->inputs_legacy);
-  BLO_read_list(reader, &ntree->outputs_legacy);
+  BLO_read_struct_list(reader, bNodeSocket, &ntree->inputs_legacy);
+  BLO_read_struct_list(reader, bNodeSocket, &ntree->outputs_legacy);
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, sock, &ntree->inputs_legacy) {
     direct_link_node_socket(reader, sock);
   }
@@ -1204,10 +1208,10 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   ntree->tree_interface.read_data(reader);
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    BLO_read_data_address(reader, &link->fromnode);
-    BLO_read_data_address(reader, &link->tonode);
-    BLO_read_data_address(reader, &link->fromsock);
-    BLO_read_data_address(reader, &link->tosock);
+    BLO_read_struct(reader, bNode, &link->fromnode);
+    BLO_read_struct(reader, bNode, &link->tonode);
+    BLO_read_struct(reader, bNodeSocket, &link->fromsock);
+    BLO_read_struct(reader, bNodeSocket, &link->tosock);
   }
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -1217,13 +1221,14 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
   remove_unsupported_sockets(&ntree->inputs_legacy, nullptr);
   remove_unsupported_sockets(&ntree->outputs_legacy, nullptr);
 
-  BLO_read_data_address(reader, &ntree->geometry_node_asset_traits);
-  BLO_read_data_address(reader, &ntree->nested_node_refs);
+  BLO_read_struct(reader, GeometryNodeAssetTraits, &ntree->geometry_node_asset_traits);
+  BLO_read_struct_array(
+      reader, bNestedNodeRef, ntree->nested_node_refs_num, &ntree->nested_node_refs);
 
   /* TODO: should be dealt by new generic cache handling of IDs... */
   ntree->previews = nullptr;
 
-  BLO_read_data_address(reader, &ntree->preview);
+  BLO_read_struct(reader, PreviewImage, &ntree->preview);
   BKE_previewimg_blend_read(reader, ntree->preview);
 
   /* type verification is in lib-link */

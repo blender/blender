@@ -198,7 +198,8 @@ SphericalHarmonicL1 lightprobe_irradiance_sample(
 
 SphericalHarmonicL1 lightprobe_irradiance_world()
 {
-  return lightprobe_irradiance_sample_atlas(irradiance_atlas_tx, vec3(0.0));
+  /* We need a 0.5 offset because of filtering. */
+  return lightprobe_irradiance_sample_atlas(irradiance_atlas_tx, vec3(0.5001));
 }
 
 SphericalHarmonicL1 lightprobe_irradiance_sample(vec3 P)

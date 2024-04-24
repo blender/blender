@@ -32,6 +32,7 @@
 
 #include "intern/depsgraph.hh"
 #include "intern/eval/deg_eval_copy_on_write.h"
+#include "intern/node/deg_node_component.hh"
 #include "intern/node/deg_node_id.hh"
 
 namespace blender::deg {
@@ -337,6 +338,25 @@ bool DEG_is_fully_evaluated(const Depsgraph *depsgraph)
   /* Check whether IDs are up to date. */
   if (!deg_graph->entry_tags.is_empty()) {
     return false;
+  }
+  return true;
+}
+
+bool DEG_id_is_fully_evaluated(const Depsgraph *depsgraph, const ID *id_eval)
+{
+  const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(depsgraph);
+  /* Only us the original ID pointer to look up the IDNode, do not dereference it. */
+  const ID *id_orig = deg::get_original_id(id_eval);
+  const deg::IDNode *id_node = deg_graph->find_id_node(id_orig);
+  if (!id_node) {
+    return false;
+  }
+  for (deg::ComponentNode *component : id_node->components.values()) {
+    for (deg::OperationNode *operation : component->operations) {
+      if (operation->flag & deg::DEPSOP_FLAG_NEEDS_UPDATE) {
+        return false;
+      }
+    }
   }
   return true;
 }

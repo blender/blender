@@ -219,6 +219,7 @@ void VolumeModule::end_sync()
   scatter_ps_.bind_resources(inst_.sphere_probes);
   scatter_ps_.bind_resources(inst_.volume_probes);
   scatter_ps_.bind_resources(inst_.shadows);
+  scatter_ps_.bind_resources(inst_.uniform_data);
   scatter_ps_.bind_resources(inst_.sampling);
   scatter_ps_.bind_image("in_scattering_img", &prop_scattering_tx_);
   scatter_ps_.bind_image("in_extinction_img", &prop_extinction_tx_);

@@ -341,11 +341,11 @@ void mesh_hide_vert_flush(Mesh &mesh);
 /** Make vertex and edge visibility consistent with faces. */
 void mesh_hide_face_flush(Mesh &mesh);
 
-/** Make edge and face visibility consistent with vertices. */
+/** Make edge and face selection consistent with vertices. */
 void mesh_select_vert_flush(Mesh &mesh);
-/** Make vertex and face visibility consistent with edges. */
+/** Make vertex and face selection consistent with edges. */
 void mesh_select_edge_flush(Mesh &mesh);
-/** Make vertex and edge visibility consistent with faces. */
+/** Make vertex and edge selection consistent with faces. */
 void mesh_select_face_flush(Mesh &mesh);
 
 /** Set the default name when adding a color attribute if there is no default yet. */

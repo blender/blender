@@ -185,9 +185,9 @@ static void texture_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Tex *tex = (Tex *)id;
 
-  BLO_read_data_address(reader, &tex->coba);
+  BLO_read_struct(reader, ColorBand, &tex->coba);
 
-  BLO_read_data_address(reader, &tex->preview);
+  BLO_read_struct(reader, PreviewImage, &tex->preview);
   BKE_previewimg_blend_read(reader, tex->preview);
 
   tex->iuser.scene = nullptr;

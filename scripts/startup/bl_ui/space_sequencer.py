@@ -2466,6 +2466,9 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
         if st.display_mode == 'IMAGE':
             col.prop(st, "show_overexposed")
 
+        if ed:
+            col.prop(ed, "show_missing_media")
+
 
 class SEQUENCER_PT_view_cursor(SequencerButtonsPanel_Output, Panel):
     bl_category = "View"

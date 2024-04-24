@@ -374,7 +374,7 @@ void IndexSwitchItemsAccessor::blend_write(BlendWriter *writer, const bNode &nod
 void IndexSwitchItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
 {
   auto &storage = *static_cast<NodeIndexSwitch *>(node.storage);
-  BLO_read_data_address(reader, &storage.items);
+  BLO_read_struct_array(reader, IndexSwitchItem, storage.items_num, &storage.items);
 }
 
 }  // namespace blender::nodes

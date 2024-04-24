@@ -74,7 +74,7 @@ void settings_blend_write(BlendWriter *writer, const AssetShelfSettings &setting
 void settings_blend_read_data(BlendDataReader *reader, AssetShelfSettings &settings)
 {
   BKE_asset_catalog_path_list_blend_read_data(reader, settings.enabled_catalog_paths);
-  BLO_read_data_address(reader, &settings.active_catalog_path);
+  BLO_read_string(reader, &settings.active_catalog_path);
 }
 
 void settings_set_active_catalog(AssetShelfSettings &settings,

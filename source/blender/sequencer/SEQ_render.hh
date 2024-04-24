@@ -34,6 +34,7 @@ struct SeqRenderData {
   int recty;
   int preview_render_size;
   bool use_proxies;
+  bool ignore_missing_media;
   int for_render;
   int motion_blur_samples;
   float motion_blur_shutter;

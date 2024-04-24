@@ -197,9 +197,9 @@ void RepeatItemsAccessor::blend_write(BlendWriter *writer, const bNode &node)
 void RepeatItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
 {
   auto &storage = *static_cast<NodeGeometryRepeatOutput *>(node.storage);
-  BLO_read_data_address(reader, &storage.items);
+  BLO_read_struct_array(reader, NodeRepeatItem, storage.items_num, &storage.items);
   for (const NodeRepeatItem &item : Span(storage.items, storage.items_num)) {
-    BLO_read_data_address(reader, &item.name);
+    BLO_read_string(reader, &item.name);
   }
 }
 

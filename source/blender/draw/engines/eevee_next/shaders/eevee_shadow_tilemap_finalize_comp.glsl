@@ -103,7 +103,21 @@ void main()
         view_index = atomicAdd(statistics_buf.view_needed_count, 1);
         if (view_index < SHADOW_VIEW_MAX) {
           /* Setup the view. */
-          viewport_index_buf[view_index] = viewport_index;
+
+          render_view_buf[view_index].viewport_index = viewport_index;
+          /* Clipping setup. */
+          if (tilemap_data.is_area_side) {
+            /* Negative for tagging this case. See shadow_clip_vector_get for explanation. */
+            render_view_buf[view_index].clip_distance_inv = -M_SQRT1_3 / tilemap_data.area_shift;
+          }
+          else if (is_point_light(tilemap_data.light_type)) {
+            /* Clip as a sphere around the clip_near cube. */
+            render_view_buf[view_index].clip_distance_inv = M_SQRT1_3 / tilemap_data.clip_near;
+          }
+          else {
+            /* Disable local clipping. */
+            render_view_buf[view_index].clip_distance_inv = 0.0;
+          }
 
           view_infos_buf[view_index].viewmat = tilemap_data.viewmat;
           view_infos_buf[view_index].viewinv = inverse(tilemap_data.viewmat);

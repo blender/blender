@@ -55,6 +55,9 @@
  */
 #define SPHERE_PROBE_MAX 128
 
+/** NOTE: Runtime format only. */
+#define VOLUME_PROBE_FORMAT GPU_RGBA16F
+
 /**
  * Limited by the performance impact it can cause.
  * Limited by the max layer count supported by a hardware (256).
@@ -245,7 +248,7 @@
 /* Only during shadow rendering. */
 #define SHADOW_RENDER_MAP_BUF_SLOT 3
 #define SHADOW_PAGE_INFO_SLOT 4
-#define SHADOW_VIEWPORT_INDEX_BUF_SLOT 5
+#define SHADOW_RENDER_VIEW_BUF_SLOT 5
 
 /* Only during pre-pass. */
 #define VELOCITY_OBJ_PREV_BUF_SLOT 0

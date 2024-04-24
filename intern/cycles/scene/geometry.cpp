@@ -817,7 +817,6 @@ void GeometryManager::device_update(Device *device,
   }
 
   /* Update images needed for true displacement. */
-  bool old_need_object_flags_update = false;
   if (true_displacement_used || curve_shadow_transparency_used) {
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
@@ -826,7 +825,6 @@ void GeometryManager::device_update(Device *device,
       }
     });
     device_update_displacement_images(device, scene, progress);
-    old_need_object_flags_update = scene->object_manager->need_flags_update;
     scene->object_manager->device_update_flags(device, dscene, scene, progress, false);
   }
 
@@ -1009,16 +1007,6 @@ void GeometryManager::device_update(Device *device,
     if (progress.get_cancel()) {
       return;
     }
-  }
-
-  if (true_displacement_used) {
-    /* Re-tag flags for update, so they're re-evaluated
-     * for meshes with correct bounding boxes.
-     *
-     * This wouldn't cause wrong results, just true
-     * displacement might be less optimal to calculate.
-     */
-    scene->object_manager->need_flags_update = old_need_object_flags_update;
   }
 
   /* unset flags */

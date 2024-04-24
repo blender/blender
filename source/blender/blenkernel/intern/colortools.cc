@@ -652,8 +652,6 @@ static void curve_eval_bezier_point(float start[3][3], float end[3][3], float *p
 static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
 {
   const rctf *clipr = &cumap->clipr;
-  CurveMapPoint *cmp = cuma->curve;
-  BezTriple *bezt;
 
   /* Wrapping ensures that the heights of the first and last points are the same. It adds two
    * virtual points, which are copies of the first and last points, and moves them to the opposite
@@ -670,40 +668,58 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   cuma->mintable = clipr->xmin;
   cuma->maxtable = clipr->xmax;
   float table_range = cuma->maxtable - cuma->mintable;
+  const int bezt_totpoint = max_ii(cuma->totpoint, 2);
 
   /* Rely on Blender interpolation for bezier curves, support extra functionality here as well. */
-  bezt = static_cast<BezTriple *>(MEM_callocN(cuma->totpoint * sizeof(BezTriple), "beztarr"));
+  BezTriple *bezt = static_cast<BezTriple *>(
+      MEM_callocN(bezt_totpoint * sizeof(BezTriple), "beztarr"));
 
-  for (int a = 0; a < cuma->totpoint; a++) {
-    cuma->mintable = min_ff(cuma->mintable, cmp[a].x);
-    cuma->maxtable = max_ff(cuma->maxtable, cmp[a].x);
-    bezt[a].vec[1][0] = cmp[a].x;
-    bezt[a].vec[1][1] = cmp[a].y;
-    if (cmp[a].flag & CUMA_HANDLE_VECTOR) {
-      bezt[a].h1 = bezt[a].h2 = HD_VECT;
+  /* Valid curve has at least 2 points. */
+  if (cuma->totpoint >= 2) {
+    CurveMapPoint *cmp = cuma->curve;
+
+    for (int a = 0; a < bezt_totpoint; a++) {
+      cuma->mintable = min_ff(cuma->mintable, cmp[a].x);
+      cuma->maxtable = max_ff(cuma->maxtable, cmp[a].x);
+      bezt[a].vec[1][0] = cmp[a].x;
+      bezt[a].vec[1][1] = cmp[a].y;
+      if (cmp[a].flag & CUMA_HANDLE_VECTOR) {
+        bezt[a].h1 = bezt[a].h2 = HD_VECT;
+      }
+      else if (cmp[a].flag & CUMA_HANDLE_AUTO_ANIM) {
+        bezt[a].h1 = bezt[a].h2 = HD_AUTO_ANIM;
+      }
+      else {
+        bezt[a].h1 = bezt[a].h2 = HD_AUTO;
+      }
     }
-    else if (cmp[a].flag & CUMA_HANDLE_AUTO_ANIM) {
-      bezt[a].h1 = bezt[a].h2 = HD_AUTO_ANIM;
-    }
-    else {
-      bezt[a].h1 = bezt[a].h2 = HD_AUTO;
-    }
+  }
+  else {
+    /* Fallback when points are missing. */
+    cuma->mintable = 0.0f;
+    cuma->maxtable = 0.0f;
+    zero_v2(bezt[0].vec[1]);
+    zero_v2(bezt[1].vec[1]);
+    bezt[0].h1 = HD_AUTO;
+    bezt[0].h2 = HD_AUTO;
+    bezt[1].h1 = HD_AUTO;
+    bezt[1].h2 = HD_AUTO;
   }
 
   const BezTriple *bezt_next = nullptr;
   const BezTriple *bezt_prev = nullptr;
 
   /* Create two extra points for wrapping curves. */
-  BezTriple bezt_pre = bezt[cuma->totpoint - 1];
+  BezTriple bezt_pre = bezt[bezt_totpoint - 1];
   BezTriple bezt_post = bezt[0];
 
   BezTriple *bezt_post_ptr;
 
   if (use_wrapping) {
     /* Handle location of pre and post points for wrapping curves. */
-    bezt_pre.h1 = bezt_pre.h2 = bezt[cuma->totpoint - 1].h2;
-    bezt_pre.vec[1][0] = bezt[cuma->totpoint - 1].vec[1][0] - table_range;
-    bezt_pre.vec[1][1] = bezt[cuma->totpoint - 1].vec[1][1];
+    bezt_pre.h1 = bezt_pre.h2 = bezt[bezt_totpoint - 1].h2;
+    bezt_pre.vec[1][0] = bezt[bezt_totpoint - 1].vec[1][0] - table_range;
+    bezt_pre.vec[1][1] = bezt[bezt_totpoint - 1].vec[1][1];
 
     bezt_post.h1 = bezt_post.h2 = bezt[0].h1;
     bezt_post.vec[1][0] = bezt[0].vec[1][0] + table_range;
@@ -718,17 +734,17 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   }
 
   /* Process middle elements */
-  for (int a = 0; a < cuma->totpoint; a++) {
-    bezt_next = (a != cuma->totpoint - 1) ? &bezt[a + 1] : bezt_post_ptr;
-    calchandle_curvemap(&bezt[a], bezt_prev, bezt_next);
+  for (int a = 0; a < bezt_totpoint; a++) {
+    bezt_next = (a != bezt_totpoint - 1) ? &bezt[a + 1] : bezt_post_ptr;
+    calchandle_curvemap(&bezt[a], (bezt_prev) ? bezt_prev : &bezt[0], bezt_next);
     bezt_prev = &bezt[a];
   }
 
   /* Correct handles of pre and post points for wrapping curves. */
-  bezt_pre.vec[0][0] = bezt[cuma->totpoint - 1].vec[0][0] - table_range;
-  bezt_pre.vec[0][1] = bezt[cuma->totpoint - 1].vec[0][1];
-  bezt_pre.vec[2][0] = bezt[cuma->totpoint - 1].vec[2][0] - table_range;
-  bezt_pre.vec[2][1] = bezt[cuma->totpoint - 1].vec[2][1];
+  bezt_pre.vec[0][0] = bezt[bezt_totpoint - 1].vec[0][0] - table_range;
+  bezt_pre.vec[0][1] = bezt[bezt_totpoint - 1].vec[0][1];
+  bezt_pre.vec[2][0] = bezt[bezt_totpoint - 1].vec[2][0] - table_range;
+  bezt_pre.vec[2][1] = bezt[bezt_totpoint - 1].vec[2][1];
 
   bezt_post.vec[0][0] = bezt[0].vec[0][0] + table_range;
   bezt_post.vec[0][1] = bezt[0].vec[0][1];
@@ -737,7 +753,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
 
   /* first and last handle need correction, instead of pointing to center of next/prev,
    * we let it point to the closest handle */
-  if (cuma->totpoint > 2 && !use_wrapping) {
+  if (bezt_totpoint > 2 && !use_wrapping) {
     float hlen, nlen, vec[3];
 
     if (bezt[0].h2 == HD_AUTO) {
@@ -757,7 +773,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
         sub_v3_v3v3(bezt[0].vec[0], bezt[0].vec[1], vec);
       }
     }
-    int a = cuma->totpoint - 1;
+    int a = bezt_totpoint - 1;
     if (bezt[a].h2 == HD_AUTO) {
 
       hlen = len_v3v3(bezt[a].vec[1], bezt[a].vec[0]); /* original handle length */
@@ -782,7 +798,8 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
     MEM_freeN(cuma->table);
   }
 
-  int totpoint = use_wrapping ? (cuma->totpoint + 1) * CM_RESOL : (cuma->totpoint - 1) * CM_RESOL;
+  const int totpoint = use_wrapping ? (bezt_totpoint + 1) * CM_RESOL :
+                                      (bezt_totpoint - 1) * CM_RESOL;
   float *allpoints = static_cast<float *>(MEM_callocN(totpoint * 2 * sizeof(float), "table"));
   float *point = allpoints;
 
@@ -793,14 +810,14 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   }
 
   /* Process middle elements */
-  for (int a = 0; a < cuma->totpoint - 1; a++, point += 2 * CM_RESOL) {
+  for (int a = 0; a < bezt_totpoint - 1; a++, point += 2 * CM_RESOL) {
     int b = a + 1;
     curve_eval_bezier_point(bezt[a].vec, bezt[b].vec, point);
   }
 
   if (use_wrapping) {
     /* Handle post point for wrapping */
-    curve_eval_bezier_point(bezt[cuma->totpoint - 1].vec, bezt_post.vec, point);
+    curve_eval_bezier_point(bezt[bezt_totpoint - 1].vec, bezt_post.vec, point);
   }
   /* Store first and last handle for extrapolation, unit length. (Only relevant when not using
    * wrapping.) */
@@ -811,7 +828,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   cuma->ext_in[0] /= ext_in_range;
   cuma->ext_in[1] /= ext_in_range;
 
-  int out_a = cuma->totpoint - 1;
+  int out_a = bezt_totpoint - 1;
   cuma->ext_out[0] = bezt[out_a].vec[1][0] - bezt[out_a].vec[2][0];
   cuma->ext_out[1] = bezt[out_a].vec[1][1] - bezt[out_a].vec[2][1];
   float ext_out_range = sqrtf(cuma->ext_out[0] * cuma->ext_out[0] +
@@ -830,7 +847,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   float *lastpoint = allpoints + 2 * (totpoint - 1);
   point = allpoints;
 
-  cmp = static_cast<CurveMapPoint *>(
+  CurveMapPoint *cmp = static_cast<CurveMapPoint *>(
       MEM_callocN((CM_TABLE + 1) * sizeof(CurveMapPoint), "dist table"));
 
   for (int a = 0; a <= CM_TABLE; a++) {
@@ -1384,7 +1401,7 @@ void BKE_curvemapping_blend_read(BlendDataReader *reader, CurveMapping *cumap)
   cumap->flag &= ~CUMA_PREMULLED;
 
   for (int a = 0; a < CM_TOT; a++) {
-    BLO_read_data_address(reader, &cumap->cm[a].curve);
+    BLO_read_struct_array(reader, CurveMapPoint, cumap->cm[a].totpoint, &cumap->cm[a].curve);
     cumap->cm[a].table = nullptr;
     cumap->cm[a].premultable = nullptr;
   }
@@ -1960,7 +1977,7 @@ void BKE_color_managed_view_settings_blend_write(BlendWriter *writer,
 void BKE_color_managed_view_settings_blend_read_data(BlendDataReader *reader,
                                                      ColorManagedViewSettings *settings)
 {
-  BLO_read_data_address(reader, &settings->curve_mapping);
+  BLO_read_struct(reader, CurveMapping, &settings->curve_mapping);
 
   if (settings->curve_mapping) {
     BKE_curvemapping_blend_read(reader, settings->curve_mapping);

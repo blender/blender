@@ -339,16 +339,16 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
 
   collection->owner_id = owner_id;
 
-  BLO_read_list(reader, &collection->gobject);
-  BLO_read_list(reader, &collection->children);
+  BLO_read_struct_list(reader, CollectionObject, &collection->gobject);
+  BLO_read_struct_list(reader, CollectionChild, &collection->children);
 
-  BLO_read_list(reader, &collection->exporters);
+  BLO_read_struct_list(reader, CollectionExport, &collection->exporters);
   LISTBASE_FOREACH (CollectionExport *, data, &collection->exporters) {
-    BLO_read_data_address(reader, &data->export_properties);
+    BLO_read_struct(reader, IDProperty, &data->export_properties);
     IDP_BlendDataRead(reader, &data->export_properties);
   }
 
-  BLO_read_data_address(reader, &collection->preview);
+  BLO_read_struct(reader, PreviewImage, &collection->preview);
   BKE_previewimg_blend_read(reader, collection->preview);
 }
 
@@ -1053,6 +1053,20 @@ bool BKE_collection_has_object_recursive_instanced(Collection *collection, Objec
 
   const ListBase objects = BKE_collection_object_cache_instanced_get(collection);
   return BLI_findptr(&objects, ob, offsetof(Base, object));
+}
+
+bool BKE_collection_has_object_recursive_instanced_orig_id(Collection *collection_eval,
+                                                           Object *object_eval)
+{
+  BLI_assert(collection_eval->id.tag & LIB_TAG_COPIED_ON_EVAL);
+  const ID *ob_orig = DEG_get_original_id(&object_eval->id);
+  const ListBase objects = BKE_collection_object_cache_instanced_get(collection_eval);
+  LISTBASE_FOREACH (Base *, base, &objects) {
+    if (DEG_get_original_id(&base->object->id) == ob_orig) {
+      return true;
+    }
+  }
+  return false;
 }
 
 static Collection *collection_next_find(Main *bmain, Scene *scene, Collection *collection)

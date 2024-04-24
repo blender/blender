@@ -12,6 +12,7 @@
 #include "BLI_string.h"
 
 #include "DNA_ID.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
@@ -1373,11 +1374,11 @@ static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   SpaceNode *snode = (SpaceNode *)sl;
 
   if (snode->gpd) {
-    BLO_read_data_address(reader, &snode->gpd);
+    BLO_read_struct(reader, bGPdata, &snode->gpd);
     BKE_gpencil_blend_read_data(reader, snode->gpd);
   }
 
-  BLO_read_list(reader, &snode->treepath);
+  BLO_read_struct_list(reader, bNodeTreePath, &snode->treepath);
   snode->edittree = nullptr;
   snode->runtime = nullptr;
 }

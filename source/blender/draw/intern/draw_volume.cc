@@ -366,24 +366,26 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
   volume_infos.temperature_mul = 1.0f;
   volume_infos.temperature_bias = 0.0f;
 
+  bool has_fluid_modifier = (md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
+                            BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime) &&
+                            ((FluidModifierData *)md)->domain != nullptr;
+  FluidModifierData *fmd = has_fluid_modifier ? (FluidModifierData *)md : nullptr;
+  FluidDomainSettings *fds = has_fluid_modifier ? fmd->domain : nullptr;
+
   PassType *sub = nullptr;
 
-  /* Smoke Simulation. */
-  if ((md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
-      BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime) &&
-      ((FluidModifierData *)md)->domain != nullptr)
-  {
-    FluidModifierData *fmd = (FluidModifierData *)md;
-    FluidDomainSettings *fds = fmd->domain;
-
-    /* Don't try to show liquid domains here. */
-    if (!fds->fluid || !(fds->type == FLUID_DOMAIN_TYPE_GAS)) {
-      return nullptr;
+  if (!has_fluid_modifier || (fds->type != FLUID_DOMAIN_TYPE_GAS)) {
+    /* No volume attributes or fluid domain. */
+    sub = &ps.sub("Volume Mesh SubPass");
+    int grid_id = 0;
+    for (const GPUMaterialAttribute *attr : attrs) {
+      sub->bind_texture(attr->input_name, grid_default_texture(attr->default_value));
+      volume_infos.grids_xform[grid_id++] = float4x4::identity();
     }
-
-    if (fds->type == FLUID_DOMAIN_TYPE_GAS) {
-      DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
-    }
+  }
+  else if (!fds->fluid) {
+    /* Smoke Simulation. */
+    DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
 
     sub = &ps.sub("Volume Modifier SubPass");
 
@@ -419,17 +421,9 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
       volume_infos.color_mul = float4(UNPACK3(fds->active_color), 1.0f);
     }
 
-    /* Output is such that 0..1 maps to 0..1000K */
+    /* Output is such that 0..1 maps to 0..1000K. */
     volume_infos.temperature_mul = fds->flame_max_temp - fds->flame_ignition;
     volume_infos.temperature_bias = fds->flame_ignition;
-  }
-  else {
-    sub = &ps.sub("Volume Mesh SubPass");
-    int grid_id = 0;
-    for (const GPUMaterialAttribute *attr : attrs) {
-      sub->bind_texture(attr->input_name, grid_default_texture(attr->default_value));
-      volume_infos.grids_xform[grid_id++] = float4x4::identity();
-    }
   }
 
   if (sub) {

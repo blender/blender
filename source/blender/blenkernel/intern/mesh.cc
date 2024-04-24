@@ -333,17 +333,17 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 
   /* Deprecated pointers to custom data layers are read here for backward compatibility
    * with files where these were owning pointers rather than a view into custom data. */
-  BLO_read_data_address(reader, &mesh->mvert);
-  BLO_read_data_address(reader, &mesh->medge);
-  BLO_read_data_address(reader, &mesh->mface);
-  BLO_read_data_address(reader, &mesh->mtface);
-  BLO_read_data_address(reader, &mesh->dvert);
-  BLO_read_data_address(reader, &mesh->tface);
-  BLO_read_data_address(reader, &mesh->mcol);
+  BLO_read_struct_array(reader, MVert, mesh->verts_num, &mesh->mvert);
+  BLO_read_struct_array(reader, MEdge, mesh->edges_num, &mesh->medge);
+  BLO_read_struct_array(reader, MFace, mesh->totface_legacy, &mesh->mface);
+  BLO_read_struct_array(reader, MTFace, mesh->totface_legacy, &mesh->mtface);
+  BLO_read_struct_array(reader, MDeformVert, mesh->verts_num, &mesh->dvert);
+  BLO_read_struct_array(reader, TFace, mesh->totface_legacy, &mesh->tface);
+  BLO_read_struct_array(reader, MCol, mesh->totface_legacy, &mesh->mcol);
 
-  BLO_read_data_address(reader, &mesh->mselect);
+  BLO_read_struct_array(reader, MSelect, mesh->totselect, &mesh->mselect);
 
-  BLO_read_list(reader, &mesh->vertex_group_names);
+  BLO_read_struct_list(reader, bDeformGroup, &mesh->vertex_group_names);
 
   CustomData_blend_read(reader, &mesh->vert_data, mesh->verts_num);
   CustomData_blend_read(reader, &mesh->edge_data, mesh->edges_num);
@@ -355,8 +355,8 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
      * Don't read them again if they were read as part of #CustomData. */
     BKE_defvert_blend_read(reader, mesh->verts_num, mesh->dvert);
   }
-  BLO_read_data_address(reader, &mesh->active_color_attribute);
-  BLO_read_data_address(reader, &mesh->default_color_attribute);
+  BLO_read_string(reader, &mesh->active_color_attribute);
+  BLO_read_string(reader, &mesh->default_color_attribute);
 
   mesh->texspace_flag &= ~ME_TEXSPACE_FLAG_AUTO_EVALUATED;
 

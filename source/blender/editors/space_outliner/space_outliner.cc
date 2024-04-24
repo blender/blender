@@ -505,11 +505,11 @@ static void outliner_space_blend_read_data(BlendDataReader *reader, SpaceLink *s
    * bug fixed in revision 58959 where the treestore memory address
    * was not unique */
   TreeStore *ts = static_cast<TreeStore *>(
-      BLO_read_get_new_data_address_no_us(reader, space_outliner->treestore));
+      BLO_read_get_new_data_address_no_us(reader, space_outliner->treestore, sizeof(TreeStore)));
   space_outliner->treestore = nullptr;
   if (ts) {
-    TreeStoreElem *elems = static_cast<TreeStoreElem *>(
-        BLO_read_get_new_data_address_no_us(reader, ts->data));
+    TreeStoreElem *elems = static_cast<TreeStoreElem *>(BLO_read_get_new_data_address_no_us(
+        reader, ts->data, sizeof(TreeStoreElem) * ts->usedelem));
 
     space_outliner->treestore = BLI_mempool_create(
         sizeof(TreeStoreElem), ts->usedelem, 512, BLI_MEMPOOL_ALLOW_ITER);

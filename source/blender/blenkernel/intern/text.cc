@@ -195,7 +195,7 @@ static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address
 static void text_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Text *text = (Text *)id;
-  BLO_read_data_address(reader, &text->filepath);
+  BLO_read_string(reader, &text->filepath);
 
   text->compiled = nullptr;
 
@@ -206,13 +206,13 @@ static void text_blend_read_data(BlendDataReader *reader, ID *id)
 /* else { */
 #endif
 
-  BLO_read_list(reader, &text->lines);
+  BLO_read_struct_list(reader, TextLine, &text->lines);
 
-  BLO_read_data_address(reader, &text->curl);
-  BLO_read_data_address(reader, &text->sell);
+  BLO_read_struct(reader, TextLine, &text->curl);
+  BLO_read_struct(reader, TextLine, &text->sell);
 
   LISTBASE_FOREACH (TextLine *, ln, &text->lines) {
-    BLO_read_data_address(reader, &ln->line);
+    BLO_read_string(reader, &ln->line);
     ln->format = nullptr;
 
     if (ln->len != int(strlen(ln->line))) {

@@ -463,44 +463,44 @@ static void direct_link_linestyle_color_modifier(BlendDataReader *reader,
   switch (modifier->type) {
     case LS_MODIFIER_ALONG_STROKE: {
       LineStyleColorModifier_AlongStroke *m = (LineStyleColorModifier_AlongStroke *)modifier;
-      BLO_read_data_address(reader, &m->color_ramp);
+      BLO_read_struct(reader, ColorBand, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_DISTANCE_FROM_CAMERA: {
       LineStyleColorModifier_DistanceFromCamera *m = (LineStyleColorModifier_DistanceFromCamera *)
           modifier;
-      BLO_read_data_address(reader, &m->color_ramp);
+      BLO_read_struct(reader, ColorBand, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_DISTANCE_FROM_OBJECT: {
       LineStyleColorModifier_DistanceFromObject *m = (LineStyleColorModifier_DistanceFromObject *)
           modifier;
-      BLO_read_data_address(reader, &m->color_ramp);
+      BLO_read_struct(reader, ColorBand, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_MATERIAL: {
       LineStyleColorModifier_Material *m = (LineStyleColorModifier_Material *)modifier;
-      BLO_read_data_address(reader, &m->color_ramp);
+      BLO_read_struct(reader, ColorBand, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_TANGENT: {
       LineStyleColorModifier_Tangent *m = (LineStyleColorModifier_Tangent *)modifier;
-      BLO_read_data_address(reader, &m->color_ramp);
+      BLO_read_struct(reader, ColorBand, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_NOISE: {
       LineStyleColorModifier_Noise *m = (LineStyleColorModifier_Noise *)modifier;
-      BLO_read_data_address(reader, &m->color_ramp);
+      BLO_read_struct(reader, ColorBand, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_CREASE_ANGLE: {
       LineStyleColorModifier_CreaseAngle *m = (LineStyleColorModifier_CreaseAngle *)modifier;
-      BLO_read_data_address(reader, &m->color_ramp);
+      BLO_read_struct(reader, ColorBand, &m->color_ramp);
       break;
     }
     case LS_MODIFIER_CURVATURE_3D: {
       LineStyleColorModifier_Curvature_3D *m = (LineStyleColorModifier_Curvature_3D *)modifier;
-      BLO_read_data_address(reader, &m->color_ramp);
+      BLO_read_struct(reader, ColorBand, &m->color_ramp);
       break;
     }
   }
@@ -512,51 +512,51 @@ static void direct_link_linestyle_alpha_modifier(BlendDataReader *reader,
   switch (modifier->type) {
     case LS_MODIFIER_ALONG_STROKE: {
       LineStyleAlphaModifier_AlongStroke *m = (LineStyleAlphaModifier_AlongStroke *)modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_DISTANCE_FROM_CAMERA: {
       LineStyleAlphaModifier_DistanceFromCamera *m = (LineStyleAlphaModifier_DistanceFromCamera *)
           modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_DISTANCE_FROM_OBJECT: {
       LineStyleAlphaModifier_DistanceFromObject *m = (LineStyleAlphaModifier_DistanceFromObject *)
           modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_MATERIAL: {
       LineStyleAlphaModifier_Material *m = (LineStyleAlphaModifier_Material *)modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_TANGENT: {
       LineStyleAlphaModifier_Tangent *m = (LineStyleAlphaModifier_Tangent *)modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_NOISE: {
       LineStyleAlphaModifier_Noise *m = (LineStyleAlphaModifier_Noise *)modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_CREASE_ANGLE: {
       LineStyleAlphaModifier_CreaseAngle *m = (LineStyleAlphaModifier_CreaseAngle *)modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_CURVATURE_3D: {
       LineStyleAlphaModifier_Curvature_3D *m = (LineStyleAlphaModifier_Curvature_3D *)modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
@@ -570,47 +570,47 @@ static void direct_link_linestyle_thickness_modifier(BlendDataReader *reader,
     case LS_MODIFIER_ALONG_STROKE: {
       LineStyleThicknessModifier_AlongStroke *m = (LineStyleThicknessModifier_AlongStroke *)
           modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_DISTANCE_FROM_CAMERA: {
       LineStyleThicknessModifier_DistanceFromCamera *m =
           (LineStyleThicknessModifier_DistanceFromCamera *)modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_DISTANCE_FROM_OBJECT: {
       LineStyleThicknessModifier_DistanceFromObject *m =
           (LineStyleThicknessModifier_DistanceFromObject *)modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_MATERIAL: {
       LineStyleThicknessModifier_Material *m = (LineStyleThicknessModifier_Material *)modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_TANGENT: {
       LineStyleThicknessModifier_Tangent *m = (LineStyleThicknessModifier_Tangent *)modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_CREASE_ANGLE: {
       LineStyleThicknessModifier_CreaseAngle *m = (LineStyleThicknessModifier_CreaseAngle *)
           modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
     case LS_MODIFIER_CURVATURE_3D: {
       LineStyleThicknessModifier_Curvature_3D *m = (LineStyleThicknessModifier_Curvature_3D *)
           modifier;
-      BLO_read_data_address(reader, &m->curve);
+      BLO_read_struct(reader, CurveMapping, &m->curve);
       BKE_curvemapping_blend_read(reader, m->curve);
       break;
     }
@@ -626,24 +626,24 @@ static void linestyle_blend_read_data(BlendDataReader *reader, ID *id)
 {
   FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
 
-  BLO_read_list(reader, &linestyle->color_modifiers);
+  BLO_read_struct_list(reader, LineStyleModifier, &linestyle->color_modifiers);
   LISTBASE_FOREACH (LineStyleModifier *, modifier, &linestyle->color_modifiers) {
     direct_link_linestyle_color_modifier(reader, modifier);
   }
-  BLO_read_list(reader, &linestyle->alpha_modifiers);
+  BLO_read_struct_list(reader, LineStyleModifier, &linestyle->alpha_modifiers);
   LISTBASE_FOREACH (LineStyleModifier *, modifier, &linestyle->alpha_modifiers) {
     direct_link_linestyle_alpha_modifier(reader, modifier);
   }
-  BLO_read_list(reader, &linestyle->thickness_modifiers);
+  BLO_read_struct_list(reader, LineStyleModifier, &linestyle->thickness_modifiers);
   LISTBASE_FOREACH (LineStyleModifier *, modifier, &linestyle->thickness_modifiers) {
     direct_link_linestyle_thickness_modifier(reader, modifier);
   }
-  BLO_read_list(reader, &linestyle->geometry_modifiers);
+  BLO_read_struct_list(reader, LineStyleModifier, &linestyle->geometry_modifiers);
   LISTBASE_FOREACH (LineStyleModifier *, modifier, &linestyle->geometry_modifiers) {
     direct_link_linestyle_geometry_modifier(reader, modifier);
   }
   for (int a = 0; a < MAX_MTEX; a++) {
-    BLO_read_data_address(reader, &linestyle->mtex[a]);
+    BLO_read_struct(reader, MTex, &linestyle->mtex[a]);
   }
 }
 

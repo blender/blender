@@ -9,15 +9,17 @@
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.h"
-#include "BKE_report.hh"
 #include "BKE_scene.hh"
 
+#include "BLI_color.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_geom.h"
 
 #include "DEG_depsgraph_query.hh"
+
+#include "DNA_brush_enums.h"
 
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
@@ -29,6 +31,8 @@
 #include "WM_types.hh"
 
 #include "grease_pencil_intern.hh"
+
+#include <optional>
 
 namespace blender::ed::sculpt_paint::greasepencil {
 
@@ -148,7 +152,8 @@ struct PaintOperationExecutor {
   Brush *brush_;
 
   BrushGpencilSettings *settings_;
-  float4 vertex_color_;
+  std::optional<ColorGeometry4f> vertex_color_;
+  std::optional<ColorGeometry4f> fill_color_;
   float hardness_;
 
   bke::greasepencil::Drawing *drawing_;
@@ -165,25 +170,54 @@ struct PaintOperationExecutor {
 
     const bool use_vertex_color = (scene_->toolsettings->gp_paint->mode ==
                                    GPPAINT_FLAG_USE_VERTEXCOLOR);
-    const bool use_vertex_color_stroke = use_vertex_color && ELEM(settings_->vertex_mode,
-                                                                  GPPAINT_MODE_STROKE,
-                                                                  GPPAINT_MODE_BOTH);
-    vertex_color_ = use_vertex_color_stroke ? float4(brush_->rgb[0],
-                                                     brush_->rgb[1],
-                                                     brush_->rgb[2],
-                                                     settings_->vertex_factor) :
-                                              float4(0.0f);
-    srgb_to_linearrgb_v4(vertex_color_, vertex_color_);
+    if (use_vertex_color) {
+      ColorGeometry4f color_base;
+      srgb_to_linearrgb_v3_v3(color_base, brush_->rgb);
+      color_base.a = settings_->vertex_factor;
+      vertex_color_ = ELEM(settings_->vertex_mode, GPPAINT_MODE_STROKE, GPPAINT_MODE_BOTH) ?
+                          std::make_optional(color_base) :
+                          std::nullopt;
+      fill_color_ = ELEM(settings_->vertex_mode, GPPAINT_MODE_FILL, GPPAINT_MODE_BOTH) ?
+                        std::make_optional(color_base) :
+                        std::nullopt;
+    }
     /* TODO: UI setting. */
     hardness_ = 1.0f;
-
-    // const bool use_vertex_color_fill = use_vertex_color && ELEM(
-    //     brush->gpencil_settings->vertex_mode, GPPAINT_MODE_STROKE, GPPAINT_MODE_BOTH);
 
     BLI_assert(grease_pencil->has_active_layer());
     drawing_ = grease_pencil->get_editable_drawing_at(*grease_pencil->get_active_layer(),
                                                       scene_->r.cfra);
     BLI_assert(drawing_ != nullptr);
+  }
+
+  /* Attributes that are defined explicitly and should not be copied from original geometry. */
+  Set<std::string> skipped_attribute_ids(const bke::AttrDomain domain) const
+  {
+    switch (domain) {
+      case bke::AttrDomain::Point:
+        if (vertex_color_) {
+          return {"position", "radius", "opacity", "vertex_color"};
+        }
+        else {
+          return {"position", "radius", "opacity"};
+        }
+      case bke::AttrDomain::Curve:
+        if (fill_color_) {
+          return {"curve_type",
+                  "material_index",
+                  "cyclic",
+                  "hardness",
+                  "start_cap",
+                  "end_cap",
+                  "fill_color"};
+        }
+        else {
+          return {"curve_type", "material_index", "cyclic", "hardness", "start_cap", "end_cap"};
+        }
+      default:
+        return {};
+    }
+    return {};
   }
 
   void process_start_sample(PaintOperation &self,
@@ -203,7 +237,6 @@ struct PaintOperationExecutor {
         settings_);
     const float start_opacity = ed::greasepencil::opacity_from_input_sample(
         start_sample.pressure, brush_, scene_, settings_);
-    const ColorGeometry4f start_vertex_color = ColorGeometry4f(vertex_color_);
 
     self.screen_space_coords_orig_.append(start_coords);
     self.screen_space_curve_fitted_coords_.append(Vector<float2>({start_coords}));
@@ -218,7 +251,12 @@ struct PaintOperationExecutor {
     curves.positions_for_write().last() = self.placement_.project(start_coords);
     drawing_->radii_for_write().last() = start_radius;
     drawing_->opacities_for_write().last() = start_opacity;
-    drawing_->vertex_colors_for_write().last() = start_vertex_color;
+    if (vertex_color_) {
+      drawing_->vertex_colors_for_write().last() = *vertex_color_;
+    }
+    if (fill_color_) {
+      drawing_->fill_colors_for_write().last() = *fill_color_;
+    }
 
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
     bke::SpanAttributeWriter<int> materials = attributes.lookup_or_add_for_write_span<int>(
@@ -258,13 +296,12 @@ struct PaintOperationExecutor {
     /* Initialize the rest of the attributes with default values. */
     bke::fill_attribute_range_default(attributes,
                                       bke::AttrDomain::Point,
-                                      {"position", "radius", "opacity", "vertex_color"},
+                                      this->skipped_attribute_ids(bke::AttrDomain::Point),
                                       curves.points_range().take_back(1));
-    bke::fill_attribute_range_default(
-        attributes,
-        bke::AttrDomain::Curve,
-        {"curve_type", "material_index", "cyclic", "hardness", "start_cap", "end_cap"},
-        curves.curves_range().take_back(1));
+    bke::fill_attribute_range_default(attributes,
+                                      bke::AttrDomain::Curve,
+                                      this->skipped_attribute_ids(bke::AttrDomain::Curve),
+                                      curves.curves_range().take_back(1));
 
     drawing_->tag_topology_changed();
   }
@@ -367,7 +404,6 @@ struct PaintOperationExecutor {
         settings_);
     const float opacity = ed::greasepencil::opacity_from_input_sample(
         extension_sample.pressure, brush_, scene_, settings_);
-    const ColorGeometry4f vertex_color = ColorGeometry4f(vertex_color_);
 
     bke::CurvesGeometry &curves = drawing_->strokes_for_write();
     bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
@@ -410,13 +446,15 @@ struct PaintOperationExecutor {
     MutableSpan<float3> new_positions = positions.slice(new_points);
     MutableSpan<float> new_radii = drawing_->radii_for_write().slice(new_points);
     MutableSpan<float> new_opacities = drawing_->opacities_for_write().slice(new_points);
-    MutableSpan<ColorGeometry4f> new_vertex_colors = drawing_->vertex_colors_for_write().slice(
-        new_points);
     linear_interpolation<float2>(prev_coords, coords, new_screen_space_coords, is_first_sample);
     linear_interpolation<float>(prev_radius, radius, new_radii, is_first_sample);
     linear_interpolation<float>(prev_opacity, opacity, new_opacities, is_first_sample);
-    linear_interpolation<ColorGeometry4f>(
-        prev_vertex_color, vertex_color, new_vertex_colors, is_first_sample);
+    if (vertex_color_) {
+      MutableSpan<ColorGeometry4f> new_vertex_colors = drawing_->vertex_colors_for_write().slice(
+          new_points);
+      linear_interpolation<ColorGeometry4f>(
+          prev_vertex_color, *vertex_color_, new_vertex_colors, is_first_sample);
+    }
 
     /* Update screen space buffers with new points. */
     self.screen_space_coords_orig_.extend(new_screen_space_coords);
@@ -440,7 +478,7 @@ struct PaintOperationExecutor {
     /* Initialize the rest of the attributes with default values. */
     bke::fill_attribute_range_default(attributes,
                                       bke::AttrDomain::Point,
-                                      {"position", "radius", "opacity", "vertex_color"},
+                                      this->skipped_attribute_ids(bke::AttrDomain::Point),
                                       curves.points_range().take_back(1));
 
     drawing_->set_texture_matrices(Span<float4x2>(&(self.texture_space_), 1),

@@ -78,7 +78,7 @@ void write_influence_data(BlendWriter *writer,
 void read_influence_data(BlendDataReader *reader,
                          GreasePencilModifierInfluenceData *influence_data)
 {
-  BLO_read_data_address(reader, &influence_data->custom_curve);
+  BLO_read_struct(reader, CurveMapping, &influence_data->custom_curve);
   if (influence_data->custom_curve) {
     BKE_curvemapping_blend_read(reader, influence_data->custom_curve);
     /* Make sure the internal table exists. */

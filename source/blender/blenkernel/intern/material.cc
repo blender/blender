@@ -226,12 +226,12 @@ static void material_blend_read_data(BlendDataReader *reader, ID *id)
 
   ma->texpaintslot = nullptr;
 
-  BLO_read_data_address(reader, &ma->preview);
+  BLO_read_struct(reader, PreviewImage, &ma->preview);
   BKE_previewimg_blend_read(reader, ma->preview);
 
   BLI_listbase_clear(&ma->gpumaterial);
 
-  BLO_read_data_address(reader, &ma->gp_style);
+  BLO_read_struct(reader, MaterialGPencilStyle, &ma->gp_style);
 }
 
 IDTypeInfo IDType_ID_MA = {

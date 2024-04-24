@@ -50,6 +50,7 @@ set(SRC
   intern/image_cache.cc
   intern/image_cache.hh
   intern/iterator.cc
+  intern/media_presence.cc
   intern/modifier.cc
   intern/multiview.cc
   intern/multiview.hh

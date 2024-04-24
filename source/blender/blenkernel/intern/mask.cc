@@ -137,24 +137,24 @@ static void mask_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Mask *mask = (Mask *)id;
 
-  BLO_read_list(reader, &mask->masklayers);
+  BLO_read_struct_list(reader, MaskLayer, &mask->masklayers);
 
   LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
     /* Can't use #newdataadr since it's a pointer within an array. */
     MaskSplinePoint *act_point_search = nullptr;
 
-    BLO_read_list(reader, &masklay->splines);
+    BLO_read_struct_list(reader, MaskSpline, &masklay->splines);
 
     LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
       MaskSplinePoint *points_old = spline->points;
 
-      BLO_read_data_address(reader, &spline->points);
+      BLO_read_struct_array(reader, MaskSplinePoint, spline->tot_point, &spline->points);
 
       for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
         if (point->tot_uw) {
-          BLO_read_data_address(reader, &point->uw);
+          BLO_read_struct_array(reader, MaskSplinePointUW, point->tot_uw, &point->uw);
         }
       }
 
@@ -166,21 +166,14 @@ static void mask_blend_read_data(BlendDataReader *reader, ID *id)
       }
     }
 
-    BLO_read_list(reader, &masklay->splines_shapes);
+    BLO_read_struct_list(reader, MaskLayerShape, &masklay->splines_shapes);
 
     LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
-      BLO_read_data_address(reader, &masklay_shape->data);
-
-      if (masklay_shape->tot_vert) {
-        if (BLO_read_requires_endian_switch(reader)) {
-          BLI_endian_switch_float_array(masklay_shape->data,
-                                        masklay_shape->tot_vert * sizeof(float) *
-                                            MASK_OBJECT_SHAPE_ELEM_SIZE);
-        }
-      }
+      BLO_read_float_array(
+          reader, masklay_shape->tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE, &masklay_shape->data);
     }
 
-    BLO_read_data_address(reader, &masklay->act_spline);
+    BLO_read_struct(reader, MaskSpline, &masklay->act_spline);
     masklay->act_point = act_point_search;
   }
 }

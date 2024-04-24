@@ -562,17 +562,18 @@ static void direct_link_lightcache_texture(BlendDataReader *reader, LightCacheTe
   lctex->tex = nullptr;
 
   if (lctex->data) {
-    BLO_read_data_address(reader, &lctex->data);
-    if (lctex->data && BLO_read_requires_endian_switch(reader)) {
-      int data_size = lctex->components * lctex->tex_size[0] * lctex->tex_size[1] *
-                      lctex->tex_size[2];
+    int data_size = lctex->components * lctex->tex_size[0] * lctex->tex_size[1] *
+                    lctex->tex_size[2];
 
-      if (lctex->data_type == LIGHTCACHETEX_FLOAT) {
-        BLI_endian_switch_float_array((float *)lctex->data, data_size * sizeof(float));
-      }
-      else if (lctex->data_type == LIGHTCACHETEX_UINT) {
-        BLI_endian_switch_uint32_array((uint *)lctex->data, data_size * sizeof(uint));
-      }
+    if (lctex->data_type == LIGHTCACHETEX_FLOAT) {
+      BLO_read_float_array(reader, data_size, (float **)&lctex->data);
+    }
+    else if (lctex->data_type == LIGHTCACHETEX_UINT) {
+      BLO_read_uint32_array(reader, data_size, (uint **)&lctex->data);
+    }
+    else {
+      BLI_assert_unreachable();
+      lctex->data = nullptr;
     }
   }
 
@@ -588,14 +589,14 @@ void EEVEE_lightcache_blend_read_data(BlendDataReader *reader, LightCache *cache
   direct_link_lightcache_texture(reader, &cache->grid_tx);
 
   if (cache->cube_mips) {
-    BLO_read_data_address(reader, &cache->cube_mips);
+    BLO_read_struct_array(reader, LightCacheTexture, cache->mips_len, &cache->cube_mips);
     for (int i = 0; i < cache->mips_len; i++) {
       direct_link_lightcache_texture(reader, &cache->cube_mips[i]);
     }
   }
 
-  BLO_read_data_address(reader, &cache->cube_data);
-  BLO_read_data_address(reader, &cache->grid_data);
+  BLO_read_struct_array(reader, LightGridCache, cache->grid_len, &cache->cube_data);
+  BLO_read_struct_array(reader, LightProbeCache, cache->cube_len, &cache->grid_data);
 }
 
 /** \} */

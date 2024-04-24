@@ -161,7 +161,7 @@ static void read_channelbag(BlendDataReader *reader, animrig::ChannelBag &channe
   BLO_read_pointer_array(reader, reinterpret_cast<void **>(&channelbag.fcurve_array));
 
   for (int i = 0; i < channelbag.fcurve_array_num; i++) {
-    BLO_read_data_address(reader, &channelbag.fcurve_array[i]);
+    BLO_read_struct(reader, FCurve, &channelbag.fcurve_array[i]);
     BKE_fcurve_blend_read_data(reader, channelbag.fcurve_array[i]);
   }
 }
@@ -171,7 +171,7 @@ static void read_keyframe_strip(BlendDataReader *reader, animrig::KeyframeStrip 
   BLO_read_pointer_array(reader, reinterpret_cast<void **>(&strip.channelbags_array));
 
   for (int i = 0; i < strip.channelbags_array_num; i++) {
-    BLO_read_data_address(reader, &strip.channelbags_array[i]);
+    BLO_read_struct(reader, AnimationChannelBag, &strip.channelbags_array[i]);
     AnimationChannelBag *channelbag = strip.channelbags_array[i];
     read_channelbag(reader, channelbag->wrap());
   }
@@ -182,12 +182,12 @@ static void read_animation_layers(BlendDataReader *reader, animrig::Animation &a
   BLO_read_pointer_array(reader, reinterpret_cast<void **>(&anim.layer_array));
 
   for (int layer_idx = 0; layer_idx < anim.layer_array_num; layer_idx++) {
-    BLO_read_data_address(reader, &anim.layer_array[layer_idx]);
+    BLO_read_struct(reader, AnimationLayer, &anim.layer_array[layer_idx]);
     AnimationLayer *layer = anim.layer_array[layer_idx];
 
     BLO_read_pointer_array(reader, reinterpret_cast<void **>(&layer->strip_array));
     for (int strip_idx = 0; strip_idx < layer->strip_array_num; strip_idx++) {
-      BLO_read_data_address(reader, &layer->strip_array[strip_idx]);
+      BLO_read_struct(reader, AnimationStrip, &layer->strip_array[strip_idx]);
       AnimationStrip *dna_strip = layer->strip_array[strip_idx];
       animrig::Strip &strip = dna_strip->wrap();
 
@@ -205,7 +205,7 @@ static void read_animation_bindings(BlendDataReader *reader, animrig::Animation 
   BLO_read_pointer_array(reader, reinterpret_cast<void **>(&anim.binding_array));
 
   for (int i = 0; i < anim.binding_array_num; i++) {
-    BLO_read_data_address(reader, &anim.binding_array[i]);
+    BLO_read_struct(reader, AnimationBinding, &anim.binding_array[i]);
   }
 }
 

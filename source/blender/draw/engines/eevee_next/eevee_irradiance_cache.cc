@@ -44,7 +44,7 @@ void VolumeProbeModule::init()
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_SHADER_READ |
                            GPU_TEXTURE_USAGE_ATTACHMENT;
-  do_full_update_ = irradiance_atlas_tx_.ensure_3d(GPU_RGBA16F, atlas_extent, usage);
+  do_full_update_ = irradiance_atlas_tx_.ensure_3d(VOLUME_PROBE_FORMAT, atlas_extent, usage);
 
   if (do_full_update_) {
     /* Delete all references to existing bricks. */

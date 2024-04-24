@@ -212,7 +212,7 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Camera *ca = (Camera *)id;
 
-  BLO_read_list(reader, &ca->bg_images);
+  BLO_read_struct_list(reader, CameraBGImage, &ca->bg_images);
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
     bgpic->iuser.scene = nullptr;

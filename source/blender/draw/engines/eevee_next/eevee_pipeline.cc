@@ -204,7 +204,7 @@ void ShadowPipeline::sync()
     draw::PassMain::Sub &pass = render_ps_.sub("Shadow.Surface");
     pass.state_set(state);
     pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-    pass.bind_ssbo(SHADOW_VIEWPORT_INDEX_BUF_SLOT, &inst_.shadows.viewport_index_buf_);
+    pass.bind_ssbo(SHADOW_RENDER_VIEW_BUF_SLOT, &inst_.shadows.render_view_buf_);
     if (!shadow_update_tbdr) {
       /* We do not need all of the shadow information when using the TBDR-optimized approach. */
       pass.bind_image(SHADOW_ATLAS_IMG_SLOT, inst_.shadows.atlas_tx_);
@@ -422,6 +422,7 @@ void ForwardPipeline::render(View &view,
 
   inst_.shadows.set_view(view, extent);
   inst_.volume_probes.set_view(view);
+  inst_.sphere_probes.set_view(view);
 
   if (has_opaque_) {
     combined_fb.bind();
@@ -733,6 +734,7 @@ GPUTexture *DeferredLayer::render(View &main_view,
   inst_.hiz_buffer.update();
 
   inst_.volume_probes.set_view(render_view);
+  inst_.sphere_probes.set_view(render_view);
   inst_.shadows.set_view(render_view, extent);
 
   inst_.gbuffer.bind(gbuffer_fb);
@@ -1227,6 +1229,7 @@ void DeferredProbePipeline::render(View &view,
   inst_.lights.set_view(view, extent);
   inst_.shadows.set_view(view, extent);
   inst_.volume_probes.set_view(view);
+  inst_.sphere_probes.set_view(view);
 
   /* Update for lighting pass. */
   inst_.hiz_buffer.update();
@@ -1343,6 +1346,7 @@ void PlanarProbePipeline::render(View &view,
   inst_.lights.set_view(view, extent);
   inst_.shadows.set_view(view, extent);
   inst_.volume_probes.set_view(view);
+  inst_.sphere_probes.set_view(view);
 
   inst_.gbuffer.bind(gbuffer_fb);
   inst_.manager->submit(gbuffer_ps_, view);

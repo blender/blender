@@ -83,10 +83,6 @@ struct SeqChannelDrawContext {
 
 void draw_timeline_seq(const bContext *C, ARegion *region);
 void draw_timeline_seq_display(const bContext *C, ARegion *region);
-void color3ubv_from_seq(const Scene *curscene,
-                        const Sequence *seq,
-                        bool show_strip_color_tag,
-                        uchar r_col[3]);
 
 /* `sequencer_preview_draw.cc` */
 

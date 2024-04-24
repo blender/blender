@@ -869,8 +869,8 @@ static void file_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   sfile->previews_timer = nullptr;
   sfile->tags = 0;
   sfile->runtime = nullptr;
-  BLO_read_data_address(reader, &sfile->params);
-  BLO_read_data_address(reader, &sfile->asset_params);
+  BLO_read_struct(reader, FileSelectParams, &sfile->params);
+  BLO_read_struct(reader, FileAssetSelectParams, &sfile->asset_params);
   if (sfile->params) {
     sfile->params->rename_id = nullptr;
   }

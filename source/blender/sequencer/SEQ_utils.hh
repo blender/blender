@@ -10,6 +10,7 @@
 
 #include "DNA_scene_types.h"
 
+struct bSound;
 struct ListBase;
 struct Mask;
 struct Scene;
@@ -32,7 +33,14 @@ Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se);
 Sequence *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool recursive);
 Mask *SEQ_active_mask_get(Scene *scene);
 void SEQ_alpha_mode_from_file_extension(Sequence *seq);
-bool SEQ_sequence_has_source(const Sequence *seq);
+
+/**
+ * Check if an input referenced by this strip is valid (e.g. scene for a scene strip).
+ * Note that this only checks data block references, for missing media referenced
+ * by paths use #media_presence_is_missing.
+ */
+bool SEQ_sequence_has_valid_data(const Sequence *seq);
+
 void SEQ_set_scale_to_fit(const Sequence *seq,
                           int image_width,
                           int image_height,
@@ -47,3 +55,38 @@ void SEQ_set_scale_to_fit(const Sequence *seq,
  * \param scene: Scene in which name must be unique
  */
 void SEQ_ensure_unique_name(Sequence *seq, Scene *scene);
+
+namespace blender::seq {
+
+/**
+ * Check whether a sequence strip has missing media.
+ * Results of the query for this strip will be cached into #MediaPresence cache. The cache
+ * will be created on demand.
+ *
+ * \param scene Scene to query.
+ * \param seq Sequencer strip.
+ * \return True if media file is missing.
+ */
+bool media_presence_is_missing(Scene *scene, const Sequence *seq);
+
+/**
+ * Set or change the missing media cache value for a given strip.
+ */
+void media_presence_set_missing(Scene *scene, const Sequence *seq, bool missing);
+
+/**
+ * Invalidate media presence cache for the given strip.
+ */
+void media_presence_invalidate_strip(Scene *scene, const Sequence *seq);
+
+/**
+ * Invalidate media presence cache for the given sound.
+ */
+void media_presence_invalidate_sound(Scene *scene, const bSound *sound);
+
+/**
+ * Free media presence cache, if it was created.
+ */
+void media_presence_free(Scene *scene);
+
+}  // namespace blender::seq

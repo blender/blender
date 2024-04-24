@@ -1616,11 +1616,11 @@ void SEQ_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
 
 void SEQ_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
 {
-  BLO_read_list(reader, lb);
+  BLO_read_struct_list(reader, SequenceModifierData, lb);
 
   LISTBASE_FOREACH (SequenceModifierData *, smd, lb) {
     if (smd->mask_sequence) {
-      BLO_read_data_address(reader, &smd->mask_sequence);
+      BLO_read_struct(reader, Sequence, &smd->mask_sequence);
     }
 
     if (smd->type == seqModifierType_Curves) {
@@ -1635,7 +1635,7 @@ void SEQ_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
     }
     else if (smd->type == seqModifierType_SoundEqualizer) {
       SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
-      BLO_read_list(reader, &semd->graphics);
+      BLO_read_struct_list(reader, EQCurveMappingData, &semd->graphics);
       LISTBASE_FOREACH (EQCurveMappingData *, eqcmd, &semd->graphics) {
         BKE_curvemapping_blend_read(reader, &eqcmd->curve_mapping);
       }

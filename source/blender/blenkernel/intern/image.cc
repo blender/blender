@@ -398,16 +398,16 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 static void image_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Image *ima = (Image *)id;
-  BLO_read_list(reader, &ima->tiles);
+  BLO_read_struct_list(reader, ImageTile, &ima->tiles);
 
-  BLO_read_list(reader, &(ima->renderslots));
+  BLO_read_struct_list(reader, RenderSlot, &(ima->renderslots));
   if (!BLO_read_data_is_undo(reader)) {
     /* We reset this last render slot index only when actually reading a file, not for undo. */
     ima->last_render_slot = ima->render_slot;
   }
 
-  BLO_read_list(reader, &(ima->views));
-  BLO_read_list(reader, &(ima->packedfiles));
+  BLO_read_struct_list(reader, ImageView, &(ima->views));
+  BLO_read_struct_list(reader, ImagePackedFile, &(ima->packedfiles));
 
   if (ima->packedfiles.first) {
     LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
@@ -420,9 +420,9 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   }
 
   BLI_listbase_clear(&ima->anims);
-  BLO_read_data_address(reader, &ima->preview);
+  BLO_read_struct(reader, PreviewImage, &ima->preview);
   BKE_previewimg_blend_read(reader, ima->preview);
-  BLO_read_data_address(reader, &ima->stereo3d_format);
+  BLO_read_struct(reader, Stereo3dFormat, &ima->stereo3d_format);
 
   ima->lastused = 0;
   ima->gpuflag = 0;

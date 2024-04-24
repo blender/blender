@@ -398,7 +398,7 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
   BevelModifierData *bmd = (BevelModifierData *)md;
 
-  BLO_read_data_address(reader, &bmd->custom_profile);
+  BLO_read_struct(reader, CurveProfile, &bmd->custom_profile);
   if (bmd->custom_profile) {
     BKE_curveprofile_blend_read(reader, bmd->custom_profile);
   }
