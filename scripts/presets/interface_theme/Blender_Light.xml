@@ -823,7 +823,7 @@
         meta_strip="#5b4d91"
         mask_strip="#8f5656"
         text_strip="#824c8f"
-        active_strip="#d9d9d9"
+        active_strip="#ffffff"
         selected_strip="#ff6a00"
         frame_current="#5680c2"
         time_scrub_background="#292929e6"

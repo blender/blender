@@ -20,6 +20,7 @@
 
 #include "BIF_glutil.hh"
 
+#include "SEQ_channels.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
 #include "SEQ_sequencer.hh"
@@ -464,6 +465,9 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     return;
   }
 
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *channels = ed ? SEQ_channels_displayed_get(ed) : nullptr;
+
   const float thumb_height = y2 - y1;
   seq_get_thumb_image_dimensions(
       seq, pixelx, pixely, &thumb_width, thumb_height, &image_width, &image_height);
@@ -479,7 +483,6 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   }
 
   float timeline_frame = SEQ_render_thumbnail_first_frame_get(scene, seq, thumb_width, &v2d->cur);
-  float thumb_x_end;
 
   GSet *last_displayed_thumbnails = last_displayed_thumbnails_list_ensure(C, seq);
   /* Cleanup thumbnail list outside of rendered range, which is cleaned up one by one to prevent
@@ -490,7 +493,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
 
   /* Start drawing. */
   while (timeline_frame < upper_thumb_bound) {
-    thumb_x_end = timeline_frame + thumb_width;
+    float thumb_x_end = timeline_frame + thumb_width;
     clipped = false;
 
     /* Checks to make sure that thumbs are loaded only when in view and within the confines of the
@@ -510,20 +513,17 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     if (thumb_x_end > (upper_thumb_bound)) {
       thumb_x_end = upper_thumb_bound;
       clipped = true;
-      if (thumb_x_end - timeline_frame < 1) {
-        break;
-      }
     }
 
     float zoom_x = thumb_width / image_width;
     float zoom_y = thumb_height / image_height;
 
-    float cropx_min = (cut_off / pixelx) / (zoom_y / pixely);
-    float cropx_max = ((thumb_x_end - timeline_frame) / pixelx) / (zoom_y / pixely);
-    if (cropx_max == (thumb_x_end - timeline_frame)) {
-      cropx_max = cropx_max + 1;
+    int cropx_min = int((cut_off / pixelx) / (zoom_y / pixely));
+    int cropx_max = int(((thumb_x_end - timeline_frame) / pixelx) / (zoom_y / pixely));
+    if (cropx_max < 1) {
+      break;
     }
-    BLI_rcti_init(&crop, int(cropx_min), int(cropx_max), 0, int(image_height) - 1);
+    BLI_rcti_init(&crop, cropx_min, cropx_max - 1, 0, int(image_height) - 1);
 
     /* Get the image. */
     ImBuf *ibuf = SEQ_get_thumbnail(&context, seq, timeline_frame, &crop, clipped);
@@ -548,19 +548,21 @@ void draw_seq_strip_thumbnail(View2D *v2d,
       break;
     }
 
-    /* Transparency on overlap. */
-    if (seq->flag & SEQ_OVERLAP) {
+    /* Transparency on mute. */
+    bool muted = channels ? SEQ_render_is_muted(channels, seq) : false;
+    if (muted) {
+      const uchar alpha = 120;
       GPU_blend(GPU_BLEND_ALPHA);
       if (ibuf->byte_buffer.data) {
         uchar *buf = ibuf->byte_buffer.data;
         for (int pixel = ibuf->x * ibuf->y; pixel--; buf += 4) {
-          buf[3] = OVERLAP_ALPHA;
+          buf[3] = alpha;
         }
       }
       else if (ibuf->float_buffer.data) {
         float *buf = ibuf->float_buffer.data;
         for (int pixel = ibuf->x * ibuf->y; pixel--; buf += ibuf->channels) {
-          buf[3] = (OVERLAP_ALPHA / 255.0f);
+          buf[3] = (alpha / 255.0f);
         }
       }
     }

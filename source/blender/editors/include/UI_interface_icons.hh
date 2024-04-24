@@ -113,6 +113,14 @@ void UI_icon_draw_ex(float x,
                      bool mono_border,
                      const IconTextOverlay *text_overlay);
 
+/**
+ * Draw an monochrome icon into a given coordinate rectangle. The rectangle is used as-is,
+ * and the icon image fills it. Icon is tinted with indicated color. If icon
+ * is not found or the icon type is not monochrome, the function does nothing.
+ */
+void UI_icon_draw_mono_rect(
+    float x, float y, float width, float height, int icon_id, const uchar color[4]);
+
 void UI_icons_free();
 void UI_icons_free_drawinfo(void *drawinfo);
 

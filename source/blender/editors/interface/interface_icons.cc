@@ -1650,7 +1650,6 @@ static void icon_draw_rect(float x,
                            float y,
                            int w,
                            int h,
-                           float /*aspect*/,
                            int rw,
                            int rh,
                            const uint8_t *rect,
@@ -2014,8 +2013,7 @@ static void icon_draw_size(float x,
     const ImBuf *ibuf = static_cast<const ImBuf *>(icon->obj);
 
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
-    icon_draw_rect(
-        x, y, w, h, aspect, ibuf->x, ibuf->y, ibuf->byte_buffer.data, alpha, desaturate);
+    icon_draw_rect(x, y, w, h, ibuf->x, ibuf->y, ibuf->byte_buffer.data, alpha, desaturate);
     GPU_blend(GPU_BLEND_ALPHA);
   }
   else if (di->type == ICON_TYPE_VECTOR) {
@@ -2055,7 +2053,7 @@ static void icon_draw_size(float x,
     }
 
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
-    icon_draw_rect(x, y, w, h, aspect, w, h, ibuf->byte_buffer.data, alpha, desaturate);
+    icon_draw_rect(x, y, w, h, w, h, ibuf->byte_buffer.data, alpha, desaturate);
     GPU_blend(GPU_BLEND_ALPHA);
   }
   else if (di->type == ICON_TYPE_EVENT) {
@@ -2125,7 +2123,7 @@ static void icon_draw_size(float x,
       return;
     }
 
-    icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, desaturate);
+    icon_draw_rect(x, y, w, h, iimg->w, iimg->h, iimg->rect, alpha, desaturate);
   }
   else if (di->type == ICON_TYPE_PREVIEW) {
     PreviewImage *pi = (icon->id_type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) :
@@ -2144,7 +2142,6 @@ static void icon_draw_size(float x,
                      y,
                      w,
                      h,
-                     aspect,
                      pi->w[size],
                      pi->h[size],
                      reinterpret_cast<const uint8_t *>(pi->rect[size]),
@@ -2694,6 +2691,35 @@ void UI_icon_draw_ex(float x,
                  mono_color,
                  mono_border,
                  text_overlay);
+}
+
+void UI_icon_draw_mono_rect(
+    float x, float y, float width, float height, int icon_id, const uchar color[4])
+{
+  Icon *icon = BKE_icon_get(icon_id);
+  if (icon == nullptr) {
+    return;
+  }
+  DrawInfo *di = icon_ensure_drawinfo(icon);
+  if (di->type != ICON_TYPE_MONO_TEXTURE) {
+    return;
+  }
+
+  float fcolor[4];
+  straight_uchar_to_premul_float(fcolor, color);
+
+  icon_draw_texture(x,
+                    y,
+                    width,
+                    height,
+                    di->data.texture.x,
+                    di->data.texture.y,
+                    di->data.texture.w,
+                    di->data.texture.h,
+                    fcolor[3],
+                    fcolor,
+                    false,
+                    nullptr);
 }
 
 void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,

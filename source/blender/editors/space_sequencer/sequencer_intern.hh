@@ -41,7 +41,6 @@ struct Editing;
 struct ListBase;
 
 #define DEFAULT_IMG_STRIP_LENGTH 25 /* XXX arbitrary but ok for now. */
-#define OVERLAP_ALPHA 180
 
 namespace blender::ed::seq {
 

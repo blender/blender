@@ -599,7 +599,7 @@ void SEQ_transform_offset_after_frame(Scene *scene,
   }
 }
 
-bool SEQ_transform_is_locked(ListBase *channels, Sequence *seq)
+bool SEQ_transform_is_locked(ListBase *channels, const Sequence *seq)
 {
   const SeqTimelineChannel *channel = SEQ_channel_get_by_index(channels, seq->machine);
   return seq->flag & SEQ_LOCK ||
