@@ -5525,9 +5525,7 @@ bool SCULPT_handles_colors_report(SculptSession *ss, ReportList *reports)
       BKE_report(reports, RPT_ERROR, "Not supported in multiresolution mode");
       return false;
   }
-
-  BLI_assert_msg(0, "PBVH corruption, type was invalid.");
-
+  BLI_assert_unreachable();
   return false;
 }
 
