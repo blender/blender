@@ -491,6 +491,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(
 
   get_proxy_filepath(rv->anim, rv->proxy_size, filepath, true);
   if (!BLI_file_ensure_parent_dir_exists(filepath)) {
+    MEM_freeN(rv);
     return nullptr;
   }
 
