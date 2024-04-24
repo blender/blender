@@ -169,7 +169,7 @@ class VKRenderGraph : public NonCopyable {
    * Submit partial graph to be able to read the expected result of the rendering commands
    * affecting the given vk_buffer. This method is called from
    * `GPU_texture/storagebuf/indexbuf/vertbuf/_read`. In vulkan the content of images cannot be
-   * read directly and always needs tobe copied to a transfer buffer.
+   * read directly and always needs to be copied to a transfer buffer.
    *
    * After calling this function the mapped memory of the vk_buffer would contain the data of the
    * buffer.

@@ -61,17 +61,17 @@ class VKDevice;
  * Some of the information would be boiler plating; or at least from Blender point of view. To
  * improve lookup performance we use a slimmed down version of the pipeline create info structs.
  * The idea is that we can limit the required data because we control which data we actually use,
- * removing te boiler plating and improve hashing performance better than the VkPipelineCache can
+ * removing the boiler plating and improve hashing performance better than the VkPipelineCache can
  * give us.
  *
  * TODO: Extensions like `VK_EXT_graphics_pipeline_library` should fit in this class and ease the
- * development for graphics pipelines. Geometry in and framebuffer out could be cached separately
+ * development for graphics pipelines. Geometry in and frame-buffer out could be cached separately
  * to reduce pipeline creation times. Most likely we will add support when we work on graphic
  * pipelines. Recent drivers all support this extension, but the full coverage is still <20%. A
  * fallback should made available for older drivers is required.
  *
  * TODO: Creation of shader modules needs to be revisited.
- * VK_EXT_graphics_pipeline_library deprecates the use of shader modules and use the spriv bin
+ * VK_EXT_graphics_pipeline_library deprecates the use of shader modules and use the `spriv` bin
  * directly. In this extension the pipeline and shader module are the same. The current approach
  * should also be revisited as the latest drivers all implement pipeline libraries, but there are
  * some platforms where the driver isn't been updated and doesn't implement this extension. In

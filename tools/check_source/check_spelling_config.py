@@ -568,7 +568,7 @@ dict_custom = {
     "unparent",
 
     # Accepted abbreviations.
-    # "dir",  # direction/directory? Too ambiguous, don't use this.
+    # `"dir",`  # direction/directory? Too ambiguous, don't use this.
     "anim",  # animation.
     "attr",
     "attrs",

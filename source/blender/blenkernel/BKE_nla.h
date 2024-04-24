@@ -511,7 +511,7 @@ void BKE_nla_tweakmode_clear_flags(struct AnimData *adt);
  * the Action.
  *
  * This function just writes to the AnimData-owned data. It is intended to be
- * used in blendfile reading code, which performs a reference count later
+ * used in blend-file reading code, which performs a reference count later
  * anyway.
  */
 void BKE_nla_tweakmode_exit_nofollowptr(AnimData *adt);

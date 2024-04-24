@@ -116,7 +116,7 @@ void FileOutputOperation::deinit_execution()
   const int2 size = int2(get_width(), get_height());
   if (size == int2(0)) {
     for (const FileOutputInput &input : file_output_inputs_) {
-      /* Ownership of outputs buffers are transfered to file outputs, so if we are not writing a
+      /* Ownership of outputs buffers are transferred to file outputs, so if we are not writing a
        * file output, we need to free the output buffer here. */
       if (input.output_buffer) {
         MEM_freeN(input.output_buffer);
@@ -143,7 +143,7 @@ void FileOutputOperation::execute_single_layer()
   for (const FileOutputInput &input : file_output_inputs_) {
     /* We only write images, not single values. */
     if (!input.image_input || input.image_input->get_flags().is_constant_operation) {
-      /* Ownership of outputs buffers are transfered to file outputs, so if we are not writing a
+      /* Ownership of outputs buffers are transferred to file outputs, so if we are not writing a
        * file output, we need to free the output buffer here. */
       if (input.output_buffer) {
         MEM_freeN(input.output_buffer);
@@ -236,7 +236,7 @@ void FileOutputOperation::execute_multi_layer()
   for (const FileOutputInput &input : file_output_inputs_) {
     /* We only write images, not single values. */
     if (!input.image_input || input.image_input->get_flags().is_constant_operation) {
-      /* Ownership of outputs buffers are transfered to file outputs, so if we are not writing a
+      /* Ownership of outputs buffers are transferred to file outputs, so if we are not writing a
        * file output, we need to free the output buffer here. */
       if (input.output_buffer) {
         MEM_freeN(input.output_buffer);
