@@ -291,7 +291,7 @@ struct PartialUpdateData {
 
 static void update_modified_node_mesh(PBVHNode &node, PartialUpdateData &data)
 {
-  const Span<int> verts = BKE_pbvh_node_get_vert_indices(&node);
+  const Span<int> verts = bke::pbvh::node_verts(node);
   if (!data.modified_position_verts.is_empty()) {
     for (const int vert : verts) {
       if (data.modified_position_verts[vert]) {
@@ -352,7 +352,7 @@ static void update_modified_node_mesh(PBVHNode &node, PartialUpdateData &data)
 
 static void update_modified_node_grids(PBVHNode &node, PartialUpdateData &data)
 {
-  const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(node);
+  const Span<int> grid_indices = bke::pbvh::node_grid_indices(node);
   if (std::any_of(grid_indices.begin(), grid_indices.end(), [&](const int grid) {
         return data.modified_grids[grid];
       }))
@@ -1140,7 +1140,7 @@ static size_t alloc_and_store_hidden(const SculptSession *ss, Node *unode)
     return 0;
   }
 
-  const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
+  const Span<int> grid_indices = bke::pbvh::node_grid_indices(*node);
   unode->grid_hidden = BitGroupVector<>(grid_indices.size(), grid_hidden.group_size());
   for (const int i : grid_indices.index_range()) {
     unode->grid_hidden[i].copy_from(grid_hidden[grid_indices[i]]);
@@ -1194,7 +1194,7 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
     unode->mesh_grids_num = ss->subdiv_ccg->grids.size();
     unode->grid_size = ss->subdiv_ccg->grid_size;
 
-    unode->grids = BKE_pbvh_node_get_grid_indices(*node);
+    unode->grids = bke::pbvh::node_grid_indices(*node);
     usculpt->undo_size += unode->grids.as_span().size_in_bytes();
 
     const int grid_area = unode->grid_size * unode->grid_size;
@@ -1203,8 +1203,8 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
   else {
     unode->mesh_verts_num = ss->totvert;
 
-    unode->vert_indices = BKE_pbvh_node_get_vert_indices(node);
-    unode->unique_verts_num = BKE_pbvh_node_get_unique_vert_indices(node).size();
+    unode->vert_indices = bke::pbvh::node_verts(*node);
+    unode->unique_verts_num = bke::pbvh::node_unique_verts(*node).size();
 
     verts_num = unode->vert_indices.size();
 
@@ -1215,7 +1215,7 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
   const bool need_faces = ELEM(type, Type::FaceSet, Type::HideFace);
 
   if (need_loops) {
-    unode->corner_indices = BKE_pbvh_node_get_corner_indices(node);
+    unode->corner_indices = bke::pbvh::node_corners(*node);
     unode->mesh_corners_num = static_cast<Mesh *>(object.data)->corners_num;
 
     usculpt->undo_size += unode->corner_indices.as_span().size_in_bytes();
@@ -1356,7 +1356,7 @@ static void store_hidden(const Object &object, Node *unode)
   }
 
   const PBVHNode *node = static_cast<const PBVHNode *>(unode->node);
-  const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+  const Span<int> verts = bke::pbvh::node_verts(*node);
   for (const int i : verts.index_range()) {
     unode->vert_hidden[i].set(hide_vert[verts[i]]);
   }

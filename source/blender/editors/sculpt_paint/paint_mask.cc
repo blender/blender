@@ -145,7 +145,7 @@ static Span<int> get_visible_verts(const PBVHNode &node,
   if (BKE_pbvh_node_fully_hidden_get(&node)) {
     return {};
   }
-  const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(&node);
+  const Span<int> verts = bke::pbvh::node_unique_verts(node);
   if (hide_vert.is_empty()) {
     return verts;
   }
@@ -164,7 +164,7 @@ static Span<int> get_hidden_verts(const PBVHNode &node,
   if (hide_vert.is_empty()) {
     return {};
   }
-  const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(&node);
+  const Span<int> verts = bke::pbvh::node_unique_verts(node);
   if (BKE_pbvh_node_fully_hidden_get(&node)) {
     return verts;
   }
@@ -215,7 +215,7 @@ static bool try_remove_mask_mesh(Object &object, const Span<PBVHNode *> nodes)
   /* Store undo data for nodes with changed mask. */
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(node);
+      const Span<int> verts = bke::pbvh::node_unique_verts(*node);
       if (std::all_of(verts.begin(), verts.end(), [&](const int i) { return mask[i] == 0.0f; })) {
         continue;
       }
@@ -283,7 +283,7 @@ static void fill_mask_grids(Main &bmain,
   bool any_changed = false;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
+      const Span<int> grid_indices = bke::pbvh::node_grid_indices(*node);
       if (std::all_of(grid_indices.begin(), grid_indices.end(), [&](const int grid) {
             CCGElem *elem = grids[grid];
             for (const int i : IndexRange(key.grid_area)) {
@@ -390,7 +390,7 @@ static void invert_mask_mesh(Object &object, const Span<PBVHNode *> nodes)
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
       undo::push_node(object, node, undo::Type::Mask);
-      for (const int vert : BKE_pbvh_node_get_unique_vert_indices(node)) {
+      for (const int vert : bke::pbvh::node_unique_verts(*node)) {
         if (!hide_vert.is_empty() && hide_vert[vert]) {
           continue;
         }
@@ -422,7 +422,7 @@ static void invert_mask_grids(Main &bmain,
     for (PBVHNode *node : nodes.slice(range)) {
       undo::push_node(object, node, undo::Type::Mask);
 
-      const Span<int> grid_indices = BKE_pbvh_node_get_grid_indices(*node);
+      const Span<int> grid_indices = bke::pbvh::node_grid_indices(*node);
       if (grid_hidden.is_empty()) {
         for (const int grid : grid_indices) {
           CCGElem *elem = grids[grid];

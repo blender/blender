@@ -329,7 +329,7 @@ void ensure_valid_pivot(const Object *ob, Scene *scene)
 
   /* No valid pivot? Use bounding box center. */
   if (ups->average_stroke_counter == 0 || !ups->last_stroke_valid) {
-    const Bounds<float3> bounds = BKE_pbvh_bounding_box(ob->sculpt->pbvh);
+    const Bounds<float3> bounds = bke::pbvh::bounds_get(*ob->sculpt->pbvh);
     const float3 center = math::midpoint(bounds.min, bounds.max);
     const float3 location = math::transform_point(ob->object_to_world(), center);
 

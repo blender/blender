@@ -220,13 +220,12 @@ void draw_cb(const Mesh &mesh,
              const PBVHFrustumPlanes &draw_frustum,
              FunctionRef<void(draw::pbvh::PBVHBatches *batches,
                               const draw::pbvh::PBVH_GPU_Args &args)> draw_fn);
-
-}  // namespace blender::bke::pbvh
-
 /**
  * Get the PBVH root's bounding box.
  */
-blender::Bounds<blender::float3> BKE_pbvh_bounding_box(const PBVH *pbvh);
+Bounds<float3> bounds_get(const PBVH &pbvh);
+
+}  // namespace blender::bke::pbvh
 
 void BKE_pbvh_sync_visibility_from_verts(PBVH *pbvh, Mesh *mesh);
 
@@ -296,14 +295,13 @@ bool BKE_pbvh_node_fully_unmasked_get(const PBVHNode *node);
 
 void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh);
 
-blender::Span<int> BKE_pbvh_node_get_grid_indices(const PBVHNode &node);
-
-int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node);
-blender::Span<int> BKE_pbvh_node_get_vert_indices(const PBVHNode *node);
-blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node);
-blender::Span<int> BKE_pbvh_node_get_corner_indices(const PBVHNode *node);
-
 namespace blender::bke::pbvh {
+
+Span<int> node_grid_indices(const PBVHNode &node);
+
+Span<int> node_verts(const PBVHNode &node);
+Span<int> node_unique_verts(const PBVHNode &node);
+Span<int> node_corners(const PBVHNode &node);
 
 /**
  * Gather the indices of all faces (not triangles) used by the node.
@@ -317,9 +315,10 @@ Span<int> node_face_indices_calc_mesh(const PBVH &pbvh, const PBVHNode &node, Ve
  */
 Span<int> node_face_indices_calc_grids(const PBVH &pbvh, const PBVHNode &node, Vector<int> &faces);
 
+Bounds<float3> node_bounds(const PBVHNode &node);
+
 }  // namespace blender::bke::pbvh
 
-blender::Bounds<blender::float3> BKE_pbvh_node_get_BB(const PBVHNode *node);
 blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node);
 
 float BKE_pbvh_node_get_tmin(const PBVHNode *node);

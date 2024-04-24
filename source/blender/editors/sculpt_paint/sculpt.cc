@@ -1309,7 +1309,7 @@ static void restore_mask(Object &object, const Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (PBVHNode *node : nodes.slice(range)) {
           if (undo::Node *unode = undo::get_node(node, undo::Type::Mask)) {
-            const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(node);
+            const Span<int> verts = bke::pbvh::node_unique_verts(*node);
             array_utils::scatter(unode->mask.as_span(), verts, mask.span);
             BKE_pbvh_node_mark_update_mask(node);
           }
@@ -1441,7 +1441,7 @@ static void restore_position(Object &object, const Span<PBVHNode *> nodes)
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (PBVHNode *node : nodes.slice(range)) {
           if (undo::Node *unode = undo::get_node(node, undo::Type::Position)) {
-            const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(node);
+            const Span<int> verts = bke::pbvh::node_unique_verts(*node);
             array_utils::scatter(unode->position.as_span(), verts, positions);
             BKE_pbvh_node_mark_positions_update(node);
           }
@@ -2587,18 +2587,18 @@ bool node_in_sphere(const PBVHNode &node,
                     const bool original)
 {
   const Bounds<float3> bounds = original ? BKE_pbvh_node_get_original_BB(&node) :
-                                           BKE_pbvh_node_get_BB(&node);
+                                           bke::pbvh::node_bounds(node);
   const float3 nearest = math::clamp(location, bounds.min, bounds.max);
   return math::distance_squared(location, nearest) < radius_sq;
 }
 
 bool node_in_cylinder(const DistRayAABB_Precalc &ray_dist_precalc,
                       const PBVHNode &node,
-                      float radius_sq,
-                      bool original)
+                      const float radius_sq,
+                      const bool original)
 {
   const Bounds<float3> bounds = (original) ? BKE_pbvh_node_get_original_BB(&node) :
-                                             BKE_pbvh_node_get_BB(&node);
+                                             bke::pbvh::node_bounds(node);
 
   float dummy_co[3], dummy_depth;
   const float dist_sq = dist_squared_ray_to_aabb_v3(
@@ -5374,7 +5374,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
         mesh->tag_positions_changed();
       }
 
-      mesh->bounds_set_eager(BKE_pbvh_bounding_box(ob->sculpt->pbvh));
+      mesh->bounds_set_eager(bke::pbvh::bounds_get(*ob->sculpt->pbvh));
       if (ob->runtime->bounds_eval) {
         ob->runtime->bounds_eval = mesh->bounds_min_max();
       }

@@ -132,7 +132,7 @@ void mesh_show_all(Object &object, const Span<PBVHNode *> nodes)
     const VArraySpan hide_vert(attribute);
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (PBVHNode *node : nodes.slice(range)) {
-        const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
+        const Span<int> verts = bke::pbvh::node_verts(*node);
         if (std::any_of(verts.begin(), verts.end(), [&](const int i) { return hide_vert[i]; })) {
           undo::push_node(object, node, undo::Type::HideVert);
           BKE_pbvh_node_mark_rebuild_draw(node);
@@ -157,7 +157,7 @@ void grids_show_all(Depsgraph &depsgraph, Object &object, const Span<PBVHNode *>
   if (!grid_hidden.is_empty()) {
     threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
       for (PBVHNode *node : nodes.slice(range)) {
-        const Span<int> grids = BKE_pbvh_node_get_grid_indices(*node);
+        const Span<int> grids = bke::pbvh::node_grid_indices(*node);
         if (std::any_of(grids.begin(), grids.end(), [&](const int i) {
               return bits::any_bit_set(grid_hidden[i]);
             }))
@@ -211,7 +211,7 @@ static void vert_hide_update(Object &object,
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     Vector<bool> &new_hide = all_new_hide.local();
     for (PBVHNode *node : nodes.slice(range)) {
-      const Span<int> verts = BKE_pbvh_node_get_unique_vert_indices(node);
+      const Span<int> verts = bke::pbvh::node_unique_verts(*node);
 
       new_hide.reinitialize(verts.size());
       array_utils::gather(hide_vert.span.as_span(), verts, new_hide.as_mutable_span());
@@ -248,7 +248,7 @@ static void grid_hide_update(Depsgraph &depsgraph,
   bool any_changed = false;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      const Span<int> grids = BKE_pbvh_node_get_grid_indices(*node);
+      const Span<int> grids = bke::pbvh::node_grid_indices(*node);
       BitGroupVector<> new_hide(grids.size(), grid_hidden.group_size());
       for (const int i : grids.index_range()) {
         new_hide[i].copy_from(grid_hidden[grids[i]].as_span());
@@ -644,7 +644,7 @@ static void invert_visibility_grids(Depsgraph &depsgraph,
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
       undo::push_node(object, node, undo::Type::HideVert);
-      for (const int i : BKE_pbvh_node_get_grid_indices(*node)) {
+      for (const int i : bke::pbvh::node_grid_indices(*node)) {
         bits::invert(grid_hidden[i]);
       }
       BKE_pbvh_node_mark_update_visibility(node);
