@@ -232,7 +232,7 @@ class GeoNodeExecParams {
         return data->call_data->modifier_data->depsgraph;
       }
       if (data->call_data->operator_data) {
-        return data->call_data->operator_data->depsgraph;
+        return data->call_data->operator_data->depsgraphs->active;
       }
     }
     return nullptr;

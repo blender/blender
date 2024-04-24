@@ -1055,6 +1055,20 @@ bool BKE_collection_has_object_recursive_instanced(Collection *collection, Objec
   return BLI_findptr(&objects, ob, offsetof(Base, object));
 }
 
+bool BKE_collection_has_object_recursive_instanced_orig_id(Collection *collection_eval,
+                                                           Object *object_eval)
+{
+  BLI_assert(collection_eval->id.tag & LIB_TAG_COPIED_ON_EVAL);
+  const ID *ob_orig = DEG_get_original_id(&object_eval->id);
+  const ListBase objects = BKE_collection_object_cache_instanced_get(collection_eval);
+  LISTBASE_FOREACH (Base *, base, &objects) {
+    if (DEG_get_original_id(&base->object->id) == ob_orig) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static Collection *collection_next_find(Main *bmain, Scene *scene, Collection *collection)
 {
   if (scene && collection == scene->master_collection) {
