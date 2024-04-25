@@ -2624,7 +2624,6 @@ int UI_icon_from_object_mode(const int mode)
       return ICON_PARTICLEMODE;
     case OB_MODE_POSE:
       return ICON_POSE_HLT;
-    case OB_MODE_PAINT_GREASE_PENCIL:
     case OB_MODE_PAINT_GPENCIL_LEGACY:
       return ICON_GREASEPENCIL;
   }

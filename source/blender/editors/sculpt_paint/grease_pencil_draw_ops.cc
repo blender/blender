@@ -325,91 +325,6 @@ static void GREASE_PENCIL_OT_sculpt_paint(wmOperatorType *ot)
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name Toggle Draw Mode
- * \{ */
-
-static bool grease_pencil_mode_poll_paint_cursor(bContext *C)
-{
-  if (!grease_pencil_brush_stroke_poll(C)) {
-    return false;
-  }
-  if (CTX_wm_region_view3d(C) == nullptr) {
-    return false;
-  }
-  return true;
-}
-
-static void grease_pencil_draw_mode_enter(bContext *C)
-{
-  Scene *scene = CTX_data_scene(C);
-  wmMsgBus *mbus = CTX_wm_message_bus(C);
-
-  Object *ob = CTX_data_active_object(C);
-  GpPaint *grease_pencil_paint = scene->toolsettings->gp_paint;
-  BKE_paint_ensure(scene->toolsettings, (Paint **)&grease_pencil_paint);
-
-  ob->mode = OB_MODE_PAINT_GREASE_PENCIL;
-
-  /* TODO: Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
-  ED_paint_cursor_start(&grease_pencil_paint->paint, grease_pencil_mode_poll_paint_cursor);
-  paint_init_pivot(ob, scene);
-
-  /* Necessary to change the object mode on the evaluated object. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
-  WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
-  WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
-}
-
-static void grease_pencil_draw_mode_exit(bContext *C)
-{
-  Object *ob = CTX_data_active_object(C);
-  ob->mode = OB_MODE_OBJECT;
-}
-
-static int grease_pencil_draw_mode_toggle_exec(bContext *C, wmOperator *op)
-{
-  Object *ob = CTX_data_active_object(C);
-  wmMsgBus *mbus = CTX_wm_message_bus(C);
-
-  const bool is_mode_set = ob->mode == OB_MODE_PAINT_GREASE_PENCIL;
-
-  if (is_mode_set) {
-    if (!object::mode_compat_set(C, ob, OB_MODE_PAINT_GREASE_PENCIL, op->reports)) {
-      return OPERATOR_CANCELLED;
-    }
-  }
-
-  if (is_mode_set) {
-    grease_pencil_draw_mode_exit(C);
-  }
-  else {
-    grease_pencil_draw_mode_enter(C);
-  }
-
-  WM_toolsystem_update_from_context_view3d(C);
-
-  /* Necessary to change the object mode on the evaluated object. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
-  WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
-  WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
-  return OPERATOR_FINISHED;
-}
-
-static void GREASE_PENCIL_OT_draw_mode_toggle(wmOperatorType *ot)
-{
-  ot->name = "Grease Pencil Draw Mode Toggle";
-  ot->idname = "GREASE_PENCIL_OT_draw_mode_toggle";
-  ot->description = "Enter/Exit draw mode for grease pencil";
-
-  ot->exec = grease_pencil_draw_mode_toggle_exec;
-  ot->poll = ed::greasepencil::active_grease_pencil_poll;
-
-  ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
-}
-
-/** \} */
-
 }  // namespace blender::ed::sculpt_paint
 
 /* -------------------------------------------------------------------- */
@@ -421,7 +336,6 @@ void ED_operatortypes_grease_pencil_draw()
   using namespace blender::ed::sculpt_paint;
   WM_operatortype_append(GREASE_PENCIL_OT_brush_stroke);
   WM_operatortype_append(GREASE_PENCIL_OT_sculpt_paint);
-  WM_operatortype_append(GREASE_PENCIL_OT_draw_mode_toggle);
 }
 
 /** \} */

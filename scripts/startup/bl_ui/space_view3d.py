@@ -725,7 +725,7 @@ class VIEW3D_HT_header(Header):
         else:
             if (object_mode not in {
                     'SCULPT', 'SCULPT_CURVES', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT',
-                    'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL', 'PAINT_GREASE_PENCIL',
+                    'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL',
             }) or has_pose_mode:
                 show_snap = True
             else:
@@ -870,11 +870,11 @@ class VIEW3D_HT_header(Header):
                     depress=(tool_settings.gpencil_selectmode_edit == 'STROKE'),
                 ).mode = 'STROKE'
 
-            if object_mode == 'PAINT_GREASE_PENCIL':
+            if object_mode == 'PAINT_GPENCIL':
                 row = layout.row(align=True)
                 row.prop(tool_settings, "use_gpencil_draw_additive", text="", icon='FREEZE')
 
-            if object_mode in {'PAINT_GREASE_PENCIL', 'EDIT', 'WEIGHT_PAINT'}:
+            if object_mode in {'PAINT_GPENCIL', 'EDIT', 'WEIGHT_PAINT'}:
                 row = layout.row(align=True)
                 row.prop(tool_settings, "use_grease_pencil_multi_frame_editing", text="")
 
@@ -961,9 +961,9 @@ class VIEW3D_HT_header(Header):
 
         layout.separator_spacer()
 
-        if object_mode in {'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'PAINT_GREASE_PENCIL'}:
+        if object_mode in {'PAINT_GPENCIL', 'SCULPT_GPENCIL'}:
             # Grease pencil
-            if object_mode in {'PAINT_GPENCIL', 'PAINT_GREASE_PENCIL'}:
+            if object_mode == 'PAINT_GPENCIL':
                 sub = layout.row(align=True)
                 sub.prop_with_popover(
                     tool_settings,
@@ -972,7 +972,7 @@ class VIEW3D_HT_header(Header):
                     panel="VIEW3D_PT_gpencil_origin",
                 )
 
-            if object_mode in {'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'PAINT_GREASE_PENCIL'}:
+            if object_mode in {'PAINT_GPENCIL', 'SCULPT_GPENCIL'}:
                 sub = layout.row(align=True)
                 sub.active = tool_settings.gpencil_stroke_placement_view3d != 'SURFACE'
                 sub.prop_with_popover(
@@ -985,7 +985,8 @@ class VIEW3D_HT_header(Header):
             if object_mode == 'PAINT_GPENCIL':
                 # FIXME: this is bad practice!
                 # Tool options are to be displayed in the top-bar.
-                if context.workspace.tools.from_space_view3d_mode(object_mode).idname == "builtin_brush.Draw":
+                tool = context.workspace.tools.from_space_view3d_mode(object_mode)
+                if tool and tool.idname == "builtin_brush.Draw":
                     settings = tool_settings.gpencil_sculpt.guide
                     row = layout.row(align=True)
                     row.prop(settings, "use_guide", text="", icon='GRID')
@@ -1166,7 +1167,7 @@ class VIEW3D_MT_editor_menus(Menu):
         obj = context.active_object
         mode_string = context.mode
         edit_object = context.edit_object
-        gp_edit = obj and obj.mode in {
+        gp_edit = obj and obj.type == 'GPENCIL' and obj.mode in {
             'EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL',
         }
         tool_settings = context.tool_settings

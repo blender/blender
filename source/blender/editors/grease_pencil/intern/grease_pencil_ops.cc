@@ -72,7 +72,7 @@ bool grease_pencil_painting_poll(bContext *C)
     return false;
   }
   Object *object = CTX_data_active_object(C);
-  if ((object->mode & OB_MODE_PAINT_GREASE_PENCIL) == 0) {
+  if ((object->mode & OB_MODE_PAINT_GPENCIL_LEGACY) == 0) {
     return false;
   }
   ToolSettings *ts = CTX_data_tool_settings(C);
