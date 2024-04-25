@@ -527,8 +527,7 @@ void calc_pose_data(Object *ob,
   SCULPT_vertex_random_access_ensure(ss);
 
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
-  flood_fill::FillData flood;
-  flood_fill::init_fill(ss, &flood);
+  flood_fill::FillData flood = flood_fill::init_fill(ss);
   flood_fill::add_active(ob, ss, &flood, (r_pose_factor) ? radius : 0.0f);
 
   PoseFloodFillData fdata{};
@@ -734,8 +733,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(Object *ob,
 
   for (int s = 0; s < ik_chain->tot_segments; s++) {
 
-    flood_fill::FillData flood;
-    flood_fill::init_fill(ss, &flood);
+    flood_fill::FillData flood = flood_fill::init_fill(ss);
     flood_fill::add_initial_with_symmetry(ob, ss, &flood, current_vertex, FLT_MAX);
 
     BLI_gset_add(visited_face_sets, POINTER_FROM_INT(current_face_set));
@@ -860,8 +858,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
   fdata.masked_face_set_it = 0;
   fdata.visited_face_sets = BLI_gset_int_new_ex("visited_face_sets", 3);
   {
-    flood_fill::FillData flood;
-    flood_fill::init_fill(ss, &flood);
+    flood_fill::FillData flood = flood_fill::init_fill(ss);
     flood_fill::add_initial(&flood, active_vertex);
     flood_fill::execute(
         ss,
@@ -923,8 +920,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
   }
 
   {
-    flood_fill::FillData flood;
-    flood_fill::init_fill(ss, &flood);
+    flood_fill::FillData flood = flood_fill::init_fill(ss);
     flood_fill::add_active(ob, ss, &flood, radius);
     fdata.fk_weights = ik_chain->segments[0].weights;
     flood_fill::execute(

@@ -626,8 +626,7 @@ static void topology_automasking_init(const Sculpt *sd, Object *ob)
 
   /* Flood fill automask to connected vertices. Limited to vertices inside
    * the brush radius if the tool requires it. */
-  flood_fill::FillData flood;
-  flood_fill::init_fill(ss, &flood);
+  flood_fill::FillData flood = flood_fill::init_fill(ss);
   const float radius = ss->cache ? ss->cache->radius : FLT_MAX;
   flood_fill::add_active(ob, ss, &flood, radius);
 

@@ -493,8 +493,7 @@ static Array<float> sculpt_expand_topology_falloff_create(Object *ob, const PBVH
   const int totvert = SCULPT_vertex_count_get(ss);
   Array<float> dists(totvert, 0.0f);
 
-  flood_fill::FillData flood;
-  flood_fill::init_fill(ss, &flood);
+  flood_fill::FillData flood = flood_fill::init_fill(ss);
   flood_fill::add_initial_with_symmetry(ob, ss, &flood, v, FLT_MAX);
 
   flood_fill::execute(
@@ -548,8 +547,7 @@ static Array<float> sculpt_expand_normal_falloff_create(Object *ob,
   Array<float> dists(totvert, 0.0f);
   Array<float> edge_factor(totvert, 1.0f);
 
-  flood_fill::FillData flood;
-  flood_fill::init_fill(ss, &flood);
+  flood_fill::FillData flood = flood_fill::init_fill(ss);
   flood_fill::add_initial_with_symmetry(ob, ss, &flood, v, FLT_MAX);
 
   ExpandFloodFillData fdata;
@@ -901,8 +899,7 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
   expand_cache->vert_falloff.fill(0);
   const BitVector<> boundary_verts = sculpt_expand_boundary_from_enabled(ss, enabled_verts, false);
 
-  flood_fill::FillData flood;
-  flood_fill::init_fill(ss, &flood);
+  flood_fill::FillData flood = flood_fill::init_fill(ss);
   for (int i = 0; i < totvert; i++) {
     if (!boundary_verts[i]) {
       continue;

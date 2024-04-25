@@ -87,8 +87,7 @@ static PBVHVertRef sculpt_boundary_get_closest_boundary_vertex(SculptSession *ss
     return initial_vertex;
   }
 
-  flood_fill::FillData flood;
-  flood_fill::init_fill(ss, &flood);
+  flood_fill::FillData flood = flood_fill::init_fill(ss);
   flood_fill::add_initial(&flood, initial_vertex);
 
   BoundaryInitialVertexFloodFillData fdata{};
@@ -247,8 +246,7 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
       MEM_malloc_arrayN(BOUNDARY_INDICES_BLOCK_SIZE, sizeof(SculptBoundaryPreviewEdge), __func__));
 
   GSet *included_verts = BLI_gset_int_new_ex("included verts", BOUNDARY_INDICES_BLOCK_SIZE);
-  flood_fill::FillData flood;
-  flood_fill::init_fill(ss, &flood);
+  flood_fill::FillData flood = flood_fill::init_fill(ss);
 
   int initial_boundary_index = BKE_pbvh_vertex_to_index(ss->pbvh, initial_boundary_vertex);
 

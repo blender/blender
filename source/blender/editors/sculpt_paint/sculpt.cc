@@ -1008,10 +1008,12 @@ namespace blender::ed::sculpt_paint {
 
 namespace flood_fill {
 
-void init_fill(SculptSession *ss, FillData *flood)
+FillData init_fill(SculptSession *ss)
 {
   SCULPT_vertex_random_access_ensure(ss);
-  flood->visited_verts.resize(SCULPT_vertex_count_get(ss));
+  FillData data;
+  data.visited_verts.resize(SCULPT_vertex_count_get(ss));
+  return data;
 }
 
 void add_initial(FillData *flood, PBVHVertRef vertex)

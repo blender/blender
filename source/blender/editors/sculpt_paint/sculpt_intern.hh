@@ -1174,7 +1174,7 @@ struct FillData {
   blender::BitVector<> visited_verts;
 };
 
-void init_fill(SculptSession *ss, FillData *flood);
+FillData init_fill(SculptSession *ss);
 void add_active(Object *ob, SculptSession *ss, FillData *flood, float radius);
 void add_initial_with_symmetry(
     Object *ob, SculptSession *ss, FillData *flood, PBVHVertRef vertex, float radius);
