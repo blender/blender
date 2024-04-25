@@ -354,7 +354,7 @@ struct PoseFloodFillData {
   bool next_face_set_found;
 
   /* Store the visited face sets to avoid going back when calculating the chain. */
-  GSet *visited_face_sets;
+  Set<int> *visited_face_sets;
 
   /* In face sets origin mode, each vertex can only be assigned to one face set. */
   MutableBoundedBitSpan is_weighted;
@@ -440,11 +440,11 @@ static bool pose_face_sets_floodfill_cb(SculptSession *ss,
             co, data->pose_initial_co, data->radius, data->symm))
     {
       const int visited_face_set = face_set::vert_face_set_get(ss, vertex);
-      BLI_gset_add(data->visited_face_sets, POINTER_FROM_INT(visited_face_set));
+      data->visited_face_sets->add(visited_face_set);
     }
     else if (symmetry_check) {
       data->current_face_set = face_set::vert_face_set_get(ss, vertex);
-      BLI_gset_add(data->visited_face_sets, POINTER_FROM_INT(data->current_face_set));
+      data->visited_face_sets->add(data->current_face_set);
     }
     return true;
   }
@@ -454,9 +454,7 @@ static bool pose_face_sets_floodfill_cb(SculptSession *ss,
    * still not be finished in some of them. */
   bool is_vertex_valid = false;
   if (data->is_first_iteration) {
-    GSetIterator gs_iter;
-    GSET_ITER (gs_iter, data->visited_face_sets) {
-      const int visited_face_set = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+    for (const int visited_face_set : *data->visited_face_sets) {
       is_vertex_valid |= face_set::vert_has_face_set(ss, vertex, visited_face_set);
     }
   }
@@ -494,7 +492,7 @@ static bool pose_face_sets_floodfill_cb(SculptSession *ss,
 
     /* Check if we can get a valid face set for the next iteration from this neighbor. */
     if (face_set::vert_has_unique_face_set(ss, ni.vertex) &&
-        !BLI_gset_haskey(data->visited_face_sets, POINTER_FROM_INT(next_face_set_candidate)))
+        !data->visited_face_sets->contains(next_face_set_candidate))
     {
       if (!data->next_face_set_found) {
         data->next_face_set = next_face_set_candidate;
@@ -722,7 +720,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(Object *ob,
 
   SculptPoseIKChain *ik_chain = pose_ik_chain_new(tot_segments, totvert);
 
-  GSet *visited_face_sets = BLI_gset_int_new_ex("visited_face_sets", ik_chain->tot_segments);
+  Set<int> visited_face_sets;
 
   BitVector<> is_weighted(totvert);
 
@@ -736,7 +734,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(Object *ob,
     flood_fill::FillData flood = flood_fill::init_fill(ss);
     flood_fill::add_initial_with_symmetry(ob, ss, &flood, current_vertex, FLT_MAX);
 
-    BLI_gset_add(visited_face_sets, POINTER_FROM_INT(current_face_set));
+    visited_face_sets.add(current_face_set);
 
     PoseFloodFillData fdata{};
     fdata.radius = radius;
@@ -746,7 +744,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(Object *ob,
     fdata.fallback_count = 0;
     fdata.current_face_set = current_face_set;
     fdata.prev_face_set = prev_face_set;
-    fdata.visited_face_sets = visited_face_sets;
+    fdata.visited_face_sets = &visited_face_sets;
     fdata.is_weighted = is_weighted;
     fdata.next_face_set_found = false;
     fdata.is_first_iteration = s == 0;
@@ -778,8 +776,6 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(Object *ob,
     current_vertex = fdata.next_vertex;
   }
 
-  BLI_gset_free(visited_face_sets, nullptr);
-
   pose_ik_chain_origin_heads_init(ik_chain, SCULPT_active_vertex_co_get(ss));
 
   return ik_chain;
@@ -802,13 +798,13 @@ static bool pose_face_sets_fk_find_masked_floodfill_cb(SculptSession *ss,
   }
 
   const int to_face_set = face_set::vert_face_set_get(ss, to_v);
-  if (!BLI_gset_haskey(data->visited_face_sets, POINTER_FROM_INT(to_face_set))) {
+  if (!data->visited_face_sets->contains(to_face_set)) {
     if (face_set::vert_has_unique_face_set(ss, to_v) &&
         !face_set::vert_has_unique_face_set(ss, from_v) &&
         face_set::vert_has_face_set(ss, from_v, to_face_set))
     {
 
-      BLI_gset_add(data->visited_face_sets, POINTER_FROM_INT(to_face_set));
+      data->visited_face_sets->add(to_face_set);
 
       if (data->floodfill_it[to_v_i] >= data->masked_face_set_it) {
         data->masked_face_set = to_face_set;
@@ -849,6 +845,8 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
 
   const int active_face_set = face_set::active_face_set_get(ss);
 
+  Set<int> visited_face_sets;
+
   PoseFloodFillData fdata;
   fdata.floodfill_it = static_cast<int *>(MEM_calloc_arrayN(totvert, sizeof(int), __func__));
   fdata.floodfill_it[active_vertex_index] = 1;
@@ -856,7 +854,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
   fdata.masked_face_set = SCULPT_FACE_SET_NONE;
   fdata.target_face_set = SCULPT_FACE_SET_NONE;
   fdata.masked_face_set_it = 0;
-  fdata.visited_face_sets = BLI_gset_int_new_ex("visited_face_sets", 3);
+  fdata.visited_face_sets = &visited_face_sets;
   {
     flood_fill::FillData flood = flood_fill::init_fill(ss);
     flood_fill::add_initial(&flood, active_vertex);
@@ -868,7 +866,6 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
               ss, from_v, to_v, is_duplicate, &fdata);
         });
   }
-  BLI_gset_free(fdata.visited_face_sets, nullptr);
 
   int origin_count = 0;
   float origin_acc[3] = {0.0f};
