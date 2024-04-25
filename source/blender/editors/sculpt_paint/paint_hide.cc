@@ -216,7 +216,7 @@ static void vert_hide_update(Object &object,
       new_hide.reinitialize(verts.size());
       array_utils::gather(hide_vert.span.as_span(), verts, new_hide.as_mutable_span());
       calc_hide(verts, new_hide);
-      if (!array_utils::indexed_data_equal<bool>(hide_vert.span, verts, new_hide)) {
+      if (array_utils::indexed_data_equal<bool>(hide_vert.span, verts, new_hide)) {
         continue;
       }
 
