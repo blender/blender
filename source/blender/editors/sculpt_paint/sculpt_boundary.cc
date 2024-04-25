@@ -98,10 +98,9 @@ static PBVHVertRef sculpt_boundary_get_closest_boundary_vertex(SculptSession *ss
 
   fdata.floodfill_steps = MEM_cnew_array<int>(SCULPT_vertex_count_get(ss), __func__);
 
-  flood_fill::execute(
-      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-        return boundary_initial_vertex_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
-      });
+  flood_fill::execute(ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+    return boundary_initial_vertex_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
+  });
 
   MEM_freeN(fdata.floodfill_steps);
   return fdata.boundary_initial_vertex;
@@ -264,10 +263,9 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
   fdata.included_verts = included_verts;
   fdata.last_visited_vertex = {BOUNDARY_VERTEX_NONE};
 
-  flood_fill::execute(
-      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-        return boundary_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
-      });
+  flood_fill::execute(ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+    return boundary_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
+  });
 
   /* Check if the boundary loops into itself and add the extra preview edge to close the loop. */
   if (fdata.last_visited_vertex.i != BOUNDARY_VERTEX_NONE &&

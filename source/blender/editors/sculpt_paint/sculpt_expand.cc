@@ -496,10 +496,9 @@ static Array<float> sculpt_expand_topology_falloff_create(Object *ob, const PBVH
   flood_fill::FillData flood = flood_fill::init_fill(ss);
   flood_fill::add_initial_with_symmetry(ob, ss, &flood, v, FLT_MAX);
 
-  flood_fill::execute(
-      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-        return expand_topology_floodfill_cb(ss, from_v, to_v, is_duplicate, dists);
-      });
+  flood_fill::execute(ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+    return expand_topology_floodfill_cb(ss, from_v, to_v, is_duplicate, dists);
+  });
 
   return dists;
 }
@@ -556,10 +555,9 @@ static Array<float> sculpt_expand_normal_falloff_create(Object *ob,
   fdata.edge_sensitivity = edge_sensitivity;
   SCULPT_vertex_normal_get(ss, v, fdata.original_normal);
 
-  flood_fill::execute(
-      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-        return mask_expand_normal_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
-      });
+  flood_fill::execute(ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+    return mask_expand_normal_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
+  });
 
   for (int repeat = 0; repeat < blur_steps; repeat++) {
     for (int i = 0; i < totvert; i++) {
@@ -910,10 +908,9 @@ static void sculpt_expand_topology_from_state_boundary(Object *ob,
   }
 
   MutableSpan<float> dists = expand_cache->vert_falloff;
-  flood_fill::execute(
-      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-        return expand_topology_floodfill_cb(ss, from_v, to_v, is_duplicate, dists);
-      });
+  flood_fill::execute(ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+    return expand_topology_floodfill_cb(ss, from_v, to_v, is_duplicate, dists);
+  });
 }
 
 /**

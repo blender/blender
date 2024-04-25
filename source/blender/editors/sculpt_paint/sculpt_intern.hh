@@ -1180,11 +1180,9 @@ void add_initial_with_symmetry(
     Object *ob, SculptSession *ss, FillData *flood, PBVHVertRef vertex, float radius);
 void add_initial(FillData *flood, PBVHVertRef vertex);
 void add_and_skip_initial(FillData *flood, PBVHVertRef vertex);
-void execute(
-    SculptSession *ss,
-    FillData *flood,
-    FunctionRef<bool(SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)>
-        func);
+void execute(SculptSession *ss,
+             FillData *flood,
+             FunctionRef<bool(PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)> func);
 
 }
 

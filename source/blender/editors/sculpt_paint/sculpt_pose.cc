@@ -527,10 +527,9 @@ void calc_pose_data(Object *ob,
   zero_v3(fdata.pose_origin);
   copy_v3_v3(fdata.pose_initial_co, initial_location);
   copy_v3_v3(fdata.fallback_floodfill_origin, initial_location);
-  flood_fill::execute(
-      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-        return pose_topology_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
-      });
+  flood_fill::execute(ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+    return pose_topology_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
+  });
 
   if (fdata.tot_co > 0) {
     mul_v3_fl(fdata.pose_origin, 1.0f / float(fdata.tot_co));
@@ -738,12 +737,9 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets(Object *o
     zero_v3(fdata.pose_origin);
     zero_v3(fdata.fallback_origin);
     copy_v3_v3(fdata.pose_initial_co, SCULPT_vertex_co_get(ss, current_vertex));
-    flood_fill::execute(
-        ss,
-        &flood,
-        [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-          return pose_face_sets_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
-        });
+    flood_fill::execute(ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+      return pose_face_sets_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
+    });
 
     if (fdata.tot_co > 0) {
       mul_v3_fl(fdata.pose_origin, 1.0f / float(fdata.tot_co));
@@ -843,13 +839,9 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets_fk(
   {
     flood_fill::FillData flood = flood_fill::init_fill(ss);
     flood_fill::add_initial(&flood, active_vertex);
-    flood_fill::execute(
-        ss,
-        &flood,
-        [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-          return pose_face_sets_fk_find_masked_floodfill_cb(
-              ss, from_v, to_v, is_duplicate, &fdata);
-        });
+    flood_fill::execute(ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+      return pose_face_sets_fk_find_masked_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
+    });
   }
 
   int origin_count = 0;
@@ -904,9 +896,7 @@ static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets_fk(
     flood_fill::add_active(ob, ss, &flood, radius);
     fdata.fk_weights = ik_chain->segments[0].weights;
     flood_fill::execute(
-        ss,
-        &flood,
-        [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/) {
+        ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/) {
           return pose_face_sets_fk_set_weights_floodfill_cb(ss, from_v, to_v, &fdata);
         });
   }

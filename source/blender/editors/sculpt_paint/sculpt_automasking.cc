@@ -638,9 +638,7 @@ static void topology_automasking_init(const Sculpt *sd, Object *ob)
 
   copy_v3_v3(fdata.location, SCULPT_active_vertex_co_get(ss));
   flood_fill::execute(
-      ss,
-      &flood,
-      [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/) {
+      ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/) {
         return floodfill_cb(ss, from_v, to_v, &fdata);
       });
 }
