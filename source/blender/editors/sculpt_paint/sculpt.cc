@@ -6139,6 +6139,7 @@ bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool origi
   srd.ray_normal = ray_normal;
   srd.depth = depth;
   srd.face_normal = face_normal;
+  srd.corner_verts = ss->corner_verts;
 
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
   bke::pbvh::raycast(
