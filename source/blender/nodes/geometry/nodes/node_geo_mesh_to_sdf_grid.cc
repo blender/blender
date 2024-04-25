@@ -21,7 +21,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_DISTANCE);
   b.add_input<decl::Int>("Band Width")
       .default_value(3)
-      .min(0)
+      .min(1)
       .max(100)
       .description("Width of the active voxel surface, in voxels");
   b.add_output<decl::Float>("SDF Grid");
@@ -41,7 +41,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       mesh->corner_verts(),
       mesh->corner_tris(),
       params.extract_input<float>("Voxel Size"),
-      params.extract_input<int>("Band Width"));
+      std::max(1, params.extract_input<int>("Band Width")));
   params.set_output("SDF Grid", std::move(grid));
 #else
   node_geo_exec_with_missing_openvdb(params);
