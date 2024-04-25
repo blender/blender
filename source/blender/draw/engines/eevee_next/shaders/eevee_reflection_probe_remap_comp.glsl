@@ -136,6 +136,7 @@ void main()
        * Note that this is an approximation since the footprint of a thread-group is not
        * necessarily a convex polygons (with center of gravity at midpoint).
        * But the actual error introduce by this approximation is not perceivable. */
+      /* FIXME(fclem): The error IS very perceivable for resolution lower than a quadrant. */
       ivec2 max_group_texel = local_texel + ivec2(gl_WorkGroupSize.xy);
       /* Min direction is the local direction since this is only ran by thread 0. */
       vec3 min_direction = normalize(direction);
