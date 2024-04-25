@@ -726,10 +726,8 @@ struct BeztMap {
   BezTriple *bezt;
   /** Index of `bezt` in `fcu->bezt` array before sorting. */
   uint oldIndex;
-  /** Swap order of handles (-1=clear; 0=not checked, 1=swap). */
-  short swap_handles;
-  /** Interpolation of previous and next segments. */
-  char prev_ipo, current_ipo;
+  /** Swap order of handles. Can happen when rotating keys around their common center. */
+  bool swap_handles;
 };
 
 /**
@@ -743,18 +741,12 @@ static blender::Vector<BeztMap> bezt_to_beztmaps(BezTriple *bezts, const int tot
 
   blender::Vector<BeztMap> bezms = blender::Vector<BeztMap>(totvert);
 
-  BezTriple *prevbezt = nullptr;
   for (const int i : bezms.index_range()) {
     BezTriple *bezt = &bezts[i];
     BeztMap &bezm = bezms[i];
     bezm.bezt = bezt;
-
+    bezm.swap_handles = false;
     bezm.oldIndex = i;
-
-    bezm.prev_ipo = (prevbezt) ? prevbezt->ipo : bezt->ipo;
-    bezm.current_ipo = bezt->ipo;
-
-    prevbezt = bezt;
   }
 
   return bezms;
@@ -764,8 +756,16 @@ static blender::Vector<BeztMap> bezt_to_beztmaps(BezTriple *bezts, const int tot
 static void sort_time_beztmaps(const blender::MutableSpan<BeztMap> bezms)
 {
   BeztMap *bezm;
-  bool ok = true;
 
+  /* Check if handles need to be swapped. */
+  for (BeztMap &bezm : bezms) {
+    /* Handles are only swapped if they are both on the wrong side of the key. Otherwise the one
+     * handle out of place is just clamped at the key position later. */
+    bezm.swap_handles = (bezm.bezt->vec[0][0] > bezm.bezt->vec[1][0] &&
+                         bezm.bezt->vec[2][0] < bezm.bezt->vec[1][0]);
+  }
+
+  bool ok = true;
   /* Keep repeating the process until nothing is out of place anymore. */
   while (ok) {
     ok = false;
@@ -777,21 +777,6 @@ static void sort_time_beztmaps(const blender::MutableSpan<BeztMap> bezms)
         if (bezm->bezt->vec[1][0] > (bezm + 1)->bezt->vec[1][0]) {
           std::swap(*bezm, *(bezm + 1));
           ok = true;
-        }
-      }
-
-      /* Do we need to check if the handles need to be swapped?
-       * Optimization: this only needs to be performed in the first loop. */
-      if (bezm->swap_handles == 0) {
-        if ((bezm->bezt->vec[0][0] > bezm->bezt->vec[1][0]) &&
-            (bezm->bezt->vec[2][0] < bezm->bezt->vec[1][0]))
-        {
-          /* Handles need to be swapped. */
-          bezm->swap_handles = 1;
-        }
-        else {
-          /* Handles need to be cleared. */
-          bezm->swap_handles = -1;
         }
       }
     }
@@ -827,7 +812,7 @@ static void beztmap_to_data(TransInfo *t, FCurve *fcu, const blender::Span<BeztM
       /* Update all transdata pointers, no need to check for selections etc,
        * since only points that are really needed were created as transdata. */
       if (td2d->loc2d == bezm->bezt->vec[0]) {
-        if (bezm->swap_handles == 1) {
+        if (bezm->swap_handles) {
           td2d->loc2d = fcu->bezt[i].vec[2];
         }
         else {
@@ -836,7 +821,7 @@ static void beztmap_to_data(TransInfo *t, FCurve *fcu, const blender::Span<BeztM
         adjusted[j] = true;
       }
       else if (td2d->loc2d == bezm->bezt->vec[2]) {
-        if (bezm->swap_handles == 1) {
+        if (bezm->swap_handles) {
           td2d->loc2d = fcu->bezt[i].vec[0];
         }
         else {
@@ -860,7 +845,7 @@ static void beztmap_to_data(TransInfo *t, FCurve *fcu, const blender::Span<BeztM
 
       /* The handle type pointer has to be updated too. */
       if (adjusted[j] && td->flag & TD_BEZTRIPLE && td->hdata) {
-        if (bezm->swap_handles == 1) {
+        if (bezm->swap_handles) {
           td->hdata->h1 = &fcu->bezt[i].h2;
           td->hdata->h2 = &fcu->bezt[i].h1;
         }
