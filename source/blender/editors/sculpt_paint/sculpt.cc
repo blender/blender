@@ -4144,10 +4144,6 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache)
   MEM_SAFE_FREE(cache->prev_displacement);
   MEM_SAFE_FREE(cache->limit_surface_co);
 
-  if (cache->pose_ik_chain) {
-    pose::ik_chain_free(cache->pose_ik_chain);
-  }
-
   for (int i = 0; i < PAINT_SYMM_AREAS; i++) {
     if (cache->boundaries[i]) {
       boundary::data_free(cache->boundaries[i]);

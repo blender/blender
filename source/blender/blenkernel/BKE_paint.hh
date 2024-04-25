@@ -291,7 +291,7 @@ struct SculptPoseIKChainSegment {
   float len;
   blender::float3 scale;
   float rot[4];
-  float *weights;
+  blender::Array<float> weights;
 
   /* Store a 4x4 transform matrix for each of the possible combinations of enabled XYZ symmetry
    * axis. */
@@ -301,8 +301,7 @@ struct SculptPoseIKChainSegment {
 };
 
 struct SculptPoseIKChain {
-  SculptPoseIKChainSegment *segments;
-  int tot_segments;
+  blender::Array<SculptPoseIKChainSegment> segments;
   blender::float3 grab_delta_offset;
 };
 
@@ -587,7 +586,7 @@ struct SculptSession {
 
   /* Pose Brush Preview */
   blender::float3 pose_origin;
-  SculptPoseIKChain *pose_ik_chain_preview;
+  std::unique_ptr<SculptPoseIKChain> pose_ik_chain_preview;
 
   /* Boundary Brush Preview */
   SculptBoundary *boundary_preview;

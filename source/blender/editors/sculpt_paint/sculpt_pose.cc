@@ -32,12 +32,11 @@
 
 namespace blender::ed::sculpt_paint::pose {
 
-static void pose_solve_ik_chain(SculptPoseIKChain *ik_chain,
+static void pose_solve_ik_chain(SculptPoseIKChain &ik_chain,
                                 const float initial_target[3],
                                 const bool use_anchor)
 {
-  SculptPoseIKChainSegment *segments = ik_chain->segments;
-  int tot_segments = ik_chain->tot_segments;
+  MutableSpan<SculptPoseIKChainSegment> segments = ik_chain.segments;
 
   float target[3];
 
@@ -45,7 +44,7 @@ static void pose_solve_ik_chain(SculptPoseIKChain *ik_chain,
   copy_v3_v3(target, initial_target);
 
   /* Solve the positions and rotations of all segments in the chain. */
-  for (int i = 0; i < tot_segments; i++) {
+  for (const int i : segments.index_range()) {
     float initial_orientation[3];
     float current_orientation[3];
     float current_head_position[3];
@@ -75,24 +74,22 @@ static void pose_solve_ik_chain(SculptPoseIKChain *ik_chain,
   /* Move back the whole chain to preserve the anchor point. */
   if (use_anchor) {
     float anchor_diff[3];
-    sub_v3_v3v3(
-        anchor_diff, segments[tot_segments - 1].initial_orig, segments[tot_segments - 1].orig);
+    sub_v3_v3v3(anchor_diff, segments.last().initial_orig, segments.last().orig);
 
-    for (int i = 0; i < tot_segments; i++) {
+    for (const int i : segments.index_range()) {
       add_v3_v3(segments[i].orig, anchor_diff);
       add_v3_v3(segments[i].head, anchor_diff);
     }
   }
 }
 
-static void pose_solve_roll_chain(SculptPoseIKChain *ik_chain,
+static void pose_solve_roll_chain(SculptPoseIKChain &ik_chain,
                                   const Brush *brush,
                                   const float roll)
 {
-  SculptPoseIKChainSegment *segments = ik_chain->segments;
-  int tot_segments = ik_chain->tot_segments;
+  MutableSpan<SculptPoseIKChainSegment> segments = ik_chain.segments;
 
-  for (int i = 0; i < tot_segments; i++) {
+  for (const int i : segments.index_range()) {
     float initial_orientation[3];
     float initial_rotation[4];
     float current_rotation[4];
@@ -101,7 +98,7 @@ static void pose_solve_roll_chain(SculptPoseIKChain *ik_chain,
     normalize_v3(initial_orientation);
 
     /* Calculate the current roll angle using the brush curve. */
-    float current_roll = roll * BKE_brush_curve_strength(brush, i, tot_segments);
+    float current_roll = roll * BKE_brush_curve_strength(brush, i, segments.size());
 
     axis_angle_normalized_to_quat(initial_rotation, initial_orientation, 0.0f);
     axis_angle_normalized_to_quat(current_rotation, initial_orientation, current_roll);
@@ -111,37 +108,30 @@ static void pose_solve_roll_chain(SculptPoseIKChain *ik_chain,
   }
 }
 
-static void pose_solve_translate_chain(SculptPoseIKChain *ik_chain, const float delta[3])
+static void pose_solve_translate_chain(SculptPoseIKChain &ik_chain, const float delta[3])
 {
-  SculptPoseIKChainSegment *segments = ik_chain->segments;
-  const int tot_segments = ik_chain->tot_segments;
-
-  for (int i = 0; i < tot_segments; i++) {
+  for (SculptPoseIKChainSegment &segment : ik_chain.segments) {
     /* Move the origin and head of each segment by delta. */
-    add_v3_v3v3(segments[i].head, segments[i].initial_head, delta);
-    add_v3_v3v3(segments[i].orig, segments[i].initial_orig, delta);
+    add_v3_v3v3(segment.head, segment.initial_head, delta);
+    add_v3_v3v3(segment.orig, segment.initial_orig, delta);
 
     /* Reset the segment rotation. */
-    unit_qt(segments[i].rot);
+    unit_qt(segment.rot);
   }
 }
 
-static void pose_solve_scale_chain(SculptPoseIKChain *ik_chain, const float scale[3])
+static void pose_solve_scale_chain(SculptPoseIKChain &ik_chain, const float scale[3])
 {
-  SculptPoseIKChainSegment *segments = ik_chain->segments;
-  const int tot_segments = ik_chain->tot_segments;
-
-  for (int i = 0; i < tot_segments; i++) {
+  for (SculptPoseIKChainSegment &segment : ik_chain.segments) {
     /* Assign the scale to each segment. */
-    copy_v3_v3(segments[i].scale, scale);
+    copy_v3_v3(segment.scale, scale);
   }
 }
 
 static void do_pose_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
 {
   SculptSession *ss = ob->sculpt;
-  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
-  SculptPoseIKChainSegment *segments = ik_chain->segments;
+  SculptPoseIKChain &ik_chain = *ss->cache->pose_ik_chain;
 
   PBVHVertexIter vd;
   float disp[3], new_co[3];
@@ -162,18 +152,18 @@ static void do_pose_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
     ePaintSymmetryAreas symm_area = SCULPT_get_vertex_symm_area(orig_data.co);
 
     /* Calculate the displacement of each vertex for all the segments in the chain. */
-    for (int ik = 0; ik < ik_chain->tot_segments; ik++) {
+    for (SculptPoseIKChainSegment &segment : ik_chain.segments) {
       copy_v3_v3(new_co, orig_data.co);
 
       /* Get the transform matrix for the vertex symmetry area to calculate a displacement in the
        * vertex. */
-      mul_m4_v3(segments[ik].pivot_mat_inv[int(symm_area)].ptr(), new_co);
-      mul_m4_v3(segments[ik].trans_mat[int(symm_area)].ptr(), new_co);
-      mul_m4_v3(segments[ik].pivot_mat[int(symm_area)].ptr(), new_co);
+      mul_m4_v3(segment.pivot_mat_inv[int(symm_area)].ptr(), new_co);
+      mul_m4_v3(segment.trans_mat[int(symm_area)].ptr(), new_co);
+      mul_m4_v3(segment.pivot_mat[int(symm_area)].ptr(), new_co);
 
       /* Apply the segment weight of the vertex to the displacement. */
       sub_v3_v3v3(disp, new_co, orig_data.co);
-      mul_v3_fl(disp, segments[ik].weights[vd.index]);
+      mul_v3_fl(disp, segment.weights[vd.index]);
 
       /* Apply the vertex mask to the displacement. */
       const float mask = 1.0f - vd.mask;
@@ -202,7 +192,7 @@ struct PoseGrowFactorData {
 static void pose_brush_grow_factor_task(Object *ob,
                                         const float pose_initial_co[3],
                                         const float *prev_mask,
-                                        float *pose_factor,
+                                        MutableSpan<float> pose_factor,
                                         PBVHNode *node,
                                         PoseGrowFactorData *gftd)
 {
@@ -241,7 +231,7 @@ static void sculpt_pose_grow_pose_factor(Object *ob,
                                          float pose_target[3],
                                          float max_len,
                                          float *r_pose_origin,
-                                         float *pose_factor)
+                                         MutableSpan<float> pose_factor)
 {
   PBVH *pbvh = ob->sculpt->pbvh;
 
@@ -258,7 +248,7 @@ static void sculpt_pose_grow_pose_factor(Object *ob,
   while (grow_next_iteration) {
     zero_v3(gftd.pos_avg);
     gftd.pos_count = 0;
-    memcpy(prev_mask, pose_factor, SCULPT_vertex_count_get(ss) * sizeof(float));
+    memcpy(prev_mask, pose_factor.data(), SCULPT_vertex_count_get(ss) * sizeof(float));
 
     gftd = threading::parallel_reduce(
         nodes.index_range(),
@@ -290,7 +280,7 @@ static void sculpt_pose_grow_pose_factor(Object *ob,
         }
         else {
           grow_next_iteration = false;
-          memcpy(pose_factor, prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
+          memcpy(pose_factor.data(), prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
         }
       }
       else {
@@ -306,7 +296,7 @@ static void sculpt_pose_grow_pose_factor(Object *ob,
           if (r_pose_origin) {
             copy_v3_v3(r_pose_origin, gftd.pos_avg);
           }
-          memcpy(pose_factor, prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
+          memcpy(pose_factor.data(), prev_mask, SCULPT_vertex_count_get(ss) * sizeof(float));
         }
       }
     }
@@ -342,7 +332,7 @@ struct PoseFloodFillData {
   float radius;
   int symm;
 
-  float *pose_factor;
+  MutableSpan<float> pose_factor;
   float pose_origin[3];
   int tot_co;
 
@@ -371,8 +361,8 @@ struct PoseFloodFillData {
   int fallback_count;
 
   /* Face Set FK mode. */
-  int *floodfill_it;
-  float *fk_weights;
+  MutableSpan<int> floodfill_it;
+  MutableSpan<float> fk_weights;
   int initial_face_set;
   int masked_face_set_it;
   int masked_face_set;
@@ -389,7 +379,7 @@ static bool pose_topology_floodfill_cb(SculptSession *ss,
 
   const float *co = SCULPT_vertex_co_get(ss, to_v);
 
-  if (data->pose_factor) {
+  if (!data->pose_factor.is_empty()) {
     data->pose_factor[to_v_i] = 1.0f;
   }
 
@@ -516,17 +506,17 @@ static bool pose_face_sets_floodfill_cb(SculptSession *ss,
 
 void calc_pose_data(Object *ob,
                     SculptSession *ss,
-                    float initial_location[3],
+                    const float3 &initial_location,
                     float radius,
                     float pose_offset,
-                    float *r_pose_origin,
-                    float *r_pose_factor)
+                    float3 &r_pose_origin,
+                    MutableSpan<float> r_pose_factor)
 {
   SCULPT_vertex_random_access_ensure(ss);
 
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
   flood_fill::FillData flood = flood_fill::init_fill(ss);
-  flood_fill::add_active(ob, ss, &flood, (r_pose_factor) ? radius : 0.0f);
+  flood_fill::add_active(ob, ss, &flood, !r_pose_factor.is_empty() ? radius : 0.0f);
 
   PoseFloodFillData fdata{};
   fdata.radius = radius;
@@ -558,13 +548,13 @@ void calc_pose_data(Object *ob,
 
   /* Do the initial grow of the factors to get the first segment of the chain with Origin Offset.
    */
-  if (pose_offset != 0.0f && r_pose_factor) {
+  if (pose_offset != 0.0f && !r_pose_factor.is_empty()) {
     sculpt_pose_grow_pose_factor(
         ob, ss, fdata.pose_origin, fdata.pose_origin, 0, nullptr, r_pose_factor);
   }
 }
 
-static void pose_brush_init_task(SculptSession *ss, float *pose_factor, PBVHNode *node)
+static void pose_brush_init_task(SculptSession *ss, MutableSpan<float> pose_factor, PBVHNode *node)
 {
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -585,38 +575,38 @@ static void pose_brush_init_task(SculptSession *ss, float *pose_factor, PBVHNode
 }
 
 /* Init the IK chain with empty weights. */
-static SculptPoseIKChain *pose_ik_chain_new(const int totsegments, const int totverts)
+static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_new(const int totsegments,
+                                                            const int totverts)
 {
-  SculptPoseIKChain *ik_chain = MEM_cnew<SculptPoseIKChain>(__func__);
-  ik_chain->tot_segments = totsegments;
-  ik_chain->segments = MEM_cnew_array<SculptPoseIKChainSegment>(totsegments, __func__);
-  for (int i = 0; i < totsegments; i++) {
-    ik_chain->segments[i].weights = MEM_cnew_array<float>(totverts, __func__);
+  std::unique_ptr<SculptPoseIKChain> ik_chain = std::make_unique<SculptPoseIKChain>();
+  ik_chain->segments.reinitialize(totsegments);
+  for (SculptPoseIKChainSegment &segment : ik_chain->segments) {
+    segment.weights = Array<float>(totverts, 0.0f);
   }
   return ik_chain;
 }
 
 /* Init the origin/head pairs of all the segments from the calculated origins. */
-static void pose_ik_chain_origin_heads_init(SculptPoseIKChain *ik_chain,
+static void pose_ik_chain_origin_heads_init(SculptPoseIKChain &ik_chain,
                                             const float initial_location[3])
 {
   float origin[3];
   float head[3];
-  for (int i = 0; i < ik_chain->tot_segments; i++) {
+  for (const int i : ik_chain.segments.index_range()) {
     if (i == 0) {
       copy_v3_v3(head, initial_location);
-      copy_v3_v3(origin, ik_chain->segments[i].orig);
+      copy_v3_v3(origin, ik_chain.segments[i].orig);
     }
     else {
-      copy_v3_v3(head, ik_chain->segments[i - 1].orig);
-      copy_v3_v3(origin, ik_chain->segments[i].orig);
+      copy_v3_v3(head, ik_chain.segments[i - 1].orig);
+      copy_v3_v3(origin, ik_chain.segments[i].orig);
     }
-    copy_v3_v3(ik_chain->segments[i].orig, origin);
-    copy_v3_v3(ik_chain->segments[i].initial_orig, origin);
-    copy_v3_v3(ik_chain->segments[i].head, head);
-    copy_v3_v3(ik_chain->segments[i].initial_head, head);
-    ik_chain->segments[i].len = len_v3v3(head, origin);
-    copy_v3_fl(ik_chain->segments[i].scale, 1.0f);
+    copy_v3_v3(ik_chain.segments[i].orig, origin);
+    copy_v3_v3(ik_chain.segments[i].initial_orig, origin);
+    copy_v3_v3(ik_chain.segments[i].head, head);
+    copy_v3_v3(ik_chain.segments[i].initial_head, head);
+    ik_chain.segments[i].len = len_v3v3(head, origin);
+    copy_v3_fl(ik_chain.segments[i].scale, 1.0f);
   }
 }
 
@@ -634,7 +624,7 @@ static int pose_brush_num_effective_segments(const Brush *brush)
   return brush->pose_ik_segments;
 }
 
-static SculptPoseIKChain *pose_ik_chain_init_topology(
+static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_topology(
     Object *ob, SculptSession *ss, Brush *br, const float initial_location[3], const float radius)
 {
 
@@ -649,15 +639,15 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(
    * added to the IK chain. */
 
   /* This stores the whole pose factors values as they grow through the mesh. */
-  float *pose_factor_grow = MEM_cnew_array<float>(totvert, __func__);
+  Array<float> pose_factor_grow(totvert, 0.0f);
 
   /* This stores the previous status of the factors when growing a new iteration. */
-  float *pose_factor_grow_prev = MEM_cnew_array<float>(totvert, __func__);
+  Array<float> pose_factor_grow_prev(totvert, 0.0f);
 
   pose_factor_grow[nearest_vertex_index] = 1.0f;
 
   const int tot_segments = pose_brush_num_effective_segments(br);
-  SculptPoseIKChain *ik_chain = pose_ik_chain_new(tot_segments, totvert);
+  std::unique_ptr<SculptPoseIKChain> ik_chain = pose_ik_chain_new(tot_segments, totvert);
 
   /* Calculate the first segment in the chain using the brush radius and the pose origin offset. */
   copy_v3_v3(next_chain_segment_target, initial_location);
@@ -679,7 +669,7 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(
   }
 
   /* Calculate the next segments in the chain growing the pose factors. */
-  for (int i = 1; i < ik_chain->tot_segments; i++) {
+  for (const int i : ik_chain->segments.index_range().drop_front(1)) {
 
     /* Grow the factors to get the new segment origin. */
     sculpt_pose_grow_pose_factor(ob,
@@ -700,25 +690,22 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(
     }
   }
 
-  pose_ik_chain_origin_heads_init(ik_chain, initial_location);
-
-  MEM_freeN(pose_factor_grow);
-  MEM_freeN(pose_factor_grow_prev);
+  pose_ik_chain_origin_heads_init(*ik_chain, initial_location);
 
   return ik_chain;
 }
 
-static SculptPoseIKChain *pose_ik_chain_init_face_sets(Object *ob,
-                                                       SculptSession *ss,
-                                                       Brush *br,
-                                                       const float radius)
+static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets(Object *ob,
+                                                                       SculptSession *ss,
+                                                                       Brush *br,
+                                                                       const float radius)
 {
 
   int totvert = SCULPT_vertex_count_get(ss);
 
   const int tot_segments = pose_brush_num_effective_segments(br);
 
-  SculptPoseIKChain *ik_chain = pose_ik_chain_new(tot_segments, totvert);
+  std::unique_ptr<SculptPoseIKChain> ik_chain = pose_ik_chain_new(tot_segments, totvert);
 
   Set<int> visited_face_sets;
 
@@ -729,8 +716,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(Object *ob,
 
   PBVHVertRef current_vertex = SCULPT_active_vertex_get(ss);
 
-  for (int s = 0; s < ik_chain->tot_segments; s++) {
-
+  for (const int i : ik_chain->segments.index_range()) {
     flood_fill::FillData flood = flood_fill::init_fill(ss);
     flood_fill::add_initial_with_symmetry(ob, ss, &flood, current_vertex, FLT_MAX);
 
@@ -739,7 +725,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(Object *ob,
     PoseFloodFillData fdata{};
     fdata.radius = radius;
     fdata.symm = SCULPT_mesh_symmetry_xyz_get(ob);
-    fdata.pose_factor = ik_chain->segments[s].weights;
+    fdata.pose_factor = ik_chain->segments[i].weights;
     fdata.tot_co = 0;
     fdata.fallback_count = 0;
     fdata.current_face_set = current_face_set;
@@ -747,7 +733,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(Object *ob,
     fdata.visited_face_sets = &visited_face_sets;
     fdata.is_weighted = is_weighted;
     fdata.next_face_set_found = false;
-    fdata.is_first_iteration = s == 0;
+    fdata.is_first_iteration = i == 0;
 
     zero_v3(fdata.pose_origin);
     zero_v3(fdata.fallback_origin);
@@ -761,14 +747,14 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(Object *ob,
 
     if (fdata.tot_co > 0) {
       mul_v3_fl(fdata.pose_origin, 1.0f / float(fdata.tot_co));
-      copy_v3_v3(ik_chain->segments[s].orig, fdata.pose_origin);
+      copy_v3_v3(ik_chain->segments[i].orig, fdata.pose_origin);
     }
     else if (fdata.fallback_count > 0) {
       mul_v3_fl(fdata.fallback_origin, 1.0f / float(fdata.fallback_count));
-      copy_v3_v3(ik_chain->segments[s].orig, fdata.fallback_origin);
+      copy_v3_v3(ik_chain->segments[i].orig, fdata.fallback_origin);
     }
     else {
-      zero_v3(ik_chain->segments[s].orig);
+      zero_v3(ik_chain->segments[i].orig);
     }
 
     prev_face_set = fdata.current_face_set;
@@ -776,7 +762,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(Object *ob,
     current_vertex = fdata.next_vertex;
   }
 
-  pose_ik_chain_origin_heads_init(ik_chain, SCULPT_active_vertex_co_get(ss));
+  pose_ik_chain_origin_heads_init(*ik_chain, SCULPT_active_vertex_co_get(ss));
 
   return ik_chain;
 }
@@ -831,14 +817,12 @@ static bool pose_face_sets_fk_set_weights_floodfill_cb(SculptSession *ss,
   return !face_set::vert_has_face_set(ss, to_v, data->masked_face_set);
 }
 
-static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
-                                                          SculptSession *ss,
-                                                          const float radius,
-                                                          const float *initial_location)
+static std::unique_ptr<SculptPoseIKChain> pose_ik_chain_init_face_sets_fk(
+    Object *ob, SculptSession *ss, const float radius, const float *initial_location)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  SculptPoseIKChain *ik_chain = pose_ik_chain_new(1, totvert);
+  std::unique_ptr<SculptPoseIKChain> ik_chain = pose_ik_chain_new(1, totvert);
 
   const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
   int active_vertex_index = BKE_pbvh_vertex_to_index(ss->pbvh, active_vertex);
@@ -846,9 +830,10 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
   const int active_face_set = face_set::active_face_set_get(ss);
 
   Set<int> visited_face_sets;
+  Array<int> floodfill_it(totvert);
 
   PoseFloodFillData fdata;
-  fdata.floodfill_it = static_cast<int *>(MEM_calloc_arrayN(totvert, sizeof(int), __func__));
+  fdata.floodfill_it = floodfill_it;
   fdata.floodfill_it[active_vertex_index] = 1;
   fdata.initial_face_set = active_face_set;
   fdata.masked_face_set = SCULPT_FACE_SET_NONE;
@@ -897,8 +882,6 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
     }
   }
 
-  MEM_freeN(fdata.floodfill_it);
-
   if (origin_count > 0) {
     copy_v3_v3(ik_chain->segments[0].orig, origin_acc);
     mul_v3_fl(ik_chain->segments[0].orig, 1.0f / origin_count);
@@ -928,14 +911,14 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
         });
   }
 
-  pose_ik_chain_origin_heads_init(ik_chain, ik_chain->segments[0].head);
+  pose_ik_chain_origin_heads_init(*ik_chain, ik_chain->segments[0].head);
   return ik_chain;
 }
 
-SculptPoseIKChain *ik_chain_init(
-    Object *ob, SculptSession *ss, Brush *br, const float initial_location[3], const float radius)
+std::unique_ptr<SculptPoseIKChain> ik_chain_init(
+    Object *ob, SculptSession *ss, Brush *br, const float3 &initial_location, const float radius)
 {
-  SculptPoseIKChain *ik_chain = nullptr;
+  std::unique_ptr<SculptPoseIKChain> ik_chain;
 
   const bool use_fake_neighbors = !(br->flag2 & BRUSH_USE_CONNECTED_ONLY);
 
@@ -974,8 +957,8 @@ void pose_brush_init(Object *ob, SculptSession *ss, Brush *br)
       ob, ss, br, ss->cache->true_location, ss->cache->radius);
 
   /* Smooth the weights of each segment for cleaner deformation. */
-  for (int ik = 0; ik < ss->cache->pose_ik_chain->tot_segments; ik++) {
-    float *pose_factor = ss->cache->pose_ik_chain->segments[ik].weights;
+  for (SculptPoseIKChainSegment &segment : ss->cache->pose_ik_chain->segments) {
+    MutableSpan<float> pose_factor = segment.weights;
     for (int i = 0; i < br->pose_smooth_iterations; i++) {
       threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
@@ -988,7 +971,7 @@ void pose_brush_init(Object *ob, SculptSession *ss, Brush *br)
 
 static void sculpt_pose_do_translate_deform(SculptSession *ss, Brush *brush)
 {
-  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  SculptPoseIKChain &ik_chain = *ss->cache->pose_ik_chain;
   BKE_curvemapping_init(brush->curve);
   pose_solve_translate_chain(ik_chain, ss->cache->grab_delta);
 }
@@ -996,20 +979,20 @@ static void sculpt_pose_do_translate_deform(SculptSession *ss, Brush *brush)
 /* Calculate a scale factor based on the grab delta. */
 static float sculpt_pose_get_scale_from_grab_delta(SculptSession *ss, const float ik_target[3])
 {
-  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  SculptPoseIKChain &ik_chain = *ss->cache->pose_ik_chain;
   float plane[4];
   float segment_dir[3];
-  sub_v3_v3v3(segment_dir, ik_chain->segments[0].initial_head, ik_chain->segments[0].initial_orig);
+  sub_v3_v3v3(segment_dir, ik_chain.segments[0].initial_head, ik_chain.segments[0].initial_orig);
   normalize_v3(segment_dir);
-  plane_from_point_normal_v3(plane, ik_chain->segments[0].initial_head, segment_dir);
-  const float segment_len = ik_chain->segments[0].len;
+  plane_from_point_normal_v3(plane, ik_chain.segments[0].initial_head, segment_dir);
+  const float segment_len = ik_chain.segments[0].len;
   return segment_len / (segment_len - dist_signed_to_plane_v3(ik_target, plane));
 }
 
 static void sculpt_pose_do_scale_deform(SculptSession *ss, Brush *brush)
 {
   float ik_target[3];
-  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  SculptPoseIKChain &ik_chain = *ss->cache->pose_ik_chain;
 
   copy_v3_v3(ik_target, ss->cache->true_location);
   add_v3_v3(ik_target, ss->cache->grab_delta);
@@ -1028,7 +1011,7 @@ static void sculpt_pose_do_scale_deform(SculptSession *ss, Brush *brush)
 
 static void sculpt_pose_do_twist_deform(SculptSession *ss, Brush *brush)
 {
-  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  SculptPoseIKChain &ik_chain = *ss->cache->pose_ik_chain;
 
   /* Calculate the maximum roll. 0.02 radians per pixel works fine. */
   float roll = (ss->cache->initial_mouse[0] - ss->cache->mouse[0]) * ss->cache->bstrength * 0.02f;
@@ -1039,12 +1022,12 @@ static void sculpt_pose_do_twist_deform(SculptSession *ss, Brush *brush)
 static void sculpt_pose_do_rotate_deform(SculptSession *ss, Brush *brush)
 {
   float ik_target[3];
-  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  SculptPoseIKChain &ik_chain = *ss->cache->pose_ik_chain;
 
   /* Calculate the IK target. */
   copy_v3_v3(ik_target, ss->cache->true_location);
   add_v3_v3(ik_target, ss->cache->grab_delta);
-  add_v3_v3(ik_target, ik_chain->grab_delta_offset);
+  add_v3_v3(ik_target, ik_chain.grab_delta_offset);
 
   /* Solve the IK positions. */
   pose_solve_ik_chain(ik_chain, ik_target, brush->flag2 & BRUSH_POSE_IK_ANCHORED);
@@ -1073,7 +1056,7 @@ static void sculpt_pose_do_scale_translate_deform(SculptSession *ss, Brush *brus
 static void sculpt_pose_do_squash_stretch_deform(SculptSession *ss, Brush * /*brush*/)
 {
   float ik_target[3];
-  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  SculptPoseIKChain &ik_chain = *ss->cache->pose_ik_chain;
 
   copy_v3_v3(ik_target, ss->cache->true_location);
   add_v3_v3(ik_target, ss->cache->grab_delta);
@@ -1121,7 +1104,7 @@ void do_pose_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
     return;
   }
 
-  SculptPoseIKChain *ik_chain = ss->cache->pose_ik_chain;
+  SculptPoseIKChain &ik_chain = *ss->cache->pose_ik_chain;
 
   switch (brush->pose_deform_type) {
     case BRUSH_POSE_DEFORM_ROTATE_TWIST:
@@ -1140,16 +1123,16 @@ void do_pose_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
   /* This can be optimized by skipping the calculation of matrices where the symmetry is not
    * enabled. */
   for (int symm_it = 0; symm_it < PAINT_SYMM_AREAS; symm_it++) {
-    for (int i = 0; i < ik_chain->tot_segments; i++) {
+    for (const int i : ik_chain.segments.index_range()) {
       float symm_rot[4];
       float symm_orig[3];
       float symm_initial_orig[3];
 
       ePaintSymmetryAreas symm_area = ePaintSymmetryAreas(symm_it);
 
-      copy_qt_qt(symm_rot, ik_chain->segments[i].rot);
-      copy_v3_v3(symm_orig, ik_chain->segments[i].orig);
-      copy_v3_v3(symm_initial_orig, ik_chain->segments[i].initial_orig);
+      copy_qt_qt(symm_rot, ik_chain.segments[i].rot);
+      copy_v3_v3(symm_orig, ik_chain.segments[i].orig);
+      copy_v3_v3(symm_initial_orig, ik_chain.segments[i].initial_orig);
 
       /* Flip the origins and rotation quats of each segment. */
       SCULPT_flip_quat_by_symm_area(symm_rot, symm, symm_area, ss->cache->orig_grab_location);
@@ -1165,34 +1148,32 @@ void do_pose_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
         sculpt_pose_align_pivot_local_space(pivot_local_space,
                                             symm,
                                             symm_area,
-                                            &ik_chain->segments[i],
+                                            &ik_chain.segments[i],
                                             ss->cache->orig_grab_location);
-        unit_m4(ik_chain->segments[i].trans_mat[symm_it].ptr());
+        unit_m4(ik_chain.segments[i].trans_mat[symm_it].ptr());
       }
       else {
-        quat_to_mat4(ik_chain->segments[i].trans_mat[symm_it].ptr(), symm_rot);
+        quat_to_mat4(ik_chain.segments[i].trans_mat[symm_it].ptr(), symm_rot);
       }
 
       /* Apply segment scale to the transform. */
       for (int scale_i = 0; scale_i < 3; scale_i++) {
-        mul_v3_fl(ik_chain->segments[i].trans_mat[symm_it][scale_i],
-                  ik_chain->segments[i].scale[scale_i]);
+        mul_v3_fl(ik_chain.segments[i].trans_mat[symm_it][scale_i],
+                  ik_chain.segments[i].scale[scale_i]);
       }
 
-      translate_m4(ik_chain->segments[i].trans_mat[symm_it].ptr(),
+      translate_m4(ik_chain.segments[i].trans_mat[symm_it].ptr(),
                    symm_orig[0] - symm_initial_orig[0],
                    symm_orig[1] - symm_initial_orig[1],
                    symm_orig[2] - symm_initial_orig[2]);
 
-      unit_m4(ik_chain->segments[i].pivot_mat[symm_it].ptr());
-      translate_m4(ik_chain->segments[i].pivot_mat[symm_it].ptr(),
-                   symm_orig[0],
-                   symm_orig[1],
-                   symm_orig[2]);
-      mul_m4_m4_post(ik_chain->segments[i].pivot_mat[symm_it].ptr(), pivot_local_space);
+      unit_m4(ik_chain.segments[i].pivot_mat[symm_it].ptr());
+      translate_m4(
+          ik_chain.segments[i].pivot_mat[symm_it].ptr(), symm_orig[0], symm_orig[1], symm_orig[2]);
+      mul_m4_m4_post(ik_chain.segments[i].pivot_mat[symm_it].ptr(), pivot_local_space);
 
-      invert_m4_m4(ik_chain->segments[i].pivot_mat_inv[symm_it].ptr(),
-                   ik_chain->segments[i].pivot_mat[symm_it].ptr());
+      invert_m4_m4(ik_chain.segments[i].pivot_mat_inv[symm_it].ptr(),
+                   ik_chain.segments[i].pivot_mat[symm_it].ptr());
     }
   }
 
@@ -1201,15 +1182,6 @@ void do_pose_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
       do_pose_brush_task(ob, brush, nodes[i]);
     }
   });
-}
-
-void ik_chain_free(SculptPoseIKChain *ik_chain)
-{
-  for (int i = 0; i < ik_chain->tot_segments; i++) {
-    MEM_SAFE_FREE(ik_chain->segments[i].weights);
-  }
-  MEM_SAFE_FREE(ik_chain->segments);
-  MEM_SAFE_FREE(ik_chain);
 }
 
 }  // namespace blender::ed::sculpt_paint::pose

@@ -476,7 +476,7 @@ struct StrokeCache {
   } paint_brush;
 
   /* Pose brush */
-  SculptPoseIKChain *pose_ik_chain;
+  std::unique_ptr<SculptPoseIKChain> pose_ik_chain;
 
   /* Enhance Details. */
   float (*detail_directions)[3];
@@ -1891,15 +1891,14 @@ void do_pose_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes);
  */
 void calc_pose_data(Object *ob,
                     SculptSession *ss,
-                    float initial_location[3],
+                    const float3 &initial_location,
                     float radius,
                     float pose_offset,
-                    float *r_pose_origin,
-                    float *r_pose_factor);
+                    float3 &r_pose_origin,
+                    MutableSpan<float> r_pose_factor);
 void pose_brush_init(Object *ob, SculptSession *ss, Brush *br);
-SculptPoseIKChain *ik_chain_init(
-    Object *ob, SculptSession *ss, Brush *br, const float initial_location[3], float radius);
-void ik_chain_free(SculptPoseIKChain *ik_chain);
+std::unique_ptr<SculptPoseIKChain> ik_chain_init(
+    Object *ob, SculptSession *ss, Brush *br, const float3 &initial_location, float radius);
 
 }
 

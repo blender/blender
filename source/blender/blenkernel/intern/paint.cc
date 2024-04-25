@@ -1529,14 +1529,6 @@ void BKE_sculptsession_free(Object *ob)
       BKE_image_pool_free(ss->tex_pool);
     }
 
-    if (ss->pose_ik_chain_preview) {
-      for (int i = 0; i < ss->pose_ik_chain_preview->tot_segments; i++) {
-        MEM_SAFE_FREE(ss->pose_ik_chain_preview->segments[i].weights);
-      }
-      MEM_SAFE_FREE(ss->pose_ik_chain_preview->segments);
-      MEM_SAFE_FREE(ss->pose_ik_chain_preview);
-    }
-
     if (ss->boundary_preview) {
       MEM_SAFE_FREE(ss->boundary_preview->verts);
       MEM_SAFE_FREE(ss->boundary_preview->edges);

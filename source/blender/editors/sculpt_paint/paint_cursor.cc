@@ -1686,8 +1686,8 @@ static void paint_cursor_pose_brush_segments_draw(PaintCursorContext *pcontext)
   immUniformColor4f(1.0f, 1.0f, 1.0f, 0.8f);
   GPU_line_width(2.0f);
 
-  immBegin(GPU_PRIM_LINES, ss->pose_ik_chain_preview->tot_segments * 2);
-  for (int i = 0; i < ss->pose_ik_chain_preview->tot_segments; i++) {
+  immBegin(GPU_PRIM_LINES, ss->pose_ik_chain_preview->segments.size() * 2);
+  for (const int i : ss->pose_ik_chain_preview->segments.index_range()) {
     immVertex3fv(pcontext->pos, ss->pose_ik_chain_preview->segments[i].initial_orig);
     immVertex3fv(pcontext->pos, ss->pose_ik_chain_preview->segments[i].initial_head);
   }
@@ -1700,7 +1700,7 @@ static void paint_cursor_pose_brush_origins_draw(PaintCursorContext *pcontext)
 
   SculptSession *ss = pcontext->ss;
   immUniformColor4f(1.0f, 1.0f, 1.0f, 0.8f);
-  for (int i = 0; i < ss->pose_ik_chain_preview->tot_segments; i++) {
+  for (const int i : ss->pose_ik_chain_preview->segments.index_range()) {
     cursor_draw_point_screen_space(pcontext->pos,
                                    pcontext->region,
                                    ss->pose_ik_chain_preview->segments[i].initial_orig,
@@ -1813,7 +1813,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
       /* Free the previous pose brush preview. */
       if (ss->pose_ik_chain_preview) {
-        pose::ik_chain_free(ss->pose_ik_chain_preview);
+        ss->pose_ik_chain_preview.reset();
       }
 
       /* Generate a new pose brush preview from the current cursor location. */
