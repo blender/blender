@@ -884,7 +884,7 @@ float *SCULPT_brush_deform_target_vertex_co_get(SculptSession *ss,
                                                 int deform_target,
                                                 PBVHVertexIter *iter);
 
-void SCULPT_vertex_neighbors_get(SculptSession *ss,
+void SCULPT_vertex_neighbors_get(const SculptSession *ss,
                                  PBVHVertRef vertex,
                                  bool include_duplicates,
                                  SculptVertexNeighborIter *iter);
@@ -952,7 +952,7 @@ namespace hide {
 
 bool vert_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool vert_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex);
-bool vert_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
+bool vert_any_face_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 
 }
 
@@ -964,11 +964,11 @@ bool vert_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
 namespace face_set {
 
-int active_face_set_get(SculptSession *ss);
-int vert_face_set_get(SculptSession *ss, PBVHVertRef vertex);
+int active_face_set_get(const SculptSession *ss);
+int vert_face_set_get(const SculptSession *ss, PBVHVertRef vertex);
 
-bool vert_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
-bool vert_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex);
+bool vert_has_face_set(const SculptSession *ss, PBVHVertRef vertex, int face_set);
+bool vert_has_unique_face_set(const SculptSession *ss, PBVHVertRef vertex);
 
 bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Object &object);
 int ensure_face_sets_bmesh(Object &object);
