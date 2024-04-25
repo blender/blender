@@ -1128,7 +1128,7 @@ static ExprPyLike_Parsed *driver_compile_simple_expr_impl(ChannelDriver *driver)
   return BLI_expr_pylike_parse(driver->expression, names, names_len + VAR_INDEX_CUSTOM);
 }
 
-static bool driver_check_simple_expr_depends_on_time(ExprPyLike_Parsed *expr)
+static bool driver_check_simple_expr_depends_on_time(const ExprPyLike_Parsed *expr)
 {
   /* Check if the 'frame' parameter is actually used. */
   return BLI_expr_pylike_is_using_param(expr, VAR_INDEX_FRAME);

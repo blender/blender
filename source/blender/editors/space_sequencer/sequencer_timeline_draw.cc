@@ -224,14 +224,12 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Sequenc
   strip_ctx.missing_media = media_presence_is_missing(scene, seq);
   if (seq->type == SEQ_TYPE_META) {
     const ListBase *seqbase = &seq->seqbase;
-    if (seqbase != nullptr) {
-      LISTBASE_FOREACH (const Sequence *, sub, seqbase) {
-        if (!SEQ_sequence_has_valid_data(sub)) {
-          strip_ctx.missing_data_block = true;
-        }
-        if (media_presence_is_missing(scene, sub)) {
-          strip_ctx.missing_media = true;
-        }
+    LISTBASE_FOREACH (const Sequence *, sub, seqbase) {
+      if (!SEQ_sequence_has_valid_data(sub)) {
+        strip_ctx.missing_data_block = true;
+      }
+      if (media_presence_is_missing(scene, sub)) {
+        strip_ctx.missing_media = true;
       }
     }
   }
