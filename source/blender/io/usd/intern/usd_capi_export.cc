@@ -485,7 +485,7 @@ bool USD_export(bContext *C,
    *
    * Has to be done from main thread currently, as it may affect Main original data (e.g. when
    * doing deferred update of the view-layers, see #112534 for details). */
-  if (strlen(job->params.collection) > 0) {
+  if (job->params.collection[0]) {
     Collection *collection = reinterpret_cast<Collection *>(
         BKE_libblock_find_name(job->bmain, ID_GR, job->params.collection));
     if (!collection) {

@@ -52,7 +52,7 @@ namespace blender::io::alembic {
 /* Construct the depsgraph for exporting. */
 static bool build_depsgraph(ExportJobData *job)
 {
-  if (strlen(job->params.collection) > 0) {
+  if (job->params.collection[0]) {
     Collection *collection = reinterpret_cast<Collection *>(
         BKE_libblock_find_name(job->bmain, ID_GR, job->params.collection));
     if (!collection) {

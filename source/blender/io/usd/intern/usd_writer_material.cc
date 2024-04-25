@@ -599,7 +599,7 @@ static void export_in_memory_texture(Image *ima,
   char image_abs_path[FILE_MAX];
 
   char file_name[FILE_MAX];
-  if (strlen(ima->filepath) > 0) {
+  if (ima->filepath[0]) {
     get_absolute_path(ima, image_abs_path);
     BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
   }
@@ -845,7 +845,7 @@ static std::string get_tex_image_asset_filepath(const USDExporterContext &usd_ex
 
   std::string path;
 
-  if (strlen(ima->filepath) > 0) {
+  if (ima->filepath[0]) {
     /* Get absolute path. */
     path = get_tex_image_asset_filepath(ima);
   }

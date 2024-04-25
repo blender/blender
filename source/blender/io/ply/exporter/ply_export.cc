@@ -36,7 +36,7 @@ void exporter_main(bContext *C, const PLYExportParams &export_params)
 
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  if (strlen(export_params.collection) > 0) {
+  if (export_params.collection[0]) {
     Collection *collection = reinterpret_cast<Collection *>(
         BKE_libblock_find_name(bmain, ID_GR, export_params.collection));
     if (!collection) {
