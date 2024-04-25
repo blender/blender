@@ -851,9 +851,6 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
 
   const int active_face_set = face_set::active_face_set_get(ss);
 
-  flood_fill::FillData flood;
-  flood_fill::init_fill(ss, &flood);
-  flood_fill::add_initial(&flood, active_vertex);
   PoseFloodFillData fdata;
   fdata.floodfill_it = static_cast<int *>(MEM_calloc_arrayN(totvert, sizeof(int), __func__));
   fdata.floodfill_it[active_vertex_index] = 1;
@@ -862,10 +859,18 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
   fdata.target_face_set = SCULPT_FACE_SET_NONE;
   fdata.masked_face_set_it = 0;
   fdata.visited_face_sets = BLI_gset_int_new_ex("visited_face_sets", 3);
-  flood_fill::execute(
-      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-        return pose_face_sets_fk_find_masked_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
-      });
+  {
+    flood_fill::FillData flood;
+    flood_fill::init_fill(ss, &flood);
+    flood_fill::add_initial(&flood, active_vertex);
+    flood_fill::execute(
+        ss,
+        &flood,
+        [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+          return pose_face_sets_fk_find_masked_floodfill_cb(
+              ss, from_v, to_v, is_duplicate, &fdata);
+        });
+  }
   BLI_gset_free(fdata.visited_face_sets, nullptr);
 
   int origin_count = 0;
@@ -917,15 +922,18 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(Object *ob,
     copy_v3_v3(ik_chain->segments[0].head, initial_location);
   }
 
-  flood_fill::init_fill(ss, &flood);
-  flood_fill::add_active(ob, ss, &flood, radius);
-  fdata.fk_weights = ik_chain->segments[0].weights;
-  flood_fill::execute(
-      ss,
-      &flood,
-      [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/) {
-        return pose_face_sets_fk_set_weights_floodfill_cb(ss, from_v, to_v, &fdata);
-      });
+  {
+    flood_fill::FillData flood;
+    flood_fill::init_fill(ss, &flood);
+    flood_fill::add_active(ob, ss, &flood, radius);
+    fdata.fk_weights = ik_chain->segments[0].weights;
+    flood_fill::execute(
+        ss,
+        &flood,
+        [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool /*is_duplicate*/) {
+          return pose_face_sets_fk_set_weights_floodfill_cb(ss, from_v, to_v, &fdata);
+        });
+  }
 
   pose_ik_chain_origin_heads_init(ik_chain, ik_chain->segments[0].head);
   return ik_chain;
