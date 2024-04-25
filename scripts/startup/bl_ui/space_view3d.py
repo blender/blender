@@ -12,6 +12,7 @@ from bl_ui.properties_paint_common import (
     UnifiedPaintPanel,
     brush_basic_texpaint_settings,
     brush_basic_gpencil_weight_settings,
+    brush_basic_grease_pencil_weight_settings,
 )
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
@@ -128,7 +129,7 @@ class VIEW3D_HT_tool_header(Header):
                     if tool in {'SMOOTH', 'RANDOMIZE'}:
                         layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover")
                     layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_appearance")
-        elif tool_mode == 'WEIGHT_GPENCIL':
+        elif tool_mode == 'WEIGHT_GPENCIL' or tool_mode == 'WEIGHT_GREASE_PENCIL':
             if is_valid_context:
                 layout.popover("VIEW3D_PT_tools_grease_pencil_weight_appearance")
         elif tool_mode == 'VERTEX_GPENCIL':
@@ -490,6 +491,25 @@ class _draw_tool_settings_context_mode:
         layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
 
         brush_basic_gpencil_weight_settings(layout, context, brush, compact=True)
+
+        layout.popover("VIEW3D_PT_tools_grease_pencil_weight_options", text="Options")
+        layout.popover("VIEW3D_PT_tools_grease_pencil_brush_weight_falloff", text="Falloff")
+
+        return True
+
+    @staticmethod
+    def WEIGHT_GREASE_PENCIL(context, layout, tool):
+        if (tool is None) or (not tool.has_datablock):
+            return False
+
+        paint = context.tool_settings.gpencil_weight_paint
+        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
+
+        brush = paint.brush
+        if brush is None:
+            return False
+
+        brush_basic_grease_pencil_weight_settings(layout, context, brush, compact=True)
 
         layout.popover("VIEW3D_PT_tools_grease_pencil_weight_options", text="Options")
         layout.popover("VIEW3D_PT_tools_grease_pencil_brush_weight_falloff", text="Falloff")
@@ -874,11 +894,11 @@ class VIEW3D_HT_header(Header):
                 row = layout.row(align=True)
                 row.prop(tool_settings, "use_gpencil_draw_additive", text="", icon='FREEZE')
 
-            if object_mode in {'PAINT_GPENCIL', 'EDIT', 'WEIGHT_PAINT'}:
+            if object_mode in {'PAINT_GPENCIL', 'EDIT', 'WEIGHT_GPENCIL'}:
                 row = layout.row(align=True)
                 row.prop(tool_settings, "use_grease_pencil_multi_frame_editing", text="")
 
-                if object_mode in {'EDIT', 'WEIGHT_PAINT'}:
+                if object_mode in {'EDIT', 'WEIGHT_GPENCIL'}:
                     sub = row.row(align=True)
                     sub.enabled = tool_settings.use_grease_pencil_multi_frame_editing
                     sub.popover(
@@ -7945,6 +7965,7 @@ class VIEW3D_PT_overlay_grease_pencil_options(Panel):
         layout.label(text={
             'PAINT_GREASE_PENCIL': iface_("Draw Grease Pencil"),
             'EDIT_GREASE_PENCIL': iface_("Edit Grease Pencil"),
+            'WEIGHT_GREASE_PENCIL': iface_("Weight Grease Pencil"),
             'OBJECT': iface_("Grease Pencil"),
         }[context.mode], translate=False)
 
@@ -8495,7 +8516,11 @@ class VIEW3D_PT_gpencil_weight_context_menu(Panel):
         layout = self.layout
 
         # Weight settings
-        brush_basic_gpencil_weight_settings(layout, context, brush)
+        if context.mode == 'WEIGHT_GPENCIL':
+            brush_basic_gpencil_weight_settings(layout, context, brush)
+        else:
+            # Grease Pencil v3
+            brush_basic_grease_pencil_weight_settings(layout, context, brush)
 
         # Layers
         draw_gpencil_layer_active(context, layout)

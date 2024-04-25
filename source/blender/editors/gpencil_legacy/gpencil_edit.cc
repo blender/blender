@@ -635,6 +635,13 @@ void GPENCIL_OT_sculptmode_toggle(wmOperatorType *ot)
 
 /* Stroke Weight Paint Mode Management */
 
+static bool grease_pencil_poll_weight_cursor(bContext *C)
+{
+  Object *ob = CTX_data_active_object(C);
+  return ob && (ob->mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) && (ob->type == OB_GREASE_PENCIL) &&
+         CTX_wm_region_view3d(C) && WM_toolsystem_active_tool_is_brush(C);
+}
+
 static bool gpencil_weightmode_toggle_poll(bContext *C)
 {
   /* if using gpencil object, use this gpd */
@@ -648,6 +655,7 @@ static bool gpencil_weightmode_toggle_poll(bContext *C)
 static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
   const bool back = RNA_boolean_get(op->ptr, "back");
@@ -702,12 +710,17 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
 
   if (mode == OB_MODE_WEIGHT_GPENCIL_LEGACY) {
     /* Be sure we have brushes. */
-    BKE_paint_ensure(ts, (Paint **)&ts->gp_weightpaint);
+    Paint *weight_paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::WeightGPencil);
+    BKE_paint_ensure(ts, &weight_paint);
 
-    const bool reset_mode = (BKE_paint_brush(&ts->gp_weightpaint->paint) == nullptr);
+    if (ob->type == OB_GREASE_PENCIL) {
+      ED_paint_cursor_start(weight_paint, grease_pencil_poll_weight_cursor);
+    }
+
+    const bool reset_mode = (BKE_paint_brush(weight_paint) == nullptr);
     BKE_brush_gpencil_weight_presets(bmain, ts, reset_mode);
 
-    BKE_paint_toolslots_brush_validate(bmain, &ts->gp_weightpaint->paint);
+    BKE_paint_toolslots_brush_validate(bmain, weight_paint);
   }
 
   /* setup other modes */

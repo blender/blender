@@ -44,6 +44,10 @@ set(SRC
   grease_pencil_erase.cc
   grease_pencil_paint.cc
   grease_pencil_tint.cc
+  grease_pencil_weight_average.cc
+  grease_pencil_weight_blur.cc
+  grease_pencil_weight_draw.cc
+  grease_pencil_weight_smear.cc
   paint_canvas.cc
   paint_cursor.cc
   paint_curve.cc
@@ -93,6 +97,7 @@ set(SRC
 
   curves_sculpt_intern.hh
   grease_pencil_intern.hh
+  grease_pencil_weight_paint.hh
   paint_intern.hh
   sculpt_intern.hh
 )

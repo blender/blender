@@ -1516,34 +1516,30 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
     return;
   }
 
+  Paint *paint = pcontext->paint;
+  Brush *brush = pcontext->brush;
+  if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
+    return;
+  }
+
+  if ((paint->flags & PAINT_SHOW_BRUSH) == 0) {
+    return;
+  }
+
   /* default radius and color */
   float color[3] = {1.0f, 1.0f, 1.0f};
-  float darkcolor[3];
-  float radius = 2.0f;
+  float radius = BKE_brush_size_get(pcontext->scene, brush);
 
   const int x = pcontext->x;
   const int y = pcontext->y;
 
   /* for paint use paint brush size and color */
   if (pcontext->mode == PaintMode::GPencil) {
-    Paint *paint = pcontext->paint;
-    Brush *brush = pcontext->brush;
-    if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
-      return;
-    }
-
-    if ((paint->flags & PAINT_SHOW_BRUSH) == 0) {
-      return;
-    }
-
     /* Eraser has a special shape and use a different shader program. */
     if (brush->gpencil_tool == GPAINT_TOOL_ERASE) {
       grease_pencil_eraser_draw(pcontext);
       return;
     }
-
-    /* Note: For now, there is only as screen space sized cursor. */
-    radius = BKE_brush_size_get(pcontext->scene, brush);
 
     /* Get current drawing material. */
     Material *ma = BKE_grease_pencil_object_material_from_brush_get(object, brush);
@@ -1570,6 +1566,9 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
       }
     }
   }
+  else if (pcontext->mode == PaintMode::WeightGPencil) {
+    copy_v3_v3(color, brush->add_col);
+  }
 
   GPU_line_width(1.0f);
   /* Inner Ring: Color from UI panel */
@@ -1577,6 +1576,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
   imm_draw_circle_wire_2d(pcontext->pos, x, y, radius, 32);
 
   /* Outer Ring: Dark color for contrast on light backgrounds (e.g. gray on white) */
+  float darkcolor[3];
   mul_v3_v3fl(darkcolor, color, 0.40f);
   immUniformColor4f(darkcolor[0], darkcolor[1], darkcolor[2], 0.8f);
   imm_draw_circle_wire_2d(pcontext->pos, x, y, radius + 1, 32);
@@ -1604,7 +1604,8 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
 static void paint_draw_2D_view_brush_cursor(PaintCursorContext *pcontext)
 {
   switch (pcontext->mode) {
-    case PaintMode::GPencil: {
+    case PaintMode::GPencil:
+    case PaintMode::WeightGPencil: {
       grease_pencil_brush_cursor_draw(pcontext);
       break;
     }

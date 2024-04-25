@@ -13,6 +13,7 @@
 #include "BLI_generic_span.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_set.hh"
 
 #include "ED_keyframes_edit.hh"
 
@@ -53,6 +54,7 @@ void ED_operatortypes_grease_pencil_select();
 void ED_operatortypes_grease_pencil_edit();
 void ED_operatortypes_grease_pencil_material();
 void ED_operatortypes_grease_pencil_primitives();
+void ED_operatortypes_grease_pencil_weight_paint();
 void ED_operatormacros_grease_pencil();
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
 void ED_primitivetool_modal_keymap(wmKeyConfig *keyconf);
@@ -216,6 +218,7 @@ bool active_grease_pencil_layer_poll(bContext *C);
 bool editable_grease_pencil_point_selection_poll(bContext *C);
 bool grease_pencil_painting_poll(bContext *C);
 bool grease_pencil_sculpting_poll(bContext *C);
+bool grease_pencil_weight_painting_poll(bContext *C);
 
 float opacity_from_input_sample(const float pressure,
                                 const Brush *brush,
@@ -249,6 +252,8 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
                                                       GreasePencil &grease_pencil);
 Vector<MutableDrawingInfo> retrieve_editable_drawings_with_falloff(const Scene &scene,
                                                                    GreasePencil &grease_pencil);
+Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
+    const Scene &scene, GreasePencil &grease_pencil);
 Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
     const Scene &scene, GreasePencil &grease_pencil, const bke::greasepencil::Layer &layer);
 Vector<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
@@ -273,6 +278,9 @@ IndexMask retrieve_editable_elements(Object &object,
 IndexMask retrieve_visible_strokes(Object &grease_pencil_object,
                                    const bke::greasepencil::Drawing &drawing,
                                    IndexMaskMemory &memory);
+IndexMask retrieve_visible_points(Object &object,
+                                  const bke::greasepencil::Drawing &drawing,
+                                  IndexMaskMemory &memory);
 
 IndexMask retrieve_editable_and_selected_strokes(Object &grease_pencil_object,
                                                  const bke::greasepencil::Drawing &drawing,
@@ -362,5 +370,15 @@ Array<PointTransferData> compute_topology_change(
     bke::CurvesGeometry &dst,
     const Span<Vector<PointTransferData>> src_to_dst_points,
     const bool keep_caps);
+
+/** Returns a set of vertex group names that are deformed by a bone in an armature. */
+Set<std::string> get_bone_deformed_vertex_group_names(const Object &object);
+
+/** For a point in a stroke, normalize the weights of vertex groups deformed by bones so that the
+ * sum is 1.0f. */
+void normalize_vertex_weights(MDeformVert &dvert,
+                              int active_vertex_group,
+                              Span<bool> vertex_group_is_locked,
+                              Span<bool> vertex_group_is_bone_deformed);
 
 }  // namespace blender::ed::greasepencil
