@@ -526,11 +526,19 @@ static void write_lightcache_texture(BlendWriter *writer, LightCacheTexture *tex
 {
   if (tex->data) {
     size_t data_size = tex->components * tex->tex_size[0] * tex->tex_size[1] * tex->tex_size[2];
-    if (tex->data_type == LIGHTCACHETEX_FLOAT) {
-      data_size *= sizeof(float);
-    }
-    else if (tex->data_type == LIGHTCACHETEX_UINT) {
-      data_size *= sizeof(uint);
+    switch (tex->data_type) {
+      case LIGHTCACHETEX_BYTE:
+        data_size *= sizeof(uint8_t);
+        break;
+      case LIGHTCACHETEX_UINT:
+        data_size *= sizeof(uint32_t);
+        break;
+      case LIGHTCACHETEX_FLOAT:
+        data_size *= sizeof(float);
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
     }
 
     /* FIXME: We can't save more than what 32bit systems can handle.
@@ -565,15 +573,20 @@ static void direct_link_lightcache_texture(BlendDataReader *reader, LightCacheTe
     int data_size = lctex->components * lctex->tex_size[0] * lctex->tex_size[1] *
                     lctex->tex_size[2];
 
-    if (lctex->data_type == LIGHTCACHETEX_FLOAT) {
-      BLO_read_float_array(reader, data_size, (float **)&lctex->data);
-    }
-    else if (lctex->data_type == LIGHTCACHETEX_UINT) {
-      BLO_read_uint32_array(reader, data_size, (uint **)&lctex->data);
-    }
-    else {
-      BLI_assert_unreachable();
-      lctex->data = nullptr;
+    switch (lctex->data_type) {
+      case LIGHTCACHETEX_BYTE:
+        BLO_read_uint8_array(reader, data_size, (uint8_t **)&lctex->data);
+        break;
+      case LIGHTCACHETEX_UINT:
+        BLO_read_uint32_array(reader, data_size, (uint32_t **)&lctex->data);
+        break;
+      case LIGHTCACHETEX_FLOAT:
+        BLO_read_float_array(reader, data_size, (float **)&lctex->data);
+        break;
+      default:
+        BLI_assert_unreachable();
+        lctex->data = nullptr;
+        break;
     }
   }
 
@@ -585,8 +598,8 @@ static void direct_link_lightcache_texture(BlendDataReader *reader, LightCacheTe
 void EEVEE_lightcache_blend_read_data(BlendDataReader *reader, LightCache *cache)
 {
   cache->flag &= ~LIGHTCACHE_NOT_USABLE;
-  direct_link_lightcache_texture(reader, &cache->cube_tx);
   direct_link_lightcache_texture(reader, &cache->grid_tx);
+  direct_link_lightcache_texture(reader, &cache->cube_tx);
 
   if (cache->cube_mips) {
     BLO_read_struct_array(reader, LightCacheTexture, cache->mips_len, &cache->cube_mips);
@@ -595,8 +608,8 @@ void EEVEE_lightcache_blend_read_data(BlendDataReader *reader, LightCache *cache
     }
   }
 
-  BLO_read_struct_array(reader, LightGridCache, cache->grid_len, &cache->cube_data);
-  BLO_read_struct_array(reader, LightProbeCache, cache->cube_len, &cache->grid_data);
+  BLO_read_struct_array(reader, LightGridCache, cache->grid_len, &cache->grid_data);
+  BLO_read_struct_array(reader, LightProbeCache, cache->cube_len, &cache->cube_data);
 }
 
 /** \} */
