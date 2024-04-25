@@ -323,6 +323,8 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
 
 void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena *arena, Heap *heap)
 {
+  BLI_assert(BLI_heap_len(heap) == 0);
+
   /* After all the triangles and polygons have been added to a #PackIsland, but before we can start
    * running packing algorithms, there is a one-time finalization process where we can
    * pre-calculate a few quantities about the island, including pre-rotation, bounding box, or
@@ -362,8 +364,6 @@ void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena 
       }
       add_polygon(convexVertices, arena, heap);
     }
-
-    BLI_heap_clear(heap, nullptr);
   }
 
   /* Pivot calculation might be performed multiple times during pre-processing.
