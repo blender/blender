@@ -328,6 +328,7 @@ typedef enum eGP_Sculpt_Mode_Flag {
   /* apply brush to uv data */
   GP_SCULPT_FLAGMODE_APPLY_UV = (1 << 3),
 } eGP_Sculpt_Mode_Flag;
+ENUM_OPERATORS(eGP_Sculpt_Mode_Flag, GP_SCULPT_FLAGMODE_APPLY_UV)
 
 typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_TOPOLOGY = (1 << 0),
