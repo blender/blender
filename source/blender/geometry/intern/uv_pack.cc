@@ -353,14 +353,15 @@ void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena 
 
     /* Compute convex hull. */
     int convex_len = BLI_convexhull_2d(source, vert_count, index_map);
-
-    /* Write back. */
-    triangle_vertices_.clear();
-    Array<float2> convexVertices(convex_len);
-    for (int i = 0; i < convex_len; i++) {
-      convexVertices[i] = source[index_map[i]];
+    if (convex_len >= 3) {
+      /* Write back. */
+      triangle_vertices_.clear();
+      Array<float2> convexVertices(convex_len);
+      for (int i = 0; i < convex_len; i++) {
+        convexVertices[i] = source[index_map[i]];
+      }
+      add_polygon(convexVertices, arena, heap);
     }
-    add_polygon(convexVertices, arena, heap);
 
     BLI_heap_clear(heap, nullptr);
   }
