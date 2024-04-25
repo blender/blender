@@ -183,7 +183,7 @@ void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
   wmJob *wm_job;
   PreviewJob *pj;
   ScrArea *area = CTX_wm_area(C);
-  PreviewJobAudio *audiojob = MEM_cnew<PreviewJobAudio>("preview_audio");
+
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
                        CTX_data_scene(C),
@@ -221,6 +221,7 @@ void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
     WM_jobs_callbacks(wm_job, preview_startjob, nullptr, nullptr, preview_endjob);
   }
 
+  PreviewJobAudio *audiojob = MEM_cnew<PreviewJobAudio>("preview_audio");
   audiojob->bmain = CTX_data_main(C);
   audiojob->sound = seq->sound;
 
