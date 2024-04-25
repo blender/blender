@@ -743,7 +743,6 @@ static void paint_brush_set_default_reference(Paint *paint)
     case OB_MODE_EDIT:
       /* TODO: UV sculpt. */
       break;
-    case OB_MODE_PAINT_GREASE_PENCIL:
     case OB_MODE_PAINT_GPENCIL_LEGACY:
       name = "Pencil";
       break;
