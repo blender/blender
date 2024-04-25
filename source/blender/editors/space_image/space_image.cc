@@ -262,35 +262,8 @@ static void image_keymap(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Image", SPACE_IMAGE, RGN_TYPE_WINDOW);
 }
 
-/* dropboxes */
-static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
-{
-  ScrArea *area = CTX_wm_area(C);
-  if (ED_region_overlap_isect_any_xy(area, event->xy)) {
-    return false;
-  }
-  if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (ELEM(file_type, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-static void image_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
-{
-  /* copy drag path to properties */
-  RNA_string_set(drop->ptr, "filepath", WM_drag_get_single_path(drag));
-}
-
 /* area+region dropbox definition */
-static void image_dropboxes()
-{
-  ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, RGN_TYPE_WINDOW);
-
-  WM_dropbox_add(lb, "IMAGE_OT_open", image_drop_poll, image_drop_copy, nullptr, nullptr);
-}
+static void image_dropboxes() {}
 
 /**
  * \note take care not to get into feedback loop here,

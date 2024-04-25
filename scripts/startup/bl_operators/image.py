@@ -3,8 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
-from bpy.types import Operator
-from bpy.props import StringProperty
+from bpy.types import (
+    Operator, OperatorFileListElement, FileHandler,)
+from bpy.props import (
+    BoolProperty,
+    CollectionProperty,
+    StringProperty,)
 from bpy.app.translations import pgettext_rpt as rpt_
 
 
@@ -191,8 +195,93 @@ class ProjectApply(Operator):
         return {'FINISHED'}
 
 
+bl_file_extensions_image_movie = (*bpy.path.extensions_image, *bpy.path.extensions_movie)
+
+
+class IMAGE_OT_open_images(Operator):
+    bl_idname = "image.open_images"
+    bl_label = "Open Images"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    directory: StringProperty(subtype='FILE_PATH', options={'SKIP_SAVE', 'HIDDEN'})
+    files: CollectionProperty(type=OperatorFileListElement, options={'SKIP_SAVE', 'HIDDEN'})
+    relative_path: BoolProperty(name="Use relative path", default=True)
+    use_sequence_detection: BoolProperty(name="Use sequence detection", default=True)
+    use_udim_detection: BoolProperty(name="Use UDIM detection", default=True)
+
+    @classmethod
+    def poll(cls, context):
+        return context.area and context.area.ui_type == 'IMAGE_EDITOR'
+
+    def execute(self, context):
+        if not self.directory or len(self.files) == 0:
+            return {'CANCELLED'}
+        # List of files that are not part of an image sequence or UDIM group
+        files = []
+        # Groups of files that may be part of an image sequence or a UDIM group.
+        sequences = []
+        import re
+        regex_extension = re.compile("(" + "|".join([re.escape(ext) for ext in bl_file_extensions_image_movie]) + ")$")
+        regex_sequence = re.compile("(\\d+)(\\.[\\w\\d]+)$")
+        for file in self.files:
+            # Filter by extension
+            if not regex_extension.search(file.name):
+                continue
+            match = regex_sequence.search(file.name)
+            if not (match and (self.use_sequence_detection or self.use_udim_detection)):
+                files.append(file.name)
+                continue
+            seq = {'prefix': file.name[:len(file.name) - len(match.group(0))],
+                   'ext': match.group(2),
+                   'frame_size': len(match.group(1)),
+                   'files': [file.name,]}
+            for test_seq in sequences:
+                if (test_seq['prefix'] == seq['prefix'] and test_seq['ext'] == seq['ext'] and
+                        test_seq['frame_size'] == seq['frame_size']):
+                    test_seq['files'].append(file.name)
+                    seq = None
+                    break
+            if seq:
+                sequences.append(seq)
+        import os
+        for file in files:
+            filepath = os.path.join(self.directory, file)
+            bpy.ops.image.open(filepath=filepath, relative_path=self.relative_path)
+        for seq in sequences:
+            seq['files'].sort()
+            filepath = os.path.join(self.directory, seq['files'][0])
+            files = [{"name": file} for file in seq['files']]
+            bpy.ops.image.open(
+                filepath=filepath,
+                directory=self.directory,
+                files=files,
+                use_sequence_detection=self.use_sequence_detection,
+                use_udim_detecting=self.use_udim_detection,
+                relative_path=self.relative_path)
+            is_tiled = context.edit_image.source == 'TILED'
+            if len(files) > 1 and self.use_sequence_detection and not is_tiled:
+                context.edit_image.name = "{prefix}{hash}{ext}".format(
+                    prefix=seq['prefix'], hash=("#" * seq['frame_size']), ext=seq['ext'])
+
+        return {'FINISHED'}
+
+
+class IMAGE_FH_drop_handler(FileHandler):
+    bl_idname = "IMAGE_FH_drop_handler"
+    bl_label = "Open images"
+    bl_import_operator = "image.open_images"
+    bl_file_extensions = ';'.join(bl_file_extensions_image_movie)
+
+    @classmethod
+    def poll_drop(cls, context):
+        return (context.area and context.area.ui_type == 'IMAGE_EDITOR'
+                and context.region and context.region.type == 'WINDOW')
+
+
 classes = (
     EditExternally,
     ProjectApply,
+    IMAGE_OT_open_images,
+    IMAGE_FH_drop_handler,
     ProjectEdit,
 )
