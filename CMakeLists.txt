@@ -2010,8 +2010,292 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
 
     CXX_WARN_ERROR_UNGUARDED_AVAILABILITY_NEW -Werror=unguarded-availability-new
   )
+  if(MSVC_CLANG)
+    # clang-cl produces an unhealthy ammount of warnings in its default
+    # configuration as it for reasons unknown decided to enable all
+    # warnings known to mankind. Resulting in a 5.5GB build log containing
+    # well over 11 million warnings. The code below disables every single
+    # one of them indiscriminately. Someone with time on their hands,
+    # could/should go over these and either fix them or describe why we
+    # would want to disable the warning. The list below contains both C
+    # and C++ warnings for all warnings since clang has seemingly no
+    # easy way to tell if something is a C or C++ specific warning and
+    # manually auditing every single one of them just isn't in the cards
+    # right now.
 
+    # /W3 is being removed, then added back again, this is because order
+    # matters for clang and these flags are being placed before the
+    # CMAKE_[LANGUAGE]_FLAGS which normally contain /W3, so we would
+    # disable certain warings here only for them to be re-enabled by /W3
+    # later on.
+    remove_cc_flag("/W3")
 
+    add_check_c_compiler_flags(
+      C_WARNINGS
+      C_WARN_CLANG_CL_W3 /W3
+      # The number behind each warn is the number of unique warning were
+      # generated on 2024-04-24 (d2be9cecc28a03ff1f799e8c63f1f9f8eda7cce3)
+      # especially the ones in the single and low double digits are likely
+      # genuine problems that can be investigated.
+      C_WARN_CLANG_CL_C++98_COMPAT -Wno-c++98-compat # 352692
+      C_WARN_CLANG_CL_OLD_STYLE_CAST -Wno-old-style-cast # 178608
+      C_WARN_CLANG_CL_UNSAFE_BUFFER_USAGE -Wno-unsafe-buffer-usage # 89032
+      C_WARN_CLANG_CL_MISSING_PROTOTYPES -Wno-missing-prototypes # 25587
+      C_WARN_CLANG_CL_SIGN_CONVERSION -Wno-sign-conversion # 20109
+      C_WARN_CLANG_CL_MISSING_FIELD_INITIALIZERS -Wno-missing-field-initializers # 20060
+      C_WARN_CLANG_CL_EXTRA_SEMI -Wno-extra-semi # 12513
+      C_WARN_CLANG_CL_LANGUAGE_EXTENSION_TOKEN -Wno-language-extension-token # 11032
+      C_WARN_CLANG_CL_IMPLICIT_FLOAT_CONVERSION -Wno-implicit-float-conversion # 11003
+      C_WARN_CLANG_CL_C++98_COMPAT_PEDANTIC -Wno-c++98-compat-pedantic # 10336
+      C_WARN_CLANG_CL_IMPLICIT_INT_FLOAT_CONVERSION -Wno-implicit-int-float-conversion # 7354
+      C_WARN_CLANG_CL_DOUBLE_PROMOTION -Wno-double-promotion # 7350
+      C_WARN_CLANG_CL_PRE_C++17_COMPAT -Wno-pre-c++17-compat # 7303
+      C_WARN_CLANG_CL_SHORTEN_64_TO_32 -Wno-shorten-64-to-32 # 7085
+      C_WARN_CLANG_CL_C++98_COMPAT_LOCAL_TYPE_TEMPLATE_ARGS -Wno-c++98-compat-local-type-template-args # 6906
+      C_WARN_CLANG_CL_RESERVED_IDENTIFIER -Wno-reserved-identifier # 5886
+      C_WARN_CLANG_CL_CAST_ALIGN -Wno-cast-align # 5513
+      C_WARN_CLANG_CL_DOCUMENTATION -Wno-documentation # 5107
+      C_WARN_CLANG_CL_DISABLED_MACRO_EXPANSION -Wno-disabled-macro-expansion # 4449
+      C_WARN_CLANG_CL_EXTRA_SEMI_STMT -Wno-extra-semi-stmt # 4349
+      C_WARN_CLANG_CL_ZERO_AS_NULL_POINTER_CONSTANT -Wno-zero-as-null-pointer-constant # 3209
+      C_WARN_CLANG_CL_FLOAT_CONVERSION -Wno-float-conversion # 2869
+      C_WARN_CLANG_CL_RESERVED_MACRO_IDENTIFIER -Wno-reserved-macro-identifier # 2862
+      C_WARN_CLANG_CL_CAST_FUNCTION_TYPE_STRICT -Wno-cast-function-type-strict # 2663
+      C_WARN_CLANG_CL_FLOAT_EQUAL -Wno-float-equal # 2153
+      C_WARN_CLANG_CL_IMPLICIT_INT_CONVERSION -Wno-implicit-int-conversion # 2117
+      C_WARN_CLANG_CL_SHADOW -Wno-shadow # 2068
+      C_WARN_CLANG_CL_SHADOW_FIELD_IN_CONSTRUCTOR -Wno-shadow-field-in-constructor # 1829
+      C_WARN_CLANG_CL_CAST_QUAL -Wno-cast-qual # 1742
+      C_WARN_CLANG_CL_PRE_C++14_COMPAT -Wno-pre-c++14-compat # 1569
+      C_WARN_CLANG_CL_GLOBAL_CONSTRUCTORS -Wno-global-constructors # 1402
+      C_WARN_CLANG_CL_SWITCH_ENUM -Wno-switch-enum # 973
+      C_WARN_CLANG_CL_EXIT_TIME_DESTRUCTORS -Wno-exit-time-destructors # 940
+      C_WARN_CLANG_CL_CTAD_MAYBE_UNSUPPORTED -Wno-ctad-maybe-unsupported # 891
+      C_WARN_CLANG_CL_UNDEFINED_FUNC_TEMPLATE -Wno-undefined-func-template # 863
+      C_WARN_CLANG_CL_C++98_COMPAT_EXTRA_SEMI -Wno-c++98-compat-extra-semi # 848
+      C_WARN_CLANG_CL_CAST_FUNCTION_TYPE -Wno-cast-function-type # 807
+      C_WARN_CLANG_CL_NULLABILITY_EXTENSION -Wno-nullability-extension # 602
+      C_WARN_CLANG_CL_SHADOW_FIELD -Wno-shadow-field # 585
+      C_WARN_CLANG_CL_CONDITIONAL_UNINITIALIZED -Wno-conditional-uninitialized # 555
+      C_WARN_CLANG_CL_UNUSED_PARAMETER -Wno-unused-parameter # 539
+      C_WARN_CLANG_CL_SUGGEST_DESTRUCTOR_OVERRIDE -Wno-suggest-destructor-override # 356
+      C_WARN_CLANG_CL_SHADOW_UNCAPTURED_LOCAL -Wno-shadow-uncaptured-local # 355
+      C_WARN_CLANG_CL_UNUSED_MACROS -Wno-unused-macros # 289
+      C_WARN_CLANG_CL_COVERED_SWITCH_DEFAULT -Wno-covered-switch-default # 233
+      C_WARN_CLANG_CL_SIGNED_ENUM_BITFIELD -Wno-signed-enum-bitfield # 229
+      C_WARN_CLANG_CL_DECLARATION_AFTER_STATEMENT -Wno-declaration-after-statement # 228
+      C_WARN_CLANG_CL_IMPLICIT_FALLTHROUGH -Wno-implicit-fallthrough # 164
+      C_WARN_CLANG_CL_NON_VIRTUAL_DTOR -Wno-non-virtual-dtor # 161
+      C_WARN_CLANG_CL_NESTED_ANON_TYPES -Wno-nested-anon-types # 140
+      C_WARN_CLANG_CL_GNU_ZERO_VARIADIC_MACRO_ARGUMENTS -Wno-gnu-zero-variadic-macro-arguments # 132
+      C_WARN_CLANG_CL_UNREACHABLE_CODE_BREAK -Wno-unreachable-code-break # 115
+      C_WARN_CLANG_CL_INCONSISTENT_MISSING_DESTRUCTOR_OVERRIDE -Wno-inconsistent-missing-destructor-override # 104
+      C_WARN_CLANG_CL_FORMAT_PEDANTIC -Wno-format-pedantic # 97
+      C_WARN_CLANG_CL_NONPORTABLE_SYSTEM_INCLUDE_PATH -Wno-nonportable-system-include-path # 95
+      C_WARN_CLANG_CL_UNDEF -Wno-undef # 94
+      C_WARN_CLANG_CL_IGNORED_QUALIFIERS -Wno-ignored-qualifiers # 93
+      C_WARN_CLANG_CL_USED_BUT_MARKED_UNUSED -Wno-used-but-marked-unused # 83
+      C_WARN_CLANG_CL_HEADER_HYGIENE -Wno-header-hygiene # 79
+      C_WARN_CLANG_CL_CHAR_SUBSCRIPTS -Wno-char-subscripts # 76
+      C_WARN_CLANG_CL_UNREACHABLE_CODE_RETURN -Wno-unreachable-code-return # 71
+      C_WARN_CLANG_CL_UNUSED_TEMPLATE -Wno-unused-template # 66
+      C_WARN_CLANG_CL_GNU_ANONYMOUS_STRUCT -Wno-gnu-anonymous-struct # 63
+      C_WARN_CLANG_CL_DEPRECATED_COPY_WITH_USER_PROVIDED_DTOR -Wno-deprecated-copy-with-user-provided-dtor # 62
+      C_WARN_CLANG_CL_INCONSISTENT_MISSING_OVERRIDE -Wno-inconsistent-missing-override # 54
+      C_WARN_CLANG_CL_UNREACHABLE_CODE -Wno-unreachable-code # 52
+      C_WARN_CLANG_CL_DEPRECATED_DYNAMIC_EXCEPTION_SPEC -Wno-deprecated-dynamic-exception-spec # 51
+      C_WARN_CLANG_CL_BAD_FUNCTION_CAST -Wno-bad-function-cast # 50
+      C_WARN_CLANG_CL_MICROSOFT_ENUM_VALUE -Wno-microsoft-enum-value # 47
+      C_WARN_CLANG_CL_DEPRECATED_COPY_WITH_USER_PROVIDED_COPY -Wno-deprecated-copy-with-user-provided-copy # 41
+      C_WARN_CLANG_CL_ZERO_LENGTH_ARRAY -Wno-zero-length-array # 39
+      C_WARN_CLANG_CL_UNUSED_FUNCTION -Wno-unused-function # 38
+      C_WARN_CLANG_CL_PEDANTIC -Wno-pedantic # 38
+      C_WARN_CLANG_CL_DEPRECATED_COPY_WITH_DTOR -Wno-deprecated-copy-with-dtor # 37
+      C_WARN_CLANG_CL_DOCUMENTATION_UNKNOWN_COMMAND -Wno-documentation-unknown-command # 34
+      C_WARN_CLANG_CL_UNDEFINED_REINTERPRET_CAST -Wno-undefined-reinterpret-cast # 33
+      C_WARN_CLANG_CL_FORMAT_NONLITERAL -Wno-format-nonliteral # 29
+      C_WARN_CLANG_CL_COMMA -Wno-comma # 27
+      C_WARN_CLANG_CL_DOCUMENTATION_DEPRECATED_SYNC -Wno-documentation-deprecated-sync # 26
+      C_WARN_CLANG_CL_SHIFT_SIGN_OVERFLOW -Wno-shift-sign-overflow # 24
+      C_WARN_CLANG_CL_PRE_C++17_COMPAT_PEDANTIC -Wno-pre-c++17-compat-pedantic # 24
+      C_WARN_CLANG_CL_C++98_COMPAT_UNNAMED_TYPE_TEMPLATE_ARGS -Wno-c++98-compat-unnamed-type-template-args # 22
+      C_WARN_CLANG_CL_SIGN_COMPARE -Wno-sign-compare # 21
+      C_WARN_CLANG_CL_FORMAT -Wno-format # 21
+      C_WARN_CLANG_CL_C++98_COMPAT_BIND_TO_TEMPORARY_COPY -Wno-c++98-compat-bind-to-temporary-copy # 21
+      C_WARN_CLANG_CL_ENUM_ENUM_CONVERSION -Wno-enum-enum-conversion # 20
+      C_WARN_CLANG_CL_ANON_ENUM_ENUM_CONVERSION -Wno-anon-enum-enum-conversion # 14
+      C_WARN_CLANG_CL_RANGE_LOOP_BIND_REFERENCE -Wno-range-loop-bind-reference # 14
+      C_WARN_CLANG_CL_ENUM_FLOAT_CONVERSION -Wno-enum-float-conversion # 12
+      C_WARN_CLANG_CL_KEYWORD_MACRO -Wno-keyword-macro # 10
+      C_WARN_CLANG_CL_DEPRECATED_COPY -Wno-deprecated-copy # 10
+      C_WARN_CLANG_CL_UNUSED_MEMBER_FUNCTION -Wno-unused-member-function # 9
+      C_WARN_CLANG_CL_MISSING_NORETURN -Wno-missing-noreturn # 8
+      C_WARN_CLANG_CL_MISSING_VARIABLE_DECLARATIONS -Wno-missing-variable-declarations # 8
+      C_WARN_CLANG_CL_DOCUMENTATION_HTML -Wno-documentation-html # 6
+      C_WARN_CLANG_CL_GNU_REDECLARED_ENUM -Wno-gnu-redeclared-enum # 6
+      C_WARN_CLANG_CL_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations # 6
+      C_WARN_CLANG_CL_OVERLOADED_VIRTUAL -Wno-overloaded-virtual # 5
+      C_WARN_CLANG_CL_C++98_C++11_COMPAT_BINARY_LITERAL -Wno-c++98-c++11-compat-binary-literal # 4
+      C_WARN_CLANG_CL_DEPRECATED_REDUNDANT_CONSTEXPR_STATIC_DEF -Wno-deprecated-redundant-constexpr-static-def # 4
+      C_WARN_CLANG_CL_MISSING_BRACES -Wno-missing-braces # 4
+      C_WARN_CLANG_CL_C99_EXTENSIONS -Wno-c99-extensions # 4
+      C_WARN_CLANG_CL_STRICT_PROTOTYPES -Wno-strict-prototypes # 4
+      C_WARN_CLANG_CL_UNREACHABLE_CODE_LOOP_INCREMENT -Wno-unreachable-code-loop-increment # 4
+      C_WARN_CLANG_CL_GNU_CASE_RANGE -Wno-gnu-case-range # 4
+      C_WARN_CLANG_CL_DUPLICATE_ENUM -Wno-duplicate-enum # 3
+      C_WARN_CLANG_CL_NULL_POINTER_SUBTRACTION -Wno-null-pointer-subtraction # 2
+      C_WARN_CLANG_CL_DEPRECATED_LITERAL_OPERATOR -Wno-deprecated-literal-operator # 2
+      C_WARN_CLANG_CL_NEWLINE_EOF -Wno-newline-eof # 2
+      C_WARN_CLANG_CL_MICROSOFT_CAST -Wno-microsoft-cast # 2
+      C_WARN_CLANG_CL_DATE_TIME -Wno-date-time # 2
+      C_WARN_CLANG_CL_DELETE_NON_ABSTRACT_NON_VIRTUAL_DTOR -Wno-delete-non-abstract-non-virtual-dtor # 2
+      C_WARN_CLANG_CL_UNUSED_PRIVATE_FIELD -Wno-unused-private-field # 2
+      C_WARN_CLANG_CL_FLEXIBLE_ARRAY_EXTENSIONS -Wno-flexible-array-extensions # 2
+      C_WARN_CLANG_CL_STRING_CONVERSION -Wno-string-conversion # 2
+      C_WARN_CLANG_CL_FINAL_DTOR_NON_FINAL_CLASS -Wno-final-dtor-non-final-class # 2
+      C_WARN_CLANG_CL_MICROSOFT_UNQUALIFIED_FRIEND -Wno-microsoft-unqualified-friend # 2
+      C_WARN_CLANG_CL_INVALID_NORETURN -Wno-invalid-noreturn # 1
+      C_WARN_CLANG_CL_INVALID_UTF8 -Wno-invalid-utf8 # 1
+      C_WARN_CLANG_CL_FOUR_CHAR_CONSTANTS -Wno-four-char-constants # 1
+      C_WARN_CLANG_CL_PARENTHESES -Wno-parentheses # 1
+      C_WARN_CLANG_CL_PESSIMIZING_MOVE -Wno-pessimizing-move # 1
+      C_WARN_CLANG_CL_DEPRECATED_NON_PROTOTYPE -Wno-deprecated-non-prototype # 1
+      C_WARN_CLANG_CL_BITFIELD_ENUM_CONVERSION -Wno-bitfield-enum-conversion # 1
+      C_WARN_CLANG_CL_UNUSED_LAMBDA_CAPTURE -Wno-unused-lambda-capture # 1
+      C_WARN_CLANG_CL_SHADOW_FIELD_IN_CONSTRUCTOR_MODIFIED -Wno-shadow-field-in-constructor-modified # 1
+    )
+
+  add_check_cxx_compiler_flags(
+    CXX_WARNINGS
+      CXX_WARN_CLANG_CL_W3 /W3
+      CXX_WARN_CLANG_CL_C++98_COMPAT -Wno-c++98-compat # 352692
+      CXX_WARN_CLANG_CL_OLD_STYLE_CAST -Wno-old-style-cast # 178608
+      CXX_WARN_CLANG_CL_UNSAFE_BUFFER_USAGE -Wno-unsafe-buffer-usage # 89032
+      CXX_WARN_CLANG_CL_MISSING_PROTOTYPES -Wno-missing-prototypes # 25587
+      CXX_WARN_CLANG_CL_SIGN_CONVERSION -Wno-sign-conversion # 20109
+      CXX_WARN_CLANG_CL_MISSING_FIELD_INITIALIZERS -Wno-missing-field-initializers # 20060
+      CXX_WARN_CLANG_CL_EXTRA_SEMI -Wno-extra-semi # 12513
+      CXX_WARN_CLANG_CL_LANGUAGE_EXTENSION_TOKEN -Wno-language-extension-token # 11032
+      CXX_WARN_CLANG_CL_IMPLICIT_FLOAT_CONVERSION -Wno-implicit-float-conversion # 11003
+      CXX_WARN_CLANG_CL_C++98_COMPAT_PEDANTIC -Wno-c++98-compat-pedantic # 10336
+      CXX_WARN_CLANG_CL_IMPLICIT_INT_FLOAT_CONVERSION -Wno-implicit-int-float-conversion # 7354
+      CXX_WARN_CLANG_CL_DOUBLE_PROMOTION -Wno-double-promotion # 7350
+      CXX_WARN_CLANG_CL_PRE_C++17_COMPAT -Wno-pre-c++17-compat # 7303
+      CXX_WARN_CLANG_CL_SHORTEN_64_TO_32 -Wno-shorten-64-to-32 # 7085
+      CXX_WARN_CLANG_CL_C++98_COMPAT_LOCAL_TYPE_TEMPLATE_ARGS -Wno-c++98-compat-local-type-template-args # 6906
+      CXX_WARN_CLANG_CL_RESERVED_IDENTIFIER -Wno-reserved-identifier # 5886
+      CXX_WARN_CLANG_CL_CAST_ALIGN -Wno-cast-align # 5513
+      CXX_WARN_CLANG_CL_DOCUMENTATION -Wno-documentation # 5107
+      CXX_WARN_CLANG_CL_DISABLED_MACRO_EXPANSION -Wno-disabled-macro-expansion # 4449
+      CXX_WARN_CLANG_CL_EXTRA_SEMI_STMT -Wno-extra-semi-stmt # 4349
+      CXX_WARN_CLANG_CL_ZERO_AS_NULL_POINTER_CONSTANT -Wno-zero-as-null-pointer-constant # 3209
+      CXX_WARN_CLANG_CL_FLOAT_CONVERSION -Wno-float-conversion # 2869
+      CXX_WARN_CLANG_CL_RESERVED_MACRO_IDENTIFIER -Wno-reserved-macro-identifier # 2862
+      CXX_WARN_CLANG_CL_CAST_FUNCTION_TYPE_STRICT -Wno-cast-function-type-strict # 2663
+      CXX_WARN_CLANG_CL_FLOAT_EQUAL -Wno-float-equal # 2153
+      CXX_WARN_CLANG_CL_IMPLICIT_INT_CONVERSION -Wno-implicit-int-conversion # 2117
+      CXX_WARN_CLANG_CL_SHADOW -Wno-shadow # 2068
+      CXX_WARN_CLANG_CL_SHADOW_FIELD_IN_CONSTRUCTOR -Wno-shadow-field-in-constructor # 1829
+      CXX_WARN_CLANG_CL_CAST_QUAL -Wno-cast-qual # 1742
+      CXX_WARN_CLANG_CL_PRE_C++14_COMPAT -Wno-pre-c++14-compat # 1569
+      CXX_WARN_CLANG_CL_GLOBAL_CONSTRUCTORS -Wno-global-constructors # 1402
+      CXX_WARN_CLANG_CL_SWITCH_ENUM -Wno-switch-enum # 973
+      CXX_WARN_CLANG_CL_EXIT_TIME_DESTRUCTORS -Wno-exit-time-destructors # 940
+      CXX_WARN_CLANG_CL_CTAD_MAYBE_UNSUPPORTED -Wno-ctad-maybe-unsupported # 891
+      CXX_WARN_CLANG_CL_UNDEFINED_FUNC_TEMPLATE -Wno-undefined-func-template # 863
+      CXX_WARN_CLANG_CL_C++98_COMPAT_EXTRA_SEMI -Wno-c++98-compat-extra-semi # 848
+      CXX_WARN_CLANG_CL_CAST_FUNCTION_TYPE -Wno-cast-function-type # 807
+      CXX_WARN_CLANG_CL_NULLABILITY_EXTENSION -Wno-nullability-extension # 602
+      CXX_WARN_CLANG_CL_SHADOW_FIELD -Wno-shadow-field # 585
+      CXX_WARN_CLANG_CL_CONDITIONAL_UNINITIALIZED -Wno-conditional-uninitialized # 555
+      CXX_WARN_CLANG_CL_UNUSED_PARAMETER -Wno-unused-parameter # 539
+      CXX_WARN_CLANG_CL_SUGGEST_DESTRUCTOR_OVERRIDE -Wno-suggest-destructor-override # 356
+      CXX_WARN_CLANG_CL_SHADOW_UNCAPTURED_LOCAL -Wno-shadow-uncaptured-local # 355
+      CXX_WARN_CLANG_CL_UNUSED_MACROS -Wno-unused-macros # 289
+      CXX_WARN_CLANG_CL_COVERED_SWITCH_DEFAULT -Wno-covered-switch-default # 233
+      CXX_WARN_CLANG_CL_SIGNED_ENUM_BITFIELD -Wno-signed-enum-bitfield # 229
+      CXX_WARN_CLANG_CL_DECLARATION_AFTER_STATEMENT -Wno-declaration-after-statement # 228
+      CXX_WARN_CLANG_CL_IMPLICIT_FALLTHROUGH -Wno-implicit-fallthrough # 164
+      CXX_WARN_CLANG_CL_NON_VIRTUAL_DTOR -Wno-non-virtual-dtor # 161
+      CXX_WARN_CLANG_CL_NESTED_ANON_TYPES -Wno-nested-anon-types # 140
+      CXX_WARN_CLANG_CL_GNU_ZERO_VARIADIC_MACRO_ARGUMENTS -Wno-gnu-zero-variadic-macro-arguments # 132
+      CXX_WARN_CLANG_CL_UNREACHABLE_CODE_BREAK -Wno-unreachable-code-break # 115
+      CXX_WARN_CLANG_CL_INCONSISTENT_MISSING_DESTRUCTOR_OVERRIDE -Wno-inconsistent-missing-destructor-override # 104
+      CXX_WARN_CLANG_CL_FORMAT_PEDANTIC -Wno-format-pedantic # 97
+      CXX_WARN_CLANG_CL_NONPORTABLE_SYSTEM_INCLUDE_PATH -Wno-nonportable-system-include-path # 95
+      CXX_WARN_CLANG_CL_UNDEF -Wno-undef # 94
+      CXX_WARN_CLANG_CL_IGNORED_QUALIFIERS -Wno-ignored-qualifiers # 93
+      CXX_WARN_CLANG_CL_USED_BUT_MARKED_UNUSED -Wno-used-but-marked-unused # 83
+      CXX_WARN_CLANG_CL_HEADER_HYGIENE -Wno-header-hygiene # 79
+      CXX_WARN_CLANG_CL_CHAR_SUBSCRIPTS -Wno-char-subscripts # 76
+      CXX_WARN_CLANG_CL_UNREACHABLE_CODE_RETURN -Wno-unreachable-code-return # 71
+      CXX_WARN_CLANG_CL_UNUSED_TEMPLATE -Wno-unused-template # 66
+      CXX_WARN_CLANG_CL_GNU_ANONYMOUS_STRUCT -Wno-gnu-anonymous-struct # 63
+      CXX_WARN_CLANG_CL_DEPRECATED_COPY_WITH_USER_PROVIDED_DTOR -Wno-deprecated-copy-with-user-provided-dtor # 62
+      CXX_WARN_CLANG_CL_INCONSISTENT_MISSING_OVERRIDE -Wno-inconsistent-missing-override # 54
+      CXX_WARN_CLANG_CL_UNREACHABLE_CODE -Wno-unreachable-code # 52
+      CXX_WARN_CLANG_CL_DEPRECATED_DYNAMIC_EXCEPTION_SPEC -Wno-deprecated-dynamic-exception-spec # 51
+      CXX_WARN_CLANG_CL_BAD_FUNCTION_CAST -Wno-bad-function-cast # 50
+      CXX_WARN_CLANG_CL_MICROSOFT_ENUM_VALUE -Wno-microsoft-enum-value # 47
+      CXX_WARN_CLANG_CL_DEPRECATED_COPY_WITH_USER_PROVIDED_COPY -Wno-deprecated-copy-with-user-provided-copy # 41
+      CXX_WARN_CLANG_CL_ZERO_LENGTH_ARRAY -Wno-zero-length-array # 39
+      CXX_WARN_CLANG_CL_UNUSED_FUNCTION -Wno-unused-function # 38
+      CXX_WARN_CLANG_CL_PEDANTIC -Wno-pedantic # 38
+      CXX_WARN_CLANG_CL_DEPRECATED_COPY_WITH_DTOR -Wno-deprecated-copy-with-dtor # 37
+      CXX_WARN_CLANG_CL_DOCUMENTATION_UNKNOWN_COMMAND -Wno-documentation-unknown-command # 34
+      CXX_WARN_CLANG_CL_UNDEFINED_REINTERPRET_CAST -Wno-undefined-reinterpret-cast # 33
+      CXX_WARN_CLANG_CL_FORMAT_NONLITERAL -Wno-format-nonliteral # 29
+      CXX_WARN_CLANG_CL_COMMA -Wno-comma # 27
+      CXX_WARN_CLANG_CL_DOCUMENTATION_DEPRECATED_SYNC -Wno-documentation-deprecated-sync # 26
+      CXX_WARN_CLANG_CL_SHIFT_SIGN_OVERFLOW -Wno-shift-sign-overflow # 24
+      CXX_WARN_CLANG_CL_PRE_C++17_COMPAT_PEDANTIC -Wno-pre-c++17-compat-pedantic # 24
+      CXX_WARN_CLANG_CL_C++98_COMPAT_UNNAMED_TYPE_TEMPLATE_ARGS -Wno-c++98-compat-unnamed-type-template-args # 22
+      CXX_WARN_CLANG_CL_SIGN_COMPARE -Wno-sign-compare # 21
+      CXX_WARN_CLANG_CL_FORMAT -Wno-format # 21
+      CXX_WARN_CLANG_CL_C++98_COMPAT_BIND_TO_TEMPORARY_COPY -Wno-c++98-compat-bind-to-temporary-copy # 21
+      CXX_WARN_CLANG_CL_ENUM_ENUM_CONVERSION -Wno-enum-enum-conversion # 20
+      CXX_WARN_CLANG_CL_ANON_ENUM_ENUM_CONVERSION -Wno-anon-enum-enum-conversion # 14
+      CXX_WARN_CLANG_CL_RANGE_LOOP_BIND_REFERENCE -Wno-range-loop-bind-reference # 14
+      CXX_WARN_CLANG_CL_ENUM_FLOAT_CONVERSION -Wno-enum-float-conversion # 12
+      CXX_WARN_CLANG_CL_KEYWORD_MACRO -Wno-keyword-macro # 10
+      CXX_WARN_CLANG_CL_DEPRECATED_COPY -Wno-deprecated-copy # 10
+      CXX_WARN_CLANG_CL_UNUSED_MEMBER_FUNCTION -Wno-unused-member-function # 9
+      CXX_WARN_CLANG_CL_MISSING_NORETURN -Wno-missing-noreturn # 8
+      CXX_WARN_CLANG_CL_MISSING_VARIABLE_DECLARATIONS -Wno-missing-variable-declarations # 8
+      CXX_WARN_CLANG_CL_DOCUMENTATION_HTML -Wno-documentation-html # 6
+      CXX_WARN_CLANG_CL_GNU_REDECLARED_ENUM -Wno-gnu-redeclared-enum # 6
+      CXX_WARN_CLANG_CL_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations # 6
+      CXX_WARN_CLANG_CL_OVERLOADED_VIRTUAL -Wno-overloaded-virtual # 5
+      CXX_WARN_CLANG_CL_C++98_C++11_COMPAT_BINARY_LITERAL -Wno-c++98-c++11-compat-binary-literal # 4
+      CXX_WARN_CLANG_CL_DEPRECATED_REDUNDANT_CONSTEXPR_STATIC_DEF -Wno-deprecated-redundant-constexpr-static-def # 4
+      CXX_WARN_CLANG_CL_MISSING_BRACES -Wno-missing-braces # 4
+      CXX_WARN_CLANG_CL_C99_EXTENSIONS -Wno-c99-extensions # 4
+      CXX_WARN_CLANG_CL_STRICT_PROTOTYPES -Wno-strict-prototypes # 4
+      CXX_WARN_CLANG_CL_UNREACHABLE_CODE_LOOP_INCREMENT -Wno-unreachable-code-loop-increment # 4
+      CXX_WARN_CLANG_CL_GNU_CASE_RANGE -Wno-gnu-case-range # 4
+      CXX_WARN_CLANG_CL_DUPLICATE_ENUM -Wno-duplicate-enum # 3
+      CXX_WARN_CLANG_CL_NULL_POINTER_SUBTRACTION -Wno-null-pointer-subtraction # 2
+      CXX_WARN_CLANG_CL_DEPRECATED_LITERAL_OPERATOR -Wno-deprecated-literal-operator # 2
+      CXX_WARN_CLANG_CL_NEWLINE_EOF -Wno-newline-eof # 2
+      CXX_WARN_CLANG_CL_MICROSOFT_CAST -Wno-microsoft-cast # 2
+      CXX_WARN_CLANG_CL_DATE_TIME -Wno-date-time # 2
+      CXX_WARN_CLANG_CL_DELETE_NON_ABSTRACT_NON_VIRTUAL_DTOR -Wno-delete-non-abstract-non-virtual-dtor # 2
+      CXX_WARN_CLANG_CL_UNUSED_PRIVATE_FIELD -Wno-unused-private-field # 2
+      CXX_WARN_CLANG_CL_FLEXIBLE_ARRAY_EXTENSIONS -Wno-flexible-array-extensions # 2
+      CXX_WARN_CLANG_CL_STRING_CONVERSION -Wno-string-conversion # 2
+      CXX_WARN_CLANG_CL_FINAL_DTOR_NON_FINAL_CLASS -Wno-final-dtor-non-final-class # 2
+      CXX_WARN_CLANG_CL_MICROSOFT_UNQUALIFIED_FRIEND -Wno-microsoft-unqualified-friend # 2
+      CXX_WARN_CLANG_CL_INVALID_NORETURN -Wno-invalid-noreturn # 1
+      CXX_WARN_CLANG_CL_INVALID_UTF8 -Wno-invalid-utf8 # 1
+      CXX_WARN_CLANG_CL_FOUR_CHAR_CONSTANTS -Wno-four-char-constants # 1
+      CXX_WARN_CLANG_CL_PARENTHESES -Wno-parentheses # 1
+      CXX_WARN_CLANG_CL_PESSIMIZING_MOVE -Wno-pessimizing-move # 1
+      CXX_WARN_CLANG_CL_DEPRECATED_NON_PROTOTYPE -Wno-deprecated-non-prototype # 1
+      CXX_WARN_CLANG_CL_BITFIELD_ENUM_CONVERSION -Wno-bitfield-enum-conversion # 1
+      CXX_WARN_CLANG_CL_UNUSED_LAMBDA_CAPTURE -Wno-unused-lambda-capture # 1
+      CXX_WARN_CLANG_CL_SHADOW_FIELD_IN_CONSTRUCTOR_MODIFIED -Wno-shadow-field-in-constructor-modified # 1
+    )
+  endif()
 
 
   # ---------------------
