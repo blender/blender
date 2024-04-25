@@ -517,7 +517,7 @@ static void face_sets_update(Object &object,
       MutableSpan<int> new_face_sets = tls.new_face_sets;
       array_utils::gather(face_sets.span.as_span(), faces, new_face_sets);
       calc_face_sets(faces, new_face_sets);
-      if (!array_utils::indexed_data_equal<int>(face_sets.span, faces, new_face_sets)) {
+      if (array_utils::indexed_data_equal<int>(face_sets.span, faces, new_face_sets)) {
         continue;
       }
 
@@ -1021,7 +1021,7 @@ static void face_hide_update(Object &object,
       MutableSpan<bool> new_hide = tls.new_hide;
       array_utils::gather(hide_poly.span.as_span(), faces, new_hide);
       calc_hide(faces, new_hide);
-      if (!array_utils::indexed_data_equal<bool>(hide_poly.span, faces, new_hide)) {
+      if (array_utils::indexed_data_equal<bool>(hide_poly.span, faces, new_hide)) {
         continue;
       }
 

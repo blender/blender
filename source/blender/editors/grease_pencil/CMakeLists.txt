@@ -34,6 +34,7 @@ set(SRC
   intern/grease_pencil_select.cc
   intern/grease_pencil_undo.cc
   intern/grease_pencil_utils.cc
+  intern/grease_pencil_weight_paint.cc
 )
 
 set(LIB

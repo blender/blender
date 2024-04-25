@@ -1146,7 +1146,7 @@ static void points_in_planes_fn(const float co[3], int i, int j, int k, void *us
 PyDoc_STRVAR(
     /* Wrap. */
     M_Geometry_points_in_planes_doc,
-    ".. function:: points_in_planes(planes, epsilon_coplanar=1e-4f, epsilon_isect=1e-6f)\n"
+    ".. function:: points_in_planes(planes, epsilon_coplanar=1e-4, epsilon_isect=1e-6)\n"
     "\n"
     "   Returns a list of points inside all planes given and a list of index values for "
     "the planes used.\n"

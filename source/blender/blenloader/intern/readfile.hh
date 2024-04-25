@@ -147,7 +147,7 @@ struct FileData {
 void blo_join_main(ListBase *mainlist);
 void blo_split_main(ListBase *mainlist, Main *main);
 
-BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
+BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath) ATTR_NONNULL(1, 2);
 
 /**
  * On each new library added, it now checks for the current #FileData and expands relativeness
@@ -160,29 +160,30 @@ FileData *blo_filedata_from_memfile(MemFile *memfile,
                                     const BlendFileReadParams *params,
                                     BlendFileReadReport *reports);
 
-void blo_make_packed_pointer_map(FileData *fd, Main *oldmain);
+void blo_make_packed_pointer_map(FileData *fd, Main *oldmain) ATTR_NONNULL(1, 2);
 /**
  * Set old main packed data to zero if it has been restored
  * this works because freeing old main only happens after this call.
  */
-void blo_end_packed_pointer_map(FileData *fd, Main *oldmain);
+void blo_end_packed_pointer_map(FileData *fd, Main *oldmain) ATTR_NONNULL(1, 2);
 /**
  * Build a #GSet of old main (we only care about local data here,
  * so we can do that after #blo_split_main() call.
  */
-void blo_make_old_idmap_from_main(FileData *fd, Main *bmain);
+void blo_make_old_idmap_from_main(FileData *fd, Main *bmain) ATTR_NONNULL(1, 2);
 
-BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, AssetMetaData **r_asset_data);
+BHead *blo_read_asset_data_block(FileData *fd, BHead *bhead, AssetMetaData **r_asset_data)
+    ATTR_NONNULL(1, 2);
 
-void blo_cache_storage_init(FileData *fd, Main *bmain);
-void blo_cache_storage_old_bmain_clear(FileData *fd, Main *bmain_old);
-void blo_cache_storage_end(FileData *fd);
+void blo_cache_storage_init(FileData *fd, Main *bmain) ATTR_NONNULL(1, 2);
+void blo_cache_storage_old_bmain_clear(FileData *fd, Main *bmain_old) ATTR_NONNULL(1, 2);
+void blo_cache_storage_end(FileData *fd) ATTR_NONNULL(1);
 
-void blo_filedata_free(FileData *fd);
+void blo_filedata_free(FileData *fd) ATTR_NONNULL(1);
 
-BHead *blo_bhead_first(FileData *fd);
-BHead *blo_bhead_next(FileData *fd, BHead *thisblock);
-BHead *blo_bhead_prev(FileData *fd, BHead *thisblock);
+BHead *blo_bhead_first(FileData *fd) ATTR_NONNULL(1);
+BHead *blo_bhead_next(FileData *fd, BHead *thisblock) ATTR_NONNULL(1);
+BHead *blo_bhead_prev(FileData *fd, BHead *thisblock) ATTR_NONNULL(1, 2);
 
 /**
  * Warning! Caller's responsibility to ensure given bhead **is** an ID one!
@@ -254,8 +255,8 @@ void do_versions_after_setup(Main *new_bmain, BlendFileReadReport *reports);
  * \note This is rather unfortunate to have to expose this here,
  * but better use that nasty hack in do_version than readfile itself.
  */
-void *blo_read_get_new_globaldata_address(FileData *fd, const void *adr);
+void *blo_read_get_new_globaldata_address(FileData *fd, const void *adr) ATTR_NONNULL(1);
 
 /* Mark the Main data as invalid (.blend file reading should be aborted ASAP, and the already read
  * data should be discarded). Also add an error report to `fd` including given `message`. */
-void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message);
+void blo_readfile_invalidate(FileData *fd, Main *bmain, const char *message) ATTR_NONNULL(1, 2, 3);

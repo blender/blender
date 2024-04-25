@@ -1589,7 +1589,11 @@ static void create_inspection_string_for_default_socket_value(const bNodeSocket 
   if (!socket.is_input()) {
     return;
   }
-  if (socket.is_directly_linked()) {
+  if (socket.is_multi_input()) {
+    return;
+  }
+  const Span<const bNodeSocket *> connected_sockets = socket.directly_linked_sockets();
+  if (!connected_sockets.is_empty() && !connected_sockets[0]->owner_node().is_dangling_reroute()) {
     return;
   }
   if (const nodes::SocketDeclaration *socket_decl = socket.runtime->declaration) {
@@ -1769,6 +1773,65 @@ static std::optional<std::string> create_default_value_inspection_string(const b
   return str;
 }
 
+static const bNodeSocket *target_for_reroute(const bNodeSocket &reroute_output)
+{
+  const bNodeSocket *output = &reroute_output;
+  Set<const bNode *> visited_nodes;
+  visited_nodes.add(&reroute_output.owner_node());
+  while (true) {
+    const Span<const bNodeSocket *> linked_sockets = output->directly_linked_sockets();
+    if (linked_sockets.size() != 1) {
+      return nullptr;
+    }
+    const bNode &target_node = linked_sockets[0]->owner_node();
+    if (!visited_nodes.add(&target_node)) {
+      return nullptr;
+    }
+    if (!target_node.is_dangling_reroute()) {
+      return linked_sockets[0];
+    }
+    output = target_node.output_sockets()[0];
+  }
+}
+
+static std::optional<std::string> create_dangling_reroute_inspection_string(
+    const bNodeTree &ntree, const bNodeSocket &socket)
+{
+  if (ntree.type != NTREE_GEOMETRY) {
+    return std::nullopt;
+  }
+
+  const bNode &node = socket.owner_node();
+  if (!node.is_dangling_reroute()) {
+    return std::nullopt;
+  }
+
+  const bNodeSocket &output_socket = *node.output_sockets()[0];
+  const bNodeSocket *target_socket = target_for_reroute(output_socket);
+
+  if (target_socket == nullptr) {
+    if (!output_socket.directly_linked_sockets().is_empty()) {
+      return TIP_("Dangling reroute is ignored by all targets");
+    }
+    return std::nullopt;
+  }
+
+  if (target_socket->is_multi_input()) {
+    return TIP_("Dangling reroute branch is ignored by multi input socket");
+  }
+
+  std::stringstream ss;
+  create_inspection_string_for_default_socket_value(*target_socket, ss);
+  if (ss.str().empty()) {
+    return TIP_("Dangling reroute is ignored");
+  }
+  ss << ".\n\n";
+  ss << TIP_("Dangling reroute is ignored, default value of target socket is used");
+  return ss.str();
+
+  return std::nullopt;
+}
+
 static std::string node_socket_get_tooltip(const SpaceNode *snode,
                                            const bNodeTree &ntree,
                                            const bNodeSocket &socket)
@@ -1789,6 +1852,11 @@ static std::string node_socket_get_tooltip(const SpaceNode *snode,
     inspection_strings.append(std::move(*info));
   }
   if (std::optional<std::string> info = create_log_inspection_string(geo_tree_log, socket)) {
+    inspection_strings.append(std::move(*info));
+  }
+  else if (std::optional<std::string> info = create_dangling_reroute_inspection_string(ntree,
+                                                                                       socket))
+  {
     inspection_strings.append(std::move(*info));
   }
   else if (std::optional<std::string> info = create_default_value_inspection_string(socket)) {

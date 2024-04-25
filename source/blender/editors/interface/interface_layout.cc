@@ -5487,9 +5487,9 @@ bool UI_block_apply_search_filter(uiBlock *block, const char *search_filter)
 
   Panel *panel = block->panel;
 
-  if (panel != nullptr && panel->type->flag & PANEL_TYPE_NO_SEARCH) {
-    /* Panels for active blocks should always have a type, otherwise they wouldn't be created. */
-    BLI_assert(block->panel->type != nullptr);
+  if (panel != nullptr) {
+    /* Panels for active blocks should always have a valid `panel->type`,
+     * otherwise they wouldn't be created. */
     if (panel->type->flag & PANEL_TYPE_NO_SEARCH) {
       return false;
     }

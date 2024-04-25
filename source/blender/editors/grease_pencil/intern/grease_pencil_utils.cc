@@ -454,6 +454,91 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_with_falloff(const Scene &
   return editable_drawings;
 }
 
+Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
+    const Scene &scene, GreasePencil &grease_pencil)
+{
+  using namespace blender::bke::greasepencil;
+  int current_frame = scene.r.cfra;
+  const ToolSettings *toolsettings = scene.toolsettings;
+  const bool use_multi_frame_editing = (toolsettings->gpencil_flags &
+                                        GP_USE_MULTI_FRAME_EDITING) != 0;
+  const bool use_multi_frame_falloff = use_multi_frame_editing &&
+                                       (toolsettings->gp_sculpt.flag &
+                                        GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
+  if (use_multi_frame_falloff) {
+    BKE_curvemapping_init(toolsettings->gp_sculpt.cur_falloff);
+  }
+
+  /* Get a set of unique frame numbers with editable drawings on them. */
+  VectorSet<int> selected_frames;
+  int frame_min = current_frame, frame_max = current_frame;
+  Span<const Layer *> layers = grease_pencil.layers();
+  if (use_multi_frame_editing) {
+    for (const int layer_i : layers.index_range()) {
+      const Layer &layer = *layers[layer_i];
+      if (!layer.is_editable()) {
+        continue;
+      }
+      for (const auto [frame_number, frame] : layer.frames().items()) {
+        if (frame_number != current_frame && frame.is_selected()) {
+          selected_frames.add(frame_number);
+          frame_min = math::min(frame_min, frame_number);
+          frame_max = math::max(frame_max, frame_number);
+        }
+      }
+    }
+  }
+  selected_frames.add(current_frame);
+
+  /* Get multi frame falloff factor per selected frame. */
+  Array<float> falloff_per_selected_frame(selected_frames.size(), 1.0f);
+  if (use_multi_frame_falloff) {
+    int frame_group = 0;
+    for (const int frame_number : selected_frames) {
+      falloff_per_selected_frame[frame_group] = get_multi_frame_falloff(
+          frame_number, current_frame, frame_min, frame_max, toolsettings->gp_sculpt.cur_falloff);
+      frame_group++;
+    }
+  }
+
+  /* Get drawings grouped per frame. */
+  Array<Vector<MutableDrawingInfo>> drawings_grouped_per_frame(selected_frames.size());
+  Set<int> added_drawings;
+  for (const int layer_i : layers.index_range()) {
+    const Layer &layer = *layers[layer_i];
+    if (!layer.is_editable()) {
+      continue;
+    }
+    /* In multi frame editing mode, add drawings at selected frames. */
+    if (use_multi_frame_editing) {
+      for (const auto [frame_number, frame] : layer.frames().items()) {
+        if (!frame.is_selected() || added_drawings.contains(frame.drawing_index)) {
+          continue;
+        }
+        if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
+          const int frame_group = selected_frames.index_of(frame_number);
+          drawings_grouped_per_frame[frame_group].append(
+              {*drawing, layer_i, frame_number, falloff_per_selected_frame[frame_group]});
+          added_drawings.add(frame.drawing_index);
+        }
+      }
+    }
+
+    /* Add drawing at current frame. */
+    const int drawing_index_current_frame = layer.drawing_index_at(current_frame);
+    if (!added_drawings.contains(drawing_index_current_frame)) {
+      if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, current_frame)) {
+        const int frame_group = selected_frames.index_of(current_frame);
+        drawings_grouped_per_frame[frame_group].append(
+            {*drawing, layer_i, current_frame, falloff_per_selected_frame[frame_group]});
+        added_drawings.add(drawing_index_current_frame);
+      }
+    }
+  }
+
+  return drawings_grouped_per_frame;
+}
+
 Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
     const Scene &scene,
     GreasePencil &grease_pencil,
@@ -684,6 +769,39 @@ IndexMask retrieve_visible_strokes(Object &object,
   return IndexMask::from_predicate(
       curves_range, GrainSize(4096), memory, [&](const int64_t curve_i) {
         const int material_index = materials[curve_i];
+        return !hidden_material_indices.contains(material_index);
+      });
+}
+
+IndexMask retrieve_visible_points(Object &object,
+                                  const bke::greasepencil::Drawing &drawing,
+                                  IndexMaskMemory &memory)
+{
+  /* Get all the hidden material indices. */
+  VectorSet<int> hidden_material_indices = get_hidden_material_indices(object);
+
+  if (hidden_material_indices.is_empty()) {
+    return drawing.strokes().points_range();
+  }
+
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange points_range = curves.points_range();
+  const bke::AttributeAccessor attributes = curves.attributes();
+
+  /* Propagate the material index to the points. */
+  const VArray<int> materials = *attributes.lookup_or_default<int>(
+      "material_index", bke::AttrDomain::Point, 0);
+  if (const std::optional<int> single_material = materials.get_if_single()) {
+    if (!hidden_material_indices.contains(*single_material)) {
+      return points_range;
+    }
+    return {};
+  }
+
+  /* Get all the points that are part of a stroke with a visible material. */
+  return IndexMask::from_predicate(
+      points_range, GrainSize(4096), memory, [&](const int64_t point_i) {
+        const int material_index = materials[point_i];
         return !hidden_material_indices.contains(material_index);
       });
 }

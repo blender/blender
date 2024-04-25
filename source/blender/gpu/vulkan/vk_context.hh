@@ -35,7 +35,8 @@ class VKContext : public Context, NonCopyable {
   GPUTexture *surface_texture_ = nullptr;
   void *ghost_context_;
 
-  render_graph::VKDispatchNode::CreateInfo dispatch_info_ = {};
+  /* Reusable data. Stored inside context to limit reallocations. */
+  render_graph::VKResourceAccessInfo access_info_ = {};
 
  public:
   render_graph::VKRenderGraph render_graph;
@@ -72,8 +73,12 @@ class VKContext : public Context, NonCopyable {
   VKFrameBuffer *active_framebuffer_get() const;
 
   void bind_compute_pipeline();
-  void update_dispatch_info();
-  render_graph::VKDispatchNode::CreateInfo &update_and_get_dispatch_info();
+  render_graph::VKResourceAccessInfo &update_and_get_access_info();
+
+  /**
+   * Update the give shader data with the current state of the context.
+   */
+  void update_pipeline_data(render_graph::VKPipelineData &pipeline_data);
 
   void bind_graphics_pipeline(const GPUPrimType prim_type,
                               const VKVertexAttributeObject &vertex_attribute_object);
@@ -107,13 +112,6 @@ class VKContext : public Context, NonCopyable {
  private:
   void swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &data);
   void swap_buffers_post_handler();
-
-  /**
-   * Update the give shader data with the current state of the context.
-   *
-   * NOTE: Shader data structure is reused between render graph nodes.
-   */
-  void update_pipeline_data(render_graph::VKPipelineData &pipeline_data);
 };
 
 BLI_INLINE bool operator==(const VKContext &a, const VKContext &b)

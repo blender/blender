@@ -23,6 +23,11 @@ void main()
   float depth = texelFetch(hiz_tx, texel, 0).r;
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
+  /* Bias the shading point position because of depth buffer precision.
+   * Constant is taken from https://www.terathon.com/gdc07_lengyel.pdf. */
+  const float bias = 2.4e-7;
+  depth -= bias;
+
   vec3 P = drw_point_screen_to_world(vec3(uvcoordsvar.xy, depth));
   vec3 Ng = gbuf.surface_N;
   vec3 V = drw_world_incident_vector(P);

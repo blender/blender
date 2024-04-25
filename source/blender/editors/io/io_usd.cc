@@ -578,6 +578,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const eUSDAttrImportMode attr_import_mode = eUSDAttrImportMode(
       RNA_enum_get(op->ptr, "attr_import_mode"));
 
+  const bool validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
+
   /* TODO(makowalski): Add support for sequences. */
   const bool is_sequence = false;
   int offset = 0;
@@ -589,7 +591,6 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
     blender::ed::object::mode_set(C, OB_MODE_EDIT);
   }
 
-  const bool validate_meshes = false;
   const bool use_instancing = false;
 
   const eUSDTexImportMode import_textures_mode = eUSDTexImportMode(
@@ -674,6 +675,7 @@ static void wm_usd_import_draw(bContext * /*C*/, wmOperator *op)
   uiItemR(col, ptr, "read_mesh_uvs", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "read_mesh_colors", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "read_mesh_attributes", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "validate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Include"));
   uiItemR(col, ptr, "import_subdiv", UI_ITEM_NONE, IFACE_("Subdivision"), ICON_NONE);
   uiItemR(col, ptr, "support_scene_instancing", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -884,6 +886,12 @@ void WM_OT_usd_import(wmOperatorType *ot)
                USD_ATTR_IMPORT_ALL,
                "Import Custom Properties",
                "Behavior when importing USD attributes as Blender custom properties");
+
+  RNA_def_boolean(ot->srna,
+                  "validate_meshes",
+                  false,
+                  "Validate Meshes",
+                  "Check imported mesh objects for invalid data (slow)");
 }
 
 namespace blender::ed::io {

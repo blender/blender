@@ -165,9 +165,8 @@ void shadow_viewport_layer_set(int view_id, int lod)
 /* In order to support physical clipping, we pass a vector to the fragment shader that then clips
  * each fragment using a unit sphere test. This allows to support both point light and area light
  * clipping at the same time. */
-vec3 shadow_clip_vector_get(vec3 view_position, ShadowRenderView shadow_view)
+vec3 shadow_clip_vector_get(vec3 view_position, float clip_distance_inv)
 {
-  float clip_distance_inv = shadow_view.clip_distance_inv;
   if (clip_distance_inv == 0.0) {
     /* No clipping. */
     return vec3(2.0);

@@ -329,7 +329,7 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
  *
  * \param bh: The handle to close.
  */
-void BLO_blendhandle_close(BlendHandle *bh);
+void BLO_blendhandle_close(BlendHandle *bh) ATTR_NONNULL(1);
 
 /**
  * Mark the given Main (and the 'root' local one in case of lib-split Mains) as invalid, and

@@ -491,6 +491,7 @@ PanelType *modifier_subpanel_register(ARegionType *region_type,
 {
   PanelType *panel_type = MEM_cnew<PanelType>(__func__);
 
+  BLI_assert(parent != nullptr);
   SNPRINTF(panel_type->idname, "%s_%s", parent->idname, name);
   STRNCPY(panel_type->label, label);
   STRNCPY(panel_type->context, "modifier");
@@ -502,7 +503,6 @@ PanelType *modifier_subpanel_register(ARegionType *region_type,
   panel_type->poll = modifier_ui_poll;
   panel_type->flag = PANEL_TYPE_DEFAULT_CLOSED;
 
-  BLI_assert(parent != nullptr);
   STRNCPY(panel_type->parent_id, parent->idname);
   panel_type->parent = parent;
   BLI_addtail(&parent->children, BLI_genericNodeN(panel_type));

@@ -1964,16 +1964,17 @@ static bool nla_combine_quaternion_get_inverted_strip_values(const float lower_v
 /* ---------------------- */
 
 /* Assert necs and necs->channel is nonNull. */
-static void nlaevalchan_assert_nonNull(NlaEvalChannelSnapshot *necs)
+static void nlaevalchan_assert_nonNull(const NlaEvalChannelSnapshot *necs)
 {
   UNUSED_VARS_NDEBUG(necs);
   BLI_assert(necs != nullptr && necs->channel != nullptr);
 }
 
 /* Assert that the channels given can be blended or combined together. */
-static void nlaevalchan_assert_blendOrcombine_compatible(NlaEvalChannelSnapshot *lower_necs,
-                                                         NlaEvalChannelSnapshot *upper_necs,
-                                                         NlaEvalChannelSnapshot *blended_necs)
+static void nlaevalchan_assert_blendOrcombine_compatible(
+    const NlaEvalChannelSnapshot *lower_necs,
+    const NlaEvalChannelSnapshot *upper_necs,
+    const NlaEvalChannelSnapshot *blended_necs)
 {
   UNUSED_VARS_NDEBUG(lower_necs, upper_necs, blended_necs);
   BLI_assert(!ELEM(nullptr, lower_necs, blended_necs));
@@ -2011,7 +2012,7 @@ static void nlaevalchan_assert_blendOrcombine_compatible_quaternion(
   BLI_assert(lower_necs->length == 4);
 }
 
-static void nlaevalchan_copy_values(NlaEvalChannelSnapshot *dst, NlaEvalChannelSnapshot *src)
+static void nlaevalchan_copy_values(NlaEvalChannelSnapshot *dst, const NlaEvalChannelSnapshot *src)
 {
   memcpy(dst->values, src->values, src->length * sizeof(float));
 }
@@ -2020,10 +2021,11 @@ static void nlaevalchan_copy_values(NlaEvalChannelSnapshot *dst, NlaEvalChannelS
  * Copies from lower necs to blended necs if upper necs is nullptr or has zero influence.
  * \return true if copied.
  */
-static bool nlaevalchan_blendOrcombine_try_copy_from_lower(NlaEvalChannelSnapshot *lower_necs,
-                                                           NlaEvalChannelSnapshot *upper_necs,
-                                                           const float upper_influence,
-                                                           NlaEvalChannelSnapshot *r_blended_necs)
+static bool nlaevalchan_blendOrcombine_try_copy_from_lower(
+    const NlaEvalChannelSnapshot *lower_necs,
+    const NlaEvalChannelSnapshot *upper_necs,
+    const float upper_influence,
+    NlaEvalChannelSnapshot *r_blended_necs)
 {
   const bool has_influence = !IS_EQF(upper_influence, 0.0f);
   if (upper_necs != nullptr && has_influence) {

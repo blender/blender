@@ -219,6 +219,7 @@ set(VULKAN_SRC
   vulkan/vk_pixel_buffer.cc
   vulkan/vk_push_constants.cc
   vulkan/vk_query.cc
+  vulkan/render_graph/nodes/vk_pipeline_data.cc
   vulkan/render_graph/vk_command_buffer_wrapper.cc
   vulkan/render_graph/vk_command_builder.cc
   vulkan/render_graph/vk_resource_access_info.cc

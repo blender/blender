@@ -2731,9 +2731,9 @@ class _defs_grease_pencil_weight:
             type=bpy.types.Brush,
             # Uses GPv2 tool settings
             attr="gpencil_weight_tool",
-            # tooldef_keywords=dict(
-            #     operator="grease_pencil.weight_paint",
-            # ),
+            tooldef_keywords=dict(
+                operator="grease_pencil.weight_brush_stroke",
+            ),
         )
 
 

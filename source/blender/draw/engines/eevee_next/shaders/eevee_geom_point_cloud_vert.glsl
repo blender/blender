@@ -53,7 +53,7 @@ void main()
 
 #ifdef MAT_SHADOW
   shadow_clip.vector = shadow_clip_vector_get(drw_point_world_to_view(interp.P),
-                                              render_view_buf[drw_view_id]);
+                                              render_view_buf[drw_view_id].clip_distance_inv);
 #endif
 
   gl_Position = drw_point_world_to_homogenous(interp.P);

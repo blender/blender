@@ -4699,6 +4699,58 @@ def km_grease_pencil_sculpt_mode(params):
     return keymap
 
 
+def km_grease_pencil_weight_paint(params):
+    # NOTE: This keymap falls through to "Pose" when an armature modifying the GP object
+    # is selected in weight paint mode. When editing the key-map take care that pose operations
+    # (such as transforming bones) is not impacted.
+    items = []
+    keymap = (
+        "Grease Pencil Weight Paint",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    items.extend([
+        # Paint weight
+        ("grease_pencil.weight_brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("grease_pencil.weight_brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
+         {"properties": [("mode", 'INVERT')]}),
+        # Increase/Decrease brush size
+        ("brush.scale_size", {"type": 'LEFT_BRACKET', "value": 'PRESS', "repeat": True},
+         {"properties": [("scalar", 0.9)]}),
+        ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "repeat": True},
+         {"properties": [("scalar", 1.0 / 0.9)]}),
+        # Radial controls
+        *_template_paint_radial_control("gpencil_weight_paint"),
+        ("wm.radial_control", {"type": 'F', "value": 'PRESS', "ctrl": True},
+         radial_control_properties("gpencil_weight_paint", 'weight', 'use_unified_weight')),
+        # Toggle Add/Subtract for weight draw tool
+        ("grease_pencil.weight_toggle_direction", {"type": 'D', "value": 'PRESS'}, None),
+        # Sample weight
+        ("grease_pencil.weight_sample", {"type": 'X', "value": 'PRESS', "shift": True}, None),
+        # Context menu
+        *_template_items_context_panel("VIEW3D_PT_gpencil_weight_context_menu", params.context_menu_event),
+
+        # Show/hide layer
+        *_template_items_hide_reveal_actions("grease_pencil.layer_hide", "grease_pencil.layer_reveal"),
+    ])
+
+    if params.select_mouse == 'LEFTMOUSE':
+        # Bone selection for combined weight paint + pose mode (Alt).
+        items.extend([
+            ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}, None),
+            ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "alt": True},
+             {"properties": [("toggle", True)]}),
+
+            # Ctrl-Shift-LMB is needed for MMB emulation (which conflicts with Alt).
+            # NOTE: this works reasonably well for pose-mode where typically selecting a single bone is sufficient.
+            # For selecting faces/vertices, this is less useful. Selection tools are needed in this case.
+            ("view3d.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True, "shift": True}, None),
+        ])
+
+    return keymap
+
+
 # ------------------------------------------------------------------------------
 # Object/Pose Modes
 
@@ -8101,6 +8153,7 @@ def km_3d_view_tool_paint_weight_sample_weight(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             ("paint.weight_sample", {"type": params.tool_mouse, "value": 'PRESS'}, None),
+            ("grease_pencil.weight_sample", {"type": params.tool_mouse, "value": 'PRESS'}, None),
         ]},
     )
 
@@ -8795,6 +8848,7 @@ def generate_keymaps(params=None):
         km_grease_pencil_paint_mode(params),
         km_grease_pencil_edit_mode(params),
         km_grease_pencil_sculpt_mode(params),
+        km_grease_pencil_weight_paint(params),
         # Object mode.
         km_object_mode(params),
         km_object_non_modal(params),

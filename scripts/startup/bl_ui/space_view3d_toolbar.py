@@ -72,7 +72,7 @@ class VIEW3D_MT_brush_gpencil_context_menu(Menu):
             settings = tool_settings.gpencil_paint
         if context.mode == 'SCULPT_GPENCIL':
             settings = tool_settings.gpencil_sculpt_paint
-        elif context.mode == 'WEIGHT_GPENCIL':
+        elif context.mode == 'WEIGHT_GPENCIL' or context.mode == 'WEIGHT_GREASE_PENCIL':
             settings = tool_settings.gpencil_weight_paint
         elif context.mode == 'VERTEX_GPENCIL':
             settings = tool_settings.gpencil_vertex_paint
@@ -2106,6 +2106,9 @@ class GreasePencilWeightPanel:
     @classmethod
     def poll(cls, context):
         if context.space_data.type in {'VIEW_3D', 'PROPERTIES'}:
+            if context.object and context.object.type == 'GREASEPENCIL' and context.mode == 'WEIGHT_GREASE_PENCIL':
+                return True
+
             if context.gpencil_data is None:
                 return False
 
@@ -2132,7 +2135,7 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint_select(View3DPanel, Panel, Grea
         col = row.column()
         col.menu("VIEW3D_MT_brush_gpencil_context_menu", icon='DOWNARROW_HLT', text="")
 
-        if context.mode == 'WEIGHT_GPENCIL':
+        if context.mode in {'WEIGHT_GPENCIL', 'WEIGHT_GREASE_PENCIL'}:
             brush = tool_settings.gpencil_weight_paint.brush
             if brush is not None:
                 col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
@@ -2156,10 +2159,17 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint_settings(Panel, View3DPanel, Gr
         settings = tool_settings.gpencil_weight_paint
         brush = settings.brush
 
-        from bl_ui.properties_paint_common import (
-            brush_basic_gpencil_weight_settings,
-        )
-        brush_basic_gpencil_weight_settings(layout, context, brush)
+        if context.mode == 'WEIGHT_GPENCIL':
+            from bl_ui.properties_paint_common import (
+                brush_basic_gpencil_weight_settings,
+            )
+            brush_basic_gpencil_weight_settings(layout, context, brush)
+        else:
+            # Grease Pencil v3
+            from bl_ui.properties_paint_common import (
+                brush_basic_grease_pencil_weight_settings,
+            )
+            brush_basic_grease_pencil_weight_settings(layout, context, brush)
 
 
 class VIEW3D_PT_tools_grease_pencil_brush_weight_falloff(GreasePencilBrushFalloff, Panel, View3DPaintPanel):

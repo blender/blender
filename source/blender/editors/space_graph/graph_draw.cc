@@ -976,7 +976,7 @@ static void add_extrapolation_point_right(FCurve *fcu,
   curve_vertices.append(vertex_position);
 }
 
-static blender::float2 calculate_pixels_per_unit(View2D *v2d)
+static blender::float2 calculate_pixels_per_unit(View2D *v2d, const float unit_scale)
 {
   const int window_width = BLI_rcti_size_x(&v2d->mask);
   const int window_height = BLI_rcti_size_y(&v2d->mask);
@@ -984,7 +984,7 @@ static blender::float2 calculate_pixels_per_unit(View2D *v2d)
   const float v2d_frame_range = BLI_rctf_size_x(&v2d->cur);
   const float v2d_value_range = BLI_rctf_size_y(&v2d->cur);
   const blender::float2 pixels_per_unit = {window_width / v2d_frame_range,
-                                           window_height / v2d_value_range};
+                                           (window_height / v2d_value_range) * unit_scale};
   return pixels_per_unit;
 }
 
@@ -1040,7 +1040,7 @@ static void draw_fcurve_curve_keys(
   curve_vertices.append(
       {fcu->bezt[index_range.first()].vec[1][0], fcu->bezt[index_range.first()].vec[1][1]});
 
-  const blender::float2 pixels_per_unit = calculate_pixels_per_unit(v2d);
+  const float2 pixels_per_unit = calculate_pixels_per_unit(v2d, unit_scale);
   const int window_width = BLI_rcti_size_x(&v2d->mask);
   const float v2d_frame_range = BLI_rctf_size_x(&v2d->cur);
   const float pixel_width = v2d_frame_range / window_width;
