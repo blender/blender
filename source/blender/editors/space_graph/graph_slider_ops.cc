@@ -1030,6 +1030,7 @@ static int ease_modal(bContext *C, wmOperator *op, const wmEvent *event)
         ED_slider_unit_set(gso->slider, "%");
         gso->factor_prop = RNA_struct_find_property(op->ptr, "factor");
       }
+      ED_slider_property_label_set(gso->slider, RNA_property_ui_name(gso->factor_prop));
       ease_modal_update(C, op);
       break;
     }
@@ -1055,6 +1056,7 @@ static int ease_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   ED_slider_allow_overshoot_set(gso->slider, false, false);
   ED_slider_factor_bounds_set(gso->slider, -1, 1);
   ED_slider_factor_set(gso->slider, 0.0f);
+  ED_slider_property_label_set(gso->slider, RNA_property_ui_name(gso->factor_prop));
 
   return invoke_result;
 }
