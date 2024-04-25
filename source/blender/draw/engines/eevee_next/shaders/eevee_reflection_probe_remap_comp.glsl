@@ -141,7 +141,7 @@ void main()
       /* Min direction is the local direction since this is only ran by thread 0. */
       vec3 min_direction = normalize(direction);
       vec3 max_direction = normalize(
-          sphere_probe_texel_to_direction(max_group_texel, write_coord, sample_coord));
+          sphere_probe_texel_to_direction(vec2(max_group_texel), write_coord, sample_coord));
       vec3 L = normalize(min_direction + max_direction);
       /* Convert radiance to spherical harmonics. */
       SphericalHarmonicL1 sh;
