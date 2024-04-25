@@ -221,7 +221,10 @@ class IMAGE_OT_open_images(Operator):
         # Groups of files that may be part of an image sequence or a UDIM group.
         sequences = []
         import re
-        regex_extension = re.compile("(" + "|".join([re.escape(ext) for ext in bl_file_extensions_image_movie]) + ")$")
+        regex_extension = re.compile(
+            "(" + "|".join([re.escape(ext) for ext in bl_file_extensions_image_movie]) + ")$",
+            re.IGNORECASE,
+        )
         regex_sequence = re.compile("(\\d+)(\\.[\\w\\d]+)$")
         for file in self.files:
             # Filter by extension
