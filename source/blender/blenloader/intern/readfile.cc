@@ -1316,63 +1316,60 @@ FileData *blo_filedata_from_memfile(MemFile *memfile,
 
 void blo_filedata_free(FileData *fd)
 {
-  if (fd) {
-
-    /* Free all BHeadN data blocks */
+  /* Free all BHeadN data blocks */
 #ifndef NDEBUG
-    BLI_freelistN(&fd->bhead_list);
+  BLI_freelistN(&fd->bhead_list);
 #else
-    /* Sanity check we're not keeping memory we don't need. */
-    LISTBASE_FOREACH_MUTABLE (BHeadN *, new_bhead, &fd->bhead_list) {
-      if (fd->file->seek != nullptr && BHEAD_USE_READ_ON_DEMAND(&new_bhead->bhead)) {
-        BLI_assert(new_bhead->has_data == 0);
-      }
-      MEM_freeN(new_bhead);
+  /* Sanity check we're not keeping memory we don't need. */
+  LISTBASE_FOREACH_MUTABLE (BHeadN *, new_bhead, &fd->bhead_list) {
+    if (fd->file->seek != nullptr && BHEAD_USE_READ_ON_DEMAND(&new_bhead->bhead)) {
+      BLI_assert(new_bhead->has_data == 0);
     }
+    MEM_freeN(new_bhead);
+  }
 #endif
-    fd->file->close(fd->file);
+  fd->file->close(fd->file);
 
-    if (fd->filesdna) {
-      DNA_sdna_free(fd->filesdna);
-    }
-    if (fd->compflags) {
-      MEM_freeN((void *)fd->compflags);
-    }
-    if (fd->reconstruct_info) {
-      DNA_reconstruct_info_free(fd->reconstruct_info);
-    }
+  if (fd->filesdna) {
+    DNA_sdna_free(fd->filesdna);
+  }
+  if (fd->compflags) {
+    MEM_freeN((void *)fd->compflags);
+  }
+  if (fd->reconstruct_info) {
+    DNA_reconstruct_info_free(fd->reconstruct_info);
+  }
 
-    if (fd->datamap) {
-      oldnewmap_free(fd->datamap);
-    }
-    if (fd->globmap) {
-      oldnewmap_free(fd->globmap);
-    }
-    if (fd->packedmap) {
-      oldnewmap_free(fd->packedmap);
-    }
-    if (fd->libmap && !(fd->flags & FD_FLAGS_NOT_MY_LIBMAP)) {
-      oldnewmap_free(fd->libmap);
-    }
-    if (fd->old_idmap_uid != nullptr) {
-      BKE_main_idmap_destroy(fd->old_idmap_uid);
-    }
-    if (fd->new_idmap_uid != nullptr) {
-      BKE_main_idmap_destroy(fd->new_idmap_uid);
-    }
-    blo_cache_storage_end(fd);
-    if (fd->bheadmap) {
-      MEM_freeN(fd->bheadmap);
-    }
+  if (fd->datamap) {
+    oldnewmap_free(fd->datamap);
+  }
+  if (fd->globmap) {
+    oldnewmap_free(fd->globmap);
+  }
+  if (fd->packedmap) {
+    oldnewmap_free(fd->packedmap);
+  }
+  if (fd->libmap && !(fd->flags & FD_FLAGS_NOT_MY_LIBMAP)) {
+    oldnewmap_free(fd->libmap);
+  }
+  if (fd->old_idmap_uid != nullptr) {
+    BKE_main_idmap_destroy(fd->old_idmap_uid);
+  }
+  if (fd->new_idmap_uid != nullptr) {
+    BKE_main_idmap_destroy(fd->new_idmap_uid);
+  }
+  blo_cache_storage_end(fd);
+  if (fd->bheadmap) {
+    MEM_freeN(fd->bheadmap);
+  }
 
 #ifdef USE_GHASH_BHEAD
-    if (fd->bhead_idname_hash) {
-      BLI_ghash_free(fd->bhead_idname_hash, nullptr, nullptr);
-    }
+  if (fd->bhead_idname_hash) {
+    BLI_ghash_free(fd->bhead_idname_hash, nullptr, nullptr);
+  }
 #endif
 
-    MEM_freeN(fd);
-  }
+  MEM_freeN(fd);
 }
 
 /** \} */
@@ -1383,30 +1380,27 @@ void blo_filedata_free(FileData *fd)
 
 BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
 {
-  FileData *fd;
   BlendThumbnail *data = nullptr;
-  const int *fd_data;
 
-  fd = blo_filedata_from_file_minimal(filepath);
-  fd_data = fd ? read_file_thumbnail(fd) : nullptr;
-
-  if (fd_data) {
-    const int width = fd_data[0];
-    const int height = fd_data[1];
-    if (BLEN_THUMB_MEMSIZE_IS_VALID(width, height)) {
-      const size_t data_size = BLEN_THUMB_MEMSIZE(width, height);
-      data = static_cast<BlendThumbnail *>(MEM_mallocN(data_size, __func__));
-      if (data) {
-        BLI_assert((data_size - sizeof(*data)) ==
-                   (BLEN_THUMB_MEMSIZE_FILE(width, height) - (sizeof(*fd_data) * 2)));
-        data->width = width;
-        data->height = height;
-        memcpy(data->rect, &fd_data[2], data_size - sizeof(*data));
+  FileData *fd = blo_filedata_from_file_minimal(filepath);
+  if (fd) {
+    if (const int *fd_data = read_file_thumbnail(fd)) {
+      const int width = fd_data[0];
+      const int height = fd_data[1];
+      if (BLEN_THUMB_MEMSIZE_IS_VALID(width, height)) {
+        const size_t data_size = BLEN_THUMB_MEMSIZE(width, height);
+        data = static_cast<BlendThumbnail *>(MEM_mallocN(data_size, __func__));
+        if (data) {
+          BLI_assert((data_size - sizeof(*data)) ==
+                     (BLEN_THUMB_MEMSIZE_FILE(width, height) - (sizeof(*fd_data) * 2)));
+          data->width = width;
+          data->height = height;
+          memcpy(data->rect, &fd_data[2], data_size - sizeof(*data));
+        }
       }
     }
+    blo_filedata_free(fd);
   }
-
-  blo_filedata_free(fd);
 
   return data;
 }
