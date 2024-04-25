@@ -4789,6 +4789,7 @@ static void *blo_verify_data_address(void *new_address,
      * or might be passed the size of a base struct with inheritance. */
     BLI_assert_msg(MEM_allocN_len(new_address) >= expected_size,
                    "Corrupt .blend file, unexpected data size.");
+    UNUSED_VARS_NDEBUG(expected_size);
   }
 
   return new_address;

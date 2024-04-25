@@ -787,6 +787,7 @@ void BLI_path_rel(char path[FILE_MAX], const char *basepath)
 
     /* Don't copy the slash at the beginning. */
     r += BLI_strncpy_rlen(r, q + 1, sizeof(res) - (r - res));
+    UNUSED_VARS(r);
 
 #ifdef WIN32
     BLI_string_replace_char(res + 2, '/', '\\');
