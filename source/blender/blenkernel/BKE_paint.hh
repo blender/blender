@@ -295,9 +295,9 @@ struct SculptPoseIKChainSegment {
 
   /* Store a 4x4 transform matrix for each of the possible combinations of enabled XYZ symmetry
    * axis. */
-  float trans_mat[PAINT_SYMM_AREAS][4][4];
-  float pivot_mat[PAINT_SYMM_AREAS][4][4];
-  float pivot_mat_inv[PAINT_SYMM_AREAS][4][4];
+  std::array<blender::float4x4, PAINT_SYMM_AREAS> trans_mat;
+  std::array<blender::float4x4, PAINT_SYMM_AREAS> pivot_mat;
+  std::array<blender::float4x4, PAINT_SYMM_AREAS> pivot_mat_inv;
 };
 
 struct SculptPoseIKChain {

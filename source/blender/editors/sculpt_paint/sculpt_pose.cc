@@ -167,9 +167,9 @@ static void do_pose_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
 
       /* Get the transform matrix for the vertex symmetry area to calculate a displacement in the
        * vertex. */
-      mul_m4_v3(segments[ik].pivot_mat_inv[int(symm_area)], new_co);
-      mul_m4_v3(segments[ik].trans_mat[int(symm_area)], new_co);
-      mul_m4_v3(segments[ik].pivot_mat[int(symm_area)], new_co);
+      mul_m4_v3(segments[ik].pivot_mat_inv[int(symm_area)].ptr(), new_co);
+      mul_m4_v3(segments[ik].trans_mat[int(symm_area)].ptr(), new_co);
+      mul_m4_v3(segments[ik].pivot_mat[int(symm_area)].ptr(), new_co);
 
       /* Apply the segment weight of the vertex to the displacement. */
       sub_v3_v3v3(disp, new_co, orig_data.co);
@@ -1167,10 +1167,10 @@ void do_pose_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
                                             symm_area,
                                             &ik_chain->segments[i],
                                             ss->cache->orig_grab_location);
-        unit_m4(ik_chain->segments[i].trans_mat[symm_it]);
+        unit_m4(ik_chain->segments[i].trans_mat[symm_it].ptr());
       }
       else {
-        quat_to_mat4(ik_chain->segments[i].trans_mat[symm_it], symm_rot);
+        quat_to_mat4(ik_chain->segments[i].trans_mat[symm_it].ptr(), symm_rot);
       }
 
       /* Apply segment scale to the transform. */
@@ -1179,18 +1179,20 @@ void do_pose_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
                   ik_chain->segments[i].scale[scale_i]);
       }
 
-      translate_m4(ik_chain->segments[i].trans_mat[symm_it],
+      translate_m4(ik_chain->segments[i].trans_mat[symm_it].ptr(),
                    symm_orig[0] - symm_initial_orig[0],
                    symm_orig[1] - symm_initial_orig[1],
                    symm_orig[2] - symm_initial_orig[2]);
 
-      unit_m4(ik_chain->segments[i].pivot_mat[symm_it]);
-      translate_m4(
-          ik_chain->segments[i].pivot_mat[symm_it], symm_orig[0], symm_orig[1], symm_orig[2]);
-      mul_m4_m4_post(ik_chain->segments[i].pivot_mat[symm_it], pivot_local_space);
+      unit_m4(ik_chain->segments[i].pivot_mat[symm_it].ptr());
+      translate_m4(ik_chain->segments[i].pivot_mat[symm_it].ptr(),
+                   symm_orig[0],
+                   symm_orig[1],
+                   symm_orig[2]);
+      mul_m4_m4_post(ik_chain->segments[i].pivot_mat[symm_it].ptr(), pivot_local_space);
 
-      invert_m4_m4(ik_chain->segments[i].pivot_mat_inv[symm_it],
-                   ik_chain->segments[i].pivot_mat[symm_it]);
+      invert_m4_m4(ik_chain->segments[i].pivot_mat_inv[symm_it].ptr(),
+                   ik_chain->segments[i].pivot_mat[symm_it].ptr());
     }
   }
 
