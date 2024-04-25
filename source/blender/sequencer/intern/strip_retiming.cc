@@ -599,7 +599,7 @@ class RetimingRange {
       : start(start_frame), end(end_frame), speed(speed), type(type)
   {
     if (type == TRANSITION) {
-      speed = 1.0f;
+      this->speed = 1.0f;
       claculate_speed_table_from_seq(seq);
     }
   }
