@@ -88,6 +88,8 @@ void type_unlink(const Main &bmain, const AssetShelfType &shelf_type);
 int tile_width(const AssetShelfSettings &settings);
 int tile_height(const AssetShelfSettings &settings);
 
+AssetShelf *active_shelf_from_area(const ScrArea *area);
+
 int context(const bContext *C, const char *member, bContextDataResult *result);
 
 }  // namespace blender::ed::asset::shelf

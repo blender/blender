@@ -40,12 +40,14 @@
 #include "BKE_paint.hh"
 #include "BKE_preferences.h"
 #include "BKE_report.hh"
+#include "BKE_screen.hh"
 
 #include "ED_asset_handle.hh"
 #include "ED_asset_library.hh"
 #include "ED_asset_list.hh"
 #include "ED_asset_mark_clear.hh"
 #include "ED_asset_menu_utils.hh"
+#include "ED_asset_shelf.hh"
 #include "ED_image.hh"
 #include "ED_paint.hh"
 #include "ED_screen.hh"
@@ -884,6 +886,21 @@ static asset_system::AssetCatalog &asset_library_ensure_catalogs_in_path(
   return *library.catalog_service().find_catalog_by_path(path);
 }
 
+static void show_catalog_in_asset_shelf(const bContext &C, const StringRefNull catalog_path)
+{
+  ScrArea *area = CTX_wm_area(&C);
+  if (!area) {
+    return;
+  }
+  const AssetShelf *shelf = asset::shelf::active_shelf_from_area(area);
+  if (!BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+          &U, shelf->idname, catalog_path.c_str()))
+  {
+    return;
+  }
+  U.runtime.is_dirty = true;
+}
+
 static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -937,6 +954,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   }
 
   library->catalog_service().write_to_disk(*final_full_asset_filepath);
+  show_catalog_in_asset_shelf(*C, catalog_path);
 
   AssetWeakReference new_brush_weak_ref = brush_asset_create_weakref_hack(
       user_library, *final_full_asset_filepath);

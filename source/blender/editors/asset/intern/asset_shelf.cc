@@ -562,7 +562,7 @@ void region_blend_write(BlendWriter *writer, ARegion *region)
 /** \name Asset Shelf Context
  * \{ */
 
-static AssetShelf *active_shelf_from_area(const ScrArea *area)
+AssetShelf *active_shelf_from_area(const ScrArea *area)
 {
   const ARegion *shelf_region = BKE_area_find_region_type(area, RGN_TYPE_ASSET_SHELF);
   if (!shelf_region) {
