@@ -303,7 +303,7 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
       prop, "Shadow Softness Factor", "Scale light shape for smaller penumbra");
   RNA_def_property_update(prop, 0, "rna_Light_update");
 
-  prop = RNA_def_property(srna, "shadow_filter_radius", PROP_FLOAT, PROP_FACTOR);
+  prop = RNA_def_property(srna, "shadow_filter_radius", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0f, 5.0f, 1.0f, 2);
   RNA_def_property_ui_text(
