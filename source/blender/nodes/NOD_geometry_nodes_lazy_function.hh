@@ -190,6 +190,8 @@ struct GeoNodesOperatorData {
   const Object *self_object_orig = nullptr;
   const GeoNodesOperatorDepsgraphs *depsgraphs = nullptr;
   Scene *scene_orig = nullptr;
+  int2 mouse_position;
+  int2 region_size;
   const RegionView3D *rv3d = nullptr;
 };
 

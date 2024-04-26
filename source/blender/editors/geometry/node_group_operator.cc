@@ -394,6 +394,8 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *active_object = CTX_data_active_object(C);
+  /* Note: `region` and `rv3d` may be null when called from a script. */
+  const ARegion *region = CTX_wm_region(C);
   const RegionView3D *rv3d = CTX_wm_region_view3d(C);
   if (!active_object) {
     return OPERATOR_CANCELLED;
@@ -471,6 +473,8 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     operator_eval_data.depsgraphs = &depsgraphs;
     operator_eval_data.self_object_orig = object;
     operator_eval_data.scene_orig = scene;
+    RNA_int_get_array(op->ptr, "mouse_position", operator_eval_data.mouse_position);
+    operator_eval_data.region_size = region ? int2(region->sizex, region->sizey) : int2(0);
     operator_eval_data.rv3d = rv3d;
 
     nodes::GeoNodesCallData call_data{};
@@ -506,12 +510,14 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int run_node_group_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static int run_node_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bNodeTree *node_tree = get_node_group(*C, *op->ptr, op->reports);
   if (!node_tree) {
     return OPERATOR_CANCELLED;
   }
+
+  RNA_int_set_array(op->ptr, "mouse_position", event->mval);
 
   nodes::update_input_properties_from_node_tree(*node_tree, op->properties, *op->properties);
   nodes::update_output_properties_from_node_tree(*node_tree, op->properties, *op->properties);
@@ -697,8 +703,35 @@ static std::string run_node_group_get_name(wmOperatorType * /*ot*/, PointerRNA *
   return ref.drop_prefix(ref.find_last_of(SEP_STR) + 1);
 }
 
+static bool run_node_group_depends_on_cursor(bContext &C, wmOperatorType & /*ot*/, PointerRNA *ptr)
+{
+  if (!ptr) {
+    return false;
+  }
+  Main &bmain = *CTX_data_main(&C);
+  if (bNodeTree *group = reinterpret_cast<bNodeTree *>(
+          WM_operator_properties_id_lookup_from_name_or_session_uid(&bmain, ptr, ID_NT)))
+  {
+    return group->geometry_node_asset_traits &&
+           (group->geometry_node_asset_traits->flag & GEO_NODE_ASSET_WAIT_FOR_CURSOR) != 0;
+  }
+
+  const asset_system::AssetRepresentation *asset =
+      asset::operator_asset_reference_props_get_asset_from_all_library(C, *ptr, nullptr);
+  if (!asset) {
+    return false;
+  }
+  const IDProperty *traits_flag = BKE_asset_metadata_idprop_find(
+      &asset->get_metadata(), "geometry_node_asset_traits_flag");
+  if (traits_flag == nullptr || !(IDP_Int(traits_flag) & GEO_NODE_ASSET_WAIT_FOR_CURSOR)) {
+    return false;
+  }
+  return true;
+}
+
 void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
   ot->name = "Run Node Group";
   ot->idname = __func__;
   ot->description = "Execute a node group on geometry";
@@ -710,11 +743,27 @@ void GEOMETRY_OT_execute_node_group(wmOperatorType *ot)
   ot->ui = run_node_group_ui;
   ot->ui_poll = run_node_ui_poll;
   ot->get_name = run_node_group_get_name;
+  ot->depends_on_cursor = run_node_group_depends_on_cursor;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   asset::operator_asset_reference_props_register(*ot->srna);
   WM_operator_properties_id_lookup(ot, true);
+
+  /* Store the mouse position in an RNA property rather than allocated operator custom data in
+   * order to support redoing the operator. Because redo uses `exec`, the mouse position will be in
+   * the same position in screen space. */
+  prop = RNA_def_int_array(ot->srna,
+                           "mouse_position",
+                           2,
+                           nullptr,
+                           INT_MIN,
+                           INT_MAX,
+                           "Mouse Position",
+                           "Mouse coordinates in region space",
+                           INT_MIN,
+                           INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */
