@@ -13,14 +13,15 @@ shader node_subsurface_scattering(color Color = 0.8,
                                   normal Normal = N,
                                   output closure color BSSRDF = 0)
 {
-  BSSRDF = Color * bssrdf(method,
-                          Normal,
-                          Scale * Radius,
-                          Color,
-                          "ior",
-                          IOR,
-                          "anisotropy",
-                          Anisotropy,
-                          "roughness",
-                          1.0);
+  color base_color = max(Color, color(0.0));
+  BSSRDF = base_color * bssrdf(method,
+                               Normal,
+                               Scale * Radius,
+                               base_color,
+                               "ior",
+                               IOR,
+                               "anisotropy",
+                               Anisotropy,
+                               "roughness",
+                               1.0);
 }

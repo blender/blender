@@ -470,7 +470,7 @@ ccl_device
         break;
       }
 
-      float roughness = sqr(param1);
+      float roughness = sqr(saturatef(param1));
 
       bsdf->N = maybe_ensure_valid_specular_reflection(sd, N);
       bsdf->ior = 1.0f;
@@ -513,7 +513,8 @@ ccl_device
         sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
         if (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID) {
           kernel_assert(stack_valid(data_node.z));
-          const Spectrum color = rgb_to_spectrum(stack_load_float3(stack, data_node.z));
+          const Spectrum color = max(rgb_to_spectrum(stack_load_float3(stack, data_node.z)),
+                                     zero_spectrum());
           bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd, color);
         }
       }
@@ -580,12 +581,12 @@ ccl_device
 
         float ior = fmaxf(param2, 1e-5f);
         bsdf->ior = (sd->flag & SD_BACKFACING) ? 1.0f / ior : ior;
-        bsdf->alpha_x = bsdf->alpha_y = sqr(param1);
+        bsdf->alpha_x = bsdf->alpha_y = sqr(saturatef(param1));
 
         fresnel->f0 = make_float3(F0_from_ior(ior));
         fresnel->f90 = one_spectrum();
         fresnel->exponent = -ior;
-        const float3 color = stack_load_float3(stack, data_node.y);
+        const float3 color = max(stack_load_float3(stack, data_node.y), zero_float3());
         fresnel->reflection_tint = reflective_caustics ? rgb_to_spectrum(color) : zero_spectrum();
         fresnel->transmission_tint = refractive_caustics ? rgb_to_spectrum(color) :
                                                            zero_spectrum();
@@ -622,7 +623,7 @@ ccl_device
 
       if (bsdf) {
         bsdf->N = N;
-        bsdf->roughness = param1;
+        bsdf->roughness = saturatef(param1);
 
         sd->flag |= bsdf_sheen_setup(kg, sd, bsdf);
       }
@@ -866,7 +867,8 @@ ccl_device
       ccl_private Bssrdf *bssrdf = bssrdf_alloc(sd, weight);
 
       if (bssrdf) {
-        bssrdf->radius = rgb_to_spectrum(stack_load_float3(stack, data_node.y) * param1);
+        bssrdf->radius = max(rgb_to_spectrum(stack_load_float3(stack, data_node.y) * param1),
+                             zero_spectrum());
         bssrdf->albedo = closure_weight;
         bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
         bssrdf->ior = param2;
