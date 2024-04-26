@@ -36,6 +36,7 @@ FEATURES = [
 # List of extensions blender uses. These can extend enum flags.
 EXTENSIONS = [
     "VK_KHR_swapchain",
+    "VK_KHR_dynamic_rendering",
 ]
 
 # List of vkCmd commands blender uses.
@@ -58,8 +59,8 @@ COMMANDS_TO_GEN = [
     "vkCmdBindVertexBuffers",
     "vkCmdBindPipeline",
 
-    "vkCmdBeginRenderPass",
-    "vkCmdEndRenderPass",
+    "vkCmdBeginRendering",
+    "vkCmdEndRendering",
     "vkCmdDraw",
     "vkCmdDrawIndexed",
     "vkCmdDrawIndirect",
