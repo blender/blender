@@ -577,8 +577,7 @@ static int collection_exporter_export(bContext *C,
         filepath, sizeof(filepath), "//", fh->get_default_filename(collection_name).c_str());
   }
   else {
-    char filename[FILENAME_MAX];
-    BLI_path_split_file_part(filepath, filename, sizeof(filename));
+    const char *filename = BLI_path_basename(filepath);
     if (!filename[0] || !BLI_path_extension(filename)) {
       BKE_reportf(op->reports, RPT_ERROR, "File path '%s' is not a valid file", filepath);
 
