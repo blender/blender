@@ -94,6 +94,20 @@ static const EnumPropertyItem rna_enum_brush_texture_slot_map_texture_mode_items
 };
 #endif
 
+const EnumPropertyItem rna_enum_brush_curve_preset_items[] = {
+    {BRUSH_CURVE_CUSTOM, "CUSTOM", ICON_RNDCURVE, "Custom", ""},
+    {BRUSH_CURVE_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
+    {BRUSH_CURVE_SMOOTHER, "SMOOTHER", ICON_SMOOTHCURVE, "Smoother", ""},
+    {BRUSH_CURVE_SPHERE, "SPHERE", ICON_SPHERECURVE, "Sphere", ""},
+    {BRUSH_CURVE_ROOT, "ROOT", ICON_ROOTCURVE, "Root", ""},
+    {BRUSH_CURVE_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
+    {BRUSH_CURVE_LIN, "LIN", ICON_LINCURVE, "Linear", ""},
+    {BRUSH_CURVE_POW4, "POW4", ICON_SHARPCURVE, "Sharper", ""},
+    {BRUSH_CURVE_INVSQUARE, "INVSQUARE", ICON_INVERSESQUARECURVE, "Inverse Square", ""},
+    {BRUSH_CURVE_CONSTANT, "CONSTANT", ICON_NOCURVE, "Constant", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 /* Note: we don't actually turn these into a single enum bit-mask property,
  * instead we construct individual boolean properties. */
 const EnumPropertyItem rna_enum_brush_automasking_flag_items[] = {
@@ -182,13 +196,6 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
      ""},
     {SCULPT_TOOL_PAINT, "PAINT", ICON_BRUSH_SCULPT_DRAW, "Paint", ""},
     {SCULPT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SCULPT_DRAW, "Smear", ""},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-
-const EnumPropertyItem rna_enum_brush_uv_sculpt_tool_items[] = {
-    {UV_SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", "Grab UVs"},
-    {UV_SCULPT_TOOL_RELAX, "RELAX", 0, "Relax", "Relax UVs"},
-    {UV_SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", "Pinch UVs"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2419,20 +2426,6 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem brush_curve_preset_items[] = {
-      {BRUSH_CURVE_CUSTOM, "CUSTOM", ICON_RNDCURVE, "Custom", ""},
-      {BRUSH_CURVE_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
-      {BRUSH_CURVE_SMOOTHER, "SMOOTHER", ICON_SMOOTHCURVE, "Smoother", ""},
-      {BRUSH_CURVE_SPHERE, "SPHERE", ICON_SPHERECURVE, "Sphere", ""},
-      {BRUSH_CURVE_ROOT, "ROOT", ICON_ROOTCURVE, "Root", ""},
-      {BRUSH_CURVE_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
-      {BRUSH_CURVE_LIN, "LIN", ICON_LINCURVE, "Linear", ""},
-      {BRUSH_CURVE_POW4, "POW4", ICON_SHARPCURVE, "Sharper", ""},
-      {BRUSH_CURVE_INVSQUARE, "INVSQUARE", ICON_INVERSESQUARECURVE, "Inverse Square", ""},
-      {BRUSH_CURVE_CONSTANT, "CONSTANT", ICON_NOCURVE, "Constant", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem brush_deformation_target_items[] = {
       {BRUSH_DEFORM_TARGET_GEOMETRY,
        "GEOMETRY",
@@ -2619,11 +2612,6 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_update(prop, 0, "rna_Brush_update_and_reset_icon");
 
-  prop = RNA_def_property(srna, "uv_sculpt_tool", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, rna_enum_brush_uv_sculpt_tool_items);
-  RNA_def_property_ui_text(prop, "UV Sculpt Tool", "");
-  RNA_def_property_update(prop, 0, "rna_Brush_update_and_reset_icon");
-
   prop = RNA_def_property(srna, "vertex_tool", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "vertexpaint_tool");
   RNA_def_property_enum_items(prop, rna_enum_brush_vertex_tool_items);
@@ -2703,7 +2691,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "curve_preset", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, brush_curve_preset_items);
+  RNA_def_property_enum_items(prop, rna_enum_brush_curve_preset_items);
   RNA_def_property_ui_text(prop, "Curve Preset", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVES); /* Abusing id_curves :/ */
   RNA_def_property_update(prop, 0, "rna_Brush_update");

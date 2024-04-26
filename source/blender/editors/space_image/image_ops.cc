@@ -331,10 +331,8 @@ bool space_image_main_region_poll(bContext *C)
 static bool space_image_main_area_not_uv_brush_poll(bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
-  Scene *scene = CTX_data_scene(C);
-  ToolSettings *toolsettings = scene->toolsettings;
 
-  if (sima && !toolsettings->uvsculpt && (CTX_data_edit_object(C) == nullptr)) {
+  if (sima && (CTX_data_edit_object(C) == nullptr)) {
     return true;
   }
 

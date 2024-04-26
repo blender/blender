@@ -261,16 +261,12 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
         [positions, radii](int64_t first_index, int64_t last_index, int64_t index) {
           const float dist_position = dist_to_line_v3(
               positions[index], positions[first_index], positions[last_index]);
-          /* We divide the distance by 2000.0f to convert from "pixels" to an actual
-           * distance. For some reason, grease pencil strokes the thickness of strokes in
-           * pixels rather than object space distance. */
           const float dist_radii = dist_to_interpolated(positions[index],
                                                         positions[first_index],
                                                         positions[last_index],
                                                         radii[index],
                                                         radii[first_index],
-                                                        radii[last_index]) /
-                                   2000.0f;
+                                                        radii[last_index]);
           return math::max(dist_position, dist_radii);
         };
 
@@ -2231,7 +2227,8 @@ static int grease_pencil_paste_strokes_exec(bContext *C, wmOperator *op)
   }
 
   /* Ensure active keyframe. */
-  if (!ensure_active_keyframe(scene, grease_pencil)) {
+  bool inserted_keyframe = false;
+  if (!ensure_active_keyframe(scene, grease_pencil, inserted_keyframe)) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }
@@ -2255,6 +2252,10 @@ static int grease_pencil_paste_strokes_exec(bContext *C, wmOperator *op)
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+
+  if (inserted_keyframe) {
+    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+  }
 
   return OPERATOR_FINISHED;
 }

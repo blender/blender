@@ -383,7 +383,7 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
       volume_infos.grids_xform[grid_id++] = float4x4::identity();
     }
   }
-  else if (!fds->fluid) {
+  else if (fds->fluid) {
     /* Smoke Simulation. */
     DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
 

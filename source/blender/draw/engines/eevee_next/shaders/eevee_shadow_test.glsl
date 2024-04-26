@@ -111,7 +111,9 @@ void main()
     set_clipmap_data(light, 0, 2, 0.0, 0.0);
 
     light.tilemap_index = light_sun_data_get(light).clipmap_lod_min;
-    light._position = vec3(0.0);
+    light.object_to_world.x = float4(1.0, 0.0, 0.0, 0.0);
+    light.object_to_world.y = float4(0.0, 1.0, 0.0, 0.0);
+    light.object_to_world.z = float4(0.0, 0.0, 1.0, 0.0);
     light.lod_bias = 0;
 
     float lod_min_tile_size = exp2(float(light_sun_data_get(light).clipmap_lod_min)) /
@@ -226,7 +228,9 @@ void main()
     // clipmap_lod_max = 2; /* 3 tile-maps. */
     set_clipmap_data(light, 0, 2, 0.0, 0.0);
     light.tilemap_index = 1;
-    light._position = vec3(0.0);
+    light.object_to_world.x = float4(1.0, 0.0, 0.0, 0.0);
+    light.object_to_world.y = float4(0.0, 1.0, 0.0, 0.0);
+    light.object_to_world.z = float4(0.0, 0.0, 1.0, 0.0);
     light.lod_bias = light_sun_data_get(light).clipmap_lod_min - 1;
     float lod_tile_size = exp2(float(light_sun_data_get(light).clipmap_lod_min)) /
                           float(SHADOW_TILEMAP_RES);

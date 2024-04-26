@@ -335,7 +335,9 @@ void create_keyframe_edit_data_selected_frames_list(KeyframeEditData *ked,
   }
 }
 
-bool ensure_active_keyframe(const Scene &scene, GreasePencil &grease_pencil)
+bool ensure_active_keyframe(const Scene &scene,
+                            GreasePencil &grease_pencil,
+                            bool &r_inserted_keyframe)
 {
   const int current_frame = scene.r.cfra;
   bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
@@ -366,6 +368,7 @@ bool ensure_active_keyframe(const Scene &scene, GreasePencil &grease_pencil)
       /* Otherwise we just insert a blank keyframe at the current frame. */
       grease_pencil.insert_blank_frame(active_layer, current_frame, 0, BEZT_KEYTYPE_KEYFRAME);
     }
+    r_inserted_keyframe = true;
   }
   /* There should now always be a drawing at the current frame. */
   BLI_assert(active_layer.has_drawing_at(current_frame));

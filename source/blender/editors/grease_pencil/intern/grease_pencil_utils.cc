@@ -1172,11 +1172,14 @@ int grease_pencil_draw_operator_invoke(bContext *C, wmOperator *op)
   }
 
   /* Ensure a drawing at the current keyframe. */
-  if (!ed::greasepencil::ensure_active_keyframe(*scene, grease_pencil)) {
+  bool inserted_keyframe = false;
+  if (!ed::greasepencil::ensure_active_keyframe(*scene, grease_pencil, inserted_keyframe)) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }
-
+  if (inserted_keyframe) {
+    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+  }
   return OPERATOR_RUNNING_MODAL;
 }
 

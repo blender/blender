@@ -797,9 +797,6 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
     if (ts->sculpt) {
       callback(ts->sculpt->paint.cavity_curve);
     }
-    if (ts->uvsculpt) {
-      callback(ts->uvsculpt->paint.cavity_curve);
-    }
     if (ts->gp_paint) {
       callback(ts->gp_paint->paint.cavity_curve);
     }

@@ -108,6 +108,8 @@ static bool has_libdecor = true;
 #  endif
 #endif
 
+static signed char has_wl_trackpad_physical_direction = -1;
+
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
@@ -6410,6 +6412,8 @@ static void gwl_registry_wl_seat_add(GWL_Display *display, const GWL_RegisteryAd
   display->seats.push_back(seat);
   wl_seat_add_listener(seat->wl.seat, &seat_listener, seat);
   gwl_registry_entry_add(display, params, static_cast<void *>(seat));
+
+  has_wl_trackpad_physical_direction = version >= 9;
 }
 static void gwl_registry_wl_seat_update(GWL_Display *display,
                                         const GWL_RegisteryUpdate_Params &params)
@@ -8367,6 +8371,9 @@ GHOST_TSuccess GHOST_SystemWayland::cursor_visibility_set(const bool visible)
 
 GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
 {
+  GHOST_ASSERT(has_wl_trackpad_physical_direction != -1,
+               "The trackpad direction was expected to be initialized");
+
   return GHOST_TCapabilityFlag(
       GHOST_CAPABILITY_FLAG_ALL &
       ~(
@@ -8388,7 +8395,9 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
            * is negligible. */
           GHOST_kCapabilityGPUReadFrontBuffer |
           /* This WAYLAND back-end has not yet implemented desktop color sample. */
-          GHOST_kCapabilityDesktopSample));
+          GHOST_kCapabilityDesktopSample |
+          /* This flag will eventually be removed. */
+          (has_wl_trackpad_physical_direction ? 0 : GHOST_kCapabilityTrackpadPhysicalDirection)));
 }
 
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)

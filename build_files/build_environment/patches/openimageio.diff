@@ -21,3 +21,20 @@ diff -Naur orig/src/cmake/compiler.cmake external_openimageio/src/cmake/compiler
  endif (MSVC)
  
  if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD"
+diff --git a/src/libOpenImageIO/imageioplugin.cpp b/src/libOpenImageIO/imageioplugin.cpp
+index 9ad45042e..d2a0210ff 100644
+--- a/src/libOpenImageIO/imageioplugin.cpp
++++ b/src/libOpenImageIO/imageioplugin.cpp
+@@ -469,12 +469,6 @@ pvt::catalog_all_plugins(std::string searchpath)
+ 
+     std::unique_lock<std::recursive_mutex> lock(imageio_mutex);
+     append_if_env_exists(searchpath, "OIIO_LIBRARY_PATH", true);
+-#ifdef __APPLE__
+-    append_if_env_exists(searchpath, "DYLD_LIBRARY_PATH");
+-#endif
+-#if defined(__linux__) || defined(__FreeBSD__)
+-    append_if_env_exists(searchpath, "LD_LIBRARY_PATH");
+-#endif
+ 
+     size_t patlen = pattern.length();
+     std::vector<std::string> dirs;

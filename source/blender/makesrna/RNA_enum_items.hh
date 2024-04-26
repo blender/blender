@@ -109,7 +109,6 @@ DEF_ENUM(rna_enum_operator_property_tag_items)
 
 DEF_ENUM(rna_enum_brush_automasking_flag_items)
 DEF_ENUM(rna_enum_brush_sculpt_tool_items)
-DEF_ENUM(rna_enum_brush_uv_sculpt_tool_items)
 DEF_ENUM(rna_enum_brush_vertex_tool_items)
 DEF_ENUM(rna_enum_brush_weight_tool_items)
 DEF_ENUM(rna_enum_brush_gpencil_types_items)
@@ -118,6 +117,7 @@ DEF_ENUM(rna_enum_brush_gpencil_sculpt_types_items)
 DEF_ENUM(rna_enum_brush_gpencil_weight_types_items)
 DEF_ENUM(rna_enum_brush_curves_sculpt_tool_items)
 DEF_ENUM(rna_enum_brush_image_tool_items)
+DEF_ENUM(rna_enum_brush_curve_preset_items)
 
 DEF_ENUM(rna_enum_grease_pencil_selectmode_items)
 

@@ -59,14 +59,16 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
   this->color = float3(&la->r) * la->energy;
 
   float3 scale;
-  this->object_mat = ob->object_to_world();
-  this->object_mat.view<3, 3>() = normalize_and_get_size(this->object_mat.view<3, 3>(), scale);
+  float4x4 object_to_world = ob->object_to_world();
+  object_to_world.view<3, 3>() = normalize_and_get_size(object_to_world.view<3, 3>(), scale);
 
   /* Make sure we have consistent handedness (in case of negatively scaled Z axis). */
-  float3 back = cross(float3(this->_right), float3(this->_up));
-  if (dot(back, float3(this->_back)) < 0.0f) {
-    negate_v3(this->_up);
+  float3 back = cross(float3(object_to_world.x_axis()), float3(object_to_world.y_axis()));
+  if (dot(back, float3(object_to_world.z_axis())) < 0.0f) {
+    negate_v3(object_to_world.y_axis());
   }
+
+  this->object_to_world = object_to_world;
 
   shape_parameters_set(la, scale, threshold);
 
@@ -93,7 +95,7 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
   if (la->mode & LA_SHADOW) {
     shadow_ensure(shadows);
     if (is_sun_light(this->type)) {
-      this->directional->sync(this->object_mat,
+      this->directional->sync(object_to_world,
                               1.0f,
                               la->sun_angle * la->shadow_softness_factor,
                               la->shadow_trace_distance);
@@ -113,7 +115,7 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
         shadow_radius = la->shadow_softness_factor * la->radius;
       }
       this->punctual->sync(this->type,
-                           this->object_mat,
+                           object_to_world,
                            la->spotsize,
                            radius,
                            this->local.influence_radius_max,
@@ -293,7 +295,9 @@ float Light::point_radiance_get()
 void Light::debug_draw()
 {
 #ifndef NDEBUG
-  drw_debug_sphere(float3(_position), local.influence_radius_max, float4(0.8f, 0.3f, 0.0f, 1.0f));
+  drw_debug_sphere(transform_location(this->object_to_world),
+                   local.influence_radius_max,
+                   float4(0.8f, 0.3f, 0.0f, 1.0f));
 #endif
 }
 

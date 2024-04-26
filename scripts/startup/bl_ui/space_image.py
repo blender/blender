@@ -718,10 +718,6 @@ class IMAGE_HT_tool_header(Header):
                 layout.popover("IMAGE_PT_tools_brush_display")
                 layout.popover("IMAGE_PT_tools_brush_texture")
                 layout.popover("IMAGE_PT_tools_mask_texture")
-        elif tool_mode == 'UV':
-            if (tool is not None) and tool.has_datablock:
-                layout.popover("IMAGE_PT_uv_sculpt_curve")
-                layout.popover("IMAGE_PT_uv_sculpt_options")
 
     def draw_mode_settings(self, context):
         layout = self.layout
@@ -1348,50 +1344,21 @@ class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
         row.prop(ipaint, "tile_y", text="Y", toggle=True)
 
 
-class UVSculptPanel(UnifiedPaintPanel):
-    @classmethod
-    def poll(cls, context):
-        return cls.get_brush_mode(context) == 'UV_SCULPT'
-
-
-class IMAGE_PT_uv_sculpt_brush_select(Panel, BrushSelectPanel, ImagePaintPanel, UVSculptPanel):
-    bl_context = ".uv_sculpt"
-    bl_category = "Tool"
-    bl_label = "Brushes"
-
-
-class IMAGE_PT_uv_sculpt_brush_settings(Panel, ImagePaintPanel, UVSculptPanel):
-    bl_context = ".uv_sculpt"
-    bl_category = "Tool"
-    bl_label = "Brush Settings"
-
-    def draw(self, context):
-        layout = self.layout
-
-        tool_settings = context.tool_settings
-        uvsculpt = tool_settings.uv_sculpt
-
-        brush = uvsculpt.brush
-
-        brush_settings(layout.column(), context, brush)
-
-        if brush:
-            if brush.uv_sculpt_tool == 'RELAX':
-                # Although this settings is stored in the scene,
-                # it is only used by a single tool,
-                # so it doesn't make sense from a user perspective to move it to the Options panel.
-                layout.prop(tool_settings, "uv_relax_method")
-
-
-class IMAGE_PT_uv_sculpt_curve(Panel, FalloffPanel, ImagePaintPanel, UVSculptPanel):
+class IMAGE_PT_uv_sculpt_curve(Panel, ImagePaintPanel):
     bl_context = ".uv_sculpt"  # Dot on purpose (access from top-bar).
-    bl_parent_id = "IMAGE_PT_uv_sculpt_brush_settings"
     bl_category = "Tool"
     bl_label = "Falloff"
     bl_options = {'DEFAULT_CLOSED'}
 
+    def draw(self, context):
+        layout = self.layout
+        props = context.scene.tool_settings.uv_sculpt
+        layout.prop(props, "curve_preset", text="")
+        if props.curve_preset == 'CUSTOM':
+            layout.template_curve_mapping(props, "strength_curve")
 
-class IMAGE_PT_uv_sculpt_options(Panel, ImagePaintPanel, UVSculptPanel):
+
+class IMAGE_PT_uv_sculpt_options(Panel, ImagePaintPanel):
     bl_context = ".uv_sculpt"  # Dot on purpose (access from top-bar).
     bl_category = "Tool"
     bl_label = "Options"
@@ -1400,12 +1367,10 @@ class IMAGE_PT_uv_sculpt_options(Panel, ImagePaintPanel, UVSculptPanel):
         layout = self.layout
 
         tool_settings = context.tool_settings
-        uvsculpt = tool_settings.uv_sculpt
 
         col = layout.column()
         col.prop(tool_settings, "uv_sculpt_lock_borders")
         col.prop(tool_settings, "uv_sculpt_all_islands")
-        col.prop(uvsculpt, "show_brush", text="Display Cursor")
 
 
 class ImageScopesPanel:
@@ -1789,8 +1754,6 @@ classes = (
     IMAGE_PT_paint_curve,
     IMAGE_PT_tools_brush_display,
     IMAGE_PT_tools_imagepaint_symmetry,
-    IMAGE_PT_uv_sculpt_brush_select,
-    IMAGE_PT_uv_sculpt_brush_settings,
     IMAGE_PT_uv_sculpt_options,
     IMAGE_PT_uv_sculpt_curve,
     IMAGE_PT_view_histogram,

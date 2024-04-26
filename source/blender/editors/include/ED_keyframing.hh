@@ -40,15 +40,6 @@ struct NlaKeyframingContext;
  * \{ */
 
 /**
- * Get the active settings for key-framing settings from context (specifically the given scene)
- * \param use_autokey_mode: include settings from key-framing mode in the result
- * (i.e. replace only).
- */
-eInsertKeyFlags ANIM_get_keyframing_flags(Scene *scene);
-
-/* -------- */
-
-/**
  * \brief Lesser Key-framing API call.
  *
  * Update integer/discrete flags of the FCurve (used when creating/inserting keyframes,

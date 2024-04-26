@@ -705,14 +705,6 @@ static void scene_foreach_toolsettings(LibraryForeachIDData *data,
     }
     toolsett_old->sculpt->gravity_object = gravity_object_old;
   }
-  if (toolsett_old->uvsculpt) {
-    paint = toolsett->uvsculpt ? &toolsett->uvsculpt->paint : nullptr;
-    paint_old = &toolsett_old->uvsculpt->paint;
-    BKE_LIB_FOREACHID_UNDO_PRESERVE_PROCESS_FUNCTION_CALL(
-        data,
-        do_undo_restore,
-        scene_foreach_paint(data, paint, do_undo_restore, reader, paint_old));
-  }
   if (toolsett_old->gp_paint) {
     paint = toolsett->gp_paint ? &toolsett->gp_paint->paint : nullptr;
     paint_old = &toolsett_old->gp_paint->paint;
@@ -1038,9 +1030,8 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
     BKE_paint_blend_write(writer, &tos->sculpt->paint);
   }
-  if (tos->uvsculpt) {
-    BLO_write_struct(writer, UvSculpt, tos->uvsculpt);
-    BKE_paint_blend_write(writer, &tos->uvsculpt->paint);
+  if (tos->uvsculpt.strength_curve) {
+    BKE_curvemapping_blend_write(writer, tos->uvsculpt.strength_curve);
   }
   if (tos->gp_paint) {
     BLO_write_struct(writer, GpPaint, tos->gp_paint);
@@ -1242,7 +1233,6 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->sculpt);
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->vpaint);
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->wpaint);
-    direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->uvsculpt);
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_paint);
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_vertexpaint);
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->gp_sculptpaint);
@@ -1255,6 +1245,11 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     sce->toolsettings->particle.scene = nullptr;
     sce->toolsettings->particle.object = nullptr;
     sce->toolsettings->gp_sculpt.paintcursor = nullptr;
+    if (sce->toolsettings->uvsculpt.strength_curve) {
+      BLO_read_struct(reader, CurveMapping, &sce->toolsettings->uvsculpt.strength_curve);
+      BKE_curvemapping_blend_read(reader, sce->toolsettings->uvsculpt.strength_curve);
+      BKE_curvemapping_init(sce->toolsettings->uvsculpt.strength_curve);
+    }
 
     if (sce->toolsettings->sculpt) {
       BLO_read_struct(reader, CurveMapping, &sce->toolsettings->sculpt->automasking_cavity_curve);
@@ -1654,9 +1649,9 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
       BKE_curvemapping_init(ts->sculpt->automasking_cavity_curve_op);
     }
   }
-  if (ts->uvsculpt) {
-    ts->uvsculpt = static_cast<UvSculpt *>(MEM_dupallocN(ts->uvsculpt));
-    BKE_paint_copy(&ts->uvsculpt->paint, &ts->uvsculpt->paint, flag);
+  if (ts->uvsculpt.strength_curve) {
+    ts->uvsculpt.strength_curve = BKE_curvemapping_copy(ts->uvsculpt.strength_curve);
+    BKE_curvemapping_init(ts->uvsculpt.strength_curve);
   }
   if (ts->gp_paint) {
     ts->gp_paint = static_cast<GpPaint *>(MEM_dupallocN(ts->gp_paint));
@@ -1720,9 +1715,8 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
     BKE_paint_free(&toolsettings->sculpt->paint);
     MEM_freeN(toolsettings->sculpt);
   }
-  if (toolsettings->uvsculpt) {
-    BKE_paint_free(&toolsettings->uvsculpt->paint);
-    MEM_freeN(toolsettings->uvsculpt);
+  if (toolsettings->uvsculpt.strength_curve) {
+    BKE_curvemapping_free(toolsettings->uvsculpt.strength_curve);
   }
   if (toolsettings->gp_paint) {
     BKE_paint_free(&toolsettings->gp_paint->paint);

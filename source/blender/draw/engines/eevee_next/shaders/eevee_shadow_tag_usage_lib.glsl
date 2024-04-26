@@ -55,15 +55,15 @@ void shadow_tag_usage_tilemap_directional(uint l_idx, vec3 P, vec3 V, float radi
 
   /* TODO(Miguel Pozo): Implement lod_bias support. */
   if (radius == 0.0) {
-    int level = shadow_directional_level(light, lP - light._position);
+    int level = shadow_directional_level(light, lP - light_position_get(light));
     ShadowCoordinates coord = shadow_directional_coordinates_at_level(light, lP, level);
     shadow_tag_usage_tile(light, coord.tile_coord, 0, coord.tilemap_index);
   }
   else {
     vec3 start_lP = light_world_to_local(light, P - V * radius);
     vec3 end_lP = light_world_to_local(light, P + V * radius);
-    int min_level = shadow_directional_level(light, start_lP - light._position);
-    int max_level = shadow_directional_level(light, end_lP - light._position);
+    int min_level = shadow_directional_level(light, start_lP - light_position_get(light));
+    int max_level = shadow_directional_level(light, end_lP - light_position_get(light));
 
     for (int level = min_level; level <= max_level; level++) {
       ShadowCoordinates coord_min = shadow_directional_coordinates_at_level(
@@ -89,7 +89,7 @@ void shadow_tag_usage_tilemap_punctual(
     return;
   }
 
-  vec3 lP = light_world_to_local(light, P - light._position);
+  vec3 lP = light_world_to_local(light, P - light_position_get(light));
   float dist_to_light = max(length(lP) - radius, 1e-5);
   if (dist_to_light > light_local_data_get(light).influence_radius_max) {
     return;

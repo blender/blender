@@ -483,13 +483,6 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_DISPLACEMENT_SMEAR = 32,
 } eBrushSculptTool;
 
-/** #Brush.uv_sculpt_tool */
-typedef enum eBrushUVSculptTool {
-  UV_SCULPT_TOOL_GRAB = 0,
-  UV_SCULPT_TOOL_RELAX = 1,
-  UV_SCULPT_TOOL_PINCH = 2,
-} eBrushUVSculptTool;
-
 /* Brush.curves_sculpt_tool. */
 typedef enum eBrushCurvesSculptTool {
   CURVES_SCULPT_TOOL_COMB = 0,

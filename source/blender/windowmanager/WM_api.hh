@@ -186,10 +186,12 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_DESKTOP_SAMPLE = (1 << 5),
   /** Support for IME input methods. */
   WM_CAPABILITY_INPUT_IME = (1 << 6),
+  /** Trackpad physical scroll detection. */
+  WM_CAPABILITY_TRACKPAD_PHYSICAL_DIRECTION = (1 << 7),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };
-ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_CLIPBOARD_IMAGES)
+ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_TRACKPAD_PHYSICAL_DIRECTION)
 
 eWM_CapabilitiesFlag WM_capabilities_flag();
 

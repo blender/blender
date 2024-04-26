@@ -101,7 +101,7 @@ static int add_default_keyingset_exec(bContext *C, wmOperator * /*op*/)
    */
   const eKS_Settings flag = KEYINGSET_ABSOLUTE;
 
-  const eInsertKeyFlags keyingflag = ANIM_get_keyframing_flags(scene);
+  const eInsertKeyFlags keyingflag = blender::animrig::get_keyframing_flags(scene);
 
   /* Call the API func, and set the active keyingset index. */
   BKE_keyingset_add(&scene->keyingsets, nullptr, nullptr, flag, keyingflag);
@@ -285,7 +285,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
      */
     const eKS_Settings flag = KEYINGSET_ABSOLUTE;
 
-    const eInsertKeyFlags keyingflag = ANIM_get_keyframing_flags(scene);
+    const eInsertKeyFlags keyingflag = blender::animrig::get_keyframing_flags(scene);
 
     /* Call the API func, and set the active keyingset index. */
     keyingset = BKE_keyingset_add(
@@ -1136,7 +1136,7 @@ int ANIM_apply_keyingset(bContext *C,
   }
 
   Scene *scene = CTX_data_scene(C);
-  const eInsertKeyFlags base_kflags = ANIM_get_keyframing_flags(scene);
+  const eInsertKeyFlags base_kflags = blender::animrig::get_keyframing_flags(scene);
   eInsertKeyFlags kflag = INSERTKEY_NOFLAGS;
   if (mode == MODIFYKEY_MODE_INSERT) {
     /* use context settings as base */

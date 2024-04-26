@@ -350,9 +350,6 @@ bool BKE_paint_ensure_from_paintmode(Main *bmain, Scene *sce, PaintMode mode)
       paint_tmp = (Paint *)&ts->imapaint;
       paint_ptr = &paint_tmp;
       break;
-    case PaintMode::SculptUV:
-      paint_ptr = (Paint **)&ts->uvsculpt;
-      break;
     case PaintMode::GPencil:
       paint_ptr = (Paint **)&ts->gp_paint;
       break;
@@ -396,8 +393,6 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode)
       case PaintMode::Texture2D:
       case PaintMode::Texture3D:
         return &ts->imapaint.paint;
-      case PaintMode::SculptUV:
-        return &ts->uvsculpt->paint;
       case PaintMode::GPencil:
         return &ts->gp_paint->paint;
       case PaintMode::VertexGPencil:
@@ -432,8 +427,6 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(const PaintMode m
     case PaintMode::Texture2D:
     case PaintMode::Texture3D:
       return rna_enum_brush_image_tool_items;
-    case PaintMode::SculptUV:
-      return rna_enum_brush_uv_sculpt_tool_items;
     case PaintMode::GPencil:
       return rna_enum_brush_gpencil_types_items;
     case PaintMode::VertexGPencil:
@@ -479,8 +472,6 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
           return &ts->gp_weightpaint->paint;
         case OB_MODE_SCULPT_CURVES:
           return &ts->curves_sculpt->paint;
-        case OB_MODE_EDIT:
-          return ts->uvsculpt ? &ts->uvsculpt->paint : nullptr;
         default:
           break;
       }
@@ -508,9 +499,6 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
       if (obact && obact->mode == OB_MODE_EDIT) {
         if (sima->mode == SI_MODE_PAINT) {
           return &ts->imapaint.paint;
-        }
-        if (sima->mode == SI_MODE_UV) {
-          return &ts->uvsculpt->paint;
         }
       }
       else {
@@ -540,9 +528,6 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
         if (sima->mode == SI_MODE_PAINT) {
           return PaintMode::Texture2D;
         }
-        if (sima->mode == SI_MODE_UV) {
-          return PaintMode::SculptUV;
-        }
       }
       else {
         return PaintMode::Texture2D;
@@ -570,8 +555,6 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
           return PaintMode::Weight;
         case OB_MODE_TEXTURE_PAINT:
           return PaintMode::Texture3D;
-        case OB_MODE_EDIT:
-          return PaintMode::SculptUV;
         case OB_MODE_SCULPT_CURVES:
           return PaintMode::SculptCurves;
         default:
@@ -620,8 +603,6 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
     switch (tref->mode) {
       case SI_MODE_PAINT:
         return PaintMode::Texture2D;
-      case SI_MODE_UV:
-        return PaintMode::SculptUV;
     }
   }
 
@@ -779,9 +760,6 @@ void BKE_paint_brush_set_default_references(ToolSettings *ts)
   if (ts->vpaint) {
     paint_brush_set_default_reference(&ts->vpaint->paint);
   }
-  if (ts->uvsculpt) {
-    paint_brush_set_default_reference(&ts->uvsculpt->paint);
-  }
   if (ts->gp_paint) {
     paint_brush_set_default_reference(&ts->gp_paint->paint);
   }
@@ -834,9 +812,6 @@ static void paint_runtime_init(const ToolSettings *ts, Paint *paint)
   else if (ts->wpaint && paint == &ts->wpaint->paint) {
     paint->runtime.ob_mode = OB_MODE_WEIGHT_PAINT;
   }
-  else if (ts->uvsculpt && paint == &ts->uvsculpt->paint) {
-    paint->runtime.ob_mode = OB_MODE_EDIT;
-  }
   else if (ts->gp_paint && paint == &ts->gp_paint->paint) {
     paint->runtime.ob_mode = OB_MODE_PAINT_GPENCIL_LEGACY;
   }
@@ -871,8 +846,6 @@ uint BKE_paint_get_brush_tool_offset_from_paintmode(const PaintMode mode)
       return offsetof(Brush, vertexpaint_tool);
     case PaintMode::Weight:
       return offsetof(Brush, weightpaint_tool);
-    case PaintMode::SculptUV:
-      return offsetof(Brush, uv_sculpt_tool);
     case PaintMode::GPencil:
       return offsetof(Brush, gpencil_tool);
     case PaintMode::VertexGPencil:
@@ -1213,8 +1186,6 @@ eObjectMode BKE_paint_object_mode_from_paintmode(const PaintMode mode)
     case PaintMode::Texture2D:
     case PaintMode::Texture3D:
       return OB_MODE_TEXTURE_PAINT;
-    case PaintMode::SculptUV:
-      return OB_MODE_EDIT;
     case PaintMode::SculptCurves:
       return OB_MODE_SCULPT_CURVES;
     case PaintMode::GPencil:
@@ -1247,7 +1218,6 @@ bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
                       (Paint *)ts->sculpt,
                       (Paint *)ts->vpaint,
                       (Paint *)ts->wpaint,
-                      (Paint *)ts->uvsculpt,
                       (Paint *)ts->curves_sculpt,
                       (Paint *)&ts->imapaint));
 #ifndef NDEBUG
@@ -1287,10 +1257,6 @@ bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint)
   }
   else if ((GpWeightPaint **)r_paint == &ts->gp_weightpaint) {
     GpWeightPaint *data = MEM_cnew<GpWeightPaint>(__func__);
-    paint = &data->paint;
-  }
-  else if ((UvSculpt **)r_paint == &ts->uvsculpt) {
-    UvSculpt *data = MEM_cnew<UvSculpt>(__func__);
     paint = &data->paint;
   }
   else if ((CurvesSculpt **)r_paint == &ts->curves_sculpt) {
