@@ -208,6 +208,27 @@ bool is_keying_flag(const Scene *scene, const eKeying_Flag flag)
   return U.keying_flag & flag;
 }
 
+eInsertKeyFlags get_keyframing_flags(Scene *scene)
+{
+  eInsertKeyFlags flag = INSERTKEY_NOFLAGS;
+
+  /* Visual keying. */
+  if (is_keying_flag(scene, KEYING_FLAG_VISUALKEY)) {
+    flag |= INSERTKEY_MATRIX;
+  }
+
+  /* Cycle-aware keyframe insertion - preserve cycle period and flow. */
+  if (is_keying_flag(scene, KEYING_FLAG_CYCLEAWARE)) {
+    flag |= INSERTKEY_CYCLE_AWARE;
+  }
+
+  if (is_keying_flag(scene, MANUALKEY_FLAG_INSERTNEEDED)) {
+    flag |= INSERTKEY_NEEDED;
+  }
+
+  return flag;
+}
+
 /** Used to make curves newly added to a cyclic Action cycle with the correct period. */
 static void make_new_fcurve_cyclic(FCurve *fcu, const blender::float2 &action_range)
 {

@@ -70,31 +70,6 @@ static KeyingSet *keyingset_get_from_op_with_error(wmOperator *op,
 
 static int delete_key_using_keying_set(bContext *C, wmOperator *op, KeyingSet *ks);
 
-/* ************************************************** */
-/* Keyframing Setting Wrangling */
-
-eInsertKeyFlags ANIM_get_keyframing_flags(Scene *scene)
-{
-  using namespace blender::animrig;
-  eInsertKeyFlags flag = INSERTKEY_NOFLAGS;
-
-  /* Visual keying. */
-  if (is_keying_flag(scene, KEYING_FLAG_VISUALKEY)) {
-    flag |= INSERTKEY_MATRIX;
-  }
-
-  /* Cycle-aware keyframe insertion - preserve cycle period and flow. */
-  if (is_keying_flag(scene, KEYING_FLAG_CYCLEAWARE)) {
-    flag |= INSERTKEY_CYCLE_AWARE;
-  }
-
-  if (is_keying_flag(scene, MANUALKEY_FLAG_INSERTNEEDED)) {
-    flag |= INSERTKEY_NEEDED;
-  }
-
-  return flag;
-}
-
 /* ******************************************* */
 /* Animation Data Validation */
 
@@ -389,7 +364,7 @@ static int insert_key(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   const float scene_frame = BKE_scene_frame_get(scene);
 
-  const eInsertKeyFlags insert_key_flags = ANIM_get_keyframing_flags(scene);
+  const eInsertKeyFlags insert_key_flags = animrig::get_keyframing_flags(scene);
   const eBezTriple_KeyframeType key_type = eBezTriple_KeyframeType(
       scene->toolsettings->keyframe_type);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -976,7 +951,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
   const bool all = RNA_boolean_get(op->ptr, "all");
   eInsertKeyFlags flag = INSERTKEY_NOFLAGS;
 
-  flag = ANIM_get_keyframing_flags(scene);
+  flag = get_keyframing_flags(scene);
 
   if (!(but = UI_context_active_but_prop_get(C, &ptr, &prop, &index))) {
     /* pass event on if no active button found */

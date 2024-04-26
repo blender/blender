@@ -909,7 +909,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* Init keyframing flag. */
-  flag = ANIM_get_keyframing_flags(scene);
+  flag = blender::animrig::get_keyframing_flags(scene);
 
   /* GPLayers specific flags */
   if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
