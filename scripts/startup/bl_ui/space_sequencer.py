@@ -366,24 +366,30 @@ class SEQUENCER_MT_range(Menu):
 
 
 class SEQUENCER_MT_preview_zoom(Menu):
-    bl_label = "Fractional Zoom"
+    bl_label = "Zoom"
 
     def draw(self, _context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_PREVIEW'
+        from math import isclose
 
+        current_zoom = _context.space_data.zoom_percentage
         ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
         for i, (a, b) in enumerate(ratios):
-            if i in {3, 4}:  # Draw separators around Zoom 1:1.
-                layout.separator()
+            percent = a / b * 100
 
             layout.operator(
                 "sequencer.view_zoom_ratio",
-                text=iface_("Zoom %d:%d") % (a, b),
+                text=iface_("%g%% (%d:%d)") % (percent, a, b),
                 translate=False,
+                icon=('NONE', 'LAYER_ACTIVE')[isclose(percent, current_zoom, abs_tol=0.5)],
             ).ratio = a / b
-        layout.operator_context = 'INVOKE_DEFAULT'
+
+        layout.separator()
+        layout.operator("view2d.zoom_in")
+        layout.operator("view2d.zoom_out")
+        layout.operator("view2d.zoom_border", text="Zoom Region...")
 
 
 class SEQUENCER_MT_proxy(Menu):
@@ -444,7 +450,6 @@ class SEQUENCER_MT_view(Menu):
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("sequencer.view_all")
             layout.operator("sequencer.view_frame")
-            layout.operator("view2d.zoom_border", text="Zoom to Border")
             layout.prop(st, "use_clamp_view")
 
         if is_preview:
@@ -453,12 +458,10 @@ class SEQUENCER_MT_view(Menu):
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text="Fit Preview in Window")
             if is_sequencer_view:
-                layout.menu("SEQUENCER_MT_preview_zoom", text="Fractional Preview Zoom")
+                layout.menu("SEQUENCER_MT_preview_zoom", text="Preview Zoom")
             else:
-                layout.operator("view2d.zoom_border", text="Zoom to Border")
                 layout.menu("SEQUENCER_MT_preview_zoom")
-            layout.prop(st, "use_zoom_to_fit")
-
+            layout.prop(st, "use_zoom_to_fit", text="Auto Zoom")
             layout.separator()
             layout.menu("SEQUENCER_MT_proxy")
             layout.operator_context = 'INVOKE_DEFAULT'
