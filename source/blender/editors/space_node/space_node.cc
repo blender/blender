@@ -879,13 +879,8 @@ static bool node_collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *
   return WM_drag_is_ID_type(drag, ID_GR) && !UI_but_active_drop_name(C);
 }
 
-static bool node_ima_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool node_id_im_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
-  if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = static_cast<eFileSel_File_Types>(
-        WM_drag_get_path_file_type(drag));
-    return ELEM(file_type, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE);
-  }
   return WM_drag_is_ID_type(drag, ID_IM);
 }
 
@@ -915,20 +910,12 @@ static void node_id_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
   RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
 }
 
-static void node_id_path_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
+static void node_id_im_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
-
   if (id) {
     RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
     RNA_struct_property_unset(drop->ptr, "filepath");
-    return;
-  }
-
-  const char *path = WM_drag_get_single_path(drag);
-  if (path) {
-    RNA_string_set(drop->ptr, "filepath", path);
-    RNA_struct_property_unset(drop->ptr, "name");
     return;
   }
 }
@@ -958,8 +945,8 @@ static void node_dropboxes()
                  nullptr);
   WM_dropbox_add(lb,
                  "NODE_OT_add_file",
-                 node_ima_drop_poll,
-                 node_id_path_drop_copy,
+                 node_id_im_drop_poll,
+                 node_id_im_drop_copy,
                  WM_drag_free_imported_drag_ID,
                  nullptr);
   WM_dropbox_add(lb,
