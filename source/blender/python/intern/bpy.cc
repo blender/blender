@@ -593,6 +593,57 @@ static PyObject *bpy_ghost_backend(PyObject * /*self*/)
   return PyUnicode_FromString(WM_ghost_backend());
 }
 
+/* NOTE(@ideasman42): This is a private function because the keys in the returned dictionary,
+ * are not considered stable. Sometimes a function is temporarily only supported by one platform.
+ * Once all platforms support the functionality there is no need for the flag
+ * and it can be removed. This is at odds with a public API that has values which are
+ * intended to be kept between releases.
+ * If this were to be made public we would have to document that this is subject to change. */
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_wm_capabilities_doc,
+    ".. function:: _wm_capabilities()\n"
+    "\n"
+    "   :return: A dictionary of capabilities (string keys, boolean values).\n"
+    "   :rtype: dict\n");
+static PyObject *bpy_wm_capabilities(PyObject *self)
+{
+  static _Py_Identifier PyId_capabilities = {"_wm_capabilities_", -1};
+
+  PyObject *result = nullptr;
+  switch (_PyObject_LookupAttrId(self, &PyId_capabilities, &result)) {
+    case 1:
+      return result;
+    case 0:
+      break;
+    default:
+      /* Unlikely, but there may be an error, forward it. */
+      return nullptr;
+  }
+
+  result = PyDict_New();
+
+  const eWM_CapabilitiesFlag flag = WM_capabilities_flag();
+
+#define SetFlagItem(x) \
+  PyDict_SetItemString(result, STRINGIFY(x), PyBool_FromLong((WM_CAPABILITY_##x) & flag));
+
+  SetFlagItem(CURSOR_WARP);
+  SetFlagItem(WINDOW_POSITION);
+  SetFlagItem(PRIMARY_CLIPBOARD);
+  SetFlagItem(GPU_FRONT_BUFFER_READ);
+  SetFlagItem(CLIPBOARD_IMAGES);
+  SetFlagItem(DESKTOP_SAMPLE);
+  SetFlagItem(INPUT_IME);
+  SetFlagItem(TRACKPAD_PHYSICAL_DIRECTION);
+
+#undef SetFlagItem
+
+  _PyObject_SetAttrId(self, &PyId_capabilities, result);
+  return result;
+}
+
 #if (defined(__GNUC__) && !defined(__clang__))
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wcast-function-type"
@@ -631,6 +682,7 @@ static PyMethodDef bpy_methods[] = {
      METH_VARARGS | METH_KEYWORDS,
      bpy_driver_secure_code_test_doc},
     {"_ghost_backend", (PyCFunction)bpy_ghost_backend, METH_NOARGS, bpy_ghost_backend_doc},
+    {"_wm_capabilities", (PyCFunction)bpy_wm_capabilities, METH_NOARGS, bpy_wm_capabilities_doc},
 
     {nullptr, nullptr, 0, nullptr},
 };
@@ -719,7 +771,7 @@ void BPy_init_modules(bContext *C)
   BPY_rna_types_extend_capi();
 
 #define PYMODULE_ADD_METHOD(mod, meth) \
-  PyModule_AddObject(mod, (meth)->ml_name, (PyObject *)PyCFunction_New(meth, nullptr))
+  PyModule_AddObject(mod, (meth)->ml_name, (PyObject *)PyCFunction_New(meth, mod))
 
   for (int i = 0; bpy_methods[i].ml_name; i++) {
     PyMethodDef *m = &bpy_methods[i];
