@@ -1278,6 +1278,7 @@ void BKE_nodetree_remove_layer_n(bNodeTree *ntree, Scene *scene, int layer_index
 #define GEO_NODE_GRID_TO_MESH 2129
 #define GEO_NODE_DISTRIBUTE_POINTS_IN_GRID 2130
 #define GEO_NODE_SDF_GRID_BOOLEAN 2131
+#define GEO_NODE_TOOL_VIEWPORT_TRANSFORM 2132
 
 /** \} */
 

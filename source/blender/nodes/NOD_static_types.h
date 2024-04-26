@@ -469,6 +469,7 @@ DefNode(GeometryNode, GEO_NODE_TOOL_FACE_SET, 0, "TOOL_FACE_SET", ToolFaceSet, "
 DefNode(GeometryNode, GEO_NODE_TOOL_SELECTION, 0, "TOOL_SELECTION", ToolSelection, "Selection", "User selection of the edited geometry, for tool execution")
 DefNode(GeometryNode, GEO_NODE_TOOL_SET_FACE_SET, 0, "TOOL_SET_FACE_SET", ToolSetFaceSet, "Set Face Set", "Set sculpt face set values for faces")
 DefNode(GeometryNode, GEO_NODE_TOOL_SET_SELECTION, 0, "TOOL_SELECTION_SET", ToolSetSelection, "Set Selection", "Set selection of the edited geometry, for tool execution")
+DefNode(GeometryNode, GEO_NODE_TOOL_VIEWPORT_TRANSFORM, 0, "VIEWPORT_TRANFORM", ViewportTransform, "Viewport Transform", "Retrieve the view direction and location of the 3D viewport")
 DefNode(GeometryNode, GEO_NODE_TRANSFORM_GEOMETRY, 0, "TRANSFORM_GEOMETRY", Transform, "Transform Geometry", "Translate, rotate or scale the geometry")
 DefNode(GeometryNode, GEO_NODE_TRANSLATE_INSTANCES, 0, "TRANSLATE_INSTANCES",TranslateInstances, "Translate Instances", "Move top-level geometry instances in local or global space")
 DefNode(GeometryNode, GEO_NODE_TRIANGULATE, 0, "TRIANGULATE", Triangulate, "Triangulate", "Convert all faces in a mesh to triangular faces")
