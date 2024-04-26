@@ -9,14 +9,19 @@
 #pragma once
 
 #include "BLI_function_ref.hh"
+#include "BLI_string_ref.hh"
 
 struct ARegion;
+struct ARegionType;
 struct AssetLibraryReference;
 struct AssetShelf;
+struct AssetShelfType;
 struct AssetShelfSettings;
 struct bContext;
 struct BlendDataReader;
 struct BlendWriter;
+struct RegionAssetShelf;
+struct SpaceType;
 struct uiLayout;
 
 namespace blender::asset_system {
@@ -38,6 +43,11 @@ void catalog_selector_panel_register(ARegionType *region_type);
 AssetShelf *active_shelf_from_context(const bContext *C);
 
 void send_redraw_notifier(const bContext &C);
+
+AssetShelfType *type_ensure(const SpaceType &space_type, AssetShelf &shelf);
+AssetShelf *create_shelf_from_type(AssetShelfType &type);
+
+void library_selector_draw(const bContext *C, uiLayout *layout, AssetShelf &shelf);
 
 /**
  * Deep-copies \a shelf_regiondata into newly allocated memory. Must be freed using

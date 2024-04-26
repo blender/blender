@@ -235,9 +235,18 @@ class _draw_tool_settings_context_mode:
             return False
 
         paint = context.tool_settings.sculpt
-        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
-
         brush = paint.brush
+
+        brush_name = brush.name if brush else None
+        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
+        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
+        layout.template_asset_shelf_popover(
+            BrushAssetShelf.get_shelf_name_from_mode(context.object.mode),
+            name=brush_name,
+            icon=fallback_icon,
+            icon_value=preview_icon_id,
+        )
+
         if brush is None:
             return False
 
@@ -9022,6 +9031,23 @@ class BrushAssetShelf:
         # asset into account. Luckily that is okay for now, since right clicking in the grid view
         # also activates the item.
         layout.menu_contents("VIEW3D_MT_brush_context_menu")
+
+    # Not nice, but needed unfortunately.
+    @staticmethod
+    def get_shelf_name_from_mode(obmode):
+     mode_map = {
+         'SCULPT': "VIEW3D_AST_brush_sculpt",
+         'SCULPT_CURVES': "VIEW3D_AST_brush_sculpt_curves",
+         'VERTEX_PAINT': "VIEW3D_AST_brush_vertex_paint",
+         'WEIGHT_PAINT': "VIEW3D_AST_brush_weight_paint",
+         'TEXTURE_PAINT': "VIEW3D_AST_brush_texture_paint",
+         'PAINT_GPENCIL': "VIEW3D_AST_brush_gpencil_paint",
+         'PAINT_GREASE_PENCIL': "VIEW3D_AST_brush_grease_pencil_paint",
+         'SCULPT_GPENCIL': "VIEW3D_AST_brush_gpencil_sculpt",
+         'VERTEX_GPENCIL': "VIEW3D_AST_brush_gpencil_vertex",
+         'WEIGHT_GPENCIL': "VIEW3D_AST_brush_gpencil_weight",
+     }
+     return mode_map[obmode]
 
 
 class View3DAssetShelf(BrushAssetShelf):

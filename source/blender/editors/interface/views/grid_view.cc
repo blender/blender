@@ -204,7 +204,6 @@ GridViewItemDropTarget::GridViewItemDropTarget(AbstractGridView &view) : view_(v
  *   side(s) as well.
  */
 class BuildOnlyVisibleButtonsHelper {
-  const View2D &v2d_;
   const AbstractGridView &grid_view_;
   const GridViewStyle &style_;
   const int cols_per_row_ = 0;
@@ -221,30 +220,34 @@ class BuildOnlyVisibleButtonsHelper {
   void fill_layout_after_visible(uiBlock &block) const;
 
  private:
-  IndexRange get_visible_range() const;
+  IndexRange get_visible_range(const View2D &v2d) const;
   void add_spacer_button(uiBlock &block, int row_count) const;
 };
 
 BuildOnlyVisibleButtonsHelper::BuildOnlyVisibleButtonsHelper(const View2D &v2d,
                                                              const AbstractGridView &grid_view,
                                                              const int cols_per_row)
-    : v2d_(v2d), grid_view_(grid_view), style_(grid_view.get_style()), cols_per_row_(cols_per_row)
+    : grid_view_(grid_view), style_(grid_view.get_style()), cols_per_row_(cols_per_row)
 {
-  visible_items_range_ = this->get_visible_range();
+  visible_items_range_ = this->get_visible_range(v2d);
 }
 
-IndexRange BuildOnlyVisibleButtonsHelper::get_visible_range() const
+IndexRange BuildOnlyVisibleButtonsHelper::get_visible_range(const View2D &v2d) const
 {
+  if ((v2d.flag & V2D_IS_INIT) == 0) {
+    return IndexRange(0, grid_view_.get_item_count_filtered());
+  }
+
   int first_idx_in_view = 0;
 
-  const float scroll_ofs_y = std::abs(v2d_.cur.ymax - v2d_.tot.ymax);
+  const float scroll_ofs_y = std::abs(v2d.cur.ymax - v2d.tot.ymax);
   if (!IS_EQF(scroll_ofs_y, 0)) {
     const int scrolled_away_rows = int(scroll_ofs_y) / style_.tile_height;
 
     first_idx_in_view = scrolled_away_rows * cols_per_row_;
   }
 
-  const int view_height = BLI_rcti_size_y(&v2d_.mask);
+  const int view_height = BLI_rcti_size_y(&v2d.mask);
   const int count_rows_in_view = std::max(view_height / style_.tile_height, 1);
   const int max_items_in_view = (count_rows_in_view + 1) * cols_per_row_;
 

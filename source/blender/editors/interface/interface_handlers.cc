@@ -11503,6 +11503,8 @@ static int ui_handle_menus_recursive(bContext *C,
   if (!menu->retvalue) {
     ui_handle_viewlist_items_hover(event, menu->region);
   }
+  /* Handle mouse clicks on overlapping view item button. */
+  ui_handle_view_item_event(C, event, but, menu->region);
 
   if (do_towards_reinit) {
     ui_mouse_motion_towards_reinit(menu, event->xy);

@@ -762,4 +762,14 @@ bool UI_popup_block_name_exists(const bScreen *screen, const blender::StringRef 
   return false;
 }
 
+void UI_popup_menu_close(const uiBlock *block, const bool is_cancel)
+{
+  UI_popup_menu_retval_set(block, is_cancel ? UI_RETURN_CANCEL : UI_RETURN_OK, true);
+}
+
+void UI_popup_menu_close_from_but(const uiBut *but, const bool is_cancel)
+{
+  UI_popup_menu_close(but->block, is_cancel);
+}
+
 /** \} */
