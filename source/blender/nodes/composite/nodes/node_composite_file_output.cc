@@ -47,6 +47,8 @@
 
 #include "COM_node_operation.hh"
 
+#include "NOD_socket_search_link.hh"
+
 #include "node_composite_util.hh"
 
 /* **************** OUTPUT FILE ******************** */
@@ -303,6 +305,16 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
         BKE_ntree_update_tag_socket_property(ntree, sock);
       }
     }
+  }
+}
+
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  if (params.in_out() == SOCK_IN) {
+    params.add_item(IFACE_("Image"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("CompositorNodeOutputFile");
+      params.update_and_connect_available_socket(node, "Image");
+    });
   }
 }
 
@@ -764,6 +776,7 @@ void register_node_type_cmp_output_file()
   node_type_storage(
       &ntype, "NodeImageMultiFile", file_ns::free_output_file, file_ns::copy_output_file);
   ntype.updatefunc = file_ns::update_output_file;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);

@@ -379,7 +379,7 @@ namespace blender::ed::sculpt_paint {
 
 namespace face_set {
 
-int active_face_set_get(SculptSession *ss)
+int active_face_set_get(const SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
@@ -429,7 +429,7 @@ bool vert_visible_get(const SculptSession *ss, PBVHVertRef vertex)
   return true;
 }
 
-bool vert_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex)
+bool vert_any_face_visible_get(const SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -506,7 +506,7 @@ bool vert_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex)
 
 namespace face_set {
 
-int vert_face_set_get(SculptSession *ss, PBVHVertRef vertex)
+int vert_face_set_get(const SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -536,7 +536,7 @@ int vert_face_set_get(SculptSession *ss, PBVHVertRef vertex)
   return 0;
 }
 
-bool vert_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set)
+bool vert_has_face_set(const SculptSession *ss, PBVHVertRef vertex, int face_set)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -565,7 +565,7 @@ bool vert_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set)
   return true;
 }
 
-static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int index)
+static bool sculpt_check_unique_face_set_in_base_mesh(const SculptSession *ss, int index)
 {
   if (!ss->face_sets) {
     return true;
@@ -588,7 +588,9 @@ static bool sculpt_check_unique_face_set_in_base_mesh(SculptSession *ss, int ind
  * Checks if the face sets of the adjacent faces to the edge between \a v1 and \a v2
  * in the base mesh are equal.
  */
-static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss, int v1, int v2)
+static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(const SculptSession *ss,
+                                                               int v1,
+                                                               int v2)
 {
   const Span<int> vert_map = ss->vert_to_face_map[v1];
   int p1 = -1, p2 = -1;
@@ -615,7 +617,7 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss
   return true;
 }
 
-bool vert_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex)
+bool vert_has_unique_face_set(const SculptSession *ss, PBVHVertRef vertex)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
@@ -718,7 +720,7 @@ static void sculpt_vertex_neighbors_get_bmesh(PBVHVertRef vertex, SculptVertexNe
   }
 }
 
-static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
+static void sculpt_vertex_neighbors_get_faces(const SculptSession *ss,
                                               PBVHVertRef vertex,
                                               SculptVertexNeighborIter *iter)
 {
@@ -753,7 +755,7 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
   }
 }
 
-static void sculpt_vertex_neighbors_get_grids(SculptSession *ss,
+static void sculpt_vertex_neighbors_get_grids(const SculptSession *ss,
                                               const PBVHVertRef vertex,
                                               const bool include_duplicates,
                                               SculptVertexNeighborIter *iter)
@@ -797,7 +799,7 @@ static void sculpt_vertex_neighbors_get_grids(SculptSession *ss,
 
 }  // namespace blender::ed::sculpt_paint
 
-void SCULPT_vertex_neighbors_get(SculptSession *ss,
+void SCULPT_vertex_neighbors_get(const SculptSession *ss,
                                  const PBVHVertRef vertex,
                                  const bool include_duplicates,
                                  SculptVertexNeighborIter *iter)
@@ -1008,10 +1010,12 @@ namespace blender::ed::sculpt_paint {
 
 namespace flood_fill {
 
-void init_fill(SculptSession *ss, FillData *flood)
+FillData init_fill(SculptSession *ss)
 {
   SCULPT_vertex_random_access_ensure(ss);
-  flood->visited_verts.resize(SCULPT_vertex_count_get(ss));
+  FillData data;
+  data.visited_verts.resize(SCULPT_vertex_count_get(ss));
+  return data;
 }
 
 void add_initial(FillData *flood, PBVHVertRef vertex)
@@ -1078,11 +1082,9 @@ void add_active(Object *ob, SculptSession *ss, FillData *flood, float radius)
   }
 }
 
-void execute(
-    SculptSession *ss,
-    FillData *flood,
-    FunctionRef<bool(SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)>
-        func)
+void execute(SculptSession *ss,
+             FillData *flood,
+             FunctionRef<bool(PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)> func)
 {
   while (!flood->queue.empty()) {
     PBVHVertRef from_v = flood->queue.front();
@@ -1103,7 +1105,7 @@ void execute(
 
       flood->visited_verts[BKE_pbvh_vertex_to_index(ss->pbvh, to_v)].set();
 
-      if (func(ss, from_v, to_v, ni.is_duplicate)) {
+      if (func(from_v, to_v, ni.is_duplicate)) {
         flood->queue.push(to_v);
       }
     }
@@ -3999,6 +4001,8 @@ static void sculpt_fix_noise_tear(Sculpt *sd, Object *ob)
   }
 }
 
+/* near duplicate of: #wpaint_do_symmetrical_brush_actions and
+ * #vpaint_do_symmetrical_brush_actions. */
 static void do_symmetrical_brush_actions(Sculpt *sd,
                                          Object *ob,
                                          BrushActionFunc action,
@@ -4141,10 +4145,6 @@ void SCULPT_cache_free(blender::ed::sculpt_paint::StrokeCache *cache)
   MEM_SAFE_FREE(cache->detail_directions);
   MEM_SAFE_FREE(cache->prev_displacement);
   MEM_SAFE_FREE(cache->limit_surface_co);
-
-  if (cache->pose_ik_chain) {
-    pose::ik_chain_free(cache->pose_ik_chain);
-  }
 
   for (int i = 0; i < PAINT_SYMM_AREAS; i++) {
     if (cache->boundaries[i]) {
@@ -6142,6 +6142,7 @@ bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool origi
   srd.ray_normal = ray_normal;
   srd.depth = depth;
   srd.face_normal = face_normal;
+  srd.corner_verts = ss->corner_verts;
 
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
   bke::pbvh::raycast(

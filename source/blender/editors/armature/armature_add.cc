@@ -834,6 +834,52 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
   mul_m4_v3(imat, trans->to_max_scale);
 }
 
+static void track_axis_x_swap(int &value)
+{
+  /* Swap track axis X <> -X. */
+  if (value == TRACK_X) {
+    value = TRACK_nX;
+  }
+  else if (value == TRACK_nX) {
+    value = TRACK_X;
+  }
+}
+
+static void track_axis_x_swap(char &value)
+{
+  /* Swap track axis X <> -X. */
+  if (value == TRACK_X) {
+    value = TRACK_nX;
+  }
+  else if (value == TRACK_nX) {
+    value = TRACK_X;
+  }
+}
+
+static void updateDuplicateConstraintTrackToSettings(bConstraint *curcon)
+{
+  bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon->data);
+  track_axis_x_swap(data->reserved1);
+}
+
+static void updateDuplicateConstraintLockTrackSettings(bConstraint *curcon)
+{
+  bLockTrackConstraint *data = static_cast<bLockTrackConstraint *>(curcon->data);
+  track_axis_x_swap(data->trackflag);
+}
+
+static void updateDuplicateConstraintDampTrackSettings(bConstraint *curcon)
+{
+  bDampTrackConstraint *data = static_cast<bDampTrackConstraint *>(curcon->data);
+  track_axis_x_swap(data->trackflag);
+}
+
+static void updateDuplicateConstraintShrinkwrapSettings(bConstraint *curcon)
+{
+  bShrinkwrapConstraint *data = static_cast<bShrinkwrapConstraint *>(curcon->data);
+  track_axis_x_swap(data->trackAxis);
+}
+
 static void updateDuplicateConstraintSettings(EditBone *dup_bone, EditBone *orig_bone, Object *ob)
 {
   /* If an edit bone has been duplicated, lets update its constraints if the
@@ -862,6 +908,18 @@ static void updateDuplicateConstraintSettings(EditBone *dup_bone, EditBone *orig
         break;
       case CONSTRAINT_TYPE_TRANSFORM:
         updateDuplicateTransformConstraintSettings(ob, pchan, curcon);
+        break;
+      case CONSTRAINT_TYPE_TRACKTO:
+        updateDuplicateConstraintTrackToSettings(curcon);
+        break;
+      case CONSTRAINT_TYPE_LOCKTRACK:
+        updateDuplicateConstraintLockTrackSettings(curcon);
+        break;
+      case CONSTRAINT_TYPE_DAMPTRACK:
+        updateDuplicateConstraintDampTrackSettings(curcon);
+        break;
+      case CONSTRAINT_TYPE_SHRINKWRAP:
+        updateDuplicateConstraintShrinkwrapSettings(curcon);
         break;
     }
   }

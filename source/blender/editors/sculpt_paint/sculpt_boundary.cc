@@ -87,8 +87,7 @@ static PBVHVertRef sculpt_boundary_get_closest_boundary_vertex(SculptSession *ss
     return initial_vertex;
   }
 
-  flood_fill::FillData flood;
-  flood_fill::init_fill(ss, &flood);
+  flood_fill::FillData flood = flood_fill::init_fill(ss);
   flood_fill::add_initial(&flood, initial_vertex);
 
   BoundaryInitialVertexFloodFillData fdata{};
@@ -99,10 +98,9 @@ static PBVHVertRef sculpt_boundary_get_closest_boundary_vertex(SculptSession *ss
 
   fdata.floodfill_steps = MEM_cnew_array<int>(SCULPT_vertex_count_get(ss), __func__);
 
-  flood_fill::execute(
-      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-        return boundary_initial_vertex_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
-      });
+  flood_fill::execute(ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+    return boundary_initial_vertex_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
+  });
 
   MEM_freeN(fdata.floodfill_steps);
   return fdata.boundary_initial_vertex;
@@ -247,8 +245,7 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
       MEM_malloc_arrayN(BOUNDARY_INDICES_BLOCK_SIZE, sizeof(SculptBoundaryPreviewEdge), __func__));
 
   GSet *included_verts = BLI_gset_int_new_ex("included verts", BOUNDARY_INDICES_BLOCK_SIZE);
-  flood_fill::FillData flood;
-  flood_fill::init_fill(ss, &flood);
+  flood_fill::FillData flood = flood_fill::init_fill(ss);
 
   int initial_boundary_index = BKE_pbvh_vertex_to_index(ss->pbvh, initial_boundary_vertex);
 
@@ -266,10 +263,9 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
   fdata.included_verts = included_verts;
   fdata.last_visited_vertex = {BOUNDARY_VERTEX_NONE};
 
-  flood_fill::execute(
-      ss, &flood, [&](SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
-        return boundary_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
-      });
+  flood_fill::execute(ss, &flood, [&](PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate) {
+    return boundary_floodfill_cb(ss, from_v, to_v, is_duplicate, &fdata);
+  });
 
   /* Check if the boundary loops into itself and add the extra preview edge to close the loop. */
   if (fdata.last_visited_vertex.i != BOUNDARY_VERTEX_NONE &&

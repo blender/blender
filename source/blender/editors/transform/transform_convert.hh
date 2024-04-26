@@ -90,7 +90,8 @@ struct CurvesTransformData {
 
   /**
    * The offsets of every grease pencil layer into `positions` array.
-   * For curves only one layer is used.
+   * For curves layers are used to store: positions, handle_positions_left and
+   * handle_positions_right.
    */
   blender::Vector<int> layer_offsets;
 
@@ -171,15 +172,15 @@ void animrecord_check_state(TransInfo *t, ID *id);
 /**
  * Used for both curves and grease pencil objects.
  */
-void curve_populate_trans_data_structs(TransDataContainer &tc,
-                                       blender::bke::CurvesGeometry &curves,
-                                       const blender::float4x4 &matrix,
-                                       std::optional<blender::MutableSpan<float>> value_attribute,
-                                       const blender::IndexMask &selected_indices,
-                                       bool use_proportional_edit,
-                                       const blender::IndexMask &affected_curves,
-                                       bool use_connected_only,
-                                       int trans_data_offset);
+void curve_populate_trans_data_structs(
+    TransDataContainer &tc,
+    blender::bke::CurvesGeometry &curves,
+    const blender::float4x4 &transform,
+    std::optional<blender::MutableSpan<float>> value_attribute,
+    const blender::Span<blender::IndexMask> points_to_transform_indices,
+    const blender::IndexMask &affected_curves,
+    bool use_connected_only,
+    const blender::IndexMask &bezier_curves);
 
 CurvesTransformData *create_curves_transform_custom_data(TransCustomData &custom_data);
 

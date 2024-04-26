@@ -4693,6 +4693,12 @@ def km_grease_pencil_sculpt_mode(params):
          {"properties": [("scalar", 0.9)]}),
         ("brush.scale_size", {"type": 'RIGHT_BRACKET', "value": 'PRESS', "repeat": True},
          {"properties": [("scalar", 1.0 / 0.9)]}),
+        # Invoke sculpt operator
+        ("grease_pencil.sculpt_paint", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("grease_pencil.sculpt_paint", {"type": 'LEFTMOUSE', "value": 'PRESS',
+         "ctrl": True}, {"properties": [("mode", 'INVERT')]}),
+        ("grease_pencil.sculpt_paint", {"type": 'LEFTMOUSE', "value": 'PRESS',
+         "shift": True}, {"properties": [("mode", 'SMOOTH')]}),
         *_template_paint_radial_control("gpencil_sculpt_paint"),
     ])
 

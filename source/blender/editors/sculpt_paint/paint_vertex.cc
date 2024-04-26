@@ -1704,8 +1704,19 @@ static void vpaint_do_draw(bContext *C,
           float tex_alpha = 1.0;
           if (vpd->is_texbrush) {
             /* NOTE: we may want to paint alpha as vertex color alpha. */
-            tex_alpha = paint_and_tex_color_alpha<Color>(
-                vp, vpd, vpd->vertexcosnos[v_index].co, &color_final);
+
+            /* If the active area is being applied for symmetry, flip it
+             * across the symmetry axis and rotate it back to the original
+             * position in order to project it. This insures that the
+             * brush texture will be oriented correctly.
+             * This is the method also used in #sculpt_apply_texture(). */
+            float symm_point[3];
+            if (cache->radial_symmetry_pass) {
+              mul_m4_v3(cache->symm_rot_mat_inv.ptr(), vpd->vertexcosnos[v_index].co);
+            }
+            flip_v3_v3(symm_point, vpd->vertexcosnos[v_index].co, cache->mirror_symmetry_pass);
+
+            tex_alpha = paint_and_tex_color_alpha<Color>(vp, vpd, symm_point, &color_final);
           }
 
           Color color_orig(0, 0, 0, 0);
@@ -1858,8 +1869,7 @@ static void vpaint_do_radial_symmetry(bContext *C,
   }
 }
 
-/* near duplicate of: sculpt.cc's,
- * 'do_symmetrical_brush_actions' and 'wpaint_do_symmetrical_brush_actions'. */
+/* near duplicate of: #do_symmetrical_brush_actions and #wpaint_do_symmetrical_brush_actions. */
 static void vpaint_do_symmetrical_brush_actions(bContext *C,
                                                 VPaint *vp,
                                                 VPaintData *vpd,
@@ -1870,40 +1880,26 @@ static void vpaint_do_symmetrical_brush_actions(bContext *C,
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
-  int i = 0;
-
-  /* initial stroke */
-  const ePaintSymmetryFlags initial_symm = ePaintSymmetryFlags(0);
-  cache->mirror_symmetry_pass = ePaintSymmetryFlags(0);
-  vpaint_do_paint(C, vp, vpd, ob, mesh, brush, initial_symm, 'X', 0, 0);
-  vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, initial_symm, 'X');
-  vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, initial_symm, 'Y');
-  vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, initial_symm, 'Z');
 
   cache->symmetry = symm;
 
-  /* symm is a bit combination of XYZ - 1 is mirror
-   * X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
-  for (i = 1; i <= symm; i++) {
-    if (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5))) {
-      const ePaintSymmetryFlags symm_pass = ePaintSymmetryFlags(i);
-      cache->mirror_symmetry_pass = symm_pass;
-      cache->radial_symmetry_pass = 0;
-      SCULPT_cache_calc_brushdata_symm(cache, symm_pass, 0, 0);
+  /* symm is a bit combination of XYZ -
+   * 1 is mirror X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
+  for (int i = 0; i <= symm; i++) {
 
-      if (i & (1 << 0)) {
-        vpaint_do_paint(C, vp, vpd, ob, mesh, brush, symm_pass, 'X', 0, 0);
-        vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, symm_pass, 'X');
-      }
-      if (i & (1 << 1)) {
-        vpaint_do_paint(C, vp, vpd, ob, mesh, brush, symm_pass, 'Y', 0, 0);
-        vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, symm_pass, 'Y');
-      }
-      if (i & (1 << 2)) {
-        vpaint_do_paint(C, vp, vpd, ob, mesh, brush, symm_pass, 'Z', 0, 0);
-        vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, symm_pass, 'Z');
-      }
+    if (!SCULPT_is_symmetry_iteration_valid(i, symm)) {
+      continue;
     }
+
+    const ePaintSymmetryFlags symm_pass = ePaintSymmetryFlags(i);
+    cache->mirror_symmetry_pass = symm_pass;
+    cache->radial_symmetry_pass = 0;
+    SCULPT_cache_calc_brushdata_symm(cache, symm_pass, 0, 0);
+
+    vpaint_do_paint(C, vp, vpd, ob, mesh, brush, symm_pass, 'X', 0, 0);
+    vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, symm_pass, 'X');
+    vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, symm_pass, 'Y');
+    vpaint_do_radial_symmetry(C, vp, vpd, ob, mesh, brush, symm_pass, 'Z');
   }
 
   copy_v3_v3(cache->true_last_location, cache->true_location);

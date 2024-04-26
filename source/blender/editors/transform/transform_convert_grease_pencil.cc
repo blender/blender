@@ -89,7 +89,6 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
     GreasePencil &grease_pencil = *static_cast<GreasePencil *>(tc.obedit->data);
     Span<const bke::greasepencil::Layer *> layers = grease_pencil.layers();
 
-    int layer_points_offset = 0;
     const Vector<ed::greasepencil::MutableDrawingInfo> drawings = all_drawings[i];
     for (ed::greasepencil::MutableDrawingInfo info : drawings) {
       const bke::greasepencil::Layer &layer = *layers[info.layer_index];
@@ -115,13 +114,10 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
                                         curves,
                                         layer_space_to_world_space,
                                         value_attribute,
-                                        points,
-                                        use_proportional_edit,
+                                        {points},
                                         affected_strokes,
                                         use_connected_only,
-                                        layer_points_offset);
-
-      layer_points_offset += points.size();
+                                        IndexMask());
       layer_offset++;
     }
   }

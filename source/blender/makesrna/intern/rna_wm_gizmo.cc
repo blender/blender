@@ -661,12 +661,6 @@ static void rna_GizmoGroup_bl_label_set(PointerRNA *ptr, const char *value)
   }
 }
 
-static bool rna_GizmoGroup_has_reports_get(PointerRNA *ptr)
-{
-  wmGizmoGroup *gzgroup = static_cast<wmGizmoGroup *>(ptr->data);
-  return (gzgroup->reports && gzgroup->reports->list.first);
-}
-
 #  ifdef WITH_PYTHON
 
 static bool rna_gizmogroup_poll_cb(const bContext *C, wmGizmoGroupType *gzgt)
@@ -1500,14 +1494,6 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
   RNA_def_property_string_funcs(
       prop, "rna_GizmoGroup_name_get", "rna_GizmoGroup_name_length", nullptr);
   RNA_def_property_ui_text(prop, "Name", "");
-
-  prop = RNA_def_property(srna, "has_reports", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* this is 'virtual' property */
-  RNA_def_property_boolean_funcs(prop, "rna_GizmoGroup_has_reports_get", nullptr);
-  RNA_def_property_ui_text(
-      prop,
-      "Has Reports",
-      "GizmoGroup has a set of reports (warnings and errors) from last execution");
 
   RNA_define_verify_sdna(false); /* not in sdna */
 

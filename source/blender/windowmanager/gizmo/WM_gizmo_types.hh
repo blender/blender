@@ -477,8 +477,6 @@ struct wmGizmoGroup {
 
   /** Python stores the class instance here. */
   void *py_instance;
-  /** Errors and warnings storage. */
-  ReportList *reports;
 
   /** Has the same result as hiding all gizmos individually. */
   union {

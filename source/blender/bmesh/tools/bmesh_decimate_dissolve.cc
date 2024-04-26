@@ -303,7 +303,8 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
       delimit_data.cd_loop_type = CD_PROP_FLOAT2;
       delimit_data.cd_loop_size = CustomData_sizeof(eCustomDataType(delimit_data.cd_loop_type));
       delimit_data.cd_loop_offset = CustomData_get_n_offset(&bm->ldata, CD_PROP_FLOAT2, 0);
-      delimit_data.cd_loop_offset_end = delimit_data.cd_loop_size * layer_len;
+      delimit_data.cd_loop_offset_end = delimit_data.cd_loop_offset +
+                                        delimit_data.cd_loop_size * layer_len;
     }
   }
 

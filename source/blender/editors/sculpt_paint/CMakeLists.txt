@@ -47,6 +47,16 @@ set(SRC
   grease_pencil_draw_ops.cc
   grease_pencil_erase.cc
   grease_pencil_paint.cc
+  grease_pencil_sculpt_clone.cc
+  grease_pencil_sculpt_common.cc
+  grease_pencil_sculpt_grab.cc
+  grease_pencil_sculpt_pinch.cc
+  grease_pencil_sculpt_push.cc
+  grease_pencil_sculpt_randomize.cc
+  grease_pencil_sculpt_smooth.cc
+  grease_pencil_sculpt_strength.cc
+  grease_pencil_sculpt_thickness.cc
+  grease_pencil_sculpt_twist.cc
   grease_pencil_tint.cc
   grease_pencil_weight_average.cc
   grease_pencil_weight_blur.cc

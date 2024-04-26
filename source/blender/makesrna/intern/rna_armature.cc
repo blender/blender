@@ -318,8 +318,8 @@ static void rna_BoneCollections_active_index_range(
 {
   bArmature *arm = (bArmature *)ptr->data;
 
-  // TODO: Figure out what this function actually is used for, as we may want to protect the first
-  // collection (i.e. the default collection that should remain first).
+  /* TODO: Figure out what this function actually is used for, as we may want to protect the first
+   * collection (i.e. the default collection that should remain first). */
   *min = 0;
   *max = max_ii(0, arm->collection_array_num - 1);
 }

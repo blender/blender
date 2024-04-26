@@ -461,7 +461,7 @@ void uiTemplateMarker(uiLayout *layout,
                0,
                0,
                "");
-
+      MEM_freeN(cb);
       return;
     }
 

@@ -28,40 +28,58 @@ float octahedral_texel_solid_angle(ivec2 local_texel,
     /* Do not weight these border pixels that are redundant. */
     return 0.0;
   }
-  /* Since we are pouting texel centers on the edges of the octahedron, the shape of a texel can be
+  /* Since we are putting texel centers on the edges of the octahedron, the shape of a texel can be
    * anything from a simple quad (at the Z=0 poles), to a 4 pointed start (at the Z=+-1 poles)
-   * passing by arrow tail shapes (at the X=0 and Y=0 edges). So while it would be more correct to
-   * account for all these shapes (using 8 triangles), it proves to be quite involved with all the
-   * corner cases. Instead, we compute the area as if the texels were not aligned with the edges.
-   * This simplify things at the cost of making the weighting a tiny bit off for every pixels.
-   * The sum of all texels is still giving 4 PI. */
-  vec3 v00 = sphere_probe_texel_to_direction(local_texel + ivec2(-1, -1), write_co, sample_co);
-  vec3 v10 = sphere_probe_texel_to_direction(local_texel + ivec2(+0, -1), write_co, sample_co);
-  vec3 v20 = sphere_probe_texel_to_direction(local_texel + ivec2(-1, -1), write_co, sample_co);
-  vec3 v01 = sphere_probe_texel_to_direction(local_texel + ivec2(-1, +0), write_co, sample_co);
-  vec3 v11 = sphere_probe_texel_to_direction(local_texel + ivec2(+0, +0), write_co, sample_co);
-  vec3 v21 = sphere_probe_texel_to_direction(local_texel + ivec2(+1, +0), write_co, sample_co);
-  vec3 v02 = sphere_probe_texel_to_direction(local_texel + ivec2(-1, +1), write_co, sample_co);
-  vec3 v12 = sphere_probe_texel_to_direction(local_texel + ivec2(+0, +1), write_co, sample_co);
-  vec3 v22 = sphere_probe_texel_to_direction(local_texel + ivec2(+1, +1), write_co, sample_co);
+   * passing by arrow tail shapes (at the X=0 and Y=0 edges).
+   *
+   * But we can leverage the symetries of the octahedral mapping. Given that all oddly shaped
+   * texels are on the X=0 and Y=0 planes, we first fold all texels to the first quadrant.
+   *
+   * The texel footprint clipped to a quadrant is a well defined spherical quad. We then multiply
+   * by the number of clipped shape the real texel sustains. This number is 2 at the X=0 and Y=0
+   * edges (the arrow shaped pixels) and 4 at the Z=+-1 poles (4 pointed start shaped pixels).
+   *
+   * The sum of all texels solid angle should be 4 PI (area of sphere). */
+
+  /* Wrap to bottom left quadrant. */
+  int half_size = write_co.extent >> 1;
+  int padded_size = write_co.extent - 2;
+  ivec2 wrapped_texel;
+  wrapped_texel.x = (local_texel.x >= half_size) ? (padded_size - local_texel.x) : local_texel.x;
+  wrapped_texel.y = (local_texel.y >= half_size) ? (padded_size - local_texel.y) : local_texel.y;
+
+  vec2 texel_corner_v00 = vec2(wrapped_texel) + vec2(-0.5, -0.5);
+  vec2 texel_corner_v10 = vec2(wrapped_texel) + vec2(+0.5, -0.5);
+  vec2 texel_corner_v01 = vec2(wrapped_texel) + vec2(-0.5, +0.5);
+  vec2 texel_corner_v11 = vec2(wrapped_texel) + vec2(+0.5, +0.5);
+  /* Clamp to well defined shape in spherical domain. */
+  texel_corner_v00 = clamp(texel_corner_v00, vec2(0.0), vec2(half_size - 1));
+  texel_corner_v10 = clamp(texel_corner_v10, vec2(0.0), vec2(half_size - 1));
+  texel_corner_v01 = clamp(texel_corner_v01, vec2(0.0), vec2(half_size - 1));
+  texel_corner_v11 = clamp(texel_corner_v11, vec2(0.0), vec2(half_size - 1));
+  /* Convert to point on sphere. */
+  vec3 v00 = sphere_probe_texel_to_direction(texel_corner_v00, write_co, sample_co);
+  vec3 v10 = sphere_probe_texel_to_direction(texel_corner_v10, write_co, sample_co);
+  vec3 v01 = sphere_probe_texel_to_direction(texel_corner_v01, write_co, sample_co);
+  vec3 v11 = sphere_probe_texel_to_direction(texel_corner_v11, write_co, sample_co);
   /* The solid angle functions expect normalized vectors. */
   v00 = normalize(v00);
   v10 = normalize(v10);
-  v20 = normalize(v20);
   v01 = normalize(v01);
   v11 = normalize(v11);
-  v21 = normalize(v21);
-  v02 = normalize(v02);
-  v12 = normalize(v12);
-  v22 = normalize(v22);
-#if 0 /* Has artifacts, is marginally more correct. */
-  /* For some reason quad_solid_angle(v10, v20, v11, v21) gives some strange artifacts at Z=0. */
-  return 0.25 * (quad_solid_angle(v00, v10, v01, v11) + quad_solid_angle(v10, v20, v11, v21) +
-                 quad_solid_angle(v01, v11, v02, v12) + quad_solid_angle(v11, v21, v12, v22));
-#else
-  /* Choosing the positive quad (0,0) > (+1,+1) for stability. */
-  return quad_solid_angle(v11, v21, v12, v22);
-#endif
+  /* Compute solid angle of the spherical quad. */
+  float texel_clipped_solid_angle = quad_solid_angle(v00, v10, v01, v11);
+  /* Multiply by the symetric halfs that we omited.
+   * Also important to note that we avoid weighting the same pixel more than it's total sampled
+   * footprint if it is duplicated in another pixel of the map. So border pixels do not require any
+   * special treatment. Only the center cross needs it. */
+  if (wrapped_texel.x == half_size - 1) {
+    texel_clipped_solid_angle *= 2.0;
+  }
+  if (wrapped_texel.y == half_size - 1) {
+    texel_clipped_solid_angle *= 2.0;
+  }
+  return texel_clipped_solid_angle;
 }
 
 void main()
@@ -75,7 +93,7 @@ void main()
 
   vec2 wrapped_uv;
   vec3 direction = sphere_probe_texel_to_direction(
-      local_texel, write_coord, sample_coord, wrapped_uv);
+      vec2(local_texel), write_coord, sample_coord, wrapped_uv);
   vec4 radiance_and_transmittance = texture(cubemap_tx, direction);
   vec3 radiance = radiance_and_transmittance.xyz;
 
@@ -118,11 +136,12 @@ void main()
        * Note that this is an approximation since the footprint of a thread-group is not
        * necessarily a convex polygons (with center of gravity at midpoint).
        * But the actual error introduce by this approximation is not perceivable. */
+      /* FIXME(fclem): The error IS very perceivable for resolution lower than a quadrant. */
       ivec2 max_group_texel = local_texel + ivec2(gl_WorkGroupSize.xy);
       /* Min direction is the local direction since this is only ran by thread 0. */
       vec3 min_direction = normalize(direction);
       vec3 max_direction = normalize(
-          sphere_probe_texel_to_direction(max_group_texel, write_coord, sample_coord));
+          sphere_probe_texel_to_direction(vec2(max_group_texel), write_coord, sample_coord));
       vec3 L = normalize(min_direction + max_direction);
       /* Convert radiance to spherical harmonics. */
       SphericalHarmonicL1 sh;

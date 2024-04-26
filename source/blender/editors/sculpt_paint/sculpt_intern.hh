@@ -476,7 +476,7 @@ struct StrokeCache {
   } paint_brush;
 
   /* Pose brush */
-  SculptPoseIKChain *pose_ik_chain;
+  std::unique_ptr<SculptPoseIKChain> pose_ik_chain;
 
   /* Enhance Details. */
   float (*detail_directions)[3];
@@ -884,7 +884,7 @@ float *SCULPT_brush_deform_target_vertex_co_get(SculptSession *ss,
                                                 int deform_target,
                                                 PBVHVertexIter *iter);
 
-void SCULPT_vertex_neighbors_get(SculptSession *ss,
+void SCULPT_vertex_neighbors_get(const SculptSession *ss,
                                  PBVHVertRef vertex,
                                  bool include_duplicates,
                                  SculptVertexNeighborIter *iter);
@@ -952,7 +952,7 @@ namespace hide {
 
 bool vert_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 bool vert_all_faces_visible_get(const SculptSession *ss, PBVHVertRef vertex);
-bool vert_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
+bool vert_any_face_visible_get(const SculptSession *ss, PBVHVertRef vertex);
 
 }
 
@@ -964,11 +964,11 @@ bool vert_any_face_visible_get(SculptSession *ss, PBVHVertRef vertex);
 
 namespace face_set {
 
-int active_face_set_get(SculptSession *ss);
-int vert_face_set_get(SculptSession *ss, PBVHVertRef vertex);
+int active_face_set_get(const SculptSession *ss);
+int vert_face_set_get(const SculptSession *ss, PBVHVertRef vertex);
 
-bool vert_has_face_set(SculptSession *ss, PBVHVertRef vertex, int face_set);
-bool vert_has_unique_face_set(SculptSession *ss, PBVHVertRef vertex);
+bool vert_has_face_set(const SculptSession *ss, PBVHVertRef vertex, int face_set);
+bool vert_has_unique_face_set(const SculptSession *ss, PBVHVertRef vertex);
 
 bke::SpanAttributeWriter<int> ensure_face_sets_mesh(Object &object);
 int ensure_face_sets_bmesh(Object &object);
@@ -1174,17 +1174,15 @@ struct FillData {
   blender::BitVector<> visited_verts;
 };
 
-void init_fill(SculptSession *ss, FillData *flood);
+FillData init_fill(SculptSession *ss);
 void add_active(Object *ob, SculptSession *ss, FillData *flood, float radius);
 void add_initial_with_symmetry(
     Object *ob, SculptSession *ss, FillData *flood, PBVHVertRef vertex, float radius);
 void add_initial(FillData *flood, PBVHVertRef vertex);
 void add_and_skip_initial(FillData *flood, PBVHVertRef vertex);
-void execute(
-    SculptSession *ss,
-    FillData *flood,
-    FunctionRef<bool(SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)>
-        func);
+void execute(SculptSession *ss,
+             FillData *flood,
+             FunctionRef<bool(PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate)> func);
 
 }
 
@@ -1891,15 +1889,14 @@ void do_pose_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes);
  */
 void calc_pose_data(Object *ob,
                     SculptSession *ss,
-                    float initial_location[3],
+                    const float3 &initial_location,
                     float radius,
                     float pose_offset,
-                    float *r_pose_origin,
-                    float *r_pose_factor);
+                    float3 &r_pose_origin,
+                    MutableSpan<float> r_pose_factor);
 void pose_brush_init(Object *ob, SculptSession *ss, Brush *br);
-SculptPoseIKChain *ik_chain_init(
-    Object *ob, SculptSession *ss, Brush *br, const float initial_location[3], float radius);
-void ik_chain_free(SculptPoseIKChain *ik_chain);
+std::unique_ptr<SculptPoseIKChain> ik_chain_init(
+    Object *ob, SculptSession *ss, Brush *br, const float3 &initial_location, float radius);
 
 }
 
