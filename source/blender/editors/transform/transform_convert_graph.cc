@@ -784,7 +784,9 @@ static void sort_time_beztmaps(const blender::MutableSpan<BeztMap> bezms)
 }
 
 /* This function firstly adjusts the pointers that the transdata has to each BezTriple. */
-static void beztmap_to_data(TransInfo *t, FCurve *fcu, const blender::Span<BeztMap> bezms)
+static void update_transdata_bezt_pointers(TransInfo *t,
+                                           FCurve *fcu,
+                                           const blender::Span<BeztMap> bezms)
 {
   TransData2D *td2d;
   TransData *td;
@@ -882,7 +884,7 @@ static void remake_graph_transdata(TransInfo *t, const blender::Span<FCurve *> f
       /* NOTE: none of these functions use 'use_handle', it could be removed. */
       blender::Vector<BeztMap> bezms = bezt_to_beztmaps(fcu->bezt, fcu->totvert);
       sort_time_beztmaps(bezms);
-      beztmap_to_data(t, fcu, bezms);
+      update_transdata_bezt_pointers(t, fcu, bezms);
 
       /* Re-sort actual beztriples
        * (perhaps this could be done using the beztmaps to save time?). */
