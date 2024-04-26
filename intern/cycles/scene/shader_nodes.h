@@ -479,10 +479,11 @@ class BsdfNode : public BsdfBaseNode {
   SHADER_NODE_BASE_CLASS(BsdfNode)
 
   void compile(SVMCompiler &compiler,
-               ShaderInput *param1,
-               ShaderInput *param2,
-               ShaderInput *param3 = NULL,
-               ShaderInput *param4 = NULL);
+               ShaderInput *bsdf_y,
+               ShaderInput *bsdf_z,
+               ShaderInput *data_y = nullptr,
+               ShaderInput *data_z = nullptr,
+               ShaderInput *data_w = nullptr);
 
   NODE_SOCKET_API(float3, color)
   NODE_SOCKET_API(float3, normal)
