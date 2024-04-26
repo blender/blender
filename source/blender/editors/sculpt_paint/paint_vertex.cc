@@ -1699,8 +1699,19 @@ static void vpaint_do_draw(bContext *C,
           float tex_alpha = 1.0;
           if (vpd->is_texbrush) {
             /* NOTE: we may want to paint alpha as vertex color alpha. */
-            tex_alpha = paint_and_tex_color_alpha<Color>(
-                vp, vpd, vpd->vertexcosnos[v_index].co, &color_final);
+
+            /* If the active area is being applied for symmetry, flip it
+             * across the symmetry axis and rotate it back to the original
+             * position in order to project it. This insures that the
+             * brush texture will be oriented correctly.
+             * This is the method also used in #sculpt_apply_texture(). */
+            float symm_point[3];
+            if (cache->radial_symmetry_pass) {
+              mul_m4_v3(cache->symm_rot_mat_inv.ptr(), vpd->vertexcosnos[v_index].co);
+            }
+            flip_v3_v3(symm_point, vpd->vertexcosnos[v_index].co, cache->mirror_symmetry_pass);
+
+            tex_alpha = paint_and_tex_color_alpha<Color>(vp, vpd, symm_point, &color_final);
           }
 
           Color color_orig(0, 0, 0, 0);
