@@ -105,7 +105,7 @@ ShadowSamplingTile shadow_tile_load(usampler2D tilemaps_tx, ivec2 tile_co, int t
  * This function should be the inverse of ShadowDirectional::coverage_get().
  *
  * \a lP shading point position in light space, relative to the to camera position snapped to
- * the smallest clip-map level (`shadow_world_to_local(light, P) - light._position`).
+ * the smallest clip-map level (`shadow_world_to_local(light, P) - light_position_get(light)`).
  */
 
 float shadow_directional_level_fractional(LightData light, vec3 lP)
@@ -149,7 +149,7 @@ float shadow_punctual_footprint_ratio(LightData light,
    * This gives a good approximation of what LOD to select to get a somewhat uniform shadow map
    * resolution in screen space. */
 
-  float dist_to_light = distance(P, light._position);
+  float dist_to_light = distance(P, light_position_get(light));
   float footprint_ratio = dist_to_light;
   /* Project the radius to the screen. 1 unit away from the camera the same way
    * pixel_world_radius_inv was computed. Not needed in orthographic mode. */
@@ -225,7 +225,7 @@ ShadowCoordinates shadow_directional_coordinates_at_level(LightData light, vec3 
  */
 ShadowCoordinates shadow_directional_coordinates(LightData light, vec3 lP)
 {
-  int level = shadow_directional_level(light, lP - light._position);
+  int level = shadow_directional_level(light, lP - light_position_get(light));
   return shadow_directional_coordinates_at_level(light, lP, level);
 }
 

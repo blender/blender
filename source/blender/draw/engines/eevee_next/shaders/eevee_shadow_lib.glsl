@@ -152,12 +152,12 @@ vec3 shadow_punctual_reconstruct_position(ShadowSampleParams params,
   vec3 lP = project_point(wininv, clip_P);
   int face_id = params.tilemap_index - light.tilemap_index;
   lP = shadow_punctual_face_local_to_local_position(face_id, lP);
-  return mat3(light.object_mat) * lP + light._position;
+  return transform_point(light.object_to_world, lP);
 }
 
 ShadowSampleParams shadow_punctual_sample_params_get(LightData light, vec3 P)
 {
-  vec3 lP = (P - light._position) * mat3(light.object_mat);
+  vec3 lP = transform_point_inversed(light.object_to_world, P);
 
   int face_id = shadow_punctual_face_index_get(lP);
   /* Local Light Space > Face Local (View) Space. */
@@ -205,7 +205,7 @@ ShadowDirectionalSampleInfo shadow_directional_sample_info_get(LightData light, 
   info.clip_near = orderedIntBitsToFloat(light.clip_near);
   info.clip_far = orderedIntBitsToFloat(light.clip_far);
 
-  int level = shadow_directional_level(light, lP - light._position);
+  int level = shadow_directional_level(light, lP - light_position_get(light));
   /* This difference needs to be less than 32 for the later shift to be valid.
    * This is ensured by ShadowDirectional::clipmap_level_range(). */
   info.level_relative = level - light_sun_data_get(light).clipmap_lod_min;
@@ -234,14 +234,14 @@ vec3 shadow_directional_reconstruct_position(ShadowSampleParams params, LightDat
   lP.xy = clipmap_pos + info.clipmap_origin;
   lP.z = (params.uv.z + info.clip_near) * -1.0;
 
-  return mat3(light.object_mat) * lP;
+  return transform_direction_transposed(light.object_to_world, lP);
 }
 
 ShadowSampleParams shadow_directional_sample_params_get(usampler2D tilemaps_tx,
                                                         LightData light,
                                                         vec3 P)
 {
-  vec3 lP = P * mat3(light.object_mat);
+  vec3 lP = transform_direction(light.object_to_world, P);
   ShadowDirectionalSampleInfo info = shadow_directional_sample_info_get(light, lP);
 
   ShadowCoordinates coord = shadow_directional_coordinates(light, lP);

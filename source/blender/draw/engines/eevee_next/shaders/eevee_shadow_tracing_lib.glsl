@@ -247,7 +247,7 @@ ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state,
   /* Ray position is ray local position with origin at light origin. */
   vec4 ray_pos = ray.origin + ray.direction * state.ray_time;
 
-  int level = shadow_directional_level(ray.light, ray_pos.xyz - ray.light._position);
+  int level = shadow_directional_level(ray.light, ray_pos.xyz - light_position_get(ray.light));
   /* This difference needs to be less than 32 for the later shift to be valid.
    * This is ensured by ShadowDirectional::clipmap_level_range(). */
   int level_relative = level - light_sun_data_get(ray.light).clipmap_lod_min;
@@ -460,7 +460,7 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
   /* Scale the offset based on shadow LOD. */
   if (is_directional) {
     vec3 lP = light_world_to_local(light, P);
-    float level = shadow_directional_level_fractional(light, lP - light._position);
+    float level = shadow_directional_level_fractional(light, lP - light_position_get(light));
     float pcf_scale = mix(0.5, 1.0, fract(level));
     pcf_offset *= pcf_scale;
   }
@@ -550,7 +550,7 @@ ShadowEvalResult shadow_eval(LightData light,
   P += N_bias * normal_offset;
 
   vec3 lP = is_directional ? light_world_to_local(light, P) :
-                             light_world_to_local(light, P - light._position);
+                             light_world_to_local(light, P - light_position_get(light));
   vec3 lNg = light_world_to_local(light, Ng);
   /* Invert horizon clipping. */
   lNg = (is_transmission) ? -lNg : lNg;

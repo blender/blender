@@ -53,7 +53,7 @@ void main()
     float local_min = FLT_MAX;
     float local_max = -FLT_MAX;
     for (int i = 0; i < 8; i++) {
-      float z = dot(box.corners[i].xyz, -light._back);
+      float z = dot(box.corners[i].xyz, -light_z_axis(light));
       local_min = min(local_min, z);
       local_max = max(local_max, z);
     }

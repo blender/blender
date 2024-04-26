@@ -36,7 +36,7 @@ void main()
       continue;
     }
     LightData light = light_buf[index];
-    vec3 P = light._position;
+    vec3 P = light_position_get(light);
     /* TODO(fclem): Could have better bounds for spot and area lights. */
     float radius = light_local_data_get(light).influence_radius_max;
     float z_dist = dot(drw_view_forward(), P) - dot(drw_view_forward(), drw_view_position());
