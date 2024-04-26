@@ -346,9 +346,6 @@ bool BKE_paint_ensure_from_paintmode(Scene *sce, PaintMode mode)
       paint_tmp = (Paint *)&ts->imapaint;
       paint_ptr = &paint_tmp;
       break;
-    case PaintMode::SculptUV:
-      paint_ptr = (Paint **)&ts->uvsculpt;
-      break;
     case PaintMode::GPencil:
       paint_ptr = (Paint **)&ts->gp_paint;
       break;
@@ -392,8 +389,6 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode)
       case PaintMode::Texture2D:
       case PaintMode::Texture3D:
         return &ts->imapaint.paint;
-      case PaintMode::SculptUV:
-        return &ts->uvsculpt->paint;
       case PaintMode::GPencil:
         return &ts->gp_paint->paint;
       case PaintMode::VertexGPencil:
@@ -428,8 +423,6 @@ const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(const PaintMode m
     case PaintMode::Texture2D:
     case PaintMode::Texture3D:
       return rna_enum_brush_image_tool_items;
-    case PaintMode::SculptUV:
-      return rna_enum_brush_uv_sculpt_tool_items;
     case PaintMode::GPencil:
       return rna_enum_brush_gpencil_types_items;
     case PaintMode::VertexGPencil:
@@ -460,8 +453,6 @@ const char *BKE_paint_get_tool_prop_id_from_paintmode(const PaintMode mode)
     case PaintMode::Texture2D:
     case PaintMode::Texture3D:
       return "image_tool";
-    case PaintMode::SculptUV:
-      return "uv_sculpt_tool";
     case PaintMode::GPencil:
       return "gpencil_tool";
     case PaintMode::VertexGPencil:
@@ -492,7 +483,6 @@ const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(const Pai
       return BLT_I18NCONTEXT_ID_BRUSH;
     case PaintMode::Vertex:
     case PaintMode::Weight:
-    case PaintMode::SculptUV:
     case PaintMode::VertexGPencil:
     case PaintMode::SculptGPencil:
     case PaintMode::WeightGPencil:
@@ -533,8 +523,6 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
           return &ts->gp_weightpaint->paint;
         case OB_MODE_SCULPT_CURVES:
           return &ts->curves_sculpt->paint;
-        case OB_MODE_EDIT:
-          return ts->uvsculpt ? &ts->uvsculpt->paint : nullptr;
         default:
           break;
       }
@@ -562,9 +550,6 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
       if (obact && obact->mode == OB_MODE_EDIT) {
         if (sima->mode == SI_MODE_PAINT) {
           return &ts->imapaint.paint;
-        }
-        if (sima->mode == SI_MODE_UV) {
-          return &ts->uvsculpt->paint;
         }
       }
       else {
@@ -594,9 +579,6 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
         if (sima->mode == SI_MODE_PAINT) {
           return PaintMode::Texture2D;
         }
-        if (sima->mode == SI_MODE_UV) {
-          return PaintMode::SculptUV;
-        }
       }
       else {
         return PaintMode::Texture2D;
@@ -624,8 +606,6 @@ PaintMode BKE_paintmode_get_active_from_context(const bContext *C)
           return PaintMode::Weight;
         case OB_MODE_TEXTURE_PAINT:
           return PaintMode::Texture3D;
-        case OB_MODE_EDIT:
-          return PaintMode::SculptUV;
         case OB_MODE_SCULPT_CURVES:
           return PaintMode::SculptCurves;
         default:
@@ -674,8 +654,6 @@ PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
     switch (tref->mode) {
       case SI_MODE_PAINT:
         return PaintMode::Texture2D;
-      case SI_MODE_UV:
-        return PaintMode::SculptUV;
     }
   }
 
@@ -721,10 +699,6 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
     paint->runtime.tool_offset = offsetof(Brush, weightpaint_tool);
     paint->runtime.ob_mode = OB_MODE_WEIGHT_PAINT;
   }
-  else if (ts->uvsculpt && paint == &ts->uvsculpt->paint) {
-    paint->runtime.tool_offset = offsetof(Brush, uv_sculpt_tool);
-    paint->runtime.ob_mode = OB_MODE_EDIT;
-  }
   else if (ts->gp_paint && paint == &ts->gp_paint->paint) {
     paint->runtime.tool_offset = offsetof(Brush, gpencil_tool);
     paint->runtime.ob_mode = OB_MODE_PAINT_GPENCIL_LEGACY;
@@ -762,8 +736,6 @@ uint BKE_paint_get_brush_tool_offset_from_paintmode(const PaintMode mode)
       return offsetof(Brush, vertexpaint_tool);
     case PaintMode::Weight:
       return offsetof(Brush, weightpaint_tool);
-    case PaintMode::SculptUV:
-      return offsetof(Brush, uv_sculpt_tool);
     case PaintMode::GPencil:
       return offsetof(Brush, gpencil_tool);
     case PaintMode::VertexGPencil:
@@ -1104,8 +1076,6 @@ eObjectMode BKE_paint_object_mode_from_paintmode(const PaintMode mode)
     case PaintMode::Texture2D:
     case PaintMode::Texture3D:
       return OB_MODE_TEXTURE_PAINT;
-    case PaintMode::SculptUV:
-      return OB_MODE_EDIT;
     case PaintMode::SculptCurves:
       return OB_MODE_SCULPT_CURVES;
     case PaintMode::GPencil:
@@ -1140,7 +1110,6 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
                       (Paint *)ts->sculpt,
                       (Paint *)ts->vpaint,
                       (Paint *)ts->wpaint,
-                      (Paint *)ts->uvsculpt,
                       (Paint *)ts->curves_sculpt,
                       (Paint *)&ts->imapaint));
 #ifndef NDEBUG
@@ -1182,10 +1151,6 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
     GpWeightPaint *data = MEM_cnew<GpWeightPaint>(__func__);
     paint = &data->paint;
   }
-  else if ((UvSculpt **)r_paint == &ts->uvsculpt) {
-    UvSculpt *data = MEM_cnew<UvSculpt>(__func__);
-    paint = &data->paint;
-  }
   else if ((CurvesSculpt **)r_paint == &ts->curves_sculpt) {
     CurvesSculpt *data = MEM_cnew<CurvesSculpt>(__func__);
     paint = &data->paint;
@@ -1211,17 +1176,15 @@ void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const uchar col[3])
   BKE_paint_ensure_from_paintmode(sce, mode);
 
   /* If there's no brush, create one */
-  if (PAINT_MODE_HAS_BRUSH(mode)) {
-    Brush *brush = BKE_paint_brush(paint);
-    if (brush == nullptr) {
-      eObjectMode ob_mode = BKE_paint_object_mode_from_paintmode(mode);
-      brush = BKE_brush_first_search(bmain, ob_mode);
-      if (!brush) {
-        brush = BKE_brush_add(bmain, "Brush", ob_mode);
-        id_us_min(&brush->id); /* Fake user only. */
-      }
-      BKE_paint_brush_set(paint, brush);
+  Brush *brush = BKE_paint_brush(paint);
+  if (brush == nullptr) {
+    eObjectMode ob_mode = BKE_paint_object_mode_from_paintmode(mode);
+    brush = BKE_brush_first_search(bmain, ob_mode);
+    if (!brush) {
+      brush = BKE_brush_add(bmain, "Brush", ob_mode);
+      id_us_min(&brush->id); /* Fake user only. */
     }
+    BKE_paint_brush_set(paint, brush);
   }
 
   copy_v3_v3_uchar(paint->paint_cursor_col, col);

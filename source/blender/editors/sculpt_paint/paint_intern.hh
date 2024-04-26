@@ -320,7 +320,9 @@ void paint_curve_mask_cache_update(CurveMaskCache *curve_mask_cache,
 
 /* `sculpt_uv.cc` */
 
-void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot);
+void SCULPT_OT_uv_sculpt_grab(wmOperatorType *ot);
+void SCULPT_OT_uv_sculpt_relax(wmOperatorType *ot);
+void SCULPT_OT_uv_sculpt_pinch(wmOperatorType *ot);
 
 /* paint_utils.cc */
 

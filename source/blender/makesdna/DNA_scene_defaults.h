@@ -408,8 +408,7 @@
  \
     /* UV painting */ \
     .uv_sculpt_settings = 0, \
-    .uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN, \
-\
+ \
     /* Placement */ \
     .snap_mode_tools = SCE_SNAP_TO_GEOM,\
     .plane_axis = 2,\

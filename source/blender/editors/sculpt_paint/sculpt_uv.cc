@@ -40,11 +40,24 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "paint_intern.hh"
 #include "uvedit_intern.hh"
 
 #include "UI_view2d.hh"
+
+typedef enum eBrushUVSculptTool {
+  UV_SCULPT_TOOL_GRAB = 0,
+  UV_SCULPT_TOOL_RELAX = 1,
+  UV_SCULPT_TOOL_PINCH = 2,
+} eBrushUVSculptTool;
+
+enum {
+  UV_SCULPT_TOOL_RELAX_LAPLACIAN = 0,
+  UV_SCULPT_TOOL_RELAX_HC = 1,
+  UV_SCULPT_TOOL_RELAX_COTAN = 2,
+};
 
 /* When set, the UV element is on the boundary of the graph.
  * i.e. Instead of a 2-dimensional laplace operator, use a 1-dimensional version.
@@ -73,7 +86,7 @@ struct UVInitialStrokeElement {
   /** index to unique UV. */
   int uv;
 
-  /** Strength of brush on initial position. */
+  /** Strength on initial position. */
   float strength;
 
   /** initial UV position. */
@@ -91,7 +104,7 @@ struct UVInitialStroke {
   float init_coord[2];
 };
 
-/** Custom data for UV smoothing brush. */
+/** Custom data for UV smoothing. */
 struct UvSculptData {
   /**
    * Contains the first of each set of coincident UVs.
@@ -111,14 +124,14 @@ struct UvSculptData {
   /** data for initial stroke, used by tools like grab */
   UVInitialStroke *initial_stroke;
 
-  /** Timer to be used for airbrush-type brush. */
+  /** Timer to be used for airbrush-type. */
   wmTimer *timer;
 
   /** To determine quickly adjacent UVs. */
   UvElementMap *elementMap;
 
-  /** UV-smooth Paint for fast reference. */
-  Paint *uvsculpt;
+  /** UV-smooth for fast reference. */
+  UvSculpt *uvsculpt;
 
   /** Tool to use. duplicating here to change if modifier keys are pressed. */
   char tool;
@@ -144,6 +157,18 @@ static void apply_sculpt_data_constraints(UvSculptData *sculptdata, float uv[2])
   uv[1] = clamp_f(uv[1], v, v + 1.0f);
 }
 
+static float calc_strength(const UvSculptData *sculptdata, float p, const float len)
+{
+  float strength = BKE_brush_curve_strength(eBrushCurvePreset(sculptdata->uvsculpt->curve_preset),
+                                            sculptdata->uvsculpt->strength_curve,
+                                            p,
+                                            len);
+
+  CLAMP(strength, 0.0f, 1.0f);
+
+  return strength;
+}
+
 /*********** Improved Laplacian Relaxation Operator ************************/
 /* original code by Raul Fernandez Hernandez "farsthary"                   *
  * adapted to uv smoothing by Antony Riakiatakis                           *
@@ -164,7 +189,6 @@ static void HC_relaxation_iteration_uv(UvSculptData *sculptdata,
   float diff[2];
   int i;
   const float radius = sqrtf(radius_sq);
-  Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
 
   Temp_UVData *tmp_uvdata = (Temp_UVData *)MEM_callocN(
       sculptdata->totalUniqueUvs * sizeof(Temp_UVData), "Temporal data");
@@ -205,7 +229,7 @@ static void HC_relaxation_iteration_uv(UvSculptData *sculptdata,
     if (dist <= radius_sq) {
       UvElement *element;
       float strength;
-      strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius);
+      strength = alpha * calc_strength(sculptdata, sqrtf(dist), radius);
 
       sculptdata->uv[i].uv[0] = (1.0f - strength) * sculptdata->uv[i].uv[0] +
                                 strength *
@@ -250,7 +274,6 @@ static void laplacian_relaxation_iteration_uv(UvSculptData *sculptdata,
   float diff[2];
   int i;
   const float radius = sqrtf(radius_sq);
-  Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
 
   Temp_UVData *tmp_uvdata = (Temp_UVData *)MEM_callocN(
       sculptdata->totalUniqueUvs * sizeof(Temp_UVData), "Temporal data");
@@ -288,7 +311,7 @@ static void laplacian_relaxation_iteration_uv(UvSculptData *sculptdata,
     if (dist <= radius_sq) {
       UvElement *element;
       float strength;
-      strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius);
+      strength = alpha * calc_strength(sculptdata, sqrtf(dist), radius);
 
       sculptdata->uv[i].uv[0] = (1.0f - strength) * sculptdata->uv[i].uv[0] +
                                 strength * tmp_uvdata[i].p[0];
@@ -412,14 +435,13 @@ static void relaxation_iteration_uv(UvSculptData *sculptdata,
     add_weighted_edge(delta_buf, storage, head_prev, head_curr, *luv_prev, *luv_curr, weight_next);
   }
 
-  Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
   for (int i = 0; i < sculptdata->totalUniqueUvs; i++) {
     UvAdjacencyElement *adj_el = &sculptdata->uv[i];
     if (adj_el->is_locked) {
       continue; /* Locked UVs can't move. */
     }
 
-    /* Is UV within brush's influence? */
+    /* Is UV within influence? */
     float diff[2];
     sub_v2_v2v2(diff, adj_el->uv, mouse_coord);
     diff[1] /= aspect_ratio;
@@ -427,8 +449,7 @@ static void relaxation_iteration_uv(UvSculptData *sculptdata,
     if (dist_sq > radius_sq) {
       continue;
     }
-    const float strength = alpha * BKE_brush_curve_strength_clamped(
-                                       brush, sqrtf(dist_sq), sqrtf(radius_sq));
+    const float strength = alpha * calc_strength(sculptdata, sqrtf(dist_sq), sqrtf(radius_sq));
 
     const float *delta_sum = delta_buf[adj_el->element - storage];
 
@@ -460,15 +481,12 @@ static void uv_sculpt_stroke_apply(bContext *C,
                                    const wmEvent *event,
                                    Object *obedit)
 {
-  Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   UvSculptData *sculptdata = (UvSculptData *)op->customdata;
-  Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
-  ToolSettings *toolsettings = CTX_data_tool_settings(C);
   eBrushUVSculptTool tool = eBrushUVSculptTool(sculptdata->tool);
   int invert = sculptdata->invert ? -1 : 1;
-  float alpha = BKE_brush_alpha_get(scene, brush);
+  float alpha = sculptdata->uvsculpt->strength;
 
   float co[2];
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
@@ -481,7 +499,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
   float zoomx, zoomy;
   ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
 
-  const float radius = BKE_brush_size_get(scene, brush) / (width * zoomx);
+  const float radius = sculptdata->uvsculpt->size / (width * zoomx);
   float aspectRatio = width / float(height);
 
   /* We will compare squares to save some computation */
@@ -505,7 +523,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
         if (dist <= radius_sq) {
           UvElement *element;
           float strength;
-          strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius);
+          strength = alpha * calc_strength(sculptdata, sqrtf(dist), radius);
           normalize_v2(diff);
 
           sculptdata->uv[i].uv[0] -= strength * diff[0] * 0.001f;
@@ -531,7 +549,7 @@ static void uv_sculpt_stroke_apply(bContext *C,
                               alpha,
                               radius_sq,
                               aspectRatio,
-                              toolsettings->uv_relax_method);
+                              RNA_enum_get(op->ptr, "relax_method"));
       break;
     }
     case UV_SCULPT_TOOL_GRAB: {
@@ -637,11 +655,10 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   UvSculptData *data = MEM_cnew<UvSculptData>(__func__);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
-  Brush *brush = BKE_paint_brush(&ts->uvsculpt->paint);
 
   op->customdata = data;
 
-  BKE_curvemapping_init(brush->curve);
+  BKE_curvemapping_init(ts->uvsculpt.strength_curve);
 
   if (!data) {
     return nullptr;
@@ -658,12 +675,18 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
   bool do_island_optimization = !(ts->uv_sculpt_settings & UV_SCULPT_ALL_ISLANDS);
   int island_index = 0;
-  data->tool = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_SMOOTH) ?
-                   UV_SCULPT_TOOL_RELAX :
-                   eBrushUVSculptTool(brush->uv_sculpt_tool);
-  data->invert = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT) ? 1 : 0;
+  if (STREQ(op->type->idname, "SCULPT_OT_uv_sculpt_relax")) {
+    data->tool = UV_SCULPT_TOOL_RELAX;
+  }
+  else if (STREQ(op->type->idname, "SCULPT_OT_uv_sculpt_grab")) {
+    data->tool = UV_SCULPT_TOOL_GRAB;
+  }
+  else {
+    data->tool = UV_SCULPT_TOOL_PINCH;
+  }
+  data->invert = RNA_boolean_get(op->ptr, "use_invert");
 
-  data->uvsculpt = &ts->uvsculpt->paint;
+  data->uvsculpt = &ts->uvsculpt;
 
   /* Winding was added to island detection in 5197aa04c6bd
    * However the sculpt tools can flip faces, potentially creating orphaned islands.
@@ -834,12 +857,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
   /* Allocate initial selection for grab tool */
   if (data->tool == UV_SCULPT_TOOL_GRAB) {
-    UvSculptData *sculptdata = (UvSculptData *)op->customdata;
-    Brush *brush = BKE_paint_brush(sculptdata->uvsculpt);
-
-    float alpha = BKE_brush_alpha_get(scene, brush);
-
-    float radius = BKE_brush_size_get(scene, brush);
+    float alpha = data->uvsculpt->strength;
+    float radius = data->uvsculpt->size;
     int width, height;
     ED_space_image_get_size(sima, &width, &height);
     float zoomx, zoomy;
@@ -875,7 +894,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       float dist = dot_v2v2(diff, diff);
       if (dist <= radius_sq) {
         float strength;
-        strength = alpha * BKE_brush_curve_strength_clamped(brush, sqrtf(dist), radius);
+        strength = alpha * calc_strength(data, sqrtf(dist), radius);
 
         data->initial_stroke->initialSelection[counter].uv = i;
         data->initial_stroke->initialSelection[counter].strength = strength;
@@ -946,57 +965,78 @@ static int uv_sculpt_stroke_modal(bContext *C, wmOperator *op, const wmEvent *ev
   return OPERATOR_RUNNING_MODAL;
 }
 
-static bool uv_sculpt_stroke_poll(bContext *C)
+static void register_common_props(wmOperatorType *ot)
 {
-  if (ED_operator_uvedit_space_image(C)) {
-    /* While these values could be initialized on demand,
-     * the only case this would be useful is running from the operator search popup.
-     * This is such a corner case that it's simpler to check a brush has already been created
-     * (something the tool system ensures). */
-    Scene *scene = CTX_data_scene(C);
-    ToolSettings *ts = scene->toolsettings;
-    Brush *brush = BKE_paint_brush(&ts->uvsculpt->paint);
-    if (brush != nullptr) {
-      return true;
-    }
-  }
-  return false;
-}
-
-void SCULPT_OT_uv_sculpt_stroke(wmOperatorType *ot)
-{
-  static const EnumPropertyItem stroke_mode_items[] = {
-      {BRUSH_STROKE_NORMAL, "NORMAL", 0, "Regular", "Apply brush normally"},
-      {BRUSH_STROKE_INVERT,
-       "INVERT",
-       0,
-       "Invert",
-       "Invert action of brush for duration of stroke"},
-      {BRUSH_STROKE_SMOOTH,
-       "RELAX",
-       0,
-       "Relax",
-       "Switch brush to relax mode for duration of stroke"},
-      {0},
-  };
-
-  /* identifiers */
-  ot->name = "Sculpt UVs";
-  ot->description = "Sculpt UVs using a brush";
-  ot->idname = "SCULPT_OT_uv_sculpt_stroke";
-
-  /* api callbacks */
-  ot->invoke = uv_sculpt_stroke_invoke;
-  ot->modal = uv_sculpt_stroke_modal;
-  ot->poll = uv_sculpt_stroke_poll;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  /* props */
   PropertyRNA *prop;
 
-  prop = RNA_def_enum(
-      ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, "Mode", "Stroke Mode");
+  prop = RNA_def_boolean(
+      ot->srna, "use_invert", false, "Invert", "Invert action for the duration of the stroke");
   RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE));
+}
+
+void SCULPT_OT_uv_sculpt_grab(wmOperatorType *ot)
+{
+  ot->name = "Grab UVs";
+  ot->description = "Grab UVs";
+  ot->idname = "SCULPT_OT_uv_sculpt_grab";
+
+  ot->invoke = uv_sculpt_stroke_invoke;
+  ot->modal = uv_sculpt_stroke_modal;
+  ot->poll = ED_operator_uvedit_space_image;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  register_common_props(ot);
+}
+
+void SCULPT_OT_uv_sculpt_relax(wmOperatorType *ot)
+{
+  ot->name = "Relax UVs";
+  ot->description = "Relax UVs";
+  ot->idname = "SCULPT_OT_uv_sculpt_relax";
+
+  ot->invoke = uv_sculpt_stroke_invoke;
+  ot->modal = uv_sculpt_stroke_modal;
+  ot->poll = ED_operator_uvedit_space_image;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  register_common_props(ot);
+
+  static const EnumPropertyItem relax_method_items[] = {
+      {UV_SCULPT_TOOL_RELAX_LAPLACIAN,
+       "LAPLACIAN",
+       0,
+       "Laplacian",
+       "Use Laplacian method for relaxation"},
+      {UV_SCULPT_TOOL_RELAX_HC, "HC", 0, "HC", "Use HC method for relaxation"},
+      {UV_SCULPT_TOOL_RELAX_COTAN,
+       "COTAN",
+       0,
+       "Geometry",
+       "Use Geometry (cotangent) relaxation, making UVs follow the underlying 3D geometry"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  RNA_def_enum(ot->srna,
+               "relax_method",
+               relax_method_items,
+               CURVE_PRESET_SMOOTH,
+               "Relax Method",
+               "Algorithm used for UV relaxation");
+}
+
+void SCULPT_OT_uv_sculpt_pinch(wmOperatorType *ot)
+{
+  ot->name = "Pinch UVs";
+  ot->description = "Pinch UVs";
+  ot->idname = "SCULPT_OT_uv_sculpt_pinch";
+
+  ot->invoke = uv_sculpt_stroke_invoke;
+  ot->modal = uv_sculpt_stroke_modal;
+  ot->poll = ED_operator_uvedit_space_image;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  register_common_props(ot);
 }

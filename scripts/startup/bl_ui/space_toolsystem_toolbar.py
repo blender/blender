@@ -2181,36 +2181,82 @@ class _defs_image_uv_edit:
 
 class _defs_image_uv_sculpt:
 
-    @staticmethod
-    def generate_from_brushes(context):
-        def draw_cursor(context, _tool, xy):
+    @ToolDef.from_fn
+    def grab():
+        def draw_settings(context, layout, tool):
+            uv_sculpt = context.scene.tool_settings.uv_sculpt
+            layout.prop(uv_sculpt, "size")
+            layout.prop(uv_sculpt, "strength")
+            layout.popover("IMAGE_PT_uv_sculpt_curve")
+            layout.popover("IMAGE_PT_uv_sculpt_options")
+
+        def draw_cursor(context, tool, xy):
             from gpu_extras.presets import draw_circle_2d
-            tool_settings = context.tool_settings
-            uv_sculpt = tool_settings.uv_sculpt
-            if not uv_sculpt.show_brush:
-                return
-            ups = tool_settings.unified_paint_settings
-            if ups.use_unified_size:
-                radius = ups.size
-            else:
-                brush = tool_settings.uv_sculpt.brush
-                if brush is None:
-                    return
-                radius = brush.size
+            uv_sculpt = context.scene.tool_settings.uv_sculpt
+            radius = uv_sculpt.size
             draw_circle_2d(xy, (1.0,) * 4, radius)
 
-        return generate_from_enum_ex(
-            context,
-            idname_prefix="builtin_brush.",
-            icon_prefix="brush.uv_sculpt.",
-            type=bpy.types.Brush,
-            attr="uv_sculpt_tool",
-            tooldef_keywords=dict(
-                operator="sculpt.uv_sculpt_stroke",
-                keymap="Image Editor Tool: Uv, Sculpt Stroke",
-                draw_cursor=draw_cursor,
-                options={'KEYMAP_FALLBACK'},
-            ),
+        return dict(
+            idname="sculpt.uv_sculpt_grab",
+            label="Grab",
+            icon="brush.uv_sculpt.grab",
+            keymap=(),
+            draw_cursor=draw_cursor,
+            draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
+        )
+
+    @ToolDef.from_fn
+    def relax():
+        def draw_settings(context, layout, tool):
+            uv_sculpt = context.scene.tool_settings.uv_sculpt
+            layout.prop(uv_sculpt, "size")
+            layout.prop(uv_sculpt, "strength")
+            layout.popover("IMAGE_PT_uv_sculpt_curve")
+            layout.popover("IMAGE_PT_uv_sculpt_options")
+
+            props = tool.operator_properties("sculpt.uv_sculpt_relax")
+            layout.prop(props, "relax_method", text="Method")
+
+        def draw_cursor(context, tool, xy):
+            from gpu_extras.presets import draw_circle_2d
+            uv_sculpt = context.scene.tool_settings.uv_sculpt
+            radius = uv_sculpt.size
+            draw_circle_2d(xy, (1.0,) * 4, radius)
+
+        return dict(
+            idname="sculpt.uv_sculpt_relax",
+            label="Relax",
+            icon="brush.uv_sculpt.relax",
+            keymap=(),
+            draw_cursor=draw_cursor,
+            draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
+        )
+
+    @ToolDef.from_fn
+    def pinch():
+        def draw_settings(context, layout, tool):
+            uv_sculpt = context.scene.tool_settings.uv_sculpt
+            layout.prop(uv_sculpt, "size")
+            layout.prop(uv_sculpt, "strength")
+            layout.popover("IMAGE_PT_uv_sculpt_curve")
+            layout.popover("IMAGE_PT_uv_sculpt_options")
+
+        def draw_cursor(context, tool, xy):
+            from gpu_extras.presets import draw_circle_2d
+            uv_sculpt = context.scene.tool_settings.uv_sculpt
+            radius = uv_sculpt.size
+            draw_circle_2d(xy, (1.0,) * 4, radius)
+
+        return dict(
+            idname="sculpt.uv_sculpt_pinch",
+            label="Pinch",
+            icon="brush.uv_sculpt.pinch",
+            keymap=(),
+            draw_cursor=draw_cursor,
+            draw_settings=draw_settings,
+            options={'KEYMAP_FALLBACK'},
         )
 
 
@@ -3014,11 +3060,9 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_image_uv_edit.rip_region,
             None,
-            lambda context: (
-                _defs_image_uv_sculpt.generate_from_brushes(context)
-                if _defs_image_generic.poll_uvedit(context)
-                else ()
-            ),
+            _defs_image_uv_sculpt.grab,
+            _defs_image_uv_sculpt.relax,
+            _defs_image_uv_sculpt.pinch,
         ],
         'MASK': [
             None,

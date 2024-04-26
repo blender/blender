@@ -2531,20 +2531,24 @@ void BKE_brush_randomize_texture_coords(UnifiedPaintSettings *ups, bool mask)
   }
 }
 
-float BKE_brush_curve_strength(const Brush *br, float p, const float len)
+float BKE_brush_curve_strength(const eBrushCurvePreset preset,
+                               const CurveMapping *cumap,
+                               const float distance,
+                               const float brush_radius)
 {
+  float p = distance;
   float strength = 1.0f;
 
-  if (p >= len) {
+  if (p >= brush_radius) {
     return 0;
   }
 
-  p = p / len;
+  p = p / brush_radius;
   p = 1.0f - p;
 
-  switch (br->curve_preset) {
+  switch (preset) {
     case BRUSH_CURVE_CUSTOM:
-      strength = BKE_curvemapping_evaluateF(br->curve, 0, 1.0f - p);
+      strength = BKE_curvemapping_evaluateF(cumap, 0, 1.0f - p);
       break;
     case BRUSH_CURVE_SHARP:
       strength = p * p;
@@ -2576,6 +2580,11 @@ float BKE_brush_curve_strength(const Brush *br, float p, const float len)
   }
 
   return strength;
+}
+
+float BKE_brush_curve_strength(const Brush *br, float p, const float len)
+{
+  return BKE_brush_curve_strength(eBrushCurvePreset(br->curve_preset), br->curve, p, len);
 }
 
 float BKE_brush_curve_strength_clamped(const Brush *br, float p, const float len)

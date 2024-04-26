@@ -96,7 +96,6 @@ enum class PaintMode : int8_t {
   Texture3D = 3,
   /** Image space (2D painting). */
   Texture2D = 4,
-  SculptUV = 5,
   GPencil = 6,
   /* Grease Pencil Vertex Paint */
   VertexGPencil = 7,
@@ -110,8 +109,6 @@ enum class PaintMode : int8_t {
   /** Keep last. */
   Invalid = 12,
 };
-
-#define PAINT_MODE_HAS_BRUSH(mode) !ELEM(mode, PaintMode::SculptUV)
 
 /* overlay invalidation */
 enum ePaintOverlayControlFlags {

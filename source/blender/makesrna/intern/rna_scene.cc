@@ -85,23 +85,6 @@ const EnumPropertyItem rna_enum_exr_codec_items[] = {
 };
 #endif
 
-#ifndef RNA_RUNTIME
-static const EnumPropertyItem uv_sculpt_relaxation_items[] = {
-    {UV_SCULPT_TOOL_RELAX_LAPLACIAN,
-     "LAPLACIAN",
-     0,
-     "Laplacian",
-     "Use Laplacian method for relaxation"},
-    {UV_SCULPT_TOOL_RELAX_HC, "HC", 0, "HC", "Use HC method for relaxation"},
-    {UV_SCULPT_TOOL_RELAX_COTAN,
-     "COTAN",
-     0,
-     "Geometry",
-     "Use Geometry (cotangent) relaxation, making UVs follow the underlying 3D geometry"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
-#endif
-
 const EnumPropertyItem rna_enum_snap_source_items[] = {
     {SCE_SNAP_SOURCE_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target"},
     {SCE_SNAP_SOURCE_CENTER, "CENTER", 0, "Center", "Snap transformation center onto target"},
@@ -3327,12 +3310,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "uv_sculpt_settings", UV_SCULPT_ALL_ISLANDS);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(prop, "Sculpt All Islands", "Brush operates on all islands");
-
-  prop = RNA_def_property(srna, "uv_relax_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "uv_relax_method");
-  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
-  RNA_def_property_enum_items(prop, uv_sculpt_relaxation_items);
-  RNA_def_property_ui_text(prop, "Relaxation Method", "Algorithm used for UV relaxation");
 
   prop = RNA_def_property(srna, "lock_object_mode", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "object_flag", SCE_OBJECT_MODE_LOCK);

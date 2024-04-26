@@ -1215,7 +1215,6 @@ static bool paint_use_2d_cursor(PaintMode mode)
       return false;
     case PaintMode::Texture3D:
     case PaintMode::Texture2D:
-    case PaintMode::SculptUV:
     case PaintMode::VertexGPencil:
     case PaintMode::SculptGPencil:
     case PaintMode::WeightGPencil:
