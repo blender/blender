@@ -240,7 +240,7 @@ void build_asset_view(uiLayout &layout,
                       const AssetLibraryReference &library_ref,
                       const AssetShelf &shelf,
                       const bContext &C,
-                      ARegion &region)
+                      const ARegion &region)
 {
   list::storage_fetch(&library_ref, &C);
   list::ensure_previews_job(&library_ref, &C);
