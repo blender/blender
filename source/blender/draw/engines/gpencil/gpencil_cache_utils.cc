@@ -525,8 +525,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
   const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
 
   const bool is_in_front = (ob->dtx & OB_DRAW_IN_FRONT);
-  /* Grease Pencil 3 doesn't have this. */
-  const bool is_screenspace = false;
+
   const bool override_vertcol = (pd->v3d_color_type != -1);
   const bool is_vert_col_mode = (pd->v3d_color_type == V3D_SHADING_VERTEX_COLOR) ||
                                 (ob->mode == OB_MODE_VERTEX_PAINT) || pd->is_render;
@@ -541,9 +540,9 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
   const float vert_col_opacity = (override_vertcol) ?
                                      (is_vert_col_mode ? pd->vertex_paint_opacity : 0.0f) :
                                      (pd->is_render ? 1.0f : pd->vertex_paint_opacity);
-  /* Negate thickness sign to tag that strokes are in screen space.
-   * Convert to world units (by default, 1 meter = 1000 pixels). */
-  const float thickness_scale = (is_screenspace) ? -1.0f : 1.0f / 1000.0f;
+  /* Negate thickness sign to tag that strokes are in screen space (this is no longer used in
+   * GPv3). Convert to world units (by default, 1 meter = 1000 pixels). */
+  const float thickness_scale = blender::bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
   /* If the layer is used as a mask (but is otherwise not visible in the render), render it with a
    * opacity of 0 so that it can still mask other layers. */
   const float layer_opacity = !is_used_as_mask ? grease_pencil_layer_final_opacity_get(

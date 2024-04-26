@@ -813,13 +813,7 @@ static void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     BLI_assert(points.size() == gps->totpoints);
 
     const Span<bGPDspoint> src_points{gps->points, gps->totpoints};
-    /* Previously, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This `px`
-     * was the brush size which would be stored in the stroke thickness and then scaled by the
-     * point pressure factor. Finally, the render engine would divide this thickness value by
-     * 2000 (we're going from a thickness to a radius, hence the factor of two) to convert back
-     * into blender units. Store the radius now directly in blender units. This makes it
-     * consistent with how hair curves handle the radius. */
-    const float stroke_thickness = float(gps->thickness) / 2000.0f;
+    const float stroke_thickness = float(gps->thickness) * LEGACY_RADIUS_CONVERSION_FACTOR;
     MutableSpan<float3> dst_positions = positions.slice(points);
     MutableSpan<float3> dst_handle_positions_left = has_bezier_stroke ?
                                                         handle_positions_left.slice(points) :
@@ -1225,21 +1219,19 @@ static void layer_adjustments_to_modifiers(ConversionData &conversion_data,
       src_object_data.id,
       {{".tint_color", ".color"}, {".tint_factor", ".factor"}});
 
-  /* Ensure values are divided by 2k, to match conversion done for non-animated value. */
-  constexpr float thickness_adjustement_factor = 1.0f / 2000.0f;
   auto fcurve_convert_thickness_cb = [&](FCurve &fcurve) {
     if (fcurve.bezt) {
       for (uint i = 0; i < fcurve.totvert; i++) {
         BezTriple &bezier_triple = fcurve.bezt[i];
-        bezier_triple.vec[0][1] *= thickness_adjustement_factor;
-        bezier_triple.vec[1][1] *= thickness_adjustement_factor;
-        bezier_triple.vec[2][1] *= thickness_adjustement_factor;
+        bezier_triple.vec[0][1] *= LEGACY_RADIUS_CONVERSION_FACTOR;
+        bezier_triple.vec[1][1] *= LEGACY_RADIUS_CONVERSION_FACTOR;
+        bezier_triple.vec[2][1] *= LEGACY_RADIUS_CONVERSION_FACTOR;
       }
     }
     if (fcurve.fpt) {
       for (uint i = 0; i < fcurve.totvert; i++) {
         FPoint &fpoint = fcurve.fpt[i];
-        fpoint.vec[1] *= thickness_adjustement_factor;
+        fpoint.vec[1] *= LEGACY_RADIUS_CONVERSION_FACTOR;
       }
     }
     fcurve.flag &= ~FCURVE_INT_VALUES;
@@ -1301,7 +1293,7 @@ static void layer_adjustments_to_modifiers(ConversionData &conversion_data,
       /* Convert the "pixel" offset value into a radius value.
        * GPv2 used a conversion of 1 "px" = 0.001. */
       /* Note: this offset may be negative. */
-      const float radius_offset = float(thickness_px) * thickness_adjustement_factor;
+      const float radius_offset = float(thickness_px) * LEGACY_RADIUS_CONVERSION_FACTOR;
 
       const auto offset_radius_ntree_ensure = [&](Library *owner_library) {
         if (bNodeTree **ntree = conversion_data.offset_radius_ntree_by_library.lookup_ptr(

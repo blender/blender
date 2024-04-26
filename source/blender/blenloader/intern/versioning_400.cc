@@ -1963,13 +1963,6 @@ static void versioning_nodes_dynamic_sockets_2(bNodeTree &ntree)
 static void versioning_grease_pencil_stroke_radii_scaling(GreasePencil *grease_pencil)
 {
   using namespace blender;
-  /* Previously, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This `px` was
-   * the brush size which would be stored in the stroke thickness and then scaled by the point
-   * pressure factor. Finally, the render engine would divide this thickness value by 2000 (we're
-   * going from a thickness to a radius, hence the factor of two) to convert back into blender
-   * units.
-   * Store the radius now directly in blender units. This makes it consistent with how hair curves
-   * handle the radius. */
   for (GreasePencilDrawingBase *base : grease_pencil->drawings()) {
     if (base->type != GP_DRAWING) {
       continue;
@@ -1978,7 +1971,7 @@ static void versioning_grease_pencil_stroke_radii_scaling(GreasePencil *grease_p
     MutableSpan<float> radii = drawing.radii_for_write();
     threading::parallel_for(radii.index_range(), 8192, [&](const IndexRange range) {
       for (const int i : range) {
-        radii[i] /= 2000.0f;
+        radii[i] *= bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
       }
     });
   }
