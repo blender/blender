@@ -709,7 +709,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
   drawing.tag_topology_changed();
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, &grease_pencil.id);
+  WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &grease_pencil.id);
 }
 
 std::unique_ptr<GreasePencilStrokeOperation> new_paint_operation()

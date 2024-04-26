@@ -2227,7 +2227,8 @@ static int grease_pencil_paste_strokes_exec(bContext *C, wmOperator *op)
   }
 
   /* Ensure active keyframe. */
-  if (!ensure_active_keyframe(scene, grease_pencil)) {
+  bool inserted_keyframe = false;
+  if (!ensure_active_keyframe(scene, grease_pencil, inserted_keyframe)) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }
@@ -2251,6 +2252,10 @@ static int grease_pencil_paste_strokes_exec(bContext *C, wmOperator *op)
 
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+
+  if (inserted_keyframe) {
+    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+  }
 
   return OPERATOR_FINISHED;
 }
