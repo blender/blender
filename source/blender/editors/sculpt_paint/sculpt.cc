@@ -4001,6 +4001,8 @@ static void sculpt_fix_noise_tear(Sculpt *sd, Object *ob)
   }
 }
 
+/* near duplicate of: #wpaint_do_symmetrical_brush_actions and
+ * #vpaint_do_symmetrical_brush_actions. */
 static void do_symmetrical_brush_actions(Sculpt *sd,
                                          Object *ob,
                                          BrushActionFunc action,
