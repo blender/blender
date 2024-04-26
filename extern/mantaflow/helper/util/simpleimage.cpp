@@ -152,8 +152,6 @@ bool SimpleImage::initFromPpm(std::string filename)
     rowsize = windW * 3;
   }
 
-  unsigned char *pic = new unsigned char[size];  // (GLubyte *)malloc (size);
-
   // Read in maximum value (ignore) , could be scanned with sscanf as well, but this should be
   // 255... 3rd line
   if (fgets(line, MAXLINE, fp) == nullptr) {
@@ -161,6 +159,8 @@ bool SimpleImage::initFromPpm(std::string filename)
       errMsg("SimpleImage::initFromPpm fgets failed");
     return 0;
   }
+
+  unsigned char *pic = new unsigned char[size];  // (GLubyte *)malloc (size);
 
   // Read in the pixel array row-by-row: 1st row = top scanline */
   unsigned char *ptr = nullptr;
