@@ -101,7 +101,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
   if (b_ob_info.is_real_object_data()) {
     if (mesh) {
       if (mesh.is_editmode()) {
-        /* Flush editmesh to mesh, including all data layers. */
+        /* Flush edit-mesh to mesh, including all data layers. */
         BL::Depsgraph depsgraph(PointerRNA_NULL);
         mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
         use_corner_normals = mesh_use_corner_normals(mesh, subdivision_type);

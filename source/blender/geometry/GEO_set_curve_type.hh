@@ -15,7 +15,7 @@ struct ConvertCurvesOptions {
   bool convert_bezier_handles_to_poly_points = false;
   bool convert_bezier_handles_to_catmull_rom_points = false;
   /**
-   * Make the nurb curve behave like a bezier curve and also keep the handle positions as control
+   * Make the NURB curve behave like a bezier curve and also keep the handle positions as control
    * points.
    */
   bool keep_bezier_shape_as_nurbs = true;

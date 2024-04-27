@@ -897,7 +897,7 @@ static int multitex(Tex *tex,
   float tmpvec[3];
   int retval = 0; /* return value, TEX_INT or TEX_RGB. */
 
-  texres->talpha = false; /* is set when image texture returns alpha (considered premul) */
+  texres->talpha = false; /* Is set when image texture returns alpha (considered pre-multiplied) */
 
   if (use_nodes && tex->use_nodes && tex->nodetree) {
     const float cfra = 1.0f; /* This was only set for Blender Internal render before. */

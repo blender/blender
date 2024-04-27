@@ -27,8 +27,8 @@ class DrawWeightPaintOperation : public WeightPaintOperation {
       this->invert_brush_weight = !this->invert_brush_weight;
     }
 
-    /* Get editable drawings grouped per frame number. When multiframe editing is disabled, this
-     * is just one group for the current frame. When multiframe editing is enabled, the selected
+    /* Get editable drawings grouped per frame number. When multi-frame editing is disabled, this
+     * is just one group for the current frame. When multi-frame editing is enabled, the selected
      * keyframes are grouped per frame number. */
     const Scene *scene = CTX_data_scene(&C);
     Array<Vector<MutableDrawingInfo>> drawings_per_frame =

@@ -15,7 +15,7 @@
 
 #include "node_composite_util.hh"
 
-/* **************** Premul and Key Alpha Convert ******************** */
+/* **************** Pre-multiply and Key Alpha Convert ******************** */
 
 namespace blender::nodes::node_composite_premulkey_cc {
 

@@ -176,7 +176,7 @@ struct GeoNodesOperatorDepsgraphs {
   ~GeoNodesOperatorDepsgraphs();
 
   /**
-   * The evaluated data-block might be in the scene's active despgraph, in that case we should use
+   * The evaluated data-block might be in the scene's active depsgraph, in that case we should use
    * it directly. Otherwise retrieve it from the extra depsgraph that was built for all other
    * data-blocks. Return null if it isn't found, generally geometry nodes can handle null ID
    * pointers.

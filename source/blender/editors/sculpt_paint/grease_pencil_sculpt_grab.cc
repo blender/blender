@@ -196,7 +196,7 @@ void GrabOperation::on_stroke_extended(const bContext &C, const InputSample &ext
       [&](const GreasePencilStrokeParams &params,
           const IndexMask &mask,
           const Span<float> weights) {
-        /* Crazyspace deformation. */
+        /* Crazy-space deformation. */
         bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
 
         /* Transform mouse delta into layer space. */

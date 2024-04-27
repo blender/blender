@@ -27,7 +27,7 @@ void main()
   float f_depth = gl_FragCoord.z + fwidth(gl_FragCoord.z);
 
 #ifdef SHADOW_UPDATE_TBDR
-/* We need to write to gl_FragDepth un-conditionnally. So we cannot early exit or use discard. */
+/* We need to write to `gl_FragDepth` un-conditionally. So we cannot early exit or use discard. */
 #  define discard_result f_depth = 1.0;
 #else
 #  define discard_result \
