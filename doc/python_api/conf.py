@@ -29,8 +29,11 @@ BLENDER_VERSION_DATE = time.strftime(
 if BLENDER_REVISION != "Unknown":
     # SHA1 GIT hash.
     BLENDER_VERSION_HASH = BLENDER_REVISION
-    BLENDER_VERSION_HASH_HTML_LINK = "<a href=https://projects.blender.org/blender/blender/commit/%s>%s</a>" % (
-        BLENDER_VERSION_HASH, BLENDER_VERSION_HASH)
+    BLENDER_VERSION_HASH_HTML_LINK = (
+        "<a href=https://projects.blender.org/blender/blender/commit/{:s}>{:s}</a>".format(
+            BLENDER_VERSION_HASH, BLENDER_VERSION_HASH,
+        )
+    )
 else:
     # Fallback: Should not be used.
     BLENDER_VERSION_HASH = "Hash Unknown"
@@ -48,7 +51,7 @@ if has_module("sphinx_copybutton"):
     copybutton_exclude = ".linenos, .gp, .go"
 
 
-project = "Blender %s Python API" % BLENDER_VERSION_STRING
+project = "Blender {:s} Python API".format(BLENDER_VERSION_STRING)
 root_doc = "index"
 copyright = "Blender Authors"
 version = BLENDER_VERSION_DOTS
@@ -98,7 +101,9 @@ html_show_search_summary = True
 html_split_index = True
 html_static_path = ["static"]
 templates_path = ["templates"]
-html_context = {"commit": "%s - %s" % (BLENDER_VERSION_HASH_HTML_LINK, BLENDER_VERSION_DATE)}
+html_context = {
+    "commit": "{:s} - {:s}".format(BLENDER_VERSION_HASH_HTML_LINK, BLENDER_VERSION_DATE),
+}
 html_extra_path = ["static"]
 html_favicon = "static/favicon.ico"
 html_logo = "static/blender_logo.svg"
