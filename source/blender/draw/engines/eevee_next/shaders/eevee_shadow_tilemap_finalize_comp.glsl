@@ -105,6 +105,10 @@ void main()
           /* Setup the view. */
 
           render_view_buf[view_index].viewport_index = viewport_index;
+          /* Scale by actual radius size (overestimate since scaled by bounding circle). */
+          float filter_radius = tilemap_data.filter_radius * M_SQRT2;
+          /* We need a minimum slope bias even if filter is 0 to avoid some invalid shadowing. */
+          render_view_buf[view_index].filter_radius = max(1.0, filter_radius);
           /* Clipping setup. */
           if (tilemap_data.is_area_side) {
             /* Negative for tagging this case. See shadow_clip_vector_get for explanation. */

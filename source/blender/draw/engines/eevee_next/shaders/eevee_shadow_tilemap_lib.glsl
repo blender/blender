@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(common_shape_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_vector_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 
 /* ---------------------------------------------------------------------- */
@@ -139,7 +140,7 @@ int shadow_directional_level(LightData light, vec3 lP)
 
 /* How much a tilemap pixel covers a final image pixel. */
 float shadow_punctual_footprint_ratio(LightData light,
-                                      vec3 P,
+                                      vec3 lP,
                                       bool is_perspective,
                                       float dist_to_cam,
                                       float tilemap_projection_ratio)
@@ -149,15 +150,14 @@ float shadow_punctual_footprint_ratio(LightData light,
    * This gives a good approximation of what LOD to select to get a somewhat uniform shadow map
    * resolution in screen space. */
 
-  float dist_to_light = distance(P, light_position_get(light));
-  float footprint_ratio = dist_to_light;
+  float dist_to_light = length(lP);
+  /* Apply resolution ratio. */
+  float footprint_ratio = dist_to_light * tilemap_projection_ratio;
   /* Project the radius to the screen. 1 unit away from the camera the same way
    * pixel_world_radius_inv was computed. Not needed in orthographic mode. */
   if (is_perspective) {
     footprint_ratio /= dist_to_cam;
   }
-  /* Apply resolution ratio. */
-  footprint_ratio *= tilemap_projection_ratio;
   /* Take the frustum padding into account. */
   footprint_ratio *= light_local_data_get(light).clip_side /
                      orderedIntBitsToFloat(light.clip_near);

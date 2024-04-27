@@ -234,11 +234,15 @@ GPU_SHADER_INTERFACE_INFO(eevee_surf_shadow_atomic_iface, "shadow_iface")
 GPU_SHADER_INTERFACE_INFO(eevee_surf_shadow_clipping_iface, "shadow_clip")
     .smooth(Type::VEC3, "vector");
 
+GPU_SHADER_INTERFACE_INFO(eevee_surf_shadow_flat_iface, "shadow_flat")
+    .flat(Type::FLOAT, "filter_radius");
+
 GPU_SHADER_CREATE_INFO(eevee_surf_shadow)
     .define("DRW_VIEW_LEN", STRINGIFY(SHADOW_VIEW_MAX))
     .define("MAT_SHADOW")
     .builtins(BuiltinBits::VIEWPORT_INDEX)
     .vertex_out(eevee_surf_shadow_clipping_iface)
+    .vertex_out(eevee_surf_shadow_flat_iface)
     .storage_buf(SHADOW_RENDER_VIEW_BUF_SLOT,
                  Qualifier::READ,
                  "ShadowRenderView",

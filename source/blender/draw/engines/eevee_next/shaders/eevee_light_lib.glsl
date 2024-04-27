@@ -69,6 +69,11 @@ vec3 light_world_to_local(LightData light, vec3 L)
   return transform_direction_transposed(light.object_to_world, L);
 }
 
+vec3 light_world_to_local_point(LightData light, vec3 point)
+{
+  return transform_point_inversed(light.object_to_world, point);
+}
+
 /* From Frostbite PBR Course
  * Distance based attenuation
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */

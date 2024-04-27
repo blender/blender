@@ -101,6 +101,7 @@ struct ShadowTileMap : public ShadowTileMapData {
                          int2 origin_offset,
                          int clipmap_level,
                          float lod_bias_,
+                         float filter_radius,
                          eShadowProjectionType projection_type_);
 
   void sync_cubeface(eLightType light_type_,
@@ -110,6 +111,7 @@ struct ShadowTileMap : public ShadowTileMapData {
                      float side,
                      float shift,
                      eCubeFace face,
+                     float filter_radius,
                      float lod_bias_);
 
   void debug_draw() const;

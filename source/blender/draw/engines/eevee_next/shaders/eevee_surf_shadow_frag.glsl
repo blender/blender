@@ -24,7 +24,12 @@ vec4 closure_to_rgba(Closure cl)
 
 void main()
 {
-  float f_depth = gl_FragCoord.z + fwidth(gl_FragCoord.z);
+  float f_depth = gl_FragCoord.z;
+  /* Slope bias.
+   * Note that we always need a minimum slope bias of 1 pixel to avoid slanted surfaces aliasing
+   * onto facing surfaces.
+   * IMPORTANT: `fwidth` needs to be inside uniform control flow. */
+  f_depth += fwidth(f_depth) * shadow_flat.filter_radius;
 
 #ifdef SHADOW_UPDATE_TBDR
 /* We need to write to `gl_FragDepth` un-conditionally. So we cannot early exit or use discard. */

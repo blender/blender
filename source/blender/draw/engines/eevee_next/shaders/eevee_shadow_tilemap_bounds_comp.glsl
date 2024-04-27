@@ -11,9 +11,9 @@
  */
 
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
-#pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_shadow_tilemap_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_iter_lib.glsl)
+#pragma BLENDER_REQUIRE(common_intersect_lib.glsl)
 
 shared int global_min;
 shared int global_max;

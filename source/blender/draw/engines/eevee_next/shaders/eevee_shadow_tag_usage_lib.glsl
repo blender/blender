@@ -89,7 +89,7 @@ void shadow_tag_usage_tilemap_punctual(
     return;
   }
 
-  vec3 lP = light_world_to_local(light, P - light_position_get(light));
+  vec3 lP = light_world_to_local_point(light, P);
   float dist_to_light = max(length(lP) - radius, 1e-5);
   if (dist_to_light > light_local_data_get(light).influence_radius_max) {
     return;
@@ -112,7 +112,7 @@ void shadow_tag_usage_tilemap_punctual(
   lP += vec3(0.0, 0.0, -light_local_data_get(light).shadow_projection_shift);
 
   float footprint_ratio = shadow_punctual_footprint_ratio(
-      light, P, drw_view_is_perspective(), dist_to_cam, tilemap_proj_ratio);
+      light, lP, drw_view_is_perspective(), dist_to_cam, tilemap_proj_ratio);
 
   if (radius == 0) {
     int face_id = shadow_punctual_face_index_get(lP);

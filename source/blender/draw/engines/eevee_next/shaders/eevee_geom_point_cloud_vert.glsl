@@ -15,6 +15,7 @@ void main()
   DRW_VIEW_FROM_RESOURCE_ID;
 #ifdef MAT_SHADOW
   shadow_viewport_layer_set(int(drw_view_id), int(render_view_buf[drw_view_id].viewport_index));
+  shadow_flat.filter_radius = render_view_buf[drw_view_id].filter_radius;
 #endif
 
   init_interface();
