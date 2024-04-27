@@ -368,23 +368,24 @@ class SEQUENCER_MT_range(Menu):
 class SEQUENCER_MT_preview_zoom(Menu):
     bl_label = "Zoom"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_PREVIEW'
         from math import isclose
 
-        current_zoom = _context.space_data.zoom_percentage
+        current_zoom = context.space_data.zoom_percentage
         ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
-        for i, (a, b) in enumerate(ratios):
-            percent = a / b * 100
+        for (a, b) in ratios:
+            ratio = a / b
+            percent = ratio * 100.0
 
             layout.operator(
                 "sequencer.view_zoom_ratio",
-                text=iface_("%g%% (%d:%d)") % (percent, a, b),
+                text="%g%% (%d:%d)" % (percent, a, b),
                 translate=False,
-                icon=('NONE', 'LAYER_ACTIVE')[isclose(percent, current_zoom, abs_tol=0.5)],
-            ).ratio = a / b
+                icon='LAYER_ACTIVE' if isclose(percent, current_zoom, abs_tol=0.5) else 'NONE',
+            ).ratio = ratio
 
         layout.separator()
         layout.operator("view2d.zoom_in")
