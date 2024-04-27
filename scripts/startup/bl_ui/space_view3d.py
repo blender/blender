@@ -8396,8 +8396,8 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.separator()
 
             # Copy/paste
-            col.operator("grease_pencil.copy", text="Copy", icon="COPYDOWN")
-            col.operator("grease_pencil.paste", text="Paste", icon="PASTEDOWN")
+            col.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
+            col.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
 
             col.separator()
 
@@ -8440,8 +8440,8 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.separator()
 
             # Copy/paste
-            col.operator("grease_pencil.copy", text="Copy", icon="COPYDOWN")
-            col.operator("grease_pencil.paste", text="Paste", icon="PASTEDOWN")
+            col.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
+            col.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
 
             col.separator()
 
