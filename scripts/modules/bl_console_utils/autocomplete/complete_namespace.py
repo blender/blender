@@ -92,10 +92,10 @@ def complete_indices(word, namespace, *, obj=None, base=None):
 
     if obj_is_dict:
         # dictionary type
-        matches = ['%s[%r]' % (base, key) for key in sorted(obj.keys())]
+        matches = ['{:s}[{!r}]'.format(base, key) for key in sorted(obj.keys())]
     else:
         # list type
-        matches = ['%s[%d]' % (base, idx) for idx in range(obj_len)]
+        matches = ['{:s}[{:d}]'.format(base, idx) for idx in range(obj_len)]
     if word != base:
         matches = [match for match in matches if match.startswith(word)]
     return matches

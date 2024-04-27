@@ -22,18 +22,18 @@ class _TokenizeDataPath:
         self.data_path = attrs
 
     def __getattr__(self, attr):
-        return _TokenizeDataPath(self.data_path + ((".%s" % attr),))
+        return _TokenizeDataPath(self.data_path + ((".{:s}".format(attr)),))
 
     def __getitem__(self, key):
-        return _TokenizeDataPath(self.data_path + (("[%r]" % (key,)),))
+        return _TokenizeDataPath(self.data_path + (("[{!r}]".format(key)),))
 
     def __call__(self, *args, **kw):
         value_str = ", ".join([
             val for val in (
                 ", ".join(repr(value) for value in args),
-                ", ".join(["%s=%r" % (key, value) for key, value in kw.items()]),
+                ", ".join(["{:s}={!r}".format(key, value) for key, value in kw.items()]),
             ) if val])
-        return _TokenizeDataPath(self.data_path + ('(%s)' % value_str, ))
+        return _TokenizeDataPath(self.data_path + ('({:s})'.format(value_str), ))
 
     def __iter__(self):
         return iter(self.data_path)

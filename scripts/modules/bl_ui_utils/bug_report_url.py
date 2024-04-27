@@ -15,7 +15,7 @@ def url_prefill_from_blender(*, addon_info=None):
 
     fh.write("**System Information**\n")
     fh.write(
-        "Operating system: %s %d Bits" % (
+        "Operating system: {:s} {:d} Bits".format(
             platform.platform(),
             struct.calcsize("P") * 8,
         )
@@ -25,13 +25,13 @@ def url_prefill_from_blender(*, addon_info=None):
     from _bpy import _ghost_backend
     ghost_backend = _ghost_backend()
     if ghost_backend not in {'NONE', 'DEFAULT'}:
-        fh.write(", %s UI" % ghost_backend)
+        fh.write(", {:s} UI".format(ghost_backend))
     del _ghost_backend, ghost_backend
 
     fh.write("\n")
 
     fh.write(
-        "Graphics card: %s %s %s\n" % (
+        "Graphics card: {:s} {:s} {:s}\n".format(
             gpu.platform.renderer_get(),
             gpu.platform.vendor_get(),
             gpu.platform.version_get(),
@@ -42,7 +42,7 @@ def url_prefill_from_blender(*, addon_info=None):
         "**Blender Version**\n"
     )
     fh.write(
-        "Broken: version: %s, branch: %s, commit date: %s %s, hash: `%s`\n" % (
+        "Broken: version: {:s}, branch: {:s}, commit date: {:s} {:s}, hash: `{:s}`\n".format(
             bpy.app.version_string,
             bpy.app.build_branch.decode('utf-8', 'replace'),
             bpy.app.build_commit_date.decode('utf-8', 'replace'),
@@ -73,6 +73,8 @@ def url_prefill_from_blender(*, addon_info=None):
 
     form_number = 2 if addon_info else 1
     return (
-        "https://developer.blender.org/maniphest/task/edit/form/%i?description=" % form_number +
-        urllib.parse.quote(fh.getvalue())
+        "https://developer.blender.org/maniphest/task/edit/form/{:d}?description={:s}".format(
+            form_number,
+            urllib.parse.quote(fh.getvalue()),
+        )
     )

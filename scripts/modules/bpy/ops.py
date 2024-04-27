@@ -38,7 +38,7 @@ class _BPyOpsSubModOp:
         # op_class = getattr(bpy.types, idname)
         op_class = _op_get_rna_type(idname)
         descr = op_class.description
-        return "%s\n%s" % (sig, descr)
+        return "{:s}\n{:s}".format(sig, descr)
 
     @staticmethod
     def _parse_args(args):
@@ -125,8 +125,11 @@ class _BPyOpsSubModOp:
         return _op_as_string(self.idname())
 
     def __str__(self):  # used for print(...)
-        return ("<function bpy.ops.%s.%s at 0x%x'>" %
-                (self._module, self._func, id(self)))
+        return (
+            "<function bpy.ops.{:s}.{:s} at 0x{:x}'>".format(
+                self._module, self._func, id(self),
+            )
+        )
 
 
 # -----------------------------------------------------------------------------

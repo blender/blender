@@ -94,9 +94,9 @@ def load_image(
 
         if verbose:
             if image:
-                print("    image loaded '%s'" % path)
+                print("    image loaded '{:s}'".format(path))
             else:
-                print("    image load failed '%s'" % path)
+                print("    image load failed '{:s}'".format(path))
 
         # image path has been checked so the path could not be read for some
         # reason, so be sure to return a placeholder
@@ -138,7 +138,7 @@ def load_image(
     imagepath = bpy.path.native_pathsep(imagepath)
 
     if verbose:
-        print("load_image('%s', '%s', ...)" % (imagepath, dirname))
+        print("load_image('{:s}', '{:s}', ...)".format(imagepath, dirname))
 
     if os.path.exists(imagepath):
         return _image_load(imagepath)

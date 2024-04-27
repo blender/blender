@@ -40,7 +40,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
     fileobject = open(filepath, "w")
     fw = fileobject.write
     fw(header)
-    fw('label = "%s::%s" ;' % (bpy.data.filepath.split("/")[-1].split("\\")[-1], obj.name))
+    fw('label = "{:s}::{:s}" ;'.format(bpy.data.filepath.split("/")[-1].split("\\")[-1], obj.name))
 
     arm = obj.data
 
@@ -58,18 +58,18 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
                 continue
 
             if type(value) == float:
-                value = "%.3f" % value
+                value = "{:.3f}".format(value)
             elif type(value) == str:
                 value = compat_str(value)
 
-            label.append("%s = %s" % (key, value))
+            label.append("{:s} = {:s}".format(key, value))
 
         opts = [
             "shape=box",
             "regular=1",
             "style=filled",
             "fixedsize=false",
-            'label="%s"' % compat_str('\n'.join(label)),
+            'label="{:s}"'.format(compat_str('\n'.join(label))),
         ]
 
         if bone.name.startswith('ORG'):
@@ -77,13 +77,13 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
         else:
             opts.append("fillcolor=white")
 
-        fw('"%s" [%s];\n' % (bone.name, ','.join(opts)))
+        fw('"{:s}" [{:s}];\n'.format(bone.name, ','.join(opts)))
 
     fw('\n\n# Hierarchy:\n')
 
     # Root node.
     if FAKE_PARENT:
-        fw('"Object::%s" [];\n' % obj.name)
+        fw('"Object::{:s}" [];\n'.format(obj.name))
 
     for bone in bones:
         bone = arm.bones[bone]
@@ -93,7 +93,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
             parent_name = parent.name
             connected = bone.use_connect
         elif FAKE_PARENT:
-            parent_name = "Object::%s" % obj.name
+            parent_name = "Object::{:s}".format(obj.name)
             connected = False
         else:
             continue
@@ -102,7 +102,7 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
         if not connected:
             opts.append("style=dotted")
 
-        fw('"%s" -> "%s" [%s] ;\n' % (bone.name, parent_name, ','.join(opts)))
+        fw('"{:s}" -> "{:s}" [{:s}] ;\n'.format(bone.name, parent_name, ','.join(opts)))
     del bone
 
     # constraints
@@ -125,9 +125,9 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
                         'labelfontsize=4',
                     ]
                     if XTRA_INFO:
-                        label = "%s\n%s" % (constraint.type, constraint.name)
-                        opts.append('label="%s"' % compat_str(label))
-                    fw('"%s" -> "%s" [%s] ;\n' % (pbone.name, subtarget, ','.join(opts)))
+                        label = "{:s}\n{:s}".format(constraint.type, constraint.name)
+                        opts.append('label="{:s}"'.format(compat_str(label)))
+                    fw('"{:s}" -> "{:s}" [{:s}] ;\n'.format(pbone.name, subtarget, ','.join(opts)))
 
     # Drivers
     if DRIVERS:
@@ -170,9 +170,9 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
                                 display_source = rna_path.replace("pose.bones", "")
                                 display_target = rna_path_target.replace("pose.bones", "")
                                 if XTRA_INFO:
-                                    label = "%s\\n%s" % (display_source, display_target)
-                                    opts.append('label="%s"' % compat_str(label))
-                                fw('"%s" -> "%s" [%s] ;\n' % (pbone_target.name, pbone.name, ','.join(opts)))
+                                    label = "{:s}\\n{:s}".format(display_source, display_target)
+                                    opts.append('label="{:s}"'.format(compat_str(label)))
+                                fw('"{:s}" -> "{:s}" [{:s}] ;\n'.format(pbone_target.name, pbone.name, ','.join(opts)))
 
     fw(footer)
     fileobject.close()
@@ -190,4 +190,4 @@ if __name__ == "__main__":
     import os
     tmppath = "/tmp/test.dot"
     graph_armature(bpy.context.object, tmppath, CONSTRAINTS=True, DRIVERS=True)
-    os.system("dot -Tpng %s > %s; eog %s &" % (tmppath, tmppath + '.png', tmppath + '.png'))
+    os.system("dot -Tpng {:s} > {:s}; eog {:s} &".format(tmppath, tmppath + '.png', tmppath + '.png'))
