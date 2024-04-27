@@ -3236,7 +3236,7 @@ class WM_MT_splash_quick_setup(Menu):
             col = split.column()
             col.operator(
                 "preferences.copy_prev",
-                text=iface_("Import Blender {:d}.{:d} Preferences", "Operator").format(old_version),
+                text=iface_("Import Blender {:d}.{:d} Preferences", "Operator").format(*old_version),
                 icon='NONE',
                 translate=False,
             )
