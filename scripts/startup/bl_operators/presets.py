@@ -152,13 +152,13 @@ class AddPresetBase:
                                 sub_value = getattr(value, sub_value_attr)
                                 rna_recursive_attr_expand(
                                     sub_value,
-                                    "{!s}.{!s}".format(rna_path_step, sub_value_attr),
+                                    "{:s}.{:s}".format(rna_path_step, sub_value_attr),
                                     level,
                                 )
                         elif type(value).__name__ == "bpy_prop_collection_idprop":  # could use nicer method
-                            file_preset.write("{!s}.clear()\n".format(rna_path_step))
+                            file_preset.write("{:s}.clear()\n".format(rna_path_step))
                             for sub_value in value:
-                                file_preset.write("item_sub_{:d} = {!s}.add()\n".format(level, rna_path_step))
+                                file_preset.write("item_sub_{:d} = {:s}.add()\n".format(level, rna_path_step))
                                 rna_recursive_attr_expand(sub_value, "item_sub_{:d}".format(level), level + 1)
                         else:
                             # convert thin wrapped sequences
@@ -168,7 +168,7 @@ class AddPresetBase:
                             except BaseException:
                                 pass
 
-                            file_preset.write("{!s} = {!r}\n".format(rna_path_step, value))
+                            file_preset.write("{:s} = {!r}\n".format(rna_path_step, value))
 
                     file_preset = open(filepath, "w", encoding="utf-8")
                     file_preset.write("import bpy\n")
@@ -176,7 +176,7 @@ class AddPresetBase:
                     if hasattr(self, "preset_defines"):
                         for rna_path in self.preset_defines:
                             exec(rna_path)
-                            file_preset.write("{!s}\n".format(rna_path))
+                            file_preset.write("{:s}\n".format(rna_path))
                         file_preset.write("\n")
 
                     for rna_path in self.preset_values:
@@ -652,7 +652,7 @@ class SavePresetInterfaceTheme(AddPresetBase, Operator):
         try:
             rna_xml.xml_file_write(context, filepath, preset_menu_class.preset_xml_map)
         except BaseException as ex:
-            self.report({'ERROR'}, "Unable to overwrite preset: {!s}".format(str(ex)))
+            self.report({'ERROR'}, "Unable to overwrite preset: {:s}".format(str(ex)))
             import traceback
             traceback.print_exc()
             return {'CANCELLED'}
@@ -748,7 +748,7 @@ class AddPresetOperator(AddPresetBase, Operator):
         for prop_id, prop in operator_rna.properties.items():
             if not prop.is_skip_preset:
                 if prop_id not in properties_blacklist:
-                    ret.append("op.{!s}".format(prop_id))
+                    ret.append("op.{:s}".format(prop_id))
 
         return ret
 
@@ -756,7 +756,7 @@ class AddPresetOperator(AddPresetBase, Operator):
     def operator_path(operator):
         import os
         prefix, suffix = operator.split("_OT_", 1)
-        return os.path.join("operator", "{!s}.{!s}".format(prefix.lower(), suffix))
+        return os.path.join("operator", "{:s}.{:s}".format(prefix.lower(), suffix))
 
 
 class WM_MT_operator_presets(Menu):

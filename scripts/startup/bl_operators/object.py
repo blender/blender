@@ -364,12 +364,12 @@ class ShapeTransfer(Operator):
         for ob_other in objects:
             if ob_other.type != 'MESH':
                 self.report({'WARNING'},
-                            rpt_("Skipping '{!s}', not a mesh").format(ob_other.name))
+                            rpt_("Skipping '{:s}', not a mesh").format(ob_other.name))
                 continue
             me_other = ob_other.data
             if len(me_other.vertices) != len(me.vertices):
                 self.report({'WARNING'},
-                            rpt_("Skipping '{!s}', vertex count differs").format(ob_other.name))
+                            rpt_("Skipping '{:s}', vertex count differs").format(ob_other.name))
                 continue
 
             target_normals = me_nos(me_other.vertices)
@@ -508,7 +508,7 @@ class JoinUVs(Operator):
         if not mesh.uv_layers:
             self.report(
                 {'WARNING'},
-                rpt_("Object: {!s}, Mesh: '{!s}' has no UVs").format(obj.name, mesh.name),
+                rpt_("Object: {:s}, Mesh: '{:s}' has no UVs").format(obj.name, mesh.name),
             )
         else:
             nbr_loops = len(mesh.loops)
@@ -534,7 +534,7 @@ class JoinUVs(Operator):
                                 self.report(
                                     {'WARNING'},
                                     rpt_(
-                                        "Object: {!s}, Mesh: '{!s}' has {:d} loops (for {:d} faces), expected {:d}\n"
+                                        "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}\n"
                                     ).format(
                                         obj_other.name,
                                         mesh_other.name,
@@ -552,7 +552,7 @@ class JoinUVs(Operator):
                                         self.report(
                                             {'ERROR'},
                                             rpt_(
-                                                "Could not add a new UV map to object '{!s}' (Mesh '{!s}')\n"
+                                                "Could not add a new UV map to object '{:s}' (Mesh '{:s}')\n"
                                             ).format(
                                                 obj_other.name,
                                                 mesh_other.name,

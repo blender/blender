@@ -56,7 +56,7 @@ class ANIM_OT_keying_set_export(Operator):
         scene = context.scene
         ks = scene.keying_sets.active
 
-        f.write("# Keying Set: {!s}\n".format(ks.bl_idname))
+        f.write("# Keying Set: {:s}\n".format(ks.bl_idname))
 
         f.write("import bpy\n\n")
         f.write("scene = bpy.context.scene\n\n")
@@ -96,44 +96,44 @@ class ANIM_OT_keying_set_export(Operator):
             #   (e.g. node-tree in Material).
             if ksp.id.bl_rna.identifier.startswith("ShaderNodeTree"):
                 # Find material or light using this node tree...
-                id_bpy_path = "bpy.data.nodes[\"{!s}\"]"
+                id_bpy_path = "bpy.data.nodes[\"{:s}\"]"
                 found = False
 
                 for mat in bpy.data.materials:
                     if mat.node_tree == ksp.id:
-                        id_bpy_path = "bpy.data.materials[\"{!s}\"].node_tree".format(escape_identifier(mat.name))
+                        id_bpy_path = "bpy.data.materials[\"{:s}\"].node_tree".format(escape_identifier(mat.name))
                         found = True
                         break
 
                 if not found:
                     for light in bpy.data.lights:
                         if light.node_tree == ksp.id:
-                            id_bpy_path = "bpy.data.lights[\"{!s}\"].node_tree".format(escape_identifier(light.name))
+                            id_bpy_path = "bpy.data.lights[\"{:s}\"].node_tree".format(escape_identifier(light.name))
                             found = True
                             break
 
                 if not found:
                     self.report(
                         {'WARN'},
-                        rpt_("Could not find material or light using Shader Node Tree - {!s}").format(str(ksp.id))
+                        rpt_("Could not find material or light using Shader Node Tree - {:s}").format(str(ksp.id))
                     )
             elif ksp.id.bl_rna.identifier.startswith("CompositorNodeTree"):
                 # Find compositor node-tree using this node tree.
                 for scene in bpy.data.scenes:
                     if scene.node_tree == ksp.id:
-                        id_bpy_path = "bpy.data.scenes[\"{!s}\"].node_tree".format(escape_identifier(scene.name))
+                        id_bpy_path = "bpy.data.scenes[\"{:s}\"].node_tree".format(escape_identifier(scene.name))
                         break
                 else:
                     self.report(
                         {'WARN'},
-                        rpt_("Could not find scene using Compositor Node Tree - {!s}").format(str(ksp.id))
+                        rpt_("Could not find scene using Compositor Node Tree - {:s}").format(str(ksp.id))
                     )
             elif ksp.id.bl_rna.name == "Key":
                 # "keys" conflicts with a Python keyword, hence the simple solution won't work
-                id_bpy_path = "bpy.data.shape_keys[\"{!s}\"]".format(escape_identifier(ksp.id.name))
+                id_bpy_path = "bpy.data.shape_keys[\"{:s}\"]".format(escape_identifier(ksp.id.name))
             else:
                 idtype_list = ksp.id.bl_rna.name.lower() + "s"
-                id_bpy_path = "bpy.data.{!s}[\"{!s}\"]".format(idtype_list, escape_identifier(ksp.id.name))
+                id_bpy_path = "bpy.data.{:s}[\"{:s}\"]".format(idtype_list, escape_identifier(ksp.id.name))
 
             # shorthand ID for the ID-block (as used in the script)
             short_id = "id_{:d}".format(len(id_to_paths_cache))
@@ -143,7 +143,7 @@ class ANIM_OT_keying_set_export(Operator):
 
         f.write("# ID's that are commonly used\n")
         for id_pair in id_to_paths_cache.values():
-            f.write("{!s} = {!s}\n".format(id_pair[0], id_pair[1]))
+            f.write("{:s} = {:s}\n".format(id_pair[0], id_pair[1]))
         f.write("\n")
 
         # write paths
@@ -157,7 +157,7 @@ class ANIM_OT_keying_set_export(Operator):
                 id_bpy_path = id_to_paths_cache[ksp.id][0]
             else:
                 id_bpy_path = "None"  # XXX...
-            f.write("{!s}, {!r}".format(id_bpy_path, ksp.data_path))
+            f.write("{:s}, {!r}".format(id_bpy_path, ksp.data_path))
 
             # array index settings (if applicable)
             if ksp.use_entire_array:
@@ -450,7 +450,7 @@ class UpdateAnimatedTransformConstraint(Operator):
             print(log)
             text = bpy.data.texts.new("UpdateAnimatedTransformConstraint Report")
             text.from_string(log)
-            self.report({'INFO'}, rpt_("Complete report available on '{!s}' text datablock").format(text.name))
+            self.report({'INFO'}, rpt_("Complete report available on '{:s}' text datablock").format(text.name))
         return {'FINISHED'}
 
 

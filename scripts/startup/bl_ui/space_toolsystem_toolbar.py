@@ -135,9 +135,9 @@ class _defs_view3d_generic:
                 kmi_remove = None
             return tip_(
                 "Measure distance and angles.\n"
-                "\u2022 {!s} anywhere for new measurement.\n"
+                "\u2022 {:s} anywhere for new measurement.\n"
                 "\u2022 Drag ruler segment to measure an angle.\n"
-                "\u2022 {!s} to remove the active ruler.\n"
+                "\u2022 {:s} to remove the active ruler.\n"
                 "\u2022 Ctrl while dragging to snap.\n"
                 "\u2022 Shift while dragging to measure surface thickness"
             ).format(
@@ -506,10 +506,10 @@ class _defs_view3d_add:
             kmi_center = None
             kmi_fixed_aspect = None
         return tip_(
-            "{!s}\n"
-            "\u2022 {!s} toggles snap while dragging.\n"
-            "\u2022 {!s} toggles dragging from the center.\n"
-            "\u2022 {!s} toggles fixed aspect"
+            "{:s}\n"
+            "\u2022 {:s} toggles snap while dragging.\n"
+            "\u2022 {:s} toggles dragging from the center.\n"
+            "\u2022 {:s} toggles fixed aspect"
         ).format(
             prefix,
             kmi_to_string_or_none(kmi_snap),
@@ -779,9 +779,9 @@ class _defs_edit_mesh:
                 kmi_delete = None
             return tip_(
                 "Use multiple operators in an interactive way to add, delete, or move geometry.\n"
-                "\u2022 {!s} - Add geometry by moving the cursor close to an element.\n"
-                "\u2022 {!s} - Extrude edges by moving the cursor.\n"
-                "\u2022 {!s} - Delete mesh element"
+                "\u2022 {:s} - Add geometry by moving the cursor close to an element.\n"
+                "\u2022 {:s} - Extrude edges by moving the cursor.\n"
+                "\u2022 {:s} - Delete mesh element"
             ).format(
                 kmi_to_string_or_none(kmi_add),
                 kmi_to_string_or_none(kmi_extrude),

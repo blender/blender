@@ -131,7 +131,7 @@ rna_module_prop = StringProperty(
 
 def context_path_validate(context, data_path):
     try:
-        value = eval("context.{!s}".format(data_path)) if data_path else Ellipsis
+        value = eval("context.{:s}".format(data_path)) if data_path else Ellipsis
     except AttributeError as ex:
         if str(ex).startswith("'NoneType'"):
             # One of the items in the rna path is None, just ignore this
@@ -139,7 +139,7 @@ def context_path_validate(context, data_path):
         else:
             # Print invalid path, but don't show error to the users and fully
             # break the UI if the operator is bound to an event like left click.
-            print("context_path_validate error: context.{!s} not found (invalid keymap entry?)".format(data_path))
+            print("context_path_validate error: context.{:s} not found (invalid keymap entry?)".format(data_path))
             value = Ellipsis
 
     return value
@@ -208,9 +208,9 @@ def description_from_data_path(base, data_path, *, prefix, value=Ellipsis):
             (rna_prop := context_path_to_rna_property(base, data_path)) and
             (description := iface_(rna_prop.description))
     ):
-        description = iface_("{!s}: {!s}").format(prefix, description)
+        description = iface_("{:s}: {:s}").format(prefix, description)
         if value != Ellipsis:
-            description = "{!s}\n{!s}: {!s}".format(description, iface_("Value"), str(value))
+            description = "{:s}\n{:s}: {:s}".format(description, iface_("Value"), str(value))
         return description
     return None
 
@@ -265,9 +265,9 @@ def execute_context_assign(self, context):
         return {'PASS_THROUGH'}
 
     if getattr(self, "relative", False):
-        exec("context.{!s} += self.value".format(data_path))
+        exec("context.{:s} += self.value".format(data_path))
     else:
-        exec("context.{!s} = self.value".format(data_path))
+        exec("context.{:s} = self.value".format(data_path))
 
     return operator_path_undo_return(context, data_path)
 
@@ -340,7 +340,7 @@ class WM_OT_context_scale_float(Operator):
         if value == 1.0:  # nothing to do
             return {'CANCELLED'}
 
-        exec("context.{!s} *= value".format(data_path))
+        exec("context.{:s} *= value".format(data_path))
 
         return operator_path_undo_return(context, data_path)
 
@@ -385,11 +385,11 @@ class WM_OT_context_scale_int(Operator):
             else:
                 add = "-1"
                 func = "min"
-            exec("context.{!s} = {!s}(round(context.{!s} * value), context.{!s} + {!s})".format(
+            exec("context.{:s} = {:s}(round(context.{:s} * value), context.{:s} + {:s})".format(
                 data_path, func, data_path, data_path, add,
             ))
         else:
-            exec("context.{!s} *= value".format(data_path))
+            exec("context.{:s} *= value".format(data_path))
 
         return operator_path_undo_return(context, data_path)
 
@@ -476,7 +476,7 @@ class WM_OT_context_set_value(Operator):
         data_path = self.data_path
         if context_path_validate(context, data_path) is Ellipsis:
             return {'PASS_THROUGH'}
-        exec("context.{!s} = {!s}".format(data_path, self.value))
+        exec("context.{:s} = {:s}".format(data_path, self.value))
         return operator_path_undo_return(context, data_path)
 
 
@@ -509,7 +509,7 @@ class WM_OT_context_toggle(Operator):
         if context_path_validate(base, data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
-        exec("base.{!s} = not (base.{!s})".format(data_path, data_path))
+        exec("base.{:s} = not (base.{:s})".format(data_path, data_path))
 
         return operator_path_undo_return(base, data_path)
 
@@ -547,7 +547,7 @@ class WM_OT_context_toggle_enum(Operator):
         # keys that some values that are only available in a particular context
         try:
             exec(
-                "context.{!s} = {!r} if (context.{!s} != {!r}) else {!r}".format(
+                "context.{:s} = {!r} if (context.{:s} != {!r}) else {!r}".format(
                     data_path,
                     self.value_2,
                     data_path,
@@ -587,17 +587,17 @@ class WM_OT_context_cycle_int(Operator):
         else:
             value += 1
 
-        exec("context.{!s} = value".format(data_path))
+        exec("context.{:s} = value".format(data_path))
 
         if self.wrap:
-            if value != eval("context.{!s}".format(data_path)):
+            if value != eval("context.{:s}".format(data_path)):
                 # relies on rna clamping integers out of the range
                 if self.reverse:
                     value = (1 << 31) - 1
                 else:
                     value = -1 << 31
 
-                exec("context.{!s} = value".format(data_path))
+                exec("context.{:s} = value".format(data_path))
 
         return operator_path_undo_return(context, data_path)
 
@@ -647,7 +647,7 @@ class WM_OT_context_cycle_enum(Operator):
                 advance_enum = enums[orig_index + 1]
 
         # set the new value
-        exec("context.{!s} = advance_enum".format(data_path))
+        exec("context.{:s} = advance_enum".format(data_path))
         return operator_path_undo_return(context, data_path)
 
 
@@ -678,7 +678,7 @@ class WM_OT_context_cycle_array(Operator):
                 array.append(array.pop(0))
             return array
 
-        exec("context.{!s} = cycle(context.{!s}[:])".format(data_path, data_path))
+        exec("context.{:s} = cycle(context.{:s}[:])".format(data_path, data_path))
 
         return operator_path_undo_return(context, data_path)
 
@@ -780,7 +780,7 @@ class WM_OT_operator_pie_enum(Operator):
         try:
             op_rna = op.get_rna_type()
         except KeyError:
-            self.report({'ERROR'}, rpt_("Operator not found: bpy.ops.{!s}").format(data_path))
+            self.report({'ERROR'}, rpt_("Operator not found: bpy.ops.{:s}").format(data_path))
             return {'CANCELLED'}
 
         def draw_cb(self, context):
@@ -826,7 +826,7 @@ class WM_OT_context_set_id(Operator):
 
         if id_iter:
             value_id = getattr(bpy.data, id_iter).get(value)
-            exec("context.{!s} = value_id".format(data_path))
+            exec("context.{:s} = value_id".format(data_path))
 
         return operator_path_undo_return(context, data_path)
 
@@ -882,7 +882,7 @@ class WM_OT_context_collection_boolean_set(Operator):
             else:
                 self.report(
                     {'WARNING'},
-                    rpt_("Non boolean value found: {!s}[ ].{!s}").format(data_path_iter, data_path_item),
+                    rpt_("Non boolean value found: {:s}[ ].{:s}").format(data_path_iter, data_path_item),
                 )
                 return {'CANCELLED'}
 
@@ -899,7 +899,7 @@ class WM_OT_context_collection_boolean_set(Operator):
         else:
             is_set = not is_set
 
-        exec_str = "item.{!s} = {!s}".format(data_path_item, is_set)
+        exec_str = "item.{:s} = {:s}".format(data_path_item, str(is_set))
         for item in items_ok:
             exec(exec_str)
 
@@ -945,7 +945,7 @@ class WM_OT_context_modal_mouse(Operator):
 
             # check this can be set, maybe this is library data.
             try:
-                exec("item.{!s} = {!s}".format(data_path_item, value_orig))
+                exec("item.{:s} = {:s}".format(data_path_item, str(value_orig)))
             except BaseException:
                 continue
 
@@ -959,14 +959,14 @@ class WM_OT_context_modal_mouse(Operator):
         data_path_item = self.data_path_item
         for item, value_orig in self._values.items():
             if type(value_orig) == int:
-                exec("item.{!s} = int({:d})".format(data_path_item, round(value_orig + delta)))
+                exec("item.{:s} = int({:d})".format(data_path_item, round(value_orig + delta)))
             else:
-                exec("item.{!s} = {:f}".format(data_path_item, value_orig + delta))
+                exec("item.{:s} = {:f}".format(data_path_item, value_orig + delta))
 
     def _values_restore(self):
         data_path_item = self.data_path_item
         for item, value_orig in self._values.items():
-            exec("item.{!s} = {!s}".format(data_path_item, value_orig))
+            exec("item.{:s} = {:s}".format(data_path_item, str(value_orig)))
 
         self._values.clear()
 
@@ -983,7 +983,7 @@ class WM_OT_context_modal_mouse(Operator):
             if header_text:
                 if len(self._values) == 1:
                     (item, ) = self._values.keys()
-                    header_text = header_text % eval("item.{!s}".format(self.data_path_item))
+                    header_text = header_text % eval("item.{:s}".format(self.data_path_item))
                 else:
                     header_text = (self.header_text % delta) + rpt_(" (delta)")
                 context.area.header_text_set(header_text)
@@ -1007,7 +1007,7 @@ class WM_OT_context_modal_mouse(Operator):
         if not self._values:
             self.report(
                 {'WARNING'},
-                rpt_("Nothing to operate on: {!s}[ ].{!s}").format(
+                rpt_("Nothing to operate on: {:s}[ ].{:s}").format(
                     self.data_path_iter, self.data_path_item,
                 ),
             )
@@ -1100,7 +1100,7 @@ class WM_OT_url_open_preset(Operator):
         return "https://www.blender.org/download/releases/{:d}-{:d}/".format(*bpy.app.version[:2])
 
     def _url_from_manual(self, _context):
-        return "https://docs.blender.org/manual/{!s}/{:d}.{:d}/".format(
+        return "https://docs.blender.org/manual/{:s}/{:d}.{:d}/".format(
             bpy.utils.manual_language_code(), *bpy.app.version[:2],
         )
 
@@ -1177,7 +1177,7 @@ class WM_OT_path_open(Operator):
         filepath = os.path.normpath(filepath)
 
         if not os.path.exists(filepath):
-            self.report({'ERROR'}, rpt_("File '{!s}' not found").format(filepath))
+            self.report({'ERROR'}, rpt_("File '{:s}' not found").format(filepath))
             return {'CANCELLED'}
 
         if sys.platform[:3] == "win":
@@ -1210,9 +1210,9 @@ def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
 
     if len(id_split) == 1:  # rna, class
         if do_url:
-            url = "{!s}/bpy.types.{!s}.html".format(url_prefix, id_split[0])
+            url = "{:s}/bpy.types.{:s}.html".format(url_prefix, id_split[0])
         else:
-            rna = "bpy.types.{!s}".format(id_split[0])
+            rna = "bpy.types.{:s}".format(id_split[0])
 
     elif len(id_split) == 2:  # rna, class.prop
         class_name, class_prop = id_split
@@ -1220,17 +1220,17 @@ def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
         # an operator (common case - just button referencing an op)
         if operator_exists_pair(class_name, class_prop):
             if do_url:
-                url = "{!s}/bpy.ops.{!s}.html#bpy.ops.{!s}.{!s}".format(url_prefix, class_name, class_name, class_prop)
+                url = "{:s}/bpy.ops.{:s}.html#bpy.ops.{:s}.{:s}".format(url_prefix, class_name, class_name, class_prop)
             else:
-                rna = "bpy.ops.{!s}.{!s}".format(class_name, class_prop)
+                rna = "bpy.ops.{:s}.{:s}".format(class_name, class_prop)
         elif operator_exists_single(class_name):
             # note: ignore the prop name since we don't have a way to link into it
             class_name, class_prop = class_name.split("_OT_", 1)
             class_name = class_name.lower()
             if do_url:
-                url = "{!s}/bpy.ops.{!s}.html#bpy.ops.{!s}.{!s}".format(url_prefix, class_name, class_name, class_prop)
+                url = "{:s}/bpy.ops.{:s}.html#bpy.ops.{:s}.{:s}".format(url_prefix, class_name, class_name, class_prop)
             else:
-                rna = "bpy.ops.{!s}.{!s}".format(class_name, class_prop)
+                rna = "bpy.ops.{:s}.{:s}".format(class_name, class_prop)
         else:
             # An RNA setting, common case.
 
@@ -1242,7 +1242,7 @@ def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
 
             if rna_class is None:
                 if report is not None:
-                    report({'ERROR'}, rpt_("Type \"{!s}\" cannot be found").format(class_name))
+                    report({'ERROR'}, rpt_("Type \"{:s}\" cannot be found").format(class_name))
                 return None
 
             # Detect if this is a inherited member and use that name instead.
@@ -1255,15 +1255,15 @@ def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
                     rna_parent = rna_parent.base
 
                 if do_url:
-                    url = "{!s}/bpy.types.{!s}.html#bpy.types.{!s}.{!s}".format(
+                    url = "{:s}/bpy.types.{:s}.html#bpy.types.{:s}.{:s}".format(
                         url_prefix, class_name, class_name, class_prop,
                     )
                 else:
-                    rna = "bpy.types.{!s}.{!s}".format(class_name, class_prop)
+                    rna = "bpy.types.{:s}.{:s}".format(class_name, class_prop)
             else:
                 # We assume this is custom property, only try to generate generic url/rna_id...
                 if do_url:
-                    url = ("{!s}/bpy.types.bpy_struct.html#bpy.types.bpy_struct.items".format(url_prefix))
+                    url = ("{:s}/bpy.types.bpy_struct.html#bpy.types.bpy_struct.items".format(url_prefix))
                 else:
                     rna = "bpy.types.bpy_struct"
 
@@ -1280,7 +1280,7 @@ class WM_OT_doc_view_manual(Operator):
     @staticmethod
     def _find_reference(rna_id, url_mapping, *, verbose=True):
         if verbose:
-            print("online manual check for: '{!s}'... ".format(rna_id))
+            print("online manual check for: '{:s}'... ".format(rna_id))
         from fnmatch import fnmatchcase
         # XXX, for some reason all RNA ID's are stored lowercase
         # Adding case into all ID's isn't worth the hassle so force lowercase.
@@ -1312,7 +1312,7 @@ class WM_OT_doc_view_manual(Operator):
 
             if fnmatchcase(rna_id, pattern):
                 if verbose:
-                    print("            match found: '{!s}' --> '{!s}'".format(pattern, url_suffix))
+                    print("            match found: '{:s}' --> '{:s}'".format(pattern, url_suffix))
                 return url_suffix
         if verbose:
             print("match not found")
@@ -1703,7 +1703,7 @@ class WM_OT_properties_edit(Operator):
 
         self._init_subtype(self.subtype)
         escaped_name = bpy.utils.escape_identifier(name)
-        self.is_overridable_library = bool(item.is_property_overridable_library('["{!s}"]'.format(escaped_name)))
+        self.is_overridable_library = bool(item.is_property_overridable_library('["{:s}"]'.format(escaped_name)))
 
     # When the operator chooses a different type than the original property,
     # attempt to convert the old value to the new type for continuity and speed.
@@ -1807,7 +1807,7 @@ class WM_OT_properties_edit(Operator):
             )
 
         escaped_name = bpy.utils.escape_identifier(name)
-        item.property_overridable_library_set('["{!s}"]'.format(escaped_name), self.is_overridable_library)
+        item.property_overridable_library_set('["{:s}"]'.format(escaped_name), self.is_overridable_library)
 
     def _update_blender_for_prop_change(self, context, item, name, prop_type_old, prop_type_new):
         from rna_prop_ui import (
@@ -1819,7 +1819,7 @@ class WM_OT_properties_edit(Operator):
         # If we have changed the type of the property, update its potential anim curves!
         if prop_type_old != prop_type_new:
             escaped_name = bpy.utils.escape_identifier(name)
-            data_path = '["{!s}"]'.format(escaped_name)
+            data_path = '["{:s}"]'.format(escaped_name)
             done = set()
 
             def _update(fcurves):
@@ -1859,7 +1859,7 @@ class WM_OT_properties_edit(Operator):
         data_path = self.data_path
         name = self.property_name
 
-        item = eval("context.{!s}".format(data_path))
+        item = eval("context.{:s}".format(data_path))
         if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
             self.report({'ERROR'}, "Cannot edit properties from override data")
             return {'CANCELLED'}
@@ -1905,7 +1905,7 @@ class WM_OT_properties_edit(Operator):
 
         self._old_prop_name = [name]
 
-        item = eval("context.{!s}".format(data_path))
+        item = eval("context.{:s}".format(data_path))
         if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
             self.report({'ERROR'}, "Properties from override data cannot be edited")
             return {'CANCELLED'}
@@ -2071,7 +2071,7 @@ class WM_OT_properties_edit_value(Operator):
 
     def execute(self, context):
         if self.eval_string:
-            rna_item = eval("context.{!s}".format(self.data_path))
+            rna_item = eval("context.{:s}".format(self.data_path))
             try:
                 new_value = eval(self.eval_string)
             except BaseException as ex:
@@ -2081,7 +2081,7 @@ class WM_OT_properties_edit_value(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, _event):
-        rna_item = eval("context.{!s}".format(self.data_path))
+        rna_item = eval("context.{:s}".format(self.data_path))
 
         if WM_OT_properties_edit.get_property_type(rna_item, self.property_name) == 'PYTHON':
             self.eval_string = WM_OT_properties_edit.convert_custom_property_to_string(rna_item, self.property_name)
@@ -2094,14 +2094,14 @@ class WM_OT_properties_edit_value(Operator):
     def draw(self, context):
         from bpy.utils import escape_identifier
 
-        rna_item = eval("context.{!s}".format(self.data_path))
+        rna_item = eval("context.{:s}".format(self.data_path))
 
         layout = self.layout
         if WM_OT_properties_edit.get_property_type(rna_item, self.property_name) == 'PYTHON':
             layout.prop(self, "eval_string")
         else:
             col = layout.column(align=True)
-            col.prop(rna_item, '["{!s}"]'.format(escape_identifier(self.property_name)), text="")
+            col.prop(rna_item, '["{:s}"]'.format(escape_identifier(self.property_name)), text="")
 
 
 class WM_OT_properties_add(Operator):
@@ -2118,7 +2118,7 @@ class WM_OT_properties_add(Operator):
         )
 
         data_path = self.data_path
-        item = eval("context.{!s}".format(data_path))
+        item = eval("context.{:s}".format(data_path))
 
         if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
             self.report({'ERROR'}, "Cannot add properties to override data")
@@ -2174,7 +2174,7 @@ class WM_OT_properties_remove(Operator):
             rna_idprop_ui_prop_update,
         )
         data_path = self.data_path
-        item = eval("context.{!s}".format(data_path))
+        item = eval("context.{:s}".format(data_path))
 
         if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
             self.report({'ERROR'}, "Cannot remove properties from override data")
@@ -2964,7 +2964,7 @@ class WM_OT_batch_rename(Operator):
             elif ty == 'STRIP':
                 chars = action.strip_chars
                 chars_strip = (
-                    "{!s}{!s}{!s}"
+                    "{:s}{:s}{:s}"
                 ).format(
                     string.punctuation if 'PUNCT' in chars else "",
                     string.digits if 'DIGIT' in chars else "",
@@ -3142,7 +3142,7 @@ class WM_OT_batch_rename(Operator):
             row.prop(action, "op_remove", text="", icon='REMOVE')
             row.prop(action, "op_add", text="", icon='ADD')
 
-        layout.label(text=iface_("Rename {:d} {!s}").format(len(self._data[0]), self._data[2]), translate=False)
+        layout.label(text=iface_("Rename {:d} {:s}").format(len(self._data[0]), self._data[2]), translate=False)
 
     def check(self, context):
         changed = False
@@ -3203,7 +3203,7 @@ class WM_OT_batch_rename(Operator):
                 change_len += 1
             total_len += 1
 
-        self.report({'INFO'}, rpt_("Renamed {:d} of {:d} {!s}").format(change_len, total_len, descr))
+        self.report({'INFO'}, rpt_("Renamed {:d} of {:d} {:s}").format(change_len, total_len, descr))
 
         return {'FINISHED'}
 
@@ -3365,22 +3365,22 @@ class WM_MT_splash_about(Menu):
 
         col = split.column(align=True)
         col.scale_y = 0.8
-        col.label(text=iface_("Version: {!s}").format(bpy.app.version_string), translate=False)
+        col.label(text=iface_("Version: {:s}").format(bpy.app.version_string), translate=False)
         col.separator(factor=2.5)
-        col.label(text=iface_("Date: {!s} {!s}").format(
+        col.label(text=iface_("Date: {:s} {:s}").format(
             bpy.app.build_commit_date.decode("utf-8", "replace"),
             bpy.app.build_commit_time.decode("utf-8", "replace")),
             translate=False
         )
-        col.label(text=iface_("Hash: {!s}").format(bpy.app.build_hash.decode("ascii")), translate=False)
-        col.label(text=iface_("Branch: {!s}").format(bpy.app.build_branch.decode("utf-8", "replace")), translate=False)
+        col.label(text=iface_("Hash: {:s}").format(bpy.app.build_hash.decode("ascii")), translate=False)
+        col.label(text=iface_("Branch: {:s}").format(bpy.app.build_branch.decode("utf-8", "replace")), translate=False)
 
         # This isn't useful information on MS-Windows or Apple systems as dynamically switching
         # between windowing systems is only supported between X11/WAYLAND.
         from _bpy import _ghost_backend
         ghost_backend = _ghost_backend()
         if ghost_backend not in {'NONE', 'DEFAULT'}:
-            col.label(text=iface_("Windowing Environment: {!s}").format(_ghost_backend()), translate=False)
+            col.label(text=iface_("Windowing Environment: {:s}").format(_ghost_backend()), translate=False)
         del _ghost_backend, ghost_backend
 
         col.separator(factor=2.0)
@@ -3450,7 +3450,7 @@ class WM_MT_region_toggle_pie(Menu):
             assert hasattr(space_data, attr)
             # Technically possible these double-up, in practice this should never happen.
             if region_type in region_by_type:
-                print("{!s}: Unexpected double-up of region types {!r}".format(cls.__name__, region_type))
+                print("{:s}: Unexpected double-up of region types {!r}".format(cls.__name__, region_type))
             region_by_type[region_type] = region
 
         # Axis aligned pie menu items to populate.

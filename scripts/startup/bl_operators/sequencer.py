@@ -236,7 +236,7 @@ class SequencerFadesAdd(Operator):
             sequence.invalidate_cache('COMPOSITE')
 
         sequence_string = "sequence" if len(faded_sequences) == 1 else "sequences"
-        self.report({'INFO'}, rpt_("Added fade animation to {:d} {!s}").format(len(faded_sequences), sequence_string))
+        self.report({'INFO'}, rpt_("Added fade animation to {:d} {:s}").format(len(faded_sequences), sequence_string))
         return {'FINISHED'}
 
     def calculate_fade_duration(self, context, sequence):

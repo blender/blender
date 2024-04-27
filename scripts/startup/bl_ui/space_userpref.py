@@ -123,7 +123,7 @@ class USERPREF_MT_save_load(Menu):
             display_name = bpy.path.display_name(iface_(app_template))
             layout.operator("wm.read_factory_userpref", text="Load Factory Blender Preferences")
             props = layout.operator("wm.read_factory_userpref",
-                                    text=iface_("Load Factory {!s} Preferences").format(display_name),
+                                    text=iface_("Load Factory {:s} Preferences").format(display_name),
                                     translate=False)
             props.use_factory_startup_app_template_only = True
             del display_name
@@ -2367,7 +2367,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
             sub = row.row()
             sub.active = is_enabled
-            sub.label(text="{!s}: {!s}".format(iface_(bl_info["category"]), iface_(bl_info["name"])))
+            sub.label(text="{:s}: {:s}".format(iface_(bl_info["category"]), iface_(bl_info["name"])))
 
             if bl_info["warning"]:
                 sub.label(icon='ERROR')
@@ -2424,8 +2424,8 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                         ).url = bl_info["tracker_url"]
                     elif not user_addon:
                         addon_info = (
-                            "Name: {!s} {!s}\n"
-                            "Author: {!s}\n"
+                            "Name: {:s} {:s}\n"
+                            "Author: {:s}\n"
                         ).format(bl_info["name"], str(bl_info["version"]), bl_info["author"])
                         props = sub.operator(
                             "wm.url_open_preset", text="Report a Bug", icon='URL',
@@ -2506,7 +2506,7 @@ class StudioLightPanelMixin:
             layout.label(text=self.get_error_message())
 
     def get_error_message(self):
-        return rpt_("No custom {!s} configured").format(self.bl_label)
+        return rpt_("No custom {:s} configured").format(self.bl_label)
 
     def draw_studio_light(self, layout, studio_light):
         box = layout.box()

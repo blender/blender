@@ -42,7 +42,7 @@ class ConsoleExec(Operator):
         if execute is not None:
             return execute(context, self.interactive)
         else:
-            print("Error: bpy.ops.console.execute_{!s} - not found".format(sc.language))
+            print("Error: bpy.ops.console.execute_{:s} - not found".format(sc.language))
             return {'FINISHED'}
 
 
@@ -64,7 +64,7 @@ class ConsoleAutocomplete(Operator):
         if autocomplete:
             return autocomplete(context)
         else:
-            print("Error: bpy.ops.console.autocomplete_{!s} - not found".format(sc.language))
+            print("Error: bpy.ops.console.autocomplete_{:s} - not found".format(sc.language))
             return {'FINISHED'}
 
 
@@ -112,7 +112,7 @@ class ConsoleBanner(Operator):
         if banner:
             return banner(context)
         else:
-            print("Error: bpy.ops.console.banner_{!s} - not found".format(sc.language))
+            print("Error: bpy.ops.console.banner_{:s} - not found".format(sc.language))
             return {'FINISHED'}
 
 

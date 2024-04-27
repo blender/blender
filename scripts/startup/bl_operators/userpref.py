@@ -231,7 +231,7 @@ class PREFERENCES_OT_keyconfig_import(Operator):
             else:
                 shutil.move(self.filepath, path)
         except BaseException as ex:
-            self.report({'ERROR'}, rpt_("Installing keymap failed: {!s}").format(str(ex)))
+            self.report({'ERROR'}, rpt_("Installing keymap failed: {:s}").format(str(ex)))
             return {'CANCELLED'}
 
         # sneaky way to check we're actually running the code.
@@ -750,7 +750,7 @@ class PREFERENCES_OT_addon_install(Operator):
         bpy.utils.refresh_script_paths()
 
         # print message
-        msg = rpt_("Modules Installed ({!s}) from {!r} into {!r}").format(
+        msg = rpt_("Modules Installed ({:s}) from {!r} into {!r}").format(
             ", ".join(sorted(addons_new)), pyfile, path_addons,
         )
 
@@ -966,7 +966,7 @@ class PREFERENCES_OT_app_template_install(Operator):
         bpy.utils.refresh_script_paths()
 
         # print message
-        msg = rpt_("Template Installed ({!s}) from {!r} into {!r}").format(
+        msg = rpt_("Template Installed ({:s}) from {!r} into {!r}").format(
             ", ".join(sorted(app_templates_new)),
             filepath,
             path_app_templates,

@@ -67,12 +67,12 @@ class TEXT_HT_footer(Header):
             if text.filepath:
                 if text.is_dirty:
                     row.label(
-                        text=iface_("File: *{!s} (unsaved)").format(text.filepath),
+                        text=iface_("File: *{:s} (unsaved)").format(text.filepath),
                         translate=False,
                     )
                 else:
                     row.label(
-                        text=iface_("File: {!s}").format(text.filepath),
+                        text=iface_("File: {:s}").format(text.filepath),
                         translate=False,
                     )
             else:

@@ -125,7 +125,7 @@ class WM_OT_previews_batch_generate(Operator):
             if not self.use_backups:
                 cmd.append("--no_backups")
             if subprocess.call(cmd):
-                self.report({'ERROR'}, rpt_("Previews generation process failed for file '{!s}'!").format(blen_path))
+                self.report({'ERROR'}, rpt_("Previews generation process failed for file '{:s}'!").format(blen_path))
                 context.window_manager.progress_end()
                 return {'CANCELLED'}
             context.window_manager.progress_update(i + 1)
@@ -235,7 +235,7 @@ class WM_OT_previews_batch_clear(Operator):
             if not self.use_backups:
                 cmd.append("--no_backups")
             if subprocess.call(cmd):
-                self.report({'ERROR'}, rpt_("Previews clear process failed for file '{!s}'!").format(blen_path))
+                self.report({'ERROR'}, rpt_("Previews clear process failed for file '{:s}'!").format(blen_path))
                 context.window_manager.progress_end()
                 return {'CANCELLED'}
             context.window_manager.progress_update(i + 1)
