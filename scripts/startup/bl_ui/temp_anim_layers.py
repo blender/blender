@@ -69,7 +69,7 @@ class VIEW3D_PT_animation_layers(Panel):
         for layer_idx, layer in reversed(list(enumerate(anim.layers))):
             layerbox = layout.box()
             col = layerbox.column(align=True)
-            col.prop(layer, "name", text="Layer %d:" % (layer_idx + 1))
+            col.prop(layer, "name", text="Layer {:d}:".format(layer_idx + 1))
             col.prop(layer, "influence")
             col.prop(layer, "mix_mode")
 

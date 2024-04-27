@@ -75,10 +75,10 @@ class RENDER_PT_format(RenderOutputButtonsPanel, Panel):
         custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60, 120, 240})
 
         if custom_framerate is True:
-            fps_label_text = iface_("Custom (%.4g fps)") % fps_rate
+            fps_label_text = iface_("Custom ({:.4g} fps)").format(fps_rate)
             show_framerate = True
         else:
-            fps_label_text = iface_("%.4g fps") % fps_rate
+            fps_label_text = iface_("{:.4g} fps").format(fps_rate)
             show_framerate = (preset_label == "Custom")
 
         RENDER_PT_format._frame_rate_args_prev = args

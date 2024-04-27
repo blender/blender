@@ -551,7 +551,7 @@ def lightmap_uvpack(
     for me in meshes:
         me.update()
 
-    print("finished all %.2f " % (time.time() - t))
+    print("finished all {:.2f} ".format(time.time() - t))
 
 
 def unwrap(operator, context, **kwargs):

@@ -378,8 +378,8 @@ class TOPBAR_MT_file_defaults(Menu):
             props = layout.operator("wm.read_factory_settings", text="Load Factory Blender Settings")
             props.app_template = app_template
             props = layout.operator("wm.read_factory_settings",
-                                    text=iface_("Load Factory %s Settings",
-                                                i18n_contexts.operator_default) % display_name,
+                                    text=iface_("Load Factory {!s} Settings",
+                                                i18n_contexts.operator_default).format(display_name),
                                     translate=False)
             props.app_template = app_template
             props.use_factory_startup_app_template_only = True

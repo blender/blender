@@ -277,7 +277,7 @@ class QuickExplode(ObjectModeOperator, Operator):
 
         for obj in mesh_objects:
             if obj.particle_systems:
-                self.report({'ERROR'}, rpt_("Object %r already has a " "particle system") % obj.name)
+                self.report({'ERROR'}, rpt_("Object {!r} already has a particle system").format(obj.name))
 
                 return {'CANCELLED'}
 

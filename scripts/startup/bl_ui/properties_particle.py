@@ -224,7 +224,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
                 row.template_ID(psys, "settings", new="particle.new")
 
             if part.is_fluid:
-                layout.label(text=rpt_("%d fluid particles for this frame") % part.count, translate=False)
+                layout.label(text=rpt_("{:d} fluid particles for this frame").format(part.count), translate=False)
                 return
 
             row = layout.row()
@@ -435,12 +435,18 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
                 label = "ERROR"
                 icon = 'ERROR'
             box.label(text=label, icon=icon)
-            box.label(text=rpt_("Iterations: %d .. %d (avg. %d)") %
-                      (result.min_iterations, result.max_iterations, result.avg_iterations),
-                      translate=False)
-            box.label(text=rpt_("Error: %.5f .. %.5f (avg. %.5f)")
-                      % (result.min_error, result.max_error, result.avg_error),
-                      translate=False)
+            box.label(
+                text=rpt_("Iterations: {:d} .. {:d} (avg. {:d})").format(
+                    result.min_iterations, result.max_iterations, result.avg_iterations,
+                ),
+                translate=False,
+            )
+            box.label(
+                text=rpt_("Error: {:.5f} .. {:.5f} (avg. {:.5f})").format(
+                    result.min_error, result.max_error, result.avg_error,
+                ),
+                translate=False,
+            )
 
 
 class PARTICLE_PT_hair_dynamics_collision(ParticleButtonsPanel, Panel):
@@ -839,7 +845,7 @@ class PARTICLE_PT_physics_fluid_advanced(ParticleButtonsPanel, Panel):
             particle_volume = part.mass / fluid.rest_density
             spacing = pow(particle_volume, 1.0 / 3.0)
 
-            sub.label(text=iface_("Spacing: %g") % spacing, translate=False)
+            sub.label(text=iface_("Spacing: {:g}").format(spacing), translate=False)
 
 
 class PARTICLE_PT_physics_fluid_springs(ParticleButtonsPanel, Panel):

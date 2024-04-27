@@ -119,7 +119,7 @@ class PlayRenderedAnim(Operator):
             file = rd.frame_path(frame=scene.frame_start, preview=scene.use_preview_range, view=view_suffix)
             file = bpy.path.abspath(file)  # expand '//'
             if not os.path.exists(file):
-                err_msg = rpt_("File %r not found") % file
+                err_msg = rpt_("File {!r} not found").format(file)
                 self.report({'WARNING'}, err_msg)
                 path_valid = False
 
@@ -127,7 +127,7 @@ class PlayRenderedAnim(Operator):
             if scene.use_preview_range and not path_valid:
                 file = rd.frame_path(frame=scene.frame_start, preview=False, view=view_suffix)
                 file = bpy.path.abspath(file)  # expand '//'
-                err_msg = rpt_("File %r not found") % file
+                err_msg = rpt_("File {!r} not found").format(file)
                 if not os.path.exists(file):
                     self.report({'WARNING'}, err_msg)
 
@@ -160,14 +160,14 @@ class PlayRenderedAnim(Operator):
             ]
             cmd.extend(opts)
         elif preset == 'FRAMECYCLER':
-            opts = [file, "%d-%d" % (scene.frame_start, scene.frame_end)]
+            opts = [file, "{:d}-{:d}".format(scene.frame_start, scene.frame_end)]
             cmd.extend(opts)
         elif preset == 'RV':
             opts = ["-fps", str(rd.fps), "-play"]
             if scene.use_preview_range:
                 opts += [
                     file.replace("#", "", file.count('#') - 1),
-                    "%d-%d" % (frame_start, frame_end),
+                    "{:d}-{:d}".format(frame_start, frame_end),
                 ]
             else:
                 opts.append(file)
@@ -181,7 +181,7 @@ class PlayRenderedAnim(Operator):
                 opts += [
                     ("mf://" + file.replace("#", "?")),
                     "-mf",
-                    "fps=%.4f" % fps_final,
+                    "fps={:.4f}".format(fps_final),
                 ]
 
             opts += ["-loop", "0", "-really-quiet", "-fs"]
@@ -195,7 +195,7 @@ class PlayRenderedAnim(Operator):
         try:
             subprocess.Popen(cmd)
         except BaseException as ex:
-            err_msg = rpt_("Couldn't run external animation player with command %r\n%s") % (cmd, ex)
+            err_msg = rpt_("Couldn't run external animation player with command {!r}\n{!s}").format(cmd, str(ex))
             self.report(
                 {'ERROR'},
                 err_msg,

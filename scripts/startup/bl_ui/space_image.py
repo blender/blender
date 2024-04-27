@@ -127,7 +127,7 @@ class IMAGE_MT_view_zoom(Menu):
             percent = ratio * 100.0
             layout.operator(
                 "image.view_zoom_ratio",
-                text="%g%% (%d:%d)" % (percent, a, b),
+                text="{:g}% ({:d}:{:d})".format(percent, a, b),
                 translate=False,
                 icon='LAYER_ACTIVE' if isclose(percent, current_zoom, abs_tol=0.5) else 'NONE',
             ).ratio = ratio

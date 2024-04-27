@@ -125,7 +125,7 @@ class WM_OT_previews_batch_generate(Operator):
             if not self.use_backups:
                 cmd.append("--no_backups")
             if subprocess.call(cmd):
-                self.report({'ERROR'}, rpt_("Previews generation process failed for file '%s'!") % blen_path)
+                self.report({'ERROR'}, rpt_("Previews generation process failed for file '{!s}'!").format(blen_path))
                 context.window_manager.progress_end()
                 return {'CANCELLED'}
             context.window_manager.progress_update(i + 1)
@@ -235,7 +235,7 @@ class WM_OT_previews_batch_clear(Operator):
             if not self.use_backups:
                 cmd.append("--no_backups")
             if subprocess.call(cmd):
-                self.report({'ERROR'}, rpt_("Previews clear process failed for file '%s'!") % blen_path)
+                self.report({'ERROR'}, rpt_("Previews clear process failed for file '{!s}'!").format(blen_path))
                 context.window_manager.progress_end()
                 return {'CANCELLED'}
             context.window_manager.progress_update(i + 1)
@@ -273,8 +273,9 @@ class WM_OT_blend_strings_utf8_validate(Operator):
                 val_utf8 = val_bytes.decode("utf-8", "replace")
                 val_bytes_valid = val_utf8.encode("utf-8")
                 if val_bytes_valid != val_bytes:
-                    print("found bad utf8 encoded string %r, fixing to %r (%r)..."
-                          "" % (val_bytes, val_bytes_valid, val_utf8))
+                    print("found bad utf8 encoded string {!r}, fixing to {!r} ({!r})...".format(
+                        val_bytes, val_bytes_valid, val_utf8,
+                    ))
                     setattr(item, prop.identifier, val_utf8)
                     changed = True
             elif prop.type == 'POINTER':

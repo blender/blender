@@ -213,7 +213,7 @@ class ToolSelectPanelHelper:
         The value is must be a sequence of (mode, tool_list) pairs, where mode may be object-mode edit-mode etc.
         The mode may be None for tool-bars that don't make use of sub-modes.
         """
-        raise Exception("Sub-class %r must implement this method!" % cls)
+        raise Exception("Sub-class {!r} must implement this method!".format(cls))
 
     @classmethod
     def tools_from_context(cls, context, mode=None):
@@ -221,7 +221,7 @@ class ToolSelectPanelHelper:
         Return all tools for the current context,
         this result is used at run-time and may filter out tools to display.
         """
-        raise Exception("Sub-class %r must implement this method!" % cls)
+        raise Exception("Sub-class {!r} must implement this method!".format(cls))
 
     @staticmethod
     def _tool_class_from_space_type(space_type):
@@ -486,7 +486,7 @@ class ToolSelectPanelHelper:
 
     @classmethod
     def _km_action_simple(cls, kc_default, kc, context_descr, label, keymap_fn):
-        km_idname = "%s %s, %s" % (cls.keymap_prefix, context_descr, label)
+        km_idname = "{!s} {!s}, {!s}".format(cls.keymap_prefix, context_descr, label)
         km = kc.keymaps.get(km_idname)
         km_kwargs = dict(space_type=cls.bl_space_type, region_type='WINDOW', tool=True)
         if km is None:
@@ -1053,7 +1053,7 @@ def _activate_by_item(context, space_type, item, index, *, as_fallback=False):
             gizmo_properties = item.widget_properties
             if gizmo_properties is not None:
                 if not isinstance(gizmo_properties, list):
-                    raise Exception("expected a list, not a %r" % type(gizmo_properties))
+                    raise Exception("expected a list, not a {!r}".format(type(gizmo_properties)))
 
                 from bl_keymap_utils.io import _init_properties_from_data
                 _init_properties_from_data(props, gizmo_properties)

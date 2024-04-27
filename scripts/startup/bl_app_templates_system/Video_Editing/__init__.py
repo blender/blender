@@ -21,7 +21,7 @@ def update_factory_startup_ffmpeg_preset():
     preset = "H264_in_MP4"
     preset_filepath = bpy.utils.preset_find(preset, preset_path="ffmpeg")
     if not preset_filepath:
-        print("Preset %r not found" % preset)
+        print("Preset {!r} not found".format(preset))
 
     for scene in bpy.data.scenes:
         render = scene.render

@@ -96,7 +96,7 @@ class WORKSPACE_UL_addons_items(UIList):
         if not module:
             return addon.module
         bl_info = addon_utils.module_bl_info(module)
-        return "%s: %s" % (iface_(bl_info["category"]), iface_(bl_info["name"]))
+        return "{!s}: {!s}".format(iface_(bl_info["category"]), iface_(bl_info["name"]))
 
     @staticmethod
     def _filter_addons_by_category_name(pattern, bitflag, addons, reverse=False):

@@ -364,12 +364,12 @@ class ShapeTransfer(Operator):
         for ob_other in objects:
             if ob_other.type != 'MESH':
                 self.report({'WARNING'},
-                            rpt_("Skipping '%s', not a mesh") % ob_other.name)
+                            rpt_("Skipping '{!s}', not a mesh").format(ob_other.name))
                 continue
             me_other = ob_other.data
             if len(me_other.vertices) != len(me.vertices):
                 self.report({'WARNING'},
-                            rpt_("Skipping '%s', vertex count differs") % ob_other.name)
+                            rpt_("Skipping '{!s}', vertex count differs").format(ob_other.name))
                 continue
 
             target_normals = me_nos(me_other.vertices)
@@ -506,9 +506,10 @@ class JoinUVs(Operator):
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         if not mesh.uv_layers:
-            self.report({'WARNING'},
-                        rpt_("Object: %s, Mesh: '%s' has no UVs")
-                        % (obj.name, mesh.name))
+            self.report(
+                {'WARNING'},
+                rpt_("Object: {!s}, Mesh: '{!s}' has no UVs").format(obj.name, mesh.name),
+            )
         else:
             nbr_loops = len(mesh.loops)
 
@@ -530,31 +531,33 @@ class JoinUVs(Operator):
                             mesh_other.tag = True
 
                             if len(mesh_other.loops) != nbr_loops:
-                                self.report({'WARNING'},
-                                            rpt_("Object: %s, Mesh: "
-                                                 "'%s' has %d loops (for %d faces),"
-                                                 " expected %d\n")
-                                            % (obj_other.name,
-                                               mesh_other.name,
-                                               len(mesh_other.loops),
-                                               len(mesh_other.polygons),
-                                               nbr_loops,
-                                               ),
-                                            )
+                                self.report(
+                                    {'WARNING'},
+                                    rpt_(
+                                        "Object: {!s}, Mesh: '{!s}' has {:d} loops (for {:d} faces), expected {:d}\n"
+                                    ).format(
+                                        obj_other.name,
+                                        mesh_other.name,
+                                        len(mesh_other.loops),
+                                        len(mesh_other.polygons),
+                                        nbr_loops,
+                                    ),
+                                )
                             else:
                                 uv_other = mesh_other.uv_layers.active
                                 if not uv_other:
                                     mesh_other.uv_layers.new()
                                     uv_other = mesh_other.uv_layers.active
                                     if not uv_other:
-                                        self.report({'ERROR'},
-                                                    rpt_("Could not add "
-                                                         "a new UV map to object "
-                                                         "'%s' (Mesh '%s')\n")
-                                                    % (obj_other.name,
-                                                       mesh_other.name,
-                                                       ),
-                                                    )
+                                        self.report(
+                                            {'ERROR'},
+                                            rpt_(
+                                                "Could not add a new UV map to object '{!s}' (Mesh '{!s}')\n"
+                                            ).format(
+                                                obj_other.name,
+                                                mesh_other.name,
+                                            ),
+                                        )
 
                                 # finally do the copy
                                 uv_other.data.foreach_set("uv", uv_array)
@@ -790,9 +793,10 @@ class TransformsToDeltasAnim(Operator):
         for obj in context.selected_editable_objects:
             adt = obj.animation_data
             if (adt is None) or (adt.action is None):
-                self.report({'WARNING'},
-                            rpt_("No animation data to convert on object: %r")
-                            % obj.name)
+                self.report(
+                    {'WARNING'},
+                    rpt_("No animation data to convert on object: {!r}").format(obj.name),
+                )
                 continue
 
             # first pass over F-Curves: ensure that we don't have conflicting
@@ -818,9 +822,8 @@ class TransformsToDeltasAnim(Operator):
                     if fcu.array_index in existingFCurves[dpath]:
                         # conflict
                         self.report({'ERROR'},
-                                    rpt_("Object %r already has %r F-Curve(s). "
-                                         "Remove these before trying again") %
-                                    (obj.name, dpath))
+                                    rpt_("Object {!r} already has {!r} F-Curve(s). "
+                                         "Remove these before trying again").format(obj.name, dpath))
                         return {'CANCELLED'}
                     else:
                         # no conflict here

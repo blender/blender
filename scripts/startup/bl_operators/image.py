@@ -62,9 +62,10 @@ class EditExternally(Operator):
             return {'CANCELLED'}
 
         if not os.path.exists(filepath) or not os.path.isfile(filepath):
-            self.report({'ERROR'},
-                        rpt_("Image path %r not found, image may be packed or "
-                             "unsaved") % filepath)
+            self.report(
+                {'ERROR'},
+                rpt_("Image path {!r} not found, image may be packed or unsaved").format(filepath),
+            )
             return {'CANCELLED'}
 
         cmd = self._editor_guess(context) + [filepath]
@@ -160,7 +161,7 @@ class ProjectEdit(Operator):
         i = 0
 
         while os.path.exists(bpy.path.abspath(filepath_final)):
-            filepath_final = filepath + ("%.3d.%s" % (i, EXT))
+            filepath_final = filepath + "{:03d}.{!s}".format(i, EXT)
             i += 1
 
         image_new.name = bpy.path.basename(filepath_final)
@@ -190,7 +191,7 @@ class ProjectApply(Operator):
         image_name = ProjectEdit._proj_hack[0]  # TODO, deal with this nicer
         image = bpy.data.images.get((image_name, None))
         if image is None:
-            self.report({'ERROR'}, rpt_("Could not find image '%s'") % image_name)
+            self.report({'ERROR'}, rpt_("Could not find image '{!s}'").format(image_name))
             return {'CANCELLED'}
 
         image.reload()
@@ -289,7 +290,7 @@ class IMAGE_OT_open_images(Operator):
             )
             is_tiled = context.edit_image.source == 'TILED'
             if len(files) > 1 and self.use_sequence_detection and not is_tiled:
-                context.edit_image.name = "%s%s%s" % (seq["prefix"], ("#" * seq["frame_size"]), seq["ext"])
+                context.edit_image.name = "{!s}{!s}{!s}".format(seq["prefix"], ("#" * seq["frame_size"]), seq["ext"])
 
         return {'FINISHED'}
 
