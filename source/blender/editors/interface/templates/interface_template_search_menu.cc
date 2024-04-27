@@ -382,11 +382,7 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
   ListBase operator_items = {nullptr, nullptr};
 
   MemArena *memarena = data->memarena;
-  GHashIterator iter;
-  for (WM_operatortype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter))
-  {
-    wmOperatorType *ot = (wmOperatorType *)BLI_ghashIterator_getValue(&iter);
-
+  for (wmOperatorType *ot : WM_operatortype_map().values()) {
     if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0) {
       continue;
     }

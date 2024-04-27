@@ -50,8 +50,6 @@ static void operator_search_update_fn(const bContext *C,
                                       uiSearchItems *items,
                                       const bool /*is_first*/)
 {
-  GHashIterator iter;
-
   /* Prepare BLI_string_all_words_matched. */
   const size_t str_len = strlen(str);
   const int words_max = BLI_string_max_possible_word_count(str_len);
@@ -59,9 +57,7 @@ static void operator_search_update_fn(const bContext *C,
   const int words_len = BLI_string_find_split_words(
       str, str_len, ' ', (int(*)[2])words.data(), words_max);
 
-  for (WM_operatortype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter))
-  {
-    wmOperatorType *ot = static_cast<wmOperatorType *>(BLI_ghashIterator_getValue(&iter));
+  for (wmOperatorType *ot : WM_operatortype_map().values()) {
     const char *ot_ui_name = CTX_IFACE_(ot->translation_context, ot->name);
 
     if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0) {

@@ -54,10 +54,6 @@ void wm_operator_register(bContext *C, wmOperator *op);
 
 void wm_operatortype_free();
 /**
- * Called on initialize #WM_init().
- */
-void wm_operatortype_init();
-/**
  * Default key-map for windows and screens, only call once per WM.
  */
 void wm_window_keymap(wmKeyConfig *keyconf);

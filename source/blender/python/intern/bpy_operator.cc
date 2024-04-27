@@ -392,16 +392,13 @@ static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
 
 static PyObject *pyop_dir(PyObject * /*self*/)
 {
-  GHashIterator iter;
-  PyObject *list;
-  int i;
+  const wmOperatorTypeMap &map = WM_operatortype_map();
+  PyObject *list = PyList_New(map.size());
 
-  WM_operatortype_iter(&iter);
-  list = PyList_New(BLI_ghash_len(iter.gh));
-
-  for (i = 0; !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter), i++) {
-    wmOperatorType *ot = static_cast<wmOperatorType *>(BLI_ghashIterator_getValue(&iter));
+  int i = 0;
+  for (wmOperatorType *ot : map.values()) {
     PyList_SET_ITEM(list, i, PyUnicode_FromString(ot->idname));
+    i++;
   }
 
   return list;
