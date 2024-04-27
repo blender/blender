@@ -230,14 +230,14 @@ def report_personal_weekly_get(username: str, start: datetime.datetime, verbose:
 
     issues_involved = issues_closed | issues_commented | issues_created
 
-    print("**Involved in %s reports:**                                     " % len(issues_involved))
-    print("* Confirmed: %s" % len(issues_confirmed))
-    print("* Closed as Resolved: %s" % len(issues_fixed))
-    print("* Closed as Archived: %s" % len(issues_archived))
-    print("* Closed as Duplicate: %s" % len(issues_duplicated))
-    print("* Needs Info from User: %s" % len(issues_needing_user_info))
-    print("* Needs Info from Developers: %s" % len(issues_needing_developer_info))
-    print("* Actions total: %s" % (len(issues_closed) + len(issues_commented) + len(issues_created)))
+    print("**Involved in {:d} reports:**                                     ".format(len(issues_involved)))
+    print("* Confirmed: {:d}".format(len(issues_confirmed)))
+    print("* Closed as Resolved: {:d}".format(len(issues_fixed)))
+    print("* Closed as Archived: {:d}".format(len(issues_archived)))
+    print("* Closed as Duplicate: {:d}".format(len(issues_duplicated)))
+    print("* Needs Info from User: {:d}".format(len(issues_needing_user_info)))
+    print("* Needs Info from Developers: {:d}".format(len(issues_needing_developer_info)))
+    print("* Actions total: {:d}".format(len(issues_closed) + len(issues_commented) + len(issues_created)))
     print()
 
     # Print review stats
@@ -248,12 +248,12 @@ def report_personal_weekly_get(username: str, start: datetime.datetime, verbose:
             owner, repo, _, number = pull.split('/')
             print(f"* {title} ({owner}/{repo}!{number})")
 
-    print("**Review: %s**" % len(pulls_reviewed))
+    print("**Review: {:d}**".format(len(pulls_reviewed)))
     print_pulls(pulls_reviewed)
     print()
 
     # Print created diffs
-    print("**Created Pull Requests: %s**" % len(pulls_created))
+    print("**Created Pull Requests: {:d}**".format(len(pulls_created)))
     print_pulls(pulls_created)
     print()
 

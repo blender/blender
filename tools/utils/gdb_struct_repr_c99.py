@@ -46,7 +46,7 @@ class PrintStructC99(gdb.Command):
             print(' ' * hs + '.' + rr_s[0] + '= ' + rr_rval)
 
 
-print('Running GDB from: %s\n' % (gdb.PYTHONDIR))
+print('Running GDB from: {:s}\n'.format(gdb.PYTHONDIR))
 gdb.execute("set print pretty")
 gdb.execute('set pagination off')
 gdb.execute('set print repeats 0')

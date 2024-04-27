@@ -111,7 +111,7 @@ def autopep8_ensure_version(autopep8_format_cmd_argument: str) -> Optional[Tuple
     if version_str is not None:
         # Ensure exactly 3 numbers.
         major, minor, patch = (tuple(int(n) for n in version_str.split("-")[0].split(".")) + (0, 0, 0))[0:3]
-        print("Using %s (%d.%d.%d)..." % (AUTOPEP8_FORMAT_CMD, major, minor, patch))
+        print("Using {:s} ({:d}.{:d}.{:d})...".format(AUTOPEP8_FORMAT_CMD, major, minor, patch))
         return major, minor, patch
     return None
 
@@ -177,9 +177,10 @@ def main() -> None:
     if version is None:
         print("Unable to detect 'autopep8 --version'")
         print(
-            "You may want to install autopep8-%d.%d, "
-            "or use the precompiled libs repository." %
-            (VERSION_MAX_RECOMMENDED[0], VERSION_MAX_RECOMMENDED[1]),
+            "You may want to install autopep8-{:d}.{:d}, "
+            "or use the precompiled libs repository.".format(
+                VERSION_MAX_RECOMMENDED[0], VERSION_MAX_RECOMMENDED[1],
+            ),
         )
         sys.exit(1)
     if version < VERSION_MIN:
@@ -191,15 +192,16 @@ def main() -> None:
             version, ">", VERSION_MAX_RECOMMENDED,
         )
         print(
-            "You may want to install autopep8-%d.%d, "
-            "or use the precompiled libs repository." %
-            (VERSION_MAX_RECOMMENDED[0], VERSION_MAX_RECOMMENDED[1]),
+            "You may want to install autopep8-{:d}.{:d}, "
+            "or use the precompiled libs repository.".format(
+                VERSION_MAX_RECOMMENDED[0], VERSION_MAX_RECOMMENDED[1],
+            ),
         )
 
     use_default_paths = not (bool(args.paths) or bool(args.changed_only))
 
     paths = compute_paths(args.paths, use_default_paths)
-    print("Operating on:" + (" (%d changed paths)" % len(paths) if args.changed_only else ""))
+    print("Operating on:" + (" ({:d} changed paths)".format(len(paths)) if args.changed_only else ""))
     for p in paths:
         print(" ", p)
 

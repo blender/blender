@@ -50,7 +50,7 @@ def block_data(data, i_start):
             data[i_begin] = data[i_begin].replace("//", "/*", 1)
             for i in range(i_begin + 1, i_end + 1):
                 data[i] = data[i].replace("//", " *", 1)
-            data[i_end] = "%s */" % data[i_end].rstrip()
+            data[i_end] = "{:s} */".format(data[i_end].rstrip())
     # done with block comment, still go onto do regular replace
     return max(i_end, i_start + 1)
 
@@ -69,7 +69,7 @@ for i, l in enumerate(data):
 
         text, comment = l.split("//", 1)
 
-        l = "%s/* %s */" % (text, comment.strip())
+        l = "{:s}/* {:s} */".format(text, comment.strip())
 
         data[i] = l
 
