@@ -223,7 +223,12 @@ def write_sysinfo(filepath):
                 if addon_mod is None:
                     output.write("%s (MISSING)\n" % (addon))
                 else:
-                    output.write("%s (version: %s, path: %s)\n" %
-                                 (addon, addon_mod.bl_info.get('version', "UNKNOWN"), addon_mod.__file__))
+                    output.write(
+                        "%s (version: %s, path: %r)\n" % (
+                            addon,
+                            addon_mod.bl_info.get("version", "UNKNOWN"),
+                            addon_mod.__file__,
+                        )
+                    )
         except BaseException as ex:
             output.write("ERROR: %s\n" % ex)

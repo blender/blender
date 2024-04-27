@@ -235,7 +235,7 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
                 import traceback
                 traceback.print_exc()
         else:
-            print("\nWarning! '%s' has no register function, "
+            print("\nWarning! %r has no register function, "
                   "this is now a requirement for registerable scripts" %
                   mod.__file__)
 
