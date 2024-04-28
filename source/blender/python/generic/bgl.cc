@@ -26,8 +26,6 @@
 
 #include "BKE_global.hh"
 
-#include "../generic/py_capi_utils.h"
-
 #include <epoxy/gl.h>
 
 #include "bgl.h"
