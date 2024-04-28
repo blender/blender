@@ -260,7 +260,7 @@ static bool library_foreach_ID_link(Main *bmain,
     data.self_id = id;
     /* Note that we may call this functions sometime directly on an embedded ID, without any
      * knowledge of the owner ID then.
-     * While not great, and that should be probably sanitized at some point, we cal live with it
+     * While not great, and that should be probably sanitized at some point, we can live with it
      * for now. */
     data.owner_id = ((id->flag & LIB_EMBEDDED_DATA) != 0 && owner_id != nullptr) ? owner_id :
                                                                                    data.self_id;
@@ -397,6 +397,31 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
   else if (cb_flag & IDWALK_CB_USER_ONE) {
     id_us_ensure_real(id_dst);
   }
+}
+
+void BKE_library_foreach_subdata_id(
+    Main *bmain,
+    ID *owner_id,
+    ID *self_id,
+    blender::FunctionRef<void(LibraryForeachIDData *data)> subdata_foreach_id,
+    blender::FunctionRef<LibraryIDLinkCallback> callback,
+    void *user_data,
+    const int flag)
+{
+  BLI_assert((flag & (IDWALK_RECURSE | IDWALK_DO_INTERNAL_RUNTIME_POINTERS |
+                      IDWALK_DO_LIBRARY_POINTER | IDWALK_INCLUDE_UI)) == 0);
+
+  LibraryForeachIDData data{};
+  data.bmain = bmain;
+  data.owner_id = owner_id;
+  data.self_id = self_id;
+  data.ids_handled = nullptr;
+  data.flag = flag;
+  data.status = 0;
+  data.callback = callback;
+  data.user_data = user_data;
+
+  subdata_foreach_id(&data);
 }
 
 uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id,

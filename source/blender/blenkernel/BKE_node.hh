@@ -35,6 +35,7 @@ struct GPUMaterial;
 struct GPUNodeStack;
 struct ID;
 struct ImBuf;
+struct LibraryForeachIDData;
 struct Light;
 struct Main;
 struct Material;
@@ -1419,6 +1420,14 @@ void node_socket_move_default_value(Main &bmain,
  * \note ID user reference-counting and changing the `nodes_by_id` vector are up to the caller.
  */
 void node_free_node(bNodeTree *tree, bNode *node);
+
+/**
+ * Iterate over all ID usages of the given node.
+ * Can be used with #BKE_library_foreach_subdata_ID_link.
+ *
+ * See BKE_lib_query.hh and #IDTypeInfo.foreach_id for more details.
+ */
+void node_node_foreach_id(bNode *node, LibraryForeachIDData *data);
 
 /**
  * Set the mute status of a single link.

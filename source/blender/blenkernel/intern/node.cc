@@ -319,7 +319,7 @@ static void ntree_free_data(ID *id)
   MEM_delete(ntree->runtime);
 }
 
-static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket *sock)
+static void library_foreach_node_socket(bNodeSocket *sock, LibraryForeachIDData *data)
 {
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
       data, IDP_foreach_property(sock->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
@@ -371,6 +371,22 @@ static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket 
   }
 }
 
+void node_node_foreach_id(bNode *node, LibraryForeachIDData *data)
+{
+  BKE_LIB_FOREACHID_PROCESS_ID(data, node->id, IDWALK_CB_USER);
+
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+      data, IDP_foreach_property(node->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+        BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+      }));
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(sock, data));
+  }
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(sock, data));
+  }
+}
+
 static void node_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -383,18 +399,7 @@ static void node_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, ntree->gpd, IDWALK_CB_USER);
 
   for (bNode *node : ntree->all_nodes()) {
-    BKE_LIB_FOREACHID_PROCESS_ID(data, node->id, IDWALK_CB_USER);
-
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
-        data, IDP_foreach_property(node->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
-          BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
-        }));
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(data, sock));
-    }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(data, sock));
-    }
+    node_node_foreach_id(node, data);
   }
 
   ntree->tree_interface.foreach_id(data);
