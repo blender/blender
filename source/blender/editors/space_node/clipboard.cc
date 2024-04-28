@@ -31,11 +31,12 @@ struct NodeClipboardItemIDInfo {
   /** Name of the referenced ID. */
   std::string id_name = "";
   /**
-   * Library filepath of the referenced ID, together with its name it forms a unique identifer.
+   * Library filepath of the referenced ID, together with its name it forms a unique identifier.
    *
    * Note: Library reference is stored as an absolute path. Since the Node clipboard is runtime
-   * data, persistent over new blendfiles opening, this should guarantee that identical IDs from
-   * identical libraries can be matched accordingly, even accross several blendfiles.  */
+   * data, persistent over new blend-files opening, this should guarantee that identical IDs from
+   * identical libraries can be matched accordingly, even across several blend-files.
+   */
   std::string library_path = "";
 
   /** The validated ID pointer (may be the same as the original one, or a new one). */
@@ -112,8 +113,8 @@ struct NodeClipboard {
      *
      * NOTE: Due to the fact that the clipboard survives file loading, only name (including IDType)
      * and libpath pairs can be used here.
-     *   - UID cannot be trusted accross file load.
-     *   - ID pointer itself cannot be trusted accross undo/redo and fileload. */
+     *   - UID cannot be trusted across file load.
+     *   - ID pointer itself cannot be trusted across undo/redo and file-load. */
     auto validate_id_fn = [this, &is_valid, &bmain, &bmain_id_map, &libraries_path_to_id](
                               LibraryIDLinkCallbackData *cb_data) -> int {
       ID *old_id = *(cb_data->id_pointer);
