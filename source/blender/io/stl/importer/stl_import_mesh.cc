@@ -11,8 +11,11 @@
 #include "BKE_mesh.hh"
 
 #include "BLI_array_utils.hh"
-#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
 
+#include "DNA_mesh_types.h"
+
+#include "stl_data.hh"
 #include "stl_import_mesh.hh"
 
 namespace blender::io::stl {
@@ -30,11 +33,11 @@ STLMeshHelper::STLMeshHelper(int tris_num, bool use_custom_normals)
   }
 }
 
-bool STLMeshHelper::add_triangle(const float3 &a, const float3 &b, const float3 &c)
+bool STLMeshHelper::add_triangle(const PackedTriangle &data)
 {
-  int v1_id = verts_.index_of_or_add(a);
-  int v2_id = verts_.index_of_or_add(b);
-  int v3_id = verts_.index_of_or_add(c);
+  int v1_id = verts_.index_of_or_add(data.vertices[0]);
+  int v2_id = verts_.index_of_or_add(data.vertices[1]);
+  int v3_id = verts_.index_of_or_add(data.vertices[2]);
   if ((v1_id == v2_id) || (v1_id == v3_id) || (v2_id == v3_id)) {
     degenerate_tris_num_++;
     return false;
@@ -43,17 +46,11 @@ bool STLMeshHelper::add_triangle(const float3 &a, const float3 &b, const float3 
     duplicate_tris_num_++;
     return false;
   }
-  return true;
-}
 
-void STLMeshHelper::add_triangle(const float3 &a,
-                                 const float3 &b,
-                                 const float3 &c,
-                                 const float3 &custom_normal)
-{
-  if (add_triangle(a, b, c)) {
-    loop_normals_.append_n_times(custom_normal, 3);
+  if (use_custom_normals_) {
+    loop_normals_.append_n_times(data.normal, 3);
   }
+  return true;
 }
 
 Mesh *STLMeshHelper::to_mesh()

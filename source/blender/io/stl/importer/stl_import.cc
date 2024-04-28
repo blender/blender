@@ -29,6 +29,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
+#include "stl_data.hh"
 #include "stl_import.hh"
 #include "stl_import_ascii_reader.hh"
 #include "stl_import_binary_reader.hh"
@@ -46,7 +47,7 @@ void stl_import_report_error(FILE *file)
   }
 }
 
-void importer_main(bContext *C, const STLImportParams &import_params)
+void importer_main(const bContext *C, const STLImportParams &import_params)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
