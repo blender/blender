@@ -16,6 +16,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
+#include "BKE_fcurve.hh"
+
 #include "DNA_listBase.h"
 #include "RNA_types.hh"
 #include "UI_interface.hh"
@@ -1563,3 +1565,16 @@ uiListType *UI_UL_cache_file_layers();
 
 ID *ui_template_id_liboverride_hierarchy_make(
     bContext *C, Main *bmain, ID *owner_id, ID *id, const char **r_undo_push_label);
+
+/* Functions in this namespace are only exposed for unit testing purposes, and
+ * should not be used outside of the files where they are defined. */
+namespace blender::interface::internal {
+
+blender::Vector<FCurve *> get_property_drivers(
+    PointerRNA *ptr, PropertyRNA *prop, bool get_all, int index, bool *r_is_array_prop);
+int paste_property_drivers(blender::Span<FCurve *> src_drivers,
+                           bool is_array_prop,
+                           PointerRNA *dst_ptr,
+                           PropertyRNA *dst_prop);
+
+}  // namespace blender::interface::internal

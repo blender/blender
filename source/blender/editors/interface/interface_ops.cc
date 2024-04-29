@@ -25,7 +25,9 @@
 #include "BLT_lang.hh"
 #include "BLT_translation.hh"
 
+#include "BKE_anim_data.hh"
 #include "BKE_context.hh"
+#include "BKE_fcurve.hh"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -39,6 +41,7 @@
 #include "IMB_colormanagement.hh"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_build.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -1565,6 +1568,320 @@ static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Copy Driver To Selected Operator
+ * \{ */
+
+/* Namespaced for unit testing. Conceptually these functions should be static
+ * and not be used outside this source file.  But they need to be externally
+ * accessible to add unit tests for them. */
+namespace blender::interface::internal {
+
+/**
+ * Get the driver(s) of the given property.
+ *
+ * Note: intended to be used in conjunction with `paste_property_drivers()` below.
+ *
+ * \param ptr The RNA pointer of the property.
+ * \param prop The property RNA of the property.
+ * \param get_all Whether to get all drivers of an array property, or just the
+ * one specified by `index`.  Ignored if the property is not an array property.
+ * \param index Which element of an array property to get.  Ignored if `get_all`
+ * is true or if the property is not an array propery.
+ * \param r_is_array_prop Output parameter, that stores whether the passed
+ * property is an array property or not.
+ *
+ * \returns A vector of pointers to the drivers of the property.  It will be
+ * zero-sized if no drivers were fetched (e.g. if the property had no drivers).
+ * Otherwise the vector will be the size of the underlying property (e.g. 4 for
+ * an array property with 4 elements, 1 for a non-array property).  For array
+ * properties, elements without drivers will be nullptrs.
+ */
+blender::Vector<FCurve *> get_property_drivers(
+    PointerRNA *ptr, PropertyRNA *prop, const bool get_all, const int index, bool *r_is_array_prop)
+{
+  BLI_assert(ptr && prop);
+
+  const std::optional<std::string> path = RNA_path_from_ID_to_property(ptr, prop);
+  if (!path.has_value()) {
+    return {};
+  }
+
+  AnimData *adt = BKE_animdata_from_id(ptr->owner_id);
+  if (!adt) {
+    return {};
+  }
+
+  blender::Vector<FCurve *> drivers = {};
+  const bool is_array_prop = RNA_property_array_check(prop);
+  if (!is_array_prop) {
+    /* Note: by convention Blender assigns 0 as the index for drivers of
+     * non-array properties, which is why we search for it here.  Values > 0 are
+     * not recognized by Blender's driver system in that case.  Values < 0 are
+     * recognized for driver evaluation, but `BKE_fcurve_find()` unconditionally
+     * returns nullptr in that case so it wouldn't matter here anyway. */
+    drivers.append(BKE_fcurve_find(&adt->drivers, path->c_str(), 0));
+  }
+  else {
+    /* For array properties, we always allocate space for all elements of an
+     * array property, and the unused ones just remain null. */
+    drivers.resize(RNA_property_array_length(ptr, prop), nullptr);
+    for (int i = 0; i < drivers.size(); i++) {
+      if (get_all || i == index) {
+        drivers[i] = BKE_fcurve_find(&adt->drivers, path->c_str(), i);
+      }
+    }
+  }
+
+  /* If we didn't get any drivers to copy, instead of returning a vector of all
+   * nullptr, return an empty vector for clarity. That way the caller gets
+   * either a useful result or an empty one. */
+  bool fetched_at_least_one = false;
+  for (FCurve *driver : drivers) {
+    fetched_at_least_one |= driver != nullptr;
+  }
+  if (!fetched_at_least_one) {
+    return {};
+  }
+
+  if (r_is_array_prop) {
+    *r_is_array_prop = is_array_prop;
+  }
+
+  return drivers;
+}
+
+/**
+ * Paste the drivers from `src_drivers` to the destination property.
+ *
+ * This function can be used for pasting drivers for all elements of an array
+ * property, just some elements of an array property, or a single driver for a
+ * non-array property.
+ *
+ * Note: intended to be used in conjunction with `get_property_drivers()` above.
+ * The destination property should have the same type and (if an array property)
+ * length as the source property passed to `get_property_drivers()`.
+ *
+ * \param src_drivers The span of drivers to paste.  If `is_array_prop` is
+ * false, this must be a single element.  If `is_array_prop` is true then this
+ * should have the same length as the the destination array property.  Nullptr
+ * elements are skipped when pasting.
+ * \param is_array_prop Whether `src_drivers` are drivers for the elements
+ * of an array property.
+ * \param dst_ptr The RNA pointer for the destination property.
+ * \param dist_prop The destination property RNA.
+ *
+ * \returns The number of successfully pasted drivers.
+ */
+int paste_property_drivers(blender::Span<FCurve *> src_drivers,
+                           const bool is_array_prop,
+                           PointerRNA *dst_ptr,
+                           PropertyRNA *dst_prop)
+{
+  BLI_assert(src_drivers.size() > 0);
+  BLI_assert(is_array_prop || src_drivers.size() == 1);
+
+  /* Get the RNA path and relevant animdata for the property we're copying to. */
+  const std::optional<std::string> dst_path = RNA_path_from_ID_to_property(dst_ptr, dst_prop);
+  if (!dst_path.has_value()) {
+    return 0;
+  }
+  AnimData *dst_adt = BKE_animdata_ensure_id(dst_ptr->owner_id);
+  if (!dst_adt) {
+    return 0;
+  }
+
+  /* Do the copying. */
+  int paste_count = 0;
+  for (int i = 0; i < src_drivers.size(); i++) {
+    if (!src_drivers[i]) {
+      continue;
+    }
+    const int dst_index = is_array_prop ? i : -1;
+
+    /* If it's already animated by something other than a driver, skip. This is
+     * because Blender's UI assumes that properties are either animated *or*
+     * driven, and things can get confusing for users otherwise. Additionally,
+     * no other parts of Blender's UI allow users to (at least easily) add
+     * drivers on already-animated properties, so this keeps things consistent
+     * across driver-related operators. */
+    bool driven;
+    {
+      const FCurve *fcu = BKE_fcurve_find_by_rna(
+          dst_ptr, dst_prop, dst_index, nullptr, nullptr, &driven, nullptr);
+      if (fcu && !driven) {
+        continue;
+      }
+    }
+
+    /* If there's an existing matching driver, remove it first.
+     *
+     * TODO: in the context of `copy_driver_to_selected_button()` this has
+     * quadratic complexity when the drivers are within the same ID, due to this
+     * being inside of a loop and doing a linear scan of the drivers to find one
+     * that matches.  We should be able to make this more efficient with a
+     * little cleverness .*/
+    if (driven) {
+      FCurve *old_driver = BKE_fcurve_find(&dst_adt->drivers, dst_path->c_str(), dst_index);
+      if (old_driver) {
+        BLI_remlink(&dst_adt->drivers, old_driver);
+        BKE_fcurve_free(old_driver);
+      }
+    }
+
+    /* Create the new driver. */
+    FCurve *new_driver = BKE_fcurve_copy(src_drivers[i]);
+    BKE_fcurve_rnapath_set(*new_driver, dst_path.value());
+    BLI_addtail(&dst_adt->drivers, new_driver);
+
+    paste_count++;
+  }
+
+  return paste_count;
+}
+
+}  // namespace blender::interface::internal
+
+/**
+ * Called from both exec & poll.
+ *
+ * \note We use this function for both poll and exec because the logic for
+ * whether there is a valid selection to copy to is baked into
+ * `UI_context_copy_to_selected_list()`, and the setup required to call that
+ * would either be duplicated or need to be split out into its own awkward
+ * difficult-to-name function with a large number of parameters.  So instead we
+ * follow the same pattern as `copy_to_selected_button()` further above, with a
+ * bool to switch between exec and poll behavior.  This isn't great, but seems
+ * like the lesser evil under the circumstances.
+ *
+ * \param copy_entire_array If true, copies drivers of all elements of an array
+ * property. Otherwise only copies one specific element.
+ * \param poll If true, only checks if the driver(s) could be copied rather than
+ * actually performing the copy.
+ *
+ * \returns true in exec mode if any copies were successfully made, and false
+ * otherwise.  Returns true in poll mode if a copy could be successfully made,
+ * and false otherwise.
+ */
+static bool copy_driver_to_selected_button(bContext *C, bool copy_entire_array, const bool poll)
+{
+  using namespace blender::interface::internal;
+
+  PropertyRNA *prop;
+  PointerRNA ptr;
+  int index;
+
+  /* Get the property of the clicked button. */
+  UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+  if (!ptr.data || !ptr.owner_id || !prop) {
+    return false;
+  }
+  copy_entire_array |= index == -1; /* -1 implies `copy_entire_array` for array properties. */
+
+  /* Get the property's driver(s). */
+  bool is_array_prop = false;
+  const blender::Vector<FCurve *> src_drivers = get_property_drivers(
+      &ptr, prop, copy_entire_array, index, &is_array_prop);
+  if (src_drivers.is_empty()) {
+    return false;
+  }
+
+  /* Build the list of properties to copy the driver(s) to, along with relevant
+   * side data. */
+  std::optional<std::string> path;
+  bool use_path_from_id;
+  blender::Vector<PointerRNA> target_properties;
+  if (!UI_context_copy_to_selected_list(
+          C, &ptr, prop, &target_properties, &use_path_from_id, &path))
+  {
+    return false;
+  }
+
+  /* Copy the driver(s) to the list of target properties. */
+  int total_copy_count = 0;
+  for (PointerRNA &target_prop : target_properties) {
+    if (target_prop.data == ptr.data) {
+      continue;
+    }
+
+    /* Get the target property and ensure that it's appropriate for adding
+     * drivers. */
+    PropertyRNA *dst_prop;
+    PointerRNA dst_ptr;
+    if (!UI_context_copy_to_selected_check(&ptr,
+                                           &target_prop,
+                                           prop,
+                                           path.has_value() ? path->c_str() : nullptr,
+                                           use_path_from_id,
+                                           &dst_ptr,
+                                           &dst_prop))
+    {
+      continue;
+    }
+    if (!RNA_property_driver_editable(&dst_ptr, dst_prop)) {
+      continue;
+    }
+
+    /* If we're just polling, then we early-out on the first property we would
+     * be able to copy to. */
+    if (poll) {
+      return true;
+    }
+
+    const int paste_count = paste_property_drivers(
+        src_drivers.as_span(), is_array_prop, &dst_ptr, dst_prop);
+    if (paste_count == 0) {
+      continue;
+    }
+
+    RNA_property_update(C, &dst_ptr, dst_prop);
+    total_copy_count += paste_count;
+  }
+
+  return total_copy_count > 0;
+}
+
+static bool copy_driver_to_selected_button_poll(bContext *C)
+{
+  return copy_driver_to_selected_button(C, false, true);
+}
+
+static int copy_driver_to_selected_button_exec(bContext *C, wmOperator *op)
+{
+  const bool all = RNA_boolean_get(op->ptr, "all");
+
+  if (!copy_driver_to_selected_button(C, all, false)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  DEG_relations_tag_update(CTX_data_main(C));
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME_PROP, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+static void UI_OT_copy_driver_to_selected_button(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Copy Driver to Selected";
+  ot->idname = "UI_OT_copy_driver_to_selected_button";
+  ot->description =
+      "Copy the property's driver from the active item to the same property "
+      "of all selected items, if the same property exists";
+
+  /* Callbacks. */
+  ot->poll = copy_driver_to_selected_button_poll;
+  ot->exec = copy_driver_to_selected_button_exec;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Properties. */
+  RNA_def_boolean(
+      ot->srna, "all", false, "All", "Copy to selected the drivers of all elements of the array");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Jump to Target Operator
  * \{ */
 
@@ -2602,6 +2919,7 @@ void ED_operatortypes_ui()
   WM_operatortype_append(UI_OT_assign_default_button);
   WM_operatortype_append(UI_OT_unset_property_button);
   WM_operatortype_append(UI_OT_copy_to_selected_button);
+  WM_operatortype_append(UI_OT_copy_driver_to_selected_button);
   WM_operatortype_append(UI_OT_jump_to_target_button);
   WM_operatortype_append(UI_OT_drop_color);
   WM_operatortype_append(UI_OT_drop_name);

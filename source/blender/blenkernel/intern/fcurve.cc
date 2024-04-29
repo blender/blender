@@ -166,6 +166,12 @@ void BKE_fcurves_copy(ListBase *dst, ListBase *src)
   }
 }
 
+void BKE_fcurve_rnapath_set(FCurve &fcu, blender::StringRef rna_path)
+{
+  MEM_SAFE_FREE(fcu.rna_path);
+  fcu.rna_path = BLI_strdupn(rna_path.data(), rna_path.size());
+}
+
 void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
 {
   /* Copy new Modifier name. */

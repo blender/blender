@@ -134,3 +134,17 @@ blender_add_lib(bf_editor_interface "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 # RNA_prototypes.h
 add_dependencies(bf_editor_interface bf_rna)
+
+if(WITH_GTESTS)
+  set(TEST_INC
+  )
+  set(TEST_SRC
+    interface_ops_test.cc
+  )
+
+  set(TEST_LIB
+    PRIVATE bf::intern::clog
+  )
+
+  blender_add_test_suite_lib(interface "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+endif()
