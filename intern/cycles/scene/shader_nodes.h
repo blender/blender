@@ -562,6 +562,19 @@ class TransparentBsdfNode : public BsdfNode {
   }
 };
 
+class RayPortalBsdfNode : public BsdfNode {
+ public:
+  SHADER_NODE_CLASS(RayPortalBsdfNode)
+
+  NODE_SOCKET_API(float3, position)
+  NODE_SOCKET_API(float3, direction)
+
+  bool has_surface_transparent()
+  {
+    return true;
+  }
+};
+
 class SheenBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(SheenBsdfNode)

@@ -107,12 +107,16 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
 
   /* ray through transparent keeps same flags from previous ray and is
    * not counted as a regular bounce, transparent has separate max */
-  if (label & LABEL_TRANSPARENT) {
+  if (label & (LABEL_TRANSPARENT | LABEL_RAY_PORTAL)) {
     uint32_t transparent_bounce = INTEGRATOR_STATE(state, path, transparent_bounce) + 1;
 
     flag |= PATH_RAY_TRANSPARENT;
     if (transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
       flag |= PATH_RAY_TERMINATE_ON_NEXT_SURFACE;
+    }
+
+    if (shader_flag & SD_RAY_PORTAL) {
+      flag |= PATH_RAY_MIS_SKIP;
     }
 
     INTEGRATOR_STATE_WRITE(state, path, flag) = flag;

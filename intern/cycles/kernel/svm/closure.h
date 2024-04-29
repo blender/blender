@@ -454,6 +454,17 @@ ccl_device
       bsdf_transparent_setup(sd, weight, path_flag);
       break;
     }
+    case CLOSURE_BSDF_RAY_PORTAL_ID: {
+      Spectrum weight = closure_weight * mix_weight;
+      float3 position = stack_load_float3(stack, data_node.y);
+      float3 direction = stack_load_float3(stack, data_node.z);
+      if (is_zero(direction)) {
+        direction = -sd->wi;
+      }
+
+      bsdf_ray_portal_setup(sd, weight, path_flag, position, direction);
+      break;
+    }
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:

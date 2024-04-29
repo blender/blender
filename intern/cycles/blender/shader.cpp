@@ -667,6 +667,9 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_a(&RNA_ShaderNodeBsdfTransparent)) {
     node = graph->create_node<TransparentBsdfNode>();
   }
+  else if (b_node.is_a(&RNA_ShaderNodeBsdfRayPortal)) {
+    node = graph->create_node<RayPortalBsdfNode>();
+  }
   else if (b_node.is_a(&RNA_ShaderNodeBsdfSheen)) {
     BL::ShaderNodeBsdfSheen b_sheen_node(b_node);
     SheenBsdfNode *sheen = graph->create_node<SheenBsdfNode>();
