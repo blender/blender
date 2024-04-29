@@ -12,7 +12,7 @@
 namespace blender::io::usd {
 
 /* Writer for writing Curves data as USD curves. */
-class USDCurvesWriter : public USDAbstractWriter {
+class USDCurvesWriter final : public USDAbstractWriter {
  public:
   USDCurvesWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
   ~USDCurvesWriter() final = default;
