@@ -47,7 +47,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
     return;
   }
 
-  if (!pbvh_has_mask(pbvh) && !pbvh_has_face_sets(pbvh)) {
+  if (!pbvh_has_mask(*pbvh) && !pbvh_has_face_sets(*pbvh)) {
     /* The SculptSession and the PBVH can be created without a Mask data-layer or Face Set
      * data-layer. (masks data-layers are created after using a mask tool), so in these cases there
      * is nothing to draw. */

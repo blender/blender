@@ -1081,7 +1081,7 @@ static void do_wpaint_brush_blur_task(const Scene *scene,
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
   const SculptVertexPaintGeomMap *gmap = &ss->mode.wpaint.gmap;
 
@@ -1106,7 +1106,7 @@ static void do_wpaint_brush_blur_task(const Scene *scene,
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -1176,7 +1176,7 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
   const SculptVertexPaintGeomMap *gmap = &ss->mode.wpaint.gmap;
 
@@ -1211,7 +1211,7 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -1296,7 +1296,7 @@ static void do_wpaint_brush_draw_task(const Scene *scene,
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const StrokeCache *cache = ss->cache;
@@ -1322,7 +1322,7 @@ static void do_wpaint_brush_draw_task(const Scene *scene,
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -1373,7 +1373,7 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object *ob,
   using namespace blender;
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const bool use_normal = vwpaint::use_normal(vp);
@@ -1396,7 +1396,7 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object *ob,
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;

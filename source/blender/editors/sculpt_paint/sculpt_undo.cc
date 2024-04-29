@@ -474,7 +474,7 @@ static bool restore_coords(bContext *C,
 
       /* PBVH uses its own vertex array, so coords should be */
       /* propagated to PBVH here. */
-      BKE_pbvh_vert_coords_apply(ss->pbvh, key_positions);
+      BKE_pbvh_vert_coords_apply(*ss->pbvh, key_positions);
 
       MEM_freeN(vertCos);
     }
@@ -599,14 +599,14 @@ static bool restore_color(Object &object, Node &unode, MutableSpan<bool> modifie
    * vertex colors for original data lookup. */
   if (!unode.col.is_empty() && unode.loop_col.is_empty()) {
     BKE_pbvh_swap_colors(
-        ss->pbvh, unode.vert_indices.as_span().take_front(unode.unique_verts_num), unode.col);
+        *ss->pbvh, unode.vert_indices.as_span().take_front(unode.unique_verts_num), unode.col);
     modified = true;
   }
 
   Mesh *mesh = BKE_object_get_original_mesh(&object);
 
   if (!unode.loop_col.is_empty() && unode.mesh_corners_num == mesh->corners_num) {
-    BKE_pbvh_swap_colors(ss->pbvh, unode.corner_indices, unode.loop_col);
+    BKE_pbvh_swap_colors(*ss->pbvh, unode.corner_indices, unode.loop_col);
     modified = true;
   }
 
@@ -692,7 +692,7 @@ static void bmesh_restore_generic(Node &unode, Object &object, SculptSession *ss
   }
 
   if (unode.type == Type::Mask) {
-    Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
+    Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss->pbvh, {});
     for (PBVHNode *node : nodes) {
       BKE_pbvh_node_mark_redraw(node);
     }
@@ -1069,9 +1069,9 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
     bke::pbvh::update_visibility(*ss->pbvh);
   }
   if (changed_hide_vert) {
-    if (ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
+    if (ELEM(BKE_pbvh_type(*ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
-      BKE_pbvh_sync_visibility_from_verts(ss->pbvh, &mesh);
+      BKE_pbvh_sync_visibility_from_verts(*ss->pbvh, &mesh);
     }
     bke::pbvh::update_visibility(*ss->pbvh);
   }
@@ -1190,7 +1190,7 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
   unode->node = node;
 
   int verts_num;
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+  if (BKE_pbvh_type(*ss->pbvh) == PBVH_GRIDS) {
     unode->mesh_grids_num = ss->subdiv_ccg->grids.size();
     unode->grid_size = ss->subdiv_ccg->grid_size;
 
@@ -1222,7 +1222,7 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
   }
 
   if (need_faces) {
-    if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+    if (BKE_pbvh_type(*ss->pbvh) == PBVH_FACES) {
       bke::pbvh::node_face_indices_calc_mesh(*ss->pbvh, *node, unode->face_indices);
     }
     else {
@@ -1242,7 +1242,7 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
       break;
     }
     case Type::HideVert: {
-      if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+      if (BKE_pbvh_type(*ss->pbvh) == PBVH_GRIDS) {
         usculpt->undo_size += alloc_and_store_hidden(ss, unode);
       }
       else {
@@ -1327,10 +1327,10 @@ static void store_coords(const Object &object, Node *unode)
     }
   }
   else {
-    array_utils::gather(BKE_pbvh_get_vert_positions(ss->pbvh).as_span(),
+    array_utils::gather(BKE_pbvh_get_vert_positions(*ss->pbvh).as_span(),
                         unode->vert_indices.as_span(),
                         unode->position.as_mutable_span());
-    array_utils::gather(BKE_pbvh_get_vert_normals(ss->pbvh),
+    array_utils::gather(BKE_pbvh_get_vert_normals(*ss->pbvh),
                         unode->vert_indices.as_span(),
                         unode->normal.as_mutable_span());
     if (ss->deform_modifiers_active) {
@@ -1415,15 +1415,15 @@ static void store_color(const Object &object, Node *unode)
 {
   SculptSession *ss = object.sculpt;
 
-  BLI_assert(BKE_pbvh_type(ss->pbvh) == PBVH_FACES);
+  BLI_assert(BKE_pbvh_type(*ss->pbvh) == PBVH_FACES);
 
   /* NOTE: even with loop colors we still store (derived)
    * vertex colors for original data lookup. */
   BKE_pbvh_store_colors_vertex(
-      ss->pbvh, unode->vert_indices.as_span().take_front(unode->unique_verts_num), unode->col);
+      *ss->pbvh, unode->vert_indices.as_span().take_front(unode->unique_verts_num), unode->col);
 
   if (!unode->loop_col.is_empty() && !unode->corner_indices.is_empty()) {
-    BKE_pbvh_store_colors(ss->pbvh, unode->corner_indices, unode->loop_col);
+    BKE_pbvh_store_colors(*ss->pbvh, unode->corner_indices, unode->loop_col);
   }
 }
 
@@ -1768,7 +1768,7 @@ static void set_active_layer(bContext *C, SculptAttrRef *attr)
     BKE_id_attributes_active_color_set(&mesh->id, layer->name);
 
     if (ob->sculpt && ob->sculpt->pbvh) {
-      BKE_pbvh_update_active_vcol(ob->sculpt->pbvh, mesh);
+      BKE_pbvh_update_active_vcol(*ob->sculpt->pbvh, mesh);
     }
   }
 }
@@ -2038,7 +2038,7 @@ static void push_all_grids(Object *object)
     return;
   }
 
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss->pbvh, {});
   for (PBVHNode *node : nodes) {
     Node *unode = push_node(*object, node, Type::Position);
     unode->node = nullptr;

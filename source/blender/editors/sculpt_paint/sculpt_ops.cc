@@ -103,7 +103,7 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator * /*op*/)
   const int totvert = SCULPT_vertex_count_get(ss);
 
   for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
     copy_v3_v3((float *)SCULPT_vertex_attr_get(vertex, ss->attrs.persistent_co),
                SCULPT_vertex_co_get(ss, vertex));
@@ -165,7 +165,7 @@ static bool sculpt_no_multires_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (SCULPT_mode_poll(C) && ob->sculpt && ob->sculpt->pbvh) {
-    return BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_GRIDS;
+    return BKE_pbvh_type(*ob->sculpt->pbvh) != PBVH_GRIDS;
   }
   return false;
 }
@@ -177,7 +177,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   const Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
-  PBVH *pbvh = ss->pbvh;
+  PBVH *pbvh = ss->pbvh.get();
   const float dist = RNA_float_get(op->ptr, "merge_tolerance");
 
   if (!pbvh) {
@@ -190,7 +190,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  switch (BKE_pbvh_type(pbvh)) {
+  switch (BKE_pbvh_type(*pbvh)) {
     case PBVH_BMESH: {
       /* Dyntopo Symmetrize. */
 
@@ -586,7 +586,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
     return;
   }
 
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+  if (BKE_pbvh_type(*ss->pbvh) == PBVH_GRIDS) {
     return;
   }
 
@@ -762,7 +762,7 @@ static void do_mask_by_color_contiguous_update_node(Object *ob,
   bool update_node = false;
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     const float current_mask = vd.mask;
     const float new_mask = mask_by_color_floodfill[vd.index];
     const float mask = sculpt_mask_by_color_final_mask_get(
@@ -771,7 +771,7 @@ static void do_mask_by_color_contiguous_update_node(Object *ob,
       continue;
     }
 
-    SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
+    SCULPT_mask_vert_set(BKE_pbvh_type(*ss->pbvh), mask_write, mask, vd);
 
     update_node = true;
   }
@@ -787,8 +787,8 @@ static bool sculpt_mask_by_color_contiguous_floodfill(SculptSession *ss,
                                                       bool is_duplicate,
                                                       MaskByColorContiguousFloodFillData *data)
 {
-  int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
-  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
+  int from_v_i = BKE_pbvh_vertex_to_index(*ss->pbvh, from_v);
+  int to_v_i = BKE_pbvh_vertex_to_index(*ss->pbvh, to_v);
 
   float current_color[4];
 
@@ -843,7 +843,7 @@ static void sculpt_mask_by_color_contiguous(Object *object,
     return sculpt_mask_by_color_contiguous_floodfill(ss, from_v, to_v, is_duplicate, &ffd);
   });
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(*ss->pbvh, {});
   const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
@@ -875,7 +875,7 @@ static void do_mask_by_color_task(Object *ob,
   SCULPT_vertex_color_get(ss, mask_by_color_vertex, active_color);
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float col[4];
     SCULPT_vertex_color_get(ss, vd.vertex, col);
 
@@ -887,7 +887,7 @@ static void do_mask_by_color_task(Object *ob,
       continue;
     }
 
-    SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
+    SCULPT_mask_vert_set(BKE_pbvh_type(*ss->pbvh), mask_write, mask, vd);
 
     update_node = true;
   }
@@ -906,7 +906,7 @@ static void sculpt_mask_by_color_full_mesh(Object *object,
   using namespace blender;
   SculptSession *ss = object->sculpt;
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(*ss->pbvh, {});
   const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
@@ -961,7 +961,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   const bool preserve_mask = RNA_boolean_get(op->ptr, "preserve_previous_mask");
 
   if (SCULPT_has_loop_colors(ob)) {
-    BKE_pbvh_ensure_node_loops(ss->pbvh);
+    BKE_pbvh_ensure_node_loops(*ss->pbvh);
   }
 
   if (RNA_boolean_get(op->ptr, "contiguous")) {
@@ -1046,7 +1046,7 @@ static void sculpt_bake_cavity_exec_task(Object *ob,
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, &automasking, *node);
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     auto_mask::node_update(automask_data, vd);
 
     float automask = auto_mask::factor_get(&automasking, ss, vd.vertex, &automask_data);
@@ -1075,7 +1075,7 @@ static void sculpt_bake_cavity_exec_task(Object *ob,
     mask = vd.mask + (mask - vd.mask) * factor;
     CLAMP(mask, 0.0f, 1.0f);
 
-    SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
+    SCULPT_mask_vert_set(BKE_pbvh_type(*ss->pbvh), mask_write, mask, vd);
   }
   BKE_pbvh_vertex_iter_end;
 
@@ -1109,7 +1109,7 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   CavityBakeMixMode mode = CavityBakeMixMode(RNA_enum_get(op->ptr, "mix_mode"));
   float factor = RNA_float_get(op->ptr, "mix_factor");
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, {});
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(*ss->pbvh, {});
 
   /* Set up automasking settings. */
   Sculpt sd2 = *sd;

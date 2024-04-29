@@ -144,7 +144,7 @@ static void transform_node(Object *ob, const float transform_mats[8][4][4], PBVH
   PBVHVertexIter vd;
 
   undo::push_node(*ob, node, undo::Type::Position);
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float *start_co;
     float transformed_co[3], orig_co[3], disp[3];
@@ -214,7 +214,7 @@ static void elastic_transform_node(Object *ob,
   undo::push_node(*ob, node, undo::Type::Position);
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     float transformed_co[3], orig_co[3], disp[3];
     const float fade = vd.mask;
@@ -402,7 +402,7 @@ static int set_pivot_position_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
+    Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss->pbvh, {});
 
     float avg[3];
     int total = 0;
@@ -412,7 +412,7 @@ static int set_pivot_position_exec(bContext *C, wmOperator *op)
     if (mode == PivotPositionMode::Unmasked) {
       for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+        BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           const float mask = vd.mask;
           if (mask < 1.0f) {
             if (SCULPT_check_vertex_pivot_symmetry(vd.co, ss->pivot_pos, symm)) {
@@ -430,7 +430,7 @@ static int set_pivot_position_exec(bContext *C, wmOperator *op)
 
       for (PBVHNode *node : nodes) {
         PBVHVertexIter vd;
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+        BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           const float mask = vd.mask;
           if (mask < (0.5f + threshold) && mask > (0.5f - threshold)) {
             if (SCULPT_check_vertex_pivot_symmetry(vd.co, ss->pivot_pos, symm)) {

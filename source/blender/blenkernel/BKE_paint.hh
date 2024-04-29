@@ -730,7 +730,7 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene);
 
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob);
 
-void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg);
+void BKE_sculpt_bvh_update_from_ccg(PBVH &pbvh, SubdivCCG *subdiv_ccg);
 
 void BKE_sculpt_sync_face_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg);
 

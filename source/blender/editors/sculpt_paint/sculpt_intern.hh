@@ -714,7 +714,7 @@ bool SCULPT_poll(bContext *C);
 
 /**
  * Returns true if sculpt session can handle color attributes
- * (BKE_pbvh_type(ss->pbvh) == PBVH_FACES).  If false an error
+ * (BKE_pbvh_type(*ss->pbvh) == PBVH_FACES).  If false an error
  * message will be shown to the user.  Operators should return
  * OPERATOR_CANCELLED in this case.
  *

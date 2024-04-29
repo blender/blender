@@ -129,7 +129,7 @@ class Instance {
      */
     if (ob_ref.object->sculpt && ob_ref.object->sculpt->pbvh) {
       /* TODO(Miguel Pozo): Could this me moved to sculpt_batches_get()? */
-      BKE_pbvh_is_drawing_set(ob_ref.object->sculpt->pbvh, object_state.sculpt_pbvh);
+      BKE_pbvh_is_drawing_set(*ob_ref.object->sculpt->pbvh, object_state.sculpt_pbvh);
     }
 
     bool is_object_data_visible = (DRW_object_visibility_in_active_context(ob) &

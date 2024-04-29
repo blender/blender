@@ -398,7 +398,7 @@ void multires_flush_sculpt_updates(Object *object)
   }
 
   SculptSession *sculpt_session = object->sculpt;
-  if (BKE_pbvh_type(sculpt_session->pbvh) != PBVH_GRIDS || !sculpt_session->multires.active ||
+  if (BKE_pbvh_type(*sculpt_session->pbvh) != PBVH_GRIDS || !sculpt_session->multires.active ||
       sculpt_session->multires.modifier == nullptr)
   {
     return;
@@ -1208,7 +1208,7 @@ void multires_stitch_grids(Object *ob)
   if (subdiv_ccg == nullptr) {
     return;
   }
-  BLI_assert(sculpt_session->pbvh && BKE_pbvh_type(sculpt_session->pbvh) == PBVH_GRIDS);
+  BLI_assert(sculpt_session->pbvh && BKE_pbvh_type(*sculpt_session->pbvh) == PBVH_GRIDS);
   BKE_subdiv_ccg_average_stitch_faces(*subdiv_ccg, IndexMask(subdiv_ccg->faces.size()));
 }
 

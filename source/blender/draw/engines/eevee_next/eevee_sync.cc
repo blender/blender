@@ -191,7 +191,7 @@ bool SyncModule::sync_sculpt(Object *ob,
    * when switching from eevee to workbench).
    */
   if (ob_ref.object->sculpt && ob_ref.object->sculpt->pbvh) {
-    BKE_pbvh_is_drawing_set(ob_ref.object->sculpt->pbvh, pbvh_draw);
+    BKE_pbvh_is_drawing_set(*ob_ref.object->sculpt->pbvh, pbvh_draw);
   }
 
   if (!pbvh_draw) {
