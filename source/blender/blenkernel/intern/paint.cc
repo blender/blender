@@ -1746,10 +1746,6 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->vert_to_face_map = mesh_orig->vert_to_face_map();
   }
 
-  if (ss->pbvh) {
-    BKE_pbvh_pmap_set(*ss->pbvh, ss->vert_to_face_map);
-  }
-
   if (ss->deform_modifiers_active) {
     /* Painting doesn't need crazyspace, use already evaluated mesh coordinates if possible. */
     bool used_me_eval = false;
@@ -2169,7 +2165,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
     }
 
     BKE_pbvh_update_active_vcol(*ob->sculpt->pbvh, BKE_object_get_original_mesh(ob));
-    BKE_pbvh_pmap_set(*ob->sculpt->pbvh, ob->sculpt->vert_to_face_map);
 
     return ob->sculpt->pbvh.get();
   }
@@ -2191,8 +2186,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       ob->sculpt->pbvh = build_pbvh_from_regular_mesh(ob, me_eval_deform);
     }
   }
-
-  BKE_pbvh_pmap_set(*ob->sculpt->pbvh, ob->sculpt->vert_to_face_map);
 
   sculpt_attribute_update_refs(ob, BKE_pbvh_type(*ob->sculpt->pbvh));
   return ob->sculpt->pbvh.get();

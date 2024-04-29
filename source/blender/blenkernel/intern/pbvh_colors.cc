@@ -85,14 +85,17 @@ template<> void from_float(const float src[4], MPropCol &dst)
 }
 
 template<typename T>
-static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_color[4])
+static void pbvh_vertex_color_get(const PBVH &pbvh,
+                                  const blender::GroupedSpan<int> vert_to_face_map,
+                                  const PBVHVertRef vertex,
+                                  float r_color[4])
 {
   int index = vertex.i;
 
   if (pbvh.color_domain == AttrDomain::Corner) {
     int count = 0;
     zero_v4(r_color);
-    for (const int i_face : pbvh.vert_to_face_map[index]) {
+    for (const int i_face : vert_to_face_map[index]) {
       const IndexRange face = pbvh.faces[i_face];
       Span<T> colors{static_cast<const T *>(pbvh.color_layer->data) + face.start(), face.size()};
       Span<int> face_verts = pbvh.corner_verts.slice(face);
@@ -118,12 +121,15 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_
 }
 
 template<typename T>
-static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float color[4])
+static void pbvh_vertex_color_set(PBVH &pbvh,
+                                  const blender::GroupedSpan<int> vert_to_face_map,
+                                  const PBVHVertRef vertex,
+                                  const float color[4])
 {
   int index = vertex.i;
 
   if (pbvh.color_domain == AttrDomain::Corner) {
-    for (const int i_face : pbvh.vert_to_face_map[index]) {
+    for (const int i_face : vert_to_face_map[index]) {
       const IndexRange face = pbvh.faces[i_face];
       MutableSpan<T> colors{static_cast<T *>(pbvh.color_layer->data) + face.start(), face.size()};
       Span<int> face_verts = pbvh.corner_verts.slice(face);
@@ -142,23 +148,30 @@ static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float co
 
 }  // namespace blender::bke
 
-void BKE_pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_color[4])
+void BKE_pbvh_vertex_color_get(const PBVH &pbvh,
+                               const blender::GroupedSpan<int> vert_to_face_map,
+                               PBVHVertRef vertex,
+                               float r_color[4])
 {
   blender::bke::to_static_color_type(eCustomDataType(pbvh.color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
-    blender::bke::pbvh_vertex_color_get<T>(pbvh, vertex, r_color);
+    blender::bke::pbvh_vertex_color_get<T>(pbvh, vert_to_face_map, vertex, r_color);
   });
 }
 
-void BKE_pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float color[4])
+void BKE_pbvh_vertex_color_set(PBVH &pbvh,
+                               const blender::GroupedSpan<int> vert_to_face_map,
+                               const PBVHVertRef vertex,
+                               const float color[4])
 {
   blender::bke::to_static_color_type(eCustomDataType(pbvh.color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
-    blender::bke::pbvh_vertex_color_set<T>(pbvh, vertex, color);
+    blender::bke::pbvh_vertex_color_set<T>(pbvh, vert_to_face_map, vertex, color);
   });
 }
 
 void BKE_pbvh_swap_colors(PBVH &pbvh,
+                          const blender::GroupedSpan<int> vert_to_face_map,
                           const blender::Span<int> indices,
                           blender::MutableSpan<blender::float4> r_colors)
 {
@@ -187,6 +200,7 @@ void BKE_pbvh_store_colors(PBVH &pbvh,
 }
 
 void BKE_pbvh_store_colors_vertex(PBVH &pbvh,
+                                  const blender::GroupedSpan<int> vert_to_face_map,
                                   const blender::Span<int> indices,
                                   blender::MutableSpan<blender::float4> r_colors)
 {
@@ -197,7 +211,8 @@ void BKE_pbvh_store_colors_vertex(PBVH &pbvh,
     blender::bke::to_static_color_type(eCustomDataType(pbvh.color_layer->type), [&](auto dummy) {
       using T = decltype(dummy);
       for (const int i : indices.index_range()) {
-        blender::bke::pbvh_vertex_color_get<T>(pbvh, BKE_pbvh_make_vref(indices[i]), r_colors[i]);
+        blender::bke::pbvh_vertex_color_get<T>(
+            pbvh, vert_to_face_map, BKE_pbvh_make_vref(indices[i]), r_colors[i]);
       }
     });
   }

@@ -591,6 +591,7 @@ static bool restore_hidden_face(Object &object, Node &unode, MutableSpan<bool> m
 
 static bool restore_color(Object &object, Node &unode, MutableSpan<bool> modified_vertices)
 {
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   SculptSession *ss = object.sculpt;
 
   bool modified = false;
@@ -598,15 +599,15 @@ static bool restore_color(Object &object, Node &unode, MutableSpan<bool> modifie
   /* NOTE: even with loop colors we still store derived
    * vertex colors for original data lookup. */
   if (!unode.col.is_empty() && unode.loop_col.is_empty()) {
-    BKE_pbvh_swap_colors(
-        *ss->pbvh, unode.vert_indices.as_span().take_front(unode.unique_verts_num), unode.col);
+    BKE_pbvh_swap_colors(*ss->pbvh,
+                         mesh.vert_to_face_map(),
+                         unode.vert_indices.as_span().take_front(unode.unique_verts_num),
+                         unode.col);
     modified = true;
   }
 
-  Mesh *mesh = BKE_object_get_original_mesh(&object);
-
-  if (!unode.loop_col.is_empty() && unode.mesh_corners_num == mesh->corners_num) {
-    BKE_pbvh_swap_colors(*ss->pbvh, unode.corner_indices, unode.loop_col);
+  if (!unode.loop_col.is_empty() && unode.mesh_corners_num == mesh.corners_num) {
+    BKE_pbvh_swap_colors(*ss->pbvh, mesh.vert_to_face_map(), unode.corner_indices, unode.loop_col);
     modified = true;
   }
 
@@ -1413,14 +1414,17 @@ static void store_mask(const Object &object, Node *unode)
 
 static void store_color(const Object &object, Node *unode)
 {
+  const Mesh &mesh = *static_cast<const Mesh *>(object.data);
   SculptSession *ss = object.sculpt;
 
   BLI_assert(BKE_pbvh_type(*ss->pbvh) == PBVH_FACES);
 
   /* NOTE: even with loop colors we still store (derived)
    * vertex colors for original data lookup. */
-  BKE_pbvh_store_colors_vertex(
-      *ss->pbvh, unode->vert_indices.as_span().take_front(unode->unique_verts_num), unode->col);
+  BKE_pbvh_store_colors_vertex(*ss->pbvh,
+                               mesh.vert_to_face_map(),
+                               unode->vert_indices.as_span().take_front(unode->unique_verts_num),
+                               unode->col);
 
   if (!unode->loop_col.is_empty() && !unode->corner_indices.is_empty()) {
     BKE_pbvh_store_colors(*ss->pbvh, unode->corner_indices, unode->loop_col);

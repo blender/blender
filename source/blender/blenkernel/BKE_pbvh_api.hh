@@ -531,6 +531,7 @@ bool BKE_pbvh_get_color_layer(Mesh *mesh,
 /* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
  * with values in colors. */
 void BKE_pbvh_swap_colors(PBVH &pbvh,
+                          blender::GroupedSpan<int> vert_to_face_map,
                           blender::Span<int> indices,
                           blender::MutableSpan<blender::float4> r_colors);
 
@@ -542,6 +543,7 @@ void BKE_pbvh_store_colors(PBVH &pbvh,
 
 /* Like BKE_pbvh_store_colors but handles loop->vert conversion */
 void BKE_pbvh_store_colors_vertex(PBVH &pbvh,
+                                  blender::GroupedSpan<int> vert_to_face_map,
                                   blender::Span<int> indices,
                                   blender::MutableSpan<blender::float4> r_colors);
 
@@ -549,13 +551,17 @@ bool BKE_pbvh_is_drawing(const PBVH &pbvh);
 
 void BKE_pbvh_update_active_vcol(PBVH &pbvh, Mesh *mesh);
 
-void BKE_pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float color[4]);
-void BKE_pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_color[4]);
+void BKE_pbvh_vertex_color_set(PBVH &pbvh,
+                               blender::GroupedSpan<int> vert_to_face_map,
+                               PBVHVertRef vertex,
+                               const float color[4]);
+void BKE_pbvh_vertex_color_get(const PBVH &pbvh,
+                               blender::GroupedSpan<int> vert_to_face_map,
+                               PBVHVertRef vertex,
+                               float r_color[4]);
 
 void BKE_pbvh_ensure_node_loops(PBVH &pbvh);
 int BKE_pbvh_debug_draw_gen_get(PBVHNode &node);
-
-void BKE_pbvh_pmap_set(PBVH &pbvh, blender::GroupedSpan<int> vert_to_face_map);
 
 namespace blender::bke::pbvh {
 Vector<PBVHNode *> search_gather(PBVH &pbvh,

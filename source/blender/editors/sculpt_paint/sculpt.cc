@@ -223,12 +223,12 @@ bool SCULPT_has_colors(const SculptSession *ss)
 
 void SCULPT_vertex_color_get(const SculptSession *ss, PBVHVertRef vertex, float r_color[4])
 {
-  BKE_pbvh_vertex_color_get(*ss->pbvh, vertex, r_color);
+  BKE_pbvh_vertex_color_get(*ss->pbvh, ss->vert_to_face_map, vertex, r_color);
 }
 
 void SCULPT_vertex_color_set(SculptSession *ss, PBVHVertRef vertex, const float color[4])
 {
-  BKE_pbvh_vertex_color_set(*ss->pbvh, vertex, color);
+  BKE_pbvh_vertex_color_set(*ss->pbvh, ss->vert_to_face_map, vertex, color);
 }
 
 void SCULPT_vertex_normal_get(const SculptSession *ss, PBVHVertRef vertex, float no[3])
