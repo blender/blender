@@ -195,19 +195,18 @@ static void draw_bake_items(const bContext *C, uiLayout *layout, PointerRNA node
 
 static void NODE_OT_bake_node_item_remove(wmOperatorType *ot)
 {
-  socket_items::ops::remove_item<BakeItemsAccessor>(
+  socket_items::ops::remove_active_item<BakeItemsAccessor>(
       ot, "Remove Bake Item", __func__, "Remove active bake item");
 }
 
 static void NODE_OT_bake_node_item_add(wmOperatorType *ot)
 {
-  socket_items::ops::add_item_with_name_and_type<BakeItemsAccessor>(
-      ot, "Add Bake Item", __func__, "Add bake item");
+  socket_items::ops::add_item<BakeItemsAccessor>(ot, "Add Bake Item", __func__, "Add bake item");
 }
 
 static void NODE_OT_bake_node_item_move(wmOperatorType *ot)
 {
-  socket_items::ops::move_item<BakeItemsAccessor>(
+  socket_items::ops::move_active_item<BakeItemsAccessor>(
       ot, "Move Bake Item", __func__, "Move active bake item");
 }
 

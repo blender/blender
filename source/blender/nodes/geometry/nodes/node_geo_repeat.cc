@@ -264,19 +264,19 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
 
 static void NODE_OT_repeat_zone_item_remove(wmOperatorType *ot)
 {
-  socket_items::ops::remove_item<RepeatItemsAccessor>(
+  socket_items::ops::remove_active_item<RepeatItemsAccessor>(
       ot, "Remove Repeat Zone Item", __func__, "Remove active repeat zone item");
 }
 
 static void NODE_OT_repeat_zone_item_add(wmOperatorType *ot)
 {
-  socket_items::ops::add_item_with_name_and_type<RepeatItemsAccessor>(
+  socket_items::ops::add_item<RepeatItemsAccessor>(
       ot, "Add Repeat Zone Item", __func__, "Add repeat zone item");
 }
 
 static void NODE_OT_repeat_zone_item_move(wmOperatorType *ot)
 {
-  socket_items::ops::move_item<RepeatItemsAccessor>(
+  socket_items::ops::move_active_item<RepeatItemsAccessor>(
       ot, "Move Repeat Zone Item", __func__, "Move active repeat zone item");
 }
 

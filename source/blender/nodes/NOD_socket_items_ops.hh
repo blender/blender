@@ -70,10 +70,10 @@ template<typename Accessor> inline bool editable_node_active_poll(bContext *C)
 }
 
 template<typename Accessor>
-inline void remove_item(wmOperatorType *ot,
-                        const char *name,
-                        const char *idname,
-                        const char *description)
+inline void remove_active_item(wmOperatorType *ot,
+                               const char *name,
+                               const char *idname,
+                               const char *description)
 {
   ot->name = name;
   ot->idname = idname;
@@ -85,9 +85,9 @@ inline void remove_item(wmOperatorType *ot,
     bNode &node = *static_cast<bNode *>(node_ptr.data);
     SocketItemsRef ref = Accessor::get_items_from_node(node);
     if (*ref.items_num > 0) {
-    dna::array::remove_index(
-        ref.items, ref.items_num, ref.active_index, *ref.active_index, Accessor::destruct_item);
-    update_after_node_change(C, node_ptr);
+      dna::array::remove_index(
+          ref.items, ref.items_num, ref.active_index, *ref.active_index, Accessor::destruct_item);
+      update_after_node_change(C, node_ptr);
     }
     return OPERATOR_FINISHED;
   };
@@ -120,14 +120,11 @@ inline void remove_item_by_index(wmOperatorType *ot,
 }
 
 template<typename Accessor>
-inline void add_item_with_name_and_type(wmOperatorType *ot,
-                                        const char *name,
-                                        const char *idname,
-                                        const char *description)
+inline void add_item(wmOperatorType *ot,
+                     const char *name,
+                     const char *idname,
+                     const char *description)
 {
-  static_assert(Accessor::has_type);
-  static_assert(Accessor::has_name);
-
   ot->name = name;
   ot->idname = idname;
   ot->description = description;
@@ -137,50 +134,34 @@ inline void add_item_with_name_and_type(wmOperatorType *ot,
     PointerRNA node_ptr = get_active_node_to_operate_on(C, Accessor::node_type);
     bNode &node = *static_cast<bNode *>(node_ptr.data);
     SocketItemsRef ref = Accessor::get_items_from_node(node);
-    const int old_active_index = *ref.active_index;
+    const typename Accessor::ItemT *active_item = nullptr;
+    int dst_index = *ref.items_num;
+    if (ref.active_index) {
+      const int old_active_index = *ref.active_index;
+      if (old_active_index >= 0 && old_active_index < *ref.items_num) {
+        active_item = &(*ref.items)[old_active_index];
+        dst_index = active_item ? old_active_index + 1 : *ref.items_num;
+      }
+    }
 
-    eNodeSocketDatatype socket_type;
-    std::string name;
-    int dst_index;
-    if (old_active_index >= 0 && old_active_index < *ref.items_num) {
-      dst_index = old_active_index + 1;
-      const typename Accessor::ItemT &active_item = (*ref.items)[old_active_index];
-      socket_type = eNodeSocketDatatype(active_item.socket_type);
-      name = active_item.name;
+    if constexpr (Accessor::has_type && Accessor::has_name) {
+      socket_items::add_item_with_socket_and_name<Accessor>(
+          node,
+          active_item ? eNodeSocketDatatype(active_item->socket_type) : SOCK_GEOMETRY,
+          /* Empty name so it is based on the type. */
+          active_item ? active_item->name : "");
+    }
+    else if constexpr (!Accessor::has_type && !Accessor::has_name) {
+      socket_items::add_item<Accessor>(node);
     }
     else {
-      dst_index = *ref.items_num;
-      socket_type = SOCK_GEOMETRY;
-      /* Empty name so it is based on the type. */
-      name = "";
+      BLI_assert_unreachable();
     }
-    add_item_with_socket_and_name<Accessor>(node, socket_type, name.c_str());
+
     dna::array::move_index(*ref.items, *ref.items_num, *ref.items_num - 1, dst_index);
-    *ref.active_index = dst_index;
-
-    update_after_node_change(C, node_ptr);
-    return OPERATOR_FINISHED;
-  };
-}
-
-template<typename Accessor>
-inline void add_item(wmOperatorType *ot,
-                     const char *name,
-                     const char *idname,
-                     const char *description)
-{
-  static_assert(!Accessor::has_type);
-  static_assert(!Accessor::has_name);
-
-  ot->name = name;
-  ot->idname = idname;
-  ot->description = description;
-  ot->poll = editable_node_active_poll<Accessor>;
-
-  ot->exec = [](bContext *C, wmOperator * /*op*/) -> int {
-    PointerRNA node_ptr = get_active_node_to_operate_on(C, Accessor::node_type);
-    bNode &node = *static_cast<bNode *>(node_ptr.data);
-    socket_items::add_item<Accessor>(node);
+    if (ref.active_index) {
+      *ref.active_index = dst_index;
+    }
 
     update_after_node_change(C, node_ptr);
     return OPERATOR_FINISHED;
@@ -193,10 +174,10 @@ enum class MoveDirection {
 };
 
 template<typename Accessor>
-inline void move_item(wmOperatorType *ot,
-                      const char *name,
-                      const char *idname,
-                      const char *description)
+inline void move_active_item(wmOperatorType *ot,
+                             const char *name,
+                             const char *idname,
+                             const char *description)
 {
   ot->name = name;
   ot->idname = idname;

@@ -272,19 +272,19 @@ static void draw_simulation_state(const bContext *C,
 
 static void NODE_OT_simulation_zone_item_remove(wmOperatorType *ot)
 {
-  socket_items::ops::remove_item<SimulationItemsAccessor>(
+  socket_items::ops::remove_active_item<SimulationItemsAccessor>(
       ot, "Remove Simulation Zone Item", __func__, "Remove active simulation zone item");
 }
 
 static void NODE_OT_simulation_zone_item_add(wmOperatorType *ot)
 {
-  socket_items::ops::add_item_with_name_and_type<SimulationItemsAccessor>(
+  socket_items::ops::add_item<SimulationItemsAccessor>(
       ot, "Add Simulation Zone Item", __func__, "Add simulation zone item");
 }
 
 static void NODE_OT_simulation_zone_item_move(wmOperatorType *ot)
 {
-  socket_items::ops::move_item<SimulationItemsAccessor>(
+  socket_items::ops::move_active_item<SimulationItemsAccessor>(
       ot, "Move Simulation Zone Item", __func__, "Move active simulation zone item");
 }
 
