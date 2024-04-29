@@ -613,7 +613,9 @@ void GeometryManager::device_update_displacement_images(Device *device,
   TaskPool pool;
   ImageManager *image_manager = scene->image_manager;
   set<int> bump_images;
+#ifdef WITH_OSL
   bool has_osl_node = false;
+#endif
   foreach (Geometry *geom, scene->geometry) {
     if (geom->is_modified()) {
       /* Geometry-level check for hair shadow transparency.
@@ -633,9 +635,11 @@ void GeometryManager::device_update_displacement_images(Device *device,
           continue;
         }
         foreach (ShaderNode *node, shader->graph->nodes) {
+#ifdef WITH_OSL
           if (node->special_type == SHADER_SPECIAL_TYPE_OSL) {
             has_osl_node = true;
           }
+#endif
           if (node->special_type != SHADER_SPECIAL_TYPE_IMAGE_SLOT) {
             continue;
           }
