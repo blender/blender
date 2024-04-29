@@ -528,6 +528,13 @@ void WM_operator_properties_gesture_lasso(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+void WM_operator_properties_gesture_polyline(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+  prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+}
+
 void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
 {
   PropertyRNA *prop;

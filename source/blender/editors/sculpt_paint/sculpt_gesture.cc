@@ -96,6 +96,11 @@ static void lasso_px_cb(int x, int x_end, int y, void *user_data)
   } while (++index != index_end);
 }
 
+std::unique_ptr<GestureData> init_from_polyline(bContext *C, wmOperator *op)
+{
+  return init_from_lasso(C, op);
+}
+
 std::unique_ptr<GestureData> init_from_lasso(bContext *C, wmOperator *op)
 {
   const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);

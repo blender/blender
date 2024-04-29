@@ -1559,6 +1559,7 @@ void ED_operatortypes_paint()
   WM_operatortype_append(hide::PAINT_OT_hide_show);
   WM_operatortype_append(hide::PAINT_OT_hide_show_lasso_gesture);
   WM_operatortype_append(hide::PAINT_OT_hide_show_line_gesture);
+  WM_operatortype_append(hide::PAINT_OT_hide_show_polyline_gesture);
   WM_operatortype_append(hide::PAINT_OT_visibility_invert);
 
   /* paint masking */

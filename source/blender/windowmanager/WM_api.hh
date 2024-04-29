@@ -992,6 +992,10 @@ void WM_operator_properties_gesture_box_zoom(wmOperatorType *ot);
  */
 void WM_operator_properties_gesture_lasso(wmOperatorType *ot);
 /**
+ * Use with #WM_gesture_polyline_invoke
+ */
+void WM_operator_properties_gesture_polyline(wmOperatorType *ot);
+/**
  * Use with #WM_gesture_straightline_invoke
  */
 void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor);
@@ -1285,6 +1289,9 @@ void WM_gesture_lines_cancel(bContext *C, wmOperator *op);
 int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event);
 void WM_gesture_lasso_cancel(bContext *C, wmOperator *op);
+int WM_gesture_polyline_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+int WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event);
+void WM_gesture_polyline_cancel(bContext *C, wmOperator *op);
 /**
  * helper function, we may want to add options for conversion to view space
  */

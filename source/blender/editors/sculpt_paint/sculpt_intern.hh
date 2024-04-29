@@ -1661,6 +1661,9 @@ void modal_keymap(wmKeyConfig *keyconf);
 namespace blender::ed::sculpt_paint::gesture {
 enum ShapeType {
   Box = 0,
+
+  /* In the context of a sculpt gesture, both lasso and polyline modal
+   * operators are handled as the same general shape. */
   Lasso = 1,
   Line = 2,
 };
@@ -1670,13 +1673,14 @@ enum class SelectionType {
   Outside = 1,
 };
 
+/* Common data structure for both lasso and polyline. */
 struct LassoData {
   float4x4 projviewobjmat;
 
   rcti boundbox;
   int width;
 
-  /* 2D bitmap to test if a vertex is affected by the lasso shape. */
+  /* 2D bitmap to test if a vertex is affected by the surrounding shape. */
   blender::BitVector<> mask_px;
 };
 
@@ -1734,7 +1738,7 @@ struct GestureData {
   float3 world_space_view_origin;
   float3 world_space_view_normal;
 
-  /* Lasso Gesture. */
+  /* Lasso & Polyline Gesture. */
   LassoData lasso;
 
   /* Line Gesture. */
@@ -1765,6 +1769,7 @@ bool is_affected(GestureData &gesture_data, const float3 &co, const float3 &vert
 /* Initialization functions. */
 std::unique_ptr<GestureData> init_from_box(bContext *C, wmOperator *op);
 std::unique_ptr<GestureData> init_from_lasso(bContext *C, wmOperator *op);
+std::unique_ptr<GestureData> init_from_polyline(bContext *C, wmOperator *op);
 std::unique_ptr<GestureData> init_from_line(bContext *C, wmOperator *op);
 
 /* Common gesture operator properties. */

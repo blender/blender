@@ -880,6 +880,17 @@ static int hide_show_gesture_line_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int hide_show_gesture_polyline_exec(bContext *C, wmOperator *op)
+{
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_polyline(C, op);
+  if (!gesture_data) {
+    return OPERATOR_CANCELLED;
+  }
+  hide_show_init_properties(*C, *gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
+  return OPERATOR_FINISHED;
+}
+
 static void hide_show_operator_gesture_properties(wmOperatorType *ot)
 {
   static const EnumPropertyItem area_items[] = {
@@ -962,6 +973,26 @@ void PAINT_OT_hide_show_line_gesture(wmOperatorType *ot)
   hide_show_operator_properties(ot);
   hide_show_operator_gesture_properties(ot);
   gesture::operator_properties(ot, gesture::ShapeType::Line);
+}
+
+void PAINT_OT_hide_show_polyline_gesture(wmOperatorType *ot)
+{
+  ot->name = "Hide/Show Polyline";
+  ot->idname = "PAINT_OT_hide_show_polyline_gesture";
+  ot->description = "Hide/show some vertices";
+
+  ot->invoke = WM_gesture_polyline_invoke;
+  ot->modal = WM_gesture_polyline_modal;
+  ot->exec = hide_show_gesture_polyline_exec;
+  /* Sculpt-only for now. */
+  ot->poll = SCULPT_mode_poll_view3d;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
+
+  WM_operator_properties_gesture_polyline(ot);
+  hide_show_operator_properties(ot);
+  hide_show_operator_gesture_properties(ot);
+  gesture::operator_properties(ot, gesture::ShapeType::Lasso);
 }
 
 /** \} */
