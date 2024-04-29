@@ -17,6 +17,12 @@ from bl_ui.properties_grease_pencil_common import (
     GreasePencilLayerDisplayPanel,
 )
 
+from bl_ui.properties_data_grease_pencil import (
+    GreasePencil_LayerMaskPanel,
+    GreasePencil_LayerTransformPanel,
+    GreasPencil_LayerRelationsPanel,
+)
+
 from rna_prop_ui import PropertyPanel
 
 #######################################
@@ -834,6 +840,26 @@ class LayersDopeSheetPanel:
         return False
 
 
+class GreasePencilLayersDopeSheetPanel:
+    bl_space_type = 'DOPESHEET_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "View"
+
+    @classmethod
+    def poll(cls, context):
+        st = context.space_data
+        ob = context.object
+        if st.mode != 'GPENCIL' or ob is None or ob.type != 'GREASEPENCIL':
+            return False
+
+        grease_pencil = ob.data
+        active_layer = grease_pencil.layers.active
+        if active_layer:
+            return True
+
+        return False
+
+
 class DOPESHEET_PT_gpencil_mode(LayersDopeSheetPanel, Panel):
     # bl_space_type = 'DOPESHEET_EDITOR'
     # bl_region_type = 'UI'
@@ -889,6 +915,53 @@ class DOPESHEET_PT_gpencil_layer_display(LayersDopeSheetPanel, GreasePencilLayer
     bl_options = {'DEFAULT_CLOSED'}
 
 
+class DOPESHEET_PT_grease_pencil_mode(GreasePencilLayersDopeSheetPanel, Panel):
+    bl_label = "Layer"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        ob = context.object
+        grease_pencil = ob.data
+        active_layer = grease_pencil.layers.active
+
+        if active_layer:
+            row = layout.row(align=True)
+            row.prop(active_layer, "blend_mode", text="Blend")
+
+            row = layout.row(align=True)
+            row.prop(active_layer, "opacity", text="Opacity", slider=True)
+
+            row = layout.row(align=True)
+            row.prop(active_layer, "use_lights", text="Lights")
+
+
+class DOPESHEET_PT_grease_pencil_layer_masks(GreasePencilLayersDopeSheetPanel, GreasePencil_LayerMaskPanel, Panel):
+    bl_label = "Masks"
+    bl_parent_id = "DOPESHEET_PT_grease_pencil_mode"
+    bl_options = {'DEFAULT_CLOSED'}
+
+
+class DOPESHEET_PT_grease_pencil_layer_transform(
+        GreasePencilLayersDopeSheetPanel,
+        GreasePencil_LayerTransformPanel,
+        Panel):
+    bl_label = "Transform"
+    bl_parent_id = "DOPESHEET_PT_grease_pencil_mode"
+    bl_options = {'DEFAULT_CLOSED'}
+
+
+class DOPESHEET_PT_grease_pencil_layer_relations(
+        GreasePencilLayersDopeSheetPanel,
+        GreasPencil_LayerRelationsPanel,
+        Panel):
+    bl_label = "Relations"
+    bl_parent_id = "DOPESHEET_PT_grease_pencil_mode"
+    bl_options = {'DEFAULT_CLOSED'}
+
+
 classes = (
     DOPESHEET_HT_header,
     DOPESHEET_PT_proportional_edit,
@@ -915,7 +988,11 @@ classes = (
     DOPESHEET_PT_gpencil_layer_relations,
     DOPESHEET_PT_gpencil_layer_display,
     DOPESHEET_PT_custom_props_action,
-    DOPESHEET_PT_snapping
+    DOPESHEET_PT_snapping,
+    DOPESHEET_PT_grease_pencil_mode,
+    DOPESHEET_PT_grease_pencil_layer_masks,
+    DOPESHEET_PT_grease_pencil_layer_transform,
+    DOPESHEET_PT_grease_pencil_layer_relations,
 )
 
 if __name__ == "__main__":  # only for live edit.
