@@ -106,6 +106,13 @@ void node_operatortypes()
 
   WM_operatortype_append(NODE_OT_cryptomatte_layer_add);
   WM_operatortype_append(NODE_OT_cryptomatte_layer_remove);
+
+  NODE_TYPES_BEGIN (ntype) {
+    if (ntype->register_operators) {
+      ntype->register_operators();
+    }
+  }
+  NODE_TYPES_END;
 }
 
 void node_keymap(wmKeyConfig *keyconf)
