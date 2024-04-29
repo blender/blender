@@ -53,10 +53,11 @@ bool socket_type_has_attribute_toggle(eNodeSocketDatatype type);
 bool input_has_attribute_toggle(const bNodeTree &node_tree, const int socket_index);
 
 bool id_property_type_matches_socket(const bNodeTreeInterfaceSocket &socket,
-                                     const IDProperty &property);
+                                     const IDProperty &property,
+                                     bool use_name_for_ids = false);
 
 std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_from_socket(
-    const bNodeTreeInterfaceSocket &socket);
+    const bNodeTreeInterfaceSocket &socket, bool use_name_for_ids);
 
 bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
                                                     const IDProperty *properties,
@@ -66,7 +67,8 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
 
 void update_input_properties_from_node_tree(const bNodeTree &tree,
                                             const IDProperty *old_properties,
-                                            IDProperty &properties);
+                                            IDProperty &properties,
+                                            bool use_name_for_ids = false);
 
 void update_output_properties_from_node_tree(const bNodeTree &tree,
                                              const IDProperty *old_properties,
