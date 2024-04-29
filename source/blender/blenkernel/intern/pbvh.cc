@@ -693,7 +693,6 @@ void update_mesh_pointers(PBVH &pbvh, Mesh *mesh)
   BLI_assert(pbvh.header.type == PBVH_FACES);
   pbvh.faces = mesh->faces();
   pbvh.corner_verts = mesh->corner_verts();
-  pbvh.corner_tri_faces = mesh->corner_tri_faces();
   if (!pbvh.deformed) {
     /* Deformed data not matching the original mesh are owned directly by the PBVH, and are
      * set separately by #BKE_pbvh_vert_coords_apply. */
@@ -721,7 +720,7 @@ std::unique_ptr<PBVH> build_mesh(Mesh *mesh)
   pbvh->mesh = mesh;
 
   update_mesh_pointers(*pbvh, mesh);
-  const Span<int> tri_faces = pbvh->corner_tri_faces;
+  const Span<int> tri_faces = mesh->corner_tri_faces();
 
   Array<bool> vert_bitmap(totvert, false);
   pbvh->totvert = totvert;
@@ -1149,7 +1148,7 @@ static void calc_boundary_face_normals(const Span<float3> positions,
 static void calc_node_face_normals(const Span<float3> positions,
                                    const OffsetIndices<int> faces,
                                    const Span<int> corner_verts,
-                                   const PBVH &pbvh,
+                                   const Span<int> corner_tri_faces,
                                    const Span<const PBVHNode *> nodes,
                                    MutableSpan<float3> face_normals)
 {
@@ -1160,7 +1159,7 @@ static void calc_node_face_normals(const Span<float3> positions,
       normals_calc_faces(positions,
                          faces,
                          corner_verts,
-                         node_face_indices_calc_mesh(pbvh, *node, node_faces),
+                         node_face_indices_calc_mesh(corner_tri_faces, *node, node_faces),
                          face_normals);
     }
   });
@@ -1222,6 +1221,7 @@ static void update_normals_faces(PBVH &pbvh, Span<PBVHNode *> nodes, Mesh &mesh)
   const Span<float3> positions = pbvh.vert_positions;
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const Span<int> tri_faces = mesh.corner_tri_faces();
   const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
 
   VectorSet<int> boundary_faces;
@@ -1236,13 +1236,13 @@ static void update_normals_faces(PBVH &pbvh, Span<PBVHNode *> nodes, Mesh &mesh)
       [&]() {
         if (pbvh.deformed) {
           calc_node_face_normals(
-              positions, faces, corner_verts, pbvh, nodes, pbvh.face_normals_deformed);
+              positions, faces, corner_verts, tri_faces, nodes, pbvh.face_normals_deformed);
           calc_boundary_face_normals(
               positions, faces, corner_verts, boundary_faces, pbvh.face_normals_deformed);
         }
         else {
           mesh.runtime->face_normals_cache.update([&](Vector<float3> &r_data) {
-            calc_node_face_normals(positions, faces, corner_verts, pbvh, nodes, r_data);
+            calc_node_face_normals(positions, faces, corner_verts, tri_faces, nodes, r_data);
             calc_boundary_face_normals(positions, faces, corner_verts, boundary_faces, r_data);
           });
           /* #SharedCache::update() reallocates cached vectors if they were shared initially. */
@@ -1807,13 +1807,14 @@ Span<int> node_unique_verts(const PBVHNode &node)
   return node.vert_indices.as_span().take_front(node.uniq_verts);
 }
 
-Span<int> node_face_indices_calc_mesh(const PBVH &pbvh, const PBVHNode &node, Vector<int> &faces)
+Span<int> node_face_indices_calc_mesh(const Span<int> corner_tri_faces,
+                                      const PBVHNode &node,
+                                      Vector<int> &faces)
 {
   faces.clear();
-  const Span<int> tri_faces = pbvh.corner_tri_faces;
   int prev_face = -1;
   for (const int tri : node.prim_indices) {
-    const int face = tri_faces[tri];
+    const int face = corner_tri_faces[tri];
     if (face != prev_face) {
       faces.append(face);
       prev_face = face;
@@ -2030,6 +2031,7 @@ static bool pbvh_faces_node_raycast(PBVH &pbvh,
                                     const PBVHNode *node,
                                     float (*origco)[3],
                                     const Span<int> corner_verts,
+                                    const Span<int> corner_tri_faces,
                                     const Span<bool> hide_poly,
                                     const float ray_start[3],
                                     const float ray_normal[3],
@@ -2049,7 +2051,7 @@ static bool pbvh_faces_node_raycast(PBVH &pbvh,
     const int3 &tri = pbvh.corner_tris[tri_i];
     const int3 face_verts = node->face_vert_indices[i];
 
-    if (!hide_poly.is_empty() && hide_poly[pbvh.corner_tri_faces[tri_i]]) {
+    if (!hide_poly.is_empty() && hide_poly[corner_tri_faces[tri_i]]) {
       continue;
     }
 
@@ -2086,7 +2088,7 @@ static bool pbvh_faces_node_raycast(PBVH &pbvh,
           {
             copy_v3_v3(nearest_vertex_co, co[j]);
             r_active_vertex->i = corner_verts[tri[j]];
-            *r_active_face_index = pbvh.corner_tri_faces[tri_i];
+            *r_active_face_index = corner_tri_faces[tri_i];
           }
         }
       }
@@ -2195,6 +2197,7 @@ bool raycast_node(PBVH &pbvh,
                   float (*origco)[3],
                   bool use_origco,
                   const Span<int> corner_verts,
+                  const Span<int> corner_tri_faces,
                   const Span<bool> hide_poly,
                   const float ray_start[3],
                   const float ray_normal[3],
@@ -2216,6 +2219,7 @@ bool raycast_node(PBVH &pbvh,
                                      node,
                                      origco,
                                      corner_verts,
+                                     corner_tri_faces,
                                      hide_poly,
                                      ray_start,
                                      ray_normal,
@@ -2386,6 +2390,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH &pbvh,
                                            const PBVHNode *node,
                                            float (*origco)[3],
                                            const Span<int> corner_verts,
+                                           const Span<int> corner_tri_faces,
                                            const Span<bool> hide_poly,
                                            const float ray_start[3],
                                            const float ray_normal[3],
@@ -2401,7 +2406,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH &pbvh,
     const int3 &corner_tri = pbvh.corner_tris[tri_i];
     const int3 face_verts = node->face_vert_indices[i];
 
-    if (!hide_poly.is_empty() && hide_poly[pbvh.corner_tri_faces[tri_i]]) {
+    if (!hide_poly.is_empty() && hide_poly[corner_tri_faces[tri_i]]) {
       continue;
     }
 
@@ -2495,6 +2500,7 @@ bool find_nearest_to_ray_node(PBVH &pbvh,
                               float (*origco)[3],
                               bool use_origco,
                               const Span<int> corner_verts,
+                              const Span<int> corner_tri_faces,
                               const Span<bool> hide_poly,
                               const float ray_start[3],
                               const float ray_normal[3],
@@ -2509,8 +2515,16 @@ bool find_nearest_to_ray_node(PBVH &pbvh,
 
   switch (pbvh.header.type) {
     case PBVH_FACES:
-      hit |= pbvh_faces_node_nearest_to_ray(
-          pbvh, node, origco, corner_verts, hide_poly, ray_start, ray_normal, depth, dist_sq);
+      hit |= pbvh_faces_node_nearest_to_ray(pbvh,
+                                            node,
+                                            origco,
+                                            corner_verts,
+                                            corner_tri_faces,
+                                            hide_poly,
+                                            ray_start,
+                                            ray_normal,
+                                            depth,
+                                            dist_sq);
       break;
     case PBVH_GRIDS:
       hit |= pbvh_grids_node_nearest_to_ray(

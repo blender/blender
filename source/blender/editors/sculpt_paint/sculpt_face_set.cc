@@ -497,6 +497,9 @@ static void face_sets_update(Object &object,
                              const FunctionRef<void(Span<int>, MutableSpan<int>)> calc_face_sets)
 {
   PBVH &pbvh = *object.sculpt->pbvh;
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const Span<int> tri_faces = mesh.corner_tri_faces();
+
   bke::SpanAttributeWriter<int> face_sets = ensure_face_sets_mesh(object);
 
   struct TLS {
@@ -510,7 +513,7 @@ static void face_sets_update(Object &object,
     for (PBVHNode *node : nodes.slice(range)) {
       const Span<int> faces =
           BKE_pbvh_type(pbvh) == PBVH_FACES ?
-              bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, tls.face_indices) :
+              bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, tls.face_indices) :
               bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
 
       tls.new_face_sets.reinitialize(faces.size());
@@ -545,6 +548,7 @@ static void clear_face_sets(Object &object, const Span<PBVHNode *> nodes)
     return;
   }
   const PBVH &pbvh = *object.sculpt->pbvh;
+  const Span<int> tri_faces = mesh.corner_tri_faces();
   const int default_face_set = mesh.face_sets_color_default;
   const VArraySpan face_sets = *attributes.lookup<int>(".sculpt_face_set", bke::AttrDomain::Face);
   threading::EnumerableThreadSpecific<Vector<int>> all_face_indices;
@@ -553,7 +557,7 @@ static void clear_face_sets(Object &object, const Span<PBVHNode *> nodes)
     for (PBVHNode *node : nodes.slice(range)) {
       const Span<int> faces =
           BKE_pbvh_type(pbvh) == PBVH_FACES ?
-              bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, face_indices) :
+              bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, face_indices) :
               bke::pbvh::node_face_indices_calc_grids(pbvh, *node, face_indices);
       if (std::any_of(faces.begin(), faces.end(), [&](const int face) {
             return face_sets[face] != default_face_set;
@@ -998,6 +1002,7 @@ static void face_hide_update(Object &object,
 {
   PBVH &pbvh = *object.sculpt->pbvh;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const Span<int> tri_faces = mesh.corner_tri_faces();
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".hide_poly", bke::AttrDomain::Face);
@@ -1014,7 +1019,7 @@ static void face_hide_update(Object &object,
     for (PBVHNode *node : nodes.slice(range)) {
       const Span<int> faces =
           BKE_pbvh_type(pbvh) == PBVH_FACES ?
-              bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, tls.face_indices) :
+              bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, tls.face_indices) :
               bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
 
       tls.new_hide.reinitialize(faces.size());
@@ -1699,6 +1704,7 @@ static void face_set_gesture_apply_mesh(gesture::GestureData &gesture_data,
   const Span<float3> positions = ss.vert_positions;
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
+  const Span<int> tri_faces = mesh.corner_tri_faces();
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
 
@@ -1713,7 +1719,7 @@ static void face_set_gesture_apply_mesh(gesture::GestureData &gesture_data,
       undo::push_node(*gesture_data.vc.obact, node, undo::Type::FaceSet);
       const Span<int> node_faces =
           BKE_pbvh_type(pbvh) == PBVH_FACES ?
-              bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, tls.face_indices) :
+              bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, tls.face_indices) :
               bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
 
       bool any_updated = false;

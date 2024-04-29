@@ -609,8 +609,8 @@ void PAINT_OT_hide_show_all(wmOperatorType *ot)
 
 static void invert_visibility_mesh(Object &object, const Span<PBVHNode *> nodes)
 {
-  PBVH &pbvh = *object.sculpt->pbvh;
   Mesh &mesh = *static_cast<Mesh *>(object.data);
+  const Span<int> tri_faces = mesh.corner_tri_faces();
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   bke::SpanAttributeWriter<bool> hide_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".hide_poly", bke::AttrDomain::Face);
@@ -620,7 +620,7 @@ static void invert_visibility_mesh(Object &object, const Span<PBVHNode *> nodes)
     Vector<int> &faces = all_index_data.local();
     for (PBVHNode *node : nodes.slice(range)) {
       undo::push_node(object, node, undo::Type::HideFace);
-      bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, faces);
+      bke::pbvh::node_face_indices_calc_mesh(tri_faces, *node, faces);
       for (const int face : faces) {
         hide_poly.span[face] = !hide_poly.span[face];
       }

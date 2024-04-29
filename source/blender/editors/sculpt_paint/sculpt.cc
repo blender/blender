@@ -2937,6 +2937,7 @@ struct SculptRaycastData {
   float depth;
   bool original;
   Span<int> corner_verts;
+  Span<int> corner_tri_faces;
   blender::VArraySpan<bool> hide_poly;
 
   PBVHVertRef active_vertex;
@@ -2955,6 +2956,7 @@ struct SculptFindNearestToRayData {
   float dist_sq_to_ray;
   bool original;
   Span<int> corner_verts;
+  Span<int> corner_tri_faces;
   blender::VArraySpan<bool> hide_poly;
 };
 
@@ -4858,6 +4860,7 @@ static void sculpt_raycast_cb(PBVHNode &node, SculptRaycastData &srd, float *tmi
                               origco,
                               use_origco,
                               srd.corner_verts,
+                              srd.corner_tri_faces,
                               srd.hide_poly,
                               srd.ray_start,
                               srd.ray_normal,
@@ -4901,6 +4904,7 @@ static void sculpt_find_nearest_to_ray_cb(PBVHNode &node,
                                           origco,
                                           use_origco,
                                           srd.corner_verts,
+                                          srd.corner_tri_faces,
                                           srd.hide_poly,
                                           srd.ray_start,
                                           srd.ray_normal,
@@ -4997,6 +5001,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   if (BKE_pbvh_type(*ss->pbvh) == PBVH_FACES) {
     const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
     srd.corner_verts = mesh.corner_verts();
+    srd.corner_tri_faces = mesh.corner_tri_faces();
     const bke::AttributeAccessor attributes = mesh.attributes();
     srd.hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   }
@@ -5151,6 +5156,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
     if (BKE_pbvh_type(*ss->pbvh) == PBVH_FACES) {
       const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
       srd.corner_verts = mesh.corner_verts();
+      srd.corner_tri_faces = mesh.corner_tri_faces();
       const bke::AttributeAccessor attributes = mesh.attributes();
       srd.hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
     }
@@ -5184,6 +5190,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
   if (BKE_pbvh_type(*ss->pbvh) == PBVH_FACES) {
     const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
     srd.corner_verts = mesh.corner_verts();
+    srd.corner_tri_faces = mesh.corner_tri_faces();
     const bke::AttributeAccessor attributes = mesh.attributes();
     srd.hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   }
@@ -6138,6 +6145,9 @@ bool SCULPT_vertex_is_occluded(SculptSession *ss, PBVHVertRef vertex, bool origi
   srd.depth = depth;
   srd.face_normal = face_normal;
   srd.corner_verts = ss->corner_verts;
+  if (BKE_pbvh_type(*ss->pbvh) == PBVH_FACES) {
+    srd.corner_tri_faces = BKE_pbvh_get_mesh(*ss->pbvh)->corner_tri_faces();
+  }
 
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
   bke::pbvh::raycast(

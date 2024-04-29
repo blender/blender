@@ -289,7 +289,7 @@ struct PartialUpdateData {
   Span<bool> modified_face_set_faces;
 };
 
-static void update_modified_node_mesh(PBVHNode &node, PartialUpdateData &data)
+static void update_modified_node_mesh(const Mesh &mesh, PBVHNode &node, PartialUpdateData &data)
 {
   const Span<int> verts = bke::pbvh::node_verts(node);
   if (!data.modified_position_verts.is_empty()) {
@@ -328,7 +328,7 @@ static void update_modified_node_mesh(PBVHNode &node, PartialUpdateData &data)
   Vector<int> faces;
   if (!data.modified_face_set_faces.is_empty()) {
     if (faces.is_empty()) {
-      bke::pbvh::node_face_indices_calc_mesh(*data.pbvh, node, faces);
+      bke::pbvh::node_face_indices_calc_mesh(mesh.corner_tri_faces(), node, faces);
     }
     for (const int face : faces) {
       if (data.modified_face_set_faces[face]) {
@@ -339,7 +339,7 @@ static void update_modified_node_mesh(PBVHNode &node, PartialUpdateData &data)
   }
   if (!data.modified_hidden_faces.is_empty()) {
     if (faces.is_empty()) {
-      bke::pbvh::node_face_indices_calc_mesh(*data.pbvh, node, faces);
+      bke::pbvh::node_face_indices_calc_mesh(mesh.corner_tri_faces(), node, faces);
     }
     for (const int face : faces) {
       if (data.modified_hidden_faces[face]) {
@@ -889,6 +889,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object &object = *BKE_view_layer_active_object_get(view_layer);
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
   SculptSession *ss = object.sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 
@@ -1056,7 +1057,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   }
   else {
     bke::pbvh::search_callback(
-        *ss->pbvh, {}, [&](PBVHNode &node) { update_modified_node_mesh(node, data); });
+        *ss->pbvh, {}, [&](PBVHNode &node) { update_modified_node_mesh(mesh, node, data); });
   }
 
   if (changed_position) {
@@ -1190,6 +1191,8 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
   Node *unode = alloc_node_type(object, type);
   unode->node = node;
 
+  const Mesh &mesh = *static_cast<Mesh *>(object.data);
+
   int verts_num;
   if (BKE_pbvh_type(*ss->pbvh) == PBVH_GRIDS) {
     unode->mesh_grids_num = ss->subdiv_ccg->grids.size();
@@ -1217,14 +1220,14 @@ static Node *alloc_node(const Object &object, const PBVHNode *node, const Type t
 
   if (need_loops) {
     unode->corner_indices = bke::pbvh::node_corners(*node);
-    unode->mesh_corners_num = static_cast<Mesh *>(object.data)->corners_num;
+    unode->mesh_corners_num = mesh.corners_num;
 
     usculpt->undo_size += unode->corner_indices.as_span().size_in_bytes();
   }
 
   if (need_faces) {
     if (BKE_pbvh_type(*ss->pbvh) == PBVH_FACES) {
-      bke::pbvh::node_face_indices_calc_mesh(*ss->pbvh, *node, unode->face_indices);
+      bke::pbvh::node_face_indices_calc_mesh(mesh.corner_tri_faces(), *node, unode->face_indices);
     }
     else {
       bke::pbvh::node_face_indices_calc_grids(*ss->pbvh, *node, unode->face_indices);
