@@ -3026,6 +3026,14 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 /** \name Frame Change Operator
  * \{ */
 
+static bool screen_animation_region_supports_time_follow(eSpace_Type spacetype,
+                                                         eRegion_Type regiontype)
+{
+  return (regiontype == RGN_TYPE_WINDOW &&
+          ELEM(spacetype, SPACE_SEQ, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) ||
+         (spacetype == SPACE_CLIP && regiontype == RGN_TYPE_PREVIEW);
+}
+
 static void areas_do_frame_follow(bContext *C, bool middle)
 {
   bScreen *screen_ctx = CTX_wm_screen(C);
@@ -3037,29 +3045,26 @@ static void areas_do_frame_follow(bContext *C, bool middle)
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
         /* do follow here if editor type supports it */
-        if (screen_ctx->redraws_flag & TIME_FOLLOW) {
-          if ((region->regiontype == RGN_TYPE_WINDOW &&
-               ELEM(area->spacetype, SPACE_SEQ, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) ||
-              (area->spacetype == SPACE_CLIP && region->regiontype == RGN_TYPE_PREVIEW))
-          {
-            float w = BLI_rctf_size_x(&region->v2d.cur);
+        if ((screen_ctx->redraws_flag & TIME_FOLLOW) &&
+            screen_animation_region_supports_time_follow(eSpace_Type(area->spacetype),
+                                                         eRegion_Type(region->regiontype)))
+        {
+          float w = BLI_rctf_size_x(&region->v2d.cur);
 
-            if (middle) {
-              if ((scene->r.cfra < region->v2d.cur.xmin) || (scene->r.cfra > region->v2d.cur.xmax))
-              {
-                region->v2d.cur.xmax = scene->r.cfra + (w / 2);
-                region->v2d.cur.xmin = scene->r.cfra - (w / 2);
-              }
+          if (middle) {
+            if ((scene->r.cfra < region->v2d.cur.xmin) || (scene->r.cfra > region->v2d.cur.xmax)) {
+              region->v2d.cur.xmax = scene->r.cfra + (w / 2);
+              region->v2d.cur.xmin = scene->r.cfra - (w / 2);
             }
-            else {
-              if (scene->r.cfra < region->v2d.cur.xmin) {
-                region->v2d.cur.xmax = scene->r.cfra;
-                region->v2d.cur.xmin = region->v2d.cur.xmax - w;
-              }
-              else if (scene->r.cfra > region->v2d.cur.xmax) {
-                region->v2d.cur.xmin = scene->r.cfra;
-                region->v2d.cur.xmax = region->v2d.cur.xmin + w;
-              }
+          }
+          else {
+            if (scene->r.cfra < region->v2d.cur.xmin) {
+              region->v2d.cur.xmax = scene->r.cfra;
+              region->v2d.cur.xmin = region->v2d.cur.xmax - w;
+            }
+            else if (scene->r.cfra > region->v2d.cur.xmax) {
+              region->v2d.cur.xmin = scene->r.cfra;
+              region->v2d.cur.xmax = region->v2d.cur.xmin + w;
             }
           }
         }
@@ -4541,14 +4546,6 @@ static void SCREEN_OT_region_context_menu(wmOperatorType *ot)
  *
  * Animation Step.
  * \{ */
-
-static bool screen_animation_region_supports_time_follow(eSpace_Type spacetype,
-                                                         eRegion_Type regiontype)
-{
-  return (regiontype == RGN_TYPE_WINDOW &&
-          ELEM(spacetype, SPACE_SEQ, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA)) ||
-         (spacetype == SPACE_CLIP && regiontype == RGN_TYPE_PREVIEW);
-}
 
 static bool match_region_with_redraws(const ScrArea *area,
                                       eRegion_Type regiontype,
