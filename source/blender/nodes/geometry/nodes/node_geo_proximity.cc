@@ -123,7 +123,7 @@ class ProximityFunction : public mf::MultiFunction {
 
     /* Construct BVH tree for each group. */
     bvh_trees_.resize(groups_num);
-    threading::parallel_for_weighted(
+    threading::parallel_for(
         IndexRange(groups_num),
         512,
         [&](const IndexRange range) {
@@ -136,7 +136,8 @@ class ProximityFunction : public mf::MultiFunction {
             BKE_bvhtree_from_pointcloud_get(pointcloud, group_mask, bvh);
           }
         },
-        [&](const int group_i) { return group_masks[group_i].size(); });
+        threading::individual_task_sizes(
+            [&](const int group_i) { return group_masks[group_i].size(); }, pointcloud.totpoint));
   }
 
   void init_for_mesh(const Mesh &mesh, const Field<int> &group_id_field)
@@ -156,7 +157,7 @@ class ProximityFunction : public mf::MultiFunction {
 
     /* Construct BVH tree for each group. */
     bvh_trees_.resize(groups_num);
-    threading::parallel_for_weighted(
+    threading::parallel_for(
         IndexRange(groups_num),
         512,
         [&](const IndexRange range) {
@@ -182,7 +183,8 @@ class ProximityFunction : public mf::MultiFunction {
             }
           }
         },
-        [&](const int group_i) { return group_masks[group_i].size(); });
+        threading::individual_task_sizes(
+            [&](const int group_i) { return group_masks[group_i].size(); }, domain_size));
   }
 
   bke::AttrDomain get_domain_on_mesh() const

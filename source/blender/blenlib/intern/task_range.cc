@@ -161,32 +161,21 @@ int BLI_task_parallel_thread_id(const TaskParallelTLS * /*tls*/)
 
 namespace blender::threading::detail {
 
-void parallel_for_impl(const IndexRange range,
-                       const int64_t grain_size,
-                       const FunctionRef<void(IndexRange)> function)
+static void parallel_for_impl_static_size(const IndexRange range,
+                                          const int64_t grain_size,
+                                          const FunctionRef<void(IndexRange)> function)
 {
-#ifdef WITH_TBB
-  /* Invoking tbb for small workloads has a large overhead. */
-  if (range.size() >= grain_size) {
-    lazy_threading::send_hint();
-    tbb::parallel_for(
-        tbb::blocked_range<int64_t>(range.first(), range.one_after_last(), grain_size),
-        [function](const tbb::blocked_range<int64_t> &subrange) {
-          function(IndexRange(subrange.begin(), subrange.size()));
-        });
-    return;
-  }
-#else
-  UNUSED_VARS(grain_size);
-#endif
-  function(range);
+  tbb::parallel_for(tbb::blocked_range<int64_t>(range.first(), range.one_after_last(), grain_size),
+                    [function](const tbb::blocked_range<int64_t> &subrange) {
+                      function(IndexRange(subrange.begin(), subrange.size()));
+                    });
 }
 
-void parallel_for_weighted_impl(
+static void parallel_for_impl_individual_size_lookup(
     const IndexRange range,
     const int64_t grain_size,
     const FunctionRef<void(IndexRange)> function,
-    const FunctionRef<void(IndexRange, MutableSpan<int64_t>)> task_sizes_fn)
+    const TaskSizeHints_IndividualLookup &size_hints)
 {
   /* Shouldn't be too small, because then there is more overhead when the individual tasks are
    * small. Also shouldn't be too large because then the serial code to split up tasks causes extra
@@ -195,7 +184,7 @@ void parallel_for_weighted_impl(
   threading::parallel_for(range, outer_grain_size, [&](const IndexRange sub_range) {
     /* Compute the size of every task in the current range. */
     Array<int64_t, 1024> task_sizes(sub_range.size());
-    task_sizes_fn(sub_range, task_sizes);
+    size_hints.lookup_individual_sizes(sub_range, task_sizes);
 
     /* Split range into multiple segments that have a size that approximates the grain size. */
     Vector<int64_t, 256> offsets_vec;
@@ -221,6 +210,75 @@ void parallel_for_weighted_impl(
       }
     });
   });
+}
+
+static void parallel_for_impl_accumulated_size_lookup(
+    const IndexRange range,
+    const int64_t grain_size,
+    const FunctionRef<void(IndexRange)> function,
+    const TaskSizeHints_AccumulatedLookup &size_hints)
+{
+  BLI_assert(!range.is_empty());
+  if (range.size() == 1) {
+    /* Can't subdivide further. */
+    function(range);
+    return;
+  }
+  const int64_t total_size = size_hints.lookup_accumulated_size(range);
+  if (total_size <= grain_size) {
+    function(range);
+    return;
+  }
+  const int64_t middle = range.size() / 2;
+  const IndexRange left_range = range.take_front(middle);
+  const IndexRange right_range = range.drop_front(middle);
+  threading::parallel_invoke(
+      [&]() {
+        parallel_for_impl_accumulated_size_lookup(left_range, grain_size, function, size_hints);
+      },
+      [&]() {
+        parallel_for_impl_accumulated_size_lookup(right_range, grain_size, function, size_hints);
+      });
+}
+
+void parallel_for_impl(const IndexRange range,
+                       const int64_t grain_size,
+                       const FunctionRef<void(IndexRange)> function,
+                       const TaskSizeHints &size_hints)
+{
+#ifdef WITH_TBB
+  lazy_threading::send_hint();
+  switch (size_hints.type) {
+    case TaskSizeHints::Type::Static: {
+      const int64_t task_size = static_cast<const detail::TaskSizeHints_Static &>(size_hints).size;
+      const int64_t final_grain_size = task_size == 1 ?
+                                           grain_size :
+                                           std::max<int64_t>(1, grain_size / task_size);
+      parallel_for_impl_static_size(range, final_grain_size, function);
+      break;
+    }
+    case TaskSizeHints::Type::IndividualLookup: {
+      parallel_for_impl_individual_size_lookup(
+          range,
+          grain_size,
+          function,
+          static_cast<const detail::TaskSizeHints_IndividualLookup &>(size_hints));
+      break;
+    }
+    case TaskSizeHints::Type::AccumulatedLookup: {
+      parallel_for_impl_accumulated_size_lookup(
+          range,
+          grain_size,
+          function,
+          static_cast<const detail::TaskSizeHints_AccumulatedLookup &>(size_hints));
+      break;
+    }
+  }
+
+#else
+  UNUSED_VARS(grain_size, size_hints);
+  function(range);
+#endif
 }
 
 void memory_bandwidth_bound_task_impl(const FunctionRef<void()> function)
