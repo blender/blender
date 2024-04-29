@@ -24,6 +24,12 @@ vec3 drw_view_position()
   return drw_view.viewinv[3].xyz;
 }
 
+/* Positive Z distance from the view origin. Faster than using `drw_point_world_to_view`. */
+float drw_view_z_distance(vec3 P)
+{
+  return dot(P - drw_view_position(), -drw_view_forward());
+}
+
 /* Returns the projection matrix far clip distance. */
 float drw_view_far()
 {

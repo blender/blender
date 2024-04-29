@@ -108,7 +108,6 @@ ShadowSamplingTile shadow_tile_load(usampler2D tilemaps_tx, ivec2 tile_co, int t
  * \a lP shading point position in light space, relative to the to camera position snapped to
  * the smallest clip-map level (`shadow_world_to_local(light, P) - light_position_get(light)`).
  */
-
 float shadow_directional_level_fractional(LightData light, vec3 lP)
 {
   float lod;
@@ -138,30 +137,66 @@ int shadow_directional_level(LightData light, vec3 lP)
   return int(ceil(shadow_directional_level_fractional(light, lP)));
 }
 
-/* How much a tilemap pixel covers a final image pixel. */
-float shadow_punctual_footprint_ratio(LightData light,
-                                      vec3 lP,
-                                      bool is_perspective,
-                                      float dist_to_cam,
-                                      float tilemap_projection_ratio)
+float shadow_punctual_frustum_padding_get(LightData light)
+{
+  return light_local_data_get(light).clip_side / orderedIntBitsToFloat(light.clip_near);
+}
+
+/**
+ * Returns the ratio of radius between shadow map pixels and screen pixels.
+ * `distance_to_camera` is Z distance to the camera origin.
+ */
+float shadow_punctual_pixel_ratio(LightData light,
+                                  vec3 lP,
+                                  bool is_perspective,
+                                  float distance_to_camera,
+                                  float film_pixel_radius)
 {
   /* We project a shadow map pixel (as a sphere for simplicity) to the receiver plane.
    * We then reproject this sphere onto the camera screen and compare it to the film pixel size.
    * This gives a good approximation of what LOD to select to get a somewhat uniform shadow map
    * resolution in screen space. */
-
-  float dist_to_light = length(lP);
-  /* Apply resolution ratio. */
-  float footprint_ratio = dist_to_light * tilemap_projection_ratio;
-  /* Project the radius to the screen. 1 unit away from the camera the same way
-   * pixel_world_radius_inv was computed. Not needed in orthographic mode. */
-  if (is_perspective) {
-    footprint_ratio /= dist_to_cam;
-  }
+  float film_footprint = (is_perspective) ? film_pixel_radius * distance_to_camera :
+                                            film_pixel_radius;
+  /* Compute approximate screen pixel world space radius at 1 unit away of the light. */
+  float shadow_pixel_footprint = 2.0 * M_SQRT2 / SHADOW_MAP_MAX_RES;
   /* Take the frustum padding into account. */
-  footprint_ratio *= light_local_data_get(light).clip_side /
-                     orderedIntBitsToFloat(light.clip_near);
-  return footprint_ratio;
+  shadow_pixel_footprint *= shadow_punctual_frustum_padding_get(light);
+
+  float distance_to_light = reduce_max(abs(lP));
+  float shadow_footprint = shadow_pixel_footprint * distance_to_light;
+  /* TODO(fclem): Ideally, this should be modulated by N.L. */
+  float ratio = shadow_footprint / film_footprint;
+  return ratio;
+}
+
+/**
+ * Returns the LOD for a given shadow space position.
+ * `distance_to_camera` is Z distance to the camera origin.
+ */
+float shadow_punctual_level_fractional(LightData light,
+                                       vec3 lP,
+                                       bool is_perspective,
+                                       float distance_to_camera,
+                                       float film_pixel_radius)
+{
+  float ratio = shadow_punctual_pixel_ratio(
+      light, lP, is_perspective, distance_to_camera, film_pixel_radius);
+  /* Note: Bias by one to counteract the ceil in the `int` variant. This is done because this
+   * function should return an upper bound. */
+  float lod = -log2(ratio) - 1.0 + light.lod_bias;
+  lod = clamp(lod, 0.0, float(SHADOW_TILEMAP_LOD));
+  return lod;
+}
+
+int shadow_punctual_level(LightData light,
+                          vec3 lP,
+                          bool is_perspective,
+                          float distance_to_camera,
+                          float film_pixel_radius)
+{
+  return int(ceil(shadow_punctual_level_fractional(
+      light, lP, is_perspective, distance_to_camera, film_pixel_radius)));
 }
 
 struct ShadowCoordinates {

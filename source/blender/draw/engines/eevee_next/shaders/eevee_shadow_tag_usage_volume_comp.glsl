@@ -45,5 +45,5 @@ void main()
                uniform_buf.volumes.main_view_extent;
 
   int bias = uniform_buf.volumes.tile_size_lod;
-  shadow_tag_usage(vP, P, drw_world_incident_vector(P), 0.01, length(vP), pixel, bias);
+  shadow_tag_usage(vP, P, drw_world_incident_vector(P), 0.01, pixel, bias);
 }

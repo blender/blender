@@ -1479,8 +1479,8 @@ struct ShadowSceneData {
   int ray_count;
   /* Number of shadow samples to take for each shadow ray. */
   int step_count;
-  /* Ratio between tile-map pixel world "radius" and film pixel world "radius". */
-  float tilemap_projection_ratio;
+  /* Bounding radius for a film pixel at 1 unit from the camera. */
+  float film_pixel_radius;
 
   float _pad0;
 };

@@ -259,7 +259,6 @@ class ShadowModule {
   ShadowRenderViewBuf render_view_buf_ = {"render_view_buf"};
 
   int3 dispatch_depth_scan_size_;
-  float pixel_world_radius_;
   int2 usage_tag_fb_resolution_;
   int usage_tag_fb_lod_ = 5;
   int max_view_per_tilemap_ = 1;
