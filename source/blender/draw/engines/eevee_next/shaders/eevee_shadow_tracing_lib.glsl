@@ -464,6 +464,7 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
     scale = 1.0 / scale;
     scale *= exp2(-1.0 + light.lod_bias);
     scale = clamp(scale, float(1 << 0), float(1 << SHADOW_TILEMAP_LOD));
+    scale *= shadow_punctual_frustum_padding_get(light);
     /* Now scale by distance to the light. */
     scale *= reduce_max(abs(lP));
   }
