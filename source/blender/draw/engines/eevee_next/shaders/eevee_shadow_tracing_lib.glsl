@@ -486,7 +486,10 @@ float shadow_normal_offset(float texel_radius, vec3 Ng, vec3 L)
   /* TODO: Should we take the light shape into consideration? */
   float cos_theta = abs(dot(Ng, L));
   float sin_theta = sqrt(saturate(1.0 - square(cos_theta)));
-  return texel_radius * sin_theta;
+  /* Note that we still bias by one pixel anyway to fight quantization artifacts.
+   * This helps with self intersection of slopped surfaces and gives softer soft shadow (?! why).
+   * FIXME: This is likely to hide some issue, and we need a user facing bias parameter anyway. */
+  return texel_radius * (sin_theta + 3.0);
 }
 
 /**

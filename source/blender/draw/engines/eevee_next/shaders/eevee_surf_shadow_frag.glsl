@@ -29,8 +29,6 @@ void main()
    * Note that we always need a minimum slope bias of 1 pixel to avoid slanted surfaces aliasing
    * onto facing surfaces.
    * IMPORTANT: `fwidth` needs to be inside uniform control flow. */
-  f_depth += fwidth(f_depth) * shadow_flat.filter_radius;
-
 #ifdef SHADOW_UPDATE_TBDR
 /* We need to write to `gl_FragDepth` un-conditionally. So we cannot early exit or use discard. */
 #  define discard_result f_depth = 1.0;
@@ -86,8 +84,6 @@ void main()
   ivec3 out_texel = ivec3((page.xy << page_shift) | texel_page, page.z);
 
   uint u_depth = floatBitsToUint(f_depth);
-  /* Quantization bias. Equivalent to `nextafter()` in C without all the safety. */
-  u_depth += 2;
   imageAtomicMin(shadow_atlas_img, out_texel, u_depth);
 #endif
 
