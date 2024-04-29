@@ -2163,7 +2163,7 @@ PBVH *build_bmesh(BMesh *bm,
   pbvh::update_bmesh_offsets(pbvh.get(), cd_vert_node_offset, cd_face_node_offset);
 
   if (bm->totface == 0) {
-    return {};
+    return pbvh.release();
   }
 
   /* bounding box array of all faces, no need to recalculate every time. */
