@@ -6,6 +6,7 @@ void node_subsurface_scattering(vec4 color,
                                 float scale,
                                 vec3 radius,
                                 float ior,
+                                float roughness,
                                 float anisotropy,
                                 vec3 N,
                                 float weight,
@@ -14,6 +15,7 @@ void node_subsurface_scattering(vec4 color,
 {
   color = max(color, vec4(0.0));
   ior = max(ior, 1e-5);
+  /* roughness = saturate(roughness) */
   N = safe_normalize(N);
 
   ClosureSubsurface sss_data;

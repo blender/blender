@@ -19,6 +19,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Scale").default_value(0.05f).min(0.0f).max(1000.0f);
   b.add_input<decl::Vector>("Radius").default_value({1.0f, 0.2f, 0.1f}).min(0.0f).max(100.0f);
   b.add_input<decl::Float>("IOR").default_value(1.4f).min(1.01f).max(3.8f).subtype(PROP_FACTOR);
+  b.add_input<decl::Float>("Roughness")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR);
   b.add_input<decl::Float>("Anisotropy")
       .default_value(0.0f)
       .min(0.0f)
@@ -46,8 +51,8 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat,
                                                  GPUNodeStack *in,
                                                  GPUNodeStack *out)
 {
-  if (!in[5].link) {
-    GPU_link(mat, "world_normals_get", &in[5].link);
+  if (!in[6].link) {
+    GPU_link(mat, "world_normals_get", &in[6].link);
   }
 
   bNodeSocket *socket = (bNodeSocket *)BLI_findlink(&node->runtime->original->inputs, 2);
@@ -69,6 +74,9 @@ static void node_shader_update_subsurface_scattering(bNodeTree *ntree, bNode *no
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
     if (STR_ELEM(sock->name, "IOR", "Anisotropy")) {
       bke::nodeSetSocketAvailability(ntree, sock, sss_method != SHD_SUBSURFACE_BURLEY);
+    }
+    if (STR_ELEM(sock->name, "Roughness")) {
+      bke::nodeSetSocketAvailability(ntree, sock, sss_method == SHD_SUBSURFACE_RANDOM_WALK);
     }
   }
 }

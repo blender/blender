@@ -872,7 +872,7 @@ ccl_device
         bssrdf->albedo = closure_weight;
         bssrdf->N = maybe_ensure_valid_specular_reflection(sd, N);
         bssrdf->ior = param2;
-        bssrdf->alpha = 1.0f;
+        bssrdf->alpha = saturatef(stack_load_float(stack, data_node.w));
         bssrdf->anisotropy = stack_load_float(stack, data_node.z);
 
         sd->flag |= bssrdf_setup(sd, bssrdf, path_flag, (ClosureType)type);
