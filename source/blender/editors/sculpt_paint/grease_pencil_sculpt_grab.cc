@@ -159,7 +159,6 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
 
     Array<float2> view_positions = calculate_view_positions(params, selection);
 
-
     /* Cache points under brush influence. */
     Vector<float> weights;
     IndexMask point_mask = brush_influence_mask(scene,
