@@ -42,10 +42,11 @@ inline PointerRNA get_active_node_to_operate_on(bContext *C, const int node_type
   if (!active_node) {
     return PointerRNA_NULL;
   }
-  const bke::bNodeTreeZone *zone = zones->get_zone_by_node(active_node->identifier);
-  if (zone->input_node == active_node) {
-    /* Assume the data is generally stored on the output and not the input node. */
-    active_node = const_cast<bNode *>(zone->output_node);
+  if (const bke::bNodeTreeZone *zone = zones->get_zone_by_node(active_node->identifier)) {
+    if (zone->input_node == active_node) {
+      /* Assume the data is generally stored on the output and not the input node. */
+      active_node = const_cast<bNode *>(zone->output_node);
+    }
   }
   if (active_node->type != node_type) {
     return PointerRNA_NULL;
