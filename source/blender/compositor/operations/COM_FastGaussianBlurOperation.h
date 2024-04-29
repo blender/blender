@@ -11,8 +11,8 @@ namespace blender::compositor {
 
 class FastGaussianBlurOperation : public BlurBaseOperation {
  private:
-  float sx_;
-  float sy_;
+  float sigma_x_;
+  float sigma_y_;
   MemoryBuffer *iirgaus_;
 
  public:

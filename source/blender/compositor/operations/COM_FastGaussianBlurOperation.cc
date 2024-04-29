@@ -17,8 +17,8 @@ FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(DataT
 void FastGaussianBlurOperation::init_data()
 {
   BlurBaseOperation::init_data();
-  sx_ = data_.sizex * size_ / 2.0f;
-  sy_ = data_.sizey * size_ / 2.0f;
+  sigma_x_ = data_.sizex * size_ / 2.0f;
+  sigma_y_ = data_.sizey * size_ / 2.0f;
 }
 
 void FastGaussianBlurOperation::init_execution()
@@ -217,20 +217,20 @@ void FastGaussianBlurOperation::update_memory_buffer_started(MemoryBuffer *outpu
   }
   image->copy_from(input, area);
 
-  if ((sx_ == sy_) && (sx_ > 0.0f)) {
+  if ((sigma_x_ == sigma_y_) && (sigma_x_ > 0.0f)) {
     for (const int c : IndexRange(COM_DATA_TYPE_COLOR_CHANNELS)) {
-      IIR_gauss(image, sx_, c, 3);
+      IIR_gauss(image, sigma_x_, c, 3);
     }
   }
   else {
-    if (sx_ > 0.0f) {
+    if (sigma_x_ > 0.0f) {
       for (const int c : IndexRange(COM_DATA_TYPE_COLOR_CHANNELS)) {
-        IIR_gauss(image, sx_, c, 1);
+        IIR_gauss(image, sigma_x_, c, 1);
       }
     }
-    if (sy_ > 0.0f) {
+    if (sigma_y_ > 0.0f) {
       for (const int c : IndexRange(COM_DATA_TYPE_COLOR_CHANNELS)) {
-        IIR_gauss(image, sy_, c, 2);
+        IIR_gauss(image, sigma_y_, c, 2);
       }
     }
   }
