@@ -951,11 +951,11 @@ static void get_strip_text_color(const TimelineDrawContext *ctx,
                                  const StripDrawContext *strip,
                                  uchar r_col[4])
 {
-  /* Text: 75% opacity, fully opaque when selected/active. */
+  /* Text: white 75% opacity, fully opaque when selected/active. */
   const Sequence *seq = strip->seq;
   const bool active_or_selected = (seq->flag & SELECT) || strip->is_active_strip;
   if (active_or_selected) {
-    UI_GetThemeColor3ubv(TH_SEQ_ACTIVE, r_col);
+    r_col[0] = r_col[1] = r_col[2] = 255;
     r_col[3] = 255;
   }
   else {
