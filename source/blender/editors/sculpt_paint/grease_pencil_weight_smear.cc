@@ -139,7 +139,6 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
     threading::parallel_for_each(
         this->drawing_weight_data.index_range(), [&](const int frame_group) {
           Array<DrawingWeightData> &drawing_weights = this->drawing_weight_data[frame_group];
-          std::atomic<bool> balance_kdtree = false;
 
           /* For all layers at this key frame, collect the stroke points under the brush in a
            * buffer. */
