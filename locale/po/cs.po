@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 07:36+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2023-12-12 02:28+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -9168,22 +9168,6 @@ msgid "Smooth Stroke"
 msgstr "Hladký Tah"
 
 
-msgid "Grab UVs"
-msgstr "Přesun"
-
-
-msgid "Relax"
-msgstr "Obnovit"
-
-
-msgid "Relax UVs"
-msgstr "Vložit"
-
-
-msgid "Pinch UVs"
-msgstr "Seškrcení"
-
-
 msgid "Vertex Paint Tool"
 msgstr "Kreslení vertexů"
 
@@ -14375,6 +14359,10 @@ msgid "Context Menu"
 msgstr "Nabídka Kontextu"
 
 
+msgid "Zoom"
+msgstr "Přiblížit"
+
+
 msgid "Console"
 msgstr "Konzola"
 
@@ -17362,10 +17350,6 @@ msgid "Spin"
 msgstr "Točit"
 
 
-msgid "Zoom"
-msgstr "Přiblížit"
-
-
 msgid "Defocus"
 msgstr "Deformace"
 
@@ -18040,6 +18024,10 @@ msgstr "Cílová Geometrie"
 
 msgid "Z Up"
 msgstr "Posun nahoru"
+
+
+msgid "Mouse Position"
+msgstr "Poloha Myši"
 
 
 msgid "Selection"
@@ -21099,6 +21087,10 @@ msgid "Add Circle"
 msgstr "NURBS kruh"
 
 
+msgid "Handles"
+msgstr "Mód Úchopu"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "Uzavřený/otevřený"
@@ -21414,10 +21406,6 @@ msgstr "Hranaté"
 
 msgid "Set type of active spline"
 msgstr "Renderovat plošky z obou stran"
-
-
-msgid "Handles"
-msgstr "Mód Úchopu"
 
 
 msgctxt "Operator"
@@ -29006,6 +28994,10 @@ msgid "Filter Mesh"
 msgstr "Filtrovat Síť"
 
 
+msgid "Relax"
+msgstr "Obnovit"
+
+
 msgid "Sharpen"
 msgstr "Ostré"
 
@@ -29041,9 +29033,24 @@ msgid "Shape Orientation"
 msgstr "Orientace Tvaru"
 
 
-msgctxt "Operator"
-msgid "Sculpt UVs"
-msgstr "Tesat"
+msgid "Grab UVs"
+msgstr "Přesun"
+
+
+msgid "Pinch UVs"
+msgstr "Seškrcení"
+
+
+msgid "Relax UVs"
+msgstr "Vložit"
+
+
+msgid "Algorithm used for UV relaxation"
+msgstr "X-ová velikost aktivního MetaElementu"
+
+
+msgid "Use HC method for relaxation"
+msgstr "Orientace manipulátorů (Klávesová zkratka: Alt Space)"
 
 
 msgctxt "Operator"
@@ -29432,10 +29439,6 @@ msgstr "Přidat vazbu aktivní kosti"
 msgctxt "Operator"
 msgid "Select Side"
 msgstr "Vybrat Stranu"
-
-
-msgid "Mouse Position"
-msgstr "Poloha Myši"
 
 
 msgid "No Change"
@@ -33343,13 +33346,13 @@ msgstr "Smazat"
 
 
 msgctxt "Operator"
-msgid "Tint"
-msgstr "Odstín"
+msgid "Cutter"
+msgstr "Řezačka"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "Řezačka"
+msgid "Tint"
+msgstr "Odstín"
 
 
 msgctxt "Operator"
@@ -39129,18 +39132,6 @@ msgid "UV Sync Selection"
 msgstr "Vybrat cestu"
 
 
-msgid "Relaxation Method"
-msgstr "Seskupený objekt"
-
-
-msgid "Algorithm used for UV relaxation"
-msgstr "X-ová velikost aktivního MetaElementu"
-
-
-msgid "Use HC method for relaxation"
-msgstr "Orientace manipulátorů (Klávesová zkratka: Alt Space)"
-
-
 msgid "UV Sculpt"
 msgstr "Tesat"
 
@@ -40071,10 +40062,6 @@ msgid "Characters"
 msgstr "Znaky"
 
 
-msgid "Date: %s %s"
-msgstr "Datum: %s %s"
-
-
 msgctxt "Operator"
 msgid "Location"
 msgstr "Umístění"
@@ -40524,10 +40511,6 @@ msgid "Buffer"
 msgstr "Z-Buffer"
 
 
-msgid "Custom (%.4g fps)"
-msgstr "Vlastní (%.4g fps)"
-
-
 msgid "Mask Mapping"
 msgstr "Mapování Masky"
 
@@ -40645,14 +40628,6 @@ msgstr "Odstranit Úpravy"
 
 msgid "Use Timing"
 msgstr "Použít Čásování"
-
-
-msgid "Iterations: %d .. %d (avg. %d)"
-msgstr "Iterace: %d .. %d (průměr %d)"
-
-
-msgid "Spacing: %g"
-msgstr "Rozestup: %g"
 
 
 msgid "Not yet functional"
@@ -41154,11 +41129,6 @@ msgstr "Nastavit Osu Y"
 
 msgid "No active track"
 msgstr "Žádná aktivní stopa"
-
-
-msgctxt "Operator"
-msgid "Zoom"
-msgstr "Přiblížit"
 
 
 msgctxt "Operator"
@@ -41860,10 +41830,6 @@ msgid "Pack"
 msgstr "Zabalit"
 
 
-msgid "Original frame range: %d-%d (%d)"
-msgstr "Původní rozsah snímků: %d-%d (%d)"
-
-
 msgid "Source Channel"
 msgstr "Zdrojový kanál"
 
@@ -41946,14 +41912,6 @@ msgid "Text: Internal"
 msgstr "Text: Interní"
 
 
-msgid "File: *%s (unsaved)"
-msgstr "Soubor: *%s (neuložený)"
-
-
-msgid "File: %s"
-msgstr "Soubor: %s"
-
-
 msgctxt "Operator"
 msgid "Move Marker"
 msgstr "Posunout značku"
@@ -41986,40 +41944,8 @@ msgid "Drag:"
 msgstr "Táhnout:"
 
 
-msgid ""
-"%s\n"
-"• %s toggles snap while dragging.\n"
-"• %s toggles dragging from the center.\n"
-"• %s toggles fixed aspect"
-msgstr ""
-"%s\n"
-"• %s přepíná přichytávání během tažení.\n"
-"• %s přepíná tažení od středu.\n"
-"• %s přepíná fixní aspekt"
-
-
 msgid "Depth:"
 msgstr "Hloubka:"
-
-
-msgid "Weight: %.3f"
-msgstr "Hmotnost: %.3f"
-
-
-msgid ""
-"Measure distance and angles.\n"
-"• %s anywhere for new measurement.\n"
-"• Drag ruler segment to measure an angle.\n"
-"• %s to remove the active ruler.\n"
-"• Ctrl while dragging to snap.\n"
-"• Shift while dragging to measure surface thickness"
-msgstr ""
-"Změřit vzdálenost a úhly\n"
-"• %s kamkoliv pro nové měření.\n"
-"• K měření úhlu, posunout část pravítka.\n"
-"• %s k odebrání aktivního pravítka.\n"
-"• Ctrl během posouvání k přichycení .\n"
-"• Shift během posouvání k změření tloušťky povrchu"
 
 
 msgid "Intersections"
@@ -42337,10 +42263,6 @@ msgid "Fly/Walk"
 msgstr "Létat/Chodit"
 
 
-msgid "No custom %s configured"
-msgstr "Žádná vlastní %s nastavena"
-
-
 msgid "Description:"
 msgstr "Popis:"
 
@@ -42367,14 +42289,6 @@ msgstr "Varování:"
 
 msgid "Internet:"
 msgstr "Internet:"
-
-
-msgid "Color Set %d"
-msgstr "Sada Barev %d"
-
-
-msgid "Color %d"
-msgstr "Barva %d"
 
 
 msgctxt "Operator"
@@ -45154,16 +45068,16 @@ msgid "No more keyframes to jump to in this direction"
 msgstr "Uložit současný soubor na vybrané umístění"
 
 
+msgid "Active group is locked, aborting"
+msgstr "Skupina pro akce je zamčena"
+
+
 msgid "Image data could not be found"
 msgstr "Název materiálu"
 
 
 msgid "No active camera set"
 msgstr "Přidat primitivum"
-
-
-msgid "Active group is locked, aborting"
-msgstr "Skupina pro akce je zamčena"
 
 
 msgid "No active vertex group for painting, aborting"
@@ -45220,6 +45134,10 @@ msgstr "Šířka:"
 
 msgid "Height:"
 msgstr "Výška:"
+
+
+msgid "File: %s"
+msgstr "Soubor: %s"
 
 
 msgid "unsupported movie clip format"

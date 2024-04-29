@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 07:36+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2024-04-13 17:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11266,6 +11266,10 @@ msgid "Context Menu"
 msgstr "Menu kontekstowe"
 
 
+msgid "Zoom"
+msgstr "Zbliżenie"
+
+
 msgid "Console"
 msgstr "Konsola"
 
@@ -11728,10 +11732,6 @@ msgstr "Pojedyńczy"
 
 msgid "To"
 msgstr "Do"
-
-
-msgid "Zoom"
-msgstr "Zbliżenie"
 
 
 msgid "Denoise"
@@ -12890,6 +12890,10 @@ msgid "Add Circle"
 msgstr "Dodaj okrąg"
 
 
+msgid "Handles"
+msgstr "Uchwyty"
+
+
 msgctxt "Operator"
 msgid "Draw Curves"
 msgstr "Rysuj krzywe"
@@ -12957,10 +12961,6 @@ msgstr "Gładkie cieniowanie"
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "Gładkie"
-
-
-msgid "Handles"
-msgstr "Uchwyty"
 
 
 msgctxt "Operator"
@@ -17527,6 +17527,11 @@ msgstr "Potwierdź"
 
 
 msgctxt "WindowManager"
+msgid "Rotate"
+msgstr "Obróć"
+
+
+msgctxt "WindowManager"
 msgid "Undo"
 msgstr "Cofnij"
 
@@ -17669,11 +17674,6 @@ msgstr "Płaszczyzna Y"
 msgctxt "WindowManager"
 msgid "Z Plane"
 msgstr "Płaszczyzna Z"
-
-
-msgctxt "WindowManager"
-msgid "Rotate"
-msgstr "Obróć"
 
 
 msgctxt "WindowManager"
@@ -17861,14 +17861,6 @@ msgid "Active object is not a mesh"
 msgstr "Aktywny obiekt nie jest siatką"
 
 
-msgid "Remove Add-on: %r?"
-msgstr "Usunąć wtyczkę: %r?"
-
-
-msgid "Path: %r"
-msgstr "Ścieżka: %r"
-
-
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Otwórz..."
@@ -17967,36 +17959,12 @@ msgid "User Communities"
 msgstr "Społeczność użytkowników"
 
 
-msgid "Non boolean value found: %s[ ].%s"
-msgstr "Znaleziono wartość inną niż logiczna: %s[ ].%s"
-
-
 msgid "Failed to assign value: "
 msgstr "Ustawienie wartości nie powiodło się: "
 
 
 msgid "Object(s)"
 msgstr "Obiekt(y)"
-
-
-msgid "Rename %d %s"
-msgstr "Zmień nazwę %d %s"
-
-
-msgid "Version: %s"
-msgstr "Wersja: %s"
-
-
-msgid "Date: %s %s"
-msgstr "Data: %s %s"
-
-
-msgid "Hash: %s"
-msgstr "Hash: %s"
-
-
-msgid "Branch: %s"
-msgstr "Gałąź: %s"
 
 
 msgid " (delta)"
@@ -18532,10 +18500,6 @@ msgid "Previews"
 msgstr "Podglądy"
 
 
-msgid "Slot %d"
-msgstr "Gniazdo %d"
-
-
 msgctxt "Operator"
 msgid "Clear Viewer"
 msgstr "Wyczyść widok"
@@ -18641,10 +18605,6 @@ msgid "Pack"
 msgstr "Pakuj"
 
 
-msgid "%.2f"
-msgstr "%.2f"
-
-
 msgid "Hz"
 msgstr "Hz"
 
@@ -18735,52 +18695,12 @@ msgid "One Object Per Line"
 msgstr "Jeden obiekt na linię"
 
 
-msgid "File: *%s (unsaved)"
-msgstr "Plik: *%s (niezapisany)"
-
-
-msgid "File: %s"
-msgstr "Plik: %s"
-
-
 msgid "Drag:"
 msgstr "Opór:"
 
 
-msgid ""
-"%s\n"
-"• %s toggles snap while dragging.\n"
-"• %s toggles dragging from the center.\n"
-"• %s toggles fixed aspect"
-msgstr ""
-"%s\n"
-"• %s przełącza przyciąganie podczas przesuwania.\n"
-"• %s przełącza przesuwanie od środka.\n"
-"• %s przełącza stałe proporcje"
-
-
 msgid "Depth:"
 msgstr "Głębia:"
-
-
-msgid "Weight: %.3f"
-msgstr "Waga: %.3f"
-
-
-msgid ""
-"Measure distance and angles.\n"
-"• %s anywhere for new measurement.\n"
-"• Drag ruler segment to measure an angle.\n"
-"• %s to remove the active ruler.\n"
-"• Ctrl while dragging to snap.\n"
-"• Shift while dragging to measure surface thickness"
-msgstr ""
-"Mierzy odległości i kąty.\n"
-"• %s gdziekolwiek, aby dokonać nowego pomiaru.\n"
-"• Przeciągnij linijkę, aby zmierzyć kąt.\n"
-"• %s aby usunąć bieżącą linijkę.\n"
-"• Naciśnij Ctrl podczas przeciągania, aby przyciągnąć.\n"
-"• Naciśnij Shift podczas przeciągania, aby zmierzyć grubość powierzchni"
 
 
 msgid "Annotation:"
@@ -18938,11 +18858,6 @@ msgstr "Grease Pencil jako SVG"
 msgctxt "Operator"
 msgid "Grease Pencil as PDF"
 msgstr "Grease Pencil jako PDF"
-
-
-msgctxt "Operator"
-msgid "Load Factory %s Settings"
-msgstr "Załaduj ustawienia fabryczne %s"
 
 
 msgctxt "Operator"
@@ -19139,10 +19054,6 @@ msgstr "Internet:"
 
 msgid "User:"
 msgstr "Użytkownik:"
-
-
-msgid "Color %d"
-msgstr "Kolor %d"
 
 
 msgctxt "Operator"
@@ -19610,10 +19521,6 @@ msgid "<No ID pointer>"
 msgstr "<Brak wskaźników ID>"
 
 
-msgid "<Missing ID block>"
-msgstr "<Brak bloku ID>"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "Brak krzywej-F, do której można dodać klatki kluczowe"
 
@@ -19628,14 +19535,6 @@ msgstr "Brak bloku ID i/lub AnimData, z którego można usunąć klatki kluczowe
 
 msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "Nie można było wstawić klatki kluczowej ponieważ ścieżka ID jest nieprawidłowa dla danego ID (ID = %s, path = %s)"
-
-
-msgid "No ID block to insert keyframe in (path = %s)"
-msgstr "Brak bloku ID, w którym można wstawić klatkę kluczową (path = %s)"
-
-
-msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
-msgstr "Nie można było wstawić klatki kluczowej ponieważ ten typ nie obsługuje danych animacji (ID = %s, path = %s)"
 
 
 msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -19782,6 +19681,10 @@ msgstr "Krokowy"
 
 msgid "GP_Layer"
 msgstr "GP_Layer"
+
+
+msgid "Slot %d"
+msgstr "Gniazdo %d"
 
 
 msgid "Did not write, no Multilayer Image"
@@ -22571,6 +22474,10 @@ msgid "Duplicate Current"
 msgstr "Duplikuj bieżący"
 
 
+msgid "Active group is locked, aborting"
+msgstr "Aktywna grupa jest zablokowana, rezygnuję"
+
+
 msgid "PaintCurve"
 msgstr "RysowanieKrzywej"
 
@@ -22621,10 +22528,6 @@ msgstr "Wykryto Missing%s%s%s%s!"
 
 msgid "The modifier used does not support deformed locations"
 msgstr "Użyty modyfikator nie obsługuje deformowanych lokacji"
-
-
-msgid "Active group is locked, aborting"
-msgstr "Aktywna grupa jest zablokowana, rezygnuję"
 
 
 msgid "No active vertex group for painting, aborting"
@@ -22825,6 +22728,10 @@ msgstr "Klatka: %d / %d"
 
 msgid "Frame: - / %d"
 msgstr "Klatka: - / %d"
+
+
+msgid "File: %s"
+msgstr "Plik: %s"
 
 
 msgid "unsupported movie clip format"

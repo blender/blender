@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 07:36+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -14766,14 +14766,6 @@ msgid "List of gizmos in the Gizmo Map"
 msgstr "Список гізмо у Карті гізмо"
 
 
-msgid "Has Reports"
-msgstr "Має Звіти"
-
-
-msgid "GizmoGroup has a set of reports (warnings and errors) from last execution"
-msgstr "Група гізмо має набір звітів (повідомлення та помилки) з останнього виконання"
-
-
 msgid "VR Landmark Indicators"
 msgstr "Індикатори Віх ВР"
 
@@ -17951,22 +17943,6 @@ msgstr "Вжити Натиск для Продовжуваності Волог
 
 msgid "Use pressure to modulate wet persistence"
 msgstr "Вжити натиск для модулювання продовжуваності вологості"
-
-
-msgid "Grab UVs"
-msgstr "Захопити UV"
-
-
-msgid "Relax"
-msgstr "Розслаблення"
-
-
-msgid "Relax UVs"
-msgstr "Розслаблення UV"
-
-
-msgid "Pinch UVs"
-msgstr "Прищемлення UV"
 
 
 msgid "Vertex Paint Tool"
@@ -29129,8 +29105,8 @@ msgid "Context Menu"
 msgstr "Контекстне Меню"
 
 
-msgid "Fractional Zoom"
-msgstr "Фракційне Зумування"
+msgid "Zoom"
+msgstr "Зумування"
 
 
 msgid "Collection Specials"
@@ -36477,10 +36453,6 @@ msgid "Spin"
 msgstr "Обкрут"
 
 
-msgid "Zoom"
-msgstr "Зумування"
-
-
 msgid "Defocus"
 msgstr "Розфокус"
 
@@ -37920,6 +37892,10 @@ msgstr "Z Уверх"
 
 msgid "Font of the text. Falls back to the UI font by default"
 msgstr "Шрифт тексту. Стандартно падає назад до шрифту Інтерфейсу Користувача"
+
+
+msgid "Mouse Position"
+msgstr "Позиція Миші"
 
 
 msgid "Selection"
@@ -43365,6 +43341,10 @@ msgid "Add Circle"
 msgstr "Додати коло"
 
 
+msgid "Handles"
+msgstr "Ручки"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "Перемкнути циклічність"
@@ -43875,10 +43855,6 @@ msgstr "Встановити тип сплайна"
 
 msgid "Set type of active spline"
 msgstr "Встановити тип активного сплайна"
-
-
-msgid "Handles"
-msgstr "Ручки"
 
 
 msgctxt "Operator"
@@ -60449,6 +60425,10 @@ msgid "Randomize vertex positions"
 msgstr "Рандомізувати позиції вершин"
 
 
+msgid "Relax"
+msgstr "Розслаблення"
+
+
 msgid "Relax mesh"
 msgstr "Розслабити сіть"
 
@@ -60681,17 +60661,28 @@ msgid "Trims the mesh within the lasso as you move the brush"
 msgstr "Підрізає сіть у межах ласо, коли ви переміщуєте пензель"
 
 
-msgctxt "Operator"
-msgid "Sculpt UVs"
-msgstr "Ліплення UV"
+msgid "Grab UVs"
+msgstr "Захопити UV"
 
 
-msgid "Sculpt UVs using a brush"
-msgstr "Ліплення UV пензлем"
+msgid "Pinch UVs"
+msgstr "Прищемлення UV"
 
 
-msgid "Switch brush to relax mode for duration of stroke"
-msgstr "Перемкнути пензель у вільний режим для продовження штриха"
+msgid "Relax UVs"
+msgstr "Розслаблення UV"
+
+
+msgid "Algorithm used for UV relaxation"
+msgstr "Алгоритм, який використовується для UV-релаксації"
+
+
+msgid "Use Laplacian method for relaxation"
+msgstr "Використати метод Лапласа для релаксації"
+
+
+msgid "Use HC method for relaxation"
+msgstr "Використати для релаксації метод HC"
 
 
 msgctxt "Operator"
@@ -61418,10 +61409,6 @@ msgstr "Вибрати смужки на зазначеній стороні в�
 
 msgid "The side to which the selection is applied"
 msgstr "Бік, до якого застосовується вибрання"
-
-
-msgid "Mouse Position"
-msgstr "Позиція Миші"
 
 
 msgid "No Change"
@@ -68851,13 +68838,13 @@ msgstr "Витерти"
 
 
 msgctxt "Operator"
-msgid "Tint"
-msgstr "Підбарвлення"
+msgid "Cutter"
+msgstr "Різак"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "Різак"
+msgid "Tint"
+msgstr "Підбарвлення"
 
 
 msgctxt "Operator"
@@ -82349,22 +82336,6 @@ msgid "Keep UV and edit mode mesh selection in sync"
 msgstr "Синхронізувати UV та вибрання елементів сіті у режимі редагування"
 
 
-msgid "Relaxation Method"
-msgstr "Метод релаксації"
-
-
-msgid "Algorithm used for UV relaxation"
-msgstr "Алгоритм, який використовується для UV-релаксації"
-
-
-msgid "Use Laplacian method for relaxation"
-msgstr "Використати метод Лапласа для релаксації"
-
-
-msgid "Use HC method for relaxation"
-msgstr "Використати для релаксації метод HC"
-
-
 msgid "UV Sculpt"
 msgstr "UV-ліплення"
 
@@ -85228,24 +85199,8 @@ msgid "Torus"
 msgstr "Тор"
 
 
-msgid "Removed %d empty and/or fake-user only Actions"
-msgstr "Вилучене %d порожнє та/або фейковий користувач лише для Дій"
-
-
 msgid "Nothing to bake"
 msgstr "Нічого запікати"
-
-
-msgid "Complete report available on '%s' text datablock"
-msgstr "Повний звіт доступний на '%s' текстового блоку даних"
-
-
-msgid "Could not find material or light using Shader Node Tree - %s"
-msgstr "Неможливо знайти матеріал або освітлювач, що використовує Дерево Вузлів Шейдерів - %s"
-
-
-msgid "Could not find scene using Compositor Node Tree - %s"
-msgstr "Неможливо знайти сцену, що використовує Дерево Вузлів Компонівника  - %s"
 
 
 msgid "Selection pair not found"
@@ -85262,10 +85217,6 @@ msgstr "Наступний елемент прихований"
 
 msgid "Last selected not found"
 msgstr "Останнє вибране не знайдено"
-
-
-msgid "Identified %d problematic tracks"
-msgstr "Ідентифіковано %d проблемних відстежень"
 
 
 msgid "No usable tracks selected"
@@ -85288,14 +85239,6 @@ msgid "Some strings were fixed, don't forget to save the .blend file to keep tho
 msgstr "Деякі рядки було виправлено, не забудьте зберегти цей файл .blend для збереження цих змін"
 
 
-msgid "Previews generation process failed for file '%s'!"
-msgstr "Збій процесу генерації передоглядів для файлу '%s'!"
-
-
-msgid "Previews clear process failed for file '%s'!"
-msgstr "Збій процесу зчищення передоглядів для файлу '%s'!"
-
-
 msgid "Unexpected modifier type: "
 msgstr "Неочікуваний тип модифікатора:"
 
@@ -85308,10 +85251,6 @@ msgid "Image path not set"
 msgstr "Шлях зображення не задано"
 
 
-msgid "Image path %r not found, image may be packed or unsaved"
-msgstr "Шлях зображення %r не знайдено, зображення може бути упаковане або ще не збережене"
-
-
 msgid "Image is packed, unpack before editing"
 msgstr "Зображення упаковане, розпакуйте перед редагуванням"
 
@@ -85320,28 +85259,12 @@ msgid "Could not make new image"
 msgstr "Неможливо зробити нове зображення"
 
 
-msgid "Could not find image '%s'"
-msgstr "Неможливо знайти зображення '%s'"
-
-
 msgid "Image editor could not be launched, ensure that the path in User Preferences > File is valid, and Blender has rights to launch it"
 msgstr "Редактор зображень не може бути запущено, переконайтеся, що шлях в Уподобання Користувача > Файл є дійсним, та Blender має права для його запуску"
 
 
 msgid "Context incorrect, image not found"
 msgstr "Контекст неправильний, зображення не знайдено"
-
-
-msgid "%d mesh(es) with no active UV layer, %d duplicates found in %d mesh(es), mirror may be incomplete"
-msgstr "%d сіть(ей) без жодного активного шару UV, %d дублікатів знайдено в %d сіті(ях), дзеркалення може не завершитися"
-
-
-msgid "%d mesh(es) with no active UV layer"
-msgstr "%d сіть(ей) без жодного активного шару UV"
-
-
-msgid "%d duplicates found in %d mesh(es), mirror may be incomplete"
-msgstr "%d дублікатів знайдено у %d сіті(ях), дзеркалення може не завершитися"
 
 
 msgid "No camera found"
@@ -85356,40 +85279,16 @@ msgid "Other object has no shape key"
 msgstr "Інший об'єкт не має жодного ключа форми"
 
 
-msgid "Object: %s, Mesh: '%s' has no UVs"
-msgstr "Об'єкт: %s, Сіть: '%s' не має жодних UVт"
-
-
 msgid "Active camera is not in this scene"
 msgstr "Активна камера не є у цій сцені"
-
-
-msgid "Skipping '%s', not a mesh"
-msgstr "Пропускання '%s', це не сіть"
-
-
-msgid "Skipping '%s', vertex count differs"
-msgstr "Пропускання '%s', рахунок вершин відрізняється"
 
 
 msgid "Expected one other selected mesh object to copy from"
 msgstr "Очікується ще один вибраний об'єкт сіті, з якого буде копіювання"
 
 
-msgid "No animation data to convert on object: %r"
-msgstr "Жодних даних анімації не конвертовано на об'єкті: %r"
-
-
 msgid "Modifiers cannot be added to object: "
 msgstr "Модифікатори неможливо додати для об'єкта:"
-
-
-msgid "Object: %s, Mesh: '%s' has %d loops (for %d faces), expected %d"
-msgstr "Об'єкт: %s, Сіть: '%s' має %d петель (для %d граней), очікується %d"
-
-
-msgid "Could not add a new UV map to object '%s' (Mesh '%s')"
-msgstr "Неможливо додати нову розкладку UV для об'єкта '%s' (Сіть '%s')"
 
 
 msgid "No objects with bound-box selected"
@@ -85412,14 +85311,6 @@ msgid "Built without Fluid modifier"
 msgstr "Побудовано без модифікатора Флюїд"
 
 
-msgid "Object %r already has a particle system"
-msgstr "Об'єкт %r вже має систему частинок"
-
-
-msgid "Unknown file type: %r"
-msgstr "Невідомий тип файлу: %r"
-
-
 msgid "Failed to create presets path"
 msgstr "Збій створення шляху передустав"
 
@@ -85428,32 +85319,12 @@ msgid "Unable to remove default presets"
 msgstr "Неможливо вилучити стандартні передустави"
 
 
-msgid "Unable to remove preset: %r"
-msgstr "Неможливо вилучити передуставу: %r"
-
-
 msgid "Failed to execute the preset: "
 msgstr "Збій виконання передустави:"
 
 
 msgid "No other objects selected"
 msgstr "Жоден з інших об'єктів не вибрано"
-
-
-msgid "File %r not found"
-msgstr "Файл %r не знайдено"
-
-
-msgid ""
-"Couldn't run external animation player with command %r\n"
-"%s"
-msgstr ""
-"Неможливо запустити зовнішній програвач анімації за допомогою команди %r\n"
-"%s"
-
-
-msgid "Added fade animation to %d %s"
-msgstr "Додана анімація зникання в %d %s"
 
 
 msgid "Select 2 sound strips"
@@ -85480,28 +85351,8 @@ msgid "Failed to get add-ons path"
 msgstr "Збій отримання шляху додатків"
 
 
-msgid "Modules Installed (%s) from %r into %r"
-msgstr "Модулі Інстальовано (%s) з %r в %r"
-
-
-msgid "Add-on path %r could not be found"
-msgstr "Шлях додатка %r неможливо знайти"
-
-
-msgid "Expected a zip-file %r"
-msgstr "Очікується zip-файл %r"
-
-
-msgid "Template Installed (%s) from %r into %r"
-msgstr "Шаблон Інстальовано (%s) з %r в %r"
-
-
 msgid "Failed to create Studio Light path"
 msgstr "Збій створення шляху Студійного Освітлювача"
-
-
-msgid "StudioLight Installed %r into %r"
-msgstr "Студійний Освітлювач Інстальовано %r в %r"
 
 
 msgid "Failed to get Studio Light path"
@@ -85510,30 +85361,6 @@ msgstr "Збій отримання шляху Студійного Освітл
 
 msgid "Warning, file already exists. Overwrite existing file?"
 msgstr "Попередження, файл вже існує. Перезаписати наявний файл?"
-
-
-msgid "Installing keymap failed: %s"
-msgstr "Збій інсталювання розкладки клавіш: %s"
-
-
-msgid "This script was written Blender version %d.%d.%d and might not function (correctly), though it is enabled"
-msgstr "Цей скрипт було написано для Blender версії %d.%d.%d і може не функціонувати (правильно), хоча він увімкнений"
-
-
-msgid "File already installed to %r"
-msgstr "Файл вже інстальовано в %r"
-
-
-msgid "Source file is in the add-on search path: %r"
-msgstr "Джерельний файл знаходиться по шляху пошуку додатка: %r"
-
-
-msgid "Remove Add-on: %r?"
-msgstr "Вилучити Додаток: %r?"
-
-
-msgid "Path: %r"
-msgstr "Шлях: %r"
 
 
 msgid "Active face must be a quad"
@@ -85556,10 +85383,6 @@ msgid "See OperatorList.txt text block"
 msgstr "Дивіться блок тексту OperatorList.txt"
 
 
-msgid "Renamed %d of %d %s"
-msgstr "Перейменовано %d з %d %s"
-
-
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Відкриття..."
@@ -85573,24 +85396,8 @@ msgid "Licensed under the GNU General Public License"
 msgstr "Ліцензовано під GNU General Public License"
 
 
-msgid "%s: %s"
-msgstr "%s: %s"
-
-
-msgid "Nothing to operate on: %s[ ].%s"
-msgstr "Немає над чим оперувати: %s[ ].%s"
-
-
 msgid "File path was not set"
 msgstr "Шлях файлу не було задано"
-
-
-msgid "File '%s' not found"
-msgstr "Файл '%s' не знайдено"
-
-
-msgid "No reference available %r, Update info in 'rna_manual_reference.py' or callback to bpy.utils.manual_map()"
-msgstr "Жодне посилання не доступне %r, Оновіть інфо в 'rna_manual_reference.py' або відклик у bpy.utils.manual_map()"
 
 
 msgid "Direct execution not supported"
@@ -85611,10 +85418,6 @@ msgstr "Неможливо додати властивості у дані за�
 
 msgid "Cannot remove properties from override data"
 msgstr "Неможливо вилучити властивості з даних заміщення"
-
-
-msgid "Tool %r not found for space %r"
-msgstr "Засіб %r не знайдено для простору %r"
 
 
 msgid "Getting Started"
@@ -85655,10 +85458,6 @@ msgid "Assign"
 msgstr "Призначення"
 
 
-msgid "Operator not found: bpy.ops.%s"
-msgstr "Оператор не знайдено: bpy.ops.%s"
-
-
 msgctxt "Operator"
 msgid "Manual"
 msgstr "Підручник"
@@ -85679,32 +85478,12 @@ msgid "User Communities"
 msgstr "Спільноти Користувачів"
 
 
-msgid "Non boolean value found: %s[ ].%s"
-msgstr "Не булеве значення знайдено: %s[ ].%s"
-
-
 msgid "Characters"
 msgstr "Символи"
 
 
 msgid "Strip From"
 msgstr "Смужка Із"
-
-
-msgid "Rename %d %s"
-msgstr "Перейменувати %d %s"
-
-
-msgid "Date: %s %s"
-msgstr "Дата: %s %s"
-
-
-msgid "Hash: %s"
-msgstr "Хеш: %s"
-
-
-msgid "Branch: %s"
-msgstr "Гілка: %s"
 
 
 msgid "Invalid regular expression (find): "
@@ -86347,10 +86126,6 @@ msgid "Unlocked"
 msgstr "Розблоковане"
 
 
-msgid "Frame: %d (%s)"
-msgstr "Кадр: %d (%s)"
-
-
 msgid "Stroke Color"
 msgstr "Колір Штриха"
 
@@ -86504,14 +86279,6 @@ msgstr "Макс В-кадрів"
 
 msgid "Buffer"
 msgstr "Буфер"
-
-
-msgid "Custom (%.4g fps)"
-msgstr "Власна (%.4g кзс)"
-
-
-msgid "%.4g fps"
-msgstr "%.4g кзс"
 
 
 msgid "Mask Mapping"
@@ -86741,18 +86508,6 @@ msgid "Display percentage makes dynamics inaccurate without baking"
 msgstr "Показ відсотків робить динаміку неточною без запікання"
 
 
-msgid "Iterations: %d .. %d (avg. %d)"
-msgstr "Повтори: %d .. %d (сер. %d)"
-
-
-msgid "Error: %.5f .. %.5f (avg. %.5f)"
-msgstr "Помилка: %.5f .. %.5f (сер. %.5f)"
-
-
-msgid "Spacing: %g"
-msgstr "Інтервал: %g"
-
-
 msgid "Not yet functional"
 msgstr "Ще не функціонує"
 
@@ -86765,10 +86520,6 @@ msgstr "З'єднати Все"
 msgctxt "Operator"
 msgid "Disconnect All"
 msgstr "Від'єднати Все"
-
-
-msgid "%d fluid particles for this frame"
-msgstr "%d частинок флюїду для цього кадру"
 
 
 msgid "Speed Multiplier"
@@ -87623,11 +87374,6 @@ msgstr "Індекс Часкоду"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Зум"
-
-
-msgctxt "Operator"
 msgid "Set Wall"
 msgstr "Задати Стіну"
 
@@ -87679,11 +87425,6 @@ msgstr "Відстеження для Обертання/Масштабу"
 
 
 msgctxt "Operator"
-msgid "View Fit"
-msgstr "Підгонка Огляду"
-
-
-msgctxt "Operator"
 msgid "Enable Markers"
 msgstr "Увімкнути Маркери"
 
@@ -87696,14 +87437,6 @@ msgstr "Розблокувати Відстеження"
 msgctxt "Operator"
 msgid "Frame All Fit"
 msgstr "Усе у Кадр Підгонка"
-
-
-msgid "Zoom %d:%d"
-msgstr "Зум %d:%d"
-
-
-msgid "Solve error: %.2f px"
-msgstr "Помилка рішача: %.2f px"
 
 
 msgctxt "Operator"
@@ -88064,6 +87797,11 @@ msgstr "Спрощення (Дозволена Зміна)"
 
 
 msgctxt "Operator"
+msgid "Zoom Region..."
+msgstr "Зум Регіону..."
+
+
+msgctxt "Operator"
 msgid "Less"
 msgstr "Менше"
 
@@ -88117,13 +87855,13 @@ msgid "Modified Edges"
 msgstr "Модифіковані Ребра"
 
 
-msgid "Show Same Material"
-msgstr "Показ Такого ж Матеріалу"
-
-
 msgctxt "Operator"
 msgid "Render Slot Cycle Next"
 msgstr "Наступне По колу Гніздо Рендера"
+
+
+msgid "Show Same Material"
+msgstr "Показ Такого ж Матеріалу"
 
 
 msgctxt "Operator"
@@ -88397,10 +88135,6 @@ msgid "Backdrop Zoom Out"
 msgstr "Відсунення Тла"
 
 
-msgid "Slot %d"
-msgstr "Гніздо %d"
-
-
 msgctxt "Operator"
 msgid "Show One Level"
 msgstr "Показ Один Рівень"
@@ -88636,10 +88370,6 @@ msgid "Anchor X"
 msgstr "Кріплення X"
 
 
-msgid "%14s"
-msgstr "%14s"
-
-
 msgid "Position X"
 msgstr "Позиція X"
 
@@ -88848,10 +88578,6 @@ msgid "Resolutions"
 msgstr "Роздільності"
 
 
-msgid "Fractional Preview Zoom"
-msgstr "Фракційний Зум Передогляду"
-
-
 msgctxt "Operator"
 msgid "Clip"
 msgstr "Кліп"
@@ -88899,10 +88625,6 @@ msgstr "Розпакувати"
 
 msgid "Pack"
 msgstr "Упакування"
-
-
-msgid "Original frame range: %d-%d (%d)"
-msgstr "Оригінальний діапазон кадрів: %d-%d (%d)"
 
 
 msgid "Source Channel"
@@ -89010,14 +88732,6 @@ msgid "Text: Internal"
 msgstr "Текст: Внутрішньо"
 
 
-msgid "File: *%s (unsaved)"
-msgstr "Файл: *%s (незбережено)"
-
-
-msgid "File: %s"
-msgstr "Файл: %s"
-
-
 msgctxt "Operator"
 msgid "Move Marker"
 msgstr "Перемістити Маркер"
@@ -89092,40 +88806,8 @@ msgid "Taper Start"
 msgstr "Конусність Старт"
 
 
-msgid ""
-"%s\n"
-"• %s toggles snap while dragging.\n"
-"• %s toggles dragging from the center.\n"
-"• %s toggles fixed aspect"
-msgstr ""
-"%s\n"
-"• %s перемикає підхоп при перетягуванні.\n"
-"• %s перемикає перетягування від центру.\n"
-"• %s перемикає фіксований аспект"
-
-
 msgid "Depth:"
 msgstr "Глибина:"
-
-
-msgid "Weight: %.3f"
-msgstr "Вагомість: %.3f"
-
-
-msgid ""
-"Measure distance and angles.\n"
-"• %s anywhere for new measurement.\n"
-"• Drag ruler segment to measure an angle.\n"
-"• %s to remove the active ruler.\n"
-"• Ctrl while dragging to snap.\n"
-"• Shift while dragging to measure surface thickness"
-msgstr ""
-"Міряння відстані та кутів.\n"
-"• %s будь-де для нового вимірювання.\n"
-"• Перетягнення сегмента мірника для міряння кута.\n"
-"• %s для вилучення активного мірника\n"
-"• Ctrl у ході перетягання для підхопу.\n"
-"• Shift у ході перетягання для міряння товщини поверхні"
 
 
 msgid "Style Start"
@@ -89596,10 +89278,6 @@ msgid "Missing script files"
 msgstr "Відсутні файли скриптів"
 
 
-msgid "No custom %s configured"
-msgstr "Нема власного %s сконфігурованого"
-
-
 msgid "Error (see console)"
 msgstr "Помилка (дивіться консоль)"
 
@@ -89634,14 +89312,6 @@ msgstr "Попередження:"
 
 msgid "Internet:"
 msgstr "Інтернет:"
-
-
-msgid "Color Set %d"
-msgstr "Набір Кольорів %d"
-
-
-msgid "Color %d"
-msgstr "Колір %d"
 
 
 msgctxt "Operator"
@@ -89692,11 +89362,6 @@ msgstr "Активна Камера"
 msgctxt "Operator"
 msgid "Orbit Opposite"
 msgstr "Обліт Протилежно"
-
-
-msgctxt "Operator"
-msgid "Zoom Region..."
-msgstr "Зум Регіону..."
 
 
 msgctxt "Operator"
@@ -91303,10 +90968,6 @@ msgid "<No ID pointer>"
 msgstr "<Немає вказівника на ID>"
 
 
-msgid "<Missing ID block>"
-msgstr "<Відсутній ID-блок>"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "Немає Ф-кривої для додавання ключових кадрів"
 
@@ -91321,14 +90982,6 @@ msgstr "Немає ID блока та/або даних анімації, з я�
 
 msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "Неможливо вставити ключовий кадр, неправильний RNA-шлях для даного ID (ID = %s, шлях = %s)"
-
-
-msgid "No ID block to insert keyframe in (path = %s)"
-msgstr "Немає ID-блока для вставляння ключового кадру (шлях = %s)"
-
-
-msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
-msgstr "Неможливо вставити ключовий кадр, цей тип не підтримує даних анімації (ID = %s, шлях = %s)"
 
 
 msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -91563,6 +91216,10 @@ msgstr "Покроково"
 
 msgid "GP_Layer"
 msgstr "Шар_НО"
+
+
+msgid "Slot %d"
+msgstr "Гніздо %d"
 
 
 msgid "Cannot pack multiview images from raw data currently..."
@@ -92922,6 +92579,10 @@ msgstr "LMB: Штрих - Shift: Заповнення - Shift+Ctrl: Штрих +
 
 msgid "Error evaluating number, see Info editor for details"
 msgstr "Помилка обчислювання числа, дивіться редактор Інфо щодо деталей"
+
+
+msgid "%s: %s"
+msgstr "%s: %s"
 
 
 msgid "Non-Keyboard Shortcut"
@@ -95286,6 +94947,10 @@ msgid "Duplicate Current"
 msgstr "Дублювати Поточне"
 
 
+msgid "Active group is locked, aborting"
+msgstr "Активна група заблокована, припинено"
+
+
 msgid "Sample color for %s"
 msgstr "Вибірка кольору для %s"
 
@@ -95348,10 +95013,6 @@ msgstr "Виявлено відсутність %s%s%s%s!"
 
 msgid "The modifier used does not support deformed locations"
 msgstr "Використаний модифікатор не підтримує деформованих розміщень"
-
-
-msgid "Active group is locked, aborting"
-msgstr "Активна група заблокована, припинено"
 
 
 msgid "No active vertex group for painting, aborting"
@@ -95616,6 +95277,10 @@ msgstr "Кадр: %d / %d"
 
 msgid "Frame: - / %d"
 msgstr "Кадр: - / %d"
+
+
+msgid "File: %s"
+msgstr "Файл: %s"
 
 
 msgid "unsupported movie clip format"

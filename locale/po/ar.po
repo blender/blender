@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 07:36+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -9700,14 +9700,6 @@ msgid "Automatically adjust strength to give consistent results for different sp
 msgstr "ﺔﻔﻠﺘﺨﻤﻟﺍ ﺕﺍﺪﻋﺎﺒﺘﻠﻟ ﺔﻘﺳﺎﻨﺘﻣ ﺞﺋﺎﺘﻧ ءﺎﻄﻋﻹ﻿ ﺎﻴﺗﺍﺫ ﺓﻮﻘﻟﺍ ﻝﺪّﻋ"
 
 
-msgid "Relax UVs"
-msgstr "UVs ـﻟﺍ ﻲﺧﺭﺍ"
-
-
-msgid "Pinch UVs"
-msgstr "UVs ـﻟﺍ ﻖﻴﺿ"
-
-
 msgid "Vertex Paint Tool"
 msgstr "ﻂﻘﻨﻟﺍ ﻰﻠﻋ ﻢﺳﺮﻟﺍ ﺓﺍﺩﺍ"
 
@@ -16488,6 +16480,10 @@ msgid "Track"
 msgstr "ﺐﻘّﻌﺗ"
 
 
+msgid "Zoom"
+msgstr "ﺐﻳﺮﻘﺗ"
+
+
 msgid "Console"
 msgstr "ﺮﻣﺍﻭﻷ﻿ﺍ ﺔﺣﻮﻟ"
 
@@ -19593,10 +19589,6 @@ msgid "Center Y"
 msgstr "Y ﺰﻛﺮﻣ"
 
 
-msgid "Zoom"
-msgstr "ﺐﻳﺮﻘﺗ"
-
-
 msgid "Defocus"
 msgstr "ﺰﻴﻛﺮﺘﻟﺍ ﻞﻴﻠﻘﺗ"
 
@@ -22398,6 +22390,10 @@ msgid "Add Circle"
 msgstr "ﺓﺮﺋﺍﺩ ﻒﺿﺍ"
 
 
+msgid "Handles"
+msgstr "ﺾﺑﺎﻘﻣ"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "ﻱﺭﻭﺪﻟﺍ ﺐﻠﻗﺍ"
@@ -22635,10 +22631,6 @@ msgstr "ﻰﻨﺤﻨﻤﻟﺍ ﻉﻮﻧ ﻊﺿ"
 
 msgid "Set type of active spline"
 msgstr "ﻝﺎﻌﻔﻟﺍ ﻰﻨﺤﻨﻤﻟﺍ ﻉﻮﻧ ﻊﺿ"
-
-
-msgid "Handles"
-msgstr "ﺾﺑﺎﻘﻣ"
 
 
 msgctxt "Operator"
@@ -27532,9 +27524,24 @@ msgid "Reset the copy of the mesh that is being sculpted on"
 msgstr "ﻪﻴﻠﻋ ﺖﺤﻨﻟﺍ ﻢﺘﻳ ﻱﺬﻟﺍ ﻢﺴﺠﻤﻟﺍ ﺕﻼ﻿ﻳﺪﻌﺗ ﻲﻐﻟﺍ"
 
 
-msgctxt "Operator"
-msgid "Sculpt UVs"
-msgstr "UV'sـﻟﺍ ﺖﺤﻧﺍ"
+msgid "Pinch UVs"
+msgstr "UVs ـﻟﺍ ﻖﻴﺿ"
+
+
+msgid "Relax UVs"
+msgstr "UVs ـﻟﺍ ﻲﺧﺭﺍ"
+
+
+msgid "Algorithm used for UV relaxation"
+msgstr "UV ـﻟﺍ ءﺎﺧﺭﻹ﻿ ﺔﻠﻤﻌﺘﺴﻣ ﺔﻴﻣﺯﺭﺍﻮﺧ"
+
+
+msgid "Use Laplacian method for relaxation"
+msgstr " ءﺎﺧﺭﻺ﻿ﻟ ﻥﺎﻴﺳﻼ﻿ﺑﻻ﻿ ﺔﻘﻳﺮﻃ ﻡﺪﺨﺘﺳﺍ"
+
+
+msgid "Use HC method for relaxation"
+msgstr " ءﺎﺧﺭﻺ﻿ﻟ HC ﺔﻘﻳﺮﻃ ﻡﺪﺨﺘﺳﺍ"
 
 
 msgctxt "Operator"
@@ -34928,22 +34935,6 @@ msgid "Keep UV and edit mode mesh selection in sync"
 msgstr "ﻦﻣﺍﺰﺗ ﻲﻓ ﺮﻳﺮﺤﺘﻟﺍ ﻭ UV ﻊﺿﻮﻟ ﻢﺴﺠﻤﻟﺍ ﺭﺎﻴﺘﺧﺍ ﻖﺑﺃ"
 
 
-msgid "Relaxation Method"
-msgstr "ﺢﻳّﺮﺘﻟﺍ ﺔﻘﻳﺮﻃ"
-
-
-msgid "Algorithm used for UV relaxation"
-msgstr "UV ـﻟﺍ ءﺎﺧﺭﻹ﻿ ﺔﻠﻤﻌﺘﺴﻣ ﺔﻴﻣﺯﺭﺍﻮﺧ"
-
-
-msgid "Use Laplacian method for relaxation"
-msgstr " ءﺎﺧﺭﻺ﻿ﻟ ﻥﺎﻴﺳﻼ﻿ﺑﻻ﻿ ﺔﻘﻳﺮﻃ ﻡﺪﺨﺘﺳﺍ"
-
-
-msgid "Use HC method for relaxation"
-msgstr " ءﺎﺧﺭﻺ﻿ﻟ HC ﺔﻘﻳﺮﻃ ﻡﺪﺨﺘﺳﺍ"
-
-
 msgid "UV Sculpt"
 msgstr "UV ـﻟﺍ ﺖﺤﻧ"
 
@@ -36305,11 +36296,6 @@ msgstr "ﺕﺍﺭﺎﺴﻤﻟﺍ ﺮﻬﻇﺃ"
 
 
 msgctxt "Operator"
-msgid "View Fit"
-msgstr "ﺮﻈﻨﻤﻟﺍ ﺐﺳﺎﻧ"
-
-
-msgctxt "Operator"
 msgid "Enable Markers"
 msgstr "ﺕﺎﻣﻼ﻿ﻌﻟﺍ ﻞﻌّﻓ"
 
@@ -36616,10 +36602,6 @@ msgid "Online Manual"
 msgstr "ﺖﻧﺮﺘﻧﻻ﻿ﺍ ﻰﻠﻋ ﻡﺍﺪﺨﺘﺴﻤﻟﺍ ﻞﻴﻟﺩ"
 
 
-msgid "Slot %d"
-msgstr "‬%d‪ ﺔﺤﺘﻓ"
-
-
 msgctxt "Operator"
 msgid "Make"
 msgstr "ﻞﻌﺟﺇ"
@@ -36750,10 +36732,6 @@ msgstr "ﻲﺟﺭﺎﺧ :ﺺﻧ"
 
 msgid "Text: Internal"
 msgstr "ﻲﻠﺧﺍﺩ :ﺺﻧ"
-
-
-msgid "File: %s"
-msgstr "‬%s‪ :ﻒﻠﻣ"
 
 
 msgctxt "Operator"
@@ -37425,10 +37403,6 @@ msgid "in memory to enable editing!"
 msgstr "!ﻞﻳﺪﻌﺘﻟﺍ ﻞﻴﻌﻔﺘﻟ ﺓﺮﻛﺍﺬﻟﺍ ﻲﻓ"
 
 
-msgid "<Missing ID block>"
-msgstr "ﺓﺩﻮﻘﻔﻣ ﺕﺎﻧﺎﻴﺒﻟﺍ ﺔﻠﺘﻛ"
-
-
 msgid "No AnimData to set action on"
 msgstr "ﺙﺪﺤﻟﺍ ﺎﻬﻴﻠﻋ ﺽﻭﺮﻌﻤﻟﺍ ﺔﻛﺮﺤﻟﺍ ﺔﻘﺒﻃ"
 
@@ -37496,6 +37470,10 @@ msgstr "ﻡﺪﻘﺘﻣ"
 
 msgid "GP_Layer"
 msgstr "ﺕﺎﻈﺣﻼ﻿ﻣ ﺔﻘﺒﻃ"
+
+
+msgid "Slot %d"
+msgstr "‬%d‪ ﺔﺤﺘﻓ"
 
 
 msgid "Did not write, no Multilayer Image"
@@ -38507,12 +38485,12 @@ msgid "No more markers to jump to in this direction"
 msgstr "ﻩﺎﺠﺗﻹ﻿ﺍ ﺍﺬﻫ ﻲﻓ ﺎﻬﻴﻟﺍ ﺰﻔﻘﻠﻟ ﻯﺮﺧﺃ ﺕﺎﻣﻼ﻿ﻋ ﻱﺍ ﺪﺟﻮﺗ ﻻ﻿"
 
 
-msgid "No active camera set"
-msgstr "ﻞﻌﻔﻣ ﺭﺎﺴﻣ ﻻ﻿"
-
-
 msgid "Active group is locked, aborting"
 msgstr "ﺔﻠﻔﻘﻣ ﺙﺪﺤﻟﺍ ﺔﻋﻮﻤﺠﻣ"
+
+
+msgid "No active camera set"
+msgstr "ﻞﻌﻔﻣ ﺭﺎﺴﻣ ﻻ﻿"
 
 
 msgid "No active vertex group for painting, aborting"
@@ -38585,6 +38563,10 @@ msgstr "‬%d‬ ‪%d‪:ﺭﺎﻃﺍ"
 
 msgid "Frame: - / %d"
 msgstr "‬%d‪ / -:ﺭﺎﻃﺍ"
+
+
+msgid "File: %s"
+msgstr "‬%s‪ :ﻒﻠﻣ"
 
 
 msgid "unsupported movie clip format"

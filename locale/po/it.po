@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 07:36+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2024-03-01 16:11+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -13563,22 +13563,6 @@ msgid "Automatically adjust strength to give consistent results for different sp
 msgstr "Aggiusta automaticamente la forza per dare risultati consistenti per spaziature differenti"
 
 
-msgid "Grab UVs"
-msgstr "Sposta UVs"
-
-
-msgid "Relax"
-msgstr "Rilascia"
-
-
-msgid "Relax UVs"
-msgstr "Rilascia UVs"
-
-
-msgid "Pinch UVs"
-msgstr "Pizzica UVs"
-
-
 msgid "Vertex Paint Tool"
 msgstr "Strumenti Pittura Vertici"
 
@@ -20775,6 +20759,10 @@ msgid "Show/Hide"
 msgstr "Mostra/Nascondi"
 
 
+msgid "Zoom"
+msgstr "Zoom"
+
+
 msgid "Console"
 msgstr "Console"
 
@@ -25481,10 +25469,6 @@ msgid "Spin"
 msgstr "Rivoluzione"
 
 
-msgid "Zoom"
-msgstr "Zoom"
-
-
 msgid "Defocus"
 msgstr "Sfocatura Profondità"
 
@@ -29807,6 +29791,10 @@ msgid "Add Circle"
 msgstr "Aggiungi Cerchio"
 
 
+msgid "Handles"
+msgstr "Maniglie"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "Alterna Ciclico"
@@ -30204,10 +30192,6 @@ msgstr "Imposta Tipo Spline"
 
 msgid "Set type of active spline"
 msgstr "Imposta il tipo della spline attiva"
-
-
-msgid "Handles"
-msgstr "Maniglie"
 
 
 msgctxt "Operator"
@@ -39839,6 +39823,10 @@ msgid "Falloff Type"
 msgstr "Tipo Decadimento"
 
 
+msgid "Relax"
+msgstr "Rilascia"
+
+
 msgid "Sharpen"
 msgstr "Affilatura"
 
@@ -39869,13 +39857,20 @@ msgid "Symmetrize the topology modifications"
 msgstr "Rende simmetriche le modifiche della topologia"
 
 
-msgctxt "Operator"
-msgid "Sculpt UVs"
-msgstr "Scolpisci UV"
+msgid "Grab UVs"
+msgstr "Sposta UVs"
 
 
-msgid "Switch brush to relax mode for duration of stroke"
-msgstr "Dispone il pennello nel modo morbido per la durata del tratto"
+msgid "Pinch UVs"
+msgstr "Pizzica UVs"
+
+
+msgid "Relax UVs"
+msgstr "Rilascia UVs"
+
+
+msgid "Algorithm used for UV relaxation"
+msgstr "Algoritmo usato per il rilassamento dell'UV"
 
 
 msgctxt "Operator"
@@ -52360,14 +52355,6 @@ msgid "Keep UV and edit mode mesh selection in sync"
 msgstr "Mantiene sincronizzata la selezione delle UV e della mesh in Modalità Modifica"
 
 
-msgid "Relaxation Method"
-msgstr "Metodo Rilassamento"
-
-
-msgid "Algorithm used for UV relaxation"
-msgstr "Algoritmo usato per il rilassamento dell'UV"
-
-
 msgid "UV Sculpt"
 msgstr "Scultura UV"
 
@@ -53528,21 +53515,9 @@ msgid "Active object is not a mesh"
 msgstr "L'oggetto attivo non è una mesh"
 
 
-msgid "Remove Add-on: %r?"
-msgstr "Rimuove Add-on: %r?"
-
-
-msgid "Path: %r"
-msgstr "Percorso: %r"
-
-
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Apri..."
-
-
-msgid "%s: %s"
-msgstr "%s: %s"
 
 
 msgctxt "Operator"
@@ -53885,10 +53860,6 @@ msgid "Unlocked"
 msgstr "Sbloccato"
 
 
-msgid "Frame: %d (%s)"
-msgstr "Fotogramma: %d (%s)"
-
-
 msgid "Parent:"
 msgstr "Genitore:"
 
@@ -54116,18 +54087,6 @@ msgid "Display percentage makes dynamics inaccurate without baking"
 msgstr "Visualizzare la percentuale rende imprecisa la dinamica senza baking"
 
 
-msgid "Iterations: %d .. %d (avg. %d)"
-msgstr "Ripetizioni: %d .. %d (med. %d)"
-
-
-msgid "Error: %.5f .. %.5f (avg. %.5f)"
-msgstr "Errore: %.5f .. %.5f (med. %.5f)"
-
-
-msgid "Spacing: %g"
-msgstr "Spaziatura: %g"
-
-
 msgid "Not yet functional"
 msgstr "Non ancora funzionale"
 
@@ -54140,10 +54099,6 @@ msgstr "Connetti Tutto"
 msgctxt "Operator"
 msgid "Disconnect All"
 msgstr "Disconnetti Tutto"
-
-
-msgid "%d fluid particles for this frame"
-msgstr "%d particelle fluide per questo frame"
 
 
 msgid "Dynamic Mesh"
@@ -54447,11 +54402,6 @@ msgstr "Mostra Tracce"
 
 
 msgctxt "Operator"
-msgid "View Fit"
-msgstr "Adatta Vista"
-
-
-msgctxt "Operator"
 msgid "Enable Markers"
 msgstr "Abilita Marcatori"
 
@@ -54459,10 +54409,6 @@ msgstr "Abilita Marcatori"
 msgctxt "Operator"
 msgid "Unlock Tracks"
 msgstr "Sblocca Tracce"
-
-
-msgid "Zoom %d:%d"
-msgstr "Zoom %d:%d"
 
 
 msgctxt "Operator"
@@ -54645,6 +54591,11 @@ msgstr "Tipo Curva di Raccordo"
 
 
 msgctxt "Operator"
+msgid "Zoom Region..."
+msgstr "Zoom Regione..."
+
+
+msgctxt "Operator"
 msgid "Less"
 msgstr "Meno"
 
@@ -54684,13 +54635,13 @@ msgid "By Distance"
 msgstr "Per Distanza"
 
 
-msgid "Show Same Material"
-msgstr "Mostra Stesso Materiale"
-
-
 msgctxt "Operator"
 msgid "Render Slot Cycle Next"
 msgstr "Slot Render Successivo"
+
+
+msgid "Show Same Material"
+msgstr "Mostra Stesso Materiale"
 
 
 msgctxt "Operator"
@@ -54944,10 +54895,6 @@ msgid "Backdrop Zoom Out"
 msgstr "Rimpicciolisci Sfondo"
 
 
-msgid "Slot %d"
-msgstr "Slot %d"
-
-
 msgctxt "Operator"
 msgid "Show One Level"
 msgstr "Mostra Un Livello"
@@ -55162,10 +55109,6 @@ msgid "Pack"
 msgstr "Comprimi"
 
 
-msgid "Original frame range: %d-%d (%d)"
-msgstr "Intervallo fotogrammi originale: %d-%d (%d)"
-
-
 msgid "Source Channel"
 msgstr "Canale Sorgente"
 
@@ -55255,10 +55198,6 @@ msgstr "Testo: Esterno"
 
 msgid "Text: Internal"
 msgstr "Testo: Interno"
-
-
-msgid "File: %s"
-msgstr "File: %s"
 
 
 msgctxt "Operator"
@@ -55640,10 +55579,6 @@ msgid "User:"
 msgstr "Utente:"
 
 
-msgid "Color Set %d"
-msgstr "Set Colori %d"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Documentazione"
@@ -55687,11 +55622,6 @@ msgstr "Camera Attiva"
 msgctxt "Operator"
 msgid "Orbit Opposite"
 msgstr "Orbita di Fronte"
-
-
-msgctxt "Operator"
-msgid "Zoom Region..."
-msgstr "Zoom Regione..."
 
 
 msgctxt "Operator"
@@ -56706,10 +56636,6 @@ msgid "Add UVs"
 msgstr "Aggiungi UV"
 
 
-msgid "<Missing ID block>"
-msgstr "<ID Blocco Mancante>"
-
-
 msgid "No AnimData to set action on"
 msgstr "Livello dell'animazione su cui eseguire l'azione"
 
@@ -56841,6 +56767,10 @@ msgstr "Passo"
 
 msgid "GP_Layer"
 msgstr "Livello_Matita"
+
+
+msgid "Slot %d"
+msgstr "Slot %d"
 
 
 msgid "Could not write image: %s"
@@ -57431,6 +57361,10 @@ msgstr "Sessione Linea Matita: Premi e trascina LMB per disegnare | ESC/Invio pe
 
 msgid "Failed to set value"
 msgstr "Impossibile impostare il valore"
+
+
+msgid "%s: %s"
+msgstr "%s: %s"
 
 
 msgid "Non-Keyboard Shortcut"
@@ -58920,6 +58854,10 @@ msgid "Duplicate Current"
 msgstr "Duplica Corrente"
 
 
+msgid "Active group is locked, aborting"
+msgstr "Il gruppo attivo è bloccato, comando annullato"
+
+
 msgid "Sample color for %s"
 msgstr "Campione colore per %s"
 
@@ -58950,10 +58888,6 @@ msgstr "Nessuna camera attiva impostata"
 
 msgid "Missing%s%s%s%s detected!"
 msgstr "Rilevata mancanza di%s%s%s%s!"
-
-
-msgid "Active group is locked, aborting"
-msgstr "Il gruppo attivo è bloccato, comando annullato"
 
 
 msgid "Mirror group is locked, aborting"
@@ -59102,6 +59036,10 @@ msgstr "Fotogramma: %d / %d"
 
 msgid "Frame: - / %d"
 msgstr "Fotogramma: - / %d"
+
+
+msgid "File: %s"
+msgstr "File: %s"
 
 
 msgid "Cannot read '%s': %s"
