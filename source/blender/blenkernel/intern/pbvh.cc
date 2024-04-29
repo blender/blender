@@ -703,7 +703,7 @@ void update_mesh_pointers(PBVH &pbvh, Mesh *mesh)
   }
 }
 
-PBVH *build_mesh(Mesh *mesh)
+std::unique_ptr<PBVH> build_mesh(Mesh *mesh)
 {
   std::unique_ptr<PBVH> pbvh = std::make_unique<PBVH>();
   pbvh->header.type = PBVH_FACES;
@@ -784,10 +784,10 @@ PBVH *build_mesh(Mesh *mesh)
   pbvh_validate_node_prims(pbvh);
 #endif
 
-  return pbvh.release();
+  return pbvh;
 }
 
-PBVH *build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg)
+std::unique_ptr<PBVH> build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg)
 {
   std::unique_ptr<PBVH> pbvh = std::make_unique<PBVH>();
   pbvh->header.type = PBVH_GRIDS;
@@ -847,12 +847,14 @@ PBVH *build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg)
   pbvh_validate_node_prims(pbvh);
 #endif
 
-  return pbvh.release();
+  return pbvh;
 }
 
-void free(PBVH *pbvh)
+}  // namespace blender::bke::pbvh
+
+PBVH::~PBVH()
 {
-  for (PBVHNode &node : pbvh->nodes) {
+  for (PBVHNode &node : this->nodes) {
     if (node.flag & PBVH_Leaf) {
       if (node.draw_batches) {
         blender::draw::pbvh::node_free(node.draw_batches);
@@ -860,13 +862,18 @@ void free(PBVH *pbvh)
     }
 
     if (node.flag & (PBVH_Leaf | PBVH_TexLeaf)) {
-      node_pixels_free(&node);
+      blender::bke::pbvh::node_pixels_free(&node);
     }
   }
 
-  pixels_free(pbvh);
+  blender::bke::pbvh::pixels_free(this);
+}
 
-  delete pbvh;
+namespace blender::bke::pbvh {
+
+void free(std::unique_ptr<PBVH> &pbvh)
+{
+  pbvh.reset();
 }
 
 static void pbvh_iter_begin(PBVHIter *iter, PBVH &pbvh, FunctionRef<bool(PBVHNode &)> scb)

@@ -195,6 +195,8 @@ struct PBVH {
   PBVHGPUFormat *vbo_id;
 
   PBVHPixels pixels;
+
+  ~PBVH();
 };
 
 /* pbvh.cc */

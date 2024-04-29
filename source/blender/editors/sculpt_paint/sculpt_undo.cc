@@ -1041,7 +1041,7 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, UndoSculpt &usculpt)
   data.changed_position = changed_position;
   data.changed_hide_vert = changed_hide_vert;
   data.changed_mask = changed_mask;
-  data.pbvh = ss->pbvh;
+  data.pbvh = ss->pbvh.get();
   data.modified_grids = modified_grids;
   data.modified_position_verts = modified_verts_position;
   data.modified_hidden_verts = modified_verts_hide;

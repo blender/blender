@@ -123,21 +123,24 @@ namespace blender::bke::pbvh {
 /**
  * Do a full rebuild with on Mesh data structure.
  */
-PBVH *build_mesh(Mesh *mesh);
+std::unique_ptr<PBVH> build_mesh(Mesh *mesh);
 void update_mesh_pointers(PBVH &pbvh, Mesh *mesh);
 /**
  * Do a full rebuild with on Grids data structure.
  */
-PBVH *build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg);
+std::unique_ptr<PBVH> build_grids(const CCGKey *key, Mesh *mesh, SubdivCCG *subdiv_ccg);
 /**
  * Build a PBVH from a BMesh.
  */
-PBVH *build_bmesh(BMesh *bm, BMLog *log, int cd_vert_node_offset, int cd_face_node_offset);
+std::unique_ptr<PBVH> build_bmesh(BMesh *bm,
+                                  BMLog *log,
+                                  int cd_vert_node_offset,
+                                  int cd_face_node_offset);
 
 void update_bmesh_offsets(PBVH &pbvh, int cd_vert_node_offset, int cd_face_node_offset);
 
 void build_pixels(PBVH &pbvh, Mesh *mesh, Image *image, ImageUser *image_user);
-void free(PBVH *pbvh);
+void free(std::unique_ptr<PBVH> &pbvh);
 
 /* Hierarchical Search in the BVH, two methods:
  * - For each hit calling a callback.

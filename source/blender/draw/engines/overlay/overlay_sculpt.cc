@@ -37,7 +37,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
   blender::gpu::Batch *sculpt_overlays;
-  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVH *pbvh = ob->sculpt->pbvh.get();
 
   const bool use_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d);
 

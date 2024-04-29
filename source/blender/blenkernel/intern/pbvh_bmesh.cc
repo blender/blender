@@ -2141,10 +2141,10 @@ void update_bmesh_offsets(PBVH &pbvh, int cd_vert_node_offset, int cd_face_node_
   pbvh.cd_face_node_offset = cd_face_node_offset;
 }
 
-PBVH *build_bmesh(BMesh *bm,
-                  BMLog *log,
-                  const int cd_vert_node_offset,
-                  const int cd_face_node_offset)
+std::unique_ptr<PBVH> build_bmesh(BMesh *bm,
+                                  BMLog *log,
+                                  const int cd_vert_node_offset,
+                                  const int cd_face_node_offset)
 {
   std::unique_ptr<PBVH> pbvh = std::make_unique<PBVH>();
   pbvh->header.type = PBVH_BMESH;
@@ -2162,7 +2162,7 @@ PBVH *build_bmesh(BMesh *bm,
   pbvh::update_bmesh_offsets(*pbvh, cd_vert_node_offset, cd_face_node_offset);
 
   if (bm->totface == 0) {
-    return pbvh.release();
+    return pbvh;
   }
 
   /* bounding box array of all faces, no need to recalculate every time. */
@@ -2212,7 +2212,7 @@ PBVH *build_bmesh(BMesh *bm,
   pbvh_bmesh_create_nodes_fast_recursive(pbvh.get(), nodeinfo, face_bounds, &rootnode, 0);
 
   BLI_memarena_free(arena);
-  return pbvh.release();
+  return pbvh;
 }
 
 bool bmesh_update_topology(PBVH &pbvh,

@@ -15,6 +15,7 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_set.hh"
+#include "BLI_utility_mixins.hh"
 
 #include "DNA_brush_enums.h"
 #include "DNA_customdata_types.h"
@@ -411,33 +412,34 @@ struct SculptAttributeParams {
 struct SculptAttribute {
   /* Domain, data type and name */
   blender::bke::AttrDomain domain;
-  eCustomDataType proptype;
-  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  eCustomDataType proptype = eCustomDataType(0);
+  char name[MAX_CUSTOMDATA_LAYER_NAME] = "";
 
   /* Source layer on mesh/bmesh, if any. */
-  CustomDataLayer *layer;
+  CustomDataLayer *layer = nullptr;
 
   /* Data stored as flat array. */
-  void *data;
-  int elem_size, elem_num;
-  bool data_for_bmesh; /* Temporary data store as array outside of bmesh. */
+  void *data = nullptr;
+  int elem_size = 0;
+  int elem_num = 0;
+  bool data_for_bmesh = false; /* Temporary data store as array outside of bmesh. */
 
   /* Data is a flat array outside the CustomData system.
    * This will be true if simple_array is requested in
    * SculptAttributeParams, or the PBVH type is PBVH_GRIDS or PBVH_BMESH.
    */
-  bool simple_array;
+  bool simple_array = false;
   /* Data stored per BMesh element. */
-  int bmesh_cd_offset;
+  int bmesh_cd_offset = 0;
 
   /* Sculpt usage */
-  SculptAttributeParams params;
+  SculptAttributeParams params = {};
 
   /**
    * Used to keep track of which pre-allocated SculptAttribute instances
    * inside of SculptSession.temp_attribute are used.
    */
-  bool used;
+  bool used = false;
 };
 
 #define SCULPT_MAX_ATTRIBUTES 64
@@ -456,34 +458,34 @@ struct SculptAttribute {
 
 struct SculptAttributePointers {
   /* Persistent base. */
-  SculptAttribute *persistent_co;
-  SculptAttribute *persistent_no;
-  SculptAttribute *persistent_disp;
+  SculptAttribute *persistent_co = nullptr;
+  SculptAttribute *persistent_no = nullptr;
+  SculptAttribute *persistent_disp = nullptr;
 
   /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
    * initialized in #auto_mask::cache_init when needed. */
-  SculptAttribute *automasking_factor;
-  SculptAttribute *automasking_occlusion; /* CD_PROP_INT8. */
-  SculptAttribute *automasking_stroke_id;
-  SculptAttribute *automasking_cavity;
+  SculptAttribute *automasking_factor = nullptr;
+  SculptAttribute *automasking_occlusion = nullptr; /* CD_PROP_INT8. */
+  SculptAttribute *automasking_stroke_id = nullptr;
+  SculptAttribute *automasking_cavity = nullptr;
 
-  SculptAttribute *topology_island_key; /* CD_PROP_INT8 */
+  SculptAttribute *topology_island_key = nullptr; /* CD_PROP_INT8 */
 
   /* BMesh */
-  SculptAttribute *dyntopo_node_id_vertex;
-  SculptAttribute *dyntopo_node_id_face;
+  SculptAttribute *dyntopo_node_id_vertex = nullptr;
+  SculptAttribute *dyntopo_node_id_face = nullptr;
 };
 
-struct SculptSession {
+struct SculptSession : blender::NonCopyable, blender::NonMovable {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */
     bool active;
     MultiresModifierData *modifier;
     int level;
-  } multires;
+  } multires = {};
 
   /* Depsgraph for the Cloth Brush solver to get the colliders. */
-  Depsgraph *depsgraph;
+  Depsgraph *depsgraph = nullptr;
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
   blender::MutableSpan<blender::float3> vert_positions;
@@ -491,14 +493,15 @@ struct SculptSession {
   blender::Span<int> corner_verts;
 
   /* These contain the vertex and poly counts of the final mesh. */
-  int totvert, faces_num;
+  int totvert = 0;
+  int faces_num = 0;
 
-  KeyBlock *shapekey_active;
-  MPropCol *vcol;
-  MLoopCol *mcol;
+  KeyBlock *shapekey_active = nullptr;
+  MPropCol *vcol = nullptr;
+  MLoopCol *mcol = nullptr;
 
   blender::bke::AttrDomain vcol_domain;
-  eCustomDataType vcol_type;
+  eCustomDataType vcol_type = CD_PROP_COLOR;
 
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */
@@ -516,32 +519,32 @@ struct SculptSession {
 
   /* Mesh Face Sets */
   /* Total number of faces of the base mesh. */
-  int totfaces;
+  int totfaces = 0;
 
   /* The 0 ID is not used by the tools or the visibility system, it is just used when creating new
    * geometry (the trim tool, for example) to detect which geometry was just added, so it can be
    * assigned a valid Face Set after creation. Tools are not intended to run with Face Sets IDs set
    * to 0. */
-  const int *face_sets;
+  const int *face_sets = nullptr;
   /**
    * A reference to the ".hide_poly" attribute, to store whether (base) faces are hidden.
    * May be null.
    */
-  const bool *hide_poly;
+  const bool *hide_poly = nullptr;
 
   /* BMesh for dynamic topology sculpting */
-  BMesh *bm;
+  BMesh *bm = nullptr;
   /* Undo/redo log for dynamic topology sculpting */
-  BMLog *bm_log;
+  BMLog *bm_log = nullptr;
 
   /* Limit surface/grids. */
-  SubdivCCG *subdiv_ccg;
+  SubdivCCG *subdiv_ccg = nullptr;
 
   /* PBVH acceleration structure */
-  PBVH *pbvh;
+  std::unique_ptr<PBVH> pbvh;
 
   /* Object is deformed with some modifiers. */
-  bool deform_modifiers_active;
+  bool deform_modifiers_active = false;
   /* Coords of un-deformed mesh. */
   blender::Array<blender::float3> orig_cos;
   /* Coords of deformed mesh but without stroke displacement. */
@@ -550,46 +553,46 @@ struct SculptSession {
   blender::Array<blender::float3x3, 0> deform_imats;
 
   /* Pool for texture evaluations. */
-  ImagePool *tex_pool;
+  ImagePool *tex_pool = nullptr;
 
-  blender::ed::sculpt_paint::StrokeCache *cache;
-  blender::ed::sculpt_paint::filter::Cache *filter_cache;
-  blender::ed::sculpt_paint::expand::Cache *expand_cache;
+  blender::ed::sculpt_paint::StrokeCache *cache = nullptr;
+  blender::ed::sculpt_paint::filter::Cache *filter_cache = nullptr;
+  blender::ed::sculpt_paint::expand::Cache *expand_cache = nullptr;
 
   /* Cursor data and active vertex for tools */
-  PBVHVertRef active_vertex;
+  PBVHVertRef active_vertex = PBVHVertRef{PBVH_REF_NONE};
 
-  int active_face_index;
-  int active_grid_index;
+  int active_face_index = -1;
+  int active_grid_index = -1;
 
   /* When active, the cursor draws with faded colors, indicating that there is an action
    * enabled.
    */
-  bool draw_faded_cursor;
-  float cursor_radius;
+  bool draw_faded_cursor = false;
+  float cursor_radius = 0.0f;
   blender::float3 cursor_location;
   blender::float3 cursor_normal;
   blender::float3 cursor_sampled_normal;
   blender::float3 cursor_view_normal;
 
   /* TODO(jbakker): Replace rv3d and v3d with ViewContext */
-  RegionView3D *rv3d;
-  View3D *v3d;
-  Scene *scene;
+  RegionView3D *rv3d = nullptr;
+  View3D *v3d = nullptr;
+  Scene *scene = nullptr;
 
   /* Dynamic mesh preview */
-  PBVHVertRef *preview_vert_list;
-  int preview_vert_count;
+  PBVHVertRef *preview_vert_list = nullptr;
+  int preview_vert_count = 0;
 
   /* Pose Brush Preview */
   blender::float3 pose_origin;
   std::unique_ptr<SculptPoseIKChain> pose_ik_chain_preview;
 
   /* Boundary Brush Preview */
-  SculptBoundary *boundary_preview;
+  SculptBoundary *boundary_preview = nullptr;
 
-  SculptVertexInfo vertex_info;
-  SculptFakeNeighbors fake_neighbors;
+  SculptVertexInfo vertex_info = {};
+  SculptFakeNeighbors fake_neighbors = {};
 
   /* Transform operator */
   blender::float3 pivot_pos;
@@ -621,17 +624,17 @@ struct SculptSession {
 
     /* TODO: identify sculpt-only fields */
     // struct { ... } sculpt;
-  } mode;
+  } mode = {};
   eObjectMode mode_type;
 
   /* This flag prevents PBVH from being freed when creating the vp_handle for texture paint. */
-  bool building_vp_handle;
+  bool building_vp_handle = false;
 
   /**
    * ID data is older than sculpt-mode data.
    * Set #Main.is_memfile_undo_flush_needed when enabling.
    */
-  char needs_flush_to_id;
+  char needs_flush_to_id = false;
 
   /* This is a fixed-size array so we can pass pointers to its elements
    * to client code. This is important to keep bmesh offsets up to date.
@@ -647,19 +650,22 @@ struct SculptSession {
    *
    * NOTE: This setting is temporarily until paint mode is added.
    */
-  bool sticky_shading_color;
+  bool sticky_shading_color = false;
 
-  uchar stroke_id;
+  uchar stroke_id = 0;
 
   /**
    * Last used painting canvas key.
    */
-  char *last_paint_canvas_key;
+  char *last_paint_canvas_key = nullptr;
   blender::float3 last_normal;
 
-  int last_automasking_settings_hash;
-  uchar last_automask_stroke_id;
-  bool islands_valid; /* Is attrs.topology_island_key valid? */
+  int last_automasking_settings_hash = 0;
+  uchar last_automask_stroke_id = 0;
+  bool islands_valid = false; /* Is attrs.topology_island_key valid? */
+
+  SculptSession();
+  ~SculptSession();
 };
 
 void BKE_sculptsession_free(Object *ob);

@@ -454,11 +454,7 @@ void multires_force_sculpt_rebuild(Object *object)
   }
 
   SculptSession *ss = object->sculpt;
-
-  if (ss->pbvh != nullptr) {
-    bke::pbvh::free(ss->pbvh);
-    object->sculpt->pbvh = nullptr;
-  }
+  bke::pbvh::free(ss->pbvh);
 }
 
 void multires_force_external_reload(Object *object)

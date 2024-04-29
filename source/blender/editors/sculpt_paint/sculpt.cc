@@ -1556,7 +1556,7 @@ static void sculpt_extend_redraw_rect_previous(Object *ob, rcti *rect)
 bool SCULPT_get_redraw_rect(ARegion *region, RegionView3D *rv3d, Object *ob, rcti *rect)
 {
   using namespace blender;
-  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVH *pbvh = ob->sculpt->pbvh.get();
   if (!pbvh) {
     return false;
   }

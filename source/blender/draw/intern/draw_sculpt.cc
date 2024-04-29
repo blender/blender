@@ -42,7 +42,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
                                                  const Span<pbvh::AttributeRequest> attrs)
 {
   /* PBVH should always exist for non-empty meshes, created by depsgraph eval. */
-  PBVH *pbvh = ob->sculpt ? ob->sculpt->pbvh : nullptr;
+  PBVH *pbvh = ob->sculpt ? ob->sculpt->pbvh.get() : nullptr;
   if (!pbvh) {
     return {};
   }
