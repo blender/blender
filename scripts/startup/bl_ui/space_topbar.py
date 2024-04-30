@@ -134,8 +134,10 @@ class TOPBAR_PT_gpencil_layers(Panel):
 
         col = row.column()
         layer_rows = 10
-        col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index",
-                          rows=layer_rows, sort_reverse=True, sort_lock=True)
+        col.template_list(
+            "GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index",
+            rows=layer_rows, sort_reverse=True, sort_lock=True,
+        )
 
         gpl = context.active_gpencil_layer
         if gpl:
@@ -377,10 +379,11 @@ class TOPBAR_MT_file_defaults(Menu):
             display_name = bpy.path.display_name(iface_(app_template))
             props = layout.operator("wm.read_factory_settings", text="Load Factory Blender Settings")
             props.app_template = app_template
-            props = layout.operator("wm.read_factory_settings",
-                                    text=iface_("Load Factory {:s} Settings",
-                                                i18n_contexts.operator_default).format(display_name),
-                                    translate=False)
+            props = layout.operator(
+                "wm.read_factory_settings",
+                text=iface_("Load Factory {:s} Settings", i18n_contexts.operator_default).format(display_name),
+                translate=False,
+            )
             props.app_template = app_template
             props.use_factory_startup_app_template_only = True
             del display_name

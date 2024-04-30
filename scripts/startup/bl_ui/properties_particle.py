@@ -1092,8 +1092,10 @@ class PARTICLE_PT_physics_relations(ParticleButtonsPanel, Panel):
         part = particle_get_settings(context)
 
         row = layout.row()
-        row.template_list("UI_UL_list", "particle_targets", psys, "targets",
-                          psys, "active_particle_target_index", rows=4)
+        row.template_list(
+            "UI_UL_list", "particle_targets", psys, "targets",
+            psys, "active_particle_target_index", rows=4,
+        )
 
         col = row.column()
         sub = col.row()
@@ -1150,8 +1152,10 @@ class PARTICLE_PT_physics_fluid_interaction(ParticleButtonsPanel, Panel):
         psys = context.particle_system
 
         row = layout.row()
-        row.template_list("UI_UL_list", "particle_targets", psys, "targets",
-                          psys, "active_particle_target_index", rows=4)
+        row.template_list(
+            "UI_UL_list", "particle_targets", psys, "targets",
+                          psys, "active_particle_target_index", rows=4,
+        )
 
         col = row.column()
         sub = col.row()
@@ -1324,8 +1328,10 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
         # layout.prop(state, "name", text="State name")
 
         row = layout.row()
-        row.template_list("UI_UL_list", "particle_boids_rules", state,
-                          "rules", state, "active_boid_rule_index", rows=4)
+        row.template_list(
+            "UI_UL_list", "particle_boids_rules", state,
+            "rules", state, "active_boid_rule_index", rows=4,
+        )
 
         col = row.column()
         sub = col.row()
@@ -1619,8 +1625,10 @@ class PARTICLE_PT_render_collection_use_count(ParticleButtonsPanel, Panel):
         layout.active = part.use_collection_count and not part.use_whole_collection
 
         row = layout.row()
-        row.template_list("UI_UL_list", "particle_instance_weights", part, "instance_weights",
-                          part, "active_instanceweight_index")
+        row.template_list(
+            "UI_UL_list", "particle_instance_weights", part, "instance_weights",
+            part, "active_instanceweight_index",
+        )
 
         col = row.column()
         sub = col.row()

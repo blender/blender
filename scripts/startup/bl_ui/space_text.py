@@ -367,12 +367,8 @@ class TEXT_MT_edit_to3d(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("text.to_3d_object",
-                        text="One Object",
-                        ).split_lines = False
-        layout.operator("text.to_3d_object",
-                        text="One Object Per Line",
-                        ).split_lines = True
+        layout.operator("text.to_3d_object", text="One Object").split_lines = False
+        layout.operator("text.to_3d_object", text="One Object Per Line").split_lines = True
 
 
 class TEXT_MT_edit(Menu):

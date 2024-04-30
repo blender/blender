@@ -440,8 +440,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
                 con = x
 
         if not con:
-            self.report({'ERROR'},
-                        "Motion Tracking constraint to be converted not found")
+            self.report({'ERROR'}, "Motion Tracking constraint to be converted not found")
 
             return {'CANCELLED'}
 
@@ -452,8 +451,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
             clip = con.clip
 
         if not clip:
-            self.report({'ERROR'},
-                        "Movie clip to use tracking data from isn't set")
+            self.report({'ERROR'}, "Movie clip to use tracking data from isn't set")
 
             return {'CANCELLED'}
 

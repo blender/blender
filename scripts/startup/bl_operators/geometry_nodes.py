@@ -143,9 +143,14 @@ def create_wrapper_group(modifier, old_group):
     group.interface.new_socket(data_("Geometry"), in_out='OUTPUT', socket_type='NodeSocketGeometry')
     group.is_modifier = True
 
-    first_geometry_input = next((item for item in old_group.interface.items_tree if item.item_type == 'SOCKET' and
-                                item.in_out == 'INPUT' and
-                                item.bl_socket_idname == 'NodeSocketGeometry'), None)
+    first_geometry_input = next(
+        (
+            item for item in old_group.interface.items_tree if item.item_type == 'SOCKET' and
+            item.in_out == 'INPUT' and
+            item.bl_socket_idname == 'NodeSocketGeometry'
+        ),
+        None,
+    )
     if first_geometry_input:
         group.interface.new_socket(data_("Geometry"), in_out='INPUT', socket_type='NodeSocketGeometry')
         group_input_node = group.nodes.new('NodeGroupInput')
@@ -180,8 +185,10 @@ def create_wrapper_group(modifier, old_group):
             group_node_input.default_value = modifier[identifier]
 
     if first_geometry_input:
-        group.links.new(group_input_node.outputs[0],
-                        get_socket_with_identifier(group_node.inputs, first_geometry_input.identifier))
+        group.links.new(
+            group_input_node.outputs[0],
+            get_socket_with_identifier(group_node.inputs, first_geometry_input.identifier),
+        )
 
         # Adjust locations of named attribute input nodes and group input node to make some space.
         if input_nodes:

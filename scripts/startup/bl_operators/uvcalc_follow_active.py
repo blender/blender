@@ -174,13 +174,17 @@ def extend(obj, EXTEND_MODE, use_uv_selection):
         else:
             fac = 1.0
 
-        extrapolate_uv(fac,
-                       l_a_uv[3], l_a_uv[0],
-                       l_b_uv[3], l_b_uv[0])
+        extrapolate_uv(
+            fac,
+            l_a_uv[3], l_a_uv[0],
+            l_b_uv[3], l_b_uv[0],
+        )
 
-        extrapolate_uv(fac,
-                       l_a_uv[2], l_a_uv[1],
-                       l_b_uv[2], l_b_uv[1])
+        extrapolate_uv(
+            fac,
+            l_a_uv[2], l_a_uv[1],
+            l_b_uv[2], l_b_uv[1],
+        )
 
     # -------------------------------------------
     # Calculate average length per loop if needed.

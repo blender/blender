@@ -248,8 +248,8 @@ class NLA_OT_bake(Operator):
         description="Which data's transformations to bake",
         options={'ENUM_FLAG'},
         items=(
-             ('POSE', "Pose", "Bake bones transformations"),
-             ('OBJECT', "Object", "Bake object transformations"),
+            ('POSE', "Pose", "Bake bones transformations"),
+            ('OBJECT', "Object", "Bake object transformations"),
         ),
         default={'POSE'},
     )

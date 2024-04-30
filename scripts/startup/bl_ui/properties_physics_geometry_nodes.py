@@ -38,8 +38,10 @@ class PHYSICS_PT_geometry_nodes(Panel):
             calc_text = iface_("Calculate to Frame")
             bake_text = iface_("Bake")
 
-        layout.operator("object.simulation_nodes_cache_calculate_to_frame",
-                        text=calc_text, translate=False).selected = True
+        layout.operator(
+            "object.simulation_nodes_cache_calculate_to_frame",
+            text=calc_text, translate=False,
+        ).selected = True
 
         row = layout.row(align=True)
         row.operator("object.simulation_nodes_cache_bake", text=bake_text, translate=False).selected = True

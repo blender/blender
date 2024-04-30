@@ -363,13 +363,17 @@ class ShapeTransfer(Operator):
 
         for ob_other in objects:
             if ob_other.type != 'MESH':
-                self.report({'WARNING'},
-                            rpt_("Skipping '{:s}', not a mesh").format(ob_other.name))
+                self.report(
+                    {'WARNING'},
+                    rpt_("Skipping '{:s}', not a mesh").format(ob_other.name),
+                )
                 continue
             me_other = ob_other.data
             if len(me_other.vertices) != len(me.vertices):
-                self.report({'WARNING'},
-                            rpt_("Skipping '{:s}', vertex count differs").format(ob_other.name))
+                self.report(
+                    {'WARNING'},
+                    rpt_("Skipping '{:s}', vertex count differs").format(ob_other.name),
+                )
                 continue
 
             target_normals = me_nos(me_other.vertices)
@@ -397,14 +401,15 @@ class ShapeTransfer(Operator):
                     v_before = idxs[-2]
                     v = idxs[-1]
                     for v_after in idxs:
-                        pt = barycentric_transform(orig_shape_coords[v],
-                                                   orig_coords[v_before],
-                                                   orig_coords[v],
-                                                   orig_coords[v_after],
-                                                   target_coords[v_before],
-                                                   target_coords[v],
-                                                   target_coords[v_after],
-                                                   )
+                        pt = barycentric_transform(
+                            orig_shape_coords[v],
+                            orig_coords[v_before],
+                            orig_coords[v],
+                            orig_coords[v_after],
+                            target_coords[v_before],
+                            target_coords[v],
+                            target_coords[v_after],
+                        )
                         median_coords[v].append(pt)
                         v_before = v
                         v = v_after
@@ -467,10 +472,7 @@ class ShapeTransfer(Operator):
 
         if 1:  # swap from/to, means we can't copy to many at once.
             if len(objects) != 1:
-                self.report({'ERROR'},
-                            ("Expected one other selected "
-                             "mesh object to copy from"))
-
+                self.report({'ERROR'}, "Expected one other selected mesh object to copy from")
                 return {'CANCELLED'}
             ob_act, objects = objects[0], [ob_act]
 
@@ -524,44 +526,47 @@ class JoinUVs(Operator):
                     obj_other.data.tag = False
 
             for obj_other in objects:
-                if obj_other != obj and obj_other.type == 'MESH':
-                    mesh_other = obj_other.data
-                    if mesh_other != mesh:
-                        if mesh_other.tag is False:
-                            mesh_other.tag = True
+                if not (obj_other != obj and obj_other.type == 'MESH'):
+                    continue
+                mesh_other = obj_other.data
+                if mesh_other == mesh:
+                    continue
+                if mesh_other.tag is True:
+                    continue
 
-                            if len(mesh_other.loops) != nbr_loops:
-                                self.report(
-                                    {'WARNING'},
-                                    rpt_(
-                                        "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}\n"
-                                    ).format(
-                                        obj_other.name,
-                                        mesh_other.name,
-                                        len(mesh_other.loops),
-                                        len(mesh_other.polygons),
-                                        nbr_loops,
-                                    ),
-                                )
-                            else:
-                                uv_other = mesh_other.uv_layers.active
-                                if not uv_other:
-                                    mesh_other.uv_layers.new()
-                                    uv_other = mesh_other.uv_layers.active
-                                    if not uv_other:
-                                        self.report(
-                                            {'ERROR'},
-                                            rpt_(
-                                                "Could not add a new UV map to object '{:s}' (Mesh '{:s}')\n"
-                                            ).format(
-                                                obj_other.name,
-                                                mesh_other.name,
-                                            ),
-                                        )
+                mesh_other.tag = True
+                if len(mesh_other.loops) != nbr_loops:
+                    self.report(
+                        {'WARNING'},
+                        rpt_(
+                            "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}"
+                        ).format(
+                            obj_other.name,
+                            mesh_other.name,
+                            len(mesh_other.loops),
+                            len(mesh_other.polygons),
+                            nbr_loops,
+                        ),
+                    )
+                else:
+                    uv_other = mesh_other.uv_layers.active
+                    if not uv_other:
+                        mesh_other.uv_layers.new()
+                        uv_other = mesh_other.uv_layers.active
+                        if not uv_other:
+                            self.report(
+                                {'ERROR'},
+                                rpt_(
+                                    "Could not add a new UV map to object '{:s}' (Mesh '{:s}')"
+                                ).format(
+                                    obj_other.name,
+                                    mesh_other.name,
+                                ),
+                            )
 
-                                # finally do the copy
-                                uv_other.data.foreach_set("uv", uv_array)
-                                mesh_other.update()
+                    # finally do the copy
+                    uv_other.data.foreach_set("uv", uv_array)
+                    mesh_other.update()
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -821,9 +826,12 @@ class TransformsToDeltasAnim(Operator):
                     # ensure that this index hasn't occurred before
                     if fcu.array_index in existingFCurves[dpath]:
                         # conflict
-                        self.report({'ERROR'},
-                                    rpt_("Object {!r} already has {!r} F-Curve(s). "
-                                         "Remove these before trying again").format(obj.name, dpath))
+                        self.report(
+                            {'ERROR'},
+                            rpt_(
+                                "Object {!r} already has {!r} F-Curve(s). "
+                                "Remove these before trying again"
+                            ).format(obj.name, dpath))
                         return {'CANCELLED'}
                     else:
                         # no conflict here

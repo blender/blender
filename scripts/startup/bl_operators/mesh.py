@@ -58,8 +58,10 @@ class MeshMirrorUV(Operator):
                 mirror_lt[co] = i
 
         vmap = {}
-        for mirror_a, mirror_b in ((mirror_gt, mirror_lt),
-                                   (mirror_lt, mirror_gt)):
+        for mirror_a, mirror_b in (
+                (mirror_gt, mirror_lt),
+                (mirror_lt, mirror_gt),
+        ):
             for co, i in mirror_a.items():
                 nco = (-co[0], co[1], co[2])
                 j = mirror_b.get(nco)

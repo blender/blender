@@ -1481,8 +1481,10 @@ class VIEW3D_PT_tools_particlemode_options(View3DPanel, Panel):
         if pe.type == 'PARTICLES':
             if ob.particle_systems:
                 if len(ob.particle_systems) > 1:
-                    layout.template_list("UI_UL_list", "particle_systems", ob, "particle_systems",
-                                         ob.particle_systems, "active_index", rows=2, maxrows=3)
+                    layout.template_list(
+                        "UI_UL_list", "particle_systems", ob, "particle_systems",
+                        ob.particle_systems, "active_index", rows=2, maxrows=3,
+                    )
 
                 ptcache = ob.particle_systems.active.point_cache
         else:
@@ -1491,8 +1493,10 @@ class VIEW3D_PT_tools_particlemode_options(View3DPanel, Panel):
                     ptcache = md.point_cache
 
         if ptcache and len(ptcache.point_caches) > 1:
-            layout.template_list("UI_UL_list", "particles_point_caches", ptcache, "point_caches",
-                                 ptcache.point_caches, "active_index", rows=2, maxrows=3)
+            layout.template_list(
+                "UI_UL_list", "particles_point_caches", ptcache, "point_caches",
+                ptcache.point_caches, "active_index", rows=2, maxrows=3,
+            )
 
         if not pe.is_editable:
             layout.label(text="Point cache must be baked")

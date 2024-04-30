@@ -294,8 +294,10 @@ class WM_OT_blend_strings_utf8_validate(Operator):
                 for it in getattr(bpy.data, prop.identifier):
                     changed |= self.validate_strings(it, done_items)
         if changed:
-            self.report({'WARNING'},
-                        "Some strings were fixed, don't forget to save the .blend file to keep those changes")
+            self.report(
+                {'WARNING'},
+                "Some strings were fixed, don't forget to save the .blend file to keep those changes",
+            )
         return {'FINISHED'}
 
 

@@ -63,8 +63,10 @@ class GreasePencil_LayerMaskPanel:
         rows = 4
         row = layout.row()
         col = row.column()
-        col.template_list("GREASE_PENCIL_UL_masks", "", layer, "mask_layers", layer.mask_layers,
-                          "active_mask_index", rows=rows, sort_lock=True)
+        col.template_list(
+            "GREASE_PENCIL_UL_masks", "", layer, "mask_layers", layer.mask_layers,
+            "active_mask_index", rows=rows, sort_lock=True,
+        )
 
         col = row.column(align=True)
         col.menu("GREASE_PENCIL_MT_layer_mask_add", icon='ADD', text="")

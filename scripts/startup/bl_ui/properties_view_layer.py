@@ -261,9 +261,11 @@ class ViewLayerCryptomattePanel(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_cryptomatte_material", text="Material")
         col.prop(view_layer, "use_pass_cryptomatte_asset", text="Asset")
         col = layout.column()
-        col.active = any((view_layer.use_pass_cryptomatte_object,
-                          view_layer.use_pass_cryptomatte_material,
-                          view_layer.use_pass_cryptomatte_asset))
+        col.active = any((
+            view_layer.use_pass_cryptomatte_object,
+            view_layer.use_pass_cryptomatte_material,
+            view_layer.use_pass_cryptomatte_asset,
+        ))
         col.prop(view_layer, "pass_cryptomatte_depth", text="Levels")
 
         if context.engine == 'BLENDER_EEVEE':
@@ -298,8 +300,10 @@ class ViewLayerLightgroupsPanel(ViewLayerButtonsPanel, Panel):
 
         row = layout.row()
         col = row.column()
-        col.template_list("UI_UL_list", "lightgroups", view_layer,
-                          "lightgroups", view_layer, "active_lightgroup_index", rows=3)
+        col.template_list(
+            "UI_UL_list", "lightgroups", view_layer,
+            "lightgroups", view_layer, "active_lightgroup_index", rows=3,
+        )
 
         col = row.column()
         sub = col.column(align=True)

@@ -21,14 +21,16 @@ class CLIP_UL_tracking_objects(UIList):
         # assert(isinstance(item, bpy.types.MovieTrackingObject)
         tobj = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(tobj, "name", text="", emboss=False,
-                        icon='CAMERA_DATA' if tobj.is_camera
-                        else 'OBJECT_DATA')
+            layout.prop(
+                tobj, "name", text="", emboss=False,
+                icon='CAMERA_DATA' if tobj.is_camera else 'OBJECT_DATA',
+            )
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
-            layout.label(text="",
-                         icon='CAMERA_DATA' if tobj.is_camera
-                         else 'OBJECT_DATA')
+            layout.label(
+                text="",
+                icon='CAMERA_DATA' if tobj.is_camera else 'OBJECT_DATA',
+            )
 
 
 class CLIP_PT_display(Panel):
@@ -573,9 +575,13 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
         col = layout.column(align=True)
         col.scale_y = 2.0
 
-        col.operator("clip.solve_camera",
-                     text="Solve Camera Motion" if tracking_object.is_camera
-                     else "Solve Object Motion")
+        col.operator(
+            "clip.solve_camera",
+            text=(
+                "Solve Camera Motion" if tracking_object.is_camera else
+                "Solve Object Motion"
+            ),
+        )
 
 
 class CLIP_PT_tools_cleanup(CLIP_PT_tracking_panel, Panel):
