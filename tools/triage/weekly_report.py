@@ -20,6 +20,8 @@ import argparse
 import datetime
 import json
 import re
+import shutil
+import sys
 
 from gitea_utils import (
     gitea_json_activities_get,
@@ -35,6 +37,22 @@ from typing import (
     Set,
     Iterable,
 )
+
+# Support piping the output to a file or process.
+IS_ATTY = sys.stdout.isatty()
+
+
+if IS_ATTY:
+    def print_progress(text: str) -> None:
+        # The trailing space clears the previous output.
+        term_width = shutil.get_terminal_size(fallback=(80, 20))[0]
+
+        if (space := term_width - len(text)) > 0:
+            text = text + (" " * space)
+        print(text, end="\r", flush=True)
+else:
+    def print_progress(text: str) -> None:
+        pass
 
 
 def argparse_create() -> argparse.ArgumentParser:
@@ -108,7 +126,7 @@ def report_personal_weekly_get(username: str, start: datetime.datetime, verbose:
     for i in range(7):
         date_curr = start + datetime.timedelta(days=i)
         date_curr_str = date_curr.strftime("%Y-%m-%d")
-        print(f"Requesting activity of {date_curr_str}", end="\r", flush=True)
+        print_progress(f"Requesting activity of {date_curr_str}")
         for activity in gitea_json_activities_get(username, date_curr_str):
             op_type = activity["op_type"]
             if op_type == "close_issue":
@@ -163,7 +181,7 @@ def report_personal_weekly_get(username: str, start: datetime.datetime, verbose:
     len_total = len(issues_closed) + len(issues_commented) + len(pulls_commented)
     process = 0
     for issue in issues_commented:
-        print(f"[{int(100 * (process / len_total))}%] Checking issue {issue}       ", end="\r", flush=True)
+        print_progress("[{:d}%] Checking issue {:s}".format(int(100 * (process / len_total)), issue))
         process += 1
 
         issue_events = gitea_json_issue_events_filter(
@@ -188,7 +206,7 @@ def report_personal_weekly_get(username: str, start: datetime.datetime, verbose:
                 issues_needing_developer_info.append(issue)
 
     for issue in issues_closed:
-        print(f"[{int(100 * (process / len_total))}%] Checking issue {issue}       ", end="\r", flush=True)
+        print_progress("[{:d}%] Checking issue {:s}".format(int(100 * (process / len_total)), issue))
         process += 1
 
         issue_events = gitea_json_issue_events_filter(
@@ -210,7 +228,7 @@ def report_personal_weekly_get(username: str, start: datetime.datetime, verbose:
                 issues_archived.append(issue)
 
     for pull in pulls_commented:
-        print(f"[{int(100 * (process / len_total))}%] Checking pull {pull}         ", end="\r", flush=True)
+        print_progress("[{:d}%] Checking pull {:s}".format(int(100 * (process / len_total)), pull))
         process += 1
 
         pull_events = gitea_json_issue_events_filter(
@@ -230,7 +248,10 @@ def report_personal_weekly_get(username: str, start: datetime.datetime, verbose:
 
     issues_involved = issues_closed | issues_commented | issues_created
 
-    print("**Involved in {:d} reports:**                                     ".format(len(issues_involved)))
+    # Clear any progress.
+    print_progress("")
+
+    print("**Involved in {:d} reports:**".format(len(issues_involved)))
     print("* Confirmed: {:d}".format(len(issues_confirmed)))
     print("* Closed as Resolved: {:d}".format(len(issues_fixed)))
     print("* Closed as Archived: {:d}".format(len(issues_archived)))
@@ -326,5 +347,6 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-    # wait for input to close window
-    input()
+    # Wait for input to close window.
+    if IS_ATTY:
+        input()
