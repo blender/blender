@@ -10,6 +10,7 @@
 
 struct ARegion;
 struct ARegionType;
+struct AssetShelf;
 struct AssetShelfSettings;
 struct AssetShelfType;
 struct bContext;
