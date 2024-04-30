@@ -161,7 +161,7 @@ template<typename Accessor> inline typename Accessor::ItemT &add_item_to_array(b
  * Add a new item at the end with the given socket type and name.
  */
 template<typename Accessor>
-inline typename Accessor::ItemT *add_item_with_socket_and_name(
+inline typename Accessor::ItemT *add_item_with_socket_type_and_name(
     bNode &node, const eNodeSocketDatatype socket_type, const char *name)
 {
   using ItemT = typename Accessor::ItemT;
@@ -224,7 +224,8 @@ template<typename Accessor>
     if (!Accessor::supports_socket_type(socket_type)) {
       return false;
     }
-    item = add_item_with_socket_and_name<Accessor>(storage_node, socket_type, src_socket->name);
+    item = add_item_with_socket_type_and_name<Accessor>(
+        storage_node, socket_type, src_socket->name);
   }
   else if constexpr (Accessor::has_name && !Accessor::has_type) {
     item = add_item_with_name<Accessor>(storage_node, src_socket->name);
