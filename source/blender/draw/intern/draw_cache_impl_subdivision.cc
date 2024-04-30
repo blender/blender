@@ -1332,7 +1332,8 @@ static void draw_subdiv_init_ubo_storage(const DRWSubdivCache &cache,
                                          const int src_offset,
                                          const int dst_offset,
                                          const uint total_dispatch_size,
-                                         const bool has_sculpt_mask)
+                                         const bool has_sculpt_mask,
+                                         const uint edge_loose_offset)
 {
   ubo->src_offset = src_offset;
   ubo->dst_offset = dst_offset;
@@ -1342,7 +1343,7 @@ static void draw_subdiv_init_ubo_storage(const DRWSubdivCache &cache,
   ubo->patches_are_triangular = cache.gpu_patch_map.patches_are_triangular;
   ubo->coarse_face_count = cache.num_coarse_faces;
   ubo->num_subdiv_loops = cache.num_subdiv_loops;
-  ubo->edge_loose_offset = cache.num_subdiv_loops * 2;
+  ubo->edge_loose_offset = edge_loose_offset;
   ubo->has_sculpt_mask = has_sculpt_mask;
   ubo->coarse_face_smooth_mask = SUBDIV_COARSE_FACE_FLAG_SMOOTH_MASK;
   ubo->coarse_face_select_mask = SUBDIV_COARSE_FACE_FLAG_SELECT_MASK;
@@ -1359,11 +1360,17 @@ static void draw_subdiv_ubo_update_and_bind(const DRWSubdivCache &cache,
                                             const int src_offset,
                                             const int dst_offset,
                                             const uint total_dispatch_size,
-                                            const bool has_sculpt_mask = false)
+                                            const bool has_sculpt_mask = false,
+                                            const uint edge_loose_offset = 0)
 {
   DRWSubdivUboStorage storage;
-  draw_subdiv_init_ubo_storage(
-      cache, &storage, src_offset, dst_offset, total_dispatch_size, has_sculpt_mask);
+  draw_subdiv_init_ubo_storage(cache,
+                               &storage,
+                               src_offset,
+                               dst_offset,
+                               total_dispatch_size,
+                               has_sculpt_mask,
+                               edge_loose_offset);
 
   if (!cache.ubo) {
     const_cast<DRWSubdivCache *>(&cache)->ubo = GPU_uniformbuf_create_ex(
@@ -1396,7 +1403,8 @@ static void drw_subdiv_compute_dispatch(const DRWSubdivCache &cache,
                                         const int src_offset,
                                         const int dst_offset,
                                         uint total_dispatch_size,
-                                        const bool has_sculpt_mask = false)
+                                        const bool has_sculpt_mask = false,
+                                        const uint edge_loose_offset = 0)
 {
   const uint max_res_x = uint(GPU_max_work_group_count(0));
 
@@ -1423,8 +1431,13 @@ static void drw_subdiv_compute_dispatch(const DRWSubdivCache &cache,
    * we presume it all fits. */
   BLI_assert(dispatch_ry < uint(GPU_max_work_group_count(1)));
 
-  draw_subdiv_ubo_update_and_bind(
-      cache, shader, src_offset, dst_offset, total_dispatch_size, has_sculpt_mask);
+  draw_subdiv_ubo_update_and_bind(cache,
+                                  shader,
+                                  src_offset,
+                                  dst_offset,
+                                  total_dispatch_size,
+                                  has_sculpt_mask,
+                                  edge_loose_offset);
 
   GPU_compute_dispatch(shader, dispatch_rx, dispatch_ry, 1);
 }
@@ -1858,6 +1871,7 @@ void draw_subdiv_build_lines_buffer(const DRWSubdivCache &cache, gpu::IndexBuf *
 void draw_subdiv_build_lines_loose_buffer(const DRWSubdivCache &cache,
                                           gpu::IndexBuf *lines_indices,
                                           gpu::VertBuf *lines_flags,
+                                          uint edge_loose_offset,
                                           uint num_loose_edges)
 {
   GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_LINES_LOOSE);
@@ -1866,7 +1880,7 @@ void draw_subdiv_build_lines_loose_buffer(const DRWSubdivCache &cache,
   GPU_indexbuf_bind_as_ssbo(lines_indices, 3);
   GPU_vertbuf_bind_as_ssbo(lines_flags, 4);
 
-  drw_subdiv_compute_dispatch(cache, shader, 0, 0, num_loose_edges);
+  drw_subdiv_compute_dispatch(cache, shader, 0, 0, num_loose_edges, false, edge_loose_offset);
 
   /* This generates an index buffer, so we need to put a barrier on the element array. */
   GPU_memory_barrier(GPU_BARRIER_ELEMENT_ARRAY);
