@@ -312,7 +312,7 @@ static void transform_active_color(bContext *C,
 
   undo::push_begin(obact, op);
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(obact->sculpt->pbvh, {});
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(*obact->sculpt->pbvh, {});
   for (PBVHNode *node : nodes) {
     undo::push_node(*obact, node, undo::Type::Color);
   }

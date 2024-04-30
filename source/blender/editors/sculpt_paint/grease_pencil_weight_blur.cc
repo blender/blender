@@ -12,7 +12,7 @@ class BlurWeightPaintOperation : public WeightPaintOperation {
                        DrawingWeightData &drawing_weight,
                        PointsTouchedByBrush &touched_points)
   {
-    /* Find the nearest neighbours of the to-be-blurred point. The point itself is included. */
+    /* Find the nearest neighbors of the to-be-blurred point. The point itself is included. */
     KDTreeNearest_2d nearest_points[BLUR_NEIGHBOUR_NUM];
     const int point_num = BLI_kdtree_2d_find_nearest_n(
         touched_points.kdtree,
@@ -25,7 +25,7 @@ class BlurWeightPaintOperation : public WeightPaintOperation {
     }
 
     /* Calculate the blurred weight for the point (A). For this we use a weighted average of the
-     * point weights, based on the distance of the neighbour point to A. So points closer to A
+     * point weights, based on the distance of the neighbor point to A. So points closer to A
      * contribute more to the average than points farther away from A. */
     float distance_sum = 0.0f;
     for (const int i : IndexRange(point_num)) {
@@ -53,8 +53,8 @@ class BlurWeightPaintOperation : public WeightPaintOperation {
     this->ensure_active_vertex_group_in_object();
     this->get_locked_and_bone_deformed_vertex_groups();
 
-    /* Get editable drawings grouped per frame number. When multiframe editing is disabled, this
-     * is just one group for the current frame. When multiframe editing is enabled, the selected
+    /* Get editable drawings grouped per frame number. When multi-frame editing is disabled, this
+     * is just one group for the current frame. When multi-frame editing is enabled, the selected
      * keyframes are grouped per frame number. This way we can use Blur on multiple layers
      * together instead of on every layer individually. */
     const Scene *scene = CTX_data_scene(&C);

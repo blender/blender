@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 07:36+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -7159,6 +7159,10 @@ msgid "Show/Hide"
 msgstr "Mutat/Rejt"
 
 
+msgid "Zoom"
+msgstr "Nagyítás"
+
+
 msgid "Channel"
 msgstr "Csatorna"
 
@@ -9471,10 +9475,6 @@ msgid "RGB Curves"
 msgstr "RGB Görbék"
 
 
-msgid "Zoom"
-msgstr "Nagyítás"
-
-
 msgid "Distance Key"
 msgstr "Távolság kulcs"
 
@@ -10118,6 +10118,10 @@ msgid "Enter Edit Mode"
 msgstr "Belépés Szerkesztő módba"
 
 
+msgid "Handles"
+msgstr "Fogantyúk"
+
+
 msgid "Skin Resize"
 msgstr "Bőr átméretezése"
 
@@ -10159,10 +10163,6 @@ msgstr "Simított árnyékolás"
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "Simítás"
-
-
-msgid "Handles"
-msgstr "Fogantyúk"
 
 
 msgctxt "Operator"
@@ -15949,10 +15949,6 @@ msgid "Active object is not a mesh"
 msgstr "Az aktív objektum nem mesh"
 
 
-msgid "Remove Add-on: %r?"
-msgstr "Kiegészítő eltávolítása: %r?"
-
-
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Megnyitás..."
@@ -16486,10 +16482,6 @@ msgstr "Egyetlen objektum"
 msgctxt "Operator"
 msgid "One Object Per Line"
 msgstr "Soronként egy-egy objektum"
-
-
-msgid "File: %s"
-msgstr "Fájl: %s"
 
 
 msgctxt "Operator"
@@ -17560,6 +17552,10 @@ msgstr "Szélesség:"
 
 msgid "Height:"
 msgstr "Magasság:"
+
+
+msgid "File: %s"
+msgstr "Fájl: %s"
 
 
 msgid "unsupported movie clip format"

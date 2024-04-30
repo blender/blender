@@ -164,7 +164,7 @@ void GrabOperation::on_stroke_begin(const bContext &C, const InputSample &start_
     IndexMask point_mask = brush_influence_mask(scene,
                                                 brush,
                                                 start_sample.mouse_position,
-                                                start_sample.pressure,
+                                                1.0f,
                                                 info.multi_frame_falloff,
                                                 selection,
                                                 view_positions,
@@ -196,7 +196,7 @@ void GrabOperation::on_stroke_extended(const bContext &C, const InputSample &ext
       [&](const GreasePencilStrokeParams &params,
           const IndexMask &mask,
           const Span<float> weights) {
-        /* Crazyspace deformation. */
+        /* Crazy-space deformation. */
         bke::crazyspace::GeometryDeformation deformation = get_drawing_deformation(params);
 
         /* Transform mouse delta into layer space. */

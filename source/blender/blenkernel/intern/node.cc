@@ -85,6 +85,7 @@
 #include "NOD_composite.hh"
 #include "NOD_geo_bake.hh"
 #include "NOD_geo_index_switch.hh"
+#include "NOD_geo_menu_switch.hh"
 #include "NOD_geo_repeat.hh"
 #include "NOD_geo_simulation.hh"
 #include "NOD_geometry.hh"
@@ -319,7 +320,7 @@ static void ntree_free_data(ID *id)
   MEM_delete(ntree->runtime);
 }
 
-static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket *sock)
+static void library_foreach_node_socket(bNodeSocket *sock, LibraryForeachIDData *data)
 {
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
       data, IDP_foreach_property(sock->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
@@ -371,6 +372,22 @@ static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket 
   }
 }
 
+void node_node_foreach_id(bNode *node, LibraryForeachIDData *data)
+{
+  BKE_LIB_FOREACHID_PROCESS_ID(data, node->id, IDWALK_CB_USER);
+
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+      data, IDP_foreach_property(node->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+        BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+      }));
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(sock, data));
+  }
+  LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(sock, data));
+  }
+}
+
 static void node_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -383,18 +400,7 @@ static void node_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, ntree->gpd, IDWALK_CB_USER);
 
   for (bNode *node : ntree->all_nodes()) {
-    BKE_LIB_FOREACHID_PROCESS_ID(data, node->id, IDWALK_CB_USER);
-
-    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
-        data, IDP_foreach_property(node->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
-          BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
-        }));
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(data, sock));
-    }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(data, sock));
-    }
+    node_node_foreach_id(node, data);
   }
 
   ntree->tree_interface.foreach_id(data);
@@ -870,15 +876,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
       blender::nodes::BakeItemsAccessor::blend_write(writer, *node);
     }
     if (node->type == GEO_NODE_MENU_SWITCH) {
-      const NodeMenuSwitch &storage = *static_cast<const NodeMenuSwitch *>(node->storage);
-      BLO_write_struct_array(writer,
-                             NodeEnumItem,
-                             storage.enum_definition.items_num,
-                             storage.enum_definition.items_array);
-      for (const NodeEnumItem &item : storage.enum_definition.items()) {
-        BLO_write_string(writer, item.name);
-        BLO_write_string(writer, item.description);
-      }
+      blender::nodes::MenuSwitchItemsAccessor::blend_write(writer, *node);
     }
   }
 
@@ -1154,15 +1152,7 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
           break;
         }
         case GEO_NODE_MENU_SWITCH: {
-          NodeMenuSwitch &storage = *static_cast<NodeMenuSwitch *>(node->storage);
-          BLO_read_struct_array(reader,
-                                NodeEnumItem,
-                                storage.enum_definition.items_num,
-                                &storage.enum_definition.items_array);
-          for (const NodeEnumItem &item : storage.enum_definition.items()) {
-            BLO_read_string(reader, &item.name);
-            BLO_read_string(reader, &item.description);
-          }
+          blender::nodes::MenuSwitchItemsAccessor::blend_read_data(reader, *node);
           break;
         }
 

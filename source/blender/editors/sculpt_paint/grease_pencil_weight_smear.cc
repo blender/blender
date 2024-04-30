@@ -34,7 +34,7 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
                         DrawingWeightData &drawing_weight,
                         PointsTouchedByBrush &touched_points)
   {
-    /* Find the nearest neighbours of the to-be-smeared point. */
+    /* Find the nearest neighbors of the to-be-smeared point. */
     KDTreeNearest_2d nearest_points[SMEAR_NEIGHBOUR_NUM];
     const int point_num = BLI_kdtree_2d_find_nearest_n(
         touched_points.kdtree,
@@ -103,8 +103,8 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
     this->ensure_active_vertex_group_in_object();
     this->get_locked_and_bone_deformed_vertex_groups();
 
-    /* Get editable drawings grouped per frame number. When multiframe editing is disabled, this
-     * is just one group for the current frame. When multiframe editing is enabled, the selected
+    /* Get editable drawings grouped per frame number. When multi-frame editing is disabled, this
+     * is just one group for the current frame. When multi-frame editing is enabled, the selected
      * keyframes are grouped per frame number. This way we can use Smear on multiple layers
      * together instead of on every layer individually. */
     const Scene *scene = CTX_data_scene(&C);
@@ -139,7 +139,6 @@ class SmearWeightPaintOperation : public WeightPaintOperation {
     threading::parallel_for_each(
         this->drawing_weight_data.index_range(), [&](const int frame_group) {
           Array<DrawingWeightData> &drawing_weights = this->drawing_weight_data[frame_group];
-          std::atomic<bool> balance_kdtree = false;
 
           /* For all layers at this key frame, collect the stroke points under the brush in a
            * buffer. */

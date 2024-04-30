@@ -106,8 +106,9 @@ def man_page_from_blender_help(fh: TextIO, blender_bin: str, verbose: bool) -> N
 
     # Header Content.
     fh.write(
-        '.TH "BLENDER" "1" "%s" "Blender %s"\n' %
-        (blender_info["date"], blender_info["version"].replace(".", "\\&."))
+        '.TH "BLENDER" "1" "{:s}" "Blender {:s}"\n'.format(
+            blender_info["date"], blender_info["version"].replace(".", "\\&.")
+        )
     )
 
     fh.write(r"""
@@ -145,10 +146,10 @@ https://www.blender.org""")
         if l.startswith("Environment Variables:"):
             fh.write('.SH "ENVIRONMENT VARIABLES"\n')
         elif l.endswith(":"):  # One line.
-            fh.write('.SS "%s"\n\n' % l)
+            fh.write('.SS "{:s}"\n\n'.format(l))
         elif l.startswith("-") or l.startswith("/"):  # Can be multi line.
             fh.write('.TP\n')
-            fh.write('.B %s\n' % man_format(l))
+            fh.write('.B {:s}\n'.format(man_format(l)))
 
             while lines:
                 # line with no
@@ -165,13 +166,13 @@ https://www.blender.org""")
                     assert l.startswith('\t')
                     l = l[1:]  # Remove first white-space (tab).
 
-                fh.write('%s\n' % man_format(l))
+                fh.write('{:s}\n'.format(man_format(l)))
 
         else:
             if not l.strip():
                 fh.write('.br\n')
             else:
-                fh.write('%s\n' % man_format(l))
+                fh.write('{:s}\n'.format(man_format(l)))
 
     # Footer Content.
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 07:36+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5449,6 +5449,10 @@ msgid "Context Menu"
 msgstr "Kontextmeny"
 
 
+msgid "Zoom"
+msgstr "Zooma"
+
+
 msgid "Console"
 msgstr "Konsol"
 
@@ -5803,10 +5807,6 @@ msgstr "Kvadratisk"
 
 msgid "Basis"
 msgstr "Bas"
-
-
-msgid "Zoom"
-msgstr "Zooma"
 
 
 msgctxt "Image"
@@ -8361,6 +8361,10 @@ msgid "Add Circle"
 msgstr "Lägg till cirkel"
 
 
+msgid "Handles"
+msgstr "Handtag"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "Växla cyklisk"
@@ -8433,10 +8437,6 @@ msgstr "Separera"
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "Jämn"
-
-
-msgid "Handles"
-msgstr "Handtag"
 
 
 msgid "Subdivide selected segments"
@@ -13798,6 +13798,11 @@ msgstr "Armatur"
 
 
 msgctxt "WindowManager"
+msgid "Rotate"
+msgstr "Rotera"
+
+
+msgctxt "WindowManager"
 msgid "Timeline"
 msgstr "Tidslinje"
 
@@ -13905,11 +13910,6 @@ msgstr "Snäpp"
 msgctxt "WindowManager"
 msgid "Apply"
 msgstr "Applicera"
-
-
-msgctxt "WindowManager"
-msgid "Rotate"
-msgstr "Rotera"
 
 
 msgctxt "WindowManager"
@@ -14098,10 +14098,6 @@ msgid "Add New"
 msgstr "Lägg till ny"
 
 
-msgid "%s (Global)"
-msgstr "%s (global)"
-
-
 msgctxt "Operator"
 msgid "New"
 msgstr "Ny"
@@ -14152,25 +14148,9 @@ msgid "Failed to get add-ons path"
 msgstr "Kunde inte hitta tilläggets sökväg"
 
 
-msgid "Add-on path %r could not be found"
-msgstr "Tilläggets sökväg %r kunde inte hittas"
-
-
-msgid "Remove Add-on: %r?"
-msgstr "Ta bort tillägg: %r?"
-
-
-msgid "Path: %r"
-msgstr "Sökväg: %r"
-
-
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Öppna..."
-
-
-msgid "File '%s' not found"
-msgstr "Fil '%s' hittas inte"
 
 
 msgctxt "Operator"
@@ -14289,22 +14269,6 @@ msgstr "Support"
 
 msgid "Object(s)"
 msgstr "Objekt"
-
-
-msgid "Version: %s"
-msgstr "Version: %s"
-
-
-msgid "Date: %s %s"
-msgstr "Datum: %s %s"
-
-
-msgid "Hash: %s"
-msgstr "Hash: %s"
-
-
-msgid "Branch: %s"
-msgstr "Branch: %s"
 
 
 msgid "Node(s)"
@@ -14874,11 +14838,6 @@ msgstr "Före"
 msgctxt "Operator"
 msgid "After"
 msgstr "Efter"
-
-
-msgctxt "Operator"
-msgid "Zoom"
-msgstr "Zooma"
 
 
 msgid "Normalization"
@@ -15708,14 +15667,6 @@ msgid "Text: Internal"
 msgstr "Text: intern"
 
 
-msgid "File: *%s (unsaved)"
-msgstr "Fil: *%s (osparad)"
-
-
-msgid "File: %s"
-msgstr "Fil: %s"
-
-
 msgid "Active Editor"
 msgstr "Aktiv redigerare"
 
@@ -15930,10 +15881,6 @@ msgstr "Internet:"
 
 msgid "User:"
 msgstr "Användare:"
-
-
-msgid "Color %d"
-msgstr "Färg %d"
 
 
 msgctxt "Operator"
@@ -16420,10 +16367,6 @@ msgid "To 3D Cursor"
 msgstr "Till 3D-markör"
 
 
-msgid "Compositor not supported on this platform"
-msgstr "Bildsammansättning stöds inte på denna plattform"
-
-
 msgid "Fade Inactive Geometry"
 msgstr "Tona ut inaktiv geometri"
 
@@ -16866,6 +16809,10 @@ msgstr "Bildruta: %d / %d"
 
 msgid "Frame: - / %d"
 msgstr "Bildruta: - / %d"
+
+
+msgid "File: %s"
+msgstr "Fil: %s"
 
 
 msgid "No files selected to be opened"

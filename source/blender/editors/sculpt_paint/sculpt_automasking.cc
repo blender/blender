@@ -619,7 +619,7 @@ static void topology_automasking_init(const Sculpt *sd, Object *ob)
 
   const int totvert = SCULPT_vertex_count_get(ss);
   for (int i : IndexRange(totvert)) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
     (*(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_factor)) = 0.0f;
   }
@@ -655,7 +655,7 @@ static void init_face_sets_masking(const Sculpt *sd, Object *ob)
   int tot_vert = SCULPT_vertex_count_get(ss);
   int active_face_set = face_set::active_face_set_get(ss);
   for (int i : IndexRange(tot_vert)) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
     if (!face_set::vert_has_face_set(ss, vertex, active_face_set)) {
       *(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_factor) = 0.0f;
@@ -673,7 +673,7 @@ static void init_boundary_masking(Object *ob, eBoundaryAutomaskMode mode, int pr
   Array<int> edge_distance(totvert, 0);
 
   for (int i : IndexRange(totvert)) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
     edge_distance[i] = EDGE_DISTANCE_INF;
     switch (mode) {
@@ -692,7 +692,7 @@ static void init_boundary_masking(Object *ob, eBoundaryAutomaskMode mode, int pr
 
   for (int propagation_it : IndexRange(propagation_steps)) {
     for (int i : IndexRange(totvert)) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
       if (edge_distance[i] != EDGE_DISTANCE_INF) {
         continue;
@@ -708,7 +708,7 @@ static void init_boundary_masking(Object *ob, eBoundaryAutomaskMode mode, int pr
   }
 
   for (int i : IndexRange(totvert)) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
     if (edge_distance[i] == EDGE_DISTANCE_INF) {
       continue;
@@ -772,7 +772,7 @@ static void normal_occlusion_automasking_fill(Cache &automasking,
   nodedata.have_orig_data = false;
 
   for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
     float f = *(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_factor);
 
@@ -909,7 +909,7 @@ std::unique_ptr<Cache> cache_init(const Sculpt *sd, const Brush *brush, Object *
 
   const int totvert = SCULPT_vertex_count_get(ss);
   for (int i : IndexRange(totvert)) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
     (*(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_factor)) = initial_value;
   }

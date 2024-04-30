@@ -369,7 +369,7 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
     return;
   }
 
-  switch (BKE_pbvh_type(ss->pbvh)) {
+  switch (BKE_pbvh_type(*ss->pbvh)) {
     case PBVH_FACES:
       stats->totvertsculpt = ss->totvert;
       stats->totfacesculpt = ss->totfaces;
@@ -379,8 +379,8 @@ static void stats_object_sculpt(const Object *ob, SceneStats *stats)
       stats->tottri = ob->sculpt->bm->totface;
       break;
     case PBVH_GRIDS:
-      stats->totvertsculpt = BKE_pbvh_get_grid_num_verts(ss->pbvh);
-      stats->totfacesculpt = BKE_pbvh_get_grid_num_faces(ss->pbvh);
+      stats->totvertsculpt = BKE_pbvh_get_grid_num_verts(*ss->pbvh);
+      stats->totfacesculpt = BKE_pbvh_get_grid_num_faces(*ss->pbvh);
       break;
   }
 }

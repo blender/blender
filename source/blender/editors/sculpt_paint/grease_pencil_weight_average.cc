@@ -34,8 +34,8 @@ class AverageWeightPaintOperation : public WeightPaintOperation {
     this->ensure_active_vertex_group_in_object();
     this->get_locked_and_bone_deformed_vertex_groups();
 
-    /* Get editable drawings grouped per frame number. When multiframe editing is disabled, this
-     * is just one group for the current frame. When multiframe editing is enabled, the selected
+    /* Get editable drawings grouped per frame number. When multi-frame editing is disabled, this
+     * is just one group for the current frame. When multi-frame editing is enabled, the selected
      * keyframes are grouped per frame number. This way we can use Average on multiple layers
      * together instead of on every layer individually. */
     const Scene *scene = CTX_data_scene(&C);

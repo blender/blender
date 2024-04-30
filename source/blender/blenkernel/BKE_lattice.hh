@@ -26,7 +26,7 @@ struct Mesh;
 struct Object;
 struct Scene;
 
-void BKE_lattice_resize(Lattice *lt, int u, int v, int w, Object *ltOb);
+void BKE_lattice_resize(Lattice *lt, int u_new, int v_new, int w_new, Object *lt_ob);
 Lattice *BKE_lattice_add(Main *bmain, const char *name);
 void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 
@@ -50,11 +50,11 @@ void BKE_lattice_transform(Lattice *lt, const float mat[4][4], bool do_keys);
 
 bool BKE_lattice_is_any_selected(const Lattice *lt);
 
-int BKE_lattice_index_from_uvw(Lattice *lt, int u, int v, int w);
-void BKE_lattice_index_to_uvw(Lattice *lt, int index, int *r_u, int *r_v, int *r_w);
-int BKE_lattice_index_flip(Lattice *lt, int index, bool flip_u, bool flip_v, bool flip_w);
+int BKE_lattice_index_from_uvw(const Lattice *lt, int u, int v, int w);
+void BKE_lattice_index_to_uvw(const Lattice *lt, int index, int *r_u, int *r_v, int *r_w);
+int BKE_lattice_index_flip(const Lattice *lt, int index, bool flip_u, bool flip_v, bool flip_w);
 void BKE_lattice_bitmap_from_flag(
-    Lattice *lt, unsigned int *bitmap, uint8_t flag, bool clear, bool respecthide);
+    const Lattice *lt, unsigned int *bitmap, uint8_t flag, bool clear, bool respecthide);
 
 /* **** Depsgraph evaluation **** */
 

@@ -162,7 +162,7 @@ void MapUVOperation::update_memory_buffer_partial(MemoryBuffer *output,
         alpha *= factor;
       }
     }
-    /* "premul" */
+    /* "pre-multiplied" */
     if (alpha < 1.0f) {
       mul_v4_fl(it.out, alpha);
     }

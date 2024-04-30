@@ -96,6 +96,11 @@ static void lasso_px_cb(int x, int x_end, int y, void *user_data)
   } while (++index != index_end);
 }
 
+std::unique_ptr<GestureData> init_from_polyline(bContext *C, wmOperator *op)
+{
+  return init_from_lasso(C, op);
+}
+
 std::unique_ptr<GestureData> init_from_lasso(bContext *C, wmOperator *op)
 {
   const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
@@ -319,7 +324,7 @@ static Vector<PBVHNode *> update_affected_nodes_by_line_plane(GestureData &gestu
   frustum.planes = clip_planes;
   frustum.num_planes = gesture_data.line.use_side_planes ? 3 : 1;
 
-  return gesture_data.nodes = bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+  return gesture_data.nodes = bke::pbvh::search_gather(*ss->pbvh, [&](PBVHNode &node) {
            return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);
          });
 }
@@ -335,7 +340,7 @@ static void update_affected_nodes_by_clip_planes(GestureData &gesture_data)
   frustum.planes = clip_planes;
   frustum.num_planes = 4;
 
-  gesture_data.nodes = bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+  gesture_data.nodes = bke::pbvh::search_gather(*ss->pbvh, [&](PBVHNode &node) {
     switch (gesture_data.selection_type) {
       case SelectionType::Inside:
         return BKE_pbvh_node_frustum_contain_AABB(&node, &frustum);

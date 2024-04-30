@@ -37,16 +37,16 @@ class DataPathBuilder:
         self.data_path = attrs
 
     def __getattr__(self, attr):
-        str_value = ".%s" % attr
+        str_value = ".{:s}".format(attr)
         return DataPathBuilder(self.data_path + (str_value, ))
 
     def __getitem__(self, key):
         if type(key) is int:
-            str_value = '[%d]' % key
+            str_value = '[{:d}]'.format(key)
         elif type(key) is str:
-            str_value = '["%s"]' % bpy.utils.escape_identifier(key)
+            str_value = '["{:s}"]'.format(bpy.utils.escape_identifier(key))
         else:
-            raise Exception("unsupported accessor %r of type %r (internal error)" % (key, type(key)))
+            raise Exception("unsupported accessor {!r} of type {!r} (internal error)".format(key, type(key)))
         return DataPathBuilder(self.data_path + (str_value, ))
 
     def resolve(self, real_base, rna_update_from_map, fcurve, log):
@@ -171,7 +171,10 @@ def update_data_paths(rna_update, log=sys.stdout):
                     if not IS_TESTING:
                         fcurve.data_path = data_path_new
                         fcurve.driver.is_valid = True  # reset to allow this to work again
-                    print("driver-fcurve (%s): %s -> %s" % (id_data.name, data_path, data_path_new), file=log)
+                    print(
+                        "driver-fcurve ({:s}): {:s} -> {:s}".format(id_data.name, data_path, data_path_new),
+                        file=log,
+                    )
 
                 for var in fcurve.driver.variables:
                     if var.type == 'SINGLE_PROP':
@@ -185,8 +188,14 @@ def update_data_paths(rna_update, log=sys.stdout):
                                 if data_path_new != data_path:
                                     if not IS_TESTING:
                                         tar.data_path = data_path_new
-                                    print("driver (%s): %s -> %s" % (id_data_other.name, data_path, data_path_new),
-                                          file=log)
+                                    print(
+                                        "driver ({:s}): {:s} -> {:s}".format(
+                                            id_data_other.name,
+                                            data_path,
+                                            data_path_new,
+                                        ),
+                                        file=log,
+                                    )
 
             for action in anim_data_actions(anim_data):
                 for fcu in action.fcurves:
@@ -196,7 +205,7 @@ def update_data_paths(rna_update, log=sys.stdout):
                     if data_path_new != data_path:
                         if not IS_TESTING:
                             fcu.data_path = data_path_new
-                        print("fcurve (%s): %s -> %s" % (id_data.name, data_path, data_path_new), file=log)
+                        print("fcurve ({:s}): {:s} -> {:s}".format(id_data.name, data_path, data_path_new), file=log)
 
 
 if __name__ == "__main__":

@@ -103,7 +103,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss->pbvh, {});
 
   if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -121,7 +121,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   /* Update topology size. */
   float object_space_constant_detail = 1.0f / (sd->constant_detail *
                                                mat4_to_scale(ob->object_to_world().ptr()));
-  BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
+  BKE_pbvh_bmesh_detail_size_set(*ss->pbvh, object_space_constant_detail);
 
   undo::push_begin(ob, op);
   undo::push_node(*ob, nullptr, undo::Type::Position);
@@ -129,7 +129,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   const double start_time = BLI_time_now_seconds();
 
   while (bke::pbvh::bmesh_update_topology(
-      ss->pbvh, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false))
+      *ss->pbvh, PBVH_Collapse | PBVH_Subdivide, center, nullptr, size, false, false))
   {
     for (PBVHNode *node : nodes) {
       BKE_pbvh_node_mark_topology_update(node);
@@ -242,7 +242,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
 
   bke::pbvh::raycast(
-      ob->sculpt->pbvh,
+      *ob->sculpt->pbvh,
       [&](PBVHNode &node, float *tmin) { sculpt_raycast_detail_cb(node, srd, tmin); },
       ray_start,
       ray_normal,
@@ -297,7 +297,7 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
   /* Pick sample detail. */
   switch (mode) {
     case SAMPLE_DETAIL_DYNTOPO:
-      if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+      if (BKE_pbvh_type(*ss->pbvh) != PBVH_BMESH) {
         CTX_wm_area_set(C, prev_area);
         CTX_wm_region_set(C, prev_region);
         return OPERATOR_CANCELLED;
@@ -305,7 +305,7 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
       sample_detail_dyntopo(C, &vc, mval);
       break;
     case SAMPLE_DETAIL_VOXEL:
-      if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+      if (BKE_pbvh_type(*ss->pbvh) != PBVH_FACES) {
         CTX_wm_area_set(C, prev_area);
         CTX_wm_region_set(C, prev_region);
         return OPERATOR_CANCELLED;

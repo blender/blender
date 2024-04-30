@@ -585,7 +585,7 @@ static void mesh_batch_cache_init(Object *object, Mesh *mesh)
   cache->is_editmode = mesh->runtime->edit_mesh != nullptr;
 
   if (object->sculpt && object->sculpt->pbvh) {
-    cache->pbvh_is_drawing = BKE_pbvh_is_drawing(object->sculpt->pbvh);
+    cache->pbvh_is_drawing = BKE_pbvh_is_drawing(*object->sculpt->pbvh);
   }
 
   if (cache->is_editmode == false) {

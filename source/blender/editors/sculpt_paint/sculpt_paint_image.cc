@@ -333,9 +333,9 @@ static void do_paint_pixels(TexturePaintingUserData *data, const int n)
   Object *ob = data->ob;
   SculptSession *ss = ob->sculpt;
   const Brush *brush = data->brush;
-  PBVH *pbvh = ss->pbvh;
+  PBVH &pbvh = *ss->pbvh;
   PBVHNode *node = data->nodes[n];
-  PBVHData &pbvh_data = bke::pbvh::pixels::data_get(*pbvh);
+  PBVHData &pbvh_data = bke::pbvh::pixels::data_get(pbvh);
   NodeData &node_data = bke::pbvh::pixels::node_data_get(*node);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
   const Span<float3> positions = SCULPT_mesh_deformed_positions_get(ss);

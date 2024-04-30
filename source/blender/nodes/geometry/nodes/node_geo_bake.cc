@@ -7,6 +7,7 @@
 #include "NOD_geo_bake.hh"
 #include "NOD_node_extra_info.hh"
 #include "NOD_rna_define.hh"
+#include "NOD_socket_items_ops.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -112,6 +113,108 @@ static const CPPType &get_item_cpp_type(const eNodeSocketDatatype socket_type)
   BLI_assert(typeinfo);
   BLI_assert(typeinfo->geometry_nodes_cpp_type);
   return *typeinfo->geometry_nodes_cpp_type;
+}
+
+static void draw_bake_item(uiList * /*ui_list*/,
+                           const bContext *C,
+                           uiLayout *layout,
+                           PointerRNA * /*idataptr*/,
+                           PointerRNA *itemptr,
+                           int /*icon*/,
+                           PointerRNA * /*active_dataptr*/,
+                           const char * /*active_propname*/,
+                           int /*index*/,
+                           int /*flt_flag*/)
+{
+  uiLayout *row = uiLayoutRow(layout, true);
+  float4 color;
+  RNA_float_get_array(itemptr, "color", color);
+  uiTemplateNodeSocket(row, const_cast<bContext *>(C), color);
+  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+  uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
+}
+
+static void draw_bake_items(const bContext *C, uiLayout *layout, PointerRNA node_ptr)
+{
+  static const uiListType *bake_items_list = []() {
+    uiListType *list = MEM_cnew<uiListType>(__func__);
+    STRNCPY(list->idname, "DATA_UL_bake_node_items");
+    list->draw_item = draw_bake_item;
+    WM_uilisttype_add(list);
+    return list;
+  }();
+
+  bNode &node = *static_cast<bNode *>(node_ptr.data);
+
+  if (uiLayout *panel = uiLayoutPanel(C, layout, "bake_items", false, TIP_("Bake Items"))) {
+    uiLayout *row = uiLayoutRow(panel, false);
+    uiTemplateList(row,
+                   C,
+                   bake_items_list->idname,
+                   "",
+                   &node_ptr,
+                   "bake_items",
+                   &node_ptr,
+                   "active_index",
+                   nullptr,
+                   3,
+                   5,
+                   UILST_LAYOUT_DEFAULT,
+                   0,
+                   UI_TEMPLATE_LIST_FLAG_NONE);
+
+    {
+      uiLayout *ops_col = uiLayoutColumn(row, false);
+      {
+        uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
+        uiItemO(add_remove_col, "", ICON_ADD, "node.bake_node_item_add");
+        uiItemO(add_remove_col, "", ICON_REMOVE, "node.bake_node_item_remove");
+      }
+      {
+        uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
+        uiItemEnumO(up_down_col, "node.bake_node_item_move", "", ICON_TRIA_UP, "direction", 0);
+        uiItemEnumO(up_down_col, "node.bake_node_item_move", "", ICON_TRIA_DOWN, "direction", 1);
+      }
+    }
+
+    NodeGeometryBake &storage = node_storage(node);
+    if (storage.active_index >= 0 && storage.active_index < storage.items_num) {
+      NodeGeometryBakeItem &active_item = storage.items[storage.active_index];
+      PointerRNA item_ptr = RNA_pointer_create(
+          node_ptr.owner_id, BakeItemsAccessor::item_srna, &active_item);
+      uiLayoutSetPropSep(panel, true);
+      uiLayoutSetPropDecorate(panel, false);
+      uiItemR(panel, &item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+      if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
+        uiItemR(panel, &item_ptr, "attribute_domain", UI_ITEM_NONE, nullptr, ICON_NONE);
+        uiItemR(panel, &item_ptr, "is_attribute", UI_ITEM_NONE, nullptr, ICON_NONE);
+      }
+    }
+  }
+}
+
+static void NODE_OT_bake_node_item_remove(wmOperatorType *ot)
+{
+  socket_items::ops::remove_active_item<BakeItemsAccessor>(
+      ot, "Remove Bake Item", __func__, "Remove active bake item");
+}
+
+static void NODE_OT_bake_node_item_add(wmOperatorType *ot)
+{
+  socket_items::ops::add_item<BakeItemsAccessor>(ot, "Add Bake Item", __func__, "Add bake item");
+}
+
+static void NODE_OT_bake_node_item_move(wmOperatorType *ot)
+{
+  socket_items::ops::move_active_item<BakeItemsAccessor>(
+      ot, "Move Bake Item", __func__, "Move active bake item");
+}
+
+static void node_operators()
+{
+  WM_operatortype_append(NODE_OT_bake_node_item_add);
+  WM_operatortype_append(NODE_OT_bake_node_item_remove);
+  WM_operatortype_append(NODE_OT_bake_node_item_move);
 }
 
 static bake::BakeSocketConfig make_bake_socket_config(const Span<NodeGeometryBakeItem> bake_items)
@@ -563,6 +666,8 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+  draw_bake_items(C, layout, *ptr);
+
   BakeDrawContext ctx;
   const bNode &node = *static_cast<const bNode *>(ptr->data);
   if (!get_bake_draw_context(C, node, ctx)) {
@@ -628,6 +733,7 @@ static void node_register()
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.get_extra_info = node_extra_info;
+  ntype.register_operators = node_operators;
   node_type_storage(&ntype, "NodeGeometryBake", node_free_storage, node_copy_storage);
   nodeRegisterType(&ntype);
 }

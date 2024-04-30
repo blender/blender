@@ -15,7 +15,7 @@ void main()
   for (int y = gid.y + gid.z * nthreads.y; y < ncurves; y += nthreads.y * nthreads.z) {
     for (int x = gid.x; x < elements_per_curve; x += nthreads.x) {
       int store_index = (x + y * elements_per_curve) * 6;
-      uint t = x + y * (elements_per_curve * 2 + 2);
+      uint t = x * 2 + y * (elements_per_curve * 2 + 2);
       out_indices[store_index + 0] = t;
       out_indices[store_index + 1] = t + 1u;
       out_indices[store_index + 2] = t + 2u;

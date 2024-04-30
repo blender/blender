@@ -325,7 +325,7 @@ void ConvertHSLToRGBOperation::update_memory_buffer_partial(BuffersIterator<floa
   }
 }
 
-/* ******** Premul to Straight ******** */
+/* ******** Pre-multiplied to Straight ******** */
 
 ConvertPremulToStraightOperation::ConvertPremulToStraightOperation() : ConvertBaseOperation()
 {
@@ -340,7 +340,7 @@ void ConvertPremulToStraightOperation::update_memory_buffer_partial(BuffersItera
   }
 }
 
-/* ******** Straight to Premul ******** */
+/* ******** Straight to Pre-multiplied ******** */
 
 ConvertStraightToPremulOperation::ConvertStraightToPremulOperation() : ConvertBaseOperation()
 {

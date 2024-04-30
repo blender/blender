@@ -270,12 +270,58 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
 
 /**
  * Loop over all of the ID's this data-block links to.
+ *
+ * \param bmain The Main data-base containing `owner_id`, may be null.
+ * \param id The ID to process. Note that currently, embedded IDs may also be passed here.
+ * \param callback The callback processing a given ID usage (i.e. a given ID pointer within the
+ * given \a id data).
+ * \param user_data Opaque user data for the callback processing a given ID usage.
+ * \param flag Flags controlling how/which ID pointers are processed.
  */
 void BKE_library_foreach_ID_link(Main *bmain,
                                  ID *id,
                                  blender::FunctionRef<LibraryIDLinkCallback> callback,
                                  void *user_data,
                                  int flag);
+
+/**
+ * Apply `callback` to all ID usages of the data as defined by `subdata_foreach_id`. Useful to e.g.
+ * process all ID usages of a node, or a modifier, and so on.
+ *
+ * \note This function is fully unaware of which data is actually processed. The given
+ * `subdata_foreach_id` callback is responsible to decide which data to process, and to call the
+ * relevant 'foreach_id' helpers (typically shared with the relevant #IDTypeInfo::foreach_id code
+ * path). This is typically done by using a lambda as `subdata_foreach_id`, which captures the
+ * required extra parameters do process the target subdata.
+ *
+ * \note `main`, `owner_id` and `self_id` may be null. There is also no requirement for `owner_id`
+ * or `self_id` to be actual owner IDs of the processed subdata. This function merely
+ * initializes a #LibraryForeachIDData object with given parameters, and wraps a call to given
+ * `subdata_foreach_id`.
+ *
+ * \param bmain The Main data-base containing `owner_id`, may be null.
+ * \param owner_id The owner ID, i.e. the data-block owning the given sub-data (may differ from
+ * `self_id` in case the later is an embedded ID).
+ * \param self_id Typically the same as `owner_id`, unless it is an embedded ID.
+ * \param subdata_foreach_id The callback handling which data to process, and iterating over all ID
+ * usages of this subdata. Typically a lambda capturing that subdata, see comments above for
+ * details.
+ * \param callback The callback processing a given ID usage, see #BKE_library_foreach_ID_link.
+ * \param user_data Opaque user data for the callback processing a given ID usage, see
+ * #BKE_library_foreach_ID_link.
+ * \param flag Flags controlling the process, see #BKE_library_foreach_ID_link. Note that some
+ * flags are not accepted here (#IDWALK_RECURSE, #IDWALK_DO_INTERNAL_RUNTIME_POINTERS,
+ * #IDWALK_DO_LIBRARY_POINTER, #IDWALK_INCLUDE_UI).
+ */
+void BKE_library_foreach_subdata_id(
+    Main *bmain,
+    ID *owner_id,
+    ID *self_id,
+    blender::FunctionRef<void(LibraryForeachIDData *data)> subdata_foreach_id,
+    blender::FunctionRef<LibraryIDLinkCallback> callback,
+    void *user_data,
+    const int flag);
+
 /**
  * Re-usable function, use when replacing ID's.
  */

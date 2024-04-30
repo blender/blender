@@ -239,9 +239,9 @@ static Array<float> geodesic_fallback_create(Object *ob, const Set<int> &initial
   }
 
   const float *first_affected_co = SCULPT_vertex_co_get(
-      ss, BKE_pbvh_index_to_vertex(ss->pbvh, first_affected));
+      ss, BKE_pbvh_index_to_vertex(*ss->pbvh, first_affected));
   for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
     dists[i] = len_v3v3(first_affected_co, SCULPT_vertex_co_get(ss, vertex));
   }
@@ -252,7 +252,7 @@ static Array<float> geodesic_fallback_create(Object *ob, const Set<int> &initial
 Array<float> distances_create(Object *ob, const Set<int> &initial_verts, const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
-  switch (BKE_pbvh_type(ss->pbvh)) {
+  switch (BKE_pbvh_type(*ss->pbvh)) {
     case PBVH_FACES:
       return geodesic_mesh_create(ob, initial_verts, limit_radius);
     case PBVH_BMESH:
@@ -284,7 +284,7 @@ Array<float> distances_create_from_vert_and_symm(Object *ob,
         v = SCULPT_nearest_vertex_get(ob, location, FLT_MAX, false);
       }
       if (v.i != PBVH_REF_NONE) {
-        initial_verts.add(BKE_pbvh_vertex_to_index(ss->pbvh, v));
+        initial_verts.add(BKE_pbvh_vertex_to_index(*ss->pbvh, v));
       }
     }
   }

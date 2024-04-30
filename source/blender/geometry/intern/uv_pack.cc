@@ -1353,7 +1353,7 @@ float Occupancy::trace_island(const PackIsland *island,
 
 static UVPhi find_best_fit_for_island(const PackIsland *island,
                                       const int scan_line,
-                                      Occupancy &occupancy,
+                                      const Occupancy &occupancy,
                                       const float scale,
                                       const int angle_90_multiple,
                                       /* TODO: const bool reflect, */

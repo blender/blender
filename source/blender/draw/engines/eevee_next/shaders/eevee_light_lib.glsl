@@ -69,6 +69,11 @@ vec3 light_world_to_local(LightData light, vec3 L)
   return transform_direction_transposed(light.object_to_world, L);
 }
 
+vec3 light_world_to_local_point(LightData light, vec3 point)
+{
+  return transform_point_inversed(light.object_to_world, point);
+}
+
 /* From Frostbite PBR Course
  * Distance based attenuation
  * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf */
@@ -102,6 +107,21 @@ float light_attenuation_common(LightData light, const bool is_directional, vec3 
   return 1.0;
 }
 
+float light_shape_radius(LightData light)
+{
+
+  float radius;
+  if (is_sun_light(light.type)) {
+    return light_sun_data_get(light).radius;
+  }
+  else if (is_area_light(light.type)) {
+    return length(light_area_data_get(light).size);
+  }
+  else {
+    return light_spot_data_get(light).radius;
+  }
+}
+
 /**
  * Fade light influence when surface is not facing the light.
  * This is needed because LTC leaks light at roughness not 0 or 1
@@ -121,18 +141,8 @@ float light_attenuation_facing(LightData light,
     return 1.0;
   }
 
-  float radius;
-  if (is_sun_light(light.type)) {
-    radius = light_sun_data_get(light).radius;
-  }
-  else if (is_area_light(light.type)) {
-    radius = length(light_area_data_get(light).size);
-  }
-  else {
-    radius = light_spot_data_get(light).radius;
-  }
   /* Sine of angle between light center and light edge. */
-  float sin_solid_angle = radius / distance_to_light;
+  float sin_solid_angle = light_shape_radius(light) / distance_to_light;
   /* Sine of angle between light center and shading plane. */
   float sin_light_angle = dot(L, Ng);
   /* Do attenuation after the horizon line to avoid harsh cut

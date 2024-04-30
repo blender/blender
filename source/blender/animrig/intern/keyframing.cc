@@ -94,58 +94,78 @@ void CombinedKeyingResult::generate_reports(ReportList *reports)
   Vector<std::string> errors;
   if (this->get_count(SingleKeyingResult::CANNOT_CREATE_FCURVE) > 0) {
     const int error_count = this->get_count(SingleKeyingResult::CANNOT_CREATE_FCURVE);
-    errors.append(
-        fmt::format("Could not create {} F-Curve{}. This can happen when only inserting to "
-                    "available F-Curves.",
-                    error_count,
-                    error_count > 1 ? "s" : ""));
+    if (error_count == 1) {
+      errors.append(
+          RPT_("Could not create one F-Curve. This can happen when only inserting to "
+               "available F-Curves."));
+    }
+    else {
+      errors.append(fmt::format(
+          RPT_("Could not create {:d} F-Curves. This can happen when only inserting to "
+               "available F-Curves."),
+          error_count));
+    }
   }
 
   if (this->get_count(SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE) > 0) {
     const int error_count = this->get_count(SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE);
     if (error_count == 1) {
-      errors.append("One F-Curve is not keyframeable. It might be locked or sampled.");
+      errors.append(RPT_("One F-Curve is not keyframeable. It might be locked or sampled."));
     }
     else {
-      errors.append(fmt::format(
-          "{} F-Curves are not keyframeable. They might be locked or sampled.", error_count));
+      errors.append(
+          fmt::format(RPT_("{:d} F-Curves are not keyframeable. They might be locked or sampled."),
+                      error_count));
     }
   }
 
   if (this->get_count(SingleKeyingResult::NO_KEY_NEEDED) > 0) {
     const int error_count = this->get_count(SingleKeyingResult::NO_KEY_NEEDED);
-    errors.append(
-        fmt::format("Due to the setting 'Only Insert Needed', {} keyframe{} not been inserted.",
-                    error_count,
-                    error_count > 1 ? "s have" : " has"));
+    if (error_count == 1) {
+      errors.append(
+          RPT_("Due to the setting 'Only Insert Needed', one keyframe has not been inserted."));
+    }
+    else {
+      errors.append(fmt::format(
+          RPT_("Due to the setting 'Only Insert Needed', {:d} keyframes have not been inserted."),
+          error_count));
+    }
   }
 
   if (this->get_count(SingleKeyingResult::UNABLE_TO_INSERT_TO_NLA_STACK) > 0) {
     const int error_count = this->get_count(SingleKeyingResult::UNABLE_TO_INSERT_TO_NLA_STACK);
-    errors.append(fmt::format("Due to the NLA stack setup, {} keyframe{} not been inserted.",
-                              error_count,
-                              error_count > 1 ? "s have" : " has"));
+    if (error_count == 1) {
+      errors.append(RPT_("Due to the NLA stack setup, one keyframe has not been inserted."));
+    }
+    else {
+      errors.append(
+          fmt::format(RPT_("Due to the NLA stack setup, {:d} keyframes have not been inserted."),
+                      error_count));
+    }
   }
 
   if (this->get_count(SingleKeyingResult::ID_NOT_EDITABLE) > 0) {
     const int error_count = this->get_count(SingleKeyingResult::ID_NOT_EDITABLE);
     if (error_count == 1) {
-      errors.append("Inserting keys for one ID has been skipped because it is not editable.");
+      errors.append(RPT_("Inserting keys on one ID has been skipped because it is not editable."));
     }
     else {
-      errors.append(
-          fmt::format("{} IDs have been skipped because they are not editable.", error_count));
+      errors.append(fmt::format(
+          RPT_("Inserting keys on {:d} IDs has been skipped because they are not editable."),
+          error_count));
     }
   }
 
   if (this->get_count(SingleKeyingResult::ID_NOT_ANIMATABLE) > 0) {
     const int error_count = this->get_count(SingleKeyingResult::ID_NOT_ANIMATABLE);
     if (error_count == 1) {
-      errors.append("Inserting keys for one ID has been skipped because it cannot be animated.");
+      errors.append(
+          RPT_("Inserting keys on one ID has been skipped because it cannot be animated."));
     }
     else {
-      errors.append(
-          fmt::format("{} IDs have been skipped because they cannot be animated.", error_count));
+      errors.append(fmt::format(
+          RPT_("Inserting keys on {:d} IDs has been skipped because they cannot be animated."),
+          error_count));
     }
   }
 
@@ -153,11 +173,13 @@ void CombinedKeyingResult::generate_reports(ReportList *reports)
     const int error_count = this->get_count(SingleKeyingResult::CANNOT_RESOLVE_PATH);
     if (error_count == 1) {
       errors.append(
-          "Inserting keys for one ID has been skipped because the RNA path wasn't valid for it");
+          RPT_("Inserting keys on one ID has been skipped because the RNA "
+               "path wasn't valid for it."));
     }
     else {
-      errors.append(fmt::format(
-          "{} IDs have been skipped because the RNA path wasn't valid for them.", error_count));
+      errors.append(fmt::format(RPT_("Inserting keys on {:d} IDs has been skipped because the RNA "
+                                     "path wasn't valid for them."),
+                                error_count));
     }
   }
 
@@ -171,7 +193,7 @@ void CombinedKeyingResult::generate_reports(ReportList *reports)
     return;
   }
 
-  std::string error_message = "Inserting keyframes failed:";
+  std::string error_message = RPT_("Inserting keyframes failed:");
   for (const std::string &error : errors) {
     error_message.append(fmt::format("\n- {}", error));
   }

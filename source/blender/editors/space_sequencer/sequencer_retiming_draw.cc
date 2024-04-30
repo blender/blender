@@ -173,7 +173,7 @@ static bool retiming_fake_key_is_clicked(const bContext *C,
   return distance < RETIME_KEY_MOUSEOVER_THRESHOLD;
 }
 
-SeqRetimingKey *try_to_realize_virtual_key(const bContext *C, Sequence *seq, const int mval[2])
+SeqRetimingKey *try_to_realize_virtual_keys(const bContext *C, Sequence *seq, const int mval[2])
 {
   Scene *scene = CTX_data_scene(C);
   SeqRetimingKey *key = nullptr;
@@ -194,6 +194,12 @@ SeqRetimingKey *try_to_realize_virtual_key(const bContext *C, Sequence *seq, con
     SEQ_retiming_data_ensure(seq);
     const int frame = SEQ_time_right_handle_frame_get(scene, seq);
     key = SEQ_retiming_add_key(scene, seq, frame);
+  }
+
+  /* Ensure both keys are realized, but return only one that was clicked on. */
+  if (key != nullptr) {
+    SEQ_retiming_add_key(scene, seq, SEQ_time_right_handle_frame_get(scene, seq));
+    SEQ_retiming_add_key(scene, seq, SEQ_time_left_handle_frame_get(scene, seq));
   }
 
   return key;

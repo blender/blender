@@ -58,8 +58,10 @@ class MeshMirrorUV(Operator):
                 mirror_lt[co] = i
 
         vmap = {}
-        for mirror_a, mirror_b in ((mirror_gt, mirror_lt),
-                                   (mirror_lt, mirror_gt)):
+        for mirror_a, mirror_b in (
+                (mirror_gt, mirror_lt),
+                (mirror_lt, mirror_gt),
+        ):
             for co, i in mirror_a.items():
                 nco = (-co[0], co[1], co[2])
                 j = mirror_b.get(nco)
@@ -168,18 +170,25 @@ class MeshMirrorUV(Operator):
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
         if total_duplicates and total_no_active_UV:
-            self.report({'WARNING'},
-                        rpt_("%d mesh(es) with no active UV layer, "
-                             "%d duplicates found in %d mesh(es), mirror may be incomplete")
-                        % (total_no_active_UV, total_duplicates, meshes_with_duplicates))
+            self.report(
+                {'WARNING'},
+                rpt_(
+                    "{:d} mesh(es) with no active UV layer, "
+                    "{:d} duplicates found in {:d} mesh(es), mirror may be incomplete"
+                ).format(total_no_active_UV, total_duplicates, meshes_with_duplicates),
+            )
         elif total_no_active_UV:
-            self.report({'WARNING'},
-                        rpt_("%d mesh(es) with no active UV layer")
-                        % (total_no_active_UV,))
+            self.report(
+                {'WARNING'},
+                rpt_("{:d} mesh(es) with no active UV layer").format(total_no_active_UV),
+            )
         elif total_duplicates:
-            self.report({'WARNING'},
-                        rpt_("%d duplicates found in %d mesh(es), mirror may be incomplete")
-                        % (total_duplicates, meshes_with_duplicates))
+            self.report(
+                {'WARNING'},
+                rpt_(
+                    "{:d} duplicates found in {:d} mesh(es), mirror may be incomplete"
+                ).format(total_duplicates, meshes_with_duplicates),
+            )
 
         return {'FINISHED'}
 

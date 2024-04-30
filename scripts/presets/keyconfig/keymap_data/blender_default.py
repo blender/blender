@@ -6490,6 +6490,25 @@ def km_gesture_lasso(_params):
     return keymap
 
 
+def km_gesture_polyline(_params):
+    items = []
+    keymap = (
+        "Gesture Polyline",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("CONFIRM", {"type": 'RET', "value": 'PRESS', "any": True}, None),
+        ("CANCEL", {"type": 'ESC', "value": 'PRESS', "any": True}, None),
+        ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'ANY', "any": True}, None),
+        ("SELECT", {"type": 'LEFTMOUSE', "value": 'PRESS', "any": True}, None),
+        ("MOVE", {"type": 'SPACE', "value": 'ANY', "any": True}, None),
+    ])
+
+    return keymap
+
+
 def km_standard_modal_map(_params):
     items = []
     keymap = (
@@ -8043,6 +8062,19 @@ def km_3d_view_tool_sculpt_line_hide(params):
     )
 
 
+def km_3d_view_tool_sculpt_polyline_hide(params):
+    return (
+        "3D View Tool: Sculpt, Polyline Hide",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("paint.hide_show_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS"},
+             {"properties": [("action", 'HIDE')]}),
+            ("paint.hide_show_polyline_gesture", {"type": params.tool_mouse, "value": "PRESS", "ctrl": True},
+             {"properties": [("action", 'SHOW')]}),
+        ]},
+    )
+
+
 def km_3d_view_tool_sculpt_box_mask(params):
     return (
         "3D View Tool: Sculpt, Box Mask",
@@ -8921,6 +8953,7 @@ def generate_keymaps(params=None):
         km_gesture_zoom_border(params),
         km_gesture_straight_line(params),
         km_gesture_lasso(params),
+        km_gesture_polyline(params),
         km_standard_modal_map(params),
         km_knife_tool_modal_map(params),
         km_custom_normals_modal_map(params),
@@ -9029,6 +9062,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_box_hide(params),
         km_3d_view_tool_sculpt_lasso_hide(params),
         km_3d_view_tool_sculpt_line_hide(params),
+        km_3d_view_tool_sculpt_polyline_hide(params),
         km_3d_view_tool_sculpt_box_mask(params),
         km_3d_view_tool_sculpt_lasso_mask(params),
         km_3d_view_tool_sculpt_box_face_set(params),

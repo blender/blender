@@ -155,7 +155,6 @@ struct PBVH {
   blender::Span<int> corner_verts;
   /* Owned by the #PBVH, because after deformations they have to be recomputed. */
   blender::Array<blender::int3> corner_tris;
-  blender::Span<int> corner_tri_faces;
 
   /* Grid Data */
   CCGKey gridkey;
@@ -179,8 +178,6 @@ struct PBVH {
 
   BMLog *bm_log;
 
-  blender::GroupedSpan<int> vert_to_face_map;
-
   CustomDataLayer *color_layer;
   blender::bke::AttrDomain color_domain;
 
@@ -195,6 +192,8 @@ struct PBVH {
   PBVHGPUFormat *vbo_id;
 
   PBVHPixels pixels;
+
+  ~PBVH();
 };
 
 /* pbvh.cc */

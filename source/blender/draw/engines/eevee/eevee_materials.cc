@@ -836,7 +836,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
                          !DRW_state_is_image_render();
 
   if (ob->sculpt && BKE_object_sculpt_pbvh_get(ob)) {
-    BKE_pbvh_is_drawing_set(BKE_object_sculpt_pbvh_get(ob), use_sculpt_pbvh);
+    BKE_pbvh_is_drawing_set(*BKE_object_sculpt_pbvh_get(ob), use_sculpt_pbvh);
   }
 
   /* First get materials for this mesh. */
@@ -913,7 +913,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata,
           int debug_node_nr = 0;
           DRW_debug_modelmat(ob->object_to_world().ptr());
           BKE_pbvh_draw_debug_cb(
-              BKE_object_sculpt_pbvh_get(ob), DRW_sculpt_debug_cb, &debug_node_nr);
+              *BKE_object_sculpt_pbvh_get(ob), DRW_sculpt_debug_cb, &debug_node_nr);
         }
       }
 

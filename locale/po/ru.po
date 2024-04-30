@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 07:36+0000\n"
-"PO-Revision-Date: 2024-04-16 18:56+0000\n"
-"Last-Translator: Marina Veselkova <m.ves.cg@gmail.com>\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"PO-Revision-Date: 2024-04-29 07:29+0000\n"
+"Last-Translator: Fatih Alexandr <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -5692,7 +5692,7 @@ msgstr "Физическая модель для моделирования си
 
 
 msgid "Angular"
-msgstr "Угловая"
+msgstr "Угловой"
 
 
 msgid "Cloth model with angular bending springs"
@@ -9808,7 +9808,7 @@ msgstr "Геометрия объекта была обновлена"
 
 
 msgid "Shading"
-msgstr "Затенение"
+msgstr "Шейдинг"
 
 
 msgid "Object shading is updated"
@@ -16684,14 +16684,6 @@ msgid "List of gizmos in the Gizmo Map"
 msgstr "Список манипуляторов в карте манипуляторов"
 
 
-msgid "Has Reports"
-msgstr "Содержит отчёты"
-
-
-msgid "GizmoGroup has a set of reports (warnings and errors) from last execution"
-msgstr "Группа манипуляторов содержит набор отчётов (предупреждений и ошибок) от последнего выполнения"
-
-
 msgid "VR Controller Poses Indicator"
 msgstr "Индикатор позы контроллера виртуальной реальности"
 
@@ -19741,22 +19733,6 @@ msgstr "Настроить величину интервалов"
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "Автоматическая регулировка интенсивности для поддержания согласованности результатов на разных интервалах"
-
-
-msgid "Grab UVs"
-msgstr "Захватить UV"
-
-
-msgid "Relax"
-msgstr "Смягчить"
-
-
-msgid "Relax UVs"
-msgstr "Расслабить UV"
-
-
-msgid "Pinch UVs"
-msgstr "Щипок UV"
 
 
 msgid "Vertex Paint Tool"
@@ -30686,8 +30662,8 @@ msgid "Tracking"
 msgstr "Трекинг"
 
 
-msgid "Fractional Zoom"
-msgstr "Выбор масштаба"
+msgid "Zoom"
+msgstr "Масштаб"
 
 
 msgid "Collection Specials"
@@ -37098,10 +37074,6 @@ msgid "Spin"
 msgstr "Оборот"
 
 
-msgid "Zoom"
-msgstr "Масштаб"
-
-
 msgid "Defocus"
 msgstr "Расфокусировка"
 
@@ -38544,6 +38516,10 @@ msgstr "Шрифт текста. По умолчанию используетс�
 
 msgid "Scale To Fit"
 msgstr "Масштабировать до вмещения"
+
+
+msgid "Mouse Position"
+msgstr "У курсора"
 
 
 msgid "Selection"
@@ -43727,6 +43703,10 @@ msgid "Add Circle"
 msgstr "Добавить окружность"
 
 
+msgid "Handles"
+msgstr "Рычаги вершин"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "Переключить замкнутость"
@@ -44216,10 +44196,6 @@ msgstr "Установить тип сплайна"
 
 msgid "Set type of active spline"
 msgstr "Установить тип активного сплайна"
-
-
-msgid "Handles"
-msgstr "Рычаги вершин"
 
 
 msgctxt "Operator"
@@ -47718,11 +47694,6 @@ msgstr "Переключить кисть в режим сглаживания �
 
 msgid "Flat"
 msgstr "Плоский"
-
-
-msgctxt "Operator"
-msgid "Grease Pencil Draw Mode Toggle"
-msgstr "Переключить режим рисования Grease Pencil"
 
 
 msgid "By Material"
@@ -58401,6 +58372,10 @@ msgid "Randomize vertex positions"
 msgstr "Случайное положение точек"
 
 
+msgid "Relax"
+msgstr "Смягчить"
+
+
 msgid "Sharpen"
 msgstr "Увеличение резкости"
 
@@ -58477,17 +58452,28 @@ msgid "Symmetrize the topology modifications"
 msgstr "Симметризовать изменения в топологии"
 
 
-msgctxt "Operator"
-msgid "Sculpt UVs"
-msgstr "Скульптинг UV"
+msgid "Grab UVs"
+msgstr "Захватить UV"
 
 
-msgid "Sculpt UVs using a brush"
-msgstr "Скульптинг UV с помощью кисти"
+msgid "Pinch UVs"
+msgstr "Щипок UV"
 
 
-msgid "Switch brush to relax mode for duration of stroke"
-msgstr "Переключить кисть на режим расслабления по мере длительности штриха"
+msgid "Relax UVs"
+msgstr "Расслабить UV"
+
+
+msgid "Algorithm used for UV relaxation"
+msgstr "Алгоритм, используемый для UV-релаксации"
+
+
+msgid "Use Laplacian method for relaxation"
+msgstr "Метод Лапласа для релаксации"
+
+
+msgid "Use HC method for relaxation"
+msgstr "Метод HC для релаксации"
 
 
 msgctxt "Operator"
@@ -59117,10 +59103,6 @@ msgstr "Выделить цепочку связанных клипов, нах�
 
 msgid "Select more strips adjacent to the current selection"
 msgstr "Выделить клипы, прилегающие к текущему выделению"
-
-
-msgid "Mouse Position"
-msgstr "У курсора"
 
 
 msgid "No Change"
@@ -65732,13 +65714,13 @@ msgstr "Ластик"
 
 
 msgctxt "Operator"
-msgid "Tint"
-msgstr "Оттенок"
+msgid "Cutter"
+msgstr "Ножницы"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "Ножницы"
+msgid "Tint"
+msgstr "Оттенок"
 
 
 msgctxt "Operator"
@@ -77931,22 +77913,6 @@ msgid "Keep UV and edit mode mesh selection in sync"
 msgstr "Синхронизировать UV-разметку и редактируемый меш"
 
 
-msgid "Relaxation Method"
-msgstr "Метод релаксации"
-
-
-msgid "Algorithm used for UV relaxation"
-msgstr "Алгоритм, используемый для UV-релаксации"
-
-
-msgid "Use Laplacian method for relaxation"
-msgstr "Метод Лапласа для релаксации"
-
-
-msgid "Use HC method for relaxation"
-msgstr "Метод HC для релаксации"
-
-
 msgid "UV Sculpt"
 msgstr "UV-скульптинг"
 
@@ -79503,11 +79469,6 @@ msgstr "Частица"
 
 
 msgctxt "WindowManager"
-msgid "Knife Tool Modal Map"
-msgstr "Модальная карта инструмента разрезания"
-
-
-msgctxt "WindowManager"
 msgid "Cancel"
 msgstr "Отмена"
 
@@ -79515,6 +79476,16 @@ msgstr "Отмена"
 msgctxt "WindowManager"
 msgid "Confirm"
 msgstr "Подтвердить"
+
+
+msgctxt "WindowManager"
+msgid "Rotate"
+msgstr "Повернуть"
+
+
+msgctxt "WindowManager"
+msgid "Knife Tool Modal Map"
+msgstr "Модальная карта инструмента разрезания"
 
 
 msgctxt "WindowManager"
@@ -80010,11 +79981,6 @@ msgstr "Плоскость Z"
 msgctxt "WindowManager"
 msgid "Clear Constraints"
 msgstr "Очистить ограничители"
-
-
-msgctxt "WindowManager"
-msgid "Rotate"
-msgstr "Повернуть"
 
 
 msgctxt "WindowManager"
@@ -80566,10 +80532,6 @@ msgid "Licensed under the GNU General Public License"
 msgstr "Лицензия GNU General Public License"
 
 
-msgid "%s: %s"
-msgstr "%s: %s"
-
-
 msgid "Getting Started"
 msgstr "Приступая к работе"
 
@@ -80640,18 +80602,6 @@ msgstr "Поддержка"
 msgctxt "Operator"
 msgid "User Communities"
 msgstr "Сообщества пользователей"
-
-
-msgid "Date: %s %s"
-msgstr "Дата: %s %s"
-
-
-msgid "Hash: %s"
-msgstr "Хэш: %s"
-
-
-msgid "Branch: %s"
-msgstr "Ветка: %s"
 
 
 msgctxt "Operator"
@@ -81167,10 +81117,6 @@ msgid "Unlocked"
 msgstr "Разблокировано"
 
 
-msgid "Frame: %d (%s)"
-msgstr "Кадр: %d (%s)"
-
-
 msgid "Stroke Color"
 msgstr "Цвет штриха"
 
@@ -81307,14 +81253,6 @@ msgstr "Вставить метки"
 
 msgid "Buffer"
 msgstr "Буфер"
-
-
-msgid "Custom (%.4g fps)"
-msgstr "Особая (%.4g кадров/сек)"
-
-
-msgid "%.4g fps"
-msgstr "%.4g кадров/сек"
 
 
 msgid "Mask Mapping"
@@ -81508,18 +81446,6 @@ msgid "Display percentage makes dynamics inaccurate without baking"
 msgstr "Отображение процентной завершённости без запекания ухудшает качество динамики"
 
 
-msgid "Iterations: %d .. %d (avg. %d)"
-msgstr "Итераций: %d .. %d (в среднем %d)"
-
-
-msgid "Error: %.5f .. %.5f (avg. %.5f)"
-msgstr "Ошибка: %.5f .. %.5f (в среднем %.5f)"
-
-
-msgid "Spacing: %g"
-msgstr "Интервал: %g"
-
-
 msgid "Not yet functional"
 msgstr "Пока ещё не функционирует"
 
@@ -81532,10 +81458,6 @@ msgstr "Соединить все"
 msgctxt "Operator"
 msgid "Disconnect All"
 msgstr "Отсоединить все"
-
-
-msgid "%d fluid particles for this frame"
-msgstr "%d частиц жидкости на этот кадр"
 
 
 msgid "Speed Multiplier"
@@ -82130,11 +82052,6 @@ msgstr "Таймкод"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Масштаб"
-
-
-msgctxt "Operator"
 msgid "Set Wall"
 msgstr "Установить стену"
 
@@ -82182,11 +82099,6 @@ msgstr "Установить ключевой кадр B"
 
 
 msgctxt "Operator"
-msgid "View Fit"
-msgstr "Вписать вид"
-
-
-msgctxt "Operator"
 msgid "Enable Markers"
 msgstr "Включить маркеры"
 
@@ -82199,10 +82111,6 @@ msgstr "Разблокировать треки"
 msgctxt "Operator"
 msgid "Frame All Fit"
 msgstr "Вписать всё в рамку"
-
-
-msgid "Zoom %d:%d"
-msgstr "Масштабировать %d:%d"
 
 
 msgctxt "Operator"
@@ -82540,6 +82448,11 @@ msgstr "Выпрямить рукоятки"
 
 
 msgctxt "Operator"
+msgid "Zoom Region..."
+msgstr "Приблизить регион…"
+
+
+msgctxt "Operator"
 msgid "Less"
 msgstr "Меньше"
 
@@ -82589,13 +82502,13 @@ msgid "Selection"
 msgstr "Выделение"
 
 
-msgid "Show Same Material"
-msgstr "Показать тот же материал"
-
-
 msgctxt "Operator"
 msgid "Render Slot Cycle Next"
 msgstr "Перейти к следующему слоту рендера"
+
+
+msgid "Show Same Material"
+msgstr "Показать тот же материал"
 
 
 msgctxt "Operator"
@@ -82880,10 +82793,6 @@ msgstr "Увеличить подложку"
 msgctxt "Operator"
 msgid "Backdrop Zoom Out"
 msgstr "Уменьшить подложку"
-
-
-msgid "Slot %d"
-msgstr "Слот %d"
 
 
 msgctxt "Operator"
@@ -83268,10 +83177,6 @@ msgid "Tracker"
 msgstr "Трэкер"
 
 
-msgid "Fractional Preview Zoom"
-msgstr "Выбор масштаба предпросмотра"
-
-
 msgctxt "Operator"
 msgid "Clip"
 msgstr "Клип"
@@ -83310,10 +83215,6 @@ msgstr "Распаковать"
 
 msgid "Pack"
 msgstr "Упаковать"
-
-
-msgid "Original frame range: %d-%d (%d)"
-msgstr "Исходный диапазон кадров: %d-%d (%d)"
 
 
 msgid "Source Channel"
@@ -83410,14 +83311,6 @@ msgstr "Текст: внешний"
 
 msgid "Text: Internal"
 msgstr "Текст: встроенный"
-
-
-msgid "File: *%s (unsaved)"
-msgstr "Файл: *%s (не сохранён)"
-
-
-msgid "File: %s"
-msgstr "Файл: %s"
 
 
 msgctxt "Operator"
@@ -83907,10 +83800,6 @@ msgid "Missing script files"
 msgstr "Отсутствующие файлы скриптов"
 
 
-msgid "No custom %s configured"
-msgstr "Нет настроенных объектов %s"
-
-
 msgid "Error (see console)"
 msgstr "Ошибка (см. консоль)"
 
@@ -83949,14 +83838,6 @@ msgstr "Интернет:"
 
 msgid "User:"
 msgstr "Пользователь:"
-
-
-msgid "Color Set %d"
-msgstr "Цветовой набор %d"
-
-
-msgid "Color %d"
-msgstr "Цвет %d"
 
 
 msgctxt "Operator"
@@ -84007,11 +83888,6 @@ msgstr "Активная камера"
 msgctxt "Operator"
 msgid "Orbit Opposite"
 msgstr "Противоположный облёт"
-
-
-msgctxt "Operator"
-msgid "Zoom Region..."
-msgstr "Приблизить регион…"
 
 
 msgctxt "Operator"
@@ -85370,10 +85246,6 @@ msgid "<No ID pointer>"
 msgstr "<Нет ID-указателя>"
 
 
-msgid "<Missing ID block>"
-msgstr "<Отсутствующий ID-блок>"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "Нет F-кривой для добавления ключевых кадров"
 
@@ -85388,14 +85260,6 @@ msgstr "Нет ID-блока и/или данных анимации, для к�
 
 msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "Невозможно вставить ключевой кадр, поскольку RNA-путь недопустим для данного ID (ID = %s, путь = %s)"
-
-
-msgid "No ID block to insert keyframe in (path = %s)"
-msgstr "Нет ID-блока, в который вставляется ключевой кадр (путь = %s)"
-
-
-msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
-msgstr "Не удалось вставить ключевой кадр, поскольку этот тип не поддерживает данные анимации (ID = %s, путь = %s)"
 
 
 msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -85610,6 +85474,10 @@ msgstr "Ступенчатость"
 
 msgid "GP_Layer"
 msgstr "СлойЭК"
+
+
+msgid "Slot %d"
+msgstr "Слот %d"
 
 
 msgid "Cannot pack multiview images from raw data currently..."
@@ -86801,6 +86669,10 @@ msgstr "Skin_light"
 
 msgid "Failed to set value"
 msgstr "Ошибка установки значения"
+
+
+msgid "%s: %s"
+msgstr "%s: %s"
 
 
 msgid "Non-Keyboard Shortcut"
@@ -88906,6 +88778,10 @@ msgid "Duplicate Current"
 msgstr "Дублировать текущий"
 
 
+msgid "Active group is locked, aborting"
+msgstr "Активная группа заблокирована, операция прервана"
+
+
 msgid "Sample color for %s"
 msgstr "Сэмплировать цвет для %s"
 
@@ -88968,10 +88844,6 @@ msgstr "Недостающие элементы: %s%s%s%s!"
 
 msgid "The modifier used does not support deformed locations"
 msgstr "Использованный модификатор не поддерживает деформированные положения"
-
-
-msgid "Active group is locked, aborting"
-msgstr "Активная группа заблокирована, операция прервана"
 
 
 msgid "No active vertex group for painting, aborting"
@@ -89236,6 +89108,10 @@ msgstr "Кадр: %d / %d"
 
 msgid "Frame: - / %d"
 msgstr "Кадр: - / %d"
+
+
+msgid "File: %s"
+msgstr "Файл: %s"
 
 
 msgid "unsupported movie clip format"

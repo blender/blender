@@ -107,17 +107,21 @@ class QuickFur(ObjectModeOperator, Operator):
             node_groups_to_append.add("Hair Curves Noise")
         if self.use_frizz:
             node_groups_to_append.add("Frizz Hair Curves")
-        assets_directory = os.path.join(bpy.utils.system_resource('DATAFILES'),
-                                        "assets",
-                                        "geometry_nodes",
-                                        "procedural_hair_node_assets.blend",
-                                        "NodeTree")
+        assets_directory = os.path.join(
+            bpy.utils.system_resource('DATAFILES'),
+            "assets",
+            "geometry_nodes",
+            "procedural_hair_node_assets.blend",
+            "NodeTree",
+        )
         for name in node_groups_to_append:
-            bpy.ops.wm.append(directory=assets_directory,
-                              filename=name,
-                              use_recursive=True,
-                              clear_asset_data=True,
-                              do_reuse_local_id=True)
+            bpy.ops.wm.append(
+                directory=assets_directory,
+                filename=name,
+                use_recursive=True,
+                clear_asset_data=True,
+                do_reuse_local_id=True,
+            )
         generate_group = bpy.data.node_groups["Generate Hair Curves"]
         interpolate_group = bpy.data.node_groups["Interpolate Hair Curves"]
         radius_group = bpy.data.node_groups["Set Hair Curve Profile"]
@@ -277,7 +281,7 @@ class QuickExplode(ObjectModeOperator, Operator):
 
         for obj in mesh_objects:
             if obj.particle_systems:
-                self.report({'ERROR'}, rpt_("Object %r already has a " "particle system") % obj.name)
+                self.report({'ERROR'}, rpt_("Object {!r} already has a particle system").format(obj.name))
 
                 return {'CANCELLED'}
 

@@ -25,9 +25,6 @@ struct Mesh;
 
 namespace blender::io::stl {
 
-const size_t BINARY_HEADER_SIZE = 80;
-const size_t BINARY_STRIDE = 12 * 4 + 2;
-
 Mesh *read_stl_binary(FILE *file, bool use_custom_normals);
 
 }  // namespace blender::io::stl

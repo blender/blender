@@ -21,7 +21,7 @@
 #include "BLT_translation.hh"
 
 #include "BLI_blenlib.h"
-#include "BLI_ghash.h"
+#include "BLI_map.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -46,7 +46,22 @@ static void wm_operatortype_free_macro(wmOperatorType *ot);
 /** \name Operator Type Registry
  * \{ */
 
-static GHash *global_ops_hash = nullptr;
+static wmOperatorTypeMap &get_operators_map()
+{
+  static wmOperatorTypeMap map = []() {
+    wmOperatorTypeMap map;
+    /* Reserve size is set based on blender default setup. */
+    map.reserve(2048);
+    return map;
+  }();
+  return map;
+}
+
+const wmOperatorTypeMap &WM_operatortype_map()
+{
+  return get_operators_map();
+}
+
 /** Counter for operator-properties that should not be tagged with #OP_PROP_TAG_ADVANCED. */
 static int ot_prop_basic_count = -1;
 
@@ -59,7 +74,7 @@ wmOperatorType *WM_operatortype_find(const char *idname, bool quiet)
     char idname_bl[OP_MAX_TYPENAME];
     WM_operator_bl_idname(idname_bl, idname);
 
-    ot = static_cast<wmOperatorType *>(BLI_ghash_lookup(global_ops_hash, idname_bl));
+    ot = get_operators_map().lookup_default_as(idname_bl, nullptr);
     if (ot) {
       return ot;
     }
@@ -76,11 +91,6 @@ wmOperatorType *WM_operatortype_find(const char *idname, bool quiet)
   }
 
   return nullptr;
-}
-
-void WM_operatortype_iter(GHashIterator *ghi)
-{
-  BLI_ghashIterator_init(ghi, global_ops_hash);
 }
 
 /* -------------------------------------------------------------------- */
@@ -118,7 +128,7 @@ static void wm_operatortype_append__end(wmOperatorType *ot)
       ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
   RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
 
-  BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
+  get_operators_map().add_new(ot->idname, ot);
 }
 
 /* All ops in 1 list (for time being... needs evaluation later). */
@@ -153,7 +163,7 @@ void WM_operatortype_remove_ptr(wmOperatorType *ot)
     wm_operatortype_free_macro(ot);
   }
 
-  BLI_ghash_remove(global_ops_hash, ot->idname, nullptr, nullptr);
+  get_operators_map().remove(ot->idname);
 
   WM_keyconfig_update_operatortype();
 
@@ -171,12 +181,6 @@ bool WM_operatortype_remove(const char *idname)
   WM_operatortype_remove_ptr(ot);
 
   return true;
-}
-
-void wm_operatortype_init()
-{
-  /* Reserve size is set based on blender default setup. */
-  global_ops_hash = BLI_ghash_str_new_ex("wm_operatortype_init gh", 2048);
 }
 
 static void operatortype_ghash_free_cb(wmOperatorType *ot)
@@ -199,8 +203,11 @@ static void operatortype_ghash_free_cb(wmOperatorType *ot)
 
 void wm_operatortype_free()
 {
-  BLI_ghash_free(global_ops_hash, nullptr, (GHashValFreeFP)operatortype_ghash_free_cb);
-  global_ops_hash = nullptr;
+  wmOperatorTypeMap &map = get_operators_map();
+  for (wmOperatorType *ot : map.values()) {
+    operatortype_ghash_free_cb(ot);
+  }
+  map.clear();
 }
 
 void WM_operatortype_props_advanced_begin(wmOperatorType *ot)
@@ -236,12 +243,7 @@ void WM_operatortype_props_advanced_end(wmOperatorType *ot)
 
 void WM_operatortype_last_properties_clear_all()
 {
-  GHashIterator iter;
-
-  for (WM_operatortype_iter(&iter); !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter))
-  {
-    wmOperatorType *ot = static_cast<wmOperatorType *>(BLI_ghashIterator_getValue(&iter));
-
+  for (wmOperatorType *ot : get_operators_map().values()) {
     if (ot->last_properties) {
       IDP_FreeProperty(ot->last_properties);
       ot->last_properties = nullptr;
@@ -256,10 +258,7 @@ void WM_operatortype_idname_visit_for_search(
     const char * /*edit_text*/,
     blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
-  GHashIterator gh_iter;
-  GHASH_ITER (gh_iter, global_ops_hash) {
-    wmOperatorType *ot = static_cast<wmOperatorType *>(BLI_ghashIterator_getValue(&gh_iter));
-
+  for (wmOperatorType *ot : get_operators_map().values()) {
     char idname_py[OP_MAX_TYPENAME];
     WM_operator_py_idname(idname_py, ot->idname);
 
@@ -504,7 +503,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
   RNA_def_struct_translation_context(ot->srna, i18n_context);
   ot->translation_context = i18n_context;
 
-  BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
+  get_operators_map().add_new(ot->idname, ot);
 
   return ot;
 }
@@ -536,7 +535,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *u
       ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
   RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
 
-  BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
+  get_operators_map().add_new(ot->idname, ot);
 }
 
 wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname)

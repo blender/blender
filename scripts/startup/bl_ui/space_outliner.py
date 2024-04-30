@@ -359,19 +359,25 @@ class OUTLINER_MT_liboverride(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator_menu_enum("outliner.liboverride_operation", "selection_set",
-                                  text="Make").type = 'OVERRIDE_LIBRARY_CREATE_HIERARCHY'
+        layout.operator_menu_enum(
+            "outliner.liboverride_operation", "selection_set",
+            text="Make",
+        ).type = 'OVERRIDE_LIBRARY_CREATE_HIERARCHY'
         layout.operator_menu_enum(
             "outliner.liboverride_operation",
             "selection_set",
             text="Reset").type = 'OVERRIDE_LIBRARY_RESET'
-        layout.operator_menu_enum("outliner.liboverride_operation", "selection_set",
-                                  text="Clear").type = 'OVERRIDE_LIBRARY_CLEAR_SINGLE'
+        layout.operator_menu_enum(
+            "outliner.liboverride_operation", "selection_set",
+            text="Clear",
+        ).type = 'OVERRIDE_LIBRARY_CLEAR_SINGLE'
 
         layout.separator()
 
-        layout.operator_menu_enum("outliner.liboverride_troubleshoot_operation", "type",
-                                  text="Troubleshoot").selection_set = 'SELECTED'
+        layout.operator_menu_enum(
+            "outliner.liboverride_troubleshoot_operation", "type",
+            text="Troubleshoot",
+        ).selection_set = 'SELECTED'
 
 
 class OUTLINER_PT_filter(Panel):

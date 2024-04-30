@@ -364,6 +364,7 @@ typedef enum ClosureLabel {
   LABEL_VOLUME_SCATTER = 64,
   LABEL_TRANSMIT_TRANSPARENT = 128,
   LABEL_SUBSURFACE_SCATTER = 256,
+  LABEL_RAY_PORTAL = 512,
 } ClosureLabel;
 
 /* Render Passes */
@@ -835,9 +836,12 @@ enum ShaderDataFlag {
   SD_BSDF_NEEDS_LCG = (1 << 10),
   /* BSDF has a transmissive component. */
   SD_BSDF_HAS_TRANSMISSION = (1 << 11),
+  /* Shader has ray portal closure. */
+  SD_RAY_PORTAL = (1 << 12),
 
   SD_CLOSURE_FLAGS = (SD_EMISSION | SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSSRDF | SD_HOLDOUT |
-                      SD_EXTINCTION | SD_SCATTER | SD_BSDF_NEEDS_LCG | SD_BSDF_HAS_TRANSMISSION),
+                      SD_EXTINCTION | SD_SCATTER | SD_BSDF_NEEDS_LCG | SD_BSDF_HAS_TRANSMISSION |
+                      SD_RAY_PORTAL),
 
   /* Shader flags. */
 

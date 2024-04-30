@@ -76,10 +76,14 @@ class ProgressReport:
             self.wm.progress_update(steps)
         if msg:
             prefix = "  " * (len(self.steps) - 1)
-            print(prefix + "(%8.4f sec | %8.4f sec) %s\nProgress: %6.2f%%\r" %
-                  (tm, loc_tm, msg, steps_percent), end='')
+            print(
+                prefix + "({:8.4f} sec | {:8.4f} sec) {:s}\nProgress: {:6.2f}%\r".format(
+                    tm, loc_tm, msg, steps_percent,
+                ),
+                end="",
+            )
         else:
-            print("Progress: %6.2f%%\r" % (steps_percent,), end='')
+            print("Progress: {:6.2f}%\r".format(steps_percent,), end="")
 
     def enter_substeps(self, nbr, msg=""):
         if msg:

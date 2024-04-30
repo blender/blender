@@ -76,8 +76,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (DEG_get_original_id(&object->id) ==
         DEG_get_original_id(const_cast<ID *>(&self_object->id)))
     {
-      params.error_message_add(NodeWarningType::Error,
-                               TIP_("Geometry cannot be retrieved from the modifier object"));
+      params.error_message_add(
+          NodeWarningType::Error,
+          params.user_data()->call_data->operator_data ?
+              TIP_("Geometry cannot be retrieved from the edited object itself") :
+              TIP_("Geometry cannot be retrieved from the modifier object"));
       params.set_default_remaining_outputs();
       return;
     }

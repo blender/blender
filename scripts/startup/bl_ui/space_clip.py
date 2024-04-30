@@ -21,14 +21,16 @@ class CLIP_UL_tracking_objects(UIList):
         # assert(isinstance(item, bpy.types.MovieTrackingObject)
         tobj = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(tobj, "name", text="", emboss=False,
-                        icon='CAMERA_DATA' if tobj.is_camera
-                        else 'OBJECT_DATA')
+            layout.prop(
+                tobj, "name", text="", emboss=False,
+                icon='CAMERA_DATA' if tobj.is_camera else 'OBJECT_DATA',
+            )
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
-            layout.label(text="",
-                         icon='CAMERA_DATA' if tobj.is_camera
-                         else 'OBJECT_DATA')
+            layout.label(
+                text="",
+                icon='CAMERA_DATA' if tobj.is_camera else 'OBJECT_DATA',
+            )
 
 
 class CLIP_PT_display(Panel):
@@ -169,7 +171,7 @@ class CLIP_HT_header(Header):
                 r = active_object.reconstruction
 
                 if r.is_valid and sc.view == 'CLIP':
-                    layout.label(text=rpt_("Solve error: %.2f px") % (r.average_error), translate=False)
+                    layout.label(text=rpt_("Solve error: {.2f} px").format(r.average_error), translate=False)
 
                 row = layout.row()
                 row.prop(sc, "pivot_point", text="", icon_only=True)
@@ -573,9 +575,13 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
         col = layout.column(align=True)
         col.scale_y = 2.0
 
-        col.operator("clip.solve_camera",
-                     text="Solve Camera Motion" if tracking_object.is_camera
-                     else "Solve Object Motion")
+        col.operator(
+            "clip.solve_camera",
+            text=(
+                "Solve Camera Motion" if tracking_object.is_camera else
+                "Solve Object Motion"
+            ),
+        )
 
 
 class CLIP_PT_tools_cleanup(CLIP_PT_tracking_panel, Panel):
@@ -761,7 +767,7 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
         layout.prop(act_track, "weight_stab")
 
         if act_track.has_bundle:
-            label_text = rpt_("Average Error: %.2f px") % (act_track.average_error)
+            label_text = rpt_("Average Error: {:.2f} px").format(act_track.average_error)
             layout.label(text=label_text, translate=False)
 
         layout.use_property_split = False
@@ -1287,22 +1293,29 @@ class CLIP_PT_tools_grease_pencil_draw(AnnotationDrawingToolsPanel, Panel):
 
 
 class CLIP_MT_view_zoom(Menu):
-    bl_label = "Fractional Zoom"
+    bl_label = "Zoom"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
+        from math import isclose
 
+        current_zoom = context.space_data.zoom_percentage
         ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
-        for i, (a, b) in enumerate(ratios):
-            if i in {3, 4}:  # Draw separators around Zoom 1:1.
-                layout.separator()
-
+        for (a, b) in ratios:
+            ratio = a / b
+            percent = ratio * 100.0
             layout.operator(
                 "clip.view_zoom_ratio",
-                text=iface_("Zoom %d:%d") % (a, b),
+                text="{:g}% ({:d}:{:d})".format(percent, a, b),
                 translate=False,
-            ).ratio = a / b
+                icon='LAYER_ACTIVE' if isclose(percent, current_zoom, abs_tol=0.5) else 'NONE',
+            ).ratio = ratio
+
+        layout.separator()
+        layout.operator("clip.view_zoom_in")
+        layout.operator("clip.view_zoom_out")
+        layout.operator("clip.view_all", text="Zoom to Fit").fit_view = True
 
 
 class CLIP_MT_view(Menu):
@@ -1319,26 +1332,20 @@ class CLIP_MT_view(Menu):
             layout.prop(sc, "show_region_hud")
             layout.separator()
 
-            layout.operator("clip.view_selected")
-            layout.operator("clip.view_all")
-            layout.operator("clip.view_all", text="View Fit").fit_view = True
-            layout.operator("clip.view_center_cursor")
-            layout.menu("CLIP_MT_view_zoom")
-            layout.separator()
-
-            layout.operator("clip.view_zoom_in")
-            layout.operator("clip.view_zoom_out")
-            layout.separator()
-
             layout.prop(sc, "show_metadata")
             layout.separator()
+
+            layout.operator("clip.view_all")
+            layout.operator("clip.view_selected")
+            layout.operator("clip.view_center_cursor")
+
+            layout.menu("CLIP_MT_view_zoom")
         else:
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("clip.graph_view_all")
             if sc.view == 'GRAPH':
                 layout.operator("clip.graph_center_current_frame")
 
-            layout.operator("view2d.zoom_border", text="Zoom")
             layout.operator_context = 'INVOKE_DEFAULT'
 
             layout.separator()

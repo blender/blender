@@ -783,79 +783,77 @@ static void sort_time_beztmaps(const blender::MutableSpan<BeztMap> bezms)
   }
 }
 
-/* This function firstly adjusts the pointers that the transdata has to each BezTriple. */
-static void update_transdata_bezt_pointers(TransInfo *t,
-                                           FCurve *fcu,
+static inline void update_trans_data(TransData *td,
+                                     const FCurve *fcu,
+                                     const int new_index,
+                                     const bool swap_handles)
+{
+  if (td->flag & TD_BEZTRIPLE && td->hdata) {
+    if (swap_handles) {
+      td->hdata->h1 = &fcu->bezt[new_index].h2;
+      td->hdata->h2 = &fcu->bezt[new_index].h1;
+    }
+    else {
+      td->hdata->h1 = &fcu->bezt[new_index].h1;
+      td->hdata->h2 = &fcu->bezt[new_index].h2;
+    }
+  }
+}
+
+/* Adjust the pointers that the transdata has to each BezTriple. */
+static void update_transdata_bezt_pointers(TransDataContainer *tc,
+                                           const blender::Map<float *, int> &trans_data_map,
+                                           const FCurve *fcu,
                                            const blender::Span<BeztMap> bezms)
 {
-  TransData2D *td2d;
-  TransData *td;
+  /* At this point, beztmaps are already sorted, so their current index is assumed to be what the
+   * BezTriple index will be after sorting. */
+  for (const int new_index : bezms.index_range()) {
+    const BeztMap &bezm = bezms[new_index];
+    if (new_index == bezm.oldIndex && !bezm.swap_handles) {
+      /* If the index is the same, any pointers to BezTriple will still point to the correct data.
+       * Handles might need to be swapped though. */
+      continue;
+    }
 
-  TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
+    TransData2D *td2d;
+    TransData *td;
 
-  /* Used to mark whether an TransData's pointers have been fixed already, so that we don't
-   * override ones that are already done. */
-  blender::Vector<bool> adjusted(tc->data_len, false);
-
-  /* For each beztmap item, find if it is used anywhere. */
-  const BeztMap *bezm;
-  for (const int i : bezms.index_range()) {
-    bezm = &bezms[i];
-    /* Loop through transdata, testing if we have a hit
-     * for the handles (vec[0]/vec[2]), we must also check if they need to be swapped. */
-    td2d = tc->data_2d;
-    td = tc->data;
-    for (int j = 0; j < tc->data_len; j++, td2d++, td++) {
-      /* Skip item if already marked. */
-      if (adjusted[j]) {
-        continue;
+    if (const int *trans_data_index = trans_data_map.lookup_ptr(bezm.bezt->vec[0])) {
+      td2d = &tc->data_2d[*trans_data_index];
+      if (bezm.swap_handles) {
+        td2d->loc2d = fcu->bezt[new_index].vec[2];
       }
-
-      /* Update all transdata pointers, no need to check for selections etc,
-       * since only points that are really needed were created as transdata. */
-      if (td2d->loc2d == bezm->bezt->vec[0]) {
-        if (bezm->swap_handles) {
-          td2d->loc2d = fcu->bezt[i].vec[2];
-        }
-        else {
-          td2d->loc2d = fcu->bezt[i].vec[0];
-        }
-        adjusted[j] = true;
+      else {
+        td2d->loc2d = fcu->bezt[new_index].vec[0];
       }
-      else if (td2d->loc2d == bezm->bezt->vec[2]) {
-        if (bezm->swap_handles) {
-          td2d->loc2d = fcu->bezt[i].vec[0];
-        }
-        else {
-          td2d->loc2d = fcu->bezt[i].vec[2];
-        }
-        adjusted[j] = true;
+      td = &tc->data[*trans_data_index];
+      update_trans_data(td, fcu, new_index, bezm.swap_handles);
+    }
+    if (const int *trans_data_index = trans_data_map.lookup_ptr(bezm.bezt->vec[2])) {
+      td2d = &tc->data_2d[*trans_data_index];
+      if (bezm.swap_handles) {
+        td2d->loc2d = fcu->bezt[new_index].vec[0];
       }
-      else if (td2d->loc2d == bezm->bezt->vec[1]) {
-        td2d->loc2d = fcu->bezt[i].vec[1];
-
-        /* If only control point is selected, the handle pointers need to be updated as well. */
-        if (td2d->h1) {
-          td2d->h1 = fcu->bezt[i].vec[0];
-        }
-        if (td2d->h2) {
-          td2d->h2 = fcu->bezt[i].vec[2];
-        }
-
-        adjusted[j] = true;
+      else {
+        td2d->loc2d = fcu->bezt[new_index].vec[2];
       }
+      td = &tc->data[*trans_data_index];
+      update_trans_data(td, fcu, new_index, bezm.swap_handles);
+    }
+    if (const int *trans_data_index = trans_data_map.lookup_ptr(bezm.bezt->vec[1])) {
+      td2d = &tc->data_2d[*trans_data_index];
+      td2d->loc2d = fcu->bezt[new_index].vec[1];
 
-      /* The handle type pointer has to be updated too. */
-      if (adjusted[j] && td->flag & TD_BEZTRIPLE && td->hdata) {
-        if (bezm->swap_handles) {
-          td->hdata->h1 = &fcu->bezt[i].h2;
-          td->hdata->h2 = &fcu->bezt[i].h1;
-        }
-        else {
-          td->hdata->h1 = &fcu->bezt[i].h1;
-          td->hdata->h2 = &fcu->bezt[i].h2;
-        }
+      /* If only control point is selected, the handle pointers need to be updated as well. */
+      if (td2d->h1) {
+        td2d->h1 = fcu->bezt[new_index].vec[0];
       }
+      if (td2d->h2) {
+        td2d->h2 = fcu->bezt[new_index].vec[2];
+      }
+      td = &tc->data[*trans_data_index];
+      update_trans_data(td, fcu, new_index, bezm.swap_handles);
     }
   }
 }
@@ -868,6 +866,15 @@ static void remake_graph_transdata(TransInfo *t, const blender::Span<FCurve *> f
 {
   SpaceGraph *sipo = (SpaceGraph *)t->area->spacedata.first;
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
+
+  TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
+
+  /* Build a map from the data that is being modified to its index. This is used to quickly update
+   * the pointers to where the data ends up after sorting. */
+  blender::Map<float *, int> trans_data_map;
+  for (int i = 0; i < tc->data_len; i++) {
+    trans_data_map.add(tc->data_2d[i].loc2d, i);
+  }
 
   /* The grain size of 8 was chosen based on measured runtimes of this function. While 1 is the
    * fastest, larger grain sizes are generally preferred and the difference between 1 and 8 was
@@ -884,7 +891,7 @@ static void remake_graph_transdata(TransInfo *t, const blender::Span<FCurve *> f
       /* NOTE: none of these functions use 'use_handle', it could be removed. */
       blender::Vector<BeztMap> bezms = bezt_to_beztmaps(fcu->bezt, fcu->totvert);
       sort_time_beztmaps(bezms);
-      update_transdata_bezt_pointers(t, fcu, bezms);
+      update_transdata_bezt_pointers(tc, trans_data_map, fcu, bezms);
 
       /* Re-sort actual beztriples
        * (perhaps this could be done using the beztmaps to save time?). */

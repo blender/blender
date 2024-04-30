@@ -197,7 +197,7 @@ class CLIP_OT_filter_tracks(Operator):
 
     def execute(self, context):
         num_tracks = self._filter_values(context, self.track_threshold)
-        self.report({'INFO'}, rpt_("Identified %d problematic tracks") % num_tracks)
+        self.report({'INFO'}, rpt_("Identified {:d} problematic tracks").format(num_tracks))
         return {'FINISHED'}
 
 
@@ -364,11 +364,11 @@ class CLIP_OT_delete_proxy(Operator):
 
         # proxy_<quality>[_undistorted]
         for x in (25, 50, 75, 100):
-            d = os.path.join(absproxy, "proxy_%d" % x)
+            d = os.path.join(absproxy, "proxy_{:d}".format(x))
 
             self._rmproxy(d)
             self._rmproxy(d + "_undistorted")
-            self._rmproxy(os.path.join(absproxy, "proxy_%d.avi" % x))
+            self._rmproxy(os.path.join(absproxy, "proxy_{:d}.avi".format(x)))
 
         tc = (
             "free_run.blen_tc",
@@ -440,8 +440,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
                 con = x
 
         if not con:
-            self.report({'ERROR'},
-                        "Motion Tracking constraint to be converted not found")
+            self.report({'ERROR'}, "Motion Tracking constraint to be converted not found")
 
             return {'CANCELLED'}
 
@@ -452,8 +451,7 @@ class CLIP_OT_constraint_to_fcurve(Operator):
             clip = con.clip
 
         if not clip:
-            self.report({'ERROR'},
-                        "Movie clip to use tracking data from isn't set")
+            self.report({'ERROR'}, "Movie clip to use tracking data from isn't set")
 
             return {'CANCELLED'}
 

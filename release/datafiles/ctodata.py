@@ -21,7 +21,7 @@ filename = argv[1]
 try:
     fpin = open(filename, "r")
 except:
-    sys.stdout.write("Unable to open input %s\n" % argv[1])
+    sys.stdout.write("Unable to open input {:s}\n".format(argv[1]))
     sys.exit(1)
 
 data_as_str = fpin.read().rsplit("{")[-1].split("}")[0]
@@ -39,14 +39,14 @@ del data_as_list
 
 dname = filename + ".ctodata"
 
-sys.stdout.write("Making DATA file <%s>\n" % dname)
+sys.stdout.write("Making DATA file <{:s}>\n".format(dname))
 
 try:
     fpout = open(dname, "wb")
 except:
-    sys.stdout.write("Unable to open output %s\n" % dname)
+    sys.stdout.write("Unable to open output {:s}\n".format(dname))
     sys.exit(1)
 
 size = fpout.write(data)
 
-sys.stdout.write("%d\n" % size)
+sys.stdout.write("{:d}\n".format(size))

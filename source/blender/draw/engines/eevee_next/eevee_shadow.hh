@@ -101,6 +101,7 @@ struct ShadowTileMap : public ShadowTileMapData {
                          int2 origin_offset,
                          int clipmap_level,
                          float lod_bias_,
+                         float filter_radius,
                          eShadowProjectionType projection_type_);
 
   void sync_cubeface(eLightType light_type_,
@@ -110,6 +111,7 @@ struct ShadowTileMap : public ShadowTileMapData {
                      float side,
                      float shift,
                      eCubeFace face,
+                     float filter_radius,
                      float lod_bias_);
 
   void debug_draw() const;
@@ -257,7 +259,6 @@ class ShadowModule {
   ShadowRenderViewBuf render_view_buf_ = {"render_view_buf"};
 
   int3 dispatch_depth_scan_size_;
-  float pixel_world_radius_;
   int2 usage_tag_fb_resolution_;
   int usage_tag_fb_lod_ = 5;
   int max_view_per_tilemap_ = 1;

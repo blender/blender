@@ -32,3 +32,4 @@ leak:d_growable_string_callback_adapter
 leak:libusd*
 leak:*openvdb::v11_0*
 leak:*tbb::internal*
+leak:*libOpenColorIO*

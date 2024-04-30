@@ -1081,7 +1081,7 @@ static void do_wpaint_brush_blur_task(const Scene *scene,
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
   const SculptVertexPaintGeomMap *gmap = &ss->mode.wpaint.gmap;
 
@@ -1106,7 +1106,7 @@ static void do_wpaint_brush_blur_task(const Scene *scene,
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -1176,7 +1176,7 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
   const SculptVertexPaintGeomMap *gmap = &ss->mode.wpaint.gmap;
 
@@ -1211,7 +1211,7 @@ static void do_wpaint_brush_smear_task(const Scene *scene,
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -1296,7 +1296,7 @@ static void do_wpaint_brush_draw_task(const Scene *scene,
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const StrokeCache *cache = ss->cache;
@@ -1322,7 +1322,7 @@ static void do_wpaint_brush_draw_task(const Scene *scene,
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -1373,7 +1373,7 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object *ob,
   using namespace blender;
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const bool use_normal = vwpaint::use_normal(vp);
@@ -1396,7 +1396,7 @@ static WPaintAverageAccum do_wpaint_brush_calc_average_weight(Object *ob,
 
   /* For each vertex */
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -1726,7 +1726,8 @@ static void wpaint_do_radial_symmetry(bContext *C,
   }
 }
 
-/* near duplicate of: #do_symmetrical_brush_actions and #vpaint_do_symmetrical_brush_actions. */
+/* near duplicate of: sculpt.cc's,
+ * 'do_symmetrical_brush_actions' and 'vpaint_do_symmetrical_brush_actions'. */
 static void wpaint_do_symmetrical_brush_actions(
     bContext *C, Object *ob, VPaint *wp, WPaintData *wpd, WeightPaintInfo *wpi)
 {
@@ -1735,6 +1736,14 @@ static void wpaint_do_symmetrical_brush_actions(
   SculptSession *ss = ob->sculpt;
   StrokeCache *cache = ss->cache;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
+  int i = 0;
+
+  /* initial stroke */
+  cache->mirror_symmetry_pass = ePaintSymmetryFlags(0);
+  wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X', 0, 0);
+  wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'X');
+  wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Y');
+  wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, ePaintSymmetryFlags(0), 'Z');
 
   cache->symmetry = symm;
 
@@ -1745,22 +1754,28 @@ static void wpaint_do_symmetrical_brush_actions(
     return;
   }
 
-  /* symm is a bit combination of XYZ -
-   * 1 is mirror X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
-  for (int i = 0; i <= symm; i++) {
-    if (!SCULPT_is_symmetry_iteration_valid(i, symm)) {
-      continue;
+  /* symm is a bit combination of XYZ - 1 is mirror
+   * X; 2 is Y; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
+  for (i = 1; i <= symm; i++) {
+    if (symm & i && (symm != 5 || i != 3) && (symm != 6 || !ELEM(i, 3, 5))) {
+      const ePaintSymmetryFlags symm = ePaintSymmetryFlags(i);
+      cache->mirror_symmetry_pass = symm;
+      cache->radial_symmetry_pass = 0;
+      SCULPT_cache_calc_brushdata_symm(cache, symm, 0, 0);
+
+      if (i & (1 << 0)) {
+        wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, 'X', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'X');
+      }
+      if (i & (1 << 1)) {
+        wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Y', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Y');
+      }
+      if (i & (1 << 2)) {
+        wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Z', 0, 0);
+        wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Z');
+      }
     }
-
-    const ePaintSymmetryFlags symm = ePaintSymmetryFlags(i);
-    cache->mirror_symmetry_pass = symm;
-    cache->radial_symmetry_pass = 0;
-    SCULPT_cache_calc_brushdata_symm(cache, symm, 0, 0);
-
-    wpaint_do_paint(C, ob, wp, wpd, wpi, mesh, brush, symm, 'X', 0, 0);
-    wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'X');
-    wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Y');
-    wpaint_do_radial_symmetry(C, ob, wp, wpd, wpi, mesh, brush, symm, 'Z');
   }
   copy_v3_v3(cache->true_last_location, cache->true_location);
   cache->is_last_valid = true;

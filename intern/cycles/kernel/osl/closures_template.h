@@ -40,6 +40,11 @@ OSL_CLOSURE_STRUCT_END(Refraction, refraction)
 OSL_CLOSURE_STRUCT_BEGIN(Transparent, transparent)
 OSL_CLOSURE_STRUCT_END(Transparent, transparent)
 
+OSL_CLOSURE_STRUCT_BEGIN(RayPortalBSDF, ray_portal_bsdf)
+  OSL_CLOSURE_STRUCT_MEMBER(RayPortalBSDF, VECTOR, packed_float3, position, NULL)
+  OSL_CLOSURE_STRUCT_MEMBER(RayPortalBSDF, VECTOR, packed_float3, direction, NULL)
+OSL_CLOSURE_STRUCT_END(RayPortalBSDF, ray_portal_bsdf)
+
 OSL_CLOSURE_STRUCT_BEGIN(DielectricBSDF, dielectric_bsdf)
   OSL_CLOSURE_STRUCT_MEMBER(DielectricBSDF, VECTOR, packed_float3, N, NULL)
   OSL_CLOSURE_STRUCT_MEMBER(DielectricBSDF, VECTOR, packed_float3, T, NULL)

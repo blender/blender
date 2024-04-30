@@ -30,15 +30,19 @@ void ShadowTileMap::sync_orthographic(const float4x4 &object_mat_,
                                       int2 origin_offset,
                                       int clipmap_level,
                                       float lod_bias_,
+                                      float filter_radius_,
                                       eShadowProjectionType projection_type_)
 {
-  if (projection_type != projection_type_ || (level != clipmap_level)) {
+  if ((projection_type != projection_type_) || (level != clipmap_level) ||
+      (filter_radius != filter_radius_))
+  {
     set_dirty();
   }
   projection_type = projection_type_;
   level = clipmap_level;
   light_type = eLightType::LIGHT_SUN;
   is_area_side = false;
+  filter_radius = filter_radius_;
 
   if (grid_shift == int2(0)) {
     /* Only replace shift if it is not already dirty. */
@@ -78,6 +82,7 @@ void ShadowTileMap::sync_cubeface(eLightType light_type_,
                                   float side_,
                                   float shift,
                                   eCubeFace face,
+                                  float filter_radius_,
                                   float lod_bias_)
 {
   if (projection_type != SHADOW_PROJECTION_CUBEFACE || (cubeface != face)) {
@@ -90,10 +95,13 @@ void ShadowTileMap::sync_cubeface(eLightType light_type_,
   light_type = light_type_;
   is_area_side = is_area_light(light_type) && (face != eCubeFace::Z_NEG);
 
-  if ((clip_near != near_) || (clip_far != far_) || (half_size != side_)) {
+  if ((clip_near != near_) || (filter_radius != filter_radius_) || (clip_far != far_) ||
+      (half_size != side_))
+  {
     set_dirty();
   }
 
+  filter_radius = filter_radius_;
   clip_near = near_;
   clip_far = far_;
   area_shift = shift;
@@ -377,20 +385,21 @@ void ShadowPunctual::end_sync(Light &light, float lod_bias)
     tilemaps_.append(tilemap_pool.acquire());
   }
 
-  tilemaps_[Z_NEG]->sync_cubeface(light.type, obmat_tmp, near, far, side, shift, Z_NEG, lod_bias);
+  tilemaps_[Z_NEG]->sync_cubeface(
+      light.type, obmat_tmp, near, far, side, shift, Z_NEG, light.pcf_radius, lod_bias);
   if (tilemaps_needed_ >= 5) {
     tilemaps_[X_POS]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, X_POS, lod_bias);
+        light.type, obmat_tmp, near, far, side, shift, X_POS, light.pcf_radius, lod_bias);
     tilemaps_[X_NEG]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, X_NEG, lod_bias);
+        light.type, obmat_tmp, near, far, side, shift, X_NEG, light.pcf_radius, lod_bias);
     tilemaps_[Y_POS]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, Y_POS, lod_bias);
+        light.type, obmat_tmp, near, far, side, shift, Y_POS, light.pcf_radius, lod_bias);
     tilemaps_[Y_NEG]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, Y_NEG, lod_bias);
+        light.type, obmat_tmp, near, far, side, shift, Y_NEG, light.pcf_radius, lod_bias);
   }
   if (tilemaps_needed_ == 6) {
     tilemaps_[Z_POS]->sync_cubeface(
-        light.type, obmat_tmp, near, far, side, shift, Z_POS, lod_bias);
+        light.type, obmat_tmp, near, far, side, shift, Z_POS, light.pcf_radius, lod_bias);
   }
 
   light.tilemap_index = tilemap_pool.tilemaps_data.size();
@@ -535,7 +544,8 @@ void ShadowDirectional::cascade_tilemaps_distribution(Light &light, const Camera
     /* Equal spacing between cascades layers since we want uniform shadow density. */
     int2 level_offset = origin_offset +
                         shadow_cascade_grid_offset(light.sun.clipmap_base_offset_pos, i);
-    tilemap->sync_orthographic(object_mat_, level_offset, level, 0.0f, SHADOW_PROJECTION_CASCADE);
+    tilemap->sync_orthographic(
+        object_mat_, level_offset, level, 0.0f, light.pcf_radius, SHADOW_PROJECTION_CASCADE);
 
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
     shadows_.tilemap_pool.tilemaps_data.append(*tilemap);
@@ -602,7 +612,7 @@ void ShadowDirectional::clipmap_tilemaps_distribution(Light &light,
     int2 level_offset = int2(math::round(light_space_camera_position / tile_size));
 
     tilemap->sync_orthographic(
-        object_mat_, level_offset, level, lod_bias, SHADOW_PROJECTION_CLIPMAP);
+        object_mat_, level_offset, level, lod_bias, light.pcf_radius, SHADOW_PROJECTION_CLIPMAP);
 
     /* Add shadow tile-maps grouped by lights to the GPU buffer. */
     shadows_.tilemap_pool.tilemaps_data.append(*tilemap);
@@ -770,7 +780,6 @@ void ShadowModule::init()
 
   data_.ray_count = clamp_i(inst_.scene->eevee.shadow_ray_count, 1, SHADOW_MAX_RAY);
   data_.step_count = clamp_i(inst_.scene->eevee.shadow_step_count, 1, SHADOW_MAX_STEP);
-  data_.normal_bias = max_ff(inst_.scene->eevee.shadow_normal_bias, 0.0f);
 
   /* Pool size is in MBytes. */
   const size_t pool_byte_size = enabled_ ? scene.eevee.shadow_pool_size * square_i(1024) : 1;
@@ -867,8 +876,6 @@ void ShadowModule::begin_sync()
       /* Directional shadows. */
       float texel_size = ShadowDirectional::tile_size_get(0) / float(SHADOW_PAGE_RES);
       int directional_level = std::max(0, int(std::ceil(log2(surfel_coverage_area / texel_size))));
-      /* Punctual shadows. */
-      float projection_ratio = tilemap_pixel_radius() / (surfel_coverage_area / 2.0);
 
       PassMain::Sub &sub = pass.sub("Surfels");
       sub.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_TAG_USAGE_SURFELS));
@@ -877,7 +884,7 @@ void ShadowModule::begin_sync()
       sub.bind_ssbo("surfel_buf", &surfels_buf);
       sub.bind_ssbo("capture_info_buf", &capture_info_buf);
       sub.push_constant("directional_level", directional_level);
-      sub.push_constant("tilemap_proj_ratio", projection_ratio);
+      sub.bind_resources(inst_.uniform_data);
       sub.bind_resources(inst_.lights);
       sub.dispatch(&inst_.volume_probes.bake.dispatch_per_surfel_);
 
@@ -892,7 +899,6 @@ void ShadowModule::begin_sync()
       sub.bind_ssbo("tilemaps_buf", &tilemap_pool.tilemaps_data);
       sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
       sub.bind_texture("depth_tx", &src_depth_tx_);
-      sub.push_constant("tilemap_proj_ratio", &data_.tilemap_projection_ratio);
       sub.push_constant("input_depth_extent", &input_depth_extent_);
       sub.bind_resources(inst_.lights);
       sub.bind_resources(inst_.uniform_data);
@@ -911,8 +917,6 @@ void ShadowModule::begin_sync()
       sub.bind_ssbo("tilemaps_buf", &tilemap_pool.tilemaps_data);
       sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
       sub.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
-      sub.push_constant("tilemap_proj_ratio", &data_.tilemap_projection_ratio);
-      sub.push_constant("pixel_world_radius", &pixel_world_radius_);
       sub.push_constant("fb_resolution", &usage_tag_fb_resolution_);
       sub.push_constant("fb_lod", &usage_tag_fb_lod_);
       sub.bind_resources(inst_.uniform_data);
@@ -1144,7 +1148,6 @@ void ShadowModule::end_sync()
       sub.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_TAG_USAGE_VOLUME));
       sub.bind_ssbo("tilemaps_buf", &tilemap_pool.tilemaps_data);
       sub.bind_ssbo("tiles_buf", &tilemap_pool.tiles_data);
-      sub.push_constant("tilemap_proj_ratio", &data_.tilemap_projection_ratio);
       sub.bind_resources(inst_.uniform_data);
       sub.bind_resources(inst_.hiz_buffer.front);
       sub.bind_resources(inst_.sampling);
@@ -1325,17 +1328,6 @@ float ShadowModule::screen_pixel_radius(const View &view, const int2 &extent)
   return math::distance(p0, p1) / min_dim;
 }
 
-/* Compute approximate screen pixel world space radius at 1 unit away of the light. */
-float ShadowModule::tilemap_pixel_radius()
-{
-  /* This is a really rough approximation. Ideally, the cube-map distortion should be taken into
-   * account per pixel. But this would make this pre-computation impossible.
-   * So for now compute for the center of the cube-map. */
-  const float cubeface_diagonal = M_SQRT2 * 2.0f;
-  const float pixel_count = SHADOW_TILEMAP_RES * shadow_page_size_;
-  return cubeface_diagonal / pixel_count;
-}
-
 bool ShadowModule::shadow_update_finished()
 {
   if (!inst_.is_image_render()) {
@@ -1405,8 +1397,7 @@ void ShadowModule::set_view(View &view, int2 extent)
                                    1);
   max_view_per_tilemap_ = max_view_per_tilemap();
 
-  pixel_world_radius_ = screen_pixel_radius(view, extent);
-  data_.tilemap_projection_ratio = tilemap_pixel_radius() / pixel_world_radius_;
+  data_.film_pixel_radius = screen_pixel_radius(view, extent);
   inst_.uniform_data.push_update();
 
   usage_tag_fb_resolution_ = math::divide_ceil(extent, int2(std::exp2(usage_tag_fb_lod_)));

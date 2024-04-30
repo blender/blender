@@ -989,7 +989,7 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
 
     /* Realize "fake" key, if it is clicked on. */
     if (key == nullptr && seq_key_test != nullptr) {
-      key = try_to_realize_virtual_key(C, seq_key_test, mval);
+      key = try_to_realize_virtual_keys(C, seq_key_test, mval);
     }
 
     bool retiming_key_clicked = (key != nullptr);

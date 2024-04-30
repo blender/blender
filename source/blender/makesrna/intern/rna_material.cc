@@ -963,8 +963,8 @@ void RNA_def_material(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_SS_REFRACTION);
   RNA_def_property_ui_text(
       prop,
-      "Raytrace Refraction",
-      "Use raytracing to determine refracted color instead of using only light probes. "
+      "Raytrace Transmission",
+      "Use raytracing to determine transmitted color instead of using only light probes. "
       "This prevents the surface from contributing to the lighting of surfaces not using this "
       "setting");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");

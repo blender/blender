@@ -3696,7 +3696,7 @@ struct GeometryNodesLazyFunctionBuilder {
     scope_.add(std::move(lazy_function));
 
     int input_index = 0;
-    for (const bNodeSocket *bsocket : bnode.input_sockets()) {
+    for (const bNodeSocket *bsocket : bnode.input_sockets().drop_back(1)) {
       if (bsocket->is_available()) {
         lf::InputSocket &lf_socket = lf_node.input(input_index);
         graph_params.lf_inputs_by_bsocket.add(bsocket, &lf_socket);

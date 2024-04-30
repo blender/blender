@@ -59,7 +59,7 @@ def repr_f32(f):
         f_test = round(f, i)
         f_test_round = round_float_32(f_test)
         if f_test_round == f_round:
-            return "%.*f" % (i, f_test)
+            return "{:.{:d}f}".format(f_test, i)
     return f_str
 
 

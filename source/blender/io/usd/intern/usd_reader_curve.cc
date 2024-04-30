@@ -45,11 +45,12 @@ static Array<int> calc_curve_offsets(const pxr::VtIntArray &usdCounts,
                                      bool is_cyclic)
 {
   Array<int> offsets(usdCounts.size() + 1);
-  int offset = 0;
-  for (const int i : offsets.index_range()) {
-    offsets[i] = offset;
-    offset += point_count(usdCounts[i], curve_type, is_cyclic);
-  }
+  threading::parallel_for(IndexRange(usdCounts.size()), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      offsets[i] = point_count(usdCounts[i], curve_type, is_cyclic);
+    }
+  });
+  offset_indices::accumulate_counts_to_offsets(offsets);
   return offsets;
 }
 

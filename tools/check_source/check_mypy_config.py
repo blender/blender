@@ -50,7 +50,6 @@ PATHS_EXCLUDE = set(
         "tools/check_blender_release/scripts/requests_basic_access.py",
         "tools/check_blender_release/scripts/requests_import.py",
         "tools/check_source/check_descriptions.py",
-        "tools/check_source/check_header_duplicate.py",
         "tools/check_source/check_unused_defines.py",
         "tools/utils/blend2json.py",
         "tools/utils/blender_keyconfig_export_permutations.py",

@@ -25,7 +25,7 @@
  *   otherwise get quick darkening due to rounding
  * - divide_round_i is also used to avoid darkening due to integers always
  *   rounding down
- * - float colors are assumed to be premultiplied alpha
+ * - float colors are assumed to be pre-multiplied alpha
  */
 
 /* straight alpha byte blending modes */
@@ -573,7 +573,7 @@ MINLINE void blend_color_interpolate_byte(uchar dst[4],
                                           const uchar src2[4],
                                           float ft)
 {
-  /* do color interpolation, but in premultiplied space so that RGB colors
+  /* do color interpolation, but in pre-multiplied space so that RGB colors
    * from zero alpha regions have no influence */
   const int t = (int)(255 * ft);
   const int mt = 255 - t;
@@ -591,12 +591,12 @@ MINLINE void blend_color_interpolate_byte(uchar dst[4],
   }
 }
 
-/* premultiplied alpha float blending modes */
+/* pre-multiplied alpha float blending modes */
 
 MINLINE void blend_color_mix_float(float dst[4], const float src1[4], const float src2[4])
 {
   if (src2[3] != 0.0f) {
-    /* premul over operation */
+    /* Pre-multiply over operation. */
     const float t = src2[3];
     const float mt = 1.0f - t;
 
@@ -614,7 +614,7 @@ MINLINE void blend_color_mix_float(float dst[4], const float src1[4], const floa
 MINLINE void blend_color_add_float(float dst[4], const float src1[4], const float src2[4])
 {
   if (src2[3] != 0.0f) {
-    /* unpremul > add > premul, simplified */
+    /* un-pre-multiplied > add > pre-multiplied, simplified. */
     dst[0] = src1[0] + src2[0] * src1[3];
     dst[1] = src1[1] + src2[1] * src1[3];
     dst[2] = src1[2] + src2[2] * src1[3];
@@ -629,7 +629,7 @@ MINLINE void blend_color_add_float(float dst[4], const float src1[4], const floa
 MINLINE void blend_color_sub_float(float dst[4], const float src1[4], const float src2[4])
 {
   if (src2[3] != 0.0f) {
-    /* unpremul > subtract > premul, simplified */
+    /* un-pre-multiplied > subtract > pre-multiplied, simplified. */
     dst[0] = max_ff(src1[0] - src2[0] * src1[3], 0.0f);
     dst[1] = max_ff(src1[1] - src2[1] * src1[3], 0.0f);
     dst[2] = max_ff(src1[2] - src2[2] * src1[3], 0.0f);
@@ -644,7 +644,7 @@ MINLINE void blend_color_sub_float(float dst[4], const float src1[4], const floa
 MINLINE void blend_color_mul_float(float dst[4], const float src1[4], const float src2[4])
 {
   if (src2[3] != 0.0f) {
-    /* unpremul > multiply > premul, simplified */
+    /* un-pre-multiplied > multiply > pre-multiplied, simplified. */
     const float t = src2[3];
     const float mt = 1.0f - t;
 
@@ -662,7 +662,7 @@ MINLINE void blend_color_mul_float(float dst[4], const float src1[4], const floa
 MINLINE void blend_color_lighten_float(float dst[4], const float src1[4], const float src2[4])
 {
   if (src2[3] != 0.0f) {
-    /* remap src2 to have same alpha as src1 premultiplied, take maximum of
+    /* remap src2 to have same alpha as src1 pre-multiplied, take maximum of
      * src1 and src2, then blend it with src1 */
     const float t = src2[3];
     const float mt = 1.0f - t;
@@ -682,7 +682,7 @@ MINLINE void blend_color_lighten_float(float dst[4], const float src1[4], const 
 MINLINE void blend_color_darken_float(float dst[4], const float src1[4], const float src2[4])
 {
   if (src2[3] != 0.0f) {
-    /* remap src2 to have same alpha as src1 premultiplied, take minimum of
+    /* remap src2 to have same alpha as src1 pre-multiplied, take minimum of
      * src1 and src2, then blend it with src1 */
     const float t = src2[3];
     const float mt = 1.0f - t;
@@ -1115,7 +1115,7 @@ MINLINE void blend_color_interpolate_float(float dst[4],
                                            const float src2[4],
                                            float t)
 {
-  /* interpolation, colors are premultiplied so it goes fine */
+  /* interpolation, colors are pre-multiplied so it goes fine */
   const float mt = 1.0f - t;
 
   dst[0] = mt * src1[0] + t * src2[0];

@@ -143,9 +143,14 @@ def create_wrapper_group(modifier, old_group):
     group.interface.new_socket(data_("Geometry"), in_out='OUTPUT', socket_type='NodeSocketGeometry')
     group.is_modifier = True
 
-    first_geometry_input = next((item for item in old_group.interface.items_tree if item.item_type == 'SOCKET' and
-                                item.in_out == 'INPUT' and
-                                item.bl_socket_idname == 'NodeSocketGeometry'), None)
+    first_geometry_input = next(
+        (
+            item for item in old_group.interface.items_tree if item.item_type == 'SOCKET' and
+            item.in_out == 'INPUT' and
+            item.bl_socket_idname == 'NodeSocketGeometry'
+        ),
+        None,
+    )
     if first_geometry_input:
         group.interface.new_socket(data_("Geometry"), in_out='INPUT', socket_type='NodeSocketGeometry')
         group_input_node = group.nodes.new('NodeGroupInput')
@@ -180,8 +185,10 @@ def create_wrapper_group(modifier, old_group):
             group_node_input.default_value = modifier[identifier]
 
     if first_geometry_input:
-        group.links.new(group_input_node.outputs[0],
-                        get_socket_with_identifier(group_node.inputs, first_geometry_input.identifier))
+        group.links.new(
+            group_input_node.outputs[0],
+            get_socket_with_identifier(group_node.inputs, first_geometry_input.identifier),
+        )
 
         # Adjust locations of named attribute input nodes and group input node to make some space.
         if input_nodes:
@@ -361,242 +368,9 @@ class ZoneOperator:
         return True
 
 
-class NodeOperator:
-    @classmethod
-    def get_node(cls, context):
-        node = context.active_node
-        if node is None:
-            return None
-        if node.bl_idname == cls.node_type:
-            return node
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        # Needs active node editor and a tree.
-        if not space or space.type != 'NODE_EDITOR' or not space.edit_tree or space.edit_tree.library:
-            return False
-        node = cls.get_node(context)
-        if node is None:
-            return False
-        return True
-
-
-class SocketItemAddOperator:
-    items_name = None
-    active_index_name = None
-    default_socket_type = 'GEOMETRY'
-
-    def execute(self, context):
-        node = self.get_node(context)
-        items = getattr(node, self.items_name)
-        # Remember index to move the item.
-        old_active_index = getattr(node, self.active_index_name)
-        if 0 <= old_active_index < len(items):
-            old_active_item = items[old_active_index]
-            dst_index = old_active_index + 1
-            dst_type = old_active_item.socket_type
-            dst_name = old_active_item.name
-        else:
-            dst_index = len(items)
-            dst_type = self.default_socket_type
-            # Empty name so it is based on the type.
-            dst_name = ""
-        items.new(dst_type, dst_name)
-        items.move(len(items) - 1, dst_index)
-        setattr(node, self.active_index_name, dst_index)
-        return {'FINISHED'}
-
-
-class SocketItemRemoveOperator:
-    items_name = None
-    active_index_name = None
-
-    def execute(self, context):
-        node = self.get_node(context)
-        items = getattr(node, self.items_name)
-        old_active_index = getattr(node, self.active_index_name)
-
-        if 0 <= old_active_index < len(items):
-            items.remove(items[old_active_index])
-
-        return {'FINISHED'}
-
-
-class SocketMoveItemOperator:
-    items_name = None
-    active_index_name = None
-
-    direction: EnumProperty(
-        name="Direction",
-        items=[('UP', "Up", ""), ('DOWN', "Down", "")],
-        default='UP',
-    )
-
-    def execute(self, context):
-        node = self.get_node(context)
-        items = getattr(node, self.items_name)
-        old_active_index = getattr(node, self.active_index_name)
-
-        if self.direction == 'UP' and old_active_index > 0:
-            items.move(old_active_index, old_active_index - 1)
-            setattr(node, self.active_index_name, old_active_index - 1)
-        elif self.direction == 'DOWN' and old_active_index < len(items) - 1:
-            items.move(old_active_index, old_active_index + 1)
-            setattr(node, self.active_index_name, old_active_index + 1)
-
-        return {'FINISHED'}
-
-
-class SimulationZoneOperator(ZoneOperator):
-    input_node_type = 'GeometryNodeSimulationInput'
-    output_node_type = 'GeometryNodeSimulationOutput'
-
-    items_name = "state_items"
-    active_index_name = "active_index"
-
-
-class SimulationZoneItemAddOperator(SimulationZoneOperator, SocketItemAddOperator, Operator):
-    """Add a state item to the simulation zone"""
-    bl_idname = "node.simulation_zone_item_add"
-    bl_label = "Add State Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-class SimulationZoneItemRemoveOperator(SimulationZoneOperator, SocketItemRemoveOperator, Operator):
-    """Remove a state item from the simulation zone"""
-    bl_idname = "node.simulation_zone_item_remove"
-    bl_label = "Remove State Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-class SimulationZoneItemMoveOperator(SimulationZoneOperator, SocketMoveItemOperator, Operator):
-    """Move a simulation state item up or down in the list"""
-    bl_idname = "node.simulation_zone_item_move"
-    bl_label = "Move State Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-class RepeatZoneOperator(ZoneOperator):
-    input_node_type = 'GeometryNodeRepeatInput'
-    output_node_type = 'GeometryNodeRepeatOutput'
-
-    items_name = "repeat_items"
-    active_index_name = "active_index"
-
-
-class RepeatZoneItemAddOperator(RepeatZoneOperator, SocketItemAddOperator, Operator):
-    """Add a repeat item to the repeat zone"""
-    bl_idname = "node.repeat_zone_item_add"
-    bl_label = "Add Repeat Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-class RepeatZoneItemRemoveOperator(RepeatZoneOperator, SocketItemRemoveOperator, Operator):
-    """Remove a repeat item from the repeat zone"""
-    bl_idname = "node.repeat_zone_item_remove"
-    bl_label = "Remove Repeat Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-class RepeatZoneItemMoveOperator(RepeatZoneOperator, SocketMoveItemOperator, Operator):
-    """Move a repeat item up or down in the list"""
-    bl_idname = "node.repeat_zone_item_move"
-    bl_label = "Move Repeat Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-class BakeNodeOperator(NodeOperator):
-    node_type = 'GeometryNodeBake'
-
-    items_name = "bake_items"
-    active_index_name = "active_index"
-
-
-class BakeNodeItemAddOperator(BakeNodeOperator, SocketItemAddOperator, Operator):
-    """Add a bake item to the bake node"""
-    bl_idname = "node.bake_node_item_add"
-    bl_label = "Add Bake Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-class BakeNodeItemRemoveOperator(BakeNodeOperator, SocketItemRemoveOperator, Operator):
-    """Remove a bake item from the bake node"""
-    bl_idname = "node.bake_node_item_remove"
-    bl_label = "Remove Bake Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-class BakeNodeItemMoveOperator(BakeNodeOperator, SocketMoveItemOperator, Operator):
-    """Move a bake item up or down in the list"""
-    bl_idname = "node.bake_node_item_move"
-    bl_label = "Move Bake Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-
-def _editable_tree_with_active_node_type(context, node_type):
-    space = context.space_data
-    # Needs active node editor and a tree.
-    if not space or space.type != 'NODE_EDITOR' or not space.edit_tree or space.edit_tree.library:
-        return False
-    node = context.active_node
-    if node is None or node.bl_idname != node_type:
-        return False
-    return True
-
-
-class IndexSwitchItemAddOperator(Operator):
-    """Add an item to the index switch"""
-    bl_idname = "node.index_switch_item_add"
-    bl_label = "Add Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        return _editable_tree_with_active_node_type(context, 'GeometryNodeIndexSwitch')
-
-    def execute(self, context):
-        node = context.active_node
-        node.index_switch_items.new()
-        return {'FINISHED'}
-
-
-class IndexSwitchItemRemoveOperator(Operator):
-    """Remove an item from the index switch"""
-    bl_idname = "node.index_switch_item_remove"
-    bl_label = "Remove Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    index: IntProperty(
-        name="Index",
-        description="Index of item to remove",
-    )
-
-    @classmethod
-    def poll(cls, context):
-        return _editable_tree_with_active_node_type(context, 'GeometryNodeIndexSwitch')
-
-    def execute(self, context):
-        node = context.active_node
-        items = node.index_switch_items
-        items.remove(items[self.index])
-        return {'FINISHED'}
-
-
 classes = (
     NewGeometryNodesModifier,
     NewGeometryNodeTreeAssign,
     NewGeometryNodeGroupTool,
     MoveModifierToNodes,
-    SimulationZoneItemAddOperator,
-    SimulationZoneItemRemoveOperator,
-    SimulationZoneItemMoveOperator,
-    RepeatZoneItemAddOperator,
-    RepeatZoneItemRemoveOperator,
-    RepeatZoneItemMoveOperator,
-    BakeNodeItemAddOperator,
-    BakeNodeItemRemoveOperator,
-    BakeNodeItemMoveOperator,
-    IndexSwitchItemAddOperator,
-    IndexSwitchItemRemoveOperator,
 )

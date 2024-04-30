@@ -953,7 +953,7 @@ ccl_device Spectrum surface_shader_transparency(KernelGlobals kg, ccl_private co
   if (sd->flag & SD_HAS_ONLY_VOLUME) {
     return one_spectrum();
   }
-  else if (sd->flag & SD_TRANSPARENT) {
+  else if (sd->flag & (SD_TRANSPARENT | SD_RAY_PORTAL)) {
     return sd->closure_transparent_extinction;
   }
   else {
@@ -1174,6 +1174,7 @@ ccl_device void surface_shader_eval(KernelGlobals kg,
 
   sd->num_closure = 0;
   sd->num_closure_left = max_closures;
+  sd->closure_transparent_extinction = zero_spectrum();
 
 #ifdef __OSL__
   if (kernel_data.kernel_features & KERNEL_FEATURE_OSL) {

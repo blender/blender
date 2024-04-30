@@ -98,7 +98,7 @@ class NodeAddOperator:
             except AttributeError as ex:
                 self.report(
                     {'ERROR_INVALID_INPUT'},
-                    rpt_("Node has no attribute %s") % setting.name)
+                    rpt_("Node has no attribute {:s}").format(setting.name))
                 print(str(ex))
                 # Continue despite invalid attribute
 
@@ -387,61 +387,6 @@ class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
         return {'FINISHED'}
 
 
-class NODE_OT_enum_definition_item_add(Operator):
-    '''Add an enum item to the definition'''
-    bl_idname = "node.enum_definition_item_add"
-    bl_label = "Add Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        node = context.active_node
-        enum_def = node.enum_definition
-        item = enum_def.enum_items.new(data_("Item"))
-        enum_def.active_index = enum_def.enum_items[:].index(item)
-        return {'FINISHED'}
-
-
-class NODE_OT_enum_definition_item_remove(Operator):
-    '''Remove the selected enum item from the definition'''
-    bl_idname = "node.enum_definition_item_remove"
-    bl_label = "Remove Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        node = context.active_node
-        enum_def = node.enum_definition
-        item = enum_def.active_item
-        if item:
-            enum_def.enum_items.remove(item)
-        enum_def.active_index = min(max(enum_def.active_index, 0), len(enum_def.enum_items) - 1)
-        return {'FINISHED'}
-
-
-class NODE_OT_enum_definition_item_move(Operator):
-    '''Remove the selected enum item from the definition'''
-    bl_idname = "node.enum_definition_item_move"
-    bl_label = "Move Item"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    direction: EnumProperty(
-        name="Direction",
-        description="Move up or down",
-        items=[("UP", "Up", ""), ("DOWN", "Down", "")]
-    )
-
-    def execute(self, context):
-        node = context.active_node
-        enum_def = node.enum_definition
-        index = enum_def.active_index
-        if self.direction == 'UP':
-            enum_def.enum_items.move(index, index - 1)
-            enum_def.active_index = min(max(index - 1, 0), len(enum_def.enum_items) - 1)
-        else:
-            enum_def.enum_items.move(index, index + 1)
-            enum_def.active_index = min(max(index + 1, 0), len(enum_def.enum_items) - 1)
-        return {'FINISHED'}
-
-
 class NODE_FH_image_node(FileHandler):
     bl_idname = "NODE_FH_image_node"
     bl_label = "Image node"
@@ -471,7 +416,4 @@ classes = (
     NODE_OT_interface_item_duplicate,
     NODE_OT_interface_item_remove,
     NODE_OT_tree_path_parent,
-    NODE_OT_enum_definition_item_add,
-    NODE_OT_enum_definition_item_remove,
-    NODE_OT_enum_definition_item_move,
 )

@@ -37,7 +37,7 @@ static void apply_projection(gesture::GestureData &gesture_data, PBVHNode *node)
 
   undo::push_node(*gesture_data.vc.obact, node, undo::Type::Position);
 
-  BKE_pbvh_vertex_iter_begin (gesture_data.ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*gesture_data.ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float vertex_normal[3];
     const float *co = SCULPT_vertex_co_get(gesture_data.ss, vd.vertex);
     SCULPT_vertex_normal_get(gesture_data.ss, vd.vertex, vertex_normal);

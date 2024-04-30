@@ -9,6 +9,7 @@
  */
 
 #include "BLI_math_vector_types.hh"
+#include "BLI_string_ref.hh"
 #include "DNA_curve_types.h"
 
 struct ChannelDriver;
@@ -228,6 +229,11 @@ void BKE_fcurves_free(ListBase *list);
  * Duplicate a list of F-Curves.
  */
 void BKE_fcurves_copy(ListBase *dst, ListBase *src);
+
+/**
+ * Set the RNA path of a F-Curve.
+ */
+void BKE_fcurve_rnapath_set(FCurve &fcu, blender::StringRef rna_path);
 
 /* Set fcurve modifier name and ensure uniqueness.
  * Pass new name string when it's been edited otherwise pass empty string. */

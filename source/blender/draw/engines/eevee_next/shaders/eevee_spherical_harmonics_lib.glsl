@@ -718,7 +718,7 @@ SphericalHarmonicL1 spherical_harmonics_clamp(SphericalHarmonicL1 sh, float clam
 {
   /* Convert coefficients to per channel column. */
   mat4x4 per_channel = transpose(mat4x4(sh.L0.M0, sh.L1.Mn1, sh.L1.M0, sh.L1.Mp1));
-  /* Magnitute per channel. */
+  /* Magnitude per channel. */
   vec3 mag_L1;
   mag_L1.r = length(per_channel[0].yzw);
   mag_L1.g = length(per_channel[1].yzw);

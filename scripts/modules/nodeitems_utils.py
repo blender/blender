@@ -87,7 +87,7 @@ _node_categories = {}
 
 def register_node_categories(identifier, cat_list):
     if identifier in _node_categories:
-        raise KeyError("Node categories list '%s' already registered" % identifier)
+        raise KeyError("Node categories list '{:s}' already registered".format(identifier))
         return
 
     # works as draw function for menus
@@ -116,7 +116,7 @@ def register_node_categories(identifier, cat_list):
 
         for cat in cat_list:
             if cat.poll(context):
-                layout.menu("NODE_MT_category_%s" % cat.identifier)
+                layout.menu("NODE_MT_category_" + cat.identifier)
 
     # Stores: (categories list, menu draw function, sub-menu types).
     _node_categories[identifier] = (cat_list, draw_add_menu, menu_types)

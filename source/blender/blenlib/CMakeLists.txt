@@ -367,6 +367,7 @@ set(SRC
   BLI_system.h
   BLI_task.h
   BLI_task.hh
+  BLI_task_size_hints.hh
   BLI_tempfile.h
   BLI_threads.h
   BLI_time.h

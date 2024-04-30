@@ -66,7 +66,7 @@ static void mask_filter_task(SculptSession *ss,
     contrast = -0.1f;
   }
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float delta, gain, offset, max, min;
 
     float mask = vd.mask;
@@ -131,7 +131,7 @@ static void mask_filter_task(SculptSession *ss,
     }
     mask = clamp_f(mask, 0.0f, 1.0f);
     if (mask != vd.mask) {
-      SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
+      SCULPT_mask_vert_set(BKE_pbvh_type(*ss->pbvh), mask_write, mask, vd);
       update = true;
     }
   }
@@ -161,7 +161,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
   SculptSession *ss = ob->sculpt;
-  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVH &pbvh = *ob->sculpt->pbvh;
 
   SCULPT_vertex_random_access_ensure(ss);
 

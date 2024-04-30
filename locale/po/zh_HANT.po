@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 07:36+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -12300,10 +12300,6 @@ msgid "XR"
 msgstr "XR"
 
 
-msgid "Has Reports"
-msgstr "有報告"
-
-
 msgid "Modifier name"
 msgstr "修改器名稱"
 
@@ -13874,22 +13870,6 @@ msgstr "筆刷遲滯在滑鼠之後並跟隨較平滑的路徑"
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "自動調整強度以給予不同間隔一致的結果"
-
-
-msgid "Grab UVs"
-msgstr "抓取 UV"
-
-
-msgid "Relax"
-msgstr "放鬆"
-
-
-msgid "Relax UVs"
-msgstr "放鬆 uv"
-
-
-msgid "Pinch UVs"
-msgstr "捏擠 UV"
 
 
 msgid "Vertex Paint Tool"
@@ -21794,8 +21774,8 @@ msgid "Show/Hide"
 msgstr "顯示/隱藏"
 
 
-msgid "Fractional Zoom"
-msgstr "關於分數縮放"
+msgid "Zoom"
+msgstr "調焦"
 
 
 msgid "Console"
@@ -26701,10 +26681,6 @@ msgstr "中心 Y"
 
 msgid "Spin"
 msgstr "迴旋"
-
-
-msgid "Zoom"
-msgstr "調焦"
 
 
 msgid "Defocus"
@@ -31908,6 +31884,10 @@ msgid "Add Circle"
 msgstr "添加圓"
 
 
+msgid "Handles"
+msgstr "控制桿"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "切換循環"
@@ -32302,10 +32282,6 @@ msgstr "設定雲形線類型"
 
 msgid "Set type of active spline"
 msgstr "設定作用中雲形線的類型"
-
-
-msgid "Handles"
-msgstr "控制桿"
 
 
 msgctxt "Operator"
@@ -41697,6 +41673,10 @@ msgid "Cavity (Inverted)"
 msgstr "坑腔 ( 反轉 )"
 
 
+msgid "Relax"
+msgstr "放鬆"
+
+
 msgid "Relax Face Sets"
 msgstr "放鬆面集"
 
@@ -41778,17 +41758,28 @@ msgid "Symmetrize the topology modifications"
 msgstr "對稱化拓樸修改"
 
 
-msgctxt "Operator"
-msgid "Sculpt UVs"
-msgstr "雕塑 UV"
+msgid "Grab UVs"
+msgstr "抓取 UV"
 
 
-msgid "Sculpt UVs using a brush"
-msgstr "使用筆刷雕塑 UV"
+msgid "Pinch UVs"
+msgstr "捏擠 UV"
 
 
-msgid "Switch brush to relax mode for duration of stroke"
-msgstr "劃下筆觸時切換筆刷至放鬆模式"
+msgid "Relax UVs"
+msgstr "放鬆 uv"
+
+
+msgid "Algorithm used for UV relaxation"
+msgstr "用於 UV 放鬆的演算法"
+
+
+msgid "Use Laplacian method for relaxation"
+msgstr "放鬆使用拉普拉斯方法"
+
+
+msgid "Use HC method for relaxation"
+msgstr "放鬆使用 HC 方法"
 
 
 msgctxt "Operator"
@@ -46493,13 +46484,13 @@ msgstr "擦除"
 
 
 msgctxt "Operator"
-msgid "Tint"
-msgstr "染色"
+msgid "Cutter"
+msgstr "裁剪"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "裁剪"
+msgid "Tint"
+msgstr "染色"
 
 
 msgctxt "Operator"
@@ -54939,26 +54930,6 @@ msgid "Keep UV and edit mode mesh selection in sync"
 msgstr "保持 UV 與編輯模式網格選取於同步狀態"
 
 
-msgid "Relaxation Method"
-msgstr "放鬆方法"
-
-
-msgid "Algorithm used for UV relaxation"
-msgstr "用於 UV 放鬆的演算法"
-
-
-msgid "Use Laplacian method for relaxation"
-msgstr "放鬆使用拉普拉斯方法"
-
-
-msgid "HC"
-msgstr "HC"
-
-
-msgid "Use HC method for relaxation"
-msgstr "放鬆使用 HC 方法"
-
-
 msgid "UV Sculpt"
 msgstr "UV 雕塑"
 
@@ -55799,6 +55770,16 @@ msgstr "粒子"
 
 
 msgctxt "WindowManager"
+msgid "Panning"
+msgstr "平移"
+
+
+msgctxt "WindowManager"
+msgid "Rotate"
+msgstr "旋轉"
+
+
+msgctxt "WindowManager"
 msgid "Knife Tool Modal Map"
 msgstr "割刀工具典範映射"
 
@@ -55816,11 +55797,6 @@ msgstr "開啟吸附至中間點"
 msgctxt "WindowManager"
 msgid "Snap to Midpoints Off"
 msgstr "關閉吸附至中間點"
-
-
-msgctxt "WindowManager"
-msgid "Panning"
-msgstr "平移"
 
 
 msgctxt "WindowManager"
@@ -56239,11 +56215,6 @@ msgstr "吸附切換"
 
 
 msgctxt "WindowManager"
-msgid "Rotate"
-msgstr "旋轉"
-
-
-msgctxt "WindowManager"
 msgid "TrackBall"
 msgstr "追蹤球"
 
@@ -56636,17 +56607,9 @@ msgid "Warning, file already exists. Overwrite existing file?"
 msgstr "警告：檔案已經存在。是否覆蓋既有檔案？"
 
 
-msgid "Remove Add-on: %r?"
-msgstr "是否移除擴充元件：%r？"
-
-
 msgctxt "Operator"
 msgid "Open..."
 msgstr "開啟..."
-
-
-msgid "%s: %s"
-msgstr "%s：%s"
 
 
 msgctxt "Operator"
@@ -56657,10 +56620,6 @@ msgstr "Blender 商店"
 msgctxt "Operator"
 msgid "Blender Website"
 msgstr "Blender 網站"
-
-
-msgid "Operator not found: bpy.ops.%s"
-msgstr "找不到操作器：bpy.ops.%s"
 
 
 msgctxt "Operator"
@@ -57060,16 +57019,8 @@ msgid "Use Timing"
 msgstr "使用計時"
 
 
-msgid "Spacing: %g"
-msgstr "間隔：%g"
-
-
 msgid "Not yet functional"
 msgstr "尚未能運作"
-
-
-msgid "%d fluid particles for this frame"
-msgstr "此框幀的 %d 個流體粒子"
 
 
 msgid "Dynamic Mesh"
@@ -57329,10 +57280,6 @@ msgstr "啟用標記"
 msgctxt "Operator"
 msgid "Unlock Tracks"
 msgstr "解除軌道鎖定"
-
-
-msgid "Zoom %d:%d"
-msgstr "遠近 %d:%d"
 
 
 msgctxt "Operator"
@@ -57645,10 +57592,6 @@ msgid "Named Attributes"
 msgstr "具名的屬性"
 
 
-msgid "Slot %d"
-msgstr "槽 %d"
-
-
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "實例至場景"
@@ -57772,16 +57715,8 @@ msgid "Reload Strips and Adjust Length"
 msgstr "重新載入片段並調整長度"
 
 
-msgid "Fractional Preview Zoom"
-msgstr "無階段式預覽縮放"
-
-
 msgid "Unpack"
 msgstr "解包"
-
-
-msgid "Original frame range: %d-%d (%d)"
-msgstr "原始框幀區間：%d-%d (%d)"
 
 
 msgctxt "Text"
@@ -57815,10 +57750,6 @@ msgstr "文字：外部"
 
 msgid "Text: Internal"
 msgstr "文字：內部"
-
-
-msgid "File: %s"
-msgstr "檔案：%s"
 
 
 msgctxt "Operator"
@@ -58034,10 +57965,6 @@ msgstr "警告："
 
 msgid "Internet:"
 msgstr "網際網路："
-
-
-msgid "Color Set %d"
-msgstr "色彩集 %d"
 
 
 msgctxt "Operator"
@@ -58922,10 +58849,6 @@ msgid "<No ID pointer>"
 msgstr "<無 ID 指標>"
 
 
-msgid "<Missing ID block>"
-msgstr "<遺失 ID 塊>"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "無 F 曲線可添加鍵幀"
 
@@ -58940,14 +58863,6 @@ msgstr "無 ID 塊與/或動畫資料可供刪除鍵幀"
 
 msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "無法插入鍵幀，因為給定 ID 的 RNA 路徑無效 (ID = %s，路徑 = %s)"
-
-
-msgid "No ID block to insert keyframe in (path = %s)"
-msgstr "無可插入鍵幀的 ID 塊 (路徑 = %s)"
-
-
-msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
-msgstr "無法插入鍵幀，因次此類型不支援動畫資料 (ID = %s，路徑 = %s)"
 
 
 msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -59097,6 +59012,10 @@ msgstr "內建函式"
 
 msgid "Stepped"
 msgstr "步進"
+
+
+msgid "Slot %d"
+msgstr "槽 %d"
 
 
 msgid "Cannot pack multiview images from raw data currently..."
@@ -59760,6 +59679,10 @@ msgstr "蠟筆資料操作器已在作用中"
 
 msgid "Failed to set value"
 msgstr "無法設定數值"
+
+
+msgid "%s: %s"
+msgstr "%s：%s"
 
 
 msgid "Pin"
@@ -61156,6 +61079,10 @@ msgid "Frame: - / %d"
 msgstr "框幀：- / %d"
 
 
+msgid "File: %s"
+msgstr "檔案：%s"
+
+
 msgid "unsupported movie clip format"
 msgstr "未支援的影片剪輯格式"
 
@@ -61515,10 +61442,6 @@ msgstr "無有效的動作可添加"
 
 msgid "Internal Error - AnimData block is not valid"
 msgstr "內部錯誤 - AnimData 塊無效"
-
-
-msgid "Some nodes references could not be restored, will be left empty"
-msgstr "有些節點參照無法還原，將會留白"
 
 
 msgid "Cannot add node %s into node tree %s"

@@ -505,7 +505,7 @@ def path_reference(
         filepath_abs = filepath_cpy
         mode = 'RELATIVE'
     else:
-        raise Exception("invalid mode given %r" % mode)
+        raise Exception("invalid mode given {!r}".format(mode))
 
     if mode == 'ABSOLUTE':
         return filepath_abs
@@ -537,7 +537,7 @@ def path_reference_copy(copy_set, report=print):
 
     for file_src, file_dst in copy_set:
         if not os.path.exists(file_src):
-            report("missing %r, not copying" % file_src)
+            report("missing {!r}, not copying".format(file_src))
         elif os.path.exists(file_dst) and os.path.samefile(file_src, file_dst):
             pass
         else:
@@ -588,7 +588,7 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
 
         if name_max == -1:
             while name_new in name_dict_values:
-                name_new = "%s%s%03d" % (
+                name_new = "{:s}{:s}{:03d}".format(
                     name_new_orig,
                     sep,
                     count,
@@ -597,10 +597,10 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
         else:
             name_new = name_new[:name_max]
             while name_new in name_dict_values:
-                count_str = "%03d" % count
-                name_new = "%.*s%s%s" % (
-                    name_max - (len(count_str) + 1),
+                count_str = "{:03d}".format(count)
+                name_new = "{:.{:d}s}{:s}{:s}".format(
                     name_new_orig,
+                    name_max - (len(count_str) + 1),
                     sep,
                     count_str,
                 )

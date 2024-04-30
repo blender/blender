@@ -40,10 +40,8 @@ def url_json_get(url: str) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]
 
 def url_json_get_all_pages(
         url: str,
-        limit: int = 50,
         verbose: bool = False,
 ) -> List[Dict[str, Any]]:
-    assert limit <= 50, "50 is the maximum limit of items per page"
     result: List[Dict[str, Any]] = []
     page = 1
     while True:
@@ -54,14 +52,14 @@ def url_json_get_all_pages(
             # XXX: In some cases, a bug prevents using the `page` and `limit` parameters if the page is 1
             result_page = url_json_get(url)
         else:
-            result_page = url_json_get(f"{url}&page={page}&limit={limit}")
+            result_page = url_json_get(f"{url}&page={page}")
 
         if not result_page:
             break
         assert isinstance(result_page, list)
         result.extend(result_page)
 
-        if len(result_page) < limit:
+        if len(result_page) == 0:
             break
 
         page += 1

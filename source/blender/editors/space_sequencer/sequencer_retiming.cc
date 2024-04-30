@@ -738,7 +738,7 @@ int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op)
 
   /* Try to realize "fake" key, since it is clicked on. */
   if (key == nullptr && seq_key_owner != nullptr) {
-    key = try_to_realize_virtual_key(C, seq_key_owner, mval);
+    key = try_to_realize_virtual_keys(C, seq_key_owner, mval);
   }
 
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");

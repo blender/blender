@@ -106,6 +106,7 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
 
             col = layout.column()
             col.prop(bone, "roll")
+            col.prop(bone, "length")
             col.prop(bone, "lock")
 
 

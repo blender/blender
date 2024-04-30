@@ -75,14 +75,13 @@ const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
 };
 
 const EnumPropertyItem rna_enum_usd_attr_import_mode_items[] = {
-    {USD_ATTR_IMPORT_NONE, "NONE", 0, "None", "Do not import attributes"},
+    {USD_ATTR_IMPORT_NONE, "NONE", 0, "None", "Do not import USD custom attributes"},
     {USD_ATTR_IMPORT_USER,
      "USER",
      0,
      "User",
-     "Import attributes in the 'userProperties' namespace as "
-     "Blender custom properties.  The namespace will "
-     "be stripped from the property names"},
+     "Import USD attributes in the 'userProperties' namespace as Blender custom "
+     "properties. The namespace will be stripped from the property names"},
     {USD_ATTR_IMPORT_ALL,
      "ALL",
      0,
@@ -248,7 +247,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 static void wm_usd_export_draw(bContext *C, wmOperator *op)
 {
   uiLayout *layout = op->layout;
-  uiLayout *col;
+  uiLayout *col, *row;
   PointerRNA *ptr = op->ptr;
 
   uiLayoutSetPropSep(layout, true);
@@ -262,22 +261,19 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   }
 
   col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "export_custom_properties", UI_ITEM_NONE, nullptr, ICON_NONE);
-
-  col = uiLayoutColumn(box, true);
-  uiItemR(col, ptr, "author_blender_name", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiLayoutSetActive(col, RNA_boolean_get(op->ptr, "export_custom_properties"));
-
-  col = uiLayoutColumn(box, true);
   uiItemR(col, ptr, "export_animation", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_materials", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "export_custom_properties", UI_ITEM_NONE, nullptr, ICON_NONE);
+  row = uiLayoutRow(col, true);
+  uiItemR(row, ptr, "author_blender_name", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiLayoutSetActive(row, RNA_boolean_get(op->ptr, "export_custom_properties"));
 
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Rigging"));
   uiItemR(col, ptr, "export_armatures", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiLayout *row = uiLayoutRow(col, true);
+  row = uiLayoutRow(col, true);
   uiItemR(row, ptr, "only_deform_bones", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiLayoutSetActive(row, RNA_boolean_get(ptr, "export_armatures"));
   uiItemR(col, ptr, "export_shapekeys", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -487,14 +483,15 @@ void WM_OT_usd_export(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "export_custom_properties",
                   true,
-                  "Export Custom Properties",
-                  "When checked, custom properties will be exported as USD User Properties");
+                  "Custom Properties",
+                  "Export custom properties as USD attributes in the 'userProperties' namespace");
 
   RNA_def_boolean(ot->srna,
                   "author_blender_name",
                   true,
-                  "Author Blender Name",
-                  "When checked, custom userProperties will be authored to allow a round trip");
+                  "Blender Names",
+                  "Author USD custom attributes containing the original Blender object and "
+                  "object data names");
 }
 
 /* ====== USD Import ====== */
@@ -884,7 +881,7 @@ void WM_OT_usd_import(wmOperatorType *ot)
                "attr_import_mode",
                rna_enum_usd_attr_import_mode_items,
                USD_ATTR_IMPORT_ALL,
-               "Import Custom Properties",
+               "Custom Properties",
                "Behavior when importing USD attributes as Blender custom properties");
 
   RNA_def_boolean(ot->srna,

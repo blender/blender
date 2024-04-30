@@ -49,7 +49,7 @@ namespace blender::ed::sculpt_paint::mask {
 Array<float> duplicate_mask(const Object &object)
 {
   const SculptSession &ss = *object.sculpt;
-  switch (BKE_pbvh_type(ss.pbvh)) {
+  switch (BKE_pbvh_type(*ss.pbvh)) {
     case PBVH_FACES: {
       const Mesh &mesh = *static_cast<const Mesh *>(object.data);
       const bke::AttributeAccessor attributes = mesh.attributes();
@@ -360,8 +360,8 @@ static void fill_mask(
     Main &bmain, const Scene &scene, Depsgraph &depsgraph, Object &object, const float value)
 {
   PBVH &pbvh = *object.sculpt->pbvh;
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(&pbvh, {});
-  switch (BKE_pbvh_type(&pbvh)) {
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
+  switch (BKE_pbvh_type(pbvh)) {
     case PBVH_FACES:
       fill_mask_mesh(object, value, nodes);
       break;
@@ -472,8 +472,8 @@ static void invert_mask_bmesh(Object &object, const Span<PBVHNode *> nodes)
 
 static void invert_mask(Main &bmain, const Scene &scene, Depsgraph &depsgraph, Object &object)
 {
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(object.sculpt->pbvh, {});
-  switch (BKE_pbvh_type(object.sculpt->pbvh)) {
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*object.sculpt->pbvh, {});
+  switch (BKE_pbvh_type(*object.sculpt->pbvh)) {
     case PBVH_FACES:
       invert_mask_mesh(object, nodes);
       break;
@@ -568,13 +568,13 @@ static void mask_gesture_apply_task(gesture::GestureData &gesture_data,
                                                    gesture_data.operation;
   Object *ob = gesture_data.vc.obact;
 
-  const bool is_multires = BKE_pbvh_type(gesture_data.ss->pbvh) == PBVH_GRIDS;
+  const bool is_multires = BKE_pbvh_type(*gesture_data.ss->pbvh) == PBVH_GRIDS;
 
   PBVHVertexIter vd;
   bool any_masked = false;
   bool redraw = false;
 
-  BKE_pbvh_vertex_iter_begin (gesture_data.ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*gesture_data.ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float vertex_normal[3];
     const float *co = SCULPT_vertex_co_get(gesture_data.ss, vd.vertex);
     SCULPT_vertex_normal_get(gesture_data.ss, vd.vertex, vertex_normal);
@@ -593,7 +593,7 @@ static void mask_gesture_apply_task(gesture::GestureData &gesture_data,
       const float new_mask = mask_flood_fill_get_new_value_for_elem(
           prevmask, mask_operation->mode, mask_operation->value);
       if (prevmask != new_mask) {
-        SCULPT_mask_vert_set(BKE_pbvh_type(ob->sculpt->pbvh), mask_write, new_mask, vd);
+        SCULPT_mask_vert_set(BKE_pbvh_type(*ob->sculpt->pbvh), mask_write, new_mask, vd);
         redraw = true;
       }
     }
@@ -619,7 +619,7 @@ static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext & /*C*/,
 static void sculpt_gesture_mask_end(bContext &C, gesture::GestureData &gesture_data)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
-  if (BKE_pbvh_type(gesture_data.ss->pbvh) == PBVH_GRIDS) {
+  if (BKE_pbvh_type(*gesture_data.ss->pbvh) == PBVH_GRIDS) {
     multires_mark_as_modified(depsgraph, gesture_data.vc.obact, MULTIRES_COORDS_MODIFIED);
   }
   blender::bke::pbvh::update_mask(*gesture_data.ss->pbvh);

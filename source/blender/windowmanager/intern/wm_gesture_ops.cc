@@ -11,8 +11,8 @@
  * - Keymaps are in `wm_operators.cc`.
  * - Property definitions are in `wm_operator_props.cc`.
  */
-
 #include "MEM_guardedalloc.h"
+#include <fmt/format.h>
 
 #include "DNA_windowmanager_types.h"
 
@@ -20,6 +20,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
+
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 
@@ -35,6 +37,7 @@
 #include "RNA_access.hh"
 
 using blender::Array;
+using blender::float2;
 using blender::int2;
 
 /* -------------------------------------------------------------------- */
@@ -689,6 +692,219 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 
   prop = RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_runtime(ot->srna, prop, &RNA_OperatorMousePath);
+}
+#endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Polyline Gesture
+ * Gesture defined by three or more points in a viewport enclosing a particular area.
+ *
+ * Like the Lasso Gesture, the data passed onto other operators via the 'path' property is a
+ * sequential array of mouse positions.
+ * \{ */
+int WM_gesture_polyline_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  wmWindow *win = CTX_wm_window(C);
+  PropertyRNA *prop;
+
+  op->customdata = WM_gesture_new(win, CTX_wm_region(C), event, WM_GESTURE_POLYLINE);
+
+  /* add modal handler */
+  WM_event_add_modal_handler(C, op);
+
+  wm_gesture_tag_redraw(win);
+
+  if ((prop = RNA_struct_find_property(op->ptr, "cursor"))) {
+    WM_cursor_modal_set(win, RNA_property_int_get(op->ptr, prop));
+  }
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+/* Calculates the number of valid points in a polyline gesture where
+ * a duplicated end point is invalid for submission */
+static int gesture_polyline_valid_points(const wmGesture &wmGesture)
+{
+  BLI_assert(wmGesture.points > 2);
+
+  const int num_points = wmGesture.points;
+  short(*points)[2] = static_cast<short int(*)[2]>(wmGesture.customdata);
+
+  const short last_x = points[num_points - 1][0];
+  const short last_y = points[num_points - 1][1];
+
+  const short prev_x = points[num_points - 2][0];
+  const short prev_y = points[num_points - 2][1];
+
+  return (last_x == prev_x && last_y == prev_y) ? num_points - 1 : num_points;
+}
+
+/* Evaluates whether the polyline has at least three points and represents
+ * a shape and can be submitted for other gesture operators to act on. */
+static bool gesture_polyline_can_apply(const wmGesture &wmGesture)
+{
+  if (wmGesture.points <= 2) {
+    return false;
+  }
+
+  const int valid_points = gesture_polyline_valid_points(wmGesture);
+  if (valid_points <= 2) {
+    return false;
+  }
+
+  return true;
+}
+
+static int gesture_polyline_apply(bContext *C, wmOperator *op)
+{
+  wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
+  BLI_assert(gesture_polyline_can_apply(*gesture));
+
+  const int valid_points = gesture_polyline_valid_points(*gesture);
+  gesture->points = valid_points;
+
+  const short *border = static_cast<const short int *>(gesture->customdata);
+
+  PointerRNA itemptr;
+  float loc[2];
+  RNA_collection_clear(op->ptr, "path");
+  for (int i = 0; i < gesture->points; i++, border += 2) {
+    loc[0] = border[0];
+    loc[1] = border[1];
+    RNA_collection_add(op->ptr, "path", &itemptr);
+    RNA_float_set_array(&itemptr, "loc", loc);
+  }
+
+  gesture_modal_end(C, op);
+
+  int retval = OPERATOR_FINISHED;
+  if (op->type->exec) {
+    retval = op->type->exec(C, op);
+    OPERATOR_RETVAL_CHECK(retval);
+  }
+
+  return retval;
+}
+
+int WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
+
+  if (event->type == EVT_MODAL_MAP) {
+    switch (event->val) {
+      case GESTURE_MODAL_MOVE:
+        gesture->move = !gesture->move;
+        break;
+      case GESTURE_MODAL_SELECT: {
+        wm_gesture_tag_redraw(CTX_wm_window(C));
+        short(*border)[2] = static_cast<short int(*)[2]>(gesture->customdata);
+        const short cur_x = border[gesture->points - 1][0];
+        const short cur_y = border[gesture->points - 1][1];
+
+        const short prev_x = border[gesture->points - 2][0];
+        const short prev_y = border[gesture->points - 2][1];
+
+        if (cur_x == prev_x && cur_y == prev_y) {
+          break;
+        }
+
+        const float2 cur(cur_x, cur_y);
+        const float2 orig(border[0][0], border[0][1]);
+
+        const float dist = len_v2v2(cur, orig);
+
+        if (dist < blender::wm::gesture::POLYLINE_CLICK_RADIUS * UI_SCALE_FAC &&
+            gesture_polyline_can_apply(*gesture))
+        {
+          return gesture_polyline_apply(C, op);
+        }
+
+        gesture->points++;
+        border[gesture->points - 1][0] = cur_x;
+        border[gesture->points - 1][1] = cur_y;
+        break;
+      }
+      case GESTURE_MODAL_CONFIRM:
+        if (gesture_polyline_can_apply(*gesture)) {
+          return gesture_polyline_apply(C, op);
+        }
+        break;
+      case GESTURE_MODAL_CANCEL:
+        gesture_modal_end(C, op);
+        return OPERATOR_CANCELLED;
+    }
+  }
+  else {
+    switch (event->type) {
+      case MOUSEMOVE:
+      case INBETWEEN_MOUSEMOVE: {
+        wm_gesture_tag_redraw(CTX_wm_window(C));
+        if (gesture->points == gesture->points_alloc) {
+          gesture->points_alloc *= 2;
+          gesture->customdata = MEM_reallocN(gesture->customdata,
+                                             sizeof(short[2]) * gesture->points_alloc);
+        }
+        short(*border)[2] = static_cast<short int(*)[2]>(gesture->customdata);
+
+        /* move the lasso */
+        if (gesture->move) {
+          const int x = ((event->xy[0] - gesture->winrct.xmin) - border[gesture->points - 1][0]);
+          const int y = ((event->xy[1] - gesture->winrct.ymin) - border[gesture->points - 1][1]);
+
+          for (int i = 0; i < gesture->points; i++) {
+            border[i][0] += x;
+            border[i][1] += y;
+          }
+        }
+
+        border[gesture->points - 1][0] = event->xy[0] - gesture->winrct.xmin;
+        border[gesture->points - 1][1] = event->xy[1] - gesture->winrct.ymin;
+        break;
+      }
+    }
+  }
+
+  gesture->is_active_prev = gesture->is_active;
+  return OPERATOR_RUNNING_MODAL;
+}
+
+void WM_gesture_polyline_cancel(bContext *C, wmOperator *op)
+{
+  gesture_modal_end(C, op);
+}
+
+/* template to copy from */
+#if 0
+static int gesture_polyline_exec(bContext *C, wmOperator *op)
+{
+  RNA_BEGIN (op->ptr, itemptr, "path") {
+    float loc[2];
+
+    RNA_float_get_array(&itemptr, "loc", loc);
+    printf("Location: %f %f\n", loc[0], loc[1]);
+  }
+  RNA_END;
+
+  return OPERATOR_FINISHED;
+}
+
+void WM_OT_polyline_gesture(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  ot->name = "Polyline Gesture";
+  ot->idname = "WM_OT_polyline_gesture";
+  ot->description = "Outline a selection area with each mouse click";
+
+  ot->invoke = WM_gesture_polyline_invoke;
+  ot->modal = WM_gesture_polyline_modal;
+  ot->exec = gesture_polyline_exec;
+
+  ot->poll = WM_operator_winactive;
+
+  WM_operator_properties_gesture_polyline(ot);
 }
 #endif
 

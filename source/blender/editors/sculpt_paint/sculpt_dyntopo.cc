@@ -46,12 +46,8 @@ void SCULPT_pbvh_clear(Object *ob)
 {
   using namespace blender;
   SculptSession *ss = ob->sculpt;
-
   /* Clear out any existing DM and PBVH. */
-  if (ss->pbvh) {
-    bke::pbvh::free(ss->pbvh);
-    ss->pbvh = nullptr;
-  }
+  bke::pbvh::free(ss->pbvh);
 
   BKE_object_free_derived_caches(ob);
 

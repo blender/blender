@@ -1363,6 +1363,11 @@ struct GWL_Display {
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   GWL_LibDecor_System *libdecor = nullptr;
   bool libdecor_required = false;
+  /**
+   * When true, behave as if `libdecor_required` is false.
+   * `libdecor_required` can't simply be set to false because the order of assignment is undefined.
+   */
+  bool libdecor_required_ignore = false;
 #endif
   GWL_XDG_Decor_System *xdg_decor = nullptr;
 
@@ -6983,10 +6988,29 @@ static void global_handle_add(void *data,
   else {
     /* Not found. */
 #ifdef USE_GNOME_NEEDS_LIBDECOR_HACK
-    if (STRPREFIX(interface, "gtk_shell")) { /* `gtk_shell1` at time of writing. */
+    /* NOTE(@ideasman42): I'm not happy with the logic here because it's fairly fragile
+     * and will cause problems whenever any non-GNOME compositor adds support for `gtk_shell*`
+     * Ideally there would be a way to:
+     * - Detect when server-side-decorations aren't supported.
+     *   `zxdg_decoration_manager_v1` looks like it *could* be used
+     *   but it's not supported by GNOME.
+     * - Detect the underlying compositor.
+     *   `XDG_CURRENT_DESKTOP` could be used but isn't always set, see: #121241.
+     *
+     * All things considered, inspecting interface names seems least terrible (sigh).
+     */
+
+    /* `gtk_shell1` at time of writing. */
+    if (STRPREFIX(interface, "gtk_shell")) {
       /* Only require `libdecor` when built with X11 support,
        * otherwise there is nothing to fall back on. */
       display->libdecor_required = true;
+    }
+    /* `zwf_shell_manager_v2` at time of writing. */
+    else if (STRPREFIX(interface, "zwf_shell_manager_v")) {
+      /* Needed when non GNOME compositors provide the `gtk_shell*` interface.
+       * WAYFIRE in this case. */
+      display->libdecor_required_ignore = true;
     }
 #endif
   }
@@ -7147,6 +7171,10 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   }
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (display_->libdecor_required_ignore) {
+    display_->libdecor_required = false;
+  }
+
   if (display_->libdecor_required) {
     /* Ignore windowing requirements when running in background mode,
      * as it doesn't make sense to fall back to X11 because of windowing functionality

@@ -15,6 +15,7 @@ void node_bsdf_glossy(vec4 color,
   color = max(color, vec4(0.0));
   roughness = saturate(roughness);
   N = safe_normalize(N);
+  /* anisotropy = clamp(anisotropy, -0.99, 0.99) */
 
   vec3 V = coordinate_incoming(g_data.P);
   float NV = dot(N, V);

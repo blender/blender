@@ -51,7 +51,7 @@ def draw_node_group_add_menu(context, layout):
                 props = add_node_type(layout, node_tree_group_type[group.bl_idname], label=group.name)
                 ops = props.settings.add()
                 ops.name = "node_tree"
-                ops.value = "bpy.data.node_groups[%r]" % group.name
+                ops.value = "bpy.data.node_groups[{!r}]".format(group.name)
 
 
 def draw_assets_for_catalog(layout, catalog_path):

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-22 07:36+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -5587,10 +5587,6 @@ msgid "Restore Mesh"
 msgstr "Vrati"
 
 
-msgid "Relax"
-msgstr "Opusti"
-
-
 msgid "Vertex Paint Tool"
 msgstr "Alatka za bojenje čvorova"
 
@@ -9047,6 +9043,10 @@ msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
 
+msgid "Zoom"
+msgstr "Uvećanje"
+
+
 msgid "Console"
 msgstr "Konzola"
 
@@ -11086,10 +11086,6 @@ msgstr "Centar X"
 
 msgid "Center Y"
 msgstr "Centar Y"
-
-
-msgid "Zoom"
-msgstr "Uvećanje"
 
 
 msgid "Octagonal"
@@ -13518,6 +13514,10 @@ msgid "Add Circle"
 msgstr "Dodaj krug"
 
 
+msgid "Handles"
+msgstr "Ručke"
+
+
 msgid "Duplicate"
 msgstr "Dupliraj"
 
@@ -13782,10 +13782,6 @@ msgstr "Postavi vrstu krive"
 
 msgid "Set type of active spline"
 msgstr "Postavlja vrstu aktivne krive linije"
-
-
-msgid "Handles"
-msgstr "Ručke"
 
 
 msgid "Split off selected points from connected unselected points"
@@ -18376,6 +18372,10 @@ msgid "Falloff Type"
 msgstr "Vrsta opadanja"
 
 
+msgid "Relax"
+msgstr "Opusti"
+
+
 msgid "Sharpen"
 msgstr "Izoštreno"
 
@@ -18399,9 +18399,8 @@ msgid "Set Persistent Base"
 msgstr "Postavi trajnu osnovu"
 
 
-msgctxt "Operator"
-msgid "Sculpt UVs"
-msgstr "UV vajanje"
+msgid "Use Laplacian method for relaxation"
+msgstr "Koristi Laplasov metod za opuštanje"
 
 
 msgctxt "Operator"
@@ -23808,10 +23807,6 @@ msgid "Snap during transform"
 msgstr "Lepi prilikom transformacije"
 
 
-msgid "Use Laplacian method for relaxation"
-msgstr "Koristi Laplasov metod za opuštanje"
-
-
 msgid "UV Sculpt"
 msgstr "UV vajanje"
 
@@ -24794,10 +24789,6 @@ msgid "Unlock Tracks"
 msgstr "Otključaj staze"
 
 
-msgid "Zoom %d:%d"
-msgstr "Približi %d:%d"
-
-
 msgctxt "Operator"
 msgid "Autocomplete"
 msgstr "Samodopunjavanje"
@@ -24986,10 +24977,6 @@ msgid "Online Manual"
 msgstr "Uputstvo na internetu"
 
 
-msgid "Slot %d"
-msgstr "Slot %d"
-
-
 msgctxt "Operator"
 msgid "Make"
 msgstr "Napravi"
@@ -25101,10 +25088,6 @@ msgstr "Tekst: spoljašnji"
 
 msgid "Text: Internal"
 msgstr "Tekst: unutrašnji"
-
-
-msgid "File: %s"
-msgstr "Datoteka: %s"
 
 
 msgctxt "Operator"
@@ -25703,10 +25686,6 @@ msgid "<No ID pointer>"
 msgstr "<Bez ID pokazivača>"
 
 
-msgid "<Missing ID block>"
-msgstr "<Nedostaje ID blok>"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "Kadar za ibacivanje ključnog kadra"
 
@@ -25738,6 +25717,10 @@ msgstr "Generator"
 
 msgid "Stepped"
 msgstr "Koračanje"
+
+
+msgid "Slot %d"
+msgstr "Slot %d"
 
 
 msgid "Key %d"
@@ -26623,6 +26606,10 @@ msgstr "Kadar: %d / %d"
 
 msgid "Frame: - / %d"
 msgstr "Kadar: - / %d"
+
+
+msgid "File: %s"
+msgstr "Datoteka: %s"
 
 
 msgid "unsupported movie clip format"

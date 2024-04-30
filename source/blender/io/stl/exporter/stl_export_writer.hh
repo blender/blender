@@ -8,20 +8,17 @@
 
 #pragma once
 
-#include "BLI_math_vector_types.hh"
+#include <cstdio>
 
 namespace blender::io::stl {
 
-struct Triangle {
-  float3 normal;
-  float3 vertices[3];
-};
+struct PackedTriangle;
 
 class FileWriter {
  public:
   FileWriter(const char *filepath, bool ascii);
   ~FileWriter();
-  void write_triangle(const Triangle &t);
+  void write_triangle(const PackedTriangle &data);
 
  private:
   FILE *file_;

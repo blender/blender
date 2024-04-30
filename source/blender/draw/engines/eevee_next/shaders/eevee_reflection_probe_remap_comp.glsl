@@ -32,7 +32,7 @@ float octahedral_texel_solid_angle(ivec2 local_texel,
    * anything from a simple quad (at the Z=0 poles), to a 4 pointed start (at the Z=+-1 poles)
    * passing by arrow tail shapes (at the X=0 and Y=0 edges).
    *
-   * But we can leverage the symetries of the octahedral mapping. Given that all oddly shaped
+   * But we can leverage the symmetries of the octahedral mapping. Given that all oddly shaped
    * texels are on the X=0 and Y=0 planes, we first fold all texels to the first quadrant.
    *
    * The texel footprint clipped to a quadrant is a well defined spherical quad. We then multiply
@@ -69,7 +69,7 @@ float octahedral_texel_solid_angle(ivec2 local_texel,
   v11 = normalize(v11);
   /* Compute solid angle of the spherical quad. */
   float texel_clipped_solid_angle = quad_solid_angle(v00, v10, v01, v11);
-  /* Multiply by the symetric halfs that we omited.
+  /* Multiply by the symmetric halves that we omitted.
    * Also important to note that we avoid weighting the same pixel more than it's total sampled
    * footprint if it is duplicated in another pixel of the map. So border pixels do not require any
    * special treatment. Only the center cross needs it. */

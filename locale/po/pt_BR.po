@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.2.0 Alpha (b'7b7e9f224c89')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-04-22 07:36+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -13159,22 +13159,6 @@ msgid "Automatically adjust strength to give consistent results for different sp
 msgstr "Ajusta automaticamente a força para fornecer resultados consistentes para espaçamentos diferentes."
 
 
-msgid "Grab UVs"
-msgstr "Agarrar UVs"
-
-
-msgid "Relax"
-msgstr "Relaxar"
-
-
-msgid "Relax UVs"
-msgstr "Relaxar UVs"
-
-
-msgid "Pinch UVs"
-msgstr "Pinçar UVs"
-
-
 msgid "Vertex Paint Tool"
 msgstr "Ferramenta de pintura de vértices"
 
@@ -22417,6 +22401,10 @@ msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
 
 
+msgid "Zoom"
+msgstr "Ampliar"
+
+
 msgid "Console"
 msgstr "Console"
 
@@ -28233,10 +28221,6 @@ msgid "Spin"
 msgstr "Girar"
 
 
-msgid "Zoom"
-msgstr "Ampliar"
-
-
 msgid "Defocus"
 msgstr "Desfocar (via efeito)"
 
@@ -33893,6 +33877,10 @@ msgid "Add Circle"
 msgstr "Adicionar círculo"
 
 
+msgid "Handles"
+msgstr "Hastes"
+
+
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "Alternar cíclico(a)"
@@ -34327,10 +34315,6 @@ msgstr "Configurar tipo de Spline"
 
 msgid "Set type of active spline"
 msgstr "Define o tipo de Spline ativa."
-
-
-msgid "Handles"
-msgstr "Hastes"
 
 
 msgctxt "Operator"
@@ -46924,6 +46908,10 @@ msgid "Scale mesh"
 msgstr "Escalar malha"
 
 
+msgid "Relax"
+msgstr "Relaxar"
+
+
 msgid "Sharpen"
 msgstr "Aguçar"
 
@@ -46980,17 +46968,28 @@ msgid "Trim Lasso Gesture"
 msgstr "Aparar Gesto do Laço"
 
 
-msgctxt "Operator"
-msgid "Sculpt UVs"
-msgstr "Esculpir UVs"
+msgid "Grab UVs"
+msgstr "Agarrar UVs"
 
 
-msgid "Sculpt UVs using a brush"
-msgstr "Permite a escultura de UVs usando um pincel."
+msgid "Pinch UVs"
+msgstr "Pinçar UVs"
 
 
-msgid "Switch brush to relax mode for duration of stroke"
-msgstr "Muda o pincel para o modo relaxado para a duração do traço."
+msgid "Relax UVs"
+msgstr "Relaxar UVs"
+
+
+msgid "Algorithm used for UV relaxation"
+msgstr "Algoritmo usado para o relaxamento UV."
+
+
+msgid "Use Laplacian method for relaxation"
+msgstr "Usa o método laplaciano para relaxamento."
+
+
+msgid "Use HC method for relaxation"
+msgstr "Usa o método Classes de Humphrey para relaxamento."
 
 
 msgctxt "Operator"
@@ -53060,13 +53059,13 @@ msgstr "Apagar"
 
 
 msgctxt "Operator"
-msgid "Tint"
-msgstr "Tingimento"
+msgid "Cutter"
+msgstr "Obturador"
 
 
 msgctxt "Operator"
-msgid "Cutter"
-msgstr "Obturador"
+msgid "Tint"
+msgstr "Tingimento"
 
 
 msgctxt "Operator"
@@ -63047,22 +63046,6 @@ msgid "Keep UV and edit mode mesh selection in sync"
 msgstr "Mantém a malha no modo de edição e UV em sincronismo."
 
 
-msgid "Relaxation Method"
-msgstr "Método de relaxamento"
-
-
-msgid "Algorithm used for UV relaxation"
-msgstr "Algoritmo usado para o relaxamento UV."
-
-
-msgid "Use Laplacian method for relaxation"
-msgstr "Usa o método laplaciano para relaxamento."
-
-
-msgid "Use HC method for relaxation"
-msgstr "Usa o método Classes de Humphrey para relaxamento."
-
-
 msgid "UV Sculpt"
 msgstr "Esculpir UVs"
 
@@ -64536,20 +64519,12 @@ msgid "Active object is not a mesh"
 msgstr "Objeto ativo não é uma malha."
 
 
-msgid "Remove Add-on: %r?"
-msgstr "Remover complemento: %r?"
-
-
 msgid "Active face not selected"
 msgstr "Face ativa não selecionada"
 
 
 msgid "No active face"
 msgstr "Nenhuma face ativa"
-
-
-msgid "Renamed %d of %d %s"
-msgstr "Renomeadas %d de %d %s"
 
 
 msgctxt "Operator"
@@ -64559,10 +64534,6 @@ msgstr "Abrir..."
 
 msgid "Blender is free software"
 msgstr "Blender é um software livre"
-
-
-msgid "%s: %s"
-msgstr "%s: %s"
 
 
 msgctxt "Operator"
@@ -64613,10 +64584,6 @@ msgstr "Suporte"
 msgctxt "Operator"
 msgid "User Communities"
 msgstr "Comunidade de usuários"
-
-
-msgid "Rename %d %s"
-msgstr "Renomear %d %s"
 
 
 msgctxt "Operator"
@@ -64956,10 +64923,6 @@ msgid "Unlocked"
 msgstr "Desbloqueado"
 
 
-msgid "Frame: %d (%s)"
-msgstr "Quadro: %d (%s)"
-
-
 msgid "Parent:"
 msgstr "Parente:"
 
@@ -65028,10 +64991,6 @@ msgstr "Data"
 
 msgid "Buffer"
 msgstr "Contingenciador"
-
-
-msgid "%.4g fps"
-msgstr "%.4g fps"
 
 
 msgid "Thickness Profile"
@@ -65104,18 +65063,6 @@ msgid "Display percentage makes dynamics inaccurate without baking"
 msgstr "A porcentagem de exibição torna as dinâmicas imprecisas caso não tenham sido gravadas"
 
 
-msgid "Iterations: %d .. %d (avg. %d)"
-msgstr "Interações: %d .. %d (média: %d)"
-
-
-msgid "Error: %.5f .. %.5f (avg. %.5f)"
-msgstr "Erros: %.5f .. %.5f (média: %.5f)"
-
-
-msgid "Spacing: %g"
-msgstr "Espaçamento: %g"
-
-
 msgid "Not yet functional"
 msgstr "Ainda não funcional"
 
@@ -65128,10 +65075,6 @@ msgstr "Conectar todos"
 msgctxt "Operator"
 msgid "Disconnect All"
 msgstr "Desconectar todos"
-
-
-msgid "%d fluid particles for this frame"
-msgstr "%d partículas de fluido para este quadro."
 
 
 msgid "Air Viscosity"
@@ -65483,11 +65426,6 @@ msgstr "Sem planos de rastreamento ativos"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Ampliar"
-
-
-msgctxt "Operator"
 msgid "Set Wall"
 msgstr "Configurar parede"
 
@@ -65508,11 +65446,6 @@ msgstr "Combinar com Anterior"
 
 
 msgctxt "Operator"
-msgid "View Fit"
-msgstr "Encaixar visualização"
-
-
-msgctxt "Operator"
 msgid "Enable Markers"
 msgstr "Habilitar marcadores"
 
@@ -65520,10 +65453,6 @@ msgstr "Habilitar marcadores"
 msgctxt "Operator"
 msgid "Unlock Tracks"
 msgstr "Destravar trilhas"
-
-
-msgid "Zoom %d:%d"
-msgstr "Ampliação %d:%d"
 
 
 msgctxt "Operator"
@@ -65684,6 +65613,11 @@ msgstr "Tipos de facilitação"
 
 
 msgctxt "Operator"
+msgid "Zoom Region..."
+msgstr "Ampliar Região..."
+
+
+msgctxt "Operator"
 msgid "Less"
 msgstr "Menos"
 
@@ -65723,13 +65657,13 @@ msgid "At Center"
 msgstr "No Centro"
 
 
-msgid "Show Same Material"
-msgstr "Mostrar os dados que possuem o mesmo material"
-
-
 msgctxt "Operator"
 msgid "Render Slot Cycle Next"
 msgstr "Reciclar para o compartimento de renderização posterior"
+
+
+msgid "Show Same Material"
+msgstr "Mostrar os dados que possuem o mesmo material"
 
 
 msgctxt "Operator"
@@ -65974,10 +65908,6 @@ msgid "Backdrop Zoom Out"
 msgstr "Pano de fundo - Reduzir"
 
 
-msgid "Slot %d"
-msgstr "Núm. %d"
-
-
 msgctxt "Operator"
 msgid "Show One Level"
 msgstr "Mostrar um nível"
@@ -66136,10 +66066,6 @@ msgstr "Trocar dados"
 msgctxt "Operator"
 msgid "Slip Strip Contents"
 msgstr "Deslizar os conteúdos da faixa"
-
-
-msgid "%14s"
-msgstr "%14s"
 
 
 msgid "Convert to Float"
@@ -66311,10 +66237,6 @@ msgid "Unpack"
 msgstr "Desempacotar"
 
 
-msgid "Original frame range: %d-%d (%d)"
-msgstr "Intervalo de quadros original: %d-%d (%d)"
-
-
 msgid "Source Channel"
 msgstr "Canal de fonte"
 
@@ -66409,10 +66331,6 @@ msgstr "Texto: Externo"
 
 msgid "Text: Internal"
 msgstr "Texto: Interno"
-
-
-msgid "File: %s"
-msgstr "Arquivo: %s"
 
 
 msgctxt "Operator"
@@ -66851,11 +66769,6 @@ msgstr "Câmera ativa"
 msgctxt "Operator"
 msgid "Orbit Opposite"
 msgstr "Órbita oposta"
-
-
-msgctxt "Operator"
-msgid "Zoom Region..."
-msgstr "Ampliar Região..."
 
 
 msgctxt "Operator"
@@ -67943,10 +67856,6 @@ msgid "<No ID pointer>"
 msgstr "<Sem ponteiro para o identificador >"
 
 
-msgid "<Missing ID block>"
-msgstr "<Bloco de dados faltando>"
-
-
 msgid "No F-Curve to add keyframes to"
 msgstr "Sem curvas-f para as quais adicionar quadros-chave."
 
@@ -67961,14 +67870,6 @@ msgstr "Sem identificador de bloco e / ou dados de animação a partir dos quais
 
 msgid "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "Não é possível inserir quadro-chave, pois o caminho RNA é inválido para o identificador fornecido (ID = %s, Caminho = %s)."
-
-
-msgid "No ID block to insert keyframe in (path = %s)"
-msgstr "Sem identificador de bloco de dados no qual inserir o quadro-chave (caminho = %s)."
-
-
-msgid "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)"
-msgstr "Não é possível inserir quadro-chave, pois este tipo não suporta dados de animação (ID = %s, Caminho = %s)."
 
 
 msgid "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)"
@@ -68175,6 +68076,10 @@ msgstr "Em passos"
 
 msgid "GP_Layer"
 msgstr "Camada de lápis de cera"
+
+
+msgid "Slot %d"
+msgstr "Núm. %d"
 
 
 msgid "Cannot pack multiview images from raw data currently..."
@@ -69058,6 +68963,10 @@ msgstr "Paleta Criada"
 
 msgid "Failed to set value"
 msgstr "Falha ao definir valor"
+
+
+msgid "%s: %s"
+msgstr "%s: %s"
 
 
 msgid "Non-Keyboard Shortcut"
@@ -70802,6 +70711,10 @@ msgid "Duplicate Current"
 msgstr "Duplicar Atual"
 
 
+msgid "Active group is locked, aborting"
+msgstr "Grupo ativo está travado, abortando."
+
+
 msgid "Sample color for %s"
 msgstr "Amostragem de cor para %s."
 
@@ -70868,10 +70781,6 @@ msgstr "Detectada a falta de %s%s%s%s !"
 
 msgid "The modifier used does not support deformed locations"
 msgstr "O modificador usado não suporta localizações deformadas."
-
-
-msgid "Active group is locked, aborting"
-msgstr "Grupo ativo está travado, abortando."
 
 
 msgid "No active vertex group for painting, aborting"
@@ -71136,6 +71045,10 @@ msgstr "Quadro: %d / %d"
 
 msgid "Frame: - / %d"
 msgstr "Quadro: - / %d"
+
+
+msgid "File: %s"
+msgstr "Arquivo: %s"
 
 
 msgid "unsupported movie clip format"

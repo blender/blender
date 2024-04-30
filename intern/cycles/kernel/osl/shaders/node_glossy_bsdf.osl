@@ -15,7 +15,9 @@ shader node_glossy_bsdf(color Color = 0.8,
                         output closure color BSDF = 0)
 {
   /* compute roughness */
-  float roughness = Roughness * Roughness;
+  color base_color = max(Color, color(0.0));
+  float roughness = clamp(Roughness, 0.0, 1.0);
+  roughness = roughness * roughness;
   float roughness_u, roughness_v;
   float aniso = clamp(Anisotropy, -0.99, 0.99);
 
@@ -41,7 +43,8 @@ shader node_glossy_bsdf(color Color = 0.8,
   }
 
   if (distribution == "Multiscatter GGX")
-    BSDF = Color * microfacet_multi_ggx_aniso(Normal, T, roughness_u, roughness_v, Color);
+    BSDF = base_color *
+           microfacet_multi_ggx_aniso(Normal, T, roughness_u, roughness_v, base_color);
   else
-    BSDF = Color * microfacet(distribution, Normal, T, roughness_u, roughness_v, 0.0, 0);
+    BSDF = base_color * microfacet(distribution, Normal, T, roughness_u, roughness_v, 0.0, 0);
 }

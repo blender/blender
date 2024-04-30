@@ -15,11 +15,20 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "NOD_geo_menu_switch.hh"
 #include "NOD_rna_define.hh"
 #include "NOD_socket.hh"
+#include "NOD_socket_items_ops.hh"
 #include "NOD_socket_search_link.hh"
 
+#include "BLO_read_write.hh"
+
 #include "RNA_enum_types.hh"
+#include "RNA_prototypes.h"
+
+#include "BKE_screen.hh"
+
+#include "WM_api.hh"
 
 namespace blender::nodes::node_geo_menu_switch_cc {
 
@@ -39,7 +48,8 @@ static bool is_supported_socket_type(const eNodeSocketDatatype data_type)
               SOCK_OBJECT,
               SOCK_COLLECTION,
               SOCK_MATERIAL,
-              SOCK_IMAGE);
+              SOCK_IMAGE,
+              SOCK_MATRIX);
 }
 
 static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
@@ -58,7 +68,7 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
   }
 
   for (const NodeEnumItem &enum_item : storage.enum_definition.items()) {
-    const std::string identifier = "Item_" + std::to_string(enum_item.identifier);
+    const std::string identifier = MenuSwitchItemsAccessor::socket_identifier_for_item(enum_item);
     auto &input = b.add_input(data_type, enum_item.name, std::move(identifier));
     if (supports_fields) {
       input.supports_field();
@@ -74,6 +84,8 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
   else if (data_type == SOCK_GEOMETRY) {
     output.propagate_all();
   }
+
+  b.add_input<decl::Extend>("", "__extend__");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -81,66 +93,32 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
   uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
-static void node_enum_definition_init(NodeEnumDefinition &enum_def)
-{
-  enum_def.next_identifier = 0;
-  enum_def.items_array = nullptr;
-  enum_def.items_num = 0;
-}
-
-static void node_enum_definition_free(NodeEnumDefinition &enum_def)
-{
-  for (NodeEnumItem &item : enum_def.items_for_write()) {
-    MEM_SAFE_FREE(item.name);
-    MEM_SAFE_FREE(item.description);
-  }
-  MEM_SAFE_FREE(enum_def.items_array);
-}
-
-static void node_enum_definition_copy(NodeEnumDefinition &dst_enum_def,
-                                      const NodeEnumDefinition &src_enum_def)
-{
-  dst_enum_def.items_array = MEM_cnew_array<NodeEnumItem>(src_enum_def.items_num, __func__);
-  dst_enum_def.items_num = src_enum_def.items_num;
-  dst_enum_def.active_index = src_enum_def.active_index;
-  dst_enum_def.next_identifier = src_enum_def.next_identifier;
-  for (const int i : IndexRange(src_enum_def.items_num)) {
-    dst_enum_def.items_array[i].identifier = src_enum_def.items_array[i].identifier;
-    if (char *name = src_enum_def.items_array[i].name) {
-      dst_enum_def.items_array[i].name = BLI_strdup(name);
-    }
-    if (char *desc = src_enum_def.items_array[i].description) {
-      dst_enum_def.items_array[i].description = BLI_strdup(desc);
-    }
-  }
-}
-
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeMenuSwitch *data = MEM_cnew<NodeMenuSwitch>(__func__);
   data->data_type = SOCK_GEOMETRY;
-  node_enum_definition_init(data->enum_definition);
-  data->enum_definition.add_item("A");
-  data->enum_definition.add_item("B");
+  data->enum_definition.next_identifier = 0;
+  data->enum_definition.items_array = nullptr;
+  data->enum_definition.items_num = 0;
   node->storage = data;
+
+  socket_items::add_item_with_name<MenuSwitchItemsAccessor>(*node, "A");
+  socket_items::add_item_with_name<MenuSwitchItemsAccessor>(*node, "B");
 }
 
 static void node_free_storage(bNode *node)
 {
-  NodeMenuSwitch &storage = node_storage(*node);
-  node_enum_definition_free(storage.enum_definition);
+  socket_items::destruct_array<MenuSwitchItemsAccessor>(*node);
   MEM_freeN(node->storage);
 }
 
 static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const bNode *src_node)
 {
   const NodeMenuSwitch &src_storage = node_storage(*src_node);
-  NodeMenuSwitch *dst_storage = MEM_cnew<NodeMenuSwitch>(__func__);
-
-  node_enum_definition_copy(dst_storage->enum_definition, src_storage.enum_definition);
-  dst_storage->data_type = src_storage.data_type;
-
+  NodeMenuSwitch *dst_storage = MEM_new<NodeMenuSwitch>(__func__, src_storage);
   dst_node->storage = dst_storage;
+
+  socket_items::copy_array<MenuSwitchItemsAccessor>(*src_node, *dst_node);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -375,6 +353,113 @@ class LazyFunctionForMenuSwitchSocketUsage : public lf::LazyFunction {
   }
 };
 
+static void draw_menu_switch_item(uiList * /*ui_list*/,
+                                  const bContext * /*C*/,
+                                  uiLayout *layout,
+                                  PointerRNA * /*idataptr*/,
+                                  PointerRNA *itemptr,
+                                  int /*icon*/,
+                                  PointerRNA * /*active_dataptr*/,
+                                  const char * /*active_propname*/,
+                                  int /*index*/,
+                                  int /*flt_flag*/)
+{
+  uiLayoutSetEmboss(layout, UI_EMBOSS_NONE);
+  uiItemR(layout, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
+}
+
+static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+  bNode &node = *static_cast<bNode *>(ptr->data);
+
+  static const uiListType *menu_items_list = []() {
+    uiListType *list = MEM_new<uiListType>(__func__);
+    STRNCPY(list->idname, "NODE_UL_enum_definition_items");
+    list->draw_item = draw_menu_switch_item;
+    WM_uilisttype_add(list);
+    return list;
+  }();
+
+  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+
+  if (uiLayout *panel = uiLayoutPanel(C, layout, "menu_switch_items", false, TIP_("Menu Items"))) {
+    uiLayout *row = uiLayoutRow(panel, false);
+    uiTemplateList(row,
+                   C,
+                   menu_items_list->idname,
+                   "",
+                   ptr,
+                   "enum_items",
+                   ptr,
+                   "active_index",
+                   nullptr,
+                   3,
+                   5,
+                   UILST_LAYOUT_DEFAULT,
+                   0,
+                   UI_TEMPLATE_LIST_FLAG_NONE);
+    {
+      uiLayout *ops_col = uiLayoutColumn(row, false);
+      {
+        uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
+        uiItemO(add_remove_col, "", ICON_ADD, "node.enum_definition_item_add");
+        uiItemO(add_remove_col, "", ICON_REMOVE, "node.enum_definition_item_remove");
+      }
+      {
+        uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
+        uiItemEnumO(
+            up_down_col, "node.enum_definition_item_move", "", ICON_TRIA_UP, "direction", 0);
+        uiItemEnumO(
+            up_down_col, "node.enum_definition_item_move", "", ICON_TRIA_DOWN, "direction", 1);
+      }
+    }
+
+    auto &storage = node_storage(node);
+    if (storage.enum_definition.active_index >= 0 &&
+        storage.enum_definition.active_index < storage.enum_definition.items_num)
+    {
+      NodeEnumItem &active_item =
+          storage.enum_definition.items_array[storage.enum_definition.active_index];
+      PointerRNA item_ptr = RNA_pointer_create(
+          ptr->owner_id, MenuSwitchItemsAccessor::item_srna, &active_item);
+      uiLayoutSetPropSep(panel, true);
+      uiLayoutSetPropDecorate(panel, false);
+      uiItemR(panel, &item_ptr, "description", UI_ITEM_NONE, nullptr, ICON_NONE);
+    }
+  }
+}
+
+static void NODE_OT_enum_definition_item_add(wmOperatorType *ot)
+{
+  socket_items::ops::add_item<MenuSwitchItemsAccessor>(
+      ot, "Add Menu Item", __func__, "Add menu item");
+}
+
+static void NODE_OT_enum_definition_item_remove(wmOperatorType *ot)
+{
+  socket_items::ops::remove_active_item<MenuSwitchItemsAccessor>(
+      ot, "Remove Menu Item", __func__, "Remove active menu item");
+}
+
+static void NODE_OT_enum_definition_item_move(wmOperatorType *ot)
+{
+  socket_items::ops::move_active_item<MenuSwitchItemsAccessor>(
+      ot, "Move Menu Item", __func__, "Move active menu item");
+}
+
+static void node_operators()
+{
+  WM_operatortype_append(NODE_OT_enum_definition_item_add);
+  WM_operatortype_append(NODE_OT_enum_definition_item_remove);
+  WM_operatortype_append(NODE_OT_enum_definition_item_move);
+}
+
+static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
+{
+  return socket_items::try_add_item_via_any_extend_socket<MenuSwitchItemsAccessor>(
+      *ntree, *node, *node, *link);
+}
+
 static void node_rna(StructRNA *srna)
 {
   RNA_def_node_enum(
@@ -404,6 +489,9 @@ static void register_node()
   node_type_storage(&ntype, "NodeMenuSwitch", node_free_storage, node_copy_storage);
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.draw_buttons = node_layout;
+  ntype.draw_buttons_ex = node_layout_ex;
+  ntype.register_operators = node_operators;
+  ntype.insert_link = node_insert_link;
   nodeRegisterType(&ntype);
 
   node_rna(ntype.rna_ext.srna);
@@ -427,6 +515,35 @@ std::unique_ptr<LazyFunction> get_menu_switch_node_socket_usage_lazy_function(co
   using namespace node_geo_menu_switch_cc;
   BLI_assert(node.type == GEO_NODE_MENU_SWITCH);
   return std::make_unique<LazyFunctionForMenuSwitchSocketUsage>(node);
+}
+
+StructRNA *MenuSwitchItemsAccessor::item_srna = &RNA_NodeEnumItem;
+int MenuSwitchItemsAccessor::node_type = GEO_NODE_MENU_SWITCH;
+
+void MenuSwitchItemsAccessor::blend_write(BlendWriter *writer, const bNode &node)
+{
+  const NodeMenuSwitch &storage = *static_cast<const NodeMenuSwitch *>(node.storage);
+  BLO_write_struct_array(writer,
+                         NodeEnumItem,
+                         storage.enum_definition.items_num,
+                         storage.enum_definition.items_array);
+  for (const NodeEnumItem &item : storage.enum_definition.items()) {
+    BLO_write_string(writer, item.name);
+    BLO_write_string(writer, item.description);
+  }
+}
+
+void MenuSwitchItemsAccessor::blend_read_data(BlendDataReader *reader, bNode &node)
+{
+  NodeMenuSwitch &storage = *static_cast<NodeMenuSwitch *>(node.storage);
+  BLO_read_struct_array(reader,
+                        NodeEnumItem,
+                        storage.enum_definition.items_num,
+                        &storage.enum_definition.items_array);
+  for (NodeEnumItem &item : storage.enum_definition.items()) {
+    BLO_read_string(reader, &item.name);
+    BLO_read_string(reader, &item.description);
+  }
 }
 
 }  // namespace blender::nodes

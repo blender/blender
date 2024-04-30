@@ -27,7 +27,7 @@ class Context(StructRNA):
         :type coerce: boolean
         """
         # This is a convenience wrapper around `StructRNA.path_resolve` which doesn't support accessing context members.
-        # Without this wrapper many users were writing `exec("context.%s" % data_path)` which is a security
+        # Without this wrapper many users were writing `exec("context.{:s}".format(data_path))` which is a security
         # concern if the `data_path` comes from an unknown source.
         # This function performs the initial lookup, after that the regular `path_resolve` function is used.
 
@@ -53,7 +53,7 @@ class Context(StructRNA):
         # to simplify exception handling for the caller.
         value = getattr(self, attr, _sentinel)
         if value is _sentinel:
-            raise ValueError("Path could not be resolved: %r" % attr)
+            raise ValueError("Path could not be resolved: {!r}".format(attr))
 
         if value is None:
             return value
@@ -62,22 +62,22 @@ class Context(StructRNA):
         if isinstance(value, list) and path_rest.startswith("["):
             index_str, div, index_tail = path_rest[1:].partition("]")
             if not div:
-                raise ValueError("Path index is not terminated: %s%s" % (attr, path_rest))
+                raise ValueError("Path index is not terminated: {:s}{:s}".format(attr, path_rest))
             try:
                 index = int(index_str)
             except ValueError:
-                raise ValueError("Path index is invalid: %s[%s]" % (attr, index_str))
+                raise ValueError("Path index is invalid: {:s}[{:s}]".format(attr, index_str))
             if 0 <= index < len(value):
                 path_rest = index_tail
                 value = value[index]
             else:
-                raise IndexError("Path index out of range: %s[%s]" % (attr, index_str))
+                raise IndexError("Path index out of range: {:s}[{:s}]".format(attr, index_str))
 
         # Resolve the rest of the path if necessary.
         if path_rest:
             path_resolve_fn = getattr(value, "path_resolve", None)
             if path_resolve_fn is None:
-                raise ValueError("Path %s resolves to a non RNA value" % attr)
+                raise ValueError("Path {:s} resolves to a non RNA value".format(attr))
             return path_resolve_fn(path_rest, coerce)
 
         return value
@@ -468,7 +468,7 @@ class _GenericBone:
             return id_data.edit_bones
         if isinstance(self, Bone):
             return id_data.bones
-        raise RuntimeError("Invalid type %r" % self)
+        raise RuntimeError("Invalid type {!r}".format(self))
 
 
 class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):

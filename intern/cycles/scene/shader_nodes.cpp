@@ -2879,6 +2879,38 @@ void TransparentBsdfNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_transparent_bsdf");
 }
 
+/* Ray Portal BSDF Closure */
+
+NODE_DEFINE(RayPortalBsdfNode)
+{
+  NodeType *type = NodeType::add("ray_portal_bsdf", create, NodeType::SHADER);
+
+  SOCKET_IN_COLOR(color, "Color", one_float3());
+  SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
+
+  SOCKET_IN_VECTOR(position, "Position", zero_float3(), SocketType::LINK_POSITION);
+  SOCKET_IN_VECTOR(direction, "Direction", zero_float3());
+
+  SOCKET_OUT_CLOSURE(BSDF, "BSDF");
+
+  return type;
+}
+
+RayPortalBsdfNode::RayPortalBsdfNode() : BsdfNode(get_node_type())
+{
+  closure = CLOSURE_BSDF_RAY_PORTAL_ID;
+}
+
+void RayPortalBsdfNode::compile(SVMCompiler &compiler)
+{
+  BsdfNode::compile(compiler, NULL, NULL, input("Position"), input("Direction"));
+}
+
+void RayPortalBsdfNode::compile(OSLCompiler &compiler)
+{
+  compiler.add(this, "node_ray_portal_bsdf");
+}
+
 /* Subsurface Scattering Closure */
 
 NODE_DEFINE(SubsurfaceScatteringNode)
@@ -2899,6 +2931,7 @@ NODE_DEFINE(SubsurfaceScatteringNode)
   SOCKET_IN_VECTOR(radius, "Radius", make_float3(0.1f, 0.1f, 0.1f));
 
   SOCKET_IN_FLOAT(subsurface_ior, "IOR", 1.4f);
+  SOCKET_IN_FLOAT(subsurface_roughness, "Roughness", 1.0f);
   SOCKET_IN_FLOAT(subsurface_anisotropy, "Anisotropy", 0.0f);
 
   SOCKET_OUT_CLOSURE(BSSRDF, "BSSRDF");
@@ -2914,7 +2947,12 @@ SubsurfaceScatteringNode::SubsurfaceScatteringNode() : BsdfNode(get_node_type())
 void SubsurfaceScatteringNode::compile(SVMCompiler &compiler)
 {
   closure = method;
-  BsdfNode::compile(compiler, input("Scale"), input("IOR"), input("Radius"), input("Anisotropy"));
+  BsdfNode::compile(compiler,
+                    input("Scale"),
+                    input("IOR"),
+                    input("Radius"),
+                    input("Anisotropy"),
+                    input("Roughness"));
 }
 
 void SubsurfaceScatteringNode::compile(OSLCompiler &compiler)
