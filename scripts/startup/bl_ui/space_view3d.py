@@ -1304,8 +1304,8 @@ class VIEW3D_MT_editor_menus(Menu):
                 layout.menu("VIEW3D_MT_edit_curves_segments")
                 layout.template_node_operator_asset_root_items()
             elif mode_string == 'EDIT_GREASE_PENCIL':
-                layout.menu("VIEW3D_MT_edit_greasepencil_stroke")
                 layout.menu("VIEW3D_MT_edit_greasepencil_point")
+                layout.menu("VIEW3D_MT_edit_greasepencil_stroke")
 
         elif obj:
             if mode_string not in {'PAINT_TEXTURE', 'SCULPT_CURVES', 'SCULPT_GREASE_PENCIL'}:
@@ -3602,6 +3602,18 @@ class VIEW3D_MT_gpencil_vertex_group(Menu):
 
             layout.operator("gpencil.vertex_group_select", text="Select")
             layout.operator("gpencil.vertex_group_deselect", text="Deselect")
+
+class VIEW3D_MT_greasepencil_vertex_group(Menu):
+    bl_label = "Vertex Groups"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'EXEC_AREA'
+        ob = context.active_object
+
+        layout.operator("object.vertex_group_add", text="Add New Group")
+        ob = context.active_object
 
 
 class VIEW3D_MT_paint_weight_lock(Menu):
@@ -6018,6 +6030,7 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
         layout.separator()
 
+        layout.operator("grease_pencil.cyclical_set", text="Close").type = 'CLOSE'
         layout.operator("grease_pencil.cyclical_set", text="Toggle Cyclic").type = 'TOGGLE'
         layout.operator_menu_enum("grease_pencil.caps_set", text="Set Caps", property="type")
         layout.operator("grease_pencil.stroke_switch_direction")
@@ -6034,6 +6047,10 @@ class VIEW3D_MT_edit_greasepencil_point(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.operator("grease_pencil.stroke_smooth", text="Smooth")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_greasepencil_vertex_group")
 
 
 class VIEW3D_MT_edit_curves_add(Menu):
@@ -8411,12 +8428,6 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
 
             col.separator()
 
-            # Copy/paste
-            col.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
-            col.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
-
-            col.separator()
-
             # Main Strokes Operators
             col.operator("grease_pencil.stroke_subdivide", text="Subdivide")
             col.operator("grease_pencil.stroke_subdivide_smooth", text="Subdivide and Smooth")
@@ -8438,6 +8449,9 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
 
             col.separator()
 
+            # Copy/paste
+            col.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
+            col.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
             col.operator("grease_pencil.duplicate_move", text="Duplicate")
 
             col.separator()
@@ -8452,12 +8466,6 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
         if is_stroke_mode:
             col = row.column(align=True)
             col.label(text="Stroke", icon='GP_SELECT_STROKES')
-
-            col.separator()
-
-            # Copy/paste
-            col.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
-            col.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
 
             col.separator()
 
@@ -8485,6 +8493,9 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
 
             col.separator()
 
+            # Copy/paste
+            col.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
+            col.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
             col.operator("grease_pencil.duplicate_move", text="Duplicate")
 
             col.separator()
@@ -9131,6 +9142,7 @@ classes = (
     VIEW3D_MT_hook,
     VIEW3D_MT_vertex_group,
     VIEW3D_MT_gpencil_vertex_group,
+    VIEW3D_MT_greasepencil_vertex_group,
     VIEW3D_MT_paint_weight,
     VIEW3D_MT_paint_weight_lock,
     VIEW3D_MT_sculpt,
