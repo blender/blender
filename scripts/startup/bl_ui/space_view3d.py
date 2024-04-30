@@ -3603,6 +3603,7 @@ class VIEW3D_MT_gpencil_vertex_group(Menu):
             layout.operator("gpencil.vertex_group_select", text="Select")
             layout.operator("gpencil.vertex_group_deselect", text="Deselect")
 
+
 class VIEW3D_MT_greasepencil_vertex_group(Menu):
     bl_label = "Vertex Groups"
 
