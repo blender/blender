@@ -975,10 +975,13 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
       else if (drop_data->ob_parent->type != OB_GPENCIL_LEGACY &&
                ob_dst->type != OB_GPENCIL_LEGACY)
       {
-        object::modifier_copy_to_object(C,
-                                        ob_dst,
-                                        drop_data->ob_parent,
-                                        static_cast<ModifierData *>(drop_data->drag_directdata));
+        object::modifier_copy_to_object(
+            bmain,
+            CTX_data_scene(C),
+            drop_data->ob_parent,
+            static_cast<const ModifierData *>(drop_data->drag_directdata),
+            ob_dst,
+            CTX_wm_reports(C));
       }
       break;
     case TSE_CONSTRAINT:

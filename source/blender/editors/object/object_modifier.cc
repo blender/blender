@@ -575,14 +575,49 @@ void modifier_link(bContext *C, Object *ob_dst, Object *ob_src)
   DEG_relations_tag_update(bmain);
 }
 
-void modifier_copy_to_object(bContext *C, Object *ob_dst, Object *ob_src, ModifierData *md)
+bool modifier_copy_to_object(Main *bmain,
+                             const Scene *scene,
+                             const Object *ob_src,
+                             const ModifierData *md,
+                             Object *ob_dst,
+                             ReportList *reports)
 {
-  BKE_object_copy_modifier(CTX_data_main(C), CTX_data_scene(C), ob_dst, ob_src, md);
-  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob_dst);
-  DEG_id_tag_update(&ob_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+  const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
 
-  Main *bmain = CTX_data_main(C);
+  BLI_assert(ob_src != ob_dst);
+
+  /* Checked in #BKE_object_copy_modifier, but check here too so we can give a better message. */
+  if (!BKE_object_support_modifier_type_check(ob_dst, md->type)) {
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Object '%s' does not support %s modifiers",
+                ob_dst->id.name + 2,
+                RPT_(mti->name));
+    return false;
+  }
+
+  if (mti->flags & eModifierTypeFlag_Single) {
+    if (BKE_modifiers_findby_type(ob_dst, (ModifierType)md->type)) {
+      BKE_reportf(reports,
+                  RPT_WARNING,
+                  "Modifier can only be added once to object '%s'",
+                  ob_dst->id.name + 2);
+      return false;
+    }
+  }
+
+  if (!BKE_object_copy_modifier(bmain, scene, ob_dst, ob_src, md)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Copying modifier '%s' to object '%s' failed",
+                md->name,
+                ob_dst->id.name + 2);
+    return false;
+  }
+
+  DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
   DEG_relations_tag_update(bmain);
+  return true;
 }
 
 bool convert_psys_to_mesh(ReportList * /*reports*/,
@@ -2144,53 +2179,25 @@ void OBJECT_OT_modifier_set_active(wmOperatorType *ot)
 static int modifier_copy_to_selected_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   Object *obact = context_active_object(C);
   ModifierData *md = edit_modifier_property_get(op, obact, 0);
-
   if (!md) {
     return OPERATOR_CANCELLED;
   }
 
   int num_copied = 0;
-  const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
 
+  Vector<PointerRNA> selected_objects;
+  CTX_data_selected_objects(C, &selected_objects);
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     if (ob == obact) {
       continue;
     }
-
-    /* Checked in #BKE_object_copy_modifier, but check here too so we can give a better message. */
-    if (!BKE_object_support_modifier_type_check(ob, md->type)) {
-      BKE_reportf(op->reports,
-                  RPT_WARNING,
-                  "Object '%s' does not support %s modifiers",
-                  ob->id.name + 2,
-                  mti->name);
-      continue;
+    if (modifier_copy_to_object(bmain, scene, obact, md, ob, op->reports)) {
+      WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_ADDED, ob);
+      num_copied++;
     }
-
-    if (mti->flags & eModifierTypeFlag_Single) {
-      if (BKE_modifiers_findby_type(ob, (ModifierType)md->type)) {
-        BKE_reportf(op->reports,
-                    RPT_WARNING,
-                    "Modifier can only be added once to object '%s'",
-                    ob->id.name + 2);
-        continue;
-      }
-    }
-
-    if (!BKE_object_copy_modifier(bmain, scene, ob, obact, md)) {
-      BKE_reportf(op->reports,
-                  RPT_ERROR,
-                  "Copying modifier '%s' to object '%s' failed",
-                  md->name,
-                  ob->id.name + 2);
-    }
-
-    num_copied++;
-    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
   }
   CTX_DATA_END;
 
