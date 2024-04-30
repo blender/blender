@@ -797,14 +797,44 @@ static void version_principled_bsdf_sheen(bNodeTree *ntree)
   };
 
   version_update_node_input(ntree, check_node, "Sheen Tint", update_input, update_input_link);
+}
 
+/* Convert EEVEE-Legacy refraction depth to EEVEE-Next thickness tree. */
+static void version_refraction_depth_to_thickness_value(bNodeTree *ntree, float thickness)
+{
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (check_node(node)) {
-      bNodeSocket *input = nodeAddStaticSocket(
-          ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Sheen Roughness", "Sheen Roughness");
-      *version_cycles_node_socket_float_value(input) = 0.5f;
+    if (node->type != SH_NODE_OUTPUT_MATERIAL) {
+      continue;
     }
+
+    bNodeSocket *thickness_socket = nodeFindSocket(node, SOCK_IN, "Thickness");
+    if (thickness_socket == nullptr) {
+      continue;
+    }
+
+    bool has_link = false;
+    LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+      if (link->tosock == thickness_socket) {
+        /* Something is already plugged in. Don't modify anything. */
+        has_link = true;
+      }
+    }
+
+    if (has_link) {
+      continue;
+    }
+    bNode *value_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_VALUE);
+    value_node->parent = node->parent;
+    value_node->locx = node->locx;
+    value_node->locy = node->locy - 160.0f;
+    bNodeSocket *socket_value = nodeFindSocket(value_node, SOCK_OUT, "Value");
+
+    *version_cycles_node_socket_float_value(socket_value) = thickness;
+
+    nodeAddLink(ntree, value_node, socket_value, node, thickness_socket);
   }
+
+  version_socket_update_is_used(ntree);
 }
 
 static void versioning_update_noise_texture_node(bNodeTree *ntree)
@@ -3237,6 +3267,22 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         ts->uvsculpt.strength = 1.0f;
         ts->uvsculpt.curve_preset = BRUSH_CURVE_SMOOTH;
         ts->uvsculpt.strength_curve = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 24)) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Material", "char", "thickness_mode")) {
+      LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+        /* EEVEE Legacy used slab assumption. */
+        material->thickness_mode = MA_THICKNESS_SLAB;
+        if (material->blend_flag & MA_BL_TRANSLUCENCY) {
+          /* EEVEE Legacy used thickness from shadow map when translucency was on. */
+          material->blend_flag |= MA_BL_THICKNESS_FROM_SHADOW;
+        }
+        if (material->use_nodes && material->nodetree) {
+          version_refraction_depth_to_thickness_value(material->nodetree, material->refract_depth);
+        }
       }
     }
   }

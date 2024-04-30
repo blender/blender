@@ -338,6 +338,11 @@ class EEVEE_NEXT_MATERIAL_PT_settings_surface(MaterialButtonsPanel, Panel):
         elif mat.surface_render_method == 'DITHERED':
             col.prop(mat, "use_screen_refraction", text="Raytraced Transmission")
 
+        col = layout.column()
+        col.prop(mat, "thickness_mode", text="Thickness")
+        if mat.surface_render_method == 'DITHERED':
+            col.prop(mat, "use_thickness_from_shadow", text="From Shadow")
+
         col = layout.column(heading="Light Probe Volume")
         col.prop(mat, "lightprobe_volume_single_sided", text="Single Sided")
 

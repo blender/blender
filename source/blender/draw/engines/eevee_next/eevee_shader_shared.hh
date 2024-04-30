@@ -1761,28 +1761,34 @@ enum eClosureBits : uint32_t {
   CLOSURE_AMBIENT_OCCLUSION = (1u << 12u),
   CLOSURE_SHADER_TO_RGBA = (1u << 13u),
   CLOSURE_CLEARCOAT = (1u << 14u),
+
+  CLOSURE_TRANSMISSION = CLOSURE_SSS | CLOSURE_REFRACTION | CLOSURE_TRANSLUCENT,
 };
 
 enum GBufferMode : uint32_t {
   /** None mode for pixels not rendered. */
   GBUF_NONE = 0u,
 
+  /* Reflection.  */
   GBUF_DIFFUSE = 1u,
-  GBUF_TRANSLUCENT = 2u,
-  GBUF_REFLECTION = 3u,
-  GBUF_REFRACTION = 4u,
-  GBUF_SUBSURFACE = 5u,
-
+  GBUF_REFLECTION = 2u,
+  GBUF_REFLECTION_COLORLESS = 3u,
   /** Used for surfaces that have no lit closure and just encode a normal layer. */
-  GBUF_UNLIT = 11u,
+  GBUF_UNLIT = 4u,
 
-  /** Parameter Optimized. Packs one closure into less layer. */
-  GBUF_REFLECTION_COLORLESS = 12u,
-  GBUF_REFRACTION_COLORLESS = 13u,
+  /**
+   * Special bit that marks all closures with refraction.
+   * Allows to detect the presence of transmission more easily.
+   * Note that this left only 2^3 values (minus 0) for encoding the BSDF.
+   * Could be removed if that's too cumbersome to add more BSDF.
+   */
+  GBUF_TRANSMISSION_BIT = 1u << 3u,
 
-  /** Special configurations. Packs multiple closures into less layer. */
-  /* TODO(@fclem): This is isn't currently working due to monolithic nature of the evaluation. */
-  GBUF_METAL_CLEARCOAT = 15u,
+  /* Transmission. */
+  GBUF_REFRACTION = 0u | GBUF_TRANSMISSION_BIT,
+  GBUF_REFRACTION_COLORLESS = 1u | GBUF_TRANSMISSION_BIT,
+  GBUF_TRANSLUCENT = 2u | GBUF_TRANSMISSION_BIT,
+  GBUF_SUBSURFACE = 3u | GBUF_TRANSMISSION_BIT,
 
   /** IMPORTANT: Needs to be less than 16 for correct packing in g-buffer header. */
 };

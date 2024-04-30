@@ -29,7 +29,7 @@ float bxdf_eval(ClosureUndetermined cl, vec3 L, vec3 V, float thickness)
 {
   switch (cl.type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
-      if (thickness > 0.0) {
+      if (thickness != 0.0) {
         /* Uniform sphere weighting. */
         return 1.0;
       }
@@ -63,7 +63,7 @@ void transmission_thickness_amend_closure(inout ClosureUndetermined cl,
       float roughness = to_closure_refraction(cl).roughness;
       roughness = refraction_roughness_remapping(roughness, ior);
       vec3 L = refraction_dominant_dir(cl.N, V, ior, roughness);
-      cl.N = -thickness_sphere_intersect(thickness, cl.N, L).hit_N;
+      cl.N = -thickness_shape_intersect(thickness, cl.N, L).hit_N;
       cl.data.y = 1.0 / ior;
       V = -L;
     } break;
@@ -149,7 +149,7 @@ void main()
   vec3 V = drw_world_incident_vector(P);
 
   float thickness = gbuffer_read_thickness(gbuf_header, gbuf_normal_tx, texel_fullres);
-  if (thickness > 0.0) {
+  if (thickness != 0.0) {
     transmission_thickness_amend_closure(closure, V, thickness);
   }
 

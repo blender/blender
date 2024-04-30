@@ -105,12 +105,10 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_deferred_capture_eval";
     case DEFERRED_PLANAR_EVAL:
       return "eevee_deferred_planar_eval";
+    case DEFERRED_THICKNESS_AMEND:
+      return "eevee_deferred_thickness_amend";
     case DEFERRED_TILE_CLASSIFY:
       return "eevee_deferred_tile_classify";
-    case DEFERRED_TILE_COMPACT:
-      return "eevee_deferred_tile_compact";
-    case DEFERRED_TILE_STENCIL:
-      return "eevee_deferred_tile_stencil";
     case HIZ_DEBUG:
       return "eevee_hiz_debug";
     case HIZ_UPDATE:
@@ -327,9 +325,14 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   eMaterialPipeline pipeline_type;
   eMaterialGeometry geometry_type;
   eMaterialDisplacement displacement_type;
+  eMaterialThickness thickness_type;
   bool transparent_shadows;
-  material_type_from_shader_uuid(
-      shader_uuid, pipeline_type, geometry_type, displacement_type, transparent_shadows);
+  material_type_from_shader_uuid(shader_uuid,
+                                 pipeline_type,
+                                 geometry_type,
+                                 displacement_type,
+                                 thickness_type,
+                                 transparent_shadows);
 
   GPUCodegenOutput &codegen = *codegen_;
   ShaderCreateInfo &info = *reinterpret_cast<ShaderCreateInfo *>(codegen.create_info);
@@ -635,6 +638,9 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     frag_gen << (!codegen.surface.empty() ? codegen.surface : "return Closure(0);\n");
     frag_gen << "}\n\n";
 
+    /* TODO(fclem): Find a way to pass material parameters inside the material UBO. */
+    info.define("thickness_mode", thickness_type == MAT_THICKNESS_SLAB ? "-1.0" : "1.0");
+
     frag_gen << "float nodetree_thickness()\n";
     frag_gen << "{\n";
     if (codegen.thickness.empty()) {
@@ -803,9 +809,10 @@ GPUMaterial *ShaderModule::material_default_shader_get(eMaterialPipeline pipelin
                                           BKE_material_default_surface();
 
   eMaterialDisplacement displacement_type = to_displacement_type(blender_mat->displacement_method);
+  eMaterialThickness thickness_type = to_thickness_type(blender_mat->thickness_mode);
 
   uint64_t shader_uuid = shader_uuid_from_material_type(
-      pipeline_type, geometry_type, displacement_type, blender_mat->blend_flag);
+      pipeline_type, geometry_type, displacement_type, thickness_type, blender_mat->blend_flag);
 
   return DRW_shader_from_material(blender_mat,
                                   blender_mat->nodetree,

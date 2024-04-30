@@ -478,7 +478,8 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
   gbuffer_ps_.bind_resources(inst.sphere_probes);
   gbuffer_ps_.bind_resources(inst.volume_probes);
 
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL |
+                   DRW_STATE_STENCIL_ALWAYS;
 
   gbuffer_single_sided_hybrid_ps_ = &gbuffer_ps_.sub("DoubleSided");
   gbuffer_single_sided_hybrid_ps_->state_set(state | DRW_STATE_CULL_BACK);
@@ -568,17 +569,26 @@ void DeferredLayer::end_sync(bool is_first_pass, bool is_last_pass)
       sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_ALWAYS);
       if (GPU_stencil_export_support()) {
         /* The shader sets the stencil directly in one full-screen pass. */
-        sub.state_stencil(0xFFu, /* Set by shader */ 0x0u, 0xFFu);
+        sub.state_stencil(uint8_t(StencilBits::HEADER_BITS), /* Set by shader */ 0x0u, 0xFFu);
         sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
       }
       else {
         /* The shader cannot set the stencil directly. So we do one full-screen pass for each
          * stencil bit we need to set and accumulate the result. */
-        for (size_t i = 0; i <= log2_ceil(closure_count_); i++) {
-          int stencil_value = 1 << i;
-          sub.push_constant("current_bit", stencil_value);
-          sub.state_stencil(stencil_value, 0xFFu, 0xFFu);
+        auto set_bit = [&](StencilBits bit) {
+          sub.push_constant("current_bit", int(bit));
+          sub.state_stencil(uint8_t(bit), 0xFFu, 0xFFu);
           sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+        };
+
+        if (closure_count_ > 0) {
+          set_bit(StencilBits::CLOSURE_COUNT_0);
+        }
+        if (closure_count_ > 1) {
+          set_bit(StencilBits::CLOSURE_COUNT_1);
+        }
+        if (closure_bits_ & CLOSURE_TRANSMISSION) {
+          set_bit(StencilBits::TRANSMISSION);
         }
       }
     }
@@ -587,6 +597,25 @@ void DeferredLayer::end_sync(bool is_first_pass, bool is_last_pass)
       PassSimple &pass = eval_light_ps_;
       pass.init();
 
+      /* TODO(fclem): Could also skip if no material uses thickness from shadow. */
+      if (closure_bits_ & CLOSURE_TRANSMISSION) {
+        PassSimple::Sub &sub = pass.sub("Eval.ThicknessFromShadow");
+        sub.shader_set(inst_.shaders.static_shader_get(DEFERRED_THICKNESS_AMEND));
+        sub.bind_resources(inst_.lights);
+        sub.bind_resources(inst_.shadows);
+        sub.bind_resources(inst_.hiz_buffer.front);
+        sub.bind_resources(inst_.uniform_data);
+        sub.bind_resources(inst_.sampling);
+        sub.bind_texture("gbuf_header_tx", &inst_.gbuffer.header_tx);
+        sub.bind_image("gbuf_normal_img", &inst_.gbuffer.normal_tx);
+        sub.state_set(DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_EQUAL);
+        /* Render where there is transmission and the thickness from shadow bit is set. */
+        uint8_t stencil_bits = uint8_t(StencilBits::TRANSMISSION) |
+                               uint8_t(StencilBits::THICKNESS_FROM_SHADOW);
+        sub.state_stencil(0x0u, stencil_bits, stencil_bits);
+        sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
+        sub.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+      }
       {
         const bool use_split_indirect = !use_raytracing_ && use_split_radiance_;
         PassSimple::Sub &sub = pass.sub("Eval.Light");
@@ -625,7 +654,10 @@ void DeferredLayer::end_sync(bool is_first_pass, bool is_last_pass)
           sub.bind_resources(inst_.hiz_buffer.front);
           sub.bind_resources(inst_.sphere_probes);
           sub.bind_resources(inst_.volume_probes);
-          sub.state_stencil(0xFFu, i + 1, 0xFFu);
+          /* TODO(fclem): Transmission evaluation specialization. */
+          uint8_t compare_mask = uint8_t(StencilBits::CLOSURE_COUNT_0) |
+                                 uint8_t(StencilBits::CLOSURE_COUNT_1);
+          sub.state_stencil(0x0u, i + 1, compare_mask);
           sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
         }
       }
@@ -653,7 +685,7 @@ void DeferredLayer::end_sync(bool is_first_pass, bool is_last_pass)
       /* Use stencil test to reject pixels not written by this layer. */
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL | DRW_STATE_STENCIL_NEQUAL);
       /* Render where stencil is not 0. */
-      pass.state_stencil(0xFFu, 0x0, 0xFFu);
+      pass.state_stencil(0x0u, 0x0u, uint8_t(StencilBits::HEADER_BITS));
       pass.bind_texture("direct_radiance_1_tx", &direct_radiance_txs_[0]);
       pass.bind_texture("direct_radiance_2_tx", &direct_radiance_txs_[1]);
       pass.bind_texture("direct_radiance_3_tx", &direct_radiance_txs_[2]);
@@ -692,6 +724,7 @@ PassMain::Sub *DeferredLayer::material_add(::Material *blender_mat, GPUMaterial 
 
   bool has_shader_to_rgba = (closure_bits & CLOSURE_SHADER_TO_RGBA) != 0;
   bool backface_culling = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) != 0;
+  bool use_thickness_from_shadow = (blender_mat->blend_flag & MA_BL_THICKNESS_FROM_SHADOW) != 0;
 
   PassMain::Sub *pass = (has_shader_to_rgba) ?
                             ((backface_culling) ? gbuffer_single_sided_hybrid_ps_ :
@@ -699,7 +732,17 @@ PassMain::Sub *DeferredLayer::material_add(::Material *blender_mat, GPUMaterial 
                             ((backface_culling) ? gbuffer_single_sided_ps_ :
                                                   gbuffer_double_sided_ps_);
 
-  return &pass->sub(GPU_material_get_name(gpumat));
+  PassMain::Sub *material_pass = &pass->sub(GPU_material_get_name(gpumat));
+  /* Set stencil for some deferred specialized shaders. */
+  uint8_t material_stencil_bits = 0u;
+  if (use_thickness_from_shadow) {
+    material_stencil_bits |= uint8_t(StencilBits::THICKNESS_FROM_SHADOW);
+  }
+  /* We use this opportunity to clear the stencil bits. The undefined areas are discarded using the
+   * gbuf header value. */
+  material_pass->state_stencil(0xFFu, material_stencil_bits, 0xFFu);
+
+  return material_pass;
 }
 
 GPUTexture *DeferredLayer::render(View &main_view,

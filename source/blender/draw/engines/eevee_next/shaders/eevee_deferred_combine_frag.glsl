@@ -90,7 +90,7 @@ void main()
 
     if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||
          cl.type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID) &&
-        (gbuf.thickness > 0.0))
+        (gbuf.thickness != 0.0))
     {
       /* We model two transmission event, so the surface color need to be applied twice. */
       cl.color *= cl.color;

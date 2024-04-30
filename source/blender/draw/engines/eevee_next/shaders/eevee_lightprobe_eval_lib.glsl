@@ -95,7 +95,7 @@ vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse cl, vec3 P, vec3 V)
 
 vec3 lightprobe_eval(LightProbeSample samp, ClosureTranslucent cl, vec3 P, vec3 V, float thickness)
 {
-  if (thickness > 0.0) {
+  if (thickness != 0.0) {
     return spherical_harmonics_L0_evaluate(-cl.N, samp.volume_irradiance.L0).rgb;
   }
   vec3 radiance_sh = spherical_harmonics_evaluate_lambert(-cl.N, samp.volume_irradiance);
@@ -119,9 +119,9 @@ vec3 lightprobe_eval(LightProbeSample samp, ClosureRefraction cl, vec3 P, vec3 V
 {
   cl.roughness = refraction_roughness_remapping(cl.roughness, cl.ior);
 
-  if (thickness > 0.0) {
+  if (thickness != 0.0) {
     vec3 L = refraction_dominant_dir(cl.N, V, cl.ior, cl.roughness);
-    ThicknessIsect isect = thickness_sphere_intersect(thickness, cl.N, L);
+    ThicknessIsect isect = thickness_shape_intersect(thickness, cl.N, L);
     P += isect.hit_P;
     cl.N = -isect.hit_N;
     cl.ior = 1.0 / cl.ior;
