@@ -571,7 +571,9 @@ ccl_device_inline void film_write_transparent(KernelGlobals kg,
     film_write_pass_float(buffer + kernel_data.film.pass_combined + 3, transparent);
   }
 
+#ifdef __SHADOW_CATCHER__
   film_write_shadow_catcher_transparent_only(kg, path_flag, transparent, buffer);
+#endif
 }
 
 /* Write holdout to render buffer. */

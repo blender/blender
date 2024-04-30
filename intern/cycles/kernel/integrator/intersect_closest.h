@@ -43,9 +43,11 @@ ccl_device_forceinline bool integrator_intersect_terminate(KernelGlobals kg,
     if (shader_flags & (SD_HAS_TRANSPARENT_SHADOW | SD_HAS_EMISSION)) {
       INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
     }
+#ifdef __VOLUME__
     else if (!integrator_state_volume_stack_is_empty(kg, state)) {
       INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_TERMINATE_AFTER_VOLUME;
     }
+#endif
     else {
       return true;
     }
@@ -73,10 +75,12 @@ ccl_device_forceinline bool integrator_intersect_terminate(KernelGlobals kg,
         /* Mark path to be terminated right after shader evaluation on the surface. */
         INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_TERMINATE_ON_NEXT_SURFACE;
       }
+#ifdef __VOLUME__
       else if (!integrator_state_volume_stack_is_empty(kg, state)) {
         /* TODO: only do this for emissive volumes. */
         INTEGRATOR_STATE_WRITE(state, path, flag) |= PATH_RAY_TERMINATE_IN_NEXT_VOLUME;
       }
+#endif
       else {
         return true;
       }
@@ -127,12 +131,14 @@ ccl_device_forceinline void integrator_split_shadow_catcher(
     return;
   }
 
+#  ifdef __VOLUME__
   if (!integrator_state_volume_stack_is_empty(kg, state)) {
     /* Volume stack is not empty. Re-init the volume stack to exclude any non-shadow catcher
      * objects from it, and then continue shading volume and shadow catcher surface after. */
     integrator_path_init(kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK);
     return;
   }
+#  endif
 
   /* Continue with shading shadow catcher surface. */
   const int shader = intersection_get_shader(kg, isect);
@@ -189,6 +195,7 @@ template<DeviceKernel current_kernel>
 ccl_device_forceinline void integrator_intersect_next_kernel_after_shadow_catcher_background(
     KernelGlobals kg, IntegratorState state)
 {
+#  ifdef __VOLUME__
   /* Same logic as integrator_split_shadow_catcher, but using NEXT instead of INIT. */
   if (!integrator_state_volume_stack_is_empty(kg, state)) {
     /* Volume stack is not empty. Re-init the volume stack to exclude any non-shadow catcher
@@ -197,6 +204,7 @@ ccl_device_forceinline void integrator_intersect_next_kernel_after_shadow_catche
         kg, state, current_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK);
     return;
   }
+#  endif
 
   /* Continue with shading shadow catcher surface. */
   integrator_intersect_next_kernel_after_shadow_catcher_volume<current_kernel>(kg, state);

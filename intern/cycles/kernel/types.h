@@ -62,6 +62,109 @@ CCL_NAMESPACE_BEGIN
 #  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_CPU
 #endif
 
+/* Kernel Features */
+
+/* Shader nodes. */
+#define KERNEL_FEATURE_NODE_BSDF (1U << 0U)
+#define KERNEL_FEATURE_NODE_EMISSION (1U << 1U)
+#define KERNEL_FEATURE_NODE_VOLUME (1U << 2U)
+#define KERNEL_FEATURE_NODE_BUMP (1U << 3U)
+#define KERNEL_FEATURE_NODE_BUMP_STATE (1U << 4U)
+#define KERNEL_FEATURE_NODE_VORONOI_EXTRA (1U << 5U)
+#define KERNEL_FEATURE_NODE_RAYTRACE (1U << 6U)
+#define KERNEL_FEATURE_NODE_AOV (1U << 7U)
+#define KERNEL_FEATURE_NODE_LIGHT_PATH (1U << 8U)
+#define KERNEL_FEATURE_NODE_PRINCIPLED_HAIR (1U << 9U)
+
+/* Use path tracing kernels. */
+#define KERNEL_FEATURE_PATH_TRACING (1U << 10U)
+
+/* BVH/sampling kernel features. */
+#define KERNEL_FEATURE_POINTCLOUD (1U << 11U)
+#define KERNEL_FEATURE_HAIR (1U << 12U)
+#define KERNEL_FEATURE_HAIR_THICK (1U << 13U)
+#define KERNEL_FEATURE_OBJECT_MOTION (1U << 14U)
+
+/* Denotes whether baking functionality is needed. */
+#define KERNEL_FEATURE_BAKING (1U << 15U)
+
+/* Use subsurface scattering materials. */
+#define KERNEL_FEATURE_SUBSURFACE (1U << 16U)
+
+/* Use volume materials. */
+#define KERNEL_FEATURE_VOLUME (1U << 17U)
+
+/* Use OpenSubdiv patch evaluation */
+#define KERNEL_FEATURE_PATCH_EVALUATION (1U << 18U)
+
+/* Use Transparent shadows */
+#define KERNEL_FEATURE_TRANSPARENT (1U << 19U)
+
+/* Use shadow catcher. */
+#define KERNEL_FEATURE_SHADOW_CATCHER (1U << 20U)
+
+/* Light render passes. */
+#define KERNEL_FEATURE_LIGHT_PASSES (1U << 21U)
+
+/* AO. */
+#define KERNEL_FEATURE_AO_PASS (1U << 22U)
+#define KERNEL_FEATURE_AO_ADDITIVE (1U << 23U)
+#define KERNEL_FEATURE_AO (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE)
+
+/* MNEE. */
+#define KERNEL_FEATURE_MNEE (1U << 24U)
+
+/* Path guiding. */
+#define KERNEL_FEATURE_PATH_GUIDING (1U << 25U)
+
+/* OSL. */
+#define KERNEL_FEATURE_OSL (1U << 26U)
+
+/* Light and shadow linking. */
+#define KERNEL_FEATURE_LIGHT_LINKING (1U << 27U)
+#define KERNEL_FEATURE_SHADOW_LINKING (1U << 28U)
+
+/* Use denoising kernels and output denoising passes. */
+#define KERNEL_FEATURE_DENOISING (1U << 29U)
+
+/* Light tree. */
+#define KERNEL_FEATURE_LIGHT_TREE (1U << 30U)
+
+/* Shader node feature mask, to specialize shader evaluation for kernels. */
+
+#define KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT \
+  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VORONOI_EXTRA | \
+   KERNEL_FEATURE_NODE_LIGHT_PATH)
+#define KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND \
+  (KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT | KERNEL_FEATURE_NODE_AOV)
+#define KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW \
+  (KERNEL_FEATURE_NODE_BSDF | KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_BUMP | \
+   KERNEL_FEATURE_NODE_BUMP_STATE | KERNEL_FEATURE_NODE_VORONOI_EXTRA | \
+   KERNEL_FEATURE_NODE_LIGHT_PATH | KERNEL_FEATURE_NODE_PRINCIPLED_HAIR)
+#define KERNEL_FEATURE_NODE_MASK_SURFACE \
+  (KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW | KERNEL_FEATURE_NODE_RAYTRACE | \
+   KERNEL_FEATURE_NODE_AOV | KERNEL_FEATURE_NODE_LIGHT_PATH)
+#define KERNEL_FEATURE_NODE_MASK_VOLUME \
+  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VOLUME | \
+   KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_LIGHT_PATH)
+#define KERNEL_FEATURE_NODE_MASK_DISPLACEMENT \
+  (KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_BUMP | KERNEL_FEATURE_NODE_BUMP_STATE)
+#define KERNEL_FEATURE_NODE_MASK_BUMP KERNEL_FEATURE_NODE_MASK_DISPLACEMENT
+
+/* Must be constexpr on the CPU to avoid compile errors because the state types
+ * are different depending on the main, shadow or null path. For GPU we don't have
+ * C++17 everywhere so need to check it. */
+#if __cplusplus < 201703L
+#  define IF_KERNEL_FEATURE(feature) if ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
+#  define IF_KERNEL_NODES_FEATURE(feature) \
+    if ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
+#else
+#  define IF_KERNEL_FEATURE(feature) \
+    if constexpr ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
+#  define IF_KERNEL_NODES_FEATURE(feature) \
+    if constexpr ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
+#endif
+
 /* Kernel features */
 #define __AO__
 #define __CAUSTICS_TRICKS__
@@ -123,33 +226,53 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 /* Scene-based selective features compilation. */
+/* Scene-based selective features compilation. */
 #ifdef __KERNEL_FEATURES__
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_OBJECT_MOTION)
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_OBJECT_MOTION)
 #    undef __OBJECT_MOTION__
 #  endif
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_HAIR)
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_HAIR)
 #    undef __HAIR__
 #  endif
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_POINTCLOUD)
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_POINTCLOUD)
 #    undef __POINTCLOUD__
 #  endif
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_VOLUME)
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_VOLUME)
 #    undef __VOLUME__
+#    if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_TRANSPARENT)
+#      undef __TRANSPARENT_SHADOWS__
+#      undef __SHADOW_RECORD_ALL__
+#    endif
 #  endif
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_SUBSURFACE)
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_SUBSURFACE)
 #    undef __SUBSURFACE__
 #  endif
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_PATCH_EVALUATION)
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_PATCH_EVALUATION)
 #    undef __PATCH_EVAL__
 #  endif
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_TRANSPARENT)
-#    undef __TRANSPARENT_SHADOWS__
-#  endif
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_SHADOW_CATCHER)
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_SHADOW_CATCHER)
 #    undef __SHADOW_CATCHER__
 #  endif
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_DENOISING)
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_DENOISING)
 #    undef __DENOISING_FEATURES__
+#  endif
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_AO)
+#    undef __AO__
+#  endif
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_MNEE)
+#    undef __MNEE__
+#  endif
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_PATH_GUIDING)
+#    undef __PATH_GUIDING__
+#  endif
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_NODE_PRINCIPLED_HAIR)
+#    undef __PRINCIPLED_HAIR__
+#  endif
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_LIGHT_LINKING)
+#    undef __LIGHT_LINKING__
+#  endif
+#  if !(__KERNEL_FEATURES__ & KERNEL_FEATURE_SHADOW_LINKING)
+#    undef __SHADOW_LINKING__
 #  endif
 #endif
 
@@ -1686,110 +1809,5 @@ typedef enum DeviceKernel : int {
 enum {
   DEVICE_KERNEL_INTEGRATOR_NUM = DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL + 1,
 };
-
-/* Kernel Features */
-
-enum KernelFeatureFlag : uint32_t {
-  /* Shader nodes. */
-  KERNEL_FEATURE_NODE_BSDF = (1U << 0U),
-  KERNEL_FEATURE_NODE_EMISSION = (1U << 1U),
-  KERNEL_FEATURE_NODE_VOLUME = (1U << 2U),
-  KERNEL_FEATURE_NODE_BUMP = (1U << 3U),
-  KERNEL_FEATURE_NODE_BUMP_STATE = (1U << 4U),
-  KERNEL_FEATURE_NODE_VORONOI_EXTRA = (1U << 5U),
-  KERNEL_FEATURE_NODE_RAYTRACE = (1U << 6U),
-  KERNEL_FEATURE_NODE_AOV = (1U << 7U),
-  KERNEL_FEATURE_NODE_LIGHT_PATH = (1U << 8U),
-  KERNEL_FEATURE_NODE_PRINCIPLED_HAIR = (1U << 9U),
-
-  /* Use path tracing kernels. */
-  KERNEL_FEATURE_PATH_TRACING = (1U << 10U),
-
-  /* BVH/sampling kernel features. */
-  KERNEL_FEATURE_POINTCLOUD = (1U << 11U),
-  KERNEL_FEATURE_HAIR = (1U << 12U),
-  KERNEL_FEATURE_HAIR_THICK = (1U << 13U),
-  KERNEL_FEATURE_OBJECT_MOTION = (1U << 14U),
-
-  /* Denotes whether baking functionality is needed. */
-  KERNEL_FEATURE_BAKING = (1U << 15U),
-
-  /* Use subsurface scattering materials. */
-  KERNEL_FEATURE_SUBSURFACE = (1U << 16U),
-
-  /* Use volume materials. */
-  KERNEL_FEATURE_VOLUME = (1U << 17U),
-
-  /* Use OpenSubdiv patch evaluation */
-  KERNEL_FEATURE_PATCH_EVALUATION = (1U << 18U),
-
-  /* Use Transparent shadows */
-  KERNEL_FEATURE_TRANSPARENT = (1U << 19U),
-
-  /* Use shadow catcher. */
-  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 20U),
-
-  /* Light render passes. */
-  KERNEL_FEATURE_LIGHT_PASSES = (1U << 21U),
-
-  /* AO. */
-  KERNEL_FEATURE_AO_PASS = (1U << 22U),
-  KERNEL_FEATURE_AO_ADDITIVE = (1U << 23U),
-  KERNEL_FEATURE_AO = (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE),
-
-  /* MNEE. */
-  KERNEL_FEATURE_MNEE = (1U << 24U),
-
-  /* Path guiding. */
-  KERNEL_FEATURE_PATH_GUIDING = (1U << 25U),
-
-  /* OSL. */
-  KERNEL_FEATURE_OSL = (1U << 26U),
-
-  /* Light and shadow linking. */
-  KERNEL_FEATURE_LIGHT_LINKING = (1U << 27U),
-  KERNEL_FEATURE_SHADOW_LINKING = (1U << 28U),
-
-  /* Use denoising kernels and output denoising passes. */
-  KERNEL_FEATURE_DENOISING = (1U << 29U),
-
-  /* Light tree. */
-  KERNEL_FEATURE_LIGHT_TREE = (1U << 30U),
-};
-
-/* Shader node feature mask, to specialize shader evaluation for kernels. */
-
-#define KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT \
-  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VORONOI_EXTRA | \
-   KERNEL_FEATURE_NODE_LIGHT_PATH)
-#define KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND \
-  (KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT | KERNEL_FEATURE_NODE_AOV)
-#define KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW \
-  (KERNEL_FEATURE_NODE_BSDF | KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_BUMP | \
-   KERNEL_FEATURE_NODE_BUMP_STATE | KERNEL_FEATURE_NODE_VORONOI_EXTRA | \
-   KERNEL_FEATURE_NODE_LIGHT_PATH | KERNEL_FEATURE_NODE_PRINCIPLED_HAIR)
-#define KERNEL_FEATURE_NODE_MASK_SURFACE \
-  (KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW | KERNEL_FEATURE_NODE_RAYTRACE | \
-   KERNEL_FEATURE_NODE_AOV | KERNEL_FEATURE_NODE_LIGHT_PATH)
-#define KERNEL_FEATURE_NODE_MASK_VOLUME \
-  (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VOLUME | \
-   KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_LIGHT_PATH)
-#define KERNEL_FEATURE_NODE_MASK_DISPLACEMENT \
-  (KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_BUMP | KERNEL_FEATURE_NODE_BUMP_STATE)
-#define KERNEL_FEATURE_NODE_MASK_BUMP KERNEL_FEATURE_NODE_MASK_DISPLACEMENT
-
-/* Must be constexpr on the CPU to avoid compile errors because the state types
- * are different depending on the main, shadow or null path. For GPU we don't have
- * C++17 everywhere so need to check it. */
-#if __cplusplus < 201703L
-#  define IF_KERNEL_FEATURE(feature) if ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
-#  define IF_KERNEL_NODES_FEATURE(feature) \
-    if ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
-#else
-#  define IF_KERNEL_FEATURE(feature) \
-    if constexpr ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
-#  define IF_KERNEL_NODES_FEATURE(feature) \
-    if constexpr ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
-#endif
 
 CCL_NAMESPACE_END
