@@ -344,12 +344,12 @@ static void remove_fcurve_key_range(FCurve *fcu,
 {
   switch (removal_mode) {
 
-    case BakeCurveRemove::REMOVE_ALL: {
+    case BakeCurveRemove::ALL: {
       BKE_fcurve_delete_keys_all(fcu);
       break;
     }
 
-    case BakeCurveRemove::REMOVE_OUT_RANGE: {
+    case BakeCurveRemove::OUT_RANGE: {
       bool replace;
 
       int before_index = BKE_fcurve_bezt_binarysearch_index(
@@ -361,7 +361,7 @@ static void remove_fcurve_key_range(FCurve *fcu,
 
       int after_index = BKE_fcurve_bezt_binarysearch_index(
           fcu->bezt, range[1], fcu->totvert, &replace);
-      /* #REMOVE_OUT_RANGE is treated as exclusive on both ends. */
+      /* #OUT_RANGE is treated as exclusive on both ends. */
       if (replace) {
         after_index++;
       }
@@ -371,7 +371,7 @@ static void remove_fcurve_key_range(FCurve *fcu,
       break;
     }
 
-    case BakeCurveRemove::REMOVE_IN_RANGE: {
+    case BakeCurveRemove::IN_RANGE: {
       bool replace;
       const int range_start_index = BKE_fcurve_bezt_binarysearch_index(
           fcu->bezt, range[0], fcu->totvert, &replace);
@@ -404,7 +404,7 @@ void bake_fcurve(FCurve *fcu,
   const float sample_rate = 1.0f / step;
   sample_fcurve_segment(fcu, range[0], sample_rate, samples, sample_count);
 
-  if (remove_existing != BakeCurveRemove::REMOVE_NONE) {
+  if (remove_existing != BakeCurveRemove::NONE) {
     remove_fcurve_key_range(fcu, range, remove_existing);
   }
 

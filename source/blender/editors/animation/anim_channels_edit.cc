@@ -4375,8 +4375,8 @@ static int channels_bake_exec(bContext *C, wmOperator *op)
   }
 
   const bool remove_outside_range = RNA_boolean_get(op->ptr, "remove_outside_range");
-  const BakeCurveRemove remove_existing = remove_outside_range ? BakeCurveRemove::REMOVE_ALL :
-                                                                 BakeCurveRemove::REMOVE_IN_RANGE;
+  const BakeCurveRemove remove_existing = remove_outside_range ? BakeCurveRemove::ALL :
+                                                                 BakeCurveRemove::IN_RANGE;
   const int interpolation_type = RNA_enum_get(op->ptr, "interpolation_type");
   const bool bake_modifiers = RNA_boolean_get(op->ptr, "bake_modifiers");
 

@@ -97,10 +97,10 @@ void sample_fcurve_segment(
     FCurve *fcu, float start_frame, float sample_rate, float *samples, int sample_count);
 
 enum class BakeCurveRemove {
-  REMOVE_NONE = 0,
-  REMOVE_IN_RANGE = 1,
-  REMOVE_OUT_RANGE = 2,
-  REMOVE_ALL = 3,
+  NONE = 0,
+  IN_RANGE = 1,
+  OUT_RANGE = 2,
+  ALL = 3,
 };
 
 /**

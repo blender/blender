@@ -91,22 +91,18 @@ static void rna_FCurve_bake(FCurve *fcu,
 #else
 
 static const EnumPropertyItem channel_bake_remove_options[] = {
-    {int(blender::animrig::BakeCurveRemove::REMOVE_NONE), "NONE", 0, "None", "Keep all keys"},
-    {int(blender::animrig::BakeCurveRemove::REMOVE_IN_RANGE),
+    {int(blender::animrig::BakeCurveRemove::NONE), "NONE", 0, "None", "Keep all keys"},
+    {int(blender::animrig::BakeCurveRemove::IN_RANGE),
      "IN_RANGE",
      0,
      "In Range",
      "Remove all keys within the defined range"},
-    {int(blender::animrig::BakeCurveRemove::REMOVE_OUT_RANGE),
+    {int(blender::animrig::BakeCurveRemove::OUT_RANGE),
      "OUT_RANGE",
      0,
      "Outside Range",
      "Remove all keys outside the defined range"},
-    {int(blender::animrig::BakeCurveRemove::REMOVE_ALL),
-     "ALL",
-     0,
-     "All",
-     "Remove all existing keys"},
+    {int(blender::animrig::BakeCurveRemove::ALL), "ALL", 0, "All", "Remove all existing keys"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -166,7 +162,7 @@ void RNA_api_fcurves(StructRNA *srna)
   RNA_def_enum(func,
                "remove",
                channel_bake_remove_options,
-               int(blender::animrig::BakeCurveRemove::REMOVE_IN_RANGE),
+               int(blender::animrig::BakeCurveRemove::IN_RANGE),
                "Remove Options",
                "Choose which keys should be automatically removed by the bake");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_PYFUNC_OPTIONAL);
