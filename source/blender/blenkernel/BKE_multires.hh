@@ -100,7 +100,7 @@ int multiresModifier_rebuild_subdiv(Depsgraph *depsgraph,
  * synchronize them such that `ob_dst` has the same total number of levels as `ob_src`.
  */
 void multiresModifier_sync_levels_ex(Object *ob_dst,
-                                     MultiresModifierData *mmd_src,
+                                     const MultiresModifierData *mmd_src,
                                      MultiresModifierData *mmd_dst);
 
 void multires_stitch_grids(Object *);

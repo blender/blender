@@ -3919,7 +3919,7 @@ void psys_mat_hair_to_global(
 /************************************************/
 
 static ModifierData *object_add_or_copy_particle_system(
-    Main *bmain, Scene *scene, Object *ob, const char *name, const ParticleSystem *psys_orig)
+    Main *bmain, const Scene *scene, Object *ob, const char *name, const ParticleSystem *psys_orig)
 {
   ParticleSystem *psys;
   ModifierData *md;
@@ -3972,13 +3972,16 @@ static ModifierData *object_add_or_copy_particle_system(
   return md;
 }
 
-ModifierData *object_add_particle_system(Main *bmain, Scene *scene, Object *ob, const char *name)
+ModifierData *object_add_particle_system(Main *bmain,
+                                         const Scene *scene,
+                                         Object *ob,
+                                         const char *name)
 {
   return object_add_or_copy_particle_system(bmain, scene, ob, name, nullptr);
 }
 
 ModifierData *object_copy_particle_system(Main *bmain,
-                                          Scene *scene,
+                                          const Scene *scene,
                                           Object *ob,
                                           const ParticleSystem *psys_orig)
 {

@@ -1308,7 +1308,7 @@ static bool object_modifier_type_copy_check(ModifierType md_type)
  * using its particle system in the stack.
  */
 static ParticleSystem *object_copy_modifier_particle_system_ensure(Main *bmain,
-                                                                   Scene *scene,
+                                                                   const Scene *scene,
                                                                    Object *ob_dst,
                                                                    ParticleSystem *psys_src)
 {
@@ -1332,8 +1332,11 @@ static ParticleSystem *object_copy_modifier_particle_system_ensure(Main *bmain,
   return psys_dst;
 }
 
-bool BKE_object_copy_modifier(
-    Main *bmain, Scene *scene, Object *ob_dst, const Object *ob_src, ModifierData *md_src)
+bool BKE_object_copy_modifier(Main *bmain,
+                              const Scene *scene,
+                              Object *ob_dst,
+                              const Object *ob_src,
+                              const ModifierData *md_src)
 {
   BLI_assert(ob_dst->type != OB_GPENCIL_LEGACY);
 
@@ -1363,7 +1366,7 @@ bool BKE_object_copy_modifier(
       BKE_mesh_ensure_skin_customdata((Mesh *)ob_dst->data);
       break;
     case eModifierType_Fluid: {
-      FluidModifierData *fmd = (FluidModifierData *)md_src;
+      const FluidModifierData *fmd = (const FluidModifierData *)md_src;
       if (fmd->type == MOD_FLUID_TYPE_FLOW) {
         if (fmd->flow != nullptr && fmd->flow->psys != nullptr) {
           psys_src = fmd->flow->psys;
@@ -1373,7 +1376,7 @@ bool BKE_object_copy_modifier(
       break;
     }
     case eModifierType_DynamicPaint: {
-      DynamicPaintModifierData *dpmd = (DynamicPaintModifierData *)md_src;
+      const DynamicPaintModifierData *dpmd = (const DynamicPaintModifierData *)md_src;
       if (dpmd->brush != nullptr && dpmd->brush->psys != nullptr) {
         psys_src = dpmd->brush->psys;
         psys_dst = object_copy_modifier_particle_system_ensure(bmain, scene, ob_dst, psys_src);
@@ -1387,7 +1390,7 @@ bool BKE_object_copy_modifier(
   ModifierData *md_dst;
   if (md_src->type == eModifierType_ParticleSystem) {
     md_dst = object_copy_particle_system(
-        bmain, scene, ob_dst, ((ParticleSystemModifierData *)md_src)->psys);
+        bmain, scene, ob_dst, ((const ParticleSystemModifierData *)md_src)->psys);
   }
   else {
     md_dst = BKE_modifier_new(md_src->type);
@@ -1397,7 +1400,7 @@ bool BKE_object_copy_modifier(
     if (md_src->type == eModifierType_Multires) {
       /* Has to be done after mod creation, but *before* we actually copy its settings! */
       multiresModifier_sync_levels_ex(
-          ob_dst, (MultiresModifierData *)md_src, (MultiresModifierData *)md_dst);
+          ob_dst, (const MultiresModifierData *)md_src, (MultiresModifierData *)md_dst);
     }
 
     BKE_modifier_copydata(md_src, md_dst);
