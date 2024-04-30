@@ -149,10 +149,12 @@ static void extract_lines_mesh(const MeshRenderData &mr,
   }
 }
 
-static IndexMask calc_bm_edge_visibility(BMesh &bm, const IndexMask &mask, IndexMaskMemory &memory)
+static IndexMask calc_bm_edge_visibility(const BMesh &bm,
+                                         const IndexMask &mask,
+                                         IndexMaskMemory &memory)
 {
   return IndexMask::from_predicate(mask, GrainSize(2048), memory, [&](const int i) {
-    return !BM_elem_flag_test_bool(BM_edge_at_index(&bm, i), BM_ELEM_HIDDEN);
+    return !BM_elem_flag_test_bool(BM_edge_at_index(&const_cast<BMesh &>(bm), i), BM_ELEM_HIDDEN);
   });
 }
 
@@ -161,7 +163,7 @@ static void extract_lines_bm(const MeshRenderData &mr,
                              gpu::IndexBuf *lines_loose,
                              bool &no_loose_wire)
 {
-  BMesh &bm = *mr.bm;
+  const BMesh &bm = *mr.bm;
 
   IndexMaskMemory memory;
   const IndexMask all_loose_edges = IndexMask::from_indices(mr.loose_edges, memory);
@@ -183,7 +185,7 @@ static void extract_lines_bm(const MeshRenderData &mr,
   /* Make use of BMesh's edge to loop topology knowledge to iterate over edges instead of
    * iterating over faces and defining edges implicitly as done in the #Mesh extraction. */
   visible_non_loose_edges.foreach_index(GrainSize(4096), [&](const int i, const int pos) {
-    const BMEdge &edge = *BM_edge_at_index(&bm, i);
+    const BMEdge &edge = *BM_edge_at_index(&const_cast<BMesh &>(bm), i);
     data[pos] = uint2(BM_elem_index_get(edge.l), BM_elem_index_get(edge.l->next));
   });
 
