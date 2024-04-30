@@ -1928,7 +1928,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
       wl_surface_commit(window_->wl.surface);
       ::close(fd);
     }
-#  endif /* WITH_GHOST_WAYLAND_LIBDECOR */
+#  endif /* WITH_VULKAN_BACKEND */
 
     while (!decor.initial_configure_seen) {
       wl_display_flush(system->wl_display_get());
