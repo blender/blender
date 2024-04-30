@@ -406,6 +406,9 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
    * be combined on the animation. */
   Set<std::string> merged_names;
 
+  /* The list of blend shape names to be set on the animation. */
+  pxr::VtTokenArray skel_blend_shape_names;
+
   /* Iterate over all the meshes, generate unique blend shape names in case of name
    * collisions and set up the information we will need to merge the results. */
   for (const pxr::SdfPath &mesh_path : mesh_paths) {
@@ -437,6 +440,7 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
     for (pxr::TfToken &name : names) {
       std::string unique = add_unique_name(merged_names, name.GetString());
       unique_names.push_back(pxr::TfToken(unique));
+      skel_blend_shape_names.push_back(pxr::TfToken(unique));
     }
 
     /* Set the unique names back on the mesh. */
@@ -460,12 +464,6 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
   if (merged_names.is_empty()) {
     /* No blend shape names were collected. Shouldn't usually happen. */
     return;
-  }
-
-  /* Copy the list of name strings to a list of tokens, since we need to work with tokens. */
-  pxr::VtTokenArray skel_blend_shape_names;
-  for (const std::string &name : merged_names) {
-    skel_blend_shape_names.push_back(pxr::TfToken(name));
   }
 
   /* Initialize the merge info structs with the list of names on the merged animation. */
