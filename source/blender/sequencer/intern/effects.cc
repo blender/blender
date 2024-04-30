@@ -323,16 +323,16 @@ template<typename T>
 static void do_alphaunder_effect(
     float fac, int width, int height, const T *src1, const T *src2, T *dst)
 {
-  if (fac >= 1.0f) {
-    memcpy(dst, src1, sizeof(T) * 4 * width * height);
+  if (fac <= 0.0f) {
+    memcpy(dst, src2, sizeof(T) * 4 * width * height);
     return;
   }
 
   for (int pixel_idx = 0; pixel_idx < width * height; pixel_idx++) {
-    if (src2[3] <= 0.0f) {
+    if (src2[3] <= 0.0f && fac >= 1.0f) {
       memcpy(dst, src1, sizeof(T) * 4);
     }
-    else if (alpha_opaque(src2[3]) || fac <= 0.0f) {
+    else if (alpha_opaque(src2[3])) {
       memcpy(dst, src2, sizeof(T) * 4);
     }
     else {
