@@ -470,6 +470,14 @@ IndexMask IndexMask::from_bools(const IndexMask &universe,
       universe, GrainSize(1024), memory, [bools](const int64_t index) { return bools[index]; });
 }
 
+IndexMask IndexMask::from_bools_inverse(const IndexMask &universe,
+                                        Span<bool> bools,
+                                        IndexMaskMemory &memory)
+{
+  return IndexMask::from_predicate(
+      universe, GrainSize(1024), memory, [bools](const int64_t index) { return !bools[index]; });
+}
+
 IndexMask IndexMask::from_bools(const IndexMask &universe,
                                 const VArray<bool> &bools,
                                 IndexMaskMemory &memory)
