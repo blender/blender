@@ -550,7 +550,7 @@ class PREFERENCES_OT_theme_install(Operator):
 
         if not self.overwrite:
             if os.path.exists(path_dest):
-                self.report({'WARNING'}, rpt_("File already installed to {!r}\n").format(path_dest))
+                self.report({'WARNING'}, rpt_("File already installed to {!r}").format(path_dest))
                 return {'CANCELLED'}
 
         try:
@@ -701,7 +701,7 @@ class PREFERENCES_OT_addon_install(Operator):
                 for f in file_to_extract_root:
                     path_dest = os.path.join(path_addons, os.path.basename(f))
                     if os.path.exists(path_dest):
-                        self.report({'WARNING'}, rpt_("File already installed to {!r}\n").format(path_dest))
+                        self.report({'WARNING'}, rpt_("File already installed to {!r}").format(path_dest))
                         return {'CANCELLED'}
 
             try:  # extract the file to "addons"
@@ -716,7 +716,7 @@ class PREFERENCES_OT_addon_install(Operator):
             if self.overwrite:
                 _module_filesystem_remove(path_addons, os.path.basename(pyfile))
             elif os.path.exists(path_dest):
-                self.report({'WARNING'}, rpt_("File already installed to {!r}\n").format(path_dest))
+                self.report({'WARNING'}, rpt_("File already installed to {!r}").format(path_dest))
                 return {'CANCELLED'}
 
             # if not compressed file just copy into the addon path
@@ -946,7 +946,7 @@ class PREFERENCES_OT_app_template_install(Operator):
                 for f in file_to_extract_root:
                     path_dest = os.path.join(path_app_templates, os.path.basename(f))
                     if os.path.exists(path_dest):
-                        self.report({'WARNING'}, rpt_("File already installed to {!r}\n").format(path_dest))
+                        self.report({'WARNING'}, rpt_("File already installed to {!r}").format(path_dest))
                         return {'CANCELLED'}
 
             try:  # extract the file to "bl_app_templates_user"
@@ -957,7 +957,7 @@ class PREFERENCES_OT_app_template_install(Operator):
 
         else:
             # Only support installing zip-files.
-            self.report({'WARNING'}, rpt_("Expected a zip-file {!r}\n").format(filepath))
+            self.report({'WARNING'}, rpt_("Expected a zip-file {!r}").format(filepath))
             return {'CANCELLED'}
 
         app_templates_new = set(os.listdir(path_app_templates)) - app_templates_old
