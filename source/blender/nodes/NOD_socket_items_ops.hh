@@ -151,6 +151,9 @@ inline void add_item(wmOperatorType *ot,
           /* Empty name so it is based on the type. */
           active_item ? active_item->name : "");
     }
+    else if constexpr (!Accessor::has_type && Accessor::has_name) {
+      socket_items::add_item_with_name<Accessor>(node, active_item ? active_item->name : "");
+    }
     else if constexpr (!Accessor::has_type && !Accessor::has_name) {
       socket_items::add_item<Accessor>(node);
     }

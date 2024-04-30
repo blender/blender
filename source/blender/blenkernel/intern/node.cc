@@ -85,6 +85,7 @@
 #include "NOD_composite.hh"
 #include "NOD_geo_bake.hh"
 #include "NOD_geo_index_switch.hh"
+#include "NOD_geo_menu_switch.hh"
 #include "NOD_geo_repeat.hh"
 #include "NOD_geo_simulation.hh"
 #include "NOD_geometry.hh"
@@ -875,15 +876,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
       blender::nodes::BakeItemsAccessor::blend_write(writer, *node);
     }
     if (node->type == GEO_NODE_MENU_SWITCH) {
-      const NodeMenuSwitch &storage = *static_cast<const NodeMenuSwitch *>(node->storage);
-      BLO_write_struct_array(writer,
-                             NodeEnumItem,
-                             storage.enum_definition.items_num,
-                             storage.enum_definition.items_array);
-      for (const NodeEnumItem &item : storage.enum_definition.items()) {
-        BLO_write_string(writer, item.name);
-        BLO_write_string(writer, item.description);
-      }
+      blender::nodes::MenuSwitchItemsAccessor::blend_write(writer, *node);
     }
   }
 
@@ -1159,15 +1152,7 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
           break;
         }
         case GEO_NODE_MENU_SWITCH: {
-          NodeMenuSwitch &storage = *static_cast<NodeMenuSwitch *>(node->storage);
-          BLO_read_struct_array(reader,
-                                NodeEnumItem,
-                                storage.enum_definition.items_num,
-                                &storage.enum_definition.items_array);
-          for (const NodeEnumItem &item : storage.enum_definition.items()) {
-            BLO_read_string(reader, &item.name);
-            BLO_read_string(reader, &item.description);
-          }
+          blender::nodes::MenuSwitchItemsAccessor::blend_read_data(reader, *node);
           break;
         }
 

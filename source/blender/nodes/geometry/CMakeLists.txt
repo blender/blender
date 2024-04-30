@@ -212,6 +212,7 @@ set(SRC
 
   include/NOD_geo_bake.hh
   include/NOD_geo_index_switch.hh
+  include/NOD_geo_menu_switch.hh
   include/NOD_geo_repeat.hh
   include/NOD_geo_simulation.hh
 
