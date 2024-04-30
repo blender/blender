@@ -165,6 +165,8 @@ class ShaderModule {
   ~ShaderModule();
 
   GPUShader *static_shader_get(eShaderType shader_type);
+  GPUMaterial *material_default_shader_get(eMaterialPipeline pipeline_type,
+                                           eMaterialGeometry geometry_type);
   GPUMaterial *material_shader_get(::Material *blender_mat,
                                    bNodeTree *nodetree,
                                    eMaterialPipeline pipeline_type,

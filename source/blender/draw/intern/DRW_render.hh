@@ -306,14 +306,16 @@ GPUMaterial *DRW_shader_from_world(World *wo,
                                    bool deferred,
                                    GPUCodegenCallbackFn callback,
                                    void *thunk);
-GPUMaterial *DRW_shader_from_material(Material *ma,
-                                      bNodeTree *ntree,
-                                      eGPUMaterialEngine engine,
-                                      const uint64_t shader_id,
-                                      const bool is_volume_shader,
-                                      bool deferred,
-                                      GPUCodegenCallbackFn callback,
-                                      void *thunk);
+GPUMaterial *DRW_shader_from_material(
+    Material *ma,
+    bNodeTree *ntree,
+    eGPUMaterialEngine engine,
+    const uint64_t shader_id,
+    const bool is_volume_shader,
+    bool deferred,
+    GPUCodegenCallbackFn callback,
+    void *thunk,
+    GPUMaterialCanUseDefaultCallbackFn can_use_default_cb = nullptr);
 void DRW_shader_queue_optimize_material(GPUMaterial *mat);
 void DRW_shader_free(GPUShader *shader);
 #define DRW_SHADER_FREE_SAFE(shader) \
