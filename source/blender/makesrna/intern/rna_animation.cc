@@ -254,7 +254,15 @@ static void rna_AnimData_animation_binding_handle_set(
                new_binding_handle);
     return;
   }
-  binding->connect_id(animated_id);
+  if (!anim->assign_id(binding, animated_id)) {
+    WM_reportf(RPT_ERROR,
+               "Animation '%s' binding '%s' (%d) could not be assigned to %s",
+               anim->id.name + 2,
+               binding->name,
+               binding->handle,
+               animated_id.name + 2);
+    return;
+  }
 }
 #  endif
 
