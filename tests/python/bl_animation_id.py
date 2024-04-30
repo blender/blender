@@ -67,11 +67,7 @@ class AnimationIDAssignmentTest(unittest.TestCase):
         # It should not be possible to set the binding handle while the animation is unassigned.
         bind_extra = anim.bindings.new()
         cube_adt.animation_binding_handle = bind_extra.handle
-        self.assertEqual(cube_adt.animation_binding_handle, bind_cube.handle)
-
-        # Clearing out the binding handle should be fine though.
-        cube_adt.animation_binding_handle = 0
-        self.assertEqual(cube_adt.animation_binding_handle, 0)
+        self.assertNotEqual(cube_adt.animation_binding_handle, bind_extra.handle)
 
 
 class LimitationsTest(unittest.TestCase):

@@ -50,13 +50,21 @@ class VIEW3D_PT_animation_layers(Panel):
         anim = adt and adt.animation
         if anim:
             binding_sub = col.column(align=True)
-            binding_sub.prop(adt, 'animation_binding_handle', text="Binding")
-            binding = [o for o in anim.bindings if o.handle == adt.animation_binding_handle]
+
+            # Binding selector.
+            row = binding_sub.row(align=True)
+            row.prop(adt, 'animation_binding', text="Binding")
+            row.operator('anim.binding_unassign_object', text="", icon="X")
+
+            binding = anim.bindings.get(adt.animation_binding, None)
             if binding:
-                binding_sub.prop(binding[0], 'name', text="Name")
-                binding_sub.prop(binding[0], 'name_display', text="Display Name")
-            else:
-                col.label(text="AN Binding Name: -")
+                binding_sub.prop(binding, 'name_display', text="Name")
+
+            internal_sub = binding_sub.box().column(align=True)
+            internal_sub.active = False
+            internal_sub.prop(adt, 'animation_binding_handle', text="handle")
+            if binding:
+                internal_sub.prop(binding, 'name', text="Internal Name")
 
         if adt:
             col.prop(adt, 'animation_binding_name', text="ADT Binding Name")

@@ -517,6 +517,19 @@ bool assign_animation(Animation &anim, ID &animated_id);
 void unassign_animation(ID &animated_id);
 
 /**
+ * Clear the animation binding of this ID.
+ *
+ * adt.binding_handle_name is updated to reflect the current name of the
+ * binding, before un-assigning. This is to ensure that the stored name reflects
+ * the actual binding that was used, making re-binding trivial.
+ *
+ * \param adt the AnimData of the animated ID.
+ *
+ * \note this does not clear the Animation pointer, just the binding handle.
+ */
+void unassign_binding(AnimData &adt);
+
+/**
  * Return the Animation of this ID, or nullptr if it has none.
  */
 Animation *get_animation(ID &animated_id);

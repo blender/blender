@@ -438,11 +438,7 @@ bool Animation::assign_id(Binding *binding, ID &animated_id)
     STRNCPY_UTF8(adt->binding_name, binding->name);
   }
   else {
-    adt->binding_handle = Binding::unassigned;
-    /* Keep adt->binding_name untouched, as A) it's not necessary to erase it
-     * because `adt->binding_handle = 0` already indicates "no binding yet",
-     * and B) it would erase information that can later be used when trying to
-     * identify which binding this was once attached to.  */
+    unassign_binding(*adt);
   }
 
   if (!adt->animation) {
@@ -479,17 +475,7 @@ void Animation::unassign_id(ID &animated_id)
   BLI_assert_msg(adt, "ID is not animated at all");
   BLI_assert_msg(adt->animation == this, "ID is not assigned to this Animation");
 
-  /* Before unassigning, make sure that the stored Binding name is up to date. The binding name
-   * might have changed in a way that wasn't copied into the ADT yet (for example when the
-   * Animation data-block is linked from another file), so better copy the name to be sure that it
-   * can be transparently reassigned later.
-   *
-   * TODO: Replace this with a BLI_assert() that the name is as expected, and "simply" ensure this
-   * name is always correct. */
-  const Binding *binding = this->binding_for_handle(adt->binding_handle);
-  if (binding) {
-    STRNCPY_UTF8(adt->binding_name, binding->name);
-  }
+  unassign_binding(*adt);
 
   id_us_min(&this->id);
   adt->animation = nullptr;
@@ -610,6 +596,26 @@ void unassign_animation(ID &animated_id)
     return;
   }
   anim->unassign_id(animated_id);
+}
+
+void unassign_binding(AnimData &adt)
+{
+  /* Before unassigning, make sure that the stored Binding name is up to date. The binding name
+   * might have changed in a way that wasn't copied into the ADT yet (for example when the
+   * Animation data-block is linked from another file), so better copy the name to be sure that it
+   * can be transparently reassigned later.
+   *
+   * TODO: Replace this with a BLI_assert() that the name is as expected, and "simply" ensure this
+   * name is always correct. */
+  if (adt.animation) {
+    const Animation &anim = adt.animation->wrap();
+    const Binding *binding = anim.binding_for_handle(adt.binding_handle);
+    if (binding) {
+      STRNCPY_UTF8(adt.binding_name, binding->name);
+    }
+  }
+
+  adt.binding_handle = Binding::unassigned;
 }
 
 Animation *get_animation(ID &animated_id)
