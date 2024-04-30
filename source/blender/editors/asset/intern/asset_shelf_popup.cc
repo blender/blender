@@ -160,6 +160,7 @@ static void catalog_tree_draw(uiLayout &layout, AssetShelf &shelf)
 
 uiBlock *popup_block_create(const bContext *C, ARegion *region, AssetShelfType *shelf_type)
 {
+  bScreen *screen = CTX_wm_screen(C);
   uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
@@ -177,7 +178,7 @@ uiBlock *popup_block_create(const bContext *C, ARegion *region, AssetShelfType *
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, pad, 0, UI_UNIT_X * 40, 0, pad / 2, style);
 
   PointerRNA library_ref_ptr = RNA_pointer_create(
-      &CTX_wm_screen(C)->id, &RNA_AssetLibraryReference, &shelf->settings.asset_library_reference);
+      &screen->id, &RNA_AssetLibraryReference, &shelf->settings.asset_library_reference);
   uiLayoutSetContextPointer(layout, "asset_library_reference", &library_ref_ptr);
 
   uiLayout *row = uiLayoutRow(layout, false);
@@ -188,7 +189,13 @@ uiBlock *popup_block_create(const bContext *C, ARegion *region, AssetShelfType *
   library_selector_draw(C, catalogs_col, *shelf);
   catalog_tree_draw(*catalogs_col, *shelf);
 
-  uiLayout *asset_view_col = uiLayoutColumn(row, false);
+  uiLayout *right_col = uiLayoutColumn(row, false);
+  sub = uiLayoutRow(right_col, false);
+  /* Same as file/asset browser header. */
+  PointerRNA shelf_ptr = RNA_pointer_create(&screen->id, &RNA_AssetShelf, shelf);
+  uiItemR(sub, &shelf_ptr, "search_filter", UI_ITEM_R_IMMEDIATE, "", ICON_VIEWZOOM);
+
+  uiLayout *asset_view_col = uiLayoutColumn(right_col, false);
   build_asset_view(*asset_view_col, shelf->settings.asset_library_reference, *shelf, *C, *region);
 
   return block;

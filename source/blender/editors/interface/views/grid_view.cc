@@ -262,6 +262,9 @@ bool BuildOnlyVisibleButtonsHelper::is_item_visible(const int item_idx) const
 
 void BuildOnlyVisibleButtonsHelper::fill_layout_before_visible(uiBlock &block) const
 {
+  if (visible_items_range_.is_empty()) {
+    return;
+  }
   const int first_idx_in_view = visible_items_range_.first();
   if (first_idx_in_view < 1) {
     return;
@@ -273,6 +276,9 @@ void BuildOnlyVisibleButtonsHelper::fill_layout_before_visible(uiBlock &block) c
 
 void BuildOnlyVisibleButtonsHelper::fill_layout_after_visible(uiBlock &block) const
 {
+  if (visible_items_range_.is_empty()) {
+    return;
+  }
   const int last_item_idx = grid_view_.get_item_count_filtered() - 1;
   const int last_visible_idx = visible_items_range_.last();
 
