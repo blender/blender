@@ -161,6 +161,7 @@ int BLI_task_parallel_thread_id(const TaskParallelTLS * /*tls*/)
 
 namespace blender::threading::detail {
 
+#ifdef WITH_TBB
 static void parallel_for_impl_static_size(const IndexRange range,
                                           const int64_t grain_size,
                                           const FunctionRef<void(IndexRange)> function)
@@ -170,7 +171,9 @@ static void parallel_for_impl_static_size(const IndexRange range,
                       function(IndexRange(subrange.begin(), subrange.size()));
                     });
 }
+#endif /* WITH_TBB */
 
+#ifdef WITH_TBB
 static void parallel_for_impl_individual_size_lookup(
     const IndexRange range,
     const int64_t grain_size,
@@ -211,6 +214,8 @@ static void parallel_for_impl_individual_size_lookup(
     });
   });
 }
+
+#endif /* WITH_TBB */
 
 static void parallel_for_impl_accumulated_size_lookup(
     const IndexRange range,
