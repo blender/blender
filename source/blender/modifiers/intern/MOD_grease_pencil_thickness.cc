@@ -131,7 +131,7 @@ static void deform_drawing(const ModifierData &md,
             (mmd.influence.custom_curve))
         {
           /* Normalize value to evaluate curve. */
-          const float value = float(i) / (points.size() - 1);
+          const float value = points.size() > 1 ? (float(i) / float(points.size() - 1)) : 0.0f;
           return BKE_curvemapping_evaluateF(mmd.influence.custom_curve, 0, value);
         }
         return 1.0f;
