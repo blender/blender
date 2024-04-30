@@ -99,6 +99,8 @@ CHECKER_EXCLUDE_FROM_SUMMARY = {
     "nonoOperatorEq",
     # There seems to be many false positives here.
     "unusedFunction",
+    # Also noisy, looks like these are not issues to "solve".
+    "unusedPrivateFunction",
     # TODO: consider enabling this, more of a preference,
     # not using STL algorithm's doesn't often hint at actual errors.
     "useStlAlgorithm",
