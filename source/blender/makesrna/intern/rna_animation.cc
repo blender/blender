@@ -241,8 +241,12 @@ static void rna_AnimData_animation_binding_handle_set(
 
   blender::animrig::Animation *anim = blender::animrig::get_animation(animated_id);
   if (!anim) {
-    /* No animation to verify the binding handle is valid. Just set it, it'll be ignored anyway. */
-    adt->binding_handle = new_binding_handle;
+    /* No animation to verify the binding handle is valid. As the binding handle
+     * will be completely ignored when re-assigning an Animation, better to
+     * refuse setting it altogether. This will make bugs in Python code more obvious. */
+    WM_reportf(RPT_ERROR,
+               "Data-block '%s' does not have an animation, cannot set binding handle",
+               animated_id.name + 2);
     return;
   }
 

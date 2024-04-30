@@ -40,6 +40,39 @@ class AnimationIDAssignmentTest(unittest.TestCase):
         bpy.data.objects.remove(camera)
         self.assertEqual(0, anim.users)
 
+    def test_animation_binding_assignment(self):
+        # Create new animation datablock.
+        anim = bpy.data.animations.new('TestAnim')
+        self.assertEqual(0, anim.users)
+
+        # Assign the animation to the cube,
+        cube = bpy.data.objects['Cube']
+        cube_adt = cube.animation_data_create()
+        cube_adt.animation = anim
+        bind_cube = anim.bindings.new(for_id=cube)
+        cube_adt.animation_binding_handle = bind_cube.handle
+        self.assertEqual(cube_adt.animation_binding_handle, bind_cube.handle)
+
+        # Assign the animation to the camera as well.
+        camera = bpy.data.objects['Camera']
+        bind_camera = anim.bindings.new(for_id=camera)
+        camera_adt = camera.animation_data_create()
+        camera_adt.animation = anim
+        self.assertEqual(camera_adt.animation_binding_handle, bind_camera.handle)
+
+        # Unassigning should keep the binding name.
+        cube_adt.animation = None
+        self.assertEqual(cube_adt.animation_binding_name, bind_cube.name)
+
+        # It should not be possible to set the binding handle while the animation is unassigned.
+        bind_extra = anim.bindings.new()
+        cube_adt.animation_binding_handle = bind_extra.handle
+        self.assertEqual(cube_adt.animation_binding_handle, bind_cube.handle)
+
+        # Clearing out the binding handle should be fine though.
+        cube_adt.animation_binding_handle = 0
+        self.assertEqual(cube_adt.animation_binding_handle, 0)
+
 
 class LimitationsTest(unittest.TestCase):
     """Test artificial limitations for the Animation data-block.
