@@ -33,7 +33,7 @@ template<> inline short4 convert_normal(const float3 &src)
 }
 
 template<typename GPUType>
-static void extract_normals(const Span<float3> src, MutableSpan<GPUType> dst)
+static void convert_normals_impl(const Span<float3> src, MutableSpan<GPUType> dst)
 {
   threading::parallel_for(src.index_range(), 2048, [&](const IndexRange range) {
     for (const int i : range) {
@@ -42,22 +42,21 @@ static void extract_normals(const Span<float3> src, MutableSpan<GPUType> dst)
   });
 }
 
-template<typename GPUType>
-static void extract_vert_normals_impl(const MeshRenderData &mr, MutableSpan<GPUType> normals)
+template<> void convert_normals(const Span<float3> src, MutableSpan<GPUPackedNormal> normals)
 {
-  Array<GPUType> vert_normals_converted(mr.vert_normals.size());
-  extract_normals(mr.vert_normals, vert_normals_converted.as_mutable_span());
-  array_utils::gather(vert_normals_converted.as_span(), mr.corner_verts, normals);
+  convert_normals_impl(src, normals);
+}
+template<> void convert_normals(const Span<float3> src, MutableSpan<short4> normals)
+{
+  convert_normals_impl(src, normals);
 }
 
-template<>
-void extract_vert_normals(const MeshRenderData &mr, MutableSpan<GPUPackedNormal> normals)
+template<typename GPUType>
+static void extract_vert_normals(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
-  extract_vert_normals_impl(mr, normals);
-}
-template<> void extract_vert_normals(const MeshRenderData &mr, MutableSpan<short4> normals)
-{
-  extract_vert_normals_impl(mr, normals);
+  Array<GPUType> vert_normals_converted(mr.vert_normals.size());
+  convert_normals(mr.vert_normals, vert_normals_converted.as_mutable_span());
+  array_utils::gather(vert_normals_converted.as_span(), mr.corner_verts, normals);
 }
 
 template<typename GPUType>
@@ -82,7 +81,7 @@ static void extract_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUType> 
     extract_vert_normals(mr, normals);
   }
   else if (!mr.corner_normals.is_empty()) {
-    extract_normals(mr.corner_normals, normals);
+    convert_normals(mr.corner_normals, normals);
   }
   else if (mr.sharp_faces.is_empty()) {
     extract_vert_normals(mr, normals);

@@ -12,6 +12,7 @@
 
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
 #include "DNA_scene_types.h"
@@ -334,8 +335,22 @@ void mesh_render_data_loop_edge_flag(const MeshRenderData &mr,
                                      BMUVOffsets offsets,
                                      EditLoopData *eattr);
 
-template<typename GPUType>
-void extract_vert_normals(const MeshRenderData &mr, MutableSpan<GPUType> normals);
+template<typename GPUType> void convert_normals(Span<float3> src, MutableSpan<GPUType> dst);
+
+template<typename T>
+void extract_mesh_loose_edge_data(const Span<T> vert_data,
+                                  const Span<int2> edges,
+                                  const Span<int> loose_edge_indices,
+                                  MutableSpan<T> gpu_data)
+{
+  threading::parallel_for(loose_edge_indices.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      const int2 edge = edges[loose_edge_indices[i]];
+      gpu_data[i * 2 + 0] = vert_data[edge[0]];
+      gpu_data[i * 2 + 1] = vert_data[edge[1]];
+    }
+  });
+}
 
 void extract_lines(const MeshRenderData &mr,
                    gpu::IndexBuf *lines,
