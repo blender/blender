@@ -465,7 +465,7 @@ enum {
 ModifierData *modifier_add(
     ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type);
 bool modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Object *ob, ModifierData *md);
-void modifier_clear(Main *bmain, Scene *scene, Object *ob);
+void modifiers_clear(Main *bmain, Scene *scene, Object *ob);
 bool modifier_move_down(ReportList *reports, eReportType error_type, Object *ob, ModifierData *md);
 bool modifier_move_up(ReportList *reports, eReportType error_type, Object *ob, ModifierData *md);
 bool modifier_move_to_index(ReportList *reports,

@@ -406,7 +406,7 @@ bool modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Object *ob,
   return true;
 }
 
-void modifier_clear(Main *bmain, Scene *scene, Object *ob)
+void modifiers_clear(Main *bmain, Scene *scene, Object *ob)
 {
   ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
   bool sort_depsgraph = false;
