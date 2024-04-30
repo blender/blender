@@ -865,8 +865,10 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
       mr, mbc, MR_ITER_LOOSE_EDGE | MR_ITER_LOOSE_VERT, MR_DATA_LOOSE_GEOM);
   DRW_subdivide_loose_geom(&subdiv_cache, &mbc);
 
-  extract_lines_subdiv(
-      subdiv_cache, mr, mbuflist->ibo.lines, mbuflist->ibo.lines_loose, cache.no_loose_wire);
+  if (DRW_ibo_requested(mbuflist->ibo.lines) || DRW_ibo_requested(mbuflist->ibo.lines_loose)) {
+    extract_lines_subdiv(
+        subdiv_cache, mr, mbuflist->ibo.lines, mbuflist->ibo.lines_loose, cache.no_loose_wire);
+  }
 
   void *data_stack = MEM_mallocN(extractors.data_size_total(), __func__);
   uint32_t data_offset = 0;
