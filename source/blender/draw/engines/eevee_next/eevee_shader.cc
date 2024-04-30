@@ -779,9 +779,14 @@ static bool can_use_default_cb(GPUMaterial *mat)
   eMaterialPipeline pipeline_type;
   eMaterialGeometry geometry_type;
   eMaterialDisplacement displacement_type;
+  eMaterialThickness thickness_type;
   bool transparent_shadows;
-  material_type_from_shader_uuid(
-      shader_uuid, pipeline_type, geometry_type, displacement_type, transparent_shadows);
+  material_type_from_shader_uuid(shader_uuid,
+                                 pipeline_type,
+                                 geometry_type,
+                                 displacement_type,
+                                 thickness_type,
+                                 transparent_shadows);
 
   bool is_shadow_pass = pipeline_type == eMaterialPipeline::MAT_PIPE_SHADOW;
   bool is_prepass = ELEM(pipeline_type,
@@ -833,9 +838,10 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
   bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_MATERIAL, MAT_PIPE_VOLUME_OCCUPANCY);
 
   eMaterialDisplacement displacement_type = to_displacement_type(blender_mat->displacement_method);
+  eMaterialThickness thickness_type = to_thickness_type(blender_mat->thickness_mode);
 
   uint64_t shader_uuid = shader_uuid_from_material_type(
-      pipeline_type, geometry_type, displacement_type, blender_mat->blend_flag);
+      pipeline_type, geometry_type, displacement_type, thickness_type, blender_mat->blend_flag);
 
   GPUMaterial *mat = DRW_shader_from_material(blender_mat,
                                               nodetree,
