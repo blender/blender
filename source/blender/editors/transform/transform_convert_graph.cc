@@ -755,8 +755,6 @@ static blender::Vector<BeztMap> bezt_to_beztmaps(BezTriple *bezts, const int tot
 /* This function copies the code of sort_time_ipocurve, but acts on BeztMap structs instead. */
 static void sort_time_beztmaps(const blender::MutableSpan<BeztMap> bezms)
 {
-  BeztMap *bezm;
-
   /* Check if handles need to be swapped. */
   for (BeztMap &bezm : bezms) {
     /* Handles are only swapped if they are both on the wrong side of the key. Otherwise the one
@@ -766,18 +764,22 @@ static void sort_time_beztmaps(const blender::MutableSpan<BeztMap> bezms)
   }
 
   bool ok = true;
+  const int bezms_size = bezms.size();
+  if (bezms_size < 2) {
+    /* No sorting is needed with only 0 or 1 entries. */
+    return;
+  }
+  const blender::IndexRange bezm_range = bezms.index_range().drop_back(1);
+
   /* Keep repeating the process until nothing is out of place anymore. */
   while (ok) {
     ok = false;
-
-    for (const int i : bezms.index_range()) {
-      bezm = &bezms[i];
+    for (const int i : bezm_range) {
+      BeztMap *bezm = &bezms[i];
       /* Is current bezm out of order (i.e. occurs later than next)? */
-      if (i < bezms.size() - 1) {
-        if (bezm->bezt->vec[1][0] > (bezm + 1)->bezt->vec[1][0]) {
-          std::swap(*bezm, *(bezm + 1));
-          ok = true;
-        }
+      if (bezm->bezt->vec[1][0] > (bezm + 1)->bezt->vec[1][0]) {
+        std::swap(*bezm, *(bezm + 1));
+        ok = true;
       }
     }
   }
