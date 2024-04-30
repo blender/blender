@@ -599,15 +599,13 @@ static bool restore_color(Object &object, Node &unode, MutableSpan<bool> modifie
   /* NOTE: even with loop colors we still store derived
    * vertex colors for original data lookup. */
   if (!unode.col.is_empty() && unode.loop_col.is_empty()) {
-    BKE_pbvh_swap_colors(*ss->pbvh,
-                         mesh.vert_to_face_map(),
-                         unode.vert_indices.as_span().take_front(unode.unique_verts_num),
-                         unode.col);
+    BKE_pbvh_swap_colors(
+        *ss->pbvh, unode.vert_indices.as_span().take_front(unode.unique_verts_num), unode.col);
     modified = true;
   }
 
   if (!unode.loop_col.is_empty() && unode.mesh_corners_num == mesh.corners_num) {
-    BKE_pbvh_swap_colors(*ss->pbvh, mesh.vert_to_face_map(), unode.corner_indices, unode.loop_col);
+    BKE_pbvh_swap_colors(*ss->pbvh, unode.corner_indices, unode.loop_col);
     modified = true;
   }
 

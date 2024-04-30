@@ -171,7 +171,6 @@ void BKE_pbvh_vertex_color_set(PBVH &pbvh,
 }
 
 void BKE_pbvh_swap_colors(PBVH &pbvh,
-                          const blender::GroupedSpan<int> vert_to_face_map,
                           const blender::Span<int> indices,
                           blender::MutableSpan<blender::float4> r_colors)
 {

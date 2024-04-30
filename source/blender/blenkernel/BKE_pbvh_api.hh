@@ -535,7 +535,6 @@ bool BKE_pbvh_get_color_layer(Mesh *mesh,
 /* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
  * with values in colors. */
 void BKE_pbvh_swap_colors(PBVH &pbvh,
-                          blender::GroupedSpan<int> vert_to_face_map,
                           blender::Span<int> indices,
                           blender::MutableSpan<blender::float4> r_colors);
 
