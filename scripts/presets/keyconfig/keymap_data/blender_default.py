@@ -8053,7 +8053,6 @@ def km_3d_view_tool_sculpt_line_hide(params):
 
 
 def km_3d_view_tool_sculpt_polyline_hide(params):
-    # autopep8:off
     return (
         "3D View Tool: Sculpt, Polyline Hide",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
@@ -8064,7 +8063,6 @@ def km_3d_view_tool_sculpt_polyline_hide(params):
              {"properties": [("action", 'SHOW')]}),
         ]},
     )
-    # autopep8: on
 
 
 def km_3d_view_tool_sculpt_box_mask(params):
