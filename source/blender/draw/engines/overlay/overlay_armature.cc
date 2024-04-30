@@ -1137,8 +1137,10 @@ static void cp_shade_color3ub(uchar cp[3], const int offset)
  */
 static void use_bone_color(float *r_color, const uint8_t *color_from_theme, const int shade_offset)
 {
-  uint8_t srgb_color[4];
-  copy_v4_v4_uchar(srgb_color, color_from_theme);
+  uint8_t srgb_color[4] = {255, 255, 255, 255};
+  /* Only copy RGB, not alpha.  The "alpha" channel in the bone theme colors is
+   * essentially just padding, and should be ignored. */
+  copy_v3_v3_uchar(srgb_color, color_from_theme);
   if (shade_offset != 0) {
     cp_shade_color3ub(srgb_color, shade_offset);
   }
