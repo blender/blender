@@ -5572,13 +5572,12 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
   if (RNA_path_resolve_property(
           &id_ptr, onion_skinning_rna_path->c_str(), &ptr, &onion_skinning_prop))
   {
-    const int icon = layer->use_onion_skinning() ? ICON_ONIONSKIN_ON : ICON_ONIONSKIN_OFF;
     uiDefAutoButR(block,
                   &ptr,
                   onion_skinning_prop,
                   array_index,
                   "",
-                  icon,
+                  ICON_ONIONSKIN_OFF,
                   offset,
                   rect->ymin,
                   ICON_WIDTH,
