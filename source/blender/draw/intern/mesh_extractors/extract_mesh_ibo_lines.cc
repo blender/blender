@@ -88,6 +88,10 @@ static void extract_lines_mesh(const MeshRenderData &mr,
                     max_index);
   MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
 
+  /* This code fills the index buffer in a non-deterministic way, with non-atomic access to `used`.
+   * This is okay because any of the possible face corner indices are correct, since they all
+   * correspond to the same #Mesh vertex. `used` exists here as a performance optimization to
+   * avoid writing to the VBO. */
   const OffsetIndices faces = mr.faces;
   const Span<int> corner_edges = mr.corner_edges;
   if (visible_non_loose_edges.size() == mr.edges_num) {
@@ -104,15 +108,10 @@ static void extract_lines_mesh(const MeshRenderData &mr,
               const IndexRange face = faces[face_index];
               for (const int corner : face) {
                 const int edge = corner_edges[corner];
-                /* Access to `used` don't need to be atomic because any of the possible face corner
-                 * indices from `edge_from_corners` are correct, since they all correspond to the
-                 * same #Mesh vertex. `used` only exists here as a performance optimization to
-                 * avoid writing to the VBO unnecessarily. */
-                if (used[edge]) {
-                  continue;
+                if (!used[edge]) {
+                  data[edge] = edge_from_corners(face, corner);
+                  used[edge] = true;
                 }
-                data[edge] = edge_from_corners(face, corner);
-                used[edge] = true;
               }
             }
           });
@@ -129,11 +128,10 @@ static void extract_lines_mesh(const MeshRenderData &mr,
               const IndexRange face = faces[face_index];
               for (const int corner : face) {
                 const int edge = corner_edges[corner];
-                if (map[edge] == -1) {
-                  continue;
+                if (map[edge] != -1) {
+                  data[map[edge]] = edge_from_corners(face, corner);
+                  map[edge] = -1;
                 }
-                data[map[edge]] = edge_from_corners(face, corner);
-                map[edge] = -1;
               }
             }
           });
