@@ -245,11 +245,13 @@ static void node_socket_toggle(bNode *node, bNodeSocket &sock, bool deselect_nod
   }
 }
 
-void node_deselect_all(bNodeTree &node_tree)
+bool node_deselect_all(bNodeTree &node_tree)
 {
+  bool changed = false;
   for (bNode *node : node_tree.all_nodes()) {
-    nodeSetSelected(node, false);
+    changed |= nodeSetSelected(node, false);
   }
+  return changed;
 }
 
 void node_deselect_all_input_sockets(bNodeTree &node_tree, const bool deselect_nodes)
@@ -631,8 +633,7 @@ static bool node_mouse_select(bContext *C,
       }
       else if (found || params->deselect_all) {
         /* Deselect everything. */
-        node_deselect_all(node_tree);
-        changed = true;
+        changed = node_deselect_all(node_tree);
       }
     }
 

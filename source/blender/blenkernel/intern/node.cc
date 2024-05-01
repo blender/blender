@@ -3839,20 +3839,26 @@ bNode *nodeGetActive(bNodeTree *ntree)
   return nullptr;
 }
 
-void nodeSetSelected(bNode *node, const bool select)
+bool nodeSetSelected(bNode *node, const bool select)
 {
-  if (select) {
-    node->flag |= NODE_SELECT;
-    return;
+  bool changed = false;
+  if (select != ((node->flag & NODE_SELECT) != 0)) {
+    changed = true;
+    SET_FLAG_FROM_TEST(node->flag, select, NODE_SELECT);
   }
-  node->flag &= ~NODE_SELECT;
-  /* deselect sockets too */
+  if (select) {
+    return changed;
+  }
+  /* Deselect sockets too. */
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+    changed |= (sock->flag & NODE_SELECT) != 0;
     sock->flag &= ~NODE_SELECT;
   }
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+    changed |= (sock->flag & NODE_SELECT) != 0;
     sock->flag &= ~NODE_SELECT;
   }
+  return changed;
 }
 
 void nodeClearActive(bNodeTree *ntree)

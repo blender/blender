@@ -642,7 +642,11 @@ bool nodeIsParentAndChild(const bNode *parent, const bNode *child);
 
 int nodeCountSocketLinks(const bNodeTree *ntree, const bNodeSocket *sock);
 
-void nodeSetSelected(bNode *node, bool select);
+/**
+ * Selects or deselects the node. If the node is deselected, all its sockets are deselected too.
+ * \return True if any selection was changed.
+ */
+bool nodeSetSelected(bNode *node, bool select);
 /**
  * Two active flags, ID nodes have special flag for buttons display.
  */
