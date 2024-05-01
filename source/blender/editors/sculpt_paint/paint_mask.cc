@@ -700,7 +700,7 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 {
   ot->name = "Mask Lasso Gesture";
   ot->idname = "PAINT_OT_mask_lasso_gesture";
-  ot->description = "Add mask within the lasso as you move the brush";
+  ot->description = "Mask within a shape defined by the cursor";
 
   ot->invoke = WM_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
@@ -720,7 +720,7 @@ void PAINT_OT_mask_box_gesture(wmOperatorType *ot)
 {
   ot->name = "Mask Box Gesture";
   ot->idname = "PAINT_OT_mask_box_gesture";
-  ot->description = "Add mask within the box as you move the brush";
+  ot->description = "Mask within a rectangle defined by the cursor";
 
   ot->invoke = WM_gesture_box_invoke;
   ot->modal = WM_gesture_box_modal;
@@ -740,7 +740,7 @@ void PAINT_OT_mask_line_gesture(wmOperatorType *ot)
 {
   ot->name = "Mask Line Gesture";
   ot->idname = "PAINT_OT_mask_line_gesture";
-  ot->description = "Add mask to the right of a line as you move the brush";
+  ot->description = "Mask to one side of a line defined by the cursor";
 
   ot->invoke = WM_gesture_straightline_active_side_invoke;
   ot->modal = WM_gesture_straightline_oneshot_modal;
