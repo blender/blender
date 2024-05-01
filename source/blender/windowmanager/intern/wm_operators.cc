@@ -1725,7 +1725,9 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
 static int wm_operator_props_popup_ex(bContext *C,
                                       wmOperator *op,
                                       const bool do_call,
-                                      const bool do_redo)
+                                      const bool do_redo,
+                                      std::optional<std::string> title = std::nullopt,
+                                      std::optional<std::string> confirm_text = std::nullopt)
 {
   if ((op->type->flag & OPTYPE_REGISTER) == 0) {
     BKE_reportf(op->reports,
@@ -1748,7 +1750,7 @@ static int wm_operator_props_popup_ex(bContext *C,
   /* If we don't have global undo, we can't do undo push for automatic redo,
    * so we require manual OK clicking in this popup. */
   if (!do_redo || !(U.uiflag & USER_GLOBALUNDO)) {
-    return WM_operator_props_dialog_popup(C, op, 300);
+    return WM_operator_props_dialog_popup(C, op, 300, title, confirm_text);
   }
 
   UI_popup_block_ex(C, wm_block_create_redo, nullptr, wm_block_redo_cancel_cb, op, op);
@@ -1760,9 +1762,18 @@ static int wm_operator_props_popup_ex(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
+int WM_operator_props_popup_confirm_ex(bContext *C,
+                                       wmOperator *op,
+                                       const wmEvent * /*event*/,
+                                       std::optional<std::string> title,
+                                       std::optional<std::string> confirm_text)
+{
+  return wm_operator_props_popup_ex(C, op, false, false, title, confirm_text);
+}
+
 int WM_operator_props_popup_confirm(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  return wm_operator_props_popup_ex(C, op, false, false);
+  return wm_operator_props_popup_ex(C, op, false, false, {}, {});
 }
 
 int WM_operator_props_popup_call(bContext *C, wmOperator *op, const wmEvent * /*event*/)

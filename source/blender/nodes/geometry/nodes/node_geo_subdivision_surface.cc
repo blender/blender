@@ -230,7 +230,7 @@ static void node_register()
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;
-  bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::MIDDLE);
+  bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::Middle);
   node_type_storage(&ntype,
                     "NodeGeometrySubdivisionSurface",
                     node_free_standard_storage,

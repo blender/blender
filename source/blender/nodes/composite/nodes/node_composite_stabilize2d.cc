@@ -116,12 +116,12 @@ class Stabilize2DOperation : public NodeOperation {
 
   Interpolation get_interpolation()
   {
-    switch (static_cast<CMPNodeStabilizeInterpolation>(bnode().custom1)) {
-      case CMP_NODE_STABILIZE_INTERPOLATION_NEAREST:
+    switch (static_cast<CMPNodeInterpolation>(bnode().custom1)) {
+      case CMP_NODE_INTERPOLATION_NEAREST:
         return Interpolation::Nearest;
-      case CMP_NODE_STABILIZE_INTERPOLATION_BILINEAR:
+      case CMP_NODE_INTERPOLATION_BILINEAR:
         return Interpolation::Bilinear;
-      case CMP_NODE_STABILIZE_INTERPOLATION_BICUBIC:
+      case CMP_NODE_INTERPOLATION_BICUBIC:
         return Interpolation::Bicubic;
     }
 

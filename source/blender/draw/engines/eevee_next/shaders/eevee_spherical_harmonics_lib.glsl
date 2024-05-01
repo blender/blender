@@ -709,6 +709,36 @@ SphericalHarmonicL1 spherical_harmonics_decompress(SphericalHarmonicL1 sh)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Deringing
+ *
+ * Change the encoded data to avoid negative value during evaluation.
+ * \{ */
+
+SphericalHarmonicL1 spherical_harmonics_dering(SphericalHarmonicL1 sh)
+{
+  /* Convert coefficients to per channel column. */
+  mat4x4 m = transpose(mat4x4(sh.L0.M0, sh.L1.Mn1, sh.L1.M0, sh.L1.Mp1));
+  /* Find maximum value the L1 band can contain that doesn't exhibit ringing artifacts. */
+  float fac_r = abs(m[0].x) / max(1e-8, reduce_max(abs(m[0].yzw)));
+  float fac_g = abs(m[1].x) / max(1e-8, reduce_max(abs(m[1].yzw)));
+  float fac_b = abs(m[2].x) / max(1e-8, reduce_max(abs(m[2].yzw)));
+  /* Find the factor for the biggest component. We don't want to have color drift. */
+  float fac = reduce_min(vec3(fac_r, fac_g, fac_b));
+  /* Multiply by each band's weight. */
+  fac *= 0.282094792 / 0.488602512;
+
+  if (fac > 1.0) {
+    return sh;
+  }
+
+  SphericalHarmonicL1 result = sh;
+  result.L1 = spherical_harmonics_L1_mul(result.L1, fac);
+  return result;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Clamping
  *
  * Clamp the total power of the SH function.

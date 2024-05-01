@@ -130,6 +130,8 @@ void main()
     sh_local = spherical_harmonics_add(sh_local, sh_distant);
   }
 
+  sh_local = spherical_harmonics_dering(sh_local);
+
   atlas_store(sh_local.L0.M0, output_coord, 0);
   atlas_store(sh_local.L1.Mn1, output_coord, 1);
   atlas_store(sh_local.L1.M0, output_coord, 2);

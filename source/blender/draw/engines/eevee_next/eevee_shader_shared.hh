@@ -1734,10 +1734,14 @@ BLI_STATIC_ASSERT_ALIGN(HiZData, 16)
  * \{ */
 
 struct ClampData {
+  float world;
   float surface_direct;
   float surface_indirect;
   float volume_direct;
   float volume_indirect;
+  float _pad0;
+  float _pad1;
+  float _pad2;
 };
 BLI_STATIC_ASSERT_ALIGN(ClampData, 16)
 

@@ -1629,10 +1629,10 @@ void node_type_socket_templates(bNodeType *ntype,
 void node_type_size(bNodeType *ntype, int width, int minwidth, int maxwidth);
 
 enum class eNodeSizePreset : int8_t {
-  DEFAULT,
-  SMALL,
-  MIDDLE,
-  LARGE,
+  Default,
+  Small,
+  Middle,
+  Large,
 };
 
 void node_type_size_preset(bNodeType *ntype, eNodeSizePreset size);

@@ -109,7 +109,7 @@ void register_node_type_tex_bricks()
 
   tex_node_type_base(&ntype, TEX_NODE_BRICKS, "Bricks", NODE_CLASS_PATTERN);
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
-  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.initfunc = init;
   ntype.exec_fn = exec;
   ntype.flag |= NODE_PREVIEW;

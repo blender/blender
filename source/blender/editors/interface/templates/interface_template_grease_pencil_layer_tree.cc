@@ -258,10 +258,7 @@ class LayerViewItem : public AbstractTreeViewItem {
 
     sub = uiLayoutRow(&row, true);
     uiLayoutSetActive(sub, layer_.parent_group().use_masks());
-    const int icon_mask = (layer_.base.flag & GP_LAYER_TREE_NODE_HIDE_MASKS) == 0 ?
-                              ICON_CLIPUV_DEHLT :
-                              ICON_CLIPUV_HLT;
-    uiItemR(sub, &layer_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, nullptr, icon_mask);
+    uiItemR(sub, &layer_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, nullptr, ICON_NONE);
 
     sub = uiLayoutRow(&row, true);
     uiLayoutSetActive(sub, layer_.parent_group().use_onion_skinning());

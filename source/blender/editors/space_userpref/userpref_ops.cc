@@ -379,7 +379,8 @@ static int preferences_extension_repo_add_invoke(bContext *C, wmOperator *op, co
     RNA_property_string_set(op->ptr, prop_name, name_default);
   }
 
-  return WM_operator_props_popup_confirm(C, op, event);
+  return WM_operator_props_popup_confirm_ex(
+      C, op, event, IFACE_("Add New Extension Repository"), IFACE_("Create"));
 }
 
 static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)

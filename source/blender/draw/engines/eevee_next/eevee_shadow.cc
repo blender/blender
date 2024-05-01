@@ -778,8 +778,8 @@ void ShadowModule::init()
   jittered_transparency_ = !inst_.is_viewport() ||
                            scene.eevee.flag & SCE_EEVEE_SHADOW_JITTERED_VIEWPORT;
 
-  data_.ray_count = clamp_i(inst_.scene->eevee.shadow_ray_count, 1, SHADOW_MAX_RAY);
-  data_.step_count = clamp_i(inst_.scene->eevee.shadow_step_count, 1, SHADOW_MAX_STEP);
+  data_.ray_count = clamp_i(scene.eevee.shadow_ray_count, 1, SHADOW_MAX_RAY);
+  data_.step_count = clamp_i(scene.eevee.shadow_step_count, 1, SHADOW_MAX_STEP);
 
   /* Pool size is in MBytes. */
   const size_t pool_byte_size = enabled_ ? scene.eevee.shadow_pool_size * square_i(1024) : 1;
@@ -787,12 +787,7 @@ void ShadowModule::init()
   shadow_page_len_ = int(divide_ceil_ul(pool_byte_size, page_byte_size));
   shadow_page_len_ = min_ii(shadow_page_len_, SHADOW_MAX_PAGE);
 
-  float simplify_shadows = 1.0f;
-  if (scene.r.mode & R_SIMPLIFY) {
-    simplify_shadows = inst_.is_viewport() ? scene.r.simplify_shadows :
-                                             scene.r.simplify_shadows_render;
-  }
-  lod_bias_ = -log2(simplify_shadows);
+  lod_bias_ = -log2f(scene.eevee.shadow_resolution_scale);
 
   const int2 atlas_extent = shadow_page_size_ * int2(SHADOW_PAGE_PER_ROW);
   const int atlas_layers = divide_ceil_u(shadow_page_len_, SHADOW_PAGE_PER_LAYER);

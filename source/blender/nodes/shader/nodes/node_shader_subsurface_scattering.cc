@@ -120,7 +120,7 @@ void register_node_type_sh_subsurface_scattering()
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_subsurface;
-  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.initfunc = file_ns::node_shader_init_subsurface_scattering;
   ntype.gpu_fn = file_ns::node_shader_gpu_subsurface_scattering;
   ntype.updatefunc = file_ns::node_shader_update_subsurface_scattering;

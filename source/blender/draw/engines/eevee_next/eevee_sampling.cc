@@ -63,6 +63,7 @@ void Sampling::init(const Scene *scene)
 
   auto clamp_value_load = [](float value) { return (value > 0.0) ? value : 1e20; };
 
+  clamp_data_.world = clamp_value_load(scene->eevee.clamp_world);
   clamp_data_.surface_direct = clamp_value_load(scene->eevee.clamp_surface_direct);
   clamp_data_.surface_indirect = clamp_value_load(scene->eevee.clamp_surface_indirect);
   clamp_data_.volume_direct = clamp_value_load(scene->eevee.clamp_volume_direct);

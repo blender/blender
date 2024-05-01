@@ -18,6 +18,7 @@ TranslateOperation::TranslateOperation(DataType data_type, ResizeMode resize_mod
   is_relative_ = false;
   this->x_extend_mode_ = MemoryBufferExtend::Clip;
   this->y_extend_mode_ = MemoryBufferExtend::Clip;
+  this->sampler_ = PixelSampler::Nearest;
 
   this->flags_.can_be_constant = true;
 }
@@ -96,14 +97,20 @@ void TranslateOperation::update_memory_buffer_partial(MemoryBuffer *output,
     return;
   }
 
-  const int delta_x = this->get_delta_x();
-  const int delta_y = this->get_delta_y();
+  float delta_x = this->get_delta_x();
+  float delta_y = this->get_delta_y();
+  if (sampler_ == PixelSampler::Nearest) {
+    /* Use same rounding convention for GPU compositor. */
+    delta_x = round(delta_x);
+    delta_y = round(delta_y);
+  }
+
   for (int y = area.ymin; y < area.ymax; y++) {
     float *out = output->get_elem(area.xmin, y);
     for (int x = area.xmin; x < area.xmax; x++) {
-      const int input_x = x - delta_x;
-      const int input_y = y - delta_y;
-      input->read(out, input_x, input_y, x_extend_mode_, y_extend_mode_);
+      const float input_x = x - delta_x;
+      const float input_y = y - delta_y;
+      input->read(out, input_x, input_y, sampler_, x_extend_mode_, y_extend_mode_);
       out += output->elem_stride;
     }
   }

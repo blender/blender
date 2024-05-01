@@ -1744,7 +1744,8 @@ static int ed_marker_rename_invoke(bContext *C, wmOperator *op, const wmEvent *e
     RNA_string_set(op->ptr, "name", marker->name);
   }
 
-  return WM_operator_props_popup_confirm(C, op, event);
+  return WM_operator_props_popup_confirm_ex(
+      C, op, event, IFACE_("Rename Selected Time Marker"), IFACE_("Rename"));
 }
 
 static void MARKER_OT_rename(wmOperatorType *ot)

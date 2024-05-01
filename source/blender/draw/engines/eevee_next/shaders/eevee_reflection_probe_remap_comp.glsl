@@ -107,6 +107,9 @@ void main()
     radiance.rgb = mix(world_radiance.rgb, radiance.rgb, opacity);
   }
 
+  float clamp_world = uniform_buf.clamp.world;
+  radiance = colorspace_brightness_clamp_max(radiance, clamp_world);
+
   if (!any(greaterThanEqual(local_texel, ivec2(write_coord.extent)))) {
     float clamp_indirect = uniform_buf.clamp.surface_indirect;
     vec3 out_radiance = colorspace_brightness_clamp_max(radiance, clamp_indirect);

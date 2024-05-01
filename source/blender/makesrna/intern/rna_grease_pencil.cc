@@ -409,6 +409,7 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
 
   /* Use Masks. */
   prop = RNA_def_property(srna, "use_masks", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_icon(prop, ICON_CLIPUV_HLT, -1);
   RNA_def_property_boolean_negative_sdna(
       prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_HIDE_MASKS);
   RNA_def_property_ui_text(

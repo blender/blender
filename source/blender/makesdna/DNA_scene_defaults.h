@@ -230,12 +230,14 @@
     .motion_blur_max = 32, \
     .motion_blur_steps = 1, \
  \
+    .clamp_world = 10.0f, \
     .clamp_surface_indirect = 10.0f, \
 \
     .shadow_cube_size = 512, \
     .shadow_cascade_size = 1024, \
     .shadow_ray_count = 1, \
     .shadow_step_count = 6, \
+    .shadow_resolution_scale = 1.0f, \
  \
     .ray_tracing_method = RAYTRACE_EEVEE_METHOD_SCREEN, \
  \

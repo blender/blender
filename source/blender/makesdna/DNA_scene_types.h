@@ -791,8 +791,6 @@ typedef struct RenderData {
   float simplify_particles;
   float simplify_particles_render;
   float simplify_volumes;
-  float simplify_shadows;
-  float simplify_shadows_render;
 
   /** Freestyle line thickness options. */
   int line_thickness_mode;
@@ -1872,12 +1870,14 @@ typedef struct SceneEEVEE {
   int shadow_pool_size;
   int shadow_ray_count;
   int shadow_step_count;
-  char _pad[4];
+  float shadow_resolution_scale;
 
+  float clamp_world;
   float clamp_surface_direct;
   float clamp_surface_indirect;
   float clamp_volume_direct;
   float clamp_volume_indirect;
+  char _pad[4];
 
   int ray_tracing_method;
 

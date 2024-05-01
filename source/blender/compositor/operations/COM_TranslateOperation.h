@@ -22,6 +22,7 @@ class TranslateOperation : public MultiThreadedOperation {
   float delta_y_;
   bool is_delta_set_;
   bool is_relative_;
+  PixelSampler sampler_;
 
   std::mutex mutex_;
 
@@ -49,6 +50,15 @@ class TranslateOperation : public MultiThreadedOperation {
   bool get_is_relative()
   {
     return is_relative_;
+  }
+
+  PixelSampler get_sampler()
+  {
+    return sampler_;
+  }
+  void set_sampler(PixelSampler sampler)
+  {
+    sampler_ = sampler;
   }
 
   inline void ensure_delta()

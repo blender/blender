@@ -382,7 +382,9 @@ static int rna_iterator_keyframestrip_channelbags_length(PointerRNA *ptr)
   return key_strip.channelbags().size();
 }
 
-static FCurve *rna_KeyframeAnimationStrip_key_insert(KeyframeAnimationStrip *dna_strip,
+static FCurve *rna_KeyframeAnimationStrip_key_insert(ID *id,
+                                                     KeyframeAnimationStrip *dna_strip,
+                                                     Main *bmain,
                                                      ReportList *reports,
                                                      AnimationBinding *dna_binding,
                                                      const char *rna_path,
@@ -401,6 +403,11 @@ static FCurve *rna_KeyframeAnimationStrip_key_insert(KeyframeAnimationStrip *dna
 
   FCurve *fcurve = key_strip.keyframe_insert(
       binding, rna_path, array_index, {time, value}, settings);
+
+  if (fcurve) {
+    DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION);
+  }
+
   return fcurve;
 }
 
@@ -723,7 +730,7 @@ static void rna_def_animation_keyframe_strip(BlenderRNA *brna)
     /* KeyframeStrip.key_insert(...). */
 
     func = RNA_def_function(srna, "key_insert", "rna_KeyframeAnimationStrip_key_insert");
-    RNA_def_function_flag(func, FUNC_USE_REPORTS);
+    RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
     parm = RNA_def_pointer(func,
                            "binding",
                            "AnimationBinding",
