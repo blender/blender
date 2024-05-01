@@ -132,7 +132,7 @@ void BKE_paint_toolslots_brush_update(Paint *paint)
   BKE_paint_toolslots_brush_update_ex(paint, paint->brush);
 }
 
-void BKE_paint_toolslots_brush_validate(Main *bmain, Paint *paint)
+void BKE_paint_brush_validate(Main *bmain, Paint *paint)
 {
   /* Clear slots with invalid slots or mode (unlikely but possible). */
   const uint tool_offset = paint->runtime.tool_offset;

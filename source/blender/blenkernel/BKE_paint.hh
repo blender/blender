@@ -263,7 +263,7 @@ void BKE_paint_toolslots_brush_update(Paint *paint);
  * Run this to ensure brush types are set for each slot on entering modes
  * (for new scenes for example).
  */
-void BKE_paint_toolslots_brush_validate(Main *bmain, Paint *paint);
+void BKE_paint_brush_validate(Main *bmain, Paint *paint);
 Brush *BKE_paint_toolslots_brush_get(Paint *paint, int slot_index);
 
 /* .blend I/O */
