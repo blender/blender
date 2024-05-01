@@ -170,8 +170,6 @@ void BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
   else if (flag & IDWALK_RECURSE) {
     /* Defer handling into main loop, recursively calling BKE_library_foreach_ID_link in
      * IDWALK_RECURSE case is troublesome, see #49553. */
-    /* XXX note that this breaks the 'owner id' thing now, we likely want to handle that
-     * differently at some point, but for now it should not be a problem in practice. */
     if (BLI_gset_add(data->ids_handled, id)) {
       BLI_LINKSTACK_PUSH(data->ids_todo, id);
     }
@@ -210,6 +208,10 @@ static bool library_foreach_ID_link(Main *bmain,
   /* `IDWALK_NO_ORIG_POINTERS_ACCESS` is mutually exclusive with `IDWALK_RECURSE`. */
   BLI_assert((flag & (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_RECURSE)) !=
              (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_RECURSE));
+
+  if (flag & IDWALK_NO_ORIG_POINTERS_ACCESS) {
+    flag |= IDWALK_IGNORE_MISSING_OWNER_ID;
+  }
 
   if (flag & IDWALK_RECURSE) {
     /* For now, recursion implies read-only, and no internal pointers. */
@@ -258,12 +260,31 @@ static bool library_foreach_ID_link(Main *bmain,
   for (; id != nullptr; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : nullptr)
   {
     data.self_id = id;
-    /* Note that we may call this functions sometime directly on an embedded ID, without any
-     * knowledge of the owner ID then.
-     * While not great, and that should be probably sanitized at some point, we can live with it
-     * for now. */
-    data.owner_id = ((id->flag & LIB_EMBEDDED_DATA) != 0 && owner_id != nullptr) ? owner_id :
-                                                                                   data.self_id;
+    /* owner ID is same as self ID, except for embedded ID case. */
+    if (id->flag & LIB_EMBEDDED_DATA) {
+      if (flag & IDWALK_IGNORE_MISSING_OWNER_ID) {
+        data.owner_id = owner_id ? owner_id : id;
+      }
+      else {
+        /* NOTE: Unfortunately it is not possible to ensure validity of the set owner_id pointer
+         * here. `foreach_id` is used a lot by code remapping pointers, and in such cases the
+         * current owner ID of the processed embedded ID is indeed invalid - and the given one is
+         * to be assumed valid for the purpose of the current process.
+         *
+         * In other words, it is the responsibility of the code calling this `foreach_id` process
+         * to ensure that the given owner ID is valid for its own purpose, or that it is not used.
+         */
+        // BLI_assert(owner_id == nullptr || BKE_id_owner_get(id) == owner_id);
+        if (!owner_id) {
+          owner_id = BKE_id_owner_get(id, false);
+        }
+        data.owner_id = owner_id;
+      }
+    }
+    else {
+      BLI_assert(ELEM(owner_id, nullptr, id));
+      data.owner_id = id;
+    }
 
     /* inherit_data is non-nullptr when this function is called for some sub-data ID
      * (like root node-tree of a material).

@@ -682,7 +682,14 @@ ID *BKE_id_copy_in_lib(Main *bmain,
   data.id_src = id;
   data.id_dst = newid;
   data.flag = flag;
-  BKE_library_foreach_ID_link(bmain, newid, id_copy_libmanagement_cb, &data, IDWALK_NOP);
+  /* When copying an embedded ID, typically at this point its owner ID pinter will still point to
+   * the owner of the source, this code has no access to its valid (i.e. destination) owner. This
+   * can be added at some point is needed, but currently the #id_copy_libmanagement_cb callback
+   * does need this information. */
+  /* TODO: handle this fully properly by passing the correct owner ID to copy code when copying
+   * embedded data. */
+  BKE_library_foreach_ID_link(
+      bmain, newid, id_copy_libmanagement_cb, &data, IDWALK_IGNORE_MISSING_OWNER_ID);
 
   /* Do not make new copy local in case we are copying outside of main...
    * XXX TODO: is this behavior OK, or should we need a separate flag to control that? */
