@@ -67,11 +67,15 @@ void GrabOperation::foreach_grabbed_drawing(
         const GreasePencilStrokeParams &params, const IndexMask &mask, Span<float> weights)> fn)
     const
 {
+  using bke::greasepencil::Drawing;
+  using bke::greasepencil::Layer;
+
   const Scene &scene = *CTX_data_scene(&C);
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
-  const ARegion &region = *CTX_wm_region(&C);
-  const View3D &view3d = *CTX_wm_view3d(&C);
+  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
+  ARegion &region = *CTX_wm_region(&C);
+  View3D &view3d = *CTX_wm_view3d(&C);
   Object &object = *CTX_data_active_object(&C);
+  Object &object_eval = *DEG_get_evaluated_object(&depsgraph, &object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   bool changed = false;
@@ -80,7 +84,7 @@ void GrabOperation::foreach_grabbed_drawing(
     if (data.point_mask.is_empty()) {
       return;
     }
-    const bke::greasepencil::Layer &layer = *grease_pencil.layers()[data.layer_index];
+    const Layer &layer = *grease_pencil.layers()[data.layer_index];
     /* If a new frame is created, could be impossible find the stroke. */
     const int drawing_index = layer.drawing_index_at(data.frame_number);
     if (drawing_index < 0) {
@@ -93,15 +97,24 @@ void GrabOperation::foreach_grabbed_drawing(
     bke::greasepencil::Drawing &drawing =
         reinterpret_cast<GreasePencilDrawing &>(drawing_base).wrap();
 
+    ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, layer);
+    if (placement.use_project_to_surface()) {
+      placement.cache_viewport_depths(&depsgraph, &region, &view3d);
+    }
+    else if (placement.use_project_to_nearest_stroke()) {
+      placement.cache_viewport_depths(&depsgraph, &region, &view3d);
+      placement.set_origin_to_nearest_stroke(this->start_mouse_position);
+    }
+
     GreasePencilStrokeParams params = GreasePencilStrokeParams::from_context(
         scene,
         depsgraph,
         region,
-        view3d,
         object,
         data.layer_index,
         data.frame_number,
         data.multi_frame_falloff,
+        std::move(placement),
         drawing);
     if (fn(params, data.point_mask, data.weights)) {
       changed = true;
