@@ -7,26 +7,15 @@
  */
 
 #include <memory>
-#include <utility>
 
-#include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_vector.hh"
-
-#include "DNA_space_types.h"
 
 #include "AS_asset_identifier.hh"
 #include "AS_asset_library.hh"
 
 #include "BKE_asset.hh"
-#include "BKE_blendfile_link_append.hh"
-#include "BKE_idtype.hh"
-#include "BKE_lib_id.hh"
-#include "BKE_lib_remap.hh"
-#include "BKE_main.hh"
 
 #include "BLO_read_write.hh"
-#include "BLO_readfile.hh"
 
 #include "DNA_asset_types.h"
 

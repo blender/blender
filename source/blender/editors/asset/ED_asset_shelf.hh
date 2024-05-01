@@ -24,7 +24,6 @@ struct RegionPollParams;
 struct wmWindowManager;
 
 namespace blender {
-class StringRef;
 class StringRefNull;
 }  // namespace blender
 

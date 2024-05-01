@@ -5,9 +5,8 @@
 /** \file
  * \ingroup bke
  */
+#include <array>
 #include <optional>
-
-#include <memory>
 
 #include "MEM_guardedalloc.h"
 
@@ -15,13 +14,10 @@
 #include "DNA_defaults.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_rand.h"
-
-#include "BLO_readfile.hh"
 
 #include "BLT_translation.hh"
 
@@ -40,8 +36,6 @@
 #include "BKE_paint.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_texture.h"
-
-#include "AS_asset_library.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"

@@ -9,7 +9,6 @@
 #pragma once
 
 #include "BLI_function_ref.hh"
-#include "BLI_string_ref.hh"
 
 struct ARegion;
 struct ARegionType;
