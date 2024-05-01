@@ -1873,10 +1873,12 @@ typedef struct SceneEEVEE {
   int shadow_step_count;
   float shadow_resolution_scale;
 
+  float clamp_world;
   float clamp_surface_direct;
   float clamp_surface_indirect;
   float clamp_volume_direct;
   float clamp_volume_indirect;
+  char _pad[4];
 
   int ray_tracing_method;
 

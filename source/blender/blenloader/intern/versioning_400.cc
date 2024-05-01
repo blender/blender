@@ -3323,6 +3323,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       SceneEEVEE default_scene_eevee = *DNA_struct_default_get(SceneEEVEE);
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.shadow_resolution_scale = default_scene_eevee.shadow_resolution_scale;
+        scene->eevee.clamp_world = 10.0f;
       }
     }
   }

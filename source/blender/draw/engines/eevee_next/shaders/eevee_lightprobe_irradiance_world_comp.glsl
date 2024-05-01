@@ -8,6 +8,8 @@
  * The whole thread group will load the same data and write a brick worth of data.
  */
 
+#pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
+
 void atlas_store(vec4 sh_coefficient, ivec2 atlas_coord, int layer)
 {
   imageStore(irradiance_atlas_img,
@@ -23,8 +25,16 @@ void main()
   IrradianceBrick brick = irradiance_brick_unpack(bricks_infos_buf[brick_index]);
   ivec2 output_coord = ivec2(brick.atlas_coord);
 
-  atlas_store(harmonic_buf.L0_M0, output_coord, 0);
-  atlas_store(harmonic_buf.L1_Mn1, output_coord, 1);
-  atlas_store(harmonic_buf.L1_M0, output_coord, 2);
-  atlas_store(harmonic_buf.L1_Mp1, output_coord, 3);
+  SphericalHarmonicL1 sh;
+  sh.L0.M0 = harmonic_buf.L0_M0;
+  sh.L1.Mn1 = harmonic_buf.L1_Mn1;
+  sh.L1.M0 = harmonic_buf.L1_M0;
+  sh.L1.Mp1 = harmonic_buf.L1_Mp1;
+
+  sh = spherical_harmonics_dering(sh);
+
+  atlas_store(sh.L0.M0, output_coord, 0);
+  atlas_store(sh.L1.Mn1, output_coord, 1);
+  atlas_store(sh.L1.M0, output_coord, 2);
+  atlas_store(sh.L1.Mp1, output_coord, 3);
 }

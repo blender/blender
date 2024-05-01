@@ -702,7 +702,14 @@ class RENDER_PT_eevee_next_clamping(RenderButtonsPanel, Panel):
         return (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
-        pass
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        scene = context.scene
+        props = scene.eevee
+
+        col = layout.column()
+        col.prop(props, "clamp_world", text="World")
 
 
 class RENDER_PT_eevee_next_clamping_surface(RenderButtonsPanel, Panel):
