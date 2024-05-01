@@ -9,6 +9,7 @@
 #include <cfloat>
 #include <cmath>
 #include <limits>
+#include <optional>
 #include <stdexcept>
 
 #include "BKE_icons.h"
@@ -207,8 +208,9 @@ class BuildOnlyVisibleButtonsHelper {
   const AbstractGridView &grid_view_;
   const GridViewStyle &style_;
   const int cols_per_row_ = 0;
-  /* Indices of items within the view. Calculated by constructor */
-  IndexRange visible_items_range_{};
+  /* Indices of items within the view. Calculated by constructor. If this is unset it means all
+   * items/buttons should be drawn. */
+  std::optional<IndexRange> visible_items_range_;
 
  public:
   BuildOnlyVisibleButtonsHelper(const View2D &v2d,
@@ -229,14 +231,14 @@ BuildOnlyVisibleButtonsHelper::BuildOnlyVisibleButtonsHelper(const View2D &v2d,
                                                              const int cols_per_row)
     : grid_view_(grid_view), style_(grid_view.get_style()), cols_per_row_(cols_per_row)
 {
-  visible_items_range_ = this->get_visible_range(v2d);
+  if ((v2d.flag & V2D_IS_INIT) && grid_view.get_item_count_filtered()) {
+    visible_items_range_ = this->get_visible_range(v2d);
+  }
 }
 
 IndexRange BuildOnlyVisibleButtonsHelper::get_visible_range(const View2D &v2d) const
 {
-  if ((v2d.flag & V2D_IS_INIT) == 0) {
-    return IndexRange(0, grid_view_.get_item_count_filtered());
-  }
+  BLI_assert(v2d.flag & V2D_IS_INIT);
 
   int first_idx_in_view = 0;
 
@@ -257,15 +259,15 @@ IndexRange BuildOnlyVisibleButtonsHelper::get_visible_range(const View2D &v2d) c
 
 bool BuildOnlyVisibleButtonsHelper::is_item_visible(const int item_idx) const
 {
-  return visible_items_range_.contains(item_idx);
+  return !visible_items_range_ || visible_items_range_->contains(item_idx);
 }
 
 void BuildOnlyVisibleButtonsHelper::fill_layout_before_visible(uiBlock &block) const
 {
-  if (visible_items_range_.is_empty()) {
+  if (!visible_items_range_ || visible_items_range_->is_empty()) {
     return;
   }
-  const int first_idx_in_view = visible_items_range_.first();
+  const int first_idx_in_view = visible_items_range_->first();
   if (first_idx_in_view < 1) {
     return;
   }
@@ -276,11 +278,11 @@ void BuildOnlyVisibleButtonsHelper::fill_layout_before_visible(uiBlock &block) c
 
 void BuildOnlyVisibleButtonsHelper::fill_layout_after_visible(uiBlock &block) const
 {
-  if (visible_items_range_.is_empty()) {
+  if (!visible_items_range_ || visible_items_range_->is_empty()) {
     return;
   }
   const int last_item_idx = grid_view_.get_item_count_filtered() - 1;
-  const int last_visible_idx = visible_items_range_.last();
+  const int last_visible_idx = visible_items_range_->last();
 
   if (last_item_idx > last_visible_idx) {
     const int remaining_rows = (cols_per_row_ > 0) ? ceilf((last_item_idx - last_visible_idx) /
