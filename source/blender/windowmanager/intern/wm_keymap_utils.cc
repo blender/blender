@@ -336,7 +336,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
         wm, "Paint Face Mask (Weight, Vertex, Texture)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   }
   else if (STRPREFIX(opname, "PAINT_OT") || STRPREFIX(opname, "BRUSH_OT")) {
-    /* check for relevant mode. */
+    /* Check for relevant mode. */
     switch (CTX_data_mode_enum(C)) {
       case CTX_MODE_PAINT_WEIGHT:
         km = WM_keymap_find_all(wm, "Weight Paint", SPACE_EMPTY, RGN_TYPE_WINDOW);
