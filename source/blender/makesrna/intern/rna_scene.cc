@@ -1954,6 +1954,22 @@ static void rna_SceneEEVEE_clamp_surface_indirect_update(Main * /*main*/,
   DEG_id_tag_update(&scene->world->id, ID_RECALC_SHADING);
 }
 
+static void rna_SceneEEVEE_shadow_resolution_update(Main * /*bmain*/,
+                                                    Scene *scene,
+                                                    PointerRNA * /*ptr*/)
+{
+  FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
+    if (ob->type == OB_LAMP) {
+      DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+    }
+  }
+  FOREACH_SCENE_OBJECT_END;
+
+  WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
+  WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
+}
+
 static std::optional<std::string> rna_SceneRenderView_path(const PointerRNA *ptr)
 {
   const SceneRenderView *srv = (SceneRenderView *)ptr->data;
@@ -2155,22 +2171,6 @@ static void rna_Scene_use_simplify_normals_update(Main *bmain, Scene *scene, Poi
   if (scene->r.mode & R_SIMPLIFY) {
     rna_Scene_simplify_update_impl(bmain, scene, true, nullptr);
   }
-}
-
-static void rna_Scene_eevee_shadow_resolution_update(Main *bmain,
-                                                     Scene *scene,
-                                                     PointerRNA * /*ptr*/)
-{
-  FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
-    if (ob->type == OB_LAMP) {
-      DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
-    }
-  }
-  FOREACH_SCENE_OBJECT_END;
-
-  WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
-  WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
-  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static void rna_Scene_use_persistent_data_update(Main * /*bmain*/,
@@ -8497,7 +8497,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Shadows Resolution Scale", "Resolution percentage of shadow maps");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_update(prop, 0, "rna_Scene_eevee_shadow_resolution_update");
+  RNA_def_property_update(prop, 0, "rna_SceneEEVEE_shadow_resolution_update");
 }
 
 static void rna_def_scene_gpencil(BlenderRNA *brna)

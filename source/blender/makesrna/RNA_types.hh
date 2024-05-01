@@ -545,6 +545,7 @@ struct StringPropertySearchVisitParams {
   std::string text;
   /** Additional information to display. */
   std::optional<std::string> info;
+  /* Optional icon instead of #ICON_NONE. */
   std::optional<int> icon_id;
 };
 
