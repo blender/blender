@@ -73,6 +73,20 @@ AssetWeakReference &AssetWeakReference::operator=(AssetWeakReference &&other)
   return *this;
 }
 
+bool operator==(const AssetWeakReference &a, const AssetWeakReference &b)
+{
+  if (a.asset_library_type != b.asset_library_type) {
+    return false;
+  }
+  if (StringRef(a.asset_library_identifier) != StringRef(b.asset_library_identifier)) {
+    return false;
+  }
+  if (StringRef(a.relative_asset_identifier) != StringRef(b.relative_asset_identifier)) {
+    return false;
+  }
+  return true;
+}
+
 AssetWeakReference AssetWeakReference::make_reference(
     const asset_system::AssetLibrary &library,
     const asset_system::AssetIdentifier &asset_identifier)
