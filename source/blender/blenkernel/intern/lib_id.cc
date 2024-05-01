@@ -688,7 +688,9 @@ ID *BKE_id_copy_in_lib(Main *bmain,
    * XXX TODO: is this behavior OK, or should we need a separate flag to control that? */
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     BLI_assert(!owner_library || newid->lib == *owner_library);
-    if (!ID_IS_LINKED(newid)) {
+    /* Expanding local linked ID usages should never be needed with embedded IDs - this will be
+     * handeled together with their owner ID copying code. */
+    if (!ID_IS_LINKED(newid) && (newid->flag & LIB_EMBEDDED_DATA) == 0) {
       lib_id_copy_ensure_local(bmain, id, newid, 0);
     }
   }
