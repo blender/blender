@@ -52,6 +52,7 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
+#include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -1835,12 +1836,16 @@ static bool render_view_remove_poll(bContext *C)
 
 static int render_view_add_exec(bContext *C, wmOperator * /*op*/)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
   BKE_scene_add_render_view(scene, nullptr);
   scene->r.actview = BLI_listbase_count(&scene->r.views) - 1;
 
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+
+  BKE_ntree_update_tag_id_changed(bmain, &scene->id);
+  ED_node_tree_propagate_change(C, bmain, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -1867,6 +1872,7 @@ void SCENE_OT_render_view_add(wmOperatorType *ot)
 
 static int render_view_remove_exec(bContext *C, wmOperator * /*op*/)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   SceneRenderView *rv = static_cast<SceneRenderView *>(
       BLI_findlink(&scene->r.views, scene->r.actview));
@@ -1876,6 +1882,9 @@ static int render_view_remove_exec(bContext *C, wmOperator * /*op*/)
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+
+  BKE_ntree_update_tag_id_changed(bmain, &scene->id);
+  ED_node_tree_propagate_change(C, bmain, nullptr);
 
   return OPERATOR_FINISHED;
 }

@@ -405,17 +405,11 @@ SHADOW_MAP_TRACE_FN(ShadowRayPunctual)
 
 /* Compute the world space offset of the shading position required for
  * stochastic percentage closer filtering of shadow-maps. */
-vec3 shadow_pcf_offset(
-    LightData light, const bool is_directional, vec3 L, vec3 Ng, float texel_radius, vec2 random)
+vec3 shadow_pcf_offset(vec3 L, vec3 Ng, vec2 random)
 {
-  if (light.pcf_radius <= 0.001) {
-    /* Early return. */
-    return vec3(0.0);
-  }
-
   /* We choose a random disk distribution because it is rotationally invariant.
    * This sames us the trouble of getting the correct orientation for punctual. */
-  vec2 disk_sample = sample_disk(random) * (texel_radius * light.pcf_radius);
+  vec2 disk_sample = sample_disk(random);
   /* Compute the offset as a disk around the normal. */
   mat3x3 tangent_frame = from_up_axis(Ng);
   vec3 pcf_offset = tangent_frame[0] * disk_sample.x + tangent_frame[1] * disk_sample.y;
@@ -425,7 +419,6 @@ vec3 shadow_pcf_offset(
      * polygon behind the shading point. */
     pcf_offset = reflect(pcf_offset, L);
   }
-
   return pcf_offset;
 }
 
@@ -480,7 +473,7 @@ float shadow_texel_radius_at_position(LightData light, const bool is_directional
  * shadowing from the current polygon, which is not enough in cases with adjacent polygons with
  * very different slopes.
  */
-float shadow_normal_offset(float texel_radius, vec3 Ng, vec3 L)
+float shadow_normal_offset(vec3 Ng, vec3 L)
 {
   /* Attenuate depending on light angle. */
   /* TODO: Should we take the light shape into consideration? */
@@ -489,7 +482,7 @@ float shadow_normal_offset(float texel_radius, vec3 Ng, vec3 L)
   /* Note that we still bias by one pixel anyway to fight quantization artifacts.
    * This helps with self intersection of slopped surfaces and gives softer soft shadow (?! why).
    * FIXME: This is likely to hide some issue, and we need a user facing bias parameter anyway. */
-  return texel_radius * (sin_theta + 3.0);
+  return sin_theta + 3.0;
 }
 
 /**
@@ -499,13 +492,14 @@ ShadowEvalResult shadow_eval(LightData light,
                              const bool is_directional,
                              const bool is_transmission,
                              bool is_translucent_with_thickness,
+                             float thickness, /* Only used if is_transmission is true. */
                              vec3 P,
                              vec3 Ng,
                              vec3 L,
                              int ray_count,
                              int ray_step_count)
 {
-#ifdef EEVEE_SAMPLING_DATA
+#if defined(EEVEE_SAMPLING_DATA) && defined(EEVEE_UTILITY_TX)
 #  ifdef GPU_FRAGMENT_SHADER
   vec2 pixel = floor(gl_FragCoord.xy);
 #  elif defined(GPU_COMPUTE_SHADER)
@@ -520,21 +514,25 @@ ShadowEvalResult shadow_eval(LightData light,
   vec2 random_pcf_2d = vec2(0.0);
 #endif
 
+  bool is_facing_light = (dot(Ng, L) > 0.0);
+  /* Still bias the transmission surfaces towards the light if they are facing away. */
+  vec3 N_bias = (is_transmission && !is_facing_light) ? reflect(Ng, L) : Ng;
+
   /* Shadow map texel radius at the receiver position. */
   float texel_radius = shadow_texel_radius_at_position(light, is_directional, P);
-
-  P += shadow_pcf_offset(light, is_directional, L, Ng, texel_radius, random_pcf_2d);
-
-  /* We want to bias inside the object for transmission to go through the object itself.
-   * But doing so splits the shadow in two different directions at the horizon. Also this
-   * doesn't fix the the aliasing issue. So we reflect the normal so that it always go towards
-   * the light. */
-  vec3 N_bias = is_transmission ? reflect(Ng, L) : Ng;
-
+  /* Stochastic Percentage Closer Filtering. */
+  if (is_transmission && !is_facing_light) {
+    /* Ideally, we should bias using the chosen ray direction. In practice, this conflict with our
+     * shadow tile usage tagging system as the sampling position becomes heavily shifted from the
+     * tagging position. This is the same thing happening with missing tiles with large radii. */
+    P += abs(thickness) * L;
+  }
   /* Avoid self intersection with respect to numerical precision. */
   P = offset_ray(P, N_bias);
-  /* The above offset isn't enough in most situation. Still add a bigger bias. */
-  P += N_bias * shadow_normal_offset(texel_radius, Ng, L);
+  /* Stochastic Percentage Closer Filtering. */
+  P += (light.pcf_radius * texel_radius) * shadow_pcf_offset(L, Ng, random_pcf_2d);
+  /* Add normal bias to avoid aliasing artifacts. */
+  P += N_bias * (texel_radius * shadow_normal_offset(Ng, L));
 
   vec3 lP = is_directional ? light_world_to_local(light, P) :
                              light_world_to_local(light, P - light_position_get(light));

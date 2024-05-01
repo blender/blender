@@ -106,7 +106,7 @@ ModifierData *BKE_object_active_modifier(const Object *ob);
  * more than once, this function should preferably be called in stack order.
  */
 bool BKE_object_copy_modifier(
-    Main *bmain, Scene *scene, Object *ob_dst, const Object *ob_src, ModifierData *md);
+    Main *bmain, const Scene *scene, Object *ob_dst, const Object *ob_src, const ModifierData *md);
 /**
  * Copy a single GPencil modifier.
  *

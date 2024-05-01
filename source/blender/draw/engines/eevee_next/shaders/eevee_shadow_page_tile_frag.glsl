@@ -53,8 +53,6 @@ void main()
 {
   /* For storing pass, we store the result from depth in tile memory. */
   uint u_depth = floatBitsToUint(in_tile_depth);
-  /* Quantization bias. Equivalent to `nextafter` in C without all the safety. 1 is not enough. */
-  u_depth += 2;
 
   /* Write result to atlas. */
 #  ifdef GPU_METAL

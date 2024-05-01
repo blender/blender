@@ -113,7 +113,7 @@ struct MeshBufferList {
     gpu::IndexBuf *tris;
     /* Loose edges last. */
     gpu::IndexBuf *lines;
-    /* Sub buffer of `lines` only containing the loose edges. */
+    /* Potentially a sub buffer of `lines` only containing the loose edges. */
     gpu::IndexBuf *lines_loose;
     gpu::IndexBuf *points;
     gpu::IndexBuf *fdots;

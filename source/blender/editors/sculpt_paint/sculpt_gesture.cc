@@ -235,6 +235,12 @@ std::unique_ptr<GestureData> init_from_line(bContext *C, wmOperator *op)
   line_points[1][0] = RNA_int_get(op->ptr, "xend");
   line_points[1][1] = RNA_int_get(op->ptr, "yend");
 
+  gesture_data->gesture_points.reinitialize(2);
+  gesture_data->gesture_points[0][0] = line_points[0][0];
+  gesture_data->gesture_points[0][1] = line_points[0][1];
+  gesture_data->gesture_points[1][0] = line_points[1][0];
+  gesture_data->gesture_points[1][1] = line_points[1][1];
+
   gesture_data->line.flip = RNA_boolean_get(op->ptr, "flip");
 
   float plane_points[4][3];

@@ -1587,6 +1587,23 @@ class _defs_sculpt:
         )
 
     @ToolDef.from_fn
+    def trim_line():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.trim_line_gesture")
+            layout.prop(props, "trim_solver", expand=False)
+            layout.prop(props, "trim_orientation", expand=False)
+            layout.prop(props, "use_cursor_depth", expand=False)
+            layout.prop(props, "use_limit_to_segment", expand=False)
+        return dict(
+            idname="builtin.line_trim",
+            label="Line Trim",
+            icon="ops.sculpt.line_trim",
+            widget=None,
+            keymap=(),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
     def project_line():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.project_line_gesture")
@@ -3474,6 +3491,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             (
                 _defs_sculpt.trim_box,
                 _defs_sculpt.trim_lasso,
+                _defs_sculpt.trim_line,
             ),
             _defs_sculpt.project_line,
             None,

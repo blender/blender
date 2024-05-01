@@ -153,20 +153,19 @@ bool is_brush_inverted(const Brush &brush, const BrushStrokeMode stroke_mode)
 
 GreasePencilStrokeParams GreasePencilStrokeParams::from_context(
     const Scene &scene,
-    const Depsgraph &depsgraph,
-    const ARegion &region,
-    const View3D &view3d,
+    Depsgraph &depsgraph,
+    ARegion &region,
     Object &object,
     const int layer_index,
     const int frame_number,
     const float multi_frame_falloff,
+    const ed::greasepencil::DrawingPlacement &placement,
     bke::greasepencil::Drawing &drawing)
 {
   Object &ob_eval = *DEG_get_evaluated_object(&depsgraph, &object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   const bke::greasepencil::Layer &layer = *grease_pencil.layers()[layer_index];
-  ed::greasepencil::DrawingPlacement placement(scene, region, view3d, ob_eval, layer);
 
   return {*scene.toolsettings,
           region,
@@ -176,7 +175,7 @@ GreasePencilStrokeParams GreasePencilStrokeParams::from_context(
           layer_index,
           frame_number,
           multi_frame_falloff,
-          std::move(placement),
+          placement,
           drawing};
 }
 
@@ -235,24 +234,36 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   using namespace blender::bke::greasepencil;
 
   const Scene &scene = *CTX_data_scene(&C);
-  const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
-  const View3D &view3d = *CTX_wm_view3d(&C);
-  const ARegion &region = *CTX_wm_region(&C);
+  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(&C);
+  View3D &view3d = *CTX_wm_view3d(&C);
+  ARegion &region = *CTX_wm_region(&C);
   Object &object = *CTX_data_active_object(&C);
+  Object &object_eval = *DEG_get_evaluated_object(&depsgraph, &object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   std::atomic<bool> changed = false;
   const Vector<MutableDrawingInfo> drawings = get_drawings_for_sculpt(C);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    const Layer &layer = *grease_pencil.layers()[info.layer_index];
+
+    ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, layer);
+    if (placement.use_project_to_surface()) {
+      placement.cache_viewport_depths(&depsgraph, &region, &view3d);
+    }
+    else if (placement.use_project_to_nearest_stroke()) {
+      placement.cache_viewport_depths(&depsgraph, &region, &view3d);
+      placement.set_origin_to_nearest_stroke(this->start_mouse_position);
+    }
+
     GreasePencilStrokeParams params = GreasePencilStrokeParams::from_context(
         scene,
         depsgraph,
         region,
-        view3d,
         object,
         info.layer_index,
         info.frame_number,
         info.multi_frame_falloff,
+        placement,
         info.drawing);
     if (fn(params)) {
       changed = true;
@@ -273,6 +284,7 @@ void GreasePencilStrokeOperationCommon::init_stroke(const bContext &C,
 
   init_brush(brush);
 
+  this->start_mouse_position = start_sample.mouse_position;
   this->prev_mouse_position = start_sample.mouse_position;
 }
 

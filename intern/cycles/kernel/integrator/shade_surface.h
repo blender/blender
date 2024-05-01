@@ -206,8 +206,10 @@ integrate_direct_light_shadow_init_common(KernelGlobals kg,
   IntegratorShadowState shadow_state = integrator_shadow_path_init(
       kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, false);
 
+#ifdef __VOLUME__
   /* Copy volume stack and enter/exit volume. */
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
+#endif
 
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(shadow_state, ray);
@@ -644,8 +646,10 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   IntegratorShadowState shadow_state = integrator_shadow_path_init(
       kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, true);
 
+#  ifdef __VOLUME__
   /* Copy volume stack and enter/exit volume. */
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
+#  endif
 
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(shadow_state, &ray);

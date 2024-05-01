@@ -202,6 +202,9 @@ class IndexMask : private IndexMaskData {
   static IndexMask from_bools(const IndexMask &universe,
                               Span<bool> bools,
                               IndexMaskMemory &memory);
+  static IndexMask from_bools_inverse(const IndexMask &universe,
+                                      Span<bool> bools,
+                                      IndexMaskMemory &memory);
   static IndexMask from_bools(const IndexMask &universe,
                               const VArray<bool> &bools,
                               IndexMaskMemory &memory);

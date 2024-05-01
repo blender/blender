@@ -47,7 +47,7 @@ void main()
 
   g_holdout = saturate(g_holdout);
 
-  float thickness = nodetree_thickness();
+  float thickness = nodetree_thickness() * thickness_mode;
 
   /** Transparency weight is already applied through dithering, remove it from other closures. */
   float transparency = 1.0 - average(g_transmittance);

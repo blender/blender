@@ -24,6 +24,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLT_translation.hh"
+
 #include "atomic_ops.h"
 
 #include "ANIM_animation.hh"
@@ -33,6 +35,19 @@
 #include <cstring>
 
 namespace blender::animrig {
+
+namespace {
+/**
+ * Default name for animation bindings. The first two characters in the name indicate the ID type
+ * of whatever is animated by it.
+ *
+ * Since the ID type may not be determined when the binding is created, the prefix starts out at
+ * XX. Note that no code should use this XX value; use Binding::has_idtype() instead.
+ */
+constexpr const char *binding_default_name = "Binding";
+constexpr const char *binding_unbound_prefix = "XX";
+
+}  // namespace
 
 static animrig::Layer &animationlayer_alloc()
 {
@@ -222,6 +237,10 @@ static void anim_binding_name_ensure_unique(Animation &animation, Binding &bindi
   BLI_uniquename_cb(check_name_is_used, &check_data, "", '.', binding.name, sizeof(binding.name));
 }
 
+/* TODO: maybe this function should only set the 'name without prefix' aka the 'display name'. That
+ * way only `this->id_type` is responsible for the prefix. I (Sybren) think that's easier to
+ * determine when the code is a bit more mature, and we can see what the majority of the calls to
+ * this function actually do/need. */
 void Animation::binding_name_set(Main &bmain, Binding &binding, const StringRefNull new_name)
 {
   this->binding_name_define(binding, new_name);
@@ -230,6 +249,9 @@ void Animation::binding_name_set(Main &bmain, Binding &binding, const StringRefN
 
 void Animation::binding_name_define(Binding &binding, const StringRefNull new_name)
 {
+  BLI_assert_msg(
+      StringRef(new_name).size() >= Binding::name_length_min,
+      "Animation Bindings must be large enough for a 2-letter ID code + the display name");
   STRNCPY_UTF8(binding.name, new_name.c_str());
   anim_binding_name_ensure_unique(*this, binding);
 }
@@ -310,9 +332,27 @@ Binding &Animation::binding_add()
 {
   Binding &binding = this->binding_allocate();
 
+  /* Assign the default name and the 'unbound' name prefix. */
+  STRNCPY_UTF8(binding.name, binding_unbound_prefix);
+  BLI_strncpy_utf8(binding.name + 2, DATA_(binding_default_name), ARRAY_SIZE(binding.name) - 2);
+
   /* Append the Binding to the animation data-block. */
   grow_array_and_append<::AnimationBinding *>(
       &this->binding_array, &this->binding_array_num, &binding);
+
+  anim_binding_name_ensure_unique(*this, binding);
+  return binding;
+}
+
+Binding &Animation::binding_add_for_id(const ID &animated_id)
+{
+  Binding &binding = this->binding_add();
+
+  binding.idtype = GS(animated_id.name);
+  this->binding_name_define(binding, animated_id.name);
+
+  /* No need to call anim.binding_name_propagate() as nothing will be using
+   * this brand new Binding yet. */
 
   return binding;
 }
@@ -381,36 +421,52 @@ bool Animation::assign_id(Binding *binding, ID &animated_id)
     return false;
   }
 
-  if (adt->animation) {
-    /* Unassign the ID from its existing animation first, or use the top-level
-     * function `assign_animation(anim, ID)`. */
+  if (adt->animation && adt->animation != this) {
+    /* The caller should unassign the ID from its existing animation first, or
+     * use the top-level function `assign_animation(anim, ID)`. */
     return false;
   }
 
   if (binding) {
-    if (!binding->connect_id(animated_id)) {
+    if (!binding->is_suitable_for(animated_id)) {
       return false;
     }
+    this->binding_setup_for_id(*binding, animated_id);
 
-    /* If the binding is not yet named, use the ID name. */
-    if (binding->name[0] == '\0') {
-      this->binding_name_define(*binding, animated_id.name);
-    }
+    adt->binding_handle = binding->handle;
     /* Always make sure the ID's binding name matches the assigned binding. */
     STRNCPY_UTF8(adt->binding_name, binding->name);
   }
   else {
-    adt->binding_handle = Binding::unassigned;
-    /* Keep adt->binding_name untouched, as A) it's not necessary to erase it
-     * because `adt->binding_handle = 0` already indicates "no binding yet",
-     * and B) it would erase information that can later be used when trying to
-     * identify which binding this was once attached to.  */
+    unassign_binding(*adt);
   }
 
-  adt->animation = this;
-  id_us_plus(&this->id);
+  if (!adt->animation) {
+    /* Due to the precondition check above, we know that adt->animation is either 'this' (in which
+     * case the user count is already correct) or `nullptr` (in which case this is a new reference,
+     * and the user count should be increased). */
+    id_us_plus(&this->id);
+    adt->animation = this;
+  }
 
   return true;
+}
+
+void Animation::binding_name_ensure_prefix(Binding &binding)
+{
+  binding.name_ensure_prefix();
+  anim_binding_name_ensure_unique(*this, binding);
+}
+
+void Animation::binding_setup_for_id(Binding &binding, const ID &animated_id)
+{
+  if (binding.has_idtype()) {
+    BLI_assert(binding.idtype == GS(animated_id.name));
+    return;
+  }
+
+  binding.idtype = GS(animated_id.name);
+  this->binding_name_ensure_prefix(binding);
 }
 
 void Animation::unassign_id(ID &animated_id)
@@ -419,17 +475,7 @@ void Animation::unassign_id(ID &animated_id)
   BLI_assert_msg(adt, "ID is not animated at all");
   BLI_assert_msg(adt->animation == this, "ID is not assigned to this Animation");
 
-  /* Before unassigning, make sure that the stored Binding name is up to date. The binding name
-   * might have changed in a way that wasn't copied into the ADT yet (for example when the
-   * Animation data-block is linked from another file), so better copy the name to be sure that it
-   * can be transparently reassigned later.
-   *
-   * TODO: Replace this with a BLI_assert() that the name is as expected, and "simply" ensure this
-   * name is always correct. */
-  const Binding *binding = this->binding_for_handle(adt->binding_handle);
-  if (binding) {
-    STRNCPY_UTF8(adt->binding_name, binding->name);
-  }
+  unassign_binding(*adt);
 
   id_us_min(&this->id);
   adt->animation = nullptr;
@@ -517,30 +563,22 @@ int64_t Layer::find_strip_index(const Strip &strip) const
 }
 
 /* ----- AnimationBinding implementation ----------- */
-bool Binding::connect_id(ID &animated_id)
-{
-  if (!this->is_suitable_for(animated_id)) {
-    return false;
-  }
-
-  AnimData *adt = BKE_animdata_ensure_id(&animated_id);
-  if (!adt) {
-    return false;
-  }
-
-  if (this->idtype == 0) {
-    this->idtype = GS(animated_id.name);
-  }
-
-  adt->binding_handle = this->handle;
-  return true;
-}
 
 bool Binding::is_suitable_for(const ID &animated_id) const
 {
+  if (!this->has_idtype()) {
+    /* Without specific ID type set, this Binding can animate any ID. */
+    return true;
+  }
+
   /* Check that the ID type is compatible with this binding. */
   const int animated_idtype = GS(animated_id.name);
-  return this->idtype == 0 || this->idtype == animated_idtype;
+  return this->idtype == animated_idtype;
+}
+
+bool Binding::has_idtype() const
+{
+  return this->idtype != 0;
 }
 
 bool assign_animation(Animation &anim, ID &animated_id)
@@ -560,6 +598,26 @@ void unassign_animation(ID &animated_id)
   anim->unassign_id(animated_id);
 }
 
+void unassign_binding(AnimData &adt)
+{
+  /* Before unassigning, make sure that the stored Binding name is up to date. The binding name
+   * might have changed in a way that wasn't copied into the ADT yet (for example when the
+   * Animation data-block is linked from another file), so better copy the name to be sure that it
+   * can be transparently reassigned later.
+   *
+   * TODO: Replace this with a BLI_assert() that the name is as expected, and "simply" ensure this
+   * name is always correct. */
+  if (adt.animation) {
+    const Animation &anim = adt.animation->wrap();
+    const Binding *binding = anim.binding_for_handle(adt.binding_handle);
+    if (binding) {
+      STRNCPY_UTF8(adt.binding_name, binding->name);
+    }
+  }
+
+  adt.binding_handle = Binding::unassigned;
+}
+
 Animation *get_animation(ID &animated_id)
 {
   AnimData *adt = BKE_animdata_from_id(&animated_id);
@@ -570,6 +628,48 @@ Animation *get_animation(ID &animated_id)
     return nullptr;
   }
   return &adt->animation->wrap();
+}
+
+std::string Binding::name_prefix_for_idtype() const
+{
+  if (!this->has_idtype()) {
+    return binding_unbound_prefix;
+  }
+
+  char name[3] = {0};
+  *reinterpret_cast<short *>(name) = this->idtype;
+  return name;
+}
+
+StringRefNull Binding::name_without_prefix() const
+{
+  BLI_assert(StringRef(this->name).size() >= name_length_min);
+
+  /* Avoid accessing an uninitialised part of the string accidentally. */
+  if (this->name[0] == '\0' || this->name[1] == '\0') {
+    return "";
+  }
+  return this->name + 2;
+}
+
+void Binding::name_ensure_prefix()
+{
+  BLI_assert(StringRef(this->name).size() >= name_length_min);
+
+  if (StringRef(this->name).size() < 2) {
+    /* The code below would overwrite the trailing 0-byte. */
+    this->name[2] = '\0';
+  }
+
+  if (!this->has_idtype()) {
+    /* A zero idtype is not going to convert to a two-character string, so we
+     * need to explicitly assign the default prefix. */
+    this->name[0] = binding_unbound_prefix[0];
+    this->name[1] = binding_unbound_prefix[1];
+    return;
+  }
+
+  *reinterpret_cast<short *>(this->name) = this->idtype;
 }
 
 /* ----- AnimationStrip implementation ----------- */

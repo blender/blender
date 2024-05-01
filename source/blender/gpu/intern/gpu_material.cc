@@ -831,7 +831,8 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
                                         bool is_volume_shader,
                                         bool is_lookdev,
                                         GPUCodegenCallbackFn callback,
-                                        void *thunk)
+                                        void *thunk,
+                                        GPUMaterialCanUseDefaultCallbackFn can_use_default_cb)
 {
   /* Search if this material is not already compiled. */
   LISTBASE_FOREACH (LinkData *, link, gpumaterials) {
@@ -862,10 +863,13 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
   bNodeTree *localtree = ntreeLocalize(ntree);
   ntreeGPUMaterialNodes(localtree, mat);
 
-  gpu_material_ramp_texture_build(mat);
-  gpu_material_sky_texture_build(mat);
+  if (can_use_default_cb && can_use_default_cb(mat)) {
+    mat->status = GPU_MAT_USE_DEFAULT;
+  }
+  else {
+    gpu_material_ramp_texture_build(mat);
+    gpu_material_sky_texture_build(mat);
 
-  {
     /* Create source code and search pass cache for an already compiled version. */
     mat->pass = GPU_generate_pass(mat, &mat->graph, engine, callback, thunk, false);
 

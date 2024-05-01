@@ -12,6 +12,28 @@
 #define image_array_out(slot, qualifier, format, name) \
   image(slot, format, qualifier, ImageType::FLOAT_2D_ARRAY, name, Frequency::PASS)
 
+/* -------------------------------------------------------------------- */
+/** \name Thickness Amend
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(eevee_deferred_thickness_amend)
+    .do_static_compilation(true)
+    .define("GBUFFER_LOAD")
+    .sampler(0, ImageType::UINT_2D, "gbuf_header_tx")
+    .image(0, GPU_RG16, Qualifier::READ_WRITE, ImageType::FLOAT_2D_ARRAY, "gbuf_normal_img")
+    /* Early fragment test is needed to discard fragment that do not need this processing. */
+    .early_fragment_test(true)
+    .fragment_source("eevee_deferred_thickness_amend_frag.glsl")
+    .additional_info("draw_view",
+                     "draw_fullscreen",
+                     "eevee_sampling_data",
+                     "eevee_shared",
+                     "eevee_light_data",
+                     "eevee_shadow_data",
+                     "eevee_hiz_data");
+
+/** \} */
+
 GPU_SHADER_CREATE_INFO(eevee_gbuffer_data)
     .define("GBUFFER_LOAD")
     .sampler(12, ImageType::UINT_2D, "gbuf_header_tx")
@@ -24,32 +46,6 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_tile_classify)
     .subpass_in(1, Type::UINT, "in_gbuffer_header", DEFERRED_GBUFFER_ROG_ID)
     .typedef_source("draw_shader_shared.hh")
     .push_constant(Type::INT, "current_bit")
-    .do_static_compilation(true);
-
-GPU_SHADER_CREATE_INFO(eevee_deferred_tile_compact)
-    .additional_info("eevee_shared")
-    .typedef_source("draw_shader_shared.hh")
-    .vertex_source("eevee_deferred_tile_compact_vert.glsl")
-    /* Reuse dummy stencil frag. */
-    .fragment_source("eevee_deferred_tile_stencil_frag.glsl")
-    .storage_buf(0, Qualifier::READ_WRITE, "DrawCommand", "closure_single_draw_buf")
-    .storage_buf(1, Qualifier::READ_WRITE, "DrawCommand", "closure_double_draw_buf")
-    .storage_buf(2, Qualifier::READ_WRITE, "DrawCommand", "closure_triple_draw_buf")
-    .storage_buf(3, Qualifier::WRITE, "uint", "closure_single_tile_buf[]")
-    .storage_buf(4, Qualifier::WRITE, "uint", "closure_double_tile_buf[]")
-    .storage_buf(5, Qualifier::WRITE, "uint", "closure_triple_tile_buf[]")
-    .sampler(0, ImageType::UINT_2D_ARRAY, "tile_mask_tx")
-    .do_static_compilation(true);
-
-GPU_SHADER_CREATE_INFO(eevee_deferred_tile_stencil)
-    .vertex_source("eevee_deferred_tile_stencil_vert.glsl")
-    .fragment_source("eevee_deferred_tile_stencil_frag.glsl")
-    .additional_info("eevee_shared")
-    /* Only for texture size. */
-    .sampler(0, ImageType::FLOAT_2D, "direct_radiance_tx")
-    .storage_buf(4, Qualifier::READ, "uint", "closure_tile_buf[]")
-    .push_constant(Type::INT, "closure_tile_size_shift")
-    .typedef_source("draw_shader_shared.hh")
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(eevee_deferred_light)

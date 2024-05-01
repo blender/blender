@@ -178,7 +178,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                 break;
               }
 #endif /* BVH_FEATURE(BVH_MOTION) */
-#if BVH_FEATURE(BVH_HAIR)
+#if BVH_FEATURE(BVH_HAIR) && defined(__HAIR__)
               case PRIMITIVE_CURVE_THICK:
               case PRIMITIVE_MOTION_CURVE_THICK:
               case PRIMITIVE_CURVE_RIBBON:
@@ -201,7 +201,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                 break;
               }
 #endif /* BVH_FEATURE(BVH_HAIR) */
-#if BVH_FEATURE(BVH_POINTCLOUD)
+#if BVH_FEATURE(BVH_POINTCLOUD) && defined(__POINTCLOUD__)
               case PRIMITIVE_POINT:
               case PRIMITIVE_MOTION_POINT: {
                 if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {

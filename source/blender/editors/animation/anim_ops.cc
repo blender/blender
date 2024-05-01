@@ -16,6 +16,7 @@
 
 #include "DNA_scene_types.h"
 
+#include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_report.hh"
@@ -39,6 +40,8 @@
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
+
+#include "ANIM_animation.hh"
 
 #include "anim_intern.hh"
 
@@ -647,6 +650,63 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Bindings
+ * \{ */
+
+static bool binding_unassign_object_poll(bContext *C)
+{
+  Object *object = CTX_data_active_object(C);
+  if (!object) {
+    return false;
+  }
+
+  AnimData *adt = BKE_animdata_from_id(&object->id);
+  if (!adt) {
+    return false;
+  }
+
+  return adt->binding_handle != blender::animrig::Binding::unassigned;
+}
+
+static int binding_unassign_object_exec(bContext *C, wmOperator * /*op*/)
+{
+  using namespace blender;
+
+  Object *object = CTX_data_active_object(C);
+  if (!object) {
+    return OPERATOR_CANCELLED;
+  }
+
+  AnimData *adt = BKE_animdata_from_id(&object->id);
+  if (!adt) {
+    return OPERATOR_CANCELLED;
+  }
+
+  animrig::unassign_binding(*adt);
+
+  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_binding_unassign_object(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Unassign Binding";
+  ot->idname = "ANIM_OT_binding_unassign_object";
+  ot->description =
+      "Clear the assigned animation binding, effectively making this data-block non-animated";
+
+  /* api callbacks */
+  ot->exec = binding_unassign_object_exec;
+  ot->poll = binding_unassign_object_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Registration
  * \{ */
 
@@ -688,6 +748,8 @@ void ED_operatortypes_anim()
   WM_operatortype_append(ANIM_OT_keying_set_path_remove);
 
   WM_operatortype_append(ANIM_OT_keying_set_active_set);
+
+  WM_operatortype_append(ANIM_OT_binding_unassign_object);
 }
 
 void ED_keymap_anim(wmKeyConfig *keyconf)

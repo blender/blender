@@ -71,19 +71,19 @@ struct GreasePencilStrokeParams {
   int layer_index;
   int frame_number;
   float multi_frame_falloff;
-  ed::greasepencil::DrawingPlacement placement;
+  const ed::greasepencil::DrawingPlacement &placement;
   bke::greasepencil::Drawing &drawing;
 
   /* Note: accessing region in worker threads will return null,
    * this has to be done on the main thread and passed explicitly. */
   static GreasePencilStrokeParams from_context(const Scene &scene,
-                                               const Depsgraph &depsgraph,
-                                               const ARegion &region,
-                                               const View3D &view3d,
+                                               Depsgraph &depsgraph,
+                                               ARegion &region,
                                                Object &object,
                                                int layer_index,
                                                int frame_number,
                                                float multi_frame_falloff,
+                                               const ed::greasepencil::DrawingPlacement &placement,
                                                bke::greasepencil::Drawing &drawing);
 };
 
@@ -105,6 +105,8 @@ class GreasePencilStrokeOperationCommon : public GreasePencilStrokeOperation {
 
   BrushStrokeMode stroke_mode;
 
+  /* Initiali mouse sample position, used for placement origin. */
+  float2 start_mouse_position;
   /* Previous mouse position for computing the direction. */
   float2 prev_mouse_position;
 

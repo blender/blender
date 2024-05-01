@@ -306,9 +306,9 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
 
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
     if (is_curve_or_point) {
-      motion_pre = float4_to_float3(curve_attribute_float4(kg, sd, desc, NULL, NULL));
+      motion_pre = float4_to_float3(primitive_surface_attribute_float4(kg, sd, desc, NULL, NULL));
       desc.offset += numverts;
-      motion_post = float4_to_float3(curve_attribute_float4(kg, sd, desc, NULL, NULL));
+      motion_post = float4_to_float3(primitive_surface_attribute_float4(kg, sd, desc, NULL, NULL));
 
       /* Curve */
       if ((sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {

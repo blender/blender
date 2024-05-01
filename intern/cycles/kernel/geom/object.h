@@ -75,12 +75,14 @@ ccl_device_inline Transform object_fetch_transform_motion(KernelGlobals kg, int 
 
   return tfm;
 }
+#endif /* __OBJECT_MOTION__ */
 
 ccl_device_inline Transform object_fetch_transform_motion_test(KernelGlobals kg,
                                                                int object,
                                                                float time,
                                                                ccl_private Transform *itfm)
 {
+#ifdef __OBJECT_MOTION__
   int object_flag = kernel_data_fetch(object_flag, object);
   if (object_flag & SD_OBJECT_MOTION) {
     /* if we do motion blur */
@@ -91,7 +93,9 @@ ccl_device_inline Transform object_fetch_transform_motion_test(KernelGlobals kg,
 
     return tfm;
   }
-  else {
+  else
+#endif /* __OBJECT_MOTION__ */
+  {
     Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
     if (itfm)
       *itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
@@ -99,7 +103,6 @@ ccl_device_inline Transform object_fetch_transform_motion_test(KernelGlobals kg,
     return tfm;
   }
 }
-#endif
 
 /* Get transform matrix for shading point. */
 

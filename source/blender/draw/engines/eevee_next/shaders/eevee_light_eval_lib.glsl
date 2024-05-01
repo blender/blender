@@ -30,70 +30,6 @@
 #  define SKIP_LIGHT_EVAL
 #endif
 
-uint shadow_pack(float visibility, uint bit_depth, uint shift)
-{
-  return uint(visibility * float((1u << bit_depth) - 1u)) << shift;
-}
-
-float shadow_unpack(uint shadow_bits, uint bit_depth, uint shift)
-{
-  return float((shadow_bits >> shift) & ~(~0u << bit_depth)) / float((1u << bit_depth) - 1u);
-}
-
-void light_shadow_single(uint l_idx,
-                         const bool is_directional,
-                         const bool is_transmission,
-                         vec3 P,
-                         vec3 Ng,
-                         inout uint shadow_bits,
-                         inout uint shift)
-{
-  LightData light = light_buf[l_idx];
-
-  if (light.tilemap_index == LIGHT_NO_SHADOW) {
-    return;
-  }
-
-  LightVector lv = light_vector_get(light, is_directional, P);
-  float attenuation = light_attenuation_surface(
-      light, is_directional, is_transmission, false, Ng, lv);
-  if (attenuation < LIGHT_ATTENUATION_THRESHOLD) {
-    return;
-  }
-
-#if defined(SPECIALIZED_SHADOW_PARAMS)
-  int ray_count = shadow_ray_count;
-  int ray_step_count = shadow_ray_step_count;
-#else
-  int ray_count = uniform_buf.shadow.ray_count;
-  int ray_step_count = uniform_buf.shadow.step_count;
-#endif
-
-  ShadowEvalResult result = shadow_eval(
-      light, is_directional, is_transmission, false, P, Ng, Ng, ray_count, ray_step_count);
-
-  shadow_bits |= shadow_pack(result.light_visibilty, ray_count, shift);
-  shift += ray_count;
-}
-
-void light_shadow_mask(vec3 P, vec3 Ng, float vPz, out uint shadow_bits)
-{
-  int ray_count = uniform_buf.shadow.ray_count;
-  int ray_step_count = uniform_buf.shadow.step_count;
-
-  uint shift = 0u;
-  shadow_bits = 0u;
-  LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    light_shadow_single(l_idx, true, false, P, Ng, shadow_bits, shift);
-  }
-  LIGHT_FOREACH_END
-
-  LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, PIXEL, vPz, l_idx) {
-    light_shadow_single(l_idx, false, false, P, Ng, shadow_bits, shift);
-  }
-  LIGHT_FOREACH_END
-}
-
 struct ClosureLight {
   /* LTC matrix. */
   vec4 ltc_mat;
@@ -104,10 +40,6 @@ struct ClosureLight {
   /* Output both shadowed and unshadowed for shadow denoising. */
   vec3 light_shadowed;
   vec3 light_unshadowed;
-
-  /** Only for transmission BSDFs. */
-  vec3 shading_offset;
-  float shadow_offset;
 };
 
 struct ClosureLightStack {
@@ -126,18 +58,22 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
   cl_light.type = LIGHT_DIFFUSE;
   cl_light.light_shadowed = vec3(0.0);
   cl_light.light_unshadowed = vec3(0.0);
-  cl_light.shading_offset = vec3(0.0);
-  cl_light.shadow_offset = is_transmission ? thickness : 0.0;
   switch (cl.type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
       if (is_transmission) {
         cl_light.N = -cl.N;
-        if (thickness > 0.0) {
-          /* Strangely, a translucent sphere lit by a light outside the sphere transmits the light
-           * uniformly over the sphere. To mimic this phenomenon, we shift the shading position to
-           * a unique position on the sphere and use the light vector as normal. */
-          cl_light.shading_offset = -cl.N * thickness * 0.5;
-          cl_light.N = vec3(0.0);
+        if (thickness != 0.0) {
+          if (thickness > 0.0) {
+            /* Strangely, a translucent sphere lit by a light outside the sphere transmits the
+             * light uniformly over the sphere. To mimic this phenomenon, we use the light vector
+             * as normal. */
+            cl_light.N = vec3(0.0);
+          }
+          else {
+            /* This approximation has little to no impact on the lighting in practice, only
+             * focussing the light a tiny bit. Offset the shadow map position and using the flipped
+             * normal is good enough approximation. */
+          }
         }
       }
       break;
@@ -147,10 +83,10 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
          * to a uniform term like the translucent BSDF. But we need to find what to do in other
          * cases. For now, approximate the transmission term as just back-facing. */
         cl_light.N = -cl.N;
-        /* Lit and shadow as outside of the object. */
-        cl_light.shading_offset = -cl.N * thickness;
       }
-      /* Reflection term uses the lambertian diffuse. */
+      else {
+        /* Reflection term uses the lambertian diffuse. */
+      }
       break;
     case CLOSURE_BSDF_DIFFUSE_ID:
       break;
@@ -164,12 +100,11 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
         cl_refract.roughness = refraction_roughness_remapping(cl_refract.roughness,
                                                               cl_refract.ior);
 
-        if (thickness > 0.0) {
+        if (thickness != 0.0) {
           vec3 L = refraction_dominant_dir(cl.N, V, cl_refract.ior, cl_refract.roughness);
 
-          ThicknessIsect isect = thickness_sphere_intersect(thickness, cl.N, L);
+          ThicknessIsect isect = thickness_shape_intersect(thickness, cl.N, L);
           cl.N = -isect.hit_N;
-          cl_light.shading_offset = isect.hit_P;
 
           cl_refract.ior = 1.0 / cl_refract.ior;
           V = -L;
@@ -222,8 +157,7 @@ void light_eval_single(uint l_idx,
                        vec3 P,
                        vec3 Ng,
                        vec3 V,
-                       uint packed_shadows,
-                       inout uint shift)
+                       float thickness)
 {
   LightData light = light_buf[l_idx];
 
@@ -235,8 +169,7 @@ void light_eval_single(uint l_idx,
   int ray_step_count = uniform_buf.shadow.step_count;
 #endif
 
-  vec3 shading_P = (is_transmission) ? P + stack.cl[0].shading_offset : P;
-  LightVector lv = light_vector_get(light, is_directional, shading_P);
+  LightVector lv = light_vector_get(light, is_directional, P);
 
   bool is_translucent_with_thickness = is_transmission && all(equal(stack.cl[0].N, vec3(0.0)));
 
@@ -248,23 +181,17 @@ void light_eval_single(uint l_idx,
 
   float shadow = 1.0;
   if (light.tilemap_index != LIGHT_NO_SHADOW) {
-#ifdef SHADOW_DEFERRED
-    shadow = shadow_unpack(packed_shadows, ray_count, shift);
-    shift += ray_count;
-#else
-
-    vec3 shadow_P = (is_transmission) ? P + lv.L * stack.cl[0].shadow_offset : P;
     ShadowEvalResult result = shadow_eval(light,
                                           is_directional,
                                           is_transmission,
                                           is_translucent_with_thickness,
-                                          shadow_P,
+                                          thickness,
+                                          P,
                                           Ng,
                                           lv.L,
                                           ray_count,
                                           ray_step_count);
     shadow = result.light_visibilty;
-#endif
   }
 
   if (is_translucent_with_thickness) {
@@ -289,22 +216,20 @@ void light_eval_single(uint l_idx,
   }
 }
 
-void light_eval_transmission(inout ClosureLightStack stack, vec3 P, vec3 Ng, vec3 V, float vPz)
+void light_eval_transmission(
+    inout ClosureLightStack stack, vec3 P, vec3 Ng, vec3 V, float vPz, float thickness)
 {
 #ifdef SKIP_LIGHT_EVAL
   return;
 #endif
-  /* Packed / Decoupled shadow evaluation. Not yet implemented. */
-  uint packed_shadows = 0u;
-  uint shift = 0u;
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    light_eval_single(l_idx, true, true, stack, P, Ng, V, packed_shadows, shift);
+    light_eval_single(l_idx, true, true, stack, P, Ng, V, thickness);
   }
   LIGHT_FOREACH_END
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, PIXEL, vPz, l_idx) {
-    light_eval_single(l_idx, false, true, stack, P, Ng, V, packed_shadows, shift);
+    light_eval_single(l_idx, false, true, stack, P, Ng, V, thickness);
   }
   LIGHT_FOREACH_END
 }
@@ -314,17 +239,14 @@ void light_eval_reflection(inout ClosureLightStack stack, vec3 P, vec3 Ng, vec3 
 #ifdef SKIP_LIGHT_EVAL
   return;
 #endif
-  /* Packed / Decoupled shadow evaluation. Not yet implemented. */
-  uint packed_shadows = 0u;
-  uint shift = 0u;
 
   LIGHT_FOREACH_BEGIN_DIRECTIONAL (light_cull_buf, l_idx) {
-    light_eval_single(l_idx, true, false, stack, P, Ng, V, packed_shadows, shift);
+    light_eval_single(l_idx, true, false, stack, P, Ng, V, 0.0);
   }
   LIGHT_FOREACH_END
 
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, PIXEL, vPz, l_idx) {
-    light_eval_single(l_idx, false, false, stack, P, Ng, V, packed_shadows, shift);
+    light_eval_single(l_idx, false, false, stack, P, Ng, V, 0.0);
   }
   LIGHT_FOREACH_END
 }

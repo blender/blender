@@ -53,6 +53,9 @@ FileOutput::FileOutput(const std::string &path,
   RenderLayer *render_layer = MEM_cnew<RenderLayer>("Render Layer For File Output.");
   BLI_addtail(&render_result_->layers, render_layer);
   render_layer->name[0] = '\0';
+
+  /* File outputs do not support previews. */
+  format_.flag &= ~R_IMF_FLAG_PREVIEW_JPG;
 }
 
 FileOutput::~FileOutput()

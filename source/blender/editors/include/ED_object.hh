@@ -465,7 +465,7 @@ enum {
 ModifierData *modifier_add(
     ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type);
 bool modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Object *ob, ModifierData *md);
-void modifier_clear(Main *bmain, Scene *scene, Object *ob);
+void modifiers_clear(Main *bmain, Scene *scene, Object *ob);
 bool modifier_move_down(ReportList *reports, eReportType error_type, Object *ob, ModifierData *md);
 bool modifier_move_up(ReportList *reports, eReportType error_type, Object *ob, ModifierData *md);
 bool modifier_move_to_index(ReportList *reports,
@@ -492,8 +492,12 @@ bool modifier_apply(Main *bmain,
                     bool keep_modifier);
 bool modifier_copy(ReportList *reports, Main *bmain, Scene *scene, Object *ob, ModifierData *md);
 void modifier_link(bContext *C, Object *ob_dst, Object *ob_src);
-void modifier_copy_to_object(bContext *C, Object *ob_dst, Object *ob_src, ModifierData *md);
-
+bool modifier_copy_to_object(Main *bmain,
+                             const Scene *scene,
+                             const Object *ob_src,
+                             const ModifierData *md,
+                             Object *ob_dst,
+                             ReportList *reports);
 /**
  * If the object data of 'orig_ob' has other users, run 'callback' on
  * each of them.

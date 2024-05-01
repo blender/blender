@@ -1468,9 +1468,6 @@ static void blf_font_fill(FontBLF *font)
   font->char_spacing = 0.0f;
 
   font->kerning_cache = nullptr;
-#if BLF_BLUR_ENABLE
-  font->blur = 0;
-#endif
   font->tex_size_max = -1;
 
   font->buf_info.fbuf = nullptr;

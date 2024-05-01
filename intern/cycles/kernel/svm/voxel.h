@@ -37,12 +37,14 @@ ccl_device_noinline int svm_node_tex_voxel(
 
     r = kernel_tex_image_interp_3d(kg, id, co, INTERPOLATION_NONE);
   }
-  else if (space != NODE_TEX_VOXEL_SPACE_OBJECT) {
+  else
+#endif /* __VOLUME__ */
+      if (space != NODE_TEX_VOXEL_SPACE_OBJECT)
+  {
     read_node_float(kg, &offset);
     read_node_float(kg, &offset);
     read_node_float(kg, &offset);
   }
-#endif
 
   if (stack_valid(density_out_offset)) {
     stack_store_float(stack, density_out_offset, r.w);

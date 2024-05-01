@@ -7,6 +7,7 @@
  */
 
 #include "BLI_path_util.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "ED_curves.hh"
@@ -538,7 +539,13 @@ static int run_node_group_exec(bContext *C, wmOperator *op)
     operator_eval_data.self_object_orig = object;
     operator_eval_data.scene_orig = scene;
     RNA_int_get_array(op->ptr, "mouse_position", operator_eval_data.mouse_position);
-    operator_eval_data.region_size = region ? int2(region->sizex, region->sizey) : int2(0);
+    if (region) {
+      operator_eval_data.region_size = int2(BLI_rcti_size_x(&region->winrct),
+                                            BLI_rcti_size_y(&region->winrct));
+    }
+    else {
+      operator_eval_data.region_size = int2(0);
+    }
     operator_eval_data.rv3d = rv3d;
 
     nodes::GeoNodesCallData call_data{};

@@ -46,15 +46,26 @@ class VIEW3D_PT_animation_layers(Panel):
         # is `None`, and thus its `animation` property does not exist.
         col.template_ID(context.window_manager, 'selected_animation')
 
-        col = layout.column(align=True)
+        col = layout.column(align=False)
         anim = adt and adt.animation
         if anim:
-            col.prop(adt, 'animation_binding_handle', text="Binding")
-            binding = [o for o in anim.bindings if o.handle == adt.animation_binding_handle]
+            binding_sub = col.column(align=True)
+
+            # Binding selector.
+            row = binding_sub.row(align=True)
+            row.prop(adt, 'animation_binding', text="Binding")
+            row.operator('anim.binding_unassign_object', text="", icon="X")
+
+            binding = anim.bindings.get(adt.animation_binding, None)
             if binding:
-                col.prop(binding[0], 'name', text="Anim Binding Name")
-            else:
-                col.label(text="AN Binding Name: -")
+                binding_sub.prop(binding, 'name_display', text="Name")
+
+            internal_sub = binding_sub.box().column(align=True)
+            internal_sub.active = False
+            internal_sub.prop(adt, 'animation_binding_handle', text="handle")
+            if binding:
+                internal_sub.prop(binding, 'name', text="Internal Name")
+
         if adt:
             col.prop(adt, 'animation_binding_name', text="ADT Binding Name")
         else:

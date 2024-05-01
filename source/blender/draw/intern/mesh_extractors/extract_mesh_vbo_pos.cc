@@ -18,20 +18,6 @@ namespace blender::draw {
 /** \name Extract Position and Vertex Normal
  * \{ */
 
-static void extract_mesh_loose_edge_positions(const Span<float3> vert_positions,
-                                              const Span<int2> edges,
-                                              const Span<int> loose_edge_indices,
-                                              MutableSpan<float3> positions)
-{
-  threading::parallel_for(loose_edge_indices.index_range(), 4096, [&](const IndexRange range) {
-    for (const int i : range) {
-      const int2 edge = edges[loose_edge_indices[i]];
-      positions[i * 2 + 0] = vert_positions[edge[0]];
-      positions[i * 2 + 1] = vert_positions[edge[1]];
-    }
-  });
-}
-
 static void extract_pos_init(const MeshRenderData &mr,
                              MeshBatchCache & /*cache*/,
                              void *buf,
@@ -54,11 +40,10 @@ static void extract_pos_init(const MeshRenderData &mr,
         [&]() {
           array_utils::gather(
               mr.vert_positions, mr.corner_verts, vbo_data.take_front(mr.corner_verts.size()));
-          extract_mesh_loose_edge_positions(
-              mr.vert_positions,
-              mr.edges,
-              mr.loose_edges,
-              vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2));
+          extract_mesh_loose_edge_data(mr.vert_positions,
+                                       mr.edges,
+                                       mr.loose_edges,
+                                       vbo_data.slice(mr.corners_num, mr.loose_edges.size() * 2));
           array_utils::gather(
               mr.vert_positions, mr.loose_verts, vbo_data.take_back(mr.loose_verts.size()));
         });

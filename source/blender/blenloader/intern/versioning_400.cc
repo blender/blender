@@ -800,14 +800,44 @@ static void version_principled_bsdf_sheen(bNodeTree *ntree)
   };
 
   version_update_node_input(ntree, check_node, "Sheen Tint", update_input, update_input_link);
+}
 
+/* Convert EEVEE-Legacy refraction depth to EEVEE-Next thickness tree. */
+static void version_refraction_depth_to_thickness_value(bNodeTree *ntree, float thickness)
+{
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (check_node(node)) {
-      bNodeSocket *input = nodeAddStaticSocket(
-          ntree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Sheen Roughness", "Sheen Roughness");
-      *version_cycles_node_socket_float_value(input) = 0.5f;
+    if (node->type != SH_NODE_OUTPUT_MATERIAL) {
+      continue;
     }
+
+    bNodeSocket *thickness_socket = nodeFindSocket(node, SOCK_IN, "Thickness");
+    if (thickness_socket == nullptr) {
+      continue;
+    }
+
+    bool has_link = false;
+    LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+      if (link->tosock == thickness_socket) {
+        /* Something is already plugged in. Don't modify anything. */
+        has_link = true;
+      }
+    }
+
+    if (has_link) {
+      continue;
+    }
+    bNode *value_node = nodeAddStaticNode(nullptr, ntree, SH_NODE_VALUE);
+    value_node->parent = node->parent;
+    value_node->locx = node->locx;
+    value_node->locy = node->locy - 160.0f;
+    bNodeSocket *socket_value = nodeFindSocket(value_node, SOCK_OUT, "Value");
+
+    *version_cycles_node_socket_float_value(socket_value) = thickness;
+
+    nodeAddLink(ntree, value_node, socket_value, node, thickness_socket);
   }
+
+  version_socket_update_is_used(ntree);
 }
 
 static void versioning_update_noise_texture_node(bNodeTree *ntree)
@@ -3271,7 +3301,51 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 24)) {
+    if (!DNA_struct_member_exists(fd->filesdna, "Material", "char", "thickness_mode")) {
+      LISTBASE_FOREACH (Material *, material, &bmain->materials) {
+        /* EEVEE Legacy used slab assumption. */
+        material->thickness_mode = MA_THICKNESS_SLAB;
+        if (material->blend_flag & MA_BL_TRANSLUCENCY) {
+          /* EEVEE Legacy used thickness from shadow map when translucency was on. */
+          material->blend_flag |= MA_BL_THICKNESS_FROM_SHADOW;
+        }
+        if (material->use_nodes && material->nodetree) {
+          version_refraction_depth_to_thickness_value(material->nodetree, material->refract_depth);
+        }
+      }
+    }
+  }
+
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 25)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != CMP_NODE_BLUR) {
+          continue;
+        }
+
+        NodeBlurData &blur_data = *static_cast<NodeBlurData *>(node->storage);
+
+        if (blur_data.filtertype != R_FILTER_FAST_GAUSS) {
+          continue;
+        }
+
+        /* The size of the Fast Gaussian mode of blur decreased by the following factor to match
+         * other blur sizes. So increase it back. */
+        const float size_factor = 3.0f / 2.0f;
+        blur_data.sizex *= size_factor;
+        blur_data.sizey *= size_factor;
+        blur_data.percentx *= size_factor;
+        blur_data.percenty *= size_factor;
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 26)) {
     update_paint_modes_for_brush_assets(*bmain);
   }
 

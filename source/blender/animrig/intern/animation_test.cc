@@ -170,96 +170,164 @@ TEST_F(AnimationLayersTest, remove_strip)
 
 TEST_F(AnimationLayersTest, add_binding)
 {
-  Binding &binding = anim->binding_add();
-  EXPECT_EQ(1, anim->last_binding_handle);
-  EXPECT_EQ(1, binding.handle);
+  { /* Creating an 'unused' Binding should just be called 'Binding'. */
+    Binding &binding = anim->binding_add();
+    EXPECT_EQ(1, anim->last_binding_handle);
+    EXPECT_EQ(1, binding.handle);
 
-  EXPECT_STREQ("", binding.name);
-  EXPECT_EQ(0, binding.idtype);
+    EXPECT_STREQ("XXBinding", binding.name);
+    EXPECT_EQ(0, binding.idtype);
+  }
 
-  EXPECT_TRUE(binding.connect_id(cube->id));
-  EXPECT_STREQ("", binding.name)
-      << "This low-level assignment function should not manipulate the Binding name";
-  EXPECT_EQ(GS(cube->id.name), binding.idtype);
+  { /* Creating a Binding for a specific ID should name it after the ID. */
+    Binding &binding = anim->binding_add_for_id(cube->id);
+    EXPECT_EQ(2, anim->last_binding_handle);
+    EXPECT_EQ(2, binding.handle);
+
+    EXPECT_STREQ(cube->id.name, binding.name);
+    EXPECT_EQ(ID_OB, binding.idtype);
+  }
 }
 
 TEST_F(AnimationLayersTest, add_binding_multiple)
 {
-  Binding &out_cube = anim->binding_add();
-  Binding &out_suzanne = anim->binding_add();
-  EXPECT_TRUE(out_cube.connect_id(cube->id));
-  EXPECT_TRUE(out_suzanne.connect_id(suzanne->id));
+  Binding &bind_cube = anim->binding_add();
+  Binding &bind_suzanne = anim->binding_add();
+  EXPECT_TRUE(anim->assign_id(&bind_cube, cube->id));
+  EXPECT_TRUE(anim->assign_id(&bind_suzanne, suzanne->id));
 
   EXPECT_EQ(2, anim->last_binding_handle);
-  EXPECT_EQ(1, out_cube.handle);
-  EXPECT_EQ(2, out_suzanne.handle);
+  EXPECT_EQ(1, bind_cube.handle);
+  EXPECT_EQ(2, bind_suzanne.handle);
 }
 
 TEST_F(AnimationLayersTest, anim_assign_id)
 {
   /* Assign to the only, 'virgin' Binding, should always work. */
-  Binding &out_cube = anim->binding_add();
-  ASSERT_TRUE(anim->assign_id(&out_cube, cube->id));
-  EXPECT_EQ(out_cube.handle, cube->adt->binding_handle);
-  EXPECT_STREQ(out_cube.name, cube->id.name)
-      << "The binding should be named after the assigned ID";
-  EXPECT_STREQ(out_cube.name, cube->adt->binding_name)
+  Binding &binding_cube = anim->binding_add();
+  ASSERT_STREQ(binding_cube.name, "XXBinding");
+  ASSERT_TRUE(anim->assign_id(&binding_cube, cube->id));
+  EXPECT_EQ(binding_cube.handle, cube->adt->binding_handle);
+  EXPECT_STREQ(binding_cube.name, "OBBinding");
+  EXPECT_STREQ(binding_cube.name, cube->adt->binding_name)
       << "The binding name should be copied to the adt";
 
   /* Assign another ID to the same Binding. */
-  ASSERT_TRUE(anim->assign_id(&out_cube, suzanne->id));
-  EXPECT_STREQ(out_cube.name, cube->id.name)
-      << "The binding should not be renamed on assignment once it has a name";
-  EXPECT_STREQ(out_cube.name, cube->adt->binding_name)
+  ASSERT_TRUE(anim->assign_id(&binding_cube, suzanne->id));
+  EXPECT_STREQ(binding_cube.name, "OBBinding");
+  EXPECT_STREQ(binding_cube.name, cube->adt->binding_name)
       << "The binding name should be copied to the adt";
 
-  /* Assign Cube to another binding without unassigning first. */
-  Binding &another_out_cube = anim->binding_add();
-  ASSERT_FALSE(anim->assign_id(&another_out_cube, cube->id))
-      << "Assigning animation (with this function) when already assigned should fail.";
+  { /* Assign Cube to another animation+binding without unassigning first. */
+    Animation *another_anim = static_cast<Animation *>(BKE_id_new(bmain, ID_AN, "ANOtherAnim"));
+    Binding &another_binding = another_anim->binding_add();
+    ASSERT_FALSE(another_anim->assign_id(&another_binding, cube->id))
+        << "Assigning animation (with this function) when already assigned should fail.";
+  }
+
+  { /* Assign Cube to another binding of the same Animation, this should work. */
+    const int user_count_pre = anim->id.us;
+    Binding &binding_cube_2 = anim->binding_add();
+    ASSERT_TRUE(anim->assign_id(&binding_cube_2, cube->id));
+    ASSERT_EQ(anim->id.us, user_count_pre)
+        << "Assigning to a different binding of the same animation should _not_ change the user "
+           "count of that Animation";
+  }
+
+  { /* Unassign the animation. */
+    const int user_count_pre = anim->id.us;
+    anim->unassign_id(cube->id);
+    ASSERT_EQ(anim->id.us, user_count_pre - 1)
+        << "Unassigning an animation should lower its user count";
+  }
 
   /* Assign Cube to another 'virgin' binding. This should not cause a name
    * collision between the Bindings. */
-  anim->unassign_id(cube->id);
-  ASSERT_TRUE(anim->assign_id(&another_out_cube, cube->id));
-  EXPECT_EQ(another_out_cube.handle, cube->adt->binding_handle);
-  EXPECT_STREQ("OBKüüübus.001", another_out_cube.name) << "The binding should be uniquely named";
-  EXPECT_STREQ("OBKüüübus.001", cube->adt->binding_name)
+  Binding &another_binding_cube = anim->binding_add();
+  ASSERT_TRUE(anim->assign_id(&another_binding_cube, cube->id));
+  EXPECT_EQ(another_binding_cube.handle, cube->adt->binding_handle);
+  EXPECT_STREQ("OBBinding.002", another_binding_cube.name)
+      << "The binding should be uniquely named";
+  EXPECT_STREQ("OBBinding.002", cube->adt->binding_name)
       << "The binding name should be copied to the adt";
 
   /* Create an ID of another type. This should not be assignable to this binding. */
   ID *mesh = static_cast<ID *>(BKE_id_new_nomain(ID_ME, "Mesh"));
-  EXPECT_FALSE(anim->assign_id(&out_cube, *mesh))
+  EXPECT_FALSE(anim->assign_id(&binding_cube, *mesh))
       << "Mesh should not be animatable by an Object binding";
   BKE_id_free(nullptr, mesh);
 }
 
 TEST_F(AnimationLayersTest, rename_binding)
 {
-  Binding &out_cube = anim->binding_add();
-  ASSERT_TRUE(anim->assign_id(&out_cube, cube->id));
-  EXPECT_EQ(out_cube.handle, cube->adt->binding_handle);
-  EXPECT_STREQ(out_cube.name, cube->id.name)
-      << "The binding should be named after the assigned ID";
-  EXPECT_STREQ(out_cube.name, cube->adt->binding_name)
+  Binding &binding_cube = anim->binding_add();
+  ASSERT_TRUE(anim->assign_id(&binding_cube, cube->id));
+  EXPECT_EQ(binding_cube.handle, cube->adt->binding_handle);
+  EXPECT_STREQ("OBBinding", binding_cube.name);
+  EXPECT_STREQ(binding_cube.name, cube->adt->binding_name)
       << "The binding name should be copied to the adt";
 
-  anim->binding_name_define(out_cube, "New Binding Name");
-  EXPECT_STREQ("New Binding Name", out_cube.name);
+  anim->binding_name_define(binding_cube, "New Binding Name");
+  EXPECT_STREQ("New Binding Name", binding_cube.name);
   /* At this point the binding name will not have been copied to the cube
    * AnimData. However, I don't want to test for that here, as it's not exactly
    * desirable behavior, but more of a side-effect of the current
    * implementation. */
 
-  anim->binding_name_propagate(*bmain, out_cube);
+  anim->binding_name_propagate(*bmain, binding_cube);
   EXPECT_STREQ("New Binding Name", cube->adt->binding_name);
 
   /* Finally, do another rename, do NOT call the propagate function, then
    * unassign. This should still result in the correct binding name being stored
    * on the ADT. */
-  anim->binding_name_define(out_cube, "Even Newer Name");
+  anim->binding_name_define(binding_cube, "Even Newer Name");
   anim->unassign_id(cube->id);
   EXPECT_STREQ("Even Newer Name", cube->adt->binding_name);
+}
+
+TEST_F(AnimationLayersTest, binding_name_ensure_prefix)
+{
+  class AccessibleBinding : public Binding {
+   public:
+    void name_ensure_prefix()
+    {
+      Binding::name_ensure_prefix();
+    }
+  };
+
+  Binding &raw_binding = anim->binding_add();
+  AccessibleBinding &binding = static_cast<AccessibleBinding &>(raw_binding);
+  ASSERT_STREQ("XXBinding", binding.name);
+  ASSERT_EQ(0, binding.idtype);
+
+  /* Check defaults, idtype zeroed. */
+  binding.name_ensure_prefix();
+  EXPECT_STREQ("XXBinding", binding.name);
+
+  /* idtype CA, default name.  */
+  binding.idtype = ID_CA;
+  binding.name_ensure_prefix();
+  EXPECT_STREQ("CABinding", binding.name);
+
+  /* idtype ME, explicit name of other idtype. */
+  anim->binding_name_define(binding, "CANewName");
+  binding.idtype = ID_ME;
+  binding.name_ensure_prefix();
+  EXPECT_STREQ("MENewName", binding.name);
+
+  /* Zeroing out idtype. */
+  binding.idtype = 0;
+  binding.name_ensure_prefix();
+  EXPECT_STREQ("XXNewName", binding.name);
+}
+
+TEST_F(AnimationLayersTest, binding_name_prefix)
+{
+  Binding &binding = anim->binding_add();
+  EXPECT_EQ("XX", binding.name_prefix_for_idtype());
+
+  binding.idtype = ID_CA;
+  EXPECT_EQ("CA", binding.name_prefix_for_idtype());
 }
 
 TEST_F(AnimationLayersTest, rename_binding_name_collision)
@@ -295,13 +363,13 @@ TEST_F(AnimationLayersTest, find_suitable_binding)
    * matching. */
 
   /* Create a binding with a handle that should be ignored.*/
-  Binding &other_out = anim->binding_add();
-  other_out.handle = 47;
+  Binding &other_binding = anim->binding_add();
+  other_binding.handle = 47;
 
   AnimData *adt = BKE_animdata_ensure_id(&cube->id);
   adt->animation = nullptr;
   /* Configure adt to use the handle of one binding, and the name of the other. */
-  adt->binding_handle = other_out.handle;
+  adt->binding_handle = other_binding.handle;
   STRNCPY_UTF8(adt->binding_name, binding.name);
   EXPECT_EQ(&binding, anim->find_suitable_binding_for(cube->id));
 
@@ -311,7 +379,7 @@ TEST_F(AnimationLayersTest, find_suitable_binding)
    * should take precedence. */
   adt->animation = anim;
   id_us_plus(&anim->id);
-  EXPECT_EQ(&other_out, anim->find_suitable_binding_for(cube->id));
+  EXPECT_EQ(&other_binding, anim->find_suitable_binding_for(cube->id));
 
   /* ===
    * A binding exists, but doesn't match anything in the anim data of the cube. This should fall
@@ -362,7 +430,7 @@ TEST_F(AnimationLayersTest, strip)
 TEST_F(AnimationLayersTest, KeyframeStrip__keyframe_insert)
 {
   Binding &binding = anim->binding_add();
-  EXPECT_TRUE(binding.connect_id(cube->id));
+  EXPECT_TRUE(anim->assign_id(&binding, cube->id));
   Layer &layer = anim->layer_add("Kübus layer");
 
   Strip &strip = layer.strip_add(Strip::Type::Keyframe);

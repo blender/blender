@@ -1337,7 +1337,7 @@ void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u,
 }
 
 void multiresModifier_sync_levels_ex(Object *ob_dst,
-                                     MultiresModifierData *mmd_src,
+                                     const MultiresModifierData *mmd_src,
                                      MultiresModifierData *mmd_dst)
 {
   if (mmd_src->totlvl == mmd_dst->totlvl) {

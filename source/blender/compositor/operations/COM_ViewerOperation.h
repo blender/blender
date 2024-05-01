@@ -19,8 +19,6 @@ class ViewerOperation : public MultiThreadedOperation {
   Image *image_;
   ImageUser *image_user_;
   bool active_;
-  float center_x_;
-  float center_y_;
   ImBuf *ibuf_;
   bool use_alpha_input_;
   const RenderData *rd_;
@@ -56,22 +54,6 @@ class ViewerOperation : public MultiThreadedOperation {
   void set_active(bool active)
   {
     active_ = active;
-  }
-  void setCenterX(float centerX)
-  {
-    center_x_ = centerX;
-  }
-  void setCenterY(float centerY)
-  {
-    center_y_ = centerY;
-  }
-  float getCenterX() const
-  {
-    return center_x_;
-  }
-  float getCenterY() const
-  {
-    return center_y_;
   }
   eCompositorPriority get_render_priority() const override;
   void set_use_alpha_input(bool value)

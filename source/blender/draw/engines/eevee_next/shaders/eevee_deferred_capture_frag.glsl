@@ -37,7 +37,7 @@ void main()
         break;
       case CLOSURE_BSDF_TRANSLUCENT_ID:
       case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-        albedo_back += (gbuf.thickness > 0.0) ? square(cl.color) : cl.color;
+        albedo_back += (gbuf.thickness != 0.0) ? square(cl.color) : cl.color;
         break;
       case CLOSURE_NONE_ID:
         /* TODO(fclem): Assert. */
@@ -66,7 +66,7 @@ void main()
   vec3 radiance_front = stack.cl[0].light_shadowed;
 
   stack.cl[0] = closure_light_new(cl_transmit, V, gbuf.thickness);
-  light_eval_transmission(stack, P, Ng, V, vPz);
+  light_eval_transmission(stack, P, Ng, V, vPz, gbuf.thickness);
 
   vec3 radiance_back = stack.cl[0].light_shadowed;
 

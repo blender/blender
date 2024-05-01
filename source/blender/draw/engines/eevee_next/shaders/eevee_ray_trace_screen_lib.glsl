@@ -235,7 +235,7 @@ Ray raytrace_thickness_ray_ammend(
       vec3 L = refraction_dominant_dir(cl_refr.N, V, cl_refr.ior, apparent_roughness);
       /* The ray direction was generated using the same 2 transmission events assumption.
        * Only change its origin. Skip the volume inside the object. */
-      ray.origin += thickness_sphere_intersect(thickness, surface_N, L).hit_P;
+      ray.origin += thickness_shape_intersect(thickness, surface_N, L).hit_P;
       break;
     }
     case CLOSURE_BSDF_TRANSLUCENT_ID:

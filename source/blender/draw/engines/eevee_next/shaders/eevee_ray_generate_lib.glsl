@@ -40,7 +40,7 @@ BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, fl
   BsdfSample samp;
   switch (cl.type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
-      if (thickness > 0.0) {
+      if (thickness != 0.0) {
         /* When modeling object thickness as a sphere, the outgoing rays are distributed uniformly
          * over the sphere. We don't need the RAY_BIAS in this case. */
         samp.direction = sample_sphere(noise);
@@ -81,11 +81,11 @@ BsdfSample ray_generate_direction(vec2 noise, ClosureUndetermined cl, vec3 V, fl
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
       float ior = to_closure_refraction(cl).ior;
       float roughness = to_closure_refraction(cl).roughness;
-      if (thickness > 0.0) {
+      if (thickness != 0.0) {
         float apparent_roughness = refraction_roughness_remapping(roughness, ior);
         vec3 L = refraction_dominant_dir(cl.N, V, ior, apparent_roughness);
         /* NOTE(fclem): Tracing origin is modified in the trace shader. */
-        cl.N = -thickness_sphere_intersect(thickness, cl.N, L).hit_N;
+        cl.N = -thickness_shape_intersect(thickness, cl.N, L).hit_N;
         ior = 1.0 / ior;
         V = -L;
         world_to_tangent = from_up_axis(cl.N);

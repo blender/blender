@@ -212,14 +212,22 @@ float gbuffer_ior_unpack(float ior_packed)
 
 float gbuffer_thickness_pack(float thickness)
 {
-  /* TODO(fclem): Something better. */
-  return gbuffer_ior_pack(thickness);
+  /* TODO(fclem): If needed, we could increase precision by defining a ceiling value like the view
+   * distance and remap to it. Or tweak the hyperbole eq. */
+  /* NOTE: Sign encodes the thickness mode. */
+  /* Remap [0..+inf) to [0..1/2]. */
+  float thickness_packed = abs(thickness) / (1.0 + 2.0 * abs(thickness));
+  /* Mirror the negative from [0..1/2] to [1..1/2]. O is mapped to 0 for precision. */
+  return (thickness < 0.0) ? 1.0 - thickness_packed : thickness_packed;
 }
-
 float gbuffer_thickness_unpack(float thickness_packed)
 {
-  /* TODO(fclem): Something better. */
-  return gbuffer_ior_unpack(thickness_packed);
+  /* Undo mirroring. */
+  float thickness = (thickness_packed > 0.5) ? 1.0 - thickness_packed : thickness_packed;
+  /* Remap [0..1/2] to [0..+inf). */
+  thickness = thickness / (1.0 - 2.0 * thickness);
+  /* Retreive sign. */
+  return (thickness_packed > 0.5) ? -thickness : thickness;
 }
 
 /**
@@ -860,13 +868,20 @@ GBufferWriter gbuffer_pack(GBufferData data_in)
 int gbuffer_closure_count(uint header)
 {
   /* Note: Need to be adjusted for different global GBUFFER_LAYER_MAX. */
-  const int bits_per_layer = GBUFFER_HEADER_BITS_PER_LAYER;
-  uvec3 closure_types = (uvec3(header) >> uvec3(0u, 4u, 8u)) & ((1u << bits_per_layer) - 1);
-
-  if (closure_types.x == GBUF_METAL_CLEARCOAT) {
-    return 2;
-  }
+  const uint bits_per_layer = uint(GBUFFER_HEADER_BITS_PER_LAYER);
+  uvec3 closure_types = (uvec3(header) >> (uvec3(0u, 1u, 2u) * bits_per_layer)) &
+                        ((1u << bits_per_layer) - 1);
   return reduce_add(ivec3(not(equal(closure_types, uvec3(0u)))));
+}
+
+bool gbuffer_has_transmission(uint header)
+{
+  /* Note: Need to be adjusted for different global GBUFFER_LAYER_MAX. */
+  const uint bits_per_layer = uint(GBUFFER_HEADER_BITS_PER_LAYER);
+  const uint header_mask = (GBUF_TRANSMISSION_BIT << (bits_per_layer * 0)) |
+                           (GBUF_TRANSMISSION_BIT << (bits_per_layer * 1)) |
+                           (GBUF_TRANSMISSION_BIT << (bits_per_layer * 2));
+  return (header & header_mask) != 0;
 }
 
 /* Return the number of normal layer as encoded in the given header value. */
