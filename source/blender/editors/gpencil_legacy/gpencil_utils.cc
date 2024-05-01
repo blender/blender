@@ -1428,7 +1428,7 @@ void ED_gpencil_add_defaults(bContext *C, Object *ob)
   Main *bmain = CTX_data_main(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
 
-  BKE_paint_ensure(ts, (Paint **)&ts->gp_paint);
+  BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_paint);
   Paint *paint = &ts->gp_paint->paint;
   Brush *brush = BKE_paint_brush(paint);
   /* if not exist, create a new one */

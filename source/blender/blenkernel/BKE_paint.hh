@@ -173,7 +173,7 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name);
 /**
  * Call when entering each respective paint mode.
  */
-bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint);
+bool BKE_paint_ensure(Main *bmain, ToolSettings *ts, Paint **r_paint);
 void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const uchar col[3]);
 void BKE_paint_free(Paint *p);
 /**
@@ -188,7 +188,7 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint);
 void BKE_paint_cavity_curve_preset(Paint *p, int preset);
 
 eObjectMode BKE_paint_object_mode_from_paintmode(PaintMode mode);
-bool BKE_paint_ensure_from_paintmode(Scene *sce, PaintMode mode);
+bool BKE_paint_ensure_from_paintmode(Main *bmain, Scene *sce, PaintMode mode);
 Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode);
 const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(PaintMode mode);
 const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(PaintMode mode);
@@ -732,7 +732,7 @@ void BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
                                    Main *bmain,
                                    Object *ob,
                                    MultiresModifierData *mmd);
-void BKE_sculpt_toolsettings_data_ensure(Scene *scene);
+void BKE_sculpt_toolsettings_data_ensure(Main *bmain, Scene *scene);
 
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob);
 

@@ -556,7 +556,8 @@ void get_brush_alpha_data(const Scene *scene,
 
 void init_stroke(Depsgraph *depsgraph, Object *ob);
 void init_session_data(const ToolSettings *ts, Object *ob);
-void init_session(Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode object_mode);
+void init_session(
+    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode object_mode);
 
 Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Brush *brush);
 

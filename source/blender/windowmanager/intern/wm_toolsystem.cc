@@ -187,7 +187,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
         LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
           if (workspace == WM_window_get_active_workspace(win)) {
             Scene *scene = WM_window_get_active_scene(win);
-            BKE_paint_ensure_from_paintmode(scene, paint_mode);
+            BKE_paint_ensure_from_paintmode(bmain, scene, paint_mode);
             Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
             Brush *brush = BKE_paint_toolslots_brush_get(paint, slot_index);
             if (brush == nullptr) {
