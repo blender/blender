@@ -4332,8 +4332,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->eevee.flag |= SCE_EEVEE_SHADOW_ENABLED;
         scene->eevee.shadow_pool_size = 512;
-        scene->r.simplify_shadows = 1.0f;
-        scene->r.simplify_shadows_render = 1.0f;
       }
     }
 
