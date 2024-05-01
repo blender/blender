@@ -308,7 +308,7 @@ static void node_register()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY);
-  bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::MIDDLE);
+  bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = node_init;
   node_type_storage(
       &ntype, "NodeGeometryRaycast", node_free_standard_storage, node_copy_standard_storage);

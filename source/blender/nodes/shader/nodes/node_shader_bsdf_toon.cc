@@ -52,7 +52,7 @@ void register_node_type_sh_bsdf_toon()
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_cycles_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_toon;
-  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_toon;
 
   nodeRegisterType(&ntype);
