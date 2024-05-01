@@ -236,15 +236,15 @@ void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
 
 void AssetViewItem::on_activate(bContext & /*C*/)
 {
-  const AssetView &asset_view = dynamic_cast<const AssetView &>(get_view());
+  const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
   if (asset_view.is_popup_) {
-    UI_popup_menu_close_from_but(reinterpret_cast<uiBut *>(view_item_button()));
+    UI_popup_menu_close_from_but(reinterpret_cast<uiBut *>(this->view_item_button()));
   }
 }
 
 std::optional<bool> AssetViewItem::should_be_active() const
 {
-  const AssetView &asset_view = dynamic_cast<const AssetView &>(get_view());
+  const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
   if (!asset_view.active_asset_) {
     return false;
   }
