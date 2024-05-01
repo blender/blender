@@ -51,9 +51,9 @@ void send_redraw_notifier(const bContext &C)
 /** \name Shelf Type
  * \{ */
 
-static bool asset_shelf_type_poll(const bContext &C,
-                                  const SpaceType &space_type,
-                                  const AssetShelfType *shelf_type)
+static bool type_poll(const bContext &C,
+                      const SpaceType &space_type,
+                      const AssetShelfType *shelf_type)
 {
   if (!shelf_type) {
     return false;
@@ -70,7 +70,7 @@ static bool asset_shelf_type_poll(const bContext &C,
   return !shelf_type->poll || shelf_type->poll(&C, shelf_type);
 }
 
-static AssetShelfType *asset_shelf_type_ensure(const SpaceType &space_type, AssetShelf &shelf)
+static AssetShelfType *type_ensure(const SpaceType &space_type, AssetShelf &shelf)
 {
   if (shelf.type) {
     return shelf.type;
@@ -140,12 +140,11 @@ static AssetShelf *update_active_shelf(const bContext &C,
                                        const SpaceType &space_type,
                                        RegionAssetShelf &shelf_regiondata)
 {
-  /* Note: Don't access #AssetShelf.type directly, use #asset_shelf_type_ensure(). */
+  /* Note: Don't access #AssetShelf.type directly, use #type_ensure(). */
 
   /* Case 1: */
   if (shelf_regiondata.active_shelf &&
-      asset_shelf_type_poll(
-          C, space_type, asset_shelf_type_ensure(space_type, *shelf_regiondata.active_shelf)))
+      type_poll(C, space_type, type_ensure(space_type, *shelf_regiondata.active_shelf)))
   {
     /* Not a strong precondition, but if this is wrong something weird might be going on. */
     BLI_assert(shelf_regiondata.active_shelf == shelf_regiondata.shelves.first);
@@ -159,7 +158,7 @@ static AssetShelf *update_active_shelf(const bContext &C,
       continue;
     }
 
-    if (asset_shelf_type_poll(C, space_type, asset_shelf_type_ensure(space_type, *shelf))) {
+    if (type_poll(C, space_type, type_ensure(space_type, *shelf))) {
       /* Found a valid previously activated shelf, reactivate it. */
       activate_shelf(shelf_regiondata, *shelf);
       return shelf;
@@ -168,7 +167,7 @@ static AssetShelf *update_active_shelf(const bContext &C,
 
   /* Case 3: */
   for (const std::unique_ptr<AssetShelfType> &shelf_type : space_type.asset_shelf_types) {
-    if (asset_shelf_type_poll(C, space_type, shelf_type.get())) {
+    if (type_poll(C, space_type, shelf_type.get())) {
       AssetShelf *new_shelf = create_shelf_from_type(*shelf_type);
       BLI_addhead(&shelf_regiondata.shelves, new_shelf);
       /* Moves ownership to the regiondata. */
@@ -216,7 +215,7 @@ static bool asset_shelf_space_poll(const bContext *C, const SpaceLink *space_lin
 
   /* Is there any asset shelf type registered that returns true for it's poll? */
   for (const std::unique_ptr<AssetShelfType> &shelf_type : space_type->asset_shelf_types) {
-    if (asset_shelf_type_poll(*C, *space_type, shelf_type.get())) {
+    if (type_poll(*C, *space_type, shelf_type.get())) {
       return true;
     }
   }
@@ -724,8 +723,7 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
   uiItemS(layout);
 
   PointerRNA shelf_ptr = active_shelf_ptr_from_context(C);
-  AssetShelf *shelf = static_cast<AssetShelf *>(shelf_ptr.data);
-  if (shelf) {
+  if (AssetShelf *shelf = static_cast<AssetShelf *>(shelf_ptr.data)) {
     add_catalog_tabs(shelf->settings, *layout);
   }
 
