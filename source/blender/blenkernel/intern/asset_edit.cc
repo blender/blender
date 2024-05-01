@@ -171,7 +171,7 @@ static std::string asset_blendfile_path_for_save(const bUserAssetLibrary &user_l
   char base_name_filesafe[FILE_MAXFILE];
   BLI_strncpy(base_name_filesafe,
               base_name.data(),
-              std::min(sizeof(base_name_filesafe), size_t(base_name.size())));
+              std::min(sizeof(base_name_filesafe), size_t(base_name.size() + 1)));
   BLI_path_make_safe_filename(base_name_filesafe);
 
   const std::string filepath = root_path + SEP + base_name_filesafe + BLENDER_ASSET_FILE_SUFFIX;
@@ -233,7 +233,7 @@ static bool asset_write_in_library(Main *bmain,
   id.flag |= LIB_FAKEUSER;
   id.tag &= ~LIB_TAG_RUNTIME;
   id.us = 1;
-  BLI_strncpy(id.name + 2, name.data(), std::min(sizeof(id.name) - 2, size_t(name.size())));
+  BLI_strncpy(id.name + 2, name.data(), std::min(sizeof(id.name) - 2, size_t(name.size() + 1)));
   id.override_library = nullptr;
 
   BKE_blendfile_write_partial_tag_ID(&id, true);
