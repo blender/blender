@@ -56,7 +56,10 @@ class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
 
     def draw(self, context):
         layout = self.layout
-        ob_type = context.object.type
+        ob = context.object
+        if not ob:
+            return
+        ob_type = ob.type
         geometry_nodes_supported = ob_type in {
             'MESH', 'CURVE', 'CURVES',
             'FONT', 'VOLUME', 'POINTCLOUD', 'GREASEPENCIL',

@@ -1290,7 +1290,7 @@ void modifier_register_use_selected_objects_prop(wmOperatorType *ot)
       false,
       "Selected Objects",
       "Affect all selected objects instead of just the active object");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /* ------------------------------------------------------------------- */
@@ -1321,7 +1321,7 @@ static int modifier_add_exec(bContext *C, wmOperator *op)
 
 static int modifier_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (event->modifier & KM_ALT) {
+  if (event->modifier & KM_ALT || CTX_wm_view3d(C)) {
     RNA_boolean_set(op->ptr, "use_selected_objects", true);
   }
   if (!RNA_struct_property_is_set(op->ptr, "type")) {
@@ -1639,6 +1639,32 @@ void OBJECT_OT_modifier_remove(wmOperatorType *ot)
   edit_modifier_properties(ot);
   edit_modifier_report_property(ot);
   modifier_register_use_selected_objects_prop(ot);
+}
+
+static int modifiers_clear_exec(bContext *C, wmOperator * /*op*/)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+
+  CTX_DATA_BEGIN (C, Object *, object, selected_editable_objects) {
+    modifiers_clear(bmain, scene, object);
+    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
+  }
+  CTX_DATA_END;
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_modifiers_clear(wmOperatorType *ot)
+{
+  ot->name = "Clear Object Modifiers";
+  ot->description = "Clear all modifiers from the selected objects";
+  ot->idname = "OBJECT_OT_modifiers_clear";
+
+  ot->exec = modifiers_clear_exec;
+  ot->poll = ED_operator_object_active_local_editable;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */
@@ -2285,6 +2311,60 @@ void OBJECT_OT_modifier_copy_to_selected(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
   edit_modifier_properties(ot);
+}
+
+static int object_modifiers_copy_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  const Scene *scene = CTX_data_scene(C);
+  Object *active_object = context_active_object(C);
+
+  Vector<PointerRNA> selected_objects;
+  CTX_data_selected_objects(C, &selected_objects);
+  CTX_DATA_BEGIN (C, Object *, object, selected_objects) {
+    if (object == active_object) {
+      continue;
+    }
+    LISTBASE_FOREACH (const ModifierData *, md, &active_object->modifiers) {
+      if (modifier_copy_to_object(bmain, scene, active_object, md, object, op->reports)) {
+        WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_ADDED, object);
+      }
+    }
+  }
+  CTX_DATA_END;
+
+  return OPERATOR_FINISHED;
+
+  DEG_relations_tag_update(bmain);
+
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_ADDED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool modifiers_copy_to_selected_poll(bContext *C)
+{
+  if (!ED_operator_object_active_editable(C)) {
+    return false;
+  }
+  Object *active_object = context_active_object(C);
+  if (BLI_listbase_is_empty(&active_object->modifiers)) {
+    CTX_wm_operator_poll_msg_set(C, "Active object has no modifiers");
+    return false;
+  }
+  return true;
+}
+
+void OBJECT_OT_modifiers_copy_to_selected(wmOperatorType *ot)
+{
+  ot->name = "Copy Modifiers to Selected Objects";
+  ot->idname = "OBJECT_OT_modifiers_copy_to_selected";
+  ot->description = "Copy modifiers to other selected objects";
+
+  ot->exec = object_modifiers_copy_exec;
+  ot->poll = modifiers_copy_to_selected_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */
