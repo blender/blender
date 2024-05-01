@@ -10,6 +10,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_polyfill_2d.h"
 
 #include "BKE_brush.hh"
@@ -17,6 +18,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object.hh"
 
 #include "DNA_modifier_types.h"
 
@@ -274,13 +276,63 @@ static void calculate_depth(gesture::GestureData &gesture_data,
   r_depth_back = depth_back;
 }
 
+/* Calculates a scalar factor to use to ensure a drawn line gesture
+ * encompasses the entire object to be acted on. */
+static float calc_expand_factor(const gesture::GestureData &gesture_data)
+{
+  Object *object = gesture_data.vc.obact;
+
+  rcti rect;
+  const Bounds<float3> bounds = *BKE_object_boundbox_get(object);
+  paint_convert_bb_to_rect(
+      &rect, bounds.min, bounds.max, gesture_data.vc.region, gesture_data.vc.rv3d, object);
+
+  const float2 min_corner(rect.xmin, rect.ymin);
+  const float2 max_corner(rect.xmax, rect.ymax);
+
+  /* Mutiply the screen space bounds by an arbitrary factor to ensure the created points are
+   * sufficiently far and enclose the mesh to be operated on. */
+  return math::distance(min_corner, max_corner) * 2.0f;
+}
+
+/* Converts a line gesture's points into usable screen points. */
+static Array<float2> gesture_to_screen_points(gesture::GestureData &gesture_data)
+{
+  if (gesture_data.shape_type != gesture::ShapeType::Line) {
+    return gesture_data.gesture_points;
+  }
+
+  const float expand_factor = calc_expand_factor(gesture_data);
+
+  float2 start(gesture_data.gesture_points[0]);
+  float2 end(gesture_data.gesture_points[1]);
+
+  const float2 dir = math::normalize(end - start);
+
+  if (!gesture_data.line.use_side_planes) {
+    end = end + dir * expand_factor;
+    start = start - dir * expand_factor;
+  }
+
+  float2 perp(dir.y, -dir.x);
+
+  if (gesture_data.line.flip) {
+    perp *= -1;
+  }
+
+  const float2 parallel_start = start + perp * expand_factor;
+  const float2 parallel_end = end + perp * expand_factor;
+
+  return {start, end, parallel_end, parallel_start};
+}
+
 static void generate_geometry(gesture::GestureData &gesture_data)
 {
   TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
   ViewContext *vc = &gesture_data.vc;
   ARegion *region = vc->region;
 
-  const Span<float2> screen_points = gesture_data.gesture_points;
+  const Array<float2> screen_points = gesture_to_screen_points(gesture_data);
   BLI_assert(screen_points.size() > 1);
 
   const int trim_totverts = screen_points.size() * 2;
@@ -614,6 +666,11 @@ static void init_operation(gesture::GestureData &gesture_data, wmOperator &op)
   if (!trim_operation->initial_hit) {
     trim_operation->orientation = OrientationType::View;
   }
+
+  if (gesture_data.shape_type == gesture::ShapeType::Line) {
+    /* Line gestures only support Difference, no extrusion. */
+    trim_operation->mode = OperationType::Difference;
+  }
 }
 
 static void operator_properties(wmOperatorType *ot)
@@ -773,6 +830,37 @@ static int gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *even
   return WM_gesture_lasso_invoke(C, op, event);
 }
 
+static int gesture_line_exec(bContext *C, wmOperator *op)
+{
+  if (!can_exec(*C)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_line(C, op);
+  if (!gesture_data) {
+    return OPERATOR_CANCELLED;
+  }
+
+  gesture_data->operation = reinterpret_cast<gesture::Operation *>(
+      MEM_cnew<TrimOperation>(__func__));
+
+  initialize_cursor_info(*C, *op, *gesture_data);
+  init_operation(*gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
+  return OPERATOR_FINISHED;
+}
+
+static int gesture_line_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (!can_invoke(*C)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  RNA_int_set_array(op->ptr, "location", event->mval);
+
+  return WM_gesture_straightline_active_side_invoke(C, op, event);
+}
+
 void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot)
 {
   ot->name = "Trim Lasso Gesture";
@@ -811,6 +899,27 @@ void SCULPT_OT_trim_box_gesture(wmOperatorType *ot)
   /* Properties. */
   WM_operator_properties_border(ot);
   gesture::operator_properties(ot, gesture::ShapeType::Box);
+
+  operator_properties(ot);
+}
+
+void SCULPT_OT_trim_line_gesture(wmOperatorType *ot)
+{
+  ot->name = "Trim Line Gesture";
+  ot->idname = "SCULPT_OT_trim_line_gesture";
+  ot->description = "Trims the mesh divided by the line as you move the brush";
+
+  ot->invoke = gesture_line_invoke;
+  ot->modal = WM_gesture_straightline_oneshot_modal;
+  ot->exec = gesture_line_exec;
+
+  ot->poll = SCULPT_mode_poll_view3d;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* Properties. */
+  WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
+  gesture::operator_properties(ot, gesture::ShapeType::Line);
 
   operator_properties(ot);
 }
