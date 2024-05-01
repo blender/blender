@@ -28,6 +28,18 @@ void TranslateNode::convert_to_operations(NodeConverter &converter,
   operation->set_wrapping(data->wrap_axis);
   operation->set_is_relative(data->relative);
 
+  switch (data->interpolation) {
+    case CMP_NODE_INTERPOLATION_NEAREST:
+      operation->set_sampler(PixelSampler::Nearest);
+      break;
+    case CMP_NODE_INTERPOLATION_BILINEAR:
+      operation->set_sampler(PixelSampler::Bilinear);
+      break;
+    case CMP_NODE_INTERPOLATION_BICUBIC:
+      operation->set_sampler(PixelSampler::Bicubic);
+      break;
+  }
+
   converter.add_operation(operation);
   converter.map_input_socket(input_xsocket, operation->get_input_socket(1));
   converter.map_input_socket(input_ysocket, operation->get_input_socket(2));
