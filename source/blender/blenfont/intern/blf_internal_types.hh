@@ -340,12 +340,6 @@ struct FontBLF {
   /** Main text color. */
   unsigned char color[4];
 
-  /**
-   * Multiplied this matrix with the current one before draw the text!
-   * see #blf_draw_gpu__start.
-   */
-  float m[16];
-
   /** Clipping rectangle. */
   rcti clip_rec;
 

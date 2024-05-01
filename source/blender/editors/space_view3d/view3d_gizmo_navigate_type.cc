@@ -113,7 +113,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
   } font;
 
   font.id = BLF_default();
-  BLF_disable(font.id, BLF_ROTATION | BLF_SHADOW | BLF_MATRIX | BLF_ASPECT | BLF_WORD_WRAP);
+  BLF_disable(font.id, BLF_ROTATION | BLF_SHADOW | BLF_ASPECT | BLF_WORD_WRAP);
   BLF_enable(font.id, BLF_BOLD);
   BLF_size(font.id, AXIS_TEXT_SIZE);
   BLF_position(font.id, 0, 0, 0);
