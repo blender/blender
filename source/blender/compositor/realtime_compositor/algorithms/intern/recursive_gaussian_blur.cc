@@ -9,6 +9,7 @@
 #include "COM_result.hh"
 
 #include "COM_algorithm_deriche_gaussian_blur.hh"
+#include "COM_algorithm_recursive_gaussian_blur.hh"
 #include "COM_algorithm_symmetric_separable_blur.hh"
 #include "COM_algorithm_van_vliet_gaussian_blur.hh"
 
