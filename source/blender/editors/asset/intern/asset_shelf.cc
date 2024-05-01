@@ -153,7 +153,7 @@ static AssetShelf *update_active_shelf(const bContext &C,
                                        RegionAssetShelf &shelf_regiondata,
                                        FunctionRef<void(AssetShelf &new_shelf)> on_create)
 {
-  /* Note: Don't access #AssetShelf.type directly, use #asset_shelf_type_ensure(). */
+  /* Note: Don't access #AssetShelf.type directly, use #type_ensure(). */
 
   /* Case 1: */
   if (shelf_regiondata.active_shelf &&

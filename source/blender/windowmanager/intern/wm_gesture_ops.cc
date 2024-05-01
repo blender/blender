@@ -680,7 +680,7 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 
   ot->name = "Lasso Gesture";
   ot->idname = "WM_OT_lasso_gesture";
-  ot->description = "Select objects within the lasso as you move the pointer";
+  ot->description = "Draw a shape defined by the cursor";
 
   ot->invoke = WM_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
@@ -1180,7 +1180,7 @@ void WM_OT_straightline_gesture(wmOperatorType *ot)
 
   ot->name = "Straight Line Gesture";
   ot->idname = "WM_OT_straightline_gesture";
-  ot->description = "Draw a straight line as you move the pointer";
+  ot->description = "Draw a straight line defined by the cursor";
 
   ot->invoke = WM_gesture_straightline_invoke;
   ot->modal = WM_gesture_straightline_modal;

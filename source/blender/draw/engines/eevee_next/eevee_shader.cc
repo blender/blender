@@ -813,20 +813,8 @@ GPUMaterial *ShaderModule::material_default_shader_get(eMaterialPipeline pipelin
   ::Material *blender_mat = (is_volume) ? BKE_material_default_volume() :
                                           BKE_material_default_surface();
 
-  eMaterialDisplacement displacement_type = to_displacement_type(blender_mat->displacement_method);
-  eMaterialThickness thickness_type = to_thickness_type(blender_mat->thickness_mode);
-
-  uint64_t shader_uuid = shader_uuid_from_material_type(
-      pipeline_type, geometry_type, displacement_type, thickness_type, blender_mat->blend_flag);
-
-  return DRW_shader_from_material(blender_mat,
-                                  blender_mat->nodetree,
-                                  GPU_MAT_EEVEE,
-                                  shader_uuid,
-                                  is_volume,
-                                  false,
-                                  codegen_callback,
-                                  this);
+  return material_shader_get(
+      blender_mat, blender_mat->nodetree, pipeline_type, geometry_type, false);
 }
 
 GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
@@ -843,6 +831,9 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
   uint64_t shader_uuid = shader_uuid_from_material_type(
       pipeline_type, geometry_type, displacement_type, thickness_type, blender_mat->blend_flag);
 
+  bool is_default_material = ELEM(
+      blender_mat, BKE_material_default_surface(), BKE_material_default_volume());
+
   GPUMaterial *mat = DRW_shader_from_material(blender_mat,
                                               nodetree,
                                               GPU_MAT_EEVEE,
@@ -851,7 +842,7 @@ GPUMaterial *ShaderModule::material_shader_get(::Material *blender_mat,
                                               deferred_compilation,
                                               codegen_callback,
                                               this,
-                                              can_use_default_cb);
+                                              is_default_material ? nullptr : can_use_default_cb);
 
   if (GPU_material_status(mat) == GPU_MAT_USE_DEFAULT) {
     mat = material_default_shader_get(pipeline_type, geometry_type);

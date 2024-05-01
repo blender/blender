@@ -865,7 +865,7 @@ void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot)
 {
   ot->name = "Trim Lasso Gesture";
   ot->idname = "SCULPT_OT_trim_lasso_gesture";
-  ot->description = "Trims the mesh within the lasso as you move the brush";
+  ot->description = "Execute a boolean operation on the mesh and a shape defined by the cursor";
 
   ot->invoke = gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
@@ -886,7 +886,8 @@ void SCULPT_OT_trim_box_gesture(wmOperatorType *ot)
 {
   ot->name = "Trim Box Gesture";
   ot->idname = "SCULPT_OT_trim_box_gesture";
-  ot->description = "Trims the mesh within the box as you move the brush";
+  ot->description =
+      "Execute a boolean operation on the mesh and a rectangle defined by the cursor";
 
   ot->invoke = gesture_box_invoke;
   ot->modal = WM_gesture_box_modal;
@@ -907,7 +908,7 @@ void SCULPT_OT_trim_line_gesture(wmOperatorType *ot)
 {
   ot->name = "Trim Line Gesture";
   ot->idname = "SCULPT_OT_trim_line_gesture";
-  ot->description = "Trims the mesh divided by the line as you move the brush";
+  ot->description = "Remove a portion of the mesh on one side of a line";
 
   ot->invoke = gesture_line_invoke;
   ot->modal = WM_gesture_straightline_oneshot_modal;

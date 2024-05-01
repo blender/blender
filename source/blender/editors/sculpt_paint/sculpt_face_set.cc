@@ -1862,7 +1862,7 @@ void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
 {
   ot->name = "Face Set Lasso Gesture";
   ot->idname = "SCULPT_OT_face_set_lasso_gesture";
-  ot->description = "Add face set within the lasso as you move the brush";
+  ot->description = "Add a face set in a shape defined by the cursor";
 
   ot->invoke = face_set_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
@@ -1880,7 +1880,7 @@ void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot)
 {
   ot->name = "Face Set Box Gesture";
   ot->idname = "SCULPT_OT_face_set_box_gesture";
-  ot->description = "Add face set within the box as you move the brush";
+  ot->description = "Add a face set in a rectangle defined by the cursor";
 
   ot->invoke = face_set_gesture_box_invoke;
   ot->modal = WM_gesture_box_modal;
