@@ -205,17 +205,19 @@ static asset_system::AssetCatalog &asset_library_ensure_catalogs_in_path(
 
 static void show_catalog_in_asset_shelf(const bContext &C, const StringRefNull catalog_path)
 {
-  ScrArea *area = CTX_wm_area(&C);
-  if (!area) {
-    return;
+  /* Enable catalog in all visible asset shelves. */
+  wmWindowManager *wm = CTX_wm_manager(&C);
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    const bScreen *screen = WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      const AssetShelf *shelf = asset::shelf::active_shelf_from_area(area);
+      if (shelf && BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+                       &U, shelf->idname, catalog_path.c_str()))
+      {
+        U.runtime.is_dirty = true;
+      }
+    }
   }
-  const AssetShelf *shelf = asset::shelf::active_shelf_from_area(area);
-  if (!BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
-          &U, shelf->idname, catalog_path.c_str()))
-  {
-    return;
-  }
-  U.runtime.is_dirty = true;
 }
 
 static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
