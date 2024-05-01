@@ -97,7 +97,7 @@ bool wm_file_or_session_data_has_unsaved_changes(const Main *bmain, const wmWind
  *
  * Important to ask confirmation, as this is a very common scenario of data loss.
  */
-void wm_save_file_forwardcompat_dialog(bContext *C, wmOperator *op);
+void wm_save_file_overwrite_dialog(bContext *C, wmOperator *op);
 
 void WM_OT_save_homefile(wmOperatorType *ot);
 void WM_OT_save_userpref(wmOperatorType *ot);
