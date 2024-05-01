@@ -17,8 +17,12 @@ FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(DataT
 void FastGaussianBlurOperation::init_data()
 {
   BlurBaseOperation::init_data();
-  sigma_x_ = data_.sizex * size_ / 2.0f;
-  sigma_y_ = data_.sizey * size_ / 2.0f;
+
+  /* Compute the Gaussian sigma from the radius, where the radius is in pixels. Blender's filter is
+   * truncated at |x| > 3 * sigma as can be seen in the R_FILTER_GAUSS case of the RE_filter_value
+   * function, so we divide by three to get the approximate sigma value. */
+  sigma_x_ = data_.sizex * size_ / 3.0f;
+  sigma_y_ = data_.sizey * size_ / 3.0f;
 }
 
 void FastGaussianBlurOperation::init_execution()
