@@ -46,7 +46,7 @@ class GreasePencil_LayerMaskPanel:
         grease_pencil = ob.data
         layer = grease_pencil.layers.active
 
-        self.layout.prop(layer, "use_masks", text="")
+        self.layout.prop(layer, "use_masks", text="", toggle=0)
 
     def draw(self, context):
         layout = self.layout
