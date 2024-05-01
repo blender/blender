@@ -1079,6 +1079,12 @@ static const EnumPropertyItem mode_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static int quadriflow_remesh_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  return WM_operator_props_popup_confirm_ex(
+      C, op, event, IFACE_("QuadriFlow Remesh the Selected Mesh"), IFACE_("Remesh"));
+}
+
 void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1092,7 +1098,7 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
   ot->poll = object_remesh_poll;
   ot->poll_property = quadriflow_poll_property;
   ot->check = quadriflow_check;
-  ot->invoke = WM_operator_props_popup_confirm;
+  ot->invoke = quadriflow_remesh_invoke;
   ot->exec = quadriflow_remesh_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

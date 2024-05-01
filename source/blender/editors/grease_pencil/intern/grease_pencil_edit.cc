@@ -1394,13 +1394,19 @@ static int grease_pencil_clean_loose_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int grease_pencil_clean_loose_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  return WM_operator_props_popup_confirm_ex(
+      C, op, event, IFACE_("Remove Loose Points"), IFACE_("Delete"));
+}
+
 static void GREASE_PENCIL_OT_clean_loose(wmOperatorType *ot)
 {
   ot->name = "Clean Loose Points";
   ot->idname = "GREASE_PENCIL_OT_clean_loose";
   ot->description = "Remove loose points";
 
-  ot->invoke = WM_operator_props_popup_confirm;
+  ot->invoke = grease_pencil_clean_loose_invoke;
   ot->exec = grease_pencil_clean_loose_exec;
   ot->poll = active_grease_pencil_layer_poll;
 
@@ -1783,7 +1789,8 @@ static int grease_pencil_move_to_layer_invoke(bContext *C, wmOperator *op, const
 {
   const bool add_new_layer = RNA_boolean_get(op->ptr, "add_new_layer");
   if (add_new_layer) {
-    return WM_operator_props_popup_confirm(C, op, event);
+    return WM_operator_props_popup_confirm_ex(
+        C, op, event, IFACE_("Move to New Layer"), IFACE_("Create"));
   }
   return grease_pencil_move_to_layer_exec(C, op);
 }

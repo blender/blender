@@ -733,6 +733,13 @@ bool WM_operator_winactive(bContext *C);
  * just wraps #WM_operator_props_dialog_popup.
  */
 int WM_operator_props_popup_confirm(bContext *C, wmOperator *op, const wmEvent *event);
+
+int WM_operator_props_popup_confirm_ex(bContext *C,
+                                       wmOperator *op,
+                                       const wmEvent *event,
+                                       std::optional<std::string> title = std::nullopt,
+                                       std::optional<std::string> confirm_text = std::nullopt);
+
 /**
  * Same as #WM_operator_props_popup but call the operator first,
  * This way - the button values correspond to the result of the operator.
