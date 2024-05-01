@@ -3274,13 +3274,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 24)) {
     if (!DNA_struct_member_exists(fd->filesdna, "Material", "char", "thickness_mode")) {
       LISTBASE_FOREACH (Material *, material, &bmain->materials) {
-        /* EEVEE Legacy used slab assumption. */
-        material->thickness_mode = MA_THICKNESS_SLAB;
         if (material->blend_flag & MA_BL_TRANSLUCENCY) {
           /* EEVEE Legacy used thickness from shadow map when translucency was on. */
           material->blend_flag |= MA_BL_THICKNESS_FROM_SHADOW;
         }
-        if (material->use_nodes && material->nodetree) {
+        if ((material->blend_flag & MA_BL_SS_REFRACTION) && material->use_nodes &&
+            material->nodetree)
+        {
+          /* EEVEE Legacy used slab assumption. */
+          material->thickness_mode = MA_THICKNESS_SLAB;
           version_refraction_depth_to_thickness_value(material->nodetree, material->refract_depth);
         }
       }
