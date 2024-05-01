@@ -306,12 +306,12 @@ static void scene_copy_data(Main *bmain,
                        (ID *)scene_src->nodetree,
                        (ID **)&scene_dst->nodetree,
                        flag_private_id_data);
+    scene_dst->nodetree->owner_id = &scene_dst->id;
     BKE_libblock_relink_ex(bmain,
                            scene_dst->nodetree,
                            (void *)(&scene_src->id),
                            &scene_dst->id,
                            ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_SKIP_USER_CLEAR);
-    scene_dst->nodetree->owner_id = &scene_dst->id;
   }
 
   if (scene_src->rigidbody_world) {
