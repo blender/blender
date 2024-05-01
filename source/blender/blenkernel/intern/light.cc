@@ -7,6 +7,7 @@
  */
 
 #include <cstdlib>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -53,7 +54,11 @@ static void light_init_data(ID *id)
  *
  * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
-static void light_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+static void light_copy_data(Main *bmain,
+                            std::optional<Library *> owner_library,
+                            ID *id_dst,
+                            const ID *id_src,
+                            const int flag)
 {
   Light *la_dst = (Light *)id_dst;
   const Light *la_src = (const Light *)id_src;
@@ -67,8 +72,11 @@ static void light_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
       la_dst->nodetree = ntreeLocalize(la_src->nodetree);
     }
     else {
-      BKE_id_copy_ex(
-          bmain, (ID *)la_src->nodetree, (ID **)&la_dst->nodetree, flag_private_id_data);
+      BKE_id_copy_in_lib(bmain,
+                         owner_library,
+                         (ID *)la_src->nodetree,
+                         (ID **)&la_dst->nodetree,
+                         flag_private_id_data);
     }
     la_dst->nodetree->owner_id = &la_dst->id;
   }
@@ -145,7 +153,7 @@ static void light_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Light *la = (Light *)id;
 
-  BLO_read_data_address(reader, &la->preview);
+  BLO_read_struct(reader, PreviewImage, &la->preview);
   BKE_previewimg_blend_read(reader, la->preview);
 }
 

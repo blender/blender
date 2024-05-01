@@ -14,19 +14,21 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BLI_color.hh"
 #include "BLI_hash.hh"
-#include "BLI_math_color.hh"
 #include "BLI_math_matrix.h"
-#include "BLI_math_quaternion.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_vector.hh"
+
 #include "DEG_depsgraph_query.hh"
+
+#include "DNA_customdata_types.h"
 #include "DNA_layer_types.h"
 
 #include "bmesh.hh"
-#include "bmesh_tools.hh"
-#include <tools/bmesh_triangulate.hh>
+#include "tools/bmesh_triangulate.hh"
 
 namespace blender::io::ply {
 

@@ -62,7 +62,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 #define MIN_EDGES 2
 #define MAX_EDGES 128
@@ -1211,12 +1211,13 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   gpencil_point_conversion_init(C, &tgpi->gsc);
 
   /* if brush doesn't exist, create a new set (fix damaged files from old versions) */
-  if ((paint->brush == nullptr) || (paint->brush->gpencil_settings == nullptr)) {
+  Brush *brush = BKE_paint_brush(paint);
+  if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
     BKE_brush_gpencil_paint_presets(bmain, ts, true);
   }
 
   /* Set Draw brush. */
-  Brush *brush = BKE_paint_toolslots_brush_get(paint, 0);
+  brush = BKE_paint_toolslots_brush_get(paint, 0);
 
   BKE_brush_tool_set(brush, paint, 0);
   BKE_paint_brush_set(paint, brush);

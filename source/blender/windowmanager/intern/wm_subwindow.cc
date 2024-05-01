@@ -15,8 +15,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "GPU_matrix.h"
-#include "GPU_viewport.h"
+#include "GPU_matrix.hh"
+#include "GPU_viewport.hh"
 
 #include "WM_api.hh"
 
@@ -85,7 +85,7 @@ void wmWindowViewport(wmWindow *win)
 
 void wmOrtho2(float x1, float x2, float y1, float y2)
 {
-  /* prevent opengl from generating errors */
+  /* Prevent opengl from generating errors. */
   if (x2 == x1) {
     x2 += 1.0f;
   }

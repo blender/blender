@@ -162,7 +162,7 @@ void JackDevice::jack_shutdown(void* data)
 	device->m_valid = false;
 }
 
-JackDevice::JackDevice(std::string name, DeviceSpecs specs, int buffersize) :
+JackDevice::JackDevice(const std::string &name, DeviceSpecs specs, int buffersize) :
 	m_synchronizer(this)
 {
 	if(specs.channels == CHANNELS_INVALID)
@@ -358,7 +358,7 @@ public:
 		m_buffersize = buffersize;
 	}
 
-	virtual void setName(std::string name)
+	virtual void setName(const std::string &name)
 	{
 		m_name = name;
 	}

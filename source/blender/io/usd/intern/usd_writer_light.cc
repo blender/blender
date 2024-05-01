@@ -16,11 +16,13 @@
 #include "BLI_assert.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_light_types.h"
+<<<<<<< HEAD
 
 #include "WM_api.hh"
+=======
+>>>>>>> main
 
 namespace blender::io::usd {
 
@@ -206,6 +208,9 @@ void USDLightWriter::do_write(HierarchyContext &context)
     auto prim = usd_light_api.GetPrim();
     write_id_properties(prim, light->id, timecode);
   }
+
+  auto prim = usd_light_api.GetPrim();
+  write_id_properties(prim, light->id, timecode);
 
   set_light_extents(usd_light_api.GetPrim(), timecode);
 }

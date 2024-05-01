@@ -47,15 +47,9 @@ static bool active_attribute_poll(bContext *C)
   if (!editable_curves_in_edit_mode_poll(C)) {
     return false;
   }
-  Object *object = CTX_data_active_object(C);
-  Curves &curves_id = *static_cast<Curves *>(object->data);
-  const CustomDataLayer *layer = BKE_id_attributes_active_get(&const_cast<ID &>(curves_id.id));
-  if (!layer) {
-    CTX_wm_operator_poll_msg_set(C, "No active attribute");
-    return false;
-  }
-  if (layer->type == CD_PROP_STRING) {
-    CTX_wm_operator_poll_msg_set(C, "Active string attribute not supported");
+  const Object *object = CTX_data_active_object(C);
+  const ID &object_data = *static_cast<const ID *>(object->data);
+  if (!geometry::attribute_set_poll(*C, object_data)) {
     return false;
   }
   return true;

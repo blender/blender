@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -299,6 +299,10 @@ msgid "Action Influence"
 msgstr "Invloed Actie"
 
 
+msgid "Animation"
+msgstr "Animatie"
+
+
 msgid "After Current"
 msgstr "Na Huidige"
 
@@ -329,6 +333,14 @@ msgstr "Rond Frame"
 
 msgid "In Range"
 msgstr "In Bereik"
+
+
+msgid "Influence"
+msgstr "Invloed"
+
+
+msgid "Mix Mode"
+msgstr "Mixmodus"
 
 
 msgid "Any Type"
@@ -866,10 +878,6 @@ msgid "Vertex Color"
 msgstr "Kleur van Punt"
 
 
-msgid "Dissolve"
-msgstr "Oplossen"
-
-
 msgid "Precision"
 msgstr "Nauwkeurigheid"
 
@@ -1071,10 +1079,6 @@ msgid "Rotation error"
 msgstr "Rotatiefout"
 
 
-msgid "Influence"
-msgstr "Invloed"
-
-
 msgid "Disable"
 msgstr "Uitzetten"
 
@@ -1121,10 +1125,6 @@ msgstr "Skelet"
 
 msgid "Floor"
 msgstr "Vloer"
-
-
-msgid "Mix Mode"
-msgstr "Mixmodus"
 
 
 msgid "Active Clip"
@@ -1507,6 +1507,10 @@ msgid "2D"
 msgstr "2D"
 
 
+msgid "Animations"
+msgstr "Animaties"
+
+
 msgid "Fonts"
 msgstr "Lettertypen"
 
@@ -1517,10 +1521,6 @@ msgstr "Deeltjes Instellingen"
 
 msgid "Save"
 msgstr "Opslaan"
-
-
-msgid "Animations"
-msgstr "Animaties"
 
 
 msgid "Environment"
@@ -1969,24 +1969,16 @@ msgid "Lowest"
 msgstr "Laagste"
 
 
-msgid "R"
-msgstr "R"
+msgid "Repeat"
+msgstr "Herhaal"
 
 
 msgid "Red"
 msgstr "Rood"
 
 
-msgid "G"
-msgstr "G"
-
-
 msgid "Green"
 msgstr "Groen"
-
-
-msgid "B"
-msgstr "B"
 
 
 msgid "Blue"
@@ -2057,6 +2049,10 @@ msgid "Users"
 msgstr "Gebruikers"
 
 
+msgid "Layers"
+msgstr "Lagen"
+
+
 msgid "X-Axis Mirror"
 msgstr "X-As Spiegel"
 
@@ -2107,10 +2103,6 @@ msgstr "Afvlakking Vorm"
 
 msgid "Projected"
 msgstr "Geprojecteerd"
-
-
-msgid "Repeat"
-msgstr "Herhaal"
 
 
 msgid "Elastic"
@@ -2315,10 +2307,6 @@ msgstr "Gebruik Nodes"
 
 msgid "Annotation"
 msgstr "Annotatie"
-
-
-msgid "Layers"
-msgstr "Lagen"
 
 
 msgid "Only selected keyframes"
@@ -2608,10 +2596,6 @@ msgstr "Spiegel Y"
 
 msgid "Sharp"
 msgstr "Scherp"
-
-
-msgid "Animation"
-msgstr "Animatie"
 
 
 msgid "Simulation"
@@ -3798,6 +3782,11 @@ msgstr "Zoom Uit"
 
 
 msgctxt "Operator"
+msgid "Export"
+msgstr "Exporteren"
+
+
+msgctxt "Operator"
 msgid "Remove from All Collections"
 msgstr "Verwijder van Alle Collecties"
 
@@ -3838,6 +3827,11 @@ msgstr "Begrenzing"
 msgctxt "Operator"
 msgid "Delete Constraint"
 msgstr "Verwijder Beperking"
+
+
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "Voeg Cirkel Toe"
 
 
 msgid "Duplicate"
@@ -4586,11 +4580,6 @@ msgstr "Nieuwe Masker"
 
 
 msgctxt "Operator"
-msgid "Add Circle"
-msgstr "Voeg Cirkel Toe"
-
-
-msgctxt "Operator"
 msgid "Add Square"
 msgstr "Voeg Vierkant Toe"
 
@@ -4918,10 +4907,6 @@ msgid "Delete selected objects"
 msgstr "Verwijder geselecteerde objecten"
 
 
-msgid "Filepath"
-msgstr "Bestandspad"
-
-
 msgctxt "Operator"
 msgid "Duplicate Objects"
 msgstr "Dupliceer Objecten"
@@ -5026,16 +5011,6 @@ msgstr "Voeg Licht Toe"
 
 msgid "Add a light object to the scene"
 msgstr "Voeg een licht object toe in de scene"
-
-
-msgctxt "Operator"
-msgid "Load Background Image"
-msgstr "Laad Achtergrondafbeelding"
-
-
-msgctxt "Operator"
-msgid "Load Reference Image"
-msgstr "Laad Voorbeeldafbeelding"
 
 
 msgid "Copy Modifiers"
@@ -5944,6 +5919,10 @@ msgid "Jump"
 msgstr "Spring"
 
 
+msgid "Filepath"
+msgstr "Bestandspad"
+
+
 msgctxt "Operator"
 msgid "Line Number"
 msgstr "Lijnnummer"
@@ -6647,11 +6626,6 @@ msgid "Tablet"
 msgstr "Tablet"
 
 
-msgctxt "WindowManager"
-msgid "Translation"
-msgstr "Vertaling"
-
-
 msgid "Fly & Walk"
 msgstr "Vliegen & Lopen"
 
@@ -6683,6 +6657,11 @@ msgstr "Kleding"
 
 
 msgctxt "Operator"
+msgid "Strength"
+msgstr "Sterkte"
+
+
+msgctxt "Operator"
 msgid "Erase"
 msgstr "Gummen"
 
@@ -6705,11 +6684,6 @@ msgstr "Doos"
 msgctxt "Operator"
 msgid "Circle"
 msgstr "Cirkel"
-
-
-msgctxt "Operator"
-msgid "Strength"
-msgstr "Sterkte"
 
 
 msgid "Custom Object"
@@ -7404,11 +7378,6 @@ msgstr "Gebied"
 
 
 msgctxt "Operator"
-msgid "Export"
-msgstr "Exporteren"
-
-
-msgctxt "Operator"
 msgid "Load"
 msgstr "Laden"
 
@@ -7431,17 +7400,9 @@ msgid "No other objects selected"
 msgstr "Geen andere objecten geselecteerd"
 
 
-msgid "Shortcuts"
-msgstr "Sneltoetsen"
-
-
 msgctxt "Operator"
 msgid "Open..."
 msgstr "Open..."
-
-
-msgid "File '%s' not found"
-msgstr "Bestand '%s' niet gevonden"
 
 
 msgctxt "Operator"
@@ -7479,6 +7440,10 @@ msgstr "Na"
 msgctxt "Operator"
 msgid "Calculate..."
 msgstr "Berekenen..."
+
+
+msgid "Before"
+msgstr "Voordat"
 
 
 msgid "Frame Range Start"
@@ -7527,10 +7492,6 @@ msgstr "Vergrendel Alles"
 msgctxt "Operator"
 msgid "Unlock All"
 msgstr "Ontgrendel Alles"
-
-
-msgid "Before"
-msgstr "Voordat"
 
 
 msgctxt "Operator"
@@ -8267,6 +8228,10 @@ msgid "Install..."
 msgstr "Installeer..."
 
 
+msgid "B"
+msgstr "B"
+
+
 msgid "Double Click Speed"
 msgstr "Snelheid Dubbelklik"
 
@@ -8434,11 +8399,6 @@ msgstr "Importeer OpenVDB..."
 msgctxt "Operator"
 msgid "Speaker"
 msgstr "Luidspreker"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Achtergrond"
 
 
 msgctxt "Operator"
@@ -8647,6 +8607,11 @@ msgstr "Skelet"
 
 
 msgctxt "Operator"
+msgid "Background"
+msgstr "Achtergrond"
+
+
+msgctxt "Operator"
 msgid "Delete Global"
 msgstr "Verwijder Globale"
 
@@ -8821,10 +8786,6 @@ msgid "Hidden %d"
 msgstr "Verborgen %d"
 
 
-msgid "Nothing selected"
-msgstr "Niets geselecteerd"
-
-
 msgid "Delete Modifier"
 msgstr "Verwijder Aanpasser"
 
@@ -8893,6 +8854,10 @@ msgstr "Niets om te gummen"
 
 msgid "Object created"
 msgstr "Object gecreëerd"
+
+
+msgid "Nothing selected"
+msgstr "Niets geselecteerd"
 
 
 msgid "Pin"
@@ -9445,10 +9410,6 @@ msgid "Path:"
 msgstr "Pad:"
 
 
-msgid "Speed:"
-msgstr "Snelheid:"
-
-
 msgid "Old"
 msgstr "Oud"
 
@@ -9541,10 +9502,6 @@ msgstr "\"%s\" Opgeslagen"
 
 msgid "Not a library"
 msgstr "Geen bibliotheek"
-
-
-msgid "OK?"
-msgstr "OK?"
 
 
 msgid "Toggle System Console"

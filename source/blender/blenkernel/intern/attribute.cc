@@ -58,8 +58,7 @@ static void get_domains(const ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
     }
     case ID_ME: {
       Mesh *mesh = (Mesh *)id;
-      BMEditMesh *em = mesh->edit_mesh;
-      if (em != nullptr) {
+      if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
         BMesh *bm = em->bm;
         info[int(AttrDomain::Point)].customdata = &bm->vdata;
         info[int(AttrDomain::Point)].length = bm->totvert;
@@ -110,7 +109,7 @@ static std::optional<blender::bke::MutableAttributeAccessor> get_attribute_acces
     case ID_ME: {
       Mesh &mesh = reinterpret_cast<Mesh &>(id);
       /* The attribute API isn't implemented for BMesh, so edit mode meshes are not supported. */
-      BLI_assert(mesh.edit_mesh == nullptr);
+      BLI_assert(mesh.runtime->edit_mesh == nullptr);
       return mesh.attributes_for_write();
     }
     case ID_PT: {
@@ -165,6 +164,36 @@ static bool bke_id_attribute_rename_if_exists(ID *id,
   return BKE_id_attribute_rename(id, old_name, new_name, reports);
 }
 
+static bool mesh_edit_mode_attribute_valid(const blender::StringRef name,
+                                           const AttrDomain domain,
+                                           const eCustomDataType data_type,
+                                           ReportList *reports)
+{
+  if (ELEM(name,
+           "position",
+           ".edge_verts",
+           ".corner_vert",
+           ".corner_edge",
+           "sharp_edge",
+           "sharp_face",
+           "material_index"))
+  {
+    BKE_report(reports, RPT_ERROR, "Unable to create builtin attribute in edit mode");
+    return false;
+  }
+  if (name == "id") {
+    if (domain != AttrDomain::Point) {
+      BKE_report(reports, RPT_ERROR, "Domain unsupported for \"id\" attribute");
+      return false;
+    }
+    if (data_type != CD_PROP_INT32) {
+      BKE_report(reports, RPT_ERROR, "Type unsupported for \"id\" attribute");
+      return false;
+    }
+  }
+  return true;
+}
+
 bool BKE_id_attribute_rename(ID *id,
                              const char *old_name,
                              const char *new_name,
@@ -198,6 +227,17 @@ bool BKE_id_attribute_rename(ID *id,
   if (layer == nullptr) {
     BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
     return false;
+  }
+
+  if (GS(id->name) == ID_ME) {
+    Mesh *mesh = reinterpret_cast<Mesh *>(id);
+    if (mesh->runtime->edit_mesh) {
+      if (!mesh_edit_mode_attribute_valid(
+              new_name, BKE_id_attribute_domain(id, layer), eCustomDataType(layer->type), reports))
+      {
+        return false;
+      }
+    }
   }
 
   std::string result_name = BKE_id_attribute_calc_unique_name(*id, new_name);
@@ -285,7 +325,10 @@ CustomDataLayer *BKE_id_attribute_new(ID *id,
 
   if (GS(id->name) == ID_ME) {
     Mesh *mesh = reinterpret_cast<Mesh *>(id);
-    if (BMEditMesh *em = mesh->edit_mesh) {
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
+      if (!mesh_edit_mode_attribute_valid(name, domain, type, reports)) {
+        return nullptr;
+      }
       BM_data_layer_add_named(em->bm, customdata, type, uniquename.c_str());
       const int index = CustomData_get_named_layer_index(customdata, type, uniquename);
       return (index == -1) ? nullptr : &(customdata->layers[index]);
@@ -332,9 +375,8 @@ CustomDataLayer *BKE_id_attribute_duplicate(ID *id, const char *name, ReportList
 
   if (GS(id->name) == ID_ME) {
     Mesh *mesh = reinterpret_cast<Mesh *>(id);
-    if (BMEditMesh *em = mesh->edit_mesh) {
+    if (mesh->runtime->edit_mesh) {
       BLI_assert_unreachable();
-      UNUSED_VARS(em);
       return nullptr;
     }
   }
@@ -413,7 +455,7 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
 
   if (GS(id->name) == ID_ME) {
     Mesh *mesh = reinterpret_cast<Mesh *>(id);
-    if (BMEditMesh *em = mesh->edit_mesh) {
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
         if (CustomData *data = info[domain].customdata) {
           const std::string name_copy = name;
@@ -633,7 +675,7 @@ int BKE_id_attribute_data_length(ID *id, CustomDataLayer *layer)
   switch (GS(id->name)) {
     case ID_ME: {
       Mesh *mesh = (Mesh *)id;
-      if (mesh->edit_mesh != nullptr) {
+      if (mesh->runtime->edit_mesh != nullptr) {
         return 0;
       }
       break;
@@ -887,6 +929,22 @@ const CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const char *na
 {
   return BKE_id_attribute_search(
       const_cast<ID *>(id), name, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_COLOR);
+}
+
+bool BKE_color_attribute_supported(const Mesh &mesh, const blender::StringRef name)
+{
+  std::optional<blender::bke::AttributeMetaData> meta_data = mesh.attributes().lookup_meta_data(
+      name);
+
+  if (!meta_data) {
+    return false;
+  }
+  if (!(ATTR_DOMAIN_AS_MASK(meta_data->domain) & ATTR_DOMAIN_MASK_COLOR) ||
+      !(CD_TYPE_AS_MASK(meta_data->data_type) & CD_MASK_COLOR_ALL))
+  {
+    return false;
+  }
+  return true;
 }
 
 const char *BKE_uv_map_vert_select_name_get(const char *uv_map_name, char *buffer)

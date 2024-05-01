@@ -21,7 +21,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_kdtree.h"
-#include "BLI_lasso_2d.h"
+#include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_rand.h"
@@ -56,9 +56,9 @@
 #include "ED_select_utils.hh"
 #include "ED_view3d.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_state.hh"
 
 #include "UI_resources.hh"
 
@@ -72,7 +72,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "physics_intern.h"
+#include "physics_intern.hh"
 
 #include "particle_edit_utildefines.h"
 
@@ -2447,7 +2447,10 @@ int PE_lasso_select(bContext *C, const int mcoords[][2], const int mcoords_len, 
             ((ED_view3d_project_int_global(region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) ==
               V3D_PROJ_RET_OK) &&
              BLI_lasso_is_point_inside(
-                 mcoords, mcoords_len, screen_co[0], screen_co[1], IS_CLIPPED) &&
+                 {reinterpret_cast<const blender::int2 *>(mcoords), mcoords_len},
+                 screen_co[0],
+                 screen_co[1],
+                 IS_CLIPPED) &&
              key_test_depth(&data, co, screen_co));
         const int sel_op_result = ED_select_op_action_deselected(
             eSelectOp(sel_op), is_select, is_inside);
@@ -2468,7 +2471,10 @@ int PE_lasso_select(bContext *C, const int mcoords[][2], const int mcoords_len, 
             ((ED_view3d_project_int_global(region, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) ==
               V3D_PROJ_RET_OK) &&
              BLI_lasso_is_point_inside(
-                 mcoords, mcoords_len, screen_co[0], screen_co[1], IS_CLIPPED) &&
+                 {reinterpret_cast<const blender::int2 *>(mcoords), mcoords_len},
+                 screen_co[0],
+                 screen_co[1],
+                 IS_CLIPPED) &&
              key_test_depth(&data, co, screen_co));
         const int sel_op_result = ED_select_op_action_deselected(
             eSelectOp(sel_op), is_select, is_inside);
@@ -5531,7 +5537,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
   const bool is_mode_set = (ob->mode & mode_flag) != 0;
 
   if (!is_mode_set) {
-    if (!ED_object_mode_compat_set(C, ob, eObjectMode(mode_flag), op->reports)) {
+    if (!blender::ed::object::mode_compat_set(C, ob, eObjectMode(mode_flag), op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }

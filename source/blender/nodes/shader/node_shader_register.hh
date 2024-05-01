@@ -21,6 +21,7 @@ void register_node_type_sh_bsdf_glossy();
 void register_node_type_sh_bsdf_hair_principled();
 void register_node_type_sh_bsdf_hair();
 void register_node_type_sh_bsdf_principled();
+void register_node_type_sh_bsdf_ray_portal();
 void register_node_type_sh_bsdf_refraction();
 void register_node_type_sh_bsdf_toon();
 void register_node_type_sh_bsdf_translucent();

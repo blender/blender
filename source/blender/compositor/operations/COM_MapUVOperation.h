@@ -12,11 +12,6 @@ class MapUVOperation : public MultiThreadedOperation {
  private:
   static constexpr int IMAGE_INPUT_INDEX = 0;
   static constexpr int UV_INPUT_INDEX = 1;
-  /**
-   * Cached reference to the input_program
-   */
-  SocketReader *inputUVProgram_;
-  SocketReader *input_color_program_;
 
   int uv_width_;
   int uv_height_;
@@ -30,31 +25,9 @@ class MapUVOperation : public MultiThreadedOperation {
  public:
   MapUVOperation();
 
-  /**
-   * we need a 3x3 differential filter for UV Input and full buffer for the image
-   */
-  bool determine_depending_area_of_interest(rcti *input,
-                                            ReadBufferOperation *read_operation,
-                                            rcti *output) override;
-
-  /**
-   * The inner loop of this operation.
-   */
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
-
   void pixel_transform(const float xy[2], float r_uv[2], float r_deriv[2][2], float &r_alpha);
 
   void init_data() override;
-
-  /**
-   * Initialize the execution
-   */
-  void init_execution() override;
-
-  /**
-   * Deinitialize the execution
-   */
-  void deinit_execution() override;
 
   void set_alpha(float alpha)
   {

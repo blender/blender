@@ -6,7 +6,9 @@
  * Adapted from the Blender Alembic importer implementation. */
 
 #include "usd_reader_prim.hh"
+#include "usd_reader_utils.hh"
 
+<<<<<<< HEAD
 #include "BKE_idprop.h"
 #include "BLI_utildefines.h"
 #include "DNA_object_types.h"
@@ -139,12 +141,32 @@ static void set_double_prop(IDProperty *idgroup, const char *prop_name, const do
 
 void USDPrimReader::set_props(ID *id, const pxr::UsdPrim &prim, const double motionSampleTime)
 {
+=======
+#include "usd.hh"
+
+#include "DNA_object_types.h"
+
+#include <pxr/usd/usd/prim.h>
+
+#include "BLI_assert.h"
+
+namespace blender::io::usd {
+
+void USDPrimReader::set_props(const bool merge_with_parent,
+                              const pxr::UsdTimeCode motionSampleTime)
+{
+  if (!prim_ || !object_) {
+    return;
+  }
+
+>>>>>>> main
   eUSDAttrImportMode attr_import_mode = this->import_params_.attr_import_mode;
 
   if (attr_import_mode == USD_ATTR_IMPORT_NONE) {
     return;
   }
 
+<<<<<<< HEAD
   bool all_custom_attrs = (attr_import_mode == USD_ATTR_IMPORT_ALL);
 
   pxr::UsdAttributeVector attribs = prim.GetAuthoredAttributes();
@@ -237,6 +259,26 @@ void USDPrimReader::set_props(ID *id, const pxr::UsdPrim &prim, const double mot
     else if (type_name == pxr::SdfValueTypeNames->Int4) {
       set_array_prop<pxr::GfVec4i>(idgroup, attr_name.GetString().c_str(), attr, motionSampleTime);
     }
+=======
+  if (merge_with_parent) {
+    /* This object represents a parent Xform merged with its child prim.
+     * Set the parent prim's custom properties on the Object ID. */
+    if (const pxr::UsdPrim parent_prim = prim_.GetParent()) {
+      set_id_props_from_prim(&object_->id, parent_prim, attr_import_mode, motionSampleTime);
+    }
+  }
+  if (!object_->data) {
+    /* If the object has no data, set the prim's custom properties on the object.
+     * This applies to Xforms that have been converted to Empty objects. */
+    set_id_props_from_prim(&object_->id, prim_, attr_import_mode, motionSampleTime);
+  }
+
+  if (object_->data) {
+    /* If the object has data, the data represents the USD prim, so set the prim's custom
+     * properties on the data directly. */
+    set_id_props_from_prim(
+        static_cast<ID *>(object_->data), prim_, attr_import_mode, motionSampleTime);
+>>>>>>> main
   }
 }
 

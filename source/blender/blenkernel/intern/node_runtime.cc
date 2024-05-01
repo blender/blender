@@ -135,7 +135,7 @@ static void update_directly_linked_links_and_sockets(const bNodeTree &ntree)
       std::sort(socket->runtime->directly_linked_links.begin(),
                 socket->runtime->directly_linked_links.end(),
                 [&](const bNodeLink *a, const bNodeLink *b) {
-                  return a->multi_input_socket_index > b->multi_input_socket_index;
+                  return a->multi_input_sort_id > b->multi_input_sort_id;
                 });
     }
   }
@@ -509,6 +509,25 @@ static void update_group_output_node(const bNodeTree &ntree)
   }
 }
 
+static void update_dangling_reroute_nodes(const bNodeTree &ntree)
+{
+  for (const bNode *node : ntree.runtime->toposort_left_to_right) {
+    bNodeRuntime &node_runtime = *node->runtime;
+    if (!node->is_reroute()) {
+      node_runtime.is_dangling_reroute = false;
+      continue;
+    }
+    const Span<const bNodeLink *> links = node_runtime.inputs[0]->runtime->directly_linked_links;
+    if (links.is_empty()) {
+      node_runtime.is_dangling_reroute = true;
+      continue;
+    }
+    BLI_assert(links.size() == 1);
+    const bNode &source_node = *links.first()->fromnode;
+    node_runtime.is_dangling_reroute = source_node.runtime->is_dangling_reroute;
+  }
+}
+
 static void ensure_topology_cache(const bNodeTree &ntree)
 {
   bNodeTreeRuntime &tree_runtime = *ntree.runtime;
@@ -546,6 +565,7 @@ static void ensure_topology_cache(const bNodeTree &ntree)
         [&]() { update_root_frames(ntree); },
         [&]() { update_direct_frames_childrens(ntree); });
     update_group_output_node(ntree);
+    update_dangling_reroute_nodes(ntree);
     tree_runtime.topology_cache_exists = true;
   });
 }

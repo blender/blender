@@ -14,8 +14,8 @@
 
 #include "DNA_scene_types.h"
 
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "COM_context.hh"
 #include "COM_morphological_distance_feather_weights.hh"

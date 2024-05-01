@@ -103,7 +103,9 @@ void VKBackend::detect_workarounds(VKDevice &device)
       !device.physical_device_vulkan_12_features_get().shaderOutputViewportIndex;
 
   /* AMD GPUs don't support texture formats that use are aligned to 24 or 48 bits. */
-  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) ||
+      GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY))
+  {
     workarounds.not_aligned_pixel_formats = true;
   }
 
@@ -129,27 +131,53 @@ void VKBackend::delete_resources() {}
 
 void VKBackend::samplers_update()
 {
-  NOT_YET_IMPLEMENTED
+  VKDevice &device = VKBackend::get().device_;
+  if (device.is_initialized()) {
+    device.reinit();
+  }
 }
 
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
 {
   VKContext &context = *VKContext::get();
-  context.state_manager_get().apply_bindings();
-  context.bind_compute_pipeline();
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.dispatch(groups_x_len, groups_y_len, groups_z_len);
+  if (use_render_graph) {
+    render_graph::VKResourceAccessInfo &resources = context.update_and_get_access_info();
+    render_graph::VKDispatchNode::CreateInfo dispatch_info(resources);
+    context.update_pipeline_data(dispatch_info.dispatch_node.pipeline_data);
+    dispatch_info.dispatch_node.group_count_x = groups_x_len;
+    dispatch_info.dispatch_node.group_count_y = groups_y_len;
+    dispatch_info.dispatch_node.group_count_z = groups_z_len;
+    context.render_graph.add_node(dispatch_info);
+  }
+  else {
+    render_graph::VKResourceAccessInfo resource_access_info = {};
+    context.state_manager_get().apply_bindings(context, resource_access_info);
+    context.bind_compute_pipeline();
+    VKCommandBuffers &command_buffers = context.command_buffers_get();
+    command_buffers.dispatch(groups_x_len, groups_y_len, groups_z_len);
+  }
 }
 
 void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
 {
   BLI_assert(indirect_buf);
   VKContext &context = *VKContext::get();
-  context.state_manager_get().apply_bindings();
-  context.bind_compute_pipeline();
   VKStorageBuffer &indirect_buffer = *unwrap(indirect_buf);
-  VKCommandBuffers &command_buffers = context.command_buffers_get();
-  command_buffers.dispatch(indirect_buffer);
+  if (use_render_graph) {
+    render_graph::VKResourceAccessInfo &resources = context.update_and_get_access_info();
+    render_graph::VKDispatchIndirectNode::CreateInfo dispatch_indirect_info(resources);
+    context.update_pipeline_data(dispatch_indirect_info.dispatch_indirect_node.pipeline_data);
+    dispatch_indirect_info.dispatch_indirect_node.buffer = indirect_buffer.vk_handle();
+    dispatch_indirect_info.dispatch_indirect_node.offset = 0;
+    context.render_graph.add_node(dispatch_indirect_info);
+  }
+  else {
+    render_graph::VKResourceAccessInfo resource_access_info = {};
+    context.state_manager_get().apply_bindings(context, resource_access_info);
+    context.bind_compute_pipeline();
+    VKCommandBuffers &command_buffers = context.command_buffers_get();
+    command_buffers.dispatch(indirect_buffer);
+  }
 }
 
 Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
@@ -164,7 +192,7 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
     device_.init(ghost_context);
   }
 
-  VKContext *context = new VKContext(ghost_window, ghost_context);
+  VKContext *context = new VKContext(ghost_window, ghost_context, device_.resources);
   device_.context_register(*context);
   GHOST_SetVulkanSwapBuffersCallbacks((GHOST_ContextHandle)ghost_context,
                                       VKContext::swap_buffers_pre_callback,
@@ -250,7 +278,6 @@ void VKBackend::capabilities_init(VKDevice &device)
 
   /* Reset all capabilities from previous context. */
   GCaps = {};
-  GCaps.compute_shader_support = true;
   GCaps.geometry_shader_support = true;
   GCaps.shader_draw_parameters_support =
       device.physical_device_vulkan_11_features_get().shaderDrawParameters;
@@ -263,6 +290,7 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.max_textures_geom = limits.maxPerStageDescriptorSampledImages;
   GCaps.max_textures_frag = limits.maxPerStageDescriptorSampledImages;
   GCaps.max_samplers = limits.maxSamplerAllocationCount;
+  GCaps.max_images = limits.maxPerStageDescriptorStorageImages;
   for (int i = 0; i < 3; i++) {
     GCaps.max_work_group_count[i] = limits.maxComputeWorkGroupCount[i];
     GCaps.max_work_group_size[i] = limits.maxComputeWorkGroupSize[i];

@@ -15,10 +15,11 @@ struct Mesh;
 struct MultiresModifierData;
 struct OpenSubdiv_Converter;
 struct OpenSubdiv_Evaluator;
-struct OpenSubdiv_TopologyRefiner;
-struct Subdiv;
+class OpenSubdiv_TopologyRefiner;
 
-enum eSubdivVtxBoundaryInterpolation {
+namespace blender::bke::subdiv {
+
+enum VtxBoundaryInterpolation {
   /* Do not interpolate boundaries. */
   SUBDIV_VTX_BOUNDARY_NONE,
   /* Sharpen edges. */
@@ -27,7 +28,7 @@ enum eSubdivVtxBoundaryInterpolation {
   SUBDIV_VTX_BOUNDARY_EDGE_AND_CORNER,
 };
 
-enum eSubdivFVarLinearInterpolation {
+enum FVarLinearInterpolation {
   SUBDIV_FVAR_LINEAR_INTERPOLATION_NONE,
   SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY,
   SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_AND_JUNCTIONS,
@@ -36,7 +37,7 @@ enum eSubdivFVarLinearInterpolation {
   SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL,
 };
 
-struct SubdivSettings {
+struct Settings {
   /* Simple subdivision corresponds to "Simple" option in the interface. When it's enabled, the
    * subdivided mesh is not "smoothed": new vertices are added uniformly on the existing surface.
    *
@@ -64,12 +65,12 @@ struct SubdivSettings {
 
   bool use_creases;
 
-  eSubdivVtxBoundaryInterpolation vtx_boundary_interpolation;
-  eSubdivFVarLinearInterpolation fvar_linear_interpolation;
+  VtxBoundaryInterpolation vtx_boundary_interpolation;
+  FVarLinearInterpolation fvar_linear_interpolation;
 };
 
 /* NOTE: Order of enumerators MUST match order of values in SubdivStats. */
-enum eSubdivStatsValue {
+enum StatsValue {
   SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME = 0,
   SUBDIV_STATS_SUBDIV_TO_MESH,
   SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY,
@@ -89,7 +90,7 @@ struct SubdivStats {
        * spend on conversion from Blender data to OpenSubdiv data, and
        * time spent on topology orientation on OpenSubdiv C-API side. */
       double topology_refiner_creation_time;
-      /* Total time spent in BKE_subdiv_to_mesh(). */
+      /* Total time spent in blender::bke::subdiv::subdiv_to_mesh(). */
       double subdiv_to_mesh_time;
       /* Geometry (mesh vertices) creation time during SUBDIV_TYO_MESH. */
       double subdiv_to_mesh_geometry_time;
@@ -107,19 +108,19 @@ struct SubdivStats {
     double values_[NUM_SUBDIV_STATS_VALUES];
   };
 
-  /* Per-value timestamp on when corresponding BKE_subdiv_stats_begin() was
+  /* Per-value timestamp on when corresponding stats_begin() was
    * called. */
   double begin_timestamp_[NUM_SUBDIV_STATS_VALUES];
 };
 
 /* Functor which evaluates displacement at a given (u, v) of given ptex face. */
-struct SubdivDisplacement {
+struct Displacement {
   /* Initialize displacement evaluator.
    *
    * Is called right before evaluation is actually needed. This allows to do
    * some lazy initialization, like allocate evaluator from a main thread but
    * then do actual evaluation from background job. */
-  void (*initialize)(SubdivDisplacement *displacement);
+  void (*initialize)(Displacement *displacement);
 
   /* Return displacement which is to be added to the original coordinate.
    *
@@ -131,7 +132,7 @@ struct SubdivDisplacement {
    *
    * Averaging of displacement for vertices created for over coarse vertices
    * and edges is done by subdiv code. */
-  void (*eval_displacement)(SubdivDisplacement *displacement,
+  void (*eval_displacement)(Displacement *displacement,
                             int ptex_face_index,
                             float u,
                             float v,
@@ -140,7 +141,7 @@ struct SubdivDisplacement {
                             float r_D[3]);
 
   /* Free the data, not the evaluator itself. */
-  void (*free)(SubdivDisplacement *displacement);
+  void (*free)(Displacement *displacement);
 
   void *user_data;
 };
@@ -154,7 +155,7 @@ struct Subdiv {
   /* Settings this subdivision surface is created for.
    *
    * It is read-only after assignment in BKE_subdiv_new_from_FOO(). */
-  SubdivSettings settings;
+  Settings settings;
   /* Topology refiner includes all the glue logic to feed Blender side
    * topology to OpenSubdiv. It can be shared by both evaluator and GL mesh
    * drawer. */
@@ -162,7 +163,7 @@ struct Subdiv {
   /* CPU side evaluator. */
   OpenSubdiv_Evaluator *evaluator;
   /* Optional displacement evaluator. */
-  SubdivDisplacement *displacement_evaluator;
+  Displacement *displacement_evaluator;
   /* Statistics for debugging. */
   SubdivStats stats;
 
@@ -188,37 +189,36 @@ struct Subdiv {
  */
 
 /* (De)initialize the entire subdivision surface module. */
-void BKE_subdiv_init();
-void BKE_subdiv_exit();
+void init();
+void exit();
 
 /* --------------------------------------------------------------------
  * Conversion helpers.
  */
 
 /* NOTE: uv_smooth is eSubsurfUVSmooth. */
-eSubdivFVarLinearInterpolation BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth);
+FVarLinearInterpolation fvar_interpolation_from_uv_smooth(int uv_smooth);
 
-eSubdivVtxBoundaryInterpolation BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
-    int boundary_smooth);
+VtxBoundaryInterpolation vtx_boundary_interpolation_from_subsurf(int boundary_smooth);
 
 /* --------------------------------------------------------------------
  * Statistics.
  */
 
-void BKE_subdiv_stats_init(SubdivStats *stats);
+void stats_init(SubdivStats *stats);
 
-void BKE_subdiv_stats_begin(SubdivStats *stats, eSubdivStatsValue value);
-void BKE_subdiv_stats_end(SubdivStats *stats, eSubdivStatsValue value);
+void stats_begin(SubdivStats *stats, StatsValue value);
+void stats_end(SubdivStats *stats, StatsValue value);
 
-void BKE_subdiv_stats_reset(SubdivStats *stats, eSubdivStatsValue value);
+void stats_reset(SubdivStats *stats, StatsValue value);
 
-void BKE_subdiv_stats_print(const SubdivStats *stats);
+void stats_print(const SubdivStats *stats);
 
 /* --------------------------------------------------------------------
  * Settings.
  */
 
-bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a, const SubdivSettings *settings_b);
+bool settings_equal(const Settings *settings_a, const Settings *settings_b);
 
 /* --------------------------------------------------------------------
  * Construction.
@@ -226,9 +226,8 @@ bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a, const SubdivSet
 
 /* Construct new subdivision surface descriptor, from scratch, using given
  * settings and topology. */
-Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
-                                      OpenSubdiv_Converter *converter);
-Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings, const Mesh *mesh);
+Subdiv *new_from_converter(const Settings *settings, OpenSubdiv_Converter *converter);
+Subdiv *new_from_mesh(const Settings *settings, const Mesh *mesh);
 
 /* Similar to above, but will not re-create descriptor if it was created for the
  * same settings and topology.
@@ -238,24 +237,22 @@ Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings, const Mesh *mes
  * NOTE: It is allowed to pass NULL as an existing subdivision surface
  * descriptor. This will create a new descriptor without any extra checks.
  */
-Subdiv *BKE_subdiv_update_from_converter(Subdiv *subdiv,
-                                         const SubdivSettings *settings,
-                                         OpenSubdiv_Converter *converter);
-Subdiv *BKE_subdiv_update_from_mesh(Subdiv *subdiv,
-                                    const SubdivSettings *settings,
-                                    const Mesh *mesh);
+Subdiv *update_from_converter(Subdiv *subdiv,
+                              const Settings *settings,
+                              OpenSubdiv_Converter *converter);
+Subdiv *update_from_mesh(Subdiv *subdiv, const Settings *settings, const Mesh *mesh);
 
-void BKE_subdiv_free(Subdiv *subdiv);
+void free(Subdiv *subdiv);
 
 /* --------------------------------------------------------------------
  * Displacement API.
  */
 
-void BKE_subdiv_displacement_attach_from_multires(Subdiv *subdiv,
-                                                  Mesh *mesh,
-                                                  const MultiresModifierData *mmd);
+void displacement_attach_from_multires(Subdiv *subdiv,
+                                       Mesh *mesh,
+                                       const MultiresModifierData *mmd);
 
-void BKE_subdiv_displacement_detach(Subdiv *subdiv);
+void displacement_detach(Subdiv *subdiv);
 
 /* --------------------------------------------------------------------
  * Topology helpers.
@@ -264,7 +261,7 @@ void BKE_subdiv_displacement_detach(Subdiv *subdiv);
 /* For each element in the array, this stores the total number of ptex faces up to that element,
  * with the total number of ptex faces being the last element in the array. The array is of length
  * `base face count + 1`. */
-int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv);
+int *face_ptex_offset_get(Subdiv *subdiv);
 
 /* --------------------------------------------------------------------
  * PTex faces and grids.
@@ -272,37 +269,39 @@ int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv);
 
 /* For a given (ptex_u, ptex_v) within a ptex face get corresponding
  * (grid_u, grid_v) within a grid. */
-BLI_INLINE void BKE_subdiv_ptex_face_uv_to_grid_uv(float ptex_u,
-                                                   float ptex_v,
-                                                   float *r_grid_u,
-                                                   float *r_grid_v);
+BLI_INLINE void ptex_face_uv_to_grid_uv(float ptex_u,
+                                        float ptex_v,
+                                        float *r_grid_u,
+                                        float *r_grid_v);
 
 /* Inverse of above. */
-BLI_INLINE void BKE_subdiv_grid_uv_to_ptex_face_uv(float grid_u,
-                                                   float grid_v,
-                                                   float *r_ptex_u,
-                                                   float *r_ptex_v);
+BLI_INLINE void grid_uv_to_ptex_face_uv(float grid_u,
+                                        float grid_v,
+                                        float *r_ptex_u,
+                                        float *r_ptex_v);
 
 /* For a given subdivision level (which is NOT refinement level) get size of
  * CCG grid (number of grid points on a side).
  */
-BLI_INLINE int BKE_subdiv_grid_size_from_level(int level);
+BLI_INLINE int grid_size_from_level(int level);
 
 /* Simplified version of mdisp_rot_face_to_crn, only handles quad and
  * works in normalized coordinates.
  *
  * NOTE: Output coordinates are in ptex coordinates. */
-BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(float quad_u,
-                                                float quad_v,
-                                                float *r_corner_u,
-                                                float *r_corner_v);
+BLI_INLINE int rotate_quad_to_corner(float quad_u,
+                                     float quad_v,
+                                     float *r_corner_u,
+                                     float *r_corner_v);
 
 /* Converts (u, v) coordinate from within a grid to a quad coordinate in
  * normalized ptex coordinates. */
-BLI_INLINE void BKE_subdiv_rotate_grid_to_quad(
+BLI_INLINE void rotate_grid_to_quad(
     int corner, float grid_u, float grid_v, float *r_quad_u, float *r_quad_v);
 
 /* Convert Blender edge crease value to OpenSubdiv sharpness. */
-BLI_INLINE float BKE_subdiv_crease_to_sharpness_f(float edge_crease);
+BLI_INLINE float crease_to_sharpness(float edge_crease);
+
+}  // namespace blender::bke::subdiv
 
 #include "intern/subdiv_inline.hh"

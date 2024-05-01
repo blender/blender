@@ -15,8 +15,8 @@
 
 #include "BKE_global.hh"
 
-#include "GPU_debug.h"
-#include "GPU_platform.h"
+#include "GPU_debug.hh"
+#include "GPU_platform.hh"
 
 #include "mtl_context.hh"
 #include "mtl_debug.hh"
@@ -59,7 +59,7 @@ void MTLContext::debug_group_end()
   }
 }
 
-bool MTLContext::debug_capture_begin()
+bool MTLContext::debug_capture_begin(const char * /*title*/)
 {
   MTLCaptureManager *capture_manager = [MTLCaptureManager sharedCaptureManager];
   if (!capture_manager) {

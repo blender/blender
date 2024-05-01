@@ -13,6 +13,7 @@
 
 #include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 #include "BLI_vector.hh"
@@ -54,8 +55,10 @@ void BKE_object_workob_clear(Object *workob);
  * Otherwise, after changing ob->parent you need to call:
  * - #DEG_relations_tag_update(bmain);
  * - #BKE_scene_graph_update_tagged(depsgraph, bmain);
+ *
+ * \return calculated object_to_world.
  */
-void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *ob, Object *workob);
+blender::float4x4 BKE_object_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *ob);
 
 void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src);
 void BKE_object_copy_softbody(Object *ob_dst, const Object *ob_src, int flag);
@@ -103,7 +106,7 @@ ModifierData *BKE_object_active_modifier(const Object *ob);
  * more than once, this function should preferably be called in stack order.
  */
 bool BKE_object_copy_modifier(
-    Main *bmain, Scene *scene, Object *ob_dst, const Object *ob_src, ModifierData *md);
+    Main *bmain, const Scene *scene, Object *ob_dst, const Object *ob_src, const ModifierData *md);
 /**
  * Copy a single GPencil modifier.
  *
@@ -239,11 +242,11 @@ Object *BKE_object_duplicate(Main *bmain,
  */
 void BKE_object_obdata_size_init(Object *ob, float size);
 
-void BKE_object_scale_to_mat3(Object *ob, float r_mat[3][3]);
+void BKE_object_scale_to_mat3(const Object *ob, float r_mat[3][3]);
 void BKE_object_rot_to_mat3(const Object *ob, float r_mat[3][3], bool use_drot);
 void BKE_object_mat3_to_rot(Object *ob, float r_mat[3][3], bool use_compat);
-void BKE_object_to_mat3(Object *ob, float r_mat[3][3]);
-void BKE_object_to_mat4(Object *ob, float r_mat[4][4]);
+void BKE_object_to_mat3(const Object *ob, float r_mat[3][3]);
+void BKE_object_to_mat4(const Object *ob, float r_mat[4][4]);
 /**
  * Applies the global transformation \a mat to the \a ob using a relative parent space if
  * supplied.
@@ -316,7 +319,7 @@ blender::Vector<Base *> BKE_object_pose_base_array_get(const Scene *scene,
                                                        ViewLayer *view_layer,
                                                        View3D *v3d);
 
-void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][4]);
+void BKE_object_get_parent_matrix(const Object *ob, Object *par, float r_parentmat[4][4]);
 
 /**
  * Compute object world transform and store it in `ob->object_to_world().ptr()`.
@@ -331,9 +334,9 @@ void BKE_object_where_is_calc_time(Depsgraph *depsgraph, Scene *scene, Object *o
  * No changes to object and its parent would be done.
  * Used for bundles orientation in 3d space relative to parented blender camera.
  */
-void BKE_object_where_is_calc_mat4(Object *ob, float r_obmat[4][4]);
+void BKE_object_where_is_calc_mat4(const Object *ob, float r_obmat[4][4]);
 
-/* Possibly belong in own module? */
+/* Possibly belong in its own module? */
 
 void BKE_boundbox_init_from_minmax(BoundBox *bb, const float min[3], const float max[3]);
 void BKE_boundbox_minmax(const BoundBox *bb,
@@ -519,8 +522,9 @@ Mesh *BKE_object_get_pre_modified_mesh(const Object *object);
  */
 Mesh *BKE_object_get_original_mesh(const Object *object);
 
-Mesh *BKE_object_get_editmesh_eval_final(const Object *object);
-Mesh *BKE_object_get_editmesh_eval_cage(const Object *object);
+const Mesh *BKE_object_get_editmesh_eval_final(const Object *object);
+const Mesh *BKE_object_get_editmesh_eval_cage(const Object *object);
+const Mesh *BKE_object_get_mesh_deform_eval(const Object *object);
 
 /* Lattice accessors.
  * These functions return either the regular lattice, or the edit-mode lattice,
@@ -573,7 +577,7 @@ bool BKE_object_moves_in_time(const Object *object, bool recurse_parent);
 /** Return the number of scenes using (instantiating) that object in their collections. */
 int BKE_object_scenes_users_get(Main *bmain, Object *ob);
 
-MovieClip *BKE_object_movieclip_get(Scene *scene, Object *ob, bool use_default);
+MovieClip *BKE_object_movieclip_get(Scene *scene, const Object *ob, bool use_default);
 
 void BKE_object_runtime_reset(Object *object);
 /**

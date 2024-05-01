@@ -28,7 +28,8 @@
 
 static CLG_LogRef LOG = {"ed.undo.curves"};
 
-namespace blender::ed::curves::undo {
+namespace blender::ed::curves {
+namespace undo {
 
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System
@@ -54,11 +55,10 @@ static bool step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_num = 0;
-  Object **objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer, &objects_num);
+  Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
-  new (&us->objects) Array<StepObject>(objects_num);
+  new (&us->objects) Array<StepObject>(objects.size());
 
   threading::parallel_for(us->objects.index_range(), 8, [&](const IndexRange range) {
     for (const int i : range) {
@@ -70,7 +70,6 @@ static bool step_encode(bContext *C, Main *bmain, UndoStep *us_p)
       object.geometry = curves_id.geometry.wrap();
     }
   });
-  MEM_SAFE_FREE(objects);
 
   bmain->is_memfile_undo_flush_needed = true;
 
@@ -131,21 +130,21 @@ static void foreach_ID_ref(UndoStep *us_p,
 
 /** \} */
 
-}  // namespace blender::ed::curves::undo
+}  // namespace undo
 
-void ED_curves_undosys_type(UndoType *ut)
+void undosys_type_register(UndoType *ut)
 {
-  using namespace blender::ed;
-
   ut->name = "Edit Curves";
-  ut->poll = curves::editable_curves_in_edit_mode_poll;
-  ut->step_encode = curves::undo::step_encode;
-  ut->step_decode = curves::undo::step_decode;
-  ut->step_free = curves::undo::step_free;
+  ut->poll = editable_curves_in_edit_mode_poll;
+  ut->step_encode = undo::step_encode;
+  ut->step_decode = undo::step_decode;
+  ut->step_free = undo::step_free;
 
-  ut->step_foreach_ID_ref = curves::undo::foreach_ID_ref;
+  ut->step_foreach_ID_ref = undo::foreach_ID_ref;
 
   ut->flags = UNDOTYPE_FLAG_NEED_CONTEXT_FOR_ENCODE;
 
-  ut->step_size = sizeof(curves::undo::CurvesUndoStep);
+  ut->step_size = sizeof(undo::CurvesUndoStep);
 }
+
+}  // namespace blender::ed::curves

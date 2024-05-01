@@ -225,18 +225,20 @@ class GeoNodeExecParams {
     return nullptr;
   }
 
-  Depsgraph *depsgraph() const
+  const Depsgraph *depsgraph() const
   {
     if (const auto *data = this->user_data()) {
       if (data->call_data->modifier_data) {
         return data->call_data->modifier_data->depsgraph;
       }
       if (data->call_data->operator_data) {
-        return data->call_data->operator_data->depsgraph;
+        return data->call_data->operator_data->depsgraphs->active;
       }
     }
     return nullptr;
   }
+
+  Main *bmain() const;
 
   GeoNodesLFUserData *user_data() const
   {

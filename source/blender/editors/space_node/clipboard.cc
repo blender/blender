@@ -7,7 +7,9 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
+#include "BKE_main_idmap.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_report.hh"
@@ -25,6 +27,22 @@
 
 namespace blender::ed::space_node {
 
+struct NodeClipboardItemIDInfo {
+  /** Name of the referenced ID. */
+  std::string id_name = "";
+  /**
+   * Library filepath of the referenced ID, together with its name it forms a unique identifier.
+   *
+   * Note: Library reference is stored as an absolute path. Since the Node clipboard is runtime
+   * data, persistent over new blend-files opening, this should guarantee that identical IDs from
+   * identical libraries can be matched accordingly, even across several blend-files.
+   */
+  std::string library_path = "";
+
+  /** The validated ID pointer (may be the same as the original one, or a new one). */
+  std::optional<ID *> new_id = {};
+};
+
 struct NodeClipboardItem {
   bNode *node;
   /**
@@ -33,7 +51,9 @@ struct NodeClipboardItem {
    */
   rctf draw_rect;
 
-  /* Extra info to validate the node on creation. Otherwise we may reference missing data. */
+  /* Extra info to validate the IDs used by the node on creation. Otherwise it may reference
+   * missing data. */
+
   ID *id;
   std::string id_name;
   std::string library_name;
@@ -43,6 +63,13 @@ struct NodeClipboard {
   Vector<NodeClipboardItem> nodes;
   Vector<bNodeLink> links;
 
+  /* A mapping of all ID references from nodes in the clipboard, to information allowing to find
+   * their valid matching counterpart in current Main data when pasting the nodes back. Entries are
+   * added when adding nodes to the clipboard, and they are updated when pasting the nodes back
+   * into current Main. */
+  Map<ID *, NodeClipboardItemIDInfo> old_ids_to_idinfo;
+
+  /** Completely empty the current clipboard content. */
   void clear()
   {
     for (NodeClipboardItem &item : this->nodes) {
@@ -50,41 +77,142 @@ struct NodeClipboard {
     }
     this->nodes.clear_and_shrink();
     this->links.clear_and_shrink();
+    this->old_ids_to_idinfo.clear_and_shrink();
   }
 
   /**
-   * Replace node IDs that are no longer available in the current file. Return false when one or
-   * more IDs are lost.
+   * Find valid current pointers for all IDs used by the nodes in the clipboard.
+   *
+   * DO NOT update the nodes' pointers here though, as this would affect the clipboard content,
+   * which is no desired here. It should remain as in original state, such that e.g. one can copy
+   * nodes in file `A.blend`, open file `B.blend`, paste nodes (and lose some of the invalid ID
+   * references in file `B.blend`), and then open again file `A.blend`, paste nodes, and lose no ID
+   * references.
    */
-  bool validate()
+  bool paste_validate_id_references(Main &bmain)
   {
-    bool ok = true;
+    bool is_valid = true;
+    IDNameLib_Map *bmain_id_map = nullptr;
 
-    for (NodeClipboardItem &item : this->nodes) {
-      bNode &node = *item.node;
-      /* Reassign each loop since we may clear, open a new file where the ID is valid, and paste
-       * again. */
-      node.id = item.id;
-
-      if (node.id) {
-        const ListBase *lb = which_libbase(G_MAIN, GS(item.id_name.c_str()));
-        if (BLI_findindex(lb, item.id) == -1) {
-          /* May assign null. */
-          node.id = static_cast<ID *>(
-              BLI_findstring(lb, item.id_name.c_str() + 2, offsetof(ID, name) + 2));
-          if (!node.id) {
-            ok = false;
-          }
-        }
+    /* Clear any potentially previously found `new_id` valid pointers in #old_ids_to_idinfo values,
+     * and populate a temporary mapping from absolute library paths to existing Library IDs in
+     * given Main. */
+    Map<std::string, Library *> libraries_path_to_id;
+    for (NodeClipboardItemIDInfo &id_info : this->old_ids_to_idinfo.values()) {
+      id_info.new_id.reset();
+      if (!id_info.library_path.empty() && !libraries_path_to_id.contains(id_info.library_path)) {
+        libraries_path_to_id.add(
+            id_info.library_path,
+            static_cast<Library *>(BLI_findstring(&bmain.libraries,
+                                                  id_info.library_path.c_str(),
+                                                  offsetof(Library, runtime.filepath_abs))));
       }
     }
 
-    return ok;
+    /* Find a new valid ID pointer for all ID usages in given node.
+     *
+     * NOTE: Due to the fact that the clipboard survives file loading, only name (including IDType)
+     * and libpath pairs can be used here.
+     *   - UID cannot be trusted across file load.
+     *   - ID pointer itself cannot be trusted across undo/redo and file-load. */
+    auto validate_id_fn = [this, &is_valid, &bmain, &bmain_id_map, &libraries_path_to_id](
+                              LibraryIDLinkCallbackData *cb_data) -> int {
+      ID *old_id = *(cb_data->id_pointer);
+      if (!old_id) {
+        return IDWALK_RET_NOP;
+      }
+      if (!this->old_ids_to_idinfo.contains(old_id)) {
+        BLI_assert_msg(
+            0, "Missing entry in the old ID data of the node clipboard, should not happen");
+        is_valid = false;
+        return IDWALK_RET_NOP;
+      }
+
+      NodeClipboardItemIDInfo &id_info = this->old_ids_to_idinfo.lookup(old_id);
+      if (!id_info.new_id) {
+        if (!bmain_id_map) {
+          bmain_id_map = BKE_main_idmap_create(&bmain, false, nullptr, MAIN_IDMAP_TYPE_NAME);
+        }
+        Library *new_id_lib = libraries_path_to_id.lookup_default(id_info.library_path, nullptr);
+        if (id_info.library_path.empty() || new_id_lib) {
+          id_info.new_id = BKE_main_idmap_lookup_name(
+              bmain_id_map, GS(id_info.id_name.c_str()), id_info.id_name.c_str() + 2, new_id_lib);
+        }
+        else {
+          /* No matching library found, so there is no possible matching ID either. */
+          id_info.new_id = nullptr;
+        }
+      }
+      if (*(id_info.new_id) == nullptr) {
+        is_valid = false;
+      }
+      return IDWALK_RET_NOP;
+    };
+    for (NodeClipboardItem &item : this->nodes) {
+      BKE_library_foreach_subdata_id(
+          &bmain,
+          nullptr,
+          nullptr,
+          [&item](LibraryForeachIDData *data) { bke::node_node_foreach_id(item.node, data); },
+          validate_id_fn,
+          nullptr,
+          IDWALK_READONLY);
+    }
+
+    if (bmain_id_map) {
+      BKE_main_idmap_destroy(bmain_id_map);
+      bmain_id_map = nullptr;
+    }
+    return is_valid;
   }
 
-  void add_node(const bNode &node,
-                Map<const bNode *, bNode *> &node_map,
-                Map<const bNodeSocket *, bNodeSocket *> &socket_map)
+  /**
+   * Ensure that a newly pasted copy of a node from the clipboard has valid ID references, as
+   * ensured by #paste_validate_id_references.
+   */
+  void paste_update_node_id_references(bNode &node)
+  {
+    /* Update all old ID pointers in given node by new, valid ones. */
+    auto update_id_fn = [this](LibraryIDLinkCallbackData *cb_data) -> int {
+      ID *old_id = *(cb_data->id_pointer);
+      if (!old_id) {
+        return IDWALK_RET_NOP;
+      }
+      if (!this->old_ids_to_idinfo.contains(old_id)) {
+        BLI_assert_msg(
+            0, "Missing entry in the old ID data of the node clipboard, should not happen");
+        *(cb_data->id_pointer) = nullptr;
+        return IDWALK_RET_NOP;
+      }
+
+      NodeClipboardItemIDInfo &id_info = this->old_ids_to_idinfo.lookup(old_id);
+      if (!id_info.new_id) {
+        BLI_assert_msg(
+            0,
+            "Unset new ID value for an old ID reference in the node clipboard, should not happen");
+        *(cb_data->id_pointer) = nullptr;
+        return IDWALK_RET_NOP;
+      }
+      *(cb_data->id_pointer) = *(id_info.new_id);
+      if (cb_data->cb_flag & IDWALK_CB_USER) {
+        id_us_plus(*(cb_data->id_pointer));
+      }
+      return IDWALK_RET_NOP;
+    };
+    BKE_library_foreach_subdata_id(
+        nullptr,
+        nullptr,
+        nullptr,
+        [&node](LibraryForeachIDData *data) { bke::node_node_foreach_id(&node, data); },
+        update_id_fn,
+        nullptr,
+        IDWALK_NOP);
+  }
+
+  /** Add a new node to the clipboard. */
+  void copy_add_node(const bNode &node,
+                     Map<const bNode *, bNode *> &node_map,
+                     Map<const bNodeSocket *, bNodeSocket *> &socket_map)
   {
     /* No ID reference-counting, this node is virtual,
      * detached from any actual Blender data currently. */
@@ -92,16 +220,39 @@ struct NodeClipboard {
         nullptr, node, LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_MAIN, false, socket_map);
     node_map.add_new(&node, new_node);
 
+    /* Find a new valid ID pointer for all ID usages in given node. */
+    auto ensure_id_info_fn = [this](LibraryIDLinkCallbackData *cb_data) -> int {
+      ID *old_id = *(cb_data->id_pointer);
+      if (!old_id) {
+      }
+      if (this->old_ids_to_idinfo.contains(old_id)) {
+        return IDWALK_RET_NOP;
+      }
+
+      NodeClipboardItemIDInfo id_info;
+      if (old_id) {
+        id_info.id_name = old_id->name;
+        if (ID_IS_LINKED(old_id)) {
+          id_info.library_path = old_id->lib->runtime.filepath_abs;
+        }
+      }
+      this->old_ids_to_idinfo.add(old_id, std::move(id_info));
+      return IDWALK_RET_NOP;
+    };
+    BKE_library_foreach_subdata_id(
+        nullptr,
+        nullptr,
+        nullptr,
+        [&node](LibraryForeachIDData *data) {
+          bke::node_node_foreach_id(const_cast<bNode *>(&node), data);
+        },
+        ensure_id_info_fn,
+        nullptr,
+        IDWALK_READONLY);
+
     NodeClipboardItem item;
     item.draw_rect = node.runtime->totr;
     item.node = new_node;
-    item.id = new_node->id;
-    if (item.id) {
-      item.id_name = new_node->id->name;
-      if (ID_IS_LINKED(new_node->id)) {
-        item.library_name = new_node->id->lib->filepath_abs;
-      }
-    }
     this->nodes.append(std::move(item));
   }
 };
@@ -129,7 +280,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
 
   for (const bNode *node : tree.all_nodes()) {
     if (node->flag & SELECT) {
-      clipboard.add_node(*node, node_map, socket_map);
+      clipboard.copy_add_node(*node, node_map, socket_map);
     }
   }
 
@@ -156,7 +307,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
       new_link.tosock = socket_map.lookup(link->tosock);
       new_link.fromnode = node_map.lookup(link->fromnode);
       new_link.fromsock = socket_map.lookup(link->fromsock);
-      new_link.multi_input_socket_index = link->multi_input_socket_index;
+      new_link.multi_input_sort_id = link->multi_input_sort_id;
       clipboard.links.append(new_link);
     }
   }
@@ -184,21 +335,20 @@ void NODE_OT_clipboard_copy(wmOperatorType *ot)
 
 static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &tree = *snode.edittree;
   NodeClipboard &clipboard = get_node_clipboard();
-
-  const bool is_valid = clipboard.validate();
 
   if (clipboard.nodes.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "The internal clipboard is empty");
     return OPERATOR_CANCELLED;
   }
 
-  if (!is_valid) {
+  if (!clipboard.paste_validate_id_references(*bmain)) {
     BKE_report(op->reports,
                RPT_WARNING,
-               "Some nodes references could not be restored, will be left empty");
+               "Some nodes references to other IDs could not be restored, will be left empty");
   }
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
@@ -214,8 +364,12 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     const char *disabled_hint = nullptr;
     if (node.typeinfo->poll_instance && node.typeinfo->poll_instance(&node, &tree, &disabled_hint))
     {
+      /* Do not access referenced ID pointers here, as they are still the old ones, which may be
+       * invalid. */
       bNode *new_node = bke::node_copy_with_mapping(
-          &tree, node, LIB_ID_COPY_DEFAULT, true, socket_map);
+          &tree, node, LIB_ID_CREATE_NO_USER_REFCOUNT, true, socket_map);
+      /* Update the newly copied node's ID references. */
+      clipboard.paste_update_node_id_references(*new_node);
       /* Reset socket shape in case a node is copied to a different tree type. */
       LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->inputs) {
         socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
@@ -290,7 +444,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
                                         socket_map.lookup(link.fromsock),
                                         node_map.lookup(tonode),
                                         socket_map.lookup(link.tosock));
-      new_link->multi_input_socket_index = link.multi_input_socket_index;
+      new_link->multi_input_sort_id = link.multi_input_sort_id;
     }
   }
 
@@ -306,7 +460,6 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     update_multi_input_indices_for_removed_links(*new_node);
   }
 
-  Main *bmain = CTX_data_main(C);
   ED_node_tree_propagate_change(C, bmain, &tree);
   /* Pasting nodes can create arbitrary new relations because nodes can reference IDs. */
   DEG_relations_tag_update(bmain);
@@ -358,6 +511,5 @@ void ED_node_clipboard_free()
 {
   using namespace blender::ed::space_node;
   NodeClipboard &clipboard = get_node_clipboard();
-  clipboard.validate();
   clipboard.clear();
 }

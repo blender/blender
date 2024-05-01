@@ -40,6 +40,9 @@ class Denoiser {
   void set_params(const DenoiseParams &params);
   const DenoiseParams &get_params() const;
 
+  /* Recommended type for viewport denoising. */
+  static DenoiserType automatic_viewport_denoiser_type(const DeviceInfo &path_trace_device_info);
+
   /* Create devices and load kernels needed for denoising.
    * The progress is used to communicate state when kernels actually needs to be loaded.
    *

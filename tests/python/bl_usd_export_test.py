@@ -206,6 +206,77 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
         self.assertEqual(opacity_thres_input.Get(), None, "Opacity threshold should not be specified for alpha blend")
 
+    def check_primvar(self, prim, pv_name, pv_typeName, pv_interp, elements_len):
+        pv = UsdGeom.PrimvarsAPI(prim).GetPrimvar(pv_name)
+        self.assertTrue(pv.HasValue())
+        self.assertEqual(pv.GetTypeName().type.typeName, pv_typeName)
+        self.assertEqual(pv.GetInterpolation(), pv_interp)
+        self.assertEqual(len(pv.Get()), elements_len)
+
+    def check_primvar_missing(self, prim, pv_name):
+        pv = UsdGeom.PrimvarsAPI(prim).GetPrimvar(pv_name)
+        self.assertFalse(pv.HasValue())
+
+    def test_export_attributes(self):
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_attribute_test.blend"))
+        export_path = self.tempdir / "usd_attribute_test.usda"
+        res = bpy.ops.wm.usd_export(
+            filepath=str(export_path),
+            export_materials=True,
+            evaluation_mode="RENDER",
+        )
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        # Validate all expected Mesh attributes. Notice that nothing on
+        # the Edge domain is supported by USD.
+        prim = stage.GetPrimAtPath("/root/Mesh/Mesh")
+
+        self.check_primvar(prim, "p_bool", "VtArray<bool>", "vertex", 4)
+        self.check_primvar(prim, "p_int8", "VtArray<int>", "vertex", 4)
+        self.check_primvar(prim, "p_int32", "VtArray<int>", "vertex", 4)
+        self.check_primvar(prim, "p_float", "VtArray<float>", "vertex", 4)
+        self.check_primvar(prim, "p_color", "VtArray<GfVec3f>", "vertex", 4)
+        self.check_primvar(prim, "p_byte_color", "VtArray<GfVec3f>", "vertex", 4)
+        self.check_primvar(prim, "p_vec2", "VtArray<GfVec2f>", "vertex", 4)
+        self.check_primvar(prim, "p_vec3", "VtArray<GfVec3f>", "vertex", 4)
+        self.check_primvar(prim, "p_quat", "VtArray<GfQuatf>", "vertex", 4)
+        self.check_primvar_missing(prim, "p_mat4x4")
+
+        self.check_primvar_missing(prim, "e_bool")
+        self.check_primvar_missing(prim, "e_int8")
+        self.check_primvar_missing(prim, "e_int32")
+        self.check_primvar_missing(prim, "e_float")
+        self.check_primvar_missing(prim, "e_color")
+        self.check_primvar_missing(prim, "e_byte_color")
+        self.check_primvar_missing(prim, "e_vec2")
+        self.check_primvar_missing(prim, "e_vec3")
+        self.check_primvar_missing(prim, "e_quat")
+        self.check_primvar_missing(prim, "e_mat4x4")
+
+        self.check_primvar(prim, "f_bool", "VtArray<bool>", "uniform", 1)
+        self.check_primvar(prim, "f_int8", "VtArray<int>", "uniform", 1)
+        self.check_primvar(prim, "f_int32", "VtArray<int>", "uniform", 1)
+        self.check_primvar(prim, "f_float", "VtArray<float>", "uniform", 1)
+        self.check_primvar_missing(prim, "f_color")
+        self.check_primvar_missing(prim, "f_byte_color")
+        self.check_primvar(prim, "f_vec2", "VtArray<GfVec2f>", "uniform", 1)
+        self.check_primvar(prim, "f_vec3", "VtArray<GfVec3f>", "uniform", 1)
+        self.check_primvar(prim, "f_quat", "VtArray<GfQuatf>", "uniform", 1)
+        self.check_primvar_missing(prim, "f_mat4x4")
+
+        self.check_primvar(prim, "fc_bool", "VtArray<bool>", "faceVarying", 4)
+        self.check_primvar(prim, "fc_int8", "VtArray<int>", "faceVarying", 4)
+        self.check_primvar(prim, "fc_int32", "VtArray<int>", "faceVarying", 4)
+        self.check_primvar(prim, "fc_float", "VtArray<float>", "faceVarying", 4)
+        self.check_primvar(prim, "fc_color", "VtArray<GfVec3f>", "faceVarying", 4)
+        self.check_primvar(prim, "fc_byte_color", "VtArray<GfVec3f>", "faceVarying", 4)
+        self.check_primvar(prim, "fc_vec2", "VtArray<GfVec2f>", "faceVarying", 4)
+        self.check_primvar(prim, "fc_vec3", "VtArray<GfVec3f>", "faceVarying", 4)
+        self.check_primvar(prim, "fc_quat", "VtArray<GfQuatf>", "faceVarying", 4)
+        self.check_primvar_missing(prim, "fc_mat4x4")
+
 
 def main():
     global args

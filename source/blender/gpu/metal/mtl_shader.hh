@@ -10,10 +10,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_batch.h"
-#include "GPU_capabilities.h"
-#include "GPU_shader.h"
-#include "GPU_vertex_format.h"
+#include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
+#include "GPU_shader.hh"
+#include "GPU_vertex_format.hh"
 
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
@@ -187,7 +187,7 @@ class MTLShader : public Shader {
   /* Whether transform feedback is currently active. */
   bool transform_feedback_active_ = false;
   /* Vertex buffer to write transform feedback data into. */
-  GPUVertBuf *transform_feedback_vertbuf_ = nullptr;
+  VertBuf *transform_feedback_vertbuf_ = nullptr;
 
   /** Shader source code. */
   MTLShaderBuilder *shd_builder_ = nullptr;
@@ -320,7 +320,7 @@ class MTLShader : public Shader {
 
   void transform_feedback_names_set(Span<const char *> name_list,
                                     const eGPUShaderTFBType geom_type) override;
-  bool transform_feedback_enable(GPUVertBuf *buf) override;
+  bool transform_feedback_enable(VertBuf *buf) override;
   void transform_feedback_disable() override;
 
   void bind() override;
@@ -380,7 +380,7 @@ class MTLShader : public Shader {
     return compute_pso_common_state_;
   }
   /* Transform Feedback. */
-  GPUVertBuf *get_transform_feedback_active_buffer();
+  VertBuf *get_transform_feedback_active_buffer();
   bool has_transform_feedback_varying(std::string str);
 
  private:

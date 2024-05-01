@@ -120,10 +120,10 @@ static void extract_edit_data_init(const MeshRenderData &mr,
                                    void *buf,
                                    void *tls_data)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   GPUVertFormat *format = get_edit_data_format();
   GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, mr.loop_len + mr.loop_loose_len);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
   EditLoopData *vbo_data = (EditLoopData *)GPU_vertbuf_get_data(vbo);
   *(EditLoopData **)tls_data = vbo_data;
 }
@@ -178,7 +178,7 @@ static void extract_edit_data_iter_loose_edge_bm(const MeshRenderData &mr,
                                                  void *_data)
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
-  EditLoopData *data = vbo_data + mr.loop_len + (loose_edge_i * 2);
+  EditLoopData *data = vbo_data + mr.corners_num + (loose_edge_i * 2);
   memset(data, 0x0, sizeof(*data) * 2);
   mesh_render_data_edge_flag(mr, eed, &data[0]);
   data[1] = data[0];
@@ -192,7 +192,7 @@ static void extract_edit_data_iter_loose_edge_mesh(const MeshRenderData &mr,
                                                    void *_data)
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
-  EditLoopData *data = vbo_data + mr.loop_len + loose_edge_i * 2;
+  EditLoopData *data = vbo_data + mr.corners_num + loose_edge_i * 2;
   memset(data, 0x0, sizeof(*data) * 2);
   const int e_index = mr.loose_edges[loose_edge_i];
   BMEdge *eed = bm_original_edge_get(mr, e_index);
@@ -216,7 +216,7 @@ static void extract_edit_data_iter_loose_vert_bm(const MeshRenderData &mr,
                                                  void *_data)
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
-  const int offset = mr.loop_len + (mr.edge_loose_len * 2);
+  const int offset = mr.corners_num + (mr.loose_edges_num * 2);
   EditLoopData *data = vbo_data + offset + loose_vert_i;
   memset(data, 0x0, sizeof(*data));
   mesh_render_data_vert_flag(mr, eve, data);
@@ -227,7 +227,7 @@ static void extract_edit_data_iter_loose_vert_mesh(const MeshRenderData &mr,
                                                    void *_data)
 {
   EditLoopData *vbo_data = *(EditLoopData **)_data;
-  const int offset = mr.loop_len + (mr.edge_loose_len * 2);
+  const int offset = mr.corners_num + (mr.loose_edges_num * 2);
 
   EditLoopData *data = vbo_data + offset + loose_vert_i;
   memset(data, 0x0, sizeof(*data));
@@ -245,7 +245,7 @@ static void extract_edit_data_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                           void *data)
 {
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   GPU_vertbuf_init_with_format(vbo, get_edit_data_format());
   GPU_vertbuf_data_alloc(vbo, subdiv_cache.num_subdiv_loops + loose_geom.loop_len);
   EditLoopData *vbo_data = (EditLoopData *)GPU_vertbuf_get_data(vbo);

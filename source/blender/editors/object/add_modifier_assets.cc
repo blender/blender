@@ -16,7 +16,7 @@
 
 #include "BKE_asset.hh"
 #include "BKE_context.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
@@ -26,6 +26,7 @@
 #include "BLT_translation.hh"
 
 #include "RNA_access.hh"
+#include "RNA_define.hh"
 
 #include "ED_asset.hh"
 #include "ED_asset_menu_utils.hh"
@@ -38,7 +39,7 @@
 
 #include "WM_api.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 namespace blender::ed::object {
 
@@ -88,7 +89,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
       *static_cast<const asset_system::AssetCatalogPath *>(menu_path_ptr.data);
 
   const Span<asset_system::AssetRepresentation *> assets = tree.assets_per_path.lookup(menu_path);
-  asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(menu_path);
+  const asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(menu_path);
   BLI_assert(catalog_item != nullptr);
 
   if (assets.is_empty() && !catalog_item->has_children()) {
@@ -118,7 +119,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &item) {
+  catalog_item->foreach_child([&](const asset_system::AssetCatalogTreeItem &item) {
     asset::draw_menu_for_catalog(
         screen, *all_library, item, "OBJECT_MT_add_modifier_catalog_assets", *layout);
   });
@@ -197,7 +198,7 @@ static void unassigned_assets_draw(const bContext *C, Menu *menu)
 
 static void root_catalogs_draw(const bContext *C, Menu *menu)
 {
-  const Object *object = ED_object_active_context(C);
+  const Object *object = context_active_object(C);
   if (!object) {
     return;
   }
@@ -241,7 +242,7 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  tree.catalogs.foreach_root_item([&](asset_system::AssetCatalogTreeItem &item) {
+  tree.catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
     if (!all_builtin_menus.contains(item.get_name())) {
       asset::draw_menu_for_catalog(
           screen, *all_library, item, "OBJECT_MT_add_modifier_catalog_assets", *layout);
@@ -295,11 +296,9 @@ static int modifier_add_asset_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Object *object = ED_object_active_context(C);
 
-  NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(
-      ED_object_modifier_add(op->reports, bmain, scene, object, nullptr, eModifierType_Nodes));
-  if (!nmd) {
+  Vector<PointerRNA> objects = modifier_get_edit_objects(*C, *op);
+  if (objects.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -308,19 +307,41 @@ static int modifier_add_asset_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  nmd->node_group = node_group;
-  id_us_plus(&node_group->id);
-  MOD_nodes_update_interface(object, nmd);
+  bool changed = false;
+  for (const PointerRNA &ptr : objects) {
+    Object *object = static_cast<Object *>(ptr.data);
+    NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(
+        modifier_add(op->reports, bmain, scene, object, nullptr, eModifierType_Nodes));
+    if (!nmd) {
+      continue;
+    }
+    changed = true;
+    nmd->node_group = node_group;
+    id_us_plus(&node_group->id);
+    MOD_nodes_update_interface(object, nmd);
 
-  /* By default, don't show the data-block selector since it's not usually necessary for assets. */
-  nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;
+    /* Don't show the data-block selector since it's not usually necessary for assets. */
+    nmd->flag |= NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR;
 
-  STRNCPY(nmd->modifier.name, DATA_(node_group->id.name + 2));
-  BKE_modifier_unique_name(&object->modifiers, &nmd->modifier);
+    STRNCPY(nmd->modifier.name, DATA_(node_group->id.name + 2));
+    BKE_modifier_unique_name(&object->modifiers, &nmd->modifier);
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
+    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, object);
+  }
+
+  if (!changed) {
+    return OPERATOR_CANCELLED;
+  }
 
   return OPERATOR_FINISHED;
+}
+
+static int modifier_add_asset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (event->modifier & KM_ALT) {
+    RNA_boolean_set(op->ptr, "use_selected_objects", true);
+  }
+  return modifier_add_asset_exec(C, op);
 }
 
 static std::string modifier_add_asset_get_description(bContext *C,
@@ -344,6 +365,7 @@ static void OBJECT_OT_modifier_add_node_group(wmOperatorType *ot)
   ot->description = "Add a procedural operation/effect to the active object";
   ot->idname = "OBJECT_OT_modifier_add_node_group";
 
+  ot->invoke = modifier_add_asset_invoke;
   ot->exec = modifier_add_asset_exec;
   ot->poll = ED_operator_object_active_editable;
   ot->get_description = modifier_add_asset_get_description;
@@ -352,6 +374,7 @@ static void OBJECT_OT_modifier_add_node_group(wmOperatorType *ot)
 
   asset::operator_asset_reference_props_register(*ot->srna);
   WM_operator_properties_id_lookup(ot, false);
+  modifier_register_use_selected_objects_prop(ot);
 }
 
 static MenuType modifier_add_unassigned_assets_menu_type()
@@ -398,9 +421,6 @@ void ui_template_modifier_asset_menu_items(uiLayout &layout,
                                            const bContext &C,
                                            const StringRef catalog_path)
 {
-  using namespace blender;
-  using namespace blender::ed;
-  using namespace blender::ed::object;
   bScreen &screen = *CTX_wm_screen(&C);
   asset::AssetItemTree &tree = *get_static_item_tree();
   const asset_system::AssetCatalogTreeItem *item = tree.catalogs.find_root_item(catalog_path);

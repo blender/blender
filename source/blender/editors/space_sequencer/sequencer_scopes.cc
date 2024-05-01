@@ -113,7 +113,7 @@ ImBuf *make_waveform_view_from_ibuf(const ImBuf *ibuf)
 #endif
   const int w = ibuf->x;
   const int h = 256;
-  ImBuf *rval = IMB_allocImBuf(w, h, 32, IB_rect | IB_uninitialized_pixels);
+  ImBuf *rval = IMB_allocImBuf(w, h, 32, IB_rect);
   uchar *tgt = rval->byte_buffer.data;
 
   uchar wtable[256];
@@ -123,7 +123,7 @@ ImBuf *make_waveform_view_from_ibuf(const ImBuf *ibuf)
    * overhead, so instead get luma coefficients as 16-bit integers. */
   float coeffs[3];
   IMB_colormanagement_get_luminance_coefficients(coeffs);
-  int muls[3] = {int(coeffs[0] * 65535), int(coeffs[1] * 65535), int(coeffs[2] * 65535)};
+  const int muls[3] = {int(coeffs[0] * 65535), int(coeffs[1] * 65535), int(coeffs[2] * 65535)};
 
   /* Parallel over x, since each column is easily independent from others. */
   threading::parallel_for(IndexRange(ibuf->x), 32, [&](IndexRange x_range) {
@@ -172,7 +172,7 @@ ImBuf *make_sep_waveform_view_from_ibuf(const ImBuf *ibuf)
 #endif
   int w = ibuf->x;
   int h = 256;
-  ImBuf *rval = IMB_allocImBuf(w, h, 32, IB_rect | IB_uninitialized_pixels);
+  ImBuf *rval = IMB_allocImBuf(w, h, 32, IB_rect);
   uchar *tgt = rval->byte_buffer.data;
   int sw = ibuf->x / 3;
 
@@ -346,7 +346,7 @@ ImBuf *make_vectorscope_view_from_ibuf(const ImBuf *ibuf)
 #endif
   const int size = 512;
   const float size_mul = size - 1.0f;
-  ImBuf *rval = IMB_allocImBuf(size, size, 32, IB_rect | IB_uninitialized_pixels);
+  ImBuf *rval = IMB_allocImBuf(size, size, 32, IB_rect);
 
   uchar *dst = rval->byte_buffer.data;
   float rgb[3];

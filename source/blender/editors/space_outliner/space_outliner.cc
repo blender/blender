@@ -460,32 +460,31 @@ static void outliner_id_remap(ScrArea *area,
 static void outliner_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 {
   SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(space_link);
+  if (!space_outliner->treestore) {
+    return;
+  }
   const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
   const bool is_readonly = (data_flags & IDWALK_READONLY) != 0;
   const bool allow_pointer_access = (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0;
 
-  if (space_outliner->treestore != nullptr) {
-    TreeStoreElem *tselem;
-    BLI_mempool_iter iter;
-
-    BLI_mempool_iternew(space_outliner->treestore, &iter);
-    while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
-      /* Do not try to restore non-ID pointers (drivers/sequence/etc.). */
-      if (TSE_IS_REAL_ID(tselem)) {
-        const int cb_flag = (tselem->id != nullptr && allow_pointer_access &&
-                             (tselem->id->flag & LIB_EMBEDDED_DATA) != 0) ?
-                                IDWALK_CB_EMBEDDED_NOT_OWNING :
-                                IDWALK_CB_NOP;
-        BKE_LIB_FOREACHID_PROCESS_ID(data, tselem->id, cb_flag);
-      }
-      else if (!is_readonly) {
-        tselem->id = nullptr;
-      }
+  BLI_mempool_iter iter;
+  BLI_mempool_iternew(space_outliner->treestore, &iter);
+  while (TreeStoreElem *tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter))) {
+    /* Do not try to restore non-ID pointers (drivers/sequence/etc.). */
+    if (TSE_IS_REAL_ID(tselem)) {
+      const int cb_flag = (tselem->id != nullptr && allow_pointer_access &&
+                           (tselem->id->flag & LIB_EMBEDDED_DATA) != 0) ?
+                              IDWALK_CB_EMBEDDED_NOT_OWNING :
+                              IDWALK_CB_NOP;
+      BKE_LIB_FOREACHID_PROCESS_ID(data, tselem->id, cb_flag);
     }
-    if (!is_readonly) {
-      /* rebuild hash table, because it depends on ids too */
-      space_outliner->storeflag |= SO_TREESTORE_REBUILD;
+    else if (!is_readonly) {
+      tselem->id = nullptr;
     }
+  }
+  if (!is_readonly) {
+    /* rebuild hash table, because it depends on ids too */
+    space_outliner->storeflag |= SO_TREESTORE_REBUILD;
   }
 }
 
@@ -506,11 +505,11 @@ static void outliner_space_blend_read_data(BlendDataReader *reader, SpaceLink *s
    * bug fixed in revision 58959 where the treestore memory address
    * was not unique */
   TreeStore *ts = static_cast<TreeStore *>(
-      BLO_read_get_new_data_address_no_us(reader, space_outliner->treestore));
+      BLO_read_get_new_data_address_no_us(reader, space_outliner->treestore, sizeof(TreeStore)));
   space_outliner->treestore = nullptr;
   if (ts) {
-    TreeStoreElem *elems = static_cast<TreeStoreElem *>(
-        BLO_read_get_new_data_address_no_us(reader, ts->data));
+    TreeStoreElem *elems = static_cast<TreeStoreElem *>(BLO_read_get_new_data_address_no_us(
+        reader, ts->data, sizeof(TreeStoreElem) * ts->usedelem));
 
     space_outliner->treestore = BLI_mempool_create(
         sizeof(TreeStoreElem), ts->usedelem, 512, BLI_MEMPOOL_ALLOW_ITER);

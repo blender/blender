@@ -24,6 +24,24 @@ float compatible_fmod(float a, float b)
   return 0.0;
 }
 
+vec2 compatible_fmod(vec2 a, float b)
+{
+  return vec2(compatible_fmod(a.x, b), compatible_fmod(a.y, b));
+}
+
+vec3 compatible_fmod(vec3 a, float b)
+{
+  return vec3(compatible_fmod(a.x, b), compatible_fmod(a.y, b), compatible_fmod(a.z, b));
+}
+
+vec4 compatible_fmod(vec4 a, float b)
+{
+  return vec4(compatible_fmod(a.x, b),
+              compatible_fmod(a.y, b),
+              compatible_fmod(a.z, b),
+              compatible_fmod(a.w, b));
+}
+
 float compatible_pow(float x, float y)
 {
   if (y == 0.0) { /* x^0 -> 1, including 0^0 */

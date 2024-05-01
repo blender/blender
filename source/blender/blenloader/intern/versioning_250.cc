@@ -48,7 +48,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"
 #include "BKE_colortools.hh"
@@ -314,7 +314,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
       case SPACE_ACTION: {
         SpaceAction *saction = (SpaceAction *)sl;
 
-        /* We totally reinit the view for the Action Editor,
+        /* We totally reinitialize the view for the Action Editor,
          * as some old instances had some weird cruft set. */
         region->v2d.tot.xmin = -20.0f;
         region->v2d.tot.ymin = float(-area->winy) / 3.0f;

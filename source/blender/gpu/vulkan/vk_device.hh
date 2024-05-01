@@ -11,10 +11,13 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
+#include "render_graph/vk_resource_state_tracker.hh"
 #include "vk_buffer.hh"
 #include "vk_common.hh"
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
+#include "vk_descriptor_set_layouts.hh"
+#include "vk_pipeline_pool.hh"
 #include "vk_samplers.hh"
 #include "vk_timeline_semaphore.hh"
 
@@ -61,6 +64,7 @@ class VKDevice : public NonCopyable {
   VkQueue vk_queue_ = VK_NULL_HANDLE;
 
   VKSamplers samplers_;
+  VKDescriptorSetLayouts descriptor_set_layouts_;
 
   /* Semaphore for CPU GPU synchronization when submitting commands to the queue. */
   VKTimelineSemaphore timeline_semaphore_;
@@ -107,6 +111,9 @@ class VKDevice : public NonCopyable {
   std::string glsl_patch_;
 
  public:
+  render_graph::VKResourceStateTracker resources;
+  VKPipelinePool pipelines;
+
   VkPhysicalDevice physical_device_get() const
   {
     return vk_physical_device_;
@@ -162,6 +169,11 @@ class VKDevice : public NonCopyable {
     return vk_pipeline_cache_;
   }
 
+  VKDescriptorSetLayouts &descriptor_set_layouts_get()
+  {
+    return descriptor_set_layouts_;
+  }
+
   debug::VKDebuggingTools &debugging_tools_get()
   {
     return debugging_tools_;
@@ -186,6 +198,7 @@ class VKDevice : public NonCopyable {
    */
   void init_dummy_buffer(VKContext &context);
   void init_dummy_color_attachment();
+  void reinit();
   void deinit();
 
   eGPUDeviceType device_type() const;

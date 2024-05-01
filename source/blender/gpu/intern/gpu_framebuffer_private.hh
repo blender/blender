@@ -15,7 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_framebuffer.h"
+#include "GPU_framebuffer.hh"
 
 struct GPUTexture;
 

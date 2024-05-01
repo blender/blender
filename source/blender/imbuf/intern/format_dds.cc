@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2009 Google Inc. All rights reserved. (BSD-3-Clause)
- * SPDX-FileCopyrightText: 2023 Blender Authors (GPL-2.0-or-later).
+ * SPDX-FileCopyrightText: 2023-2024 Blender Authors (GPL-2.0-or-later).
  *
  * SPDX-License-Identifier: GPL-2.0-or-later AND BSD-3-Clause */
 
@@ -18,6 +18,7 @@
 #include "IMB_filetype.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "BLI_math_base.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
@@ -27,10 +28,6 @@
 
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
-
-using std::unique_ptr;
-
-extern "C" {
 
 static void LoadDXTCImage(ImBuf *ibuf, Filesystem::IOMemReader &mem_reader);
 
@@ -213,8 +210,11 @@ static void FlipDXTCImage(ImBuf *ibuf)
   if (width == 0 || height == 0) {
     return;
   }
-  /* Height must be a power-of-two. */
-  if ((height & (height - 1)) != 0) {
+  /* Height must be a power-of-two: not because something within DXT/S3TC
+   * needs it. Only because we want to flip the image upside down, by
+   * swapping and flipping block rows, and that in general case (with mipmaps)
+   * is only possible for POT height. */
+  if (!is_power_of_2_i(height)) {
     return;
   }
 
@@ -330,9 +330,9 @@ static void LoadDXTCImage(ImBuf *ibuf, Filesystem::IOMemReader &mem_reader)
     ibuf->dds_data.size = mem_reader.size() - dds_header_size;
     ibuf->dds_data.data = (uchar *)malloc(ibuf->dds_data.size);
     mem_reader.pread(ibuf->dds_data.data, ibuf->dds_data.size, dds_header_size);
+    ibuf->dds_data.ownership = IB_TAKE_OWNERSHIP;
 
     /* Flip compressed image data to match OpenGL convention. */
     FlipDXTCImage(ibuf);
   }
-}
 }

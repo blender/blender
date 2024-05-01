@@ -57,7 +57,7 @@ struct wmOperator;
 struct wmWindow;
 struct wmWindowManager;
 
-/* for derivedmesh drawing callbacks, for view3d_select, .... */
+/** For mesh drawing callbacks, for viewport selection, etc. */
 struct ViewContext {
   bContext *C;
   Main *bmain;
@@ -148,7 +148,7 @@ void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], const
  * \param lens: The view lens angle set for cameras and lights, normally from View3D.lens.
  */
 void ED_view3d_from_object(
-    const Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
+    const Object *ob, float ofs[3], float quat[4], const float *dist, float *lens);
 /**
  * Set the object transformation from #RegionView3D members.
  * \param depsgraph: The depsgraph to get the evaluated object parent
@@ -188,6 +188,8 @@ enum eV3DDepthOverrideMode {
 };
 /**
  * Redraw the viewport depth buffer.
+ * Call #ED_view3d_has_depth_buffer_updated if you want to check if the viewport already has depth
+ * buffer updated.
  */
 void ED_view3d_depth_override(Depsgraph *depsgraph,
                               ARegion *region,
@@ -208,6 +210,8 @@ bool ED_view3d_depth_unproject_v3(const ARegion *region,
                                   const int mval[2],
                                   double depth,
                                   float r_location_world[3]);
+
+bool ED_view3d_has_depth_buffer_updated(const Depsgraph *depsgraph, const View3D *v3d);
 
 /**
  * Utilities to perform navigation.
@@ -342,7 +346,8 @@ V3DSnapCursorState *ED_view3d_cursor_snap_state_create();
 void ED_view3d_cursor_snap_state_free(V3DSnapCursorState *state);
 void ED_view3d_cursor_snap_state_prevpoint_set(V3DSnapCursorState *state,
                                                const float prev_point[3]);
-void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state, const bContext *C, int x, int y);
+void ED_view3d_cursor_snap_data_update(
+    V3DSnapCursorState *state, const bContext *C, const ARegion *region, int x, int y);
 V3DSnapCursorData *ED_view3d_cursor_snap_data_get();
 SnapObjectContext *ED_view3d_cursor_snap_context_ensure(Scene *scene);
 void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
@@ -353,22 +358,22 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
                                      const uchar source_color[4],
                                      const uchar target_color[4]);
 
-/* view3d_iterators.cc */
+/* `view3d_iterators.cc` */
 
 /* foreach iterators */
 
-void meshobject_foreachScreenVert(ViewContext *vc,
+void meshobject_foreachScreenVert(const ViewContext *vc,
                                   void (*func)(void *user_data,
                                                const float screen_co[2],
                                                int index),
                                   void *user_data,
                                   eV3DProjTest clip_flag);
 void mesh_foreachScreenVert(
-    ViewContext *vc,
+    const ViewContext *vc,
     void (*func)(void *user_data, BMVert *eve, const float screen_co[2], int index),
     void *user_data,
     eV3DProjTest clip_flag);
-void mesh_foreachScreenEdge(ViewContext *vc,
+void mesh_foreachScreenEdge(const ViewContext *vc,
                             void (*func)(void *user_data,
                                          BMEdge *eed,
                                          const float screen_co_a[2],
@@ -381,7 +386,7 @@ void mesh_foreachScreenEdge(ViewContext *vc,
  * A version of #mesh_foreachScreenEdge that clips the segment when
  * there is a clipping bounding box.
  */
-void mesh_foreachScreenEdge_clip_bb_segment(ViewContext *vc,
+void mesh_foreachScreenEdge_clip_bb_segment(const ViewContext *vc,
                                             void (*func)(void *user_data,
                                                          BMEdge *eed,
                                                          const float screen_co_a[2],
@@ -391,11 +396,11 @@ void mesh_foreachScreenEdge_clip_bb_segment(ViewContext *vc,
                                             eV3DProjTest clip_flag);
 
 void mesh_foreachScreenFace(
-    ViewContext *vc,
+    const ViewContext *vc,
     void (*func)(void *user_data, BMFace *efa, const float screen_co[2], int index),
     void *user_data,
     eV3DProjTest clip_flag);
-void nurbs_foreachScreenVert(ViewContext *vc,
+void nurbs_foreachScreenVert(const ViewContext *vc,
                              void (*func)(void *user_data,
                                           Nurb *nu,
                                           BPoint *bp,
@@ -408,18 +413,18 @@ void nurbs_foreachScreenVert(ViewContext *vc,
 /**
  * #ED_view3d_init_mats_rv3d must be called first.
  */
-void mball_foreachScreenElem(ViewContext *vc,
+void mball_foreachScreenElem(const ViewContext *vc,
                              void (*func)(void *user_data, MetaElem *ml, const float screen_co[2]),
                              void *user_data,
                              eV3DProjTest clip_flag);
-void lattice_foreachScreenVert(ViewContext *vc,
+void lattice_foreachScreenVert(const ViewContext *vc,
                                void (*func)(void *user_data, BPoint *bp, const float screen_co[2]),
                                void *user_data,
                                eV3DProjTest clip_flag);
 /**
  * #ED_view3d_init_mats_rv3d must be called first.
  */
-void armature_foreachScreenBone(ViewContext *vc,
+void armature_foreachScreenBone(const ViewContext *vc,
                                 void (*func)(void *user_data,
                                              EditBone *ebone,
                                              const float screen_co_a[2],
@@ -430,7 +435,7 @@ void armature_foreachScreenBone(ViewContext *vc,
 /**
  * ED_view3d_init_mats_rv3d must be called first.
  */
-void pose_foreachScreenBone(ViewContext *vc,
+void pose_foreachScreenBone(const ViewContext *vc,
                             void (*func)(void *user_data,
                                          bPoseChannel *pchan,
                                          const float screen_co_a[2],
@@ -832,7 +837,7 @@ float ED_view3d_radius_to_dist(const View3D *v3d,
  */
 int ED_view3d_backbuf_sample_size_clamp(ARegion *region, float dist);
 
-void ED_view3d_select_id_validate(ViewContext *vc);
+void ED_view3d_select_id_validate(const ViewContext *vc);
 
 /** Check if the last auto-dist can be used. */
 bool ED_view3d_autodist_last_check(wmWindow *win, const wmEvent *event);
@@ -850,18 +855,16 @@ void ED_view3d_autodist_last_clear(wmWindow *win);
 
 /**
  * Get the world-space 3d location from a screen-space 2d point.
- * TODO: Implement #alphaoverride. We don't want to zoom into billboards.
+ * It may be useful to call #ED_view3d_depth_override before.
  *
  * \param mval: Input screen-space pixel location.
  * \param mouse_worldloc: Output world-space location.
  * \param fallback_depth_pt: Use this points depth when no depth can be found.
  */
-bool ED_view3d_autodist(Depsgraph *depsgraph,
-                        ARegion *region,
+bool ED_view3d_autodist(ARegion *region,
                         View3D *v3d,
                         const int mval[2],
                         float mouse_worldloc[3],
-                        bool alphaoverride,
                         const float fallback_depth_pt[3]);
 
 /**
@@ -906,25 +909,25 @@ void view3d_opengl_select_cache_end();
 /**
  * \note (vc->obedit == NULL) can be set to explicitly skip edit-object selection.
  */
-int view3d_opengl_select_ex(ViewContext *vc,
+int view3d_opengl_select_ex(const ViewContext *vc,
                             GPUSelectBuffer *buffer,
                             const rcti *input,
                             eV3DSelectMode select_mode,
                             eV3DSelectObjectFilter select_filter,
                             bool do_material_slot_selection);
-int view3d_opengl_select(ViewContext *vc,
+int view3d_opengl_select(const ViewContext *vc,
                          GPUSelectBuffer *buffer,
                          const rcti *input,
                          eV3DSelectMode select_mode,
                          eV3DSelectObjectFilter select_filter);
-int view3d_opengl_select_with_id_filter(ViewContext *vc,
+int view3d_opengl_select_with_id_filter(const ViewContext *vc,
                                         GPUSelectBuffer *buffer,
                                         const rcti *input,
                                         eV3DSelectMode select_mode,
                                         eV3DSelectObjectFilter select_filter,
                                         uint select_id);
 
-/* view3d_select.cc */
+/* `view3d_select.cc` */
 
 float ED_view3d_select_dist_px();
 ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph);
@@ -1222,9 +1225,9 @@ void ED_view3d_grid_steps(const Scene *scene,
  * The actual code is seen in `object_grid_frag.glsl` (see `grid_res`).
  * Currently the simulation is only done when RV3D_VIEW_IS_AXIS.
  */
-float ED_view3d_grid_view_scale(Scene *scene,
-                                View3D *v3d,
-                                ARegion *region,
+float ED_view3d_grid_view_scale(const Scene *scene,
+                                const View3D *v3d,
+                                const ARegion *region,
                                 const char **r_grid_unit);
 
 /**
@@ -1271,27 +1274,15 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *area);
 #define RETOPOLOGY_ENABLED(v3d) (OVERLAY_RETOPOLOGY_ENABLED((v3d)->overlay))
 #define RETOPOLOGY_OFFSET(v3d) (OVERLAY_RETOPOLOGY_OFFSET((v3d)->overlay))
 
-/* view3d_draw_legacy.c */
+/* `view3d_gizmo_preselect_type.cc` */
 
-/**
- * Try avoid using these more move out of legacy.
- */
-void ED_view3d_draw_bgpic_test(const Scene *scene,
-                               Depsgraph *depsgraph,
-                               ARegion *region,
-                               View3D *v3d,
-                               bool do_foreground,
-                               bool do_camera_frame);
-
-/* view3d_gizmo_preselect_type.cc */
-
-void ED_view3d_gizmo_mesh_preselect_get_active(bContext *C,
-                                               wmGizmo *gz,
+void ED_view3d_gizmo_mesh_preselect_get_active(const bContext *C,
+                                               const wmGizmo *gz,
                                                Base **r_base,
                                                BMElem **r_ele);
 void ED_view3d_gizmo_mesh_preselect_clear(wmGizmo *gz);
 
-/* space_view3d.cc */
+/* `space_view3d.cc` */
 
 void ED_view3d_buttons_region_layout_ex(const bContext *C,
                                         ARegion *region,
@@ -1303,8 +1294,8 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
  * See if current UUID is valid, otherwise set a valid UUID to v3d,
  * Try to keep the same UUID previously used to allow users to quickly toggle back and forth.
  */
-bool ED_view3d_local_collections_set(Main *bmain, View3D *v3d);
-void ED_view3d_local_collections_reset(bContext *C, bool reset_all);
+bool ED_view3d_local_collections_set(const Main *bmain, View3D *v3d);
+void ED_view3d_local_collections_reset(const bContext *C, bool reset_all);
 
 #ifdef WITH_XR_OPENXR
 void ED_view3d_xr_mirror_update(const ScrArea *area, const View3D *v3d, bool enable);

@@ -130,7 +130,7 @@ bool bc_validateConstraints(bConstraint *con)
 bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 {
   Scene *scene = CTX_data_scene(C);
-  int partype = PAR_OBJECT;
+  int partype = blender::ed::object::PAR_OBJECT;
   const bool xmirror = false;
   const bool keep_transform = false;
 
@@ -140,7 +140,7 @@ bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
                 ob->object_to_world().ptr());
   }
 
-  bool ok = ED_object_parent_set(
+  bool ok = blender::ed::object::parent_set(
       nullptr, C, scene, ob, par, partype, xmirror, keep_transform, nullptr);
   return ok;
 }
@@ -652,22 +652,13 @@ void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[4][4])
 {
   IDProperty *idgroup = (IDProperty *)ebone->prop;
   if (idgroup == nullptr) {
-    IDPropertyTemplate val = {0};
-    idgroup = IDP_New(IDP_GROUP, &val, "RNA_EditBone ID properties");
+    idgroup = blender::bke::idprop::create_group("RNA_EditBone ID properties").release();
     ebone->prop = idgroup;
   }
 
-  IDPropertyTemplate val = {0};
-  val.array.len = 16;
-  val.array.type = IDP_FLOAT;
-
-  IDProperty *data = IDP_New(IDP_ARRAY, &val, key);
-  float *array = (float *)IDP_Array(data);
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      array[4 * i + j] = mat[i][j];
-    }
-  }
+  IDProperty *data = blender::bke::idprop::create(
+                         key, blender::Span(reinterpret_cast<float *>(mat), 16))
+                         .release();
 
   IDP_AddToGroup(idgroup, data);
 }
@@ -682,14 +673,11 @@ static void bc_set_IDProperty(EditBone *ebone, const char *key, float value)
 {
   if (ebone->prop == nullptr) {
     IDPropertyTemplate val = {0};
-    ebone->prop = IDP_New(IDP_GROUP, &val, "RNA_EditBone ID properties");
+    ebone->prop = blender::bke::idprop::create_group( "RNA_EditBone ID properties").release();
   }
 
   IDProperty *pgroup = (IDProperty *)ebone->prop;
-  IDPropertyTemplate val = {0};
-  IDProperty *prop = IDP_New(IDP_FLOAT, &val, key);
-  IDP_Float(prop) = value;
-  IDP_AddToGroup(pgroup, prop);
+  IDP_AddToGroup(pgroup, blender::bke::idprop::create(key, value).release());
 }
 #endif
 

@@ -152,9 +152,6 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
     const int faces_len = group_index[i][1];
     BMFace **faces = static_cast<BMFace **>(MEM_mallocN(sizeof(*faces) * faces_len, __func__));
 
-    float bounds_min[2], bounds_max[2];
-    INIT_MINMAX2(bounds_min, bounds_max);
-
     for (int j = 0; j < faces_len; j++) {
       faces[j] = BM_face_at_index(bm, groups_array[faces_start + j]);
     }

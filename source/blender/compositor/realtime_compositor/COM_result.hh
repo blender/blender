@@ -7,8 +7,8 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "COM_domain.hh"
 #include "COM_texture_pool.hh"
@@ -275,11 +275,10 @@ class Result {
   void set_initial_reference_count(int count);
 
   /* Reset the result to prepare it for a new evaluation. This should be called before evaluating
-   * the operation that computes this result. First, set the value of reference_count_ to the value
-   * of initial_reference_count_ since reference_count_ may have already been decremented to zero
-   * in a previous evaluation. Second, set master_ to nullptr because the result may have been
-   * turned into a proxy result in a previous evaluation. Other fields don't need to be reset
-   * because they are runtime and overwritten during evaluation. */
+   * the operation that computes this result. Keep the type, precision, texture pool, and initial
+   * reference count, and rest all other members to their default value. Finally, set the value of
+   * reference_count_ to the value of initial_reference_count_ since reference_count_ may have
+   * already been decremented to zero in a previous evaluation. */
   void reset();
 
   /* Increment the reference count of the result by the given count. If this result have a master

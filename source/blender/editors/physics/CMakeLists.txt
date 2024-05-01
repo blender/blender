@@ -31,7 +31,7 @@ set(SRC
   rigidbody_world.cc
 
   particle_edit_utildefines.h
-  physics_intern.h
+  physics_intern.hh
 )
 
 set(LIB

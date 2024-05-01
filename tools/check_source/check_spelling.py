@@ -272,7 +272,7 @@ def words_from_text(text: str, check_type: str) -> List[Tuple[str, int]]:
             w_prev = w_lower
             w_prev_start = w_start
     else:
-        assert False
+        assert False, "unreachable"
 
     return words
 
@@ -308,7 +308,6 @@ class Comment:
 
 
 def extract_code_strings(filepath: str) -> Tuple[List[Comment], Set[str]]:
-    import pygments
     from pygments import lexers
     from pygments.token import Token
 
@@ -424,7 +423,7 @@ def extract_c_comments(filepath: str) -> Tuple[List[Comment], Set[str]]:
                 star_offsets.add(l.find("*", l_ofs_first))
                 l_ofs_first = 0
                 if len(star_offsets) > 1:
-                    print("%s:%d" % (filepath, line_index + text.count("\n", 0, i)))
+                    print("{:s}:{:d}".format(filepath, line_index + text.count("\n", 0, i)))
                     break
 
     if not PRINT_SPELLING:
@@ -493,7 +492,7 @@ def spell_check_report(filepath: str, check_type: str, report: Report) -> None:
         if suggest is None:
             _suggest_map[w_lower] = suggest = " ".join(dictionary_suggest(w))
 
-        print("%s:%d:%d: %s%s%s, suggest (%s)" % (
+        print("{:s}:{:d}:{:d}: {:s}{:s}{:s}, suggest ({:s})".format(
             filepath,
             slineno + 1,
             scol + 1,
@@ -503,7 +502,7 @@ def spell_check_report(filepath: str, check_type: str, report: Report) -> None:
             suggest,
         ))
     elif check_type == 'DUPLICATES':
-        print("%s:%d:%d: %s%s%s, duplicate" % (
+        print("{:s}:{:d}:{:d}: {:s}{:s}{:s}, duplicate".format(
             filepath,
             slineno + 1,
             scol + 1,
@@ -551,7 +550,7 @@ def spell_check_file(
                 # print(filepath + ":" + str(slineno + 1) + ":" + str(scol), w, "(duplicates)")
                 yield (w, slineno, scol)
     else:
-        assert False
+        assert False, "unreachable"
 
 
 def spell_check_file_recursive(

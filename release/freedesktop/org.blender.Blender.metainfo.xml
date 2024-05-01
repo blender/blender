@@ -48,6 +48,23 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="4.1" date="2024-03-19">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>OpenImageDenoise is now GPU accelerated on supported hardware.</li>
+                    <li>Geometry Nodes: new Bake node and several enhancements and performance improvements.</li>
+                    <li>New File Handler API allows for drag-and-drop behaviour throughout Blender. Initial use has been added for file formats such as Alembic, OBJ and OpenUSD.</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>The video Sequencer got many performance optimizations across the board, improved filtering and visually updated scopes.</li>
+                    <li>User Interface improvements such as input placeholders, visual improvements and more infos on file browser tooltips.</li>
+                    <li>Bone Collections are now hierarchical</li>
+                    <li>The Musgrave Texture node was replaced by a more versatile Noise Texture node.</li>
+                </ul>
+            </description>
+        </release>
         <release version="4.0" date="2023-11-14">
             <description>
                 <p>New features:</p>

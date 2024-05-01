@@ -320,7 +320,8 @@ void BKE_reports_print(ReportList *reports, eReportType level)
     return;
   }
 
-  puts(cstring);
+  /* A trailing newline is already part of `cstring`. */
+  fputs(cstring, stdout);
   fflush(stdout);
   MEM_freeN(cstring);
 }

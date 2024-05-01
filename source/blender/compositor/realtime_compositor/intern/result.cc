@@ -6,9 +6,9 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_shader.h"
-#include "GPU_state.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_state.hh"
+#include "GPU_texture.hh"
 
 #include "COM_domain.hh"
 #include "COM_result.hh"
@@ -389,8 +389,10 @@ void Result::set_initial_reference_count(int count)
 
 void Result::reset()
 {
-  master_ = nullptr;
-  reference_count_ = initial_reference_count_;
+  const int initial_reference_count = initial_reference_count_;
+  *this = Result(type_, *texture_pool_, precision_);
+  initial_reference_count_ = initial_reference_count;
+  reference_count_ = initial_reference_count;
 }
 
 void Result::increment_reference_count(int count)

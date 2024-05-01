@@ -6,8 +6,8 @@
  * \ingroup ply
  */
 
+#include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
@@ -19,7 +19,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_memory_utils.hh"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 
 #include "DEG_depsgraph.hh"
@@ -161,19 +161,18 @@ const char *read_header(PlyReadBuffer &file, PlyHeader &r_header)
   return nullptr;
 }
 
-void importer_main(bContext *C, const PLYImportParams &import_params, wmOperator *op)
+void importer_main(bContext *C, const PLYImportParams &import_params)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  importer_main(bmain, scene, view_layer, import_params, op);
+  importer_main(bmain, scene, view_layer, import_params);
 }
 
 void importer_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
-                   const PLYImportParams &import_params,
-                   wmOperator *op)
+                   const PLYImportParams &import_params)
 {
   /* File base name used for both mesh and object. */
   char ob_name[FILE_MAX];
@@ -187,7 +186,7 @@ void importer_main(Main *bmain,
   const char *err = read_header(file, header);
   if (err != nullptr) {
     fprintf(stderr, "PLY Importer: %s: %s\n", ob_name, err);
-    BKE_reportf(op->reports, RPT_ERROR, "PLY Importer: %s: %s", ob_name, err);
+    BKE_reportf(import_params.reports, RPT_ERROR, "PLY Importer: %s: %s", ob_name, err);
     return;
   }
 
@@ -195,17 +194,17 @@ void importer_main(Main *bmain,
   std::unique_ptr<PlyData> data = import_ply_data(file, header);
   if (data == nullptr) {
     fprintf(stderr, "PLY Importer: failed importing %s, unknown error\n", ob_name);
-    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
+    BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
     return;
   }
   if (!data->error.empty()) {
     fprintf(stderr, "PLY Importer: failed importing %s: %s\n", ob_name, data->error.c_str());
-    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
+    BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, unknown error");
     return;
   }
   if (data->vertices.is_empty()) {
     fprintf(stderr, "PLY Importer: file %s contains no vertices\n", ob_name);
-    BKE_report(op->reports, RPT_ERROR, "PLY Importer: failed importing, no vertices");
+    BKE_report(import_params.reports, RPT_ERROR, "PLY Importer: failed importing, no vertices");
     return;
   }
 

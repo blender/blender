@@ -76,7 +76,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "BKE_paint.hh"
 #  include "BKE_scene.hh"
 #  include "BKE_texture.h"
-#  include "BKE_workspace.h"
+#  include "BKE_workspace.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -804,6 +804,21 @@ void RNA_def_material(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static EnumPropertyItem prop_eevee_thickness_method_items[] = {
+      {MA_THICKNESS_SPHERE,
+       "SPHERE",
+       0,
+       "Sphere",
+       "Approximate the object as sphere, which diameter is equal to thickness the defined by the "
+       "node tree"},
+      {MA_THICKNESS_SLAB,
+       "SLAB",
+       0,
+       "Slab",
+       "Approximate the object as an infinite slab of thickness defined by the node tree"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
 #  if 1 /* Delete this section once we remove old eevee. */
   static EnumPropertyItem prop_eevee_blend_items[] = {
       {MA_BM_SOLID, "OPAQUE", 0, "Opaque", "Render surface without transparency"},
@@ -958,13 +973,13 @@ void RNA_def_material(BlenderRNA *brna)
       "Additionally helps rejecting probes inside the object to avoid light leaks");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
-  /* TODO(fclem): Should be renamed to use_raytraced_refraction. */
+  /* TODO(fclem): Should be renamed to use_raytraced_transmission. */
   prop = RNA_def_property(srna, "use_screen_refraction", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_SS_REFRACTION);
   RNA_def_property_ui_text(
       prop,
-      "Raytrace Refraction",
-      "Use raytracing to determine refracted color instead of using only light probes. "
+      "Raytrace Transmission",
+      "Use raytracing to determine transmitted color instead of using only light probes. "
       "This prevents the surface from contributing to the lighting of surfaces not using this "
       "setting");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
@@ -985,6 +1000,21 @@ void RNA_def_material(BlenderRNA *brna)
                            "events (0 is disabled)");
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 #  endif
+
+  prop = RNA_def_property(srna, "thickness_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prop_eevee_thickness_method_items);
+  RNA_def_property_ui_text(prop,
+                           "Thickness Mode",
+                           "Approximation used to model the light interactions inside the object");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
+  prop = RNA_def_property(srna, "use_thickness_from_shadow", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "blend_flag", MA_BL_THICKNESS_FROM_SHADOW);
+  RNA_def_property_ui_text(prop,
+                           "Thickness From Shadow",
+                           "Use the shadow maps from shadow casting lights "
+                           "to refine the thickness defined by the material node tree");
+  RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   prop = RNA_def_property(srna, "volume_intersection_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_eevee_volume_isect_method_items);
@@ -1058,7 +1088,7 @@ void RNA_def_material(BlenderRNA *brna)
   /* line art */
   prop = RNA_def_property(srna, "lineart", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "lineart");
-  RNA_def_property_ui_text(prop, "Line Art Settings", "Line art settings for material");
+  RNA_def_property_ui_text(prop, "Line Art Settings", "Line Art settings for material");
 
   rna_def_material_greasepencil(brna);
   rna_def_material_lineart(brna);

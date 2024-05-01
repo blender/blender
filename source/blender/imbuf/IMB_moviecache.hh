@@ -27,8 +27,8 @@ using MovieCacheGetPriorityDataFP = void *(*)(void *userkey);
 using MovieCacheGetItemPriorityFP = int (*)(void *last_userkey, void *priority_data);
 using MovieCachePriorityDeleterFP = void (*)(void *priority_data);
 
-void IMB_moviecache_init(void);
-void IMB_moviecache_destruct(void);
+void IMB_moviecache_init();
+void IMB_moviecache_destruct();
 
 MovieCache *IMB_moviecache_create(const char *name,
                                   int keysize,

@@ -152,7 +152,7 @@ void BLI_args_pass_set(bArgs *ba, int current_pass)
   ba->current_pass = current_pass;
 }
 
-void BLI_args_print(bArgs *ba)
+void BLI_args_print(const bArgs *ba)
 {
   int i;
   for (i = 0; i < ba->argc; i++) {

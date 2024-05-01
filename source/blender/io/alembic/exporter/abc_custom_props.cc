@@ -10,17 +10,13 @@
 
 #include "abc_writer_abstract.h"
 
-#include <functional>
-#include <iostream>
-#include <memory>
 #include <string>
 
 #include <Alembic/Abc/OTypedArrayProperty.h>
-#include <Alembic/Abc/OTypedScalarProperty.h>
 
 #include "BLI_listbase.h"
 
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "DNA_ID.h"
 
 using Alembic::Abc::ArraySample;

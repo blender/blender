@@ -54,7 +54,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 /* Temporary interpolate operation data */
 struct tGPDinterpolate_layer {

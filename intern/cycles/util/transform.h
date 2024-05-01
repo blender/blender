@@ -161,6 +161,17 @@ ccl_device_inline Transform make_transform(float a,
   return t;
 }
 
+ccl_device_inline Transform make_transform(const float3 x, const float3 y, const float3 z)
+{
+  Transform t;
+
+  t.x = float3_to_float4(x, 0.0f);
+  t.y = float3_to_float4(y, 0.0f);
+  t.z = float3_to_float4(z, 0.0f);
+
+  return t;
+}
+
 ccl_device_inline Transform euler_to_transform(const float3 euler)
 {
   float cx = cosf(euler.x);

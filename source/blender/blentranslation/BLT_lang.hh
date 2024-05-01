@@ -14,15 +14,15 @@ struct EnumPropertyItem;
  * the case for Linux, Win and Mac.
  * Also dynamically builds locales and locales' menu from "languages" text file.
  */
-void BLT_lang_init(void);
+void BLT_lang_init();
 
 /* Free languages and locales_menu arrays created by BLT_lang_init. */
-void BLT_lang_free(void);
+void BLT_lang_free();
 
 /* Set the current locale. */
 void BLT_lang_set(const char *);
 /* Get the current locale ([partial] ISO code, e.g. `pt_BR`). */
-const char *BLT_lang_get(void);
+const char *BLT_lang_get();
 
 /* Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g.
  * if there is no variant, *variant and *language_variant will always be NULL).
@@ -46,4 +46,4 @@ void BLT_lang_locale_explode(const char *locale,
                              char **language_variant);
 
 /* Get EnumPropertyItem's for translations menu. */
-EnumPropertyItem *BLT_lang_RNA_enum_properties(void);
+const EnumPropertyItem *BLT_lang_RNA_enum_properties();

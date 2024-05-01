@@ -44,34 +44,35 @@ class ANIM_OT_keying_set_export(Operator):
     )
 
     def execute(self, context):
+        from bpy.utils import escape_identifier
+
         if not self.filepath:
             raise Exception("Filepath not set")
 
-        f = open(self.filepath, "w")
+        f = open(self.filepath, "w", encoding="utf8")
         if not f:
             raise Exception("Could not open file")
 
         scene = context.scene
         ks = scene.keying_sets.active
 
-        f.write("# Keying Set: %s\n" % ks.bl_idname)
+        f.write("# Keying Set: {:s}\n".format(ks.bl_idname))
 
         f.write("import bpy\n\n")
         f.write("scene = bpy.context.scene\n\n")
 
         # Add KeyingSet and set general settings
         f.write("# Keying Set Level declarations\n")
-        f.write("ks = scene.keying_sets.new(idname=\"%s\", name=\"%s\")\n"
-                "" % (ks.bl_idname, ks.bl_label))
-        f.write("ks.bl_description = %r\n" % ks.bl_description)
+        f.write("ks = scene.keying_sets.new(idname={!r}, name={!r})\n".format(ks.bl_idname, ks.bl_label))
+        f.write("ks.bl_description = {!r}\n".format(ks.bl_description))
 
-        if not ks.is_path_absolute:
-            f.write("ks.is_path_absolute = False\n")
+        # TODO: this isn't editable, it should be possible to set this flag for `scene.keying_sets.new`.
+        # if not ks.is_path_absolute:
+        #     f.write("ks.is_path_absolute = False\n")
         f.write("\n")
 
-        f.write("ks.use_insertkey_needed = %s\n" % ks.use_insertkey_needed)
-        f.write("ks.use_insertkey_visual = %s\n" % ks.use_insertkey_visual)
-        f.write("ks.use_insertkey_xyz_to_rgb = %s\n" % ks.use_insertkey_xyz_to_rgb)
+        f.write("ks.use_insertkey_needed = {!r}\n".format(ks.use_insertkey_needed))
+        f.write("ks.use_insertkey_visual = {!r}\n".format(ks.use_insertkey_visual))
         f.write("\n")
 
         # --------------------------------------------------------
@@ -95,51 +96,54 @@ class ANIM_OT_keying_set_export(Operator):
             #   (e.g. node-tree in Material).
             if ksp.id.bl_rna.identifier.startswith("ShaderNodeTree"):
                 # Find material or light using this node tree...
-                id_bpy_path = "bpy.data.nodes[\"%s\"]"
+                id_bpy_path = "bpy.data.nodes[\"{:s}\"]"
                 found = False
 
                 for mat in bpy.data.materials:
                     if mat.node_tree == ksp.id:
-                        id_bpy_path = "bpy.data.materials[\"%s\"].node_tree" % (mat.name)
+                        id_bpy_path = "bpy.data.materials[\"{:s}\"].node_tree".format(escape_identifier(mat.name))
                         found = True
                         break
 
                 if not found:
                     for light in bpy.data.lights:
                         if light.node_tree == ksp.id:
-                            id_bpy_path = "bpy.data.lights[\"%s\"].node_tree" % (light.name)
+                            id_bpy_path = "bpy.data.lights[\"{:s}\"].node_tree".format(escape_identifier(light.name))
                             found = True
                             break
 
                 if not found:
                     self.report(
                         {'WARN'},
-                        rpt_("Could not find material or light using Shader Node Tree - %s") %
-                        (ksp.id))
+                        rpt_("Could not find material or light using Shader Node Tree - {:s}").format(str(ksp.id))
+                    )
             elif ksp.id.bl_rna.identifier.startswith("CompositorNodeTree"):
                 # Find compositor node-tree using this node tree.
                 for scene in bpy.data.scenes:
                     if scene.node_tree == ksp.id:
-                        id_bpy_path = "bpy.data.scenes[\"%s\"].node_tree" % (scene.name)
+                        id_bpy_path = "bpy.data.scenes[\"{:s}\"].node_tree".format(escape_identifier(scene.name))
                         break
                 else:
-                    self.report({'WARN'}, rpt_("Could not find scene using Compositor Node Tree - %s") % (ksp.id))
+                    self.report(
+                        {'WARN'},
+                        rpt_("Could not find scene using Compositor Node Tree - {:s}").format(str(ksp.id))
+                    )
             elif ksp.id.bl_rna.name == "Key":
                 # "keys" conflicts with a Python keyword, hence the simple solution won't work
-                id_bpy_path = "bpy.data.shape_keys[\"%s\"]" % (ksp.id.name)
+                id_bpy_path = "bpy.data.shape_keys[\"{:s}\"]".format(escape_identifier(ksp.id.name))
             else:
                 idtype_list = ksp.id.bl_rna.name.lower() + "s"
-                id_bpy_path = "bpy.data.%s[\"%s\"]" % (idtype_list, ksp.id.name)
+                id_bpy_path = "bpy.data.{:s}[\"{:s}\"]".format(idtype_list, escape_identifier(ksp.id.name))
 
             # shorthand ID for the ID-block (as used in the script)
-            short_id = "id_%d" % len(id_to_paths_cache)
+            short_id = "id_{:d}".format(len(id_to_paths_cache))
 
             # store this in the cache now
             id_to_paths_cache[ksp.id] = [short_id, id_bpy_path]
 
         f.write("# ID's that are commonly used\n")
         for id_pair in id_to_paths_cache.values():
-            f.write("%s = %s\n" % (id_pair[0], id_pair[1]))
+            f.write("{:s} = {:s}\n".format(id_pair[0], id_pair[1]))
         f.write("\n")
 
         # write paths
@@ -153,22 +157,21 @@ class ANIM_OT_keying_set_export(Operator):
                 id_bpy_path = id_to_paths_cache[ksp.id][0]
             else:
                 id_bpy_path = "None"  # XXX...
-            f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
+            f.write("{:s}, {!r}".format(id_bpy_path, ksp.data_path))
 
             # array index settings (if applicable)
             if ksp.use_entire_array:
                 f.write(", index=-1")
             else:
-                f.write(", index=%d" % ksp.array_index)
+                f.write(", index={:d}".format(ksp.array_index))
 
             # grouping settings (if applicable)
             # NOTE: the current default is KEYINGSET, but if this changes,
             # change this code too
             if ksp.group_method == 'NAMED':
-                f.write(", group_method='%s', group_name=\"%s\"" %
-                        (ksp.group_method, ksp.group))
+                f.write(", group_method={!r}, group_name={!r}".format(ksp.group_method, ksp.group))
             elif ksp.group_method != 'KEYINGSET':
-                f.write(", group_method='%s'" % ksp.group_method)
+                f.write(", group_method={!r}".format(ksp.group_method))
 
             # finish off
             f.write(")\n")
@@ -245,8 +248,8 @@ class NLA_OT_bake(Operator):
         description="Which data's transformations to bake",
         options={'ENUM_FLAG'},
         items=(
-             ('POSE', "Pose", "Bake bones transformations"),
-             ('OBJECT', "Object", "Bake object transformations"),
+            ('POSE', "Pose", "Bake bones transformations"),
+            ('OBJECT', "Object", "Bake object transformations"),
         ),
         default={'POSE'},
     )
@@ -289,6 +292,11 @@ class NLA_OT_bake(Operator):
         else:
             objects = context.selected_editable_objects
             if bake_options.do_pose and not bake_options.do_object:
+                pose_object = getattr(context, "pose_object", None)
+                if pose_object and pose_object not in objects:
+                    # The active object might not be selected, but it is the one in pose mode.
+                    # It can be assumed this pose needs baking.
+                    objects.append(pose_object)
                 objects = [obj for obj in objects if obj.pose is not None]
 
         object_action_pairs = (
@@ -358,8 +366,7 @@ class ClearUselessActions(Operator):
                     action.user_clear()
                     removed += 1
 
-        self.report({'INFO'}, rpt_("Removed %d empty and/or fake-user only Actions")
-                    % removed)
+        self.report({'INFO'}, rpt_("Removed {:d} empty and/or fake-user only Actions").format(removed))
         return {'FINISHED'}
 
 
@@ -443,7 +450,7 @@ class UpdateAnimatedTransformConstraint(Operator):
             print(log)
             text = bpy.data.texts.new("UpdateAnimatedTransformConstraint Report")
             text.from_string(log)
-            self.report({'INFO'}, rpt_("Complete report available on '%s' text datablock") % text.name)
+            self.report({'INFO'}, rpt_("Complete report available on '{:s}' text datablock").format(text.name))
         return {'FINISHED'}
 
 
@@ -454,8 +461,8 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     _bone_type_enum = [
-        ('EDIT', 'Bone', 'Copy Bone colors from the active bone to all selected bones'),
-        ('POSE', 'Pose Bone', 'Copy Pose Bone colors from the active pose bone to all selected pose bones'),
+        ('EDIT', "Bone", "Copy Bone colors from the active bone to all selected bones"),
+        ('POSE', "Pose Bone", "Copy Pose Bone colors from the active pose bone to all selected pose bones"),
     ]
 
     bone_type: EnumProperty(
@@ -489,7 +496,7 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
 
             # Anything else:
             case _:
-                self.report({'ERROR'}, "Cannot do anything in mode %r" % context.mode)
+                self.report({'ERROR'}, "Cannot do anything in mode {!r}".format(context.mode))
                 return {'CANCELLED'}
 
         if not bone_source:
@@ -518,10 +525,22 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
         if num_pose_color_overrides:
             self.report(
                 {'INFO'},
-                "Bone colors were synced; for %d bones this will not be visible due to pose bone color overrides" %
-                num_pose_color_overrides)
+                "Bone colors were synced; "
+                "for {:d} bones this will not be visible due to pose bone color overrides".format(
+                    num_pose_color_overrides,
+                ))
 
         return {'FINISHED'}
+
+
+def _armature_from_context(context):
+    pin_armature = getattr(context, "armature", None)
+    if pin_armature:
+        return pin_armature
+    ob = context.object
+    if ob and ob.type == 'ARMATURE':
+        return ob.data
+    return None
 
 
 class ARMATURE_OT_collection_show_all(Operator):
@@ -532,10 +551,10 @@ class ARMATURE_OT_collection_show_all(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.object and context.object.type == 'ARMATURE' and context.object.data
+        return _armature_from_context(context) is not None
 
     def execute(self, context):
-        arm = context.object.data
+        arm = _armature_from_context(context)
         for bcoll in arm.collections_all:
             bcoll.is_visible = True
         return {'FINISHED'}
@@ -549,15 +568,16 @@ class ARMATURE_OT_collection_unsolo_all(Operator):
 
     @classmethod
     def poll(cls, context):
-        if not (context.object and context.object.type == 'ARMATURE' and context.object.data):
+        armature = _armature_from_context(context)
+        if not armature:
             return False
-        if not context.object.data.collections.is_solo_active:
+        if not armature.collections.is_solo_active:
             cls.poll_message_set("None of the bone collections is marked 'solo'")
             return False
         return True
 
     def execute(self, context):
-        arm = context.object.data
+        arm = _armature_from_context(context)
         for bcoll in arm.collections_all:
             bcoll.is_solo = False
         return {'FINISHED'}
@@ -573,16 +593,16 @@ class ARMATURE_OT_collection_remove_unused(Operator):
 
     @classmethod
     def poll(cls, context):
-        if not context.object or context.object.type != 'ARMATURE':
+        armature = _armature_from_context(context)
+        if not armature:
             return False
-        arm = context.object.data
-        return len(arm.collections) > 0
+        return len(armature.collections) > 0
 
     def execute(self, context):
-        if context.object.mode == 'EDIT':
+        if context.mode == 'EDIT_ARMATURE':
             return self.execute_edit_mode(context)
 
-        armature = context.object.data
+        armature = _armature_from_context(context)
 
         # Build a set of bone collections that don't contain any bones, and
         # whose children also don't contain any bones.
@@ -603,7 +623,7 @@ class ARMATURE_OT_collection_remove_unused(Operator):
         # edit mode, because that has a completely separate list of edit bones.
         # This is why edit mode needs separate handling.
 
-        armature = context.object.data
+        armature = _armature_from_context(context)
         bcolls_with_bones = {
             bcoll
             for ebone in armature.edit_bones
@@ -643,8 +663,9 @@ class ARMATURE_OT_collection_remove_unused(Operator):
         for bcoll in reversed(list(bcolls_to_remove)):
             armature.collections.remove(bcoll)
 
-        self.report({'INFO'}, 'Removed %d of %d bone collections' %
-                    (num_bcolls_to_remove, num_bcolls_before_removal))
+        self.report(
+            {'INFO'}, "Removed {:d} of {:d} bone collections".format(num_bcolls_to_remove, num_bcolls_before_removal),
+        )
 
 
 classes = (

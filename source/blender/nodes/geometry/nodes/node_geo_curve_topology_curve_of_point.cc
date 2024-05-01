@@ -88,7 +88,7 @@ class PointIndexInCurveInput final : public bke::CurvesFieldInput {
     return dynamic_cast<const PointIndexInCurveInput *>(&other) != nullptr;
   }
 
-  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/)
+  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const override
   {
     return AttrDomain::Point;
   }

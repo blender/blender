@@ -11,9 +11,9 @@
 #include "BLI_color.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_batch.h"
-#include "GPU_index_buffer.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_batch.hh"
+#include "GPU_index_buffer.hh"
+#include "GPU_vertex_buffer.hh"
 
 struct ColorVertex {
   blender::float2 pos;
@@ -21,7 +21,7 @@ struct ColorVertex {
 };
 static_assert(sizeof(ColorVertex) == 12);
 
-static GPUIndexBuf *create_quads_index_buffer(int quads_count)
+static blender::gpu::IndexBuf *create_quads_index_buffer(int quads_count)
 {
   GPUIndexBufBuilder elb;
   GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, quads_count * 2, quads_count * 4);

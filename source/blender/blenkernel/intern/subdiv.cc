@@ -24,16 +24,18 @@
 #include "opensubdiv_evaluator_capi.hh"
 #include "opensubdiv_topology_refiner_capi.hh"
 
+namespace blender::bke::subdiv {
+
 /* --------------------------------------------------------------------
  * Module.
  */
 
-void BKE_subdiv_init()
+void init()
 {
   openSubdiv_init();
 }
 
-void BKE_subdiv_exit()
+void exit()
 {
   openSubdiv_cleanup();
 }
@@ -42,7 +44,7 @@ void BKE_subdiv_exit()
  * Conversion helpers.
  */
 
-eSubdivFVarLinearInterpolation BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth)
+FVarLinearInterpolation fvar_interpolation_from_uv_smooth(int uv_smooth)
 {
   switch (uv_smooth) {
     case SUBSURF_UV_SMOOTH_NONE:
@@ -62,8 +64,7 @@ eSubdivFVarLinearInterpolation BKE_subdiv_fvar_interpolation_from_uv_smooth(int 
   return SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL;
 }
 
-eSubdivVtxBoundaryInterpolation BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
-    int boundary_smooth)
+VtxBoundaryInterpolation vtx_boundary_interpolation_from_subsurf(int boundary_smooth)
 {
   switch (boundary_smooth) {
     case SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS:
@@ -79,7 +80,7 @@ eSubdivVtxBoundaryInterpolation BKE_subdiv_vtx_boundary_interpolation_from_subsu
  * Settings.
  */
 
-bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a, const SubdivSettings *settings_b)
+bool settings_equal(const Settings *settings_a, const Settings *settings_b)
 {
   return (settings_a->is_simple == settings_b->is_simple &&
           settings_a->is_adaptive == settings_b->is_adaptive &&
@@ -94,12 +95,11 @@ bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a, const SubdivSet
 
 /* Creation from scratch. */
 
-Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
-                                      OpenSubdiv_Converter *converter)
+Subdiv *new_from_converter(const Settings *settings, OpenSubdiv_Converter *converter)
 {
   SubdivStats stats;
-  BKE_subdiv_stats_init(&stats);
-  BKE_subdiv_stats_begin(&stats, SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME);
+  stats_init(&stats);
+  stats_begin(&stats, SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME);
   OpenSubdiv_TopologyRefinerSettings topology_refiner_settings;
   topology_refiner_settings.level = settings->level;
   topology_refiner_settings.is_adaptive = settings->is_adaptive;
@@ -118,40 +118,40 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
   subdiv->topology_refiner = osd_topology_refiner;
   subdiv->evaluator = nullptr;
   subdiv->displacement_evaluator = nullptr;
-  BKE_subdiv_stats_end(&stats, SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME);
+  stats_end(&stats, SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME);
   subdiv->stats = stats;
   return subdiv;
 }
 
-Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings, const Mesh *mesh)
+Subdiv *new_from_mesh(const Settings *settings, const Mesh *mesh)
 {
   if (mesh->verts_num == 0) {
     return nullptr;
   }
   OpenSubdiv_Converter converter;
-  BKE_subdiv_converter_init_for_mesh(&converter, settings, mesh);
-  Subdiv *subdiv = BKE_subdiv_new_from_converter(settings, &converter);
-  BKE_subdiv_converter_free(&converter);
+  converter_init_for_mesh(&converter, settings, mesh);
+  Subdiv *subdiv = new_from_converter(settings, &converter);
+  converter_free(&converter);
   return subdiv;
 }
 
 /* Creation with cached-aware semantic. */
 
-Subdiv *BKE_subdiv_update_from_converter(Subdiv *subdiv,
-                                         const SubdivSettings *settings,
-                                         OpenSubdiv_Converter *converter)
+Subdiv *update_from_converter(Subdiv *subdiv,
+                              const Settings *settings,
+                              OpenSubdiv_Converter *converter)
 {
   /* Check if the existing descriptor can be re-used. */
   bool can_reuse_subdiv = true;
   if (subdiv != nullptr && subdiv->topology_refiner != nullptr) {
-    if (!BKE_subdiv_settings_equal(&subdiv->settings, settings)) {
+    if (!settings_equal(&subdiv->settings, settings)) {
       can_reuse_subdiv = false;
     }
     else {
-      BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_TOPOLOGY_COMPARE);
+      stats_begin(&subdiv->stats, SUBDIV_STATS_TOPOLOGY_COMPARE);
       can_reuse_subdiv = openSubdiv_topologyRefinerCompareWithConverter(subdiv->topology_refiner,
                                                                         converter);
-      BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_TOPOLOGY_COMPARE);
+      stats_end(&subdiv->stats, SUBDIV_STATS_TOPOLOGY_COMPARE);
     }
   }
   else {
@@ -162,25 +162,23 @@ Subdiv *BKE_subdiv_update_from_converter(Subdiv *subdiv,
   }
   /* Create new subdiv. */
   if (subdiv != nullptr) {
-    BKE_subdiv_free(subdiv);
+    free(subdiv);
   }
-  return BKE_subdiv_new_from_converter(settings, converter);
+  return new_from_converter(settings, converter);
 }
 
-Subdiv *BKE_subdiv_update_from_mesh(Subdiv *subdiv,
-                                    const SubdivSettings *settings,
-                                    const Mesh *mesh)
+Subdiv *update_from_mesh(Subdiv *subdiv, const Settings *settings, const Mesh *mesh)
 {
   OpenSubdiv_Converter converter;
-  BKE_subdiv_converter_init_for_mesh(&converter, settings, mesh);
-  subdiv = BKE_subdiv_update_from_converter(subdiv, settings, &converter);
-  BKE_subdiv_converter_free(&converter);
+  converter_init_for_mesh(&converter, settings, mesh);
+  subdiv = update_from_converter(subdiv, settings, &converter);
+  converter_free(&converter);
   return subdiv;
 }
 
 /* Memory release. */
 
-void BKE_subdiv_free(Subdiv *subdiv)
+void free(Subdiv *subdiv)
 {
   if (subdiv->evaluator != nullptr) {
     const eOpenSubdivEvaluator evaluator_type = subdiv->evaluator->type;
@@ -194,7 +192,7 @@ void BKE_subdiv_free(Subdiv *subdiv)
   if (subdiv->topology_refiner != nullptr) {
     openSubdiv_deleteTopologyRefiner(subdiv->topology_refiner);
   }
-  BKE_subdiv_displacement_detach(subdiv);
+  displacement_detach(subdiv);
   if (subdiv->cache_.face_ptex_offset != nullptr) {
     MEM_freeN(subdiv->cache_.face_ptex_offset);
   }
@@ -205,24 +203,31 @@ void BKE_subdiv_free(Subdiv *subdiv)
  * Topology helpers.
  */
 
-int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv)
+int *face_ptex_offset_get(Subdiv *subdiv)
 {
+#ifdef WITH_OPENSUBDIV
   if (subdiv->cache_.face_ptex_offset != nullptr) {
     return subdiv->cache_.face_ptex_offset;
   }
-  OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+  const OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
   if (topology_refiner == nullptr) {
     return nullptr;
   }
-  const int num_coarse_faces = topology_refiner->getNumFaces(topology_refiner);
+  const int num_coarse_faces = topology_refiner->getNumFaces();
   subdiv->cache_.face_ptex_offset = static_cast<int *>(
       MEM_malloc_arrayN(num_coarse_faces + 1, sizeof(int), __func__));
   int ptex_offset = 0;
   for (int face_index = 0; face_index < num_coarse_faces; face_index++) {
-    const int num_ptex_faces = topology_refiner->getNumFacePtexFaces(topology_refiner, face_index);
+    const int num_ptex_faces = topology_refiner->getNumFacePtexFaces(face_index);
     subdiv->cache_.face_ptex_offset[face_index] = ptex_offset;
     ptex_offset += num_ptex_faces;
   }
   subdiv->cache_.face_ptex_offset[num_coarse_faces] = ptex_offset;
   return subdiv->cache_.face_ptex_offset;
+#else
+  UNUSED_VARS(subdiv);
+  return nullptr;
+#endif
 }
+
+}  // namespace blender::bke::subdiv

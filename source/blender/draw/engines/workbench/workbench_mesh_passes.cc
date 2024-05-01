@@ -76,7 +76,7 @@ PassMain::Sub &MeshPass::get_subpass(
           sub_pass->bind_texture(WB_TEXTURE_SLOT, gputex.texture, sampler_state);
         }
         sub_pass->push_constant("isImageTile", gputex.tile_mapping != nullptr);
-        sub_pass->push_constant("imagePremult", image && image->alpha_mode == IMA_ALPHA_PREMUL);
+        sub_pass->push_constant("imagePremult", image->alpha_mode == IMA_ALPHA_PREMUL);
         /* TODO(@pragma37): This setting should be exposed on the user side,
          * either as a global parameter (and set it here)
          * or by reading the Material Clipping Threshold (and set it per material) */

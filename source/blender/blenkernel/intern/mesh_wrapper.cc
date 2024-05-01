@@ -52,7 +52,7 @@
 using blender::float3;
 using blender::Span;
 
-Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
+Mesh *BKE_mesh_wrapper_from_editmesh(std::shared_ptr<BMEditMesh> em,
                                      const CustomData_MeshMasks *cd_mask_extra,
                                      const Mesh *me_settings)
 {
@@ -68,8 +68,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh(BMEditMesh *em,
   /* Use edit-mesh directly where possible. */
   mesh->runtime->is_original_bmesh = true;
 
-  mesh->edit_mesh = static_cast<BMEditMesh *>(MEM_dupallocN(em));
-  mesh->edit_mesh->is_shallow_copy = true;
+  mesh->runtime->edit_mesh = std::move(em);
 
   /* Make sure we crash if these are ever used. */
 #ifndef NDEBUG
@@ -107,10 +106,10 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
         mesh->faces_num = 0;
         mesh->corners_num = 0;
 
-        BLI_assert(mesh->edit_mesh != nullptr);
+        BLI_assert(mesh->runtime->edit_mesh != nullptr);
         BLI_assert(mesh->runtime->edit_data != nullptr);
 
-        BMEditMesh *em = mesh->edit_mesh;
+        BMEditMesh *em = mesh->runtime->edit_mesh.get();
         BM_mesh_bm_to_me_for_eval(*em->bm, *mesh, &mesh->runtime->cd_mask_extra);
 
         /* Adding original index layers here assumes that all BMesh Mesh wrappers are created from
@@ -124,13 +123,9 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
         BKE_mesh_ensure_default_orig_index_customdata_no_check(mesh);
 
         blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
-        if (!edit_data.vertexCos.is_empty()) {
-          mesh->vert_positions_for_write().copy_from(edit_data.vertexCos);
+        if (!edit_data.vert_positions.is_empty()) {
+          mesh->vert_positions_for_write().copy_from(edit_data.vert_positions);
           mesh->runtime->is_original_bmesh = false;
-        }
-
-        if (mesh->runtime->wrapper_type_finalize) {
-          BKE_mesh_wrapper_deferred_finalize_mdata(mesh);
         }
 
         mesh->runtime->edit_data.reset();
@@ -148,45 +143,41 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *mesh)
 /** \name Mesh Coordinate Access
  * \{ */
 
-const float (*BKE_mesh_wrapper_vert_coords(const Mesh *mesh))[3]
+Span<float3> BKE_mesh_wrapper_vert_coords(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      if (mesh->runtime->edit_data->vertexCos.is_empty()) {
-        return nullptr;
-      }
-      return reinterpret_cast<const float(*)[3]>(mesh->runtime->edit_data->vertexCos.data());
+      return mesh->runtime->edit_data->vert_positions;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
-      return reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data());
+      return mesh->vert_positions();
   }
-  return nullptr;
+  BLI_assert_unreachable();
+  return {};
 }
 
-const float (*BKE_mesh_wrapper_face_normals(Mesh *mesh))[3]
+Span<float3> BKE_mesh_wrapper_face_normals(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      BKE_editmesh_cache_ensure_face_normals(*mesh->edit_mesh, *mesh->runtime->edit_data);
-      if (mesh->runtime->edit_data->faceNos.is_empty()) {
-        return nullptr;
-      }
-      return reinterpret_cast<const float(*)[3]>(mesh->runtime->edit_data->faceNos.data());
+      return BKE_editmesh_cache_ensure_face_normals(*mesh->runtime->edit_mesh,
+                                                    *mesh->runtime->edit_data);
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
-      return reinterpret_cast<const float(*)[3]>(mesh->face_normals().data());
+      return mesh->face_normals();
   }
-  return nullptr;
+  BLI_assert_unreachable();
+  return {};
 }
 
 void BKE_mesh_wrapper_tag_positions_changed(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      if (mesh->runtime->edit_data) {
-        mesh->runtime->edit_data->vertexNos = {};
-        mesh->runtime->edit_data->faceCos = {};
-        mesh->runtime->edit_data->faceNos = {};
+      if (blender::bke::EditMeshData *edit_data = mesh->runtime->edit_data.get()) {
+        edit_data->vert_normals = {};
+        edit_data->face_centers = {};
+        edit_data->face_normals = {};
       }
       break;
     case ME_WRAPPER_TYPE_MDATA:
@@ -200,10 +191,10 @@ void BKE_mesh_wrapper_vert_coords_copy(const Mesh *mesh, blender::MutableSpan<fl
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
-      BMesh *bm = mesh->edit_mesh->bm;
+      BMesh *bm = mesh->runtime->edit_mesh->bm;
       const blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
-      if (!edit_data.vertexCos.is_empty()) {
-        positions.copy_from(edit_data.vertexCos);
+      if (!edit_data.vert_positions.is_empty()) {
+        positions.copy_from(edit_data.vert_positions);
       }
       else {
         BMIter iter;
@@ -231,12 +222,12 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *mesh,
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
-      BMesh *bm = mesh->edit_mesh->bm;
+      BMesh *bm = mesh->runtime->edit_mesh->bm;
       BLI_assert(vert_coords_len == bm->totvert);
       const blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
-      if (!edit_data.vertexCos.is_empty()) {
+      if (!edit_data.vert_positions.is_empty()) {
         for (int i = 0; i < vert_coords_len; i++) {
-          mul_v3_m4v3(vert_coords[i], mat, edit_data.vertexCos[i]);
+          mul_v3_m4v3(vert_coords[i], mat, edit_data.vert_positions[i]);
         }
       }
       else {
@@ -272,7 +263,7 @@ int BKE_mesh_wrapper_vert_len(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return mesh->edit_mesh->bm->totvert;
+      return mesh->runtime->edit_mesh->bm->totvert;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->verts_num;
@@ -285,7 +276,7 @@ int BKE_mesh_wrapper_edge_len(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return mesh->edit_mesh->bm->totedge;
+      return mesh->runtime->edit_mesh->bm->totedge;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->edges_num;
@@ -298,7 +289,7 @@ int BKE_mesh_wrapper_loop_len(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return mesh->edit_mesh->bm->totloop;
+      return mesh->runtime->edit_mesh->bm->totloop;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->corners_num;
@@ -311,7 +302,7 @@ int BKE_mesh_wrapper_face_len(const Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      return mesh->edit_mesh->bm->totface;
+      return mesh->runtime->edit_mesh->bm->totface;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
       return mesh->faces_num;
@@ -328,6 +319,7 @@ int BKE_mesh_wrapper_face_len(const Mesh *mesh)
 
 static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
 {
+  using namespace blender::bke;
   SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)mesh->runtime->subsurf_runtime_data;
   if (runtime_data == nullptr || runtime_data->settings.level == 0) {
     return mesh;
@@ -336,7 +328,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
   /* Initialize the settings before ensuring the descriptor as this is checked to decide whether
    * subdivision is needed at all, and checking the descriptor status might involve checking if the
    * data is out-of-date, which is a very expensive operation. */
-  SubdivToMeshSettings mesh_settings;
+  subdiv::ToMeshSettings mesh_settings;
   mesh_settings.resolution = runtime_data->resolution;
   mesh_settings.use_optimal_display = runtime_data->use_optimal_display;
 
@@ -344,7 +336,8 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
     return mesh;
   }
 
-  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(runtime_data, mesh, false);
+  subdiv::Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(
+      runtime_data, mesh, false);
   if (subdiv == nullptr) {
     /* Happens on bad topology, but also on empty input mesh. */
     return mesh;
@@ -358,7 +351,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
     memcpy(data, mesh->corner_normals().data(), mesh->corner_normals().size_in_bytes());
   }
 
-  Mesh *subdiv_mesh = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+  Mesh *subdiv_mesh = subdiv::subdiv_to_mesh(subdiv, &mesh_settings, mesh);
 
   if (use_clnors) {
     BKE_mesh_set_custom_normals(subdiv_mesh,
@@ -368,7 +361,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(Mesh *mesh)
   }
 
   if (!ELEM(subdiv, runtime_data->subdiv_cpu, runtime_data->subdiv_gpu)) {
-    BKE_subdiv_free(subdiv);
+    subdiv::free(subdiv);
   }
 
   if (subdiv_mesh != mesh) {

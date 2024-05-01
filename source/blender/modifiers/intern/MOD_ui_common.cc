@@ -40,7 +40,7 @@
  */
 static bool modifier_ui_poll(const bContext *C, PanelType * /*pt*/)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
 
   return (ob != nullptr) && (ob->type != OB_GPENCIL_LEGACY);
 }
@@ -209,10 +209,9 @@ static bool modifier_can_delete(ModifierData *md)
 static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
 {
   PointerRNA op_ptr;
-  uiLayout *row;
   ModifierData *md = (ModifierData *)md_v;
 
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   PointerRNA ptr = RNA_pointer_create(&ob->id, &RNA_Modifier, md);
   uiLayoutSetContextPointer(layout, "modifier", &ptr);
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
@@ -265,8 +264,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   uiItemS(layout);
 
   /* Move to first. */
-  row = uiLayoutColumn(layout, false);
-  uiItemFullO(row,
+  uiItemFullO(layout,
               "OBJECT_OT_modifier_move_to_index",
               IFACE_("Move to First"),
               ICON_TRIA_UP,
@@ -275,13 +273,9 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
               UI_ITEM_NONE,
               &op_ptr);
   RNA_int_set(&op_ptr, "index", 0);
-  if (!md->prev) {
-    uiLayoutSetEnabled(row, false);
-  }
 
   /* Move to last. */
-  row = uiLayoutColumn(layout, false);
-  uiItemFullO(row,
+  uiItemFullO(layout,
               "OBJECT_OT_modifier_move_to_index",
               IFACE_("Move to Last"),
               ICON_TRIA_DOWN,
@@ -290,9 +284,6 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
               UI_ITEM_NONE,
               &op_ptr);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->modifiers) - 1);
-  if (!md->next) {
-    uiLayoutSetEnabled(row, false);
-  }
 
   if (md->type == eModifierType_Nodes) {
     uiItemS(layout);
@@ -376,8 +367,6 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
                                     &apply_on_spline_always_off_hack,
                                     0.0,
                                     0.0,
-                                    0.0,
-                                    0.0,
                                     RPT_("Apply on Spline"));
       UI_but_disable(but,
                      "This modifier can only deform filled curve/surface, not the control points");
@@ -400,8 +389,6 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
                                     UI_UNIT_X - 2,
                                     UI_UNIT_Y,
                                     &apply_on_spline_always_on_hack,
-                                    0.0,
-                                    0.0,
                                     0.0,
                                     0.0,
                                     RPT_("Apply on Spline"));
@@ -504,6 +491,7 @@ PanelType *modifier_subpanel_register(ARegionType *region_type,
 {
   PanelType *panel_type = MEM_cnew<PanelType>(__func__);
 
+  BLI_assert(parent != nullptr);
   SNPRINTF(panel_type->idname, "%s_%s", parent->idname, name);
   STRNCPY(panel_type->label, label);
   STRNCPY(panel_type->context, "modifier");
@@ -515,7 +503,6 @@ PanelType *modifier_subpanel_register(ARegionType *region_type,
   panel_type->poll = modifier_ui_poll;
   panel_type->flag = PANEL_TYPE_DEFAULT_CLOSED;
 
-  BLI_assert(parent != nullptr);
   STRNCPY(panel_type->parent_id, parent->idname);
   panel_type->parent = parent;
   BLI_addtail(&parent->children, BLI_genericNodeN(panel_type));

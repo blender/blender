@@ -28,8 +28,6 @@
 
 #  include "BLT_translation.hh"
 
-#  include "MEM_guardedalloc.h"
-
 #  include "UI_interface.hh"
 #  include "UI_resources.hh"
 
@@ -67,7 +65,7 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
-  PLYExportParams export_params = {"\0"};
+  PLYExportParams export_params{};
   export_params.file_base_for_tests[0] = '\0';
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.blen_filepath = CTX_data_main(C)->filepath;
@@ -85,13 +83,20 @@ static int wm_ply_export_exec(bContext *C, wmOperator *op)
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
   export_params.ascii_format = RNA_boolean_get(op->ptr, "ascii_format");
 
+  RNA_string_get(op->ptr, "collection", export_params.collection);
+
+  export_params.reports = op->reports;
+
   PLY_export(C, &export_params);
 
   return OPERATOR_FINISHED;
 }
 
-static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
+static void wm_ply_export_draw(bContext *C, wmOperator *op)
 {
+  uiLayout *layout = op->layout;
+  PointerRNA *ptr = op->ptr;
+
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
@@ -101,40 +106,33 @@ static void ui_ply_export_settings(uiLayout *layout, PointerRNA *imfptr)
   box = uiLayoutBox(layout);
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Format"));
-  uiItemR(sub, imfptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
-  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
-  uiItemR(
-      sub, imfptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selected Only"), ICON_NONE);
-  uiItemR(sub, imfptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(sub, ptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
 
-  uiItemR(sub, imfptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
-  uiItemR(sub, imfptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
+  /* The Selection only options only make sense when using regular export. */
+  if (CTX_wm_space_file(C)) {
+    sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
+    uiItemR(sub, ptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selected Only"), ICON_NONE);
+  }
+  uiItemR(sub, ptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  uiItemR(sub, ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
+  uiItemR(sub, ptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
 
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumn(col, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Objects"));
-  uiItemR(sub, imfptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
+  uiItemR(sub, ptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
 
   /* Geometry options. */
   box = uiLayoutBox(layout);
   col = uiLayoutColumn(box, false);
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Geometry"));
-  uiItemR(sub, imfptr, "export_uv", UI_ITEM_NONE, IFACE_("UV Coordinates"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_normals", UI_ITEM_NONE, IFACE_("Vertex Normals"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_colors", UI_ITEM_NONE, IFACE_("Vertex Colors"), ICON_NONE);
-  uiItemR(sub, imfptr, "export_attributes", UI_ITEM_NONE, IFACE_("Vertex Attributes"), ICON_NONE);
-  uiItemR(sub,
-          imfptr,
-          "export_triangulated_mesh",
-          UI_ITEM_NONE,
-          IFACE_("Triangulated Mesh"),
-          ICON_NONE);
-}
-
-static void wm_ply_export_draw(bContext * /*C*/, wmOperator *op)
-{
-  PointerRNA ptr = RNA_pointer_create(nullptr, op->type->srna, op->properties);
-  ui_ply_export_settings(op->layout, &ptr);
+  uiItemR(sub, ptr, "export_uv", UI_ITEM_NONE, IFACE_("UV Coordinates"), ICON_NONE);
+  uiItemR(sub, ptr, "export_normals", UI_ITEM_NONE, IFACE_("Vertex Normals"), ICON_NONE);
+  uiItemR(sub, ptr, "export_colors", UI_ITEM_NONE, IFACE_("Vertex Colors"), ICON_NONE);
+  uiItemR(sub, ptr, "export_attributes", UI_ITEM_NONE, IFACE_("Vertex Attributes"), ICON_NONE);
+  uiItemR(
+      sub, ptr, "export_triangulated_mesh", UI_ITEM_NONE, IFACE_("Triangulated Mesh"), ICON_NONE);
 }
 
 /**
@@ -201,6 +199,14 @@ void WM_OT_ply_export(wmOperatorType *ot)
                   false,
                   "Export Selected Objects",
                   "Export only selected objects instead of all supported objects");
+  prop = RNA_def_string(ot->srna,
+                        "collection",
+                        nullptr,
+                        MAX_IDPROP_NAME,
+                        "Source Collection",
+                        "Export only objects from this collection (and its children)");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
   RNA_def_boolean(ot->srna, "export_uv", true, "Export UVs", "");
   RNA_def_boolean(
       ot->srna,
@@ -248,6 +254,8 @@ static int wm_ply_import_exec(bContext *C, wmOperator *op)
   params.import_attributes = RNA_boolean_get(op->ptr, "import_attributes");
   params.vertex_colors = ePLYVertexColorMode(RNA_enum_get(op->ptr, "import_colors"));
 
+  params.reports = op->reports;
+
   const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
 
   if (paths.is_empty()) {
@@ -256,7 +264,7 @@ static int wm_ply_import_exec(bContext *C, wmOperator *op)
   }
   for (const auto &path : paths) {
     STRNCPY(params.filepath, path.c_str());
-    PLY_import(C, &params, op);
+    PLY_import(C, &params);
   };
 
   Scene *scene = CTX_data_scene(C);
@@ -342,6 +350,7 @@ void ply_file_handler_add()
   auto fh = std::make_unique<blender::bke::FileHandlerType>();
   STRNCPY(fh->idname, "IO_FH_ply");
   STRNCPY(fh->import_operator, "WM_OT_ply_import");
+  STRNCPY(fh->export_operator, "WM_OT_ply_export");
   STRNCPY(fh->label, "Stanford PLY");
   STRNCPY(fh->file_extensions_str, ".ply");
   fh->poll_drop = poll_file_object_drop;

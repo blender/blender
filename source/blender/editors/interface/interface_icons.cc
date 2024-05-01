@@ -13,13 +13,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_shader_shared.h"
-#include "GPU_state.h"
-#include "GPU_texture.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_shader_shared.hh"
+#include "GPU_state.hh"
+#include "GPU_texture.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_fileops_types.h"
@@ -243,8 +243,13 @@ static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
 
 /* Utilities */
 
-static void vicon_keytype_draw_wrapper(
-    int x, int y, int w, int h, float alpha, short key_type, short handle_type)
+static void vicon_keytype_draw_wrapper(const int x,
+                                       const int y,
+                                       const int w,
+                                       const int h,
+                                       const float alpha,
+                                       const eBezTriple_KeyframeType key_type,
+                                       const short handle_type)
 {
   /* Initialize dummy theme state for Action Editor - where these colors are defined
    * (since we're doing this off-screen, free from any particular space_id). */
@@ -321,6 +326,11 @@ static void vicon_keytype_jitter_draw(int x, int y, int w, int h, float alpha)
 static void vicon_keytype_moving_hold_draw(int x, int y, int w, int h, float alpha)
 {
   vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_MOVEHOLD, KEYFRAME_HANDLE_NONE);
+}
+
+static void vicon_keytype_generated_draw(int x, int y, int w, int h, float alpha)
+{
+  vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_GENERATED, KEYFRAME_HANDLE_NONE);
 }
 
 static void vicon_handletype_free_draw(int x, int y, int w, int h, float alpha)
@@ -538,11 +548,9 @@ static void init_brush_icons()
 
 #  define INIT_BRUSH_ICON(icon_id, name) \
     { \
-      uchar *rect = (uchar *)datatoc_##name##_png; \
+      const uchar *rect = (const uchar *)datatoc_##name##_png; \
       const int size = datatoc_##name##_png_size; \
-      DrawInfo *di; \
-\
-      di = def_internal_icon(nullptr, icon_id, 0, 0, w, ICON_TYPE_BUFFER, 0); \
+      DrawInfo *di = def_internal_icon(nullptr, icon_id, 0, 0, w, ICON_TYPE_BUFFER, 0); \
       di->data.buffer.image->datatoc_rect = rect; \
       di->data.buffer.image->datatoc_size = size; \
     } \
@@ -742,6 +750,122 @@ static void init_event_icons()
   INIT_EVENT_ICON(ICON_EVENT_PAGEDOWN, EVT_PAGEDOWNKEY, KM_ANY);
   INIT_EVENT_ICON(ICON_EVENT_RETURN, EVT_RETKEY, KM_ANY);
   INIT_EVENT_ICON(ICON_EVENT_SPACEKEY, EVT_SPACEKEY, KM_ANY);
+
+  INIT_EVENT_ICON(ICON_EVENT_ZEROKEY, EVT_ZEROKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_ONEKEY, EVT_ONEKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_TWOKEY, EVT_TWOKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_THREEKEY, EVT_THREEKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_FOURKEY, EVT_FOURKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_FIVEKEY, EVT_FIVEKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_SIXKEY, EVT_SIXKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_SEVENKEY, EVT_SEVENKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_EIGHTKEY, EVT_EIGHTKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NINEKEY, EVT_NINEKEY, KM_ANY);
+
+  INIT_EVENT_ICON(ICON_EVENT_PAD0, EVT_PAD0, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PAD1, EVT_PAD1, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PAD2, EVT_PAD2, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PAD3, EVT_PAD3, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PAD4, EVT_PAD4, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PAD5, EVT_PAD5, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PAD6, EVT_PAD6, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PAD7, EVT_PAD7, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PAD8, EVT_PAD8, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PAD9, EVT_PAD9, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PADASTER, EVT_PADASTERKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PADSLASH, EVT_PADSLASHKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PADMINUS, EVT_PADMINUS, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PADENTER, EVT_PADENTER, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PADPLUS, EVT_PADPLUSKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PADPERIOD, EVT_PADPERIOD, KM_ANY);
+
+  INIT_EVENT_ICON(ICON_EVENT_MOUSE_4, BUTTON4MOUSE, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_MOUSE_5, BUTTON5MOUSE, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_MOUSE_6, BUTTON6MOUSE, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_MOUSE_7, BUTTON7MOUSE, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_TABLET_STYLUS, TABLET_STYLUS, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_TABLET_ERASER, TABLET_ERASER, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_LEFT_ARROW, EVT_LEFTARROWKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_DOWN_ARROW, EVT_DOWNARROWKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_RIGHT_ARROW, EVT_RIGHTARROWKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_UP_ARROW, EVT_UPARROWKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PAUSE, EVT_PAUSEKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_INSERT, EVT_INSERTKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_HOME, EVT_HOMEKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_END, EVT_ENDKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_UNKNOWN, EVT_UNKNOWNKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_GRLESS, EVT_GRLESSKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_MEDIAPLAY, EVT_MEDIAPLAY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_MEDIASTOP, EVT_MEDIASTOP, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_MEDIAFIRST, EVT_MEDIAFIRST, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_MEDIALAST, EVT_MEDIALAST, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_APP, EVT_APPKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_CAPSLOCK, EVT_CAPSLOCKKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_BACKSPACE, EVT_BACKSPACEKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_DEL, EVT_DELKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_SEMICOLON, EVT_SEMICOLONKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PERIOD, EVT_PERIODKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_COMMA, EVT_COMMAKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_QUOTE, EVT_QUOTEKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_ACCENTGRAVE, EVT_ACCENTGRAVEKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_MINUS, EVT_MINUSKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_PLUS, EVT_PLUSKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_SLASH, EVT_SLASHKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_BACKSLASH, EVT_BACKSLASHKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_EQUAL, EVT_EQUALKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_LEFTBRACKET, EVT_LEFTBRACKETKEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_RIGHTBRACKET, EVT_RIGHTBRACKETKEY, KM_ANY);
+
+  INIT_EVENT_ICON(ICON_EVENT_F13, EVT_F13KEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_F14, EVT_F14KEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_F15, EVT_F15KEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_F16, EVT_F16KEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_F17, EVT_F17KEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_F18, EVT_F18KEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_F19, EVT_F19KEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_F20, EVT_F20KEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_F21, EVT_F21KEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_F22, EVT_F22KEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_F23, EVT_F23KEY, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_F24, EVT_F24KEY, KM_ANY);
+
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_V1, NDOF_BUTTON_V1, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_V2, NDOF_BUTTON_V2, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_V3, NDOF_BUTTON_V3, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_1, NDOF_BUTTON_1, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_2, NDOF_BUTTON_2, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_3, NDOF_BUTTON_3, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_4, NDOF_BUTTON_4, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_5, NDOF_BUTTON_5, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_6, NDOF_BUTTON_6, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_7, NDOF_BUTTON_7, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_8, NDOF_BUTTON_8, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_9, NDOF_BUTTON_9, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_10, NDOF_BUTTON_10, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_A, NDOF_BUTTON_A, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_B, NDOF_BUTTON_B, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_C, NDOF_BUTTON_C, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_MENU, NDOF_BUTTON_MENU, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_FIT, NDOF_BUTTON_FIT, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_TOP, NDOF_BUTTON_TOP, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_BOTTOM, NDOF_BUTTON_BOTTOM, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_LEFT, NDOF_BUTTON_LEFT, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_RIGHT, NDOF_BUTTON_RIGHT, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_FRONT, NDOF_BUTTON_FRONT, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_BACK, NDOF_BUTTON_BACK, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_ISO1, NDOF_BUTTON_ISO1, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_ISO2, NDOF_BUTTON_ISO2, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_ROLL_CW, NDOF_BUTTON_ROLL_CW, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_ROLL_CCW, NDOF_BUTTON_ROLL_CCW, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_SPIN_CW, NDOF_BUTTON_SPIN_CW, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_SPIN_CCW, NDOF_BUTTON_SPIN_CCW, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_TILT_CW, NDOF_BUTTON_TILT_CW, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_TILT_CCW, NDOF_BUTTON_TILT_CCW, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_ROTATE, NDOF_BUTTON_ROTATE, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_PANZOOM, NDOF_BUTTON_PANZOOM, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_DOMINANT, NDOF_BUTTON_DOMINANT, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_PLUS, NDOF_BUTTON_PLUS, KM_ANY);
+  INIT_EVENT_ICON(ICON_EVENT_NDOF_BUTTON_MINUS, NDOF_BUTTON_MINUS, KM_ANY);
 
   g_di_event_list = di_next;
 
@@ -999,6 +1123,7 @@ static void init_internal_icons()
   def_internal_vicon(ICON_KEYTYPE_EXTREME_VEC, vicon_keytype_extreme_draw);
   def_internal_vicon(ICON_KEYTYPE_JITTER_VEC, vicon_keytype_jitter_draw);
   def_internal_vicon(ICON_KEYTYPE_MOVING_HOLD_VEC, vicon_keytype_moving_hold_draw);
+  def_internal_vicon(ICON_KEYTYPE_GENERATED_VEC, vicon_keytype_generated_draw);
 
   def_internal_vicon(ICON_HANDLETYPE_FREE_VEC, vicon_handletype_free_draw);
   def_internal_vicon(ICON_HANDLETYPE_ALIGNED_VEC, vicon_handletype_aligned_draw);
@@ -1489,8 +1614,8 @@ PreviewImage *UI_icon_to_preview(int icon_id)
   }
 
   if (di->type == ICON_TYPE_PREVIEW) {
-    PreviewImage *prv = (icon->id_type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) :
-                                               static_cast<PreviewImage *>(icon->obj);
+    const PreviewImage *prv = (icon->id_type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) :
+                                                     static_cast<const PreviewImage *>(icon->obj);
 
     if (prv) {
       return BKE_previewimg_copy(prv);
@@ -1525,7 +1650,6 @@ static void icon_draw_rect(float x,
                            float y,
                            int w,
                            int h,
-                           float /*aspect*/,
                            int rw,
                            int rh,
                            const uint8_t *rect,
@@ -1633,7 +1757,7 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
   const int img_binding = GPU_shader_get_sampler_binding(shader, "image");
   GPU_texture_bind_ex(texture, GPUSamplerState::icon_sampler(), img_binding);
 
-  GPUBatch *quad = GPU_batch_preset_quad();
+  blender::gpu::Batch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
   GPU_batch_draw_instance_range(quad, 0, texture_draw_calls->calls);
 
@@ -1756,8 +1880,12 @@ static void icon_draw_texture(float x,
   if (show_indicator) {
     /* Handle the little numbers on top of the icon. */
     uchar text_color[4];
-    UI_GetThemeColor3ubv(TH_TEXT, text_color);
-    text_color[3] = 255;
+    if (text_overlay->color[3]) {
+      copy_v4_v4_uchar(text_color, text_overlay->color);
+    }
+    else {
+      UI_GetThemeColor4ubv(TH_TEXT, text_color);
+    }
 
     uiFontStyle fstyle_small = *UI_FSTYLE_WIDGET;
     fstyle_small.points *= zoom_factor;
@@ -1825,7 +1953,7 @@ static void icon_draw_texture(float x,
 
   GPU_texture_bind_ex(texture, GPUSamplerState::icon_sampler(), img_binding);
 
-  GPUBatch *quad = GPU_batch_preset_quad();
+  blender::gpu::Batch *quad = GPU_batch_preset_quad();
   GPU_batch_set_shader(quad, shader);
   GPU_batch_draw(quad);
 
@@ -1885,8 +2013,7 @@ static void icon_draw_size(float x,
     const ImBuf *ibuf = static_cast<const ImBuf *>(icon->obj);
 
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
-    icon_draw_rect(
-        x, y, w, h, aspect, ibuf->x, ibuf->y, ibuf->byte_buffer.data, alpha, desaturate);
+    icon_draw_rect(x, y, w, h, ibuf->x, ibuf->y, ibuf->byte_buffer.data, alpha, desaturate);
     GPU_blend(GPU_BLEND_ALPHA);
   }
   else if (di->type == ICON_TYPE_VECTOR) {
@@ -1926,7 +2053,7 @@ static void icon_draw_size(float x,
     }
 
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
-    icon_draw_rect(x, y, w, h, aspect, w, h, ibuf->byte_buffer.data, alpha, desaturate);
+    icon_draw_rect(x, y, w, h, w, h, ibuf->byte_buffer.data, alpha, desaturate);
     GPU_blend(GPU_BLEND_ALPHA);
   }
   else if (di->type == ICON_TYPE_EVENT) {
@@ -1996,7 +2123,7 @@ static void icon_draw_size(float x,
       return;
     }
 
-    icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, desaturate);
+    icon_draw_rect(x, y, w, h, iimg->w, iimg->h, iimg->rect, alpha, desaturate);
   }
   else if (di->type == ICON_TYPE_PREVIEW) {
     PreviewImage *pi = (icon->id_type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) :
@@ -2015,7 +2142,6 @@ static void icon_draw_size(float x,
                      y,
                      w,
                      h,
-                     aspect,
                      pi->w[size],
                      pi->h[size],
                      reinterpret_cast<const uint8_t *>(pi->rect[size]),
@@ -2352,7 +2478,7 @@ int UI_icon_from_rnaptr(const bContext *C, PointerRNA *ptr, int rnaicon, const b
     return RNA_int_get(ptr, "icon");
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_DynamicPaintSurface)) {
-    DynamicPaintSurface *surface = static_cast<DynamicPaintSurface *>(ptr->data);
+    const DynamicPaintSurface *surface = static_cast<const DynamicPaintSurface *>(ptr->data);
 
     if (surface->format == MOD_DPAINT_SURFACE_F_PTEX) {
       return ICON_SHADING_TEXTURE;
@@ -2392,6 +2518,8 @@ int UI_icon_from_idcode(const int idcode)
   switch ((ID_Type)idcode) {
     case ID_AC:
       return ICON_ACTION;
+    case ID_AN:
+      return ICON_ACTION; /* TODO: give Animation its own icon. */
     case ID_AR:
       return ICON_ARMATURE_DATA;
     case ID_BR:
@@ -2496,7 +2624,6 @@ int UI_icon_from_object_mode(const int mode)
       return ICON_PARTICLEMODE;
     case OB_MODE_POSE:
       return ICON_POSE_HLT;
-    case OB_MODE_PAINT_GREASE_PENCIL:
     case OB_MODE_PAINT_GPENCIL_LEGACY:
       return ICON_GREASEPENCIL;
   }
@@ -2563,6 +2690,35 @@ void UI_icon_draw_ex(float x,
                  mono_color,
                  mono_border,
                  text_overlay);
+}
+
+void UI_icon_draw_mono_rect(
+    float x, float y, float width, float height, int icon_id, const uchar color[4])
+{
+  Icon *icon = BKE_icon_get(icon_id);
+  if (icon == nullptr) {
+    return;
+  }
+  DrawInfo *di = icon_ensure_drawinfo(icon);
+  if (di->type != ICON_TYPE_MONO_TEXTURE) {
+    return;
+  }
+
+  float fcolor[4];
+  straight_uchar_to_premul_float(fcolor, color);
+
+  icon_draw_texture(x,
+                    y,
+                    width,
+                    height,
+                    di->data.texture.x,
+                    di->data.texture.y,
+                    di->data.texture.w,
+                    di->data.texture.h,
+                    fcolor[3],
+                    fcolor,
+                    false,
+                    nullptr);
 }
 
 void UI_icon_text_overlay_init_from_count(IconTextOverlay *text_overlay,

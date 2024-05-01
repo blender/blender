@@ -252,8 +252,7 @@ def main():
                     name, tp = arg
                     tp_sub = None
                 else:
-                    print(arg)
-                    assert 0
+                    assert False, "unreachable, unsupported 'arg' length found {:d}".format(len(arg))
 
                 tp_str = ""
 
@@ -322,8 +321,7 @@ def main():
                         #     but think the idea is that that pointer is for any type?
                         tp_str = ":class:`bpy.types.bpy_struct`"
                     else:
-                        print("Can't find", vars_dict_reverse[tp_sub])
-                        assert 0
+                        assert False, "unreachable, unknown type {!r}".format(vars_dict_reverse[tp_sub])
 
                 elif tp == BMO_OP_SLOT_ELEMENT_BUF:
                     assert tp_sub is not None
@@ -340,7 +338,7 @@ def main():
                     if tp_sub & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE:
                         tp_str = "/".join(ls)
                     else:
-                        tp_str = ("list of (%s)" % ", ".join(ls))
+                        tp_str = "list of ({:s})".format(", ".join(ls))
                         default_value = '[]'
 
                     del ls
@@ -362,11 +360,9 @@ def main():
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
                             tp_str += "unknown internal data, not compatible with python"
                         else:
-                            print("Can't find", vars_dict_reverse[tp_sub])
-                            assert 0
+                            assert False, "unreachable, unknown type {!r}".format(vars_dict_reverse[tp_sub])
                 else:
-                    print("Can't find", vars_dict_reverse[tp])
-                    assert 0
+                    assert False, "unreachable, unknown type {!r}".format(vars_dict_reverse[tp])
 
                 args_wash.append((name, default_value, tp_str, comment))
             return args_wash
@@ -374,7 +370,9 @@ def main():
 
         args_in_wash = get_args_wash(args_in, args_in_index, False)
 
-        fw(".. function:: %s(bm, %s)\n\n" % (b[0], ", ".join([arg_name_with_default(arg) for arg in args_in_wash])))
+        fw(".. function:: {:s}(bm, {:s})\n\n".format(
+            b[0], ", ".join([arg_name_with_default(arg) for arg in args_in_wash]),
+        ))
 
         # -- wash the comment
         comment_washed = []
@@ -405,8 +403,8 @@ def main():
             if comment == "":
                 comment = "Undocumented."
 
-            fw("   :arg %s: %s\n" % (name, comment))
-            fw("   :type %s: %s\n" % (name, tp))
+            fw("   :arg {:s}: {:s}\n".format(name, comment))
+            fw("   :type {:s}: {:s}\n".format(name, tp))
 
         if args_out_wash:
             fw("   :return:\n\n")
@@ -414,8 +412,8 @@ def main():
             for (name, _, tp, comment) in args_out_wash:
                 assert name.endswith(".out")
                 name = name[:-4]
-                fw("      - ``%s``: %s\n\n" % (name, comment))
-                fw("        **type** %s\n" % tp)
+                fw("      - ``{:s}``: {:s}\n\n".format(name, comment))
+                fw("        **type** {:s}\n".format(tp))
 
             fw("\n")
             fw("   :rtype: dict with string keys\n")

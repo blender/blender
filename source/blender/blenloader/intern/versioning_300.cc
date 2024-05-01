@@ -55,7 +55,7 @@
 #undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_asset.hh"
@@ -67,9 +67,9 @@
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_fcurve_driver.h"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
@@ -80,7 +80,7 @@
 #include "BKE_nla.h"
 #include "BKE_node.hh"
 #include "BKE_screen.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
@@ -554,11 +554,10 @@ static bNodeTree *add_realize_node_tree(Main *bmain)
 {
   bNodeTree *node_tree = ntreeAddTree(bmain, "Realize Instances 2.93 Legacy", "GeometryNodeTree");
 
-  node_tree->tree_interface.add_socket("Geometry",
-                                       "",
-                                       "NodeSocketGeometry",
-                                       NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT,
-                                       nullptr);
+  node_tree->tree_interface.add_socket(
+      "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
+  node_tree->tree_interface.add_socket(
+      "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_INPUT, nullptr);
 
   bNode *group_input = nodeAddStaticNode(nullptr, node_tree, NODE_GROUP_INPUT);
   group_input->locx = -400.0f;
@@ -1562,6 +1561,7 @@ static void do_version_subsurface_methods(bNode *node)
 
 static void version_geometry_nodes_add_attribute_input_settings(NodesModifierData *nmd)
 {
+  using namespace blender;
   if (nmd->settings.properties == nullptr) {
     return;
   }
@@ -1584,14 +1584,13 @@ static void version_geometry_nodes_add_attribute_input_settings(NodesModifierDat
     char use_attribute_prop_name[MAX_IDPROP_NAME];
     SNPRINTF(use_attribute_prop_name, "%s%s", property->name, "_use_attribute");
 
-    IDPropertyTemplate idprop = {0};
-    IDProperty *use_attribute_prop = IDP_New(IDP_INT, &idprop, use_attribute_prop_name);
+    IDProperty *use_attribute_prop = bke::idprop::create(use_attribute_prop_name, 0).release();
     IDP_AddToGroup(nmd->settings.properties, use_attribute_prop);
 
     char attribute_name_prop_name[MAX_IDPROP_NAME];
     SNPRINTF(attribute_name_prop_name, "%s%s", property->name, "_attribute_name");
 
-    IDProperty *attribute_prop = IDP_New(IDP_STRING, &idprop, attribute_name_prop_name);
+    IDProperty *attribute_prop = bke::idprop::create(attribute_name_prop_name, "").release();
     IDP_AddToGroup(nmd->settings.properties, attribute_prop);
   }
 }
@@ -2658,7 +2657,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
           LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
             if (md->type == eGpencilModifierType_Lineart) {
               LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
-              lmd->flags |= LRT_GPENCIL_USE_CACHE;
+              lmd->flags |= MOD_LINEART_USE_CACHE;
               lmd->chain_smooth_tolerance = 0.2f;
             }
           }
@@ -2897,7 +2896,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
           LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
             if (md->type == eGpencilModifierType_Lineart) {
               LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
-              lmd->calculation_flags |= LRT_USE_CREASE_ON_SMOOTH_SURFACES;
+              lmd->calculation_flags |= MOD_LINEART_USE_CREASE_ON_SMOOTH_SURFACES;
             }
           }
         }
@@ -3492,12 +3491,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 302, 6)) {
-    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      ToolSettings *ts = scene->toolsettings;
-      if (ts->uv_relax_method == 0) {
-        ts->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
-      }
-    }
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *tool_settings = scene->toolsettings;
       tool_settings->snap_flag_seq = tool_settings->snap_flag &

@@ -70,7 +70,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon
   LogImageFile *logImage;
   float *fbuf;
   float *fbuf_ptr;
-  uchar *rect_ptr;
+  const uchar *rect_ptr;
   int x, y, depth, bitspersample, rvalue;
 
   if (flags & IB_mem) {

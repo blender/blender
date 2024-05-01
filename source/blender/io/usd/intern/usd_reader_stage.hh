@@ -3,24 +3,24 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-struct Main;
-
-#include "WM_types.hh"
-
+#include "BLI_map.hh"
 #include "BLI_set.hh"
+#include "BLI_vector.hh"
 
 #include "usd.hh"
 #include "usd_hash_types.hh"
 #include "usd_reader_prim.hh"
 
-#include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/imageable.h>
 #include <pxr/usd/usdGeom/xformCache.h>
 #include <pxr/usd/usdLux/domeLight.h>
 
 #include <string>
 
+struct Collection;
 struct ImportSettings;
+struct Main;
+struct ReportList;
 
 namespace blender::io::usd {
 
@@ -148,8 +148,8 @@ class USDStageReader {
    *                            prototype prims, which can be declared as overs.
    * \param xf_cache: Optional cache for transform computations.
    * \param r_readers: Readers created for the prims in the converted subtree.
-   * \return: A pointer to the reader created for the given prim or null if
-   *          the prim cannot be converted.
+   * \return A pointer to the reader created for the given prim or null if
+   *         the prim cannot be converted.
    */
   USDPrimReader *collect_readers(const pxr::UsdPrim &prim,
                                  const UsdPathSet &pruned_prims,
@@ -187,8 +187,8 @@ class USDStageReader {
    * Iterate over the stage and return the paths of all prototype
    * primitives references by point instancers.
    *
-   * \return: The prototype paths, or an empty path set if the scene
-   *          does not contain any point instancers.
+   * \return The prototype paths, or an empty path set if the scene
+   *         does not contain any point instancers.
    */
   UsdPathSet collect_point_instancer_proto_paths() const;
 

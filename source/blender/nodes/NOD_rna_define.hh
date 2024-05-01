@@ -14,6 +14,7 @@
 
 void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr);
 void rna_Node_socket_update(Main *bmain, Scene *scene, PointerRNA *ptr);
+void rna_Node_update_relations(Main *bmain, Scene *scne, PointerRNA *ptr);
 
 namespace blender::nodes {
 
@@ -67,6 +68,7 @@ PropertyRNA *RNA_def_node_enum(StructRNA *srna,
                                const EnumPropertyItem *static_items,
                                const EnumRNAAccessors accessors,
                                std::optional<int> default_value = std::nullopt,
-                               const EnumPropertyItemFunc item_func = nullptr);
+                               const EnumPropertyItemFunc item_func = nullptr,
+                               bool allow_animation = false);
 
 }  // namespace blender::nodes

@@ -57,7 +57,7 @@ bool transdata_check_local_center(const TransInfo *t, short around)
   return (
       (around == V3D_AROUND_LOCAL_ORIGINS) &&
       ((t->options & (CTX_OBJECT | CTX_POSE_BONE)) ||
-       /* implicit: (t->flag & T_EDIT) */
+       /* Implicit: `(t->flag & T_EDIT)`. */
        ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE, OB_GPENCIL_LEGACY) ||
        (t->spacetype == SPACE_GRAPH) ||
        (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE | CTX_SEQUENCER_IMAGE))));
@@ -92,16 +92,16 @@ void protectedTransBits(short protectflag, float vec[3])
   }
 }
 
-/* this function only does the delta rotation */
+/* This function only does the delta rotation. */
 static void protectedQuaternionBits(short protectflag, float quat[4], const float oldquat[4])
 {
-  /* check that protection flags are set */
+  /* Check that protection flags are set. */
   if ((protectflag & (OB_LOCK_ROTX | OB_LOCK_ROTY | OB_LOCK_ROTZ | OB_LOCK_ROTW)) == 0) {
     return;
   }
 
   if (protectflag & OB_LOCK_ROT4D) {
-    /* quaternions getting limited as 4D entities that they are... */
+    /* Quaternions getting limited as 4D entities that they are. */
     if (protectflag & OB_LOCK_ROTW) {
       quat[0] = oldquat[0];
     }
@@ -116,7 +116,7 @@ static void protectedQuaternionBits(short protectflag, float quat[4], const floa
     }
   }
   else {
-    /* quaternions get limited with euler... (compatibility mode) */
+    /* Quaternions get limited with euler... (compatibility mode). */
     float eul[3], oldeul[3], nquat[4], noldquat[4];
     float qlen;
 
@@ -138,10 +138,10 @@ static void protectedQuaternionBits(short protectflag, float quat[4], const floa
 
     eul_to_quat(quat, eul);
 
-    /* restore original quat size */
+    /* Restore original quat size. */
     mul_qt_fl(quat, qlen);
 
-    /* quaternions flip w sign to accumulate rotations correctly */
+    /* Quaternions flip w sign to accumulate rotations correctly. */
     if ((nquat[0] < 0.0f && quat[0] > 0.0f) || (nquat[0] > 0.0f && quat[0] < 0.0f)) {
       mul_qt_fl(quat, -1.0f);
     }
@@ -161,18 +161,20 @@ static void protectedRotateBits(short protectflag, float eul[3], const float old
   }
 }
 
-/* this function only does the delta rotation */
-/* axis-angle is usually internally stored as quats... */
+/**
+ * This function only does the delta rotation.
+ * Axis-angle is usually internally stored as quaternions.
+ */
 static void protectedAxisAngleBits(
     short protectflag, float axis[3], float *angle, const float oldAxis[3], float oldAngle)
 {
-  /* check that protection flags are set */
+  /* Check that protection flags are set. */
   if ((protectflag & (OB_LOCK_ROTX | OB_LOCK_ROTY | OB_LOCK_ROTZ | OB_LOCK_ROTW)) == 0) {
     return;
   }
 
   if (protectflag & OB_LOCK_ROT4D) {
-    /* axis-angle getting limited as 4D entities that they are... */
+    /* Axis-angle getting limited as 4D entities that they are... */
     if (protectflag & OB_LOCK_ROTW) {
       *angle = oldAngle;
     }
@@ -187,7 +189,7 @@ static void protectedAxisAngleBits(
     }
   }
   else {
-    /* axis-angle get limited with euler... */
+    /* Axis-angle get limited with euler. */
     float eul[3], oldeul[3];
 
     axis_angle_to_eulO(eul, EULER_ORDER_DEFAULT, axis, *angle);
@@ -208,7 +210,7 @@ static void protectedAxisAngleBits(
     /* When converting to axis-angle,
      * we need a special exception for the case when there is no axis. */
     if (IS_EQF(axis[0], axis[1]) && IS_EQF(axis[1], axis[2])) {
-      /* for now, rotate around y-axis then (so that it simply becomes the roll) */
+      /* For now, rotate around y-axis then (so that it simply becomes the roll). */
       axis[1] = 1.0f;
     }
   }
@@ -246,18 +248,18 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
     float ctime = float(t->scene->r.cfra);
 
     /* Make a temporary bConstraintOb for using these limit constraints
-     * - they only care that cob->matrix is correctly set ;-)
-     * - current space should be local
+     * - They only care that cob->matrix is correctly set ;-).
+     * - Current space should be local.
      */
     unit_m4(cob.matrix);
     copy_v3_v3(cob.matrix[3], td->loc);
 
-    /* Evaluate valid constraints */
+    /* Evaluate valid constraints. */
     for (con = td->con; con; con = con->next) {
       const bConstraintTypeInfo *cti = nullptr;
       ListBase targets = {nullptr, nullptr};
 
-      /* only consider constraint if enabled */
+      /* Only consider constraint if enabled. */
       if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
         continue;
       }
@@ -265,7 +267,7 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
         continue;
       }
 
-      /* only use it if it's tagged for this purpose (and the right type) */
+      /* Only use it if it's tagged for this purpose (and the right type). */
       if (con->type == CONSTRAINT_TYPE_LOCLIMIT) {
         bLocLimitConstraint *data = (bLocLimitConstraint *)con->data;
 
@@ -284,7 +286,7 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
       }
 
       if (cti) {
-        /* do space conversions */
+        /* Do space conversions. */
         if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
           mul_m3_v3(td->mtx, cob.matrix[3]);
           if (tc->use_local_mat) {
@@ -292,20 +294,20 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
           }
         }
         else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
-          /* skip... incompatible spacetype */
+          /* Skip... incompatible spacetype. */
           continue;
         }
 
         /* Initialize the custom space for use in calculating the matrices. */
         BKE_constraint_custom_object_space_init(&cob, con);
 
-        /* get constraint targets if needed */
+        /* Get constraint targets if needed. */
         BKE_constraint_targets_for_solving_get(t->depsgraph, con, &cob, &targets, ctime);
 
-        /* do constraint */
+        /* Do constraint. */
         cti->evaluate_constraint(con, &cob, &targets);
 
-        /* convert spaces again */
+        /* Convert spaces again. */
         if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
           if (tc->use_local_mat) {
             sub_v3_v3(cob.matrix[3], tc->mat[3]);
@@ -313,12 +315,12 @@ void constraintTransLim(const TransInfo *t, const TransDataContainer *tc, TransD
           mul_m3_v3(td->smtx, cob.matrix[3]);
         }
 
-        /* free targets list */
+        /* Free targets list. */
         BLI_freelistN(&targets);
       }
     }
 
-    /* copy results from cob->matrix */
+    /* Copy results from `cob->matrix`. */
     copy_v3_v3(td->loc, cob.matrix[3]);
   }
 }
@@ -332,20 +334,20 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
   memset(cob, 0, sizeof(bConstraintOb));
   if (td->ext) {
     if (td->ext->rotOrder == ROT_MODE_QUAT) {
-      /* quats */
-      /* objects and bones do normalization first too, otherwise
+      /* Quaternion. */
+      /* Objects and bones do normalization first too, otherwise
        * we don't necessarily end up with a rotation matrix, and
-       * then conversion back to quat gives a different result */
+       * then conversion back to quat gives a different result. */
       float quat[4];
       normalize_qt_qt(quat, td->ext->quat);
       quat_to_mat4(cob->matrix, quat);
     }
     else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
-      /* axis angle */
+      /* Axis angle. */
       axis_angle_to_mat4(cob->matrix, td->ext->rotAxis, *td->ext->rotAngle);
     }
     else {
-      /* eulers */
+      /* Eulers. */
       eulO_to_mat4(cob->matrix, td->ext->rot, td->ext->rotOrder);
     }
   }
@@ -359,9 +361,9 @@ static void constraintRotLim(const TransInfo * /*t*/, TransData *td)
     bConstraint *con;
     bool do_limit = false;
 
-    /* Evaluate valid constraints */
+    /* Evaluate valid constraints. */
     for (con = td->con; con; con = con->next) {
-      /* only consider constraint if enabled */
+      /* Only consider constraint if enabled. */
       if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
         continue;
       }
@@ -369,11 +371,11 @@ static void constraintRotLim(const TransInfo * /*t*/, TransData *td)
         continue;
       }
 
-      /* we're only interested in Limit-Rotation constraints */
+      /* We're only interested in Limit-Rotation constraints. */
       if (con->type == CONSTRAINT_TYPE_ROTLIMIT) {
         bRotLimitConstraint *data = (bRotLimitConstraint *)con->data;
 
-        /* only use it if it's tagged for this purpose */
+        /* Only use it if it's tagged for this purpose. */
         if ((data->flag2 & LIMIT_TRANSFORM) == 0) {
           continue;
         }
@@ -389,35 +391,35 @@ static void constraintRotLim(const TransInfo * /*t*/, TransData *td)
           do_limit = true;
         }
 
-        /* do space conversions */
+        /* Do space conversions. */
         if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
-          /* just multiply by td->mtx (this should be ok) */
+          /* Just multiply by `td->mtx` (this should be ok). */
           mul_m4_m3m4(cob.matrix, td->mtx, cob.matrix);
         }
 
-        /* do constraint */
+        /* Do constraint. */
         cti->evaluate_constraint(con, &cob, nullptr);
 
-        /* convert spaces again */
+        /* Convert spaces again. */
         if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
-          /* just multiply by td->smtx (this should be ok) */
+          /* Just multiply by `td->smtx` (this should be ok). */
           mul_m4_m3m4(cob.matrix, td->smtx, cob.matrix);
         }
       }
     }
 
     if (do_limit) {
-      /* copy results from cob->matrix */
+      /* Copy results from `cob->matrix`. */
       if (td->ext->rotOrder == ROT_MODE_QUAT) {
-        /* quats */
+        /* Quaternion. */
         mat4_to_quat(td->ext->quat, cob.matrix);
       }
       else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
-        /* axis angle */
+        /* Axis angle. */
         mat4_to_axis_angle(td->ext->rotAxis, td->ext->rotAngle, cob.matrix);
       }
       else {
-        /* eulers */
+        /* Eulers. */
         mat4_to_eulO(td->ext->rot, td->ext->rotOrder, cob.matrix);
       }
     }
@@ -438,16 +440,16 @@ void constraintSizeLim(const TransInfo *t, TransData *td)
      * - current space should be local
      */
     if ((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)) {
-      /* scale val and reset size */
-      return; /* TODO: fix this case */
+      /* Scale val and reset size. */
+      return; /* TODO: fix this case. */
     }
 
-    /* Reset val if SINGLESIZE but using a constraint */
+    /* Reset val if SINGLESIZE but using a constraint. */
     if (td->flag & TD_SINGLESIZE) {
       return;
     }
 
-    /* separate out sign to apply back later */
+    /* Separate out sign to apply back later. */
     for (i = 0; i < 3; i++) {
       size_sign[i] = signf(td->ext->size[i]);
       size_abs[i] = fabsf(td->ext->size[i]);
@@ -455,9 +457,9 @@ void constraintSizeLim(const TransInfo *t, TransData *td)
 
     size_to_mat4(cob.matrix, size_abs);
 
-    /* Evaluate valid constraints */
+    /* Evaluate valid constraints. */
     for (con = td->con; con; con = con->next) {
-      /* only consider constraint if enabled */
+      /* Only consider constraint if enabled. */
       if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) {
         continue;
       }
@@ -465,43 +467,43 @@ void constraintSizeLim(const TransInfo *t, TransData *td)
         continue;
       }
 
-      /* we're only interested in Limit-Scale constraints */
+      /* We're only interested in Limit-Scale constraints. */
       if (con->type == CONSTRAINT_TYPE_SIZELIMIT) {
         bSizeLimitConstraint *data = static_cast<bSizeLimitConstraint *>(con->data);
 
-        /* only use it if it's tagged for this purpose */
+        /* Only use it if it's tagged for this purpose. */
         if ((data->flag2 & LIMIT_TRANSFORM) == 0) {
           continue;
         }
 
-        /* do space conversions */
+        /* Do space conversions. */
         if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
-          /* just multiply by td->mtx (this should be ok) */
+          /* Just multiply by `td->mtx` (this should be ok). */
           mul_m4_m3m4(cob.matrix, td->mtx, cob.matrix);
         }
         else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
-          /* skip... incompatible spacetype */
+          /* Skip... incompatible `spacetype`. */
           continue;
         }
 
-        /* do constraint */
+        /* Do constraint. */
         cti->evaluate_constraint(con, &cob, nullptr);
 
-        /* convert spaces again */
+        /* Convert spaces again. */
         if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
-          /* just multiply by td->smtx (this should be ok) */
+          /* Just multiply by `td->smtx` (this should be ok). */
           mul_m4_m3m4(cob.matrix, td->smtx, cob.matrix);
         }
       }
     }
 
-    /* copy results from cob->matrix */
+    /* Copy results from `cob->matrix`. */
     if ((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)) {
-      /* scale val and reset size */
+      /* Scale val and reset size. */
       return; /* TODO: fix this case. */
     }
 
-    /* Reset val if SINGLESIZE but using a constraint */
+    /* Reset val if SINGLESIZE but using a constraint. */
     if (td->flag & TD_SINGLESIZE) {
       return;
     }
@@ -570,7 +572,7 @@ void ElementRotation_ex(const TransInfo *t,
         }
       }
       else if (t->obedit_type == OB_GREASE_PENCIL) {
-        /* pass */
+        /* Pass. */
       }
     }
 
@@ -585,12 +587,12 @@ void ElementRotation_ex(const TransInfo *t,
 
     if (td->flag & TD_USEQUAT) {
       mul_m3_series(fmat, td->smtx, mat, td->mtx);
-      mat3_to_quat(quat, fmat); /* Actual transform */
+      mat3_to_quat(quat, fmat); /* Actual transform. */
 
       if (td->ext->quat) {
         mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
 
-        /* is there a reason not to have this here? -jahka */
+        /* Is there a reason not to have this here? -jahka. */
         protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
       }
     }
@@ -608,7 +610,7 @@ void ElementRotation_ex(const TransInfo *t,
    * has been computed, it has to be converted back into the bone's space.
    */
   else if (t->options & CTX_POSE_BONE) {
-    /* Extract and invert armature object matrix */
+    /* Extract and invert armature object matrix. */
 
     if ((td->flag & TD_NO_LOC) == 0) {
       sub_v3_v3v3(vec, td->center, center);
@@ -618,13 +620,13 @@ void ElementRotation_ex(const TransInfo *t,
       mul_m3_v3(tc->imat3, vec); /* To Local space. */
 
       add_v3_v3(vec, center);
-      /* vec now is the location where the object has to be */
+      /* `vec` now is the location where the object has to be. */
 
-      sub_v3_v3v3(vec, vec, td->center); /* Translation needed from the initial location */
+      sub_v3_v3v3(vec, vec, td->center); /* Translation needed from the initial location. */
 
-      /* special exception, see TD_PBONE_LOCAL_MTX definition comments */
+      /* Special exception, see TD_PBONE_LOCAL_MTX definition comments. */
       if (td->flag & TD_PBONE_LOCAL_MTX_P) {
-        /* do nothing */
+        /* Do nothing. */
       }
       else if (td->flag & TD_PBONE_LOCAL_MTX_C) {
         mul_m3_v3(tc->mat3, vec);        /* To Global space. */
@@ -642,35 +644,35 @@ void ElementRotation_ex(const TransInfo *t,
       constraintTransLim(t, tc, td);
     }
 
-    /* rotation */
+    /* Rotation. */
     /* MORE HACK: as in some cases the matrix to apply location and rot/scale is not the same,
      * and ElementRotation() might be called in Translation context (with align snapping),
      * we need to be sure to actually use the *rotation* matrix here...
-     * So no other way than storing it in some dedicated members of td->ext! */
-    if ((t->flag & T_V3D_ALIGN) == 0) { /* align mode doesn't rotate objects itself */
-      /* euler or quaternion/axis-angle? */
+     * So no other way than storing it in some dedicated members of `td->ext`! */
+    if ((t->flag & T_V3D_ALIGN) == 0) { /* Align mode doesn't rotate objects itself. */
+      /* Euler or quaternion/axis-angle? */
       if (td->ext->rotOrder == ROT_MODE_QUAT) {
         mul_m3_series(fmat, td->ext->r_smtx, mat, td->ext->r_mtx);
 
-        mat3_to_quat(quat, fmat); /* Actual transform */
+        mat3_to_quat(quat, fmat); /* Actual transform. */
 
         mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
-        /* this function works on end result */
+        /* This function works on end result. */
         protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
       }
       else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
-        /* calculate effect based on quats */
+        /* Calculate effect based on quaternions. */
         float iquat[4], tquat[4];
 
         axis_angle_to_quat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 
         mul_m3_series(fmat, td->ext->r_smtx, mat, td->ext->r_mtx);
-        mat3_to_quat(quat, fmat); /* Actual transform */
+        mat3_to_quat(quat, fmat); /* Actual transform. */
         mul_qt_qtqt(tquat, quat, iquat);
 
         quat_to_axis_angle(td->ext->rotAxis, td->ext->rotAngle, tquat);
 
-        /* this function works on end result */
+        /* This function works on end result. */
         protectedAxisAngleBits(td->protectflag,
                                td->ext->rotAxis,
                                td->ext->rotAngle,
@@ -687,12 +689,12 @@ void ElementRotation_ex(const TransInfo *t,
         copy_v3_v3(eul, td->ext->irot);
         eulO_to_mat3(eulmat, eul, td->ext->rotOrder);
 
-        /* mat = transform, obmat = bone rotation */
+        /* `mat = transform`, `obmat = bone rotation`. */
         mul_m3_m3m3(fmat, smat, eulmat);
 
         mat3_to_compatible_eulO(eul, td->ext->rot, td->ext->rotOrder, fmat);
 
-        /* and apply (to end result only) */
+        /* And apply (to end result only). */
         protectedRotateBits(td->protectflag, eul, td->ext->irot);
         copy_v3_v3(td->ext->rot, eul);
       }
@@ -702,11 +704,11 @@ void ElementRotation_ex(const TransInfo *t,
   }
   else {
     if ((td->flag & TD_NO_LOC) == 0) {
-      /* translation */
+      /* Translation. */
       sub_v3_v3v3(vec, td->center, center);
       mul_m3_v3(mat, vec);
       add_v3_v3(vec, center);
-      /* vec now is the location where the object has to be */
+      /* `vec` now is the location where the object has to be. */
       sub_v3_v3(vec, td->center);
       mul_m3_v3(td->smtx, vec);
 
@@ -717,25 +719,25 @@ void ElementRotation_ex(const TransInfo *t,
 
     constraintTransLim(t, tc, td);
 
-    /* rotation */
+    /* Rotation. */
     if ((t->flag & T_V3D_ALIGN) == 0) { /* Align mode doesn't rotate objects itself. */
-      /* euler or quaternion? */
+      /* Euler or quaternion? */
       if ((td->ext->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
-        /* can be called for texture space translate for example, then opt out */
+        /* Can be called for texture space translate for example, then opt out. */
         if (td->ext->quat) {
           mul_m3_series(fmat, td->smtx, mat, td->mtx);
 
           if (!is_zero_v3(td->ext->dquat)) {
-            /* Correct for delta quat */
+            /* Correct for delta quat. */
             float tmp_mat[3][3];
             quat_to_mat3(tmp_mat, td->ext->dquat);
             mul_m3_m3m3(fmat, fmat, tmp_mat);
           }
 
-          mat3_to_quat(quat, fmat); /* Actual transform */
+          mat3_to_quat(quat, fmat); /* Actual transform. */
 
           if (!is_zero_v4(td->ext->dquat)) {
-            /* Correct back for delta quat. */
+            /* Correct back for delta quaternion. */
             float idquat[4];
             invert_qt_qt_normalized(idquat, td->ext->dquat);
             mul_qt_qtqt(quat, idquat, quat);
@@ -743,23 +745,23 @@ void ElementRotation_ex(const TransInfo *t,
 
           mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
 
-          /* this function works on end result */
+          /* This function works on end result. */
           protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
         }
       }
       else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
-        /* calculate effect based on quats */
+        /* Calculate effect based on quaternions. */
         float iquat[4], tquat[4];
 
         axis_angle_to_quat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 
         mul_m3_series(fmat, td->smtx, mat, td->mtx);
-        mat3_to_quat(quat, fmat); /* Actual transform */
+        mat3_to_quat(quat, fmat); /* Actual transform. */
         mul_qt_qtqt(tquat, quat, iquat);
 
         quat_to_axis_angle(td->ext->rotAxis, td->ext->rotAngle, tquat);
 
-        /* this function works on end result */
+        /* This function works on end result. */
         protectedAxisAngleBits(td->protectflag,
                                td->ext->rotAxis,
                                td->ext->rotAngle,
@@ -774,7 +776,7 @@ void ElementRotation_ex(const TransInfo *t,
         mul_m3_m3m3(smat, td->smtx, totmat);
 
         if (!is_zero_v3(td->ext->drot)) {
-          /* Correct for delta rot */
+          /* Correct for delta rot. */
           add_eul_euleul(eul, td->ext->irot, td->ext->drot, td->ext->rotOrder);
         }
         else {
@@ -790,7 +792,7 @@ void ElementRotation_ex(const TransInfo *t,
           sub_eul_euleul(eul, eul, td->ext->drot, td->ext->rotOrder);
         }
 
-        /* and apply */
+        /* And apply. */
         protectedRotateBits(td->protectflag, eul, td->ext->irot);
         copy_v3_v3(td->ext->rot, eul);
       }
@@ -808,7 +810,7 @@ void ElementRotation(const TransInfo *t,
 {
   const float *center;
 
-  /* local constraint shouldn't alter center */
+  /* Local constraint shouldn't alter center. */
   if (transdata_check_local_center(t, around)) {
     center = td->center;
   }
@@ -940,7 +942,7 @@ void ElementResize(const TransInfo *t,
     t->con.applySize(t, tc, td, tmat);
   }
 
-  /* local constraint shouldn't alter center */
+  /* Local constraint shouldn't alter center. */
   if (transdata_check_local_center(t, t->around)) {
     copy_v3_v3(center, td->center);
   }
@@ -979,9 +981,9 @@ void ElementResize(const TransInfo *t,
 
     protectedSizeBits(td->protectflag, fsize);
 
-    if ((t->flag & T_V3D_ALIGN) == 0) { /* align mode doesn't resize objects itself */
+    if ((t->flag & T_V3D_ALIGN) == 0) { /* Align mode doesn't resize objects itself. */
       if ((td->flag & TD_SINGLESIZE) && !(t->con.mode & CON_APPLY)) {
-        /* scale val and reset size */
+        /* Scale val and reset size. */
         *td->val = td->ival * (1 + (fsize[0] - 1) * td->factor);
 
         td->ext->size[0] = td->ext->isize[0];
@@ -989,7 +991,7 @@ void ElementResize(const TransInfo *t,
         td->ext->size[2] = td->ext->isize[2];
       }
       else {
-        /* Reset val if SINGLESIZE but using a constraint */
+        /* Reset val if SINGLESIZE but using a constraint. */
         if (td->flag & TD_SINGLESIZE) {
           *td->val = td->ival;
         }
@@ -1003,7 +1005,7 @@ void ElementResize(const TransInfo *t,
     constraintSizeLim(t, td);
   }
 
-  /* For individual element center, Editmode need to use iloc */
+  /* For individual element center, Editmode need to use iloc. */
   if (t->flag & T_POINTS) {
     sub_v3_v3v3(vec, td->iloc, center);
   }

@@ -11,6 +11,7 @@
 #include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 
@@ -33,6 +34,7 @@ struct bConstraint;
 struct bGPDstroke;
 struct bPose;
 struct bPoseChannel;
+struct MDeformVert;
 
 struct EditBone {
   EditBone *next, *prev;
@@ -278,17 +280,17 @@ void BKE_pose_where_is_bone_tail(bPoseChannel *pchan);
  */
 void BKE_pose_apply_action_selected_bones(Object *ob,
                                           bAction *action,
-                                          AnimationEvalContext *anim_eval_context);
+                                          const AnimationEvalContext *anim_eval_context);
 /**
  * Evaluate the action and apply it to the pose. Ignore selection state of the bones.
  */
 void BKE_pose_apply_action_all_bones(Object *ob,
                                      bAction *action,
-                                     AnimationEvalContext *anim_eval_context);
+                                     const AnimationEvalContext *anim_eval_context);
 
 void BKE_pose_apply_action_blend(Object *ob,
                                  bAction *action,
-                                 AnimationEvalContext *anim_eval_context,
+                                 const AnimationEvalContext *anim_eval_context,
                                  float blend_factor);
 
 void vec_roll_to_mat3(const float vec[3], float roll, float r_mat[3][3]);
@@ -650,6 +652,16 @@ void BKE_armature_deform_coords_with_gpencil_stroke(const Object *ob_arm,
                                                     float (*vert_coords_prev)[3],
                                                     const char *defgrp_name,
                                                     bGPDstroke *gps_target);
+
+void BKE_armature_deform_coords_with_curves(
+    const Object &ob_arm,
+    const Object &ob_target,
+    blender::MutableSpan<blender::float3> vert_coords,
+    std::optional<blender::MutableSpan<blender::float3>> vert_coords_prev,
+    std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
+    blender::Span<MDeformVert> dverts,
+    int deformflag,
+    blender::StringRefNull defgrp_name);
 
 void BKE_armature_deform_coords_with_mesh(const Object *ob_arm,
                                           const Object *ob_target,

@@ -19,7 +19,7 @@ set(INC_SYS
 set(SRC
   sound_ops.cc
 
-  sound_intern.h
+  sound_intern.hh
 )
 
 set(LIB

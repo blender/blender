@@ -68,11 +68,11 @@
 #include "BKE_constraint.h"
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_freestyle.h"
 #include "BKE_gpencil_geom_legacy.h"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -87,7 +87,7 @@
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"
 #include "BKE_unit.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
@@ -796,9 +796,6 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
     }
     if (ts->sculpt) {
       callback(ts->sculpt->paint.cavity_curve);
-    }
-    if (ts->uvsculpt) {
-      callback(ts->uvsculpt->paint.cavity_curve);
     }
     if (ts->gp_paint) {
       callback(ts->gp_paint->paint.cavity_curve);

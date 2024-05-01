@@ -73,7 +73,8 @@ bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
     has_parent = (pchan->parent != nullptr);
   }
   else {
-    BLI_assert(!"visualkey_can_use called for data-block that is not an Object or PoseBone.");
+    BLI_assert_msg(false,
+                   "visualkey_can_use called for data-block that is not an Object or PoseBone.");
     return false;
   }
 

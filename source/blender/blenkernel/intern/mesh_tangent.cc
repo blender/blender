@@ -297,7 +297,7 @@ static void DM_calc_loop_tangents_thread(TaskPool *__restrict /*pool*/, void *ta
   mikk.genTangSpace();
 }
 
-void BKE_mesh_add_loop_tangent_named_layer_for_uv(CustomData *uv_data,
+void BKE_mesh_add_loop_tangent_named_layer_for_uv(const CustomData *uv_data,
                                                   CustomData *tan_data,
                                                   int numLoopData,
                                                   const char *layer_name)
@@ -393,7 +393,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    const uint corner_tris_len,
                                    const blender::Span<bool> sharp_faces,
 
-                                   CustomData *loopdata,
+                                   const CustomData *loopdata,
                                    bool calc_active_tangent,
                                    const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                    int tangent_names_len,
@@ -548,28 +548,24 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
     *tangent_mask_curr_p = tangent_mask_curr;
 
     /* Update active layer index */
-    int act_uv_index = (act_uv_n != -1) ?
-                           CustomData_get_layer_index_n(loopdata, CD_PROP_FLOAT2, act_uv_n) :
-                           -1;
-    if (act_uv_index != -1) {
-      int tan_index = CustomData_get_named_layer_index(
-          loopdata, CD_TANGENT, loopdata->layers[act_uv_index].name);
-      CustomData_set_layer_active_index(loopdata, CD_TANGENT, tan_index);
+    if (const char *active_uv_name = CustomData_get_active_layer_name(loopdata, CD_PROP_FLOAT2)) {
+      int tan_index = CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, active_uv_name);
+      if (tan_index != -1) {
+        CustomData_set_layer_active_index(loopdata_out, CD_TANGENT, tan_index);
+      }
     } /* else tangent has been built from orco */
 
     /* Update render layer index */
-    int ren_uv_index = (ren_uv_n != -1) ?
-                           CustomData_get_layer_index_n(loopdata, CD_PROP_FLOAT2, ren_uv_n) :
-                           -1;
-    if (ren_uv_index != -1) {
-      int tan_index = CustomData_get_named_layer_index(
-          loopdata, CD_TANGENT, loopdata->layers[ren_uv_index].name);
-      CustomData_set_layer_render_index(loopdata, CD_TANGENT, tan_index);
+    if (const char *render_uv_name = CustomData_get_render_layer_name(loopdata, CD_PROP_FLOAT2)) {
+      int tan_index = CustomData_get_named_layer_index(loopdata_out, CD_TANGENT, render_uv_name);
+      if (tan_index != -1) {
+        CustomData_set_layer_render_index(loopdata_out, CD_TANGENT, tan_index);
+      }
     } /* else tangent has been built from orco */
   }
 }
 
-void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
+void BKE_mesh_calc_loop_tangents(Mesh *mesh_eval,
                                  bool calc_active_tangent,
                                  const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                  int tangent_names_len)
@@ -577,30 +573,30 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
   /* TODO(@ideasman42): store in Mesh.runtime to avoid recalculation. */
   using namespace blender;
   using namespace blender::bke;
-  const blender::Span<int3> corner_tris = me_eval->corner_tris();
-  const bke::AttributeAccessor attributes = me_eval->attributes();
+  const blender::Span<int3> corner_tris = mesh_eval->corner_tris();
+  const bke::AttributeAccessor attributes = mesh_eval->attributes();
   const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
   short tangent_mask = 0;
   BKE_mesh_calc_loop_tangent_ex(
-      reinterpret_cast<const float(*)[3]>(me_eval->vert_positions().data()),
-      me_eval->faces(),
-      me_eval->corner_verts().data(),
+      reinterpret_cast<const float(*)[3]>(mesh_eval->vert_positions().data()),
+      mesh_eval->faces(),
+      mesh_eval->corner_verts().data(),
       corner_tris.data(),
-      me_eval->corner_tri_faces().data(),
+      mesh_eval->corner_tri_faces().data(),
       uint(corner_tris.size()),
       sharp_face,
-      &me_eval->corner_data,
+      &mesh_eval->corner_data,
       calc_active_tangent,
       tangent_names,
       tangent_names_len,
-      reinterpret_cast<const float(*)[3]>(me_eval->vert_normals().data()),
-      reinterpret_cast<const float(*)[3]>(me_eval->face_normals().data()),
-      reinterpret_cast<const float(*)[3]>(me_eval->corner_normals().data()),
+      reinterpret_cast<const float(*)[3]>(mesh_eval->vert_normals().data()),
+      reinterpret_cast<const float(*)[3]>(mesh_eval->face_normals().data()),
+      reinterpret_cast<const float(*)[3]>(mesh_eval->corner_normals().data()),
       /* may be nullptr */
-      static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->vert_data, CD_ORCO)),
+      static_cast<const float(*)[3]>(CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO)),
       /* result */
-      &me_eval->corner_data,
-      uint(me_eval->corners_num),
+      &mesh_eval->corner_data,
+      uint(mesh_eval->corners_num),
       &tangent_mask);
 }
 

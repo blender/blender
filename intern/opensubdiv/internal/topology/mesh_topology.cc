@@ -8,8 +8,7 @@
 
 #include <cassert>
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 MeshTopology::MeshTopology() : num_vertices_(0), num_edges_(0), num_faces_(0) {}
 
@@ -222,8 +221,8 @@ bool MeshTopology::isFaceVertexIndicesEqual(int face_index,
                 sizeof(int) * num_expected_face_vertex_indices) == 0;
 }
 
-bool MeshTopology::isFaceVertexIndicesEqual(int face_index,
-                                            const vector<int> &expected_face_vertex_indices) const
+bool MeshTopology::isFaceVertexIndicesEqual(
+    int face_index, const std::vector<int> &expected_face_vertex_indices) const
 {
   return isFaceVertexIndicesEqual(
       face_index, expected_face_vertex_indices.size(), expected_face_vertex_indices.data());
@@ -253,5 +252,4 @@ void MeshTopology::finishResizeTopology()
   }
 }
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv

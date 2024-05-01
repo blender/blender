@@ -26,7 +26,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 static SpinLock refcounter_spin;
 
@@ -84,6 +84,27 @@ template<class BufferType> static void imb_free_buffer(BufferType &buffer)
   buffer.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
 }
 
+/* Free the specified DDS buffer storage, freeing memory when needed and restoring the state of the
+ * buffer to its defaults. */
+static void imb_free_dds_buffer(DDSData &dds_data)
+{
+  if (dds_data.data) {
+    switch (dds_data.ownership) {
+      case IB_DO_NOT_TAKE_OWNERSHIP:
+        break;
+
+      case IB_TAKE_OWNERSHIP:
+        /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use MEM_freeN! */
+        free(dds_data.data);
+        break;
+    }
+  }
+
+  /* Reset buffer to defaults. */
+  dds_data.data = nullptr;
+  dds_data.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
+}
+
 /* Allocate pixel storage of the given buffer. The buffer owns the allocated memory.
  * Returns true of allocation succeeded, false otherwise. */
 template<class BufferType>
@@ -132,7 +153,7 @@ auto imb_steal_buffer_data(BufferType &buffer) -> decltype(BufferType::data)
 
   switch (buffer.ownership) {
     case IB_DO_NOT_TAKE_OWNERSHIP:
-      BLI_assert(!"Unexpected behavior: stealing non-owned data pointer");
+      BLI_assert_msg(false, "Unexpected behavior: stealing non-owned data pointer");
       return nullptr;
 
     case IB_TAKE_OWNERSHIP: {
@@ -249,11 +270,7 @@ void IMB_freeImBuf(ImBuf *ibuf)
     IMB_free_gpu_textures(ibuf);
     IMB_metadata_free(ibuf->metadata);
     colormanage_cache_free(ibuf);
-
-    if (ibuf->dds_data.data != nullptr) {
-      /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use MEM_freeN! */
-      free(ibuf->dds_data.data);
-    }
+    imb_free_dds_buffer(ibuf->dds_data);
     MEM_freeN(ibuf);
   }
 }
@@ -472,6 +489,32 @@ void IMB_assign_float_buffer(ImBuf *ibuf, float *buffer_data, const ImBufOwnersh
   }
 }
 
+void IMB_assign_byte_buffer(ImBuf *ibuf,
+                            const ImBufByteBuffer &buffer,
+                            const ImBufOwnership ownership)
+{
+  IMB_assign_byte_buffer(ibuf, buffer.data, ownership);
+  ibuf->byte_buffer.colorspace = buffer.colorspace;
+}
+
+void IMB_assign_float_buffer(ImBuf *ibuf,
+                             const ImBufFloatBuffer &buffer,
+                             const ImBufOwnership ownership)
+{
+  IMB_assign_float_buffer(ibuf, buffer.data, ownership);
+  ibuf->float_buffer.colorspace = buffer.colorspace;
+}
+
+void IMB_assign_dds_data(ImBuf *ibuf, const DDSData &data, const ImBufOwnership ownership)
+{
+  BLI_assert(ibuf->ftype == IMB_FTYPE_DDS);
+
+  imb_free_dds_buffer(ibuf->dds_data);
+
+  ibuf->dds_data = data;
+  ibuf->dds_data.ownership = ownership;
+}
+
 ImBuf *IMB_allocFromBufferOwn(
     uint8_t *byte_buffer, float *float_buffer, uint w, uint h, uint channels)
 {
@@ -647,6 +690,10 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 
   tbuf.display_buffer_flags = nullptr;
   tbuf.colormanage_cache = nullptr;
+
+  /* GPU textures can not be easily copied, as it is not guaranteed that this function is called
+   * from within an active GPU context. */
+  tbuf.gpu.texture = nullptr;
 
   *ibuf2 = tbuf;
 

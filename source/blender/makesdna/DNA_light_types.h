@@ -73,11 +73,16 @@ typedef struct Light {
   float contact_bias;
   float contact_thickness;
 
-  float diff_fac, volume_fac;
-  float spec_fac, att_dist;
+  float diff_fac;
+  float spec_fac;
+  float transmission_fac;
+  float volume_fac;
+
+  float att_dist;
   float shadow_softness_factor;
   float shadow_trace_distance;
-  float _pad3;
+  float shadow_filter_radius;
+  float shadow_resolution_scale;
 
   /* Preview */
   struct PreviewImage *preview;

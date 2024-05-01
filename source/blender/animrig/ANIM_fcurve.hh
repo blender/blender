@@ -10,7 +10,10 @@
 #pragma once
 
 #include "BLI_math_vector_types.hh"
+#include "BLI_string_ref.hh"
+
 #include "DNA_anim_types.h"
+
 struct AnimData;
 struct FCurve;
 
@@ -30,6 +33,11 @@ struct KeyframeSettings {
  * defaults.
  */
 KeyframeSettings get_keyframe_settings(bool from_userprefs);
+
+/**
+ * Create an fcurve for a specific channel, pre-set-up with default flags and interpolation mode.
+ */
+FCurve *create_fcurve_for_channel(StringRef rna_path, int array_index);
 
 /** Initialize the given BezTriple with default values. */
 void initialize_bezt(BezTriple *beztr,
@@ -80,5 +88,32 @@ int insert_vert_fcurve(FCurve *fcu,
                        const float2 position,
                        const KeyframeSettings &settings,
                        eInsertKeyFlags flag);
+
+/**
+ * \param sample_rate: indicates how many samples per frame should be generated.
+ * \param r_samples: Is expected to be an array large enough to hold `sample_count`.
+ */
+void sample_fcurve_segment(
+    FCurve *fcu, float start_frame, float sample_rate, float *samples, int sample_count);
+
+enum class BakeCurveRemove {
+  NONE = 0,
+  IN_RANGE = 1,
+  OUT_RANGE = 2,
+  ALL = 3,
+};
+
+/**
+ * Creates keyframes in the given range at the given step interval.
+ * \param range: start and end frame to bake. Is inclusive on both ends.
+ * \param remove_existing: choice which keys to remove in relation to the given range.
+ */
+void bake_fcurve(FCurve *fcu, blender::int2 range, float step, BakeCurveRemove remove_existing);
+
+/**
+ * Fill the space between selected keyframes with keyframes on full frames.
+ * E.g. With a key selected on frame 1 and 3 it will insert a key on frame 2.
+ */
+void bake_fcurve_segments(FCurve *fcu);
 
 }  // namespace blender::animrig

@@ -18,12 +18,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
-#include "BLI_lasso_2d.h"
+#include "BLI_lasso_2d.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.hh"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
+
+#include "BLT_translation.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -69,14 +71,14 @@
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_state.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 /* ******************************************************** */
 /* Context Wrangling... */
@@ -121,21 +123,19 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
     SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
 
     switch (area->spacetype) {
-      case SPACE_PROPERTIES: /* properties */
-      case SPACE_INFO:       /* header info */
+      case SPACE_INFO: /* header info */
       {
         return nullptr;
       }
 
-      case SPACE_TOPBAR: /* Top-bar */
-      case SPACE_VIEW3D: /* 3D-View */
+      case SPACE_TOPBAR:     /* Top-bar */
+      case SPACE_VIEW3D:     /* 3D-View */
+      case SPACE_PROPERTIES: /* properties */
       {
         if (r_ptr) {
           *r_ptr = RNA_id_pointer_create(&scene->id);
         }
         return &scene->gpd;
-
-        break;
       }
       case SPACE_NODE: /* Nodes Editor */
       {
@@ -326,7 +326,7 @@ bool gpencil_active_brush_poll(bContext *C)
   ToolSettings *ts = CTX_data_tool_settings(C);
   Paint *paint = &ts->gp_paint->paint;
   if (paint) {
-    return (paint->brush != nullptr);
+    return (BKE_paint_brush(paint) != nullptr);
   }
   return false;
 }
@@ -1414,7 +1414,8 @@ Object *ED_gpencil_add_object(bContext *C, const float loc[3], ushort local_view
 {
   const float rot[3] = {0.0f};
 
-  Object *ob = ED_object_add_type(C, OB_GPENCIL_LEGACY, nullptr, loc, rot, false, local_view_bits);
+  Object *ob = blender::ed::object::add_type(
+      C, OB_GPENCIL_LEGACY, nullptr, loc, rot, false, local_view_bits);
 
   /* create default brushes and colors */
   ED_gpencil_add_defaults(C, ob);
@@ -1429,8 +1430,9 @@ void ED_gpencil_add_defaults(bContext *C, Object *ob)
 
   BKE_paint_ensure(ts, (Paint **)&ts->gp_paint);
   Paint *paint = &ts->gp_paint->paint;
+  Brush *brush = BKE_paint_brush(paint);
   /* if not exist, create a new one */
-  if ((paint->brush == nullptr) || (paint->brush->gpencil_settings == nullptr)) {
+  if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
     /* create new brushes */
     BKE_brush_gpencil_paint_presets(bmain, ts, true);
   }
@@ -1737,7 +1739,7 @@ float ED_gpencil_cursor_radius(bContext *C, int x, int y)
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   ARegion *region = CTX_wm_region(C);
-  Brush *brush = scene->toolsettings->gp_paint->paint.brush;
+  Brush *brush = BKE_paint_brush(&scene->toolsettings->gp_paint->paint);
   bGPdata *gpd = ED_gpencil_data_get_active(C);
 
   /* Show brush size. */
@@ -1828,7 +1830,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
 
   /* for paint use paint brush size and color */
   if (gpd->flag & GP_DATA_STROKE_PAINTMODE) {
-    brush = scene->toolsettings->gp_paint->paint.brush;
+    brush = BKE_paint_brush(&scene->toolsettings->gp_paint->paint);
     if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
       return;
     }
@@ -1900,7 +1902,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
 
   /* Sculpt use sculpt brush size */
   if (GPENCIL_SCULPT_MODE(gpd)) {
-    brush = scene->toolsettings->gp_sculptpaint->paint.brush;
+    brush = BKE_paint_brush(&scene->toolsettings->gp_sculptpaint->paint);
     if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
       return;
     }
@@ -1920,7 +1922,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
 
   /* Weight Paint */
   if (GPENCIL_WEIGHT_MODE(gpd)) {
-    brush = scene->toolsettings->gp_weightpaint->paint.brush;
+    brush = BKE_paint_brush(&scene->toolsettings->gp_weightpaint->paint);
     if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
       return;
     }
@@ -1940,7 +1942,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
 
   /* For Vertex Paint use brush size. */
   if (GPENCIL_VERTEX_MODE(gpd)) {
-    brush = scene->toolsettings->gp_vertexpaint->paint.brush;
+    brush = BKE_paint_brush(&scene->toolsettings->gp_vertexpaint->paint);
     if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
       return;
     }
@@ -3017,6 +3019,7 @@ void ED_gpencil_sbuffer_vertex_color_set(Depsgraph *depsgraph,
   if (gpd_eval != nullptr) {
     copy_v4_v4(gpd_eval->runtime.vert_color_fill, gpd->runtime.vert_color_fill);
     gpd_eval->runtime.matid = gpd->runtime.matid;
+    gpd_eval->runtime.fill_opacity_fac = gpd->runtime.fill_opacity_fac;
   }
 }
 
@@ -3091,9 +3094,8 @@ bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
     return hit;
   }
 
-  int(*mcoords)[2] = nullptr;
   int len = gps->totpoints;
-  mcoords = static_cast<int(*)[2]>(MEM_mallocN(sizeof(int[2]) * len, __func__));
+  blender::Array<blender::int2> mcoords(len);
 
   /* Convert stroke to 2D array of points. */
   const bGPDspoint *pt;
@@ -3106,14 +3108,11 @@ bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
 
   /* Compute bound-box of lasso (for faster testing later). */
   rcti rect;
-  BLI_lasso_boundbox(&rect, mcoords, len);
+  BLI_lasso_boundbox(&rect, mcoords);
 
   /* Test if point inside stroke. */
   hit = (!ELEM(V2D_IS_CLIPPED, mval[0], mval[1]) && BLI_rcti_isect_pt(&rect, mval[0], mval[1]) &&
-         BLI_lasso_is_point_inside(mcoords, len, mval[0], mval[1], INT_MAX));
-
-  /* Free memory. */
-  MEM_SAFE_FREE(mcoords);
+         BLI_lasso_is_point_inside(mcoords, mval[0], mval[1], INT_MAX));
 
   return hit;
 }
@@ -3430,7 +3429,7 @@ int ED_gpencil_new_layer_dialog(bContext *C, wmOperator *op)
       bGPdata *gpd = static_cast<bGPdata *>(ob->data);
       gpencil_layer_new_name_get(gpd, name, sizeof(name));
       RNA_property_string_set(op->ptr, prop, name);
-      return WM_operator_props_dialog_popup(C, op, 200);
+      return WM_operator_props_dialog_popup(C, op, 200, IFACE_("Add New Layer"), IFACE_("Add"));
     }
   }
   return 0;

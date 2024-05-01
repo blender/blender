@@ -13,8 +13,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Check whether special shadow rays for shadow linking are needed in the current scene
  * configuration. */
-ccl_device_forceinline bool shadow_linking_scene_need_shadow_ray(KernelGlobals kg,
-                                                                 IntegratorState state)
+ccl_device_forceinline bool shadow_linking_scene_need_shadow_ray(KernelGlobals kg)
 {
   if (!(kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_LINKING)) {
     /* No shadow linking in the scene, so no need to trace any extra rays. */
@@ -57,7 +56,7 @@ template<DeviceKernel current_kernel>
 ccl_device_inline bool shadow_linking_schedule_intersection_kernel(KernelGlobals kg,
                                                                    IntegratorState state)
 {
-  if (!shadow_linking_scene_need_shadow_ray(kg, state)) {
+  if (!shadow_linking_scene_need_shadow_ray(kg)) {
     return false;
   }
 

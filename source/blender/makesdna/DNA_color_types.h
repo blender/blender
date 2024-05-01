@@ -92,6 +92,7 @@ typedef enum eCurveMappingFlags {
 
   /** The curve is extended by extrapolation. When not set the curve is extended horizontally. */
   CUMA_EXTEND_EXTRAPOLATE = (1 << 4),
+  CUMA_USE_WRAPPING = (1 << 5),
 } eCurveMappingFlags;
 
 /** #CurveMapping.preset */
@@ -100,7 +101,7 @@ typedef enum eCurveMappingPreset {
   CURVE_PRESET_SHARP = 1,
   CURVE_PRESET_SMOOTH = 2,
   CURVE_PRESET_MAX = 3,
-  CURVE_PRESET_MID9 = 4,
+  CURVE_PRESET_MID8 = 4,
   CURVE_PRESET_ROUND = 5,
   CURVE_PRESET_ROOT = 6,
   CURVE_PRESET_GAUSS = 7,

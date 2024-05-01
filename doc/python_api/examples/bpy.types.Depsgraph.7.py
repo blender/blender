@@ -15,7 +15,7 @@ If the object is a text object. The text will be converted into a 3D curve and r
 never applied on text objects and apply_modifiers will be ignored. If the object is neither a curve nor
 a text object, an error will be reported.
 
-.. note:: The resulting curve is owned by the object. It can be freed by calling `object.to_curve_clear()`.
+.. note:: The resulting curve is owned by the object. It can be freed by calling :meth:`~Object.to_curve_clear`.
 .. note::
    The resulting curve must be treated as temporary, and cannot be referenced from objects in the main
    database.

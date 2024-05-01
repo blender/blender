@@ -5,16 +5,17 @@
 #include "usd_reader_pointinstancer.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
-#include "BLI_math_quaternion.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_string.h"
 
 #include "DNA_collection_types.h"
+#include "DNA_node_types.h"
 
 #include <pxr/usd/usdGeom/pointInstancer.h>
 
@@ -164,11 +165,10 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const double motionS
 
   bNodeTree *ntree = nmd.node_group;
 
-  ntree->tree_interface.add_socket("Geometry",
-                                   "",
-                                   "NodeSocketGeometry",
-                                   NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT,
-                                   nullptr);
+  ntree->tree_interface.add_socket(
+      "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_OUTPUT, nullptr);
+  ntree->tree_interface.add_socket(
+      "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_INPUT, nullptr);
   bNode *group_input = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_INPUT);
   group_input->locx = -400.0f;
   bNode *group_output = nodeAddStaticNode(nullptr, ntree, NODE_GROUP_OUTPUT);

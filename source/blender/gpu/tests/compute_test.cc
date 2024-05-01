@@ -8,20 +8,14 @@
 
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_compute.h"
-#include "GPU_storage_buffer.h"
-#include "GPU_texture.h"
+#include "GPU_capabilities.hh"
+#include "GPU_compute.hh"
+#include "GPU_storage_buffer.hh"
+#include "GPU_texture.hh"
 
 namespace blender::gpu::tests {
 static void test_compute_direct()
 {
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    GTEST_SKIP() << "Skipping test: platform not supported";
-    return;
-  }
-
   static constexpr uint SIZE = 32;
 
   /* Build compute shader. */
@@ -59,12 +53,6 @@ GPU_TEST(compute_direct)
 
 static void test_compute_indirect()
 {
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    GTEST_SKIP() << "Skipping test: platform not supported";
-    return;
-  }
-
   static constexpr uint SIZE = 32;
 
   /* Build compute shader. */

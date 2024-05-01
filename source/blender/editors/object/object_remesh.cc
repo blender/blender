@@ -49,9 +49,9 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -60,11 +60,9 @@
 
 #include "BLF_api.hh"
 
-#include "object_intern.h" /* own include */
+#include "object_intern.hh" /* own include */
 
-using blender::float3;
-using blender::IndexRange;
-using blender::Span;
+namespace blender::ed::object {
 
 /* TODO(sebpa): unstable, can lead to unrecoverable errors. */
 // #define USE_MESH_CURVATURE
@@ -107,8 +105,6 @@ static bool object_remesh_poll(bContext *C)
 
 static int voxel_remesh_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
-  using namespace blender::ed;
   Object *ob = CTX_data_active_object(C);
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -318,7 +314,7 @@ static void voxel_size_edit_draw(const bContext *C, ARegion * /*region*/, void *
   char str[VOXEL_SIZE_EDIT_MAX_STR_LEN];
   short strdrawlen = 0;
   Scene *scene = CTX_data_scene(C);
-  UnitSettings *unit = &scene->unit;
+  const UnitSettings *unit = &scene->unit;
   BKE_unit_value_as_string(str,
                            VOXEL_SIZE_EDIT_MAX_STR_LEN,
                            double(cd->voxel_size * unit->scale_length),
@@ -383,6 +379,7 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
     MEM_freeN(op->customdata);
     ED_region_tag_redraw(region);
     ED_workspace_status_text(C, nullptr);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);
     return OPERATOR_FINISHED;
   }
 
@@ -447,7 +444,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   op->customdata = cd;
 
   /* Select the front facing face of the mesh bounding box. */
-  const blender::Bounds<float3> bounds = *mesh->bounds_min_max();
+  const Bounds<float3> bounds = *mesh->bounds_min_max();
   BoundBox bb;
   BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
 
@@ -663,7 +660,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
    * flip
    */
   const Span<float3> positions = mesh->vert_positions();
-  const Span<blender::int2> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
   const Span<int> corner_verts = mesh->corner_verts();
   const Span<int> corner_edges = mesh->corner_edges();
 
@@ -820,8 +817,6 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
 
 static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_status)
 {
-  using namespace blender;
-  using namespace blender::ed;
   QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
 
   qj->stop = &worker_status->stop;
@@ -884,7 +879,7 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
   }
 
   if (qj->preserve_attributes) {
-    blender::bke::mesh_remesh_reproject_attributes(*mesh, *new_mesh);
+    bke::mesh_remesh_reproject_attributes(*mesh, *new_mesh);
   }
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
@@ -1203,3 +1198,5 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender::ed::object

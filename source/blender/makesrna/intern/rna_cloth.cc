@@ -467,7 +467,7 @@ static std::optional<std::string> rna_ClothCollisionSettings_path(const PointerR
   return std::nullopt;
 }
 
-static int rna_ClothSettings_internal_editable(PointerRNA *ptr, const char **r_info)
+static int rna_ClothSettings_internal_editable(const PointerRNA *ptr, const char **r_info)
 {
   ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 

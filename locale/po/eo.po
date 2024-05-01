@@ -1,10 +1,46 @@
 
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
+"PO-Revision-Date: 2024-03-25 00:51+0000\n"
+"Last-Translator: william sélifet <williamselifet@live.be>\n"
+"Language-Team: Esperanto <https://translate.blender.org/projects/blender-ui/ui/eo/>\n"
+"Language: eo\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.0.1"
+
+
+msgid "Name"
+msgstr "Nomo"
+
+
 msgid "Select"
-msgstr "Elektas"
+msgstr "Elektu"
 
 
 msgid "Add"
 msgstr "Aldonia"
+
+
+msgid "F-Curves"
+msgstr "F-Kurbecoj"
+
+
+msgid "Cache Files"
+msgstr "Kaŝdosiero"
+
+
+msgid "Deflectors"
+msgstr "Deflekta"
+
+
+msgid "Angular"
+msgstr "Angula"
 
 
 msgid "View"
@@ -12,7 +48,7 @@ msgstr "Rigardi"
 
 
 msgid "Render"
-msgstr "Por Kapitulacigi"
+msgstr "Redoni"
 
 
 msgid "Window"
@@ -21,6 +57,10 @@ msgstr "Fenestro"
 
 msgid "Edit Mode"
 msgstr "Prilaborado Modo"
+
+
+msgid "B-Bone"
+msgstr "B-osto"
 
 
 msgid "Links"
@@ -33,6 +73,10 @@ msgstr "Objekto Modo"
 
 msgid "Sculpt Mode"
 msgstr "Skulptaĵo Modo"
+
+
+msgid "Attribute"
+msgstr "Atributo"
 
 
 msgid "File"
@@ -49,7 +93,11 @@ msgstr "Nova"
 
 msgctxt "Operator"
 msgid "Select"
-msgstr "Elektas"
+msgstr "Elektu"
+
+
+msgid "Handles"
+msgstr "Manpreni"
 
 
 msgid "View Z Axis"
@@ -62,7 +110,7 @@ msgstr "Montri X Axis"
 
 msgctxt "Operator"
 msgid "Render"
-msgstr "Por Kapitulacigi"
+msgstr "Redoni"
 
 
 msgctxt "Operator"

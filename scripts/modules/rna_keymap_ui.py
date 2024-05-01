@@ -77,7 +77,10 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
             subcol = _indented_layout(col, level + 1)
             subrow = subcol.row(align=True)
             subrow.prop(km, "show_expanded_items", text="", emboss=False)
-            subrow.label(text=iface_("%s (Global)") % iface_(km.name, i18n_contexts.id_windowmanager), translate=False)
+            subrow.label(
+                text=iface_("{:s} (Global)").format(iface_(km.name, i18n_contexts.id_windowmanager)),
+                translate=False,
+            )
         else:
             km.show_expanded_items = True
 
@@ -238,7 +241,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
                 "MMB": 'MIDDLEMOUSE',
             })
             _EVENT_TYPE_MAP_EXTRA.update({
-                "%d" % i: "NUMPAD_%d" % i for i in range(10)
+                "{:d}".format(i): "NUMPAD_{:d}".format(i) for i in range(10)
             })
         # done with once off init
 
@@ -375,7 +378,7 @@ def draw_keymaps(context, layout):
 
     rowsub.menu("USERPREF_MT_keyconfigs", text=text)
     rowsub.operator("wm.keyconfig_preset_add", text="", icon='ADD')
-    rowsub.operator("wm.keyconfig_preset_add", text="", icon='REMOVE').remove_active = True
+    rowsub.operator("wm.keyconfig_preset_remove", text="", icon='REMOVE')
 
     rowsub = split.row(align=True)
     rowsub.operator("preferences.keyconfig_import", text="Import...", icon='IMPORT')
@@ -406,7 +409,12 @@ def draw_keymaps(context, layout):
     rowsubsub = rowsub.row(align=True)
     if not ok:
         rowsubsub.alert = True
-    rowsubsub.prop(spref, "filter_text", text="", icon='VIEWZOOM')
+    search_placeholder = ""
+    if spref.filter_type == 'NAME':
+        search_placeholder = iface_("Search by Name")
+    elif spref.filter_type == 'KEY':
+        search_placeholder = iface_("Search by Key-Binding")
+    rowsubsub.prop(spref, "filter_text", text="", icon='VIEWZOOM', placeholder=search_placeholder)
 
     if not filter_text:
         # When the keyconfig defines its own preferences.

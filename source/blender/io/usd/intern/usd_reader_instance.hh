@@ -6,9 +6,8 @@
 
 #include "usd_reader_xform.hh"
 
-#include <pxr/usd/usdGeom/xform.h>
-
 struct Collection;
+struct Main;
 
 namespace blender::io::usd {
 

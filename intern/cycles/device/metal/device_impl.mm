@@ -340,13 +340,8 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
     }
   }
 
-  if (@available(macos 14.0, *)) {
-    /* Use Program Scope Global Built-ins, when available. */
-    global_defines += "#define __METAL_GLOBAL_BUILTINS__\n";
-  }
-
 #  ifdef WITH_CYCLES_DEBUG
-  global_defines += "#define __KERNEL_DEBUG__\n";
+  global_defines += "#define WITH_CYCLES_DEBUG\n";
 #  endif
 
   switch (device_vendor) {
@@ -359,13 +354,22 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
       global_defines += "#define __KERNEL_METAL_AMD__\n";
       /* The increased amount of BSDF code leads to a big performance regression
        * on AMD. There is currently no workaround to fix this general. Instead
-       * disable Principled Hair. */
+       * disable Principled Hair and patch evaluation. */
       if (kernel_features & KERNEL_FEATURE_NODE_PRINCIPLED_HAIR) {
         global_defines += "#define WITH_PRINCIPLED_HAIR\n";
+      }
+      if (kernel_features & KERNEL_FEATURE_PATCH_EVALUATION) {
+        global_defines += "#define WITH_PATCH_EVAL\n";
       }
       break;
     case METAL_GPU_APPLE:
       global_defines += "#define __KERNEL_METAL_APPLE__\n";
+
+      if (@available(macos 14.0, *)) {
+        /* Use Program Scope Global Built-ins, when available. */
+        global_defines += "#define __METAL_GLOBAL_BUILTINS__\n";
+      }
+
 #  ifdef WITH_NANOVDB
       /* Compiling in NanoVDB results in a marginal drop in render performance,
        * so disable it for specialized PSOs when no textures are using it. */
@@ -1436,6 +1440,13 @@ void MetalDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
     if (max_working_set_exceeded()) {
       set_error("System is out of GPU memory");
     }
+  }
+}
+
+void MetalDevice::release_bvh(BVH *bvh)
+{
+  if (bvhMetalRT == bvh) {
+    bvhMetalRT = nullptr;
   }
 }
 

@@ -8,6 +8,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_array.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_simd.h"
@@ -148,7 +149,7 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
     DEG_add_object_relation(ctx->node, mmd->object, DEG_OB_COMP_TRANSFORM, "Mesh Deform Modifier");
     DEG_add_object_relation(ctx->node, mmd->object, DEG_OB_COMP_GEOMETRY, "Mesh Deform Modifier");
   }
-  /* We need own transformation as well. */
+  /* We need our own transformation as well. */
   DEG_add_depends_on_transform_relation(ctx->node, "Mesh Deform Modifier");
 }
 
@@ -440,10 +441,10 @@ static void deform_verts(ModifierData *md,
 void BKE_modifier_mdef_compact_influences(ModifierData *md)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
-  float weight, *weights, totweight;
+  float weight, totweight;
   int influences_num, verts_num, cage_verts_num, a, b;
 
-  weights = mmd->bindweights;
+  const float *weights = mmd->bindweights;
   if (!weights) {
     return;
   }
@@ -587,8 +588,9 @@ static void blend_write(BlendWriter *writer, const ID *id_owner, const ModifierD
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+  const int size = mmd->dyngridsize;
 
-  BLO_read_data_address(reader, &mmd->bindinfluences);
+  BLO_read_struct_array(reader, MDefInfluence, mmd->influences_num, &mmd->bindinfluences);
 
   /* NOTE: `bindoffset` is abusing `verts_num + 1` as its size, this becomes an incorrect value in
    * case `verts_num == 0`, since `bindoffset` is then nullptr, not a size 1 allocated array. */
@@ -597,8 +599,8 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
   }
 
   BLO_read_float3_array(reader, mmd->cage_verts_num, &mmd->bindcagecos);
-  BLO_read_data_address(reader, &mmd->dyngrid);
-  BLO_read_data_address(reader, &mmd->dyninfluences);
+  BLO_read_struct_array(reader, MDefCell, size * size * size, &mmd->dyngrid);
+  BLO_read_struct_array(reader, MDefInfluence, mmd->influences_num, &mmd->dyninfluences);
   BLO_read_int32_array(reader, mmd->verts_num, &mmd->dynverts);
 
   /* Deprecated storage. */

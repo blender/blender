@@ -4,8 +4,8 @@
 
 #include "BLI_assert.h"
 
-#include "GPU_state.h"
-#include "GPU_texture.h"
+#include "GPU_state.hh"
+#include "GPU_texture.hh"
 
 #include "MEM_guardedalloc.h"
 

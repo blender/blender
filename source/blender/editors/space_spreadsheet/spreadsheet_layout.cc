@@ -7,6 +7,7 @@
 
 #include <fmt/format.h>
 
+#include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -55,8 +56,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   nullptr,
                                   0,
                                   0,
-                                  0,
-                                  0,
                                   nullptr);
     /* Center-align column headers. */
     UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -77,8 +76,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   params.width,
                                   params.height,
                                   nullptr,
-                                  0,
-                                  0,
                                   0,
                                   0,
                                   nullptr);
@@ -112,8 +109,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    0,
-                                    0,
                                     nullptr);
       /* Right-align Integers. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -132,8 +127,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     0,
                                     0,
                                     nullptr);
@@ -162,8 +155,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    0,
-                                    0,
                                     nullptr);
       /* Right-align Floats. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -182,8 +173,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     params.width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     0,
                                     0,
                                     nullptr);
@@ -229,8 +218,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                            nullptr,
                            0,
                            0,
-                           0,
-                           0,
                            nullptr);
           break;
         }
@@ -248,8 +235,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                            nullptr,
                            0,
                            0,
-                           0,
-                           0,
                            nullptr);
           break;
         }
@@ -264,8 +249,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                            params.width,
                            params.height,
                            nullptr,
-                           0,
-                           0,
                            0,
                            0,
                            nullptr);
@@ -287,8 +270,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                        params.width,
                        params.height,
                        nullptr,
-                       0,
-                       0,
                        0,
                        0,
                        nullptr);
@@ -314,8 +295,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     segment_width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     0,
                                     0,
                                     nullptr);
@@ -346,8 +325,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     nullptr,
                                     0,
                                     0,
-                                    0,
-                                    0,
                                     nullptr);
       /* Right-align Floats. */
       UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
@@ -375,8 +352,6 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                     segment_width,
                                     params.height,
                                     nullptr,
-                                    0,
-                                    0,
                                     0,
                                     0,
                                     nullptr);
@@ -415,15 +390,14 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   nullptr,
                                   0,
                                   0,
-                                  0,
-                                  0,
                                   nullptr);
     /* Center alignment. */
     UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
     UI_but_func_tooltip_set(
         but,
         [](bContext * /*C*/, void *argN, const char * /*tip*/) {
-          const float4x4 &value = *static_cast<const float4x4 *>(argN);
+          /* Transpose to be able to print row by row. */
+          const float4x4 value = math::transpose(*static_cast<const float4x4 *>(argN));
           std::stringstream ss;
           ss << value[0] << ",\n";
           ss << value[1] << ",\n";

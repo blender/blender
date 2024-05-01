@@ -10,8 +10,8 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "DNA_movieclip_types.h"
 
@@ -36,7 +36,7 @@ class DistortionGridKey {
   DistortionType type;
   int2 calibration_size;
 
-  DistortionGridKey(MovieTrackingCamera camera,
+  DistortionGridKey(const MovieTrackingCamera &camera,
                     int2 size,
                     DistortionType type,
                     int2 calibration_size);

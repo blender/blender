@@ -560,7 +560,7 @@ AUD_API AUD_Sound* AUD_Sound_rechannel(AUD_Sound* sound, AUD_Channels channels)
 	}
 }
 
-AUD_API AUD_Sound* AUD_Sound_resample(AUD_Sound* sound, AUD_SampleRate rate, bool high_quality)
+AUD_API AUD_Sound* AUD_Sound_resample(AUD_Sound* sound, AUD_SampleRate rate, AUD_ResampleQuality quality)
 {
 	assert(sound);
 
@@ -570,10 +570,14 @@ AUD_API AUD_Sound* AUD_Sound_resample(AUD_Sound* sound, AUD_SampleRate rate, boo
 		specs.channels = CHANNELS_INVALID;
 		specs.rate = rate;
 		specs.format = FORMAT_INVALID;
-		if(high_quality)
-			return new AUD_Sound(new JOSResample(*sound, specs));
-		else
+		if (quality == AUD_RESAMPLE_QUALITY_FASTEST)
+		{
 			return new AUD_Sound(new LinearResample(*sound, specs));
+		}
+		else
+		{
+			return new AUD_Sound(new JOSResample(*sound, specs, static_cast<ResampleQuality>(quality)));
+		}
 	}
 	catch(Exception&)
 	{

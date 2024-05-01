@@ -1158,6 +1158,19 @@ static void polygonize(PROCESS *process)
   }
 }
 
+static bool object_has_zero_axis_matrix(const Object *bob)
+{
+  if (has_zero_axis_m4(bob->object_to_world().ptr())) {
+    return true;
+  }
+  for (Object *pob = bob->parent; pob; pob = pob->parent) {
+    if (has_zero_axis_m4(pob->object_to_world().ptr())) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Iterates over ALL objects in the scene and all of its sets, including
  * making all duplis (not only meta-elements). Copies meta-elements to #process.mainb array.
@@ -1168,19 +1181,15 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
   Scene *sce_iter = scene;
   Base *base;
   Object *bob;
-  MetaBall *mb;
-  const MetaElem *ml;
-  float obinv[4][4], obmat[4][4];
-  uint i;
-  int obnr, zero_size = 0;
+  int obnr;
   char obname[MAX_ID_NAME];
   SceneBaseIter iter;
   const eEvaluationMode deg_eval_mode = DEG_get_mode(depsgraph);
   const short parenting_dupli_transflag = (OB_DUPLIFACES | OB_DUPLIVERTS);
 
-  copy_m4_m4(
-      obmat,
-      ob->object_to_world().ptr()); /* to cope with duplicators from BKE_scene_base_iter_next */
+  /* Copy object matrices to cope with duplicators from #BKE_scene_base_iter_next. */
+  float obinv[4][4], obmat[4][4];
+  copy_m4_m4(obmat, ob->object_to_world().ptr());
   invert_m4_m4(obinv, ob->object_to_world().ptr());
 
   BLI_string_split_name_number(ob->id.name + 2, '.', obname, &obnr);
@@ -1188,187 +1197,154 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
   /* make main array */
   BKE_scene_base_iter_next(depsgraph, &iter, &sce_iter, 0, nullptr, nullptr);
   while (BKE_scene_base_iter_next(depsgraph, &iter, &sce_iter, 1, &base, &bob)) {
-    if (bob->type == OB_MBALL) {
-      zero_size = 0;
-      ml = nullptr;
+    if (bob->type != OB_MBALL) {
+      continue;
+    }
 
-      /* If this metaball is the original that's used for duplication, only have it visible when
-       * the instancer is visible too. */
-      if ((base->flag_legacy & OB_FROMDUPLI) == 0 && ob->parent != nullptr &&
-          (ob->parent->transflag & parenting_dupli_transflag) != 0 &&
-          (BKE_object_visibility(ob->parent, deg_eval_mode) & OB_VISIBLE_SELF) == 0)
-      {
+    /* If this metaball is the original that's used for duplication, only have it visible when
+     * the instancer is visible too. */
+    if ((base->flag_legacy & OB_FROMDUPLI) == 0 && ob->parent != nullptr &&
+        (ob->parent->transflag & parenting_dupli_transflag) != 0 &&
+        (BKE_object_visibility(ob->parent, deg_eval_mode) & OB_VISIBLE_SELF) == 0)
+    {
+      continue;
+    }
+
+    if (bob == ob && (base->flag_legacy & OB_FROMDUPLI) == 0) {
+      /* Pass. */
+    }
+    else {
+      char name[MAX_ID_NAME];
+      int nr;
+      BLI_string_split_name_number(bob->id.name + 2, '.', name, &nr);
+      if (!STREQ(obname, name)) {
+        /* Not part of the mother-ball, continue. */
         continue;
       }
+    }
 
-      if (bob == ob && (base->flag_legacy & OB_FROMDUPLI) == 0) {
-        mb = static_cast<MetaBall *>(ob->data);
+    /* When metaball object has zero scale, then MetaElem to this MetaBall
+     * will not be put to `mainb` array. */
+    if (object_has_zero_axis_matrix(bob)) {
+      continue;
+    }
 
-        if (mb->editelems) {
-          ml = static_cast<const MetaElem *>(mb->editelems->first);
-        }
-        else {
-          ml = static_cast<const MetaElem *>(mb->elems.first);
-        }
+    const MetaBall *mb = static_cast<MetaBall *>(bob->data);
+    LISTBASE_FOREACH (const MetaElem *, ml, (mb->editelems ? mb->editelems : &mb->elems)) {
+      if (ml->flag & MB_HIDE) {
+        continue;
+      }
+      float pos[4][4], rot[4][4];
+      float expx, expy, expz;
+      blender::float3 tempmin, tempmax;
+
+      /* make a copy because of duplicates */
+      MetaElem *new_ml = static_cast<MetaElem *>(
+          BLI_memarena_alloc(process->pgn_elements, sizeof(MetaElem)));
+      *(new_ml) = *ml;
+      new_ml->bb = static_cast<BoundBox *>(
+          BLI_memarena_alloc(process->pgn_elements, sizeof(BoundBox)));
+      new_ml->mat = static_cast<float *>(
+          BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4])));
+      new_ml->imat = static_cast<float *>(
+          BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4])));
+
+      /* too big stiffness seems only ugly due to linear interpolation
+       * no need to have possibility for too big stiffness */
+      if (ml->s > 10.0f) {
+        new_ml->s = 10.0f;
       }
       else {
-        char name[MAX_ID_NAME];
-        int nr;
-
-        BLI_string_split_name_number(bob->id.name + 2, '.', name, &nr);
-        if (STREQ(obname, name)) {
-          mb = static_cast<MetaBall *>(bob->data);
-
-          if (mb->editelems) {
-            ml = static_cast<const MetaElem *>(mb->editelems->first);
-          }
-          else {
-            ml = static_cast<const MetaElem *>(mb->elems.first);
-          }
-        }
+        new_ml->s = ml->s;
       }
 
-      /* when metaball object has zero scale, then MetaElem to this MetaBall
-       * will not be put to mainb array */
-      if (has_zero_axis_m4(bob->object_to_world().ptr())) {
-        zero_size = 1;
-      }
-      else if (bob->parent) {
-        Object *pob = bob->parent;
-        while (pob) {
-          if (has_zero_axis_m4(pob->object_to_world().ptr())) {
-            zero_size = 1;
-            break;
-          }
-          pob = pob->parent;
-        }
+      /* if metaball is negative, set stiffness negative */
+      if (new_ml->flag & MB_NEGATIVE) {
+        new_ml->s = -new_ml->s;
       }
 
-      if (zero_size) {
-        while (ml) {
-          ml = ml->next;
-        }
+      /* Translation of MetaElem */
+      unit_m4(pos);
+      pos[3][0] = ml->x;
+      pos[3][1] = ml->y;
+      pos[3][2] = ml->z;
+
+      /* Rotation of MetaElem is stored in quat */
+      quat_to_mat4(rot, ml->quat);
+
+      /* Matrix multiply is as follows:
+       *   basis object space ->
+       *   world ->
+       *   ml object space ->
+       *   position ->
+       *   rotation ->
+       *   ml local space
+       */
+      mul_m4_series((float(*)[4])new_ml->mat, obinv, bob->object_to_world().ptr(), pos, rot);
+      /* ml local space -> basis object space */
+      invert_m4_m4((float(*)[4])new_ml->imat, (float(*)[4])new_ml->mat);
+
+      /* rad2 is inverse of squared radius */
+      new_ml->rad2 = 1 / (ml->rad * ml->rad);
+
+      /* initial dimensions = radius */
+      expx = ml->rad;
+      expy = ml->rad;
+      expz = ml->rad;
+
+      switch (ml->type) {
+        case MB_BALL:
+          break;
+        case MB_CUBE: /* cube is "expanded" by expz, expy and expx */
+          expz += ml->expz;
+          ATTR_FALLTHROUGH;
+        case MB_PLANE: /* plane is "expanded" by expy and expx */
+          expy += ml->expy;
+          ATTR_FALLTHROUGH;
+        case MB_TUBE: /* tube is "expanded" by expx */
+          expx += ml->expx;
+          break;
+        case MB_ELIPSOID: /* ellipsoid is "stretched" by exp* */
+          expx *= ml->expx;
+          expy *= ml->expy;
+          expz *= ml->expz;
+          break;
       }
-      else {
-        while (ml) {
-          if (!(ml->flag & MB_HIDE)) {
-            float pos[4][4], rot[4][4];
-            float expx, expy, expz;
-            blender::float3 tempmin, tempmax;
 
-            MetaElem *new_ml;
+      /* untransformed Bounding Box of MetaElem */
+      /* TODO: its possible the elem type has been changed and the exp*
+       * values can use a fallback. */
+      copy_v3_fl3(new_ml->bb->vec[0], -expx, -expy, -expz); /* 0 */
+      copy_v3_fl3(new_ml->bb->vec[1], +expx, -expy, -expz); /* 1 */
+      copy_v3_fl3(new_ml->bb->vec[2], +expx, +expy, -expz); /* 2 */
+      copy_v3_fl3(new_ml->bb->vec[3], -expx, +expy, -expz); /* 3 */
+      copy_v3_fl3(new_ml->bb->vec[4], -expx, -expy, +expz); /* 4 */
+      copy_v3_fl3(new_ml->bb->vec[5], +expx, -expy, +expz); /* 5 */
+      copy_v3_fl3(new_ml->bb->vec[6], +expx, +expy, +expz); /* 6 */
+      copy_v3_fl3(new_ml->bb->vec[7], -expx, +expy, +expz); /* 7 */
 
-            /* make a copy because of duplicates */
-            new_ml = static_cast<MetaElem *>(
-                BLI_memarena_alloc(process->pgn_elements, sizeof(MetaElem)));
-            *(new_ml) = *ml;
-            new_ml->bb = static_cast<BoundBox *>(
-                BLI_memarena_alloc(process->pgn_elements, sizeof(BoundBox)));
-            new_ml->mat = static_cast<float *>(
-                BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4])));
-            new_ml->imat = static_cast<float *>(
-                BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4])));
-
-            /* too big stiffness seems only ugly due to linear interpolation
-             * no need to have possibility for too big stiffness */
-            if (ml->s > 10.0f) {
-              new_ml->s = 10.0f;
-            }
-            else {
-              new_ml->s = ml->s;
-            }
-
-            /* if metaball is negative, set stiffness negative */
-            if (new_ml->flag & MB_NEGATIVE) {
-              new_ml->s = -new_ml->s;
-            }
-
-            /* Translation of MetaElem */
-            unit_m4(pos);
-            pos[3][0] = ml->x;
-            pos[3][1] = ml->y;
-            pos[3][2] = ml->z;
-
-            /* Rotation of MetaElem is stored in quat */
-            quat_to_mat4(rot, ml->quat);
-
-            /* Matrix multiply is as follows:
-             *   basis object space ->
-             *   world ->
-             *   ml object space ->
-             *   position ->
-             *   rotation ->
-             *   ml local space
-             */
-            mul_m4_series((float(*)[4])new_ml->mat, obinv, bob->object_to_world().ptr(), pos, rot);
-            /* ml local space -> basis object space */
-            invert_m4_m4((float(*)[4])new_ml->imat, (float(*)[4])new_ml->mat);
-
-            /* rad2 is inverse of squared radius */
-            new_ml->rad2 = 1 / (ml->rad * ml->rad);
-
-            /* initial dimensions = radius */
-            expx = ml->rad;
-            expy = ml->rad;
-            expz = ml->rad;
-
-            switch (ml->type) {
-              case MB_BALL:
-                break;
-              case MB_CUBE: /* cube is "expanded" by expz, expy and expx */
-                expz += ml->expz;
-                ATTR_FALLTHROUGH;
-              case MB_PLANE: /* plane is "expanded" by expy and expx */
-                expy += ml->expy;
-                ATTR_FALLTHROUGH;
-              case MB_TUBE: /* tube is "expanded" by expx */
-                expx += ml->expx;
-                break;
-              case MB_ELIPSOID: /* ellipsoid is "stretched" by exp* */
-                expx *= ml->expx;
-                expy *= ml->expy;
-                expz *= ml->expz;
-                break;
-            }
-
-            /* untransformed Bounding Box of MetaElem */
-            /* TODO: its possible the elem type has been changed and the exp*
-             * values can use a fallback. */
-            copy_v3_fl3(new_ml->bb->vec[0], -expx, -expy, -expz); /* 0 */
-            copy_v3_fl3(new_ml->bb->vec[1], +expx, -expy, -expz); /* 1 */
-            copy_v3_fl3(new_ml->bb->vec[2], +expx, +expy, -expz); /* 2 */
-            copy_v3_fl3(new_ml->bb->vec[3], -expx, +expy, -expz); /* 3 */
-            copy_v3_fl3(new_ml->bb->vec[4], -expx, -expy, +expz); /* 4 */
-            copy_v3_fl3(new_ml->bb->vec[5], +expx, -expy, +expz); /* 5 */
-            copy_v3_fl3(new_ml->bb->vec[6], +expx, +expy, +expz); /* 6 */
-            copy_v3_fl3(new_ml->bb->vec[7], -expx, +expy, +expz); /* 7 */
-
-            /* Transformation of meta-elem bounding-box. */
-            for (i = 0; i < 8; i++) {
-              mul_m4_v3((float(*)[4])new_ml->mat, new_ml->bb->vec[i]);
-            }
-
-            /* Find max and min of transformed bounding-box. */
-            INIT_MINMAX(tempmin, tempmax);
-            for (i = 0; i < 8; i++) {
-              blender::math::min_max(blender::float3(new_ml->bb->vec[i]), tempmin, tempmax);
-            }
-
-            /* Set only point 0 and 6 - AABB of meta-elem. */
-            copy_v3_v3(new_ml->bb->vec[0], tempmin);
-            copy_v3_v3(new_ml->bb->vec[6], tempmax);
-
-            /* add new_ml to mainb[] */
-            if (UNLIKELY(process->totelem == process->mem)) {
-              process->mem = process->mem * 2 + 10;
-              process->mainb = static_cast<MetaElem **>(
-                  MEM_reallocN(process->mainb, sizeof(MetaElem *) * process->mem));
-            }
-            process->mainb[process->totelem++] = new_ml;
-          }
-          ml = ml->next;
-        }
+      /* Transformation of meta-elem bounding-box. */
+      for (uint i = 0; i < 8; i++) {
+        mul_m4_v3((float(*)[4])new_ml->mat, new_ml->bb->vec[i]);
       }
+
+      /* Find max and min of transformed bounding-box. */
+      INIT_MINMAX(tempmin, tempmax);
+      for (uint i = 0; i < 8; i++) {
+        blender::math::min_max(blender::float3(new_ml->bb->vec[i]), tempmin, tempmax);
+      }
+
+      /* Set only point 0 and 6 - AABB of meta-elem. */
+      copy_v3_v3(new_ml->bb->vec[0], tempmin);
+      copy_v3_v3(new_ml->bb->vec[6], tempmax);
+
+      /* add new_ml to mainb[] */
+      if (UNLIKELY(process->totelem == process->mem)) {
+        process->mem = process->mem * 2 + 10;
+        process->mainb = static_cast<MetaElem **>(
+            MEM_reallocN(process->mainb, sizeof(MetaElem *) * process->mem));
+      }
+      process->mainb[process->totelem++] = new_ml;
     }
   }
 
@@ -1376,7 +1352,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
   if (process->totelem > 0) {
     copy_v3_v3(process->allbb.min, process->mainb[0]->bb->vec[0]);
     copy_v3_v3(process->allbb.max, process->mainb[0]->bb->vec[6]);
-    for (i = 1; i < process->totelem; i++) {
+    for (uint i = 1; i < process->totelem; i++) {
       make_box_union(process->mainb[i]->bb, &process->allbb, &process->allbb);
     }
   }

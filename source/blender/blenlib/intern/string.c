@@ -260,6 +260,7 @@ char *BLI_sprintfN_with_buffer(
   retval = vsnprintf(result, size, format, args);
   va_end(args);
   BLI_assert((size_t)(retval + 1) == size);
+  UNUSED_VARS_NDEBUG(retval);
   return result;
 }
 
@@ -292,6 +293,7 @@ char *BLI_vsprintfN_with_buffer(char *fixed_buf,
   char *result = MEM_mallocN(sizeof(char) * size, __func__);
   retval = vsnprintf(result, size, format, args);
   BLI_assert((size_t)(retval + 1) == size);
+  UNUSED_VARS_NDEBUG(retval);
   return result;
 }
 

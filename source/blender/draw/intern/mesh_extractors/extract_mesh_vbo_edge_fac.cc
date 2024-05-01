@@ -10,7 +10,7 @@
 
 #include "BLI_math_vector.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 #include "draw_subdivision.hh"
 #include "extract_mesh.hh"
@@ -62,22 +62,22 @@ static void extract_edge_fac_init(const MeshRenderData &mr,
                                   void *buf,
                                   void *tls_data)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.loop_len + mr.loop_loose_len);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
 
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(tls_data);
 
   if (mr.extract_type == MR_EXTRACT_MESH) {
     data->use_edge_render = !mr.mesh->runtime->subsurf_optimal_display_edges.is_empty();
-    data->edge_loop_count = MEM_cnew_array<uint8_t>(mr.edge_len, __func__);
+    data->edge_loop_count = MEM_cnew_array<uint8_t>(mr.edges_num, __func__);
     data->edge_pdata = (MEdgeDataPrev *)MEM_malloc_arrayN(
-        mr.edge_len, sizeof(MEdgeDataPrev), __func__);
+        mr.edges_num, sizeof(MEdgeDataPrev), __func__);
   }
   else {
     /* HACK to bypass non-manifold check in mesh_edge_fac_finish(). */
@@ -166,8 +166,8 @@ static void extract_edge_fac_iter_loose_edge_bm(const MeshRenderData &mr,
                                                 void *_data)
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
-  data->vbo_data[mr.loop_len + (loose_edge_i * 2) + 0] = 0;
-  data->vbo_data[mr.loop_len + (loose_edge_i * 2) + 1] = 0;
+  data->vbo_data[mr.corners_num + (loose_edge_i * 2) + 0] = 0;
+  data->vbo_data[mr.corners_num + (loose_edge_i * 2) + 1] = 0;
 }
 
 static void extract_edge_fac_iter_loose_edge_mesh(const MeshRenderData &mr,
@@ -177,8 +177,8 @@ static void extract_edge_fac_iter_loose_edge_mesh(const MeshRenderData &mr,
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
 
-  data->vbo_data[mr.loop_len + loose_edge_i * 2 + 0] = 0;
-  data->vbo_data[mr.loop_len + loose_edge_i * 2 + 1] = 0;
+  data->vbo_data[mr.corners_num + loose_edge_i * 2 + 0] = 0;
+  data->vbo_data[mr.corners_num + loose_edge_i * 2 + 1] = 0;
 }
 
 static void extract_edge_fac_finish(const MeshRenderData &mr,
@@ -186,7 +186,7 @@ static void extract_edge_fac_finish(const MeshRenderData &mr,
                                     void *buf,
                                     void *_data)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
 
   if (GPU_crappy_amd_driver() || GPU_minimum_per_vertex_stride() > 1) {
@@ -201,7 +201,7 @@ static void extract_edge_fac_finish(const MeshRenderData &mr,
     data->vbo_data = static_cast<uchar *>(GPU_vertbuf_steal_data(vbo));
     GPU_vertbuf_clear(vbo);
 
-    int buf_len = mr.loop_len + mr.loop_loose_len;
+    int buf_len = mr.corners_num + mr.loose_indices_num;
     GPU_vertbuf_init_with_format(vbo, &format);
     GPU_vertbuf_data_alloc(vbo, buf_len);
 
@@ -232,9 +232,9 @@ static GPUVertFormat *get_subdiv_edge_fac_format()
   return &format;
 }
 
-static GPUVertBuf *build_poly_other_map_vbo(const DRWSubdivCache &subdiv_cache)
+static gpu::VertBuf *build_poly_other_map_vbo(const DRWSubdivCache &subdiv_cache)
 {
-  GPUVertBuf *vbo = GPU_vertbuf_calloc();
+  gpu::VertBuf *vbo = GPU_vertbuf_calloc();
 
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -285,14 +285,14 @@ static void extract_edge_fac_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                          void *buffer,
                                          void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
 
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
   GPU_vertbuf_init_build_on_device(
       vbo, get_subdiv_edge_fac_format(), subdiv_cache.num_subdiv_loops + loose_geom.loop_len);
 
-  GPUVertBuf *pos_nor = cache.final.buff.vbo.pos_nor;
-  GPUVertBuf *poly_other_map = build_poly_other_map_vbo(subdiv_cache);
+  gpu::VertBuf *pos_nor = cache.final.buff.vbo.pos;
+  gpu::VertBuf *poly_other_map = build_poly_other_map_vbo(subdiv_cache);
 
   draw_subdiv_build_edge_fac_buffer(
       subdiv_cache, pos_nor, subdiv_cache.edges_draw_flag, poly_other_map, vbo);
@@ -310,7 +310,7 @@ static void extract_edge_fac_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
     return;
   }
 
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
 
   /* Make sure buffer is active for sending loose data. */
   GPU_vertbuf_use(vbo);

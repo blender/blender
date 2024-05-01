@@ -7,6 +7,7 @@
  */
 
 #include <cstring>
+#include <optional>
 
 #include "DNA_cachefile_types.h"
 #include "DNA_object_types.h"
@@ -59,6 +60,7 @@ static void cache_file_init_data(ID *id)
 }
 
 static void cache_file_copy_data(Main * /*bmain*/,
+                                 std::optional<Library *> /*owner_library*/,
                                  ID *id_dst,
                                  const ID *id_src,
                                  const int /*flag*/)
@@ -115,7 +117,7 @@ static void cache_file_blend_read_data(BlendDataReader *reader, ID *id)
   cache_file->handle_readers = nullptr;
 
   /* relink layers */
-  BLO_read_list(reader, &cache_file->layers);
+  BLO_read_struct_list(reader, CacheFileLayer, &cache_file->layers);
 }
 
 IDTypeInfo IDType_ID_CF = {

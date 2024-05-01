@@ -106,7 +106,7 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
                                 GPUViewport *viewport,
                                 const bContext *evil_C);
 /**
- * object mode select-loop, see: #ED_view3d_draw_select_loop (legacy drawing).
+ * Object mode select-loop.
  */
 void DRW_draw_select_loop(Depsgraph *depsgraph,
                           ARegion *region,
@@ -121,7 +121,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
                           DRW_ObjectFilterFn object_filter_fn,
                           void *object_filter_user_data);
 /**
- * Object mode select-loop, see: #ED_view3d_draw_depth_loop (legacy drawing).
+ * Object mode select-loop.
  */
 void DRW_draw_depth_loop(Depsgraph *depsgraph,
                          ARegion *region,
@@ -136,6 +136,11 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
 void DRW_draw_depth_object(
     Scene *scene, ARegion *region, View3D *v3d, GPUViewport *viewport, Object *object);
 void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d);
+
+/**
+ * Query that drawing is in progress (use to prevent nested draw calls).
+ */
+bool DRW_draw_in_progress();
 
 /* Grease pencil render. */
 

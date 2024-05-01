@@ -16,6 +16,7 @@
 #include "../blenlib/BLI_function_ref.hh"
 #include "../blenlib/BLI_sys_types.h"
 #include "../blenlib/BLI_utildefines.h"
+#include "../blenlib/BLI_vector.hh"
 
 struct BlenderRNA;
 struct FunctionRNA;
@@ -83,6 +84,7 @@ enum PropertyUnit {
   PROP_UNIT_CAMERA = (10 << 16),       /* mm */
   PROP_UNIT_POWER = (11 << 16),        /* W */
   PROP_UNIT_TEMPERATURE = (12 << 16),  /* C */
+  PROP_UNIT_WAVELENGTH = (13 << 16),   /* `nm` (independent of scene). */
 };
 ENUM_OPERATORS(PropertyUnit, PROP_UNIT_TEMPERATURE)
 
@@ -179,10 +181,13 @@ enum PropertySubType {
 
   /* temperature */
   PROP_TEMPERATURE = 43 | PROP_UNIT_TEMPERATURE,
+
+  /* wavelength */
+  PROP_WAVELENGTH = 44 | PROP_UNIT_WAVELENGTH,
 };
 
 /* Make sure enums are updated with these */
-/* HIGHEST FLAG IN USE: 1 << 31
+/* HIGHEST FLAG IN USE: 1u << 31
  * FREE FLAGS: 13, 14, 15. */
 enum PropertyFlag {
   /**
@@ -207,7 +212,7 @@ enum PropertyFlag {
   /**
    * This flag means when the property's widget is in 'text-edit' mode, it will be updated
    * after every typed char, instead of waiting final validation. Used e.g. for text search-box.
-   * It will also cause UI_BUT_VALUE_CLEAR to be set for text buttons. We could add an own flag
+   * It will also cause UI_BUT_VALUE_CLEAR to be set for text buttons. We could add a separate flag
    * for search/filter properties, but this works just fine for now.
    */
   PROP_TEXTEDIT_UPDATE = (1u << 31),
@@ -387,7 +392,7 @@ ENUM_OPERATORS(ParameterFlag, PARM_PYFUNC_OPTIONAL)
 
 struct CollectionPropertyIterator;
 struct Link;
-using IteratorSkipFunc = int (*)(CollectionPropertyIterator *iter, void *data);
+using IteratorSkipFunc = bool (*)(CollectionPropertyIterator *iter, void *data);
 
 struct ListBaseIterator {
   Link *link;
@@ -438,17 +443,11 @@ struct CollectionPropertyIterator {
 
   /* external */
   PointerRNA ptr;
-  int valid;
+  bool valid;
 };
 
-struct CollectionPointerLink {
-  CollectionPointerLink *next, *prev;
-  PointerRNA ptr;
-};
-
-/** Copy of ListBase for RNA. */
-struct CollectionListBase {
-  CollectionPointerLink *first, *last;
+struct CollectionVector {
+  blender::Vector<PointerRNA> items;
 };
 
 enum RawPropertyType {
@@ -615,7 +614,7 @@ struct ParameterIterator {
   int size, offset;
 
   PropertyRNA *parm;
-  int valid;
+  bool valid;
 };
 
 /** Mainly to avoid confusing casts. */

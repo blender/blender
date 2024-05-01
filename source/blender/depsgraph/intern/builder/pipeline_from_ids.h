@@ -23,6 +23,8 @@ namespace blender::deg {
  */
 
 class FromIDsBuilderPipeline : public AbstractBuilderPipeline {
+  Span<ID *> ids_;
+
  public:
   FromIDsBuilderPipeline(::Depsgraph *graph, Span<ID *> ids);
 
@@ -32,9 +34,6 @@ class FromIDsBuilderPipeline : public AbstractBuilderPipeline {
 
   virtual void build_nodes(DepsgraphNodeBuilder &node_builder) override;
   virtual void build_relations(DepsgraphRelationBuilder &relation_builder) override;
-
- private:
-  Span<ID *> ids_;
 };
 
 }  // namespace blender::deg

@@ -16,7 +16,7 @@ MAX_DISPLAY_ROWS = 8
 
 
 def rna_idprop_quote_path(prop):
-    return "[\"%s\"]" % bpy.utils.escape_identifier(prop)
+    return "[\"{:s}\"]".format(bpy.utils.escape_identifier(prop))
 
 
 def rna_idprop_ui_prop_update(item, prop):
@@ -262,7 +262,7 @@ class PropertyPanel:
         rna_item, context_member = rna_idprop_context_value(context, self._context_path, self._property_type)
         tot = len(rna_item.keys())
         if tot:
-            self.layout().label(text="%d:" % tot)
+            self.layout().label(text="{:d}:".format(tot))
     """
 
     def draw(self, context):

@@ -229,7 +229,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   /**
    * Returns GHOST_kSuccess if the clipboard contains an image.
    */
-  GHOST_TSuccess hasClipboardImage(void) const;
+  GHOST_TSuccess hasClipboardImage() const;
 
   /**
    * Get image data from the Clipboard
@@ -451,7 +451,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   /**
    * Check current key layout for AltGr
    */
-  inline void handleKeyboardChange(void);
+  inline void handleKeyboardChange();
 
   /**
    * Windows call back routine for our window class.
@@ -483,7 +483,7 @@ class GHOST_SystemWin32 : public GHOST_System {
   int m_wheelDeltaAccum;
 };
 
-inline void GHOST_SystemWin32::handleKeyboardChange(void)
+inline void GHOST_SystemWin32::handleKeyboardChange()
 {
   m_keylayout = GetKeyboardLayout(0); /* Get keylayout for current thread. */
   int i;

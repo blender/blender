@@ -40,6 +40,8 @@ struct OBJExportParamsDefault {
     params.export_vertex_groups = false;
     params.export_smooth_groups = true;
     params.smooth_groups_bitflags = false;
+
+    params.reports = nullptr;
   }
 };
 

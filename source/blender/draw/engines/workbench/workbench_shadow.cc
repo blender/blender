@@ -17,7 +17,7 @@
 
 #include "BKE_object.hh"
 #include "DRW_render.hh"
-#include "GPU_compute.h"
+#include "GPU_compute.hh"
 
 #include "workbench_private.hh"
 
@@ -56,48 +56,54 @@ void ShadowPass::ShadowView::setup(View &view, float3 light_direction, bool forc
   const int z_pos = 4; /* Near */
   const int z_neg = 2; /* Far */
 
-  int3 corner_faces[8] = {{x_neg, y_neg, z_pos},
-                          {x_neg, y_neg, z_neg},
-                          {x_neg, y_pos, z_neg},
-                          {x_neg, y_pos, z_pos},
-                          {x_pos, y_neg, z_pos},
-                          {x_pos, y_neg, z_neg},
-                          {x_pos, y_pos, z_neg},
-                          {x_pos, y_pos, z_pos}};
+  const int3 corner_faces[8] = {
+      {x_neg, y_neg, z_pos},
+      {x_neg, y_neg, z_neg},
+      {x_neg, y_pos, z_neg},
+      {x_neg, y_pos, z_pos},
+      {x_pos, y_neg, z_pos},
+      {x_pos, y_neg, z_neg},
+      {x_pos, y_pos, z_neg},
+      {x_pos, y_pos, z_pos},
+  };
 
-  int2 edge_faces[12] = {{x_neg, y_neg},
-                         {x_neg, z_neg},
-                         {x_neg, y_pos},
-                         {x_neg, z_pos},
-                         {y_neg, x_pos},
-                         {z_neg, x_pos},
-                         {y_pos, x_pos},
-                         {z_pos, x_pos},
-                         {y_neg, z_pos},
-                         {z_neg, y_neg},
-                         {y_pos, z_neg},
-                         {z_pos, y_pos}};
+  const int2 edge_faces[12] = {
+      {x_neg, y_neg},
+      {x_neg, z_neg},
+      {x_neg, y_pos},
+      {x_neg, z_pos},
+      {y_neg, x_pos},
+      {z_neg, x_pos},
+      {y_pos, x_pos},
+      {z_pos, x_pos},
+      {y_neg, z_pos},
+      {z_neg, y_neg},
+      {y_pos, z_neg},
+      {z_pos, y_pos},
+  };
 
-  int2 edge_corners[12] = {{0, 1},
-                           {1, 2},
-                           {2, 3},
-                           {3, 0},
-                           {4, 5},
-                           {5, 6},
-                           {6, 7},
-                           {7, 4},
-                           {0, 4},
-                           {1, 5},
-                           {2, 6},
-                           {3, 7}};
+  const int2 edge_corners[12] = {
+      {0, 1},
+      {1, 2},
+      {2, 3},
+      {3, 0},
+      {4, 5},
+      {5, 6},
+      {6, 7},
+      {7, 4},
+      {0, 4},
+      {1, 5},
+      {2, 6},
+      {3, 7},
+  };
 
   BoundBox frustum_corners;
   DRW_culling_frustum_corners_get(nullptr, &frustum_corners);
   float4 frustum_planes[6];
   DRW_culling_frustum_planes_get(nullptr, (float(*)[4])frustum_planes);
 
-  Vector<float4> faces_result = {};
-  Vector<float3> corners_result = {};
+  Vector<float4> faces_result;
+  Vector<float3> corners_result;
 
   /* "Unlit" frustum faces are left "as-is" */
 
@@ -381,7 +387,7 @@ void ShadowPass::object_sync(SceneState &scene_state,
 
   Object *ob = ob_ref.object;
   bool is_manifold;
-  GPUBatch *geom_shadow = DRW_cache_object_edge_detection_get(ob, &is_manifold);
+  blender::gpu::Batch *geom_shadow = DRW_cache_object_edge_detection_get(ob, &is_manifold);
   if (geom_shadow == nullptr) {
     return;
   }

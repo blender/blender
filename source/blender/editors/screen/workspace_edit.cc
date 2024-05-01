@@ -20,7 +20,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "BLO_readfile.hh"
 
@@ -43,7 +43,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "screen_intern.h"
+#include "screen_intern.hh"
 
 using blender::Vector;
 
@@ -145,7 +145,7 @@ static void workspace_change_update(WorkSpace *workspace_new,
   eObjectMode mode_new = workspace_new->object_mode;
 
   if (mode_old != mode_new) {
-    ED_object_mode_set(C, mode_new);
+    blender::ed::object::mode_set(C, mode_new);
   }
 #endif
 }
@@ -208,7 +208,7 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
 
   /* Automatic mode switching. */
   if (workspace_new->object_mode != workspace_old->object_mode) {
-    ED_object_mode_set(C, eObjectMode(workspace_new->object_mode));
+    blender::ed::object::mode_set(C, eObjectMode(workspace_new->object_mode));
   }
 
   return true;

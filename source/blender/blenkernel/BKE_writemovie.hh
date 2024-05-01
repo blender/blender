@@ -39,7 +39,7 @@ struct bMovieHandle {
                          bool preview,
                          const char *suffix);
 
-  void *(*context_create)(void);
+  void *(*context_create)();
   void (*context_free)(void *context_v);
 };
 

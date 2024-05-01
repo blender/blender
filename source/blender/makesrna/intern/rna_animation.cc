@@ -12,11 +12,14 @@
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
 #include "MEM_guardedalloc.h"
+
+#include "BKE_nla.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -24,9 +27,12 @@
 
 #include "rna_internal.hh"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "ED_keyframing.hh"
+
+#include "ANIM_animation.hh"
 
 /* exported for use in API */
 const EnumPropertyItem rna_enum_keyingset_path_grouping_items[] = {
@@ -51,6 +57,12 @@ const EnumPropertyItem rna_enum_keying_flag_items[] = {
      0,
      "Visual Keying",
      "Insert keyframes based on 'visual transforms'"},
+    {0,
+     "INSERTKEY_XYZ_TO_RGB",
+     0,
+     "XYZ=RGB Colors (ignored)",
+     "This flag is no longer in use, and is here so that code that uses it doesn't break. The "
+     "XYZ=RGB coloring is determined by the animation preferences"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -66,6 +78,12 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
      0,
      "Visual Keying",
      "Insert keyframes based on 'visual transforms'"},
+    {0,
+     "INSERTKEY_XYZ_TO_RGB",
+     0,
+     "XYZ=RGB Colors (ignored)",
+     "This flag is no longer in use, and is here so that code that uses it doesn't break. The "
+     "XYZ=RGB coloring is determined by the animation preferences"},
     {INSERTKEY_REPLACE,
      "INSERTKEY_REPLACE",
      0,
@@ -85,15 +103,26 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+constexpr int binding_items_value_create_new = -1;
+const EnumPropertyItem rna_enum_animation_binding_items[] = {
+    {binding_items_value_create_new,
+     "NEW",
+     ICON_ADD,
+     "New",
+     "Create a new animation binding for this data-block"},
+    {int(blender::animrig::Binding::unassigned), "UNASSIGNED", 0, "(none/legacy)", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
 
 #  include "BLI_math_base.h"
 
-#  include "BKE_anim_data.h"
+#  include "BKE_anim_data.hh"
 #  include "BKE_animsys.h"
-#  include "BKE_fcurve.h"
+#  include "BKE_fcurve.hh"
 #  include "BKE_nla.h"
 
 #  include "DEG_depsgraph.hh"
@@ -104,6 +133,8 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 #  include "ED_anim_api.hh"
 
 #  include "WM_api.hh"
+
+#  include "UI_interface_icons.hh"
 
 static void rna_AnimData_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
@@ -119,7 +150,7 @@ static void rna_AnimData_dependency_update(Main *bmain, Scene *scene, PointerRNA
   rna_AnimData_update(bmain, scene, ptr);
 }
 
-static int rna_AnimData_action_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_AnimData_action_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   AnimData *adt = (AnimData *)ptr->data;
   return BKE_animdata_action_editable(adt) ? PROP_EDITABLE : PropertyFlag(0);
@@ -177,8 +208,202 @@ bool rna_AnimData_tweakmode_override_apply(Main * /*bmain*/,
 
   anim_data_dst->flag = (anim_data_dst->flag & ~ADT_NLA_EDIT_ON) |
                         (anim_data_src->flag & ADT_NLA_EDIT_ON);
+
+  /* There are many more flags & pointers to deal with when switching NLA tweak mode. This has to
+   * be handled once all the NLA tracks & strips are available, though. It's done in a post-process
+   * step, see BKE_nla_liboverride_post_process(). */
   return true;
 }
+
+#  ifdef WITH_ANIM_BAKLAVA
+static void rna_AnimData_animation_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
+{
+  BLI_assert(ptr->owner_id);
+  ID &animated_id = *ptr->owner_id;
+
+  Animation *anim = static_cast<Animation *>(value.data);
+  if (!anim) {
+    blender::animrig::unassign_animation(animated_id);
+    return;
+  }
+
+  blender::animrig::assign_animation(anim->wrap(), animated_id);
+}
+
+static void rna_AnimData_animation_binding_handle_set(
+    PointerRNA *ptr, const blender::animrig::binding_handle_t new_binding_handle)
+{
+  BLI_assert(ptr->owner_id);
+  ID &animated_id = *ptr->owner_id;
+
+  /* 'adt' is guaranteed to exist, or otherwise this function could not be called. */
+  AnimData *adt = BKE_animdata_from_id(&animated_id);
+  BLI_assert_msg(adt, "ID.animation_data is unexpectedly empty");
+  if (!adt) {
+    WM_reportf(RPT_ERROR,
+               "Data-block '%s' does not have any animation data, use animation_data_create()",
+               animated_id.name + 2);
+    return;
+  }
+
+  if (new_binding_handle == blender::animrig::Binding::unassigned) {
+    /* No need to check with the Animation, as 'no binding' is always valid. */
+    adt->binding_handle = blender::animrig::Binding::unassigned;
+    return;
+  }
+
+  blender::animrig::Animation *anim = blender::animrig::get_animation(animated_id);
+  if (!anim) {
+    /* No animation to verify the binding handle is valid. As the binding handle
+     * will be completely ignored when re-assigning an Animation, better to
+     * refuse setting it altogether. This will make bugs in Python code more obvious. */
+    WM_reportf(RPT_ERROR,
+               "Data-block '%s' does not have an animation, cannot set binding handle",
+               animated_id.name + 2);
+    return;
+  }
+
+  blender::animrig::Binding *binding = anim->binding_for_handle(new_binding_handle);
+  if (!binding) {
+    WM_reportf(RPT_ERROR,
+               "Animation '%s' has no binding with handle %d",
+               anim->id.name + 2,
+               new_binding_handle);
+    return;
+  }
+  if (!anim->assign_id(binding, animated_id)) {
+    WM_reportf(RPT_ERROR,
+               "Animation '%s' binding '%s' (%d) could not be assigned to %s",
+               anim->id.name + 2,
+               binding->name,
+               binding->handle,
+               animated_id.name + 2);
+    return;
+  }
+}
+
+static AnimData &rna_animdata(const PointerRNA *ptr)
+{
+  return *reinterpret_cast<AnimData *>(ptr->data);
+}
+
+static int rna_AnimData_animation_binding_get(PointerRNA *ptr)
+{
+  AnimData &adt = rna_animdata(ptr);
+  return adt.binding_handle;
+}
+
+static void rna_AnimData_animation_binding_set(PointerRNA *ptr, int value)
+{
+  using blender::animrig::Animation;
+  using blender::animrig::Binding;
+  using blender::animrig::binding_handle_t;
+
+  AnimData &adt = rna_animdata(ptr);
+  ID &animated_id = *ptr->owner_id;
+
+  const binding_handle_t new_binding_handle = binding_handle_t(value);
+  if (new_binding_handle == Binding::unassigned) {
+    /* No need to check with the Animation, as 'no binding' is always valid. */
+    adt.binding_handle = Binding::unassigned;
+    return;
+  }
+
+  if (!adt.animation) {
+    /* No animation to verify the binding handle is valid. As the binding handle
+     * will be completely ignored when re-assigning an Animation, better to
+     * refuse setting it altogether. This will make bugs in Python code more obvious. */
+    WM_reportf(RPT_ERROR,
+               "Data-block '%s' does not have an animation, cannot set binding handle",
+               animated_id.name + 2);
+    return;
+  }
+
+  Animation &anim = adt.animation->wrap();
+  Binding *binding = nullptr;
+
+  if (new_binding_handle == binding_items_value_create_new) {
+    /* Special case for this enum item. */
+    binding = &anim.binding_add_for_id(animated_id);
+  }
+  else {
+    binding = anim.binding_for_handle(new_binding_handle);
+    if (!binding) {
+      WM_reportf(RPT_ERROR,
+                 "Animation '%s' has no binding with handle %d",
+                 anim.id.name + 2,
+                 new_binding_handle);
+      return;
+    }
+  }
+
+  if (!anim.assign_id(binding, animated_id)) {
+    WM_reportf(RPT_ERROR,
+               "Animation '%s' binding '%s' (%d) could not be assigned to %s",
+               anim.id.name + 2,
+               binding->name_without_prefix().c_str(),
+               binding->handle,
+               animated_id.name + 2);
+    return;
+  }
+
+  WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN, nullptr);
+}
+
+static const EnumPropertyItem *rna_AnimData_animation_binding_itemf(bContext * /*C*/,
+                                                                    PointerRNA *ptr,
+                                                                    PropertyRNA * /*prop*/,
+                                                                    bool *r_free)
+{
+  using blender::animrig::Animation;
+  using blender::animrig::Binding;
+
+  AnimData &adt = rna_animdata(ptr);
+  if (!adt.animation) {
+    // TODO: handle properly.
+    *r_free = false;
+    return rna_enum_animation_binding_items;
+  }
+
+  const Animation &anim = adt.animation->wrap();
+
+  EnumPropertyItem item = {0};
+  EnumPropertyItem *items = nullptr;
+  int num_items = 0;
+
+  bool found_assigned_binding = false;
+  for (const Binding *binding : anim.bindings()) {
+    item.value = binding->handle;
+    item.identifier = binding->name;
+    item.name = binding->name_without_prefix().c_str();
+    item.icon = UI_icon_from_idcode(binding->idtype);
+    item.description = "";
+    RNA_enum_item_add(&items, &num_items, &item);
+
+    found_assigned_binding |= binding->handle == adt.binding_handle;
+  }
+
+  if (num_items > 0) {
+    RNA_enum_item_add_separator(&items, &num_items);
+  }
+
+  /* Only add the 'New' option. Unassigning should be done with the 'X' button. */
+  BLI_assert(rna_enum_animation_binding_items[0].value == binding_items_value_create_new);
+  RNA_enum_item_add(&items, &num_items, &rna_enum_animation_binding_items[0]);
+
+  if (!found_assigned_binding) {
+    /* The assigned binding was not found, so show an option that reflects that. */
+    BLI_assert(rna_enum_animation_binding_items[1].value == Binding::unassigned);
+    RNA_enum_item_add(&items, &num_items, &rna_enum_animation_binding_items[1]);
+  }
+
+  RNA_enum_item_end(&items, &num_items);
+
+  *r_free = true;
+  return items;
+}
+
+#  endif
 
 /* ****************************** */
 
@@ -381,7 +606,7 @@ static StructRNA *rna_ksPath_id_typef(PointerRNA *ptr)
   return ID_code_to_RNA_type(ksp->idtype);
 }
 
-static int rna_ksPath_id_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_ksPath_id_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   KS_Path *ksp = (KS_Path *)ptr->data;
   return (ksp->idtype) ? PROP_EDITABLE : PropertyFlag(0);
@@ -478,7 +703,7 @@ static void rna_KeyingSet_name_set(PointerRNA *ptr, const char *value)
   STRNCPY(ks->name, value);
 }
 
-static int rna_KeyingSet_active_ksPath_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_KeyingSet_active_ksPath_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   KeyingSet *ks = (KeyingSet *)ptr->data;
 
@@ -738,8 +963,8 @@ bool rna_AnimaData_override_apply(Main *bmain, RNAPropertyOverrideApplyContext &
   IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
 
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
-  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
-             "Unsupported RNA override operation on animdata pointer");
+  BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_REPLACE,
+                 "Unsupported RNA override operation on animdata pointer");
   UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
 
   /* AnimData is a special case, since you cannot edit/replace it, it's either existent or not.
@@ -800,8 +1025,8 @@ bool rna_NLA_tracks_override_apply(Main *bmain, RNAPropertyOverrideApplyContext 
   PropertyRNA *prop_dst = rnaapply_ctx.prop_dst;
   IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
 
-  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
-             "Unsupported RNA override operation on constraints collection");
+  BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER,
+                 "Unsupported RNA override operation on constraints collection");
 
   AnimData *anim_data_dst = (AnimData *)ptr_dst->data;
   AnimData *anim_data_src = (AnimData *)ptr_src->data;
@@ -1439,6 +1664,47 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ADT_CURVES_ALWAYS_VISIBLE);
   RNA_def_property_ui_text(prop, "Pin in Graph Editor", "");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
+
+#  ifdef WITH_ANIM_BAKLAVA
+  /* Animation data-block */
+  prop = RNA_def_property(srna, "animation", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Animation");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, nullptr, "rna_AnimData_animation_set", nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "Animation", "Active Animation for this data-block");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_AnimData_dependency_update");
+
+  prop = RNA_def_property(srna, "animation_binding_handle", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "binding_handle");
+  RNA_def_property_int_funcs(prop, nullptr, "rna_AnimData_animation_binding_handle_set", nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Animation Binding Handle",
+                           "A number that identifies which sub-set of the Animation is considered "
+                           "to be for this data-block");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_AnimData_dependency_update");
+
+  prop = RNA_def_property(srna, "animation_binding_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "binding_name");
+  RNA_def_property_ui_text(
+      prop,
+      "Animation Binding Name",
+      "The name of the animation binding. The binding identifies which sub-set of the Animation "
+      "is considered to be for this data-block, and its name is used to find the right binding "
+      "when assigning an Animation");
+
+  prop = RNA_def_property(srna, "animation_binding", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_AnimData_animation_binding_get",
+                              "rna_AnimData_animation_binding_set",
+                              "rna_AnimData_animation_binding_itemf");
+  RNA_def_property_enum_items(prop, rna_enum_animation_binding_items);
+  RNA_def_property_ui_text(
+      prop,
+      "Animation Binding",
+      "The binding identifies which sub-set of the Animation is considered to be for this "
+      "data-block, and its name is used to find the right binding when assigning an Animation");
+
+#  endif
 
   RNA_define_lib_overridable(false);
 

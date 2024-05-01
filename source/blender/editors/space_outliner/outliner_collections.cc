@@ -183,6 +183,17 @@ static bool collection_edit_in_active_scene_poll(bContext *C)
   return true;
 }
 
+static bool collection_new_poll(bContext *C)
+{
+  if (!ED_operator_region_outliner_active(C)) {
+    return false;
+  }
+  if (!collection_edit_in_active_scene_poll(C)) {
+    return false;
+  }
+  return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -268,7 +279,7 @@ void OUTLINER_OT_collection_new(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = collection_new_exec;
-  ot->poll = collection_edit_in_active_scene_poll;
+  ot->poll = collection_new_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -812,7 +823,7 @@ static int collection_instance_exec(bContext *C, wmOperator * /*op*/)
   GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
     Collection *collection = static_cast<Collection *>(
         BLI_gsetIterator_getKey(&collections_to_edit_iter));
-    Object *ob = ED_object_add_type(
+    Object *ob = object::add_type(
         C, OB_EMPTY, collection->id.name + 2, scene->cursor.location, nullptr, false, 0);
     ob->instance_collection = collection;
     ob->transflag |= OB_DUPLICOLLECTION;

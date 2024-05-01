@@ -8,12 +8,15 @@
 #include "MEM_guardedalloc.h"
 
 #include <cstring>
+#include <optional>
+
+#include "ANIM_animation.hh"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
@@ -277,7 +280,15 @@ bool BKE_animdata_id_is_animated(const ID *id)
     return false;
   }
 
-  if (adt->action != nullptr && !BLI_listbase_is_empty(&adt->action->curves)) {
+  /* If an Animation is assigned, it takes precedence over the Action, even when
+   * this Animation has no F-Curves and the Action does. */
+  if (adt->animation) {
+    const blender::animrig::Animation &anim = adt->animation->wrap();
+    if (anim.is_binding_animated(adt->binding_handle)) {
+      return true;
+    }
+  }
+  else if (adt->action != nullptr && !BLI_listbase_is_empty(&adt->action->curves)) {
     return true;
   }
 
@@ -291,6 +302,7 @@ void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(fcu, data));
   }
 
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->animation, IDWALK_CB_USER);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->action, IDWALK_CB_USER);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->tmpact, IDWALK_CB_USER);
 
@@ -303,7 +315,10 @@ void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
 
 /* Copying -------------------------------------------- */
 
-AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
+AnimData *BKE_animdata_copy_in_lib(Main *bmain,
+                                   std::optional<Library *> owner_library,
+                                   AnimData *adt,
+                                   const int flag)
 {
   AnimData *dadt;
 
@@ -333,8 +348,10 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
                                  flag;
     BLI_assert(bmain != nullptr);
     BLI_assert(dadt->action == nullptr || dadt->action != dadt->tmpact);
-    dadt->action = (bAction *)BKE_id_copy_ex(bmain, (ID *)dadt->action, nullptr, id_copy_flag);
-    dadt->tmpact = (bAction *)BKE_id_copy_ex(bmain, (ID *)dadt->tmpact, nullptr, id_copy_flag);
+    dadt->action = reinterpret_cast<bAction *>(BKE_id_copy_in_lib(
+        bmain, owner_library, reinterpret_cast<ID *>(dadt->action), nullptr, id_copy_flag));
+    dadt->tmpact = reinterpret_cast<bAction *>(BKE_id_copy_in_lib(
+        bmain, owner_library, reinterpret_cast<ID *>(dadt->tmpact), nullptr, id_copy_flag));
   }
   else if (do_id_user) {
     id_us_plus((ID *)dadt->action);
@@ -353,6 +370,11 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
 
   /* return */
   return dadt;
+}
+
+AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
+{
+  return BKE_animdata_copy_in_lib(bmain, std::nullopt, adt, flag);
 }
 
 bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)
@@ -870,8 +892,12 @@ static bool nlastrips_path_rename_fix(ID *owner_id,
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* fix strip's action */
     if (strip->act != nullptr) {
-      is_changed |= fcurves_path_rename_fix(
+      const bool is_changed_action = fcurves_path_rename_fix(
           owner_id, prefix, oldName, newName, oldKey, newKey, &strip->act->curves, verify_paths);
+      if (is_changed_action) {
+        DEG_id_tag_update(&strip->act->id, ID_RECALC_ANIMATION);
+      }
+      is_changed |= is_changed_action;
     }
     /* Ignore own F-Curves, since those are local. */
     /* Check sub-strips (if meta-strips). */
@@ -1450,7 +1476,7 @@ void BKE_animdata_blend_write(BlendWriter *writer, ID *id)
   BLO_write_struct(writer, AnimData, adt);
 
   /* write drivers */
-  BKE_fcurve_blend_write(writer, &adt->drivers);
+  BKE_fcurve_blend_write_listbase(writer, &adt->drivers);
 
   /* write overrides */
   /* FIXME: are these needed? */
@@ -1473,21 +1499,21 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id)
     return;
   }
 
-  AnimData *adt = static_cast<AnimData *>(BLO_read_data_address(reader, &iat->adt));
+  AnimData *adt = static_cast<AnimData *>(BLO_read_struct(reader, AnimData, &iat->adt));
   if (adt == nullptr) {
     return;
   }
 
   /* link drivers */
-  BLO_read_list(reader, &adt->drivers);
-  BKE_fcurve_blend_read_data(reader, &adt->drivers);
+  BLO_read_struct_list(reader, FCurve, &adt->drivers);
+  BKE_fcurve_blend_read_data_listbase(reader, &adt->drivers);
   adt->driver_array = nullptr;
 
   /* link overrides */
   /* TODO... */
 
   /* link NLA-data */
-  BLO_read_list(reader, &adt->nla_tracks);
+  BLO_read_struct_list(reader, NlaTrack, &adt->nla_tracks);
   BKE_nla_blend_read_data(reader, id, &adt->nla_tracks);
 
   /* relink active track/strip - even though strictly speaking this should only be used
@@ -1496,6 +1522,21 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id)
    */
   /* TODO: it's not really nice that anyone should be able to save the file in this
    *       state, but it's going to be too hard to enforce this single case. */
-  BLO_read_data_address(reader, &adt->act_track);
-  BLO_read_data_address(reader, &adt->actstrip);
+  BLO_read_struct(reader, NlaTrack, &adt->act_track);
+  BLO_read_struct(reader, NlaStrip, &adt->actstrip);
+
+  if (ID_IS_LINKED(id)) {
+    /* Linked NLAs should never be in tweak mode, as you cannot exit that on linked data. */
+    BKE_nla_tweakmode_exit_nofollowptr(adt);
+  }
+}
+
+void BKE_animdata_liboverride_post_process(ID *id)
+{
+  AnimData *adt = BKE_animdata_from_id(id);
+  if (!adt) {
+    return;
+  }
+
+  BKE_nla_liboverride_post_process(id, adt);
 }

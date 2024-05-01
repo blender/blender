@@ -317,7 +317,7 @@ bool _bli_array_iter_spiral_square(const void *arr_v,
   }
 
   /* For check_bounds. */
-  int limits[2] = {(arr_shape[0] - 1) * stride[0], stride[0] - stride[1]};
+  const int limits[2] = {(arr_shape[0] - 1) * stride[0], stride[0] - stride[1]};
 
   int steps = 0;
   while (steps < steps_out) {

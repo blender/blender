@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -64,7 +65,11 @@ static void metaball_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(metaball, DNA_struct_default_get(MetaBall), id);
 }
 
-static void metaball_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
+static void metaball_copy_data(Main * /*bmain*/,
+                               std::optional<Library *> /*owner_library*/,
+                               ID *id_dst,
+                               const ID *id_src,
+                               const int /*flag*/)
 {
   MetaBall *metaball_dst = (MetaBall *)id_dst;
   const MetaBall *metaball_src = (const MetaBall *)id_src;
@@ -128,7 +133,7 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_pointer_array(reader, (void **)&mb->mat);
 
-  BLO_read_list(reader, &(mb->elems));
+  BLO_read_struct_list(reader, MetaElem, &(mb->elems));
 
   mb->editelems = nullptr;
   /* Must always be cleared (meta's don't have their own edit-data). */

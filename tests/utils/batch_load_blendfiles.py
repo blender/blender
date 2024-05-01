@@ -23,7 +23,7 @@ from typing import (
 )
 
 SOURCE_DIR = os.path.abspath(os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..")))
-LIB_DIR = os.path.abspath(os.path.normpath(os.path.join(SOURCE_DIR, "..", "lib")))
+LIB_DIR = os.path.abspath(os.path.normpath(os.path.join(SOURCE_DIR, "lib")))
 
 SORT_BY_FN = {
     "PATH": lambda path: path,

@@ -101,6 +101,6 @@ void BKE_asset_weak_reference_write(BlendWriter *writer, const AssetWeakReferenc
 
 void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *weak_ref)
 {
-  BLO_read_data_address(reader, &weak_ref->asset_library_identifier);
-  BLO_read_data_address(reader, &weak_ref->relative_asset_identifier);
+  BLO_read_string(reader, &weak_ref->asset_library_identifier);
+  BLO_read_string(reader, &weak_ref->relative_asset_identifier);
 }

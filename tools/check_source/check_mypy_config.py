@@ -50,11 +50,7 @@ PATHS_EXCLUDE = set(
         "tools/check_blender_release/scripts/requests_basic_access.py",
         "tools/check_blender_release/scripts/requests_import.py",
         "tools/check_source/check_descriptions.py",
-        "tools/check_source/check_header_duplicate.py",
         "tools/check_source/check_unused_defines.py",
-        "tools/triage/gitea_utils.py",  # TODO (low priority).
-        "tools/triage/issues_needing_info.py",  # TODO (low priority).
-        "tools/triage/weekly_report.py",  # TODO (low priority).
         "tools/utils/blend2json.py",
         "tools/utils/blender_keyconfig_export_permutations.py",
         "tools/utils/blender_merge_format_changes.py",

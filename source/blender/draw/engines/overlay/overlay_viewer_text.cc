@@ -44,7 +44,7 @@ static void add_values_to_text_cache(const GVArray &values,
       const float3 position = math::transform_point(object_to_world, positions[i]);
       const T &value = values_typed[i];
 
-      char numstr[32];
+      char numstr[64];
       size_t numstr_len = 0;
       if constexpr (std::is_same_v<T, bool>) {
         numstr_len = SNPRINTF_RLEN(numstr, "%s", value ? "True" : "False");
@@ -77,7 +77,8 @@ static void add_values_to_text_cache(const GVArray &values,
             numstr, "(%.3f, %.3f, %.3f, %.3f)", value.r, value.g, value.b, value.a);
       }
       else if constexpr (std::is_same_v<T, math::Quaternion>) {
-        numstr_len = SNPRINTF_RLEN(numstr, "(%g, %g, %g, %g)", value.w, value.x, value.y, value.z);
+        numstr_len = SNPRINTF_RLEN(
+            numstr, "(%.3f, %.3f, %.3f, %.3f)", value.w, value.x, value.y, value.z);
       }
       else {
         BLI_assert_unreachable();
@@ -105,7 +106,6 @@ static void add_attributes_to_text_cache(bke::AttributeAccessor attribute_access
 
 static void add_instance_attributes_to_text_cache(bke::AttributeAccessor attribute_accessor,
                                                   const float4x4 &object_to_world,
-                                                  float3 position,
                                                   int instance_index)
 {
   /* Data from instances are read as a single value from a given index. The data is converted back
@@ -113,7 +113,7 @@ static void add_instance_attributes_to_text_cache(bke::AttributeAccessor attribu
   const GVArray attribute = attribute_accessor.lookup(".viewer").varray.slice(
       IndexRange(instance_index, 1));
 
-  add_values_to_text_cache(attribute, {position}, object_to_world);
+  add_values_to_text_cache(attribute, {float3(0, 0, 0)}, object_to_world);
 }
 
 }  // namespace blender::draw::overlay
@@ -128,10 +128,8 @@ void OVERLAY_viewer_attribute_text(const Object &object)
   if (dupli_object->preview_instance_index >= 0) {
     const bke::Instances *instances = dupli_object->preview_base_geometry->get_instances();
     if (instances->attributes().contains(".viewer")) {
-      add_instance_attributes_to_text_cache(instances->attributes(),
-                                            object_to_world,
-                                            dupli_object->ob->loc,
-                                            dupli_object->preview_instance_index);
+      add_instance_attributes_to_text_cache(
+          instances->attributes(), object_to_world, dupli_object->preview_instance_index);
 
       return;
     }

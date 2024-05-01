@@ -8,19 +8,15 @@
 
 #include "DNA_curve_types.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
-#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_vfont.hh"
 
@@ -34,7 +30,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "view3d_intern.h"
+#include "view3d_intern.hh"
 
 #include "view3d_navigate.hh" /* own include */
 
@@ -93,7 +89,7 @@ void ViewOpsData::init_context(bContext *C)
 void ViewOpsData::state_backup()
 {
   copy_v3_v3(this->init.ofs, rv3d->ofs);
-  copy_v3_v3(this->init.ofs_lock, rv3d->ofs_lock);
+  copy_v2_v2(this->init.ofs_lock, rv3d->ofs_lock);
   this->init.camdx = rv3d->camdx;
   this->init.camdy = rv3d->camdy;
   this->init.camzoom = rv3d->camzoom;
@@ -210,8 +206,11 @@ static eViewOpsFlag navigate_pivot_get(bContext *C,
     float fallback_depth_pt[3];
     negate_v3_v3(fallback_depth_pt, static_cast<RegionView3D *>(region->regiondata)->ofs);
 
-    const bool is_set = ED_view3d_autodist(
-        depsgraph, region, v3d, event->mval, r_pivot, true, fallback_depth_pt);
+    if (!ED_view3d_has_depth_buffer_updated(depsgraph, v3d)) {
+      ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, nullptr);
+    }
+
+    const bool is_set = ED_view3d_autodist(region, v3d, event->mval, r_pivot, fallback_depth_pt);
 
     ED_view3d_autodist_last_set(win, event, r_pivot, is_set);
   }
@@ -225,6 +224,7 @@ void ViewOpsData::init_navigation(bContext *C,
                                   const float dyn_ofs_override[3],
                                   const bool use_cursor_init)
 {
+  using namespace blender;
   this->nav_type = nav_type;
   eViewOpsFlag viewops_flag = nav_type->flag & viewops_flag_from_prefs();
 
@@ -286,21 +286,18 @@ void ViewOpsData::init_navigation(bContext *C,
         float my_pivot[3];  /* View pivot. */
         float dvec[3];
 
-        /* locals for dist correction */
-        float mat[3][3];
-        float upvec[3];
-
         negate_v3_v3(my_origin, rv3d->ofs); /* ofs is flipped */
 
         /* Set the dist value to be the distance from this 3d point this means you'll
          * always be able to zoom into it and panning won't go bad when dist was zero. */
 
         /* remove dist value */
+        float3 upvec;
         upvec[0] = upvec[1] = 0;
         upvec[2] = rv3d->dist;
-        copy_m3_m4(mat, rv3d->viewinv);
+        float3x3 mat = float3x3(float4x4(rv3d->viewinv));
 
-        mul_m3_v3(mat, upvec);
+        upvec = math::transform_point(mat, upvec);
         add_v3_v3v3(my_pivot, my_origin, upvec);
 
         /* find a new ofs value that is along the view axis
@@ -779,7 +776,8 @@ void viewrotate_apply_dyn_ofs(ViewOpsData *vod, const float viewquat_new[4])
 
 bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 {
-  static float lastofs[3] = {0, 0, 0};
+  using namespace blender;
+  static float3 lastofs = float3(0);
   bool is_set = false;
 
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -802,41 +800,39 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     Curve *cu = static_cast<Curve *>(ob_act_eval->data);
     EditFont *ef = cu->editfont;
 
-    zero_v3(lastofs);
+    lastofs = float3(0);
     for (int i = 0; i < 4; i++) {
-      add_v2_v2(lastofs, ef->textcurs[i]);
+      lastofs += ef->textcurs[i];
     }
-    mul_v2_fl(lastofs, 1.0f / 4.0f);
+    lastofs *= 0.25f;
 
-    mul_m4_v3(ob_act_eval->object_to_world().ptr(), lastofs);
+    lastofs = math::transform_point(ob_act_eval->object_to_world(), lastofs);
 
     is_set = true;
   }
   else if (ob_act == nullptr || ob_act->mode == OB_MODE_OBJECT) {
     /* Object mode uses bounding-box centers. */
-    uint tot = 0;
-    float select_center[3];
+    int total = 0;
+    float3 select_center(0);
 
     zero_v3(select_center);
-    LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
+    LISTBASE_FOREACH (const Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
       if (BASE_SELECTED(v3d, base_eval)) {
         /* Use the bounding-box if we can. */
-        Object *ob_eval = base_eval->object;
+        const Object *ob_eval = base_eval->object;
 
-        if (ob_eval->runtime->bounds_eval) {
-          blender::float3 cent = blender::math::midpoint(ob_eval->runtime->bounds_eval->min,
-                                                         ob_eval->runtime->bounds_eval->max);
-          mul_m4_v3(ob_eval->object_to_world().ptr(), cent);
-          add_v3_v3(select_center, cent);
+        if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob_eval)) {
+          const float3 center = math::midpoint(bounds->min, bounds->max);
+          select_center += math::transform_point(ob_eval->object_to_world(), center);
         }
         else {
           add_v3_v3(select_center, ob_eval->object_to_world().location());
         }
-        tot++;
+        total++;
       }
     }
-    if (tot) {
-      mul_v3_fl(select_center, 1.0f / float(tot));
+    if (total) {
+      mul_v3_fl(select_center, 1.0f / float(total));
       copy_v3_v3(lastofs, select_center);
       is_set = true;
     }
@@ -1046,10 +1042,10 @@ static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname)
   return nullptr;
 }
 
-/* Unlike `viewops_data_create`, `ED_view3d_navigation_init` creates a navigation context along
- * with an array of `wmKeyMapItem`s used for navigation. */
 ViewOpsData *ED_view3d_navigation_init(bContext *C, const wmKeyMapItem *kmi_merge)
 {
+  /* Unlike `viewops_data_create`, `ED_view3d_navigation_init` creates a navigation context along
+   * with an array of `wmKeyMapItem`s used for navigation. */
   if (!CTX_wm_region_view3d(C)) {
     return nullptr;
   }

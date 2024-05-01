@@ -39,7 +39,7 @@ static void init_data(ModifierData *md)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
 
   MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(GreasePencilSubdivModifierData), modifier);
-  modifier::greasepencil::init_influence_data(&gpmd->influence, true);
+  modifier::greasepencil::init_influence_data(&gpmd->influence, false);
 }
 
 static void free_data(ModifierData *md)
@@ -164,7 +164,6 @@ static void panel_draw(const bContext *C, Panel *panel)
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
   }
 
   modifier_panel_end(layout, ptr);

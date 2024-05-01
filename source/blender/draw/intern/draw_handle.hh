@@ -19,7 +19,7 @@
  * the origin.
  */
 
-#include "draw_shader_shared.h"
+#include "draw_shader_shared.hh"
 
 struct Object;
 struct DupliObject;

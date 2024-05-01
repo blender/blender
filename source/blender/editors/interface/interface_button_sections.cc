@@ -15,7 +15,7 @@
 
 #include "DNA_screen_types.h"
 
-#include "GPU_immediate.h"
+#include "GPU_immediate.hh"
 
 #include "interface_intern.hh"
 

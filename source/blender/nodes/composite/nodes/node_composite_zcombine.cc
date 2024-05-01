@@ -17,7 +17,7 @@
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "node_composite_util.hh"
 

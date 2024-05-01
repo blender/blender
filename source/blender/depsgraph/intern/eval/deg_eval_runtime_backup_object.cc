@@ -110,7 +110,7 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
       if (object->type == OB_MESH) {
         Mesh *mesh_eval = (Mesh *)data_eval;
         Mesh *mesh_orig = (Mesh *)data_orig;
-        mesh_eval->edit_mesh = mesh_orig->edit_mesh;
+        mesh_eval->runtime->edit_mesh = mesh_orig->runtime->edit_mesh;
       }
     }
   }

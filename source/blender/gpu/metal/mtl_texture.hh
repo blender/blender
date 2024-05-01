@@ -17,7 +17,7 @@
 #include "gpu_texture_private.hh"
 
 #include "BLI_map.hh"
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 #include <mutex>
 #include <thread>
 
@@ -316,7 +316,7 @@ class MTLTexture : public Texture {
 
  protected:
   bool init_internal() override;
-  bool init_internal(GPUVertBuf *vbo) override;
+  bool init_internal(VertBuf *vbo) override;
   bool init_internal(GPUTexture *src,
                      int mip_offset,
                      int layer_offset,

@@ -106,12 +106,16 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   export_params.export_smooth_groups = RNA_boolean_get(op->ptr, "export_smooth_groups");
   export_params.smooth_groups_bitflags = RNA_boolean_get(op->ptr, "smooth_group_bitflags");
 
+  export_params.reports = op->reports;
+
+  RNA_string_get(op->ptr, "collection", export_params.collection);
+
   OBJ_export(C, &export_params);
 
   return OPERATOR_FINISHED;
 }
 
-static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
+static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerRNA *imfptr)
 {
   const bool export_animation = RNA_boolean_get(imfptr, "export_animation");
   const bool export_smooth_groups = RNA_boolean_get(imfptr, "export_smooth_groups");
@@ -125,9 +129,16 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   /* Object Transform options. */
   box = uiLayoutBox(layout);
   col = uiLayoutColumn(box, false);
-  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
-  uiItemR(
-      sub, imfptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selected Only"), ICON_NONE);
+
+  if (CTX_wm_space_file(C)) {
+    sub = uiLayoutColumnWithHeading(col, false, IFACE_("Limit to"));
+    uiItemR(
+        sub, imfptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selected Only"), ICON_NONE);
+  }
+  else {
+    sub = uiLayoutColumn(col, false);
+  }
+
   uiItemR(sub, imfptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(sub, imfptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
   uiItemR(sub, imfptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
@@ -193,10 +204,9 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "end_frame", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
 }
 
-static void wm_obj_export_draw(bContext * /*C*/, wmOperator *op)
+static void wm_obj_export_draw(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = RNA_pointer_create(nullptr, op->type->srna, op->properties);
-  ui_obj_export_settings(op->layout, &ptr);
+  ui_obj_export_settings(C, op->layout, op->ptr);
 }
 
 /**
@@ -385,6 +395,9 @@ void WM_OT_obj_export(wmOperatorType *ot)
   /* Only show .obj or .mtl files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  prop = RNA_def_string(ot->srna, "collection", nullptr, MAX_IDPROP_NAME, "Collection", nullptr);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 static int wm_obj_import_exec(bContext *C, wmOperator *op)
@@ -403,6 +416,8 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.collection_separator = separator[0];
   import_params.relative_paths = ((U.flag & USER_RELPATHS) != 0);
   import_params.clear_selection = true;
+
+  import_params.reports = op->reports;
 
   const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
 
@@ -546,6 +561,7 @@ void obj_file_handler_add()
   auto fh = std::make_unique<blender::bke::FileHandlerType>();
   STRNCPY(fh->idname, "IO_FH_obj");
   STRNCPY(fh->import_operator, "WM_OT_obj_import");
+  STRNCPY(fh->export_operator, "WM_OT_obj_export");
   STRNCPY(fh->label, "Wavefront OBJ");
   STRNCPY(fh->file_extensions_str, ".obj");
   fh->poll_drop = poll_file_object_drop;

@@ -16,7 +16,6 @@ extern "C" {
 
 struct ARegionType;
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct ID;
 struct ListBase;

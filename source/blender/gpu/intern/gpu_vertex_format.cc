@@ -8,12 +8,12 @@
  * GPU vertex format
  */
 
-#include "GPU_vertex_format.h"
-#include "GPU_capabilities.h"
+#include "GPU_vertex_format.hh"
+#include "GPU_capabilities.hh"
 
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_private.hh"
-#include "gpu_vertex_format_private.h"
+#include "gpu_vertex_format_private.hh"
 
 #include <cstddef>
 #include <cstring>
@@ -139,7 +139,7 @@ uint GPU_vertformat_attr_add(GPUVertFormat *format,
       assert(fetch_mode == GPU_FETCH_FLOAT);
       break;
     case GPU_COMP_I10:
-      /* 10_10_10 format intended for normals (xyz) or colors (rgb)
+      /* 10_10_10 format intended for normals (XYZ) or colors (RGB)
        * extra component packed.w can be manually set to { -2, -1, 0, 1 } */
       assert(ELEM(comp_len, 3, 4));
 
@@ -243,7 +243,7 @@ void GPU_vertformat_attr_rename(GPUVertFormat *format, int attr_id, const char *
 /* Encode 8 original bytes into 11 safe bytes. */
 static void safe_bytes(char out[11], const char data[8])
 {
-  char safe_chars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const char safe_chars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
   uint64_t in = *(uint64_t *)data;
   for (int i = 0; i < 11; i++) {

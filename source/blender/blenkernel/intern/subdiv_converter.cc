@@ -10,14 +10,16 @@
 
 #include "opensubdiv_converter_capi.hh"
 
-void BKE_subdiv_converter_free(OpenSubdiv_Converter *converter)
+namespace blender::bke::subdiv {
+
+void converter_free(OpenSubdiv_Converter *converter)
 {
   if (converter->freeUserData) {
     converter->freeUserData(converter);
   }
 }
 
-int BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(const SubdivSettings *settings)
+int converter_vtx_boundary_interpolation_from_settings(const Settings *settings)
 {
   switch (settings->vtx_boundary_interpolation) {
     case SUBDIV_VTX_BOUNDARY_NONE:
@@ -31,8 +33,8 @@ int BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(const SubdivSe
   return OSD_VTX_BOUNDARY_EDGE_ONLY;
 }
 
-/*OpenSubdiv_FVarLinearInterpolation*/ int BKE_subdiv_converter_fvar_linear_from_settings(
-    const SubdivSettings *settings)
+/*OpenSubdiv_FVarLinearInterpolation*/ int converter_fvar_linear_from_settings(
+    const Settings *settings)
 {
   switch (settings->fvar_linear_interpolation) {
     case SUBDIV_FVAR_LINEAR_INTERPOLATION_NONE:
@@ -51,3 +53,5 @@ int BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(const SubdivSe
   BLI_assert_msg(0, "Unknown fvar linear interpolation");
   return OSD_FVAR_LINEAR_INTERPOLATION_NONE;
 }
+
+}  // namespace blender::bke::subdiv

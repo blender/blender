@@ -20,7 +20,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_animsys.h"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 
@@ -603,7 +603,10 @@ void ANIM_armature_bonecoll_name_set(bArmature *armature, BoneCollection *bcoll,
 
   bonecoll_ensure_name_unique(armature, bcoll);
 
+  /* Bone collections can be reached via .collections (4.0+) and .collections_all (4.1+).
+   * Animation data from 4.0 should have been versioned to only use `.collections_all`. */
   BKE_animdata_fix_paths_rename_all(&armature->id, "collections", old_name, bcoll->name);
+  BKE_animdata_fix_paths_rename_all(&armature->id, "collections_all", old_name, bcoll->name);
 }
 
 void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
@@ -1207,12 +1210,11 @@ bool armature_bonecoll_is_child_of(const bArmature *armature,
                                    const int potential_child_index)
 {
   /* Check for roots, before we try and access collection_array[-1]. */
-  const bool is_root = armature_bonecoll_is_root(armature, potential_child_index);
-  if (is_root) {
+  if (armature_bonecoll_is_root(armature, potential_child_index)) {
     return potential_parent_index == -1;
   }
   if (potential_parent_index < 0) {
-    return is_root;
+    return false;
   }
 
   const BoneCollection *potential_parent = armature->collection_array[potential_parent_index];
@@ -1312,6 +1314,7 @@ int armature_bonecoll_move_to_parent(bArmature *armature,
   BoneCollection armature_root;
   armature_root.child_count = armature->collection_root_count;
   armature_root.child_index = 0;
+  armature_root.flags = default_flags;
 
   BoneCollection *from_parent = from_parent_index >= 0 ?
                                     armature->collection_array[from_parent_index] :

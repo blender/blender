@@ -23,8 +23,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
-#include "BKE_fcurve.h"
+#include "BKE_anim_data.hh"
+#include "BKE_fcurve.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 
@@ -55,7 +55,10 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
   adt = BKE_animdata_from_id(id);
   if (adt) {
     DEG_id_tag_update(id, ID_RECALC_ANIMATION);
-    if (adt->action != nullptr) {
+    if (adt->animation != nullptr) {
+      DEG_id_tag_update(&adt->animation->id, ID_RECALC_ANIMATION);
+    }
+    else if (adt->action != nullptr) {
       DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION);
     }
   }

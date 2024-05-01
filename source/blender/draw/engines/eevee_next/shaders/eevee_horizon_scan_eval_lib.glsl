@@ -22,7 +22,9 @@
 #pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
 
-#if defined(MAT_DEFERRED) || defined(MAT_FORWARD)
+#ifdef HORIZON_OCCLUSION
+/* Do nothing. */
+#elif defined(MAT_DEFERRED) || defined(MAT_FORWARD)
 /* Enable AO node computation for material shaders. */
 #  define HORIZON_OCCLUSION
 #else
@@ -44,138 +46,6 @@ vec3 horizon_scan_sample_normal(vec2 uv)
   return texture(screen_normal_tx, uv).rgb * 2.0 - 1.0;
 #else
   return vec3(0.0);
-#endif
-}
-
-/* Note: Expects all normals to be in view-space. */
-struct HorizonScanContextCommon {
-  float N_angle;
-  float N_length;
-  uint bitmask;
-  float weight_slice;
-  float weight_accum;
-  vec3 light_slice;
-  vec4 light_accum;
-};
-
-struct HorizonScanContext {
-#ifdef HORIZON_OCCLUSION
-  ClosureOcclusion occlusion;
-  HorizonScanContextCommon occlusion_common;
-  vec4 occlusion_result;
-#endif
-#ifdef HORIZON_CLOSURE
-  ClosureUndetermined closure;
-  HorizonScanContextCommon closure_common;
-  vec4 closure_result;
-#endif
-};
-
-void horizon_scan_context_accumulation_reset(inout HorizonScanContext context)
-{
-#ifdef HORIZON_OCCLUSION
-  context.occlusion_common.light_accum = vec4(0.0);
-  context.occlusion_common.weight_accum = 0.0;
-#endif
-#ifdef HORIZON_CLOSURE
-  context.closure_common.light_accum = vec4(0.0);
-  context.closure_common.weight_accum = 0.0;
-#endif
-}
-
-void horizon_scan_context_slice_start(
-    inout HorizonScanContextCommon context, vec3 vN, vec3 vV, vec3 vT, vec3 vB)
-{
-  context.bitmask = 0u;
-  context.weight_slice = 0.0;
-  context.light_slice = vec3(0.0);
-  horizon_scan_projected_normal_to_plane_angle_and_length(
-      vN, vV, vT, vB, context.N_length, context.N_angle);
-}
-
-void horizon_scan_context_slice_start(inout HorizonScanContext context, vec3 vV, vec3 vT, vec3 vB)
-{
-#ifdef HORIZON_OCCLUSION
-  horizon_scan_context_slice_start(context.occlusion_common, context.occlusion.N, vV, vT, vB);
-#endif
-#ifdef HORIZON_CLOSURE
-  horizon_scan_context_slice_start(context.closure_common, context.closure.N, vV, vT, vB);
-#endif
-}
-
-void horizon_scan_context_sample_finish(inout HorizonScanContextCommon context,
-                                        vec3 sample_radiance,
-                                        float sample_weight,
-                                        vec2 sample_theta,
-                                        float angle_bias)
-{
-  /* Angular bias shrinks the visibility bitmask around the projected normal. */
-  sample_theta = (sample_theta - context.N_angle) * angle_bias;
-  uint sample_bitmask = horizon_scan_angles_to_bitmask(sample_theta);
-  sample_weight *= horizon_scan_bitmask_to_visibility_uniform(sample_bitmask & ~context.bitmask);
-
-  context.weight_slice += sample_weight;
-  context.light_slice += sample_radiance * sample_weight;
-  context.bitmask |= sample_bitmask;
-}
-
-void horizon_scan_context_sample_finish(
-    inout HorizonScanContext ctx, vec3 L, vec3 V, vec2 sample_uv, vec2 theta, float bias)
-{
-  vec3 sample_radiance = horizon_scan_sample_radiance(sample_uv);
-  /* Take emitter surface normal into consideration. */
-  vec3 sample_normal = horizon_scan_sample_normal(sample_uv);
-  /* Discard back-facing samples.
-   * The paper suggests a smooth test which is not physically correct since we
-   * already consider the sample reflected radiance.
-   * Set the weight to allow energy conservation. If we modulate the radiance, we loose energy. */
-  float weight = step(dot(sample_normal, L), 0.0);
-
-#ifdef HORIZON_OCCLUSION
-  horizon_scan_context_sample_finish(ctx.occlusion_common, sample_radiance, 1.0, theta, bias);
-#endif
-#ifdef HORIZON_CLOSURE
-  weight *= bsdf_lambert(ctx.closure.N, L);
-  horizon_scan_context_sample_finish(ctx.closure_common, sample_radiance, weight, theta, bias);
-#endif
-}
-
-void horizon_scan_context_slice_finish(inout HorizonScanContextCommon context)
-{
-  /* Use uniform visibility since this is what we use for near field lighting.
-   * Also the lighting we are going to mask is already containing the cosine lobe. */
-  float slice_occlusion = horizon_scan_bitmask_to_visibility_uniform(~context.bitmask);
-  /* Normalize radiance since BxDF is applied when merging direct and indirect light. */
-  context.light_slice *= safe_rcp(context.weight_slice) * (1.0 - slice_occlusion);
-  /* Correct normal not on plane (Eq. 8 of GTAO paper). */
-  context.light_accum += vec4(context.light_slice, slice_occlusion) * context.N_length;
-  context.weight_accum += context.N_length;
-}
-
-void horizon_scan_context_slice_finish(inout HorizonScanContext context)
-{
-#ifdef HORIZON_OCCLUSION
-  float occlusion = horizon_scan_bitmask_to_occlusion_cosine(context.occlusion_common.bitmask);
-  context.occlusion_common.light_accum += vec4(occlusion) * context.occlusion_common.N_length;
-  context.occlusion_common.weight_accum += context.occlusion_common.N_length;
-#endif
-#ifdef HORIZON_CLOSURE
-  horizon_scan_context_slice_finish(context.closure_common);
-#endif
-}
-
-void horizon_scan_context_accumulation_finish(HorizonScanContextCommon context, out vec4 result)
-{
-  result = context.light_accum * safe_rcp(context.weight_accum);
-}
-
-void horizon_scan_context_accumulation_finish(inout HorizonScanContext context)
-{
-#ifdef HORIZON_OCCLUSION
-  horizon_scan_context_accumulation_finish(context.occlusion_common, context.occlusion_result);
-#endif
-#ifdef HORIZON_CLOSURE
-  horizon_scan_context_accumulation_finish(context.closure_common, context.closure_result);
 #endif
 }
 
@@ -209,28 +79,43 @@ void horizon_scan_occluder_intersection_ray_sphere_clip(Ray ray,
   P_exit = ray.origin + ray.direction * t_exit;
 }
 
+struct HorizonScanResult {
+#ifdef HORIZON_OCCLUSION
+  float result;
+#endif
+#ifdef HORIZON_CLOSURE
+  SphericalHarmonicL1 result;
+#endif
+};
+
 /**
  * Scans the horizon in many directions and returns the indirect lighting radiance.
  * Returned lighting is stored inside the context in `_accum` members already normalized.
  * If `reversed` is set to true, the input normal must be negated.
  */
-void horizon_scan_eval(vec3 vP,
-                       inout HorizonScanContext context,
-                       vec2 noise,
-                       vec2 pixel_size,
-                       float search_distance,
-                       float global_thickness,
-                       float angle_bias,
-                       const int sample_count,
-                       const bool reversed)
+HorizonScanResult horizon_scan_eval(vec3 vP,
+                                    vec3 vN,
+                                    vec2 noise,
+                                    vec2 pixel_size,
+                                    float search_distance,
+                                    float global_thickness,
+                                    float angle_bias,
+                                    const int sample_count,
+                                    const bool reversed)
 {
   vec3 vV = drw_view_incident_vector(vP);
 
   const int slice_len = 2;
   vec2 v_dir = sample_circle(noise.x * (0.5 / float(slice_len)));
 
-  horizon_scan_context_accumulation_reset(context);
+  float weight_accum = 0.0;
+  float occlusion_accum = 0.0;
+  SphericalHarmonicL1 sh_accum = spherical_harmonics_L1_new();
 
+#if defined(GPU_METAL) && defined(GPU_APPLE)
+/* NOTE: Full loop unroll hint increases performance on Apple Silicon. */
+#  pragma clang loop unroll(full)
+#endif
   for (int slice = 0; slice < slice_len; slice++) {
 #if 0 /* For debug purpose. For when slice_len is greater than 2. */
     vec2 v_dir = sample_circle(((float(slice) + noise.x) / float(slice_len)));
@@ -240,7 +125,18 @@ void horizon_scan_eval(vec3 vP,
     vec3 vB = normalize(cross(vV, vec3(v_dir, 0.0)));
     vec3 vT = cross(vB, vV);
 
-    horizon_scan_context_slice_start(context, vV, vT, vB);
+    /* Bitmask representing the occluded sectors on the slice. */
+    uint slice_bitmask = 0u;
+
+    /* Angle between vN and the horizon slice plane. */
+    float vN_angle;
+    /* Length of vN projected onto the horizon slice plane. */
+    float vN_length;
+
+    horizon_scan_projected_normal_to_plane_angle_and_length(vN, vV, vT, vB, vN_length, vN_angle);
+
+    SphericalHarmonicL1 sh_slice = spherical_harmonics_L1_new();
+    float weight_slice;
 
     /* For both sides of the view vector. */
     for (int side = 0; side < 2; side++) {
@@ -253,6 +149,10 @@ void horizon_scan_eval(vec3 vP,
        * screen at once and just scan through. */
       ScreenSpaceRay ssray = raytrace_screenspace_ray_create(ray, pixel_size);
 
+#if defined(GPU_METAL) && defined(GPU_APPLE)
+/* NOTE: Full loop unroll hint increases performance on Apple Silicon. */
+#  pragma clang loop unroll(full)
+#endif
       for (int j = 0; j < sample_count; j++) {
         /* Always cross at least one pixel. */
         float time = 1.0 + square((float(j) + noise.y) / float(sample_count)) * ssray.max_time;
@@ -306,15 +206,54 @@ void horizon_scan_eval(vec3 vP,
         /* If we are tracing backward, the angles are negative. Swizzle to keep correct order. */
         theta = (side == 0) ? theta.xy : -theta.yx;
 
-        horizon_scan_context_sample_finish(context, vL_front, vV, sample_uv, theta, angle_bias);
+        vec3 sample_radiance = horizon_scan_sample_radiance(sample_uv);
+        /* Take emitter surface normal into consideration. */
+        vec3 sample_normal = horizon_scan_sample_normal(sample_uv);
+        /* Discard back-facing samples.
+         * The 2 factor is to avoid loosing too much energy (which is something not
+         * explained in the paper...). Likely to be wrong, but we need a soft falloff. */
+        float facing_weight = saturate(-dot(sample_normal, vL_front) * 2.0);
+
+        float sample_weight = facing_weight * bsdf_lambert(vN, vL_front);
+
+        /* Angular bias shrinks the visibility bitmask around the projected normal. */
+        vec2 biased_theta = (theta - vN_angle) * angle_bias;
+        uint sample_bitmask = horizon_scan_angles_to_bitmask(biased_theta);
+        float weight_bitmask = horizon_scan_bitmask_to_visibility_uniform(sample_bitmask &
+                                                                          ~slice_bitmask);
+
+        sample_radiance *= facing_weight * weight_bitmask;
+        /* Encoding using front sample direction gives better result than
+         * `normalize(vL_front + vL_back)` */
+        spherical_harmonics_encode_signal_sample(
+            vL_front, vec4(sample_radiance, weight_bitmask), sh_slice);
+
+        slice_bitmask |= sample_bitmask;
       }
     }
 
-    horizon_scan_context_slice_finish(context);
+    float occlusion_slice = horizon_scan_bitmask_to_occlusion_cosine(slice_bitmask);
+
+    /* Correct normal not on plane (Eq. 8 of GTAO paper). */
+    occlusion_accum += occlusion_slice * vN_length;
+    /* Use uniform visibility since this is what we use for near field lighting. */
+    sh_accum = spherical_harmonics_madd(sh_slice, vN_length, sh_accum);
+
+    weight_accum += vN_length;
 
     /* Rotate 90 degrees. */
     v_dir = orthogonal(v_dir);
   }
 
-  horizon_scan_context_accumulation_finish(context);
+  float weight_rcp = safe_rcp(weight_accum);
+
+  HorizonScanResult res;
+#ifdef HORIZON_OCCLUSION
+  res.result = occlusion_accum * weight_rcp;
+#endif
+#ifdef HORIZON_CLOSURE
+  /* Weight by area of the sphere. This is expected for correct SH evaluation. */
+  res.result = spherical_harmonics_mul(sh_accum, weight_rcp * 4.0 * M_PI);
+#endif
+  return res;
 }

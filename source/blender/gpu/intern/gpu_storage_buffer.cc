@@ -15,11 +15,12 @@
 #include "gpu_backend.hh"
 
 #include "GPU_material.hh"
-#include "GPU_vertex_buffer.h" /* For GPUUsageType. */
+#include "GPU_vertex_buffer.hh" /* For GPUUsageType. */
 
-#include "GPU_storage_buffer.h"
+#include "GPU_storage_buffer.hh"
+#include "GPU_vertex_buffer.hh"
+#include "gpu_context_private.hh"
 #include "gpu_storage_buffer_private.hh"
-#include "gpu_vertex_buffer_private.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Creation & Deletion
@@ -85,9 +86,9 @@ void GPU_storagebuf_unbind(GPUStorageBuf *ssbo)
   unwrap(ssbo)->unbind();
 }
 
-void GPU_storagebuf_unbind_all()
+void GPU_storagebuf_debug_unbind_all()
 {
-  /* FIXME */
+  Context::get()->debug_unbind_all_ssbo();
 }
 
 void GPU_storagebuf_clear_to_zero(GPUStorageBuf *ssbo)
@@ -100,10 +101,13 @@ void GPU_storagebuf_clear(GPUStorageBuf *ssbo, uint32_t clear_value)
   unwrap(ssbo)->clear(clear_value);
 }
 
-void GPU_storagebuf_copy_sub_from_vertbuf(
-    GPUStorageBuf *ssbo, GPUVertBuf *src, uint dst_offset, uint src_offset, uint copy_size)
+void GPU_storagebuf_copy_sub_from_vertbuf(GPUStorageBuf *ssbo,
+                                          blender::gpu::VertBuf *src,
+                                          uint dst_offset,
+                                          uint src_offset,
+                                          uint copy_size)
 {
-  unwrap(ssbo)->copy_sub(unwrap(src), dst_offset, src_offset, copy_size);
+  unwrap(ssbo)->copy_sub(src, dst_offset, src_offset, copy_size);
 }
 
 void GPU_storagebuf_sync_to_host(GPUStorageBuf *ssbo)

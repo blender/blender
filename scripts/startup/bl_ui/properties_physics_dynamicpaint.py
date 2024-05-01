@@ -6,6 +6,7 @@ from bpy.types import (
     Panel,
     UIList,
 )
+from bpy.app.translations import contexts as i18n_contexts
 from bl_ui.properties_physics_common import (
     point_cache_ui,
     effector_weights_ui,
@@ -307,6 +308,7 @@ class PHYSICS_PT_dp_surface_canvas_paint_dry(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_dp_surface_canvas_paint_dissolve(PhysicButtonsPanel, Panel):
     bl_label = "Dissolve"
+    bl_translation_context = i18n_contexts.id_simulation
     bl_parent_id = "PHYSICS_PT_dp_surface_canvas"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {

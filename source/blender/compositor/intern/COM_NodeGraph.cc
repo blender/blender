@@ -231,7 +231,7 @@ void NodeGraph::add_proxies_group_inputs(bNode *b_node, bNode *b_node_io)
   }
 }
 
-void NodeGraph::add_proxies_group_outputs(const CompositorContext &context,
+void NodeGraph::add_proxies_group_outputs(const CompositorContext & /*context*/,
                                           bNode *b_node,
                                           bNode *b_node_io)
 {
@@ -247,16 +247,8 @@ void NodeGraph::add_proxies_group_outputs(const CompositorContext &context,
   {
     bNodeSocket *b_sock_group = find_b_node_output(b_node, b_sock_io->identifier);
     if (b_sock_group) {
-      if (context.is_groupnode_buffer_enabled() &&
-          context.get_execution_model() == eExecutionModel::Tiled)
-      {
-        SocketBufferNode *buffer = new SocketBufferNode(b_node_io, b_sock_io, b_sock_group);
-        add_node(buffer, b_group_tree, key, is_active_group);
-      }
-      else {
-        SocketProxyNode *proxy = new SocketProxyNode(b_node_io, b_sock_io, b_sock_group, true);
-        add_node(proxy, b_group_tree, key, is_active_group);
-      }
+      SocketProxyNode *proxy = new SocketProxyNode(b_node_io, b_sock_io, b_sock_group, true);
+      add_node(proxy, b_group_tree, key, is_active_group);
     }
   }
 }

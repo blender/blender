@@ -139,14 +139,13 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
   for (int i = 0; i < projectors_num; i++) {
     float tmpmat[4][4];
     float offsetmat[4][4];
-    Camera *cam = nullptr;
     /* calculate projection matrix */
     invert_m4_m4(projectors[i].projmat, projectors[i].ob->object_to_world().ptr());
 
     projectors[i].uci = nullptr;
 
     if (projectors[i].ob->type == OB_CAMERA) {
-      cam = (Camera *)projectors[i].ob->data;
+      const Camera *cam = (const Camera *)projectors[i].ob->data;
       if (cam->type == CAM_PANO) {
         projectors[i].uci = BLI_uvproject_camera_info(projectors[i].ob, nullptr, aspx, aspy);
         BLI_uvproject_camera_info_scale(

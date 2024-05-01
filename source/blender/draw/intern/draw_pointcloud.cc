@@ -11,29 +11,29 @@
 
 #include "DNA_pointcloud_types.h"
 
-#include "GPU_batch.h"
-#include "GPU_capabilities.h"
-#include "GPU_compute.h"
+#include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
+#include "GPU_compute.hh"
 #include "GPU_material.hh"
-#include "GPU_shader.h"
-#include "GPU_texture.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
+#include "GPU_vertex_buffer.hh"
 
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
 
 #include "draw_attributes.hh"
 #include "draw_cache_impl.hh"
-#include "draw_common.h"
 #include "draw_common.hh"
-#include "draw_manager.h"
+#include "draw_common_c.hh"
+#include "draw_manager_c.hh"
 #include "draw_pointcloud_private.hh"
 /* For drw_curves_get_attribute_sampler_name. */
 #include "draw_curves_private.hh"
 
 namespace blender::draw {
 
-static GPUVertBuf *g_dummy_vbo = nullptr;
+static gpu::VertBuf *g_dummy_vbo = nullptr;
 
 void DRW_pointcloud_init()
 {
@@ -66,7 +66,7 @@ DRWShadingGroup *DRW_shgroup_pointcloud_create_sub(Object *object,
   DRW_shgroup_buffer_texture(shgrp, "c", g_dummy_vbo);
   DRW_shgroup_buffer_texture(shgrp, "ac", g_dummy_vbo);
 
-  GPUVertBuf *pos_rad_buf = pointcloud_position_and_radius_get(&pointcloud);
+  gpu::VertBuf *pos_rad_buf = pointcloud_position_and_radius_get(&pointcloud);
   DRW_shgroup_buffer_texture(shgrp, "ptcloud_pos_rad_tx", pos_rad_buf);
 
   if (gpu_material != nullptr) {
@@ -87,11 +87,11 @@ DRWShadingGroup *DRW_shgroup_pointcloud_create_sub(Object *object,
     // }
 
     /* Only single material supported for now. */
-    GPUBatch **geom = pointcloud_surface_shaded_get(&pointcloud, &gpu_material, 1);
+    gpu::Batch **geom = pointcloud_surface_shaded_get(&pointcloud, &gpu_material, 1);
     DRW_shgroup_call(shgrp, geom[0], object);
   }
   else {
-    GPUBatch *geom = pointcloud_surface_get(&pointcloud);
+    gpu::Batch *geom = pointcloud_surface_get(&pointcloud);
     DRW_shgroup_call(shgrp, geom, object);
   }
   return shgrp;
@@ -103,9 +103,9 @@ void DRW_pointcloud_free()
 }
 
 template<typename PassT>
-GPUBatch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,
-                                                    Object *object,
-                                                    GPUMaterial *gpu_material)
+gpu::Batch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,
+                                                      Object *object,
+                                                      GPUMaterial *gpu_material)
 {
   BLI_assert(object->type == OB_POINTCLOUD);
   PointCloud &pointcloud = *static_cast<PointCloud *>(object->data);
@@ -117,7 +117,7 @@ GPUBatch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,
   sub_ps.bind_texture("c", g_dummy_vbo);
   sub_ps.bind_texture("ac", g_dummy_vbo);
 
-  GPUVertBuf *pos_rad_buf = pointcloud_position_and_radius_get(&pointcloud);
+  gpu::VertBuf *pos_rad_buf = pointcloud_position_and_radius_get(&pointcloud);
   sub_ps.bind_texture("ptcloud_pos_rad_tx", pos_rad_buf);
 
   if (gpu_material != nullptr) {
@@ -127,25 +127,26 @@ GPUBatch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,
       /** NOTE: Reusing curve attribute function. */
       drw_curves_get_attribute_sampler_name(gpu_attr->name, sampler_name);
 
-      GPUVertBuf **attribute_buf = DRW_pointcloud_evaluated_attribute(&pointcloud, gpu_attr->name);
+      gpu::VertBuf **attribute_buf = DRW_pointcloud_evaluated_attribute(&pointcloud,
+                                                                        gpu_attr->name);
       sub_ps.bind_texture(sampler_name, (attribute_buf) ? attribute_buf : &g_dummy_vbo);
     }
   }
 
-  GPUBatch *geom = pointcloud_surface_get(&pointcloud);
+  gpu::Batch *geom = pointcloud_surface_get(&pointcloud);
   return geom;
 }
 
-GPUBatch *point_cloud_sub_pass_setup(PassMain::Sub &sub_ps,
-                                     Object *object,
-                                     GPUMaterial *gpu_material)
+gpu::Batch *point_cloud_sub_pass_setup(PassMain::Sub &sub_ps,
+                                       Object *object,
+                                       GPUMaterial *gpu_material)
 {
   return point_cloud_sub_pass_setup_implementation(sub_ps, object, gpu_material);
 }
 
-GPUBatch *point_cloud_sub_pass_setup(PassSimple::Sub &sub_ps,
-                                     Object *object,
-                                     GPUMaterial *gpu_material)
+gpu::Batch *point_cloud_sub_pass_setup(PassSimple::Sub &sub_ps,
+                                       Object *object,
+                                       GPUMaterial *gpu_material)
 {
   return point_cloud_sub_pass_setup_implementation(sub_ps, object, gpu_material);
 }

@@ -115,12 +115,12 @@ class DefocusOperation : public NodeOperation {
 
     Result radius = compute_defocus_radius();
 
-    const int maximum_defocus_radius = compute_maximum_defocus_radius();
+    const int maximum_defocus_radius = math::ceil(compute_maximum_defocus_radius());
 
     /* The special zero value indicate a circle, in which case, the roundness should be set to
      * 1, and the number of sides can be anything and is arbitrarily set to 3. */
     const bool is_circle = node_storage(bnode()).bktype == 0;
-    const int2 kernel_size = int2(maximum_defocus_radius * 2);
+    const int2 kernel_size = int2(maximum_defocus_radius * 2 + 1);
     const int sides = is_circle ? 3 : node_storage(bnode()).bktype;
     const float rotation = node_storage(bnode()).rotation;
     const float roundness = is_circle ? 1.0f : 0.0f;
@@ -231,6 +231,10 @@ class DefocusOperation : public NodeOperation {
   /* Computes the maximum possible defocus radius in pixels. */
   float compute_maximum_defocus_radius()
   {
+    if (node_storage(bnode()).no_zbuf) {
+      return node_storage(bnode()).maxblur;
+    }
+
     const float maximum_diameter = compute_maximum_diameter_of_circle_of_confusion();
     const float pixels_per_meter = compute_pixels_per_meter();
     const float radius = (maximum_diameter / 2.0f) * pixels_per_meter;

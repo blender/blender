@@ -9,11 +9,13 @@
 CCL_NAMESPACE_BEGIN
 
 /* Transform vector to spot light's local coordinate system. */
-ccl_device float3 spot_light_to_local(const ccl_global KernelSpotLight *spot, const float3 ray)
+ccl_device float3 spot_light_to_local(const ccl_global KernelLight *klight, const float3 ray)
 {
-  return safe_normalize(make_float3(dot(ray, spot->scaled_axis_u),
-                                    dot(ray, spot->scaled_axis_v),
-                                    dot(ray, spot->dir * spot->inv_len_z)));
+  const Transform itfm = klight->itfm;
+  float3 transformed_ray = safe_normalize(transform_direction(&itfm, ray));
+  transformed_ray.z = -transformed_ray.z;
+
+  return transformed_ray;
 }
 
 /* Compute spot light attenuation of a ray given in local coordinate system. */
@@ -58,7 +60,7 @@ ccl_device_inline bool spot_light_sample(const ccl_global KernelLight *klight,
     ls->t = FLT_MAX;
     if (d_sq > r_sq) {
       /* Outside sphere. */
-      const float one_minus_cos_half_spot_spread = 1.0f - klight->spot.cos_half_spot_angle;
+      const float one_minus_cos_half_spot_spread = 1.0f - klight->spot.cos_half_larger_spread;
       const float one_minus_cos_half_angle = sin_sqr_to_one_minus_cos(r_sq / d_sq);
 
       if (in_volume_segment || one_minus_cos_half_angle < one_minus_cos_half_spot_spread) {
@@ -92,7 +94,7 @@ ccl_device_inline bool spot_light_sample(const ccl_global KernelLight *klight,
     }
 
     /* Attenuation. */
-    const float3 local_ray = spot_light_to_local(&klight->spot, -ls->D);
+    const float3 local_ray = spot_light_to_local(klight, -ls->D);
     if (d_sq > r_sq) {
       ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
     }
@@ -128,7 +130,7 @@ ccl_device_inline bool spot_light_sample(const ccl_global KernelLight *klight,
     ls->Ng = -ls->D;
 
     /* Attenuation. */
-    const float3 local_ray = spot_light_to_local(&klight->spot, -ls->D);
+    const float3 local_ray = spot_light_to_local(klight, -ls->D);
     ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
     if (!in_volume_segment && ls->eval_fac == 0.0f) {
       return false;
@@ -145,7 +147,7 @@ ccl_device_inline bool spot_light_sample(const ccl_global KernelLight *klight,
   return true;
 }
 
-ccl_device_forceinline float spot_light_pdf(const float cos_half_spread,
+ccl_device_forceinline float spot_light_pdf(const ccl_global KernelSpotLight *spot,
                                             const float d_sq,
                                             const float r_sq,
                                             const float3 N,
@@ -153,7 +155,8 @@ ccl_device_forceinline float spot_light_pdf(const float cos_half_spread,
                                             const uint32_t path_flag)
 {
   if (d_sq > r_sq) {
-    return M_1_2PI_F / min(sin_sqr_to_one_minus_cos(r_sq / d_sq), 1.0f - cos_half_spread);
+    return M_1_2PI_F /
+           min(sin_sqr_to_one_minus_cos(r_sq / d_sq), 1.0f - spot->cos_half_larger_spread);
   }
 
   const bool has_transmission = (path_flag & PATH_RAY_MIS_HAD_TRANSMISSION);
@@ -181,7 +184,7 @@ ccl_device_forceinline void spot_light_mnee_sample_update(const ccl_global Kerne
     /* NOTE : preserve pdf in area measure. */
     const float jacobian_solid_angle_to_area = 0.5f * fabsf(d_sq - r_sq - t_sq) /
                                                (radius * ls->t * t_sq);
-    ls->pdf = spot_light_pdf(klight->spot.cos_half_spot_angle, d_sq, r_sq, N, ls->D, path_flag) *
+    ls->pdf = spot_light_pdf(&klight->spot, d_sq, r_sq, N, ls->D, path_flag) *
               jacobian_solid_angle_to_area;
 
     ls->Ng = normalize(ls->P - klight->co);
@@ -196,7 +199,7 @@ ccl_device_forceinline void spot_light_mnee_sample_update(const ccl_global Kerne
   }
 
   /* Attenuation. */
-  const float3 local_ray = spot_light_to_local(&klight->spot, -ls->D);
+  const float3 local_ray = spot_light_to_local(klight, -ls->D);
   if (use_attenuation) {
     ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
   }
@@ -217,14 +220,13 @@ ccl_device_inline bool spot_light_intersect(const ccl_global KernelLight *klight
   return point_light_intersect(klight, ray, t);
 }
 
-ccl_device_inline bool spot_light_sample_from_intersection(
-    const ccl_global KernelLight *klight,
-    ccl_private const Intersection *ccl_restrict isect,
-    const float3 ray_P,
-    const float3 ray_D,
-    const float3 N,
-    const uint32_t path_flag,
-    ccl_private LightSample *ccl_restrict ls)
+ccl_device_inline bool spot_light_sample_from_intersection(const ccl_global KernelLight *klight,
+                                                           const float3 ray_P,
+                                                           const float3 ray_D,
+                                                           const float3 N,
+                                                           const uint32_t path_flag,
+                                                           ccl_private LightSample *ccl_restrict
+                                                               ls)
 {
   const float r_sq = sqr(klight->spot.radius);
   const float d_sq = len_squared(ray_P - klight->co);
@@ -232,7 +234,7 @@ ccl_device_inline bool spot_light_sample_from_intersection(
   ls->eval_fac = klight->spot.eval_fac;
 
   if (klight->spot.is_sphere) {
-    ls->pdf = spot_light_pdf(klight->spot.cos_half_spot_angle, d_sq, r_sq, N, ray_D, path_flag);
+    ls->pdf = spot_light_pdf(&klight->spot, d_sq, r_sq, N, ray_D, path_flag);
     ls->Ng = normalize(ls->P - klight->co);
   }
   else {
@@ -248,7 +250,7 @@ ccl_device_inline bool spot_light_sample_from_intersection(
   }
 
   /* Attenuation. */
-  const float3 local_ray = spot_light_to_local(&klight->spot, -ray_D);
+  const float3 local_ray = spot_light_to_local(klight, -ray_D);
   if (!klight->spot.is_sphere || d_sq > r_sq) {
     ls->eval_fac *= spot_light_attenuation(&klight->spot, local_ray);
   }
@@ -262,6 +264,24 @@ ccl_device_inline bool spot_light_sample_from_intersection(
   return true;
 }
 
+/* Find the ray segment lit by the spot light. */
+ccl_device_inline bool spot_light_valid_ray_segment(const ccl_global KernelLight *klight,
+                                                    const float3 P,
+                                                    const float3 D,
+                                                    ccl_private float2 *t_range)
+{
+  /* Convert to local space of the spot light. */
+  const Transform itfm = klight->itfm;
+  float3 local_P = P + klight->spot.dir * klight->spot.ray_segment_dp;
+  local_P = transform_point(&itfm, local_P);
+  const float3 local_D = transform_direction(&itfm, D);
+  const float3 axis = make_float3(0.0f, 0.0f, -1.0f);
+
+  /* Intersect the ray with the smallest enclosing cone of the light spread. */
+  return ray_cone_intersect(
+      axis, local_P, local_D, sqr(klight->spot.cos_half_spot_angle), t_range);
+}
+
 template<bool in_volume_segment>
 ccl_device_forceinline bool spot_light_tree_parameters(const ccl_global KernelLight *klight,
                                                        const float3 centroid,
@@ -270,35 +290,32 @@ ccl_device_forceinline bool spot_light_tree_parameters(const ccl_global KernelLi
                                                        ccl_private float2 &distance,
                                                        ccl_private float3 &point_to_centroid)
 {
-  float dist_point_to_centroid;
-  const float3 point_to_centroid_ = safe_normalize_len(centroid - P, &dist_point_to_centroid);
+  float min_distance;
+  point_to_centroid = safe_normalize_len(centroid - P, &min_distance);
+  distance = min_distance * one_float2();
 
   const float radius = klight->spot.radius;
 
   if (klight->spot.is_sphere) {
-    cos_theta_u = (dist_point_to_centroid > radius) ?
-                      cos_from_sin(radius / dist_point_to_centroid) :
-                      -1.0f;
+    cos_theta_u = (min_distance > radius) ? cos_from_sin(radius / min_distance) : -1.0f;
 
     if (in_volume_segment) {
       return true;
     }
 
-    distance = (dist_point_to_centroid > radius) ?
-                   dist_point_to_centroid * make_float2(1.0f / cos_theta_u, 1.0f) :
-                   one_float2() * radius / M_SQRT2_F;
+    distance = (min_distance > radius) ? min_distance * make_float2(1.0f / cos_theta_u, 1.0f) :
+                                         one_float2() * radius / M_SQRT2_F;
   }
   else {
-    const float hypotenus = sqrtf(sqr(radius) + sqr(dist_point_to_centroid));
-    cos_theta_u = dist_point_to_centroid / hypotenus;
+    const float hypotenus = sqrtf(sqr(radius) + sqr(min_distance));
+    cos_theta_u = min_distance / hypotenus;
 
     if (in_volume_segment) {
       return true;
     }
 
-    distance = make_float2(hypotenus, dist_point_to_centroid);
+    distance.x = hypotenus;
   }
-  point_to_centroid = point_to_centroid_;
 
   return true;
 }

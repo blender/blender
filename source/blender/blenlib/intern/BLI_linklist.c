@@ -32,7 +32,7 @@ int BLI_linklist_count(const LinkNode *list)
   return len;
 }
 
-int BLI_linklist_index(const LinkNode *list, void *ptr)
+int BLI_linklist_index(const LinkNode *list, const void *ptr)
 {
   int index;
 

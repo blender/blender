@@ -11,15 +11,15 @@
 
 #include <Python.h>
 
-#include "GPU_index_buffer.h"
+#include "GPU_index_buffer.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
 
-#include "gpu_py.h"
-#include "gpu_py_element.h" /* own include */
+#include "gpu_py.hh"
+#include "gpu_py_element.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name IndexBuf Type
@@ -246,7 +246,7 @@ PyTypeObject BPyGPUIndexBuf_Type = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUIndexBuf_CreatePyObject(GPUIndexBuf *elem)
+PyObject *BPyGPUIndexBuf_CreatePyObject(blender::gpu::IndexBuf *elem)
 {
   BPyGPUIndexBuf *self;
 

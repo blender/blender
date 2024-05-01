@@ -8,8 +8,12 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
+#include "BKE_curves.hh"
+#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
+#include "BKE_grease_pencil.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
@@ -22,19 +26,21 @@
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_memblock.h"
+#include "BLI_virtual_array.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_texture.hh"
+#include "GPU_uniform_buffer.hh"
 
 #include "gpencil_engine.h"
 
 #include "DEG_depsgraph_query.hh"
 
+#include "ED_grease_pencil.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
@@ -113,8 +119,10 @@ void GPENCIL_engine_init(void *ved)
 
     stl->pd->v3d_color_type = (v3d->shading.type == OB_SOLID) ? v3d->shading.color_type : -1;
     /* Special case: If Vertex Paint mode, use always Vertex mode. */
-    if (v3d->shading.type == OB_SOLID && ctx->obact && ctx->obact->type == OB_GPENCIL_LEGACY &&
-        ctx->obact->mode == OB_MODE_VERTEX_GPENCIL_LEGACY)
+    if (v3d->shading.type == OB_SOLID && ctx->obact &&
+        ((ctx->obact->type == OB_GPENCIL_LEGACY &&
+          ctx->obact->mode == OB_MODE_VERTEX_GPENCIL_LEGACY) ||
+         (ctx->obact->type == OB_GREASE_PENCIL && ctx->obact->mode == OB_MODE_VERTEX_PAINT)))
     {
       stl->pd->v3d_color_type = V3D_SHADING_VERTEX_COLOR;
     }
@@ -349,7 +357,7 @@ struct gpIterPopulateData {
   int stroke_index_last;
   int stroke_index_offset;
   /* Infos for call batching. */
-  GPUBatch *geom;
+  blender::gpu::Batch *geom;
   int vfirst, vcount;
 };
 
@@ -370,7 +378,7 @@ static void gpencil_drawcall_flush(gpIterPopulateData *iter)
 
 /* Group draw-calls that are consecutive and with the same type. Reduces GPU driver overhead. */
 static void gpencil_drawcall_add(gpIterPopulateData *iter,
-                                 GPUBatch *geom,
+                                 blender::gpu::Batch *geom,
                                  int v_first,
                                  int v_count)
 {
@@ -516,18 +524,19 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
 
   bool do_sbuffer = (iter->do_sbuffer_call == DRAW_NOW);
 
-  GPUBatch *geom = do_sbuffer ? DRW_cache_gpencil_sbuffer_get(iter->ob, show_fill) :
-                                DRW_cache_gpencil_get(iter->ob, iter->pd->cfra);
+  blender::gpu::Batch *geom = do_sbuffer ? DRW_cache_gpencil_sbuffer_get(iter->ob, show_fill) :
+                                           DRW_cache_gpencil_get(iter->ob, iter->pd->cfra);
   if (geom != iter->geom) {
     gpencil_drawcall_flush(iter);
 
-    GPUVertBuf *position_tx = do_sbuffer ?
-                                  DRW_cache_gpencil_sbuffer_position_buffer_get(iter->ob,
-                                                                                show_fill) :
-                                  DRW_cache_gpencil_position_buffer_get(iter->ob, iter->pd->cfra);
-    GPUVertBuf *color_tx = do_sbuffer ?
-                               DRW_cache_gpencil_sbuffer_color_buffer_get(iter->ob, show_fill) :
-                               DRW_cache_gpencil_color_buffer_get(iter->ob, iter->pd->cfra);
+    blender::gpu::VertBuf *position_tx =
+        do_sbuffer ? DRW_cache_gpencil_sbuffer_position_buffer_get(iter->ob, show_fill) :
+                     DRW_cache_gpencil_position_buffer_get(iter->ob, iter->pd->cfra);
+    blender::gpu::VertBuf *color_tx = do_sbuffer ?
+                                          DRW_cache_gpencil_sbuffer_color_buffer_get(iter->ob,
+                                                                                     show_fill) :
+                                          DRW_cache_gpencil_color_buffer_get(iter->ob,
+                                                                             iter->pd->cfra);
     DRW_shgroup_buffer_texture(iter->grp, "gp_pos_tx", position_tx);
     DRW_shgroup_buffer_texture(iter->grp, "gp_col_tx", color_tx);
   }
@@ -559,7 +568,10 @@ static void gpencil_sbuffer_cache_populate_fast(GPENCIL_Data *vedata, gpIterPopu
   GPUTexture *depth_texture = iter->pd->scene_depth_tx;
   GPENCIL_tObject *last_tgp_ob = iter->pd->tobjects.last;
   /* Create another temp object that only contain the stroke. */
-  iter->tgp_ob = gpencil_object_cache_add(iter->pd, iter->ob);
+  const blender::Bounds<float3> bounds = BKE_gpencil_data_minmax(gpd).value_or(
+      blender::Bounds(float3(0)));
+  iter->tgp_ob = gpencil_object_cache_add(
+      iter->pd, iter->ob, (gpd->draw_mode == GP_DRAWMODE_3D), bounds);
   /* Remove from the main list. */
   iter->pd->tobjects.last = last_tgp_ob;
   last_tgp_ob->next = nullptr;
@@ -582,11 +594,282 @@ static void gpencil_sbuffer_cache_populate_fast(GPENCIL_Data *vedata, gpIterPopu
   gpencil_stroke_cache_populate(nullptr, nullptr, iter->pd->sbuffer_stroke, iter);
   gpencil_drawcall_flush(iter);
 
-  gpencil_vfx_cache_populate(vedata, iter->ob, iter->tgp_ob);
+  gpencil_vfx_cache_populate(
+      vedata, iter->ob, iter->tgp_ob, (gpd != nullptr && GPENCIL_ANY_EDIT_MODE(gpd)));
 
   /* Restore state. */
   iter->do_sbuffer_call = 0;
   iter->pd->scene_depth_tx = depth_texture;
+}
+
+/* Check if the passed in layer is used by any other layer as a mask (in the viewlayer). */
+static bool is_used_as_layer_mask_in_viewlayer(const GreasePencil &grease_pencil,
+                                               const blender::bke::greasepencil::Layer &mask_layer,
+                                               const ViewLayer &view_layer)
+{
+  using namespace blender::bke::greasepencil;
+  for (const Layer *layer : grease_pencil.layers()) {
+    if (layer->view_layer_name().is_empty() ||
+        !STREQ(view_layer.name, layer->view_layer_name().c_str()))
+    {
+      continue;
+    }
+
+    if ((layer->base.flag & GP_LAYER_TREE_NODE_DISABLE_MASKS_IN_VIEWLAYER) != 0) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (GreasePencilLayerMask *, mask, &layer->masks) {
+      if (STREQ(mask->layer_name, mask_layer.name().c_str())) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/* Returns true if this layer should be rendered (as part of the viewlayer). */
+static bool use_layer_in_render(const GreasePencil &grease_pencil,
+                                const blender::bke::greasepencil::Layer &layer,
+                                const ViewLayer &view_layer,
+                                bool &r_is_used_as_mask)
+{
+  if (!layer.view_layer_name().is_empty() &&
+      !STREQ(view_layer.name, layer.view_layer_name().c_str()))
+  {
+    /* Do not skip layers that are masks when rendering the viewlayer so that it can still be used
+     * to clip/mask other layers. */
+    if (is_used_as_layer_mask_in_viewlayer(grease_pencil, layer, view_layer)) {
+      r_is_used_as_mask = true;
+    }
+    else {
+      return false;
+    }
+  }
+  return true;
+}
+
+static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData *pd,
+                                                            GPENCIL_TextureList *txl,
+                                                            Object *ob)
+{
+  using namespace blender;
+  using namespace blender::ed::greasepencil;
+  using namespace blender::bke::greasepencil;
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+  const bool is_vertex_mode = (ob->mode & OB_MODE_VERTEX_PAINT) != 0;
+  const blender::Bounds<float3> bounds = grease_pencil.bounds_min_max_eval().value_or(
+      blender::Bounds(float3(0)));
+
+  const bool do_onion = !pd->is_render && pd->do_onion;
+  const bool do_multi_frame = (pd->scene->toolsettings->gpencil_flags &
+                               GP_USE_MULTI_FRAME_EDITING) != 0;
+  const bool use_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
+  GPENCIL_tObject *tgp_ob = gpencil_object_cache_add(pd, ob, use_stroke_order_3d, bounds);
+
+  int mat_ofs = 0;
+  GPENCIL_MaterialPool *matpool = gpencil_material_pool_create(pd, ob, &mat_ofs, is_vertex_mode);
+
+  GPUTexture *tex_fill = txl->dummy_texture;
+  GPUTexture *tex_stroke = txl->dummy_texture;
+
+  blender::gpu::Batch *iter_geom = nullptr;
+  DRWShadingGroup *grp;
+  int vfirst = 0;
+  int vcount = 0;
+
+  const auto drawcall_flush = [&]() {
+#if !DISABLE_BATCHING
+    if (iter_geom != nullptr) {
+      DRW_shgroup_call_range(grp, ob, iter_geom, vfirst, vcount);
+    }
+#endif
+    iter_geom = nullptr;
+    vfirst = -1;
+    vcount = 0;
+  };
+
+  const auto drawcall_add =
+      [&](blender::gpu::Batch *draw_geom, const int v_first, const int v_count) {
+#if DISABLE_BATCHING
+        DRW_shgroup_call_range(grp, ob, geom, v_first, v_count);
+        return;
+#endif
+        int last = vfirst + vcount;
+        /* Interrupt draw-call grouping if the sequence is not consecutive. */
+        if ((draw_geom != iter_geom) || (v_first - last > 0)) {
+          drawcall_flush();
+        }
+        iter_geom = draw_geom;
+        if (vfirst == -1) {
+          vfirst = v_first;
+        }
+        vcount = v_first + v_count - vfirst;
+      };
+
+  int t_offset = 0;
+  /* Note that we loop over all the drawings (including the onion skinned ones) to make sure we
+   * match the offsets of the batch cache. */
+  const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*pd->scene, grease_pencil, true);
+  const Span<const Layer *> layers = grease_pencil.layers();
+  for (const DrawingInfo info : drawings) {
+    const Layer &layer = *layers[info.layer_index];
+
+    const bke::CurvesGeometry &curves = info.drawing.strokes();
+    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+    const bke::AttributeAccessor attributes = curves.attributes();
+    const VArray<bool> cyclic = *attributes.lookup_or_default<bool>(
+        "cyclic", bke::AttrDomain::Curve, false);
+
+    IndexMaskMemory memory;
+    const IndexMask visible_strokes = ed::greasepencil::retrieve_visible_strokes(
+        *ob, info.drawing, memory);
+
+    /* Precompute all the triangle and vertex counts.
+     * In case the drawing should not be rendered, we need to compute the offset where the next
+     * drawing begins. */
+    Array<int> num_triangles_per_stroke(visible_strokes.size());
+    Array<int> num_vertices_per_stroke(visible_strokes.size());
+    int total_num_triangles = 0;
+    int total_num_vertices = 0;
+    visible_strokes.foreach_index([&](const int stroke_i) {
+      const IndexRange points = points_by_curve[stroke_i];
+      const int num_stroke_triangles = (points.size() >= 3) ? (points.size() - 2) : 0;
+      const int num_stroke_vertices = (points.size() +
+                                       int(cyclic[stroke_i] && (points.size() >= 3)));
+      num_triangles_per_stroke[stroke_i] = num_stroke_triangles;
+      num_vertices_per_stroke[stroke_i] = num_stroke_vertices;
+      total_num_triangles += num_stroke_triangles;
+      total_num_vertices += num_stroke_vertices;
+    });
+
+    bool is_layer_used_as_mask = false;
+    const bool show_drawing_in_render = use_layer_in_render(
+        grease_pencil, layer, *pd->view_layer, is_layer_used_as_mask);
+    if (!show_drawing_in_render) {
+      /* Skip over the entire drawing. */
+      t_offset += total_num_triangles;
+      t_offset += total_num_vertices * 2;
+      continue;
+    }
+
+    drawcall_flush();
+
+    GPENCIL_tLayer *tgp_layer = grease_pencil_layer_cache_add(
+        pd, ob, layer, info.onion_id, is_layer_used_as_mask, tgp_ob);
+
+    const bool use_lights = pd->use_lighting &&
+                            ((layer.base.flag & GP_LAYER_TREE_NODE_USE_LIGHTS) != 0) &&
+                            (ob->dtx & OB_USE_GPENCIL_LIGHTS);
+
+    GPUUniformBuf *lights_ubo = (use_lights) ? pd->global_light_pool->ubo :
+                                               pd->shadeless_light_pool->ubo;
+
+    GPUUniformBuf *ubo_mat;
+    gpencil_material_resources_get(matpool, 0, nullptr, nullptr, &ubo_mat);
+
+    grp = tgp_layer->base_shgrp;
+    DRW_shgroup_uniform_block(grp, "gp_lights", lights_ubo);
+    DRW_shgroup_uniform_block(grp, "gp_materials", ubo_mat);
+    DRW_shgroup_uniform_texture(grp, "gpFillTexture", tex_fill);
+    DRW_shgroup_uniform_texture(grp, "gpStrokeTexture", tex_stroke);
+    DRW_shgroup_uniform_int_copy(grp, "gpMaterialOffset", mat_ofs);
+    /* Since we don't use the sbuffer in GPv3, this is always 0. */
+    DRW_shgroup_uniform_float_copy(grp, "gpStrokeIndexOffset", 0.0f);
+    DRW_shgroup_uniform_vec2_copy(grp, "viewportSize", DRW_viewport_size_get());
+
+    const VArray<int> stroke_materials = *attributes.lookup_or_default<int>(
+        "material_index", bke::AttrDomain::Curve, 0);
+
+    const bool only_lines = !ELEM(ob->mode,
+                                  OB_MODE_PAINT_GPENCIL_LEGACY,
+                                  OB_MODE_WEIGHT_GPENCIL_LEGACY,
+                                  OB_MODE_VERTEX_GPENCIL_LEGACY) &&
+                            info.frame_number != pd->cfra && pd->use_multiedit_lines_only;
+    const bool is_onion = info.onion_id != 0;
+
+    visible_strokes.foreach_index([&](const int stroke_i) {
+      const IndexRange points = points_by_curve[stroke_i];
+      const int material_index = stroke_materials[stroke_i];
+      const MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, material_index + 1);
+
+      const bool hide_material = (gp_style->flag & GP_MATERIAL_HIDE) != 0;
+      const bool show_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0);
+      const bool show_fill = (points.size() >= 3) &&
+                             ((gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0) &&
+                             (!pd->simplify_fill);
+      const bool hide_onion = is_onion && ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0 ||
+                                           (!do_onion && !do_multi_frame));
+      const bool skip_stroke = hide_material || (!show_stroke && !show_fill) ||
+                               (only_lines && !is_onion) || hide_onion;
+
+      if (skip_stroke) {
+        t_offset += num_triangles_per_stroke[stroke_i];
+        t_offset += num_vertices_per_stroke[stroke_i] * 2;
+        return;
+      }
+
+      GPUUniformBuf *new_ubo_mat;
+      GPUTexture *new_tex_fill = nullptr;
+      GPUTexture *new_tex_stroke = nullptr;
+      gpencil_material_resources_get(
+          matpool, mat_ofs + material_index, &new_tex_stroke, &new_tex_fill, &new_ubo_mat);
+
+      const bool resource_changed = (ubo_mat != new_ubo_mat) ||
+                                    (new_tex_fill && (new_tex_fill != tex_fill)) ||
+                                    (new_tex_stroke && (new_tex_stroke != tex_stroke));
+
+      if (resource_changed) {
+        drawcall_flush();
+
+        grp = DRW_shgroup_create_sub(grp);
+        if (new_ubo_mat != ubo_mat) {
+          DRW_shgroup_uniform_block(grp, "gp_materials", new_ubo_mat);
+          ubo_mat = new_ubo_mat;
+        }
+        if (new_tex_fill) {
+          DRW_shgroup_uniform_texture(grp, "gpFillTexture", new_tex_fill);
+          tex_fill = new_tex_fill;
+        }
+        if (new_tex_stroke) {
+          DRW_shgroup_uniform_texture(grp, "gpStrokeTexture", new_tex_stroke);
+          tex_stroke = new_tex_stroke;
+        }
+      }
+
+      blender::gpu::Batch *geom = draw::DRW_cache_grease_pencil_get(pd->scene, ob);
+      if (iter_geom != geom) {
+        drawcall_flush();
+
+        blender::gpu::VertBuf *position_tx = draw::DRW_cache_grease_pencil_position_buffer_get(
+            pd->scene, ob);
+        blender::gpu::VertBuf *color_tx = draw::DRW_cache_grease_pencil_color_buffer_get(pd->scene,
+                                                                                         ob);
+        DRW_shgroup_buffer_texture(grp, "gp_pos_tx", position_tx);
+        DRW_shgroup_buffer_texture(grp, "gp_col_tx", color_tx);
+      }
+
+      if (show_fill) {
+        const int v_first = t_offset * 3;
+        const int v_count = num_triangles_per_stroke[stroke_i] * 3;
+        drawcall_add(geom, v_first, v_count);
+      }
+
+      t_offset += num_triangles_per_stroke[stroke_i];
+
+      if (show_stroke) {
+        const int v_first = t_offset * 3;
+        const int v_count = num_vertices_per_stroke[stroke_i] * 2 * 3;
+        drawcall_add(geom, v_first, v_count);
+      }
+
+      t_offset += num_vertices_per_stroke[stroke_i] * 2;
+    });
+  }
+
+  drawcall_flush();
+
+  return tgp_ob;
 }
 
 void GPENCIL_cache_populate(void *ved, Object *ob)
@@ -602,16 +885,18 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
   }
 
   if (ob->data && (ob->type == OB_GPENCIL_LEGACY) && (ob->dt >= OB_SOLID)) {
+    bGPdata *gpd = (bGPdata *)ob->data;
+    const blender::Bounds<float3> bounds = BKE_gpencil_data_minmax(gpd).value_or(
+        blender::Bounds(float3(0)));
     gpIterPopulateData iter = {nullptr};
     iter.ob = ob;
     iter.pd = pd;
-    iter.tgp_ob = gpencil_object_cache_add(pd, ob);
-    iter.matpool = gpencil_material_pool_create(pd, ob, &iter.mat_ofs);
+    iter.tgp_ob = gpencil_object_cache_add(pd, ob, (gpd->draw_mode == GP_DRAWMODE_3D), bounds);
+    iter.matpool = gpencil_material_pool_create(pd, ob, &iter.mat_ofs, GPENCIL_VERTEX_MODE(gpd));
     iter.tex_fill = txl->dummy_texture;
     iter.tex_stroke = txl->dummy_texture;
 
     /* Special case for rendering onion skin. */
-    bGPdata *gpd = (bGPdata *)ob->data;
     bool do_onion = (!pd->is_render) ? pd->do_onion : (gpd->onion_flag & GP_ONION_GHOST_ALWAYS);
     gpd->runtime.playing = short(pd->playing);
 
@@ -646,11 +931,17 @@ void GPENCIL_cache_populate(void *ved, Object *ob)
       gpencil_sbuffer_cache_populate(&iter);
     }
 
-    gpencil_vfx_cache_populate(vedata, ob, iter.tgp_ob);
+    gpencil_vfx_cache_populate(
+        vedata, ob, iter.tgp_ob, (gpd != nullptr && GPENCIL_ANY_EDIT_MODE(gpd)));
 
     if (pd->do_fast_drawing) {
       gpencil_sbuffer_cache_populate_fast(vedata, &iter);
     }
+  }
+  else if (ob->data && (ob->type == OB_GREASE_PENCIL) && (ob->dt >= OB_SOLID)) {
+    GPENCIL_tObject *tgp_ob = grease_pencil_object_cache_populate(pd, txl, ob);
+    gpencil_vfx_cache_populate(
+        vedata, ob, tgp_ob, ELEM(ob->mode, OB_MODE_EDIT, OB_MODE_SCULPT, OB_MODE_WEIGHT_PAINT));
   }
 
   if (ob->type == OB_LAMP && pd->use_lights) {
@@ -928,7 +1219,7 @@ void GPENCIL_draw_scene(void *ved)
 
   /* Fade 3D objects. */
   if ((!pd->is_render) && (pd->fade_3d_object_opacity > -1.0f) && (pd->obact != nullptr) &&
-      (pd->obact->type == OB_GPENCIL_LEGACY))
+      ELEM(pd->obact->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL))
   {
     float background_color[3];
     ED_view3d_background_color_get(pd->scene, pd->v3d, background_color);

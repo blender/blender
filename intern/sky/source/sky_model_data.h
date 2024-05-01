@@ -76,7 +76,7 @@ the model.
  * \ingroup intern_sky_modal
  */
 
-// Uses Sep 9 pattern / Aug 23 mean dataset
+/* Uses Sep 9 pattern / Aug 23 mean dataset. */
 
 static const double datasetXYZ1[] = {
     // albedo 0, turbidity 1

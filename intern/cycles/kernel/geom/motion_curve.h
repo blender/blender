@@ -45,7 +45,7 @@ ccl_device_inline void motion_curve_keys_for_step_linear(KernelGlobals kg,
 
 /* return 2 curve key locations */
 ccl_device_inline void motion_curve_keys_linear(
-    KernelGlobals kg, int object, int prim, float time, int k0, int k1, float4 keys[2])
+    KernelGlobals kg, int object, float time, int k0, int k1, float4 keys[2])
 {
   /* get motion info */
   const int numsteps = kernel_data_fetch(objects, object).numsteps;
@@ -104,15 +104,8 @@ ccl_device_inline void motion_curve_keys_for_step(KernelGlobals kg,
 }
 
 /* return 2 curve key locations */
-ccl_device_inline void motion_curve_keys(KernelGlobals kg,
-                                         int object,
-                                         int prim,
-                                         float time,
-                                         int k0,
-                                         int k1,
-                                         int k2,
-                                         int k3,
-                                         float4 keys[4])
+ccl_device_inline void motion_curve_keys(
+    KernelGlobals kg, int object, float time, int k0, int k1, int k2, int k3, float4 keys[4])
 {
   /* get motion info */
   const int numsteps = kernel_data_fetch(objects, object).numsteps;

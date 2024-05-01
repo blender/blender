@@ -33,7 +33,6 @@ void debug_tile_print(ShadowTileData tile, ivec4 tile_coord)
 {
 #ifdef DRW_DEBUG_PRINT
   drw_print("Tile (", tile_coord.x, ",", tile_coord.y, ") in Tilemap ", tile_coord.z, " : ");
-  drw_print(tile.lod);
   drw_print(tile.page);
   drw_print(tile.cache_index);
 #endif
@@ -41,10 +40,6 @@ void debug_tile_print(ShadowTileData tile, ivec4 tile_coord)
 
 vec3 debug_tile_state_color(ShadowTileData tile)
 {
-  if (tile.lod > 0) {
-    /* Uses data from another LOD. */
-    return neon_gradient(float(tile.lod) / float(SHADOW_TILEMAP_LOD));
-  }
   if (tile.do_update && tile.is_used) {
     /* Updated. */
     return vec3(0.5, 1, 0);
@@ -63,17 +58,31 @@ vec3 debug_tile_state_color(ShadowTileData tile)
   return col;
 }
 
-// ShadowSample debug_tile_get(vec3 P, LightData light)
-// {
-//   vec3 lNg = vec3(1.0, 0.0, 0.0);
-//   if (is_sun_light(light.type)) {
-//     return shadow_directional_sample_get(shadow_atlas_tx, shadow_tilemaps_tx, light, P, lNg);
-//   }
-//   else {
-//     vec3 lL = light_world_to_local(light, P - light._position);
-//     return shadow_punctual_sample_get(shadow_atlas_tx, shadow_tilemaps_tx, light, lL, lNg);
-//   }
-// }
+vec3 debug_tile_state_color(eLightType type, ShadowSamplingTile tile)
+{
+  if (!tile.is_valid) {
+    return vec3(1, 0, 0);
+  }
+  /* Uses data from another LOD. */
+  return neon_gradient(float(tile.lod) / float((type == LIGHT_SUN) ?
+                                                   SHADOW_TILEMAP_MAX_CLIPMAP_LOD :
+                                                   SHADOW_TILEMAP_LOD));
+}
+
+ShadowSampleParams debug_shadow_sample_get(vec3 P, LightData light)
+{
+  if (is_sun_light(light.type)) {
+    return shadow_directional_sample_params_get(shadow_tilemaps_tx, light, P);
+  }
+  else {
+    return shadow_punctual_sample_params_get(light, P);
+  }
+}
+
+ShadowSamplingTile debug_tile_get(vec3 P, LightData light)
+{
+  return shadow_tile_data_get(shadow_tilemaps_tx, debug_shadow_sample_get(P, light));
+}
 
 LightData debug_light_get()
 {
@@ -103,6 +112,21 @@ bool debug_tilemaps(vec3 P, LightData light)
   int tilemap = px.x / SHADOW_TILEMAP_RES;
   int tilemap_index = light.tilemap_index + tilemap;
   if ((px.y < SHADOW_TILEMAP_RES) && (tilemap_index <= light_tilemap_max_get(light))) {
+#if 1
+    /* Debug values in the tilemap_tx. */
+    ivec2 tilemap_texel = shadow_tile_coord_in_atlas(px, tilemap_index);
+    ShadowSamplingTile tile = shadow_sampling_tile_unpack(
+        texelFetch(shadow_tilemaps_tx, tilemap_texel, 0).x);
+    /* Leave 1 px border between tile-maps. */
+    if (!any(equal(ivec2(gl_FragCoord.xy) % (SHADOW_TILEMAP_RES * debug_tile_size_px), ivec2(0))))
+    {
+      gl_FragDepth = 0.0;
+      out_color_add = vec4(debug_tile_state_color(light.type, tile), 0.0);
+      out_color_mul = vec4(0.0);
+
+      return true;
+    }
+#else
     /* Debug actual values in the tile-map buffer. */
     ShadowTileMapData tilemap = tilemaps_buf[tilemap_index];
     int tile_index = shadow_tile_offset(
@@ -115,36 +139,33 @@ bool debug_tilemaps(vec3 P, LightData light)
       out_color_add = vec4(debug_tile_state_color(tile), 0.0);
       out_color_mul = vec4(0.0);
 
-#ifdef DRW_DEBUG_PRINT
-      if (all(equal(ivec2(gl_FragCoord.xy), ivec2(0)))) {
-        drw_print(light.object_mat);
-      }
-#endif
       return true;
     }
+#endif
   }
   return false;
 }
 
 void debug_tile_state(vec3 P, LightData light)
 {
-  // ShadowSample samp = debug_tile_get(P, light);
-  // out_color_add = vec4(debug_tile_state_color(samp.tile), 0) * 0.5;
-  // out_color_mul = vec4(0.5);
+  ShadowSamplingTile tile = debug_tile_get(P, light);
+  out_color_add = vec4(debug_tile_state_color(light.type, tile), 0) * 0.5;
+  out_color_mul = vec4(0.5);
 }
 
 void debug_atlas_values(vec3 P, LightData light)
 {
-  // ShadowSample samp = debug_tile_get(P, light);
-  // out_color_add = vec4(vec3(samp.occluder_dist), 0);
-  // out_color_mul = vec4(0.0);
+  ShadowSampleParams samp = debug_shadow_sample_get(P, light);
+  float depth = shadow_read_depth(shadow_atlas_tx, shadow_tilemaps_tx, samp);
+  out_color_add = vec4(float3(depth), 0.0);
+  out_color_mul = vec4(0.5);
 }
 
 void debug_random_tile_color(vec3 P, LightData light)
 {
-  // ShadowSample samp = debug_tile_get(P, light);
-  // out_color_add = vec4(debug_random_color(ivec2(samp.tile.page.xy)), 0) * 0.5;
-  // out_color_mul = vec4(0.5);
+  ShadowSamplingTile tile = debug_tile_get(P, light);
+  out_color_add = vec4(debug_random_color(ivec2(tile.page.xy)), 0) * 0.5;
+  out_color_mul = vec4(0.5);
 }
 
 void debug_random_tilemap_color(vec3 P, LightData light)
@@ -155,7 +176,7 @@ void debug_random_tilemap_color(vec3 P, LightData light)
     coord = shadow_directional_coordinates(light, lP);
   }
   else {
-    vec3 lP = light_world_to_local(light, P - light._position);
+    vec3 lP = light_world_to_local(light, P - light_position_get(light));
     int face_id = shadow_punctual_face_index_get(lP);
     lP = shadow_punctual_local_position_to_face_local(face_id, lP);
     coord = shadow_punctual_coordinates(light, lP, face_id);

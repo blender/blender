@@ -7,11 +7,11 @@
  */
 
 #include "gpu_context_private.hh"
-#include "gpu_matrix_private.h"
+#include "gpu_matrix_private.hh"
 
 #define SUPPRESS_GENERIC_MATRIX_API
 #define USE_GPU_PY_MATRIX_API /* only so values are declared */
-#include "GPU_matrix.h"
+#include "GPU_matrix.hh"
 #undef USE_GPU_PY_MATRIX_API
 
 #include "BLI_math_matrix.h"
@@ -505,7 +505,7 @@ bool GPU_matrix_unproject_3fv(const float win[3],
                               float r_world[3])
 {
   zero_v3(r_world);
-  float in[3] = {
+  const float in[3] = {
       2 * ((win[0] - view[0]) / view[2]) - 1.0f,
       2 * ((win[1] - view[1]) / view[3]) - 1.0f,
       2 * win[2] - 1.0f,

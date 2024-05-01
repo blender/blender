@@ -17,7 +17,7 @@
 #include "BLI_rand.h"
 #include "BLI_string_utils.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 #define DO_FILE_OUTPUT 0
 

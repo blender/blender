@@ -31,7 +31,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_thumbs.hh"
@@ -517,7 +517,7 @@ void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
 
   for (int i = 0; i < NUM_ICON_SIZES; i++) {
     if (prv->rect[i]) {
-      BLO_read_data_address(reader, &prv->rect[i]);
+      BLO_read_uint32_array(reader, prv->w[i] * prv->h[i], &prv->rect[i]);
     }
 
     /* PRV_RENDERING is a runtime only flag currently, but don't mess with it on undo! It gets

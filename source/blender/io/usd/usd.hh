@@ -18,6 +18,12 @@ struct CacheFile;
 struct Object;
 struct wmJobWorkerStatus;
 
+<<<<<<< HEAD
+=======
+namespace blender::bke {
+struct GeometrySet;
+}
+>>>>>>> main
 
 namespace blender::io::usd {
 
@@ -65,6 +71,7 @@ static const USD_global_forward_axis USD_DEFAULT_FORWARD = USD_GLOBAL_FORWARD_MI
 static const USD_global_up_axis USD_DEFAULT_UP = USD_GLOBAL_UP_Y;
 
 /**
+<<<<<<< HEAD
   * Behavior when the name of an imported material
   * conflicts with an existing material.
   */
@@ -73,12 +80,19 @@ typedef enum eUSDMtlNameCollisionMode {
   USD_MTL_NAME_COLLISION_REFERENCE_EXISTING = 1,
 } eUSDMtlNameCollisionMode;
 
+=======
+ *  Behavior for importing of custom
+ *  attributes / properties outside
+ *  a prim's regular schema.
+ */
+>>>>>>> main
 typedef enum eUSDAttrImportMode {
   USD_ATTR_IMPORT_NONE = 0,
   USD_ATTR_IMPORT_USER = 1,
   USD_ATTR_IMPORT_ALL = 2,
 } eUSDAttrImportMode;
 
+<<<<<<< HEAD
 typedef enum eUSDDefaultPrimKind {
   USD_KIND_NONE = 0,
   USD_KIND_COMPONENT,
@@ -92,6 +106,13 @@ typedef enum eUSDDefaultPrimKind {
   * (e.g., USDZ archive) or from a URI path.
   */
 typedef enum eUSDTexImportMode {
+=======
+/**
+ *  Behavior when importing textures from a package
+ * (e.g., USDZ archive) or from a URI path.
+ */
+enum eUSDTexImportMode {
+>>>>>>> main
   USD_TEX_IMPORT_NONE = 0,
   USD_TEX_IMPORT_PACK,
   USD_TEX_IMPORT_COPY,
@@ -164,6 +185,7 @@ struct USDExportParams {
   double shutter_close = 0.75;
   bool export_textures = true;
   bool relative_paths = true;
+<<<<<<< HEAD
   bool use_original_paths = false;
   bool backward_compatible = true;
   float light_intensity_scale = 1.0f;
@@ -192,6 +214,16 @@ struct USDExportParams {
   /** Communication structure between the wmJob management code and the worker code. Currently used
     * to generate safely reports from the worker thread. */
   wmJobWorkerStatus* worker_status;
+=======
+  bool export_custom_properties = true;
+  bool author_blender_name = true;
+  char root_prim_path[1024] = ""; /* FILE_MAX */
+  char collection[MAX_IDPROP_NAME] = "";
+
+  /** Communication structure between the wmJob management code and the worker code. Currently used
+   * to generate safely reports from the worker thread. */
+  wmJobWorkerStatus *worker_status = nullptr;
+>>>>>>> main
 };
 
 struct USDImportParams {
@@ -234,6 +266,7 @@ struct USDImportParams {
   char import_textures_dir[768] = ""; /* FILE_MAXDIR */
   eUSDTexNameCollisionMode tex_name_collision_mode;
   bool import_all_materials;
+  eUSDAttrImportMode attr_import_mode;
 
   /**
     * Communication structure between the wmJob management code and the worker code. Currently used
@@ -274,7 +307,7 @@ bool USD_import(struct bContext* C,
   bool as_background_job,
   ReportList* reports);
 
-int USD_get_version(void);
+int USD_get_version();
 
 bool USD_umm_module_loaded(void);
 
@@ -295,11 +328,19 @@ void USD_free_handle(struct CacheArchiveHandle* handle);
 void USD_get_transform(struct CacheReader* reader, float r_mat[4][4], float time, float scale);
 
 /** Either modifies current_mesh in-place or constructs a new mesh. */
+<<<<<<< HEAD
 struct Mesh* USD_read_mesh(struct CacheReader* reader,
   struct Object* ob,
   struct Mesh* existing_mesh,
   USDMeshReadParams params,
   const char** err_str);
+=======
+void USD_read_geometry(CacheReader *reader,
+                       Object *ob,
+                       blender::bke::GeometrySet &geometry_set,
+                       USDMeshReadParams params,
+                       const char **err_str);
+>>>>>>> main
 
 bool USD_mesh_topology_changed(struct CacheReader* reader,
   const struct Object* ob,

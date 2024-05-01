@@ -26,7 +26,7 @@ static void extract_skin_roots_init(const MeshRenderData &mr,
                                     void *buf,
                                     void * /*tls_data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   /* Exclusively for edit mode. */
   BLI_assert(mr.bm);
 

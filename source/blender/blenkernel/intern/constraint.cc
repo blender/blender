@@ -58,7 +58,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
@@ -210,9 +210,9 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
 
   /* calculate delta of constraints evaluation */
   invert_m4_m4(imat, cob->startmat);
-  /* XXX This would seem to be in wrong order. However, it does not work in 'right' order -
-   *     would be nice to understand why premul is needed here instead of usual postmul?
-   *     In any case, we **do not get a delta** here (e.g. startmat & matrix having same location,
+  /* XXX This would seem to be in wrong order. However, it does not work in 'right' order - would
+   *     be nice to understand why pre-multiply is needed here instead of usual post-multiply?
+   *     In any case, we *do not get a delta* here (e.g. startmat & matrix having same location,
    *     still gives a 'delta' with non-null translation component :/ ). */
   mul_m4_m4m4(delta, cob->matrix, imat);
 
@@ -518,7 +518,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   /* when not in EditMode, use the 'final' evaluated mesh, depsgraph
    * ensures we build with CD_MDEFORMVERT layer
    */
-  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   float plane[3];
   float imat[3][3], tmat[3][3];
@@ -553,11 +553,11 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
       }
     }
   }
-  else if (me_eval) {
-    const blender::Span<blender::float3> positions = me_eval->vert_positions();
-    const blender::Span<blender::float3> vert_normals = me_eval->vert_normals();
+  else if (mesh_eval) {
+    const blender::Span<blender::float3> positions = mesh_eval->vert_positions();
+    const blender::Span<blender::float3> vert_normals = mesh_eval->vert_normals();
     const MDeformVert *dvert = static_cast<const MDeformVert *>(
-        CustomData_get_layer(&me_eval->vert_data, CD_MDEFORMVERT));
+        CustomData_get_layer(&mesh_eval->vert_data, CD_MDEFORMVERT));
 
     /* check that dvert is a valid pointers (just in case) */
     if (dvert) {
@@ -1659,6 +1659,64 @@ static bConstraintTypeInfo CTI_LOCLIMIT = {
 
 /* -------- Limit Rotation --------- */
 
+/**
+ * Wraps a number to be in [-PI, +PI].
+ */
+static inline float wrap_rad_angle(const float angle)
+{
+  const float b = angle * (0.5 / M_PI) + 0.5;
+  return ((b - std::floor(b)) - 0.5) * (2.0 * M_PI);
+}
+
+/**
+ * Clamps an angle between min and max.
+ *
+ * All angles are in radians.
+ *
+ * This function treats angles as existing in a looping (cyclic) space, and is therefore
+ * specifically not equivalent to a simple `clamp(angle, min, max)`. `min` and `max` are treated as
+ * a directed range on the unit circle and `angle` is treated as a point on the unit circle.
+ * `angle` is then clamped to be within the directed range defined by `min` and `max`.
+ */
+static float clamp_angle(const float angle, const float min, const float max)
+{
+  /* If the allowed range exceeds 360 degrees no clamping can occur. */
+  if ((max - min) >= (2 * M_PI)) {
+    return angle;
+  }
+
+  /* Invalid case, just return min. */
+  if (max <= min) {
+    return min;
+  }
+
+  /* Move min and max into a space where `angle == 0.0`, and wrap them to
+   * [-PI, +PI] in that space.  This simplifies the cases below, as we can
+   * just use 0.0 in place of `angle` and know that everything is in
+   * [-PI, +PI]. */
+  const float min_wrapped = wrap_rad_angle(min - angle);
+  const float max_wrapped = wrap_rad_angle(max - angle);
+
+  /* If the range defined by `min`/`max` doesn't contain the boundary at
+   * PI/-PI.  This is the simple case, because it means we can do a simple
+   * clamp. */
+  if (min_wrapped < max_wrapped) {
+    return angle + std::clamp(0.0f, min_wrapped, max_wrapped);
+  }
+
+  /* At this point we know that `min_wrapped` >= `max_wrapped`, meaning the boundary is crossed.
+   * With that we know that no clamping is needed in the following case. */
+  if (max_wrapped >= 0.0 || min_wrapped <= 0.0) {
+    return angle;
+  }
+
+  /* If zero is outside of the range, we clamp to the closest of `min_wrapped` or `max_wrapped`. */
+  if (std::fabs(max_wrapped) < std::fabs(min_wrapped)) {
+    return angle + max_wrapped;
+  }
+  return angle + min_wrapped;
+}
+
 static void rotlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase * /*targets*/)
 {
   bRotLimitConstraint *data = static_cast<bRotLimitConstraint *>(con->data);
@@ -1693,31 +1751,13 @@ static void rotlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase * /
 
   /* limiting of euler values... */
   if (data->flag & LIMIT_XROT) {
-    if (eul[0] < data->xmin) {
-      eul[0] = data->xmin;
-    }
-
-    if (eul[0] > data->xmax) {
-      eul[0] = data->xmax;
-    }
+    eul[0] = clamp_angle(eul[0], data->xmin, data->xmax);
   }
   if (data->flag & LIMIT_YROT) {
-    if (eul[1] < data->ymin) {
-      eul[1] = data->ymin;
-    }
-
-    if (eul[1] > data->ymax) {
-      eul[1] = data->ymax;
-    }
+    eul[1] = clamp_angle(eul[1], data->ymin, data->ymax);
   }
   if (data->flag & LIMIT_ZROT) {
-    if (eul[2] < data->zmin) {
-      eul[2] = data->zmin;
-    }
-
-    if (eul[2] > data->zmax) {
-      eul[2] = data->zmax;
-    }
+    eul[2] = clamp_angle(eul[2], data->zmin, data->zmax);
   }
 
   loc_eulO_size_to_mat4(cob->matrix, loc, eul, size, rot_order);
@@ -6508,7 +6548,7 @@ void BKE_constraint_blend_write(BlendWriter *writer, ListBase *conlist)
 
 void BKE_constraint_blend_read_data(BlendDataReader *reader, ID *id_owner, ListBase *lb)
 {
-  BLO_read_list(reader, lb);
+  BLO_read_struct_list(reader, bConstraint, lb);
   LISTBASE_FOREACH (bConstraint *, con, lb) {
     BLO_read_data_address(reader, &con->data);
     /* Patch for error introduced by changing constraints (don't know how). */
@@ -6529,23 +6569,23 @@ void BKE_constraint_blend_read_data(BlendDataReader *reader, ID *id_owner, ListB
       case CONSTRAINT_TYPE_PYTHON: {
         bPythonConstraint *data = static_cast<bPythonConstraint *>(con->data);
 
-        BLO_read_list(reader, &data->targets);
+        BLO_read_struct_list(reader, bConstraintTarget, &data->targets);
 
-        BLO_read_data_address(reader, &data->prop);
+        BLO_read_struct(reader, IDProperty, &data->prop);
         IDP_BlendDataRead(reader, &data->prop);
         break;
       }
       case CONSTRAINT_TYPE_ARMATURE: {
         bArmatureConstraint *data = static_cast<bArmatureConstraint *>(con->data);
 
-        BLO_read_list(reader, &data->targets);
+        BLO_read_struct_list(reader, bConstraintTarget, &data->targets);
 
         break;
       }
       case CONSTRAINT_TYPE_SPLINEIK: {
         bSplineIKConstraint *data = static_cast<bSplineIKConstraint *>(con->data);
 
-        BLO_read_data_address(reader, &data->points);
+        BLO_read_float_array(reader, data->numpoints, &data->points);
         break;
       }
       case CONSTRAINT_TYPE_KINEMATIC: {

@@ -23,6 +23,8 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender::bke::subdiv {
+
 /* -------------------------------------------------------------------- */
 /** \name Subdivision context
  * \{ */
@@ -75,10 +77,10 @@ static void subdiv_accumulate_vertex_displacement(SubdivDeformContext *ctx,
 {
   Subdiv *subdiv = ctx->subdiv;
   float dummy_P[3], dPdu[3], dPdv[3], D[3];
-  BKE_subdiv_eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, dummy_P, dPdu, dPdv);
+  eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, dummy_P, dPdu, dPdv);
   /* Accumulate displacement if needed. */
   if (ctx->have_displacement) {
-    BKE_subdiv_eval_displacement(subdiv, ptex_face_index, u, v, dPdu, dPdv, D);
+    eval_displacement(subdiv, ptex_face_index, u, v, dPdu, dPdv, D);
     /* NOTE: The storage for vertex coordinates is coming from an external world, not necessarily
      * initialized to zeroes. */
     if (ctx->accumulated_counters[vertex_index] == 0) {
@@ -97,7 +99,7 @@ static void subdiv_accumulate_vertex_displacement(SubdivDeformContext *ctx,
 /** \name Subdivision callbacks
  * \{ */
 
-static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_context,
+static bool subdiv_mesh_topology_info(const ForeachContext *foreach_context,
                                       const int /*num_vertices*/,
                                       const int /*num_edges*/,
                                       const int /*num_loops*/,
@@ -110,7 +112,7 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
   return true;
 }
 
-static void subdiv_mesh_vertex_every_corner(const SubdivForeachContext *foreach_context,
+static void subdiv_mesh_vertex_every_corner(const ForeachContext *foreach_context,
                                             void * /*tls*/,
                                             const int ptex_face_index,
                                             const float u,
@@ -124,7 +126,7 @@ static void subdiv_mesh_vertex_every_corner(const SubdivForeachContext *foreach_
   subdiv_accumulate_vertex_displacement(ctx, ptex_face_index, u, v, coarse_vertex_index);
 }
 
-static void subdiv_mesh_vertex_corner(const SubdivForeachContext *foreach_context,
+static void subdiv_mesh_vertex_corner(const ForeachContext *foreach_context,
                                       void * /*tls*/,
                                       const int ptex_face_index,
                                       const float u,
@@ -150,7 +152,7 @@ static void subdiv_mesh_vertex_corner(const SubdivForeachContext *foreach_contex
     mul_v3_fl(D, inv_num_accumulated);
   }
   /* Copy custom data and evaluate position. */
-  BKE_subdiv_eval_limit_point(ctx->subdiv, ptex_face_index, u, v, vertex_co);
+  eval_limit_point(ctx->subdiv, ptex_face_index, u, v, vertex_co);
   /* Apply displacement. */
   add_v3_v3(vertex_co, D);
 }
@@ -162,7 +164,7 @@ static void subdiv_mesh_vertex_corner(const SubdivForeachContext *foreach_contex
  * \{ */
 
 static void setup_foreach_callbacks(const SubdivDeformContext *subdiv_context,
-                                    SubdivForeachContext *foreach_context)
+                                    ForeachContext *foreach_context)
 {
   memset(foreach_context, 0, sizeof(*foreach_context));
   /* General information. */
@@ -180,24 +182,22 @@ static void setup_foreach_callbacks(const SubdivDeformContext *subdiv_context,
 /** \name Public entry point
  * \{ */
 
-void BKE_subdiv_deform_coarse_vertices(Subdiv *subdiv,
-                                       const Mesh *coarse_mesh,
-                                       float (*vertex_cos)[3],
-                                       int num_verts)
+void deform_coarse_vertices(Subdiv *subdiv,
+                            const Mesh *coarse_mesh,
+                            float (*vertex_cos)[3],
+                            int num_verts)
 {
-  BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
+  stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
   /* Make sure evaluator is up to date with possible new topology, and that
    * is refined for the new positions of coarse vertices. */
-  if (!BKE_subdiv_eval_begin_from_mesh(
-          subdiv, coarse_mesh, vertex_cos, SUBDIV_EVALUATOR_TYPE_CPU, nullptr))
-  {
+  if (!eval_begin_from_mesh(subdiv, coarse_mesh, vertex_cos, SUBDIV_EVALUATOR_TYPE_CPU, nullptr)) {
     /* This could happen in two situations:
      * - OpenSubdiv is disabled.
      * - Something totally bad happened, and OpenSubdiv rejected our
      *   topology.
      * In either way, we can't safely continue. */
     if (coarse_mesh->faces_num) {
-      BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
+      stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
       return;
     }
   }
@@ -210,25 +210,27 @@ void BKE_subdiv_deform_coarse_vertices(Subdiv *subdiv,
   subdiv_context.num_verts = num_verts;
   subdiv_context.have_displacement = (subdiv->displacement_evaluator != nullptr);
 
-  SubdivForeachContext foreach_context;
+  ForeachContext foreach_context;
   setup_foreach_callbacks(&subdiv_context, &foreach_context);
   foreach_context.user_data = &subdiv_context;
 
   /* Dummy mesh rasterization settings. */
-  SubdivToMeshSettings mesh_settings;
+  ToMeshSettings mesh_settings;
   mesh_settings.resolution = 1;
   mesh_settings.use_optimal_display = false;
 
   /* Multi-threaded traversal/evaluation. */
-  BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
-  BKE_subdiv_foreach_subdiv_geometry(subdiv, &foreach_context, &mesh_settings, coarse_mesh);
-  BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
+  stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
+  foreach_subdiv_geometry(subdiv, &foreach_context, &mesh_settings, coarse_mesh);
+  stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
 
   // BKE_mesh_validate(result, true, true);
-  BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
+  stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
 
   /* Free used memory. */
   subdiv_mesh_context_free(&subdiv_context);
 }
 
 /** \} */
+
+}  // namespace blender::bke::subdiv

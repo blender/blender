@@ -29,9 +29,10 @@
 #include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_update_cache_legacy.h"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_object_types.hh"
 #include "BKE_scene.hh"
 
@@ -69,7 +70,7 @@
 #endif
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_editmesh.hh"
@@ -555,10 +556,10 @@ void update_mesh_edit_mode_pointers(const ID *id_orig, ID *id_cow)
 {
   const Mesh *mesh_orig = (const Mesh *)id_orig;
   Mesh *mesh_cow = (Mesh *)id_cow;
-  if (mesh_orig->edit_mesh == nullptr) {
+  if (mesh_orig->runtime->edit_mesh == nullptr) {
     return;
   }
-  mesh_cow->edit_mesh = mesh_orig->edit_mesh;
+  mesh_cow->runtime->edit_mesh = mesh_orig->runtime->edit_mesh;
 }
 
 /* Edit data is stored and owned by original datablocks, copied ones
@@ -603,8 +604,8 @@ void update_list_orig_pointers(const ListBase *listbase_orig,
     element_orig = element_orig->next;
   }
 
-  BLI_assert((element_orig == nullptr && element_cow == nullptr) ||
-             !"list of pointers of different sizes, unable to reliably set orig pointer");
+  BLI_assert_msg(element_orig == nullptr && element_cow == nullptr,
+                 "list of pointers of different sizes, unable to reliably set orig pointer");
 }
 
 void update_particle_system_orig_pointers(const Object *object_orig, Object *object_cow)
@@ -939,7 +940,7 @@ void discard_lattice_edit_mode_pointers(ID *id_cow)
 void discard_mesh_edit_mode_pointers(ID *id_cow)
 {
   Mesh *mesh_cow = (Mesh *)id_cow;
-  mesh_cow->edit_mesh = nullptr;
+  mesh_cow->runtime->edit_mesh = nullptr;
 }
 
 void discard_scene_pointers(ID *id_cow)

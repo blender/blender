@@ -51,6 +51,11 @@ ccl_device_inline Spectrum integrate_transparent_surface_shadow(KernelGlobals kg
   shadow_volume_stack_enter_exit(kg, state, shadow_sd);
 #  endif
 
+  /* Disable transparent shadows for ray portals */
+  if (shadow_sd->flag & SD_RAY_PORTAL) {
+    return zero_spectrum();
+  }
+
   /* Compute transparency from closures. */
   return surface_shader_transparency(kg, shadow_sd);
 }

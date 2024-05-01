@@ -167,7 +167,7 @@ def execute(context, is_interactive):
         except SystemExit as ex:
             # Occurs when `exit(..)` is called, this raises an exception instead of exiting.
             # The trace-back isn't helpful in this case, just print the exception.
-            stderr.write("%r\n" % ex)
+            stderr.write("{!r}\n".format(ex))
             # Without this, entering new commands may include the previous command, see: #109435.
             console.resetbuffer()
         except:
@@ -337,7 +337,7 @@ def banner(context):
     version_string = sys.version.strip().replace('\n', ' ')
 
     message = (
-        "PYTHON INTERACTIVE CONSOLE %s" % version_string,
+        "PYTHON INTERACTIVE CONSOLE {:s}".format(version_string),
         "",
         "Builtin Modules:       "
         "bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, bpy.utils, bgl, gpu, blf, mathutils",

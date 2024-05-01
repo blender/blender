@@ -53,8 +53,8 @@ static int cachefile_open_invoke(bContext *C, wmOperator *op, const wmEvent * /*
     char filepath[FILE_MAX];
     Main *bmain = CTX_data_main(C);
 
-    STRNCPY(filepath, BKE_main_blendfile_path(bmain));
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".abc");
+    /* Default to the same directory as the blend file. */
+    BLI_path_split_dir_part(BKE_main_blendfile_path(bmain), filepath, sizeof(filepath));
     RNA_string_set(op->ptr, "filepath", filepath);
   }
 
@@ -163,8 +163,8 @@ static int cachefile_layer_open_invoke(bContext *C, wmOperator *op, const wmEven
     char filepath[FILE_MAX];
     Main *bmain = CTX_data_main(C);
 
-    STRNCPY(filepath, BKE_main_blendfile_path(bmain));
-    BLI_path_extension_replace(filepath, sizeof(filepath), ".abc");
+    /* Default to the same directory as the blend file. */
+    BLI_path_split_dir_part(BKE_main_blendfile_path(bmain), filepath, sizeof(filepath));
     RNA_string_set(op->ptr, "filepath", filepath);
   }
 

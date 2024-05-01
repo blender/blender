@@ -19,7 +19,6 @@
 
 struct AssetLibraryReference;
 struct bContext;
-
 namespace blender::asset_system {
 class AssetLibrary;
 class AssetRepresentation;
@@ -55,6 +54,8 @@ struct AssetItemTree {
       assets_per_path;
   /** Assets not added to a catalog, not part of #assets_per_path. */
   Vector<asset_system::AssetRepresentation *> unassigned_assets;
+  /** True if the tree is out of date compared to asset libraries and must be rebuilt. */
+  bool dirty = true;
 };
 
 asset_system::AssetCatalogTree build_filtered_catalog_tree(

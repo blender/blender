@@ -8,14 +8,17 @@
 
 #pragma once
 
+#include "BLI_math_matrix_types.hh"
 #include "BLI_utildefines.h"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "draw_attributes.hh"
 
-struct GPUBatch;
-struct GPUIndexBuf;
+namespace blender::gpu {
+class Batch;
+class IndexBuf;
+}  // namespace blender::gpu
 struct TaskGraph;
 
 namespace blender::draw {
@@ -74,95 +77,96 @@ struct MeshBufferList {
    * (except fdots and skin roots). For some VBOs, it extends to (in this exact order) :
    * loops + loose_edges * 2 + loose_verts */
   struct {
-    GPUVertBuf *pos_nor;  /* extend */
-    GPUVertBuf *lnor;     /* extend */
-    GPUVertBuf *edge_fac; /* extend */
-    GPUVertBuf *weights;  /* extend */
-    GPUVertBuf *uv;
-    GPUVertBuf *tan;
-    GPUVertBuf *sculpt_data;
-    GPUVertBuf *orco;
+    gpu::VertBuf *pos;      /* extend */
+    gpu::VertBuf *nor;      /* extend */
+    gpu::VertBuf *edge_fac; /* extend */
+    gpu::VertBuf *weights;  /* extend */
+    gpu::VertBuf *uv;
+    gpu::VertBuf *tan;
+    gpu::VertBuf *sculpt_data;
+    gpu::VertBuf *orco;
     /* Only for edit mode. */
-    GPUVertBuf *edit_data; /* extend */
-    GPUVertBuf *edituv_data;
-    GPUVertBuf *edituv_stretch_area;
-    GPUVertBuf *edituv_stretch_angle;
-    GPUVertBuf *mesh_analysis;
-    GPUVertBuf *fdots_pos;
-    GPUVertBuf *fdots_nor;
-    GPUVertBuf *fdots_uv;
-    // GPUVertBuf *fdots_edit_data; /* inside fdots_nor for now. */
-    GPUVertBuf *fdots_edituv_data;
-    GPUVertBuf *skin_roots;
+    gpu::VertBuf *edit_data; /* extend */
+    gpu::VertBuf *edituv_data;
+    gpu::VertBuf *edituv_stretch_area;
+    gpu::VertBuf *edituv_stretch_angle;
+    gpu::VertBuf *mesh_analysis;
+    gpu::VertBuf *fdots_pos;
+    gpu::VertBuf *fdots_nor;
+    gpu::VertBuf *fdots_uv;
+    // gpu::VertBuf *fdots_edit_data; /* inside fdots_nor for now. */
+    gpu::VertBuf *fdots_edituv_data;
+    gpu::VertBuf *skin_roots;
     /* Selection */
-    GPUVertBuf *vert_idx; /* extend */
-    GPUVertBuf *edge_idx; /* extend */
-    GPUVertBuf *face_idx;
-    GPUVertBuf *fdot_idx;
-    GPUVertBuf *attr[GPU_MAX_ATTR];
-    GPUVertBuf *attr_viewer;
+    gpu::VertBuf *vert_idx; /* extend */
+    gpu::VertBuf *edge_idx; /* extend */
+    gpu::VertBuf *face_idx;
+    gpu::VertBuf *fdot_idx;
+    gpu::VertBuf *attr[GPU_MAX_ATTR];
+    gpu::VertBuf *attr_viewer;
+    gpu::VertBuf *vnor;
   } vbo;
   /* Index Buffers:
    * Only need to be updated when topology changes. */
   struct {
     /* Indices to vloops. Ordered per material. */
-    GPUIndexBuf *tris;
+    gpu::IndexBuf *tris;
     /* Loose edges last. */
-    GPUIndexBuf *lines;
-    /* Sub buffer of `lines` only containing the loose edges. */
-    GPUIndexBuf *lines_loose;
-    GPUIndexBuf *points;
-    GPUIndexBuf *fdots;
+    gpu::IndexBuf *lines;
+    /* Potentially a sub buffer of `lines` only containing the loose edges. */
+    gpu::IndexBuf *lines_loose;
+    gpu::IndexBuf *points;
+    gpu::IndexBuf *fdots;
     /* 3D overlays. */
     /* no loose edges. */
-    GPUIndexBuf *lines_paint_mask;
-    GPUIndexBuf *lines_adjacency;
+    gpu::IndexBuf *lines_paint_mask;
+    gpu::IndexBuf *lines_adjacency;
     /** UV overlays. (visibility can differ from 3D view). */
-    GPUIndexBuf *edituv_tris;
-    GPUIndexBuf *edituv_lines;
-    GPUIndexBuf *edituv_points;
-    GPUIndexBuf *edituv_fdots;
+    gpu::IndexBuf *edituv_tris;
+    gpu::IndexBuf *edituv_lines;
+    gpu::IndexBuf *edituv_points;
+    gpu::IndexBuf *edituv_fdots;
   } ibo;
 };
 
 struct MeshBatchList {
   /* Surfaces / Render */
-  GPUBatch *surface;
-  GPUBatch *surface_weights;
+  gpu::Batch *surface;
+  gpu::Batch *surface_weights;
   /* Edit mode */
-  GPUBatch *edit_triangles;
-  GPUBatch *edit_vertices;
-  GPUBatch *edit_edges;
-  GPUBatch *edit_vnor;
-  GPUBatch *edit_lnor;
-  GPUBatch *edit_fdots;
-  GPUBatch *edit_mesh_analysis;
-  GPUBatch *edit_skin_roots;
+  gpu::Batch *edit_triangles;
+  gpu::Batch *edit_vertices;
+  gpu::Batch *edit_edges;
+  gpu::Batch *edit_vnor;
+  gpu::Batch *edit_lnor;
+  gpu::Batch *edit_fdots;
+  gpu::Batch *edit_mesh_analysis;
+  gpu::Batch *edit_skin_roots;
   /* Edit UVs */
-  GPUBatch *edituv_faces_stretch_area;
-  GPUBatch *edituv_faces_stretch_angle;
-  GPUBatch *edituv_faces;
-  GPUBatch *edituv_edges;
-  GPUBatch *edituv_verts;
-  GPUBatch *edituv_fdots;
+  gpu::Batch *edituv_faces_stretch_area;
+  gpu::Batch *edituv_faces_stretch_angle;
+  gpu::Batch *edituv_faces;
+  gpu::Batch *edituv_edges;
+  gpu::Batch *edituv_verts;
+  gpu::Batch *edituv_fdots;
   /* Edit selection */
-  GPUBatch *edit_selection_verts;
-  GPUBatch *edit_selection_edges;
-  GPUBatch *edit_selection_faces;
-  GPUBatch *edit_selection_fdots;
+  gpu::Batch *edit_selection_verts;
+  gpu::Batch *edit_selection_edges;
+  gpu::Batch *edit_selection_faces;
+  gpu::Batch *edit_selection_fdots;
   /* Common display / Other */
-  GPUBatch *all_verts;
-  GPUBatch *all_edges;
-  GPUBatch *loose_edges;
-  GPUBatch *edge_detection;
+  gpu::Batch *all_verts;
+  gpu::Batch *all_edges;
+  gpu::Batch *loose_edges;
+  gpu::Batch *edge_detection;
   /* Individual edges with face normals. */
-  GPUBatch *wire_edges;
+  gpu::Batch *wire_edges;
   /* Loops around faces. no edges between selected faces */
-  GPUBatch *wire_loops;
+  gpu::Batch *wire_loops;
   /* Same as wire_loops but only has uvs. */
-  GPUBatch *wire_loops_uvs;
-  GPUBatch *sculpt_overlays;
-  GPUBatch *surface_viewer_attribute;
+  gpu::Batch *wire_loops_uvs;
+  gpu::Batch *sculpt_overlays;
+  gpu::Batch *surface_viewer_attribute;
 };
 
 #define MBC_BATCH_LEN (sizeof(MeshBatchList) / sizeof(void *))
@@ -215,12 +219,15 @@ struct MeshExtractLooseGeom {
 };
 
 struct SortedFaceData {
-  /** The first triangle index for each polygon, sorted into slices by material. */
-  Array<int> tri_first_index;
+  /* The total number of visible triangles (a sum of the values in #mat_tri_counts). */
+  int visible_tris_num;
   /** The number of visible triangles assigned to each material. */
-  Array<int> mat_tri_len;
-  /* The total number of visible triangles (a sum of the values in #mat_tri_len). */
-  int visible_tri_len;
+  Array<int> tris_num_by_material;
+  /**
+   * The first triangle index for each face, sorted into slices by material.
+   * May be empty if the mesh only has a single material.
+   */
+  std::optional<Array<int>> face_tri_offsets;
 };
 
 /**
@@ -249,9 +256,9 @@ struct MeshBatchCache {
   MeshBatchList batch;
 
   /* Index buffer per material. These are sub-ranges of `ibo.tris`. */
-  GPUIndexBuf **tris_per_mat;
+  gpu::IndexBuf **tris_per_mat;
 
-  GPUBatch **surface_per_mat;
+  gpu::Batch **surface_per_mat;
 
   DRWSubdivCache *subdiv_cache;
 
@@ -303,8 +310,8 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
                                         Mesh *mesh,
                                         bool is_editmode,
                                         bool is_paint_mode,
-                                        bool is_mode_active,
-                                        const float obmat[4][4],
+                                        bool edit_mode_active,
+                                        const float4x4 &object_to_world,
                                         bool do_final,
                                         bool do_uvedit,
                                         const Scene *scene,

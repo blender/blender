@@ -38,7 +38,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "buttons_intern.h" /* own include */
+#include "buttons_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Start / Clear Search Filter Operators
@@ -299,6 +299,20 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     MEM_freeN(path);
     return OPERATOR_CANCELLED;
+  }
+
+  {
+    const char *info;
+    if (!RNA_property_editable_info(&ptr, prop, &info)) {
+      if (info[0]) {
+        BKE_reportf(op->reports, RPT_ERROR, "Property is not editable: %s", info);
+      }
+      else {
+        BKE_report(op->reports, RPT_ERROR, "Property is not editable");
+      }
+      MEM_freeN(path);
+      return OPERATOR_CANCELLED;
+    }
   }
 
   PropertyRNA *prop_relpath;

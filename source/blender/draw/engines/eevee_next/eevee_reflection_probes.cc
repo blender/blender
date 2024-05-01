@@ -34,19 +34,20 @@ void SphereProbeModule::begin_sync()
   LightProbeModule &light_probes = instance_.light_probes;
   SphereProbeData &world_data = *static_cast<SphereProbeData *>(&light_probes.world_sphere_);
   {
-    const RaytraceEEVEE &options = instance_.scene->eevee.ray_tracing_options;
-    float probe_brightness_clamp = (options.sample_clamp > 0.0) ? options.sample_clamp : 1e20;
+    GPUShader *shader = instance_.shaders.static_shader_get(SPHERE_PROBE_REMAP);
 
     PassSimple &pass = remap_ps_;
     pass.init();
-    pass.shader_set(instance_.shaders.static_shader_get(SPHERE_PROBE_REMAP));
+    pass.specialize_constant(shader, "extract_sh", &extract_sh_);
+    pass.shader_set(shader);
     pass.bind_texture("cubemap_tx", &cubemap_tx_);
     pass.bind_texture("atlas_tx", &probes_tx_);
     pass.bind_image("atlas_img", &probes_tx_);
+    pass.bind_ssbo("out_sh", &tmp_spherical_harmonics_);
     pass.push_constant("probe_coord_packed", reinterpret_cast<int4 *>(&probe_sampling_coord_));
     pass.push_constant("write_coord_packed", reinterpret_cast<int4 *>(&probe_write_coord_));
     pass.push_constant("world_coord_packed", reinterpret_cast<int4 *>(&world_data.atlas_coord));
-    pass.push_constant("probe_brightness_clamp", probe_brightness_clamp);
+    pass.bind_resources(instance_.uniform_data);
     pass.dispatch(&dispatch_probe_pack_);
   }
   {
@@ -64,13 +65,14 @@ void SphereProbeModule::begin_sync()
     pass.dispatch(&dispatch_probe_convolve_);
   }
   {
-    PassSimple &pass = update_irradiance_ps_;
+    PassSimple &pass = sum_sh_ps_;
     pass.init();
-    pass.shader_set(instance_.shaders.static_shader_get(SPHERE_PROBE_UPDATE_IRRADIANCE));
-    pass.push_constant("world_coord_packed", reinterpret_cast<int4 *>(&world_data.atlas_coord));
-    pass.bind_image("irradiance_atlas_img", &instance_.volume_probes.irradiance_atlas_tx_);
-    pass.bind_texture("reflection_probes_tx", &probes_tx_);
-    pass.dispatch(int2(1, 1));
+    pass.shader_set(instance_.shaders.static_shader_get(SPHERE_PROBE_IRRADIANCE));
+    pass.push_constant("probe_remap_dispatch_size", &dispatch_probe_pack_);
+    pass.bind_ssbo("in_sh", &tmp_spherical_harmonics_);
+    pass.bind_ssbo("out_sh", &spherical_harmonics_);
+    pass.barrier(GPU_BARRIER_SHADER_STORAGE);
+    pass.dispatch(1);
   }
   {
     PassSimple &pass = select_ps_;
@@ -80,6 +82,7 @@ void SphereProbeModule::begin_sync()
     pass.bind_ssbo("reflection_probe_buf", &data_buf_);
     instance_.volume_probes.bind_resources(pass);
     instance_.sampling.bind_resources(pass);
+    pass.bind_resources(instance_.uniform_data);
     pass.dispatch(&dispatch_probe_select_);
     pass.barrier(GPU_BARRIER_UNIFORM);
   }
@@ -114,8 +117,11 @@ bool SphereProbeModule::ensure_atlas()
 
 void SphereProbeModule::end_sync()
 {
-  const bool world_updated = instance_.light_probes.world_sphere_.do_render;
   const bool atlas_resized = ensure_atlas();
+  if (atlas_resized) {
+    instance_.light_probes.world_sphere_.do_render = true;
+  }
+  const bool world_updated = instance_.light_probes.world_sphere_.do_render;
   /* Detect if we need to render probe objects. */
   update_probes_next_sample_ = false;
   for (SphereProbe &probe : instance_.light_probes.sphere_map_.values()) {
@@ -130,6 +136,15 @@ void SphereProbeModule::end_sync()
       update_probes_next_sample_ = true;
     }
   }
+
+  /* When reflection probes are synced the sampling must be reset.
+   *
+   * This fixes issues when using a single non-projected sample. Without resetting the
+   * previous rendered viewport will be drawn and reflection probes will not be updated.
+   * #Instance::render_sample */
+  if (instance_.do_reflection_probe_sync()) {
+    instance_.sampling.reset();
+  }
   /* If we cannot render probes this redraw make sure we request another redraw. */
   if (update_probes_next_sample_ && (instance_.do_reflection_probe_sync() == false)) {
     DRW_viewport_request_redraw();
@@ -143,7 +158,7 @@ void SphereProbeModule::ensure_cubemap_render_target(int resolution)
   /* TODO(fclem): deallocate it. */
 }
 
-SphereProbeModule::UpdateInfo SphereProbeModule::update_info_from_probe(const SphereProbe &probe)
+SphereProbeModule::UpdateInfo SphereProbeModule::update_info_from_probe(SphereProbe &probe)
 {
   SphereProbeModule::UpdateInfo info = {};
   info.atlas_coord = probe.atlas_coord;
@@ -151,22 +166,21 @@ SphereProbeModule::UpdateInfo SphereProbeModule::update_info_from_probe(const Sp
   info.clipping_distances = probe.clipping_distances;
   info.probe_pos = probe.location;
   info.do_render = probe.do_render;
-  info.do_world_irradiance_update = false;
+
+  probe.do_render = false;
+  probe.use_for_render = true;
+
+  ensure_cubemap_render_target(info.cube_target_extent);
   return info;
 }
 
 std::optional<SphereProbeModule::UpdateInfo> SphereProbeModule::world_update_info_pop()
 {
   SphereProbe &world_probe = instance_.light_probes.world_sphere_;
-  if (!world_probe.do_render && !do_world_irradiance_update) {
-    return std::nullopt;
+  if (world_probe.do_render) {
+    return update_info_from_probe(world_probe);
   }
-  SphereProbeModule::UpdateInfo info = update_info_from_probe(world_probe);
-  info.do_world_irradiance_update = do_world_irradiance_update;
-  world_probe.do_render = false;
-  do_world_irradiance_update = false;
-  ensure_cubemap_render_target(info.cube_target_extent);
-  return info;
+  return std::nullopt;
 }
 
 std::optional<SphereProbeModule::UpdateInfo> SphereProbeModule::probe_update_info_pop()
@@ -180,23 +194,22 @@ std::optional<SphereProbeModule::UpdateInfo> SphereProbeModule::probe_update_inf
     if (!probe.do_render) {
       continue;
     }
-    SphereProbeModule::UpdateInfo info = update_info_from_probe(probe);
-    probe.do_render = false;
-    probe.use_for_render = true;
-    ensure_cubemap_render_target(info.cube_target_extent);
-    return info;
+    return update_info_from_probe(probe);
   }
 
   return std::nullopt;
 }
 
-void SphereProbeModule::remap_to_octahedral_projection(const SphereProbeAtlasCoord &atlas_coord)
+void SphereProbeModule::remap_to_octahedral_projection(const SphereProbeAtlasCoord &atlas_coord,
+                                                       bool extract_spherical_harmonics)
 {
   /* Update shader parameters that change per dispatch. */
   probe_sampling_coord_ = atlas_coord.as_sampling_coord();
   probe_write_coord_ = atlas_coord.as_write_coord(0);
   int resolution = probe_write_coord_.extent;
-  dispatch_probe_pack_ = int3(int2(ceil_division(resolution, SPHERE_PROBE_GROUP_SIZE)), 1);
+  dispatch_probe_pack_ = int3(
+      int2(math::divide_ceil(int2(resolution), int2(SPHERE_PROBE_REMAP_GROUP_SIZE))), 1);
+  extract_sh_ = extract_spherical_harmonics;
   instance_.manager->submit(remap_ps_);
 
   /* Populate the mip levels */
@@ -207,18 +220,19 @@ void SphereProbeModule::remap_to_octahedral_projection(const SphereProbeAtlasCoo
     probe_read_coord_ = atlas_coord.as_write_coord(i);
     probe_write_coord_ = atlas_coord.as_write_coord(i + 1);
     int out_mip_res = probe_write_coord_.extent;
-    dispatch_probe_convolve_ = int3(int2(ceil_division(out_mip_res, SPHERE_PROBE_GROUP_SIZE)), 1);
+    dispatch_probe_convolve_ = int3(
+        math::divide_ceil(int2(out_mip_res), int2(SPHERE_PROBE_GROUP_SIZE)), 1);
     instance_.manager->submit(convolve_ps_);
   }
+
+  if (extract_spherical_harmonics) {
+    instance_.manager->submit(sum_sh_ps_);
+    /* All volume probe that needs to composite the world probe need to be updated. */
+    instance_.volume_probes.update_world_irradiance();
+  }
+
   /* Sync with atlas usage for shading. */
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
-}
-
-void SphereProbeModule::update_world_irradiance()
-{
-  instance_.manager->submit(update_irradiance_ps_);
-  /* All volume probe that needs to composite the world probe need to be updated. */
-  instance_.volume_probes.do_update_world_ = true;
 }
 
 void SphereProbeModule::set_view(View & /*view*/)

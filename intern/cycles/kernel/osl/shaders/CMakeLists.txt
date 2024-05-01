@@ -69,6 +69,7 @@ set(SRC_OSL
   node_output_surface.osl
   node_output_volume.osl
   node_particle_info.osl
+  node_ray_portal_bsdf.osl
   node_refraction_bsdf.osl
   node_rgb_curves.osl
   node_rgb_ramp.osl

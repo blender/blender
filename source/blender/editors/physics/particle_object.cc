@@ -54,7 +54,7 @@
 
 #include "particle_edit_utildefines.h"
 
-#include "physics_intern.h"
+#include "physics_intern.hh"
 
 static float I[4][4] = {
     {1.0f, 0.0f, 0.0f, 0.0f},
@@ -68,7 +68,7 @@ static float I[4][4] = {
 static int particle_system_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   Scene *scene = CTX_data_scene(C);
 
   if (!scene || !ob) {
@@ -101,7 +101,7 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 static int particle_system_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   int mode_orig;
@@ -639,7 +639,7 @@ static int disconnect_hair_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   ParticleSystem *psys = nullptr;
   const bool all = RNA_boolean_get(op->ptr, "all");
 
@@ -936,7 +936,7 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   ParticleSystem *psys = nullptr;
   const bool all = RNA_boolean_get(op->ptr, "all");
   bool any_connected = false;
@@ -1222,7 +1222,7 @@ static bool copy_particle_systems_poll(bContext *C)
     return false;
   }
 
-  ob = ED_object_active_context(C);
+  ob = blender::ed::object::context_active_object(C);
   if (BLI_listbase_is_empty(&ob->particlesystem)) {
     return false;
   }
@@ -1236,7 +1236,7 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
   const bool remove_target_particles = RNA_boolean_get(op->ptr, "remove_target_particles");
   const bool use_active = RNA_boolean_get(op->ptr, "use_active");
   Scene *scene = CTX_data_scene(C);
-  Object *ob_from = ED_object_active_context(C);
+  Object *ob_from = blender::ed::object::context_active_object(C);
 
   ParticleSystem *psys_from = nullptr;
   if (use_active) {
@@ -1328,7 +1328,7 @@ static bool duplicate_particle_systems_poll(bContext *C)
   if (!ED_operator_object_active_local_editable(C)) {
     return false;
   }
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   if (BLI_listbase_is_empty(&ob->particlesystem)) {
     return false;
   }
@@ -1339,7 +1339,7 @@ static int duplicate_particle_systems_exec(bContext *C, wmOperator *op)
 {
   const bool duplicate_settings = RNA_boolean_get(op->ptr, "use_duplicate_settings");
   Scene *scene = CTX_data_scene(C);
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   /* Context pointer is only valid in the Properties Editor. */
   ParticleSystem *psys = static_cast<ParticleSystem *>(
       CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data);

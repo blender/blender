@@ -14,8 +14,7 @@ using OpenSubdiv::Far::PatchParam;
 using OpenSubdiv::Far::PatchParamTable;
 using OpenSubdiv::Far::PatchTable;
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 //
 //  Inline quadtree assembly methods used by the constructor:
@@ -192,5 +191,4 @@ void PatchMap::initializeQuadtree(PatchTable const &patchTable)
   _quadtree.swap(tmpTree);
 }
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv

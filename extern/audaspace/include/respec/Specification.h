@@ -83,6 +83,15 @@ enum Channel
 	CHANNEL_MAX
 };
 
+/// Resampling algorithm and quality.
+enum class ResampleQuality
+{
+	FASTEST = 0, /// Linear resample, very fast but lowest quality.
+	LOW,         /// JOS resample at low quality preset.
+	MEDIUM,      /// JOS resample at medium quality preset.
+	HIGH         /// JOS resample at high quality preset.
+};
+
 /**
  * The sample rate tells how many samples are played back within one second.
  * Some exotic formats may use other sample rates than provided here.

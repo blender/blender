@@ -325,6 +325,8 @@ void mesh_calc_edges(Mesh &mesh, bool keep_existing_edges, bool select_new_edges
 
 void mesh_flip_faces(Mesh &mesh, const IndexMask &selection);
 
+void mesh_ensure_required_data_layers(Mesh &mesh);
+
 /** Set mesh vertex normals to known-correct values, avoiding future lazy computation. */
 void mesh_vert_normals_assign(Mesh &mesh, Span<float3> vert_normals);
 
@@ -339,11 +341,11 @@ void mesh_hide_vert_flush(Mesh &mesh);
 /** Make vertex and edge visibility consistent with faces. */
 void mesh_hide_face_flush(Mesh &mesh);
 
-/** Make edge and face visibility consistent with vertices. */
+/** Make edge and face selection consistent with vertices. */
 void mesh_select_vert_flush(Mesh &mesh);
-/** Make vertex and face visibility consistent with edges. */
+/** Make vertex and face selection consistent with edges. */
 void mesh_select_edge_flush(Mesh &mesh);
-/** Make vertex and edge visibility consistent with faces. */
+/** Make vertex and edge selection consistent with faces. */
 void mesh_select_face_flush(Mesh &mesh);
 
 /** Set the default name when adding a color attribute if there is no default yet. */

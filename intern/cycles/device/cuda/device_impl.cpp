@@ -135,7 +135,9 @@ CUDADevice::CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
 CUDADevice::~CUDADevice()
 {
   texture_info.free();
-
+  if (cuModule) {
+    cuda_assert(cuModuleUnload(cuModule));
+  }
   cuda_assert(cuDevicePrimaryCtxRelease(cuDevice));
 }
 
@@ -185,7 +187,7 @@ bool CUDADevice::check_peer_access(Device *peer_device)
   {
     const CUDAContextScope scope(this);
     CUresult result = cuCtxEnablePeerAccess(peer_device_cuda->cuContext, 0);
-    if (result != CUDA_SUCCESS) {
+    if (result != CUDA_SUCCESS && result != CUDA_ERROR_PEER_ACCESS_ALREADY_ENABLED) {
       set_error(string_printf("Failed to enable peer access on CUDA context (%s)",
                               cuewErrorString(result)));
       return false;
@@ -194,7 +196,7 @@ bool CUDADevice::check_peer_access(Device *peer_device)
   {
     const CUDAContextScope scope(peer_device_cuda);
     CUresult result = cuCtxEnablePeerAccess(cuContext, 0);
-    if (result != CUDA_SUCCESS) {
+    if (result != CUDA_SUCCESS && result != CUDA_ERROR_PEER_ACCESS_ALREADY_ENABLED) {
       set_error(string_printf("Failed to enable peer access on CUDA context (%s)",
                               cuewErrorString(result)));
       return false;

@@ -14,20 +14,27 @@
 #include "usd_umm.h"
 #include "usd_writer_material.hh"
 
-#include <pxr/base/plug/registry.h>
 #include <pxr/base/tf/token.h>
 #include <pxr/pxr.h>
+<<<<<<< HEAD
 #include <pxr/usd/kind/registry.h>
 #include <pxr/usd/usd/modelAPI.h>
 #include <pxr/usd/usd/prim.h>
+=======
+#include <pxr/usd/sdf/assetPath.h>
+>>>>>>> main
 #include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xform.h>
+<<<<<<< HEAD
 #include <pxr/usd/usdGeom/xformCommonAPI.h>
 #include <pxr/usd/usdUtils/dependencies.h>
+=======
+#include <pxr/usd/usdUtils/usdzPackage.h>
+>>>>>>> main
 
 #include "MEM_guardedalloc.h"
 
@@ -35,17 +42,22 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
+#include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
+<<<<<<< HEAD
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+=======
+#include "BKE_lib_id.hh"
+>>>>>>> main
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
@@ -846,7 +858,20 @@ bool USD_export(bContext *C,
    *
    * Has to be done from main thread currently, as it may affect Main original data (e.g. when
    * doing deferred update of the view-layers, see #112534 for details). */
-  if (job->params.visible_objects_only) {
+  if (job->params.collection[0]) {
+    Collection *collection = reinterpret_cast<Collection *>(
+        BKE_libblock_find_name(job->bmain, ID_GR, job->params.collection));
+    if (!collection) {
+      BKE_reportf(job->params.worker_status->reports,
+                  RPT_ERROR,
+                  "USD Export: Unable to find collection '%s'",
+                  job->params.collection);
+      return false;
+    }
+
+    DEG_graph_build_from_collection(job->depsgraph, collection);
+  }
+  else if (job->params.visible_objects_only) {
     DEG_graph_build_from_view_layer(job->depsgraph);
   }
   else {

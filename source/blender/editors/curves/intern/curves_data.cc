@@ -29,9 +29,7 @@ void transverts_from_curves_positions_create(bke::CurvesGeometry &curves, TransV
   });
 }
 
-}  // namespace blender::ed::curves
-
-float (*ED_curves_point_normals_array_create(const Curves *curves_id))[3]
+float (*point_normals_array_create(const Curves *curves_id))[3]
 {
   using namespace blender;
   const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
@@ -40,3 +38,5 @@ float (*ED_curves_point_normals_array_create(const Curves *curves_id))[3]
   bke::curves_normals_point_domain_calc(curves, {data, size});
   return reinterpret_cast<float(*)[3]>(data);
 }
+
+}  // namespace blender::ed::curves

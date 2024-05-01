@@ -14,9 +14,9 @@
 
 #include <Python.h>
 
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_init_exit.h"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_init_exit.hh"
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
@@ -24,10 +24,10 @@
 
 #include "../mathutils/mathutils.h"
 
-#include "gpu_py.h"
-#include "gpu_py_buffer.h"
-#include "gpu_py_framebuffer.h" /* own include */
-#include "gpu_py_texture.h"
+#include "gpu_py.hh"
+#include "gpu_py_buffer.hh"
+#include "gpu_py_framebuffer.hh" /* own include */
+#include "gpu_py_texture.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name GPUFrameBuffer Common Utilities

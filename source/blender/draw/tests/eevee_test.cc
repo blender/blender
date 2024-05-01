@@ -10,11 +10,11 @@
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 
-#include "DEG_depsgraph.hh"
+#include "BLI_vector.hh"
 
 #include "RNA_define.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 #include "draw_shader.hh"
 #include "draw_testing.hh"
 #include "engines/eevee_next/eevee_instance.hh"
@@ -233,12 +233,14 @@ static void test_eevee_shadow_tag_update()
 
   {
     ShadowTileMap tilemap(0 * SHADOW_TILEDATA_PER_TILEMAP);
-    tilemap.sync_cubeface(float4x4::identity(), 0.01f, 1.0f, 0.01f, 0.0f, Z_NEG, 0.0f);
+    tilemap.sync_cubeface(
+        LIGHT_OMNI_SPHERE, float4x4::identity(), 0.01f, 1.0f, 0.01f, 0.0f, Z_NEG, 0.0f, 0.0f);
     tilemaps_data.append(tilemap);
   }
   {
     ShadowTileMap tilemap(1 * SHADOW_TILEDATA_PER_TILEMAP);
-    tilemap.sync_orthographic(float4x4::identity(), int2(0), 1, 0.0f, SHADOW_PROJECTION_CLIPMAP);
+    tilemap.sync_orthographic(
+        float4x4::identity(), int2(0), 1, 0.0f, 0.0f, SHADOW_PROJECTION_CLIPMAP);
     tilemaps_data.append(tilemap);
   }
 
@@ -1164,7 +1166,376 @@ static void test_eevee_shadow_finalize()
 }
 DRAW_TEST(eevee_shadow_finalize)
 
-static void test_eevee_shadow_page_mask()
+static void test_eevee_shadow_tile_packing()
+{
+  Vector<uint> test_values{0x00000000u, 0x00000001u, 0x0000000Fu, 0x000000FFu, 0xABCDEF01u,
+                           0xAAAAAAAAu, 0xBBBBBBBBu, 0xCCCCCCCCu, 0xDDDDDDDDu, 0xEEEEEEEEu,
+                           0xFFFFFFFFu, 0xDEADBEEFu, 0x8BADF00Du, 0xABADCAFEu, 0x0D15EA5Eu,
+                           0xFEE1DEADu, 0xDEADC0DEu, 0xC00010FFu, 0xBBADBEEFu, 0xBAAAAAADu};
+
+  for (auto value : test_values) {
+    EXPECT_EQ(shadow_page_unpack(value),
+              shadow_page_unpack(shadow_page_pack(shadow_page_unpack(value))));
+
+    EXPECT_EQ(shadow_lod_offset_unpack(value),
+              shadow_lod_offset_unpack(shadow_lod_offset_pack(shadow_lod_offset_unpack(value))));
+
+    ShadowTileData expected_tile = shadow_tile_unpack(value);
+    ShadowTileData result_tile = shadow_tile_unpack(shadow_tile_pack(expected_tile));
+    EXPECT_EQ(expected_tile.page, result_tile.page);
+    EXPECT_EQ(expected_tile.cache_index, result_tile.cache_index);
+    EXPECT_EQ(expected_tile.is_used, result_tile.is_used);
+    EXPECT_EQ(expected_tile.do_update, result_tile.do_update);
+    EXPECT_EQ(expected_tile.is_allocated, result_tile.is_allocated);
+    EXPECT_EQ(expected_tile.is_rendered, result_tile.is_rendered);
+    EXPECT_EQ(expected_tile.is_cached, result_tile.is_cached);
+
+    ShadowSamplingTile expected_sampling_tile = shadow_sampling_tile_unpack(value);
+    ShadowSamplingTile result_sampling_tile = shadow_sampling_tile_unpack(
+        shadow_sampling_tile_pack(expected_sampling_tile));
+    EXPECT_EQ(expected_sampling_tile.page, result_sampling_tile.page);
+    EXPECT_EQ(expected_sampling_tile.lod, result_sampling_tile.lod);
+    EXPECT_EQ(expected_sampling_tile.lod_offset, result_sampling_tile.lod_offset);
+    EXPECT_EQ(expected_sampling_tile.is_valid, result_sampling_tile.is_valid);
+  }
+}
+DRAW_TEST(eevee_shadow_tile_packing)
+
+static void test_eevee_shadow_tilemap_amend()
+{
+  GPU_render_begin();
+
+  blender::Vector<uint32_t> tilemap_data(SHADOW_TILEMAP_RES * SHADOW_TILEMAP_RES *
+                                         SHADOW_TILEMAP_PER_ROW);
+  tilemap_data.fill(0);
+
+  auto pixel_get = [&](int x, int y, int tilemap_index) -> uint32_t & {
+    /* Note: assumes that tilemap_index is < SHADOW_TILEMAP_PER_ROW. */
+    return tilemap_data[y * SHADOW_TILEMAP_RES * SHADOW_TILEMAP_PER_ROW + x +
+                        tilemap_index * SHADOW_TILEMAP_RES];
+  };
+  ShadowSamplingTile tile;
+  tile.lod = 0;
+  tile.lod_offset = uint2(0);
+  tile.is_valid = true;
+  tile.page = uint3(1, 0, 0);
+  pixel_get(16, 16, 2) = shadow_sampling_tile_pack(tile);
+  tile.page = uint3(2, 0, 0);
+  pixel_get(17, 16, 2) = shadow_sampling_tile_pack(tile);
+  tile.page = uint3(3, 0, 0);
+  pixel_get(20, 20, 1) = shadow_sampling_tile_pack(tile);
+  tile.page = uint3(4, 0, 0);
+  pixel_get(17, 16, 0) = shadow_sampling_tile_pack(tile);
+
+  Texture tilemap_tx = {"tilemap_tx"};
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_HOST_READ | GPU_TEXTURE_USAGE_SHADER_READ |
+                           GPU_TEXTURE_USAGE_SHADER_WRITE;
+  int2 tilemap_res(SHADOW_TILEMAP_RES * SHADOW_TILEMAP_PER_ROW, SHADOW_TILEMAP_RES);
+  tilemap_tx.ensure_2d(GPU_R32UI, tilemap_res, usage);
+  GPU_texture_update_sub(
+      tilemap_tx, GPU_DATA_UINT, tilemap_data.data(), 0, 0, 0, tilemap_res.x, tilemap_res.y, 0);
+
+  /* Setup one directional light with 3 tilemaps. Fill only the needed data. */
+  LightData light;
+  light.type = LIGHT_SUN;
+  light.sun.clipmap_lod_min = 0;
+  light.sun.clipmap_lod_max = 2;
+  /* Shift LOD0 by 1 tile towards bottom. */
+  light.sun.clipmap_base_offset_neg = int2(0, 1 << 0);
+  /* Shift LOD1 by 1 tile towards right. */
+  light.sun.clipmap_base_offset_pos = int2(1 << 1, 0);
+  light.tilemap_index = 0;
+
+  LightDataBuf culling_light_buf = {"Lights_culled"};
+  culling_light_buf[0] = light;
+  culling_light_buf.push_update();
+
+  LightCullingDataBuf culling_data_buf = {"LightCull_data"};
+  culling_data_buf.local_lights_len = 0;
+  culling_data_buf.sun_lights_len = 1;
+  culling_data_buf.items_count = 1;
+  culling_data_buf.push_update();
+
+  /* Needed for validation. But not used since we use directionals. */
+  LightCullingZbinBuf culling_zbin_buf = {"LightCull_zbin"};
+  LightCullingTileBuf culling_tile_buf = {"LightCull_tile"};
+
+  GPUShader *sh = GPU_shader_create_from_info_name("eevee_shadow_tilemap_amend");
+
+  PassSimple pass("Test");
+  pass.shader_set(sh);
+  pass.bind_image("tilemaps_img", tilemap_tx);
+  pass.bind_ssbo(LIGHT_CULL_BUF_SLOT, culling_data_buf);
+  pass.bind_ssbo(LIGHT_BUF_SLOT, culling_light_buf);
+  pass.bind_ssbo(LIGHT_ZBIN_BUF_SLOT, culling_zbin_buf);
+  pass.bind_ssbo(LIGHT_TILE_BUF_SLOT, culling_tile_buf);
+  pass.dispatch(int3(1));
+  pass.barrier(GPU_BARRIER_TEXTURE_UPDATE);
+
+  Manager manager;
+  manager.submit(pass);
+
+  {
+    uint *pixels = tilemap_tx.read<uint32_t>(GPU_DATA_UINT);
+
+    auto stringify_tilemap = [&](int tilemap_index) -> std::string {
+      std::string result = "";
+      for (auto y : IndexRange(SHADOW_TILEMAP_RES)) {
+        for (auto x : IndexRange(SHADOW_TILEMAP_RES)) {
+          /* Note: assumes that tilemap_index is < SHADOW_TILEMAP_PER_ROW. */
+          int tile_ofs = y * SHADOW_TILEMAP_RES * SHADOW_TILEMAP_PER_ROW + x +
+                         tilemap_index * SHADOW_TILEMAP_RES;
+          ShadowSamplingTile tile = shadow_sampling_tile_unpack(pixels[tile_ofs]);
+          result += std::to_string(tile.page.x + tile.page.y * SHADOW_PAGE_PER_ROW);
+          if (x + 1 == SHADOW_TILEMAP_RES / 2) {
+            result += " ";
+          }
+        }
+        result += "\n";
+        if (y + 1 == SHADOW_TILEMAP_RES / 2) {
+          result += "\n";
+        }
+      }
+      return result;
+    };
+
+    auto stringify_lod = [&](int tilemap_index) -> std::string {
+      std::string result = "";
+      for (auto y : IndexRange(SHADOW_TILEMAP_RES)) {
+        for (auto x : IndexRange(SHADOW_TILEMAP_RES)) {
+          /* Note: assumes that tilemap_index is < SHADOW_TILEMAP_PER_ROW. */
+          int tile_ofs = y * SHADOW_TILEMAP_RES * SHADOW_TILEMAP_PER_ROW + x +
+                         tilemap_index * SHADOW_TILEMAP_RES;
+          ShadowSamplingTile tile = shadow_sampling_tile_unpack(pixels[tile_ofs]);
+          result += std::to_string(tile.lod);
+          if (x + 1 == SHADOW_TILEMAP_RES / 2) {
+            result += " ";
+          }
+        }
+        result += "\n";
+        if (y + 1 == SHADOW_TILEMAP_RES / 2) {
+          result += "\n";
+        }
+      }
+      return result;
+    };
+
+    auto stringify_offset = [&](int tilemap_index) -> std::string {
+      std::string result = "";
+      for (auto y : IndexRange(SHADOW_TILEMAP_RES)) {
+        for (auto x : IndexRange(SHADOW_TILEMAP_RES)) {
+          /* Note: assumes that tilemap_index is < SHADOW_TILEMAP_PER_ROW. */
+          int tile_ofs = y * SHADOW_TILEMAP_RES * SHADOW_TILEMAP_PER_ROW + x +
+                         tilemap_index * SHADOW_TILEMAP_RES;
+          ShadowSamplingTile tile = shadow_sampling_tile_unpack(pixels[tile_ofs]);
+          result += std::to_string(tile.lod_offset.x + tile.lod_offset.y);
+          if (x + 1 == SHADOW_TILEMAP_RES / 2) {
+            result += " ";
+          }
+        }
+        result += "\n";
+        if (y + 1 == SHADOW_TILEMAP_RES / 2) {
+          result += "\n";
+        }
+      }
+      return result;
+    };
+
+    /** The layout of these expected strings is Y down. */
+
+    StringRefNull expected_pages_lod2 =
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "\n"
+        "0000000000000000 1200000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n";
+
+    StringRefNull expected_pages_lod1 =
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "\n"
+        "0000000000000001 1220000000000000\n"
+        "0000000000000001 1220000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000300000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n";
+
+    StringRefNull expected_pages_lod0 =
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "\n"
+        "0000000000000000 0400000000000000\n"
+        "0000000000000011 1122220000000000\n"
+        "0000000000000011 1122220000000000\n"
+        "0000000000000011 1122220000000000\n"
+        "0000000000000011 1122220000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000033000000\n"
+        "0000000000000000 0000000033000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n";
+
+    EXPECT_EQ(expected_pages_lod2, stringify_tilemap(2));
+    EXPECT_EQ(expected_pages_lod1, stringify_tilemap(1));
+    EXPECT_EQ(expected_pages_lod0, stringify_tilemap(0));
+
+    StringRefNull expected_lod_lod0 =
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000022 2222220000000000\n"
+        "0000000000000022 2222220000000000\n"
+        "0000000000000022 2222220000000000\n"
+        "0000000000000022 2222220000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000011000000\n"
+        "0000000000000000 0000000011000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n";
+
+    EXPECT_EQ(expected_lod_lod0, stringify_lod(0));
+
+    /* Offset for each axis are added together in this test. */
+    StringRefNull expected_offset_lod0 =
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000055 5555550000000000\n"
+        "0000000000000055 5555550000000000\n"
+        "0000000000000055 5555550000000000\n"
+        "0000000000000055 5555550000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000011000000\n"
+        "0000000000000000 0000000011000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n"
+        "0000000000000000 0000000000000000\n";
+
+    EXPECT_EQ(expected_offset_lod0, stringify_offset(0));
+    MEM_SAFE_FREE(pixels);
+  }
+
+  GPU_shader_free(sh);
+  DRW_shaders_free();
+  GPU_render_end();
+}
+DRAW_TEST(eevee_shadow_tilemap_amend)
+
+static void test_eevee_shadow_page_mask_ex(int max_view_per_tilemap)
 {
   GPU_render_begin();
   ShadowTileMapDataBuf tilemaps_data = {"tilemaps_data"};
@@ -1172,7 +1543,8 @@ static void test_eevee_shadow_page_mask()
 
   {
     ShadowTileMap tilemap(0);
-    tilemap.sync_cubeface(float4x4::identity(), 0.01f, 1.0f, 0.01f, 0.0f, Z_NEG, 0.0f);
+    tilemap.sync_cubeface(
+        LIGHT_OMNI_SPHERE, float4x4::identity(), 0.01f, 1.0f, 0.01f, 0.0f, Z_NEG, 0.0f, 0.0f);
     tilemaps_data.append(tilemap);
   }
 
@@ -1195,19 +1567,22 @@ static void test_eevee_shadow_page_mask()
     /* Init all LOD to true. */
     for (auto i : IndexRange(SHADOW_TILEDATA_PER_TILEMAP)) {
       tile.is_used = true;
+      tile.do_update = true;
       tiles_data[i] = shadow_tile_pack(tile);
     }
 
     /* Init all of LOD0 to false. */
     for (auto i : IndexRange(square_i(SHADOW_TILEMAP_RES))) {
       tile.is_used = false;
+      tile.do_update = false;
       tiles_data[i] = shadow_tile_pack(tile);
     }
 
     /* Bottom Left of the LOD0 to true. */
-    for (auto y : IndexRange((SHADOW_TILEMAP_RES / 2) + 1)) {
+    for (auto y : IndexRange((SHADOW_TILEMAP_RES / 2))) {
       for (auto x : IndexRange((SHADOW_TILEMAP_RES / 2) + 1)) {
         tile.is_used = true;
+        tile.do_update = true;
         tiles_data[x + y * SHADOW_TILEMAP_RES] = shadow_tile_pack(tile);
       }
     }
@@ -1215,6 +1590,7 @@ static void test_eevee_shadow_page_mask()
     /* All Bottom of the LOD0 to true. */
     for (auto x : IndexRange(SHADOW_TILEMAP_RES)) {
       tile.is_used = true;
+      tile.do_update = true;
       tiles_data[x] = shadow_tile_pack(tile);
     }
 
@@ -1223,6 +1599,7 @@ static void test_eevee_shadow_page_mask()
     for (auto y : IndexRange((SHADOW_TILEMAP_RES / 8))) {
       for (auto x : IndexRange((SHADOW_TILEMAP_RES / 8))) {
         tile.is_used = false;
+        tile.do_update = false;
         tiles_data[x + y * (SHADOW_TILEMAP_RES / 2) + lod0_len] = shadow_tile_pack(tile);
       }
     }
@@ -1233,6 +1610,7 @@ static void test_eevee_shadow_page_mask()
       int x = SHADOW_TILEMAP_RES / 4;
       int y = SHADOW_TILEMAP_RES / 4;
       tile.is_used = false;
+      tile.do_update = false;
       tiles_data[x + y * (SHADOW_TILEMAP_RES / 2) + lod0_len] = shadow_tile_pack(tile);
     }
 
@@ -1245,6 +1623,7 @@ static void test_eevee_shadow_page_mask()
 
   PassSimple pass("Test");
   pass.shader_set(sh);
+  pass.push_constant("max_view_per_tilemap", max_view_per_tilemap);
   pass.bind_ssbo("tilemaps_buf", tilemaps_data);
   pass.bind_ssbo("tiles_buf", tiles_data);
   pass.dispatch(int3(1, 1, tilemaps_data.size()));
@@ -1273,7 +1652,7 @@ static void test_eevee_shadow_page_mask()
       "xxxxxxxxxxxxxxxxx---------------"
       "xxxxxxxxxxxxxxxxx---------------"
       "xxxxxxxxxxxxxxxxx---------------"
-      "xxxxxxxxxxxxxxxxx---------------"
+      "--------------------------------"
       "--------------------------------"
       "--------------------------------"
       "--------------------------------"
@@ -1306,6 +1685,23 @@ static void test_eevee_shadow_page_mask()
       "xxxxxxxxxxxxxxxx"
       "xxxxxxxxxxxxxxxx"
       "xxxxxxxxxxxxxxxx";
+  StringRefNull expected_lod1_collapsed =
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxx-xxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx"
+      "xxxxxxxxxxxxxxxx";
   StringRefNull expected_lod2 =
       "--------"
       "--------"
@@ -1315,6 +1711,15 @@ static void test_eevee_shadow_page_mask()
       "--------"
       "--------"
       "--------";
+  StringRefNull expected_lod2_collapsed =
+      "xxxxxxxx"
+      "xxxxxxxx"
+      "xxxxxxxx"
+      "xxxxxxxx"
+      "xxxxxxxx"
+      "xxxxxxxx"
+      "xxxxxxxx"
+      "xxxxxxxx";
   StringRefNull expected_lod3 =
       "----"
       "----"
@@ -1333,9 +1738,40 @@ static void test_eevee_shadow_page_mask()
     return result;
   };
 
-  EXPECT_EQ(stringify_result(lod0_ofs, lod0_len), expected_lod0);
-  EXPECT_EQ(stringify_result(lod1_ofs, lod1_len), expected_lod1);
-  EXPECT_EQ(stringify_result(lod2_ofs, lod2_len), expected_lod2);
+  auto empty_result = [&](uint len) -> std::string {
+    std::string result = "";
+    for ([[maybe_unused]] const int i : IndexRange(len)) {
+      result += "-";
+    }
+    return result;
+  };
+
+  if (max_view_per_tilemap >= 3) {
+    EXPECT_EQ(stringify_result(lod0_ofs, lod0_len), expected_lod0);
+  }
+  else {
+    EXPECT_EQ(stringify_result(lod0_ofs, lod0_len), empty_result(lod0_len));
+  }
+
+  if (max_view_per_tilemap > 2) {
+    EXPECT_EQ(stringify_result(lod1_ofs, lod1_len), expected_lod1);
+  }
+  else if (max_view_per_tilemap == 2) {
+    EXPECT_EQ(stringify_result(lod1_ofs, lod1_len), expected_lod1_collapsed);
+  }
+  else {
+    EXPECT_EQ(stringify_result(lod1_ofs, lod1_len), empty_result(lod1_len));
+  }
+
+  if (max_view_per_tilemap > 1) {
+    EXPECT_EQ(stringify_result(lod2_ofs, lod2_len), expected_lod2);
+  }
+  else if (max_view_per_tilemap == 1) {
+    EXPECT_EQ(stringify_result(lod2_ofs, lod2_len), expected_lod2_collapsed);
+  }
+  else {
+    EXPECT_EQ(stringify_result(lod2_ofs, lod2_len), empty_result(lod2_len));
+  }
   EXPECT_EQ(stringify_result(lod3_ofs, lod3_len), expected_lod3);
   EXPECT_EQ(stringify_result(lod4_ofs, lod4_len), expected_lod4);
   EXPECT_EQ(stringify_result(lod5_ofs, lod5_len), expected_lod5);
@@ -1343,6 +1779,18 @@ static void test_eevee_shadow_page_mask()
   GPU_shader_free(sh);
   DRW_shaders_free();
   GPU_render_end();
+}
+
+static void test_eevee_shadow_page_mask()
+{
+  /* Expect default behavior. */
+  test_eevee_shadow_page_mask_ex(999);
+  /* Expect default behavior. */
+  test_eevee_shadow_page_mask_ex(3);
+  /* Expect LOD0 merged into LOD1. */
+  test_eevee_shadow_page_mask_ex(2);
+  /* Expect LOD0 and LOD1 merged into LOD2. */
+  test_eevee_shadow_page_mask_ex(1);
 }
 DRAW_TEST(eevee_shadow_page_mask)
 

@@ -122,7 +122,8 @@ static void rna_Object_select_set(
     return;
   }
 
-  ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
+  blender::ed::object::base_select(
+      base, select ? blender::ed::object::BA_SELECT : blender::ed::object::BA_DESELECT);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
@@ -551,13 +552,13 @@ static void rna_Mesh_assign_verts_to_group(
 #  endif
 
 /* don't call inside a loop */
-static int mesh_corner_tri_to_face_index(Mesh *me_eval, const int tri_index)
+static int mesh_corner_tri_to_face_index(Mesh *mesh_eval, const int tri_index)
 {
-  const blender::Span<int> tri_faces = me_eval->corner_tri_faces();
+  const blender::Span<int> tri_faces = mesh_eval->corner_tri_faces();
   const int face_i = tri_faces[tri_index];
-  const int *index_mp_to_orig = static_cast<const int *>(
-      CustomData_get_layer(&me_eval->face_data, CD_ORIGINDEX));
-  return index_mp_to_orig ? index_mp_to_orig[face_i] : face_i;
+  const int *index_face_to_orig = static_cast<const int *>(
+      CustomData_get_layer(&mesh_eval->face_data, CD_ORIGINDEX));
+  return index_face_to_orig ? index_face_to_orig[face_i] : face_i;
 }
 
 /* TODO(sergey): Make the Python API more clear that evaluation might happen, or require
@@ -741,7 +742,7 @@ static bool rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings
 void rna_Object_me_eval_info(
     Object *ob, bContext *C, int type, PointerRNA *rnaptr_depsgraph, char *result)
 {
-  Mesh *me_eval = nullptr;
+  const Mesh *mesh_eval = nullptr;
   char *ret = nullptr;
 
   result[0] = '\0';
@@ -757,19 +758,19 @@ void rna_Object_me_eval_info(
   switch (type) {
     case 0:
       if (ob->type == OB_MESH) {
-        me_eval = static_cast<Mesh *>(ob->data);
+        mesh_eval = static_cast<Mesh *>(ob->data);
       }
       break;
     case 1:
-      me_eval = ob->runtime->mesh_deform_eval;
+      mesh_eval = BKE_object_get_mesh_deform_eval(ob);
       break;
     case 2:
-      me_eval = BKE_object_get_evaluated_mesh(ob);
+      mesh_eval = BKE_object_get_evaluated_mesh(ob);
       break;
   }
 
-  if (me_eval) {
-    ret = BKE_mesh_debug_info(me_eval);
+  if (mesh_eval) {
+    ret = BKE_mesh_debug_info(mesh_eval);
     if (ret) {
       BLI_strncpy(result, ret, MESH_DM_INFO_STR_MAX);
       MEM_freeN(ret);
@@ -790,7 +791,7 @@ void rna_Object_me_eval_info(Object * /*ob*/,
 static bool rna_Object_update_from_editmode(Object *ob, Main *bmain)
 {
   /* fail gracefully if we aren't in edit-mode. */
-  const bool result = ED_object_editmode_load(bmain, ob);
+  const bool result = blender::ed::object::editmode_load(bmain, ob);
   if (result) {
     /* Loading edit mesh to mesh changes geometry, and scripts might expect it to be properly
      * informed about changes. */

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -247,6 +247,10 @@ msgid "Hold"
 msgstr "पकड़ो"
 
 
+msgid "Animation"
+msgstr "अनुप्राणन"
+
+
 msgid "Bake Location"
 msgstr "स्थिति भर्जन"
 
@@ -273,6 +277,10 @@ msgstr "गठन चरण"
 
 msgid "Show Frame Numbers"
 msgstr "गठन संख्या दिखाएँ"
+
+
+msgid "Influence"
+msgstr "प्रभाव"
 
 
 msgid "Height"
@@ -631,6 +639,10 @@ msgid "Count"
 msgstr "गिनती"
 
 
+msgid "Curve Radius"
+msgstr "वक्र में त्रिज्या"
+
+
 msgid "Remove"
 msgstr "हटाएँ"
 
@@ -657,10 +669,6 @@ msgstr "शिरोबिन्दु रंग"
 
 msgid "Direction"
 msgstr "दिशा"
-
-
-msgid "Dissolve"
-msgstr "भंग"
 
 
 msgid "Radius"
@@ -868,10 +876,6 @@ msgid "Error"
 msgstr "त्रुटि"
 
 
-msgid "Influence"
-msgstr "प्रभाव"
-
-
 msgid "Copy Location"
 msgstr "स्थिति की प्रतिलिपि बनाएँ"
 
@@ -930,10 +934,6 @@ msgstr "ZYX यूलर"
 
 msgid "Power"
 msgstr "शक्ति"
-
-
-msgid "Curve Radius"
-msgstr "वक्र में त्रिज्या"
 
 
 msgid "Camera"
@@ -1710,28 +1710,20 @@ msgid "Grid Scale"
 msgstr "जालक प्रंमाण"
 
 
+msgid "Repeat"
+msgstr "दोहराएँ"
+
+
 msgid "Red Green Blue"
 msgstr "लाल हरा नीला"
-
-
-msgid "R"
-msgstr "आर"
 
 
 msgid "Red"
 msgstr "लाल"
 
 
-msgid "G"
-msgstr "जी"
-
-
 msgid "Green"
 msgstr "हरा"
-
-
-msgid "B"
-msgstr "बी"
 
 
 msgid "Blue"
@@ -1788,6 +1780,10 @@ msgstr "टैग"
 
 msgid "Users"
 msgstr "प्रयोक्ता"
+
+
+msgid "Layers"
+msgstr "परतें"
 
 
 msgid "Stick"
@@ -1854,10 +1850,6 @@ msgid "Add Color"
 msgstr "रंग जोड़ें"
 
 
-msgid "Repeat"
-msgstr "दोहराएँ"
-
-
 msgid "Clamp"
 msgstr "कीलक"
 
@@ -1892,14 +1884,6 @@ msgstr "बिन्दु्"
 
 msgid "Use Vertex"
 msgstr "शिरोबिन्दु का उपयोग करें"
-
-
-msgid "Sculpt Tool"
-msgstr "शिल्प यंत्र"
-
-
-msgid "Relax"
-msgstr "शिथिल करो"
 
 
 msgid "Sequence"
@@ -2040,10 +2024,6 @@ msgstr "अधिकतम"
 
 msgid "Rounds"
 msgstr "दौर"
-
-
-msgid "Layers"
-msgstr "परतें"
 
 
 msgid "Alpha Mode"
@@ -2244,10 +2224,6 @@ msgstr "उच्च"
 
 msgid "Low"
 msgstr "कम"
-
-
-msgid "Tiled"
-msgstr "खण्ड की गईं"
 
 
 msgid "Use boundaries for viewer nodes and composite backdrop"
@@ -2611,10 +2587,6 @@ msgid "Mist"
 msgstr "धुंध"
 
 
-msgid "Animation"
-msgstr "अनुप्राणन"
-
-
 msgid "Max Step"
 msgstr "अधिकतम कदम"
 
@@ -2798,6 +2770,10 @@ msgstr "ट्रैक"
 
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Zoom"
+msgstr "निकट करें"
 
 
 msgid "Channel"
@@ -3198,10 +3174,6 @@ msgid "Spin"
 msgstr "चक्रण"
 
 
-msgid "Zoom"
-msgstr "निकट करें"
-
-
 msgid "Soften"
 msgstr "मॄदु"
 
@@ -3576,6 +3548,11 @@ msgstr "रंग की प्रतिलिपि बनाएँ"
 
 
 msgctxt "Operator"
+msgid "Export"
+msgstr "निर्यात करें"
+
+
+msgctxt "Operator"
 msgid "Delete"
 msgstr "मिटाएँ"
 
@@ -3598,13 +3575,18 @@ msgid "Report"
 msgstr "विवरण"
 
 
-msgid "Duplicate"
-msgstr "अनुकृति"
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "चक्र जोड़ें"
 
 
 msgctxt "Operator"
 msgid "Toggle Cyclic"
 msgstr "चक्रीय बंद/बुझ"
+
+
+msgid "Duplicate"
+msgstr "अनुकृति"
 
 
 msgctxt "Operator"
@@ -3797,6 +3779,10 @@ msgid "Create a new image"
 msgstr "एक नई छवि बनाएँ"
 
 
+msgid "Tiled"
+msgstr "खण्ड की गईं"
+
+
 msgid "X End"
 msgstr "X समाप्त"
 
@@ -3816,11 +3802,6 @@ msgstr "प्रतिबिंबक का चयन करें"
 msgctxt "Operator"
 msgid "Add Vertex"
 msgstr "शिरोबिन्दु जोडें"
-
-
-msgctxt "Operator"
-msgid "Add Circle"
-msgstr "चक्र जोड़ें"
 
 
 msgctxt "Operator"
@@ -4030,10 +4011,6 @@ msgid "Add Camera"
 msgstr "प्रतिबिंबक जोडें"
 
 
-msgid "Add an empty image type to scene with data"
-msgstr "डेटा के साथ दृश्य के लिए एक रिक्त छवि प्रकार जोड़ें"
-
-
 msgctxt "Operator"
 msgid "Duplicate Objects"
 msgstr "वस्तुओं की नकल"
@@ -4046,6 +4023,10 @@ msgstr "वस्तुओं की नकल"
 msgctxt "Operator"
 msgid "Add Empty"
 msgstr "खाली जोड़ें"
+
+
+msgid "Add an empty image type to scene with data"
+msgstr "डेटा के साथ दृश्य के लिए एक रिक्त छवि प्रकार जोड़ें"
 
 
 msgid "Monkey"
@@ -4211,6 +4192,10 @@ msgstr "पिछला दोहराएँ"
 msgctxt "Operator"
 msgid "Sculpt"
 msgstr "गढन"
+
+
+msgid "Relax"
+msgstr "शिथिल करो"
 
 
 msgctxt "Operator"
@@ -5320,11 +5305,6 @@ msgid "Solid"
 msgstr "ठोस"
 
 
-msgctxt "Operator"
-msgid "Export"
-msgstr "निर्यात करें"
-
-
 msgid "Save to PO File"
 msgstr "PO फाइल को बचाने के लिए"
 
@@ -5539,14 +5519,6 @@ msgstr "खुरदरापन समाप्त"
 
 msgid "Use Timing"
 msgstr "समय का उपयोग करें"
-
-
-msgid "Spacing: %g"
-msgstr "रिक्ति: %g"
-
-
-msgid "%d fluid particles for this frame"
-msgstr "इस गठन के लिए %d तरल पदार्थ कणों"
 
 
 msgid "Structural"
@@ -5829,6 +5801,10 @@ msgid "Python API Reference"
 msgstr "पाइथन एपीआई संदर्भ"
 
 
+msgid "B"
+msgstr "बी"
+
+
 msgid "Preferences:"
 msgstr "वरीयताएँ:"
 
@@ -6026,10 +6002,6 @@ msgstr "त्वरित संपादन"
 msgctxt "Operator"
 msgid "Apply"
 msgstr "लागू करें"
-
-
-msgid "<Missing ID block>"
-msgstr "< अनुपलब्ध ID ब्लॉक >"
 
 
 msgid "No AnimData to set action on"
@@ -6315,6 +6287,10 @@ msgid "Remove Shortcut"
 msgstr "शॉर्टकट हटाएँ"
 
 
+msgid "%d items"
+msgstr "%d वस्तु"
+
+
 msgid "Hex"
 msgstr "हेक्स"
 
@@ -6428,10 +6404,6 @@ msgstr "नई"
 msgctxt "FreestyleLineStyle"
 msgid "New"
 msgstr "नई"
-
-
-msgid "%d items"
-msgstr "%d वस्तु"
 
 
 msgid "Rigging"
@@ -6938,10 +6910,6 @@ msgstr "ऑन"
 
 msgid "OFF"
 msgstr "बंद"
-
-
-msgid "OK?"
-msgstr "ठीक है?"
 
 
 msgctxt "Operator"

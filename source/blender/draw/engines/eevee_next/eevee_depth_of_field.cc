@@ -22,9 +22,9 @@
 #include "BKE_camera.h"
 #include "DNA_camera_types.h"
 
-#include "GPU_platform.h"
-#include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_platform.hh"
+#include "GPU_texture.hh"
+#include "GPU_uniform_buffer.hh"
 
 #include "eevee_camera.hh"
 #include "eevee_instance.hh"
@@ -400,6 +400,7 @@ void DepthOfField::scatter_pass_sync()
     drw_pass.init();
     drw_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
     drw_pass.shader_set(inst_.shaders.static_shader_get(DOF_SCATTER));
+    drw_pass.bind_ubo("dof_buf", data_);
     drw_pass.push_constant("use_bokeh_lut", use_bokeh_lut_);
     drw_pass.bind_texture("bokeh_lut_tx", &bokeh_scatter_lut_tx_);
     drw_pass.bind_texture("occlusion_tx", &occlusion_tx_);

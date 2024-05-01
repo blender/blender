@@ -21,8 +21,8 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -298,7 +298,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 
   if (fx >= 0.0f && fy >= 0.0f && fx < ibuf->x && fy < ibuf->y) {
     const float *fp;
-    uchar *cp;
+    const uchar *cp;
     int x = int(fx), y = int(fy);
 
     info->x = x;

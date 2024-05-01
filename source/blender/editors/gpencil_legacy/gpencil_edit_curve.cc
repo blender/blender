@@ -34,7 +34,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Enter Edit-Mode

@@ -19,7 +19,8 @@
 #include "BLI_string_ref.hh"
 
 #include "BKE_animsys.h"
-#include "BKE_idprop.h"
+#include "BKE_grease_pencil_legacy_convert.hh"
+#include "BKE_idprop.hh"
 #include "BKE_ipo.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
@@ -100,10 +101,7 @@ ID *do_versions_rename_id(Main *bmain,
     }
   }
   if (id != nullptr) {
-    BKE_main_namemap_remove_name(bmain, id, id->name + 2);
-    BLI_strncpy(id->name + 2, name_dst, sizeof(id->name) - 2);
-    /* We know it's unique, this just sorts. */
-    BKE_libblock_ensure_unique_name(bmain, id);
+    BKE_libblock_rename(bmain, id, name_dst);
   }
   return id;
 }
@@ -388,14 +386,11 @@ int version_cycles_property_int(IDProperty *idprop, const char *name, int defaul
 
 void version_cycles_property_int_set(IDProperty *idprop, const char *name, int value)
 {
-  IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
-  if (prop) {
+  if (IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT)) {
     IDP_Int(prop) = value;
   }
   else {
-    IDPropertyTemplate val = {0};
-    val.i = value;
-    IDP_AddToGroup(idprop, IDP_New(IDP_INT, &val, name));
+    IDP_AddToGroup(idprop, blender::bke::idprop::create(name, value).release());
   }
 }
 
@@ -469,7 +464,7 @@ static bool blendfile_or_libraries_versions_atleast(Main *bmain,
   }
 
   LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
-    if (!MAIN_VERSION_FILE_ATLEAST(library, versionfile, subversionfile)) {
+    if (!LIBRARY_VERSION_FILE_ATLEAST(library, versionfile, subversionfile)) {
       return false;
     }
   }
@@ -531,7 +526,16 @@ void do_versions_after_setup(Main *new_bmain, BlendFileReadReport *reports)
     BKE_lib_override_library_main_hierarchy_root_ensure(new_bmain);
   }
 
-  if (!blendfile_or_libraries_versions_atleast(new_bmain, 401, 2)) {
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 402, 22)) {
+    /* Initial auto smooth versioning started at (401, 2), but a bug caused the legacy flag to not
+     * be cleared, so it is re-run in a later version when the bug is fixed and the versioning has
+     * been made idempotent. */
     BKE_main_mesh_legacy_convert_auto_smooth(*new_bmain);
+  }
+
+  if (U.experimental.use_grease_pencil_version3 &&
+      U.experimental.use_grease_pencil_version3_convert_on_load)
+  {
+    blender::bke::greasepencil::convert::legacy_main(*new_bmain, *reports);
   }
 }

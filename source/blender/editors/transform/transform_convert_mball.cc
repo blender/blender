@@ -36,7 +36,7 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
     const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
     const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
 
-    /* count totals */
+    /* Count totals. */
     LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
       if (ml->flag & SELECT) {
         countsel++;
@@ -88,7 +88,7 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
 
         td->ext = tx;
 
-        /* Radius of MetaElem (mass of MetaElem influence) */
+        /* Radius of MetaElem (mass of MetaElem influence). */
         if (ml->flag & MB_SCALE_RAD) {
           td->val = &ml->rad;
           td->ival = ml->rad;
@@ -98,13 +98,13 @@ static void createTransMBallVerts(bContext * /*C*/, TransInfo *t)
           td->ival = ml->s;
         }
 
-        /* expx/expy/expz determine "shape" of some MetaElem types */
+        /* `expx/expy/expz` determine "shape" of some MetaElem types. */
         tx->size = &ml->expx;
         tx->isize[0] = ml->expx;
         tx->isize[1] = ml->expy;
         tx->isize[2] = ml->expz;
 
-        /* quat is used for rotation of MetaElem */
+        /* `quat` is used for rotation of #MetaElem. */
         tx->quat = ml->quat;
         copy_qt_qt(tx->iquat, ml->quat);
 

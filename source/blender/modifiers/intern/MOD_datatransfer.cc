@@ -78,27 +78,6 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
   BKE_object_data_transfer_dttypes_to_cdmask(dtmd->data_types, r_cddata_masks);
 }
 
-static bool depends_on_normals(ModifierData *md)
-{
-  DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
-  int item_types = BKE_object_data_transfer_get_dttypes_item_types(dtmd->data_types);
-
-  if ((item_types & ME_VERT) && (dtmd->vmap_mode & (MREMAP_USE_NORPROJ | MREMAP_USE_NORMAL))) {
-    return true;
-  }
-  if ((item_types & ME_EDGE) && (dtmd->emap_mode & (MREMAP_USE_NORPROJ | MREMAP_USE_NORMAL))) {
-    return true;
-  }
-  if ((item_types & ME_LOOP) && (dtmd->lmap_mode & (MREMAP_USE_NORPROJ | MREMAP_USE_NORMAL))) {
-    return true;
-  }
-  if ((item_types & ME_POLY) && (dtmd->pmap_mode & (MREMAP_USE_NORPROJ | MREMAP_USE_NORMAL))) {
-    return true;
-  }
-
-  return false;
-}
-
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)md;
@@ -518,7 +497,7 @@ ModifierTypeInfo modifierType_DataTransfer = {
     /*is_disabled*/ is_disabled,
     /*update_depsgraph*/ update_depsgraph,
     /*depends_on_time*/ nullptr,
-    /*depends_on_normals*/ depends_on_normals,
+    /*depends_on_normals*/ nullptr,
     /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ nullptr,
     /*free_runtime_data*/ nullptr,

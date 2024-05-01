@@ -20,7 +20,7 @@
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
 
-#include "draw_shader_shared.h"
+#include "draw_shader_shared.hh"
 
 namespace blender::draw {
 
@@ -72,9 +72,6 @@ class View {
 
   /* For compatibility with old system. Will be removed at some point. */
   void sync(const DRWView *view);
-
-  /** Disable a range in the multi-view array. Disabled view will not produce any instances. */
-  void disable(IndexRange range);
 
   /** Enable or disable every visibility test (frustum culling, HiZ culling). */
   void visibility_test(bool enable)

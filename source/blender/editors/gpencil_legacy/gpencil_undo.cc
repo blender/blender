@@ -29,7 +29,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 struct bGPundonode {
   bGPundonode *next, *prev;

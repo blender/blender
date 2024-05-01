@@ -20,8 +20,8 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 
-#include "BKE_fcurve.h"
-#include "BKE_idprop.h"
+#include "BKE_fcurve.hh"
+#include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
@@ -267,6 +267,7 @@ Editing *SEQ_editing_ensure(Scene *scene)
     ed->cache = nullptr;
     ed->cache_flag = SEQ_CACHE_STORE_FINAL_OUT;
     ed->cache_flag |= SEQ_CACHE_STORE_RAW;
+    ed->show_missing_media_flag = SEQ_EDIT_SHOW_MISSING_MEDIA;
     ed->displayed_channels = &ed->channels;
     SEQ_channels_ensure(ed->displayed_channels);
   }
@@ -292,6 +293,7 @@ void SEQ_editing_free(Scene *scene, const bool do_id_user)
 
   BLI_freelistN(&ed->metastack);
   SEQ_sequence_lookup_free(scene);
+  blender::seq::media_presence_free(scene);
   SEQ_channels_free(&ed->channels);
 
   MEM_freeN(ed);
@@ -331,7 +333,7 @@ SequencerToolSettings *SEQ_tool_settings_init()
       MEM_callocN(sizeof(SequencerToolSettings), "Sequencer tool settings"));
   tool_settings->fit_method = SEQ_SCALE_TO_FIT;
   tool_settings->snap_mode = SEQ_SNAP_TO_STRIPS | SEQ_SNAP_TO_CURRENT_FRAME |
-                             SEQ_SNAP_TO_STRIP_HOLD;
+                             SEQ_SNAP_TO_STRIP_HOLD | SEQ_SNAP_TO_MARKERS;
   tool_settings->snap_distance = 15;
   tool_settings->overlap_mode = SEQ_OVERLAP_SHUFFLE;
   tool_settings->pivot_point = V3D_AROUND_LOCAL_ORIGINS;
@@ -792,9 +794,9 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
   /* Do as early as possible, so that other parts of reading can rely on valid session UID. */
   SEQ_relations_session_uid_generate(seq);
 
-  BLO_read_data_address(reader, &seq->seq1);
-  BLO_read_data_address(reader, &seq->seq2);
-  BLO_read_data_address(reader, &seq->seq3);
+  BLO_read_struct(reader, Sequence, &seq->seq1);
+  BLO_read_struct(reader, Sequence, &seq->seq2);
+  BLO_read_struct(reader, Sequence, &seq->seq3);
 
   /* a patch: after introduction of effects with 3 input strips */
   if (seq->seq3 == nullptr) {
@@ -802,7 +804,7 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
   }
 
   BLO_read_data_address(reader, &seq->effectdata);
-  BLO_read_data_address(reader, &seq->stereo3d_format);
+  BLO_read_struct(reader, Stereo3dFormat, &seq->stereo3d_format);
 
   if (seq->type & SEQ_TYPE_EFFECT) {
     seq->flag |= SEQ_EFFECT_NOT_LOADED;
@@ -813,10 +815,10 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
     t->text_blf_id = SEQ_FONT_NOT_LOADED;
   }
 
-  BLO_read_data_address(reader, &seq->prop);
+  BLO_read_struct(reader, IDProperty, &seq->prop);
   IDP_BlendDataRead(reader, &seq->prop);
 
-  BLO_read_data_address(reader, &seq->strip);
+  BLO_read_struct(reader, Strip, &seq->strip);
   if (seq->strip && seq->strip->done == 0) {
     seq->strip->done = true;
 
@@ -827,9 +829,9 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
     else {
       seq->strip->stripdata = nullptr;
     }
-    BLO_read_data_address(reader, &seq->strip->crop);
-    BLO_read_data_address(reader, &seq->strip->transform);
-    BLO_read_data_address(reader, &seq->strip->proxy);
+    BLO_read_struct(reader, StripCrop, &seq->strip->crop);
+    BLO_read_struct(reader, StripTransform, &seq->strip->transform);
+    BLO_read_struct(reader, StripProxy, &seq->strip->proxy);
     if (seq->strip->proxy) {
       seq->strip->proxy->anim = nullptr;
     }
@@ -838,15 +840,16 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
     }
 
     /* need to load color balance to it could be converted to modifier */
-    BLO_read_data_address(reader, &seq->strip->color_balance);
+    BLO_read_struct(reader, StripColorBalance, &seq->strip->color_balance);
   }
 
   SEQ_modifier_blend_read_data(reader, &seq->modifiers);
 
-  BLO_read_list(reader, &seq->channels);
+  BLO_read_struct_list(reader, SeqTimelineChannel, &seq->channels);
 
   if (seq->retiming_keys != nullptr) {
-    BLO_read_data_address(reader, &seq->retiming_keys);
+    const int size = SEQ_retiming_keys_count(seq);
+    BLO_read_struct_array(reader, SeqRetimingKey, size, &seq->retiming_keys);
   }
 
   return true;

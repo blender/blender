@@ -202,11 +202,11 @@ typedef enum eRigidBody_Shape {
 } eRigidBody_Shape;
 
 typedef enum eRigidBody_MeshSource {
-  /* base mesh */
+  /** Base mesh. */
   RBO_MESH_BASE = 0,
-  /* only deformations */
+  /** Only deformations. */
   RBO_MESH_DEFORM = 1,
-  /* final derived mesh */
+  /** Final evaluated mesh. */
   RBO_MESH_FINAL = 2,
 } eRigidBody_MeshSource;
 

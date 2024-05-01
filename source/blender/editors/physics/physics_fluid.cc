@@ -40,7 +40,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "physics_intern.h" /* own include */
+#include "physics_intern.hh" /* own include */
 
 #include "DNA_fluid_types.h"
 #include "DNA_scene_types.h"
@@ -134,7 +134,7 @@ static bool fluid_initjob(
 {
   FluidModifierData *fmd = nullptr;
   FluidDomainSettings *fds;
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
 
   fmd = (FluidModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
   if (!fmd) {
@@ -594,7 +594,7 @@ static int fluid_free_exec(bContext *C, wmOperator *op)
 {
   FluidModifierData *fmd = nullptr;
   FluidDomainSettings *fds;
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   Scene *scene = CTX_data_scene(C);
 
   /*
@@ -659,7 +659,7 @@ static int fluid_pause_exec(bContext *C, wmOperator *op)
 {
   FluidModifierData *fmd = nullptr;
   FluidDomainSettings *fds;
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
 
   /*
    * Get modifier data

@@ -10,10 +10,6 @@
 
 #include "IMB_imbuf.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* -------------------------------------------------------------------- */
 /** \name Generic File Type
  * \{ */
@@ -24,9 +20,9 @@ struct ImBuf;
 
 struct ImFileType {
   /** Optional, called once when initializing. */
-  void (*init)(void);
+  void (*init)();
   /** Optional, called once when exiting. */
-  void (*exit)(void);
+  void (*exit)();
 
   /**
    * Check if the data matches this file types 'magic',
@@ -67,8 +63,8 @@ extern const ImFileType *IMB_FILE_TYPES_LAST;
 const ImFileType *IMB_file_type_from_ftype(int ftype);
 const ImFileType *IMB_file_type_from_ibuf(const ImBuf *ibuf);
 
-void imb_filetypes_init(void);
-void imb_filetypes_exit(void);
+void imb_filetypes_init();
+void imb_filetypes_exit();
 
 /** \} */
 
@@ -297,7 +293,3 @@ ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
                                        size_t *r_height);
 
 /** \} */
-
-#ifdef __cplusplus
-};
-#endif

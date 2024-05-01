@@ -20,12 +20,12 @@
 
 #include "BKE_context.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_matrix.hh"
 #include "GPU_select.hh"
-#include "GPU_shader.h"
-#include "GPU_state.h"
+#include "GPU_shader.hh"
+#include "GPU_state.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -38,7 +38,7 @@
 #include "ED_view3d.hh"
 
 /* own includes */
-#include "../gizmo_library_intern.h"
+#include "../gizmo_library_intern.hh"
 
 #define GIZMO_MARGIN_OFFSET_SCALE 1.5f
 
@@ -644,22 +644,22 @@ static void GIZMO_GT_cage_3d(wmGizmoType *gzt)
   gzt->struct_size = sizeof(wmGizmo);
 
   /* rna */
-  static EnumPropertyItem rna_enum_draw_style[] = {
+  static const EnumPropertyItem rna_enum_draw_style[] = {
       {ED_GIZMO_CAGE3D_STYLE_BOX, "BOX", 0, "Box", ""},
       {ED_GIZMO_CAGE3D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  static EnumPropertyItem rna_enum_transform[] = {
+  static const EnumPropertyItem rna_enum_transform[] = {
       {ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Move", ""},
       {ED_GIZMO_CAGE_XFORM_FLAG_SCALE, "SCALE", 0, "Scale", ""},
       {ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  static EnumPropertyItem rna_enum_draw_options[] = {
+  static const EnumPropertyItem rna_enum_draw_options[] = {
       {ED_GIZMO_CAGE_DRAW_FLAG_XFORM_CENTER_HANDLE, "XFORM_CENTER_HANDLE", 0, "Center Handle", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  static float unit_v3[3] = {1.0f, 1.0f, 1.0f};
+  static const float unit_v3[3] = {1.0f, 1.0f, 1.0f};
   RNA_def_float_vector(
       gzt->srna, "dimensions", 3, unit_v3, 0, FLT_MAX, "Dimensions", "", 0.0f, FLT_MAX);
   RNA_def_enum_flag(gzt->srna, "transform", rna_enum_transform, 0, "Transform Options", "");

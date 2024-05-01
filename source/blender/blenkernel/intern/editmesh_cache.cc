@@ -17,18 +17,22 @@
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh" /* own include */
 
+using blender::float3;
+using blender::Span;
+
 /* -------------------------------------------------------------------- */
 /** \name Ensure Data (derived from coords)
  * \{ */
 
-void BKE_editmesh_cache_ensure_face_normals(BMEditMesh &em, blender::bke::EditMeshData &emd)
+Span<float3> BKE_editmesh_cache_ensure_face_normals(BMEditMesh &em,
+                                                    blender::bke::EditMeshData &emd)
 {
-  if (emd.vertexCos.is_empty() || !emd.faceNos.is_empty()) {
-    return;
+  if (emd.vert_positions.is_empty() || !emd.face_normals.is_empty()) {
+    return emd.face_normals;
   }
   BMesh *bm = em.bm;
 
-  emd.faceNos.reinitialize(bm->totface);
+  emd.face_normals.reinitialize(bm->totface);
 
   BM_mesh_elem_index_ensure(bm, BM_VERT);
   BMFace *efa;
@@ -36,55 +40,55 @@ void BKE_editmesh_cache_ensure_face_normals(BMEditMesh &em, blender::bke::EditMe
   int i;
   BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
     BM_elem_index_set(efa, i); /* set_inline */
-    BM_face_calc_normal_vcos(
-        bm, efa, emd.faceNos[i], reinterpret_cast<const float(*)[3]>(emd.vertexCos.data()));
+    BM_face_calc_normal_vcos(bm, efa, emd.face_normals[i], emd.vert_positions);
   }
   bm->elem_index_dirty &= ~BM_FACE;
+  return emd.face_normals;
 }
 
-void BKE_editmesh_cache_ensure_vert_normals(BMEditMesh &em, blender::bke::EditMeshData &emd)
+Span<float3> BKE_editmesh_cache_ensure_vert_normals(BMEditMesh &em,
+                                                    blender::bke::EditMeshData &emd)
 {
-  if (emd.vertexCos.is_empty() || !emd.vertexNos.is_empty()) {
-    return;
+  if (emd.vert_positions.is_empty() || !emd.vert_normals.is_empty()) {
+    return emd.vert_normals;
   }
   BMesh *bm = em.bm;
 
   /* Calculate vertex normals from face normals. */
-  BKE_editmesh_cache_ensure_face_normals(em, emd);
+  const Span<float3> face_normals = BKE_editmesh_cache_ensure_face_normals(em, emd);
 
-  emd.vertexNos.reinitialize(bm->totvert);
+  emd.vert_normals.reinitialize(bm->totvert);
 
   BM_mesh_elem_index_ensure(bm, BM_FACE);
-  BM_verts_calc_normal_vcos(bm,
-                            reinterpret_cast<const float(*)[3]>(emd.faceNos.data()),
-                            reinterpret_cast<const float(*)[3]>(emd.vertexCos.data()),
-                            reinterpret_cast<float(*)[3]>(emd.vertexNos.data()));
+  BM_verts_calc_normal_vcos(bm, face_normals, emd.vert_positions, emd.vert_normals);
+  return emd.vert_normals;
 }
 
-void BKE_editmesh_cache_ensure_face_centers(BMEditMesh &em, blender::bke::EditMeshData &emd)
+Span<float3> BKE_editmesh_cache_ensure_face_centers(BMEditMesh &em,
+                                                    blender::bke::EditMeshData &emd)
 {
-  if (!emd.faceCos.is_empty()) {
-    return;
+  if (!emd.face_centers.is_empty()) {
+    return emd.face_centers;
   }
   BMesh *bm = em.bm;
 
-  emd.faceCos.reinitialize(bm->totface);
+  emd.face_centers.reinitialize(bm->totface);
 
   BMFace *efa;
   BMIter fiter;
   int i;
-  if (emd.vertexCos.is_empty()) {
+  if (emd.vert_positions.is_empty()) {
     BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
-      BM_face_calc_center_median(efa, emd.faceCos[i]);
+      BM_face_calc_center_median(efa, emd.face_centers[i]);
     }
   }
   else {
     BM_mesh_elem_index_ensure(bm, BM_VERT);
     BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
-      BM_face_calc_center_median_vcos(
-          bm, efa, emd.faceCos[i], reinterpret_cast<const float(*)[3]>(emd.vertexCos.data()));
+      BM_face_calc_center_median_vcos(bm, efa, emd.face_centers[i], emd.vert_positions);
     }
   }
+  return emd.face_centers;
 }
 
 /** \} */
@@ -102,7 +106,7 @@ std::optional<blender::Bounds<blender::float3>> BKE_editmesh_cache_calc_minmax(
     return std::nullopt;
   }
 
-  if (emd.vertexCos.is_empty()) {
+  if (emd.vert_positions.is_empty()) {
     BMVert *eve;
     BMIter iter;
     float3 min(std::numeric_limits<float>::max());
@@ -113,7 +117,7 @@ std::optional<blender::Bounds<blender::float3>> BKE_editmesh_cache_calc_minmax(
     return Bounds<float3>{min, max};
   }
 
-  return bounds::min_max(emd.vertexCos.as_span());
+  return bounds::min_max(emd.vert_positions.as_span());
 }
 
 /** \} */

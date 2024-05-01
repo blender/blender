@@ -4,6 +4,7 @@
 
 import bpy
 from bpy.types import Panel
+from bpy.app.translations import contexts as i18n_contexts
 from bl_ui.utils import PresetPanel
 from bl_ui.properties_physics_common import (
     effector_weights_ui,
@@ -166,12 +167,12 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             col.enabled = not domain.has_cache_baked_guide
             col.prop(domain, "resolution_max", text="Resolution Divisions")
             col.prop(domain, "time_scale", text="Time Scale")
-            col.prop(domain, "cfl_condition", text="CFL Number")
 
             col = flow.column()
             col.prop(domain, "use_adaptive_timesteps")
             sub = col.column(align=True)
             sub.active = domain.use_adaptive_timesteps
+            sub.prop(domain, "cfl_condition", text="CFL Number")
             sub.prop(domain, "timesteps_max", text="Timesteps Maximum")
             sub.prop(domain, "timesteps_min", text="Minimum")
 
@@ -369,6 +370,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_smoke_dissolve(PhysicButtonsPanel, Panel):
     bl_label = "Dissolve"
+    bl_translation_context = i18n_contexts.id_volume
     bl_parent_id = "PHYSICS_PT_smoke"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {

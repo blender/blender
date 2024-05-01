@@ -45,19 +45,19 @@ struct wmOperator;
 
 #define GPENCIL_MINIMUM_JOIN_DIST 20.0f
 
-/* Reproject stroke modes. */
+/** Reproject stroke modes. */
 enum eGP_ReprojectModes {
   /* Axis */
   GP_REPROJECT_FRONT = 0,
   GP_REPROJECT_SIDE,
   GP_REPROJECT_TOP,
-  /* On same plane, parallel to view-plane. */
+  /** On same plane, parallel to view-plane. */
   GP_REPROJECT_VIEW,
-  /* Reprojected on to the scene geometry */
+  /** Re-projected on to the scene geometry. */
   GP_REPROJECT_SURFACE,
-  /* Reprojected on 3D cursor orientation */
+  /** Re-projected on 3D cursor orientation. */
   GP_REPROJECT_CURSOR,
-  /* Keep equals (used in some operators) */
+  /** Keep equals (used in some operators). */
   GP_REPROJECT_KEEP,
 };
 
@@ -69,7 +69,8 @@ enum eGP_TargetObjectMode {
 
 /* ------------- Grease-Pencil Runtime Data ---------------- */
 
-/* Temporary 'Stroke Point' data (2D / screen-space)
+/**
+ * Temporary 'Stroke Point' data (2D / screen-space)
  *
  * Used as part of the 'stroke cache' used during drawing of new strokes
  */
@@ -176,11 +177,11 @@ bool ED_gpencil_layer_has_selected_stroke(const bGPDlayer *gpl, bool is_multiedi
  * TODO: do we need additional flags for screen-space vs data-space?.
  */
 bool ED_gpencil_stroke_can_use_direct(const ScrArea *area, const bGPDstroke *gps);
-/* Check whether given stroke can be edited in the current context */
+/** Check whether given stroke can be edited in the current context */
 bool ED_gpencil_stroke_can_use(const bContext *C, const bGPDstroke *gps);
-/* Check whether given stroke can be edited for the current color */
+/** Check whether given stroke can be edited for the current color */
 bool ED_gpencil_stroke_material_editable(Object *ob, const bGPDlayer *gpl, const bGPDstroke *gps);
-/* Check whether given stroke is visible for the current material. */
+/** Check whether given stroke is visible for the current material. */
 bool ED_gpencil_stroke_material_visible(Object *ob, const bGPDstroke *gps);
 
 /* ----------- Grease Pencil Operators ----------------- */
@@ -494,7 +495,7 @@ void ED_gpencil_update_color_uv(Main *bmain, Material *mat);
 
 /**
  * Extend selection to stroke intersections:
- * \returns:
+ * \return The result of selecting:
  * 0 - No hit
  * 1 - Hit in point A
  * 2 - Hit in point B

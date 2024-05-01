@@ -19,7 +19,7 @@
 
 #include "draw_command_shared.hh"
 #include "draw_handle.hh"
-#include "draw_state.h"
+#include "draw_state.hh"
 #include "draw_view.hh"
 
 /* Forward declarations. */
@@ -67,10 +67,10 @@ struct RecordingState {
     }
 
     if (G.debug & G_DEBUG_GPU) {
-      GPU_storagebuf_unbind_all();
+      GPU_storagebuf_debug_unbind_all();
       GPU_texture_image_unbind_all();
       GPU_texture_unbind_all();
-      GPU_uniformbuf_unbind_all();
+      GPU_uniformbuf_debug_unbind_all();
     }
   }
 };
@@ -172,10 +172,10 @@ struct ResourceBind {
     /** NOTE: Texture is used for both Sampler and Image binds. */
     GPUTexture *texture;
     GPUTexture **texture_ref;
-    GPUVertBuf *vertex_buf;
-    GPUVertBuf **vertex_buf_ref;
-    GPUIndexBuf *index_buf;
-    GPUIndexBuf **index_buf_ref;
+    gpu::VertBuf *vertex_buf;
+    gpu::VertBuf **vertex_buf_ref;
+    gpu::IndexBuf *index_buf;
+    gpu::IndexBuf **index_buf_ref;
   };
 
   ResourceBind() = default;
@@ -192,13 +192,13 @@ struct ResourceBind {
       : slot(slot_), is_reference(false), type(Type::UniformAsStorageBuf), uniform_buf(res){};
   ResourceBind(int slot_, GPUUniformBuf **res, Type /*type*/)
       : slot(slot_), is_reference(true), type(Type::UniformAsStorageBuf), uniform_buf_ref(res){};
-  ResourceBind(int slot_, GPUVertBuf *res, Type /*type*/)
+  ResourceBind(int slot_, gpu::VertBuf *res, Type /*type*/)
       : slot(slot_), is_reference(false), type(Type::VertexAsStorageBuf), vertex_buf(res){};
-  ResourceBind(int slot_, GPUVertBuf **res, Type /*type*/)
+  ResourceBind(int slot_, gpu::VertBuf **res, Type /*type*/)
       : slot(slot_), is_reference(true), type(Type::VertexAsStorageBuf), vertex_buf_ref(res){};
-  ResourceBind(int slot_, GPUIndexBuf *res, Type /*type*/)
+  ResourceBind(int slot_, gpu::IndexBuf *res, Type /*type*/)
       : slot(slot_), is_reference(false), type(Type::IndexAsStorageBuf), index_buf(res){};
-  ResourceBind(int slot_, GPUIndexBuf **res, Type /*type*/)
+  ResourceBind(int slot_, gpu::IndexBuf **res, Type /*type*/)
       : slot(slot_), is_reference(true), type(Type::IndexAsStorageBuf), index_buf_ref(res){};
   ResourceBind(int slot_, draw::Image *res)
       : slot(slot_), is_reference(false), type(Type::Image), texture(draw::as_texture(res)){};
@@ -208,9 +208,9 @@ struct ResourceBind {
       : sampler(state), slot(slot_), is_reference(false), type(Type::Sampler), texture(res){};
   ResourceBind(int slot_, GPUTexture **res, GPUSamplerState state)
       : sampler(state), slot(slot_), is_reference(true), type(Type::Sampler), texture_ref(res){};
-  ResourceBind(int slot_, GPUVertBuf *res)
+  ResourceBind(int slot_, gpu::VertBuf *res)
       : slot(slot_), is_reference(false), type(Type::BufferSampler), vertex_buf(res){};
-  ResourceBind(int slot_, GPUVertBuf **res)
+  ResourceBind(int slot_, gpu::VertBuf **res)
       : slot(slot_), is_reference(true), type(Type::BufferSampler), vertex_buf_ref(res){};
 
   void execute() const;
@@ -303,11 +303,11 @@ struct SpecializeConstant {
   /* Value of the constant or a reference to it. */
   union {
     int int_value;
-    int uint_value;
+    uint uint_value;
     float float_value;
     bool bool_value;
     const int *int_ref;
-    const int *uint_ref;
+    const uint *uint_ref;
     const float *float_ref;
     const bool *bool_ref;
   };
@@ -331,12 +331,16 @@ struct SpecializeConstant {
       : shader(sh), float_value(val), location(loc), type(Type::FloatValue){};
   SpecializeConstant(GPUShader *sh, int loc, const int &val)
       : shader(sh), int_value(val), location(loc), type(Type::IntValue){};
+  SpecializeConstant(GPUShader *sh, int loc, const uint &val)
+      : shader(sh), uint_value(val), location(loc), type(Type::UintValue){};
   SpecializeConstant(GPUShader *sh, int loc, const bool &val)
       : shader(sh), bool_value(val), location(loc), type(Type::BoolValue){};
   SpecializeConstant(GPUShader *sh, int loc, const float *val)
       : shader(sh), float_ref(val), location(loc), type(Type::FloatReference){};
   SpecializeConstant(GPUShader *sh, int loc, const int *val)
       : shader(sh), int_ref(val), location(loc), type(Type::IntReference){};
+  SpecializeConstant(GPUShader *sh, int loc, const uint *val)
+      : shader(sh), uint_ref(val), location(loc), type(Type::UintReference){};
   SpecializeConstant(GPUShader *sh, int loc, const bool *val)
       : shader(sh), bool_ref(val), location(loc), type(Type::BoolReference){};
 
@@ -345,7 +349,7 @@ struct SpecializeConstant {
 };
 
 struct Draw {
-  GPUBatch *batch;
+  gpu::Batch *batch;
   uint instance_len;
   uint vertex_len;
   uint vertex_first;
@@ -361,17 +365,17 @@ struct Draw {
 };
 
 struct DrawMulti {
-  GPUBatch *batch;
+  gpu::Batch *batch;
   DrawMultiBuf *multi_draw_buf;
   uint group_first;
   uint uuid;
 
   void execute(RecordingState &state) const;
-  std::string serialize(std::string line_prefix) const;
+  std::string serialize(const std::string &line_prefix) const;
 };
 
 struct DrawIndirect {
-  GPUBatch *batch;
+  gpu::Batch *batch;
   GPUStorageBuf **indirect_buf;
   ResourceHandle handle;
 
@@ -499,7 +503,7 @@ class DrawCommandBuf {
 
   void append_draw(Vector<Header, 0> &headers,
                    Vector<Undetermined, 0> &commands,
-                   GPUBatch *batch,
+                   gpu::Batch *batch,
                    uint instance_len,
                    uint vertex_len,
                    uint vertex_first,
@@ -551,10 +555,10 @@ class DrawCommandBuf {
  * `DrawGroup` as a container. This is done automatically for any successive commands with the
  * same state.
  *
- * A `DrawGroup` is the combination of a `GPUBatch` (VBO state) and a `command::DrawMulti`
+ * A `DrawGroup` is the combination of a `gpu::Batch` (VBO state) and a `command::DrawMulti`
  * (Pipeline State).
  *
- * Inside each `DrawGroup` all instances of a same `GPUBatch` is merged into a single indirect
+ * Inside each `DrawGroup` all instances of a same `gpu::Batch` is merged into a single indirect
  * command.
  *
  * To support this arbitrary reordering, we only need to know the offset of all the commands for a
@@ -581,7 +585,7 @@ class DrawMultiBuf {
   using DrawCommandBuf = StorageArrayBuffer<DrawCommand, 16, true>;
   using ResourceIdBuf = StorageArrayBuffer<uint, 128, true>;
 
-  using DrawGroupKey = std::pair<uint, GPUBatch *>;
+  using DrawGroupKey = std::pair<uint, gpu::Batch *>;
   using DrawGroupMap = Map<DrawGroupKey, uint>;
   /** Maps a DrawMulti command and a gpu batch to their unique DrawGroup command. */
   DrawGroupMap group_ids_;
@@ -619,7 +623,7 @@ class DrawMultiBuf {
 
   void append_draw(Vector<Header, 0> &headers,
                    Vector<Undetermined, 0> &commands,
-                   GPUBatch *batch,
+                   gpu::Batch *batch,
                    uint instance_len,
                    uint vertex_len,
                    uint vertex_first,

@@ -7,7 +7,6 @@
  */
 
 #include "abc_reader_camera.h"
-#include "abc_reader_transform.h"
 #include "abc_util.h"
 
 #include "DNA_camera_types.h"

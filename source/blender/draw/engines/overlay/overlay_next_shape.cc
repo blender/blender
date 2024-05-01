@@ -16,8 +16,8 @@ struct Vertex {
   int vclass;
 };
 
-/* Caller gets ownership of the #GPUVertBuf. */
-static GPUVertBuf *vbo_from_vector(Vector<Vertex> &vector)
+/* Caller gets ownership of the #gpu::VertBuf. */
+static gpu::VertBuf *vbo_from_vector(Vector<Vertex> &vector)
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
@@ -25,7 +25,7 @@ static GPUVertBuf *vbo_from_vector(Vector<Vertex> &vector)
     GPU_vertformat_attr_add(&format, "vclass", GPU_COMP_I32, 1, GPU_FETCH_INT);
   }
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, vector.size());
   Vertex *vbo_data = (Vertex *)GPU_vertbuf_get_data(vbo);
   /* Copy data to VBO using a wrapper span. Could use memcpy if that's too slow. */

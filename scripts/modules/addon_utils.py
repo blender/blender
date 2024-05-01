@@ -72,7 +72,7 @@ def _paths_with_extension_repos():
             dirpath = repo.directory
             if not os.path.isdir(dirpath):
                 continue
-            addon_paths.append((dirpath, "%s.%s" % (_ext_base_pkg_idname, repo.module)))
+            addon_paths.append((dirpath, "{:s}.{:s}".format(_ext_base_pkg_idname, repo.module)))
 
     return addon_paths
 
@@ -187,8 +187,8 @@ def modules_refresh(*, module_cache=addons_fake_modules):
                 if mod.__file__ != mod_path:
                     print(
                         "multiple addons with the same name:\n"
-                        "  %r\n"
-                        "  %r" % (mod.__file__, mod_path)
+                        "  {!r}\n"
+                        "  {!r}".format(mod.__file__, mod_path)
                     )
                     error_duplicates.append((mod.bl_info["name"], mod.__file__, mod_path))
 
@@ -319,14 +319,29 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
     is_extension = module_name.startswith(_ext_base_pkg_idname_with_dot)
 
     if handle_error is None:
-        def handle_error(_ex):
+        def handle_error(ex):
+            if isinstance(ex, ImportError):
+                # NOTE: checking "Add-on " prefix is rather weak,
+                # it's just a way to avoid the noise of a full trace-back when
+                # an add-on is simply missing on the file-system.
+                if (type(msg := ex.msg) is str) and msg.startswith("Add-on "):
+                    print(msg)
+                    return
             import traceback
             traceback.print_exc()
 
     # reload if the mtime changes
     mod = sys.modules.get(module_name)
     # chances of the file _not_ existing are low, but it could be removed
-    if mod and os.path.exists(mod.__file__):
+
+    # Set to `mod.__file__` or None.
+    mod_file = None
+
+    if (
+            (mod is not None) and
+            (mod_file := mod.__file__) is not None and
+            os.path.exists(mod_file)
+    ):
 
         if getattr(mod, "__addon_enabled__", False):
             # This is an unlikely situation,
@@ -336,18 +351,15 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             try:
                 mod.unregister()
             except BaseException as ex:
-                print(
-                    "Exception in module unregister():",
-                    repr(getattr(mod, "__file__", module_name)),
-                )
+                print("Exception in module unregister():", (mod_file or module_name))
                 handle_error(ex)
                 return None
 
         mod.__addon_enabled__ = False
         mtime_orig = getattr(mod, "__time__", 0)
-        mtime_new = os.path.getmtime(mod.__file__)
+        mtime_new = os.path.getmtime(mod_file)
         if mtime_orig != mtime_new:
-            print("module changed on disk:", repr(mod.__file__), "reloading...")
+            print("module changed on disk:", repr(mod_file), "reloading...")
 
             try:
                 importlib.reload(mod)
@@ -374,11 +386,20 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             # Use instead of `__import__` so that sub-modules can eventually be supported.
             # This is also documented to be the preferred way to import modules.
             mod = importlib.import_module(module_name)
-            if mod.__file__ is None:
-                # This can happen when the addon has been removed but there are
-                # residual `.pyc` files left behind.
-                raise ImportError(name=module_name)
-            mod.__time__ = os.path.getmtime(mod.__file__)
+            if (mod_file := mod.__file__) is None:
+                # This can happen when:
+                # - The add-on has been removed but there are residual `.pyc` files left behind.
+                # - An extension is a directory that doesn't contain an `__init__.py` file.
+                #
+                # Include a message otherwise the "cause:" for failing to load the module is left blank.
+                # Include the `__path__` when available so there is a reference to the location that failed to load.
+                raise ImportError(
+                    "module loaded with no associated file, __path__={!r}, aborting!".format(
+                        getattr(mod, "__path__", None)
+                    ),
+                    name=module_name
+                )
+            mod.__time__ = os.path.getmtime(mod_file)
             mod.__addon_enabled__ = False
         except BaseException as ex:
             # If the add-on doesn't exist, don't print full trace-back because the back-trace is in this case
@@ -386,7 +407,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             # Account for `ImportError` & `ModuleNotFoundError`.
             if isinstance(ex, ImportError):
                 if ex.name == module_name:
-                    print("Add-on not loaded: \"%s\", cause: %s" % (module_name, str(ex)))
+                    ex.msg = "Add-on not loaded: \"{:s}\", cause: {:s}".format(module_name, str(ex))
 
                 # Issue with an add-on from an extension repository, report a useful message.
                 elif is_extension and module_name.startswith(ex.name + "."):
@@ -396,22 +417,22 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
                         None,
                     )
                     if repo is None:
-                        print(
-                            "Add-on not loaded: \"%s\", cause: extension repository \"%s\" doesn't exist" %
-                            (module_name, repo_id)
+                        ex.msg = (
+                            "Add-on not loaded: \"{:s}\", cause: extension repository \"{:s}\" doesn't exist".format(
+                                module_name, repo_id,
+                            )
                         )
                     elif not repo.enabled:
-                        print(
-                            "Add-on not loaded: \"%s\", cause: extension repository \"%s\" is disabled" %
-                            (module_name, repo_id)
+                        ex.msg = (
+                            "Add-on not loaded: \"{:s}\", cause: extension repository \"{:s}\" is disabled".format(
+                                module_name, repo_id,
+                            )
                         )
                     else:
                         # The repository exists and is enabled, it should have imported.
-                        print("Add-on not loaded: \"%s\", cause: %s" % (module_name, str(ex)))
-                else:
-                    handle_error(ex)
-            else:
-                handle_error(ex)
+                        ex.msg = "Add-on not loaded: \"{:s}\", cause: {:s}".format(module_name, str(ex))
+
+            handle_error(ex)
 
             if default_set:
                 _addon_remove(module_name)
@@ -425,10 +446,14 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             if bl_info is not None:
                 # Use `_init` to detect when `bl_info` was generated from the manifest, see: `_bl_info_from_extension`.
                 if type(bl_info) is dict and "_init" not in bl_info:
-                    print(
-                        "Add-on \"%s\" has a \"bl_info\" which will be ignored in favor of \"%s\"" %
-                        (module_name, _ext_manifest_filename_toml)
-                    )
+                    # This print is noisy, hide behind a debug flag.
+                    # Once `bl_info` is fully deprecated this should be changed to always print a warning.
+                    if _bpy.app.debug_python:
+                        print(
+                            "Add-on \"{:s}\" has a \"bl_info\" which will be ignored in favor of \"{:s}\"".format(
+                                module_name, _ext_manifest_filename_toml,
+                            )
+                        )
                 # Always remove as this is not expected to exist and will be lazily initialized.
                 del mod.bl_info
 
@@ -443,10 +468,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         try:
             mod.register()
         except BaseException as ex:
-            print(
-                "Exception in module register():",
-                getattr(mod, "__file__", module_name),
-            )
+            print("Exception in module register():", (mod_file or module_name))
             handle_error(ex)
             del sys.modules[module_name]
             if default_set:
@@ -490,7 +512,7 @@ def disable(module_name, *, default_set=False, handle_error=None):
     # the add-on in the user preferences.
     if mod and getattr(mod, "__addon_enabled__", False) is not False:
         mod.__addon_enabled__ = False
-        mod.__addon_persistent = False
+        mod.__addon_persistent__ = False
 
         try:
             mod.unregister()
@@ -501,9 +523,10 @@ def disable(module_name, *, default_set=False, handle_error=None):
             handle_error(ex)
     else:
         print(
-            "addon_utils.disable: %s not %s" % (
+            "addon_utils.disable: {:s} not {:s}".format(
                 module_name,
-                "disabled" if mod is None else "loaded")
+                "loaded" if mod is None else "enabled",
+            )
         )
 
     # could be in more than once, unlikely but better do this just in case.
@@ -574,7 +597,10 @@ def disable_all():
 
 
 def _blender_manual_url_prefix():
-    return "https://docs.blender.org/manual/%s/%d.%d" % (_bpy.utils.manual_language_code(), *_bpy.app.version[:2])
+    return "https://docs.blender.org/manual/{:s}/{:d}.{:d}".format(
+        _bpy.utils.manual_language_code(),
+        *_bpy.app.version[:2],
+    )
 
 
 def _bl_info_basis():
@@ -849,7 +875,7 @@ def _initialize_extension_repos_post_addons_prepare(
             repo_runtime = addon_runtime_info.get(module_id, {})
 
             for submodule_id, addon in repo_userdef.items():
-                module_name_next = "%s.%s.%s" % (_ext_base_pkg_idname, module_id, submodule_id)
+                module_name_next = "{:s}.{:s}.{:s}".format(_ext_base_pkg_idname, module_id, submodule_id)
                 # Only default & persistent add-ons are kept for re-activation.
                 default_set = True
                 persistent = True
@@ -861,8 +887,8 @@ def _initialize_extension_repos_post_addons_prepare(
         for submodule_id, mod in repo_runtime.items():
             if not getattr(mod, "__addon_enabled__", False):
                 continue
-            module_name_prev = "%s.%s.%s" % (_ext_base_pkg_idname, module_id_prev, submodule_id)
-            module_name_next = "%s.%s.%s" % (_ext_base_pkg_idname, module_id_next, submodule_id)
+            module_name_prev = "{:s}.{:s}.{:s}".format(_ext_base_pkg_idname, module_id_prev, submodule_id)
+            module_name_next = "{:s}.{:s}.{:s}".format(_ext_base_pkg_idname, module_id_next, submodule_id)
             disable(module_name_prev, default_set=False)
             addon = repo_userdef.get(submodule_id)
             default_set = addon is not None
@@ -878,7 +904,7 @@ def _initialize_extension_repos_post_addons_prepare(
                 continue
             # Either there is no run-time data or the module wasn't enabled.
             # Rename the add-on without enabling it so the next time it's enabled it's preferences are kept.
-            module_name_next = "%s.%s.%s" % (_ext_base_pkg_idname, module_id_next, submodule_id)
+            module_name_next = "{:s}.{:s}.{:s}".format(_ext_base_pkg_idname, module_id_next, submodule_id)
             addon.module = module_name_next
 
     if submodules_del:
@@ -895,7 +921,7 @@ def _initialize_extension_repos_post_addons_prepare(
                 default_set = False
 
             for submodule_id, mod in repo_runtime.items():
-                module_name_prev = "%s.%s.%s" % (_ext_base_pkg_idname, module_id, submodule_id)
+                module_name_prev = "{:s}.{:s}.{:s}".format(_ext_base_pkg_idname, module_id, submodule_id)
                 disable(module_name_prev, default_set=default_set)
             del repo
         del repo_module_map
@@ -904,7 +930,7 @@ def _initialize_extension_repos_post_addons_prepare(
         for module_id_prev in submodules_del_disabled:
             repo_userdef = addon_userdef_info.get(module_id_prev, {})
             for submodule_id in repo_userdef.keys():
-                module_name_prev = "%s.%s.%s" % (_ext_base_pkg_idname, module_id_prev, submodule_id)
+                module_name_prev = "{:s}.{:s}.{:s}".format(_ext_base_pkg_idname, module_id_prev, submodule_id)
                 disable(module_name_prev, default_set=True)
 
     return addons_to_enable

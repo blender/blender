@@ -42,7 +42,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_nla.h"
 
 #include "BKE_context.hh"
@@ -539,10 +539,10 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
               if (UNLIKELY(uint(fcu->array_index) >= RNA_property_array_length(&ptr, prop))) {
                 break; /* Out of range, skip. */
               }
-              tval = RNA_property_boolean_get_index(&ptr, prop, fcu->array_index);
+              tval = float(RNA_property_boolean_get_index(&ptr, prop, fcu->array_index));
             }
             else {
-              tval = RNA_property_boolean_get(&ptr, prop);
+              tval = float(RNA_property_boolean_get(&ptr, prop));
             }
 
             pose_slide_apply_val(pso, fcu, pfl->ob, &tval);

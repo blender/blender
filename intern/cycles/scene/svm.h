@@ -87,6 +87,7 @@ class SVMCompiler {
 
   int stack_assign(ShaderOutput *output);
   int stack_assign(ShaderInput *input);
+  bool is_linked(ShaderInput *input);
   int stack_assign_if_linked(ShaderInput *input);
   int stack_assign_if_linked(ShaderOutput *output);
   int stack_find_offset(int size);

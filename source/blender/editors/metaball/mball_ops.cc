@@ -16,7 +16,7 @@
 #include "ED_mball.hh"
 #include "ED_screen.hh"
 
-#include "mball_intern.h"
+#include "mball_intern.hh"
 
 void ED_operatortypes_metaball()
 {

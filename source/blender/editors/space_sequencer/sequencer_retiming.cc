@@ -738,7 +738,7 @@ int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op)
 
   /* Try to realize "fake" key, since it is clicked on. */
   if (key == nullptr && seq_key_owner != nullptr) {
-    key = try_to_realize_virtual_key(C, seq_key_owner, mval);
+    key = try_to_realize_virtual_keys(C, seq_key_owner, mval);
   }
 
   const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
@@ -769,7 +769,7 @@ int sequencer_retiming_key_select_exec(bContext *C, wmOperator *op)
   return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static void realize_fake_keys_in_rect(bContext *C, Sequence *seq, rctf &rectf)
+static void realize_fake_keys_in_rect(bContext *C, Sequence *seq, const rctf &rectf)
 {
   const Scene *scene = CTX_data_scene(C);
 

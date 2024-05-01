@@ -48,7 +48,7 @@ static int wm_stl_export_execute(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
-  STLExportParams export_params;
+  STLExportParams export_params{};
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
   export_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
@@ -59,13 +59,20 @@ static int wm_stl_export_execute(bContext *C, wmOperator *op)
   export_params.ascii_format = RNA_boolean_get(op->ptr, "ascii_format");
   export_params.use_batch = RNA_boolean_get(op->ptr, "use_batch");
 
+  RNA_string_get(op->ptr, "collection", export_params.collection);
+
+  export_params.reports = op->reports;
+
   STL_export(C, &export_params);
 
   return OPERATOR_FINISHED;
 }
 
-static void ui_stl_export_settings(uiLayout *layout, PointerRNA *op_props_ptr)
+static void wm_stl_export_draw(bContext *C, wmOperator *op)
 {
+  uiLayout *layout = op->layout;
+  PointerRNA *ptr = op->ptr;
+
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
@@ -73,35 +80,27 @@ static void ui_stl_export_settings(uiLayout *layout, PointerRNA *op_props_ptr)
 
   box = uiLayoutBox(layout);
   col = uiLayoutColumn(box, false);
-  uiItemR(col, op_props_ptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
-  uiItemR(col, op_props_ptr, "use_batch", UI_ITEM_NONE, IFACE_("Batch"), ICON_NONE);
+  sub = uiLayoutColumnWithHeading(col, false, IFACE_("Format"));
+  uiItemR(sub, ptr, "ascii_format", UI_ITEM_NONE, IFACE_("ASCII"), ICON_NONE);
 
-  box = uiLayoutBox(layout);
-  sub = uiLayoutColumnWithHeading(box, false, IFACE_("Include"));
-  uiItemR(sub,
-          op_props_ptr,
-          "export_selected_objects",
-          UI_ITEM_NONE,
-          IFACE_("Selection Only"),
-          ICON_NONE);
+  /* The Batch mode and Selection only options only make sense when using regular export. */
+  if (CTX_wm_space_file(C)) {
+    uiItemR(col, ptr, "use_batch", UI_ITEM_NONE, IFACE_("Batch"), ICON_NONE);
 
-  box = uiLayoutBox(layout);
-  sub = uiLayoutColumnWithHeading(box, false, IFACE_("Transform"));
-  uiItemR(sub, op_props_ptr, "global_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
-  uiItemR(sub, op_props_ptr, "use_scene_unit", UI_ITEM_NONE, IFACE_("Scene Unit"), ICON_NONE);
-  uiItemR(sub, op_props_ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward"), ICON_NONE);
-  uiItemR(sub, op_props_ptr, "up_axis", UI_ITEM_NONE, IFACE_("Up"), ICON_NONE);
+    box = uiLayoutBox(layout);
+    sub = uiLayoutColumnWithHeading(box, false, IFACE_("Include"));
+    uiItemR(
+        sub, ptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
+  }
+
+  uiItemR(sub, ptr, "global_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
+  uiItemR(sub, ptr, "use_scene_unit", UI_ITEM_NONE, IFACE_("Scene Unit"), ICON_NONE);
+  uiItemR(sub, ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward"), ICON_NONE);
+  uiItemR(sub, ptr, "up_axis", UI_ITEM_NONE, IFACE_("Up"), ICON_NONE);
 
   box = uiLayoutBox(layout);
   sub = uiLayoutColumnWithHeading(box, false, IFACE_("Geometry"));
-  uiItemR(
-      sub, op_props_ptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
-}
-
-static void wm_stl_export_draw(bContext * /*C*/, wmOperator *op)
-{
-  PointerRNA ptr = RNA_pointer_create(nullptr, op->type->srna, op->properties);
-  ui_stl_export_settings(op->layout, &ptr);
+  uiItemR(sub, ptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
 }
 
 /**
@@ -111,9 +110,12 @@ static bool wm_stl_export_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
   bool changed = false;
+  bool use_batch = RNA_boolean_get(op->ptr, "use_batch");
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  if (!BLI_path_extension_check(filepath, ".stl")) {
+  /* Enforce an extension on the filepath unless Batch mode is used. Batch mode
+   * will perform substitutions, including the extension, during its processing. */
+  if (!use_batch && !BLI_path_extension_check(filepath, ".stl")) {
     BLI_path_extension_ensure(filepath, FILE_MAX, ".stl");
     RNA_string_set(op->ptr, "filepath", filepath);
     changed = true;
@@ -158,6 +160,14 @@ void WM_OT_stl_export(wmOperatorType *ot)
                   "Export Selected Objects",
                   "Export only selected objects instead of all supported objects");
 
+  prop = RNA_def_string(ot->srna,
+                        "collection",
+                        nullptr,
+                        MAX_IDPROP_NAME,
+                        "Source Collection",
+                        "Export only objects from this collection (and its children)");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
   RNA_def_float(ot->srna, "global_scale", 1.0f, 1e-6f, 1e6f, "Scale", "", 0.001f, 1000.0f);
   RNA_def_boolean(ot->srna,
                   "use_scene_unit",
@@ -188,6 +198,8 @@ static int wm_stl_import_exec(bContext *C, wmOperator *op)
   params.use_scene_unit = RNA_boolean_get(op->ptr, "use_scene_unit");
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
   params.use_mesh_validate = RNA_boolean_get(op->ptr, "use_mesh_validate");
+
+  params.reports = op->reports;
 
   const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
 
@@ -296,6 +308,7 @@ void stl_file_handler_add()
   auto fh = std::make_unique<blender::bke::FileHandlerType>();
   STRNCPY(fh->idname, "IO_FH_stl");
   STRNCPY(fh->import_operator, "WM_OT_stl_import");
+  STRNCPY(fh->export_operator, "WM_OT_stl_export");
   STRNCPY(fh->label, "STL");
   STRNCPY(fh->file_extensions_str, ".stl");
   fh->poll_drop = poll_file_object_drop;

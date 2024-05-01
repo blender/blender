@@ -148,29 +148,31 @@ void main()
     LightData light = light_buf[l_idx];
 
     /* Culling in view space for precision and simplicity. */
-    vec3 vP = drw_point_world_to_view(light._position);
-    vec3 v_right = drw_normal_world_to_view(light._right);
-    vec3 v_up = drw_normal_world_to_view(light._up);
-    vec3 v_back = drw_normal_world_to_view(light._back);
-    float radius = light.influence_radius_max;
+    vec3 vP = drw_point_world_to_view(light_position_get(light));
+    vec3 v_right = drw_normal_world_to_view(light_x_axis(light));
+    vec3 v_up = drw_normal_world_to_view(light_y_axis(light));
+    vec3 v_back = drw_normal_world_to_view(light_z_axis(light));
+    float radius = light_local_data_get(light).influence_radius_max;
 
     Sphere sphere = shape_sphere(vP, radius);
     bool intersect_tile = intersect(tile, sphere);
 
     switch (light.type) {
       case LIGHT_SPOT_SPHERE:
-      case LIGHT_SPOT_DISK:
+      case LIGHT_SPOT_DISK: {
+        LightSpotData spot = light_spot_data_get(light);
         /* Only for < ~170 degree Cone due to plane extraction precision. */
-        if (light.spot_tan < 10.0) {
+        if (spot.spot_tan < 10.0) {
           Pyramid pyramid = shape_pyramid_non_oblique(
               vP,
               vP - v_back * radius,
-              v_right * radius * light.spot_tan / light.spot_size_inv.x,
-              v_up * radius * light.spot_tan / light.spot_size_inv.y);
+              v_right * radius * spot.spot_tan / spot.spot_size_inv.x,
+              v_up * radius * spot.spot_tan / spot.spot_size_inv.y);
           intersect_tile = intersect_tile && intersect(tile, pyramid);
           break;
         }
         /* Fall-through to the hemispheric case. */
+      }
       case LIGHT_RECT:
       case LIGHT_ELLIPSE: {
         vec3 v000 = vP - v_right * radius - v_up * radius;

@@ -12,11 +12,11 @@
 
 #include "BKE_global.hh" /* for G.debug_value */
 
-#include "GPU_capabilities.h"
-#include "GPU_platform.h"
-#include "GPU_state.h"
-#include "GPU_texture.h"
-#include "eevee_private.h"
+#include "GPU_capabilities.hh"
+#include "GPU_platform.hh"
+#include "GPU_state.hh"
+#include "GPU_texture.hh"
+#include "eevee_private.hh"
 
 static struct {
   /* These are just references, not actually allocated */
@@ -245,7 +245,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     downsample_write = DRW_STATE_WRITE_COLOR;
   }
 
-  GPUBatch *quad = DRW_cache_fullscreen_quad_get();
+  blender::gpu::Batch *quad = DRW_cache_fullscreen_quad_get();
 
   if (effects->enabled_effects & EFFECT_RADIANCE_BUFFER) {
     DRW_PASS_CREATE(psl->color_copy_ps, DRW_STATE_WRITE_COLOR);

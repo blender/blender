@@ -10,8 +10,7 @@
 
 #include <opensubdiv/far/patchTable.h>
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 /// \brief An quadtree-based map connecting coarse faces to their sub-patches
 ///
@@ -245,7 +244,7 @@ inline PatchMap::Handle const *PatchMap::FindPatch(int faceid, double u, double 
   assert(0);
   return 0;
 }
-}  // namespace opensubdiv
-}  // namespace blender
+
+}  // namespace blender::opensubdiv
 
 #endif  // OPENSUBDIV_PATCH_MAP_H_

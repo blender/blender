@@ -17,6 +17,8 @@
  *  - Blend Read Data: Loads structs and memory buffers from file and updates pointers them.
  *  - Blend Read Lib: Updates pointers to ID data blocks.
  *  - Blend Expand: Defines which other data blocks should be loaded (possibly from other files).
+ *      Note, this is now handled as part of the foreach-id iteration. This needs to be implemented
+ *      for DNA data that has references to data-blocks.
  *
  * Each of these callbacks uses a different API functions.
  *
@@ -33,6 +35,11 @@
 
 #include "DNA_windowmanager_types.h" /* for eReportType */
 
+#include "BLI_function_ref.hh"
+
+namespace blender {
+class ImplicitSharingInfo;
+}
 struct BlendDataReader;
 struct BlendFileReadReport;
 struct BlendLibReader;
@@ -168,7 +175,9 @@ void BLO_write_destroy_id_buffer(BLO_Write_IDBuffer **id_buffer);
  * Write raw data.
  */
 void BLO_write_raw(BlendWriter *writer, size_t size_in_bytes, const void *data_ptr);
+void BLO_write_char_array(BlendWriter *writer, uint num, const char *data_ptr);
 void BLO_write_int8_array(BlendWriter *writer, uint num, const int8_t *data_ptr);
+void BLO_write_uint8_array(BlendWriter *writer, uint num, const uint8_t *data_ptr);
 void BLO_write_int32_array(BlendWriter *writer, uint num, const int32_t *data_ptr);
 void BLO_write_uint32_array(BlendWriter *writer, uint num, const uint32_t *data_ptr);
 void BLO_write_float_array(BlendWriter *writer, uint num, const float *data_ptr);
@@ -181,6 +190,21 @@ void BLO_write_pointer_array(BlendWriter *writer, uint num, const void *data_ptr
 void BLO_write_string(BlendWriter *writer, const char *data_ptr);
 
 /* Misc. */
+
+/**
+ * Check if the data can be written more efficiently by making use of implicit-sharing. If yes, the
+ * user count of the sharing-info is increased making the data immutable. The provided callback
+ * should serialize the potentially shared data. It is only called when necessary.
+ *
+ * \param approximate_size_in_bytes: Used to be able to approximate how large the undo step is in
+ * total.
+ * \param write_fn: Use the #BlendWrite to serialize the potentially shared data.
+ */
+void BLO_write_shared(BlendWriter *writer,
+                      const void *data,
+                      size_t approximate_size_in_bytes,
+                      const blender::ImplicitSharingInfo *sharing_info,
+                      blender::FunctionRef<void()> write_fn);
 
 /**
  * Sometimes different data is written depending on whether the file is saved to disk or used for
@@ -205,37 +229,53 @@ bool BLO_write_is_undo(BlendWriter *writer);
  *
  * \code{.c}
  * BLO_write_struct(writer, ClothSimSettings, clmd->sim_parms);
- * BLO_read_data_address(reader, &clmd->sim_parms);
+ * BLO_read_struct(reader, ClothSimSettings, &clmd->sim_parms);
  *
  * BLO_write_struct_list(writer, TimeMarker, &action->markers);
- * BLO_read_list(reader, &action->markers);
+ * BLO_read_struct_list(reader, TimeMarker, &action->markers);
  *
  * BLO_write_int32_array(writer, hmd->totindex, hmd->indexar);
  * BLO_read_int32_array(reader, hmd->totindex, &hmd->indexar);
  * \endcode
+ *
+ * Avoid using the generic BLO_read_data_address when possible, use typed functions instead.
  * \{ */
 
 void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address);
-void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader, const void *old_address);
+void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader,
+                                          const void *old_address,
+                                          size_t data_size);
 void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_address);
+void *BLO_read_struct_array_with_size(BlendDataReader *reader,
+                                      const void *old_address,
+                                      size_t data_size);
 
 #define BLO_read_data_address(reader, ptr_p) \
   *((void **)ptr_p) = BLO_read_get_new_data_address((reader), *(ptr_p))
+#define BLO_read_struct(reader, struct_name, ptr_p) \
+  *((void **)ptr_p) = BLO_read_struct_array_with_size( \
+      reader, *((void **)ptr_p), sizeof(struct_name))
+#define BLO_read_struct_array(reader, struct_name, array_size, ptr_p) \
+  *((void **)ptr_p) = BLO_read_struct_array_with_size( \
+      reader, *((void **)ptr_p), sizeof(struct_name) * (array_size))
 #define BLO_read_packed_address(reader, ptr_p) \
   *((void **)ptr_p) = BLO_read_get_new_packed_address((reader), *(ptr_p))
 
-using BlendReadListFn = void (*)(BlendDataReader *reader, void *data);
-/**
+/* Read all elements in list
+ *
  * Updates all `->prev` and `->next` pointers of the list elements.
  * Updates the `list->first` and `list->last` pointers.
- * When not NULL, calls the callback on every element.
  */
-void BLO_read_list_cb(BlendDataReader *reader, ListBase *list, BlendReadListFn callback);
-void BLO_read_list(BlendDataReader *reader, ListBase *list);
+void BLO_read_struct_list_with_size(BlendDataReader *reader, size_t elem_size, ListBase *list);
+
+#define BLO_read_struct_list(reader, struct_name, list) \
+  BLO_read_struct_list_with_size(reader, sizeof(struct_name), list)
 
 /* Update data pointers and correct byte-order if necessary. */
 
+void BLO_read_char_array(BlendDataReader *reader, int array_size, char **ptr_p);
 void BLO_read_int8_array(BlendDataReader *reader, int array_size, int8_t **ptr_p);
+void BLO_read_uint8_array(BlendDataReader *reader, int array_size, uint8_t **ptr_p);
 void BLO_read_int32_array(BlendDataReader *reader, int array_size, int32_t **ptr_p);
 void BLO_read_uint32_array(BlendDataReader *reader, int array_size, uint32_t **ptr_p);
 void BLO_read_float_array(BlendDataReader *reader, int array_size, float **ptr_p);
@@ -243,7 +283,33 @@ void BLO_read_float3_array(BlendDataReader *reader, int array_size, float **ptr_
 void BLO_read_double_array(BlendDataReader *reader, int array_size, double **ptr_p);
 void BLO_read_pointer_array(BlendDataReader *reader, void **ptr_p);
 
+/* Read null terminated string. */
+
+void BLO_read_string(BlendDataReader *reader, char **ptr_p);
+void BLO_read_string(BlendDataReader *reader, char *const *ptr_p);
+void BLO_read_string(BlendDataReader *reader, const char **ptr_p);
+
 /* Misc. */
+
+void blo_read_shared_impl(BlendDataReader *reader,
+                          void *data,
+                          const blender::ImplicitSharingInfo **r_sharing_info,
+                          blender::FunctionRef<const blender::ImplicitSharingInfo *()> read_fn);
+
+/**
+ * Check if there is any shared data for the given data pointer. If yes, return the existing
+ * sharing-info. If not, call the provided function to actually read the data now.
+ */
+template<typename T>
+const blender::ImplicitSharingInfo *BLO_read_shared(
+    BlendDataReader *reader,
+    T **data_ptr,
+    blender::FunctionRef<const blender::ImplicitSharingInfo *()> read_fn)
+{
+  const blender::ImplicitSharingInfo *sharing_info;
+  blo_read_shared_impl(reader, *data_ptr, &sharing_info, read_fn);
+  return sharing_info;
+}
 
 int BLO_read_fileversion_get(BlendDataReader *reader);
 bool BLO_read_requires_endian_switch(BlendDataReader *reader);

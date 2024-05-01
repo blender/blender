@@ -123,7 +123,7 @@ void VolumeModifierData::write_transform()
   transform *= gf_matrix_from_transform(object->object_to_world().ptr());
 }
 
-std::string VolumeModifierData::get_cached_file_path(std::string directory, int frame)
+std::string VolumeModifierData::get_cached_file_path(const std::string &directory, int frame)
 {
   char file_path[FILE_MAX];
   char file_name[32];

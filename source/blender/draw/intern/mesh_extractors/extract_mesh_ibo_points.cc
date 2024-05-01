@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "GPU_index_buffer.h"
+#include "GPU_index_buffer.hh"
 
 #include "draw_subdivision.hh"
 #include "extract_mesh.hh"
@@ -23,7 +23,7 @@ static void extract_points_init(const MeshRenderData &mr,
                                 void *tls_data)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(tls_data);
-  GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr.vert_len, mr.loop_len + mr.loop_loose_len);
+  GPU_indexbuf_init(elb, GPU_PRIM_POINTS, mr.verts_num, mr.corners_num + mr.loose_indices_num);
 }
 
 BLI_INLINE void vert_set_bm(GPUIndexBufBuilder *elb, const BMVert *eve, int l_index)
@@ -83,8 +83,8 @@ static void extract_points_iter_loose_edge_bm(const MeshRenderData &mr,
                                               void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  vert_set_bm(elb, eed->v1, mr.loop_len + (loose_edge_i * 2));
-  vert_set_bm(elb, eed->v2, mr.loop_len + (loose_edge_i * 2) + 1);
+  vert_set_bm(elb, eed->v1, mr.corners_num + (loose_edge_i * 2));
+  vert_set_bm(elb, eed->v2, mr.corners_num + (loose_edge_i * 2) + 1);
 }
 
 static void extract_points_iter_loose_edge_mesh(const MeshRenderData &mr,
@@ -93,8 +93,8 @@ static void extract_points_iter_loose_edge_mesh(const MeshRenderData &mr,
                                                 void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  vert_set_mesh(elb, mr, edge[0], mr.loop_len + (loose_edge_i * 2));
-  vert_set_mesh(elb, mr, edge[1], mr.loop_len + (loose_edge_i * 2) + 1);
+  vert_set_mesh(elb, mr, edge[0], mr.corners_num + (loose_edge_i * 2));
+  vert_set_mesh(elb, mr, edge[1], mr.corners_num + (loose_edge_i * 2) + 1);
 }
 
 static void extract_points_iter_loose_vert_bm(const MeshRenderData &mr,
@@ -103,7 +103,7 @@ static void extract_points_iter_loose_vert_bm(const MeshRenderData &mr,
                                               void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  const int offset = mr.loop_len + (mr.edge_loose_len * 2);
+  const int offset = mr.corners_num + (mr.loose_edges_num * 2);
   vert_set_bm(elb, eve, offset + loose_vert_i);
 }
 
@@ -112,7 +112,7 @@ static void extract_points_iter_loose_vert_mesh(const MeshRenderData &mr,
                                                 void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  const int offset = mr.loop_len + (mr.edge_loose_len * 2);
+  const int offset = mr.corners_num + (mr.loose_edges_num * 2);
   vert_set_mesh(elb, mr, mr.loose_verts[loose_vert_i], offset + loose_vert_i);
 }
 
@@ -129,7 +129,7 @@ static void extract_points_finish(const MeshRenderData & /*mr*/,
                                   void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
 }
 
@@ -142,7 +142,7 @@ static void extract_points_init_subdiv(const DRWSubdivCache &subdiv_cache,
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(data);
   GPU_indexbuf_init(elb,
                     GPU_PRIM_POINTS,
-                    mr.vert_len,
+                    mr.verts_num,
                     subdiv_cache.num_subdiv_loops + subdiv_cache.loose_geom.loop_len);
 }
 
@@ -210,8 +210,8 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
                                              void *data)
 {
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache.loose_geom;
-  const int loop_loose_len = loose_geom.loop_len;
-  if (loop_loose_len == 0) {
+  const int loose_indices_num = loose_geom.loop_len;
+  if (loose_indices_num == 0) {
     return;
   }
 
@@ -278,7 +278,7 @@ static void extract_points_finish_subdiv(const DRWSubdivCache & /*subdiv_cache*/
                                          void *_userdata)
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
-  GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buf);
+  gpu::IndexBuf *ibo = static_cast<gpu::IndexBuf *>(buf);
   GPU_indexbuf_build_in_place(elb, ibo);
 }
 

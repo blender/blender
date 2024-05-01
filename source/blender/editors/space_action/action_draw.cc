@@ -18,6 +18,7 @@
 
 /* Types --------------------------------------------------------------- */
 
+#include "DNA_anim_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -29,9 +30,9 @@
 
 /* Everything from source (BIF, BDR, BSE) ------------------------------ */
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -48,23 +49,13 @@
 /** \name Channel List
  * \{ */
 
-void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
+void draw_channel_names(bContext *C,
+                        bAnimContext *ac,
+                        ARegion *region,
+                        const ListBase /* bAnimListElem */ &anim_data)
 {
-  ListBase anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
-  eAnimFilter_Flags filter;
-
   View2D *v2d = &region->v2d;
-  size_t items;
-
-  /* build list of channels to draw */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
-  items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
-
-  const int height = ANIM_UI_get_channels_total_height(v2d, items);
-  const float pad_bottom = BLI_listbase_is_empty(ac->markers) ? 0 : UI_MARKER_MARGIN_Y;
-  v2d->tot.ymin = -(height + pad_bottom);
-
   /* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
   UI_view2d_sync(nullptr, ac->area, v2d, V2D_LOCK_COPY);
 
@@ -112,9 +103,6 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
     UI_block_end(C, block);
     UI_block_draw(C, block);
   }
-
-  /* Free temporary channels. */
-  ANIM_animdata_freelist(&anim_data);
 }
 
 /** \} */
@@ -234,6 +222,7 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
           break;
         }
         case ANIMTYPE_FILLACTD:
+        case ANIMTYPE_FILLANIM:
         case ANIMTYPE_DSSKEY:
         case ANIMTYPE_DSWOR: {
           immUniformColor3ubvAlpha(col2b, sel ? col1[3] : col2b[3]);
@@ -378,6 +367,14 @@ static void draw_keyframes(bAnimContext *ac,
                               ycenter,
                               scale_factor,
                               action_flag);
+        break;
+      case ALE_ANIM:
+        ED_add_animation_channel(draw_list,
+                                 adt,
+                                 static_cast<Animation *>(ale->key_data),
+                                 ycenter,
+                                 scale_factor,
+                                 action_flag);
         break;
       case ALE_ACT:
         ED_add_action_channel(draw_list,

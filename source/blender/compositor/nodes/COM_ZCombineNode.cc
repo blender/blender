@@ -54,25 +54,10 @@ void ZCombineNode::convert_to_operations(NodeConverter &converter,
     converter.map_input_socket(get_input_socket(3), maskoperation->get_input_socket(1));
 
     /* Step 2 anti alias mask bit of an expensive operation, but does the trick. */
-    SMAAEdgeDetectionOperation *smaa_edge_detection = new SMAAEdgeDetectionOperation();
-    converter.add_operation(smaa_edge_detection);
+    SMAAOperation *smaa_operation = new SMAAOperation();
+    converter.add_operation(smaa_operation);
 
-    converter.add_link(maskoperation->get_output_socket(),
-                       smaa_edge_detection->get_input_socket(0));
-
-    SMAABlendingWeightCalculationOperation *smaa_blending_weights =
-        new SMAABlendingWeightCalculationOperation();
-    converter.add_operation(smaa_blending_weights);
-
-    converter.add_link(smaa_edge_detection->get_output_socket(),
-                       smaa_blending_weights->get_input_socket(0));
-
-    SMAANeighborhoodBlendingOperation *smaa_neighborhood = new SMAANeighborhoodBlendingOperation();
-    converter.add_operation(smaa_neighborhood);
-
-    converter.add_link(maskoperation->get_output_socket(), smaa_neighborhood->get_input_socket(0));
-    converter.add_link(smaa_blending_weights->get_output_socket(),
-                       smaa_neighborhood->get_input_socket(1));
+    converter.add_link(maskoperation->get_output_socket(), smaa_operation->get_input_socket(0));
 
     /* use mask to blend between the input colors. */
     ZCombineMaskOperation *zcombineoperation = this->get_bnode()->custom1 ?
@@ -80,7 +65,7 @@ void ZCombineNode::convert_to_operations(NodeConverter &converter,
                                                    new ZCombineMaskOperation();
     converter.add_operation(zcombineoperation);
 
-    converter.add_link(smaa_neighborhood->get_output_socket(),
+    converter.add_link(smaa_operation->get_output_socket(),
                        zcombineoperation->get_input_socket(0));
     converter.map_input_socket(get_input_socket(0), zcombineoperation->get_input_socket(1));
     converter.map_input_socket(get_input_socket(2), zcombineoperation->get_input_socket(2));

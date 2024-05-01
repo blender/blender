@@ -414,6 +414,7 @@ class MSLGeneratorInterface {
   blender::Vector<MSLConstant> constants;
   /* Fragment tile inputs. */
   blender::Vector<MSLFragmentTileInputAttribute> fragment_tile_inputs;
+  bool supports_native_tile_inputs;
   /* Should match vertex outputs, but defined separately as
    * some shader permutations will not utilize all inputs/outputs.
    * Final shader uses the intersection between the two sets. */
@@ -493,7 +494,7 @@ class MSLGeneratorInterface {
    * vertex lookup throughout the bound VBOs.
    *
    * Some parameters are global for the shader, others change with the currently bound
-   * VertexBuffers, and their format, as they do with regular GPUBatch's.
+   * VertexBuffers, and their format, as they do with regular gpu::Batch's.
    *
    * (Where ##attr is the attributes name)
    *  uniform_ssbo_stride_##attr  -- Representing the stride between elements of attribute(attr)

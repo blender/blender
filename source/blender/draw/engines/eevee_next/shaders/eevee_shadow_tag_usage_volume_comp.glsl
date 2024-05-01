@@ -28,19 +28,22 @@ void main()
     return;
   }
 
-  vec3 jitter = sampling_rng_3D_get(SAMPLING_VOLUME_U);
-  vec3 volume_ndc = volume_to_screen((vec3(froxel) + jitter) * uniform_buf.volumes.inv_tex_size);
-  vec3 vP = drw_point_screen_to_view(vec3(volume_ndc.xy, volume_ndc.z));
+  float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
+  float jitter = interlieved_gradient_noise(vec2(froxel.xy), 0.0, offset);
+
+  vec3 uvw = (vec3(froxel) + vec3(0.5, 0.5, jitter)) * uniform_buf.volumes.inv_tex_size;
+  vec3 ss_P = volume_resolve_to_screen(uvw);
+  vec3 vP = drw_point_screen_to_view(vec3(ss_P.xy, ss_P.z));
   vec3 P = drw_point_view_to_world(vP);
 
   float depth = texelFetch(hiz_tx, froxel.xy, uniform_buf.volumes.tile_size_lod).r;
-  if (depth < volume_ndc.z) {
+  if (depth < ss_P.z) {
     return;
   }
 
-  vec2 pixel = (vec2(froxel.xy) + vec2(0.5)) / vec2(uniform_buf.volumes.tex_size.xy) /
-               uniform_buf.volumes.viewport_size_inv;
+  vec2 pixel = ((vec2(froxel.xy) + 0.5) * uniform_buf.volumes.inv_tex_size.xy) *
+               uniform_buf.volumes.main_view_extent;
 
   int bias = uniform_buf.volumes.tile_size_lod;
-  shadow_tag_usage(vP, P, drw_world_incident_vector(P), 0.01, length(vP), pixel, bias);
+  shadow_tag_usage(vP, P, drw_world_incident_vector(P), 0.01, pixel, bias);
 }

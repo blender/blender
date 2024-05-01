@@ -388,8 +388,8 @@ void MESH_OT_primitive_cube_add_gizmo(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  ED_object_add_mesh_props(ot);
-  ED_object_add_generic_props(ot, true);
+  blender::ed::object::add_mesh_props(ot);
+  blender::ed::object::add_generic_props(ot, true);
 
   /* hidden props */
   PropertyRNA *prop = RNA_def_float_matrix(

@@ -489,7 +489,30 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire_clipped)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Edit Curve
+/** \name Edit Curves
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(overlay_edit_curves_handle)
+    .do_static_compilation(true)
+    .typedef_source("overlay_shader_shared.h")
+    .vertex_in(0, Type::VEC3, "pos")
+    .vertex_in(1, Type::UINT, "data")
+    .vertex_in(2, Type::FLOAT, "selection")
+    .vertex_out(overlay_edit_smooth_color_iface.smooth(Type::VEC4, "leftColor"))
+    .uniform_buf(0, "int", "curvesInfoBlock[4]")
+    .fragment_out(0, Type::VEC4, "fragColor")
+    .vertex_source("overlay_edit_curves_handle_vert.glsl")
+    .fragment_source("overlay_edit_curves_handle_frag.glsl")
+    .additional_info("draw_mesh", "draw_globals");
+
+GPU_SHADER_CREATE_INFO(overlay_edit_curves_handle_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_edit_curves_handle", "drw_clipped");
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Lattice
  * \{ */
 
 GPU_SHADER_CREATE_INFO(overlay_edit_lattice_point)
@@ -548,6 +571,8 @@ GPU_SHADER_CREATE_INFO(overlay_edit_particle_point)
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::FLOAT, "selection")
     .vertex_out(overlay_edit_flat_color_iface)
+    .sampler(0, ImageType::FLOAT_1D, "weightTex")
+    .push_constant(Type::BOOL, "useWeight")
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_edit_particle_point_vert.glsl")
     .fragment_source("overlay_point_varying_color_frag.glsl")

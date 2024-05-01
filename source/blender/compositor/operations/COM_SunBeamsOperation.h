@@ -12,10 +12,6 @@ class SunBeamsOperation : public MultiThreadedOperation {
  public:
   SunBeamsOperation();
 
-  void execute_pixel(float output[4], int x, int y, void *data) override;
-
-  void init_execution() override;
-
   void set_data(const NodeSunBeams &data)
   {
     data_ = data;
@@ -25,11 +21,8 @@ class SunBeamsOperation : public MultiThreadedOperation {
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
 
-  void deinit_execution() override;
-
  private:
   NodeSunBeams data_;
-  SocketReader *input_program_;
 };
 
 }  // namespace blender::compositor

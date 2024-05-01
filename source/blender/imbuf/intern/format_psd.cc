@@ -15,8 +15,6 @@
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 
-extern "C" {
-
 bool imb_is_a_psd(const uchar *mem, size_t size)
 {
   return imb_oiio_check(mem, size, "psd");
@@ -33,5 +31,4 @@ ImBuf *imb_load_psd(const uchar *mem, size_t size, int flags, char colorspace[IM
   ctx.use_embedded_colorspace = true;
 
   return imb_oiio_read(ctx, config, colorspace, spec);
-}
 }

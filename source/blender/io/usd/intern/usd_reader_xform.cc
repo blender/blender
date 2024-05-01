@@ -9,25 +9,19 @@
 
 #include "BKE_constraint.h"
 #include "BKE_lib_id.hh"
-#include "BKE_library.hh"
-#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 
-#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h" /* for FILE_MAX */
 
-#include <pxr/base/gf/math.h>
 #include <pxr/base/gf/matrix4f.h>
+#include <pxr/usd/usdGeom/xformable.h>
 
-#include <pxr/usd/usdGeom/xform.h>
+#include <string>
 
 namespace blender::io::usd {
 
@@ -66,6 +60,9 @@ void USDXformReader::read_object_data(Main * bmain, const double motionSampleTim
   }
 
   BKE_object_apply_mat4(object_, transform_from_usd, true, false);
+
+  /* Make sure to collect custom attributes */
+  set_props(use_parent_xform(), motionSampleTime);
 }
 
 void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,

@@ -106,14 +106,14 @@ void cache_init(bContext *C,
                 float start_strength)
 {
   SculptSession *ss = ob->sculpt;
-  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVH &pbvh = *ob->sculpt->pbvh;
 
   ss->filter_cache = MEM_new<filter::Cache>(__func__);
   ss->filter_cache->start_filter_strength = start_strength;
   ss->filter_cache->random_seed = rand();
 
   if (undo_type == undo::Type::Color) {
-    BKE_pbvh_ensure_node_loops(ss->pbvh);
+    BKE_pbvh_ensure_node_loops(pbvh);
   }
 
   ss->filter_cache->nodes = bke::pbvh::search_gather(
@@ -125,12 +125,12 @@ void cache_init(bContext *C,
 
   /* `mesh->runtime.subdiv_ccg` is not available. Updating of the normals is done during drawing.
    * Filters can't use normals in multi-resolution. */
-  if (BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
-    bke::pbvh::update_normals(*ss->pbvh, nullptr);
+  if (BKE_pbvh_type(pbvh) != PBVH_GRIDS) {
+    bke::pbvh::update_normals(pbvh, nullptr);
   }
 
   for (const int i : ss->filter_cache->nodes.index_range()) {
-    undo::push_node(ob, ss->filter_cache->nodes[i], undo_type);
+    undo::push_node(*ob, ss->filter_cache->nodes[i], undo_type);
   }
 
   /* Setup orientation matrices. */
@@ -345,7 +345,7 @@ static void mesh_filter_task(Object *ob,
       *ob, ss->filter_cache->automasking.get(), *node);
 
   PBVHVertexIter vd;
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     auto_mask::node_update(automask_data, vd);
 
@@ -531,7 +531,7 @@ static void mesh_filter_enhance_details_init_directions(SculptSession *ss)
   filter_cache->detail_directions = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
   for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
     float avg[3];
     smooth::neighbor_coords_average(ss, avg, vertex);
@@ -560,7 +560,7 @@ static void mesh_filter_init_limit_surface_co(SculptSession *ss)
   filter_cache->limit_surface_co = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
   for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
     SCULPT_vertex_limit_surface_get(ss, vertex, filter_cache->limit_surface_co[i]);
   }
@@ -583,7 +583,7 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
       MEM_malloc_arrayN(totvert, sizeof(float[3]), __func__));
 
   for (int i = 0; i < totvert; i++) {
-    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
     float avg[3];
     smooth::neighbor_coords_average(ss, avg, vertex);
@@ -610,7 +610,7 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
        smooth_iterations++)
   {
     for (int i = 0; i < totvert; i++) {
-      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(*ss->pbvh, i);
 
       float direction_avg[3] = {0.0f, 0.0f, 0.0f};
       float sharpen_avg = 0;
@@ -642,7 +642,7 @@ static void mesh_filter_surface_smooth_displace_task(Object *ob,
   auto_mask::NodeData automask_data = auto_mask::node_begin(
       *ob, ss->filter_cache->automasking.get(), *node);
 
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     auto_mask::node_update(automask_data, vd);
 
     float fade = vd.mask;
@@ -818,7 +818,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
   }
 
   /* Gather all PBVH leaf nodes. */
-  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss->pbvh, {});
 
   for (PBVHNode *node : nodes) {
     PBVHVertexIter vd;
@@ -826,7 +826,7 @@ static void sculpt_mesh_filter_cancel(bContext *C, wmOperator * /*op*/)
     SculptOrigVertData orig_data;
     SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Position);
 
-    BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+    BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
       SCULPT_orig_vert_data_update(&orig_data, &vd);
 
       copy_v3_v3(vd.co, orig_data.co);

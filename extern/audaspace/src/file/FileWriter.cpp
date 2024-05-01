@@ -22,7 +22,7 @@
 
 AUD_NAMESPACE_BEGIN
 
-std::shared_ptr<IWriter> FileWriter::createWriter(std::string filename,DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate)
+std::shared_ptr<IWriter> FileWriter::createWriter(const std::string &filename,DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate)
 {
 	return FileManager::createWriter(filename, specs, format, codec, bitrate);
 }

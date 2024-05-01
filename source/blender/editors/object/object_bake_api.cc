@@ -23,6 +23,8 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
+#include "BLT_translation.hh"
+
 #include "BKE_attribute.hh"
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
@@ -61,7 +63,9 @@
 #include "ED_screen.hh"
 #include "ED_uvedit.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
+
+namespace blender::ed::object {
 
 /* prototypes */
 static void bake_set_props(wmOperator *op, Scene *scene);
@@ -72,7 +76,7 @@ struct BakeAPIRender {
   Scene *scene;
   ViewLayer *view_layer;
   Object *ob;
-  ListBase selected_objects;
+  Vector<PointerRNA> selected_objects;
 
   /* Baking settings. */
   eBakeTarget target;
@@ -517,7 +521,7 @@ static bool bake_object_check(const Scene *scene,
       if (image) {
 
         if (node) {
-          if (blender::bke::node_is_connected_to_output(ntree, node)) {
+          if (bke::node_is_connected_to_output(ntree, node)) {
             /* we don't return false since this may be a false positive
              * this can't be RPT_ERROR though, otherwise it prevents
              * multiple highpoly objects to be baked at once */
@@ -640,7 +644,7 @@ static bool bake_objects_check(Main *bmain,
                                const Scene *scene,
                                ViewLayer *view_layer,
                                Object *ob,
-                               ListBase *selected_objects,
+                               Span<PointerRNA> selected_objects,
                                ReportList *reports,
                                const bool is_selected_to_active,
                                const eBakeTarget target)
@@ -655,9 +659,8 @@ static bool bake_objects_check(Main *bmain,
       return false;
     }
 
-    LISTBASE_FOREACH (CollectionPointerLink *, link, selected_objects) {
-      Object *ob_iter = (Object *)link->ptr.data;
-
+    for (const PointerRNA &ptr : selected_objects) {
+      Object *ob_iter = (Object *)ptr.data;
       if (ob_iter == ob) {
         continue;
       }
@@ -679,14 +682,13 @@ static bool bake_objects_check(Main *bmain,
     }
   }
   else {
-    if (BLI_listbase_is_empty(selected_objects)) {
+    if (selected_objects.is_empty()) {
       BKE_report(reports, RPT_ERROR, "No valid selected objects");
       return false;
     }
 
-    LISTBASE_FOREACH (CollectionPointerLink *, link, selected_objects) {
-      if (!bake_object_check(
-              scene, view_layer, static_cast<Object *>(link->ptr.data), target, reports))
+    for (const PointerRNA &ptr : selected_objects) {
+      if (!bake_object_check(scene, view_layer, static_cast<Object *>(ptr.data), target, reports))
       {
         return false;
       }
@@ -712,7 +714,7 @@ static Mesh *bake_mesh_new_from_object(Depsgraph *depsgraph,
 {
   Mesh *mesh = BKE_mesh_new_from_object(depsgraph, object, false, preserve_origindex);
 
-  if (mesh->normals_domain() == blender::bke::MeshNormalDomain::Corner) {
+  if (mesh->normals_domain() == bke::MeshNormalDomain::Corner) {
     ED_mesh_split_faces(mesh);
   }
 
@@ -1003,7 +1005,7 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   }
 
   /* Ensure mesh and editmesh topology are in sync. */
-  ED_object_editmode_load(bmain, ob);
+  editmode_load(bmain, ob);
 
   targets->images = MEM_cnew<BakeImage>(__func__);
   targets->images_num = 1;
@@ -1023,8 +1025,8 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   return true;
 }
 
-static int find_original_loop(const blender::OffsetIndices<int> orig_faces,
-                              const blender::Span<int> orig_corner_verts,
+static int find_original_loop(const OffsetIndices<int> orig_faces,
+                              const Span<int> orig_corner_verts,
                               const int *vert_origindex,
                               const int *poly_origindex,
                               const int poly_eval,
@@ -1040,7 +1042,7 @@ static int find_original_loop(const blender::OffsetIndices<int> orig_faces,
   }
 
   /* Find matching loop with original vertex in original face. */
-  const blender::IndexRange orig_face = orig_faces[poly_orig_index];
+  const IndexRange orig_face = orig_faces[poly_orig_index];
   const int *poly_verts_orig = &orig_corner_verts[orig_face.start()];
   for (int j = 0; j < orig_face.size(); ++j) {
     if (poly_verts_orig[j] == vert_orig) {
@@ -1053,7 +1055,7 @@ static int find_original_loop(const blender::OffsetIndices<int> orig_faces,
 
 static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
                                                           Object *ob,
-                                                          Mesh *me_eval,
+                                                          Mesh *mesh_eval,
                                                           BakePixel *pixel_array)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -1075,25 +1077,27 @@ static void bake_targets_populate_pixels_color_attributes(BakeTargets *targets,
   }
 
   /* Populate through adjacent triangles, first triangle wins. */
-  const int corner_tris_num = poly_to_tri_count(me_eval->faces_num, me_eval->corners_num);
-  blender::int3 *corner_tris = static_cast<blender::int3 *>(
+  const int corner_tris_num = poly_to_tri_count(mesh_eval->faces_num, mesh_eval->corners_num);
+  int3 *corner_tris = static_cast<int3 *>(
       MEM_mallocN(sizeof(*corner_tris) * corner_tris_num, __func__));
 
-  const blender::Span<int> corner_verts = me_eval->corner_verts();
-  blender::bke::mesh::corner_tris_calc(
-      me_eval->vert_positions(), me_eval->faces(), corner_verts, {corner_tris, corner_tris_num});
-  const blender::Span<int> tri_faces = me_eval->corner_tri_faces();
+  const Span<int> corner_verts = mesh_eval->corner_verts();
+  bke::mesh::corner_tris_calc(mesh_eval->vert_positions(),
+                              mesh_eval->faces(),
+                              corner_verts,
+                              {corner_tris, corner_tris_num});
+  const Span<int> tri_faces = mesh_eval->corner_tri_faces();
 
   /* For mapping back to original mesh in case there are modifiers. */
   const int *vert_origindex = static_cast<const int *>(
-      CustomData_get_layer(&me_eval->vert_data, CD_ORIGINDEX));
+      CustomData_get_layer(&mesh_eval->vert_data, CD_ORIGINDEX));
   const int *poly_origindex = static_cast<const int *>(
-      CustomData_get_layer(&me_eval->face_data, CD_ORIGINDEX));
-  const blender::OffsetIndices orig_faces = mesh->faces();
-  const blender::Span<int> orig_corner_verts = mesh->corner_verts();
+      CustomData_get_layer(&mesh_eval->face_data, CD_ORIGINDEX));
+  const OffsetIndices orig_faces = mesh->faces();
+  const Span<int> orig_corner_verts = mesh->corner_verts();
 
   for (int i = 0; i < corner_tris_num; i++) {
-    const blender::int3 &tri = corner_tris[i];
+    const int3 &tri = corner_tris[i];
     const int face_i = tri_faces[i];
 
     for (int j = 0; j < 3; j++) {
@@ -1177,9 +1181,7 @@ static void convert_float_color_to_byte_color(const MPropCol *float_colors,
 
 static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
 {
-  using namespace blender;
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  BMEditMesh *em = mesh->edit_mesh;
   const CustomDataLayer *active_color_layer = BKE_id_attributes_color_find(
       &mesh->id, mesh->active_color_attribute);
   BLI_assert(active_color_layer != nullptr);
@@ -1201,7 +1203,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
         MEM_callocN(sizeof(int) * mesh->verts_num, "num_loops_for_vertex"));
     memset(mcol, 0, sizeof(MPropCol) * mesh->verts_num);
 
-    const blender::Span<int> corner_verts = mesh->corner_verts();
+    const Span<int> corner_verts = mesh->corner_verts();
     for (int i = 0; i < totloop; i++) {
       const int v = corner_verts[i];
       bake_result_add_to_rgba(mcol[v].color, &result[i * channels_num], channels_num);
@@ -1215,7 +1217,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
       }
     }
 
-    if (em) {
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       /* Copy to bmesh. */
       const int active_color_offset = CustomData_get_offset_named(
           &em->bm->vdata, eCustomDataType(active_color_layer->type), active_color_layer->name);
@@ -1250,7 +1252,7 @@ static bool bake_targets_output_vertex_colors(BakeTargets *targets, Object *ob)
     MEM_SAFE_FREE(num_loops_for_vertex);
   }
   else if (domain == bke::AttrDomain::Corner) {
-    if (em) {
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       /* Copy to bmesh. */
       const int active_color_offset = CustomData_get_offset_named(
           &em->bm->ldata, eCustomDataType(active_color_layer->type), active_color_layer->name);
@@ -1344,14 +1346,14 @@ static bool bake_targets_init(const BakeAPIRender *bkr,
 static void bake_targets_populate_pixels(const BakeAPIRender *bkr,
                                          BakeTargets *targets,
                                          Object *ob,
-                                         Mesh *me_eval,
+                                         Mesh *mesh_eval,
                                          BakePixel *pixel_array)
 {
   if (bkr->target == R_BAKE_TARGET_VERTEX_COLORS) {
-    bake_targets_populate_pixels_color_attributes(targets, ob, me_eval, pixel_array);
+    bake_targets_populate_pixels_color_attributes(targets, ob, mesh_eval, pixel_array);
   }
   else {
-    RE_bake_pixels_populate(me_eval, pixel_array, targets->pixels_num, targets, bkr->uv_layer);
+    RE_bake_pixels_populate(mesh_eval, pixel_array, targets->pixels_num, targets, bkr->uv_layer);
   }
 }
 
@@ -1359,17 +1361,17 @@ static bool bake_targets_output(const BakeAPIRender *bkr,
                                 BakeTargets *targets,
                                 Object *ob,
                                 Object *ob_eval,
-                                Mesh *me_eval,
+                                Mesh *mesh_eval,
                                 BakePixel *pixel_array,
                                 ReportList *reports)
 {
   if (bkr->target == R_BAKE_TARGET_IMAGE_TEXTURES) {
     if (bkr->save_mode == R_BAKE_SAVE_INTERNAL) {
-      return bake_targets_output_internal(bkr, targets, ob, pixel_array, reports, me_eval);
+      return bake_targets_output_internal(bkr, targets, ob, pixel_array, reports, mesh_eval);
     }
     if (bkr->save_mode == R_BAKE_SAVE_EXTERNAL) {
       return bake_targets_output_external(
-          bkr, targets, ob, ob_eval, me_eval, pixel_array, reports);
+          bkr, targets, ob, ob_eval, mesh_eval, pixel_array, reports);
     }
   }
   else if (bkr->target == R_BAKE_TARGET_VERTEX_COLORS) {
@@ -1390,7 +1392,7 @@ static void bake_targets_free(BakeTargets *targets)
 
 static int bake(const BakeAPIRender *bkr,
                 Object *ob_low,
-                const ListBase *selected_objects,
+                const Span<PointerRNA> selected_objects,
                 ReportList *reports)
 {
   Render *re = bkr->render;
@@ -1448,8 +1450,8 @@ static int bake(const BakeAPIRender *bkr,
   if (bkr->is_selected_to_active) {
     tot_highpoly = 0;
 
-    LISTBASE_FOREACH (CollectionPointerLink *, link, selected_objects) {
-      Object *ob_iter = static_cast<Object *>(link->ptr.data);
+    for (const PointerRNA &ptr : selected_objects) {
+      Object *ob_iter = static_cast<Object *>(ptr.data);
 
       if (ob_iter == ob_low) {
         continue;
@@ -1562,8 +1564,8 @@ static int bake(const BakeAPIRender *bkr,
         MEM_callocN(sizeof(BakeHighPolyData) * tot_highpoly, "bake high poly objects"));
 
     /* populate highpoly array */
-    LISTBASE_FOREACH (CollectionPointerLink *, link, selected_objects) {
-      Object *ob_iter = static_cast<Object *>(link->ptr.data);
+    for (const PointerRNA &ptr : selected_objects) {
+      Object *ob_iter = static_cast<Object *>(ptr.data);
 
       if (ob_iter == ob_low) {
         continue;
@@ -1876,19 +1878,21 @@ static int bake_exec(bContext *C, wmOperator *op)
   RE_test_break_cb(re, nullptr, bake_break);
 
   if (!bake_pass_filter_check(bkr.pass_type, bkr.pass_filter, bkr.reports)) {
-    goto finally;
+    G.is_rendering = false;
+    return result;
   }
 
   if (!bake_objects_check(bkr.main,
                           bkr.scene,
                           bkr.view_layer,
                           bkr.ob,
-                          &bkr.selected_objects,
+                          bkr.selected_objects,
                           bkr.reports,
                           bkr.is_selected_to_active,
                           bkr.target))
   {
-    goto finally;
+    G.is_rendering = false;
+    return result;
   }
 
   if (bkr.is_clear) {
@@ -1900,21 +1904,19 @@ static int bake_exec(bContext *C, wmOperator *op)
   RE_SetReports(re, bkr.reports);
 
   if (bkr.is_selected_to_active) {
-    result = bake(&bkr, bkr.ob, &bkr.selected_objects, bkr.reports);
+    result = bake(&bkr, bkr.ob, bkr.selected_objects, bkr.reports);
   }
   else {
-    bkr.is_clear = bkr.is_clear && BLI_listbase_is_single(&bkr.selected_objects);
-    LISTBASE_FOREACH (CollectionPointerLink *, link, &bkr.selected_objects) {
-      Object *ob_iter = static_cast<Object *>(link->ptr.data);
-      result = bake(&bkr, ob_iter, nullptr, bkr.reports);
+    bkr.is_clear = bkr.is_clear && bkr.selected_objects.size() == 1;
+    for (const PointerRNA &ptr : bkr.selected_objects) {
+      Object *ob_iter = static_cast<Object *>(ptr.data);
+      result = bake(&bkr, ob_iter, {}, bkr.reports);
     }
   }
 
   RE_SetReports(re, nullptr);
 
-finally:
   G.is_rendering = false;
-  BLI_freelistN(&bkr.selected_objects);
   return result;
 }
 
@@ -1937,7 +1939,7 @@ static void bake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
                           bkr->scene,
                           bkr->view_layer,
                           bkr->ob,
-                          &bkr->selected_objects,
+                          bkr->selected_objects,
                           bkr->reports,
                           bkr->is_selected_to_active,
                           bkr->target))
@@ -1953,13 +1955,13 @@ static void bake_startjob(void *bkv, wmJobWorkerStatus *worker_status)
   }
 
   if (bkr->is_selected_to_active) {
-    bkr->result = bake(bkr, bkr->ob, &bkr->selected_objects, bkr->reports);
+    bkr->result = bake(bkr, bkr->ob, bkr->selected_objects, bkr->reports);
   }
   else {
-    bkr->is_clear = bkr->is_clear && BLI_listbase_is_single(&bkr->selected_objects);
-    LISTBASE_FOREACH (CollectionPointerLink *, link, &bkr->selected_objects) {
-      Object *ob_iter = static_cast<Object *>(link->ptr.data);
-      bkr->result = bake(bkr, ob_iter, nullptr, bkr->reports);
+    bkr->is_clear = bkr->is_clear && bkr->selected_objects.size() == 1;
+    for (const PointerRNA &ptr : bkr->selected_objects) {
+      Object *ob_iter = static_cast<Object *>(ptr.data);
+      bkr->result = bake(bkr, ob_iter, {}, bkr->reports);
 
       if (bkr->result == OPERATOR_CANCELLED) {
         return;
@@ -1985,8 +1987,7 @@ static void bake_freejob(void *bkv)
 {
   BakeAPIRender *bkr = (BakeAPIRender *)bkv;
 
-  BLI_freelistN(&bkr->selected_objects);
-  MEM_freeN(bkr);
+  MEM_delete(bkr);
 
   G.is_rendering = false;
 }
@@ -2111,7 +2112,7 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
     return OPERATOR_CANCELLED;
   }
 
-  BakeAPIRender *bkr = static_cast<BakeAPIRender *>(MEM_mallocN(sizeof(BakeAPIRender), __func__));
+  BakeAPIRender *bkr = MEM_new<BakeAPIRender>(__func__);
 
   /* init bake render */
   bake_init_api_data(op, C, bkr);
@@ -2256,24 +2257,27 @@ void OBJECT_OT_bake(wmOperatorType *ot)
                R_BAKE_SPACE_TANGENT,
                "Normal Space",
                "Choose normal space for baking");
-  RNA_def_enum(ot->srna,
-               "normal_r",
-               rna_enum_normal_swizzle_items,
-               R_BAKE_POSX,
-               "R",
-               "Axis to bake in red channel");
-  RNA_def_enum(ot->srna,
-               "normal_g",
-               rna_enum_normal_swizzle_items,
-               R_BAKE_POSY,
-               "G",
-               "Axis to bake in green channel");
-  RNA_def_enum(ot->srna,
-               "normal_b",
-               rna_enum_normal_swizzle_items,
-               R_BAKE_POSZ,
-               "B",
-               "Axis to bake in blue channel");
+  prop = RNA_def_enum(ot->srna,
+                      "normal_r",
+                      rna_enum_normal_swizzle_items,
+                      R_BAKE_POSX,
+                      "R",
+                      "Axis to bake in red channel");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
+  prop = RNA_def_enum(ot->srna,
+                      "normal_g",
+                      rna_enum_normal_swizzle_items,
+                      R_BAKE_POSY,
+                      "G",
+                      "Axis to bake in green channel");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
+  prop = RNA_def_enum(ot->srna,
+                      "normal_b",
+                      rna_enum_normal_swizzle_items,
+                      R_BAKE_POSZ,
+                      "B",
+                      "Axis to bake in blue channel");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
   RNA_def_enum(ot->srna,
                "target",
                rna_enum_bake_target_items,
@@ -2310,3 +2314,5 @@ void OBJECT_OT_bake(wmOperatorType *ot)
                  "UV Layer",
                  "UV layer to override active");
 }
+
+}  // namespace blender::ed::object

@@ -29,9 +29,9 @@
 #include "RNA_path.hh"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
@@ -39,8 +39,9 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -56,6 +57,7 @@
 #include "ED_select_utils.hh"
 
 #include "ANIM_animdata.hh"
+#include "ANIM_fcurve.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -255,6 +257,7 @@ void ANIM_set_active_channel(bAnimContext *ac,
         break;
       }
       case ANIMTYPE_FILLACTD: /* Action Expander */
+      case ANIMTYPE_FILLANIM: /* Animation Expander */
       case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
       case ANIMTYPE_DSLAM:
       case ANIMTYPE_DSCAM:
@@ -311,6 +314,7 @@ void ANIM_set_active_channel(bAnimContext *ac,
         break;
       }
       case ANIMTYPE_FILLACTD: /* Action Expander */
+      case ANIMTYPE_FILLANIM: /* Animation Expander */
       case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
       case ANIMTYPE_DSLAM:
       case ANIMTYPE_DSCAM:
@@ -364,6 +368,7 @@ bool ANIM_is_active_channel(bAnimListElem *ale)
 {
   switch (ale->type) {
     case ANIMTYPE_FILLACTD: /* Action Expander */
+    case ANIMTYPE_FILLANIM: /* Animation Expander */
     case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
     case ANIMTYPE_DSLAM:
     case ANIMTYPE_DSCAM:
@@ -500,6 +505,7 @@ static eAnimChannels_SetFlag anim_channels_selection_flag_for_toggle(const ListB
         break;
 
       case ANIMTYPE_FILLACTD: /* Action Expander */
+      case ANIMTYPE_FILLANIM: /* Animation Expander */
       case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
       case ANIMTYPE_DSLAM:
       case ANIMTYPE_DSCAM:
@@ -614,6 +620,7 @@ static void anim_channels_select_set(bAnimContext *ac,
         break;
       }
       case ANIMTYPE_FILLACTD: /* Action Expander */
+      case ANIMTYPE_FILLANIM: /* Animation Expander */
       case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
       case ANIMTYPE_DSLAM:
       case ANIMTYPE_DSCAM:
@@ -1870,7 +1877,7 @@ static bool animchannels_grouping_poll(bContext *C)
     case SPACE_ACTION: {
       SpaceAction *saction = (SpaceAction *)sl;
 
-      /* dopesheet and action only - all others are for other datatypes or have no groups */
+      /* Dopesheet and action only - all others are for other data-types or have no groups. */
       if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_DOPESHEET) == 0) {
         return false;
       }
@@ -3365,6 +3372,7 @@ static int click_select_channel_object(bContext *C,
                                        bAnimListElem *ale,
                                        const short /* eEditKeyframes_Select or -1 */ selectmode)
 {
+  using namespace blender::ed;
   Scene *scene = ac->scene;
   ViewLayer *view_layer = ac->view_layer;
   Base *base = (Base *)ale->data;
@@ -3377,7 +3385,7 @@ static int click_select_channel_object(bContext *C,
 
   if (selectmode == SELECT_INVERT) {
     /* swap select */
-    ED_object_base_select(base, BA_INVERT);
+    object::base_select(base, object::BA_INVERT);
 
     if (adt) {
       adt->flag ^= ADT_UI_SELECTED;
@@ -3393,14 +3401,14 @@ static int click_select_channel_object(bContext *C,
     BKE_view_layer_synced_ensure(scene, view_layer);
     /* TODO: should this deselect all other types of channels too? */
     LISTBASE_FOREACH (Base *, b, BKE_view_layer_object_bases_get(view_layer)) {
-      ED_object_base_select(b, BA_DESELECT);
+      object::base_select(b, object::BA_DESELECT);
       if (b->object->adt) {
         b->object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);
       }
     }
 
     /* select object now */
-    ED_object_base_select(base, BA_SELECT);
+    object::base_select(base, object::BA_SELECT);
     if (adt) {
       adt->flag |= ADT_UI_SELECTED;
     }
@@ -3410,7 +3418,7 @@ static int click_select_channel_object(bContext *C,
    *
    * Ensure we exit edit-mode on whatever object was active before
    * to avoid getting stuck there, see: #48747. */
-  ED_object_base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
+  object::base_activate_with_mode_exit_if_needed(C, base); /* adds notifier */
 
   /* Similar to outliner, do not change active element when selecting elements in range. */
   if ((adt) && (adt->flag & ADT_UI_SELECTED) && (selectmode != SELECT_EXTEND_RANGE)) {
@@ -3830,6 +3838,7 @@ static int mouse_anim_channels(bContext *C,
       notifierFlags |= click_select_channel_object(C, ac, ale, selectmode);
       break;
     case ANIMTYPE_FILLACTD: /* Action Expander */
+    case ANIMTYPE_FILLANIM: /* Animation Expander */
     case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
     case ANIMTYPE_DSLAM:
     case ANIMTYPE_DSCAM:
@@ -4325,6 +4334,7 @@ static const EnumPropertyItem channel_bake_key_options[] = {
 
 static int channels_bake_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender::animrig;
   bAnimContext ac;
 
   /* Get editor data. */
@@ -4365,8 +4375,8 @@ static int channels_bake_exec(bContext *C, wmOperator *op)
   }
 
   const bool remove_outside_range = RNA_boolean_get(op->ptr, "remove_outside_range");
-  const BakeCurveRemove remove_existing = remove_outside_range ? BakeCurveRemove::REMOVE_ALL :
-                                                                 BakeCurveRemove::REMOVE_IN_RANGE;
+  const BakeCurveRemove remove_existing = remove_outside_range ? BakeCurveRemove::ALL :
+                                                                 BakeCurveRemove::IN_RANGE;
   const int interpolation_type = RNA_enum_get(op->ptr, "interpolation_type");
   const bool bake_modifiers = RNA_boolean_get(op->ptr, "bake_modifiers");
 
@@ -4531,13 +4541,70 @@ static void deselect_all_fcurves(bAnimContext *ac, const bool hide)
   ANIM_animdata_freelist(&anim_data);
 }
 
-static rctf calculate_selection_fcurve_bounds_and_unhide(
-    bContext *C,
-    ListBase /* CollectionPointerLink */ *selection,
-    PropertyRNA *prop,
-    const blender::StringRefNull id_to_prop_path,
-    const int index,
-    const bool whole_array)
+static int count_fcurves_hidden_by_filter(bAnimContext *ac, const blender::Span<FCurve *> fcurves)
+{
+  ListBase anim_data = {nullptr, nullptr};
+  if (ac->sl->spacetype != SPACE_GRAPH) {
+    return 0;
+  }
+  SpaceGraph *sipo = (SpaceGraph *)ac->sl;
+  const eAnimFilter_Flags filter = eAnimFilter_Flags(sipo->ads->filterflag);
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
+
+  /* Adding FCurves to a map for quicker lookup times. */
+  blender::Map<FCurve *, bool> filtered_fcurves;
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+    filtered_fcurves.add(fcu, true);
+  }
+
+  int hidden_fcurve_count = fcurves.size();
+  for (FCurve *fcu : fcurves) {
+    if (filtered_fcurves.contains(fcu)) {
+      hidden_fcurve_count--;
+    }
+  }
+  ANIM_animdata_freelist(&anim_data);
+  return hidden_fcurve_count;
+}
+
+static blender::Vector<FCurve *> get_fcurves_of_property(
+    ID *id, PointerRNA *ptr, PropertyRNA *prop, const bool whole_array, const int index)
+{
+  using namespace blender;
+
+  AnimData *anim_data = BKE_animdata_from_id(id);
+  if (anim_data == nullptr) {
+    return Vector<FCurve *>();
+  }
+
+  const std::optional<std::string> path = RNA_path_from_ID_to_property(ptr, prop);
+
+  blender::Vector<FCurve *> fcurves;
+  if (RNA_property_array_check(prop) && whole_array) {
+    const int length = RNA_property_array_length(ptr, prop);
+    for (int i = 0; i < length; i++) {
+      FCurve *fcurve = BKE_animadata_fcurve_find_by_rna_path(
+          id, anim_data, path->c_str(), i, nullptr, nullptr);
+      if (fcurve != nullptr) {
+        fcurves.append(fcurve);
+      }
+    }
+  }
+  else {
+    FCurve *fcurve = BKE_animadata_fcurve_find_by_rna_path(
+        id, anim_data, path->c_str(), index, nullptr, nullptr);
+    if (fcurve != nullptr) {
+      fcurves.append(fcurve);
+    }
+  }
+  return fcurves;
+}
+
+static rctf calculate_fcurve_bounds_and_unhide(SpaceLink *space_link,
+                                               Scene *scene,
+                                               ID *id,
+                                               const blender::Span<FCurve *> fcurves)
 {
   rctf bounds;
   bounds.xmin = INFINITY;
@@ -4545,18 +4612,61 @@ static rctf calculate_selection_fcurve_bounds_and_unhide(
   bounds.ymin = INFINITY;
   bounds.ymax = -INFINITY;
 
-  SpaceLink *ge_space_link = CTX_wm_space_data(C);
-  if (ge_space_link->spacetype != SPACE_GRAPH) {
+  if (space_link->spacetype != SPACE_GRAPH) {
     return bounds;
   }
 
-  Scene *scene = CTX_data_scene(C);
+  AnimData *anim_data = BKE_animdata_from_id(id);
+  if (anim_data == nullptr) {
+    return bounds;
+  }
+
   float frame_range[2];
   get_view_range(scene, true, frame_range);
+  float mapped_frame_range[2];
+  mapped_frame_range[0] = BKE_nla_tweakedit_remap(
+      anim_data, frame_range[0], NLATIME_CONVERT_UNMAP);
+  mapped_frame_range[1] = BKE_nla_tweakedit_remap(
+      anim_data, frame_range[1], NLATIME_CONVERT_UNMAP);
+
   const bool include_handles = false;
 
-  LISTBASE_FOREACH (CollectionPointerLink *, selected, selection) {
-    ID *selected_id = selected->ptr.owner_id;
+  for (FCurve *fcurve : fcurves) {
+    fcurve->flag |= (FCURVE_SELECTED | FCURVE_VISIBLE);
+    rctf fcu_bounds;
+    get_normalized_fcurve_bounds(fcurve,
+                                 anim_data,
+                                 space_link,
+                                 scene,
+                                 id,
+                                 include_handles,
+                                 mapped_frame_range,
+                                 &fcu_bounds);
+
+    if (BLI_rctf_is_valid(&fcu_bounds)) {
+      BLI_rctf_union(&bounds, &fcu_bounds);
+    }
+  }
+
+  return bounds;
+}
+
+static rctf calculate_selection_fcurve_bounds(bAnimContext *ac,
+                                              blender::Span<PointerRNA> selection,
+                                              PropertyRNA *prop,
+                                              const blender::StringRefNull id_to_prop_path,
+                                              const int index,
+                                              const bool whole_array,
+                                              int *r_filtered_fcurve_count)
+{
+  rctf bounds;
+  bounds.xmin = INFINITY;
+  bounds.xmax = -INFINITY;
+  bounds.ymin = INFINITY;
+  bounds.ymax = -INFINITY;
+
+  for (const PointerRNA &selected : selection) {
+    ID *selected_id = selected.owner_id;
     if (!BKE_animdata_id_is_animated(selected_id)) {
       continue;
     }
@@ -4564,54 +4674,20 @@ static rctf calculate_selection_fcurve_bounds_and_unhide(
     PropertyRNA *resolved_prop;
     if (!id_to_prop_path.is_empty()) {
       const bool resolved = RNA_path_resolve_property(
-          &selected->ptr, id_to_prop_path.c_str(), &resolved_ptr, &resolved_prop);
+          &selected, id_to_prop_path.c_str(), &resolved_ptr, &resolved_prop);
       if (!resolved) {
         continue;
       }
     }
     else {
-      resolved_ptr = selected->ptr;
+      resolved_ptr = selected;
       resolved_prop = prop;
     }
-    const std::optional<std::string> path = RNA_path_from_ID_to_property(&resolved_ptr,
-                                                                         resolved_prop);
-
-    AnimData *anim_data = BKE_animdata_from_id(selected_id);
-    blender::Vector<FCurve *> fcurves;
-    if (RNA_property_array_check(prop) && whole_array) {
-      const int length = RNA_property_array_length(&selected->ptr, prop);
-      for (int i = 0; i < length; i++) {
-        FCurve *fcurve = BKE_animadata_fcurve_find_by_rna_path(
-            anim_data, path->c_str(), i, nullptr, nullptr);
-        if (fcurve != nullptr) {
-          fcurves.append(fcurve);
-        }
-      }
-    }
-    else {
-      FCurve *fcurve = BKE_animadata_fcurve_find_by_rna_path(
-          anim_data, path->c_str(), index, nullptr, nullptr);
-      if (fcurve != nullptr) {
-        fcurves.append(fcurve);
-      }
-    }
-
-    for (FCurve *fcurve : fcurves) {
-      fcurve->flag |= (FCURVE_SELECTED | FCURVE_VISIBLE);
-      rctf fcu_bounds;
-      float mapped_frame_range[2];
-      mapped_frame_range[0] = BKE_nla_tweakedit_remap(
-          anim_data, frame_range[0], NLATIME_CONVERT_UNMAP);
-      mapped_frame_range[1] = BKE_nla_tweakedit_remap(
-          anim_data, frame_range[1], NLATIME_CONVERT_UNMAP);
-      get_normalized_fcurve_bounds(fcurve,
-                                   anim_data,
-                                   ge_space_link,
-                                   scene,
-                                   selected_id,
-                                   include_handles,
-                                   mapped_frame_range,
-                                   &fcu_bounds);
+    blender::Vector<FCurve *> fcurves = get_fcurves_of_property(
+        selected_id, &resolved_ptr, resolved_prop, whole_array, index);
+    *r_filtered_fcurve_count += count_fcurves_hidden_by_filter(ac, fcurves);
+    rctf fcu_bounds = calculate_fcurve_bounds_and_unhide(ac->sl, ac->scene, selected_id, fcurves);
+    if (BLI_rctf_is_valid(&fcu_bounds)) {
       BLI_rctf_union(&bounds, &fcu_bounds);
     }
   }
@@ -4621,19 +4697,19 @@ static rctf calculate_selection_fcurve_bounds_and_unhide(
 
 static int view_curve_in_graph_editor_exec(bContext *C, wmOperator *op)
 {
-  PointerRNA ptr = {nullptr};
-  PropertyRNA *prop = nullptr;
+  PointerRNA button_ptr = {nullptr};
+  PropertyRNA *button_prop = nullptr;
   uiBut *but;
   int index;
 
-  if (!(but = UI_context_active_but_prop_get(C, &ptr, &prop, &index))) {
+  if (!(but = UI_context_active_but_prop_get(C, &button_ptr, &button_prop, &index))) {
     /* Pass event on if no active button found. */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
   int retval = OPERATOR_FINISHED;
 
-  ListBase selection = {nullptr, nullptr};
+  blender::Vector<PointerRNA> selection;
 
   struct {
     wmWindow *win;
@@ -4644,14 +4720,10 @@ static int view_curve_in_graph_editor_exec(bContext *C, wmOperator *op)
   bool path_from_id;
   std::optional<std::string> id_to_prop_path;
   const bool selected_list_success = UI_context_copy_to_selected_list(
-      C, &ptr, prop, &selection, &path_from_id, &id_to_prop_path);
+      C, &button_ptr, button_prop, &selection, &path_from_id, &id_to_prop_path);
 
-  if (BLI_listbase_is_empty(&selection) || !selected_list_success) {
-    WM_report(RPT_ERROR, "Nothing selected");
-    retval = OPERATOR_CANCELLED;
-  }
-  else if (!context_find_graph_editor(
-               C, &wm_context_temp.win, &wm_context_temp.area, &wm_context_temp.region))
+  if (!context_find_graph_editor(
+          C, &wm_context_temp.win, &wm_context_temp.area, &wm_context_temp.region))
   {
     WM_report(RPT_WARNING, "No open Graph Editor window found");
     retval = OPERATOR_CANCELLED;
@@ -4673,12 +4745,43 @@ static int view_curve_in_graph_editor_exec(bContext *C, wmOperator *op)
     }
     else {
       const bool isolate = RNA_boolean_get(op->ptr, "isolate");
+      /* The index can be less than 0 e.g. on color properties. */
+      const bool whole_array = RNA_boolean_get(op->ptr, "all") || index < 0;
+
       deselect_all_fcurves(&ac, isolate);
 
-      const bool whole_array = RNA_boolean_get(op->ptr, "all");
+      rctf bounds;
+      bounds.xmin = INFINITY;
+      bounds.xmax = -INFINITY;
+      bounds.ymin = INFINITY;
+      bounds.ymax = -INFINITY;
+      int filtered_fcurve_count = 0;
+      if (selected_list_success && !selection.is_empty()) {
+        rctf selection_bounds = calculate_selection_fcurve_bounds(&ac,
+                                                                  selection,
+                                                                  button_prop,
+                                                                  id_to_prop_path.value_or(""),
+                                                                  index,
+                                                                  whole_array,
+                                                                  &filtered_fcurve_count);
+        if (BLI_rctf_is_valid(&selection_bounds)) {
+          BLI_rctf_union(&bounds, &selection_bounds);
+        }
+      }
 
-      rctf bounds = calculate_selection_fcurve_bounds_and_unhide(
-          C, &selection, prop, id_to_prop_path.value_or(""), index, whole_array);
+      /* The object to which the button belongs might not be selected, or selectable. */
+      blender::Vector<FCurve *> button_fcurves = get_fcurves_of_property(
+          button_ptr.owner_id, &button_ptr, button_prop, whole_array, index);
+      filtered_fcurve_count += count_fcurves_hidden_by_filter(&ac, button_fcurves);
+      rctf button_bounds = calculate_fcurve_bounds_and_unhide(
+          ac.sl, ac.scene, button_ptr.owner_id, button_fcurves);
+      if (BLI_rctf_is_valid(&button_bounds)) {
+        BLI_rctf_union(&bounds, &button_bounds);
+      }
+
+      if (filtered_fcurve_count > 0) {
+        WM_report(RPT_WARNING, "One or more F-Curves are not visible due to filter settings");
+      }
 
       if (!BLI_rctf_is_valid(&bounds)) {
         WM_report(RPT_ERROR, "F-Curves have no valid size");
@@ -4701,8 +4804,6 @@ static int view_curve_in_graph_editor_exec(bContext *C, wmOperator *op)
     CTX_wm_area_set(C, wm_context_prev.area);
     CTX_wm_region_set(C, wm_context_prev.region);
   }
-
-  BLI_freelistN(&selection);
 
   return retval;
 }

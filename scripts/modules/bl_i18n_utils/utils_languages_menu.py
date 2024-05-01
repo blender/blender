@@ -5,9 +5,6 @@
 # Update "languages" text file used by Blender at runtime to build translations menu.
 
 
-import os
-
-
 OK = 0
 MISSING = 1
 TOOLOW = 2

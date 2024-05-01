@@ -6,8 +6,6 @@
  * Display characters using an ascii table.
  */
 
-#pragma BLENDER_REQUIRE(common_math_lib.glsl)
-
 bool char_intersect(uvec2 bitmap_position)
 {
   /* Using 8x8 = 64bits = uvec2. */
@@ -108,7 +106,8 @@ bool char_intersect(uvec2 bitmap_position)
                                      uvec2(0x00000000u, 0x6e3b0000u),
                                      uvec2(0x00000000u, 0x00000000u));
 
-  if (!in_range_inclusive(bitmap_position, uvec2(0), uvec2(7))) {
+  if (any(lessThan(bitmap_position, uvec2(0))) || any(greaterThanEqual(bitmap_position, uvec2(8))))
+  {
     return false;
   }
   uint char_bits = ascii_bitmap[char_index % 96u][bitmap_position.y >> 2u & 1u];

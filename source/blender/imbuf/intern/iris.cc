@@ -88,13 +88,13 @@ struct MFileOffset {
 
 /* Functions. */
 static void readheader(MFileOffset *inf, IMAGE *image);
-static int writeheader(FILE *outf, IMAGE *image);
+static int writeheader(FILE *outf, const IMAGE *image);
 
 static ushort getshort(MFileOffset *inf);
 static uint getlong(MFileOffset *mofs);
 static void putshort(FILE *outf, ushort val);
 static int putlong(FILE *outf, uint val);
-static int writetab(FILE *outf, uint *tab, int len);
+static int writetab(FILE *outf, const uint *tab, int len);
 static void readtab(MFileOffset *inf, uint *tab, int len);
 
 static int expandrow(
@@ -161,7 +161,7 @@ static void readheader(MFileOffset *inf, IMAGE *image)
   image->zsize = getshort(inf);
 }
 
-static int writeheader(FILE *outf, IMAGE *image)
+static int writeheader(FILE *outf, const IMAGE *image)
 {
   IMAGE t = {0};
 
@@ -179,7 +179,7 @@ static int writeheader(FILE *outf, IMAGE *image)
   return fwrite("no name", 8, 1, outf);
 }
 
-static int writetab(FILE *outf, uint *tab, int len)
+static int writetab(FILE *outf, const uint *tab, int len)
 {
   int r = 0;
 

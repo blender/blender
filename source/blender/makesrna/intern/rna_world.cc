@@ -211,7 +211,7 @@ void RNA_def_world(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  static float default_world_color[] = {0.05f, 0.05f, 0.05f};
+  static const float default_world_color[] = {0.05f, 0.05f, 0.05f};
 
   srna = RNA_def_struct(brna, "World", "ID");
   RNA_def_struct_ui_text(

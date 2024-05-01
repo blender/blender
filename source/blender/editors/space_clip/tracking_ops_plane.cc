@@ -26,8 +26,8 @@
 
 #include "ED_clip.hh"
 
-#include "clip_intern.h"
-#include "tracking_ops_intern.h"
+#include "clip_intern.hh"
+#include "tracking_ops_intern.hh"
 
 /********************** Create plane track operator *********************/
 

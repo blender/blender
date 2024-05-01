@@ -24,7 +24,7 @@ class GHOST_DisplayManagerCocoa : public GHOST_DisplayManager {
   /**
    * Constructor.
    */
-  GHOST_DisplayManagerCocoa(void);
+  GHOST_DisplayManagerCocoa();
 
   /**
    * Returns the number of display devices on this system.

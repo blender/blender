@@ -3,19 +3,24 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_compute_context.hh"
-#include "BLI_hash_md5.hh"
+
 #include <sstream>
+#include <xxhash.h>
 
 namespace blender {
 
 void ComputeContextHash::mix_in(const void *data, int64_t len)
 {
-  DynamicStackBuffer<> buffer_owner(HashSizeInBytes + len, 8);
+  const int64_t hash_size = sizeof(ComputeContextHash);
+  const int64_t buffer_len = hash_size + len;
+  DynamicStackBuffer<> buffer_owner(buffer_len, 8);
   char *buffer = static_cast<char *>(buffer_owner.buffer());
-  memcpy(buffer, this, HashSizeInBytes);
-  memcpy(buffer + HashSizeInBytes, data, len);
+  memcpy(buffer, this, hash_size);
+  memcpy(buffer + hash_size, data, len);
 
-  BLI_hash_md5_buffer(buffer, HashSizeInBytes + len, this);
+  const XXH128_hash_t hash = XXH3_128bits(buffer, buffer_len);
+  memcpy(this, &hash, sizeof(hash));
+  static_assert(sizeof(ComputeContextHash) == sizeof(hash));
 }
 
 std::ostream &operator<<(std::ostream &stream, const ComputeContextHash &hash)

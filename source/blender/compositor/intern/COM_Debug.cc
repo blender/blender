@@ -2,8 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <iostream>
+
 #include "COM_Debug.h"
 
+#include "BLI_assert.h"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -12,11 +15,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "COM_ExecutionGroup.h"
-#include "COM_ReadBufferOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_ViewerOperation.h"
-#include "COM_WriteBufferOperation.h"
 
 namespace blender::compositor {
 
@@ -25,14 +25,17 @@ DebugInfo::NodeNameMap DebugInfo::node_names_;
 DebugInfo::OpNameMap DebugInfo::op_names_;
 std::string DebugInfo::current_node_name_;
 std::string DebugInfo::current_op_name_;
-DebugInfo::GroupStateMap DebugInfo::group_states_;
 
 static std::string operation_class_name(const NodeOperation *op)
 {
   std::string full_name = typeid(*op).name();
-  /* Remove name-spaces. */
+  /* The typeid name is implementation defined, but it is typically a full C++ name that is either
+   * mangled or demangled. In case it was demangled, remove the namespaces, but if it was mangled,
+   * return the entire name, since there is no easy way to demangle it. */
   size_t pos = full_name.find_last_of(':');
-  BLI_assert(pos != std::string::npos);
+  if (pos == std::string::npos) {
+    return full_name;
+  }
   return full_name.substr(pos + 1);
 }
 
@@ -56,7 +59,6 @@ std::string DebugInfo::operation_name(const NodeOperation *op)
 
 int DebugInfo::graphviz_operation(const ExecutionSystem *system,
                                   NodeOperation *operation,
-                                  const ExecutionGroup *group,
                                   char *str,
                                   int maxlen)
 {
@@ -75,23 +77,12 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
   else if (operation->is_output_operation(system->get_context().is_rendering())) {
     fillcolor = "dodgerblue1";
   }
-  else if (operation->get_flags().is_set_operation) {
+  else if (operation->get_flags().is_constant_operation) {
     fillcolor = "khaki1";
-  }
-  else if (operation->get_flags().is_read_buffer_operation) {
-    fillcolor = "darkolivegreen3";
-  }
-  else if (operation->get_flags().is_write_buffer_operation) {
-    fillcolor = "darkorange";
   }
 
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// OPERATION: %p\r\n", operation);
-  if (group) {
-    len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p_%p\"", operation, group);
-  }
-  else {
-    len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p\"", operation);
-  }
+  len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "\"O_%p\"", operation);
   len += snprintf(str + len,
                   maxlen > len ? maxlen - len : 0,
                   " [fillcolor=%s,style=filled,shape=record,label=\"{",
@@ -115,6 +106,10 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
           break;
         case DataType::Color:
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Color");
+          break;
+        case DataType::Float2:
+          /* An internal type that needn't be handled. */
+          BLI_assert_unreachable();
           break;
       }
     }
@@ -176,6 +171,10 @@ int DebugInfo::graphviz_operation(const ExecutionSystem *system,
           len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "Color");
           break;
         }
+        case DataType::Float2:
+          /* An internal type that needn't be handled. */
+          BLI_assert_unreachable();
+          break;
       }
     }
     len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}");
@@ -220,14 +219,11 @@ int DebugInfo::graphviz_legend_group(
   return len;
 }
 
-int DebugInfo::graphviz_legend(char *str, int maxlen, const bool has_execution_groups)
+int DebugInfo::graphviz_legend(char *str, int maxlen)
 {
   int len = 0;
 
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "{\r\n");
-  if (has_execution_groups) {
-    len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "rank = sink;\r\n");
-  }
   len += snprintf(
       str + len, maxlen > len ? maxlen - len : 0, "Legend [shape=none, margin=0, label=<\r\n");
 
@@ -247,24 +243,8 @@ int DebugInfo::graphviz_legend(char *str, int maxlen, const bool has_execution_g
       "Viewer", "lightskyblue3", str + len, maxlen > len ? maxlen - len : 0);
   len += graphviz_legend_color(
       "Active Viewer", "lightskyblue1", str + len, maxlen > len ? maxlen - len : 0);
-  if (has_execution_groups) {
-    len += graphviz_legend_color(
-        "Write Buffer", "darkorange", str + len, maxlen > len ? maxlen - len : 0);
-    len += graphviz_legend_color(
-        "Read Buffer", "darkolivegreen3", str + len, maxlen > len ? maxlen - len : 0);
-  }
   len += graphviz_legend_color(
       "Input Value", "khaki1", str + len, maxlen > len ? maxlen - len : 0);
-
-  if (has_execution_groups) {
-    len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "<TR><TD></TD></TR>\r\n");
-    len += graphviz_legend_group(
-        "Group Waiting", "white", "dashed", str + len, maxlen > len ? maxlen - len : 0);
-    len += graphviz_legend_group(
-        "Group Running", "firebrick1", "solid", str + len, maxlen > len ? maxlen - len : 0);
-    len += graphviz_legend_group(
-        "Group Finished", "chartreuse4", "solid", str + len, maxlen > len ? maxlen - len : 0);
-  }
 
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "</TABLE>\r\n");
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, ">];\r\n");
@@ -275,7 +255,6 @@ int DebugInfo::graphviz_legend(char *str, int maxlen, const bool has_execution_g
 
 bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int maxlen)
 {
-  char strbuf[64];
   int len = 0;
 
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "digraph compositorexecution {\r\n");
@@ -284,39 +263,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "splines=false\r\n");
 
   std::map<NodeOperation *, std::vector<std::string>> op_groups;
-  int index = 0;
-  for (const ExecutionGroup *group : system->groups_) {
-    len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "// GROUP: %d\r\n", index);
-    len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "subgraph cluster_%d{\r\n", index);
-    /* used as a check for executing group */
-    if (group_states_[group] == EG_WAIT) {
-      len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "style=dashed\r\n");
-    }
-    else if (group_states_[group] == EG_RUNNING) {
-      len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "style=filled\r\n");
-      len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "color=black\r\n");
-      len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "fillcolor=firebrick1\r\n");
-    }
-    else if (group_states_[group] == EG_FINISHED) {
-      len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "style=filled\r\n");
-      len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "color=black\r\n");
-      len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "fillcolor=chartreuse4\r\n");
-    }
 
-    for (NodeOperation *operation : group->operations_) {
-
-      SNPRINTF(strbuf, "_%p", group);
-      op_groups[operation].push_back(std::string(strbuf));
-
-      len += graphviz_operation(
-          system, operation, group, str + len, maxlen > len ? maxlen - len : 0);
-    }
-
-    len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\r\n");
-    index++;
-  }
-
-  /* operations not included in any group */
   for (NodeOperation *operation : system->operations_) {
     if (op_groups.find(operation) != op_groups.end()) {
       continue;
@@ -324,29 +271,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
 
     op_groups[operation].push_back(std::string(""));
 
-    len += graphviz_operation(
-        system, operation, nullptr, str + len, maxlen > len ? maxlen - len : 0);
-  }
-
-  for (NodeOperation *operation : system->operations_) {
-    if (operation->get_flags().is_read_buffer_operation) {
-      ReadBufferOperation *read = (ReadBufferOperation *)operation;
-      WriteBufferOperation *write = read->get_memory_proxy()->get_write_buffer_operation();
-      std::vector<std::string> &read_groups = op_groups[read];
-      std::vector<std::string> &write_groups = op_groups[write];
-
-      for (int k = 0; k < write_groups.size(); k++) {
-        for (int l = 0; l < read_groups.size(); l++) {
-          len += snprintf(str + len,
-                          maxlen > len ? maxlen - len : 0,
-                          "\"O_%p%s\" -> \"O_%p%s\" [style=dotted]\r\n",
-                          write,
-                          write_groups[k].c_str(),
-                          read,
-                          read_groups[l].c_str());
-        }
-      }
-    }
+    len += graphviz_operation(system, operation, str + len, maxlen > len ? maxlen - len : 0);
   }
 
   for (NodeOperation *op : system->operations_) {
@@ -367,6 +292,10 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
           break;
         case DataType::Color:
           color = "orange";
+          break;
+        case DataType::Float2:
+          /* An internal type that needn't be handled. */
+          BLI_assert_unreachable();
           break;
       }
 
@@ -401,10 +330,7 @@ bool DebugInfo::graphviz_system(const ExecutionSystem *system, char *str, int ma
     }
   }
 
-  const bool has_execution_groups = system->get_context().get_execution_model() ==
-                                        eExecutionModel::Tiled &&
-                                    system->groups_.size() > 0;
-  len += graphviz_legend(str + len, maxlen > len ? maxlen - len : 0, has_execution_groups);
+  len += graphviz_legend(str + len, maxlen > len ? maxlen - len : 0);
 
   len += snprintf(str + len, maxlen > len ? maxlen - len : 0, "}\r\n");
 

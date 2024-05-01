@@ -27,7 +27,7 @@
 
 #include "UI_view2d.hh"
 
-#include "mask_intern.h" /* own include */
+#include "mask_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Spatial Queries

@@ -230,7 +230,8 @@ void seq_time_effect_range_set(const Scene *scene, Sequence *seq)
   seq->len = seq->enddisp - seq->startdisp;
 }
 
-void seq_time_update_effects_strip_range(const Scene *scene, blender::Span<Sequence *> &effects)
+void seq_time_update_effects_strip_range(const Scene *scene,
+                                         const blender::Span<Sequence *> effects)
 {
   /* First pass: Update length of immediate effects. */
   for (Sequence *seq : effects) {
@@ -240,8 +241,8 @@ void seq_time_update_effects_strip_range(const Scene *scene, blender::Span<Seque
   /* Second pass: Recursive call to update effects in chain and in order, so they inherit length
    * correctly. */
   for (Sequence *seq : effects) {
-    blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, seq);
-    seq_time_update_effects_strip_range(scene, effects);
+    blender::Span effects_recurse = seq_sequence_lookup_effects_by_seq(scene, seq);
+    seq_time_update_effects_strip_range(scene, effects_recurse);
   }
 }
 

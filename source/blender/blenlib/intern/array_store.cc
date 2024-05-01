@@ -472,7 +472,7 @@ static void bchunk_list_ensure_min_size_last(const BArrayInfo *info,
                                              BArrayMemory *bs_mem,
                                              BChunkList *chunk_list)
 {
-  BChunkRef *cref = static_cast<BChunkRef *>((chunk_list->chunk_refs.last));
+  BChunkRef *cref = static_cast<BChunkRef *>(chunk_list->chunk_refs.last);
   if (cref && cref->prev) {
     /* Both are decrefed after use (end of this block). */
     BChunk *chunk_curr = cref->link;
@@ -982,7 +982,7 @@ static const BChunkRef *table_lookup(const BArrayInfo *info,
       if (cref->link->key == key)
 #  endif
       {
-        BChunk *chunk_test = cref->link;
+        const BChunk *chunk_test = cref->link;
         if (chunk_test->data_len <= size_left) {
           if (bchunk_data_compare_unchecked(chunk_test, data, data_len, offset)) {
             /* We could remove the chunk from the table, to avoid multiple hits. */
@@ -1176,7 +1176,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
     while ((cref->prev != nullptr) && (cref != cref_match_first) &&
            (cref->link->data_len <= data_len - i_prev))
     {
-      BChunk *chunk_test = cref->link;
+      const BChunk *chunk_test = cref->link;
       size_t offset = data_len - chunk_test->data_len;
       if (bchunk_data_compare(chunk_test, data, data_len, offset)) {
         data_len = offset;
@@ -1607,7 +1607,7 @@ size_t BLI_array_store_calc_size_compacted_get(const BArrayStore *bs)
 {
   size_t size_total = 0;
   BLI_mempool_iter iter;
-  BChunk *chunk;
+  const BChunk *chunk;
   BLI_mempool_iternew(bs->memory.chunk, &iter);
   while ((chunk = static_cast<BChunk *>(BLI_mempool_iterstep(&iter)))) {
     BLI_assert(chunk->users > 0);
@@ -1687,7 +1687,7 @@ size_t BLI_array_store_state_size_get(BArrayState *state)
   return state->chunk_list->total_expanded_size;
 }
 
-void BLI_array_store_state_data_get(BArrayState *state, void *data)
+void BLI_array_store_state_data_get(const BArrayState *state, void *data)
 {
 #ifdef USE_PARANOID_CHECKS
   size_t data_test_len = 0;

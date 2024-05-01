@@ -18,10 +18,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
-#include "GPU_debug.h"
-#include "GPU_texture.h"
+#include "GPU_debug.hh"
+#include "GPU_texture.hh"
 
 #include "UI_resources.hh"
 
@@ -154,10 +154,10 @@ void DRW_stats_query_end()
 
 void DRW_stats_reset()
 {
-  BLI_assert((DTP.timer_increment - DTP.end_increment) <= 0 &&
-             "You forgot a DRW_stats_group/query_end somewhere!");
-  BLI_assert((DTP.timer_increment - DTP.end_increment) >= 0 &&
-             "You forgot a DRW_stats_group/query_start somewhere!");
+  BLI_assert_msg((DTP.timer_increment - DTP.end_increment) <= 0,
+                 "You forgot a DRW_stats_group/query_end somewhere!");
+  BLI_assert_msg((DTP.timer_increment - DTP.end_increment) >= 0,
+                 "You forgot a DRW_stats_group/query_start somewhere!");
 
   if (DTP.is_recording) {
     uint64_t lvl_time[MAX_NESTED_TIMER] = {0};

@@ -66,7 +66,7 @@ class OUTLINER_HT_header(Header):
             layout.operator("outliner.collection_new", text="", icon='COLLECTION_NEW').nested = True
 
         elif display_mode == 'ORPHAN_DATA':
-            layout.operator("outliner.orphans_purge", text="Purge").do_recursive = True
+            layout.operator("outliner.orphans_purge", text="Purge")
 
         elif space.display_mode == 'DATA_API':
             layout.separator()
@@ -223,8 +223,7 @@ class OUTLINER_MT_collection(Menu):
 
         space = context.space_data
 
-        layout.operator("outliner.collection_new", text="New",
-                        text_ctxt=i18n_contexts.id_collection).nested = True
+        layout.operator("outliner.collection_new", text="New", text_ctxt=i18n_contexts.id_collection).nested = True
         layout.operator("outliner.collection_duplicate", text="Duplicate Collection")
         layout.operator("outliner.collection_duplicate_linked", text="Duplicate Linked")
         layout.operator("outliner.id_copy", text="Copy", icon='COPYDOWN')
@@ -360,19 +359,25 @@ class OUTLINER_MT_liboverride(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator_menu_enum("outliner.liboverride_operation", "selection_set",
-                                  text="Make").type = 'OVERRIDE_LIBRARY_CREATE_HIERARCHY'
+        layout.operator_menu_enum(
+            "outliner.liboverride_operation", "selection_set",
+            text="Make",
+        ).type = 'OVERRIDE_LIBRARY_CREATE_HIERARCHY'
         layout.operator_menu_enum(
             "outliner.liboverride_operation",
             "selection_set",
             text="Reset").type = 'OVERRIDE_LIBRARY_RESET'
-        layout.operator_menu_enum("outliner.liboverride_operation", "selection_set",
-                                  text="Clear").type = 'OVERRIDE_LIBRARY_CLEAR_SINGLE'
+        layout.operator_menu_enum(
+            "outliner.liboverride_operation", "selection_set",
+            text="Clear",
+        ).type = 'OVERRIDE_LIBRARY_CLEAR_SINGLE'
 
         layout.separator()
 
-        layout.operator_menu_enum("outliner.liboverride_troubleshoot_operation", "type",
-                                  text="Troubleshoot").selection_set = 'SELECTED'
+        layout.operator_menu_enum(
+            "outliner.liboverride_troubleshoot_operation", "type",
+            text="Troubleshoot",
+        ).selection_set = 'SELECTED'
 
 
 class OUTLINER_PT_filter(Panel):

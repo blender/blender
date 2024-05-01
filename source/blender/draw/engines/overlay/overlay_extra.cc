@@ -47,7 +47,7 @@
 
 #include "overlay_private.hh"
 
-#include "draw_common.h"
+#include "draw_common_c.hh"
 #include "draw_manager_text.hh"
 
 void OVERLAY_extra_cache_init(OVERLAY_Data *vedata)
@@ -258,7 +258,7 @@ OVERLAY_ExtraCallBuffers *OVERLAY_extra_call_buffer_get(OVERLAY_Data *vedata, Ob
 }
 
 void OVERLAY_extra_loose_points(OVERLAY_ExtraCallBuffers *cb,
-                                GPUBatch *geom,
+                                blender::gpu::Batch *geom,
                                 const float mat[4][4],
                                 const float color[4])
 {
@@ -268,7 +268,7 @@ void OVERLAY_extra_loose_points(OVERLAY_ExtraCallBuffers *cb,
 }
 
 void OVERLAY_extra_wire(OVERLAY_ExtraCallBuffers *cb,
-                        GPUBatch *geom,
+                        blender::gpu::Batch *geom,
                         const float mat[4][4],
                         const float color[4])
 {
@@ -756,10 +756,7 @@ void OVERLAY_lightprobe_cache_populate(OVERLAY_Data *vedata, Object *ob)
       DRW_buffer_add_entry(cb->probe_grid, color_p, &instdata);
 
       if (show_influence) {
-        float f = 1.0f - prb->falloff;
-        OVERLAY_empty_shape(cb, ob->object_to_world().ptr(), 1.0 + prb->distinf, OB_CUBE, color_p);
-        OVERLAY_empty_shape(
-            cb, ob->object_to_world().ptr(), 1.0 + prb->distinf * f, OB_CUBE, color_p);
+        OVERLAY_empty_shape(cb, ob->object_to_world().ptr(), 1.0, OB_CUBE, color_p);
       }
 
       /* Data dots */
@@ -1008,7 +1005,7 @@ static float camera_offaxis_shiftx_get(Scene *scene,
                                        const OVERLAY_CameraInstanceData *instdata,
                                        bool right_eye)
 {
-  Camera *cam = static_cast<Camera *>(ob->data);
+  const Camera *cam = static_cast<const Camera *>(ob->data);
   if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
     const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
     const float shiftx = BKE_camera_multiview_shift_x(&scene->r, ob, viewnames[right_eye]);
@@ -1030,7 +1027,7 @@ static void camera_stereoscopy_extra(OVERLAY_ExtraCallBuffers *cb,
                                      const OVERLAY_CameraInstanceData *instdata)
 {
   OVERLAY_CameraInstanceData stereodata = *instdata;
-  Camera *cam = static_cast<Camera *>(ob->data);
+  const Camera *cam = static_cast<const Camera *>(ob->data);
   const bool is_select = DRW_state_is_select();
   const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
@@ -1134,8 +1131,8 @@ void OVERLAY_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
   Scene *scene = draw_ctx->scene;
   RegionView3D *rv3d = draw_ctx->rv3d;
 
-  Camera *cam = static_cast<Camera *>(ob->data);
-  Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
+  const Camera *cam = static_cast<Camera *>(ob->data);
+  const Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
   const bool is_select = DRW_state_is_select();
   const bool is_active = (ob == camera_object);
   const bool look_through = (is_active && (rv3d->persp == RV3D_CAMOB));

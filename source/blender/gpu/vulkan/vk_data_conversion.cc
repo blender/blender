@@ -9,7 +9,7 @@
 #include "vk_data_conversion.hh"
 #include "vk_device.hh"
 
-#include "gpu_vertex_format_private.h"
+#include "gpu_vertex_format_private.hh"
 
 #include "BLI_color.hh"
 
@@ -138,6 +138,16 @@ static ConversionType type_of_conversion_float(const eGPUTextureFormat host_form
     case GPU_R11F_G11F_B10F:
       return ConversionType::FLOAT_TO_B10F_G11F_R11F;
 
+    case GPU_SRGB8_A8_DXT1:
+    case GPU_SRGB8_A8_DXT3:
+    case GPU_SRGB8_A8_DXT5:
+    case GPU_RGBA8_DXT1:
+    case GPU_RGBA8_DXT3:
+    case GPU_RGBA8_DXT5:
+      /* Not an actual "conversion", but compressed texture upload code
+       * pretends that host data is a float. It is actually raw BCn bits. */
+      return ConversionType::PASS_THROUGH;
+
     case GPU_RGB32F: /* GPU_RGB32F Not supported by vendors. */
     case GPU_RGBA8UI:
     case GPU_RGBA8I:
@@ -169,12 +179,6 @@ static ConversionType type_of_conversion_float(const eGPUTextureFormat host_form
     case GPU_RGB16:
     case GPU_RGB32UI:
     case GPU_RGB32I:
-    case GPU_SRGB8_A8_DXT1:
-    case GPU_SRGB8_A8_DXT3:
-    case GPU_SRGB8_A8_DXT5:
-    case GPU_RGBA8_DXT1:
-    case GPU_RGBA8_DXT3:
-    case GPU_RGBA8_DXT5:
     case GPU_SRGB8:
     case GPU_RGB9_E5:
     case GPU_DEPTH_COMPONENT16:
@@ -744,7 +748,7 @@ template<typename StorageType> void convert(SignedNormalized<StorageType> &dst, 
   static constexpr int32_t scalar = SignedNormalized<StorageType>::scalar();
   static constexpr int32_t delta = SignedNormalized<StorageType>::delta();
   static constexpr int32_t max = SignedNormalized<StorageType>::max();
-  dst.value = (clamp_i((src.value * scalar + delta), 0, max));
+  dst.value = clamp_i((src.value * scalar + delta), 0, max);
 }
 
 template<typename StorageType> void convert(F32 &dst, const SignedNormalized<StorageType> &src)
@@ -758,7 +762,7 @@ template<typename StorageType> void convert(UnsignedNormalized<StorageType> &dst
 {
   static constexpr uint32_t scalar = UnsignedNormalized<StorageType>::scalar();
   static constexpr uint32_t max = scalar;
-  dst.value = (clamp_f((src.value * float(scalar)), 0, float(max)));
+  dst.value = clamp_f((src.value * float(scalar)), 0, float(max));
 }
 
 template<typename StorageType> void convert(F32 &dst, const UnsignedNormalized<StorageType> &src)

@@ -16,9 +16,10 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
+#include "COM_algorithm_recursive_gaussian_blur.hh"
 #include "COM_algorithm_symmetric_separable_blur.hh"
 #include "COM_node_operation.hh"
 #include "COM_symmetric_blur_weights.hh"
@@ -106,7 +107,11 @@ class BlurOperation : public NodeOperation {
       return;
     }
 
-    if (use_variable_size()) {
+    if (node_storage(bnode()).filtertype == R_FILTER_FAST_GAUSS) {
+      recursive_gaussian_blur(
+          context(), get_input("Image"), get_result("Image"), compute_blur_radius());
+    }
+    else if (use_variable_size()) {
       execute_variable_size();
     }
     else if (use_separable_filter()) {
@@ -250,9 +255,8 @@ class BlurOperation : public NodeOperation {
       return true;
     }
 
-    /* Both Box and Gaussian filters are separable. The rest is not. */
+    /* Only Gaussian filters are separable. The rest is not. */
     switch (node_storage(bnode()).filtertype) {
-      case R_FILTER_BOX:
       case R_FILTER_GAUSS:
       case R_FILTER_FAST_GAUSS:
         return true;

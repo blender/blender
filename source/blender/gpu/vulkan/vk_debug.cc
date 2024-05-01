@@ -14,8 +14,9 @@
 #include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_debug.hh"
+#include "vk_to_string.hh"
 
-static CLG_LogRef LOG = {"gpu.debug.vulkan"};
+static CLG_LogRef LOG = {"gpu.vulkan"};
 
 namespace blender::gpu {
 void VKContext::debug_group_begin(const char *name, int)
@@ -30,16 +31,21 @@ void VKContext::debug_group_end()
   debug::pop_marker(device);
 }
 
-bool VKContext::debug_capture_begin()
+bool VKContext::debug_capture_begin(const char *title)
 {
-  return VKBackend::get().debug_capture_begin();
+  return VKBackend::get().debug_capture_begin(title);
 }
 
-bool VKBackend::debug_capture_begin()
+bool VKBackend::debug_capture_begin(const char *title)
 {
 #ifdef WITH_RENDERDOC
-  return renderdoc_api_.start_frame_capture(device_get().instance_get(), nullptr);
+  bool result = renderdoc_api_.start_frame_capture(device_get().instance_get(), nullptr);
+  if (result && title) {
+    renderdoc_api_.set_frame_capture_title(title);
+  }
+  return result;
 #else
+  UNUSED_VARS(title);
   return false;
 #endif
 }
@@ -73,6 +79,7 @@ namespace blender::gpu::debug {
 
 void VKDebuggingTools::init(VkInstance vk_instance)
 {
+  CLG_logref_init(&LOG);
 
   PFN_vkGetInstanceProcAddr instance_proc_addr = vkGetInstanceProcAddr;
   enabled = false;
@@ -250,14 +257,9 @@ void VKDebuggingTools::print_labels(const VkDebugUtilsMessengerCallbackDataEXT *
   printf("%s", ss.str().c_str());
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL
+static VKAPI_ATTR VkBool32 VKAPI_CALL
 messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
-                   VkDebugUtilsMessageTypeFlagsEXT /* message_type*/,
-                   const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
-                   void *user_data);
-VKAPI_ATTR VkBool32 VKAPI_CALL
-messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
-                   VkDebugUtilsMessageTypeFlagsEXT /* message_type*/,
+                   VkDebugUtilsMessageTypeFlagsEXT /*message_type*/,
                    const VkDebugUtilsMessengerCallbackDataEXT *callback_data,
                    void *user_data)
 {
@@ -266,14 +268,9 @@ messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
    *
    * - 0xec321b6c: `VUID-VkBufferCreateInfo-size-06409` is disabled as all allocations are reported
    *   to be larger than the maximum allowed buffer size, although the buffer-size is 4GB. Detected
-   *   on Mesa 23.0.4.
+   *   on Mesa 23.0.4. This has been confirmed by the Vulkan Tools WG and fixed up-stream.
    */
   if (ELEM(callback_data->messageIdNumber, 0xec321b6c)) {
-    return VK_FALSE;
-  }
-
-  VKDebuggingTools &debugging_tools = *reinterpret_cast<VKDebuggingTools *>(user_data);
-  if (debugging_tools.is_ignore(callback_data->messageIdNumber)) {
     return VK_FALSE;
   }
 
@@ -305,6 +302,7 @@ messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
   const bool do_labels = (callback_data->objectCount + callback_data->cmdBufLabelCount +
                           callback_data->queueLabelCount) > 0;
   if (do_labels) {
+    VKDebuggingTools &debugging_tools = *reinterpret_cast<VKDebuggingTools *>(user_data);
     debugging_tools.print_labels(callback_data);
   }
 
@@ -313,8 +311,6 @@ messenger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
 
 VkResult VKDebuggingTools::init_messenger(VkInstance vk_instance)
 {
-  CLG_logref_init(&LOG);
-  vk_message_id_number_ignored.clear();
   BLI_assert(enabled);
 
   VkDebugUtilsMessengerCreateInfoEXT create_info;
@@ -341,32 +337,9 @@ void VKDebuggingTools::destroy_messenger(VkInstance vk_instance)
   BLI_assert(enabled);
   vkDestroyDebugUtilsMessengerEXT_r(vk_instance, vk_debug_utils_messenger, nullptr);
 
-  vk_message_id_number_ignored.clear();
   vk_debug_utils_messenger = nullptr;
   return;
 }
-
-bool VKDebuggingTools::is_ignore(int32_t id_number)
-{
-  bool found = false;
-  {
-    std::scoped_lock lock(ignore_mutex);
-    found = vk_message_id_number_ignored.contains(id_number);
-  }
-  return found;
-}
-
-void VKDebuggingTools::add_group(int32_t id_number)
-{
-  std::scoped_lock lock(ignore_mutex);
-  vk_message_id_number_ignored.add(id_number);
-};
-
-void VKDebuggingTools::remove_group(int32_t id_number)
-{
-  std::scoped_lock lock(ignore_mutex);
-  vk_message_id_number_ignored.remove(id_number);
-};
 
 void raise_message(int32_t id_number,
                    VkDebugUtilsMessageSeverityFlagBitsEXT vk_severity_flag_bits,

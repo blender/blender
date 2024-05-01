@@ -25,7 +25,7 @@
 #include "ED_mask.hh"
 #include "ED_screen.hh"
 
-#include "mask_intern.h" /* own include */
+#include "mask_intern.hh" /* own include */
 
 static int mask_parent_clear_exec(bContext *C, wmOperator * /*op*/)
 {

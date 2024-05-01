@@ -33,8 +33,10 @@ class GPENCIL_MT_material_context_menu(Menu):
             layout.operator(
                 "grease_pencil.material_copy_to_object",
                 text="Copy Material to Selected").only_active = True
-            layout.operator("grease_pencil.material_copy_to_object",
-                            text="Copy All Materials to Selected").only_active = False
+            layout.operator(
+                "grease_pencil.material_copy_to_object",
+                text="Copy All Materials to Selected",
+            ).only_active = False
 
         else:
             layout.operator("gpencil.material_reveal", icon='RESTRICT_VIEW_OFF', text="Show All")
@@ -56,8 +58,10 @@ class GPENCIL_MT_material_context_menu(Menu):
             layout.separator()
 
             layout.operator("gpencil.materials_copy_to_object", text="Copy Material to Selected").only_active = True
-            layout.operator("gpencil.materials_copy_to_object",
-                            text="Copy All Materials to Selected").only_active = False
+            layout.operator(
+                "gpencil.materials_copy_to_object",
+                text="Copy All Materials to Selected",
+            ).only_active = False
 
             layout.separator()
 

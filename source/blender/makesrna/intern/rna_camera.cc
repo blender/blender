@@ -36,7 +36,7 @@
 
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
-  Camera *cam = (Camera *)ptr->owner_id;
+  const Camera *cam = (const Camera *)ptr->owner_id;
   float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
   return focallength_to_fov(cam->lens, sensor);
 }
@@ -50,7 +50,7 @@ static void rna_Camera_angle_set(PointerRNA *ptr, float value)
 
 static float rna_Camera_angle_x_get(PointerRNA *ptr)
 {
-  Camera *cam = (Camera *)ptr->owner_id;
+  const Camera *cam = (const Camera *)ptr->owner_id;
   return focallength_to_fov(cam->lens, cam->sensor_x);
 }
 
@@ -62,7 +62,7 @@ static void rna_Camera_angle_x_set(PointerRNA *ptr, float value)
 
 static float rna_Camera_angle_y_get(PointerRNA *ptr)
 {
-  Camera *cam = (Camera *)ptr->owner_id;
+  const Camera *cam = (const Camera *)ptr->owner_id;
   return focallength_to_fov(cam->lens, cam->sensor_y);
 }
 
@@ -120,7 +120,7 @@ static void rna_Camera_background_images_clear(Camera *cam)
 static std::optional<std::string> rna_Camera_background_image_path(const PointerRNA *ptr)
 {
   const CameraBGImage *bgpic = static_cast<const CameraBGImage *>(ptr->data);
-  Camera *camera = (Camera *)ptr->owner_id;
+  const Camera *camera = (const Camera *)ptr->owner_id;
 
   const int bgpic_index = BLI_findindex(&camera->bg_images, bgpic);
 
@@ -135,7 +135,7 @@ std::optional<std::string> rna_CameraBackgroundImage_image_or_movieclip_user_pat
     const PointerRNA *ptr)
 {
   const char *user = static_cast<const char *>(ptr->data);
-  Camera *camera = (Camera *)ptr->owner_id;
+  const Camera *camera = (const Camera *)ptr->owner_id;
 
   int bgpic_index = BLI_findindex(&camera->bg_images, user - offsetof(CameraBGImage, iuser));
   if (bgpic_index >= 0) {
@@ -162,7 +162,7 @@ static bool rna_Camera_background_images_override_apply(
                  "Unsupported RNA override operation on background images collection");
 
   Camera *cam_dst = (Camera *)ptr_dst->owner_id;
-  Camera *cam_src = (Camera *)ptr_src->owner_id;
+  const Camera *cam_src = (const Camera *)ptr_src->owner_id;
 
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
@@ -171,7 +171,7 @@ static bool rna_Camera_background_images_override_apply(
       BLI_findlink(&cam_dst->bg_images, opop->subitem_reference_index));
 
   /* If `bgpic_anchor` is nullptr, `bgpic_src` will be inserted in first position. */
-  CameraBGImage *bgpic_src = static_cast<CameraBGImage *>(
+  const CameraBGImage *bgpic_src = static_cast<const CameraBGImage *>(
       BLI_findlink(&cam_src->bg_images, opop->subitem_local_index));
 
   if (bgpic_src == nullptr) {
@@ -421,7 +421,11 @@ static void rna_def_camera_stereo_data(BlenderRNA *brna)
   static const EnumPropertyItem convergence_mode_items[] = {
       {CAM_S3D_OFFAXIS, "OFFAXIS", 0, "Off-Axis", "Off-axis frustums converging in a plane"},
       {CAM_S3D_PARALLEL, "PARALLEL", 0, "Parallel", "Parallel cameras with no convergence"},
-      {CAM_S3D_TOE, "TOE", 0, "Toe-in", "Rotated cameras, looking at the convergence distance"},
+      {CAM_S3D_TOE,
+       "TOE",
+       0,
+       "Toe-in",
+       "Rotated cameras, looking at the same point at the convergence distance"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

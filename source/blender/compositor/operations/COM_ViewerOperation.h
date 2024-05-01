@@ -19,9 +19,6 @@ class ViewerOperation : public MultiThreadedOperation {
   Image *image_;
   ImageUser *image_user_;
   bool active_;
-  float center_x_;
-  float center_y_;
-  ChunkOrdering chunk_order_;
   ImBuf *ibuf_;
   bool use_alpha_input_;
   const RenderData *rd_;
@@ -30,14 +27,10 @@ class ViewerOperation : public MultiThreadedOperation {
   const ColorManagedViewSettings *view_settings_;
   const ColorManagedDisplaySettings *display_settings_;
 
-  SocketReader *image_input_;
-  SocketReader *alpha_input_;
-
  public:
   ViewerOperation();
   void init_execution() override;
   void deinit_execution() override;
-  void execute_region(rcti *rect, unsigned int tile_number) override;
   void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
   bool is_output_operation(bool /*rendering*/) const override
   {
@@ -61,30 +54,6 @@ class ViewerOperation : public MultiThreadedOperation {
   void set_active(bool active)
   {
     active_ = active;
-  }
-  void setCenterX(float centerX)
-  {
-    center_x_ = centerX;
-  }
-  void setCenterY(float centerY)
-  {
-    center_y_ = centerY;
-  }
-  void set_chunk_order(ChunkOrdering tile_order)
-  {
-    chunk_order_ = tile_order;
-  }
-  float getCenterX() const
-  {
-    return center_x_;
-  }
-  float getCenterY() const
-  {
-    return center_y_;
-  }
-  ChunkOrdering get_chunk_order() const
-  {
-    return chunk_order_;
   }
   eCompositorPriority get_render_priority() const override;
   void set_use_alpha_input(bool value)

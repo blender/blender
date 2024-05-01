@@ -24,12 +24,12 @@ from typing import (
     Any,
     Callable,
     Generator,
+    IO,
     List,
     Optional,
     Sequence,
     Tuple,
     Union,
-    cast,
 )
 
 import shlex
@@ -120,12 +120,13 @@ def makefile_log() -> List[str]:
         time.sleep(1)
 
     # We know this is always true based on the input arguments to `Popen`.
-    stdout: IO[bytes] = process.stdout  # type: ignore
+    assert process.stdout is not None
+    stdout: IO[bytes] = process.stdout
 
     out = stdout.read()
     stdout.close()
     print("done!", len(out), "bytes")
-    return cast(List[str], out.decode("utf-8", errors="ignore").split("\n"))
+    return out.decode("utf-8", errors="ignore").split("\n")
 
 
 def build_info(
@@ -211,9 +212,10 @@ def build_defines_as_source() -> str:
     )
 
     # We know this is always true based on the input arguments to `Popen`.
-    stdout: IO[bytes] = process.stdout  # type: ignore
+    assert process.stdout is not None
+    stdout: IO[bytes] = process.stdout
 
-    return cast(str, stdout.read().strip().decode('ascii'))
+    return stdout.read().strip().decode('ascii')
 
 
 def build_defines_as_args() -> List[str]:
@@ -224,6 +226,17 @@ def build_defines_as_args() -> List[str]:
     ]
 
 
+def process_make_non_blocking(proc: subprocess.Popen[Any]) -> subprocess.Popen[Any]:
+    import fcntl
+    for fh in (proc.stderr, proc.stdout):
+        if fh is None:
+            continue
+        fd = fh.fileno()
+        fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+    return proc
+
+
 # could be moved elsewhere!, this just happens to be used by scripts that also
 # use this module.
 def queue_processes(
@@ -231,6 +244,7 @@ def queue_processes(
         *,
         job_total: int = -1,
         sleep: float = 0.1,
+        process_finalize: Optional[Callable[[subprocess.Popen[Any], bytes, bytes], Optional[int]]] = None,
 ) -> None:
     """ Takes a list of function arg pairs, each function must return a process
     """
@@ -246,15 +260,46 @@ def queue_processes(
             sys.stderr.flush()
 
             process = func(*args)
-            process.wait()
+            if process_finalize is not None:
+                data = process.communicate()
+                process_finalize(process, *data)
     else:
         import time
 
-        processes: List[subprocess.Popen[Any]] = []
+        if process_finalize is not None:
+            def poll_and_finalize(
+                    p: subprocess.Popen[Any],
+                    stdout: List[bytes],
+                    stderr: List[bytes],
+            ) -> Optional[int]:
+                assert p.stdout is not None
+                if data := p.stdout.read():
+                    stdout.append(data)
+                assert p.stderr is not None
+                if data := p.stderr.read():
+                    stderr.append(data)
+
+                if (returncode := p.poll()) is not None:
+                    data_stdout, data_stderr = p.communicate()
+                    if data_stdout:
+                        stdout.append(data_stdout)
+                    if data_stderr:
+                        stderr.append(data_stderr)
+                    process_finalize(p, b"".join(stdout), b"".join(stderr))
+                return returncode
+        else:
+            def poll_and_finalize(
+                    p: subprocess.Popen[Any],
+                    stdout: List[bytes],
+                    stderr: List[bytes],
+            ) -> Optional[int]:
+                return p.poll()
+
+        processes: List[Tuple[subprocess.Popen[Any], List[bytes], List[bytes]]] = []
         for func, args in process_funcs:
             # wait until a thread is free
             while 1:
-                processes[:] = [p for p in processes if p.poll() is None]
+                processes[:] = [p_item for p_item in processes if poll_and_finalize(*p_item) is None]
 
                 if len(processes) <= job_total:
                     break
@@ -263,11 +308,12 @@ def queue_processes(
             sys.stdout.flush()
             sys.stderr.flush()
 
-            processes.append(func(*args))
+            processes.append((process_make_non_blocking(func(*args)), [], []))
 
         # Don't return until all jobs have finished.
         while 1:
-            processes[:] = [p for p in processes if p.poll() is None]
+            processes[:] = [p_item for p_item in processes if poll_and_finalize(*p_item) is None]
+
             if not processes:
                 break
             time.sleep(sleep)

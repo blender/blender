@@ -21,7 +21,7 @@
 
 #include "ED_clip.hh"
 
-#include "clip_intern.h"
+#include "clip_intern.hh"
 
 /********************* add 2d stabilization tracks operator ********************/
 

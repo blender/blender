@@ -14,6 +14,8 @@
 
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_types.hh"
+
 #include "BLI_kdtree.h"
 
 #include "ED_mesh.hh"
@@ -28,11 +30,13 @@ static struct {
   KDTree_3d *tree;
 } MirrKdStore = {nullptr};
 
-void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *me_eval)
+void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *mesh_eval)
 {
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  const bool use_em = (!me_eval && em && mesh->edit_mesh == em);
-  const int totvert = use_em ? em->bm->totvert : me_eval ? me_eval->verts_num : mesh->verts_num;
+  const bool use_em = (!mesh_eval && em && mesh->runtime->edit_mesh.get() == em);
+  const int totvert = use_em    ? em->bm->totvert :
+                      mesh_eval ? mesh_eval->verts_num :
+                                  mesh->verts_num;
 
   if (MirrKdStore.tree) { /* happens when entering this call without ending it */
     ED_mesh_mirror_spatial_table_end(ob);
@@ -53,8 +57,8 @@ void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *me_eva
     }
   }
   else {
-    const blender::Span<blender::float3> positions = me_eval ? me_eval->vert_positions() :
-                                                               mesh->vert_positions();
+    const blender::Span<blender::float3> positions = mesh_eval ? mesh_eval->vert_positions() :
+                                                                 mesh->vert_positions();
     for (int i = 0; i < totvert; i++) {
       BLI_kdtree_3d_insert(MirrKdStore.tree, i, positions[i]);
     }
@@ -65,11 +69,11 @@ void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *me_eva
 
 int ED_mesh_mirror_spatial_table_lookup(Object *ob,
                                         BMEditMesh *em,
-                                        Mesh *me_eval,
+                                        Mesh *mesh_eval,
                                         const float co[3])
 {
   if (MirrKdStore.tree == nullptr) {
-    ED_mesh_mirror_spatial_table_begin(ob, em, me_eval);
+    ED_mesh_mirror_spatial_table_begin(ob, em, mesh_eval);
   }
 
   if (MirrKdStore.tree) {

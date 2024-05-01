@@ -85,12 +85,6 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
   return false;
 }
 
-static bool depends_on_normals(ModifierData *md)
-{
-  DisplaceModifierData *dmd = (DisplaceModifierData *)md;
-  return ELEM(dmd->direction, MOD_DISP_DIR_NOR, MOD_DISP_DIR_CLNOR);
-}
-
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
@@ -461,7 +455,7 @@ ModifierTypeInfo modifierType_Displace = {
     /*is_disabled*/ is_disabled,
     /*update_depsgraph*/ update_depsgraph,
     /*depends_on_time*/ depends_on_time,
-    /*depends_on_normals*/ depends_on_normals,
+    /*depends_on_normals*/ nullptr,
     /*foreach_ID_link*/ foreach_ID_link,
     /*foreach_tex_link*/ foreach_tex_link,
     /*free_runtime_data*/ nullptr,

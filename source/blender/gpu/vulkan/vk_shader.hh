@@ -27,12 +27,25 @@ class VKShader : public Shader {
   VkShaderModule fragment_module_ = VK_NULL_HANDLE;
   VkShaderModule compute_module_ = VK_NULL_HANDLE;
   bool compilation_failed_ = false;
-  /* TODO: Should we move descriptor set layout and pipeline layout to VKShaderInterface? */
+
+  /**
+   * Not owning handle to the descriptor layout.
+   * The handle is owned by `VKDescriptorSetLayouts` of the device.
+   */
   VkDescriptorSetLayout vk_descriptor_set_layout_ = VK_NULL_HANDLE;
   VkPipelineLayout vk_pipeline_layout_ = VK_NULL_HANDLE;
+  /* deprecated `when use_render_graph=true`. In that case use vk_pipeline_ */
   VKPipeline pipeline_;
+  /**
+   * Last created VkPipeline handle. This handle is used as template when building a variation of
+   * the shader. In case for compute shaders without specialization constants this handle is also
+   * used as an early exit. In this case there is only 1 variation.
+   */
+  VkPipeline vk_pipeline_ = VK_NULL_HANDLE;
 
  public:
+  VKPushConstants push_constants;
+
   VKShader(const char *name);
   virtual ~VKShader();
 
@@ -47,7 +60,7 @@ class VKShader : public Shader {
 
   void transform_feedback_names_set(Span<const char *> name_list,
                                     eGPUShaderTFBType geom_type) override;
-  bool transform_feedback_enable(GPUVertBuf *) override;
+  bool transform_feedback_enable(VertBuf *) override;
   void transform_feedback_disable() override;
 
   void bind() override;
@@ -75,6 +88,7 @@ class VKShader : public Shader {
 
   /* DEPRECATED: Kept only because of BGL API. */
   int program_handle_get() const override;
+  VkPipeline ensure_and_get_compute_pipeline();
 
   VKPipeline &pipeline_get();
   VkPipelineLayout vk_pipeline_layout_get() const
@@ -119,9 +133,8 @@ class VKShader : public Shader {
   void build_shader_module(MutableSpan<const char *> sources,
                            shaderc_shader_kind stage,
                            VkShaderModule *r_shader_module);
-  bool finalize_descriptor_set_layouts(VkDevice vk_device,
-                                       const VKShaderInterface &shader_interface,
-                                       const shader::ShaderCreateInfo &info);
+  bool finalize_descriptor_set_layouts(VKDevice &vk_device,
+                                       const VKShaderInterface &shader_interface);
   bool finalize_pipeline_layout(VkDevice vk_device, const VKShaderInterface &shader_interface);
 
   /**

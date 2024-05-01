@@ -14,7 +14,11 @@
 #include "usd_hierarchy_iterator.hh"
 #include "usd_writer_curves.hh"
 
+<<<<<<< HEAD
 #include "DNA_curve_types.h"
+=======
+#include "BLI_array_utils.hh"
+>>>>>>> main
 
 #include "BKE_attribute.hh"
 #include "BKE_curve_legacy_convert.hh"
@@ -23,28 +27,19 @@
 #include "BKE_material.h"
 #include "BKE_report.hh"
 
-#include "BLI_math_geom.h"
 #include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
-#include "WM_api.hh"
-
 namespace blender::io::usd {
 
-USDCurvesWriter::USDCurvesWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
-
-USDCurvesWriter::~USDCurvesWriter() {}
-
-pxr::UsdGeomCurves USDCurvesWriter::DefineUsdGeomBasisCurves(pxr::VtValue curve_basis,
-                                                             const bool is_cyclic,
-                                                             const bool is_cubic)
+pxr::UsdGeomBasisCurves USDCurvesWriter::DefineUsdGeomBasisCurves(pxr::VtValue curve_basis,
+                                                                  const bool is_cyclic,
+                                                                  const bool is_cubic) const
 {
-  pxr::UsdGeomCurves curves = pxr::UsdGeomBasisCurves::Define(usd_export_context_.stage,
-                                                              usd_export_context_.usd_path);
-
-  pxr::UsdGeomBasisCurves basis_curves = pxr::UsdGeomBasisCurves(curves);
+  pxr::UsdGeomBasisCurves basis_curves = pxr::UsdGeomBasisCurves::Define(
+      usd_export_context_.stage, usd_export_context_.usd_path);
   /* Not required to set the basis attribute for linear curves
    * https://graphics.pixar.com/usd/dev/api/class_usd_geom_basis_curves.html#details */
   if (is_cubic) {
@@ -69,14 +64,18 @@ pxr::UsdGeomCurves USDCurvesWriter::DefineUsdGeomBasisCurves(pxr::VtValue curve_
     basis_curves.CreateWrapAttr(pxr::VtValue(pxr::UsdGeomTokens->nonperiodic));
   }
 
-  return curves;
+  return basis_curves;
 }
 
+<<<<<<< HEAD
 static void populate_curve_widths(const bke::CurvesGeometry &geometry,
                                   pxr::VtArray<float> &widths,
                                   const float multiplier)
+=======
+static void populate_curve_widths(const bke::CurvesGeometry &curves, pxr::VtArray<float> &widths)
+>>>>>>> main
 {
-  const bke::AttributeAccessor curve_attributes = geometry.attributes();
+  const bke::AttributeAccessor curve_attributes = curves.attributes();
   const bke::AttributeReader<float> radii = curve_attributes.lookup<float>("radius",
                                                                            bke::AttrDomain::Point);
   widths.resize(radii.varray.size());
@@ -119,7 +118,7 @@ static pxr::TfToken get_curve_width_interpolation(const pxr::VtArray<float> &wid
   return pxr::TfToken();
 }
 
-static void populate_curve_verts(const bke::CurvesGeometry &geometry,
+static void populate_curve_verts(const bke::CurvesGeometry &curves,
                                  const Span<float3> positions,
                                  pxr::VtArray<pxr::GfVec3f> &verts,
                                  pxr::VtIntArray &control_point_counts,
@@ -127,8 +126,8 @@ static void populate_curve_verts(const bke::CurvesGeometry &geometry,
                                  const bool is_cyclic,
                                  const bool is_cubic)
 {
-  const OffsetIndices points_by_curve = geometry.points_by_curve();
-  for (const int i_curve : geometry.curves_range()) {
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  for (const int i_curve : curves.curves_range()) {
 
     const IndexRange points = points_by_curve[i_curve];
     for (const int i_point : points) {
@@ -157,7 +156,7 @@ static void populate_curve_verts(const bke::CurvesGeometry &geometry,
   }
 }
 
-static void populate_curve_props(const bke::CurvesGeometry &geometry,
+static void populate_curve_props(const bke::CurvesGeometry &curves,
                                  pxr::VtArray<pxr::GfVec3f> &verts,
                                  pxr::VtIntArray &control_point_counts,
                                  pxr::VtArray<float> &widths,
@@ -167,20 +166,24 @@ static void populate_curve_props(const bke::CurvesGeometry &geometry,
                                  const float multiplier,
                                  ReportList *reports)
 {
-  const int num_curves = geometry.curve_num;
-  const Span<float3> positions = geometry.positions();
+  const int num_curves = curves.curve_num;
+  const Span<float3> positions = curves.positions();
 
   pxr::VtArray<int> segments(num_curves);
 
   populate_curve_verts(
-      geometry, positions, verts, control_point_counts, segments, is_cyclic, is_cubic);
+      curves, positions, verts, control_point_counts, segments, is_cyclic, is_cubic);
 
+<<<<<<< HEAD
   populate_curve_widths(geometry, widths, multiplier);
+=======
+  populate_curve_widths(curves, widths);
+>>>>>>> main
   interpolation = get_curve_width_interpolation(
       widths, segments, control_point_counts, is_cyclic, reports);
 }
 
-static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &geometry,
+static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &curves,
                                             const Span<float3> positions,
                                             const Span<float3> handles_l,
                                             const Span<float3> handles_r,
@@ -190,9 +193,9 @@ static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &geometry,
                                             const bool is_cyclic)
 {
   const int bezier_vstep = 3;
-  const OffsetIndices points_by_curve = geometry.points_by_curve();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
 
-  for (const int i_curve : geometry.curves_range()) {
+  for (const int i_curve : curves.curves_range()) {
 
     const IndexRange points = points_by_curve[i_curve];
     const int start_point_index = points[0];
@@ -220,10 +223,8 @@ static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &geometry,
                                  positions[last_point_index][1],
                                  positions[last_point_index][2]));
 
-    /* For USD representation of periodic bezier curve, one of the curve's points must be
-     * repeated to close the curve. The repeated point is the first point. Since the curve is
-     * closed, we now need to include the right handle of the last point and the left handle of
-     * the first point.
+    /* For USD periodic bezier curves, since the curve is closed, we need to include
+     * the right handle of the last point and the left handle of the first point.
      */
     if (is_cyclic) {
       const blender::float3 right_handle = handles_r[last_point_index];
@@ -231,10 +232,6 @@ static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &geometry,
 
       const blender::float3 left_handle = handles_l[start_point_index];
       verts.push_back(pxr::GfVec3f(left_handle[0], left_handle[1], left_handle[2]));
-
-      verts.push_back(pxr::GfVec3f(positions[start_point_index][0],
-                                   positions[start_point_index][1],
-                                   positions[start_point_index][2]));
     }
 
     const int tot_points = verts.size() - start_verts_count;
@@ -249,7 +246,7 @@ static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &geometry,
   }
 }
 
-static void populate_curve_props_for_bezier(const bke::CurvesGeometry &geometry,
+static void populate_curve_props_for_bezier(const bke::CurvesGeometry &curves,
                                             pxr::VtArray<pxr::GfVec3f> &verts,
                                             pxr::VtIntArray &control_point_counts,
                                             pxr::VtArray<float> &widths,
@@ -258,25 +255,27 @@ static void populate_curve_props_for_bezier(const bke::CurvesGeometry &geometry,
                                             const float multiplier,
                                             ReportList *reports)
 {
+  const int num_curves = curves.curve_num;
 
-  const int num_curves = geometry.curve_num;
-
-  const Span<float3> positions = geometry.positions();
-
-  const Span<float3> handles_l = geometry.handle_positions_left();
-  const Span<float3> handles_r = geometry.handle_positions_right();
+  const Span<float3> positions = curves.positions();
+  const Span<float3> handles_l = curves.handle_positions_left();
+  const Span<float3> handles_r = curves.handle_positions_right();
 
   pxr::VtArray<int> segments(num_curves);
 
   populate_curve_verts_for_bezier(
-      geometry, positions, handles_l, handles_r, verts, control_point_counts, segments, is_cyclic);
+      curves, positions, handles_l, handles_r, verts, control_point_counts, segments, is_cyclic);
 
+<<<<<<< HEAD
   populate_curve_widths(geometry, widths, multiplier);
+=======
+  populate_curve_widths(curves, widths);
+>>>>>>> main
   interpolation = get_curve_width_interpolation(
       widths, segments, control_point_counts, is_cyclic, reports);
 }
 
-static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &geometry,
+static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &curves,
                                            pxr::VtArray<pxr::GfVec3f> &verts,
                                            pxr::VtIntArray &control_point_counts,
                                            pxr::VtArray<float> &widths,
@@ -288,16 +287,16 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &geometry,
 {
   /* Order and range, when representing a batched NurbsCurve should be authored one value per
    * curve. */
-  const int num_curves = geometry.curve_num;
+  const int num_curves = curves.curve_num;
   orders.resize(num_curves);
 
-  const Span<float3> positions = geometry.positions();
+  const Span<float3> positions = curves.positions();
 
-  VArray<int8_t> geom_orders = geometry.nurbs_orders();
-  VArray<int8_t> knots_modes = geometry.nurbs_knots_modes();
+  VArray<int8_t> geom_orders = curves.nurbs_orders();
+  VArray<int8_t> knots_modes = curves.nurbs_knots_modes();
 
-  const OffsetIndices points_by_curve = geometry.points_by_curve();
-  for (const int i_curve : geometry.curves_range()) {
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  for (const int i_curve : curves.curves_range()) {
     const IndexRange points = points_by_curve[i_curve];
     for (const int i_point : points) {
       verts.push_back(
@@ -337,27 +336,30 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &geometry,
     }
   }
 
+<<<<<<< HEAD
   populate_curve_widths(geometry, widths, bevel_radius);
+=======
+  populate_curve_widths(curves, widths);
+>>>>>>> main
   interpolation = pxr::UsdGeomTokens->vertex;
 }
 
-void USDCurvesWriter::set_writer_attributes_for_nurbs(const pxr::UsdGeomCurves usd_curves,
-                                                      const pxr::VtArray<double> knots,
-                                                      const pxr::VtArray<int> orders,
-                                                      const pxr::UsdTimeCode timecode)
+void USDCurvesWriter::set_writer_attributes_for_nurbs(
+    const pxr::UsdGeomNurbsCurves &usd_nurbs_curves,
+    const pxr::VtArray<double> &knots,
+    const pxr::VtArray<int> &orders,
+    const pxr::UsdTimeCode timecode)
 {
-  pxr::UsdAttribute attr_knots =
-      pxr::UsdGeomNurbsCurves(usd_curves).CreateKnotsAttr(pxr::VtValue(), true);
+  pxr::UsdAttribute attr_knots = usd_nurbs_curves.CreateKnotsAttr(pxr::VtValue(), true);
   usd_value_writer_.SetAttribute(attr_knots, pxr::VtValue(knots), timecode);
-  pxr::UsdAttribute attr_order =
-      pxr::UsdGeomNurbsCurves(usd_curves).CreateOrderAttr(pxr::VtValue(), true);
+  pxr::UsdAttribute attr_order = usd_nurbs_curves.CreateOrderAttr(pxr::VtValue(), true);
   usd_value_writer_.SetAttribute(attr_order, pxr::VtValue(orders), timecode);
 }
 
 void USDCurvesWriter::set_writer_attributes(pxr::UsdGeomCurves &usd_curves,
-                                            const pxr::VtArray<pxr::GfVec3f> verts,
-                                            const pxr::VtIntArray control_point_counts,
-                                            const pxr::VtArray<float> widths,
+                                            const pxr::VtArray<pxr::GfVec3f> &verts,
+                                            const pxr::VtIntArray &control_point_counts,
+                                            const pxr::VtArray<float> &widths,
                                             const pxr::UsdTimeCode timecode,
                                             const pxr::TfToken interpolation)
 {
@@ -368,7 +370,7 @@ void USDCurvesWriter::set_writer_attributes(pxr::UsdGeomCurves &usd_curves,
                                                                                 true);
   usd_value_writer_.SetAttribute(attr_vertex_counts, pxr::VtValue(control_point_counts), timecode);
 
-  if (widths.size() > 0) {
+  if (!widths.empty()) {
     pxr::UsdAttribute attr_widths = usd_curves.CreateWidthsAttr(pxr::VtValue(), true);
     usd_value_writer_.SetAttribute(attr_widths, pxr::VtValue(widths), timecode);
 
@@ -378,7 +380,7 @@ void USDCurvesWriter::set_writer_attributes(pxr::UsdGeomCurves &usd_curves,
 
 void USDCurvesWriter::do_write(HierarchyContext &context)
 {
-  Curves *curves;
+  Curves *curves_id;
   std::unique_ptr<Curves, std::function<void(Curves *)>> converted_curves;
   float bevel_radius = 1.0f;
 
@@ -387,47 +389,38 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
       const Curve *legacy_curve = static_cast<Curve *>(context.object->data);
       converted_curves = std::unique_ptr<Curves, std::function<void(Curves *)>>(
           bke::curve_legacy_to_curves(*legacy_curve), [](Curves *c) { BKE_id_free(nullptr, c); });
+<<<<<<< HEAD
       curves = converted_curves.get();
       bevel_radius = legacy_curve->bevel_radius;
+=======
+      curves_id = converted_curves.get();
+>>>>>>> main
       break;
     }
     case OB_CURVES:
-      curves = static_cast<Curves *>(context.object->data);
+      curves_id = static_cast<Curves *>(context.object->data);
       break;
     default:
       BLI_assert_unreachable();
       return;
   }
 
-  const bke::CurvesGeometry &geometry = curves->geometry.wrap();
-  if (geometry.points_num() == 0) {
+  const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+  if (curves.points_num() == 0) {
     return;
   }
 
-  const std::array<int, CURVE_TYPES_NUM> curve_type_counts = geometry.curve_type_counts();
-  const int number_of_curve_types = std::reduce(
-      curve_type_counts.begin(), curve_type_counts.end(), 0, [](int previous_result, int item) {
-        return item > 0 ? ++previous_result : previous_result;
-      });
-
+  const std::array<int, CURVE_TYPES_NUM> &curve_type_counts = curves.curve_type_counts();
+  const int number_of_curve_types = std::count_if(curve_type_counts.begin(),
+                                                  curve_type_counts.end(),
+                                                  [](const int count) { return count > 0; });
   if (number_of_curve_types > 1) {
     BKE_report(
         reports(), RPT_WARNING, "Cannot export mixed curve types in the same Curves object");
     return;
   }
 
-  const VArray<bool> cyclic_values = geometry.cyclic();
-  const bool is_cyclic = cyclic_values[0];
-  bool all_same_cyclic_type = true;
-
-  for (const int i : cyclic_values.index_range()) {
-    if (cyclic_values[i] != is_cyclic) {
-      all_same_cyclic_type = false;
-      break;
-    }
-  }
-
-  if (!all_same_cyclic_type) {
+  if (array_utils::booleans_mix_calc(curves.cyclic()) == array_utils::BooleanMix::Mixed) {
     BKE_report(reports(),
                RPT_WARNING,
                "Cannot export mixed cyclic and non-cyclic curves in the same Curves object");
@@ -435,15 +428,7 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
   }
 
   const pxr::UsdTimeCode timecode = get_export_time_code();
-  pxr::UsdGeomCurves usd_curves;
-
-  pxr::VtArray<pxr::GfVec3f> verts;
-  pxr::VtIntArray control_point_counts;
-  control_point_counts.resize(geometry.curves_num());
-  pxr::VtArray<float> widths;
-  pxr::TfToken interpolation;
-
-  const int8_t curve_type = geometry.curve_types()[0];
+  const int8_t curve_type = curves.curve_types()[0];
 
   if (first_frame_curve_type == -1) {
     first_frame_curve_type = curve_type;
@@ -467,10 +452,23 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
     return;
   }
 
+  const bool is_cyclic = curves.cyclic().first();
+  pxr::VtArray<pxr::GfVec3f> verts;
+  pxr::VtIntArray control_point_counts;
+  pxr::VtArray<float> widths;
+  pxr::TfToken interpolation;
+
+  pxr::UsdGeomBasisCurves usd_basis_curves;
+  pxr::UsdGeomNurbsCurves usd_nurbs_curves;
+  pxr::UsdGeomCurves *usd_curves = nullptr;
+
+  control_point_counts.resize(curves.curves_num());
   switch (curve_type) {
     case CURVE_TYPE_POLY:
-      usd_curves = DefineUsdGeomBasisCurves(pxr::VtValue(), is_cyclic, false);
+      usd_basis_curves = DefineUsdGeomBasisCurves(pxr::VtValue(), is_cyclic, false);
+      usd_curves = &usd_basis_curves;
 
+<<<<<<< HEAD
       populate_curve_props(geometry,
                            verts,
                            control_point_counts,
@@ -480,11 +478,17 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
                            false,
                            bevel_radius,
                            reports());
+=======
+      populate_curve_props(
+          curves, verts, control_point_counts, widths, interpolation, is_cyclic, false, reports());
+>>>>>>> main
       break;
     case CURVE_TYPE_CATMULL_ROM:
-      usd_curves = DefineUsdGeomBasisCurves(
+      usd_basis_curves = DefineUsdGeomBasisCurves(
           pxr::VtValue(pxr::UsdGeomTokens->catmullRom), is_cyclic, true);
+      usd_curves = &usd_basis_curves;
 
+<<<<<<< HEAD
       populate_curve_props(geometry,
                            verts,
                            control_point_counts,
@@ -494,12 +498,18 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
                            true,
                            bevel_radius,
                            reports());
+=======
+      populate_curve_props(
+          curves, verts, control_point_counts, widths, interpolation, is_cyclic, true, reports());
+>>>>>>> main
       break;
     case CURVE_TYPE_BEZIER:
-      usd_curves = DefineUsdGeomBasisCurves(
+      usd_basis_curves = DefineUsdGeomBasisCurves(
           pxr::VtValue(pxr::UsdGeomTokens->bezier), is_cyclic, true);
+      usd_curves = &usd_basis_curves;
 
       populate_curve_props_for_bezier(
+<<<<<<< HEAD
           geometry,
           verts,
           control_point_counts,
@@ -508,15 +518,20 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
           is_cyclic,
           bevel_radius,
           reports());
+=======
+          curves, verts, control_point_counts, widths, interpolation, is_cyclic, reports());
+>>>>>>> main
       break;
     case CURVE_TYPE_NURBS: {
       pxr::VtArray<double> knots;
       pxr::VtArray<int> orders;
-      orders.resize(geometry.curves_num());
+      orders.resize(curves.curves_num());
 
-      usd_curves = pxr::UsdGeomNurbsCurves::Define(usd_export_context_.stage,
-                                                   usd_export_context_.usd_path);
+      usd_nurbs_curves = pxr::UsdGeomNurbsCurves::Define(usd_export_context_.stage,
+                                                         usd_export_context_.usd_path);
+      usd_curves = &usd_nurbs_curves;
 
+<<<<<<< HEAD
       populate_curve_props_for_nurbs(geometry,
                                      verts,
                                      control_point_counts,
@@ -526,8 +541,12 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
                                      interpolation,
                                      is_cyclic,
                                      bevel_radius);
+=======
+      populate_curve_props_for_nurbs(
+          curves, verts, control_point_counts, widths, knots, orders, interpolation, is_cyclic);
+>>>>>>> main
 
-      set_writer_attributes_for_nurbs(usd_curves, knots, orders, timecode);
+      set_writer_attributes_for_nurbs(usd_nurbs_curves, knots, orders, timecode);
 
       break;
     }
@@ -535,13 +554,16 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
       BLI_assert_unreachable();
   }
 
-  set_writer_attributes(usd_curves, verts, control_point_counts, widths, timecode, interpolation);
+  set_writer_attributes(*usd_curves, verts, control_point_counts, widths, timecode, interpolation);
 
-  assign_materials(context, usd_curves);
+  assign_materials(context, *usd_curves);
+
+  auto prim = usd_curves->GetPrim();
+  write_id_properties(prim, curves_id->id, timecode);
 }
 
 void USDCurvesWriter::assign_materials(const HierarchyContext &context,
-                                       pxr::UsdGeomCurves usd_curve)
+                                       const pxr::UsdGeomCurves &usd_curves)
 {
   if (context.object->totcol == 0) {
     return;
@@ -554,15 +576,15 @@ void USDCurvesWriter::assign_materials(const HierarchyContext &context,
       continue;
     }
 
-    pxr::UsdPrim curve_prim = usd_curve.GetPrim();
+    pxr::UsdPrim curve_prim = usd_curves.GetPrim();
     pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(curve_prim);
     pxr::UsdShadeMaterial usd_material = ensure_usd_material(context, material);
     api.Bind(usd_material);
-    api.Apply(curve_prim);
+    pxr::UsdShadeMaterialBindingAPI::Apply(curve_prim);
 
     /* USD seems to support neither per-material nor per-face-group double-sidedness, so we just
      * use the flag from the first non-empty material slot. */
-    usd_curve.CreateDoubleSidedAttr(
+    usd_curves.CreateDoubleSidedAttr(
         pxr::VtValue((material->blend_flag & MA_BL_CULL_BACKFACE) == 0));
 
     curve_material_bound = true;
@@ -571,7 +593,7 @@ void USDCurvesWriter::assign_materials(const HierarchyContext &context,
 
   if (!curve_material_bound) {
     /* Blender defaults to double-sided, but USD to single-sided. */
-    usd_curve.CreateDoubleSidedAttr(pxr::VtValue(true));
+    usd_curves.CreateDoubleSidedAttr(pxr::VtValue(true));
   }
 }
 

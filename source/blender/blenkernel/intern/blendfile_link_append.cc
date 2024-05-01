@@ -36,6 +36,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
@@ -47,6 +48,7 @@
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_material.h"
+#include "BKE_mesh_legacy_convert.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 #include "BKE_rigidbody.h"
@@ -180,7 +182,7 @@ static BlendHandle *link_append_context_library_blohandle_ensure(
     lib_context->bf_reports.reports = reports;
   }
 
-  char *libname = lib_context->path;
+  const char *libname = lib_context->path;
   BlendHandle *blo_handle = lib_context->blo_handle;
   if (blo_handle == nullptr) {
     if (STREQ(libname, BLO_EMBEDDED_STARTUP_BLEND)) {
@@ -520,11 +522,13 @@ static void loose_data_instantiate_ensure_active_collection(
   Scene *scene = instantiate_context->lapp_context->params->context.scene;
   ViewLayer *view_layer = instantiate_context->lapp_context->params->context.view_layer;
 
-  /* Find or add collection as needed. */
+  /* Find or add collection as needed. When `active_collection` is non-null, it is assumed to be
+   * editable. */
   if (instantiate_context->active_collection == nullptr) {
     if (lapp_context->params->flag & FILE_ACTIVE_COLLECTION) {
       LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
-      instantiate_context->active_collection = lc->collection;
+      instantiate_context->active_collection = BKE_collection_parent_editable_find_recursive(
+          view_layer, lc->collection);
     }
     else {
       if (lapp_context->params->flag & FILE_LINK) {
@@ -1375,6 +1379,15 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   BKE_main_id_newptr_and_tag_clear(bmain);
 
   blendfile_link_append_proxies_convert(bmain, reports);
+  BKE_main_mesh_legacy_convert_auto_smooth(*bmain);
+
+  if (U.experimental.use_grease_pencil_version3 &&
+      U.experimental.use_grease_pencil_version3_convert_on_load)
+  {
+    BlendFileReadReport bf_reports{};
+    bf_reports.reports = reports;
+    blender::bke::greasepencil::convert::legacy_main(*bmain, bf_reports);
+  }
 }
 
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
@@ -1397,7 +1410,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
   {
     BlendfileLinkAppendContextLibrary *lib_context =
         static_cast<BlendfileLinkAppendContextLibrary *>(liblink->link);
-    char *libname = lib_context->path;
+    const char *libname = lib_context->path;
     BlendHandle *blo_handle = link_append_context_library_blohandle_ensure(
         lapp_context, lib_context, reports);
 
@@ -1491,6 +1504,15 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
 
   if ((lapp_context->params->flag & FILE_LINK) != 0) {
     blendfile_link_append_proxies_convert(lapp_context->params->bmain, reports);
+    BKE_main_mesh_legacy_convert_auto_smooth(*lapp_context->params->bmain);
+
+    if (U.experimental.use_grease_pencil_version3 &&
+        U.experimental.use_grease_pencil_version3_convert_on_load)
+    {
+      BlendFileReadReport bf_reports{};
+      bf_reports.reports = reports;
+      blender::bke::greasepencil::convert::legacy_main(*lapp_context->params->bmain, bf_reports);
+    }
   }
 
   BKE_main_namemap_clear(lapp_context->params->bmain);
@@ -1624,11 +1646,11 @@ static void blendfile_library_relocate_remap(Main *bmain,
               new_id->us);
 
     /* In some cases, new_id might become direct link, remove parent of library in this case. */
-    if (new_id->lib->parent && (new_id->tag & LIB_TAG_INDIRECT) == 0) {
+    if (new_id->lib->runtime.parent && (new_id->tag & LIB_TAG_INDIRECT) == 0) {
       if (do_reload) {
         BLI_assert_unreachable(); /* Should not happen in 'pure' reload case... */
       }
-      new_id->lib->parent = nullptr;
+      new_id->lib->runtime.parent = nullptr;
     }
   }
 
@@ -1700,7 +1722,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
     const short idcode = id ? GS(id->name) : 0;
 
     if (!id || !BKE_idtype_idcode_is_linkable(idcode)) {
-      /* No need to reload non-linkable datatypes,
+      /* No need to reload non-linkable data-types,
        * those will get relinked with their 'users ID'. */
       continue;
     }

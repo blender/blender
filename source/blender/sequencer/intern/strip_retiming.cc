@@ -599,7 +599,7 @@ class RetimingRange {
       : start(start_frame), end(end_frame), speed(speed), type(type)
   {
     if (type == TRANSITION) {
-      speed = 1.0f;
+      this->speed = 1.0f;
       claculate_speed_table_from_seq(seq);
     }
   }
@@ -620,7 +620,7 @@ class RetimingRange {
 
   /* Create new range representing overlap of 2 ranges.
    * Returns overlapping range. */
-  RetimingRange operator*(const RetimingRange rhs_range)
+  RetimingRange operator*(const RetimingRange &rhs_range)
   {
     RetimingRange new_range = RetimingRange(0, 0, 0, LINEAR);
 
@@ -732,7 +732,7 @@ class RetimingRangeData {
     }
   }
 
-  RetimingRangeData &operator*=(const RetimingRangeData rhs)
+  RetimingRangeData &operator*=(const RetimingRangeData &rhs)
   {
     if (ranges.is_empty()) {
       for (const RetimingRange &rhs_range : rhs.ranges) {
@@ -814,11 +814,8 @@ void SEQ_retiming_sound_animation_data_set(const Scene *scene, const Sequence *s
       }
     }
     else {
-      const int range_start = max_ii(0, range.start);
-      const int range_end = max_ii(0, range.end);
-
       BKE_sound_set_scene_sound_pitch_constant_range(
-          seq->scene_sound, range_start, range_end, range.speed);
+          seq->scene_sound, range.start, range.end, range.speed);
     }
   }
 }

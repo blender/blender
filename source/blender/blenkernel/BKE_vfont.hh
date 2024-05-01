@@ -102,7 +102,7 @@ bool BKE_vfont_to_curve_ex(Object *ob,
                            CharTrans **r_chartransdata);
 bool BKE_vfont_to_curve_nubase(Object *ob, eEditFontMode mode, ListBase *r_nubase);
 
-int BKE_vfont_cursor_to_text_index(Object *ob, float cursor_location[2]);
+int BKE_vfont_cursor_to_text_index(Object *ob, const float cursor_location[2]);
 
 /**
  * \warning Expects to have access to evaluated data (i.e. passed object should be evaluated one).
@@ -111,7 +111,7 @@ bool BKE_vfont_to_curve(Object *ob, eEditFontMode mode);
 void BKE_vfont_build_char(Curve *cu,
                           ListBase *nubase,
                           unsigned int character,
-                          CharInfo *info,
+                          const CharInfo *info,
                           float ofsx,
                           float ofsy,
                           float rot,
@@ -121,7 +121,7 @@ void BKE_vfont_build_char(Curve *cu,
 int BKE_vfont_select_get(Object *ob, int *r_start, int *r_end);
 void BKE_vfont_select_clamp(Object *ob);
 
-void BKE_vfont_clipboard_free(void);
+void BKE_vfont_clipboard_free();
 void BKE_vfont_clipboard_set(const char32_t *text_buf, const CharInfo *info_buf, size_t len);
 void BKE_vfont_clipboard_get(char32_t **r_text_buf,
                              CharInfo **r_info_buf,

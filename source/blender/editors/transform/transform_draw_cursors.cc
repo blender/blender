@@ -6,9 +6,9 @@
  * \ingroup edtransform
  */
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "BLI_math_rotation.h"
 
@@ -115,7 +115,7 @@ void transform_draw_cursor_draw(bContext * /*C*/, int x, int y, void *customdata
     GPU_line_width(DASH_WIDTH);
     immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
     immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
-    immUniform1i("colors_len", 0); /* "simple" mode */
+    immUniform1i("colors_len", 0); /* "simple" mode. */
     immUniformThemeColor3(TH_VIEW_OVERLAY);
     immUniform1f("dash_width", DASH_LENGTH);
     immUniform1f("udash_factor", 0.5f);

@@ -51,7 +51,7 @@ using blender::Span;
 static CustomData *mesh_customdata_get_type(Mesh *mesh, const char htype, int *r_tot)
 {
   CustomData *data;
-  BMesh *bm = (mesh->edit_mesh) ? mesh->edit_mesh->bm : nullptr;
+  BMesh *bm = (mesh->runtime->edit_mesh) ? mesh->runtime->edit_mesh->bm : nullptr;
   int tot;
 
   switch (htype) {
@@ -175,9 +175,7 @@ static void mesh_uv_reset_mface(const blender::IndexRange face, float2 *mloopuv)
 
 void ED_mesh_uv_loop_reset_ex(Mesh *mesh, const int layernum)
 {
-  BMEditMesh *em = mesh->edit_mesh;
-
-  if (em) {
+  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     /* Collect BMesh UVs */
     const int cd_loop_uv_offset = CustomData_get_n_offset(
         &em->bm->ldata, CD_PROP_FLOAT2, layernum);
@@ -225,7 +223,6 @@ int ED_mesh_uv_add(
 {
   /* NOTE: keep in sync with #ED_mesh_color_add. */
 
-  BMEditMesh *em;
   int layernum_dst;
 
   if (!name) {
@@ -235,9 +232,7 @@ int ED_mesh_uv_add(
   const std::string unique_name = BKE_id_attribute_calc_unique_name(mesh->id, name);
   bool is_init = false;
 
-  if (mesh->edit_mesh) {
-    em = mesh->edit_mesh;
-
+  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_PROP_FLOAT2);
     if (layernum_dst >= MAX_MTFACE) {
       BKE_reportf(reports, RPT_WARNING, "Cannot add more than %i UV maps", MAX_MTFACE);
@@ -366,12 +361,9 @@ bool *ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, const int uv_index)
 
 void ED_mesh_uv_ensure(Mesh *mesh, const char *name)
 {
-  BMEditMesh *em;
   int layernum_dst;
 
-  if (mesh->edit_mesh) {
-    em = mesh->edit_mesh;
-
+  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     layernum_dst = CustomData_number_of_layers(&em->bm->ldata, CD_PROP_FLOAT2);
     if (layernum_dst == 0) {
       ED_mesh_uv_add(mesh, name, true, true, nullptr);
@@ -401,7 +393,7 @@ int ED_mesh_color_add(
     const char *active_name = mesh->active_color_attribute;
     if (const CustomDataLayer *active_layer = BKE_id_attributes_color_find(&mesh->id, active_name))
     {
-      if (const BMEditMesh *em = mesh->edit_mesh) {
+      if (const BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
         BMesh &bm = *em->bm;
         const int src_i = CustomData_get_named_layer(&bm.ldata, CD_PROP_BYTE_COLOR, active_name);
         const int dst_i = CustomData_get_named_layer(&bm.ldata, CD_PROP_BYTE_COLOR, layer->name);
@@ -429,8 +421,8 @@ int ED_mesh_color_add(
 bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
 {
   using namespace blender;
-  BLI_assert(mesh->edit_mesh == nullptr);
-  if (mesh->attributes().contains(mesh->active_color_attribute)) {
+  BLI_assert(mesh->runtime->edit_mesh == nullptr);
+  if (BKE_color_attribute_supported(*mesh, mesh->active_color_attribute)) {
     return true;
   }
 
@@ -455,7 +447,7 @@ bool ED_mesh_color_ensure(Mesh *mesh, const char *name)
 
 static bool layers_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
   return (ob && !ID_IS_LINKED(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && ob->type == OB_MESH && data &&
           !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
@@ -469,7 +461,7 @@ static bool uv_texture_remove_poll(bContext *C)
     return false;
   }
 
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
   const int active = CustomData_get_active_layer(ldata, CD_PROP_FLOAT2);
@@ -482,7 +474,7 @@ static bool uv_texture_remove_poll(bContext *C)
 
 static int mesh_uv_texture_add_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   if (ED_mesh_uv_add(mesh, nullptr, true, true, op->reports) == -1) {
@@ -515,7 +507,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 
 static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   CustomData *ldata = mesh_customdata_get_type(mesh, BM_LOOP, nullptr);
@@ -565,8 +557,8 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
   BLI_assert(CustomData_layertype_is_singleton(type) == true);
 
   if (CustomData_has_layer(data, type)) {
-    if (mesh->edit_mesh) {
-      BM_data_layer_free(mesh->edit_mesh->bm, data, type);
+    if (mesh->runtime->edit_mesh) {
+      BM_data_layer_free(mesh->runtime->edit_mesh->bm, data, type);
     }
     else {
       CustomData_free_layers(data, type, tot);
@@ -583,7 +575,7 @@ static int mesh_customdata_clear_exec__internal(bContext *C,
 /* Clear Mask */
 static bool mesh_customdata_mask_clear_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   if (ob && ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
 
@@ -607,7 +599,7 @@ static bool mesh_customdata_mask_clear_poll(bContext *C)
 }
 static int mesh_customdata_mask_clear_exec(bContext *C, wmOperator *op)
 {
-  Object *object = ED_object_context(C);
+  Object *object = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(object->data);
   const bool ret_a = BKE_id_attribute_remove(&mesh->id, ".sculpt_mask", op->reports);
   int ret_b = mesh_customdata_clear_exec__internal(C, BM_LOOP, CD_GRID_PAINT_MASK);
@@ -641,7 +633,7 @@ void MESH_OT_customdata_mask_clear(wmOperatorType *ot)
  */
 static int mesh_customdata_skin_state(bContext *C)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
 
   if (ob && ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -660,7 +652,7 @@ static bool mesh_customdata_skin_add_poll(bContext *C)
 
 static int mesh_customdata_skin_add_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
   BKE_mesh_ensure_skin_customdata(mesh);
@@ -720,8 +712,8 @@ static int mesh_customdata_custom_splitnormals_add_exec(bContext *C, wmOperator 
     return OPERATOR_CANCELLED;
   }
 
-  if (mesh->edit_mesh) {
-    BMesh &bm = *mesh->edit_mesh->bm;
+  if (mesh->runtime->edit_mesh) {
+    BMesh &bm = *mesh->runtime->edit_mesh->bm;
     BM_data_layer_add(&bm, &bm.ldata, CD_CUSTOMLOOPNORMAL);
   }
   else {
@@ -754,7 +746,7 @@ static int mesh_customdata_custom_splitnormals_clear_exec(bContext *C, wmOperato
 {
   Mesh *mesh = ED_mesh_context(C);
 
-  if (BMEditMesh *em = mesh->edit_mesh) {
+  if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
     BMesh &bm = *em->bm;
     if (!CustomData_has_layer(&bm.ldata, CD_CUSTOMLOOPNORMAL)) {
       return OPERATOR_CANCELLED;
@@ -941,7 +933,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
 
 void ED_mesh_verts_add(Mesh *mesh, ReportList *reports, int count)
 {
-  if (mesh->edit_mesh) {
+  if (mesh->runtime->edit_mesh) {
     BKE_report(reports, RPT_ERROR, "Cannot add vertices in edit mode");
     return;
   }
@@ -950,7 +942,7 @@ void ED_mesh_verts_add(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
 {
-  if (mesh->edit_mesh) {
+  if (mesh->runtime->edit_mesh) {
     BKE_report(reports, RPT_ERROR, "Cannot add edges in edit mode");
     return;
   }
@@ -959,7 +951,7 @@ void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
 {
-  if (mesh->edit_mesh) {
+  if (mesh->runtime->edit_mesh) {
     BKE_report(reports, RPT_ERROR, "Cannot add loops in edit mode");
     return;
   }
@@ -968,7 +960,7 @@ void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_faces_add(Mesh *mesh, ReportList *reports, int count)
 {
-  if (mesh->edit_mesh) {
+  if (mesh->runtime->edit_mesh) {
     BKE_report(reports, RPT_ERROR, "Cannot add faces in edit mode");
     return;
   }
@@ -1027,7 +1019,7 @@ static void mesh_remove_faces(Mesh *mesh, int len)
 
 void ED_mesh_verts_remove(Mesh *mesh, ReportList *reports, int count)
 {
-  if (mesh->edit_mesh) {
+  if (mesh->runtime->edit_mesh) {
     BKE_report(reports, RPT_ERROR, "Cannot remove vertices in edit mode");
     return;
   }
@@ -1041,7 +1033,7 @@ void ED_mesh_verts_remove(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
 {
-  if (mesh->edit_mesh) {
+  if (mesh->runtime->edit_mesh) {
     BKE_report(reports, RPT_ERROR, "Cannot remove edges in edit mode");
     return;
   }
@@ -1055,7 +1047,7 @@ void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_loops_remove(Mesh *mesh, ReportList *reports, int count)
 {
-  if (mesh->edit_mesh) {
+  if (mesh->runtime->edit_mesh) {
     BKE_report(reports, RPT_ERROR, "Cannot remove loops in edit mode");
     return;
   }
@@ -1069,7 +1061,7 @@ void ED_mesh_loops_remove(Mesh *mesh, ReportList *reports, int count)
 
 void ED_mesh_faces_remove(Mesh *mesh, ReportList *reports, int count)
 {
-  if (mesh->edit_mesh) {
+  if (mesh->runtime->edit_mesh) {
     BKE_report(reports, RPT_ERROR, "Cannot remove polys in edit mode");
     return;
   }
@@ -1121,9 +1113,9 @@ void ED_mesh_report_mirror(wmOperator *op, int totmirr, int totfail)
 
 KeyBlock *ED_mesh_get_edit_shape_key(const Mesh *me)
 {
-  BLI_assert(me->edit_mesh && me->edit_mesh->bm);
+  BLI_assert(me->runtime->edit_mesh && me->runtime->edit_mesh->bm);
 
-  return BKE_keyblock_find_by_index(me->key, me->edit_mesh->bm->shapenr - 1);
+  return BKE_keyblock_find_by_index(me->key, me->runtime->edit_mesh->bm->shapenr - 1);
 }
 
 Mesh *ED_mesh_context(bContext *C)
@@ -1133,7 +1125,7 @@ Mesh *ED_mesh_context(bContext *C)
     return mesh;
   }
 
-  Object *ob = ED_object_active_context(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   if (ob == nullptr) {
     return nullptr;
   }
@@ -1154,15 +1146,15 @@ void ED_mesh_split_faces(Mesh *mesh)
   const bke::AttributeAccessor attributes = mesh->attributes();
   const VArray<bool> mesh_sharp_edges = *attributes.lookup_or_default<bool>(
       "sharp_edge", bke::AttrDomain::Edge, false);
-  const bool *sharp_faces = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->face_data, CD_PROP_BOOL, "sharp_face"));
+  const VArraySpan<bool> sharp_faces = *attributes.lookup<bool>("sharp_face",
+                                                                bke::AttrDomain::Face);
 
   Array<bool> sharp_edges(mesh->edges_num);
   mesh_sharp_edges.materialize(sharp_edges);
 
   threading::parallel_for(polys.index_range(), 1024, [&](const IndexRange range) {
     for (const int face_i : range) {
-      if (sharp_faces && sharp_faces[face_i]) {
+      if (!sharp_faces.is_empty() && sharp_faces[face_i]) {
         for (const int edge : corner_edges.slice(polys[face_i])) {
           sharp_edges[edge] = true;
         }

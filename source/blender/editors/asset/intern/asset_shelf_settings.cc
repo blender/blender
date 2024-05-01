@@ -76,11 +76,11 @@ void settings_blend_write(BlendWriter *writer, const AssetShelfSettings &setting
 
 void settings_blend_read_data(BlendDataReader *reader, AssetShelfSettings &settings)
 {
-  BLO_read_list(reader, &settings.enabled_catalog_paths);
+  BLO_read_struct_list(reader, LinkData, &settings.enabled_catalog_paths);
   LISTBASE_FOREACH (LinkData *, catalog_path_item, &settings.enabled_catalog_paths) {
-    BLO_read_data_address(reader, &catalog_path_item->data);
+    BLO_read_string(reader, reinterpret_cast<char **>(&catalog_path_item->data));
   }
-  BLO_read_data_address(reader, &settings.active_catalog_path);
+  BLO_read_string(reader, &settings.active_catalog_path);
 }
 
 void settings_clear_enabled_catalogs(AssetShelfSettings &settings)

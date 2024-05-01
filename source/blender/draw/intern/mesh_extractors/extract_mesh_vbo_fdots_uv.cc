@@ -27,7 +27,7 @@ static void extract_fdots_uv_init(const MeshRenderData &mr,
                                   void *buf,
                                   void *tls_data)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "u", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -36,11 +36,11 @@ static void extract_fdots_uv_init(const MeshRenderData &mr,
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.face_len);
+  GPU_vertbuf_data_alloc(vbo, mr.faces_num);
 
   if (!mr.use_subsurf_fdots) {
     /* Clear so we can accumulate on it. */
-    memset(GPU_vertbuf_get_data(vbo), 0x0, mr.face_len * GPU_vertbuf_get_format(vbo)->stride);
+    memset(GPU_vertbuf_get_data(vbo), 0x0, mr.faces_num * GPU_vertbuf_get_format(vbo)->stride);
   }
 
   MeshExtract_FdotUV_Data *data = static_cast<MeshExtract_FdotUV_Data *>(tls_data);

@@ -18,7 +18,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_screen.hh"
 
 #include "ED_anim_api.hh"
@@ -27,7 +27,7 @@
 
 #include "RNA_prototypes.h"
 
-#include "graph_intern.h" /* own include */
+#include "graph_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Set Up Drivers Editor

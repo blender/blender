@@ -109,6 +109,8 @@ dict_custom = {
     "deinitializes",
     "deletable",
     "deleter",
+    "demangle",
+    "demangled",
     "denoised",
     "denoiser",
     "denoising",
@@ -174,6 +176,7 @@ dict_custom = {
     "imbricated",
     "impactful",
     "incrementation",
+    "indexable",
     "inferencing",
     "initializations",
     "initializer",
@@ -273,6 +276,7 @@ dict_custom = {
     "precomputed",
     "precomputing",
     "prefetch",
+    "prefetched",
     "prefetching",
     "prefilter",
     "prefiltered",
@@ -342,6 +346,7 @@ dict_custom = {
     "retarget",
     "retiming",
     "reusability",
+    "rotationally",
     "saveable",
     "schemas",
     "scrollable",
@@ -385,6 +390,7 @@ dict_custom = {
     "teleporting",
     "templating",
     "tertiarily",
+    "testability",
     "thumbstick",
     "tokenize",
     "tokenizing",
@@ -403,6 +409,7 @@ dict_custom = {
     "unapplied",
     "unapply",
     "unassign",
+    "unassigning",
     "unassociated",
     "unbake",
     "unbuffered",
@@ -565,7 +572,7 @@ dict_custom = {
     "unparent",
 
     # Accepted abbreviations.
-    # "dir",  # direction/directory? Too ambiguous, don't use this.
+    # `"dir",`  # direction/directory? Too ambiguous, don't use this.
     "anim",  # animation.
     "attr",
     "attrs",

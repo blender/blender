@@ -139,7 +139,7 @@ struct Main {
   /** The currently opened .blend file was written from a newer version of Blender, and has forward
    * compatibility issues (data loss).
    *
-   * \note: In practice currently this is only based on the version numbers, in the future it
+   * \note In practice currently this is only based on the version numbers, in the future it
    * could try to use more refined detection on load. */
   bool has_forward_compatibility_issues;
 
@@ -210,6 +210,7 @@ struct Main {
   ListBase collections;
   ListBase armatures;
   ListBase actions;
+  ListBase animations;
   ListBase nodetrees;
   ListBase brushes;
   ListBase particles;
@@ -257,7 +258,7 @@ struct Main {
  * \note Always generate a non-global Main, use #BKE_blender_globals_main_replace to put a newly
  * created one in `G_MAIN`.
  */
-Main *BKE_main_new(void);
+Main *BKE_main_new();
 void BKE_main_free(Main *mainvar);
 
 /** Struct packaging log/report info about a Main merge result. */
@@ -499,6 +500,10 @@ int set_listbasepointers(Main *main, ListBase *lb[]);
 #define MAIN_VERSION_FILE_OLDER_OR_EQUAL(main, ver, subver) \
   ((main)->versionfile < (ver) || \
    ((main)->versionfile == (ver) && (main)->subversionfile <= (subver)))
+
+#define LIBRARY_VERSION_FILE_ATLEAST(lib, ver, subver) \
+  ((lib)->runtime.versionfile > (ver) || \
+   ((lib)->runtime.versionfile == (ver) && (lib)->runtime.subversionfile >= (subver)))
 
 /**
  * The size of thumbnails (optionally) stored in the `.blend` files header.

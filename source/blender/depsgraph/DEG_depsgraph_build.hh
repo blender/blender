@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
 /* ************************************************* */
@@ -53,9 +54,14 @@ void DEG_graph_build_for_render_pipeline(Depsgraph *graph);
 void DEG_graph_build_for_compositor_preview(Depsgraph *graph, bNodeTree *nodetree);
 
 /**
+ * Builds the minimal dependency graph needed for evaluation of all IDs within the Collection.
+ */
+void DEG_graph_build_from_collection(Depsgraph *graph, Collection *collection);
+
+/**
  * Builds the minimal dependency graph needed for evaluation of the given IDs.
  */
-void DEG_graph_build_from_ids(Depsgraph *graph, ID **ids, int num_ids);
+void DEG_graph_build_from_ids(Depsgraph *graph, blender::Span<ID *> ids);
 
 /** Tag relations from the given graph for update. */
 void DEG_graph_tag_relations_update(Depsgraph *graph);

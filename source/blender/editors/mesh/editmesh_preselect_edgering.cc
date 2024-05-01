@@ -14,13 +14,16 @@
 
 #include "BKE_editmesh.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "ED_mesh.hh"
 
 #include "UI_resources.hh"
+
+using blender::float3;
+using blender::Span;
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Edge Ring Pre-Select
@@ -34,13 +37,15 @@
  *
  * \{ */
 
-static void edgering_vcos_get(BMVert *v[2][2], float r_cos[2][2][3], const float (*coords)[3])
+static void edgering_vcos_get(BMVert *v[2][2],
+                              float r_cos[2][2][3],
+                              const Span<float3> vert_positions)
 {
-  if (coords) {
+  if (!vert_positions.is_empty()) {
     int j, k;
     for (j = 0; j < 2; j++) {
       for (k = 0; k < 2; k++) {
-        copy_v3_v3(r_cos[j][k], coords[BM_elem_index_get(v[j][k])]);
+        copy_v3_v3(r_cos[j][k], vert_positions[BM_elem_index_get(v[j][k])]);
       }
     }
   }
@@ -54,12 +59,14 @@ static void edgering_vcos_get(BMVert *v[2][2], float r_cos[2][2][3], const float
   }
 }
 
-static void edgering_vcos_get_pair(BMVert *v[2], float r_cos[2][3], const float (*coords)[3])
+static void edgering_vcos_get_pair(BMVert *v[2],
+                                   float r_cos[2][3],
+                                   const Span<float3> vert_positions)
 {
-  if (coords) {
+  if (!vert_positions.is_empty()) {
     int j;
     for (j = 0; j < 2; j++) {
-      copy_v3_v3(r_cos[j], coords[BM_elem_index_get(v[j])]);
+      copy_v3_v3(r_cos[j], vert_positions[BM_elem_index_get(v[j])]);
     }
   }
   else {
@@ -204,11 +211,12 @@ void EDBM_preselect_edgering_draw(EditMesh_PreSelEdgeRing *psel, const float mat
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void view3d_preselect_mesh_edgering_update_verts_from_edge(EditMesh_PreSelEdgeRing *psel,
-                                                                  BMesh * /*bm*/,
-                                                                  BMEdge *eed_start,
-                                                                  int previewlines,
-                                                                  const float (*coords)[3])
+static void view3d_preselect_mesh_edgering_update_verts_from_edge(
+    EditMesh_PreSelEdgeRing *psel,
+    BMesh * /*bm*/,
+    BMEdge *eed_start,
+    int previewlines,
+    const Span<float3> vert_positions)
 {
   float v_cos[2][3];
   float(*verts)[3];
@@ -216,7 +224,7 @@ static void view3d_preselect_mesh_edgering_update_verts_from_edge(EditMesh_PreSe
 
   verts = static_cast<float(*)[3]>(MEM_mallocN(sizeof(*psel->verts) * previewlines, __func__));
 
-  edgering_vcos_get_pair(&eed_start->v1, v_cos, coords);
+  edgering_vcos_get_pair(&eed_start->v1, v_cos, vert_positions);
 
   for (i = 1; i <= previewlines; i++) {
     const float fac = (i / (float(previewlines) + 1));
@@ -228,11 +236,12 @@ static void view3d_preselect_mesh_edgering_update_verts_from_edge(EditMesh_PreSe
   psel->verts_len = previewlines;
 }
 
-static void view3d_preselect_mesh_edgering_update_edges_from_edge(EditMesh_PreSelEdgeRing *psel,
-                                                                  BMesh *bm,
-                                                                  BMEdge *eed_start,
-                                                                  int previewlines,
-                                                                  const float (*coords)[3])
+static void view3d_preselect_mesh_edgering_update_edges_from_edge(
+    EditMesh_PreSelEdgeRing *psel,
+    BMesh *bm,
+    BMEdge *eed_start,
+    int previewlines,
+    const Span<float3> vert_positions)
 {
   BMWalker walker;
   BMEdge *eed, *eed_last;
@@ -291,7 +300,7 @@ static void view3d_preselect_mesh_edgering_update_edges_from_edge(EditMesh_PreSe
         const float fac = (i / (float(previewlines) + 1));
         float v_cos[2][2][3];
 
-        edgering_vcos_get(v, v_cos, coords);
+        edgering_vcos_get(v, v_cos, vert_positions);
 
         interp_v3_v3v3(edges[tot][0], v_cos[0][0], v_cos[0][1], fac);
         interp_v3_v3v3(edges[tot][1], v_cos[1][0], v_cos[1][1], fac);
@@ -322,7 +331,7 @@ static void view3d_preselect_mesh_edgering_update_edges_from_edge(EditMesh_PreSe
         continue;
       }
 
-      edgering_vcos_get(v, v_cos, coords);
+      edgering_vcos_get(v, v_cos, vert_positions);
 
       interp_v3_v3v3(edges[tot][0], v_cos[0][0], v_cos[0][1], fac);
       interp_v3_v3v3(edges[tot][1], v_cos[1][0], v_cos[1][1], fac);
@@ -340,21 +349,21 @@ void EDBM_preselect_edgering_update_from_edge(EditMesh_PreSelEdgeRing *psel,
                                               BMesh *bm,
                                               BMEdge *eed_start,
                                               int previewlines,
-                                              const float (*coords)[3])
+                                              const Span<float3> vert_positions)
 {
   EDBM_preselect_edgering_clear(psel);
 
-  if (coords) {
+  if (!vert_positions.is_empty()) {
     BM_mesh_elem_index_ensure(bm, BM_VERT);
   }
 
   if (BM_edge_is_any_face_len_test(eed_start, 4)) {
     view3d_preselect_mesh_edgering_update_edges_from_edge(
-        psel, bm, eed_start, previewlines, coords);
+        psel, bm, eed_start, previewlines, vert_positions);
   }
   else {
     view3d_preselect_mesh_edgering_update_verts_from_edge(
-        psel, bm, eed_start, previewlines, coords);
+        psel, bm, eed_start, previewlines, vert_positions);
   }
 }
 

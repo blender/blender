@@ -10,6 +10,7 @@
  * General operations for brushes.
  */
 
+#include "DNA_brush_enums.h"
 #include "DNA_color_types.h"
 #include "DNA_object_enums.h"
 
@@ -93,6 +94,10 @@ float BKE_brush_curve_strength_clamped(const Brush *br, float p, float len);
 /**
  * Uses the brush curve control to find a strength value.
  */
+float BKE_brush_curve_strength(eBrushCurvePreset preset,
+                               const CurveMapping *cumap,
+                               float distance,
+                               float brush_radius);
 float BKE_brush_curve_strength(const Brush *br, float p, float len);
 
 /* Sampling. */

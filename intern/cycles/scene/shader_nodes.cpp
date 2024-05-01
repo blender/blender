@@ -2283,14 +2283,14 @@ bool BsdfBaseNode::has_bump()
 BsdfNode::BsdfNode(const NodeType *node_type) : BsdfBaseNode(node_type) {}
 
 void BsdfNode::compile(SVMCompiler &compiler,
-                       ShaderInput *param1,
-                       ShaderInput *param2,
-                       ShaderInput *param3,
-                       ShaderInput *param4)
+                       ShaderInput *bsdf_y,
+                       ShaderInput *bsdf_z,
+                       ShaderInput *data_y,
+                       ShaderInput *data_z,
+                       ShaderInput *data_w)
 {
   ShaderInput *color_in = input("Color");
   ShaderInput *normal_in = input("Normal");
-  ShaderInput *tangent_in = input("Tangent");
 
   if (color_in->link) {
     compiler.add_node(NODE_CLOSURE_WEIGHT, compiler.stack_assign(color_in));
@@ -2300,21 +2300,20 @@ void BsdfNode::compile(SVMCompiler &compiler,
   }
 
   int normal_offset = (normal_in) ? compiler.stack_assign_if_linked(normal_in) : SVM_STACK_INVALID;
-  int tangent_offset = (tangent_in) ? compiler.stack_assign_if_linked(tangent_in) :
-                                      SVM_STACK_INVALID;
-  int param3_offset = (param3) ? compiler.stack_assign(param3) : SVM_STACK_INVALID;
-  int param4_offset = (param4) ? compiler.stack_assign(param4) : SVM_STACK_INVALID;
+  int data_y_offset = (data_y) ? compiler.stack_assign(data_y) : SVM_STACK_INVALID;
+  int data_z_offset = (data_z) ? compiler.stack_assign(data_z) : SVM_STACK_INVALID;
+  int data_w_offset = (data_w) ? compiler.stack_assign(data_w) : SVM_STACK_INVALID;
 
   compiler.add_node(
       NODE_CLOSURE_BSDF,
       compiler.encode_uchar4(closure,
-                             (param1) ? compiler.stack_assign(param1) : SVM_STACK_INVALID,
-                             (param2) ? compiler.stack_assign(param2) : SVM_STACK_INVALID,
+                             (bsdf_y) ? compiler.stack_assign(bsdf_y) : SVM_STACK_INVALID,
+                             (bsdf_z) ? compiler.stack_assign(bsdf_z) : SVM_STACK_INVALID,
                              compiler.closure_mix_weight_offset()),
-      __float_as_int((param1) ? get_float(param1->socket_type) : 0.0f),
-      __float_as_int((param2) ? get_float(param2->socket_type) : 0.0f));
+      __float_as_int((bsdf_y) ? get_float(bsdf_y->socket_type) : 0.0f),
+      __float_as_int((bsdf_z) ? get_float(bsdf_z->socket_type) : 0.0f));
 
-  compiler.add_node(normal_offset, tangent_offset, param3_offset, param4_offset);
+  compiler.add_node(normal_offset, data_y_offset, data_z_offset, data_w_offset);
 }
 
 void BsdfNode::compile(SVMCompiler &compiler)
@@ -2392,13 +2391,21 @@ void GlossyBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = distribution;
 
+  ShaderInput *tangent = input("Tangent");
+  tangent = compiler.is_linked(tangent) ? tangent : nullptr;
+
   /* TODO: Just use weight for legacy MultiGGX? Would also simplify OSL. */
   if (closure == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID) {
-    BsdfNode::compile(
-        compiler, input("Roughness"), input("Anisotropy"), input("Rotation"), input("Color"));
+    BsdfNode::compile(compiler,
+                      input("Roughness"),
+                      input("Anisotropy"),
+                      input("Rotation"),
+                      input("Color"),
+                      tangent);
   }
   else {
-    BsdfNode::compile(compiler, input("Roughness"), input("Anisotropy"), input("Rotation"));
+    BsdfNode::compile(
+        compiler, input("Roughness"), input("Anisotropy"), input("Rotation"), nullptr, tangent);
   }
 }
 
@@ -2872,6 +2879,38 @@ void TransparentBsdfNode::compile(OSLCompiler &compiler)
   compiler.add(this, "node_transparent_bsdf");
 }
 
+/* Ray Portal BSDF Closure */
+
+NODE_DEFINE(RayPortalBsdfNode)
+{
+  NodeType *type = NodeType::add("ray_portal_bsdf", create, NodeType::SHADER);
+
+  SOCKET_IN_COLOR(color, "Color", one_float3());
+  SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
+
+  SOCKET_IN_VECTOR(position, "Position", zero_float3(), SocketType::LINK_POSITION);
+  SOCKET_IN_VECTOR(direction, "Direction", zero_float3());
+
+  SOCKET_OUT_CLOSURE(BSDF, "BSDF");
+
+  return type;
+}
+
+RayPortalBsdfNode::RayPortalBsdfNode() : BsdfNode(get_node_type())
+{
+  closure = CLOSURE_BSDF_RAY_PORTAL_ID;
+}
+
+void RayPortalBsdfNode::compile(SVMCompiler &compiler)
+{
+  BsdfNode::compile(compiler, NULL, NULL, input("Position"), input("Direction"));
+}
+
+void RayPortalBsdfNode::compile(OSLCompiler &compiler)
+{
+  compiler.add(this, "node_ray_portal_bsdf");
+}
+
 /* Subsurface Scattering Closure */
 
 NODE_DEFINE(SubsurfaceScatteringNode)
@@ -2892,6 +2931,7 @@ NODE_DEFINE(SubsurfaceScatteringNode)
   SOCKET_IN_VECTOR(radius, "Radius", make_float3(0.1f, 0.1f, 0.1f));
 
   SOCKET_IN_FLOAT(subsurface_ior, "IOR", 1.4f);
+  SOCKET_IN_FLOAT(subsurface_roughness, "Roughness", 1.0f);
   SOCKET_IN_FLOAT(subsurface_anisotropy, "Anisotropy", 0.0f);
 
   SOCKET_OUT_CLOSURE(BSSRDF, "BSSRDF");
@@ -2907,7 +2947,12 @@ SubsurfaceScatteringNode::SubsurfaceScatteringNode() : BsdfNode(get_node_type())
 void SubsurfaceScatteringNode::compile(SVMCompiler &compiler)
 {
   closure = method;
-  BsdfNode::compile(compiler, input("Scale"), input("IOR"), input("Radius"), input("Anisotropy"));
+  BsdfNode::compile(compiler,
+                    input("Scale"),
+                    input("IOR"),
+                    input("Radius"),
+                    input("Anisotropy"),
+                    input("Roughness"));
 }
 
 void SubsurfaceScatteringNode::compile(OSLCompiler &compiler)
@@ -3535,7 +3580,11 @@ void HairBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = component;
 
-  BsdfNode::compile(compiler, input("RoughnessU"), input("RoughnessV"), input("Offset"));
+  ShaderInput *tangent = input("Tangent");
+  tangent = compiler.is_linked(tangent) ? tangent : nullptr;
+
+  BsdfNode::compile(
+      compiler, input("RoughnessU"), input("RoughnessV"), input("Offset"), nullptr, tangent);
 }
 
 void HairBsdfNode::compile(OSLCompiler &compiler)

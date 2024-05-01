@@ -530,32 +530,19 @@ static bNodeTreeInterfaceSocket *rna_NodeTreeInterfaceItems_new_socket(
   return socket;
 }
 
-static bNodeTreeInterfacePanel *rna_NodeTreeInterfaceItems_new_panel(
-    ID *id,
-    bNodeTreeInterface *interface,
-    Main *bmain,
-    ReportList *reports,
-    const char *name,
-    const char *description,
-    bool default_closed,
-    bNodeTreeInterfacePanel *parent)
+static bNodeTreeInterfacePanel *rna_NodeTreeInterfaceItems_new_panel(ID *id,
+                                                                     bNodeTreeInterface *interface,
+                                                                     Main *bmain,
+                                                                     ReportList *reports,
+                                                                     const char *name,
+                                                                     const char *description,
+                                                                     bool default_closed)
 {
-  if (parent != nullptr) {
-    if (!interface->find_item(parent->item)) {
-      BKE_report(reports, RPT_ERROR_INVALID_INPUT, "Parent is not part of the interface");
-      return nullptr;
-    }
-    if (!(parent->flag & NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS)) {
-      BKE_report(reports, RPT_WARNING, "Parent panel does not allow child panels");
-      return nullptr;
-    }
-  }
-
   NodeTreeInterfacePanelFlag flag = NodeTreeInterfacePanelFlag(0);
   SET_FLAG_FROM_TEST(flag, default_closed, NODE_INTERFACE_PANEL_DEFAULT_CLOSED);
 
   bNodeTreeInterfacePanel *panel = interface->add_panel(
-      name ? name : "", description ? description : "", flag, parent);
+      name ? name : "", description ? description : "", flag, nullptr);
 
   if (panel == nullptr) {
     BKE_report(reports, RPT_ERROR, "Unable to create panel");
@@ -717,6 +704,7 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocketFloat_subtype_itemf(
                                    PROP_TIME,
                                    PROP_TIME_ABSOLUTE,
                                    PROP_DISTANCE,
+                                   PROP_WAVELENGTH,
                                    PROP_NONE},
                                   r_free);
 }
@@ -836,11 +824,11 @@ static int rna_NodeTreeInterface_items_length(PointerRNA *ptr)
   return ntree->interface_items().size();
 }
 
-static int rna_NodeTreeInterface_items_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+static bool rna_NodeTreeInterface_items_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   if (!ntree->runtime) {
-    return 0;
+    return false;
   }
 
   ntree->ensure_interface_cache();
@@ -853,13 +841,13 @@ static int rna_NodeTreeInterface_items_lookup_int(PointerRNA *ptr, int index, Po
   return true;
 }
 
-static int rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
-                                                     const char *key,
-                                                     PointerRNA *r_ptr)
+static bool rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
+                                                      const char *key,
+                                                      PointerRNA *r_ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   if (!ntree->runtime) {
-    return 0;
+    return false;
   }
 
   ntree->ensure_interface_cache();
@@ -1178,11 +1166,6 @@ static void rna_def_node_tree_interface_items_api(StructRNA *srna)
   RNA_def_boolean(
       func, "default_closed", false, "Default Closed", "Panel is closed by default on new nodes");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_pointer(func,
-                  "parent",
-                  "NodeTreeInterfacePanel",
-                  "Parent",
-                  "Add panel as a child of the parent panel");
   /* return value */
   parm = RNA_def_pointer(func, "item", "NodeTreeInterfacePanel", "Panel", "New panel");
   RNA_def_function_return(func, parm);

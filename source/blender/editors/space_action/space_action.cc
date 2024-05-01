@@ -43,7 +43,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "GPU_matrix.h"
+#include "GPU_matrix.hh"
 
 #include "action_intern.hh" /* own include */
 
@@ -268,29 +268,50 @@ static void action_channel_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
+static void set_v2d_height(View2D *v2d, const size_t item_count, const bool add_marker_padding)
+{
+  const int height = ANIM_UI_get_channels_total_height(v2d, item_count);
+  const float pad_bottom = add_marker_padding ? UI_MARKER_MARGIN_Y : 0;
+  v2d->tot.ymin = -(height + pad_bottom);
+  UI_view2d_curRect_clamp_y(v2d);
+}
+
 static void action_channel_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   bAnimContext ac;
-  View2D *v2d = &region->v2d;
+  const bool has_valid_animcontext = ANIM_animdata_get_context(C, &ac);
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
 
-  UI_view2d_view_ortho(v2d);
-
-  /* data */
-  if (ANIM_animdata_get_context(C, &ac)) {
-    draw_channel_names((bContext *)C, &ac, region);
-  }
-
   /* channel filter next to scrubbing area */
   ED_time_scrub_channel_search_draw(C, region, ac.ads);
+
+  if (!has_valid_animcontext) {
+    return;
+  }
+
+  View2D *v2d = &region->v2d;
+
+  ListBase anim_data = {nullptr, nullptr};
+  /* Build list of channels to draw. */
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                    ANIMFILTER_LIST_CHANNELS);
+  const size_t item_count = ANIM_animdata_filter(
+      &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+  /* The View2D's height needs to be set before calling UI_view2d_view_ortho because the latter
+   * uses the View2D's `cur` rect which might be modified when setting the height. */
+  set_v2d_height(v2d, item_count, !BLI_listbase_is_empty(ac.markers));
+
+  UI_view2d_view_ortho(v2d);
+  draw_channel_names((bContext *)C, &ac, region, anim_data);
 
   /* reset view matrix */
   UI_view2d_view_restore(C);
 
   /* no scrollers here */
+  ANIM_animdata_freelist(&anim_data);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -370,7 +391,7 @@ static void saction_channel_region_message_subscribe(const wmRegionMessageSubscr
   msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
 
   /* All dopesheet filter settings, etc. affect the drawing of this editor,
-   * also same applies for all animation-related datatypes that may appear here,
+   * also same applies for all animation-related data-types that may appear here,
    * so just whitelist the entire structs for updates
    */
   {
@@ -789,8 +810,8 @@ static void action_id_remap(ScrArea * /*area*/,
 {
   SpaceAction *sact = (SpaceAction *)slink;
 
-  mappings.apply((ID **)&sact->action, ID_REMAP_APPLY_DEFAULT);
-  mappings.apply((ID **)&sact->ads.filter_grp, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(reinterpret_cast<ID **>(&sact->action), ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(reinterpret_cast<ID **>(&sact->ads.filter_grp), ID_REMAP_APPLY_DEFAULT);
   mappings.apply(&sact->ads.source, ID_REMAP_APPLY_DEFAULT);
 }
 
@@ -856,12 +877,6 @@ static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   BLO_write_struct(writer, SpaceAction, sl);
 }
 
-static void action_main_region_view2d_changed(const bContext * /*C*/, ARegion *region)
-{
-  View2D *v2d = &region->v2d;
-  UI_view2d_curRect_clamp_y(v2d);
-}
-
 void ED_spacetype_action()
 {
   std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
@@ -895,7 +910,6 @@ void ED_spacetype_action()
   art->draw_overlay = action_main_region_draw_overlay;
   art->listener = action_main_region_listener;
   art->message_subscribe = saction_main_region_message_subscribe;
-  art->on_view2d_changed = action_main_region_view2d_changed;
   art->keymapflag = ED_KEYMAP_GIZMO | ED_KEYMAP_VIEW2D | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
 
   BLI_addhead(&st->regiontypes, art);

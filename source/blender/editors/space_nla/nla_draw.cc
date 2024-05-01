@@ -22,16 +22,16 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_nla.h"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_draw.hh"
 #include "ED_keyframes_keylist.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_state.hh"
 
 #include "WM_types.hh"
 
@@ -81,7 +81,7 @@ static void nla_action_draw_keyframes(
 
   /* get a list of the keyframes with NLA-scaling applied */
   AnimKeylist *keylist = ED_keylist_create();
-  action_to_keylist(adt, act, keylist, 0, {-FLT_MAX, FLT_MAX});
+  action_to_keylist(adt, act, keylist, 0, {v2d->cur.xmin, v2d->cur.xmax});
 
   if (ED_keylist_is_empty(keylist)) {
     ED_keylist_free(keylist);
@@ -419,8 +419,15 @@ static void nla_draw_strip(SpaceNla *snla,
                            float yminc,
                            float ymaxc)
 {
-  const bool solo = !((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) &&
-                      (nlt->flag & NLATRACK_SOLO) == 0);
+  /* If there is no 'adt', this strip came from nowhere. */
+  BLI_assert(adt);
+  if (!adt) {
+    return;
+  }
+
+  const bool adt_has_solo_track = (adt->flag & ADT_NLA_SOLO_TRACK);
+  const bool is_track_solo = (nlt->flag & NLATRACK_SOLO);
+  const bool is_other_track_soloed = adt_has_solo_track && !is_track_solo;
 
   const bool muted = ((nlt->flag & NLATRACK_MUTED) || (strip->flag & NLASTRIP_FLAG_MUTED));
   float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -435,7 +442,7 @@ static void nla_draw_strip(SpaceNla *snla,
   /* draw extrapolation info first (as backdrop)
    * - but this should only be drawn if track has some contribution
    */
-  if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && solo) {
+  if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && !is_other_track_soloed) {
     /* enable transparency... */
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -473,9 +480,8 @@ static void nla_draw_strip(SpaceNla *snla,
   }
 
   /* draw 'inside' of strip itself */
-  if (solo && is_nlastrip_enabled(adt, nlt, strip) &&
-      !(strip->flag & NLASTRIP_FLAG_INVALID_LOCATION))
-  {
+  const bool is_invalid_location = (strip->flag & NLASTRIP_FLAG_INVALID_LOCATION);
+  if (!is_other_track_soloed && is_nlastrip_enabled(adt, nlt, strip) && !is_invalid_location) {
     immUnbindProgram();
 
     /* strip is in normal track */
@@ -518,7 +524,7 @@ static void nla_draw_strip(SpaceNla *snla,
   /* draw strip outline
    * - color used here is to indicate active vs non-active
    */
-  if (strip->flag & NLASTRIP_FLAG_INVALID_LOCATION) {
+  if (is_invalid_location) {
     color[0] = 1.0f;
     color[1] = color[2] = 0.15f;
   }
@@ -636,7 +642,7 @@ static void nla_draw_strip_text(AnimData *adt,
   else {
     col[0] = col[1] = col[2] = 255;
   }
-  // Default strip to 100% opacity.
+  /* Default strip to 100% opacity. */
   col[3] = 255;
 
   /* Reduce text opacity if a track is soloed,
@@ -909,27 +915,14 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
 /* *********************************************** */
 /* Track List */
 
-void draw_nla_track_list(const bContext *C, bAnimContext *ac, ARegion *region)
+void draw_nla_track_list(const bContext *C,
+                         bAnimContext *ac,
+                         ARegion *region,
+                         const ListBase /* bAnimListElem */ &anim_data)
 {
-  ListBase anim_data = {nullptr, nullptr};
 
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac->sl);
   View2D *v2d = &region->v2d;
-  size_t items;
-
-  /* build list of tracks to draw */
-  eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
-                              ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
-  items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
-
-  /* Update max-extent of tracks here (taking into account scrollers):
-   * - this is done to allow the track list to be scrollable, but must be done here
-   *   to avoid regenerating the list again and/or also because tracks list is drawn first
-   * - offset of NLATRACK_HEIGHT*2 is added to the height of the tracks, as first is for
-   *  start of list offset, and the second is as a correction for the scrollers.
-   */
-  int height = NLATRACK_TOT_HEIGHT(ac, items);
-  v2d->tot.ymin = -height;
 
   /* need to do a view-sync here, so that the keys area doesn't jump around
    * (it must copy this) */
@@ -984,9 +977,6 @@ void draw_nla_track_list(const bContext *C, bAnimContext *ac, ARegion *region)
 
     GPU_blend(GPU_BLEND_NONE);
   }
-
-  /* free temporary tracks */
-  ANIM_animdata_freelist(&anim_data);
 }
 
 /* *********************************************** */

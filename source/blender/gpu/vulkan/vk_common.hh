@@ -18,11 +18,20 @@
 
 #include "vk_mem_alloc.h"
 
-#include "gpu_index_buffer_private.hh"
+#include "GPU_index_buffer.hh"
 #include "gpu_shader_create_info.hh"
 #include "gpu_texture_private.hh"
 
 namespace blender::gpu {
+
+/**
+ * The Vulkan backend is currently migrating to a render graph approach. This requires commands to
+ * be recorded in a different way. During the migration the backend will mist likely crash. With
+ * the `use_render_graph` constant we can switch back to the not render graph implementation.
+ * During development of the render graph this is set to true. But when committing to main this
+ * must be set to false.
+ */
+static constexpr bool use_render_graph = false;
 
 /**
  * Based on the usage of an Image View a different image view type should be created.
@@ -55,7 +64,7 @@ VkIndexType to_vk_index_type(const GPUIndexBufType index_type);
 VkPrimitiveTopology to_vk_primitive_topology(const GPUPrimType prim_type);
 VkCullModeFlags to_vk_cull_mode_flags(const eGPUFaceCullTest cull_test);
 VkSamplerAddressMode to_vk_sampler_address_mode(const GPUSamplerExtendMode extend_mode);
-const char *to_string(VkObjectType type);
+VkDescriptorType to_vk_descriptor_type(const shader::ShaderCreateInfo::Resource &resource);
 
 template<typename T> VkObjectType to_vk_object_type(T /*vk_obj*/)
 {

@@ -8,9 +8,9 @@
 
 #include "DRW_render.hh"
 
-#include "GPU_matrix.h"
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_matrix.hh"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "UI_resources.hh"
 
@@ -20,7 +20,7 @@
 #include "BKE_global.hh"
 #include "BKE_object.hh"
 
-#include "draw_common.h"
+#include "draw_common_c.hh"
 
 #if 0
 #  define UI_COLOR_RGB_FROM_U8(r, g, b, v4) \
@@ -37,7 +37,7 @@ DRW_Global G_draw{};
 static bool weight_ramp_custom = false;
 static ColorBand weight_ramp_copy;
 
-static GPUTexture *DRW_create_weight_colorramp_texture(void);
+static GPUTexture *DRW_create_weight_colorramp_texture();
 
 void DRW_globals_update()
 {

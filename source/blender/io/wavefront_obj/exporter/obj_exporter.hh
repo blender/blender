@@ -14,6 +14,9 @@
 
 #include "IO_wavefront_obj.hh"
 
+struct bContext;
+struct Collection;
+
 namespace blender::io::obj {
 
 /**
@@ -26,7 +29,7 @@ class OBJDepsgraph : NonMovable, NonCopyable {
   bool needs_free_ = false;
 
  public:
-  OBJDepsgraph(const bContext *C, eEvaluationMode eval_mode);
+  OBJDepsgraph(const bContext *C, eEvaluationMode eval_mode, Collection *collection);
   ~OBJDepsgraph();
 
   Depsgraph *get();

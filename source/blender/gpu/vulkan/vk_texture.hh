@@ -84,9 +84,10 @@ class VKTexture : public Texture, public VKBindableResource {
   /* TODO(fclem): Legacy. Should be removed at some point. */
   uint gl_bindcode_get() const override;
 
-  void bind(int location,
-            shader::ShaderCreateInfo::Resource::BindType bind_type,
-            const GPUSamplerState sampler_state) override;
+  void add_to_descriptor_set(AddToDescriptorSetContext &data,
+                             int location,
+                             shader::ShaderCreateInfo::Resource::BindType bind_type,
+                             const GPUSamplerState sampler_state) override;
 
   VkImage vk_image_handle() const
   {
@@ -107,7 +108,7 @@ class VKTexture : public Texture, public VKBindableResource {
 
  protected:
   bool init_internal() override;
-  bool init_internal(GPUVertBuf *vbo) override;
+  bool init_internal(VertBuf *vbo) override;
   bool init_internal(GPUTexture *src, int mip_offset, int layer_offset, bool use_stencil) override;
 
  private:

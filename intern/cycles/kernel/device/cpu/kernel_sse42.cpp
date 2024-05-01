@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-/* Optimized CPU kernel entry points. This file is compiled with SSE3/SSSE3
+/* Optimized CPU kernel entry points. This file is compiled with SSE42
  * optimization flags and nearly all functions inlined, while kernel.cpp
  * is compiled without for other CPU's. */
 
@@ -13,6 +13,7 @@
 #else
 /* SSE optimization disabled for now on 32 bit, see bug #36316. */
 #  if !(defined(__GNUC__) && (defined(i386) || defined(_M_IX86)))
+#    define __KERNEL_SSE__
 #    define __KERNEL_SSE2__
 #    define __KERNEL_SSE3__
 #    define __KERNEL_SSSE3__

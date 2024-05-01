@@ -33,6 +33,7 @@
 #include "builder/deg_builder_relations.h"
 #include "builder/pipeline_all_objects.h"
 #include "builder/pipeline_compositor.h"
+#include "builder/pipeline_from_collection.h"
 #include "builder/pipeline_from_ids.h"
 #include "builder/pipeline_render.h"
 #include "builder/pipeline_view_layer.h"
@@ -270,9 +271,15 @@ void DEG_graph_build_for_compositor_preview(Depsgraph *graph, bNodeTree *nodetre
   builder.build();
 }
 
-void DEG_graph_build_from_ids(Depsgraph *graph, ID **ids, const int num_ids)
+void DEG_graph_build_from_ids(Depsgraph *graph, blender::Span<ID *> ids)
 {
-  deg::FromIDsBuilderPipeline builder(graph, blender::Span(ids, num_ids));
+  deg::FromIDsBuilderPipeline builder(graph, ids);
+  builder.build();
+}
+
+void DEG_graph_build_from_collection(Depsgraph *graph, Collection *collection)
+{
+  deg::FromCollectionBuilderPipeline builder(graph, collection);
   builder.build();
 }
 
@@ -292,7 +299,7 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
     graph_id_tag_update(deg_graph->bmain,
                         deg_graph,
                         &deg_graph->scene->id,
-                        ID_RECALC_BASE_FLAGS,
+                        ID_RECALC_BASE_FLAGS | ID_RECALC_HIERARCHY,
                         deg::DEG_UPDATE_SOURCE_RELATIONS);
   }
 }

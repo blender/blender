@@ -69,7 +69,7 @@ public:
 	 * \exception Exception Thrown if the file specified cannot be written
 	 *                          with libsndfile.
 	 */
-	SndFileWriter(std::string filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate);
+	SndFileWriter(const std::string &filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate);
 
 	/**
 	 * Destroys the writer and closes the file.

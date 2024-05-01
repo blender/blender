@@ -9,8 +9,6 @@
 
 #include "abc_writer_abstract.h"
 
-#include <memory>
-
 #include <Alembic/AbcGeom/OXform.h>
 
 namespace blender::io::alembic {

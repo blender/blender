@@ -253,54 +253,6 @@ static AttributeIDRef attribute_id_from_custom_data_layer(const CustomDataLayer 
   return layer.name;
 }
 
-static bool add_builtin_type_custom_data_layer_from_init(CustomData &custom_data,
-                                                         const eCustomDataType data_type,
-                                                         const int domain_num,
-                                                         const AttributeInit &initializer)
-{
-  switch (initializer.type) {
-    case AttributeInit::Type::Construct: {
-      void *data = CustomData_add_layer(&custom_data, data_type, CD_CONSTRUCT, domain_num);
-      return data != nullptr;
-    }
-    case AttributeInit::Type::DefaultValue: {
-      void *data = CustomData_add_layer(&custom_data, data_type, CD_SET_DEFAULT, domain_num);
-      return data != nullptr;
-    }
-    case AttributeInit::Type::VArray: {
-      void *data = CustomData_add_layer(&custom_data, data_type, CD_CONSTRUCT, domain_num);
-      if (data == nullptr) {
-        return false;
-      }
-      const GVArray &varray = static_cast<const AttributeInitVArray &>(initializer).varray;
-      varray.materialize_to_uninitialized(varray.index_range(), data);
-      return true;
-    }
-    case AttributeInit::Type::MoveArray: {
-      void *src_data = static_cast<const AttributeInitMoveArray &>(initializer).data;
-      const void *stored_data = CustomData_add_layer_with_data(
-          &custom_data, data_type, src_data, domain_num, nullptr);
-      if (stored_data == nullptr) {
-        return false;
-      }
-      if (stored_data != src_data) {
-        MEM_freeN(src_data);
-        return true;
-      }
-      return true;
-    }
-    case AttributeInit::Type::Shared: {
-      const AttributeInitShared &init = static_cast<const AttributeInitShared &>(initializer);
-      const void *stored_data = CustomData_add_layer_with_data(
-          &custom_data, data_type, const_cast<void *>(init.data), domain_num, init.sharing_info);
-      return stored_data != nullptr;
-    }
-  }
-
-  BLI_assert_unreachable();
-  return false;
-}
-
 static void *add_generic_custom_data_layer(CustomData &custom_data,
                                            const eCustomDataType data_type,
                                            const eCDAllocType alloctype,
@@ -393,10 +345,7 @@ static bool custom_data_layer_matches_attribute_id(const CustomDataLayer &layer,
 
 bool BuiltinCustomDataLayerProvider::layer_exists(const CustomData &custom_data) const
 {
-  if (stored_as_named_attribute_) {
-    return CustomData_get_named_layer_index(&custom_data, stored_type_, name_) != -1;
-  }
-  return CustomData_has_layer(&custom_data, stored_type_);
+  return CustomData_get_named_layer_index(&custom_data, data_type_, name_) != -1;
 }
 
 GAttributeReader BuiltinCustomDataLayerProvider::try_get_for_read(const void *owner) const
@@ -416,13 +365,7 @@ GAttributeReader BuiltinCustomDataLayerProvider::try_get_for_read(const void *ow
     return {};
   }
 
-  int index;
-  if (stored_as_named_attribute_) {
-    index = CustomData_get_named_layer_index(custom_data, stored_type_, name_);
-  }
-  else {
-    index = CustomData_get_layer_index(custom_data, stored_type_);
-  }
+  const int index = CustomData_get_named_layer_index(custom_data, data_type_, name_);
   if (index == -1) {
     return {};
   }
@@ -452,13 +395,7 @@ GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) 
     return {};
   }
 
-  void *data = nullptr;
-  if (stored_as_named_attribute_) {
-    data = CustomData_get_layer_named_for_write(custom_data, stored_type_, name_, element_num);
-  }
-  else {
-    data = CustomData_get_layer_for_write(custom_data, stored_type_, element_num);
-  }
+  void *data = CustomData_get_layer_named_for_write(custom_data, data_type_, name_, element_num);
   if (data == nullptr) {
     return {};
   }
@@ -475,57 +412,42 @@ bool BuiltinCustomDataLayerProvider::try_delete(void *owner) const
     return {};
   }
 
-  auto update = [&]() {
+  const int element_num = custom_data_access_.get_element_num(owner);
+  if (CustomData_free_layer_named(custom_data, name_, element_num)) {
     if (update_on_change_ != nullptr) {
       update_on_change_(owner);
     }
-  };
-
-  const int element_num = custom_data_access_.get_element_num(owner);
-  if (stored_as_named_attribute_) {
-    if (CustomData_free_layer_named(custom_data, name_, element_num)) {
-      update();
-      return true;
-    }
-    return false;
-  }
-
-  const int layer_index = CustomData_get_layer_index(custom_data, stored_type_);
-  if (CustomData_free_layer(custom_data, stored_type_, element_num, layer_index)) {
-    update();
     return true;
   }
-
   return false;
 }
 
 bool BuiltinCustomDataLayerProvider::try_create(void *owner,
                                                 const AttributeInit &initializer) const
 {
-  if (createable_ != Creatable) {
-    return false;
-  }
   CustomData *custom_data = custom_data_access_.get_custom_data(owner);
   if (custom_data == nullptr) {
     return false;
   }
 
   const int element_num = custom_data_access_.get_element_num(owner);
-  if (stored_as_named_attribute_) {
-    if (CustomData_has_layer_named(custom_data, data_type_, name_)) {
-      /* Exists already. */
-      return false;
-    }
-    return add_custom_data_layer_from_attribute_init(
-        name_, *custom_data, stored_type_, element_num, initializer);
-  }
-
-  if (CustomData_get_layer(custom_data, stored_type_) != nullptr) {
+  if (CustomData_has_layer_named(custom_data, data_type_, name_)) {
     /* Exists already. */
     return false;
   }
-  return add_builtin_type_custom_data_layer_from_init(
-      *custom_data, stored_type_, element_num, initializer);
+  if (add_custom_data_layer_from_attribute_init(
+          name_, *custom_data, data_type_, element_num, initializer))
+  {
+    if (initializer.type != AttributeInit::Type::Construct) {
+      /* Avoid calling update function when values are not initialized. In that case
+       * values must be set elsewhere anyway, which will cause a separate update tag. */
+      if (update_on_change_ != nullptr) {
+        update_on_change_(owner);
+      }
+    }
+    return true;
+  }
+  return false;
 }
 
 bool BuiltinCustomDataLayerProvider::exists(const void *owner) const
@@ -534,10 +456,7 @@ bool BuiltinCustomDataLayerProvider::exists(const void *owner) const
   if (custom_data == nullptr) {
     return false;
   }
-  if (stored_as_named_attribute_) {
-    return CustomData_has_layer_named(custom_data, stored_type_, name_);
-  }
-  return CustomData_get_layer(custom_data, stored_type_) != nullptr;
+  return CustomData_has_layer_named(custom_data, data_type_, name_);
 }
 
 GAttributeReader CustomDataAttributeProvider::try_get_for_read(
@@ -892,7 +811,7 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
       return true;
     }
 
-    const GVArray src = *src_attributes.lookup(id, meta_data.domain);
+    GVArray src = *src_attributes.lookup(id, meta_data.domain);
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         id, meta_data.domain, meta_data.data_type);
     attributes.append({std::move(src), meta_data, std::move(dst)});
@@ -914,6 +833,9 @@ void gather_attributes(const AttributeAccessor src_attributes,
   const int src_size = src_attributes.domain_size(domain);
   src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     if (meta_data.domain != domain) {
+      return true;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
     if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
@@ -955,6 +877,9 @@ void gather_attributes(const AttributeAccessor src_attributes,
       if (meta_data.domain != domain) {
         return true;
       }
+      if (meta_data.data_type == CD_PROP_STRING) {
+        return true;
+      }
       if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
         return true;
       }
@@ -987,6 +912,9 @@ void gather_attributes_group_to_group(const AttributeAccessor src_attributes,
     if (meta_data.domain != domain) {
       return true;
     }
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
     if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
       return true;
     }
@@ -1015,6 +943,9 @@ void gather_attributes_to_groups(const AttributeAccessor src_attributes,
 {
   src_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     if (meta_data.domain != domain) {
+      return true;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
     if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
@@ -1066,6 +997,9 @@ void copy_attributes_group_to_group(const AttributeAccessor src_attributes,
     if (meta_data.domain != domain) {
       return true;
     }
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
     if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
       return true;
     }
@@ -1094,6 +1028,9 @@ void fill_attribute_range_default(MutableAttributeAccessor attributes,
       return true;
     }
     if (skip.contains(id.name())) {
+      return true;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
       return true;
     }
     GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);

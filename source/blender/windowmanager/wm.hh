@@ -50,13 +50,9 @@ extern void wm_clear_default_size(bContext *C);
  */
 void wm_operator_register(bContext *C, wmOperator *op);
 
-/* wm_operator.c, for init/exit */
+/* `wm_operator.cc`, for init/exit. */
 
 void wm_operatortype_free();
-/**
- * Called on initialize #WM_init().
- */
-void wm_operatortype_init();
 /**
  * Default key-map for windows and screens, only call once per WM.
  */
@@ -84,7 +80,7 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt);
  */
 void wm_jobs_timer_end(wmWindowManager *wm, wmTimer *wt);
 
-/* wm_files.cc */
+/* `wm_files.cc`. */
 
 /**
  * Run the auto-save timer action.

@@ -13,7 +13,7 @@
 #include "DNA_fluid_types.h"
 #include "ED_paint.hh"
 #include "ED_view3d.hh"
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "draw_common.hh"
@@ -129,7 +129,7 @@ class Instance {
      */
     if (ob_ref.object->sculpt && ob_ref.object->sculpt->pbvh) {
       /* TODO(Miguel Pozo): Could this me moved to sculpt_batches_get()? */
-      BKE_pbvh_is_drawing_set(ob_ref.object->sculpt->pbvh, object_state.sculpt_pbvh);
+      BKE_pbvh_is_drawing_set(*ob_ref.object->sculpt->pbvh, object_state.sculpt_pbvh);
     }
 
     bool is_object_data_visible = (DRW_object_visibility_in_active_context(ob) &
@@ -155,10 +155,10 @@ class Instance {
 
     if (is_object_data_visible) {
       if (object_state.sculpt_pbvh) {
-        /* Disable frustum culling for sculpt meshes. */
-        /* TODO(@pragma37): Implement a cleaner way to disable frustum culling. */
-        ResourceHandle handle = manager.resource_handle(ob_ref.object->object_to_world());
-        handle = ResourceHandle(handle.resource_index(), ob_ref.object->transflag & OB_NEG_SCALE);
+        const Bounds<float3> bounds = bke::pbvh::bounds_get(*ob_ref.object->sculpt->pbvh);
+        const float3 center = math::midpoint(bounds.min, bounds.max);
+        const float3 half_extent = bounds.max - center;
+        ResourceHandle handle = manager.resource_handle(ob_ref, nullptr, &center, &half_extent);
         sculpt_sync(ob_ref, handle, object_state);
         emitter_handle = handle;
       }
@@ -230,7 +230,7 @@ class Instance {
 
   void draw_mesh(ObjectRef &ob_ref,
                  Material &material,
-                 GPUBatch *batch,
+                 gpu::Batch *batch,
                  ResourceHandle handle,
                  ::Image *image = nullptr,
                  GPUSamplerState sampler_state = GPUSamplerState::default_sampler(),
@@ -252,7 +252,7 @@ class Instance {
     if (object_state.use_per_material_batches) {
       const int material_count = DRW_cache_object_material_count_get(ob_ref.object);
 
-      GPUBatch **batches;
+      gpu::Batch **batches;
       if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
         batches = DRW_cache_mesh_surface_texpaint_get(ob_ref.object);
       }
@@ -283,7 +283,7 @@ class Instance {
       }
     }
     else {
-      GPUBatch *batch;
+      gpu::Batch *batch;
       if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
         batch = DRW_cache_mesh_surface_texpaint_single_get(ob_ref.object);
       }
@@ -372,7 +372,7 @@ class Instance {
     draw_to_mesh_pass(ob_ref, mat.is_transparent(), [&](MeshPass &mesh_pass) {
       PassMain::Sub &pass =
           mesh_pass.get_subpass(eGeometryType::POINTCLOUD).sub("Point Cloud SubPass");
-      GPUBatch *batch = point_cloud_sub_pass_setup(pass, ob_ref.object);
+      gpu::Batch *batch = point_cloud_sub_pass_setup(pass, ob_ref.object);
       pass.draw(batch, handle, material_index);
     });
   }
@@ -402,7 +402,7 @@ class Instance {
                                 .get_subpass(eGeometryType::CURVES, image, sampler_state, iuser)
                                 .sub("Hair SubPass");
       pass.push_constant("emitter_object_id", int(emitter_handle.raw));
-      GPUBatch *batch = hair_sub_pass_setup(pass, scene_state.scene, ob_ref.object, psys, md);
+      gpu::Batch *batch = hair_sub_pass_setup(pass, scene_state.scene, ob_ref.object, psys, md);
       pass.draw(batch, handle, material_index);
     });
   }
@@ -418,7 +418,7 @@ class Instance {
 
     draw_to_mesh_pass(ob_ref, mat.is_transparent(), [&](MeshPass &mesh_pass) {
       PassMain::Sub &pass = mesh_pass.get_subpass(eGeometryType::CURVES).sub("Curves SubPass");
-      GPUBatch *batch = curves_sub_pass_setup(pass, scene_state.scene, ob_ref.object);
+      gpu::Batch *batch = curves_sub_pass_setup(pass, scene_state.scene, ob_ref.object);
       pass.draw(batch, handle, material_index);
     });
   }
@@ -679,7 +679,7 @@ static void write_render_z_output(RenderLayer *layer,
                                   const char *viewname,
                                   GPUFrameBuffer *fb,
                                   const rcti *rect,
-                                  float4x4 winmat)
+                                  const float4x4 &winmat)
 {
   RenderPass *rp = RE_pass_find_by_name(layer, RE_PASSNAME_Z, viewname);
   if (rp) {

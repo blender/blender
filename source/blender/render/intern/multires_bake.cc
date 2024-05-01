@@ -19,6 +19,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_DerivedMesh.hh"
+#include "BKE_attribute.hh"
 #include "BKE_ccg.h"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
@@ -517,9 +518,29 @@ static void do_multires_bake(MultiresBakeRender *bkr,
 
   if (require_tangent) {
     if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
-      const blender::Span<blender::float3> corner_normals = temp_mesh->corner_normals();
+      const bool *sharp_edges = static_cast<const bool *>(
+          CustomData_get_layer_named(&dm->edgeData, CD_PROP_BOOL, "sharp_edge"));
       const bool *sharp_faces = static_cast<const bool *>(
           CustomData_get_layer_named(&dm->polyData, CD_PROP_BOOL, "sharp_face"));
+
+      /* Copy sharp faces and edges, for corner normals domain and tangents
+       * to be computed correctly. */
+      if (sharp_edges) {
+        blender::bke::MutableAttributeAccessor attributes = temp_mesh->attributes_for_write();
+        attributes.add<bool>("sharp_edge",
+                             blender::bke::AttrDomain::Edge,
+                             blender::bke::AttributeInitVArray(blender::VArray<bool>::ForSpan(
+                                 blender::Span<bool>(sharp_edges, temp_mesh->edges_num))));
+      }
+      if (sharp_faces) {
+        blender::bke::MutableAttributeAccessor attributes = temp_mesh->attributes_for_write();
+        attributes.add<bool>("sharp_face",
+                             blender::bke::AttrDomain::Face,
+                             blender::bke::AttributeInitVArray(blender::VArray<bool>::ForSpan(
+                                 blender::Span<bool>(sharp_faces, temp_mesh->faces_num))));
+      }
+
+      const blender::Span<blender::float3> corner_normals = temp_mesh->corner_normals();
       BKE_mesh_calc_loop_tangent_ex(
           reinterpret_cast<const float(*)[3]>(positions.data()),
           faces,

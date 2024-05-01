@@ -14,17 +14,17 @@ CCL_NAMESPACE_BEGIN
 
 /* ShaderData setup from incoming ray */
 
-#ifdef __OBJECT_MOTION__
 ccl_device void shader_setup_object_transforms(KernelGlobals kg,
                                                ccl_private ShaderData *ccl_restrict sd,
                                                float time)
 {
+#ifdef __OBJECT_MOTION__
   if (sd->object_flag & SD_OBJECT_MOTION) {
     sd->ob_tfm_motion = object_fetch_transform_motion(kg, sd->object, time);
     sd->ob_itfm_motion = transform_inverse(sd->ob_tfm_motion);
   }
-}
 #endif
+}
 
 /* TODO: break this up if it helps reduce register pressure to load data from
  * global memory as we write it to shader-data. */
@@ -61,7 +61,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
 #ifdef __HAIR__
   if (sd->type & PRIMITIVE_CURVE) {
     /* curve */
-    curve_shader_setup(kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim);
+    curve_shader_setup(kg, sd, ray->P, ray->D, isect->t, isect->prim);
   }
   else
 #endif
@@ -76,27 +76,11 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
   {
     if (sd->type == PRIMITIVE_TRIANGLE) {
       /* static triangle */
-      float3 Ng = triangle_normal(kg, sd);
-      sd->shader = kernel_data_fetch(tri_shader, sd->prim);
-
-      /* vectors */
-      sd->P = triangle_point_from_uv(kg, sd, isect->object, isect->prim, isect->u, isect->v);
-      sd->Ng = Ng;
-      sd->N = Ng;
-
-      /* smooth normal */
-      if (sd->shader & SHADER_SMOOTH_NORMAL)
-        sd->N = triangle_smooth_normal(kg, Ng, sd->prim, sd->u, sd->v);
-
-#ifdef __DPDU__
-      /* dPdu/dPdv */
-      triangle_dPdudv(kg, sd->prim, &sd->dPdu, &sd->dPdv);
-#endif
+      triangle_shader_setup(kg, sd);
     }
     else {
       /* motion triangle */
-      motion_triangle_shader_setup(
-          kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim, false);
+      motion_triangle_shader_setup(kg, sd);
     }
 
     if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
@@ -289,6 +273,7 @@ ccl_device void shader_setup_from_displace(KernelGlobals kg,
 
 /* ShaderData setup for point on curve. */
 
+#ifdef __HAIR__
 ccl_device void shader_setup_from_curve(KernelGlobals kg,
                                         ccl_private ShaderData *ccl_restrict sd,
                                         int object,
@@ -312,9 +297,9 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
   /* Object */
   sd->object = object;
   sd->object_flag = kernel_data_fetch(object_flag, sd->object);
-#ifdef __OBJECT_MOTION__
+#  ifdef __OBJECT_MOTION__
   shader_setup_object_transforms(kg, sd, sd->time);
-#endif
+#  endif
 
   /* Get control points. */
   KernelCurve kcurve = kernel_data_fetch(curves, prim);
@@ -333,34 +318,35 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
 
   /* Interpolate position and tangent. */
   sd->P = float4_to_float3(catmull_rom_basis_derivative(P_curve, sd->u));
-#ifdef __DPDU__
+#  ifdef __DPDU__
   sd->dPdu = float4_to_float3(catmull_rom_basis_derivative(P_curve, sd->u));
-#endif
+#  endif
 
   /* Transform into world space */
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     object_position_transform_auto(kg, sd, &sd->P);
-#ifdef __DPDU__
+#  ifdef __DPDU__
     object_dir_transform_auto(kg, sd, &sd->dPdu);
-#endif
+#  endif
   }
 
   /* No view direction, normals or bitangent. */
   sd->wi = zero_float3();
   sd->N = zero_float3();
   sd->Ng = zero_float3();
-#ifdef __DPDU__
+#  ifdef __DPDU__
   sd->dPdv = zero_float3();
-#endif
+#  endif
 
   /* No ray differentials currently. */
-#ifdef __RAY_DIFFERENTIALS__
+#  ifdef __RAY_DIFFERENTIALS__
   sd->dP = differential_zero_compact();
   sd->dI = differential_zero_compact();
   sd->du = differential_zero();
   sd->dv = differential_zero();
-#endif
+#  endif
 }
+#endif /* __HAIR__ */
 
 /* ShaderData setup from ray into background */
 

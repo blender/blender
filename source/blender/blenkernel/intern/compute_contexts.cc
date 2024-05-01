@@ -117,4 +117,17 @@ void RepeatZoneComputeContext::print_current_in_line(std::ostream &stream) const
   stream << "Repeat Zone ID: " << output_node_id_;
 }
 
+OperatorComputeContext::OperatorComputeContext() : OperatorComputeContext(nullptr) {}
+
+OperatorComputeContext::OperatorComputeContext(const ComputeContext *parent)
+    : ComputeContext(s_static_type, parent)
+{
+  hash_.mix_in(s_static_type, strlen(s_static_type));
+}
+
+void OperatorComputeContext::print_current_in_line(std::ostream &stream) const
+{
+  stream << "Operator";
+}
+
 }  // namespace blender::bke

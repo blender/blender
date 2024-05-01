@@ -4,24 +4,16 @@
 
 #include "usd_writer_armature.hh"
 #include "usd_armature_utils.hh"
-#include "usd_hierarchy_iterator.hh"
-#include "usd_writer_transform.hh"
 
 #include "BKE_action.h"
-#include "BKE_armature.hh"
 
 #include "DNA_armature_types.h"
-
-#include "ED_armature.hh"
 
 #include <pxr/base/gf/matrix4d.h>
 #include <pxr/base/gf/matrix4f.h>
 #include <pxr/usd/usdSkel/animation.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
 #include <pxr/usd/usdSkel/skeleton.h>
-#include <pxr/usd/usdSkel/tokens.h>
-
-#include <functional>
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};

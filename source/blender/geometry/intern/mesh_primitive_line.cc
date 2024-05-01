@@ -20,23 +20,25 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
 
-  threading::parallel_invoke(
-      1024 < count,
-      [&]() {
-        threading::parallel_for(positions.index_range(), 4096, [&](IndexRange range) {
-          for (const int i : range) {
-            positions[i] = start + delta * i;
-          }
+  threading::memory_bandwidth_bound_task(positions.size_in_bytes() + edges.size_in_bytes(), [&]() {
+    threading::parallel_invoke(
+        1024 < count,
+        [&]() {
+          threading::parallel_for(positions.index_range(), 4096, [&](IndexRange range) {
+            for (const int i : range) {
+              positions[i] = start + delta * i;
+            }
+          });
+        },
+        [&]() {
+          threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
+            for (const int i : range) {
+              edges[i][0] = i;
+              edges[i][1] = i + 1;
+            }
+          });
         });
-      },
-      [&]() {
-        threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
-          for (const int i : range) {
-            edges[i][0] = i;
-            edges[i][1] = i + 1;
-          }
-        });
-      });
+  });
 
   mesh->tag_loose_verts_none();
   mesh->tag_overlapping_none();

@@ -9,6 +9,7 @@
  * actual mode switching logic is per-object type.
  */
 
+#include "DNA_object_enums.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -38,13 +39,18 @@
 #include "ED_armature.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_outliner.hh"
+#include "ED_paint.hh"
+#include "ED_physics.hh"
+#include "ED_sculpt.hh"
 #include "ED_undo.hh"
 #include "ED_view3d.hh"
 
 #include "WM_toolsystem.hh"
 
 #include "ED_object.hh" /* own include */
-#include "object_intern.h"
+#include "object_intern.hh"
+
+namespace blender::ed::object {
 
 /* -------------------------------------------------------------------- */
 /** \name High Level Mode Operations
@@ -76,9 +82,6 @@ static const char *object_mode_op_string(eObjectMode mode)
   if (mode == OB_MODE_EDIT_GPENCIL_LEGACY) {
     return "GPENCIL_OT_editmode_toggle";
   }
-  if (mode == OB_MODE_PAINT_GREASE_PENCIL) {
-    return "GREASE_PENCIL_OT_draw_mode_toggle";
-  }
   if (mode == OB_MODE_PAINT_GPENCIL_LEGACY) {
     return "GPENCIL_OT_paintmode_toggle";
   }
@@ -97,7 +100,7 @@ static const char *object_mode_op_string(eObjectMode mode)
   return nullptr;
 }
 
-bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
+bool mode_compat_test(const Object *ob, eObjectMode mode)
 {
   if (mode == OB_MODE_OBJECT) {
     return true;
@@ -142,7 +145,9 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
       }
       break;
     case OB_GREASE_PENCIL:
-      if (mode & (OB_MODE_EDIT | OB_MODE_PAINT_GREASE_PENCIL | OB_MODE_WEIGHT_PAINT)) {
+      if (mode & (OB_MODE_EDIT | OB_MODE_PAINT_GPENCIL_LEGACY | OB_MODE_SCULPT_GPENCIL_LEGACY |
+                  OB_MODE_WEIGHT_GPENCIL_LEGACY))
+      {
         return true;
       }
       break;
@@ -151,7 +156,7 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
   return false;
 }
 
-bool ED_object_mode_compat_set(bContext *C, Object *ob, eObjectMode mode, ReportList *reports)
+bool mode_compat_set(bContext *C, Object *ob, eObjectMode mode, ReportList *reports)
 {
   bool ok;
   if (!ELEM(ob->mode, mode, OB_MODE_OBJECT)) {
@@ -181,7 +186,7 @@ bool ED_object_mode_compat_set(bContext *C, Object *ob, eObjectMode mode, Report
  *
  * \{ */
 
-bool ED_object_mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportList *reports)
+bool mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportList *reports)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   const Scene *scene = CTX_data_scene(C);
@@ -201,7 +206,7 @@ bool ED_object_mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportL
     return true;
   }
 
-  if (!ED_object_mode_compat_test(ob, mode)) {
+  if (!mode_compat_test(ob, mode)) {
     return false;
   }
 
@@ -225,10 +230,10 @@ bool ED_object_mode_set_ex(bContext *C, eObjectMode mode, bool use_undo, ReportL
   return true;
 }
 
-bool ED_object_mode_set(bContext *C, eObjectMode mode)
+bool mode_set(bContext *C, eObjectMode mode)
 {
   /* Don't do undo push by default, since this may be called by lower level code. */
-  return ED_object_mode_set_ex(C, mode, true, nullptr);
+  return mode_set_ex(C, mode, true, nullptr);
 }
 
 /**
@@ -244,7 +249,7 @@ static bool ed_object_mode_generic_exit_ex(
       if (only_test) {
         return true;
       }
-      ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
+      editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
     }
   }
   else if (ob->mode & OB_MODE_VERTEX_PAINT) {
@@ -299,10 +304,17 @@ static bool ed_object_mode_generic_exit_ex(
     }
     ED_object_gpencil_exit(bmain, ob);
   }
-  else if (ob->mode & OB_MODE_PAINT_GREASE_PENCIL) {
-    ob->mode &= ~OB_MODE_PAINT_GREASE_PENCIL;
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
-    WM_main_add_notifier(NC_SCENE | ND_MODE | NS_MODE_OBJECT, nullptr);
+  else if (ob->type == OB_GREASE_PENCIL) {
+    BLI_assert((ob->mode & OB_MODE_OBJECT) == 0);
+    if (only_test) {
+      return true;
+    }
+    ob->restore_mode = ob->mode;
+    ob->mode &= ~(OB_MODE_PAINT_GPENCIL_LEGACY | OB_MODE_EDIT | OB_MODE_SCULPT_GPENCIL_LEGACY |
+                  OB_MODE_WEIGHT_GPENCIL_LEGACY | OB_MODE_VERTEX_GPENCIL_LEGACY);
+
+    /* Inform all evaluated versions that we changed the mode. */
+    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
   }
   else {
     if (only_test) {
@@ -355,10 +367,7 @@ static void ed_object_posemode_set_for_weight_paint_ex(bContext *C,
   }
 }
 
-void ED_object_posemode_set_for_weight_paint(bContext *C,
-                                             Main *bmain,
-                                             Object *ob,
-                                             const bool is_mode_set)
+void posemode_set_for_weight_paint(bContext *C, Main *bmain, Object *ob, const bool is_mode_set)
 {
   if (ob->type == OB_GPENCIL_LEGACY) {
     GpencilVirtualModifierData virtual_modifier_data;
@@ -385,12 +394,12 @@ void ED_object_posemode_set_for_weight_paint(bContext *C,
   }
 }
 
-void ED_object_mode_generic_exit(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
+void mode_generic_exit(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   ed_object_mode_generic_exit_ex(bmain, depsgraph, scene, ob, false);
 }
 
-bool ED_object_mode_generic_has_data(Depsgraph *depsgraph, const Object *ob)
+bool mode_generic_has_data(Depsgraph *depsgraph, const Object *ob)
 {
   return ed_object_mode_generic_exit_ex(nullptr, depsgraph, nullptr, (Object *)ob, true);
 }
@@ -453,7 +462,7 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
   }
 
   const eObjectMode last_mode = (eObjectMode)ob_src->mode;
-  if (!ED_object_mode_compat_test(ob_dst, last_mode)) {
+  if (!mode_compat_test(ob_dst, last_mode)) {
     return false;
   }
 
@@ -461,7 +470,7 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
 
   ED_undo_group_begin(C);
 
-  if (ED_object_mode_set_ex(C, OB_MODE_OBJECT, true, op->reports)) {
+  if (mode_set_ex(C, OB_MODE_OBJECT, true, op->reports)) {
     Object *ob_dst_orig = DEG_get_original_object(ob_dst);
     BKE_view_layer_synced_ensure(scene, view_layer);
     Base *base = BKE_view_layer_base_find(view_layer, ob_dst_orig);
@@ -472,7 +481,7 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
     ED_undo_push(C, "Change Active");
 
     ob_dst_orig = DEG_get_original_object(ob_dst);
-    ED_object_mode_set_ex(C, last_mode, true, op->reports);
+    mode_set_ex(C, last_mode, true, op->reports);
 
     if (RNA_boolean_get(op->ptr, "use_flash_on_transfer")) {
       object_overlay_mode_transfer_animation_start(C, ob_dst);
@@ -543,3 +552,5 @@ void OBJECT_OT_transfer_mode(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender::ed::object

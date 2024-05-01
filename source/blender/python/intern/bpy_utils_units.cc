@@ -52,6 +52,7 @@ static const char *bpyunits_ucategories_items[] = {
     "CAMERA",
     "POWER",
     "TEMPERATURE",
+    "WAVELENGTH",
     nullptr,
 };
 
@@ -310,7 +311,8 @@ static PyObject *bpyunits_to_string(PyObject * /*self*/, PyObject *args, PyObjec
      * (spaces, trailing '\0'...).
      * So in practice, 64 should be more than enough.
      */
-    char buf1[64], buf2[64], *str;
+    char buf1[64], buf2[64];
+    const char *str;
     PyObject *result;
 
     BKE_unit_value_as_string_adaptive(

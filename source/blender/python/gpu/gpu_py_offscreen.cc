@@ -23,10 +23,10 @@
 
 #include "DNA_view3d_types.h"
 
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_texture.h"
-#include "GPU_viewport.h"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_texture.hh"
+#include "GPU_viewport.hh"
 
 #include "ED_view3d_offscreen.hh"
 
@@ -35,9 +35,9 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
 
-#include "gpu_py_texture.h"
+#include "gpu_py_texture.hh"
 
-#include "gpu_py_offscreen.h" /* own include */
+#include "gpu_py_offscreen.hh" /* own include */
 
 /* Define the free method to avoid breakage. */
 #define BPYGPU_USE_GPUOBJ_FREE_METHOD
@@ -446,6 +446,13 @@ static PyObject *pygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *ar
        !(v3d = static_cast<View3D *>(PyC_RNA_AsPointer(py_view3d, "SpaceView3D"))) ||
        !(region = static_cast<ARegion *>(PyC_RNA_AsPointer(py_region, "Region")))))
   {
+    return nullptr;
+  }
+
+  if (ED_view3d_draw_offscreen_check_nested()) {
+    /* NOTE(@ideasman42): Nested draw calls could be supported.
+     * Adding support for this looks to be possible but non-trivial. */
+    PyErr_SetString(PyExc_RuntimeError, "Nested off-screen drawing not supported");
     return nullptr;
   }
 

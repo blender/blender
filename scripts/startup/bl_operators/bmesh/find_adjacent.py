@@ -208,8 +208,10 @@ def find_next(ele_dst, ele_src):
             continue
         depth_test = tuple(zip(depth_test_a, depth_test_b))
         # square so a few high values win over many small ones
-        diff_test = sum((abs(a[0] - b[0]) ** 2) +
-                        (abs(a[1] - b[1]) ** 2) for a, b in zip(depth_src, depth_test))
+        diff_test = sum(
+            (abs(a[0] - b[0]) ** 2) +
+            (abs(a[1] - b[1]) ** 2) for a, b in zip(depth_src, depth_test)
+        )
         if diff_test > diff_best:
             diff_best = diff_test
             ele_best = ele_test

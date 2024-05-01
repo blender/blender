@@ -176,6 +176,7 @@ vec3 orthogonal(vec3 v);
  * \note Returned vector is always rotated 90 degrees counter clock wise.
  */
 vec2 orthogonal(vec2 v);
+ivec2 orthogonal(ivec2 v);
 
 /**
  * Return true if the difference between`a` and `b` is below the `epsilon` value.
@@ -612,6 +613,10 @@ vec3 orthogonal(vec3 v)
 vec2 orthogonal(vec2 v)
 {
   return vec2(-v.y, v.x);
+}
+ivec2 orthogonal(ivec2 v)
+{
+  return ivec2(-v.y, v.x);
 }
 
 bool is_equal(vec2 a, vec2 b, const float epsilon)

@@ -2,13 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_customdata.hh"
 #include "BKE_type_conversions.hh"
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_openvdb.hh"
-
-#include "BLI_index_mask.hh"
-#include "BLI_virtual_array.hh"
 
 #include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
@@ -81,7 +77,7 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
     });
     const eNodeSocketDatatype other_type = eNodeSocketDatatype(params.other_socket().type);
     if (params.node_tree().typeinfo->validate_link(other_type, SOCK_VECTOR)) {
-      params.add_item(IFACE_("Position"), [node_type](LinkSearchOpParams &params) {
+      params.add_item(IFACE_("Position"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeSampleGrid");
         params.update_and_connect_available_socket(node, "Position");
       });
@@ -195,7 +191,7 @@ class SampleGridFunction : public mf::MultiFunction {
     const std::optional<eNodeSocketDatatype> data_type = bke::grid_type_to_socket_type(
         grid_->grid_type());
     const CPPType *cpp_type = bke::socket_type_to_geo_nodes_base_cpp_type(*data_type);
-    mf::SignatureBuilder builder{"Sample Volume", signature_};
+    mf::SignatureBuilder builder{"Sample Grid", signature_};
     builder.single_input<float3>("Position");
     builder.single_output("Value", *cpp_type);
     this->set_signature(&signature_);
@@ -224,7 +220,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   const eNodeSocketDatatype data_type = eNodeSocketDatatype(node.custom1);
   const InterpolationMode interpolation = InterpolationMode(node.custom2);
 
-  Field<float3> position = params.extract_input<Field<float3>>("Position");
   bke::GVolumeGrid grid = params.extract_input<bke::GVolumeGrid>("Grid");
   if (!grid) {
     params.set_default_remaining_outputs();
@@ -232,7 +227,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   auto fn = std::make_shared<SampleGridFunction>(std::move(grid), interpolation);
-  auto op = FieldOperation::Create(std::move(fn), {std::move(position)});
+  auto op = FieldOperation::Create(std::move(fn),
+                                   {params.extract_input<Field<float3>>("Position")});
 
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
   const CPPType &output_type = *bke::socket_type_to_geo_nodes_base_cpp_type(data_type);

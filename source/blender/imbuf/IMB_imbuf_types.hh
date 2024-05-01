@@ -22,7 +22,7 @@ struct IDProperty;
  *
  * Types needed for using the image buffer.
  *
- * Imbuf is external code, slightly adapted to live in the Blender
+ * ImBuf is external code, slightly adapted to live in the Blender
  * context. It requires an external JPEG module, and the AVI-module
  * (also external code) in order to function correctly.
  *
@@ -33,17 +33,6 @@ struct IDProperty;
 
 #define IMB_MIPMAP_LEVELS 20
 #define IMB_FILEPATH_SIZE 1024
-
-struct DDSData {
-  /** DDS fourcc info */
-  unsigned int fourcc;
-  /** The number of mipmaps in the dds file */
-  unsigned int nummipmaps;
-  /** The compressed image data */
-  unsigned char *data;
-  /** The size of the compressed data */
-  unsigned int size;
-};
 
 /**
  * \ingroup imbuf
@@ -94,7 +83,7 @@ struct ImbFormatOptions {
 };
 
 /* -------------------------------------------------------------------- */
-/** \name Imbuf Component flags
+/** \name ImBuf Component flags
  * \brief These flags determine the components of an ImBuf struct.
  * \{ */
 
@@ -128,7 +117,7 @@ enum eImBufFlags {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Imbuf buffer storage
+/** \name ImBuf buffer storage
  * \{ */
 
 /* Specialization of an ownership whenever a bare pointer is provided to the ImBuf buffers
@@ -141,6 +130,19 @@ enum ImBufOwnership {
   /* The ImBuf takes ownership of the buffer data, and will use MEM_freeN() to free this memory
    * when the ImBuf needs to free the data. */
   IB_TAKE_OWNERSHIP = 1,
+};
+
+struct DDSData {
+  /** DDS fourcc info */
+  unsigned int fourcc;
+  /** The number of mipmaps in the dds file */
+  unsigned int nummipmaps;
+  /** The compressed image data */
+  unsigned char *data;
+  /** The size of the compressed data */
+  unsigned int size;
+  /** Who owns the data buffer. */
+  ImBufOwnership ownership;
 };
 
 /* Different storage specialization.
@@ -292,7 +294,7 @@ enum {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Imbuf Preset Profile Tags
+/** \name ImBuf Preset Profile Tags
  *
  * \brief Some predefined color space profiles that 8 bit imbufs can represent.
  * \{ */
@@ -328,7 +330,7 @@ extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
 
 /* -------------------------------------------------------------------- */
-/** \name Imbuf Color Management Flag
+/** \name ImBuf Color Management Flag
  *
  * \brief Used with #ImBuf.colormanage_flag
  * \{ */

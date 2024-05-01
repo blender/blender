@@ -120,13 +120,12 @@ void ShadingView::render()
 
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
   inst_.lights.set_view(render_view_, extent_);
-  inst_.sphere_probes.set_view(render_view_);
 
   inst_.pipelines.background.render(render_view_);
 
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
 
-  inst_.volume.draw_prepass(render_view_);
+  inst_.volume.draw_prepass(main_view_);
 
   /* TODO(Miguel Pozo): Deferred and forward prepass should happen before the GBuffer pass. */
   inst_.pipelines.deferred.render(main_view_,
@@ -140,11 +139,11 @@ void ShadingView::render()
 
   inst_.gbuffer.release();
 
-  inst_.volume.draw_compute(render_view_);
+  inst_.volume.draw_compute(main_view_);
 
   // inst_.lookdev.render_overlay(view_fb_);
 
-  inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_);
+  inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_, extent_);
 
   render_transparent_pass(rbufs);
 
@@ -176,7 +175,7 @@ void ShadingView::render_transparent_pass(RenderBuffers &rbufs)
     float4 clear_color = {0.0f, 0.0f, 0.0f, 1.0f};
     GPU_framebuffer_bind(transparent_fb_);
     GPU_framebuffer_clear_color(transparent_fb_, clear_color);
-    inst_.pipelines.forward.render(render_view_, prepass_fb_, transparent_fb_);
+    inst_.pipelines.forward.render(render_view_, prepass_fb_, transparent_fb_, rbufs.extent_get());
   }
 }
 
@@ -210,10 +209,35 @@ void ShadingView::update_view()
   float4x4 viewmat = main_view_.viewmat();
   float4x4 winmat = main_view_.winmat();
 
-  /* TODO(fclem): Mixed-resolution rendering: We need to make sure we render with exactly the same
-   * distances between pixels to line up render samples and target pixels.
-   * So if the target resolution is not a multiple of the resolution divisor, we need to make the
-   * projection window bigger in the +X and +Y directions. */
+  /*
+   * Mixed resolution rendering. The center of the display pixels must align with the center of
+   * the render pixels. If they don't align, the winmat needs to be re-projected.
+   */
+  int2 scaling_factor = int2(inst_.film.scaling_factor_get());
+  int2 display_extent = inst_.film.display_extent_get();
+  int overscan = inst_.film.get_data().overscan;
+  int2 rescaled_render_extent = (extent_ - 2 * overscan) * scaling_factor;
+
+  if (rescaled_render_extent != display_extent) {
+    float left;
+    float right;
+    float bottom;
+    float top;
+    float near;
+    float far;
+    const bool is_perspective = main_view_.is_persp();
+    projmat_dimensions(winmat.ptr(), &left, &right, &bottom, &top, &near, &far);
+    float2 scale = (float2(rescaled_render_extent) / float2(display_extent));
+    right = left + ((right - left) * scale.x);
+    top = bottom + ((top - bottom) * scale.y);
+
+    if (is_perspective) {
+      winmat = math::projection::perspective(left, right, bottom, top, near, far);
+    }
+    else {
+      winmat = math::projection::orthographic(left, right, bottom, top, near, far);
+    }
+  }
 
   /* Anti-Aliasing / Super-Sampling jitter. */
   float2 jitter = inst_.film.pixel_jitter_get() / float2(extent_);
@@ -262,11 +286,7 @@ void CaptureView::render_world()
       inst_.pipelines.world.render(view);
     }
 
-    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord);
-  }
-
-  if (update_info->do_world_irradiance_update) {
-    inst_.sphere_probes.update_world_irradiance();
+    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, true);
   }
 
   GPU_debug_group_end();
@@ -324,7 +344,7 @@ void CaptureView::render_probes()
     inst_.render_buffers.release();
     inst_.gbuffer.release();
     GPU_debug_group_end();
-    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord);
+    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord, false);
   }
 
   if (inst_.pipelines.data.is_probe_reflection) {

@@ -497,11 +497,15 @@ static bool bm_loop_filter_fn(const BMLoop *l, void *user_data)
 /**
  * Return true if we have any intersections.
  */
-static void bm_isect_tri_tri(
-    ISectState *s, int a_index, int b_index, BMLoop **a, BMLoop **b, bool no_shared)
+static void bm_isect_tri_tri(ISectState *s,
+                             int a_index,
+                             int b_index,
+                             const std::array<BMLoop *, 3> &a,
+                             const std::array<BMLoop *, 3> &b,
+                             bool no_shared)
 {
-  BMFace *f_a = (*a)->f;
-  BMFace *f_b = (*b)->f;
+  BMFace *f_a = a[0]->f;
+  BMFace *f_b = b[0]->f;
   BMVert *fv_a[3] = {UNPACK3_EX(, a, ->v)};
   BMVert *fv_b[3] = {UNPACK3_EX(, b, ->v)};
   const float *f_a_cos[3] = {UNPACK3_EX(, fv_a, ->co)};
@@ -946,8 +950,7 @@ static int isect_bvhtree_point_v3(BVHTree *tree, const float **looptris, const f
 #endif /* USE_BVH */
 
 bool BM_mesh_intersect(BMesh *bm,
-                       BMLoop *(*looptris)[3],
-                       const int looptris_tot,
+                       const blender::Span<std::array<BMLoop *, 3>> looptris,
                        int (*test_fn)(BMFace *f, void *user_data),
                        void *user_data,
                        const bool use_self,
@@ -1031,8 +1034,8 @@ bool BM_mesh_intersect(BMesh *bm,
     int i, j;
 
     cos = static_cast<float **>(
-        MEM_mallocN(size_t(looptris_tot) * sizeof(*looptri_coords) * 3, __func__));
-    for (i = 0, j = 0; i < looptris_tot; i++) {
+        MEM_mallocN(size_t(looptris.size()) * sizeof(*looptri_coords) * 3, __func__));
+    for (i = 0, j = 0; i < int(looptris.size()); i++) {
       cos[j++] = looptris[i][0]->v->co;
       cos[j++] = looptris[i][1]->v->co;
       cos[j++] = looptris[i][2]->v->co;
@@ -1043,8 +1046,8 @@ bool BM_mesh_intersect(BMesh *bm,
 #ifdef USE_BVH
   {
     int i;
-    tree_a = BLI_bvhtree_new(looptris_tot, s.epsilon.eps_margin, 8, 8);
-    for (i = 0; i < looptris_tot; i++) {
+    tree_a = BLI_bvhtree_new(int(looptris.size()), s.epsilon.eps_margin, 8, 8);
+    for (i = 0; i < int(looptris.size()); i++) {
       if (test_fn(looptris[i][0]->f, user_data) == 0) {
         const float t_cos[3][3] = {
             {UNPACK3(looptris[i][0]->v->co)},
@@ -1060,8 +1063,8 @@ bool BM_mesh_intersect(BMesh *bm,
 
   if (use_self == false) {
     int i;
-    tree_b = BLI_bvhtree_new(looptris_tot, s.epsilon.eps_margin, 8, 8);
-    for (i = 0; i < looptris_tot; i++) {
+    tree_b = BLI_bvhtree_new(int(looptris.size()), s.epsilon.eps_margin, 8, 8);
+    for (i = 0; i < int(looptris.size()); i++) {
       if (test_fn(looptris[i][0]->f, user_data) == 1) {
         const float t_cos[3][3] = {
             {UNPACK3(looptris[i][0]->v->co)},
@@ -1088,7 +1091,7 @@ bool BM_mesh_intersect(BMesh *bm,
 #  ifndef NDEBUG
   /* The overlap result must match that obtained in Release to succeed
    * in the `bmesh_boolean` test. */
-  if (looptris_tot < 1024) {
+  if (looptris.size() < 1024) {
     flag &= ~BVH_OVERLAP_USE_THREADING;
   }
 #  endif
@@ -1124,9 +1127,9 @@ bool BM_mesh_intersect(BMesh *bm,
 
 #else
   {
-    for (i_a = 0; i_a < looptris_tot; i_a++) {
+    for (i_a = 0; i_a < looptris.size(); i_a++) {
       const int t_a = test_fn(looptris[i_a][0]->f, user_data);
-      for (i_b = i_a + 1; i_b < looptris_tot; i_b++) {
+      for (i_b = i_a + 1; i_b < looptris.size(); i_b++) {
         const int t_b = test_fn(looptris[i_b][0]->f, user_data);
 
         if (use_self) {

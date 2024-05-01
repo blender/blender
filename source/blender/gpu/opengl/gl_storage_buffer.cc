@@ -8,7 +8,7 @@
 
 #include "BLI_string.h"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 
@@ -115,8 +115,7 @@ void GLStorageBuf::bind(int slot)
 
 #ifndef NDEBUG
   BLI_assert(slot < 16);
-  /* TODO */
-  // GLContext::get()->bound_ssbo_slots |= 1 << slot;
+  GLContext::get()->bound_ssbo_slots |= 1 << slot;
 #endif
 }
 
@@ -133,8 +132,7 @@ void GLStorageBuf::unbind()
   /* NOTE: This only unbinds the last bound slot. */
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, slot_, 0);
   /* Hope that the context did not change. */
-  /* TODO */
-  // GLContext::get()->bound_ssbo_slots &= ~(1 << slot_);
+  GLContext::get()->bound_ssbo_slots &= ~(1 << slot_);
 #endif
   slot_ = 0;
 }
@@ -230,7 +228,7 @@ void GLStorageBuf::read(void *data)
   }
 
   while (glClientWaitSync(read_fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 1000) == GL_TIMEOUT_EXPIRED) {
-    /* Repeat until the data is ready.*/
+    /* Repeat until the data is ready. */
   }
   glDeleteSync(read_fence_);
   read_fence_ = 0;

@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "GPU_index_buffer.h"
+#include "GPU_index_buffer.hh"
 
 #include "extract_mesh.hh"
 
@@ -41,10 +41,10 @@ static void extract_fdots_pos_init(const MeshRenderData &mr,
                                    void *buf,
                                    void *tls_data)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   GPUVertFormat *format = get_fdots_pos_format();
   GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, mr.face_len);
+  GPU_vertbuf_data_alloc(vbo, mr.faces_num);
   void *vbo_data = GPU_vertbuf_get_data(vbo);
   *(float(**)[3])tls_data = static_cast<float(*)[3]>(vbo_data);
 }
@@ -102,9 +102,9 @@ static void extract_fdots_init_subdiv(const DRWSubdivCache &subdiv_cache,
                                       void * /*data*/)
 {
   /* We "extract" positions, normals, and indices at once. */
-  GPUVertBuf *fdots_pos_vbo = static_cast<GPUVertBuf *>(buffer);
-  GPUVertBuf *fdots_nor_vbo = cache.final.buff.vbo.fdots_nor;
-  GPUIndexBuf *fdots_pos_ibo = cache.final.buff.ibo.fdots;
+  gpu::VertBuf *fdots_pos_vbo = static_cast<gpu::VertBuf *>(buffer);
+  gpu::VertBuf *fdots_nor_vbo = cache.final.buff.vbo.fdots_nor;
+  gpu::IndexBuf *fdots_pos_ibo = cache.final.buff.ibo.fdots;
 
   /* The normals may not be requested. */
   if (fdots_nor_vbo) {

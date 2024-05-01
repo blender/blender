@@ -7,7 +7,7 @@
  */
 #pragma once
 
-#include "GPU_vertex_format.h"
+#include "GPU_vertex_format.hh"
 
 #include <Metal/Metal.h>
 

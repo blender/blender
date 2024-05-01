@@ -16,11 +16,11 @@
 
 #include "BKE_global.hh" /* for G.debug_value */
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_platform.h"
-#include "GPU_state.h"
+#include "GPU_capabilities.hh"
+#include "GPU_platform.hh"
+#include "GPU_state.hh"
 
 static struct {
   GPUTexture *dummy_horizon_tx;

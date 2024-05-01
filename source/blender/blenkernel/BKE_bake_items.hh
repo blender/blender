@@ -6,6 +6,7 @@
 
 #include "BKE_bake_data_block_map.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_volume_grid_fwd.hh"
 
 namespace blender::bke::bake {
 
@@ -80,6 +81,17 @@ class AttributeBakeItem : public BakeItem {
     return name_;
   }
 };
+
+#ifdef WITH_OPENVDB
+class VolumeGridBakeItem : public BakeItem {
+ public:
+  /** Using #unique_ptr so that `BKE_volume_grid_fwd.hh` can be used. */
+  std::unique_ptr<GVolumeGrid> grid;
+
+  VolumeGridBakeItem(std::unique_ptr<GVolumeGrid> grid);
+  ~VolumeGridBakeItem();
+};
+#endif
 
 /** Storage for a single value of a trivial type like `float`, `int`, etc. */
 class PrimitiveBakeItem : public BakeItem {

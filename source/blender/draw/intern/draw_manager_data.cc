@@ -9,7 +9,7 @@
 #include "DRW_pbvh.hh"
 
 #include "draw_attributes.hh"
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 #include "draw_pbvh.hh"
 
 #include "BKE_attribute.hh"
@@ -44,11 +44,11 @@
 #  include "BLI_math_bits.h"
 #endif
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 #include "GPU_material.hh"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 
-#include "intern/gpu_codegen.h"
+#include "intern/gpu_codegen.hh"
 
 /**
  * IMPORTANT:
@@ -71,7 +71,7 @@ static void draw_call_sort(DRWCommand *array, DRWCommand *array_tmp, int array_l
    * the sorting benefit will be negligible.
    * So at least sort fast! */
   uchar idx[128] = {0};
-  /* Shift by 6 positions knowing each GPUBatch is > 64 bytes */
+  /* Shift by 6 positions knowing each blender::gpu::Batch is > 64 bytes */
 #define KEY(a) ((size_t((a).draw.batch) >> 6) % ARRAY_SIZE(idx))
   BLI_assert(array_len <= ARRAY_SIZE(idx));
 
@@ -546,7 +546,7 @@ void DRW_shgroup_uniform_mat4_copy(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_vertex_buffer_ex(DRWShadingGroup *shgroup,
                                   const char *name,
-                                  GPUVertBuf *vertex_buffer DRW_DEBUG_FILE_LINE_ARGS)
+                                  blender::gpu::VertBuf *vertex_buffer DRW_DEBUG_FILE_LINE_ARGS)
 {
   int location = GPU_shader_get_ssbo_binding(shgroup->shader, name);
   if (location == -1) {
@@ -571,7 +571,8 @@ void DRW_shgroup_vertex_buffer_ex(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
                                       const char *name,
-                                      GPUVertBuf **vertex_buffer DRW_DEBUG_FILE_LINE_ARGS)
+                                      blender::gpu::VertBuf **vertex_buffer
+                                          DRW_DEBUG_FILE_LINE_ARGS)
 {
   int location = GPU_shader_get_ssbo_binding(shgroup->shader, name);
   if (location == -1) {
@@ -596,7 +597,7 @@ void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_buffer_texture(DRWShadingGroup *shgroup,
                                 const char *name,
-                                GPUVertBuf *vertex_buffer)
+                                blender::gpu::VertBuf *vertex_buffer)
 {
   int location = GPU_shader_get_sampler_binding(shgroup->shader, name);
   if (location == -1) {
@@ -613,7 +614,7 @@ void DRW_shgroup_buffer_texture(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
                                     const char *name,
-                                    GPUVertBuf **vertex_buffer)
+                                    blender::gpu::VertBuf **vertex_buffer)
 {
   int location = GPU_shader_get_sampler_binding(shgroup->shader, name);
   if (location == -1) {
@@ -874,15 +875,20 @@ static void *drw_command_create(DRWShadingGroup *shgroup, eDRWCommandType type)
   return chunk->commands + chunk->command_used++;
 }
 
-static void drw_command_draw(DRWShadingGroup *shgroup, GPUBatch *batch, DRWResourceHandle handle)
+static void drw_command_draw(DRWShadingGroup *shgroup,
+                             blender::gpu::Batch *batch,
+                             DRWResourceHandle handle)
 {
   DRWCommandDraw *cmd = static_cast<DRWCommandDraw *>(drw_command_create(shgroup, DRW_CMD_DRAW));
   cmd->batch = batch;
   cmd->handle = handle;
 }
 
-static void drw_command_draw_range(
-    DRWShadingGroup *shgroup, GPUBatch *batch, DRWResourceHandle handle, uint start, uint count)
+static void drw_command_draw_range(DRWShadingGroup *shgroup,
+                                   blender::gpu::Batch *batch,
+                                   DRWResourceHandle handle,
+                                   uint start,
+                                   uint count)
 {
   DRWCommandDrawRange *cmd = static_cast<DRWCommandDrawRange *>(
       drw_command_create(shgroup, DRW_CMD_DRAW_RANGE));
@@ -892,8 +898,11 @@ static void drw_command_draw_range(
   cmd->vert_count = count;
 }
 
-static void drw_command_draw_instance(
-    DRWShadingGroup *shgroup, GPUBatch *batch, DRWResourceHandle handle, uint count, bool use_attr)
+static void drw_command_draw_instance(DRWShadingGroup *shgroup,
+                                      blender::gpu::Batch *batch,
+                                      DRWResourceHandle handle,
+                                      uint count,
+                                      bool use_attr)
 {
   DRWCommandDrawInstance *cmd = static_cast<DRWCommandDrawInstance *>(
       drw_command_create(shgroup, DRW_CMD_DRAW_INSTANCE));
@@ -903,8 +912,11 @@ static void drw_command_draw_instance(
   cmd->use_attrs = use_attr;
 }
 
-static void drw_command_draw_intance_range(
-    DRWShadingGroup *shgroup, GPUBatch *batch, DRWResourceHandle handle, uint start, uint count)
+static void drw_command_draw_intance_range(DRWShadingGroup *shgroup,
+                                           blender::gpu::Batch *batch,
+                                           DRWResourceHandle handle,
+                                           uint start,
+                                           uint count)
 {
   DRWCommandDrawInstanceRange *cmd = static_cast<DRWCommandDrawInstanceRange *>(
       drw_command_create(shgroup, DRW_CMD_DRAW_INSTANCE_RANGE));
@@ -948,7 +960,7 @@ static void drw_command_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 }
 
 static void drw_command_draw_procedural(DRWShadingGroup *shgroup,
-                                        GPUBatch *batch,
+                                        blender::gpu::Batch *batch,
                                         DRWResourceHandle handle,
                                         uint vert_count)
 {
@@ -960,7 +972,7 @@ static void drw_command_draw_procedural(DRWShadingGroup *shgroup,
 }
 
 static void drw_command_draw_indirect(DRWShadingGroup *shgroup,
-                                      GPUBatch *batch,
+                                      blender::gpu::Batch *batch,
                                       DRWResourceHandle handle,
                                       GPUStorageBuf *indirect_buf)
 {
@@ -971,7 +983,9 @@ static void drw_command_draw_indirect(DRWShadingGroup *shgroup,
   cmd->indirect_buf = indirect_buf;
 }
 
-static void drw_command_set_select_id(DRWShadingGroup *shgroup, GPUVertBuf *buf, uint select_id)
+static void drw_command_set_select_id(DRWShadingGroup *shgroup,
+                                      blender::gpu::VertBuf *buf,
+                                      uint select_id)
 {
   /* Only one can be valid. */
   BLI_assert(buf == nullptr || select_id == -1);
@@ -1030,7 +1044,7 @@ static void drw_command_set_mutable_state(DRWShadingGroup *shgroup,
 void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
                          const Object *ob,
                          const float (*obmat)[4],
-                         GPUBatch *geom,
+                         blender::gpu::Batch *geom,
                          bool bypass_culling,
                          void *user_data)
 {
@@ -1058,7 +1072,7 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
 }
 
 void DRW_shgroup_call_range(
-    DRWShadingGroup *shgroup, const Object *ob, GPUBatch *geom, uint v_sta, uint v_num)
+    DRWShadingGroup *shgroup, const Object *ob, blender::gpu::Batch *geom, uint v_sta, uint v_num)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1070,7 +1084,7 @@ void DRW_shgroup_call_range(
 }
 
 void DRW_shgroup_call_instance_range(
-    DRWShadingGroup *shgroup, const Object *ob, GPUBatch *geom, uint i_sta, uint i_num)
+    DRWShadingGroup *shgroup, const Object *ob, blender::gpu::Batch *geom, uint i_sta, uint i_num)
 {
   BLI_assert(geom != nullptr);
   if (G.f & G_FLAG_PICKSEL) {
@@ -1087,34 +1101,26 @@ void DRW_shgroup_call_compute(DRWShadingGroup *shgroup,
                               int groups_z_len)
 {
   BLI_assert(groups_x_len > 0 && groups_y_len > 0 && groups_z_len > 0);
-  BLI_assert(GPU_compute_shader_support());
-
   drw_command_compute(shgroup, groups_x_len, groups_y_len, groups_z_len);
 }
 
 void DRW_shgroup_call_compute_ref(DRWShadingGroup *shgroup, int groups_ref[3])
 {
-  BLI_assert(GPU_compute_shader_support());
-
   drw_command_compute_ref(shgroup, groups_ref);
 }
 
 void DRW_shgroup_call_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *indirect_buf)
 {
-  BLI_assert(GPU_compute_shader_support());
-
   drw_command_compute_indirect(shgroup, indirect_buf);
 }
 
 void DRW_shgroup_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 {
-  BLI_assert(GPU_compute_shader_support());
-
   drw_command_barrier(shgroup, type);
 }
 
 static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
-                                               GPUBatch *geom,
+                                               blender::gpu::Batch *geom,
                                                const Object *ob,
                                                uint vert_count)
 {
@@ -1132,13 +1138,13 @@ void DRW_shgroup_call_procedural_points(DRWShadingGroup *shgroup,
                                         const Object *ob,
                                         uint point_count)
 {
-  GPUBatch *geom = drw_cache_procedural_points_get();
+  blender::gpu::Batch *geom = drw_cache_procedural_points_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, point_count);
 }
 
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *shgroup, const Object *ob, uint line_count)
 {
-  GPUBatch *geom = drw_cache_procedural_lines_get();
+  blender::gpu::Batch *geom = drw_cache_procedural_lines_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, line_count * 2);
 }
 
@@ -1146,7 +1152,7 @@ void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup,
                                            const Object *ob,
                                            uint tri_count)
 {
-  GPUBatch *geom = drw_cache_procedural_triangles_get();
+  blender::gpu::Batch *geom = drw_cache_procedural_triangles_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tri_count * 3);
 }
 
@@ -1155,7 +1161,7 @@ void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
                                           Object *ob,
                                           GPUStorageBuf *indirect_buf)
 {
-  GPUBatch *geom = nullptr;
+  blender::gpu::Batch *geom = nullptr;
   switch (primitive_type) {
     case GPU_PRIM_POINTS:
       geom = drw_cache_procedural_points_get();
@@ -1185,7 +1191,7 @@ void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
                                 const Object *ob,
-                                GPUBatch *geom,
+                                blender::gpu::Batch *geom,
                                 uint count)
 {
   BLI_assert(geom != nullptr);
@@ -1199,8 +1205,8 @@ void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
 
 void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
                                            const Object *ob,
-                                           GPUBatch *geom,
-                                           GPUBatch *inst_attributes)
+                                           blender::gpu::Batch *geom,
+                                           blender::gpu::Batch *inst_attributes)
 {
   BLI_assert(geom != nullptr);
   BLI_assert(inst_attributes != nullptr);
@@ -1209,7 +1215,7 @@ void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
   }
   DRWResourceHandle handle = drw_resource_handle(
       shgroup, ob ? ob->object_to_world().ptr() : nullptr, ob);
-  GPUBatch *batch = DRW_temp_batch_instance_request(
+  blender::gpu::Batch *batch = DRW_temp_batch_instance_request(
       DST.vmempool->idatalist, nullptr, inst_attributes, geom);
   drw_command_draw_instance(shgroup, batch, handle, 0, true);
 }
@@ -1247,7 +1253,7 @@ static void sculpt_draw_cb(DRWSculptCallbackData *scd,
                            const blender::draw::pbvh::PBVH_GPU_Args &pbvh_draw_args)
 {
   using namespace blender::draw;
-  GPUBatch *geom;
+  blender::gpu::Batch *geom;
 
   if (!scd->use_wire) {
     geom = pbvh::tris_get(batches, scd->attrs, pbvh_draw_args, scd->fast_mode);
@@ -1296,7 +1302,7 @@ void DRW_sculpt_debug_cb(
   if (flag & (PBVH_Leaf | PBVH_TexLeaf)) {
     DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR((*debug_node_nr)++));
     int color = (*debug_node_nr)++;
-    color += BKE_pbvh_debug_draw_gen_get(node);
+    color += BKE_pbvh_debug_draw_gen_get(*node);
 
     DRW_debug_bbox(&bb, SCULPT_DEBUG_COLOR(color));
   }
@@ -1322,7 +1328,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
 {
   using namespace blender;
   /* PBVH should always exist for non-empty meshes, created by depsgraph eval. */
-  PBVH *pbvh = (scd->ob->sculpt) ? scd->ob->sculpt->pbvh : nullptr;
+  PBVH *pbvh = (scd->ob->sculpt) ? scd->ob->sculpt->pbvh.get() : nullptr;
   if (!pbvh) {
     return;
   }
@@ -1345,12 +1351,12 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
   if (p && (p->flags & PAINT_SCULPT_DELAY_UPDATES)) {
     update_frustum.planes = update_planes;
     update_frustum.num_planes = 6;
-    bke::pbvh::get_frustum_planes(pbvh, &update_frustum);
+    bke::pbvh::get_frustum_planes(*pbvh, &update_frustum);
     if (!navigating) {
       drw_sculpt_get_frustum_planes(scd->ob, update_planes);
       update_frustum.planes = update_planes;
       update_frustum.num_planes = 6;
-      bke::pbvh::set_frustum_planes(pbvh, &update_frustum);
+      bke::pbvh::set_frustum_planes(*pbvh, &update_frustum);
     }
   }
   else {
@@ -1381,7 +1387,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
 
   bke::pbvh::draw_cb(
       *mesh,
-      pbvh,
+      *pbvh,
       update_only_visible,
       update_frustum,
       draw_frustum,
@@ -1392,7 +1398,7 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
     int debug_node_nr = 0;
     DRW_debug_modelmat(scd->ob->object_to_world().ptr());
     BKE_pbvh_draw_debug_cb(
-        pbvh,
+        *pbvh,
         (void (*)(PBVHNode *n, void *d, const float min[3], const float max[3], PBVHNodeFlags f))
             DRW_sculpt_debug_cb,
         &debug_node_nr);
@@ -1531,7 +1537,8 @@ DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
   }
 
   DRWResourceHandle handle = drw_resource_handle(shgroup, nullptr, nullptr);
-  GPUBatch *batch = DRW_temp_batch_request(DST.vmempool->idatalist, callbuf->buf, prim_type);
+  blender::gpu::Batch *batch = DRW_temp_batch_request(
+      DST.vmempool->idatalist, callbuf->buf, prim_type);
   drw_command_draw(shgroup, batch, handle);
 
   return callbuf;
@@ -1539,7 +1546,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
 
 DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
                                                 GPUVertFormat *format,
-                                                GPUBatch *geom)
+                                                blender::gpu::Batch *geom)
 {
   BLI_assert(geom != nullptr);
   BLI_assert(format != nullptr);
@@ -1561,7 +1568,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
   }
 
   DRWResourceHandle handle = drw_resource_handle(shgroup, nullptr, nullptr);
-  GPUBatch *batch = DRW_temp_batch_instance_request(
+  blender::gpu::Batch *batch = DRW_temp_batch_instance_request(
       DST.vmempool->idatalist, callbuf->buf, nullptr, geom);
   drw_command_draw(shgroup, batch, handle);
 
@@ -1570,7 +1577,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
 
 void DRW_buffer_add_entry_struct(DRWCallBuffer *callbuf, const void *data)
 {
-  GPUVertBuf *buf = callbuf->buf;
+  blender::gpu::VertBuf *buf = callbuf->buf;
   const bool resize = (callbuf->count == GPU_vertbuf_get_vertex_alloc(buf));
 
   if (UNLIKELY(resize)) {
@@ -1591,7 +1598,7 @@ void DRW_buffer_add_entry_struct(DRWCallBuffer *callbuf, const void *data)
 
 void DRW_buffer_add_entry_array(DRWCallBuffer *callbuf, const void *attr[], uint attr_len)
 {
-  GPUVertBuf *buf = callbuf->buf;
+  blender::gpu::VertBuf *buf = callbuf->buf;
   const bool resize = (callbuf->count == GPU_vertbuf_get_vertex_alloc(buf));
 
   BLI_assert(attr_len == GPU_vertbuf_get_format(buf)->attr_len);
@@ -1888,7 +1895,7 @@ DRWShadingGroup *DRW_shgroup_create(GPUShader *shader, DRWPass *pass)
 
 DRWShadingGroup *DRW_shgroup_transform_feedback_create(GPUShader *shader,
                                                        DRWPass *pass,
-                                                       GPUVertBuf *tf_target)
+                                                       blender::gpu::VertBuf *tf_target)
 {
   BLI_assert(tf_target != nullptr);
   DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);

@@ -22,6 +22,10 @@
 #  include "GHOST_ContextVK.hh"
 #endif
 
+#ifdef WIN32
+#  include "BLI_path_util.h"
+#endif
+
 #include <Dwmapi.h>
 
 #include <assert.h>
@@ -127,15 +131,27 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 
   if (!setDrawingContextType(type)) {
     const char *title = "Blender - Unsupported Graphics Card Configuration";
-    const char *text =
-        "A graphics card and driver with support for OpenGL 4.3 or higher is "
-        "required.\n\nInstalling the latest driver for your graphics card might resolve the "
-        "issue.";
-    if (GetSystemMetrics(SM_CMONITORS) > 1) {
+    const char *text = "";
+#if defined(WIN32)
+    if (strncmp(BLI_getenv("PROCESSOR_IDENTIFIER"), "ARM", 3) == 0) {
+      text =
+          "A driver with support for OpenGL 4.3 or higher is required.\n\n"
+          "If you are on a Qualcomm 8cx Gen3 device or newer, you need to download the"
+          "\"OpenCL™, OpenGL®, and Vulkan® Compatibility Pack\" from the MS Store.";
+    }
+    else
+#endif
+    {
       text =
           "A graphics card and driver with support for OpenGL 4.3 or higher is "
-          "required.\n\nPlugging all monitors into your primary graphics card might resolve "
-          "this issue. Installing the latest driver for your graphics card could also help.";
+          "required.\n\nInstalling the latest driver for your graphics card might resolve the "
+          "issue.";
+      if (GetSystemMetrics(SM_CMONITORS) > 1) {
+        text =
+            "A graphics card and driver with support for OpenGL 4.3 or higher is "
+            "required.\n\nPlugging all monitors into your primary graphics card might resolve "
+            "this issue. Installing the latest driver for your graphics card could also help.";
+      }
     }
     MessageBox(m_hWnd, text, title, MB_OK | MB_ICONERROR);
     ::ReleaseDC(m_hWnd, m_hDC);
@@ -204,9 +220,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
     DeleteObject(bb.hRgnBlur);
   }
 #endif
-
-  /* Force an initial paint of the window. */
-  ::UpdateWindow(m_hWnd);
 
   /* Initialize WINTAB. */
   if (system->getTabletAPI() != GHOST_kTabletWinPointer) {

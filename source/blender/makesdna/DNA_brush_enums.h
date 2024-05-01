@@ -328,6 +328,7 @@ typedef enum eGP_Sculpt_Mode_Flag {
   /* apply brush to uv data */
   GP_SCULPT_FLAGMODE_APPLY_UV = (1 << 3),
 } eGP_Sculpt_Mode_Flag;
+ENUM_OPERATORS(eGP_Sculpt_Mode_Flag, GP_SCULPT_FLAGMODE_APPLY_UV)
 
 typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_TOPOLOGY = (1 << 0),
@@ -481,13 +482,6 @@ typedef enum eBrushSculptTool {
   SCULPT_TOOL_DISPLACEMENT_ERASER = 31,
   SCULPT_TOOL_DISPLACEMENT_SMEAR = 32,
 } eBrushSculptTool;
-
-/** #Brush.uv_sculpt_tool */
-typedef enum eBrushUVSculptTool {
-  UV_SCULPT_TOOL_GRAB = 0,
-  UV_SCULPT_TOOL_RELAX = 1,
-  UV_SCULPT_TOOL_PINCH = 2,
-} eBrushUVSculptTool;
 
 /* Brush.curves_sculpt_tool. */
 typedef enum eBrushCurvesSculptTool {
@@ -656,6 +650,7 @@ typedef enum eBrushCurvesSculptFlag {
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH = (1 << 2),
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE = (1 << 3),
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_POINT_COUNT = (1 << 4),
+  BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_RADIUS = (1 << 5),
 } eBrushCurvesSculptFlag;
 
 typedef enum eBrushCurvesSculptDensityMode {

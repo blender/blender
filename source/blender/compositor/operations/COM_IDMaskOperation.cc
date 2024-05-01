@@ -10,23 +10,7 @@ IDMaskOperation::IDMaskOperation()
 {
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Value);
-  flags_.complex = true;
   flags_.can_be_constant = true;
-}
-
-void *IDMaskOperation::initialize_tile_data(rcti *rect)
-{
-  void *buffer = get_input_operation(0)->initialize_tile_data(rect);
-  return buffer;
-}
-
-void IDMaskOperation::execute_pixel(float output[4], int x, int y, void *data)
-{
-  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
-  const int buffer_width = input_buffer->get_width();
-  float *buffer = input_buffer->get_buffer();
-  int buffer_index = (y * buffer_width + x);
-  output[0] = (roundf(buffer[buffer_index]) == object_index_) ? 1.0f : 0.0f;
 }
 
 void IDMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,

@@ -50,12 +50,12 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "physics_intern.h" /* own include */
+#include "physics_intern.hh" /* own include */
 
 static int surface_slot_add_exec(bContext *C, wmOperator * /*op*/)
 {
   DynamicPaintModifierData *pmd = nullptr;
-  Object *cObject = ED_object_context(C);
+  Object *cObject = blender::ed::object::context_object(C);
   DynamicPaintCanvasSettings *canvas;
   DynamicPaintSurface *surface;
 
@@ -98,7 +98,7 @@ void DPAINT_OT_surface_slot_add(wmOperatorType *ot)
 static int surface_slot_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   DynamicPaintModifierData *pmd = nullptr;
-  Object *obj_ctx = ED_object_context(C);
+  Object *obj_ctx = blender::ed::object::context_object(C);
   DynamicPaintCanvasSettings *canvas;
   DynamicPaintSurface *surface;
   int id = 0;
@@ -146,7 +146,7 @@ void DPAINT_OT_surface_slot_remove(wmOperatorType *ot)
 static int type_toggle_exec(bContext *C, wmOperator *op)
 {
 
-  Object *cObject = ED_object_context(C);
+  Object *cObject = blender::ed::object::context_object(C);
   Scene *scene = CTX_data_scene(C);
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(
       cObject, eModifierType_DynamicPaint);
@@ -207,7 +207,7 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
 
 static int output_toggle_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  Object *ob = blender::ed::object::context_object(C);
   DynamicPaintSurface *surface;
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)BKE_modifiers_findby_type(
       ob, eModifierType_DynamicPaint);
@@ -461,7 +461,7 @@ static void dpaint_bake_startjob(void *customdata, wmJobWorkerStatus *worker_sta
 static int dynamicpaint_bake_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Object *ob_ = ED_object_context(C);
+  Object *ob_ = blender::ed::object::context_object(C);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob_);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 

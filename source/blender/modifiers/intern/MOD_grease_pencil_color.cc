@@ -136,14 +136,13 @@ static void modify_stroke_color(Object &ob,
 
 static void modify_fill_color(Object &ob,
                               const GreasePencilColorModifierData &cmd,
-                              bke::CurvesGeometry &curves,
+                              Drawing &drawing,
                               const IndexMask &curves_mask)
 {
-  bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const bke::AttributeAccessor attributes = curves.attributes();
   /* Fill color per stroke. */
-  bke::SpanAttributeWriter<ColorGeometry4f> fill_colors =
-      attributes.lookup_or_add_for_write_span<ColorGeometry4f>("fill_color",
-                                                               bke::AttrDomain::Curve);
+  MutableSpan<ColorGeometry4f> fill_colors = drawing.fill_colors_for_write();
   const VArray<int> stroke_materials = *attributes.lookup_or_default<int>(
       "material_index", bke::AttrDomain::Curve, 0);
 
@@ -153,10 +152,8 @@ static void modify_fill_color(Object &ob,
     const ColorGeometry4f material_color = (gp_style ? ColorGeometry4f(gp_style->fill_rgba) :
                                                        ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
 
-    apply_color_factor(fill_colors.span[curve_i], material_color, cmd.hsv);
+    apply_color_factor(fill_colors[curve_i], material_color, cmd.hsv);
   });
-
-  fill_colors.finish();
 }
 
 static void modify_drawing(ModifierData &md, const ModifierEvalContext &ctx, Drawing &drawing)
@@ -174,12 +171,12 @@ static void modify_drawing(ModifierData &md, const ModifierEvalContext &ctx, Dra
           *ctx.object, cmd, curves, curves_mask, drawing.vertex_colors_for_write());
       break;
     case MOD_GREASE_PENCIL_COLOR_FILL:
-      modify_fill_color(*ctx.object, cmd, curves, curves_mask);
+      modify_fill_color(*ctx.object, cmd, drawing, curves_mask);
       break;
     case MOD_GREASE_PENCIL_COLOR_BOTH:
       modify_stroke_color(
           *ctx.object, cmd, curves, curves_mask, drawing.vertex_colors_for_write());
-      modify_fill_color(*ctx.object, cmd, curves, curves_mask);
+      modify_fill_color(*ctx.object, cmd, drawing, curves_mask);
       break;
     case MOD_GREASE_PENCIL_COLOR_HARDNESS:
       BLI_assert_unreachable();
@@ -228,7 +225,6 @@ static void panel_draw(const bContext *C, Panel *panel)
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_custom_curve_settings(C, influence_panel, ptr);
   }
 

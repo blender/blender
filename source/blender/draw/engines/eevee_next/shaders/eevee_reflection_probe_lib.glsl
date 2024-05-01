@@ -28,6 +28,8 @@ ReflectionProbeLowFreqLight reflection_probes_extract_low_freq(SphericalHarmonic
   /* To avoid color shift and negative values, we reduce saturation and directionality. */
   ReflectionProbeLowFreqLight result;
   result.ambient = sh.L0.M0.r + sh.L0.M0.g + sh.L0.M0.b;
+  /* Bias to avoid division by zero. */
+  result.ambient += 1e-6f;
 
   mat3x4 L1_per_band;
   L1_per_band[0] = sh.L1.Mn1;
@@ -40,11 +42,11 @@ ReflectionProbeLowFreqLight reflection_probes_extract_low_freq(SphericalHarmonic
   return result;
 }
 
-vec3 reflection_probes_normalization_eval(vec3 L,
-                                          ReflectionProbeLowFreqLight numerator,
-                                          ReflectionProbeLowFreqLight denominator)
+float reflection_probes_normalization_eval(vec3 L,
+                                           ReflectionProbeLowFreqLight numerator,
+                                           ReflectionProbeLowFreqLight denominator)
 {
   /* TODO(fclem): Adjusting directionality is tricky.
    * Needs to be revisited later on. For now only use the ambient term. */
-  return vec3(numerator.ambient * safe_rcp(denominator.ambient));
+  return saturate(numerator.ambient / denominator.ambient);
 }

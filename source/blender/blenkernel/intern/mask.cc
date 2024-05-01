@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <optional>
 
 #include "CLG_log.h"
 
@@ -32,7 +33,7 @@
 #include "BKE_curve.hh"
 #include "BKE_idtype.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -49,7 +50,11 @@
 
 static CLG_LogRef LOG = {"bke.mask"};
 
-static void mask_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
+static void mask_copy_data(Main * /*bmain*/,
+                           std::optional<Library *> /*owner_library*/,
+                           ID *id_dst,
+                           const ID *id_src,
+                           const int /*flag*/)
 {
   Mask *mask_dst = (Mask *)id_dst;
   const Mask *mask_src = (const Mask *)id_src;
@@ -131,26 +136,25 @@ static void mask_blend_write(BlendWriter *writer, ID *id, const void *id_address
 static void mask_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Mask *mask = (Mask *)id;
-  BLO_read_data_address(reader, &mask->adt);
 
-  BLO_read_list(reader, &mask->masklayers);
+  BLO_read_struct_list(reader, MaskLayer, &mask->masklayers);
 
   LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
     /* Can't use #newdataadr since it's a pointer within an array. */
     MaskSplinePoint *act_point_search = nullptr;
 
-    BLO_read_list(reader, &masklay->splines);
+    BLO_read_struct_list(reader, MaskSpline, &masklay->splines);
 
     LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
       MaskSplinePoint *points_old = spline->points;
 
-      BLO_read_data_address(reader, &spline->points);
+      BLO_read_struct_array(reader, MaskSplinePoint, spline->tot_point, &spline->points);
 
       for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
         if (point->tot_uw) {
-          BLO_read_data_address(reader, &point->uw);
+          BLO_read_struct_array(reader, MaskSplinePointUW, point->tot_uw, &point->uw);
         }
       }
 
@@ -162,21 +166,14 @@ static void mask_blend_read_data(BlendDataReader *reader, ID *id)
       }
     }
 
-    BLO_read_list(reader, &masklay->splines_shapes);
+    BLO_read_struct_list(reader, MaskLayerShape, &masklay->splines_shapes);
 
     LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
-      BLO_read_data_address(reader, &masklay_shape->data);
-
-      if (masklay_shape->tot_vert) {
-        if (BLO_read_requires_endian_switch(reader)) {
-          BLI_endian_switch_float_array(masklay_shape->data,
-                                        masklay_shape->tot_vert * sizeof(float) *
-                                            MASK_OBJECT_SHAPE_ELEM_SIZE);
-        }
-      }
+      BLO_read_float_array(
+          reader, masklay_shape->tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE, &masklay_shape->data);
     }
 
-    BLO_read_data_address(reader, &masklay->act_spline);
+    BLO_read_struct(reader, MaskSpline, &masklay->act_spline);
     masklay->act_point = act_point_search;
   }
 }
@@ -336,7 +333,10 @@ void BKE_mask_layer_unique_name(Mask *mask, MaskLayer *masklay)
                  sizeof(masklay->name));
 }
 
-void BKE_mask_layer_rename(Mask *mask, MaskLayer *masklay, char *oldname, char *newname)
+void BKE_mask_layer_rename(Mask *mask,
+                           MaskLayer *masklay,
+                           const char *oldname,
+                           const char *newname)
 {
   STRNCPY(masklay->name, newname);
 
@@ -1504,7 +1504,7 @@ void BKE_mask_parent_init(MaskParent *parent)
   parent->id_type = ID_MC;
 }
 
-/* *** own animation/shape-key implementation ***
+/* *** animation/shape-key implementation ***
  * BKE_mask_layer_shape_XXX */
 
 int BKE_mask_layer_shape_totvert(MaskLayer *masklay)

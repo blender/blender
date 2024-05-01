@@ -41,7 +41,6 @@ struct Editing;
 struct ListBase;
 
 #define DEFAULT_IMG_STRIP_LENGTH 25 /* XXX arbitrary but ok for now. */
-#define OVERLAP_ALPHA 180
 
 namespace blender::ed::seq {
 
@@ -84,10 +83,6 @@ struct SeqChannelDrawContext {
 
 void draw_timeline_seq(const bContext *C, ARegion *region);
 void draw_timeline_seq_display(const bContext *C, ARegion *region);
-void color3ubv_from_seq(const Scene *curscene,
-                        const Sequence *seq,
-                        bool show_strip_color_tag,
-                        uchar r_col[3]);
 
 /* `sequencer_preview_draw.cc` */
 
@@ -190,8 +185,8 @@ blender::VectorSet<Sequence *> selected_strips_from_context(bContext *C);
 
 /* Externals. */
 
-extern EnumPropertyItem sequencer_prop_effect_types[];
-extern EnumPropertyItem prop_side_types[];
+extern const EnumPropertyItem sequencer_prop_effect_types[];
+extern const EnumPropertyItem prop_side_types[];
 
 /* Operators. */
 
@@ -336,7 +331,7 @@ int sequencer_retiming_box_select_exec(bContext *C, wmOperator *op);
 /* `sequencer_retiming_draw.cc` */
 void sequencer_draw_retiming(const bContext *C, SeqQuadsBatch *quads);
 blender::Vector<Sequence *> sequencer_visible_strips_get(const bContext *C);
-SeqRetimingKey *try_to_realize_virtual_key(const bContext *C, Sequence *seq, const int mval[2]);
+SeqRetimingKey *try_to_realize_virtual_keys(const bContext *C, Sequence *seq, const int mval[2]);
 SeqRetimingKey *retiming_mousover_key_get(const bContext *C, const int mval[2], Sequence **r_seq);
 int left_fake_key_frame_get(const bContext *C, const Sequence *seq);
 int right_fake_key_frame_get(const bContext *C, const Sequence *seq);

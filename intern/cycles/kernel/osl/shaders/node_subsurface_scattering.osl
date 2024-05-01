@@ -8,19 +8,21 @@ shader node_subsurface_scattering(color Color = 0.8,
                                   float Scale = 1.0,
                                   vector Radius = vector(0.1, 0.1, 0.1),
                                   float IOR = 1.4,
+                                  float Roughness = 1.0,
                                   float Anisotropy = 0.0,
                                   string method = "random_walk",
                                   normal Normal = N,
                                   output closure color BSSRDF = 0)
 {
-  BSSRDF = Color * bssrdf(method,
-                          Normal,
-                          Scale * Radius,
-                          Color,
-                          "ior",
-                          IOR,
-                          "anisotropy",
-                          Anisotropy,
-                          "roughness",
-                          1.0);
+  color base_color = max(Color, color(0.0));
+  BSSRDF = base_color * bssrdf(method,
+                               Normal,
+                               Scale * Radius,
+                               base_color,
+                               "ior",
+                               IOR,
+                               "anisotropy",
+                               Anisotropy,
+                               "roughness",
+                               clamp(Roughness, 0.0, 1.0));
 }

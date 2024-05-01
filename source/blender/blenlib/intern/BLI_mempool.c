@@ -197,7 +197,7 @@ BLI_INLINE uint mempool_maxchunks(const uint elem_num, const uint pchunk)
   return (elem_num <= pchunk) ? 1 : ((elem_num / pchunk) + 1);
 }
 
-static BLI_mempool_chunk *mempool_chunk_alloc(BLI_mempool *pool)
+static BLI_mempool_chunk *mempool_chunk_alloc(const BLI_mempool *pool)
 {
   return MEM_mallocN(sizeof(BLI_mempool_chunk) + (size_t)pool->csize, "mempool chunk");
 }
@@ -618,7 +618,8 @@ void BLI_mempool_as_array(BLI_mempool *pool, void *data)
 {
   const uint esize = pool->esize - (uint)POISON_REDZONE_SIZE;
   BLI_mempool_iter iter;
-  char *elem, *p = data;
+  const char *elem;
+  char *p = data;
 
   BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 

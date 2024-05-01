@@ -31,9 +31,9 @@
 
 #include "UI_resources.hh"
 
-#include "GPU_immediate.h"
+#include "GPU_immediate.hh"
 
-#include "view3d_intern.h"
+#include "view3d_intern.hh"
 
 static const char *view3d_gzgt_placement_id = "VIEW3D_GGT_placement";
 
@@ -155,7 +155,9 @@ struct InteractivePlaceData {
   /** When activated without a tool. */
   bool wait_for_input;
 
-  eSnapMode snap_to;
+  /* WORKAROUND: We need to remove #SCE_SNAP_TO_GRID temporarily. */
+  short *snap_to_ptr;
+  eSnapMode snap_to_restore;
 };
 
 /** \} */
@@ -225,7 +227,7 @@ static bool idp_snap_calc_incremental(
     return false;
   }
 
-  if (scene->toolsettings->snap_flag & SCE_SNAP_ABS_GRID) {
+  if (scene->toolsettings->snap_mode & SCE_SNAP_TO_GRID) {
     co_relative = nullptr;
   }
 
@@ -255,7 +257,7 @@ static void draw_line_loop(const float coords[][3], int coords_len, const float 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  GPUVertBuf *vert = GPU_vertbuf_create_with_format(format);
+  blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(vert, coords_len);
 
   for (int i = 0; i < coords_len; i++) {
@@ -263,7 +265,8 @@ static void draw_line_loop(const float coords[][3], int coords_len, const float 
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
-  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_LINE_LOOP, vert, nullptr, GPU_BATCH_OWNS_VBO);
+  blender::gpu::Batch *batch = GPU_batch_create_ex(
+      GPU_PRIM_LINE_LOOP, vert, nullptr, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
   GPU_batch_uniform_4fv(batch, "color", color);
@@ -287,7 +290,7 @@ static void draw_line_pairs(const float coords_a[][3],
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  GPUVertBuf *vert = GPU_vertbuf_create_with_format(format);
+  blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(vert, coords_len * 2);
 
   for (int i = 0; i < coords_len; i++) {
@@ -296,7 +299,8 @@ static void draw_line_pairs(const float coords_a[][3],
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
-  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_LINES, vert, nullptr, GPU_BATCH_OWNS_VBO);
+  blender::gpu::Batch *batch = GPU_batch_create_ex(
+      GPU_PRIM_LINES, vert, nullptr, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
   GPU_batch_uniform_4fv(batch, "color", color);
@@ -333,7 +337,7 @@ static void draw_line_bounds(const BoundBox *bounds, const float color[4])
       {3, 7},
   };
 
-  GPUVertBuf *vert = GPU_vertbuf_create_with_format(format);
+  blender::gpu::VertBuf *vert = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(vert, ARRAY_SIZE(edges) * 2);
 
   for (int i = 0, j = 0; i < ARRAY_SIZE(edges); i++) {
@@ -342,7 +346,8 @@ static void draw_line_bounds(const BoundBox *bounds, const float color[4])
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
-  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_LINES, vert, nullptr, GPU_BATCH_OWNS_VBO);
+  blender::gpu::Batch *batch = GPU_batch_create_ex(
+      GPU_PRIM_LINES, vert, nullptr, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
   GPU_batch_uniform_4fv(batch, "color", color);
@@ -737,7 +742,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
       /* Be sure to also compute the #V3DSnapCursorData.plane_omat. */
       snap_state->draw_plane = true;
 
-      ED_view3d_cursor_snap_data_update(snap_state_new, C, mval[0], mval[1]);
+      ED_view3d_cursor_snap_data_update(snap_state_new, C, ipd->region, mval[0], mval[1]);
     }
   }
 
@@ -761,10 +766,11 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
 
   ipd->step_index = STEP_BASE;
 
-  ipd->snap_to = eSnapMode(tool_settings->snap_mode_tools);
-  if (ipd->snap_to == SCE_SNAP_TO_NONE) {
-    ipd->snap_to = eSnapMode(tool_settings->snap_mode);
+  ipd->snap_to_ptr = &tool_settings->snap_mode_tools;
+  if (eSnapMode(*ipd->snap_to_ptr) == SCE_SNAP_TO_NONE) {
+    ipd->snap_to_ptr = &tool_settings->snap_mode;
   }
+  ipd->snap_to_restore = eSnapMode(*ipd->snap_to_ptr);
 
   plane_from_point_normal_v3(ipd->step[0].plane, ipd->co_src, ipd->matrix_orient[plane_axis]);
 
@@ -1035,6 +1041,10 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
     if (ELEM(event->type, ipd->launch_event, LEFTMOUSE)) {
       if (event->val == KM_RELEASE) {
         ED_view3d_cursor_snap_state_prevpoint_set(ipd->snap_state, ipd->co_src);
+        if (ipd->snap_to_restore & SCE_SNAP_TO_GRID) {
+          /* Don't snap to grid in #STEP_DEPTH. */
+          *ipd->snap_to_ptr = ipd->snap_to_restore & ~SCE_SNAP_TO_GRID;
+        }
 
         /* Set secondary plane. */
 
@@ -1072,7 +1082,10 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
   else if (ipd->step_index == STEP_DEPTH) {
     if (ELEM(event->type, ipd->launch_event, LEFTMOUSE)) {
       if (event->val == KM_PRESS) {
+        /* Restore snap mode. */
+        *ipd->snap_to_ptr = ipd->snap_to_restore;
 
+        /* Confirm. */
         BoundBox bounds;
         calc_bbox(ipd, &bounds);
 
@@ -1205,7 +1218,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
           /* pass */
         }
 
-        if (ipd->use_snap && (ipd->snap_to & SCE_SNAP_TO_INCREMENT)) {
+        if (ipd->use_snap && (ipd->snap_to_restore & (SCE_SNAP_TO_GRID | SCE_SNAP_TO_INCREMENT))) {
           if (idp_snap_calc_incremental(
                   ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_BASE].co_dst))
           {
@@ -1229,7 +1242,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
           /* pass */
         }
 
-        if (ipd->use_snap && (ipd->snap_to & SCE_SNAP_TO_INCREMENT)) {
+        if (ipd->use_snap && (ipd->snap_to_restore & (SCE_SNAP_TO_GRID | SCE_SNAP_TO_INCREMENT))) {
           if (idp_snap_calc_incremental(
                   ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_DEPTH].co_dst))
           {

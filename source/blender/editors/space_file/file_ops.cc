@@ -596,7 +596,7 @@ static int file_select_exec(bContext *C, wmOperator *op)
   int ret_val = OPERATOR_FINISHED;
 
   const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  if (sfile && params) {
+  if (params) {
     int idx = params->highlight_file;
     int numfiles = filelist_files_ensure(sfile->files);
 
@@ -2708,7 +2708,6 @@ void FILE_OT_directory_new(wmOperatorType *ot)
   ot->idname = "FILE_OT_directory_new";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = file_directory_new_exec;
   /* File browsing only operator (not asset browsing). */
   ot->poll = ED_operator_file_browsing_active; /* <- important, handler is on window level */
@@ -2718,7 +2717,6 @@ void FILE_OT_directory_new(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "open", false, "Open", "Open new directory");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /** \} */
@@ -3186,6 +3184,12 @@ static int file_delete_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int file_delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  return WM_operator_confirm_ex(
+      C, op, IFACE_("Delete selected files?"), nullptr, IFACE_("Delete"), ALERT_ICON_NONE, false);
+}
+
 void FILE_OT_delete(wmOperatorType *ot)
 {
   /* identifiers */
@@ -3194,7 +3198,7 @@ void FILE_OT_delete(wmOperatorType *ot)
   ot->idname = "FILE_OT_delete";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = file_delete_invoke;
   ot->exec = file_delete_exec;
   ot->poll = file_delete_poll; /* <- important, handler is on window level */
 }

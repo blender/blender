@@ -13,7 +13,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 void eevee_light_matrix_get(const EEVEE_Light *evli, float r_mat[4][4])
 {

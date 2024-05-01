@@ -27,14 +27,14 @@ static void extract_edituv_stretch_area_init(const MeshRenderData &mr,
                                              void *buf,
                                              void * /*tls_data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
 
   GPU_vertbuf_init_with_format(vbo, &format);
-  GPU_vertbuf_data_alloc(vbo, mr.loop_len);
+  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
 }
 
 BLI_INLINE float area_ratio_get(float area, float uvarea)
@@ -77,7 +77,7 @@ static void compute_area_ratio(const MeshRenderData &mr,
     BLI_assert(mr.extract_type == MR_EXTRACT_MESH);
     const float2 *uv_data = (const float2 *)CustomData_get_layer(&mr.mesh->corner_data,
                                                                  CD_PROP_FLOAT2);
-    for (int face_index = 0; face_index < mr.face_len; face_index++) {
+    for (int face_index = 0; face_index < mr.faces_num; face_index++) {
       const IndexRange face = mr.faces[face_index];
       const float area = bke::mesh::face_area_calc(mr.vert_positions, mr.corner_verts.slice(face));
       float uvarea = area_poly_v2(reinterpret_cast<const float(*)[2]>(&uv_data[face.start()]),
@@ -97,8 +97,8 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData &mr,
                                                void *buf,
                                                void * /*data*/)
 {
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
-  float *area_ratio = static_cast<float *>(MEM_mallocN(sizeof(float) * mr.face_len, __func__));
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buf);
+  float *area_ratio = static_cast<float *>(MEM_mallocN(sizeof(float) * mr.faces_num, __func__));
   compute_area_ratio(mr, area_ratio, cache.tot_area, cache.tot_uv_area);
 
   /* Copy face data for each loop. */
@@ -116,7 +116,7 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData &mr,
   }
   else {
     BLI_assert(mr.extract_type == MR_EXTRACT_MESH);
-    for (int face_index = 0; face_index < mr.face_len; face_index++) {
+    for (int face_index = 0; face_index < mr.faces_num; face_index++) {
       for (const int l_index : mr.faces[face_index]) {
         loop_stretch[l_index] = area_ratio[face_index];
       }
@@ -134,7 +134,7 @@ static void extract_edituv_stretch_area_init_subdiv(const DRWSubdivCache &subdiv
 {
 
   /* Initialize final buffer. */
-  GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buffer);
+  gpu::VertBuf *vbo = static_cast<gpu::VertBuf *>(buffer);
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
     GPU_vertformat_attr_add(&format, "ratio", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
@@ -144,11 +144,11 @@ static void extract_edituv_stretch_area_init_subdiv(const DRWSubdivCache &subdiv
 
   /* Initialize coarse data buffer. */
 
-  GPUVertBuf *coarse_data = GPU_vertbuf_calloc();
+  gpu::VertBuf *coarse_data = GPU_vertbuf_calloc();
 
   /* We use the same format as we just copy data around. */
   GPU_vertbuf_init_with_format(coarse_data, &format);
-  GPU_vertbuf_data_alloc(coarse_data, mr.loop_len);
+  GPU_vertbuf_data_alloc(coarse_data, mr.corners_num);
 
   compute_area_ratio(mr,
                      static_cast<float *>(GPU_vertbuf_get_data(coarse_data)),

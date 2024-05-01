@@ -24,11 +24,11 @@
 #include "ED_space_api.hh"
 #include "ED_view3d.hh"
 
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_matrix.hh"
 
 #include "UI_resources.hh"
 
@@ -341,7 +341,9 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
 
   Object *obedit = cdd->vc.obedit;
 
-  if (cdd->bevel_radius > 0.0f) {
+  /* Disabled: not representative in enough cases, and curves draw shape is not per object yet.
+   * In the future this could be enabled when the object's draw shape is "strand" or "3D". */
+  if (false && cdd->bevel_radius > 0.0f) {
     BLI_mempool_iter iter;
     const StrokeElem *selem;
 
@@ -351,7 +353,7 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
     float color[3];
     UI_GetThemeColor3fv(TH_WIRE, color);
 
-    GPUBatch *sphere = GPU_batch_preset_sphere(0);
+    gpu::Batch *sphere = GPU_batch_preset_sphere(0);
     GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_batch_uniform_3fv(sphere, "color", color);
 
@@ -771,8 +773,8 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
                                     (cps->radius_taper_end != 0.0f));
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-
-  attributes.remove(".selection");
+  Span<StringRef> selection_attribute_names = get_curves_selection_attribute_names(curves);
+  remove_selection_attributes(attributes, selection_attribute_names);
 
   if (cdd->curve_type == CU_BEZIER) {
     /* Allow to interpolate multiple channels */
@@ -916,10 +918,19 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
       curves.nurbs_orders_for_write()[curve_index] = order;
       curves.fill_curve_types(IndexRange(curve_index, 1), curve_type);
 
-      bke::AttributeWriter<bool> selection = attributes.lookup_or_add_for_write<bool>(
-          ".selection", bke::AttrDomain::Curve);
-      selection.varray.set(curve_index, true);
-      selection.finish();
+      /* If Bezier curve is being added, loop through all three names, otherwise through ones in
+       * `selection_attribute_names`. */
+      for (const StringRef selection_name :
+           (bezier_as_nurbs ? selection_attribute_names :
+                              get_curves_all_selection_attribute_names()))
+      {
+        bke::AttributeWriter<bool> selection = attributes.lookup_or_add_for_write<bool>(
+            selection_name, bke::AttrDomain::Curve);
+        if (selection_name == ".selection" || !bezier_as_nurbs) {
+          selection.varray.set(curve_index, true);
+        }
+        selection.finish();
+      }
 
       if (attributes.contains("resolution")) {
         curves.resolution_for_write()[curve_index] = 12;
@@ -933,13 +944,21 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
                                          "handle_type_left",
                                          "handle_type_right",
                                          "nurbs_weight",
-                                         ".selection"},
+                                         ".selection",
+                                         ".selection_handle_left",
+                                         ".selection_handle_right"},
                                         curves.points_by_curve()[curve_index]);
-      bke::fill_attribute_range_default(
-          attributes,
-          bke::AttrDomain::Curve,
-          {"curve_type", "resolution", "cyclic", "nurbs_order", "knots_mode", ".selection"},
-          IndexRange(curve_index, 1));
+      bke::fill_attribute_range_default(attributes,
+                                        bke::AttrDomain::Curve,
+                                        {"curve_type",
+                                         "resolution",
+                                         "cyclic",
+                                         "nurbs_order",
+                                         "knots_mode",
+                                         ".selection",
+                                         ".selection_handle_left",
+                                         ".selection_handle_right"},
+                                        IndexRange(curve_index, 1));
     }
 
     if (corners_index) {
@@ -984,12 +1003,24 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
     selection.varray.set(curve_index, true);
     selection.finish();
 
+    /* Creates ".selection_handle_left" and ".selection_handle_right" attributes, otherwise all
+     * existing Bezier handles would be treated as selected. */
+    for (const StringRef selection_name : get_curves_bezier_selection_attribute_names(curves)) {
+      bke::AttributeWriter<bool> selection = attributes.lookup_or_add_for_write<bool>(
+          selection_name, bke::AttrDomain::Curve);
+      selection.finish();
+    }
+
     bke::fill_attribute_range_default(
-        attributes, bke::AttrDomain::Point, {"position", "radius", ".selection"}, new_points);
-    bke::fill_attribute_range_default(attributes,
-                                      bke::AttrDomain::Curve,
-                                      {"curve_type", ".selection"},
-                                      IndexRange(curve_index, 1));
+        attributes,
+        bke::AttrDomain::Point,
+        {"position", "radius", ".selection", ".selection_handle_left", ".selection_handle_right"},
+        new_points);
+    bke::fill_attribute_range_default(
+        attributes,
+        bke::AttrDomain::Curve,
+        {"curve_type", ".selection", ".selection_handle_left", ".selection_handle_right"},
+        IndexRange(curve_index, 1));
   }
 
   if (is_cyclic) {

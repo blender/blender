@@ -8,13 +8,13 @@
  * This file is only there to handle ShaderCreateInfos.
  */
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "BLI_string_ref.hh"
 
 #include "gpu_shader_create_info.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 #include <sstream>
 
@@ -131,7 +131,7 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
 
   attr_load << "void attrib_load()\n";
   attr_load << "{\n";
-  attr_load << ((!codegen.attr_load.empty()) ? codegen.attr_load : "");
+  attr_load << (!codegen.attr_load.empty() ? codegen.attr_load : "");
   attr_load << "}\n\n";
 
   std::stringstream vert_gen, frag_gen, geom_gen;
@@ -156,10 +156,10 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
     frag_gen << "Closure nodetree_exec()\n";
     frag_gen << "{\n";
     if (is_volume) {
-      frag_gen << ((!codegen.volume.empty()) ? codegen.volume : "return CLOSURE_DEFAULT;\n");
+      frag_gen << (!codegen.volume.empty() ? codegen.volume : "return CLOSURE_DEFAULT;\n");
     }
     else {
-      frag_gen << ((!codegen.surface.empty()) ? codegen.surface : "return CLOSURE_DEFAULT;\n");
+      frag_gen << (!codegen.surface.empty() ? codegen.surface : "return CLOSURE_DEFAULT;\n");
     }
     frag_gen << "}\n\n";
 

@@ -6,7 +6,7 @@
  * \ingroup edobj
  */
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 #include "BKE_context.hh"
 #include "BKE_light_linking.h"
@@ -25,6 +25,8 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
+namespace blender::ed::object {
+
 /* -------------------------------------------------------------------- */
 /** \name Create New Light Linking Receiver/Blocker Collection Operators
  * \{ */
@@ -33,7 +35,7 @@ template<LightLinkingType link_type>
 static int light_linking_collection_new_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
-  Object *object = ED_object_active_context(C);
+  Object *object = context_active_object(C);
 
   BKE_light_linking_collection_new(bmain, object, link_type);
 
@@ -81,7 +83,7 @@ static int light_linking_select_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *emitter = ED_object_active_context(C);
+  Object *emitter = context_active_object(C);
 
   BKE_light_linking_select_receivers_of_emitter(scene, view_layer, emitter, link_type);
 
@@ -131,7 +133,7 @@ static int light_linking_link_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Object *emitter = ED_object_active_context(C);
+  Object *emitter = context_active_object(C);
 
   const eCollectionLightLinkingState link_state = eCollectionLightLinkingState(
       RNA_enum_get(op->ptr, "link_state"));
@@ -271,3 +273,5 @@ void OBJECT_OT_light_linking_unlink_from_collection(wmOperatorType *ot)
 }
 
 /** \} */
+
+}  // namespace blender::ed::object

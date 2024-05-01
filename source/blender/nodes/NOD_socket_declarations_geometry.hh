@@ -21,6 +21,8 @@ class Geometry : public SocketDeclaration {
   friend GeometryBuilder;
 
  public:
+  static constexpr eNodeSocketDatatype static_socket_type = SOCK_GEOMETRY;
+
   using Builder = GeometryBuilder;
 
   bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;

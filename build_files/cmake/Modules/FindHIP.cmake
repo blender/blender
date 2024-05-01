@@ -7,16 +7,18 @@
 #  HIP_VERSION, the HIP compiler version
 #  HIP_FOUND, if the HIP toolkit is found.
 
+if(NOT (DEFINED HIP_ROOT_DIR))
+  set(HIP_ROOT_DIR "")
+endif()
+
 # If `HIP_ROOT_DIR` was defined in the environment, use it.
-if(DEFINED HIP_ROOT_DIR AND HIP_ROOT_DIR)
+if(HIP_ROOT_DIR)
   # Pass.
 elseif(DEFINED ENV{HIP_ROOT_DIR})
   set(HIP_ROOT_DIR $ENV{HIP_ROOT_DIR})
 elseif(DEFINED ENV{HIP_PATH})
   # Built-in environment variable from SDK.
   set(HIP_ROOT_DIR $ENV{HIP_PATH})
-else()
-  set(HIP_ROOT_DIR "")
 endif()
 
 set(_hip_SEARCH_DIRS
@@ -99,3 +101,5 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(HIP
     REQUIRED_VARS HIP_HIPCC_EXECUTABLE
     VERSION_VAR HIP_VERSION)
+
+unset(_hip_SEARCH_DIRS)

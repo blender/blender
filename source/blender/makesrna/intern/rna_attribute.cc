@@ -228,7 +228,7 @@ static void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
   BKE_id_attribute_rename(ptr->owner_id, layer->name, value, nullptr);
 }
 
-static int rna_Attribute_name_editable(PointerRNA *ptr, const char **r_info)
+static int rna_Attribute_name_editable(const PointerRNA *ptr, const char **r_info)
 {
   CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
   if (BKE_id_attribute_required(ptr->owner_id, layer->name)) {
@@ -434,13 +434,13 @@ static void rna_AttributeGroup_remove(ID *id, ReportList *reports, PointerRNA *a
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
-static int rna_Attributes_layer_skip(CollectionPropertyIterator * /*iter*/, void *data)
+static bool rna_Attributes_layer_skip(CollectionPropertyIterator * /*iter*/, void *data)
 {
   CustomDataLayer *layer = (CustomDataLayer *)data;
   return !(CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL);
 }
 
-static int rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter, void *data)
+static bool rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter, void *data)
 {
   CustomDataLayer *layer = (CustomDataLayer *)data;
 
@@ -448,7 +448,7 @@ static int rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter, 
   ID *id = iter->parent.owner_id;
   const AttrDomain domain = BKE_id_attribute_domain(id, layer);
   if (!(ATTR_DOMAIN_AS_MASK(domain) & ATTR_DOMAIN_MASK_COLOR)) {
-    return 1;
+    return true;
   }
 
   return !(CD_TYPE_AS_MASK(layer->type) & CD_MASK_COLOR_ALL) || (layer->flag & CD_FLAG_TEMPORARY);
@@ -458,7 +458,8 @@ static int rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter, 
  * array iterators to loop over all. */
 static void rna_AttributeGroup_next_domain(ID *id,
                                            CollectionPropertyIterator *iter,
-                                           int(skip)(CollectionPropertyIterator *iter, void *data))
+                                           bool(skip)(CollectionPropertyIterator *iter,
+                                                      void *data))
 {
   do {
     CustomDataLayer *prev_layers = (iter->internal.array.endptr == nullptr) ?

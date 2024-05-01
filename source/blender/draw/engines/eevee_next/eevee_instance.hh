@@ -154,7 +154,7 @@ class Instance {
         depth_of_field(*this),
         cryptomatte(*this),
         hiz_buffer(*this, uniform_data.data.hiz),
-        sampling(*this),
+        sampling(*this, uniform_data.data.clamp),
         camera(*this, uniform_data.data.camera),
         film(*this, uniform_data.data.film),
         render_buffers(*this, uniform_data.data.render_pass),
@@ -223,6 +223,11 @@ class Instance {
     return render == nullptr && !is_baking();
   }
 
+  bool is_image_render() const
+  {
+    return DRW_state_is_image_render();
+  }
+
   bool is_viewport_image_render() const
   {
     return DRW_state_is_viewport_image_render();
@@ -236,6 +241,22 @@ class Instance {
   bool overlays_enabled() const
   {
     return overlays_enabled_;
+  }
+
+  bool is_playback() const
+  {
+    return DRW_state_is_playback();
+  }
+
+  bool is_transforming() const
+  {
+    BLI_assert_msg(!is_image_render(), "Caller need to check, otherwise this is unsafe");
+    return (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) != 0;
+  }
+
+  bool is_navigating() const
+  {
+    return DRW_state_is_navigating();
   }
 
   bool use_scene_lights() const

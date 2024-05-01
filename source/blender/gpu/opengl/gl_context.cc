@@ -11,7 +11,7 @@
 
 #include "BKE_global.hh"
 
-#include "GPU_framebuffer.h"
+#include "GPU_framebuffer.hh"
 
 #include "GHOST_C-api.h"
 
@@ -140,6 +140,7 @@ void GLContext::activate()
   /* Not really following the state but we should consider
    * no ubo bound when activating a context. */
   bound_ubo_slots = 0;
+  bound_ssbo_slots = 0;
 
   immActivate();
 }

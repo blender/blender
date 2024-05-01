@@ -44,7 +44,6 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
-#include "BKE_object_types.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.hh"
 #include "BKE_rigidbody.h"
@@ -338,13 +337,13 @@ void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src
 /* Setup Utilities - Validate Sim Instances */
 
 /* get the appropriate evaluated mesh based on rigid body mesh source */
-static Mesh *rigidbody_get_mesh(Object *ob)
+static const Mesh *rigidbody_get_mesh(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
 
   switch (ob->rigidbody_object->mesh_source) {
     case RBO_MESH_DEFORM:
-      return ob->runtime->mesh_deform_eval;
+      return BKE_object_get_mesh_deform_eval(ob);
     case RBO_MESH_FINAL:
       return BKE_object_get_evaluated_mesh(ob);
     case RBO_MESH_BASE:
@@ -366,13 +365,13 @@ static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob,
                                                                   bool *can_embed)
 {
   rbCollisionShape *shape = nullptr;
-  Mesh *mesh = nullptr;
-  float(*positions)[3] = nullptr;
+  const Mesh *mesh = nullptr;
+  const float(*positions)[3] = nullptr;
   int totvert = 0;
 
   if (ob->type == OB_MESH && ob->data) {
     mesh = rigidbody_get_mesh(ob);
-    positions = (mesh) ? reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()) :
+    positions = (mesh) ? reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data()) :
                          nullptr;
     totvert = (mesh) ? mesh->verts_num : 0;
   }
@@ -399,7 +398,7 @@ static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
   rbCollisionShape *shape = nullptr;
 
   if (ob->type == OB_MESH) {
-    Mesh *mesh = rigidbody_get_mesh(ob);
+    const Mesh *mesh = rigidbody_get_mesh(ob);
     if (mesh == nullptr) {
       return nullptr;
     }
@@ -668,7 +667,7 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
     case RB_SHAPE_CONVEXH:
     case RB_SHAPE_TRIMESH: {
       if (ob->type == OB_MESH) {
-        Mesh *mesh = rigidbody_get_mesh(ob);
+        const Mesh *mesh = rigidbody_get_mesh(ob);
         if (mesh == nullptr) {
           return;
         }
@@ -742,7 +741,7 @@ void BKE_rigidbody_calc_center_of_mass(Object *ob, float r_center[3])
     case RB_SHAPE_CONVEXH:
     case RB_SHAPE_TRIMESH: {
       if (ob->type == OB_MESH) {
-        Mesh *mesh = rigidbody_get_mesh(ob);
+        const Mesh *mesh = rigidbody_get_mesh(ob);
         if (mesh == nullptr) {
           return;
         }
@@ -1763,10 +1762,10 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
   const bool is_selected = base ? (base->flag & BASE_SELECTED) != 0 : false;
 
   if (rbo->shape == RB_SHAPE_TRIMESH && rbo->flag & RBO_FLAG_USE_DEFORM) {
-    Mesh *mesh = ob->runtime->mesh_deform_eval;
+    const Mesh *mesh = BKE_object_get_mesh_deform_eval(ob);
     if (mesh) {
-      float(*positions)[3] = reinterpret_cast<float(*)[3]>(
-          mesh->vert_positions_for_write().data());
+      const float(*positions)[3] = reinterpret_cast<const float(*)[3]>(
+          mesh->vert_positions().data());
       int totvert = mesh->verts_num;
       const std::optional<blender::Bounds<blender::float3>> bounds = BKE_object_boundbox_get(ob);
 

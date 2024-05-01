@@ -473,6 +473,8 @@ endfunction()
 # Ninja only: assign 'heavy pool' to some targets that are especially RAM-consuming to build.
 function(setup_heavy_lib_pool)
   if(WITH_NINJA_POOL_JOBS AND NINJA_MAX_NUM_PARALLEL_COMPILE_HEAVY_JOBS)
+    set(_HEAVY_LIBS)
+    set(_TARGET)
     if(WITH_CYCLES)
       list(APPEND _HEAVY_LIBS "cycles_device" "cycles_kernel")
     endif()
@@ -483,11 +485,13 @@ function(setup_heavy_lib_pool)
       list(APPEND _HEAVY_LIBS "bf_intern_openvdb")
     endif()
 
-    foreach(TARGET ${_HEAVY_LIBS})
-      if(TARGET ${TARGET})
-        set_property(TARGET ${TARGET} PROPERTY JOB_POOL_COMPILE compile_heavy_job_pool)
+    foreach(_TARGET ${_HEAVY_LIBS})
+      if(TARGET ${_TARGET})
+        set_property(TARGET ${_TARGET} PROPERTY JOB_POOL_COMPILE compile_heavy_job_pool)
       endif()
     endforeach()
+    unset(_TARGET)
+    unset(_HEAVY_LIBS)
   endif()
 endfunction()
 
@@ -536,49 +540,37 @@ function(setup_platform_linker_libs
 endfunction()
 
 macro(TEST_SSE_SUPPORT
-  _sse_flags
-  _sse2_flags)
+  _sse42_flags)
 
   include(CheckCSourceRuns)
 
   # message(STATUS "Detecting SSE support")
   if(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
-    set(${_sse_flags} "-msse")
-    set(${_sse2_flags} "-msse2")
+    set(${_sse42_flags} "-march=x86-64-v2")
   elseif(MSVC)
-    # x86_64 has this auto enabled
-    if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-      set(${_sse_flags} "")
-      set(${_sse2_flags} "")
+    # msvc has no specific build flags for SSE42, but when using intrinsics it will
+    # generate the right instructions.
+    set(${_sse42_flags} "")
+  elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
+    if(WIN32)
+      set(${_sse42_flags} "/QxSSE4.2")
     else()
-      set(${_sse_flags} "/arch:SSE")
-      set(${_sse2_flags} "/arch:SSE2")
+      set(${_sse42_flags} "-xsse4.2")
     endif()
-  elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
-    set(${_sse_flags} "")  # icc defaults to -msse
-    set(${_sse2_flags} "")  # icc defaults to -msse2
   else()
     message(WARNING "SSE flags for this compiler: '${CMAKE_C_COMPILER_ID}' not known")
-    set(${_sse_flags})
-    set(${_sse2_flags})
+    set(${_sse42_flags})
   endif()
 
-  set(CMAKE_REQUIRED_FLAGS "${${_sse_flags}} ${${_sse2_flags}}")
+  set(CMAKE_REQUIRED_FLAGS "${${_sse42_flags}}")
 
-  if(NOT DEFINED SUPPORT_SSE_BUILD)
+  if(NOT DEFINED SUPPORT_SSE42_BUILD)
     # result cached
     check_c_source_runs("
-      #include <xmmintrin.h>
-      int main(void) { __m128 v = _mm_setzero_ps(); return 0; }"
-    SUPPORT_SSE_BUILD)
-  endif()
-
-  if(NOT DEFINED SUPPORT_SSE2_BUILD)
-    # result cached
-    check_c_source_runs("
+      #include <nmmintrin.h>
       #include <emmintrin.h>
-      int main(void) { __m128d v = _mm_setzero_pd(); return 0; }"
-    SUPPORT_SSE2_BUILD)
+      int main(void) { __m128i v = _mm_setzero_si128(); v = _mm_cmpgt_epi64(v,v); return 0; }"
+    SUPPORT_SSE42_BUILD)
   endif()
 
   unset(CMAKE_REQUIRED_FLAGS)
@@ -766,7 +758,7 @@ endmacro()
 macro(remove_cc_flag_unsigned_char)
   if(CMAKE_COMPILER_IS_GNUCC OR
      (CMAKE_C_COMPILER_ID MATCHES "Clang") OR
-     (CMAKE_C_COMPILER_ID MATCHES "Intel"))
+     (CMAKE_C_COMPILER_ID STREQUAL "Intel"))
     remove_cc_flag("-funsigned-char")
   elseif(MSVC)
     remove_cc_flag("/J")

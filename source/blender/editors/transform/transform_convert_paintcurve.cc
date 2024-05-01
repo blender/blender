@@ -19,7 +19,7 @@
 #include "transform_convert.hh"
 
 struct TransDataPaintCurve {
-  PaintCurvePoint *pcp; /* initial curve point */
+  PaintCurvePoint *pcp; /* Initial curve point. */
   char id;
 };
 
@@ -112,9 +112,9 @@ static void PaintCurvePointToTransData(PaintCurvePoint *pcp,
 static void createTransPaintCurveVerts(bContext *C, TransInfo *t)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
+  Brush *br = (paint) ? BKE_paint_brush(paint) : nullptr;
   PaintCurve *pc;
   PaintCurvePoint *pcp;
-  Brush *br;
   TransData *td = nullptr;
   TransData2D *td2d = nullptr;
   TransDataPaintCurve *tdpc = nullptr;
@@ -125,11 +125,10 @@ static void createTransPaintCurveVerts(bContext *C, TransInfo *t)
 
   tc->data_len = 0;
 
-  if (!paint || !paint->brush || !paint->brush->paint_curve) {
+  if (!paint || !br) {
     return;
   }
 
-  br = paint->brush;
   pc = br->paint_curve;
 
   for (pcp = pc->points, i = 0; i < pc->tot_points; i++, pcp++) {

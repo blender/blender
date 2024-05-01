@@ -29,9 +29,7 @@ if(WIN32)
         ${HARVEST_TARGET}/png/lib/libpng.lib &&
       ${CMAKE_COMMAND} -E copy_directory
         ${LIBDIR}/png/include/
-        ${HARVEST_TARGET}/png/include/ &&
-
-      DEPENDS
+        ${HARVEST_TARGET}/png/include/
     )
   endif()
 

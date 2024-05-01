@@ -633,7 +633,7 @@ float BPY_driver_exec(PathResolvedRNA *anim_rna,
           dvar->curval = float(PyLong_AsLong(driver_arg));
         }
         else if (PyBool_Check(driver_arg)) {
-          dvar->curval = (driver_arg == Py_True);
+          dvar->curval = float(driver_arg == Py_True);
         }
         else {
           dvar->curval = 0.0f;

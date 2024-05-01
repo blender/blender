@@ -61,6 +61,8 @@
 #include "ED_image.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
+#include "ED_object_vgroup.hh"
+#include "ED_paint.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
@@ -181,8 +183,8 @@ bool test_brush_angle_falloff(const Brush &brush,
 
 bool use_normal(const VPaint *vp)
 {
-  return ((vp->paint.brush->flag & BRUSH_FRONTFACE) != 0) ||
-         ((vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
+  const Brush *brush = BKE_paint_brush_for_read(&vp->paint);
+  return ((brush->flag & BRUSH_FRONTFACE) != 0) || ((brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 }
 
 bool brush_use_accumulate_ex(const Brush *brush, const int ob_mode)
@@ -194,7 +196,8 @@ bool brush_use_accumulate_ex(const Brush *brush, const int ob_mode)
 
 bool brush_use_accumulate(const VPaint *vp)
 {
-  return brush_use_accumulate_ex(vp->paint.brush, vp->paint.runtime.ob_mode);
+  const Brush *brush = BKE_paint_brush_for_read(&vp->paint);
+  return brush_use_accumulate_ex(brush, vp->paint.runtime.ob_mode);
 }
 
 void init_stroke(Depsgraph *depsgraph, Object *ob)
@@ -283,7 +286,7 @@ Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Brush *brush)
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
   if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-    nodes = bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+    nodes = bke::pbvh::search_gather(*ss->pbvh, [&](PBVHNode &node) {
       return node_in_sphere(node, ss->cache->location, ss->cache->radius_squared, true);
     });
 
@@ -294,7 +297,7 @@ Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Brush *brush)
   else {
     const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(
         ss->cache->location, ss->cache->view_normal);
-    nodes = bke::pbvh::search_gather(ss->pbvh, [&](PBVHNode &node) {
+    nodes = bke::pbvh::search_gather(*ss->pbvh, [&](PBVHNode &node) {
       return node_in_cylinder(ray_dist_precalc, node, ss->cache->radius_squared, true);
     });
 
@@ -333,7 +336,7 @@ void mode_enter_generic(
 
     /* weight paint specific */
     ED_mesh_mirror_spatial_table_end(ob);
-    ED_vgroup_sync_from_pose(ob);
+    blender::ed::object::vgroup_sync_from_pose(ob);
   }
   else {
     BLI_assert(0);
@@ -405,7 +408,7 @@ void mode_exit_generic(Object *ob, const eObjectMode mode_flag)
 bool mode_toggle_poll_test(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob == nullptr || !ELEM(ob->type, OB_MESH, OB_GREASE_PENCIL)) {
+  if (ob == nullptr || ob->type != OB_MESH) {
     return false;
   }
   if (!ob->data || ID_IS_LINKED(ob->data)) {
@@ -478,7 +481,7 @@ void update_cache_invariants(
   }
 
   copy_v2_v2(cache->mouse, cache->initial_mouse);
-  const Brush *brush = vp->paint.brush;
+  const Brush *brush = BKE_paint_brush(&vp->paint);
   /* Truly temporary data that isn't stored in properties */
   cache->vc = vc;
   cache->brush = brush;
@@ -610,7 +613,7 @@ bool vertex_paint_mode_poll(bContext *C)
     return false;
   }
 
-  if (!mesh->attributes().contains(mesh->active_color_attribute)) {
+  if (!BKE_color_attribute_supported(*mesh, mesh->active_color_attribute)) {
     return false;
   }
 
@@ -667,7 +670,7 @@ static Color vpaint_blend(const VPaint *vp,
 {
   using Value = typename Traits::ValueType;
 
-  const Brush *brush = vp->paint.brush;
+  const Brush *brush = BKE_paint_brush_for_read(&vp->paint);
   const IMB_BlendMode blend = (IMB_BlendMode)brush->blend;
 
   const Color color_blend = BLI_mix_colors<Color, Traits>(blend, color_curr, color_paint, alpha);
@@ -819,7 +822,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
   ToolSettings *ts = scene->toolsettings;
 
   if (!is_mode_set) {
-    if (!ED_object_mode_compat_set(C, ob, (eObjectMode)mode_flag, op->reports)) {
+    if (!blender::ed::object::mode_compat_set(C, ob, (eObjectMode)mode_flag, op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }
@@ -944,9 +947,10 @@ static VPaintData *vpaint_init_vpaint(bContext *C,
   vpd->domain = domain;
 
   vpd->vc = ED_view3d_viewcontext_init(C, depsgraph);
+
   vwpaint::view_angle_limits_init(&vpd->normal_angle_precalc,
-                                  vp->paint.brush->falloff_angle,
-                                  (vp->paint.brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
+                                  brush->falloff_angle,
+                                  (brush->flag & BRUSH_FRONTFACE_FALLOFF) != 0);
 
   vpd->paintcol = vpaint_get_current_col(
       scene, vp, (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT));
@@ -992,8 +996,7 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 
   const std::optional<bke::AttributeMetaData> meta_data = *mesh->attributes().lookup_meta_data(
       mesh->active_color_attribute);
-
-  if (!meta_data) {
+  if (!BKE_color_attribute_supported(*mesh, mesh->active_color_attribute)) {
     return false;
   }
 
@@ -1023,7 +1026,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
   const Brush *brush = ob->sculpt->cache->brush;
   const Scene *scene = CTX_data_scene(C);
 
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const SculptVertexPaintGeomMap *gmap = &ss->mode.vpaint.gmap;
@@ -1054,7 +1057,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
     for (int n : range) {
       /* For each vertex */
       PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+      BKE_pbvh_vertex_iter_begin (*ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
         /* Test to see if the vertex coordinates are within the spherical brush region. */
         if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
           continue;
@@ -1173,7 +1176,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
   const Brush *brush = ob->sculpt->cache->brush;
   const Scene *scene = CTX_data_scene(C);
 
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const SculptVertexPaintGeomMap *gmap = &ss->mode.vpaint.gmap;
@@ -1204,7 +1207,7 @@ static void do_vpaint_brush_blur_verts(bContext *C,
     for (int n : range) {
       /* For each vertex */
       PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+      BKE_pbvh_vertex_iter_begin (*ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
         /* Test to see if the vertex coordinates are within the spherical brush region. */
         if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
           continue;
@@ -1311,7 +1314,7 @@ static void do_vpaint_brush_smear(bContext *C,
   if (!cache->is_last_valid) {
     return;
   }
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
   const Brush *brush = ob->sculpt->cache->brush;
@@ -1352,7 +1355,7 @@ static void do_vpaint_brush_smear(bContext *C,
     for (int n : range) {
       /* For each vertex */
       PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+      BKE_pbvh_vertex_iter_begin (*ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
         /* Test to see if the vertex coordinates are within the spherical brush region. */
         if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
           continue;
@@ -1502,7 +1505,7 @@ static void calculate_average_color(VPaintData *vpd,
                                     Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
   const SculptVertexPaintGeomMap *gmap = &ss->mode.vpaint.gmap;
 
@@ -1535,7 +1538,7 @@ static void calculate_average_color(VPaintData *vpd,
 
         /* For each vertex */
         PBVHVertexIter vd;
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+        BKE_pbvh_vertex_iter_begin (*ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
           /* Test to see if the vertex coordinates are within the spherical brush region. */
           if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
             continue;
@@ -1619,7 +1622,7 @@ static void vpaint_do_draw(bContext *C,
                            GMutableSpan attribute)
 {
   SculptSession *ss = ob->sculpt;
-  const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
+  const PBVHType pbvh_type = BKE_pbvh_type(*ss->pbvh);
 
   const Brush *brush = ob->sculpt->cache->brush;
   const Scene *scene = CTX_data_scene(C);
@@ -1654,7 +1657,7 @@ static void vpaint_do_draw(bContext *C,
       SculptBrushTest test = test_init;
       /* For each vertex */
       PBVHVertexIter vd;
-      BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+      BKE_pbvh_vertex_iter_begin (*ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
         /* Test to see if the vertex coordinates are within the spherical brush region. */
         if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
           continue;
@@ -1696,8 +1699,19 @@ static void vpaint_do_draw(bContext *C,
           float tex_alpha = 1.0;
           if (vpd->is_texbrush) {
             /* NOTE: we may want to paint alpha as vertex color alpha. */
-            tex_alpha = paint_and_tex_color_alpha<Color>(
-                vp, vpd, vpd->vertexcosnos[v_index].co, &color_final);
+
+            /* If the active area is being applied for symmetry, flip it
+             * across the symmetry axis and rotate it back to the original
+             * position in order to project it. This insures that the
+             * brush texture will be oriented correctly.
+             * This is the method also used in #sculpt_apply_texture(). */
+            float symm_point[3];
+            if (cache->radial_symmetry_pass) {
+              mul_m4_v3(cache->symm_rot_mat_inv.ptr(), vpd->vertexcosnos[v_index].co);
+            }
+            flip_v3_v3(symm_point, vpd->vertexcosnos[v_index].co, cache->mirror_symmetry_pass);
+
+            tex_alpha = paint_and_tex_color_alpha<Color>(vp, vpd, symm_point, &color_final);
           }
 
           Color color_orig(0, 0, 0, 0);
@@ -1784,7 +1798,7 @@ static void vpaint_paint_leaves(bContext *C,
                                 Span<PBVHNode *> nodes)
 {
   for (PBVHNode *node : nodes) {
-    undo::push_node(ob, node, undo::Type::Color);
+    undo::push_node(*ob, node, undo::Type::Color);
   }
 
   const Brush *brush = ob->sculpt->cache->brush;
@@ -1932,7 +1946,8 @@ static void vpaint_stroke_update_step(bContext *C,
 
   BKE_mesh_batch_cache_dirty_tag((Mesh *)ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 
-  if (vp->paint.brush->vertexpaint_tool == VPAINT_TOOL_SMEAR) {
+  Brush *brush = BKE_paint_brush(&vp->paint);
+  if (brush->vertexpaint_tool == VPAINT_TOOL_SMEAR) {
     vpd->smear.color_prev = vpd->smear.color_curr;
   }
 
@@ -1990,7 +2005,7 @@ static int vpaint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   Object *ob = CTX_data_active_object(C);
 
   if (SCULPT_has_loop_colors(ob) && ob->sculpt->pbvh) {
-    BKE_pbvh_ensure_node_loops(ob->sculpt->pbvh);
+    BKE_pbvh_ensure_node_loops(*ob->sculpt->pbvh);
   }
 
   undo::push_begin_ex(ob, "Vertex Paint");
@@ -2138,8 +2153,8 @@ static void fill_mesh_color(Mesh &mesh,
                             const bool use_face_sel,
                             const bool affect_alpha)
 {
-  if (mesh.edit_mesh) {
-    BMesh *bm = mesh.edit_mesh->bm;
+  if (BMEditMesh *em = mesh.runtime->edit_mesh.get()) {
+    BMesh *bm = em->bm;
     const std::string name = attribute_name;
     const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh.id, name.c_str());
     const AttrDomain domain = BKE_id_attribute_domain(&mesh.id, layer);
@@ -2229,9 +2244,9 @@ static int vertex_color_set_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(CTX_data_ensure_evaluated_depsgraph(C), obact, true);
 
   undo::push_begin(obact, op);
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(obact->sculpt->pbvh, {});
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(*obact->sculpt->pbvh, {});
   for (PBVHNode *node : nodes) {
-    undo::push_node(obact, node, undo::Type::Color);
+    undo::push_node(*obact, node, undo::Type::Color);
   }
 
   paint_object_attributes_active_color_fill_ex(obact, paintcol, true, affect_alpha);

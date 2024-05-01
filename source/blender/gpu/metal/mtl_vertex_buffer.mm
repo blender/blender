@@ -307,7 +307,7 @@ void MTLVertBuf::bind_as_ssbo(uint binding)
 
   /* Create MTLStorageBuffer to wrap this resource and use conventional binding. */
   if (ssbo_wrapper_ == nullptr) {
-    ssbo_wrapper_ = new MTLStorageBuf(this, alloc_size_);
+    ssbo_wrapper_ = new MTLStorageBuf(this, ceil_to_multiple_u(alloc_size_, 16));
   }
   ssbo_wrapper_->bind(binding);
 }
@@ -332,7 +332,7 @@ void MTLVertBuf::bind_as_texture(uint binding)
 
   /* Create texture from vertex buffer. */
   if (buffer_texture_ == nullptr) {
-    buffer_texture_ = GPU_texture_create_from_vertbuf("vertbuf_as_texture", wrap(this));
+    buffer_texture_ = GPU_texture_create_from_vertbuf("vertbuf_as_texture", this);
   }
 
   /* Verify successful creation and bind. */

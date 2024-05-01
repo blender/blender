@@ -918,6 +918,17 @@ void BM_log_before_all_removed(BMesh *bm, BMLog *log)
   }
 }
 
+const float *BM_log_find_original_vert_co(BMLog *log, BMVert *v)
+{
+  BMLogEntry *entry = log->current_entry;
+  const BMLogVert *lv;
+  uint v_id = bm_log_vert_id_get(log, v);
+  void *key = POINTER_FROM_UINT(v_id);
+
+  lv = static_cast<const BMLogVert *>(BLI_ghash_lookup(entry->modified_verts, key));
+  return lv == nullptr ? nullptr : lv->co;
+}
+
 const float *BM_log_original_vert_co(BMLog *log, BMVert *v)
 {
   BMLogEntry *entry = log->current_entry;

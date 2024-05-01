@@ -629,19 +629,175 @@ static bke::CurvesGeometry convert_curves_trivial(const bke::CurvesGeometry &src
   return dst_curves;
 }
 
+static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
+    const bke::CurvesGeometry &src_curves,
+    const IndexMask &selection,
+    const CurveType dst_type,
+    const bke::AnonymousAttributePropagationInfo &propagation_info,
+    const ConvertCurvesOptions &options)
+{
+  const bool use_bezier_handles = (dst_type == CURVE_TYPE_CATMULL_ROM) ?
+                                      options.convert_bezier_handles_to_catmull_rom_points :
+                                      options.convert_bezier_handles_to_poly_points;
+  if (!use_bezier_handles || !src_curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    return convert_curves_trivial(src_curves, selection, dst_type);
+  }
+
+  const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
+  const VArray<int8_t> src_types = src_curves.curve_types();
+  const VArray<bool> src_cyclic = src_curves.cyclic();
+  const Span<float3> src_positions = src_curves.positions();
+  const bke::AttributeAccessor src_attributes = src_curves.attributes();
+  IndexMaskMemory memory;
+  const IndexMask unselected = selection.complement(src_curves.curves_range(), memory);
+
+  bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
+  dst_curves.fill_curve_types(selection, dst_type);
+
+  MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
+  offset_indices::copy_group_sizes(src_points_by_curve, unselected, dst_offsets);
+  selection.foreach_index(GrainSize(1024), [&](const int i) {
+    const IndexRange src_points = src_points_by_curve[i];
+    const CurveType src_curve_type = CurveType(src_types[i]);
+    int &size = dst_offsets[i];
+    if (src_curve_type == CURVE_TYPE_BEZIER) {
+      size = src_points.size() * 3;
+    }
+    else {
+      size = src_points.size();
+    }
+  });
+  offset_indices::accumulate_counts_to_offsets(dst_offsets);
+  dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
+  const OffsetIndices dst_points_by_curve = dst_curves.points_by_curve();
+
+  MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
+  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
+  Vector<bke::AttributeTransferData> generic_attributes = bke::retrieve_attributes_for_transfer(
+      src_attributes,
+      dst_attributes,
+      ATTR_DOMAIN_MASK_POINT,
+      propagation_info,
+      {"position",
+       "handle_type_left",
+       "handle_type_right",
+       "handle_right",
+       "handle_left",
+       "nurbs_weight"});
+
+  auto convert_from_catmull_rom_or_poly_or_nurbs = [&](const IndexMask &selection) {
+    array_utils::copy_group_to_group(
+        src_points_by_curve, dst_points_by_curve, selection, src_positions, dst_positions);
+    for (bke::AttributeTransferData &attribute : generic_attributes) {
+      array_utils::copy_group_to_group(
+          src_points_by_curve, dst_points_by_curve, selection, attribute.src, attribute.dst.span);
+    }
+  };
+
+  auto convert_from_bezier = [&](const IndexMask &selection) {
+    const Span<float3> src_left_handles = src_curves.handle_positions_left();
+    const Span<float3> src_right_handles = src_curves.handle_positions_right();
+
+    /* Transfer positions. */
+    selection.foreach_index([&](const int curve_i) {
+      const IndexRange src_points = src_points_by_curve[curve_i];
+      const IndexRange dst_points = dst_points_by_curve[curve_i];
+      for (const int i : src_points.index_range()) {
+        const int src_point_i = src_points[i];
+        const int dst_points_start = dst_points.start() + 3 * i;
+        dst_positions[dst_points_start + 0] = src_left_handles[src_point_i];
+        dst_positions[dst_points_start + 1] = src_positions[src_point_i];
+        dst_positions[dst_points_start + 2] = src_right_handles[src_point_i];
+      }
+    });
+    /* Transfer attributes. The handles the same attribute values as their corresponding control
+     * point. */
+    for (bke::AttributeTransferData &attribute : generic_attributes) {
+      const CPPType &cpp_type = attribute.src.type();
+      selection.foreach_index([&](const int curve_i) {
+        const IndexRange src_points = src_points_by_curve[curve_i];
+        const IndexRange dst_points = dst_points_by_curve[curve_i];
+        for (const int i : src_points.index_range()) {
+          const int src_point_i = src_points[i];
+          const int dst_points_start = dst_points.start() + 3 * i;
+          const void *src_value = attribute.src[src_point_i];
+          cpp_type.fill_assign_n(src_value, attribute.dst.span[dst_points_start], 3);
+        }
+      });
+    }
+  };
+
+  bke::curves::foreach_curve_by_type(src_curves.curve_types(),
+                                     src_curves.curve_type_counts(),
+                                     selection,
+                                     convert_from_catmull_rom_or_poly_or_nurbs,
+                                     convert_from_catmull_rom_or_poly_or_nurbs,
+                                     convert_from_bezier,
+                                     convert_from_catmull_rom_or_poly_or_nurbs);
+
+  for (bke::AttributeTransferData &attribute : generic_attributes) {
+    attribute.dst.finish();
+  }
+
+  bke::copy_attributes_group_to_group(src_attributes,
+                                      bke::AttrDomain::Point,
+                                      propagation_info,
+                                      {},
+                                      src_points_by_curve,
+                                      dst_points_by_curve,
+                                      unselected,
+                                      dst_attributes);
+
+  return dst_curves;
+}
+
+/**
+ * Converts some curves to poly curves before they are converted to nurbs. This is useful because
+ * it discards the bezier/catmull-rom shape which is sometimes the desired behavior.
+ */
+static bke::CurvesGeometry convert_bezier_or_catmull_rom_to_poly_before_conversion_to_nurbs(
+    const bke::CurvesGeometry &src_curves,
+    const IndexMask &selection,
+    const ConvertCurvesOptions &options)
+{
+  const VArray<int8_t> src_curve_types = src_curves.curve_types();
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_predicate(
+      selection, GrainSize(4096), memory, [&](const int curve_i) {
+        const CurveType type = CurveType(src_curve_types[curve_i]);
+        if (!options.keep_bezier_shape_as_nurbs && type == CURVE_TYPE_BEZIER) {
+          return true;
+        }
+        if (!options.keep_catmull_rom_shape_as_nurbs && type == CURVE_TYPE_CATMULL_ROM) {
+          return true;
+        }
+        return false;
+      });
+  return convert_curves_trivial(src_curves, mask, CURVE_TYPE_POLY);
+}
+
 bke::CurvesGeometry convert_curves(const bke::CurvesGeometry &src_curves,
                                    const IndexMask &selection,
                                    const CurveType dst_type,
-                                   const bke::AnonymousAttributePropagationInfo &propagation_info)
+                                   const bke::AnonymousAttributePropagationInfo &propagation_info,
+                                   const ConvertCurvesOptions &options)
 {
   switch (dst_type) {
     case CURVE_TYPE_CATMULL_ROM:
     case CURVE_TYPE_POLY:
-      return convert_curves_trivial(src_curves, selection, dst_type);
+      return convert_curves_to_catmull_rom_or_poly(
+          src_curves, selection, dst_type, propagation_info, options);
     case CURVE_TYPE_BEZIER:
       return convert_curves_to_bezier(src_curves, selection, propagation_info);
-    case CURVE_TYPE_NURBS:
+    case CURVE_TYPE_NURBS: {
+      if (!options.keep_bezier_shape_as_nurbs || !options.keep_catmull_rom_shape_as_nurbs) {
+        const bke::CurvesGeometry tmp_src_curves =
+            convert_bezier_or_catmull_rom_to_poly_before_conversion_to_nurbs(
+                src_curves, selection, options);
+        return convert_curves_to_nurbs(tmp_src_curves, selection, propagation_info);
+      }
       return convert_curves_to_nurbs(src_curves, selection, propagation_info);
+    }
   }
   BLI_assert_unreachable();
   return {};

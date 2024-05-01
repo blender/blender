@@ -367,7 +367,7 @@ int BKE_packedfile_write_to_file(ReportList *reports,
 
 enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
                                                     const char *filepath_rel,
-                                                    PackedFile *pf)
+                                                    const PackedFile *pf)
 {
   BLI_stat_t st;
   enum ePF_FileCompare ret_val;
@@ -725,8 +725,8 @@ int BKE_packedfile_unpack_all_libraries(Main *bmain, ReportList *reports)
 
       newname = BKE_packedfile_unpack_to_file(reports,
                                               BKE_main_blendfile_path(bmain),
-                                              lib->filepath_abs,
-                                              lib->filepath_abs,
+                                              lib->runtime.filepath_abs,
+                                              lib->runtime.filepath_abs,
                                               lib->packedfile,
                                               PF_WRITE_ORIGINAL);
       if (newname != nullptr) {
@@ -880,7 +880,7 @@ void BKE_packedfile_id_unpack(Main *bmain, ID *id, ReportList *reports, enum ePF
   }
 }
 
-void BKE_packedfile_blend_write(BlendWriter *writer, PackedFile *pf)
+void BKE_packedfile_blend_write(BlendWriter *writer, const PackedFile *pf)
 {
   if (pf == nullptr) {
     return;

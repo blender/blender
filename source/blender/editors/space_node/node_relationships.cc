@@ -288,7 +288,7 @@ static void sort_multi_input_socket_links_with_drag(bNodeSocket &socket,
   Vector<LinkAndPosition, 8> links;
   for (bNodeLink *link : socket.directly_linked_links()) {
     const float2 location = node_link_calculate_multi_input_position(
-        socket_location, link->multi_input_socket_index, link->tosock->runtime->total_inputs);
+        socket_location, link->multi_input_sort_id, link->tosock->runtime->total_inputs);
     links.append({link, location});
   };
 
@@ -299,7 +299,7 @@ static void sort_multi_input_socket_links_with_drag(bNodeSocket &socket,
   });
 
   for (const int i : links.index_range()) {
-    links[i].link->multi_input_socket_index = i;
+    links[i].link->multi_input_sort_id = i;
   }
 }
 
@@ -311,11 +311,11 @@ void update_multi_input_indices_for_removed_links(bNode &node)
     }
     Vector<bNodeLink *, 8> links = socket->directly_linked_links();
     std::sort(links.begin(), links.end(), [](const bNodeLink *a, const bNodeLink *b) {
-      return a->multi_input_socket_index < b->multi_input_socket_index;
+      return a->multi_input_sort_id < b->multi_input_sort_id;
     });
 
     for (const int i : links.index_range()) {
-      links[i]->multi_input_socket_index = i;
+      links[i]->multi_input_sort_id = i;
     }
   }
 }
@@ -907,8 +907,8 @@ static void displace_links(bNodeTree *ntree, const bNode *node, bNodeLink *inser
           return;
         }
       }
-      const int multi_input_index = node_socket_count_links(*ntree, *replacement_socket) - 1;
-      displaced_link->multi_input_socket_index = multi_input_index;
+      const int multi_input_sort_id = node_socket_count_links(*ntree, *replacement_socket) - 1;
+      displaced_link->multi_input_sort_id = multi_input_sort_id;
     }
 
     BKE_ntree_update_tag_link_changed(ntree);
@@ -1127,8 +1127,7 @@ static void node_link_find_socket(bContext &C, wmOperator &op, const float2 &cur
         link.tosock = tsock;
         nldrag.last_node_hovered_while_dragging_a_link = &tnode;
         if (existing_link_connected_to_fromsock) {
-          link.multi_input_socket_index =
-              existing_link_connected_to_fromsock->multi_input_socket_index;
+          link.multi_input_sort_id = existing_link_connected_to_fromsock->multi_input_sort_id;
           continue;
         }
         if (tsock && tsock->is_multi_input()) {
@@ -1456,7 +1455,7 @@ void NODE_OT_link_make(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Make Links";
-  ot->description = "Makes a link between selected output in input sockets";
+  ot->description = "Make a link between selected output and input sockets";
   ot->idname = "NODE_OT_link_make";
 
   /* callbacks */

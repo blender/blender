@@ -158,7 +158,7 @@ void FFMPEGWriter::close()
 #endif
 }
 
-FFMPEGWriter::FFMPEGWriter(std::string filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate) :
+FFMPEGWriter::FFMPEGWriter(const std::string &filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate) :
 	m_position(0),
 	m_specs(specs),
 	m_formatCtx(nullptr),

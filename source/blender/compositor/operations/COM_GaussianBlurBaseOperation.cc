@@ -21,22 +21,18 @@ GaussianBlurBaseOperation::GaussianBlurBaseOperation(eDimension dim)
 void GaussianBlurBaseOperation::init_data()
 {
   BlurBaseOperation::init_data();
-  if (execution_model_ == eExecutionModel::FullFrame) {
-    rad_ = max_ff(size_ * this->get_blur_size(dimension_), 0.0f);
-    rad_ = min_ff(rad_, MAX_GAUSSTAB_RADIUS);
-    filtersize_ = min_ii(ceil(rad_), MAX_GAUSSTAB_RADIUS);
-  }
+  rad_ = max_ff(size_ * this->get_blur_size(dimension_), 0.0f);
+  rad_ = min_ff(rad_, MAX_GAUSSTAB_RADIUS);
+  filtersize_ = min_ii(ceil(rad_), MAX_GAUSSTAB_RADIUS);
 }
 
 void GaussianBlurBaseOperation::init_execution()
 {
   BlurBaseOperation::init_execution();
-  if (execution_model_ == eExecutionModel::FullFrame) {
-    gausstab_ = BlurBaseOperation::make_gausstab(rad_, filtersize_);
+  gausstab_ = BlurBaseOperation::make_gausstab(rad_, filtersize_);
 #if BLI_HAVE_SSE2
-    gausstab_sse_ = BlurBaseOperation::convert_gausstab_sse(gausstab_, filtersize_);
+  gausstab_sse_ = BlurBaseOperation::convert_gausstab_sse(gausstab_, filtersize_);
 #endif
-  }
 }
 
 void GaussianBlurBaseOperation::deinit_execution()

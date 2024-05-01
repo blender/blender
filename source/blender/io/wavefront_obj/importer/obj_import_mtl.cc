@@ -10,7 +10,6 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 
-#include "BLI_map.hh"
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -22,7 +21,6 @@
 
 #include "obj_export_mtl.hh"
 #include "obj_import_mtl.hh"
-#include "obj_import_string_utils.hh"
 
 #include <iostream>
 
@@ -312,7 +310,8 @@ static void set_bsdf_socket_values(bNode *bsdf, Material *mat, const MTLMaterial
   mat->roughness = roughness;
   set_property_of_socket(SOCK_FLOAT, "Metallic", {metallic}, bsdf);
   mat->metallic = metallic;
-  if (ior != -1) {
+  /* Some files have `Ni 0`, ignore those values. */
+  if (ior > 0.0f) {
     set_property_of_socket(SOCK_FLOAT, "IOR", {ior}, bsdf);
   }
   if (alpha != -1) {

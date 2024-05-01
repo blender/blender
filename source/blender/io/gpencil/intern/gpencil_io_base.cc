@@ -159,16 +159,14 @@ void GpencilIO::create_object_list()
     }
     else {
       float zdepth = 0;
-      if (rv3d_) {
-        if (rv3d_->is_persp) {
-          zdepth = ED_view3d_calc_zfac(rv3d_, object_position);
-        }
-        else {
-          zdepth = -math::dot(camera_z_axis, object_position);
-        }
-        ObjectZ obz = {zdepth * -1.0f, object};
-        ob_list_.append(obz);
+      if (rv3d_->is_persp) {
+        zdepth = ED_view3d_calc_zfac(rv3d_, object_position);
       }
+      else {
+        zdepth = -math::dot(camera_z_axis, object_position);
+      }
+      ObjectZ obz = {zdepth * -1.0f, object};
+      ob_list_.append(obz);
     }
   }
   /* Sort list of objects from point of view. */

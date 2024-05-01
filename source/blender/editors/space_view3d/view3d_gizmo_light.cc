@@ -31,7 +31,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "view3d_intern.h" /* own include */
+#include "view3d_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Spot Light Gizmos
@@ -405,7 +405,7 @@ static void gizmo_area_light_prop_matrix_set(const wmGizmo * /*gz*/,
     la->area_size = len_v3(matrix[0]);
   }
 
-  DEG_id_tag_update(&la->id, ID_RECALC_SYNC_TO_EVAL);
+  DEG_id_tag_update(&la->id, ID_RECALC_PARAMETERS);
   WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);
 }
 

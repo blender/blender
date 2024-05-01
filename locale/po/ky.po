@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -93,8 +93,16 @@ msgid "Nothing"
 msgstr "Эч нерсе"
 
 
+msgid "Animation"
+msgstr "Анимация"
+
+
 msgid "Drivers"
 msgstr "Драйверлер"
+
+
+msgid "Influence"
+msgstr "Таасир"
 
 
 msgid "Empty"
@@ -486,10 +494,6 @@ msgid "Error"
 msgstr "Ката"
 
 
-msgid "Influence"
-msgstr "Таасир"
-
-
 msgid "Armature"
 msgstr "Скелет"
 
@@ -731,10 +735,6 @@ msgid "MPEG-2"
 msgstr "MPEG-2"
 
 
-msgid "QT rle / QT Animation"
-msgstr "QT RLE / QT-анимация"
-
-
 msgid "Theora"
 msgstr "Theora"
 
@@ -785,6 +785,10 @@ msgstr "Сактоо"
 
 msgid "Operator"
 msgstr "Оператор"
+
+
+msgid "Matrix"
+msgstr "Матрица"
 
 
 msgid "End"
@@ -892,32 +896,16 @@ msgid "Sphere"
 msgstr "Сфера"
 
 
-msgid "Matrix"
-msgstr "Матрица"
-
-
 msgid "Catmull-Clark"
 msgstr "Катмулл-Кларк"
-
-
-msgid "R"
-msgstr "R"
 
 
 msgid "Red"
 msgstr "Кызыл"
 
 
-msgid "G"
-msgstr "G"
-
-
 msgid "Green"
 msgstr "Жашыл"
-
-
-msgid "B"
-msgstr "B"
 
 
 msgid "Blue"
@@ -1068,14 +1056,6 @@ msgid "Radiance HDR"
 msgstr "Radiance HDR"
 
 
-msgid "AVI JPEG"
-msgstr "AVI JPEG"
-
-
-msgid "AVI Raw"
-msgstr "AVI Raw"
-
-
 msgid "Movie"
 msgstr "Тасма"
 
@@ -1150,10 +1130,6 @@ msgstr "Шилтемелер"
 
 msgid "Nodes"
 msgstr "Түйүндөр"
-
-
-msgid "OpenCL"
-msgstr "OpenCL"
 
 
 msgid "Edit"
@@ -1335,10 +1311,6 @@ msgstr "Туман"
 
 msgid "Operation"
 msgstr "Операция"
-
-
-msgid "Animation"
-msgstr "Анимация"
 
 
 msgid "Black"
@@ -1809,6 +1781,11 @@ msgid "Constraint"
 msgstr "Чектөө"
 
 
+msgctxt "Operator"
+msgid "Add Circle"
+msgstr "Тегеректи кошуу"
+
+
 msgid "Resize"
 msgstr "Өлчөмүн өзгөртүү"
 
@@ -2048,11 +2025,6 @@ msgstr "Жаңы маска"
 
 
 msgctxt "Operator"
-msgid "Add Circle"
-msgstr "Тегеректи кошуу"
-
-
-msgctxt "Operator"
 msgid "Copy Material"
 msgstr "Материалды көчүрүү"
 
@@ -2130,10 +2102,6 @@ msgid "Add Torus"
 msgstr "Торду кошуу"
 
 
-msgid "Construct a UV sphere mesh"
-msgstr "UV-сфера политорун жаратуу"
-
-
 msgid "Cursor Distance"
 msgstr "Курсор аралыгы"
 
@@ -2177,10 +2145,6 @@ msgstr "Тандалган объекттерди өчүрүү"
 
 msgid "Remove object from all scenes"
 msgstr "Объектти бардык сахналардан өчүрүү"
-
-
-msgid "Filepath"
-msgstr "Файлга жол"
 
 
 msgctxt "Operator"
@@ -2536,6 +2500,10 @@ msgid "Jump"
 msgstr "Өтүү"
 
 
+msgid "Filepath"
+msgstr "Файлга жол"
+
+
 msgctxt "Operator"
 msgid "Reload"
 msgstr "Кайтадан жүктөө"
@@ -2614,11 +2582,6 @@ msgstr "Түшүрүү"
 
 msgid "Island"
 msgstr "Арал"
-
-
-msgctxt "Operator"
-msgid "Remove Background Image"
-msgstr "Фон сүрөтүн өчүрүү"
 
 
 msgid "Save a Collada file"
@@ -3169,10 +3132,6 @@ msgid "Open..."
 msgstr "Ачуу..."
 
 
-msgid "%s: %s"
-msgstr "%s: %s"
-
-
 msgctxt "Operator"
 msgid "Manual"
 msgstr "Колдонмо"
@@ -3351,6 +3310,10 @@ msgid "New Data"
 msgstr "Жаңы маалыматтар"
 
 
+msgid "B"
+msgstr "B"
+
+
 msgid "Error (see console)"
 msgstr "Ката (консолду караңыз)"
 
@@ -3501,6 +3464,10 @@ msgstr "Аты жок"
 msgctxt "Curve"
 msgid "Surface"
 msgstr "Бет"
+
+
+msgid "%s: %s"
+msgstr "%s: %s"
 
 
 msgid "Hex"

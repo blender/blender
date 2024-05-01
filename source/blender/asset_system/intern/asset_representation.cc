@@ -22,7 +22,7 @@ AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
                                          const int id_type,
                                          std::unique_ptr<AssetMetaData> metadata,
                                          const AssetLibrary &owner_asset_library)
-    : identifier_(identifier),
+    : identifier_(std::move(identifier)),
       is_local_id_(false),
       owner_asset_library_(owner_asset_library),
       external_asset_()
@@ -35,7 +35,7 @@ AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
 AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
                                          ID &id,
                                          const AssetLibrary &owner_asset_library)
-    : identifier_(identifier),
+    : identifier_(std::move(identifier)),
       is_local_id_(true),
       owner_asset_library_(owner_asset_library),
       local_asset_id_(&id)

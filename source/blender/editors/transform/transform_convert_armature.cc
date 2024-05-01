@@ -70,13 +70,13 @@ static bConstraint *add_temporary_ik_constraint(bPoseChannel *pchan,
   bConstraint *con = BKE_constraint_add_for_pose(
       nullptr, pchan, "TempConstraint", CONSTRAINT_TYPE_KINEMATIC);
 
-  /* for draw, but also for detecting while pose solving */
+  /* For draw, but also for detecting while pose solving. */
   pchan->constflag |= (PCHAN_HAS_IK | PCHAN_HAS_NO_TARGET);
 
   bKinematicConstraint *temp_con_data = static_cast<bKinematicConstraint *>(con->data);
 
   if (targetless_con) {
-    /* if exists, use values from last targetless (but disabled) IK-constraint as base */
+    /* If exists, use values from last targetless (but disabled) IK-constraint as base. */
     *temp_con_data = *targetless_con;
   }
   else {
@@ -120,33 +120,35 @@ static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
   return nullptr;
 }
 
-/* adds the IK to pchan - returns if added */
+/**
+ * Adds the IK to pchan - returns if added.
+ */
 static short pose_grab_with_ik_add(bPoseChannel *pchan)
 {
   bKinematicConstraint *targetless = nullptr;
   bKinematicConstraint *data;
 
-  /* Sanity check */
+  /* Sanity check. */
   if (pchan == nullptr) {
     return 0;
   }
 
-  /* Rule: not if there's already an IK on this channel */
+  /* Rule: not if there's already an IK on this channel. */
   LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
     if (con->type == CONSTRAINT_TYPE_KINEMATIC && (con->flag & CONSTRAINT_OFF) == 0) {
       data = static_cast<bKinematicConstraint *>(con->data);
 
       if (data->tar == nullptr || (data->tar->type == OB_ARMATURE && data->subtarget[0] == '\0')) {
-        /* make reference to constraint to base things off later
-         * (if it's the last targetless constraint encountered) */
+        /* Make reference to constraint to base things off later
+         * (if it's the last targetless constraint encountered). */
         targetless = (bKinematicConstraint *)con->data;
 
-        /* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
+        /* But, if this is a targetless IK, we make it auto anyway (for the children loop). */
         if (con->enforce != 0.0f) {
           data->flag |= CONSTRAINT_IK_AUTO;
 
-          /* if no chain length has been specified,
-           * just make things obey standard rotation locks too */
+          /* If no chain length has been specified,
+           * just make things obey standard rotation locks too. */
           if (data->rootbone == 0) {
             for (bPoseChannel *pchan_iter = pchan; pchan_iter; pchan_iter = pchan_iter->parent) {
               /* Here, we set IK-settings for bone from `pchan->protectflag`. */
@@ -180,11 +182,11 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 
   copy_v3_v3(data->grabtarget, pchan->pose_tail);
 
-  /* watch-it! has to be 0 here, since we're still on the
+  /* Watch-it! has to be 0 here, since we're still on the
    * same bone for the first time through the loop #25885. */
   data->rootbone = 0;
 
-  /* we only include bones that are part of a continual connected chain */
+  /* We only include bones that are part of a continual connected chain. */
   do {
     /* Here, we set IK-settings for bone from `pchan->protectflag`. */
     /* XXX: careful with quaternion/axis-angle rotations where we're locking 4D components. */
@@ -198,10 +200,10 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
       pchan->ikflag |= BONE_IK_NO_ZDOF_TEMP;
     }
 
-    /* now we count this pchan as being included */
+    /* Now we count this pchan as being included. */
     data->rootbone++;
 
-    /* continue to parent, but only if we're connected to it */
+    /* Continue to parent, but only if we're connected to it. */
     if (pchan->bone->flag & BONE_CONNECTED) {
       pchan = pchan->parent;
     }
@@ -210,18 +212,20 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
     }
   } while (pchan);
 
-  /* make a copy of maximum chain-length */
+  /* Make a copy of maximum chain-length. */
   data->max_rootbone = data->rootbone;
 
   return 1;
 }
 
-/* bone is a candidate to get IK, but we don't do it if it has children connected */
+/**
+ * Bone is a candidate to get IK, but we don't do it if it has children connected.
+ */
 static short pose_grab_with_ik_children(bPose *pose, Bone *bone)
 {
   short wentdeeper = 0, added = 0;
 
-  /* go deeper if children & children are connected */
+  /* Go deeper if children & children are connected. */
   LISTBASE_FOREACH (Bone *, bonec, &bone->childbase) {
     if (bonec->flag & BONE_CONNECTED) {
       wentdeeper = 1;
@@ -238,7 +242,7 @@ static short pose_grab_with_ik_children(bPose *pose, Bone *bone)
   return added;
 }
 
-/* main call which adds temporal IK chains */
+/* Main call which adds temporal IK chains. */
 static short pose_grab_with_ik(Main *bmain, Object *ob)
 {
   bArmature *arm;
@@ -252,7 +256,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
   arm = static_cast<bArmature *>(ob->data);
 
   /* Rule: allow multiple Bones
-   * (but they must be selected, and only one ik-solver per chain should get added) */
+   * (but they must be selected, and only one ik-solver per chain should get added). */
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     if (BKE_pose_is_bonecoll_visible(arm, pchan)) {
       if (pchan->bone->flag & (BONE_SELECTED | BONE_TRANSFORM_MIRROR)) {
@@ -267,9 +271,9 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
           continue;
         }
 
-        /* rule: if selected Bone is not a root bone, it gets a temporal IK */
+        /* Rule: if selected Bone is not a root bone, it gets a temporal IK. */
         if (pchan->parent) {
-          /* only adds if there's no IK yet (and no parent bone was selected) */
+          /* Only adds if there's no IK yet (and no parent bone was selected). */
           bPoseChannel *parent;
           for (parent = pchan->parent; parent; parent = parent->parent) {
             if (parent->bone->flag & (BONE_SELECTED | BONE_TRANSFORM_MIRROR)) {
@@ -281,14 +285,14 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
           }
         }
         else {
-          /* rule: go over the children and add IK to the tips */
+          /* Rule: go over the children and add IK to the tips. */
           tot_ik += pose_grab_with_ik_children(ob->pose, pchan->bone);
         }
       }
     }
   }
 
-  /* iTaSC needs clear for new IK constraints */
+  /* `ITaSC` needs clear for new IK constraints. */
   if (tot_ik) {
     update_deg_with_temporary_ik(bmain, ob);
   }
@@ -435,7 +439,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
   }
   td->ext->rotOrder = pchan->rotmode;
 
-  /* proper way to get parent transform + own transform + constraints transform */
+  /* Proper way to get parent transform + our own transform + constraints transform. */
   copy_m3_m4(omat, ob->object_to_world().ptr());
 
   /* New code, using "generic" BKE_bone_parent_transform_calc_from_pchan(). */
@@ -472,12 +476,12 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 
   pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
-  /* exceptional case: rotate the pose bone which also applies transformation
-   * when a parentless bone has BONE_NO_LOCAL_LOCATION [] */
+  /* Exceptional case: rotate the pose bone which also applies transformation
+   * when a parentless bone has #BONE_NO_LOCAL_LOCATION []. */
   if (!ELEM(t->mode, TFM_TRANSLATION, TFM_RESIZE) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION))
   {
     if (pchan->parent) {
-      /* same as td->smtx but without pchan->bone->bone_mat */
+      /* Same as `td->smtx` but without `pchan->bone->bone_mat`. */
       td->flag |= TD_PBONE_LOCAL_MTX_C;
       mul_m3_m3m3(td->ext->l_smtx, pchan->bone->bone_mat, td->smtx);
     }
@@ -486,7 +490,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
     }
   }
 
-  /* For `axismtx` we use bone's own transform. */
+  /* For `axismtx` we use the bone's own transform. */
   copy_m3_m4(pmat, pchan->pose_mat);
   mul_m3_m3m3(td->axismtx, omat, pmat);
   normalize_m3(td->axismtx);
@@ -503,13 +507,13 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
     td->ival = bone->dist;
   }
   else if (t->mode == TFM_BONESIZE) {
-    /* Abusive storage of scale in the loc pointer :) */
+    /* Abusive storage of scale in the loc pointer :). */
     td->loc = &bone->xwidth;
     copy_v3_v3(td->iloc, td->loc);
     td->val = nullptr;
   }
 
-  /* in this case we can do target-less IK grabbing */
+  /* In this case we can do target-less IK grabbing. */
   if (t->mode == TFM_TRANSLATION) {
     bKinematicConstraint *data = has_targetless_ik(pchan);
     if (data) {
@@ -535,13 +539,13 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
         update_deg_with_temporary_ik(bmain, ob);
       }
 
-      /* only object matrix correction */
+      /* Only object matrix correction. */
       copy_m3_m3(td->mtx, omat);
       pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
     }
   }
 
-  /* store reference to first constraint */
+  /* Store reference to first constraint. */
   td->con = static_cast<bConstraint *>(pchan->constraints.first);
 }
 
@@ -560,7 +564,7 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
 
     bArmature *arm;
 
-    /* check validity of state */
+    /* Check validity of state. */
     arm = BKE_armature_from_object(tc->poseobj);
     if ((arm == nullptr) || (pose == nullptr)) {
       continue;
@@ -665,7 +669,7 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
     /* We also allow non-active objects to be transformed, in weight-paint. */
     tc->poseobj = ob;
 
-    /* init trans data */
+    /* Initialize trans data. */
     td = tc->data = static_cast<TransData *>(
         MEM_callocN(tc->data_len * sizeof(TransData), "TransPoseBone"));
     tdx = tc->data_ext = static_cast<TransDataExtension *>(
@@ -688,7 +692,7 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
       }
     }
 
-    /* do we need to add temporal IK chains? */
+    /* Do we need to add temporal IK chains? */
     if ((pose->flag & POSE_AUTO_IK) && t->mode == TFM_TRANSLATION) {
       if (pose_grab_with_ik(bmain, ob)) {
         t->flag |= T_AUTOIK;
@@ -696,7 +700,7 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
       }
     }
 
-    /* use pose channels to fill trans data */
+    /* Use pose channels to fill trans data. */
     td = tc->data;
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       if (pchan->bone->flag & BONE_TRANSFORM) {
@@ -715,7 +719,7 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
     transform_autoik_update(t, 0);
   }
 
-  /* if there are no translatable bones, do rotation */
+  /* If there are no translatable bones, do rotation. */
   if ((t->mode == TFM_TRANSLATION) && !has_translate_rotate[0]) {
     if (has_translate_rotate[1]) {
       t->mode = TFM_ROTATION;
@@ -776,7 +780,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
       BoneInitData *bid = static_cast<BoneInitData *>(
           MEM_mallocN((total_mirrored + 1) * sizeof(BoneInitData), "BoneInitData"));
 
-      /* trick to terminate iteration */
+      /* Trick to terminate iteration. */
       bid[total_mirrored].bone = nullptr;
 
       tc->custom.type.data = bid;
@@ -863,7 +867,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
             copy_v3_v3(td->center, ebo->head);
             td->flag = TD_SELECTED;
 
-            /* use local bone matrix */
+            /* Use local bone matrix. */
             ED_armature_ebone_to_mat3(ebo, bonemat);
             mul_m3_m3m3(td->mtx, mtx, bonemat);
             invert_m3_m3(td->smtx, td->mtx);
@@ -945,7 +949,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
 
             ED_armature_ebone_to_mat3(ebo, td->axismtx);
 
-            td->extra = ebo; /* to fix roll */
+            td->extra = ebo; /* To fix roll. */
             td->ival = ebo->roll;
 
             td->ext = nullptr;
@@ -975,7 +979,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     }
 
     if (mirror) {
-      /* trick to terminate iteration */
+      /* Trick to terminate iteration. */
       BLI_assert(i + 1 == (MEM_allocN_len(bid) / sizeof(*bid)));
       bid[i].bone = nullptr;
     }
@@ -1015,7 +1019,7 @@ static void restoreBones(TransDataContainer *tc)
     copy_v3_v3(ebo->tail, bid->tail);
 
     if (arm->flag & ARM_MIRROR_EDIT) {
-      /* Also move connected ebo_child, in case ebo_child's name aren't mirrored properly */
+      /* Also move connected ebo_child, in case ebo_child's name aren't mirrored properly. */
       LISTBASE_FOREACH (EditBone *, ebo_child, arm->edbo) {
         if ((ebo_child->flag & BONE_CONNECTED) && (ebo_child->parent == ebo)) {
           copy_v3_v3(ebo_child->head, ebo->tail);
@@ -1023,7 +1027,7 @@ static void restoreBones(TransDataContainer *tc)
         }
       }
 
-      /* Also move connected parent, in case parent's name isn't mirrored properly */
+      /* Also move connected parent, in case parent's name isn't mirrored properly. */
       if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
         EditBone *parent = ebo->parent;
         copy_v3_v3(parent->tail, ebo->head);
@@ -1048,19 +1052,19 @@ static void recalcData_edit_armature(TransInfo *t)
     TransData *td = tc->data;
     int i;
 
-    /* Ensure all bones are correctly adjusted */
+    /* Ensure all bones are correctly adjusted. */
     LISTBASE_FOREACH (EditBone *, ebo, edbo) {
       ebo_parent = (ebo->flag & BONE_CONNECTED) ? ebo->parent : nullptr;
 
       if (ebo_parent) {
-        /* If this bone has a parent tip that has been moved */
+        /* If this bone has a parent tip that has been moved. */
         if (ebo_parent->flag & BONE_TIPSEL) {
           copy_v3_v3(ebo->head, ebo_parent->tail);
           if (t->mode == TFM_BONE_ENVELOPE) {
             ebo->rad_head = ebo_parent->rad_tail;
           }
         }
-        /* If this bone has a parent tip that has NOT been moved */
+        /* If this bone has a parent tip that has NOT been moved. */
         else {
           copy_v3_v3(ebo_parent->tail, ebo->head);
           if (t->mode == TFM_BONE_ENVELOPE) {
@@ -1069,7 +1073,7 @@ static void recalcData_edit_armature(TransInfo *t)
         }
       }
 
-      /* on extrude bones, oldlength==0.0f, so we scale radius of points */
+      /* On extrude bones, oldlength==0.0f, so we scale radius of points. */
       ebo->length = len_v3v3(ebo->head, ebo->tail);
       if (ebo->oldlength == 0.0f) {
         ebo->rad_head = 0.25f * ebo->length;
@@ -1082,7 +1086,7 @@ static void recalcData_edit_armature(TransInfo *t)
         }
       }
       else if (t->mode != TFM_BONE_ENVELOPE) {
-        /* if bones change length, lets do that for the deform distance as well */
+        /* If bones change length, lets do that for the deform distance as well. */
         ebo->dist *= ebo->length / ebo->oldlength;
         ebo->rad_head *= ebo->length / ebo->oldlength;
         ebo->rad_tail *= ebo->length / ebo->oldlength;
@@ -1095,7 +1099,7 @@ static void recalcData_edit_armature(TransInfo *t)
     }
 
     if (!ELEM(t->mode, TFM_BONE_ROLL, TFM_BONE_ENVELOPE, TFM_BONE_ENVELOPE_DIST, TFM_BONESIZE)) {
-      /* fix roll */
+      /* Fix roll. */
       for (i = 0; i < tc->data_len; i++, td++) {
         if (td->extra) {
           float vec[3], up_axis[3];
@@ -1105,7 +1109,7 @@ static void recalcData_edit_armature(TransInfo *t)
           ebo = static_cast<EditBone *>(td->extra);
 
           if (t->state == TRANS_CANCEL) {
-            /* restore roll */
+            /* Restore roll. */
             ebo->roll = td->ival;
           }
           else {
@@ -1116,7 +1120,7 @@ static void recalcData_edit_armature(TransInfo *t)
             rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
             mul_qt_v3(qrot, up_axis);
 
-            /* roll has a tendency to flip in certain orientations - #34283, #33974. */
+            /* Roll has a tendency to flip in certain orientations - #34283, #33974. */
             roll = ED_armature_ebone_roll_to_vector(ebo, up_axis, false);
             ebo->roll = angle_compat_rad(roll, td->ival);
           }
@@ -1381,11 +1385,11 @@ static void recalcData_pose(TransInfo *t)
         }
       }
 
-      /* if animtimer is running, and the object already has animation data,
+      /* If animtimer is running, and the object already has animation data,
        * check if the auto-record feature means that we should record 'samples'
-       * (i.e. un-editable animation values)
+       * (i.e. un-editable animation values).
        *
-       * context is needed for keying set poll() functions.
+       * Context is needed for keying set poll() functions.
        */
 
       /* TODO: autokeyframe calls need some setting to specify to add samples
@@ -1466,8 +1470,8 @@ void transform_convert_pose_transflags_update(Object *ob, const int mode, const 
     }
   }
 
-  /* make sure no bone can be transformed when a parent is transformed */
-  /* since pchans are depsgraph sorted, the parents are in beginning of list */
+  /* Make sure no bone can be transformed when a parent is transformed. */
+  /* Since pchans are depsgraph sorted, the parents are in beginning of list. */
   if (!ELEM(mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       bone = pchan->bone;
@@ -1484,9 +1488,9 @@ static short apply_targetless_ik(Object *ob)
   bKinematicConstraint *data;
   int segcount, apply = 0;
 
-  /* now we got a difficult situation... we have to find the
+  /* Now we got a difficult situation... we have to find the
    * target-less IK pchans, and apply transformation to the all
-   * pchans that were in the chain */
+   * pchans that were in the chain. */
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
     data = has_targetless_ik(pchan);
@@ -1495,33 +1499,33 @@ static short apply_targetless_ik(Object *ob)
       /* Fill the array with the bones of the chain (`armature.cc` does same, keep it synced). */
       segcount = 0;
 
-      /* exclude tip from chain? */
+      /* Exclude tip from chain? */
       bPoseChannel *parchan = (data->flag & CONSTRAINT_IK_TIP) ? pchan : pchan->parent;
 
-      /* Find the chain's root & count the segments needed */
+      /* Find the chain's root & count the segments needed. */
       for (; parchan; parchan = parchan->parent) {
         chanlist[segcount] = parchan;
         segcount++;
 
         if (segcount == data->rootbone || segcount > 255) {
-          break; /* 255 is weak */
+          break; /* 255 is weak. */
         }
       }
       for (; segcount; segcount--) {
         Bone *bone;
         float mat[4][4];
 
-        /* `pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK` */
-        /* We put in channel the entire result of: `mat = (channel * constraint * IK)` */
-        /* `pose_mat(b) = pose_mat(b-1) * offs_bone * mat` */
-        /* `mat = pose_mat(b) * inv(pose_mat(b-1) * offs_bone)` */
+        /* `pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK`. */
+        /* We put in channel the entire result of: `mat = (channel * constraint * IK)`. */
+        /* `pose_mat(b) = pose_mat(b-1) * offs_bone * mat`. */
+        /* `mat = pose_mat(b) * inv(pose_mat(b-1) * offs_bone)`. */
 
         parchan = chanlist[segcount - 1];
         bone = parchan->bone;
-        bone->flag |= BONE_TRANSFORM; /* ensures it gets an auto key inserted */
+        bone->flag |= BONE_TRANSFORM; /* Ensures it gets an auto key inserted. */
 
         BKE_armature_mat_pose_to_bone(parchan, parchan->pose_mat, mat);
-        /* apply and decompose, doesn't work for constraints or non-uniform scale well */
+        /* Apply and decompose, doesn't work for constraints or non-uniform scale well. */
         {
           float rmat3[3][3], qrmat[3][3], imat3[3][3], smat[3][3];
 
@@ -1529,15 +1533,15 @@ static short apply_targetless_ik(Object *ob)
           /* Make sure that our rotation matrix only contains rotation and not scale. */
           normalize_m3(rmat3);
 
-          /* rotation */
+          /* Rotation. */
           /* #22409 is partially caused by this, as slight numeric error introduced during
            * the solving process leads to locked-axis values changing. However, we cannot modify
            * the values here, or else there are huge discrepancies between IK-solver (interactive)
            * and applied poses. */
           BKE_pchan_mat3_to_rot(parchan, rmat3, false);
 
-          /* for size, remove rotation */
-          /* causes problems with some constraints (so apply only if needed) */
+          /* For size, remove rotation. */
+          /* Causes problems with some constraints (so apply only if needed). */
           if (data->flag & CONSTRAINT_IK_STRETCH) {
             BKE_pchan_rot_to_mat3(parchan, qrmat);
             invert_m3_m3(imat3, qrmat);
@@ -1559,7 +1563,7 @@ static short apply_targetless_ik(Object *ob)
   return apply;
 }
 
-/* frees temporal IKs */
+/** Frees temporal IKs. */
 static void pose_grab_with_ik_clear(Main *bmain, Object *ob)
 {
   bKinematicConstraint *data;
@@ -1567,12 +1571,12 @@ static void pose_grab_with_ik_clear(Main *bmain, Object *ob)
   bool relations_changed = false;
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-    /* clear all temporary lock flags */
+    /* Clear all temporary lock flags. */
     pchan->ikflag &= ~(BONE_IK_NO_XDOF_TEMP | BONE_IK_NO_YDOF_TEMP | BONE_IK_NO_ZDOF_TEMP);
 
     pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_NO_TARGET);
 
-    /* remove all temporary IK-constraints added */
+    /* Remove all temporary IK-constraints added. */
     for (con = static_cast<bConstraint *>(pchan->constraints.first); con; con = next) {
       next = con->next;
       if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
@@ -1580,7 +1584,7 @@ static void pose_grab_with_ik_clear(Main *bmain, Object *ob)
         if (data->flag & CONSTRAINT_IK_TEMP) {
           relations_changed = true;
 
-          /* iTaSC needs clear for removed constraints */
+          /* `iTaSC` needs clear for removed constraints. */
           BIK_clear_data(ob->pose);
 
           BLI_remlink(&pchan->constraints, con);
@@ -1625,9 +1629,9 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
       ob = tc->poseobj;
 
       if ((t->flag & T_AUTOIK) && (t->options & CTX_AUTOCONFIRM)) {
-        /* when running transform non-interactively (operator exec),
+        /* When running transform non-interactively (operator exec),
          * we need to update the pose otherwise no updates get called during
-         * transform and the auto-ik is not applied. see #26164. */
+         * transform and the auto-IK is not applied. see #26164. */
         Object *pose_ob = tc->poseobj;
         BKE_pose_where_is(t->depsgraph, t->scene, pose_ob);
       }
@@ -1637,12 +1641,12 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
         transform_convert_pose_transflags_update(ob, t->mode, t->around);
       }
 
-      /* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
+      /* If target-less IK grabbing, we calculate the pchan transforms and clear flag. */
       if (!canceled && t->mode == TFM_TRANSLATION) {
         targetless_ik = apply_targetless_ik(ob);
       }
       else {
-        /* not forget to clear the auto flag */
+        /* Not forget to clear the auto flag. */
         LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
           bKinematicConstraint *data = has_targetless_ik(pchan);
           if (data) {
@@ -1656,8 +1660,8 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
         pose_grab_with_ik_clear(bmain, ob);
       }
 
-      /* automatic inserting of keys and unkeyed tagging -
-       * only if transform wasn't canceled (or TFM_DUMMY) */
+      /* Automatic inserting of keys and unkeyed tagging -
+       * only if transform wasn't canceled (or #TFM_DUMMY). */
       if (!canceled && (t->mode != TFM_DUMMY)) {
         autokeyframe_pose(C, t->scene, ob, targetless_ik, t->mode);
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

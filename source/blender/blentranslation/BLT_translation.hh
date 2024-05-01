@@ -21,11 +21,11 @@ const char *BLT_pgettext(const char *msgctxt, const char *msgid);
  * - tooltips only include the popup tooltips when hovering a button.
  * - report is for longer, additional information displayed in the UI, such as error messages.
  * - new_dataname is the actual user-created data such as objects, meshes, etc. */
-bool BLT_translate(void);
-bool BLT_translate_iface(void);
-bool BLT_translate_tooltips(void);
-bool BLT_translate_reports(void);
-bool BLT_translate_new_dataname(void);
+bool BLT_translate();
+bool BLT_translate_iface();
+bool BLT_translate_tooltips();
+bool BLT_translate_reports();
+bool BLT_translate_new_dataname();
 const char *BLT_translate_do(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_iface(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_tooltip(const char *msgctxt, const char *msgid);
@@ -86,6 +86,7 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 /* ID-types contexts. */
 /* WARNING! Keep it in sync with ID-types in `blenkernel/intern/idtype.cc`. */
 #define BLT_I18NCONTEXT_ID_ACTION "Action"
+#define BLT_I18NCONTEXT_ID_ANIMATION "Animation"
 #define BLT_I18NCONTEXT_ID_ARMATURE "Armature"
 #define BLT_I18NCONTEXT_ID_BRUSH "Brush"
 #define BLT_I18NCONTEXT_ID_CACHEFILE "CacheFile"
@@ -129,8 +130,9 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 #define BLT_I18NCONTEXT_ID_WORLD "World"
 
 /* Editors-types contexts. */
-#define BLT_I18NCONTEXT_EDITOR_PYTHON_CONSOLE "Python console"
 #define BLT_I18NCONTEXT_EDITOR_FILEBROWSER "File browser"
+#define BLT_I18NCONTEXT_EDITOR_PREFERENCES "Preferences"
+#define BLT_I18NCONTEXT_EDITOR_PYTHON_CONSOLE "Python console"
 #define BLT_I18NCONTEXT_EDITOR_VIEW3D "View3D"
 
 /* Generic contexts. */
@@ -202,8 +204,9 @@ struct BLT_i18n_contexts_descriptor {
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "id_windowmanager"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORKSPACE, "id_workspace"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_ID_WORLD, "id_world"), \
-        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_PYTHON_CONSOLE, "editor_python_console"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_FILEBROWSER, "editor_filebrowser"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_PYTHON_CONSOLE, "editor_python_console"), \
+        BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_PREFERENCES, "editor_preferences"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_EDITOR_VIEW3D, "editor_view3d"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_AMOUNT, "amount"), \
         BLT_I18NCONTEXTS_ITEM(BLT_I18NCONTEXT_COLOR, "color"), \

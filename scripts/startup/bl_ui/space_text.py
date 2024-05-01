@@ -31,14 +31,12 @@ class TEXT_HT_header(Header):
             row.operator("text.resolve_conflict", text="", icon='QUESTION')
 
         row = layout.row(align=True)
-        row.template_ID(st, "text", new="text.new",
-                        unlink="text.unlink", open="text.open")
+        row.template_ID(st, "text", new="text.new", unlink="text.unlink", open="text.open")
 
         if text:
             is_osl = text.name.endswith((".osl", ".osl"))
             if is_osl:
-                row.operator("node.shader_script_update",
-                             text="", icon='FILE_REFRESH')
+                row.operator("node.shader_script_update", text="", icon='FILE_REFRESH')
             else:
                 row = layout.row()
                 row.active = is_syntax_highlight_supported
@@ -69,12 +67,12 @@ class TEXT_HT_footer(Header):
             if text.filepath:
                 if text.is_dirty:
                     row.label(
-                        text=iface_("File: *%s (unsaved)") % text.filepath,
+                        text=iface_("File: *{:s} (unsaved)").format(text.filepath),
                         translate=False,
                     )
                 else:
                     row.label(
-                        text=iface_("File: %s") % text.filepath,
+                        text=iface_("File: {:s}").format(text.filepath),
                         translate=False,
                     )
             else:
@@ -174,10 +172,8 @@ class TEXT_PT_find(Panel):
         row = layout.row(align=True)
         if not st.text:
             row.active = False
-        row.prop(st, "use_match_case", text="Case",
-                 text_ctxt=i18n_contexts.id_text, toggle=True)
-        row.prop(st, "use_find_wrap", text="Wrap",
-                 text_ctxt=i18n_contexts.id_text, toggle=True)
+        row.prop(st, "use_match_case", text="Case", text_ctxt=i18n_contexts.id_text, toggle=True)
+        row.prop(st, "use_find_wrap", text="Wrap", text_ctxt=i18n_contexts.id_text, toggle=True)
         row.prop(st, "use_find_all", text="All", toggle=True)
 
 
@@ -253,8 +249,7 @@ class TEXT_MT_text(Menu):
         st = context.space_data
         text = st.text
 
-        layout.operator("text.new", text="New",
-                        text_ctxt=i18n_contexts.id_text, icon='FILE_NEW')
+        layout.operator("text.new", text="New", text_ctxt=i18n_contexts.id_text, icon='FILE_NEW')
         layout.operator("text.open", text="Open...", icon='FILE_FOLDER')
 
         if text:
@@ -372,12 +367,8 @@ class TEXT_MT_edit_to3d(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("text.to_3d_object",
-                        text="One Object",
-                        ).split_lines = False
-        layout.operator("text.to_3d_object",
-                        text="One Object Per Line",
-                        ).split_lines = True
+        layout.operator("text.to_3d_object", text="One Object").split_lines = False
+        layout.operator("text.to_3d_object", text="One Object Per Line").split_lines = True
 
 
 class TEXT_MT_edit(Menu):

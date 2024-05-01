@@ -595,6 +595,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   Vector<float3> dst_vert_normals;
   if (!use_recalc_normals) {
     src_vert_normals = mesh->vert_normals();
+    dst_vert_normals.reinitialize(result->verts_num);
     dst_vert_normals.as_mutable_span()
         .take_front(src_vert_normals.size())
         .copy_from(src_vert_normals);

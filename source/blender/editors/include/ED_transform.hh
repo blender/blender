@@ -71,9 +71,11 @@ enum eTfmMode {
   TFM_GPENCIL_OPACITY,
 };
 
-/* Standalone call to get the transformation center corresponding to the current situation
+/**
+ * Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
- * (if false is returns, `cent3d` is unmodified). */
+ * (if false is returns, `cent3d` is unmodified).
+ */
 bool calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], float cent2d[2]);
 
 /* UNUSED */
@@ -170,10 +172,12 @@ void ED_widgetgroup_gizmo2d_rotate_callbacks_set(wmGizmoGroupType *gzgt);
 #define SNAP_INCREMENTAL_ANGLE DEG2RAD(5.0)
 
 struct TransformBounds {
-  float center[3];      /* Center for transform widget. */
-  float min[3], max[3]; /* Bounding-box of selection for transform widget. */
+  /** Center for transform widget. */
+  float center[3];
+  /** Bounding-box of selection for transform widget. */
+  float min[3], max[3];
 
-  /* Normalized axis */
+  /** Normalized axis. */
   float axis[3][3];
   float axis_min[3], axis_max[3];
 
@@ -188,7 +192,7 @@ struct TransformBounds {
 struct TransformCalcParams {
   uint use_only_center : 1;
   uint use_local_axis : 1;
-  /* Use 'Scene.orientation_type' when zero, otherwise subtract one and use. */
+  /** Use #Scene::orientation_type when zero, otherwise subtract one and use. */
   ushort orientation_index;
 };
 /**

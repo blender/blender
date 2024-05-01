@@ -45,6 +45,10 @@ extern "C" {
 #define BLI_STR_UTF8_DOWNWARDS_ARROW "\xe2\x86\x93"
 /** u21E7: `⇧` */
 #define BLI_STR_UTF8_UPWARDS_WHITE_ARROW "\xe2\x87\xa7"
+/** u21FF: `⇪` For caps lock */
+#define BLI_STR_UTF8_UPWARDS_UP_ARROW_FROM_BAR "\xe2\x87\xaa"
+/** u2277: `≷` Greater than / Less than */
+#define BLI_STR_UTF8_GREATER_THAN_OR_LESS_THAN "\xe2\x89\xb7"
 /** u2303: `⌃` */
 #define BLI_STR_UTF8_UP_ARROWHEAD "\xe2\x8c\x83"
 /** u2318: `⌘` */
@@ -67,12 +71,22 @@ extern "C" {
 #define BLI_STR_UTF8_BLACK_SQUARE_FOR_STOP "\xe2\x8f\xb9"
 /** u2423: `␣` */
 #define BLI_STR_UTF8_OPEN_BOX "\xe2\x90\xa3"
+/** u25A6: `▦` */
+#define BLI_STR_UTF8_SQUARE_WITH_ORTHOGONAL_CROSSHATCH "\xe2\x96\xa6"
 /** u25B8: `▸` */
 #define BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE "\xe2\x96\xb8"
 /** u2B7E: `⭾` */
 #define BLI_STR_UTF8_HORIZONTAL_TAB_KEY "\xe2\xad\xbe"
+/** u270E: `✎` Tablet Pen */
+#define BLI_STR_UTF8_LOWER_RIGHT_PENCIL "\xe2\x9c\x8e"
+/** u2710: `✐` Tablet Eraser */
+#define BLI_STR_UTF8_UPPER_RIGHT_PENCIL "\xe2\x9c\x90"
 /** u2756: `❖` */
 #define BLI_STR_UTF8_BLACK_DIAMOND_MINUS_WHITE_X "\xe2\x9d\x96"
+/** u29BE: `⦾` Use for 3D Mice  */
+#define BLI_STR_UTF8_CIRCLED_WHITE_BULLET "\xe2\xa6\xbe"
+/** u2B2E: `⬮` Generic Mouse */
+#define BLI_STR_UTF8_BLACK_VERTICAL_ELLIPSE "\xe2\xac\xae"
 
 #ifdef __cplusplus
 }

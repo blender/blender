@@ -225,7 +225,7 @@ static char *generate(GHash *messages, size_t *r_output_size)
   BLI_assert(h == ik);
 
   for (int i = 0; i < num_keys; i++) {
-    Offset *off = &offsets[i];
+    const Offset *off = &offsets[i];
 
     /* The index table first has the list of keys, then the list of values.
      * Each entry has first the size of the string, then the file offset. */

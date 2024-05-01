@@ -17,7 +17,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_duplilist.hh"
 #include "BKE_gpencil_geom_legacy.h"
@@ -25,6 +25,8 @@
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_material.h"
 #include "BKE_scene.hh"
+
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -38,7 +40,7 @@
 #include "ED_gpencil_legacy.hh"
 #include "ED_transform_snap_object_context.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 const EnumPropertyItem rna_gpencil_reproject_type_items[] = {
     {GP_REPROJECT_KEEP, "KEEP", 0, "No Reproject", ""},
@@ -385,7 +387,8 @@ static int gpencil_bake_grease_pencil_animation_invoke(bContext *C,
   }
 
   /* Show popup dialog to allow editing. */
-  return WM_operator_props_dialog_popup(C, op, 250);
+  return WM_operator_props_dialog_popup(
+      C, op, 250, IFACE_("Bake Object Transform to Grease Pencil"), IFACE_("Bake"));
 }
 
 void GPENCIL_OT_bake_grease_pencil_animation(wmOperatorType *ot)

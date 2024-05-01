@@ -56,12 +56,11 @@ size_t malloc_usable_size(void *ptr);
 #endif
 
 #if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(__OpenBSD__)
-// Needed for memalign on Linux and _aligned_alloc on Windows.
+/* Needed for `memalign` on Linux and _aligned_alloc on Windows. */
 
 #  include <malloc.h>
 #else
-// Apple's malloc is 16-byte aligned, and does not have malloc.h, so include
-// stdilb instead.
+/* Apple's malloc is 16-byte aligned, and does not have malloc.h, so include stdilb instead. */
 #  include <stdlib.h>
 #endif
 
@@ -156,6 +155,11 @@ void *MEM_lockfree_mallocN_aligned(size_t len,
                                    size_t alignment,
                                    const char *str) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
+void *MEM_lockfree_calloc_arrayN_aligned(size_t len,
+                                         size_t size,
+                                         size_t alignment,
+                                         const char *str) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
+    ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(4);
 void MEM_lockfree_printmemlist_pydict(void);
 void MEM_lockfree_printmemlist(void);
 void MEM_lockfree_callbackmemlist(void (*func)(void *));
@@ -203,6 +207,8 @@ void *MEM_guarded_mallocN_aligned(size_t len,
                                   size_t alignment,
                                   const char *str) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
     ATTR_ALLOC_SIZE(1) ATTR_NONNULL(3);
+void *MEM_guarded_calloc_arrayN_aligned(size_t len, size_t size, size_t alignment, const char *str)
+    ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_ALLOC_SIZE(1, 2) ATTR_NONNULL(4);
 void MEM_guarded_printmemlist_pydict(void);
 void MEM_guarded_printmemlist(void);
 void MEM_guarded_callbackmemlist(void (*func)(void *));

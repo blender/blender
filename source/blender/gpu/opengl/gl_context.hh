@@ -10,7 +10,7 @@
 
 #include "gpu_context_private.hh"
 
-#include "GPU_framebuffer.h"
+#include "GPU_framebuffer.hh"
 
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
@@ -74,10 +74,11 @@ class GLContext : public Context {
 
   /** Used for debugging purpose. Bitflags of all bound slots. */
   uint16_t bound_ubo_slots;
+  uint16_t bound_ssbo_slots;
 
  private:
   /**
-   * #GPUBatch & #GPUFramebuffer have references to the context they are from, in the case the
+   * #Batch & #GPUFramebuffer have references to the context they are from, in the case the
    * context is destroyed, we need to remove any reference to it.
    */
   Set<GLVaoCache *> vao_caches_;
@@ -129,11 +130,14 @@ class GLContext : public Context {
 
   void debug_group_begin(const char *name, int index) override;
   void debug_group_end() override;
-  bool debug_capture_begin() override;
+  bool debug_capture_begin(const char *title) override;
   void debug_capture_end() override;
   void *debug_capture_scope_create(const char *name) override;
   bool debug_capture_scope_begin(void *scope) override;
   void debug_capture_scope_end(void *scope) override;
+
+  void debug_unbind_all_ubo() override;
+  void debug_unbind_all_ssbo() override;
 
  private:
   static void orphans_add(Vector<GLuint> &orphan_list, std::mutex &list_mutex, GLuint id);

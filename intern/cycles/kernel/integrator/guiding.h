@@ -472,10 +472,7 @@ ccl_device_forceinline void guiding_write_debug_passes(KernelGlobals kg,
     return;
   }
 
-  const uint32_t render_pixel_index = INTEGRATOR_STATE(state, path, render_pixel_index);
-  const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
-                                        kernel_data.film.pass_stride;
-  ccl_global float *buffer = render_buffer + render_buffer_offset;
+  ccl_global float *buffer = film_pass_pixel_render_buffer(kg, state, render_buffer);
 
   if (kernel_data.film.pass_guiding_probability != PASS_UNUSED) {
     float guiding_prob = state->guiding.surface_guiding_sampling_prob;

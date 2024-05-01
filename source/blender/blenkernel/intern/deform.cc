@@ -1424,7 +1424,7 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
   MDeformVert *data_dst = static_cast<MDeformVert *>(
       CustomData_get_layer_for_write(cd_dst, CD_MDEFORMVERT, num_elem_dst));
   if (data_dst && use_dupref_dst && r_map) {
-    /* If dest is a derivedmesh, we do not want to overwrite cdlayers of org mesh! */
+    /* If dest is an evaluated mesh, we do not want to overwrite cdlayers of org mesh! */
     data_dst = static_cast<MDeformVert *>(
         CustomData_get_layer_for_write(cd_dst, CD_MDEFORMVERT, num_elem_dst));
   }
@@ -1639,10 +1639,9 @@ void BKE_defvert_blend_read(BlendDataReader *reader, int count, MDeformVert *mdv
 
   for (int i = count; i > 0; i--, mdverts++) {
     /* Convert to vertex group allocation system. */
-    MDeformWeight *dw;
-    if (mdverts->dw &&
-        (dw = static_cast<MDeformWeight *>(BLO_read_get_new_data_address(reader, mdverts->dw))))
-    {
+    MDeformWeight *dw = mdverts->dw;
+    BLO_read_struct_array(reader, MDeformWeight, mdverts->totweight, &dw);
+    if (dw) {
       const size_t dw_len = sizeof(MDeformWeight) * mdverts->totweight;
       void *dw_tmp = MEM_mallocN(dw_len, __func__);
       memcpy(dw_tmp, dw, dw_len);

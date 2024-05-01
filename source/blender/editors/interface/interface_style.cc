@@ -182,7 +182,7 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   BLF_position(fs->uifont_id, rect->xmin + xofs, rect->ymin + yofs, 0.0f);
   BLF_color4ubv(fs->uifont_id, col);
 
-  BLF_draw_ex(fs->uifont_id, str, str_len, r_info);
+  BLF_draw(fs->uifont_id, str, str_len, r_info);
 
   BLF_disable(fs->uifont_id, font_flag);
 
@@ -494,7 +494,7 @@ static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac)
   uiFont *font = uifont_to_blfont(fs->uifont_id);
 
   BLF_size(font->blf_id, fs->points * dpi_fac);
-  BLF_character_weight(fs->uifont_id, fs->character_weight);
+  BLF_character_weight(font->blf_id, fs->character_weight);
 }
 
 void UI_fontstyle_set(const uiFontStyle *fs)

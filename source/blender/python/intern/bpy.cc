@@ -28,12 +28,13 @@
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "WM_api.hh" /* For #WM_ghost_backend */
 
 #include "bpy.h"
 #include "bpy_app.h"
+#include "bpy_cli_command.h"
 #include "bpy_driver.h"
 #include "bpy_library.h"
 #include "bpy_operator.h"
@@ -222,7 +223,7 @@ static PyObject *bpy_user_resource(PyObject * /*self*/, PyObject *args, PyObject
       {BLENDER_USER_DATAFILES, "DATAFILES"},
       {BLENDER_USER_CONFIG, "CONFIG"},
       {BLENDER_USER_SCRIPTS, "SCRIPTS"},
-      {BLENDER_USER_AUTOSAVE, "AUTOSAVE"},
+      {BLENDER_USER_EXTENSIONS, "EXTENSIONS"},
       {0, nullptr},
   };
   PyC_StringEnum type = {type_items};
@@ -592,6 +593,57 @@ static PyObject *bpy_ghost_backend(PyObject * /*self*/)
   return PyUnicode_FromString(WM_ghost_backend());
 }
 
+/* NOTE(@ideasman42): This is a private function because the keys in the returned dictionary,
+ * are not considered stable. Sometimes a function is temporarily only supported by one platform.
+ * Once all platforms support the functionality there is no need for the flag
+ * and it can be removed. This is at odds with a public API that has values which are
+ * intended to be kept between releases.
+ * If this were to be made public we would have to document that this is subject to change. */
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_wm_capabilities_doc,
+    ".. function:: _wm_capabilities()\n"
+    "\n"
+    "   :return: A dictionary of capabilities (string keys, boolean values).\n"
+    "   :rtype: dict\n");
+static PyObject *bpy_wm_capabilities(PyObject *self)
+{
+  static _Py_Identifier PyId_capabilities = {"_wm_capabilities_", -1};
+
+  PyObject *result = nullptr;
+  switch (_PyObject_LookupAttrId(self, &PyId_capabilities, &result)) {
+    case 1:
+      return result;
+    case 0:
+      break;
+    default:
+      /* Unlikely, but there may be an error, forward it. */
+      return nullptr;
+  }
+
+  result = PyDict_New();
+
+  const eWM_CapabilitiesFlag flag = WM_capabilities_flag();
+
+#define SetFlagItem(x) \
+  PyDict_SetItemString(result, STRINGIFY(x), PyBool_FromLong((WM_CAPABILITY_##x) & flag));
+
+  SetFlagItem(CURSOR_WARP);
+  SetFlagItem(WINDOW_POSITION);
+  SetFlagItem(PRIMARY_CLIPBOARD);
+  SetFlagItem(GPU_FRONT_BUFFER_READ);
+  SetFlagItem(CLIPBOARD_IMAGES);
+  SetFlagItem(DESKTOP_SAMPLE);
+  SetFlagItem(INPUT_IME);
+  SetFlagItem(TRACKPAD_PHYSICAL_DIRECTION);
+
+#undef SetFlagItem
+
+  _PyObject_SetAttrId(self, &PyId_capabilities, result);
+  return result;
+}
+
 #if (defined(__GNUC__) && !defined(__clang__))
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wcast-function-type"
@@ -630,6 +682,7 @@ static PyMethodDef bpy_methods[] = {
      METH_VARARGS | METH_KEYWORDS,
      bpy_driver_secure_code_test_doc},
     {"_ghost_backend", (PyCFunction)bpy_ghost_backend, METH_NOARGS, bpy_ghost_backend_doc},
+    {"_wm_capabilities", (PyCFunction)bpy_wm_capabilities, METH_NOARGS, bpy_wm_capabilities_doc},
 
     {nullptr, nullptr, 0, nullptr},
 };
@@ -717,27 +770,28 @@ void BPy_init_modules(bContext *C)
   /* Register methods and property get/set for RNA types. */
   BPY_rna_types_extend_capi();
 
+#define PYMODULE_ADD_METHOD(mod, meth) \
+  PyModule_AddObject(mod, (meth)->ml_name, (PyObject *)PyCFunction_New(meth, mod))
+
   for (int i = 0; bpy_methods[i].ml_name; i++) {
     PyMethodDef *m = &bpy_methods[i];
     /* Currently there is no need to support these. */
     BLI_assert((m->ml_flags & (METH_CLASS | METH_STATIC)) == 0);
-    PyModule_AddObject(mod, m->ml_name, (PyObject *)PyCFunction_New(m, nullptr));
+    PYMODULE_ADD_METHOD(mod, m);
   }
 
   /* Register functions (`bpy_rna.cc`). */
-  PyModule_AddObject(mod,
-                     meth_bpy_register_class.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_register_class, nullptr));
-  PyModule_AddObject(mod,
-                     meth_bpy_unregister_class.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_unregister_class, nullptr));
+  PYMODULE_ADD_METHOD(mod, &meth_bpy_register_class);
+  PYMODULE_ADD_METHOD(mod, &meth_bpy_unregister_class);
 
-  PyModule_AddObject(mod,
-                     meth_bpy_owner_id_get.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_owner_id_get, nullptr));
-  PyModule_AddObject(mod,
-                     meth_bpy_owner_id_set.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_owner_id_set, nullptr));
+  PYMODULE_ADD_METHOD(mod, &meth_bpy_owner_id_get);
+  PYMODULE_ADD_METHOD(mod, &meth_bpy_owner_id_set);
+
+  /* Register command functions. */
+  PYMODULE_ADD_METHOD(mod, &BPY_cli_command_register_def);
+  PYMODULE_ADD_METHOD(mod, &BPY_cli_command_unregister_def);
+
+#undef PYMODULE_ADD_METHOD
 
   /* add our own modules dir, this is a python package */
   bpy_package_py = bpy_import_test("bpy");

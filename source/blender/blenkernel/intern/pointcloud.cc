@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <optional>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_defaults.h"
@@ -22,7 +24,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_bake_data_block_id.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
@@ -60,14 +62,15 @@ static void pointcloud_init_data(ID *id)
 
   MEMCPY_STRUCT_AFTER(pointcloud, DNA_struct_default_get(PointCloud), id);
 
+  pointcloud->runtime = new blender::bke::PointCloudRuntime();
+
   CustomData_reset(&pointcloud->pdata);
   pointcloud->attributes_for_write().add<float3>(
       "position", blender::bke::AttrDomain::Point, blender::bke::AttributeInitConstruct());
-
-  pointcloud->runtime = new blender::bke::PointCloudRuntime();
 }
 
 static void pointcloud_copy_data(Main * /*bmain*/,
+                                 std::optional<Library *> /*owner_library*/,
                                  ID *id_dst,
                                  const ID *id_src,
                                  const int /*flag*/)

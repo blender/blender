@@ -11,7 +11,7 @@
 
 #include "WM_api.hh"
 
-#include "script_intern.h"
+#include "script_intern.hh"
 
 /* ************************** registration **********************************/
 

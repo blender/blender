@@ -29,6 +29,7 @@
 #include "DNA_vec_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_bits.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_matrix.h"
 #include "BLI_path_util.h"
@@ -41,8 +42,8 @@
 
 #include "BLF_api.hh"
 
-#include "GPU_batch.h"
-#include "GPU_matrix.h"
+#include "GPU_batch.hh"
+#include "GPU_matrix.hh"
 
 #include "blf_internal.hh"
 #include "blf_internal_types.hh"
@@ -212,7 +213,7 @@ static void blf_batch_draw_init()
   g_batch.glyph_len = 0;
 
   /* A dummy VBO containing 4 points, attributes are not used. */
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, 4);
 
   /* We render a quad as a triangle strip and instance it for each glyph. */
@@ -344,6 +345,12 @@ void blf_batch_draw()
 
   GPU_batch_program_set_builtin(g_batch.batch, GPU_SHADER_TEXT);
   GPU_batch_texture_bind(g_batch.batch, "glyph", texture);
+  /* Setup texture width mask and shift, so that shader can avoid costly divisions. */
+  int tex_width = GPU_texture_width(texture);
+  BLI_assert_msg(is_power_of_2_i(tex_width), "Font texture width must be power of two");
+  int width_shift = 31 - bitscan_reverse_i(tex_width);
+  GPU_batch_uniform_1i(g_batch.batch, "glyph_tex_width_mask", tex_width - 1);
+  GPU_batch_uniform_1i(g_batch.batch, "glyph_tex_width_shift", width_shift);
   GPU_batch_draw(g_batch.batch);
 
   GPU_blend(GPU_BLEND_NONE);
@@ -702,7 +709,7 @@ static bool blf_font_width_to_strlen_glyph_process(FontBLF *font,
     return false;
   }
 
-  if (g && pen_x && !(font->flags & BLF_MONOSPACED)) {
+  if (!(font->flags & BLF_MONOSPACED)) {
     *pen_x += blf_kerning(font, g_prev, g);
 
 #ifdef BLF_SUBPIXEL_POSITION
@@ -946,7 +953,7 @@ float blf_font_height(FontBLF *font, const char *str, const size_t str_len, Resu
 
 float blf_font_fixed_width(FontBLF *font)
 {
-  GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
+  const GlyphCacheBLF *gc = blf_glyph_cache_acquire(font);
   float width = (gc) ? float(gc->fixed_width) : font->size / 2.0f;
   blf_glyph_cache_release(font);
   return width;
@@ -973,7 +980,8 @@ void blf_font_boundbox_foreach_glyph(FontBLF *font,
     const size_t i_curr = i;
     g = blf_glyph_from_utf8_and_step(font, gc, g, str, str_len, &i, &pen_x);
 
-    if (UNLIKELY(g == nullptr)) {
+    if (UNLIKELY(g == nullptr || g->advance_x == 0)) {
+      /* Ignore combining characters like diacritical marks. */
       continue;
     }
     rcti bounds;
@@ -1017,6 +1025,13 @@ size_t blf_str_offset_from_cursor_position(FontBLF *font,
                                            size_t str_len,
                                            int location_x)
 {
+  /* Do not early exit if location_x <= 0, as this can result in an incorrect
+   * offset for RTL text. Instead of offset of character responsible for first
+   * glyph you'd get offset of first character, which could be the last glyph. */
+  if (!str || !str[0] || !str_len) {
+    return 0;
+  }
+
   CursorPositionForeachGlyph_Data data{};
   data.location_x = location_x;
   data.r_offset = size_t(-1);
@@ -1066,6 +1081,48 @@ void blf_str_offset_to_glyph_bounds(FontBLF *font,
 
   blf_font_boundbox_foreach_glyph(font, str, str_offset + 1, blf_str_offset_foreach_glyph, &data);
   *glyph_bounds = data.bounds;
+}
+
+int blf_str_offset_to_cursor(
+    FontBLF *font, const char *str, size_t str_len, size_t str_offset, float cursor_width)
+{
+  if (!str || !str[0]) {
+    return 0;
+  }
+
+  /* Right edge of the previous character, if available. */
+  rcti prev = {0};
+  if (str_offset > 0) {
+    blf_str_offset_to_glyph_bounds(font, str, str_offset - 1, &prev);
+  }
+
+  /* Left edge of the next character, if available. */
+  rcti next = {0};
+  if (str_offset < strlen(str)) {
+    blf_str_offset_to_glyph_bounds(font, str, str_offset, &next);
+  }
+
+  if ((prev.xmax == prev.xmin) && next.xmax) {
+    /* Nothing (or a space) to the left, so align to right character. */
+    return next.xmin - int(cursor_width);
+  }
+  if ((prev.xmax != prev.xmin) && !next.xmax) {
+    /* End of string, so align to last character. */
+    return prev.xmax;
+  }
+  if (prev.xmax && next.xmax) {
+    /* Between two characters, so use the center. */
+    if (next.xmin >= prev.xmax) {
+      return int((float(prev.xmax + next.xmin) - cursor_width) / 2.0f);
+    }
+    /* A nicer center if reversed order - RTL. */
+    return int((float(next.xmax + prev.xmin) - cursor_width) / 2.0f);
+  }
+  if (!str_offset) {
+    /* Start of string. */
+    return 0 - int(cursor_width);
+  }
+  return int(blf_font_width(font, str, str_len, nullptr));
 }
 
 /** \} */
@@ -1219,15 +1276,15 @@ static void blf_font_boundbox_wrap_cb(FontBLF *font,
   BLI_rcti_union(box, &box_single);
 }
 void blf_font_boundbox__wrap(
-    FontBLF *font, const char *str, const size_t str_len, rcti *box, ResultBLF *r_info)
+    FontBLF *font, const char *str, const size_t str_len, rcti *r_box, ResultBLF *r_info)
 {
-  box->xmin = 32000;
-  box->xmax = -32000;
-  box->ymin = 32000;
-  box->ymax = -32000;
+  r_box->xmin = 32000;
+  r_box->xmax = -32000;
+  r_box->ymin = 32000;
+  r_box->ymax = -32000;
 
   blf_font_wrap_apply(
-      font, str, str_len, font->wrap_width, r_info, blf_font_boundbox_wrap_cb, box);
+      font, str, str_len, font->wrap_width, r_info, blf_font_boundbox_wrap_cb, r_box);
 }
 
 /** Utility for  #blf_font_draw_buffer__wrap. */
@@ -1411,9 +1468,6 @@ static void blf_font_fill(FontBLF *font)
   font->char_spacing = 0.0f;
 
   font->kerning_cache = nullptr;
-#if BLF_BLUR_ENABLE
-  font->blur = 0;
-#endif
   font->tex_size_max = -1;
 
   font->buf_info.fbuf = nullptr;
@@ -1437,7 +1491,7 @@ static void blf_font_metrics(FT_Face face, FontMetrics *metrics)
   metrics->weight = 400;
   metrics->width = 1.0f;
 
-  TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(face, FT_SFNT_OS2);
+  const TT_OS2 *os2_table = (const TT_OS2 *)FT_Get_Sfnt_Table(face, FT_SFNT_OS2);
   if (os2_table) {
     /* The default (resting) font weight. */
     if (os2_table->usWeightClass >= 1 && os2_table->usWeightClass <= 1000) {
@@ -1496,7 +1550,7 @@ static void blf_font_metrics(FT_Face face, FontMetrics *metrics)
   }
 
   /* The Post table usually contains a slant value, but in counter-clockwise degrees. */
-  TT_Postscript *post_table = (TT_Postscript *)FT_Get_Sfnt_Table(face, FT_SFNT_POST);
+  const TT_Postscript *post_table = (const TT_Postscript *)FT_Get_Sfnt_Table(face, FT_SFNT_POST);
   if (post_table) {
     if (post_table->italicAngle != 0) {
       metrics->slant = float(post_table->italicAngle) / -65536.0f;
@@ -1730,7 +1784,13 @@ struct FaceDetails {
 /* Details about the fallback fonts we ship, so that we can load only when needed. */
 static const FaceDetails static_face_details[] = {
     {"lastresort.woff2", UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX},
-    {"Noto Sans CJK Regular.woff2", 0x30000083L, 0x29DF3C10L, 0x16L, 0},
+    {"Noto Sans CJK Regular.woff2",
+     0,
+     TT_UCR_CJK_SYMBOLS | TT_UCR_HIRAGANA | TT_UCR_KATAKANA | TT_UCR_BOPOMOFO | TT_UCR_CJK_MISC |
+         TT_UCR_ENCLOSED_CJK_LETTERS_MONTHS | TT_UCR_CJK_COMPATIBILITY |
+         TT_UCR_CJK_UNIFIED_IDEOGRAPHS | TT_UCR_CJK_COMPATIBILITY_IDEOGRAPHS,
+     TT_UCR_CJK_COMPATIBILITY_FORMS,
+     0},
     {"NotoEmoji-VariableFont_wght.woff2", 0x80000003L, 0x241E4ACL, 0x14000000L, 0x4000000L},
     {"NotoSansArabic-VariableFont_wdth,wght.woff2",
      TT_UCR_ARABIC,
@@ -1780,10 +1840,9 @@ static FontBLF *blf_font_new_impl(const char *filepath,
   blf_font_fill(font);
 
   if (ft_library && ((FT_Library)ft_library != ft_lib)) {
-    font->ft_lib = (FT_Library)ft_library;
+    /* Pass. */
   }
   else {
-    font->ft_lib = ft_lib;
     font->flags |= BLF_CACHED;
   }
 
@@ -1814,7 +1873,7 @@ static FontBLF *blf_font_new_impl(const char *filepath,
     }
 
     /* Save TrueType table with bits to quickly test most unicode block coverage. */
-    TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
+    const TT_OS2 *os2_table = (const TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
     if (os2_table) {
       font->unicode_ranges[0] = uint(os2_table->ulUnicodeRange1);
       font->unicode_ranges[1] = uint(os2_table->ulUnicodeRange2);

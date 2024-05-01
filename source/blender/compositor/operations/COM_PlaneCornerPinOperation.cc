@@ -42,36 +42,6 @@ static bool check_corners(float corners[4][2])
   return true;
 }
 
-/* TODO(manzanilla): to be removed with tiled implementation. */
-static void read_corners_from_sockets(rcti *rect, SocketReader *readers[4], float corners[4][2])
-{
-  for (int i = 0; i < 4; i++) {
-    float result[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    readers[i]->read_sampled(result, rect->xmin, rect->ymin, PixelSampler::Nearest);
-    corners[i][0] = result[0];
-    corners[i][1] = result[1];
-  }
-
-  /* convexity check:
-   * concave corners need to be prevented, otherwise
-   * BKE_tracking_homography_between_two_quads will freeze
-   */
-  if (!check_corners(corners)) {
-    /* simply revert to default corners
-     * there could be a more elegant solution,
-     * this prevents freezing at least.
-     */
-    corners[0][0] = 0.0f;
-    corners[0][1] = 0.0f;
-    corners[1][0] = 1.0f;
-    corners[1][1] = 0.0f;
-    corners[2][0] = 1.0f;
-    corners[2][1] = 1.0f;
-    corners[3][0] = 0.0f;
-    corners[3][1] = 1.0f;
-  }
-}
-
 static void set_default_corner(const int corner_idx, float r_corner[2])
 {
   BLI_assert(corner_idx >= 0 && corner_idx < 4);
@@ -121,78 +91,25 @@ static void read_input_corners(NodeOperation *op, const int first_input_idx, flo
 
 /* ******** PlaneCornerPinMaskOperation ******** */
 
-PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() : corners_ready_(false)
+PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation()
 {
   add_input_socket(DataType::Vector);
   add_input_socket(DataType::Vector);
   add_input_socket(DataType::Vector);
   add_input_socket(DataType::Vector);
-
-  /* XXX this is stupid: we need to make this "complex",
-   * so we can use the initialize_tile_data function
-   * to read corners from input sockets ...
-   */
-  flags_.complex = true;
 }
 
 void PlaneCornerPinMaskOperation::init_data()
 {
-  if (execution_model_ == eExecutionModel::FullFrame) {
-    float corners[4][2];
-    read_input_corners(this, 0, corners);
-    calculate_corners(corners, true, 0);
-  }
-}
-
-/* TODO(manzanilla): to be removed with tiled implementation. Same for #deinit_execution and do the
- * same on #PlaneCornerPinWarpImageOperation. */
-void PlaneCornerPinMaskOperation::init_execution()
-{
-  PlaneDistortMaskOperation::init_execution();
-
-  init_mutex();
-}
-
-void PlaneCornerPinMaskOperation::deinit_execution()
-{
-  PlaneDistortMaskOperation::deinit_execution();
-
-  deinit_mutex();
-}
-
-void *PlaneCornerPinMaskOperation::initialize_tile_data(rcti *rect)
-{
-  void *data = PlaneDistortMaskOperation::initialize_tile_data(rect);
-
-  /* get corner values once, by reading inputs at (0,0)
-   * XXX this assumes invariable values (no image inputs),
-   * we don't have a nice generic system for that yet
-   */
-  lock_mutex();
-  if (!corners_ready_) {
-    SocketReader *readers[4] = {
-        get_input_socket_reader(0),
-        get_input_socket_reader(1),
-        get_input_socket_reader(2),
-        get_input_socket_reader(3),
-    };
-    float corners[4][2];
-    read_corners_from_sockets(rect, readers, corners);
-    calculate_corners(corners, true, 0);
-
-    corners_ready_ = true;
-  }
-  unlock_mutex();
-
-  return data;
+  float corners[4][2];
+  read_input_corners(this, 0, corners);
+  calculate_corners(corners, true, 0);
 }
 
 void PlaneCornerPinMaskOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  if (execution_model_ == eExecutionModel::FullFrame) {
-    /* Determine input canvases. */
-    PlaneDistortMaskOperation::determine_canvas(preferred_area, r_area);
-  }
+  /* Determine input canvases. */
+  PlaneDistortMaskOperation::determine_canvas(preferred_area, r_area);
   r_area = preferred_area;
 }
 
@@ -206,7 +123,7 @@ void PlaneCornerPinMaskOperation::get_area_of_interest(const int /*input_idx*/,
 
 /* ******** PlaneCornerPinWarpImageOperation ******** */
 
-PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation() : corners_ready_(false)
+PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation()
 {
   add_input_socket(DataType::Vector);
   add_input_socket(DataType::Vector);
@@ -216,79 +133,9 @@ PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation() : corners_r
 
 void PlaneCornerPinWarpImageOperation::init_data()
 {
-  if (execution_model_ == eExecutionModel::FullFrame) {
-    float corners[4][2];
-    read_input_corners(this, 1, corners);
-    calculate_corners(corners, true, 0);
-  }
-}
-
-void PlaneCornerPinWarpImageOperation::init_execution()
-{
-  PlaneDistortWarpImageOperation::init_execution();
-
-  init_mutex();
-}
-
-void PlaneCornerPinWarpImageOperation::deinit_execution()
-{
-  PlaneDistortWarpImageOperation::deinit_execution();
-
-  deinit_mutex();
-}
-
-void *PlaneCornerPinWarpImageOperation::initialize_tile_data(rcti *rect)
-{
-  void *data = PlaneDistortWarpImageOperation::initialize_tile_data(rect);
-
-  /* get corner values once, by reading inputs at (0,0)
-   * XXX this assumes invariable values (no image inputs),
-   * we don't have a nice generic system for that yet
-   */
-  lock_mutex();
-  if (!corners_ready_) {
-    /* corner sockets start at index 1 */
-    SocketReader *readers[4] = {
-        get_input_socket_reader(1),
-        get_input_socket_reader(2),
-        get_input_socket_reader(3),
-        get_input_socket_reader(4),
-    };
-    float corners[4][2];
-    read_corners_from_sockets(rect, readers, corners);
-    calculate_corners(corners, true, 0);
-
-    corners_ready_ = true;
-  }
-  unlock_mutex();
-
-  return data;
-}
-
-bool PlaneCornerPinWarpImageOperation::determine_depending_area_of_interest(
-    rcti *input, ReadBufferOperation *read_operation, rcti *output)
-{
-  for (int i = 0; i < 4; i++) {
-    if (get_input_operation(i + 1)->determine_depending_area_of_interest(
-            input, read_operation, output))
-    {
-      return true;
-    }
-  }
-
-  /* XXX this is bad, but unavoidable with the current design:
-   * we don't know the actual corners and matrix at this point,
-   * so all we can do is get the full input image
-   */
-  output->xmin = 0;
-  output->ymin = 0;
-  output->xmax = get_input_operation(0)->get_width();
-  output->ymax = get_input_operation(0)->get_height();
-  return true;
-#if 0
-  return PlaneDistortWarpImageOperation::determine_depending_area_of_interest(
-      input, read_operation, output);
-#endif
+  float corners[4][2];
+  read_input_corners(this, 1, corners);
+  calculate_corners(corners, true, 0);
 }
 
 void PlaneCornerPinWarpImageOperation::get_area_of_interest(const int input_idx,

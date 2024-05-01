@@ -30,11 +30,13 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_grease_pencil.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_keylist.hh"
+
+#include "ANIM_animation.hh"
 
 /* *************************** Keyframe Processing *************************** */
 
@@ -518,7 +520,7 @@ static ActKeyColumn *nalloc_ak_cel(void *data)
   /* Store settings based on state of BezTriple */
   ak->cfra = cel.frame_number;
   ak->sel = (cel.frame.flag & SELECT) != 0;
-  ak->key_type = cel.frame.type;
+  ak->key_type = eBezTriple_KeyframeType(cel.frame.type);
 
   /* Count keyframes in this column */
   ak->totkey = 1;
@@ -559,7 +561,7 @@ static ActKeyColumn *nalloc_ak_gpframe(void *data)
   /* store settings based on state of BezTriple */
   ak->cfra = gpf->framenum;
   ak->sel = (gpf->flag & GP_FRAME_SELECT) ? SELECT : 0;
-  ak->key_type = gpf->key_type;
+  ak->key_type = eBezTriple_KeyframeType(gpf->key_type);
 
   /* Count keyframes in this column. */
   ak->totkey = 1;
@@ -1162,6 +1164,25 @@ void action_group_to_keylist(AnimData *adt,
       break;
     }
     fcurve_to_keylist(adt, fcu, keylist, saction_flag, range);
+  }
+}
+
+/**
+ * Assumption: the animation is bound to adt->binding_handle. This assumption will break when we
+ * have things like reference strips, where the strip can reference another binding handle.
+ */
+void animation_to_keylist(AnimData *adt,
+                          Animation *anim,
+                          AnimKeylist *keylist,
+                          const int saction_flag,
+                          blender::float2 range)
+{
+  BLI_assert(adt);
+  BLI_assert(anim);
+  BLI_assert(GS(anim->id.name) == ID_AN);
+
+  for (FCurve *fcurve : fcurves_for_animation(anim->wrap(), adt->binding_handle)) {
+    fcurve_to_keylist(adt, fcurve, keylist, saction_flag, range);
   }
 }
 

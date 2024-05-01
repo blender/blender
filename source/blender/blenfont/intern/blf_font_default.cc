@@ -71,9 +71,7 @@ static void blf_load_datafiles_dir()
     }
 
     const char *filepath = file_list[i].path;
-    if (!BLI_path_extension_check_n(
-            filepath, ".ttf", ".ttc", ".otf", ".otc", ".woff", ".woff2", nullptr))
-    {
+    if (!BLI_path_extension_check_n(filepath, ".ttf", ".otf", ".woff", ".woff2", nullptr)) {
       continue;
     }
     if (BLF_is_loaded(filepath)) {

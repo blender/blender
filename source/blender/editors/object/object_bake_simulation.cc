@@ -12,6 +12,8 @@
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -39,7 +41,7 @@
 
 #include "MOD_nodes.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
 
 #include "WM_api.hh"
 
@@ -200,7 +202,7 @@ static bool bake_simulation_poll(bContext *C)
     CTX_wm_operator_poll_msg_set(C, "File must be saved before baking");
     return false;
   }
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   const bool use_frame_cache = ob->flag & OB_FLAG_USE_SIMULATION_CACHE;
   if (!use_frame_cache) {
     CTX_wm_operator_poll_msg_set(C, "Cache has to be enabled");
@@ -252,7 +254,6 @@ static void bake_geometry_nodes_startjob(void *customdata, wmJobWorkerStatus *wo
   BakeGeometryNodesJob &job = *static_cast<BakeGeometryNodesJob *>(customdata);
   G.is_rendering = true;
   G.is_break = false;
-  WM_set_locked_interface(job.wm, true);
 
   int global_bake_start_frame = INT32_MAX;
   int global_bake_end_frame = INT32_MIN;
@@ -354,6 +355,7 @@ static void bake_geometry_nodes_endjob(void *customdata)
   G.is_rendering = false;
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, nullptr);
   WM_main_add_notifier(NC_NODE | ND_DISPLAY, nullptr);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, nullptr);
 }
 
 static void reset_old_bake(NodeBakeRequest &request)
@@ -404,6 +406,7 @@ static int start_bake_job(bContext *C,
   job->depsgraph = CTX_data_depsgraph_pointer(C);
   job->scene = CTX_data_scene(C);
   job->bake_requests = std::move(requests);
+  WM_set_locked_interface(job->wm, true);
 
   if (mode == BakeRequestsMode::Sync) {
     wmJobWorkerStatus worker_status{};
@@ -662,7 +665,13 @@ static int bake_simulation_invoke(bContext *C, wmOperator *op, const wmEvent * /
     return OPERATOR_CANCELLED;
   }
   if (has_existing_bake_data) {
-    return WM_operator_confirm_message(C, op, "Overwrite existing bake data");
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Overwrite existing bake data?"),
+                                  nullptr,
+                                  IFACE_("Bake"),
+                                  ALERT_ICON_NONE,
+                                  false);
   }
   Vector<NodeBakeRequest> requests = bake_simulation_gather_requests(C, op);
   return start_bake_job(C, std::move(requests), op, BakeRequestsMode::Async);
@@ -830,7 +839,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
   }
   request.path = std::move(*bake_path);
 
-  if (bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL) {
+  if (node->type == GEO_NODE_BAKE && bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL) {
     const int current_frame = scene->r.cfra;
     request.frame_start = current_frame;
     request.frame_end = current_frame;
@@ -932,12 +941,8 @@ static bool bake_delete_poll(bContext *C)
   return true;
 }
 
-}  // namespace blender::ed::object::bake_simulation
-
 void OBJECT_OT_simulation_nodes_cache_calculate_to_frame(wmOperatorType *ot)
 {
-  using namespace blender::ed::object::bake_simulation;
-
   ot->name = "Calculate Simulation to Frame";
   ot->description =
       "Calculate simulations in geometry nodes modifiers from the start to current frame";
@@ -956,8 +961,6 @@ void OBJECT_OT_simulation_nodes_cache_calculate_to_frame(wmOperatorType *ot)
 
 void OBJECT_OT_simulation_nodes_cache_bake(wmOperatorType *ot)
 {
-  using namespace blender::ed::object::bake_simulation;
-
   ot->name = "Bake Simulation";
   ot->description = "Bake simulations in geometry nodes modifiers";
   ot->idname = __func__;
@@ -972,8 +975,6 @@ void OBJECT_OT_simulation_nodes_cache_bake(wmOperatorType *ot)
 
 void OBJECT_OT_simulation_nodes_cache_delete(wmOperatorType *ot)
 {
-  using namespace blender::ed::object::bake_simulation;
-
   ot->name = "Delete Cached Simulation";
   ot->description = "Delete cached/baked simulations in geometry nodes modifiers";
   ot->idname = __func__;
@@ -1000,8 +1001,6 @@ static void single_bake_operator_props(wmOperatorType *ot)
 
 void OBJECT_OT_geometry_node_bake_single(wmOperatorType *ot)
 {
-  using namespace blender::ed::object::bake_simulation;
-
   ot->name = "Bake Geometry Node";
   ot->description = "Bake a single bake node or simulation";
   ot->idname = "OBJECT_OT_geometry_node_bake_single";
@@ -1016,8 +1015,6 @@ void OBJECT_OT_geometry_node_bake_single(wmOperatorType *ot)
 
 void OBJECT_OT_geometry_node_bake_delete_single(wmOperatorType *ot)
 {
-  using namespace blender::ed::object::bake_simulation;
-
   ot->name = "Delete Geometry Node Bake";
   ot->description = "Delete baked data of a single bake node or simulation";
   ot->idname = "OBJECT_OT_geometry_node_bake_delete_single";
@@ -1027,3 +1024,5 @@ void OBJECT_OT_geometry_node_bake_delete_single(wmOperatorType *ot)
 
   single_bake_operator_props(ot);
 }
+
+}  // namespace blender::ed::object::bake_simulation

@@ -16,7 +16,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_batch.h"
+#include "GPU_batch.hh"
 
 #include "UI_resources.hh"
 
@@ -45,7 +45,7 @@ void OVERLAY_motion_path_cache_init(OVERLAY_Data *vedata)
 
 /* Just convert the CPU cache to GPU cache. */
 /* T0D0(fclem) This should go into a draw_cache_impl_motionpath. */
-static GPUVertBuf *mpath_vbo_get(bMotionPath *mpath)
+static blender::gpu::VertBuf *mpath_vbo_get(bMotionPath *mpath)
 {
   if (!mpath->points_vbo) {
     GPUVertFormat format = {0};
@@ -62,7 +62,7 @@ static GPUVertBuf *mpath_vbo_get(bMotionPath *mpath)
   return mpath->points_vbo;
 }
 
-static GPUBatch *mpath_batch_line_get(bMotionPath *mpath)
+static blender::gpu::Batch *mpath_batch_line_get(bMotionPath *mpath)
 {
   if (!mpath->batch_line) {
     mpath->batch_line = GPU_batch_create(GPU_PRIM_LINE_STRIP, mpath_vbo_get(mpath), nullptr);
@@ -70,7 +70,7 @@ static GPUBatch *mpath_batch_line_get(bMotionPath *mpath)
   return mpath->batch_line;
 }
 
-static GPUBatch *mpath_batch_points_get(bMotionPath *mpath)
+static blender::gpu::Batch *mpath_batch_points_get(bMotionPath *mpath)
 {
   if (!mpath->batch_points) {
     mpath->batch_points = GPU_batch_create(GPU_PRIM_POINTS, mpath_vbo_get(mpath), nullptr);
@@ -135,7 +135,9 @@ static void motion_path_cache(OVERLAY_Data *vedata,
   bool show_frame_no = (avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) != 0;
   bool show_lines = (mpath->flag & MOTIONPATH_FLAG_LINES) != 0;
   float no_custom_col[3] = {-1.0f, -1.0f, -1.0f};
-  float *color = (mpath->flag & MOTIONPATH_FLAG_CUSTOM) ? mpath->color : no_custom_col;
+  const bool use_custom_color = mpath->flag & MOTIONPATH_FLAG_CUSTOM;
+  const float *color_pre = use_custom_color ? mpath->color : no_custom_col;
+  const float *color_post = use_custom_color ? mpath->color_post : no_custom_col;
 
   int sfra, efra, stepsize;
   motion_path_get_frame_range_to_draw(avs, mpath, cfra, &sfra, &efra, &stepsize);
@@ -144,6 +146,14 @@ static void motion_path_cache(OVERLAY_Data *vedata,
   if (len == 0) {
     return;
   }
+
+  /* Avoid 0 size allocations. Current code to calculate motion paths should
+   * sanitize this already [see animviz_verify_motionpaths()], we might however
+   * encounter an older file where this was still possible. */
+  if (mpath->length == 0) {
+    return;
+  }
+
   int start_index = sfra - mpath->start_frame;
 
   float camera_matrix[4][4];
@@ -163,7 +173,8 @@ static void motion_path_cache(OVERLAY_Data *vedata,
     DRW_shgroup_uniform_ivec4_copy(grp, "mpathLineSettings", motion_path_settings);
     DRW_shgroup_uniform_int_copy(grp, "lineThickness", mpath->line_thickness);
     DRW_shgroup_uniform_bool_copy(grp, "selected", selected);
-    DRW_shgroup_uniform_vec3_copy(grp, "customColor", color);
+    DRW_shgroup_uniform_vec3_copy(grp, "customColorPre", color_pre);
+    DRW_shgroup_uniform_vec3_copy(grp, "customColorPost", color_post);
     DRW_shgroup_uniform_mat4_copy(grp, "camera_space_matrix", camera_matrix);
     /* Only draw the required range. */
     DRW_shgroup_call_range(grp, nullptr, mpath_batch_line_get(mpath), start_index, len);
@@ -176,7 +187,8 @@ static void motion_path_cache(OVERLAY_Data *vedata,
     DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->motion_path_points_grp);
     DRW_shgroup_uniform_ivec4_copy(grp, "mpathPointSettings", motion_path_settings);
     DRW_shgroup_uniform_bool_copy(grp, "showKeyFrames", show_keyframes);
-    DRW_shgroup_uniform_vec3_copy(grp, "customColor", color);
+    DRW_shgroup_uniform_vec3_copy(grp, "customColorPre", color_pre);
+    DRW_shgroup_uniform_vec3_copy(grp, "customColorPost", color_post);
     DRW_shgroup_uniform_mat4_copy(grp, "camera_space_matrix", camera_matrix);
     /* Only draw the required range. */
     DRW_shgroup_call_range(grp, nullptr, mpath_batch_points_get(mpath), start_index, len);

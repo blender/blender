@@ -15,7 +15,6 @@
 
 #include "fast_float.h"
 
-#include <algorithm>
 #include <charconv>
 
 static bool is_whitespace(char c)
@@ -438,6 +437,12 @@ static const char *load_face_element(PlyReadBuffer &file,
       if (count < 1 || count > 255) {
         return "Invalid face size, must be between 1 and 255";
       }
+      /* Previous python based importer was accepting faces with fewer
+       * than 3 vertices, and silently dropping them. */
+      if (count < 3) {
+        fprintf(stderr, "PLY Importer: ignoring face %i (%i vertices)\n", i, count);
+        continue;
+      }
 
       for (int j = 0; j < count; j++) {
         int index;
@@ -468,15 +473,22 @@ static const char *load_face_element(PlyReadBuffer &file,
 
       scratch.resize(count * data_type_size[prop.type]);
       file.read_bytes(scratch.data(), scratch.size());
-      ptr = scratch.data();
-      if (header.type == PlyFormatType::BINARY_BE) {
-        endian_switch_array((uint8_t *)ptr, data_type_size[prop.type], count);
+      /* Previous python based importer was accepting faces with fewer
+       * than 3 vertices, and silently dropping them. */
+      if (count < 3) {
+        fprintf(stderr, "PLY Importer: ignoring face %i (%i vertices)\n", i, int(count));
       }
-      for (int j = 0; j < count; ++j) {
-        uint32_t index = get_binary_value<uint32_t>(prop.type, ptr);
-        data->face_vertices.append(index);
+      else {
+        ptr = scratch.data();
+        if (header.type == PlyFormatType::BINARY_BE) {
+          endian_switch_array((uint8_t *)ptr, data_type_size[prop.type], count);
+        }
+        for (int j = 0; j < count; ++j) {
+          uint32_t index = get_binary_value<uint32_t>(prop.type, ptr);
+          data->face_vertices.append(index);
+        }
+        data->face_sizes.append(count);
       }
-      data->face_sizes.append(count);
 
       /* Skip any properties after vertex indices. */
       for (int j = prop_index + 1; j < element.properties.size(); j++) {

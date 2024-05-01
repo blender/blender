@@ -21,9 +21,10 @@
 
 #include "DNA_customdata_types.h"
 
+struct BMEditMesh;
 struct BVHCache;
 struct Mesh;
-struct ShrinkwrapBoundaryData;
+class ShrinkwrapBoundaryData;
 struct SubdivCCG;
 struct SubsurfRuntimeData;
 namespace blender::bke {
@@ -94,9 +95,12 @@ struct LooseEdgeCache : public LooseGeomCache {};
 struct LooseVertCache : public LooseGeomCache {};
 
 struct MeshRuntime {
-  /* Evaluated mesh for objects which do not have effective modifiers.
-   * This mesh is used as a result of modifier stack evaluation.
-   * Since modifier stack evaluation is threaded on object level we need some synchronization. */
+  /**
+   * "Evaluated" mesh owned by this mesh. Used for objects which don't have effective modifiers, so
+   * that the evaluated mesh can be shared between objects. Also stores the lazily created #Mesh
+   * for #BMesh and GPU subdivision mesh wrappers. Since this is accessed and set from multiple
+   * threads, access and use must be protected by the #eval_mutex lock.
+   */
   Mesh *mesh_eval = nullptr;
   std::mutex eval_mutex;
 
@@ -105,6 +109,18 @@ struct MeshRuntime {
 
   /** Implicit sharing user count for #Mesh::face_offset_indices. */
   const ImplicitSharingInfo *face_offsets_sharing_info = nullptr;
+
+  /**
+   * Storage of the edit mode BMesh with some extra data for quick access in edit mode.
+   * - For original (non-evaluated) meshes, when it exists, it generally has the most up-to-date
+   *   information about the mesh. That's because this is only allocated in edit mode.
+   * - For evaluated meshes, this just references the BMesh from an original object in edit mode.
+   *   Conceptually this is a weak pointer for evaluated meshes. In other words, it doesn't have
+   *   ownership over the BMesh, and using `shared_ptr` is just a convenient way to avoid copying
+   *   the whole struct and making sure the reference is valid.
+   * \note When the object is available, the preferred access method is #BKE_editmesh_from_object.
+   */
+  std::shared_ptr<BMEditMesh> edit_mesh;
 
   /**
    * A cache of bounds shared between data-blocks with unchanged positions. When changing positions
@@ -132,9 +148,6 @@ struct MeshRuntime {
   /** Cache for BVH trees generated for the mesh. Defined in 'BKE_bvhutil.c' */
   BVHCache *bvh_cache = nullptr;
 
-  /** Cache of non-manifold boundary data for Shrink-wrap Target Project. */
-  std::unique_ptr<ShrinkwrapBoundaryData> shrinkwrap_data;
-
   /** Needed in case we need to lazily initialize the mesh. */
   CustomData_MeshMasks cd_mask_extra = {};
 
@@ -158,11 +171,6 @@ struct MeshRuntime {
 
   /** #eMeshWrapperType and others. */
   eMeshWrapperType wrapper_type = ME_WRAPPER_TYPE_MDATA;
-  /**
-   * A type mask from wrapper_type,
-   * in case there are differences in finalizing logic between types.
-   */
-  eMeshWrapperType wrapper_type_finalize = ME_WRAPPER_TYPE_MDATA;
 
   /**
    * Settings for lazily evaluating the subdivision on the CPU if needed. These are
@@ -195,6 +203,9 @@ struct MeshRuntime {
   SharedCache<LooseVertCache> loose_verts_cache;
   /** Cache of data about vertices not used by faces. See #Mesh::verts_no_face(). */
   SharedCache<LooseVertCache> verts_no_face_cache;
+
+  /** Cache of non-manifold boundary data for shrinkwrap target Project. */
+  SharedCache<ShrinkwrapBoundaryData> shrinkwrap_boundary_cache;
 
   /**
    * A bit vector the size of the number of vertices, set to true for the center vertices of

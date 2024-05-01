@@ -17,7 +17,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_addon.h" /* own include */
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
@@ -38,7 +38,7 @@ bAddon *BKE_addon_new()
   return addon;
 }
 
-bAddon *BKE_addon_find(ListBase *addon_list, const char *module)
+bAddon *BKE_addon_find(const ListBase *addon_list, const char *module)
 {
   return static_cast<bAddon *>(BLI_findstring(addon_list, module, offsetof(bAddon, module)));
 }

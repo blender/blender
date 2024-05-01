@@ -7,22 +7,20 @@
 #include "usd_exporter_context.hh"
 
 #include <pxr/usd/sdf/path.h>
-#include <pxr/usd/usd/stage.h>
+#include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/boundable.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdUtils/sparseValueWriter.h>
 
-#include <vector>
-
-#include "DEG_depsgraph_query.hh"
-
 #include "WM_types.hh"
 
 #include "DNA_material_types.h"
-#include "DNA_windowmanager_types.h"
+
+#include <string>
 
 struct Main;
 struct Material;
+struct ReportList;
 
 namespace blender::io::usd {
 
@@ -76,10 +74,19 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   pxr::SdfPath get_material_library_path(const HierarchyContext &context) const;
   pxr::UsdShadeMaterial ensure_usd_material(const HierarchyContext &context, Material *material);
 
+<<<<<<< HEAD
   void write_id_properties(pxr::UsdPrim &prim,
                            const ID &id,
                            pxr::UsdTimeCode = pxr::UsdTimeCode::Default());
   void write_user_properties(pxr::UsdPrim &prim, const ID &id, pxr::UsdTimeCode timecode);
+=======
+  void write_id_properties(const pxr::UsdPrim &prim,
+                           const ID &id,
+                           pxr::UsdTimeCode = pxr::UsdTimeCode::Default()) const;
+  void write_user_properties(const pxr::UsdPrim &prim,
+                             IDProperty *properties,
+                             pxr::UsdTimeCode = pxr::UsdTimeCode::Default()) const;
+>>>>>>> main
 
   void write_visibility(const HierarchyContext &context,
                         const pxr::UsdTimeCode timecode,

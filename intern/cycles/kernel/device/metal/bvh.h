@@ -39,6 +39,7 @@ struct MetalRTIntersectionShadowPayload {
   bool result;
 };
 
+#ifdef __HAIR__
 ccl_device_forceinline bool curve_ribbon_accept(
     KernelGlobals kg, float u, float t, ccl_private const Ray *ray, int object, int prim, int type)
 {
@@ -63,11 +64,11 @@ ccl_device_forceinline bool curve_ribbon_accept(
   float3 ray_D = ray->D;
   if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
     float3 idir;
-#if defined(__METALRT_MOTION__)
+#  if defined(__METALRT_MOTION__)
     bvh_instance_motion_push(NULL, object, ray, &ray_P, &ray_D, &idir);
-#else
+#  else
     bvh_instance_push(NULL, object, ray, &ray_P, &ray_D, &idir);
-#endif
+#  endif
   }
 
   /* ignore self intersections */
@@ -78,11 +79,11 @@ ccl_device_forceinline bool curve_ribbon_accept(
 ccl_device_forceinline float curve_ribbon_v(
     KernelGlobals kg, float u, float t, ccl_private const Ray *ray, int object, int prim, int type)
 {
-#if defined(__METALRT_MOTION__)
+#  if defined(__METALRT_MOTION__)
   float time = ray->time;
-#else
+#  else
   float time = 0.0f;
-#endif
+#  endif
 
   const bool is_motion = (type & PRIMITIVE_MOTION);
 
@@ -101,18 +102,18 @@ ccl_device_forceinline float curve_ribbon_v(
     curve[3] = kernel_data_fetch(curve_keys, kb);
   }
   else {
-    motion_curve_keys(kg, object, prim, time, ka, k0, k1, kb, curve);
+    motion_curve_keys(kg, object, time, ka, k0, k1, kb, curve);
   }
 
   float3 ray_P = ray->P;
   float3 ray_D = ray->D;
   if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
     float3 idir;
-#if defined(__METALRT_MOTION__)
+#  if defined(__METALRT_MOTION__)
     bvh_instance_motion_push(NULL, object, ray, &ray_P, &ray_D, &idir);
-#else
+#  else
     bvh_instance_push(NULL, object, ray, &ray_P, &ray_D, &idir);
-#endif
+#  endif
   }
 
   const float4 P_curve4 = metal::catmull_rom(u, curve[0], curve[1], curve[2], curve[3]);
@@ -130,6 +131,7 @@ ccl_device_forceinline float curve_ribbon_v(
   float v = dot(P - P_curve, bitangent) / r_curve;
   return clamp(v, -1.0, 1.0f);
 }
+#endif /* __HAIR__ */
 
 /* Scene intersection. */
 
@@ -144,7 +146,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     return false;
   }
 
-#if defined(__KERNEL_DEBUG__)
+#if defined(WITH_CYCLES_DEBUG)
   if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
     isect->t = ray->tmax;
     isect->type = PRIMITIVE_NONE;
@@ -207,6 +209,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     isect->u = intersection.triangle_barycentric_coord.x;
     isect->v = intersection.triangle_barycentric_coord.y;
   }
+#ifdef __HAIR__
   else if (kernel_data.bvh.have_curves && intersection.type == intersection_type::curve) {
     int prim = intersection.primitive_id + intersection.user_instance_id;
     const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
@@ -227,6 +230,8 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
       isect->v = 0.0f;
     }
   }
+#endif /* __HAIR__ */
+#ifdef __POINTCLOUD__
   else if (kernel_data.bvh.have_points && intersection.type == intersection_type::bounding_box) {
     const int object = intersection.instance_id;
     const uint prim = intersection.primitive_id + intersection.user_instance_id;
@@ -234,11 +239,11 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 
     if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
       float3 idir;
-#if defined(__METALRT_MOTION__)
+#  if defined(__METALRT_MOTION__)
       bvh_instance_motion_push(NULL, object, ray, &r.origin, &r.direction, &idir);
-#else
+#  else
       bvh_instance_push(NULL, object, ray, &r.origin, &r.direction, &idir);
-#endif
+#  endif
     }
 
     if (prim_type & PRIMITIVE_POINT) {
@@ -262,6 +267,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
       return true;
     }
   }
+#endif /* __POINTCLOUD__ */
 
   return true;
 }
@@ -281,7 +287,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
     return false;
   }
 
-#  if defined(__KERNEL_DEBUG__)
+#  if defined(WITH_CYCLES_DEBUG)
   if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
     if (local_isect) {
       local_isect->num_hits = 0;
@@ -383,7 +389,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
     return false;
   }
 
-#  if defined(__KERNEL_DEBUG__)
+#  if defined(WITH_CYCLES_DEBUG)
   if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
     kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
     return false;
@@ -446,7 +452,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
     return false;
   }
 
-#  if defined(__KERNEL_DEBUG__)
+#  if defined(WITH_CYCLES_DEBUG)
   if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
     kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
     return false;
@@ -497,6 +503,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
     isect->object = intersection.instance_id;
     isect->t = intersection.distance;
   }
+#  ifdef __HAIR__
   else if (kernel_data.bvh.have_curves && intersection.type == intersection_type::curve) {
     int prim = intersection.primitive_id + intersection.user_instance_id;
     const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
@@ -517,6 +524,8 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
       isect->v = 0.0f;
     }
   }
+#  endif
+#  ifdef __POINTCLOUD__
   else if (kernel_data.bvh.have_points && intersection.type == intersection_type::bounding_box) {
     const int object = intersection.instance_id;
     const uint prim = intersection.primitive_id + intersection.user_instance_id;
@@ -526,11 +535,11 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
 
     if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
       float3 idir;
-#  if defined(__METALRT_MOTION__)
+#    if defined(__METALRT_MOTION__)
       bvh_instance_motion_push(NULL, object, ray, &r.origin, &r.direction, &idir);
-#  else
+#    else
       bvh_instance_push(NULL, object, ray, &r.origin, &r.direction, &idir);
-#  endif
+#    endif
     }
 
     if (prim_type & PRIMITIVE_POINT) {
@@ -552,6 +561,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
       return true;
     }
   }
+#  endif
 
   return true;
 }

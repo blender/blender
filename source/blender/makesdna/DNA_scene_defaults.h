@@ -10,7 +10,6 @@
 
 #include "DNA_view3d_defaults.h"
 
-/* Struct members on own line. */
 /* clang-format off */
 
 /* -------------------------------------------------------------------- */
@@ -165,8 +164,7 @@
                     RAYTRACE_EEVEE_DENOISE_BILATERAL, \
     .screen_trace_quality = 0.25f, \
     .screen_trace_thickness = 0.2f, \
-    .screen_trace_max_roughness = 0.5f, \
-    .sample_clamp = 10.0f, \
+    .trace_max_roughness = 0.5f, \
     .resolution_scale = 2, \
   }
 
@@ -213,6 +211,7 @@
     .gtao_quality = 0.25f, \
     .gtao_thickness = 0.5f, \
     .gtao_focus = 0.05f, \
+    .gtao_resolution = 2, \
  \
     .bokeh_overblur = 5.0f, \
     .bokeh_max_size = 100.0f, \
@@ -231,11 +230,12 @@
     .motion_blur_max = 32, \
     .motion_blur_steps = 1, \
  \
+    .clamp_surface_indirect = 10.0f, \
+\
     .shadow_cube_size = 512, \
     .shadow_cascade_size = 1024, \
     .shadow_ray_count = 1, \
     .shadow_step_count = 6, \
-    .shadow_normal_bias = 0.02f, \
  \
     .ray_tracing_method = RAYTRACE_EEVEE_METHOD_SCREEN, \
  \
@@ -378,6 +378,10 @@
     .snap_flag_anim = SCE_SNAP, \
     .snap_transform_mode_flag = SCE_SNAP_TRANSFORM_MODE_TRANSLATE, \
     .snap_face_nearest_steps = 1, \
+    .snap_angle_increment_3d = DEG2RADF(5.0f), \
+    .snap_angle_increment_2d = DEG2RADF(5.0f), \
+    .snap_angle_increment_3d_precision = DEG2RADF(1.0f), \
+    .snap_angle_increment_2d_precision = DEG2RADF(1.0f), \
  \
     .curve_paint_settings = _DNA_DEFAULTS_CurvePaintSettings, \
  \
@@ -403,8 +407,7 @@
  \
     /* UV painting */ \
     .uv_sculpt_settings = 0, \
-    .uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN, \
-\
+ \
     /* Placement */ \
     .snap_mode_tools = SCE_SNAP_TO_GEOM,\
     .plane_axis = 2,\

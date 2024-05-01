@@ -78,11 +78,9 @@ World::~World()
 
 void World::sync()
 {
-  ::World *bl_world = inst_.use_studio_light() ? nullptr : inst_.scene->world;
-
   bool has_update = false;
 
-  if (bl_world) {
+  if (inst_.scene->world != nullptr) {
     /* Detect world update before overriding it. */
     WorldHandle wo_handle = inst_.sync.sync_world();
     has_update = wo_handle.recalc != 0;
@@ -91,8 +89,9 @@ void World::sync()
   /* Sync volume first since its result can override the surface world. */
   sync_volume();
 
+  ::World *bl_world;
   if (inst_.use_studio_light()) {
-    has_update = lookdev_world_.sync(LookdevParameters(inst_.v3d));
+    has_update |= lookdev_world_.sync(LookdevParameters(inst_.v3d));
     bl_world = lookdev_world_.world_get();
   }
   else if ((inst_.view_layer->layflag & SCE_LAY_SKY) == 0) {
@@ -133,8 +132,9 @@ void World::sync()
 
   float opacity = inst_.use_studio_light() ? lookdev_world_.background_opacity_get() :
                                              inst_.film.background_opacity_get();
+  float background_blur = inst_.use_studio_light() ? lookdev_world_.background_blur_get() : 0.0;
 
-  inst_.pipelines.background.sync(gpumat, opacity);
+  inst_.pipelines.background.sync(gpumat, opacity, background_blur);
   inst_.pipelines.world.sync(gpumat);
 }
 

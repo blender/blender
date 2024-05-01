@@ -17,13 +17,13 @@
 #include "BKE_context.hh"
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "WM_api.hh"
 
 #include "ED_screen.hh"
 
-#include "screen_intern.h"
+#include "screen_intern.hh"
 
 WorkSpaceLayout *ED_workspace_layout_add(Main *bmain,
                                          WorkSpace *workspace,

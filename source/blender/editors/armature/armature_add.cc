@@ -28,8 +28,8 @@
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
-#include "BKE_idprop.h"
+#include "BKE_fcurve.hh"
+#include "BKE_idprop.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_object_types.hh"
@@ -390,46 +390,44 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
    */
   EditBone *oldtarget, *newtarget;
   bPoseChannel *pchan;
-  ListBase *conlist;
 
   if ((pchan = BKE_pose_channel_ensure(ob->pose, dup_bone->name))) {
-    if ((conlist = &pchan->constraints)) {
-      LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
-        /* does this constraint have a subtarget in
-         * this armature?
-         */
-        ListBase targets = {nullptr, nullptr};
+    ListBase *conlist = &pchan->constraints;
+    LISTBASE_FOREACH (bConstraint *, curcon, conlist) {
+      /* does this constraint have a subtarget in
+       * this armature?
+       */
+      ListBase targets = {nullptr, nullptr};
 
-        if (BKE_constraint_targets_get(curcon, &targets)) {
-          LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
-            if ((ct->tar == ob) && (ct->subtarget[0])) {
-              oldtarget = get_named_editbone(editbones, ct->subtarget);
-              if (oldtarget) {
-                /* was the subtarget bone duplicated too? If
-                 * so, update the constraint to point at the
-                 * duplicate of the old subtarget.
-                 */
-                if (oldtarget->temp.ebone) {
-                  newtarget = oldtarget->temp.ebone;
+      if (BKE_constraint_targets_get(curcon, &targets)) {
+        LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
+          if ((ct->tar == ob) && (ct->subtarget[0])) {
+            oldtarget = get_named_editbone(editbones, ct->subtarget);
+            if (oldtarget) {
+              /* was the subtarget bone duplicated too? If
+               * so, update the constraint to point at the
+               * duplicate of the old subtarget.
+               */
+              if (oldtarget->temp.ebone) {
+                newtarget = oldtarget->temp.ebone;
+                STRNCPY(ct->subtarget, newtarget->name);
+              }
+              else if (lookup_mirror_subtarget) {
+                /* The subtarget was not selected for duplication, try to see if a mirror bone of
+                 * the current target exists */
+                char name_flip[MAXBONENAME];
+
+                BLI_string_flip_side_name(name_flip, oldtarget->name, false, sizeof(name_flip));
+                newtarget = get_named_editbone(editbones, name_flip);
+                if (newtarget) {
                   STRNCPY(ct->subtarget, newtarget->name);
-                }
-                else if (lookup_mirror_subtarget) {
-                  /* The subtarget was not selected for duplication, try to see if a mirror bone of
-                   * the current target exists */
-                  char name_flip[MAXBONENAME];
-
-                  BLI_string_flip_side_name(name_flip, oldtarget->name, false, sizeof(name_flip));
-                  newtarget = get_named_editbone(editbones, name_flip);
-                  if (newtarget) {
-                    STRNCPY(ct->subtarget, newtarget->name);
-                  }
                 }
               }
             }
           }
-
-          BKE_constraint_targets_flush(curcon, &targets, false);
         }
+
+        BKE_constraint_targets_flush(curcon, &targets, false);
       }
     }
   }
@@ -836,6 +834,52 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
   mul_m4_v3(imat, trans->to_max_scale);
 }
 
+static void track_axis_x_swap(int &value)
+{
+  /* Swap track axis X <> -X. */
+  if (value == TRACK_X) {
+    value = TRACK_nX;
+  }
+  else if (value == TRACK_nX) {
+    value = TRACK_X;
+  }
+}
+
+static void track_axis_x_swap(char &value)
+{
+  /* Swap track axis X <> -X. */
+  if (value == TRACK_X) {
+    value = TRACK_nX;
+  }
+  else if (value == TRACK_nX) {
+    value = TRACK_X;
+  }
+}
+
+static void updateDuplicateConstraintTrackToSettings(bConstraint *curcon)
+{
+  bTrackToConstraint *data = static_cast<bTrackToConstraint *>(curcon->data);
+  track_axis_x_swap(data->reserved1);
+}
+
+static void updateDuplicateConstraintLockTrackSettings(bConstraint *curcon)
+{
+  bLockTrackConstraint *data = static_cast<bLockTrackConstraint *>(curcon->data);
+  track_axis_x_swap(data->trackflag);
+}
+
+static void updateDuplicateConstraintDampTrackSettings(bConstraint *curcon)
+{
+  bDampTrackConstraint *data = static_cast<bDampTrackConstraint *>(curcon->data);
+  track_axis_x_swap(data->trackflag);
+}
+
+static void updateDuplicateConstraintShrinkwrapSettings(bConstraint *curcon)
+{
+  bShrinkwrapConstraint *data = static_cast<bShrinkwrapConstraint *>(curcon->data);
+  track_axis_x_swap(data->trackAxis);
+}
+
 static void updateDuplicateConstraintSettings(EditBone *dup_bone, EditBone *orig_bone, Object *ob)
 {
   /* If an edit bone has been duplicated, lets update its constraints if the
@@ -864,6 +908,18 @@ static void updateDuplicateConstraintSettings(EditBone *dup_bone, EditBone *orig
         break;
       case CONSTRAINT_TYPE_TRANSFORM:
         updateDuplicateTransformConstraintSettings(ob, pchan, curcon);
+        break;
+      case CONSTRAINT_TYPE_TRACKTO:
+        updateDuplicateConstraintTrackToSettings(curcon);
+        break;
+      case CONSTRAINT_TYPE_LOCKTRACK:
+        updateDuplicateConstraintLockTrackSettings(curcon);
+        break;
+      case CONSTRAINT_TYPE_DAMPTRACK:
+        updateDuplicateConstraintDampTrackSettings(curcon);
+        break;
+      case CONSTRAINT_TYPE_SHRINKWRAP:
+        updateDuplicateConstraintShrinkwrapSettings(curcon);
         break;
     }
   }
@@ -1721,8 +1777,13 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
   cuts = RNA_int_get(op->ptr, "number_cuts");
 
   /* loop over all editable bones */
-  /* XXX the old code did this in reverse order though! */
   CTX_DATA_BEGIN_WITH_ID (C, EditBone *, ebone, selected_editable_bones, bArmature *, arm) {
+    /* Keep track of the last bone in the editbone list. The newly created ones
+     * will be appended after this one. */
+    EditBone *last_bone_before_cutting = static_cast<EditBone *>(arm->edbo->last);
+    BLI_assert_msg(last_bone_before_cutting,
+                   "If there is no bone before subdividing, which bone is being subdivided here?");
+
     for (i = cuts + 1; i > 1; i--) {
       /* compute cut ratio first */
       float cutratio = 1.0f / float(i);
@@ -1753,10 +1814,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
       ebone->rad_tail = newbone->rad_head;
 
       newbone->flag |= BONE_CONNECTED;
-
       newbone->prop = nullptr;
-
-      ED_armature_ebone_unique_name(arm->edbo, newbone->name, nullptr);
 
       /* correct parent bones */
       LISTBASE_FOREACH (EditBone *, tbone, arm->edbo) {
@@ -1768,6 +1826,25 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 
       /* Copy bone collection membership. */
       BLI_duplicatelist(&newbone->bone_collections, &ebone->bone_collections);
+    }
+
+    /* Ensure the bones are uniquely named, in the right order to ensure "Bone" is subdivided into
+     * "Bone", "Bone.001", "Bone.002", etc. This has to be in the opposite order as the cuts in the
+     * code above.
+     *
+     * The code above cuts into fractions (for cuts=3 it cuts into 1/4, then 1/3, then 1/2), which
+     * means that it MUST be run in that order. Since the loop below also must run in the order it
+     * is now in, and that's the opposite order of the loop above, they cannot be combined.
+     *
+     * If the code above were refactored, it could just calculate the final bone length and create
+     * (N-1) bones of that length, which can then be done in any order. Then the code below can be
+     * integrated into the code above.
+     */
+    ListBase new_bones;
+    new_bones.first = last_bone_before_cutting->next;
+    new_bones.last = static_cast<EditBone *>(arm->edbo->last);
+    LISTBASE_FOREACH_BACKWARD (EditBone *, newbone, &new_bones) {
+      ED_armature_ebone_unique_name(arm->edbo, newbone->name, newbone);
     }
   }
   CTX_DATA_END;

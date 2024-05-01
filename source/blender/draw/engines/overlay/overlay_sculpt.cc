@@ -36,8 +36,8 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
   using namespace blender::draw;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  GPUBatch *sculpt_overlays;
-  PBVH *pbvh = ob->sculpt->pbvh;
+  blender::gpu::Batch *sculpt_overlays;
+  PBVH *pbvh = ob->sculpt->pbvh.get();
 
   const bool use_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d);
 
@@ -47,7 +47,7 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
     return;
   }
 
-  if (!pbvh_has_mask(pbvh) && !pbvh_has_face_sets(pbvh)) {
+  if (!pbvh_has_mask(*pbvh) && !pbvh_has_face_sets(*pbvh)) {
     /* The SculptSession and the PBVH can be created without a Mask data-layer or Face Set
      * data-layer. (masks data-layers are created after using a mask tool), so in these cases there
      * is nothing to draw. */

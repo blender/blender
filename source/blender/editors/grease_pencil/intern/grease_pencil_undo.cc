@@ -82,7 +82,7 @@ class StepDrawingGeometryBase {
    * Mismatch in drawing types can happen when some drawings have been deleted between the undo
    * step storage, and the current state of the GreasePencil data.
    */
-  void decode_valid_drawingtype_at_index_ensure(MutableSpan<GreasePencilDrawingBase *> &drawings,
+  void decode_valid_drawingtype_at_index_ensure(MutableSpan<GreasePencilDrawingBase *> drawings,
                                                 const GreasePencilDrawingType drawing_type) const
   {
     /* TODO: Maybe that code should rather be part of GreasePencil:: API, together with
@@ -290,6 +290,11 @@ class StepObject {
   }
 
  public:
+  ~StepObject()
+  {
+    CustomData_free(&layers_data_, layers_num_);
+  }
+
   void encode(Object *ob, StepEncodeStatus &encode_status)
   {
     const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
@@ -332,12 +337,10 @@ static bool step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_num = 0;
-  Object **objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer, &objects_num);
-  BLI_SCOPED_DEFER([&]() { MEM_SAFE_FREE(objects); })
+  Vector<Object *> objects = ED_undo_editmode_objects_from_view_layer(scene, view_layer);
 
   us->scene_ref.ptr = scene;
-  new (&us->objects) Array<StepObject>(objects_num);
+  new (&us->objects) Array<StepObject>(objects.size());
 
   threading::parallel_for(us->objects.index_range(), 8, [&](const IndexRange range) {
     for (const int64_t i : range) {

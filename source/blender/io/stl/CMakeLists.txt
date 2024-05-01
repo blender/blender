@@ -6,13 +6,12 @@ set(INC
   .
   exporter
   importer
+  intern
   ../common
   ../../blenkernel
   ../../bmesh
-  ../../bmesh/intern
   ../../editors/include
   ../../makesrna
-  ../../nodes
   ../../windowmanager
 )
 
@@ -28,6 +27,8 @@ set(SRC
   importer/stl_import_mesh.cc
   exporter/stl_export.cc
   exporter/stl_export_writer.cc
+
+  intern/stl_data.hh
 
   IO_stl.hh
   importer/stl_import.hh

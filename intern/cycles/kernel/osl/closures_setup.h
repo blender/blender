@@ -58,7 +58,7 @@ ccl_device_forceinline bool osl_closure_skip(KernelGlobals kg,
     if (reflect_caustics_disabled && has_reflect && !has_transmit) {
       return true;
     }
-    /* Refractive Caustics*/
+    /* Refractive Caustics */
     if (refract_caustics_disabled && has_transmit && !has_reflect) {
       return true;
     }
@@ -195,6 +195,17 @@ ccl_device void osl_closure_transparent_setup(KernelGlobals kg,
                                               float3 *layer_albedo)
 {
   bsdf_transparent_setup(sd, rgb_to_spectrum(weight), path_flag);
+}
+
+ccl_device void osl_closure_ray_portal_bsdf_setup(KernelGlobals kg,
+                                                  ccl_private ShaderData *sd,
+                                                  uint32_t path_flag,
+                                                  float3 weight,
+                                                  ccl_private const RayPortalBSDFClosure *closure,
+                                                  float3 *layer_albedo)
+{
+  bsdf_ray_portal_setup(
+      sd, rgb_to_spectrum(weight), path_flag, closure->position, closure->direction);
 }
 
 /* MaterialX closures */

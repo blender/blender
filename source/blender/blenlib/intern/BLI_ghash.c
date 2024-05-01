@@ -1089,7 +1089,7 @@ int BLI_gset_buckets_len(const GSet *gs)
   return BLI_ghash_buckets_len((const GHash *)gs);
 }
 
-double BLI_ghash_calc_quality_ex(GHash *gh,
+double BLI_ghash_calc_quality_ex(const GHash *gh,
                                  double *r_load,
                                  double *r_variance,
                                  double *r_prop_empty_buckets,
@@ -1176,14 +1176,14 @@ double BLI_ghash_calc_quality_ex(GHash *gh,
             ((double)gh->nentries * (gh->nentries + 2 * gh->nbuckets - 1)));
   }
 }
-double BLI_gset_calc_quality_ex(GSet *gs,
+double BLI_gset_calc_quality_ex(const GSet *gs,
                                 double *r_load,
                                 double *r_variance,
                                 double *r_prop_empty_buckets,
                                 double *r_prop_overloaded_buckets,
                                 int *r_biggest_bucket)
 {
-  return BLI_ghash_calc_quality_ex((GHash *)gs,
+  return BLI_ghash_calc_quality_ex((const GHash *)gs,
                                    r_load,
                                    r_variance,
                                    r_prop_empty_buckets,
@@ -1191,11 +1191,11 @@ double BLI_gset_calc_quality_ex(GSet *gs,
                                    r_biggest_bucket);
 }
 
-double BLI_ghash_calc_quality(GHash *gh)
+double BLI_ghash_calc_quality(const GHash *gh)
 {
   return BLI_ghash_calc_quality_ex(gh, NULL, NULL, NULL, NULL, NULL);
 }
-double BLI_gset_calc_quality(GSet *gs)
+double BLI_gset_calc_quality(const GSet *gs)
 {
   return BLI_ghash_calc_quality_ex((GHash *)gs, NULL, NULL, NULL, NULL, NULL);
 }

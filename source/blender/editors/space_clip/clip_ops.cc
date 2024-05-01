@@ -61,7 +61,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "clip_intern.h" /* own include */
+#include "clip_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name View Navigation Utilities
@@ -1216,7 +1216,7 @@ static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undisto
 static void do_movie_proxy(void *pjv,
                            int * /*build_sizes*/,
                            int /*build_count*/,
-                           int *build_undistort_sizes,
+                           const int *build_undistort_sizes,
                            int build_undistort_count,
                            bool *stop,
                            bool *do_update,

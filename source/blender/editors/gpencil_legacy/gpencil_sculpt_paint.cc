@@ -43,6 +43,7 @@
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_paint.hh"
 #include "BKE_report.hh"
 
 #include "UI_interface.hh"
@@ -65,7 +66,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 #define SEARCH_RADIUS_PIXEL 20
 
@@ -226,7 +227,7 @@ static bool gpencil_brush_invert_check(tGP_BrushEditData *gso)
 {
   /* The basic setting is the brush's setting (from the panel) */
   bool invert = ((gso->brush->gpencil_settings->sculpt_flag & GP_SCULPT_FLAG_INVERT) != 0) ||
-                (gso->brush->gpencil_settings->sculpt_flag & BRUSH_DIR_IN);
+                (gso->brush->flag & BRUSH_DIR_IN);
   /* During runtime, the user can hold down the Ctrl key to invert the basic behavior */
   if (gso->flag & GP_SCULPT_FLAG_INVERT) {
     invert ^= true;
@@ -1202,7 +1203,7 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
   gso->region = CTX_wm_region(C);
 
   Paint *paint = &ts->gp_sculptpaint->paint;
-  Brush *brush = paint->brush;
+  Brush *brush = BKE_paint_brush(paint);
   gso->brush = brush;
   BKE_curvemapping_init(gso->brush->curve);
 
@@ -1468,7 +1469,7 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
                                            GP_BrushApplyCb apply)
 {
   GP_SpaceConversion *gsc = &gso->gsc;
-  rcti *rect = &gso->brush_rect;
+  const rcti *rect = &gso->brush_rect;
   Brush *brush = gso->brush;
   const int radius = (brush->flag & GP_BRUSH_USE_PRESSURE) ? gso->brush->size * gso->pressure :
                                                              gso->brush->size;

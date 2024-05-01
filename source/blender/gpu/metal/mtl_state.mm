@@ -9,7 +9,7 @@
 #include "BLI_math_base.h"
 #include "BLI_math_bits.h"
 
-#include "GPU_framebuffer.h"
+#include "GPU_framebuffer.hh"
 
 #include "mtl_context.hh"
 #include "mtl_framebuffer.hh"
@@ -327,7 +327,7 @@ void MTLStateManager::set_stencil_test(const eGPUStencilTest test, const eGPUSte
   pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_DEPTHSTENCIL_FLAG;
 }
 
-void MTLStateManager::set_stencil_mask(const eGPUStencilTest test, const GPUStateMutable state)
+void MTLStateManager::set_stencil_mask(const eGPUStencilTest test, const GPUStateMutable &state)
 {
   if (test == GPU_STENCIL_NONE) {
     mtl_stencil_mask(0x00);

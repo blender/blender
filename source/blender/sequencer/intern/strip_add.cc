@@ -329,7 +329,7 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   BLI_path_split_dir_file(
       load_data->path, strip->dirpath, sizeof(strip->dirpath), se->filename, sizeof(se->filename));
 
-  if (seq != nullptr && seq->sound != nullptr) {
+  if (seq->sound != nullptr) {
     if (load_data->flags & SEQ_LOAD_SOUND_MONO) {
       seq->sound->flags |= SOUND_FLAGS_MONO;
     }
@@ -381,9 +381,9 @@ Sequence *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_
 
 Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
-  char path[sizeof(load_data->path)];
-  STRNCPY(path, load_data->path);
-  BLI_path_abs(path, BKE_main_blendfile_path(bmain));
+  char filepath[sizeof(load_data->path)];
+  STRNCPY(filepath, load_data->path);
+  BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
 
   char colorspace[64] = "\0"; /* MAX_COLORSPACE_NAME */
   bool is_multiview_loaded = false;
@@ -399,14 +399,14 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     const char *ext = nullptr;
     size_t j = 0;
 
-    BKE_scene_multiview_view_prefix_get(scene, path, prefix, &ext);
+    BKE_scene_multiview_view_prefix_get(scene, filepath, prefix, &ext);
 
     if (prefix[0] != '\0') {
       for (i = 0; i < totfiles; i++) {
-        char filepath[FILE_MAX];
+        char filepath_view[FILE_MAX];
 
-        seq_multiview_name(scene, i, prefix, ext, filepath, sizeof(filepath));
-        anim_arr[j] = openanim(filepath, IB_rect, 0, colorspace);
+        seq_multiview_name(scene, i, prefix, ext, filepath_view, sizeof(filepath_view));
+        anim_arr[j] = openanim(filepath_view, IB_rect, 0, colorspace);
 
         if (anim_arr[j]) {
           seq_anim_add_suffix(scene, anim_arr[j], i);
@@ -418,7 +418,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   }
 
   if (is_multiview_loaded == false) {
-    anim_arr[0] = openanim(path, IB_rect, 0, colorspace);
+    anim_arr[0] = openanim(filepath, IB_rect, 0, colorspace);
   }
 
   if (anim_arr[0] == nullptr && !load_data->allow_invalid_file) {
@@ -690,8 +690,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 void SEQ_add_movie_reload_if_needed(
     Main *bmain, Scene *scene, Sequence *seq, bool *r_was_reloaded, bool *r_can_produce_frames)
 {
-  BLI_assert(seq->type == SEQ_TYPE_MOVIE ||
-             !"This function is only implemented for movie strips.");
+  BLI_assert_msg(seq->type == SEQ_TYPE_MOVIE,
+                 "This function is only implemented for movie strips.");
 
   bool must_reload = false;
 

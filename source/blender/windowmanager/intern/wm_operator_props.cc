@@ -80,12 +80,12 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
        "Automatically determine display type for files"},
       {FILE_VERTICALDISPLAY,
        "LIST_VERTICAL",
-       ICON_SHORTDISPLAY, /* Name of deprecated short list */
+       ICON_SHORTDISPLAY, /* Name of deprecated short list. */
        "Short List",
        "Display files as short list"},
       {FILE_HORIZONTALDISPLAY,
        "LIST_HORIZONTAL",
-       ICON_LONGDISPLAY, /* Name of deprecated long list */
+       ICON_LONGDISPLAY, /* Name of deprecated long list. */
        "Long List",
        "Display files as a detailed list"},
       {FILE_IMGDISPLAY, "THUMBNAIL", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
@@ -522,6 +522,13 @@ void WM_operator_properties_gesture_box_zoom(wmOperatorType *ot)
 }
 
 void WM_operator_properties_gesture_lasso(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+  prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+}
+
+void WM_operator_properties_gesture_polyline(wmOperatorType *ot)
 {
   PropertyRNA *prop;
   prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");

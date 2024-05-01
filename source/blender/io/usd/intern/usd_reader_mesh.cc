@@ -7,23 +7,27 @@
 
 #include "usd_reader_mesh.hh"
 #include "usd_hash_types.hh"
+#include "usd_mesh_utils.hh"
 #include "usd_reader_material.hh"
 #include "usd_skel_convert.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 
+<<<<<<< HEAD
 #include "BLI_hash.hh"
+=======
+#include "BLI_color.hh"
+>>>>>>> main
 #include "BLI_map.hh"
-#include "BLI_math_color.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
@@ -31,12 +35,14 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "WM_api.hh"
-
 #include "MEM_guardedalloc.h"
 
+<<<<<<< HEAD
 #include "WM_api.hh"
 
+=======
+#include <pxr/base/gf/matrix4f.h>
+>>>>>>> main
 #include <pxr/base/vt/array.h>
 #include <pxr/base/vt/types.h>
 #include <pxr/base/vt/value.h>
@@ -162,6 +168,7 @@ USDMeshReader::USDMeshReader(const pxr::UsdPrim &prim,
 {
 }
 
+<<<<<<< HEAD
 static std::optional<eCustomDataType> convert_usd_type_to_blender(
     const pxr::SdfValueTypeName usd_type, ReportList *reports)
 {
@@ -211,6 +218,8 @@ static std::optional<eCustomDataType> convert_usd_type_to_blender(
   return *value;
 }
 
+=======
+>>>>>>> main
 static const std::optional<bke::AttrDomain> convert_usd_varying_to_blender(
     const pxr::TfToken usd_domain, ReportList *reports)
 {
@@ -374,6 +383,7 @@ void USDMeshReader::read_mpolys(Mesh *mesh)
   bke::mesh_calc_edges(*mesh, false, false);
 }
 
+<<<<<<< HEAD
 template<typename T>
 pxr::VtArray<T> get_prim_attribute_array(const pxr::UsdGeomPrimvar &primvar,
                                          const double motionSampleTime,
@@ -522,6 +532,8 @@ void USDMeshReader::read_color_data_primvar(Mesh *mesh,
   color_data.finish();
 }
 
+=======
+>>>>>>> main
 void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
                                          const pxr::UsdGeomPrimvar &primvar,
                                          const double motionSampleTime)
@@ -762,6 +774,23 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
   creases.finish();
 }
 
+void USDMeshReader::read_velocities(Mesh *mesh, const double motionSampleTime)
+{
+  pxr::VtVec3fArray velocities;
+  mesh_prim_.GetVelocitiesAttr().Get(&velocities, motionSampleTime);
+
+  if (!velocities.empty()) {
+    bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+    bke::GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
+        "velocity", bke::AttrDomain::Point, CD_PROP_FLOAT3);
+
+    Span<pxr::GfVec3f> usd_data(velocities.data(), velocities.size());
+    attribute.span.typed<float3>().copy_from(usd_data.cast<float3>());
+
+    attribute.finish();
+  }
+}
+
 void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
 {
   if (!mesh) {
@@ -893,6 +922,7 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
       (settings->read_flag & MOD_MESHSEQ_READ_COLOR) ||
       (settings->read_flag & MOD_MESHSEQ_READ_ATTRIBUTES))
   {
+    read_velocities(mesh, motionSampleTime);
     read_custom_data(settings, mesh, motionSampleTime, new_mesh);
   }
 }
@@ -939,8 +969,12 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
 
     /* To avoid unnecessarily reloading static primvars during animation,
      * early out if not first load and this primvar isn't animated. */
-    const bool is_time_varying = primvar_varying_map_.lookup_default(name, false);
-    if (!new_mesh && !is_time_varying) {
+    if (!new_mesh && primvar_varying_map_.contains(name) && !primvar_varying_map_.lookup(name)) {
+      continue;
+    }
+
+    /* We handle the non-standard primvar:velocity elsewhere. */
+    if (ELEM(name, "velocity")) {
       continue;
     }
 
@@ -964,7 +998,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
           active_color_name = name;
         }
 
-        read_color_data_primvar(mesh, pv, motionSampleTime);
+        read_color_data_primvar(mesh, pv, motionSampleTime, reports(), is_left_handed_);
       }
     }
 
@@ -1126,7 +1160,10 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
   if (settings_) {
     settings.validate_meshes = settings_->validate_meshes;
   }
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
   settings.read_flag |= params.read_flags;
 
   if (topology_changed(existing_mesh, params.motion_sample_time)) {
@@ -1155,11 +1192,27 @@ Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,
 
   if (settings.validate_meshes) {
     if (BKE_mesh_validate(active_mesh, false, false)) {
+<<<<<<< HEAD
       WM_reportf(RPT_INFO, "Fixed mesh for prim: %s", mesh_prim_.GetPath().GetText());
+=======
+      BKE_reportf(reports(), RPT_INFO, "Fixed mesh for prim: %s", mesh_prim_.GetPath().GetText());
+>>>>>>> main
     }
   }
 
   return active_mesh;
+}
+
+void USDMeshReader::read_geometry(bke::GeometrySet &geometry_set,
+                                  const USDMeshReadParams params,
+                                  const char **err_str)
+{
+  Mesh *existing_mesh = geometry_set.get_mesh_for_write();
+  Mesh *new_mesh = read_mesh(existing_mesh, params, err_str);
+
+  if (new_mesh != existing_mesh) {
+    geometry_set.replace_mesh(new_mesh);
+  }
 }
 
 std::string USDMeshReader::get_skeleton_path() const

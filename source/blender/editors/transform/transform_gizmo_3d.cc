@@ -55,7 +55,7 @@
 
 #include "ANIM_bone_collections.hh"
 
-/* local module include */
+/* Local module include. */
 #include "transform.hh"
 #include "transform_convert.hh"
 #include "transform_gizmo.hh"
@@ -71,7 +71,7 @@ static void gizmogroup_refresh_from_matrix(wmGizmoGroup *gzgroup,
                                            const float scale[3],
                                            const bool ignore_hidden);
 
-/* return codes for select, and drawing flags */
+/* Return codes for select, and drawing flags. */
 
 #define MAN_TRANS_X (1 << 0)
 #define MAN_TRANS_Y (1 << 1)
@@ -88,18 +88,18 @@ static void gizmogroup_refresh_from_matrix(wmGizmoGroup *gzgroup,
 #define MAN_SCALE_Z (1 << 10)
 #define MAN_SCALE_C (MAN_SCALE_X | MAN_SCALE_Y | MAN_SCALE_Z)
 
-/* threshold for testing view aligned gizmo axis */
+/* Threshold for testing view aligned gizmo axis. */
 static struct {
   float min, max;
 } g_tw_axis_range[2] = {
-    /* Regular range */
+    /* Regular range. */
     {0.02f, 0.1f},
     /* Use a different range because we flip the dot product,
      * also the view aligned planes are harder to see so hiding early is preferred. */
     {0.175f, 0.25f},
 };
 
-/* axes as index */
+/* Axes as index. */
 enum {
   MAN_AXIS_TRANS_X = 0,
   MAN_AXIS_TRANS_Y,
@@ -116,7 +116,7 @@ enum {
   MAN_AXIS_ROT_Y,
   MAN_AXIS_ROT_Z,
   MAN_AXIS_ROT_C,
-  MAN_AXIS_ROT_T, /* trackball rotation */
+  MAN_AXIS_ROT_T, /* Trackball rotation. */
 #define MAN_AXIS_RANGE_ROT_START MAN_AXIS_ROT_X
 #define MAN_AXIS_RANGE_ROT_END (MAN_AXIS_ROT_T + 1)
 
@@ -133,7 +133,7 @@ enum {
   MAN_AXIS_LAST = MAN_AXIS_SCALE_ZX + 1,
 };
 
-/* axis types */
+/* Axis types. */
 enum {
   MAN_AXES_ALL = 0,
   MAN_AXES_TRANSLATE,
@@ -165,7 +165,7 @@ struct GizmoGroup {
 /** \name Utilities
  * \{ */
 
-/* loop over axes */
+/* Loop over axes. */
 #define MAN_ITER_AXES_BEGIN(axis, axis_idx) \
   { \
     wmGizmo *axis; \
@@ -247,7 +247,7 @@ static bool gizmo_is_axis_visible(const RegionView3D *rv3d,
   if ((axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END) == 0) {
     bool is_plane = false;
     const uint aidx_norm = gizmo_orientation_axis(axis_idx, &is_plane);
-    /* don't draw axis perpendicular to the view */
+    /* Don't draw axis perpendicular to the view. */
     if (aidx_norm < 3) {
       float idot_axis = idot[aidx_norm];
       if (is_plane) {
@@ -322,14 +322,14 @@ static void gizmo_get_axis_color(const int axis_idx,
                                  float r_col[4],
                                  float r_col_hi[4])
 {
-  /* alpha values for normal/highlighted states */
+  /* Alpha values for normal/highlighted states. */
   const float alpha = 0.6f;
   const float alpha_hi = 1.0f;
   float alpha_fac;
 
   if (axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END) {
     /* Never fade rotation rings. */
-    /* trackball rotation axis is a special case, we only draw a slight overlay */
+    /* Trackball rotation axis is a special case, we only draw a slight overlay. */
     alpha_fac = (axis_idx == MAN_AXIS_ROT_T) ? 0.05f : 1.0f;
   }
   else {
@@ -439,7 +439,9 @@ static void reset_tw_center(TransformBounds *tbounds)
   }
 }
 
-/* transform widget center calc helper for below */
+/**
+ * Transform widget center calc helper for below.
+ */
 static void calc_tw_center(TransformBounds *tbounds, const float co[3])
 {
   minmax_v3v3_v3(tbounds->min, tbounds->max, co);
@@ -550,15 +552,15 @@ static int gizmo_3d_foreach_selected(const bContext *C,
     float diff_mat[4][4];
     const bool use_mat_local = true;
     LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-      /* only editable and visible layers are considered */
+      /* Only editable and visible layers are considered. */
 
       if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe != nullptr)) {
 
-        /* calculate difference matrix */
+        /* Calculate difference matrix. */
         BKE_gpencil_layer_transform_matrix_get(depsgraph, ob, gpl, diff_mat);
 
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpl->actframe->strokes) {
-          /* skip strokes that are invalid for current view */
+          /* Skip strokes that are invalid for current view. */
           if (ED_gpencil_stroke_can_use(C, gps) == false) {
             continue;
           }
@@ -585,12 +587,12 @@ static int gizmo_3d_foreach_selected(const bContext *C,
             }
           }
           else {
-            /* we're only interested in selected points here... */
+            /* We're only interested in selected points here... */
             if (gps->flag & GP_STROKE_SELECT) {
               bGPDspoint *pt;
               int i;
 
-              /* Change selection status of all points, then make the stroke match */
+              /* Change selection status of all points, then make the stroke match. */
               for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
                 if (pt->flag & GP_SPOINT_SELECT) {
                   run_coord_with_matrix(&pt->x, use_mat_local, diff_mat);
@@ -647,7 +649,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
         }
       }
       FOREACH_EDIT_OBJECT_END();
-    } /* end editmesh */
+    } /* End editmesh. */
     else if (obedit->type == OB_ARMATURE) {
       FOREACH_EDIT_OBJECT_BEGIN (ob_iter, use_mat_local) {
         bArmature *arm = static_cast<bArmature *>(ob_iter->data);
@@ -664,7 +666,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
               totsel++;
             }
             if ((ebo->flag & BONE_ROOTSEL) &&
-                /* don't include same point multiple times */
+                /* Don't include same point multiple times. */
                 ((ebo->flag & BONE_CONNECTED) && (ebo->parent != nullptr) &&
                  (ebo->parent->flag & BONE_TIPSEL) && EBONE_VISIBLE(arm, ebo->parent)) == 0)
             {
@@ -704,9 +706,9 @@ static int gizmo_3d_foreach_selected(const bContext *C,
             bezt = nu->bezt;
             a = nu->pntsu;
             while (a--) {
-              /* exceptions
-               * if handles are hidden then only check the center points.
-               * If the center knot is selected then only use this as the center point.
+              /* Exceptions:
+               * - If handles are hidden then only check the center points.
+               * - If the center knot is selected then only use this as the center point.
                */
               if (v3d->overlay.handle_display == CURVE_HANDLE_NONE) {
                 if (bezt->f2 & SELECT) {
@@ -854,7 +856,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
     for (Object *ob_iter : objects) {
       const bool use_mat_local = (ob_iter != ob);
-      /* mislead counting bones... bah. We don't know the gizmo mode, could be mixed */
+      /* Mislead counting bones... bah. We don't know the gizmo mode, could be mixed. */
       const int mode = TFM_ROTATION;
 
       transform_convert_pose_transflags_update(ob_iter, mode, V3D_AROUND_CENTER_BOUNDS);
@@ -912,7 +914,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
   }
   else {
 
-    /* we need the one selected object, if its not active */
+    /* We need the one selected object, if its not active. */
     BKE_view_layer_synced_ensure(scene, view_layer);
     {
       Base *base = BKE_view_layer_active_base_get(view_layer);
@@ -993,7 +995,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   tbounds->use_matrix_space = false;
   unit_m3(tbounds->axis);
 
-  /* global, local or normal orientation?
+  /* Global, local or normal orientation?
    * if we could check 'totsel' now, this should be skipped with no selection. */
   if (ob) {
     float mat[3][3];
@@ -1005,7 +1007,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
   reset_tw_center(tbounds);
 
   if (rv3d) {
-    /* transform widget centroid/center */
+    /* Transform widget centroid/center. */
     copy_m4_m3(rv3d->twmat, tbounds->axis);
     rv3d->twdrawflag = short(0xFFFF);
   }
@@ -1033,7 +1035,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
                                      rv3d ? &rv3d->twdrawflag : nullptr);
 
   if (totsel) {
-    mul_v3_fl(tbounds->center, 1.0f / float(totsel)); /* centroid! */
+    mul_v3_fl(tbounds->center, 1.0f / float(totsel)); /* Centroid! */
 
     bGPdata *gpd = CTX_data_gpencil_data(C);
     const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
@@ -1094,7 +1096,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
           copy_v3_v3(r_pivot_pos, ss->pivot_pos);
           return true;
         }
-        else if (ED_object_calc_active_center(ob, false, r_pivot_pos)) {
+        else if (blender::ed::object::calc_active_center(ob, false, r_pivot_pos)) {
           return true;
         }
       }
@@ -1196,7 +1198,7 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
                                    ARegion *region,
                                    void (*type_fn)(wmGizmoGroupType *))
 {
-  /* Subscribe to view properties */
+  /* Subscribe to view properties. */
   wmMsgSubscribeValue msg_sub_value_gz_tag_refresh{};
   msg_sub_value_gz_tag_refresh.owner = region;
   msg_sub_value_gz_tag_refresh.user_data = gzgroup->parent_gzmap;
@@ -1209,7 +1211,7 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   }
   else if (type_fn == VIEW3D_GGT_xform_cage) {
     orient_flag = V3D_GIZMO_SHOW_OBJECT_SCALE;
-    /* pass */
+    /* Pass. */
   }
   else if (type_fn == VIEW3D_GGT_xform_shear) {
     orient_flag = V3D_GIZMO_SHOW_OBJECT_ROTATE;
@@ -1289,10 +1291,10 @@ void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
     }
   }
   else if (type_fn == VIEW3D_GGT_xform_cage) {
-    /* pass */
+    /* Pass. */
   }
   else if (type_fn == VIEW3D_GGT_xform_shear) {
-    /* pass */
+    /* Pass. */
   }
   else {
     BLI_assert(0);
@@ -1638,7 +1640,7 @@ static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
   } \
   ((void)0)
 
-  /* add/init widgets - order matters! */
+  /* Add/init widgets - order matters! */
   GIZMO_NEW_DIAL(MAN_AXIS_ROT_T);
 
   GIZMO_NEW_PRIM(MAN_AXIS_SCALE_C);
@@ -1655,7 +1657,7 @@ static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
   GIZMO_NEW_DIAL(MAN_AXIS_ROT_Y);
   GIZMO_NEW_DIAL(MAN_AXIS_ROT_Z);
 
-  /* init screen aligned widget last here, looks better, behaves better */
+  /* Initialize screen aligned widget last here, looks better, behaves better. */
   GIZMO_NEW_DIAL(MAN_AXIS_ROT_C);
 
   GIZMO_NEW_PRIM(MAN_AXIS_TRANS_C);
@@ -1779,7 +1781,7 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 
     gizmo_get_axis_constraint(axis_idx, constraint_axis);
 
-    /* custom handler! */
+    /* Custom handler! */
     WM_gizmo_set_fn_custom_modal(axis, gizmo_modal);
 
     gizmo_3d_setup_draw_from_twtype(axis, axis_idx, ggd->twtype);
@@ -1857,7 +1859,7 @@ static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *gzgroup)
     }
     else {
       /* This is also correct logic for 'builtin.transform', no special check needed. */
-      /* Setup all gizmos, they can be toggled via 'ToolSettings.gizmo_flag' */
+      /* Setup all gizmos, they can be toggled via #ToolSettings::gizmo_flag. */
       ggd->twtype = V3D_GIZMO_SHOW_OBJECT_TRANSLATE | V3D_GIZMO_SHOW_OBJECT_ROTATE |
                     V3D_GIZMO_SHOW_OBJECT_SCALE;
       ggd->use_twtype_refresh = true;
@@ -1979,7 +1981,7 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   const int orient_index = BKE_scene_orientation_get_index_from_flag(scene, ggd->twtype_init);
 
-  /* skip, we don't draw anything anyway */
+  /* Skip, we don't draw anything anyway. */
   TransformCalcParams calc_params{};
   calc_params.use_only_center = true;
   calc_params.orientation_index = orient_index + 1;
@@ -2033,8 +2035,8 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
     }
   }
 
-  /* when looking through a selected camera, the gizmo can be at the
-   * exact same position as the view, skip so we don't break selection */
+  /* When looking through a selected camera, the gizmo can be at the
+   * exact same position as the view, skip so we don't break selection. */
   if (ggd->all_hidden || fabsf(ED_view3d_pixel_size(rv3d, rv3d->twmat[3])) < 5e-7f) {
     if (!is_modal) {
       gizmogroup_hide_all(ggd);
@@ -2173,7 +2175,7 @@ static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
       RNA_property_unset(ptr, prop_orient_type);
     }
     else {
-      /* TODO: APIfunction */
+      /* TODO: API function. */
       int index = BKE_scene_orientation_slot_get_index(orient_slot);
       RNA_property_enum_set(ptr, prop_orient_type, index);
     }

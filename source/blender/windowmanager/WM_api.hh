@@ -19,8 +19,11 @@
 
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"
+#include "BLI_map.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 
 #include "WM_keymap.hh"
@@ -184,10 +187,12 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_DESKTOP_SAMPLE = (1 << 5),
   /** Support for IME input methods. */
   WM_CAPABILITY_INPUT_IME = (1 << 6),
+  /** Trackpad physical scroll detection. */
+  WM_CAPABILITY_TRACKPAD_PHYSICAL_DIRECTION = (1 << 7),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
-  WM_CAPABILITY_INITIALIZED = (1 << 31),
+  WM_CAPABILITY_INITIALIZED = (1u << 31),
 };
-ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_CLIPBOARD_IMAGES)
+ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_TRACKPAD_PHYSICAL_DIRECTION)
 
 eWM_CapabilitiesFlag WM_capabilities_flag();
 
@@ -328,7 +333,7 @@ void WM_system_gpu_context_dispose(void *context);
 void WM_system_gpu_context_activate(void *context);
 void WM_system_gpu_context_release(void *context);
 
-/* #WM_window_open alignment */
+/** #WM_window_open alignment. */
 enum eWindowAlignment {
   WIN_ALIGN_ABSOLUTE = 0,
   WIN_ALIGN_LOCATION_CENTER,
@@ -363,7 +368,7 @@ void WM_window_set_dpi(const wmWindow *win);
 
 bool WM_stereo3d_enabled(wmWindow *win, bool only_fullscreen_test);
 
-/* wm_files.cc */
+/* `wm_files.cc`. */
 
 void WM_file_autoexec_init(const char *filepath);
 bool WM_file_read(bContext *C, const char *filepath, ReportList *reports);
@@ -551,6 +556,11 @@ wmEventHandler_Op *WM_event_add_modal_handler_ex(wmWindow *win,
                                                  ARegion *region,
                                                  wmOperator *op) ATTR_NONNULL(1, 4);
 wmEventHandler_Op *WM_event_add_modal_handler(bContext *C, wmOperator *op) ATTR_NONNULL(1, 2);
+void WM_event_remove_model_handler(ListBase *handlers, const wmOperator *op, bool postpone)
+    ATTR_NONNULL(1, 2);
+
+void WM_event_remove_modal_handler_all(const wmOperator *op, bool postpone) ATTR_NONNULL(1);
+
 /**
  * Modal handlers store a pointer to an area which might be freed while the handler runs.
  * Use this function to NULL all handler pointers to \a old_area.
@@ -573,14 +583,14 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers);
 
 wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes);
 
-/* mouse */
+/* Mouse. */
 void WM_event_add_mousemove(wmWindow *win);
 
 #ifdef WITH_INPUT_NDOF
-/* 3D mouse */
+/* 3D mouse. */
 void WM_ndof_deadzone_set(float deadzone);
 #endif
-/* notifiers */
+/* Notifiers. */
 void WM_event_add_notifier_ex(wmWindowManager *wm,
                               const wmWindow *win,
                               unsigned int type,
@@ -593,7 +603,8 @@ void WM_main_add_notifier(unsigned int type, void *reference);
 void WM_main_remove_notifier_reference(const void *reference);
 void WM_main_remap_editor_id_reference(const blender::bke::id::IDRemapper &mappings);
 
-/* reports */
+/* Reports. */
+
 /**
  * Show the report in the info header.
  * \param win: When NULL, a best-guess is used.
@@ -686,12 +697,9 @@ int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *event);
  * Call an existent menu. The menu can be created in C or Python.
  */
 void WM_menu_name_call(bContext *C, const char *menu_name, short context);
-/**
- * Similar to #WM_enum_search_invoke, but draws previews. Also, this can't
- * be used as invoke callback directly since it needs additional info.
- */
-int WM_enum_search_invoke_previews(bContext *C, wmOperator *op, short prv_cols, short prv_rows);
+
 int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+
 /**
  * Invoke callback, confirm menu + exec.
  */
@@ -716,7 +724,7 @@ int WM_operator_confirm_ex(bContext *C,
  */
 int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *event);
 bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const ImageFormatData *im_format);
-/** Callback for #wmOperatorType.poll */
+/** Callback for #wmOperatorType.poll. */
 bool WM_operator_winactive(bContext *C);
 /**
  * Invoke callback, exec + redo popup.
@@ -819,7 +827,7 @@ int WM_operator_name_call_ptr(bContext *C,
                               wmOperatorCallContext context,
                               PointerRNA *properties,
                               const wmEvent *event);
-/** See #WM_operator_name_call_ptr */
+/** See #WM_operator_name_call_ptr. */
 int WM_operator_name_call(bContext *C,
                           const char *opstring,
                           wmOperatorCallContext context,
@@ -984,6 +992,10 @@ void WM_operator_properties_gesture_box_zoom(wmOperatorType *ot);
  */
 void WM_operator_properties_gesture_lasso(wmOperatorType *ot);
 /**
+ * Use with #WM_gesture_polyline_invoke
+ */
+void WM_operator_properties_gesture_polyline(wmOperatorType *ot);
+/**
  * Use with #WM_gesture_straightline_invoke
  */
 void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor);
@@ -1043,7 +1055,8 @@ void WM_operator_properties_select_walk_direction(wmOperatorType *ot);
 void WM_operator_properties_generic_select(wmOperatorType *ot);
 
 struct CheckerIntervalParams {
-  int nth; /* bypass when set to zero */
+  /** Bypass when set to zero. */
+  int nth;
   int skip;
   int offset;
 };
@@ -1110,10 +1123,8 @@ std::optional<std::string> WM_context_path_resolve_full(bContext *C, const Point
 /* `wm_operator_type.cc` */
 
 wmOperatorType *WM_operatortype_find(const char *idname, bool quiet);
-/**
- * \note Caller must free.
- */
-void WM_operatortype_iter(GHashIterator *ghi);
+using wmOperatorTypeMap = blender::Map<std::string, wmOperatorType *>;
+const wmOperatorTypeMap &WM_operatortype_map();
 void WM_operatortype_append(void (*opfunc)(wmOperatorType *ot));
 void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *ot, void *userdata),
                                 void *userdata);
@@ -1184,6 +1195,9 @@ std::string WM_operatortype_description_or_name(bContext *C,
                                                 wmOperatorType *ot,
                                                 PointerRNA *properties);
 
+/** Check the #OPTYPE_DEPENDS_ON_CURSOR flag and the callback. */
+bool WM_operator_depends_on_cursor(bContext &C, wmOperatorType &ot, PointerRNA *properties);
+
 /* `wm_operator_utils.cc` */
 
 /**
@@ -1206,8 +1220,8 @@ void WM_uilisttype_free();
 /**
  * The "full" list-ID is an internal name used for storing and identifying a list. It is built like
  * this:
- * "{uiListType.idname}_{list_id}", whereby "list_id" is an optional parameter passed to
- * `UILayout.template_list()`. If it is not set, the full list-ID is just "{uiListType.idname}_".
+ * `{uiListType.idname}_{list_id}`, whereby `list_id` is an optional parameter passed to
+ * `UILayout.template_list()`. If it is not set, the full list-ID is just `{uiListType.idname}_`.
  *
  * Note that whenever the Python API refers to the list-ID, it's the short, "non-full" one it
  * passed to `UILayout.template_list()`. C code can query that through
@@ -1275,12 +1289,13 @@ void WM_gesture_lines_cancel(bContext *C, wmOperator *op);
 int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event);
 void WM_gesture_lasso_cancel(bContext *C, wmOperator *op);
+int WM_gesture_polyline_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+int WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event);
+void WM_gesture_polyline_cancel(bContext *C, wmOperator *op);
 /**
  * helper function, we may want to add options for conversion to view space
- *
- * caller must free.
  */
-const int (*WM_gesture_lasso_path_to_array(bContext *C, wmOperator *op, int *mcoords_len))[2];
+blender::Array<blender::int2> WM_gesture_lasso_path_to_array(bContext *C, wmOperator *op);
 
 int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 /**
@@ -1304,7 +1319,7 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmEvent *event);
 void WM_gesture_straightline_cancel(bContext *C, wmOperator *op);
 
-/* Gesture manager API */
+/* Gesture manager API. */
 
 /**
  * Context checked on having screen, window and area.
@@ -1409,7 +1424,7 @@ void WM_drag_draw_default_fn(bContext *C, wmWindow *win, wmDrag *drag, const int
  */
 ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
-/* ID drag and drop */
+/* ID drag and drop. */
 
 /**
  * \param flag_extra: Additional linking flags (from #eFileSel_Params_Flag).
@@ -1428,7 +1443,7 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode);
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
 wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
-                                       int /* #eAssetImportMethod */ import_method);
+                                       int /*eAssetImportMethod*/ import_method);
 
 wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode);
 AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode);
@@ -1494,19 +1509,19 @@ bool WM_drag_has_path_file_type(const wmDrag *drag, int file_type);
  * type-bits set, so `ELEM()` like comparison is possible. To check all paths or to do a bit-flag
  * check use `WM_drag_has_path_file_type(drag, file_type)` instead.
  */
-int /* #eFileSel_File_Types */ WM_drag_get_path_file_type(const wmDrag *drag);
+int /*eFileSel_File_Types*/ WM_drag_get_path_file_type(const wmDrag *drag);
 
 const std::string &WM_drag_get_string(const wmDrag *drag);
 std::string WM_drag_get_string_firstline(const wmDrag *drag);
 
-/* Set OpenGL viewport and scissor */
+/* Set OpenGL viewport and scissor. */
 void wmViewport(const rcti *winrct);
 void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct);
 void wmWindowViewport(wmWindow *win);
 
-/* OpenGL utilities with safety check */
+/* OpenGL utilities with safety check. */
 void wmOrtho2(float x1, float x2, float y1, float y2);
-/* use for conventions (avoid hard-coded offsets all over) */
+/* Use for conventions (avoid hard-coded offsets all over). */
 
 /**
  * Default pixel alignment for regions.
@@ -1515,7 +1530,7 @@ void wmOrtho2_region_pixelspace(const ARegion *region);
 void wmOrtho2_pixelspace(float x, float y);
 void wmGetProjectionMatrix(float mat[4][4], const rcti *winrct);
 
-/* threaded Jobs Manager */
+/* Threaded Jobs Manager. */
 enum eWM_JobFlag {
   WM_JOB_PRIORITY = (1 << 0),
   WM_JOB_EXCL_RENDER = (1 << 1),
@@ -1532,9 +1547,9 @@ enum eWM_JobType {
 
   WM_JOB_TYPE_COMPOSITE,
   WM_JOB_TYPE_RENDER,
-  WM_JOB_TYPE_RENDER_PREVIEW, /* UI preview */
+  WM_JOB_TYPE_RENDER_PREVIEW, /* UI preview. */
   /** Job for the UI to load previews from the file system (uses OS thumbnail cache). */
-  WM_JOB_TYPE_LOAD_PREVIEW, /* UI preview */
+  WM_JOB_TYPE_LOAD_PREVIEW, /* UI preview. */
   WM_JOB_TYPE_OBJECT_SIM_OCEAN,
   WM_JOB_TYPE_OBJECT_SIM_FLUID,
   WM_JOB_TYPE_OBJECT_BAKE_TEXTURE,
@@ -1561,8 +1576,8 @@ enum eWM_JobType {
   WM_JOB_TYPE_CALCULATE_SIMULATION_NODES,
   WM_JOB_TYPE_BAKE_GEOMETRY_NODES,
   WM_JOB_TYPE_UV_PACK,
-  /* add as needed, bake, seq proxy build
-   * if having hard coded values is a problem */
+  /* Add as needed, bake, seq proxy build
+   * if having hard coded values is a problem. */
 };
 
 /**
@@ -1674,12 +1689,12 @@ ImBuf *WM_clipboard_image_get();
  */
 bool WM_clipboard_image_set(ImBuf *ibuf) ATTR_NONNULL(1);
 
-/* progress */
+/* Progress. */
 
 void WM_progress_set(wmWindow *win, float progress);
 void WM_progress_clear(wmWindow *win);
 
-/* Draw (for screenshot) */
+/* Draw (for screenshot). */
 
 void *WM_draw_cb_activate(wmWindow *win,
                           void (*draw)(const wmWindow *win, void *customdata),
@@ -1701,7 +1716,7 @@ void WM_draw_region_viewport_ensure(Scene *scene, ARegion *region, short space_t
 void WM_draw_region_viewport_bind(ARegion *region);
 void WM_draw_region_viewport_unbind(ARegion *region);
 
-/* Region drawing */
+/* Region drawing. */
 
 void WM_draw_region_free(ARegion *region);
 GPUViewport *WM_draw_region_get_viewport(ARegion *region);
@@ -1714,6 +1729,10 @@ void WM_main_playanim(int argc, const char **argv);
  * Convenient to save a blend file from a debugger.
  */
 bool write_crash_blend();
+
+bool WM_autosave_is_scheduled(wmWindowManager *wm);
+/** Flushes all changes from edit modes and stores the auto-save file. */
+void WM_autosave_write(wmWindowManager *wm, Main *bmain);
 
 /**
  * Lock the interface for any communication.
@@ -1863,6 +1882,13 @@ void WM_generic_user_data_free(wmGenericUserData *wm_userdata);
 
 bool WM_region_use_viewport(ScrArea *area, ARegion *region);
 
+/* `wm_platform.cc` */
+
+/**
+ * \return Success.
+ */
+bool WM_platform_assosiate_set(bool do_register, bool all_users, char **r_error_msg);
+
 #ifdef WITH_XR_OPENXR
 /* `wm_xr_session.cc` */
 
@@ -1905,7 +1931,7 @@ void WM_xr_session_state_navigation_reset(wmXrSessionState *state);
 
 ARegionType *WM_xr_surface_controller_region_type_get();
 
-/* wm_xr_actions.c */
+/* `wm_xr_actions.cc`. */
 
 /* XR action functions to be called pre-XR session start.
  * NOTE: The "destroy" functions can also be called post-session start. */

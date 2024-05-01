@@ -111,7 +111,7 @@ TEST(math_matrix, mul_m3_series)
       {0.0f, 0.0f, 5.0f},
   };
   mul_m3_series(matrix, matrix, matrix, matrix);
-  float expect[3][3] = {
+  float const expect[3][3] = {
       {8.0f, 0.0f, 0.0f},
       {0.0f, 27.0f, 0.0f},
       {0.0f, 0.0f, 125.0f},
@@ -128,7 +128,7 @@ TEST(math_matrix, mul_m4_series)
       {0.0f, 0.0f, 0.0f, 7.0f},
   };
   mul_m4_series(matrix, matrix, matrix, matrix);
-  float expect[4][4] = {
+  float const expect[4][4] = {
       {8.0f, 0.0f, 0.0f, 0.0f},
       {0.0f, 27.0f, 0.0f, 0.0f},
       {0.0f, 0.0f, 125.0f, 0.0f},
@@ -595,6 +595,23 @@ TEST(math_matrix, MatrixProjection)
                               {0.0f, 0.0f, -2.33333f, 0.666667f},
                               {0.0f, 0.0f, -1.0f, 0.0f}));
   EXPECT_M4_NEAR(pers2, expect, 1e-5);
+}
+
+TEST(math_matrix, ToQuaternionSafe)
+{
+  float3x3 mat;
+  mat[0] = {0.493316412f, -0.0f, 0.869849861f};
+  mat[1] = {-0.0f, 1.0f, 0.0f};
+  mat[2] = {-0.0176299568f, -0.0f, 0.999844611f};
+
+  float3x3 expect;
+  expect[0] = {0.493316f, 0.000000f, 0.869850f};
+  expect[1] = {-0.000000f, 1.000000f, 0.000000f};
+  expect[2] = {-0.869850f, -0.000000f, 0.493316f};
+
+  /* This is mainly testing if there are any asserts hit because the matrix has shearing. */
+  Quaternion rotation = math::normalized_to_quaternion_safe(normalize(mat));
+  EXPECT_M3_NEAR(from_rotation<float3x3>(rotation), expect, 1e-5);
 }
 
 }  // namespace blender::tests

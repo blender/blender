@@ -89,9 +89,6 @@ void BKE_paint_toolslots_init_from_main(Main *bmain)
     if (ts->wpaint) {
       paint_toolslots_init_with_runtime(bmain, ts, &ts->wpaint->paint);
     }
-    if (ts->uvsculpt) {
-      paint_toolslots_init_with_runtime(bmain, ts, &ts->uvsculpt->paint);
-    }
     if (ts->gp_paint) {
       paint_toolslots_init_with_runtime(bmain, ts, &ts->gp_paint->paint);
     }

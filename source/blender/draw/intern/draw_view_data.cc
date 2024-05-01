@@ -8,18 +8,18 @@
 
 #include "BLI_vector.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_viewport.h"
+#include "GPU_capabilities.hh"
+#include "GPU_viewport.hh"
 
 #include "DRW_render.hh"
 
-#include "draw_instance_data.h"
+#include "draw_instance_data.hh"
 
 #include "draw_manager_text.hh"
 
-#include "draw_manager.h"
 #include "draw_manager.hh"
-#include "draw_view_data.h"
+#include "draw_manager_c.hh"
+#include "draw_view_data.hh"
 
 using namespace blender;
 
@@ -42,10 +42,7 @@ struct DRWViewData {
 
   DRWViewData()
   {
-    /* Only for GL >= 4.3 implementation for now. */
-    if (GPU_compute_shader_support()) {
-      manager = new draw::Manager();
-    }
+    manager = new draw::Manager();
   };
 
   ~DRWViewData()

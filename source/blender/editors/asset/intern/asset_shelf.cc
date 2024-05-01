@@ -53,7 +53,7 @@ void send_redraw_notifier(const bContext &C)
 
 static bool asset_shelf_type_poll(const bContext &C,
                                   const SpaceType &space_type,
-                                  AssetShelfType *shelf_type)
+                                  const AssetShelfType *shelf_type)
 {
   if (!shelf_type) {
     return false;
@@ -70,13 +70,13 @@ static bool asset_shelf_type_poll(const bContext &C,
   return !shelf_type->poll || shelf_type->poll(&C, shelf_type);
 }
 
-static AssetShelfType *asset_shelf_type_ensure(SpaceType &space_type, AssetShelf &shelf)
+static AssetShelfType *asset_shelf_type_ensure(const SpaceType &space_type, AssetShelf &shelf)
 {
   if (shelf.type) {
     return shelf.type;
   }
 
-  for (std::unique_ptr<AssetShelfType> &shelf_type : space_type.asset_shelf_types) {
+  for (const std::unique_ptr<AssetShelfType> &shelf_type : space_type.asset_shelf_types) {
     if (STREQ(shelf.idname, shelf_type->idname)) {
       shelf.type = shelf_type.get();
       return shelf_type.get();
@@ -137,7 +137,7 @@ static void activate_shelf(RegionAssetShelf &shelf_regiondata, AssetShelf &shelf
  *         current context (all polls failed).
  */
 static AssetShelf *update_active_shelf(const bContext &C,
-                                       SpaceType &space_type,
+                                       const SpaceType &space_type,
                                        RegionAssetShelf &shelf_regiondata)
 {
   /* Note: Don't access #AssetShelf.type directly, use #asset_shelf_type_ensure(). */
@@ -167,7 +167,7 @@ static AssetShelf *update_active_shelf(const bContext &C,
   }
 
   /* Case 3: */
-  for (std::unique_ptr<AssetShelfType> &shelf_type : space_type.asset_shelf_types) {
+  for (const std::unique_ptr<AssetShelfType> &shelf_type : space_type.asset_shelf_types) {
     if (asset_shelf_type_poll(C, space_type, shelf_type.get())) {
       AssetShelf *new_shelf = create_shelf_from_type(*shelf_type);
       BLI_addhead(&shelf_regiondata.shelves, new_shelf);
@@ -660,8 +660,6 @@ static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
       nullptr,
       0,
       0,
-      0,
-      0,
       TIP_("Enable catalog, making contained assets visible in the asset shelf"));
 
   UI_but_drawflag_enable(but, UI_BUT_ALIGN_DOWN);
@@ -690,7 +688,7 @@ static void add_catalog_tabs(AssetShelfSettings &shelf_settings, uiLayout &layou
 
   /* Regular catalog tabs. */
   settings_foreach_enabled_catalog_path(
-      shelf_settings, [&shelf_settings, block](const asset_system::AssetCatalogPath &path) {
+      shelf_settings, [&](const asset_system::AssetCatalogPath &path) {
         uiBut *but = add_tab_button(*block, path.name());
 
         UI_but_func_set(but, [&shelf_settings, path](bContext &C) {

@@ -5,6 +5,7 @@
 set(INC
   ../include
   ../../blenkernel
+  ../../blentranslation
   ../../gpu
   ../../makesrna
   ../../render
@@ -20,7 +21,7 @@ set(SRC
   mball_edit.cc
   mball_ops.cc
 
-  mball_intern.h
+  mball_intern.hh
 )
 
 set(LIB

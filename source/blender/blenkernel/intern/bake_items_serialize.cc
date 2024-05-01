@@ -14,7 +14,6 @@
 
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
-#include "BLI_hash_md5.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_path_util.h"
 
@@ -26,6 +25,7 @@
 
 #include <fmt/format.h>
 #include <sstream>
+#include <xxhash.h>
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/io/Stream.h>
@@ -192,8 +192,7 @@ DictionaryValuePtr BlobWriteSharing::write_implicitly_shared(
 std::shared_ptr<io::serialize::DictionaryValue> BlobWriteSharing::write_deduplicated(
     BlobWriter &writer, const void *data, const int64_t size_in_bytes)
 {
-  SliceHash content_hash;
-  BLI_hash_md5_buffer(static_cast<const char *>(data), size_in_bytes, &content_hash);
+  const uint64_t content_hash = XXH3_64bits(data, size_in_bytes);
   const BlobSlice slice = slice_by_content_hash_.lookup_or_add_cb(
       content_hash, [&]() { return writer.write(data, size_in_bytes); });
   return slice.serialize();
@@ -972,9 +971,14 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
 
     auto io_references = io_instances->append_array("references");
     for (const InstanceReference &reference : instances.references()) {
-      BLI_assert(reference.type() == InstanceReference::Type::GeometrySet);
-      io_references->append(
-          serialize_geometry_set(reference.geometry_set(), blob_writer, blob_sharing));
+      if (reference.type() == InstanceReference::Type::GeometrySet) {
+        const GeometrySet &geometry = reference.geometry_set();
+        io_references->append(serialize_geometry_set(geometry, blob_writer, blob_sharing));
+      }
+      else {
+        /* TODO: Support serializing object and collection references. */
+        io_references->append(serialize_geometry_set({}, blob_writer, blob_sharing));
+      }
     }
 
     auto io_attributes = serialize_attributes(
@@ -1193,6 +1197,23 @@ static void serialize_bake_item(const BakeItem &item,
     r_io_item.append_str("type", "ATTRIBUTE");
     r_io_item.append_str("name", attribute_state_item->name());
   }
+#ifdef WITH_OPENVDB
+  else if (const auto *grid_state_item = dynamic_cast<const VolumeGridBakeItem *>(&item)) {
+    r_io_item.append_str("type", "GRID");
+    const GVolumeGrid &grid = *grid_state_item->grid;
+    auto io_vdb = blob_writer
+                      .write_as_stream(".vdb",
+                                       [&](std::ostream &stream) {
+                                         openvdb::GridCPtrVec vdb_grids;
+                                         bke::VolumeTreeAccessToken tree_token;
+                                         vdb_grids.push_back(grid->grid_ptr(tree_token));
+                                         openvdb::io::Stream vdb_stream(stream);
+                                         vdb_stream.write(vdb_grids);
+                                       })
+                      .serialize();
+    r_io_item.append("vdb", std::move(io_vdb));
+  }
+#endif
   else if (const auto *string_state_item = dynamic_cast<const StringBakeItem *>(&item)) {
     r_io_item.append_str("type", "STRING");
     const StringRefNull str = string_state_item->value();
@@ -1242,6 +1263,39 @@ static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io
     }
     return std::make_unique<AttributeBakeItem>(std::move(*name));
   }
+#ifdef WITH_OPENVDB
+  if (*state_item_type == StringRef("GRID")) {
+    const DictionaryValue &io_grid = io_item;
+    const auto *io_vdb = io_grid.lookup_dict("vdb");
+    if (!io_vdb) {
+      return {};
+    }
+    std::optional<BlobSlice> vdb_slice = BlobSlice::deserialize(*io_vdb);
+    if (!vdb_slice) {
+      return {};
+    }
+    openvdb::GridPtrVecPtr vdb_grids;
+    if (!blob_reader.read_as_stream(*vdb_slice, [&](std::istream &stream) {
+          try {
+            openvdb::io::Stream vdb_stream{stream};
+            vdb_grids = vdb_stream.getGrids();
+            return true;
+          }
+          catch (...) {
+            return false;
+          }
+        }))
+    {
+      return {};
+    }
+    if (vdb_grids->size() != 1) {
+      return {};
+    }
+    std::shared_ptr<openvdb::GridBase> vdb_grid = std::move((*vdb_grids)[0]);
+    GVolumeGrid grid{std::move(vdb_grid)};
+    return std::make_unique<VolumeGridBakeItem>(std::make_unique<GVolumeGrid>(grid));
+  }
+#endif
   if (*state_item_type == StringRef("STRING")) {
     const std::shared_ptr<io::serialize::Value> *io_data = io_item.lookup("data");
     if (!io_data) {

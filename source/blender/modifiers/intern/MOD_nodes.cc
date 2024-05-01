@@ -59,7 +59,7 @@
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_screen.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "BLO_read_write.hh"
 
@@ -118,17 +118,11 @@ static void init_data(ModifierData *md)
 
 static void find_used_ids_from_settings(const NodesModifierSettings &settings, Set<ID *> &ids)
 {
-  IDP_foreach_property(
-      settings.properties,
-      IDP_TYPE_FILTER_ID,
-      [](IDProperty *property, void *user_data) {
-        Set<ID *> *ids = (Set<ID *> *)user_data;
-        ID *id = IDP_Id(property);
-        if (id != nullptr) {
-          ids->add(id);
-        }
-      },
-      &ids);
+  IDP_foreach_property(settings.properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
+    if (ID *id = IDP_Id(property)) {
+      ids.add(id);
+    }
+  });
 }
 
 /* We don't know exactly what attributes from the other object we will need. */
@@ -268,21 +262,9 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   walk(user_data, ob, (ID **)&nmd->node_group, IDWALK_CB_USER);
 
-  struct ForeachSettingData {
-    IDWalkFunc walk;
-    void *user_data;
-    Object *ob;
-  } settings = {walk, user_data, ob};
-
-  IDP_foreach_property(
-      nmd->settings.properties,
-      IDP_TYPE_FILTER_ID,
-      [](IDProperty *id_prop, void *user_data) {
-        ForeachSettingData *settings = (ForeachSettingData *)user_data;
-        settings->walk(
-            settings->user_data, settings->ob, (ID **)&id_prop->data.pointer, IDWALK_CB_USER);
-      },
-      &settings);
+  IDP_foreach_property(nmd->settings.properties, IDP_TYPE_FILTER_ID, [&](IDProperty *id_prop) {
+    walk(user_data, ob, (ID **)&id_prop->data.pointer, IDWALK_CB_USER);
+  });
 
   for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
     for (NodesModifierDataBlock &data_block : MutableSpan(bake.data_blocks, bake.data_blocks_num))
@@ -330,14 +312,10 @@ static void update_id_properties_from_node_group(NodesModifierData *nmd)
   }
 
   IDProperty *old_properties = nmd->settings.properties;
-  {
-    IDPropertyTemplate idprop = {0};
-    nmd->settings.properties = IDP_New(IDP_GROUP, &idprop, "Nodes Modifier Settings");
-  }
+  nmd->settings.properties = bke::idprop::create_group("Nodes Modifier Settings").release();
   IDProperty *new_properties = nmd->settings.properties;
 
-  nodes::update_input_properties_from_node_tree(
-      *nmd->node_group, old_properties, false, *new_properties);
+  nodes::update_input_properties_from_node_tree(*nmd->node_group, old_properties, *new_properties);
   nodes::update_output_properties_from_node_tree(
       *nmd->node_group, old_properties, *new_properties);
 
@@ -558,7 +536,18 @@ static void try_add_side_effect_node(const ComputeContext &final_compute_context
       if (lf_zone_node == nullptr) {
         return;
       }
+      const lf::FunctionNode *lf_simulation_output_node =
+          lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(
+              simulation_zone->output_node, nullptr);
+      if (lf_simulation_output_node == nullptr) {
+        return;
+      }
       local_side_effect_nodes.nodes_by_context.add(parent_compute_context_hash, lf_zone_node);
+      /* By making the simulation output node a side-effect-node, we can ensure that the simulation
+       * runs when it contains an active viewer. */
+      local_side_effect_nodes.nodes_by_context.add(compute_context_generic->hash(),
+                                                   lf_simulation_output_node);
+
       current_zone = simulation_zone;
     }
     else if (const auto *compute_context = dynamic_cast<const bke::RepeatZoneComputeContext *>(
@@ -910,7 +899,7 @@ struct BakeFrameIndices {
 };
 
 static BakeFrameIndices get_bake_frame_indices(
-    const Span<std::unique_ptr<bake::FrameCache>> &frame_caches, const SubFrame frame)
+    const Span<std::unique_ptr<bake::FrameCache>> frame_caches, const SubFrame frame)
 {
   BakeFrameIndices frame_indices;
   if (!frame_caches.is_empty()) {
@@ -1921,7 +1910,7 @@ static void add_attribute_search_button(const bContext &C,
                                  0.0f,
                                  socket.description);
 
-  const Object *object = ED_object_context(&C);
+  const Object *object = ed::object::context_object(&C);
   BLI_assert(object != nullptr);
   if (object == nullptr) {
     return;
@@ -2225,7 +2214,7 @@ static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd
   std::sort(sorted_used_attribute.begin(),
             sorted_used_attribute.end(),
             [](const NameWithUsage &a, const NameWithUsage &b) {
-              return BLI_strcasecmp_natural(a.name.c_str(), b.name.c_str()) <= 0;
+              return BLI_strcasecmp_natural(a.name.c_str(), b.name.c_str()) < 0;
             });
 
   for (const NameWithUsage &attribute : sorted_used_attribute) {
@@ -2395,27 +2384,27 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
 static void blend_read(BlendDataReader *reader, ModifierData *md)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-  BLO_read_data_address(reader, &nmd->bake_directory);
+  BLO_read_string(reader, &nmd->bake_directory);
   if (nmd->node_group == nullptr) {
     nmd->settings.properties = nullptr;
   }
   else {
-    BLO_read_data_address(reader, &nmd->settings.properties);
+    BLO_read_struct(reader, IDProperty, &nmd->settings.properties);
     IDP_BlendDataRead(reader, &nmd->settings.properties);
   }
 
-  BLO_read_data_address(reader, &nmd->bakes);
+  BLO_read_struct_array(reader, NodesModifierBake, nmd->bakes_num, &nmd->bakes);
   for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
-    BLO_read_data_address(reader, &bake.directory);
+    BLO_read_string(reader, &bake.directory);
 
-    BLO_read_data_address(reader, &bake.data_blocks);
+    BLO_read_struct_array(reader, NodesModifierDataBlock, bake.data_blocks_num, &bake.data_blocks);
     for (NodesModifierDataBlock &data_block : MutableSpan(bake.data_blocks, bake.data_blocks_num))
     {
-      BLO_read_data_address(reader, &data_block.id_name);
-      BLO_read_data_address(reader, &data_block.lib_name);
+      BLO_read_string(reader, &data_block.id_name);
+      BLO_read_string(reader, &data_block.lib_name);
     }
   }
-  BLO_read_data_address(reader, &nmd->panels);
+  BLO_read_struct_array(reader, NodesModifierPanel, nmd->panels_num, &nmd->panels);
 
   nmd->runtime = MEM_new<NodesModifierRuntime>(__func__);
   nmd->runtime->cache = std::make_shared<bake::ModifierCache>();

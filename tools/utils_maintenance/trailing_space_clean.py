@@ -69,7 +69,7 @@ def rstrip_file(filename):
 
     len_strip = len(data_src) - len(data_dst)
     if len_strip != 0:
-        reports.append("STRIP=%d" % len_strip)
+        reports.append("STRIP={:d}".format(len_strip))
 
     if len_strip:
         with open(filename, "w", encoding="utf-8") as fh:
@@ -81,7 +81,7 @@ def main():
     for f in path_expand(PATHS, is_source):
         report = rstrip_file(f)
         if report:
-            print("Strip (%s): %s" % (', '.join(report), f))
+            print("Strip ({:s}): {:s}".format(', '.join(report), f))
 
 
 if __name__ == "__main__":

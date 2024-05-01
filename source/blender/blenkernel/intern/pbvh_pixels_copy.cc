@@ -312,7 +312,7 @@ struct Rows {
    * - The second source pixel must be a neighbor pixel of the first source, or the same as the
    *   first source when no second pixel could be found.
    * - The second source pixel must be a pixel that is painted on by the brush.
-   * - The second source pixel must be the second closest pixel , or the first source
+   * - The second source pixel must be the second closest pixel, or the first source
    *   when no second pixel could be found.
    */
   int2 find_second_source(int2 destination, int2 first_source)

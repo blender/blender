@@ -29,7 +29,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_icon_multi)
     .fragment_out(0, Type::VEC4, "fragColor")
     .uniform_buf(0, "MultiIconCallData", "multi_icon_data")
     .sampler(0, ImageType::FLOAT_2D, "image")
-    .typedef_source("GPU_shader_shared.h")
+    .typedef_source("GPU_shader_shared.hh")
     .vertex_source("gpu_shader_icon_multi_vert.glsl")
     .fragment_source("gpu_shader_icon_frag.glsl")
     .do_static_compilation(true);

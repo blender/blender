@@ -1,5 +1,5 @@
 Project: Audaspace
 URL: https://github.com/audaspace/audaspace
 License: Apache 2.0
-Upstream version: 1.4+ (0d18fe7, 2024 Jan 2)
-Local modifications: JOSResampleReader default quality set to MEDIUM
+Upstream version: 1.4+ (ae29ce2, 2024 Feb 26)
+Local modifications: none

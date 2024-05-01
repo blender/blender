@@ -33,7 +33,7 @@ struct wmXrSessionState {
 
   /** Copy of XrSessionSettings.base_pose_ data to detect changes that need
    * resetting to base pose. */
-  char prev_base_pose_type; /* #eXRSessionBasePoseType */
+  char prev_base_pose_type; /* #eXRSessionBasePoseType. */
   Object *prev_base_pose_object;
   /** Copy of XrSessionSettings.flag created on the last draw call, stored to detect changes. */
   int prev_settings_flag;
@@ -59,14 +59,14 @@ struct wmXrSessionState {
   bool is_navigation_dirty;
 
   /** Last known controller data. */
-  ListBase controllers; /* #wmXrController */
+  ListBase controllers; /* #wmXrController. */
 
   /** The currently active action set that will be updated on calls to
    * #wm_xr_session_actions_update(). If NULL, all action sets will be treated as active and
    * updated. */
   struct wmXrActionSet *active_action_set;
   /* Name of the action set (if any) to activate before the next actions sync. */
-  char active_action_set_next[64]; /* MAX_NAME */
+  char active_action_set_next[64]; /* #MAX_NAME. */
 };
 
 struct wmXrRuntimeData {
@@ -83,7 +83,7 @@ struct wmXrRuntimeData {
   wmXrSessionState session_state;
   wmXrSessionExitFn exit_fn;
 
-  ListBase actionmaps; /* #XrActionMap */
+  ListBase actionmaps; /* #XrActionMap. */
   short actactionmap;
   short selactionmap;
 };
@@ -96,7 +96,7 @@ struct wmXrViewportPair {
 
 struct wmXrSurfaceData {
   /** Off-screen buffers/viewports for each view. */
-  ListBase viewports; /* #wmXrViewportPair */
+  ListBase viewports; /* #wmXrViewportPair. */
 
   /** Dummy region type for controller draw callback. */
   struct ARegionType *controller_art;
@@ -125,19 +125,21 @@ struct wmXrDrawData {
 struct wmXrController {
   struct wmXrController *next, *prev;
   /** OpenXR user path identifier. */
-  char subaction_path[64]; /* XR_MAX_USER_PATH_LENGTH */
+  char subaction_path[64]; /* #XR_MAX_USER_PATH_LENGTH. */
 
   /** Pose (in world space) that represents the user's hand when holding the controller. */
+  bool grip_active;
   GHOST_XrPose grip_pose;
   float grip_mat[4][4];
   float grip_mat_base[4][4];
   /** Pose (in world space) that represents the controller's aiming source. */
+  bool aim_active;
   GHOST_XrPose aim_pose;
   float aim_mat[4][4];
   float aim_mat_base[4][4];
 
   /** Controller model. */
-  struct GPUBatch *model;
+  blender::gpu::Batch *model;
 };
 
 struct wmXrAction {

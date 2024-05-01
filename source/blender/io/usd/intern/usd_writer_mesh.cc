@@ -5,38 +5,32 @@
 
 #include "usd_armature_utils.hh"
 #include "usd_blend_shape_utils.hh"
+<<<<<<< HEAD
 #include "usd_hierarchy_iterator.hh"
 #include "usd_modifier_disabler.h"
+=======
+>>>>>>> main
 #include "usd_skel_convert.hh"
-#include "usd_writer_armature.hh"
 
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
-#include <pxr/usd/usdSkel/animation.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
-#include <pxr/usd/usdSkel/blendShape.h>
 
 #include "BLI_array_utils.hh"
 #include "BLI_assert.h"
-#include "BLI_math_color.hh"
+#include "BLI_color.hh"
 #include "BLI_math_quaternion_types.hh"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
-#include "BKE_armature.hh"
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.hh"
-#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
-#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 
@@ -45,8 +39,8 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "DNA_armature_types.h"
 #include "DNA_key_types.h"
+<<<<<<< HEAD
 #include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -55,6 +49,9 @@
 #include "DNA_particle_types.h"
 
 #include "WM_api.hh"
+=======
+#include "DNA_modifier_types.h"
+>>>>>>> main
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
@@ -222,11 +219,18 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
   }
 
   auto prim = usd_export_context_.stage->GetPrimAtPath(usd_export_context_.usd_path);
+<<<<<<< HEAD
   if (prim.IsValid() && object_eval)
     prim.SetActive((object_eval->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
 
   if (usd_export_context_.export_params.export_custom_properties && mesh)
     write_id_properties(prim, mesh->id, get_export_time_code());
+=======
+  if (prim.IsValid() && object_eval) {
+    prim.SetActive((object_eval->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
+    write_id_properties(prim, mesh->id, get_export_time_code());
+  }
+>>>>>>> main
 }
 
 void USDGenericMeshWriter::write_custom_data(const Object *obj,
@@ -244,13 +248,11 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
 
   attributes.for_all(
       [&](const bke::AttributeIDRef &attribute_id, const bke::AttributeMetaData &meta_data) {
-        /* Skipping "internal" Blender properties. Skipping
-         * material_index as it's dealt with elsewhere. Skipping
-         * edge domain because USD doesn't have a good
-         * conversion for them. */
+        /* Skip "internal" Blender properties and attributes processed elsewhere.
+         * Skip edge domain because USD doesn't have a good conversion for them. */
         if (attribute_id.name()[0] == '.' || attribute_id.is_anonymous() ||
             meta_data.domain == bke::AttrDomain::Edge ||
-            ELEM(attribute_id.name(), "position", "material_index"))
+            ELEM(attribute_id.name(), "position", "material_index", "velocity"))
         {
           return true;
         }

@@ -19,51 +19,65 @@ struct bScreen;
 
 /* `clip_editor.cc` */
 
-/* Returns true when the following conditions are met:
+/**
+ * Returns true when the following conditions are met:
  * - Current space is Space Clip.
- * - There is a movie clip opened in it. */
+ * - There is a movie clip opened in it.
+ */
 bool ED_space_clip_poll(bContext *C);
 
-/* Returns true when the following conditions are met:
+/**
+ * Returns true when the following conditions are met:
  * - Current space is Space Clip.
  * - It is set to Clip view.
  *
- * It is not required to have movie clip opened for editing. */
+ * It is not required to have movie clip opened for editing.
+ */
 bool ED_space_clip_view_clip_poll(bContext *C);
 
-/* Returns true when the following conditions are met:
+/**
+ * Returns true when the following conditions are met:
  * - Current space is Space Clip.
  * - It is set to Tracking mode.
  *
- * It is not required to have movie clip opened for editing. */
+ * It is not required to have movie clip opened for editing.
+ */
 bool ED_space_clip_tracking_poll(bContext *C);
 
-/* Returns true when the following conditions are met:
+/**
+ * Returns true when the following conditions are met:
  * - Current space is Space Clip.
  * - It is set to Mask mode.
  *
- * It is not required to have mask opened for editing. */
+ * It is not required to have mask opened for editing.
+ */
 bool ED_space_clip_maskedit_poll(bContext *C);
 
-/* Returns true when the following conditions are met:
+/**
+ * Returns true when the following conditions are met:
  * - Current space is Space Clip.
  * - It is set to Mask mode.
  * - Mask has visible and editable splines.
  *
- * It is not required to have mask opened for editing. */
+ * It is not required to have mask opened for editing.
+ */
 bool ED_space_clip_maskedit_visible_splines_poll(bContext *C);
 
-/* Returns true when the following conditions are met:
- * - Current space is Space Clip.
- * - It is set to Mask mode.
- * - The space has mask opened. */
-bool ED_space_clip_maskedit_mask_poll(bContext *C);
-
-/* Returns true when the following conditions are met:
+/**
+ * Returns true when the following conditions are met:
  * - Current space is Space Clip.
  * - It is set to Mask mode.
  * - The space has mask opened.
- * - Mask has visible and editable splines. */
+ */
+bool ED_space_clip_maskedit_mask_poll(bContext *C);
+
+/**
+ * Returns true when the following conditions are met:
+ * - Current space is Space Clip.
+ * - It is set to Mask mode.
+ * - The space has mask opened.
+ * - Mask has visible and editable splines.
+ */
 bool ED_space_clip_maskedit_mask_visible_splines_poll(bContext *C);
 
 void ED_space_clip_get_size(const SpaceClip *sc, int *r_width, int *r_height);
@@ -132,20 +146,23 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
 Mask *ED_space_clip_get_mask(const SpaceClip *sc);
 void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask);
 
-/* Locked state is used to preserve current clip editor viewport upon changes. Example usage:
+/**
+ * Locked state is used to preserve current clip editor viewport upon changes. Example usage:
  *
- *   ...
+ * \code{.cc}
+ * ...
  *
- *   ClipViewLockState lock_state;
- *   ED_clip_view_lock_state_store(C, &lock_state);
+ * ClipViewLockState lock_state;
+ * ED_clip_view_lock_state_store(C, &lock_state);
  *
- *   <change selection>
+ * <change selection>
  *
- *   ED_clip_view_lock_state_restore_no_jump(C, &lock_state);
+ * ED_clip_view_lock_state_restore_no_jump(C, &lock_state);
+ * \endcode
  *
- * These function are to be used from space clip editor context only. Otherwise debug builds will
- * assert, release builds will crash. */
-
+ * These function are to be used from space clip editor context only.
+ * Otherwise debug builds will assert, release builds will crash.
+ */
 struct ClipViewLockState {
   float offset_x, offset_y;
   float lock_offset_x, lock_offset_y;

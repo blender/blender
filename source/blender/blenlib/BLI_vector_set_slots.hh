@@ -32,7 +32,9 @@ namespace blender {
  * The simplest possible vector set slot. It stores the index and state in a signed integer. If the
  * value is negative, it represents empty or occupied state. Otherwise it represents the index.
  */
-template<typename Key> class SimpleVectorSetSlot {
+template<typename Key, typename IndexT = int64_t> class SimpleVectorSetSlot {
+  static_assert(std::is_integral_v<IndexT> && std::is_signed_v<IndexT>);
+
  private:
 #define s_is_empty -1
 #define s_is_removed -2
@@ -40,7 +42,7 @@ template<typename Key> class SimpleVectorSetSlot {
   /**
    * After the default constructor has run, the slot has to be in the empty state.
    */
-  int64_t state_ = s_is_empty;
+  IndexT state_ = s_is_empty;
 
  public:
   /**
@@ -62,7 +64,7 @@ template<typename Key> class SimpleVectorSetSlot {
   /**
    * Return the stored index. It is assumed that the slot is occupied.
    */
-  int64_t index() const
+  IndexT index() const
   {
     BLI_assert(this->is_occupied());
     return state_;
@@ -88,7 +90,7 @@ template<typename Key> class SimpleVectorSetSlot {
    * Change the state of this slot from empty/removed to occupied. The hash can be used by other
    * slot implementations.
    */
-  void occupy(int64_t index, uint64_t /*hash*/)
+  void occupy(IndexT index, uint64_t /*hash*/)
   {
     BLI_assert(!this->is_occupied());
     state_ = index;
@@ -98,7 +100,7 @@ template<typename Key> class SimpleVectorSetSlot {
    * The key has changed its position in the vector, so the index has to be updated. This method
    * can assume that the slot is currently occupied.
    */
-  void update_index(int64_t index)
+  void update_index(IndexT index)
   {
     BLI_assert(this->is_occupied());
     state_ = index;
@@ -116,7 +118,7 @@ template<typename Key> class SimpleVectorSetSlot {
   /**
    * Return true if this slot is currently occupied and its corresponding key has the given index.
    */
-  bool has_index(int64_t index) const
+  bool has_index(IndexT index) const
   {
     return state_ == index;
   }

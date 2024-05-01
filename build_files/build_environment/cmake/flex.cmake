@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Generated configuration files use an old `aclocal-1.15` on RockyLinux8.
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(_autoconf_cmd_optional ./autogen.sh &&)
 else()
   set(_autoconf_cmd_optional)

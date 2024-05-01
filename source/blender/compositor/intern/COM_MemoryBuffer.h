@@ -12,8 +12,10 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
+#include <cstdint>
 #include <cstring>
 
 struct ColormanageProcessor;
@@ -21,28 +23,14 @@ struct ImBuf;
 
 namespace blender::compositor {
 
-/**
- * \brief state of a memory buffer
- * \ingroup Memory
- */
-enum class MemoryBufferState {
-  /** \brief memory has been allocated on creator device and CPU machine,
-   * but kernel has not been executed */
-  Default = 0,
-  /** \brief chunk is consolidated from other chunks. special state. */
-  Temporary = 6,
-};
-
 enum class MemoryBufferExtend {
   Clip,
   Extend,
   Repeat,
 };
 
-class MemoryProxy;
-
 /**
- * \brief a MemoryBuffer contains access to the data of a chunk
+ * \brief a MemoryBuffer contains access to the data
  */
 class MemoryBuffer {
  public:
@@ -66,24 +54,14 @@ class MemoryBuffer {
 
  private:
   /**
-   * \brief proxy of the memory (same for all chunks in the same buffer)
-   */
-  MemoryProxy *memory_proxy_;
-
-  /**
    * \brief the type of buffer DataType::Value, DataType::Vector, DataType::Color
    */
   DataType datatype_;
 
   /**
-   * \brief region of this buffer inside relative to the MemoryProxy
+   * \brief region of this buffer inside
    */
   rcti rect_;
-
-  /**
-   * \brief state of the buffer
-   */
-  MemoryBufferState state_;
 
   /**
    * \brief the actual float buffer/data
@@ -114,9 +92,9 @@ class MemoryBuffer {
 
  public:
   /**
-   * \brief construct new temporarily MemoryBuffer for an area
+   * \brief construct new temporarily MemoryBuffer for a width and height.
    */
-  MemoryBuffer(MemoryProxy *memory_proxy, const rcti &rect, MemoryBufferState state);
+  MemoryBuffer(DataType data_type, int width, int height);
 
   /**
    * \brief construct new temporarily MemoryBuffer for an area
@@ -230,6 +208,36 @@ class MemoryBuffer {
     read_elem_checked(floor_x(x), floor_y(y), out);
   }
 
+  /* Equivalent to the GLSL texture() function with bilinear interpolation and extended boundary
+   * conditions. The coordinates are thus expected to have half-pixels offsets. A float4 is always
+   * returned regardless of the number of channels of the buffer, the remaining channels will be
+   * initialized with the template float4(0, 0, 0, 1). */
+  float4 texture_bilinear_extend(float2 coordinates) const
+  {
+    const int2 size = int2(get_width(), get_height());
+    const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
+
+    float4 result = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    math::interpolate_bilinear_fl(
+        buffer_, result, size.x, size.y, num_channels_, texel_coordinates.x, texel_coordinates.y);
+    return result;
+  }
+
+  /* Equivalent to the GLSL texture() function with nearest interpolation and extended boundary
+   * conditions. The coordinates are thus expected to have half-pixels offsets. A float4 is always
+   * returned regardless of the number of channels of the buffer, the remaining channels will be
+   * initialized with the template float4(0, 0, 0, 1). */
+  float4 texture_nearest_extend(float2 coordinates) const
+  {
+    const int2 size = int2(get_width(), get_height());
+    const float2 texel_coordinates = coordinates * float2(size);
+
+    float4 result = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    math::interpolate_nearest_fl(
+        buffer_, result, size.x, size.y, num_channels_, texel_coordinates.x, texel_coordinates.y);
+    return result;
+  }
+
   void read_elem_bilinear(float x, float y, float *out) const
   {
     /* Only clear past +/-1 borders to be able to smooth edges. */
@@ -278,6 +286,12 @@ class MemoryBuffer {
                                          get_relative_y(y));
   }
 
+  void read_elem_bicubic_bspline(float x, float y, float *out) const
+  {
+    math::interpolate_cubic_bspline_fl(
+        buffer_, out, this->get_width(), this->get_height(), num_channels_, x, y);
+  }
+
   void read_elem_sampled(float x, float y, PixelSampler sampler, float *out) const
   {
     switch (sampler) {
@@ -285,14 +299,17 @@ class MemoryBuffer {
         read_elem_checked(x, y, out);
         break;
       case PixelSampler::Bilinear:
-      case PixelSampler::Bicubic:
-        /* No bicubic. Current implementation produces fuzzy results. */
         read_elem_bilinear(x, y, out);
+        break;
+      case PixelSampler::Bicubic:
+        /* Using same method as GPU compositor. Final results may still vary. */
+        read_elem_bicubic_bspline(x, y, out);
         break;
     }
   }
 
-  void read_elem_filtered(float x, float y, float dx[2], float dy[2], float *out) const;
+  void read_elem_filtered(
+      float x, float y, float dx[2], float dy[2], bool extend_boundary, float *out) const;
 
   /**
    * Get channel value at given coordinates.
@@ -381,12 +398,6 @@ class MemoryBuffer {
    */
   float *get_buffer()
   {
-    return buffer_;
-  }
-
-  float *release_ownership_buffer()
-  {
-    owns_data_ = false;
     return buffer_;
   }
 
@@ -491,8 +502,6 @@ class MemoryBuffer {
     y = y + rect_.ymin;
   }
 
-  /* TODO(manzanilla): to be removed with tiled implementation. For applying #MemoryBufferExtend
-   * use #wrap_pixel. */
   inline void read(float *result,
                    int x,
                    int y,
@@ -514,28 +523,6 @@ class MemoryBuffer {
       memcpy(result, buffer, sizeof(float) * num_channels_);
     }
   }
-
-  /* TODO(manzanilla): to be removed with tiled implementation. */
-  inline void read_no_check(float *result,
-                            int x,
-                            int y,
-                            MemoryBufferExtend extend_x = MemoryBufferExtend::Clip,
-                            MemoryBufferExtend extend_y = MemoryBufferExtend::Clip)
-  {
-    int u = x;
-    int v = y;
-
-    this->wrap_pixel(u, v, extend_x, extend_y);
-    const int offset = get_coords_offset(u, v);
-
-    BLI_assert(offset >= 0);
-    BLI_assert(offset < this->buffer_len() * num_channels_);
-    BLI_assert(!(extend_x == MemoryBufferExtend::Clip && (u < rect_.xmin || u >= rect_.xmax)) &&
-               !(extend_y == MemoryBufferExtend::Clip && (v < rect_.ymin || v >= rect_.ymax)));
-    float *buffer = &buffer_[offset];
-    memcpy(result, buffer, sizeof(float) * num_channels_);
-  }
-
   void write_pixel(int x, int y, const float color[4]);
   void add_pixel(int x, int y, const float color[4]);
   inline void read_bilinear(float *result,
@@ -567,16 +554,6 @@ class MemoryBuffer {
                                          extend_x == MemoryBufferExtend::Repeat,
                                          extend_y == MemoryBufferExtend::Repeat);
     }
-  }
-
-  void readEWA(float *result, const float uv[2], const float derivatives[2][2]);
-
-  /**
-   * \brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
-   */
-  inline bool is_temporarily() const
-  {
-    return state_ == MemoryBufferState::Temporary;
   }
 
   /**
@@ -681,9 +658,9 @@ class MemoryBuffer {
 
  private:
   void set_strides();
-  const int buffer_len() const
+  const int64_t buffer_len() const
   {
-    return get_memory_width() * get_memory_height();
+    return int64_t(get_memory_width()) * int64_t(get_memory_height());
   }
 
   void clear_elem(float *out) const

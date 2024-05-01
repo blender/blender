@@ -22,7 +22,9 @@ struct MDisps;
 struct Mesh;
 struct MultiresModifierData;
 struct Object;
+namespace blender::bke::subdiv {
 struct Subdiv;
+}
 struct SubdivCCG;
 
 struct MultiresReshapeContext {
@@ -45,7 +47,7 @@ struct MultiresReshapeContext {
    *
    * The coarse mesh of this subdivision surface is a base mesh with all deformation modifiers
    * leading multires applied on it. */
-  Subdiv *subdiv;
+  blender::bke::subdiv::Subdiv *subdiv;
   bool need_free_subdiv;
 
   struct {
@@ -146,9 +148,9 @@ struct ReshapeConstGridElement {
  * Create subdivision surface descriptor which is configured for surface evaluation at a given
  * multi-res modifier.
  */
-Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgraph,
-                                       Object *object,
-                                       const MultiresModifierData *mmd);
+blender::bke::subdiv::Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgraph,
+                                                             Object *object,
+                                                             const MultiresModifierData *mmd);
 
 /**
  * \note Initialized base mesh to object's mesh, the Subdivision is created from the deformed
@@ -178,7 +180,7 @@ bool multires_reshape_context_create_from_modifier(MultiresReshapeContext *resha
 bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape_context,
                                                  Object *object,
                                                  MultiresModifierData *mmd,
-                                                 Subdiv *subdiv,
+                                                 blender::bke::subdiv::Subdiv *subdiv,
                                                  int top_level);
 
 void multires_reshape_free_original_grids(MultiresReshapeContext *reshape_context);

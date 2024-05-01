@@ -106,6 +106,7 @@ _km_hierarchy = [
             _km_expand_from_toolsystem('VIEW_3D', 'PARTICLE'),
         ]),
 
+        ('Primitive Tool Modal Map', 'EMPTY', 'WINDOW', []),
         ('Knife Tool Modal Map', 'EMPTY', 'WINDOW', []),
         ('Custom Normals Modal Map', 'EMPTY', 'WINDOW', []),
         ('Bevel Modal Map', 'EMPTY', 'WINDOW', []),

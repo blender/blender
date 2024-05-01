@@ -320,16 +320,16 @@ def process_commands(cmake_dir: str, data: Sequence[str]) -> Optional[ProcessedC
     compiler_c = cmake_cache_var(cmake_dir, "CMAKE_C_COMPILER")
     compiler_cxx = cmake_cache_var(cmake_dir, "CMAKE_CXX_COMPILER")
     if compiler_c is None:
-        sys.stderr.write("Can't find C compiler in %r\n" % cmake_dir)
+        sys.stderr.write("Can't find C compiler in {!r}\n".format(cmake_dir))
         return None
     if compiler_cxx is None:
-        sys.stderr.write("Can't find C++ compiler in %r\n" % cmake_dir)
+        sys.stderr.write("Can't find C++ compiler in {!r}\n".format(cmake_dir))
         return None
 
     # Check for unsupported configurations.
     for arg in ("WITH_UNITY_BUILD", "WITH_COMPILER_CCACHE", "WITH_COMPILER_PRECOMPILED_HEADERS"):
         if cmake_cache_var_is_true(cmake_cache_var(cmake_dir, arg)):
-            sys.stderr.write("The option '%s' must be disabled for proper functionality\n" % arg)
+            sys.stderr.write("The option '{:s}' must be disabled for proper functionality\n".format(arg))
             return None
 
     file_args = []
@@ -442,12 +442,12 @@ class EditGenerator:
     def __init_subclass__(cls) -> None:
         # Ensure the sub-class declares this.
         if (not isinstance(getattr(cls, "is_default", None), bool)) or ("is_default" not in cls.__dict__):
-            raise Exception("Class %r missing \"is_default\" boolean!" % cls)
+            raise Exception("Class {!r} missing \"is_default\" boolean!".format(cls))
         if getattr(cls, "edit_list_from_file") is EditGenerator.edit_list_from_file:
-            raise Exception("Class %r missing \"edit_list_from_file\" callback!" % cls)
+            raise Exception("Class {!r} missing \"edit_list_from_file\" callback!".format(cls))
 
     def __new__(cls, *args: Tuple[Any], **kwargs: Dict[str, Any]) -> Any:
-        raise RuntimeError("%s should not be instantiated" % cls)
+        raise RuntimeError("Class {!r} should not be instantiated".format(cls))
 
     @staticmethod
     def edit_list_from_file(_source: str, _data: str, _shared_edit_data: Any) -> List[Edit]:
@@ -488,21 +488,21 @@ class edit_generators:
             for match in re.finditer(r"sizeof\(([a-zA-Z_]+)\) \* (\d+) \* (\d+)", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='sizeof(%s[%s][%s])' % (match.group(1), match.group(2), match.group(3)),
+                    content='sizeof({:s}[{:s}][{:s}])'.format(match.group(1), match.group(2), match.group(3)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
             for match in re.finditer(r"sizeof\(([a-zA-Z_]+)\) \* (\d+)", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='sizeof(%s[%s])' % (match.group(1), match.group(2)),
+                    content='sizeof({:s}[{:s}])'.format(match.group(1), match.group(2)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
             for match in re.finditer(r"\b(\d+) \* sizeof\(([a-zA-Z_]+)\)", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='sizeof(%s[%s])' % (match.group(2), match.group(1)),
+                    content='sizeof({:s}[{:s}])'.format(match.group(2), match.group(1)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
             return edits
@@ -546,7 +546,7 @@ class edit_generators:
             for match in re.finditer(r"(\(|, |  )([a-zA-Z_0-9]+ [a-zA-Z_0-9]+\[)\b([^\n]+ = )", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='%s const %s%s' % (match.group(1), match.group(2), match.group(3)),
+                    content='{:s} const {:s}{:s}'.format(match.group(1), match.group(2), match.group(3)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
@@ -554,7 +554,7 @@ class edit_generators:
             for match in re.finditer(r"(\(|, )([a-zA-Z_0-9]+ [a-zA-Z_0-9]+\[)", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='%s const %s' % (match.group(1), match.group(2)),
+                    content='{:s} const {:s}'.format(match.group(1), match.group(2)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
@@ -570,7 +570,9 @@ class edit_generators:
             ):
                 edits.append(Edit(
                     span=match.span(),
-                    content='%sconst %s%s%s' % (match.group(1), match.group(2), match.group(3), match.group(4)),
+                    content='{:s}const {:s}{:s}{:s}'.format(
+                        match.group(1), match.group(2), match.group(3), match.group(4),
+                    ),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
@@ -600,7 +602,7 @@ class edit_generators:
             for match in re.finditer(r"\b(\d+)\.([fF])\b", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='%s.0%s' % (match.group(1), match.group(2)),
+                    content='{:s}.0{:s}'.format(match.group(1), match.group(2)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
@@ -608,7 +610,7 @@ class edit_generators:
             for match in re.finditer(r"\b(\d+\.\d+)F\b", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='%sf' % (match.group(1),),
+                    content='{:s}f'.format(match.group(1)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
@@ -646,7 +648,7 @@ class edit_generators:
 
                 edits.append(Edit(
                     span=match.span(),
-                    content='u%s' % match.group(2),
+                    content='u{:s}'.format(match.group(2)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
@@ -765,8 +767,8 @@ class edit_generators:
             ):
                 edits.append(Edit(
                     span=match.span(),
-                    content='/*%s*/%s' % (match.group(2), match.group(3)),
-                    content_fail='__ALWAYS_FAIL__(%s%s)' % (match.group(2), match.group(3)),
+                    content='/*{:s}*/{:s}'.format(match.group(2), match.group(3)),
+                    content_fail='__ALWAYS_FAIL__({:s}{:s})'.format(match.group(2), match.group(3)),
                 ))
 
             return edits
@@ -832,14 +834,14 @@ class edit_generators:
                             if found:
                                 edits.append(Edit(
                                     span=match.span(),
-                                    content='(%sELEM(%s, %s))' % (
+                                    content='({:s}ELEM({:s}, {:s}))'.format(
                                         ('' if is_equal else '!'),
                                         var,
                                         ', '.join(var_rest),
                                     ),
                                     # Use same expression otherwise this can change values
                                     # inside assert when it shouldn't.
-                                    content_fail='(%s__ALWAYS_FAIL__(%s, %s))' % (
+                                    content_fail='({:s}__ALWAYS_FAIL__({:s}, {:s}))'.format(
                                         ('' if is_equal else '!'),
                                         var,
                                         ', '.join(var_rest),
@@ -914,14 +916,14 @@ class edit_generators:
                             if found:
                                 edits.append(Edit(
                                     span=match.span(),
-                                    content='(%sSTR_ELEM(%s, %s))' % (
+                                    content='({:s}STR_ELEM({:s}, {:s}))'.format(
                                         ('' if is_equal else '!'),
                                         var,
                                         ', '.join(var_rest),
                                     ),
                                     # Use same expression otherwise this can change values
                                     # inside assert when it shouldn't.
-                                    content_fail='(%s__ALWAYS_FAIL__(%s, %s))' % (
+                                    content_fail='({:s}__ALWAYS_FAIL__({:s}, {:s}))'.format(
                                         ('' if is_equal else '!'),
                                         var,
                                         ', '.join(var_rest),
@@ -951,14 +953,14 @@ class edit_generators:
             # for match in re.finditer(r"(  [a-zA-Z0-9_]+ [a-zA-Z0-9_]+ = [A-Z][A-Z_0-9_]*;)", data):
             #     edits.append(Edit(
             #         span=match.span(),
-            #         content='const %s' % (match.group(1).lstrip()),
+            #         content='const {:s}'.format(match.group(1).lstrip()),
             #         content_fail='__ALWAYS_FAIL__',
             #     ))
 
             for match in re.finditer(r"(  [a-zA-Z0-9_]+ [a-zA-Z0-9_]+ = .*;)", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='const %s' % (match.group(1).lstrip()),
+                    content='const {:s}'.format(match.group(1).lstrip()),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
@@ -1021,7 +1023,7 @@ class edit_generators:
             for match in re.finditer(r"return \(([a-zA-Z_0-9]+)\);", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='return %s;' % (match.group(1)),
+                    content='return {:s};'.format(match.group(1)),
                     content_fail='return __ALWAYS_FAIL__;',
                 ))
             return edits
@@ -1050,13 +1052,13 @@ class edit_generators:
             for match in re.finditer(r"\bstrcmp\((.*)\) == 0", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='STREQ(%s)' % (match.group(1)),
+                    content='STREQ({:s})'.format(match.group(1)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
             for match in re.finditer(r"!strcmp\((.*)\)", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='STREQ(%s)' % (match.group(1)),
+                    content='STREQ({:s})'.format(match.group(1)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
@@ -1064,13 +1066,13 @@ class edit_generators:
             for match in re.finditer(r"\bstrcmp\((.*)\) != 0", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='!STREQ(%s)' % (match.group(1)),
+                    content='!STREQ({:s})'.format(match.group(1)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
             for match in re.finditer(r"\bstrcmp\((.*)\)", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='!STREQ(%s)' % (match.group(1)),
+                    content='!STREQ({:s})'.format(match.group(1)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
@@ -1152,7 +1154,7 @@ class edit_generators:
                 ):
                     edits.append(Edit(
                         span=match.span(),
-                        content='%s(%s)' % (dst, match.group(1)),
+                        content='{:s}({:s})'.format(dst, match.group(1)),
                         content_fail='__ALWAYS_FAIL__',
                     ))
 
@@ -1170,7 +1172,7 @@ class edit_generators:
                 ):
                     edits.append(Edit(
                         span=match.span(),
-                        content='%s(%s,' % (dst, match.group(1)),
+                        content='{:s}({:s},'.format(dst, match.group(1)),
                         content_fail='__ALWAYS_FAIL__',
                     ))
 
@@ -1195,7 +1197,7 @@ class edit_generators:
             for match in re.finditer(r"\bsizeof\((.*)\) / sizeof\([^\)]+\)", data):
                 edits.append(Edit(
                     span=match.span(),
-                    content='ARRAY_SIZE(%s)' % match.group(1),
+                    content='ARRAY_SIZE({:s})'.format(match.group(1)),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
@@ -1317,7 +1319,7 @@ class edit_generators:
                 edits.append(Edit(
                     # Span covers `for (...)` {
                     span=(for_beg, for_paren_end + 1),
-                    content='%s (%s, %s, %s%s)' % (
+                    content='{:s} ({:s}, {:s}, {:s}{:s})'.format(
                         "LISTBASE_FOREACH" if is_forward else "LISTBASE_FOREACH_BACKWARD",
                         ty,
                         var,
@@ -1466,7 +1468,7 @@ class edit_generators:
         is_default = False
 
         @staticmethod
-        def _header_exclude(f_basename: str) -> str:
+        def _header_exclude(f_basename: str) -> bool:
             # This header only exists to add additional warnings, removing it doesn't impact generated output.
             # Skip this file.
             if f_basename == "BLI_strict_flags.h":
@@ -1475,7 +1477,7 @@ class edit_generators:
 
         @staticmethod
         def _header_guard_from_filename(f: str) -> str:
-            return '__%s__' % os.path.basename(f).replace('.', '_').upper()
+            return '__{:s}__'.format(os.path.basename(f).replace('.', '_').upper())
 
         @classmethod
         def setup(cls) -> Any:
@@ -1501,9 +1503,9 @@ class edit_generators:
                     start, end = match.span()
                     src = data[start:end]
                     dst = (
-                        '#ifndef %s\n#define %s' % (header_guard, header_guard)
+                        '#ifndef {:s}\n#define {:s}'.format(header_guard, header_guard)
                     )
-                    dst_footer = '\n#endif /* %s */\n' % header_guard
+                    dst_footer = '\n#endif /* {:s} */\n'.format(header_guard)
                     files.append((f, src, dst, dst_footer))
                     data = data[:start] + dst + data[end:] + dst_footer
                     with open(f, 'w', encoding='utf-8') as fh:
@@ -1542,7 +1544,7 @@ class edit_generators:
                 edits.append(Edit(
                     span=match.span(),
                     content='',  # Remove the header.
-                    content_fail='%s__ALWAYS_FAIL__%s' % (match.group(2), match.group(4)),
+                    content_fail='{:s}__ALWAYS_FAIL__{:s}'.format(match.group(2), match.group(4)),
                     extra_build_args=('-D' + header_guard, ),
                 ))
 
@@ -1638,7 +1640,7 @@ class edit_generators:
             ):
                 edits.append(Edit(
                     span=match.span(),
-                    content='%s' % match.group(2),
+                    content=match.group(2),
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
@@ -1933,8 +1935,7 @@ def run_edits_on_directory(
         args = find_build_args_make(build_dir)
     else:
         sys.stderr.write(
-            "Can't find Ninja or Makefile (%r or %r), aborting" %
-            (build_file_ninja, build_file_make)
+            "Can't find Ninja or Makefile ({!r} or {!r}), aborting".format(build_file_ninja, build_file_make)
         )
         return 1
 
@@ -2005,7 +2006,7 @@ def run_edits_on_directory(
         if test_path(c)
     ]
     del args
-    print("Operating on %d of %d files..." % (len(args_with_cwd), args_orig_len))
+    print("Operating on {:d} of {:d} files...".format(len(args_with_cwd), args_orig_len))
     for (c, build_args, build_cwd) in args_with_cwd:
         print(" ", c)
     del args_orig_len
@@ -2019,7 +2020,7 @@ def run_edits_on_directory(
         edits_to_apply_grouped = [[edit] for edit in edits_to_apply]
 
     for i, edits_group in enumerate(edits_to_apply_grouped):
-        print("Applying edit:", edits_group, "(%d of %d)" % (i + 1, len(edits_to_apply_grouped)))
+        print("Applying edit:", edits_group, "({:d} of {:d})".format(i + 1, len(edits_to_apply_grouped)))
         edit_generator_class = edit_class_from_id(edits_group[0])
 
         shared_edit_data = edit_generator_class.setup()
@@ -2071,7 +2072,7 @@ def create_parser(edits_all: Sequence[str], edits_all_default: Sequence[str]) ->
     for edit in edits_all:
         # `%` -> `%%` is needed for `--help` not to interpret these as formatting arguments.
         edits_all_docs.append(
-            "  %s\n%s" % (
+            "  {:s}\n{:s}".format(
                 edit,
                 indent(edit_docstring_from_id(edit).replace("%", "%%"), '    '),
             )
@@ -2082,7 +2083,7 @@ def create_parser(edits_all: Sequence[str], edits_all_default: Sequence[str]) ->
     for verbose_id, verbose_doc in VERBOSE_INFO:
         # `%` -> `%%` is needed for `--help` not to interpret these as formatting arguments.
         verbose_all_docs.append(
-            "  %s\n%s" % (
+            "  {:s}\n{:s}".format(
                 verbose_id,
                 indent(verbose_doc.replace("%", "%%"), "    "),
             )
@@ -2181,7 +2182,7 @@ def main() -> int:
 
     for edit in edits_all_from_args:
         if edit not in edits_all:
-            print("Error, unrecognized '--edits' argument '%s', expected a value in {%s}" % (
+            print("Error, unrecognized '--edits' argument '{:s}', expected a value in {{{:s}}}".format(
                 edit,
                 ", ".join(edits_all),
             ))
@@ -2198,7 +2199,7 @@ def main() -> int:
             case "edit_actions":
                 verbose_edit_actions = True
             case _:
-                print("Error, unrecognized '--verbose' argument '%s', expected a value in {%s}" % (
+                print("Error, unrecognized '--verbose' argument '{:s}', expected a value in {{{:s}}}".format(
                     verbose_id,
                     ", ".join(verbose_all),
                 ))
@@ -2207,7 +2208,7 @@ def main() -> int:
     if len(edits_all_from_args) > 1:
         for edit in edits_all:
             if edit not in edits_all_from_args:
-                print("Skipping edit: %s, default=%d" % (edit, getattr(edit_generators, edit).is_default))
+                print("Skipping edit: {:s}, default={:d}".format(edit, getattr(edit_generators, edit).is_default))
 
     return run_edits_on_directory(
         build_dir=build_dir,

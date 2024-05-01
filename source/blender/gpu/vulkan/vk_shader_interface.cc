@@ -163,15 +163,22 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   /* Determine the descriptor set locations after the inputs have been sorted. */
   /* Note: input_tot_len is sometimes more than we need. */
   const uint32_t resources_len = input_tot_len;
+
+  /* Initialize the descriptor set layout. */
+  init_descriptor_set_layout_info(info, resources_len, all_resources, push_constants_storage_type);
+
+  /* Update the descriptor set locations, bind types and access masks. */
   descriptor_set_locations_ = Array<VKDescriptorSet::Location>(resources_len);
   descriptor_set_locations_.fill(-1);
   descriptor_set_bind_types_ = Array<shader::ShaderCreateInfo::Resource::BindType>(resources_len);
   descriptor_set_bind_types_.fill(shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER);
+  access_masks_ = Array<VkAccessFlags>(resources_len);
+  access_masks_.fill(VK_ACCESS_NONE);
   uint32_t descriptor_set_location = 0;
   for (ShaderCreateInfo::Resource &res : all_resources) {
     const ShaderInput *input = shader_input_get(res);
     BLI_assert(input);
-    descriptor_set_location_update(input, descriptor_set_location++, res.bind_type);
+    descriptor_set_location_update(input, descriptor_set_location++, res.bind_type, res);
   }
 
   /* Post initializing push constants. */
@@ -182,7 +189,8 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     const ShaderInput *push_constant_input = ubo_get(PUSH_CONSTANTS_FALLBACK_NAME);
     descriptor_set_location_update(push_constant_input,
                                    push_constants_fallback_location,
-                                   shader::ShaderCreateInfo::Resource::UNIFORM_BUFFER);
+                                   shader::ShaderCreateInfo::Resource::UNIFORM_BUFFER,
+                                   std::nullopt);
   }
   push_constants_layout_.init(
       info, *this, push_constants_storage_type, push_constant_descriptor_set_location);
@@ -198,12 +206,45 @@ static int32_t shader_input_index(const ShaderInput *shader_inputs,
 void VKShaderInterface::descriptor_set_location_update(
     const ShaderInput *shader_input,
     const VKDescriptorSet::Location location,
-    const shader::ShaderCreateInfo::Resource::BindType bind_type)
+    const shader::ShaderCreateInfo::Resource::BindType bind_type,
+    std::optional<const shader::ShaderCreateInfo::Resource> resource)
 {
+  BLI_assert_msg(resource.has_value() ||
+                     bind_type == shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER,
+                 "Incorrect parameters, when no resource is given, it must be the uniform buffer "
+                 "for storing push constants.");
+  BLI_assert_msg(!resource.has_value() || resource->bind_type == bind_type,
+                 "Incorrect parameter, bind types do not match.");
+
   int32_t index = shader_input_index(inputs_, shader_input);
   BLI_assert(descriptor_set_locations_[index].binding == -1);
   descriptor_set_locations_[index] = location;
   descriptor_set_bind_types_[index] = bind_type;
+
+  VkAccessFlags vk_access_flags = VK_ACCESS_NONE;
+  if (resource.has_value()) {
+    switch (resource->bind_type) {
+      case shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER:
+        vk_access_flags |= VK_ACCESS_UNIFORM_READ_BIT;
+        break;
+      case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
+      case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
+        if (bool(resource->storagebuf.qualifiers & shader::Qualifier::READ) == true) {
+          vk_access_flags |= VK_ACCESS_SHADER_READ_BIT;
+        }
+        if (bool(resource->storagebuf.qualifiers & shader::Qualifier::WRITE) == true) {
+          vk_access_flags |= VK_ACCESS_SHADER_WRITE_BIT;
+        }
+        break;
+      case shader::ShaderCreateInfo::Resource::BindType::SAMPLER:
+        vk_access_flags |= VK_ACCESS_SHADER_READ_BIT;
+        break;
+    };
+  }
+  else if (bind_type == shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
+    access_masks_[index] = VK_ACCESS_UNIFORM_READ_BIT;
+  }
+  access_masks_[index] = vk_access_flags;
 }
 
 const VKDescriptorSet::Location VKShaderInterface::descriptor_set_location(
@@ -241,6 +282,25 @@ const std::optional<VKDescriptorSet::Location> VKShaderInterface::descriptor_set
   return descriptor_set_location(shader_input);
 }
 
+const VkAccessFlags VKShaderInterface::access_mask(const ShaderInput *shader_input) const
+{
+  int32_t index = shader_input_index(inputs_, shader_input);
+  return access_masks_[index];
+}
+
+const VkAccessFlags VKShaderInterface::access_mask(
+    const shader::ShaderCreateInfo::Resource::BindType &bind_type, int binding) const
+{
+  const ShaderInput *shader_input = shader_input_get(bind_type, binding);
+  if (shader_input == nullptr) {
+    return VK_ACCESS_NONE;
+  }
+  if (descriptor_set_bind_type(shader_input) != bind_type) {
+    return VK_ACCESS_NONE;
+  }
+  return access_mask(shader_input);
+}
+
 const ShaderInput *VKShaderInterface::shader_input_get(
     const shader::ShaderCreateInfo::Resource &resource) const
 {
@@ -264,6 +324,26 @@ const ShaderInput *VKShaderInterface::shader_input_get(
       return ubo_get(binding);
   }
   return nullptr;
+}
+
+void VKShaderInterface::init_descriptor_set_layout_info(
+    const shader::ShaderCreateInfo &info,
+    int64_t resources_len,
+    Span<shader::ShaderCreateInfo::Resource> all_resources,
+    VKPushConstants::StorageType push_constants_storage)
+{
+  BLI_assert(descriptor_set_layout_info_.bindings.is_empty());
+  descriptor_set_layout_info_.bindings.reserve(resources_len);
+  descriptor_set_layout_info_.vk_shader_stage_flags =
+      info.compute_source_.is_empty() && info.compute_source_generated.empty() ?
+          VK_SHADER_STAGE_ALL_GRAPHICS :
+          VK_SHADER_STAGE_COMPUTE_BIT;
+  for (const shader::ShaderCreateInfo::Resource &res : all_resources) {
+    descriptor_set_layout_info_.bindings.append(to_vk_descriptor_type(res));
+  }
+  if (push_constants_storage == VKPushConstants::StorageType::UNIFORM_BUFFER) {
+    descriptor_set_layout_info_.bindings.append(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+  }
 }
 
 }  // namespace blender::gpu

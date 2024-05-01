@@ -4,8 +4,11 @@
 
 #include "usd_writer_material.hh"
 
+<<<<<<< HEAD
 #include "usd.hh"
 #include "usd_asset_utils.hh"
+=======
+>>>>>>> main
 #include "usd_exporter_context.hh"
 #include "usd_hook.hh"
 #include "usd_umm.h"
@@ -26,7 +29,6 @@
 #include "IMB_colormanagement.hh"
 
 #include "BLI_fileops.h"
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_memory_utils.hh"
@@ -36,18 +38,20 @@
 #include "BLI_string_utils.hh"
 
 #include "DNA_material_types.h"
+<<<<<<< HEAD
 #include "DNA_packedFile_types.h"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+=======
+#include "DNA_node_types.h"
+>>>>>>> main
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_api.hh"
+#include "WM_types.hh"
 
 #include <pxr/base/tf/stringUtils.h>
-#include <pxr/pxr.h>
-#include <pxr/usd/usdGeom/scope.h>
 
 #include <cctype>
 #include <iostream>
@@ -97,6 +101,7 @@ static const pxr::TfToken Shader("Shader", pxr::TfToken::Immortal);
 static const pxr::TfToken black("black", pxr::TfToken::Immortal);
 static const pxr::TfToken clamp("clamp", pxr::TfToken::Immortal);
 static const pxr::TfToken repeat("repeat", pxr::TfToken::Immortal);
+static const pxr::TfToken mirror("mirror", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapS("wrapS", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapT("wrapT", pxr::TfToken::Immortal);
 static const pxr::TfToken emissiveColor("emissiveColor", pxr::TfToken::Immortal);
@@ -711,7 +716,7 @@ static void export_in_memory_texture(Image *ima,
   char image_abs_path[FILE_MAX];
 
   char file_name[FILE_MAX];
-  if (strlen(ima->filepath) > 0) {
+  if (ima->filepath[0]) {
     get_absolute_path(ima, image_abs_path);
     BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
   }
@@ -2332,6 +2337,9 @@ static pxr::TfToken get_node_tex_image_wrap(bNode *node)
     case SHD_IMAGE_EXTENSION_CLIP:
       wrap = usdtokens::black;
       break;
+    case SHD_IMAGE_EXTENSION_MIRROR:
+      wrap = usdtokens::mirror;
+      break;
   }
 
   return wrap;
@@ -2499,7 +2507,18 @@ std::string get_tex_image_asset_filepath(Image* ima,
 
   std::string path;
 
+<<<<<<< HEAD
   if (is_in_memory_texture(ima)) {
+=======
+  if (ima->filepath[0]) {
+    /* Get absolute path. */
+    path = get_tex_image_asset_filepath(ima);
+  }
+  else if (usd_export_context.export_params.export_textures) {
+    /* Image has no filepath, but since we are exporting textures,
+     * check if this is an in-memory texture for which we can
+     * generate a file name. */
+>>>>>>> main
     path = get_in_memory_texture_filename(ima);
   }
   else {

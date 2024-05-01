@@ -13,6 +13,8 @@
 #include "BLI_assert.h"
 #include "BLI_utility_mixins.hh"
 
+#include "MEM_guardedalloc.h"
+
 namespace blender {
 
 /**
@@ -125,6 +127,11 @@ class ImplicitSharingInfo : NonCopyable, NonMovable {
     return version_.load(std::memory_order_acquire);
   }
 
+  int strong_users() const
+  {
+    return strong_users_.load(std::memory_order_acquire);
+  }
+
   /**
    * Call when the data is no longer needed. This might just decrement the user count, or it might
    * also delete the data if this was the last user.
@@ -192,6 +199,30 @@ class ImplicitSharingMixin : public ImplicitSharingInfo {
   }
 
   virtual void delete_self() = 0;
+};
+
+/**
+ * Utility for creating an allocated shared resource, to be used like:
+ * `new ImplicitSharedValue<T>(args);`
+ */
+template<typename T> class ImplicitSharedValue : public ImplicitSharingInfo {
+ public:
+  T data;
+
+  template<typename... Args>
+  ImplicitSharedValue(Args &&...args) : data(std::forward<Args>(args)...)
+  {
+  }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("ImplicitSharedValue");
+#endif
+
+ private:
+  void delete_self_with_data() override
+  {
+    delete this;
+  }
 };
 
 /**

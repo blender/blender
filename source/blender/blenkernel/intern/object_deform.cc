@@ -149,8 +149,7 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
   if (ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
 
-    if (mesh->edit_mesh) {
-      BMEditMesh *em = mesh->edit_mesh;
+    if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
       if (cd_dvert_offset != -1) {
@@ -169,7 +168,7 @@ bool BKE_object_defgroup_clear(Object *ob, bDeformGroup *dg, const bool use_sele
       }
     }
     else {
-      if (!mesh->deform_verts().data()) {
+      if (mesh->deform_verts().data()) {
         const bool *select_vert = (const bool *)CustomData_get_layer_named(
             &mesh->vert_data, CD_PROP_BOOL, ".select_vert");
         int i;
@@ -345,7 +344,7 @@ static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
   /* Else, make sure that any groups with higher indices are adjusted accordingly */
   else if (ob->type == OB_MESH) {
     Mesh *mesh = static_cast<Mesh *>(ob->data);
-    BMEditMesh *em = mesh->edit_mesh;
+    BMEditMesh *em = mesh->runtime->edit_mesh.get();
     const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
 
     BMIter iter;
@@ -544,7 +543,7 @@ bool BKE_object_defgroup_array_get(ID *id, MDeformVert **dvert_arr, int *dvert_t
         return true;
       }
       case ID_GP:
-        /* Should not be used with grease pencil objects.*/
+        /* Should not be used with grease pencil objects. */
         BLI_assert_unreachable();
         break;
       default:
@@ -716,9 +715,21 @@ bool BKE_object_defgroup_check_lock_relative_multi(int defbase_tot,
 
 bool BKE_object_defgroup_active_is_locked(const Object *ob)
 {
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-  bDeformGroup *dg = static_cast<bDeformGroup *>(
-      BLI_findlink(&mesh->vertex_group_names, mesh->vertex_group_active_index - 1));
+  bDeformGroup *dg;
+  switch (ob->type) {
+    case OB_GREASE_PENCIL: {
+      GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+      dg = static_cast<bDeformGroup *>(BLI_findlink(&grease_pencil->vertex_group_names,
+                                                    grease_pencil->vertex_group_active_index - 1));
+      break;
+    }
+    default: {
+      Mesh *mesh = static_cast<Mesh *>(ob->data);
+      dg = static_cast<bDeformGroup *>(
+          BLI_findlink(&mesh->vertex_group_names, mesh->vertex_group_active_index - 1));
+      break;
+    }
+  }
   return dg->flag & DG_LOCK_WEIGHT;
 }
 

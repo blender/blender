@@ -12,13 +12,14 @@ void main()
 {
   DRW_VIEW_FROM_RESOURCE_ID;
 #ifdef MAT_SHADOW
-  shadow_viewport_layer_set(int(drw_view_id), int(viewport_index_buf[drw_view_id]));
+  shadow_viewport_layer_set(int(drw_view_id), int(render_view_buf[drw_view_id].viewport_index));
+  shadow_flat.filter_radius = render_view_buf[drw_view_id].filter_radius;
 #endif
 
   init_interface();
 
   interp.P = drw_point_object_to_world(pos);
-  interp.N = drw_normal_object_to_world(nor);
+  interp.N = normalize(drw_normal_object_to_world(nor));
 #ifdef MAT_VELOCITY
   vec3 prv, nxt;
   velocity_local_pos_get(pos, gl_VertexID, prv, nxt);
@@ -37,6 +38,11 @@ void main()
 
 #ifdef MAT_CLIP_PLANE
   clip_interp.clip_distance = dot(clip_plane.plane, vec4(interp.P, 1.0));
+#endif
+
+#ifdef MAT_SHADOW
+  shadow_clip.vector = shadow_clip_vector_get(drw_point_world_to_view(interp.P),
+                                              render_view_buf[drw_view_id].clip_distance_inv);
 #endif
 
   gl_Position = drw_point_world_to_homogenous(interp.P);

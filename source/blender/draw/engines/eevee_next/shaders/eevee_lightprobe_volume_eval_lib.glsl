@@ -134,12 +134,18 @@ SphericalHarmonicL1 lightprobe_irradiance_sample(
   i = grid_start_index;
 #endif
 #ifdef IRRADIANCE_GRID_SAMPLING
-  float random = interlieved_gradient_noise(UTIL_TEXEL, 0.0, 0.0);
-  random = fract(random + sampling_rng_1D_get(SAMPLING_LIGHTPROBE));
+  float random = square(pcg4d(vec4(P, sampling_rng_1D_get(SAMPLING_LIGHTPROBE))).x) * 0.75;
+#endif
+#ifdef GPU_METAL
+/* NOTE: Performs a chunked unroll to avoid the compiler unrolling the entire loop, avoiding
+ * very high instruction counts and long compilation time. Full unroll results in 90k +
+ * instructions. Chunked unroll is 5.1k instructions with reduced register pressure, while
+ * retaining most of the benefits of unrolling. */
+#  pragma clang loop unroll_count(16)
 #endif
   for (; i < IRRADIANCE_GRID_MAX; i++) {
     /* Last grid is tagged as invalid to stop the iteration. */
-    if (grids_infos_buf[i].grid_size.x == -1) {
+    if (grids_infos_buf[i].grid_size_padded.x == -1) {
       /* Sample the last grid instead. */
       index = i - 1;
       break;
@@ -149,10 +155,9 @@ SphericalHarmonicL1 lightprobe_irradiance_sample(
     if (lightprobe_irradiance_grid_local_coord(grids_infos_buf[i], P, lP)) {
       index = i;
 #ifdef IRRADIANCE_GRID_SAMPLING
-      float distance_to_border = reduce_min(min(lP, vec3(grids_infos_buf[i].grid_size) - lP));
-      if (distance_to_border < random) {
-        /* Remap random to the remaining interval. */
-        random = (random - distance_to_border) / (1.0 - distance_to_border);
+      float distance_to_border = reduce_min(
+          min(lP, vec3(grids_infos_buf[i].grid_size_padded) - lP));
+      if (distance_to_border < 0.5 + random) {
         /* Try to sample another grid to get smooth transitions at borders. */
         continue;
       }
@@ -163,9 +168,8 @@ SphericalHarmonicL1 lightprobe_irradiance_sample(
 
   VolumeProbeData grid_data = grids_infos_buf[index];
 
-  /* TODO(fclem): Make sure this is working as expected. */
   mat3x3 world_to_grid_transposed = mat3x3(grid_data.world_to_grid_transposed);
-  vec3 lNg = safe_normalize(world_to_grid_transposed * Ng);
+  vec3 lNg = safe_normalize(Ng * world_to_grid_transposed);
   vec3 lV = safe_normalize(V * world_to_grid_transposed);
 
   if (do_bias) {
@@ -194,7 +198,8 @@ SphericalHarmonicL1 lightprobe_irradiance_sample(
 
 SphericalHarmonicL1 lightprobe_irradiance_world()
 {
-  return lightprobe_irradiance_sample_atlas(irradiance_atlas_tx, vec3(0.0));
+  /* We need a 0.5 offset because of filtering. */
+  return lightprobe_irradiance_sample_atlas(irradiance_atlas_tx, vec3(0.5001));
 }
 
 SphericalHarmonicL1 lightprobe_irradiance_sample(vec3 P)

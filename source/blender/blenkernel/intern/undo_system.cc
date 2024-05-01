@@ -806,8 +806,9 @@ bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
     }
   }
 
-  BLI_assert(
-      !"This should never be reached, either undo stack is corrupted, or code above is buggy");
+  BLI_assert_msg(
+      false,
+      "This should never be reached, either undo stack is corrupted, or code above is buggy");
   return false;
 }
 

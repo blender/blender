@@ -22,6 +22,7 @@
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_material.h"
+#include "BKE_paint.hh"
 #include "BKE_report.hh"
 
 #include "WM_api.hh"
@@ -34,7 +35,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 struct tGPencilPointCache {
   float factor; /* value to sort */
@@ -97,12 +98,13 @@ static bGPDstroke *gpencil_prepare_stroke(bContext *C, wmOperator *op, int totpo
   const bool cyclic = RNA_boolean_get(op->ptr, "cyclic");
 
   Paint *paint = &ts->gp_paint->paint;
+  Brush *brush = BKE_paint_brush(paint);
   /* if not exist, create a new one */
-  if ((paint->brush == nullptr) || (paint->brush->gpencil_settings == nullptr)) {
+  if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
     /* create new brushes */
     BKE_brush_gpencil_paint_presets(bmain, ts, false);
   }
-  Brush *brush = paint->brush;
+  brush = BKE_paint_brush(paint);
 
   /* frame */
   short add_frame_mode;

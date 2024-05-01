@@ -62,7 +62,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
   const Object *self_object = params.self_object();
-  const bool is_recursive = BKE_collection_has_object_recursive_instanced(
+  /* Compare by `orig_id` because objects may be copied into separate depsgraphs. */
+  const bool is_recursive = BKE_collection_has_object_recursive_instanced_orig_id(
       collection, const_cast<Object *>(self_object));
   if (is_recursive) {
     params.error_message_add(NodeWarningType::Error, TIP_("Collection contains current object"));
@@ -160,7 +161,7 @@ static void node_rna(StructRNA *srna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  RNA_def_node_enum(
+  PropertyRNA *prop = RNA_def_node_enum(
       srna,
       "transform_space",
       "Transform Space",
@@ -168,6 +169,7 @@ static void node_rna(StructRNA *srna)
       rna_node_geometry_collection_info_transform_space_items,
       NOD_storage_enum_accessors(transform_space),
       GEO_NODE_TRANSFORM_SPACE_ORIGINAL);
+  RNA_def_property_update_runtime(prop, rna_Node_update_relations);
 }
 
 static void node_register()

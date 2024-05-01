@@ -11,7 +11,7 @@
 
 #include "BKE_object.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 #include "BLI_rand.h" /* needs to be after for some reason. */
 

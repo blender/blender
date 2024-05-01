@@ -42,6 +42,48 @@ class TestBlendLibLinkHelper(TestHelper):
 
         return output_lib_path
 
+    def init_lib_data_animated(self):
+        self.reset_blender()
+
+        me = bpy.data.meshes.new("LibMesh")
+        ob = bpy.data.objects.new("LibMesh", me)
+        ob_ctrl = bpy.data.objects.new("LibController", None)
+        coll = bpy.data.collections.new("LibMesh")
+        coll.objects.link(ob)
+        coll.objects.link(ob_ctrl)
+        bpy.context.scene.collection.children.link(coll)
+
+        # Add some action & driver animation to `LibMesh`.
+        # Animate Y location.
+        ob.location[1] = 0.0
+        ob.keyframe_insert("location", index=1, frame=1)
+        ob.location[1] = -5.0
+        ob.keyframe_insert("location", index=1, frame=10)
+
+        # Drive X location.
+        ob_drv = ob.driver_add("location", 0)
+        ob_drv.driver.type = 'AVERAGE'
+        ob_drv_var = ob_drv.driver.variables.new()
+        ob_drv_var.type = 'TRANSFORMS'
+        ob_drv_var.targets[0].id = ob_ctrl
+        ob_drv_var.targets[0].transform_type = 'LOC_X'
+
+        # Add some action & driver animation to `LibController`.
+        # Animate X location.
+        ob_ctrl.location[0] = 0.0
+        ob_ctrl.keyframe_insert("location", index=0, frame=1)
+        ob_ctrl.location[0] = 5.0
+        ob_ctrl.keyframe_insert("location", index=0, frame=10)
+
+        output_dir = self.args.output_dir
+        self.ensure_path(output_dir)
+        # Take care to keep the name unique so multiple test jobs can run at once.
+        output_lib_path = os.path.join(output_dir, self.unique_blendfile_name("blendlib_animated"))
+
+        bpy.ops.wm.save_as_mainfile(filepath=output_lib_path, check_existing=False, compress=False)
+
+        return output_lib_path
+
     def init_lib_data_indirect_lib(self):
         output_dir = self.args.output_dir
         self.ensure_path(output_dir)
@@ -271,6 +313,53 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         assert mesh.use_fake_user is False
         assert mesh.users == 1
         assert mesh.is_library_indirect is False
+
+
+class TestBlendLibLinkAnimation(TestBlendLibLinkHelper):
+
+    def __init__(self, args):
+        self.args = args
+
+    def test_link(self):
+        output_dir = self.args.output_dir
+        output_lib_path = self.init_lib_data_animated()
+
+        # Simple link of a the collection, and check animation values.
+        self.reset_blender()
+
+        link_dir = os.path.join(output_lib_path, "Collection")
+        bpy.ops.wm.link(directory=link_dir, filename="LibMesh", instance_collections=False, instance_object_data=False)
+
+        assert bpy.data.meshes[0].library
+        assert bpy.data.meshes[0].users == 1
+        assert len(bpy.data.objects) == 2
+        assert bpy.data.objects[0].library
+        assert bpy.data.objects[0].users == 1
+        assert bpy.data.objects[1].library
+        assert bpy.data.objects[1].users == 1
+        assert len(bpy.data.collections) == 1  # Scene's master collection is not listed here
+        assert bpy.data.collections[0].library
+        assert bpy.data.collections[0].users == 1
+        assert len(bpy.data.actions) == 2
+        assert bpy.data.actions[0].library
+        assert bpy.data.actions[0].users == 1
+        assert bpy.data.actions[1].library
+        assert bpy.data.actions[1].users == 1
+
+        # Validate animation evaluation.
+        bpy.context.scene.frame_set(10)
+        print(bpy.data.objects["LibController"].location)
+        print(bpy.data.objects["LibMesh"].location)
+        bpy.context.scene.frame_set(1)
+        print(bpy.data.objects["LibController"].location)
+        print(bpy.data.objects["LibMesh"].location)
+        assert bpy.data.objects["LibController"].location[0] == 0.0
+        assert bpy.data.objects["LibMesh"].location[0] == bpy.data.objects["LibController"].location[0]
+        assert bpy.data.objects["LibMesh"].location[1] == 0.0
+        bpy.context.scene.frame_set(10)
+        assert bpy.data.objects["LibController"].location[0] == 5.0
+        assert bpy.data.objects["LibMesh"].location[0] == bpy.data.objects["LibController"].location[0]
+        assert bpy.data.objects["LibMesh"].location[1] == -5.0
 
 
 class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
@@ -706,6 +795,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
 
 TESTS = (
     TestBlendLibLinkSaveLoadBasic,
+    TestBlendLibLinkAnimation,
     TestBlendLibLinkIndirect,
 
     TestBlendLibAppendBasic,

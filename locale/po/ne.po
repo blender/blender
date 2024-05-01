@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Yudhir Khanal <yudhir.khanal@gmail.com>\n"
 "Language-Team: Yudhir\n"
@@ -460,11 +460,6 @@ msgstr "यसको अभिलेख हेर्ने"
 
 
 msgctxt "Operator"
-msgid "Add Keyconfig Preset"
-msgstr "पुर्व-स्थापित keyboard संग्रह बनाऊ "
-
-
-msgctxt "Operator"
 msgid "Add Property"
 msgstr "गुण थप्नुस "
 
@@ -544,16 +539,16 @@ msgid "+ Non-Grouped Keyframes"
 msgstr "+ असंग्रहित मुख्याचित्रसाचोहरु"
 
 
+msgid "Before"
+msgstr "पहिले "
+
+
 msgid "Axes"
 msgstr "अक्ष"
 
 
 msgid "Control Rotation"
 msgstr "घुमावमा नियन्त्रण"
-
-
-msgid "Before"
-msgstr "पहिले "
 
 
 msgid "Parent:"

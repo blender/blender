@@ -346,12 +346,12 @@ static void make_cb_table_float_sop(
 }
 
 static void color_balance_byte_byte(
-    StripColorBalance *cb_, uchar *rect, uchar *mask_rect, int width, int height, float mul)
+    StripColorBalance *cb_, uchar *rect, const uchar *mask_rect, int width, int height, float mul)
 {
   // uchar cb_tab[3][256];
   uchar *cp = rect;
   uchar *e = cp + width * 4 * height;
-  uchar *m = mask_rect;
+  const uchar *m = mask_rect;
 
   StripColorBalance cb = calc_cb(cb_);
 
@@ -392,7 +392,7 @@ static void color_balance_byte_byte(
 static void color_balance_byte_float(StripColorBalance *cb_,
                                      uchar *rect,
                                      float *rect_float,
-                                     uchar *mask_rect,
+                                     const uchar *mask_rect,
                                      int width,
                                      int height,
                                      float mul)
@@ -401,7 +401,7 @@ static void color_balance_byte_float(StripColorBalance *cb_,
   int c, i;
   uchar *p = rect;
   uchar *e = p + width * 4 * height;
-  uchar *m = mask_rect;
+  const uchar *m = mask_rect;
   float *o;
   StripColorBalance cb;
 
@@ -552,9 +552,9 @@ static void *color_balance_do_thread(void *thread_data_v)
   StripColorBalance *cb = thread_data->cb;
   int width = thread_data->width, height = thread_data->height;
   uchar *rect = thread_data->rect;
-  uchar *mask_rect = thread_data->mask_rect;
+  const uchar *mask_rect = thread_data->mask_rect;
   float *rect_float = thread_data->rect_float;
-  float *mask_rect_float = thread_data->mask_rect_float;
+  const float *mask_rect_float = thread_data->mask_rect_float;
   float mul = thread_data->mul;
 
   if (rect_float) {
@@ -861,15 +861,15 @@ static void hue_correct_init_data(SequenceModifierData *smd)
   int c;
 
   BKE_curvemapping_set_defaults(&hcmd->curve_mapping, 1, 0.0f, 0.0f, 1.0f, 1.0f, HD_AUTO);
-  hcmd->curve_mapping.preset = CURVE_PRESET_MID9;
+  hcmd->curve_mapping.preset = CURVE_PRESET_MID8;
 
   for (c = 0; c < 3; c++) {
     CurveMap *cuma = &hcmd->curve_mapping.cm[c];
-
     BKE_curvemap_reset(
         cuma, &hcmd->curve_mapping.clipr, hcmd->curve_mapping.preset, CURVEMAP_SLOPE_POSITIVE);
   }
-
+  /* use wrapping for all hue correct modifiers */
+  hcmd->curve_mapping.flag |= CUMA_USE_WRAPPING;
   /* default to showing Saturation */
   hcmd->curve_mapping.cur = 1;
 }
@@ -1616,11 +1616,11 @@ void SEQ_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
 
 void SEQ_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
 {
-  BLO_read_list(reader, lb);
+  BLO_read_struct_list(reader, SequenceModifierData, lb);
 
   LISTBASE_FOREACH (SequenceModifierData *, smd, lb) {
     if (smd->mask_sequence) {
-      BLO_read_data_address(reader, &smd->mask_sequence);
+      BLO_read_struct(reader, Sequence, &smd->mask_sequence);
     }
 
     if (smd->type == seqModifierType_Curves) {
@@ -1635,7 +1635,7 @@ void SEQ_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
     }
     else if (smd->type == seqModifierType_SoundEqualizer) {
       SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
-      BLO_read_list(reader, &semd->graphics);
+      BLO_read_struct_list(reader, EQCurveMappingData, &semd->graphics);
       LISTBASE_FOREACH (EQCurveMappingData *, eqcmd, &semd->graphics) {
         BKE_curvemapping_blend_read(reader, &eqcmd->curve_mapping);
       }

@@ -479,10 +479,11 @@ class BsdfNode : public BsdfBaseNode {
   SHADER_NODE_BASE_CLASS(BsdfNode)
 
   void compile(SVMCompiler &compiler,
-               ShaderInput *param1,
-               ShaderInput *param2,
-               ShaderInput *param3 = NULL,
-               ShaderInput *param4 = NULL);
+               ShaderInput *bsdf_y,
+               ShaderInput *bsdf_z,
+               ShaderInput *data_y = nullptr,
+               ShaderInput *data_z = nullptr,
+               ShaderInput *data_w = nullptr);
 
   NODE_SOCKET_API(float3, color)
   NODE_SOCKET_API(float3, normal)
@@ -554,6 +555,19 @@ class TranslucentBsdfNode : public BsdfNode {
 class TransparentBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(TransparentBsdfNode)
+
+  bool has_surface_transparent()
+  {
+    return true;
+  }
+};
+
+class RayPortalBsdfNode : public BsdfNode {
+ public:
+  SHADER_NODE_CLASS(RayPortalBsdfNode)
+
+  NODE_SOCKET_API(float3, position)
+  NODE_SOCKET_API(float3, direction)
 
   bool has_surface_transparent()
   {
@@ -652,6 +666,7 @@ class SubsurfaceScatteringNode : public BsdfNode {
   NODE_SOCKET_API(float, scale)
   NODE_SOCKET_API(float3, radius)
   NODE_SOCKET_API(float, subsurface_ior)
+  NODE_SOCKET_API(float, subsurface_roughness)
   NODE_SOCKET_API(float, subsurface_anisotropy)
   NODE_SOCKET_API(ClosureType, method)
 };

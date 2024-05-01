@@ -21,7 +21,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -66,7 +66,7 @@ void WM_menutype_freelink(MenuType *mt)
 
 void WM_menutype_init()
 {
-  /* reserve size is set based on blender default setup */
+  /* Reserve size is set based on blender default setup. */
   menutypes_hash = BLI_ghash_str_new_ex("menutypes_hash gh", 512);
 }
 

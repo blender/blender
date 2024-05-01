@@ -19,7 +19,7 @@ GPU_SHADER_CREATE_INFO(compositor_convert_float_to_float)
 GPU_SHADER_CREATE_INFO(compositor_convert_float_to_vector)
     .additional_info("compositor_convert_shared")
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .define("CONVERT_EXPRESSION(value)", "vec4(vec3_from_float(value.x), 0.0)")
+    .define("CONVERT_EXPRESSION(value)", "vec4(vec3_from_float(value.x), 1.0)")
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(compositor_convert_float_to_color)
@@ -37,7 +37,7 @@ GPU_SHADER_CREATE_INFO(compositor_convert_color_to_float)
 GPU_SHADER_CREATE_INFO(compositor_convert_color_to_vector)
     .additional_info("compositor_convert_shared")
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "output_img")
-    .define("CONVERT_EXPRESSION(value)", "vec4(vec3_from_vec4(value), 0.0)")
+    .define("CONVERT_EXPRESSION(value)", "value")
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(compositor_convert_color_to_color)

@@ -91,3 +91,5 @@ mark_as_advanced(
   GMPXX_INCLUDE_DIR
   GMPXX_LIBRARY
 )
+
+unset(_gmp_SEARCH_DIRS)

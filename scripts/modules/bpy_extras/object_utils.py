@@ -282,7 +282,7 @@ def object_report_if_active_shape_key_is_locked(obj, operator):
 
     if key and key.lock_shape:
         if operator:
-            operator.report({'ERROR'}, "The active shape key of %s is locked" % obj.name)
+            operator.report({'ERROR'}, "The active shape key of {:s} is locked".format(obj.name))
 
         return True
 

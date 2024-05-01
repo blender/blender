@@ -54,10 +54,10 @@ static void fillCineonMainHeader(LogImageFile *cineon,
       cineon->isMSB);
   header->fileHeader.ind_hdr_size = 0;
   header->fileHeader.user_data_size = 0;
-  header->fileHeader.file_size = swap_uint(cineon->element[0].dataOffset +
-                                               cineon->height *
-                                                   getRowLength(cineon->width, cineon->element[0]),
-                                           cineon->isMSB);
+  header->fileHeader.file_size = swap_uint(
+      cineon->element[0].dataOffset +
+          cineon->height * getRowLength(cineon->width, &cineon->element[0]),
+      cineon->isMSB);
   STRNCPY(header->fileHeader.version, "v4.5");
   STRNCPY(header->fileHeader.file_name, filepath);
   fileClock = time(nullptr);
@@ -318,7 +318,7 @@ LogImageFile *cineonOpen(const uchar *byteStuff, int fromMemory, size_t bufferSi
     }
 
     cineon->element[i].dataOffset = dataOffset;
-    dataOffset += cineon->height * getRowLength(cineon->width, cineon->element[i]);
+    dataOffset += cineon->height * getRowLength(cineon->width, &cineon->element[i]);
   }
 
   cineon->referenceBlack = 95.0f / 1023.0f * cineon->element[0].maxValue;

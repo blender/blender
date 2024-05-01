@@ -65,35 +65,6 @@ void MovieClipBaseOperation::determine_canvas(const rcti & /*preferred_area*/, r
   }
 }
 
-void MovieClipBaseOperation::execute_pixel_sampled(float output[4],
-                                                   float x,
-                                                   float y,
-                                                   PixelSampler sampler)
-{
-  ImBuf *ibuf = movie_clip_buffer_;
-
-  if (ibuf == nullptr) {
-    zero_v4(output);
-  }
-  else if (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr) {
-    /* Happens for multi-layer EXR, i.e. */
-    zero_v4(output);
-  }
-  else {
-    switch (sampler) {
-      case PixelSampler::Nearest:
-        imbuf::interpolate_nearest_fl(ibuf, output, x, y);
-        break;
-      case PixelSampler::Bilinear:
-        imbuf::interpolate_bilinear_border_fl(ibuf, output, x, y);
-        break;
-      case PixelSampler::Bicubic:
-        imbuf::interpolate_cubic_bspline_fl(ibuf, output, x, y);
-        break;
-    }
-  }
-}
-
 void MovieClipBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                           const rcti &area,
                                                           Span<MemoryBuffer *> /*inputs*/)
@@ -114,16 +85,6 @@ MovieClipOperation::MovieClipOperation() : MovieClipBaseOperation()
 MovieClipAlphaOperation::MovieClipAlphaOperation() : MovieClipBaseOperation()
 {
   this->add_output_socket(DataType::Value);
-}
-
-void MovieClipAlphaOperation::execute_pixel_sampled(float output[4],
-                                                    float x,
-                                                    float y,
-                                                    PixelSampler sampler)
-{
-  float result[4];
-  MovieClipBaseOperation::execute_pixel_sampled(result, x, y, sampler);
-  output[0] = result[3];
 }
 
 void MovieClipAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,

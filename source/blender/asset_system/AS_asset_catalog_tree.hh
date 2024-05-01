@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "AS_asset_catalog.hh"
 
 namespace blender::asset_system {
@@ -28,7 +30,7 @@ class AssetCatalogTreeItem {
   /** Container for child items. Uses a #std::map to keep items ordered by their name (i.e. their
    * last catalog component). */
   using ChildMap = std::map<std::string, AssetCatalogTreeItem>;
-  using ItemIterFn = FunctionRef<void(AssetCatalogTreeItem &)>;
+  using ItemIterFn = FunctionRef<void(const AssetCatalogTreeItem &)>;
 
  private:
   /** Child tree items, ordered by their names. */
@@ -65,10 +67,10 @@ class AssetCatalogTreeItem {
 
   /** Iterate over children calling \a callback for each of them, but do not recurse into their
    * children. */
-  void foreach_child(ItemIterFn callback);
+  void foreach_child(ItemIterFn callback) const;
 
  private:
-  static void foreach_item_recursive(ChildMap &children_, ItemIterFn callback);
+  static void foreach_item_recursive(const ChildMap &children_, ItemIterFn callback);
 };
 
 class AssetCatalogTree {
@@ -82,15 +84,15 @@ class AssetCatalogTree {
   /** Ensure an item representing \a path is in the tree, adding it if necessary. */
   void insert_item(const AssetCatalog &catalog);
 
-  void foreach_item(ItemIterFn callback);
+  void foreach_item(ItemIterFn callback) const;
   /** Iterate over root items calling \a callback for each of them, but do not recurse into their
    * children. */
-  void foreach_root_item(ItemIterFn callback);
+  void foreach_root_item(ItemIterFn callback) const;
 
   bool is_empty() const;
 
-  AssetCatalogTreeItem *find_item(const AssetCatalogPath &path);
-  AssetCatalogTreeItem *find_root_item(const AssetCatalogPath &path);
+  const AssetCatalogTreeItem *find_item(const AssetCatalogPath &path) const;
+  const AssetCatalogTreeItem *find_root_item(const AssetCatalogPath &path) const;
 };
 
 }  // namespace blender::asset_system

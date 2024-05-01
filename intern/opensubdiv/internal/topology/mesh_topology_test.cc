@@ -7,8 +7,7 @@
 #include "internal/topology/mesh_topology.h"
 #include "testing/testing.h"
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 TEST(MeshTopology, TrivialVertexSharpness)
 {
@@ -60,17 +59,17 @@ TEST(MeshTopology, TrivialFaceTopology)
   EXPECT_EQ(mesh_topology.getNumFaceVertices(2), 5);
 
   {
-    int vertex_indices[] = {0, 1, 2, 3};
+    const int vertex_indices[] = {0, 1, 2, 3};
     mesh_topology.setFaceVertexIndices(0, 4, vertex_indices);
   }
 
   {
-    int vertex_indices[] = {4, 5, 6};
+    const int vertex_indices[] = {4, 5, 6};
     mesh_topology.setFaceVertexIndices(1, 3, vertex_indices);
   }
 
   {
-    int vertex_indices[] = {7, 8, 9, 10, 11};
+    const int vertex_indices[] = {7, 8, 9, 10, 11};
     mesh_topology.setFaceVertexIndices(2, 5, vertex_indices);
   }
 
@@ -82,5 +81,4 @@ TEST(MeshTopology, TrivialFaceTopology)
   EXPECT_TRUE(mesh_topology.isFaceVertexIndicesEqual(2, {{7, 8, 9, 10, 11}}));
 }
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv

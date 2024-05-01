@@ -16,7 +16,7 @@
 
 #include "BLI_sys_types.h"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 namespace blender::bke {
 enum class AttrDomain : int8_t;

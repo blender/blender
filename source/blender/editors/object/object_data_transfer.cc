@@ -38,7 +38,9 @@
 
 #include "ED_object.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
+
+namespace blender::ed::object {
 
 /* All possible data to transfer.
  * Note some are 'fake' ones, i.e. they are not hold by real CDLayers. */
@@ -147,7 +149,7 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
   RNA_enum_items_add_value(
       &item, &totitem, rna_enum_dt_layers_select_src_items, DT_LAYERS_ALL_SRC);
 
-  Object *ob_src = ED_object_active_context(C);
+  Object *ob_src = context_active_object(C);
   if (ob_src == nullptr) {
     RNA_enum_item_end(&item, &totitem);
     *r_free = true;
@@ -180,28 +182,28 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
   else if (data_type == DT_TYPE_UV) {
     const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     const Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
-    const Mesh *me_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_src_eval);
-    if (!me_eval) {
+    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_src_eval);
+    if (!mesh_eval) {
       RNA_enum_item_end(&item, &totitem);
       *r_free = true;
       return item;
     }
-    int num_data = CustomData_number_of_layers(&me_eval->corner_data, CD_PROP_FLOAT2);
+    int num_data = CustomData_number_of_layers(&mesh_eval->corner_data, CD_PROP_FLOAT2);
 
     RNA_enum_item_add_separator(&item, &totitem);
 
     for (int i = 0; i < num_data; i++) {
       tmp_item.value = i;
       tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-          &me_eval->corner_data, CD_PROP_FLOAT2, i);
+          &mesh_eval->corner_data, CD_PROP_FLOAT2, i);
       RNA_enum_item_add(&item, &totitem, &tmp_item);
     }
   }
   else if (data_type & DT_TYPE_VCOL_ALL) {
     const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     const Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
-    const Mesh *me_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_src_eval);
-    if (!me_eval) {
+    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_src_eval);
+    if (!mesh_eval) {
       RNA_enum_item_end(&item, &totitem);
       *r_free = true;
       return item;
@@ -223,10 +225,10 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
     }
 
     if (data_type & (DT_TYPE_MLOOPCOL_VERT | DT_TYPE_MPROPCOL_VERT)) {
-      dt_add_vcol_layers(&me_eval->vert_data, cddata_masks.vmask, &item, &totitem);
+      dt_add_vcol_layers(&mesh_eval->vert_data, cddata_masks.vmask, &item, &totitem);
     }
     if (data_type & (DT_TYPE_MLOOPCOL_LOOP | DT_TYPE_MPROPCOL_LOOP)) {
-      dt_add_vcol_layers(&me_eval->corner_data, cddata_masks.lmask, &item, &totitem);
+      dt_add_vcol_layers(&mesh_eval->corner_data, cddata_masks.lmask, &item, &totitem);
     }
   }
 
@@ -352,7 +354,7 @@ static bool data_transfer_check(bContext * /*C*/, wmOperator *op)
 static void data_transfer_exec_preprocess_objects(bContext *C,
                                                   wmOperator *op,
                                                   Object *ob_src,
-                                                  ListBase *ctx_objects,
+                                                  Vector<PointerRNA> *ctx_objects,
                                                   const bool reverse_transfer)
 {
   CTX_data_selected_editable_objects(C, ctx_objects);
@@ -361,8 +363,8 @@ static void data_transfer_exec_preprocess_objects(bContext *C,
     return; /* Nothing else to do in this case... */
   }
 
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob, ctx_objects) {
-    Object *ob = static_cast<Object *>(ctx_ob->ptr.data);
+  for (const PointerRNA &ptr : *ctx_objects) {
+    Object *ob = static_cast<Object *>(ptr.data);
     Mesh *mesh;
     if ((ob == ob_src) || (ob->type != OB_MESH)) {
       continue;
@@ -419,10 +421,10 @@ static bool data_transfer_exec_is_object_valid(wmOperator *op,
 
 static int data_transfer_exec(bContext *C, wmOperator *op)
 {
-  Object *ob_src = ED_object_active_context(C);
+  Object *ob_src = context_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
-  ListBase ctx_objects;
+  Vector<PointerRNA> ctx_objects;
 
   bool changed = false;
 
@@ -483,8 +485,8 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 
   data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, reverse_transfer);
 
-  LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob_dst, &ctx_objects) {
-    Object *ob_dst = static_cast<Object *>(ctx_ob_dst->ptr.data);
+  for (const PointerRNA &ptr : ctx_objects) {
+    Object *ob_dst = static_cast<Object *>(ptr.data);
 
     if (reverse_transfer) {
       std::swap(ob_src, ob_dst);
@@ -530,8 +532,6 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
     }
   }
 
-  BLI_freelistN(&ctx_objects);
-
   if (changed) {
     DEG_relations_tag_update(CTX_data_main(C));
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, nullptr);
@@ -550,7 +550,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
  * it cannot check for all possible invalid cases. */
 static bool data_transfer_poll(bContext *C)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   ID *data = static_cast<ID *>((ob) ? ob->data : nullptr);
   return (ob != nullptr && ob->type == OB_MESH && data != nullptr);
 }
@@ -820,7 +820,7 @@ static bool datalayout_transfer_poll(bContext *C)
 
 static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 {
-  Object *ob_act = ED_object_active_context(C);
+  Object *ob_act = context_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   DataTransferModifierData *dtmd;
 
@@ -854,7 +854,7 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
   else {
     Object *ob_src = ob_act;
 
-    ListBase ctx_objects;
+    Vector<PointerRNA> ctx_objects;
 
     const int data_type = RNA_enum_get(op->ptr, "data_type");
     const bool use_delete = RNA_boolean_get(op->ptr, "use_delete");
@@ -874,8 +874,8 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 
     data_transfer_exec_preprocess_objects(C, op, ob_src, &ctx_objects, false);
 
-    LISTBASE_FOREACH (CollectionPointerLink *, ctx_ob_dst, &ctx_objects) {
-      Object *ob_dst = static_cast<Object *>(ctx_ob_dst->ptr.data);
+    for (const PointerRNA &ptr : ctx_objects) {
+      Object *ob_dst = static_cast<Object *>(ptr.data);
       if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst, false)) {
         BKE_object_data_transfer_layout(depsgraph,
                                         ob_src_eval,
@@ -888,8 +888,6 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
 
       DEG_id_tag_update(&ob_dst->id, ID_RECALC_GEOMETRY);
     }
-
-    BLI_freelistN(&ctx_objects);
   }
 
   DEG_relations_tag_update(CTX_data_main(C));
@@ -953,3 +951,5 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
                       "How to match source and destination layers");
   RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, dt_layers_select_dst_itemf);
 }
+
+}  // namespace blender::ed::object

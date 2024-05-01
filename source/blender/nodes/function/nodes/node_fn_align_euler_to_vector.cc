@@ -239,14 +239,20 @@ static void node_rna(StructRNA *srna)
                     "Axis",
                     "Axis to align to the vector",
                     axis_items,
-                    NOD_inline_enum_accessors(custom1));
+                    NOD_inline_enum_accessors(custom1),
+                    std::nullopt,
+                    nullptr,
+                    true);
 
   RNA_def_node_enum(srna,
                     "pivot_axis",
                     "Pivot Axis",
                     "Axis to rotate around",
                     pivot_axis_items,
-                    NOD_inline_enum_accessors(custom2));
+                    NOD_inline_enum_accessors(custom2),
+                    std::nullopt,
+                    nullptr,
+                    true);
 }
 
 static void node_register()
@@ -258,6 +264,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.build_multi_function = node_build_multi_function;
+  ntype.deprecation_notice = N_("Use the \"Align Rotation to Vector\" node instead");
   nodeRegisterType(&ntype);
 
   node_rna(ntype.rna_ext.srna);

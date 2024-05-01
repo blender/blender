@@ -34,6 +34,7 @@
 
 #include "ED_armature.hh"
 #include "ED_mesh.hh"
+#include "ED_object_vgroup.hh"
 
 #include "ANIM_bone_collections.hh"
 
@@ -242,19 +243,19 @@ static void envelope_bone_weighting(Object *ob,
 
       /* add the vert to the deform group if (weight != 0.0) */
       if (distance != 0.0f) {
-        ED_vgroup_vert_add(ob, dgroup, i, distance, WEIGHT_REPLACE);
+        blender::ed::object::vgroup_vert_add(ob, dgroup, i, distance, WEIGHT_REPLACE);
       }
       else {
-        ED_vgroup_vert_remove(ob, dgroup, i);
+        blender::ed::object::vgroup_vert_remove(ob, dgroup, i);
       }
 
       /* do same for mirror */
       if (dgroupflip && dgroupflip[j] && iflip != -1) {
         if (distance != 0.0f) {
-          ED_vgroup_vert_add(ob, dgroupflip[j], iflip, distance, WEIGHT_REPLACE);
+          blender::ed::object::vgroup_vert_add(ob, dgroupflip[j], iflip, distance, WEIGHT_REPLACE);
         }
         else {
-          ED_vgroup_vert_remove(ob, dgroupflip[j], iflip);
+          blender::ed::object::vgroup_vert_remove(ob, dgroupflip[j], iflip);
         }
       }
     }
@@ -406,9 +407,9 @@ static void add_verts_to_dgroups(ReportList *reports,
   if (wpmode) {
     /* if in weight paint mode, use final verts from evaluated mesh */
     const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-    const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-    if (me_eval) {
-      BKE_mesh_foreach_mapped_vert_coords_get(me_eval, verts, mesh->verts_num);
+    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+    if (mesh_eval) {
+      BKE_mesh_foreach_mapped_vert_coords_get(mesh_eval, verts, mesh->verts_num);
       vertsfilled = 1;
     }
   }
@@ -491,7 +492,7 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
     if (defbase_add) {
       /* It's possible there are DWeights outside the range of the current
        * object's deform groups. In this case the new groups won't be empty #33889. */
-      ED_vgroup_data_clamp_range(static_cast<ID *>(ob->data), defbase_tot);
+      blender::ed::object::vgroup_data_clamp_range(static_cast<ID *>(ob->data), defbase_tot);
     }
   }
   else if (ELEM(mode, ARM_GROUPS_ENVELOPE, ARM_GROUPS_AUTO)) {

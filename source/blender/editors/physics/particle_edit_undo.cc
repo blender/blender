@@ -30,6 +30,7 @@
 
 #include "ED_object.hh"
 #include "ED_particle.hh"
+#include "ED_physics.hh"
 #include "ED_undo.hh"
 
 #include "particle_edit_utildefines.h"

@@ -31,14 +31,14 @@ static void node_declare(NodeDeclarationBuilder &b)
     const eCustomDataType data_type = eCustomDataType(node->custom1);
     b.add_input(data_type, "Attribute").hide_value().field_on_all();
 
-    b.add_output(data_type, "Mean");
-    b.add_output(data_type, "Median");
-    b.add_output(data_type, "Sum");
-    b.add_output(data_type, "Min");
-    b.add_output(data_type, "Max");
-    b.add_output(data_type, "Range");
-    b.add_output(data_type, "Standard Deviation");
-    b.add_output(data_type, "Variance");
+    b.add_output(data_type, N_("Mean"));
+    b.add_output(data_type, N_("Median"));
+    b.add_output(data_type, N_("Sum"));
+    b.add_output(data_type, N_("Min"));
+    b.add_output(data_type, N_("Max"));
+    b.add_output(data_type, N_("Range"));
+    b.add_output(data_type, N_("Standard Deviation"));
+    b.add_output(data_type, N_("Variance"));
   }
 }
 
@@ -355,7 +355,8 @@ static void node_rna(StructRNA *srna)
                     rna_enum_attribute_domain_items,
                     NOD_inline_enum_accessors(custom2),
                     int(AttrDomain::Point),
-                    enums::domain_experimental_grease_pencil_version3_fn);
+                    enums::domain_experimental_grease_pencil_version3_fn,
+                    true);
 }
 
 static void node_register()

@@ -28,7 +28,9 @@ void MotionBlurModule::init()
   const Scene *scene = inst_.scene;
   const ViewLayer *view_layer = inst_.view_layer;
 
-  enabled_ = (scene->r.mode & R_MBLUR) != 0;
+  /* Disable on viewport outside of animation playback,
+   * since it can get distracting while editing the scene. */
+  enabled_ = (scene->r.mode & R_MBLUR) != 0 && (inst_.is_image_render() || inst_.is_playback());
   if (enabled_) {
     enabled_ = (view_layer->layflag & SCE_LAY_MOTION_BLUR) != 0;
   }
@@ -118,7 +120,7 @@ float MotionBlurModule::shutter_time_to_scene_time(float time)
       time -= 1.0;
       break;
     default:
-      BLI_assert(!"Invalid motion blur position enum!");
+      BLI_assert_msg(false, "Invalid motion blur position enum!");
       break;
   }
   time *= shutter_time_;

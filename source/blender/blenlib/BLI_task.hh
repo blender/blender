@@ -35,6 +35,8 @@
 #include "BLI_function_ref.hh"
 #include "BLI_index_range.hh"
 #include "BLI_lazy_threading.hh"
+#include "BLI_span.hh"
+#include "BLI_task_size_hints.hh"
 #include "BLI_utildefines.h"
 
 namespace blender {
@@ -58,7 +60,7 @@ inline void parallel_for_each(Range &&range, const Function &function)
 #ifdef WITH_TBB
   tbb::parallel_for_each(range, function);
 #else
-  for (auto &value : range) {
+  for (auto &&value : range) {
     function(value);
   }
 #endif
@@ -67,20 +69,43 @@ inline void parallel_for_each(Range &&range, const Function &function)
 namespace detail {
 void parallel_for_impl(IndexRange range,
                        int64_t grain_size,
-                       FunctionRef<void(IndexRange)> function);
+                       FunctionRef<void(IndexRange)> function,
+                       const TaskSizeHints &size_hints);
+void memory_bandwidth_bound_task_impl(FunctionRef<void()> function);
 }  // namespace detail
 
+/**
+ * Executes the given function for sub-ranges of the given range, potentialy in parallel.
+ * This is the main primitive for parallelizing code.
+ *
+ * \param range: The indices that should be iterated over in parallel.
+ * \param grain_size: The approximate amount of work that should be scheduled at once.
+ *   For example of the range is [0 - 1000] and the grain size is 200, then the function will be
+ *   called 5 times with [0 - 200], [201 - 400], ... (approximately). The `size_hints` parameter
+ *   can be used to adjust how the work is split up if the tasks have different sizes.
+ * \param function: A callback that actually does the work in parallel. It should have one
+ *   #IndexRange parameter.
+ * \param size_hints: Can be used to specify the size of the tasks *relative to* each other and the
+ *   grain size. If all tasks have approximately the same size, this can be ignored. Otherwise, one
+ *   can use `threading::individual_task_sizes(...)` or `threading::accumulated_task_sizes(...)`.
+ *   If the grain size is e.g. 200 and each task has the size 100, then only two tasks will be
+ *   scheduled at once.
+ */
 template<typename Function>
-inline void parallel_for(IndexRange range, int64_t grain_size, const Function &function)
+inline void parallel_for(const IndexRange range,
+                         const int64_t grain_size,
+                         const Function &function,
+                         const TaskSizeHints &size_hints = detail::TaskSizeHints_Static(1))
 {
   if (range.is_empty()) {
     return;
   }
-  if (range.size() <= grain_size) {
+  /* Invoking tbb for small workloads has a large overhead. */
+  if (use_single_thread(size_hints, range, grain_size)) {
     function(range);
     return;
   }
-  detail::parallel_for_impl(range, grain_size, function);
+  detail::parallel_for_impl(range, grain_size, function, size_hints);
 }
 
 /**
@@ -206,6 +231,28 @@ template<typename Function> inline void isolate_task(const Function &function)
 #else
   function();
 #endif
+}
+
+/**
+ * Should surround parallel code that is highly bandwidth intensive, e.g. it just fills a buffer
+ * with no or just few additional operations. If the buffers are large, it's beneficial to limit
+ * the number of threads doing the work because that just creates more overhead on the hardware
+ * level and doesn't provide a notable performance benefit beyond a certain point.
+ */
+template<typename Function>
+inline void memory_bandwidth_bound_task(const int64_t approximate_bytes_touched,
+                                        const Function &function)
+{
+  /* Don't limit threading when all touched memory can stay in the CPU cache, because there a much
+   * higher memory bandwidth is available compared to accessing RAM. This value is supposed to be
+   * on the order of the L3 cache size. Accessing that value is not quite straight forward and even
+   * if it was, it's not clear if using the exact cache size would be beneficial because there is
+   * often more stuff going on on the CPU at the same time. */
+  if (approximate_bytes_touched <= 8 * 1024 * 1024) {
+    function();
+    return;
+  }
+  detail::memory_bandwidth_bound_task_impl(function);
 }
 
 }  // namespace blender::threading

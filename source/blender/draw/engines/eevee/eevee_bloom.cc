@@ -10,11 +10,11 @@
 
 #include "DRW_render.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "DEG_depsgraph_query.hh"
 
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
 static const bool use_highres = true;
 
@@ -135,7 +135,7 @@ static DRWShadingGroup *eevee_create_bloom_pass(const char *name,
                                                 bool resolve,
                                                 bool resolve_add_base)
 {
-  GPUBatch *quad = DRW_cache_fullscreen_quad_get();
+  blender::gpu::Batch *quad = DRW_cache_fullscreen_quad_get();
 
   *pass = DRW_pass_create(name, DRW_STATE_WRITE_COLOR);
 

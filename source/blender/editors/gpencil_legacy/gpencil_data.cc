@@ -37,7 +37,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
@@ -67,7 +67,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 /* ************************************************ */
 /* Datablock Operators */
@@ -1961,12 +1961,11 @@ static int gpencil_brush_reset_exec(bContext *C, wmOperator * /*op*/)
   Main *bmain = CTX_data_main(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   const enum eContextObjectMode mode = CTX_data_mode_enum(C);
-  Brush *brush = nullptr;
 
   switch (mode) {
     case CTX_MODE_PAINT_GPENCIL_LEGACY: {
       Paint *paint = &ts->gp_paint->paint;
-      brush = paint->brush;
+      Brush *brush = BKE_paint_brush(paint);
       if (brush && brush->gpencil_settings) {
         BKE_gpencil_brush_preset_set(bmain, brush, brush->gpencil_settings->preset_type);
       }
@@ -1974,7 +1973,7 @@ static int gpencil_brush_reset_exec(bContext *C, wmOperator * /*op*/)
     }
     case CTX_MODE_SCULPT_GPENCIL_LEGACY: {
       Paint *paint = &ts->gp_sculptpaint->paint;
-      brush = paint->brush;
+      Brush *brush = BKE_paint_brush(paint);
       if (brush && brush->gpencil_settings) {
         BKE_gpencil_brush_preset_set(bmain, brush, brush->gpencil_settings->preset_type);
       }
@@ -1982,7 +1981,7 @@ static int gpencil_brush_reset_exec(bContext *C, wmOperator * /*op*/)
     }
     case CTX_MODE_WEIGHT_GPENCIL_LEGACY: {
       Paint *paint = &ts->gp_weightpaint->paint;
-      brush = paint->brush;
+      Brush *brush = BKE_paint_brush(paint);
       if (brush && brush->gpencil_settings) {
         BKE_gpencil_brush_preset_set(bmain, brush, brush->gpencil_settings->preset_type);
       }
@@ -1990,7 +1989,7 @@ static int gpencil_brush_reset_exec(bContext *C, wmOperator * /*op*/)
     }
     case CTX_MODE_VERTEX_GPENCIL_LEGACY: {
       Paint *paint = &ts->gp_vertexpaint->paint;
-      brush = paint->brush;
+      Brush *brush = BKE_paint_brush(paint);
       if (brush && brush->gpencil_settings) {
         BKE_gpencil_brush_preset_set(bmain, brush, brush->gpencil_settings->preset_type);
       }
@@ -2057,7 +2056,7 @@ static void gpencil_brush_delete_mode_brushes(Main *bmain,
                                               Paint *paint,
                                               const enum eContextObjectMode mode)
 {
-  Brush *brush_active = paint->brush;
+  Brush *brush_active = BKE_paint_brush(paint);
   Brush *brush_next = nullptr;
   for (Brush *brush = static_cast<Brush *>(bmain->brushes.first); brush; brush = brush_next) {
     brush_next = static_cast<Brush *>(brush->id.next);
@@ -2151,8 +2150,8 @@ static int gpencil_brush_reset_all_exec(bContext *C, wmOperator * /*op*/)
 
   char tool = '0';
   if (paint) {
-    if (paint->brush) {
-      Brush *brush_active = paint->brush;
+    Brush *brush_active = BKE_paint_brush(paint);
+    if (brush_active) {
       switch (mode) {
         case CTX_MODE_PAINT_GPENCIL_LEGACY: {
           tool = brush_active->gpencil_tool;
@@ -3057,7 +3056,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
       }
 
       /* Free the old object */
-      ED_object_base_free_and_unlink(bmain, scene, ob_iter);
+      blender::ed::object::base_free_and_unlink(bmain, scene, ob_iter);
     }
   }
   CTX_DATA_END;
@@ -3765,7 +3764,7 @@ bool ED_gpencil_add_lattice_modifier(const bContext *C,
   /* if no lattice modifier, add a new one */
   GpencilModifierData *md = BKE_gpencil_modifiers_findby_type(ob, eGpencilModifierType_Lattice);
   if (md == nullptr) {
-    md = ED_object_gpencil_modifier_add(
+    md = blender::ed::object::gpencil_modifier_add(
         reports, bmain, scene, ob, "Lattice", eGpencilModifierType_Lattice);
     if (md == nullptr) {
       BKE_report(reports, RPT_ERROR, "Unable to add a new Lattice modifier to object");

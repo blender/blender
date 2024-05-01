@@ -32,3 +32,5 @@ buildbot:
             overrides: {}
         windows-amd64:
             overrides: {}
+        windows-arm64:
+            overrides: {}

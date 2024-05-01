@@ -335,7 +335,8 @@ static PointerRNA rna_uiItemO(uiLayout *layout,
                               int icon,
                               bool emboss,
                               bool depress,
-                              int icon_value)
+                              int icon_value,
+                              const float search_weight)
 {
   wmOperatorType *ot;
 
@@ -359,9 +360,14 @@ static PointerRNA rna_uiItemO(uiLayout *layout,
     flag |= UI_ITEM_O_DEPRESS;
   }
 
+  const float prev_weight = uiLayoutGetSearchWeight(layout);
+  uiLayoutSetSearchWeight(layout, search_weight);
+
   PointerRNA opptr;
   uiItemFullO_ptr(
       layout, ot, name, icon, nullptr, uiLayoutGetOperatorContext(layout), flag, &opptr);
+
+  uiLayoutSetSearchWeight(layout, prev_weight);
   return opptr;
 }
 
@@ -1096,7 +1102,7 @@ void RNA_api_ui_layout(StructRNA *srna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static float node_socket_color_default[] = {0.0f, 0.0f, 0.0f, 1.0f};
+  static const float node_socket_color_default[] = {0.0f, 0.0f, 0.0f, 1.0f};
 
   /* simple layout specifiers */
   func = RNA_def_function(srna, "row", "rna_uiLayoutRowWithHeading");
@@ -1386,6 +1392,17 @@ void RNA_api_ui_layout(StructRNA *srna)
     if (is_menu_hold) {
       parm = RNA_def_string(func, "menu", nullptr, 0, "", "Identifier of the menu");
       RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+    }
+    else {
+      RNA_def_float(func,
+                    "search_weight",
+                    0.0f,
+                    -FLT_MAX,
+                    FLT_MAX,
+                    "Search Weight",
+                    "Influences the sorting when using menu-seach",
+                    -FLT_MAX,
+                    FLT_MAX);
     }
     parm = RNA_def_pointer(
         func, "properties", "OperatorProperties", "", "Operator properties to fill in");
@@ -1698,6 +1715,10 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "template_modifiers", "uiTemplateModifiers");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   RNA_def_function_ui_description(func, "Generates the UI layout for the modifier stack");
+
+  func = RNA_def_function(srna, "template_collection_exporters", "uiTemplateCollectionExporters");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  RNA_def_function_ui_description(func, "Generates the UI layout for collection exporters");
 
   func = RNA_def_function(srna, "template_constraints", "uiTemplateConstraints");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);

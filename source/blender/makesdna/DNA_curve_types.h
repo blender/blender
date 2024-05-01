@@ -111,7 +111,8 @@ typedef struct BezTriple {
  * Provide access to Keyframe Type info #eBezTriple_KeyframeType in #BezTriple::hide.
  * \note this is so that we can change it to another location.
  */
-#define BEZKEYTYPE(bezt) ((bezt)->hide)
+#define BEZKEYTYPE(bezt) (eBezTriple_KeyframeType((bezt)->hide))
+#define BEZKEYTYPE_LVALUE(bezt) ((bezt)->hide)
 
 /**
  * \note #BPoint.tilt location in struct is abused by Key system.
@@ -510,6 +511,11 @@ typedef enum eBezTriple_KeyframeType {
   BEZT_KEYTYPE_BREAKDOWN = 2, /* 'breakdown' keyframe */
   BEZT_KEYTYPE_JITTER = 3,    /* 'jitter' keyframe (for adding 'filler' secondary motion) */
   BEZT_KEYTYPE_MOVEHOLD = 4,  /* one end of a 'moving hold' */
+  /**
+   * Key set by some automatic helper tool, marking that this key can be erased
+   * and the tool re-run.
+   */
+  BEZT_KEYTYPE_GENERATED = 5,
 } eBezTriple_KeyframeType;
 
 /* checks if the given BezTriple is selected */

@@ -116,17 +116,17 @@ void BLI_expr_pylike_free(ExprPyLike_Parsed *expr)
   }
 }
 
-bool BLI_expr_pylike_is_valid(ExprPyLike_Parsed *expr)
+bool BLI_expr_pylike_is_valid(const ExprPyLike_Parsed *expr)
 {
   return expr != NULL && expr->ops_count > 0;
 }
 
-bool BLI_expr_pylike_is_constant(ExprPyLike_Parsed *expr)
+bool BLI_expr_pylike_is_constant(const ExprPyLike_Parsed *expr)
 {
   return expr != NULL && expr->ops_count == 1 && expr->ops[0].opcode == OPCODE_CONST;
 }
 
-bool BLI_expr_pylike_is_using_param(ExprPyLike_Parsed *expr, int index)
+bool BLI_expr_pylike_is_using_param(const ExprPyLike_Parsed *expr, int index)
 {
   int i;
 

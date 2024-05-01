@@ -14,69 +14,7 @@ KeyingBlurOperation::KeyingBlurOperation()
   size_ = 0;
   axis_ = BLUR_AXIS_X;
 
-  flags_.complex = true;
   flags_.can_be_constant = true;
-}
-
-void *KeyingBlurOperation::initialize_tile_data(rcti *rect)
-{
-  void *buffer = get_input_operation(0)->initialize_tile_data(rect);
-
-  return buffer;
-}
-
-void KeyingBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
-{
-  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
-  const int buffer_width = input_buffer->get_width();
-  float *buffer = input_buffer->get_buffer();
-  int count = 0;
-  float average = 0.0f;
-
-  if (axis_ == 0) {
-    const int start = std::max(0, x - size_ + 1);
-    const int end = std::min(buffer_width, x + size_);
-    for (int cx = start; cx < end; cx++) {
-      int buffer_index = (y * buffer_width + cx);
-      average += buffer[buffer_index];
-      count++;
-    }
-  }
-  else {
-    const int start = std::max(0, y - size_ + 1);
-    const int end = std::min(input_buffer->get_height(), y + size_);
-    for (int cy = start; cy < end; cy++) {
-      int buffer_index = (cy * buffer_width + x);
-      average += buffer[buffer_index];
-      count++;
-    }
-  }
-
-  average /= float(count);
-
-  output[0] = average;
-}
-
-bool KeyingBlurOperation::determine_depending_area_of_interest(rcti *input,
-                                                               ReadBufferOperation *read_operation,
-                                                               rcti *output)
-{
-  rcti new_input;
-
-  if (axis_ == BLUR_AXIS_X) {
-    new_input.xmin = input->xmin - size_;
-    new_input.ymin = input->ymin;
-    new_input.xmax = input->xmax + size_;
-    new_input.ymax = input->ymax;
-  }
-  else {
-    new_input.xmin = input->xmin;
-    new_input.ymin = input->ymin - size_;
-    new_input.xmax = input->xmax;
-    new_input.ymax = input->ymax + size_;
-  }
-
-  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void KeyingBlurOperation::get_area_of_interest(const int /*input_idx*/,

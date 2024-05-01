@@ -28,8 +28,8 @@
 #include "BLI_noise.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_fcurve.h"
-#include "BKE_idprop.h"
+#include "BKE_fcurve.hh"
+#include "BKE_idprop.hh"
 
 static CLG_LogRef LOG = {"bke.fmodifier"};
 

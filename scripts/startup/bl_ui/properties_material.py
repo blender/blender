@@ -164,14 +164,12 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
 
         mat = context.material
 
-        layout.prop(mat, "use_nodes", icon='NODETREE')
-        layout.separator()
-
-        layout.use_property_split = True
-
         if mat.use_nodes:
+            layout.use_property_split = True
             panel_node_draw(layout, mat.node_tree, 'OUTPUT_MATERIAL', "Surface")
         else:
+            layout.prop(mat, "use_nodes", icon='NODETREE')
+            layout.use_property_split = True
             layout.prop(mat, "diffuse_color", text="Base Color")
             layout.prop(mat, "metallic")
             layout.prop(mat, "specular_intensity", text="Specular")
@@ -222,6 +220,29 @@ class EEVEE_MATERIAL_PT_displacement(MaterialButtonsPanel, Panel):
         mat = context.material
 
         panel_node_draw(layout, mat.node_tree, 'OUTPUT_MATERIAL', "Displacement")
+
+
+class EEVEE_MATERIAL_PT_thickness(MaterialButtonsPanel, Panel):
+    bl_label = "Thickness"
+    bl_translation_context = i18n_contexts.id_id
+    bl_context = "material"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.engine
+        mat = context.material
+        return mat and mat.use_nodes and (engine in cls.COMPAT_ENGINES) and not mat.grease_pencil
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.use_property_split = True
+
+        mat = context.material
+
+        panel_node_draw(layout, mat.node_tree, 'OUTPUT_MATERIAL', "Thickness")
 
 
 def draw_material_settings(self, context):
@@ -299,10 +320,14 @@ class EEVEE_NEXT_MATERIAL_PT_settings_surface(MaterialButtonsPanel, Panel):
         col.prop(mat, "use_backface_culling", text="Camera")
         col.prop(mat, "use_backface_culling_shadow", text="Shadow")
 
-        layout.prop(mat, "displacement_method", text="Displacement")
+        col = layout.column(align=True)
+        col.prop(mat, "displacement_method", text="Displacement")
+        col = col.column(align=True)
+        col.enabled = mat.displacement_method != 'BUMP'
+        col.prop(mat, "max_vertex_displacement", text="Max Distance")
+
         if mat.displacement_method == 'DISPLACEMENT':
             layout.label(text="Unsupported displacement method", icon='ERROR')
-        layout.prop(mat, "max_vertex_displacement", text="Max Displacement")
 
         layout.prop(mat, "use_transparent_shadow")
 
@@ -311,7 +336,12 @@ class EEVEE_NEXT_MATERIAL_PT_settings_surface(MaterialButtonsPanel, Panel):
         if mat.surface_render_method == 'BLENDED':
             col.prop(mat, "show_transparent_back", text="Transparency Overlap")
         elif mat.surface_render_method == 'DITHERED':
-            col.prop(mat, "use_screen_refraction", text="Raytraced Refraction")
+            col.prop(mat, "use_screen_refraction", text="Raytraced Transmission")
+
+        col = layout.column()
+        col.prop(mat, "thickness_mode", text="Thickness")
+        if mat.surface_render_method == 'DITHERED':
+            col.prop(mat, "use_thickness_from_shadow", text="From Shadow")
 
         col = layout.column(heading="Light Probe Volume")
         col.prop(mat, "lightprobe_volume_single_sided", text="Single Sided")
@@ -401,6 +431,7 @@ classes = (
     EEVEE_MATERIAL_PT_surface,
     EEVEE_MATERIAL_PT_volume,
     EEVEE_MATERIAL_PT_displacement,
+    EEVEE_MATERIAL_PT_thickness,
     EEVEE_MATERIAL_PT_settings,
     EEVEE_NEXT_MATERIAL_PT_settings,
     EEVEE_NEXT_MATERIAL_PT_settings_surface,

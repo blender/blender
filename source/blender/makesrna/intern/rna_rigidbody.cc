@@ -4,7 +4,7 @@
 
 /** \file
  * \ingroup RNA
- * \brief RNA property definitions for Rigid Body datatypes
+ * \brief RNA property definitions for Rigid Body data-types
  */
 
 #include <cstdlib>

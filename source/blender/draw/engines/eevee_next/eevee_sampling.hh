@@ -32,8 +32,10 @@ class Sampling {
   /* During interactive rendering, loop over the first few samples. */
   static constexpr uint64_t interactive_sample_aa_ = 8;
   static constexpr uint64_t interactive_sample_raytrace_ = 32;
+  static constexpr uint64_t interactive_sample_volume_ = 32;
   static constexpr uint64_t interactive_sample_max_ = interactive_sample_aa_ *
-                                                      interactive_sample_raytrace_;
+                                                      interactive_sample_raytrace_ *
+                                                      interactive_sample_volume_;
 
   /** 0 based current sample. Might not increase sequentially in viewport. */
   uint64_t sample_ = 0;
@@ -63,8 +65,10 @@ class Sampling {
 
   SamplingDataBuf data_;
 
+  ClampData &clamp_data_;
+
  public:
-  Sampling(Instance &inst) : inst_(inst){};
+  Sampling(Instance &inst, ClampData &clamp_data) : inst_(inst), clamp_data_(clamp_data){};
   ~Sampling(){};
 
   void init(const Scene *scene);

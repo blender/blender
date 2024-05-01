@@ -11,6 +11,7 @@
 
 #  include <algorithm>
 #  include <fstream>
+#  include <functional>
 #  include <iostream>
 #  include <memory>
 
@@ -945,7 +946,7 @@ class CoplanarClusterInfo {
     return tri_cluster_[t];
   }
 
-  int add_cluster(CoplanarCluster cl)
+  int add_cluster(const CoplanarCluster &cl)
   {
     int c_index = clusters_.append_and_get_index(cl);
     for (int t : cl) {
@@ -2310,7 +2311,7 @@ static bool bvhtreeverlap_cmp(const BVHTreeOverlap &a, const BVHTreeOverlap &b)
   if (a.indexA < b.indexA) {
     return true;
   }
-  if ((a.indexA == b.indexA) & (a.indexB < b.indexB)) {
+  if ((a.indexA == b.indexA) && (a.indexB < b.indexB)) {
     return true;
   }
   return false;
@@ -2331,7 +2332,7 @@ class TriOverlaps {
 
  public:
   TriOverlaps(const IMesh &tm,
-              const Array<BoundingBox> &tri_bb,
+              const Span<BoundingBox> tri_bb,
               int nshapes,
               std::function<int(int)> shape_fn,
               bool use_self)
@@ -2642,7 +2643,7 @@ static void calc_subdivided_non_cluster_tris(Array<IMesh> &r_tri_subdivided,
 static void calc_cluster_tris(Array<IMesh> &tri_subdivided,
                               const IMesh &tm,
                               const CoplanarClusterInfo &clinfo,
-                              const Array<CDT_data> &cluster_subdivided,
+                              const Span<CDT_data> cluster_subdivided,
                               IMeshArena *arena)
 {
   for (int c : clinfo.index_range()) {

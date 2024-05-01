@@ -221,7 +221,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
     }
   }
 
-  const float4x4 curves_to_world_mat = curves_object.object_to_world();
+  const float4x4 &curves_to_world_mat = curves_object.object_to_world();
   const float4x4 world_to_curves_mat = math::invert(curves_to_world_mat);
 
   const float3 center_ray_start_cu = math::transform_point(world_to_curves_mat,

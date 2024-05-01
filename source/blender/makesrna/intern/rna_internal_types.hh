@@ -48,8 +48,8 @@ using UpdateFunc = void (*)(Main *bmain, Scene *active_scene, PointerRNA *ptr);
 using ContextPropUpdateFunc = void (*)(bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 using ContextUpdateFunc = void (*)(bContext *C, PointerRNA *ptr);
 
-using EditableFunc = int (*)(PointerRNA *ptr, const char **r_info);
-using ItemEditableFunc = int (*)(PointerRNA *ptr, int index);
+using EditableFunc = int (*)(const PointerRNA *ptr, const char **r_info);
+using ItemEditableFunc = int (*)(const PointerRNA *ptr, int index);
 using IDPropertiesFunc = IDProperty **(*)(PointerRNA *ptr);
 using StructRefineFunc = StructRNA *(*)(PointerRNA *ptr);
 using StructPathFunc = std::optional<std::string> (*)(const PointerRNA *ptr);
@@ -91,13 +91,13 @@ using PropCollectionNextFunc = void (*)(CollectionPropertyIterator *iter);
 using PropCollectionEndFunc = void (*)(CollectionPropertyIterator *iter);
 using PropCollectionGetFunc = PointerRNA (*)(CollectionPropertyIterator *iter);
 using PropCollectionLengthFunc = int (*)(PointerRNA *ptr);
-using PropCollectionLookupIntFunc = int (*)(PointerRNA *ptr, int key, PointerRNA *r_ptr);
-using PropCollectionLookupStringFunc = int (*)(PointerRNA *ptr,
-                                               const char *key,
-                                               PointerRNA *r_ptr);
-using PropCollectionAssignIntFunc = int (*)(PointerRNA *ptr,
-                                            int key,
-                                            const PointerRNA *assign_ptr);
+using PropCollectionLookupIntFunc = bool (*)(PointerRNA *ptr, int key, PointerRNA *r_ptr);
+using PropCollectionLookupStringFunc = bool (*)(PointerRNA *ptr,
+                                                const char *key,
+                                                PointerRNA *r_ptr);
+using PropCollectionAssignIntFunc = bool (*)(PointerRNA *ptr,
+                                             int key,
+                                             const PointerRNA *assign_ptr);
 
 /* extended versions with PropertyRNA argument */
 using PropBooleanGetFuncEx = bool (*)(PointerRNA *ptr, PropertyRNA *prop);
@@ -153,12 +153,29 @@ struct PropertyRNAOrID {
   /** The name of the property. */
   const char *identifier;
 
-  /** Whether this property is a 'pure' IDProperty or not. */
+  /**
+   * Whether this property is a 'pure' IDProperty or not.
+   *
+   * \note Mutually exclusive with #is_rna_storage_idprop.
+   */
   bool is_idprop;
   /**
-   * For runtime RNA properties, whether it is set, defined, or not.
-   * WARNING: This DOES take into account the `IDP_FLAG_GHOST` flag, i.e. it matches result of
-   *          `RNA_property_is_set`. */
+   * Whether this property is defined as a RNA one, but uses an #IDProperty to store its value
+   * (aka Python-defined runtime RNA properties).
+   *
+   * \note In that case, the IDProperty itself may very well not exist (yet), when it has never
+   * been set.
+   *
+   * \note Mutually exclusive with #is_idprop.
+   */
+  bool is_rna_storage_idprop;
+  /**
+   * For runtime RNA properties (i.e. when #is_rna_storage_idprop is true), whether it is set,
+   * defined, or not.
+   *
+   * \warning This DOES take into account the `IDP_FLAG_GHOST` flag, i.e. it matches result of
+   * `RNA_property_is_set`.
+   */
   bool is_set;
 
   bool is_array;
@@ -531,7 +548,7 @@ struct StructRNA {
 
   /* various options */
   int flag;
-  /* Each StructRNA type can define own tags which properties can set
+  /* Each StructRNA type can define its own tags which properties can set
    * (PropertyRNA.tags) for changed behavior based on struct-type. */
   const EnumPropertyItem *prop_tag_defines;
 

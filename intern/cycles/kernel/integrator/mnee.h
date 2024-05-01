@@ -157,8 +157,7 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
         kg, sd_vtx->object, sd_vtx->prim, sd_vtx->time, verts, normals);
 
     /* Compute refined position. */
-    sd_vtx->P = motion_triangle_point_from_uv(
-        kg, sd_vtx, isect->object, isect->prim, isect->u, isect->v, verts);
+    sd_vtx->P = motion_triangle_point_from_uv(kg, sd_vtx, isect->u, isect->v, verts);
   }
 
   /* Instance transform. */

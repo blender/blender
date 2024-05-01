@@ -394,7 +394,7 @@ static void text_id_remap(ScrArea * /*area*/,
                           const blender::bke::id::IDRemapper &mappings)
 {
   SpaceText *stext = (SpaceText *)slink;
-  mappings.apply((ID **)&stext->text, ID_REMAP_APPLY_ENSURE_REAL);
+  mappings.apply(reinterpret_cast<ID **>(&stext->text), ID_REMAP_APPLY_ENSURE_REAL);
 }
 
 static void text_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
@@ -480,9 +480,11 @@ void ED_spacetype_text()
 
   BKE_spacetype_register(std::move(st));
 
-  /* register formatters */
-  ED_text_format_register_py();
+  /* Register formatters.
+   * The first registered formatter is default when there is no extension in the ID-name. */
+  ED_text_format_register_py(); /* Keep first (default formatter). */
   ED_text_format_register_osl();
+  ED_text_format_register_glsl();
   ED_text_format_register_pov();
   ED_text_format_register_pov_ini();
 }

@@ -213,6 +213,13 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
    * \returns true when the collapsed state was changed, false otherwise.
    */
   virtual bool set_collapsed(bool collapsed);
+  /**
+   * Make this item be uncollapsed on first draw (may later be overridden by
+   * #should_be_collapsed()). Must only be done during tree building.
+   *
+   * \note this does not call #on_collapse_change() or #set_collapsed() overrides.
+   */
+  void uncollapse_by_default();
 
   /**
    * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we

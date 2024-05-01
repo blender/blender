@@ -21,17 +21,6 @@ extern "C" {
 
 namespace blender::ed::greasepencil {
 
-/**
- * An implementation of the Ramer-Douglas-Peucker algorithm.
- *
- * \param range: The range to simplify.
- * \param epsilon: The threshold distance from the coord between two points for when a point
- * in-between needs to be kept.
- * \param dist_function: A function that computes the distance to a point at an index in the range.
- * The IndexRange is a subrange of \a range and the index is an index relative to the subrange.
- * \param points_to_delete: Writes true to the indices for which the points should be removed.
- * \returns the total number of points to remove.
- */
 int64_t ramer_douglas_peucker_simplify(
     const IndexRange range,
     const float epsilon,

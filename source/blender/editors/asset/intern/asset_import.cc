@@ -16,8 +16,6 @@
 
 #include "ED_asset_import.hh"
 
-using namespace blender;
-
 namespace blender::ed::asset {
 
 ID *asset_local_id_ensure_imported(Main &bmain, const asset_system::AssetRepresentation &asset)

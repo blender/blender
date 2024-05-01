@@ -11,14 +11,17 @@
  * - Keymaps are in `wm_operators.cc`.
  * - Property definitions are in `wm_operator_props.cc`.
  */
-
 #include "MEM_guardedalloc.h"
+#include <fmt/format.h>
 
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
+
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 
@@ -32,6 +35,10 @@
 #include "ED_select_utils.hh"
 
 #include "RNA_access.hh"
+
+using blender::Array;
+using blender::float2;
+using blender::int2;
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Gesture Utilities
@@ -49,7 +56,7 @@ static void gesture_modal_end(bContext *C, wmOperator *op)
   wmWindow *win = CTX_wm_window(C);
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
 
-  WM_gesture_end(win, gesture); /* frees gesture itself, and unregisters from window */
+  WM_gesture_end(win, gesture); /* Frees gesture itself, and unregisters from window. */
   op->customdata = nullptr;
 
   ED_area_tag_redraw(CTX_wm_area(C));
@@ -123,13 +130,13 @@ static int UNUSED_FUNCTION(gesture_modal_state_from_operator)(wmOperator *op)
 static bool gesture_box_apply_rect(wmOperator *op)
 {
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
-  rcti *rect = static_cast<rcti *>(gesture->customdata);
+  const rcti *rect = static_cast<const rcti *>(gesture->customdata);
 
   if (rect->xmin == rect->xmax || rect->ymin == rect->ymax) {
     return false;
   }
 
-  /* operator arguments and storage. */
+  /* Operator arguments and storage. */
   RNA_int_set(op->ptr, "xmin", min_ii(rect->xmin, rect->xmax));
   RNA_int_set(op->ptr, "ymin", min_ii(rect->ymin, rect->ymax));
   RNA_int_set(op->ptr, "xmax", max_ii(rect->xmin, rect->xmax));
@@ -177,7 +184,7 @@ int WM_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     gesture->wait_for_input = wait_for_input;
   }
 
-  /* add modal handler */
+  /* Add modal handler. */
   WM_event_add_modal_handler(C, op);
 
   wm_gesture_tag_redraw(win);
@@ -304,7 +311,7 @@ int WM_gesture_circle_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     gesture->is_active_prev = true;
   }
 
-  /* add modal handler */
+  /* Add modal handler. */
   WM_event_add_modal_handler(C, op);
 
   wm_gesture_tag_redraw(win);
@@ -315,13 +322,13 @@ int WM_gesture_circle_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 static void gesture_circle_apply(bContext *C, wmOperator *op)
 {
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
-  rcti *rect = static_cast<rcti *>(gesture->customdata);
+  const rcti *rect = static_cast<const rcti *>(gesture->customdata);
 
   if (gesture->wait_for_input && (gesture->modal_state == GESTURE_MODAL_NOP)) {
     return;
   }
 
-  /* operator arguments and storage. */
+  /* Operator arguments and storage. */
   RNA_int_set(op->ptr, "x", rect->xmin);
   RNA_int_set(op->ptr, "y", rect->ymin);
   RNA_int_set(op->ptr, "radius", rect->xmax);
@@ -400,7 +407,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
         }
         else {
-          /* apply first click */
+          /* Apply first click. */
           gesture->is_active = true;
           gesture_circle_apply(C, op);
           wm_gesture_tag_redraw(win);
@@ -414,7 +421,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
     if (is_finished) {
       gesture_modal_end(C, op);
-      return OPERATOR_FINISHED; /* use finish or we don't get an undo */
+      return OPERATOR_FINISHED; /* Use finish or we don't get an undo. */
     }
 
     if (is_circle_size) {
@@ -450,7 +457,7 @@ void WM_gesture_circle_cancel(bContext *C, wmOperator *op)
 }
 
 #if 0
-/* template to copy from */
+/* Template to copy from. */
 void WM_OT_circle_gesture(wmOperatorType *ot)
 {
   ot->name = "Circle Gesture";
@@ -461,7 +468,7 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
   ot->modal = WM_gesture_circle_modal;
   ot->poll = WM_operator_winactive;
 
-  /* properties */
+  /* Properties. */
   WM_operator_properties_gesture_circle(ot);
 }
 #endif
@@ -470,6 +477,11 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 /** \name Lasso Gesture
+ * There are two types of lasso gesture:
+ * 1. #WM_GESTURE_LASSO: A lasso that follows the mouse cursor with the enclosed area shaded.
+ * 2. #WM_GESTURE_LINES: A lasso that follows the mouse cursor without the enclosed area shaded.
+ *
+ * The operator stores data in the "path" property as a series of screen space positions.
  * \{ */
 
 int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -479,7 +491,7 @@ int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   op->customdata = WM_gesture_new(win, CTX_wm_region(C), event, WM_GESTURE_LASSO);
 
-  /* add modal handler */
+  /* Add modal handler. */
   WM_event_add_modal_handler(C, op);
 
   wm_gesture_tag_redraw(win);
@@ -498,7 +510,7 @@ int WM_gesture_lines_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   op->customdata = WM_gesture_new(win, CTX_wm_region(C), event, WM_GESTURE_LINES);
 
-  /* add modal handler */
+  /* Add modal handler. */
   WM_event_add_modal_handler(C, op);
 
   wm_gesture_tag_redraw(win);
@@ -519,7 +531,7 @@ static int gesture_lasso_apply(bContext *C, wmOperator *op)
   int i;
   const short *lasso = static_cast<const short int *>(gesture->customdata);
 
-  /* operator storage as path. */
+  /* Operator storage as path. */
 
   RNA_collection_clear(op->ptr, "path");
   for (i = 0; i < gesture->points; i++, lasso += 2) {
@@ -569,7 +581,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
           const int x = ((event->xy[0] - gesture->winrct.xmin) - lasso[gesture->points - 1][0]);
           const int y = ((event->xy[1] - gesture->winrct.ymin) - lasso[gesture->points - 1][1]);
 
-          /* move the lasso */
+          /* Move the lasso. */
           if (gesture->move) {
             for (int i = 0; i < gesture->points; i++) {
               lasso[i][0] += x;
@@ -589,7 +601,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
       case LEFTMOUSE:
       case MIDDLEMOUSE:
       case RIGHTMOUSE: {
-        if (event->val == KM_RELEASE) { /* key release */
+        if (event->val == KM_RELEASE) { /* Key release. */
           return gesture_lasso_apply(C, op);
         }
         break;
@@ -620,43 +632,34 @@ void WM_gesture_lines_cancel(bContext *C, wmOperator *op)
   gesture_modal_end(C, op);
 }
 
-const int (*WM_gesture_lasso_path_to_array(bContext * /*C*/,
-                                           wmOperator *op,
-                                           int *r_mcoords_len))[2]
+Array<int2> WM_gesture_lasso_path_to_array(bContext * /*C*/, wmOperator *op)
 {
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "path");
-  int(*mcoords)[2] = nullptr;
   BLI_assert(prop != nullptr);
-
-  if (prop) {
-    const int len = RNA_property_collection_length(op->ptr, prop);
-
-    if (len) {
-      int i = 0;
-      mcoords = static_cast<int(*)[2]>(MEM_mallocN(sizeof(int[2]) * len, __func__));
-
-      RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
-        float loc[2];
-
-        RNA_float_get_array(&itemptr, "loc", loc);
-        mcoords[i][0] = int(loc[0]);
-        mcoords[i][1] = int(loc[1]);
-        i++;
-      }
-      RNA_PROP_END;
-    }
-    *r_mcoords_len = len;
+  if (!prop) {
+    return {};
   }
-  else {
-    *r_mcoords_len = 0;
+  const int len = RNA_property_collection_length(op->ptr, prop);
+  if (len == 0) {
+    return {};
   }
 
-  /* cast for 'const' */
+  int i = 0;
+  Array<int2> mcoords(len);
+
+  RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
+    float loc[2];
+    RNA_float_get_array(&itemptr, "loc", loc);
+    mcoords[i] = int2(loc[0], loc[1]);
+    i++;
+  }
+  RNA_PROP_END;
+
   return mcoords;
 }
 
 #if 0
-/* template to copy from */
+/* Template to copy from. */
 
 static int gesture_lasso_exec(bContext *C, wmOperator *op)
 {
@@ -695,6 +698,219 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Polyline Gesture
+ * Gesture defined by three or more points in a viewport enclosing a particular area.
+ *
+ * Like the Lasso Gesture, the data passed onto other operators via the 'path' property is a
+ * sequential array of mouse positions.
+ * \{ */
+int WM_gesture_polyline_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  wmWindow *win = CTX_wm_window(C);
+  PropertyRNA *prop;
+
+  op->customdata = WM_gesture_new(win, CTX_wm_region(C), event, WM_GESTURE_POLYLINE);
+
+  /* add modal handler */
+  WM_event_add_modal_handler(C, op);
+
+  wm_gesture_tag_redraw(win);
+
+  if ((prop = RNA_struct_find_property(op->ptr, "cursor"))) {
+    WM_cursor_modal_set(win, RNA_property_int_get(op->ptr, prop));
+  }
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+/* Calculates the number of valid points in a polyline gesture where
+ * a duplicated end point is invalid for submission */
+static int gesture_polyline_valid_points(const wmGesture &wmGesture)
+{
+  BLI_assert(wmGesture.points > 2);
+
+  const int num_points = wmGesture.points;
+  short(*points)[2] = static_cast<short int(*)[2]>(wmGesture.customdata);
+
+  const short last_x = points[num_points - 1][0];
+  const short last_y = points[num_points - 1][1];
+
+  const short prev_x = points[num_points - 2][0];
+  const short prev_y = points[num_points - 2][1];
+
+  return (last_x == prev_x && last_y == prev_y) ? num_points - 1 : num_points;
+}
+
+/* Evaluates whether the polyline has at least three points and represents
+ * a shape and can be submitted for other gesture operators to act on. */
+static bool gesture_polyline_can_apply(const wmGesture &wmGesture)
+{
+  if (wmGesture.points <= 2) {
+    return false;
+  }
+
+  const int valid_points = gesture_polyline_valid_points(wmGesture);
+  if (valid_points <= 2) {
+    return false;
+  }
+
+  return true;
+}
+
+static int gesture_polyline_apply(bContext *C, wmOperator *op)
+{
+  wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
+  BLI_assert(gesture_polyline_can_apply(*gesture));
+
+  const int valid_points = gesture_polyline_valid_points(*gesture);
+  gesture->points = valid_points;
+
+  const short *border = static_cast<const short int *>(gesture->customdata);
+
+  PointerRNA itemptr;
+  float loc[2];
+  RNA_collection_clear(op->ptr, "path");
+  for (int i = 0; i < gesture->points; i++, border += 2) {
+    loc[0] = border[0];
+    loc[1] = border[1];
+    RNA_collection_add(op->ptr, "path", &itemptr);
+    RNA_float_set_array(&itemptr, "loc", loc);
+  }
+
+  gesture_modal_end(C, op);
+
+  int retval = OPERATOR_FINISHED;
+  if (op->type->exec) {
+    retval = op->type->exec(C, op);
+    OPERATOR_RETVAL_CHECK(retval);
+  }
+
+  return retval;
+}
+
+int WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
+
+  if (event->type == EVT_MODAL_MAP) {
+    switch (event->val) {
+      case GESTURE_MODAL_MOVE:
+        gesture->move = !gesture->move;
+        break;
+      case GESTURE_MODAL_SELECT: {
+        wm_gesture_tag_redraw(CTX_wm_window(C));
+        short(*border)[2] = static_cast<short int(*)[2]>(gesture->customdata);
+        const short cur_x = border[gesture->points - 1][0];
+        const short cur_y = border[gesture->points - 1][1];
+
+        const short prev_x = border[gesture->points - 2][0];
+        const short prev_y = border[gesture->points - 2][1];
+
+        if (cur_x == prev_x && cur_y == prev_y) {
+          break;
+        }
+
+        const float2 cur(cur_x, cur_y);
+        const float2 orig(border[0][0], border[0][1]);
+
+        const float dist = len_v2v2(cur, orig);
+
+        if (dist < blender::wm::gesture::POLYLINE_CLICK_RADIUS * UI_SCALE_FAC &&
+            gesture_polyline_can_apply(*gesture))
+        {
+          return gesture_polyline_apply(C, op);
+        }
+
+        gesture->points++;
+        border[gesture->points - 1][0] = cur_x;
+        border[gesture->points - 1][1] = cur_y;
+        break;
+      }
+      case GESTURE_MODAL_CONFIRM:
+        if (gesture_polyline_can_apply(*gesture)) {
+          return gesture_polyline_apply(C, op);
+        }
+        break;
+      case GESTURE_MODAL_CANCEL:
+        gesture_modal_end(C, op);
+        return OPERATOR_CANCELLED;
+    }
+  }
+  else {
+    switch (event->type) {
+      case MOUSEMOVE:
+      case INBETWEEN_MOUSEMOVE: {
+        wm_gesture_tag_redraw(CTX_wm_window(C));
+        if (gesture->points == gesture->points_alloc) {
+          gesture->points_alloc *= 2;
+          gesture->customdata = MEM_reallocN(gesture->customdata,
+                                             sizeof(short[2]) * gesture->points_alloc);
+        }
+        short(*border)[2] = static_cast<short int(*)[2]>(gesture->customdata);
+
+        /* move the lasso */
+        if (gesture->move) {
+          const int x = ((event->xy[0] - gesture->winrct.xmin) - border[gesture->points - 1][0]);
+          const int y = ((event->xy[1] - gesture->winrct.ymin) - border[gesture->points - 1][1]);
+
+          for (int i = 0; i < gesture->points; i++) {
+            border[i][0] += x;
+            border[i][1] += y;
+          }
+        }
+
+        border[gesture->points - 1][0] = event->xy[0] - gesture->winrct.xmin;
+        border[gesture->points - 1][1] = event->xy[1] - gesture->winrct.ymin;
+        break;
+      }
+    }
+  }
+
+  gesture->is_active_prev = gesture->is_active;
+  return OPERATOR_RUNNING_MODAL;
+}
+
+void WM_gesture_polyline_cancel(bContext *C, wmOperator *op)
+{
+  gesture_modal_end(C, op);
+}
+
+/* template to copy from */
+#if 0
+static int gesture_polyline_exec(bContext *C, wmOperator *op)
+{
+  RNA_BEGIN (op->ptr, itemptr, "path") {
+    float loc[2];
+
+    RNA_float_get_array(&itemptr, "loc", loc);
+    printf("Location: %f %f\n", loc[0], loc[1]);
+  }
+  RNA_END;
+
+  return OPERATOR_FINISHED;
+}
+
+void WM_OT_polyline_gesture(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  ot->name = "Polyline Gesture";
+  ot->idname = "WM_OT_polyline_gesture";
+  ot->description = "Outline a selection area with each mouse click";
+
+  ot->invoke = WM_gesture_polyline_invoke;
+  ot->modal = WM_gesture_polyline_modal;
+  ot->exec = gesture_polyline_exec;
+
+  ot->poll = WM_operator_winactive;
+
+  WM_operator_properties_gesture_polyline(ot);
+}
+#endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Straight Line Gesture
  *
  * Gesture defined by the start and end points of a line that is created between the position of
@@ -710,13 +926,13 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 static bool gesture_straightline_apply(bContext *C, wmOperator *op)
 {
   wmGesture *gesture = static_cast<wmGesture *>(op->customdata);
-  rcti *rect = static_cast<rcti *>(gesture->customdata);
+  const rcti *rect = static_cast<const rcti *>(gesture->customdata);
 
   if (rect->xmin == rect->xmax && rect->ymin == rect->ymax) {
     return false;
   }
 
-  /* operator arguments and storage. */
+  /* Operator arguments and storage. */
   RNA_int_set(op->ptr, "xstart", rect->xmin);
   RNA_int_set(op->ptr, "ystart", rect->ymin);
   RNA_int_set(op->ptr, "xend", rect->xmax);
@@ -743,7 +959,7 @@ int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *e
     gesture->is_active = true;
   }
 
-  /* add modal handler */
+  /* Add modal handler. */
   WM_event_add_modal_handler(C, op);
 
   wm_gesture_tag_redraw(win);
@@ -957,7 +1173,7 @@ void WM_gesture_straightline_cancel(bContext *C, wmOperator *op)
 }
 
 #if 0
-/* template to copy from */
+/* Template to copy from. */
 void WM_OT_straightline_gesture(wmOperatorType *ot)
 {
   PropertyRNA *prop;

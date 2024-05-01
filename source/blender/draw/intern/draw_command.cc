@@ -6,10 +6,10 @@
  * \ingroup draw
  */
 
-#include "GPU_batch.h"
-#include "GPU_capabilities.h"
-#include "GPU_compute.h"
-#include "GPU_debug.h"
+#include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
+#include "GPU_compute.hh"
+#include "GPU_debug.hh"
 
 #include "draw_command.hh"
 #include "draw_pass.hh"
@@ -501,7 +501,7 @@ std::string Draw::serialize() const
          ")";
 }
 
-std::string DrawMulti::serialize(std::string line_prefix) const
+std::string DrawMulti::serialize(const std::string &line_prefix) const
 {
   DrawMultiBuf::DrawGroupBuf &groups = multi_draw_buf->group_buf_;
 

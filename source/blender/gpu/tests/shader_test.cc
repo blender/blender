@@ -5,24 +5,24 @@
 #include "testing/testing.h"
 
 #include "BLI_math_matrix_types.hh"
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_capabilities.h"
-#include "GPU_compute.h"
-#include "GPU_context.h"
-#include "GPU_framebuffer.h"
-#include "GPU_index_buffer.h"
-#include "GPU_shader.h"
-#include "GPU_shader_shared.h"
-#include "GPU_texture.h"
-#include "GPU_vertex_buffer.h"
-#include "GPU_vertex_format.h"
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh"
+#include "GPU_capabilities.hh"
+#include "GPU_compute.hh"
+#include "GPU_context.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_index_buffer.hh"
+#include "GPU_shader.hh"
+#include "GPU_shader_shared.hh"
+#include "GPU_texture.hh"
+#include "GPU_vertex_buffer.hh"
+#include "GPU_vertex_format.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
-#include "gpu_shader_dependency_private.h"
+#include "gpu_shader_dependency_private.hh"
 #include "gpu_testing.hh"
 
 namespace blender::gpu::tests {
@@ -31,12 +31,6 @@ using namespace blender::gpu::shader;
 
 static void test_shader_compute_2d()
 {
-
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
 
   static constexpr uint SIZE = 512;
 
@@ -77,13 +71,6 @@ GPU_TEST(shader_compute_2d)
 
 static void test_shader_compute_1d()
 {
-
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
-
   static constexpr uint SIZE = 10;
 
   /* Build compute shader. */
@@ -126,13 +113,6 @@ GPU_TEST(shader_compute_1d)
 
 static void test_shader_compute_vbo()
 {
-
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
-
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
@@ -143,7 +123,7 @@ static void test_shader_compute_vbo()
   /* Construct VBO. */
   GPUVertFormat format = {0};
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_DEVICE_ONLY);
+  VertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_DEVICE_ONLY);
   GPU_vertbuf_data_alloc(vbo, SIZE);
   GPU_vertbuf_bind_as_ssbo(vbo, GPU_shader_get_ssbo_binding(shader, "out_positions"));
 
@@ -173,13 +153,6 @@ GPU_TEST(shader_compute_vbo)
 
 static void test_shader_compute_ibo()
 {
-
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
-
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
@@ -188,7 +161,7 @@ static void test_shader_compute_ibo()
   GPU_shader_bind(shader);
 
   /* Construct IBO. */
-  GPUIndexBuf *ibo = GPU_indexbuf_build_on_device(SIZE);
+  IndexBuf *ibo = GPU_indexbuf_build_on_device(SIZE);
   GPU_indexbuf_bind_as_ssbo(ibo, GPU_shader_get_ssbo_binding(shader, "out_indices"));
 
   /* Dispatch compute task. */
@@ -214,13 +187,6 @@ GPU_TEST(shader_compute_ibo)
 
 static void test_shader_compute_ssbo()
 {
-
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
-
   static constexpr uint SIZE = 128;
 
   /* Build compute shader. */
@@ -256,12 +222,6 @@ GPU_TEST(shader_compute_ssbo)
 
 static void test_shader_ssbo_binding()
 {
-  if (!GPU_compute_shader_support()) {
-    /* We can't test as a the platform does not support compute shaders. */
-    std::cout << "Skipping compute shader test: platform not supported";
-    return;
-  }
-
   /* Build compute shader. */
   GPUShader *shader = GPU_shader_create_from_info_name("gpu_compute_ssbo_binding_test");
   EXPECT_NE(shader, nullptr);
@@ -406,9 +366,9 @@ static void gpu_shader_lib_test(const char *test_src_name, const char *additiona
   /* TODO(fclem): remove this boilerplate. */
   GPUVertFormat format{};
   GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
-  GPUVertBuf *verts = GPU_vertbuf_create_with_format(&format);
+  VertBuf *verts = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(verts, 3);
-  GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
+  Batch *batch = GPU_batch_create_ex(GPU_PRIM_TRIS, verts, nullptr, GPU_BATCH_OWNS_VBO);
 
   GPU_batch_set_shader(batch, shader);
   GPU_batch_draw_advanced(batch, 0, 3, 0, 1);

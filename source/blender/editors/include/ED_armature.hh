@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_listbase.h"
 #include "BLI_span.hh"
 
@@ -65,7 +66,10 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm, float length, bool
 
 void ED_armature_ebone_copy(EditBone *dest, const EditBone *source);
 
-/* `armature_edit.cc` */
+/**
+ * Get current armature from the context, including properties editor pinning.
+ */
+bArmature *ED_armature_context(const bContext *C);
 
 /**
  * Adjust bone roll to align Z axis with vector `align_axis` is in local space and is normalized.
@@ -189,7 +193,7 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
                                          int mode,
                                          bool mirror);
 
-/* editarmature_undo.cc */
+/* `editarmature_undo.cc` */
 
 /** Export for ED_undo_sys. */
 void ED_armature_undosys_type(UndoType *ut);
@@ -284,7 +288,8 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
                                        View3D *v3d,
                                        Object *ob,
                                        Bone *bone,
-                                       const SelectPick_Params *params);
+                                       const SelectPick_Params *params)
+    ATTR_NONNULL(1, 2, 3, 4, 6);
 /**
  * Called for mode-less pose selection.
  * assumes the active object is still on old situation.
@@ -298,7 +303,7 @@ bool ED_armature_pose_select_pick_with_buffer(const Scene *scene,
                                               const GPUSelectResult *hit_results,
                                               int hits,
                                               const SelectPick_Params *params,
-                                              bool do_nearest);
+                                              bool do_nearest) ATTR_NONNULL(1, 2, 3, 4, 5, 7);
 /**
  * While in weight-paint mode, a single pose may be active as well.
  * While not common, it's possible we have multiple armatures deforming a mesh.
@@ -328,7 +333,7 @@ void ED_pose_bone_select_tag_update(Object *ob);
  */
 void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select, bool change_active);
 
-/* meshlaplacian.cc */
+/* `meshlaplacian.cc` */
 
 void ED_mesh_deform_bind_callback(Object *object,
                                   MeshDeformModifierData *mmd,

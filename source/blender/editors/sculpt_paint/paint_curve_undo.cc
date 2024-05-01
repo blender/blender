@@ -77,7 +77,8 @@ static bool paintcurve_undosys_poll(bContext *C)
     return false;
   }
   Paint *p = BKE_paint_get_active_from_context(C);
-  return (p->brush && p->brush->paint_curve);
+  Brush *brush = BKE_paint_brush(p);
+  return (brush && brush->paint_curve);
 }
 
 static void paintcurve_undosys_step_encode_init(bContext *C, UndoStep *us_p)
@@ -95,7 +96,8 @@ static bool paintcurve_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoSt
   }
 
   Paint *p = BKE_paint_get_active_from_context(C);
-  PaintCurve *pc = p ? (p->brush ? p->brush->paint_curve : nullptr) : nullptr;
+  Brush *brush = BKE_paint_brush(p);
+  PaintCurve *pc = p ? (brush ? brush->paint_curve : nullptr) : nullptr;
   if (pc == nullptr) {
     return false;
   }

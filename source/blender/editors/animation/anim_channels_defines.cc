@@ -9,6 +9,7 @@
 #include <cstdio>
 
 #include "ANIM_action.hh"
+#include "ANIM_animation.hh"
 #include "ANIM_animdata.hh"
 #include "ANIM_keyframing.hh"
 
@@ -51,7 +52,7 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
@@ -60,8 +61,8 @@
 #include "BKE_lib_id.hh"
 #include "BKE_nla.h"
 
-#include "GPU_immediate.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -75,6 +76,8 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
+
+using namespace blender;
 
 /* *********************************************** */
 /* XXX constant defines to be moved elsewhere? */
@@ -1245,6 +1248,94 @@ static bAnimChannelType ACF_NLACURVE = {
     /*setting_flag*/ acf_fcurve_setting_flag,
     /*setting_ptr*/ acf_fcurve_setting_ptr,
 };
+
+/* Object Animation Expander  ------------------------------------------- */
+
+#ifdef WITH_ANIM_BAKLAVA
+
+/* TODO: just get this from RNA? */
+static int acf_fillanim_icon(bAnimListElem * /*ale*/)
+{
+  return ICON_ACTION; /* TODO: give Animation its own icon? */
+}
+
+/* check if some setting exists for this channel */
+static bool acf_fillanim_setting_valid(bAnimContext * /*ac*/,
+                                       bAnimListElem * /*ale*/,
+                                       eAnimChannel_Settings setting)
+{
+  switch (setting) {
+    case ACHANNEL_SETTING_SELECT:
+    case ACHANNEL_SETTING_EXPAND:
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+/* Get the appropriate flag(s) for the setting when it is valid. */
+static int acf_fillanim_setting_flag(bAnimContext * /*ac*/,
+                                     eAnimChannel_Settings setting,
+                                     bool *r_neg)
+{
+  *r_neg = false;
+
+  switch (setting) {
+    case ACHANNEL_SETTING_SELECT:
+      return ADT_UI_SELECTED;
+
+    case ACHANNEL_SETTING_EXPAND:
+      return ADT_UI_EXPANDED;
+
+    default:
+      return 0;
+  }
+}
+
+/* get pointer to the setting */
+static void *acf_fillanim_setting_ptr(bAnimListElem *ale,
+                                      eAnimChannel_Settings setting,
+                                      short *r_type)
+{
+  AnimData *adt = ale->adt;
+  BLI_assert(adt);
+
+  *r_type = 0;
+
+  switch (setting) {
+    case ACHANNEL_SETTING_SELECT:
+      return GET_ACF_FLAG_PTR(adt->flag, r_type);
+
+    case ACHANNEL_SETTING_EXPAND:
+      return GET_ACF_FLAG_PTR(adt->flag, r_type);
+
+    default:
+      return nullptr;
+  }
+}
+
+/** Object Animation expander type define. */
+static bAnimChannelType ACF_FILLANIM = {
+    /*channel_type_name*/ "Ob-Animation Filler",
+    /*channel_role*/ ACHANNEL_ROLE_EXPANDER,
+
+    /*get_backdrop_color*/ acf_generic_dataexpand_color,
+    /*get_channel_color*/ nullptr,
+    /*draw_backdrop*/ acf_generic_dataexpand_backdrop,
+    /*get_indent_level*/ acf_generic_indentation_1,
+    /*get_offset*/ acf_generic_basic_offset,
+
+    /*name*/ acf_generic_idblock_name,
+    /*name_prop*/ acf_generic_idfill_name_prop,
+    /*icon*/ acf_fillanim_icon,
+
+    /*has_setting*/ acf_fillanim_setting_valid,
+    /*setting_flag*/ acf_fillanim_setting_flag,
+    /*setting_ptr*/ acf_fillanim_setting_ptr,
+};
+
+#endif
 
 /* Object Action Expander  ------------------------------------------- */
 
@@ -4280,6 +4371,11 @@ static void ANIM_init_channel_typeinfo_data()
     animchannelTypeInfo[type++] = &ACF_NLACONTROLS; /* NLA Control FCurve Expander */
     animchannelTypeInfo[type++] = &ACF_NLACURVE;    /* NLA Control FCurve Channel */
 
+#ifdef WITH_ANIM_BAKLAVA
+    animchannelTypeInfo[type++] = &ACF_FILLANIM; /* Object Animation Expander */
+#else
+    animchannelTypeInfo[type++] = nullptr;
+#endif
     animchannelTypeInfo[type++] = &ACF_FILLACTD;    /* Object Action Expander */
     animchannelTypeInfo[type++] = &ACF_FILLDRIVERS; /* Drivers Expander */
 
@@ -4325,6 +4421,11 @@ static void ANIM_init_channel_typeinfo_data()
 
     animchannelTypeInfo[type++] = &ACF_NLATRACK;  /* NLA Track */
     animchannelTypeInfo[type++] = &ACF_NLAACTION; /* NLA Action */
+
+#ifdef WITH_ANIM_BAKLAVA
+    BLI_assert_msg(animchannelTypeInfo[ANIMTYPE_FILLANIM] == &ACF_FILLANIM,
+                   "ANIMTYPE_FILLANIM does not match ACF_FILLANIM");
+#endif
   }
 }
 
@@ -5041,7 +5142,7 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   cfra = BKE_nla_tweakedit_remap(adt, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
 
   /* Get flags for keyframing. */
-  flag = ANIM_get_keyframing_flags(scene);
+  flag = blender::animrig::get_keyframing_flags(scene);
 
   /* try to resolve the path stored in the F-Curve */
   if (RNA_path_resolve_property(&id_ptr, fcu->rna_path, &ptr, &prop)) {
@@ -5104,7 +5205,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
       key->adt, anim_eval_context.eval_time, NLATIME_CONVERT_UNMAP);
 
   /* get flags for keyframing */
-  flag = ANIM_get_keyframing_flags(scene);
+  flag = blender::animrig::get_keyframing_flags(scene);
 
   /* try to resolve the path stored in the F-Curve */
   if (RNA_path_resolve_property(&id_ptr, rna_path ? rna_path->c_str() : nullptr, &ptr, &prop)) {
@@ -5160,7 +5261,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C, void * /*id_poin*/
   cfra = float(scene->r.cfra);
 
   /* get flags for keyframing */
-  flag = ANIM_get_keyframing_flags(scene);
+  flag = blender::animrig::get_keyframing_flags(scene);
 
   /* Get pointer and property from the slider -
    * this should all match up with the NlaStrip required. */
@@ -5348,8 +5449,6 @@ static void draw_setting_widget(bAnimContext *ac,
                              static_cast<int *>(ptr),
                              0,
                              0,
-                             0,
-                             0,
                              tooltip);
       break;
 
@@ -5366,8 +5465,6 @@ static void draw_setting_widget(bAnimContext *ac,
                              static_cast<short *>(ptr),
                              0,
                              0,
-                             0,
-                             0,
                              tooltip);
       break;
 
@@ -5382,8 +5479,6 @@ static void draw_setting_widget(bAnimContext *ac,
                              ICON_WIDTH,
                              ICON_WIDTH,
                              static_cast<char *>(ptr),
-                             0,
-                             0,
                              0,
                              0,
                              tooltip);
@@ -5477,13 +5572,12 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
   if (RNA_path_resolve_property(
           &id_ptr, onion_skinning_rna_path->c_str(), &ptr, &onion_skinning_prop))
   {
-    const int icon = layer->use_onion_skinning() ? ICON_ONIONSKIN_ON : ICON_ONIONSKIN_OFF;
     uiDefAutoButR(block,
                   &ptr,
                   onion_skinning_prop,
                   array_index,
                   "",
-                  icon,
+                  ICON_ONIONSKIN_OFF,
                   offset,
                   rect->ymin,
                   ICON_WIDTH,

@@ -18,7 +18,7 @@
 #include "DRW_select_buffer.hh"
 
 #include "draw_cache_impl.hh"
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
 #include "select_engine.hh"
 #include "select_private.hh"
@@ -216,7 +216,8 @@ static void select_cache_populate(void *vedata, Object *ob)
 
     /* This object is not in the array. It is here to participate in the depth buffer. */
     if (ob->dt >= OB_SOLID) {
-      GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(static_cast<Mesh *>(ob->data));
+      blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(
+          static_cast<Mesh *>(ob->data));
       DRW_shgroup_call_obmat(stl->g_data->shgrp_occlude, geom_faces, ob->object_to_world().ptr());
     }
   }

@@ -22,23 +22,25 @@
 
 #include "opensubdiv_converter_capi.hh"
 
+namespace blender::bke::subdiv {
+
 /* Enable work-around for non-working CPU evaluator when using bilinear scheme.
  * This forces Catmark scheme with all edges marked as infinitely sharp. */
 #define BUGGY_SIMPLE_SCHEME_WORKAROUND 1
 
 struct ConverterStorage {
-  SubdivSettings settings;
+  Settings settings;
   const Mesh *mesh;
-  blender::Span<blender::float3> vert_positions;
-  blender::Span<blender::int2> edges;
-  blender::OffsetIndices<int> faces;
-  blender::Span<int> corner_verts;
-  blender::Span<int> corner_edges;
+  Span<float3> vert_positions;
+  Span<int2> edges;
+  OffsetIndices<int> faces;
+  Span<int> corner_verts;
+  Span<int> corner_edges;
 
   /* CustomData layer for vertex sharpnesses. */
-  blender::VArraySpan<float> cd_vertex_crease;
+  VArraySpan<float> cd_vertex_crease;
   /* CustomData layer for edge sharpness. */
-  blender::VArraySpan<float> cd_edge_crease;
+  VArraySpan<float> cd_edge_crease;
   /* Indexed by loop index, value denotes index of face-varying vertex
    * which corresponds to the UV coordinate.
    */
@@ -55,7 +57,7 @@ struct ConverterStorage {
   /* Indexed by vertex index from mesh, corresponds to whether this vertex has
    * infinite sharpness due to non-manifold topology.
    */
-  blender::BitVector<> infinite_sharp_vertices_map;
+  BitVector<> infinite_sharp_vertices_map;
   /* Reverse mapping to above. */
   int *manifold_vertex_index_reverse;
   int *manifold_edge_index_reverse;
@@ -85,7 +87,7 @@ static OpenSubdiv_VtxBoundaryInterpolation get_vtx_boundary_interpolation(
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   return OpenSubdiv_VtxBoundaryInterpolation(
-      BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(&storage->settings));
+      converter_vtx_boundary_interpolation_from_settings(&storage->settings));
 }
 
 static OpenSubdiv_FVarLinearInterpolation get_fvar_linear_interpolation(
@@ -93,7 +95,7 @@ static OpenSubdiv_FVarLinearInterpolation get_fvar_linear_interpolation(
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   return OpenSubdiv_FVarLinearInterpolation(
-      BKE_subdiv_converter_fvar_linear_from_settings(&storage->settings));
+      converter_fvar_linear_from_settings(&storage->settings));
 }
 
 static bool specifies_full_topology(const OpenSubdiv_Converter * /*converter*/)
@@ -130,7 +132,7 @@ static void get_face_vertices(const OpenSubdiv_Converter *converter,
                               int *manifold_face_vertices)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  const blender::IndexRange face = storage->faces[manifold_face_index];
+  const IndexRange face = storage->faces[manifold_face_index];
   for (int i = 0; i < face.size(); i++) {
     const int vert = storage->corner_verts[face[i]];
     manifold_face_vertices[i] = storage->manifold_vertex_index[vert];
@@ -143,7 +145,7 @@ static void get_edge_vertices(const OpenSubdiv_Converter *converter,
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
   const int edge_index = storage->manifold_edge_index_reverse[manifold_edge_index];
-  const blender::int2 &edge = storage->edges[edge_index];
+  const int2 &edge = storage->edges[edge_index];
   manifold_edge_vertices[0] = storage->manifold_vertex_index[edge[0]];
   manifold_edge_vertices[1] = storage->manifold_vertex_index[edge[1]];
 }
@@ -160,7 +162,7 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int manif
     return 0.0f;
   }
   const int edge_index = storage->manifold_edge_index_reverse[manifold_edge_index];
-  return BKE_subdiv_crease_to_sharpness_f(storage->cd_edge_crease[edge_index]);
+  return crease_to_sharpness(storage->cd_edge_crease[edge_index]);
 }
 
 static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
@@ -186,7 +188,7 @@ static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, int man
     return 0.0f;
   }
   const int vertex_index = storage->manifold_vertex_index_reverse[manifold_vertex_index];
-  return BKE_subdiv_crease_to_sharpness_f(storage->cd_vertex_crease[vertex_index]);
+  return crease_to_sharpness(storage->cd_vertex_crease[vertex_index]);
 }
 
 static int get_num_uv_layers(const OpenSubdiv_Converter *converter)
@@ -226,7 +228,7 @@ static void precalc_uv_layer(const OpenSubdiv_Converter *converter, const int la
       if (uv_vert->separate) {
         storage->num_uv_coordinates++;
       }
-      const blender::IndexRange face = storage->faces[uv_vert->face_index];
+      const IndexRange face = storage->faces[uv_vert->face_index];
       const int global_loop_index = face.start() + uv_vert->loop_of_face_index;
       storage->loop_uv_indices[global_loop_index] = storage->num_uv_coordinates;
       uv_vert = uv_vert->next;
@@ -252,7 +254,7 @@ static int get_face_corner_uv_index(const OpenSubdiv_Converter *converter,
                                     const int corner)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  const blender::IndexRange face = storage->faces[face_index];
+  const IndexRange face = storage->faces[face_index];
   return storage->loop_uv_indices[face.start() + corner];
 }
 
@@ -302,7 +304,7 @@ static void init_functions(OpenSubdiv_Converter *converter)
   converter->freeUserData = free_user_data;
 }
 
-static void initialize_manifold_index_array(const blender::BitSpan not_used_map,
+static void initialize_manifold_index_array(const BitSpan not_used_map,
                                             const int num_elements,
                                             int **r_indices,
                                             int **r_indices_reverse,
@@ -345,7 +347,6 @@ static void initialize_manifold_index_array(const blender::BitSpan not_used_map,
 
 static void initialize_manifold_indices(ConverterStorage *storage)
 {
-  using namespace blender;
   const Mesh *mesh = storage->mesh;
   const bke::LooseVertCache &loose_verts = mesh->verts_no_face();
   const bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
@@ -374,11 +375,9 @@ static void initialize_manifold_indices(ConverterStorage *storage)
 }
 
 static void init_user_data(OpenSubdiv_Converter *converter,
-                           const SubdivSettings *settings,
+                           const Settings *settings,
                            const Mesh *mesh)
 {
-  using namespace blender;
-  using namespace blender::bke;
   ConverterStorage *user_data = MEM_new<ConverterStorage>(__func__);
   user_data->settings = *settings;
   user_data->mesh = mesh;
@@ -388,7 +387,7 @@ static void init_user_data(OpenSubdiv_Converter *converter,
   user_data->corner_verts = mesh->corner_verts();
   user_data->corner_edges = mesh->corner_edges();
   if (settings->use_creases) {
-    const bke::AttributeAccessor attributes = mesh->attributes();
+    const AttributeAccessor attributes = mesh->attributes();
     user_data->cd_vertex_crease = *attributes.lookup<float>("crease_vert", AttrDomain::Point);
     user_data->cd_edge_crease = *attributes.lookup<float>("crease_edge", AttrDomain::Edge);
   }
@@ -397,10 +396,12 @@ static void init_user_data(OpenSubdiv_Converter *converter,
   converter->user_data = user_data;
 }
 
-void BKE_subdiv_converter_init_for_mesh(OpenSubdiv_Converter *converter,
-                                        const SubdivSettings *settings,
-                                        const Mesh *mesh)
+void converter_init_for_mesh(OpenSubdiv_Converter *converter,
+                             const Settings *settings,
+                             const Mesh *mesh)
 {
   init_functions(converter);
   init_user_data(converter, settings, mesh);
 }
+
+}  // namespace blender::bke::subdiv

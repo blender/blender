@@ -20,7 +20,7 @@ void inflate_bounds(vec3 ls_center, inout vec3 P, inout vec3 lP)
 {
   vec3 vP = drw_point_world_to_view(P);
 
-  float inflate_scale = pixel_world_radius * exp2(float(fb_lod));
+  float inflate_scale = uniform_buf.shadow.film_pixel_radius * exp2(float(fb_lod));
   if (drw_view_is_perspective()) {
     inflate_scale *= -vP.z;
   }
@@ -43,6 +43,11 @@ void main()
   DRW_RESOURCE_ID_VARYING_SET
 
   ObjectBounds bounds = bounds_buf[resource_id];
+  if (!drw_bounds_are_valid(bounds)) {
+    /* Discard. */
+    gl_Position = vec4(NAN_FLT);
+    return;
+  }
 
   Box box = shape_box(bounds.bounding_corners[0].xyz,
                       bounds.bounding_corners[0].xyz + bounds.bounding_corners[1].xyz,

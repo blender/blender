@@ -21,7 +21,7 @@ set(INC_SYS
 set(SRC
   gizmo_draw_utils.cc
   gizmo_geometry.h
-  gizmo_library_intern.h
+  gizmo_library_intern.hh
   gizmo_library_presets.cc
   gizmo_library_utils.cc
   geometry/geom_arrow_gizmo.cc

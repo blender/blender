@@ -18,7 +18,7 @@ import bpy
 
 def dump(obj, text):
     for attr in dir(obj):
-        print("%r.%s = %s" % (obj, attr, getattr(obj, attr)))
+        print("{!r}.{:s} = {:s}".format(obj, attr, getattr(obj, attr)))
 
 
 class WM_OT_button_context_test(bpy.types.Operator):

@@ -1,107 +1,495 @@
-/* SPDX-FileCopyrightText: 2011 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_jitter_2d.h"
+#include <cmath>
+#include <cstring>
+#include <memory>
+
+#include "BLI_array.hh"
+#include "BLI_index_range.hh"
+#include "BLI_math_base.hh"
+#include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
+#include "BLI_task.hh"
 
 #include "COM_VectorBlurOperation.h"
 
+/* This is identical to the compositor implementation in compositor_motion_blur_info.hh and its
+ * related files with the necessary adjustments to make it work for the CPU. */
+
+#define MOTION_BLUR_TILE_SIZE 32
+#define DEPTH_SCALE 100.0f
+
 namespace blender::compositor {
-
-/* Defined */
-#define PASS_VECTOR_MAX 10000.0f
-
-/* Forward declarations */
-struct DrawBufPixel;
-struct ZSpan;
-void zbuf_accumulate_vecblur(NodeBlurData *nbd,
-                             int xsize,
-                             int ysize,
-                             float *newrect,
-                             const float *imgrect,
-                             float *vecbufrect,
-                             const float *zbufrect);
-void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty, float clipcrop);
-void zbuf_free_span(ZSpan *zspan);
-void antialias_tagbuf(int xsize, int ysize, char *rectmove);
-
-/* VectorBlurOperation */
 
 VectorBlurOperation::VectorBlurOperation()
 {
   this->add_input_socket(DataType::Color);
-  this->add_input_socket(DataType::Value); /* ZBUF */
-  this->add_input_socket(DataType::Color); /* SPEED */
+  this->add_input_socket(DataType::Value);
+  this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
   settings_ = nullptr;
-  cached_instance_ = nullptr;
-  input_image_program_ = nullptr;
-  input_speed_program_ = nullptr;
-  input_zprogram_ = nullptr;
-  flags_.complex = true;
-  flags_.is_fullframe_operation = true;
-}
-void VectorBlurOperation::init_execution()
-{
-  init_mutex();
-  input_image_program_ = get_input_socket_reader(0);
-  input_zprogram_ = get_input_socket_reader(1);
-  input_speed_program_ = get_input_socket_reader(2);
-  cached_instance_ = nullptr;
-  QualityStepHelper::init_execution(COM_QH_INCREASE);
 }
 
-void VectorBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
+/* Returns the input velocity that has the larger magnitude. */
+static float2 max_velocity(const float2 &a, const float2 &b)
 {
-  float *buffer = (float *)data;
-  int index = (y * this->get_width() + x) * COM_DATA_TYPE_COLOR_CHANNELS;
-  copy_v4_v4(output, &buffer[index]);
+  return math::length_squared(a) > math::length_squared(b) ? a : b;
 }
 
-void VectorBlurOperation::deinit_execution()
+/* Identical to motion_blur_tile_indirection_pack_payload, encodes the value and its texel such
+ * that the integer length of the value is encoded in the most significant bits, then the x value
+ * of the texel are encoded in the middle bits, then the y value of the texel is stored in the
+ * least significant bits. */
+static uint32_t velocity_atomic_max_value(const float2 &value, const int2 &texel)
 {
-  deinit_mutex();
-  input_image_program_ = nullptr;
-  input_speed_program_ = nullptr;
-  input_zprogram_ = nullptr;
-  if (cached_instance_) {
-    MEM_freeN(cached_instance_);
-    cached_instance_ = nullptr;
+  const uint32_t length_bits = math::min(uint32_t(math::ceil(math::length(value))), 0x3FFFu);
+  return (length_bits << 18u) | ((texel.x & 0x1FFu) << 9u) | (texel.y & 0x1FFu);
+}
+
+/* Returns the input velocity that has the larger integer magnitude, and if equal the larger x
+ * texel coordinates, and if equal, the larger y texel coordinates. It might be weird that we use
+ * an approximate comparison, but this is used for compatibility with the GPU code, which uses
+ * atomic integer operations, hence the limited precision. See  velocity_atomic_max_value for more
+ * information. */
+static float2 max_velocity_approximate(const float2 &a,
+                                       const float2 &b,
+                                       const int2 &a_texel,
+                                       const int2 &b_texel)
+{
+  return velocity_atomic_max_value(a, a_texel) > velocity_atomic_max_value(b, b_texel) ? a : b;
+}
+
+/* Reduces each 32x32 block of velocity pixels into a single velocity whose magnitude is largest.
+ * Each of the previous and next velocities are reduces independently. */
+static MemoryBuffer compute_max_tile_velocity(MemoryBuffer *velocity_buffer)
+{
+  const int2 tile_size = int2(MOTION_BLUR_TILE_SIZE);
+  const int2 velocity_size = int2(velocity_buffer->get_width(), velocity_buffer->get_height());
+  const int2 tiles_count = math::divide_ceil(velocity_size, tile_size);
+  MemoryBuffer output(DataType::Color, tiles_count.x, tiles_count.y);
+
+  threading::parallel_for(IndexRange(tiles_count.y), 1, [&](const IndexRange sub_y_range) {
+    for (const int64_t y : sub_y_range) {
+      for (const int64_t x : IndexRange(tiles_count.x)) {
+        const int2 texel = int2(x, y);
+
+        float2 max_previous_velocity = float2(0.0f);
+        float2 max_next_velocity = float2(0.0f);
+
+        for (int j = 0; j < tile_size.y; j++) {
+          for (int i = 0; i < tile_size.x; i++) {
+            int2 sub_texel = texel * tile_size + int2(i, j);
+            const float4 velocity = velocity_buffer->get_elem_clamped(sub_texel.x, sub_texel.y);
+            max_previous_velocity = max_velocity(velocity.xy(), max_previous_velocity);
+            max_next_velocity = max_velocity(velocity.zw(), max_next_velocity);
+          }
+        }
+
+        const float4 max_velocity = float4(max_previous_velocity, max_next_velocity);
+        copy_v4_v4(output.get_elem(texel.x, texel.y), max_velocity);
+      }
+    }
+  });
+
+  return output;
+}
+
+struct MotionRect {
+  int2 bottom_left;
+  int2 extent;
+};
+
+static MotionRect compute_motion_rect(int2 tile, float2 motion, int2 size)
+{
+  /* `ceil()` to number of tile touched. */
+  int2 point1 = tile + int2(math::sign(motion) *
+                            math::ceil(math::abs(motion) / float(MOTION_BLUR_TILE_SIZE)));
+  int2 point2 = tile;
+
+  int2 max_point = math::max(point1, point2);
+  int2 min_point = math::min(point1, point2);
+  /* Clamp to bounds. */
+  max_point = math::min(max_point, size - 1);
+  min_point = math::max(min_point, int2(0));
+
+  MotionRect rect;
+  rect.bottom_left = min_point;
+  rect.extent = 1 + max_point - min_point;
+  return rect;
+}
+
+struct MotionLine {
+  /** Origin of the line. */
+  float2 origin;
+  /** Normal to the line direction. */
+  float2 normal;
+};
+
+static MotionLine compute_motion_line(int2 tile, float2 motion)
+{
+  float magnitude = math::length(motion);
+  float2 dir = magnitude != 0.0f ? motion / magnitude : motion;
+
+  MotionLine line;
+  line.origin = float2(tile);
+  /* Rotate 90 degrees counter-clockwise. */
+  line.normal = float2(-dir.y, dir.x);
+  return line;
+}
+
+static bool is_inside_motion_line(int2 tile, MotionLine motion_line)
+{
+  /* NOTE: Everything in is tile unit. */
+  float distance_to_line = math::dot(motion_line.normal, motion_line.origin - float2(tile));
+  /* In order to be conservative and for simplicity, we use the tiles bounding circles.
+   * Consider that both the tile and the line have bounding radius of M_SQRT1_2. */
+  return math::abs(distance_to_line) < math::numbers::sqrt2_v<float>;
+}
+
+/* The max tile velocity image computes the maximum within 32x32 blocks, while the velocity can
+ * in fact extend beyond such a small block. So we dilate the max blocks by taking the maximum
+ * along the path of each of the max velocity tiles. Since the shader uses custom max atomics,
+ * the output will be an indirection buffer that points to a particular tile in the original max
+ * tile velocity image. This is done as a form of performance optimization, see the shader for
+ * more information. */
+static MemoryBuffer dilate_max_velocity(MemoryBuffer &max_tile_velocity, float shutter_speed)
+{
+  const int2 size = int2(max_tile_velocity.get_width(), max_tile_velocity.get_height());
+  MemoryBuffer output(DataType::Color, size.x, size.y);
+  const float4 zero_value = float4(0.0f);
+  output.fill(output.get_rect(), zero_value);
+
+  for (const int64_t y : IndexRange(size.y)) {
+    for (const int64_t x : IndexRange(size.x)) {
+      const int2 src_tile = int2(x, y);
+
+      float4 max_motion = float4(max_tile_velocity.get_elem(x, y)) *
+                          float4(float2(shutter_speed), float2(-shutter_speed));
+
+      {
+        /* Rectangular area (in tiles) where the motion vector spreads. */
+        MotionRect motion_rect = compute_motion_rect(src_tile, max_motion.xy(), size);
+        MotionLine motion_line = compute_motion_line(src_tile, max_motion.xy());
+        /* Do a conservative rasterization of the line of the motion vector line. */
+        for (int j = 0; j < motion_rect.extent.y; j++) {
+          for (int i = 0; i < motion_rect.extent.x; i++) {
+            int2 tile = motion_rect.bottom_left + int2(i, j);
+            if (is_inside_motion_line(tile, motion_line)) {
+              float *pixel = output.get_elem(tile.x, tile.y);
+              copy_v2_v2(pixel + 2,
+                         max_velocity_approximate(pixel + 2, max_motion.zw(), tile, src_tile));
+              copy_v2_v2(pixel, max_velocity_approximate(pixel, max_motion.xy(), tile, src_tile));
+            }
+          }
+        }
+      }
+
+      {
+        /* Rectangular area (in tiles) where the motion vector spreads. */
+        MotionRect motion_rect = compute_motion_rect(src_tile, max_motion.zw(), size);
+        MotionLine motion_line = compute_motion_line(src_tile, max_motion.zw());
+        /* Do a conservative rasterization of the line of the motion vector line. */
+        for (int j = 0; j < motion_rect.extent.y; j++) {
+          for (int i = 0; i < motion_rect.extent.x; i++) {
+            int2 tile = motion_rect.bottom_left + int2(i, j);
+            if (is_inside_motion_line(tile, motion_line)) {
+              float *pixel = output.get_elem(tile.x, tile.y);
+              copy_v2_v2(pixel, max_velocity_approximate(pixel, max_motion.xy(), tile, src_tile));
+              copy_v2_v2(pixel + 2,
+                         max_velocity_approximate(pixel + 2, max_motion.zw(), tile, src_tile));
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return output;
+}
+
+/* Interleaved gradient noise by Jorge Jimenez
+ * http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare. */
+static float interleaved_gradient_noise(int2 p)
+{
+  return math::fract(52.9829189f * math::fract(0.06711056f * p.x + 0.00583715f * p.y));
+}
+
+static float2 spread_compare(float center_motion_length,
+                             float sample_motion_length,
+                             float offset_length)
+{
+  return math::clamp(
+      float2(center_motion_length, sample_motion_length) - offset_length + 1.0f, 0.0f, 1.0f);
+}
+
+static float2 depth_compare(float center_depth, float sample_depth)
+{
+  float2 depth_scale = float2(DEPTH_SCALE, -DEPTH_SCALE);
+  return math::clamp(0.5f + depth_scale * (sample_depth - center_depth), 0.0f, 1.0f);
+}
+
+/* Kill contribution if not going the same direction. */
+static float dir_compare(float2 offset, float2 sample_motion, float sample_motion_length)
+{
+  if (sample_motion_length < 0.5f) {
+    return 1.0f;
+  }
+  return (math::dot(offset, sample_motion) > 0.0f) ? 1.0f : 0.0f;
+}
+
+/* Return background (x) and foreground (y) weights. */
+static float2 sample_weights(float center_depth,
+                             float sample_depth,
+                             float center_motion_length,
+                             float sample_motion_length,
+                             float offset_length)
+{
+  /* Classify foreground/background. */
+  float2 depth_weight = depth_compare(center_depth, sample_depth);
+  /* Weight if sample is overlapping or under the center pixel. */
+  float2 spread_weight = spread_compare(center_motion_length, sample_motion_length, offset_length);
+  return depth_weight * spread_weight;
+}
+
+struct Accumulator {
+  float4 fg;
+  float4 bg;
+  /** x: Background, y: Foreground, z: dir. */
+  float3 weight;
+};
+
+static void gather_sample(MemoryBuffer *image_buffer,
+                          MemoryBuffer *depth_buffer,
+                          MemoryBuffer *velocity_buffer,
+                          int2 size,
+                          float2 screen_uv,
+                          float center_depth,
+                          float center_motion_len,
+                          float2 offset,
+                          float offset_len,
+                          const bool next,
+                          float shutter_speed,
+                          Accumulator &accum)
+{
+  float2 sample_uv = screen_uv - offset / float2(size);
+  float4 sample_vectors = velocity_buffer->texture_bilinear_extend(sample_uv) *
+                          float4(float2(shutter_speed), float2(-shutter_speed));
+  float2 sample_motion = (next) ? sample_vectors.zw() : sample_vectors.xy();
+  float sample_motion_len = math::length(sample_motion);
+  float sample_depth = depth_buffer->texture_bilinear_extend(sample_uv).x;
+  float4 sample_color = image_buffer->texture_bilinear_extend(sample_uv);
+
+  float2 direct_weights = sample_weights(
+      center_depth, sample_depth, center_motion_len, sample_motion_len, offset_len);
+
+  float3 weights;
+  weights.x = direct_weights.x;
+  weights.y = direct_weights.y;
+  weights.z = dir_compare(offset, sample_motion, sample_motion_len);
+  weights.x *= weights.z;
+  weights.y *= weights.z;
+
+  accum.fg += sample_color * weights.y;
+  accum.bg += sample_color * weights.x;
+  accum.weight += weights;
+}
+
+static void gather_blur(MemoryBuffer *image_buffer,
+                        MemoryBuffer *depth_buffer,
+                        MemoryBuffer *velocity_buffer,
+                        int2 size,
+                        float2 screen_uv,
+                        float2 center_motion,
+                        float center_depth,
+                        float2 max_motion,
+                        float ofs,
+                        const bool next,
+                        int samples_count,
+                        float shutter_speed,
+                        Accumulator &accum)
+{
+  float center_motion_len = math::length(center_motion);
+  float max_motion_len = math::length(max_motion);
+
+  /* Tile boundaries randomization can fetch a tile where there is less motion than this pixel.
+   * Fix this by overriding the max_motion. */
+  if (max_motion_len < center_motion_len) {
+    max_motion_len = center_motion_len;
+    max_motion = center_motion;
+  }
+
+  if (max_motion_len < 0.5f) {
+    return;
+  }
+
+  int i;
+  float t, inc = 1.0f / float(samples_count);
+  for (i = 0, t = ofs * inc; i < samples_count; i++, t += inc) {
+    gather_sample(image_buffer,
+                  depth_buffer,
+                  velocity_buffer,
+                  size,
+                  screen_uv,
+                  center_depth,
+                  center_motion_len,
+                  max_motion * t,
+                  max_motion_len * t,
+                  next,
+                  shutter_speed,
+                  accum);
+  }
+
+  if (center_motion_len < 0.5f) {
+    return;
+  }
+
+  for (i = 0, t = ofs * inc; i < samples_count; i++, t += inc) {
+    /* Also sample in center motion direction.
+     * Allow recovering motion where there is conflicting
+     * motion between foreground and background. */
+    gather_sample(image_buffer,
+                  depth_buffer,
+                  velocity_buffer,
+                  size,
+                  screen_uv,
+                  center_depth,
+                  center_motion_len,
+                  center_motion * t,
+                  center_motion_len * t,
+                  next,
+                  shutter_speed,
+                  accum);
   }
 }
-void *VectorBlurOperation::initialize_tile_data(rcti *rect)
-{
-  if (cached_instance_) {
-    return cached_instance_;
-  }
 
-  lock_mutex();
-  if (cached_instance_ == nullptr) {
-    MemoryBuffer *tile = (MemoryBuffer *)input_image_program_->initialize_tile_data(rect);
-    MemoryBuffer *speed = (MemoryBuffer *)input_speed_program_->initialize_tile_data(rect);
-    MemoryBuffer *z = (MemoryBuffer *)input_zprogram_->initialize_tile_data(rect);
-    float *data = (float *)MEM_dupallocN(tile->get_buffer());
-    this->generate_vector_blur(data, tile, speed, z);
-    cached_instance_ = data;
-  }
-  unlock_mutex();
-  return cached_instance_;
+static void motion_blur(MemoryBuffer *image_buffer,
+                        MemoryBuffer *depth_buffer,
+                        MemoryBuffer *velocity_buffer,
+                        MemoryBuffer *max_velocity_buffer,
+                        MemoryBuffer *output,
+                        int samples_count,
+                        float shutter_speed)
+{
+  const int2 size = int2(image_buffer->get_width(), image_buffer->get_height());
+  threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
+    for (const int64_t y : sub_y_range) {
+      for (const int64_t x : IndexRange(size.x)) {
+        const int2 texel = int2(x, y);
+        float2 uv = (float2(texel) + 0.5f) / float2(size);
+
+        /* Data of the center pixel of the gather (target). */
+        float center_depth = *depth_buffer->get_elem(x, y);
+        float4 center_motion = float4(velocity_buffer->get_elem(x, y)) *
+                               float4(float2(shutter_speed), float2(-shutter_speed));
+        float4 center_color = image_buffer->get_elem(x, y);
+
+        /* Randomize tile boundary to avoid ugly discontinuities. Randomize 1/4th of the tile.
+         * Note this randomize only in one direction but in practice it's enough. */
+        float rand = interleaved_gradient_noise(texel);
+        int2 tile = (texel + int2(rand * 2.0f - 1.0f * float(MOTION_BLUR_TILE_SIZE) * 0.25f)) /
+                    MOTION_BLUR_TILE_SIZE;
+
+        /* No need to multiply by the shutter speed and invert the next velocities since this was
+         * already done in dilate_max_velocity. */
+        float4 max_motion = max_velocity_buffer->get_elem(tile.x, tile.y);
+
+        Accumulator accum;
+        accum.weight = float3(0.0f, 0.0f, 1.0f);
+        accum.bg = float4(0.0f);
+        accum.fg = float4(0.0f);
+        /* First linear gather. time = [T - delta, T] */
+        gather_blur(image_buffer,
+                    depth_buffer,
+                    velocity_buffer,
+                    size,
+                    uv,
+                    center_motion.xy(),
+                    center_depth,
+                    max_motion.xy(),
+                    rand,
+                    false,
+                    samples_count,
+                    shutter_speed,
+                    accum);
+        /* Second linear gather. time = [T, T + delta] */
+        gather_blur(image_buffer,
+                    depth_buffer,
+                    velocity_buffer,
+                    size,
+                    uv,
+                    center_motion.zw(),
+                    center_depth,
+                    max_motion.zw(),
+                    rand,
+                    true,
+                    samples_count,
+                    shutter_speed,
+                    accum);
+
+#if 1 /* Own addition. Not present in reference implementation. */
+        /* Avoid division by 0.0. */
+        float w = 1.0f / (50.0f * float(samples_count) * 4.0f);
+        accum.bg += center_color * w;
+        accum.weight.x += w;
+        /* NOTE: In Jimenez's presentation, they used center sample.
+         * We use background color as it contains more information for foreground
+         * elements that have not enough weights.
+         * Yield better blur in complex motion. */
+        center_color = accum.bg / accum.weight.x;
+#endif
+        /* Merge background. */
+        accum.fg += accum.bg;
+        accum.weight.y += accum.weight.x;
+        /* Balance accumulation for failed samples.
+         * We replace the missing foreground by the background. */
+        float blend_fac = math::clamp(1.0f - accum.weight.y / accum.weight.z, 0.0f, 1.0f);
+        float4 out_color = (accum.fg / accum.weight.z) + center_color * blend_fac;
+
+        copy_v4_v4(output->get_elem(x, y), out_color);
+      }
+    }
+  });
 }
 
-bool VectorBlurOperation::determine_depending_area_of_interest(rcti * /*input*/,
-                                                               ReadBufferOperation *read_operation,
-                                                               rcti *output)
+void VectorBlurOperation::update_memory_buffer(MemoryBuffer *output,
+                                               const rcti & /*area*/,
+                                               Span<MemoryBuffer *> inputs)
 {
-  if (cached_instance_ == nullptr) {
-    rcti new_input;
-    new_input.xmax = this->get_width();
-    new_input.xmin = 0;
-    new_input.ymax = this->get_height();
-    new_input.ymin = 0;
-    return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
+  MemoryBuffer *image = inputs[IMAGE_INPUT_INDEX];
+  MemoryBuffer *depth = inputs[DEPTH_INPUT_INDEX];
+  MemoryBuffer *velocity = inputs[VELOCITY_INPUT_INDEX];
+
+  const bool image_needs_inflation = image->is_a_single_elem();
+  const bool depth_needs_inflation = depth->is_a_single_elem();
+  const bool velocity_needs_inflation = velocity->is_a_single_elem();
+
+  MemoryBuffer *image_buffer = image_needs_inflation ? image->inflate() : image;
+  MemoryBuffer *depth_buffer = depth_needs_inflation ? depth->inflate() : depth;
+  MemoryBuffer *velocity_buffer = velocity_needs_inflation ? velocity->inflate() : velocity;
+
+  MemoryBuffer max_tile_velocity = compute_max_tile_velocity(velocity_buffer);
+  MemoryBuffer max_velocity = dilate_max_velocity(max_tile_velocity, settings_->fac);
+  motion_blur(image_buffer,
+              depth_buffer,
+              velocity_buffer,
+              &max_velocity,
+              output,
+              settings_->samples,
+              settings_->fac);
+
+  if (image_needs_inflation) {
+    delete image_buffer;
   }
 
-  return false;
+  if (depth_needs_inflation) {
+    delete depth_buffer;
+  }
+
+  if (velocity_needs_inflation) {
+    delete velocity_buffer;
+  }
 }
 
 void VectorBlurOperation::get_area_of_interest(const int /*input_idx*/,
@@ -109,835 +497,6 @@ void VectorBlurOperation::get_area_of_interest(const int /*input_idx*/,
                                                rcti &r_input_area)
 {
   r_input_area = this->get_canvas();
-}
-
-void VectorBlurOperation::update_memory_buffer(MemoryBuffer *output,
-                                               const rcti &area,
-                                               Span<MemoryBuffer *> inputs)
-{
-  /* TODO(manzanilla): once tiled implementation is removed, run multi-threaded where possible. */
-  if (!cached_instance_) {
-    MemoryBuffer *image = inputs[IMAGE_INPUT_INDEX];
-    const bool is_image_inflated = image->is_a_single_elem();
-    image = is_image_inflated ? image->inflate() : image;
-
-    /* Must be a copy because it's modified in #generate_vector_blur. */
-    MemoryBuffer *speed = inputs[SPEED_INPUT_INDEX];
-    speed = speed->is_a_single_elem() ? speed->inflate() : new MemoryBuffer(*speed);
-
-    MemoryBuffer *z = inputs[Z_INPUT_INDEX];
-    const bool is_z_inflated = z->is_a_single_elem();
-    z = is_z_inflated ? z->inflate() : z;
-
-    cached_instance_ = (float *)MEM_dupallocN(image->get_buffer());
-    this->generate_vector_blur(cached_instance_, image, speed, z);
-
-    if (is_image_inflated) {
-      delete image;
-    }
-    delete speed;
-    if (is_z_inflated) {
-      delete z;
-    }
-  }
-
-  const int num_channels = COM_data_type_num_channels(get_output_socket()->get_data_type());
-  MemoryBuffer buf(cached_instance_, num_channels, this->get_width(), this->get_height());
-  output->copy_from(&buf, area);
-}
-
-void VectorBlurOperation::generate_vector_blur(float *data,
-                                               MemoryBuffer *input_image,
-                                               MemoryBuffer *input_speed,
-                                               MemoryBuffer *inputZ)
-{
-  NodeBlurData blurdata;
-  blurdata.samples = settings_->samples / QualityStepHelper::get_step();
-  blurdata.maxspeed = settings_->maxspeed;
-  blurdata.minspeed = settings_->minspeed;
-  blurdata.curved = settings_->curved;
-  blurdata.fac = settings_->fac;
-  zbuf_accumulate_vecblur(&blurdata,
-                          this->get_width(),
-                          this->get_height(),
-                          data,
-                          input_image->get_buffer(),
-                          input_speed->get_buffer(),
-                          inputZ->get_buffer());
-}
-
-/* -------------------------------------------------------------------- */
-/** \name Spans
- *
- * Duplicated logic from `zbuf.cc`.
- * \{ */
-
-/** Span fill in method, is also used to localize data for Z-buffering. */
-struct ZSpan {
-  /* range for clipping */
-  int rectx, recty;
-
-  /* actual filled in range */
-  int miny1, maxy1, miny2, maxy2;
-  /* vertex pointers detect min/max range in */
-  const float *minp1, *maxp1, *minp2, *maxp2;
-  float *span1, *span2;
-
-  /* transform from hoco to zbuf co */
-  float zmulx, zmuly, zofsx, zofsy;
-
-  int *rectz;
-  DrawBufPixel *rectdraw;
-  float clipcrop;
-};
-
-/**
- * Each Z-buffer has coordinates transformed to local rectangle coordinates,
- * so we can simply clip.
- */
-void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty, float clipcrop)
-{
-  memset(zspan, 0, sizeof(ZSpan));
-
-  zspan->rectx = rectx;
-  zspan->recty = recty;
-
-  zspan->span1 = (float *)MEM_mallocN(recty * sizeof(float), "zspan");
-  zspan->span2 = (float *)MEM_mallocN(recty * sizeof(float), "zspan");
-
-  zspan->clipcrop = clipcrop;
-}
-
-void zbuf_free_span(ZSpan *zspan)
-{
-  if (zspan) {
-    if (zspan->span1) {
-      MEM_freeN(zspan->span1);
-    }
-    if (zspan->span2) {
-      MEM_freeN(zspan->span2);
-    }
-    zspan->span1 = zspan->span2 = nullptr;
-  }
-}
-
-/* reset range for clipping */
-static void zbuf_init_span(ZSpan *zspan)
-{
-  zspan->miny1 = zspan->miny2 = zspan->recty + 1;
-  zspan->maxy1 = zspan->maxy2 = -1;
-  zspan->minp1 = zspan->maxp1 = zspan->minp2 = zspan->maxp2 = nullptr;
-}
-
-static void zbuf_add_to_span(ZSpan *zspan, const float v1[2], const float v2[2])
-{
-  const float *minv, *maxv;
-  float *span;
-  float xx1, dx0, xs0;
-  int y, my0, my2;
-
-  if (v1[1] < v2[1]) {
-    minv = v1;
-    maxv = v2;
-  }
-  else {
-    minv = v2;
-    maxv = v1;
-  }
-
-  my0 = ceil(minv[1]);
-  my2 = floor(maxv[1]);
-
-  if (my2 < 0 || my0 >= zspan->recty) {
-    return;
-  }
-
-  /* clip top */
-  if (my2 >= zspan->recty) {
-    my2 = zspan->recty - 1;
-  }
-  /* clip bottom */
-  if (my0 < 0) {
-    my0 = 0;
-  }
-
-  if (my0 > my2) {
-    return;
-  }
-  /* if (my0>my2) should still fill in, that way we get spans that skip nicely */
-
-  xx1 = maxv[1] - minv[1];
-  if (xx1 > FLT_EPSILON) {
-    dx0 = (minv[0] - maxv[0]) / xx1;
-    xs0 = dx0 * (minv[1] - my2) + minv[0];
-  }
-  else {
-    dx0 = 0.0f;
-    xs0 = min_ff(minv[0], maxv[0]);
-  }
-
-  /* empty span */
-  if (zspan->maxp1 == nullptr) {
-    span = zspan->span1;
-  }
-  else { /* does it complete left span? */
-    if (maxv == zspan->minp1 || minv == zspan->maxp1) {
-      span = zspan->span1;
-    }
-    else {
-      span = zspan->span2;
-    }
-  }
-
-  if (span == zspan->span1) {
-    //      printf("left span my0 %d my2 %d\n", my0, my2);
-    if (zspan->minp1 == nullptr || zspan->minp1[1] > minv[1]) {
-      zspan->minp1 = minv;
-    }
-    if (zspan->maxp1 == nullptr || zspan->maxp1[1] < maxv[1]) {
-      zspan->maxp1 = maxv;
-    }
-    if (my0 < zspan->miny1) {
-      zspan->miny1 = my0;
-    }
-    if (my2 > zspan->maxy1) {
-      zspan->maxy1 = my2;
-    }
-  }
-  else {
-    //      printf("right span my0 %d my2 %d\n", my0, my2);
-    if (zspan->minp2 == nullptr || zspan->minp2[1] > minv[1]) {
-      zspan->minp2 = minv;
-    }
-    if (zspan->maxp2 == nullptr || zspan->maxp2[1] < maxv[1]) {
-      zspan->maxp2 = maxv;
-    }
-    if (my0 < zspan->miny2) {
-      zspan->miny2 = my0;
-    }
-    if (my2 > zspan->maxy2) {
-      zspan->maxy2 = my2;
-    }
-  }
-
-  for (y = my2; y >= my0; y--, xs0 += dx0) {
-    /* xs0 is the X-coordinate! */
-    span[y] = xs0;
-  }
-}
-
-/** \} */
-
-/* ******************** VECBLUR ACCUM BUF ************************* */
-
-struct DrawBufPixel {
-  const float *colpoin;
-  float alpha;
-};
-
-/**
- * \note Near duplicate of `zspan_scanconvert` in `zbuf.cc` with some minor adjustments.
- */
-static void zbuf_fill_in_rgba(
-    ZSpan *zspan, DrawBufPixel *col, float *v1, float *v2, float *v3, float *v4)
-{
-  DrawBufPixel *rectpofs, *rp;
-  double zxd, zyd, zy0, zverg;
-  float x0, y0, z0;
-  float x1, y1, z1, x2, y2, z2, xx1;
-  const float *span1, *span2;
-  float *rectzofs, *rz;
-  int x, y;
-  int sn1, sn2, rectx, my0, my2;
-
-  /* init */
-  zbuf_init_span(zspan);
-
-  /* set spans */
-  zbuf_add_to_span(zspan, v1, v2);
-  zbuf_add_to_span(zspan, v2, v3);
-  zbuf_add_to_span(zspan, v3, v4);
-  zbuf_add_to_span(zspan, v4, v1);
-
-  /* clipped */
-  if (zspan->minp2 == nullptr || zspan->maxp2 == nullptr) {
-    return;
-  }
-
-  my0 = max_ii(zspan->miny1, zspan->miny2);
-  my2 = min_ii(zspan->maxy1, zspan->maxy2);
-
-  //  printf("my %d %d\n", my0, my2);
-  if (my2 < my0) {
-    return;
-  }
-
-  /* ZBUF DX DY, in floats still */
-  x1 = v1[0] - v2[0];
-  x2 = v2[0] - v3[0];
-  y1 = v1[1] - v2[1];
-  y2 = v2[1] - v3[1];
-  z1 = v1[2] - v2[2];
-  z2 = v2[2] - v3[2];
-  x0 = y1 * z2 - z1 * y2;
-  y0 = z1 * x2 - x1 * z2;
-  z0 = x1 * y2 - y1 * x2;
-
-  if (z0 == 0.0f) {
-    return;
-  }
-
-  xx1 = (x0 * v1[0] + y0 * v1[1]) / z0 + v1[2];
-
-  zxd = -double(x0) / double(z0);
-  zyd = -double(y0) / double(z0);
-  zy0 = double(my2) * zyd + double(xx1);
-
-  /* start-offset in rect */
-  rectx = zspan->rectx;
-  rectzofs = (float *)(zspan->rectz + rectx * my2);
-  rectpofs = ((DrawBufPixel *)zspan->rectdraw) + rectx * my2;
-
-  /* correct span */
-  sn1 = (my0 + my2) / 2;
-  if (zspan->span1[sn1] < zspan->span2[sn1]) {
-    span1 = zspan->span1 + my2;
-    span2 = zspan->span2 + my2;
-  }
-  else {
-    span1 = zspan->span2 + my2;
-    span2 = zspan->span1 + my2;
-  }
-
-  for (y = my2; y >= my0; y--, span1--, span2--) {
-
-    sn1 = floor(*span1);
-    sn2 = floor(*span2);
-    sn1++;
-
-    if (sn2 >= rectx) {
-      sn2 = rectx - 1;
-    }
-    if (sn1 < 0) {
-      sn1 = 0;
-    }
-
-    if (sn2 >= sn1) {
-      zverg = double(sn1) * zxd + zy0;
-      rz = rectzofs + sn1;
-      rp = rectpofs + sn1;
-      x = sn2 - sn1;
-
-      while (x >= 0) {
-        if (zverg < double(*rz)) {
-          *rz = zverg;
-          *rp = *col;
-        }
-        zverg += zxd;
-        rz++;
-        rp++;
-        x--;
-      }
-    }
-
-    zy0 -= zyd;
-    rectzofs -= rectx;
-    rectpofs -= rectx;
-  }
-}
-
-/* char value==255 is filled in, rest should be zero */
-/* returns alpha values,
- * but sets alpha to 1 for zero alpha pixels that have an alpha value as neighbor. */
-void antialias_tagbuf(int xsize, int ysize, char *rectmove)
-{
-  char *row1, *row2, *row3;
-  char prev, next;
-  int a, x, y, step;
-
-  /* 1: tag pixels to be candidate for AA */
-  for (y = 2; y < ysize; y++) {
-    /* setup rows */
-    row1 = rectmove + (y - 2) * xsize;
-    row2 = row1 + xsize;
-    row3 = row2 + xsize;
-    for (x = 2; x < xsize; x++, row1++, row2++, row3++) {
-      if (row2[1]) {
-        if (row2[0] == 0 || row2[2] == 0 || row1[1] == 0 || row3[1] == 0) {
-          row2[1] = 128;
-        }
-      }
-    }
-  }
-
-  /* 2: evaluate horizontal scan-lines and calculate alphas. */
-  row1 = rectmove;
-  for (y = 0; y < ysize; y++) {
-    row1++;
-    for (x = 1; x < xsize; x++, row1++) {
-      if (row1[0] == 128 && row1[1] == 128) {
-        /* find previous color and next color and amount of steps to blend */
-        prev = row1[-1];
-        step = 1;
-        while (x + step < xsize && row1[step] == 128) {
-          step++;
-        }
-
-        if (x + step != xsize) {
-          /* now we can blend values */
-          next = row1[step];
-
-          /* NOTE: prev value can be next value, but we do this loop to clear 128 then. */
-          for (a = 0; a < step; a++) {
-            int fac, mfac;
-
-            fac = ((a + 1) << 8) / (step + 1);
-            mfac = 255 - fac;
-
-            row1[a] = (prev * mfac + next * fac) >> 8;
-          }
-        }
-      }
-    }
-  }
-
-  /* 3: evaluate vertical scan-lines and calculate alphas */
-  /*    use for reading a copy of the original tagged buffer */
-  for (x = 0; x < xsize; x++) {
-    row1 = rectmove + x + xsize;
-
-    for (y = 1; y < ysize; y++, row1 += xsize) {
-      if (row1[0] == 128 && row1[xsize] == 128) {
-        /* find previous color and next color and amount of steps to blend */
-        prev = row1[-xsize];
-        step = 1;
-        while (y + step < ysize && row1[step * xsize] == 128) {
-          step++;
-        }
-
-        if (y + step != ysize) {
-          /* now we can blend values */
-          next = row1[step * xsize];
-          /* NOTE: prev value can be next value, but we do this loop to clear 128 then. */
-          for (a = 0; a < step; a++) {
-            int fac, mfac;
-
-            fac = ((a + 1) << 8) / (step + 1);
-            mfac = 255 - fac;
-
-            row1[a * xsize] = (prev * mfac + next * fac) >> 8;
-          }
-        }
-      }
-    }
-  }
-
-  /* last: pixels with 0 we fill in Z-buffer, with 1 we skip for mask */
-  for (y = 2; y < ysize; y++) {
-    /* setup rows */
-    row1 = rectmove + (y - 2) * xsize;
-    row2 = row1 + xsize;
-    row3 = row2 + xsize;
-    for (x = 2; x < xsize; x++, row1++, row2++, row3++) {
-      if (row2[1] == 0) {
-        if (row2[0] > 1 || row2[2] > 1 || row1[1] > 1 || row3[1] > 1) {
-          row2[1] = 1;
-        }
-      }
-    }
-  }
-}
-
-/* in: two vectors, first vector points from origin back in time, 2nd vector points to future */
-/* we make this into 3 points, center point is (0, 0) */
-/* and offset the center point just enough to make curve go through midpoint */
-
-static void quad_bezier_2d(float *result, const float *v1, const float *v2, const float *ipodata)
-{
-  float p1[2], p2[2], p3[2];
-
-  p3[0] = -v2[0];
-  p3[1] = -v2[1];
-
-  p1[0] = v1[0];
-  p1[1] = v1[1];
-
-  /* official formula 2*p2 - 0.5*p1 - 0.5*p3 */
-  p2[0] = -0.5f * p1[0] - 0.5f * p3[0];
-  p2[1] = -0.5f * p1[1] - 0.5f * p3[1];
-
-  result[0] = ipodata[0] * p1[0] + ipodata[1] * p2[0] + ipodata[2] * p3[0];
-  result[1] = ipodata[0] * p1[1] + ipodata[1] * p2[1] + ipodata[2] * p3[1];
-}
-
-static void set_quad_bezier_ipo(float fac, float *data)
-{
-  float mfac = (1.0f - fac);
-
-  data[0] = mfac * mfac;
-  data[1] = 2.0f * mfac * fac;
-  data[2] = fac * fac;
-}
-
-void zbuf_accumulate_vecblur(NodeBlurData *nbd,
-                             int xsize,
-                             int ysize,
-                             float *newrect,
-                             const float *imgrect,
-                             float *vecbufrect,
-                             const float *zbufrect)
-{
-  ZSpan zspan;
-  DrawBufPixel *rectdraw, *dr;
-  static float jit[256][2];
-  float v1[3], v2[3], v3[3], v4[3], fx, fy;
-  const float *dimg, *dz, *ro;
-  float *rectvz, *dvz, *dvec1, *dvec2, *dz1, *dz2, *rectz;
-  float *minvecbufrect = nullptr, *rectweight, *rw, *rectmax, *rm;
-  float maxspeedsq = float(nbd->maxspeed) * nbd->maxspeed;
-  int y, x, step, maxspeed = nbd->maxspeed, samples = nbd->samples;
-  int tsktsk = 0;
-  static int firsttime = 1;
-  char *rectmove, *dm;
-
-  zbuf_alloc_span(&zspan, xsize, ysize, 1.0f);
-  zspan.zmulx = float(xsize) / 2.0f;
-  zspan.zmuly = float(ysize) / 2.0f;
-  zspan.zofsx = 0.0f;
-  zspan.zofsy = 0.0f;
-
-  /* the buffers */
-  rectz = (float *)MEM_callocN(sizeof(float) * xsize * ysize, "zbuf accum");
-  zspan.rectz = (int *)rectz;
-
-  rectmove = (char *)MEM_callocN(xsize * ysize, "rectmove");
-  rectdraw = (DrawBufPixel *)MEM_callocN(sizeof(DrawBufPixel) * xsize * ysize, "rect draw");
-  zspan.rectdraw = rectdraw;
-
-  rectweight = (float *)MEM_callocN(sizeof(float) * xsize * ysize, "rect weight");
-  rectmax = (float *)MEM_callocN(sizeof(float) * xsize * ysize, "rect max");
-
-  /* debug... check if PASS_VECTOR_MAX still is in buffers */
-  dvec1 = vecbufrect;
-  for (x = 4 * xsize * ysize; x > 0; x--, dvec1++) {
-    if (dvec1[0] == PASS_VECTOR_MAX) {
-      dvec1[0] = 0.0f;
-      tsktsk = 1;
-    }
-  }
-  if (tsktsk) {
-    printf("Found uninitialized speed in vector buffer... fixed.\n");
-  }
-
-  /* Min speed? then copy speed-buffer to recalculate speed vectors. */
-  if (nbd->minspeed) {
-    float minspeed = float(nbd->minspeed);
-    float minspeedsq = minspeed * minspeed;
-
-    minvecbufrect = (float *)MEM_callocN(sizeof(float[4]) * xsize * ysize, "minspeed buf");
-
-    dvec1 = vecbufrect;
-    dvec2 = minvecbufrect;
-    for (x = 2 * xsize * ysize; x > 0; x--, dvec1 += 2, dvec2 += 2) {
-      if (dvec1[0] == 0.0f && dvec1[1] == 0.0f) {
-        dvec2[0] = dvec1[0];
-        dvec2[1] = dvec1[1];
-      }
-      else {
-        float speedsq = dvec1[0] * dvec1[0] + dvec1[1] * dvec1[1];
-        if (speedsq <= minspeedsq) {
-          dvec2[0] = 0.0f;
-          dvec2[1] = 0.0f;
-        }
-        else {
-          speedsq = 1.0f - minspeed / sqrtf(speedsq);
-          dvec2[0] = speedsq * dvec1[0];
-          dvec2[1] = speedsq * dvec1[1];
-        }
-      }
-    }
-    std::swap(minvecbufrect, vecbufrect);
-  }
-
-  /* Make vertex buffer with averaged speed and Z-values. */
-  rectvz = (float *)MEM_callocN(sizeof(float[4]) * (xsize + 1) * (ysize + 1), "vertices");
-  dvz = rectvz;
-  for (y = 0; y <= ysize; y++) {
-
-    if (y == 0) {
-      dvec1 = vecbufrect + 4 * y * xsize;
-    }
-    else {
-      dvec1 = vecbufrect + 4 * (y - 1) * xsize;
-    }
-
-    if (y == ysize) {
-      dvec2 = vecbufrect + 4 * (y - 1) * xsize;
-    }
-    else {
-      dvec2 = vecbufrect + 4 * y * xsize;
-    }
-
-    for (x = 0; x <= xsize; x++) {
-
-      /* two vectors, so a step loop */
-      for (step = 0; step < 2; step++, dvec1 += 2, dvec2 += 2, dvz += 2) {
-        /* average on minimal speed */
-        int div = 0;
-
-        if (x != 0) {
-          if (dvec1[-4] != 0.0f || dvec1[-3] != 0.0f) {
-            dvz[0] = dvec1[-4];
-            dvz[1] = dvec1[-3];
-            div++;
-          }
-          if (dvec2[-4] != 0.0f || dvec2[-3] != 0.0f) {
-            if (div == 0) {
-              dvz[0] = dvec2[-4];
-              dvz[1] = dvec2[-3];
-              div++;
-            }
-            else if ((fabsf(dvec2[-4]) + fabsf(dvec2[-3])) < (fabsf(dvz[0]) + fabsf(dvz[1]))) {
-              dvz[0] = dvec2[-4];
-              dvz[1] = dvec2[-3];
-            }
-          }
-        }
-
-        if (x != xsize) {
-          if (dvec1[0] != 0.0f || dvec1[1] != 0.0f) {
-            if (div == 0) {
-              dvz[0] = dvec1[0];
-              dvz[1] = dvec1[1];
-              div++;
-            }
-            else if ((fabsf(dvec1[0]) + fabsf(dvec1[1])) < (fabsf(dvz[0]) + fabsf(dvz[1]))) {
-              dvz[0] = dvec1[0];
-              dvz[1] = dvec1[1];
-            }
-          }
-          if (dvec2[0] != 0.0f || dvec2[1] != 0.0f) {
-            if (div == 0) {
-              dvz[0] = dvec2[0];
-              dvz[1] = dvec2[1];
-            }
-            else if ((fabsf(dvec2[0]) + fabsf(dvec2[1])) < (fabsf(dvz[0]) + fabsf(dvz[1]))) {
-              dvz[0] = dvec2[0];
-              dvz[1] = dvec2[1];
-            }
-          }
-        }
-        if (maxspeed) {
-          float speedsq = dvz[0] * dvz[0] + dvz[1] * dvz[1];
-          if (speedsq > maxspeedsq) {
-            speedsq = float(maxspeed) / sqrtf(speedsq);
-            dvz[0] *= speedsq;
-            dvz[1] *= speedsq;
-          }
-        }
-      }
-    }
-  }
-
-  /* set border speeds to keep border speeds on border */
-  dz1 = rectvz;
-  dz2 = rectvz + 4 * (ysize) * (xsize + 1);
-  for (x = 0; x <= xsize; x++, dz1 += 4, dz2 += 4) {
-    dz1[1] = 0.0f;
-    dz2[1] = 0.0f;
-    dz1[3] = 0.0f;
-    dz2[3] = 0.0f;
-  }
-  dz1 = rectvz;
-  dz2 = rectvz + 4 * (xsize);
-  for (y = 0; y <= ysize; y++, dz1 += 4 * (xsize + 1), dz2 += 4 * (xsize + 1)) {
-    dz1[0] = 0.0f;
-    dz2[0] = 0.0f;
-    dz1[2] = 0.0f;
-    dz2[2] = 0.0f;
-  }
-
-  /* tag moving pixels, only these faces we draw */
-  dm = rectmove;
-  dvec1 = vecbufrect;
-  for (x = xsize * ysize; x > 0; x--, dm++, dvec1 += 4) {
-    if (dvec1[0] != 0.0f || dvec1[1] != 0.0f || dvec1[2] != 0.0f || dvec1[3] != 0.0f) {
-      *dm = 255;
-    }
-  }
-
-  antialias_tagbuf(xsize, ysize, rectmove);
-
-  /* Has to become static, the jitter initialization calls a random-seed,
-   * screwing up texture noise node. */
-  if (firsttime) {
-    firsttime = 0;
-    BLI_jitter_init(jit, 256);
-  }
-
-  memset(newrect, 0, sizeof(float) * xsize * ysize * 4);
-
-  /* accumulate */
-  samples /= 2;
-  for (step = 1; step <= samples; step++) {
-    float speedfac = 0.5f * nbd->fac * float(step) / float(samples + 1);
-    int side;
-
-    for (side = 0; side < 2; side++) {
-      float blendfac, ipodata[4];
-
-      /* clear zbuf, if we draw future we fill in not moving pixels */
-      if (false) {
-        for (x = xsize * ysize - 1; x >= 0; x--) {
-          rectz[x] = 10e16;
-        }
-      }
-      else {
-        for (x = xsize * ysize - 1; x >= 0; x--) {
-          if (rectmove[x] == 0) {
-            rectz[x] = zbufrect[x];
-          }
-          else {
-            rectz[x] = 10e16;
-          }
-        }
-      }
-
-      /* clear drawing buffer */
-      for (x = xsize * ysize - 1; x >= 0; x--) {
-        rectdraw[x].colpoin = nullptr;
-      }
-
-      dimg = imgrect;
-      dm = rectmove;
-      dz = zbufrect;
-      dz1 = rectvz;
-      dz2 = rectvz + 4 * (xsize + 1);
-
-      if (side) {
-        if (nbd->curved == 0) {
-          dz1 += 2;
-          dz2 += 2;
-        }
-        speedfac = -speedfac;
-      }
-
-      set_quad_bezier_ipo(0.5f + 0.5f * speedfac, ipodata);
-
-      for (fy = -0.5f + jit[step & 255][0], y = 0; y < ysize; y++, fy += 1.0f) {
-        for (fx = -0.5f + jit[step & 255][1], x = 0; x < xsize;
-             x++, fx += 1.0f, dimg += 4, dz1 += 4, dz2 += 4, dm++, dz++)
-        {
-          if (*dm > 1) {
-            float jfx = fx + 0.5f;
-            float jfy = fy + 0.5f;
-            DrawBufPixel col;
-
-            /* make vertices */
-            if (nbd->curved) { /* curved */
-              quad_bezier_2d(v1, dz1, dz1 + 2, ipodata);
-              v1[0] += jfx;
-              v1[1] += jfy;
-              v1[2] = *dz;
-
-              quad_bezier_2d(v2, dz1 + 4, dz1 + 4 + 2, ipodata);
-              v2[0] += jfx + 1.0f;
-              v2[1] += jfy;
-              v2[2] = *dz;
-
-              quad_bezier_2d(v3, dz2 + 4, dz2 + 4 + 2, ipodata);
-              v3[0] += jfx + 1.0f;
-              v3[1] += jfy + 1.0f;
-              v3[2] = *dz;
-
-              quad_bezier_2d(v4, dz2, dz2 + 2, ipodata);
-              v4[0] += jfx;
-              v4[1] += jfy + 1.0f;
-              v4[2] = *dz;
-            }
-            else {
-              ARRAY_SET_ITEMS(v1, speedfac * dz1[0] + jfx, speedfac * dz1[1] + jfy, *dz);
-              ARRAY_SET_ITEMS(v2, speedfac * dz1[4] + jfx + 1.0f, speedfac * dz1[5] + jfy, *dz);
-              ARRAY_SET_ITEMS(
-                  v3, speedfac * dz2[4] + jfx + 1.0f, speedfac * dz2[5] + jfy + 1.0f, *dz);
-              ARRAY_SET_ITEMS(v4, speedfac * dz2[0] + jfx, speedfac * dz2[1] + jfy + 1.0f, *dz);
-            }
-            if (*dm == 255) {
-              col.alpha = 1.0f;
-            }
-            else if (*dm < 2) {
-              col.alpha = 0.0f;
-            }
-            else {
-              col.alpha = float(*dm) / 255.0f;
-            }
-            col.colpoin = dimg;
-
-            zbuf_fill_in_rgba(&zspan, &col, v1, v2, v3, v4);
-          }
-        }
-        dz1 += 4;
-        dz2 += 4;
-      }
-
-      /* blend with a falloff. this fixes the ugly effect you get with
-       * a fast moving object. then it looks like a solid object overlaid
-       * over a very transparent moving version of itself. in reality, the
-       * whole object should become transparent if it is moving fast, be
-       * we don't know what is behind it so we don't do that. this hack
-       * overestimates the contribution of foreground pixels but looks a
-       * bit better without a sudden cutoff. */
-      blendfac = ((samples - step) / float(samples));
-      /* Smooth-step to make it look a bit nicer as well. */
-      blendfac = 3.0f * pow(blendfac, 2.0f) - 2.0f * pow(blendfac, 3.0f);
-
-      /* accum */
-      rw = rectweight;
-      rm = rectmax;
-      for (dr = rectdraw, dz2 = newrect, x = xsize * ysize - 1; x >= 0;
-           x--, dr++, dz2 += 4, rw++, rm++)
-      {
-        if (dr->colpoin) {
-          float bfac = dr->alpha * blendfac;
-
-          dz2[0] += bfac * dr->colpoin[0];
-          dz2[1] += bfac * dr->colpoin[1];
-          dz2[2] += bfac * dr->colpoin[2];
-          dz2[3] += bfac * dr->colpoin[3];
-
-          *rw += bfac;
-          *rm = std::max(*rm, bfac);
-        }
-      }
-    }
-  }
-
-  /* blend between original images and accumulated image */
-  rw = rectweight;
-  rm = rectmax;
-  ro = imgrect;
-  dm = rectmove;
-  for (dz2 = newrect, x = xsize * ysize - 1; x >= 0; x--, dz2 += 4, ro += 4, rw++, rm++, dm++) {
-    float mfac = *rm;
-    float fac = (*rw == 0.0f) ? 0.0f : mfac / (*rw);
-    float nfac = 1.0f - mfac;
-
-    dz2[0] = fac * dz2[0] + nfac * ro[0];
-    dz2[1] = fac * dz2[1] + nfac * ro[1];
-    dz2[2] = fac * dz2[2] + nfac * ro[2];
-    dz2[3] = fac * dz2[3] + nfac * ro[3];
-  }
-
-  MEM_freeN(rectz);
-  MEM_freeN(rectmove);
-  MEM_freeN(rectdraw);
-  MEM_freeN(rectvz);
-  MEM_freeN(rectweight);
-  MEM_freeN(rectmax);
-  if (minvecbufrect) {
-    MEM_freeN(vecbufrect); /* rects were swapped! */
-  }
-  zbuf_free_span(&zspan);
 }
 
 }  // namespace blender::compositor

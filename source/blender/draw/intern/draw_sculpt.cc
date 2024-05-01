@@ -42,7 +42,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
                                                  const Span<pbvh::AttributeRequest> attrs)
 {
   /* PBVH should always exist for non-empty meshes, created by depsgraph eval. */
-  PBVH *pbvh = ob->sculpt ? ob->sculpt->pbvh : nullptr;
+  PBVH *pbvh = ob->sculpt ? ob->sculpt->pbvh.get() : nullptr;
   if (!pbvh) {
     return {};
   }
@@ -76,10 +76,10 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
 
   if (paint && (paint->flags & PAINT_SCULPT_DELAY_UPDATES)) {
     if (navigating) {
-      bke::pbvh::get_frustum_planes(pbvh, &update_frustum);
+      bke::pbvh::get_frustum_planes(*pbvh, &update_frustum);
     }
     else {
-      bke::pbvh::set_frustum_planes(pbvh, &update_frustum);
+      bke::pbvh::set_frustum_planes(*pbvh, &update_frustum);
     }
   }
 
@@ -101,7 +101,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
 
   Vector<SculptBatch> result_batches;
   bke::pbvh::draw_cb(*mesh,
-                     pbvh,
+                     *pbvh,
                      update_only_visible,
                      update_frustum,
                      draw_frustum,

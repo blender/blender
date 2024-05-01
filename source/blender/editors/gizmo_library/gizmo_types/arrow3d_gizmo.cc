@@ -26,11 +26,11 @@
 
 #include "BKE_context.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
+#include "GPU_matrix.hh"
 #include "GPU_select.hh"
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -46,7 +46,7 @@
 
 /* own includes */
 #include "../gizmo_geometry.h"
-#include "../gizmo_library_intern.h"
+#include "../gizmo_library_intern.hh"
 
 // /** To use custom arrows exported to `geom_arrow_gizmo.cc`. */
 // #define USE_GIZMO_CUSTOM_ARROWS
@@ -498,8 +498,8 @@ void ED_gizmo_arrow3d_set_ui_range(wmGizmo *gz, const float min, const float max
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
 
   BLI_assert(min < max);
-  BLI_assert(!(WM_gizmo_target_property_is_valid(WM_gizmo_target_property_find(gz, "offset")) &&
-               "Make sure this function is called before WM_gizmo_target_property_def_rna"));
+  BLI_assert_msg(!WM_gizmo_target_property_is_valid(WM_gizmo_target_property_find(gz, "offset")),
+                 "Make sure this function is called before WM_gizmo_target_property_def_rna");
 
   arrow->data.range = max - min;
   arrow->data.min = min;
@@ -510,8 +510,8 @@ void ED_gizmo_arrow3d_set_ui_range(wmGizmo *gz, const float min, const float max
 void ED_gizmo_arrow3d_set_range_fac(wmGizmo *gz, const float range_fac)
 {
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
-  BLI_assert(!(WM_gizmo_target_property_is_valid(WM_gizmo_target_property_find(gz, "offset")) &&
-               "Make sure this function is called before WM_gizmo_target_property_def_rna"));
+  BLI_assert_msg(!WM_gizmo_target_property_is_valid(WM_gizmo_target_property_find(gz, "offset")),
+                 "Make sure this function is called before WM_gizmo_target_property_def_rna");
 
   arrow->data.range_fac = range_fac;
 }
@@ -535,7 +535,7 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
   gzt->struct_size = sizeof(ArrowGizmo3D);
 
   /* rna */
-  static EnumPropertyItem rna_enum_draw_style_items[] = {
+  static const EnumPropertyItem rna_enum_draw_style_items[] = {
       {ED_GIZMO_ARROW_STYLE_NORMAL, "NORMAL", 0, "Normal", ""},
       {ED_GIZMO_ARROW_STYLE_CROSS, "CROSS", 0, "Cross", ""},
       {ED_GIZMO_ARROW_STYLE_BOX, "BOX", 0, "Box", ""},
@@ -543,12 +543,12 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
       {ED_GIZMO_ARROW_STYLE_PLANE, "PLANE", 0, "Plane", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  static EnumPropertyItem rna_enum_draw_options_items[] = {
+  static const EnumPropertyItem rna_enum_draw_options_items[] = {
       {ED_GIZMO_ARROW_DRAW_FLAG_STEM, "STEM", 0, "Stem", ""},
       {ED_GIZMO_ARROW_DRAW_FLAG_ORIGIN, "ORIGIN", 0, "Origin", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
-  static EnumPropertyItem rna_enum_transform_items[] = {
+  static const EnumPropertyItem rna_enum_transform_items[] = {
       {ED_GIZMO_ARROW_XFORM_FLAG_INVERTED, "INVERT", 0, "Inverted", ""},
       {ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED, "CONSTRAIN", 0, "Constrained", ""},
       {0, nullptr, 0, nullptr, nullptr},

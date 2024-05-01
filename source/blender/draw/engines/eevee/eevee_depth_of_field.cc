@@ -29,9 +29,9 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_framebuffer.h"
-#include "GPU_texture.h"
-#include "eevee_private.h"
+#include "GPU_framebuffer.hh"
+#include "GPU_texture.hh"
+#include "eevee_private.hh"
 
 #define CAMERA_JITTER_RING_DENSITY 6
 
@@ -188,7 +188,7 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *veda
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-  Camera *cam = static_cast<Camera *>(
+  const Camera *cam = static_cast<const Camera *>(
       (camera != nullptr && camera->type == OB_CAMERA) ? camera->data : nullptr);
 
   if (cam && (cam->dof.flag & CAM_DOF_ENABLED)) {
@@ -354,7 +354,7 @@ static void dof_bokeh_pass_init(EEVEE_FramebufferList *fbl,
   }
 
   void *owner = (void *)&EEVEE_depth_of_field_init;
-  int res[2] = {DOF_BOKEH_LUT_SIZE, DOF_BOKEH_LUT_SIZE};
+  const int res[2] = {DOF_BOKEH_LUT_SIZE, DOF_BOKEH_LUT_SIZE};
 
   DRW_PASS_CREATE(psl->dof_bokeh, DRW_STATE_WRITE_COLOR);
 
@@ -393,7 +393,7 @@ static void dof_setup_pass_init(EEVEE_FramebufferList *fbl,
 
   void *owner = (void *)&EEVEE_depth_of_field_init;
   const float *fullres = DRW_viewport_size_get();
-  int res[2] = {int(divide_ceil_u(fullres[0], 2)), int(divide_ceil_u(fullres[1], 2))};
+  const int res[2] = {int(divide_ceil_u(fullres[0], 2)), int(divide_ceil_u(fullres[1], 2))};
 
   DRW_PASS_CREATE(psl->dof_setup, DRW_STATE_WRITE_COLOR);
 
@@ -428,8 +428,8 @@ static void dof_flatten_tiles_pass_init(EEVEE_FramebufferList *fbl,
 {
   void *owner = (void *)&EEVEE_depth_of_field_init;
   const float *fullres = DRW_viewport_size_get();
-  int res[2] = {int(divide_ceil_u(fullres[0], DOF_TILE_DIVISOR)),
-                int(divide_ceil_u(fullres[1], DOF_TILE_DIVISOR))};
+  const int res[2] = {int(divide_ceil_u(fullres[0], DOF_TILE_DIVISOR)),
+                      int(divide_ceil_u(fullres[1], DOF_TILE_DIVISOR))};
 
   DRW_PASS_CREATE(psl->dof_flatten_tiles, DRW_STATE_WRITE_COLOR);
 
@@ -464,8 +464,8 @@ static void dof_dilate_tiles_pass_init(EEVEE_FramebufferList *fbl,
 {
   void *owner = (void *)&EEVEE_depth_of_field_init;
   const float *fullres = DRW_viewport_size_get();
-  int res[2] = {int(divide_ceil_u(fullres[0], DOF_TILE_DIVISOR)),
-                int(divide_ceil_u(fullres[1], DOF_TILE_DIVISOR))};
+  const int res[2] = {int(divide_ceil_u(fullres[0], DOF_TILE_DIVISOR)),
+                      int(divide_ceil_u(fullres[1], DOF_TILE_DIVISOR))};
 
   DRW_PASS_CREATE(psl->dof_dilate_tiles_minmax, DRW_STATE_WRITE_COLOR);
   DRW_PASS_CREATE(psl->dof_dilate_tiles_minabs, DRW_STATE_WRITE_COLOR);
@@ -558,10 +558,12 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
   /* This ensure the mipmaps are aligned for the needed 4 mip levels.
    * Starts at 2 because already at half resolution. */
   int multiple = 2 << (mip_count - 1);
-  int res[2] = {(multiple * int(divide_ceil_u(fullres[0], multiple))) / 2,
-                (multiple * int(divide_ceil_u(fullres[1], multiple))) / 2};
+  const int res[2] = {
+      (multiple * int(divide_ceil_u(fullres[0], multiple))) / 2,
+      (multiple * int(divide_ceil_u(fullres[1], multiple))) / 2,
+  };
 
-  int quater_res[2] = {int(divide_ceil_u(fullres[0], 4)), int(divide_ceil_u(fullres[1], 4))};
+  const int quater_res[2] = {int(divide_ceil_u(fullres[0], 4)), int(divide_ceil_u(fullres[1], 4))};
 
   /* TODO(fclem): Make this dependent of the quality of the gather pass. */
   fx->dof_scatter_coc_threshold = 4.0f;
@@ -676,11 +678,12 @@ static void dof_gather_pass_init(EEVEE_FramebufferList *fbl,
 {
   void *owner = (void *)&EEVEE_depth_of_field_init;
   const float *fullres = DRW_viewport_size_get();
-  int res[2] = {int(divide_ceil_u(fullres[0], 2)), int(divide_ceil_u(fullres[1], 2))};
+  const int res[2] = {int(divide_ceil_u(fullres[0], 2)), int(divide_ceil_u(fullres[1], 2))};
   int input_size[2];
   GPU_texture_get_mipmap_size(txl->dof_reduced_color, 0, input_size);
-  float uv_correction_fac[2] = {res[0] / float(input_size[0]), res[1] / float(input_size[1])};
-  float output_texel_size[2] = {1.0f / res[0], 1.0f / res[1]};
+  const float uv_correction_fac[2] = {res[0] / float(input_size[0]),
+                                      res[1] / float(input_size[1])};
+  const float output_texel_size[2] = {1.0f / res[0], 1.0f / res[1]};
   const bool use_bokeh_tx = (fx->dof_bokeh_gather_lut_tx != nullptr);
 
   {
@@ -845,7 +848,7 @@ static void dof_scatter_pass_init(EEVEE_FramebufferList *fbl,
   GPU_texture_get_mipmap_size(fx->dof_bg_color_tx, 0, target_size);
   /* Draw a sprite for every four half-res pixels. */
   int sprite_count = (input_size[0] / 2) * (input_size[1] / 2);
-  float target_texel_size[2] = {1.0f / target_size[0], 1.0f / target_size[1]};
+  const float target_texel_size[2] = {1.0f / target_size[0], 1.0f / target_size[1]};
   const bool use_bokeh_tx = (fx->dof_bokeh_gather_lut_tx != nullptr);
 
   {

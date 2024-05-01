@@ -26,7 +26,7 @@
 #include "BKE_screen.hh"
 #include "BKE_sequencer_offscreen.h"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "ED_markers.hh"
 #include "ED_screen.hh"
@@ -473,11 +473,6 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
 
   View2D *v2d = &region->v2d;
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene);
-
-  if (ed == nullptr) {
-    return;
-  }
 
   /* Transformation uses edge panning to move view. Also if smooth view is running, don't apply
    * clamping to prevent overriding this functionality. */
@@ -488,7 +483,10 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
   /* Initialize default view with 7 channels, that are visible even if empty. */
   rctf strip_boundbox;
   BLI_rctf_init(&strip_boundbox, 0.0f, 0.0f, 1.0f, 6.0f);
-  SEQ_timeline_expand_boundbox(scene, ed->seqbasep, &strip_boundbox);
+  Editing *ed = SEQ_editing_get(scene);
+  if (ed != nullptr) {
+    SEQ_timeline_expand_boundbox(scene, ed->seqbasep, &strip_boundbox);
+  }
 
   /* Clamp Y max. Scrubbing area height must be added, so strips aren't occluded. */
   rcti scrub_rect;
@@ -915,7 +913,7 @@ static void sequencer_id_remap(ScrArea * /*area*/,
                                const blender::bke::id::IDRemapper &mappings)
 {
   SpaceSeq *sseq = (SpaceSeq *)slink;
-  mappings.apply((ID **)&sseq->gpd, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(reinterpret_cast<ID **>(&sseq->gpd), ID_REMAP_APPLY_DEFAULT);
 }
 
 static void sequencer_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

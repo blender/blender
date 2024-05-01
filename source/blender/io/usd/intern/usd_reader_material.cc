@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_reader_material.hh"
+#include "usd_reader_utils.hh"
 
 #include "usd_umm.h"
 
@@ -27,8 +28,6 @@
 #include "BLI_vector.hh"
 
 #include "DNA_material_types.h"
-
-#include "WM_api.hh"
 
 #include <pxr/base/gf/vec3f.h>
 #include <pxr/usd/ar/packageUtils.h>
@@ -82,6 +81,7 @@ static const pxr::TfToken RAW("RAW", pxr::TfToken::Immortal);
 static const pxr::TfToken black("black", pxr::TfToken::Immortal);
 static const pxr::TfToken clamp("clamp", pxr::TfToken::Immortal);
 static const pxr::TfToken repeat("repeat", pxr::TfToken::Immortal);
+static const pxr::TfToken mirror("mirror", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapS("wrapS", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapT("wrapT", pxr::TfToken::Immortal);
 
@@ -340,6 +340,10 @@ static int get_image_extension(const pxr::UsdShadeShader &usd_shader, const int 
     return SHD_IMAGE_EXTENSION_CLIP;
   }
 
+  if (wrap_val == usdtokens::mirror) {
+    return SHD_IMAGE_EXTENSION_MIRROR;
+  }
+
   return default_value;
 }
 
@@ -514,6 +518,9 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
       import_usd_preview(mtl, usd_preview);
     }
   }
+
+  /* Load custom properties directly from the Material's prim. */
+  set_id_props_from_prim(&mtl->id, usd_material.GetPrim());
 
   return mtl;
 }

@@ -8,7 +8,7 @@
 #include "DNA_node_types.h"
 #include "DNA_vec_types.h"
 
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "BKE_node_runtime.hh"
 
@@ -25,6 +25,8 @@ RenderContext *Context::render_context() const
 {
   return nullptr;
 }
+
+void Context::evaluate_operation_post() const {}
 
 bool Context::is_canceled() const
 {

@@ -16,8 +16,8 @@ struct Main;
 struct Object;
 struct Scene;
 
-void BKE_cachefiles_init(void);
-void BKE_cachefiles_exit(void);
+void BKE_cachefiles_init();
+void BKE_cachefiles_exit();
 
 void *BKE_cachefile_add(Main *bmain, const char *name);
 

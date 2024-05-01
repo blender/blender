@@ -27,6 +27,7 @@
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_main.hh"
+#include "BKE_node_tree_update.hh"
 #include "BKE_scene.hh"
 
 #include "RNA_access.hh"
@@ -41,10 +42,12 @@
 #include "IMB_imbuf_types.hh"
 #include "IMB_openexr.hh"
 
-#include "GPU_state.h"
-#include "GPU_texture.h"
+#include "GPU_state.hh"
+#include "GPU_texture.hh"
 
 #include "COM_node_operation.hh"
+
+#include "NOD_socket_search_link.hh"
 
 #include "node_composite_util.hh"
 
@@ -293,11 +296,25 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
   cmp_node_update_default(ntree, node);
 
   /* automatically update the socket type based on linked input */
+  ntree->ensure_topology_cache();
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (sock->link) {
-      PointerRNA ptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock);
-      RNA_enum_set(&ptr, "type", sock->link->fromsock->type);
+    if (sock->is_logically_linked()) {
+      const bNodeSocket *from_socket = sock->logically_linked_sockets()[0];
+      if (sock->type != from_socket->type) {
+        nodeModifySocketTypeStatic(ntree, node, sock, from_socket->type, 0);
+        BKE_ntree_update_tag_socket_property(ntree, sock);
+      }
     }
+  }
+}
+
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  if (params.in_out() == SOCK_IN) {
+    params.add_item(IFACE_("Image"), [](LinkSearchOpParams &params) {
+      bNode &node = params.add_node("CompositorNodeOutputFile");
+      params.update_and_connect_available_socket(node, "Image");
+    });
   }
 }
 
@@ -759,6 +776,7 @@ void register_node_type_cmp_output_file()
   node_type_storage(
       &ntype, "NodeImageMultiFile", file_ns::free_output_file, file_ns::copy_output_file);
   ntype.updatefunc = file_ns::update_output_file;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);

@@ -221,12 +221,12 @@ static void outliner_select_sync_to_object(ViewLayer *view_layer,
 
   if (base && (base->flag & BASE_SELECTABLE)) {
     if (tselem->flag & TSE_SELECTED) {
-      ED_object_base_select(base, BA_SELECT);
+      object::base_select(base, object::BA_SELECT);
 
       add_selected_item(selected_objects, base);
     }
     else if (!is_object_selected(selected_objects, base)) {
-      ED_object_base_select(base, BA_DESELECT);
+      object::base_select(base, object::BA_DESELECT);
     }
   }
 }
@@ -250,7 +250,7 @@ static void outliner_select_sync_to_edit_bone(const Scene *scene,
     else if (!is_edit_bone_selected(selected_ebones, ebone)) {
       /* Don't flush to parent bone tip, synced selection is iterating the whole tree so
        * deselecting potential children with `ED_armature_ebone_select_set(ebone, false)`
-       * would leave own tip deselected. */
+       * would leave its own tip deselected. */
       ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
     }
   }

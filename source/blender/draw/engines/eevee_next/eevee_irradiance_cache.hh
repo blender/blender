@@ -146,7 +146,9 @@ class IrradianceBake {
   }
 
   /** Create the views used to rasterize the scene into surfel representation. */
-  void surfel_raster_views_sync(float3 scene_min, float3 scene_max, float4x4 probe_to_world);
+  void surfel_raster_views_sync(const float3 &scene_min,
+                                const float3 &scene_max,
+                                const float4x4 &probe_to_world);
   /** Create a surfel representation of the scene from the probe using the capture pipeline. */
   void surfels_create(const Object &probe_object);
   /** Evaluate direct lighting (and also clear the surfels radiance). */
@@ -190,10 +192,6 @@ class VolumeProbeModule {
  public:
   IrradianceBake bake;
 
-  /** True if world irradiance need to be updated. */
-  /* TODO(fclem): move to private once world irradiance extraction is moved to irradiance cache. */
-  bool do_update_world_ = true;
-
  private:
   Instance &inst_;
 
@@ -220,12 +218,22 @@ class VolumeProbeModule {
   bool display_grids_enabled_ = false;
   PassSimple display_grids_ps_ = {"VolumeProbeModule.Display Grids"};
 
+  /** True if world irradiance need to be updated. */
+  bool do_update_world_ = true;
+
  public:
   VolumeProbeModule(Instance &inst) : bake(inst), inst_(inst){};
   ~VolumeProbeModule(){};
 
   void init();
   void sync();
+
+  /* Tag all grids for reupload in set_view and composite them with the world irradiance. */
+  void update_world_irradiance()
+  {
+    do_update_world_ = true;
+  }
+
   void set_view(View &view);
   void viewport_draw(View &view, GPUFrameBuffer *view_fb);
 

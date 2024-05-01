@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.2.0 Alpha (b'3a5389d5abe0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"POT-Creation-Date: 2024-04-29 07:27+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -464,6 +464,14 @@ msgstr "Polkutyypit"
 
 msgid "Around Frame"
 msgstr "Kehyksen ympärillä"
+
+
+msgid "Mix Mode"
+msgstr "Sekoitustila"
+
+
+msgid "Offset"
+msgstr "Siirros"
 
 
 msgid "Any Type"
@@ -2098,6 +2106,10 @@ msgid "Curve Length"
 msgstr "Käyrän pituus"
 
 
+msgid "Curve Radius"
+msgstr "Käyrän säde"
+
+
 msgid "Remove"
 msgstr "Poista"
 
@@ -2134,12 +2146,13 @@ msgid "Curve Strength"
 msgstr "Käyrän vahvuus"
 
 
-msgid "Direction"
-msgstr "Suunta"
-
-
+msgctxt "GPencil"
 msgid "Stroke"
 msgstr "Piirto"
+
+
+msgid "Direction"
+msgstr "Suunta"
 
 
 msgid "Normal"
@@ -2318,6 +2331,10 @@ msgid "Mode Type"
 msgstr "Tilatyyppi"
 
 
+msgid "Stroke"
+msgstr "Piirto"
+
+
 msgid "Stroke & Fill"
 msgstr "Piirrä & täytä"
 
@@ -2427,10 +2444,6 @@ msgstr "Kuva"
 
 msgid "Image User"
 msgstr "Kuvan käyttäjä"
-
-
-msgid "Offset"
-msgstr "Siirros"
 
 
 msgid "Rotation"
@@ -2782,10 +2795,6 @@ msgid "Minimum"
 msgstr "Minimi"
 
 
-msgid "Mix Mode"
-msgstr "Sekoitustila"
-
-
 msgid "Target object"
 msgstr "Kohdeobjekti"
 
@@ -3124,10 +3133,6 @@ msgstr "Seuraa polkurajoitusta"
 
 msgid "Follow Curve"
 msgstr "Seuraa käyrää"
-
-
-msgid "Curve Radius"
-msgstr "Käyrän säde"
 
 
 msgid "Camera"
@@ -4194,10 +4199,6 @@ msgid "MPEG-4 (divx)"
 msgstr "MPEG-4 (divx)"
 
 
-msgid "QT rle / QT Animation"
-msgstr "QT rle / QT Animation"
-
-
 msgid "Theora"
 msgstr "Theora"
 
@@ -4389,6 +4390,10 @@ msgid "Z Direction"
 msgstr "Z-suunta"
 
 
+msgid "Animations"
+msgstr "Animaatiot"
+
+
 msgid "Show Armature data-blocks"
 msgstr "Näytä luurangon data-palikat"
 
@@ -4533,10 +4538,6 @@ msgid "Save"
 msgstr "Tallenna"
 
 
-msgid "Animations"
-msgstr "Animaatiot"
-
-
 msgid "Environment"
 msgstr "Ympäristö"
 
@@ -4661,6 +4662,10 @@ msgid "Auto-Masking Strokes"
 msgstr "Automaattinen maskauspiirto"
 
 
+msgid "Active Grease Pencil layer"
+msgstr "Aktiivinen öljykynän taso"
+
+
 msgid "Key"
 msgstr "Avain"
 
@@ -4689,6 +4694,10 @@ msgid "World"
 msgstr "Maailma"
 
 
+msgid "Layers"
+msgstr "Tasot"
+
+
 msgid "Push"
 msgstr "Työnnä"
 
@@ -4703,10 +4712,6 @@ msgstr "Polku"
 
 msgid "Normals"
 msgstr "Normaalit"
-
-
-msgid "Layers"
-msgstr "Tasot"
 
 
 msgid "Corner"
@@ -5375,10 +5380,6 @@ msgstr "Suhteellinen X-koko"
 
 msgid "Relative Size Y"
 msgstr "Suhteellinen Y-koko"
-
-
-msgid "Limit Channel"
-msgstr "Rajoita kanava"
 
 
 msgid "Algorithm"
@@ -6579,14 +6580,6 @@ msgid "Vector Rotate"
 msgstr "Vektorin kirto"
 
 
-msgid "Invert angle"
-msgstr "Käännä kulma"
-
-
-msgid "Type of rotation"
-msgstr "Kierron tyyppi"
-
-
 msgid "Z Axis"
 msgstr "Z-akseli"
 
@@ -6677,6 +6670,11 @@ msgstr "Aktiivinen muunnin"
 
 msgid "Only Channel"
 msgstr "Vain kanava"
+
+
+msgctxt "Operator"
+msgid "Export"
+msgstr "Vie"
 
 
 msgid "Output A"
@@ -7017,6 +7015,11 @@ msgid "Delete active frame"
 msgstr "Poista aktiivinen kehys"
 
 
+msgctxt "GPencil"
+msgid "Type"
+msgstr "Tyyppi"
+
+
 msgid "All Frames"
 msgstr "Kaikki kehykset"
 
@@ -7038,11 +7041,6 @@ msgstr "Pistekoko"
 
 
 msgctxt "GPencil"
-msgid "Type"
-msgstr "Tyyppi"
-
-
-msgctxt "GPencil"
 msgid "Custom"
 msgstr "Mukautettu"
 
@@ -7050,10 +7048,6 @@ msgstr "Mukautettu"
 msgctxt "Operator"
 msgid "Active Layer"
 msgstr "Aktiivinen taso"
-
-
-msgid "Active Grease Pencil layer"
-msgstr "Aktiivinen öljykynän taso"
 
 
 msgctxt "Operator"
@@ -7764,11 +7758,6 @@ msgid "Solid"
 msgstr "Kiinteä"
 
 
-msgctxt "Operator"
-msgid "Export"
-msgstr "Vie"
-
-
 msgid "Result"
 msgstr "Tulos"
 
@@ -7830,20 +7819,16 @@ msgid "No camera found"
 msgstr "Kameraa ei löydetty"
 
 
-msgid "Shortcuts"
-msgstr "Pikanäppäimet"
-
-
-msgid "Spacebar"
-msgstr "Välilyönti"
-
-
 msgid "Bug"
 msgstr "Bugi"
 
 
 msgid "After"
 msgstr "Jälkeen"
+
+
+msgid "Before"
+msgstr "Ennen"
 
 
 msgid "Order"
@@ -7878,8 +7863,8 @@ msgid "Offset X"
 msgstr "X-siirros"
 
 
-msgid "Before"
-msgstr "Ennen"
+msgid "No layers to add"
+msgstr "Ei lisättäviä tasoja"
 
 
 msgid "Combination"
@@ -7900,10 +7885,6 @@ msgstr "Piirrä:"
 
 msgid "Data Source:"
 msgstr "Tietolähde:"
-
-
-msgid "No layers to add"
-msgstr "Ei lisättäviä tasoja"
 
 
 msgid "Cursor Color"
@@ -8514,16 +8495,6 @@ msgid "Speaker"
 msgstr "Kaijutin"
 
 
-msgctxt "Operator"
-msgid "Reference"
-msgstr "Referenssi"
-
-
-msgctxt "Operator"
-msgid "Background"
-msgstr "Tausta"
-
-
 msgid "Set Pivot"
 msgstr "Aseta napa"
 
@@ -8584,6 +8555,16 @@ msgstr "Saumat"
 msgctxt "Operator"
 msgid "Lattice"
 msgstr "Säleikkö"
+
+
+msgctxt "Operator"
+msgid "Reference"
+msgstr "Referenssi"
+
+
+msgctxt "Operator"
+msgid "Background"
+msgstr "Tausta"
 
 
 msgctxt "Operator"
@@ -8748,10 +8729,6 @@ msgid "Workbench"
 msgstr "Työtila"
 
 
-msgid "Nothing selected"
-msgstr "Mitään ei ole valittu"
-
-
 msgid "y = (Ax + B)"
 msgstr "y = (Ax + B)"
 
@@ -8800,6 +8777,10 @@ msgstr "Pupillit"
 
 msgid "Grey"
 msgstr "Harnaa"
+
+
+msgid "Nothing selected"
+msgstr "Mitään ei ole valittu"
 
 
 msgid "Stroke: ON"
@@ -9361,11 +9342,6 @@ msgid "Suzanne"
 msgstr "Suzanne"
 
 
-msgctxt "GPencil"
-msgid "Stroke"
-msgstr "Piirto"
-
-
 msgid "To Active Bone"
 msgstr "Aktiiviseen luuhun"
 
@@ -9384,6 +9360,10 @@ msgstr "Ilman kohteita"
 
 msgid "Path is already animated"
 msgstr "Polku on jo animoitu"
+
+
+msgid "Create"
+msgstr "Luo"
 
 
 msgid "No collection selected"
@@ -10035,10 +10015,6 @@ msgid "UV Vertex"
 msgstr "UV-kärki"
 
 
-msgid "Create"
-msgstr "Luo"
-
-
 msgid "Custom Camera"
 msgstr "Mukautettu kamera"
 
@@ -10393,10 +10369,6 @@ msgid "Degr"
 msgstr "Aste"
 
 
-msgid "Speed:"
-msgstr "Nopeus:"
-
-
 msgid "Rotate By"
 msgstr "Kierrä"
 
@@ -10665,6 +10637,10 @@ msgid "Is Valid Offset"
 msgstr "On pätevä siirros"
 
 
+msgid "Is Valid"
+msgstr "On pätevä"
+
+
 msgid "Source Position"
 msgstr "Lähteen sijainti"
 
@@ -10683,10 +10659,6 @@ msgstr "Osuman normaali"
 
 msgid "Hit Distance"
 msgstr "Osuman etäisyys"
-
-
-msgid "Is Valid"
-msgstr "On pätevä"
 
 
 msgid "Strings"
@@ -11052,10 +11024,6 @@ msgstr "Päällä"
 
 msgid "OFF"
 msgstr "Pois päältä"
-
-
-msgid "OK?"
-msgstr "OK?"
 
 
 msgid "unsupported format"

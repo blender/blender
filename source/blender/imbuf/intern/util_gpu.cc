@@ -9,8 +9,8 @@
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
-#include "GPU_capabilities.h"
-#include "GPU_texture.h"
+#include "GPU_capabilities.hh"
+#include "GPU_texture.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -201,8 +201,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
   }
 
   if (do_rescale) {
-    uint8_t *rect = (is_float_rect) ? nullptr : (uint8_t *)data_rect;
-    float *rect_float = (is_float_rect) ? (float *)data_rect : nullptr;
+    const uint8_t *rect = (is_float_rect) ? nullptr : (uint8_t *)data_rect;
+    const float *rect_float = (is_float_rect) ? (float *)data_rect : nullptr;
 
     ImBuf *scale_ibuf = IMB_allocFromBuffer(rect, rect_float, ibuf->x, ibuf->y, 4);
     IMB_scaleImBuf(scale_ibuf, UNPACK2(rescale_size));
@@ -335,6 +335,10 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
       fprintf(stderr, "Unable to load DXT image resolution,");
     }
     else if (!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) {
+      /* We require POT DXT/S3TC texture sizes not because something in there
+       * intrinsically needs it, but because we flip them upside down at
+       * load time, and that (when mipmaps are involved) is only possible
+       * with POT height. */
       fprintf(stderr, "Unable to load non-power-of-two DXT image resolution,");
     }
     else {
@@ -353,7 +357,7 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
       fprintf(stderr, "ST3C support not found,");
     }
     /* Fallback to uncompressed texture. */
-    fprintf(stderr, " falling back to uncompressed.\n");
+    fprintf(stderr, " falling back to uncompressed (%s, %ix%i).\n", name, ibuf->x, ibuf->y);
   }
 
   eGPUTextureFormat tex_format;

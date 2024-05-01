@@ -16,9 +16,9 @@
 #include "mtl_capabilities.hh"
 #include "mtl_shader_interface_type.hh"
 
-#include "GPU_common.h"
-#include "GPU_common_types.h"
-#include "GPU_texture.h"
+#include "GPU_common.hh"
+#include "GPU_common_types.hh"
+#include "GPU_texture.hh"
 #include "gpu_texture_private.hh"
 #include <Metal/Metal.h>
 #include <functional>

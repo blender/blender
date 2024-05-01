@@ -19,7 +19,6 @@
 struct BezTriple;
 struct BezTriple;
 struct BMEditMesh;
-struct BoundBox;
 struct BPoint;
 struct Curve;
 struct Depsgraph;

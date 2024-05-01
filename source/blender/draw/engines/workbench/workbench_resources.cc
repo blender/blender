@@ -21,7 +21,7 @@ static bool get_matcap_tx(Texture &matcap_tx, StudioLight &studio_light)
   if (matcap_diffuse && matcap_diffuse->float_buffer.data) {
     int layers = 1;
     float *buffer = matcap_diffuse->float_buffer.data;
-    Vector<float> combined_buffer = {};
+    Vector<float> combined_buffer;
 
     if (matcap_specular && matcap_specular->float_buffer.data) {
       int size = matcap_diffuse->x * matcap_diffuse->y * 4;
@@ -55,7 +55,7 @@ static float4x4 get_world_shading_rotation_matrix(float studiolight_rot_z)
 }
 
 static LightData get_light_data_from_studio_solidlight(const SolidLight *sl,
-                                                       float4x4 world_shading_rotation)
+                                                       const float4x4 &world_shading_rotation)
 {
   LightData light = {};
   if (sl && sl->flag) {

@@ -472,6 +472,27 @@ void MTLFrameBuffer::clear_attachment(GPUAttachmentType type,
     this->force_clear();
   }
 }
+void MTLFrameBuffer::subpass_transition_impl(const GPUAttachmentState /*depth_attachment_state*/,
+                                             Span<GPUAttachmentState> color_attachment_states)
+{
+  const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);
+  if (!is_tile_based_arch) {
+    /* Break render-pass if tile memory is unsupported to ensure current frame-buffer results are
+     * stored. */
+    context_->main_command_buffer.end_active_command_encoder();
+
+    /* Bind frame-buffer attachments as textures.
+     * NOTE: Follows behavior of gl_framebuffer. However, shaders utilizing subpass_in will
+     * need to avoid bind-point collisions for image/texture resources. */
+    for (int i : color_attachment_states.index_range()) {
+      GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0 + i;
+      GPUTexture *attach_tex = this->attachments_[type].tex;
+      if (color_attachment_states[i] == GPU_ATTACHEMENT_READ) {
+        GPU_texture_image_bind(attach_tex, i);
+      }
+    }
+  }
+}
 
 void MTLFrameBuffer::read(eGPUFrameBufferBits planes,
                           eGPUDataFormat format,

@@ -1146,13 +1146,17 @@ static void points_in_planes_fn(const float co[3], int i, int j, int k, void *us
 PyDoc_STRVAR(
     /* Wrap. */
     M_Geometry_points_in_planes_doc,
-    ".. function:: points_in_planes(planes)\n"
+    ".. function:: points_in_planes(planes, epsilon_coplanar=1e-4, epsilon_isect=1e-6)\n"
     "\n"
     "   Returns a list of points inside all planes given and a list of index values for "
     "the planes used.\n"
     "\n"
     "   :arg planes: List of planes (4D vectors).\n"
     "   :type planes: list of :class:`mathutils.Vector`\n"
+    "   :arg epsilon_coplanar: Epsilon value for interpreting plane pairs as co-plannar.\n"
+    "   :type epsilon_coplanar: float\n"
+    "   :arg epsilon_isect: Epsilon value for intersection.\n"
+    "   :type epsilon_isect: float\n"
     "   :return: two lists, once containing the vertices inside the planes, another "
     "containing the plane indices used\n"
     "   :rtype: pair of lists\n");
@@ -1160,9 +1164,11 @@ static PyObject *M_Geometry_points_in_planes(PyObject * /*self*/, PyObject *args
 {
   PyObject *py_planes;
   float(*planes)[4];
+  float eps_coplanar = 1e-4f;
+  float eps_isect = 1e-6f;
   uint planes_len;
 
-  if (!PyArg_ParseTuple(args, "O:points_in_planes", &py_planes)) {
+  if (!PyArg_ParseTuple(args, "O|ff:points_in_planes", &py_planes, &eps_coplanar, &eps_isect)) {
     return nullptr;
   }
 
@@ -1182,9 +1188,6 @@ static PyObject *M_Geometry_points_in_planes(PyObject * /*self*/, PyObject *args
   PyObject *py_plane_index = PyList_New(0);
 
   memset(user_data.planes_used, 0, sizeof(char) * planes_len);
-
-  const float eps_coplanar = 1e-4f;
-  const float eps_isect = 1e-6f;
 
   const bool has_isect = isect_planes_v3_fn(
       planes, planes_len, eps_coplanar, eps_isect, points_in_planes_fn, &user_data);
@@ -1320,7 +1323,6 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject * /*self*/, PyObject *po
     if (len_polypoints > 0) { /* don't bother adding edges as polylines */
       dl = static_cast<DispList *>(MEM_callocN(sizeof(DispList), "poly disp"));
       BLI_addtail(&dispbase, dl);
-      dl->type = DL_INDEX3;
       dl->nr = len_polypoints;
       dl->type = DL_POLY;
       dl->parts = 1; /* no faces, 1 edge loop */

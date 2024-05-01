@@ -29,7 +29,7 @@ set(SRC
   graph_view.cc
   space_graph.cc
 
-  graph_intern.h
+  graph_intern.hh
 )
 
 set(LIB

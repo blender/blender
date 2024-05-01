@@ -11,10 +11,11 @@ shader node_sheen_bsdf(color Color = 0.8,
                        normal Normal = N,
                        output closure color BSDF = 0)
 {
+  color base_color = max(Color, color(0.0));
   float roughness = clamp(Roughness, 0.0, 1.0);
 
   if (distribution == "ashikhmin")
-    BSDF = Color * ashikhmin_velvet(Normal, roughness);
+    BSDF = base_color * ashikhmin_velvet(Normal, roughness);
   else if (distribution == "microfiber")
-    BSDF = Color * sheen(Normal, roughness);
+    BSDF = base_color * sheen(Normal, roughness);
 }

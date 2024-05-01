@@ -161,7 +161,7 @@ static const char *give_seqname_by_type(int type)
   }
 }
 
-const char *SEQ_sequence_give_name(Sequence *seq)
+const char *SEQ_sequence_give_name(const Sequence *seq)
 {
   const char *name = give_seqname_by_type(seq->type);
 
@@ -257,7 +257,7 @@ static void index_dir_set(Editing *ed, Sequence *seq, StripAnim *sanim)
   seq_proxy_index_dir_set(sanim->anim, proxy_dirpath);
 }
 
-static bool open_anim_file_multiview(Scene *scene, Sequence *seq, char *filepath, bool openfile)
+static bool open_anim_file_multiview(Scene *scene, Sequence *seq, const char *filepath)
 {
   char prefix[FILE_MAX];
   const char *ext = nullptr;
@@ -277,10 +277,11 @@ static bool open_anim_file_multiview(Scene *scene, Sequence *seq, char *filepath
     SNPRINTF(filepath_view, "%s%s%s", prefix, suffix, ext);
 
     StripAnim *sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
-    open_anim_filepath(seq, sanim, filepath_view, openfile);
+    /* Multiview files must be loaded, otherwise it is not possible to detect failure. */
+    open_anim_filepath(seq, sanim, filepath_view, true);
 
     if (sanim->anim == nullptr) {
-      MEM_freeN(sanim);
+      SEQ_relations_sequence_free_anim(seq);
       return false; /* Multiview render failed. */
     }
 
@@ -313,7 +314,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   bool multiview_is_loaded = false;
 
   if (is_multiview) {
-    multiview_is_loaded = open_anim_file_multiview(scene, seq, filepath, openfile);
+    multiview_is_loaded = open_anim_file_multiview(scene, seq, filepath);
   }
 
   if (!is_multiview || !multiview_is_loaded) {
@@ -444,10 +445,8 @@ void SEQ_alpha_mode_from_file_extension(Sequence *seq)
   }
 }
 
-bool SEQ_sequence_has_source(const Sequence *seq)
+bool SEQ_sequence_has_valid_data(const Sequence *seq)
 {
-  /* Called on draw, needs to be fast,
-   * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
   switch (seq->type) {
     case SEQ_TYPE_MASK:
       return (seq->mask != nullptr);

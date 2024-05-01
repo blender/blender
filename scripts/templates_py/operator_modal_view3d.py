@@ -26,7 +26,7 @@ class ViewOperator(bpy.types.Operator):
         if event.type == 'MOUSEMOVE':
             self.offset = (self._initial_mouse - Vector((event.mouse_x, event.mouse_y, 0.0))) * 0.02
             self.execute(context)
-            context.area.header_text_set("Offset %.4f %.4f %.4f" % tuple(self.offset))
+            context.area.header_text_set("Offset {:.4f} {:.4f} {:.4f}".format(*self.offset))
 
         elif event.type == 'LEFTMOUSE':
             context.area.header_text_set(None)

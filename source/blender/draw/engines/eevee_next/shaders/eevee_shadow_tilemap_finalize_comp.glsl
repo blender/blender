@@ -57,6 +57,7 @@ void main()
   bool is_cubemap = (tilemap_data.projection_type == SHADOW_PROJECTION_CUBEFACE);
   int lod_max = is_cubemap ? SHADOW_TILEMAP_LOD : 0;
   int valid_tile_index = -1;
+  uint valid_lod = 0u;
   /* With all threads (LOD0 size dispatch) load each lod tile from the highest lod
    * to the lowest, keeping track of the lowest one allocated which will be use for shadowing.
    * This guarantee a O(1) lookup time.
@@ -102,7 +103,25 @@ void main()
         view_index = atomicAdd(statistics_buf.view_needed_count, 1);
         if (view_index < SHADOW_VIEW_MAX) {
           /* Setup the view. */
-          viewport_index_buf[view_index] = viewport_index;
+
+          render_view_buf[view_index].viewport_index = viewport_index;
+          /* Scale by actual radius size (overestimate since scaled by bounding circle). */
+          float filter_radius = tilemap_data.filter_radius * M_SQRT2;
+          /* We need a minimum slope bias even if filter is 0 to avoid some invalid shadowing. */
+          render_view_buf[view_index].filter_radius = max(1.0, filter_radius);
+          /* Clipping setup. */
+          if (tilemap_data.is_area_side) {
+            /* Negative for tagging this case. See shadow_clip_vector_get for explanation. */
+            render_view_buf[view_index].clip_distance_inv = -M_SQRT1_3 / tilemap_data.area_shift;
+          }
+          else if (is_point_light(tilemap_data.light_type)) {
+            /* Clip as a sphere around the clip_near cube. */
+            render_view_buf[view_index].clip_distance_inv = M_SQRT1_3 / tilemap_data.clip_near;
+          }
+          else {
+            /* Disable local clipping. */
+            render_view_buf[view_index].clip_distance_inv = 0.0;
+          }
 
           view_infos_buf[view_index].viewmat = tilemap_data.viewmat;
           view_infos_buf[view_index].viewinv = inverse(tilemap_data.viewmat);
@@ -176,12 +195,17 @@ void main()
     if (tile.is_used && tile.is_allocated && (!tile.do_update || lod_is_rendered)) {
       /* Save highest lod for this thread. */
       valid_tile_index = tile_index;
+      valid_lod = uint(lod);
     }
   }
 
   /* Store the highest LOD valid page for rendering. */
-  uint tile_packed = (valid_tile_index != -1) ? tiles_buf[valid_tile_index] : SHADOW_NO_DATA;
-  imageStore(tilemaps_img, atlas_texel, uvec4(tile_packed));
+  ShadowTileDataPacked tile_packed = (valid_tile_index != -1) ? tiles_buf[valid_tile_index] :
+                                                                SHADOW_NO_DATA;
+  ShadowTileData tile_data = shadow_tile_unpack(tile_packed);
+  ShadowSamplingTile tile_sampling = shadow_sampling_tile_create(tile_data, valid_lod);
+  ShadowSamplingTilePacked tile_sampling_packed = shadow_sampling_tile_pack(tile_sampling);
+  imageStore(tilemaps_img, atlas_texel, uvec4(tile_sampling_packed));
 
   if (all(equal(gl_GlobalInvocationID, uvec3(0)))) {
     /* Clamp it as it can underflow if there is too much tile present on screen. */

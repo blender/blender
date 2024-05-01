@@ -12,6 +12,7 @@
 #include "BLI_string.h"
 
 #include "DNA_ID.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
@@ -27,7 +28,7 @@
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
@@ -878,13 +879,8 @@ static bool node_collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *
   return WM_drag_is_ID_type(drag, ID_GR) && !UI_but_active_drop_name(C);
 }
 
-static bool node_ima_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool node_id_im_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
-  if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = static_cast<eFileSel_File_Types>(
-        WM_drag_get_path_file_type(drag));
-    return ELEM(file_type, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE);
-  }
   return WM_drag_is_ID_type(drag, ID_IM);
 }
 
@@ -914,20 +910,12 @@ static void node_id_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
   RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
 }
 
-static void node_id_path_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
+static void node_id_im_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
-
   if (id) {
     RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
     RNA_struct_property_unset(drop->ptr, "filepath");
-    return;
-  }
-
-  const char *path = WM_drag_get_single_path(drag);
-  if (path) {
-    RNA_string_set(drop->ptr, "filepath", path);
-    RNA_struct_property_unset(drop->ptr, "name");
     return;
   }
 }
@@ -957,8 +945,8 @@ static void node_dropboxes()
                  nullptr);
   WM_dropbox_add(lb,
                  "NODE_OT_add_file",
-                 node_ima_drop_poll,
-                 node_id_path_drop_copy,
+                 node_id_im_drop_poll,
+                 node_id_im_drop_copy,
                  WM_drag_free_imported_drag_ID,
                  nullptr);
   WM_dropbox_add(lb,
@@ -1150,10 +1138,8 @@ static void node_widgets()
   WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_corner_pin);
 }
 
-static void node_id_remap_cb(ID *old_id, ID *new_id, void *user_data)
+static void node_id_remap(ID *old_id, ID *new_id, SpaceNode *snode)
 {
-  SpaceNode *snode = static_cast<SpaceNode *>(user_data);
-
   if (snode->id == old_id) {
     /* nasty DNA logic for SpaceNode:
      * ideally should be handled by editor code, but would be bad level call
@@ -1183,8 +1169,10 @@ static void node_id_remap_cb(ID *old_id, ID *new_id, void *user_data)
   }
   else if (GS(old_id->name) == ID_NT) {
 
-    if (&snode->geometry_nodes_tool_tree->id == old_id) {
-      snode->geometry_nodes_tool_tree = reinterpret_cast<bNodeTree *>(new_id);
+    if (snode->geometry_nodes_tool_tree) {
+      if (&snode->geometry_nodes_tool_tree->id == old_id) {
+        snode->geometry_nodes_tool_tree = reinterpret_cast<bNodeTree *>(new_id);
+      }
     }
 
     bNodeTreePath *path, *path_next;
@@ -1238,7 +1226,9 @@ static void node_id_remap(ScrArea * /*area*/,
    * We could also move a remap address at a time to use the IDRemapper as that should get closer
    * to cleaner code. See {D13615} for more information about this topic.
    */
-  mappings.iter(node_id_remap_cb, slink);
+  mappings.iter([&](ID *old_id, ID *new_id) {
+    node_id_remap(old_id, new_id, reinterpret_cast<SpaceNode *>(slink));
+  });
 }
 
 static void node_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
@@ -1371,11 +1361,11 @@ static void node_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   SpaceNode *snode = (SpaceNode *)sl;
 
   if (snode->gpd) {
-    BLO_read_data_address(reader, &snode->gpd);
+    BLO_read_struct(reader, bGPdata, &snode->gpd);
     BKE_gpencil_blend_read_data(reader, snode->gpd);
   }
 
-  BLO_read_list(reader, &snode->treepath);
+  BLO_read_struct_list(reader, bNodeTreePath, &snode->treepath);
   snode->edittree = nullptr;
   snode->runtime = nullptr;
 }

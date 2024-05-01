@@ -22,17 +22,12 @@
 #include "gpencil_engine.h"
 
 /* verify if this fx is active */
-static bool effect_is_active(bGPdata *gpd, ShaderFxData *fx, bool is_viewport)
+static bool effect_is_active(ShaderFxData *fx, bool is_edit, bool is_viewport)
 {
   if (fx == nullptr) {
     return false;
   }
 
-  if (gpd == nullptr) {
-    return false;
-  }
-
-  bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd);
   if (((fx->mode & eShaderFxMode_Editmode) == 0) && (is_edit) && (is_viewport)) {
     return false;
   }
@@ -590,9 +585,11 @@ static void gpencil_vfx_swirl(SwirlShaderFxData *fx, Object * /*ob*/, gpIterVfxD
   DRW_shgroup_call_procedural_triangles(grp, nullptr, 1);
 }
 
-void gpencil_vfx_cache_populate(GPENCIL_Data *vedata, Object *ob, GPENCIL_tObject *tgp_ob)
+void gpencil_vfx_cache_populate(GPENCIL_Data *vedata,
+                                Object *ob,
+                                GPENCIL_tObject *tgp_ob,
+                                const bool is_edit_mode)
 {
-  bGPdata *gpd = (bGPdata *)ob->data;
   GPENCIL_FramebufferList *fbl = vedata->fbl;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
 
@@ -610,7 +607,7 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata, Object *ob, GPENCIL_tObjec
   /* If simplify enabled, nothing more to do. */
   if (!pd->simplify_fx) {
     LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
-      if (effect_is_active(gpd, fx, pd->is_viewport)) {
+      if (effect_is_active(fx, is_edit_mode, pd->is_viewport)) {
         switch (fx->type) {
           case eShaderFxType_Blur:
             gpencil_vfx_blur((BlurShaderFxData *)fx, ob, &iter);

@@ -177,7 +177,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
 
 template<bool in_volume_segment>
 ccl_device_noinline bool light_sample(KernelGlobals kg,
-                                      const float2 rand,
+                                      const float3 rand_light,
                                       const float time,
                                       const float3 P,
                                       const float3 N,
@@ -185,32 +185,30 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
                                       const int shader_flags,
                                       const int bounce,
                                       const uint32_t path_flag,
-                                      const int emitter_index,
-                                      const int object_id,
-                                      const float pdf_selection,
                                       ccl_private LightSample *ls)
 {
+  /* The first two dimensions of the Sobol sequence have better stratification, use them to sample
+   * position on the light. */
+  const float2 rand = float3_to_float2(rand_light);
+
   int prim;
   MeshLight mesh_light;
 #ifdef __LIGHT_TREE__
   if (kernel_data.integrator.use_light_tree) {
     ccl_global const KernelLightTreeEmitter *kemitter = &kernel_data_fetch(light_tree_emitters,
-                                                                           emitter_index);
+                                                                           ls->emitter_id);
     prim = kemitter->light.id;
     mesh_light.shader_flag = kemitter->mesh_light.shader_flag;
-    mesh_light.object_id = object_id;
+    mesh_light.object_id = ls->object;
   }
   else
 #endif
   {
     ccl_global const KernelLightDistribution *kdistribution = &kernel_data_fetch(
-        light_distribution, emitter_index);
+        light_distribution, ls->emitter_id);
     prim = kdistribution->prim;
     mesh_light = kdistribution->mesh_light;
   }
-
-  /* A different value would be assigned in `triangle_light_sample()` if `!use_light_tree`. */
-  ls->pdf_selection = pdf_selection;
 
   if (prim >= 0) {
     /* Mesh light. */
@@ -475,12 +473,12 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
   ls->group = lamp_lightgroup(kg, lamp);
 
   if (type == LIGHT_SPOT) {
-    if (!spot_light_sample_from_intersection(klight, isect, ray_P, ray_D, N, path_flag, ls)) {
+    if (!spot_light_sample_from_intersection(klight, ray_P, ray_D, N, path_flag, ls)) {
       return false;
     }
   }
   else if (type == LIGHT_POINT) {
-    if (!point_light_sample_from_intersection(klight, isect, ray_P, ray_D, N, path_flag, ls)) {
+    if (!point_light_sample_from_intersection(klight, ray_P, ray_D, N, path_flag, ls)) {
       return false;
     }
   }

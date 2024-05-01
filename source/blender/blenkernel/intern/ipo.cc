@@ -44,8 +44,8 @@
 #include "BLT_translation.hh"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
-#include "BKE_fcurve.h"
+#include "BKE_anim_data.hh"
+#include "BKE_fcurve.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
@@ -117,12 +117,12 @@ static void ipo_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Ipo *ipo = (Ipo *)id;
 
-  BLO_read_list(reader, &(ipo->curve));
+  BLO_read_struct_list(reader, IpoCurve, &(ipo->curve));
 
   LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
-    BLO_read_data_address(reader, &icu->bezt);
-    BLO_read_data_address(reader, &icu->bp);
-    BLO_read_data_address(reader, &icu->driver);
+    BLO_read_struct_array(reader, BezTriple, icu->totvert, &icu->bezt);
+    BLO_read_struct_array(reader, BPoint, icu->totvert, &icu->bp);
+    BLO_read_struct(reader, IpoDriver, &icu->driver);
 
     /* Undo generic endian switching. */
     if (BLO_read_requires_endian_switch(reader)) {
@@ -1022,8 +1022,8 @@ static const char *particle_adrcodes_to_paths(int adrcode, int *r_array_index)
 static char *get_rna_access(ID *id,
                             int blocktype,
                             int adrcode,
-                            char actname[],
-                            char constname[],
+                            const char actname[],
+                            const char constname[],
                             Sequence *seq,
                             int *r_array_index)
 {
@@ -2153,7 +2153,7 @@ void do_versions_ipos_to_animato(Main *bmain)
     if (ob->pose) {
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
         LISTBASE_FOREACH (bConstraint *, con, &pchan->constraints) {
-          /* if constraint has own IPO, convert add these to Object
+          /* if constraint has its own IPO, convert add these to Object
            * (NOTE: they're most likely to be drivers too)
            */
           if (con->ipo) {
@@ -2173,7 +2173,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 
     /* check constraints for local IPO's */
     LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
-      /* if constraint has own IPO, convert add these to Object
+      /* if constraint has its own IPO, convert add these to Object
        * (NOTE: they're most likely to be drivers too)
        */
       if (con->ipo) {

@@ -24,7 +24,7 @@
 
 #include "RNA_access.hh"
 
-/* local module include */
+/* Local module include. */
 #include "transform.hh"
 #include "transform_gizmo.hh"
 
@@ -75,7 +75,7 @@ static void WIDGETGROUP_xform_cage_setup(const bContext * /*C*/, wmGizmoGroup *g
     wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_resize", true);
     PointerRNA *ptr;
 
-    /* assign operator */
+    /* Assign operator. */
     PropertyRNA *prop_release_confirm = nullptr;
     PropertyRNA *prop_constraint_axis = nullptr;
 

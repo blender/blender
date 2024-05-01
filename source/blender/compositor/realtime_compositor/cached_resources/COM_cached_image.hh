@@ -10,7 +10,7 @@
 
 #include "BLI_map.hh"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "DNA_image_types.h"
 

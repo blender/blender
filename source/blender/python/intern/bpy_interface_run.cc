@@ -302,7 +302,7 @@ static bool bpy_run_string_impl(bContext *C,
 
   if (retval == nullptr) {
     ok = false;
-    if (ReportList *wm_reports = CTX_wm_reports(C)) {
+    if (ReportList *wm_reports = C ? CTX_wm_reports(C) : nullptr) {
       BPy_errors_to_report(wm_reports);
     }
     PyErr_Print();
@@ -443,6 +443,43 @@ bool BPY_run_string_as_string(
 {
   size_t value_dummy_len;
   return BPY_run_string_as_string_and_len(C, imports, expr, err_info, r_value, &value_dummy_len);
+}
+
+bool BPY_run_string_as_string_and_len_or_none(bContext *C,
+                                              const char *imports[],
+                                              const char *expr,
+                                              BPy_RunErrInfo *err_info,
+                                              char **r_value,
+                                              size_t *r_value_len)
+{
+  PyGILState_STATE gilstate;
+  bool ok = true;
+
+  if (expr[0] == '\0') {
+    *r_value = nullptr;
+    return ok;
+  }
+
+  bpy_context_set(C, &gilstate);
+
+  ok = PyC_RunString_AsStringAndSizeOrNone(
+      imports, expr, "<expr as str or none>", r_value, r_value_len);
+
+  if (ok == false) {
+    run_string_handle_error(err_info);
+  }
+
+  bpy_context_clear(C, &gilstate);
+
+  return ok;
+}
+
+bool BPY_run_string_as_string_or_none(
+    bContext *C, const char *imports[], const char *expr, BPy_RunErrInfo *err_info, char **r_value)
+{
+  size_t value_dummy_len;
+  return BPY_run_string_as_string_and_len_or_none(
+      C, imports, expr, err_info, r_value, &value_dummy_len);
 }
 
 bool BPY_run_string_as_intptr(bContext *C,

@@ -12,12 +12,14 @@ shader node_glass_bsdf(color Color = 0.8,
                        normal Normal = N,
                        output closure color BSDF = 0)
 {
-  float r2 = Roughness * Roughness;
+  color base_color = max(Color, color(0.0));
+  float r2 = clamp(Roughness, 0.0, 1.0);
+  r2 = r2 * r2;
   float eta = max(IOR, 1e-5);
   eta = backfacing() ? 1.0 / eta : eta;
   color F0 = F0_from_ior(eta);
   color F90 = color(1.0);
 
   BSDF = generalized_schlick_bsdf(
-      Normal, vector(0.0), Color, Color, r2, r2, F0, F90, -eta, distribution);
+      Normal, vector(0.0), base_color, base_color, r2, r2, F0, F90, -eta, distribution);
 }

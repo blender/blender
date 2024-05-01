@@ -54,7 +54,7 @@ if not (lib_tests_dirpath / ".git").exists():
         sys.exit(1)
 
     # Ensure the test data files sub-module is configured and present.
-    make_utils.git_enable_submodule(git_command, "tests/data")
+    make_utils.git_enable_submodule(git_command, Path("tests") / "data")
     make_utils.git_update_submodule(args.git_command, lib_tests_dirpath)
 
     # Run cmake again to detect tests files.

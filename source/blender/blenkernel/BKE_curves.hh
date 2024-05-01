@@ -11,15 +11,15 @@
 
 #include "BLI_bounds_types.hh"
 #include "BLI_generic_virtual_array.hh"
-#include "BLI_implicit_sharing.hh"
-#include "BLI_index_mask.hh"
+#include "BLI_implicit_sharing_ptr.hh"
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
-#include "BLI_virtual_array.hh"
+#include "BLI_virtual_array_fwd.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.h"
@@ -451,7 +451,7 @@ class CurvesEditHints {
    * Evaluated positions for the points in #curves_orig. If this is empty, the positions from the
    * evaluated #Curves should be used if possible.
    */
-  std::optional<Array<float3>> positions;
+  ImplicitSharingPtrAndData positions_data;
   /**
    * Matrices which transform point movement vectors from original data to corresponding movements
    * of evaluated data.
@@ -459,6 +459,9 @@ class CurvesEditHints {
   std::optional<Array<float3x3>> deform_mats;
 
   CurvesEditHints(const Curves &curves_id_orig) : curves_id_orig(curves_id_orig) {}
+
+  std::optional<Span<float3>> positions() const;
+  std::optional<MutableSpan<float3>> positions_for_write();
 
   /**
    * The edit hints have to correspond to the original curves, i.e. the number of deformed points
@@ -727,7 +730,7 @@ void interpolate_to_evaluated(const GSpan src,
                               const OffsetIndices<int> evaluated_offsets,
                               GMutableSpan dst);
 
-void calculate_basis(const float parameter, float4 &r_weights);
+float4 calculate_basis(const float parameter);
 
 /**
  * Interpolate the control point values for the given parameter on the piecewise segment.
@@ -739,14 +742,13 @@ template<typename T>
 T interpolate(const T &a, const T &b, const T &c, const T &d, const float parameter)
 {
   BLI_assert(0.0f <= parameter && parameter <= 1.0f);
-  float4 n;
-  calculate_basis(parameter, n);
+  const float4 weights = calculate_basis(parameter);
   if constexpr (is_same_any_v<T, float, float2, float3>) {
     /* Save multiplications by adjusting weights after mix. */
-    return 0.5f * attribute_math::mix4<T>(n, a, b, c, d);
+    return 0.5f * attribute_math::mix4<T>(weights, a, b, c, d);
   }
   else {
-    return attribute_math::mix4<T>(n * 0.5f, a, b, c, d);
+    return attribute_math::mix4<T>(weights * 0.5f, a, b, c, d);
   }
 }
 

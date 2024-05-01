@@ -11,7 +11,7 @@
 #include "BLI_vector_set.hh"
 
 #include "GPU_material.hh"
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "gpu_shader_create_info.hh"
 
@@ -94,6 +94,8 @@ using ShaderCompileUnit = VectorSet<DNode>;
  * resources. */
 class ShaderOperation : public Operation {
  private:
+  /* A reference to the node execution schedule that is being compiled. */
+  const Schedule &schedule_;
   /* The compile unit that will be compiled into this shader operation. */
   ShaderCompileUnit compile_unit_;
   /* The GPU material backing the operation. This is created and compiled during construction and
@@ -117,9 +119,9 @@ class ShaderOperation : public Operation {
   VectorSet<DOutputSocket> preview_outputs_;
 
  public:
-  /* Construct and compile a GPU material from the given shader compile unit by calling
-   * GPU_material_from_callbacks with the appropriate callbacks. */
-  ShaderOperation(Context &context, ShaderCompileUnit &compile_unit);
+  /* Construct and compile a GPU material from the given shader compile unit and execution schedule
+   * by calling GPU_material_from_callbacks with the appropriate callbacks. */
+  ShaderOperation(Context &context, ShaderCompileUnit &compile_unit, const Schedule &schedule);
 
   /* Free the GPU material. */
   ~ShaderOperation();

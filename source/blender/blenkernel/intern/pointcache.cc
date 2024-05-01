@@ -1320,7 +1320,7 @@ static int ptcache_path(PTCacheID *pid, char dirname[MAX_PTCACHE_PATH])
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
   Library *lib = (pid->owner_id) ? pid->owner_id->lib : nullptr;
   const char *blendfile_path_lib = (lib && (pid->cache->flag & PTCACHE_IGNORE_LIBPATH) == 0) ?
-                                       lib->filepath_abs :
+                                       lib->runtime.filepath_abs :
                                        blendfile_path;
 
   if (pid->cache->flag & PTCACHE_EXTERNAL) {
@@ -1412,7 +1412,7 @@ static int ptcache_filepath(PTCacheID *pid,
                             const bool do_ext)
 {
   int len = 0;
-  char *idname;
+  const char *idname;
   char *newname;
   filepath[0] = '\0';
   newname = filepath;
@@ -1444,6 +1444,7 @@ static int ptcache_filepath(PTCacheID *pid,
     newname += temp;
     len += temp;
   }
+  UNUSED_VARS(newname);
 
   if (do_ext) {
     len += ptcache_filepath_ext_append(pid, filepath, size_t(len), true, cfra);
@@ -3808,21 +3809,6 @@ void BKE_ptcache_invalidate(PointCache *cache)
   }
 }
 
-static const char *ptcache_data_struct[] = {
-    "",          // BPHYS_DATA_INDEX
-    "",          // BPHYS_DATA_LOCATION
-    "",          // BPHYS_DATA_VELOCITY
-    "",          // BPHYS_DATA_ROTATION
-    "",          // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
-    "",          // BPHYS_DATA_SIZE:
-    "",          // BPHYS_DATA_TIMES:
-    "BoidData",  // case BPHYS_DATA_BOIDS:
-};
-static const char *ptcache_extra_struct[] = {
-    "",
-    "ParticleSpring",
-    "vec3f",
-};
 void BKE_ptcache_blend_write(BlendWriter *writer, ListBase *ptcaches)
 {
   LISTBASE_FOREACH (PointCache *, cache, ptcaches) {
@@ -3834,59 +3820,68 @@ void BKE_ptcache_blend_write(BlendWriter *writer, ListBase *ptcaches)
 
         for (int i = 0; i < BPHYS_TOT_DATA; i++) {
           if (pm->data[i] && pm->data_types & (1 << i)) {
-            if (ptcache_data_struct[i][0] == '\0') {
-              BLO_write_raw(writer, MEM_allocN_len(pm->data[i]), pm->data[i]);
+            if (i == BPHYS_DATA_BOIDS) {
+              BLO_write_struct_array(writer, BoidData, pm->totpoint, pm->data[i]);
             }
             else {
-              BLO_write_struct_array_by_name(
-                  writer, ptcache_data_struct[i], pm->totpoint, pm->data[i]);
+              BLO_write_raw(writer, MEM_allocN_len(pm->data[i]), pm->data[i]);
             }
           }
         }
 
         LISTBASE_FOREACH (PTCacheExtra *, extra, &pm->extradata) {
-          if (ptcache_extra_struct[extra->type][0] == '\0') {
-            continue;
-          }
           BLO_write_struct(writer, PTCacheExtra, extra);
-          BLO_write_struct_array_by_name(
-              writer, ptcache_extra_struct[extra->type], extra->totdata, extra->data);
+          if (extra->type == BPHYS_EXTRA_FLUID_SPRINGS) {
+            BLO_write_struct_array(writer, ParticleSpring, extra->totdata, extra->data);
+          }
+          else if (extra->type == BPHYS_EXTRA_CLOTH_ACCELERATION) {
+            BLO_write_struct_array(writer, vec3f, extra->totdata, extra->data);
+          }
+          else if (extra->data) {
+            BLI_assert_unreachable();
+          }
         }
       }
     }
   }
 }
 
-static void direct_link_pointcache_cb(BlendDataReader *reader, void *data)
+static void direct_link_pointcache_mem(BlendDataReader *reader, PTCacheMem *pm)
 {
-  PTCacheMem *pm = static_cast<PTCacheMem *>(data);
   for (int i = 0; i < BPHYS_TOT_DATA; i++) {
-    BLO_read_data_address(reader, &pm->data[i]);
-
-    /* the cache saves non-struct data without DNA */
-    if (pm->data[i] && ptcache_data_struct[i][0] == '\0' &&
-        BLO_read_requires_endian_switch(reader))
-    {
+    if (i == BPHYS_DATA_BOIDS) {
+      BLO_read_struct_array(reader, BoidData, pm->totpoint, &pm->data[i]);
+    }
+    else {
       /* data_size returns bytes. */
       int tot = (BKE_ptcache_data_size(i) * pm->totpoint) / sizeof(int);
-
-      int *poin = static_cast<int *>(pm->data[i]);
-
-      BLI_endian_switch_int32_array(poin, tot);
+      /* the cache saves non-struct data without DNA */
+      BLO_read_int32_array(reader, tot, reinterpret_cast<int **>(&pm->data[i]));
     }
   }
 
-  BLO_read_list(reader, &pm->extradata);
+  BLO_read_struct_list(reader, PTCacheExtra, &pm->extradata);
 
   LISTBASE_FOREACH (PTCacheExtra *, extra, &pm->extradata) {
-    BLO_read_data_address(reader, &extra->data);
+    if (extra->type == BPHYS_EXTRA_FLUID_SPRINGS) {
+      BLO_read_struct_array(reader, ParticleSpring, extra->totdata, &extra->data);
+    }
+    else if (extra->type == BPHYS_EXTRA_CLOTH_ACCELERATION) {
+      BLO_read_struct_array(reader, vec3f, extra->totdata, &extra->data);
+    }
+    else if (extra->data) {
+      extra->data = nullptr;
+    }
   }
 }
 
 static void direct_link_pointcache(BlendDataReader *reader, PointCache *cache)
 {
   if ((cache->flag & PTCACHE_DISK_CACHE) == 0) {
-    BLO_read_list_cb(reader, &cache->mem_cache, direct_link_pointcache_cb);
+    BLO_read_struct_list(reader, PTCacheMem, &cache->mem_cache);
+    LISTBASE_FOREACH (PTCacheMem *, pm, &cache->mem_cache) {
+      direct_link_pointcache_mem(reader, pm);
+    }
   }
   else {
     BLI_listbase_clear(&cache->mem_cache);
@@ -3906,7 +3901,7 @@ void BKE_ptcache_blend_read_data(BlendDataReader *reader,
                                  int force_disk)
 {
   if (ptcaches->first) {
-    BLO_read_list(reader, ptcaches);
+    BLO_read_struct_list(reader, PointCache, ptcaches);
     LISTBASE_FOREACH (PointCache *, cache, ptcaches) {
       direct_link_pointcache(reader, cache);
       if (force_disk) {
@@ -3915,11 +3910,11 @@ void BKE_ptcache_blend_read_data(BlendDataReader *reader,
       }
     }
 
-    BLO_read_data_address(reader, ocache);
+    BLO_read_struct(reader, PointCache, ocache);
   }
   else if (*ocache) {
     /* old "single" caches need to be linked too */
-    BLO_read_data_address(reader, ocache);
+    BLO_read_struct(reader, PointCache, ocache);
     direct_link_pointcache(reader, *ocache);
     if (force_disk) {
       (*ocache)->flag |= PTCACHE_DISK_CACHE;

@@ -30,7 +30,7 @@ but some areas are still being extended and improved.
 Before Starting
 ===============
 
-This document its intended to familiarize you with Blender Python API
+This document is intended to familiarize you with Blender Python API
 but not to fully cover each topic.
 
 A quick list of helpful things to know before starting:

@@ -13,18 +13,21 @@
 enum class PaintMode : int8_t;
 struct bContext;
 struct bToolRef;
-struct PaintModeSettings;
-struct ImBuf;
+struct Depsgraph;
 struct Image;
 struct ImageUser;
+struct ImBuf;
+struct Main;
+struct PaintModeSettings;
 struct PaintTileMap;
 struct ReportList;
+struct Scene;
 struct UndoStep;
 struct UndoType;
 struct wmKeyConfig;
 struct wmOperator;
 
-/* paint_ops.cc */
+/* `paint_ops.cc` */
 
 void ED_operatortypes_paint();
 void ED_operatormacros_paint();
@@ -110,7 +113,8 @@ void ED_paintcurve_undo_push_end(bContext *C);
 /** Export for ED_undo_sys. */
 void ED_paintcurve_undosys_type(UndoType *ut);
 
-/* paint_canvas.cc */
+/* `paint_canvas.cc` */
+
 /** Color type of an object can be overridden in sculpt/paint mode. */
 eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
                                                      const PaintModeSettings *settings,
@@ -124,5 +128,24 @@ eV3DShadingColorType ED_paint_shading_color_override(bContext *C,
  */
 bool ED_paint_tool_use_canvas(bContext *C, bToolRef *tref);
 
-/* Store the last used tool in the sculpt session. */
+/** Store the last used tool in the sculpt session. */
 void ED_paint_tool_update_sticky_shading_color(bContext *C, Object *ob);
+
+void ED_object_vpaintmode_enter_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
+void ED_object_vpaintmode_enter(bContext *C, Depsgraph *depsgraph);
+void ED_object_wpaintmode_enter_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob);
+void ED_object_wpaintmode_enter(bContext *C, Depsgraph *depsgraph);
+
+void ED_object_vpaintmode_exit_ex(Object *ob);
+void ED_object_vpaintmode_exit(bContext *C);
+void ED_object_wpaintmode_exit_ex(Object *ob);
+void ED_object_wpaintmode_exit(bContext *C);
+
+void ED_object_texture_paint_mode_enter_ex(Main *bmain,
+                                           Scene *scene,
+                                           Depsgraph *depsgraph,
+                                           Object *ob);
+void ED_object_texture_paint_mode_enter(bContext *C);
+
+void ED_object_texture_paint_mode_exit_ex(Main *bmain, Scene *scene, Object *ob);
+void ED_object_texture_paint_mode_exit(bContext *C);

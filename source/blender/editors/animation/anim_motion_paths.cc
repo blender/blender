@@ -20,7 +20,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 
@@ -28,8 +28,8 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_batch.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_batch.hh"
+#include "GPU_vertex_buffer.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_keylist.hh"
@@ -75,7 +75,7 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
 
   /* Make a flat array of IDs for the DEG API. */
   const int num_ids = BLI_listbase_count(targets);
-  ID **ids = static_cast<ID **>(MEM_malloc_arrayN(num_ids, sizeof(ID *), "animviz IDS"));
+  blender::Array<ID *> ids(num_ids);
   int current_id_index = 0;
   for (MPathTarget *mpt = static_cast<MPathTarget *>(targets->first); mpt != nullptr;
        mpt = mpt->next)
@@ -84,8 +84,7 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
   }
 
   /* Build graph from all requested IDs. */
-  DEG_graph_build_from_ids(depsgraph, ids, num_ids);
-  MEM_freeN(ids);
+  DEG_graph_build_from_ids(depsgraph, ids);
 
   /* Update once so we can access pointers of evaluated animation data. */
   motionpaths_calc_update_scene(depsgraph);

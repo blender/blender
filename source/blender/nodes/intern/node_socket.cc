@@ -38,6 +38,7 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
+#include "NOD_socket_declarations_geometry.hh"
 
 using namespace blender;
 using blender::bke::SocketValueVariant;
@@ -183,7 +184,8 @@ static void refresh_node_socket(bNodeTree &ntree,
                                 bNode &node,
                                 const SocketDeclaration &socket_decl,
                                 Vector<bNodeSocket *> &old_sockets,
-                                VectorSet<bNodeSocket *> &new_sockets)
+                                VectorSet<bNodeSocket *> &new_sockets,
+                                const bool hide_new_sockets)
 {
   /* Try to find a socket that corresponds to the declaration. */
   bNodeSocket *old_socket_with_same_identifier = nullptr;
@@ -199,6 +201,7 @@ static void refresh_node_socket(bNodeTree &ntree,
   if (old_socket_with_same_identifier == nullptr) {
     /* Create a completely new socket. */
     new_socket = &socket_decl.build(ntree, node);
+    SET_FLAG_FROM_TEST(new_socket->flag, hide_new_sockets, SOCK_HIDDEN);
   }
   else {
     STRNCPY(old_socket_with_same_identifier->name, socket_decl.name.c_str());
@@ -235,6 +238,8 @@ static void refresh_node_socket(bNodeTree &ntree,
         }
       }
     }
+    SET_FLAG_FROM_TEST(
+        new_socket->flag, old_socket_with_same_identifier->is_hidden(), SOCK_HIDDEN);
   }
   new_sockets.add_new(new_socket);
   BKE_ntree_update_tag_socket_new(&ntree, new_socket);
@@ -276,57 +281,6 @@ static void refresh_node_panel(const PanelDeclaration &panel_decl,
   }
 }
 
-/**
- * Not great to have this here, but this is only for forward compatibility, so this code shouldn't
- * in the `main` branch.
- */
-static std::optional<eNodeSocketDatatype> decl_to_data_type(const SocketDeclaration &socket_decl)
-{
-  if (dynamic_cast<const decl::Float *>(&socket_decl)) {
-    return SOCK_FLOAT;
-  }
-  else if (dynamic_cast<const decl::Int *>(&socket_decl)) {
-    return SOCK_INT;
-  }
-  else if (dynamic_cast<const decl::Bool *>(&socket_decl)) {
-    return SOCK_BOOLEAN;
-  }
-  else if (dynamic_cast<const decl::Vector *>(&socket_decl)) {
-    return SOCK_VECTOR;
-  }
-  else if (dynamic_cast<const decl::Color *>(&socket_decl)) {
-    return SOCK_RGBA;
-  }
-  else if (dynamic_cast<const decl::Rotation *>(&socket_decl)) {
-    return SOCK_ROTATION;
-  }
-  else if (dynamic_cast<const decl::Matrix *>(&socket_decl)) {
-    return SOCK_MATRIX;
-  }
-  else if (dynamic_cast<const decl::String *>(&socket_decl)) {
-    return SOCK_STRING;
-  }
-  else if (dynamic_cast<const decl::Image *>(&socket_decl)) {
-    return SOCK_IMAGE;
-  }
-  else if (dynamic_cast<const decl::Texture *>(&socket_decl)) {
-    return SOCK_TEXTURE;
-  }
-  else if (dynamic_cast<const decl::Material *>(&socket_decl)) {
-    return SOCK_MATERIAL;
-  }
-  else if (dynamic_cast<const decl::Shader *>(&socket_decl)) {
-    return SOCK_SHADER;
-  }
-  else if (dynamic_cast<const decl::Collection *>(&socket_decl)) {
-    return SOCK_COLLECTION;
-  }
-  else if (dynamic_cast<const decl::Object *>(&socket_decl)) {
-    return SOCK_OBJECT;
-  }
-  return std::nullopt;
-}
-
 static const char *get_identifier_from_decl(const char *identifier_prefix,
                                             const bNodeSocket &socket,
                                             const Span<const SocketDeclaration *> socket_decls)
@@ -336,7 +290,7 @@ static const char *get_identifier_from_decl(const char *identifier_prefix,
   }
   for (const SocketDeclaration *socket_decl : socket_decls) {
     if (BLI_str_startswith(socket_decl->identifier.c_str(), identifier_prefix)) {
-      if (socket.type == decl_to_data_type(*socket_decl)) {
+      if (socket.type == socket_decl->socket_type) {
         return socket_decl->identifier.c_str();
       }
     }
@@ -442,6 +396,20 @@ static void do_forward_compat_versioning(bNode &node, const NodeDeclaration &nod
   }
 }
 
+/**
+ * When the extension socket on group input nodes is hidden, we consider the socket visibility
+ * fixed and don't want to add newly created group inputs.
+ */
+static bool hide_new_group_input_sockets(const bNode &node)
+{
+  BLI_assert(node.is_group_input());
+  /* Check needed to handle newly added group input nodes. */
+  if (const bNodeSocket *extension_socket = static_cast<bNodeSocket *>(node.outputs.last)) {
+    return extension_socket->is_hidden();
+  }
+  return false;
+}
+
 static void refresh_node_sockets_and_panels(bNodeTree &ntree,
                                             bNode &node,
                                             const NodeDeclaration &node_decl,
@@ -470,6 +438,8 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
     old_outputs.append(socket);
   }
 
+  const bool hide_new_sockets = node.is_group_input() ? hide_new_group_input_sockets(node) : false;
+
   Vector<bNodePanelState> old_panels = Vector<bNodePanelState>(node.panel_states());
 
   /* New panel states buffer. */
@@ -486,10 +456,10 @@ static void refresh_node_sockets_and_panels(bNodeTree &ntree,
             item_decl.get()))
     {
       if (socket_decl->in_out == SOCK_IN) {
-        refresh_node_socket(ntree, node, *socket_decl, old_inputs, new_inputs);
+        refresh_node_socket(ntree, node, *socket_decl, old_inputs, new_inputs, hide_new_sockets);
       }
       else {
-        refresh_node_socket(ntree, node, *socket_decl, old_outputs, new_outputs);
+        refresh_node_socket(ntree, node, *socket_decl, old_outputs, new_outputs, hide_new_sockets);
       }
     }
     else if (const PanelDeclaration *panel_decl = dynamic_cast<const PanelDeclaration *>(
@@ -561,6 +531,11 @@ bool socket_type_supports_fields(const eNodeSocketDatatype socket_type)
               SOCK_ROTATION,
               SOCK_MENU,
               SOCK_MATRIX);
+}
+
+bool socket_type_supports_grids(const eNodeSocketDatatype socket_type)
+{
+  return ELEM(socket_type, SOCK_FLOAT, SOCK_VECTOR);
 }
 
 }  // namespace blender::nodes
@@ -1188,6 +1163,7 @@ void register_standard_node_socket_types()
   nodeRegisterSocketType(make_socket_type_float(PROP_TIME));
   nodeRegisterSocketType(make_socket_type_float(PROP_TIME_ABSOLUTE));
   nodeRegisterSocketType(make_socket_type_float(PROP_DISTANCE));
+  nodeRegisterSocketType(make_socket_type_float(PROP_WAVELENGTH));
 
   nodeRegisterSocketType(make_socket_type_int(PROP_NONE));
   nodeRegisterSocketType(make_socket_type_int(PROP_UNSIGNED));

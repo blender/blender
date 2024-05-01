@@ -11,6 +11,7 @@
 #include "DNA_ID.h"
 
 #include "BLI_array.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h" /* for bool and uint */
 
 struct ARegion;
@@ -103,8 +104,7 @@ uint *DRW_select_buffer_bitmap_from_circle(Depsgraph *depsgraph,
 uint *DRW_select_buffer_bitmap_from_poly(Depsgraph *depsgraph,
                                          ARegion *region,
                                          View3D *v3d,
-                                         const int poly[][2],
-                                         int face_len,
+                                         blender::Span<blender::int2> poly,
                                          const rcti *rect,
                                          uint *r_bitmap_len);
 /**

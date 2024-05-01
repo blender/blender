@@ -63,8 +63,7 @@ void init_globals_curves()
     /* Random cosine normal distribution on the hair surface. */
     float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).x;
 #      ifdef EEVEE_SAMPLING_DATA
-    /* Needs to check for SAMPLING_DATA,
-     * otherwise Surfel and World (?!?!) shader validation fails. */
+    /* Needs to check for SAMPLING_DATA, otherwise surfel shader validation fails. */
     noise = fract(noise + sampling_rng_1D_get(SAMPLING_CURVES_U));
 #      endif
     cos_theta = noise * 2.0 - 1.0;
@@ -161,6 +160,25 @@ void shadow_viewport_layer_set(int view_id, int lod)
   gpu_Layer = view_id;
 #  endif
   gpu_ViewportIndex = lod;
+}
+
+/* In order to support physical clipping, we pass a vector to the fragment shader that then clips
+ * each fragment using a unit sphere test. This allows to support both point light and area light
+ * clipping at the same time. */
+vec3 shadow_clip_vector_get(vec3 view_position, float clip_distance_inv)
+{
+  if (clip_distance_inv == 0.0) {
+    /* No clipping. */
+    return vec3(2.0);
+  }
+
+  if (clip_distance_inv < 0.0) {
+    /* Area light side projections. Clip using the up axis (which maps to light -Z). */
+    /* Note: clip_distance_inv should already be scaled by M_SQRT3. */
+    return vec3(view_position.y * clip_distance_inv);
+  }
+  /* Sphere light case. */
+  return view_position * clip_distance_inv;
 }
 #endif
 

@@ -17,9 +17,9 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -41,6 +41,8 @@
 
 /* Own include. */
 #include "transform_constraints.hh"
+
+using namespace blender;
 
 static void drawObjectConstraint(TransInfo *t);
 
@@ -150,7 +152,7 @@ static void viewAxisCorrectCenter(const TransInfo *t, float t_con_center[3])
 {
   if (t->spacetype == SPACE_VIEW3D) {
     // View3D *v3d = t->area->spacedata.first;
-    const float min_dist = 1.0f; /* v3d->clip_start; */
+    const float min_dist = 1.0f; /* `v3d->clip_start`. */
     float dir[3];
     float l;
 
@@ -187,7 +189,7 @@ static void axisProjection(const TransInfo *t,
 
   copy_v3_v3(t_con_center, t->center_global);
 
-  /* checks for center being too close to the view center */
+  /* Checks for center being too close to the view center. */
   viewAxisCorrectCenter(t, t_con_center);
 
   angle = fabsf(angle_v3v3(axis, t->viewinv[2]));
@@ -197,7 +199,7 @@ static void axisProjection(const TransInfo *t,
 
   /* For when view is parallel to constraint... will cause NaNs otherwise
    * So we take vertical motion in 3D space and apply it to the
-   * constraint axis. Nice for camera grab + MMB */
+   * constraint axis. Nice for camera grab + MMB. */
   if (angle < DEG2RADF(5.0f)) {
     project_v3_v3v3(vec, in, t->viewinv[1]);
     factor = dot_v3v3(t->viewinv[1], vec) * 2.0f;
@@ -210,7 +212,7 @@ static void axisProjection(const TransInfo *t,
       factor *= factor;
     }
 
-    /* -factor makes move down going backwards */
+    /* -factor makes move down going backwards. */
     normalize_v3_v3_length(out, axis, -factor);
   }
   else {
@@ -227,7 +229,7 @@ static void axisProjection(const TransInfo *t,
     add_v3_v3v3(v, vec, t_con_center);
     view_vector_calc(t, v, norm);
 
-    /* give arbitrary large value if projection is impossible */
+    /* Give arbitrary large value if projection is impossible. */
     factor = dot_v3v3(axis, norm);
     if (1.0f - fabsf(factor) < 0.0002f) {
       copy_v3_v3(out, axis);
@@ -250,8 +252,7 @@ static void axisProjection(const TransInfo *t,
         BLI_assert(0);
       }
 
-      /* possible some values become nan when
-       * viewpoint and object are both zero */
+      /* Possible some values become nan when viewpoint and object are both zero. */
       if (!isfinite(out[0])) {
         out[0] = 0.0f;
       }
@@ -382,6 +383,72 @@ static const float (*transform_object_axismtx_get(const TransInfo *t,
   return td->axismtx;
 }
 
+void transform_constraint_get_nearest(const TransInfo *t, const float3 &vec, float r_vec[3])
+{
+  bool is_snap_to_point = false, is_snap_to_edge = false, is_snap_to_face = false;
+
+  if (transform_snap_is_active(t)) {
+    if (validSnap(t)) {
+      is_snap_to_edge = (t->tsnap.target_type & SCE_SNAP_TO_EDGE) != 0;
+      is_snap_to_face = (t->tsnap.target_type & SCE_SNAP_TO_FACE) != 0;
+      is_snap_to_point = !is_snap_to_edge && !is_snap_to_face;
+    }
+  }
+
+  /* Fallback for when axes are aligned. */
+  mul_v3_m3v3(r_vec, t->con.pmtx, vec);
+
+  if (is_snap_to_point) {
+    /* Pass. With snap points, a projection is alright, no adjustments needed. */
+  }
+  else {
+    const int dims = getConstraintSpaceDimension(t);
+    if (dims == 2) {
+      if (!is_zero_v3(r_vec)) {
+        float plane_no[3];
+        constraint_plane_normal_calc(t, plane_no);
+
+        if (is_snap_to_edge) {
+          constraint_snap_plane_to_edge(t, plane_no, r_vec);
+        }
+        else if (is_snap_to_face) {
+          /* Disabled, as it has not proven to be really useful. (See #82386). */
+          // constraint_snap_plane_to_face(t, plane, out);
+        }
+        else if (!isPlaneProjectionViewAligned(t, plane_no)) {
+          /* View alignment correction. */
+          planeProjection(t, plane_no, vec, r_vec);
+        }
+      }
+    }
+    else if (dims == 1) {
+      float c[3];
+
+      if (t->con.mode & CON_AXIS0) {
+        copy_v3_v3(c, t->spacemtx[0]);
+      }
+      else if (t->con.mode & CON_AXIS1) {
+        copy_v3_v3(c, t->spacemtx[1]);
+      }
+      else {
+        BLI_assert(t->con.mode & CON_AXIS2);
+        copy_v3_v3(c, t->spacemtx[2]);
+      }
+
+      if (is_snap_to_edge) {
+        transform_constraint_snap_axis_to_edge(t, c, r_vec);
+      }
+      else if (is_snap_to_face) {
+        transform_constraint_snap_axis_to_face(t, c, r_vec);
+      }
+      else {
+        /* View alignment correction. */
+        axisProjection(t, c, vec, r_vec);
+      }
+    }
+  }
+}
+
 /**
  * Generic callback for constant spatial constraints applied to linear motion
  *
@@ -395,74 +462,12 @@ static void applyAxisConstraintVec(const TransInfo *t,
                                    const float in[3],
                                    float out[3])
 {
-  copy_v3_v3(out, in);
-  if (!td && t->con.mode & CON_APPLY) {
-    bool is_snap_to_point = false, is_snap_to_edge = false, is_snap_to_face = false;
-
-    if (transform_snap_is_active(t)) {
-      if (validSnap(t)) {
-        is_snap_to_edge = (t->tsnap.target_type & SCE_SNAP_TO_EDGE) != 0;
-        is_snap_to_face = (t->tsnap.target_type & SCE_SNAP_TO_FACE) != 0;
-        is_snap_to_point = !is_snap_to_edge && !is_snap_to_face;
-      }
-      else if (t->tsnap.target_type & SCE_SNAP_TO_GRID) {
-        is_snap_to_point = true;
-      }
-    }
-
-    /* Fallback for when axes are aligned. */
-    mul_m3_v3(t->con.pmtx, out);
-
-    if (is_snap_to_point) {
-      /* Pass. With snap points, a projection is alright, no adjustments needed. */
-    }
-    else {
-      const int dims = getConstraintSpaceDimension(t);
-      if (dims == 2) {
-        if (!is_zero_v3(out)) {
-          float plane_no[3];
-          constraint_plane_normal_calc(t, plane_no);
-
-          if (is_snap_to_edge) {
-            constraint_snap_plane_to_edge(t, plane_no, out);
-          }
-          else if (is_snap_to_face) {
-            /* Disabled, as it has not proven to be really useful. (See #82386). */
-            // constraint_snap_plane_to_face(t, plane, out);
-          }
-          else if (!isPlaneProjectionViewAligned(t, plane_no)) {
-            /* View alignment correction. */
-            planeProjection(t, plane_no, in, out);
-          }
-        }
-      }
-      else if (dims == 1) {
-        float c[3];
-
-        if (t->con.mode & CON_AXIS0) {
-          copy_v3_v3(c, t->spacemtx[0]);
-        }
-        else if (t->con.mode & CON_AXIS1) {
-          copy_v3_v3(c, t->spacemtx[1]);
-        }
-        else {
-          BLI_assert(t->con.mode & CON_AXIS2);
-          copy_v3_v3(c, t->spacemtx[2]);
-        }
-
-        if (is_snap_to_edge) {
-          transform_constraint_snap_axis_to_edge(t, c, out);
-        }
-        else if (is_snap_to_face) {
-          transform_constraint_snap_axis_to_face(t, c, out);
-        }
-        else {
-          /* View alignment correction. */
-          axisProjection(t, c, in, out);
-        }
-      }
-    }
+  if (td || !(t->con.mode & CON_APPLY)) {
+    copy_v3_v3(out, in);
+    return;
   }
+
+  transform_constraint_get_nearest(t, in, out);
 }
 
 /**
@@ -579,7 +584,7 @@ static void constraints_rotation_impl(const TransInfo *t,
       copy_v3_v3(r_axis, axismtx[2]);
       break;
   }
-  /* don't flip axis if asked to or if num input */
+  /* Don't flip axis if asked to or if num input. */
   if (r_angle &&
       !((mode & CON_NOFLIP) || hasNumInput(&t->num) || (t->flag & T_INPUT_IS_VALUES_FINAL)))
   {
@@ -638,7 +643,7 @@ static void applyObjectConstraintRot(const TransInfo *t,
     float tmp_axismtx[3][3];
     const float(*axismtx)[3];
 
-    /* on setup call, use first object */
+    /* On setup call, use first object. */
     if (td == nullptr) {
       BLI_assert(tc == nullptr);
       tc = TRANS_DATA_CONTAINER_FIRST_OK(t);
@@ -846,7 +851,7 @@ void drawConstraint(TransInfo *t)
       GPU_viewport_size_get_f(viewport_size);
       immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-      immUniform1i("colors_len", 0); /* "simple" mode */
+      immUniform1i("colors_len", 0); /* "simple" mode. */
       immUniformColor4f(1.0f, 1.0f, 1.0f, 1.0f);
       immUniform1f("dash_width", 2.0f);
       immUniform1f("udash_factor", 0.5f);
@@ -899,7 +904,7 @@ void drawPropCircle(TransInfo *t)
     GPU_matrix_push();
 
     if (t->spacetype == SPACE_VIEW3D) {
-      /* pass */
+      /* Pass. */
     }
     else if (t->spacetype == SPACE_IMAGE) {
       GPU_matrix_scale_2f(1.0f / t->aspect[0], 1.0f / t->aspect[1]);
@@ -990,14 +995,14 @@ static void drawObjectConstraint(TransInfo *t)
       const float(*axismtx)[3];
 
       if (t->flag & T_PROP_EDIT) {
-        /* we're sorted, so skip the rest */
+        /* We're sorted, so skip the rest. */
         if (td->factor == 0.0f) {
           break;
         }
       }
 
       if (t->options & CTX_GPENCIL_STROKES) {
-        /* only draw a constraint line for one point, otherwise we can't see anything */
+        /* Only draw a constraint line for one point, otherwise we can't see anything. */
         if ((options & DRAWLIGHT) == 0) {
           break;
         }
@@ -1103,7 +1108,7 @@ static void setNearestAxis2d(TransInfo *t)
   /* Clear any prior constraint flags. */
   t->con.mode &= ~(CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
 
-  /* no correction needed... just use whichever one is lower */
+  /* No correction needed... just use whichever one is lower. */
   blender::float2 dvec = t->mval - t->mouse.imval;
   if (abs(dvec.x) < abs(dvec.y)) {
     t->con.mode |= CON_AXIS1;
@@ -1125,7 +1130,7 @@ static void setNearestAxis3d(TransInfo *t)
   float len[3];
   int i;
 
-  /* calculate mouse movement */
+  /* Calculate mouse movement. */
   mvec[0] = t->mval[0] - t->mouse.imval[0];
   mvec[1] = t->mval[1] - t->mouse.imval[1];
   mvec[2] = 0.0f;
@@ -1145,7 +1150,7 @@ static void setNearestAxis3d(TransInfo *t)
     copy_v3_v3(axis, t->spacemtx[i]);
 
     mul_v3_fl(axis, zfac);
-    /* now we can project to get window coordinate */
+    /* Now we can project to get window coordinate. */
     add_v3_v3(axis, t->center_global);
     projectFloatView(t, axis, axis_2d);
 
@@ -1198,13 +1203,13 @@ void setNearestAxis(TransInfo *t)
 {
   eTConstraint mode_prev = t->con.mode;
 
-  /* constraint setting - depends on spacetype */
+  /* Constraint setting - depends on spacetype. */
   if (t->spacetype == SPACE_VIEW3D) {
-    /* 3d-view */
+    /* 3d-view. */
     setNearestAxis3d(t);
   }
   else {
-    /* assume that this means a 2D-Editor */
+    /* Assume that this means a 2D-Editor. */
     setNearestAxis2d(t);
   }
 

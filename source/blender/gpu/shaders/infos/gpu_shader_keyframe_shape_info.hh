@@ -16,7 +16,7 @@ GPU_SHADER_INTERFACE_INFO(keyframe_shape_iface, "")
     .flat(Type::UINT, "finalFlags");
 
 GPU_SHADER_CREATE_INFO(gpu_shader_keyframe_shape)
-    .typedef_source("GPU_shader_shared.h")
+    .typedef_source("GPU_shader_shared.hh")
     .vertex_in(0, Type::VEC4, "color")
     .vertex_in(1, Type::VEC4, "outlineColor")
     .vertex_in(2, Type::VEC2, "pos")

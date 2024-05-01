@@ -121,13 +121,13 @@ void BLI_uvproject_from_view(float target[2],
   target[1] = (y + target[1]) / winy;
 }
 
-ProjCameraInfo *BLI_uvproject_camera_info(Object *ob,
+ProjCameraInfo *BLI_uvproject_camera_info(const Object *ob,
                                           const float rotmat[4][4],
                                           float winx,
                                           float winy)
 {
   ProjCameraInfo uci;
-  Camera *camera = static_cast<Camera *>(ob->data);
+  const Camera *camera = static_cast<Camera *>(ob->data);
 
   uci.do_pano = (camera->type == CAM_PANO);
   uci.do_persp = (camera->type == CAM_PERSP);

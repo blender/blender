@@ -23,7 +23,10 @@ from bpy.props import (
     EnumProperty,
     StringProperty,
 )
-from bpy.app.translations import pgettext_data as data_
+from bpy.app.translations import (
+    pgettext_iface as iface_,
+    pgettext_data as data_,
+)
 
 
 def _check_axis_conversion(op):
@@ -96,9 +99,26 @@ class ImportHelper:
         description="Filepath used for importing the file",
         maxlen=1024,
         subtype='FILE_PATH',
+        options={'SKIP_PRESET', 'HIDDEN'}
     )
 
     def invoke(self, context, _event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    def invoke_popup(self, context, confirm_text=""):
+        if self.properties.is_property_set("filepath"):
+            title = self.filepath
+            if len(self.files) > 1:
+                title = iface_("Import {} files").format(len(self.files))
+
+            if not confirm_text:
+                confirm_text = self.bl_label
+
+            confirm_text = iface_(confirm_text)
+            return context.window_manager.invoke_props_dialog(
+                self, confirm_text=confirm_text, title=title, translate=False)
+
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
@@ -297,7 +317,7 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
     for i, axis_lut in enumerate(_axis_convert_lut):
         if value in axis_lut:
             return Matrix(_axis_convert_matrix[i])
-    assert 0
+    assert False, "unreachable"
 
 
 def axis_conversion_ensure(operator, forward_attr, up_attr):
@@ -394,6 +414,19 @@ def unpack_face_list(list_of_tuples):
     return flat_ls
 
 
+def poll_file_object_drop(context):
+    """
+    A default implementation for FileHandler poll_drop methods. Allows for both the 3D Viewport and
+    the Outliner (in ViewLayer display mode) to be targets for file drag and drop.
+    """
+    area = context.area
+    if not area:
+        return False
+    is_v3d = area.type == 'VIEW_3D'
+    is_outliner_view_layer = area.type == 'OUTLINER' and area.spaces.active.display_mode == 'VIEW_LAYER'
+    return is_v3d or is_outliner_view_layer
+
+
 path_reference_mode = EnumProperty(
     name="Path Mode",
     description="Method used to reference paths",
@@ -472,7 +505,7 @@ def path_reference(
         filepath_abs = filepath_cpy
         mode = 'RELATIVE'
     else:
-        raise Exception("invalid mode given %r" % mode)
+        raise Exception("invalid mode given {!r}".format(mode))
 
     if mode == 'ABSOLUTE':
         return filepath_abs
@@ -504,7 +537,7 @@ def path_reference_copy(copy_set, report=print):
 
     for file_src, file_dst in copy_set:
         if not os.path.exists(file_src):
-            report("missing %r, not copying" % file_src)
+            report("missing {!r}, not copying".format(file_src))
         elif os.path.exists(file_dst) and os.path.samefile(file_src, file_dst):
             pass
         else:
@@ -555,7 +588,7 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
 
         if name_max == -1:
             while name_new in name_dict_values:
-                name_new = "%s%s%03d" % (
+                name_new = "{:s}{:s}{:03d}".format(
                     name_new_orig,
                     sep,
                     count,
@@ -564,10 +597,10 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
         else:
             name_new = name_new[:name_max]
             while name_new in name_dict_values:
-                count_str = "%03d" % count
-                name_new = "%.*s%s%s" % (
-                    name_max - (len(count_str) + 1),
+                count_str = "{:03d}".format(count)
+                name_new = "{:.{:d}s}{:s}{:s}".format(
                     name_new_orig,
+                    name_max - (len(count_str) + 1),
                     sep,
                     count_str,
                 )

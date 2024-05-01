@@ -30,6 +30,7 @@
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
@@ -873,19 +874,21 @@ void BKE_modifier_path_init(char *path, int path_maxncpy, const char *name)
 
 /**
  * Call when #ModifierTypeInfo.depends_on_normals callback requests normals.
+ * Necessary for BMesh normals when there is no separate #EditMeshData positions array,
+ * since they cannot be calculated lazily.
  */
-static void modwrap_dependsOnNormals(Mesh *mesh)
+static void ensure_non_lazy_normals(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH: {
       blender::bke::EditMeshData &edit_data = *mesh->runtime->edit_data;
-      if (!edit_data.vertexCos.is_empty()) {
+      if (!edit_data.vert_positions.is_empty()) {
         /* Note that 'ensure' is acceptable here since these values aren't modified in-place.
          * If that changes we'll need to recalculate. */
-        BKE_editmesh_cache_ensure_vert_normals(*mesh->edit_mesh, edit_data);
+        BKE_editmesh_cache_ensure_vert_normals(*mesh->runtime->edit_mesh, edit_data);
       }
       else {
-        BM_mesh_normals_update(mesh->edit_mesh->bm);
+        BM_mesh_normals_update(mesh->runtime->edit_mesh->bm);
       }
       break;
     }
@@ -910,9 +913,6 @@ Mesh *BKE_modifier_modify_mesh(ModifierData *md, const ModifierEvalContext *ctx,
     }
   }
 
-  if (mti->depends_on_normals && mti->depends_on_normals(md)) {
-    modwrap_dependsOnNormals(mesh);
-  }
   return mti->modify_mesh(md, ctx, mesh);
 }
 
@@ -922,9 +922,6 @@ void BKE_modifier_deform_verts(ModifierData *md,
                                blender::MutableSpan<blender::float3> positions)
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
-  if (mesh && mti->depends_on_normals && mti->depends_on_normals(md)) {
-    modwrap_dependsOnNormals(mesh);
-  }
   mti->deform_verts(md, ctx, mesh, positions);
   if (mesh) {
     mesh->tag_positions_changed();
@@ -939,7 +936,7 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
 {
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md->type));
   if (mesh && mti->depends_on_normals && mti->depends_on_normals(md)) {
-    modwrap_dependsOnNormals(mesh);
+    ensure_non_lazy_normals(mesh);
   }
   mti->deform_verts_EM(md, ctx, em, mesh, positions);
 }
@@ -952,10 +949,10 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval)
 
   if ((ob_eval->type == OB_MESH) && (ob_eval->mode & OB_MODE_EDIT)) {
     /* In EditMode, evaluated mesh is stored in BMEditMesh, not the object... */
-    BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
+    const BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
     /* 'em' might not exist yet in some cases, just after loading a .blend file, see #57878. */
     if (em != nullptr) {
-      mesh = BKE_object_get_editmesh_eval_final(ob_eval);
+      mesh = const_cast<Mesh *>(BKE_object_get_editmesh_eval_final(ob_eval));
     }
   }
   if (mesh == nullptr) {
@@ -984,12 +981,14 @@ void BKE_modifiers_persistent_uid_init(const Object &object, ModifierData &md)
 {
   uint64_t hash = blender::get_default_hash(blender::StringRef(md.name));
   if (ID_IS_LINKED(&object)) {
-    hash = blender::get_default_hash(hash, blender::StringRef(object.id.lib->filepath_abs));
+    hash = blender::get_default_hash(hash,
+                                     blender::StringRef(object.id.lib->runtime.filepath_abs));
   }
   if (ID_IS_OVERRIDE_LIBRARY_REAL(&object)) {
     BLI_assert(ID_IS_LINKED(object.id.override_library->reference));
     hash = blender::get_default_hash(
-        hash, blender::StringRef(object.id.override_library->reference->lib->filepath_abs));
+        hash,
+        blender::StringRef(object.id.override_library->reference->lib->runtime.filepath_abs));
   }
   blender::RandomNumberGenerator rng{uint32_t(hash)};
   while (true) {
@@ -1244,7 +1243,7 @@ static ModifierData *modifier_replace_with_fluid(BlendDataReader *reader,
 
 void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob)
 {
-  BLO_read_list(reader, lb);
+  BLO_read_struct_list(reader, ModifierData, lb);
 
   LISTBASE_FOREACH (ModifierData *, md, lb) {
     md->error = nullptr;
@@ -1296,8 +1295,8 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
       clmd->clothObject = nullptr;
       clmd->hairdata = nullptr;
 
-      BLO_read_data_address(reader, &clmd->sim_parms);
-      BLO_read_data_address(reader, &clmd->coll_parms);
+      BLO_read_struct(reader, ClothSimSettings, &clmd->sim_parms);
+      BLO_read_struct(reader, ClothCollSettings, &clmd->coll_parms);
 
       BKE_ptcache_blend_read_data(reader, &clmd->ptcaches, &clmd->point_cache, 0);
 
@@ -1308,7 +1307,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
 
         clmd->sim_parms->reset = 0;
 
-        BLO_read_data_address(reader, &clmd->sim_parms->effector_weights);
+        BLO_read_struct(reader, EffectorWeights, &clmd->sim_parms->effector_weights);
 
         if (!clmd->sim_parms->effector_weights) {
           clmd->sim_parms->effector_weights = BKE_effector_add_weights(nullptr);
@@ -1324,7 +1323,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
       if (fmd->type == MOD_FLUID_TYPE_DOMAIN) {
         fmd->flow = nullptr;
         fmd->effector = nullptr;
-        BLO_read_data_address(reader, &fmd->domain);
+        BLO_read_struct(reader, FluidDomainSettings, &fmd->domain);
         fmd->domain->fmd = fmd;
 
         fmd->domain->fluid = nullptr;
@@ -1340,9 +1339,9 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
         fmd->domain->tex_velocity_y = nullptr;
         fmd->domain->tex_velocity_z = nullptr;
         fmd->domain->tex_wt = nullptr;
-        BLO_read_data_address(reader, &fmd->domain->coba);
+        BLO_read_struct(reader, ColorBand, &fmd->domain->coba);
 
-        BLO_read_data_address(reader, &fmd->domain->effector_weights);
+        BLO_read_struct(reader, EffectorWeights, &fmd->domain->effector_weights);
         if (!fmd->domain->effector_weights) {
           fmd->domain->effector_weights = BKE_effector_add_weights(nullptr);
         }
@@ -1375,19 +1374,19 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
       else if (fmd->type == MOD_FLUID_TYPE_FLOW) {
         fmd->domain = nullptr;
         fmd->effector = nullptr;
-        BLO_read_data_address(reader, &fmd->flow);
+        BLO_read_struct(reader, FluidFlowSettings, &fmd->flow);
         fmd->flow->fmd = fmd;
         fmd->flow->mesh = nullptr;
         fmd->flow->verts_old = nullptr;
         fmd->flow->numverts = 0;
-        BLO_read_data_address(reader, &fmd->flow->psys);
+        BLO_read_struct(reader, ParticleSystem, &fmd->flow->psys);
 
         fmd->flow->flags &= ~FLUID_FLOW_NEEDS_UPDATE;
       }
       else if (fmd->type == MOD_FLUID_TYPE_EFFEC) {
         fmd->flow = nullptr;
         fmd->domain = nullptr;
-        BLO_read_data_address(reader, &fmd->effector);
+        BLO_read_struct(reader, FluidEffectorSettings, &fmd->effector);
         if (fmd->effector) {
           fmd->effector->fmd = fmd;
           fmd->effector->verts_old = nullptr;
@@ -1408,19 +1407,19 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
       DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
       if (pmd->canvas) {
-        BLO_read_data_address(reader, &pmd->canvas);
+        BLO_read_struct(reader, DynamicPaintCanvasSettings, &pmd->canvas);
         pmd->canvas->pmd = pmd;
         pmd->canvas->flags &= ~MOD_DPAINT_BAKING; /* just in case */
 
         if (pmd->canvas->surfaces.first) {
-          BLO_read_list(reader, &pmd->canvas->surfaces);
+          BLO_read_struct_list(reader, DynamicPaintSurface, &pmd->canvas->surfaces);
 
           LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
             surface->canvas = pmd->canvas;
             surface->data = nullptr;
             BKE_ptcache_blend_read_data(reader, &(surface->ptcaches), &(surface->pointcache), 1);
 
-            BLO_read_data_address(reader, &surface->effector_weights);
+            BLO_read_struct(reader, EffectorWeights, &surface->effector_weights);
             if (surface->effector_weights == nullptr) {
               surface->effector_weights = BKE_effector_add_weights(nullptr);
             }
@@ -1428,11 +1427,11 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
         }
       }
       if (pmd->brush) {
-        BLO_read_data_address(reader, &pmd->brush);
+        BLO_read_struct(reader, DynamicPaintBrushSettings, &pmd->brush);
         pmd->brush->pmd = pmd;
-        BLO_read_data_address(reader, &pmd->brush->psys);
-        BLO_read_data_address(reader, &pmd->brush->paint_ramp);
-        BLO_read_data_address(reader, &pmd->brush->vel_ramp);
+        BLO_read_struct(reader, ParticleSystem, &pmd->brush->psys);
+        BLO_read_struct(reader, ColorBand, &pmd->brush->paint_ramp);
+        BLO_read_struct(reader, ColorBand, &pmd->brush->vel_ramp);
       }
     }
 

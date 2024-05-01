@@ -15,7 +15,8 @@ namespace blender::bke::id {
 void IDRemapper::add(ID *old_id, ID *new_id)
 {
   BLI_assert(old_id != nullptr);
-  BLI_assert(new_id == nullptr || (GS(old_id->name) == GS(new_id->name)));
+  BLI_assert(new_id == nullptr || this->allow_idtype_mismatch ||
+             (GS(old_id->name) == GS(new_id->name)));
   BLI_assert(BKE_idtype_idcode_to_idfilter(GS(old_id->name)) != 0);
 
   mappings_.add(old_id, new_id);
@@ -25,7 +26,8 @@ void IDRemapper::add(ID *old_id, ID *new_id)
 void IDRemapper::add_overwrite(ID *old_id, ID *new_id)
 {
   BLI_assert(old_id != nullptr);
-  BLI_assert(new_id == nullptr || (GS(old_id->name) == GS(new_id->name)));
+  BLI_assert(new_id == nullptr || this->allow_idtype_mismatch ||
+             (GS(old_id->name) == GS(new_id->name)));
   BLI_assert(BKE_idtype_idcode_to_idfilter(GS(old_id->name)) != 0);
 
   mappings_.add_overwrite(old_id, new_id);
@@ -63,7 +65,8 @@ IDRemapperApplyResult IDRemapper::apply(ID **r_id_ptr,
     return ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE;
   }
 
-  if (!mappings_.contains(*r_id_ptr)) {
+  ID *const *new_id = mappings_.lookup_ptr(*r_id_ptr);
+  if (new_id == nullptr) {
     return ID_REMAP_RESULT_SOURCE_UNAVAILABLE;
   }
 
@@ -71,7 +74,7 @@ IDRemapperApplyResult IDRemapper::apply(ID **r_id_ptr,
     id_us_min(*r_id_ptr);
   }
 
-  *r_id_ptr = mappings_.lookup(*r_id_ptr);
+  *r_id_ptr = *new_id;
   if (options & ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF && *r_id_ptr == id_self) {
     *r_id_ptr = nullptr;
   }
@@ -90,7 +93,7 @@ IDRemapperApplyResult IDRemapper::apply(ID **r_id_ptr,
   return ID_REMAP_RESULT_SOURCE_REMAPPED;
 }
 
-const blender::StringRefNull IDRemapper::result_to_string(const IDRemapperApplyResult result)
+const StringRefNull IDRemapper::result_to_string(const IDRemapperApplyResult result)
 {
   switch (result) {
     case ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE:
@@ -106,17 +109,16 @@ const blender::StringRefNull IDRemapper::result_to_string(const IDRemapperApplyR
   return "";
 }
 
-void IDRemapper::print(void) const
+void IDRemapper::print() const
 {
-  auto print_cb = [](ID *old_id, ID *new_id, void * /*user_data*/) {
+  this->iter([](ID *old_id, ID *new_id) {
     if (old_id != nullptr && new_id != nullptr) {
       printf("Remap %s(%p) to %s(%p)\n", old_id->name, old_id, new_id->name, new_id);
     }
     if (old_id != nullptr && new_id == nullptr) {
       printf("Unassign %s(%p)\n", old_id->name, old_id);
     }
-  };
-  this->iter(print_cb, nullptr);
+  });
 }
 
 }  // namespace blender::bke::id

@@ -8,6 +8,8 @@
 
 #include <cstdlib>
 
+#include "BKE_file_handler.hh"
+
 #include "DNA_collection_types.h"
 
 #include "DNA_lineart_types.h"
@@ -173,8 +175,8 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
   PointerRNA *ptr_item_src = &rnaapply_ctx.ptr_item_src;
   IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
 
-  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
-             "Unsupported RNA override operation on collections' objects");
+  BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_REPLACE,
+                 "Unsupported RNA override operation on collections' objects");
   UNUSED_VARS_NDEBUG(opop);
 
   Collection *coll_dst = (Collection *)ptr_dst->owner_id;
@@ -301,8 +303,8 @@ static bool rna_Collection_children_override_apply(Main *bmain,
   PointerRNA *ptr_item_src = &rnaapply_ctx.ptr_item_src;
   IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
 
-  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
-             "Unsupported RNA override operation on collections' children");
+  BLI_assert_msg(opop->operation == LIBOVERRIDE_OP_REPLACE,
+                 "Unsupported RNA override operation on collections' children");
   UNUSED_VARS_NDEBUG(opop);
 
   Collection *coll_dst = (Collection *)ptr_dst->owner_id;
@@ -446,6 +448,25 @@ static void rna_CollectionLightLinking_update(Main *bmain, Scene * /*scene*/, Po
   DEG_relations_tag_update(bmain);
 }
 
+static PointerRNA rna_CollectionExport_export_properties_get(PointerRNA *ptr)
+{
+  const CollectionExport *data = reinterpret_cast<CollectionExport *>(ptr->data);
+
+  /* If the File Handler or Operator is missing, we allow the data to be accessible
+   * as generic ID properties. */
+  blender::bke::FileHandlerType *fh = blender::bke::file_handler_find(data->fh_idname);
+  if (!fh) {
+    return RNA_pointer_create(ptr->owner_id, &RNA_IDPropertyWrapPtr, data->export_properties);
+  }
+
+  wmOperatorType *ot = WM_operatortype_find(fh->export_operator, false);
+  if (!ot) {
+    return RNA_pointer_create(ptr->owner_id, &RNA_IDPropertyWrapPtr, data->export_properties);
+  }
+
+  return RNA_pointer_create(ptr->owner_id, ot->srna, data->export_properties);
+}
+
 #else
 
 /* collection.objects */
@@ -566,6 +587,29 @@ static void rna_def_collection_child(BlenderRNA *brna)
       prop, "Light Linking", "Light linking settings of the collection object");
 }
 
+static void rna_def_collection_exporter_data(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "CollectionExport", nullptr);
+  RNA_def_struct_sdna(srna, "CollectionExport");
+  RNA_def_struct_ui_text(srna, "Collection Export Data", "Exporter configured for the collection");
+
+  prop = RNA_def_property(srna, "is_open", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", IO_HANDLER_PANEL_OPEN);
+  RNA_def_property_ui_text(prop, "Is Open", "Whether the panel is expanded or closed");
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
+
+  prop = RNA_def_property(srna, "export_properties", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "PropertyGroup");
+  RNA_def_property_ui_text(
+      prop, "Export Properties", "Properties associated with the configured exporter");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_CollectionExport_export_properties_get", nullptr, nullptr, nullptr);
+}
+
 void RNA_def_collections(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -650,7 +694,15 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, nullptr, "children", nullptr);
   RNA_def_property_ui_text(prop,
                            "Collection Children",
-                           "Children collections their parent-collection-specific settings");
+                           "Children collections with their parent-collection-specific settings");
+
+  /* Export Handlers. */
+  prop = RNA_def_property(srna, "exporters", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CollectionExport");
+  RNA_def_property_collection_sdna(prop, nullptr, "exporters", nullptr);
+  RNA_def_property_ui_text(
+      prop, "Collection Export Handlers", "Export Handlers configured for the collection");
+
   /* TODO(sergey): Functions to link and unlink collections. */
 
   /* Flags */
@@ -689,7 +741,7 @@ void RNA_def_collections(BlenderRNA *brna)
        0,
        "Occlusion Only",
        "Only use the collection to produce occlusion"},
-      {COLLECTION_LRT_EXCLUDE, "EXCLUDE", 0, "Exclude", "Don't use this collection in line art"},
+      {COLLECTION_LRT_EXCLUDE, "EXCLUDE", 0, "Exclude", "Don't use this collection in Line Art"},
       {COLLECTION_LRT_INTERSECTION_ONLY,
        "INTERSECTION_ONLY",
        0,
@@ -709,7 +761,7 @@ void RNA_def_collections(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "lineart_usage", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_collection_lineart_usage);
-  RNA_def_property_ui_text(prop, "Usage", "How to use this collection in line art");
+  RNA_def_property_ui_text(prop, "Usage", "How to use this collection in Line Art calculation");
   RNA_def_property_update(prop, NC_SCENE, nullptr);
 
   prop = RNA_def_property(srna, "lineart_use_intersection_mask", PROP_BOOLEAN, PROP_NONE);
@@ -753,6 +805,7 @@ void RNA_def_collections(BlenderRNA *brna)
   rna_def_collection_light_linking(brna);
   rna_def_collection_object(brna);
   rna_def_collection_child(brna);
+  rna_def_collection_exporter_data(brna);
 }
 
 #endif

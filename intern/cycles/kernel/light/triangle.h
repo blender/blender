@@ -146,7 +146,9 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
   ls->shader = kernel_data_fetch(tri_shader, prim);
   const float distance_to_plane = dot(N0, V[0] - P) / dot(N0, N0);
   const int ls_shader_flag = kernel_data_fetch(shaders, ls->shader & SHADER_MASK).flags;
-  if (!(ls_shader_flag & (distance_to_plane > 0 ? SD_MIS_BACK : SD_MIS_FRONT))) {
+  if (!in_volume_segment &&
+      !(ls_shader_flag & (distance_to_plane > 0 ? SD_MIS_BACK : SD_MIS_FRONT)))
+  {
     return false;
   }
 
@@ -267,6 +269,26 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
   return (ls->pdf > 0.0f);
 }
 
+/* Find the ray segment lit by the triangle light. */
+ccl_device_inline bool triangle_light_valid_ray_segment(KernelGlobals kg,
+                                                        const float3 P,
+                                                        const float3 D,
+                                                        ccl_private float2 *t_range,
+                                                        const ccl_private LightSample *ls)
+{
+  const int shader_flag = kernel_data_fetch(shaders, ls->shader & SHADER_MASK).flags;
+  const int SD_MIS_BOTH = SD_MIS_BACK | SD_MIS_FRONT;
+  if ((shader_flag & SD_MIS_BOTH) == SD_MIS_BOTH) {
+    /* Both sides are sampled, the complete ray segment is visible. */
+    return true;
+  }
+
+  /* Only one side is sampled, intersect the ray and the triangle light plane to find the visible
+   * ray segment. Flip normal if Emission Sampling is set to back. */
+  const float3 N = ls->Ng;
+  return ray_plane_intersect((shader_flag & SD_MIS_BACK) ? -N : N, P, D, t_range);
+}
+
 template<bool in_volume_segment>
 ccl_device_forceinline bool triangle_light_tree_parameters(
     KernelGlobals kg,
@@ -279,13 +301,11 @@ ccl_device_forceinline bool triangle_light_tree_parameters(
     ccl_private float2 &distance,
     ccl_private float3 &point_to_centroid)
 {
-  if (!in_volume_segment) {
-    /* TODO: a cheap substitute for minimal distance between point and primitive. Does it
-     * worth the overhead to compute the accurate minimal distance? */
-    float min_distance;
-    point_to_centroid = safe_normalize_len(centroid - P, &min_distance);
-    distance = make_float2(min_distance, min_distance);
-  }
+  /* TODO: a cheap substitute for minimal distance between point and primitive. Does it worth the
+   * overhead to compute the accurate minimal distance? */
+  float min_distance;
+  point_to_centroid = safe_normalize_len(centroid - P, &min_distance);
+  distance = make_float2(min_distance, min_distance);
 
   cos_theta_u = FLT_MAX;
 
@@ -305,9 +325,8 @@ ccl_device_forceinline bool triangle_light_tree_parameters(
   }
 
   const bool front_facing = bcone.theta_o != 0.0f || dot(bcone.axis, point_to_centroid) < 0;
-  const bool in_volume = is_zero(N);
 
-  return (front_facing && shape_above_surface) || in_volume;
+  return front_facing && shape_above_surface;
 }
 
 CCL_NAMESPACE_END

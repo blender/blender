@@ -6,7 +6,7 @@
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_virtual_array.hh"
+#include "BLI_virtual_array_fwd.hh"
 
 /** \file
  * \ingroup bke
@@ -254,8 +254,6 @@ void BKE_defvert_normalize_lock_map(MDeformVert *dvert,
 void BKE_defvert_extract_vgroup_to_vertweights(
     const MDeformVert *dvert, int defgroup, int verts_num, bool invert_vgroup, float *r_weights);
 
-#ifdef __cplusplus
-
 /**
  * The following three make basic interpolation,
  * using temp vert_weights array to avoid looking up same weight several times.
@@ -283,7 +281,6 @@ void BKE_defvert_extract_vgroup_to_faceweights(const MDeformVert *dvert,
                                                blender::OffsetIndices<int> faces,
                                                bool invert_vgroup,
                                                float *r_weights);
-#endif
 
 void BKE_defvert_weight_to_rgb(float r_rgb[3], float weight);
 

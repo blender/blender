@@ -22,34 +22,7 @@
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_closure_lib.glsl)
-
-float bilateral_depth_weight(vec3 center_N, vec3 center_P, vec3 sample_P)
-{
-  vec4 center_plane_eq = vec4(center_N, -dot(center_N, center_P));
-  /* Only compare distance to the center plane formed by the normal. */
-  float depth_delta = dot(center_plane_eq, vec4(sample_P, 1.0));
-  /* TODO(fclem): Scene parameter. This is dependent on scene scale. */
-  const float scale = 10000.0;
-  float weight = exp2(-scale * square(depth_delta));
-  return weight;
-}
-
-float bilateral_spatial_weight(float sigma, vec2 offset_from_center)
-{
-  /* From https://github.com/tranvansang/bilateral-filter/blob/master/fshader.frag */
-  float fac = -1.0 / square(sigma);
-  /* Take two standard deviation. */
-  fac *= 2.0;
-  float weight = exp2(fac * length_squared(offset_from_center));
-  return weight;
-}
-
-float bilateral_normal_weight(vec3 center_N, vec3 sample_N)
-{
-  float facing_ratio = dot(center_N, sample_N);
-  float weight = saturate(pow8f(facing_ratio));
-  return weight;
-}
+#pragma BLENDER_REQUIRE(eevee_filter_lib.glsl)
 
 /* In order to remove some more fireflies, "tone-map" the color samples during the accumulation. */
 vec3 to_accumulation_space(vec3 color)
@@ -71,16 +44,13 @@ void main()
   float center_depth = texelFetch(depth_tx, texel_fullres, 0).r;
   vec3 center_P = drw_point_screen_to_world(vec3(center_uv, center_depth));
 
-  GBufferReader gbuf = gbuffer_read(
-      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
+  ClosureUndetermined center_closure = gbuffer_read_bin(
+      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
 
-  bool has_valid_closure = closure_index < gbuf.closure_count;
-  if (!has_valid_closure) {
+  if (center_closure.type == CLOSURE_NONE_ID) {
     /* Output nothing. This shouldn't even be loaded. */
     return;
   }
-
-  ClosureUndetermined center_closure = gbuffer_closure_get(gbuf, closure_index);
 
   float roughness = closure_apparent_roughness_get(center_closure);
   float variance = imageLoad(in_variance_img, texel_fullres).r;
@@ -137,18 +107,19 @@ void main()
       continue;
     }
 
-    GBufferReader sample_gbuf = gbuffer_read(
-        gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, sample_texel);
+    ClosureUndetermined sample_closure = gbuffer_read_bin(
+        gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, sample_texel, closure_index);
 
-    if (closure_index >= sample_gbuf.closure_count) {
+    if (sample_closure.type == CLOSURE_NONE_ID) {
       continue;
     }
 
-    ClosureUndetermined sample_closure = gbuffer_closure_get(sample_gbuf, closure_index);
+    float gauss = filter_gaussian_factor(filter_size, 1.5);
 
-    float depth_weight = bilateral_depth_weight(center_closure.N, center_P, sample_P);
-    float spatial_weight = bilateral_spatial_weight(filter_size, vec2(offset));
-    float normal_weight = bilateral_normal_weight(center_closure.N, sample_closure.N);
+    /* TODO(fclem): Scene parameter. 10000.0 is dependent on scene scale. */
+    float depth_weight = filter_planar_weight(center_closure.N, center_P, sample_P, 10000.0);
+    float spatial_weight = filter_gaussian_weight(gauss, length_squared(vec2(offset)));
+    float normal_weight = filter_angle_weight(center_closure.N, sample_closure.N);
     float weight = depth_weight * spatial_weight * normal_weight;
 
     accum_radiance += to_accumulation_space(radiance) * weight;

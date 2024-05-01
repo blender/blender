@@ -19,14 +19,20 @@
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_closure_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_thickness_lib.glsl)
 
-float bxdf_eval(ClosureUndetermined cl, vec3 L, vec3 V)
+float bxdf_eval(ClosureUndetermined cl, vec3 L, vec3 V, float thickness)
 {
   switch (cl.type) {
     case CLOSURE_BSDF_TRANSLUCENT_ID:
+      if (thickness != 0.0) {
+        /* Uniform sphere weighting. */
+        return 1.0;
+      }
       return bsdf_lambert(-cl.N, L);
     case CLOSURE_BSSRDF_BURLEY_ID:
     case CLOSURE_BSDF_DIFFUSE_ID:
@@ -44,6 +50,25 @@ float bxdf_eval(ClosureUndetermined cl, vec3 L, vec3 V)
     case CLOSURE_NONE_ID:
     default:
       return 0.0;
+  }
+}
+
+void transmission_thickness_amend_closure(inout ClosureUndetermined cl,
+                                          inout vec3 V,
+                                          float thickness)
+{
+  switch (cl.type) {
+    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID: {
+      float ior = to_closure_refraction(cl).ior;
+      float roughness = to_closure_refraction(cl).roughness;
+      roughness = refraction_roughness_remapping(roughness, ior);
+      vec3 L = refraction_dominant_dir(cl.N, V, ior, roughness);
+      cl.N = -thickness_shape_intersect(thickness, cl.N, L).hit_N;
+      cl.data.y = 1.0 / ior;
+      V = -L;
+    } break;
+    default:
+      break;
   }
 }
 
@@ -109,11 +134,12 @@ void main()
     return;
   }
 
-  GBufferReader gbuf = gbuffer_read(
-      gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
+  uint gbuf_header = texelFetch(gbuf_header_tx, texel_fullres, 0).r;
 
-  bool has_valid_closure = closure_index < gbuf.closure_count;
-  if (!has_valid_closure) {
+  ClosureUndetermined closure = gbuffer_read_bin(
+      gbuf_header, gbuf_closure_tx, gbuf_normal_tx, texel_fullres, closure_index);
+
+  if (closure.type == CLOSURE_NONE_ID) {
     invalid_pixel_write(texel_fullres);
     return;
   }
@@ -122,7 +148,10 @@ void main()
   vec3 P = drw_point_screen_to_world(vec3(uv, 0.5));
   vec3 V = drw_world_incident_vector(P);
 
-  ClosureUndetermined closure = gbuffer_closure_get(gbuf, closure_index);
+  float thickness = gbuffer_read_thickness(gbuf_header, gbuf_normal_tx, texel_fullres);
+  if (thickness != 0.0) {
+    transmission_thickness_amend_closure(closure, V, thickness);
+  }
 
   /* Compute filter size and needed sample count */
   float apparent_roughness = closure_apparent_roughness_get(closure);
@@ -165,7 +194,7 @@ void main()
 
     /* Slide 54. */
     /* TODO(fclem): Apparently, ratio estimator should be pdf_bsdf / pdf_ray. */
-    float weight = bxdf_eval(closure, ray_direction, V) * ray_pdf_inv;
+    float weight = bxdf_eval(closure, ray_direction, V, thickness) * ray_pdf_inv;
 
     radiance_accum += ray_radiance.rgb * weight;
     weight_accum += weight;

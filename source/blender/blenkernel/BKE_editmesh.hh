@@ -12,7 +12,13 @@
  * only concerned with low level operations on the #BMEditMesh structure.
  */
 
+#include <array>
+
+#include "BLI_array.hh"
+#include "BLI_math_vector_types.hh"
+
 #include "DNA_customdata_types.h"
+
 #include "bmesh.hh"
 
 struct BMLoop;
@@ -31,8 +37,8 @@ struct Scene;
  * and various data that doesn't belong in the #BMesh struct itself
  * (mostly related to mesh evaluation).
  *
- * The entire modifier system works with this structure, and not #BMesh.
- * #Mesh.edit_bmesh stores a pointer to this structure. */
+ * #Mesh.runtime.edit_mesh stores a pointer to this structure.
+ */
 struct BMEditMesh {
   BMesh *bm;
 
@@ -40,10 +46,9 @@ struct BMEditMesh {
    * Face triangulation (tessellation) is stored as triplets of three loops,
    * which each define a triangle.
    *
-   * \see #MLoopTri as the documentation gives useful hints that apply to this data too.
+   * \see #Mesh::corner_tris() as the documentation gives useful hints that apply to this data too.
    */
-  BMLoop *(*looptris)[3];
-  int tottri;
+  blender::Array<std::array<BMLoop *, 3>> looptris;
 
   /** Selection mode (#SCE_SELECT_VERTEX, #SCE_SELECT_EDGE & #SCE_SELECT_FACE). */
   short selectmode;
@@ -52,11 +57,6 @@ struct BMEditMesh {
 
   /** Temp variables for x-mirror editing (-1 when the layer does not exist). */
   int mirror_cdlayer;
-
-  /**
-   * Enable for evaluated copies, causes the edit-mesh to free the memory, not its contents.
-   */
-  char is_shallow_copy;
 
   /**
    * ID data is older than edit-mode data.
@@ -99,14 +99,16 @@ BMEditMesh *BKE_editmesh_from_object(Object *ob);
  */
 void BKE_editmesh_free_data(BMEditMesh *em);
 
-float (*BKE_editmesh_vert_coords_alloc(
-    Depsgraph *depsgraph, BMEditMesh *em, Scene *scene, Object *ob, int *r_vert_len))[3];
-float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3];
-const float (*BKE_editmesh_vert_coords_when_deformed(Depsgraph *depsgraph,
-                                                     BMEditMesh *em,
-                                                     Scene *scene,
-                                                     Object *obedit,
-                                                     int *r_vert_len,
-                                                     bool *r_is_alloc))[3];
+blender::Array<blender::float3> BKE_editmesh_vert_coords_alloc(Depsgraph *depsgraph,
+                                                               BMEditMesh *em,
+                                                               Scene *scene,
+                                                               Object *ob);
+blender::Array<blender::float3> BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em);
+blender::Span<blender::float3> BKE_editmesh_vert_coords_when_deformed(
+    Depsgraph *depsgraph,
+    BMEditMesh *em,
+    Scene *scene,
+    Object *obedit,
+    blender::Array<blender::float3> &r_alloc);
 
 void BKE_editmesh_lnorspace_update(BMEditMesh *em);

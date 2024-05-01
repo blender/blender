@@ -31,6 +31,9 @@
 
 #include "intern/bmesh_private.hh"
 
+using blender::float3;
+using blender::Span;
+
 /**
  * \brief COMPUTE POLY NORMAL (BMFace)
  *
@@ -66,7 +69,7 @@ static float bm_face_calc_poly_normal(const BMFace *f, float n[3])
  */
 static float bm_face_calc_poly_normal_vertex_cos(const BMFace *f,
                                                  float r_no[3],
-                                                 float const (*vertexCos)[3])
+                                                 const Span<float3> vertexCos)
 {
   BMLoop *l_first = BM_FACE_FIRST_LOOP(f);
   BMLoop *l_iter = l_first;
@@ -90,9 +93,8 @@ static float bm_face_calc_poly_normal_vertex_cos(const BMFace *f,
 /**
  * \brief COMPUTE POLY CENTER (BMFace)
  */
-static void bm_face_calc_poly_center_median_vertex_cos(const BMFace *f,
-                                                       float r_cent[3],
-                                                       float const (*vertexCos)[3])
+static void bm_face_calc_poly_center_median_vertex_cos(
+    const BMFace *f, float r_cent[3], const blender::Span<blender::float3> vert_positions)
 {
   const BMLoop *l_first, *l_iter;
 
@@ -101,7 +103,7 @@ static void bm_face_calc_poly_center_median_vertex_cos(const BMFace *f,
   /* Newell's Method */
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
-    add_v3_v3(r_cent, vertexCos[BM_elem_index_get(l_iter->v)]);
+    add_v3_v3(r_cent, vert_positions[BM_elem_index_get(l_iter->v)]);
   } while ((l_iter = l_iter->next) != l_first);
   mul_v3_fl(r_cent, 1.0f / f->len);
 }
@@ -159,11 +161,11 @@ void BM_face_calc_tessellation(const BMFace *f,
 
 void BM_face_calc_point_in_face(const BMFace *f, float r_co[3])
 {
-  const BMLoop *l_tri[3];
+  const BMLoop *ltri[3];
 
   if (f->len == 3) {
     const BMLoop *l = BM_FACE_FIRST_LOOP(f);
-    ARRAY_SET_ITEMS(l_tri, l, l->next, l->prev);
+    ARRAY_SET_ITEMS(ltri, l, l->next, l->prev);
   }
   else {
     /* tessellation here seems overkill when in many cases this will be the center,
@@ -189,10 +191,10 @@ void BM_face_calc_point_in_face(const BMFace *f, float r_co[3])
     }
 
     ARRAY_SET_ITEMS(
-        l_tri, loops[index[j_best][0]], loops[index[j_best][1]], loops[index[j_best][2]]);
+        ltri, loops[index[j_best][0]], loops[index[j_best][1]], loops[index[j_best][2]]);
   }
 
-  mid_v3_v3v3v3(r_co, l_tri[0]->v->co, l_tri[1]->v->co, l_tri[2]->v->co);
+  mid_v3_v3v3v3(r_co, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co);
 }
 
 float BM_face_calc_area(const BMFace *f)
@@ -520,7 +522,7 @@ void BM_face_calc_center_bounds(const BMFace *f, float r_cent[3])
 void BM_face_calc_center_bounds_vcos(const BMesh *bm,
                                      const BMFace *f,
                                      float r_cent[3],
-                                     float const (*vertexCos)[3])
+                                     const blender::Span<blender::float3> vert_positions)
 {
   /* must have valid index data */
   BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
@@ -533,7 +535,7 @@ void BM_face_calc_center_bounds_vcos(const BMesh *bm,
 
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
   do {
-    minmax_v3v3_v3(min, max, vertexCos[BM_elem_index_get(l_iter->v)]);
+    minmax_v3v3_v3(min, max, vert_positions[BM_elem_index_get(l_iter->v)]);
   } while ((l_iter = l_iter->next) != l_first);
 
   mid_v3_v3v3(r_cent, min, max);
@@ -743,7 +745,7 @@ void BM_face_normal_update(BMFace *f)
 float BM_face_calc_normal_vcos(const BMesh *bm,
                                const BMFace *f,
                                float r_no[3],
-                               float const (*vertexCos)[3])
+                               const Span<float3> vertexCos)
 {
   BMLoop *l;
 
@@ -900,13 +902,13 @@ float BM_face_calc_normal_subset(const BMLoop *l_first, const BMLoop *l_last, fl
 void BM_face_calc_center_median_vcos(const BMesh *bm,
                                      const BMFace *f,
                                      float r_cent[3],
-                                     float const (*vertexCos)[3])
+                                     const blender::Span<blender::float3> vert_positions)
 {
   /* must have valid index data */
   BLI_assert((bm->elem_index_dirty & BM_VERT) == 0);
   (void)bm;
 
-  bm_face_calc_poly_center_median_vertex_cos(f, r_cent, vertexCos);
+  bm_face_calc_poly_center_median_vertex_cos(f, r_cent, vert_positions);
 }
 
 void BM_face_normal_flip_ex(BMesh *bm,
@@ -1091,9 +1093,9 @@ void BM_face_triangulate(BMesh *bm,
 
     /* loop over calculated triangles and create new geometry */
     for (i = 0; i < totfilltri; i++) {
-      BMLoop *l_tri[3] = {loops[tris[i][0]], loops[tris[i][1]], loops[tris[i][2]]};
+      BMLoop *ltri[3] = {loops[tris[i][0]], loops[tris[i][1]], loops[tris[i][2]]};
 
-      BMVert *v_tri[3] = {l_tri[0]->v, l_tri[1]->v, l_tri[2]->v};
+      BMVert *v_tri[3] = {ltri[0]->v, ltri[1]->v, ltri[2]->v};
 
       f_new = BM_face_create_verts(bm, v_tri, 3, f, BM_CREATE_NOP, true);
       l_new = BM_FACE_FIRST_LOOP(f_new);
@@ -1113,9 +1115,9 @@ void BM_face_triangulate(BMesh *bm,
       }
 
       /* copy CD data */
-      BM_elem_attrs_copy(bm, l_tri[0], l_new);
-      BM_elem_attrs_copy(bm, l_tri[1], l_new->next);
-      BM_elem_attrs_copy(bm, l_tri[2], l_new->prev);
+      BM_elem_attrs_copy(bm, ltri[0], l_new);
+      BM_elem_attrs_copy(bm, ltri[1], l_new->next);
+      BM_elem_attrs_copy(bm, ltri[2], l_new->prev);
 
       /* add all but the last face which is swapped and removed (below) */
       if (i != last_tri) {

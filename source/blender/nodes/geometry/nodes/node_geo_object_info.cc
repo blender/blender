@@ -14,6 +14,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "GEO_transform.hh"
 
 #include "node_geometry_util.hh"
@@ -54,7 +56,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const float4x4 object_matrix = object->object_to_world();
+  const float4x4 &object_matrix = object->object_to_world();
   const float4x4 transform = self_object->world_to_object() * object_matrix;
 
   float3 location, scale;
@@ -70,12 +72,19 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Scale", scale);
 
   if (params.output_is_required("Geometry")) {
-    if (object == self_object) {
-      params.error_message_add(NodeWarningType::Error,
-                               TIP_("Geometry cannot be retrieved from the modifier object"));
+    /* Compare by `orig_id` because objects may be copied into separate depsgraphs. */
+    if (DEG_get_original_id(&object->id) ==
+        DEG_get_original_id(const_cast<ID *>(&self_object->id)))
+    {
+      params.error_message_add(
+          NodeWarningType::Error,
+          params.user_data()->call_data->operator_data ?
+              TIP_("Geometry cannot be retrieved from the edited object itself") :
+              TIP_("Geometry cannot be retrieved from the modifier object"));
       params.set_default_remaining_outputs();
       return;
     }
+    BLI_assert(object != self_object);
 
     GeometrySet geometry_set;
     if (params.get_input<bool>("As Instance")) {
@@ -126,13 +135,14 @@ static void node_rna(StructRNA *srna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  RNA_def_node_enum(srna,
-                    "transform_space",
-                    "Transform Space",
-                    "The transformation of the vector and geometry outputs",
-                    rna_node_geometry_object_info_transform_space_items,
-                    NOD_storage_enum_accessors(transform_space),
-                    GEO_NODE_TRANSFORM_SPACE_ORIGINAL);
+  PropertyRNA *prop = RNA_def_node_enum(srna,
+                                        "transform_space",
+                                        "Transform Space",
+                                        "The transformation of the vector and geometry outputs",
+                                        rna_node_geometry_object_info_transform_space_items,
+                                        NOD_storage_enum_accessors(transform_space),
+                                        GEO_NODE_TRANSFORM_SPACE_ORIGINAL);
+  RNA_def_property_update_runtime(prop, rna_Node_update_relations);
 }
 
 static void node_register()

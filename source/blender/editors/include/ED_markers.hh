@@ -18,14 +18,14 @@ struct wmKeyConfig;
 /** \name Drawing API
  * \{ */
 
-/* flags for drawing markers */
+/** Flags for drawing markers. */
 enum {
   DRAW_MARKERS_LINES = (1 << 0),
   DRAW_MARKERS_LOCAL = (1 << 1),
   DRAW_MARKERS_MARGIN = (1 << 2),
 };
 
-/* Draw Scene-Markers in time window */
+/** Draw Scene-Markers in time window. */
 void ED_markers_draw(const bContext *C, int flag);
 
 /** \} */

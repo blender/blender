@@ -20,7 +20,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"
@@ -31,8 +31,8 @@
 #include "ED_space_api.hh"
 #include "ED_time_scrub_ui.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_state.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -48,7 +48,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "graph_intern.h" /* own include */
+#include "graph_intern.hh" /* own include */
 
 /* ******************** default callbacks for ipo space ***************** */
 
@@ -242,8 +242,10 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
     graph_draw_curves(&ac, sipo, region, 1);
 
     /* XXX(ton): the slow way to set tot rect... but for nice sliders needed. */
+    /* Excluding handles from the calculation to save performance. This cuts the time it takes for
+     * this function to run in half which is a major performance bottleneck on heavy scenes.  */
     get_graph_keyframe_extents(
-        &ac, &v2d->tot.xmin, &v2d->tot.xmax, &v2d->tot.ymin, &v2d->tot.ymax, false, true);
+        &ac, &v2d->tot.xmin, &v2d->tot.xmax, &v2d->tot.ymin, &v2d->tot.ymax, false, false);
     /* extra offset so that these items are visible */
     v2d->tot.xmin -= 10.0f;
     v2d->tot.xmax += 10.0f;
@@ -367,20 +369,34 @@ static void graph_channel_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
+static void set_v2d_height(View2D *v2d, const size_t item_count)
+{
+  const int height = ANIM_UI_get_channels_total_height(v2d, item_count);
+  v2d->tot.ymin = -height;
+  UI_view2d_curRect_clamp_y(v2d);
+}
+
 static void graph_channel_region_draw(const bContext *C, ARegion *region)
 {
   bAnimContext ac;
+  if (!ANIM_animdata_get_context(C, &ac)) {
+    return;
+  }
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
 
+  ListBase anim_data = {nullptr, nullptr};
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                    ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
+  const size_t item_count = ANIM_animdata_filter(
+      &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+  set_v2d_height(v2d, item_count);
   UI_view2d_view_ortho(v2d);
 
   /* draw channels */
-  if (ANIM_animdata_get_context(C, &ac)) {
-    graph_draw_channel_names((bContext *)C, &ac, region);
-  }
+  graph_draw_channel_names((bContext *)C, &ac, region, anim_data);
 
   /* channel filter next to scrubbing area */
   ED_time_scrub_channel_search_draw(C, region, ac.ads);
@@ -390,6 +406,8 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
 
   /* scrollers */
   UI_view2d_scrollers_draw(v2d, nullptr);
+
+  ANIM_animdata_freelist(&anim_data);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -514,7 +532,7 @@ static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams 
   }
 
   /* All dopesheet filter settings, etc. affect the drawing of this editor,
-   * also same applies for all animation-related datatypes that may appear here,
+   * also same applies for all animation-related data-types that may appear here,
    * so just whitelist the entire structs for updates
    */
   {
@@ -805,8 +823,8 @@ static void graph_id_remap(ScrArea * /*area*/,
     return;
   }
 
-  mappings.apply((ID **)&sgraph->ads->filter_grp, ID_REMAP_APPLY_DEFAULT);
-  mappings.apply((ID **)&sgraph->ads->source, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(reinterpret_cast<ID **>(&sgraph->ads->filter_grp), ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(reinterpret_cast<ID **>(&sgraph->ads->source), ID_REMAP_APPLY_DEFAULT);
 }
 
 static void graph_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
@@ -853,7 +871,7 @@ static void graph_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceGraph *sipo = (SpaceGraph *)sl;
 
-  BLO_read_data_address(reader, &sipo->ads);
+  BLO_read_struct(reader, bDopeSheet, &sipo->ads);
   memset(&sipo->runtime, 0x0, sizeof(sipo->runtime));
 }
 

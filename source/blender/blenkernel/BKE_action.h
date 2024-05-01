@@ -136,6 +136,8 @@ void action_group_colors_set(struct bActionGroup *grp, const struct BoneColor *c
  *
  * If `pchan->color` is set to a non-default color, that is used. Otherwise the
  * armature bone color is used.
+ *
+ * Note that if `pchan->bone` is `nullptr`, this function silently does nothing.
  */
 void action_group_colors_set_from_posebone(bActionGroup *grp, const bPoseChannel *pchan);
 

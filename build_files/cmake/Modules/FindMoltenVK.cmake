@@ -43,11 +43,11 @@ find_path(MOLTENVK_INCLUDE_DIR
 
 find_library(MOLTENVK_LIBRARY
   NAMES
-    MoltenVK
+    libMoltenVK.dylib
   HINTS
     ${_moltenvk_SEARCH_DIRS}
   PATH_SUFFIXES
-    dylib/macOS
+    dynamic/dylib/macOS
 )
 
 # handle the QUIETLY and REQUIRED arguments and set MOLTENVK_FOUND to TRUE if

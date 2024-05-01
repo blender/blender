@@ -28,6 +28,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
+#include "BKE_mesh_types.hh"
 #include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
@@ -740,7 +741,7 @@ static bool uv_rip_pairs_calc_center_and_direction(UVRipPairs *rip,
 static bool uv_rip_object(Scene *scene, Object *obedit, const float co[2], const float aspect_y)
 {
   Mesh *mesh = (Mesh *)obedit->data;
-  BMEditMesh *em = mesh->edit_mesh;
+  BMEditMesh *em = mesh->runtime->edit_mesh.get();
   BMesh *bm = em->bm;
   const char *active_uv_name = CustomData_get_active_layer_name(&bm->ldata, CD_PROP_FLOAT2);
   BM_uv_map_ensure_vert_select_attr(bm, active_uv_name);

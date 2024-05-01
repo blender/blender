@@ -347,10 +347,7 @@ void PathTraceWorkCPU::guiding_push_sample_data_to_global_storage(
 
   /* Write debug render pass to validate it matches combined pass. */
   pgl_vec3f pgl_final_color = kg->opgl_path_segment_storage->CalculatePixelEstimate(false);
-  const uint32_t render_pixel_index = INTEGRATOR_STATE(state, path, render_pixel_index);
-  const uint64_t render_buffer_offset = (uint64_t)render_pixel_index *
-                                        kernel_data.film.pass_stride;
-  ccl_global float *buffer = render_buffer + render_buffer_offset;
+  ccl_global float *buffer = film_pass_pixel_render_buffer(kg, state, render_buffer);
   float3 final_color = make_float3(pgl_final_color.x, pgl_final_color.y, pgl_final_color.z);
   if (kernel_data.film.pass_guiding_color != PASS_UNUSED) {
     film_write_pass_float3(buffer + kernel_data.film.pass_guiding_color, final_color);

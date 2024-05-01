@@ -43,7 +43,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_path.hh"
 
-#include "anim_intern.h"
+#include "anim_intern.hh"
 
 /* ************************************************** */
 /* KEYING SETS - OPERATORS (for use in UI panels) */
@@ -101,7 +101,7 @@ static int add_default_keyingset_exec(bContext *C, wmOperator * /*op*/)
    */
   const eKS_Settings flag = KEYINGSET_ABSOLUTE;
 
-  const eInsertKeyFlags keyingflag = ANIM_get_keyframing_flags(scene);
+  const eInsertKeyFlags keyingflag = blender::animrig::get_keyframing_flags(scene);
 
   /* Call the API func, and set the active keyingset index. */
   BKE_keyingset_add(&scene->keyingsets, nullptr, nullptr, flag, keyingflag);
@@ -285,7 +285,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
      */
     const eKS_Settings flag = KEYINGSET_ABSOLUTE;
 
-    const eInsertKeyFlags keyingflag = ANIM_get_keyframing_flags(scene);
+    const eInsertKeyFlags keyingflag = blender::animrig::get_keyframing_flags(scene);
 
     /* Call the API func, and set the active keyingset index. */
     keyingset = BKE_keyingset_add(
@@ -305,7 +305,7 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
   /* Check if property is able to be added. */
   const bool all = RNA_boolean_get(op->ptr, "all");
   bool changed = false;
-  if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
+  if (ptr.owner_id && ptr.data && prop && RNA_property_anim_editable(&ptr, prop)) {
     if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
       if (all) {
         pflag |= KSP_FLAG_WHOLE_ARRAY;
@@ -1020,6 +1020,7 @@ static int insert_key_to_keying_set_path(bContext *C,
                                          const eModifyKey_Modes mode,
                                          const float frame)
 {
+  using namespace blender::animrig;
   /* Since keying settings can be defined on the paths too,
    * apply the settings for this path first. */
   const eInsertKeyFlags path_insert_key_flags = keyingset_apply_keying_flags(
@@ -1074,28 +1075,34 @@ static int insert_key_to_keying_set_path(bContext *C,
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     frame);
   int keyed_channels = 0;
+
+  CombinedKeyingResult combined_result;
   for (; array_index < array_length; array_index++) {
     if (mode == MODIFYKEY_MODE_INSERT) {
-      keyed_channels += blender::animrig::insert_keyframe(bmain,
-                                                          reports,
-                                                          keyingset_path->id,
-                                                          nullptr,
-                                                          groupname,
-                                                          keyingset_path->rna_path,
-                                                          array_index,
-                                                          &anim_eval_context,
-                                                          keytype,
-                                                          path_insert_key_flags);
+      CombinedKeyingResult result = insert_keyframe(bmain,
+                                                    *keyingset_path->id,
+                                                    groupname,
+                                                    keyingset_path->rna_path,
+                                                    array_index,
+                                                    &anim_eval_context,
+                                                    keytype,
+                                                    path_insert_key_flags);
+      keyed_channels += result.get_count(SingleKeyingResult::SUCCESS);
+      combined_result.merge(result);
     }
     else if (mode == MODIFYKEY_MODE_DELETE) {
-      keyed_channels += blender::animrig::delete_keyframe(bmain,
-                                                          reports,
-                                                          keyingset_path->id,
-                                                          nullptr,
-                                                          keyingset_path->rna_path,
-                                                          array_index,
-                                                          frame);
+      keyed_channels += delete_keyframe(bmain,
+                                        reports,
+                                        keyingset_path->id,
+                                        nullptr,
+                                        keyingset_path->rna_path,
+                                        array_index,
+                                        frame);
     }
+  }
+
+  if (combined_result.get_count(SingleKeyingResult::SUCCESS) == 0) {
+    combined_result.generate_reports(reports);
   }
 
   switch (GS(keyingset_path->id->name)) {
@@ -1129,7 +1136,7 @@ int ANIM_apply_keyingset(bContext *C,
   }
 
   Scene *scene = CTX_data_scene(C);
-  const eInsertKeyFlags base_kflags = ANIM_get_keyframing_flags(scene);
+  const eInsertKeyFlags base_kflags = blender::animrig::get_keyframing_flags(scene);
   eInsertKeyFlags kflag = INSERTKEY_NOFLAGS;
   if (mode == MODIFYKEY_MODE_INSERT) {
     /* use context settings as base */

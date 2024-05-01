@@ -17,6 +17,8 @@
 
 #include "eevee_instance.hh"
 
+#include "draw_debug.hh"
+
 namespace blender::eevee {
 
 /* -------------------------------------------------------------------- */
@@ -170,11 +172,6 @@ static int calc_sphere_size(const float viewport_scale)
 
 void LookdevModule::sync()
 {
-  for (Sphere &sphere : spheres_) {
-    sphere.pass.init();
-  }
-  display_ps_.init();
-
   if (!enabled_) {
     return;
   }
@@ -204,7 +201,7 @@ void LookdevModule::sync()
   model_m4 = math::scale(model_m4, float3(sphere_scale));
 
   ResourceHandle handle = inst_.manager->resource_handle(model_m4);
-  GPUBatch *geom = DRW_cache_sphere_get(calc_level_of_detail(viewport_scale));
+  gpu::Batch *geom = DRW_cache_sphere_get(calc_level_of_detail(viewport_scale));
 
   sync_pass(spheres_[0].pass, geom, inst_.materials.metallic_mat, handle);
   sync_pass(spheres_[1].pass, geom, inst_.materials.diffuse_mat, handle);
@@ -212,10 +209,11 @@ void LookdevModule::sync()
 }
 
 void LookdevModule::sync_pass(PassSimple &pass,
-                              GPUBatch *geom,
+                              gpu::Batch *geom,
                               ::Material *mat,
                               ResourceHandle res_handle)
 {
+  pass.init();
   pass.clear_depth(1.0f);
   pass.clear_color(float4(0.0, 0.0, 0.0, 1.0));
 
@@ -226,21 +224,15 @@ void LookdevModule::sync_pass(PassSimple &pass,
       mat, mat->nodetree, MAT_PIPE_FORWARD, MAT_GEOM_MESH, MAT_PROBE_NONE);
   pass.state_set(state);
   pass.material_set(*inst_.manager, gpumat);
-
   pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
-  pass.bind_image("rp_cryptomatte_img", dummy_cryptomatte_tx_);
-  pass.bind_image("rp_color_img", dummy_aov_color_tx_);
-  pass.bind_image("rp_value_img", dummy_aov_value_tx_);
-  pass.bind_image("aov_color_img", dummy_aov_color_tx_);
-  pass.bind_image("aov_value_img", dummy_aov_value_tx_);
   pass.bind_resources(inst_.uniform_data);
-  pass.bind_resources(inst_.hiz_buffer.front);
-  pass.bind_resources(inst_.sphere_probes);
-  pass.bind_resources(inst_.volume_probes);
+  pass.bind_resources(inst_.lights);
   pass.bind_resources(inst_.shadows);
   pass.bind_resources(inst_.volume.result);
-  pass.bind_resources(inst_.cryptomatte);
-
+  pass.bind_resources(inst_.sampling);
+  pass.bind_resources(inst_.hiz_buffer.front);
+  pass.bind_resources(inst_.volume_probes);
+  pass.bind_resources(inst_.sphere_probes);
   pass.draw(geom, res_handle, 0);
 }
 
@@ -250,6 +242,7 @@ void LookdevModule::sync_display()
 
   const DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS |
                          DRW_STATE_BLEND_ALPHA;
+  pass.init();
   pass.state_set(state);
   pass.shader_set(inst_.shaders.static_shader_get(LOOKDEV_DISPLAY));
   pass.push_constant("viewportSize", float2(DRW_viewport_size_get()));

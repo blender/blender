@@ -49,11 +49,13 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "object_intern.h"
+#include "object_intern.hh"
+
+namespace blender::ed::object {
 
 /******************************** API ****************************/
 
-GpencilModifierData *ED_object_gpencil_modifier_add(
+GpencilModifierData *gpencil_modifier_add(
     ReportList *reports, Main *bmain, Scene * /*scene*/, Object *ob, const char *name, int type)
 {
   GpencilModifierData *new_md = nullptr;
@@ -118,10 +120,7 @@ static bool gpencil_object_modifier_remove(Main *bmain,
   return true;
 }
 
-bool ED_object_gpencil_modifier_remove(ReportList *reports,
-                                       Main *bmain,
-                                       Object *ob,
-                                       GpencilModifierData *md)
+bool gpencil_modifier_remove(ReportList *reports, Main *bmain, Object *ob, GpencilModifierData *md)
 {
   bool sort_depsgraph = false;
   bool ok;
@@ -139,7 +138,7 @@ bool ED_object_gpencil_modifier_remove(ReportList *reports,
   return true;
 }
 
-void ED_object_gpencil_modifier_clear(Main *bmain, Object *ob)
+void gpencil_modifier_clear(Main *bmain, Object *ob)
 {
   GpencilModifierData *md = static_cast<GpencilModifierData *>(ob->greasepencil_modifiers.first);
   bool sort_depsgraph = false;
@@ -162,9 +161,7 @@ void ED_object_gpencil_modifier_clear(Main *bmain, Object *ob)
   DEG_relations_tag_update(bmain);
 }
 
-bool ED_object_gpencil_modifier_move_up(ReportList * /*reports*/,
-                                        Object *ob,
-                                        GpencilModifierData *md)
+bool gpencil_modifier_move_up(ReportList * /*reports*/, Object *ob, GpencilModifierData *md)
 {
   if (md->prev) {
     BLI_remlink(&ob->greasepencil_modifiers, md);
@@ -174,9 +171,7 @@ bool ED_object_gpencil_modifier_move_up(ReportList * /*reports*/,
   return true;
 }
 
-bool ED_object_gpencil_modifier_move_down(ReportList * /*reports*/,
-                                          Object *ob,
-                                          GpencilModifierData *md)
+bool gpencil_modifier_move_down(ReportList * /*reports*/, Object *ob, GpencilModifierData *md)
 {
   if (md->next) {
     BLI_remlink(&ob->greasepencil_modifiers, md);
@@ -186,10 +181,10 @@ bool ED_object_gpencil_modifier_move_down(ReportList * /*reports*/,
   return true;
 }
 
-bool ED_object_gpencil_modifier_move_to_index(ReportList *reports,
-                                              Object *ob,
-                                              GpencilModifierData *md,
-                                              const int index)
+bool gpencil_modifier_move_to_index(ReportList *reports,
+                                    Object *ob,
+                                    GpencilModifierData *md,
+                                    const int index)
 {
   BLI_assert(md != nullptr);
   BLI_assert(index >= 0);
@@ -203,7 +198,7 @@ bool ED_object_gpencil_modifier_move_to_index(ReportList *reports,
   if (md_index < index) {
     /* Move modifier down in list. */
     for (; md_index < index; md_index++) {
-      if (!ED_object_gpencil_modifier_move_down(reports, ob, md)) {
+      if (!gpencil_modifier_move_down(reports, ob, md)) {
         break;
       }
     }
@@ -211,7 +206,7 @@ bool ED_object_gpencil_modifier_move_to_index(ReportList *reports,
   else {
     /* Move modifier up in list. */
     for (; md_index > index; md_index--) {
-      if (!ED_object_gpencil_modifier_move_up(reports, ob, md)) {
+      if (!gpencil_modifier_move_up(reports, ob, md)) {
         break;
       }
     }
@@ -253,12 +248,12 @@ static bool gpencil_modifier_apply_obdata(
   return true;
 }
 
-bool ED_object_gpencil_modifier_apply(Main *bmain,
-                                      ReportList *reports,
-                                      Depsgraph *depsgraph,
-                                      Object *ob,
-                                      GpencilModifierData *md,
-                                      int /*mode*/)
+bool gpencil_modifier_apply(Main *bmain,
+                            ReportList *reports,
+                            Depsgraph *depsgraph,
+                            Object *ob,
+                            GpencilModifierData *md,
+                            int /*mode*/)
 {
 
   if (ob->type == OB_GPENCIL_LEGACY) {
@@ -291,7 +286,7 @@ bool ED_object_gpencil_modifier_apply(Main *bmain,
   return true;
 }
 
-bool ED_object_gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilModifierData *md)
+bool gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilModifierData *md)
 {
   GpencilModifierData *nmd;
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(
@@ -315,7 +310,7 @@ bool ED_object_gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilMod
   return true;
 }
 
-void ED_object_gpencil_modifier_copy_to_object(Object *ob_dst, GpencilModifierData *md)
+void gpencil_modifier_copy_to_object(Object *ob_dst, GpencilModifierData *md)
 {
   BKE_object_copy_gpencil_modifier(ob_dst, md);
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob_dst);
@@ -328,10 +323,10 @@ static int gpencil_modifier_add_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   int type = RNA_enum_get(op->ptr, "type");
 
-  if (!ED_object_gpencil_modifier_add(op->reports, bmain, scene, ob, nullptr, type)) {
+  if (!gpencil_modifier_add(op->reports, bmain, scene, ob, nullptr, type)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -345,7 +340,7 @@ static const EnumPropertyItem *gpencil_modifier_add_itemf(bContext *C,
                                                           PropertyRNA * /*prop*/,
                                                           bool *r_free)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   EnumPropertyItem *item = nullptr;
   const EnumPropertyItem *md_item, *group_item = nullptr;
   const GpencilModifierTypeInfo *mti;
@@ -422,7 +417,7 @@ static bool gpencil_edit_modifier_poll_generic(bContext *C,
 {
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", rna_type);
-  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
+  Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : context_active_object(C);
   GpencilModifierData *mod = static_cast<GpencilModifierData *>(ptr.data); /* May be nullptr. */
 
   if (!ob || !BKE_id_is_editable(bmain, &ob->id)) {
@@ -543,7 +538,7 @@ static GpencilModifierData *gpencil_edit_modifier_property_get(wmOperator *op,
 static int gpencil_modifier_remove_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
 
   if (md == nullptr) {
@@ -554,7 +549,7 @@ static int gpencil_modifier_remove_exec(bContext *C, wmOperator *op)
   char name[MAX_NAME];
   STRNCPY(name, md->name);
 
-  if (!ED_object_gpencil_modifier_remove(op->reports, bmain, ob, md)) {
+  if (!gpencil_modifier_remove(op->reports, bmain, ob, md)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -596,10 +591,10 @@ void OBJECT_OT_gpencil_modifier_remove(wmOperatorType *ot)
 
 static int gpencil_modifier_move_up_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
 
-  if (!md || !ED_object_gpencil_modifier_move_up(op->reports, ob, md)) {
+  if (!md || !gpencil_modifier_move_up(op->reports, ob, md)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -637,10 +632,10 @@ void OBJECT_OT_gpencil_modifier_move_up(wmOperatorType *ot)
 
 static int gpencil_modifier_move_down_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
 
-  if (!md || !ED_object_gpencil_modifier_move_down(op->reports, ob, md)) {
+  if (!md || !gpencil_modifier_move_down(op->reports, ob, md)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -678,10 +673,10 @@ void OBJECT_OT_gpencil_modifier_move_down(wmOperatorType *ot)
 
 static int gpencil_modifier_move_to_index_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
   int index = RNA_int_get(op->ptr, "index");
-  if (!(md && ED_object_gpencil_modifier_move_to_index(op->reports, ob, md, index))) {
+  if (!(md && gpencil_modifier_move_to_index(op->reports, ob, md, index))) {
     return OPERATOR_CANCELLED;
   }
 
@@ -722,7 +717,7 @@ static int gpencil_modifier_apply_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
   int apply_as = RNA_enum_get(op->ptr, "apply_as");
   const bool do_report = RNA_boolean_get(op->ptr, "report");
@@ -738,7 +733,7 @@ static int gpencil_modifier_apply_exec(bContext *C, wmOperator *op)
     STRNCPY(name, md->name); /* Store name temporarily since the modifier is removed. */
   }
 
-  if (!ED_object_gpencil_modifier_apply(bmain, op->reports, depsgraph, ob, md, apply_as)) {
+  if (!gpencil_modifier_apply(bmain, op->reports, depsgraph, ob, md, apply_as)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -802,10 +797,10 @@ void OBJECT_OT_gpencil_modifier_apply(wmOperatorType *ot)
 
 static int gpencil_modifier_copy_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, ob, 0);
 
-  if (!md || !ED_object_gpencil_modifier_copy(op->reports, ob, md)) {
+  if (!md || !gpencil_modifier_copy(op->reports, ob, md)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -843,7 +838,7 @@ void OBJECT_OT_gpencil_modifier_copy(wmOperatorType *ot)
 
 static int gpencil_modifier_copy_to_selected_exec(bContext *C, wmOperator *op)
 {
-  Object *obact = ED_object_active_context(C);
+  Object *obact = context_active_object(C);
   GpencilModifierData *md = gpencil_edit_modifier_property_get(op, obact, 0);
 
   if (!md) {
@@ -895,7 +890,7 @@ static int gpencil_modifier_copy_to_selected_invoke(bContext *C,
 
 static bool gpencil_modifier_copy_to_selected_poll(bContext *C)
 {
-  Object *obact = ED_object_active_context(C);
+  Object *obact = context_active_object(C);
 
   /* This could have a performance impact in the worst case, where there are many objects selected
    * and none of them pass the check. But that should be uncommon, and this operator is only
@@ -955,7 +950,7 @@ static bool time_segment_name_exists_fn(void *arg, const char *name)
 
 static int time_segment_add_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)gpencil_edit_modifier_property_get(
       op, ob, eGpencilModifierType_Time);
   if (gpmd == nullptr) {
@@ -1020,7 +1015,7 @@ void GPENCIL_OT_time_segment_add(wmOperatorType *ot)
 
 static int time_segment_remove_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
 
   TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)gpencil_edit_modifier_property_get(
       op, ob, eGpencilModifierType_Time);
@@ -1099,7 +1094,7 @@ enum {
 
 static int time_segment_move_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
 
   TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)gpencil_edit_modifier_property_get(
       op, ob, eGpencilModifierType_Time);
@@ -1195,7 +1190,7 @@ static bool dash_segment_name_exists_fn(void *arg, const char *name)
 
 static int dash_segment_add_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
   DashGpencilModifierData *dmd = (DashGpencilModifierData *)gpencil_edit_modifier_property_get(
       op, ob, eGpencilModifierType_Dash);
 
@@ -1261,7 +1256,7 @@ void GPENCIL_OT_segment_add(wmOperatorType *ot)
 
 static int dash_segment_remove_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
 
   DashGpencilModifierData *dmd = (DashGpencilModifierData *)gpencil_edit_modifier_property_get(
       op, ob, eGpencilModifierType_Dash);
@@ -1341,7 +1336,7 @@ enum {
 
 static int dash_segment_move_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
+  Object *ob = context_active_object(C);
 
   DashGpencilModifierData *dmd = (DashGpencilModifierData *)gpencil_edit_modifier_property_get(
       op, ob, eGpencilModifierType_Dash);
@@ -1417,3 +1412,5 @@ void GPENCIL_OT_segment_move(wmOperatorType *ot)
 
   ot->prop = RNA_def_enum(ot->srna, "type", segment_move, 0, "Type", "");
 }
+
+}  // namespace blender::ed::object

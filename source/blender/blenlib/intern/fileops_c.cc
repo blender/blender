@@ -46,7 +46,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
-#include "BLI_sys_types.h" /* for intptr_t support */
+#include "BLI_sys_types.h" /* For `intptr_t` support. */
 #include "BLI_utildefines.h"
 
 /** Sizes above this must be allocated. */
@@ -292,19 +292,19 @@ bool BLI_file_is_writable(const char *filepath)
 {
   bool writable;
   if (BLI_access(filepath, W_OK) == 0) {
-    /* file exists and I can write to it */
+    /* File exists and I can write to it. */
     writable = true;
   }
   else if (errno != ENOENT) {
-    /* most likely file or containing directory cannot be accessed */
+    /* Most likely file or containing directory cannot be accessed. */
     writable = false;
   }
   else {
-    /* file doesn't exist -- check I can create it in parent directory */
+    /* File doesn't exist -- check I can create it in parent directory. */
     char parent[FILE_MAX];
     BLI_path_split_dir_part(filepath, parent, sizeof(parent));
 #ifdef WIN32
-    /* windows does not have X_OK */
+    /* Windows does not have X_OK. */
     writable = BLI_access(parent, W_OK) == 0;
 #else
     writable = BLI_access(parent, X_OK | W_OK) == 0;
@@ -321,7 +321,7 @@ bool BLI_file_touch(const char *filepath)
     int c = getc(f);
 
     if (c == EOF) {
-      /* Empty file, reopen in truncate write mode... */
+      /* Empty file, reopen in truncate write mode. */
       fclose(f);
       f = BLI_fopen(filepath, "w+b");
     }
@@ -475,31 +475,31 @@ int BLI_rename(const char *from, const char *to)
 
 #ifdef WIN32
   return urename(from, to, false);
-#elif defined(__APPLE__)
-  return renamex_np(from, to, RENAME_EXCL);
-#elif defined(__GLIBC_PREREQ)
-#  if __GLIBC_PREREQ(2, 28)
-  /* Most common Linux cases. */
-  int ret = renameat2(AT_FDCWD, from, AT_FDCWD, to, RENAME_NOREPLACE);
-  if (ret < 0 && errno == EINVAL) {
-    /* Most likely a filesystem that doesn't support RENAME_NOREPLACE.
-     * (For example NFS, Samba, exFAT, NTFS, etc)
-     * Retry with a non atomic operation.
-     */
-    if (BLI_exists(to)) {
-      return 1;
-    }
-    return rename(from, to);
-  }
-  return ret;
-#  endif
 #else
-  /* At least all BSD's currently. */
+#  if defined(__APPLE__)
+  int ret = renamex_np(from, to, RENAME_EXCL);
+  if (!(ret < 0 && errno == ENOTSUP)) {
+    return ret;
+  }
+#  endif
+
+#  if defined(__GLIBC_PREREQ)
+#    if __GLIBC_PREREQ(2, 28)
+  /* Most common Linux case, use `RENAME_NOREPLACE` when available. */
+  int ret = renameat2(AT_FDCWD, from, AT_FDCWD, to, RENAME_NOREPLACE);
+  if (!(ret < 0 && errno == EINVAL)) {
+    return ret;
+  }
+#    endif /* __GLIBC_PREREQ(2, 28) */
+#  endif   /* __GLIBC_PREREQ */
+  /* A naive non-atomic implementation, which is used for OS where atomic rename is not supported
+   * at all, or not implemented for specific file systems (for example NFS, Samba, exFAT, NTFS,
+   * etc). For those see #116049, #119966. */
   if (BLI_exists(to)) {
     return 1;
   }
   return rename(from, to);
-#endif
+#endif     /* !defined(WIN32) */
 }
 
 int BLI_rename_overwrite(const char *from, const char *to)
@@ -733,6 +733,9 @@ int BLI_delete(const char *path, bool dir, bool recursive)
   int err;
 
   BLI_assert(!BLI_path_is_rel(path));
+
+  /* Not an error but avoid ambiguous arguments (recursive file deletion isn't meaningful). */
+  BLI_assert(!(dir == false && recursive == true));
 
   if (recursive) {
     err = delete_recursive(path);
@@ -1089,6 +1092,9 @@ static int recursive_operation_impl(StrBuf *src_buf,
  * prefixing it with path_dst, recursively scanning subdirectories, and invoking the specified
  * callbacks for files and subdirectories found as appropriate.
  *
+ * \note Symbolic links are *not* followed, even when `path_src` links to a directory,
+ * it wont be recursed down. Support for this could be added.
+ *
  * \param path_src: Top-level source path.
  * \param path_dst: Top-level destination path.
  * \param callback_dir_pre: Optional, to be invoked before entering a subdirectory,
@@ -1198,8 +1204,10 @@ static int delete_soft(const char *file, const char **error_message)
   const char *args[5];
   const char *process_failed;
 
-  char *xdg_current_desktop = getenv("XDG_CURRENT_DESKTOP");
-  char *xdg_session_desktop = getenv("XDG_SESSION_DESKTOP");
+  /* NOTE(@ideasman42): `XDG_*` environment variables aren't reliably set on GNOME, see: #121241.
+   * Take care using them, as a hint they're OK, but not guaranteed to be correct. */
+  const char *xdg_current_desktop = getenv("XDG_CURRENT_DESKTOP");
+  const char *xdg_session_desktop = getenv("XDG_SESSION_DESKTOP");
 
   if ((xdg_current_desktop != nullptr && STREQ(xdg_current_desktop, "KDE")) ||
       (xdg_session_desktop != nullptr && STREQ(xdg_session_desktop, "KDE")))
@@ -1222,7 +1230,7 @@ static int delete_soft(const char *file, const char **error_message)
   int pid = fork();
 
   if (pid != 0) {
-    /* Parent process */
+    /* Parent process. */
     int wstatus = 0;
 
     waitpid(pid, &wstatus, 0);
@@ -1243,7 +1251,7 @@ static int delete_soft(const char *file, const char **error_message)
   execvp(args[0], (char **)args);
 
   *error_message = "Forking process failed.";
-  return -1; /* This should only be reached if execvp fails and stack isn't replaced. */
+  return -1; /* This should only be reached if `execvp` fails and stack isn't replaced. */
 }
 #  endif
 
@@ -1278,6 +1286,8 @@ int BLI_access(const char *filepath, int mode)
 int BLI_delete(const char *path, bool dir, bool recursive)
 {
   BLI_assert(!BLI_path_is_rel(path));
+  /* Not an error but avoid ambiguous arguments (recursive file deletion isn't meaningful). */
+  BLI_assert(!(dir == false && recursive == true));
 
   if (recursive) {
     return recursive_operation(path, nullptr, nullptr, delete_single_file, delete_callback_post);
@@ -1347,13 +1357,13 @@ static int copy_callback_pre(const char *from, const char *to)
     return RecursiveOp_Callback_Error;
   }
 
-  /* create a directory */
+  /* Create a directory. */
   if (mkdir(to, st.st_mode)) {
     perror("mkdir");
     return RecursiveOp_Callback_Error;
   }
 
-  /* set proper owner and group on new directory */
+  /* Set proper owner and group on new directory. */
   if (chown(to, st.st_uid, st.st_gid)) {
     perror("chown");
     return RecursiveOp_Callback_Error;
@@ -1380,12 +1390,12 @@ static int copy_single_file(const char *from, const char *to)
   }
 
   if (S_ISLNK(st.st_mode)) {
-    /* symbolic links should be copied in special way */
+    /* Symbolic links should be copied in special way. */
     char *link_buffer;
     int need_free;
     int64_t link_len;
 
-    /* get large enough buffer to read link content */
+    /* Get large enough buffer to read link content. */
     if ((st.st_size + 1) < sizeof(buf)) {
       link_buffer = buf;
       need_free = 0;
@@ -1423,7 +1433,7 @@ static int copy_single_file(const char *from, const char *to)
     return RecursiveOp_Callback_OK;
   }
   if (S_ISCHR(st.st_mode) || S_ISBLK(st.st_mode) || S_ISFIFO(st.st_mode) || S_ISSOCK(st.st_mode)) {
-    /* copy special type of file */
+    /* Copy special type of file. */
     if (mknod(to, st.st_mode, st.st_rdev)) {
       perror("mknod");
       return RecursiveOp_Callback_Error;

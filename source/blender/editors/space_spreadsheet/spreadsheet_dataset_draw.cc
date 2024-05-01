@@ -91,6 +91,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
         bke::GeometryComponent::Type::GreasePencil,
         IFACE_("Grease Pencil"),
         ICON_OUTLINER_DATA_GREASEPENCIL);
+    grease_pencil.uncollapse_by_default();
     GeometryDataSetTreeViewItem &grease_pencil_layers =
         grease_pencil.add_tree_item<GeometryDataSetTreeViewItem>(
             bke::GeometryComponent::Type::GreasePencil,
@@ -126,6 +127,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
   {
     GeometryDataSetTreeViewItem &mesh = this->add_tree_item<GeometryDataSetTreeViewItem>(
         bke::GeometryComponent::Type::Mesh, IFACE_("Mesh"), ICON_MESH_DATA);
+    mesh.uncollapse_by_default();
     mesh.add_tree_item<GeometryDataSetTreeViewItem>(bke::GeometryComponent::Type::Mesh,
                                                     bke::AttrDomain::Point,
                                                     IFACE_("Vertex"),
@@ -141,6 +143,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
 
     GeometryDataSetTreeViewItem &curve = this->add_tree_item<GeometryDataSetTreeViewItem>(
         bke::GeometryComponent::Type::Curve, IFACE_("Curve"), ICON_CURVE_DATA);
+    curve.uncollapse_by_default();
     curve.add_tree_item<GeometryDataSetTreeViewItem>(bke::GeometryComponent::Type::Curve,
                                                      bke::AttrDomain::Point,
                                                      IFACE_("Control Point"),
@@ -154,6 +157,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
 
     GeometryDataSetTreeViewItem &pointcloud = this->add_tree_item<GeometryDataSetTreeViewItem>(
         bke::GeometryComponent::Type::PointCloud, IFACE_("Point Cloud"), ICON_POINTCLOUD_DATA);
+    pointcloud.uncollapse_by_default();
     pointcloud.add_tree_item<GeometryDataSetTreeViewItem>(bke::GeometryComponent::Type::PointCloud,
                                                           bke::AttrDomain::Point,
                                                           IFACE_("Point"),
@@ -174,7 +178,6 @@ GeometryDataSetTreeViewItem::GeometryDataSetTreeViewItem(
     : component_type_(component_type), domain_(std::nullopt), icon_(icon)
 {
   label_ = label;
-  this->set_collapsed(false);
 }
 GeometryDataSetTreeViewItem::GeometryDataSetTreeViewItem(
     bke::GeometryComponent::Type component_type, int layer_index, StringRef label, BIFIconID icon)

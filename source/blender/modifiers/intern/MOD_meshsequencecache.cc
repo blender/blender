@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_cachefile.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 
@@ -55,8 +56,7 @@
 #  include "usd.hh"
 #endif
 
-using blender::float3;
-using blender::Span;
+using namespace blender;
 
 static void init_data(ModifierData *md)
 {
@@ -163,6 +163,91 @@ static Mesh *generate_bounding_box_mesh(const Mesh *org_mesh)
 
 #endif
 
+static void modify_geometry_set(ModifierData *md,
+                                const ModifierEvalContext *ctx,
+                                bke::GeometrySet *geometry_set)
+{
+#if defined(WITH_USD) || defined(WITH_ALEMBIC)
+  MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
+
+  Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+  CacheFile *cache_file = mcmd->cache_file;
+  const float frame = DEG_get_ctime(ctx->depsgraph);
+  const double time = BKE_cachefile_time_offset(cache_file, frame, FPS);
+  const char *err_str = nullptr;
+
+  if (!mcmd->reader || !STREQ(mcmd->reader_object_path, mcmd->object_path)) {
+    STRNCPY(mcmd->reader_object_path, mcmd->object_path);
+    BKE_cachefile_reader_open(cache_file, &mcmd->reader, ctx->object, mcmd->object_path);
+    if (!mcmd->reader) {
+      BKE_modifier_set_error(
+          ctx->object, md, "Could not create cache reader for file %s", cache_file->filepath);
+      return;
+    }
+  }
+
+  if (geometry_set->has_mesh()) {
+    const Mesh *mesh = geometry_set->get_mesh();
+    if (can_use_mesh_for_orco_evaluation(mcmd, ctx, mesh, time, &err_str)) {
+      return;
+    }
+  }
+
+  /* Do not process data if using a render procedural, return a box instead for displaying in the
+   * viewport. */
+  if (BKE_cache_file_uses_render_procedural(cache_file, scene)) {
+    const Mesh *org_mesh = nullptr;
+    if (geometry_set->has_mesh()) {
+      org_mesh = geometry_set->get_mesh();
+    }
+
+    Mesh *bbox = generate_bounding_box_mesh(org_mesh);
+    *geometry_set = bke::GeometrySet::from_mesh(bbox, bke::GeometryOwnershipType::Editable);
+    return;
+  }
+
+  /* Time (in frames or seconds) between two velocity samples. Automatically computed to
+   * scale the velocity vectors at render time for generating proper motion blur data. */
+  float velocity_scale = mcmd->velocity_scale;
+  if (mcmd->cache_file->velocity_unit == CACHEFILE_VELOCITY_UNIT_FRAME) {
+    velocity_scale *= FPS;
+  }
+
+  switch (cache_file->type) {
+    case CACHEFILE_TYPE_ALEMBIC: {
+#  ifdef WITH_ALEMBIC
+      ABCReadParams params;
+      params.time = time;
+      params.read_flags = mcmd->read_flag;
+      params.velocity_name = mcmd->cache_file->velocity_name;
+      params.velocity_scale = velocity_scale;
+      ABC_read_geometry(mcmd->reader, ctx->object, *geometry_set, &params, &err_str);
+#  endif
+      break;
+    }
+    case CACHEFILE_TYPE_USD: {
+#  ifdef WITH_USD
+      const blender::io::usd::USDMeshReadParams params = blender::io::usd::create_mesh_read_params(
+          time * FPS, mcmd->read_flag);
+      blender::io::usd::USD_read_geometry(
+          mcmd->reader, ctx->object, *geometry_set, params, &err_str);
+#  endif
+      break;
+    }
+    case CACHE_FILE_TYPE_INVALID:
+      break;
+  }
+
+  if (err_str) {
+    BKE_modifier_set_error(ctx->object, md, "%s", err_str);
+  }
+
+#else
+  UNUSED_VARS(ctx, md, geometry_set);
+  return;
+#endif
+}
+
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
@@ -225,43 +310,10 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
   }
 
-  Mesh *result = nullptr;
-
-  switch (cache_file->type) {
-    case CACHEFILE_TYPE_ALEMBIC: {
-#  ifdef WITH_ALEMBIC
-      /* Time (in frames or seconds) between two velocity samples. Automatically computed to
-       * scale the velocity vectors at render time for generating proper motion blur data. */
-      float velocity_scale = mcmd->velocity_scale;
-      if (mcmd->cache_file->velocity_unit == CACHEFILE_VELOCITY_UNIT_FRAME) {
-        velocity_scale *= FPS;
-      }
-
-      ABCReadParams params = {};
-      params.time = time;
-      params.read_flags = mcmd->read_flag;
-      params.velocity_name = mcmd->cache_file->velocity_name;
-      params.velocity_scale = velocity_scale;
-
-      result = ABC_read_mesh(mcmd->reader, ctx->object, mesh, &params, &err_str);
-#  endif
-      break;
-    }
-    case CACHEFILE_TYPE_USD: {
-#  ifdef WITH_USD
-      const blender::io::usd::USDMeshReadParams params = blender::io::usd::create_mesh_read_params(
-          time * FPS, mcmd->read_flag);
-      result = blender::io::usd::USD_read_mesh(mcmd->reader, ctx->object, mesh, params, &err_str);
-#  endif
-      break;
-    }
-    case CACHE_FILE_TYPE_INVALID:
-      break;
-  }
-
-  if (err_str) {
-    BKE_modifier_set_error(ctx->object, md, "%s", err_str);
-  }
+  bke::GeometrySet geometry_set = bke::GeometrySet::from_mesh(
+      mesh, bke::GeometryOwnershipType::Editable);
+  modify_geometry_set(md, ctx, &geometry_set);
+  Mesh *result = geometry_set.get_component_for_write<bke::MeshComponent>().release();
 
   if (!ELEM(result, nullptr, mesh) && (mesh != org_mesh)) {
     BKE_id_free(nullptr, mesh);
@@ -443,7 +495,7 @@ ModifierTypeInfo modifierType_MeshSequenceCache = {
     /*deform_verts_EM*/ nullptr,
     /*deform_matrices_EM*/ nullptr,
     /*modify_mesh*/ modify_mesh,
-    /*modify_geometry_set*/ nullptr,
+    /*modify_geometry_set*/ modify_geometry_set,
 
     /*init_data*/ init_data,
     /*required_data_mask*/ nullptr,

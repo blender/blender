@@ -32,7 +32,7 @@
 #include "CLG_log.h"
 
 /* own includes */
-#include "gizmo_library_intern.h"
+#include "gizmo_library_intern.hh"
 
 static CLG_LogRef LOG = {"ed.gizmo.library_utils"};
 

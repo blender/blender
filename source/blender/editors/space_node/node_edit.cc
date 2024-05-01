@@ -57,7 +57,7 @@
 
 #include "UI_view2d.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 #include "GPU_material.hh"
 
 #include "IMB_imbuf_types.hh"
@@ -296,23 +296,15 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   BKE_callback_exec_id(cj->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
   if ((cj->scene->r.scemode & R_MULTIVIEW) == 0) {
-    ntreeCompositExecTree(
-        cj->re, cj->scene, ntree, &cj->scene->r, false, true, "", nullptr, cj->profiler_data);
+    ntreeCompositExecTree(cj->re, cj->scene, ntree, &cj->scene->r, "", nullptr, cj->profiler_data);
   }
   else {
     LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) {
         continue;
       }
-      ntreeCompositExecTree(cj->re,
-                            cj->scene,
-                            ntree,
-                            &cj->scene->r,
-                            false,
-                            true,
-                            srv->name,
-                            nullptr,
-                            cj->profiler_data);
+      ntreeCompositExecTree(
+          cj->re, cj->scene, ntree, &cj->scene->r, srv->name, nullptr, cj->profiler_data);
     }
   }
 
@@ -1421,7 +1413,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
       newlink->tosock = socket_map.lookup(link->tosock);
 
       if (link->tosock->flag & SOCK_MULTI_INPUT) {
-        newlink->multi_input_socket_index = link->multi_input_socket_index;
+        newlink->multi_input_sort_id = link->multi_input_sort_id;
       }
 
       if (link->fromnode && (link->fromnode->flag & NODE_SELECT)) {
@@ -1477,6 +1469,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
     nodeSetSelected(dst_node, true);
   }
 
+  tree_draw_order_update(*snode->edittree);
   ED_node_tree_propagate_change(C, bmain, snode->edittree);
   return OPERATOR_FINISHED;
 }

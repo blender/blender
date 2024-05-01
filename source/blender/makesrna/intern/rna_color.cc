@@ -14,6 +14,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.hh"
+
 #include "BKE_node_tree_update.hh"
 
 #include "RNA_define.hh"
@@ -200,13 +202,11 @@ static std::optional<std::string> rna_ColorRamp_path(const PointerRNA *ptr)
       case ID_LS: {
         /* may be nullptr */
         return BKE_linestyle_path_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
-        break;
       }
 
       default:
         /* everything else just uses 'color_ramp' */
         return "color_ramp";
-        break;
     }
   }
   else {
@@ -597,6 +597,11 @@ struct Seq_colorspace_cb_data {
   Sequence *r_seq;
 };
 
+/**
+ * Color-space could be changed for scene, but also sequencer-strip.
+ * If property pointer matches one of strip, set `r_seq`,
+ * so not all cached images have to be invalidated.
+ */
 static bool seq_find_colorspace_settings_cb(Sequence *seq, void *user_data)
 {
   Seq_colorspace_cb_data *cd = (Seq_colorspace_cb_data *)user_data;
@@ -604,12 +609,6 @@ static bool seq_find_colorspace_settings_cb(Sequence *seq, void *user_data)
     cd->r_seq = seq;
     return false;
   }
-  return true;
-}
-
-static bool seq_free_anim_cb(Sequence *seq, void * /*user_data*/)
-{
-  SEQ_relations_sequence_free_anim(seq);
   return true;
 }
 
@@ -653,23 +652,25 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
                                                                 ptr->data;
       Seq_colorspace_cb_data cb_data = {colorspace_settings, nullptr};
 
-      if (&scene->sequencer_colorspace_settings != colorspace_settings) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_find_colorspace_settings_cb, &cb_data);
-      }
-      Sequence *seq = cb_data.r_seq;
-
-      if (seq) {
-        SEQ_relations_sequence_free_anim(seq);
-
-        if (seq->strip->proxy && seq->strip->proxy->anim) {
-          IMB_free_anim(seq->strip->proxy->anim);
-          seq->strip->proxy->anim = nullptr;
-        }
-
-        SEQ_relations_invalidate_cache_raw(scene, seq);
+      if (&scene->sequencer_colorspace_settings == colorspace_settings) {
+        /* Scene colorspace was changed. */
+        SEQ_cache_cleanup(scene);
       }
       else {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_free_anim_cb, nullptr);
+        /* Strip colorspace was likely changed. */
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_find_colorspace_settings_cb, &cb_data);
+        Sequence *seq = cb_data.r_seq;
+
+        if (seq) {
+          SEQ_relations_sequence_free_anim(seq);
+
+          if (seq->strip->proxy && seq->strip->proxy->anim) {
+            IMB_free_anim(seq->strip->proxy->anim);
+            seq->strip->proxy->anim = nullptr;
+          }
+
+          SEQ_relations_invalidate_cache_raw(scene, seq);
+        }
       }
 
       WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
@@ -816,8 +817,13 @@ static void rna_def_curvemapping(BlenderRNA *brna)
   FunctionRNA *func;
 
   static const EnumPropertyItem tone_items[] = {
-      {CURVE_TONE_STANDARD, "STANDARD", 0, "Standard", ""},
-      {CURVE_TONE_FILMLIKE, "FILMLIKE", 0, "Filmlike", ""},
+      {CURVE_TONE_STANDARD,
+       "STANDARD",
+       0,
+       "Standard",
+       "Combined curve is applied to each channel individually, which may result in a change of "
+       "hue"},
+      {CURVE_TONE_FILMLIKE, "FILMLIKE", 0, "Filmlike", "Keeps the hue constant"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -1122,6 +1128,7 @@ static void rna_def_histogram(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "mode");
   RNA_def_property_enum_items(prop, prop_mode_items);
   RNA_def_property_ui_text(prop, "Mode", "Channels to display in the histogram");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_COLOR);
 
   prop = RNA_def_property(srna, "show_line", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", HISTO_FLAG_LINE);
@@ -1192,7 +1199,6 @@ static void rna_def_scopes(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, "Scopes", "vecscope_alpha");
   RNA_def_property_range(prop, 0, 1);
   RNA_def_property_ui_text(prop, "Vectorscope Opacity", "Opacity of the points");
-  RNA_def_property_update(prop, 0, "rna_Scopes_update");
 }
 
 static void rna_def_colormanage(BlenderRNA *brna)

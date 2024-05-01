@@ -15,13 +15,13 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_curve.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_layer.hh"
 
 #include "ED_curve.hh"
 #include "ED_view3d.hh"
 
-#include "curve_intern.h"
+#include "curve_intern.hh"
 
 using blender::Vector;
 

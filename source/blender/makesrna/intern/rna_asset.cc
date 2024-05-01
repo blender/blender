@@ -49,7 +49,7 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
 
 #  include "BKE_asset.hh"
 #  include "BKE_context.hh"
-#  include "BKE_idprop.h"
+#  include "BKE_idprop.hh"
 
 #  include "BLI_listbase.h"
 #  include "BLI_uuid.h"
@@ -82,7 +82,7 @@ static bool rna_AssetMetaData_editable_from_owner_id(const ID *owner_id,
   return false;
 }
 
-int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info)
+int rna_AssetMetaData_editable(const PointerRNA *ptr, const char **r_info)
 {
   AssetMetaData *asset_data = static_cast<AssetMetaData *>(ptr->data);
 
@@ -99,7 +99,7 @@ static std::optional<std::string> rna_AssetTag_path(const PointerRNA *ptr)
   return fmt::format("asset_data.tags[\"{}\"]", asset_tag_name_esc);
 }
 
-static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)
+static int rna_AssetTag_editable(const PointerRNA *ptr, const char **r_info)
 {
   AssetTag *asset_tag = static_cast<AssetTag *>(ptr->data);
   ID *owner_id = ptr->owner_id;
@@ -463,8 +463,8 @@ const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
   const EnumPropertyItem *items = blender::ed::asset::library_reference_to_rna_enum_itemf(true);
   if (!items) {
     *r_free = false;
+    return rna_enum_dummy_NULL_items;
   }
-
   *r_free = true;
   return items;
 }

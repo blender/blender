@@ -351,7 +351,7 @@ static ColorGeometry4f byte_color_to_color(const ColorGeometry4b &a)
 
 static math::Quaternion float4x4_to_quaternion(const float4x4 &a)
 {
-  return math::to_quaternion(a);
+  return math::normalized_to_quaternion_safe(math::normalize(float3x3(a)));
 }
 
 static float3 quaternion_to_float3(const math::Quaternion &a)

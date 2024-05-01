@@ -2,9 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_array_utils.hh"
-
 #include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.hh"
+
+#include "BLI_task.hh"
 
 #include "node_geometry_util.hh"
 
@@ -20,21 +21,51 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Number of faces which share an edge with the face");
 }
 
-static VArray<int> construct_neighbor_count_varray(const Mesh &mesh, const AttrDomain domain)
+static bool large_enough_total_size(const GroupedSpan<int> values,
+                                    const Span<int> indices,
+                                    const int max)
 {
-  const OffsetIndices faces = mesh.faces();
-  const Span<int> corner_edges = mesh.corner_edges();
-
-  Array<int> edge_count(mesh.edges_num, 0);
-  array_utils::count_indices(corner_edges, edge_count);
-
-  Array<int> face_count(faces.size(), 0);
-  for (const int face_index : faces.index_range()) {
-    for (const int edge : corner_edges.slice(faces[face_index])) {
-      face_count[face_index] += edge_count[edge] - 1;
+  int num = 0;
+  for (const int i : indices) {
+    num += values[i].size();
+    if (max <= num) {
+      return true;
     }
   }
+  return false;
+}
 
+static int unique_num(const GroupedSpan<int> values, const Span<int> indices)
+{
+  if (large_enough_total_size(values, indices, 100)) {
+    Set<int, 16> unique_values;
+    for (const int i : indices) {
+      unique_values.add_multiple(values[i]);
+    }
+    return unique_values.size();
+  }
+  Vector<int, 16> unique_values;
+  for (const int i : indices) {
+    unique_values.extend_non_duplicates(values[i]);
+  }
+  return unique_values.size();
+}
+
+static VArray<int> construct_neighbor_count_varray(const Mesh &mesh, const AttrDomain domain)
+{
+  const GroupedSpan<int> face_edges(mesh.faces(), mesh.corner_edges());
+
+  Array<int> offsets;
+  Array<int> indices;
+  GroupedSpan<int> edge_to_faces_map = bke::mesh::build_edge_to_face_map(
+      face_edges.offsets, face_edges.data, mesh.edges_num, offsets, indices);
+
+  Array<int> face_count(face_edges.size());
+  threading::parallel_for(face_edges.index_range(), 2048, [&](const IndexRange range) {
+    for (const int64_t face_i : range) {
+      face_count[face_i] = unique_num(edge_to_faces_map, face_edges[face_i]) - 1;
+    }
+  });
   return mesh.attributes().adapt_domain<int>(
       VArray<int>::ForContainer(std::move(face_count)), AttrDomain::Face, domain);
 }

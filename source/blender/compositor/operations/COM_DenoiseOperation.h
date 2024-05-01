@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include "COM_SingleThreadedOperation.h"
+#include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
 namespace blender::compositor {
 
 bool COM_is_denoise_supported();
 
-class DenoiseBaseOperation : public SingleThreadedOperation {
+class DenoiseBaseOperation : public NodeOperation {
  protected:
   bool output_rendered_;
 
@@ -19,22 +19,11 @@ class DenoiseBaseOperation : public SingleThreadedOperation {
   DenoiseBaseOperation();
 
  public:
-  bool determine_depending_area_of_interest(rcti *input,
-                                            ReadBufferOperation *read_operation,
-                                            rcti *output) override;
-
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
 };
 
 class DenoiseOperation : public DenoiseBaseOperation {
  private:
-  /**
-   * \brief Cached reference to the input programs
-   */
-  SocketReader *input_program_color_;
-  SocketReader *input_program_albedo_;
-  SocketReader *input_program_normal_;
-
   /**
    * \brief settings of the denoise node.
    */
@@ -42,15 +31,6 @@ class DenoiseOperation : public DenoiseBaseOperation {
 
  public:
   DenoiseOperation();
-  /**
-   * Initialize the execution
-   */
-  void init_execution() override;
-
-  /**
-   * Deinitialize the execution
-   */
-  void deinit_execution() override;
 
   void set_denoise_settings(const NodeDenoise *settings)
   {
@@ -68,8 +48,6 @@ class DenoiseOperation : public DenoiseBaseOperation {
                         MemoryBuffer *input_normal,
                         MemoryBuffer *input_albedo,
                         const NodeDenoise *settings);
-
-  MemoryBuffer *create_memory_buffer(rcti *rect) override;
 };
 
 class DenoisePrefilterOperation : public DenoiseBaseOperation {
@@ -90,7 +68,6 @@ class DenoisePrefilterOperation : public DenoiseBaseOperation {
 
  protected:
   void hash_output_params() override;
-  MemoryBuffer *create_memory_buffer(rcti *rect) override;
 
  private:
   void generate_denoise(MemoryBuffer *output, MemoryBuffer *input);

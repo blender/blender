@@ -53,7 +53,7 @@
 #include "BKE_cryptomatte.h"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -1190,7 +1190,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
         if (md->type == eModifierType_Boolean) {
           BooleanModifierData *bmd = (BooleanModifierData *)md;
-          bmd->solver = eBooleanModifierSolver_Fast;
+          bmd->solver = eBooleanModifierSolver_Float;
           bmd->flag = eBooleanModifierFlag_Object;
         }
       }
@@ -1335,8 +1335,9 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
               }
             }
             if (relation->parentid == 0) {
-              BLI_assert(
-                  !"Found a valid parent for workspace data relation, but no valid parent id.");
+              BLI_assert_msg(
+                  false,
+                  "Found a valid parent for workspace data relation, but no valid parent id.");
             }
           }
           if (relation->parentid == 0) {

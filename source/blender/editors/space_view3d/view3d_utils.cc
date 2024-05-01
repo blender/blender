@@ -38,7 +38,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_matrix.h"
+#include "GPU_matrix.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -52,7 +52,7 @@
 
 #include "UI_resources.hh"
 
-#include "view3d_intern.h" /* own include */
+#include "view3d_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name View Data Access Utilities
@@ -983,9 +983,9 @@ void ED_view3d_quadview_update(ScrArea *area, ARegion *region, bool do_clip)
   /* ensure locked regions have an axis, locked user views don't make much sense */
   if (viewlock & RV3D_LOCK_ROTATION) {
     int index_qsplit = 0;
-    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-      if (region->alignment == RGN_ALIGN_QSPLIT) {
-        rv3d = static_cast<RegionView3D *>(region->regiondata);
+    LISTBASE_FOREACH (ARegion *, region_iter, &area->regionbase) {
+      if (region_iter->alignment == RGN_ALIGN_QSPLIT) {
+        rv3d = static_cast<RegionView3D *>(region_iter->regiondata);
         if (rv3d->viewlock) {
           if (!RV3D_VIEW_IS_AXIS(rv3d->view) || (rv3d->view_axis_roll != RV3D_VIEW_AXIS_ROLL_0)) {
             rv3d->view = ED_view3d_lock_view_from_index(index_qsplit);
@@ -1101,20 +1101,15 @@ static float view_autodist_depth_margin(ARegion *region, const int mval[2], int 
   return depth_close;
 }
 
-bool ED_view3d_autodist(Depsgraph *depsgraph,
-                        ARegion *region,
+bool ED_view3d_autodist(ARegion *region,
                         View3D *v3d,
                         const int mval[2],
                         float mouse_worldloc[3],
-                        const bool /*alphaoverride*/,
                         const float fallback_depth_pt[3])
 {
   float depth_close;
   int margin_arr[] = {0, 2, 4};
   bool depth_ok = false;
-
-  /* Get Z Depths, needed for perspective, nice for ortho */
-  ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, nullptr);
 
   /* Attempt with low margin's first */
   int i = 0;
@@ -1577,7 +1572,8 @@ void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], c
   sub_v3_v3v3(mat[3], dvec, ofs);
 }
 
-void ED_view3d_from_object(const Object *ob, float ofs[3], float quat[4], float *dist, float *lens)
+void ED_view3d_from_object(
+    const Object *ob, float ofs[3], float quat[4], const float *dist, float *lens)
 {
   ED_view3d_from_m4(ob->object_to_world().ptr(), ofs, quat, dist);
 
@@ -1713,13 +1709,13 @@ bool ED_view3d_depth_read_cached(const ViewDepths *vd,
                                  int margin,
                                  float *r_depth)
 {
-  BLI_assert(1.0 <= vd->depth_range[1]);
   *r_depth = 1.0f;
 
   if (!vd || !vd->depths) {
     return false;
   }
 
+  BLI_assert(1.0 <= vd->depth_range[1]);
   int x = mval[0];
   int y = mval[1];
   if (x < 0 || y < 0 || x >= vd->w || y >= vd->h) {

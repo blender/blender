@@ -390,7 +390,7 @@ def module_names(path, *, recursive=False, package=""):
                 if recursive:
                     for mod_name, mod_path in module_names(directory, recursive=True):
                         modules.append((
-                            "%s.%s" % (pacakge_prefix + filename, mod_name),
+                            "{:s}.{:s}".format(pacakge_prefix + filename, mod_name),
                             mod_path,
                         ))
 

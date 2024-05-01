@@ -14,6 +14,12 @@
 
 void main()
 {
+  if (gl_InstanceID >= dof_buf.scatter_max_rect) {
+    /* Very unlikely to happen but better avoid out of bound access. */
+    gl_Position = vec4(0.0);
+    return;
+  }
+
   ScatterRect rect = scatter_list_buf[gl_InstanceID];
 
   interp_flat.color_and_coc1 = rect.color_and_coc[0];

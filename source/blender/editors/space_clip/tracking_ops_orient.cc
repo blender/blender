@@ -35,7 +35,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "clip_intern.h"
+#include "clip_intern.hh"
 
 /********************** set origin operator *********************/
 

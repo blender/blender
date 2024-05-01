@@ -23,8 +23,8 @@
 
 #include "GPU_material.hh"
 
-#include "draw_common.h"
-#include "draw_manager.h"
+#include "draw_common_c.hh"
+#include "draw_manager_c.hh"
 
 #include "draw_common.hh"
 
@@ -35,7 +35,6 @@ using VolumeInfosBuf = blender::draw::UniformBuffer<VolumeInfos>;
 static struct {
   GPUTexture *dummy_zero;
   GPUTexture *dummy_one;
-  float dummy_grid_mat[4][4];
 } g_data = {};
 
 struct VolumeUniformBufPool {
@@ -79,8 +78,6 @@ static void drw_volume_globals_init()
       "dummy_one", 1, 1, 1, 1, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, one);
   GPU_texture_extend_mode(g_data.dummy_zero, GPU_SAMPLER_EXTEND_MODE_REPEAT);
   GPU_texture_extend_mode(g_data.dummy_one, GPU_SAMPLER_EXTEND_MODE_REPEAT);
-
-  memset(g_data.dummy_grid_mat, 0, sizeof(g_data.dummy_grid_mat));
 }
 
 void DRW_volume_free()
@@ -153,8 +150,8 @@ static DRWShadingGroup *drw_volume_object_grids_init(Object *ob,
                                                  grid_default_texture(attr->default_value);
     DRW_shgroup_uniform_texture(grp, attr->input_name, grid_tex);
 
-    copy_m4_m4(volume_infos.grids_xform[grid_id++].ptr(),
-               (drw_grid) ? drw_grid->object_to_texture : g_data.dummy_grid_mat);
+    volume_infos.grids_xform[grid_id++] = (drw_grid) ? float4x4(drw_grid->object_to_texture) :
+                                                       float4x4::identity();
   }
   /* Render nothing if there is no attribute for the shader to render.
    * This also avoids an assert caused by the bounding box being zero in size. */
@@ -197,7 +194,7 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
       return nullptr;
     }
 
-    if (fds->fluid && (fds->type == FLUID_DOMAIN_TYPE_GAS)) {
+    if (fds->type == FLUID_DOMAIN_TYPE_GAS) {
       DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
     }
 
@@ -221,7 +218,7 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
         DRW_shgroup_uniform_texture(
             grp, attr->input_name, grid_default_texture(attr->default_value));
       }
-      copy_m4_m4(volume_infos.grids_xform[grid_id++].ptr(), g_data.dummy_grid_mat);
+      volume_infos.grids_xform[grid_id++] = float4x4::identity();
     }
 
     bool use_constant_color = ((fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
@@ -241,7 +238,7 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
     LISTBASE_FOREACH (GPUMaterialAttribute *, attr, attrs) {
       DRW_shgroup_uniform_texture(
           grp, attr->input_name, grid_default_texture(attr->default_value));
-      copy_m4_m4(volume_infos.grids_xform[grid_id++].ptr(), g_data.dummy_grid_mat);
+      volume_infos.grids_xform[grid_id++] = float4x4::identity();
     }
   }
 
@@ -342,8 +339,8 @@ PassType *volume_object_grids_init(PassType &ps,
     /* TODO(@pragma37): bind_texture const support ? */
     sub->bind_texture(attr->input_name, (GPUTexture *)grid_tex);
 
-    volume_infos.grids_xform[grid_id++] = float4x4(drw_grid ? drw_grid->object_to_texture :
-                                                              g_data.dummy_grid_mat);
+    volume_infos.grids_xform[grid_id++] = drw_grid ? float4x4(drw_grid->object_to_texture) :
+                                                     float4x4::identity();
   }
 
   volume_infos.push_update();
@@ -369,26 +366,36 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
   volume_infos.temperature_mul = 1.0f;
   volume_infos.temperature_bias = 0.0f;
 
+  bool has_fluid_modifier = (md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
+                            BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime) &&
+                            ((FluidModifierData *)md)->domain != nullptr;
+  FluidModifierData *fmd = has_fluid_modifier ? (FluidModifierData *)md : nullptr;
+  FluidDomainSettings *fds = has_fluid_modifier ? fmd->domain : nullptr;
+
   PassType *sub = nullptr;
 
-  /* Smoke Simulation. */
-  if ((md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
-      BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime) &&
-      ((FluidModifierData *)md)->domain != nullptr)
-  {
-    FluidModifierData *fmd = (FluidModifierData *)md;
-    FluidDomainSettings *fds = fmd->domain;
-
-    /* Don't try to show liquid domains here. */
-    if (!fds->fluid || !(fds->type == FLUID_DOMAIN_TYPE_GAS)) {
-      return nullptr;
+  if (!has_fluid_modifier || (fds->type != FLUID_DOMAIN_TYPE_GAS)) {
+    /* No volume attributes or fluid domain. */
+    sub = &ps.sub("Volume Mesh SubPass");
+    int grid_id = 0;
+    for (const GPUMaterialAttribute *attr : attrs) {
+      sub->bind_texture(attr->input_name, grid_default_texture(attr->default_value));
+      volume_infos.grids_xform[grid_id++] = float4x4::identity();
     }
-
-    if (fds->fluid && (fds->type == FLUID_DOMAIN_TYPE_GAS)) {
-      DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
-    }
+  }
+  else if (fds->fluid) {
+    /* Smoke Simulation. */
+    DRW_smoke_ensure(fmd, fds->flags & FLUID_DOMAIN_USE_NOISE);
 
     sub = &ps.sub("Volume Modifier SubPass");
+
+    float3 location, scale;
+    BKE_mesh_texspace_get(static_cast<Mesh *>(ob->data), location, scale);
+    float3 orco_mul = math::safe_rcp(scale * 2.0);
+    float3 orco_add = (location - scale) * -orco_mul;
+    /* Replace OrcoTexCoFactors with a matrix multiplication. */
+    float4x4 orco_mat = math::from_scale<float4x4>(orco_mul);
+    orco_mat.location() = orco_add;
 
     int grid_id = 0;
     for (const GPUMaterialAttribute *attr : attrs) {
@@ -405,7 +412,7 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
       else {
         sub->bind_texture(attr->input_name, grid_default_texture(attr->default_value));
       }
-      volume_infos.grids_xform[grid_id++] = float4x4(g_data.dummy_grid_mat);
+      volume_infos.grids_xform[grid_id++] = orco_mat;
     }
 
     bool use_constant_color = ((fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) == 0 &&
@@ -414,17 +421,9 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
       volume_infos.color_mul = float4(UNPACK3(fds->active_color), 1.0f);
     }
 
-    /* Output is such that 0..1 maps to 0..1000K */
+    /* Output is such that 0..1 maps to 0..1000K. */
     volume_infos.temperature_mul = fds->flame_max_temp - fds->flame_ignition;
     volume_infos.temperature_bias = fds->flame_ignition;
-  }
-  else {
-    sub = &ps.sub("Volume Mesh SubPass");
-    int grid_id = 0;
-    for (const GPUMaterialAttribute *attr : attrs) {
-      sub->bind_texture(attr->input_name, grid_default_texture(attr->default_value));
-      volume_infos.grids_xform[grid_id++] = float4x4(g_data.dummy_grid_mat);
-    }
   }
 
   if (sub) {

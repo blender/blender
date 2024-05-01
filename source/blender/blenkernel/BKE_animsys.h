@@ -8,7 +8,7 @@
  * \ingroup bke
  */
 
-#include "BLI_bitmap.h"
+#include "BLI_bit_vector.hh"
 #include "BLI_span.hh"
 #include "BLI_sys_types.h" /* for bool */
 
@@ -18,7 +18,6 @@ extern "C" {
 
 struct AnimData;
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct Depsgraph;
 struct FCurve;
@@ -35,7 +34,7 @@ struct PropertyRNA;
 struct bAction;
 struct bActionGroup;
 
-/* Container for data required to do FCurve and Driver evaluation. */
+/** Container for data required to do FCurve and Driver evaluation. */
 typedef struct AnimationEvalContext {
   /* For drivers, so that they have access to the dependency graph and the current view layer. See
    * #77086. */
@@ -238,7 +237,7 @@ typedef struct NlaKeyframingContext NlaKeyframingContext;
  *
  * \param cache: List used to cache contexts for reuse when keying
  * multiple channels in one operation.
- * \param ptr: RNA pointer to the Object with the animation.
+ * \param ptr: RNA pointer to the ID with the animation.
  * \return Keyframing context, or NULL if not necessary.
  */
 struct NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
@@ -265,7 +264,7 @@ void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
                                            int index,
                                            const struct AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
-                                           BLI_bitmap *r_successful_remaps);
+                                           blender::BitVector<> &r_successful_remaps);
 
 /**
  * Free all cached contexts from the list.

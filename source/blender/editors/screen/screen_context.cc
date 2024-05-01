@@ -54,7 +54,7 @@
 
 #include "ANIM_bone_collections.hh"
 
-#include "screen_intern.h"
+#include "screen_intern.hh"
 
 using blender::Vector;
 
@@ -1055,87 +1055,88 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
                                                   bool editable)
 {
   bAnimContext ac;
-  if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_ACTION, SPACE_GRAPH)) {
-    /* In the Action and Shape Key editor always use the action field at the top. */
-    if (ac.spacetype == SPACE_ACTION) {
-      SpaceAction *saction = (SpaceAction *)ac.sl;
-
-      if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY)) {
-        if (active_only) {
-          CTX_data_id_pointer_set(result, (ID *)saction->action);
-        }
-        else {
-          if (saction->action && !(editable && ID_IS_LINKED(saction->action))) {
-            CTX_data_id_list_add(result, &saction->action->id);
-          }
-
-          CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-        }
-
-        return CTX_RESULT_OK;
-      }
-    }
-
-    /* Search for selected animation data items. */
-    ListBase anim_data = {nullptr, nullptr};
-
-    int filter = ANIMFILTER_DATA_VISIBLE;
-    bool check_selected = false;
-
-    switch (ac.spacetype) {
-      case SPACE_GRAPH:
-        filter |= ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE |
-                  (active_only ? ANIMFILTER_ACTIVE : ANIMFILTER_SEL);
-        break;
-
-      case SPACE_ACTION:
-        filter |= ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS;
-        check_selected = true;
-        break;
-    }
-
-    ANIM_animdata_filter(
-        &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
-
-    GSet *seen_set = active_only ? nullptr : BLI_gset_ptr_new("seen actions");
-
-    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-      /* In dopesheet check selection status of individual items, skipping
-       * if not selected or has no selection flag. This is needed so that
-       * selecting action or group rows without any channels works. */
-      if (check_selected && ANIM_channel_setting_get(&ac, ale, ACHANNEL_SETTING_SELECT) <= 0) {
-        continue;
-      }
-
-      bAction *action = ANIM_channel_action_get(ale);
-
-      if (action) {
-        if (active_only) {
-          CTX_data_id_pointer_set(result, (ID *)action);
-          break;
-        }
-        if (editable && ID_IS_LINKED(action)) {
-          continue;
-        }
-
-        /* Add the action to the output list if not already added. */
-        if (BLI_gset_add(seen_set, action)) {
-          CTX_data_id_list_add(result, &action->id);
-        }
-      }
-    }
-
-    ANIM_animdata_freelist(&anim_data);
-
-    if (!active_only) {
-      BLI_gset_free(seen_set, nullptr);
-
-      CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    }
-
-    return CTX_RESULT_OK;
+  if (!ANIM_animdata_get_context(C, &ac) || !ELEM(ac.spacetype, SPACE_ACTION, SPACE_GRAPH)) {
+    return CTX_RESULT_NO_DATA;
   }
-  return CTX_RESULT_NO_DATA;
+
+  /* In the Action and Shape Key editor always use the action field at the top. */
+  if (ac.spacetype == SPACE_ACTION) {
+    SpaceAction *saction = (SpaceAction *)ac.sl;
+
+    if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_SHAPEKEY)) {
+      if (active_only) {
+        CTX_data_id_pointer_set(result, (ID *)saction->action);
+      }
+      else {
+        if (saction->action && !(editable && ID_IS_LINKED(saction->action))) {
+          CTX_data_id_list_add(result, &saction->action->id);
+        }
+
+        CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+      }
+
+      return CTX_RESULT_OK;
+    }
+  }
+
+  /* Search for selected animation data items. */
+  ListBase anim_data = {nullptr, nullptr};
+
+  int filter = ANIMFILTER_DATA_VISIBLE;
+  bool check_selected = false;
+
+  switch (ac.spacetype) {
+    case SPACE_GRAPH:
+      filter |= ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE |
+                (active_only ? ANIMFILTER_ACTIVE : ANIMFILTER_SEL);
+      break;
+
+    case SPACE_ACTION:
+      filter |= ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS;
+      check_selected = true;
+      break;
+  }
+
+  ANIM_animdata_filter(
+      &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
+
+  GSet *seen_set = active_only ? nullptr : BLI_gset_ptr_new("seen actions");
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    /* In dopesheet check selection status of individual items, skipping
+     * if not selected or has no selection flag. This is needed so that
+     * selecting action or group rows without any channels works. */
+    if (check_selected && ANIM_channel_setting_get(&ac, ale, ACHANNEL_SETTING_SELECT) <= 0) {
+      continue;
+    }
+
+    bAction *action = ANIM_channel_action_get(ale);
+    if (!action) {
+      continue;
+    }
+
+    if (active_only) {
+      CTX_data_id_pointer_set(result, (ID *)action);
+      break;
+    }
+    if (editable && ID_IS_LINKED(action)) {
+      continue;
+    }
+
+    /* Add the action to the output list if not already added. */
+    if (BLI_gset_add(seen_set, action)) {
+      CTX_data_id_list_add(result, &action->id);
+    }
+  }
+
+  ANIM_animdata_freelist(&anim_data);
+
+  if (!active_only) {
+    BLI_gset_free(seen_set, nullptr);
+    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+  }
+
+  return CTX_RESULT_OK;
 }
 static eContextResult screen_ctx_active_action(const bContext *C, bContextDataResult *result)
 {

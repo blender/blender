@@ -142,7 +142,7 @@ inline void foreach_1_index_expr(ExprFn &&expr,
     /* Iterate over remaining bits. */
     if (const int64_t final_bits = first_arg.final_bits_num()) {
       BitInt tmp = expr(first_data[full_ints_num] >> first_arg.offset(),
-                        (*args.data()[full_ints_num] >> args.offset())...) &
+                        (args.data()[full_ints_num] >> args.offset())...) &
                    mask_first_n_bits(final_bits);
       const int64_t offset = full_ints_num << BitToIntIndexShift;
       while (tmp != 0) {

@@ -16,6 +16,9 @@ namespace blender::bke::greasepencil {
 /** Make sure drawings only contain vertex groups of the #GreasePencil. */
 void validate_drawing_vertex_groups(GreasePencil &grease_pencil);
 
+/** Find or create a vertex group in a drawing. */
+int ensure_vertex_group(const StringRef name, ListBase &vertex_group_names);
+
 /** Assign selected vertices to the vertex group. */
 void assign_to_vertex_group(GreasePencil &grease_pencil, StringRef name, float weight);
 

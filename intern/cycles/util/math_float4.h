@@ -465,6 +465,11 @@ ccl_device_inline float4 fabs(const float4 a)
 #  endif
 }
 
+ccl_device_inline float4 fmod(const float4 a, const float b)
+{
+  return make_float4(fmodf(a.x, b), fmodf(a.y, b), fmodf(a.z, b), fmodf(a.w, b));
+}
+
 ccl_device_inline float4 floor(const float4 a)
 {
 #  ifdef __KERNEL_SSE__

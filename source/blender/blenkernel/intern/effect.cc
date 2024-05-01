@@ -113,9 +113,6 @@ PartDeflect *BKE_partdeflect_copy(const PartDeflect *pd_src)
     return nullptr;
   }
   PartDeflect *pd_dst = static_cast<PartDeflect *>(MEM_dupallocN(pd_src));
-  if (pd_dst->rng != nullptr) {
-    pd_dst->rng = BLI_rng_copy(pd_dst->rng);
-  }
   return pd_dst;
 }
 
@@ -123,9 +120,6 @@ void BKE_partdeflect_free(PartDeflect *pd)
 {
   if (!pd) {
     return;
-  }
-  if (pd->rng) {
-    BLI_rng_free(pd->rng);
   }
   MEM_freeN(pd);
 }
@@ -136,12 +130,8 @@ static void precalculate_effector(Depsgraph *depsgraph, EffectorCache *eff)
 {
   float ctime = DEG_get_ctime(depsgraph);
   uint cfra = uint(ctime >= 0 ? ctime : -ctime);
-  if (!eff->pd->rng) {
-    eff->pd->rng = BLI_rng_new(eff->pd->seed + cfra);
-  }
-  else {
-    BLI_rng_srandom(eff->pd->rng, eff->pd->seed + cfra);
-  }
+
+  eff->rng = BLI_rng_new(eff->pd->seed + cfra);
 
   if (eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type == OB_CURVES_LEGACY) {
     Curve *cu = static_cast<Curve *>(eff->ob->data);
@@ -375,6 +365,9 @@ void BKE_effectors_free(ListBase *lb)
 {
   if (lb) {
     LISTBASE_FOREACH (EffectorCache *, eff, lb) {
+      if (eff->rng) {
+        BLI_rng_free(eff->rng);
+      }
       if (eff->guide_data) {
         MEM_freeN(eff->guide_data);
       }
@@ -706,10 +699,10 @@ bool get_effector_data(EffectorCache *eff,
   }
   else if (eff->pd && eff->pd->shape == PFIELD_SHAPE_POINTS) {
     /* TODO: hair and points object support */
-    const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
-    const blender::Span<blender::float3> positions = me_eval->vert_positions();
-    const blender::Span<blender::float3> vert_normals = me_eval->vert_normals();
-    if (me_eval != nullptr) {
+    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(eff->ob);
+    if (mesh_eval != nullptr) {
+      const blender::Span<blender::float3> positions = mesh_eval->vert_positions();
+      const blender::Span<blender::float3> vert_normals = mesh_eval->vert_normals();
       copy_v3_v3(efd->loc, positions[*efd->index]);
       copy_v3_v3(efd->nor, vert_normals[*efd->index]);
 
@@ -822,8 +815,8 @@ static void get_effector_tot(
 
   if (eff->pd->shape == PFIELD_SHAPE_POINTS) {
     /* TODO: hair and points object support */
-    const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
-    *tot = me_eval != nullptr ? me_eval->verts_num : 1;
+    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(eff->ob);
+    *tot = mesh_eval != nullptr ? mesh_eval->verts_num : 1;
 
     if (*tot && eff->pd->forcefield == PFIELD_HARMONIC && point->index >= 0) {
       *p = point->index % *tot;
@@ -960,7 +953,7 @@ static void do_physical_effector(EffectorCache *eff,
                                  float *total_force)
 {
   PartDeflect *pd = eff->pd;
-  RNG *rng = pd->rng;
+  RNG *rng = eff->rng;
   float force[3] = {0, 0, 0};
   float temp[3];
   float fac;

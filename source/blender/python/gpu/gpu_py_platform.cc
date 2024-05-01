@@ -13,11 +13,11 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_context.h"
-#include "GPU_platform.h"
+#include "GPU_context.hh"
+#include "GPU_platform.hh"
 
-#include "gpu_py.h"
-#include "gpu_py_platform.h" /* Own include. */
+#include "gpu_py.hh"
+#include "gpu_py_platform.hh" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name Functions

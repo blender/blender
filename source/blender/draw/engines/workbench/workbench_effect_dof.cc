@@ -115,7 +115,7 @@ void DofPass::init(const SceneState &scene_state)
   coc_halfres_tx_.ensure_mip_views();
   coc_halfres_tx_.filter_mode(true);
 
-  Camera *camera = scene_state.camera;
+  const Camera *camera = scene_state.camera;
 
   /* Parameters */
   float fstop = camera->dof.aperture_fstop;

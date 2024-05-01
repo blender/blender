@@ -7,9 +7,9 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_shader.h"
-#include "GPU_texture.h"
+#include "GPU_capabilities.hh"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
 
 #include "COM_algorithm_realize_on_domain.hh"
 #include "COM_context.hh"
@@ -55,7 +55,7 @@ static Domain compute_realized_transformation_domain(const Domain &domain)
 void transform(Context &context,
                Result &input,
                Result &output,
-               float3x3 transformation,
+               const float3x3 &transformation,
                RealizationOptions realization_options)
 {
   /* If we are wrapping, the input is translated but the target domain remains fixed, which results

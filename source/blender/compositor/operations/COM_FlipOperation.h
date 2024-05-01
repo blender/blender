@@ -10,16 +10,12 @@ namespace blender::compositor {
 
 class FlipOperation : public MultiThreadedOperation {
  private:
-  SocketReader *input_operation_;
   bool flip_x_;
   bool flip_y_;
 
  public:
   FlipOperation();
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  void init_execution() override;
-  void deinit_execution() override;
   void setFlipX(bool flipX)
   {
     flip_x_ = flipX;
@@ -28,6 +24,8 @@ class FlipOperation : public MultiThreadedOperation {
   {
     flip_y_ = flipY;
   }
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

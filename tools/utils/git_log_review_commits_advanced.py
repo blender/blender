@@ -255,7 +255,7 @@ def gen_commit_pretty(c, unreported=None, rstate=None):
 
     if rstate is not None:
         return "* [%s] %s ({{GitCommit|rB%s}})." % (rstate, body, c.sha1.decode()[:10])
-    return "* %s ({{GitCommit|rB%s}})." % (rstate, body, c.sha1.decode()[:10])
+    return "* %s ({{GitCommit|rB%s}})." % (body, c.sha1.decode()[:10])
 
 
 def gen_commit_unprettify(body):
@@ -666,7 +666,6 @@ def main():
         print_commit(c)
         sys.stdout.flush()
 
-        accept = False
         while True:
             print("Space=" + colorize("Accept", 'green'),
                   "Enter=" + colorize("Skip", 'red'),

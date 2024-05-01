@@ -19,10 +19,11 @@
 #include "BKE_DerivedMesh.hh"
 
 struct CCGElem;
-struct CCGFace;
 struct CCGKey;
 struct Mesh;
+namespace blender::bke::subdiv {
 struct Subdiv;
+}
 
 /* --------------------------------------------------------------------
  * Masks.
@@ -89,7 +90,7 @@ struct SubdivCCG {
    *
    * TODO(sergey): Make sure the whole descriptor is valid, including all the
    * displacement attached to the surface. */
-  Subdiv *subdiv = nullptr;
+  blender::bke::subdiv::Subdiv *subdiv = nullptr;
   /* A level at which geometry was subdivided. This is what defines grid
    * resolution. It is NOT the topology refinement level. */
   int level = -1;
@@ -184,7 +185,7 @@ struct SubdivCCG {
  * TODO(sergey): Allow some user-counter or more explicit control over who owns
  * the Subdiv. The goal should be to allow viewport GL Mesh and CCG to share
  * same Subsurf without conflicts. */
-std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(Subdiv &subdiv,
+std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(blender::bke::subdiv::Subdiv &subdiv,
                                              const SubdivToCCGSettings &settings,
                                              const Mesh &coarse_mesh,
                                              SubdivCCGMaskEvaluator *mask_evaluator);
@@ -192,7 +193,7 @@ std::unique_ptr<SubdivCCG> BKE_subdiv_to_ccg(Subdiv &subdiv,
 /* Helper function, creates Mesh structure which is properly setup to use
  * grids.
  */
-Mesh *BKE_subdiv_to_ccg_mesh(Subdiv &subdiv,
+Mesh *BKE_subdiv_to_ccg_mesh(blender::bke::subdiv::Subdiv &subdiv,
                              const SubdivToCCGSettings &settings,
                              const Mesh &coarse_mesh);
 
@@ -221,11 +222,8 @@ void BKE_subdiv_ccg_topology_counters(const SubdivCCG &subdiv_ccg,
                                       int &r_num_loops);
 
 struct SubdivCCGNeighbors {
-  SubdivCCGCoord *coords;
-  int size;
+  blender::Array<SubdivCCGCoord, 256> coords;
   int num_duplicates;
-
-  SubdivCCGCoord coords_fixed[256];
 };
 
 void BKE_subdiv_ccg_print_coord(const char *message, const SubdivCCGCoord &coord);
@@ -245,9 +243,6 @@ bool BKE_subdiv_ccg_check_coord_valid(const SubdivCCG &subdiv_ccg, const SubdivC
  *   element inside of every neighboring grid. */
 
 /* Get actual neighbors of the given coordinate.
- *
- * SubdivCCGNeighbors.neighbors must be freed if it is not equal to
- * SubdivCCGNeighbors.fixed_neighbors.
  *
  * If include_duplicates is true, vertices in other grids that match
  * the current vertex are added at the end of the coords array. */

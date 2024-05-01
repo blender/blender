@@ -34,7 +34,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "gpencil_intern.h"
+#include "gpencil_intern.hh"
 
 static const EnumPropertyItem gpencil_modesEnumPropertyItem_mode[] = {
     {GPPAINT_MODE_STROKE, "STROKE", 0, "Stroke", ""},
@@ -553,7 +553,7 @@ static int gpencil_vertexpaint_set_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = (bGPdata *)ob->data;
   Paint *paint = &ts->gp_vertexpaint->paint;
-  Brush *brush = paint->brush;
+  Brush *brush = BKE_paint_brush(paint);
 
   const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   const eGp_Vertex_Mode mode = eGp_Vertex_Mode(RNA_enum_get(op->ptr, "mode"));
@@ -1138,7 +1138,7 @@ static int gpencil_stroke_reset_vertex_color_exec(bContext *C, wmOperator *op)
 
 void GPENCIL_OT_stroke_reset_vertex_color(wmOperatorType *ot)
 {
-  static EnumPropertyItem mode_types_items[] = {
+  static const EnumPropertyItem mode_types_items[] = {
       {GPPAINT_MODE_STROKE, "STROKE", 0, "Stroke", "Reset Vertex Color to Stroke only"},
       {GPPAINT_MODE_FILL, "FILL", 0, "Fill", "Reset Vertex Color to Fill only"},
       {GPPAINT_MODE_BOTH, "BOTH", 0, "Stroke & Fill", "Reset Vertex Color to Stroke and Fill"},

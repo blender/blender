@@ -5,10 +5,12 @@
 set(INC
   .
   ..
+  include
   ../intern
   ../../editors/include
   ../../blenkernel
   ../../blentranslation
+  ../../blenloader
   ../../bmesh
   ../../functions
   ../../geometry
@@ -64,6 +66,7 @@ set(SRC
   nodes/node_geo_curve_trim.cc
   nodes/node_geo_deform_curves_on_surface.cc
   nodes/node_geo_delete_geometry.cc
+  nodes/node_geo_distribute_points_in_grid.cc
   nodes/node_geo_distribute_points_in_volume.cc
   nodes/node_geo_distribute_points_on_faces.cc
   nodes/node_geo_dual_mesh.cc
@@ -78,6 +81,7 @@ set(SRC
   nodes/node_geo_flip_faces.cc
   nodes/node_geo_geometry_to_instance.cc
   nodes/node_geo_get_named_grid.cc
+  nodes/node_geo_grid_to_mesh.cc
   nodes/node_geo_image.cc
   nodes/node_geo_image_info.cc
   nodes/node_geo_image_texture.cc
@@ -120,8 +124,8 @@ set(SRC
   nodes/node_geo_join_geometry.cc
   nodes/node_geo_material_replace.cc
   nodes/node_geo_material_selection.cc
-  nodes/node_geo_merge_by_distance.cc
   nodes/node_geo_menu_switch.cc
+  nodes/node_geo_merge_by_distance.cc
   nodes/node_geo_mesh_face_group_boundaries.cc
   nodes/node_geo_mesh_primitive_circle.cc
   nodes/node_geo_mesh_primitive_cone.cc
@@ -133,7 +137,9 @@ set(SRC
   nodes/node_geo_mesh_primitive_uv_sphere.cc
   nodes/node_geo_mesh_subdivide.cc
   nodes/node_geo_mesh_to_curve.cc
+  nodes/node_geo_mesh_to_density_grid.cc
   nodes/node_geo_mesh_to_points.cc
+  nodes/node_geo_mesh_to_sdf_grid.cc
   nodes/node_geo_mesh_to_volume.cc
   nodes/node_geo_mesh_topology_corners_of_edge.cc
   nodes/node_geo_mesh_topology_corners_of_face.cc
@@ -143,10 +149,12 @@ set(SRC
   nodes/node_geo_mesh_topology_face_of_corner.cc
   nodes/node_geo_mesh_topology_offset_corner_in_face.cc
   nodes/node_geo_mesh_topology_vertex_of_corner.cc
+  nodes/node_geo_mouse_position.cc
   nodes/node_geo_object_info.cc
   nodes/node_geo_offset_point_in_curve.cc
   nodes/node_geo_points.cc
   nodes/node_geo_points_to_curves.cc
+  nodes/node_geo_points_to_sdf_grid.cc
   nodes/node_geo_points_to_vertices.cc
   nodes/node_geo_points_to_volume.cc
   nodes/node_geo_proximity.cc
@@ -162,6 +170,7 @@ set(SRC
   nodes/node_geo_sample_uv_surface.cc
   nodes/node_geo_scale_elements.cc
   nodes/node_geo_scale_instances.cc
+  nodes/node_geo_sdf_grid_boolean.cc
   nodes/node_geo_self_object.cc
   nodes/node_geo_separate_components.cc
   nodes/node_geo_separate_geometry.cc
@@ -197,8 +206,15 @@ set(SRC
   nodes/node_geo_uv_pack_islands.cc
   nodes/node_geo_uv_unwrap.cc
   nodes/node_geo_viewer.cc
+  nodes/node_geo_viewport_transform.cc
   nodes/node_geo_volume_cube.cc
   nodes/node_geo_volume_to_mesh.cc
+
+  include/NOD_geo_bake.hh
+  include/NOD_geo_index_switch.hh
+  include/NOD_geo_menu_switch.hh
+  include/NOD_geo_repeat.hh
+  include/NOD_geo_simulation.hh
 
   node_geometry_tree.cc
   node_geometry_util.cc
@@ -215,6 +231,7 @@ set(LIB
   bf_geometry
   PRIVATE bf::intern::guardedalloc
   bf_nodes
+  PRIVATE bf::intern::atomic
   PRIVATE bf::extern::fmtlib
 )
 
@@ -281,6 +298,13 @@ add_node_discovery(
 list(APPEND LIB
   bf_nodes_geometry_generated
 )
+
+# If compiling with msvc clang we need to add the D_LIBCPP_VERSION define
+# so we don't run into tbb errors when compiling with lib
+if(WITH_TBB AND MSVC_CLANG)
+  string(APPEND CMAKE_CXX_FLAGS " /D_LIBCPP_VERSION")
+endif()
+
 
 blender_add_lib(bf_nodes_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 target_link_libraries(bf_nodes_geometry_generated bf_nodes_geometry)

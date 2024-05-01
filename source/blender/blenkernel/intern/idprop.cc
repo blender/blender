@@ -23,7 +23,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 
 #include "CLG_log.h"
@@ -198,11 +198,8 @@ static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
   if (newlen >= prop->len) {
     /* bigger */
     IDProperty **array = static_cast<IDProperty **>(newarr);
-    IDPropertyTemplate val;
-
     for (int a = prop->len; a < newlen; a++) {
-      val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
-      array[a] = IDP_New(IDP_GROUP, &val, "IDP_ResizeArray group");
+      array[a] = blender::bke::idprop::create_group("IDP_ResizeArray group").release();
     }
   }
   else {
@@ -1128,11 +1125,11 @@ void IDP_ui_data_free_unique_contents(IDPropertyUIData *ui_data,
   }
 }
 
-void IDP_ui_data_free(IDProperty *prop)
+static void ui_data_free(IDPropertyUIData *ui_data, const eIDPropertyUIDataType type)
 {
-  switch (IDP_ui_data_type(prop)) {
+  switch (type) {
     case IDP_UI_DATA_TYPE_STRING: {
-      IDPropertyUIDataString *ui_data_string = (IDPropertyUIDataString *)prop->ui_data;
+      IDPropertyUIDataString *ui_data_string = (IDPropertyUIDataString *)ui_data;
       MEM_SAFE_FREE(ui_data_string->default_value);
       break;
     }
@@ -1140,18 +1137,18 @@ void IDP_ui_data_free(IDProperty *prop)
       break;
     }
     case IDP_UI_DATA_TYPE_INT: {
-      IDPropertyUIDataInt *ui_data_int = (IDPropertyUIDataInt *)prop->ui_data;
+      IDPropertyUIDataInt *ui_data_int = (IDPropertyUIDataInt *)ui_data;
       MEM_SAFE_FREE(ui_data_int->default_array);
       IDP_int_ui_data_free_enum_items(ui_data_int);
       break;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
-      IDPropertyUIDataBool *ui_data_bool = (IDPropertyUIDataBool *)prop->ui_data;
+      IDPropertyUIDataBool *ui_data_bool = (IDPropertyUIDataBool *)ui_data;
       MEM_SAFE_FREE(ui_data_bool->default_array);
       break;
     }
     case IDP_UI_DATA_TYPE_FLOAT: {
-      IDPropertyUIDataFloat *ui_data_float = (IDPropertyUIDataFloat *)prop->ui_data;
+      IDPropertyUIDataFloat *ui_data_float = (IDPropertyUIDataFloat *)ui_data;
       MEM_SAFE_FREE(ui_data_float->default_array);
       break;
     }
@@ -1160,9 +1157,14 @@ void IDP_ui_data_free(IDProperty *prop)
     }
   }
 
-  MEM_SAFE_FREE(prop->ui_data->description);
+  MEM_SAFE_FREE(ui_data->description);
 
-  MEM_freeN(prop->ui_data);
+  MEM_freeN(ui_data);
+}
+
+void IDP_ui_data_free(IDProperty *prop)
+{
+  ui_data_free(prop->ui_data, IDP_ui_data_type(prop));
   prop->ui_data = nullptr;
 }
 
@@ -1230,29 +1232,28 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference)
 
 void IDP_foreach_property(IDProperty *id_property_root,
                           const int type_filter,
-                          IDPForeachPropertyCallback callback,
-                          void *user_data)
+                          const blender::FunctionRef<void(IDProperty *id_property)> callback)
 {
   if (!id_property_root) {
     return;
   }
 
   if (type_filter == 0 || (1 << id_property_root->type) & type_filter) {
-    callback(id_property_root, user_data);
+    callback(id_property_root);
   }
 
   /* Recursive call into container types of ID properties. */
   switch (id_property_root->type) {
     case IDP_GROUP: {
       LISTBASE_FOREACH (IDProperty *, loop, &id_property_root->data.group) {
-        IDP_foreach_property(loop, type_filter, callback, user_data);
+        IDP_foreach_property(loop, type_filter, callback);
       }
       break;
     }
     case IDP_IDPARRAY: {
       IDProperty *loop = static_cast<IDProperty *>(IDP_Array(id_property_root));
       for (int i = 0; i < id_property_root->len; i++) {
-        IDP_foreach_property(&loop[i], type_filter, callback, user_data);
+        IDP_foreach_property(&loop[i], type_filter, callback);
       }
       break;
     }
@@ -1399,38 +1400,43 @@ static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader);
 
 static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
 {
-  BLO_read_data_address(reader, &prop->ui_data);
-  if (!prop->ui_data) {
-    /* Can happen when opening more recent files with unknown types of IDProperties. */
-    return;
-  }
-  BLO_read_data_address(reader, &prop->ui_data->description);
+  /* Note: null UI data can happen when opening more recent files with unknown types of
+   * IDProperties. */
 
   switch (IDP_ui_data_type(prop)) {
     case IDP_UI_DATA_TYPE_STRING: {
-      IDPropertyUIDataString *ui_data_string = (IDPropertyUIDataString *)prop->ui_data;
-      BLO_read_data_address(reader, &ui_data_string->default_value);
+      BLO_read_struct(reader, IDPropertyUIDataString, &prop->ui_data);
+      if (prop->ui_data) {
+        IDPropertyUIDataString *ui_data_string = (IDPropertyUIDataString *)prop->ui_data;
+        BLO_read_string(reader, &ui_data_string->default_value);
+      }
       break;
     }
     case IDP_UI_DATA_TYPE_ID: {
+      BLO_read_struct(reader, IDPropertyUIDataID, &prop->ui_data);
       break;
     }
     case IDP_UI_DATA_TYPE_INT: {
+      BLO_read_struct(reader, IDPropertyUIDataInt, &prop->ui_data);
       IDPropertyUIDataInt *ui_data_int = (IDPropertyUIDataInt *)prop->ui_data;
       if (prop->type == IDP_ARRAY) {
         BLO_read_int32_array(
             reader, ui_data_int->default_array_len, (int **)&ui_data_int->default_array);
       }
-      BLO_read_data_address(reader, &ui_data_int->enum_items);
+      BLO_read_struct_array(reader,
+                            IDPropertyUIDataEnumItem,
+                            size_t(ui_data_int->enum_items_num),
+                            &ui_data_int->enum_items);
       for (const int64_t i : blender::IndexRange(ui_data_int->enum_items_num)) {
         IDPropertyUIDataEnumItem &item = ui_data_int->enum_items[i];
-        BLO_read_data_address(reader, &item.identifier);
-        BLO_read_data_address(reader, &item.name);
-        BLO_read_data_address(reader, &item.description);
+        BLO_read_string(reader, &item.identifier);
+        BLO_read_string(reader, &item.name);
+        BLO_read_string(reader, &item.description);
       }
       break;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
+      BLO_read_struct(reader, IDPropertyUIDataBool, &prop->ui_data);
       IDPropertyUIDataBool *ui_data_bool = (IDPropertyUIDataBool *)prop->ui_data;
       if (prop->type == IDP_ARRAY) {
         BLO_read_int8_array(
@@ -1439,6 +1445,7 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
       break;
     }
     case IDP_UI_DATA_TYPE_FLOAT: {
+      BLO_read_struct(reader, IDPropertyUIDataFloat, &prop->ui_data);
       IDPropertyUIDataFloat *ui_data_float = (IDPropertyUIDataFloat *)prop->ui_data;
       if (prop->type == IDP_ARRAY) {
         BLO_read_double_array(
@@ -1447,9 +1454,14 @@ static void read_ui_data(IDProperty *prop, BlendDataReader *reader)
       break;
     }
     case IDP_UI_DATA_TYPE_UNSUPPORTED: {
+      BLO_read_data_address(reader, &prop->ui_data);
       BLI_assert_unreachable();
       break;
     }
+  }
+
+  if (prop->ui_data) {
+    BLO_read_string(reader, &prop->ui_data->description);
   }
 }
 
@@ -1457,7 +1469,7 @@ static void IDP_DirectLinkIDPArray(IDProperty *prop, BlendDataReader *reader)
 {
   /* since we didn't save the extra buffer, set totallen to len */
   prop->totallen = prop->len;
-  BLO_read_data_address(reader, &prop->data.pointer);
+  BLO_read_struct_array(reader, IDProperty, size_t(prop->len), &prop->data.pointer);
 
   IDProperty *array = (IDProperty *)prop->data.pointer;
 
@@ -1502,14 +1514,14 @@ static void IDP_DirectLinkString(IDProperty *prop, BlendDataReader *reader)
 {
   /* Since we didn't save the extra string buffer, set totallen to len. */
   prop->totallen = prop->len;
-  BLO_read_data_address(reader, &prop->data.pointer);
+  BLO_read_char_array(reader, prop->len, reinterpret_cast<char **>(&prop->data.pointer));
 }
 
 static void IDP_DirectLinkGroup(IDProperty *prop, BlendDataReader *reader)
 {
   ListBase *lb = &prop->data.group;
 
-  BLO_read_list(reader, lb);
+  BLO_read_struct_list(reader, IDProperty, lb);
 
   /* Link child id properties now. */
   LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
@@ -1610,23 +1622,17 @@ bool IDP_ui_data_supported(const IDProperty *prop)
   return IDP_ui_data_type(prop) != IDP_UI_DATA_TYPE_UNSUPPORTED;
 }
 
-IDPropertyUIData *IDP_ui_data_ensure(IDProperty *prop)
+static IDPropertyUIData *ui_data_alloc(const eIDPropertyUIDataType type)
 {
-  if (prop->ui_data != nullptr) {
-    return prop->ui_data;
-  }
-
-  switch (IDP_ui_data_type(prop)) {
+  switch (type) {
     case IDP_UI_DATA_TYPE_STRING: {
-      prop->ui_data = static_cast<IDPropertyUIData *>(
+      return static_cast<IDPropertyUIData *>(
           MEM_callocN(sizeof(IDPropertyUIDataString), __func__));
-      break;
     }
     case IDP_UI_DATA_TYPE_ID: {
       IDPropertyUIDataID *ui_data = static_cast<IDPropertyUIDataID *>(
           MEM_callocN(sizeof(IDPropertyUIDataID), __func__));
-      prop->ui_data = (IDPropertyUIData *)ui_data;
-      break;
+      return &ui_data->base;
     }
     case IDP_UI_DATA_TYPE_INT: {
       IDPropertyUIDataInt *ui_data = static_cast<IDPropertyUIDataInt *>(
@@ -1636,14 +1642,12 @@ IDPropertyUIData *IDP_ui_data_ensure(IDProperty *prop)
       ui_data->soft_min = INT_MIN;
       ui_data->soft_max = INT_MAX;
       ui_data->step = 1;
-      prop->ui_data = (IDPropertyUIData *)ui_data;
-      break;
+      return &ui_data->base;
     }
     case IDP_UI_DATA_TYPE_BOOLEAN: {
       IDPropertyUIDataBool *ui_data = static_cast<IDPropertyUIDataBool *>(
           MEM_callocN(sizeof(IDPropertyUIDataBool), __func__));
-      prop->ui_data = (IDPropertyUIData *)ui_data;
-      break;
+      return &ui_data->base;
     }
     case IDP_UI_DATA_TYPE_FLOAT: {
       IDPropertyUIDataFloat *ui_data = static_cast<IDPropertyUIDataFloat *>(
@@ -1654,8 +1658,7 @@ IDPropertyUIData *IDP_ui_data_ensure(IDProperty *prop)
       ui_data->soft_max = FLT_MAX;
       ui_data->step = 1.0f;
       ui_data->precision = 3;
-      prop->ui_data = (IDPropertyUIData *)ui_data;
-      break;
+      return &ui_data->base;
     }
     case IDP_UI_DATA_TYPE_UNSUPPORTED: {
       /* UI data not supported for remaining types, this shouldn't be called in those cases. */
@@ -1663,8 +1666,222 @@ IDPropertyUIData *IDP_ui_data_ensure(IDProperty *prop)
       break;
     }
   }
+  return nullptr;
+}
 
+IDPropertyUIData *IDP_ui_data_ensure(IDProperty *prop)
+{
+  if (prop->ui_data != nullptr) {
+    return prop->ui_data;
+  }
+  prop->ui_data = ui_data_alloc(IDP_ui_data_type(prop));
   return prop->ui_data;
+}
+
+static IDPropertyUIData *convert_base_ui_data(IDPropertyUIData *src,
+                                              const eIDPropertyUIDataType dst_type)
+{
+  IDPropertyUIData *dst = ui_data_alloc(dst_type);
+  *dst = *src;
+  src->description = nullptr;
+  return dst;
+}
+
+IDPropertyUIData *IDP_TryConvertUIData(IDPropertyUIData *src,
+                                       const eIDPropertyUIDataType src_type,
+                                       const eIDPropertyUIDataType dst_type)
+{
+  switch (src_type) {
+    case IDP_UI_DATA_TYPE_STRING: {
+      switch (dst_type) {
+        case IDP_UI_DATA_TYPE_STRING:
+          return src;
+        case IDP_UI_DATA_TYPE_INT:
+        case IDP_UI_DATA_TYPE_BOOLEAN:
+        case IDP_UI_DATA_TYPE_FLOAT:
+        case IDP_UI_DATA_TYPE_ID: {
+          IDPropertyUIData *dst = convert_base_ui_data(src, dst_type);
+          ui_data_free(src, src_type);
+          return dst;
+        }
+        case IDP_UI_DATA_TYPE_UNSUPPORTED:
+          break;
+      }
+      break;
+    }
+    case IDP_UI_DATA_TYPE_ID: {
+      switch (dst_type) {
+        case IDP_UI_DATA_TYPE_ID:
+          return src;
+        case IDP_UI_DATA_TYPE_STRING:
+        case IDP_UI_DATA_TYPE_INT:
+        case IDP_UI_DATA_TYPE_BOOLEAN:
+        case IDP_UI_DATA_TYPE_FLOAT: {
+          IDPropertyUIData *dst = convert_base_ui_data(src, dst_type);
+          ui_data_free(src, src_type);
+          return dst;
+        }
+        case IDP_UI_DATA_TYPE_UNSUPPORTED:
+          break;
+      }
+      break;
+    }
+    case IDP_UI_DATA_TYPE_INT: {
+      IDPropertyUIDataInt *src_int = reinterpret_cast<IDPropertyUIDataInt *>(src);
+      switch (dst_type) {
+        case IDP_UI_DATA_TYPE_INT:
+          return src;
+        case IDP_UI_DATA_TYPE_ID:
+        case IDP_UI_DATA_TYPE_STRING: {
+          IDPropertyUIData *dst = convert_base_ui_data(src, dst_type);
+          ui_data_free(src, src_type);
+          return dst;
+        }
+        case IDP_UI_DATA_TYPE_BOOLEAN: {
+          IDPropertyUIDataBool *dst = reinterpret_cast<IDPropertyUIDataBool *>(
+              convert_base_ui_data(src, dst_type));
+          dst->default_value = src_int->default_value != 0;
+          if (src_int->default_array) {
+            dst->default_array = static_cast<int8_t *>(MEM_malloc_arrayN(
+                size_t(src_int->default_array_len), sizeof(*dst->default_array), __func__));
+            for (int i = 0; i < src_int->default_array_len; i++) {
+              dst->default_array[i] = src_int->default_array[i] != 0;
+            }
+          }
+          ui_data_free(src, src_type);
+          return &dst->base;
+        }
+        case IDP_UI_DATA_TYPE_FLOAT: {
+          IDPropertyUIDataFloat *dst = reinterpret_cast<IDPropertyUIDataFloat *>(
+              convert_base_ui_data(src, dst_type));
+          dst->min = double(src_int->min);
+          dst->max = double(src_int->max);
+          dst->soft_min = double(src_int->soft_min);
+          dst->soft_max = double(src_int->soft_max);
+          dst->step = float(src_int->step);
+          dst->default_value = double(src_int->default_value);
+          if (src_int->default_array) {
+            dst->default_array = static_cast<double *>(MEM_malloc_arrayN(
+                size_t(src_int->default_array_len), sizeof(*dst->default_array), __func__));
+            for (int i = 0; i < src_int->default_array_len; i++) {
+              dst->default_array[i] = double(src_int->default_array[i]);
+            }
+          }
+          ui_data_free(src, src_type);
+          return &dst->base;
+        }
+        case IDP_UI_DATA_TYPE_UNSUPPORTED:
+          break;
+      }
+      break;
+    }
+    case IDP_UI_DATA_TYPE_BOOLEAN: {
+      IDPropertyUIDataBool *src_bool = reinterpret_cast<IDPropertyUIDataBool *>(src);
+      switch (dst_type) {
+        case IDP_UI_DATA_TYPE_BOOLEAN:
+          return src;
+        case IDP_UI_DATA_TYPE_ID:
+        case IDP_UI_DATA_TYPE_STRING: {
+          IDPropertyUIData *dst = convert_base_ui_data(src, dst_type);
+          ui_data_free(src, src_type);
+          return dst;
+        }
+        case IDP_UI_DATA_TYPE_INT: {
+          IDPropertyUIDataInt *dst = reinterpret_cast<IDPropertyUIDataInt *>(
+              convert_base_ui_data(src, dst_type));
+          dst->min = 0;
+          dst->max = 1;
+          dst->soft_min = 0;
+          dst->soft_max = 1;
+          dst->step = 1;
+          dst->default_value = int(src_bool->default_value);
+          if (src_bool->default_array) {
+            dst->default_array = static_cast<int *>(MEM_malloc_arrayN(
+                size_t(src_bool->default_array_len), sizeof(*dst->default_array), __func__));
+            for (int i = 0; i < src_bool->default_array_len; i++) {
+              dst->default_array[i] = int(src_bool->default_array[i]);
+            }
+          }
+          ui_data_free(src, src_type);
+          return &dst->base;
+        }
+        case IDP_UI_DATA_TYPE_FLOAT: {
+          IDPropertyUIDataFloat *dst = reinterpret_cast<IDPropertyUIDataFloat *>(
+              convert_base_ui_data(src, dst_type));
+          dst->min = 0.0;
+          dst->max = 1.0;
+          dst->soft_min = 0.0;
+          dst->soft_max = 1.0;
+          dst->step = 1.0;
+          if (src_bool->default_array) {
+            dst->default_array = static_cast<double *>(MEM_malloc_arrayN(
+                size_t(src_bool->default_array_len), sizeof(*dst->default_array), __func__));
+            for (int i = 0; i < src_bool->default_array_len; i++) {
+              dst->default_array[i] = src_bool->default_array[i] == 0 ? 0.0 : 1.0;
+            }
+          }
+          ui_data_free(src, src_type);
+          return &dst->base;
+        }
+        case IDP_UI_DATA_TYPE_UNSUPPORTED:
+          break;
+      }
+      break;
+    }
+    case IDP_UI_DATA_TYPE_FLOAT: {
+      IDPropertyUIDataFloat *src_float = reinterpret_cast<IDPropertyUIDataFloat *>(src);
+      switch (dst_type) {
+        case IDP_UI_DATA_TYPE_FLOAT:
+          return src;
+        case IDP_UI_DATA_TYPE_ID:
+        case IDP_UI_DATA_TYPE_STRING:
+          return convert_base_ui_data(src, dst_type);
+        case IDP_UI_DATA_TYPE_INT: {
+          auto clamp_double_to_int = [](const double value) {
+            return int(std::clamp<double>(value, INT_MIN, INT_MAX));
+          };
+          IDPropertyUIDataInt *dst = reinterpret_cast<IDPropertyUIDataInt *>(
+              convert_base_ui_data(src, dst_type));
+          dst->min = clamp_double_to_int(src_float->min);
+          dst->max = clamp_double_to_int(src_float->max);
+          dst->soft_min = clamp_double_to_int(src_float->soft_min);
+          dst->soft_max = clamp_double_to_int(src_float->soft_max);
+          dst->step = clamp_double_to_int(src_float->step);
+          dst->default_value = clamp_double_to_int(src_float->default_value);
+          if (src_float->default_array) {
+            dst->default_array = static_cast<int *>(MEM_malloc_arrayN(
+                size_t(src_float->default_array_len), sizeof(*dst->default_array), __func__));
+            for (int i = 0; i < src_float->default_array_len; i++) {
+              dst->default_array[i] = clamp_double_to_int(src_float->default_array[i]);
+            }
+          }
+          ui_data_free(src, src_type);
+          return &dst->base;
+        }
+        case IDP_UI_DATA_TYPE_BOOLEAN: {
+          IDPropertyUIDataBool *dst = reinterpret_cast<IDPropertyUIDataBool *>(
+              convert_base_ui_data(src, dst_type));
+          dst->default_value = src_float->default_value > 0.0f;
+          if (src_float->default_array) {
+            dst->default_array = static_cast<int8_t *>(MEM_malloc_arrayN(
+                size_t(src_float->default_array_len), sizeof(*dst->default_array), __func__));
+            for (int i = 0; i < src_float->default_array_len; i++) {
+              dst->default_array[i] = src_float->default_array[i] > 0.0f;
+            }
+          }
+          ui_data_free(src, src_type);
+          return &dst->base;
+        }
+        case IDP_UI_DATA_TYPE_UNSUPPORTED:
+          break;
+      }
+      break;
+    }
+    case IDP_UI_DATA_TYPE_UNSUPPORTED:
+      break;
+  }
+  ui_data_free(src, src_type);
+  return nullptr;
 }
 
 /** \} */

@@ -20,10 +20,6 @@ struct TextLine;
 struct bContext;
 struct wmOperatorType;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* `text_draw.cc` */
 
 void draw_text_main(SpaceText *st, ARegion *region);
@@ -95,8 +91,8 @@ void text_pop_suggest_list();
 int space_text_get_visible_lines(const SpaceText *st, const ARegion *region, const char *str);
 int space_text_get_span_wrap(const SpaceText *st,
                              const ARegion *region,
-                             TextLine *from,
-                             TextLine *to);
+                             const TextLine *from,
+                             const TextLine *to);
 int space_text_get_total_lines(SpaceText *st, const ARegion *region);
 
 /* `text_ops.cc` */
@@ -181,11 +177,7 @@ void TEXT_OT_autocomplete(wmOperatorType *ot);
 
 /* `space_text.cc` */
 
-extern const char *text_context_dir[]; /* doc access */
-
-#ifdef __cplusplus
-}
-#endif
+extern "C" const char *text_context_dir[]; /* doc access */
 
 namespace blender::ed::text {
 struct SpaceText_Runtime {

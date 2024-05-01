@@ -13,8 +13,8 @@
 /* Define the accessors for a basic CustomDataLayer collection, skipping anonymous layers */
 #define DEFINE_CUSTOMDATA_LAYER_COLLECTION(collection_name, customdata_type, layer_type) \
   /* check */ \
-  [[maybe_unused]] static int rna_##collection_name##_check(CollectionPropertyIterator *, \
-                                                            void *data) \
+  [[maybe_unused]] static bool rna_##collection_name##_check(CollectionPropertyIterator *, \
+                                                             void *data) \
   { \
     CustomDataLayer *layer = (CustomDataLayer *)data; \
     return (layer->anonymous_id != NULL || layer->type != layer_type); \

@@ -47,7 +47,7 @@
 
 #include "UI_view2d.hh"
 
-#include "clip_intern.h" /* own include */
+#include "clip_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Operator Poll Functions
@@ -508,14 +508,16 @@ void ED_clip_point_stable_pos(
 
   if (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT) {
     MovieClip *clip = ED_space_clip_get_clip(sc);
-    MovieTracking *tracking = &clip->tracking;
-    float aspy = 1.0f / tracking->camera.pixel_aspect;
-    float tmp[2] = {*xr * width, *yr * height * aspy};
+    if (clip != nullptr) {
+      MovieTracking *tracking = &clip->tracking;
+      float aspy = 1.0f / tracking->camera.pixel_aspect;
+      float tmp[2] = {*xr * width, *yr * height * aspy};
 
-    BKE_tracking_distort_v2(tracking, width, height, tmp, tmp);
+      BKE_tracking_distort_v2(tracking, width, height, tmp, tmp);
 
-    *xr = tmp[0] / width;
-    *yr = tmp[1] / (height * aspy);
+      *xr = tmp[0] / width;
+      *yr = tmp[1] / (height * aspy);
+    }
   }
 }
 

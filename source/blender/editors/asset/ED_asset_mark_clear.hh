@@ -9,23 +9,23 @@
 #pragma once
 
 struct AssetMetaData;
+struct bContext;
 struct ID;
 struct Main;
-struct bContext;
 
 namespace blender::ed::asset {
 
 /**
- * Mark the datablock as asset.
+ * Mark the data-block as asset.
  *
- * To ensure the datablock is saved, this sets Fake User.
+ * To ensure the data-block is saved, this sets Fake User.
  *
- * \return whether the datablock was marked as asset; false when it is not capable of becoming an
+ * \return whether the data-block was marked as asset; false when it is not capable of becoming an
  * asset, or when it already was an asset. */
 bool mark_id(ID *id);
 
 /**
- * Generate preview image for the given datablock.
+ * Generate preview image for the given data-block.
  *
  * The preview image might be generated using a background thread.
  */
@@ -34,7 +34,7 @@ void generate_preview(const bContext *C, ID *id);
 /**
  * Remove the asset metadata, turning the ID into a "normal" ID.
  *
- * This clears the Fake User. If for some reason the datablock is meant to be saved anyway, the
+ * This clears the Fake User. If for some reason the data-block is meant to be saved anyway, the
  * caller is responsible for explicitly setting the Fake User.
  *
  * \return whether the asset metadata was actually removed; false when the ID was not an asset.

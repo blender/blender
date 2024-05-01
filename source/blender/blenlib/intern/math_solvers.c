@@ -53,11 +53,10 @@ bool BLI_tridiagonal_solve(
 
   size_t bytes = sizeof(double) * (uint)count;
   double *c1 = (double *)MEM_mallocN(bytes * 2, "tridiagonal_c1d1");
-  double *d1 = c1 + count;
-
   if (!c1) {
     return false;
   }
+  double *d1 = c1 + count;
 
   int i;
   double c_prev, d_prev, x_prev;
@@ -120,11 +119,10 @@ bool BLI_tridiagonal_solve_cyclic(
 
   size_t bytes = sizeof(float) * (uint)count;
   float *tmp = (float *)MEM_mallocN(bytes * 2, "tridiagonal_ex");
-  float *b2 = tmp + count;
-
   if (!tmp) {
     return false;
   }
+  float *b2 = tmp + count;
 
   /* Prepare the non-cyclic system; relies on tridiagonal_solve ignoring values. */
   memcpy(b2, b, bytes);

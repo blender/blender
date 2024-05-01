@@ -26,7 +26,6 @@ typedef enum eObjectMode {
   OB_MODE_WEIGHT_GPENCIL_LEGACY = 1 << 10,
   OB_MODE_VERTEX_GPENCIL_LEGACY = 1 << 11,
   OB_MODE_SCULPT_CURVES = 1 << 12,
-  OB_MODE_PAINT_GREASE_PENCIL = 1 << 13,
 } eObjectMode;
 
 /** #Object.dt, #View3DShading.type */
@@ -55,10 +54,9 @@ typedef enum eDrawType {
 
 /**
  * Any mode that has data or for Grease Pencil modes, we need to free when switching modes,
- * see: #ED_object_mode_generic_exit
+ * see: #blender::ed::object::mode_generic_exit
  */
 #define OB_MODE_ALL_MODE_DATA \
   (OB_MODE_EDIT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_SCULPT | OB_MODE_POSE | \
    OB_MODE_PAINT_GPENCIL_LEGACY | OB_MODE_EDIT_GPENCIL_LEGACY | OB_MODE_SCULPT_GPENCIL_LEGACY | \
-   OB_MODE_WEIGHT_GPENCIL_LEGACY | OB_MODE_VERTEX_GPENCIL_LEGACY | OB_MODE_SCULPT_CURVES | \
-   OB_MODE_PAINT_GREASE_PENCIL)
+   OB_MODE_WEIGHT_GPENCIL_LEGACY | OB_MODE_VERTEX_GPENCIL_LEGACY | OB_MODE_SCULPT_CURVES)

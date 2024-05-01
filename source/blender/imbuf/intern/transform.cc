@@ -140,7 +140,7 @@ static void sample_image(const ImBuf *source, float u, float v, T *r_sample)
   }
   else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<T, uchar> && NumChannels == 4)
   {
-    interpolate_nearest_byte(source, r_sample, u, v);
+    interpolate_nearest_border_byte(source, r_sample, u, v);
   }
   else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<T, uchar> && NumChannels == 4)
   {
@@ -164,7 +164,7 @@ static void sample_image(const ImBuf *source, float u, float v, T *r_sample)
     }
   }
   else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<T, float>) {
-    math::interpolate_nearest_fl(
+    math::interpolate_nearest_border_fl(
         source->float_buffer.data, r_sample, source->x, source->y, NumChannels, u, v);
   }
   else if constexpr (Filter == IMB_FILTER_CUBIC_BSPLINE && std::is_same_v<T, float>) {

@@ -11,10 +11,7 @@
 using OpenSubdiv::Osd::PatchArray;
 using OpenSubdiv::Osd::PatchArrayVector;
 
-namespace blender {
-namespace opensubdiv {
-
-namespace {
+namespace blender::opensubdiv {
 
 static void buildPatchArraysBufferFromVector(const PatchArrayVector &patch_arrays,
                                              OpenSubdiv_Buffer *patch_arrays_buffer)
@@ -27,11 +24,9 @@ static void buildPatchArraysBufferFromVector(const PatchArrayVector &patch_array
       patch_arrays_buffer, 0, patch_array_byte_site, &patch_arrays[0]);
 }
 
-}  // namespace
-
 GpuEvalOutput::GpuEvalOutput(const StencilTable *vertex_stencils,
                              const StencilTable *varying_stencils,
-                             const vector<const StencilTable *> &all_face_varying_stencils,
+                             const std::vector<const StencilTable *> &all_face_varying_stencils,
                              const int face_varying_width,
                              const PatchTable *patch_table,
                              VolatileEvalOutput::EvaluatorCache *evaluator_cache)
@@ -110,5 +105,4 @@ void GpuEvalOutput::wrapFVarSrcBuffer(const int face_varying_channel,
   src_buffer->wrap_device_handle(src_buffer, vertex_buffer->BindVBO());
 }
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv

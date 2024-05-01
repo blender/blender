@@ -16,13 +16,13 @@
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 
-#include "GPU_batch.h"
-#include "GPU_capabilities.h"
-#include "GPU_compute.h"
+#include "GPU_batch.hh"
+#include "GPU_capabilities.hh"
+#include "GPU_compute.hh"
 #include "GPU_material.hh"
-#include "GPU_shader.h"
-#include "GPU_texture.h"
-#include "GPU_vertex_buffer.h"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
+#include "GPU_vertex_buffer.hh"
 
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
@@ -30,20 +30,20 @@
 #include "draw_cache_impl.hh"
 #include "draw_common.hh"
 #include "draw_curves_private.hh"
-#include "draw_hair_private.h"
-#include "draw_manager.h"
+#include "draw_hair_private.hh"
+#include "draw_manager_c.hh"
 #include "draw_shader.hh"
 
 namespace blender::draw {
 
 struct CurvesEvalCall {
   CurvesEvalCall *next;
-  GPUVertBuf *vbo;
+  gpu::VertBuf *vbo;
   DRWShadingGroup *shgrp;
   uint vert_len;
 };
 
-static GPUVertBuf *g_dummy_vbo = nullptr;
+static gpu::VertBuf *g_dummy_vbo = nullptr;
 static DRWPass *g_tf_pass; /* XXX can be a problem with multiple DRWManager in the future */
 
 using CurvesInfosBuf = UniformBuffer<CurvesInfos>;
@@ -97,12 +97,7 @@ void DRW_curves_init(DRWData *drw_data)
   CurvesUniformBufPool *pool = drw_data->curves_ubos;
   pool->reset();
 
-  if (GPU_transform_feedback_support() || GPU_compute_shader_support()) {
-    g_tf_pass = DRW_pass_create("Update Curves Pass", (DRWState)0);
-  }
-  else {
-    g_tf_pass = DRW_pass_create("Update Curves Pass", DRW_STATE_WRITE_COLOR);
-  }
+  g_tf_pass = DRW_pass_create("Update Curves Pass", (DRWState)0);
 
   drw_curves_ensure_dummy_vbo();
 }
@@ -114,61 +109,56 @@ void DRW_curves_ubos_pool_free(CurvesUniformBufPool *pool)
 
 static void drw_curves_cache_shgrp_attach_resources(DRWShadingGroup *shgrp,
                                                     CurvesEvalCache *cache,
-                                                    GPUVertBuf *point_buf,
-                                                    const int subdiv)
+                                                    gpu::VertBuf *point_buf)
 {
   DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", point_buf);
   DRW_shgroup_buffer_texture(shgrp, "hairStrandBuffer", cache->proc_strand_buf);
   DRW_shgroup_buffer_texture(shgrp, "hairStrandSegBuffer", cache->proc_strand_seg_buf);
-  DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &cache->final[subdiv].strands_res, 1);
+  DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &cache->final.resolution, 1);
 }
 
 static void drw_curves_cache_update_compute(CurvesEvalCache *cache,
-                                            const int subdiv,
-                                            const int strands_len,
-                                            GPUVertBuf *output_buf,
-                                            GPUVertBuf *input_buf)
+                                            const int curves_num,
+                                            gpu::VertBuf *output_buf,
+                                            gpu::VertBuf *input_buf)
 {
+  BLI_assert(input_buf != nullptr);
+  BLI_assert(output_buf != nullptr);
   GPUShader *shader = DRW_shader_curves_refine_get(CURVES_EVAL_CATMULL_ROM);
   DRWShadingGroup *shgrp = DRW_shgroup_create(shader, g_tf_pass);
-  drw_curves_cache_shgrp_attach_resources(shgrp, cache, input_buf, subdiv);
+  drw_curves_cache_shgrp_attach_resources(shgrp, cache, input_buf);
   DRW_shgroup_vertex_buffer(shgrp, "posTime", output_buf);
 
   const int max_strands_per_call = GPU_max_work_group_count(0);
   int strands_start = 0;
-  while (strands_start < strands_len) {
-    int batch_strands_len = std::min(strands_len - strands_start, max_strands_per_call);
+  while (strands_start < curves_num) {
+    int batch_strands_len = std::min(curves_num - strands_start, max_strands_per_call);
     DRWShadingGroup *subgroup = DRW_shgroup_create_sub(shgrp);
     DRW_shgroup_uniform_int_copy(subgroup, "hairStrandOffset", strands_start);
-    DRW_shgroup_call_compute(subgroup, batch_strands_len, cache->final[subdiv].strands_res, 1);
+    DRW_shgroup_call_compute(subgroup, batch_strands_len, cache->final.resolution, 1);
     strands_start += batch_strands_len;
   }
 }
 
-static void drw_curves_cache_update_compute(CurvesEvalCache *cache, const int subdiv)
+static void drw_curves_cache_update_compute(CurvesEvalCache *cache)
 {
-  using namespace blender;
-  const int strands_len = cache->strands_len;
-  const int final_points_len = cache->final[subdiv].strands_res * strands_len;
+  const int curves_num = cache->curves_num;
+  const int final_points_len = cache->final.resolution * curves_num;
   if (final_points_len == 0) {
     return;
   }
 
-  drw_curves_cache_update_compute(
-      cache, subdiv, strands_len, cache->final[subdiv].proc_buf, cache->proc_point_buf);
+  drw_curves_cache_update_compute(cache, curves_num, cache->final.proc_buf, cache->proc_point_buf);
 
-  const DRW_Attributes &attrs = cache->final[subdiv].attr_used;
+  const DRW_Attributes &attrs = cache->final.attr_used;
   for (int i = 0; i < attrs.num_requests; i++) {
     /* Only refine point attributes. */
     if (attrs.requests[i].domain == bke::AttrDomain::Curve) {
       continue;
     }
 
-    drw_curves_cache_update_compute(cache,
-                                    subdiv,
-                                    strands_len,
-                                    cache->final[subdiv].attributes_buf[i],
-                                    cache->proc_attributes_buf[i]);
+    drw_curves_cache_update_compute(
+        cache, curves_num, cache->final.attributes_buf[i], cache->proc_attributes_buf[i]);
   }
 }
 
@@ -182,12 +172,12 @@ static CurvesEvalCache *drw_curves_cache_get(Curves &curves,
       &curves, &cache, gpu_material, subdiv, thickness_res);
 
   if (update) {
-    drw_curves_cache_update_compute(cache, subdiv);
+    drw_curves_cache_update_compute(cache);
   }
   return cache;
 }
 
-GPUVertBuf *DRW_curves_pos_buffer_get(Object *object)
+gpu::VertBuf *DRW_curves_pos_buffer_get(Object *object)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene = draw_ctx->scene;
@@ -198,7 +188,7 @@ GPUVertBuf *DRW_curves_pos_buffer_get(Object *object)
   Curves &curves = *static_cast<Curves *>(object->data);
   CurvesEvalCache *cache = drw_curves_cache_get(curves, nullptr, subdiv, thickness_res);
 
-  return cache->final[subdiv].proc_buf;
+  return cache->final.proc_buf;
 }
 
 static int attribute_index_in_material(GPUMaterial *gpu_material, const char *name)
@@ -270,12 +260,12 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
         1.0f);
   }
 
-  DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", curves_cache->final[subdiv].proc_buf);
+  DRW_shgroup_buffer_texture(shgrp, "hairPointBuffer", curves_cache->final.proc_buf);
   if (curves_cache->proc_length_buf) {
     DRW_shgroup_buffer_texture(shgrp, "hairLen", curves_cache->proc_length_buf);
   }
 
-  const DRW_Attributes &attrs = curves_cache->final[subdiv].attr_used;
+  const DRW_Attributes &attrs = curves_cache->final.attr_used;
   for (int i = 0; i < attrs.num_requests; i++) {
     const DRW_AttributeRequest &request = attrs.requests[i];
 
@@ -290,11 +280,10 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
       DRW_shgroup_buffer_texture(shgrp, sampler_name, curves_cache->proc_attributes_buf[i]);
     }
     else {
-      if (!curves_cache->final[subdiv].attributes_buf[i]) {
+      if (!curves_cache->final.attributes_buf[i]) {
         continue;
       }
-      DRW_shgroup_buffer_texture(
-          shgrp, sampler_name, curves_cache->final[subdiv].attributes_buf[i]);
+      DRW_shgroup_buffer_texture(shgrp, sampler_name, curves_cache->final.attributes_buf[i]);
     }
 
     /* Some attributes may not be used in the shader anymore and were not garbage collected yet, so
@@ -311,7 +300,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
 
   DRW_shgroup_uniform_block(shgrp, "drw_curves", curves_infos);
 
-  DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &curves_cache->final[subdiv].strands_res, 1);
+  DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &curves_cache->final.resolution, 1);
   DRW_shgroup_uniform_int_copy(shgrp, "hairThicknessRes", thickness_res);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadShape", hair_rad_shape);
   DRW_shgroup_uniform_mat4_copy(shgrp, "hairDupliMatrix", object->object_to_world().ptr());
@@ -325,7 +314,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
   }
   /* TODO(fclem): Until we have a better way to cull the curves and render with orco, bypass
    * culling test. */
-  GPUBatch *geom = curves_cache->final[subdiv].proc_hairs[thickness_res - 1];
+  gpu::Batch *geom = curves_cache->final.proc_hairs;
   DRW_shgroup_call_no_cull(shgrp, geom, object);
 
   return shgrp;
@@ -385,10 +374,10 @@ static CurvesEvalCache *curves_cache_get(Curves &curves,
     return cache;
   }
 
-  const int strands_len = cache->strands_len;
-  const int final_points_len = cache->final[subdiv].strands_res * strands_len;
+  const int curves_num = cache->curves_num;
+  const int final_points_len = cache->final.resolution * curves_num;
 
-  auto cache_update = [&](GPUVertBuf *output_buf, GPUVertBuf *input_buf) {
+  auto cache_update = [&](gpu::VertBuf *output_buf, gpu::VertBuf *input_buf) {
     PassSimple::Sub &ob_ps = g_pass->sub("Object Pass");
 
     ob_ps.shader_set(DRW_shader_curves_refine_get(CURVES_EVAL_CATMULL_ROM));
@@ -396,28 +385,28 @@ static CurvesEvalCache *curves_cache_get(Curves &curves,
     ob_ps.bind_texture("hairPointBuffer", input_buf);
     ob_ps.bind_texture("hairStrandBuffer", cache->proc_strand_buf);
     ob_ps.bind_texture("hairStrandSegBuffer", cache->proc_strand_seg_buf);
-    ob_ps.push_constant("hairStrandsRes", &cache->final[subdiv].strands_res);
+    ob_ps.push_constant("hairStrandsRes", &cache->final.resolution);
     ob_ps.bind_ssbo("posTime", output_buf);
 
     const int max_strands_per_call = GPU_max_work_group_count(0);
     int strands_start = 0;
-    while (strands_start < strands_len) {
-      int batch_strands_len = std::min(strands_len - strands_start, max_strands_per_call);
+    while (strands_start < curves_num) {
+      int batch_strands_len = std::min(curves_num - strands_start, max_strands_per_call);
       PassSimple::Sub &sub_ps = ob_ps.sub("Sub Pass");
       sub_ps.push_constant("hairStrandOffset", strands_start);
-      sub_ps.dispatch(int3(batch_strands_len, cache->final[subdiv].strands_res, 1));
+      sub_ps.dispatch(int3(batch_strands_len, cache->final.resolution, 1));
       strands_start += batch_strands_len;
     }
   };
 
   if (final_points_len > 0) {
-    cache_update(cache->final[subdiv].proc_buf, cache->proc_point_buf);
+    cache_update(cache->final.proc_buf, cache->proc_point_buf);
 
-    const DRW_Attributes &attrs = cache->final[subdiv].attr_used;
+    const DRW_Attributes &attrs = cache->final.attr_used;
     for (int i : IndexRange(attrs.num_requests)) {
       /* Only refine point attributes. */
       if (attrs.requests[i].domain != bke::AttrDomain::Curve) {
-        cache_update(cache->final[subdiv].attributes_buf[i], cache->proc_attributes_buf[i]);
+        cache_update(cache->final.attributes_buf[i], cache->proc_attributes_buf[i]);
       }
     }
   }
@@ -425,7 +414,7 @@ static CurvesEvalCache *curves_cache_get(Curves &curves,
   return cache;
 }
 
-GPUVertBuf *curves_pos_buffer_get(Scene *scene, Object *object)
+gpu::VertBuf *curves_pos_buffer_get(Scene *scene, Object *object)
 {
   const int subdiv = scene->r.hair_subdiv;
   const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
@@ -433,7 +422,7 @@ GPUVertBuf *curves_pos_buffer_get(Scene *scene, Object *object)
   Curves &curves = *static_cast<Curves *>(object->data);
   CurvesEvalCache *cache = curves_cache_get(curves, nullptr, subdiv, thickness_res);
 
-  return cache->final[subdiv].proc_buf;
+  return cache->final.proc_buf;
 }
 
 void curves_update(Manager &manager)
@@ -449,10 +438,10 @@ void curves_free()
 }
 
 template<typename PassT>
-GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
-                                               const Scene *scene,
-                                               Object *ob,
-                                               GPUMaterial *gpu_material)
+gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
+                                                 const Scene *scene,
+                                                 Object *ob,
+                                                 GPUMaterial *gpu_material)
 {
   /** NOTE: This still relies on the old DRW_curves implementation. */
 
@@ -498,12 +487,12 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
         1.0f);
   }
 
-  sub_ps.bind_texture("hairPointBuffer", curves_cache->final[subdiv].proc_buf);
+  sub_ps.bind_texture("hairPointBuffer", curves_cache->final.proc_buf);
   if (curves_cache->proc_length_buf) {
     sub_ps.bind_texture("hairLen", curves_cache->proc_length_buf);
   }
 
-  const DRW_Attributes &attrs = curves_cache->final[subdiv].attr_used;
+  const DRW_Attributes &attrs = curves_cache->final.attr_used;
   for (int i = 0; i < attrs.num_requests; i++) {
     const DRW_AttributeRequest &request = attrs.requests[i];
 
@@ -517,10 +506,10 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
       sub_ps.bind_texture(sampler_name, curves_cache->proc_attributes_buf[i]);
     }
     else {
-      if (!curves_cache->final[subdiv].attributes_buf[i]) {
+      if (!curves_cache->final.attributes_buf[i]) {
         continue;
       }
-      sub_ps.bind_texture(sampler_name, curves_cache->final[subdiv].attributes_buf[i]);
+      sub_ps.bind_texture(sampler_name, curves_cache->final.attributes_buf[i]);
     }
 
     /* Some attributes may not be used in the shader anymore and were not garbage collected yet, so
@@ -537,7 +526,7 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
 
   sub_ps.bind_ubo("drw_curves", curves_infos);
 
-  sub_ps.push_constant("hairStrandsRes", &curves_cache->final[subdiv].strands_res, 1);
+  sub_ps.push_constant("hairStrandsRes", &curves_cache->final.resolution, 1);
   sub_ps.push_constant("hairThicknessRes", thickness_res);
   sub_ps.push_constant("hairRadShape", hair_rad_shape);
   sub_ps.push_constant("hairDupliMatrix", ob->object_to_world());
@@ -545,21 +534,21 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
   sub_ps.push_constant("hairRadTip", hair_rad_tip);
   sub_ps.push_constant("hairCloseTip", hair_close_tip);
 
-  return curves_cache->final[subdiv].proc_hairs[thickness_res - 1];
+  return curves_cache->final.proc_hairs;
 }
 
-GPUBatch *curves_sub_pass_setup(PassMain::Sub &ps,
-                                const Scene *scene,
-                                Object *ob,
-                                GPUMaterial *gpu_material)
+gpu::Batch *curves_sub_pass_setup(PassMain::Sub &ps,
+                                  const Scene *scene,
+                                  Object *ob,
+                                  GPUMaterial *gpu_material)
 {
   return curves_sub_pass_setup_implementation(ps, scene, ob, gpu_material);
 }
 
-GPUBatch *curves_sub_pass_setup(PassSimple::Sub &ps,
-                                const Scene *scene,
-                                Object *ob,
-                                GPUMaterial *gpu_material)
+gpu::Batch *curves_sub_pass_setup(PassSimple::Sub &ps,
+                                  const Scene *scene,
+                                  Object *ob,
+                                  GPUMaterial *gpu_material)
 {
   return curves_sub_pass_setup_implementation(ps, scene, ob, gpu_material);
 }

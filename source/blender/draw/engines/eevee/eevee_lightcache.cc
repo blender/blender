@@ -25,10 +25,10 @@
 #include "DNA_lightprobe_types.h"
 
 #include "eevee_lightcache.h"
-#include "eevee_private.h"
+#include "eevee_private.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_context.h"
+#include "GPU_capabilities.hh"
+#include "GPU_context.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -526,11 +526,19 @@ static void write_lightcache_texture(BlendWriter *writer, LightCacheTexture *tex
 {
   if (tex->data) {
     size_t data_size = tex->components * tex->tex_size[0] * tex->tex_size[1] * tex->tex_size[2];
-    if (tex->data_type == LIGHTCACHETEX_FLOAT) {
-      data_size *= sizeof(float);
-    }
-    else if (tex->data_type == LIGHTCACHETEX_UINT) {
-      data_size *= sizeof(uint);
+    switch (tex->data_type) {
+      case LIGHTCACHETEX_BYTE:
+        data_size *= sizeof(uint8_t);
+        break;
+      case LIGHTCACHETEX_UINT:
+        data_size *= sizeof(uint32_t);
+        break;
+      case LIGHTCACHETEX_FLOAT:
+        data_size *= sizeof(float);
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
     }
 
     /* FIXME: We can't save more than what 32bit systems can handle.
@@ -562,17 +570,23 @@ static void direct_link_lightcache_texture(BlendDataReader *reader, LightCacheTe
   lctex->tex = nullptr;
 
   if (lctex->data) {
-    BLO_read_data_address(reader, &lctex->data);
-    if (lctex->data && BLO_read_requires_endian_switch(reader)) {
-      int data_size = lctex->components * lctex->tex_size[0] * lctex->tex_size[1] *
-                      lctex->tex_size[2];
+    int data_size = lctex->components * lctex->tex_size[0] * lctex->tex_size[1] *
+                    lctex->tex_size[2];
 
-      if (lctex->data_type == LIGHTCACHETEX_FLOAT) {
-        BLI_endian_switch_float_array((float *)lctex->data, data_size * sizeof(float));
-      }
-      else if (lctex->data_type == LIGHTCACHETEX_UINT) {
-        BLI_endian_switch_uint32_array((uint *)lctex->data, data_size * sizeof(uint));
-      }
+    switch (lctex->data_type) {
+      case LIGHTCACHETEX_BYTE:
+        BLO_read_uint8_array(reader, data_size, (uint8_t **)&lctex->data);
+        break;
+      case LIGHTCACHETEX_UINT:
+        BLO_read_uint32_array(reader, data_size, (uint32_t **)&lctex->data);
+        break;
+      case LIGHTCACHETEX_FLOAT:
+        BLO_read_float_array(reader, data_size, (float **)&lctex->data);
+        break;
+      default:
+        BLI_assert_unreachable();
+        lctex->data = nullptr;
+        break;
     }
   }
 
@@ -584,18 +598,18 @@ static void direct_link_lightcache_texture(BlendDataReader *reader, LightCacheTe
 void EEVEE_lightcache_blend_read_data(BlendDataReader *reader, LightCache *cache)
 {
   cache->flag &= ~LIGHTCACHE_NOT_USABLE;
-  direct_link_lightcache_texture(reader, &cache->cube_tx);
   direct_link_lightcache_texture(reader, &cache->grid_tx);
+  direct_link_lightcache_texture(reader, &cache->cube_tx);
 
   if (cache->cube_mips) {
-    BLO_read_data_address(reader, &cache->cube_mips);
+    BLO_read_struct_array(reader, LightCacheTexture, cache->mips_len, &cache->cube_mips);
     for (int i = 0; i < cache->mips_len; i++) {
       direct_link_lightcache_texture(reader, &cache->cube_mips[i]);
     }
   }
 
-  BLO_read_data_address(reader, &cache->cube_data);
-  BLO_read_data_address(reader, &cache->grid_data);
+  BLO_read_struct_array(reader, LightGridCache, cache->grid_len, &cache->grid_data);
+  BLO_read_struct_array(reader, LightProbeCache, cache->cube_len, &cache->cube_data);
 }
 
 /** \} */

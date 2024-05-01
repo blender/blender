@@ -10,7 +10,7 @@
 
 #include "vk_common.hh"
 
-#include "gpu_batch_private.hh"
+#include "GPU_batch.hh"
 
 namespace blender::gpu {
 class VKVertexBuffer;
@@ -34,7 +34,7 @@ class VKBatch : public Batch {
   void draw_setup();
 };
 
-BLI_INLINE VKBatch *unwrap(GPUBatch *batch)
+inline VKBatch *unwrap(Batch *batch)
 {
   return static_cast<VKBatch *>(batch);
 }

@@ -75,6 +75,7 @@ class IMAGE_MT_view(Menu):
         layout.prop(sima, "show_region_toolbar")
         layout.prop(sima, "show_region_ui")
         layout.prop(sima, "show_region_tool_header")
+        layout.prop(sima, "show_region_asset_shelf")
         layout.prop(sima, "show_region_hud")
 
         layout.separator()
@@ -82,28 +83,15 @@ class IMAGE_MT_view(Menu):
         layout.prop(sima, "use_realtime_update")
         layout.prop(uv, "show_metadata")
 
-        if paint.brush and (context.image_paint_object or sima.mode == 'PAINT'):
-            layout.prop(uv, "show_texpaint")
-            layout.prop(tool_settings, "show_uv_local_view", text="Show Same Material")
-
-        layout.separator()
-
-        layout.operator("image.view_zoom_in")
-        layout.operator("image.view_zoom_out")
-
-        layout.separator()
-
-        layout.menu("IMAGE_MT_view_zoom")
-
         layout.separator()
 
         if show_uvedit:
             layout.operator("image.view_selected", text="Frame Selected")
 
         layout.operator("image.view_all")
-        layout.operator("image.view_all", text="Frame All Fit").fit_view = True
-
         layout.operator("image.view_center_cursor", text="Center View to Cursor")
+
+        layout.menu("IMAGE_MT_view_zoom")
 
         layout.separator()
 
@@ -117,26 +105,38 @@ class IMAGE_MT_view(Menu):
             layout.operator("image.cycle_render_slot", text="Render Slot Cycle Previous").reverse = True
             layout.separator()
 
+        if paint.brush and (context.image_paint_object or sima.mode == 'PAINT'):
+            layout.prop(uv, "show_texpaint")
+            layout.prop(tool_settings, "show_uv_local_view", text="Show Same Material")
+
         layout.menu("INFO_MT_area")
 
 
 class IMAGE_MT_view_zoom(Menu):
-    bl_label = "Fractional Zoom"
+    bl_label = "Zoom"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
+        from math import isclose
 
+        current_zoom = context.space_data.zoom_percentage
         ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
-        for i, (a, b) in enumerate(ratios):
-            if i in {3, 4}:  # Draw separators around Zoom 1:1.
-                layout.separator()
-
+        for (a, b) in ratios:
+            ratio = a / b
+            percent = ratio * 100.0
             layout.operator(
                 "image.view_zoom_ratio",
-                text=iface_("Zoom %d:%d") % (a, b),
+                text="{:g}% ({:d}:{:d})".format(percent, a, b),
                 translate=False,
-            ).ratio = a / b
+                icon='LAYER_ACTIVE' if isclose(percent, current_zoom, abs_tol=0.5) else 'NONE',
+            ).ratio = ratio
+
+        layout.separator()
+        layout.operator("image.view_zoom_in")
+        layout.operator("image.view_zoom_out")
+        layout.operator("image.view_all", text="Zoom to Fit").fit_view = True
+        layout.operator("image.view_zoom_border", text="Zoom Region...")
 
 
 class IMAGE_MT_select(Menu):
@@ -194,8 +194,7 @@ class IMAGE_MT_image(Menu):
         ima = sima.image
         show_render = sima.show_render
 
-        layout.operator("image.new", text="New",
-                        text_ctxt=i18n_contexts.id_image)
+        layout.operator("image.new", text="New", text_ctxt=i18n_contexts.id_image)
         layout.operator("image.open", text="Open...", icon='FILE_FOLDER')
 
         layout.operator("image.read_viewlayers")
@@ -211,7 +210,16 @@ class IMAGE_MT_image(Menu):
 
         layout.separator()
 
+        has_image_clipboard = False
         if sys.platform[:3] == "win":
+            has_image_clipboard = True
+        else:
+            from _bpy import _ghost_backend
+            if _ghost_backend() == 'WAYLAND':
+                has_image_clipboard = True
+            del _ghost_backend
+
+        if has_image_clipboard:
             layout.operator("image.clipboard_copy", text="Copy")
             layout.operator("image.clipboard_paste", text="Paste")
             layout.separator()
@@ -304,6 +312,11 @@ class IMAGE_MT_uvs_transform(Menu):
         layout.separator()
 
         layout.operator("transform.shear")
+
+        layout.separator()
+
+        layout.operator("transform.vert_slide")
+        layout.operator("transform.edge_slide")
 
         layout.separator()
 
@@ -522,6 +535,16 @@ class IMAGE_MT_uvs_context_menu(Menu):
 
         # UV Edit Mode
         if sima.show_uvedit:
+            ts = context.tool_settings
+            if ts.use_uv_select_sync:
+                is_vert_mode, is_edge_mode, _ = ts.mesh_select_mode
+            else:
+                uv_select_mode = ts.uv_select_mode
+                is_vert_mode = uv_select_mode == 'VERTEX'
+                is_edge_mode = uv_select_mode == 'EDGE'
+                # is_face_mode = uv_select_mode == 'FACE'
+                # is_island_mode = uv_select_mode == 'ISLAND'
+
             # Add
             layout.operator("uv.unwrap")
             layout.operator("uv.follow_active_quads")
@@ -544,6 +567,18 @@ class IMAGE_MT_uvs_context_menu(Menu):
             layout.operator_enum("uv.align", "axis")  # W, 2/3/4.
 
             layout.separator()
+
+            if is_vert_mode or is_edge_mode:
+                layout.operator_context = 'INVOKE_DEFAULT'
+
+                if is_vert_mode:
+                    layout.operator("transform.vert_slide")
+
+                if is_edge_mode:
+                    layout.operator("transform.edge_slide")
+
+                layout.operator_context = 'EXEC_REGION_WIN'
+                layout.separator()
 
             # Remove
             layout.menu("IMAGE_MT_uvs_merge")
@@ -678,10 +713,6 @@ class IMAGE_HT_tool_header(Header):
                 layout.popover("IMAGE_PT_tools_brush_display")
                 layout.popover("IMAGE_PT_tools_brush_texture")
                 layout.popover("IMAGE_PT_tools_mask_texture")
-        elif tool_mode == 'UV':
-            if (tool is not None) and tool.has_datablock:
-                layout.popover("IMAGE_PT_uv_sculpt_curve")
-                layout.popover("IMAGE_PT_uv_sculpt_options")
 
     def draw_mode_settings(self, context):
         layout = self.layout
@@ -870,7 +901,7 @@ class IMAGE_HT_header(Header):
                 row.prop(sima, "show_stereo_3d", text="")
             if show_maskedit:
                 row = layout.row()
-                row.popover(panel='IMAGE_PT_mask_display')
+                row.popover(panel="IMAGE_PT_mask_display")
 
             # layers.
             layout.template_image_layers(ima, iuser)
@@ -979,23 +1010,25 @@ class IMAGE_PT_snapping(Panel):
 
         layout = self.layout
         col = layout.column()
-        col.label(text="Snapping")
+        col.label(text="Snap Target")
         col.prop(tool_settings, "snap_uv_element", expand=True)
 
         if tool_settings.snap_uv_element != 'INCREMENT':
-            col.label(text="Target")
+            col.label(text="Snap Base")
             row = col.row(align=True)
             row.prop(tool_settings, "snap_target", expand=True)
 
         col.separator()
-        if 'INCREMENT' in tool_settings.snap_uv_element:
-            col.prop(tool_settings, "use_snap_uv_grid_absolute")
 
         col.label(text="Affect")
         row = col.row(align=True)
         row.prop(tool_settings, "use_snap_translate", text="Move", toggle=True)
         row.prop(tool_settings, "use_snap_rotate", text="Rotate", toggle=True)
         row.prop(tool_settings, "use_snap_scale", text="Scale", toggle=True)
+        col.label(text="Rotation Increment")
+        row = col.row(align=True)
+        row.prop(tool_settings, "snap_angle_increment_2d", text="")
+        row.prop(tool_settings, "snap_angle_increment_2d_precision", text="")
 
 
 class IMAGE_PT_proportional_edit(Panel):
@@ -1306,50 +1339,21 @@ class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
         row.prop(ipaint, "tile_y", text="Y", toggle=True)
 
 
-class UVSculptPanel(UnifiedPaintPanel):
-    @classmethod
-    def poll(cls, context):
-        return cls.get_brush_mode(context) == 'UV_SCULPT'
-
-
-class IMAGE_PT_uv_sculpt_brush_select(Panel, BrushSelectPanel, ImagePaintPanel, UVSculptPanel):
-    bl_context = ".uv_sculpt"
-    bl_category = "Tool"
-    bl_label = "Brushes"
-
-
-class IMAGE_PT_uv_sculpt_brush_settings(Panel, ImagePaintPanel, UVSculptPanel):
-    bl_context = ".uv_sculpt"
-    bl_category = "Tool"
-    bl_label = "Brush Settings"
-
-    def draw(self, context):
-        layout = self.layout
-
-        tool_settings = context.tool_settings
-        uvsculpt = tool_settings.uv_sculpt
-
-        brush = uvsculpt.brush
-
-        brush_settings(layout.column(), context, brush)
-
-        if brush:
-            if brush.uv_sculpt_tool == 'RELAX':
-                # Although this settings is stored in the scene,
-                # it is only used by a single tool,
-                # so it doesn't make sense from a user perspective to move it to the Options panel.
-                layout.prop(tool_settings, "uv_relax_method")
-
-
-class IMAGE_PT_uv_sculpt_curve(Panel, FalloffPanel, ImagePaintPanel, UVSculptPanel):
+class IMAGE_PT_uv_sculpt_curve(Panel, ImagePaintPanel):
     bl_context = ".uv_sculpt"  # Dot on purpose (access from top-bar).
-    bl_parent_id = "IMAGE_PT_uv_sculpt_brush_settings"
     bl_category = "Tool"
     bl_label = "Falloff"
     bl_options = {'DEFAULT_CLOSED'}
 
+    def draw(self, context):
+        layout = self.layout
+        props = context.scene.tool_settings.uv_sculpt
+        layout.prop(props, "curve_preset", text="")
+        if props.curve_preset == 'CUSTOM':
+            layout.template_curve_mapping(props, "strength_curve")
 
-class IMAGE_PT_uv_sculpt_options(Panel, ImagePaintPanel, UVSculptPanel):
+
+class IMAGE_PT_uv_sculpt_options(Panel, ImagePaintPanel):
     bl_context = ".uv_sculpt"  # Dot on purpose (access from top-bar).
     bl_category = "Tool"
     bl_label = "Options"
@@ -1358,12 +1362,10 @@ class IMAGE_PT_uv_sculpt_options(Panel, ImagePaintPanel, UVSculptPanel):
         layout = self.layout
 
         tool_settings = context.tool_settings
-        uvsculpt = tool_settings.uv_sculpt
 
         col = layout.column()
         col.prop(tool_settings, "uv_sculpt_lock_borders")
         col.prop(tool_settings, "uv_sculpt_all_islands")
-        col.prop(uvsculpt, "show_brush", text="Display Cursor")
 
 
 class ImageScopesPanel:
@@ -1738,8 +1740,6 @@ classes = (
     IMAGE_PT_paint_curve,
     IMAGE_PT_tools_brush_display,
     IMAGE_PT_tools_imagepaint_symmetry,
-    IMAGE_PT_uv_sculpt_brush_select,
-    IMAGE_PT_uv_sculpt_brush_settings,
     IMAGE_PT_uv_sculpt_options,
     IMAGE_PT_uv_sculpt_curve,
     IMAGE_PT_view_histogram,

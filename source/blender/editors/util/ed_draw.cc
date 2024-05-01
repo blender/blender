@@ -31,9 +31,9 @@
 #include "ED_space_api.hh"
 #include "ED_util.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -80,6 +80,10 @@ struct tSlider {
 
   /* How the factor number is drawn. When drawing percent it is factor*100. */
   SliderMode slider_mode;
+
+  /* Optional string that will display next to the slider to indicate which property is modified
+   * right now. */
+  std::string property_label;
 
   /* What unit to add to the slider. */
   char unit_string[SLIDER_UNIT_STRING_SIZE];
@@ -224,19 +228,28 @@ static void draw_backdrop(const int fontid,
                           const rctf *main_line_rect,
                           const uint8_t color_bg[4],
                           const short region_y_size,
-                          const float base_tick_height)
+                          const float base_tick_height,
+                          const std::string &property_label)
 {
-  float string_pixel_size[2];
+  float percent_string_pixel_size[2];
   const char *percentage_string_placeholder = "000%%";
   BLF_width_and_height(fontid,
                        percentage_string_placeholder,
                        sizeof(percentage_string_placeholder),
-                       &string_pixel_size[0],
-                       &string_pixel_size[1]);
-  const float pad[2] = {(region_y_size - base_tick_height) / 2, 2.0f * U.pixelsize};
+                       &percent_string_pixel_size[0],
+                       &percent_string_pixel_size[1]);
+
+  float property_name_pixel_size[2];
+  BLF_width_and_height(fontid,
+                       property_label.c_str(),
+                       property_label.size(),
+                       &property_name_pixel_size[0],
+                       &property_name_pixel_size[1]);
+  const float pad[2] = {(region_y_size - base_tick_height) / 2 + 12.0f * U.pixelsize,
+                        2.0f * U.pixelsize};
   rctf backdrop_rect{};
-  backdrop_rect.xmin = main_line_rect->xmin - string_pixel_size[0] - pad[0];
-  backdrop_rect.xmax = main_line_rect->xmax + pad[0];
+  backdrop_rect.xmin = main_line_rect->xmin - property_name_pixel_size[0] - pad[0];
+  backdrop_rect.xmax = main_line_rect->xmax + percent_string_pixel_size[0] + pad[0];
   backdrop_rect.ymin = pad[1];
   backdrop_rect.ymax = region_y_size - pad[1];
   UI_draw_roundbox_3ub_alpha(&backdrop_rect, true, 4.0f, color_bg, color_bg[3]);
@@ -304,7 +317,12 @@ static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
     handle_pos_x = main_line_rect.xmin + SLIDE_PIXEL_DISTANCE * range_factor;
   }
 
-  draw_backdrop(fontid, &main_line_rect, color_bg, slider->region_header->winy, base_tick_height);
+  draw_backdrop(fontid,
+                &main_line_rect,
+                color_bg,
+                slider->region_header->winy,
+                base_tick_height,
+                slider->property_label);
 
   draw_main_line(&main_line_rect, slider->factor, slider->overshoot, color_overshoot, color_line);
 
@@ -356,11 +374,25 @@ static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
                        &factor_string_pixel_size[0],
                        &factor_string_pixel_size[1]);
 
-  BLF_position(fontid,
-               main_line_rect.xmin - 12.0 * U.pixelsize - factor_string_pixel_size[0],
-               (region->winy / 2) - factor_string_pixel_size[1] / 2,
-               0.0f);
+  const float text_padding = 12.0 * U.pixelsize;
+  const float factor_string_pos_x = main_line_rect.xmax + text_padding;
+  BLF_position(
+      fontid, factor_string_pos_x, (region->winy / 2) - factor_string_pixel_size[1] / 2, 0.0f);
   BLF_draw(fontid, factor_string, sizeof(factor_string));
+
+  if (!slider->property_label.empty()) {
+    float property_name_pixel_size[2];
+    BLF_width_and_height(fontid,
+                         slider->property_label.c_str(),
+                         slider->property_label.length(),
+                         &property_name_pixel_size[0],
+                         &property_name_pixel_size[1]);
+    BLF_position(fontid,
+                 main_line_rect.xmin - text_padding - property_name_pixel_size[0],
+                 (region->winy / 2) - property_name_pixel_size[1] / 2,
+                 0.0f);
+    BLF_draw(fontid, slider->property_label.c_str(), slider->property_label.length());
+  }
 }
 
 static void slider_update_factor(tSlider *slider, const wmEvent *event)
@@ -375,6 +407,10 @@ static void slider_update_factor(tSlider *slider, const wmEvent *event)
   slider->factor = slider->raw_factor;
   copy_v2fl_v2i(slider->last_cursor, event->xy);
 
+  if (slider->increments) {
+    slider->factor = round(slider->factor * 10) / 10;
+  }
+
   if (!slider->overshoot) {
     slider->factor = clamp_f(slider->factor, slider->factor_bounds[0], slider->factor_bounds[1]);
   }
@@ -385,10 +421,6 @@ static void slider_update_factor(tSlider *slider, const wmEvent *event)
     if (!slider->allow_overshoot_upper) {
       slider->factor = min_ff(slider->factor, slider->factor_bounds[1]);
     }
-  }
-
-  if (slider->increments) {
-    slider->factor = round(slider->factor * 10) / 10;
   }
 }
 
@@ -531,7 +563,7 @@ void ED_slider_destroy(bContext *C, tSlider *slider)
 
 /* Setters & Getters */
 
-float ED_slider_factor_get(tSlider *slider)
+float ED_slider_factor_get(const tSlider *slider)
 {
   return slider->factor;
 }
@@ -551,7 +583,7 @@ void ED_slider_allow_overshoot_set(tSlider *slider, const bool lower, const bool
   slider->allow_overshoot_upper = upper;
 }
 
-bool ED_slider_allow_increments_get(tSlider *slider)
+bool ED_slider_allow_increments_get(const tSlider *slider)
 {
   return slider->allow_increments;
 }
@@ -574,7 +606,7 @@ void ED_slider_mode_set(tSlider *slider, SliderMode mode)
   slider->slider_mode = mode;
 }
 
-SliderMode ED_slider_mode_get(tSlider *slider)
+SliderMode ED_slider_mode_get(const tSlider *slider)
 {
   return slider->slider_mode;
 }
@@ -582,6 +614,11 @@ SliderMode ED_slider_mode_get(tSlider *slider)
 void ED_slider_unit_set(tSlider *slider, const char *unit)
 {
   STRNCPY(slider->unit_string, unit);
+}
+
+void ED_slider_property_label_set(tSlider *slider, const char *property_label)
+{
+  slider->property_label.assign(property_label);
 }
 
 /** \} */
@@ -731,7 +768,7 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
           BLF_enable(fontid, BLF_WORD_WRAP);
           BLF_wordwrap(fontid, ibuf->x - (margin * 2));
           BLF_position(fontid, xmin, ymax - vertical_offset - ofs_y, 0.0f);
-          BLF_draw_ex(fontid, temp_str, sizeof(temp_str), &info);
+          BLF_draw(fontid, temp_str, sizeof(temp_str), &info);
           BLF_wordwrap(fontid, 0);
           BLF_disable(fontid, BLF_WORD_WRAP);
           ofs_y += vertical_offset * info.lines;
@@ -804,7 +841,7 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
 
           BLF_enable(fontid, BLF_WORD_WRAP);
           BLF_wordwrap(fontid, ibuf->x - (margin * 2));
-          BLF_boundbox_ex(fontid, str, sizeof(str), &wrap.rect, &wrap.info);
+          BLF_boundbox(fontid, str, sizeof(str), &wrap.rect, &wrap.info);
           BLF_wordwrap(fontid, 0);
           BLF_disable(fontid, BLF_WORD_WRAP);
 
@@ -868,7 +905,7 @@ void ED_region_image_metadata_draw(
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_blend(GPU_BLEND_ALPHA);
-    immUniformThemeColor(TH_METADATA_BG);
+    immUniformThemeColorAlpha(TH_METADATA_BG, 1.0f);
     immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     immUnbindProgram();
 
@@ -895,7 +932,7 @@ void ED_region_image_metadata_draw(
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     GPU_blend(GPU_BLEND_ALPHA);
-    immUniformThemeColor(TH_METADATA_BG);
+    immUniformThemeColorAlpha(TH_METADATA_BG, 1.0f);
     immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
     immUnbindProgram();
 

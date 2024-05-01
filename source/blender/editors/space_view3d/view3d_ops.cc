@@ -32,7 +32,7 @@
 #include "ED_screen.hh"
 #include "ED_transform.hh"
 
-#include "view3d_intern.h"
+#include "view3d_intern.hh"
 #include "view3d_navigate.hh"
 
 #ifdef WIN32
@@ -174,8 +174,8 @@ void view3d_operatortypes()
   WM_operatortype_append(VIEW3D_OT_view_roll);
   WM_operatortype_append(VIEW3D_OT_view_pan);
   WM_operatortype_append(VIEW3D_OT_view_persportho);
-  WM_operatortype_append(VIEW3D_OT_background_image_add);
-  WM_operatortype_append(VIEW3D_OT_background_image_remove);
+  WM_operatortype_append(VIEW3D_OT_camera_background_image_add);
+  WM_operatortype_append(VIEW3D_OT_camera_background_image_remove);
   WM_operatortype_append(VIEW3D_OT_drop_world);
   WM_operatortype_append(VIEW3D_OT_view_selected);
   WM_operatortype_append(VIEW3D_OT_view_lock_clear);

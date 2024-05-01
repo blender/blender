@@ -17,8 +17,8 @@
 #include "BLI_set.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_anim_data.h"
-#include "BKE_idprop.h"
+#include "BKE_anim_data.hh"
+#include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -52,7 +52,7 @@ struct LibraryForeachIDData {
 
   /* Function to call for every ID pointers of current processed data, and its opaque user data
    * pointer. */
-  LibraryIDLinkCallback callback;
+  blender::FunctionRef<LibraryIDLinkCallback> callback;
   void *user_data;
   /** Store the returned value from the callback, to decide how to continue the processing of ID
    * pointers for current data. */
@@ -132,7 +132,7 @@ int BKE_lib_query_foreachid_process_callback_flag_override(LibraryForeachIDData 
 static bool library_foreach_ID_link(Main *bmain,
                                     ID *owner_id,
                                     ID *id,
-                                    LibraryIDLinkCallback callback,
+                                    blender::FunctionRef<LibraryIDLinkCallback> callback,
                                     void *user_data,
                                     int flag,
                                     LibraryForeachIDData *inherit_data);
@@ -198,7 +198,7 @@ static void library_foreach_ID_data_cleanup(LibraryForeachIDData *data)
 static bool library_foreach_ID_link(Main *bmain,
                                     ID *owner_id,
                                     ID *id,
-                                    LibraryIDLinkCallback callback,
+                                    blender::FunctionRef<LibraryIDLinkCallback> callback,
                                     void *user_data,
                                     int flag,
                                     LibraryForeachIDData *inherit_data)
@@ -260,7 +260,7 @@ static bool library_foreach_ID_link(Main *bmain,
     data.self_id = id;
     /* Note that we may call this functions sometime directly on an embedded ID, without any
      * knowledge of the owner ID then.
-     * While not great, and that should be probably sanitized at some point, we cal live with it
+     * While not great, and that should be probably sanitized at some point, we can live with it
      * for now. */
     data.owner_id = ((id->flag & LIB_EMBEDDED_DATA) != 0 && owner_id != nullptr) ? owner_id :
                                                                                    data.self_id;
@@ -344,10 +344,9 @@ static bool library_foreach_ID_link(Main *bmain,
       }
     }
 
-    IDP_foreach_property(id->properties,
-                         IDP_TYPE_FILTER_ID,
-                         BKE_lib_query_idpropertiesForeachIDLink_callback,
-                         &data);
+    IDP_foreach_property(id->properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+      BKE_lib_query_idpropertiesForeachIDLink_callback(prop, &data);
+    });
     if (BKE_lib_query_foreachid_iter_stop(&data)) {
       library_foreach_ID_data_cleanup(&data);
       return false;
@@ -380,8 +379,11 @@ static bool library_foreach_ID_link(Main *bmain,
 #undef CALLBACK_INVOKE
 }
 
-void BKE_library_foreach_ID_link(
-    Main *bmain, ID *id, LibraryIDLinkCallback callback, void *user_data, int flag)
+void BKE_library_foreach_ID_link(Main *bmain,
+                                 ID *id,
+                                 blender::FunctionRef<LibraryIDLinkCallback> callback,
+                                 void *user_data,
+                                 int flag)
 {
   library_foreach_ID_link(bmain, nullptr, id, callback, user_data, flag, nullptr);
 }
@@ -395,6 +397,31 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
   else if (cb_flag & IDWALK_CB_USER_ONE) {
     id_us_ensure_real(id_dst);
   }
+}
+
+void BKE_library_foreach_subdata_id(
+    Main *bmain,
+    ID *owner_id,
+    ID *self_id,
+    blender::FunctionRef<void(LibraryForeachIDData *data)> subdata_foreach_id,
+    blender::FunctionRef<LibraryIDLinkCallback> callback,
+    void *user_data,
+    const int flag)
+{
+  BLI_assert((flag & (IDWALK_RECURSE | IDWALK_DO_INTERNAL_RUNTIME_POINTERS |
+                      IDWALK_DO_LIBRARY_POINTER | IDWALK_INCLUDE_UI)) == 0);
+
+  LibraryForeachIDData data{};
+  data.bmain = bmain;
+  data.owner_id = owner_id;
+  data.self_id = self_id;
+  data.ids_handled = nullptr;
+  data.flag = flag;
+  data.status = 0;
+  data.callback = callback;
+  data.user_data = user_data;
+
+  subdata_foreach_id(&data);
 }
 
 uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id,
@@ -616,7 +643,7 @@ struct UnusedIDsData {
   std::array<int, INDEX_ID_MAX> *num_local;
   std::array<int, INDEX_ID_MAX> *num_linked;
 
-  blender::Set<ID *> unused_ids{};
+  blender::Set<ID *> unused_ids;
 
   UnusedIDsData(Main *bmain, const int id_tag, LibQueryUnusedIDsData &parameters)
       : bmain(bmain),

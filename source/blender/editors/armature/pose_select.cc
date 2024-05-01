@@ -41,6 +41,7 @@
 #include "ED_keyframing.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
+#include "ED_object_vgroup.hh"
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
@@ -142,7 +143,7 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
   bool found = false;
   bool changed = false;
 
-  if (ob || ob->pose) {
+  if (ob->pose) {
     if (bone && ((bone->flag & BONE_UNSELECTABLE) == 0)) {
       found = true;
     }
@@ -233,7 +234,7 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
       /* In weight-paint we select the associated vertex group too. */
       if (ob_act->mode & OB_MODE_ALL_WEIGHT_PAINT) {
         if (bone == arm->act_bone) {
-          ED_vgroup_select_by_name(ob_act, bone->name);
+          blender::ed::object::vgroup_select_by_name(ob_act, bone->name);
           DEG_id_tag_update(&ob_act->id, ID_RECALC_GEOMETRY);
         }
       }
@@ -303,7 +304,7 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
           if ((base_arm != nullptr) && (base_arm != base_select) &&
               (base_arm->flag & BASE_SELECTED))
           {
-            ED_object_base_select(base_arm, BA_DESELECT);
+            blender::ed::object::base_select(base_arm, blender::ed::object::BA_DESELECT);
           }
         }
       }
@@ -321,14 +322,14 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
           if ((base_arm != nullptr) && (base_arm != base_select) &&
               (base_arm->flag & BASE_SELECTED))
           {
-            ED_object_base_select(base_arm, BA_DESELECT);
+            blender::ed::object::base_select(base_arm, blender::ed::object::BA_DESELECT);
           }
         }
       }
     }
   }
   if ((base_select->flag & BASE_SELECTED) == 0) {
-    ED_object_base_select(base_select, BA_SELECT);
+    blender::ed::object::base_select(base_select, blender::ed::object::BA_SELECT);
   }
 }
 
@@ -1180,7 +1181,7 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 
       /* In weight-paint we select the associated vertex group too. */
       if (is_weight_paint) {
-        ED_vgroup_select_by_name(ob_active, pchan_mirror_act->name);
+        blender::ed::object::vgroup_select_by_name(ob_active, pchan_mirror_act->name);
         DEG_id_tag_update(&ob_active->id, ID_RECALC_GEOMETRY);
       }
     }

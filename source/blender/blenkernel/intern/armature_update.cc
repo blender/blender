@@ -24,7 +24,7 @@
 #include "BKE_anim_path.h"
 #include "BKE_armature.hh"
 #include "BKE_curve.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_object_types.hh"
 #include "BKE_scene.hh"
 
@@ -338,7 +338,7 @@ static int position_tail_on_spline(bSplineIKConstraint *ik_data,
   }
 
   /* Calculate the intersection point using the secant root finding method */
-  float x0 = 0.0f, x1 = 1.0f, x2 = 0.5f;
+  float x0 = 0.0f, x1 = 1.0f;
   float x0_point[3], x1_point[3], start_p[3];
   float epsilon = max_fff(1.0f, len_v3(head_pos), len_v3(bp->vec)) * FLT_EPSILON;
 
@@ -364,7 +364,7 @@ static int position_tail_on_spline(bSplineIKConstraint *ik_data,
       break;
     }
 
-    x2 = x1 - f_x1 * (x1 - x0) / (f_x1 - f_x0);
+    const float x2 = x1 - f_x1 * (x1 - x0) / (f_x1 - f_x0);
     x0 = x1;
     x1 = x2;
   }

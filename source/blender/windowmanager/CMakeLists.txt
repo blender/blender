@@ -49,6 +49,7 @@ set(SRC
   intern/wm_operator_utils.cc
   intern/wm_operators.cc
   intern/wm_panel_type.cc
+  intern/wm_platform.cc
   intern/wm_platform_support.cc
   intern/wm_playanim.cc
   intern/wm_splash_screen.cc

@@ -31,7 +31,11 @@ static const pxr::TfToken preview_shader("previewShader", pxr::TfToken::Immortal
 static const pxr::TfToken preview_surface("UsdPreviewSurface", pxr::TfToken::Immortal);
 static const pxr::TfToken roughness("roughness", pxr::TfToken::Immortal);
 static const pxr::TfToken surface("surface", pxr::TfToken::Immortal);
+<<<<<<< HEAD
 static const pxr::TfToken blenderName("userProperties:blenderName", pxr::TfToken::Immortal);
+=======
+static const pxr::TfToken blender_ns("userProperties:blender", pxr::TfToken::Immortal);
+>>>>>>> main
 }  // namespace usdtokens
 
 namespace {
@@ -77,6 +81,7 @@ static std::string get_mesh_active_uvlayer_name(const Object *ob)
   return name ? name : "";
 }
 
+<<<<<<< HEAD
 static void create_vector_attrib(const pxr::UsdPrim &prim,
                                  const IDProperty *prop,
                                  const pxr::TfToken &prop_token,
@@ -149,6 +154,110 @@ static void create_vector_attrib(const pxr::UsdPrim &prim,
   if (!success) {
     printf("WARNING: Couldn't set USD attribute from array property %s.\n",
            prop_token.GetString().c_str());
+    return;
+  }
+}
+=======
+template<typename USDT>
+bool set_vec_attrib(const pxr::UsdPrim &prim,
+                    const IDProperty *prop,
+                    const pxr::TfToken &prop_token,
+                    const pxr::SdfValueTypeName &type_name,
+                    const pxr::UsdTimeCode &timecode)
+{
+  if (!prim || !prop || !prop->data.pointer || prop_token.IsEmpty() || !type_name) {
+    return false;
+  }
+
+  pxr::UsdAttribute vec_attr = prim.CreateAttribute(prop_token, type_name, true);
+
+  if (!vec_attr) {
+    CLOG_WARN(&LOG,
+              "Couldn't create USD attribute for array property %s",
+              prop_token.GetString().c_str());
+    return false;
+  }
+
+  USDT vec_value(static_cast<typename USDT::ScalarType *>(prop->data.pointer));
+
+  return vec_attr.Set(vec_value, timecode);
+}
+
+namespace blender::io::usd {
+>>>>>>> main
+
+static void create_vector_attrib(const pxr::UsdPrim &prim,
+                                 const IDProperty *prop,
+                                 const pxr::TfToken &prop_token,
+                                 const pxr::UsdTimeCode &timecode)
+{
+  if (!prim || !prop || prop_token.IsEmpty()) {
+    return;
+  }
+
+  if (prop->type != IDP_ARRAY) {
+    CLOG_WARN(&LOG,
+              "Property %s is not an array type and can't be converted to a vector attribute",
+              prop->name);
+    return;
+  }
+
+  pxr::SdfValueTypeName type_name;
+  bool success = false;
+
+  if (prop->subtype == IDP_FLOAT) {
+    if (prop->len == 2) {
+      type_name = pxr::SdfValueTypeNames->Float2;
+      success = set_vec_attrib<pxr::GfVec2f>(prim, prop, prop_token, type_name, timecode);
+    }
+    else if (prop->len == 3) {
+      type_name = pxr::SdfValueTypeNames->Float3;
+      success = set_vec_attrib<pxr::GfVec3f>(prim, prop, prop_token, type_name, timecode);
+    }
+    else if (prop->len == 4) {
+      type_name = pxr::SdfValueTypeNames->Float4;
+      success = set_vec_attrib<pxr::GfVec4f>(prim, prop, prop_token, type_name, timecode);
+    }
+  }
+  else if (prop->subtype == IDP_DOUBLE) {
+    if (prop->len == 2) {
+      type_name = pxr::SdfValueTypeNames->Double2;
+      success = set_vec_attrib<pxr::GfVec2d>(prim, prop, prop_token, type_name, timecode);
+    }
+    else if (prop->len == 3) {
+      type_name = pxr::SdfValueTypeNames->Double3;
+      success = set_vec_attrib<pxr::GfVec3d>(prim, prop, prop_token, type_name, timecode);
+    }
+    else if (prop->len == 4) {
+      type_name = pxr::SdfValueTypeNames->Double4;
+      success = set_vec_attrib<pxr::GfVec4d>(prim, prop, prop_token, type_name, timecode);
+    }
+  }
+  else if (prop->subtype == IDP_INT) {
+    if (prop->len == 2) {
+      type_name = pxr::SdfValueTypeNames->Int2;
+      success = set_vec_attrib<pxr::GfVec2i>(prim, prop, prop_token, type_name, timecode);
+    }
+    else if (prop->len == 3) {
+      type_name = pxr::SdfValueTypeNames->Int3;
+      success = set_vec_attrib<pxr::GfVec3i>(prim, prop, prop_token, type_name, timecode);
+    }
+    else if (prop->len == 4) {
+      type_name = pxr::SdfValueTypeNames->Int4;
+      success = set_vec_attrib<pxr::GfVec4i>(prim, prop, prop_token, type_name, timecode);
+    }
+  }
+
+  if (!type_name) {
+    CLOG_WARN(&LOG,
+              "Couldn't determine USD type name for array property %s",
+              prop_token.GetString().c_str());
+    return;
+  }
+
+  if (!success) {
+    CLOG_WARN(
+        &LOG, "Couldn't set USD attribute from array property %s", prop_token.GetString().c_str());
     return;
   }
 }
@@ -266,6 +375,7 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
   usd_material = create_usd_material(
       usd_export_context_, usd_path, material, active_uv, reports());
 
+<<<<<<< HEAD
   if (!computed_name.empty()) {
     /* Write the displayName here, allowing for it to be
      * overridden below through a custom id property. */
@@ -277,6 +387,10 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
     auto prim = usd_material.GetPrim();
     write_id_properties(prim, material->id, get_export_time_code());
   }
+=======
+  auto prim = usd_material.GetPrim();
+  write_id_properties(prim, material->id, get_export_time_code());
+>>>>>>> main
 
   return usd_material;
 }
@@ -337,6 +451,7 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
   return true;
 }
 
+<<<<<<< HEAD
 void USDAbstractWriter::write_id_properties(pxr::UsdPrim &prim,
                                             const ID &id,
                                             pxr::UsdTimeCode timecode)
@@ -345,18 +460,37 @@ void USDAbstractWriter::write_id_properties(pxr::UsdPrim &prim,
     if (GS(id.name) == ID_OB) {
       // Author property of original blenderName
       prim.CreateAttribute(pxr::TfToken(usdtokens::blenderName.GetString() + ":object"),
+=======
+void USDAbstractWriter::write_id_properties(const pxr::UsdPrim &prim,
+                                            const ID &id,
+                                            pxr::UsdTimeCode timecode) const
+{
+  if (!usd_export_context_.export_params.export_custom_properties) {
+    return;
+  }
+
+  if (usd_export_context_.export_params.author_blender_name) {
+    if (GS(id.name) == ID_OB) {
+      /* Author property of original blender Object name. */
+      prim.CreateAttribute(pxr::TfToken(usdtokens::blender_ns.GetString() + ":object_name"),
+>>>>>>> main
                            pxr::SdfValueTypeNames->String,
                            true)
           .Set<std::string>(std::string(id.name + 2));
     }
     else {
+<<<<<<< HEAD
       prim.CreateAttribute(pxr::TfToken(usdtokens::blenderName.GetString() + ":data"),
+=======
+      prim.CreateAttribute(pxr::TfToken(usdtokens::blender_ns.GetString() + ":data_name"),
+>>>>>>> main
                            pxr::SdfValueTypeNames->String,
                            true)
           .Set<std::string>(std::string(id.name + 2));
     }
   }
 
+<<<<<<< HEAD
   if (id.properties)
     write_user_properties(prim, id, timecode);
 }
@@ -367,6 +501,17 @@ void USDAbstractWriter::write_user_properties(pxr::UsdPrim &prim,
 {
   IDProperty *properties = id.properties;
 
+=======
+  if (id.properties) {
+    write_user_properties(prim, id.properties, timecode);
+  }
+}
+
+void USDAbstractWriter::write_user_properties(const pxr::UsdPrim &prim,
+                                              IDProperty *properties,
+                                              pxr::UsdTimeCode timecode) const
+{
+>>>>>>> main
   if (properties == nullptr) {
     return;
   }
@@ -375,6 +520,7 @@ void USDAbstractWriter::write_user_properties(pxr::UsdPrim &prim,
     return;
   }
 
+<<<<<<< HEAD
   const StringRef kind_identifier = "usdkind";
   const StringRef displayName_identifier = "displayName";
 
@@ -391,21 +537,33 @@ void USDAbstractWriter::write_user_properties(pxr::UsdPrim &prim,
       continue;
     }
 
+=======
+  const StringRef displayName_identifier = "displayName";
+
+  for (IDProperty *prop = (IDProperty *)properties->data.group.first; prop; prop = prop->next) {
+>>>>>>> main
     if (displayName_identifier == prop->name) {
       if (prop->type == IDP_STRING && prop->data.pointer) {
         prim.SetDisplayName(static_cast<char *>(prop->data.pointer));
       }
+<<<<<<< HEAD
       found_display_name = true;
+=======
+>>>>>>> main
       continue;
     }
 
     std::string prop_name = pxr::TfMakeValidIdentifier(prop->name);
+<<<<<<< HEAD
 
     std::string full_prop_name;
     if (usd_export_context_.export_params.add_properties_namespace) {
       full_prop_name = "userProperties:";
     }
     full_prop_name += prop_name;
+=======
+    std::string full_prop_name = "userProperties:" + prop_name;
+>>>>>>> main
 
     pxr::TfToken prop_token = pxr::TfToken(full_prop_name);
 
@@ -444,6 +602,16 @@ void USDAbstractWriter::write_user_properties(pxr::UsdPrim &prim,
           str_attr.Set<std::string>(static_cast<const char *>(prop->data.pointer), timecode);
         }
         break;
+<<<<<<< HEAD
+=======
+      case IDP_BOOLEAN:
+        if (pxr::UsdAttribute bool_attr = prim.CreateAttribute(
+                prop_token, pxr::SdfValueTypeNames->Bool, true))
+        {
+          bool_attr.Set<bool>(prop->data.val, timecode);
+        }
+        break;
+>>>>>>> main
       case IDP_ARRAY:
         create_vector_attrib(prim, prop, prop_token, timecode);
         break;

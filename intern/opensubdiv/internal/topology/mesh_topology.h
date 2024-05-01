@@ -7,15 +7,13 @@
 #ifndef OPENSUBDIV_MESH_TOPOLOGY_H_
 #define OPENSUBDIV_MESH_TOPOLOGY_H_
 
-#include <cstring>
+#include <vector>
 
 #include "internal/base/memory.h"
-#include "internal/base/type.h"
 
 struct OpenSubdiv_Converter;
 
-namespace blender {
-namespace opensubdiv {
+namespace blender::opensubdiv {
 
 // Simplified representation of mesh topology.
 // Only includes parts of actual mesh topology which is needed to perform
@@ -93,7 +91,7 @@ class MeshTopology {
                                 int num_expected_face_vertex_indices,
                                 const int *expected_face_vertex_indices) const;
   bool isFaceVertexIndicesEqual(int face_index,
-                                const vector<int> &expected_face_vertex_indices) const;
+                                const std::vector<int> &expected_face_vertex_indices) const;
 
   //////////////////////////////////////////////////////////////////////////////
   // Pipeline related.
@@ -142,26 +140,25 @@ class MeshTopology {
   };
 
   int num_vertices_;
-  vector<VertexTag> vertex_tags_;
+  std::vector<VertexTag> vertex_tags_;
 
   int num_edges_;
-  vector<Edge> edges_;
-  vector<EdgeTag> edge_tags_;
+  std::vector<Edge> edges_;
+  std::vector<EdgeTag> edge_tags_;
 
   int num_faces_;
 
   // Continuous array of all vertices of all faces:
   //  [vertex indices of face 0][vertex indices of face 1] .. [vertex indices of face n].
-  vector<int> face_vertex_indices_;
+  std::vector<int> face_vertex_indices_;
 
   // Indexed by face contains index within face_vertex_indices_ which corresponds
   // to the element which contains first vertex of the face.
-  vector<int> faces_first_vertex_index_;
+  std::vector<int> faces_first_vertex_index_;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MeshTopology");
 };
 
-}  // namespace opensubdiv
-}  // namespace blender
+}  // namespace blender::opensubdiv
 
 #endif  // OPENSUBDIV_MESH_TOPOLOGY_H_

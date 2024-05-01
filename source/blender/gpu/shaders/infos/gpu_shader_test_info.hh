@@ -10,7 +10,7 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_shader_test)
-    .typedef_source("GPU_shader_shared.h")
+    .typedef_source("GPU_shader_shared.hh")
     .fragment_out(0, Type::UVEC4, "out_test")
     .additional_info("draw_fullscreen");
 
@@ -84,6 +84,11 @@ GPU_SHADER_CREATE_INFO(gpu_push_constants_256bytes_test)
 GPU_SHADER_CREATE_INFO(gpu_push_constants_512bytes_test)
     .additional_info("gpu_push_constants_256bytes_test")
     .push_constant(Type::FLOAT, "filler3", 64)
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(gpu_push_constants_8192bytes_test)
+    .additional_info("gpu_push_constants_512bytes_test")
+    .push_constant(Type::FLOAT, "filler4", 1920)
     .do_static_compilation(true);
 
 GPU_SHADER_CREATE_INFO(gpu_buffer_texture_test)

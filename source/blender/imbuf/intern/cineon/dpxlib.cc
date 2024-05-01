@@ -54,7 +54,7 @@ static void fillDpxMainHeader(LogImageFile *dpx,
   header->fileHeader.offset = swap_uint(dpx->element[0].dataOffset, dpx->isMSB);
   STRNCPY(header->fileHeader.version, "V2.0");
   header->fileHeader.file_size = swap_uint(
-      dpx->element[0].dataOffset + dpx->height * getRowLength(dpx->width, dpx->element[0]),
+      dpx->element[0].dataOffset + dpx->height * getRowLength(dpx->width, &dpx->element[0]),
       dpx->isMSB);
   header->fileHeader.ditto_key = 0;
   header->fileHeader.gen_hdr_size = swap_uint(

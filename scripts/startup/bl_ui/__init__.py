@@ -61,6 +61,7 @@ _modules = [
     "properties_texture",
     "properties_world",
     "properties_collection",
+    "temp_anim_layers",
     "generic_ui_list",
 
     # Generic Space Modules
@@ -121,6 +122,7 @@ def register():
             register_class(cls)
 
     space_filebrowser.register_props()
+    temp_anim_layers.register_props()
 
     from bpy.props import (
         EnumProperty,
@@ -222,7 +224,7 @@ class UI_UL_list(bpy.types.UIList):
             flags = [0] * len(items)
 
         # Implicitly add heading/trailing wildcards.
-        pattern_regex = re.compile(fnmatch.translate("*" + pattern + "*"))
+        pattern_regex = re.compile(fnmatch.translate("*" + pattern + "*"), re.IGNORECASE)
 
         for i, item in enumerate(items):
             name = getattr(item, propname, None)

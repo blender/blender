@@ -13,7 +13,6 @@ CryptomatteOperation::CryptomatteOperation(size_t num_inputs)
     this->add_input_socket(DataType::Color);
   }
   this->add_output_socket(DataType::Color);
-  flags_.complex = true;
   flags_.can_be_constant = true;
 }
 
@@ -28,33 +27,6 @@ void CryptomatteOperation::add_object_index(float object_index)
 {
   if (object_index != 0.0f) {
     object_index_.append(object_index);
-  }
-}
-
-void CryptomatteOperation::execute_pixel(float output[4], int x, int y, void *data)
-{
-  float input[4];
-  output[0] = output[1] = output[2] = output[3] = 0.0f;
-  for (size_t i = 0; i < inputs.size(); i++) {
-    inputs[i]->read(input, x, y, data);
-    if (i == 0) {
-      /* Write the front-most object as false color for picking. */
-      output[0] = input[0];
-      uint32_t m3hash;
-      ::memcpy(&m3hash, &input[0], sizeof(uint32_t));
-      /* Since the red channel is likely to be out of display range,
-       * setting green and blue gives more meaningful images. */
-      output[1] = (float(m3hash << 8) / float(UINT32_MAX));
-      output[2] = (float(m3hash << 16) / float(UINT32_MAX));
-    }
-    for (float hash : object_index_) {
-      if (input[0] == hash) {
-        output[3] += input[1];
-      }
-      if (input[2] == hash) {
-        output[3] += input[3];
-      }
-    }
   }
 }
 

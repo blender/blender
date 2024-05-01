@@ -87,20 +87,13 @@ class DATA_UL_bone_collections(UIList):
         active_bone = armature.edit_bones.active or armature.bones.active
         has_active_bone = active_bone and bcoll.name in active_bone.collections
 
-        layout.prop(bcoll, "name", text="", emboss=False,
-                    icon='DOT' if has_active_bone else 'BLANK1')
+        layout.prop(bcoll, "name", text="", emboss=False, icon='DOT' if has_active_bone else 'BLANK1')
 
         if armature.override_library:
             icon = 'LIBRARY_DATA_OVERRIDE' if bcoll.is_local_override else 'BLANK1'
-            layout.prop(
-                bcoll,
-                "is_local_override",
-                text="",
-                emboss=False,
-                icon=icon)
+            layout.prop(bcoll, "is_local_override", text="", emboss=False, icon=icon)
 
-        layout.prop(bcoll, "is_visible", text="", emboss=False,
-                    icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
+        layout.prop(bcoll, "is_visible", text="", emboss=False, icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
 
 
 class DATA_PT_bone_collections(ArmatureButtonsPanel, Panel):
@@ -165,7 +158,7 @@ class ARMATURE_MT_collection_tree_context_menu(Menu):
         # editable or not. That means this menu has to do the disabling for it.
         sub = layout.column()
         sub.enabled = not active_bcoll_is_locked
-        sub.operator("armature.collection_add", text="Add Child Collection")
+        sub.operator("armature.collection_add", text="Add Bone Collection")
         sub.operator("armature.collection_remove")
         sub.operator("armature.collection_remove_unused", text="Remove Unused Collections")
 
@@ -188,6 +181,9 @@ class ARMATURE_MT_collection_tree_context_menu(Menu):
 
         layout.operator("armature.collection_select", text="Select Bones")
         layout.operator("armature.collection_deselect", text="Deselect Bones")
+
+        layout.separator()
+        layout.operator("UI_OT_view_item_rename", text="Rename")
 
 
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):

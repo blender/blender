@@ -25,7 +25,7 @@
 
 #include "WM_api.hh"
 
-#include "screen_intern.h"
+#include "screen_intern.hh"
 
 int screen_geom_area_height(const ScrArea *area)
 {

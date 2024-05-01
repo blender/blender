@@ -24,7 +24,7 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
     bl_label = "Freestyle"
     bl_options = {'DEFAULT_CLOSED'}
     bl_order = 10
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         rd = context.scene.render
@@ -754,8 +754,7 @@ class VIEWLAYER_PT_freestyle_linestyle_color(ViewLayerFreestyleLineStyle, Panel)
 
             elif modifier.type == 'MATERIAL':
                 row = box.row()
-                row.prop(modifier, "material_attribute",
-                         text="Material Attribute")
+                row.prop(modifier, "material_attribute", text="Material Attribute")
                 sub = box.column()
                 sub.prop(modifier, "use_ramp")
                 if modifier.material_attribute in {'LINE', 'DIFF', 'SPEC'}:

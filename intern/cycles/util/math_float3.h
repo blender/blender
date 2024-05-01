@@ -309,6 +309,11 @@ ccl_device_inline float3 fabs(const float3 a)
 #  endif
 }
 
+ccl_device_inline float3 fmod(const float3 a, const float b)
+{
+  return make_float3(fmodf(a.x, b), fmodf(a.y, b), fmodf(a.z, b));
+}
+
 ccl_device_inline float3 sqrt(const float3 a)
 {
 #  ifdef __KERNEL_SSE__
@@ -455,7 +460,7 @@ ccl_device_inline float reduce_add(const float3 a)
 {
 #if defined(__KERNEL_SSE__) && defined(__KERNEL_NEON__)
   __m128 t = a.m128;
-  t[3] = 0.0f;
+  t = vsetq_lane_f32(0.0f, t, 3);
   return vaddvq_f32(t);
 #else
   return (a.x + a.y + a.z);

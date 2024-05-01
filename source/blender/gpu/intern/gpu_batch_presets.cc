@@ -13,8 +13,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_batch.h"
-#include "GPU_batch_presets.h" /* Own include. */
+#include "GPU_batch.hh"
+#include "GPU_batch_presets.hh" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name Local Structures
@@ -23,11 +23,11 @@
 /* Struct to store 3D Batches and their format */
 static struct {
   struct {
-    GPUBatch *sphere_high;
-    GPUBatch *sphere_med;
-    GPUBatch *sphere_low;
-    GPUBatch *sphere_wire_low;
-    GPUBatch *sphere_wire_med;
+    blender::gpu::Batch *sphere_high;
+    blender::gpu::Batch *sphere_med;
+    blender::gpu::Batch *sphere_low;
+    blender::gpu::Batch *sphere_wire_low;
+    blender::gpu::Batch *sphere_wire_med;
   } batch;
 
   GPUVertFormat format;
@@ -41,8 +41,8 @@ static struct {
 
 static struct {
   struct {
-    GPUBatch *panel_drag_widget;
-    GPUBatch *quad;
+    blender::gpu::Batch *panel_drag_widget;
+    blender::gpu::Batch *quad;
   } batch;
 
   float panel_drag_widget_pixelsize;
@@ -101,7 +101,7 @@ static void batch_sphere_lat_lon_vert(GPUVertBufRaw *pos_step,
   copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(pos_step)), pos);
   copy_v3_v3(static_cast<float *>(GPU_vertbuf_raw_step(nor_step)), pos);
 }
-GPUBatch *GPU_batch_preset_sphere(int lod)
+blender::gpu::Batch *GPU_batch_preset_sphere(int lod)
 {
   BLI_assert(lod >= 0 && lod <= 2);
   BLI_assert(BLI_thread_is_main());
@@ -116,7 +116,7 @@ GPUBatch *GPU_batch_preset_sphere(int lod)
   return g_presets_3d.batch.sphere_high;
 }
 
-GPUBatch *GPU_batch_preset_sphere_wire(int lod)
+blender::gpu::Batch *GPU_batch_preset_sphere_wire(int lod)
 {
   BLI_assert(lod >= 0 && lod <= 1);
   BLI_assert(BLI_thread_is_main());
@@ -134,13 +134,13 @@ GPUBatch *GPU_batch_preset_sphere_wire(int lod)
 /** \name Create Sphere (3D)
  * \{ */
 
-static GPUBatch *gpu_batch_sphere(int lat_res, int lon_res)
+static blender::gpu::Batch *gpu_batch_sphere(int lat_res, int lon_res)
 {
   const float lon_inc = 2 * M_PI / lon_res;
   const float lat_inc = M_PI / lat_res;
   float lon, lat;
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(preset_3d_format());
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_3d_format());
   const uint vbo_len = (lat_res - 1) * lon_res * 6;
   GPU_vertbuf_data_alloc(vbo, vbo_len);
 
@@ -172,13 +172,13 @@ static GPUBatch *gpu_batch_sphere(int lat_res, int lon_res)
   return GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
 }
 
-static GPUBatch *batch_sphere_wire(int lat_res, int lon_res)
+static blender::gpu::Batch *batch_sphere_wire(int lat_res, int lon_res)
 {
   const float lon_inc = 2 * M_PI / lon_res;
   const float lat_inc = M_PI / lat_res;
   float lon, lat;
 
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(preset_3d_format());
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_3d_format());
   const uint vbo_len = (lat_res * lon_res * 2) + ((lat_res - 1) * lon_res * 2);
   GPU_vertbuf_data_alloc(vbo, vbo_len);
 
@@ -239,12 +239,12 @@ static void gpu_batch_preset_rectf_tris_color_ex(GPUVertBufRaw *pos_step,
   copy_v4_v4(static_cast<float *>(GPU_vertbuf_raw_step(col_step)), color);
 }
 
-static GPUBatch *gpu_batch_preset_panel_drag_widget(float pixelsize,
-                                                    const float col_high[4],
-                                                    const float col_dark[4],
-                                                    const float width)
+static blender::gpu::Batch *gpu_batch_preset_panel_drag_widget(float pixelsize,
+                                                               const float col_high[4],
+                                                               const float col_dark[4],
+                                                               const float width)
 {
-  GPUVertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
+  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
   const uint vbo_len = 4 * 2 * (6 * 2);
   GPU_vertbuf_data_alloc(vbo, vbo_len);
 
@@ -281,10 +281,10 @@ static GPUBatch *gpu_batch_preset_panel_drag_widget(float pixelsize,
   return GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
 }
 
-GPUBatch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
-                                             const float col_high[4],
-                                             const float col_dark[4],
-                                             const float width)
+blender::gpu::Batch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
+                                                        const float col_high[4],
+                                                        const float col_dark[4],
+                                                        const float width)
 {
   const bool parameters_changed = (g_presets_2d.panel_drag_widget_pixelsize != pixelsize) ||
                                   (g_presets_2d.panel_drag_widget_width != width) ||
@@ -310,10 +310,10 @@ GPUBatch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
   return g_presets_2d.batch.panel_drag_widget;
 }
 
-GPUBatch *GPU_batch_preset_quad()
+blender::gpu::Batch *GPU_batch_preset_quad()
 {
   if (!g_presets_2d.batch.quad) {
-    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
+    blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
     GPU_vertbuf_data_alloc(vbo, 4);
 
     float pos_data[4][2] = {{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}};
@@ -355,14 +355,14 @@ void gpu_batch_presets_init()
   gpu_batch_presets_register(g_presets_3d.batch.sphere_wire_med);
 }
 
-void gpu_batch_presets_register(GPUBatch *preset_batch)
+void gpu_batch_presets_register(blender::gpu::Batch *preset_batch)
 {
   BLI_mutex_lock(&g_presets_3d.mutex);
   BLI_addtail(&presets_list, BLI_genericNodeN(preset_batch));
   BLI_mutex_unlock(&g_presets_3d.mutex);
 }
 
-bool gpu_batch_presets_unregister(GPUBatch *preset_batch)
+bool gpu_batch_presets_unregister(blender::gpu::Batch *preset_batch)
 {
   BLI_mutex_lock(&g_presets_3d.mutex);
   LISTBASE_FOREACH_BACKWARD (LinkData *, link, &presets_list) {
@@ -380,7 +380,7 @@ bool gpu_batch_presets_unregister(GPUBatch *preset_batch)
 void gpu_batch_presets_exit()
 {
   while (LinkData *link = static_cast<LinkData *>(BLI_pophead(&presets_list))) {
-    GPUBatch *preset = static_cast<GPUBatch *>(link->data);
+    blender::gpu::Batch *preset = static_cast<blender::gpu::Batch *>(link->data);
     GPU_batch_discard(preset);
     MEM_freeN(link);
   }

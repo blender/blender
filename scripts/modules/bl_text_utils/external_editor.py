@@ -14,6 +14,7 @@ def open_external_editor(filepath, line, column, /):
     import subprocess
     from string import Template
     from bpy import context
+    from bpy.app.translations import pgettext_rpt as rpt_
 
     text_editor = context.preferences.filepaths.text_editor
     text_editor_args = context.preferences.filepaths.text_editor_args
@@ -22,13 +23,13 @@ def open_external_editor(filepath, line, column, /):
     assert text_editor
 
     if not text_editor_args:
-        return (
+        return rpt_(
             "Provide text editor argument format in File Paths/Applications Preferences, "
             "see input field tool-tip for more information",
         )
 
     if "$filepath" not in text_editor_args:
-        return "Text Editor Args Format must contain $filepath"
+        return rpt_("Text Editor Args Format must contain $filepath")
 
     args = [text_editor]
     template_vars = {
@@ -42,12 +43,12 @@ def open_external_editor(filepath, line, column, /):
     try:
         args.extend([Template(arg).substitute(**template_vars) for arg in shlex.split(text_editor_args)])
     except BaseException as ex:
-        return "Exception parsing template: %r" % ex
+        return rpt_("Exception parsing template: {!r}").format(ex)
 
     try:
         # With `check=True` if `process.returncode != 0` an exception will be raised.
         subprocess.run(args, check=True)
     except BaseException as ex:
-        return "Exception running external editor: %r" % ex
+        return rpt_("Exception running external editor: {!r}").format(ex)
 
     return ""

@@ -10,7 +10,7 @@
  * 3D Gizmo
  *
  * \brief Gizmo with primitive drawing type (plane, cube, etc.).
- * Currently only plane primitive supported without own handling, use with operator only.
+ * Currently only plane primitive supported without its own handling, use with operator only.
  */
 
 #include "MEM_guardedalloc.h"
@@ -19,10 +19,10 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
+#include "GPU_immediate.hh"
+#include "GPU_matrix.hh"
 #include "GPU_select.hh"
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "RNA_define.hh"
 
@@ -32,7 +32,7 @@
 #include "ED_gizmo_library.hh"
 
 /* own includes */
-#include "../gizmo_library_intern.h"
+#include "../gizmo_library_intern.hh"
 
 static float verts_plane[4][3] = {
     {-1, -1, 0},
@@ -223,7 +223,7 @@ static void gizmo_primitive_setup(wmGizmo *gz)
   /* Default Values. */
   PrimitiveGizmo3D *gz_prim = (PrimitiveGizmo3D *)gz;
   gz_prim->draw_style = ED_GIZMO_PRIMITIVE_STYLE_PLANE;
-  gz_prim->arc_inner_factor = true;
+  gz_prim->arc_inner_factor = 1.0f;
   gz_prim->draw_inner = true;
 }
 
@@ -256,7 +256,7 @@ static void GIZMO_GT_primitive_3d(wmGizmoType *gzt)
 
   gzt->struct_size = sizeof(PrimitiveGizmo3D);
 
-  static EnumPropertyItem rna_enum_draw_style[] = {
+  static const EnumPropertyItem rna_enum_draw_style[] = {
       {ED_GIZMO_PRIMITIVE_STYLE_PLANE, "PLANE", 0, "Plane", ""},
       {ED_GIZMO_PRIMITIVE_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
       {ED_GIZMO_PRIMITIVE_STYLE_ANNULUS, "ANNULUS", 0, "Annulus", ""},

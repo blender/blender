@@ -13,13 +13,17 @@
 
 #include <cstring> /* for #strrchr #strncmp #strstr */
 
+#include "CLG_log.h"
+
 #include "BLI_utildefines.h"
 
 #include "BLI_linklist.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_key_types.h"
+#include "DNA_node_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -28,12 +32,15 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
+#include "BKE_node.hh"
 #include "BKE_report.hh"
 
 #include "BLO_blend_validate.hh"
 #include "BLO_readfile.hh"
 
 #include "readfile.hh"
+
+static CLG_LogRef LOG = {"blo.blend_validate"};
 
 bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 {
@@ -71,14 +78,14 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
     BKE_library_filepath_set(bmain, curlib, curlib->filepath);
     BlendFileReadReport bf_reports{};
     bf_reports.reports = reports;
-    BlendHandle *bh = BLO_blendhandle_from_file(curlib->filepath_abs, &bf_reports);
+    BlendHandle *bh = BLO_blendhandle_from_file(curlib->runtime.filepath_abs, &bf_reports);
 
     if (bh == nullptr) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Library ID %s not found at expected path %s!",
                   curlib->id.name,
-                  curlib->filepath_abs);
+                  curlib->runtime.filepath_abs);
       continue;
     }
 
@@ -119,7 +126,7 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 
         LinkNode *name = names;
         for (; name; name = name->next) {
-          char *str_name = (char *)name->link;
+          const char *str_name = (const char *)name->link;
           if (id->name[2] == str_name[0] && STREQ(str_name, id->name + 2)) {
             break;
           }
@@ -205,4 +212,63 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
   }
 
   return is_valid;
+}
+
+void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList * /*reports*/)
+{
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    bNodeTree *node_tree = ntreeFromID(id_iter);
+    if (node_tree) {
+      if (node_tree->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) {
+        if (!ID_IS_OVERRIDE_LIBRARY(id_iter)) {
+          node_tree->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+        }
+      }
+    }
+
+    if (GS(id_iter->name) == ID_SCE) {
+      Scene *scene = reinterpret_cast<Scene *>(id_iter);
+      if (scene->master_collection &&
+          (scene->master_collection->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE))
+      {
+        scene->master_collection->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+      }
+    }
+  }
+  FOREACH_MAIN_ID_END;
+}
+
+void BLO_main_validate_embedded_flag(Main *bmain, ReportList * /*reports*/)
+{
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    if (id_iter->flag & LIB_EMBEDDED_DATA) {
+      CLOG_ERROR(
+          &LOG, "ID %s is flagged as embedded, while existing in Main data-base", id_iter->name);
+      id_iter->flag &= ~LIB_EMBEDDED_DATA;
+    }
+
+    bNodeTree *node_tree = ntreeFromID(id_iter);
+    if (node_tree) {
+      if ((node_tree->id.flag & LIB_EMBEDDED_DATA) == 0) {
+        CLOG_ERROR(&LOG,
+                   "ID %s has an embedded nodetree which is not flagged as embedded",
+                   id_iter->name);
+        node_tree->id.flag |= LIB_EMBEDDED_DATA;
+      }
+    }
+
+    if (GS(id_iter->name) == ID_SCE) {
+      Scene *scene = reinterpret_cast<Scene *>(id_iter);
+      if (scene->master_collection && (scene->master_collection->id.flag & LIB_EMBEDDED_DATA) == 0)
+      {
+        CLOG_ERROR(&LOG,
+                   "ID %s has an embedded Collection which is not flagged as embedded",
+                   id_iter->name);
+        scene->master_collection->id.flag |= LIB_EMBEDDED_DATA;
+      }
+    }
+  }
+  FOREACH_MAIN_ID_END;
 }

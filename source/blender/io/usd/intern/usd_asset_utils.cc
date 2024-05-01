@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_asset_utils.hh"
+#include "usd.hh"
 
 #include <pxr/usd/ar/asset.h>
 #include <pxr/usd/ar/packageUtils.h>
@@ -201,7 +202,7 @@ bool copy_asset(const char *src,
   if (!ar.CanWriteAssetToPath(dst_path, &why_not)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s: Can't write to asset %s:  %s",
+                "%s: Can't write to asset %s: %s",
                 __func__,
                 dst_path.GetPathString().c_str(),
                 why_not.c_str());
@@ -295,12 +296,9 @@ std::string import_asset(const char *src,
   char dest_dir_path[FILE_MAXDIR];
   STRNCPY(dest_dir_path, import_dir);
 
-  const char *basepath = nullptr;
-
   if (BLI_path_is_rel(import_dir)) {
-    basepath = BKE_main_blendfile_path_from_global();
-
-    if (!basepath || basepath[0] == '\0') {
+    const char *basepath = BKE_main_blendfile_path_from_global();
+    if (basepath[0] == '\0') {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "%s: import directory is relative "
@@ -312,7 +310,10 @@ std::string import_asset(const char *src,
                   src);
       return src;
     }
-    BLI_path_abs(dest_dir_path, basepath);
+    char path_temp[FILE_MAX];
+    STRNCPY(path_temp, dest_dir_path);
+    BLI_path_abs(path_temp, basepath);
+    STRNCPY(dest_dir_path, path_temp);
   }
 
   BLI_path_normalize(dest_dir_path);

@@ -25,10 +25,10 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.hh"
 #include "BKE_screen.hh"
@@ -51,7 +51,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "graph_intern.h" /* own include */
+#include "graph_intern.hh" /* own include */
 
 #define B_REDR 1
 
@@ -1105,8 +1105,6 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
       nullptr,
       0.0,
       0.0,
-      0,
-      0,
       TIP_("Add a Driver Variable to keep track of an input used by the driver"));
   UI_but_func_set(but, driver_add_var_cb, driver, nullptr);
 
@@ -1176,8 +1174,6 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                          nullptr,
                          0.0,
                          0.0,
-                         0.0,
-                         0.0,
                          TIP_("Invalid variable name, click here for details"));
       UI_but_func_set(but, driver_dvar_invalid_name_query_cb, dvar, nullptr); /* XXX: reports? */
     }
@@ -1192,8 +1188,6 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                        UI_UNIT_X,
                        UI_UNIT_Y,
                        nullptr,
-                       0.0,
-                       0.0,
                        0.0,
                        0.0,
                        TIP_("Delete target variable"));
@@ -1271,8 +1265,6 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
       nullptr,
       0.0,
       0.0,
-      0,
-      0,
       TIP_("Force updates of dependencies - Only use this if drivers are not updating correctly"));
   UI_but_func_set(but, driver_update_flags_cb, fcu, nullptr);
 }

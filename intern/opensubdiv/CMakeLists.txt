@@ -37,7 +37,6 @@ if(WITH_OPENSUBDIV)
     # Base.
     internal/base/memory.h
     internal/base/opensubdiv_capi.cc
-    internal/base/type.h
     internal/base/type_convert.cc
     internal/base/type_convert.h
     internal/base/util.cc

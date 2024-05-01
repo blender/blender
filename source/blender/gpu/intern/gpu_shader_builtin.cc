@@ -8,8 +8,8 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_capabilities.h"
-#include "GPU_shader.h"
+#include "GPU_capabilities.hh"
+#include "GPU_shader.hh"
 
 /* Cache of built-in shaders (each is created on first use). */
 static GPUShader *builtin_shaders[GPU_SHADER_CFG_LEN][GPU_SHADER_BUILTIN_LEN] = {{nullptr}};
@@ -87,6 +87,12 @@ static const char *builtin_shader_create_info_name(eGPUBuiltinShader shader)
       return "gpu_shader_2D_nodelink_inst";
     case GPU_SHADER_GPENCIL_STROKE:
       return "gpu_shader_gpencil_stroke";
+    case GPU_SHADER_INDEXBUF_POINTS:
+      return "gpu_shader_index_2d_array_points";
+    case GPU_SHADER_INDEXBUF_LINES:
+      return "gpu_shader_index_2d_array_lines";
+    case GPU_SHADER_INDEXBUF_TRIS:
+      return "gpu_shader_index_2d_array_tris";
     default:
       BLI_assert_unreachable();
       return "";

@@ -17,13 +17,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "../generic/py_capi_utils.h"
 
-#include "gpu_py.h"
+#include "gpu_py.hh"
 
-#include "gpu_py_buffer.h"
+#include "gpu_py_buffer.hh"
 
 #define PYGPU_BUFFER_PROTOCOL
 #define MAX_DIMENSIONS 64

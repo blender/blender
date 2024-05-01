@@ -22,16 +22,16 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 #include "GPU_material.hh"
-#include "GPU_shader.h"
+#include "GPU_shader.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "wm_window.hh"
 
-#include "draw_manager.h"
+#include "draw_manager_c.hh"
 
 #include "CLG_log.h"
 
@@ -85,8 +85,6 @@ static void drw_deferred_shader_compilation_exec(void *custom_data,
 
   while (true) {
     if (worker_status->stop != 0) {
-      /* We don't want user to be able to cancel the compilation
-       * but wm can kill the task if we are closing blender. */
       break;
     }
 
@@ -151,6 +149,13 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
   DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
 
   BLI_spin_lock(&comp->list_lock);
+  LISTBASE_FOREACH (LinkData *, link, &comp->queue) {
+    GPU_material_status_set(static_cast<GPUMaterial *>(link->data), GPU_MAT_CREATED);
+  }
+  LISTBASE_FOREACH (LinkData *, link, &comp->optimize_queue) {
+    GPU_material_optimization_status_set(static_cast<GPUMaterial *>(link->data),
+                                         GPU_MAT_OPTIMIZATION_READY);
+  }
   BLI_freelistN(&comp->queue);
   BLI_freelistN(&comp->optimize_queue);
   BLI_spin_unlock(&comp->list_lock);
@@ -253,6 +258,8 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
     return;
   }
 
+  BLI_assert(GPU_material_status(mat) != GPU_MAT_USE_DEFAULT);
+
   /* Do not defer the compilation if we are rendering for image.
    * deferred rendering is only possible when `evil_C` is available */
   if (DST.draw_ctx.evil_C == nullptr || DRW_state_is_image_render() || !USE_DEFERRED_COMPILATION) {
@@ -289,6 +296,8 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 
 static void drw_register_shader_vlattrs(GPUMaterial *mat)
 {
+  BLI_assert(GPU_material_status(mat) != GPU_MAT_USE_DEFAULT);
+
   const ListBase *attrs = GPU_material_layer_attributes(mat);
 
   if (!attrs) {
@@ -531,7 +540,8 @@ GPUMaterial *DRW_shader_from_material(Material *ma,
                                       const bool is_volume_shader,
                                       bool deferred,
                                       GPUCodegenCallbackFn callback,
-                                      void *thunk)
+                                      void *thunk,
+                                      GPUMaterialCanUseDefaultCallbackFn can_use_default_cb)
 {
   Scene *scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
   GPUMaterial *mat = GPU_material_from_nodetree(scene,
@@ -544,7 +554,12 @@ GPUMaterial *DRW_shader_from_material(Material *ma,
                                                 is_volume_shader,
                                                 false,
                                                 callback,
-                                                thunk);
+                                                thunk,
+                                                can_use_default_cb);
+
+  if (GPU_material_status(mat) == GPU_MAT_USE_DEFAULT) {
+    return mat;
+  }
 
   drw_register_shader_vlattrs(mat);
 
@@ -560,6 +575,8 @@ GPUMaterial *DRW_shader_from_material(Material *ma,
 
 void DRW_shader_queue_optimize_material(GPUMaterial *mat)
 {
+  BLI_assert(GPU_material_status(mat) != GPU_MAT_USE_DEFAULT);
+
   /* Do not perform deferred optimization if performing render.
    * De-queue any queued optimization jobs. */
   if (DRW_state_is_image_render()) {

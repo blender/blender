@@ -15,15 +15,6 @@ namespace blender::compositor {
  */
 class MapRangeOperation : public MultiThreadedOperation {
  private:
-  /**
-   * Cached reference to the input_program
-   */
-  SocketReader *input_operation_;
-  SocketReader *source_min_operation_;
-  SocketReader *source_max_operation_;
-  SocketReader *dest_min_operation_;
-  SocketReader *dest_max_operation_;
-
   bool use_clamp_;
 
  public:
@@ -31,21 +22,6 @@ class MapRangeOperation : public MultiThreadedOperation {
    * Default constructor
    */
   MapRangeOperation();
-
-  /**
-   * The inner loop of this operation.
-   */
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
-
-  /**
-   * Initialize the execution
-   */
-  void init_execution() override;
-
-  /**
-   * Deinitialize the execution
-   */
-  void deinit_execution() override;
 
   /**
    * Clamp the output

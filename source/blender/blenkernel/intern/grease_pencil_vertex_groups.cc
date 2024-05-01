@@ -52,6 +52,19 @@ void validate_drawing_vertex_groups(GreasePencil &grease_pencil)
   }
 }
 
+int ensure_vertex_group(const StringRef name, ListBase &vertex_group_names)
+{
+  int def_nr = BLI_findstringindex(&vertex_group_names, name.data(), offsetof(bDeformGroup, name));
+  if (def_nr < 0) {
+    bDeformGroup *defgroup = MEM_cnew<bDeformGroup>(__func__);
+    STRNCPY(defgroup->name, name.data());
+    BLI_addtail(&vertex_group_names, defgroup);
+    def_nr = BLI_listbase_count(&vertex_group_names) - 1;
+    BLI_assert(def_nr >= 0);
+  }
+  return def_nr;
+}
+
 void assign_to_vertex_group(GreasePencil &grease_pencil, const StringRef name, const float weight)
 {
   for (GreasePencilDrawingBase *base : grease_pencil.drawings()) {

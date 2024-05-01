@@ -32,7 +32,7 @@ struct RNG *BLI_rng_new(unsigned int seed);
  * A version of #BLI_rng_new that hashes the seed.
  */
 struct RNG *BLI_rng_new_srandom(unsigned int seed);
-struct RNG *BLI_rng_copy(struct RNG *rng) ATTR_NONNULL(1);
+struct RNG *BLI_rng_copy(const struct RNG *rng) ATTR_NONNULL(1);
 void BLI_rng_free(struct RNG *rng) ATTR_NONNULL(1);
 
 void BLI_rng_seed(struct RNG *rng, unsigned int seed) ATTR_NONNULL(1);

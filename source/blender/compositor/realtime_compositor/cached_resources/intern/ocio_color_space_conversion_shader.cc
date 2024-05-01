@@ -13,10 +13,10 @@
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
-#include "GPU_capabilities.h"
-#include "GPU_shader.h"
-#include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_capabilities.hh"
+#include "GPU_shader.hh"
+#include "GPU_texture.hh"
+#include "GPU_uniform_buffer.hh"
 
 #include "gpu_shader_create_info.hh"
 
@@ -34,9 +34,8 @@ namespace blender::realtime_compositor {
  * OCIO Color Space Conversion Shader Key.
  */
 
-OCIOColorSpaceConversionShaderKey::OCIOColorSpaceConversionShaderKey(std::string source,
-                                                                     std::string target,
-                                                                     std::string config_cache_id)
+OCIOColorSpaceConversionShaderKey::OCIOColorSpaceConversionShaderKey(
+    const std::string &source, const std::string &target, const std::string &config_cache_id)
     : source(source), target(target), config_cache_id(config_cache_id)
 {
 }
@@ -140,7 +139,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
     /* Don't use the name argument directly since ShaderCreateInfo only stores references to
      * resource names, instead, use the name that is stored in resource_names_. */
-    std::string &resource_name = *resource_names_[resource_names_.size() - 1];
+    const std::string &resource_name = *resource_names_[resource_names_.size() - 1];
     shader_create_info_.push_constant(Type::BOOL, resource_name);
 
     boolean_uniforms_.add(name, get_bool);
@@ -229,7 +228,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
     /* Don't use the name argument directly since ShaderCreateInfo only stores references to
      * resource names, instead, use the name that is stored in resource_names_. */
-    std::string &resource_name = *resource_names_[resource_names_.size() - 1];
+    const std::string &resource_name = *resource_names_[resource_names_.size() - 1];
 
     GPUTexture *texture;
     const ResultType result_type = (channel == TEXTURE_RGB_CHANNEL) ? ResultType::Float3 :
@@ -268,7 +267,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
 
     /* Don't use the name argument directly since ShaderCreateInfo only stores references to
      * resource names, instead, use the name that is stored in resource_names_. */
-    std::string &resource_name = *resource_names_[resource_names_.size() - 1];
+    const std::string &resource_name = *resource_names_[resource_names_.size() - 1];
     shader_create_info_.sampler(textures_.size() + 1, ImageType::FLOAT_3D, resource_name);
 
     GPUTexture *texture = GPU_texture_create_3d(

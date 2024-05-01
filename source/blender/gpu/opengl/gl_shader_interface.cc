@@ -15,7 +15,7 @@
 
 #include "gl_shader_interface.hh"
 
-#include "GPU_capabilities.h"
+#include "GPU_capabilities.hh"
 
 using namespace blender::gpu::shader;
 namespace blender::gpu {

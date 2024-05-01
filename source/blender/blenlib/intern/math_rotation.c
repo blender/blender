@@ -1971,7 +1971,7 @@ void sub_eul_euleul(float r_eul[3], float a[3], float b[3], const short order)
 
 void mat4_to_dquat(DualQuat *dq, const float basemat[4][4], const float mat[4][4])
 {
-  float *t, *q, dscale[3], scale[3], basequat[4], mat3[3][3];
+  float dscale[3], scale[3], basequat[4], mat3[3][3];
   float baseRS[4][4], baseinv[4][4], baseR[4][4], baseRinv[4][4];
   float R[4][4], S[4][4];
 
@@ -2020,8 +2020,8 @@ void mat4_to_dquat(DualQuat *dq, const float basemat[4][4], const float mat[4][4
   mat4_to_quat(dq->quat, R);
 
   /* dual part */
-  t = R[3];
-  q = dq->quat;
+  const float *t = R[3];
+  const float *q = dq->quat;
   dq->trans[0] = -0.5f * (t[0] * q[1] + t[1] * q[2] + t[2] * q[3]);
   dq->trans[1] = 0.5f * (t[0] * q[0] + t[1] * q[3] - t[2] * q[2]);
   dq->trans[2] = 0.5f * (-t[0] * q[3] + t[1] * q[0] + t[2] * q[1]);

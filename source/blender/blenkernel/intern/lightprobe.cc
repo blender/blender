@@ -144,7 +144,7 @@ static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
     return;
   }
 
-  BLO_read_data_address(reader, &cache->block_infos);
+  BLO_read_struct_array(reader, LightProbeGridCacheFrame, cache->block_len, &cache->block_infos);
 
   int64_t sample_count = BKE_lightprobe_grid_cache_frame_sample_count(cache);
 
@@ -168,7 +168,7 @@ static void lightprobe_grid_cache_frame_blend_read(BlendDataReader *reader,
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_b);
   BLO_read_float_array(reader, sample_count, &cache->visibility.L1_c);
 
-  BLO_read_data_address(reader, &cache->connectivity.validity);
+  BLO_read_int8_array(reader, sample_count, (int8_t **)&cache->connectivity.validity);
 }
 
 void BKE_lightprobe_cache_blend_write(BlendWriter *writer, LightProbeObjectCache *cache)
@@ -182,7 +182,7 @@ void BKE_lightprobe_cache_blend_write(BlendWriter *writer, LightProbeObjectCache
 void BKE_lightprobe_cache_blend_read(BlendDataReader *reader, LightProbeObjectCache *cache)
 {
   if (cache->grid_static_cache != nullptr) {
-    BLO_read_data_address(reader, &cache->grid_static_cache);
+    BLO_read_struct(reader, LightProbeGridCacheFrame, &cache->grid_static_cache);
     lightprobe_grid_cache_frame_blend_read(reader, cache->grid_static_cache);
   }
 }
@@ -287,5 +287,5 @@ int64_t BKE_lightprobe_grid_cache_frame_sample_count(const LightProbeGridCacheFr
     return cache->block_len * cube_i(cache->block_size);
   }
   /* LIGHTPROBE_CACHE_UNIFORM_GRID */
-  return cache->size[0] * cache->size[1] * cache->size[2];
+  return int64_t(cache->size[0]) * cache->size[1] * cache->size[2];
 }

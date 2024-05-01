@@ -128,7 +128,13 @@ static void rna_DynamicPaintSurfaces_changeFormat(Main *bmain, Scene *scene, Poi
 {
   DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
 
-  surface->type = MOD_DPAINT_SURFACE_T_PAINT;
+  /* Only #MOD_DPAINT_SURFACE_F_VERTEX supports #MOD_DPAINT_SURFACE_T_WEIGHT. */
+  if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ &&
+      surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)
+  {
+    surface->type = MOD_DPAINT_SURFACE_T_PAINT;
+  }
+
   dynamicPaintSurface_updateType((DynamicPaintSurface *)ptr->data);
   rna_DynamicPaintSurface_reset(bmain, scene, ptr);
 }
@@ -403,6 +409,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_dissolve", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", MOD_DPAINT_DISSOLVE);
   RNA_def_property_ui_text(prop, "Dissolve", "Enable to make surface changes disappear over time");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SIMULATION);
 
   prop = RNA_def_property(srna, "dissolve_speed", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, nullptr, "diss_speed");

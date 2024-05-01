@@ -42,7 +42,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "lattice_intern.h"
+#include "lattice_intern.hh"
 
 using blender::Span;
 using blender::Vector;
@@ -665,7 +665,7 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Par
 
     BKE_view_layer_synced_ensure(vc.scene, vc.view_layer);
     if (BKE_view_layer_active_base_get(vc.view_layer) != basact) {
-      ED_object_base_activate(C, basact);
+      blender::ed::object::base_activate(C, basact);
     }
 
     DEG_id_tag_update(static_cast<ID *>(vc.obedit->data), ID_RECALC_SELECT);

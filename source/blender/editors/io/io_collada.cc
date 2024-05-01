@@ -154,7 +154,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
 
   /* get editmode results */
-  ED_object_editmode_load(bmain, CTX_data_edit_object(C));
+  blender::ed::object::editmode_load(bmain, CTX_data_edit_object(C));
 
   // Scene *scene = CTX_data_scene(C);
 
@@ -570,7 +570,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
       true,
       "Include Animations",
       "Export animations if available (exporting animations will enforce the decomposition of "
-      "node transforms into  <translation> <rotation> and <scale> components)");
+      "node transforms into <translation> <rotation> and <scale> components)");
 
   RNA_def_boolean(ot->srna,
                   "include_all_actions",

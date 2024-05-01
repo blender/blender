@@ -71,7 +71,7 @@ void SEQ_transform_offset_after_frame(Scene *scene,
  * Check if `seq` can be moved.
  * This function also checks `SeqTimelineChannel` flag.
  */
-bool SEQ_transform_is_locked(ListBase *channels, Sequence *seq);
+bool SEQ_transform_is_locked(ListBase *channels, const Sequence *seq);
 
 /* Image transformation. */
 

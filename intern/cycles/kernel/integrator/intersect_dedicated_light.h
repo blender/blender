@@ -150,7 +150,7 @@ ccl_device bool shadow_linking_pick_light_intersection(KernelGlobals kg,
 ccl_device bool shadow_linking_intersect(KernelGlobals kg, IntegratorState state)
 {
   /* Verify that the kernel is only scheduled if it is actually needed. */
-  kernel_assert(shadow_linking_scene_need_shadow_ray(kg, state));
+  kernel_assert(shadow_linking_scene_need_shadow_ray(kg));
 
   /* Read ray from integrator state into local memory. */
   Ray ray ccl_optional_struct_init;

@@ -64,3 +64,5 @@ mark_as_advanced(
   POTRACE_INCLUDE_DIR
   POTRACE_LIBRARY
 )
+
+unset(_potrace_SEARCH_DIRS)

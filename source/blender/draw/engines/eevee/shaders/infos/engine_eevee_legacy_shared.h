@@ -39,21 +39,21 @@ struct CommonUniformBlock {
   vec4 _volCoordScale; /* To convert volume uvs to screen uvs */
   float _volHistoryAlpha;
   float _volShadowSteps;
-  bool _volUseLights;
-  bool _volUseSoftShadows;
+  bool32_t _volUseLights;
+  bool32_t _volUseSoftShadows;
   /* Screen Space Reflections */
   vec4 _ssrParameters;
   float _ssrBorderFac;
   float _ssrMaxRoughness;
   float _ssrFireflyFac;
   float _ssrBrdfBias;
-  bool _ssrToggle;
-  bool _ssrefractToggle;
+  bool32_t _ssrToggle;
+  bool32_t _ssrefractToggle;
   /* SubSurface Scattering */
   float _sssJitterThreshold;
-  bool _sssToggle;
+  bool32_t _sssToggle;
   /* Specular */
-  bool _specToggle;
+  bool32_t _specToggle;
   /* Lights */
   int _laNumLight;
   /* Probes */
@@ -150,13 +150,13 @@ struct ShadowBlock {
 BLI_STATIC_ASSERT_ALIGN(ShadowBlock, 16)
 
 struct LightData {
-  vec4 position_influence;     /* w : InfluenceRadius (inversed and squared) */
-  vec4 color_influence_volume; /* w : InfluenceRadius but for Volume power */
-  vec4 spotdata_radius_shadow; /* x : spot size, y : spot blend, z : radius, w: shadow id */
-  vec4 rightvec_sizex;         /* xyz: Normalized up vector, w: area size X or spot scale X */
-  vec4 upvec_sizey;            /* xyz: Normalized right vector, w: area size Y or spot scale Y */
-  vec4 forwardvec_type;        /* xyz: Normalized forward vector, w: Light Type */
-  vec4 diff_spec_volume;       /* xyz: Diffuse/Spec/Volume power, w: radius for volumetric. */
+  vec4 position_influence;     /* W:   InfluenceRadius (inversed and squared) */
+  vec4 color_influence_volume; /* W:   InfluenceRadius but for Volume power */
+  vec4 spotdata_radius_shadow; /* X:   spot size, y : spot blend, z : radius, w: shadow id */
+  vec4 rightvec_sizex;         /* XYZ: Normalized up vector, w: area size X or spot scale X */
+  vec4 upvec_sizey;            /* XYZ: Normalized right vector, w: area size Y or spot scale Y */
+  vec4 forwardvec_type;        /* XYZ: Normalized forward vector, w: Light Type */
+  vec4 diff_spec_volume;       /* XYZ: Diffuse/Spec/Volume power, w: radius for volumetric. */
 };
 BLI_STATIC_ASSERT_ALIGN(LightData, 16)
 
@@ -166,14 +166,14 @@ struct LightBlock {
 BLI_STATIC_ASSERT_ALIGN(LightBlock, 16)
 
 struct RenderpassBlock {
-  bool _renderPassDiffuse;
-  bool _renderPassDiffuseLight;
-  bool _renderPassGlossy;
-  bool _renderPassGlossyLight;
-  bool _renderPassEmit;
-  bool _renderPassSSSColor;
-  bool _renderPassEnvironment;
-  bool _renderPassAOV;
+  bool32_t _renderPassDiffuse;
+  bool32_t _renderPassDiffuseLight;
+  bool32_t _renderPassGlossy;
+  bool32_t _renderPassGlossyLight;
+  bool32_t _renderPassEmit;
+  bool32_t _renderPassSSSColor;
+  bool32_t _renderPassEnvironment;
+  bool32_t _renderPassAOV;
   uint _renderPassAOVActive;
 };
 BLI_STATIC_ASSERT_ALIGN(RenderpassBlock, 16)

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "gpu_vertex_buffer_private.hh"
+#include "GPU_vertex_buffer.hh"
 
 #include "vk_bindable_resource.hh"
 #include "vk_buffer.hh"
@@ -28,9 +28,10 @@ class VKVertexBuffer : public VertBuf, public VKBindableResource {
 
   void bind_as_ssbo(uint binding) override;
   void bind_as_texture(uint binding) override;
-  void bind(int binding,
-            shader::ShaderCreateInfo::Resource::BindType bind_type,
-            const GPUSamplerState sampler_state) override;
+  void add_to_descriptor_set(AddToDescriptorSetContext &data,
+                             int binding,
+                             shader::ShaderCreateInfo::Resource::BindType bind_type,
+                             const GPUSamplerState sampler_state) override;
   void wrap_handle(uint64_t handle) override;
 
   void update_sub(uint start, uint len, const void *data) override;

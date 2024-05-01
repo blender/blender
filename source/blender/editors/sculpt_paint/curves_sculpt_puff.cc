@@ -135,7 +135,7 @@ struct PuffOperationExecutor {
           *curves_, curve_selection_, curves_id_->flag & CV_SCULPT_COLLISION_ENABLED);
     }
 
-    Array<float> curve_weights(curves_->curves_num());
+    Array<float> curve_weights(curves_->curves_num(), 0.0f);
 
     if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
       this->find_curve_weights_projected_with_symmetry(curve_weights);

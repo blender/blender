@@ -164,12 +164,12 @@ TEST(abc_matrix, CopyM44AxisSwap_YfromZ)
   copy_m44_axis_swap(result, input, ABC_YUP_FROM_ZUP);
 
   /* Check the resulting rotation & translation. */
-  float trans[4] = {1.0f, 3.0f, -2.0f, 1.0f};
+  const float trans[4] = {1.0f, 3.0f, -2.0f, 1.0f};
   EXPECT_V4_NEAR(trans, result[3], 1e-5f);
 
   /* This matrix was created by rotating a cube in Blender over
    * (X=10, Y=30, Z=-20 degrees in XZY order) and translating over (1, 3, -2) */
-  float expect[4][4] = {
+  const float expect[4][4] = {
       {0.813797652721f, -0.342020124197f, -0.469846338033f, 0.0f},
       {0.378522306680f, 0.925416588783f, -0.018028317019f, 0.0f},
       {0.440969616174f, -0.163175910711f, 0.882564127445f, 0.0f},
@@ -198,7 +198,7 @@ TEST(abc_matrix, CopyM44AxisSwapWithScale_YfromZ)
   /* This matrix was created by rotating a cube in Blender over
    * (X=10, Y=30, Z=-20 degrees in XZY order), translating over (1, 3, -2)
    * and scaling over (4, 6, 5). */
-  float expect[4][4] = {
+  const float expect[4][4] = {
       {3.255190610885f, -1.368080496788f, -1.879385352134f, 0.0f},
       {2.271133899688f, 5.552499771118f, -0.108169898390f, 0.0f},
       {2.204848051071f, -0.815879583358f, 4.412820816040f, 0.0f},
@@ -224,7 +224,7 @@ TEST(abc_matrix, CopyM44AxisSwap_ZfromY)
 
   /* This matrix was created by rotating a cube in Blender over
    * (X=10, Y=20, Z=30 degrees in XYZ order) and translating over (1, 2, 3) */
-  float expect[4][4] = {
+  const float expect[4][4] = {
       {0.813797652721f, 0.469846338033f, -0.342020124197f, 0.0f},
       {-0.44096961617f, 0.882564127445f, 0.163175910711f, 0.0f},
       {0.378522306680f, 0.018028317019f, 0.925416588783f, 0.0f},
@@ -253,7 +253,7 @@ TEST(abc_matrix, CopyM44AxisSwapWithScale_ZfromY)
   /* This matrix was created by rotating a cube in Blender over
    * (X=10, Y=20, Z=30 degrees in XYZ order), translating over (1, 2, 3),
    * and scaling by (4, 5, 6). */
-  float expect[4][4] = {
+  const float expect[4][4] = {
       {3.25519061088f, 1.879385352134f, -1.36808049678f, 0.0f},
       {-2.2048480510f, 4.412820816040f, 0.81587958335f, 0.0f},
       {2.27113389968f, 0.108169898390f, 5.55249977111f, 0.0f},
@@ -280,7 +280,7 @@ TEST(abc_matrix, CopyM44AxisSwapWithScale_gimbal_ZfromY)
 
   /* Since the rotation is only over the X-axis, it should not change.
    * The translation does change. */
-  float expect[4][4] = {
+  const float expect[4][4] = {
       {1.000f, 0.000f, 0.000f, 0.000f},
       {0.000f, 0.000f, -1.000f, 0.000f},
       {0.000f, 1.000f, 0.000f, 0.000f},

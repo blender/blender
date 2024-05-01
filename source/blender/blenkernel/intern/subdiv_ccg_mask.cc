@@ -20,6 +20,8 @@
 
 #include "MEM_guardedalloc.h"
 
+using namespace blender::bke::subdiv;
+
 struct PolyCornerIndex {
   int face_index;
   int corner;
@@ -53,13 +55,13 @@ static int mask_get_grid_and_coord(SubdivCCGMaskEvaluator *mask_evaluator,
   int corner = 0;
   if (face.size() == 4) {
     float corner_u, corner_v;
-    corner = BKE_subdiv_rotate_quad_to_corner(u, v, &corner_u, &corner_v);
+    corner = rotate_quad_to_corner(u, v, &corner_u, &corner_v);
     *r_mask_grid = &data->grid_paint_mask[start_grid_index + corner];
-    BKE_subdiv_ptex_face_uv_to_grid_uv(corner_u, corner_v, grid_u, grid_v);
+    ptex_face_uv_to_grid_uv(corner_u, corner_v, grid_u, grid_v);
   }
   else {
     *r_mask_grid = &data->grid_paint_mask[start_grid_index];
-    BKE_subdiv_ptex_face_uv_to_grid_uv(u, v, grid_u, grid_v);
+    ptex_face_uv_to_grid_uv(u, v, grid_u, grid_v);
   }
   return corner;
 }
@@ -71,7 +73,7 @@ BLI_INLINE float read_mask_grid(const GridPaintMask *mask_grid,
   if (mask_grid->data == nullptr) {
     return 0;
   }
-  const int grid_size = BKE_subdiv_grid_size_from_level(mask_grid->level);
+  const int grid_size = grid_size_from_level(mask_grid->level);
   const int x = roundf(grid_u * (grid_size - 1));
   const int y = roundf(grid_v * (grid_size - 1));
   return mask_grid->data[y * grid_size + x];

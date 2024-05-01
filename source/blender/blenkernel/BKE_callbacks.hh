@@ -110,7 +110,7 @@ enum eCbEvent {
   BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST,
   BKE_CB_EVT_EXTENSION_REPOS_SYNC,
   BKE_CB_EVT_EXTENSION_REPOS_UPGRADE,
-  BKE_CB_EVT_EXTENSION_DROP_URL,
+  BKE_CB_EVT_EXTENSION_REPOS_FILES_CLEAR,
   BKE_CB_EVT_TOT,
 };
 
@@ -129,8 +129,8 @@ void BKE_callback_exec_string(Main *bmain, eCbEvent evt, const char *str);
 void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
 void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt);
 
-void BKE_callback_global_init(void);
+void BKE_callback_global_init();
 /**
  * Call on application exit.
  */
-void BKE_callback_global_finalize(void);
+void BKE_callback_global_finalize();

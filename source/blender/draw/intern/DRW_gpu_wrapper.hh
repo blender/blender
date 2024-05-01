@@ -61,8 +61,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "draw_manager.h"
-#include "draw_texture_pool.h"
+#include "draw_manager_c.hh"
+#include "draw_texture_pool.hh"
 
 #include "BKE_global.hh"
 
@@ -72,10 +72,10 @@
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
-#include "GPU_framebuffer.h"
-#include "GPU_storage_buffer.h"
-#include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_framebuffer.hh"
+#include "GPU_storage_buffer.hh"
+#include "GPU_texture.hh"
+#include "GPU_uniform_buffer.hh"
 
 namespace blender::draw {
 
@@ -462,7 +462,7 @@ class StorageVectorBuffer : public StorageArrayBuffer<T, len, false> {
     new (ptr) T(std::forward<ForwardT>(value)...);
   }
 
-  void extend(const Span<T> &values)
+  void extend(const Span<T> values)
   {
     /* TODO(fclem): Optimize to a single memcpy. */
     for (auto v : values) {
@@ -1210,7 +1210,7 @@ class Framebuffer : NonCopyable {
               GPUAttachment color7 = GPU_ATTACHMENT_NONE,
               GPUAttachment color8 = GPU_ATTACHMENT_NONE)
   {
-    if (fb_ == NULL) {
+    if (fb_ == nullptr) {
       fb_ = GPU_framebuffer_create(name_);
     }
     GPUAttachment config[] = {
@@ -1223,7 +1223,7 @@ class Framebuffer : NonCopyable {
    */
   void ensure(int2 target_size)
   {
-    if (fb_ == NULL) {
+    if (fb_ == nullptr) {
       fb_ = GPU_framebuffer_create(name_);
     }
     GPU_framebuffer_default_size(fb_, UNPACK2(target_size));

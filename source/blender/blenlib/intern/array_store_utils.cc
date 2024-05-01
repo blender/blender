@@ -59,14 +59,14 @@ void BLI_array_store_at_size_clear(BArrayStore_AtSize *bs_stride)
   bs_stride->stride_table_len = 0;
 }
 
-void BLI_array_store_at_size_calc_memory_usage(BArrayStore_AtSize *bs_stride,
+void BLI_array_store_at_size_calc_memory_usage(const BArrayStore_AtSize *bs_stride,
                                                size_t *r_size_expanded,
                                                size_t *r_size_compacted)
 {
   size_t size_compacted = 0;
   size_t size_expanded = 0;
   for (int i = 0; i < bs_stride->stride_table_len; i++) {
-    BArrayStore *bs = bs_stride->stride_table[i];
+    const BArrayStore *bs = bs_stride->stride_table[i];
     if (bs) {
       size_compacted += BLI_array_store_calc_size_compacted_get(bs);
       size_expanded += BLI_array_store_calc_size_expanded_get(bs);

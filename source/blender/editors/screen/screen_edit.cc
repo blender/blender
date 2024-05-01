@@ -28,7 +28,7 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -45,7 +45,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "screen_intern.h" /* own module include */
+#include "screen_intern.hh" /* own module include */
 
 /* adds no space data */
 static ScrArea *screen_addarea_ex(ScrAreaMap *area_map,

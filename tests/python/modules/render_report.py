@@ -240,7 +240,7 @@ class Report:
             message += """<p><tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt></p>""" % self.engine_name
             message += """<p>This then happens for new and failing tests; reference images of """ \
                        """passing test cases will not be updated. Be sure to commit the new reference """ \
-                       """images to the SVN repository afterwards.</p>"""
+                       """images to the tests/data git submodule afterwards.</p>"""
             message += """</div>"""
         else:
             message = ""
@@ -499,7 +499,7 @@ class Report:
                 if completed_process.returncode != 0:
                     crash = True
                 output = completed_process.stdout
-            except BaseException as e:
+            except BaseException:
                 crash = True
 
             if verbose:

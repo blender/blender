@@ -4,6 +4,7 @@
 #include "usd_writer_transform.hh"
 #include "usd_hierarchy_iterator.hh"
 
+#include <pxr/base/gf/matrix4d.h>
 #include <pxr/base/gf/matrix4f.h>
 #include <pxr/base/gf/quaternion.h>
 #include <pxr/usd/usdGeom/xform.h>
@@ -12,8 +13,6 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-
-#include "DNA_layer_types.h"
 
 namespace blender::io::usd {
 
@@ -116,6 +115,7 @@ void USDTransformWriter::do_write(HierarchyContext &context)
     return;
   }
 
+<<<<<<< HEAD
   if (usd_export_context_.export_params.export_transforms) {
     float parent_relative_matrix[4][4];  // The object matrix relative to the parent.
 
@@ -177,6 +177,15 @@ void USDTransformWriter::do_write(HierarchyContext &context)
       xform.GetVisibilityAttr().Set(pxr::UsdGeomTokens->inherited);
     }
   }
+=======
+  pxr::GfMatrix4d mat_val(parent_relative_matrix);
+  usd_value_writer_.SetAttribute(xformOp_.GetAttr(), mat_val, get_export_time_code());
+
+  if (context.object) {
+    auto prim = xform.GetPrim();
+    write_id_properties(prim, context.object->id, get_export_time_code());
+  }
+>>>>>>> main
 }
 
 bool USDTransformWriter::check_is_animated(const HierarchyContext &context) const

@@ -46,13 +46,13 @@ enum ThumbSource {
 #define THUMB_DEFAULT_HASH "00000000000000000000000000000000"
 
 /**
- * Create thumbnail for file and returns new imbuf for thumbnail.
+ * Create thumbnail for file and returns new ImBuf for thumbnail.
  * \param filepath: File path (but not a library path!) to the thumbnail to be created.
  */
 ImBuf *IMB_thumb_create(const char *filepath, ThumbSize size, ThumbSource source, ImBuf *img);
 
 /**
- * Read thumbnail for file and returns new imbuf for thumbnail.
+ * Read thumbnail for file and returns new ImBuf for thumbnail.
  * \param file_or_lib_path: File path or library-ID path (e.g. `/a/b.blend/Material/MyMaterial`) to
  *                          the thumbnail to be read.
  */
@@ -78,7 +78,7 @@ ImBuf *IMB_thumb_manage(const char *file_or_lib_path, ThumbSize size, ThumbSourc
 /**
  * Create the necessary directories to store the thumbnails.
  */
-void IMB_thumb_makedirs(void);
+void IMB_thumb_makedirs();
 
 /**
  * Special function for loading a thumbnail embedded into a blend file.
@@ -93,7 +93,7 @@ bool IMB_thumb_load_font_get_hash(char *r_hash);
 
 /* Threading */
 
-void IMB_thumb_locks_acquire(void);
-void IMB_thumb_locks_release(void);
+void IMB_thumb_locks_acquire();
+void IMB_thumb_locks_release();
 void IMB_thumb_path_lock(const char *path);
 void IMB_thumb_path_unlock(const char *path);

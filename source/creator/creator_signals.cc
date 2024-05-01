@@ -39,7 +39,7 @@
 #  include "BLI_utildefines.h"
 #  include BLI_SYSTEM_PID_H
 
-#  include "BKE_appdir.hh" /* BKE_tempdir_base */
+#  include "BKE_appdir.hh" /* #BKE_tempdir_base. */
 #  include "BKE_blender_version.h"
 #  include "BKE_global.hh"
 #  include "BKE_main.hh"
@@ -49,19 +49,15 @@
 #  include <csignal>
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern_python.h" /* BPY_python_backtrace */
+#    include "BPY_extern_python.h" /* #BPY_python_backtrace. */
 #  endif
 
-#  include "creator_intern.h" /* own include */
+#  include "creator_intern.h" /* Own include. */
 
-// #define USE_WRITE_CRASH_BLEND
-#  ifdef USE_WRITE_CRASH_BLEND
-#    include "BKE_undo_system.hh"
-#    include "BLO_undofile.hh"
-#  endif
-
-/* set breakpoints here when running in debug mode, useful to catch floating point errors */
 #  if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
+/**
+ * Set breakpoints here when running in debug mode, useful to catch floating point errors.
+ */
 static void sig_handle_fpe(int /*sig*/)
 {
   fprintf(stderr, "debug: SIGFPE trapped\n");
@@ -71,7 +67,8 @@ static void sig_handle_fpe(int /*sig*/)
 /* Handling `Ctrl-C` event in the console. */
 static void sig_handle_blender_esc(int sig)
 {
-  G.is_break = true; /* forces render loop to read queue, not sure if its needed */
+  /* Forces render loop to read queue, not sure if its needed. */
+  G.is_break = true;
 
   if (sig == 2) {
     static int count = 0;
@@ -96,28 +93,6 @@ static void sig_handle_crash(int signum)
    * de-referencing. */
 
   wmWindowManager *wm = G_MAIN ? static_cast<wmWindowManager *>(G_MAIN->wm.first) : nullptr;
-
-#  ifdef USE_WRITE_CRASH_BLEND
-  if (wm && wm->undo_stack) {
-    struct MemFile *memfile = BKE_undosys_stack_memfile_get_active(wm->undo_stack);
-    if (memfile) {
-      char filepath[FILE_MAX];
-
-      if (!(G_MAIN && G_MAIN->filepath[0])) {
-        BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "crash.blend");
-      }
-      else {
-        STRNCPY(filepath, G_MAIN->filepath);
-        BLI_path_extension_replace(filepath, sizeof(filepath), ".crash.blend");
-      }
-
-      printf("Writing: %s\n", filepath);
-      fflush(stdout);
-
-      BLO_memfile_write_file(memfile, filepath);
-    }
-  }
-#  endif
 
   FILE *fp;
   char header[512];
@@ -147,7 +122,7 @@ static void sig_handle_crash(int signum)
            build_hash);
 #  endif
 
-  /* open the crash log */
+  /* Open the crash log. */
   errno = 0;
   fp = BLI_fopen(filepath, "wb");
   if (fp == nullptr) {
@@ -171,10 +146,10 @@ static void sig_handle_crash(int signum)
     fclose(fp);
   }
 
-  /* Delete content of temp dir! */
+  /* Delete content of temp directory. */
   BKE_tempdir_session_purge();
 
-  /* really crash */
+  /* Really crash. */
   signal(signum, SIG_DFL);
 #  ifndef WIN32
   kill(getpid(), signum);
@@ -187,7 +162,7 @@ static void sig_handle_crash(int signum)
 extern LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 {
   /* If this is a stack overflow then we can't walk the stack, so just try to show
-   * where the error happened */
+   * where the error happened. */
   if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW) {
     HMODULE mod;
     CHAR modulename[MAX_PATH];
@@ -211,7 +186,7 @@ extern LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS *ExceptionInfo)
 
 static void sig_handle_abort(int /*signum*/)
 {
-  /* Delete content of temp dir! */
+  /* Delete content of temp directory. */
   BKE_tempdir_session_purge();
 }
 
@@ -221,7 +196,7 @@ void main_signal_setup()
 #  ifdef WIN32
     SetUnhandledExceptionFilter(windows_exception_handler);
 #  else
-    /* after parsing args */
+    /* After parsing arguments. */
     signal(SIGSEGV, sig_handle_crash);
 #  endif
   }
@@ -250,8 +225,8 @@ void main_signal_setup_background()
 void main_signal_setup_fpe()
 {
 #  if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
-  /* zealous but makes float issues a heck of a lot easier to find!
-   * set breakpoints on sig_handle_fpe */
+  /* Zealous but makes float issues a heck of a lot easier to find!
+   * Set breakpoints on #sig_handle_fpe. */
   signal(SIGFPE, sig_handle_fpe);
 
 #    if defined(__linux__) && defined(__GNUC__) && defined(HAVE_FEENABLEEXCEPT)
@@ -259,14 +234,14 @@ void main_signal_setup_fpe()
 #    endif /* defined(__linux__) && defined(__GNUC__) */
 #    if defined(OSX_SSE_FPE)
   /* OSX uses SSE for floating point by default, so here
-   * use SSE instructions to throw floating point exceptions */
+   * use SSE instructions to throw floating point exceptions. */
   _MM_SET_EXCEPTION_MASK(_MM_MASK_MASK &
                          ~(_MM_MASK_OVERFLOW | _MM_MASK_INVALID | _MM_MASK_DIV_ZERO));
 #    endif /* OSX_SSE_FPE */
 #    if defined(_WIN32) && defined(_MSC_VER)
-  /* enables all fp exceptions */
+  /* Enables all floating-point exceptions. */
   _controlfp_s(nullptr, 0, _MCW_EM);
-  /* hide the ones we don't care about */
+  /* Hide the ones we don't care about. */
   _controlfp_s(nullptr, _EM_DENORMAL | _EM_UNDERFLOW | _EM_INEXACT, _MCW_EM);
 #    endif /* _WIN32 && _MSC_VER */
 #  endif

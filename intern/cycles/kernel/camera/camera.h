@@ -224,18 +224,24 @@ ccl_device void camera_sample_orthographic(KernelGlobals kg,
 
 /* Panorama Camera */
 
+ccl_device_inline float3 camera_panorama_direction(ccl_constant KernelCamera *cam,
+                                                   float x,
+                                                   float y)
+{
+  const ProjectionTransform rastertocamera = cam->rastertocamera;
+  float3 Pcamera = transform_perspective(&rastertocamera, make_float3(x, y, 0.0f));
+  return panorama_to_direction(cam, Pcamera.x, Pcamera.y);
+}
+
 ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
                                               ccl_global const DecomposedTransform *cam_motion,
                                               const float2 raster,
                                               const float2 rand_lens,
                                               ccl_private Ray *ray)
 {
-  ProjectionTransform rastertocamera = cam->rastertocamera;
-  float3 Pcamera = transform_perspective(&rastertocamera, float2_to_float3(raster));
-
   /* create ray form raster position */
   float3 P = zero_float3();
-  float3 D = panorama_to_direction(cam, Pcamera.x, Pcamera.y);
+  float3 D = camera_panorama_direction(cam, raster.x, raster.y);
 
   /* indicates ray should not receive any light, outside of the lens */
   if (is_zero(D)) {
@@ -245,6 +251,11 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
 
   /* modify ray for depth of field */
   float aperturesize = cam->aperturesize;
+
+#ifdef __RAY_DIFFERENTIALS__
+  /* keep pre-DoF value for differentials later */
+  float3 Dcenter = D;
+#endif
 
   if (aperturesize > 0.0f) {
     /* sample point on aperture */
@@ -289,38 +300,32 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
    * because we don't want to be affected by depth of field. We compute
    * ray origin and direction for the center and two neighboring pixels
    * and simply take their differences. */
-  float3 Pcenter = Pcamera;
-  float3 Dcenter = panorama_to_direction(cam, Pcenter.x, Pcenter.y);
+  float3 Dx = camera_panorama_direction(cam, raster.x + 1.0f, raster.y);
+  float3 Dy = camera_panorama_direction(cam, raster.x, raster.y + 1.0f);
+
   if (use_stereo) {
+    float3 Pcenter = zero_float3();
+    float3 Px = zero_float3();
+    float3 Py = zero_float3();
     spherical_stereo_transform(cam, &Pcenter, &Dcenter);
-  }
-  Pcenter = transform_point(&cameratoworld, Pcenter);
-  Dcenter = normalize(transform_direction(&cameratoworld, Dcenter));
-
-  float3 Px = transform_perspective(&rastertocamera, make_float3(raster.x + 1.0f, raster.y, 0.0f));
-  float3 Dx = panorama_to_direction(cam, Px.x, Px.y);
-  if (use_stereo) {
     spherical_stereo_transform(cam, &Px, &Dx);
-  }
-  Px = transform_point(&cameratoworld, Px);
-  Dx = normalize(transform_direction(&cameratoworld, Dx));
-
-  differential3 dP, dD;
-  dP.dx = Px - Pcenter;
-  dD.dx = Dx - Dcenter;
-
-  float3 Py = transform_perspective(&rastertocamera, make_float3(raster.x, raster.y + 1.0f, 0.0f));
-  float3 Dy = panorama_to_direction(cam, Py.x, Py.y);
-  if (use_stereo) {
     spherical_stereo_transform(cam, &Py, &Dy);
-  }
-  Py = transform_point(&cameratoworld, Py);
-  Dy = normalize(transform_direction(&cameratoworld, Dy));
 
-  dP.dy = Py - Pcenter;
-  dD.dy = Dy - Dcenter;
+    differential3 dP;
+    Pcenter = transform_point(&cameratoworld, Pcenter);
+    dP.dx = transform_point(&cameratoworld, Px) - Pcenter;
+    dP.dy = transform_point(&cameratoworld, Py) - Pcenter;
+    ray->dP = differential_make_compact(dP);
+  }
+  else {
+    ray->dP = differential_zero_compact();
+  }
+
+  differential3 dD;
+  Dcenter = normalize(transform_direction(&cameratoworld, Dcenter));
+  dD.dx = normalize(transform_direction(&cameratoworld, Dx)) - Dcenter;
+  dD.dy = normalize(transform_direction(&cameratoworld, Dy)) - Dcenter;
   ray->dD = differential_make_compact(dD);
-  ray->dP = differential_make_compact(dP);
 #endif
 
   /* clipping */

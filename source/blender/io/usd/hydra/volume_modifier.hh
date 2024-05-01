@@ -25,7 +25,7 @@ class VolumeModifierData : public VolumeData {
   void write_transform() override;
 
  private:
-  std::string get_cached_file_path(std::string directory, int frame);
+  std::string get_cached_file_path(const std::string &directory, int frame);
 
   const FluidModifierData *modifier_;
 };

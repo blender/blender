@@ -63,7 +63,7 @@ static void applyTimeSlideValue(TransInfo *t, float sval, float cval)
   float minx = range[0];
   float maxx = range[1];
 
-  /* set value for drawing black line */
+  /* Set value for drawing black line. */
   if (t->spacetype == SPACE_ACTION) {
     SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
     saction->timeslide = cval;
@@ -74,13 +74,12 @@ static void applyTimeSlideValue(TransInfo *t, float sval, float cval)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     for (i = 0; i < tc->data_len; i++, td++) {
-      /* it is assumed that td->extra is a pointer to the AnimData,
+      /* It is assumed that td->extra is a pointer to the AnimData,
        * whose active action is where this keyframe comes from
-       * (this is only valid when not in NLA)
-       */
+       * (this is only valid when not in NLA). */
       AnimData *adt = static_cast<AnimData *>((t->spacetype != SPACE_NLA) ? td->extra : nullptr);
 
-      /* only apply to data if in range */
+      /* Only apply to data if in range. */
       if ((sval > minx) && (sval < maxx)) {
         float cvalc = std::clamp(cval, minx, maxx);
         float timefac;
@@ -97,17 +96,17 @@ static void applyTimeSlideValue(TransInfo *t, float sval, float cval)
         }
 
         /* NLA mapping magic here works as follows:
-         * - "ival" goes from strip time to global time
-         * - calculation is performed into td->val in global time
-         *   (since sval and min/max are all in global time)
-         * - "td->val" then gets put back into strip time
+         * - `ival` goes from strip time to global time.
+         * - Calculation is performed into `td->val` in global time
+         *   (since `sval` and min/max are all in global time).
+         * - `td->val` then gets put back into strip time.
          */
         if (adt) {
-          /* strip to global */
+          /* Strip to global. */
           ival = BKE_nla_tweakedit_remap(adt, ival, NLATIME_CONVERT_MAP);
         }
 
-        /* left half? */
+        /* Left half? */
         if (ival < sval) {
           timefac = (sval - ival) / (sval - minx);
           *dst = cvalc - timefac * (cvalc - minx);
@@ -118,7 +117,7 @@ static void applyTimeSlideValue(TransInfo *t, float sval, float cval)
         }
 
         if (adt) {
-          /* global to strip */
+          /* Global to strip. */
           *dst = BKE_nla_tweakedit_remap(adt, *dst, NLATIME_CONVERT_UNMAP);
         }
       }
@@ -135,15 +134,16 @@ static void applyTimeSlide(TransInfo *t)
   float maxx = range[1];
   char str[UI_MAX_DRAW_STR];
 
-  /* calculate mouse co-ordinates */
+  /* Calculate mouse co-ordinates. */
   UI_view2d_region_to_view(v2d, t->mval[0], t->mval[1], &cval[0], &cval[1]);
   UI_view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[1], &sval[0], &sval[1]);
 
-  /* t->values_final[0] stores cval[0], which is the current mouse-pointer location (in frames) */
+  /* `t->values_final[0]` stores `cval[0]`,
+   * which is the current mouse-pointer location (in frames). */
   /* XXX Need to be able to repeat this. */
   // t->values_final[0] = cval[0]; /* UNUSED (reset again later). */
 
-  /* handle numeric-input stuff */
+  /* Handle numeric-input stuff. */
   t->vec[0] = 2.0f * (cval[0] - sval[0]) / (maxx - minx);
   applyNumInput(&t->num, &t->vec[0]);
   t->values_final[0] = (maxx - minx) * t->vec[0] / 2.0f + sval[0];
@@ -158,11 +158,11 @@ static void applyTimeSlide(TransInfo *t)
 
 static void initTimeSlide(TransInfo *t, wmOperator * /*op*/)
 {
-  /* this tool is only really available in the Action Editor... */
+  /* This tool is only really available in the Action Editor. */
   if (t->spacetype == SPACE_ACTION) {
     SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
 
-    /* set flag for drawing stuff */
+    /* Set flag for drawing stuff. */
     saction->flag |= SACTION_MOVING;
   }
   else {
@@ -188,7 +188,7 @@ static void initTimeSlide(TransInfo *t, wmOperator * /*op*/)
         AnimData *adt = static_cast<AnimData *>((t->spacetype != SPACE_NLA) ? td->extra : nullptr);
         float val = *(td->val);
 
-        /* strip/action time to global (mapped) time */
+        /* Strip/action time to global (mapped) time. */
         if (adt) {
           val = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_MAP);
         }
@@ -203,7 +203,7 @@ static void initTimeSlide(TransInfo *t, wmOperator * /*op*/)
     }
 
     if (min == max) {
-      /* just use the current frame ranges */
+      /* Just use the current frame ranges. */
       min = float(PSFRA);
       max = float(PEFRA);
     }

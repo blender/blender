@@ -12,6 +12,7 @@
 #include <cstring>
 #include <ctime>
 #include <fcntl.h>
+#include <optional>
 #ifndef WIN32
 #  include <unistd.h>
 #else
@@ -78,7 +79,7 @@
 #include "BKE_preview_image.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "BLF_api.hh"
 
@@ -87,7 +88,7 @@
 #include "SEQ_utils.hh" /* SEQ_get_topmost_sequence() */
 
 #include "GPU_material.hh"
-#include "GPU_texture.h"
+#include "GPU_texture.hh"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
@@ -132,6 +133,9 @@ static void image_runtime_reset_on_copy(Image *image)
 
   image->runtime.partial_update_register = nullptr;
   image->runtime.partial_update_user = nullptr;
+
+  image->runtime.backdrop_offset[0] = 0.0f;
+  image->runtime.backdrop_offset[1] = 0.0f;
 }
 
 static void image_runtime_free_data(Image *image)
@@ -156,7 +160,11 @@ static void image_init_data(ID *id)
   }
 }
 
-static void image_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
+static void image_copy_data(Main * /*bmain*/,
+                            std::optional<Library *> /*owner_library*/,
+                            ID *id_dst,
+                            const ID *id_src,
+                            const int flag)
 {
   Image *image_dst = (Image *)id_dst;
   const Image *image_src = (const Image *)id_src;
@@ -390,16 +398,16 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 static void image_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Image *ima = (Image *)id;
-  BLO_read_list(reader, &ima->tiles);
+  BLO_read_struct_list(reader, ImageTile, &ima->tiles);
 
-  BLO_read_list(reader, &(ima->renderslots));
+  BLO_read_struct_list(reader, RenderSlot, &(ima->renderslots));
   if (!BLO_read_data_is_undo(reader)) {
     /* We reset this last render slot index only when actually reading a file, not for undo. */
     ima->last_render_slot = ima->render_slot;
   }
 
-  BLO_read_list(reader, &(ima->views));
-  BLO_read_list(reader, &(ima->packedfiles));
+  BLO_read_struct_list(reader, ImageView, &(ima->views));
+  BLO_read_struct_list(reader, ImagePackedFile, &(ima->packedfiles));
 
   if (ima->packedfiles.first) {
     LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
@@ -412,9 +420,9 @@ static void image_blend_read_data(BlendDataReader *reader, ID *id)
   }
 
   BLI_listbase_clear(&ima->anims);
-  BLO_read_data_address(reader, &ima->preview);
+  BLO_read_struct(reader, PreviewImage, &ima->preview);
   BKE_previewimg_blend_read(reader, ima->preview);
-  BLO_read_data_address(reader, &ima->stereo3d_format);
+  BLO_read_struct(reader, Stereo3dFormat, &ima->stereo3d_format);
 
   ima->lastused = 0;
   ima->gpuflag = 0;
@@ -2005,7 +2013,7 @@ void BKE_image_stamp_buf(Scene *scene,
 
   /* must enable BLF_WORD_WRAP before using */
 #define TEXT_SIZE_CHECK_WORD_WRAP(str, w, h) \
-  ((str[0]) && (BLF_boundbox_ex(mono, str, sizeof(str), &wrap.rect, &wrap.info), \
+  ((str[0]) && (BLF_boundbox(mono, str, sizeof(str), &wrap.rect, &wrap.info), \
                 (void)(h = h_fixed * wrap.info.lines), \
                 (w = BLI_rcti_size_x(&wrap.rect))))
 

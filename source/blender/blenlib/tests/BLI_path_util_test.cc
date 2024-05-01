@@ -11,6 +11,8 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
+#define DO_PERF_TESTS 0
+
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
  * \{ */
@@ -1315,5 +1317,97 @@ TEST(path_util, Contains_Windows_case_insensitive)
       << "On Windows path comparison should ignore case";
 }
 #endif /* WIN32 */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tests for: #BLI_path_has_hidden_component
+ * \{ */
+
+TEST(path_util, HasHiddenComponents)
+{
+  /* No hidden components: */
+  EXPECT_FALSE(BLI_path_has_hidden_component(""));
+  EXPECT_FALSE(BLI_path_has_hidden_component(" "));
+  EXPECT_FALSE(BLI_path_has_hidden_component(".."));
+  EXPECT_FALSE(BLI_path_has_hidden_component("../.."));
+  EXPECT_FALSE(BLI_path_has_hidden_component("..\\.."));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a/../b"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a\\..\\b"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a~b"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a/b"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a\\b"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a/b/c"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a\\b\\c"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("/a/b"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("C:/a/b"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("C:/\a\\b"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a.txt"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a/b.txt"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a\\b.txt"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("/"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("\\"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a."));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a./b."));
+
+  /* Note: path component that is just a dot is not considered hidden. */
+  EXPECT_FALSE(BLI_path_has_hidden_component("."));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a/."));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a\\."));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a/./b"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("a\\.\\b"));
+  EXPECT_FALSE(BLI_path_has_hidden_component("./a"));
+  EXPECT_FALSE(BLI_path_has_hidden_component(".\\a"));
+
+  /* Does contain hidden components: */
+  EXPECT_TRUE(BLI_path_has_hidden_component(".a"));
+  EXPECT_TRUE(BLI_path_has_hidden_component(".a.b"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("a/.b"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("a\\.b"));
+  EXPECT_TRUE(BLI_path_has_hidden_component(".a/b"));
+  EXPECT_TRUE(BLI_path_has_hidden_component(".a\\b"));
+  EXPECT_TRUE(BLI_path_has_hidden_component(".a/.b"));
+  EXPECT_TRUE(BLI_path_has_hidden_component(".a\\.b"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("a/.b.c"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("a/.b/c.txt"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("a\\.b\\c.txt"));
+
+  /* Tilde at end of path component: considered hidden. */
+  EXPECT_TRUE(BLI_path_has_hidden_component("~"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("a~"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("a/~/c"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("a/b~/c"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("a\\b~\\c"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("~/b"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("a~/b"));
+  EXPECT_TRUE(BLI_path_has_hidden_component("a~\\b"));
+}
+
+#if DO_PERF_TESTS
+
+#  include "BLI_timeit.hh"
+
+TEST(path_util, HasHiddenComponents_Performance)
+{
+  SCOPED_TIMER(__func__);
+  const char *test_paths[] = {
+      "test.txt",
+      "test/a_fairly_long/path/here/shall_we/ok.txt",
+      "test/a_fairly_long/path/here/.with_a_hidden_component/shall_we/ok.txt",
+      "test/.another_path_with_hidden_component/yes.txt",
+      "test/another/path/with/.hidden_filename",
+  };
+  const int RUN_COUNT = 10'000'000;
+  int hidden = 0;
+  for (int i = 0; i < RUN_COUNT; i++) {
+    for (int j = 0; j < ARRAY_SIZE(test_paths); j++) {
+      hidden += BLI_path_has_hidden_component(test_paths[j]) ? 1 : 0;
+    }
+  }
+  EXPECT_EQ(RUN_COUNT * 3, hidden);
+}
+
+#endif
 
 /** \} */

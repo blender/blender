@@ -19,7 +19,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "gpu_select_private.h"
+#include "gpu_select_private.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Types

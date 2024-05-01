@@ -34,7 +34,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_bounds)
     .storage_buf(6, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
     .storage_buf(7, Qualifier::READ_WRITE, "ShadowTileMapClip", "tilemaps_clip_buf[]")
     .push_constant(Type::INT, "resource_len")
-    .typedef_source("draw_shader_shared.h")
+    .typedef_source("draw_shader_shared.hh")
     .additional_info("eevee_shared")
     .compute_source("eevee_shadow_tilemap_bounds_comp.glsl");
 
@@ -61,11 +61,11 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_update)
 GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_opaque)
     .do_static_compilation(true)
     .local_group_size(SHADOW_DEPTH_SCAN_GROUP_SIZE, SHADOW_DEPTH_SCAN_GROUP_SIZE)
-    .sampler(0, ImageType::DEPTH_2D, "depth_tx")
     .storage_buf(5, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(6, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .push_constant(Type::FLOAT, "tilemap_projection_ratio")
-    .additional_info("eevee_shared", "draw_view", "draw_view_culling", "eevee_light_data")
+    .push_constant(Type::IVEC2, "input_depth_extent")
+    .additional_info(
+        "eevee_shared", "draw_view", "draw_view_culling", "eevee_hiz_data", "eevee_light_data")
     .compute_source("eevee_shadow_tag_usage_comp.glsl");
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_surfels)
@@ -75,11 +75,11 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_surfels)
     /* ShadowTileDataPacked is uint. But MSL translation need the real type. */
     .storage_buf(7, Qualifier::READ_WRITE, "uint", "tiles_buf[]")
     .push_constant(Type::INT, "directional_level")
-    .push_constant(Type::FLOAT, "tilemap_projection_ratio")
     .additional_info("eevee_shared",
                      "draw_view",
                      "draw_view_culling",
                      "eevee_light_data",
+                     "eevee_global_ubo",
                      "eevee_surfel_common")
     .compute_source("eevee_shadow_tag_usage_surfels_comp.glsl");
 
@@ -96,8 +96,6 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
     .storage_buf(4, Qualifier::READ, "ObjectBounds", "bounds_buf[]")
     .storage_buf(5, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(6, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .push_constant(Type::FLOAT, "tilemap_projection_ratio")
-    .push_constant(Type::FLOAT, "pixel_world_radius")
     .push_constant(Type::IVEC2, "fb_resolution")
     .push_constant(Type::INT, "fb_lod")
     .vertex_out(eevee_shadow_tag_transparent_iface)
@@ -117,7 +115,6 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_volume)
     .local_group_size(VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE, VOLUME_GROUP_SIZE)
     .storage_buf(4, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(5, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
-    .push_constant(Type::FLOAT, "tilemap_projection_ratio")
     .additional_info("eevee_volume_properties_data",
                      "eevee_shared",
                      "draw_view",
@@ -130,6 +127,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_volume)
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_mask)
     .do_static_compilation(true)
     .local_group_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
+    .push_constant(Type::INT, "max_view_per_tilemap")
     .storage_buf(0, Qualifier::READ, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(1, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
     .additional_info("eevee_shared")
@@ -149,7 +147,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_page_free)
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_defrag)
     .do_static_compilation(true)
     .local_group_size(1)
-    .typedef_source("draw_shader_shared.h")
+    .typedef_source("draw_shader_shared.hh")
     .storage_buf(1, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
     .storage_buf(2, Qualifier::READ_WRITE, "ShadowPagesInfoData", "pages_infos_buf")
     .storage_buf(3, Qualifier::READ_WRITE, "uint", "pages_free_buf[]")
@@ -163,7 +161,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_page_defrag)
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_allocate)
     .do_static_compilation(true)
     .local_group_size(SHADOW_TILEMAP_LOD0_LEN)
-    .typedef_source("draw_shader_shared.h")
+    .typedef_source("draw_shader_shared.hh")
     .storage_buf(0, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(1, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
     .storage_buf(2, Qualifier::READ_WRITE, "ShadowPagesInfoData", "pages_infos_buf")
@@ -175,7 +173,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_page_allocate)
 
 GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_finalize)
     .do_static_compilation(true)
-    .typedef_source("draw_shader_shared.h")
+    .typedef_source("draw_shader_shared.hh")
     .local_group_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
     .storage_buf(0, Qualifier::READ, "ShadowTileMapData", "tilemaps_buf[]")
     .storage_buf(1, Qualifier::READ_WRITE, SHADOW_TILE_DATA_PACKED, "tiles_buf[]")
@@ -187,12 +185,19 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_finalize)
     .storage_buf(7, Qualifier::WRITE, SHADOW_PAGE_PACKED, "dst_coord_buf[SHADOW_RENDER_MAP_SIZE]")
     .storage_buf(8, Qualifier::WRITE, SHADOW_PAGE_PACKED, "src_coord_buf[SHADOW_RENDER_MAP_SIZE]")
     .storage_buf(9, Qualifier::WRITE, SHADOW_PAGE_PACKED, "render_map_buf[SHADOW_RENDER_MAP_SIZE]")
-    .storage_buf(10, Qualifier::WRITE, "uint", "viewport_index_buf[SHADOW_VIEW_MAX]")
+    .storage_buf(10, Qualifier::WRITE, "ShadowRenderView", "render_view_buf[SHADOW_VIEW_MAX]")
     .storage_buf(11, Qualifier::READ, "ShadowTileMapClip", "tilemaps_clip_buf[]")
     /* 12 is the minimum number of storage buf we require. Do not go above this limit. */
     .image(0, GPU_R32UI, Qualifier::WRITE, ImageType::UINT_2D, "tilemaps_img")
     .additional_info("eevee_shared")
     .compute_source("eevee_shadow_tilemap_finalize_comp.glsl");
+
+GPU_SHADER_CREATE_INFO(eevee_shadow_tilemap_amend)
+    .do_static_compilation(true)
+    .local_group_size(SHADOW_TILEMAP_RES, SHADOW_TILEMAP_RES)
+    .image(0, GPU_R32UI, Qualifier::READ_WRITE, ImageType::UINT_2D, "tilemaps_img")
+    .additional_info("eevee_shared", "eevee_light_data", "draw_view")
+    .compute_source("eevee_shadow_tilemap_amend_comp.glsl");
 
 /* AtomicMin clear implementation. */
 GPU_SHADER_CREATE_INFO(eevee_shadow_page_clear)

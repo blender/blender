@@ -8,9 +8,7 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "BLI_span.hh"
 
 struct BMBVHTree;
 struct BMEditMesh;
@@ -29,16 +27,14 @@ BMBVHTree *BKE_bmbvh_new_from_editmesh(struct BMEditMesh *em,
                                        const float (*cos_cage)[3],
                                        bool cos_cage_free);
 BMBVHTree *BKE_bmbvh_new_ex(struct BMesh *bm,
-                            struct BMLoop *(*looptris)[3],
-                            int looptris_tot,
+                            blender::Span<std::array<BMLoop *, 3>> looptris,
                             int flag,
                             const float (*cos_cage)[3],
                             bool cos_cage_free,
                             bool (*test_fn)(struct BMFace *, void *user_data),
                             void *user_data);
 BMBVHTree *BKE_bmbvh_new(struct BMesh *bm,
-                         struct BMLoop *(*looptris)[3],
-                         int looptris_tot,
+                         blender::Span<std::array<BMLoop *, 3>> looptris,
                          int flag,
                          const float (*cos_cage)[3],
                          bool cos_cage_free);
@@ -91,7 +87,3 @@ enum {
   /** Omit hidden geometry. */
   BMBVH_RESPECT_HIDDEN = (1 << 2),
 };
-
-#ifdef __cplusplus
-}
-#endif

@@ -135,7 +135,7 @@ static void MaskPointToTransData(Scene *scene,
       /* CV coords are scaled by aspects. this is needed for rotations and
        * proportional editing to be consistent with the stretched CV coords
        * that are displayed. this also means that for display and number-input,
-       * and when the CV coords are flushed, these are converted each time */
+       * and when the CV coords are flushed, these are converted each time. */
       mul_v2_m3v2(td2d->loc, parent_matrix, bezt->vec[i]);
       td2d->loc[0] *= asp[0];
       td2d->loc[1] *= asp[1];
@@ -156,7 +156,7 @@ static void MaskPointToTransData(Scene *scene,
       td->ext = nullptr;
 
       if (i == 1) {
-        /* scaling weights */
+        /* Scaling weights. */
         td->val = &bezt->weight;
         td->ival = *td->val;
       }
@@ -267,7 +267,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
     return;
   }
 
-  /* count */
+  /* Count. */
   LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
     if (masklay->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
@@ -316,15 +316,15 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
   tc->data_len = (is_prop_edit) ? count : countsel;
   td = tc->data = static_cast<TransData *>(
       MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Mask Editing)"));
-  /* for each 2d uv coord a 3d vector is allocated, so that they can be
-   * treated just as if they were 3d verts */
+  /* For each 2d uv coord a 3d vector is allocated, so that they can be
+   * treated just as if they were 3d verts. */
   td2d = tc->data_2d = static_cast<TransData2D *>(
       MEM_callocN(tc->data_len * sizeof(TransData2D), "TransObData2D(Mask Editing)"));
   tc->custom.type.data = tdm = static_cast<TransDataMasking *>(
       MEM_callocN(tc->data_len * sizeof(TransDataMasking), "TransDataMasking(Mask Editing)"));
   tc->custom.type.use_free = true;
 
-  /* create data */
+  /* Create data. */
   LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
     if (masklay->visibility_flag & (MASK_HIDE_VIEW | MASK_HIDE_SELECT)) {
       continue;
@@ -389,7 +389,7 @@ static void flushTransMasking(TransInfo *t)
   inv[0] = 1.0f / asp[0];
   inv[1] = 1.0f / asp[1];
 
-  /* flush to 2d vector from internally used 3d vector */
+  /* Flush to 2d vector from internally used 3d vector. */
   for (a = 0, td = tc->data_2d, tdm = static_cast<TransDataMasking *>(tc->custom.type.data);
        a < tc->data_len;
        a++, td++, tdm++)

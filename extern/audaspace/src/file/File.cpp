@@ -23,7 +23,7 @@
 
 AUD_NAMESPACE_BEGIN
 
-File::File(std::string filename, int stream) :
+File::File(const std::string &filename, int stream) :
 	m_filename(filename), m_stream(stream)
 {
 }

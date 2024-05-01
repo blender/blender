@@ -30,7 +30,7 @@
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_context.h"
+#include "GPU_context.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
@@ -848,6 +848,28 @@ static void engine_render_view_layer(Render *re,
     if (use_gpu_context) {
       DRW_render_context_enable(engine->re);
     }
+    else if (engine->has_grease_pencil && use_grease_pencil && G.background) {
+      /* Workaround for specific NVidia drivers which crash on Linux when OptiX context is
+       * initialized prior to OpenGL context. This affects driver versions 545.29.06, 550.54.14,
+       * and 550.67 running on kernel 6.8.
+       *
+       * The idea here is to initialize GPU context before giving control to the render engine in
+       * cases when we know that the GPU context will definitely be needed later on.
+       *
+       * Only do it for background renders to avoid possible extra global locking during the
+       * context initialization. For the non-background renders the GPU context is already
+       * initialized for the Blender interface and no workaround is needed.
+       *
+       * Technically it is enough to only call WM_init_gpu() here, but it expects to only be called
+       * once, and from here it is not possible to know whether GPU sub-system is initialized or
+       * not. So instead temporarily enable the render context, which will take care of the GPU
+       * context initialization.
+       *
+       * For demo file and tracking progress of possible fixes on driver side refer to #120007. */
+      DRW_render_context_enable(engine->re);
+      DRW_render_context_disable(engine->re);
+    }
+
     if (engine->type->update) {
       engine->type->update(engine, re->main, engine->depsgraph);
     }
@@ -1314,8 +1336,8 @@ bool RE_engine_gpu_context_enable(RenderEngine *engine)
     /* Activate RenderEngine System and Blender GPU Context. */
     WM_system_gpu_context_activate(engine->system_gpu_context);
     if (engine->blender_gpu_context) {
-      GPU_context_active_set(engine->blender_gpu_context);
       GPU_render_begin();
+      GPU_context_active_set(engine->blender_gpu_context);
     }
     return true;
   }
@@ -1330,8 +1352,8 @@ void RE_engine_gpu_context_disable(RenderEngine *engine)
   else {
     if (engine->system_gpu_context) {
       if (engine->blender_gpu_context) {
-        GPU_render_end();
         GPU_context_active_set(nullptr);
+        GPU_render_end();
       }
       WM_system_gpu_context_release(engine->system_gpu_context);
       /* Restore DRW state context if previously active. */

@@ -4,17 +4,22 @@
 
 #pragma once
 
+#include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
 struct BMesh;
-struct GPUIndexBuf;
 struct GPUUniformBuf;
-struct GPUVertBuf;
+namespace blender::gpu {
+class IndexBuf;
+class VertBuf;
+}  // namespace blender::gpu
 struct GPUVertFormat;
 struct Mesh;
 struct Object;
+namespace blender::bke::subdiv {
 struct Subdiv;
+}
 struct ToolSettings;
 
 namespace blender::draw {
@@ -31,8 +36,8 @@ struct MeshRenderData;
  * \{ */
 
 struct DRWPatchMap {
-  GPUVertBuf *patch_map_handles;
-  GPUVertBuf *patch_map_quadtree;
+  gpu::VertBuf *patch_map_handles;
+  gpu::VertBuf *patch_map_quadtree;
   int min_patch_face;
   int max_patch_face;
   int max_depth;
@@ -98,19 +103,19 @@ struct DRWSubdivLooseGeom {
  * \{ */
 
 struct DRWSubdivCache {
-  Mesh *mesh;
+  const Mesh *mesh;
   BMesh *bm;
-  Subdiv *subdiv;
+  bke::subdiv::Subdiv *subdiv;
   bool optimal_display;
   bool hide_unmapped_edges;
   bool use_custom_loop_normals;
 
   /* Coordinates used to evaluate patches for positions and normals. */
-  GPUVertBuf *patch_coords;
+  gpu::VertBuf *patch_coords;
   /* Coordinates used to evaluate patches for attributes. */
-  GPUVertBuf *corner_patch_coords;
+  gpu::VertBuf *corner_patch_coords;
   /* Coordinates used to evaluate patches for the face centers (or face dots) in edit-mode. */
-  GPUVertBuf *fdots_patch_coords;
+  gpu::VertBuf *fdots_patch_coords;
 
   /* Resolution used to generate the patch coordinates. */
   int resolution;
@@ -141,29 +146,29 @@ struct DRWSubdivCache {
 
   /* Indices of faces adjacent to the vertices, ordered by vertex index, with no particular
    * winding. */
-  GPUVertBuf *subdiv_vertex_face_adjacency;
+  gpu::VertBuf *subdiv_vertex_face_adjacency;
   /* The difference between value (i + 1) and (i) gives the number of faces adjacent to vertex (i).
    */
-  GPUVertBuf *subdiv_vertex_face_adjacency_offsets;
+  gpu::VertBuf *subdiv_vertex_face_adjacency_offsets;
 
   /* Maps subdivision loop to original coarse vertex index, only really useful for edit mode. */
-  GPUVertBuf *verts_orig_index;
+  gpu::VertBuf *verts_orig_index;
   /* Maps subdivision loop to original coarse edge index, only really useful for edit mode. */
-  GPUVertBuf *edges_orig_index;
+  gpu::VertBuf *edges_orig_index;
   /* Indicates if edge should be drawn in optimal display mode. */
-  GPUVertBuf *edges_draw_flag;
+  gpu::VertBuf *edges_draw_flag;
 
   /* Owned by #Subdiv. Indexed by coarse face index, difference between value (i + 1) and (i)
    * gives the number of ptex faces for coarse face (i). */
   int *face_ptex_offset;
   /* Vertex buffer for face_ptex_offset. */
-  GPUVertBuf *face_ptex_offset_buffer;
+  gpu::VertBuf *face_ptex_offset_buffer;
 
   int *subdiv_face_offset;
-  GPUVertBuf *subdiv_face_offset_buffer;
+  gpu::VertBuf *subdiv_face_offset_buffer;
 
   /* Contains the start loop index and the smooth flag for each coarse face. */
-  GPUVertBuf *extra_coarse_face_data;
+  gpu::VertBuf *extra_coarse_face_data;
 
   /* Computed for `ibo.points`, one value per subdivided vertex,
    * mapping coarse vertices -> subdivided loop. */
@@ -172,7 +177,7 @@ struct DRWSubdivCache {
   /* Material offsets. */
   int *mat_start;
   int *mat_end;
-  GPUVertBuf *face_mat_offset;
+  gpu::VertBuf *face_mat_offset;
 
   DRWPatchMap gpu_patch_map;
 
@@ -198,8 +203,8 @@ void DRW_create_subdivision(Object *ob,
                             MeshBufferCache *mbc,
                             bool is_editmode,
                             bool is_paint_mode,
-                            bool is_mode_active,
-                            const float obmat[4][4],
+                            bool edit_mode_active,
+                            const float4x4 &object_to_world,
                             bool do_final,
                             bool do_uvedit,
                             bool do_cage,
@@ -208,90 +213,91 @@ void DRW_create_subdivision(Object *ob,
 
 void DRW_subdivide_loose_geom(DRWSubdivCache *subdiv_cache, MeshBufferCache *cache);
 
-void DRW_subdiv_cache_free(Subdiv *subdiv);
+void DRW_subdiv_cache_free(bke::subdiv::Subdiv *subdiv);
 
-void draw_subdiv_init_origindex_buffer(GPUVertBuf *buffer,
+void draw_subdiv_init_origindex_buffer(gpu::VertBuf *buffer,
                                        int32_t *vert_origindex,
                                        uint num_loops,
                                        uint loose_len);
 
-GPUVertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_loops);
+gpu::VertBuf *draw_subdiv_build_origindex_buffer(int *vert_origindex, uint num_loops);
 
 /* Compute shader functions. */
 
 void draw_subdiv_build_sculpt_data_buffer(const DRWSubdivCache &cache,
-                                          GPUVertBuf *mask_vbo,
-                                          GPUVertBuf *face_set_vbo,
-                                          GPUVertBuf *sculpt_data);
+                                          gpu::VertBuf *mask_vbo,
+                                          gpu::VertBuf *face_set_vbo,
+                                          gpu::VertBuf *sculpt_data);
 
 void draw_subdiv_accumulate_normals(const DRWSubdivCache &cache,
-                                    GPUVertBuf *pos_nor,
-                                    GPUVertBuf *face_adjacency_offsets,
-                                    GPUVertBuf *face_adjacency_lists,
-                                    GPUVertBuf *vertex_loop_map,
-                                    GPUVertBuf *vert_normals);
+                                    gpu::VertBuf *pos_nor,
+                                    gpu::VertBuf *face_adjacency_offsets,
+                                    gpu::VertBuf *face_adjacency_lists,
+                                    gpu::VertBuf *vertex_loop_map,
+                                    gpu::VertBuf *vert_normals);
 
 void draw_subdiv_finalize_normals(const DRWSubdivCache &cache,
-                                  GPUVertBuf *vert_normals,
-                                  GPUVertBuf *subdiv_loop_subdiv_vert_index,
-                                  GPUVertBuf *pos_nor);
+                                  gpu::VertBuf *vert_normals,
+                                  gpu::VertBuf *subdiv_loop_subdiv_vert_index,
+                                  gpu::VertBuf *pos_nor);
 
 void draw_subdiv_finalize_custom_normals(const DRWSubdivCache &cache,
-                                         GPUVertBuf *src_custom_normals,
-                                         GPUVertBuf *pos_nor);
+                                         gpu::VertBuf *src_custom_normals,
+                                         gpu::VertBuf *pos_nor);
 
 void draw_subdiv_extract_pos_nor(const DRWSubdivCache &cache,
-                                 GPUVertBuf *flags_buffer,
-                                 GPUVertBuf *pos_nor,
-                                 GPUVertBuf *orco);
+                                 gpu::VertBuf *flags_buffer,
+                                 gpu::VertBuf *pos_nor,
+                                 gpu::VertBuf *orco);
 
 void draw_subdiv_interp_custom_data(const DRWSubdivCache &cache,
-                                    GPUVertBuf *src_data,
-                                    GPUVertBuf *dst_data,
+                                    gpu::VertBuf *src_data,
+                                    gpu::VertBuf *dst_data,
                                     int comp_type, /*GPUVertCompType*/
                                     int dimensions,
                                     int dst_offset);
 
 void draw_subdiv_extract_uvs(const DRWSubdivCache &cache,
-                             GPUVertBuf *uvs,
+                             gpu::VertBuf *uvs,
                              int face_varying_channel,
                              int dst_offset);
 
 void draw_subdiv_build_edge_fac_buffer(const DRWSubdivCache &cache,
-                                       GPUVertBuf *pos_nor,
-                                       GPUVertBuf *edge_draw_flag,
-                                       GPUVertBuf *poly_other_map,
-                                       GPUVertBuf *edge_fac);
+                                       gpu::VertBuf *pos_nor,
+                                       gpu::VertBuf *edge_draw_flag,
+                                       gpu::VertBuf *poly_other_map,
+                                       gpu::VertBuf *edge_fac);
 
 void draw_subdiv_build_tris_buffer(const DRWSubdivCache &cache,
-                                   GPUIndexBuf *subdiv_tris,
+                                   gpu::IndexBuf *subdiv_tris,
                                    int material_count);
 
-void draw_subdiv_build_lines_buffer(const DRWSubdivCache &cache, GPUIndexBuf *lines_indices);
+void draw_subdiv_build_lines_buffer(const DRWSubdivCache &cache, gpu::IndexBuf *lines_indices);
 
 void draw_subdiv_build_lines_loose_buffer(const DRWSubdivCache &cache,
-                                          GPUIndexBuf *lines_indices,
-                                          GPUVertBuf *lines_flags,
+                                          gpu::IndexBuf *lines_indices,
+                                          gpu::VertBuf *lines_flags,
+                                          uint edge_loose_offset,
                                           uint num_loose_edges);
 
 void draw_subdiv_build_fdots_buffers(const DRWSubdivCache &cache,
-                                     GPUVertBuf *fdots_pos,
-                                     GPUVertBuf *fdots_nor,
-                                     GPUIndexBuf *fdots_indices);
+                                     gpu::VertBuf *fdots_pos,
+                                     gpu::VertBuf *fdots_nor,
+                                     gpu::IndexBuf *fdots_indices);
 
 void draw_subdiv_build_lnor_buffer(const DRWSubdivCache &cache,
-                                   GPUVertBuf *pos_nor,
-                                   GPUVertBuf *lnor);
+                                   gpu::VertBuf *pos_nor,
+                                   gpu::VertBuf *lnor);
 
 void draw_subdiv_build_edituv_stretch_area_buffer(const DRWSubdivCache &cache,
-                                                  GPUVertBuf *coarse_data,
-                                                  GPUVertBuf *subdiv_data);
+                                                  gpu::VertBuf *coarse_data,
+                                                  gpu::VertBuf *subdiv_data);
 
 void draw_subdiv_build_edituv_stretch_angle_buffer(const DRWSubdivCache &cache,
-                                                   GPUVertBuf *pos_nor,
-                                                   GPUVertBuf *uvs,
+                                                   gpu::VertBuf *pos_nor,
+                                                   gpu::VertBuf *uvs,
                                                    int uvs_offset,
-                                                   GPUVertBuf *stretch_angles);
+                                                   gpu::VertBuf *stretch_angles);
 
 /** Return the format used for the positions and normals VBO. */
 GPUVertFormat *draw_subdiv_get_pos_nor_format();

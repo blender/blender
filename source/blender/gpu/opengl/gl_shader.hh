@@ -17,21 +17,7 @@
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_private.hh"
 
-namespace blender {
-template<>
-struct DefaultHash<Vector<gpu::shader::ShaderCreateInfo::SpecializationConstant::Value>> {
-  uint64_t operator()(
-      const Vector<gpu::shader::ShaderCreateInfo::SpecializationConstant::Value> &key) const
-  {
-    uint64_t hash = 0;
-    for (const gpu::shader::ShaderCreateInfo::SpecializationConstant::Value &value : key) {
-      hash = hash * 33 + value.u;
-    }
-    return hash;
-  }
-};
-
-namespace gpu {
+namespace blender::gpu {
 
 /**
  * Shaders that uses specialization constants must keep track of the sources in order to rebuild
@@ -139,6 +125,8 @@ class GLShader : public Shader {
 
   eGPUShaderTFBType transform_feedback_type_ = GPU_SHADER_TFB_NONE;
 
+  std::string debug_source;
+
  public:
   GLShader(const char *name);
   ~GLShader();
@@ -164,7 +152,7 @@ class GLShader : public Shader {
   /** Should be called before linking. */
   void transform_feedback_names_set(Span<const char *> name_list,
                                     eGPUShaderTFBType geom_type) override;
-  bool transform_feedback_enable(GPUVertBuf *buf) override;
+  bool transform_feedback_enable(VertBuf *buf) override;
   void transform_feedback_disable() override;
 
   void bind() override;
@@ -229,5 +217,4 @@ class GLLogParser : public GPULogParser {
   MEM_CXX_CLASS_ALLOC_FUNCS("GLLogParser");
 };
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

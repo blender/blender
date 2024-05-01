@@ -47,7 +47,7 @@ static void init_data(ModifierData *md)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
 
   MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(GreasePencilLengthModifierData), modifier);
-  modifier::greasepencil::init_influence_data(&gpmd->influence, true);
+  modifier::greasepencil::init_influence_data(&gpmd->influence, false);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, int flags)
@@ -128,11 +128,14 @@ static void deform_drawing(const ModifierData &md,
   VArray<float> use_starts = VArray<float>::ForSingle(mmd.start_fac, curves_num);
   VArray<float> use_ends = VArray<float>::ForSingle(mmd.end_fac, curves_num);
 
+  Array<float> modified_starts;
+  Array<float> modified_ends;
   if (mmd.rand_start_fac != 0.0 || mmd.rand_end_fac != 0.0) {
+    modified_starts = Array<float>(curves.curves_num(), mmd.start_fac);
+    modified_ends = Array<float>(curves.curves_num(), mmd.end_fac);
+
     /* Use random to modify start/end factors. Put the modified values outside the
      * branch so it could be accessed in later stretching/shrinking stages. */
-    Array<float> modified_starts(curves.curves_num(), mmd.start_fac);
-    Array<float> modified_ends(curves.curves_num(), mmd.end_fac);
     use_starts = VArray<float>::ForSpan(modified_starts.as_mutable_span());
     use_ends = VArray<float>::ForSpan(modified_ends.as_mutable_span());
 
@@ -325,7 +328,6 @@ static void panel_draw(const bContext *C, Panel *panel)
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
   }
 
   modifier_panel_end(layout, ptr);

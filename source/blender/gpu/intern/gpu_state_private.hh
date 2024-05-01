@@ -10,7 +10,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_state.h"
+#include "GPU_state.hh"
 
 #include "gpu_texture_private.hh"
 

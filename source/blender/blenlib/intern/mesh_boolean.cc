@@ -102,7 +102,7 @@ static std::ostream &operator<<(std::ostream &os, const Edge &e)
   return os;
 }
 
-static std::ostream &operator<<(std::ostream &os, const Span<int> &a)
+static std::ostream &operator<<(std::ostream &os, const Span<int> a)
 {
   for (int i : a.index_range()) {
     os << a[i];
@@ -1397,7 +1397,7 @@ static bool is_pwn(const IMesh &tm, const TriMeshTopology &tmtopo)
  * the dummy triangle lies, then finding which cell is between
  * the two triangles on either side of the dummy.
  */
-static int find_cell_for_point_near_edge(mpq3 p,
+static int find_cell_for_point_near_edge(const mpq3 &p,
                                          const Edge &e,
                                          const IMesh &tm,
                                          const TriMeshTopology &tmtopo,
@@ -1908,7 +1908,7 @@ struct ComponentContainer {
  */
 static Vector<ComponentContainer> find_component_containers(int comp,
                                                             const Span<Vector<int>> components,
-                                                            const Array<int> &ambient_cell,
+                                                            const Span<int> ambient_cell,
                                                             const IMesh &tm,
                                                             const PatchesInfo &pinfo,
                                                             const TriMeshTopology &tmtopo,
@@ -2705,7 +2705,7 @@ static bool raycast_test_remove(BoolOpType op, Array<int> &winding, int shape, b
 }
 
 /** Add triangle a flipped version of tri to out_faces. */
-static void raycast_add_flipped(Vector<Face *> &out_faces, Face &tri, IMeshArena *arena)
+static void raycast_add_flipped(Vector<Face *> &out_faces, const Face &tri, IMeshArena *arena)
 {
 
   Array<const Vert *> flipped_vs = {tri[0], tri[2], tri[1]};
@@ -3254,7 +3254,7 @@ static void do_dissolve(FaceMergeState *fms)
  * \note it is possible that some of the triangles in \a tris have reversed orientation
  * to the rest, so we have to handle the two cases separately.
  */
-static Vector<Face *> merge_tris_for_face(Vector<int> tris,
+static Vector<Face *> merge_tris_for_face(const Vector<int> &tris,
                                           const IMesh &tm,
                                           const IMesh &imesh_in,
                                           IMeshArena *arena)

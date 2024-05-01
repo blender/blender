@@ -14,7 +14,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_immediate.h"
+#include "GPU_immediate.hh"
 
 #include "UI_resources.hh"
 

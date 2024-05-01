@@ -111,25 +111,25 @@ PropertyRNA *RNA_def_boolean(StructOrFunctionRNA *cont,
 PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont,
                                    const char *identifier,
                                    int len,
-                                   bool *default_value,
+                                   const bool *default_value,
                                    const char *ui_name,
                                    const char *ui_description);
 PropertyRNA *RNA_def_boolean_layer(StructOrFunctionRNA *cont,
                                    const char *identifier,
                                    int len,
-                                   bool *default_value,
+                                   const bool *default_value,
                                    const char *ui_name,
                                    const char *ui_description);
 PropertyRNA *RNA_def_boolean_layer_member(StructOrFunctionRNA *cont,
                                           const char *identifier,
                                           int len,
-                                          bool *default_value,
+                                          const bool *default_value,
                                           const char *ui_name,
                                           const char *ui_description);
 PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont,
                                     const char *identifier,
                                     int len,
-                                    bool *default_value,
+                                    const bool *default_value,
                                     const char *ui_name,
                                     const char *ui_description);
 
@@ -434,7 +434,7 @@ void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *d
  */
 void RNA_def_property_ui_range(
     PropertyRNA *prop, double min, double max, double step, int precision);
-void RNA_def_property_ui_scale_type(PropertyRNA *prop, PropertyScaleType scale_type);
+void RNA_def_property_ui_scale_type(PropertyRNA *prop, PropertyScaleType ui_scale_type);
 void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive);
 
 void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *updatefunc);

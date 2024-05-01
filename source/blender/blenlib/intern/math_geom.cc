@@ -2674,7 +2674,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
 
     /* clamp to [0, 1] */
     CLAMP(t0, 0.0f, 1.0f);
-    CLAMP(t1, 0.0f, 1.0f);
+    // CLAMP(t1, 0.0f, 1.0f); /* UNUSED. */
 
     /*---test inside of tri---*/
     /* plane intersection point */
@@ -4800,8 +4800,9 @@ void lookat_m4(
 
   i_multmatrix(mat1, mat);
 
-  mat1[1][1] = mat1[2][2] = 1.0f; /* be careful here to reinit */
-  mat1[1][2] = mat1[2][1] = 0.0f; /* those modified by the last */
+  /* Be careful here to reinitialize those modified by the last. */
+  mat1[1][1] = mat1[2][2] = 1.0f;
+  mat1[1][2] = mat1[2][1] = 0.0f;
 
   /* paragraph */
   if (hyp != 0.0f) { /* rotate Y */

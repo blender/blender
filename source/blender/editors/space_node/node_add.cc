@@ -16,6 +16,7 @@
 #include "DNA_node_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_easing.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
@@ -49,6 +50,9 @@
 #include "WM_types.hh"
 
 #include "UI_view2d.hh"
+
+#include "io_utils.hh"
+#include <fmt/format.h>
 
 #include "node_intern.hh" /* own include */
 
@@ -683,17 +687,58 @@ static bool node_add_file_poll(bContext *C)
          ELEM(snode->nodetree->type, NTREE_SHADER, NTREE_TEXTURE, NTREE_COMPOSIT, NTREE_GEOMETRY);
 }
 
+/** Node stack animation data, sorts nodes so each node is placed on top of each other. */
+struct NodeStackAnimationData {
+  Vector<bNode *> nodes;
+  wmTimer *anim_timer;
+};
+
+static int node_add_file_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  NodeStackAnimationData *data = static_cast<NodeStackAnimationData *>(op->customdata);
+
+  if (event->type != TIMER || data == nullptr || data->anim_timer != event->customdata) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  const float node_stack_anim_duration = 0.25f;
+  const float duration = float(data->anim_timer->time_duration);
+  const float prev_duration = duration - float(data->anim_timer->time_delta);
+  const float clamped_duration = math::min(duration, node_stack_anim_duration);
+  const float delta_factor =
+      BLI_easing_cubic_ease_in_out(clamped_duration, 0.0f, 1.0f, node_stack_anim_duration) -
+      BLI_easing_cubic_ease_in_out(prev_duration, 0.0f, 1.0f, node_stack_anim_duration);
+
+  bool redraw = false;
+  /* Each node is pushed by all previous nodes in the stack. */
+  float stack_offset = 0.0f;
+
+  for (bNode *node : data->nodes) {
+    node->locy -= stack_offset;
+    stack_offset += (node->runtime->totr.ymax - node->runtime->totr.ymin) * delta_factor;
+    redraw = true;
+  }
+
+  if (redraw) {
+    ED_region_tag_redraw(CTX_wm_region(C));
+  }
+
+  /* End stack animation. */
+  if (duration > node_stack_anim_duration) {
+    WM_event_timer_remove(CTX_wm_manager(C), nullptr, data->anim_timer);
+    MEM_delete(data);
+    op->customdata = nullptr;
+    return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
+  }
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
 static int node_add_file_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   int type = 0;
-
-  Image *ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
-  if (!ima) {
-    return OPERATOR_CANCELLED;
-  }
-
   switch (snode.nodetree->type) {
     case NTREE_SHADER:
       type = SH_NODE_TEX_IMAGE;
@@ -710,36 +755,82 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
     default:
       return OPERATOR_CANCELLED;
   }
+  Vector<Image *> images;
+  /* Load all paths as ID Images. */
+  const Vector<std::string> paths = ed::io::paths_from_operator_properties(op->ptr);
+  for (const std::string &path : paths) {
+    RNA_string_set(op->ptr, "filepath", path.c_str());
+    Image *image = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+    if (!image) {
+      BKE_report(op->reports, RPT_WARNING, fmt::format("Could not load {}", path).c_str());
+      continue;
+    }
+    images.append(image);
+    /* When adding new image file via drag-drop we need to load #ImBuf in order
+     * to get proper image source. */
+    BKE_image_signal(bmain, image, nullptr, IMA_SIGNAL_RELOAD);
+    WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
+  }
 
-  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
+  /* If not path is provided, try to get a ID Image from operator. */
+  if (paths.is_empty()) {
+    Image *image = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
+    if (image) {
+      images.append(image);
+    }
+  }
 
-  bNode *node = add_static_node(*C, type, snode.runtime->cursor);
+  float2 position = snode.runtime->cursor;
+  Vector<bNode *> nodes;
+  /* Add a node for each image. */
+  for (Image *image : images) {
+    bNode *node = add_static_node(*C, type, position);
+    if (!node) {
+      BKE_report(op->reports, RPT_WARNING, "Could not add an image node");
+      continue;
+    }
+    if (type == GEO_NODE_IMAGE_TEXTURE) {
+      bNodeSocket *image_socket = (bNodeSocket *)node->inputs.first;
+      bNodeSocketValueImage *socket_value = (bNodeSocketValueImage *)image_socket->default_value;
+      socket_value->value = image;
+    }
+    else {
+      node->id = (ID *)image;
+    }
+    nodes.append(node);
+    /* Initial offset between nodes. */
+    position[1] -= 20.0f;
+  }
 
-  if (!node) {
-    BKE_report(op->reports, RPT_WARNING, "Could not add an image node");
+  if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  if (type == GEO_NODE_IMAGE_TEXTURE) {
-    bNodeSocket *image_socket = (bNodeSocket *)node->inputs.first;
-    bNodeSocketValueImage *socket_value = (bNodeSocketValueImage *)image_socket->default_value;
-    socket_value->value = ima;
+  /* Set new nodes as selected. */
+  bNodeTree &node_tree = *snode.edittree;
+  node_deselect_all(node_tree);
+  for (bNode *node : nodes) {
+    nodeSetSelected(node, true);
   }
-  else {
-    node->id = (ID *)ima;
-  }
+  ED_node_set_active(bmain, &snode, &node_tree, nodes[0], nullptr);
 
-  /* When adding new image file via drag-drop we need to load imbuf in order
-   * to get proper image source. */
-  if (RNA_struct_property_is_set(op->ptr, "filepath")) {
-    BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_RELOAD);
-    WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
-  }
+  ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
   ED_node_tree_propagate_change(C, bmain, snode.edittree);
   DEG_relations_tag_update(bmain);
 
-  return OPERATOR_FINISHED;
+  if (nodes.size() == 1) {
+    return OPERATOR_FINISHED;
+  }
+
+  /* Start the stack animation, so each node is placed on top of each other. */
+  NodeStackAnimationData *data = MEM_new<NodeStackAnimationData>(__func__);
+  data->nodes = std::move(nodes);
+  data->anim_timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.02);
+  op->customdata = data;
+  WM_event_add_modal_handler(C, op);
+
+  return OPERATOR_RUNNING_MODAL;
 }
 
 static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -774,6 +865,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = node_add_file_exec;
+  ot->modal = node_add_file_modal;
   ot->invoke = node_add_file_invoke;
   ot->poll = node_add_file_poll;
 
@@ -784,7 +876,8 @@ void NODE_OT_add_file(wmOperatorType *ot)
                                  FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE,
                                  FILE_SPECIAL,
                                  FILE_OPENFILE,
-                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_DIRECTORY |
+                                     WM_FILESEL_FILES,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
   WM_operator_properties_id_lookup(ot, true);

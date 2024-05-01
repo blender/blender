@@ -138,13 +138,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   int major, minor;
   hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, hipDevId);
   hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, hipDevId);
-  hipDeviceProp_t props;
-  hipGetDeviceProperties(&props, hipDevId);
-
-  char *arch = strtok(props.gcnArchName, ":");
-  if (arch == NULL) {
-    arch = props.gcnArchName;
-  }
+  const std::string arch = hipDeviceArch(hipDevId);
 
   if (!use_adaptive_compilation()) {
     const string fatbin = path_get(string_printf("lib/%s_rt_gfx.hipfb", name));
@@ -162,10 +156,11 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   const string kernel_md5 = util_md5_string(source_md5 + common_cflags);
 
   const string include_path = source_path;
-  const string bitcode_file = string_printf("cycles_%s_%s_%s.bc", name, arch, kernel_md5.c_str());
+  const string bitcode_file = string_printf(
+      "cycles_%s_%s_%s.bc", name, arch.c_str(), kernel_md5.c_str());
   const string bitcode = path_cache_get(path_join("kernels", bitcode_file));
   const string fatbin_file = string_printf(
-      "cycles_%s_%s_%s.hipfb", name, arch, kernel_md5.c_str());
+      "cycles_%s_%s_%s.hipfb", name, arch.c_str(), kernel_md5.c_str());
   const string fatbin = path_cache_get(path_join("kernels", fatbin_file));
 
   VLOG(1) << "Testing for locally compiled kernel " << fatbin << ".";
@@ -229,7 +224,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
 
     std::string rtc_options;
 
-    rtc_options.append(" --offload-arch=").append(arch);
+    rtc_options.append(" --offload-arch=").append(arch.c_str());
     rtc_options.append(" -D __HIPRT__");
     rtc_options.append(" -ffast-math -O3 -std=c++17");
     rtc_options.append(" -fgpu-rdc -c --gpu-bundle-output -c -emit-llvm");
@@ -260,7 +255,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   // After compilation, the bitcode produced is linked with HIP RT bitcode (containing
   // implementations of HIP RT functions, e.g. traversal, to produce the final executable code
   string linker_options;
-  linker_options.append(" --offload-arch=").append(arch);
+  linker_options.append(" --offload-arch=").append(arch.c_str());
   linker_options.append(" -fgpu-rdc --hip-link --cuda-device-only ");
   string hiprt_ver(HIPRT_VERSION_STR);
   string hiprt_bc = hiprt_path + "\\dist\\bin\\Release\\hiprt" + hiprt_ver + "_amd_lib_win.bc";
@@ -803,6 +798,12 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
                                    hiprtBuildOptions options,
                                    bool refit)
 {
+
+  size_t num_object = objects.size();
+  if (num_object == 0) {
+    return 0;
+  }
+
   hiprtBuildOperation build_operation = refit ? hiprtBuildOperationUpdate :
                                                 hiprtBuildOperationBuild;
 
@@ -816,7 +817,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   size_t num_instances = 0;
   int blender_instance_id = 0;
 
-  size_t num_object = objects.size();
   user_instance_id.alloc(num_object);
   prim_visibility.alloc(num_object);
   hiprt_blas_ptr.alloc(num_object);

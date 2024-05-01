@@ -10,18 +10,20 @@
 
 #include "BLI_path_util.h"
 
-#include "BKE_context.hh"
-
 #include "DEG_depsgraph.hh"
 
 #include "IO_orientation.hh"
 #include "IO_path_util_types.hh"
+
+struct bContext;
+struct ReportList;
 
 struct OBJExportParams {
   /** Full path to the destination .OBJ file. */
   char filepath[FILE_MAX];
   /** Pretend that destination file folder is this, if non-empty. Used only for tests. */
   char file_base_for_tests[FILE_MAX];
+  char collection[MAX_IDPROP_NAME] = "";
 
   /** Full path to current blender file (used for comments in output). */
   const char *blen_filepath;
@@ -59,6 +61,8 @@ struct OBJExportParams {
   bool export_smooth_groups;
   /* Create bitflags instead of the default "0"/"1" group IDs. */
   bool smooth_groups_bitflags;
+
+  ReportList *reports = nullptr;
 };
 
 struct OBJImportParams {
@@ -76,6 +80,8 @@ struct OBJImportParams {
   bool validate_meshes = false;
   bool relative_paths = true;
   bool clear_selection = true;
+
+  ReportList *reports = nullptr;
 };
 
 /**

@@ -7,10 +7,21 @@
  * \ingroup balembic
  */
 
-#include <Alembic/Abc/All.h>
-#include <Alembic/AbcGeom/All.h>
+#include "abc_reader_object.h"
 
+#include <Alembic/Abc/Foundation.h>
+#include <Alembic/Abc/ICompoundProperty.h>
+#include <Alembic/Abc/IObject.h>
+#include <Alembic/Abc/ISampleSelector.h>
+#include <Alembic/Abc/TypedArraySample.h>
+#include <Alembic/AbcCoreAbstract/Foundation.h>
+#include <Alembic/AbcCoreAbstract/TimeSampling.h>
+#include <Alembic/AbcGeom/IXform.h>
+
+#include <fstream>
 #include <optional>
+#include <string>
+#include <vector>
 
 using Alembic::Abc::chrono_t;
 using Alembic::Abc::V3fArraySamplePtr;
@@ -38,7 +49,7 @@ std::string get_valid_abc_name(const char *name);
 std::string get_object_dag_path_name(const Object *const ob, Object *dupli_parent);
 
 /* Convert from float to Alembic matrix representations. Does NOT convert from Z-up to Y-up. */
-Imath::M44d convert_matrix_datatype(float mat[4][4]);
+Imath::M44d convert_matrix_datatype(const float mat[4][4]);
 /* Convert from Alembic to float matrix representations. Does NOT convert from Y-up to Z-up. */
 void convert_matrix_datatype(const Imath::M44d &xform, float r_mat[4][4]);
 

@@ -210,6 +210,9 @@ typedef struct wmWindowManager {
   ListBase timers;
   /** Timer for auto save. */
   struct wmTimer *autosavetimer;
+  /** Auto-save timer was up, but it wasn't possible to auto-save in the current mode. */
+  char autosave_scheduled;
+  char _pad2[7];
 
   /** All undo history (runtime only). */
   struct UndoStack *undo_stack;
@@ -677,14 +680,14 @@ enum {
    * Unlike #OP_IS_REPEAT the selection (and context generally) may be different each time.
    * See #60777 for an example of when this is needed.
    */
-  OP_IS_REPEAT_LAST = (1 << 1),
+  OP_IS_REPEAT_LAST = (1 << 2),
 
   /** When the cursor is grabbed */
-  OP_IS_MODAL_GRAB_CURSOR = (1 << 2),
+  OP_IS_MODAL_GRAB_CURSOR = (1 << 3),
 
   /**
    * Allow modal operators to have the region under the cursor for their context
    * (the region-type is maintained to prevent errors).
    */
-  OP_IS_MODAL_CURSOR_REGION = (1 << 3),
+  OP_IS_MODAL_CURSOR_REGION = (1 << 4),
 };

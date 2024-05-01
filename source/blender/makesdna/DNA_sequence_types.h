@@ -28,6 +28,15 @@ struct SequenceLookup;
 struct VFont;
 struct bSound;
 
+#ifdef __cplusplus
+namespace blender::seq {
+struct MediaPresence;
+}  // namespace blender::seq
+using MediaPresence = blender::seq::MediaPresence;
+#else
+typedef struct MediaPresence MediaPresence;
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name Sequence & Editing Structs
  * \{ */
@@ -227,7 +236,7 @@ typedef struct Sequence {
 
   /** The linked "bSound" object. */
   struct bSound *sound;
-  /** Handle to #AUD_SequenceEntry*/
+  /** Handle to #AUD_SequenceEntry. */
   void *scene_sound;
   float volume;
 
@@ -298,6 +307,7 @@ typedef struct SeqTimelineChannel {
 
 typedef struct EditingRuntime {
   struct SequenceLookup *sequence_lookup;
+  MediaPresence *media_presence;
 } EditingRuntime;
 
 typedef struct Editing {
@@ -325,6 +335,9 @@ typedef struct Editing {
   int overlay_frame_flag;
   rctf overlay_frame_rect;
 
+  int show_missing_media_flag;
+  int _pad1;
+
   struct SeqCache *cache;
 
   /* Cache control */
@@ -337,7 +350,6 @@ typedef struct Editing {
   int64_t disk_cache_timestamp;
 
   EditingRuntime runtime;
-  void *_pad1;
 } Editing;
 
 /** \} */
@@ -554,6 +566,11 @@ typedef struct SoundEqualizerModifierData {
 enum {
   SEQ_EDIT_OVERLAY_FRAME_SHOW = 1,
   SEQ_EDIT_OVERLAY_FRAME_ABS = 2,
+};
+
+/** #Editing::show_missing_media_flag */
+enum {
+  SEQ_EDIT_SHOW_MISSING_MEDIA = 1 << 0,
 };
 
 #define SEQ_STRIP_OFSBOTTOM 0.05f

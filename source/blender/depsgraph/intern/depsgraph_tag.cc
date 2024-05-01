@@ -28,14 +28,14 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_node.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
-#include "BKE_workspace.h"
+#include "BKE_workspace.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_debug.hh"
@@ -296,7 +296,7 @@ void depsgraph_tag_component(Depsgraph *graph,
     }
   }
   /* If component depends on copy-on-evaluation, tag it as well. */
-  if (component_node->need_tag_cow_before_update()) {
+  if (component_node->need_tag_cow_before_update(IDRecalcFlag(id_node->id_cow->recalc))) {
     depsgraph_id_tag_copy_on_write(graph, id_node, update_source);
   }
   if (component_type == NodeType::COPY_ON_EVAL) {
@@ -532,7 +532,11 @@ void deg_graph_tag_parameters_if_needed(Main *bmain,
 
   /* Clear flags which are known to not affect parameters usable by drivers. */
   const uint clean_flags = flags &
-                           ~(ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT | ID_RECALC_BASE_FLAGS);
+                           ~(ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT | ID_RECALC_BASE_FLAGS |
+                             ID_RECALC_SHADING |
+                             /* While drivers may use the current-frame, this value is assigned
+                              * explicitly and doesn't require a the scene to be copied again. */
+                             ID_RECALC_FRAME_CHANGE);
 
   if (clean_flags == 0) {
     /* Changes are limited to only things which are not usable by drivers. */

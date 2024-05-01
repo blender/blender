@@ -604,11 +604,16 @@ static float dvar_eval_transChan(const AnimationEvalContext * /*anim_eval_contex
     return 0.0f;
   }
 
-  /* Target should be valid now. */
-  dtar->flag &= ~DTAR_FLAG_INVALID;
-
   /* Try to get pose-channel. */
   pchan = BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
+  if (dtar->pchan_name[0] != '\0' && !pchan) {
+    driver->flag |= DRIVER_FLAG_INVALID;
+    dtar->flag |= DTAR_FLAG_INVALID;
+    return 0.0f;
+  }
+
+  /* Target should be valid now. */
+  dtar->flag &= ~DTAR_FLAG_INVALID;
 
   /* Check if object or bone, and get transform matrix accordingly:
    * - "use_eulers" code is used to prevent the problems associated with non-uniqueness
@@ -1123,7 +1128,7 @@ static ExprPyLike_Parsed *driver_compile_simple_expr_impl(ChannelDriver *driver)
   return BLI_expr_pylike_parse(driver->expression, names, names_len + VAR_INDEX_CUSTOM);
 }
 
-static bool driver_check_simple_expr_depends_on_time(ExprPyLike_Parsed *expr)
+static bool driver_check_simple_expr_depends_on_time(const ExprPyLike_Parsed *expr)
 {
   /* Check if the 'frame' parameter is actually used. */
   return BLI_expr_pylike_is_using_param(expr, VAR_INDEX_FRAME);

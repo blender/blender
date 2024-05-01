@@ -107,8 +107,7 @@ static void fill_locales()
   if (num_locales > 0) {
     locales = static_cast<const char **>(MEM_callocN(num_locales * sizeof(char *), __func__));
     while (line) {
-      int id;
-      char *loc, *sep1, *sep2, *sep3;
+      const char *loc, *sep1, *sep2, *sep3;
 
       str = (char *)line->link;
       if (ELEM(str[0], '#', '\0')) {
@@ -116,7 +115,7 @@ static void fill_locales()
         continue;
       }
 
-      id = atoi(str);
+      const int id = atoi(str);
       sep1 = strchr(str, ':');
       if (sep1) {
         sep1++;
@@ -171,7 +170,7 @@ static void fill_locales()
 }
 #endif /* WITH_INTERNATIONAL */
 
-EnumPropertyItem *BLT_lang_RNA_enum_properties()
+const EnumPropertyItem *BLT_lang_RNA_enum_properties()
 {
 #ifdef WITH_INTERNATIONAL
   return locales_menu;

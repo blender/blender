@@ -92,6 +92,11 @@ static const EnumPropertyItem rna_enum_keyframe_type_items[] = {
      ICON_KEYTYPE_JITTER_VEC,
      "Jitter",
      "A filler or baked keyframe for keying on ones, or some other purpose as needed"},
+    {BEZT_KEYTYPE_GENERATED,
+     "GENERATED",
+     ICON_KEYTYPE_GENERATED_VEC,
+     "Generated",
+     "A key generated automatically by a tool, not manually created"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -122,6 +127,11 @@ static const EnumPropertyItem rna_enum_onion_keyframe_type_items[] = {
      ICON_KEYTYPE_JITTER_VEC,
      "Jitter",
      "A filler or baked keyframe for keying on ones, or some other purpose as needed"},
+    {BEZT_KEYTYPE_GENERATED,
+     "GENERATED",
+     ICON_KEYTYPE_GENERATED_VEC,
+     "Generated",
+     "A key generated automatically by a tool, not manually created"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -323,7 +333,7 @@ static std::optional<std::string> rna_GPencilLayer_path(const PointerRNA *ptr)
   return fmt::format("layers[\"{}\"]", name_esc);
 }
 
-static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_GPencilLayer_active_frame_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   bGPDlayer *gpl = (bGPDlayer *)ptr->data;
 
@@ -2444,9 +2454,9 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
   PropertyRNA *prop;
   FunctionRNA *func;
 
-  static float default_1[4] = {0.6f, 0.6f, 0.6f, 0.5f};
-  static float onion_dft1[3] = {0.145098f, 0.419608f, 0.137255f}; /* green */
-  static float onion_dft2[3] = {0.125490f, 0.082353f, 0.529412f}; /* blue */
+  static const float default_1[4] = {0.6f, 0.6f, 0.6f, 0.5f};
+  static const float onion_dft1[3] = {0.145098f, 0.419608f, 0.137255f}; /* green */
+  static const float onion_dft2[3] = {0.125490f, 0.082353f, 0.529412f}; /* blue */
 
   static const EnumPropertyItem stroke_thickness_items[] = {
       {0, "WORLDSPACE", 0, "World Space", "Set stroke thickness relative to the world space"},

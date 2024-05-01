@@ -19,14 +19,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_context.h"
-#include "GPU_state.h"
+#include "GPU_context.hh"
+#include "GPU_state.hh"
 
 #include "py_capi_utils.h"
 
 #include "BKE_global.hh"
-
-#include "../generic/py_capi_utils.h"
 
 #include <epoxy/gl.h>
 

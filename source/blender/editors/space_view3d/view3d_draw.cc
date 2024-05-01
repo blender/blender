@@ -57,14 +57,14 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_batch.h"
-#include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
+#include "GPU_batch.hh"
+#include "GPU_framebuffer.hh"
+#include "GPU_immediate.hh"
+#include "GPU_immediate_util.hh"
 #include "GPU_material.hh"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
-#include "GPU_viewport.h"
+#include "GPU_matrix.hh"
+#include "GPU_state.hh"
+#include "GPU_viewport.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -79,7 +79,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "view3d_intern.h" /* own include */
+#include "view3d_intern.hh" /* own include */
 
 using blender::float4;
 
@@ -914,13 +914,13 @@ void ED_view3d_grid_steps(const Scene *scene,
   view3d_grid_steps_ex(scene, v3d, rv3d, r_grid_steps, nullptr, nullptr);
 }
 
-float ED_view3d_grid_view_scale(Scene *scene,
-                                View3D *v3d,
-                                ARegion *region,
+float ED_view3d_grid_view_scale(const Scene *scene,
+                                const View3D *v3d,
+                                const ARegion *region,
                                 const char **r_grid_unit)
 {
   float grid_scale;
-  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+  const RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   if (!rv3d->is_persp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
     /* Decrease the distance between grid snap points depending on zoom. */
     float dist = 12.0f / (region->sizex * rv3d->winmat[0][0]);
@@ -1219,8 +1219,7 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
     default:
       if (rv3d->persp == RV3D_CAMOB) {
         if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
-          Camera *cam;
-          cam = static_cast<Camera *>(v3d->camera->data);
+          const Camera *cam = static_cast<const Camera *>(v3d->camera->data);
           if (cam->type == CAM_PERSP) {
             name = IFACE_("Camera Perspective");
           }
@@ -1507,7 +1506,10 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
   if ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) {
     int xoffset = rect->xmin + (0.5f * U.widget_unit);
     int yoffset = rect->ymax - (0.1f * U.widget_unit);
-    BLF_default_size(UI_style_get()->widgetlabel.points);
+
+    const uiFontStyle *fstyle = UI_FSTYLE_WIDGET_LABEL;
+    UI_fontstyle_set(fstyle);
+    BLF_default_size(fstyle->points);
     BLF_set_default();
 
     if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
@@ -2090,8 +2092,14 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
 
   v3d.flag2 = V3D_HIDE_OVERLAYS;
   /* HACK: When rendering gpencil objects this opacity is used to mix vertex colors in when not in
-   * render mode. */
+   * render mode (e.g. in the sequencer). */
   v3d.overlay.gpencil_vertex_paint_opacity = 1.0f;
+
+  /* Also initialize wire-frame properties to the default so it renders properly in sequencer.
+   * Should find some way to use the viewport's current opacity and threshold,
+   * but this is a start. */
+  v3d.overlay.wireframe_opacity = 1.0f;
+  v3d.overlay.wireframe_threshold = 0.5f;
 
   if (draw_flags & V3D_OFSDRAW_SHOW_ANNOTATION) {
     v3d.flag2 |= V3D_SHOW_ANNOTATION;
@@ -2142,6 +2150,11 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                         ofs,
                                         viewport,
                                         err_out);
+}
+
+bool ED_view3d_draw_offscreen_check_nested()
+{
+  return DRW_draw_in_progress();
 }
 
 /** \} */
@@ -2244,7 +2257,7 @@ static void view3d_opengl_read_Z_pixels(GPUViewport *viewport, rcti *rect, void 
   GPU_framebuffer_free(depth_read_fb);
 }
 
-void ED_view3d_select_id_validate(ViewContext *vc)
+void ED_view3d_select_id_validate(const ViewContext *vc)
 {
   validate_object_select_id(
       vc->depsgraph, vc->scene, vc->view_layer, vc->region, vc->v3d, vc->obact);
@@ -2433,6 +2446,39 @@ void ED_view3d_depths_free(ViewDepths *depths)
     MEM_freeN(depths->depths);
   }
   MEM_freeN(depths);
+}
+
+bool ED_view3d_has_depth_buffer_updated(const Depsgraph *depsgraph, const View3D *v3d)
+{
+#ifdef REUSE_DEPTH_BUFFER
+  /* Check if the depth buffer was drawn by any engine and thus can be reused.
+   *
+   * The idea is good, but it is too error prone.
+   * Even when updated by an engine, the depth buffer can still be cleared by drawing callbacks and
+   * by the GPU_select API used by gizmos.
+   * Check #GPU_clear_depth to track when the depth buffer is cleared. */
+  const char *engine_name = DEG_get_evaluated_scene(depsgraph)->r.engine;
+  RenderEngineType *engine_type = RE_engines_find(engine_name);
+
+  bool is_viewport_wire_no_xray = v3d->shading.type < OB_SOLID && !XRAY_ENABLED(v3d);
+  bool is_viewport_preview_solid = v3d->shading.type == OB_SOLID;
+  bool is_viewport_preview_material = v3d->shading.type == OB_MATERIAL;
+  bool is_viewport_render_eevee = v3d->shading.type == OB_RENDER &&
+                                  (STREQ(engine_name, RE_engine_id_BLENDER_EEVEE) ||
+                                   STREQ(engine_name, RE_engine_id_BLENDER_EEVEE_NEXT));
+  bool is_viewport_render_workbench = v3d->shading.type == OB_RENDER &&
+                                      STREQ(engine_name, RE_engine_id_BLENDER_WORKBENCH);
+  bool is_viewport_render_external_with_overlay = v3d->shading.type == OB_RENDER &&
+                                                  !(engine_type->flag & RE_INTERNAL) &&
+                                                  !(v3d->flag2 & V3D_HIDE_OVERLAYS);
+
+  return is_viewport_preview_solid || is_viewport_preview_material || is_viewport_wire_no_xray ||
+         is_viewport_render_eevee || is_viewport_render_workbench ||
+         is_viewport_render_external_with_overlay;
+#else
+  UNUSED_VARS(depsgraph, v3d);
+  return false;
+#endif
 }
 
 /** \} */

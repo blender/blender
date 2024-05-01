@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -58,7 +59,11 @@
 
 static void sound_free_audio(bSound *sound);
 
-static void sound_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int /*flag*/)
+static void sound_copy_data(Main * /*bmain*/,
+                            std::optional<Library *> /*owner_library*/,
+                            ID *id_dst,
+                            const ID *id_src,
+                            const int /*flag*/)
 {
   bSound *sound_dst = (bSound *)id_dst;
   const bSound *sound_src = (const bSound *)id_src;
@@ -599,7 +604,8 @@ void BKE_sound_load(Main *bmain, bSound *sound)
 AUD_Device *BKE_sound_mixdown(const Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
 {
   sound_verify_evaluated_id(&scene->id);
-  return AUD_openMixdownDevice(specs, scene->sound_scene, volume, start / FPS);
+  return AUD_openMixdownDevice(
+      specs, scene->sound_scene, volume, AUD_RESAMPLE_QUALITY_MEDIUM, start / FPS);
 }
 
 void BKE_sound_create_scene(Scene *scene)
@@ -829,10 +835,12 @@ void BKE_sound_set_scene_sound_pitch_at_frame(void *handle,
 }
 
 void BKE_sound_set_scene_sound_pitch_constant_range(void *handle,
-                                                    const int frame_start,
-                                                    const int frame_end,
+                                                    int frame_start,
+                                                    int frame_end,
                                                     float pitch)
 {
+  frame_start = max_ii(0, frame_start);
+  frame_end = max_ii(0, frame_end);
   AUD_SequenceEntry_setConstantRangeAnimationData(
       handle, AUD_AP_PITCH, frame_start, frame_end, &pitch);
 }

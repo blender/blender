@@ -5,6 +5,7 @@
 #include "testing/testing.h"
 #include "tests/blendfile_loading_base_test.h"
 
+#include "BLI_fileops.h"
 #include "BLI_string.h"
 
 #include "BKE_appdir.hh"
@@ -42,7 +43,7 @@ class PLYExportTest : public BlendfileLoadingBaseTest {
   {
     BlendfileLoadingBaseTest::SetUp();
 
-    BKE_tempdir_init("");
+    BKE_tempdir_init(nullptr);
   }
 
   void TearDown() override

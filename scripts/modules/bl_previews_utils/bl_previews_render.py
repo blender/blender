@@ -421,7 +421,7 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
 
     bpy.context.window.scene = bpy.data.scenes[prev_scenename, None]
     if do_save:
-        print("Saving %s..." % bpy.data.filepath)
+        print("Saving {:s}...".format(bpy.data.filepath))
         try:
             bpy.ops.wm.save_mainfile()
         except BaseException as ex:
@@ -429,7 +429,11 @@ def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
             # references an nonexistent texture. Better not break in this case, just spit error to console.
             print("ERROR:", ex)
     else:
-        print("*NOT* Saving %s, because some error(s) happened while deleting temp render data..." % bpy.data.filepath)
+        print(
+            "*NOT* Saving {:s}, because some error(s) happened while deleting temp render data...".format(
+                bpy.data.filepath,
+            )
+        )
 
 
 def do_clear_previews(do_objects, do_collections, do_scenes, do_data_intern):
@@ -448,7 +452,7 @@ def do_clear_previews(do_objects, do_collections, do_scenes, do_data_intern):
         for scene in ids_nolib_with_preview(bpy.data.scenes):
             scene.preview.image_size = (0, 0)
 
-    print("Saving %s..." % bpy.data.filepath)
+    print("Saving {:s}...".format(bpy.data.filepath))
     bpy.ops.wm.save_mainfile()
 
 
@@ -526,7 +530,7 @@ def main():
 
 
 if __name__ == "__main__":
-    print("\n\n *** Running %s *** \n" % __file__)
-    print(" *** Blend file %s *** \n" % bpy.data.filepath)
+    print("\n\n *** Running {:s} *** \n".format(__file__))
+    print(" *** Blend file {:s} *** \n".format(bpy.data.filepath))
     main()
     bpy.ops.wm.quit_blender()

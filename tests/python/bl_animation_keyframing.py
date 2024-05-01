@@ -141,6 +141,43 @@ class InsertKeyTest(AbstractKeyframingTest, unittest.TestCase):
         _insert_from_user_preference_test({"SCALE"}, ["scale"])
         _insert_from_user_preference_test({"LOCATION", "ROTATION", "SCALE"}, ["location", "rotation_euler", "scale"])
 
+    def test_insert_custom_properties(self):
+        # Used to create a datablock reference property.
+        ref_object = bpy.data.objects.new("ref_object", None)
+        bpy.context.scene.collection.objects.link(ref_object)
+
+        bpy.context.preferences.edit.key_insert_channels = {"CUSTOM_PROPS"}
+        keyed_object = _create_animation_object()
+
+        keyed_properties = {
+            "int": 1,
+            "float": 1.0,
+            "bool": True,
+            "int_array": [1, 2, 3],
+            "float_array": [1.0, 2.0, 3.0],
+            "bool_array": [True, False, True],
+            "'escaped'": 1,
+            '"escaped"': 1
+        }
+
+        unkeyed_properties = {
+            "str": "unkeyed",
+            "reference": ref_object,
+        }
+
+        for path, value in keyed_properties.items():
+            keyed_object[path] = value
+
+        for path, value in unkeyed_properties.items():
+            keyed_object[path] = value
+
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.ops.anim.keyframe_insert()
+
+        keyed_rna_paths = [f"[\"{bpy.utils.escape_identifier(path)}\"]" for path in keyed_properties.keys()]
+        _fcurve_paths_match(keyed_object.animation_data.action.fcurves, keyed_rna_paths)
+        bpy.data.objects.remove(keyed_object, do_unlink=True)
+
 
 class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
     """ Check if visual keying produces the correct keyframe values. """

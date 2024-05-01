@@ -53,8 +53,8 @@ static void mask_init_task(Object *ob,
 {
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
-  undo::push_node(ob, node, undo::Type::Mask);
-  BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  undo::push_node(*ob, node, undo::Type::Mask);
+  BKE_pbvh_vertex_iter_begin (*ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float mask;
     switch (mode) {
       case SCULPT_MASK_INIT_RANDOM_PER_VERTEX:
@@ -69,7 +69,7 @@ static void mask_init_task(Object *ob,
         mask = BLI_hash_int_01(SCULPT_vertex_island_get(ss, vd.vertex) + seed);
         break;
     }
-    SCULPT_mask_vert_set(BKE_pbvh_type(ss->pbvh), mask_write, mask, vd);
+    SCULPT_mask_vert_set(BKE_pbvh_type(*ss->pbvh), mask_write, mask, vd);
   }
   BKE_pbvh_vertex_iter_end;
   BKE_pbvh_node_mark_update_mask(node);
@@ -94,7 +94,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 
-  PBVH *pbvh = ob->sculpt->pbvh;
+  PBVH &pbvh = *ob->sculpt->pbvh;
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(pbvh, {});
 
   if (nodes.is_empty()) {

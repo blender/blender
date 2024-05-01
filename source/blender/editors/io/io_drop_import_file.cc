@@ -143,7 +143,7 @@ static int wm_drop_import_file_invoke(bContext *C, wmOperator *op, const wmEvent
     wmOperatorType *ot = WM_operatortype_find(file_handler->import_operator, false);
     uiItemFullO_ptr(layout,
                     ot,
-                    TIP_(ot->name),
+                    CTX_TIP_(ot->translation_context, ot->name),
                     ICON_NONE,
                     static_cast<IDProperty *>(file_props.data),
                     WM_OP_INVOKE_DEFAULT,
