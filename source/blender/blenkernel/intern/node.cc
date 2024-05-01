@@ -386,6 +386,9 @@ void node_node_foreach_id(bNode *node, LibraryForeachIDData *data)
   LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, library_foreach_node_socket(sock, data));
   }
+
+  /* Note that this ID pointer is only a cache, it may be outdated. */
+  BKE_LIB_FOREACHID_PROCESS_ID(data, node->runtime->owner_tree, IDWALK_CB_LOOPBACK);
 }
 
 static void node_foreach_id(ID *id, LibraryForeachIDData *data)
