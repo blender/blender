@@ -20,6 +20,8 @@ void StaticCacheManager::reset()
   cached_shaders.reset();
   bokeh_kernels.reset();
   cached_images.reset();
+  deriche_gaussian_coefficients.reset();
+  van_vliet_gaussian_coefficients.reset();
 }
 
 }  // namespace blender::realtime_compositor
