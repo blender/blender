@@ -39,6 +39,9 @@ AssetShelf *active_shelf_from_context(const bContext *C);
 
 void send_redraw_notifier(const bContext &C);
 
+AssetShelfType *type_ensure(const SpaceType &space_type, AssetShelf &shelf);
+AssetShelf *create_shelf_from_type(AssetShelfType &type);
+
 /**
  * Deep-copies \a shelf_regiondata into newly allocated memory. Must be freed using
  * #regiondata_free().

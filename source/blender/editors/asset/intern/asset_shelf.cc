@@ -51,9 +51,7 @@ void send_redraw_notifier(const bContext &C)
 /** \name Shelf Type
  * \{ */
 
-static bool type_poll(const bContext &C,
-                      const SpaceType &space_type,
-                      const AssetShelfType *shelf_type)
+bool type_poll(const bContext &C, const SpaceType &space_type, const AssetShelfType *shelf_type)
 {
   if (!shelf_type) {
     return false;
@@ -70,7 +68,7 @@ static bool type_poll(const bContext &C,
   return !shelf_type->poll || shelf_type->poll(&C, shelf_type);
 }
 
-static AssetShelfType *type_ensure(const SpaceType &space_type, AssetShelf &shelf)
+AssetShelfType *type_ensure(const SpaceType &space_type, AssetShelf &shelf)
 {
   if (shelf.type) {
     return shelf.type;
@@ -86,7 +84,7 @@ static AssetShelfType *type_ensure(const SpaceType &space_type, AssetShelf &shel
   return nullptr;
 }
 
-static AssetShelf *create_shelf_from_type(AssetShelfType &type)
+AssetShelf *create_shelf_from_type(AssetShelfType &type)
 {
   AssetShelf *shelf = MEM_new<AssetShelf>(__func__);
   *shelf = dna::shallow_zero_initialize();
@@ -535,7 +533,7 @@ void region_blend_write(BlendWriter *writer, ARegion *region)
 /** \name Asset Shelf Context
  * \{ */
 
-static AssetShelf *active_shelf_from_area(const ScrArea *area)
+AssetShelf *active_shelf_from_area(const ScrArea *area)
 {
   const ARegion *shelf_region = BKE_area_find_region_type(area, RGN_TYPE_ASSET_SHELF);
   if (!shelf_region) {
