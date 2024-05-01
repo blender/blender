@@ -23,6 +23,7 @@
 #include "BKE_asset_edit.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_blendfile_link_append.hh"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_remap.hh"
@@ -66,16 +67,10 @@ AssetEditBlend::AssetEditBlend(const std::string &filepath)
   this->main->is_asset_weak_reference_main = true;
   BLI_assert(!BLI_path_is_rel(filepath.c_str()));
 
-  /* Fairly simple check based on filepath only.
-   * - Ends with `.asset.bend` extensions.
-   * - Is located in user asset library.
-   *
-   * TODO?
-   * - Check file contents.
-   * - Check file is writable.
-   */
+  /* Simple check, based on being a writable .asset.blend file in a user asset library. */
   this->is_editable = StringRef(filepath).endswith(BLENDER_ASSET_FILE_SUFFIX) &&
-                      BKE_preferences_asset_library_containing_path(&U, filepath.c_str());
+                      BKE_preferences_asset_library_containing_path(&U, filepath.c_str()) &&
+                      BLI_file_is_writable(filepath.c_str());
 }
 
 AssetEditBlend::~AssetEditBlend()
@@ -164,10 +159,11 @@ static std::string asset_blendfile_path_for_save(const bUserAssetLibrary &user_l
   BLI_assert(!root_path.empty());
 
   if (!BLI_dir_create_recursive(root_path.c_str())) {
-    BKE_report(&reports, RPT_ERROR, "Failed to create asset library directory to save brush");
+    BKE_report(&reports, RPT_ERROR, "Failed to create asset library directory to save asset");
     return "";
   }
 
+  /* Make sure filename only contains valid characters for filesystem. */
   char base_name_filesafe[FILE_MAXFILE];
   BLI_strncpy(base_name_filesafe,
               base_name.data(),
@@ -175,10 +171,12 @@ static std::string asset_blendfile_path_for_save(const bUserAssetLibrary &user_l
   BLI_path_make_safe_filename(base_name_filesafe);
 
   const std::string filepath = root_path + SEP + base_name_filesafe + BLENDER_ASSET_FILE_SUFFIX;
+
   if (!BLI_is_file(filepath.c_str())) {
     return filepath;
   }
 
+  /* Avoid overwriting existing file by adding number suffix. */
   for (int i = 1;; i++) {
     const std::string filepath = root_path + SEP + base_name_filesafe + "_" + std::to_string(i++) +
                                  BLENDER_ASSET_FILE_SUFFIX;
@@ -220,41 +218,35 @@ static bool asset_write_in_library(Main *bmain,
   ID &id = const_cast<ID &>(id_const);
 
   const short prev_flag = id.flag;
-  const int prev_tag = id.tag;
   const int prev_us = id.us;
   const std::string prev_name = id.name + 2;
-  /* TODO: Remove library overrides stuff now that they are not used for brush assets. */
-  IDOverrideLibrary *prev_liboverride = id.override_library;
-  const int write_flags = 0; /* Could use #G_FILE_COMPRESS ? */
+  /* TODO: Use G_FILE_AUTOPACK? But this will require making a copy of datablocks first to avoid
+   * duplicating data. */
+  const int write_flags = G_FILE_COMPRESS;
   const eBLO_WritePathRemap remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE;
 
   BKE_blendfile_write_partial_begin(bmain);
 
   id.flag |= LIB_FAKEUSER;
-  id.tag &= ~LIB_TAG_RUNTIME;
   id.us = 1;
   BLI_strncpy(id.name + 2, name.data(), std::min(sizeof(id.name) - 2, size_t(name.size() + 1)));
-  id.override_library = nullptr;
 
   BKE_blendfile_write_partial_tag_ID(&id, true);
 
-  /* TODO: check overwriting existing file. */
-  /* TODO: ensure filepath contains only valid characters for file system. */
   const bool sucess = BKE_blendfile_write_partial(
       bmain, filepath.c_str(), write_flags, remap_mode, &reports);
 
   if (sucess) {
-    final_full_file_path = std::string(filepath) + SEP + "Brush" + SEP + name;
+    const IDTypeInfo *idtype = BKE_idtype_get_info_from_id(&id);
+    final_full_file_path = std::string(filepath) + SEP + std::string(idtype->name) + SEP + name;
   }
 
   BKE_blendfile_write_partial_end(bmain);
 
   BKE_blendfile_write_partial_tag_ID(&id, false);
   id.flag = prev_flag;
-  id.tag = prev_tag;
   id.us = prev_us;
   BLI_strncpy(id.name + 2, prev_name.c_str(), sizeof(id.name) - 2);
-  id.override_library = prev_liboverride;
 
   return sucess;
 }
@@ -332,8 +324,11 @@ static AssetEditBlend *asset_edit_blend_from_id(const ID &id)
 {
   BLI_assert(id.tag & LIB_TAG_ASSET_MAIN);
 
+  /* TODO: It would be good to make this more efficient, though it's unlikely to be a bottleneck
+   * for brush assets. It's not easy to add a hash map here because it needs to be kept up to date
+   * as the main database is edited, which can be done in many places. So this would require hooks
+   * quite deep in ID management. */
   for (AssetEditBlend &asset_blend : asset_edit_blend_get_all()) {
-    /* TODO: Look into make this whole thing more efficient. */
     ListBase *lb = which_libbase(asset_blend.main, GS(id.name));
     LISTBASE_FOREACH (ID *, other_id, lb) {
       if (&id == other_id) {
@@ -420,7 +415,7 @@ bool asset_edit_id_revert(Main &global_main, const ID &id, ReportList & /*report
   }
 
   /* Reload entire main, including texture dependencies. This relies on there
-   * being only a single brush asset per blend file. */
+   * being only a single asset per blend file. */
   asset_blend->reload(global_main);
 
   return true;
