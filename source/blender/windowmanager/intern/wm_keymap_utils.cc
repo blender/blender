@@ -214,7 +214,6 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
    *     BOID_OT
    *     BUTTONS_OT
    *     CONSTRAINT_OT
-   *     PAINT_OT
    *     ED_OT
    *     FLUID_OT
    *     TEXTURE_OT
