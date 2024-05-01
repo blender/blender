@@ -139,33 +139,6 @@ static PyObject *py_blf_color(PyObject * /*self*/, PyObject *args)
   Py_RETURN_NONE;
 }
 
-#if BLF_BLUR_ENABLE
-PyDoc_STRVAR(
-    /* Wrap. */
-    py_blf_blur_doc,
-    ".. function:: blur(fontid, radius)\n"
-    "\n"
-    "   Set the blur radius for drawing text.\n"
-    "\n"
-    "   :arg fontid: The id of the typeface as returned by :func:`blf.load`, for default "
-    "font use 0.\n"
-    "   :type fontid: int\n"
-    "   :arg radius: The radius for blurring text (in pixels).\n"
-    "   :type radius: int\n");
-static PyObject *py_blf_blur(PyObject * /*self*/, PyObject *args)
-{
-  int blur, fontid;
-
-  if (!PyArg_ParseTuple(args, "ii:blf.blur", &fontid, &blur)) {
-    return nullptr;
-  }
-
-  BLF_blur(fontid, blur);
-
-  Py_RETURN_NONE;
-}
-#endif
-
 PyDoc_STRVAR(
     /* Wrap. */
     py_blf_draw_doc,
@@ -485,9 +458,6 @@ static PyObject *py_blf_unload(PyObject * /*self*/, PyObject *args)
 /*----------------------------MODULE INIT-------------------------*/
 static PyMethodDef BLF_methods[] = {
     {"aspect", (PyCFunction)py_blf_aspect, METH_VARARGS, py_blf_aspect_doc},
-#if BLF_BLUR_ENABLE
-    {"blur", (PyCFunction)py_blf_blur, METH_VARARGS, py_blf_blur_doc},
-#endif
     {"clipping", (PyCFunction)py_blf_clipping, METH_VARARGS, py_blf_clipping_doc},
     {"word_wrap", (PyCFunction)py_blf_word_wrap, METH_VARARGS, py_blf_word_wrap_doc},
     {"disable", (PyCFunction)py_blf_disable, METH_VARARGS, py_blf_disable_doc},

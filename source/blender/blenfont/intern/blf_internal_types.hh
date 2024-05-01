@@ -327,11 +327,6 @@ struct FontBLF {
   /** Angle in radians. */
   float angle;
 
-#if 0 /* BLF_BLUR_ENABLE */
-  /* blur: 3 or 5 large kernel */
-  int blur;
-#endif
-
   /** Shadow level. */
   int shadow;
 

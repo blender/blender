@@ -22,9 +22,6 @@
 /* File name of the default fixed-pitch font. */
 #define BLF_DEFAULT_MONOSPACED_FONT "DejaVuSansMono.woff2"
 
-/* enable this only if needed (unused circa 2016) */
-#define BLF_BLUR_ENABLE 0
-
 struct ColorManagedDisplay;
 struct ListBase;
 struct ResultBLF;
@@ -259,10 +256,6 @@ void BLF_wordwrap(int fontid, int wrap_width);
 blender::Vector<blender::StringRef> BLF_string_wrap(int fontid,
                                                     blender::StringRef str,
                                                     const int max_pixel_width);
-
-#if BLF_BLUR_ENABLE
-void BLF_blur(int fontid, int size);
-#endif
 
 void BLF_enable(int fontid, int option);
 void BLF_disable(int fontid, int option);

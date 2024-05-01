@@ -419,17 +419,6 @@ void BLF_size(int fontid, float size)
   }
 }
 
-#if BLF_BLUR_ENABLE
-void BLF_blur(int fontid, int size)
-{
-  FontBLF *font = blf_get(fontid);
-
-  if (font) {
-    font->blur = size;
-  }
-}
-#endif
-
 void BLF_color4ubv(int fontid, const uchar rgba[4])
 {
   FontBLF *font = blf_get(fontid);
