@@ -3729,7 +3729,7 @@ void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable)
 
 }  // namespace blender::bke
 
-bNodeTree *ntreeLocalize(bNodeTree *ntree)
+bNodeTree *ntreeLocalize(bNodeTree *ntree, ID *new_owner_id)
 {
   if (ntree == nullptr) {
     return nullptr;
@@ -3737,15 +3737,20 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 
   /* Make full copy outside of Main database.
    * NOTE: previews are not copied here. */
-  bNodeTree *ltree = reinterpret_cast<bNodeTree *>(BKE_id_copy_ex(
-      nullptr, &ntree->id, nullptr, (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA)));
+  bNodeTree *ltree = reinterpret_cast<bNodeTree *>(
+      BKE_id_copy_in_lib(nullptr,
+                         std::nullopt,
+                         &ntree->id,
+                         new_owner_id,
+                         nullptr,
+                         (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA)));
 
   ltree->id.tag |= LIB_TAG_LOCALIZED;
 
   LISTBASE_FOREACH (bNode *, node, &ltree->nodes) {
     bNodeTree *group = reinterpret_cast<bNodeTree *>(node->id);
     if (node->is_group() && group != nullptr) {
-      node->id = reinterpret_cast<ID *>(ntreeLocalize(group));
+      node->id = reinterpret_cast<ID *>(ntreeLocalize(group, nullptr));
     }
   }
 

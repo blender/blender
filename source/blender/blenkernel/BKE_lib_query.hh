@@ -197,9 +197,8 @@ enum {
    * Do not attempt to find the owner ID of an embedded one if not explicitely given.
    *
    * \note This is needed in some cases, when the loopback 'owner' ID pointer of the processed
-   * embeeded data is known to be invalid (e.g. as part of coying an embedded data when copying its
-   * owner ID, or as part of depsgraph code, where embedded IDs are mostly processed on their own,
-   * separately from their owner ID).
+   * embeeded data is known to be invalid (as part of depsgraph ID copying code, where embedded IDs
+   * are mostly processed on their own, separately from their owner ID).
    *
    * \note Also implied by #IDWALK_NO_ORIG_POINTERS_ACCESS.
    */

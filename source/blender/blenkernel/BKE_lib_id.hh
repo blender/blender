@@ -226,10 +226,13 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, int orig_flag
  * \param owner_library: the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
  * not use any library (i.e. become a local ID). Use std::nullopt for default behavior (i.e.
  * behavior of the #BKE_libblock_copy_ex function).
+ * \param new_owner_id: When copying an embedded ID, the owner ID of the new copy. Should be
+ * `nullptr` for regular ID copying, or in case the owner ID is not (yet) known.
  */
 void BKE_libblock_copy_in_lib(Main *bmain,
                               std::optional<Library *> owner_library,
                               const ID *id,
+                              const ID *new_owner_id,
                               ID **r_newid,
                               int orig_flag);
 
@@ -504,9 +507,15 @@ ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, int flag);
  * \param owner_library: the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
  * not use any library (i.e. become a local ID). Use std::nullopt for default behavior (i.e.
  * behavior of the #BKE_id_copy_ex function).
+ * \param new_owner_id: When copying an embedded ID, the owner ID of the new copy. Should be
+ * `nullptr` for regular ID copying, or in case the owner ID is not (yet) known.
  */
-struct ID *BKE_id_copy_in_lib(
-    Main *bmain, std::optional<Library *> owner_library, const ID *id, ID **r_newid, int flag);
+struct ID *BKE_id_copy_in_lib(Main *bmain,
+                              std::optional<Library *> owner_library,
+                              const ID *id,
+                              const ID *new_owner_id,
+                              ID **r_newid,
+                              int flag);
 /**
  * Invoke the appropriate copy method for the block and return the new id as result.
  *

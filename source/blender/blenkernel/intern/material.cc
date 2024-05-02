@@ -107,16 +107,16 @@ static void material_copy_data(Main *bmain,
 
   if (material_src->nodetree != nullptr) {
     if (is_localized) {
-      material_dst->nodetree = ntreeLocalize(material_src->nodetree);
+      material_dst->nodetree = ntreeLocalize(material_src->nodetree, &material_dst->id);
     }
     else {
       BKE_id_copy_in_lib(bmain,
                          owner_library,
-                         (ID *)material_src->nodetree,
-                         (ID **)&material_dst->nodetree,
+                         &material_src->nodetree->id,
+                         &material_dst->id,
+                         reinterpret_cast<ID **>(&material_dst->nodetree),
                          flag_private_id_data);
     }
-    material_dst->nodetree->owner_id = &material_dst->id;
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {

@@ -69,16 +69,16 @@ static void light_copy_data(Main *bmain,
 
   if (la_src->nodetree) {
     if (is_localized) {
-      la_dst->nodetree = ntreeLocalize(la_src->nodetree);
+      la_dst->nodetree = ntreeLocalize(la_src->nodetree, &la_dst->id);
     }
     else {
       BKE_id_copy_in_lib(bmain,
                          owner_library,
-                         (ID *)la_src->nodetree,
-                         (ID **)&la_dst->nodetree,
+                         &la_src->nodetree->id,
+                         &la_dst->id,
+                         reinterpret_cast<ID **>(&la_dst->nodetree),
                          flag_private_id_data);
     }
-    la_dst->nodetree->owner_id = &la_dst->id;
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {

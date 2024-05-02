@@ -275,10 +275,10 @@ static void scene_copy_data(Main *bmain,
   if (scene_src->master_collection) {
     BKE_id_copy_in_lib(bmain,
                        owner_library,
-                       reinterpret_cast<ID *>(scene_src->master_collection),
+                       &scene_src->master_collection->id,
+                       &scene_dst->id,
                        reinterpret_cast<ID **>(&scene_dst->master_collection),
                        flag_private_id_data);
-    scene_dst->master_collection->owner_id = &scene_dst->id;
   }
 
   /* View Layers */
@@ -303,10 +303,12 @@ static void scene_copy_data(Main *bmain,
   if (scene_src->nodetree) {
     BKE_id_copy_in_lib(bmain,
                        owner_library,
-                       (ID *)scene_src->nodetree,
-                       (ID **)&scene_dst->nodetree,
+                       &scene_src->nodetree->id,
+                       &scene_dst->id,
+                       reinterpret_cast<ID **>(&scene_dst->nodetree),
                        flag_private_id_data);
-    scene_dst->nodetree->owner_id = &scene_dst->id;
+    /* TODO this should not be needed anymore? Should be handled by generic remapping code in
+     * #BKE_id_copy_in_lib. */
     BKE_libblock_relink_ex(bmain,
                            scene_dst->nodetree,
                            (void *)(&scene_src->id),

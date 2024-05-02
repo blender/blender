@@ -509,8 +509,11 @@ void ntreeSetOutput(bNodeTree *ntree);
 
 /**
  * Returns localized tree for execution in threads.
+ *
+ * \param new_owner_id: the owner ID of the localized nodetree, may be null if unknown or
+ * irrelevant.
  */
-bNodeTree *ntreeLocalize(bNodeTree *ntree);
+bNodeTree *ntreeLocalize(bNodeTree *ntree, ID *new_owner_id);
 
 /**
  * This is only direct data, tree itself should have been written.

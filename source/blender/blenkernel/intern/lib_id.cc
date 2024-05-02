@@ -629,6 +629,7 @@ bool BKE_id_copy_is_allowed(const ID *id)
 ID *BKE_id_copy_in_lib(Main *bmain,
                        std::optional<Library *> owner_library,
                        const ID *id,
+                       const ID *new_owner_id,
                        ID **r_newid,
                        const int flag)
 {
@@ -662,7 +663,7 @@ ID *BKE_id_copy_in_lib(Main *bmain,
       return nullptr;
     }
 
-    BKE_libblock_copy_in_lib(bmain, owner_library, id, &newid, flag);
+    BKE_libblock_copy_in_lib(bmain, owner_library, id, new_owner_id, &newid, flag);
 
     if (idtype_info->copy_data != nullptr) {
       idtype_info->copy_data(bmain, owner_library, newid, id, flag);
@@ -682,14 +683,7 @@ ID *BKE_id_copy_in_lib(Main *bmain,
   data.id_src = id;
   data.id_dst = newid;
   data.flag = flag;
-  /* When copying an embedded ID, typically at this point its owner ID pinter will still point to
-   * the owner of the source, this code has no access to its valid (i.e. destination) owner. This
-   * can be added at some point is needed, but currently the #id_copy_libmanagement_cb callback
-   * does need this information. */
-  /* TODO: handle this fully properly by passing the correct owner ID to copy code when copying
-   * embedded data. */
-  BKE_library_foreach_ID_link(
-      bmain, newid, id_copy_libmanagement_cb, &data, IDWALK_IGNORE_MISSING_OWNER_ID);
+  BKE_library_foreach_ID_link(bmain, newid, id_copy_libmanagement_cb, &data, IDWALK_NOP);
 
   /* Do not make new copy local in case we are copying outside of main...
    * XXX TODO: is this behavior OK, or should we need a separate flag to control that? */
@@ -721,12 +715,12 @@ ID *BKE_id_copy_in_lib(Main *bmain,
 
 ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
 {
-  return BKE_id_copy_in_lib(bmain, std::nullopt, id, r_newid, flag);
+  return BKE_id_copy_in_lib(bmain, std::nullopt, id, nullptr, r_newid, flag);
 }
 
 ID *BKE_id_copy(Main *bmain, const ID *id)
 {
-  return BKE_id_copy_in_lib(bmain, std::nullopt, id, nullptr, LIB_ID_COPY_DEFAULT);
+  return BKE_id_copy_in_lib(bmain, std::nullopt, id, nullptr, nullptr, LIB_ID_COPY_DEFAULT);
 }
 
 ID *BKE_id_copy_for_duplicate(Main *bmain,
@@ -1442,6 +1436,7 @@ void *BKE_id_new_nomain(const short type, const char *name)
 void BKE_libblock_copy_in_lib(Main *bmain,
                               std::optional<Library *> owner_library,
                               const ID *id,
+                              const ID *new_owner_id,
                               ID **r_newid,
                               const int orig_flag)
 {
@@ -1499,9 +1494,20 @@ void BKE_libblock_copy_in_lib(Main *bmain,
 
   new_id->flag = (new_id->flag & ~copy_idflag_mask) | (id->flag & copy_idflag_mask);
 
-  /* 'Private ID' data handling. */
+  /* Embedded ID data handling. */
   if (is_embedded_id && (orig_flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     new_id->tag &= ~LIB_TAG_NO_MAIN;
+  }
+  /* Note: This also needs to run for ShapeKeys, which are not (yet) actual embedded IDs.
+   * Note: for now, keep existing owner ID (i.e. owner of the source embedded ID) if no new one
+   * is given. In some cases (e.g. depsgraph), this is important for later remapping to work
+   * properly.
+   */
+  if (new_owner_id) {
+    const IDTypeInfo *idtype = BKE_idtype_get_info_from_id(new_id);
+    BLI_assert(idtype->owner_pointer_get != nullptr);
+    ID **owner_id_pointer = idtype->owner_pointer_get(new_id, false);
+    *owner_id_pointer = const_cast<ID *>(new_owner_id);
   }
 
   /* We do not want any handling of user-count in code duplicating the data here, we do that all
@@ -1553,14 +1559,14 @@ void BKE_libblock_copy_in_lib(Main *bmain,
 
 void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int orig_flag)
 {
-  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, r_newid, orig_flag);
+  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, nullptr, r_newid, orig_flag);
 }
 
 void *BKE_libblock_copy(Main *bmain, const ID *id)
 {
   ID *idn;
 
-  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, &idn, 0);
+  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, nullptr, &idn, 0);
 
   return idn;
 }
