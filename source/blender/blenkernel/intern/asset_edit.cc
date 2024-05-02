@@ -29,6 +29,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
+#include "BKE_packedFile.h"
 #include "BKE_preferences.h"
 #include "BKE_report.hh"
 
@@ -272,6 +273,8 @@ static bool asset_write_in_library(Main *bmain,
 
   BlendFileWriteParams blend_file_write_params{};
   blend_file_write_params.remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE;
+
+  BKE_packedfile_pack_all(new_main, nullptr, false);
 
   const int write_flags = G_FILE_COMPRESS;
   const bool success = BLO_write_file(
