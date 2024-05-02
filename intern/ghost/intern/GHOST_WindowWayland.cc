@@ -1712,7 +1712,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     /* create window decorations */
     decor.frame = libdecor_decorate(
         system_->libdecor_context_get(), window_->wl.surface, &libdecor_frame_iface, window_);
-    libdecor_frame_map(window_->libdecor->frame);
 
     libdecor_frame_set_min_content_size(decor.frame, UNPACK2(size_min));
     libdecor_frame_set_app_id(decor.frame, xdg_app_id);
@@ -1746,6 +1745,14 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   }
 
   gwl_window_title_set(window_, title);
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (use_libdecor) {
+    /* Postpone mapping the window until after the app-id & title have been set.
+     * While this doesn't seem to be a requirement, LIBDECOR example code does this. */
+    libdecor_frame_map(window_->libdecor->frame);
+  }
+#endif
 
   wl_surface_set_user_data(window_->wl.surface, this);
 
