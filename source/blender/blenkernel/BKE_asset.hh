@@ -11,7 +11,6 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_ID_enums.h"
 #include "DNA_asset_types.h"
 
 struct AssetLibraryReference;
@@ -21,7 +20,6 @@ struct BlendDataReader;
 struct BlendWriter;
 struct ID;
 struct IDProperty;
-struct Main;
 struct PreviewImage;
 
 using PreSaveFn = void (*)(void *asset_ptr, AssetMetaData *asset_data);
