@@ -250,6 +250,7 @@ class ShaderManager {
   float3 xyz_to_g;
   float3 xyz_to_b;
   float3 rgb_to_y;
+  float3 white_xyz;
   float3 rec709_to_r;
   float3 rec709_to_g;
   float3 rec709_to_b;

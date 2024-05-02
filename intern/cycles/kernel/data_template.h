@@ -69,6 +69,7 @@ KERNEL_STRUCT_MEMBER(film, float4, xyz_to_r)
 KERNEL_STRUCT_MEMBER(film, float4, xyz_to_g)
 KERNEL_STRUCT_MEMBER(film, float4, xyz_to_b)
 KERNEL_STRUCT_MEMBER(film, float4, rgb_to_y)
+KERNEL_STRUCT_MEMBER(film, float4, white_xyz)
 /* Rec709 to rendering color space. */
 KERNEL_STRUCT_MEMBER(film, float4, rec709_to_r)
 KERNEL_STRUCT_MEMBER(film, float4, rec709_to_g)

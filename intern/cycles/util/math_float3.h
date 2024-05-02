@@ -371,6 +371,11 @@ ccl_device_inline float3 log(float3 v)
   return make_float3(logf(v.x), logf(v.y), logf(v.z));
 }
 
+ccl_device_inline float3 cos(float3 v)
+{
+  return make_float3(cosf(v.x), cosf(v.y), cosf(v.z));
+}
+
 ccl_device_inline float3 reflect(const float3 incident, const float3 normal)
 {
   float3 unit_normal = normalize(normal);
