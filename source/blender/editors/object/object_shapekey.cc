@@ -229,7 +229,7 @@ static bool object_shape_key_mirror(
       ED_mesh_mirror_spatial_table_end(ob);
     }
     else if (ob->type == OB_LATTICE) {
-      Lattice *lt = static_cast<Lattice *>(ob->data);
+      const Lattice *lt = static_cast<const Lattice *>(ob->data);
       int i1, i2;
       float *fp1, *fp2;
       int u, v, w;
