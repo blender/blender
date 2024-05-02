@@ -655,7 +655,6 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
   switch (tkey->space_type) {
     case SPACE_VIEW3D:
       switch (tkey->mode) {
-        /* Use the names of the enums for each brush tool. */
         case CTX_MODE_SCULPT:
         case CTX_MODE_PAINT_VERTEX:
         case CTX_MODE_PAINT_WEIGHT:
@@ -669,8 +668,6 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
         case CTX_MODE_VERTEX_GPENCIL_LEGACY:
         case CTX_MODE_SCULPT_CURVES:
           return "builtin.brush";
-          /* End temporary hack. */
-
         case CTX_MODE_PARTICLE:
           return "builtin_brush.Comb";
         case CTX_MODE_EDIT_TEXT:
