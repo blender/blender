@@ -34,7 +34,6 @@ class BrushAssetShelf:
         # also activates the item.
         layout.menu_contents("VIEW3D_MT_brush_context_menu")
 
-    # Not nice, but needed unfortunately.
     @staticmethod
     def get_shelf_name_from_mode(obmode):
      mode_map = {
