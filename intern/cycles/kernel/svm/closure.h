@@ -466,10 +466,6 @@ ccl_device
       Spectrum weight = closure_weight * mix_weight;
       float3 position = stack_load_float3(stack, data_node.y);
       float3 direction = stack_load_float3(stack, data_node.z);
-      if (is_zero(direction)) {
-        direction = -sd->wi;
-      }
-
       bsdf_ray_portal_setup(sd, weight, path_flag, position, direction);
       break;
     }
