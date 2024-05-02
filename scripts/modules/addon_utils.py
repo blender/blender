@@ -1083,11 +1083,51 @@ def _initialize_extension_repos_post(*_, is_first=False):
         modules._is_first = True
 
 
+def _initialize_extensions_site_packages(*, create=False):
+    # Add extension site-packages to `sys.path` (if it exists).
+    # Use for wheels.
+    import os
+    import sys
+
+    # NOTE: follow the structure of `~/.local/lib/python#.##/site-packages`
+    # because some wheels contain paths pointing to parent directories,
+    # referencing `../../../bin` for example - to install binaries into `~/.local/bin`,
+    # so this can't simply be treated as a module directory unless those files would be excluded
+    # which may interfere with the wheels functionality.
+    site_packages = os.path.join(
+        _bpy.utils.user_resource('EXTENSIONS'),
+        ".local",
+        "lib",
+        "python{:d}.{:d}".format(sys.version_info.major, sys.version_info.minor),
+        "site-packages",
+    )
+    print(site_packages)
+    if create:
+        if not os.path.exists(site_packages):
+            os.makedirs(site_packages)
+        found = True
+    else:
+        found = os.path.exists(site_packages)
+
+    if found:
+        sys.path.append(site_packages)
+    else:
+        try:
+            sys.path.remove(site_packages)
+        except ValueError:
+            pass
+
+    return site_packages if found else None
+
+
 def _initialize_extensions_repos_once():
     from bpy_extras.extensions.junction_module import JunctionModuleHandle
     module_handle = JunctionModuleHandle(_ext_base_pkg_idname)
     module_handle.register_module()
     _ext_global.module_handle = module_handle
+
+    # Ensure extensions wheels can be loaded (when found).
+    _initialize_extensions_site_packages()
 
     # Setup repositories for the first time.
     # Intentionally don't call `_initialize_extension_repos_pre` as this is the first time,
