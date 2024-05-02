@@ -2893,8 +2893,8 @@ class VIEW3D_MT_object(Menu):
         layout.menu("VIEW3D_MT_object_liboverride", icon='LIBRARY_DATA_OVERRIDE')
         layout.menu("VIEW3D_MT_object_relations")
         layout.menu("VIEW3D_MT_object_parent")
-        layout.menu("VIEW3D_MT_object_constraints")
-        layout.menu("VIEW3D_MT_object_modifiers")
+        layout.menu("VIEW3D_MT_object_modifiers", icon='MODIFIER')
+        layout.menu("VIEW3D_MT_object_constraints", icon='CONSTRAINT')
         layout.menu("VIEW3D_MT_object_track")
         layout.menu("VIEW3D_MT_make_links")
 
@@ -3367,10 +3367,17 @@ class VIEW3D_MT_object_modifiers(Menu):
     bl_label = "Modifiers"
 
     def draw(self, _context):
+        active_object = bpy.context.active_object
+        supported_types = {'MESH', 'CURVE', 'CURVES', 'SURFACE', 'FONT', 'VOLUME', 'GREASEPENCIL'}
+
         layout = self.layout
 
-        layout.menu("OBJECT_MT_modifier_add", text="Add")
-        layout.operator("object.modifiers_copy_to_selected", text="Copy to Selected")
+        if active_object.type in supported_types:
+            layout.menu("OBJECT_MT_modifier_add", text="Add Modifier")
+        elif active_object.type == 'GPENCIL':
+            layout.operator("object.gpencil_modifier_add", text="Add Modifier")
+
+        layout.operator("object.modifiers_copy_to_selected", text="Copy Modifiers to Selected Objects")
 
         layout.separator()
 
