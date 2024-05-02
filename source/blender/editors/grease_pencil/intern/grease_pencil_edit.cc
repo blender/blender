@@ -2486,8 +2486,8 @@ IndexRange clipboard_paste_strokes(Main &bmain,
 /** \name Extrude Operator
  * \{ */
 
-bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometry &src,
-                                                 const IndexMask &points_to_extrude)
+static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometry &src,
+                                                        const IndexMask &points_to_extrude)
 {
   const OffsetIndices<int> points_by_curve = src.points_by_curve();
 
@@ -2597,7 +2597,6 @@ static int grease_pencil_extrude_exec(bContext *C, wmOperator * /*op*/)
   std::atomic<bool> changed = false;
   const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
-    /* Extrusion always happens in the point domain. */
     IndexMaskMemory memory;
     const IndexMask points_to_extrude = retrieve_editable_and_selected_points(
         *object, info.drawing, memory);
