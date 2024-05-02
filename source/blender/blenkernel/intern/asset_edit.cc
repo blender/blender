@@ -27,6 +27,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 #include "BKE_report.hh"
@@ -188,6 +189,71 @@ static std::string asset_blendfile_path_for_save(const bUserAssetLibrary &user_l
   return "";
 }
 
+static void asset_main_create_expander(void * /*handle*/, Main * /*bmain*/, void *vid)
+{
+  ID *id = static_cast<ID *>(vid);
+
+  if (id && (id->tag & LIB_TAG_DOIT) == 0) {
+    id->tag |= LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT;
+  }
+}
+
+static Main *asset_main_create_from_ID(Main *bmain_src, ID &id_asset, ID **id_asset_new)
+{
+  /* Tag asset ID and its dependencies. */
+  ID *id_src;
+  FOREACH_MAIN_ID_BEGIN (bmain_src, id_src) {
+    id_src->tag &= ~(LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT);
+  }
+  FOREACH_MAIN_ID_END;
+
+  id_asset.tag |= LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT;
+
+  BLO_main_expander(asset_main_create_expander);
+  BLO_expand_main(nullptr, bmain_src);
+
+  /* Create main and copy all tagged datablocks. */
+  Main *bmain_dst = BKE_main_new();
+  STRNCPY(bmain_dst->filepath, bmain_src->filepath);
+
+  blender::bke::id::IDRemapper id_remapper;
+
+  FOREACH_MAIN_ID_BEGIN (bmain_src, id_src) {
+    if (id_src->tag & LIB_TAG_DOIT) {
+      /* Note that this will not copy Library datablocks, and all copied
+       * datablocks will become local as a result. */
+      ID *id_dst = BKE_id_copy_ex(bmain_dst,
+                                  id_src,
+                                  nullptr,
+                                  LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG |
+                                      ((id_src == &id_asset) ? LIB_ID_COPY_ASSET_METADATA : 0));
+      id_remapper.add(id_src, id_dst);
+      if (id_src == &id_asset) {
+        *id_asset_new = id_dst;
+      }
+    }
+    else {
+      id_remapper.add(id_src, nullptr);
+    }
+
+    id_src->tag &= ~(LIB_TAG_NEED_EXPAND | LIB_TAG_DOIT);
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* Remap datablock pointers. */
+  BKE_libblock_remap_multiple_raw(bmain_dst, id_remapper, ID_REMAP_SKIP_USER_CLEAR);
+
+  /* Compute reference counts. */
+  ID *id_dst;
+  FOREACH_MAIN_ID_BEGIN (bmain_dst, id_dst) {
+    id_dst->tag &= ~LIB_TAG_NO_USER_REFCOUNT;
+  }
+  FOREACH_MAIN_ID_END;
+  BKE_main_id_refcount_recompute(bmain_dst, false);
+
+  return bmain_dst;
+}
+
 static bool asset_write_in_library(Main *bmain,
                                    const ID &id_const,
                                    const StringRef name,
@@ -195,60 +261,30 @@ static bool asset_write_in_library(Main *bmain,
                                    std::string &final_full_file_path,
                                    ReportList &reports)
 {
-  /* TODO: Comment seems to be resolved by separate #Main storage?
-   *  XXX
-   * FIXME
-   *
-   * This code is _pure evil_. It does in-place manipulation on IDs in global Main database,
-   * temporarilly remove them and add them back...
-   *
-   * Use it as-is for now (in a similar way as python API or copy-to-buffer works). Nut the whole
-   * 'BKE_blendfile_write_partial' code needs to be completely refactored.
-   *
-   * Ideas:
-   *   - Have `BKE_blendfile_write_partial_begin` return a new temp Main.
-   *   - Replace `BKE_blendfile_write_partial_tag_ID` by API to add IDs to this temp Main.
-   *     + This should _duplicate_ the ID, not remove the original one from the source Main!
-   *   - Have API to automatically also duplicate dependencies into temp Main.
-   *     + Have options to e.g. make all duplicated IDs 'local' (i.e. remove their library data).
-   *   - `BKE_blendfile_write_partial` then simply write the given temp main.
-   *   - `BKE_blendfile_write_partial_end` frees the temp Main.
-   */
-
   ID &id = const_cast<ID &>(id_const);
 
-  const short prev_flag = id.flag;
-  const int prev_us = id.us;
-  const std::string prev_name = id.name + 2;
-  /* TODO: Use G_FILE_AUTOPACK? But this will require making a copy of datablocks first to avoid
-   * duplicating data. */
+  ID *new_id = nullptr;
+  Main *new_main = asset_main_create_from_ID(bmain, id, &new_id);
+
+  std::string new_name = name;
+  BKE_libblock_rename(new_main, new_id, new_name.c_str());
+  id_fake_user_set(new_id);
+
+  BlendFileWriteParams blend_file_write_params{};
+  blend_file_write_params.remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE;
+
   const int write_flags = G_FILE_COMPRESS;
-  const eBLO_WritePathRemap remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE;
+  const bool success = BLO_write_file(
+      new_main, filepath.c_str(), write_flags, &blend_file_write_params, &reports);
 
-  BKE_blendfile_write_partial_begin(bmain);
-
-  id.flag |= LIB_FAKEUSER;
-  id.us = 1;
-  BLI_strncpy(id.name + 2, name.data(), std::min(sizeof(id.name) - 2, size_t(name.size() + 1)));
-
-  BKE_blendfile_write_partial_tag_ID(&id, true);
-
-  const bool sucess = BKE_blendfile_write_partial(
-      bmain, filepath.c_str(), write_flags, remap_mode, &reports);
-
-  if (sucess) {
+  if (success) {
     const IDTypeInfo *idtype = BKE_idtype_get_info_from_id(&id);
     final_full_file_path = std::string(filepath) + SEP + std::string(idtype->name) + SEP + name;
   }
 
-  BKE_blendfile_write_partial_end(bmain);
+  BKE_main_free(new_main);
 
-  BKE_blendfile_write_partial_tag_ID(&id, false);
-  id.flag = prev_flag;
-  id.us = prev_us;
-  BLI_strncpy(id.name + 2, prev_name.c_str(), sizeof(id.name) - 2);
-
-  return sucess;
+  return success;
 }
 
 void AssetEditBlend::reload(Main &global_main)

@@ -1553,6 +1553,12 @@ void BKE_libblock_copy_in_lib(Main *bmain,
     }
   }
 
+  if (flag & LIB_ID_COPY_ASSET_METADATA) {
+    if (id->asset_data) {
+      new_id->asset_data = BKE_asset_metadata_copy(id->asset_data);
+    }
+  }
+
   if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     DEG_id_type_tag(bmain, GS(new_id->name));
   }

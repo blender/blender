@@ -205,6 +205,8 @@ enum {
    * duplicate scene/collections, or objects.
    */
   LIB_ID_COPY_RIGID_BODY_NO_COLLECTION_HANDLING = 1 << 28,
+  /* Copy asset metadata. */
+  LIB_ID_COPY_ASSET_METADATA = 1 << 29,
 
   /* *** Helper 'defines' gathering most common flag sets. *** */
   /** Shape-keys are not real ID's, more like local data to geometry IDs. */
