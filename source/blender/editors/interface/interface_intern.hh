@@ -1588,7 +1588,7 @@ namespace blender::interface::internal {
  * zero-sized if no drivers were fetched (e.g. if the property had no drivers).
  * Otherwise the vector will be the size of the underlying property (e.g. 4 for
  * an array property with 4 elements, 1 for a non-array property).  For array
- * properties, elements without drivers will be nullptrs.
+ * properties, elements without drivers will be null.
  */
 blender::Vector<FCurve *> get_property_drivers(
     PointerRNA *ptr, PropertyRNA *prop, bool get_all, int index, bool *r_is_array_prop);

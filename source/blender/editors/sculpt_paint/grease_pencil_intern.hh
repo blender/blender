@@ -105,9 +105,9 @@ class GreasePencilStrokeOperationCommon : public GreasePencilStrokeOperation {
 
   BrushStrokeMode stroke_mode;
 
-  /* Initiali mouse sample position, used for placement origin. */
+  /** Initial mouse sample position, used for placement origin. */
   float2 start_mouse_position;
-  /* Previous mouse position for computing the direction. */
+  /** Previous mouse position for computing the direction. */
   float2 prev_mouse_position;
 
   GreasePencilStrokeOperationCommon(const BrushStrokeMode stroke_mode) : stroke_mode(stroke_mode)

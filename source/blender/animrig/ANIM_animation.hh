@@ -114,7 +114,7 @@ class Animation : public ::Animation {
    * this Binding.
    *
    * Should be called after `binding_name_define(binding)`. This is implemented as a separate
-   * function due to the need to access bmain, which is available in the RNA on-property-update
+   * function due to the need to access `bmain`, which is available in the RNA on-property-update
    * handler, but not in the RNA property setter.
    */
   void binding_name_propagate(Main &bmain, const Binding &binding);
@@ -136,7 +136,7 @@ class Animation : public ::Animation {
    * Create a new binding, named after the given ID, and limited to the ID's type.
    *
    * Note that this assigns neither this Animation nor the new Binding to the ID. This function
-   * merely initialises the Binding itself to suitable values to start animating this ID.
+   * merely initializes the Binding itself to suitable values to start animating this ID.
    */
   Binding &binding_add_for_id(const ID &animated_id);
 
@@ -146,7 +146,7 @@ class Animation : public ::Animation {
    * assigned later. In that case, the ID will not actually receive any animation.
    * \param animated_id: The ID that should be animated by this Animation data-block.
    *
-   * \return whether the assignment was succesful.
+   * \return whether the assignment was successful.
    */
   bool assign_id(Binding *binding, ID &animated_id);
 
@@ -398,7 +398,7 @@ class Binding : public ::AnimationBinding {
   /** Return whether this Binding is usable by this ID type. */
   bool is_suitable_for(const ID &animated_id) const;
 
-  /** Return whether this Binding has an idtype set. */
+  /** Return whether this Binding has an `idtype` set. */
   bool has_idtype() const;
 
  protected:
@@ -408,7 +408,7 @@ class Binding : public ::AnimationBinding {
    * Ensure the first two characters of the name match the ID type.
    *
    * \note This does NOT ensure name uniqueness within the Animation. That is
-   * the reponsibility of the caller.
+   * the responsibility of the caller.
    */
   void name_ensure_prefix();
 };
@@ -519,7 +519,7 @@ void unassign_animation(ID &animated_id);
 /**
  * Clear the animation binding of this ID.
  *
- * adt.binding_handle_name is updated to reflect the current name of the
+ * `adt.binding_handle_name` is updated to reflect the current name of the
  * binding, before un-assigning. This is to ensure that the stored name reflects
  * the actual binding that was used, making re-binding trivial.
  *

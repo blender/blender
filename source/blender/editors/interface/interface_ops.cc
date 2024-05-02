@@ -1571,7 +1571,7 @@ static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 /** \name Copy Driver To Selected Operator
  * \{ */
 
-/* Namespaced for unit testing. Conceptually these functions should be static
+/* Name-spaced for unit testing. Conceptually these functions should be static
  * and not be used outside this source file.  But they need to be externally
  * accessible to add unit tests for them. */
 namespace blender::interface::internal {

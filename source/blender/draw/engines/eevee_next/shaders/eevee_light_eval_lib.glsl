@@ -71,7 +71,7 @@ ClosureLight closure_light_new_ex(ClosureUndetermined cl,
           }
           else {
             /* This approximation has little to no impact on the lighting in practice, only
-             * focussing the light a tiny bit. Offset the shadow map position and using the flipped
+             * focusing the light a tiny bit. Offset the shadow map position and using the flipped
              * normal is good enough approximation. */
           }
         }
