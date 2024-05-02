@@ -15,6 +15,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
@@ -24,6 +25,7 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
+#include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
@@ -587,15 +589,19 @@ void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
   }
 }
 
-bool SEQ_prefetch_need_redraw(Main *bmain, Scene *scene)
+bool SEQ_prefetch_need_redraw(const bContext *C, Scene *scene)
 {
+  Main *bmain = CTX_data_main(C);
   bool playing = seq_prefetch_is_playing(bmain);
   bool scrubbing = seq_prefetch_is_scrubbing(bmain);
   bool running = seq_prefetch_job_is_running(scene);
   bool suspended = seq_prefetch_job_is_waiting(scene);
 
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  bool showing_cache = sseq->cache_overlay.flag & SEQ_CACHE_SHOW;
+
   /* force redraw, when prefetching and using cache view. */
-  if (running && !playing && !suspended && scene->ed->cache_flag & SEQ_CACHE_VIEW_ENABLE) {
+  if (running && !playing && !suspended && showing_cache) {
     return true;
   }
   /* Sometimes scrubbing flag is set when not scrubbing. In that case I want to catch "event" of

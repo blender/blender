@@ -8,7 +8,7 @@
  * \ingroup sequencer
  */
 
-struct Main;
+struct bContext;
 struct Scene;
 
 void SEQ_prefetch_stop_all();
@@ -17,4 +17,4 @@ void SEQ_prefetch_stop_all();
  * This function should almost always be called by cache invalidation, not directly.
  */
 void SEQ_prefetch_stop(Scene *scene);
-bool SEQ_prefetch_need_redraw(Main *bmain, Scene *scene);
+bool SEQ_prefetch_need_redraw(const bContext *C, Scene *scene);

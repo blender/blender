@@ -1488,7 +1488,7 @@ static void draw_seq_solo_highlight(TimelineDrawContext *timeline_ctx,
 /* Force redraw, when prefetching and using cache view. */
 static void seq_prefetch_wm_notify(const bContext *C, Scene *scene)
 {
-  if (SEQ_prefetch_need_redraw(CTX_data_main(C), scene)) {
+  if (SEQ_prefetch_need_redraw(C, scene)) {
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, nullptr);
   }
 }
@@ -1734,43 +1734,56 @@ static bool draw_cache_view_iter_fn(void *userdata,
   using blender::uchar4;
   CacheDrawData *drawdata = static_cast<CacheDrawData *>(userdata);
   const View2D *v2d = drawdata->v2d;
-  float stripe_bot;
+  float stripe_top, stripe_bot;
 
-  const uchar4 col_final{255, 102, 51, 100};
+  /* NOTE: Final color is the same as the movie clip cache color.
+   * See ED_region_cache_draw_cached_segments.
+   */
+  const uchar4 col_final{108, 108, 210, 255};
   const uchar4 col_raw{255, 25, 5, 100};
   const uchar4 col_preproc{25, 25, 191, 100};
   const uchar4 col_composite{255, 153, 0, 100};
 
   uchar4 col{0, 0, 0, 0};
 
+  bool dev_ui = (U.flag & USER_DEVELOPER_UI);
+
   if ((cache_type & SEQ_CACHE_STORE_FINAL_OUT) &&
-      (drawdata->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT))
+      (drawdata->cache_flag & SEQ_CACHE_SHOW_FINAL_OUT))
   {
-    stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
+    /* Draw the final cache on top of the timeline */
+    stripe_top = v2d->cur.ymax - (UI_TIME_SCRUB_MARGIN_Y / UI_view2d_scale_get_y(v2d));
+    stripe_bot = stripe_top - (UI_TIME_SCRUB_MARGIN_Y / UI_view2d_scale_get_y(v2d)) / 6.0f;
     col = col_final;
   }
-  else if ((cache_type & SEQ_CACHE_STORE_RAW) && (drawdata->cache_flag & SEQ_CACHE_VIEW_RAW)) {
-    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + drawdata->stripe_ofs_y;
-    col = col_raw;
-  }
-  else if ((cache_type & SEQ_CACHE_STORE_PREPROCESSED) &&
-           (drawdata->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED))
-  {
-    stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + drawdata->stripe_ht +
-                 drawdata->stripe_ofs_y * 2;
-    col = col_preproc;
-  }
-  else if ((cache_type & SEQ_CACHE_STORE_COMPOSITE) &&
-           (drawdata->cache_flag & SEQ_CACHE_VIEW_COMPOSITE))
-  {
-    stripe_bot = seq->machine + SEQ_STRIP_OFSTOP - drawdata->stripe_ofs_y - drawdata->stripe_ht;
-    col = col_composite;
-  }
   else {
-    return false;
+    if (!dev_ui) {
+      /* Don't show these cache types below unless developer extras is on. */
+      return false;
+    }
+    if ((cache_type & SEQ_CACHE_STORE_RAW) && (drawdata->cache_flag & SEQ_CACHE_SHOW_RAW)) {
+      stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + drawdata->stripe_ofs_y;
+      col = col_raw;
+    }
+    else if ((cache_type & SEQ_CACHE_STORE_PREPROCESSED) &&
+             (drawdata->cache_flag & SEQ_CACHE_SHOW_PREPROCESSED))
+    {
+      stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + drawdata->stripe_ht +
+                   drawdata->stripe_ofs_y * 2;
+      col = col_preproc;
+    }
+    else if ((cache_type & SEQ_CACHE_STORE_COMPOSITE) &&
+             (drawdata->cache_flag & SEQ_CACHE_SHOW_COMPOSITE))
+    {
+      stripe_bot = seq->machine + SEQ_STRIP_OFSTOP - drawdata->stripe_ofs_y - drawdata->stripe_ht;
+      col = col_composite;
+    }
+    else {
+      return false;
+    }
+    stripe_top = stripe_bot + drawdata->stripe_ht;
   }
 
-  float stripe_top = stripe_bot + drawdata->stripe_ht;
   drawdata->quads->add_quad(timeline_frame, stripe_bot, timeline_frame + 1, stripe_top, col);
 
   return false;
@@ -1795,18 +1808,30 @@ static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
   using blender::uchar4;
   const Scene *scene = CTX_data_scene(C);
   const View2D *v2d = UI_view2d_fromcontext(C);
+  const SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-  const uchar4 bg_final{255, 102, 51, 25};
+  /* NOTE: Final bg color is the same as the movie clip cache color.
+   * See ED_region_cache_draw_background.
+   */
+  const uchar4 bg_final{78, 78, 145, 255};
   const uchar4 bg_raw{255, 25, 5, 25};
   const uchar4 bg_preproc{25, 25, 191, 25};
   const uchar4 bg_composite{255, 153, 0, 25};
 
   float stripe_bot;
-  if (scene->ed->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT) {
-    stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
+  bool dev_ui = (U.flag & USER_DEVELOPER_UI);
 
-    draw_data->quads->add_quad(
-        scene->r.sfra, stripe_bot, scene->r.efra, stripe_bot + draw_data->stripe_ht, bg_final);
+  if (sseq->cache_overlay.flag & SEQ_CACHE_SHOW_FINAL_OUT) {
+    /* Draw the final cache on top of the timeline */
+    float stripe_top = v2d->cur.ymax - (UI_TIME_SCRUB_MARGIN_Y / UI_view2d_scale_get_y(v2d));
+    stripe_bot = stripe_top - (UI_TIME_SCRUB_MARGIN_Y / UI_view2d_scale_get_y(v2d)) / 6.0f;
+
+    draw_data->quads->add_quad(scene->r.sfra, stripe_bot, scene->r.efra, stripe_top, bg_final);
+  }
+
+  if (!dev_ui) {
+    /* Don't show these cache types below unless developer extras is on. */
+    return;
   }
 
   blender::Vector<Sequence *> strips = sequencer_visible_strips_get(C);
@@ -1814,17 +1839,17 @@ static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
 
   for (const Sequence *seq : strips) {
     stripe_bot = seq->machine + SEQ_STRIP_OFSBOTTOM + draw_data->stripe_ofs_y;
-    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_RAW) {
+    if (sseq->cache_overlay.flag & SEQ_CACHE_SHOW_RAW) {
       draw_cache_stripe(scene, seq, *draw_data->quads, stripe_bot, draw_data->stripe_ht, bg_raw);
     }
 
-    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED) {
+    if (sseq->cache_overlay.flag & SEQ_CACHE_SHOW_PREPROCESSED) {
       stripe_bot += draw_data->stripe_ht + draw_data->stripe_ofs_y;
       draw_cache_stripe(
           scene, seq, *draw_data->quads, stripe_bot, draw_data->stripe_ht, bg_preproc);
     }
 
-    if (scene->ed->cache_flag & SEQ_CACHE_VIEW_COMPOSITE) {
+    if (sseq->cache_overlay.flag & SEQ_CACHE_SHOW_COMPOSITE) {
       stripe_bot = seq->machine + SEQ_STRIP_OFSTOP - draw_data->stripe_ofs_y -
                    draw_data->stripe_ht;
       draw_cache_stripe(
@@ -1837,8 +1862,9 @@ static void draw_cache_view(const bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   const View2D *v2d = UI_view2d_fromcontext(C);
+  const SpaceSeq *sseq = CTX_wm_space_seq(C);
 
-  if ((scene->ed->cache_flag & SEQ_CACHE_VIEW_ENABLE) == 0) {
+  if ((sseq->flag & SEQ_SHOW_OVERLAY) == 0 || (sseq->cache_overlay.flag & SEQ_CACHE_SHOW) == 0) {
     return;
   }
 
@@ -1854,7 +1880,7 @@ static void draw_cache_view(const bContext *C)
   userdata.v2d = v2d;
   userdata.stripe_ofs_y = stripe_ofs_y;
   userdata.stripe_ht = stripe_ht;
-  userdata.cache_flag = scene->ed->cache_flag;
+  userdata.cache_flag = sseq->cache_overlay.flag;
   userdata.quads = &quads;
 
   GPU_blend(GPU_BLEND_ALPHA);
