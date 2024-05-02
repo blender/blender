@@ -25,6 +25,19 @@ RegionAssetShelf *RegionAssetShelf::get_from_asset_shelf_region(const ARegion &r
   return static_cast<RegionAssetShelf *>(region.regiondata);
 }
 
+RegionAssetShelf *RegionAssetShelf::ensure_from_asset_shelf_region(ARegion &region)
+{
+  if (region.regiontype != RGN_TYPE_ASSET_SHELF) {
+    /* Should only be called on main asset shelf region. */
+    BLI_assert_unreachable();
+    return nullptr;
+  }
+  if (!region.regiondata) {
+    region.regiondata = MEM_cnew<RegionAssetShelf>("RegionAssetShelf");
+  }
+  return static_cast<RegionAssetShelf *>(region.regiondata);
+}
+
 namespace blender::ed::asset::shelf {
 
 RegionAssetShelf *regiondata_duplicate(const RegionAssetShelf *shelf_regiondata)

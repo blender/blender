@@ -755,6 +755,9 @@ static void screen_regions_poll(bContext *C, const wmWindow *win, bScreen *scree
       if (region_poll(C, screen, area, region) == false) {
         region->flag |= RGN_FLAG_POLL_FAILED;
       }
+      else if (region->type && region->type->on_poll_success) {
+        region->type->on_poll_success(C, region);
+      }
 
       if (old_region_flag != region->flag) {
         any_changed = true;

@@ -131,12 +131,15 @@ static void activate_shelf(RegionAssetShelf &shelf_regiondata, AssetShelf &shelf
  *
  * The returned shelf is guaranteed to have its #AssetShelf.type pointer set.
  *
+ * \param on_create: Function called when a new asset shelf is created (case 3).
+ *
  * \return A non-owning pointer to the now active shelf. Might be null if no shelf is valid in
  *         current context (all polls failed).
  */
 static AssetShelf *update_active_shelf(const bContext &C,
                                        const SpaceType &space_type,
-                                       RegionAssetShelf &shelf_regiondata)
+                                       RegionAssetShelf &shelf_regiondata,
+                                       FunctionRef<void(AssetShelf &new_shelf)> on_create)
 {
   /* Note: Don't access #AssetShelf.type directly, use #type_ensure(). */
 
@@ -170,6 +173,9 @@ static AssetShelf *update_active_shelf(const bContext &C,
       BLI_addhead(&shelf_regiondata.shelves, new_shelf);
       /* Moves ownership to the regiondata. */
       activate_shelf(shelf_regiondata, *new_shelf);
+      if (on_create) {
+        on_create(*new_shelf);
+      }
       return new_shelf;
     }
   }
@@ -260,13 +266,13 @@ void region_listen(const wmRegionListenerParams *params)
 
 void region_init(wmWindowManager *wm, ARegion *region)
 {
-  if (!region->regiondata) {
-    region->regiondata = MEM_cnew<RegionAssetShelf>("RegionAssetShelf");
-  }
-  RegionAssetShelf &shelf_regiondata = *RegionAssetShelf::get_from_asset_shelf_region(*region);
+  /* Region-data should've been created by a previously called #region_before_redraw(). */
+  RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(*region);
+  BLI_assert_msg(
+      shelf_regiondata,
+      "Region-data should've been created by a previously called `region_before_redraw()`.");
 
-  /* Active shelf is only set on draw, so this may be null! */
-  AssetShelf *active_shelf = shelf_regiondata.active_shelf;
+  AssetShelf *active_shelf = shelf_regiondata->active_shelf;
 
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_PANELS_UI, region->winx, region->winy);
 
@@ -410,17 +416,12 @@ int region_prefsizey()
 
 void region_layout(const bContext *C, ARegion *region)
 {
-  const SpaceLink *space = CTX_wm_space_data(C);
-  SpaceType *space_type = BKE_spacetype_from_id(space->spacetype);
-
   RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(*region);
-  if (!shelf_regiondata) {
-    /* Region-data should've been created by a previously called #region_init(). */
-    BLI_assert_unreachable();
-    return;
-  }
+  BLI_assert_msg(
+      shelf_regiondata,
+      "Region-data should've been created by a previously called `region_before_redraw()`.");
 
-  AssetShelf *active_shelf = update_active_shelf(*C, *space_type, *shelf_regiondata);
+  const AssetShelf *active_shelf = shelf_regiondata->active_shelf;
   if (!active_shelf) {
     return;
   }
@@ -472,6 +473,28 @@ void region_draw(const bContext *C, ARegion *region)
   UI_view2d_scrollers_draw(&region->v2d, nullptr);
 }
 
+void region_on_poll_success(const bContext *C, ARegion *region)
+{
+  RegionAssetShelf *shelf_regiondata = RegionAssetShelf::ensure_from_asset_shelf_region(*region);
+  if (!shelf_regiondata) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  ScrArea *area = CTX_wm_area(C);
+  update_active_shelf(
+      *C, *area->type, *shelf_regiondata, /*on_create=*/[&](AssetShelf &new_shelf) {
+        /* Update region visibility (`'DEFAULT_VISIBLE'` option). */
+        const int old_flag = region->flag;
+        SET_FLAG_FROM_TEST(region->flag,
+                           (new_shelf.type->flag & ASSET_SHELF_TYPE_FLAG_DEFAULT_VISIBLE) == 0,
+                           RGN_FLAG_HIDDEN);
+        if (old_flag != region->flag) {
+          ED_region_visibility_change_update(const_cast<bContext *>(C), area, region);
+        }
+      });
+}
+
 void header_region_listen(const wmRegionListenerParams *params)
 {
   asset_shelf_region_listen(params);
@@ -486,15 +509,6 @@ void header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 
 void header_region(const bContext *C, ARegion *region)
 {
-  const SpaceLink *space = CTX_wm_space_data(C);
-  SpaceType *space_type = BKE_spacetype_from_id(space->spacetype);
-  const ARegion *main_shelf_region = BKE_area_find_region_type(CTX_wm_area(C),
-                                                               RGN_TYPE_ASSET_SHELF);
-
-  RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(
-      *main_shelf_region);
-  update_active_shelf(*C, *space_type, *shelf_regiondata);
-
   ED_region_header_with_button_sections(C, region, uiButtonSectionsAlign::Bottom);
 }
 

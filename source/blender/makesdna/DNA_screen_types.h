@@ -855,6 +855,8 @@ typedef struct RegionAssetShelf {
   AssetShelf *active_shelf; /* Non-owning. */
 #ifdef __cplusplus
   static RegionAssetShelf *get_from_asset_shelf_region(const ARegion &region);
+  /** Creates the asset shelf region data if necessary, and returns it. */
+  static RegionAssetShelf *ensure_from_asset_shelf_region(ARegion &region);
 #endif
 } RegionAssetShelf;
 

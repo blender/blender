@@ -1200,6 +1200,7 @@ void ED_spacetype_image()
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_ASSET_SHELF | ED_KEYMAP_FRAMES;
   art->duplicate = asset::shelf::region_duplicate;
   art->free = asset::shelf::region_free;
+  art->on_poll_success = asset::shelf::region_on_poll_success;
   art->listener = asset::shelf::region_listen;
   art->poll = asset::shelf::regions_poll;
   art->snap_size = asset::shelf::region_snap;

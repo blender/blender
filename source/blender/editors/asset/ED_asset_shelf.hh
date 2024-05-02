@@ -47,6 +47,7 @@ void region_on_user_resize(const ARegion *region);
 void region_listen(const wmRegionListenerParams *params);
 void region_layout(const bContext *C, ARegion *region);
 void region_draw(const bContext *C, ARegion *region);
+void region_on_poll_success(const bContext *C, ARegion *region);
 void region_blend_read_data(BlendDataReader *reader, ARegion *region);
 void region_blend_write(BlendWriter *writer, ARegion *region);
 int region_prefsizey();
