@@ -210,11 +210,7 @@ class USDExportTest(AbstractUSDTest):
     def test_export_attributes(self):
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_attribute_test.blend"))
         export_path = self.tempdir / "usd_attribute_test.usda"
-        res = bpy.ops.wm.usd_export(
-            filepath=str(export_path),
-            export_materials=True,
-            evaluation_mode="RENDER",
-        )
+        res = bpy.ops.wm.usd_export(filepath=str(export_path), evaluation_mode="RENDER")
         self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
         stage = Usd.Stage.Open(str(export_path))
