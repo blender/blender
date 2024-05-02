@@ -166,13 +166,13 @@ ccl_device_inline int bsdf_sample(KernelGlobals kg,
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
       label = bsdf_microfacet_ggx_sample(
-          sc, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
+          kg, sc, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
       break;
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID:
       label = bsdf_microfacet_beckmann_sample(
-          sc, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
+          kg, sc, Ng, sd->wi, rand, eval, wo, pdf, sampled_roughness, eta);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
       label = bsdf_ashikhmin_shirley_sample(
@@ -506,12 +506,12 @@ ccl_device_inline
       /* For consistency with eval() this should be using sd->Ng, but that causes
        * artifacts (see shadow_terminator_metal test). Needs deeper investigation
        * for how to solve this. */
-      eval = bsdf_microfacet_ggx_eval(sc, sd->N, sd->wi, wo, pdf);
+      eval = bsdf_microfacet_ggx_eval(kg, sc, sd->N, sd->wi, wo, pdf);
       break;
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID:
-      eval = bsdf_microfacet_beckmann_eval(sc, sd->N, sd->wi, wo, pdf);
+      eval = bsdf_microfacet_beckmann_eval(kg, sc, sd->N, sd->wi, wo, pdf);
       break;
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
       eval = bsdf_ashikhmin_shirley_eval(sc, sd->N, sd->wi, wo, pdf);

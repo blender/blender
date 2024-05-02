@@ -8,7 +8,7 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
-#include "BLI_simd.h"
+#include "BLI_simd.hh"
 #include "BLI_utildefines.h"
 
 #include <math.h>

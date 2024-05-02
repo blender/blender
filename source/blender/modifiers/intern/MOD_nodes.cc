@@ -1719,7 +1719,7 @@ static void modifyGeometry(ModifierData *md,
     nmd_orig->runtime->eval_log = std::move(eval_log);
   }
 
-  if (DEG_is_active(ctx->depsgraph)) {
+  if (DEG_is_active(ctx->depsgraph) && !(ctx->flag & MOD_APPLY_TO_BASE_MESH)) {
     add_data_block_items_writeback(*ctx, *nmd, *nmd_orig, simulation_params, bake_params);
   }
 

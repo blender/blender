@@ -22,6 +22,7 @@
 #include "ED_keyframing.hh"
 
 #include "ANIM_keyframing.hh"
+#include "ANIM_keyingsets.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -127,7 +128,7 @@ void autokeyframe_object(bContext *C, Scene *scene, Object *ob, Span<std::string
      * does not need to have its iterator overridden.
      */
     ANIM_apply_keyingset(
-        C, &sources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+        C, &sources, active_ks, ModifyKeyMode::INSERT, anim_eval_context.eval_time);
     return;
   }
 
@@ -184,7 +185,7 @@ bool autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks)
    */
   blender::Vector<PointerRNA> sources;
   ANIM_relative_keyingset_add_source(sources, &ob->id);
-  ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, BKE_scene_frame_get(scene));
+  ANIM_apply_keyingset(C, &sources, ks, ModifyKeyMode::INSERT, BKE_scene_frame_get(scene));
 
   return true;
 }
@@ -202,7 +203,7 @@ bool autokeyframe_pchan(bContext *C, Scene *scene, Object *ob, bPoseChannel *pch
    */
   blender::Vector<PointerRNA> sources;
   ANIM_relative_keyingset_add_source(sources, &ob->id, &RNA_PoseBone, pchan);
-  ANIM_apply_keyingset(C, &sources, ks, MODIFYKEY_MODE_INSERT, BKE_scene_frame_get(scene));
+  ANIM_apply_keyingset(C, &sources, ks, ModifyKeyMode::INSERT, BKE_scene_frame_get(scene));
 
   return true;
 }
@@ -255,7 +256,7 @@ void autokeyframe_pose_channel(bContext *C,
   if (is_keying_flag(scene, AUTOKEY_FLAG_ONLYKEYINGSET) && (active_ks)) {
     /* Run the active Keying Set on the current data-source. */
     ANIM_apply_keyingset(
-        C, &sources, active_ks, MODIFYKEY_MODE_INSERT, anim_eval_context.eval_time);
+        C, &sources, active_ks, ModifyKeyMode::INSERT, anim_eval_context.eval_time);
     return;
   }
 

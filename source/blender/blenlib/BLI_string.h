@@ -562,6 +562,27 @@ int BLI_string_find_split_words(const char *str,
                                 int r_words[][2],
                                 int words_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 4);
 
+/**
+ * A version of `STR_ELEM(..)` that treats `haystack` as multiple elements split by `delim`.
+ * Return true when `needle` is found in `haystack`.
+ *
+ * \param haystack: The string to search in.
+ * \param delim: The delimiter which divides haystack.
+ * \param needle: The string to search for
+ * (must not contain `delim` or the result will never be true).
+ *
+ * The following guarantees are made:
+ * - Only an exact match returns true, requiring the strings length and case be match.
+ * - Successive delimiters are supported.
+ * - An empty needle will match against:
+ *   - A blank string.
+ *   - Delimiters at the beginning or end of the string
+ *   - Two successive delimiters.
+ */
+bool BLI_string_elem_split_by_delim(const char *haystack,
+                                    const char delim,
+                                    const char *needle) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 3);
+
 /* -------------------------------------------------------------------- */
 /** \name String Copy/Format Macros
  * Avoid repeating destination with `sizeof(..)`.

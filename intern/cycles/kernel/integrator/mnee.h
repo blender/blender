@@ -598,7 +598,8 @@ mnee_sample_bsdf_dh(ClosureType type, float alpha_x, float alpha_y, float sample
  * We assume here that the pdf (in half-vector measure) is the same as
  * the one calculation when sampling the microfacet normals from the
  * specular chain above: this allows us to simplify the bsdf weight */
-ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(ccl_private ShaderClosure *closure,
+ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(KernelGlobals kg,
+                                                            ccl_private ShaderClosure *closure,
                                                             float3 wi,
                                                             float3 wo)
 {
@@ -623,7 +624,7 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(ccl_private ShaderCl
   }
 
   Spectrum reflectance, transmittance;
-  microfacet_fresnel(bsdf, cosHI, nullptr, &reflectance, &transmittance);
+  microfacet_fresnel(kg, bsdf, cosHI, nullptr, &reflectance, &transmittance);
 
   /*
    * bsdf_do = (1 - F) * D_do * G * |h.wi| / (n.wi * n.wo)
@@ -895,7 +896,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
     /* Evaluate product term inside eq.6 at solution interface. vi
      * divided by corresponding sampled pdf:
      * fr(vi)_do / pdf_dh(vi) x |do/dh| x |n.wo / n.h| */
-    Spectrum bsdf_contribution = mnee_eval_bsdf_contribution(v.bsdf, wi, wo);
+    Spectrum bsdf_contribution = mnee_eval_bsdf_contribution(kg, v.bsdf, wi, wo);
     bsdf_eval_mul(throughput, bsdf_contribution);
   }
 

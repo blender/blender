@@ -54,6 +54,7 @@
 #include "ED_select_utils.hh"
 
 #include "ANIM_bone_collections.hh"
+#include "ANIM_keyingsets.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -961,7 +962,7 @@ static bool select_grouped_keyingset(bContext *C, Object * /*ob*/, ReportList *r
     BKE_report(reports, RPT_ERROR, "No active Keying Set to use");
     return false;
   }
-  if (ANIM_validate_keyingset(C, nullptr, ks) != 0) {
+  if (ANIM_validate_keyingset(C, nullptr, ks) != blender::animrig::ModifyKeyReturn::SUCCESS) {
     if (ks->paths.first == nullptr) {
       if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
         BKE_report(reports,

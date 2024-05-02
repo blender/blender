@@ -160,7 +160,7 @@ include_directories(
   "../../../source/blender/blenlib"
 )
 
-# Needed for math_matrix.c to avoid eigen_capi.h dep.
+# Needed for math_matrix_c.cc to avoid eigen_capi.h dep.
 add_definitions(-DMATH_STANDALONE)
 
 add_library(bli_lib
@@ -170,9 +170,9 @@ add_library(bli_lib
   "../../../source/blender/blenlib/intern/string.c"
   "../../../source/blender/blenlib/intern/string_utf8.c"
   "../../../source/blender/blenlib/intern/listbase.cc"
-  "../../../source/blender/blenlib/intern/math_color.c"
+  "../../../source/blender/blenlib/intern/math_color.cc"
   "../../../source/blender/blenlib/intern/math_geom.c"
-  "../../../source/blender/blenlib/intern/math_matrix.c"
+  "../../../source/blender/blenlib/intern/math_matrix_c.cc"
   "../../../source/blender/blenlib/intern/math_rotation.c"
   "../../../source/blender/blenlib/intern/math_vector.c"
   "../../../source/blender/blenlib/intern/storage.c"

@@ -14,7 +14,7 @@
 #include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_simd.h"
+#include "BLI_simd.hh"
 
 #include "BLI_strict_flags.h" /* Keep last. */
 

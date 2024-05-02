@@ -179,6 +179,16 @@ void ED_operatormacros_grease_pencil()
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "GREASE_PENCIL_OT_stroke_subdivide");
   WM_operatortype_macro_define(ot, "GREASE_PENCIL_OT_stroke_smooth");
+
+  /* Extrude + Move = Interactively add new points */
+  ot = WM_operatortype_append_macro("GREASE_PENCIL_OT_extrude_move",
+                                    "Extrude Stroke Points",
+                                    "Extrude selected points and move them",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  WM_operatortype_macro_define(ot, "GREASE_PENCIL_OT_extrude");
+  otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
+  RNA_boolean_set(otmacro->ptr, "mirror", false);
 }
 
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf)

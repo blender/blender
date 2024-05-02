@@ -2482,6 +2482,160 @@ IndexRange clipboard_paste_strokes(Main &bmain,
   return pasted_curves_range;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Extrude Operator
+ * \{ */
+
+static bke::CurvesGeometry extrude_grease_pencil_curves(const bke::CurvesGeometry &src,
+                                                        const IndexMask &points_to_extrude)
+{
+  const OffsetIndices<int> points_by_curve = src.points_by_curve();
+
+  const int old_curves_num = src.curves_num();
+  const int old_points_num = src.points_num();
+
+  Vector<int> dst_to_src_points(old_points_num);
+  array_utils::fill_index_range(dst_to_src_points.as_mutable_span());
+
+  Vector<int> dst_to_src_curves(old_curves_num);
+  array_utils::fill_index_range(dst_to_src_curves.as_mutable_span());
+
+  Vector<bool> dst_selected(old_points_num, false);
+
+  Vector<int> dst_curve_counts(old_curves_num);
+  offset_indices::copy_group_sizes(
+      points_by_curve, src.curves_range(), dst_curve_counts.as_mutable_span());
+
+  const VArray<bool> &src_cyclic = src.cyclic();
+
+  /* Point offset keeps track of the points inserted. */
+  int point_offset = 0;
+  for (const int curve_index : src.curves_range()) {
+    const IndexRange curve_points = points_by_curve[curve_index];
+    const IndexMask curve_points_to_extrude = points_to_extrude.slice_content(curve_points);
+    const bool curve_cyclic = src_cyclic[curve_index];
+
+    curve_points_to_extrude.foreach_index([&](const int src_point_index) {
+      if (!curve_cyclic && (src_point_index == curve_points.first())) {
+        /* Startpoint extruded, we insert a new point at the beginning of the curve.
+         * Note : all points of a cyclic curve behave like an innerpoint.
+         */
+        dst_to_src_points.insert(src_point_index + point_offset, src_point_index);
+        dst_selected.insert(src_point_index + point_offset, true);
+        ++dst_curve_counts[curve_index];
+        ++point_offset;
+        return;
+      }
+      if (!curve_cyclic && (src_point_index == curve_points.last())) {
+        /* Endpoint extruded, we insert a new point at the end of the curve.
+         * Note : all points of a cyclic curve behave like an innerpoint.
+         */
+        dst_to_src_points.insert(src_point_index + point_offset + 1, src_point_index);
+        dst_selected.insert(src_point_index + point_offset + 1, true);
+        ++dst_curve_counts[curve_index];
+        ++point_offset;
+        return;
+      }
+
+      /* Innerpoint extruded : we create a new curve made of two points located at the same
+       * position. Only one of them is selected so that the other one remains stuck to the curve.
+       */
+      dst_to_src_points.append(src_point_index);
+      dst_selected.append(false);
+      dst_to_src_points.append(src_point_index);
+      dst_selected.append(true);
+      dst_to_src_curves.append(curve_index);
+      dst_curve_counts.append(2);
+    });
+  }
+
+  const int new_points_num = dst_to_src_points.size();
+  const int new_curves_num = dst_to_src_curves.size();
+
+  bke::CurvesGeometry dst(new_points_num, new_curves_num);
+
+  /* Setup curve offsets, based on the number of points in each curve. */
+  MutableSpan<int> new_curve_offsets = dst.offsets_for_write();
+  array_utils::copy(dst_curve_counts.as_span(), new_curve_offsets.drop_back(1));
+  offset_indices::accumulate_counts_to_offsets(new_curve_offsets);
+
+  /* Attributes. */
+  const bke::AttributeAccessor src_attributes = src.attributes();
+  bke::MutableAttributeAccessor dst_attributes = dst.attributes_for_write();
+
+  bke::gather_attributes(
+      src_attributes, bke::AttrDomain::Curve, {}, {}, dst_to_src_curves, dst_attributes);
+
+  bke::gather_attributes(
+      src_attributes, bke::AttrDomain::Point, {}, {}, dst_to_src_points, dst_attributes);
+
+  /* Selection attribute. */
+  const std::string &selection_attr_name = ".selection";
+  bke::SpanAttributeWriter<bool> selection =
+      dst_attributes.lookup_or_add_for_write_only_span<bool>(selection_attr_name,
+                                                             bke::AttrDomain::Point);
+  array_utils::copy(dst_selected.as_span(), selection.span);
+  selection.finish();
+
+  /* Cyclic attribute : newly created curves cannot be cyclic.
+   * Note: if the cyclic attribute is single and false, it can be kept this way.
+   */
+  if (src_cyclic.get_if_single().value_or(true)) {
+    dst.cyclic_for_write().drop_front(old_curves_num).fill(false);
+  }
+
+  dst.update_curve_types();
+  return dst;
+}
+
+static int grease_pencil_extrude_exec(bContext *C, wmOperator * /*op*/)
+{
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  std::atomic<bool> changed = false;
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask points_to_extrude = retrieve_editable_and_selected_points(
+        *object, info.drawing, memory);
+    if (points_to_extrude.is_empty()) {
+      return;
+    }
+
+    const bke::CurvesGeometry &curves = info.drawing.strokes();
+    info.drawing.strokes_for_write() = std::move(
+        extrude_grease_pencil_curves(curves, points_to_extrude));
+
+    info.drawing.tag_topology_changed();
+    changed.store(true, std::memory_order_relaxed);
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_extrude(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Extrude Stroke Points";
+  ot->idname = "GREASE_PENCIL_OT_extrude";
+  ot->description = "Extrude the selected points";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_extrude_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -2509,4 +2663,5 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_copy);
   WM_operatortype_append(GREASE_PENCIL_OT_paste);
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_cutter);
+  WM_operatortype_append(GREASE_PENCIL_OT_extrude);
 }

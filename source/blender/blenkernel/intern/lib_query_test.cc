@@ -158,16 +158,16 @@ TEST(lib_query, libquery_basic)
   EXPECT_NE(context.test_data.target, nullptr);
   EXPECT_NE(context.test_data.mesh, nullptr);
 
-  /* Reset all ID usercount to 0. */
+  /* Reset all ID user-count to 0. */
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (context.test_data.bmain, id_iter) {
     id_iter->us = 0;
   }
   FOREACH_MAIN_ID_END;
 
-  /* Set an invalid usercount value to IDs directly used by the scene. This includes these used by
-   * its embedded IDs, like the master collection, and the scene itself (through the loop-back
-   * pointers of embedded IDs to their owner). */
+  /* Set an invalid user-count value to IDs directly used by the scene.
+   * This includes these used by its embedded IDs, like the master collection, and the scene itself
+   * (through the loop-back pointers of embedded IDs to their owner). */
   auto set_count = [](LibraryIDLinkCallbackData *cb_data) -> int {
     if (*(cb_data->id_pointer)) {
       (*(cb_data->id_pointer))->us = 42;
@@ -217,16 +217,16 @@ TEST(lib_query, libquery_recursive)
   EXPECT_NE(context.test_data.target, nullptr);
   EXPECT_NE(context.test_data.mesh, nullptr);
 
-  /* Reset all ID usercount to 0. */
+  /* Reset all ID user-count to 0. */
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (context.test_data.bmain, id_iter) {
     id_iter->us = 0;
   }
   FOREACH_MAIN_ID_END;
 
-  /* Set an invalid usercount value to all IDs used by the scene, recursively. Here, it should mean
-   * all IDs in Main, including the scene itself (because of the loop-back pointer from the
-   * embedded master collection to its scene owner). */
+  /* Set an invalid user-count value to all IDs used by the scene, recursively.
+   * Here, it should mean all IDs in Main, including the scene itself
+   * (because of the loop-back pointer from the embedded master collection to its scene owner). */
   auto set_count = [](LibraryIDLinkCallbackData *cb_data) -> int {
     if (*(cb_data->id_pointer)) {
       (*(cb_data->id_pointer))->us = 42;
@@ -240,7 +240,7 @@ TEST(lib_query, libquery_recursive)
   }
   FOREACH_MAIN_ID_END;
 
-  /* Reset all ID usercount to 0. */
+  /* Reset all ID user-count to 0. */
   FOREACH_MAIN_ID_BEGIN (context.test_data.bmain, id_iter) {
     id_iter->us = 0;
   }
@@ -258,11 +258,11 @@ TEST(lib_query, libquery_recursive)
                               compute_count,
                               nullptr,
                               IDWALK_RECURSE);
-  /* The render layer output node of compositing ntree uses the scene. */
+  /* The render layer output node of compositing node-tree uses the scene. */
   EXPECT_EQ(context.test_data.scene->id.us, 1);
   EXPECT_EQ(context.test_data.object->id.us, 1);
   /* Scene's master collection, and scene's compositor node IDProperty. Note that object constraint
-   * is _not_ a refcounting usage. */
+   * is _not_ a reference-counting usage. */
   EXPECT_EQ(context.test_data.target->id.us, 2);
   EXPECT_EQ(context.test_data.mesh->id.us, 1);
 }
@@ -276,14 +276,14 @@ TEST(lib_query, libquery_subdata)
   EXPECT_NE(context.test_data.target, nullptr);
   EXPECT_NE(context.test_data.mesh, nullptr);
 
-  /* Reset all ID usercount to 0. */
+  /* Reset all ID user-count to 0. */
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (context.test_data.bmain, id_iter) {
     id_iter->us = 0;
   }
   FOREACH_MAIN_ID_END;
 
-  /* Set an invalid usercount value to all IDs used by one of the scene's compositor nodes. */
+  /* Set an invalid user-count value to all IDs used by one of the scene's compositor nodes. */
   auto set_count = [](LibraryIDLinkCallbackData *cb_data) -> int {
     if (*(cb_data->id_pointer)) {
       (*(cb_data->id_pointer))->us = 42;

@@ -29,6 +29,8 @@
 #include "DEG_depsgraph.hh"
 
 #include "ANIM_keyframing.hh"
+#include "ANIM_keyingsets.hh"
+
 #include "ED_keyframing.hh"
 #include "ED_screen.hh"
 
@@ -928,17 +930,18 @@ void ANIM_relative_keyingset_add_source(blender::Vector<PointerRNA> &sources, ID
 
 /* KeyingSet Operations (Insert/Delete Keyframes) ------------ */
 
-eModifyKey_Returns ANIM_validate_keyingset(bContext *C,
-                                           blender::Vector<PointerRNA> *sources,
-                                           KeyingSet *keyingset)
+blender::animrig::ModifyKeyReturn ANIM_validate_keyingset(bContext *C,
+                                                          blender::Vector<PointerRNA> *sources,
+                                                          KeyingSet *keyingset)
 {
+  using namespace blender::animrig;
   if (keyingset == nullptr) {
-    return MODIFYKEY_SUCCESS;
+    return ModifyKeyReturn::SUCCESS;
   }
 
   /* If relative Keying Sets, poll and build up the paths. */
   if (keyingset->flag & KEYINGSET_ABSOLUTE) {
-    return MODIFYKEY_SUCCESS;
+    return ModifyKeyReturn::SUCCESS;
   }
 
   KeyingSetInfo *keyingset_info = ANIM_keyingset_info_find_name(keyingset->typeinfo);
@@ -951,7 +954,7 @@ eModifyKey_Returns ANIM_validate_keyingset(bContext *C,
 
   /* Get the associated 'type info' for this KeyingSet. */
   if (keyingset_info == nullptr) {
-    return MODIFYKEY_MISSING_TYPEINFO;
+    return ModifyKeyReturn::MISSING_TYPEINFO;
   }
   /* TODO: check for missing callbacks! */
 
@@ -959,7 +962,7 @@ eModifyKey_Returns ANIM_validate_keyingset(bContext *C,
   if (!keyingset_info->poll(keyingset_info, C)) {
     /* Poll callback tells us that KeyingSet is useless in current context. */
     /* FIXME: the poll callback needs to give us more info why. */
-    return MODIFYKEY_INVALID_CONTEXT;
+    return ModifyKeyReturn::INVALID_CONTEXT;
   }
 
   /* If a list of data sources are provided, run a special iterator over them,
@@ -976,10 +979,10 @@ eModifyKey_Returns ANIM_validate_keyingset(bContext *C,
   /* FIXME: we need some error conditions (to be retrieved from the iterator why this failed!)
    */
   if (BLI_listbase_is_empty(&keyingset->paths)) {
-    return MODIFYKEY_INVALID_CONTEXT;
+    return ModifyKeyReturn::INVALID_CONTEXT;
   }
 
-  return MODIFYKEY_SUCCESS;
+  return ModifyKeyReturn::SUCCESS;
 }
 
 /* Determine which keying flags apply based on the override flags. */
@@ -1017,7 +1020,7 @@ static int insert_key_to_keying_set_path(bContext *C,
                                          KS_Path *keyingset_path,
                                          KeyingSet *keyingset,
                                          const eInsertKeyFlags insert_key_flags,
-                                         const eModifyKey_Modes mode,
+                                         const blender::animrig::ModifyKeyMode mode,
                                          const float frame)
 {
   using namespace blender::animrig;
@@ -1078,7 +1081,7 @@ static int insert_key_to_keying_set_path(bContext *C,
 
   CombinedKeyingResult combined_result;
   for (; array_index < array_length; array_index++) {
-    if (mode == MODIFYKEY_MODE_INSERT) {
+    if (mode == ModifyKeyMode::INSERT) {
       CombinedKeyingResult result = insert_keyframe(bmain,
                                                     *keyingset_path->id,
                                                     groupname,
@@ -1090,7 +1093,7 @@ static int insert_key_to_keying_set_path(bContext *C,
       keyed_channels += result.get_count(SingleKeyingResult::SUCCESS);
       combined_result.merge(result);
     }
-    else if (mode == MODIFYKEY_MODE_DELETE) {
+    else if (mode == ModifyKeyMode::DELETE) {
       keyed_channels += delete_keyframe(bmain,
                                         reports,
                                         keyingset_path->id,
@@ -1128,32 +1131,33 @@ static int insert_key_to_keying_set_path(bContext *C,
 int ANIM_apply_keyingset(bContext *C,
                          blender::Vector<PointerRNA> *sources,
                          KeyingSet *keyingset,
-                         short mode,
-                         float cfra)
+                         const blender::animrig::ModifyKeyMode mode,
+                         const float cfra)
 {
+  using namespace blender::animrig;
   if (keyingset == nullptr) {
     return 0;
   }
 
   Scene *scene = CTX_data_scene(C);
-  const eInsertKeyFlags base_kflags = blender::animrig::get_keyframing_flags(scene);
+  const eInsertKeyFlags base_kflags = get_keyframing_flags(scene);
   eInsertKeyFlags kflag = INSERTKEY_NOFLAGS;
-  if (mode == MODIFYKEY_MODE_INSERT) {
+  if (mode == ModifyKeyMode::INSERT) {
     /* use context settings as base */
     kflag = keyingset_apply_keying_flags(base_kflags,
                                          eInsertKeyFlags(keyingset->keyingoverride),
                                          eInsertKeyFlags(keyingset->keyingflag));
   }
-  else if (mode == MODIFYKEY_MODE_DELETE) {
+  else if (mode == ModifyKeyMode::DELETE) {
     kflag = INSERTKEY_NOFLAGS;
   }
 
   /* If relative Keying Sets, poll and build up the paths. */
   {
-    const eModifyKey_Returns error = ANIM_validate_keyingset(C, sources, keyingset);
-    if (error != MODIFYKEY_SUCCESS) {
-      BLI_assert(error < 0);
-      return error;
+    const ModifyKeyReturn error = ANIM_validate_keyingset(C, sources, keyingset);
+    if (error != ModifyKeyReturn::SUCCESS) {
+      BLI_assert(int(error) < 0);
+      return int(error);
     }
   }
 
@@ -1174,7 +1178,7 @@ int ANIM_apply_keyingset(bContext *C,
     }
 
     keyed_channels += insert_key_to_keying_set_path(
-        C, keyingset_path, keyingset, kflag, eModifyKey_Modes(mode), cfra);
+        C, keyingset_path, keyingset, kflag, mode, cfra);
   }
 
   /* Return the number of channels successfully affected. */

@@ -1655,6 +1655,18 @@ static int modifiers_clear_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
+static bool modifiers_clear_poll(bContext *C)
+{
+  if (!ED_operator_object_active_local_editable(C)) {
+    return false;
+  }
+  const Object *object = context_active_object(C);
+  if (!BKE_object_supports_modifiers(object)) {
+    return false;
+  }
+  return true;
+}
+
 void OBJECT_OT_modifiers_clear(wmOperatorType *ot)
 {
   ot->name = "Clear Object Modifiers";
@@ -1662,7 +1674,7 @@ void OBJECT_OT_modifiers_clear(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_modifiers_clear";
 
   ot->exec = modifiers_clear_exec;
-  ot->poll = ED_operator_object_active_local_editable;
+  ot->poll = modifiers_clear_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -2347,7 +2359,10 @@ static bool modifiers_copy_to_selected_poll(bContext *C)
   if (!ED_operator_object_active_editable(C)) {
     return false;
   }
-  Object *active_object = context_active_object(C);
+  const Object *active_object = context_active_object(C);
+  if (!BKE_object_supports_modifiers(active_object)) {
+    return false;
+  }
   if (BLI_listbase_is_empty(&active_object->modifiers)) {
     CTX_wm_operator_poll_msg_set(C, "Active object has no modifiers");
     return false;

@@ -119,16 +119,25 @@ ccl_device_inline bool is_zero(const float2 a)
   return (a.x == 0.0f && a.y == 0.0f);
 }
 
-ccl_device_inline float average(const float2 a)
-{
-  return (a.x + a.y) * (1.0f / 2.0f);
-}
-
 ccl_device_inline float dot(const float2 a, const float2 b)
 {
   return a.x * b.x + a.y * b.y;
 }
 #endif
+
+ccl_device_inline float average(const float2 a)
+{
+  return (a.x + a.y) * (1.0f / 2.0f);
+}
+
+ccl_device_inline bool isequal(const float2 a, const float2 b)
+{
+#if defined(__KERNEL_METAL__)
+  return all(a == b);
+#else
+  return a == b;
+#endif
+}
 
 ccl_device_inline float len(const float2 a)
 {

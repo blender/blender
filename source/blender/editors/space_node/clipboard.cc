@@ -112,7 +112,7 @@ struct NodeClipboard {
     /* Find a new valid ID pointer for all ID usages in given node.
      *
      * NOTE: Due to the fact that the clipboard survives file loading, only name (including IDType)
-     * and libpath pairs can be used here.
+     * and library-path pairs can be used here.
      *   - UID cannot be trusted across file load.
      *   - ID pointer itself cannot be trusted across undo/redo and file-load. */
     auto validate_id_fn = [this, &is_valid, &bmain, &bmain_id_map, &libraries_path_to_id](

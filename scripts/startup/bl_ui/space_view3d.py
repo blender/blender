@@ -796,7 +796,12 @@ class VIEW3D_HT_header(Header):
             )
 
         # Proportional editing
-        if object_mode in {'EDIT', 'PARTICLE_EDIT', 'SCULPT_GPENCIL', 'EDIT_GPENCIL', 'OBJECT'}:
+        if object_mode in {
+            'EDIT',
+            'PARTICLE_EDIT',
+            'SCULPT_GPENCIL',
+            'EDIT_GPENCIL',
+                'OBJECT'} and context.mode != 'EDIT_ARMATURE':
             row = layout.row(align=True)
             kw = {}
             if object_mode == 'OBJECT':
@@ -6009,6 +6014,10 @@ class VIEW3D_MT_edit_greasepencil(Menu):
 
         layout.separator()
 
+        layout.operator("grease_pencil.extrude_move", text="Extrude")
+
+        layout.separator()
+
         layout.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
         layout.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
 
@@ -8467,6 +8476,10 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
 
             col.separator()
 
+            col.operator("grease_pencil.extrude_move", text="Extrude")
+
+            col.separator()
+
             col.operator("grease_pencil.separate", text="Separate").mode = 'SELECTED'
 
             # Removal Operators
@@ -8508,6 +8521,10 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.operator("grease_pencil.copy", text="Copy", icon='COPYDOWN')
             col.operator("grease_pencil.paste", text="Paste", icon='PASTEDOWN')
             col.operator("grease_pencil.duplicate_move", text="Duplicate")
+
+            col.separator()
+
+            col.operator("grease_pencil.extrude_move", text="Extrude")
 
             col.separator()
 

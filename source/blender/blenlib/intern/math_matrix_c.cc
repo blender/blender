@@ -10,7 +10,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_solvers.h"
 #include "BLI_math_vector.h"
-#include "BLI_simd.h"
+#include "BLI_simd.hh"
 
 #ifndef MATH_STANDALONE
 #  include "eigen_capi.h"
@@ -915,12 +915,12 @@ void mul_v2_m3v3(float r[2], const float M[3][3], const float a[3])
 
 void mul_m3_v3(const float M[3][3], float r[3])
 {
-  mul_v3_m3v3(r, M, (const float[3]){UNPACK3(r)});
+  mul_v3_m3v3(r, M, r);
 }
 
 void mul_m3_v3_db(const double M[3][3], double r[3])
 {
-  mul_v3_m3v3_db(r, M, (const double[3]){UNPACK3(r)});
+  mul_v3_m3v3_db(r, M, r);
 }
 
 void mul_transposed_m3_v3(const float M[3][3], float r[3])
@@ -1757,11 +1757,13 @@ static bool orthogonalize_m3_zero_axes_impl(float *mat[3], const float unit_leng
 
 bool orthogonalize_m3_zero_axes(float m[3][3], const float unit_length)
 {
-  return orthogonalize_m3_zero_axes_impl((float *[3]){UNPACK3(m)}, unit_length);
+  float *unpacked[3] = {m[0], m[1], m[2]};
+  return orthogonalize_m3_zero_axes_impl(unpacked, unit_length);
 }
 bool orthogonalize_m4_zero_axes(float m[4][4], const float unit_length)
 {
-  return orthogonalize_m3_zero_axes_impl((float *[3]){UNPACK3(m)}, unit_length);
+  float *unpacked[3] = {m[0], m[1], m[2]};
+  return orthogonalize_m3_zero_axes_impl(unpacked, unit_length);
 }
 
 /** \} */

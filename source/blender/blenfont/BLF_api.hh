@@ -116,21 +116,6 @@ void BLF_color3fv_alpha(int fontid, const float rgb[3], float alpha);
 /* Also available: `UI_FontThemeColor(fontid, colorid)`. */
 
 /**
- * Set a 4x4 matrix to be multiplied before draw the text.
- * Remember that you need call `BLF_enable(BLF_MATRIX)`
- * to enable this.
- *
- * The order of the matrix is column major (following the GPU module):
- * \code{.unparsed}
- *  | m[0]  m[4]  m[8]  m[12] |
- *  | m[1]  m[5]  m[9]  m[13] |
- *  | m[2]  m[6]  m[10] m[14] |
- *  | m[3]  m[7]  m[11] m[15] |
- * \endcode
- */
-void BLF_matrix(int fontid, const float m[16]);
-
-/**
  * Batch draw-calls together as long as
  * the model-view matrix and the font remain unchanged.
  */
@@ -354,7 +339,7 @@ enum {
   BLF_CLIPPING = 1 << 1,
   BLF_SHADOW = 1 << 2,
   // BLF_FLAG_UNUSED_3 = 1 << 3, /* dirty */
-  BLF_MATRIX = 1 << 4,
+  // BLF_MATRIX = 1 << 4,
   BLF_ASPECT = 1 << 5,
   BLF_WORD_WRAP = 1 << 6,
   /** No anti-aliasing. */

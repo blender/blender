@@ -536,6 +536,8 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float3, emission_color)
   NODE_SOCKET_API(float, emission_strength)
   NODE_SOCKET_API(float, surface_mix_weight)
+  NODE_SOCKET_API(float, thin_film_thickness)
+  NODE_SOCKET_API(float, thin_film_ior)
 
  public:
   void attributes(Shader *shader, AttributeRequestSet *attributes);

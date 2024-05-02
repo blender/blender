@@ -1653,6 +1653,8 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   window_->ghost_system = system;
   window_->ghost_context_type = type;
 
+  wl_display *display = system->wl_display_get();
+
   /* NOTE(@ideasman42): The scale set here to avoid flickering on startup.
    * When all monitors use the same scale (which is quite common) there aren't any problems.
    *
@@ -1710,7 +1712,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     /* create window decorations */
     decor.frame = libdecor_decorate(
         system_->libdecor_context_get(), window_->wl.surface, &libdecor_frame_iface, window_);
-    libdecor_frame_map(window_->libdecor->frame);
 
     libdecor_frame_set_min_content_size(decor.frame, UNPACK2(size_min));
     libdecor_frame_set_app_id(decor.frame, xdg_app_id);
@@ -1745,6 +1746,14 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
   gwl_window_title_set(window_, title);
 
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (use_libdecor) {
+    /* Postpone mapping the window until after the app-id & title have been set.
+     * While this doesn't seem to be a requirement, LIBDECOR example code does this. */
+    libdecor_frame_map(window_->libdecor->frame);
+  }
+#endif
+
   wl_surface_set_user_data(window_->wl.surface, this);
 
   /* NOTE: the method used for XDG & LIBDECOR initialization (using `initial_configure_seen`)
@@ -1771,9 +1780,11 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
     /* Commit needed to so configure callback runs. */
     wl_surface_commit(window_->wl.surface);
-    while (!decor.initial_configure_seen) {
-      wl_display_flush(system->wl_display_get());
-      wl_display_dispatch(system->wl_display_get());
+
+    /* Failure exits with an error, simply prevent an eternal loop. */
+    while (!decor.initial_configure_seen && !ghost_wl_display_report_error_if_set(display)) {
+      wl_display_flush(display);
+      wl_display_dispatch(display);
     }
   }
 
@@ -1898,7 +1909,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     GWL_LibDecor_Window &decor = *window_->libdecor;
 
     /* Additional round-trip is needed to ensure `xdg_toplevel` is set. */
-    wl_display_roundtrip(system_->wl_display_get());
+    wl_display_roundtrip(display);
 
     /* NOTE: LIBDECOR requires the window to be created & configured before the state can be set.
      * Workaround this by using the underlying `xdg_toplevel` */
@@ -1930,9 +1941,10 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     }
 #  endif /* WITH_VULKAN_BACKEND */
 
-    while (!decor.initial_configure_seen) {
-      wl_display_flush(system->wl_display_get());
-      wl_display_dispatch(system->wl_display_get());
+    /* Failure exits with an error, simply prevent an eternal loop. */
+    while (!decor.initial_configure_seen && !ghost_wl_display_report_error_if_set(display)) {
+      wl_display_flush(display);
+      wl_display_dispatch(display);
     }
 
 #  ifdef WITH_VULKAN_BACKEND
@@ -1961,7 +1973,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
      * In principle this could be used with XDG too however it causes problems with KDE
      * and some WLROOTS based compositors.
      */
-    wl_display_roundtrip(system_->wl_display_get());
+    wl_display_roundtrip(display);
   }
   else
 #endif /* WITH_GHOST_WAYLAND_LIBDECOR */

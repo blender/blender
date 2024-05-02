@@ -645,7 +645,7 @@ StringRefNull Binding::name_without_prefix() const
 {
   BLI_assert(StringRef(this->name).size() >= name_length_min);
 
-  /* Avoid accessing an uninitialised part of the string accidentally. */
+  /* Avoid accessing an uninitialized part of the string accidentally. */
   if (this->name[0] == '\0' || this->name[1] == '\0') {
     return "";
   }

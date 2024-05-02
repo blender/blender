@@ -75,7 +75,7 @@ void memory_bandwidth_bound_task_impl(FunctionRef<void()> function);
 }  // namespace detail
 
 /**
- * Executes the given function for sub-ranges of the given range, potentialy in parallel.
+ * Executes the given function for sub-ranges of the given range, potentially in parallel.
  * This is the main primitive for parallelizing code.
  *
  * \param range: The indices that should be iterated over in parallel.
