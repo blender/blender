@@ -29,6 +29,8 @@
 
 #include "DNA_material_types.h"
 
+#include "WM_api.hh"
+
 #include <pxr/base/gf/vec3f.h>
 #include <pxr/usd/ar/packageUtils.h>
 #include <pxr/usd/ar/resolver.h>

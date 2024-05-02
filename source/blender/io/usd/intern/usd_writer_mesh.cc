@@ -5,11 +5,8 @@
 
 #include "usd_armature_utils.hh"
 #include "usd_blend_shape_utils.hh"
-<<<<<<< HEAD
 #include "usd_hierarchy_iterator.hh"
 #include "usd_modifier_disabler.h"
-=======
->>>>>>> main
 #include "usd_skel_convert.hh"
 
 #include <pxr/usd/usdGeom/mesh.h>
@@ -40,7 +37,6 @@
 #include "DEG_depsgraph.hh"
 
 #include "DNA_key_types.h"
-<<<<<<< HEAD
 #include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -49,9 +45,6 @@
 #include "DNA_particle_types.h"
 
 #include "WM_api.hh"
-=======
-#include "DNA_modifier_types.h"
->>>>>>> main
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
@@ -219,18 +212,10 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
   }
 
   auto prim = usd_export_context_.stage->GetPrimAtPath(usd_export_context_.usd_path);
-<<<<<<< HEAD
-  if (prim.IsValid() && object_eval)
-    prim.SetActive((object_eval->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
-
-  if (usd_export_context_.export_params.export_custom_properties && mesh)
-    write_id_properties(prim, mesh->id, get_export_time_code());
-=======
   if (prim.IsValid() && object_eval) {
     prim.SetActive((object_eval->duplicator_visibility_flag & OB_DUPLI_FLAG_RENDER) != 0);
     write_id_properties(prim, mesh->id, get_export_time_code());
   }
->>>>>>> main
 }
 
 void USDGenericMeshWriter::write_custom_data(const Object *obj,

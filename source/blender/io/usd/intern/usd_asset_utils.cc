@@ -12,7 +12,7 @@
 #include <pxr/base/tf/pathUtils.h>
 
 #include "BKE_appdir.hh"
-#include "BKE_idprop.h"
+#include "BKE_idprop.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 

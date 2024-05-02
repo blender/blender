@@ -18,11 +18,8 @@
 #include "BLI_math_rotation.h"
 
 #include "DNA_light_types.h"
-<<<<<<< HEAD
 
-#include "WM_api.hh"
-=======
->>>>>>> main
+#include "WM_api.hh" //XXX needed?
 
 namespace blender::io::usd {
 

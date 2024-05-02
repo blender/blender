@@ -197,20 +197,6 @@ void USDCurvesReader::read_curve_sample(Curves *curves_id, const double motionSa
       const int usd_point_count = usdCounts[i];
       const int point_count = bezier_point_count(usd_point_count, is_cyclic);
 
-<<<<<<< HEAD
-      if (!usdWidths.empty()) {
-        float radius = curve_->offset;
-        if (idx < usdWidths.size()) {
-          radius = usdWidths[idx];
-        }
-        else {
-          /* When the number of width values is less than the number of points,
-           * continue using the last available value. */
-          radius = usdWidths[usdWidths.size() - 1];
-        }
-
-        bp->radius = radius;
-=======
       int cp_offset = 0;
       for (const int cp : IndexRange(point_count)) {
         add_bezier_control_point(cp,
@@ -267,7 +253,6 @@ void USDCurvesReader::read_curve_sample(Curves *curves_id, const double motionSa
         for (const int i_point : curves.points_range()) {
           radii.span[i_point] = usdWidths[i_point] / 2.0f;
         }
->>>>>>> main
       }
     }
 

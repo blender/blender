@@ -115,7 +115,6 @@ void USDTransformWriter::do_write(HierarchyContext &context)
     return;
   }
 
-<<<<<<< HEAD
   if (usd_export_context_.export_params.export_transforms) {
     float parent_relative_matrix[4][4];  // The object matrix relative to the parent.
 
@@ -177,15 +176,6 @@ void USDTransformWriter::do_write(HierarchyContext &context)
       xform.GetVisibilityAttr().Set(pxr::UsdGeomTokens->inherited);
     }
   }
-=======
-  pxr::GfMatrix4d mat_val(parent_relative_matrix);
-  usd_value_writer_.SetAttribute(xformOp_.GetAttr(), mat_val, get_export_time_code());
-
-  if (context.object) {
-    auto prim = xform.GetPrim();
-    write_id_properties(prim, context.object->id, get_export_time_code());
-  }
->>>>>>> main
 }
 
 bool USDTransformWriter::check_is_animated(const HierarchyContext &context) const

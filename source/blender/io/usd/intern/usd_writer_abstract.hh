@@ -74,25 +74,18 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   pxr::SdfPath get_material_library_path(const HierarchyContext &context) const;
   pxr::UsdShadeMaterial ensure_usd_material(const HierarchyContext &context, Material *material);
 
-<<<<<<< HEAD
-  void write_id_properties(pxr::UsdPrim &prim,
-                           const ID &id,
-                           pxr::UsdTimeCode = pxr::UsdTimeCode::Default());
-  void write_user_properties(pxr::UsdPrim &prim, const ID &id, pxr::UsdTimeCode timecode);
-=======
   void write_id_properties(const pxr::UsdPrim &prim,
                            const ID &id,
                            pxr::UsdTimeCode = pxr::UsdTimeCode::Default()) const;
   void write_user_properties(const pxr::UsdPrim &prim,
                              IDProperty *properties,
                              pxr::UsdTimeCode = pxr::UsdTimeCode::Default()) const;
->>>>>>> main
 
   void write_visibility(const HierarchyContext &context,
                         const pxr::UsdTimeCode timecode,
                         pxr::UsdGeomImageable &usd_geometry);
 
-  void write_kind(pxr::UsdPrim &prim, pxr::TfToken kind);
+  void write_kind(const pxr::UsdPrim &prim, pxr::TfToken kind) const;
 
   /**
    * Turn `prim` into an instance referencing `context.original_export_path`.

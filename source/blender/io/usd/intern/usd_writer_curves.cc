@@ -14,11 +14,7 @@
 #include "usd_hierarchy_iterator.hh"
 #include "usd_writer_curves.hh"
 
-<<<<<<< HEAD
-#include "DNA_curve_types.h"
-=======
 #include "BLI_array_utils.hh"
->>>>>>> main
 
 #include "BKE_attribute.hh"
 #include "BKE_curve_legacy_convert.hh"
@@ -28,6 +24,8 @@
 #include "BKE_report.hh"
 
 #include "BLT_translation.hh"
+
+#include "DNA_curve_types.h" //XXX needed?
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
@@ -67,13 +65,9 @@ pxr::UsdGeomBasisCurves USDCurvesWriter::DefineUsdGeomBasisCurves(pxr::VtValue c
   return basis_curves;
 }
 
-<<<<<<< HEAD
-static void populate_curve_widths(const bke::CurvesGeometry &geometry,
+static void populate_curve_widths(const bke::CurvesGeometry &curves,
                                   pxr::VtArray<float> &widths,
                                   const float multiplier)
-=======
-static void populate_curve_widths(const bke::CurvesGeometry &curves, pxr::VtArray<float> &widths)
->>>>>>> main
 {
   const bke::AttributeAccessor curve_attributes = curves.attributes();
   const bke::AttributeReader<float> radii = curve_attributes.lookup<float>("radius",
@@ -174,11 +168,8 @@ static void populate_curve_props(const bke::CurvesGeometry &curves,
   populate_curve_verts(
       curves, positions, verts, control_point_counts, segments, is_cyclic, is_cubic);
 
-<<<<<<< HEAD
-  populate_curve_widths(geometry, widths, multiplier);
-=======
-  populate_curve_widths(curves, widths);
->>>>>>> main
+  populate_curve_widths(curves, widths, multiplier);
+
   interpolation = get_curve_width_interpolation(
       widths, segments, control_point_counts, is_cyclic, reports);
 }
@@ -266,11 +257,8 @@ static void populate_curve_props_for_bezier(const bke::CurvesGeometry &curves,
   populate_curve_verts_for_bezier(
       curves, positions, handles_l, handles_r, verts, control_point_counts, segments, is_cyclic);
 
-<<<<<<< HEAD
-  populate_curve_widths(geometry, widths, multiplier);
-=======
-  populate_curve_widths(curves, widths);
->>>>>>> main
+  populate_curve_widths(curves, widths, multiplier);
+
   interpolation = get_curve_width_interpolation(
       widths, segments, control_point_counts, is_cyclic, reports);
 }
@@ -336,11 +324,7 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &curves,
     }
   }
 
-<<<<<<< HEAD
-  populate_curve_widths(geometry, widths, bevel_radius);
-=======
-  populate_curve_widths(curves, widths);
->>>>>>> main
+  populate_curve_widths(curves, widths, bevel_radius);
   interpolation = pxr::UsdGeomTokens->vertex;
 }
 
@@ -389,12 +373,8 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
       const Curve *legacy_curve = static_cast<Curve *>(context.object->data);
       converted_curves = std::unique_ptr<Curves, std::function<void(Curves *)>>(
           bke::curve_legacy_to_curves(*legacy_curve), [](Curves *c) { BKE_id_free(nullptr, c); });
-<<<<<<< HEAD
-      curves = converted_curves.get();
-      bevel_radius = legacy_curve->bevel_radius;
-=======
       curves_id = converted_curves.get();
->>>>>>> main
+      bevel_radius = legacy_curve->bevel_radius;
       break;
     }
     case OB_CURVES:
@@ -468,8 +448,7 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
       usd_basis_curves = DefineUsdGeomBasisCurves(pxr::VtValue(), is_cyclic, false);
       usd_curves = &usd_basis_curves;
 
-<<<<<<< HEAD
-      populate_curve_props(geometry,
+      populate_curve_props(curves,
                            verts,
                            control_point_counts,
                            widths,
@@ -478,18 +457,12 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
                            false,
                            bevel_radius,
                            reports());
-=======
-      populate_curve_props(
-          curves, verts, control_point_counts, widths, interpolation, is_cyclic, false, reports());
->>>>>>> main
       break;
     case CURVE_TYPE_CATMULL_ROM:
       usd_basis_curves = DefineUsdGeomBasisCurves(
           pxr::VtValue(pxr::UsdGeomTokens->catmullRom), is_cyclic, true);
       usd_curves = &usd_basis_curves;
-
-<<<<<<< HEAD
-      populate_curve_props(geometry,
+      populate_curve_props(curves,
                            verts,
                            control_point_counts,
                            widths,
@@ -498,10 +471,6 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
                            true,
                            bevel_radius,
                            reports());
-=======
-      populate_curve_props(
-          curves, verts, control_point_counts, widths, interpolation, is_cyclic, true, reports());
->>>>>>> main
       break;
     case CURVE_TYPE_BEZIER:
       usd_basis_curves = DefineUsdGeomBasisCurves(
@@ -509,8 +478,7 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
       usd_curves = &usd_basis_curves;
 
       populate_curve_props_for_bezier(
-<<<<<<< HEAD
-          geometry,
+          curves,
           verts,
           control_point_counts,
           widths,
@@ -518,9 +486,6 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
           is_cyclic,
           bevel_radius,
           reports());
-=======
-          curves, verts, control_point_counts, widths, interpolation, is_cyclic, reports());
->>>>>>> main
       break;
     case CURVE_TYPE_NURBS: {
       pxr::VtArray<double> knots;
@@ -531,8 +496,7 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
                                                          usd_export_context_.usd_path);
       usd_curves = &usd_nurbs_curves;
 
-<<<<<<< HEAD
-      populate_curve_props_for_nurbs(geometry,
+      populate_curve_props_for_nurbs(curves,
                                      verts,
                                      control_point_counts,
                                      widths,
@@ -541,10 +505,6 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
                                      interpolation,
                                      is_cyclic,
                                      bevel_radius);
-=======
-      populate_curve_props_for_nurbs(
-          curves, verts, control_point_counts, widths, knots, orders, interpolation, is_cyclic);
->>>>>>> main
 
       set_writer_attributes_for_nurbs(usd_nurbs_curves, knots, orders, timecode);
 

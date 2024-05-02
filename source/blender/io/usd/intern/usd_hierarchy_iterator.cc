@@ -24,26 +24,23 @@
 
 #include <pxr/base/tf/stringUtils.h>
 
-<<<<<<< HEAD
 #include "BKE_duplilist.hh"
+#include "BKE_main.hh" //XXX need this?
 #include "BKE_material.h"
 
 #include "BLI_assert.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
-=======
-#include "BKE_main.hh"
 
-#include "BLI_assert.h"
->>>>>>> main
+#include "DEG_depsgraph_query.hh"
 
-#include "DNA_layer_types.h"
-#include "DNA_object_types.h"
+#include "DNA_ID.h"
 
-<<<<<<< HEAD
 #include "DNA_armature_types.h"
+#include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 
 static const Material** get_materials_from_data(const Object* object)
 {
@@ -64,8 +61,6 @@ static bool has_unicode_chars(const char* name)
   return length_in_bytes != length_in_characters;
 }
 
-=======
->>>>>>> main
 namespace blender::io::usd {
 
 USDHierarchyIterator::USDHierarchyIterator(Main *bmain,

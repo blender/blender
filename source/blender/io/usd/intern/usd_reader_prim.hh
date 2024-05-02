@@ -109,8 +109,7 @@ class USDPrimReader {
   virtual bool valid() const;
 
   virtual void create_object(Main *bmain, double motionSampleTime) = 0;
-
-  virtual void read_object_data(Main *bmain, double motionSampleTime);
+  virtual void read_object_data(Main* /*bmain*/, double /*motionSampleTime*/) {};
 
   Object *object() const;
   void object(Object *ob);
@@ -165,9 +164,6 @@ class USDPrimReader {
   bool is_in_proto() const;
 
  protected:
-<<<<<<< HEAD
-  void set_props(ID *id, const pxr::UsdPrim &prim, double motionSampleTime);
-=======
   /**
    * Convert custom attributes on the encapsulated USD prim (or on its parent)
    * to custom properties on the generated object and/or data.  This function
@@ -188,7 +184,6 @@ class USDPrimReader {
    */
   void set_props(bool merge_with_parent = false,
                  pxr::UsdTimeCode motionSampleTime = pxr::UsdTimeCode::Default());
->>>>>>> main
 };
 
 }  // namespace blender::io::usd

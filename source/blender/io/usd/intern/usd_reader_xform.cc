@@ -34,12 +34,6 @@ void USDXformReader::create_object(Main *bmain, const double /*motionSampleTime*
 
 void USDXformReader::read_object_data(Main * bmain, const double motionSampleTime)
 {
-  USDPrimReader::read_object_data(bmain, motionSampleTime);
-
-  if (use_parent_xform_ && object_ && prim_) {
-    USDPrimReader::set_props(&object_->id, prim_.GetParent(), motionSampleTime);
-  }
-
   bool is_constant;
   float transform_from_usd[4][4];
 

@@ -95,27 +95,12 @@ set(SRC
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
   intern/usd_hierarchy_iterator.cc
-<<<<<<< HEAD
   intern/usd_light_convert.cc
   intern/usd_lux_api_wrapper.cc
   intern/usd_modifier_disabler.cc
+  intern/usd_reader_utils.cc
   intern/usd_skel_convert.cc
   intern/usd_skel_root_utils.cc
-=======
-  intern/usd_hook.cc
-  intern/usd_mesh_utils.cc
-  intern/usd_writer_abstract.cc
-  intern/usd_writer_armature.cc
-  intern/usd_writer_camera.cc
-  intern/usd_writer_curves.cc
-  intern/usd_writer_hair.cc
-  intern/usd_writer_light.cc
-  intern/usd_writer_material.cc
-  intern/usd_writer_mesh.cc
-  intern/usd_writer_metaball.cc
-  intern/usd_writer_transform.cc
-  intern/usd_writer_volume.cc
->>>>>>> main
 
   intern/usd_reader_camera.cc
   intern/usd_reader_curve.cc
@@ -132,9 +117,9 @@ set(SRC
   intern/usd_reader_stage.cc
   intern/usd_reader_volume.cc
   intern/usd_reader_xform.cc
-<<<<<<< HEAD
 
   intern/usd_hook.cc
+  intern/usd_mesh_utils.cc
   intern/usd_umm.cc
 
   intern/usd_writer_abstract.cc
@@ -149,11 +134,6 @@ set(SRC
   intern/usd_writer_particle.cc
   intern/usd_writer_transform.cc
   intern/usd_writer_volume.cc
-=======
-  intern/usd_reader_utils.cc
-  intern/usd_skel_convert.cc
-  intern/usd_skel_root_utils.cc
->>>>>>> main
 
   usd.hh
   usd_private.hh
@@ -164,27 +144,12 @@ set(SRC
   intern/usd_exporter_context.hh
   intern/usd_hash_types.hh
   intern/usd_hierarchy_iterator.hh
-<<<<<<< HEAD
   intern/usd_light_convert.h
   intern/usd_lux_api_wrapper.h
   intern/usd_modifier_disabler.h
+  intern/usd_reader_utils.hh
   intern/usd_skel_convert.hh
   intern/usd_skel_root_utils.hh
-=======
-  intern/usd_hook.hh
-  intern/usd_mesh_utils.hh
-  intern/usd_writer_abstract.hh
-  intern/usd_writer_armature.hh
-  intern/usd_writer_camera.hh
-  intern/usd_writer_curves.hh
-  intern/usd_writer_hair.hh
-  intern/usd_writer_light.hh
-  intern/usd_writer_material.hh
-  intern/usd_writer_mesh.hh
-  intern/usd_writer_metaball.hh
-  intern/usd_writer_transform.hh
-  intern/usd_writer_volume.hh
->>>>>>> main
 
   intern/usd_reader_camera.hh
   intern/usd_reader_curve.hh
@@ -201,9 +166,9 @@ set(SRC
   intern/usd_reader_stage.hh
   intern/usd_reader_volume.hh
   intern/usd_reader_xform.hh
-<<<<<<< HEAD
 
   intern/usd_hook.hh
+  intern/usd_mesh_utils.hh
   intern/usd_umm.h
 
   intern/usd_writer_abstract.hh
@@ -218,11 +183,6 @@ set(SRC
   intern/usd_writer_particle.h
   intern/usd_writer_transform.hh
   intern/usd_writer_volume.hh
-=======
-  intern/usd_reader_utils.hh
-  intern/usd_skel_convert.hh
-  intern/usd_skel_root_utils.hh
->>>>>>> main
 )
 
 if(WITH_HYDRA)

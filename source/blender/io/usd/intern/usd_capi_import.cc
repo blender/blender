@@ -13,7 +13,6 @@
 #include "usd_reader_prim.hh"
 #include "usd_reader_stage.hh"
 
-<<<<<<< HEAD
 #include <pxr/base/plug/registry.h>
 
 #include "usd_writer_material.hh"
@@ -44,8 +43,7 @@
 #include "BKE_appdir.hh"
 
 #include "BKE_blender_version.h"
-=======
->>>>>>> main
+
 #include "BKE_cachefile.hh"
 #include "BKE_collection.hh"
 #include "BKE_context.hh"

@@ -126,19 +126,12 @@ void USDCameraWriter::do_write(HierarchyContext &context)
     usd_camera.CreateFocusDistanceAttr().Set(focus_distance, timecode);
   }
 
-<<<<<<< HEAD
   if (!hierarchy_iterator_->get_object_data_computed_name(context.object).empty()) {
     usd_camera.GetPrim().SetDisplayName(static_cast<ID *>(context.object->data)->name + 2);
   }
 
-  if (usd_export_context_.export_params.export_custom_properties && camera) {
-    auto prim = usd_camera.GetPrim();
-    write_id_properties(prim, camera->id, timecode);
-  }
-=======
   auto prim = usd_camera.GetPrim();
   write_id_properties(prim, camera->id, timecode);
->>>>>>> main
 }
 
 }  // namespace blender::io::usd

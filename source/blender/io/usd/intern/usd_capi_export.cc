@@ -16,25 +16,19 @@
 
 #include <pxr/base/tf/token.h>
 #include <pxr/pxr.h>
-<<<<<<< HEAD
 #include <pxr/usd/kind/registry.h>
 #include <pxr/usd/usd/modelAPI.h>
 #include <pxr/usd/usd/prim.h>
-=======
 #include <pxr/usd/sdf/assetPath.h>
->>>>>>> main
 #include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xform.h>
-<<<<<<< HEAD
 #include <pxr/usd/usdGeom/xformCommonAPI.h>
 #include <pxr/usd/usdUtils/dependencies.h>
-=======
 #include <pxr/usd/usdUtils/usdzPackage.h>
->>>>>>> main
 
 #include "MEM_guardedalloc.h"
 
@@ -49,15 +43,11 @@
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-<<<<<<< HEAD
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-=======
-#include "BKE_lib_id.hh"
->>>>>>> main
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 

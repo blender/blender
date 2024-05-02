@@ -6,11 +6,9 @@
 #include "usd.hh"
 #include "usd_reader_xform.hh"
 
-<<<<<<< HEAD
 #include <pxr/usd/usdGeom/xformCache.h>
-=======
+
 struct Main;
->>>>>>> main
 
 namespace blender::io::usd {
 
