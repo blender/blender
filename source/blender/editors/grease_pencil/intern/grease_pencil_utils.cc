@@ -130,7 +130,7 @@ bool DrawingPlacement::use_project_to_nearest_stroke() const
 void DrawingPlacement::cache_viewport_depths(Depsgraph *depsgraph, ARegion *region, View3D *view3d)
 {
   const eV3DDepthOverrideMode mode = (depth_ == DrawingPlacementDepth::Surface) ?
-                                         V3D_DEPTH_NO_GPENCIL :
+                                         V3D_DEPTH_NO_OVERLAYS :
                                          V3D_DEPTH_GPENCIL_ONLY;
   ED_view3d_depth_override(depsgraph, region, view3d, nullptr, mode, &this->depth_cache_);
 }
