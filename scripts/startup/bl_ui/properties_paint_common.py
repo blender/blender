@@ -2,7 +2,54 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import bpy
 from bpy.types import Menu
+
+
+class BrushAssetShelf:
+    bl_options = {'DEFAULT_VISIBLE', 'NO_ASSET_DRAG', 'STORE_ENABLED_CATALOGS_IN_PREFERENCES'}
+    bl_activate_operator = "BRUSH_OT_asset_select"
+    bl_default_preview_size = 48
+
+    @classmethod
+    def poll(cls, context):
+        return context.object and context.object.mode == cls.mode
+
+    @classmethod
+    def asset_poll(cls, asset):
+        if asset.id_type != 'BRUSH':
+            return False
+
+        return asset.metadata.get(cls.mode_prop, False)
+
+    @classmethod
+    def get_active_asset(cls):
+        paint_settings = UnifiedPaintPanel.paint_settings(bpy.context)
+        return paint_settings.brush_asset_reference if paint_settings else None
+
+    @classmethod
+    def draw_context_menu(self, context, asset, layout):
+        # Currently this menu adds operators that deal with the affected brush and don't take the
+        # asset into account. Luckily that is okay for now, since right clicking in the grid view
+        # also activates the item.
+        layout.menu_contents("VIEW3D_MT_brush_context_menu")
+
+    # Not nice, but needed unfortunately.
+    @staticmethod
+    def get_shelf_name_from_mode(obmode):
+     mode_map = {
+         'SCULPT': "VIEW3D_AST_brush_sculpt",
+         'SCULPT_CURVES': "VIEW3D_AST_brush_sculpt_curves",
+         'VERTEX_PAINT': "VIEW3D_AST_brush_vertex_paint",
+         'WEIGHT_PAINT': "VIEW3D_AST_brush_weight_paint",
+         'TEXTURE_PAINT': "VIEW3D_AST_brush_texture_paint",
+         'PAINT_GPENCIL': "VIEW3D_AST_brush_gpencil_paint",
+         'PAINT_GREASE_PENCIL': "VIEW3D_AST_brush_grease_pencil_paint",
+         'SCULPT_GPENCIL': "VIEW3D_AST_brush_gpencil_sculpt",
+         'VERTEX_GPENCIL': "VIEW3D_AST_brush_gpencil_vertex",
+         'WEIGHT_GPENCIL': "VIEW3D_AST_brush_gpencil_weight",
+     }
+     return mode_map[obmode]
 
 
 class UnifiedPaintPanel:

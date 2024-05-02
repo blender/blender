@@ -24,15 +24,13 @@ from bl_ui.properties_paint_common import (
     SmoothStrokePanel,
     FalloffPanel,
     DisplayPanel,
+    BrushAssetShelf,
 )
 from bl_ui.properties_grease_pencil_common import (
     AnnotationDataPanel,
 )
 from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
-)
-from bl_ui.space_view3d import (
-    BrushAssetShelf,
 )
 
 from bpy.app.translations import (
