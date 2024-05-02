@@ -9,7 +9,7 @@
 #include "BLI_math_matrix.hh"
 
 #include "BLI_math_rotation.hh"
-#include "BLI_simd.h"
+#include "BLI_simd.hh"
 
 #include <Eigen/Core>
 #include <Eigen/Dense>

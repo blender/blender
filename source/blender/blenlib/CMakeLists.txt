@@ -99,13 +99,13 @@ set(SRC
   intern/math_basis_types.cc
   intern/math_bits_inline.c
   intern/math_boolean.cc
-  intern/math_color.c
+  intern/math_color.cc
   intern/math_color_blend_inline.c
   intern/math_color_inline.c
   intern/math_geom.cc
   intern/math_geom_inline.c
   intern/math_interp.cc
-  intern/math_matrix.c
+  intern/math_matrix_c.cc
   intern/math_matrix.cc
   intern/math_rotation.c
   intern/math_rotation.cc
@@ -345,7 +345,7 @@ set(SRC
   BLI_set.hh
   BLI_set_slots.hh
   BLI_shared_cache.hh
-  BLI_simd.h
+  BLI_simd.hh
   BLI_smaa_textures.h
   BLI_sort.h
   BLI_sort.hh

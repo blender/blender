@@ -9,7 +9,7 @@
 
 #define MAX_GAUSSTAB_RADIUS 30000
 
-#include "BLI_simd.h"
+#include "BLI_simd.hh"
 
 namespace blender::compositor {
 
