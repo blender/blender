@@ -9088,6 +9088,7 @@ class VIEW3D_AST_sculpt_brushes(bpy.types.AssetShelf):
     # enabled.
 
     bl_space_type = 'VIEW_3D'
+    bl_default_preview_size = 48
 
     @classmethod
     def poll(cls, context):
