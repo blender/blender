@@ -4648,7 +4648,7 @@ def km_grease_pencil_edit_mode(params):
          "alt": True}, {"properties": [("type", "TOGGLE")]}),
 
         ("grease_pencil.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
-        
+
         # Extrude and move selected points
         op_tool_optional(
             ("grease_pencil.extrude_move", {"type": 'E', "value": 'PRESS'}, None),
