@@ -1086,6 +1086,56 @@ TEST_F(StringFindSplitWords, LimitChars)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name String Element
+ * \{ */
+
+/* #BLI_string_elem_split_by_delim */
+
+TEST(string, StringElemEmpty)
+{
+  EXPECT_FALSE(BLI_string_elem_split_by_delim("A", ':', ""));
+
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("", ':', ""));
+  EXPECT_TRUE(BLI_string_elem_split_by_delim(":", ':', ""));
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("::", ':', ""));
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("A:", ':', ""));
+  EXPECT_TRUE(BLI_string_elem_split_by_delim(":A", ':', ""));
+}
+
+TEST(string, StringElemSingle)
+{
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("A", ':', "A"));
+  EXPECT_FALSE(BLI_string_elem_split_by_delim("A", ':', "B"));
+
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("B", 'A', "B"));
+  EXPECT_FALSE(BLI_string_elem_split_by_delim("A", 'A', "A"));
+}
+
+TEST(string, StringElemComplex)
+{
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("TEST", ':', "TEST"));
+
+  EXPECT_TRUE(BLI_string_elem_split_by_delim(":TEST", ':', "TEST"));
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("TEST:", ':', "TEST"));
+  EXPECT_TRUE(BLI_string_elem_split_by_delim(":TEST:", ':', "TEST"));
+
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("::TEST", ':', "TEST"));
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("TEST::", ':', "TEST"));
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("::TEST::", ':', "TEST"));
+
+  EXPECT_FALSE(BLI_string_elem_split_by_delim(":TEST ", ':', "TEST"));
+  EXPECT_FALSE(BLI_string_elem_split_by_delim(" TEST:", ':', "TEST"));
+  EXPECT_FALSE(BLI_string_elem_split_by_delim(": TEST :", ':', "TEST"));
+
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("A:B:TEST", ':', "TEST"));
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("TEST:A:B", ':', "TEST"));
+  EXPECT_TRUE(BLI_string_elem_split_by_delim("A:TEST:B", ':', "TEST"));
+  EXPECT_TRUE(BLI_string_elem_split_by_delim(":A:TEST:B:", ':', "TEST"));
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name String Search (Case Insensitive)
  * \{ */
 
