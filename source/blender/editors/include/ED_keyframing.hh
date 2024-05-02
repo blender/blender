@@ -35,6 +35,11 @@ struct PropertyRNA;
 
 struct NlaKeyframingContext;
 
+namespace blender::animrig {
+enum class ModifyKeyReturn;
+enum class ModifyKeyMode;
+}  // namespace blender::animrig
+
 /* -------------------------------------------------------------------- */
 /** \name Key-Framing Management
  * \{ */
@@ -123,21 +128,6 @@ void ANIM_relative_keyingset_add_source(blender::Vector<PointerRNA> &sources,
                                         void *data);
 void ANIM_relative_keyingset_add_source(blender::Vector<PointerRNA> &sources, ID *id);
 
-/** Mode for modify_keyframes. */
-enum eModifyKey_Modes {
-  MODIFYKEY_MODE_INSERT = 0,
-  MODIFYKEY_MODE_DELETE,
-};
-
-/** Return codes for errors (with Relative KeyingSets). */
-enum eModifyKey_Returns {
-  MODIFYKEY_SUCCESS = 0,
-  /** Context info was invalid for using the Keying Set. */
-  MODIFYKEY_INVALID_CONTEXT = -1,
-  /** There isn't any type-info for generating paths from context. */
-  MODIFYKEY_MISSING_TYPEINFO = -2,
-};
-
 /**
  * Given a #KeyingSet and context info, validate Keying Set's paths.
  * This is only really necessary with relative/built-in KeyingSets
@@ -148,9 +138,9 @@ enum eModifyKey_Returns {
  *
  * \return 0 if succeeded, otherwise an error code: #eModifyKey_Returns.
  */
-eModifyKey_Returns ANIM_validate_keyingset(bContext *C,
-                                           blender::Vector<PointerRNA> *sources,
-                                           KeyingSet *ks);
+blender::animrig::ModifyKeyReturn ANIM_validate_keyingset(bContext *C,
+                                                          blender::Vector<PointerRNA> *sources,
+                                                          KeyingSet *ks);
 
 /**
  * Use the specified #KeyingSet and context info (if required)
@@ -162,8 +152,11 @@ eModifyKey_Returns ANIM_validate_keyingset(bContext *C,
  * \returns the number of channels that key-frames were added or
  * an #eModifyKey_Returns value (always a negative number).
  */
-int ANIM_apply_keyingset(
-    bContext *C, blender::Vector<PointerRNA> *sources, KeyingSet *ks, short mode, float cfra);
+int ANIM_apply_keyingset(bContext *C,
+                         blender::Vector<PointerRNA> *sources,
+                         KeyingSet *ks,
+                         blender::animrig::ModifyKeyMode mode,
+                         float cfra);
 
 /* -------- */
 

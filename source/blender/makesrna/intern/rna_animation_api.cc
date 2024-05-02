@@ -24,23 +24,25 @@
 #  include "BKE_nla.h"
 #  include "BKE_report.hh"
 
+#  include "ANIM_keyingsets.hh"
 #  include "ED_keyframing.hh"
 
 static void rna_KeyingSet_context_refresh(KeyingSet *ks, bContext *C, ReportList *reports)
 {
+  using namespace blender::animrig;
   /* TODO: enable access to providing a list of overrides (dsources)? */
-  const eModifyKey_Returns error = ANIM_validate_keyingset(C, nullptr, ks);
+  const ModifyKeyReturn error = ANIM_validate_keyingset(C, nullptr, ks);
 
-  if (error == MODIFYKEY_SUCCESS) {
+  if (error == ModifyKeyReturn::SUCCESS) {
     return;
   }
 
   switch (error) {
-    case MODIFYKEY_INVALID_CONTEXT:
+    case ModifyKeyReturn::INVALID_CONTEXT:
       BKE_report(reports, RPT_ERROR, "Invalid context for keying set");
       break;
 
-    case MODIFYKEY_MISSING_TYPEINFO:
+    case ModifyKeyReturn::MISSING_TYPEINFO:
       BKE_report(
           reports, RPT_ERROR, "Incomplete built-in keying set, appears to be missing type info");
       break;

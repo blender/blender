@@ -43,6 +43,7 @@ set(SRC
   ANIM_evaluation.hh
   ANIM_fcurve.hh
   ANIM_keyframing.hh
+  ANIM_keyingsets.hh
   ANIM_rna.hh
   ANIM_visualkey.hh
   intern/bone_collections_internal.hh
