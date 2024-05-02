@@ -89,7 +89,15 @@ using IDTypeForeachCacheFunction = void (*)(ID *id,
 
 using IDTypeForeachPathFunction = void (*)(ID *id, BPathForeachPathData *bpath_data);
 
-using IDTypeEmbeddedOwnerPointerGetFunction = ID **(*)(ID *id);
+/**
+ * Callback returning the address of the pointer to the owner ID, for embedded (and Shapekey) ones.
+ *
+ * \param debug_relationship_assert: usually the owner <-> embedded relation pointers should be
+ * fully valid, and can be asserted on. But in some cases, they are not (fully) valid, e.g when
+ * copying an ID and all of its embedded data.
+ */
+using IDTypeEmbeddedOwnerPointerGetFunction = ID *
+                                              *(*)(ID * id, const bool debug_relationship_assert);
 
 using IDTypeBlendWriteFunction = void (*)(BlendWriter *writer, ID *id, const void *id_address);
 using IDTypeBlendReadDataFunction = void (*)(BlendDataReader *reader, ID *id);

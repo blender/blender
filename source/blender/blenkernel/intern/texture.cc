@@ -92,16 +92,16 @@ static void texture_copy_data(Main *bmain,
     }
 
     if (is_localized) {
-      texture_dst->nodetree = ntreeLocalize(texture_src->nodetree);
+      texture_dst->nodetree = ntreeLocalize(texture_src->nodetree, &texture_dst->id);
     }
     else {
       BKE_id_copy_in_lib(bmain,
                          owner_library,
-                         (ID *)texture_src->nodetree,
-                         (ID **)&texture_dst->nodetree,
+                         &texture_src->nodetree->id,
+                         &texture_dst->id,
+                         reinterpret_cast<ID **>(&texture_dst->nodetree),
                          flag_private_id_data);
     }
-    texture_dst->nodetree->owner_id = &texture_dst->id;
   }
 
   BLI_listbase_clear((ListBase *)&texture_dst->drawdata);

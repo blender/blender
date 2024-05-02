@@ -320,6 +320,7 @@ class SEQUENCER_PT_sequencer_overlay(Panel):
         layout.prop(overlay_settings, "show_strip_retiming", text="Retiming")
         layout.prop(overlay_settings, "show_thumbnails", text="Thumbnails")
         layout.prop(overlay_settings, "show_grid", text="Grid")
+        layout.prop(st.cache_overlay, "show_cache", text="Cache")
 
         layout.separator()
 
@@ -327,25 +328,6 @@ class SEQUENCER_PT_sequencer_overlay(Panel):
         layout.row().prop(overlay_settings, "waveform_display_type", expand=True)
         layout.label(text="Waveform Style")
         layout.row().prop(overlay_settings, "waveform_display_style", expand=True)
-
-
-class SEQUENCER_MT_view_cache(Menu):
-    bl_label = "Cache"
-
-    def draw(self, context):
-        layout = self.layout
-
-        ed = context.scene.sequence_editor
-        layout.prop(ed, "show_cache")
-        layout.separator()
-
-        col = layout.column()
-        col.enabled = ed.show_cache
-
-        col.prop(ed, "show_cache_final_out")
-        col.prop(ed, "show_cache_raw")
-        col.prop(ed, "show_cache_preprocessed")
-        col.prop(ed, "show_cache_composite")
 
 
 class SEQUENCER_MT_range(Menu):
@@ -480,10 +462,6 @@ class SEQUENCER_MT_view(Menu):
             layout.menu("SEQUENCER_MT_navigation")
             layout.menu("SEQUENCER_MT_range")
             layout.separator()
-
-            if context.preferences.view.show_developer_ui:
-                layout.menu("SEQUENCER_MT_view_cache", text="Cache")
-                layout.separator()
 
         layout.operator("render.opengl", text="Sequence Render Image", icon='RENDER_STILL').sequencer = True
         props = layout.operator("render.opengl", text="Sequence Render Animation", icon='RENDER_ANIMATION')
@@ -2287,8 +2265,7 @@ class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        show_developer_ui = context.preferences.view.show_developer_ui
-        return cls.has_sequencer(context) and context.scene.sequence_editor and show_developer_ui
+        return cls.has_sequencer(context) and context.scene.sequence_editor
 
     def draw(self, context):
         layout = self.layout
@@ -2303,6 +2280,38 @@ class SEQUENCER_PT_cache_settings(SequencerButtonsPanel, Panel):
         col.prop(ed, "use_cache_preprocessed", text="Preprocessed")
         col.prop(ed, "use_cache_composite", text="Composite")
         col.prop(ed, "use_cache_final", text="Final")
+
+
+class SEQUENCER_PT_cache_view_settings(SequencerButtonsPanel, Panel):
+    bl_label = "Display"
+    bl_category = "Cache"
+    bl_parent_id = "SEQUENCER_PT_cache_settings"
+
+    @classmethod
+    def poll(cls, context):
+        return cls.has_sequencer(context) and context.scene.sequence_editor
+
+    def draw_header(self, context):
+        cache_settings = context.space_data.cache_overlay
+
+        self.layout.prop(cache_settings, "show_cache", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        cache_settings = context.space_data.cache_overlay
+        layout.active = cache_settings.show_cache
+
+        col = layout.column(heading="Cache", align=True)
+
+        show_developer_ui = context.preferences.view.show_developer_ui
+        if show_developer_ui:
+            col.prop(cache_settings, "show_cache_raw", text="Raw")
+            col.prop(cache_settings, "show_cache_preprocessed", text="Preprocessed")
+            col.prop(cache_settings, "show_cache_composite", text="Composite")
+        col.prop(cache_settings, "show_cache_final_out", text="Final")
 
 
 class SEQUENCER_PT_proxy_settings(SequencerButtonsPanel, Panel):
@@ -2791,7 +2800,6 @@ classes = (
     SEQUENCER_MT_editor_menus,
     SEQUENCER_MT_range,
     SEQUENCER_MT_view,
-    SEQUENCER_MT_view_cache,
     SEQUENCER_MT_preview_zoom,
     SEQUENCER_MT_proxy,
     SEQUENCER_MT_select_handle,
@@ -2854,6 +2862,7 @@ classes = (
     SEQUENCER_PT_modifiers,
 
     SEQUENCER_PT_cache_settings,
+    SEQUENCER_PT_cache_view_settings,
     SEQUENCER_PT_strip_cache,
     SEQUENCER_PT_proxy_settings,
     SEQUENCER_PT_strip_proxy,

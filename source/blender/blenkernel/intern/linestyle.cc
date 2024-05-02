@@ -76,10 +76,10 @@ static void linestyle_copy_data(Main *bmain,
   if (linestyle_src->nodetree) {
     BKE_id_copy_in_lib(bmain,
                        owner_library,
-                       (ID *)linestyle_src->nodetree,
-                       (ID **)&linestyle_dst->nodetree,
+                       &linestyle_src->nodetree->id,
+                       &linestyle_dst->id,
+                       reinterpret_cast<ID **>(&linestyle_dst->nodetree),
                        flag_private_id_data);
-    linestyle_dst->nodetree->owner_id = &linestyle_dst->id;
   }
 
   BLI_listbase_clear(&linestyle_dst->color_modifiers);

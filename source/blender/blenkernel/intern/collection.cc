@@ -249,7 +249,7 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static ID **collection_owner_pointer_get(ID *id)
+static ID **collection_owner_pointer_get(ID *id, const bool debug_relationship_assert)
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return nullptr;
@@ -257,9 +257,11 @@ static ID **collection_owner_pointer_get(ID *id)
 
   Collection *master_collection = (Collection *)id;
   BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
-  BLI_assert(master_collection->owner_id != nullptr);
-  BLI_assert(GS(master_collection->owner_id->name) == ID_SCE);
-  BLI_assert(((Scene *)master_collection->owner_id)->master_collection == master_collection);
+  if (debug_relationship_assert) {
+    BLI_assert(master_collection->owner_id != nullptr);
+    BLI_assert(GS(master_collection->owner_id->name) == ID_SCE);
+    BLI_assert(((Scene *)master_collection->owner_id)->master_collection == master_collection);
+  }
 
   return &master_collection->owner_id;
 }

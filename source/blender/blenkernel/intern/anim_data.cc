@@ -348,10 +348,20 @@ AnimData *BKE_animdata_copy_in_lib(Main *bmain,
                                  flag;
     BLI_assert(bmain != nullptr);
     BLI_assert(dadt->action == nullptr || dadt->action != dadt->tmpact);
-    dadt->action = reinterpret_cast<bAction *>(BKE_id_copy_in_lib(
-        bmain, owner_library, reinterpret_cast<ID *>(dadt->action), nullptr, id_copy_flag));
-    dadt->tmpact = reinterpret_cast<bAction *>(BKE_id_copy_in_lib(
-        bmain, owner_library, reinterpret_cast<ID *>(dadt->tmpact), nullptr, id_copy_flag));
+    dadt->action = reinterpret_cast<bAction *>(
+        BKE_id_copy_in_lib(bmain,
+                           owner_library,
+                           reinterpret_cast<ID *>(dadt->action),
+                           nullptr,
+                           nullptr,
+                           id_copy_flag));
+    dadt->tmpact = reinterpret_cast<bAction *>(
+        BKE_id_copy_in_lib(bmain,
+                           owner_library,
+                           reinterpret_cast<ID *>(dadt->tmpact),
+                           nullptr,
+                           nullptr,
+                           id_copy_flag));
   }
   else if (do_id_user) {
     id_us_plus((ID *)dadt->action);

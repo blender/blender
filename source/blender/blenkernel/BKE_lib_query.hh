@@ -158,10 +158,11 @@ enum {
    * Recurse into 'descendant' IDs.
    * Each ID is only processed once. Order of ID processing is not guaranteed.
    *
-   * Also implies IDWALK_READONLY, and excludes IDWALK_DO_INTERNAL_RUNTIME_POINTERS.
+   * Also implies #IDWALK_READONLY, and excludes #IDWALK_DO_INTERNAL_RUNTIME_POINTERS.
    *
    * NOTE: When enabled, embedded IDs are processed separately from their owner, as if they were
-   * regular IDs. Owner ID is not available then in the #LibraryForeachIDData callback data.
+   * regular IDs. The owner ID remains available in the #LibraryForeachIDData callback data, unless
+   * #IDWALK_IGNORE_MISSING_OWNER_ID is passed.
    */
   IDWALK_RECURSE = (1 << 1),
   /** Include UI pointers (from WM and screens editors). */
@@ -183,6 +184,8 @@ enum {
    * \note This flag is mutually exclusive with `IDWALK_RECURSE`, since by definition accessing the
    * current ID pointer is required for recursion.
    *
+   * \note Also implies #IDWALK_IGNORE_MISSING_OWNER_ID.
+   *
    * \note After remapping, code may access the newly set ID pointer, which is always presumed
    * valid.
    *
@@ -190,6 +193,16 @@ enum {
    * (especially when it comes to detecting `IDWALK_CB_EMBEDDED_NOT_OWNING` usages).
    */
   IDWALK_NO_ORIG_POINTERS_ACCESS = (1 << 5),
+  /**
+   * Do not attempt to find the owner ID of an embedded one if not explicitely given.
+   *
+   * \note This is needed in some cases, when the loopback 'owner' ID pointer of the processed
+   * embeeded data is known to be invalid (as part of depsgraph ID copying code, where embedded IDs
+   * are mostly processed on their own, separately from their owner ID).
+   *
+   * \note Also implied by #IDWALK_NO_ORIG_POINTERS_ACCESS.
+   */
+  IDWALK_IGNORE_MISSING_OWNER_ID = (1 << 6),
 
   /**
    * Also process internal ID pointers like `ID.newid` or `ID.orig_id`.

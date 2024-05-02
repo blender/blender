@@ -68,10 +68,12 @@ static void lattice_copy_data(Main *bmain,
   lattice_dst->def = static_cast<BPoint *>(MEM_dupallocN(lattice_src->def));
 
   if (lattice_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
-    BKE_id_copy_in_lib(
-        bmain, owner_library, &lattice_src->key->id, (ID **)&lattice_dst->key, flag);
-    /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
-    lattice_dst->key->from = &lattice_dst->id;
+    BKE_id_copy_in_lib(bmain,
+                       owner_library,
+                       &lattice_src->key->id,
+                       &lattice_dst->id,
+                       reinterpret_cast<ID **>(&lattice_dst->key),
+                       flag);
   }
 
   BKE_defgroup_copy_list(&lattice_dst->vertex_group_names, &lattice_src->vertex_group_names);

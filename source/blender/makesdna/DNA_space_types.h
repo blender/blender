@@ -646,6 +646,20 @@ typedef enum eSpaceSeq_SequencerTimelineOverlay_Flag {
   SEQ_TIMELINE_SHOW_GRID = (1 << 18),
 } eSpaceSeq_SequencerTimelineOverlay_Flag;
 
+typedef struct SequencerCacheOverlay {
+  int flag;
+  char _pad0[4];
+} SequencerCacheOverlay;
+
+/** #SequencerCacheOverlay.flag */
+typedef enum eSpaceSeq_SequencerCacheOverlay_Flag {
+  SEQ_CACHE_SHOW = (1 << 1),
+  SEQ_CACHE_SHOW_RAW = (1 << 2),
+  SEQ_CACHE_SHOW_PREPROCESSED = (1 << 3),
+  SEQ_CACHE_SHOW_COMPOSITE = (1 << 4),
+  SEQ_CACHE_SHOW_FINAL_OUT = (1 << 5),
+} eSpaceSeq_SequencerCacheOverlay_Flag;
+
 /** Sequencer. */
 typedef struct SpaceSeq {
   SpaceLink *next, *prev;
@@ -686,6 +700,7 @@ typedef struct SpaceSeq {
 
   struct SequencerPreviewOverlay preview_overlay;
   struct SequencerTimelineOverlay timeline_overlay;
+  struct SequencerCacheOverlay cache_overlay;
 
   /** Multi-view current eye - for internal use. */
   char multiview_eye;

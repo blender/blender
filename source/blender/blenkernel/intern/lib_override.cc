@@ -258,6 +258,7 @@ static ID *lib_override_library_create_from(Main *bmain,
       owner_library,
       reference_id,
       nullptr,
+      nullptr,
       (LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE | lib_id_copy_flags));
   if (local_id == nullptr) {
     return nullptr;

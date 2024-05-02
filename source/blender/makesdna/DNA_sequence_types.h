@@ -823,12 +823,11 @@ enum {
 
   SEQ_CACHE_OVERRIDE = (1 << 4),
 
-  /* enable cache visualization overlay in timeline UI */
-  SEQ_CACHE_VIEW_ENABLE = (1 << 5),
-  SEQ_CACHE_VIEW_RAW = (1 << 6),
-  SEQ_CACHE_VIEW_PREPROCESSED = (1 << 7),
-  SEQ_CACHE_VIEW_COMPOSITE = (1 << 8),
-  SEQ_CACHE_VIEW_FINAL_OUT = (1 << 9),
+  SEQ_CACHE_UNUSED_5 = (1 << 5),
+  SEQ_CACHE_UNUSED_6 = (1 << 6),
+  SEQ_CACHE_UNUSED_7 = (1 << 7),
+  SEQ_CACHE_UNUSED_8 = (1 << 8),
+  SEQ_CACHE_UNUSED_9 = (1 << 9),
 
   SEQ_CACHE_PREFETCH_ENABLE = (1 << 10),
   SEQ_CACHE_DISK_CACHE_ENABLE = (1 << 11),

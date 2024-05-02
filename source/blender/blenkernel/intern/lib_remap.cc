@@ -514,7 +514,7 @@ static void libblock_remap_data(
 #ifdef DEBUG_PRINT
     printf("\tchecking id %s (%p, %p)\n", id->name, id, id->lib);
 #endif
-    id_remap_data.id_owner = id;
+    id_remap_data.id_owner = (id->flag & LIB_EMBEDDED_DATA) ? BKE_id_owner_get(id) : id;
     libblock_remap_data_preprocess(id_remap_data.id_owner, remap_type, id_remapper);
     BKE_library_foreach_ID_link(
         nullptr, id, foreach_libblock_remap_callback, &id_remap_data, foreach_id_flags);

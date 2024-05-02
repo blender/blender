@@ -102,9 +102,12 @@ static void curve_copy_data(Main *bmain,
   curve_dst->bevel_profile = BKE_curveprofile_copy(curve_src->bevel_profile);
 
   if (curve_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
-    BKE_id_copy_in_lib(bmain, owner_library, &curve_src->key->id, (ID **)&curve_dst->key, flag);
-    /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
-    curve_dst->key->from = &curve_dst->id;
+    BKE_id_copy_in_lib(bmain,
+                       owner_library,
+                       &curve_src->key->id,
+                       &curve_dst->id,
+                       reinterpret_cast<ID **>(&curve_dst->key),
+                       flag);
   }
 
   curve_dst->editnurb = nullptr;
