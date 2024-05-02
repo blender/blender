@@ -162,7 +162,8 @@ static void depthdropper_depth_sample_pt(bContext *C,
         View3D *v3d = area->spacedata.first;
         RegionView3D *rv3d = region->regiondata;
         /* weak, we could pass in some reference point */
-        const float *view_co = v3d->camera ? v3d->camera->obmat[3] : rv3d->viewinv[3];
+        const float *view_co = (v3d->camera && rv3d->persp == RV3D_CAMOB) ? v3d->camera->obmat[3] :
+                                                                            rv3d->viewinv[3];
         const int mval[2] = {m_xy[0] - region->winrct.xmin, m_xy[1] - region->winrct.ymin};
         copy_v2_v2_int(ddr->name_pos, mval);
 
