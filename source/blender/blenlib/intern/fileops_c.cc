@@ -1204,13 +1204,13 @@ static int delete_soft(const char *file, const char **error_message)
   const char *args[5];
   const char *process_failed;
 
-  /* NOTE(@ideasman42): `XDG_*` environment variables aren't reliably set on GNOME, see: #121241.
-   * Take care using them, as a hint they're OK, but not guaranteed to be correct. */
+  /* May contain `:` delimiter characters according to version 1.5 of the spec:
+   * https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html */
   const char *xdg_current_desktop = getenv("XDG_CURRENT_DESKTOP");
   const char *xdg_session_desktop = getenv("XDG_SESSION_DESKTOP");
 
-  if ((xdg_current_desktop != nullptr && STREQ(xdg_current_desktop, "KDE")) ||
-      (xdg_session_desktop != nullptr && STREQ(xdg_session_desktop, "KDE")))
+  if ((xdg_current_desktop && BLI_string_elem_split_by_delim(xdg_current_desktop, ':', "KDE")) ||
+      (xdg_session_desktop && STREQ(xdg_session_desktop, "KDE")))
   {
     args[0] = "kioclient5";
     args[1] = "move";
