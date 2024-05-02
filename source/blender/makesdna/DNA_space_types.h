@@ -985,6 +985,8 @@ enum eFileSortType {
   FILE_SORT_EXTENSION = 2,
   FILE_SORT_TIME = 3,
   FILE_SORT_SIZE = 4,
+  /* Assets: Sort by catalog. Within each catalog, assets will be sorted by name. */
+  FILE_SORT_ASSET_CATALOG = 5,
 };
 
 /** #SpaceFile.tags */
