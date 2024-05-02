@@ -711,8 +711,12 @@ bool BKE_id_can_be_asset(const ID *id);
  * Return the owner ID of the given `id`, if any.
  *
  * \note This will only return non-NULL for embedded IDs (master collections etc.), and shape-keys.
+ *
+ * \param debug_relationship_assert: True by default, whether to perform debug checks on validity
+ * of the pointers between owner and embedded IDs. In some cases, these relations are not yet
+ * (fully) valid, e.g. during ID copying.
  */
-ID *BKE_id_owner_get(ID *id);
+ID *BKE_id_owner_get(ID *id, const bool debug_relationship_assert = true);
 
 /**
  * Check if that ID can be considered as editable from a high-level (editor) perspective.

@@ -103,12 +103,14 @@ static void shapekey_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static ID **shapekey_owner_pointer_get(ID *id)
+static ID **shapekey_owner_pointer_get(ID *id, const bool debug_relationship_assert)
 {
   Key *key = (Key *)id;
 
-  BLI_assert(key->from != nullptr);
-  BLI_assert(BKE_key_from_id(key->from) == key);
+  if (debug_relationship_assert) {
+    BLI_assert(key->from != nullptr);
+    BLI_assert(BKE_key_from_id(key->from) == key);
+  }
 
   return &key->from;
 }

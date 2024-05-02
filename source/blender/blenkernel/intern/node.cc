@@ -456,7 +456,7 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
-static ID **node_owner_pointer_get(ID *id)
+static ID **node_owner_pointer_get(ID *id, const bool debug_relationship_assert)
 {
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return nullptr;
@@ -465,8 +465,10 @@ static ID **node_owner_pointer_get(ID *id)
   // BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  BLI_assert(ntree->owner_id != nullptr);
-  BLI_assert(ntreeFromID(ntree->owner_id) == ntree);
+  if (debug_relationship_assert) {
+    BLI_assert(ntree->owner_id != nullptr);
+    BLI_assert(ntreeFromID(ntree->owner_id) == ntree);
+  }
 
   return &ntree->owner_id;
 }

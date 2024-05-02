@@ -2209,11 +2209,11 @@ bool BKE_id_can_be_asset(const ID *id)
          BKE_idtype_idcode_is_linkable(GS(id->name));
 }
 
-ID *BKE_id_owner_get(ID *id)
+ID *BKE_id_owner_get(ID *id, const bool debug_relationship_assert)
 {
   const IDTypeInfo *idtype = BKE_idtype_get_info_from_id(id);
   if (idtype->owner_pointer_get != nullptr) {
-    ID **owner_id_pointer = idtype->owner_pointer_get(id);
+    ID **owner_id_pointer = idtype->owner_pointer_get(id, debug_relationship_assert);
     if (owner_id_pointer != nullptr) {
       return *owner_id_pointer;
     }
