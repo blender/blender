@@ -1773,7 +1773,9 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
     /* Commit needed to so configure callback runs. */
     wl_surface_commit(window_->wl.surface);
-    while (!decor.initial_configure_seen) {
+
+    /* Failure exits with an error, simply prevent an eternal loop. */
+    while (!decor.initial_configure_seen && !ghost_wl_display_report_error_if_set(display)) {
       wl_display_flush(display);
       wl_display_dispatch(display);
     }
@@ -1932,7 +1934,8 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     }
 #  endif /* WITH_VULKAN_BACKEND */
 
-    while (!decor.initial_configure_seen) {
+    /* Failure exits with an error, simply prevent an eternal loop. */
+    while (!decor.initial_configure_seen && !ghost_wl_display_report_error_if_set(display)) {
       wl_display_flush(display);
       wl_display_dispatch(display);
     }
