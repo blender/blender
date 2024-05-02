@@ -295,13 +295,10 @@ static void OVERLAY_outline_grease_pencil(OVERLAY_PrivateData *pd, Scene *scene,
   int t_offset = 0;
   const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*scene, grease_pencil, true);
   for (const DrawingInfo info : drawings) {
-    const bool is_screenspace = false;
     const bool is_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
 
-    float object_scale = mat4_to_scale(ob->object_to_world().ptr());
-    /* Negate thickness sign to tag that strokes are in screen space.
-     * Convert to world units (by default, 1 meter = 1000 pixels). */
-    float thickness_scale = (is_screenspace) ? -1.0f : 1.0f / 1000.0f;
+    const float object_scale = mat4_to_scale(ob->object_to_world().ptr());
+    const float thickness_scale = bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
 
     gpu::VertBuf *position_tx = draw::DRW_cache_grease_pencil_position_buffer_get(scene, ob);
     gpu::VertBuf *color_tx = draw::DRW_cache_grease_pencil_color_buffer_get(scene, ob);
