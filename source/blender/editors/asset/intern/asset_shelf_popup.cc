@@ -53,20 +53,18 @@ void type_popup_unlink(const AssetShelfType &shelf_type)
 
 static AssetShelf *get_shelf_for_popup(const bContext *C, AssetShelfType &shelf_type)
 {
-  const SpaceType *space_type = BKE_spacetype_from_id(shelf_type.space_type);
-
   Vector<AssetShelf *> &popup_shelves = StaticPopupShelves::shelves();
 
   for (AssetShelf *shelf : popup_shelves) {
     if (STREQ(shelf->idname, shelf_type.idname)) {
-      if (type_poll(*C, *space_type, type_ensure(*space_type, *shelf))) {
+      if (type_poll_for_popup(*C, ensure_shelf_has_type(*shelf))) {
         return shelf;
       }
       break;
     }
   }
 
-  if (type_poll(*C, *space_type, &shelf_type)) {
+  if (type_poll_for_popup(*C, &shelf_type)) {
     AssetShelf *new_shelf = create_shelf_from_type(shelf_type);
     popup_shelves.append(new_shelf);
     return new_shelf;

@@ -77,12 +77,9 @@ void type_unregister(const AssetShelfType &shelf_type)
   shelf_types.remove(it - shelf_types.begin());
 }
 
-bool type_poll(const bContext &C, const AssetShelfType *shelf_type, const int space_type)
+static bool type_poll_no_spacetype_check(const bContext &C, const AssetShelfType *shelf_type)
 {
   if (!shelf_type) {
-    return false;
-  }
-  if (shelf_type->space_type && (space_type != shelf_type->space_type)) {
     return false;
   }
 
@@ -97,6 +94,31 @@ bool type_poll(const bContext &C, const AssetShelfType *shelf_type, const int sp
 #endif
 
   return !shelf_type->poll || shelf_type->poll(&C, shelf_type);
+}
+
+bool type_poll_for_popup(const bContext &C, const AssetShelfType *shelf_type)
+{
+  return type_poll_no_spacetype_check(C, shelf_type);
+}
+
+/**
+ * Poll an asset shelf type for display as a permanent region in a space of a given type (the
+ * type's #bl_space_type).
+ *
+ * Popup asset shelves should use #type_poll_for_popup() instead.
+ */
+static bool type_poll_for_non_popup(const bContext &C,
+                                    const AssetShelfType *shelf_type,
+                                    const int space_type)
+{
+  if (!shelf_type) {
+    return false;
+  }
+  if (shelf_type->space_type && (space_type != shelf_type->space_type)) {
+    return false;
+  }
+
+  return type_poll_no_spacetype_check(C, shelf_type);
 }
 
 AssetShelfType *type_find_from_idname(const StringRef idname)
@@ -187,7 +209,8 @@ static AssetShelf *update_active_shelf(const bContext &C,
 
   /* Case 1: */
   if (shelf_regiondata.active_shelf &&
-      type_poll(C, ensure_shelf_has_type(*shelf_regiondata.active_shelf), space_type))
+      type_poll_for_non_popup(
+          C, ensure_shelf_has_type(*shelf_regiondata.active_shelf), space_type))
   {
     /* Not a strong precondition, but if this is wrong something weird might be going on. */
     BLI_assert(shelf_regiondata.active_shelf == shelf_regiondata.shelves.first);
@@ -201,7 +224,7 @@ static AssetShelf *update_active_shelf(const bContext &C,
       continue;
     }
 
-    if (type_poll(C, ensure_shelf_has_type(*shelf), space_type)) {
+    if (type_poll_for_non_popup(C, ensure_shelf_has_type(*shelf), space_type)) {
       /* Found a valid previously activated shelf, reactivate it. */
       activate_shelf(shelf_regiondata, *shelf);
       return shelf;
@@ -210,7 +233,7 @@ static AssetShelf *update_active_shelf(const bContext &C,
 
   /* Case 3: */
   for (const std::unique_ptr<AssetShelfType> &shelf_type : static_shelf_types()) {
-    if (type_poll(C, shelf_type.get(), space_type)) {
+    if (type_poll_for_non_popup(C, shelf_type.get(), space_type)) {
       AssetShelf *new_shelf = create_shelf_from_type(*shelf_type);
       BLI_addhead(&shelf_regiondata.shelves, new_shelf);
       /* Moves ownership to the regiondata. */
@@ -259,7 +282,7 @@ static bool asset_shelf_space_poll(const bContext *C, const SpaceLink *space_lin
 {
   /* Is there any asset shelf type registered that returns true for it's poll? */
   for (const std::unique_ptr<AssetShelfType> &shelf_type : static_shelf_types()) {
-    if (type_poll(*C, shelf_type.get(), space_link->spacetype)) {
+    if (type_poll_for_non_popup(*C, shelf_type.get(), space_link->spacetype)) {
       return true;
     }
   }
