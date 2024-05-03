@@ -46,7 +46,7 @@ void template_asset_shelf_popover(uiLayout &layout,
     if (use_big_size) {
       return UI_UNIT_X * 6;
     }
-    return UI_UNIT_X * (name.is_empty() ? 7 : 1.6f);
+    return UI_UNIT_X * (name.is_empty() ? 1.6f : 7);
   }();
   const short height = UI_UNIT_Y * (use_big_size ? 6 : 1);
 
