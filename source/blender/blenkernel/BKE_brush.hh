@@ -39,10 +39,6 @@ void BKE_brush_system_exit();
  */
 Brush *BKE_brush_add(Main *bmain, const char *name, eObjectMode ob_mode);
 /**
- * Add a new gp-brush.
- */
-Brush *BKE_brush_add_gpencil(Main *bmain, ToolSettings *ts, const char *name, eObjectMode mode);
-/**
  * Delete a Brush.
  */
 bool BKE_brush_delete(Main *bmain, Brush *brush);
@@ -56,24 +52,6 @@ void BKE_brush_init_curves_sculpt_settings(Brush *brush);
 Brush *BKE_brush_first_search(Main *bmain, eObjectMode ob_mode);
 
 void BKE_brush_sculpt_reset(Brush *brush);
-
-/**
- * Create a set of grease pencil Drawing presets.
- */
-void BKE_brush_gpencil_paint_presets(Main *bmain, ToolSettings *ts, bool reset);
-/**
- * Create a set of grease pencil Vertex Paint presets.
- */
-void BKE_brush_gpencil_vertex_presets(Main *bmain, ToolSettings *ts, bool reset);
-/**
- * Create a set of grease pencil Sculpt Paint presets.
- */
-void BKE_brush_gpencil_sculpt_presets(Main *bmain, ToolSettings *ts, bool reset);
-/**
- * Create a set of grease pencil Weight Paint presets.
- */
-void BKE_brush_gpencil_weight_presets(Main *bmain, ToolSettings *ts, bool reset);
-void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, short type);
 
 void BKE_brush_jitter_pos(const Scene *scene,
                           Brush *brush,

@@ -423,16 +423,13 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_paint);
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_vertexpaint);
 
-    BKE_brush_gpencil_paint_presets(bmain, ts, false);
-
     /* Ensure Palette by default. */
     BKE_gpencil_palette_ensure(bmain, CTX_data_scene(C));
 
     Paint *paint = &ts->gp_paint->paint;
     Brush *brush = BKE_paint_brush(paint);
-    /* if not exist, create a new one */
-    if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
-      BKE_brush_gpencil_paint_presets(bmain, ts, true);
+    if (brush && !brush->gpencil_settings) {
+      BKE_brush_init_gpencil_settings(brush);
     }
     BKE_paint_brush_validate(bmain, &ts->gp_paint->paint);
   }
@@ -573,10 +570,6 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
   if (mode == OB_MODE_SCULPT_GPENCIL_LEGACY) {
     /* Be sure we have brushes. */
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_sculptpaint);
-
-    const bool reset_mode = (BKE_paint_brush(&ts->gp_sculptpaint->paint) == nullptr);
-    BKE_brush_gpencil_sculpt_presets(bmain, ts, reset_mode);
-
     BKE_paint_brush_validate(bmain, &ts->gp_sculptpaint->paint);
   }
 
@@ -717,9 +710,6 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
       ED_paint_cursor_start(weight_paint, grease_pencil_poll_weight_cursor);
     }
 
-    const bool reset_mode = (BKE_paint_brush(weight_paint) == nullptr);
-    BKE_brush_gpencil_weight_presets(bmain, ts, reset_mode);
-
     BKE_paint_brush_validate(bmain, weight_paint);
   }
 
@@ -831,9 +821,6 @@ static int gpencil_vertexmode_toggle_exec(bContext *C, wmOperator *op)
      * Need Draw as well (used for Palettes). */
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_paint);
     BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_vertexpaint);
-
-    const bool reset_mode = (BKE_paint_brush(&ts->gp_vertexpaint->paint) == nullptr);
-    BKE_brush_gpencil_vertex_presets(bmain, ts, reset_mode);
 
     BKE_paint_brush_validate(bmain, &ts->gp_vertexpaint->paint);
 

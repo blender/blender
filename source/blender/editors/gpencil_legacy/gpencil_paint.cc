@@ -1914,50 +1914,6 @@ static void gpencil_session_validatebuffer(tGPsdata *p)
   }
 }
 
-/* helper to get default eraser and create one if no eraser brush */
-static Brush *gpencil_get_default_eraser(Main *bmain, ToolSettings *ts)
-{
-  Brush *brush_dft = nullptr;
-  Paint *paint = &ts->gp_paint->paint;
-  Brush *brush_prev = BKE_paint_brush(paint);
-  for (Brush *brush = static_cast<Brush *>(bmain->brushes.first); brush;
-       brush = static_cast<Brush *>(brush->id.next))
-  {
-    if (brush->gpencil_settings == nullptr) {
-      continue;
-    }
-    if ((brush->ob_mode == OB_MODE_PAINT_GPENCIL_LEGACY) &&
-        (brush->gpencil_tool == GPAINT_TOOL_ERASE))
-    {
-      /* save first eraser to use later if no default */
-      if (brush_dft == nullptr) {
-        brush_dft = brush;
-      }
-      /* found default */
-      if (brush->gpencil_settings->flag & GP_BRUSH_DEFAULT_ERASER) {
-        return brush;
-      }
-    }
-  }
-  /* if no default, but exist eraser brush, return this and set as default */
-  if (brush_dft) {
-    brush_dft->gpencil_settings->flag |= GP_BRUSH_DEFAULT_ERASER;
-    return brush_dft;
-  }
-  /* create a new soft eraser brush */
-
-  brush_dft = BKE_brush_add_gpencil(bmain, ts, "Soft Eraser", OB_MODE_PAINT_GPENCIL_LEGACY);
-  brush_dft->size = 30.0f;
-  brush_dft->gpencil_settings->flag |= GP_BRUSH_DEFAULT_ERASER;
-  brush_dft->gpencil_tool = GPAINT_TOOL_ERASE;
-  brush_dft->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_SOFT;
-
-  /* reset current brush */
-  BKE_paint_brush_set(paint, brush_prev);
-
-  return brush_dft;
-}
-
 /* helper to set default eraser and disable others */
 static void gpencil_set_default_eraser(Main *bmain, Brush *brush_dft)
 {
@@ -1976,55 +1932,6 @@ static void gpencil_set_default_eraser(Main *bmain, Brush *brush_dft)
         brush->gpencil_settings->flag &= ~GP_BRUSH_DEFAULT_ERASER;
       }
     }
-  }
-}
-
-/* initialize a drawing brush */
-static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
-{
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  ToolSettings *ts = CTX_data_tool_settings(C);
-
-  Paint *paint = &ts->gp_paint->paint;
-  bool changed = false;
-  Brush *brush = BKE_paint_brush(paint);
-
-  /* if not exist, create a new one */
-  if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
-    /* create new brushes */
-    BKE_brush_gpencil_paint_presets(bmain, ts, true);
-    changed = true;
-    brush = BKE_paint_brush(paint);
-  }
-  /* Be sure curves are initialized. */
-  BKE_curvemapping_init(brush->gpencil_settings->curve_sensitivity);
-  BKE_curvemapping_init(brush->gpencil_settings->curve_strength);
-  BKE_curvemapping_init(brush->gpencil_settings->curve_jitter);
-  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_pressure);
-  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_strength);
-  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_uv);
-  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_hue);
-  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_saturation);
-  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_value);
-
-  /* Assign to temp #tGPsdata */
-  p->brush = BKE_paint_brush(paint);
-  if (p->brush->gpencil_tool != GPAINT_TOOL_ERASE) {
-    p->eraser = gpencil_get_default_eraser(p->bmain, ts);
-  }
-  else {
-    p->eraser = p->brush;
-  }
-  /* set new eraser as default */
-  gpencil_set_default_eraser(p->bmain, p->eraser);
-
-  /* use radius of eraser */
-  p->radius = short(p->eraser->size);
-
-  /* Need this update to synchronize brush with draw manager. */
-  if (changed) {
-    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   }
 }
 
@@ -2121,9 +2028,6 @@ static bool gpencil_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 
   /* clear out buffer (stored in gp-data), in case something contaminated it */
   gpencil_session_validatebuffer(p);
-
-  /* set brush and create a new one if null */
-  gpencil_init_drawing_brush(C, p);
 
   /* setup active color */
   /* region where paint was originated */

@@ -540,19 +540,6 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
 
-      if (ts->gp_paint) {
-        BKE_brush_gpencil_paint_presets(bmain, ts, true);
-      }
-      if (ts->gp_sculptpaint) {
-        BKE_brush_gpencil_sculpt_presets(bmain, ts, true);
-      }
-      if (ts->gp_vertexpaint) {
-        BKE_brush_gpencil_vertex_presets(bmain, ts, true);
-      }
-      if (ts->gp_weightpaint) {
-        BKE_brush_gpencil_weight_presets(bmain, ts, true);
-      }
-
       /* Ensure new Paint modes. */
       BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::VertexGPencil);
       BKE_paint_ensure_from_paintmode(bmain, scene, PaintMode::SculptGPencil);

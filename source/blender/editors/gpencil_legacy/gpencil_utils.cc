@@ -1429,13 +1429,6 @@ void ED_gpencil_add_defaults(bContext *C, Object *ob)
   ToolSettings *ts = CTX_data_tool_settings(C);
 
   BKE_paint_ensure(bmain, ts, (Paint **)&ts->gp_paint);
-  Paint *paint = &ts->gp_paint->paint;
-  Brush *brush = BKE_paint_brush(paint);
-  /* if not exist, create a new one */
-  if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
-    /* create new brushes */
-    BKE_brush_gpencil_paint_presets(bmain, ts, true);
-  }
 
   /* ensure a color exists and is assigned to object */
   BKE_gpencil_object_material_ensure_from_active_input_toolsettings(bmain, ob, ts);
