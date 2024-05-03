@@ -39,6 +39,7 @@ namespace blender::ed::asset::shelf {
 class AssetView : public ui::AbstractGridView {
   const AssetLibraryReference library_ref_;
   const AssetShelf &shelf_;
+  std::optional<AssetWeakReference> active_asset_;
   /** Copy of the filter string from #AssetShelfSettings, with extra '*' added to the beginning and
    * end of the string, for `fnmatch()` to work. */
   char search_string[sizeof(AssetShelfSettings::search_string) + 2] = "";
@@ -69,6 +70,7 @@ class AssetViewItem : public ui::PreviewGridItem {
   void disable_asset_drag();
   void build_grid_tile(uiLayout &layout) const override;
   void build_context_menu(bContext &C, uiLayout &column) const override;
+  std::optional<bool> should_be_active() const override;
   bool is_filtered_visible() const override;
 
   std::unique_ptr<ui::AbstractViewItemDragController> create_drag_controller() const override;
@@ -90,6 +92,14 @@ AssetView::AssetView(const AssetLibraryReference &library_ref, const AssetShelf 
   if (shelf.settings.search_string[0]) {
     BLI_strncpy_ensure_pad(
         search_string, shelf.settings.search_string, '*', sizeof(search_string));
+  }
+  if (shelf.type->get_active_asset) {
+    if (const AssetWeakReference *weak_ref = shelf.type->get_active_asset(shelf.type)) {
+      active_asset_ = *weak_ref;
+    }
+    else {
+      active_asset_.reset();
+    }
   }
 }
 
@@ -214,6 +224,19 @@ void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const
     asset_system::AssetRepresentation *asset = handle_get_representation(&asset_);
     shelf_type.draw_context_menu(&C, &shelf_type, asset, &column);
   }
+}
+
+std::optional<bool> AssetViewItem::should_be_active() const
+{
+  const AssetView &asset_view = dynamic_cast<const AssetView &>(this->get_view());
+  if (!asset_view.active_asset_) {
+    return false;
+  }
+  const asset_system::AssetRepresentation *asset = handle_get_representation(&asset_);
+  AssetWeakReference weak_ref = asset->make_weak_reference();
+  const bool matches = *asset_view.active_asset_ == weak_ref;
+
+  return matches;
 }
 
 bool AssetViewItem::is_filtered_visible() const
