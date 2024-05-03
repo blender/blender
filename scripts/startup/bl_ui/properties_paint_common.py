@@ -189,7 +189,7 @@ class BrushPanel(UnifiedPaintPanel):
 
 
 class BrushSelectPanel(BrushPanel):
-    bl_label = "Brushes"
+    bl_label = "Brush Asset"
 
     def draw(self, context):
         layout = self.layout
@@ -197,27 +197,21 @@ class BrushSelectPanel(BrushPanel):
         brush = settings.brush
 
         row = layout.row()
-        # TODO: hide buttons since they are confusing with menu entries.
-        # But some of this functionality may still be needed.
-        row.column().template_ID_preview(settings, "brush", rows=3, cols=8, hide_buttons=True)
+
+        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
+        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
+        row.column().template_asset_shelf_popover(
+            BrushAssetShelf.get_shelf_name_from_mode(context.object.mode),
+            name=brush.name if brush else None,
+            icon=fallback_icon,
+            icon_value=preview_icon_id,
+        )
 
         if brush is None:
             return
 
         col = row.column()
         col.menu("VIEW3D_MT_brush_context_menu", icon='DOWNARROW_HLT', text="")
-
-        if not brush.is_asset_library_data and not brush.asset_data:
-            # Legacy custom icon, mostly replaced by asset preview.
-            layout.use_property_split = True
-            layout.use_property_decorate = False
-
-            col = layout.column(heading="Custom Icon", align=True)
-            row = col.row()
-            row.prop(brush, "use_custom_icon", text="")
-            sub = row.row()
-            sub.active = brush.use_custom_icon
-            sub.prop(brush, "icon_filepath", text="")
 
 
 class ColorPalettePanel(BrushPanel):
@@ -1204,6 +1198,14 @@ def brush_settings_advanced(layout, context, brush, popover=False):
         col.prop(brush, "use_paint_weight", text="Weight Paint")
         col.prop(brush, "use_paint_image", text="Texture Paint")
         col.prop(brush, "use_paint_sculpt_curves", text="Sculpt Curves")
+
+    if len(brush.icon_filepath) > 0:
+        header, panel = layout.panel("legacy", default_closed=True)
+        header.label(text="Legacy Icon")
+        if panel:
+            panel.label(text="Brush asset icons have moved to the asset preview", icon='ERROR')
+            panel.prop(brush, "use_custom_icon")
+            panel.prop(brush, "icon_filepath")
 
 
 def draw_color_settings(context, layout, brush, color_type=False):

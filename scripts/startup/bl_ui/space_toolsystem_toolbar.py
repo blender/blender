@@ -18,7 +18,9 @@ from bl_ui.space_toolsystem_common import (
     ToolSelectPanelHelper,
     ToolDef,
 )
-
+from bl_ui.properties_paint_common import (
+    BrushAssetShelf,
+)
 from bpy.app.translations import pgettext_tip as tip_
 
 
@@ -1951,7 +1953,15 @@ class _defs_paint_grease_pencil:
         row = layout.row(align=True)
         tool_settings = context.scene.tool_settings
         settings = tool_settings.gpencil_paint
-        row.template_ID_preview(settings, "brush", rows=3, cols=8, hide_buttons=True)
+
+        preview_icon_id = brush.preview.icon_id if brush.preview else 0
+        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
+        row.template_asset_shelf_popover(
+            BrushAssetShelf.get_shelf_name_from_mode(context.object.mode),
+            name=brush.name,
+            icon=fallback_icon,
+            icon_value=preview_icon_id,
+        )
 
         from bl_ui.properties_paint_common import (
             brush_basic_grease_pencil_paint_settings,
@@ -2333,7 +2343,15 @@ class _defs_gpencil_paint:
         row = layout.row(align=True)
         tool_settings = context.scene.tool_settings
         settings = tool_settings.gpencil_paint
-        row.template_ID_preview(settings, "brush", rows=3, cols=8, hide_buttons=True)
+
+        preview_icon_id = brush.preview.icon_id if brush.preview else 0
+        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
+        layout.template_asset_shelf_popover(
+            BrushAssetShelf.get_shelf_name_from_mode(context.object.mode),
+            name=brush.name,
+            icon=fallback_icon,
+            icon_value=preview_icon_id,
+        )
 
         from bl_ui.properties_paint_common import (
             brush_basic_gpencil_paint_settings,

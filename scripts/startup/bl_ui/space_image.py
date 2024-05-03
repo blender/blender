@@ -765,9 +765,17 @@ class _draw_tool_settings_context_mode:
             return
 
         paint = context.tool_settings.image_paint
-        layout.template_ID_preview(paint, "brush", rows=3, cols=8, hide_buttons=True)
-
         brush = paint.brush
+
+        preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
+        fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
+        layout.template_asset_shelf_popover(
+            BrushAssetShelf.get_shelf_name_from_mode(context.object.mode),
+            name=brush.name if brush else None,
+            icon=fallback_icon,
+            icon_value=preview_icon_id,
+        )
+
         if brush is None:
             return
 
@@ -1183,7 +1191,7 @@ class IMAGE_PT_udim_tiles(Panel):
 
 
 class IMAGE_PT_paint_select(Panel, ImagePaintPanel, BrushSelectPanel):
-    bl_label = "Brushes"
+    bl_label = "Brush Asset"
     bl_context = ".paint_common_2d"
     bl_category = "Tool"
 
