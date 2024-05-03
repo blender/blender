@@ -198,14 +198,16 @@ class BrushSelectPanel(BrushPanel):
 
         row = layout.row()
 
+        col = row.column(align=True)
         preview_icon_id = brush.preview.icon_id if brush and brush.preview else 0
         fallback_icon = 'BRUSH_DATA' if not preview_icon_id else 'NONE'
-        row.column().template_asset_shelf_popover(
+        col.template_asset_shelf_popover(
             BrushAssetShelf.get_shelf_name_from_mode(context.object.mode),
-            name=brush.name if brush else None,
             icon=fallback_icon,
             icon_value=preview_icon_id,
         )
+        if brush:
+            col.prop(brush, "name", text="")
 
         if brush is None:
             return
