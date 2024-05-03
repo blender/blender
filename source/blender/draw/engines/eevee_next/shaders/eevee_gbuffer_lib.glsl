@@ -226,7 +226,7 @@ float gbuffer_thickness_unpack(float thickness_packed)
   float thickness = (thickness_packed > 0.5) ? 1.0 - thickness_packed : thickness_packed;
   /* Remap [0..1/2] to [0..+inf). */
   thickness = thickness / (1.0 - 2.0 * thickness);
-  /* Retreive sign. */
+  /* Retrieve sign. */
   return (thickness_packed > 0.5) ? -thickness : thickness;
 }
 
