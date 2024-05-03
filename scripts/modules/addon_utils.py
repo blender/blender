@@ -1101,7 +1101,6 @@ def _initialize_extensions_site_packages(*, create=False):
         "python{:d}.{:d}".format(sys.version_info.major, sys.version_info.minor),
         "site-packages",
     )
-    print(site_packages)
     if create:
         if not os.path.exists(site_packages):
             os.makedirs(site_packages)
