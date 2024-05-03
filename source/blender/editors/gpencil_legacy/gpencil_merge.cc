@@ -85,7 +85,6 @@ static void gpencil_insert_points_to_stroke(bGPDstroke *gps,
 
 static bGPDstroke *gpencil_prepare_stroke(bContext *C, wmOperator *op, int totpoints)
 {
-  Main *bmain = CTX_data_main(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   Object *ob = CTX_data_active_object(C);
   bGPdata *gpd = static_cast<bGPdata *>(ob->data);
