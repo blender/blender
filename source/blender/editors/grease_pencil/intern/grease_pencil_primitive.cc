@@ -676,6 +676,9 @@ static int grease_pencil_primitive_invoke(bContext *C, wmOperator *op, const wmE
 
   Paint *paint = &vc.scene->toolsettings->gp_paint->paint;
   ptd.brush = BKE_paint_brush(paint);
+  if (ptd.brush->gpencil_settings == nullptr) {
+    BKE_brush_init_gpencil_settings(ptd.brush);
+  }
   ptd.settings = ptd.brush->gpencil_settings;
 
   BKE_curvemapping_init(ptd.settings->curve_sensitivity);

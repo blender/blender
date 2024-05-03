@@ -26,6 +26,7 @@
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
 #include "BKE_gpencil_geom_legacy.h"
@@ -2405,6 +2406,9 @@ static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *op)
 
   /* save filling parameters */
   Brush *brush = BKE_paint_brush(&ts->gp_paint->paint);
+  if (brush && !brush->gpencil_settings) {
+    BKE_brush_init_gpencil_settings(brush);
+  }
   tgpf->brush = brush;
   tgpf->flag = brush->gpencil_settings->flag;
   tgpf->fill_threshold = brush->gpencil_settings->fill_threshold;

@@ -1914,6 +1914,43 @@ static void gpencil_session_validatebuffer(tGPsdata *p)
   }
 }
 
+/* initialize a drawing brush */
+static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
+{
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  Paint *paint = &ts->gp_paint->paint;
+  Brush *brush = BKE_paint_brush(paint);
+
+  if (brush == nullptr) {
+    return;
+  }
+
+  /* Be sure curves are initialized. */
+  BKE_curvemapping_init(brush->gpencil_settings->curve_sensitivity);
+  BKE_curvemapping_init(brush->gpencil_settings->curve_strength);
+  BKE_curvemapping_init(brush->gpencil_settings->curve_jitter);
+  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_pressure);
+  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_strength);
+  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_uv);
+  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_hue);
+  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_saturation);
+  BKE_curvemapping_init(brush->gpencil_settings->curve_rand_value);
+
+  /* Assign to temp #tGPsdata */
+  p->brush = brush;
+  if (p->brush->gpencil_tool != GPAINT_TOOL_ERASE) {
+    /* TODO: make this work again with "Smooth Eraser" essentials brush.
+     * See od gpencil_set_default_eraser and gpencil_set_default_eraser. */
+    p->eraser = p->brush;
+  }
+  else {
+    p->eraser = p->brush;
+  }
+
+  /* use radius of eraser */
+  p->radius = short(p->eraser->size);
+}
+
 /* initialize a paint brush and a default color if not exist */
 static void gpencil_init_colors(tGPsdata *p)
 {
@@ -2007,6 +2044,13 @@ static bool gpencil_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 
   /* clear out buffer (stored in gp-data), in case something contaminated it */
   gpencil_session_validatebuffer(p);
+
+  /* set brush and create a new one if null */
+  gpencil_init_drawing_brush(C, p);
+  if (p->brush == nullptr) {
+    p->status = GP_STATUS_ERROR;
+    return false;
+  }
 
   /* setup active color */
   /* region where paint was originated */
