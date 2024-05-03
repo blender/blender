@@ -20,10 +20,12 @@
 #include "BLI_string_utils.hh"
 
 #include "BKE_appdir.hh"
+#include "BKE_asset.hh"
 #include "BKE_preferences.h"
 
 #include "BLT_translation.hh"
 
+#include "DNA_asset_types.h"
 #include "DNA_defaults.h"
 #include "DNA_userdef_types.h"
 
@@ -398,6 +400,68 @@ int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
                                              const bUserExtensionRepo *repo)
 {
   return BLI_findindex(&userdef->extension_repos, repo);
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #bUserAssetShelfSettings
+ * \{ */
+
+static bUserAssetShelfSettings *asset_shelf_settings_new(UserDef *userdef,
+                                                         const char *shelf_idname)
+{
+  bUserAssetShelfSettings *settings = DNA_struct_default_alloc(bUserAssetShelfSettings);
+  BLI_addtail(&userdef->asset_shelves_settings, settings);
+  STRNCPY(settings->shelf_idname, shelf_idname);
+  BLI_assert(BLI_listbase_is_empty(&settings->enabled_catalog_paths));
+  return settings;
+}
+
+static bUserAssetShelfSettings *asset_shelf_settings_ensure(UserDef *userdef,
+                                                            const char *shelf_idname)
+{
+  if (bUserAssetShelfSettings *settings = BKE_preferences_asset_shelf_settings_get(userdef,
+                                                                                   shelf_idname))
+  {
+    return settings;
+  }
+  return asset_shelf_settings_new(userdef, shelf_idname);
+}
+
+bUserAssetShelfSettings *BKE_preferences_asset_shelf_settings_get(const UserDef *userdef,
+                                                                  const char *shelf_idname)
+{
+  return static_cast<bUserAssetShelfSettings *>(
+      BLI_findstring(&userdef->asset_shelves_settings,
+                     shelf_idname,
+                     offsetof(bUserAssetShelfSettings, shelf_idname)));
+}
+
+bool BKE_preferences_asset_shelf_settings_is_catalog_path_enabled(const UserDef *userdef,
+                                                                  const char *shelf_idname,
+                                                                  const char *catalog_path)
+{
+  const bUserAssetShelfSettings *settings = BKE_preferences_asset_shelf_settings_get(userdef,
+                                                                                     shelf_idname);
+  if (!settings) {
+    return false;
+  }
+  return BKE_asset_catalog_path_list_has_path(settings->enabled_catalog_paths, catalog_path);
+}
+
+bool BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(UserDef *userdef,
+                                                                      const char *shelf_idname,
+                                                                      const char *catalog_path)
+{
+  if (BKE_preferences_asset_shelf_settings_is_catalog_path_enabled(
+          userdef, shelf_idname, catalog_path))
+  {
+    return false;
+  }
+
+  bUserAssetShelfSettings *settings = asset_shelf_settings_ensure(userdef, shelf_idname);
+  BKE_asset_catalog_path_list_add_path(settings->enabled_catalog_paths, catalog_path);
+  return true;
 }
 
 /** \} */

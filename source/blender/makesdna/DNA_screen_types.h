@@ -799,7 +799,7 @@ typedef struct AssetShelfSettings {
 
   AssetLibraryReference asset_library_reference;
 
-  ListBase enabled_catalog_paths; /* #LinkData */
+  ListBase enabled_catalog_paths; /* #AssetCatalogPathLink */
   /** If not set (null or empty string), all assets will be displayed ("All" catalog behavior). */
   const char *active_catalog_path;
 

@@ -118,3 +118,58 @@ void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *
   BLO_read_string(reader, &weak_ref->asset_library_identifier);
   BLO_read_string(reader, &weak_ref->relative_asset_identifier);
 }
+
+void BKE_asset_catalog_path_list_free(ListBase &catalog_path_list)
+{
+  LISTBASE_FOREACH_MUTABLE (AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
+    MEM_delete(catalog_path->path);
+    BLI_freelinkN(&catalog_path_list, catalog_path);
+  }
+  BLI_assert(BLI_listbase_is_empty(&catalog_path_list));
+}
+
+ListBase BKE_asset_catalog_path_list_duplicate(const ListBase &catalog_path_list)
+{
+  ListBase duplicated_list = {nullptr};
+
+  LISTBASE_FOREACH (AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
+    AssetCatalogPathLink *copied_path = MEM_cnew<AssetCatalogPathLink>(__func__);
+    copied_path->path = BLI_strdup(catalog_path->path);
+
+    BLI_addtail(&duplicated_list, copied_path);
+  }
+
+  return duplicated_list;
+}
+
+void BKE_asset_catalog_path_list_blend_write(BlendWriter *writer,
+                                             const ListBase &catalog_path_list)
+{
+  LISTBASE_FOREACH (const AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
+    BLO_write_struct(writer, AssetCatalogPathLink, catalog_path);
+    BLO_write_string(writer, catalog_path->path);
+  }
+}
+
+void BKE_asset_catalog_path_list_blend_read_data(BlendDataReader *reader,
+                                                 ListBase &catalog_path_list)
+{
+  BLO_read_struct_list(reader, AssetCatalogPathLink, &catalog_path_list);
+  LISTBASE_FOREACH (AssetCatalogPathLink *, catalog_path, &catalog_path_list) {
+    BLO_read_data_address(reader, &catalog_path->path);
+  }
+}
+
+bool BKE_asset_catalog_path_list_has_path(const ListBase &catalog_path_list,
+                                          const char *catalog_path)
+{
+  return BLI_findstring_ptr(
+             &catalog_path_list, catalog_path, offsetof(AssetCatalogPathLink, path)) != nullptr;
+}
+
+void BKE_asset_catalog_path_list_add_path(ListBase &catalog_path_list, const char *catalog_path)
+{
+  AssetCatalogPathLink *new_path = MEM_cnew<AssetCatalogPathLink>(__func__);
+  new_path->path = BLI_strdup(catalog_path);
+  BLI_addtail(&catalog_path_list, new_path);
+}

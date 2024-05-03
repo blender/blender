@@ -6,7 +6,7 @@ from bpy.types import Menu
 
 
 class BrushAssetShelf:
-    bl_options = {'DEFAULT_VISIBLE', 'NO_ASSET_DRAG'}
+    bl_options = {'DEFAULT_VISIBLE', 'NO_ASSET_DRAG', 'STORE_ENABLED_CATALOGS_IN_PREFERENCES'}
     bl_default_preview_size = 48
 
     @classmethod

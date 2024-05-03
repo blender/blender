@@ -39,4 +39,16 @@
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name bUserExtensionRepo Struct
+ * \{ */
+
+#define _DNA_DEFAULT_bUserAssetShelfSettings \
+  { \
+    .shelf_idname = {'\0'}, \
+    .enabled_catalog_paths = {NULL, NULL}, \
+  }
+
+/** \} */
+
 /* clang-format on */

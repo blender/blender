@@ -755,6 +755,20 @@ typedef struct bUserScriptDirectory {
 } bUserScriptDirectory;
 
 /**
+ * Settings for an asset shelf, stored in the Preferences. Most settings are still stored in the
+ * asset shelf instance in #AssetShelfSettings. This is just for the options that should be shared
+ * as Preferences.
+ */
+typedef struct bUserAssetShelfSettings {
+  struct bUserAssetShelfSettings *next, *prev;
+
+  /** Identifier that matches the #AssetShelfType.idname of the shelf these settings apply to. */
+  char shelf_idname[64]; /* MAX_NAME */
+
+  ListBase enabled_catalog_paths; /* #AssetCatalogPathLink */
+} bUserAssetShelfSettings;
+
+/**
  * Main user preferences data, typically accessed from #U.
  * See: #BKE_blendfile_userdef_from_defaults & #BKE_blendfile_userdef_read.
  *
@@ -891,6 +905,7 @@ typedef struct UserDef {
   struct ListBase asset_libraries;
   /** #bUserExtensionRepo */
   struct ListBase extension_repos;
+  struct ListBase asset_shelves_settings; /* #bUserAssetShelfSettings */
 
   char keyconfigstr[64];
 

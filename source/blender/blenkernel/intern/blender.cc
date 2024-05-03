@@ -22,6 +22,7 @@
 #include "IMB_moviecache.hh"
 
 #include "BKE_addon.h"
+#include "BKE_asset.hh"
 #include "BKE_blender.hh"           /* own include */
 #include "BKE_blender_user_menu.hh" /* own include */
 #include "BKE_blender_version.h"    /* own include */
@@ -340,6 +341,12 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
   BLI_freelistN(&userdef->script_directories);
   BLI_freelistN(&userdef->asset_libraries);
   BLI_freelistN(&userdef->extension_repos);
+  LISTBASE_FOREACH_MUTABLE (bUserAssetShelfSettings *, settings, &userdef->asset_shelves_settings)
+  {
+    BKE_asset_catalog_path_list_free(settings->enabled_catalog_paths);
+    MEM_freeN(settings);
+  }
+  BLI_listbase_clear(&userdef->asset_shelves_settings);
 
   BLI_freelistN(&userdef->uistyles);
   BLI_freelistN(&userdef->uifonts);

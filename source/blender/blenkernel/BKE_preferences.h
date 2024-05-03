@@ -18,6 +18,7 @@ extern "C" {
 struct UserDef;
 struct bUserExtensionRepo;
 struct bUserAssetLibrary;
+struct bUserAssetShelfSettings;
 
 /* -------------------------------------------------------------------- */
 /** \name Assert Libraries
@@ -119,6 +120,27 @@ void BKE_preferences_extension_remote_to_name(const char *remote_path, char name
 
 int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
                                              const bUserExtensionRepo *repo);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #bUserAssetShelvesSettings
+ * \{ */
+
+bUserAssetShelfSettings *BKE_preferences_asset_shelf_settings_get(const UserDef *userdef,
+                                                                  const char *shelf_idname);
+bool BKE_preferences_asset_shelf_settings_is_catalog_path_enabled(const UserDef *userdef,
+                                                                  const char *shelf_idname,
+                                                                  const char *catalog_path);
+/**
+ * Enable a catalog path for a asset shelf identified by \a shelf_idname. Will create the shelf
+ * settings in the Preferences if necessary.
+ * \return Return true if the catalog was newly enabled. The Preferences should be tagged as dirty
+ * then.
+ */
+bool BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(UserDef *userdef,
+                                                                      const char *shelf_idname,
+                                                                      const char *catalog_path);
 
 /** \} */
 

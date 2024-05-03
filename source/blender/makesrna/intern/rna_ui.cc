@@ -2267,6 +2267,12 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
        "Visible by Default",
        "Unhide the asset shelf when it's available for the first time, otherwise it will be "
        "hidden"},
+      {ASSET_SHELF_TYPE_FLAG_STORE_CATALOGS_IN_PREFS,
+       "STORE_ENABLED_CATALOGS_IN_PREFERENCES",
+       0,
+       "Store Enabled Catalogs in Preferences",
+       "Store the shelf's enabled catalogs in the preferences rather than the local asset shelf "
+       "settings"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
