@@ -1914,27 +1914,6 @@ static void gpencil_session_validatebuffer(tGPsdata *p)
   }
 }
 
-/* helper to set default eraser and disable others */
-static void gpencil_set_default_eraser(Main *bmain, Brush *brush_dft)
-{
-  if (brush_dft == nullptr) {
-    return;
-  }
-
-  for (Brush *brush = static_cast<Brush *>(bmain->brushes.first); brush;
-       brush = static_cast<Brush *>(brush->id.next))
-  {
-    if ((brush->gpencil_settings) && (brush->gpencil_tool == GPAINT_TOOL_ERASE)) {
-      if (brush == brush_dft) {
-        brush->gpencil_settings->flag |= GP_BRUSH_DEFAULT_ERASER;
-      }
-      else if (brush->gpencil_settings->flag & GP_BRUSH_DEFAULT_ERASER) {
-        brush->gpencil_settings->flag &= ~GP_BRUSH_DEFAULT_ERASER;
-      }
-    }
-  }
-}
-
 /* initialize a paint brush and a default color if not exist */
 static void gpencil_init_colors(tGPsdata *p)
 {
